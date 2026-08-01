@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   buildSourceLedgerFromCourseGraph,
   buildSourceReportMarkdown,
+  isClaimBoundSourceLedgerRow,
+  isComputerScienceWeakSource,
   isLicenseAmbiguous,
   isTrustedSourceLedgerRow,
   normalizeTrustedSource,
@@ -11,6 +13,128 @@ import {
 } from '../sourceLedger.js';
 
 describe('trusted source ledger', () => {
+  it('requires a complete source-to-rendered-claim chain before declaring evidence resolved', () => {
+    const base = {
+      id: 'source-1',
+      provider: 'doaj',
+      url: 'https://example.test/source-1',
+      license: 'CC BY 4.0',
+      provenanceMismatch: false,
+    };
+    const complete = normalizeTrustedSource({
+      ...base,
+      title: 'Evidence-based policy analysis',
+      supportReceipt: {
+        status: 'passed',
+        checkedClaims: 1,
+        minimumScore: 1,
+        semanticSupport: true,
+        readinessEligible: true,
+        checks: [
+          {
+            sourceId: 'source-1',
+            locator: 'p. 4, paragraph 2',
+            quote: 'The study distinguishes observed association from causal identification.',
+            claim: 'Observed association alone does not establish causation.',
+            renderedLocation: 'Lesson 6 study guide > Worked example',
+            quoteInSnapshot: true,
+            entailed: true,
+            semanticSupport: true,
+            score: 1,
+          },
+        ],
+      },
+    });
+
+    expect(isClaimBoundSourceLedgerRow(complete)).toBe(true);
+    expect(
+      isClaimBoundSourceLedgerRow({
+        ...complete,
+        supportReceipt: {
+          ...complete.supportReceipt,
+          checks: [{ ...complete.supportReceipt.checks[0], renderedLocation: '' }],
+        },
+      }),
+    ).toBe(false);
+    expect(
+      isClaimBoundSourceLedgerRow({
+        ...complete,
+        supportReceipt: { ...complete.supportReceipt, semanticSupport: false },
+      }),
+    ).toBe(false);
+  });
+
+  it('rejects broad Python-package bycatch while admitting exact lesson evidence', () => {
+    const courseGraph = {
+      course: { name: 'Python for Public Policy Analysis' },
+      sessions: [
+        { title: 'Python Data Types and Expressions' },
+        { title: 'Functions and pytest' },
+        { title: 'Pandas Data Cleaning' },
+        { title: 'Reproducible Analysis, Visualization, and Uncertainty' },
+        { title: 'Capstone Policy Memo: Correlation and Causation' },
+      ],
+    };
+    const source = (title, evidence, concept) => ({
+      title,
+      evidence,
+      provider: 'doaj',
+      conceptLinks: [{ label: concept }],
+    });
+
+    expect(
+      isComputerScienceWeakSource(
+        source(
+          'PyGMT: A Python interface for the Generic Mapping Tools',
+          'A geospatial plotting package built around GMT.',
+          'Python Data Types and Expressions',
+        ),
+        courseGraph,
+      ),
+    ).toBe(true);
+    expect(
+      isComputerScienceWeakSource(
+        source(
+          'XSO: a Python framework for computational plankton modelling',
+          'A scientific framework for marine ecosystem simulation.',
+          'Functions and pytest',
+        ),
+        courseGraph,
+      ),
+    ).toBe(true);
+    expect(
+      isComputerScienceWeakSource(
+        source(
+          'A molecule archive for Mars research',
+          'An archive of molecular spectra for planetary-science experiments.',
+          'Capstone Policy Memo: Correlation and Causation',
+        ),
+        courseGraph,
+      ),
+    ).toBe(true);
+
+    expect(
+      isComputerScienceWeakSource(
+        source(
+          'pandas user guide: Working with missing data',
+          'DataFrame cleaning identifies missing values and records data-quality decisions in Python.',
+          'Pandas Data Cleaning',
+        ),
+        courseGraph,
+      ),
+    ).toBe(false);
+    expect(
+      isComputerScienceWeakSource(
+        source(
+          'Matplotlib guide to visualizing uncertainty',
+          'Matplotlib error bars communicate confidence intervals and uncertainty.',
+          'Reproducible Analysis, Visualization, and Uncertainty',
+        ),
+        courseGraph,
+      ),
+    ).toBe(false);
+  });
+
   it('normalizes accidental sentence seams in scholarly source metadata', () => {
     const source = normalizeTrustedSource({
       id: 'kr1',

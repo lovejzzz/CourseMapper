@@ -4,6 +4,7 @@ import { resolveFeatureLabel } from './exporters/exporterUtils.js';
 import {
   buildSourceLedgerFromCourseGraph,
   buildSourceReportMarkdown,
+  isClaimBoundSourceLedgerRow,
   isLicenseAmbiguous,
   isTrustedConceptLinkedSourceLedgerRow,
   isTrustedSourceLedgerRow,
@@ -805,6 +806,7 @@ function buildLessonEvidenceDependencies({
     const session = graphSessionForLesson(courseGraph, lessonNumber, lessonIndex);
     const resourceRefs = [...new Set(sessionResourceRefs(session))];
     const lessonSourceRows = resourceRefs.map((ref) => trustedById.get(ref)).filter(Boolean);
+    const claimBoundLessonSourceRows = lessonSourceRows.filter(isClaimBoundSourceLedgerRow);
     const scopedText = Object.entries(deliverables || {})
       .filter(([featureId, entry]) => SPLIT_BY_LESSON_FEATURES.has(featureId) && entry?.data)
       .map(([featureId, entry]) =>
@@ -818,7 +820,11 @@ function buildLessonEvidenceDependencies({
 
     if (resourceRefs.length > 0) {
       const unresolvedRefs = resourceRefs.filter((ref) => !ledgerById.has(ref) && !graphResourceById.has(ref));
-      const reviewRefs = resourceRefs.filter((ref) => !unresolvedRefs.includes(ref) && !trustedById.has(ref));
+      const reviewRefs = resourceRefs.filter((ref) => {
+        if (unresolvedRefs.includes(ref)) return false;
+        const trustedRow = trustedById.get(ref);
+        return !trustedRow || !isClaimBoundSourceLedgerRow(trustedRow);
+      });
       requirements.push({
         kind: 'source-references',
         label: 'lesson source references',
@@ -850,7 +856,7 @@ function buildLessonEvidenceDependencies({
         .join(' ');
       const resolved =
         requirement.kind === 'assigned-source'
-          ? lessonSourceRows.length > 0
+          ? claimBoundLessonSourceRows.length > 0
           : requirement.assetPattern.test(`${packageAssetText} ${sourceAssetText}`);
       requirements.push({
         kind: requirement.kind,

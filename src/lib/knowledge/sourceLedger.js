@@ -145,16 +145,17 @@ const COMPUTER_SCIENCE_TOPIC_ANCHORS = [
   {
     concept: /\b(?:variables?|types?|data\s+types?)\b/i,
     source:
-      /\b(?:python|programming|computer\s+science|data\s+types?|variables?\s+(?:in\s+python|in\s+programming)|type\s+systems?)\b/i,
+      /\b(?:data\s+types?|built[-\s]?in\s+types?|variables?\s+(?:in\s+python|in\s+programming)|type\s+systems?|docs\.python\.org\/(?:3\/)?library\/stdtypes)\b/i,
   },
   {
     concept: /\b(?:control\s+flow|conditionals?|loops?)\b/i,
     source:
-      /\b(?:control\s+flow|branching|iteration|python|programming|conditional\s+(?:statement|expression|operator|construct|computer|programming)|if\s+statements?|if[-\s]then(?:[-\s]else)?|loops?\s+(?:in\s+python|in\s+programming|programming|statement|construct)|for\s+loops?|while\s+loops?)\b/i,
+      /\b(?:control\s+flow|branching|iteration|conditional\s+(?:statement|expression|operator|construct|computer|programming)|if\s+statements?|if[-\s]then(?:[-\s]else)?|loops?\s+(?:in\s+python|in\s+programming|programming|statement|construct)|for\s+loops?|while\s+loops?)\b/i,
   },
   {
     concept: /\bfunctions?\b/i,
-    source: /\b(?:functions?\s+(?:in\s+python|in\s+programming|programming)|subroutine|procedure|method|python)\b/i,
+    source:
+      /\b(?:functions?\s+(?:in\s+python|in\s+programming|programming)|function\s+definitions?|def\s+statements?|subroutine|procedure|callable\s+objects?)\b/i,
   },
   {
     concept: /\blists?\b/i,
@@ -188,16 +189,31 @@ const COMPUTER_SCIENCE_TOPIC_ANCHORS = [
   },
   {
     concept: /\btesting\b/i,
-    source: /\b(?:unit\s+tests?|software\s+testing|programming\s+tests?|test[-\s]driven|pytest|unittest|python)\b/i,
+    source: /\b(?:unit\s+tests?|software\s+testing|programming\s+tests?|test[-\s]driven|pytest|unittest)\b/i,
   },
   {
     concept: /\bdebugging\b/i,
-    source: /\b(?:debugg(?:ing|er)|software\s+debugging|programming\s+debugging|python)\b/i,
+    source: /\b(?:debugg(?:ing|er)|software\s+debugging|programming\s+debugging|breakpoints?|stack\s+traces?)\b/i,
   },
   {
     concept: /\balgorithms?\b/i,
     source:
       /\b(?:algorithms?\s+(?:in\s+computer\s+science|in\s+programming|design|analysis)|computer\s+science|programming|software|pseudocode|complexity|data\s+structures?)\b/i,
+  },
+  {
+    concept: /\b(?:pandas|data\s*frames?|data\s+clean(?:ing|sing)|missing\s+values?|audit\s+logs?)\b/i,
+    source:
+      /(?=.*\b(?:pandas|data\s*frames?|data\s+clean(?:ing|sing)|missing\s+values?|data\s+quality)\b)(?=.*\b(?:pandas|python|data\s*frames?)\b)/i,
+  },
+  {
+    concept: /\b(?:reproducib(?:le|ility)|visuali[sz](?:e|ation|ing)|uncertaint(?:y|ies)|matplotlib)\b/i,
+    source:
+      /(?=.*\b(?:matplotlib|pandas|data\s*frames?)\b)(?=.*\b(?:reproducib(?:le|ility)|visuali[sz](?:e|ation|ing)|uncertaint(?:y|ies)|confidence\s+intervals?|error\s+bars?)\b)/i,
+  },
+  {
+    concept: /\b(?:correlation|causation|causal\s+inference|policy\s+memo|policy\s+analysis|capstone)\b/i,
+    source:
+      /\b(?:correlation\s+(?:and|versus|vs\.?)\s+causation|causal\s+inference|policy\s+analysis|policy\s+memorand(?:um|a)|policy\s+memo|evidence[-\s]+based\s+policy)\b/i,
   },
 ];
 const SOURCE_FINDER_TRUSTED_ROWS_PER_TOPIC = 2;
@@ -544,6 +560,7 @@ export function normalizeTrustedSource(entry = {}, { fallbackId = '', checkedAt 
               quote: cleanText(check?.quote, 500),
               sourceId: cleanText(check?.sourceId, 160),
               locator: cleanText(check?.locator, 200),
+              renderedLocation: cleanText(check?.renderedLocation || check?.artifactLocation || check?.renderedAt, 240),
               quoteInSnapshot: check?.quoteInSnapshot === true,
               entailed: check?.entailed === true,
               score: Math.max(0, Math.min(1, Number(check?.score) || 0)),
@@ -590,6 +607,31 @@ export function isTrustedSourceLedgerRow(row = {}) {
   const provider = cleanText(row?.provider, 80).toLowerCase();
   if (!TRUST_ELIGIBLE_PROVIDERS.has(provider) || REVIEW_ONLY_PROVIDERS.has(provider)) return false;
   return isSourceAccessible(row) && !isLicenseAmbiguous(row?.license) && !row?.provenanceMismatch;
+}
+
+/**
+ * A source URL and concept label are provenance metadata, not evidence that a
+ * rendered teaching claim is supported. Resolution requires one inspectable
+ * chain from source identity through locator and quotation to the authored
+ * claim and its learner-visible destination.
+ */
+export function isClaimBoundSourceLedgerRow(row = {}) {
+  if (!isTrustedSourceLedgerRow(row)) return false;
+  const receipt = row?.supportReceipt;
+  if (receipt?.status !== 'passed' || receipt?.semanticSupport !== true || receipt?.readinessEligible !== true) {
+    return false;
+  }
+  return (Array.isArray(receipt.checks) ? receipt.checks : []).some(
+    (check) =>
+      Boolean(cleanText(check?.sourceId, 160)) &&
+      Boolean(cleanText(check?.locator, 200)) &&
+      Boolean(cleanText(check?.quote, 500)) &&
+      Boolean(cleanText(check?.claim, 400)) &&
+      Boolean(cleanText(check?.renderedLocation, 240)) &&
+      check?.quoteInSnapshot === true &&
+      check?.entailed === true &&
+      check?.semanticSupport === true,
+  );
 }
 
 export function isConceptLinkedSourceLedgerRow(row = {}) {
@@ -859,7 +901,9 @@ export function isComputerScienceWeakSource(source, courseGraph) {
   if (hasOnlyArtifactConceptLinks(source)) return true;
   const text = sourceSearchText(source);
   if (COMPUTER_SCIENCE_FALSE_FRIEND_RE.test(text)) return true;
-  if (COMPUTER_SCIENCE_AMBIGUOUS_CONCEPT_RE.test(sourceConceptText(source))) {
+  const conceptText = sourceConceptText(source);
+  const hasRecognizedLessonTopic = COMPUTER_SCIENCE_TOPIC_ANCHORS.some(({ concept }) => concept.test(conceptText));
+  if (hasRecognizedLessonTopic || COMPUTER_SCIENCE_AMBIGUOUS_CONCEPT_RE.test(conceptText)) {
     return !hasComputerScienceTopicAnchor(source);
   }
   return !COMPUTER_SCIENCE_SOURCE_ANCHOR_RE.test(text) && !hasComputerScienceTopicAnchor(source);

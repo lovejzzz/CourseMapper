@@ -2,6 +2,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { inspectEvidenceRecord } from './lib/evidenceRecord.mjs';
 
 const repoRoot = process.cwd();
 const VALID_CONTRACT_STATUSES = new Set([
@@ -297,9 +298,13 @@ async function main() {
       failures,
     );
     for (const proofKey of ['benchmark', 'browser']) {
+      const inspection = await inspectEvidenceRecord(CURRENT_RELEASE.proof?.[proofKey], {
+        root: repoRoot,
+        requireTracked: true,
+      });
       assert(
-        CURRENT_RELEASE.proof?.[proofKey] && (await pathExists(CURRENT_RELEASE.proof[proofKey])),
-        `CURRENT_RELEASE.proof.${proofKey} must point to existing evidence`,
+        inspection.ok,
+        `CURRENT_RELEASE.proof.${proofKey} must be a tracked, hash-bound evidence record (${inspection.issues.join(', ')})`,
         failures,
       );
     }

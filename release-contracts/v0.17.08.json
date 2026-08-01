@@ -1,0 +1,119 @@
+{
+  "version": "0.17.08",
+  "date": "August 1, 2026",
+  "title": "Proof That Travels, Sources That Belong",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npx vitest run scripts/__tests__/evidenceRecord.test.js scripts/__tests__/algiScionHybridBenchmarkAudit.test.js src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/__tests__/packageZipExporter.test.js",
+      "npm run audit:scion:browser-base",
+      "npm run audit:release-history",
+      "npm run test:unit",
+      "npm run lint",
+      "npm run format:check",
+      "npm run build",
+      "npm run bundle:check"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification must pass from a clean checkout of the exact v0.17.08 commit."
+    },
+    "ciDeep": {
+      "status": "pending",
+      "note": "Independent instructor and five-course paired benchmark evidence remain intentionally incomplete."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Production deployment follows a green Fast verification run."
+    },
+    "liveProvider": {
+      "status": "not-current",
+      "note": "The tracked browser receipt covers runtime identity and adversarial tests, not a deployed v0.17.08 course-quality result."
+    },
+    "manualHuman": {
+      "status": "pending",
+      "note": "No external instructor result is claimed."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01708-tracked-hash-bound-release-proof",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Current benchmark and browser evidence is verified as a safe Git-tracked path with exact byte count and SHA-256 before release history can pass.",
+      "anchors": [
+        "scripts/lib/evidenceRecord.mjs",
+        "scripts/auditReleaseHistory.mjs",
+        "scripts/__tests__/evidenceRecord.test.js",
+        "src/lib/currentRelease.js"
+      ],
+      "proofCommands": ["npx vitest run scripts/__tests__/evidenceRecord.test.js", "npm run audit:release-history"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01708-finite-benchmark-metrics",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The paired evaluator requires finite values for every metric used by its per-case and aggregate promotion rules.",
+      "anchors": [
+        "scripts/algiScionHybridBenchmarkAudit.mjs",
+        "scripts/__tests__/algiScionHybridBenchmarkAudit.test.js"
+      ],
+      "proofCommands": ["npx vitest run scripts/__tests__/algiScionHybridBenchmarkAudit.test.js"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01708-verified-benchmark-artifacts",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Every required arm artifact is an on-disk path, SHA-256, and byte-count record; placeholders and tampering are explicit failures.",
+      "anchors": [
+        "scripts/lib/evidenceRecord.mjs",
+        "scripts/algiScionHybridBenchmarkAudit.mjs",
+        "scripts/__tests__/algiScionHybridBenchmarkAudit.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run scripts/__tests__/evidenceRecord.test.js scripts/__tests__/algiScionHybridBenchmarkAudit.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01708-blinded-judge-attestation",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Promotion evidence records judge identity, blinded status, substantive attestation, and a complete valid arm order for every frozen case.",
+      "anchors": [
+        "evaluation/algi/algi-scion-hybrid-benchmark-v1.json",
+        "scripts/algiScionHybridBenchmarkAudit.mjs",
+        "scripts/__tests__/algiScionHybridBenchmarkAudit.test.js"
+      ],
+      "proofCommands": ["npx vitest run scripts/__tests__/algiScionHybridBenchmarkAudit.test.js"],
+      "proofScopes": ["unit", "manual-human", "static-audit"]
+    },
+    {
+      "id": "v01708-python-source-topic-firewall",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Recognized Python lesson topics require exact topical source evidence, with regressions for the observed PyGMT, XSO, and Mars-archive bycatch.",
+      "anchors": ["src/lib/knowledge/sourceLedger.js", "src/lib/knowledge/__tests__/sourceLedger.test.js"],
+      "proofCommands": ["npx vitest run src/lib/knowledge/__tests__/sourceLedger.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01708-source-to-rendered-claim-chain",
+      "status": "verified-current",
+      "changelogHighlightIndex": 5,
+      "summary": "Resolved lesson evidence requires one semantic receipt connecting source identity and locator to an exact quotation, authored claim, and rendered destination.",
+      "anchors": [
+        "src/lib/knowledge/sourceLedger.js",
+        "src/lib/packageZipExporter.js",
+        "src/lib/knowledge/__tests__/sourceLedger.test.js",
+        "docs/V0.17.08_EVIDENCE_AND_SOURCE_ADMISSION_RECOVERY.md"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/__tests__/packageZipExporter.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output", "doc"]
+    }
+  ]
+}
