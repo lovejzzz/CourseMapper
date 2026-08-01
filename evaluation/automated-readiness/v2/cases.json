@@ -1,8 +1,8 @@
 {
   "version": "2.0.0",
   "protocol": "coursemapper-automated-readiness-v1",
-  "canonicalSha256": "eb3ad5d153738cb79962c7f906bf3626e3e9a9d5180e5f56932234eca4e22cd9",
-  "purpose": "Freeze fail-closed trusted-evidence readiness behavior without rewriting the historical V1 benchmark.",
+  "canonicalSha256": "57d86823eab301176767aa7b55b2be32c4b0240155b3027511c000138a23ebfa",
+  "purpose": "Freeze fail-closed readiness behavior after extraction-only receipts lost semantic-grounding credit, without rewriting the historical V1 benchmark.",
   "cases": [
     {
       "id": "observed-algi-v01682-generic-zero-evidence",
@@ -53,13 +53,13 @@
       "conformanceScore": 99,
       "textureScore": 96,
       "expected": {
-        "score": 59,
+        "score": 51,
         "band": "bounded-review"
       }
     },
     {
-      "id": "exact-source-rich-positive-control",
-      "origin": "synthetic-positive-control",
+      "id": "exact-source-rich-extraction-only-control",
+      "origin": "synthetic-extraction-only-control",
       "coursePrompt": "Urban Heat Resilience and Environmental Justice — a five-week advanced undergraduate course. Use this exact lesson sequence: 1) Urban heat island measurement and heat exposure data; 2) Unequal neighborhood heat exposure and environmental justice; 3) Heat-related health vulnerability and public-health evidence; 4) Cooling interventions, implementation trade-offs, and evaluation; 5) Community-engaged heat resilience planning.",
       "lessonTitles": [
         "Urban Heat Island Measurement and Heat Exposure Data",
@@ -84,8 +84,8 @@
       "conformanceScore": 99,
       "textureScore": 96,
       "expected": {
-        "score": 68,
-        "band": "strong-automated-signal"
+        "score": 51,
+        "band": "bounded-review"
       }
     }
   ]

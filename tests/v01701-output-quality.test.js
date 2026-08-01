@@ -81,14 +81,14 @@ describe('V0.17.01 output-quality evidence', () => {
     expect(createHash('sha256').update(historicalV1).digest('hex')).toBe(
       '3be0cd50211a96618cf31d65b005e635cfba35c8563be39e86386389a490a2c9',
     );
-    expect(canonicalSha256).toBe('eb3ad5d153738cb79962c7f906bf3626e3e9a9d5180e5f56932234eca4e22cd9');
+    expect(canonicalSha256).toBe('57d86823eab301176767aa7b55b2be32c4b0240155b3027511c000138a23ebfa');
     expect(observedSha256).toBe(canonicalSha256);
     expect(fixture.cases.map((entry) => entry.id)).toEqual([
       'observed-algi-v01682-generic-zero-evidence',
       'observed-scion-v01682-exact-but-thin-evidence',
-      'exact-source-rich-positive-control',
+      'exact-source-rich-extraction-only-control',
     ]);
-    expect(fixture.cases.map((entry) => entry.expected.score)).toEqual([26, 59, 68]);
+    expect(fixture.cases.map((entry) => entry.expected.score)).toEqual([26, 51, 51]);
     expect(fixture.cases.every((entry) => Number.isFinite(entry.expected.score))).toBe(true);
     expect(fixture.cases.map((entry) => entry.trustedSourceCount)).toEqual([0, 1, 5]);
     expect(fixture.cases.map((entry) => entry.trustedSourceCoverage || null)).toEqual([

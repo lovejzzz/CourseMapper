@@ -26125,7 +26125,7 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
           title: 'Carry Forward',
           bullets: [
             hasStandaloneAssessment
-              ? `Prepare or submit ${compactArtifact}; timing is set by the instructor in the local LMS.`
+              ? `Use ${concept} evidence to finish ${compactArtifact} on the timeline published in the local LMS.`
               : `Complete ${compactArtifact} as formative practice; there is no separate submission.`,
             next ? `Preview: ${primarySlideConcept(next)}.` : `Preview: portfolio synthesis and final reflection.`,
             `Use feedback from ${displayTitle} to strengthen the next course task.`,

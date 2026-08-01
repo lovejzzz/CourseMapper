@@ -15,7 +15,7 @@ const OUTPUT_PATH = path.join(ROOT, 'verification-output/automated-readiness-v2/
 const EXPECTED_CASE_IDS = [
   'observed-algi-v01682-generic-zero-evidence',
   'observed-scion-v01682-exact-but-thin-evidence',
-  'exact-source-rich-positive-control',
+  'exact-source-rich-extraction-only-control',
 ];
 
 function stableJson(value) {
