@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { act } from 'react';
 import { createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import ExportSidePanel, { hasDownloadableVerifiedPackage } from '../ExportSidePanel.jsx';
+import ExportSidePanel, { CURRENT_FINALIZER_REVISION, hasDownloadableVerifiedPackage } from '../ExportSidePanel.jsx';
 import { CourseProvider, useCourse } from '../../contexts/CourseContext.jsx';
 import { downloadCourseMaterialsZip } from '../../lib/packageZipExporter.js';
 
@@ -85,6 +85,26 @@ it('requires actual export checks and honors receipt-v2 download safety', () => 
     quality: { status: 'graded', score: 95, grade: 'A' },
   };
   expect(hasDownloadableVerifiedPackage(base)).toBe(false);
+  expect(
+    hasDownloadableVerifiedPackage({
+      ...base,
+      status: 'blocked',
+      receipt: { ...base.receipt, exportChecked: 8 },
+      quality: { ...base.quality, findingCounts: { p0: 1, p1: 0, p2: 0 } },
+    }),
+  ).toBe(false);
+  expect(
+    hasDownloadableVerifiedPackage({
+      ...base,
+      status: 'blocked',
+      receipt: {
+        ...base.receipt,
+        finalizerRevision: CURRENT_FINALIZER_REVISION,
+        exportChecked: 8,
+      },
+      quality: { ...base.quality, findingCounts: { p0: 1, p1: 0, p2: 0 } },
+    }),
+  ).toBe(true);
   expect(
     hasDownloadableVerifiedPackage({
       ...base,
@@ -1040,7 +1060,13 @@ describe('ExportSidePanel readiness repair timing', () => {
           source: 0,
           total: 1,
         },
-        receipt: { finalStatus: 'blocked', exportStatus: 'passed', exportChecked: 38, exportFailed: 0 },
+        receipt: {
+          finalizerRevision: CURRENT_FINALIZER_REVISION,
+          finalStatus: 'blocked',
+          exportStatus: 'passed',
+          exportChecked: 38,
+          exportFailed: 0,
+        },
         quality: {
           status: 'graded',
           findingCount: 3,
@@ -1077,6 +1103,7 @@ describe('ExportSidePanel readiness repair timing', () => {
         warnings: 0,
         repairsApplied: 0,
         receipt: {
+          finalizerRevision: CURRENT_FINALIZER_REVISION,
           exportWarningCount: 0,
           finalStatus: 'blocked',
           exportStatus: 'passed',

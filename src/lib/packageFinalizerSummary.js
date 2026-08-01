@@ -212,6 +212,7 @@ export function buildQualityReceipt({
         ? 'exportable-needs-review'
         : 'publishable';
   return {
+    finalizerRevision: 1,
     handoffStatus,
     checkedSections: checkedFeatureCount > 0 ? `${checkedFeatureCount}/${checkedFeatureCount}` : '',
     lessonCount,

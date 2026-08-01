@@ -23,6 +23,8 @@ import { buildPackageReadinessBinding, downloadCourseMaterialsZip } from '../lib
 import { getPackageTrustStatus } from '../lib/packageTrustStatus';
 import { buildPackageFinishDomains } from '../lib/packageFinishEvidence';
 
+export const CURRENT_FINALIZER_REVISION = 1;
+
 // ── Which formats each deliverable supports ─────────────────────────────────
 // courseMap handled separately via useExport (xlsx, csv, pdf, docx, gsheets, gdocs)
 const FORMAT_SUPPORT = {
@@ -331,6 +333,14 @@ function getDownloadReadiness(readiness) {
 }
 
 function hasFinishedPackageReceipt(packageQualityPass) {
+  const receiptRevision = Number(packageQualityPass?.receipt?.finalizerRevision) || 0;
+  const blockingQualityCount = Math.max(0, Number(packageQualityPass?.quality?.findingCounts?.p0) || 0);
+  // A current revision binds the terminal receipt to the finalizer repair
+  // contract that produced it. Legacy receipts remain usable unless they
+  // contain P0 findings: those packages must pass through the current repair
+  // logic once before Download may reuse their verified file map.
+  if (receiptRevision && receiptRevision !== CURRENT_FINALIZER_REVISION) return false;
+  if (!receiptRevision && blockingQualityCount > 0) return false;
   if (isPackageReady(packageQualityPass)) return true;
   // A terminal ready package may retain calm review notes. Those notes are
   // carried in `warnings`, so isPackageReady() (which intentionally means
