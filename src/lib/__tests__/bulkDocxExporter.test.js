@@ -41,6 +41,72 @@ describe('buildDeliverableDocxBlob', () => {
     expect(lastParagraph).not.toMatch(/<w:pPr>\s*<w:spacing[^>]*\/>\s*<\/w:pPr>\s*<\/w:p>\s*$/);
   });
 
+  it('ends a study guide on content and gives its term table a semantic header row', async () => {
+    const blob = await buildDeliverableDocxBlob(
+      'studyGuides',
+      {
+        studyGuides: [
+          {
+            lessonTitle: 'Lesson 1: Evidence',
+            summary: 'Distinguish a claim from the evidence used to support it.',
+            keyTerms: [{ term: 'Corroboration', definition: 'Checking a claim against independent evidence.' }],
+            conceptConnections: ['Use corroboration to compare two source claims before drawing a conclusion.'],
+            connectionToNext: "Use corroboration in the next lesson's source comparison.",
+          },
+        ],
+      },
+      'Evidence Methods',
+    );
+
+    const xml = await docxDocumentXml(blob);
+    const bodyBeforeSection = xml.slice(0, xml.lastIndexOf('<w:sectPr'));
+    const lastParagraph = bodyBeforeSection.slice(bodyBeforeSection.lastIndexOf('<w:p>'));
+
+    expect(xml).toContain('<w:tblHeader/>');
+    expect(xml).toContain('Term');
+    expect(xml).toContain('Definition');
+    expect(xml).toContain('<w:keepLines/>');
+    expect(xml).toContain('w:hanging="180"');
+    expect(lastParagraph).toContain('Connection to Next Lesson');
+    expect(lastParagraph).not.toMatch(/<w:pPr>\s*<w:spacing[^>]*\/>\s*<\/w:pPr>\s*<\/w:p>\s*$/);
+  });
+
+  it('uses semantic table headers without forcing sparse syllabus page breaks', async () => {
+    const blob = await buildDeliverableDocxBlob(
+      'syllabus',
+      {
+        syllabus: {
+          semester: 'Fall 2026',
+          learningOutcomes: ['Evaluate source evidence.'],
+          outcomeAlignmentMatrix: [
+            {
+              outcome: 'Evaluate source evidence.',
+              bloomsLevel: 'Evaluate',
+              practicedIn: ['Lesson 1: Evidence'],
+              assessedBy: ['The Week 1 assignment.', 'Final source memo.'],
+            },
+          ],
+          weeklySchedule: [
+            { week: 'Week 1', topic: 'Evidence', readings: 'Course packet', assignments: 'Source note' },
+          ],
+          attendancePolicy: 'Participate in the weekly evidence workshop.',
+          methodsStatement: {
+            title: 'Evidence-Based Course Design',
+            methods: [{ label: 'Retrieval practice', claim: 'Students revisit core distinctions.', references: [] }],
+          },
+        },
+      },
+      'Evidence Methods',
+    );
+
+    const xml = await docxDocumentXml(blob);
+    expect(xml.match(/<w:tblHeader\/>/g)?.length || 0).toBeGreaterThanOrEqual(2);
+    expect(xml).toContain('<w:cantSplit/>');
+    expect(xml).toContain('The Week 1 assignment; Final source memo');
+    expect(xml).not.toContain('assignment.;');
+    expect(xml).not.toContain('<w:br w:type="page"/>');
+  });
+
   it('omits internal compiler metadata from generic custom deliverable DOCX exports', async () => {
     const blob = await buildDeliverableDocxBlob(
       'custom_reflection',

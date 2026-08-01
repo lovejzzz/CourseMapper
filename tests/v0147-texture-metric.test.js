@@ -1115,7 +1115,7 @@ describe('D1(3)+(4) — weight-0 invariance and the report row on a real package
   });
 
   it('keeps every pre-texture weight and gives texture a score-bearing weight that can cost the A band', () => {
-    expect(GRADER_VERSION).toBe('1.11.6');
+    expect(GRADER_VERSION).toBe('1.12.0');
     expect(DIMENSION_WEIGHTS).toEqual({
       identity: 20,
       substance: 20,
@@ -1136,16 +1136,15 @@ describe('D1(3)+(4) — weight-0 invariance and the report row on a real package
     expect(result.findings.filter((finding) => finding.severity === 'P0')).toEqual([]);
     expect(result.overall.score, JSON.stringify(result.scores)).toBeGreaterThanOrEqual(85);
     expect(result.scores.identity).toBeGreaterThanOrEqual(85);
-    expect(result.scores.substance).toBeLessThan(100);
-    expect(result.findings).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          severity: 'P1',
-          dimension: 'substance',
-          detail: expect.stringMatching(/course process instead of subject knowledge/i),
-        }),
-      ]),
-    );
+    // Unknown terms no longer receive procedural fake definitions, so the
+    // healthy fixture has no course-process glossary penalty.
+    expect(result.scores.substance).toBe(100);
+    expect(
+      result.findings.some(
+        (finding) =>
+          finding.dimension === 'substance' && /course process instead of subject knowledge/i.test(finding.detail),
+      ),
+    ).toBe(false);
 
     const entries = Object.entries(DIMENSION_WEIGHTS);
     const totalWeight = entries.reduce((sum, [, weight]) => sum + weight, 0);
@@ -1153,9 +1152,7 @@ describe('D1(3)+(4) — weight-0 invariance and the report row on a real package
     const recomputed = Math.round(
       entries.reduce((sum, [dimension, weight]) => sum + result.scores[dimension] * weight, 0) / totalWeight,
     );
-    // P1 substance findings apply the documented B-band cap after the
-    // weighted score is computed.
-    expect(result.overall.score).toBe(Math.min(recomputed, 89));
+    expect(result.overall.score).toBe(recomputed);
   });
 
   it('scores texture from the metric and reports low texture as a finding while keeping advisories separate', () => {

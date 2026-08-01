@@ -29,9 +29,9 @@ const budgets = {
 // caught an unaccounted increase, and the fix is to re-freeze at the released
 // state, not to widen the allowance. Every future release must do the same.
 const repositoryBudgets = {
-  // v0.17.05 advances the frozen state through the shipped v0.17.04 contract;
-  // its own v0.17.05 contract consumes the single declared-release allowance.
-  baselineVersion: '0.17.04',
+  // v0.17.06 advances the frozen state through the shipped v0.17.05 contract;
+  // its own v0.17.06 contract consumes the single declared-release allowance.
+  baselineVersion: '0.17.05',
   // v0.16.82 adds 29 net lines of reusable compiler control logic for
   // policy-domain separation and concept-owned evidence binding. Source-
   // statement copy and prerequisite selection moved to a cacheable leaf; the
@@ -69,7 +69,9 @@ const repositoryBudgets = {
   // reduction.
   // V0.17.03's 16-line compiler increase is inside the same measured family;
   // freeze the exact state with no extraction allowance.
-  compilerFamilyLines: 31_137,
+  // V0.17.06 adds six net family lines for grammatical compound-concept slide
+  // copy and its reader-visible regression. Freeze the exact measured family.
+  compilerFamilyLines: 31_143,
   // v0.16.81 adds one executable Algi→Scion hybrid benchmark audit. It freezes
   // evidence, route, quality, call, latency, and export promotion rules; this
   // is a release gate rather than product-side script sprawl.
@@ -88,9 +90,9 @@ const repositoryBudgets = {
   // It reuses the cross-package audit implementation rather than introducing
   // another runner.
   npmScripts: 386,
-  // v0.17.04 shipped 290 tracked release-ledger files (contracts plus the
-  // directory README); v0.17.05 may add exactly one current-release contract.
-  releaseContractFiles: 290,
+  // v0.17.05 shipped 291 tracked release-ledger files (contracts plus the
+  // directory README); v0.17.06 may add exactly one current-release contract.
+  releaseContractFiles: 291,
   trackedWeightFiles: 62,
   trackedWeightBytes: 1_053_339_981,
   largeBinaryBytes: 1024 * 1024,
@@ -332,7 +334,10 @@ const lazyChunkBudgets = [
   // v0.17.05 restores the 238.25 KiB content ceiling. Node 24/CI measured
   // 238.283 KiB versus Node 26's 238.247 KiB; the same explicit 64-byte
   // compressor tolerance absorbs runtime variance without raising the ratchet.
-  { prefix: 'courseBlueprintCompiler-', rawKiB: 849, gzipKiB: 238.25, gzipSlackBytes: 64 },
+  // V0.17.06 adds lesson-specific quiz variation, source-backed slide concept
+  // selection, and concise grammatical display copy. The measured release is
+  // 849.1/238.4 KiB; freeze it with less than 0.2/0.1 KiB headroom.
+  { prefix: 'courseBlueprintCompiler-', rawKiB: 849.25, gzipKiB: 238.5, gzipSlackBytes: 64 },
   // Experiential-activity mechanics are compiler-owned and independently
   // cacheable beside the lazy compiler. The chunk projects the canonical
   // activity clock, evidence, constraints, decisions, artifact, and debrief
@@ -471,7 +476,9 @@ const lazyChunkBudgets = [
   // gzip ceiling; retain only a quarter-KiB raw margin.
   // V0.17.03 adds score-bearing assignment-deferral detection and exact
   // finding deduplication. The finalize-only chunk measures 72.83/25.34 KiB.
-  { prefix: 'deepQualityGrader-', rawKiB: 73, gzipKiB: 25.5 },
+  // V0.17.06 adds the score-bearing P0 lesson-dependency check and moves the
+  // public grader identity to a tiny shared module. Measured 73.6/25.6 KiB.
+  { prefix: 'deepQualityGrader-', rawKiB: 74, gzipKiB: 25.75 },
   // Citation-to-ledger matching is independently cacheable and finalize-only.
   { prefix: 'sourceLedgerCitationSupport-', rawKiB: 0.75, gzipKiB: 0.5 },
   // High-signal format patterns stay finalize-only and independently

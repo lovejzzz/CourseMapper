@@ -1,0 +1,137 @@
+{
+  "version": "0.17.06",
+  "date": "July 31, 2026",
+  "title": "Output Quality Checkpoint",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm run test:unit",
+      "npm run lint",
+      "npm run format:check",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:gold:smoke",
+      "npm run audit:evaluation:pr",
+      "npm run audit:scion:factual-canaries",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification must pass on the exact V0.17.06 release commit."
+    },
+    "ciDeep": {
+      "status": "pending-push",
+      "note": "Deep Proof remains the slower defense-in-depth lane."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Production deployment follows repository policy after review."
+    },
+    "liveProvider": {
+      "status": "not-applicable",
+      "note": "This checkpoint changes deterministic compiler, grader, exporter, and package-evidence behavior; it makes no new live-provider claim."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No instructor, learner, classroom, factual-certification, accessibility-certification, or efficacy claim is made."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01706-current-grader-proof",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "ZIP finalization reuses precomputed quality proof only when its grader version matches the current statically owned grader version; stale proof is regraded.",
+      "anchors": [
+        "src/lib/quality/graderVersion.js",
+        "src/lib/quality/deepQualityGrader.js",
+        "src/lib/packageZipExporter.js",
+        "src/lib/__tests__/packageZipExporter.test.js"
+      ],
+      "proofCommands": ["npx vitest run src/lib/__tests__/packageZipExporter.test.js"],
+      "proofScopes": ["unit", "compiled-output", "static-audit"]
+    },
+    {
+      "id": "v01706-lesson-evidence-dependencies",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Every lesson publishes named source, external-asset, and assessment dependencies, and unresolved dependencies produce a P0 package blocker.",
+      "anchors": [
+        "src/lib/packageZipExporter.js",
+        "src/lib/quality/deepQualityGrader.js",
+        "src/lib/quality/__tests__/deepQualityStructure.test.js",
+        "src/lib/__tests__/packageZipExporter.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/packageZipExporter.test.js src/lib/quality/__tests__/deepQualityStructure.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01706-reader-visible-quality-repairs",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "The compiler and final repair pass remove unresolved assignment handoffs, malformed learner prose, procedural pseudo-definitions, and repeated long-course quiz copy.",
+      "anchors": [
+        "src/lib/contentQualityChecks.js",
+        "src/lib/contentQualityRepair.js",
+        "src/lib/compiledLanguageFinalizer.js",
+        "src/lib/courseBlueprintCompiler.js",
+        "src/lib/courseCompilerPolish.js",
+        "src/lib/__tests__/contentQualityChecks.test.js",
+        "src/lib/__tests__/contentQualityRepair.test.js",
+        "src/lib/__tests__/courseBlueprintCompiler.test.js"
+      ],
+      "proofCommands": [
+        "npm run audit:gold:smoke",
+        "npx vitest run src/lib/__tests__/contentQualityChecks.test.js src/lib/__tests__/contentQualityRepair.test.js src/lib/__tests__/courseBlueprintCompiler.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01706-docx-pagination-accessibility",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "DOCX exports mark semantic header rows, prevent semantic row splitting, use stable hanging list indents, and remove unconditional syllabus page breaks; retained renders contain no blank content page and their automated accessibility reports are clean.",
+      "anchors": [
+        "src/lib/exporters/docxExporter.js",
+        "src/lib/__tests__/bulkDocxExporter.test.js",
+        "docs/V0.17.06_OUTPUT_QUALITY_CHECKPOINT.md"
+      ],
+      "proofCommands": ["npx vitest run src/lib/__tests__/bulkDocxExporter.test.js"],
+      "proofScopes": ["unit", "compiled-output", "doc"]
+    },
+    {
+      "id": "v01706-pptx-semantic-overflow",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "PPTX decorations remain within the slide canvas and carry semantic names while student-visible activity, bridge, example, discussion, and evidence copy remains concise and complete.",
+      "anchors": [
+        "src/lib/exporters/pptxExporter.js",
+        "src/lib/__tests__/pptxExporter.test.js",
+        "tests/v0141-round2-fixes.test.js"
+      ],
+      "proofCommands": ["npx vitest run src/lib/__tests__/pptxExporter.test.js tests/v0141-round2-fixes.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01706-fresh-bounded-checkpoint",
+      "status": "verified-current",
+      "changelogHighlightIndex": 5,
+      "summary": "A fresh deterministic four-lesson package earns 99/A under grader 1.12.0 with no P0, P1, or P2 findings and all eight lesson dependencies resolved, while the release explicitly excludes factual, pedagogical, accessibility, instructor, and classroom certification.",
+      "anchors": [
+        "docs/V0.17.06_OUTPUT_QUALITY_CHECKPOINT.md",
+        "evaluation/scion-adapters/held-out-course-benchmark-v38.json",
+        "src/lib/currentRelease.js",
+        "release-contracts/v0.17.06.json"
+      ],
+      "proofCommands": [
+        "npm run test:unit",
+        "npm run audit:evaluation:pr",
+        "npm run audit:scion:factual-canaries",
+        "npm run audit:release-history"
+      ],
+      "proofScopes": ["unit", "compiled-output", "static-audit", "doc"]
+    }
+  ]
+}

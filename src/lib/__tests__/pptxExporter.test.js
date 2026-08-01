@@ -26,6 +26,28 @@ function slideNames(zip) {
     .sort((a, b) => Number(a.match(/slide(\d+)/)?.[1] || 0) - Number(b.match(/slide(\d+)/)?.[1] || 0));
 }
 
+const EMU_PER_INCH = 914400;
+
+function namedShapeBoxes(xml, objectName) {
+  const boxes = [];
+  const escapedName = objectName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const pattern = new RegExp(
+    `name="${escapedName}"[\\s\\S]*?<a:off x="(-?\\d+)" y="(-?\\d+)"/><a:ext cx="(\\d+)" cy="(\\d+)"/>`,
+    'g',
+  );
+  let match = pattern.exec(xml);
+  while (match) {
+    boxes.push({
+      x: Number(match[1]) / EMU_PER_INCH,
+      y: Number(match[2]) / EMU_PER_INCH,
+      w: Number(match[3]) / EMU_PER_INCH,
+      h: Number(match[4]) / EMU_PER_INCH,
+    });
+    match = pattern.exec(xml);
+  }
+  return boxes;
+}
+
 describe('pptxExporter', () => {
   beforeEach(() => {
     installCanvasStub();
@@ -35,6 +57,43 @@ describe('pptxExporter', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it('keeps explicitly marked decorative backgrounds inside the slide canvas', async () => {
+    const blob = await buildSlideDeckPptxBlob(
+      {
+        decks: [
+          {
+            lessonTitle: 'Lesson 1: Evidence',
+            slides: [
+              { title: 'Evidence', type: 'title', bullets: ['Frame the lesson.'] },
+              { title: 'Course throughline', type: 'bridge', bullets: ['Connect prior and current evidence.'] },
+              { title: 'Evidence readiness check', type: 'summary', bullets: ['Name a claim and its support.'] },
+              { title: 'What still needs proof?', type: 'question', bullets: ['Identify the evidence gap.'] },
+            ],
+          },
+        ],
+      },
+      'Evidence Methods',
+      0,
+    );
+
+    const zip = await loadPptxZip(blob);
+    const boxes = (
+      await Promise.all(
+        slideNames(zip).map(async (name) =>
+          namedShapeBoxes(await zip.file(name).async('string'), 'cmDecorativeBackground'),
+        ),
+      )
+    ).flat();
+
+    expect(boxes.length).toBeGreaterThanOrEqual(5);
+    for (const box of boxes) {
+      expect(box.x).toBeGreaterThanOrEqual(0);
+      expect(box.y).toBeGreaterThanOrEqual(0);
+      expect(box.x + box.w).toBeLessThanOrEqual(10);
+      expect(box.y + box.h).toBeLessThanOrEqual(5.625);
+    }
   });
 
   it('does not add extra divider slides between lesson decks', async () => {

@@ -19,6 +19,7 @@ import { APP_VERSION } from './appVersion.js';
 import { SCION_BROWSER_GEMMA4_GGUF } from './scionBrowserConstants.js';
 import { resolveScionLiteratureSourceProfiles } from './scionLiteratureKnowledge.js';
 import { isAlgiModel } from './algiIdentity.js';
+import { GRADER_VERSION } from './quality/graderVersion.js';
 
 const MIN_EXPORT_BYTES = 128;
 // A full package pass assembles the same DOCX/PPTX/XLSX payload that users
@@ -349,6 +350,10 @@ function precomputedQualityMissesReadiness(precomputed, readiness) {
   });
 }
 
+function precomputedQualityMissesCurrentGrader(precomputed) {
+  return precomputed?.block?.graderVersion !== GRADER_VERSION;
+}
+
 function renderPrecomputedQualityReport(precomputed, { courseTitle = 'Course' } = {}) {
   if (!precomputed?.block) return '';
   const quality = precomputed.block;
@@ -548,6 +553,247 @@ function lessonFileStem(courseMap, lessonIndex) {
     .trim();
   const safeTitle = truncateFilePart(withoutPrefix || title || `Lesson ${lessonIndex + 1}`);
   return `Lesson ${String(materializedLessonNumber(courseMap, lessonIndex)).padStart(2, '0')} - ${safeTitle}`;
+}
+
+const EXTERNAL_EVIDENCE_REQUIREMENT_PATTERNS = [
+  {
+    kind: 'recording-or-transcript',
+    label: 'recording or transcript',
+    pattern:
+      /\b(?:supplied|provided|assigned|attached|official)\s+(?:(?:audio|video|interview)\s+)?(?:recording|transcript|recording\s*\/\s*transcript|transcript excerpt)\b/i,
+    // "Interview" is a topic as often as it is an artifact name; accepting it
+    // made an assignment DOCX titled "Interview Evidence" falsely satisfy its
+    // own recording/transcript dependency.
+    assetPattern: /\b(?:recording|transcript|audio|video)\b/i,
+  },
+  {
+    kind: 'dataset',
+    label: 'dataset',
+    pattern:
+      /\b(?:supplied|provided|assigned|attached|official)\s+(?:course\s+)?(?:dataset|data set|spreadsheet|csv)\b/i,
+    assetPattern: /\b(?:dataset|data set|spreadsheet|csv)\b/i,
+  },
+  {
+    kind: 'handout-or-packet',
+    label: 'handout or packet',
+    pattern: /\b(?:supplied|provided|assigned|attached|official)\s+(?:course\s+)?(?:handout|packet|source packet)\b/i,
+    assetPattern: /\b(?:handout|packet)\b/i,
+  },
+  {
+    kind: 'assigned-source',
+    label: 'assigned source',
+    pattern: /\b(?:supplied|provided|assigned|attached|official)\s+(?:course\s+)?(?:source|reading|article|passage)\b/i,
+    assetPattern: /\b(?:source|reading|article|passage)\b/i,
+  },
+];
+
+function compactDependencyEvidence(text, matchIndex) {
+  const source = String(text || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const start = Math.max(0, source.lastIndexOf('.', Math.max(0, matchIndex - 1)) + 1);
+  const nextPeriod = source.indexOf('.', matchIndex);
+  const end = nextPeriod >= 0 ? nextPeriod + 1 : Math.min(source.length, matchIndex + 180);
+  return source.slice(start, end).trim().slice(0, 220);
+}
+
+function graphSessionForLesson(courseGraph, lessonNumber, lessonIndex) {
+  const sessions = Array.isArray(courseGraph?.sessions) ? courseGraph.sessions : [];
+  return (
+    sessions.find((session) => Number(session?.number) === lessonNumber) ||
+    sessions.find((session) => String(session?.id || '').toLowerCase() === `s${lessonNumber}`) ||
+    sessions[lessonIndex] ||
+    null
+  );
+}
+
+function sessionResourceRefs(session) {
+  return [
+    ...(Array.isArray(session?.resourceRefs) ? session.resourceRefs : []),
+    ...(Array.isArray(session?.sections)
+      ? session.sections.flatMap((section) => (Array.isArray(section?.resourceRefs) ? section.resourceRefs : []))
+      : []),
+  ]
+    .map(String)
+    .filter(Boolean);
+}
+
+const DEPENDENCY_SURFACE_KEYS = {
+  assignments: new Set([
+    'instructions',
+    'instruction',
+    'prompt',
+    'task',
+    'requirements',
+    'requiredMaterials',
+    'steps',
+    'deliverables',
+  ]),
+  discussions: new Set(['prompt', 'question', 'questions', 'instructions', 'requirements']),
+  quizBank: new Set(['question', 'prompt', 'stem', 'instructions', 'passage', 'scenario']),
+  slideDecks: new Set(['bullets', 'content', 'activityPrompt']),
+  studyGuides: new Set(['practiceActivities', 'reviewQuestions', 'assignedReadings']),
+  lessonPlans: new Set(['materials', 'requiredMaterials', 'activity', 'instructions']),
+};
+
+function collectDependencySurfaceStrings(node, admittedKeys, active = false, output = []) {
+  if (typeof node === 'string') {
+    if (active) output.push(node);
+    return output;
+  }
+  if (Array.isArray(node)) {
+    node.forEach((entry) => collectDependencySurfaceStrings(entry, admittedKeys, active, output));
+    return output;
+  }
+  if (!node || typeof node !== 'object') return output;
+  for (const [key, value] of Object.entries(node)) {
+    collectDependencySurfaceStrings(value, admittedKeys, active || admittedKeys.has(key), output);
+  }
+  return output;
+}
+
+function dependencySurfaceText(featureId, data) {
+  const admittedKeys = DEPENDENCY_SURFACE_KEYS[featureId];
+  if (!admittedKeys) return '';
+  return collectDependencySurfaceStrings(data, admittedKeys).join(' ');
+}
+
+function buildLessonEvidenceDependencies({
+  courseMap,
+  courseGraph,
+  deliverables,
+  lessonIndices,
+  sourceLedger,
+  sourceReviewRows,
+  assessments,
+  requiredAssets,
+  files,
+}) {
+  const ledgerRows = [
+    ...(Array.isArray(sourceLedger) ? sourceLedger : []),
+    ...(Array.isArray(sourceReviewRows) ? sourceReviewRows : []),
+  ];
+  const trustedRows = ledgerRows.filter(isTrustedSourceLedgerRow);
+  const trustedById = new Map(trustedRows.map((row) => [String(row?.id || ''), row]));
+  const ledgerById = new Map(ledgerRows.map((row) => [String(row?.id || ''), row]));
+  const graphResourceById = new Map(
+    (Array.isArray(courseGraph?.resources) ? courseGraph.resources : []).map((resource) => [
+      String(resource?.id || resource?.resourceId || ''),
+      resource,
+    ]),
+  );
+  const packageAssetText = [
+    ...(Array.isArray(requiredAssets) ? requiredAssets : []),
+    ...(Array.isArray(files) ? files : []),
+  ]
+    .map((entry) =>
+      typeof entry === 'string'
+        ? entry
+        : `${entry?.path || ''} ${entry?.title || ''} ${entry?.label || ''} ${entry?.kind || ''}`,
+    )
+    .join(' ');
+  const lessons = (Array.isArray(lessonIndices) ? lessonIndices : []).map((lessonIndex) => {
+    const lesson = courseMap?.lessons?.[lessonIndex] || {};
+    const lessonNumber = materializedLessonNumber(courseMap, lessonIndex);
+    const session = graphSessionForLesson(courseGraph, lessonNumber, lessonIndex);
+    const resourceRefs = [...new Set(sessionResourceRefs(session))];
+    const lessonSourceRows = resourceRefs.map((ref) => trustedById.get(ref)).filter(Boolean);
+    const scopedText = Object.entries(deliverables || {})
+      .filter(([featureId, entry]) => SPLIT_BY_LESSON_FEATURES.has(featureId) && entry?.data)
+      .map(([featureId, entry]) =>
+        dependencySurfaceText(
+          featureId,
+          scopeDeliverableDataToLessons(featureId, entry.data, [lessonIndex], courseMap),
+        ),
+      )
+      .join(' ');
+    const requirements = [];
+
+    if (resourceRefs.length > 0) {
+      const unresolvedRefs = resourceRefs.filter((ref) => !ledgerById.has(ref) && !graphResourceById.has(ref));
+      const reviewRefs = resourceRefs.filter((ref) => !unresolvedRefs.includes(ref) && !trustedById.has(ref));
+      requirements.push({
+        kind: 'source-references',
+        label: 'lesson source references',
+        status: unresolvedRefs.length > 0 ? 'unresolved' : reviewRefs.length > 0 ? 'review-required' : 'resolved',
+        refs: resourceRefs,
+        ...(unresolvedRefs.length > 0 ? { unresolvedRefs } : {}),
+        ...(reviewRefs.length > 0 ? { reviewRefs } : {}),
+      });
+    }
+
+    for (const requirement of EXTERNAL_EVIDENCE_REQUIREMENT_PATTERNS) {
+      const match = requirement.pattern.exec(scopedText);
+      if (!match) continue;
+      const evidence = compactDependencyEvidence(scopedText, match.index);
+      // Attribution scaffolds often list "packet item, assigned reading,
+      // class activity, or instructor note" as interchangeable citation
+      // choices. That does not promise one particular assigned source and
+      // must not be upgraded into a missing-artifact blocker.
+      if (
+        requirement.kind === 'assigned-source' &&
+        /(?:packet item|lesson materials).{0,100}assigned reading.{0,100}(?:class activity|instructor note)|(?:one of|either).{0,100}assigned (?:source|reading)/i.test(
+          evidence,
+        )
+      ) {
+        continue;
+      }
+      const sourceAssetText = lessonSourceRows
+        .map((row) => `${row?.title || ''} ${row?.citation || ''} ${row?.url || ''} ${row?.kind || ''}`)
+        .join(' ');
+      const resolved =
+        requirement.kind === 'assigned-source'
+          ? lessonSourceRows.length > 0
+          : requirement.assetPattern.test(`${packageAssetText} ${sourceAssetText}`);
+      requirements.push({
+        kind: requirement.kind,
+        label: requirement.label,
+        status: resolved ? 'resolved' : 'unresolved',
+        evidence,
+      });
+    }
+
+    for (const assessment of (Array.isArray(assessments) ? assessments : []).filter(
+      (entry) => Number(entry?.lesson) === lessonNumber,
+    )) {
+      requirements.push({
+        kind: 'assessment-artifact',
+        label: assessment.title || 'assessment artifact',
+        status: assessment.artifact ? 'resolved' : 'unresolved',
+        artifact: assessment.artifact || null,
+      });
+    }
+
+    const unresolved = requirements.filter((requirement) => requirement.status === 'unresolved').length;
+    const reviewRequired = requirements.filter((requirement) => requirement.status === 'review-required').length;
+    return {
+      lesson: lessonNumber,
+      title: lesson?.title || `Lesson ${lessonNumber}`,
+      status:
+        unresolved > 0
+          ? 'unresolved'
+          : reviewRequired > 0
+            ? 'review-required'
+            : requirements.length > 0
+              ? 'resolved'
+              : 'not-required',
+      unresolved,
+      reviewRequired,
+      requirements,
+    };
+  });
+  const requirementCount = lessons.reduce((sum, lesson) => sum + lesson.requirements.length, 0);
+  const unresolvedCount = lessons.reduce((sum, lesson) => sum + lesson.unresolved, 0);
+  const reviewRequiredCount = lessons.reduce((sum, lesson) => sum + lesson.reviewRequired, 0);
+  return {
+    version: 'coursemapper-lesson-evidence-dependencies-v1',
+    status: unresolvedCount > 0 ? 'unresolved' : reviewRequiredCount > 0 ? 'review-required' : 'resolved',
+    lessonCount: lessons.length,
+    requirementCount,
+    unresolvedCount,
+    reviewRequiredCount,
+    lessons,
+  };
 }
 
 // v0.16.1: the manifest's weights must MATCH the compile. The compiler's
@@ -1771,6 +2017,7 @@ function buildManifest({
   voicePass = null,
   digest = null,
   generationConstraints = null,
+  evidenceDependencies = null,
 }) {
   const courseIR = buildManifestCourseIRProof(courseGraph, { sourceRefCoverage });
   const exportVerification = buildManifestExportVerification(digest);
@@ -1822,6 +2069,7 @@ function buildManifest({
     ...(Array.isArray(sourceReviewRows) && sourceReviewRows.length > 0 ? { sourceReviewRows } : {}),
     ...(sourceReport ? { sourceReport } : {}),
     ...(courseIR ? { courseIR } : {}),
+    ...(evidenceDependencies ? { evidenceDependencies } : {}),
     requestedFeatures: requestedFeatureIds.map((featureId) => ({
       featureId: publicFeatureId(featureId),
       label: resolveFeatureLabel(featureId),
@@ -2212,6 +2460,17 @@ export async function buildCourseMaterialsZip({
     // v0.16.1: the bridge scopes to the same lessons the compile used.
     lessonNumbers,
   });
+  const evidenceDependencies = buildLessonEvidenceDependencies({
+    courseMap,
+    courseGraph: sourceManifestGraph,
+    deliverables,
+    lessonIndices,
+    sourceLedger: sourceLedgerBundle?.rows || [],
+    sourceReviewRows: sourceLedgerBundle?.reviewRows || [],
+    assessments: manifestAssessments?.entries || [],
+    requiredAssets,
+    files,
+  });
   const publicScionRun = isScionRunDigest(qualityOptions.digest);
   const manifestPipelineState = publicScionRun
     ? publicizeScionResearchVocabulary(disclosedPipelineState)
@@ -2245,6 +2504,7 @@ export async function buildCourseMaterialsZip({
     generationConstraints: Number.isFinite(Number(qualityOptions.expectedSessionMinutes))
       ? { sessionMinutes: Number(qualityOptions.expectedSessionMinutes) }
       : null,
+    evidenceDependencies,
   });
 
   // ── v0.14.3 WS-A A2/A3: the package grades itself ─────────────────────────
@@ -2264,6 +2524,7 @@ export async function buildCourseMaterialsZip({
     const precomputedQuality = normalizePrecomputedPackageQuality(qualityOptions.precomputed);
     if (
       precomputedQuality &&
+      !precomputedQualityMissesCurrentGrader(precomputedQuality) &&
       !precomputedQualityMissesReadiness(precomputedQuality, effectiveReadiness) &&
       !precomputedQualityReferencesMissingPackageFiles(precomputedQuality, {
         ...fileContents,

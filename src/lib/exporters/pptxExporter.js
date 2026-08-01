@@ -877,25 +877,29 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
     // ── TITLE SLIDE ─────────────────────────────────────────────────────
     slide.background = { color: theme.primary };
 
-    // Large decorative circle (top right)
+    // Keep decorative geometry inside the canvas. Older full-bleed circles
+    // used negative coordinates, so generic slide QA reported content
+    // overflow even though the visible text was safe.
     slide.addShape(pptx.ShapeType.ellipse, {
-      x: W - 3.2,
-      y: -1.5,
-      w: 4.5,
-      h: 4.5,
+      x: W - 3.6,
+      y: 0,
+      w: 3.6,
+      h: 3.6,
       fill: { color: theme.secondary, transparency: 15 },
-      line: { color: theme.secondary, transparency: 15 },
+      line: { color: theme.secondary, transparency: 100 },
+      objectName: 'cmDecorativeBackground',
       altText: 'Decorative',
     });
 
     // Smaller accent circle (bottom left)
     slide.addShape(pptx.ShapeType.ellipse, {
-      x: -1.2,
-      y: H - 1.8,
-      w: 3,
-      h: 3,
+      x: 0,
+      y: H - 2.2,
+      w: 2.2,
+      h: 2.2,
       fill: { color: theme.accent, transparency: 30 },
-      line: { color: theme.accent, transparency: 30 },
+      line: { color: theme.accent, transparency: 100 },
+      objectName: 'cmDecorativeBackground',
       altText: 'Decorative',
     });
 
@@ -1263,12 +1267,13 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
 
     // Decorative circle on left
     slide.addShape(pptx.ShapeType.ellipse, {
-      x: -1,
+      x: 0,
       y: H - 2.5,
-      w: 3,
-      h: 3,
+      w: 2.5,
+      h: 2.5,
       fill: { color: theme.secondary, transparency: 50 },
-      line: { color: theme.secondary, transparency: 50 },
+      line: { color: theme.secondary, transparency: 100 },
+      objectName: 'cmDecorativeBackground',
       altText: 'Decorative',
     });
 
@@ -1810,12 +1815,13 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
     slide.background = { color: theme.primary };
 
     slide.addShape(pptx.ShapeType.ellipse, {
-      x: W - 2.3,
-      y: 0,
-      w: 2.3,
-      h: 2.3,
+      x: W - 2.25,
+      y: 0.05,
+      w: 2.2,
+      h: 2.2,
       fill: { color: theme.secondary, transparency: 55 },
-      line: { color: theme.secondary, transparency: 55 },
+      line: { color: theme.secondary, transparency: 100 },
+      objectName: 'cmDecorativeBackground',
       altText: 'Decorative',
     });
     slide.addShape(pptx.ShapeType.rect, {
@@ -1922,11 +1928,12 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
 
     slide.addShape(pptx.ShapeType.ellipse, {
       x: W - 3,
-      y: -1,
-      w: 4,
-      h: 4,
+      y: 0,
+      w: 3,
+      h: 3,
       fill: { color: theme.primary, transparency: 40 },
-      line: { color: theme.primary, transparency: 40 },
+      line: { color: theme.primary, transparency: 100 },
+      objectName: 'cmDecorativeBackground',
       altText: 'Decorative',
     });
     slide.addShape(pptx.ShapeType.rect, {

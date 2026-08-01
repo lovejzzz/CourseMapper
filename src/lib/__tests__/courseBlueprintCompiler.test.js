@@ -7897,7 +7897,8 @@ describe('courseBlueprintCompiler', () => {
     expect(firstQuiz.questions.flatMap((question) => question.tags || [])).not.toContain(
       'Lesson 1: What Psychology Is and Why It Matters',
     );
-    expect(compiled.studyGuides.studyGuides[0].keyTerms[0].definition).toMatch(/evidence focus|self-check|artifact/i);
+    expect(compiled.studyGuides.studyGuides[0].keyTerms).toEqual([]);
+    expect(compiled.studyGuides.studyGuides[0].sourceReviewRequired).toMatch(/no definitions were invented/i);
   });
 
   it('decodes engineering design courses as test-and-verification labs', () => {
@@ -8909,6 +8910,21 @@ describe('courseBlueprintCompiler', () => {
       'Name one source detail about the function of classroom language, one limitation, and the revision it supports.',
     );
     expect(deckText).not.toMatch(/\bName one (?:the|a|an|this|that|these|those)\b/i);
+
+    const compoundBlueprint = buildCourseBlueprint(makeCourseMap(1));
+    compoundBlueprint.lessons[0].keyConcepts = ['WCAG principles and conformance'];
+    compoundBlueprint.lessons[0].modalityDecode = {
+      ...compoundBlueprint.lessons[0].modalityDecode,
+      feedbackRoutine: 'Students name',
+    };
+    const compoundDeckText = JSON.stringify(
+      compileBlueprintDeliverables(compoundBlueprint, ['slideDecks']).slideDecks.decks[0],
+    );
+
+    expect(compoundDeckText).toContain(
+      'Name one source detail about WCAG principles and conformance, one limitation, and the revision it supports.',
+    );
+    expect(compoundDeckText).not.toContain('one WCAG principles and conformance source detail');
   });
 
   it('keeps course-prefixed title anchors and numbered assessment echoes out of slide decks', () => {
@@ -10091,5 +10107,77 @@ describe('courseBlueprintCompiler', () => {
     expect(JSON.stringify(diurnalFaq)).not.toMatch(/connect to graded work|feeds directly into the graded task/i);
     expect(compiled.syllabus.syllabus.outcomeAlignmentMatrix.every((row) => row.assessedBy.length > 0)).toBe(true);
     expect(JSON.stringify(compiled.syllabus.syllabus.outcomeAlignmentMatrix)).toMatch(/Formative:/i);
+  });
+
+  it('keeps imperative outcomes out of concept slots and compacts visible slide activity copy', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Digital Accessibility for Product Teams',
+      semester: 'Fall 2026',
+      lessons: [
+        {
+          title: 'Lesson 1: WCAG principles and conformance',
+          sections: [
+            {
+              topicSection: 'WCAG principles and conformance; Perceivable; Success criterion',
+              learningObjectives:
+                'Evaluate a product decision using WCAG principles; cite the applicable requirement; separate observed evidence from the limit of the conclusion.',
+              weeklyAssessments:
+                'WCAG principles and conformance evidence brief with criterion identity, observation, remediation, retest, and claim boundary',
+              supportingResources: 'W3C WCAG 2.2',
+              syncActivities: 'Field application and evidence critique',
+              evaluateDesign: 'Score source use, claim boundaries, and revision quality.',
+            },
+          ],
+        },
+      ],
+    });
+    blueprint.lessons[0].keyConcepts = [
+      'WCAG principles and conformance',
+      'cite the applicable requirement',
+      'separate observed evidence from the limit of the conclusion',
+      'Perceivable',
+    ];
+    blueprint.lessons[0].outcomes = [
+      'evaluate a product decision using WCAG principles',
+      'cite the applicable requirement',
+      'separate observed evidence from the limit of the conclusion.',
+    ];
+
+    const ir = buildSlideDeckIntermediateRepresentation(blueprint).decks[0];
+    const compiled = compileBlueprintDeliverables(blueprint, ['syllabus', 'assignments', 'slideDecks']);
+    const visibleSlideText = JSON.stringify(ir.slides.map(({ title, bullets }) => ({ title, bullets })));
+
+    expect(ir.slides.find((slide) => slide.type === 'bridge')?.title).toBe(
+      'Course throughline: WCAG principles and conformance',
+    );
+    expect(visibleSlideText).not.toMatch(/Use cite|Test cite|field applied evidence choice/i);
+    expect(JSON.stringify(compiled.slideDecks.decks[0].slides.flatMap((slide) => slide.bullets || []))).not.toMatch(
+      /adapts the course pattern/i,
+    );
+    expect(visibleSlideText).toMatch(/Use Perceivable to keep claims honest/i);
+    expect(ir.slides.find((slide) => slide.type === 'activity')?.title).not.toMatch(
+      /criterion identity|claim boundary/i,
+    );
+    expect(compiled.syllabus.syllabus.learningOutcomes).toEqual(
+      expect.arrayContaining([
+        'Evaluate a product decision using WCAG principles',
+        'Cite the applicable requirement',
+        'Separate observed evidence from the limit of the conclusion.',
+      ]),
+    );
+    expect(compiled.syllabus.syllabus.outcomeAlignmentMatrix.map((row) => row.outcome)).toEqual(
+      expect.arrayContaining([
+        'Evaluate a product decision using WCAG principles',
+        'Cite the applicable requirement',
+        'Separate observed evidence from the limit of the conclusion.',
+      ]),
+    );
+    expect(compiled.assignments.assignments[0].objectives).toEqual(
+      expect.arrayContaining([
+        'Evaluate a product decision using WCAG principles',
+        'Cite the applicable requirement',
+        'Separate observed evidence from the limit of the conclusion.',
+      ]),
+    );
   });
 });

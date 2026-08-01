@@ -24,6 +24,9 @@ const DOUBLE_PERIOD_RE = /[a-z]\.\.(?!\.)/;
 const CLIPPED_FORMAL_CHOICE_RE = /\b(?:explain how one formal choice|one formal choice shapes)\s*[.!?]\s*$/i;
 const RUN_TOGETHER_RE = /\b(?:work|criteria) (?:Names|Uses|Explains|Shows|Cites)\b/;
 const INSTRUCTOR_VOICE_RE = /\b(?:Ask students\b|Share the .{0,80}\bbefore students\b)/;
+const DUPLICATED_STUDENT_SUBJECT_RE = /\bstudents?\s+(?:may\s+assume|often\s+(?:assume|think|believe))\s+students?\b/i;
+const MALFORMED_CONCEPT_DETAIL_RE =
+  /\ba\s+(?:solid|strong|clear|specific)\s+[^.!?]{0,80}\b(?:principles|criteria|standards|guidelines|requirements)\b[^.!?]{0,30}\bdetail\b/i;
 
 function* walkStrings(node, path = '$') {
   if (typeof node === 'string') {
@@ -65,6 +68,21 @@ function checkSentenceIntegrity(findings, featureId, data) {
     if (ARTICLE_A_VOWEL_RE.test(trimmed)) pushFinding(findings, 'article-agreement', path, trimmed);
     if (DOUBLE_PERIOD_RE.test(trimmed)) pushFinding(findings, 'double-period', path, trimmed);
     if (RUN_TOGETHER_RE.test(trimmed)) pushFinding(findings, 'run-together-criteria', path, trimmed);
+    if (DUPLICATED_STUDENT_SUBJECT_RE.test(trimmed)) {
+      pushFinding(findings, 'duplicated-student-subject', path, trimmed);
+    }
+    if (MALFORMED_CONCEPT_DETAIL_RE.test(trimmed)) {
+      pushFinding(findings, 'malformed-concept-detail', path, trimmed);
+    }
+  }
+}
+
+function checkSemanticDefinitions(findings, featureId, data) {
+  if (featureId !== 'studyGuides') return;
+  for (const surface of keyTermSurfaceStrings(data)) {
+    if (CIRCULAR_DEFINITION_RE.test(surface.text)) {
+      pushFinding(findings, 'procedural-term-definition', 'studyGuides.keyTerms', surface.text);
+    }
   }
 }
 
@@ -119,6 +137,7 @@ export function auditDeliverableContentQuality(featureId, data) {
     checkStudentVoice(findings, featureId, data);
     checkInstructorConfigurationDeferrals(findings, featureId, data);
     checkQuizAnswerKeyUniformity(findings, featureId, data);
+    checkSemanticDefinitions(findings, featureId, data);
   }
   const codes = [...new Set(findings.map((finding) => finding.code))];
   return {

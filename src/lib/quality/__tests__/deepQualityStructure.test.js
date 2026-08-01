@@ -5,6 +5,47 @@ import { createMemoryFileProvider } from '../fileProviders.js';
 import { normalizeLessonSpecificTokens } from '../semanticSkeletonMask.js';
 
 describe('deep quality package structure', () => {
+  it('blocks an unresolved per-lesson evidence dependency declared by the manifest', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          lessonScope: [1],
+          readiness: { status: 'ready', blockers: 0 },
+          files: [],
+          evidenceDependencies: {
+            version: 'coursemapper-lesson-evidence-dependencies-v1',
+            lessons: [
+              {
+                lesson: 1,
+                title: 'Interview Evidence',
+                requirements: [
+                  {
+                    kind: 'recording-or-transcript',
+                    label: 'recording or transcript',
+                    status: 'unresolved',
+                    evidence: 'Analyze the supplied recording or transcript.',
+                  },
+                ],
+              },
+            ],
+          },
+        }),
+      }),
+      course: { title: 'Oral History Methods', featureIds: [] },
+      honesty: { pipeline: { judgment: 'compiler-verified fixture' } },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: 'unresolved-lesson-evidence-dependency',
+          severity: 'P0',
+          dimension: 'substance',
+        }),
+      ]),
+    );
+  });
+
   it('carries stable discipline policy codes through graded findings', async () => {
     const result = await grade({
       fileProvider: createMemoryFileProvider({
@@ -121,7 +162,7 @@ describe('deep quality package structure', () => {
     });
 
     expect(result.findings.some((finding) => /classroom clock/i.test(finding.detail))).toBe(false);
-    expect(GRADER_VERSION).toBe('1.11.6');
+    expect(GRADER_VERSION).toBe('1.12.0');
   });
 
   it('treats typed-object leaks and mirrored assessment identities as scored export defects', async () => {

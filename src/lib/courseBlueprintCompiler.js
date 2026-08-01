@@ -404,7 +404,7 @@ function isQuestionLikeTitle(value) {
 }
 
 const OBJECTIVE_IMPERATIVE_VERB_RE =
-  /^(?:analyze|evaluate|create|design|explain|compare|apply|synthesize|formulate|interpret|critique|develop|construct|identify|describe|use|integrate|connect|demonstrate|distinguish|examine|assess|review|practice|build|combine|classify|organize|summarize|investigate|explore|justify|relate|revise)\b/i;
+  /^(?:analyze|evaluate|create|design|explain|compare|apply|synthesize|formulate|interpret|critique|develop|construct|identify|describe|use|integrate|connect|demonstrate|distinguish|examine|assess|review|practice|build|combine|classify|organize|summarize|investigate|explore|justify|relate|revise|cite|separate)\b/i;
 
 // v0.14.1: an objective sentence with a comma list ("Integrate mineral,
 // rock, and process concepts") is a command, not comma-separated terms —
@@ -442,7 +442,7 @@ function splitConceptValues(value) {
 function isObjectiveLikeConcept(value) {
   const text = cleanText(value);
   if (isObjectiveSentenceValue(text)) return true;
-  return OBJECTIVE_IMPERATIVE_VERB_RE.test(text) && wordCount(text) > 4;
+  return OBJECTIVE_IMPERATIVE_VERB_RE.test(text) && wordCount(text) > 3;
 }
 
 function isOverlongConceptCandidate(value) {
@@ -2515,7 +2515,7 @@ function lessonTeachingMoves(blueprint, lesson = {}) {
   const feedbackVariants = [
     `${stripTerminalPunctuation(moves.feedbackMove)} tied to ${artifact}.`,
     `Feedback names the strongest ${concept} evidence move first, then one targeted revision for ${artifact}.`,
-    `Use feedback to separate a solid ${concept} detail from the next reasoning gap in ${artifact}.`,
+    `Use feedback to identify the strongest detail about ${concept} and the next reasoning gap in ${artifact}.`,
   ];
   // v0.12.1: no "For ${lessonTitle}," prefix — every consumer already sits in
   // a lesson context, and the prefix produced "Practice with X: For X, …"
@@ -17246,7 +17246,7 @@ function compileSyllabus(blueprint) {
         blueprint.lessons,
         (lesson) => lesson.outcomes,
         Math.max(10, blueprint.lessons.length),
-      ),
+      ).map((outcome) => sentenceCase(outcome)),
       courseAtAGlance: blueprint.lessons.map((lesson) => {
         const assessment = assessmentForLesson(lesson);
         return {
@@ -17302,7 +17302,7 @@ function compileSyllabus(blueprint) {
           )
           .map((entry) => `Formative: ${entry.title}`);
         return {
-          outcome,
+          outcome: sentenceCase(outcome),
           // v0.14.1 (5.4): the row's level follows the outcome's stem verb
           // ("Produce the four tones…" → Apply, not Create); the anywhere-match
           // inference is only the fallback for verb-less outcomes.
@@ -17846,14 +17846,14 @@ function compileAssignments(blueprint) {
               : lesson.enrichment?.assignmentCore?.taskDescription
                 ? `${lesson.enrichment.assignmentCore.taskDescription} ${assessmentArtifact} is worth ${assessment.weight}. Quality target: ${submissionProfile.qualityFocus}.`
                 : lessonVariant(lesson, [
-                    `${assessmentArtifact} is a ${assessment.roleLabel || 'course assessment'} worth ${assessment.weight}; it asks students to turn ${assessment.relatedLessons[0]} concepts into a concrete ${submissionProfile.assignmentType.toLowerCase()}. The task is designed to show how students use evidence for ${assessmentTitle}, make decisions, and prepare for later work. Target the following qualities: ${submissionProfile.qualityFocus}.`,
+                    `${assessmentArtifact} is a ${lowercaseClauseLead(assessment.roleLabel || 'course assessment')} worth ${assessment.weight}; it asks students to turn ${assessment.relatedLessons[0]} concepts into a concrete ${submissionProfile.assignmentType.toLowerCase()}. The task is designed to show how students use evidence in ${assessmentArtifact}, make decisions, and prepare for later work. Target the following qualities: ${submissionProfile.qualityFocus}.`,
                     `${assessmentArtifact} carries ${assessment.weight} and asks students to make the ${assessment.relatedLessons[0]} evidence visible in ${assignmentTypeWithArticle(submissionProfile.assignmentType)}. The important work is the reasoning path: which evidence matters, what decision follows, and how feedback changes the next draft. Use ${submissionProfile.qualityFocus} as the review lens.`,
                     `In ${assessmentArtifact}, students use ${assessment.relatedLessons[0]} to produce ${assignmentTypeWithArticle(submissionProfile.assignmentType)} worth ${assessment.weight}. A strong submission shows the evidence trail, names the decision it supports, and leaves a revision trace for later work. Prioritize ${submissionProfile.qualityFocus}.`,
                     `${assessmentArtifact} is the Week ${assessment.lessonNumbers[0]} evidence product (${assessment.weight}). Students should use the assignment format to connect source details, a defensible decision, and one feedback-informed improvement. Review for ${submissionProfile.qualityFocus}.`,
                   ]),
           ...(lesson.enrichment?.assignmentCore ? { enrichmentSource: 'lesson-content-enrichment' } : {}),
           gradingWeightProvenance: compactWeightProvenance(assessment.weightProvenance),
-          objectives: assessment.objectives,
+          objectives: asArray(assessment.objectives).map((objective) => sentenceCase(objective)),
           objectiveEvidenceChecklist: objectiveEvidenceChecklist(lesson.objectiveEvidencePlan),
           instructions: [
             lesson.prerequisitePlan?.studentReadinessCheck ||
@@ -19102,7 +19102,6 @@ function compileStudyGuides(blueprint) {
       // the glossary empty and asking for source review instead of inventing
       // course-process definitions around extracted concept labels.
       const definitionReviewRequired =
-        Boolean(lesson?.enrichment) &&
         lessonPrimaryTeachingKeyTerms(lesson).filter(
           (term) =>
             cleanText(term?.term) &&
@@ -19110,7 +19109,8 @@ function compileStudyGuides(blueprint) {
             !isUnsafeLessonConceptPhrase(displayKeyTermName(term)) &&
             !isUnsafeLessonArtifactPhrase(displayKeyTermName(term)),
         ).length === 0;
-      const keyTermRecoveryRequired = sourceBoundRecovery || definitionReviewRequired;
+      const keyTermRecoveryRequired =
+        (sourceBoundRecovery || definitionReviewRequired) && !isDataScience && musicTheoryGuides.length === 0;
       // A rejected glossary definition must not erase the lesson's separately
       // admitted target-language pair. The pair is compiler-owned, structured
       // evidence and remains safe to show while the source-review notice stays
@@ -20404,7 +20404,7 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
               concept: secondary,
               use: quizPlan[7].use,
               prompt: `After feedback in ${lessonFocus}, which next step best transfers ${secondary} from ${quizArtifactDefinite} to a new case without overclaiming?`,
-              correct: `Apply ${secondary} to one inspectable detail in the new case, explain the resulting ${decisionNoun}, and state the boundary of the comparison.`,
+              correct: `Apply ${secondary} to one inspectable detail in the new ${lessonFocus} case, explain the resulting ${decisionNoun}, and state the boundary of the comparison.`,
               plan: quizPlan[7],
               artifactOverride: quizArtifact,
               includeMisconception: false,
@@ -22776,6 +22776,7 @@ function slideConceptCandidates(lesson) {
   return unique(
     [
       ...asArray(lesson?.keyConcepts),
+      ...lessonTeachingKeyTerms(lesson).map((entry) => entry?.term),
       lesson?.title,
       ...(lesson?.outcomes || []),
       ...(lesson?.readings || []),
@@ -23955,6 +23956,9 @@ function compactSlideDisplayBullet(slide, bullet, index, lesson) {
   const fallback = type === 'activity' ? 'Complete the practice step' : 'Use source evidence';
   const concept = primarySlideConcept(lesson);
   const artifact = slideArtifact(lesson);
+  if (type === 'activity' && index === 0 && /\badapts the course pattern\b/i.test(cleanText(bullet))) {
+    return punctuateDisplayBullet(`${label}: Justify one decision with the strongest lesson evidence`, bullet);
+  }
   const compact = collapseRepeatedSlideLead(
     conciseClause(bullet, fallback, maxLength, { ellipsis: true })
       .replace(/^students?\s+/i, '')
@@ -25779,6 +25783,7 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
   );
   const secondary = secondarySlideConcept(lesson, concept);
   const artifact = slideArtifact(lesson);
+  const compactArtifact = noteArtifactReference(lesson);
   const sourceCue = slideSourceCue(lesson);
   const successCriterion = slideSuccessCriterion(lesson);
   const modality = sanitizeLessonModalityDecode(
@@ -25787,7 +25792,11 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
     artifact,
   );
   const learnerFacingMode =
-    modality.mode === 'lecture-exam' ? 'Exam practice' : sentenceCase(modality.mode.replace(/-/g, ' '));
+    modality.mode === 'lecture-exam'
+      ? 'Exam practice'
+      : modality.mode === 'field-applied'
+        ? 'Field application'
+        : sentenceCase(modality.mode.replace(/-/g, ' '));
   const artifactGenre = lesson.artifactGenre || {};
   const classSessionPlan = lesson.classSessionPlan || buildClassSessionPlan({ lesson, modalityDecode: modality });
   const sequenceArtifact = /\b(TBD|to be determined)\b/i.test(cleanText(lesson.studentArtifact))
@@ -25867,7 +25876,7 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
           type: 'bridge',
           title: previous
             ? `From ${sentenceCase(primarySlideConcept(previous))} to ${sentenceCase(concept)}`
-            : `${sentenceCase(concept)} course throughline`,
+            : `Course throughline: ${sentenceCase(concept)}`,
           bullets: [
             // v0.16 E4 (Prof department catch): Lesson 1 has no "last time" — a
             // continuity reference in the first session reads as unproofed.
@@ -25877,9 +25886,9 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
                   lesson,
                   courseName: blueprint.courseName,
                   concept,
-                  artifact,
+                  artifact: compactArtifact,
                 }),
-            `Today: ${sentenceCase(phrase.decisionMove)}`,
+            `Today: Use ${concept} evidence to strengthen ${compactArtifact}.`,
             next ? `Next: ${primarySlideConcept(next)}` : `Next: final synthesis and revision planning`,
           ],
           minutes: 4,
@@ -25924,7 +25933,7 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
         },
         {
           type: 'example',
-          title: `${sentenceCase(concept)} in a ${lens.exampleNoun}`,
+          title: `${sentenceCase(concept)} in ${/^[aeiou]/i.test(cleanText(lens.exampleNoun)) ? 'an' : 'a'} ${lens.exampleNoun}`,
           bullets: [
             lessonVariant(lesson, [
               hasRealSource
@@ -25959,10 +25968,10 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
           ? {
               type: 'activity',
               title: lessonVariant(lesson, [
-                `${learnerFacingMode}: strengthen one evidence-backed ${artifact} choice`,
-                `${learnerFacingMode}: test one source-backed ${artifact} revision`,
-                `${learnerFacingMode}: choose the evidence move ${artifact} needs next`,
-                `${learnerFacingMode}: turn critique into a ${artifact} decision`,
+                `${learnerFacingMode}: strengthen one evidence-backed decision`,
+                `${learnerFacingMode}: test one source-backed revision`,
+                `${learnerFacingMode}: choose the evidence ${compactArtifact} needs next`,
+                `${learnerFacingMode}: turn critique into a defensible revision`,
               ]),
               // v0.12.1: signaturePractice and practiceMove both derive from the
               // modality routine — when they open with the same phrase, keep only
@@ -25971,7 +25980,7 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
                 cleanText(sentenceCase(modality.signaturePractice)).slice(0, 24).toLowerCase() ===
                 cleanText(teachingMoves.practiceMove).slice(0, 24).toLowerCase()
                   ? teachingMoves.practiceMove
-                  : `${sentenceCase(modality.signaturePractice)}. ${teachingMoves.practiceMove}`,
+                  : `${sentenceCase(stripTerminalPunctuation(modality.signaturePractice))}. ${teachingMoves.practiceMove}`,
                 modality.evidenceRoutine,
                 lessonVariant(lesson, [
                   `${teachingMoves.feedbackMove} Close by naming the revision choice for ${artifact}.`,
@@ -26054,7 +26063,7 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
         {
           type: 'discussion',
           title: lessonVariant(lesson, [
-            `Which ${hasStandaloneAssessment ? learnerFacingMode.toLowerCase() : concept} evidence choice holds up?`,
+            `Which ${concept} evidence choice holds up?`,
             `What evidence should guide ${artifact}?`,
             `Which ${concept} claim survives critique?`,
             `Which revision path has stronger support?`,

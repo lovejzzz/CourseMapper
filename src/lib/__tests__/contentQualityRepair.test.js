@@ -27,6 +27,38 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     expect(after.findings).toHaveLength(0);
   });
 
+  it('repairs duplicated learner subjects and malformed plural concept-detail frames', () => {
+    const data = {
+      decks: [
+        {
+          slides: [
+            {
+              bullets: [
+                'Students may assume students often treat conformance as a checklist.',
+                'Use feedback to separate a solid WCAG principles and conformance detail from the next gap.',
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    expect(auditDeliverableContentQuality('slideDecks', data).findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'duplicated-student-subject' }),
+        expect.objectContaining({ code: 'malformed-concept-detail' }),
+      ]),
+    );
+
+    const result = repairDeliverableContentQuality('slideDecks', data);
+    expect(result.changed).toBe(true);
+    expect(result.data.decks[0].slides[0].bullets).toEqual([
+      'A common assumption is that people treat conformance as a checklist.',
+      'Use feedback to separate a strong detail about WCAG principles and conformance from the next gap.',
+    ]);
+    expect(auditDeliverableContentQuality('slideDecks', result.data).findings).toHaveLength(0);
+  });
+
   it('preserves identity when nothing needs fixing and leaves ellipses alone', () => {
     const data = { notes: ['All good here.', 'Thinking… more thoughts...'] };
     const { data: repaired, changed } = repairDeliverableContentQuality('studyGuides', data);
@@ -72,5 +104,35 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
 
     expect(result.changed).toBe(false);
     expect(result.data).toBe(data);
+  });
+
+  it('turns assignment logistics deferrals into self-contained submission requirements', () => {
+    const data = {
+      assignments: [
+        {
+          formatRequirements: [
+            'Submission format: organize the memo in the medium listed for the task.',
+            'Use the format and channel listed for this task.',
+            'Follow the word, page, or time limit specified in the course site.',
+            'Use the course citation style.',
+          ],
+        },
+      ],
+    };
+
+    const before = auditDeliverableContentQuality('assignments', data);
+    expect(before.findings.some((finding) => finding.code === 'instructor-configuration-deferral')).toBe(true);
+
+    const result = repairDeliverableContentQuality('assignments', data);
+    const after = auditDeliverableContentQuality('assignments', result.data);
+
+    expect(result.changed).toBe(true);
+    expect(result.data.assignments[0].formatRequirements).toEqual([
+      'Submission format: organize the memo with descriptive headings and an evidence list.',
+      'submit one clearly labeled artifact that preserves the required evidence, reasoning, revision, and citations.',
+      'use enough space to present the required evidence, reasoning, and revision without padding.',
+      'use one consistent citation style and include enough information for readers to locate every source.',
+    ]);
+    expect(after.findings.filter((finding) => finding.code === 'instructor-configuration-deferral')).toHaveLength(0);
   });
 });

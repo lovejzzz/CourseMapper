@@ -102,6 +102,7 @@ import {
 } from './deepQualityFormatDetails.js';
 import { normalizeLessonSpecificTokens } from './semanticSkeletonMask.js';
 import { findInstructorConfigurationDeferrals } from '../publishabilityPlaceholders.js';
+import { GRADER_VERSION } from './graderVersion.js';
 
 // v0.14.3 WS-A A3: the grader version stamped into manifest.quality. Bump on
 // any change to checks, weights, or severity penalties so a package's quality
@@ -233,7 +234,11 @@ import { findInstructorConfigurationDeferrals } from '../publishabilityPlacehold
 // 1.11.6 — the calibrated score-bearing policy expands to assignments and
 // rubrics, reports each family separately, and caps a shared cross-family
 // boilerplate penalty at the strongest single family.
-export const GRADER_VERSION = '1.11.6';
+// 1.12.0 — package manifests carry a lesson-level evidence dependency
+// matrix; unresolved required recordings, datasets, packets, sources, and
+// dangling lesson refs are release-blocking rather than hidden by aggregate
+// quality scores.
+export { GRADER_VERSION } from './graderVersion.js';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // v0.15.186: texture weight 10 → 25. At 10/120 a fully templated package
@@ -2084,6 +2089,24 @@ function checkCitations(findings, { files, manifest }, course) {
   }
 }
 
+function checkLessonEvidenceDependencies(findings, { manifest }) {
+  const matrix = manifest?.evidenceDependencies;
+  if (!matrix || matrix.version !== 'coursemapper-lesson-evidence-dependencies-v1') return;
+  for (const lesson of Array.isArray(matrix.lessons) ? matrix.lessons : []) {
+    for (const requirement of Array.isArray(lesson?.requirements) ? lesson.requirements : []) {
+      if (requirement?.status !== 'unresolved') continue;
+      findings.add({
+        code: 'unresolved-lesson-evidence-dependency',
+        severity: 'P0',
+        dimension: 'substance',
+        file: `Lesson ${lesson.lesson || '?'} evidence dependencies`,
+        detail: `${requirement.label || requirement.kind || 'required evidence'} is required by the lesson but is not resolved to a trusted source or packaged artifact`,
+        evidence: quote(requirement.evidence || requirement.unresolvedRefs?.join(', ') || lesson.title || ''),
+      });
+    }
+  }
+}
+
 // The standard teaching-research bibliography compiled into lesson plans —
 // retrieval practice, peer instruction, active learning, conceptual change.
 // These are legitimately off-discipline (they are ABOUT teaching) and must
@@ -3744,6 +3767,7 @@ export async function grade({
       checkSourceLedger(findings, pkg);
     }
   }
+  checkLessonEvidenceDependencies(findings, pkg);
   const lessonTitles = checkConsistency(findings, pkg);
   checkRequestedLessonTiming(findings, pkg, course);
   {

@@ -1289,7 +1289,16 @@ export function buildSourceReportMarkdown({
       }
     } else {
       lines.push('## Trusted SourceRef Coverage');
-      lines.push('- unavailable: this package does not include trusted per-reference coverage proof');
+      const trustedConceptLinkedRows = rows.filter(isTrustedConceptLinkedSourceLedgerRow).length;
+      if (trustedConceptLinkedRows > 0) {
+        lines.push(
+          `- not established: ${trustedConceptLinkedRows} trusted, concept-linked source ledger row${
+            trustedConceptLinkedRows === 1 ? ' is' : 's are'
+          } included, but this package does not map individual CourseIR sourceRefs to those trusted rows`,
+        );
+      } else {
+        lines.push('- unavailable: no trusted, concept-linked bibliography rows are included for per-reference proof');
+      }
     }
     lines.push('');
   }
