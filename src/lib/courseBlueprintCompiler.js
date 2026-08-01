@@ -28039,7 +28039,7 @@ function compileLessonPlans(blueprint, options = {}) {
             lesson.sourceUsePlan?.noInventedSources ||
             `Confirm students use only approved sources and flag missing citation details for local review.`,
           learnerContextCue: lessonLearnerContextCue(blueprint, lesson),
-          methodSpecificMiniRubric: `Mini-rubric: Score ${artifact} for concept accuracy, evidence quality, reasoning strength, and feedback-informed revision.`,
+          methodSpecificMiniRubric: `Mini-rubric for ${concept}: check accurate use, relevant evidence, a justified decision, and a feedback-informed revision.`,
           studentHandout: `One-page guide with the lesson objective, success criteria, outline, and submission steps for ${stripLessonPrefix(lesson.title)}.`,
           instructorPrep: `Prepare the exemplar, one misconception check, and one targeted feedback prompt before teaching ${stripLessonPrefix(lesson.title)}.${preference ? ` Apply learned instructor preferences: ${preferenceDisplayPhrase(preference)}.` : ''}`,
           accessibilityAndUDL:
