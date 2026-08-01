@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "release": "0.17.09",
+  "recordedAt": "2026-08-01T08:27:53Z",
+  "status": "bounded-predeploy",
+  "claimBoundary": "This tracked receipt proves the browser runtime identity audit, fixed-denominator score-ledger regressions, release claims, and representative quality audits passed before deployment. It also records a local interactive check of the release identity and changelog. It is not a live v0.17.09 course-quality result, instructor validation, or evidence that production has deployed.",
+  "checks": [
+    {
+      "command": "npm run audit:scion:browser-base",
+      "status": "pass",
+      "mode": "base-only",
+      "adapterActive": false,
+      "browserModelSha256": "3646b4c147cd235a44d91df1546d3b7d8e29b547dbe4e1f80856419aa455e6fd",
+      "runtimeModuleSha256": "ca1b99d084b649a89400d8a839f3e772a46d1f65f145b80d9aa49bc43ddbc41a",
+      "runtimeWasmSha256": "732bac4661d613461cee0b3132660beab159b926910c8431181ee01608e44229"
+    },
+    {
+      "command": "npx vitest run src/lib/quality/__tests__/automatedReadinessSignal.test.js src/lib/quality/__tests__/scoreLedgerVerifier.test.js src/lib/__tests__/packageZipExporter.test.js src/lib/quality/__tests__/deepQualityStructure.test.js src/lib/__tests__/packageFinalizer.test.js",
+      "status": "pass",
+      "testFiles": 5,
+      "tests": 88
+    },
+    {
+      "command": "npm run audit:automated-readiness",
+      "status": "pass",
+      "fixtureVersion": 3,
+      "cases": 3,
+      "fixedPotential": 100,
+      "deletionPromotionRegression": "pass"
+    },
+    {
+      "command": "npm run test:unit",
+      "status": "pass",
+      "testFilesPassed": 489,
+      "testFilesSkipped": 16,
+      "testsPassed": 6120,
+      "testsSkipped": 162
+    },
+    {
+      "command": "npm run build && npm run bundle:check && npm run audit:release-history && npm run audit:contract:pr",
+      "status": "pass",
+      "contractFixturesPassed": 14,
+      "releaseClaimsVerified": 7
+    },
+    {
+      "command": "npm run audit:professor-adoption:smoke && npm run audit:texture:cross-package:untuned && npm run audit:gold:smoke",
+      "status": "pass",
+      "professorAdoptionCases": 3,
+      "texturePackages": 12,
+      "goldSamples": 3
+    },
+    {
+      "mode": "local-interactive",
+      "url": "http://127.0.0.1:3010/",
+      "status": "pass",
+      "observed": [
+        "Footer identifies Scion v0.17.09.",
+        "Release tooltip states that every quality point has a reason and score ledgers bind graded artifacts.",
+        "The v0.17.09 changelog renders all seven Auditable Evidence, Distinct Teaching highlights."
+      ]
+    }
+  ],
+  "knownMissingEvidence": [
+    "A live production v0.17.09 package cannot exist until deployment succeeds; this will be generated and audited after push.",
+    "Semantic grounding and assessment coherence intentionally remain unobserved in deterministic package evidence until independent score-bearing measurements exist.",
+    "The strict five-course ALGI/Scion/hybrid comparison remains unexecuted and promotion-ineligible.",
+    "No external instructor has reviewed a v0.17.09 package."
+  ]
+}

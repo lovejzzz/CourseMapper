@@ -62,7 +62,7 @@ function buildReadinessChecks(finish = {}) {
     });
   }
 
-  return [...blockerChecks, ...warningChecks].slice(0, 12);
+  return [...blockerChecks, ...warningChecks];
 }
 
 /**
@@ -86,6 +86,10 @@ export function buildRunDigest({ budget = {}, exportVerification = null, finish 
   const qualityP2 = Number(qualityCounts.p2) || 0;
   const readinessScore = Number.isFinite(quality?.readiness?.score) ? quality.readiness.score : null;
   const readinessMax = Number.isFinite(quality?.readiness?.maxScore) ? quality.readiness.maxScore : null;
+  const readinessLost = Number.isFinite(quality?.readiness?.points?.lost) ? quality.readiness.points.lost : null;
+  const readinessUnobserved = Number.isFinite(quality?.readiness?.points?.unobserved)
+    ? quality.readiness.points.unobserved
+    : null;
   const readinessCeiling = Number.isFinite(quality?.readiness?.evidenceCeiling)
     ? quality.readiness.evidenceCeiling
     : null;
@@ -93,7 +97,6 @@ export function buildRunDigest({ budget = {}, exportVerification = null, finish 
   const checks = Array.isArray(exportVerification?.checks) ? exportVerification.checks : [];
   const flaggedChecks = checks
     .filter((check) => check.status !== 'passed')
-    .slice(0, 12)
     .map((check) => ({
       featureId: check.featureId,
       status: check.status,
@@ -176,8 +179,8 @@ export function buildRunDigest({ budget = {}, exportVerification = null, finish 
   } else if (quality?.status === 'graded' && readinessScore !== null) {
     qualityChecks.push({
       featureId: 'quality',
-      status: readinessScore < 45 ? 'warning' : 'info',
-      message: `automated readiness ${readinessScore}/${readinessMax} (ceiling ${readinessCeiling}); package conformance ${quality.score}/100 (${quality.grade})`,
+      status: readinessUnobserved > 0 ? 'warning' : 'info',
+      message: `deterministic package evidence ${readinessScore}/${readinessMax} earned${readinessLost !== null ? `, ${readinessLost} lost` : ''}${readinessUnobserved !== null ? `, ${readinessUnobserved} unobserved` : ''}; package conformance ${quality.score}/100 (${quality.grade})`,
     });
   } else if (quality?.status && quality.status !== 'graded') {
     qualityChecks.push({
@@ -219,13 +222,17 @@ export function buildRunDigest({ budget = {}, exportVerification = null, finish 
     },
     gates: {
       finalStatus: finish.finalStatus || '',
+      trustState: finish.trustState || '',
       blockers: finish.blockers ?? 0,
       warnings: finish.warnings ?? 0,
+      warningDomains: finish.warningDomains || null,
+      blockerDomains: finish.blockerDomains || null,
       repairsApplied: finish.repairsApplied ?? 0,
       retryCallCount,
       repairRetryCallCount,
       finishRetryCallCount,
       exportStatus: exportVerification?.status || '',
+      exportContentDisposition: exportVerification?.contentDisposition || '',
       exportChecked: exportVerification?.checked ?? 0,
       exportFailed: exportVerification?.failed ?? 0,
       exportWarnings: exportVerification?.warningCount ?? 0,
@@ -236,6 +243,9 @@ export function buildRunDigest({ budget = {}, exportVerification = null, finish 
       automatedReadinessMax: readinessMax,
       automatedReadinessCeiling: readinessCeiling,
       automatedReadinessBand: quality?.readiness?.band || '',
+      deterministicEvidenceProtocol: quality?.readiness?.protocol || '',
+      deterministicEvidenceLost: readinessLost,
+      deterministicEvidenceUnobserved: readinessUnobserved,
       qualityP0,
       qualityP1,
       qualityP2,
@@ -317,7 +327,7 @@ export function formatRunDigest(digest) {
         digest.gates.qualityStatus === 'graded'
           ? `${
               Number.isFinite(digest.gates.automatedReadinessScore)
-                ? `readiness ${digest.gates.automatedReadinessScore}/${digest.gates.automatedReadinessMax} · `
+                ? `deterministic evidence ${digest.gates.automatedReadinessScore}/${digest.gates.automatedReadinessMax} earned${Number.isFinite(digest.gates.deterministicEvidenceUnobserved) ? `, ${digest.gates.deterministicEvidenceUnobserved} unobserved` : ''} · `
                 : ''
             }conformance ${digest.gates.qualityScore}/100 ${digest.gates.qualityGrade}`
           : `quality ${digest.gates.qualityStatus}`

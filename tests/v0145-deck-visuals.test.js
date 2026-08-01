@@ -369,9 +369,9 @@ describe('C1/C2 — compiler slide-visual descriptors', () => {
     expect(ledgerSlide).toBeTruthy();
     expect(ledgerSlide.visual.rows).toHaveLength(3);
     expect(ledgerSlide.visual.rows).toEqual([
-      ['Fact 1', 'Stream discharge is the volume of water passing a cross-section per unit time.'],
-      ['Fact 2', 'Discharge combines channel area with flow velocity.'],
-      ['Fact 3', 'A rating curve estimates discharge from repeated stage and flow measurements.'],
+      ['Fact 1', 'A rating curve estimates discharge from repeated stage and flow measurements.'],
+      ['Fact 2', 'A fourth long fact remains in the lesson ledger but does not crowd the fixed slide table.'],
+      ['Fact 3', 'Stream discharge is the volume of water passing a cross-section per unit time.'],
     ]);
 
     const { allXml } = await unzipPptx(await buildSlideDeckPptxBlob(factDecks));

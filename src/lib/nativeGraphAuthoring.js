@@ -339,6 +339,19 @@ export function mergeNativePartialOverlays(lessonContent = {}, partialOverlays =
   return mergedLessonIds;
 }
 
+function admittedFactSubject(fact) {
+  const text = cleanText(fact, 220).replace(/^["“”']+|["“”']+$/g, '');
+  const match = text.match(
+    /^(.{3,80}?)\s+(?:is|are|was|were|can|could|may|might|must|provides?|involves?|allows?|enables?|requires?|records?|uses?|applies?|identifies?|connects?|supports?|contains?|includes?|helps?|means?)\b/i,
+  );
+  const subject = cleanText(match?.[1], 60).replace(/^(?:the|a|an)\s+/i, '');
+  const words = subject.match(/[\p{L}\p{N}]+(?:['’-][\p{L}\p{N}]+)*/gu) || [];
+  if (words.length < 1 || words.length > 7 || /^(?:it|this|that|these|those|they|we|students?)$/i.test(subject)) {
+    return '';
+  }
+  return subject;
+}
+
 /**
  * A weak-model kernel may pass atomic admission while one optional authored
  * surface was dropped by its own linter. Complete those surfaces from the
@@ -585,6 +598,40 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
         term,
         source: 'verified-quiz-projection',
         quizIndex: Number(item.index) || 0,
+      });
+      if (keyTerms.filter(substantiveTerm).length >= 3) break;
+    }
+  }
+  // A thin local-model response can admit several useful facts but only one
+  // glossary term. Preserve authored terms and verified quiz projections
+  // first; then fill only the remaining seats from the grammatical subjects
+  // of exact admitted facts. Every definition stays verbatim, while
+  // downstream families gain distinct anchors instead of stamping the first
+  // definition across the entire package.
+  if (keyTerms.filter(substantiveTerm).length < 3) {
+    for (const [factIndex, fact] of projectionFacts.entries()) {
+      const term = admittedFactSubject(fact);
+      const key = term.toLowerCase();
+      if (!term || seenTerms.has(key)) continue;
+      const comparisonFact = projectionFacts[(factIndex + 1) % projectionFacts.length] || fact;
+      const derived = {
+        term,
+        definition: fact,
+        example: `Compare this ${term} claim with the admitted statement: ${comparisonFact}`,
+        misconception: `${term} can be applied without checking the scope or conditions stated in the lesson evidence.`,
+        correction: `Use ${term} only for the relationship stated in its admitted fact, then name what remains unproven.`,
+        source: 'fact-subject-projection',
+        tier: 1,
+        derivedFromFactIndex: factIndex,
+      };
+      if (!substantiveTerm(derived)) continue;
+      keyTerms.push(derived);
+      seenTerms.add(key);
+      keyTermFallbacks.push({
+        type: 'term',
+        term,
+        source: 'fact-subject-projection',
+        factIndex,
       });
       if (keyTerms.filter(substantiveTerm).length >= 3) break;
     }

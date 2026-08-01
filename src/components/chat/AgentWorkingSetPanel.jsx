@@ -319,7 +319,7 @@ export default function AgentWorkingSetPanel(props) {
         : summary.packageStatus.label === 'Finishing'
           ? 'Finishing package'
           : readyWithNotes
-            ? 'Ready to export'
+            ? 'Exportable with review notes'
             : needsAttention
               ? 'Package refinement'
               : summary.packageStatus.label === 'Ready'

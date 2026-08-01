@@ -174,6 +174,7 @@ describe('packageFinalizerSummary', () => {
     });
 
     expect(receipt.checkedSections).toBe('2/2');
+    expect(receipt.handoffStatus).toBe('blocked');
     expect(receipt.lessonCount).toBe(2);
     expect(receipt.autoFixedCount).toBe(1);
     expect(receipt.humanDecisionCount).toBe(2);
@@ -190,6 +191,30 @@ describe('packageFinalizerSummary', () => {
       { label: 'Course Map', action: 'Repair the course map.' },
       { label: 'Syllabus', action: 'Confirm the calendar.' },
     ]);
+  });
+
+  it('distinguishes publishable, review-required, and blocked handoffs', () => {
+    const base = {
+      selectedFeatureIds: ['courseMap'],
+      courseMap: { lessons: [{}] },
+      exportVerification: { status: 'passed', checked: 1, failed: 0, warningCount: 0, checks: [] },
+    };
+
+    expect(buildQualityReceipt({ ...base, result: { readiness: { blockers: [], warnings: [] } } }).handoffStatus).toBe(
+      'publishable',
+    );
+    expect(
+      buildQualityReceipt({
+        ...base,
+        result: { readiness: { blockers: [], warnings: [{ label: 'Quality grade', message: 'Review P1.' }] } },
+      }).handoffStatus,
+    ).toBe('exportable-needs-review');
+    expect(
+      buildQualityReceipt({
+        ...base,
+        result: { readiness: { blockers: [{ label: 'Course Map', message: 'Repair it.' }], warnings: [] } },
+      }).handoffStatus,
+    ).toBe('blocked');
   });
 
   it('does not claim zero source-grounded lessons when coverage was not measured', () => {

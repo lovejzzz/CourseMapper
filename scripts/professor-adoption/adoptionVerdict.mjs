@@ -75,20 +75,26 @@ function parseGenomeCounts(value) {
   };
 }
 
-function parseQuality(qualityReport = '', packageManifest = {}) {
+function parseQuality(scoreLedger = null, packageManifest = {}) {
   const quality = packageManifest?.quality || {};
   const counts = quality.findingCounts || {};
-  const reportText = cleanText(qualityReport);
-  const reportMatch = reportText.match(
-    /Overall:\s*([0-9]+)\/100\s*\(([A-F])\).*?([0-9]+)\s+P0.*?([0-9]+)\s+P1.*?([0-9]+)\s+P2/i,
-  );
+  const ledgerScore = Number(scoreLedger?.encodedDefectConformance?.overall?.score);
+  const manifestScore = Number(quality.score);
+  const score = Number.isFinite(ledgerScore) ? ledgerScore : Number.isFinite(manifestScore) ? manifestScore : null;
+  const source = Number.isFinite(ledgerScore) ? 'SCORE_LEDGER.json' : score !== null ? 'PACKAGE_MANIFEST.json' : 'none';
   return {
-    status: quality.status || (reportMatch ? 'graded' : 'unknown'),
-    score: Number.isFinite(Number(quality.score)) ? Number(quality.score) : reportMatch ? Number(reportMatch[1]) : null,
-    grade: quality.grade || (reportMatch ? reportMatch[2] : null),
-    p0: Number.isFinite(Number(counts.p0)) ? Number(counts.p0) : reportMatch ? Number(reportMatch[3]) : 0,
-    p1: Number.isFinite(Number(counts.p1)) ? Number(counts.p1) : reportMatch ? Number(reportMatch[4]) : 0,
-    p2: Number.isFinite(Number(counts.p2)) ? Number(counts.p2) : reportMatch ? Number(reportMatch[5]) : 0,
+    status: quality.status || (score !== null ? 'graded' : 'unknown'),
+    verification: Number.isFinite(ledgerScore)
+      ? 'ledger-replayable'
+      : score !== null
+        ? 'unverifiable-legacy'
+        : 'absent',
+    source,
+    score,
+    grade: quality.grade || null,
+    p0: Number.isFinite(Number(counts.p0)) ? Number(counts.p0) : 0,
+    p1: Number.isFinite(Number(counts.p1)) ? Number(counts.p1) : 0,
+    p2: Number.isFinite(Number(counts.p2)) ? Number(counts.p2) : 0,
   };
 }
 
@@ -106,7 +112,7 @@ function parseExportStatus(packageManifest = {}, logText = '') {
   }
   const status = gate.exportStatus || gate.status || parsed?.status || packageManifest?.exportStatus || 'unknown';
   const failed = Number(gate.exportFailed ?? gate.failed ?? parsed?.failed ?? 0);
-  const warnings = Number(gate.exportWarnings ?? gate.warningCount ?? parsed?.warningCount ?? 0);
+  const warnings = Number(gate.exportWarnings ?? gate.warningCount ?? gate.warnings ?? parsed?.warningCount ?? 0);
   return {
     status,
     failed: Number.isFinite(failed) ? failed : 0,
@@ -192,6 +198,7 @@ export function buildAdoptionVerdict({
   courseGraph = null,
   assessmentRegistry = null,
   qualityReport = '',
+  scoreLedger = null,
   logText = '',
   professorAdoptionSummary = null,
   professorAdoptionResults = [],
@@ -205,7 +212,11 @@ export function buildAdoptionVerdict({
   const nextRepairs = [];
   let tierId = 'university-proofed';
 
-  const quality = parseQuality(qualityReport, packageManifest);
+  // qualityReport remains an accepted display artifact for compatibility, but
+  // scoring never parses prose. Structured ledger/manifest data is the only
+  // quality input.
+  void qualityReport;
+  const quality = parseQuality(scoreLedger, packageManifest);
   const exportStatus = parseExportStatus(packageManifest, logText);
   const genomeCounts = parseGenomeCounts(
     packageManifest?.pipeline?.genomeLinker || packageManifest?.pipeline?.knowledgeBackbone,
@@ -231,7 +242,7 @@ export function buildAdoptionVerdict({
     tierId = tierMin(tierId, 'export-safe');
   }
 
-  if (hasPackageManifest && (exportStatus.status !== 'passed' || exportStatus.failed > 0)) {
+  if (hasPackageManifest && (!['passed', 'warnings'].includes(exportStatus.status) || exportStatus.failed > 0)) {
     addUnique(blockingReasons, {
       id: 'export-integrity-failed',
       severity: 'P0',
@@ -240,6 +251,26 @@ export function buildAdoptionVerdict({
       nextRepair: 'repair-export-integrity',
     });
     tierId = 'blocked';
+  }
+
+  if (hasPackageManifest && exportStatus.failed === 0 && exportStatus.warnings > 0) {
+    addUnique(caps, {
+      id: 'export-review-required',
+      tierCap: 'export-safe',
+      reason: `Export verification completed with ${exportStatus.warnings} warning(s); the ZIP is openable but not cleared for classroom publication.`,
+      evidence: JSON.stringify(exportStatus),
+    });
+    tierId = tierMin(tierId, 'export-safe');
+  }
+
+  if (hasPackageManifest && quality.status === 'graded' && quality.p1 > 0) {
+    addUnique(caps, {
+      id: 'quality-p1-review-required',
+      tierCap: 'classroom-ready-draft',
+      reason: `Package quality grader found ${quality.p1} P1 finding(s) that require instructor review.`,
+      evidence: `score=${quality.score}, grade=${quality.grade}`,
+    });
+    tierId = tierMin(tierId, 'classroom-ready-draft');
   }
 
   if (hasPackageManifest && quality.status === 'graded' && quality.p0 > 0) {
@@ -356,6 +387,13 @@ export function buildAdoptionVerdict({
     professorAdoption,
     externalProof: externalProof || { status: 'not-attached' },
   };
+  const gateTopologyStatus = confidenceFor({ tierId, caps, blockingReasons, dimensions });
+  const evidenceCoverage = {
+    verification: quality.verification,
+    source: quality.source,
+    deterministicPackageEvidence: scoreLedger?.deterministicPackageEvidence?.points || null,
+    note: 'Evidence coverage is a vector of earned, lost, and unobserved points, not a scalar confidence claim.',
+  };
 
   return {
     version: ADOPTION_VERDICT_VERSION,
@@ -363,7 +401,11 @@ export function buildAdoptionVerdict({
     tier: tierId,
     tierRank: tier(tierId).rank,
     tierLabel: tier(tierId).label,
-    confidence: confidenceFor({ tierId, caps, blockingReasons, dimensions }),
+    // Compatibility alias. This value describes gate topology only; it is not
+    // evidence confidence and must not be used as one.
+    confidence: gateTopologyStatus,
+    gateTopologyStatus,
+    evidenceCoverage,
     minimumGatePolicy: {
       usesMinimumGates: true,
       averageScoreCanOnlyRaiseWithinUncappedTier: true,

@@ -134,7 +134,7 @@ function readyPass(overrides = {}) {
     repairsApplied: 5,
     warnings: 0,
     blockers: 0,
-    receipt: { exportWarningCount: 1 },
+    receipt: { exportWarningCount: 0 },
     quality: {
       status: 'graded',
       score: 100,
@@ -1541,7 +1541,7 @@ describe('B1 — BuildRibbon render', () => {
     });
     const html = renderRibbon(model);
 
-    expect(model.stageLabel).toBe('Ready with review notes');
+    expect(model.stageLabel).toBe('Exportable with review notes');
     expect(model.compilerArtifacts.find((artifact) => artifact.id === 'knowledge')).toMatchObject({
       label: 'Knowledge',
       value: '0/2 lesson kernels',

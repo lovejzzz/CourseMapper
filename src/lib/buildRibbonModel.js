@@ -628,6 +628,9 @@ export function buildBuildRibbonModel({
   const knowledgeRequested = Math.max(0, Number(enrichmentOutcome?.requestedLessons) || 0);
   const knowledgeEnriched = Math.max(0, Number(enrichmentOutcome?.enrichedLessons) || 0);
   const knowledgeReviewNeeded = knowledgeRequested > 0 && knowledgeEnriched < knowledgeRequested;
+  const packageReviewNeeded =
+    ['review', 'not-graded'].includes(packageQualityPass?.trustState) ||
+    Math.max(0, Number(packageQualityPass?.warnings) || 0) > 0;
   const pipelineState = pipeline.state;
   switch (pipelineState) {
     case 'mapping':
@@ -667,7 +670,7 @@ export function buildBuildRibbonModel({
     }
     case 'ready':
       stage = 'ready';
-      stageLabel = knowledgeReviewNeeded ? 'Ready with review notes' : 'Ready to export';
+      stageLabel = knowledgeReviewNeeded || packageReviewNeeded ? 'Exportable with review notes' : 'Ready to export';
       break;
     case 'error':
       stage = 'map';

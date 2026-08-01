@@ -101,6 +101,7 @@ export async function gradePackageAtFinalize({
       findingCount: result.qualityResult?.stats?.findingCount ?? 0,
       fileCount: result.qualityResult?.stats?.fileCount ?? null,
       sourceEvidence,
+      scoreLedger: result.qualityResult?.scoreLedger || null,
       // Full texture block (sub-scores + worst-tail evidence) for the Seal and
       // report modal. The manifest carries the slim summary.
       texture: result.qualityResult?.texture || quality.texture || null,

@@ -108,7 +108,8 @@ describe('verifyPackageExports', () => {
       selectedFeatures: ['assignments'],
     });
 
-    expect(result.status).toBe('warnings');
+    expect(result.status).toBe('passed');
+    expect(result.contentDisposition).toBe('needs-review');
     expect(result.checks.find((check) => check.format === 'content')).toMatchObject({
       featureId: 'assignments',
       status: 'warning',
@@ -272,7 +273,8 @@ describe('verifyPackageExports', () => {
       selectedFeatures: ['custom_weeklyReflection'],
     });
 
-    expect(result.status).toBe('warnings');
+    expect(result.status).toBe('passed');
+    expect(result.contentDisposition).toBe('needs-review');
     expect(result.checks[0]).toMatchObject({
       featureId: 'custom_weeklyReflection',
       label: 'Weekly Reflection',

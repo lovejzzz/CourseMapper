@@ -110,7 +110,7 @@ export default function FinishedPackageOverview({
                 onClick={() => onOpenQualityReport?.(true)}
                 className="tactile rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-emerald-700"
               >
-                Readiness {readinessScore}/{readinessMax}
+                Evidence {readinessScore}/{readinessMax}
               </button>
             )}
             {Number.isFinite(score) && (

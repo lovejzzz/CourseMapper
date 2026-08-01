@@ -407,6 +407,7 @@ export function applyApiCallBudgetEvent(currentBudget, event = {}) {
     'compiledFeatureCount',
     'compiledFeatureIds',
     'compilerSource',
+    'repairedFieldCount',
     // Safe semantic diagnostics: contract issue codes and aggregate atom
     // counts only. No prompt text or generated response content is retained.
     'admissionIssues',

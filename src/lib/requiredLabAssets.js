@@ -49,6 +49,8 @@ function courseIdentityText(courseMap) {
 // course-identity level, or at least two co-occurring hard artifact tokens.
 const DATA_SCIENCE_IDENTITY =
   /\b(machine learning|data science|data analytics|data mining|predictive modeling|statistical learning|deep learning|business analytics)\b/;
+const PYTHON_DATA_IDENTITY =
+  /(?=.*\bpython\b)(?=.*\b(?:pandas|data(?:set|frame|\s+analysis|\s+cleaning|\s+visualization)|notebooks?|matplotlib|policy\s+analysis)\b)/;
 // Each token names a concrete data-science artifact or practice — never a
 // generic pedagogy word like "model" or "dataset" alone.
 const DATA_SCIENCE_HARD_TOKENS = [
@@ -72,7 +74,7 @@ const DATA_SCIENCE_HARD_TOKENS = [
 ];
 
 function hasDataScienceCourseSignal(identityText, text) {
-  if (DATA_SCIENCE_IDENTITY.test(identityText)) return true;
+  if (DATA_SCIENCE_IDENTITY.test(identityText) || PYTHON_DATA_IDENTITY.test(`${identityText} ${text}`)) return true;
   return DATA_SCIENCE_HARD_TOKENS.filter((pattern) => pattern.test(text)).length >= 2;
 }
 

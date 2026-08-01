@@ -420,14 +420,14 @@ function ReadinessPanel({
       ? {
           wrap: 'border-sky-100 bg-sky-50/70 text-sky-800 dark:border-sky-800/50 dark:bg-sky-950/30 dark:text-sky-200',
           icon: 'bg-sky-100 text-sky-700 dark:bg-sky-900/70 dark:text-sky-200',
-          title: 'Ready to download',
+          title: 'Exportable with review notes',
           meta: 'Review notes in Agent',
         }
       : hasWarnings
         ? {
             wrap: 'border-sky-100 bg-sky-50/70 text-sky-800 dark:border-sky-800/50 dark:bg-sky-950/30 dark:text-sky-200',
             icon: 'bg-sky-100 text-sky-700 dark:bg-sky-900/70 dark:text-sky-200',
-            title: 'Ready to download',
+            title: 'Exportable with review notes',
             meta: 'Notes saved in Agent',
           }
         : {
@@ -626,7 +626,9 @@ export function QualityStamp({ quality, onOpen, trustStatus = null, informationa
   if (quality?.status !== 'graded') return null;
   const readinessScore = Number.isFinite(quality.readiness?.score) ? quality.readiness.score : null;
   const readinessMax = Number.isFinite(quality.readiness?.maxScore) ? quality.readiness.maxScore : 100;
-  const readinessCeiling = Number.isFinite(quality.readiness?.evidenceCeiling) ? quality.readiness.evidenceCeiling : 69;
+  const unobservedPoints = Number.isFinite(quality.readiness?.points?.unobserved)
+    ? quality.readiness.points.unobserved
+    : null;
   const status = trustStatus || getPackageTrustStatus({ packageQualityPass: { status: 'ready', quality } });
   const tone = informational
     ? 'border-sky-200 bg-white/70 text-sky-700'
@@ -640,12 +642,12 @@ export function QualityStamp({ quality, onOpen, trustStatus = null, informationa
       onClick={onOpen}
       title={`${
         readinessScore !== null
-          ? `Automated readiness ${readinessScore}/${readinessMax} (ceiling ${readinessCeiling}); package conformance ${quality.score}/100 (${quality.grade})`
+          ? `Deterministic package evidence ${readinessScore}/${readinessMax} earned${unobservedPoints !== null ? `, ${unobservedPoints} unobserved` : ''}; package conformance ${quality.score}/100 (${quality.grade})`
           : `Package conformance ${quality.score}/100 (${quality.grade})`
       } — click for the full report`}
       aria-label={`Package quality ${
         readinessScore !== null
-          ? `automated readiness ${readinessScore} out of ${readinessMax}`
+          ? `deterministic package evidence ${readinessScore} earned out of ${readinessMax}`
           : `${quality.score} out of 100, grade ${quality.grade}`
       } — open the quality report`}
       className={`inline-flex items-center gap-0.5 rounded-full border px-1.5 py-0.5 font-mono text-[10px] font-bold transition-colors hover:brightness-95 ${tone}`}
@@ -705,7 +707,7 @@ function QualityReportModal({ quality, onClose }) {
             <div className="min-w-0">
               <p id="quality-report-title" className="text-sm font-bold text-slate-800">
                 {readiness
-                  ? `Automated readiness — ${readiness.score}/100`
+                  ? `Deterministic package evidence — ${readiness.points?.earned ?? readiness.score}/100 earned`
                   : `Package conformance — ${quality.score}/100 (${quality.grade})`}
               </p>
               <p id="quality-report-summary" className="text-xs text-slate-400">
@@ -730,20 +732,25 @@ function QualityReportModal({ quality, onClose }) {
             {readiness && (
               <div data-testid="automated-readiness-summary" className="rounded-lg border border-sky-100 bg-sky-50 p-3">
                 <p className="text-xs font-semibold text-sky-800">
-                  {humanizeReadinessLabel(readiness.band)} · automated ceiling {readiness.evidenceCeiling || 69}
+                  {humanizeReadinessLabel(readiness.band)} · {readiness.points?.earned ?? readiness.score} earned ·{' '}
+                  {readiness.points?.lost ?? 'unknown'} lost · {readiness.points?.unobserved ?? 'unknown'} unobserved
                 </p>
                 <p className="mt-1 text-xs leading-relaxed text-sky-700">
-                  {readiness.claimBoundary} Scores from 70–100 require independent review or observed use.
+                  {readiness.claimBoundary} Missing evidence stays in the fixed 100-point potential and never improves
+                  the score.
                 </p>
                 {readinessComponents.length > 0 && (
-                  <div className="mt-2 grid grid-cols-2 gap-1">
+                  <div className="mt-2 space-y-1">
                     {readinessComponents.map(([component, value]) => (
-                      <div
-                        key={component}
-                        className="flex items-center justify-between rounded-md bg-white/70 px-2 py-1 text-xs"
-                      >
-                        <span className="truncate pr-2 text-sky-700">{humanizeReadinessLabel(component)}</span>
-                        <span className="font-bold text-sky-900">{value.score}</span>
+                      <div key={component} className="rounded-md bg-white/70 px-2 py-1.5 text-xs">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="truncate text-sky-700">{humanizeReadinessLabel(component)}</span>
+                          <span className="font-bold text-sky-900">
+                            {value.points?.earned ?? '—'}/{value.points?.max ?? value.weight} earned
+                          </span>
+                        </div>
+                        <p className="mt-0.5 leading-snug text-sky-700">{value.reason}</p>
+                        <p className="mt-0.5 leading-snug text-sky-900">Improve: {value.action}</p>
                       </div>
                     ))}
                   </div>
@@ -820,6 +827,10 @@ function QualityReportModal({ quality, onClose }) {
                         <p className="mt-0.5 rounded bg-slate-50 px-1.5 py-1 font-mono text-xs leading-snug text-slate-500 break-words">
                           {finding.evidence}
                         </p>
+                      ) : null}
+                      {finding.reason ? <p className="mt-1 text-xs text-slate-600">Why: {finding.reason}</p> : null}
+                      {finding.action ? (
+                        <p className="mt-0.5 text-xs text-slate-700">Improve: {finding.action}</p>
                       ) : null}
                     </li>
                   ))}

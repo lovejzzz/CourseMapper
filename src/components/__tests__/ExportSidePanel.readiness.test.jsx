@@ -387,7 +387,7 @@ describe('ExportSidePanel readiness repair timing', () => {
     });
 
     const panel = container.querySelector('[data-testid="readiness-panel"]');
-    expect(panel?.textContent).toContain('Ready to download');
+    expect(panel?.textContent).toContain('Exportable with review notes');
     expect(panel?.textContent).toContain('Review notes in Agent');
     expect(panel?.className).toContain('sky');
     expect(panel?.textContent).not.toContain('Download available');
@@ -447,9 +447,9 @@ describe('ExportSidePanel readiness repair timing', () => {
     expect(modal).not.toBeNull();
     expect(modal?.parentElement).toBe(document.body);
     expect(container.querySelector('[data-testid="quality-report-modal"]')).toBeNull();
-    expect(modal?.textContent).toContain('Automated readiness — 61/100');
+    expect(modal?.textContent).toContain('Deterministic package evidence — 61/100 earned');
     expect(modal?.textContent).toContain('Package conformance 96/100 (A)');
-    expect(modal?.textContent).toContain('Scores from 70–100 require');
+    expect(modal?.textContent).toContain('Missing evidence stays in the fixed 100-point potential');
   });
 
   it('names the ZIP preparation work while the package is being assembled', async () => {

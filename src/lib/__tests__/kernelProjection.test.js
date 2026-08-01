@@ -1125,8 +1125,8 @@ describe('kernel parse → project → compile (end to end)', () => {
     expect(['A', 'B', 'C', 'D']).toContain(firstQuestion.answer);
 
     const guide = compiled.studyGuides.studyGuides[0];
-    expect(guide.keyTerms[0].term).toBe('Greenhouse effect');
-    expect(guide.commonMisconceptions[0].misconception).toContain('ozone');
+    expect(guide.keyTerms.map((term) => term.term)).toEqual(expect.arrayContaining(['Greenhouse effect', 'Albedo']));
+    expect(guide.commonMisconceptions.map((item) => item.misconception).join(' ')).toContain('ozone');
 
     const slides = compiled.slideDecks.decks[0].slides;
     expect(slides.some((slide) => slide.enrichmentSource)).toBe(true);

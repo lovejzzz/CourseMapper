@@ -124,6 +124,21 @@ describe('apiCallBudget', () => {
     expect(JSON.stringify(receipt)).not.toContain('do not retain');
   });
 
+  it('retains only the aggregate native reconstruction count in recent event diagnostics', () => {
+    const budget = applyApiCallBudgetEvent(createApiCallBudget(), {
+      type: 'pipelineDecision',
+      stage: 'nativeAuthoring',
+      label: 'Native graph authoring',
+      repairedFieldCount: 85,
+      detail: 'aggregate repair receipt',
+    });
+
+    expect(budget.recentEvents[0]).toMatchObject({
+      label: 'Native graph authoring',
+      repairedFieldCount: 85,
+    });
+  });
+
   it('reconciles candidate linker telemetry to the admitted graph evidence', () => {
     const pipeline = reconcileGenomePipelineEvidence({
       genomeLinker: '2 genome + 0 cached (0 genome-backed) of 6 lessons (2 concepts, 2 citations, 0 bridges)',

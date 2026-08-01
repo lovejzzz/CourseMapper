@@ -25,4 +25,24 @@ describe('extractExplicitLessonSequence', () => {
   it('does not turn an ordinary unordered topic list into a lesson sequence', () => {
     expect(extractExplicitLessonSequence('Cover sources, cleaning, charts, uncertainty, and revision.')).toEqual([]);
   });
+
+  it('recognizes an exact hyphenated counted sequence from the production audit brief', () => {
+    expect(
+      extractExplicitLessonSequence(
+        'Beginner undergraduate course: Python for Public Policy. Use this exact five-lesson sequence: ' +
+          '1) Python and pandas for public datasets; ' +
+          '2) Data cleaning, missing values, and reproducible notebooks; ' +
+          '3) Data visualization with matplotlib for policy audiences; ' +
+          '4) Correlation versus causation in policy analysis; ' +
+          '5) Evidence-based policy memo with limitations and recommendations.',
+        { expectedCount: 5 },
+      ),
+    ).toEqual([
+      'Python and pandas for public datasets',
+      'Data cleaning, missing values, and reproducible notebooks',
+      'Data visualization with matplotlib for policy audiences',
+      'Correlation versus causation in policy analysis',
+      'Evidence-based policy memo with limitations and recommendations',
+    ]);
+  });
 });

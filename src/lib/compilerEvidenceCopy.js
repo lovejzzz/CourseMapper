@@ -125,8 +125,9 @@ export function evidenceClaimKey(value) {
 
 export function distinctLessonEvidenceClaims(lesson = {}, limit = 5) {
   const enrichment = lesson?.enrichment || {};
+  const canonicalFacts = asArray(enrichment.kernel?.canonicalFacts);
   const candidates = [
-    ...asArray(enrichment.kernel?.facts),
+    ...(canonicalFacts.length > 0 ? canonicalFacts : asArray(enrichment.kernel?.facts)),
     ...asArray(enrichment.keyTerms).flatMap((term) => [
       term?.definition || term?.df || '',
       term?.example || term?.eg || '',

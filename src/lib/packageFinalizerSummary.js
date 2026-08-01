@@ -205,7 +205,14 @@ export function buildQualityReceipt({
   const lessonCount = courseMap?.lessons?.length || 0;
   const reviewRequiredCount =
     humanDecisionCount + (exportVerification?.failed || 0) + (exportVerification?.warningCount || 0);
+  const handoffStatus =
+    blockers.length + (exportVerification?.failed || 0) > 0
+      ? 'blocked'
+      : reviewRequiredCount > 0
+        ? 'exportable-needs-review'
+        : 'publishable';
   return {
+    handoffStatus,
     checkedSections: checkedFeatureCount > 0 ? `${checkedFeatureCount}/${checkedFeatureCount}` : '',
     lessonCount,
     autoFixedCount: repairsApplied,

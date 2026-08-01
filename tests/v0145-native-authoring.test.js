@@ -1543,7 +1543,7 @@ describe('Pass B contract (B2)', () => {
       },
     );
 
-    expect(completed.keyTerms).toHaveLength(1);
+    expect(completed.keyTerms).toHaveLength(2);
     expect(completed.keyTerms[0]).toMatchObject({
       term: 'Audience analysis and evidence',
       source: 'fact-ledger-projection',
@@ -1554,6 +1554,9 @@ describe('Pass B contract (B2)', () => {
     expect(completed.keyTerms[0].example).toContain('registration survey');
     expect(completed.keyTermFallbacks).toContainEqual(
       expect.objectContaining({ type: 'term', source: 'fact-ledger-projection' }),
+    );
+    expect(completed.keyTermFallbacks).toContainEqual(
+      expect.objectContaining({ type: 'term', source: 'fact-subject-projection' }),
     );
     expect(completed.quizItems).toHaveLength(2);
     expect(completed.slideContent.length).toBeGreaterThanOrEqual(1);

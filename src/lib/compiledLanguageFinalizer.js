@@ -410,7 +410,18 @@ function buildReferenceTargets(blueprint = {}) {
       // erase the lesson-specific words quality gates look for.
       topicShort = topic;
     } else {
-      const leadWords = topic.split(/\s+/).slice(0, 5).join(' ');
+      const topicWords = topic.split(/\s+/).filter(Boolean);
+      const initialLeadWords = topicWords.slice(0, 5);
+      const trailingConnectorIndex = initialLeadWords.findLastIndex((word) =>
+        /^(?:and|or|for|of|to|with|in|on|from|against|between|through)$/i.test(word),
+      );
+      // A five-word crop can turn a complete title such as “Data
+      // visualization with matplotlib for policy audiences” into the
+      // reader-visible fragment “... for”. When a connector lands near the
+      // crop boundary, retain its short complement rather than amputating the
+      // title at a mechanically convenient word count.
+      const leadWordCount = trailingConnectorIndex >= 3 ? Math.min(topicWords.length, trailingConnectorIndex + 3) : 5;
+      const leadWords = topicWords.slice(0, leadWordCount).join(' ');
       topicShort = leadWords.length >= 8 ? leadWords : `Lesson ${lessonNumber}`;
     }
     if (topic.length >= 25 && title.length > topic.length) {

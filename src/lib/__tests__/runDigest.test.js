@@ -104,6 +104,34 @@ describe('runDigest', () => {
     );
   });
 
+  it('preserves the trust state and warning-domain ledger alongside operational finish status', () => {
+    const warningDomains = {
+      version: 1,
+      total: 22,
+      domains: { contentQuality: 9, evidence: 5, exportReview: 8 },
+    };
+    const blockerDomains = { version: 1, total: 0, domains: {} };
+    const digest = buildRunDigest({
+      budget: budgetWithCourseMapCall('gpt-5.4-mini'),
+      finish: {
+        finalStatus: 'ready',
+        trustState: 'review',
+        blockers: 0,
+        warnings: 22,
+        warningDomains,
+        blockerDomains,
+      },
+    });
+
+    expect(digest.gates).toMatchObject({
+      finalStatus: 'ready',
+      trustState: 'review',
+      warnings: 22,
+      warningDomains,
+      blockerDomains,
+    });
+  });
+
   it('labels pricing accuracy honestly', () => {
     const reported = buildRunDigest({ budget: budgetWithCourseMapCall('gpt-5.4-mini', false) });
     expect(reported.cost.accuracy).toContain('provider-reported');

@@ -2494,6 +2494,7 @@ export default function useDeliverables({
               stage: 'nativeAuthoring',
               label: 'Native graph authoring',
               detail: `assembled ${nativeLessonCount} sessions onto Pass A entity ids · outcomes/activities ${authoredSurfaceCount}/${nativeLessonCount} · knowledge kernels admitted ${admittedKernelCount}/${nativeLessonCount} · ${(resolution.graph.readings || []).length} registry readings${recoveredResourceDetail}${nativeCourseIRDetail}${nativeRepairDetail}`,
+              repairedFieldCount: nativeRepair?.readinessRepairedFieldCount || 0,
             });
             if (nativeCourseIR) {
               appendLog(

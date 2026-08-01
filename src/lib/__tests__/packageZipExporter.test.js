@@ -155,7 +155,16 @@ describe('packageZipExporter', () => {
           runId: 'run-provenance',
           finishRunId: 'finish-provenance',
           run: { provider: 'public', models: ['scion-public'] },
-          gates: { exportStatus: 'passed', exportChecked: 38, exportFailed: 0, exportWarnings: 0 },
+          gates: {
+            finalStatus: 'ready',
+            trustState: 'review',
+            warningDomains: { version: 1, total: 2, domains: { contentQuality: 2 } },
+            blockerDomains: { version: 1, total: 0, domains: {} },
+            exportStatus: 'passed',
+            exportChecked: 38,
+            exportFailed: 0,
+            exportWarnings: 0,
+          },
         },
       },
     });
@@ -181,6 +190,12 @@ describe('packageZipExporter', () => {
         },
       },
       exportVerification: { status: 'passed', checked: 38, failed: 0, warnings: 0 },
+      handoffTrust: {
+        finishStatus: 'ready',
+        trustState: 'review',
+        warningDomains: { version: 1, total: 2, domains: { contentQuality: 2 } },
+        blockerDomains: { version: 1, total: 0, domains: {} },
+      },
       generationConstraints: { sessionMinutes: 50 },
     });
   });
@@ -624,7 +639,7 @@ describe('packageZipExporter', () => {
     ]);
   });
 
-  it('uses precomputed finish quality for ZIP reports instead of requiring a second grade pass', async () => {
+  it('rejects a legacy precomputed score without a replayable ledger and regrades the ZIP', async () => {
     const courseMap = makeCourseMap('Browser Export Course');
     const binding = await buildCourseMaterialsZip({
       courseMap,
@@ -703,16 +718,17 @@ describe('packageZipExporter', () => {
         score: 89,
         grade: 'B',
         graderVersion: GRADER_VERSION,
-        readiness: expect.objectContaining({ score: 54, evidenceCeiling: 69 }),
-        texture: expect.objectContaining({ score: 95 }),
+        readiness: expect.objectContaining({ score: 35, maxScore: 100 }),
+        texture: expect.objectContaining({ score: 100 }),
+        scoreLedger: expect.objectContaining({ path: 'SCORE_LEDGER.json' }),
       }),
     );
-    expect(report).toContain('Automated readiness signal: 54/100');
+    expect(await zip.file('SCORE_LEDGER.json').async('string')).toContain('coursemapper-score-ledger-v1');
+    expect(report).toContain('Deterministic package evidence: 35/100 earned');
     expect(report).toContain('Package conformance: 89/100 (B)');
-    expect(report).toContain('verified finish-pass quality result');
-    expect(report).toContain('| Evidence grounding | 25 | 28/100 |');
-    expect(report).toContain('lesson knowledge did not clear admission');
-    expect(report).toContain('| texture | 25 | 95 | A |');
+    expect(report).not.toContain('verified finish-pass quality result');
+    expect(report).not.toContain('lesson knowledge did not clear admission');
+    expect(report).toContain('| texture | 25 | 100 | A |');
     expect(report).toContain('| **overall** | 135 |');
   });
 
@@ -1655,7 +1671,7 @@ describe('packageZipExporter', () => {
     expect(sourceReport).not.toContain('syllabus-src-');
   });
 
-  it('recovers UX sourceRef proof with licensed concept-linked sources when provider retrieval leaves only CourseIR review rows', async () => {
+  it('does not invent UX source proof when the admitted run has only CourseIR review rows', async () => {
     const courseMap = {
       courseName: 'User Experience Design Studio',
       lessons: [
@@ -1754,59 +1770,14 @@ describe('packageZipExporter', () => {
     const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
     const sourceReport = await zip.file('SOURCE_REPORT.md').async('string');
 
-    expect(manifest.sourceLedger.length).toBeGreaterThanOrEqual(3);
-    expect(manifest.sourceLedger).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          id: 'ux-curated-usability-testing',
-          provider: 'wikipedia',
-          license: 'CC BY-SA 4.0',
-          url: 'https://en.wikipedia.org/wiki/Usability_testing',
-          conceptLinks: expect.arrayContaining([expect.objectContaining({ label: 'usability testing' })]),
-        }),
-        expect.objectContaining({
-          id: 'ux-curated-web-accessibility',
-          provider: 'wikipedia',
-          license: 'CC BY-SA 4.0',
-          url: 'https://en.wikipedia.org/wiki/Web_accessibility',
-          conceptLinks: expect.arrayContaining([expect.objectContaining({ label: 'accessibility' })]),
-        }),
-        expect.objectContaining({
-          id: 'ux-curated-software-prototyping',
-          provider: 'wikipedia',
-          license: 'CC BY-SA 4.0',
-          url: 'https://en.wikipedia.org/wiki/Software_prototyping',
-          conceptLinks: expect.arrayContaining([expect.objectContaining({ label: 'prototype review' })]),
-        }),
-      ]),
-    );
-    expect(manifest.sourceReviewRows).toBeUndefined();
-    expect(manifest.sourceLedgerSummary).toMatchObject({
-      trustedCount: manifest.sourceLedger.length,
-      trustedConceptLinkedCount: manifest.sourceLedger.length,
-      providers: ['wikipedia'],
-    });
-    expect(manifest.courseIR).toMatchObject({
-      sourceLedgerRows: manifest.sourceLedger.length,
-      sourceRefBridge: {
-        source: 'coursegraph-concept-linked-ledger',
-        trustedRows: manifest.sourceLedger.length,
-        conceptLinkedRows: manifest.sourceLedger.length,
-      },
-    });
-    expect(manifest.courseIR.sourceRefBridge.replacedReviewRows).toBeGreaterThanOrEqual(1);
-    expect(manifest.courseIR.sourceRefCoverage).toMatchObject({
-      sourceLedgerRows: manifest.sourceLedger.length,
-      totals: { total: 34, withRefs: 34, missing: 0, danglingRefs: 0 },
-    });
-    expect(sourceReport).toContain('Source Ledger');
-    expect(sourceReport).toContain('Usability testing');
-    expect(sourceReport).toContain('CC BY-SA 4.0');
-    expect(sourceReport).not.toContain('Source Review Notes');
-    expect(sourceReport).not.toContain('Existing course map fields');
+    expect(manifest.sourceLedger).toBeUndefined();
+    expect(JSON.stringify(manifest)).not.toContain('ux-curated-');
+    expect(sourceReport).not.toContain('Usability testing');
+    expect(sourceReport).not.toContain('Web accessibility');
+    expect(sourceReport).not.toContain('Software prototyping');
   });
 
-  it('projects exact named-reading knowledge into trusted literature bibliography rows', async () => {
+  it('does not turn named readings into exporter-invented bibliography proof', async () => {
     const courseMap = {
       courseName: 'World Literature Seminar',
       lessons: [
@@ -1873,34 +1844,13 @@ describe('packageZipExporter', () => {
     const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
     const sourceReport = await zip.file('SOURCE_REPORT.md').async('string');
 
-    expect(manifest.sourceLedger).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          title: 'The Odyssey of Homer',
-          provider: 'gutenberg',
-          license: 'public domain',
-          url: 'https://www.gutenberg.org/ebooks/1727',
-          conceptLinks: expect.arrayContaining([expect.objectContaining({ label: 'recognition scene' })]),
-        }),
-        expect.objectContaining({
-          title: 'The Library of Babel',
-          provider: 'wikipedia',
-          license: 'CC BY-SA 4.0',
-          url: 'https://en.wikipedia.org/wiki/The_Library_of_Babel',
-          conceptLinks: expect.arrayContaining([expect.objectContaining({ label: 'combinatorial totality' })]),
-        }),
-      ]),
-    );
-    expect(manifest.sourceLedgerSummary).toMatchObject({
-      trustedCount: 2,
-      trustedConceptLinkedCount: 2,
-      providers: ['gutenberg', 'wikipedia'],
-    });
-    expect(sourceReport).toContain('The Odyssey of Homer');
-    expect(sourceReport).toContain('The Library of Babel');
+    expect(manifest.sourceLedger).toBeUndefined();
+    expect(JSON.stringify(manifest)).not.toContain('literature-curated-source');
+    expect(sourceReport).not.toContain('https://www.gutenberg.org/ebooks/1727');
+    expect(sourceReport).not.toContain('https://en.wikipedia.org/wiki/The_Library_of_Babel');
   });
 
-  it('recovers Python sourceRef proof with licensed OpenStax sections when provider proof collapses to CourseIR review rows', async () => {
+  it('does not invent Python source proof when provider proof collapses to CourseIR review rows', async () => {
     const courseMap = {
       courseName: 'Introduction to Computer Science with Python',
       lessons: [
@@ -2058,60 +2008,12 @@ describe('packageZipExporter', () => {
     const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
     const sourceReport = await zip.file('SOURCE_REPORT.md').async('string');
 
-    expect(manifest.sourceLedger.length).toBeGreaterThanOrEqual(8);
-    expect(manifest.sourceLedger).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          id: 'python-openstax-variables',
-          provider: 'openstax',
-          license: 'CC BY 4.0',
-          url: 'https://openstax.org/books/introduction-python-programming/pages/1-3-variables',
-          conceptLinks: expect.arrayContaining([expect.objectContaining({ label: 'variables' })]),
-        }),
-        expect.objectContaining({
-          id: 'python-openstax-functions',
-          url: 'https://openstax.org/books/introduction-python-programming/pages/6-1-defining-functions',
-          conceptLinks: expect.arrayContaining([expect.objectContaining({ label: 'functions' })]),
-        }),
-        expect.objectContaining({
-          id: 'python-openstax-dictionaries',
-          url: 'https://openstax.org/books/introduction-python-programming/pages/10-1-dictionary-basics',
-          conceptLinks: expect.arrayContaining([expect.objectContaining({ label: 'dictionaries' })]),
-        }),
-        expect.objectContaining({
-          id: 'python-openstax-recursion',
-          url: 'https://openstax.org/books/introduction-python-programming/pages/12-1-recursion-basics',
-          conceptLinks: expect.arrayContaining([expect.objectContaining({ label: 'recursion' })]),
-        }),
-      ]),
-    );
-    expect(manifest.sourceReviewRows).toBeUndefined();
-    expect(manifest.sourceLedgerSummary).toMatchObject({
-      trustedCount: manifest.sourceLedger.length,
-      trustedConceptLinkedCount: manifest.sourceLedger.length,
-      providers: ['openstax'],
-    });
-    expect(manifest.courseIR).toMatchObject({
-      sourceLedgerRows: manifest.sourceLedger.length,
-      sourceRefBridge: {
-        source: 'coursegraph-concept-linked-ledger',
-        trustedRows: manifest.sourceLedger.length,
-        conceptLinkedRows: manifest.sourceLedger.length,
-      },
-    });
-    expect(manifest.courseIR.sourceRefBridge.replacedReviewRows).toBeGreaterThanOrEqual(1);
-    expect(manifest.courseIR.sourceRefCoverage).toMatchObject({
-      sourceLedgerRows: manifest.sourceLedger.length,
-      totals: { total: 269, withRefs: 269, missing: 0, danglingRefs: 0 },
-    });
-    expect(sourceReport).toContain('Source Ledger');
-    expect(sourceReport).toContain('OpenStax Introduction to Python Programming');
-    expect(sourceReport).toContain('CC BY 4.0');
-    expect(sourceReport).not.toContain('Source Review Notes');
-    expect(sourceReport).not.toContain('Existing course map fields');
+    expect(manifest.sourceLedger).toBeUndefined();
+    expect(JSON.stringify(manifest)).not.toContain('python-openstax-');
+    expect(sourceReport).not.toContain('OpenStax Introduction to Python Programming');
   });
 
-  it('recovers music-interval source proof with licensed Open Music Theory materials and drops search false friends', async () => {
+  it('drops music search false friends without inventing replacement source proof', async () => {
     const courseMap = {
       courseName: 'Interval Evidence Studio',
       lessons: [
@@ -2231,33 +2133,10 @@ describe('packageZipExporter', () => {
     const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
     const sourceReport = await zip.file('SOURCE_REPORT.md').async('string');
 
-    expect(manifest.sourceLedger).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          id: 'music-omt-intervals',
-          provider: 'open-music-theory',
-          license: 'CC BY-SA 4.0',
-          conceptLinks: expect.arrayContaining([expect.objectContaining({ label: 'generic interval' })]),
-        }),
-        expect.objectContaining({
-          id: 'music-omt-intervals-worksheet-e',
-          provider: 'open-music-theory',
-          license: 'CC BY-SA 4.0',
-          conceptLinks: expect.arrayContaining([expect.objectContaining({ label: 'interval inversion' })]),
-        }),
-      ]),
-    );
-    expect(manifest.sourceReviewRows).toBeUndefined();
+    expect(manifest.sourceLedger).toBeUndefined();
     expect(JSON.stringify(manifest)).not.toContain('Classification of Multivariate Objects');
-    expect(manifest.sourceLedgerSummary).toMatchObject({
-      sourceCount: 2,
-      trustedCount: 2,
-      trustedConceptLinkedCount: 2,
-      providers: ['open-music-theory'],
-    });
-    expect(sourceReport).toContain('Open Music Theory: Intervals');
-    expect(sourceReport).toContain('CC BY-SA 4.0');
-    expect(sourceReport).not.toContain('Source Review Notes');
+    expect(JSON.stringify(manifest)).not.toContain('music-omt-intervals');
+    expect(sourceReport).not.toContain('Open Music Theory: Intervals');
   });
 
   it('does not inflate CourseIR sourceRef coverage with trusted but unlinked source rows', async () => {
@@ -2850,6 +2729,74 @@ describe('packageZipExporter', () => {
     const allRows = [...(manifest.sourceLedger || []), ...(manifest.sourceReviewRows || [])];
     expect(allRows.some((row) => String(row.id || '').startsWith('python-openstax-'))).toBe(false);
     expect(allRows.some((row) => /Introduction to Python Programming/i.test(String(row.title || '')))).toBe(false);
+  });
+
+  it('rejects the production Python-policy false friend and packages its required data assets', async () => {
+    const courseMap = {
+      courseName: 'Python for Public Policy',
+      lessons: [
+        { title: 'Python and pandas for public datasets', sections: [{ topicSection: 'pandas data structures' }] },
+        {
+          title: 'Data cleaning, missing values, and reproducible notebooks',
+          sections: [{ topicSection: 'Handling Missing Data' }],
+        },
+        {
+          title: 'Data visualization with matplotlib for policy audiences',
+          sections: [{ topicSection: 'matplotlib visualization' }],
+        },
+      ],
+    };
+    const result = await buildCourseMaterialsZip({
+      courseMap,
+      deliverables: {},
+      featureIds: ['courseMap'],
+      // The live runtime carried retrieval state without repeating the course
+      // identity on this graph. ZIP assembly must bind courseMap identity
+      // before deciding whether the result is admissible.
+      courseGraph: {
+        sessions: [],
+        resources: [],
+        readings: [],
+        sourceFinderMiniShard: {
+          topics: [
+            {
+              lessonNumber: 2,
+              topic: 'Handling Missing Data',
+              sources: [
+                {
+                  id: 'sf1',
+                  title: 'Open energy system models',
+                  provider: 'wikipedia',
+                  url: 'https://en.wikipedia.org/wiki/Open_energy_system_models',
+                  license: 'CC BY-SA 4.0',
+                  kind: 'encyclopedia background',
+                  snippet: 'Open-source energy models used for climate policy.',
+                },
+              ],
+            },
+          ],
+        },
+      },
+      pipelineState: {
+        enrichment: 'ran (3 lessons enriched)',
+        knowledgeBackbone: '0/3 lessons genome-linked · 1 cited open resource (source-finder: 1)',
+      },
+      quality: false,
+    });
+
+    const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+    const allRows = [...(manifest.sourceLedger || []), ...(manifest.sourceReviewRows || [])];
+
+    expect(allRows).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ title: 'Open energy system models' })]),
+    );
+    expect(allRows.some((row) => String(row.id || '').startsWith('ux-curated-'))).toBe(false);
+    expect(allRows.some((row) => String(row.id || '').startsWith('python-openstax-'))).toBe(false);
+    expect(manifest.requiredAssets.map((asset) => asset.id)).toEqual(
+      expect.arrayContaining(['course-dataset', 'data-dictionary', 'starter-notebook', 'starter-script']),
+    );
+    expect(zip.file('Required Assets/Python for Public Policy - Required Lab Assets.md')).not.toBeNull();
   });
 
   it('never assumes a quantum-computing course uses Python', async () => {

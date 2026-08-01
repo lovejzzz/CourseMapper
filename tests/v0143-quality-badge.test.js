@@ -244,9 +244,7 @@ describe('A5(2) — healthy package ships its own audit', () => {
     const report = await zip.file('QUALITY_REPORT.md').async('string');
     expect(report).toContain('## Package conformance checks');
     expect(report).toContain(`**Package conformance: ${result.quality.score}/100 (${result.quality.grade})**`);
-    expect(report).toContain(
-      `**Automated readiness signal: ${result.quality.readiness.score}/${result.quality.readiness.maxScore}`,
-    );
+    expect(report).toContain(`**Deterministic package evidence: ${result.quality.readiness.score}/100 earned`);
     const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
     expect(manifest.quality).toEqual(result.quality);
     // The report rides the returned files list but, like the manifest's own
@@ -586,8 +584,8 @@ describe('B2 — ExportSidePanel compact download-card stamp', () => {
     expect(html).toContain('<button');
   });
 
-  it('turns amber for P0/low grades and stays silent when not graded', () => {
-    expect(render(gradedQuality({ score: 70, grade: 'C' }))).toContain('amber');
+  it('uses explicit findings rather than aggregate grade thresholds and stays silent when not graded', () => {
+    expect(render(gradedQuality({ score: 70, grade: 'C' }))).toContain('emerald');
     expect(render({ status: 'not-graded', reason: 'timeout' })).toBe('');
     expect(render(null)).toBe('');
   });

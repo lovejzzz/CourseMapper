@@ -88,7 +88,9 @@ export default function WorkspaceQualityChip({ packageQualityPass, onOpenReport 
   const textureScore = Number.isFinite(quality.texture?.score) ? quality.texture.score : null;
   const readinessScore = Number.isFinite(quality.readiness?.score) ? quality.readiness.score : null;
   const readinessMax = Number.isFinite(quality.readiness?.maxScore) ? quality.readiness.maxScore : 100;
-  const readinessCeiling = Number.isFinite(quality.readiness?.evidenceCeiling) ? quality.readiness.evidenceCeiling : 69;
+  const unobservedPoints = Number.isFinite(quality.readiness?.points?.unobserved)
+    ? quality.readiness.points.unobserved
+    : null;
   if (trustStatus.blocked) {
     const refinementItems = Math.max(1, Number(trustStatus.blockerCount) || Number(packageQualityPass?.blockers) || 0);
     const refinementText = `${refinementItems} item${refinementItems === 1 ? '' : 's'} to refine`;
@@ -99,14 +101,14 @@ export default function WorkspaceQualityChip({ packageQualityPass, onOpenReport 
         onClick={onOpenReport}
         aria-label={`Package quality: export paused for ${refinementText}; ${
           readinessScore !== null
-            ? `automated readiness signal ${readinessScore} out of ${readinessMax}`
+            ? `deterministic package evidence ${readinessScore} earned out of ${readinessMax}`
             : `conformance result ${quality.score} out of 100, grade ${quality.grade}`
         }${p0 > 0 ? `, including ${p0} critical` : ''}${
           textureScore !== null ? `, texture ${textureScore} out of 100` : ''
         } — open the quality report`}
         title={`Export is paused for ${refinementText}. ${
           readinessScore !== null
-            ? `Automated readiness is ${readinessScore}/${readinessMax} with a ${readinessCeiling} automated ceiling; package conformance is ${quality.score}/100 (${quality.grade})`
+            ? `Deterministic package evidence is ${readinessScore}/${readinessMax} earned${unobservedPoints !== null ? ` with ${unobservedPoints} unobserved` : ''}; package conformance is ${quality.score}/100 (${quality.grade})`
             : `Package conformance is ${quality.score}/100 (${quality.grade})`
         }${p0 > 0 ? ` including ${p0} critical finding${p0 === 1 ? '' : 's'}` : ''}${
           textureScore !== null ? ` · Texture ${textureScore}/100` : ''
@@ -115,7 +117,7 @@ export default function WorkspaceQualityChip({ packageQualityPass, onOpenReport 
       >
         <span>
           {readinessScore !== null
-            ? `Readiness ${readinessScore}/${readinessMax}`
+            ? `Evidence ${readinessScore}/${readinessMax}`
             : `Conformance ${quality.score} · ${quality.grade}`}
         </span>
         {textureScore !== null && (
@@ -139,14 +141,14 @@ export default function WorkspaceQualityChip({ packageQualityPass, onOpenReport 
       onClick={onOpenReport}
       aria-label={`Package quality: ${
         readinessScore !== null
-          ? `automated readiness signal ${readinessScore} out of ${readinessMax}`
+          ? `deterministic package evidence ${readinessScore} earned out of ${readinessMax}`
           : `conformance ${quality.score} out of 100, grade ${quality.grade}`
       }, ${issues} issue${issues === 1 ? '' : 's'}${p0 > 0 ? ` including ${p0} critical` : ''}${
         textureScore !== null ? `, texture ${textureScore} out of 100` : ''
       } — open the quality report`}
       title={`${
         readinessScore !== null
-          ? `Automated readiness ${readinessScore}/${readinessMax} (automated ceiling ${readinessCeiling}) · package conformance ${quality.score}/100 (${quality.grade})`
+          ? `Deterministic package evidence ${readinessScore}/${readinessMax} earned${unobservedPoints !== null ? ` · ${unobservedPoints} unobserved` : ''} · package conformance ${quality.score}/100 (${quality.grade})`
           : `Package conformance ${quality.score}/100 (${quality.grade})`
       } · ${issues} issue${issues === 1 ? '' : 's'}${
         textureScore !== null
@@ -158,7 +160,7 @@ export default function WorkspaceQualityChip({ packageQualityPass, onOpenReport 
       {readinessScore !== null ? (
         <>
           <span>
-            Readiness {readinessScore}/{readinessMax}
+            Evidence {readinessScore}/{readinessMax}
           </span>
           {textureScore !== null && (
             <span data-testid="workspace-texture-meter" className="font-semibold text-slate-500 dark:text-slate-400">

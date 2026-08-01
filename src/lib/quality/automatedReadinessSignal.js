@@ -1,42 +1,22 @@
 import { extractExplicitLessonSequence } from '../explicitLessonSequence.js';
 import { isTrustedConceptLinkedSourceLedgerRow } from '../knowledge/sourceLedger.js';
 
-export const AUTOMATED_READINESS_PROTOCOL = 'coursemapper-automated-readiness-v1';
-export const AUTOMATED_READINESS_CEILING = 69;
+export const AUTOMATED_READINESS_PROTOCOL = 'coursemapper-deterministic-package-evidence-v2';
+// Compatibility exports retained for callers that previously rendered a
+// moving readiness ruler. The v2 ledger always has a fixed 100-point potential.
+export const AUTOMATED_READINESS_CEILING = 100;
+export const AUTOMATED_READINESS_ATTAINABLE_MAX = 100;
 export const AUTOMATED_READINESS_CLAIM_BOUNDARY =
-  'Automated signals cannot prove factual accuracy, teachability, accessibility, or instructor validation.';
+  'This deterministic evidence score is not a readiness probability. It cannot prove factual accuracy, teachability, accessibility, or instructor validation.';
 
+const RULE_VERSION = '1.0.0';
 const COMPONENT_WEIGHTS = {
   curriculumFidelity: 25,
   evidenceGrounding: 25,
-  instructionalSpecificity: 20,
+  instructionalTexture: 20,
   assessmentCoherence: 15,
   packageIntegrity: 15,
 };
-
-const GENERIC_LESSON_TITLE_RE = /^(?:(?:lesson|session|week|module)\s+)?\d+\s*[:.)-]?\s*(?:topic|lesson|session)?$/i;
-const TOKEN_STOPWORDS = new Set([
-  'a',
-  'an',
-  'and',
-  'are',
-  'as',
-  'at',
-  'be',
-  'by',
-  'for',
-  'from',
-  'in',
-  'into',
-  'is',
-  'of',
-  'on',
-  'or',
-  'the',
-  'to',
-  'using',
-  'with',
-]);
 
 function clamp(value, min = 0, max = 100) {
   const numeric = Number(value);
@@ -48,6 +28,16 @@ function rounded(value) {
   return Math.round(clamp(value));
 }
 
+function stableFingerprint(value) {
+  const text = JSON.stringify(value);
+  let hash = 2166136261;
+  for (let index = 0; index < text.length; index += 1) {
+    hash ^= text.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `fnv1a32:${(hash >>> 0).toString(16).padStart(8, '0')}`;
+}
+
 function textTokens(value) {
   return [
     ...new Set(
@@ -56,7 +46,7 @@ function textTokens(value) {
         .normalize('NFKD')
         .replace(/[^\p{L}\p{N}]+/gu, ' ')
         .split(/\s+/)
-        .filter((token) => token.length >= 3 && !TOKEN_STOPWORDS.has(token)),
+        .filter((token) => token.length >= 3),
     ),
   ];
 }
@@ -65,8 +55,7 @@ function topicAlignment(expected, actual) {
   const expectedTokens = textTokens(expected);
   const actualTokens = new Set(textTokens(actual));
   if (expectedTokens.length === 0 || actualTokens.size === 0) return 0;
-  const overlap = expectedTokens.filter((token) => actualTokens.has(token)).length;
-  return overlap / expectedTokens.length;
+  return expectedTokens.filter((token) => actualTokens.has(token)).length / expectedTokens.length;
 }
 
 function passedSupportReceipt(row = {}) {
@@ -96,157 +85,404 @@ function lessonNumbersForSource(row = {}) {
   return lessons;
 }
 
-function readinessBand(score) {
-  if (score >= 60) return 'strong-automated-signal';
-  if (score >= 45) return 'bounded-review';
-  if (score >= 25) return 'major-verification';
-  return 'insufficient-evidence';
-}
-
-function curriculumFidelityScore(course, lessonTitles) {
-  const titles = lessonTitles.map((title) => String(title || '').trim()).filter(Boolean);
-  const genericCount = titles.filter((title) => GENERIC_LESSON_TITLE_RE.test(title)).length;
-  const nonGenericRatio = titles.length > 0 ? (titles.length - genericCount) / titles.length : 0;
-  const explicitSequence = extractExplicitLessonSequence(course?.prompt || course?.sourceBrief || '');
-
-  if (explicitSequence.length >= 2) {
-    const comparisons = explicitSequence.map((expected, index) => topicAlignment(expected, titles[index] || ''));
-    const orderedMatched = comparisons.filter((ratio) => ratio >= 0.34).length;
-    const orderedCoverage = orderedMatched / explicitSequence.length;
-    const countParity =
-      Math.min(titles.length, explicitSequence.length) / Math.max(titles.length, explicitSequence.length);
-    const score = (orderedCoverage * 0.75 + countParity * 0.15 + nonGenericRatio * 0.1) * 100;
-    return {
-      score: rounded(score),
-      evidence: {
-        contract: 'explicit-ordered-sequence',
-        expectedLessons: explicitSequence.length,
-        exportedLessons: titles.length,
-        orderedMatched,
-        genericTitles: genericCount,
-      },
-    };
-  }
-
-  const distinctRatio =
-    titles.length > 0 ? new Set(titles.map((title) => textTokens(title).sort().join(' '))).size / titles.length : 0;
+function reconstructionDisclosure(manifest) {
+  const count = Number(manifest?.pipeline?.nativeReconstruction?.readinessRepairedFieldCount) || 0;
+  if (count <= 0) return null;
   return {
-    // Without an explicit source sequence, automation can assess identity
-    // collapse but cannot award full curriculum-fidelity credit.
-    score: rounded((nonGenericRatio * 0.65 + distinctRatio * 0.15) * 100),
-    evidence: {
-      contract: 'no-explicit-ordered-sequence',
-      expectedLessons: null,
-      exportedLessons: titles.length,
-      orderedMatched: null,
-      genericTitles: genericCount,
-    },
+    status: 'deterministic-reconstruction',
+    repairedFieldCount: Math.max(0, Math.floor(count)),
+    claimBoundary:
+      'Reconstructed fields are deterministic fallback content, not model-authored or independently verified evidence.',
   };
 }
 
-function evidenceGroundingScore(manifest, lessonCount) {
-  // Traceability credit comes only from compact receipts produced by the
-  // claim-to-passage extraction boundary. Pipeline prose (for example,
-  // "knowledge kernels admitted 8/8") and internal sourceRef wiring are
-  // deliberately ignored: both can change while the exported lesson bytes
-  // remain identical. These receipts commonly prove only that an extracted
-  // sentence still matches its source snapshot. They are retained as a
-  // traceability diagnostic, but receive zero evidence-grounding credit until
-  // rendered instructional claims have independently validated semantic
-  // support. This avoids laundering extraction checks into a readiness gate.
+function evidenceRef(evidenceId, artifactPath, jsonPointer, observed) {
+  return {
+    evidenceId,
+    artifactPath,
+    jsonPointer,
+    observed,
+    inputFingerprint: stableFingerprint(observed),
+  };
+}
+
+function evaluatedRule({
+  ruleId,
+  constructId,
+  max,
+  componentScore,
+  evidence,
+  predicate,
+  reason,
+  action,
+  antiGaming,
+  evidenceTier = 'deterministic-structural',
+}) {
+  const earned = Math.min(max, Math.max(0, Math.round((clamp(componentScore) / 100) * max)));
+  return {
+    ruleId,
+    ruleVersion: RULE_VERSION,
+    constructId,
+    status: 'evaluated',
+    recoverability: 'author-recoverable',
+    evidence,
+    predicate,
+    points: { max, earned, lost: max - earned, unobserved: 0 },
+    evidenceTier,
+    confidence: {
+      level: 'bounded',
+      basis: 'Deterministic observations replay the declared predicate; no expert judgment is implied.',
+    },
+    reason,
+    action: {
+      instruction: action,
+      expectedPredicateChange: predicate?.operator || 'declared rule improves',
+    },
+    antiGaming,
+    dependsOn: evidence.map((entry) => entry.evidenceId),
+  };
+}
+
+function unobservedRule({
+  ruleId,
+  constructId,
+  max,
+  evidence,
+  predicate,
+  reason,
+  action,
+  recoverability,
+  evidenceTier,
+  antiGaming,
+}) {
+  return {
+    ruleId,
+    ruleVersion: RULE_VERSION,
+    constructId,
+    status: 'unobserved',
+    recoverability,
+    evidence,
+    predicate,
+    points: { max, earned: 0, lost: 0, unobserved: max },
+    evidenceTier,
+    confidence: {
+      level: 'none',
+      basis: reason,
+    },
+    reason,
+    action: {
+      instruction: action,
+      expectedPredicateChange: 'supply eligible evidence so the rule can be evaluated',
+    },
+    antiGaming,
+    dependsOn: evidence.map((entry) => entry.evidenceId),
+  };
+}
+
+export function recomputeAutomatedEvidenceLedger(rules = []) {
+  const totals = { potential: 0, earned: 0, lost: 0, unobserved: 0 };
+  const ownedEvidence = new Map();
+  for (const rule of rules) {
+    const points = rule?.points || {};
+    for (const key of Object.keys(totals)) {
+      const sourceKey = key === 'potential' ? 'max' : key;
+      const value = Number(points[sourceKey]);
+      if (!Number.isFinite(value) || value < 0) throw new Error(`${rule?.ruleId || 'rule'} has invalid ${sourceKey}`);
+      totals[key] += value;
+    }
+    if (points.earned + points.lost + points.unobserved !== points.max) {
+      throw new Error(`${rule?.ruleId || 'rule'} point buckets do not equal its maximum`);
+    }
+    if (rule.status === 'evaluated' && points.unobserved !== 0) {
+      throw new Error(`${rule.ruleId} is evaluated but carries unobserved points`);
+    }
+    if (rule.status === 'unobserved' && (points.earned !== 0 || points.lost !== 0)) {
+      throw new Error(`${rule.ruleId} is unobserved but carries earned or lost points`);
+    }
+    if (rule.status === 'evaluated') {
+      for (const evidenceId of rule.dependsOn || []) {
+        if (ownedEvidence.has(evidenceId)) {
+          throw new Error(
+            `${evidenceId} earns points in both ${ownedEvidence.get(evidenceId)} and ${rule.constructId}`,
+          );
+        }
+        ownedEvidence.set(evidenceId, rule.constructId);
+      }
+    }
+  }
+  return totals;
+}
+
+function curriculumRule(course, lessonTitles) {
+  const explicitSequence = extractExplicitLessonSequence(course?.prompt || course?.sourceBrief || '');
+  const evidence = [
+    evidenceRef('course.explicit-lesson-sequence', 'PACKAGE_MANIFEST.json', '/course/prompt', explicitSequence),
+    evidenceRef('package.lesson-titles-for-sequence', 'PACKAGE_MANIFEST.json', '/lessons/*/title', lessonTitles),
+  ];
+  if (explicitSequence.length < 2) {
+    return unobservedRule({
+      ruleId: 'DPK.CURRICULUM.ORDERED_SEQUENCE',
+      constructId: 'curriculumFidelity',
+      max: COMPONENT_WEIGHTS.curriculumFidelity,
+      evidence,
+      predicate: {
+        operator: 'ordered-topic-alignment',
+        expected: 'explicit sequence with at least 2 lessons',
+        actual: 0,
+      },
+      reason: 'No explicit ordered source sequence was available, so curriculum fidelity was not scored.',
+      action:
+        'Provide the intended ordered lesson sequence in the course brief, then regenerate and review title alignment.',
+      recoverability: 'author-recoverable',
+      evidenceTier: 'deterministic-structural',
+      antiGaming: {
+        controls: ['missing sequence cannot earn credit', 'fixed 100-point potential', 'ordered position matching'],
+        inputFingerprint: stableFingerprint([explicitSequence, lessonTitles]),
+      },
+    });
+  }
+
+  const comparisons = explicitSequence.map((expected, index) => topicAlignment(expected, lessonTitles[index] || ''));
+  const orderedMatched = comparisons.filter((ratio) => ratio >= 0.34).length;
+  const orderedCoverage = orderedMatched / explicitSequence.length;
+  const countParity =
+    Math.min(lessonTitles.length, explicitSequence.length) / Math.max(lessonTitles.length, explicitSequence.length);
+  const componentScore = (orderedCoverage * 0.8 + countParity * 0.2) * 100;
+  return evaluatedRule({
+    ruleId: 'DPK.CURRICULUM.ORDERED_SEQUENCE',
+    constructId: 'curriculumFidelity',
+    max: COMPONENT_WEIGHTS.curriculumFidelity,
+    componentScore,
+    evidence: evidence.map((entry) => ({
+      ...entry,
+      observed:
+        entry.evidenceId === 'course.explicit-lesson-sequence'
+          ? { expectedLessons: explicitSequence.length, sequence: explicitSequence }
+          : { exportedLessons: lessonTitles.length, titles: lessonTitles, alignmentRatios: comparisons },
+    })),
+    predicate: {
+      operator: 'weighted-ordered-coverage',
+      expected: { minimumTokenOverlap: 0.34, exactCountParity: 1 },
+      actual: { orderedMatched, orderedCoverage, countParity },
+    },
+    reason: `${orderedMatched}/${explicitSequence.length} lesson titles met the ordered topic-overlap rule; count parity was ${Number(countParity.toFixed(3))}.`,
+    action:
+      orderedMatched === explicitSequence.length && countParity === 1
+        ? 'Preserve the explicit order and verify the lesson bodies follow the same progression.'
+        : 'Rename, add, remove, or reorder lessons so each position reflects its corresponding source topic.',
+    antiGaming: {
+      controls: [
+        'title genericity does not also earn texture points',
+        'ordered position matching',
+        'fixed denominator',
+      ],
+      inputFingerprint: stableFingerprint([explicitSequence, lessonTitles]),
+    },
+  });
+}
+
+function groundingRule(manifest, lessonCount) {
   const receiptRows = (Array.isArray(manifest?.sourceLedger) ? manifest.sourceLedger : [])
     .filter(isTrustedConceptLinkedSourceLedgerRow)
     .map((row) => ({ row, receipt: passedSupportReceipt(row) }))
     .filter((entry) => entry.receipt);
   const receiptBackedLessons = new Set();
-  for (const { row } of receiptRows) {
-    for (const lesson of lessonNumbersForSource(row)) receiptBackedLessons.add(lesson);
-  }
-  const lessonCoverageRatio =
-    lessonCount > 0 ? clamp(receiptBackedLessons.size / lessonCount, 0, 1) : receiptRows.length > 0 ? 1 : 0;
-  const sourceDiversityRatio =
-    lessonCount > 0 ? clamp(receiptRows.length / lessonCount, 0, 1) : receiptRows.length > 0 ? 1 : 0;
+  for (const { row } of receiptRows) for (const lesson of lessonNumbersForSource(row)) receiptBackedLessons.add(lesson);
+  const checkedClaims = receiptRows.reduce((sum, entry) => sum + entry.receipt.checkedClaims, 0);
   const supportQuality =
     receiptRows.length > 0
       ? receiptRows.reduce((sum, entry) => sum + entry.receipt.minimumScore, 0) / receiptRows.length
       : 0;
-  const checkedClaims = receiptRows.reduce((sum, entry) => sum + entry.receipt.checkedClaims, 0);
-
-  return {
-    score: 0,
-    evidence: {
-      protocol: 'source-extraction-receipt-coverage-v1',
-      construct: 'source-extraction-traceability',
-      downstreamClaimSupport: false,
-      scoreEligible: false,
-      disqualificationReason: 'rendered-claim-semantic-support-not-validated',
-      kernelsCovered: receiptBackedLessons.size,
-      kernelsExpected: lessonCount,
-      receiptBackedLessons: receiptBackedLessons.size,
-      verifiedClaims: checkedClaims,
-      trustedConceptLinkedSources: receiptRows.length,
-      lessons: lessonCount,
-      groundingRatio: Number(lessonCoverageRatio.toFixed(3)),
-      sourceDiversityRatio: Number(sourceDiversityRatio.toFixed(3)),
-      extractionSupportQuality: Number(supportQuality.toFixed(3)),
-      sourceCoverageRetained: receiptRows.length > 0,
+  const observed = {
+    protocol: 'source-extraction-receipt-coverage-v1',
+    construct: 'source-extraction-traceability',
+    downstreamClaimSupport: false,
+    scoreEligible: false,
+    disqualificationReason: 'rendered-claim-semantic-support-not-validated',
+    receiptBackedLessons: receiptBackedLessons.size,
+    verifiedClaims: checkedClaims,
+    trustedConceptLinkedSources: receiptRows.length,
+    lessons: lessonCount,
+    groundingRatio: Number((lessonCount > 0 ? receiptBackedLessons.size / lessonCount : 0).toFixed(3)),
+    extractionSupportQuality: Number(supportQuality.toFixed(3)),
+    sourceCoverageRetained: receiptRows.length > 0,
+  };
+  return unobservedRule({
+    ruleId: 'DPK.EVIDENCE.RENDERED_CLAIM_SUPPORT',
+    constructId: 'evidenceGrounding',
+    max: COMPONENT_WEIGHTS.evidenceGrounding,
+    evidence: [evidenceRef('package.source-support-receipts', 'PACKAGE_MANIFEST.json', '/sourceLedger', observed)],
+    predicate: {
+      operator: 'rendered-claim-to-source-entailment',
+      expected: 'independently validated semantic support for rendered instructional claims',
+      actual: 'not implemented by this deterministic protocol',
     },
-  };
-}
-
-function instructionalSpecificityScore(lessonTitles, textureScore) {
-  const titles = lessonTitles.map((title) => String(title || '').trim()).filter(Boolean);
-  const genericCount = titles.filter((title) => GENERIC_LESSON_TITLE_RE.test(title)).length;
-  const nonGenericRatio = titles.length > 0 ? (titles.length - genericCount) / titles.length : 0;
-  const distinctRatio =
-    titles.length > 0 ? new Set(titles.map((title) => textTokens(title).sort().join(' '))).size / titles.length : 0;
-  const texture = clamp(textureScore, 0, 100) / 100;
-  return {
-    score: rounded((texture * 0.6 + nonGenericRatio * 0.25 + distinctRatio * 0.15) * 100),
-    evidence: {
-      textureScore: rounded(textureScore),
-      nonGenericLessonRatio: Number(nonGenericRatio.toFixed(3)),
-      distinctLessonRatio: Number(distinctRatio.toFixed(3)),
+    reason:
+      'Extraction receipts prove traceability only; they do not validate semantic support for rendered teaching claims.',
+    action:
+      'Run claim-to-source semantic verification and attach passage-level support receipts before treating grounding as observed.',
+    recoverability: 'protocol-ineligible',
+    evidenceTier: 'semantic-grounding-required',
+    antiGaming: {
+      controls: [
+        'source count cannot earn semantic support',
+        'pipeline prose is ignored',
+        'internal refs alone earn no points',
+      ],
+      inputFingerprint: stableFingerprint(observed),
     },
-  };
+  });
 }
 
-function assessmentCoherenceScore(conformanceScores) {
-  const substance = clamp(conformanceScores?.substance, 0, 100);
-  const consistency = clamp(conformanceScores?.consistency, 0, 100);
-  const score = substance * 0.6 + consistency * 0.4;
-  return {
-    score: rounded(score),
-    evidence: { substanceConformance: rounded(substance), consistencyConformance: rounded(consistency) },
-  };
-}
-
-function packageIntegrityScore(conformance) {
-  const overall = clamp(conformance?.overall?.score, 0, 100);
-  const dimensions = conformance?.scores || {};
-  const structure = clamp(dimensions.structure, 0, 100);
-  const format = clamp(dimensions.format, 0, 100);
-  const identity = clamp(dimensions.identity, 0, 100);
-  const score = overall * 0.55 + structure * 0.2 + format * 0.15 + identity * 0.1;
-  return {
-    score: rounded(score),
-    evidence: {
-      conformanceScore: rounded(overall),
-      structureConformance: rounded(structure),
-      formatConformance: rounded(format),
-      identityConformance: rounded(identity),
+function textureRule(textureScore) {
+  const measured = Number.isFinite(Number(textureScore));
+  const observed = { textureScore: measured ? rounded(textureScore) : null };
+  if (!measured) {
+    return unobservedRule({
+      ruleId: 'DPK.INSTRUCTION.TEXTURE',
+      constructId: 'instructionalTexture',
+      max: COMPONENT_WEIGHTS.instructionalTexture,
+      evidence: [evidenceRef('grader.texture-score', 'SCORE_LEDGER.json', '/conformance/texture', observed)],
+      predicate: {
+        operator: 'texture-metric',
+        expected: 'finite score from masked visible-unit analysis',
+        actual: null,
+      },
+      reason: 'The texture metric did not produce a finite observation.',
+      action: 'Re-run package grading and inspect the visible-unit texture receipt.',
+      recoverability: 'author-recoverable',
+      evidenceTier: 'deterministic-content',
+      antiGaming: {
+        controls: ['course and registry slot values are masked'],
+        inputFingerprint: stableFingerprint(observed),
+      },
+    });
+  }
+  return evaluatedRule({
+    ruleId: 'DPK.INSTRUCTION.TEXTURE',
+    constructId: 'instructionalTexture',
+    max: COMPONENT_WEIGHTS.instructionalTexture,
+    componentScore: textureScore,
+    evidence: [evidenceRef('grader.texture-score', 'SCORE_LEDGER.json', '/conformance/texture', observed)],
+    predicate: { operator: 'proportional-texture-score', expected: 100, actual: rounded(textureScore) },
+    reason: `Masked visible-unit texture scored ${rounded(textureScore)}/100.`,
+    action:
+      rounded(textureScore) >= 90
+        ? 'Preserve the current cross-lesson variation and review the worst repeated units.'
+        : 'Replace repeated instructional phrasing with lesson-specific facts, decisions, evidence, and task conditions.',
+    antiGaming: {
+      controls: [
+        'course-title and registry-title slots are masked',
+        'repeated shingles are measured across visible units',
+      ],
+      inputFingerprint: stableFingerprint(observed),
     },
-  };
+    evidenceTier: 'deterministic-content',
+  });
 }
 
-/**
- * Report an automated instructor-readiness signal without pretending that a
- * deterministic grader has performed expert or classroom validation.
- *
- * The raw component model is intentionally transformed onto a 0–69 scale.
- * Scores of 70–100 are reserved for evidence tiers that include independent
- * review or observed use; this function cannot emit them.
- */
+function assessmentRule() {
+  const observed = { eligibleAssessmentChecks: 0 };
+  return unobservedRule({
+    ruleId: 'DPK.ASSESSMENT.COHERENCE',
+    constructId: 'assessmentCoherence',
+    max: COMPONENT_WEIGHTS.assessmentCoherence,
+    evidence: [
+      evidenceRef(
+        'grader.assessment-coherence-checks',
+        'SCORE_LEDGER.json',
+        '/conformance/checks/assessment',
+        observed,
+      ),
+    ],
+    predicate: {
+      operator: 'assessment-objective-rubric-coherence',
+      expected: 'assessment-specific checks with objective and rubric linkage',
+      actual: 'not isolated from broad substance and consistency checks',
+    },
+    reason:
+      'The current grader does not isolate assessment-specific coherence evidence, so broad conformance scores are not reused here.',
+    action: 'Add assessment-specific objective, task, evidence, and rubric-link checks before enabling these points.',
+    recoverability: 'protocol-ineligible',
+    evidenceTier: 'deterministic-assessment-checks-required',
+    antiGaming: {
+      controls: ['broad substance score cannot be counted twice', 'broad consistency score cannot be counted twice'],
+      inputFingerprint: stableFingerprint(observed),
+    },
+  });
+}
+
+function integrityRule(conformance) {
+  const scores = conformance?.scores || {};
+  const observed = {
+    structure: Number.isFinite(Number(scores.structure)) ? rounded(scores.structure) : null,
+    format: Number.isFinite(Number(scores.format)) ? rounded(scores.format) : null,
+    identity: Number.isFinite(Number(scores.identity)) ? rounded(scores.identity) : null,
+  };
+  const complete = Object.values(observed).every(Number.isFinite);
+  const evidence = [
+    evidenceRef(
+      'grader.structure-conformance',
+      'SCORE_LEDGER.json',
+      '/conformance/dimensions/structure',
+      observed.structure,
+    ),
+    evidenceRef('grader.format-conformance', 'SCORE_LEDGER.json', '/conformance/dimensions/format', observed.format),
+    evidenceRef(
+      'grader.identity-conformance',
+      'SCORE_LEDGER.json',
+      '/conformance/dimensions/identity',
+      observed.identity,
+    ),
+  ];
+  if (!complete) {
+    return unobservedRule({
+      ruleId: 'DPK.PACKAGE.INTEGRITY',
+      constructId: 'packageIntegrity',
+      max: COMPONENT_WEIGHTS.packageIntegrity,
+      evidence,
+      predicate: {
+        operator: 'weighted-structural-conformance',
+        expected: 'three finite dimension scores',
+        actual: observed,
+      },
+      reason: 'Structure, format, and identity evidence was incomplete.',
+      action: 'Re-run package grading until all three integrity dimensions are observed.',
+      recoverability: 'author-recoverable',
+      evidenceTier: 'deterministic-structural',
+      antiGaming: { controls: ['overall conformance is not reused'], inputFingerprint: stableFingerprint(observed) },
+    });
+  }
+  const componentScore = observed.structure * 0.45 + observed.format * 0.3 + observed.identity * 0.25;
+  return evaluatedRule({
+    ruleId: 'DPK.PACKAGE.INTEGRITY',
+    constructId: 'packageIntegrity',
+    max: COMPONENT_WEIGHTS.packageIntegrity,
+    componentScore,
+    evidence,
+    predicate: {
+      operator: 'weighted-structural-conformance',
+      expected: { structure: 100, format: 100, identity: 100 },
+      actual: observed,
+    },
+    reason: `Structure ${observed.structure}/100, format ${observed.format}/100, and identity ${observed.identity}/100 produced the declared integrity result.`,
+    action:
+      componentScore >= 90
+        ? 'Preserve package structure and inspect any remaining integrity deductions in the conformance ledger.'
+        : 'Resolve structure, format, and identity findings listed in the conformance ledger, then regrade.',
+    antiGaming: {
+      controls: ['overall conformance is not reused', 'only structure, format, and identity own these points'],
+      inputFingerprint: stableFingerprint(observed),
+    },
+  });
+}
+
+function evidenceBand(earned) {
+  if (earned >= 55) return 'substantial-deterministic-evidence';
+  if (earned >= 30) return 'partial-deterministic-evidence';
+  return 'limited-deterministic-evidence';
+}
+
 export function computeAutomatedReadinessSignal({
   manifest = {},
   course = {},
@@ -254,36 +490,56 @@ export function computeAutomatedReadinessSignal({
   conformance = {},
   texture = {},
 } = {}) {
-  const titles = Array.isArray(lessonTitles) ? lessonTitles : [];
-  const components = {
-    curriculumFidelity: curriculumFidelityScore(course, titles),
-    evidenceGrounding: evidenceGroundingScore(manifest, titles.length),
-    instructionalSpecificity: instructionalSpecificityScore(titles, texture?.score),
-    assessmentCoherence: assessmentCoherenceScore(conformance?.scores),
-    packageIntegrity: packageIntegrityScore(conformance),
-  };
-  const rawScore = Object.entries(COMPONENT_WEIGHTS).reduce(
-    (sum, [component, weight]) => sum + components[component].score * (weight / 100),
-    0,
+  const titles = (Array.isArray(lessonTitles) ? lessonTitles : [])
+    .map((title) => String(title || '').trim())
+    .filter(Boolean);
+  const rules = [
+    curriculumRule(course, titles),
+    groundingRule(manifest, titles.length),
+    textureRule(texture?.score),
+    assessmentRule(),
+    integrityRule(conformance),
+  ];
+  const points = recomputeAutomatedEvidenceLedger(rules);
+  if (points.potential !== 100)
+    throw new Error(`Automated evidence ledger potential must be 100, received ${points.potential}`);
+  const components = Object.fromEntries(
+    rules.map((rule) => [
+      rule.constructId,
+      {
+        status: rule.status,
+        weight: rule.points.max,
+        score: rule.status === 'evaluated' ? Math.round((rule.points.earned / rule.points.max) * 100) : null,
+        points: rule.points,
+        reason: rule.reason,
+        action: rule.action.instruction,
+        evidence: Object.fromEntries(rule.evidence.map((entry) => [entry.evidenceId, entry.observed])),
+        ruleId: rule.ruleId,
+      },
+    ]),
   );
-  const score = Math.min(AUTOMATED_READINESS_CEILING, Math.round(rawScore * (AUTOMATED_READINESS_CEILING / 100)));
 
   return {
     protocol: AUTOMATED_READINESS_PROTOCOL,
     evidenceClass: 'deterministic',
-    validationTier: 'automated-signal',
-    construct: 'automated-instructor-readiness-signals',
-    score,
+    validationTier: 'deterministic-package-evidence',
+    construct: 'deterministic-package-evidence',
+    score: points.earned,
     maxScore: 100,
-    evidenceCeiling: AUTOMATED_READINESS_CEILING,
-    rawScore: Math.round(rawScore),
-    band: readinessBand(score),
+    potentialPoints: 100,
+    attainableMaxScore: 100,
+    evidenceCeiling: 100,
+    rawScore: points.earned,
+    band: evidenceBand(points.earned),
+    points,
     claimBoundary: AUTOMATED_READINESS_CLAIM_BOUNDARY,
-    components: Object.fromEntries(
-      Object.entries(components).map(([key, component]) => [
-        key,
-        { score: component.score, weight: COMPONENT_WEIGHTS[key], evidence: component.evidence },
-      ]),
-    ),
+    reconstructionDisclosure: reconstructionDisclosure(manifest),
+    ledger: {
+      protocol: AUTOMATED_READINESS_PROTOCOL,
+      ruleVersion: RULE_VERSION,
+      points,
+      rules,
+    },
+    components,
   };
 }

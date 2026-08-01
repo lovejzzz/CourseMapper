@@ -61,6 +61,23 @@ describe('collectRequiredLabAssets', () => {
     );
   });
 
+  it('requires datasets and notebooks for a Python/pandas policy-analysis course', () => {
+    const requirements = collectRequiredLabAssets({
+      courseMap: {
+        courseName: 'Python for Public Policy',
+        lessons: [
+          { title: 'Python and pandas for public datasets' },
+          { title: 'Data cleaning, missing values, and reproducible notebooks' },
+          { title: 'Data visualization with matplotlib for policy audiences' },
+        ],
+      },
+    });
+
+    expect(requirements.map((item) => item.id)).toEqual(
+      expect.arrayContaining(['course-dataset', 'data-dictionary', 'starter-notebook', 'starter-script']),
+    );
+  });
+
   it('does not treat computational Linear Algebra labs as physical wet-lab work', () => {
     const requirements = collectRequiredLabAssets({
       courseMap: {

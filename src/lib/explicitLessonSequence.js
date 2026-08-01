@@ -13,8 +13,8 @@ const LABELED_SEQUENCE_HEADER_RE = new RegExp(
     `lessons?\\s+(?:cover|include)|` +
     `(?:use|follow|preserve)\\s+(?:(?:this|the)\\s+)?(?:exact\\s+)?(?:lesson|session|module)\\s+sequence|` +
     `(?:use|follow|preserve)\\s+(?:exactly\\s+)?(?:(?:these|the)\\s+)?(?:${COUNT_WORD}\\s+)?(?:lessons?|sessions?|modules?)\\s+in\\s+(?:this\\s+)?order|` +
-    `(?:build|create|generate|make)\\s+(?:exactly\\s+)?(?:${COUNT_WORD}\\s+)?(?:distinct\\s+)?(?:weekly\\s+)?(?:lessons?|sessions?|modules?)|` +
-    `(?:with|use|cover|include)\\s+(?:(?:these|the)\\s+)?(?:${COUNT_WORD}\\s+)?(?:distinct\\s+)?(?:weekly\\s+)?(?:lessons?|focus(?:es)?|topics?|modules?)|` +
+    `(?:build|create|generate|make)\\s+(?:exactly\\s+)?(?:${COUNT_WORD}[\\s-]+)?(?:distinct\\s+)?(?:weekly\\s+)?(?:lessons?|sessions?|modules?)|` +
+    `(?:with|use|cover|include)\\s+(?:(?:this|these|the)\\s+)?(?:exact\\s+)?(?:${COUNT_WORD}[\\s-]+)?(?:distinct\\s+)?(?:weekly\\s+)?(?:lessons?|focus(?:es)?|topics?|modules?)(?:\\s+sequence)?|` +
     `(?:distinct\\s+)?(?:weekly\\s+)?(?:lessons?|focus(?:es)?|topics?|modules?)` +
     `)\\s*:\\s*`,
   'i',

@@ -86,6 +86,27 @@ describe('professor adoption audit contracts', () => {
     expect(verdict.minimumGatePolicy.usesMinimumGates).toBe(true);
   });
 
+  it('treats warning-only export verification as exportable review work, not a P0 block', () => {
+    const verdict = buildAdoptionVerdict({
+      packageManifest: {
+        courseName: 'Python for Public Policy',
+        quality: { status: 'graded', score: 89, grade: 'B', findingCounts: { p0: 0, p1: 1, p2: 0 } },
+        exportVerification: { status: 'passed', checked: 38, failed: 0, warnings: 9 },
+      },
+      assessmentRegistry: [{ id: 'A1', title: 'Policy memo', kind: 'graded-artifact', dueSession: 5, weightPct: 100 }],
+    });
+
+    expect(verdict.status).toBe('capped');
+    expect(verdict.tier).toBe('export-safe');
+    expect(verdict.blockingReasons).toEqual([]);
+    expect(verdict.caps).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 'export-review-required', tierCap: 'export-safe' }),
+        expect.objectContaining({ id: 'quality-p1-review-required', tierCap: 'classroom-ready-draft' }),
+      ]),
+    );
+  });
+
   it('lets a clean package reach adoption-ready when the 30-case source-standard substitute passes', () => {
     const verdict = buildAdoptionVerdict({
       packageManifest: {

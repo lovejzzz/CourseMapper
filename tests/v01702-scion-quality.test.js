@@ -189,8 +189,10 @@ describe('v0.17.02 Scion output-quality contracts', () => {
     const historical = JSON.parse(
       readFileSync('evaluation/cross-package-texture/untuned-v0.17.02-receipt.json', 'utf8'),
     );
-    const current = JSON.parse(readFileSync('evaluation/cross-package-texture/untuned-v0.17.08-receipt.json', 'utf8'));
-    const scripts = JSON.parse(readFileSync('package.json', 'utf8')).scripts;
+    const packageJson = JSON.parse(readFileSync('package.json', 'utf8'));
+    const currentReceipt = `evaluation/cross-package-texture/untuned-v${packageJson.version}-receipt.json`;
+    const current = JSON.parse(readFileSync(currentReceipt, 'utf8'));
+    const scripts = packageJson.scripts;
 
     expect(historical).toMatchObject({
       schema: 'coursemapper.cross-package-texture.release-receipt.v1',
@@ -205,7 +207,7 @@ describe('v0.17.02 Scion output-quality contracts', () => {
     expect(historical.canonicalSha256).toMatch(/^[a-f0-9]{64}$/);
     expect(current).toMatchObject({
       schema: 'coursemapper.cross-package-texture.release-receipt.v1',
-      appVersion: '0.17.08',
+      appVersion: packageJson.version,
       profile: 'untuned',
       packageCount: 12,
       clusterCount: 469,
@@ -214,8 +216,6 @@ describe('v0.17.02 Scion output-quality contracts', () => {
       unclassifiedPathCount: 0,
     });
     expect(current.canonicalSha256).toMatch(/^[a-f0-9]{64}$/);
-    expect(scripts['audit:texture:cross-package:untuned']).toContain(
-      '--receipt evaluation/cross-package-texture/untuned-v0.17.08-receipt.json',
-    );
+    expect(scripts['audit:texture:cross-package:untuned']).toContain(`--receipt ${currentReceipt}`);
   });
 });

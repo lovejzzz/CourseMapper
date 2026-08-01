@@ -192,7 +192,7 @@ describe('Crucible grader — healthy v0.14.1 package', () => {
     });
     const md = renderReportMarkdown(result, { courseTitle: 'Physical Geology' });
     expect(md).toContain('# CourseMapper Quality Evidence Report — Physical Geology');
-    expect(md).toContain('Automated readiness signal:');
+    expect(md).toContain('Deterministic package evidence:');
     expect(md).toContain('## Package conformance checks');
     expect(md).toContain('| Dimension | Weight | Score | Grade |');
     expect(md).toContain('| identity | 20 |');

@@ -28064,10 +28064,11 @@ export function compileBlueprintDeliverable(featureId, blueprint, options = {}) 
   if (!options.skipCompilerContractCheck) {
     assertBlueprintCompilerContract(compilerBlueprint, options);
   }
-  const compiled = compileBlueprintDeliverableRaw(featureId, compilerBlueprint, options);
+  const featureBlueprint = rotateFactsForDeliverableFamily(compilerBlueprint, featureId);
+  const compiled = compileBlueprintDeliverableRaw(featureId, featureBlueprint, options);
   if (!compiled || options.skipLanguageFinalizer) return compiled;
-  const finalized = finalizeCompiledDeliverableLanguage(featureId, compiled, compilerBlueprint);
-  return featureId === 'lessonPlans' ? sanitizeCompiledLessonPlans(finalized, compilerBlueprint) : finalized;
+  const finalized = finalizeCompiledDeliverableLanguage(featureId, compiled, featureBlueprint);
+  return featureId === 'lessonPlans' ? sanitizeCompiledLessonPlans(finalized, featureBlueprint) : finalized;
 }
 
 function compileBlueprintDeliverableRaw(featureId, compilerBlueprint, options = {}) {
@@ -28105,6 +28106,50 @@ function compileBlueprintDeliverableRaw(featureId, compilerBlueprint, options = 
     default:
       return null;
   }
+}
+
+const FEATURE_FACT_ROTATION = {
+  syllabus: 0,
+  lessonPlans: 1,
+  slideDecks: 2,
+  assignments: 3,
+  rubrics: 4,
+  discussions: 2,
+  quizBank: 0,
+  studyGuides: 4,
+  courseFaq: 3,
+};
+
+function rotateFactsForDeliverableFamily(blueprint, featureId) {
+  const offset = FEATURE_FACT_ROTATION[featureId] || 0;
+  if (offset === 0 || !Array.isArray(blueprint?.lessons)) return blueprint;
+  let changed = false;
+  const lessons = blueprint.lessons.map((lesson) => {
+    const facts = lesson?.enrichment?.kernel?.facts;
+    if (!Array.isArray(facts) || facts.length < 3) return lesson;
+    const start = offset % facts.length;
+    if (start === 0) return lesson;
+    const terms = lesson.enrichment?.keyTerms;
+    const termStart = Array.isArray(terms) && terms.length > 1 ? offset % terms.length : 0;
+    changed = true;
+    return {
+      ...lesson,
+      enrichment: {
+        ...lesson.enrichment,
+        ...(termStart > 0
+          ? {
+              keyTerms: [...terms.slice(termStart), ...terms.slice(0, termStart)],
+            }
+          : {}),
+        kernel: {
+          ...lesson.enrichment.kernel,
+          canonicalFacts: lesson.enrichment.kernel.canonicalFacts || facts,
+          facts: [...facts.slice(start), ...facts.slice(0, start)],
+        },
+      },
+    };
+  });
+  return changed ? { ...blueprint, lessons } : blueprint;
 }
 
 // Per-feature compile failures ride under a registry symbol so the error

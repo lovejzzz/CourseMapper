@@ -132,6 +132,8 @@ import { knowledgeCoverage } from './lib/knowledge';
 import { normalizePipelineStateWithSourceBackedJudgment } from './lib/sourceBackedJudgment';
 
 const PACKAGE_READY_MESSAGE = 'All required files passed export checks and the package is ready to download.';
+const PACKAGE_REVIEW_MESSAGE =
+  'The package is downloadable, but its saved review notes must be resolved before classroom publication.';
 
 function summarizeReceiptIssue(issue) {
   if (!issue) return null;
@@ -696,7 +698,7 @@ export default function AppFlow({
       // course (prerequisite gaps found, bridged, or flagged).
       ...(budget.pipeline?.judgment ? { judgment: budget.pipeline.judgment } : {}),
     });
-    return normalizePipelineStateWithSourceBackedJudgment(pipelineState, {
+    const normalizedPipelineState = normalizePipelineStateWithSourceBackedJudgment(pipelineState, {
       sourceRefCoverage: currentGraph?.courseIR?.sourceRefCoverage || null,
       sourceLedgerSummary,
       sourceLedger: currentGraph?.courseIR?.sourceLedger || null,
@@ -706,6 +708,20 @@ export default function AppFlow({
       lessonsWithResources: coverage?.sessionsWithResources || 0,
       genomeLinkedLessons: coverage?.genomeLinkedLessons || 0,
     });
+    const nativeAuthoringEvent = (budget.recentEvents || []).find(
+      (event) => event?.label === 'Native graph authoring' && Number(event?.repairedFieldCount) > 0,
+    );
+    return nativeAuthoringEvent
+      ? {
+          ...normalizedPipelineState,
+          nativeReconstruction: {
+            status: 'deterministic-reconstruction',
+            readinessRepairedFieldCount: Number(nativeAuthoringEvent.repairedFieldCount),
+            claimBoundary:
+              'Reconstructed fields are deterministic fallback content, not model-authored or independently verified evidence.',
+          },
+        }
+      : normalizedPipelineState;
   }, []);
 
   // ── Misc ──
@@ -1809,7 +1825,9 @@ export default function AppFlow({
               : '';
         let finalizerMessage =
           finalStatus === 'ready'
-            ? PACKAGE_READY_MESSAGE
+            ? reviewWarningCount > 0
+              ? PACKAGE_REVIEW_MESSAGE
+              : PACKAGE_READY_MESSAGE
             : String(result.message || '').replace(/^Auto-fixed \d+ safe issues?\. /, '');
         const receiptBudget = apiCallBudgetRef.current || {};
         const apiSpendSummary = summarizeApiUsageBudget(receiptBudget);
@@ -1855,6 +1873,9 @@ export default function AppFlow({
         let runDigest = null;
         let buildCurrentRunDigest = null;
         let emitRunDigestForFinish = null;
+        let warningDomains = null;
+        let blockerDomains = null;
+        let trustState = '';
         try {
           const { buildRunDigest, emitRunDigest } = await import('./lib/runDigest');
           emitRunDigestForFinish = emitRunDigest;
@@ -1872,10 +1893,13 @@ export default function AppFlow({
               exportVerification,
               finish: {
                 finalStatus,
+                trustState,
                 blockers,
                 // The digest and visible package record share the same real
                 // warning count; calm styling must not erase saved evidence.
                 warnings: reviewWarningCount,
+                warningDomains,
+                blockerDomains,
                 repairsApplied: totalRepairsApplied,
                 retryCallCount,
                 finishRunId,
@@ -1963,14 +1987,16 @@ export default function AppFlow({
           // a thrown finish. The fallback remains conservative; consumers use
           // legacy blocker views when the blocker ledger is unavailable.
         }
-        const { warningDomains, blockerDomains } = finishDomains;
+        ({ warningDomains, blockerDomains } = finishDomains);
         blockers = blockerDomains?.total ?? (result.readiness?.blockers?.length || 0) + exportFailures;
-        reviewWarningCount = warningDomains?.total ?? reviewWarningCount + 1;
+        reviewWarningCount = warningDomains?.total ?? reviewWarningCount;
         finalStatus = blockers > 0 ? 'blocked' : 'ready';
         warnings = reviewWarningCount;
         finalizerMessage =
           finalStatus === 'ready'
-            ? PACKAGE_READY_MESSAGE
+            ? reviewWarningCount > 0
+              ? PACKAGE_REVIEW_MESSAGE
+              : PACKAGE_READY_MESSAGE
             : String(
                 result.readiness?.blockers?.[0]?.message ||
                   result.message ||
@@ -1995,6 +2021,18 @@ export default function AppFlow({
           ...(apiFeatureSpendSummary.length > 0 ? { apiFeatureSpendSummary } : {}),
           ...(compilerSummary ? { compilerSummary } : {}),
         };
+        trustState = getPackageTrustStatus({
+          packageQualityPass: {
+            status: finalStatus,
+            warnings,
+            blockers,
+            warningDomains,
+            blockerDomains,
+            receipt: receiptWithSpend,
+            quality: packageQuality,
+          },
+          readiness: result.readiness,
+        }).state;
         tracePackageFinish(finishRunId, 'quality_grade_done', {
           status: packageQuality?.status,
           score: packageQuality?.score ?? null,
@@ -2015,6 +2053,8 @@ export default function AppFlow({
 
         setPackageQualityPass({
           status: finalStatus,
+          trustState,
+          handoffStatus: receiptWithSpend.handoffStatus,
           message:
             finalStatus === 'ready'
               ? `${repairText}${exportText}${finalizerMessage}${spendText}${compilerText}`
@@ -2066,6 +2106,8 @@ export default function AppFlow({
             (retryBudgetExhausted || retryPassLimitReached || retryNoProgress),
           exportVerification,
           packageQualityStatus: finalStatus,
+          trustState,
+          handoffStatus: receiptWithSpend.handoffStatus,
           warnings,
           blockers,
           receipt: receiptWithSpend,

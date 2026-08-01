@@ -18,10 +18,10 @@ import { normalizePipelineStateWithSourceBackedJudgment } from './sourceBackedJu
 import { peekVoicePassOutcome } from './voicePass.js';
 import { APP_VERSION } from './appVersion.js';
 import { SCION_BROWSER_GEMMA4_GGUF } from './scionBrowserConstants.js';
-import { resolveScionLiteratureSourceProfiles } from './scionLiteratureKnowledge.js';
 import { isAlgiModel } from './algiIdentity.js';
 import { GRADER_VERSION } from './quality/graderVersion.js';
 import { TEXTURE_VERSION } from './quality/textureMetric.js';
+import { verifyScoreLedger } from './quality/scoreLedgerVerifier.js';
 
 const MIN_EXPORT_BYTES = 128;
 // A full package pass assembles the same DOCX/PPTX/XLSX payload that users
@@ -85,11 +85,52 @@ function stableQualityStringify(value, seen = new WeakSet()) {
 
 async function sha256QualityText(value) {
   const bytes = new TextEncoder().encode(value);
+  return sha256QualityBytes(bytes);
+}
+
+async function sha256QualityBytes(bytes) {
+  const view = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
   const digest = await globalThis.crypto.subtle.digest(
     'SHA-256',
-    bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength),
+    view.buffer.slice(view.byteOffset, view.byteOffset + view.byteLength),
   );
   return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
+async function qualityArtifactBytes(value) {
+  if (typeof value === 'string') return new TextEncoder().encode(value);
+  if (value instanceof Uint8Array) return value;
+  if (value instanceof ArrayBuffer) return new Uint8Array(value);
+  if (ArrayBuffer.isView(value)) return new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
+  if (value && typeof value.arrayBuffer === 'function') return new Uint8Array(await value.arrayBuffer());
+  return new TextEncoder().encode(stableQualityStringify(value));
+}
+
+async function buildEvidenceArtifactBinding(fileMap = {}) {
+  const entries = [];
+  const paths = Object.keys(fileMap)
+    .map((sourcePath) => ({ sourcePath, path: sourcePath.replace(/\\/g, '/') }))
+    .sort((left, right) => left.path.localeCompare(right.path));
+  for (const { sourcePath, path } of paths) {
+    let value = fileMap[sourcePath];
+    if (/PACKAGE_MANIFEST\.json$/i.test(path) && typeof value === 'string') {
+      try {
+        const manifest = JSON.parse(value);
+        delete manifest.quality;
+        value = stableQualityStringify(manifest);
+      } catch {
+        // Preserve the exact invalid bytes; the grader will independently
+        // report that the manifest did not parse.
+      }
+    }
+    const bytes = await qualityArtifactBytes(value);
+    entries.push({ path, byteLength: bytes.byteLength, sha256: await sha256QualityBytes(bytes) });
+  }
+  return {
+    algorithm: 'sha256-sorted-path-bytes-inventory-v1',
+    rootSha256: await sha256QualityText(stableQualityStringify(entries)),
+    entries,
+  };
 }
 
 async function buildPackageQualityScopeBinding({
@@ -261,9 +302,21 @@ function buildManifestExportVerification(digest) {
   if (!gates || (!gates.exportStatus && gates.exportChecked == null)) return null;
   return {
     status: String(gates.exportStatus || 'unknown'),
+    contentDisposition: String(gates.exportContentDisposition || ''),
     checked: Number(gates.exportChecked) || 0,
     failed: Number(gates.exportFailed) || 0,
     warnings: Number(gates.exportWarnings) || 0,
+  };
+}
+
+function buildManifestHandoffTrust(digest) {
+  const gates = digest?.gates;
+  if (!gates?.trustState && !gates?.warningDomains && !gates?.blockerDomains) return null;
+  return {
+    finishStatus: String(gates.finalStatus || ''),
+    trustState: String(gates.trustState || ''),
+    warningDomains: gates.warningDomains || null,
+    blockerDomains: gates.blockerDomains || null,
   };
 }
 
@@ -398,6 +451,16 @@ function normalizePrecomputedPackageQuality(quality) {
     findings,
     grades: quality.grades && typeof quality.grades === 'object' ? quality.grades : {},
     fileCount: Number.isFinite(quality.fileCount) ? quality.fileCount : null,
+    scoreLedger:
+      quality.scoreLedger && typeof quality.scoreLedger === 'object'
+        ? quality.scoreLedger
+        : quality.readiness?.ledger
+          ? {
+              protocol: 'coursemapper-score-ledger-v1',
+              deterministicPackageEvidence: quality.readiness.ledger,
+              encodedDefectConformance: quality.conformanceLedger || null,
+            }
+          : null,
   };
 }
 
@@ -462,6 +525,13 @@ function precomputedQualityMissesScope(precomputed, scopeBinding) {
   );
 }
 
+function precomputedQualityMissesEvidenceArtifacts(precomputed, evidenceArtifacts) {
+  const prior = precomputed?.scoreLedger?.bindings?.evidenceArtifacts;
+  return (
+    !prior || prior.algorithm !== evidenceArtifacts?.algorithm || prior.rootSha256 !== evidenceArtifacts?.rootSha256
+  );
+}
+
 function renderPrecomputedQualityReport(precomputed, { courseTitle = 'Course' } = {}) {
   if (!precomputed?.block) return '';
   const quality = precomputed.block;
@@ -472,13 +542,19 @@ function renderPrecomputedQualityReport(precomputed, { courseTitle = 'Course' } 
   lines.push('');
   if (quality.readiness) {
     lines.push(
-      `**Automated readiness signal: ${quality.readiness.score}/100 (${quality.readiness.band}; automated ceiling ${quality.readiness.evidenceCeiling || 69})**`,
+      `**Deterministic package evidence: ${quality.readiness.points?.earned ?? quality.readiness.score}/100 earned · ${quality.readiness.points?.lost ?? 'unknown'} lost · ${quality.readiness.points?.unobserved ?? 'unknown'} unobserved (${quality.readiness.band})**`,
     );
     lines.push('');
     lines.push(
-      `${quality.readiness.claimBoundary || AUTOMATED_QUALITY_CLAIM_BOUNDARY} Scores from 70–100 require a higher evidence tier with independent review or observed use.`,
+      `${quality.readiness.claimBoundary || AUTOMATED_QUALITY_CLAIM_BOUNDARY} Missing evidence remains in the fixed 100-point potential and can never improve this result.`,
     );
     lines.push('');
+    if (quality.readiness.reconstructionDisclosure?.repairedFieldCount > 0) {
+      lines.push(
+        `**Deterministic reconstruction disclosure:** ${quality.readiness.reconstructionDisclosure.repairedFieldCount} CurriculumV1 fields were reconstructed after model authoring. This is provenance, not independent evidence.`,
+      );
+      lines.push('');
+    }
   }
   lines.push(
     `**Package conformance: ${quality.score}/100 (${quality.grade})** · ${findingCount} encoded findings (${counts.p0} P0 · ${counts.p1} P1 · ${counts.p2} P2)${precomputed.fileCount ? ` · ${precomputed.fileCount} files` : ''}`,
@@ -493,16 +569,18 @@ function renderPrecomputedQualityReport(precomputed, { courseTitle = 'Course' } 
   );
   lines.push('');
   if (quality.readiness?.components) {
-    lines.push('## Automated readiness components');
+    lines.push('## Deterministic package evidence rules');
     lines.push('');
-    lines.push('| Component | Weight | Signal |');
-    lines.push('| --- | ---: | ---: |');
+    lines.push('| Component | Status | Earned | Lost | Unobserved | Why | How to improve |');
+    lines.push('| --- | --- | ---: | ---: | ---: | --- | --- |');
     for (const [component, value] of Object.entries(quality.readiness.components)) {
       const label = component
         .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
         .replace(/[-_]+/g, ' ')
         .toLowerCase();
-      lines.push(`| ${label.charAt(0).toUpperCase()}${label.slice(1)} | ${value.weight} | ${value.score}/100 |`);
+      lines.push(
+        `| ${label.charAt(0).toUpperCase()}${label.slice(1)} | ${value.status || 'unverifiable-legacy'} | ${value.points?.earned ?? '-'} / ${value.points?.max ?? value.weight} | ${value.points?.lost ?? '-'} | ${value.points?.unobserved ?? '-'} | ${String(value.reason || 'Legacy result has no serialized rule reason.').replace(/\|/g, '\\|')} | ${String(value.action || 'Regrade with the current protocol.').replace(/\|/g, '\\|')} |`,
+      );
     }
     lines.push('');
   }
@@ -540,6 +618,8 @@ function renderPrecomputedQualityReport(precomputed, { courseTitle = 'Course' } 
       }
       if (finding.evidence)
         lines.push(`  - evidence: \`${String(finding.evidence).replace(/`/g, "'").slice(0, 200)}\``);
+      if (finding.reason) lines.push(`  - reason: ${finding.reason}`);
+      if (finding.action) lines.push(`  - improve: ${finding.action}`);
     }
     lines.push('');
   }
@@ -1330,10 +1410,6 @@ function hasSourceLedgerRows(bundle) {
   return Boolean((bundle?.rows || []).length || (bundle?.reviewRows || []).length);
 }
 
-function trustedConceptLinkedSourceLedgerRowCount(bundle) {
-  return (bundle?.rows || []).filter(isTrustedConceptLinkedSourceLedgerRow).length;
-}
-
 function sourceCoverageTotal(coverage) {
   const explicit = Number(coverage?.totals?.total);
   if (Number.isFinite(explicit) && explicit > 0) return explicit;
@@ -1470,422 +1546,6 @@ function pipelineExpectsSourceLedgerProof(pipelineState) {
   return /\b(?:genome|openalex|openlibrary|openstax|source-finder|source ledger|sourceref|source ref|knowledgebackbone|citation|limited knowledge check|native authoring|courseir)\b/.test(
     text,
   );
-}
-
-const UX_COURSE_CONTEXT_RE =
-  /\b(?:user\s+experience|ux\b|human[-\s]?centered\s+design|interaction\s+design|interface\s+design|usability|design\s+studio|design\s+research|user\s+research|prototype|accessibility)\b/i;
-// Do not classify a course as Python from generic instructional words such as
-// “iteration”, “testing”, “functions”, “objects”, or “classes”. Those appear
-// naturally in UX studios and many other domains. Curated Python proof is
-// eligible only when the curriculum itself names the language/discipline or
-// an unmistakable programming construct.
-// This proof source is Python-specific. "Computer science", "algorithms",
-// or generic programming constructs do not prove that a course uses Python
-// (quantum computing exposed that false assumption in a real Algi ZIP).
-const PYTHON_COURSE_CONTEXT_RE = /\bpython\b/i;
-const MUSIC_INTERVAL_COURSE_CONTEXT_RE =
-  /(?=.*\b(?:music(?:al)?(?:\s+theory)?|aural\s+skills?|ear\s+training|pitch|semitones?|notation)\b)(?=.*\bintervals?\b)/i;
-
-const CURATED_UX_SOURCE_PROOF_ROWS = [
-  {
-    id: 'ux-curated-user-experience',
-    title: 'User experience',
-    url: 'https://en.wikipedia.org/wiki/User_experience',
-    concepts: ['user experience', 'usability', 'user need'],
-    trigger: /\b(?:user\s+experience|ux\b|usability|user\s+needs?|context\s+of\s+use)\b/i,
-  },
-  {
-    id: 'ux-curated-usability-testing',
-    title: 'Usability testing',
-    url: 'https://en.wikipedia.org/wiki/Usability_testing',
-    concepts: ['usability testing', 'test plan', 'findings'],
-    trigger: /\b(?:usability\s+testing|test\s+plans?|task\s+scenarios?|findings?|evidence\s+check)\b/i,
-  },
-  {
-    id: 'ux-curated-web-accessibility',
-    title: 'Web accessibility',
-    url: 'https://en.wikipedia.org/wiki/Web_accessibility',
-    concepts: ['accessibility', 'evaluation', 'remediation'],
-    trigger: /\b(?:accessibility|inclusive\s+design|evaluation|remediation)\b/i,
-  },
-  {
-    id: 'ux-curated-user-centered-design',
-    title: 'User-centered design',
-    url: 'https://en.wikipedia.org/wiki/User-centered_design',
-    concepts: ['user-centered design', 'design process', 'iteration'],
-    trigger: /\b(?:user[-\s]?centered\s+design|human[-\s]?centered\s+design|design\s+process|iteration|revision)\b/i,
-  },
-  {
-    id: 'ux-curated-software-prototyping',
-    title: 'Software prototyping',
-    url: 'https://en.wikipedia.org/wiki/Software_prototyping',
-    concepts: ['prototype review', 'iteration', 'feedback'],
-    trigger: /\b(?:prototyp|prototype\s+review|feedback|revision)\b/i,
-  },
-];
-
-const CURATED_PYTHON_SOURCE_PROOF_ROWS = [
-  {
-    id: 'python-openstax-variables',
-    title: 'OpenStax Introduction to Python Programming section 1.3 Variables',
-    url: 'https://openstax.org/books/introduction-python-programming/pages/1-3-variables',
-    concepts: ['variables', 'data types'],
-    trigger: /\b(?:variables?|data\s+types?)\b/i,
-  },
-  {
-    id: 'python-openstax-expressions',
-    title: 'OpenStax Introduction to Python Programming section 1.5 Number basics',
-    url: 'https://openstax.org/books/introduction-python-programming/pages/1-5-number-basics',
-    concepts: ['expressions', 'operators', 'numeric data'],
-    trigger: /\b(?:expressions?|operators?|numeric|numbers?)\b/i,
-  },
-  {
-    id: 'python-openstax-conditionals',
-    title: 'OpenStax Introduction to Python Programming section 4.2 If-else statements',
-    url: 'https://openstax.org/books/introduction-python-programming/pages/4-2-if-else-statements',
-    concepts: ['conditionals', 'if statements', 'boolean logic'],
-    trigger: /\b(?:conditionals?|if\s+statements?|boolean)\b/i,
-  },
-  {
-    id: 'python-openstax-loops',
-    title: 'OpenStax Introduction to Python Programming section 5.1 While loop',
-    url: 'https://openstax.org/books/introduction-python-programming/pages/5-1-while-loop',
-    concepts: ['loops', 'while loops', 'iteration'],
-    trigger: /\b(?:loops?|iteration|while|for\s+loop)\b/i,
-  },
-  {
-    id: 'python-openstax-functions',
-    title: 'OpenStax Introduction to Python Programming section 6.1 Defining functions',
-    url: 'https://openstax.org/books/introduction-python-programming/pages/6-1-defining-functions',
-    concepts: ['functions', 'parameters', 'return values'],
-    trigger: /\b(?:functions?|parameters?|return\s+values?)\b/i,
-  },
-  {
-    id: 'python-openstax-lists',
-    title: 'OpenStax Introduction to Python Programming section 3.4 List basics',
-    url: 'https://openstax.org/books/introduction-python-programming/pages/3-4-list-basics',
-    concepts: ['lists', 'sequences', 'iteration'],
-    trigger: /\b(?:lists?|sequences?)\b/i,
-  },
-  {
-    id: 'python-openstax-dictionaries',
-    title: 'OpenStax Introduction to Python Programming section 10.1 Dictionary basics',
-    url: 'https://openstax.org/books/introduction-python-programming/pages/10-1-dictionary-basics',
-    concepts: ['dictionaries', 'key-value pairs', 'mapping'],
-    trigger: /\b(?:dictionar(?:y|ies)|key[-\s]?value|mapping)\b/i,
-  },
-  {
-    id: 'python-openstax-strings',
-    title: 'OpenStax Introduction to Python Programming section 8.1 String operations',
-    url: 'https://openstax.org/books/introduction-python-programming/pages/8-1-string-operations',
-    concepts: ['strings', 'text processing', 'string methods'],
-    trigger: /\b(?:strings?|text\s+processing|string\s+methods?)\b/i,
-  },
-  {
-    id: 'python-openstax-files',
-    title: 'OpenStax Introduction to Python Programming section 14.1 Reading from files',
-    url: 'https://openstax.org/books/introduction-python-programming/pages/14-1-reading-from-files',
-    concepts: ['file input', 'file output', 'exceptions'],
-    trigger: /\b(?:file\s+(?:input|output|i\/o)|read(?:ing)?\s+files?|writ(?:ing|e)\s+files?|exceptions?)\b/i,
-  },
-  {
-    id: 'python-openstax-oop',
-    title: 'OpenStax Introduction to Python Programming section 11.2 Classes and instances',
-    url: 'https://openstax.org/books/introduction-python-programming/pages/11-2-classes-and-instances',
-    concepts: ['classes', 'objects', 'object-oriented programming'],
-    trigger: /\b(?:object[-\s]?oriented|classes?|objects?)\b/i,
-  },
-  {
-    id: 'python-openstax-recursion',
-    title: 'OpenStax Introduction to Python Programming section 12.1 Recursion basics',
-    url: 'https://openstax.org/books/introduction-python-programming/pages/12-1-recursion-basics',
-    concepts: ['recursion', 'base cases', 'recursive functions'],
-    trigger: /\b(?:recursion|recursive|base\s+cases?)\b/i,
-  },
-  {
-    id: 'python-openstax-errors',
-    title: 'OpenStax Introduction to Python Programming section 1.6 Error messages',
-    url: 'https://openstax.org/books/introduction-python-programming/pages/1-6-error-messages',
-    concepts: ['debugging', 'error messages', 'testing'],
-    trigger: /\b(?:debugg(?:ing)?|errors?|testing|trace)\b/i,
-  },
-];
-
-const CURATED_MUSIC_INTERVAL_SOURCE_PROOF_ROWS = [
-  {
-    id: 'music-omt-intervals',
-    title: 'Open Music Theory: Intervals',
-    url: 'https://viva.pressbooks.pub/openmusictheory/chapter/intervals/',
-    concepts: ['generic interval', 'interval quality', 'semitone', 'interval inversion'],
-    trigger:
-      /\b(?:generic\s+interval|interval\s+quality|semitone|inclusive\s+letter|written\s+interval|heard\s+interval)\b/i,
-  },
-  {
-    id: 'music-omt-intervals-worksheet-e',
-    title: 'Open Music Theory: Intervals E worksheet',
-    url: 'https://viva.pressbooks.pub/app/uploads/sites/12/2025/07/WK-Intervals-E.pdf',
-    concepts: ['compound interval', 'simple interval', 'interval inversion', 'quality exchange'],
-    trigger: /\b(?:compound\s+interval|simple\s+interval|interval\s+inversion|sum\s+to\s+nine|quality\s+exchange)\b/i,
-  },
-];
-
-function collectCourseContextText({ courseName, courseMap, courseGraph, fallbackCourseGraph }) {
-  const graphTexts = [courseGraph, fallbackCourseGraph].flatMap((graph) => {
-    if (!graph || typeof graph !== 'object') return [];
-    return [
-      graph.course?.name,
-      graph.course?.title,
-      graph.courseName,
-      graph.title,
-      ...(graph.concepts || []).map((concept) => concept?.term || concept?.title || ''),
-      ...(graph.sessions || []).flatMap((session) => [
-        session?.title || '',
-        ...(session?.sections || []).map((section) => section?.topic || ''),
-      ]),
-    ];
-  });
-  const mapTexts = [
-    courseName,
-    courseMap?.courseName,
-    ...(courseMap?.lessons || []).flatMap((lesson) => [
-      lesson?.title,
-      lesson?.lessonTitle,
-      ...(lesson?.sections || []).flatMap((section) => [
-        section?.topicSection,
-        section?.topic,
-        section?.learningObjectives,
-        section?.learningGoals,
-        section?.asynchronousActivities,
-        section?.synchronousActivities,
-      ]),
-    ]),
-  ];
-  return [...mapTexts, ...graphTexts].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim();
-}
-
-function buildCuratedUxSourceProofGraph({ courseName, courseMap, courseGraph, fallbackCourseGraph }) {
-  const context = collectCourseContextText({ courseName, courseMap, courseGraph, fallbackCourseGraph });
-  if (!UX_COURSE_CONTEXT_RE.test(context)) return null;
-  let selected = CURATED_UX_SOURCE_PROOF_ROWS.filter((row) => row.trigger.test(context));
-  if (selected.length < 2) selected = CURATED_UX_SOURCE_PROOF_ROWS.slice(0, 3);
-
-  const conceptIdByTerm = new Map();
-  const concepts = [];
-  const conceptIdForTerm = (term) => {
-    const key = cleanSourceText(term, 120).toLowerCase();
-    if (!key) return '';
-    if (conceptIdByTerm.has(key)) return conceptIdByTerm.get(key);
-    const id = `ux-curated-concept-${concepts.length + 1}`;
-    conceptIdByTerm.set(key, id);
-    concepts.push({ id, term: cleanSourceText(term, 120) });
-    return id;
-  };
-
-  const resources = selected.map((row) => ({
-    id: row.id,
-    title: row.title,
-    provider: 'wikipedia',
-    origin: 'wikipedia',
-    kind: 'licensed UX background source',
-    url: row.url,
-    license: 'CC BY-SA 4.0',
-    evidence: row.title,
-    sessionRefs: ['ux-curated-source-proof'],
-  }));
-  const sections = selected.map((row, index) => ({
-    id: `ux-curated-source-section-${index + 1}`,
-    topic: row.concepts[0],
-    conceptRefs: row.concepts.map(conceptIdForTerm).filter(Boolean),
-    resourceRefs: [row.id],
-  }));
-
-  return {
-    course: { name: courseName },
-    courseName,
-    concepts,
-    resources,
-    readings: [],
-    sessions: [
-      {
-        id: 'ux-curated-source-proof',
-        number: 1,
-        title: 'UX source proof',
-        sections,
-      },
-    ],
-  };
-}
-
-function buildCuratedPythonSourceProofGraph({ courseName, courseMap, courseGraph, fallbackCourseGraph }) {
-  const context = collectCourseContextText({ courseName, courseMap, courseGraph, fallbackCourseGraph });
-  if (!PYTHON_COURSE_CONTEXT_RE.test(context)) return null;
-  let selected = CURATED_PYTHON_SOURCE_PROOF_ROWS.filter((row) => row.trigger.test(context));
-  if (selected.length < 4) selected = CURATED_PYTHON_SOURCE_PROOF_ROWS.slice(0, 6);
-
-  const conceptIdByTerm = new Map();
-  const concepts = [];
-  const conceptIdForTerm = (term) => {
-    const key = cleanSourceText(term, 120).toLowerCase();
-    if (!key) return '';
-    if (conceptIdByTerm.has(key)) return conceptIdByTerm.get(key);
-    const id = `python-curated-concept-${concepts.length + 1}`;
-    conceptIdByTerm.set(key, id);
-    concepts.push({ id, term: cleanSourceText(term, 120) });
-    return id;
-  };
-
-  const resources = selected.map((row, index) => ({
-    id: row.id,
-    title: row.title,
-    provider: 'openstax',
-    origin: 'openstax',
-    kind: 'open textbook section',
-    url: row.url,
-    license: 'CC BY 4.0',
-    evidence: row.title,
-    attribution: 'OpenStax, Rice University',
-    sessionRefs: [`python-curated-source-proof-${index + 1}`],
-  }));
-  const sessions = selected.map((row, index) => ({
-    id: `python-curated-source-proof-${index + 1}`,
-    number: index + 1,
-    title: `Python source proof: ${row.concepts[0]}`,
-    sections: [
-      {
-        id: `python-curated-source-section-${index + 1}`,
-        topic: row.concepts[0],
-        conceptRefs: row.concepts.map(conceptIdForTerm).filter(Boolean),
-        resourceRefs: [row.id],
-      },
-    ],
-  }));
-
-  return {
-    course: { name: courseName },
-    courseName,
-    concepts,
-    resources,
-    readings: [],
-    sessions,
-  };
-}
-
-function buildCuratedMusicIntervalSourceProofGraph({ courseName, courseMap, courseGraph, fallbackCourseGraph }) {
-  const context = collectCourseContextText({ courseName, courseMap, courseGraph, fallbackCourseGraph });
-  if (!MUSIC_INTERVAL_COURSE_CONTEXT_RE.test(context)) return null;
-  let selected = CURATED_MUSIC_INTERVAL_SOURCE_PROOF_ROWS.filter((row) => row.trigger.test(context));
-  if (selected.length < 2) selected = CURATED_MUSIC_INTERVAL_SOURCE_PROOF_ROWS;
-
-  const conceptIdByTerm = new Map();
-  const concepts = [];
-  const conceptIdForTerm = (term) => {
-    const key = cleanSourceText(term, 120).toLowerCase();
-    if (!key) return '';
-    if (conceptIdByTerm.has(key)) return conceptIdByTerm.get(key);
-    const id = `music-curated-concept-${concepts.length + 1}`;
-    conceptIdByTerm.set(key, id);
-    concepts.push({ id, term: cleanSourceText(term, 120) });
-    return id;
-  };
-
-  const resources = selected.map((row, index) => ({
-    id: row.id,
-    title: row.title,
-    provider: 'open-music-theory',
-    origin: 'open-music-theory',
-    kind: row.url.endsWith('.pdf') ? 'open worksheet' : 'open textbook chapter',
-    url: row.url,
-    license: 'CC BY-SA 4.0',
-    evidence: row.title,
-    attribution:
-      'Open Music Theory contributors: Mark Gotham, Kyle Gullings, Chelsey Hamm, Bryn Hughes, Brian Jarvis, Megan Lavengood, and John Peterson',
-    sessionRefs: [`music-curated-source-proof-${index + 1}`],
-  }));
-  const sessions = selected.map((row, index) => ({
-    id: `music-curated-source-proof-${index + 1}`,
-    number: index + 1,
-    title: `Music interval source proof: ${row.concepts[0]}`,
-    sections: [
-      {
-        id: `music-curated-source-section-${index + 1}`,
-        topic: row.concepts[0],
-        conceptRefs: row.concepts.map(conceptIdForTerm).filter(Boolean),
-        resourceRefs: [row.id],
-      },
-    ],
-  }));
-
-  return {
-    course: { name: courseName },
-    courseName,
-    concepts,
-    resources,
-    readings: [],
-    sessions,
-  };
-}
-
-function buildCuratedLiteratureSourceProofGraph({ courseName, courseGraph, fallbackCourseGraph, readings }) {
-  const declaredReadings = [
-    ...(Array.isArray(readings) ? readings : []),
-    ...(Array.isArray(courseGraph?.readings) ? courseGraph.readings : []),
-    ...(Array.isArray(fallbackCourseGraph?.readings) ? fallbackCourseGraph.readings : []),
-  ]
-    .map((reading) => (reading && typeof reading === 'object' ? reading.title || reading.name : reading))
-    .filter(Boolean);
-  const profiles = resolveScionLiteratureSourceProfiles({ readings: declaredReadings });
-  if (profiles.length === 0) return null;
-
-  const concepts = [];
-  const resources = [];
-  const sessions = [];
-  for (const [profileIndex, profile] of profiles.entries()) {
-    const sourceNumber = profileIndex + 1;
-    const sourceId = `literature-curated-source-${sourceNumber}`;
-    const sessionId = `literature-curated-source-proof-${sourceNumber}`;
-    const conceptRefs = profile.concepts.map((concept, conceptIndex) => {
-      const id = `literature-curated-concept-${sourceNumber}-${conceptIndex + 1}`;
-      concepts.push({ id, term: cleanSourceText(concept.term, 120) });
-      return id;
-    });
-    resources.push({
-      id: sourceId,
-      title: profile.source.title,
-      author: profile.source.author,
-      provider: profile.source.provider,
-      origin: profile.source.provider,
-      kind:
-        profile.source.provider === 'gutenberg'
-          ? 'public-domain literary primary text'
-          : 'licensed literary reading reference',
-      url: profile.source.url,
-      license: profile.source.license,
-      evidence: profile.source.title,
-      sessionRefs: [sessionId],
-    });
-    sessions.push({
-      id: sessionId,
-      number: sourceNumber,
-      title: `Reading source proof: ${profile.source.title}`,
-      sections: [
-        {
-          id: `literature-curated-source-section-${sourceNumber}`,
-          topic: profile.source.title,
-          conceptRefs,
-          resourceRefs: [sourceId],
-        },
-      ],
-    });
-  }
-
-  return {
-    course: { name: courseName },
-    courseName,
-    concepts,
-    resources,
-    readings: [],
-    sessions,
-  };
 }
 
 function cleanSourceText(value, maxLength = 1200) {
@@ -2134,12 +1794,14 @@ function buildManifest({
 }) {
   const courseIR = buildManifestCourseIRProof(courseGraph, { sourceRefCoverage });
   const exportVerification = buildManifestExportVerification(digest);
+  const handoffTrust = buildManifestHandoffTrust(digest);
   return {
     manifestVersion: PACKAGE_MANIFEST_VERSION,
     courseName,
     generatedAt,
     generator: buildManifestGenerator(digest, pipelineState),
     ...(exportVerification ? { exportVerification } : {}),
+    ...(handoffTrust ? { handoffTrust } : {}),
     lessonScope:
       Array.isArray(lessonFilter) || lessonNumbers?.some((number, index) => number !== index + 1)
         ? lessonNumbers || lessonFilter.map((index) => index + 1)
@@ -2446,14 +2108,27 @@ export async function buildCourseMaterialsZip({
     (Array.isArray(courseGraph?.resources) && courseGraph.resources.length > 0) ||
     (Array.isArray(courseGraph?.readings) && courseGraph.readings.length > 0);
   const fallbackCourseGraph = sourceProofExpected ? await getDerivedCourseGraph() : null;
+  // Some runtime graphs carry retrieval state but omit course identity. Bind
+  // the exported course name before source admission so a false friend cannot
+  // bypass the course-aware gate merely because identity lives in courseMap.
+  const courseAwareSourceGraph = courseGraph
+    ? {
+        ...courseGraph,
+        course: {
+          ...(courseGraph.course || {}),
+          name: courseGraph?.course?.name || courseGraph?.course?.title || safeCourseName,
+        },
+        courseName: courseGraph.courseName || safeCourseName,
+      }
+    : courseGraph;
   let sourceLedgerBundle = mergeSourceLedgerBundles(
-    buildSourceLedgerFromCourseGraph(courseGraph, { checkedAt: generatedAt }),
+    buildSourceLedgerFromCourseGraph(courseAwareSourceGraph, { checkedAt: generatedAt }),
     buildSourceLedgerFromCourseGraph(fallbackCourseGraph, { checkedAt: generatedAt }),
     buildSourceLedgerFromSyllabusSchedule(fallbackCourseGraph || courseGraph, deliverables, { checkedAt: generatedAt }),
   );
   let sourceRefCoverage =
     courseGraph?.courseIR?.sourceRefCoverage || pipelineState?.courseIR?.sourceRefCoverage || null;
-  let sourceManifestGraph = courseGraph;
+  let sourceManifestGraph = courseAwareSourceGraph;
   if (pipelineSourceProofExpected && !hasSourceLedgerRows(sourceLedgerBundle)) {
     const courseIRFallback = await buildCourseIRSourceProofFallback(courseMap);
     const fallbackSourceGraph = courseIRFallback?.graph
@@ -2476,46 +2151,9 @@ export async function buildCourseMaterialsZip({
       };
     }
   }
-  if (sourceProofExpected && trustedConceptLinkedSourceLedgerRowCount(sourceLedgerBundle) <= 1) {
-    const curatedUxSourceProofGraph = buildCuratedUxSourceProofGraph({
-      courseName: safeCourseName,
-      courseMap,
-      courseGraph: sourceManifestGraph || courseGraph,
-      fallbackCourseGraph,
-    });
-    const curatedPythonSourceProofGraph = buildCuratedPythonSourceProofGraph({
-      courseName: safeCourseName,
-      courseMap,
-      courseGraph: sourceManifestGraph || courseGraph,
-      fallbackCourseGraph,
-    });
-    const curatedMusicIntervalSourceProofGraph = buildCuratedMusicIntervalSourceProofGraph({
-      courseName: safeCourseName,
-      courseMap,
-      courseGraph: sourceManifestGraph || courseGraph,
-      fallbackCourseGraph,
-    });
-    const curatedLiteratureSourceProofGraph = buildCuratedLiteratureSourceProofGraph({
-      courseName: safeCourseName,
-      courseGraph: sourceManifestGraph || courseGraph,
-      fallbackCourseGraph,
-      readings: readingsRegistry,
-    });
-    if (
-      curatedUxSourceProofGraph ||
-      curatedPythonSourceProofGraph ||
-      curatedMusicIntervalSourceProofGraph ||
-      curatedLiteratureSourceProofGraph
-    ) {
-      sourceLedgerBundle = mergeSourceLedgerBundles(
-        sourceLedgerBundle,
-        buildSourceLedgerFromCourseGraph(curatedUxSourceProofGraph, { checkedAt: generatedAt }),
-        buildSourceLedgerFromCourseGraph(curatedPythonSourceProofGraph, { checkedAt: generatedAt }),
-        buildSourceLedgerFromCourseGraph(curatedMusicIntervalSourceProofGraph, { checkedAt: generatedAt }),
-        buildSourceLedgerFromCourseGraph(curatedLiteratureSourceProofGraph, { checkedAt: generatedAt }),
-      );
-    }
-  }
+  // Export is a provenance boundary, not a retrieval pass. A thin run ledger
+  // stays thin and review-required; the exporter never invents source rows to
+  // make the package appear better researched than the authoring run was.
   const bridgedSourceProof = bridgeCourseIRSourceProofToTrustedLedger(
     sourceManifestGraph,
     sourceLedgerBundle,
@@ -2646,13 +2284,27 @@ export async function buildCourseMaterialsZip({
   let qualityBlock = null;
   let qualityResult = null;
   let qualityReportMarkdown = null;
+  let scoreLedger = null;
   if (quality !== false) {
+    const gradedFileMap = { ...fileContents, 'PACKAGE_MANIFEST.json': JSON.stringify(manifest, null, 2) };
+    const evidenceArtifactsBinding = await buildEvidenceArtifactBinding(gradedFileMap);
     const precomputedQuality = normalizePrecomputedPackageQuality(qualityOptions.precomputed);
+    const precomputedVerification = precomputedQuality
+      ? await verifyScoreLedger({
+          ledger: precomputedQuality.scoreLedger,
+          quality: precomputedQuality.block,
+          currentGraderVersion: GRADER_VERSION,
+          gradingScope: qualityScopeBinding,
+          evidenceArtifacts: evidenceArtifactsBinding,
+        })
+      : null;
     if (
       precomputedQuality &&
+      precomputedVerification?.status === 'verified' &&
       !precomputedQualityMissesCurrentGrader(precomputedQuality) &&
       !precomputedQualityMissesCurrentTexture(precomputedQuality) &&
       !precomputedQualityMissesScope(precomputedQuality, qualityScopeBinding) &&
+      !precomputedQualityMissesEvidenceArtifacts(precomputedQuality, evidenceArtifactsBinding) &&
       !precomputedQualityMissesReadiness(precomputedQuality, effectiveReadiness) &&
       !precomputedQualityReferencesMissingPackageFiles(precomputedQuality, {
         ...fileContents,
@@ -2660,6 +2312,7 @@ export async function buildCourseMaterialsZip({
       })
     ) {
       qualityBlock = precomputedQuality.block;
+      scoreLedger = precomputedQuality.scoreLedger;
       qualityReportMarkdown = renderPrecomputedQualityReport(precomputedQuality, { courseTitle: safeCourseName });
     } else {
       const timeoutMs = Number.isFinite(qualityOptions.timeoutMs)
@@ -2673,7 +2326,6 @@ export async function buildCourseMaterialsZip({
           safeImport(() => import('./quality/fileProviders.js')),
         ]);
         const { grade, renderReportMarkdown, honestyFromDigest, GRADER_VERSION } = graderModule;
-        const gradedFileMap = { ...fileContents, 'PACKAGE_MANIFEST.json': JSON.stringify(manifest, null, 2) };
         const gradePromise = grade({
           fileProvider: providersModule.createMemoryFileProvider(gradedFileMap),
           // In-app honesty source: direct budget/digest object assertions
@@ -2717,6 +2369,13 @@ export async function buildCourseMaterialsZip({
           };
         } else {
           qualityResult = raced.value;
+          scoreLedger = qualityResult.scoreLedger || null;
+          if (scoreLedger) {
+            scoreLedger.bindings = {
+              gradingScope: qualityScopeBinding,
+              evidenceArtifacts: evidenceArtifactsBinding,
+            };
+          }
           qualityBlock = {
             status: 'graded',
             evidenceClass: qualityResult.evidenceClass || 'deterministic',
@@ -2755,6 +2414,26 @@ export async function buildCourseMaterialsZip({
     }
     if (qualityBlock?.status !== 'graded' && !qualityReportMarkdown) {
       qualityReportMarkdown = renderUnavailableQualityReport(qualityBlock, { courseTitle: safeCourseName });
+    }
+    if (qualityBlock?.status === 'graded' && scoreLedger) {
+      const scoreLedgerText = JSON.stringify(scoreLedger, null, 2);
+      const scoreLedgerSha256 = await sha256QualityText(scoreLedgerText);
+      qualityBlock.scoreLedger = {
+        protocol: scoreLedger.protocol || 'coursemapper-score-ledger-v1',
+        path: 'SCORE_LEDGER.json',
+        sha256: scoreLedgerSha256,
+        deterministicPackageEvidence: scoreLedger.deterministicPackageEvidence?.points || null,
+        encodedDefectConformance: scoreLedger.encodedDefectConformance?.overall || null,
+        bindings: scoreLedger.bindings || null,
+      };
+      zip.file('SCORE_LEDGER.json', scoreLedgerText);
+      fileContents['SCORE_LEDGER.json'] = scoreLedgerText;
+      files.push({
+        path: 'SCORE_LEDGER.json',
+        featureId: 'qualityEvidence',
+        format: 'json',
+        size: getExportPartSize(scoreLedgerText),
+      });
     }
     manifest.quality = qualityBlock;
     const qualityIssue = qualityIssueFromManifestQuality(qualityBlock);

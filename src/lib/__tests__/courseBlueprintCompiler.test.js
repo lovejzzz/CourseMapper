@@ -85,6 +85,94 @@ describe('focused lesson concept extraction', () => {
   });
 });
 
+describe('cross-deliverable fact routing', () => {
+  it('keeps one admitted fact from dominating the entire package', () => {
+    const facts = [
+      'Pandas data structures provide efficient methods for manipulating large structured datasets in Python.',
+      'Public dataset acquisition involves accessing information from governmental repositories.',
+      'Vectorized operations apply a computation across an entire data column.',
+      'Public datasets require inspection for bias and data limitations.',
+      'A reproducible notebook records the sequence of data transformations.',
+    ];
+    const blueprint = buildCourseBlueprint(
+      {
+        courseName: 'Python for Public Policy',
+        lessons: [
+          {
+            title: 'Lesson 1: Python and pandas for public datasets',
+            sections: [
+              {
+                topicSection: 'Pandas data structures and public datasets',
+                learningObjectives: 'Analyze a public dataset and explain a bounded policy conclusion.',
+                weeklyAssessments: 'Policy data memo',
+                asynchronousActivities: 'Inspect a supplied dataset and notebook.',
+                synchronousActivities: 'Compare transformations and defend one choice.',
+                supportingResources: 'Supplied public dataset, data dictionary, and starter notebook.',
+              },
+            ],
+          },
+        ],
+      },
+      {
+        enrichment: {
+          coverage: { requestedLessons: 1, enrichedLessons: 1, missingLessons: [] },
+          stageDecisions: { modelStage: 'ran' },
+          lessonContent: {
+            'lesson-1': {
+              keyTerms: [
+                {
+                  term: 'Pandas data structures',
+                  definition: facts[0],
+                  example: facts[2],
+                  misconception: 'Loading a public file makes its conclusions unbiased.',
+                  correction: facts[3],
+                },
+                {
+                  term: 'Public dataset acquisition',
+                  definition: facts[1],
+                  example: facts[4],
+                  misconception: 'Every government dataset is immediately analysis-ready.',
+                  correction: facts[3],
+                },
+                {
+                  term: 'Vectorized operations',
+                  definition: facts[2],
+                  example: facts[4],
+                  misconception: 'A vectorized result is automatically a valid policy conclusion.',
+                  correction: facts[3],
+                },
+              ],
+              kernel: { facts },
+            },
+          },
+        },
+      },
+    );
+    const featureIds = [
+      'syllabus',
+      'lessonPlans',
+      'slideDecks',
+      'assignments',
+      'rubrics',
+      'discussions',
+      'quizBank',
+      'studyGuides',
+      'courseFaq',
+    ];
+    const compiled = compileBlueprintDeliverables(blueprint, featureIds);
+    const normalizedFact = facts[0].toLowerCase();
+    const featureCounts = Object.fromEntries(
+      featureIds.map((featureId) => {
+        const rendered = JSON.stringify(compiled[featureId] || {}).toLowerCase();
+        return [featureId, rendered.split(normalizedFact).length - 1];
+      }),
+    );
+    const packageCount = Object.values(featureCounts).reduce((total, count) => total + count, 0);
+
+    expect(packageCount, JSON.stringify(featureCounts)).toBeLessThan(24);
+  });
+});
+
 describe('modality routine grammar', () => {
   it('places imperative field-evidence routines before the lesson context', () => {
     const result = contextualizeModalityRoutine(

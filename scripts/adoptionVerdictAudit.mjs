@@ -61,14 +61,18 @@ export async function extractPackageEvidence(zipPath) {
   const manifestName = findPackageFile(zip, (name) => /(^|\/)PACKAGE_MANIFEST\.json$/i.test(name));
   if (!manifestName) throw new Error('PACKAGE_MANIFEST.json not found in package ZIP.');
   const qualityName = findPackageFile(zip, (name) => /(^|\/)QUALITY_REPORT\.md$/i.test(name));
+  const scoreLedgerName = findPackageFile(zip, (name) => /(^|\/)SCORE_LEDGER\.json$/i.test(name));
   const packageManifest = JSON.parse(await zip.file(manifestName).async('string'));
   const qualityReport = qualityName ? await zip.file(qualityName).async('string') : '';
+  const scoreLedger = scoreLedgerName ? JSON.parse(await zip.file(scoreLedgerName).async('string')) : null;
   return {
     zipPath,
     manifestName,
     qualityName: qualityName || null,
+    scoreLedgerName: scoreLedgerName || null,
     packageManifest,
     qualityReport,
+    scoreLedger,
   };
 }
 
@@ -150,6 +154,7 @@ export async function buildAdoptionVerdictAudit({
     packageManifest: packageEvidence.packageManifest,
     assessmentRegistry: packageEvidence.packageManifest.assessments,
     qualityReport: packageEvidence.qualityReport,
+    scoreLedger: packageEvidence.scoreLedger,
     logText,
     professorAdoptionSummary: professorReport?.summary || null,
     professorAdoptionResults: professorReport?.results || [],
@@ -165,6 +170,7 @@ export async function buildAdoptionVerdictAudit({
       zipPath: packageEvidence.zipPath,
       manifestName: packageEvidence.manifestName,
       qualityName: packageEvidence.qualityName,
+      scoreLedgerName: packageEvidence.scoreLedgerName,
       courseName: packageEvidence.packageManifest.courseName || '',
     },
     verdict,

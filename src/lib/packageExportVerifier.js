@@ -383,7 +383,12 @@ export async function verifyPackageExports({
   const passed = checks.filter((check) => check.status === 'passed');
 
   return {
-    status: failed.length > 0 ? 'failed' : warnings.length > 0 ? 'warnings' : 'passed',
+    // `status` is the file-integrity promise only. Content, accessibility,
+    // and review findings remain visible in `checks`/`warningCount` and drive
+    // the separate publication disposition; an openable ZIP must not become
+    // an integrity failure merely because its prose needs review.
+    status: failed.length > 0 ? 'failed' : 'passed',
+    contentDisposition: failed.length > 0 ? 'blocked' : warnings.length > 0 ? 'needs-review' : 'publishable',
     checked: checks.length,
     passed: passed.length,
     failed: failed.length,

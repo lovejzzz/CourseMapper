@@ -61,6 +61,43 @@ describe('source-grounded native authoring backfill', () => {
     },
   };
 
+  it('projects distinct glossary anchors from admitted fact subjects when the model returns one term', () => {
+    const facts = [
+      'Pandas data structures provide efficient methods for manipulating large structured datasets in Python.',
+      'Public dataset acquisition involves accessing information from governmental repositories.',
+      'Vectorized operations enable fast computation across an entire data column.',
+      'Public datasets require inspection for bias and data limitations.',
+      'Reproducible notebooks record the sequence of data transformations.',
+    ];
+    const completed = completeNativeKernelSurfaces(
+      {
+        keyTerms: [
+          {
+            term: 'Pandas data structures',
+            definition: facts[0],
+            example: facts[2],
+            misconception: 'Loading a public file makes its conclusions unbiased.',
+            correction: facts[3],
+          },
+        ],
+        kernel: { facts },
+      },
+      {
+        title: 'Lesson 1: Python and pandas for public datasets',
+        sections: [{ topicSection: 'Pandas and public datasets', weeklyAssessments: 'Policy data memo' }],
+      },
+    );
+
+    expect(completed.keyTerms.length).toBeGreaterThanOrEqual(3);
+    expect(completed.keyTerms.map((term) => term.term)).toEqual(
+      expect.arrayContaining(['Pandas data structures', 'Public dataset acquisition', 'Vectorized operations']),
+    );
+    expect(completed.keyTerms.every((term) => facts.includes(term.definition))).toBe(true);
+    expect(completed.keyTermFallbacks).toEqual(
+      expect.arrayContaining([expect.objectContaining({ source: 'fact-subject-projection' })]),
+    );
+  });
+
   it('builds missing outcomes and activities only from admitted source terms', () => {
     const authored = backfillNativeAuthoringFromLessonContent({
       skeleton,

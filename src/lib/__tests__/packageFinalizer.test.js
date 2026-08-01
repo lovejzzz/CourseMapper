@@ -1197,6 +1197,35 @@ describe('packageFinalizer', () => {
     expect(result.readiness.blockers[0].message).toMatch(/timed out.*run finalization again/i);
   });
 
+  it('keeps P1 and P2 quality findings in the review channel before publication', () => {
+    const baseResult = {
+      readiness: { status: 'ready', isBlocked: false, blockers: [], warnings: [], issues: [] },
+    };
+
+    const result = applyQualityToFinalizerResult(baseResult, {
+      status: 'graded',
+      score: 89,
+      grade: 'B',
+      findingCounts: { p0: 0, p1: 1, p2: 2 },
+      findings: [
+        { severity: 'P1', dimension: 'prose', detail: 'Repeated phrase across deliverables.' },
+        { severity: 'P2', dimension: 'evidence', detail: 'Confirm the source packet.' },
+        { severity: 'P2', dimension: 'formatting', detail: 'Review slide density.' },
+      ],
+    });
+
+    expect(result.readiness.status).toBe('warnings');
+    expect(result.readiness.isBlocked).toBe(false);
+    expect(result.readiness.blockers).toEqual([]);
+    expect(result.readiness.warnings).toHaveLength(1);
+    expect(result.readiness.warnings[0]).toMatchObject({
+      severity: 'warning',
+      label: 'Quality grade',
+      source: 'qualityGate',
+    });
+    expect(result.readiness.warnings[0].message).toMatch(/3 review findings.*before classroom publication/i);
+  });
+
   it('returns exact retry actions for localized weak sections', () => {
     const result = runDeterministicPackageFinalizer({
       courseMap: makeCourseMap(2),

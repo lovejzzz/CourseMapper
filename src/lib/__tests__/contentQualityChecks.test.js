@@ -383,6 +383,36 @@ describe('compiledLanguageFinalizer', () => {
     expect(hasDanglingClauseSeam(data.assignments[0].progressTracking)).toBe(false);
   });
 
+  it('keeps the complement when a long lesson title reaches the five-word crop at a connector', () => {
+    const productionBlueprint = {
+      lessons: [
+        {
+          lessonNumber: 3,
+          title: 'Lesson 3: Data visualization with matplotlib for policy audiences',
+          studentArtifact: 'Policy-audience visualization critique',
+          readings: [],
+        },
+      ],
+    };
+    const data = {
+      assignments: [
+        {
+          lessonNumber: 3,
+          progressTracking:
+            'Review Lesson 3: Data visualization with matplotlib for policy audiences once. ' +
+            'Revisit Lesson 3: Data visualization with matplotlib for policy audiences with feedback. ' +
+            'Monitor Lesson 3: Data visualization with matplotlib for policy audiences before submission.',
+        },
+      ],
+    };
+
+    finalizeCompiledDeliverableLanguage('assignments', data, productionBlueprint);
+
+    expect(data.assignments[0].progressTracking).toContain('Data visualization with matplotlib for policy audiences');
+    expect(data.assignments[0].progressTracking).not.toContain('matplotlib for.');
+    expect(hasDanglingClauseSeam(data.assignments[0].progressTracking)).toBe(false);
+  });
+
   it('repairs article agreement and double periods at template seams', () => {
     const data = {
       items: [

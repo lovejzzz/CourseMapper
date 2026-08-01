@@ -12,7 +12,7 @@ import { repairMisappliedObservationProtocols } from './observationProtocols';
 import { normalizeReadinessIssue, normalizeReadinessIssues } from './readinessIssueSchema';
 import { compactCompilerOwnedAssessmentIdentity } from './compilerAssessmentIdentity';
 import { compactAssignmentBriefBodyReferences } from './courseCompilerCopyVariants';
-import { countBlockingQualityFindings } from './qualityFindingPolicy';
+import { countAdvisoryQualityFindings, countBlockingQualityFindings } from './qualityFindingPolicy';
 
 function featureLabel(featureId) {
   return READINESS_FEATURE_LABELS[featureId] || (featureId?.startsWith('custom_') ? 'Custom Deliverable' : featureId);
@@ -598,13 +598,32 @@ export function buildQualityGateIssues(quality) {
     ];
   }
   const blockingP0 = countBlockingQualityFindings(quality);
-  if (blockingP0 <= 0) return [];
+  if (blockingP0 > 0) {
+    return [
+      normalizeReadinessIssue({
+        severity: 'blocker',
+        featureId: 'courseMap',
+        label: 'Quality grade',
+        message: `Package quality grader found ${blockingP0} blocking P0 finding${blockingP0 === 1 ? '' : 's'} (score ${quality.score}/100, grade ${quality.grade}) — review the quality report before downloading`,
+        source: 'qualityGate',
+        retryable: false,
+        autoFixable: false,
+      }),
+    ];
+  }
+  const advisoryFindings = countAdvisoryQualityFindings(quality);
+  const unobservedEvidencePoints = Math.max(0, Number(quality?.readiness?.points?.unobserved) || 0);
+  if (advisoryFindings <= 0 && unobservedEvidencePoints <= 0) return [];
   return [
     normalizeReadinessIssue({
-      severity: 'blocker',
+      severity: 'warning',
       featureId: 'courseMap',
       label: 'Quality grade',
-      message: `Package quality grader found ${blockingP0} blocking P0 finding${blockingP0 === 1 ? '' : 's'} (score ${quality.score}/100, grade ${quality.grade}) — review the quality report before downloading`,
+      message: `${
+        advisoryFindings > 0
+          ? `Package quality grader found ${advisoryFindings} review finding${advisoryFindings === 1 ? '' : 's'} (score ${quality.score}/100, grade ${quality.grade})`
+          : `Package conformance scored ${quality.score}/100 (${quality.grade})`
+      }${unobservedEvidencePoints > 0 ? `; ${unobservedEvidencePoints}/100 deterministic evidence points remain unobserved` : ''} — resolve the quality report before classroom publication`,
       source: 'qualityGate',
       retryable: false,
       autoFixable: false,

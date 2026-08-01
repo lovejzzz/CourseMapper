@@ -91,7 +91,6 @@ import {
   comparativeAssessmentContractFinding,
 } from './deepQualitySubstanceDetails.js';
 import { parseClassSessionMinutes } from '../sourceBriefConstraints.js';
-import { computeAutomatedReadinessSignal } from './automatedReadinessSignal.js';
 import { sourceLedgerSupportForCitation } from './sourceLedgerCitationSupport.js';
 import {
   CLIPPED_SLIDE_INSTRUCTION_RE,
@@ -642,22 +641,44 @@ function isTokenSubset(needleTokens, haystackTokenSet) {
 function createFindings() {
   const list = [];
   const seen = new Set();
-  let counter = 0;
+  const stableHash = (value) => {
+    const text = String(value || '');
+    let hash = 2166136261;
+    for (let index = 0; index < text.length; index += 1) {
+      hash ^= text.charCodeAt(index);
+      hash = Math.imul(hash, 16777619);
+    }
+    return (hash >>> 0).toString(16).padStart(8, '0');
+  };
+  const ruleSlug = (value) =>
+    String(value || 'finding')
+      .toUpperCase()
+      .replace(/[^A-Z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .slice(0, 72) || 'FINDING';
   return {
     add({ code, severity, dimension, file = '', detail, evidence = '' }) {
       const quotedEvidence = quote(evidence);
       const dedupeKey = JSON.stringify([code || '', severity, dimension, file, detail, quotedEvidence]);
       if (seen.has(dedupeKey)) return;
       seen.add(dedupeKey);
-      counter += 1;
+      const ruleId = `DQC.${ruleSlug(dimension)}.${ruleSlug(code || detail)}`;
+      const id = `finding-${stableHash(JSON.stringify([ruleId, file, quotedEvidence]))}`;
+      const pointsLost = SEVERITY_PENALTY[severity] || 0;
       list.push({
-        id: `F${String(counter).padStart(3, '0')}`,
+        id,
+        ruleId,
+        ruleVersion: GRADER_VERSION,
         ...(code ? { code } : {}),
         severity,
         dimension,
         file,
         detail,
         evidence: quotedEvidence,
+        pointsLost,
+        evidenceTier: 'deterministic-negative-evidence',
+        reason: `${severity} encoded package defect: ${detail}.`,
+        action: `Resolve “${detail}” in ${file || 'the package'}, verify the cited evidence no longer triggers the rule, and regrade.`,
       });
     },
     list,
@@ -3870,13 +3891,31 @@ export async function grade({
     grades,
     overall: { score: overallScore, grade: letterGrade(overallScore) },
   };
-  const readiness = computeAutomatedReadinessSignal({
+  const [readinessModule, conformanceLedgerModule] = await Promise.all([
+    import('./automatedReadinessSignal.js'),
+    import('./conformanceScoreLedger.js'),
+  ]);
+  const readiness = readinessModule.computeAutomatedReadinessSignal({
     manifest: pkg.manifest,
     course,
     lessonTitles: exportedLessonTitles,
     conformance,
     texture,
   });
+  const conformanceLedger = conformanceLedgerModule.buildEncodedDefectConformanceLedger({
+    scores,
+    findings: findings.list,
+    texture,
+    stats,
+    dimensionWeights: DIMENSION_WEIGHTS,
+    graderVersion: GRADER_VERSION,
+  });
+  const replayedConformanceScore = conformanceLedgerModule.recomputeEncodedDefectConformanceLedger(conformanceLedger);
+  if (replayedConformanceScore !== overallScore) {
+    throw new Error(
+      `Encoded-defect conformance ledger replay produced ${replayedConformanceScore}; grader produced ${overallScore}`,
+    );
+  }
 
   return {
     ...conformance,
@@ -3884,6 +3923,11 @@ export async function grade({
     validationTier: 'automated-signal',
     construct: 'encoded-package-defect-conformance',
     readiness,
+    scoreLedger: {
+      protocol: 'coursemapper-score-ledger-v1',
+      deterministicPackageEvidence: readiness.ledger,
+      encodedDefectConformance: conformanceLedger,
+    },
     findings: findings.list,
     stats,
     // Texture block — sub-scores, worst repeated-shingle evidence, and
@@ -3912,9 +3956,9 @@ export function renderReportMarkdown(result, { courseTitle = 'Course', baselineR
     '',
     ...(readiness
       ? [
-          `**Automated readiness signal: ${readiness.score}/100 (${readiness.band}; automated ceiling ${readiness.evidenceCeiling})**`,
+          `**Deterministic package evidence: ${readiness.points.earned}/100 earned · ${readiness.points.lost} lost · ${readiness.points.unobserved} unobserved (${readiness.band})**`,
           '',
-          `${readiness.claimBoundary} Scores from 70–100 require a higher evidence tier with independent review or observed use.`,
+          `${readiness.claimBoundary} Missing evidence remains in the fixed 100-point potential and can never improve this result.`,
           '',
         ]
       : []),
@@ -3923,17 +3967,30 @@ export function renderReportMarkdown(result, { courseTitle = 'Course', baselineR
   ];
 
   if (readiness) {
-    lines.push('## Automated readiness components', '', '| Component | Weight | Signal |', '| --- | ---: | ---: |');
+    if (readiness.reconstructionDisclosure?.repairedFieldCount > 0) {
+      lines.push(
+        `**Deterministic reconstruction disclosure:** ${readiness.reconstructionDisclosure.repairedFieldCount} CurriculumV1 fields were reconstructed after model authoring. This is provenance, not independent evidence.`,
+        '',
+      );
+    }
+    lines.push(
+      '## Deterministic package evidence rules',
+      '',
+      '| Rule | Status | Earned | Lost | Unobserved | Why | How to improve |',
+      '| --- | --- | ---: | ---: | ---: | --- | --- |',
+    );
     for (const [component, value] of Object.entries(readiness.components || {})) {
       const label = component
         .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
         .replace(/[-_]+/g, ' ')
         .toLowerCase();
-      lines.push(`| ${label.charAt(0).toUpperCase()}${label.slice(1)} | ${value.weight} | ${value.score}/100 |`);
+      lines.push(
+        `| ${label.charAt(0).toUpperCase()}${label.slice(1)} | ${value.status} | ${value.points.earned}/${value.points.max} | ${value.points.lost} | ${value.points.unobserved} | ${String(value.reason || '').replace(/\|/g, '\\|')} | ${String(value.action || '').replace(/\|/g, '\\|')} |`,
+      );
     }
     lines.push(
       '',
-      `Raw automated signal: ${readiness.rawScore}/100. Reported score is capped at ${readiness.evidenceCeiling} for this evidence tier.`,
+      `Ledger protocol: ${readiness.protocol}. Fixed potential: 100. Full observed values, predicates, confidence bases, anti-gaming controls, and dependencies are preserved in SCORE_LEDGER.json.`,
       '',
     );
   }
@@ -3988,8 +4045,12 @@ export function renderReportMarkdown(result, { courseTitle = 'Course', baselineR
     }
     for (const finding of group) {
       lines.push(`- **[${finding.dimension}] ${finding.detail}**`);
-      lines.push(`  - file: \`${finding.file || '—'}\` · id: ${finding.id}`);
+      lines.push(
+        `  - file: \`${finding.file || '—'}\` · finding: ${finding.id} · rule: ${finding.ruleId} · points lost: ${finding.pointsLost}`,
+      );
       if (finding.evidence) lines.push(`  - evidence: \`${finding.evidence.replace(/`/g, "'")}\``);
+      lines.push(`  - reason: ${finding.reason}`);
+      lines.push(`  - improve: ${finding.action}`);
     }
     lines.push('');
   }

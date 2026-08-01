@@ -10,8 +10,8 @@ import {
 } from '../src/lib/quality/automatedReadinessSignal.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const FIXTURE_PATH = path.join(ROOT, 'evaluation/automated-readiness/v2/cases.json');
-const OUTPUT_PATH = path.join(ROOT, 'verification-output/automated-readiness-v2/latest.json');
+const FIXTURE_PATH = path.join(ROOT, 'evaluation/automated-readiness/v3/cases.json');
+const OUTPUT_PATH = path.join(ROOT, 'verification-output/automated-readiness-v3/latest.json');
 const EXPECTED_CASE_IDS = [
   'observed-algi-v01682-generic-zero-evidence',
   'observed-scion-v01682-exact-but-thin-evidence',
@@ -148,10 +148,10 @@ if (process.argv.includes('--write')) {
   await fs.writeFile(OUTPUT_PATH, `${JSON.stringify(report, null, 2)}\n`);
 }
 
-console.log('Automated readiness benchmark v2');
+console.log('Deterministic package evidence benchmark v3');
 for (const entry of cases) {
   console.log(
-    `${entry.passed ? 'PASS' : 'FAIL'} ${entry.id}: ${entry.actual.score}/100 (${entry.actual.band}; ceiling ${entry.actual.evidenceCeiling}); conformance fixture ${fixture.cases.find((item) => item.id === entry.id)?.conformanceScore}/100`,
+    `${entry.passed ? 'PASS' : 'FAIL'} ${entry.id}: ${entry.actual.points.earned} earned, ${entry.actual.points.lost} lost, ${entry.actual.points.unobserved} unobserved / 100 potential (${entry.actual.band}); conformance fixture ${fixture.cases.find((item) => item.id === entry.id)?.conformanceScore}/100`,
   );
   for (const failure of entry.failures) console.log(`  ${failure}`);
 }
