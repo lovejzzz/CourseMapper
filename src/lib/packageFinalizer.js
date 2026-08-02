@@ -384,6 +384,26 @@ function repairAssignmentBriefTextureFromCourseMap(courseMap, deliverables = {})
   };
 }
 
+function compilerLessonScopeByTitle(courseMap, ...authorizationMaps) {
+  const available = new Set(
+    authorizationMaps.flatMap((authorizationMap) =>
+      authorizationMap instanceof Map ? [...authorizationMap.keys()] : [],
+    ),
+  );
+  const scopeByTitle = new Map();
+  for (const [index, lesson] of (Array.isArray(courseMap?.lessons) ? courseMap.lessons : []).entries()) {
+    const lessonScope = `lesson-${index + 1}`;
+    if (!available.has(lessonScope)) continue;
+    const title = String(lesson?.title || '')
+      .normalize('NFKC')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase();
+    if (title) scopeByTitle.set(title, lessonScope);
+  }
+  return scopeByTitle;
+}
+
 function applyDeterministicRepairs({
   courseMap,
   courseGraph = null,
@@ -523,8 +543,13 @@ function applyDeterministicRepairs({
     .filter((value) => typeof value === 'string' && value.trim())
     .join(' ');
   const sourceFacts = collectDeliverableSourceFacts(nextDeliverables, contentFeatureIds);
-  const compilerSourceBoundaryCorrections = collectCompilerSourceBoundaryCorrections(courseGraph);
-  const compilerScenarioMaterials = collectCompilerScenarioMaterials(courseGraph);
+  const compilerSourceBoundaryCorrectionsByLesson = collectCompilerSourceBoundaryCorrections(courseGraph);
+  const compilerScenarioMaterialsByLesson = collectCompilerScenarioMaterials(courseGraph);
+  const compilerLessonScopeByTitleMap = compilerLessonScopeByTitle(
+    nextCourseMap,
+    compilerSourceBoundaryCorrectionsByLesson,
+    compilerScenarioMaterialsByLesson,
+  );
   for (const featureId of contentFeatureIds) {
     let entry = nextDeliverables?.[featureId];
     if (entry?.status !== 'done' || !entry.data) continue;
@@ -552,8 +577,9 @@ function applyDeterministicRepairs({
       sourceBrief,
       courseScope: trustedCourseScope,
       sourceFacts,
-      compilerSourceBoundaryCorrections,
-      compilerScenarioMaterials,
+      compilerSourceBoundaryCorrectionsByLesson,
+      compilerScenarioMaterialsByLesson,
+      compilerLessonScopeByTitle: compilerLessonScopeByTitleMap,
     });
     if (!contentRepair.changed) continue;
     if (nextDeliverables === deliverables) nextDeliverables = { ...deliverables };

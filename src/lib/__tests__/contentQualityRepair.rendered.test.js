@@ -107,6 +107,7 @@ describe('contentQualityRepair rendered package integration', () => {
       return {
         lessonPlans: [
           {
+            lessonNumber: index + 1,
             lessonTitle: `Lesson ${index + 1}: ${term}`,
             duration: '75 minutes',
             outline: [
@@ -126,6 +127,7 @@ describe('contentQualityRepair rendered package integration', () => {
       return {
         guides: [
           {
+            lessonNumber: index + 1,
             lessonTitle: `Lesson ${index + 1}: ${term}`,
             summary: correction,
             practiceActivities: [correction, correction],
@@ -139,6 +141,7 @@ describe('contentQualityRepair rendered package integration', () => {
       return {
         decks: [
           {
+            lessonNumber: index + 1,
             lessonTitle: `Lesson ${index + 1}: ${term}`,
             slides: Array.from({ length: count }, (_, slideIndex) => ({
               title: `${term} check ${slideIndex + 1}`,
@@ -148,9 +151,13 @@ describe('contentQualityRepair rendered package integration', () => {
         ],
       };
     });
-    const compilerSourceBoundaryCorrections = new Map(
-      terms.map((term) => [legacyBoundaryCorrection(term).replace(/^Correction: /, ''), term]),
+    const compilerSourceBoundaryCorrectionsByLesson = new Map(
+      terms.map((term, index) => [
+        `lesson-${index + 1}`,
+        new Map([[legacyBoundaryCorrection(term).replace(/^Correction: /, ''), term]]),
+      ]),
     );
+    const repairContext = { compilerSourceBoundaryCorrectionsByLesson };
 
     const beforePackage = await renderedBoundaryCorrectionPackage(lessonPlans, studyGuides, slideDecks);
     expect(beforePackage.files).toHaveLength(12);
@@ -161,13 +168,13 @@ describe('contentQualityRepair rendered package integration', () => {
     });
 
     const repairedLessonPlans = lessonPlans.map(
-      (data) => repairDeliverableContentQuality('lessonPlans', data, { compilerSourceBoundaryCorrections }).data,
+      (data) => repairDeliverableContentQuality('lessonPlans', data, repairContext).data,
     );
     const repairedStudyGuides = studyGuides.map(
-      (data) => repairDeliverableContentQuality('studyGuides', data, { compilerSourceBoundaryCorrections }).data,
+      (data) => repairDeliverableContentQuality('studyGuides', data, repairContext).data,
     );
     const repairedSlideDecks = slideDecks.map(
-      (data) => repairDeliverableContentQuality('slideDecks', data, { compilerSourceBoundaryCorrections }).data,
+      (data) => repairDeliverableContentQuality('slideDecks', data, repairContext).data,
     );
     const afterPackage = await renderedBoundaryCorrectionPackage(
       repairedLessonPlans,

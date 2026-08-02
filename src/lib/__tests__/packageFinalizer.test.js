@@ -85,14 +85,31 @@ describe('packageFinalizer', () => {
   it('requires CourseGraph research lineage before migrating a legacy compiler correction', () => {
     const legacy =
       'Cite the specific definition or fact that supports the Statistical Modeling claim, then state what that evidence does not establish.';
+    const legacyMaterials =
+      'the supplied dataset record, transformation log, competing claims, and documented uncertainty';
     const deliverables = {
       lessonPlans: {
         status: 'done',
-        data: { lessonPlans: [{ lessonTitle: 'Lesson 1: Modeling', instructorDirection: legacy }] },
+        data: {
+          lessonPlans: [
+            {
+              lessonNumber: 1,
+              lessonTitle: 'Lesson 1: Modeling',
+              compilerDirection: legacy,
+              compilerMaterials: legacyMaterials,
+            },
+            {
+              lessonNumber: 2,
+              lessonTitle: 'Lesson 2: Instructor Framework',
+              instructorDirection: legacy,
+              instructorMaterials: legacyMaterials,
+            },
+          ],
+        },
       },
     };
     const baseOptions = {
-      courseMap: makeCourseMap(1),
+      courseMap: makeCourseMap(2),
       selectedFeatures: ['lessonPlans'],
       deliverables,
       includeClassroomReadiness: false,
@@ -101,7 +118,8 @@ describe('packageFinalizer', () => {
     };
 
     const withoutLineage = runDeterministicPackageFinalizer(baseOptions);
-    expect(withoutLineage.deliverables.lessonPlans.data.lessonPlans[0].instructorDirection).toBe(legacy);
+    expect(withoutLineage.deliverables.lessonPlans.data.lessonPlans[0].compilerDirection).toBe(legacy);
+    expect(withoutLineage.deliverables.lessonPlans.data.lessonPlans[0].compilerMaterials).toBe(legacyMaterials);
 
     const withLineage = runDeterministicPackageFinalizer({
       ...baseOptions,
@@ -112,14 +130,28 @@ describe('packageFinalizer', () => {
               enrichmentSource: 'scion-source-researched',
               conceptProvenance: { source: 'algi-researched' },
               keyTerms: [{ term: 'Statistical Modeling', correction: legacy }],
+              kernel: {
+                scenario: { source: 'derived-kernel-fallback', materials: legacyMaterials },
+              },
+            },
+            'lesson-2': {
+              enrichmentSource: 'instructor-authored',
+              keyTerms: [{ term: 'Statistical Modeling', correction: legacy }],
+              kernel: {
+                scenario: { source: 'derived-kernel-fallback', materials: legacyMaterials },
+              },
             },
           },
         },
       },
     });
-    const migrated = withLineage.deliverables.lessonPlans.data.lessonPlans[0].instructorDirection;
+    const migrated = withLineage.deliverables.lessonPlans.data.lessonPlans[0].compilerDirection;
     expect(migrated).toMatch(/^Statistical Modeling:/);
     expect(migrated).not.toContain('Cite the specific definition or fact');
+    expect(withLineage.deliverables.lessonPlans.data.lessonPlans[0].compilerMaterials).not.toBe(legacyMaterials);
+    expect(withLineage.deliverables.lessonPlans.data.lessonPlans[1]).toEqual(
+      deliverables.lessonPlans.data.lessonPlans[1],
+    );
   });
 
   it('does not let stale aliases or failed and unselected ledgers rewrite canonical rendered content', async () => {

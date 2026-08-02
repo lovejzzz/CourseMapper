@@ -38,18 +38,45 @@ describe('compilerScenarioMaterials', () => {
       },
     });
 
-    expect([...materials.entries()]).toEqual([[trusted, 'Data cleansing']]);
+    expect([...materials.get('lesson-1').entries()]).toEqual([[trusted, 'Data cleansing']]);
+    expect(materials.has('lesson-2')).toBe(false);
     expect(
       compactCompilerScenarioMaterials(`Use ${trusted} to test the claim.`, {
-        authorizedMaterials: materials,
+        authorizedMaterials: materials.get('lesson-1'),
         variantSeed: 'studyGuides:lesson-1',
       }),
     ).toMatch(/^Use the Data cleansing /);
     expect(
       compactCompilerScenarioMaterials(untrusted, {
-        authorizedMaterials: materials,
+        authorizedMaterials: materials.get('lesson-2'),
         variantSeed: 'lessonPlans:lesson-2',
       }),
     ).toBe(untrusted);
+  });
+
+  it('does not let one researched lesson authorize identical instructor materials in another lesson', () => {
+    const identical = 'the supplied dataset record, transformation log, competing claims, and documented uncertainty';
+    const materials = collectCompilerScenarioMaterials({
+      enrichmentOverlay: {
+        lessonContent: {
+          'lesson-1': {
+            conceptProvenance: { source: 'algi-researched' },
+            keyTerms: [{ term: 'Data cleansing' }],
+            kernel: { scenario: { source: 'derived-kernel-fallback', materials: identical } },
+          },
+          'lesson-2': {
+            enrichmentSource: 'instructor-authored',
+            keyTerms: [{ term: 'Data cleansing' }],
+            kernel: { scenario: { source: 'derived-kernel-fallback', materials: identical } },
+          },
+        },
+      },
+    });
+
+    expect(materials.get('lesson-1')?.get(identical)).toBe('Data cleansing');
+    expect(materials.has('lesson-2')).toBe(false);
+    expect(compactCompilerScenarioMaterials(identical, { authorizedMaterials: materials.get('lesson-2') })).toBe(
+      identical,
+    );
   });
 });

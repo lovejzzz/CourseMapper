@@ -96,15 +96,16 @@ function registerResearchPayload(payload, corrections) {
  * matching prose in a deliverable is never sufficient lineage by itself.
  */
 export function collectCompilerSourceBoundaryCorrections(courseGraph) {
-  const corrections = new Map();
+  const correctionsByLesson = new Map();
   const lessonContent = courseGraph?.enrichmentOverlay?.lessonContent;
   if (lessonContent && typeof lessonContent === 'object') {
-    Object.values(lessonContent).forEach((payload) => registerResearchPayload(payload, corrections));
+    for (const [lessonId, payload] of Object.entries(lessonContent)) {
+      const corrections = new Map();
+      registerResearchPayload(payload, corrections);
+      if (corrections.size > 0) correctionsByLesson.set(lessonId, corrections);
+    }
   }
-  for (const concept of Array.isArray(courseGraph?.concepts) ? courseGraph.concepts : []) {
-    registerResearchPayload(concept?.kernel, corrections);
-  }
-  return corrections;
+  return correctionsByLesson;
 }
 
 /**

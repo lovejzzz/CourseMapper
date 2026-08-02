@@ -39,18 +39,46 @@ describe('compilerSourceBoundaryCorrection', () => {
       },
     });
 
-    expect([...corrections.entries()]).toEqual([[trusted, 'U.S. policy (EBP)']]);
+    expect([...corrections.get('lesson-1').entries()]).toEqual([[trusted, 'U.S. policy (EBP)']]);
+    expect(corrections.has('lesson-2')).toBe(false);
     expect(
       compactLegacyCompilerSourceBoundaryCorrection(`Correction: ${trusted}`, {
-        authorizedCorrections: corrections,
+        authorizedCorrections: corrections.get('lesson-1'),
         variantSeed: 'slideDecks:lesson-1',
       }),
     ).toMatch(/^Correction: U\.S\. policy \(EBP\):/);
     expect(
       compactLegacyCompilerSourceBoundaryCorrection(untrusted, {
-        authorizedCorrections: corrections,
+        authorizedCorrections: corrections.get('lesson-2'),
         variantSeed: 'lessonPlans:lesson-2',
       }),
     ).toBe(untrusted);
+  });
+
+  it('does not let one researched lesson authorize identical instructor prose in another lesson', () => {
+    const identical =
+      'Cite the specific definition or fact that supports the Statistical Modeling claim, then state what that evidence does not establish.';
+    const corrections = collectCompilerSourceBoundaryCorrections({
+      enrichmentOverlay: {
+        lessonContent: {
+          'lesson-1': {
+            conceptProvenance: { source: 'algi-researched' },
+            keyTerms: [{ term: 'Statistical Modeling', correction: identical }],
+          },
+          'lesson-2': {
+            enrichmentSource: 'instructor-authored',
+            keyTerms: [{ term: 'Statistical Modeling', correction: identical }],
+          },
+        },
+      },
+    });
+
+    expect(corrections.get('lesson-1')?.get(identical)).toBe('Statistical Modeling');
+    expect(corrections.has('lesson-2')).toBe(false);
+    expect(
+      compactLegacyCompilerSourceBoundaryCorrection(identical, {
+        authorizedCorrections: corrections.get('lesson-2'),
+      }),
+    ).toBe(identical);
   });
 });

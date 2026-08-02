@@ -458,13 +458,13 @@ function repairString(value, featureId, parentKey = '', context = {}, path = [])
   // package repeated 38 times across 12 files. The compact form preserves the
   // evidence-boundary instruction while putting each concept first.
   text = compactLegacyCompilerSourceBoundaryCorrection(text, {
-    authorizedCorrections: context.compilerSourceBoundaryCorrections,
+    authorizedCorrections: context.authorizedCompilerSourceBoundaryCorrections,
     variantSeed: `${featureId}:${sourceFactPathKey(path)}`,
     artifactKey: `${featureId}:${sourceFactPathKey(path.slice(0, 2)) || 'document'}`,
     usageCounts: context.compilerSourceBoundaryCorrectionUsage,
   });
   text = compactCompilerScenarioMaterials(text, {
-    authorizedMaterials: context.compilerScenarioMaterials,
+    authorizedMaterials: context.authorizedCompilerScenarioMaterials,
     variantSeed: `${featureId}:${sourceFactPathKey(path)}`,
   });
   text = VERBOSE_SOURCE_FACT_REPAIRS.reduce(
@@ -563,6 +563,57 @@ function worstRepeatedPhrase(node) {
   return worst.count >= PHRASE_REPAIR_LIMIT ? worst : null;
 }
 
+function normalizedLessonScopeTitle(value) {
+  return String(value || '')
+    .normalize('NFKC')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
+function lessonScopeForNode(node, context = {}) {
+  const available = context.compilerLessonScopeIds;
+  if (!(available instanceof Set) || available.size === 0) return '';
+
+  const explicitLessonId = String(node?.lessonId || '').trim();
+  if (explicitLessonId && available.has(explicitLessonId)) return explicitLessonId;
+
+  const lessonNumber = Number(node?.lessonNumber);
+  if (Number.isInteger(lessonNumber) && lessonNumber > 0) {
+    const numberedScope = `lesson-${lessonNumber}`;
+    if (available.has(numberedScope)) return numberedScope;
+  }
+
+  for (const title of [node?.lessonTitle]) {
+    const normalizedTitle = normalizedLessonScopeTitle(title);
+    if (!normalizedTitle) continue;
+    const titleScope = context.compilerLessonScopeByTitle?.get(normalizedTitle);
+    if (titleScope && available.has(titleScope)) return titleScope;
+  }
+
+  return '';
+}
+
+function compilerScopedContext(node, context = {}) {
+  const lessonScope = lessonScopeForNode(node, context) || context.compilerLessonScope || '';
+  if (!lessonScope) return context;
+  const authorizedCorrections = context.compilerSourceBoundaryCorrectionsByLesson?.get(lessonScope);
+  const authorizedMaterials = context.compilerScenarioMaterialsByLesson?.get(lessonScope);
+  if (
+    lessonScope === context.compilerLessonScope &&
+    authorizedCorrections === context.authorizedCompilerSourceBoundaryCorrections &&
+    authorizedMaterials === context.authorizedCompilerScenarioMaterials
+  ) {
+    return context;
+  }
+  return {
+    ...context,
+    compilerLessonScope: lessonScope,
+    authorizedCompilerSourceBoundaryCorrections: authorizedCorrections,
+    authorizedCompilerScenarioMaterials: authorizedMaterials,
+  };
+}
+
 function repairNode(node, stats, featureId, parentKey = '', context = {}, path = []) {
   if (typeof node === 'string') {
     if (knownOffenderIsOutOfScope(node, context)) {
@@ -598,7 +649,7 @@ function repairNode(node, stats, featureId, parentKey = '', context = {}, path =
     return changed ? next : node;
   }
   if (node && typeof node === 'object') {
-    const scopedContext = context;
+    const scopedContext = compilerScopedContext(node, context);
     if (
       featureId === 'studyGuides' &&
       typeof node.term === 'string' &&
@@ -663,6 +714,16 @@ export function repairDeliverableContentQuality(featureId, data, context = {}) {
   const stats = { changedPaths: new Set(), repairedPhrases: 0 };
   const repairContext = {
     ...context,
+    authorizedCompilerSourceBoundaryCorrections: null,
+    authorizedCompilerScenarioMaterials: null,
+    compilerLessonScopeIds: new Set([
+      ...(context.compilerSourceBoundaryCorrectionsByLesson instanceof Map
+        ? context.compilerSourceBoundaryCorrectionsByLesson.keys()
+        : []),
+      ...(context.compilerScenarioMaterialsByLesson instanceof Map
+        ? context.compilerScenarioMaterialsByLesson.keys()
+        : []),
+    ]),
     compilerSourceBoundaryCorrectionUsage: new Map(),
   };
   // Quarantine unsafe source material before deduplicating valid claims. If

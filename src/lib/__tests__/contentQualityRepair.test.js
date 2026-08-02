@@ -433,10 +433,14 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
       'Cite the specific definition or fact that supports the Statistical Modeling claim, then state what that evidence does not establish.';
     const nearMatch =
       'Cite the specific definition or fact supporting the Statistical Modeling claim, then discuss its limits.';
-    const compilerSourceBoundaryCorrections = new Map([[legacy, 'Statistical Modeling']]);
+    const compilerSourceBoundaryCorrectionsByLesson = new Map([
+      ['lesson-1', new Map([[legacy, 'Statistical Modeling']])],
+    ]);
     const data = {
       lessonPlans: [
         {
+          lessonNumber: 1,
+          lessonTitle: 'Lesson 1: Statistical Modeling',
           misconception: legacy,
           note: `Before transfer, ${legacy}`,
           nearMatch,
@@ -446,7 +450,7 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     };
 
     const result = repairDeliverableContentQuality('lessonPlans', data, {
-      compilerSourceBoundaryCorrections,
+      compilerSourceBoundaryCorrectionsByLesson,
     });
 
     expect(result.changed).toBe(true);
@@ -457,7 +461,7 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     expect(result.data.lessonPlans[0].nearMatch).toBe(nearMatch);
     expect(result.data.lessonPlans[0].provenance.quote).toBe(legacy);
     expect(
-      repairDeliverableContentQuality('lessonPlans', result.data, { compilerSourceBoundaryCorrections }),
+      repairDeliverableContentQuality('lessonPlans', result.data, { compilerSourceBoundaryCorrectionsByLesson }),
     ).toMatchObject({
       data: result.data,
       changed: false,
@@ -474,6 +478,49 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
 
     expect(result).toMatchObject({ data, changed: false, repairedStrings: 0 });
     expect(result.data.lessonPlans[0].instructorDirection).toBe(exactInstructorSentence);
+  });
+
+  it('keeps identical instructor prose and materials outside the researched lesson scope', () => {
+    const correction =
+      'Cite the specific definition or fact that supports the Statistical Modeling claim, then state what that evidence does not establish.';
+    const materials = 'the supplied dataset record, transformation log, competing claims, and documented uncertainty';
+    const data = {
+      lessonPlans: [
+        {
+          lessonNumber: 1,
+          lessonTitle: 'Lesson 1: Statistical Modeling',
+          correction,
+          materials,
+          provenance: { quote: correction, scenarioMaterials: materials },
+        },
+        {
+          lessonNumber: 2,
+          lessonTitle: 'Lesson 2: Instructor Framework',
+          instructorDirection: correction,
+          instructorMaterials: materials,
+          provenance: { quote: correction, scenarioMaterials: materials },
+        },
+      ],
+    };
+    const repairContext = {
+      compilerSourceBoundaryCorrectionsByLesson: new Map([
+        ['lesson-1', new Map([[correction, 'Statistical Modeling']])],
+      ]),
+      compilerScenarioMaterialsByLesson: new Map([['lesson-1', new Map([[materials, 'Statistical Modeling']])]]),
+    };
+
+    const result = repairDeliverableContentQuality('lessonPlans', data, repairContext);
+
+    expect(result.changed).toBe(true);
+    expect(result.data.lessonPlans[0].correction).not.toBe(correction);
+    expect(result.data.lessonPlans[0].materials).not.toBe(materials);
+    expect(result.data.lessonPlans[0].provenance).toEqual(data.lessonPlans[0].provenance);
+    expect(result.data.lessonPlans[1]).toEqual(data.lessonPlans[1]);
+    expect(repairDeliverableContentQuality('lessonPlans', result.data, repairContext)).toMatchObject({
+      data: result.data,
+      changed: false,
+      repairedStrings: 0,
+    });
   });
 
   it('compacts a production-observed verbose source fact before it fans out across exports', () => {

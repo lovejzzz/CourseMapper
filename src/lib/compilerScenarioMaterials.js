@@ -61,15 +61,16 @@ function registerResearchPayload(payload, materials) {
 
 /** Authorize only derived data packets carried by a research-backed graph. */
 export function collectCompilerScenarioMaterials(courseGraph) {
-  const materials = new Map();
+  const materialsByLesson = new Map();
   const lessonContent = courseGraph?.enrichmentOverlay?.lessonContent;
   if (lessonContent && typeof lessonContent === 'object') {
-    Object.values(lessonContent).forEach((payload) => registerResearchPayload(payload, materials));
+    for (const [lessonId, payload] of Object.entries(lessonContent)) {
+      const materials = new Map();
+      registerResearchPayload(payload, materials);
+      if (materials.size > 0) materialsByLesson.set(lessonId, materials);
+    }
   }
-  for (const concept of Array.isArray(courseGraph?.concepts) ? courseGraph.concepts : []) {
-    registerResearchPayload(concept?.kernel, materials);
-  }
-  return materials;
+  return materialsByLesson;
 }
 
 export function compactCompilerScenarioMaterials(value, { authorizedMaterials = null, variantSeed = '' } = {}) {
