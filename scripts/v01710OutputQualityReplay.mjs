@@ -67,6 +67,13 @@ function qualitySummary(quality) {
   };
 }
 
+function canonicalPackageSnapshot(result) {
+  return JSON.stringify({
+    courseMap: result.courseMap,
+    deliverables: result.deliverables,
+  });
+}
+
 const inputPath = path.resolve(argument('--input'));
 if (!argument('--input') || !fs.existsSync(inputPath)) {
   throw new Error(
@@ -100,6 +107,22 @@ const finalized = runDeterministicPackageFinalizer({
   includePedagogicalValidation: false,
   retryWarnings: false,
 });
+const replayOptions = {
+  courseMap: finalized.courseMap,
+  courseGraph: project.courseGraph,
+  sourceBrief: project.promptText,
+  deliverables: finalized.deliverables,
+  selectedFeatures: project.selectedFeatures,
+  columns: project.columns,
+  deliverableConfig: project.deliverableConfig,
+  includeClassroomReadiness: false,
+  includePedagogicalValidation: false,
+  retryWarnings: false,
+};
+const replayed = runDeterministicPackageFinalizer(replayOptions);
+const finalizedSnapshot = canonicalPackageSnapshot(finalized);
+const replayedSnapshot = canonicalPackageSnapshot(replayed);
+const idempotent = finalizedSnapshot === replayedSnapshot && replayed.changed === false;
 const gradeOptions = {
   courseMap: project.courseMap,
   featureIds: project.selectedFeatures,
@@ -130,7 +153,18 @@ const receipt = {
   repairMessages: (finalized.repairs || [])
     .map((entry) => entry.message)
     .filter((message) => /content-quality/.test(message)),
+  idempotence: {
+    passed: idempotent,
+    firstSnapshotSha256: sha256(finalizedSnapshot),
+    secondSnapshotSha256: sha256(replayedSnapshot),
+    secondChanged: replayed.changed,
+    secondRepairMessages: (replayed.repairs || []).map((entry) => entry.message),
+  },
 };
+
+if (!idempotent) {
+  process.exitCode = 1;
+}
 
 const receiptJson = `${JSON.stringify(receipt, null, 2)}\n`;
 const outputPath = argument('--output');

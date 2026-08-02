@@ -2917,7 +2917,10 @@ function buildFallbackSlideNotes(deck, slide, index) {
   const slideTitle = slide?.title || slide?.t || `slide ${index + 1}`;
   const slideType = slide?.type || slide?.ty || 'slide';
   const firstBullet = Array.isArray(slide?.bullets || slide?.bu) ? (slide.bullets || slide.bu)[0] : '';
-  const anchor = firstBullet || slideTitle;
+  const anchor = String(firstBullet || slideTitle)
+    .trim()
+    .replace(/[.!?;:,]+$/u, '')
+    .replace(/^./u, (character) => character.toLocaleLowerCase());
 
   return [
     `Use this ${slideType} slide to connect "${slideTitle}" to the larger purpose of ${lessonTitle}.`,

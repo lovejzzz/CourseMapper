@@ -36,7 +36,7 @@
     "repetitionFindings": []
   },
   "changed": true,
-  "repairsApplied": 11,
+  "repairsApplied": 15,
   "repairMessages": [
     "Lesson Plans repaired: 47 content-quality seam(s) fixed (deterministic)",
     "Slide Decks repaired: 61 content-quality seam(s) fixed (deterministic)",
@@ -45,6 +45,15 @@
     "Discussion Prompts repaired: 3 content-quality seam(s) fixed (deterministic)",
     "Quiz & Exam Bank repaired: 27 content-quality seam(s) fixed (deterministic)",
     "Study Guides repaired: 41 content-quality seam(s) fixed (deterministic)",
-    "Course FAQ repaired: 6 content-quality seam(s) fixed (deterministic)"
-  ]
+    "Course FAQ repaired: 6 content-quality seam(s) fixed (deterministic)",
+    "Slide Decks repaired: 1 post-readiness content-quality seam(s) fixed (deterministic)",
+    "Rubrics repaired: 1 post-readiness content-quality seam(s) fixed (deterministic)"
+  ],
+  "idempotence": {
+    "passed": true,
+    "firstSnapshotSha256": "43116d3d830bca79181dfad254115d7d529ff34ad2feab1d0e1d55c7473fc61d",
+    "secondSnapshotSha256": "43116d3d830bca79181dfad254115d7d529ff34ad2feab1d0e1d55c7473fc61d",
+    "secondChanged": false,
+    "secondRepairMessages": []
+  }
 }

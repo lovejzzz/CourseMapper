@@ -82,6 +82,49 @@ function makeIntroPsychCourseMap(lessonCount = 15) {
 }
 
 describe('packageFinalizer', () => {
+  it('reaches a byte-stable fixed point when source compaction makes slide notes underfilled', () => {
+    const fact =
+      'Conditional branching logic allows programs to execute different blocks of code based on specified conditions.';
+    const options = {
+      courseMap: makeCourseMap(1),
+      selectedFeatures: ['slideDecks'],
+      includeClassroomReadiness: false,
+      includePedagogicalValidation: false,
+      retryWarnings: false,
+      deliverables: {
+        slideDecks: {
+          status: 'done',
+          data: {
+            decks: [
+              {
+                lessonNumber: 1,
+                lessonTitle: 'Lesson 1: Research Topic 1',
+                sourceEvidenceBrief: { claims: [fact] },
+                slides: Array.from({ length: 6 }, (_, index) => ({
+                  title: `Decision path ${index + 1}`,
+                  bullets: [fact],
+                  notes: `${fact} ${fact}`,
+                })),
+              },
+            ],
+          },
+        },
+      },
+    };
+
+    const first = runDeterministicPackageFinalizer(options);
+    const second = runDeterministicPackageFinalizer({
+      ...options,
+      courseMap: first.courseMap,
+      deliverables: first.deliverables,
+    });
+
+    expect(second.changed).toBe(false);
+    expect(second.courseMap).toEqual(first.courseMap);
+    expect(second.deliverables).toEqual(first.deliverables);
+    expect(JSON.stringify(first.deliverables)).not.toContain('claim. in concrete language');
+  });
+
   it('requires CourseGraph research lineage before migrating a legacy compiler correction', () => {
     const legacy =
       'Cite the specific definition or fact that supports the Statistical Modeling claim, then state what that evidence does not establish.';

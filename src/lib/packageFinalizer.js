@@ -404,6 +404,34 @@ function compilerLessonScopeByTitle(courseMap, ...authorizationMaps) {
   return scopeByTitle;
 }
 
+function repairCourseMapToFixedPoint({ courseMap, columns, lessonFilter, maxPasses = 6 }) {
+  let current = courseMap;
+  const repairedFields = [];
+  const originalJson = JSON.stringify(current);
+  const seen = new Set([originalJson]);
+
+  for (let pass = 0; pass < maxPasses; pass += 1) {
+    const repair = repairCourseMapReadiness({ courseMap: current, columns, lessonFilter });
+    const currentJson = JSON.stringify(current);
+    const nextJson = JSON.stringify(repair.courseMap);
+    if (nextJson === currentJson) {
+      return {
+        changed: currentJson !== originalJson,
+        courseMap: current,
+        repairedFields: [...new Set(repairedFields)],
+      };
+    }
+    if (seen.has(nextJson)) {
+      throw new Error('Course Map deterministic repair entered a non-convergent cycle.');
+    }
+    current = repair.courseMap;
+    seen.add(nextJson);
+    repairedFields.push(...(repair.repairedFields || []));
+  }
+
+  throw new Error(`Course Map deterministic repair did not converge within ${maxPasses} passes.`);
+}
+
 function applyDeterministicRepairs({
   courseMap,
   courseGraph = null,
@@ -439,7 +467,7 @@ function applyDeterministicRepairs({
   let repairableFeatureIds = getRepairableFeatureIds(workspaceReadiness, classroomReadiness);
 
   if (selectedCourseMapLessons(nextCourseMap, lessonFilter).length > 0) {
-    const courseMapRepair = repairCourseMapReadiness({
+    const courseMapRepair = repairCourseMapToFixedPoint({
       courseMap: nextCourseMap,
       columns,
       lessonFilter,
@@ -590,6 +618,77 @@ function applyDeterministicRepairs({
       changes: [`content quality: ${contentRepair.repairedStrings} string(s) normalized`],
       message: `${featureLabel(featureId)} repaired: ${contentRepair.repairedStrings} content-quality seam(s) fixed (deterministic)`,
     });
+  }
+
+  // Content compaction can deliberately shorten a repeated source-fact use.
+  // If that use was the only speaker-note content, it may newly cross a
+  // readiness minimum after the earlier readiness pass. Close that ordering
+  // seam in this invocation, then run the mechanical content repair once more
+  // over only the bytes introduced by readiness. The second pass is expected
+  // to be byte-stable on the next finalizer invocation.
+  const postContentReadinessRepair = repairWorkspaceReadiness({
+    courseMap: nextCourseMap,
+    deliverables: nextDeliverables,
+    selectedFeatures: contentFeatureIds,
+    deliverableConfig,
+  });
+  observations.push(...(postContentReadinessRepair.observations || []));
+  if (postContentReadinessRepair.changed) {
+    nextDeliverables = postContentReadinessRepair.deliverables;
+    repairs.push(...postContentReadinessRepair.repairs);
+
+    // Readiness may add assignment support fields after the earlier identity
+    // and texture passes. Normalize those newly introduced bytes in the same
+    // invocation so a saved project does not change again on the next run.
+    const postReadinessAssignmentIdentity = repairAssignmentIdentitiesFromCourseMap(nextCourseMap, nextDeliverables);
+    if (postReadinessAssignmentIdentity.changed) {
+      nextDeliverables = postReadinessAssignmentIdentity.deliverables;
+      repairs.push({
+        featureId: 'assignments',
+        label: featureLabel('assignments'),
+        changes: [
+          `post-readiness course-map identity: ${postReadinessAssignmentIdentity.repairedCount} assignment brief(s) repaired`,
+        ],
+        message: `${featureLabel('assignments')} repaired: ${postReadinessAssignmentIdentity.repairedCount} post-readiness assignment brief identity mismatch(es) aligned to the Course Map`,
+      });
+    }
+    const postReadinessAssignmentTexture = repairAssignmentBriefTextureFromCourseMap(nextCourseMap, nextDeliverables);
+    if (postReadinessAssignmentTexture.changed) {
+      nextDeliverables = postReadinessAssignmentTexture.deliverables;
+      repairs.push({
+        featureId: 'assignments',
+        label: featureLabel('assignments'),
+        changes: [
+          `post-readiness legacy copy texture: ${postReadinessAssignmentTexture.repairedCount} assignment brief(s) compacted`,
+        ],
+        message: `${featureLabel('assignments')} repaired: ${postReadinessAssignmentTexture.repairedCount} post-readiness repeated-title surface(s) compacted`,
+      });
+    }
+
+    for (const featureId of postContentReadinessRepair.repairedFeatureIds || []) {
+      const entry = nextDeliverables?.[featureId];
+      if (entry?.status !== 'done' || !entry.data) continue;
+      const contentRepair = repairDeliverableContentQuality(featureId, entry.data, {
+        courseName: nextCourseMap?.courseName || '',
+        sourceBrief,
+        courseScope: trustedCourseScope,
+        sourceFacts,
+        compilerSourceBoundaryCorrectionsByLesson,
+        compilerScenarioMaterialsByLesson,
+        compilerLessonScopeByTitle: compilerLessonScopeByTitleMap,
+      });
+      if (!contentRepair.changed) continue;
+      nextDeliverables = {
+        ...nextDeliverables,
+        [featureId]: { ...entry, data: contentRepair.data },
+      };
+      repairs.push({
+        featureId,
+        label: featureLabel(featureId),
+        changes: [`post-readiness content quality: ${contentRepair.repairedStrings} string(s) normalized`],
+        message: `${featureLabel(featureId)} repaired: ${contentRepair.repairedStrings} post-readiness content-quality seam(s) fixed (deterministic)`,
+      });
+    }
   }
 
   return {

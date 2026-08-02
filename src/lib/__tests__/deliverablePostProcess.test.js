@@ -1935,6 +1935,30 @@ describe('Slide Deck post-processing', () => {
     expect(result.data.decks[0].slides[0].notes.split(/\s+/).length).toBeGreaterThanOrEqual(10);
   });
 
+  it('uses a sentence-safe lowercase anchor when a compact source reference becomes the note cue', () => {
+    const data = {
+      decks: [
+        {
+          lessonTitle: 'Lesson 1: Evidence Boundaries',
+          slides: [
+            {
+              title: 'Source boundary',
+              bullets: ['The cited source claim.'],
+              notes: 'The cited source claim. The cited source claim.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = normalizeSlideDeckSpeakerNotes(data);
+    const notes = result.data.decks[0].slides[0].notes;
+
+    expect(result.patchedNotes).toBe(1);
+    expect(notes).toContain('Emphasize the cited source claim in concrete language');
+    expect(notes).not.toContain('claim. in concrete language');
+  });
+
   it('adds an activity cue when a slide deck has no interactive check', () => {
     const data = {
       decks: [
