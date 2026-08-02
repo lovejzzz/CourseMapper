@@ -79,6 +79,15 @@ function readNormalizedCloudDate(value) {
   }
 }
 
+function setOwnEnumerableData(target, key, value) {
+  Object.defineProperty(target, String(key), {
+    value,
+    enumerable: true,
+    writable: true,
+    configurable: true,
+  });
+}
+
 function getByteLength(value) {
   if (typeof TextEncoder !== 'undefined') return new TextEncoder().encode(value).length;
   return unescape(encodeURIComponent(value)).length;
@@ -165,7 +174,7 @@ export async function loadCustomDeliverables(uid) {
   const snap = await getDocs(customDelCol(uid));
   const map = {};
   snap.forEach((d) => {
-    map[d.id] = sanitizeCloudSnapshotData(d.data());
+    setOwnEnumerableData(map, d.id, sanitizeCloudSnapshotData(d.data()));
   });
   return map;
 }
@@ -191,7 +200,7 @@ export async function loadDeveloperTemplates(uid) {
   const snap = await getDocs(developerTemplateCol(uid));
   const map = {};
   snap.forEach((d) => {
-    map[d.id] = sanitizeCloudSnapshotData(d.data());
+    setOwnEnumerableData(map, d.id, sanitizeCloudSnapshotData(d.data()));
   });
   return map;
 }
@@ -344,7 +353,7 @@ export async function loadProjectDeliverables(uid, projectId) {
       continue;
     }
 
-    map[d.id] = data;
+    setOwnEnumerableData(map, d.id, data);
   }
 
   for (const [featureId, manifest] of chunkedManifests.entries()) {
@@ -354,19 +363,19 @@ export async function loadProjectDeliverables(uid, projectId) {
       expectedCount > 0 &&
       Array.from({ length: expectedCount }, (_, index) => parts[index]).every((part) => typeof part === 'string');
     if (!hasAllChunks) {
-      map[featureId] = {
+      setOwnEnumerableData(map, featureId, {
         status: 'error',
         error: 'Saved deliverable chunks are incomplete. Regenerate this deliverable before exporting.',
-      };
+      });
       continue;
     }
     try {
-      map[featureId] = sanitizeCloudPayload(JSON.parse(parts.slice(0, expectedCount).join('')));
+      setOwnEnumerableData(map, featureId, sanitizeCloudPayload(JSON.parse(parts.slice(0, expectedCount).join(''))));
     } catch {
-      map[featureId] = {
+      setOwnEnumerableData(map, featureId, {
         status: 'error',
         error: 'Saved deliverable chunks could not be restored. Regenerate this deliverable before exporting.',
-      };
+      });
     }
   }
   return map;

@@ -91,7 +91,9 @@ const firestore = await import('firebase/firestore');
 const {
   listProjects,
   loadAgentMemories,
+  loadCustomDeliverables,
   loadCustomTools,
+  loadDeveloperTemplates,
   loadProject,
   loadProjectDeliverables,
   saveAgentMemory,
@@ -355,6 +357,85 @@ describe('cloudStorage secret sanitation', () => {
     expect(JSON.stringify({ project, deliverables })).not.toContain('sk-proj-');
     expect(JSON.stringify({ project, deliverables })).not.toContain('sk-ant-');
     expect(JSON.stringify({ project, deliverables })).not.toContain(BEARER_TOKEN);
+  });
+
+  it.each([
+    ['custom deliverables', loadCustomDeliverables],
+    ['developer templates', loadDeveloperTemplates],
+  ])('preserves hostile document ids as own data in %s', async (_label, loader) => {
+    firestore.getDocs.mockResolvedValueOnce({
+      forEach: (callback) => {
+        callback({ id: '__proto__', data: () => ({ marker: 'prototype-id' }) });
+        callback({ id: 'constructor', data: () => ({ marker: 'constructor-id' }) });
+        callback({ id: 'prototype', data: () => ({ marker: 'prototype-property-id' }) });
+      },
+    });
+
+    const loaded = await loader('user-1');
+
+    expect(Object.getPrototypeOf(loaded)).toBe(Object.prototype);
+    expect(Object.keys(loaded)).toEqual(['__proto__', 'constructor', 'prototype']);
+    expect(Object.hasOwn(loaded, '__proto__')).toBe(true);
+    expect(Object.hasOwn(loaded, 'constructor')).toBe(true);
+    expect(Object.hasOwn(loaded, 'prototype')).toBe(true);
+    expect(loaded.__proto__).toEqual({ marker: 'prototype-id' });
+    expect(loaded.constructor).toEqual({ marker: 'constructor-id' });
+    expect(loaded.prototype).toEqual({ marker: 'prototype-property-id' });
+  });
+
+  it('preserves hostile project-deliverable ids as own data', async () => {
+    firestore.getDocs.mockResolvedValueOnce({
+      forEach: (callback) => {
+        callback({ id: '__proto__', data: () => ({ status: 'done', marker: 'prototype-id' }) });
+        callback({ id: 'constructor', data: () => ({ status: 'done', marker: 'constructor-id' }) });
+        callback({ id: 'prototype', data: () => ({ status: 'done', marker: 'prototype-property-id' }) });
+      },
+    });
+
+    const loaded = await loadProjectDeliverables('user-1', 'project-1');
+
+    expect(Object.getPrototypeOf(loaded)).toBe(Object.prototype);
+    expect(Object.keys(loaded)).toEqual(['__proto__', 'constructor', 'prototype']);
+    expect(Object.hasOwn(loaded, '__proto__')).toBe(true);
+    expect(Object.hasOwn(loaded, 'constructor')).toBe(true);
+    expect(Object.hasOwn(loaded, 'prototype')).toBe(true);
+    expect(loaded.__proto__.marker).toBe('prototype-id');
+    expect(loaded.constructor.marker).toBe('constructor-id');
+    expect(loaded.prototype.marker).toBe('prototype-property-id');
+  });
+
+  it('preserves hostile chunk feature ids as own data', async () => {
+    const hostileFeatureIds = ['__proto__', 'constructor', 'prototype'];
+    firestore.getDocs.mockResolvedValueOnce({
+      forEach: (callback) => {
+        hostileFeatureIds.forEach((featureId, index) => {
+          callback({
+            id: featureId,
+            data: () => ({ __chunked: true, encoding: 'json', chunkCount: 1, status: 'done' }),
+          });
+          callback({
+            id: `__cm_chunk__hostile_${index}__0`,
+            data: () => ({
+              __deliverableChunk: true,
+              featureId,
+              index: 0,
+              text: JSON.stringify({ status: 'done', data: { marker: `chunked-${featureId}` } }),
+            }),
+          });
+        });
+      },
+    });
+
+    const loaded = await loadProjectDeliverables('user-1', 'project-1');
+
+    expect(Object.getPrototypeOf(loaded)).toBe(Object.prototype);
+    expect(Object.keys(loaded)).toEqual(hostileFeatureIds);
+    expect(Object.hasOwn(loaded, '__proto__')).toBe(true);
+    expect(Object.hasOwn(loaded, 'constructor')).toBe(true);
+    expect(Object.hasOwn(loaded, 'prototype')).toBe(true);
+    expect(loaded.__proto__).toEqual({ status: 'done', data: { marker: 'chunked-__proto__' } });
+    expect(loaded.constructor).toEqual({ status: 'done', data: { marker: 'chunked-constructor' } });
+    expect(loaded.prototype).toEqual({ status: 'done', data: { marker: 'chunked-prototype' } });
   });
 
   it('sanitizes legacy agent reads while keeping document ids', async () => {
