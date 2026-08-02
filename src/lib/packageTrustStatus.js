@@ -10,6 +10,7 @@ import { countSourceAdvisoryFindings, countSourceQualityAdvisoryFindings } from 
 // A one-sided revision bump would otherwise classify every fresh receipt as
 // stale or let obsolete packages bypass the current deterministic finalizer.
 export const CURRENT_FINALIZER_REVISION = 5;
+const MAX_PACKAGE_RECEIPT_ARRAY_LENGTH = 10_000;
 
 function stablePackageReceiptValueKey(value, ancestors) {
   if (value === null) return 'L';
@@ -28,17 +29,22 @@ function stablePackageReceiptValueKey(value, ancestors) {
   ancestors.add(value);
   try {
     if (Array.isArray(value)) {
+      const lengthDescriptor = Object.getOwnPropertyDescriptor(value, 'length');
+      const length = lengthDescriptor?.value;
+      if (!Number.isSafeInteger(length) || length < 0 || length > MAX_PACKAGE_RECEIPT_ARRAY_LENGTH) {
+        throw new TypeError('Package receipt arrays exceed the supported length.');
+      }
       const itemKeys = Reflect.ownKeys(value).filter((key) => key !== 'length');
-      if (itemKeys.length !== value.length) {
+      if (itemKeys.length !== length) {
         throw new TypeError('Package receipt arrays must be dense and contain no custom properties.');
       }
       const itemKeysAreCanonical = itemKeys.every(
-        (key) => typeof key === 'string' && /^(0|[1-9]\d*)$/.test(key) && Number(key) < value.length,
+        (key) => typeof key === 'string' && /^(0|[1-9]\d*)$/.test(key) && Number(key) < length,
       );
       if (!itemKeysAreCanonical) {
         throw new TypeError('Package receipt arrays must contain only canonical indices.');
       }
-      const itemValues = Array.from({ length: value.length }, (_, index) => {
+      const itemValues = Array.from({ length }, (_, index) => {
         const descriptor = Object.getOwnPropertyDescriptor(value, String(index));
         if (!descriptor || !descriptor.enumerable || !Object.prototype.hasOwnProperty.call(descriptor, 'value')) {
           throw new TypeError('Package receipt arrays must contain only enumerable data properties.');
@@ -69,16 +75,28 @@ function stablePackageReceiptValueKey(value, ancestors) {
   }
 }
 
+export function admitPackageReceipt(receipt) {
+  if (receipt === null || receipt === undefined) return { valid: true, key: '', receipt: null };
+  if (typeof receipt !== 'object') return { valid: false, key: null, receipt: null };
+  try {
+    // Validate descriptors before cloning so accessors fail without execution.
+    // Re-keying the clone makes cloneability and authorization one boundary;
+    // transparent Proxies and clone-normalization drift cannot pass one surface
+    // while failing another.
+    const key = stablePackageReceiptValueKey(receipt, new WeakSet());
+    const clonedReceipt = structuredClone(receipt);
+    const clonedKey = stablePackageReceiptValueKey(clonedReceipt, new WeakSet());
+    if (clonedKey !== key) return { valid: false, key: null, receipt: null };
+    return { valid: true, key, receipt: clonedReceipt };
+  } catch {
+    return { valid: false, key: null, receipt: null };
+  }
+}
+
 // '' means no receipt; null means a present but invalid receipt. Consumers
 // must tombstone null so unsupported structures can never authorize bytes.
 export function packageReceiptKey(receipt) {
-  if (receipt === null || receipt === undefined) return '';
-  if (typeof receipt !== 'object') return null;
-  try {
-    return stablePackageReceiptValueKey(receipt, new WeakSet());
-  } catch {
-    return null;
-  }
+  return admitPackageReceipt(receipt).key;
 }
 
 function compactCount(value) {

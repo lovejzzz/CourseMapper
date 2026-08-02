@@ -20,7 +20,12 @@ import {
 import { openTabNow, saveToGoogleSlides } from '../lib/googleDrive';
 import { exportSlideDeckPptx, buildSlideDeckPptxBlob } from '../lib/exporters/pptxExporter';
 import { buildPackageReadinessBinding, downloadCourseMaterialsZip } from '../lib/packageZipExporter';
-import { CURRENT_FINALIZER_REVISION, getPackageTrustStatus, packageReceiptKey } from '../lib/packageTrustStatus';
+import {
+  admitPackageReceipt,
+  CURRENT_FINALIZER_REVISION,
+  getPackageTrustStatus,
+  packageReceiptKey,
+} from '../lib/packageTrustStatus';
 import { buildPackageFinishDomains } from '../lib/packageFinishEvidence';
 
 // ── Which formats each deliverable supports ─────────────────────────────────
@@ -1207,12 +1212,14 @@ export default function ExportSidePanel({
     const featureIds = getExportFeatureIds('all');
     const qualityContext = typeof getQualityContext === 'function' ? getQualityContext() || {} : {};
     const pipelineState = typeof getPipelineState === 'function' ? getPipelineState() : null;
-    const receiptKey = packageReceiptKey(receipt);
-    if (receiptKey === null) throw new TypeError('Package preparation returned an invalid receipt.');
+    const receiptAdmission = admitPackageReceipt(receipt);
+    if (!receiptAdmission.valid || !receiptAdmission.key) {
+      throw new TypeError('Package preparation returned an invalid receipt.');
+    }
     return {
-      receiptKey,
+      receiptKey: receiptAdmission.key,
       parentReceiptKey,
-      receipt: clonePreparedValue(receipt),
+      receipt: receiptAdmission.receipt,
       courseMap: clonePreparedValue(preparedCourseMap),
       deliverables: clonePreparedValue(preparedDeliverables),
       courseGraph: clonePreparedValue(preparedCourseGraph),
@@ -1520,16 +1527,18 @@ export default function ExportSidePanel({
               exportFailed: receiptCount('failed', 'exportFailed'),
               exportWarningCount: receiptCount('warningCount', 'exportWarningCount'),
             };
-            const downloadedReceiptKey = packageReceiptKey(downloadedPreparedReceipt);
-            if (downloadedReceiptKey === null) throw new TypeError('ZIP verification returned an invalid receipt.');
+            const downloadedReceiptAdmission = admitPackageReceipt(downloadedPreparedReceipt);
+            if (!downloadedReceiptAdmission.valid || !downloadedReceiptAdmission.key) {
+              throw new TypeError('ZIP verification returned an invalid receipt.');
+            }
             // The downloaded receipt is derived from this exact frozen ZIP,
             // so advance the snapshot key to the same trusted successor before
             // the parent publishes it. This preserves safe re-downloads without
             // hydrating any package input from live state.
             preparedPackageRef.current = {
               ...preparedPackage,
-              receipt: clonePreparedValue(downloadedPreparedReceipt),
-              receiptKey: downloadedReceiptKey,
+              receipt: downloadedReceiptAdmission.receipt,
+              receiptKey: downloadedReceiptAdmission.key,
               parentReceiptKey: currentPackageReceiptKey,
             };
             onPackageQualityPassUpdate((previous) => {

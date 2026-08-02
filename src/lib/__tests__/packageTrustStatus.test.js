@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { buildPackageFinishDomains } from '../packageFinishEvidence';
 import { applyQualityToFinalizerResult } from '../packageFinalizer';
 import {
+  admitPackageReceipt,
   buildQualityReviewIssue,
   buildQualityReviewIssues,
   getPackageTrustStatus,
@@ -94,6 +95,26 @@ describe('package trust quality notes', () => {
     expect(packageReceiptKey({ adversarialValue: {} })).not.toBeNull();
   });
 
+  it('admits one exact clone and rejects proxies, oversized arrays, and clone-key divergence', () => {
+    const source = { receipt: { value: 1 } };
+    const admission = admitPackageReceipt(source);
+    expect(admission).toMatchObject({ valid: true, key: packageReceiptKey(source), receipt: source });
+    expect(admission.receipt).not.toBe(source);
+    source.receipt.value = 2;
+    expect(admission.receipt.receipt.value).toBe(1);
+
+    expect(packageReceiptKey(new Proxy({ value: 1 }, {}))).toBeNull();
+    expect(packageReceiptKey({ values: Array(10_001) })).toBeNull();
+
+    const nativeStructuredClone = globalThis.structuredClone;
+    try {
+      globalThis.structuredClone = (value) => ({ ...nativeStructuredClone(value), cloneDrift: true });
+      expect(admitPackageReceipt({ value: 1 })).toEqual({ valid: false, key: null, receipt: null });
+    } finally {
+      globalThis.structuredClone = nativeStructuredClone;
+    }
+  });
+
   it.each([
     ['bigint', (receipt) => ({ ...receipt, adversarialValue: 1n })],
     [
@@ -121,6 +142,8 @@ describe('package trust quality notes', () => {
       },
     ],
     ['sparse array', (receipt) => ({ ...receipt, adversarialValue: Array(1) })],
+    ['proxy', (receipt) => new Proxy(receipt, {})],
+    ['oversized array', (receipt) => ({ ...receipt, adversarialValue: Array(10_001) })],
   ])('blocks an invalid %s receipt consistently in Agent trust status', (_label, makeInvalidReceipt) => {
     const status = getPackageTrustStatus({
       packageQualityPass: {
@@ -138,6 +161,21 @@ describe('package trust quality notes', () => {
       severity: 'blocker',
       message: expect.stringContaining('Prepare the package again'),
     });
+  });
+
+  it('adds one receipt-integrity blocker without hiding existing canonical blockers', () => {
+    const status = getPackageTrustStatus({
+      packageQualityPass: {
+        status: 'ready',
+        blockers: 2,
+        blockerDomains: { schemaVersion: 1, readiness: 2, quality: 0, export: 0 },
+        quality: { status: 'graded', score: 100, grade: 'A', findingCounts: { p0: 0, p1: 0, p2: 0 } },
+        receipt: new Proxy({ exportFailed: 0 }, {}),
+      },
+    });
+
+    expect(status.blockerCount).toBe(3);
+    expect(status.reviewIssues.filter((issue) => issue.label === 'Package receipt')).toHaveLength(1);
   });
 
   it('surfaces those exact notes through the Agent trust status', () => {

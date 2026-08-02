@@ -100,6 +100,8 @@ describe('AgentWorkingSetPanel', () => {
       },
     ],
     ['sparse array', (receipt) => ({ ...receipt, adversarialValue: Array(1) })],
+    ['proxy', (receipt) => new Proxy(receipt, {})],
+    ['oversized array', (receipt) => ({ ...receipt, adversarialValue: Array(10_001) })],
   ])('shows Refine in Agent when Export must reject an invalid %s receipt', (_label, makeInvalidReceipt) => {
     const packageQualityPass = {
       status: 'ready',

@@ -957,6 +957,23 @@ describe('ExportSidePanel readiness repair timing', () => {
       },
     ],
     ['sparse array', () => Array(1)],
+    ['transparent proxy', () => new Proxy({ value: 'different' }, {})],
+    [
+      'descriptor-mutating proxy',
+      () => {
+        let reads = 0;
+        return new Proxy(
+          { value: 'different' },
+          {
+            getOwnPropertyDescriptor(target, key) {
+              const descriptor = Reflect.getOwnPropertyDescriptor(target, key);
+              return key === 'value' ? { ...descriptor, value: `different-${(reads += 1)}` } : descriptor;
+            },
+          },
+        );
+      },
+    ],
+    ['oversized array', () => Array(10_001)],
     [
       'class instance',
       () =>
