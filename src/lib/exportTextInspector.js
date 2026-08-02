@@ -14,6 +14,14 @@ export const INTERNAL_EXPORT_TEXT_PATTERNS = [
   { label: 'fact-ledger projection', pattern: /\bfact[- ]ledger[- ]projection\b/i },
   { label: 'verified-quiz projection', pattern: /\bverified[- ]quiz[- ]projection\b/i },
   { label: 'course-map source placeholder', pattern: /\bexisting course map fields\b/i },
+  { label: 'opaque source-claim placeholder', pattern: /\bthe cited source claim\b/i },
+  { label: 'mechanical sentence seam', pattern: /\bclaim\.\s+in concrete language\b/i },
+  { label: 'compiler-owned admitted-claim shell', pattern: /\bTest this admitted claim before deciding\b/i },
+  {
+    label: 'malformed compacted source reference',
+    pattern:
+      /(?:\(\s*the earlier source claim\b|\bsource claim on [^.!?()\n]{1,80}\)|\b(?:Revisit the|the) earlier source claim on (?:although|because|by|if|through|using|when|while)\b)/i,
+  },
 ];
 
 export const OFFICE_TEXT_PATH_PATTERNS = {

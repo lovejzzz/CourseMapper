@@ -589,7 +589,8 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     expect(
       visible.match(/iterative structures enable the systematic processing of sequential data elements/g),
     ).toHaveLength(1);
-    expect(visible).toContain('the cited source claim');
+    expect(visible).toContain('the earlier source claim on conditional branching logic');
+    expect(visible).not.toContain('the cited source claim');
     expect(result.data.lessonPlans[0].evidencePlan.sourceCue).toContain(branchingFact);
 
     const replay = repairDeliverableContentQuality('lessonPlans', result.data, { sourceFacts });
@@ -669,7 +670,8 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
       text.match(/Conditional branching logic allows programs to execute different blocks of code/g) || [];
 
     expect(occurrences).toHaveLength(2);
-    expect(text).toContain('the cited source claim');
+    expect(text).toContain('the earlier source claim on Conditional branching logic');
+    expect(text).not.toContain('the cited source claim');
   });
 
   it('keeps a 42-copy production fan-out below the package grader limit across seven artifacts', () => {
@@ -793,8 +795,50 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
 
     const result = repairDeliverableContentQuality('lessonPlans', data, { sourceFacts: [fact] });
 
-    expect(result.data.lessonPlans[0].description).toContain('Start with the anchor. The cited source claim.');
-    expect(result.data.lessonPlans[0].catchUpPlan).toContain('board: the cited source claim');
+    expect(result.data.lessonPlans[0].description).toContain(
+      'Start with the anchor. Return to the source-backed claim about Conditional branching logic.',
+    );
+    expect(result.data.lessonPlans[0].catchUpPlan).toContain(
+      'board: the source claim concerning Conditional branching logic',
+    );
+  });
+
+  it('turns a leading adverbial source fact into a grammatical topic reference', () => {
+    const fact =
+      'By bridging GMT with the Python ecosystem, PyGMT brings geospatial analysis into reproducible Python workflows.';
+    const data = {
+      lessonPlans: [
+        {
+          sourceEvidenceBrief: { claims: [fact] },
+          descriptions: [fact, fact, `Compare the decision against ${fact}`, `Start with the evidence. ${fact}`],
+        },
+      ],
+    };
+
+    const result = repairDeliverableContentQuality('lessonPlans', data, { sourceFacts: [fact] });
+    const text = JSON.stringify(result.data);
+
+    expect(text).toContain('the earlier source claim on PyGMT');
+    expect(text).toContain('Recheck the source claim concerning PyGMT.');
+    expect(text).not.toMatch(/\b(?:claim (?:about|concerning|on)|source claim concerns) By bridging\b/i);
+  });
+
+  it('anchors a generic source-fact subject to a named entity from the fact', () => {
+    const fact = 'The components can be created and modified using standard variable types from the XSO framework.';
+    const data = {
+      lessonPlans: [
+        {
+          sourceEvidenceBrief: { claims: [fact] },
+          descriptions: Array.from({ length: 5 }, () => `Compare the model with ${fact}`),
+        },
+      ],
+    };
+
+    const result = repairDeliverableContentQuality('lessonPlans', data, { sourceFacts: [fact] });
+    const text = JSON.stringify(result.data);
+
+    expect(text).toContain('the earlier source claim on XSO components');
+    expect(text).not.toContain('source claim on components');
   });
 
   it.each(['whether', 'if', 'when'])('keeps a compacted reference grammatical after %s', (conjunction) => {
@@ -811,7 +855,126 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
 
     const result = repairDeliverableContentQuality('lessonPlans', data, { sourceFacts: [fact] });
 
-    expect(result.data.lessonPlans[0].description).toContain(`${conjunction} the cited source claim applies`);
+    expect(result.data.lessonPlans[0].description).toContain(
+      `${conjunction} the retained claim about Conditional branching logic applies`,
+    );
+  });
+
+  it('migrates the former opaque source placeholder and its punctuation seam', () => {
+    const data = {
+      lessonPlans: [
+        {
+          description: 'Test this admitted claim before deciding: the cited source claim.',
+          evidence: 'Evidence: the cited source claim.',
+          notes: 'Emphasize the cited source claim. in concrete language and tie it back to the objective.',
+          prompt: 'Ask whether the cited source claim applies.',
+        },
+      ],
+    };
+
+    const result = repairDeliverableContentQuality('lessonPlans', data);
+    const text = JSON.stringify(result.data);
+
+    expect(result.changed).toBe(true);
+    expect(result.data.lessonPlans[0].description).toBe(
+      'Compare the retained source statements before deciding which conclusion they support.',
+    );
+    expect(result.data.lessonPlans[0].evidence).toBe(
+      'Evidence: Use the retained source statement and identify its limit.',
+    );
+    expect(result.data.lessonPlans[0].notes).toContain(
+      'Emphasize the retained source statement for this lesson in concrete language',
+    );
+    expect(text).not.toContain('the cited source claim');
+    expect(text).not.toContain('claim. in concrete language');
+  });
+
+  it('migrates the exact saved-slide signatures that previously survived package preparation', () => {
+    const result = repairDeliverableContentQuality('slideDecks', {
+      slideDecks: [
+        {
+          slides: [
+            {
+              bullets: [
+                'Frame Control Flow Structures through Control Flow Structures evidence brief.',
+                'Evaluate how Conditional Branching Logic evidence changes Conditional Branching Logic application check.',
+                'Practice: Run a problem-to-policy cycle where students frame the public?',
+                'Prepare or submit the Week 2 assignment.',
+                'Preview: Functions and Pytest Tests',
+                'Use feedback from Lesson 2: Control Flow Structures to strengthen the next course task.',
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    const text = JSON.stringify(result.data);
+    expect(text).toContain('Frame Control Flow Structures through one source-backed example.');
+    expect(text).toContain(
+      'Evaluate how Conditional Branching Logic evidence changes one decision in the application check.',
+    );
+    expect(text).toContain('compare two policy options');
+    expect(text).toContain('one decision and one limitation');
+    expect(text).toContain("identify which part extends today's evidence work");
+    expect(text).toContain('revise one claim, one evidence choice, and one limitation');
+    expect(text).not.toContain('where students frame the public?');
+    expect(text).not.toContain('through Control Flow Structures evidence brief');
+    expect(result.changed).toBe(true);
+  });
+
+  it('specializes the saved policy activity around control-flow operations', () => {
+    const result = repairDeliverableContentQuality('slideDecks', {
+      decks: [
+        {
+          lessonTitle: 'Lesson 2: Control Flow Structures',
+          slides: [
+            {
+              title: 'Policy analysis: test one source-backed revision',
+              bullets: [
+                'Practice: Run a problem-to-policy cycle where students frame the public?',
+                'Evidence: Collect problem definition, affected population, policy authority.',
+                'Debrief: Use the feedback routine to identify the strongest move.',
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    const text = JSON.stringify(result.data);
+    expect(text).toContain('if/elif/else branches');
+    expect(text).toContain('test one threshold boundary');
+    expect(text).toContain('branch taken, boundary input');
+    expect(text).toContain('revise the decision rule when the evidence changes');
+    expect(text).not.toContain('frame the public?');
+    expect(text).not.toContain('Collect problem definition, affected population, policy authority');
+  });
+
+  it('repairs source-fact sentence shells in the same invocation that compacts the fact', () => {
+    const fact = 'Conditional branching logic allows programs to execute different blocks of code based on conditions.';
+    const result = repairDeliverableContentQuality(
+      'slideDecks',
+      {
+        slideDecks: [
+          {
+            slides: [
+              {
+                bullets: [fact, fact, `Test this admitted claim before deciding: ${fact}`, `Evidence: ${fact}`],
+              },
+            ],
+          },
+        ],
+      },
+      { sourceFacts: [fact] },
+    );
+
+    const text = JSON.stringify(result.data);
+    expect(text).toContain('Compare the source statements before deciding which conclusion they support.');
+    expect(text).toContain(
+      'Evidence: Use the source claim concerning Conditional branching logic and identify its limit.',
+    );
+    expect(text).not.toContain('Test this admitted claim');
   });
 
   it('matches the grader across NFKC, internal punctuation, and whitespace differences', () => {
@@ -833,7 +996,8 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
 
     expect(result.changed).toBe(true);
     expect(text.match(/Ｃｏｎｄｉｔｉｏｎａｌ/g) || []).toHaveLength(0);
-    expect(text).toContain('the cited source claim');
+    expect(text).toContain('the earlier source claim on Conditional branching logic');
+    expect(text).not.toContain('the cited source claim');
   });
 
   it('protects a longer standalone fact when another inventoried fact is its prefix', () => {
@@ -859,6 +1023,58 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     expect(result.data.studyGuides[0].keyTerms[0].definition).toBe(longFact);
   });
 
+  it('does not compact an inventoried fact when it is only a prefix of richer prose', () => {
+    const shortFact =
+      'By bridging GMT with the Python ecosystem, PyGMT enables users to access GMT powerful visualization.';
+    const richerSentence =
+      'By bridging GMT with the Python ecosystem, PyGMT enables users to access GMT powerful visualization and analysis capabilities directly within Python workflows.';
+    const appositiveFact =
+      'PyGMT is a free and open-source Python library that provides a high-level interface to the Generic Mapping Tools (GMT).';
+    const appositiveSentence =
+      'PyGMT is a free and open-source Python library that provides a high-level interface to the Generic Mapping Tools (GMT), a widely used command-line toolset.';
+    const data = {
+      lessonPlans: [
+        {
+          sourceEvidenceBrief: { claims: [shortFact, appositiveFact] },
+          descriptions: [
+            ...Array.from({ length: 4 }, () => shortFact),
+            richerSentence,
+            ...Array.from({ length: 4 }, () => appositiveFact),
+            appositiveSentence,
+          ],
+        },
+      ],
+    };
+
+    const result = repairDeliverableContentQuality('lessonPlans', data, {
+      sourceFacts: [shortFact, appositiveFact],
+    });
+
+    expect(result.data.lessonPlans[0].descriptions).toContain(richerSentence);
+    expect(result.data.lessonPlans[0].descriptions).toContain(appositiveSentence);
+    expect(JSON.stringify(result.data)).not.toContain('source claim on PyGMT and analysis capabilities');
+    expect(JSON.stringify(result.data)).not.toContain('source claim on PyGMT), a widely');
+  });
+
+  it('consumes a source-owned opening parenthesis when compacting a See-also fact', () => {
+    const fact =
+      '(See also Accuracy and precision.) Accuracy is very hard to achieve through data cleansing in the general case.';
+    const data = {
+      lessonPlans: [
+        {
+          sourceEvidenceBrief: { claims: [fact] },
+          descriptions: Array.from({ length: 5 }, () => `Compare the evidence with ${fact}`),
+        },
+      ],
+    };
+
+    const result = repairDeliverableContentQuality('lessonPlans', data, { sourceFacts: [fact] });
+    const text = JSON.stringify(result.data);
+
+    expect(text).toContain('the earlier source claim on Accuracy');
+    expect(text).not.toContain('(the earlier source claim');
+  });
+
   it('selects the feature collection instead of an earlier metadata array', () => {
     const fact =
       'Conditional branching logic allows programs to execute different blocks of code based on specified conditions.';
@@ -876,7 +1092,10 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     const result = repairDeliverableContentQuality('lessonPlans', data, { sourceFacts: [fact] });
 
     expect(result.data.metadata).toBe(metadata);
-    expect(JSON.stringify(result.data.lessonPlans)).toContain('the cited source claim');
+    expect(JSON.stringify(result.data.lessonPlans)).toContain(
+      'the earlier source claim on Conditional branching logic',
+    );
+    expect(JSON.stringify(result.data.lessonPlans)).not.toContain('the cited source claim');
   });
 
   it('repairs the canonical collection selected by the renderer when dual roots coexist', () => {
@@ -965,7 +1184,10 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
 
     expect(result.data.plans).toBe(data.plans);
     expect(result.data.lessonPlans).not.toBe(lessonPlans);
-    expect(JSON.stringify(result.data.lessonPlans)).toContain('the cited source claim');
+    expect(JSON.stringify(result.data.lessonPlans)).toContain(
+      'the earlier source claim on Conditional branching logic',
+    );
+    expect(JSON.stringify(result.data.lessonPlans)).not.toContain('the cited source claim');
   });
 
   it('repairs an object-rooted syllabus without treating metadata as its artifact collection', () => {
@@ -988,7 +1210,8 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     expect(
       text.match(/Conditional branching logic allows programs to execute different blocks of code/g) || [],
     ).toHaveLength(1);
-    expect(text).toContain('the cited source claim');
+    expect(text).toContain('the earlier source claim on Conditional branching logic');
+    expect(text).not.toContain('the cited source claim');
   });
 
   it('keeps a local proposition when a question only carries it in an explanation', () => {

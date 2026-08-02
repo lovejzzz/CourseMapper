@@ -46,7 +46,14 @@ const PHRASE_SHINGLE_SIZE = 8;
 const PHRASE_REPAIR_LIMIT = 10;
 const SOURCE_FACT_MIN_WORDS = 10;
 const SOURCE_FACT_FULL_OCCURRENCE_LIMIT = 2;
-const SOURCE_FACT_REFERENCE = 'the cited source claim';
+const SOURCE_FACT_PREDICATE_RE =
+  /\b(?:allows?|are|brings?|can|creates?|demonstrates?|enables?|establishes?|explains?|helps?|improves?|includes?|involves?|is|keeps?|lets?|makes?|may|must|offers?|provides?|reduces?|requires?|shows?|supports?|uses?)\b/i;
+const SOURCE_FACT_SEAM_CONNECTIVE_RE = /^(?:in|with|through|for|to|as|before|after|while|and|or)\b/i;
+const SOURCE_FACT_LEADING_CLAUSE_RE = /^(?:although|because|by|if|through|using|when|while)\b/i;
+const SOURCE_FACT_TRAILING_LINK_RE = /^(?:a|an|and|as|at|by|for|from|in|into|of|on|or|the|through|to|with)$/i;
+const GENERIC_SOURCE_TOPIC_RE =
+  /^(?:approach|claim|components?|data|evidence|fact|framework|method|process|system|tools?)$/i;
+const LEGACY_OPAQUE_SOURCE_REFERENCE_RE = /\bthe cited source claim\b/gi;
 const DUPLICATED_STUDENT_SUBJECT_RE = /\bstudents?\s+may\s+assume\s+students?\s+(?:often\s+)?/gi;
 const MALFORMED_CONCEPT_DETAIL_RE =
   /\ba\s+(?:solid|strong|clear|specific)\s+([^.!?]{1,80}\b(?:principles|criteria|standards|guidelines|requirements)\b[^.!?]{0,30})\s+detail\b/gi;
@@ -214,11 +221,31 @@ function sourceFactMatches(value, fact) {
   }
   if (tokens.length < expected.length) return [];
   const offsets = normalizedOffsetMap(String(value || ''));
+  const factCore = sourceFactCore(fact);
+  const factOpening = /^[\s('"“‘\[]*/.exec(factCore)?.[0] || '';
+  const factClosing = /[\s)'"”’\],;:]*$/.exec(factCore)?.[0] || '';
   const matches = [];
   for (let index = 0; index + expected.length <= tokens.length; index += 1) {
     if (!expected.every((token, tokenIndex) => tokens[index + tokenIndex].token === token)) continue;
     const last = tokens[index + expected.length - 1];
-    matches.push({ start: offsets.start(tokens[index].start), end: offsets.end(last.end) });
+    let start = offsets.start(tokens[index].start);
+    let end = offsets.end(last.end);
+    for (const character of [...factOpening].reverse()) {
+      if (value[start - 1] !== character) break;
+      start -= 1;
+    }
+    for (const character of factClosing) {
+      if (value[end] !== character) break;
+      end += 1;
+    }
+    // A shorter inventoried fact can be a lexical prefix of a richer sentence
+    // (for example, “...visualization” inside “...visualization and analysis”).
+    // Replacing that prefix corrupts the longer claim. Compact only complete
+    // occurrences; leave any appositive or clause continuation byte-for-byte.
+    if (/^\s*(?:[,—-]\s*)?(?:a|an|and|but|including|or|that|the|which|who|with)\b/i.test(value.slice(end))) {
+      continue;
+    }
+    matches.push({ start, end });
   }
   return matches;
 }
@@ -269,14 +296,83 @@ function collectSourceFactOccurrences(
   }
 }
 
-function sourceFactReplacement(value, offset) {
-  const prefix = value.slice(Math.max(0, offset - 16), offset);
-  if (/\b(?:why|because|that|whether|if|when)\s*$/i.test(prefix)) return `${SOURCE_FACT_REFERENCE} applies`;
+function sourceFactSubject(fact) {
+  let core = sourceFactCore(fact)
+    .replace(/^\(\s*See also[^)]*\)\s*/i, '')
+    .replace(/^(?:for example|example)\s*:\s*/i, '')
+    .replace(/^[\s('"“‘\[]+|[\s)'"”’\],;:]+$/g, '')
+    .trim();
+  if (SOURCE_FACT_LEADING_CLAUSE_RE.test(core) && core.includes(',')) {
+    const afterClause = core.slice(core.indexOf(',') + 1).trim();
+    if (afterClause) core = afterClause;
+  }
+  const colonIndex = core.indexOf(':');
+  if (colonIndex > 0 && core.slice(0, colonIndex).trim().split(/\s+/).length <= 5) {
+    core = core.slice(0, colonIndex).trim();
+  }
+  const predicate = SOURCE_FACT_PREDICATE_RE.exec(core);
+  const candidate = String(predicate?.index > 0 ? core.slice(0, predicate.index) : core)
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/^[\s('"“‘\[]+|[\s)'"”’\],;:]+$/g, '')
+    .replace(/^(?:a|an|the)\s+/i, '')
+    .trim();
+  const words = candidate.split(/\s+/).filter(Boolean).slice(0, 7);
+  while (words.length > 1 && SOURCE_FACT_TRAILING_LINK_RE.test(words.at(-1))) words.pop();
+  if (words.length === 0) return 'this lesson';
+  if (words.length === 1 && GENERIC_SOURCE_TOPIC_RE.test(words[0])) {
+    const namedAnchor = [...core.matchAll(/\b(?:[A-Z]{2,}[A-Z0-9]*|[A-Z][a-z]+(?:[A-Z][A-Za-z]*)+)\b/g)]
+      .map((match) => match[0])
+      .find((value) => value.toLowerCase() !== words[0].toLowerCase());
+    if (namedAnchor) return `${namedAnchor} ${words[0].toLowerCase()}`;
+  }
+  return words.join(' ');
+}
+
+function sourceFactReference(fact, startsSentence = false, seed = '') {
+  const topic = sourceFactSubject(fact);
+  const nounVariants = [
+    `the earlier source claim on ${topic}`,
+    `the source-backed claim about ${topic}`,
+    `the previously stated claim about ${topic}`,
+    `the source claim concerning ${topic}`,
+    `the retained claim about ${topic}`,
+  ];
+  const sentenceVariants = [
+    `Review the earlier source claim on ${topic}`,
+    `Return to the source-backed claim about ${topic}`,
+    `Consider the previously stated claim about ${topic}`,
+    `The retained source claim concerns ${topic}`,
+    `Recheck the source claim concerning ${topic}`,
+  ];
+  let hash = 2166136261;
+  for (const character of String(seed || topic)) {
+    hash ^= character.codePointAt(0);
+    hash = Math.imul(hash, 16777619);
+  }
+  const index = (hash >>> 0) % nounVariants.length;
+  return startsSentence ? sentenceVariants[index] : nounVariants[index];
+}
+
+function sourceFactReplacement(value, offset, fact, seed = '') {
+  const prefix = value.slice(Math.max(0, offset - 48), offset);
+  if (/\b(?:this|the) source statement:\s*$/i.test(prefix)) return sourceFactReference(fact, false, `${seed}:label`);
+  if (/\b(?:why|because|that|whether|if|when)\s*$/i.test(prefix)) return `${sourceFactReference(fact)} applies`;
   const fullPrefix = value.slice(0, offset);
   const startsSentence = !fullPrefix.trim() || /[.!?]\s*(?:["'“”‘’]\s*)?$/.test(fullPrefix);
-  return startsSentence
-    ? `${SOURCE_FACT_REFERENCE.charAt(0).toUpperCase()}${SOURCE_FACT_REFERENCE.slice(1)}`
-    : SOURCE_FACT_REFERENCE;
+  return sourceFactReference(fact, startsSentence, seed);
+}
+
+function sourceFactReplacementEnd(value, matchEnd) {
+  const punctuation = /^[.!?;:,]+/.exec(value.slice(matchEnd))?.[0] || '';
+  if (!punctuation) return matchEnd;
+  const nextClause = value.slice(matchEnd + punctuation.length).trimStart();
+  // The fact matcher deliberately excludes terminal punctuation. When a
+  // compiler-owned fact sits inside a larger clause, retaining that period
+  // creates seams such as “claim. in concrete language”. Consume only the
+  // punctuation that is immediately followed by a known continuation; true
+  // sentence boundaries remain byte-for-byte.
+  return SOURCE_FACT_SEAM_CONNECTIVE_RE.test(nextClause) ? matchEnd + punctuation.length : matchEnd;
 }
 
 function rewriteSourceFactOccurrences(node, fact, keep, stats, path = [], parentKey = '') {
@@ -288,8 +384,13 @@ function rewriteSourceFactOccurrences(node, fact, keep, stats, path = [], parent
     matches.forEach((match, occurrenceIndex) => {
       const id = `${sourceFactPathKey(path)}#${occurrenceIndex}`;
       rewritten += node.slice(cursor, match.start);
-      rewritten += keep.has(id) ? node.slice(match.start, match.end) : sourceFactReplacement(node, match.start);
-      cursor = match.end;
+      if (keep.has(id)) {
+        rewritten += node.slice(match.start, match.end);
+        cursor = match.end;
+      } else {
+        rewritten += sourceFactReplacement(node, match.start, fact, `${sourceFactPathKey(path)}#${occurrenceIndex}`);
+        cursor = sourceFactReplacementEnd(node, match.end);
+      }
     });
     rewritten += node.slice(cursor);
     if (rewritten !== node) stats.changedPaths.add(sourceFactPathKey(path));
@@ -428,8 +529,94 @@ function repairAssignmentDeferrals(value) {
   );
 }
 
+function repairLegacyOpaqueSourceReferences(value) {
+  let text = String(value || '');
+  text = text.replace(
+    /\bTest this admitted claim before deciding:\s*the cited source claim[.!?]?/gi,
+    'Compare the retained source statements before deciding which conclusion they support.',
+  );
+  text = text.replace(
+    /\bEvidence:\s*the cited source claim[.!?]?/gi,
+    'Evidence: Use the retained source statement and identify its limit.',
+  );
+  text = text.replace(
+    /\bthe cited source claim[.!?;:,]+(?=\s+(?:in|with|through|for|to|as|before|after|while|and|or)\b)/gi,
+    (match) =>
+      /^[A-Z]/.test(match)
+        ? 'The retained source statement for this lesson'
+        : 'the retained source statement for this lesson',
+  );
+  return text.replace(LEGACY_OPAQUE_SOURCE_REFERENCE_RE, (match) =>
+    /^[A-Z]/.test(match)
+      ? 'The retained source statement for this lesson'
+      : 'the retained source statement for this lesson',
+  );
+}
+
+function repairCompilerOwnedSlideCopy(value, context = {}) {
+  const controlFlowLesson = /\b(?:conditional branching|control flow)\b/i.test(context.currentLessonTitle || '');
+  const policyPracticeReplacement = controlFlowLesson
+    ? 'Practice: Map policy options as if/elif/else branches, define each selection condition, test one threshold boundary, and justify the recommendation by tracing the chosen path.'
+    : 'Practice: Define one public problem, compare two policy options, and justify one recommendation.';
+  return String(value || '')
+    .replace(
+      /\bTest this admitted claim before deciding:\s*(?:the source statement about [^.!?\n]+|the [^.!?\n]+ source statement|the (?:earlier source claim on|source-backed claim about|previously stated claim about|source claim concerning|retained claim about) [^.!?\n]+)[.!?]?/gi,
+      'Compare the source statements before deciding which conclusion they support.',
+    )
+    .replace(
+      /\bEvaluate this source statement before deciding:\s*(?:the source statement about [^.!?\n]+|the [^.!?\n]+ source statement|the (?:earlier source claim on|source-backed claim about|previously stated claim about|source claim concerning|retained claim about) [^.!?\n]+)[.!?]?/gi,
+      'Compare the source statements before deciding which conclusion they support.',
+    )
+    .replace(
+      /\bEvidence:\s*((?:the source statement about [^.!?\n]+|the [^.!?\n]+ source statement|the (?:earlier source claim on|source-backed claim about|previously stated claim about|source claim concerning|retained claim about) [^.!?\n]+))[.!?]?/gi,
+      (_match, reference) => `Evidence: Use ${reference.trim()} and identify its limit.`,
+    )
+    .replace(/\bTest this admitted claim before deciding:\s*/gi, 'Evaluate this source statement before deciding: ')
+    .replace(/\bthese admitted facts\b/gi, 'these source-supported statements')
+    .replace(/\bthe admitted fact\b/gi, 'the quoted source statement')
+    .replace(/\bonly admitted facts\b/gi, 'only source-supported statements')
+    .replace(
+      /\bFrame\s+([^.!?\n]{2,80}?)\s+through\s+\1\s+evidence brief\b/gi,
+      (_match, concept) => `Frame ${concept.trim()} through one source-backed example`,
+    )
+    .replace(
+      /\bEvaluate how\s+([^.!?\n]{2,80}?)\s+evidence changes\s+\1\s+application check\b/gi,
+      (_match, concept) => `Evaluate how ${concept.trim()} evidence changes one decision in the application check`,
+    )
+    .replace(
+      /\bPractice:\s*Run a problem-to-policy cycle where students frame the public\?/gi,
+      policyPracticeReplacement,
+    )
+    .replace(
+      /^Evidence:\s*Collect problem definition, affected population, policy authority\.?$/i,
+      controlFlowLesson
+        ? 'Evidence: Record the condition, branch taken, boundary input, and policy evidence used at each decision point.'
+        : '$&',
+    )
+    .replace(
+      /^Debrief:\s*Use the feedback routine to identify the strongest move\.?$/i,
+      controlFlowLesson
+        ? 'Debrief: Trace one branch, challenge its threshold condition, and revise the decision rule when the evidence changes.'
+        : '$&',
+    )
+    .replace(
+      /^Prepare or submit the Week (\d+) assignment\.?$/i,
+      'Complete the Week $1 assignment by using lesson evidence to justify one decision and one limitation.',
+    )
+    .replace(/^Preview:\s*([^.!?\n]+)\.?$/i, (match, nextLesson) =>
+      /identify which part extends today's evidence work/i.test(match)
+        ? match
+        : `Preview: In ${nextLesson.trim()}, identify which part extends today's evidence work.`,
+    )
+    .replace(
+      /^Use feedback from (Lesson \d+:[^.!?\n]+) to strengthen the next course task\.?$/i,
+      (_match, lesson) =>
+        `Use feedback from ${lesson.trim()} to revise one claim, one evidence choice, and one limitation in the next course task.`,
+    );
+}
+
 function repairString(value, featureId, parentKey = '', context = {}, path = []) {
-  let text = value;
+  let text = repairCompilerOwnedSlideCopy(repairLegacyOpaqueSourceReferences(value), context);
   text = text.replace(DOUBLE_PERIOD_RE, '$1.');
   text = text.replace(ARTICLE_A_VOWEL_RE, 'an$1$2');
   text = text.replace(FRAMING_ADJECTIVE_DETERMINER_RE, '$1 ');
@@ -649,7 +836,11 @@ function repairNode(node, stats, featureId, parentKey = '', context = {}, path =
     return changed ? next : node;
   }
   if (node && typeof node === 'object') {
-    const scopedContext = compilerScopedContext(node, context);
+    const nodeLessonTitle = String(node.lessonTitle || '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    const lessonContext = nodeLessonTitle ? { ...context, currentLessonTitle: nodeLessonTitle } : context;
+    const scopedContext = compilerScopedContext(node, lessonContext);
     if (
       featureId === 'studyGuides' &&
       typeof node.term === 'string' &&
@@ -732,7 +923,12 @@ export function repairDeliverableContentQuality(featureId, data, context = {}) {
   // offender was removed.
   const seamRepaired = repairRenderedContentAuthority(featureId, data, stats, repairContext);
   const sourceFactRepaired = repairRepeatedSourceFactFanOut(featureId, seamRepaired, context.sourceFacts, stats);
-  const repeated = worstRepeatedPhrase(renderedDeliverableContentRoot(featureId, sourceFactRepaired));
+  // Source-fact compaction can expose a compiler-owned sentence shell only
+  // after it substitutes the fact. Replay the exact seam repairs now so the
+  // same Prepare invocation reaches its fixed point; a second click must be
+  // a byte-identical no-op.
+  const postFanOutRepaired = repairRenderedContentAuthority(featureId, sourceFactRepaired, stats, repairContext);
+  const repeated = worstRepeatedPhrase(renderedDeliverableContentRoot(featureId, postFanOutRepaired));
   // Repetition is a diagnostic for the compiler or a targeted regeneration,
   // not a safe string-rewrite target. Replacing an eight-word shingle inside
   // arbitrary prose corrupted grammar and domain criteria (for example,
@@ -740,8 +936,8 @@ export function repairDeliverableContentQuality(featureId, data, context = {}) {
   // "Review note-and-quality agreement"). Mechanical repair must be
   // meaning-preserving, so report the phrase but leave semantic prose intact.
   return {
-    data: sourceFactRepaired,
-    changed: sourceFactRepaired !== data,
+    data: postFanOutRepaired,
+    changed: postFanOutRepaired !== data,
     repairedStrings: stats.changedPaths.size,
     repairedPhrases: 0,
     repeatedPhrase: repeated?.phrase || '',

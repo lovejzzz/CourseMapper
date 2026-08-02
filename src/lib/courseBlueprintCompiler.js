@@ -7,11 +7,13 @@ import {
   humanizeClassroomSourceCue,
   humanizeQuizText,
   humanSourceCueLabel,
+  isInspectableSlideSourceCue,
   isInternalSourceCue,
   removeNumberedAssessmentEchoes,
   isObjectiveStemOnly,
   normalizeObjectiveText,
   sentenceCase,
+  selectSecondSlideObjective,
   splitList,
   stripLessonPrefix,
   stripListPrefix,
@@ -25787,8 +25789,7 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
   const concept = primarySlideConcept(lesson);
   const sparseReasoningFrame = lessonNeedsSparseReasoningFrame(lesson);
   const sourceCue = slideSourceCue(lesson);
-  // Never cite the unresolved source placeholder in learner-facing slides.
-  const hasRealSource = !/(?:instructor-provided\s+)?course materials(?:\s+and notes)?$/i.test(cleanText(sourceCue));
+  const hasRealSource = isInspectableSlideSourceCue(sourceCue, concept);
   const secondary = secondarySlideConcept(lesson, concept);
   const artifact = slideArtifact(lesson);
   const compactArtifact = noteArtifactReference(lesson);
@@ -25814,9 +25815,8 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
   const objectiveOne =
     lesson.outcomes.find((outcome) => outcome && !/\b(TBD|to be determined)\b/i.test(outcome)) ||
     `Analyze ${concept} using ${lens.evidenceNoun || 'source evidence'} and explain how it informs ${artifact}.`;
-  const objectiveTwo =
-    lesson.outcomes.find((outcome) => outcome !== objectiveOne && !/\b(TBD|to be determined)\b/i.test(outcome)) ||
-    `Evaluate how ${secondary} evidence changes ${artifact}.`;
+  const objectiveFallback = `Evaluate how ${concept} evidence changes ${compactArtifact}.`;
+  const objectiveTwo = selectSecondSlideObjective(lesson.outcomes, objectiveOne, concept, secondary, objectiveFallback);
   const discussionFeedbackRoutine = completeSlideFeedbackRoutine(modality.feedbackRoutine, {
     concept,
     lessonNumber: index + 1,
@@ -25988,12 +25988,8 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
                 `${learnerFacingMode}: choose the evidence ${compactArtifact} needs next`,
                 `${learnerFacingMode}: turn critique into a defensible revision`,
               ]),
-              // Avoid repeating the shared modality lead from signaturePractice and practiceMove.
               bullets: [
-                cleanText(sentenceCase(modality.signaturePractice)).slice(0, 24).toLowerCase() ===
-                cleanText(teachingMoves.practiceMove).slice(0, 24).toLowerCase()
-                  ? teachingMoves.practiceMove
-                  : `${sentenceCase(stripTerminalPunctuation(modality.signaturePractice))}. ${teachingMoves.practiceMove}`,
+                teachingMoves.practiceMove,
                 modality.evidenceRoutine,
                 lessonVariant(lesson, [
                   `${teachingMoves.feedbackMove} Close by naming the revision choice for ${artifact}.`,
@@ -26125,10 +26121,12 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
           title: 'Carry Forward',
           bullets: [
             hasStandaloneAssessment
-              ? `Use ${concept} evidence to finish ${compactArtifact} on the timeline published in the local LMS.`
+              ? `Complete ${artifact} by using ${concept} evidence to justify one decision and one limitation.`
               : `Complete ${compactArtifact} as formative practice; there is no separate submission.`,
-            next ? `Preview: ${primarySlideConcept(next)}.` : `Preview: portfolio synthesis and final reflection.`,
-            `Use feedback from ${displayTitle} to strengthen the next course task.`,
+            next
+              ? `Preview ${primarySlideConcept(next)} and note one way it extends ${concept}.`
+              : `Preview portfolio synthesis and final reflection.`,
+            `Apply the strongest feedback from ${displayTitle} before the next course task.`,
           ],
           minutes: 3,
           bloom: null,

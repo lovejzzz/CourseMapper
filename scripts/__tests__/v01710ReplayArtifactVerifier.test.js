@@ -1,0 +1,46 @@
+import { describe, expect, it } from 'vitest';
+import JSZip from 'jszip';
+import crypto from 'node:crypto';
+
+import { verifyReplayArtifact } from '../lib/v01710ReplayArtifactVerifier.mjs';
+
+async function fixture() {
+  const zip = new JSZip();
+  zip.file('PACKAGE_READINESS.json', JSON.stringify({ contentReadiness: { status: 'review', score: 97, grade: 'A' } }));
+  zip.file(
+    'QUALITY_FINDINGS.json',
+    JSON.stringify({ graderVersion: '1.15.2', findings: [{ severity: 'P2' }, { severity: 'P2' }] }),
+  );
+  zip.file('Lesson Plans/example.docx', 'fixture');
+  const zipBytes = Buffer.from(await zip.generateAsync({ type: 'uint8array' }));
+  const receipt = {
+    retainedPackage: {
+      sha256: crypto.createHash('sha256').update(zipBytes).digest('hex'),
+      size: zipBytes.length,
+      files: 3,
+      quality: {
+        status: 'graded',
+        graderVersion: '1.15.2',
+        score: 97,
+        grade: 'A',
+        findingCounts: { p0: 0, p1: 0, p2: 2 },
+      },
+    },
+  };
+  return { receipt, zipBytes };
+}
+
+describe('v0.17.10 replay artifact verifier', () => {
+  it('binds the physical ZIP and its embedded quality evidence to the replay receipt', async () => {
+    const { receipt, zipBytes } = await fixture();
+    await expect(verifyReplayArtifact({ receipt, zipBytes })).resolves.toMatchObject({ passed: true });
+  });
+
+  it('fails closed when the physical ZIP no longer matches the receipt', async () => {
+    const { receipt, zipBytes } = await fixture();
+    receipt.retainedPackage.sha256 = '0'.repeat(64);
+    await expect(verifyReplayArtifact({ receipt, zipBytes })).rejects.toThrow(
+      'Retained package does not match replay receipt',
+    );
+  });
+});

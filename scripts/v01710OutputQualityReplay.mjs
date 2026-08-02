@@ -4,6 +4,7 @@ import path from 'node:path';
 import zlib from 'node:zlib';
 
 import { runDeterministicPackageFinalizer } from '../src/lib/packageFinalizer.js';
+import { buildCourseMaterialsZip } from '../src/lib/packageZipExporter.js';
 import { renderedDeliverableContentRoot } from '../src/lib/renderedDeliverableRoot.js';
 import { gradePackageAtFinalize } from '../src/lib/quality/finalizeQualityGate.js';
 
@@ -58,6 +59,8 @@ function renderedTextCount(deliverables, needle) {
 function qualitySummary(quality) {
   return {
     status: quality.status,
+    ...(quality.reason ? { reason: quality.reason } : {}),
+    ...(quality.graderVersion ? { graderVersion: quality.graderVersion } : {}),
     score: quality.score,
     grade: quality.grade,
     findingCounts: quality.findingCounts,
@@ -77,7 +80,7 @@ function canonicalPackageSnapshot(result) {
 const inputPath = path.resolve(argument('--input'));
 if (!argument('--input') || !fs.existsSync(inputPath)) {
   throw new Error(
-    'Usage: npx vite-node scripts/v01710OutputQualityReplay.mjs --input <project.coursemapper|fixture.json.gz> [--retain <fixture.json.gz>] [--output <receipt.json>]',
+    'Usage: npx vite-node scripts/v01710OutputQualityReplay.mjs --input <project.coursemapper|fixture.json.gz> [--retain <fixture.json.gz>] [--zip <package.zip>] [--output <receipt.json>]',
   );
 }
 
@@ -137,6 +140,40 @@ const gradeOptions = {
 };
 const beforeQuality = await gradePackageAtFinalize({ ...gradeOptions, deliverables: project.deliverables });
 const afterQuality = await gradePackageAtFinalize({ ...gradeOptions, deliverables: finalized.deliverables });
+const zipOutput = argument('--zip');
+let retainedPackage = null;
+if (zipOutput) {
+  const packageResult = await buildCourseMaterialsZip({
+    deliverables: finalized.deliverables,
+    courseMap: finalized.courseMap,
+    columns: project.columns,
+    courseName: finalized.courseMap?.courseName,
+    slideTheme: project.slideTheme,
+    featureIds: project.selectedFeatures,
+    pipelineState: project.lastRunDigest?.pipeline,
+    courseGraph: project.courseGraph,
+    quality: {
+      budget: project.apiCallBudgetReceipt,
+      digest: project.lastRunDigest,
+      coursePrompt: project.promptText,
+      timeoutMs: 120000,
+    },
+  });
+  const zipBytes = Buffer.from(await packageResult.blob.arrayBuffer());
+  const resolvedZipOutput = path.resolve(zipOutput);
+  fs.mkdirSync(path.dirname(resolvedZipOutput), { recursive: true });
+  fs.writeFileSync(resolvedZipOutput, zipBytes);
+  retainedPackage = {
+    file: path.basename(resolvedZipOutput),
+    sha256: sha256(zipBytes),
+    size: zipBytes.length,
+    files: packageResult.files.length,
+    quality: qualitySummary({
+      ...packageResult.quality,
+      findings: packageResult.qualityResult?.findings || [],
+    }),
+  };
+}
 
 const receipt = {
   protocol: 'coursemapper-output-quality-replay-receipt-v1',
@@ -148,6 +185,7 @@ const receipt = {
   afterLegacyCorrectionCount: renderedTextCount(finalized.deliverables, needle),
   beforeQuality: qualitySummary(beforeQuality),
   afterQuality: qualitySummary(afterQuality),
+  ...(retainedPackage ? { retainedPackage } : {}),
   changed: finalized.changed,
   repairsApplied: finalized.repairsApplied,
   repairMessages: (finalized.repairs || [])

@@ -1955,7 +1955,8 @@ describe('Slide Deck post-processing', () => {
     const notes = result.data.decks[0].slides[0].notes;
 
     expect(result.patchedNotes).toBe(1);
-    expect(notes).toContain('Emphasize the cited source claim in concrete language');
+    expect(notes).toContain('Emphasize the retained source statement for this lesson in concrete language');
+    expect(notes).not.toContain('the cited source claim');
     expect(notes).not.toContain('claim. in concrete language');
   });
 

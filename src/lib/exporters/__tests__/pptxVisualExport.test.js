@@ -575,6 +575,115 @@ describe('PPTX export — visual placeholders', () => {
     expect(xml).toContain('COURSE ARC');
     expect(xml).not.toContain('LAST TIME');
   });
+
+  it('places Today and Next on the TODAY side of a three-part bridge', async () => {
+    const blob = await buildSlideDeckPptxBlob(
+      {
+        decks: [
+          {
+            lessonTitle: 'Lesson 2: Control Flow',
+            slides: [
+              {
+                title: 'From data types to control flow',
+                type: 'bridge',
+                bullets: [
+                  'Last time: Python data types',
+                  'Today: Use control-flow evidence to strengthen the assignment',
+                  'Next: Functions and tests',
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      'Test Course',
+      0,
+    );
+    const zip = await JSZip.loadAsync(await blob.arrayBuffer());
+    const xml = await zip.file('ppt/slides/slide1.xml').async('string');
+    const shapeContaining = (text) => xml.split('<p:sp>').find((shape) => shape.includes(text));
+
+    expect(shapeContaining('Last time: Python data types')).toContain('x="365760"');
+    expect(shapeContaining('Today: Use control-flow evidence')).toContain('x="4160520"');
+    expect(shapeContaining('Next: Functions and tests')).toContain('x="4160520"');
+  });
+
+  it('preserves every bullet in a mixed labeled and unlabeled bridge exactly once', async () => {
+    const bullets = [
+      'Last time: Python data types',
+      'An unlabeled recap detail',
+      'Today: Use control-flow evidence',
+      'An unlabeled today detail',
+      'Next: Functions and tests',
+    ];
+    const blob = await buildSlideDeckPptxBlob(
+      {
+        decks: [
+          {
+            lessonTitle: 'Lesson 2: Control Flow',
+            slides: [{ title: 'From data types to control flow', type: 'bridge', bullets }],
+          },
+        ],
+      },
+      'Test Course',
+      0,
+    );
+    const zip = await JSZip.loadAsync(await blob.arrayBuffer());
+    const xml = await zip.file('ppt/slides/slide1.xml').async('string');
+    const shapeContaining = (text) => xml.split('<p:sp>').find((shape) => shape.includes(text));
+
+    for (const bullet of bullets) {
+      expect(xml.split(bullet)).toHaveLength(2);
+    }
+    expect(shapeContaining('Last time: Python data types')).toContain('x="365760"');
+    expect(shapeContaining('An unlabeled recap detail')).toContain('x="365760"');
+    expect(shapeContaining('Today: Use control-flow evidence')).toContain('x="4160520"');
+    expect(shapeContaining('An unlabeled today detail')).toContain('x="4160520"');
+    expect(shapeContaining('Next: Functions and tests')).toContain('x="4160520"');
+  });
+
+  it.each([
+    {
+      name: 'recap-only labels',
+      bullets: ['Last time: Types', 'Unlabeled recap', 'Unlabeled today', 'Unlabeled extension'],
+      left: ['Last time: Types', 'Unlabeled recap'],
+      right: ['Unlabeled today', 'Unlabeled extension'],
+    },
+    {
+      name: 'today-only labels',
+      bullets: ['Unlabeled recap', 'Supporting recap detail', 'Today: Loops', 'Unlabeled today'],
+      left: ['Unlabeled recap', 'Supporting recap detail'],
+      right: ['Today: Loops', 'Unlabeled today'],
+    },
+    {
+      name: 'no semantic labels',
+      bullets: ['Prior concept', 'Prior example', 'Current concept', 'Current application'],
+      left: ['Prior concept', 'Prior example'],
+      right: ['Current concept', 'Current application'],
+    },
+  ])('preserves every bullet with $name exactly once', async ({ bullets, left, right }) => {
+    const blob = await buildSlideDeckPptxBlob(
+      {
+        decks: [
+          {
+            lessonTitle: 'Lesson 2: Control Flow',
+            slides: [{ title: 'Bridge', type: 'bridge', bullets }],
+          },
+        ],
+      },
+      'Test Course',
+      0,
+    );
+    const zip = await JSZip.loadAsync(await blob.arrayBuffer());
+    const xml = await zip.file('ppt/slides/slide1.xml').async('string');
+    const shapeContaining = (text) => xml.split('<p:sp>').find((shape) => shape.includes(text));
+
+    for (const bullet of bullets) {
+      expect(xml.split(bullet)).toHaveLength(2);
+    }
+    for (const bullet of left) expect(shapeContaining(bullet)).toContain('x="365760"');
+    for (const bullet of right) expect(shapeContaining(bullet)).toContain('x="4160520"');
+  });
 });
 
 describe('PPTX export — native visuals (v0.12.1)', () => {

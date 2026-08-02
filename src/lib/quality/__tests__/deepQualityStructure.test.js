@@ -162,7 +162,54 @@ describe('deep quality package structure', () => {
     });
 
     expect(result.findings.some((finding) => /classroom clock/i.test(finding.detail))).toBe(false);
-    expect(GRADER_VERSION).toBe('1.15.1');
+    expect(GRADER_VERSION).toBe('1.15.3');
+  });
+
+  it('scores opaque source-claim placeholders and their sentence seams as major export defects', async () => {
+    const planPath = 'Lesson Plans/Lesson 03 - Evidence - Lesson Plans.txt';
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          lessonScope: [3],
+          readiness: { status: 'ready', blockers: 0 },
+          files: [{ path: planPath, featureId: 'lessonPlans' }],
+        }),
+        [planPath]: [
+          'Evidence: the cited source claim.',
+          'Emphasize the claim. in concrete language and connect it to the decision.',
+          'Test this admitted claim before deciding: evidence.',
+          'Compare “(the earlier source claim on Accuracy”.',
+        ].join('\n'),
+      }),
+      course: { title: 'Evidence Methods', featureIds: ['lessonPlans'] },
+      honesty: { pipeline: { judgment: 'compiler-verified fixture' } },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: 'opaque-source-claim-placeholder',
+          severity: 'P1',
+          file: planPath,
+        }),
+        expect.objectContaining({
+          code: 'source-claim-sentence-seam',
+          severity: 'P1',
+          file: planPath,
+        }),
+        expect.objectContaining({
+          code: 'compiler-admitted-claim-shell',
+          severity: 'P1',
+          file: planPath,
+        }),
+        expect.objectContaining({
+          code: 'malformed-compacted-source-reference',
+          severity: 'P1',
+          file: planPath,
+        }),
+      ]),
+    );
+    expect(result.overall.grade).not.toBe('A');
   });
 
   it('treats typed-object leaks and mirrored assessment identities as scored export defects', async () => {

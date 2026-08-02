@@ -2920,7 +2920,8 @@ function buildFallbackSlideNotes(deck, slide, index) {
   const anchor = String(firstBullet || slideTitle)
     .trim()
     .replace(/[.!?;:,]+$/u, '')
-    .replace(/^./u, (character) => character.toLocaleLowerCase());
+    .replace(/^./u, (character) => character.toLocaleLowerCase())
+    .replace(/^the cited source claim$/i, 'the retained source statement for this lesson');
 
   return [
     `Use this ${slideType} slide to connect "${slideTitle}" to the larger purpose of ${lessonTitle}.`,

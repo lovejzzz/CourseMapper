@@ -10440,6 +10440,53 @@ describe('courseBlueprintCompiler', () => {
     expect(explanations.filter((explanation) => /A common wrong turn:/i.test(explanation))).toHaveLength(0);
   });
 
+  it('keeps slide source cues, objectives, bridge columns, practice, and closing copy semantically complete', () => {
+    const blueprint = buildCourseBlueprint(makeCourseMap(3));
+    const lesson = blueprint.lessons[1];
+    lesson.title = 'Lesson 2: Control Flow Structures';
+    lesson.lessonNumber = 2;
+    lesson.keyConcepts = ['Control Flow Structures', 'Conditional Branching Logic'];
+    lesson.evidencePlan = { ...lesson.evidencePlan, sourceCue: 'Control Flow Structures evidence brief' };
+    lesson.studentArtifact = 'Conditional Branching Logic application check';
+    lesson.outcomes = [
+      'Apply the main concepts from Conditional Branching Logic to a course task or example.',
+      'Evaluate how Conditional Branching Logic evidence changes Conditional Branching Logic application check.',
+    ];
+    lesson.modalityDecode = {
+      ...lesson.modalityDecode,
+      mode: 'field-applied',
+      signaturePractice:
+        'run a problem-to-policy cycle where students frame the public problem, compare options, map stakeholders and equity effects, test feasibility, plan implementation, and revise the policy recommendation',
+      evidenceRoutine: 'Collect one policy option, one feasibility constraint, and one decision rationale.',
+      feedbackRoutine: 'Name the strongest policy evidence and one required revision.',
+    };
+
+    const deck = buildSlideDeckIntermediateRepresentation(blueprint).decks[1];
+    const agenda = deck.slides.find((slide) => slide.type === 'agenda');
+    const objectives = deck.slides.find((slide) => slide.type === 'objectives');
+    const bridge = deck.slides.find((slide) => slide.type === 'bridge');
+    const activity = deck.slides.find((slide) => slide.type === 'activity');
+    const closing = deck.slides.find((slide) => slide.type === 'closing');
+
+    expect(agenda.bullets.join(' ')).not.toMatch(
+      /Frame Control Flow Structures through Control Flow Structures evidence brief/i,
+    );
+    expect(objectives.bullets[1]).toContain('Week 2 check');
+    expect(objectives.bullets[1].match(/Control Flow Structures/gi) || []).toHaveLength(1);
+    expect(objectives.bullets[1]).not.toMatch(/Conditional Branching Logic.*Conditional Branching Logic/i);
+    expect(bridge.bullets).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/^Last time:/),
+        expect.stringMatching(/^Today:/),
+        expect.stringMatching(/^Next:/),
+      ]),
+    );
+    expect(activity.bullets[0]).not.toContain('problem-to-policy cycle');
+    expect(activity.bullets[0]).not.toMatch(/frame the public\??$/i);
+    expect(closing.bullets[0]).toMatch(/Conditional Branching Logic application check/i);
+    expect(closing.bullets[0]).toMatch(/one decision and one limitation/i);
+  });
+
   it('preserves repeated model correction shells so quality checks can reject them instead of laundering them', () => {
     const blueprint = buildCourseBlueprint({
       courseName: 'Accessible Product Review',

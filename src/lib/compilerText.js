@@ -114,6 +114,28 @@ export function stripTerminalPunctuation(value) {
   return cleanText(value).replace(/[.!?]+$/g, '');
 }
 
+export function isInspectableSlideSourceCue(sourceCue, concept) {
+  const cue = stripTerminalPunctuation(cleanText(sourceCue)).toLowerCase();
+  const conceptKey = stripTerminalPunctuation(cleanText(concept)).toLowerCase();
+  if (!cue || !conceptKey || /(?:instructor-provided\s+)?course materials(?:\s+and notes)?$/i.test(cue)) return false;
+  if (!cue.includes(conceptKey)) return true;
+  return Boolean(
+    cue
+      .split(conceptKey)
+      .join(' ')
+      .replace(/\b(?:assigned|course|evidence|lesson|materials?|notes?|packet|reading|resource|source|brief)\b/g, ' ')
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim(),
+  );
+}
+
+export function selectSecondSlideObjective(outcomes, first, concept, secondary, fallback) {
+  const candidate = outcomes.find((outcome) => outcome !== first && !/\b(TBD|to be determined)\b/i.test(outcome));
+  const text = cleanText(candidate).toLowerCase();
+  const repeats = (term) => term && text.split(cleanText(term).toLowerCase()).length > 2;
+  return candidate && !repeats(concept) && !repeats(secondary) ? candidate : fallback;
+}
+
 // Source labels and model enums cross several classroom-facing boundaries.
 // Keep their normalization in this dependency-free text leaf so the compiler
 // can reuse one rule without inflating its already budgeted lazy chunk.

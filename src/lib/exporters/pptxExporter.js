@@ -1305,6 +1305,31 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
 
     const bridgeTitleText = s.title || 'Bridge to Today';
     const bridgeLeadLabel = /course throughline/i.test(bridgeTitleText) ? 'COURSE ARC' : 'LAST TIME';
+    const bridgeBullets = (s.bullets || []).map((bullet) => String(bullet || '').trim()).filter(Boolean);
+    const recapLabelPattern = /^(?:last time|this course):/i;
+    const todayLabelPattern = /^(?:today|next):/i;
+    // Bridge copy already carries semantic labels. Splitting three bullets by
+    // array midpoint put “Today” on the left and left only “Next” beneath the
+    // TODAY heading. Prefer those labels; retain the positional fallback for
+    // older imported decks that do not carry them.
+    const positionalSplit = Math.ceil(bridgeBullets.length / 2);
+    const firstTodayIndex = bridgeBullets.findIndex((bullet) => todayLabelPattern.test(bullet));
+    const hasSemanticLabels = bridgeBullets.some(
+      (bullet) => recapLabelPattern.test(bullet) || todayLabelPattern.test(bullet),
+    );
+    const recapBullets = [];
+    const todayBullets = [];
+    bridgeBullets.forEach((bullet, index) => {
+      if (recapLabelPattern.test(bullet)) {
+        recapBullets.push(bullet);
+      } else if (todayLabelPattern.test(bullet)) {
+        todayBullets.push(bullet);
+      } else if (hasSemanticLabels && firstTodayIndex >= 0) {
+        (index < firstTodayIndex ? recapBullets : todayBullets).push(bullet);
+      } else {
+        (index < positionalSplit ? recapBullets : todayBullets).push(bullet);
+      }
+    });
 
     // Lesson 1 has no previous meeting; its bridge is the course arc.
     slide.addText(bridgeLeadLabel, {
@@ -1339,9 +1364,7 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
     tracker.add({ x: 0.4, y: 0.75, w: bridgeTitleW, h: bridgeTitleH, label: 'bridge-title' });
 
     // Recap bullets on left
-    if (s.bullets?.length > 0) {
-      const halfBullets = Math.ceil(s.bullets.length / 2);
-      const recapBullets = s.bullets.slice(0, halfBullets);
+    if (recapBullets.length > 0) {
       const recapText = recapBullets.map((b) => ({
         text: b,
         options: {
@@ -1378,37 +1401,33 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
     });
 
     // Today bullets on right
-    if (s.bullets?.length > 1) {
-      const halfBullets = Math.ceil(s.bullets.length / 2);
-      const todayBullets = s.bullets.slice(halfBullets);
-      if (todayBullets.length > 0) {
-        const todayText = todayBullets.map((b) => ({
-          text: b,
-          options: {
-            bullet: { code: '25B6' }, // ▶
-            fontSize: 14,
-            color: theme.bodyText,
-            breakLine: true,
-            paraSpaceAfter: 12,
-            lineSpacingMultiple: 1.5,
-          },
-        }));
-        slide.addText(todayText, {
-          x: splitX + 0.35,
-          y: 0.85,
-          w: W - splitX - 0.7,
-          h: H - 1.4,
-          fontFace: FONT_BODY,
-          valign: 'top',
-        });
-        tracker.add({
-          x: splitX + 0.35,
-          y: 0.85,
-          w: W - splitX - 0.7,
-          h: H - 1.4,
-          label: 'bridge-today',
-        });
-      }
+    if (todayBullets.length > 0) {
+      const todayText = todayBullets.map((b) => ({
+        text: b,
+        options: {
+          bullet: { code: '25B6' }, // ▶
+          fontSize: 14,
+          color: theme.bodyText,
+          breakLine: true,
+          paraSpaceAfter: 12,
+          lineSpacingMultiple: 1.5,
+        },
+      }));
+      slide.addText(todayText, {
+        x: splitX + 0.35,
+        y: 0.85,
+        w: W - splitX - 0.7,
+        h: H - 1.4,
+        fontFace: FONT_BODY,
+        valign: 'top',
+      });
+      tracker.add({
+        x: splitX + 0.35,
+        y: 0.85,
+        w: W - splitX - 0.7,
+        h: H - 1.4,
+        label: 'bridge-today',
+      });
     }
 
     // Accent line divider accent at bottom

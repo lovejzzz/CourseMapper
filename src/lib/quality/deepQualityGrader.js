@@ -3608,6 +3608,53 @@ function checkFormat(findings, { files, manifest }) {
     ...BACKTICK_LEAK_PATTERNS,
   ];
   for (const file of files) {
+    const opaqueSourceClaim = /\bthe cited source claim\b/i.exec(file.text || '');
+    if (opaqueSourceClaim) {
+      findings.add({
+        code: 'opaque-source-claim-placeholder',
+        severity: 'P1',
+        dimension: 'format',
+        file: file.path,
+        detail: 'opaque compiler source-claim placeholder leaked into a classroom artifact',
+        evidence: opaqueSourceClaim[0],
+      });
+    }
+    const sourceClaimSentenceSeam = /\bclaim\.\s+in concrete language\b/i.exec(file.text || '');
+    if (sourceClaimSentenceSeam) {
+      findings.add({
+        code: 'source-claim-sentence-seam',
+        severity: 'P1',
+        dimension: 'format',
+        file: file.path,
+        detail: 'source-claim compaction left a mechanical sentence seam in classroom prose',
+        evidence: sourceClaimSentenceSeam[0],
+      });
+    }
+    const admittedClaimShell = /\bTest this admitted claim before deciding\b/i.exec(file.text || '');
+    if (admittedClaimShell) {
+      findings.add({
+        code: 'compiler-admitted-claim-shell',
+        severity: 'P1',
+        dimension: 'format',
+        file: file.path,
+        detail: 'compiler-owned admitted-claim shell leaked into classroom prose',
+        evidence: admittedClaimShell[0],
+      });
+    }
+    const malformedSourceReference =
+      /(?:\(\s*the earlier source claim\b|\bsource claim on [^.!?()\n]{1,80}\)|\b(?:Revisit the|the) earlier source claim on (?:although|because|by|if|through|using|when|while)\b)/i.exec(
+        file.text || '',
+      );
+    if (malformedSourceReference) {
+      findings.add({
+        code: 'malformed-compacted-source-reference',
+        severity: 'P1',
+        dimension: 'format',
+        file: file.path,
+        detail: 'source-fact compaction left a malformed or clause-shaped reference in classroom prose',
+        evidence: malformedSourceReference[0],
+      });
+    }
     const templateArtifact =
       /\b(this this lesson|this the lesson|the lesson criterion|feedback-(?:based|informed)\s+the\s+|make\s+[^.!?]{1,100}\s+defend\s+one|strong\s+[^.!?]{1,100}\s+anchor\.|(?:the\s+)?Week\s+\d+\s+(?:lenses?|limitation)\b|(?:Proof-based problem set|Computational lab in Python):\s*(?:This|The)\s+lesson)\b/i.exec(
         file.text || '',
