@@ -25,8 +25,8 @@
   },
   "retainedPackage": {
     "file": "edutool-v01710-local-candidate.zip",
-    "sha256": "a7773bfd9847fd2903f31f1c88494b263e2bdde9c515a4b10eb5d8e750b54407",
-    "size": 1083404,
+    "sha256": "62b363d4880f4ec4310bae7d719ec4571e1d2813f2553dd7ca9e14d44b21bf0f",
+    "size": 1083859,
     "files": 61,
     "generatedAt": "2026-08-01T21:48:38.112Z",
     "quality": {
@@ -43,8 +43,8 @@
     },
     "reproducibility": {
       "passed": true,
-      "secondSha256": "a7773bfd9847fd2903f31f1c88494b263e2bdde9c515a4b10eb5d8e750b54407",
-      "secondSize": 1083404
+      "secondSha256": "62b363d4880f4ec4310bae7d719ec4571e1d2813f2553dd7ca9e14d44b21bf0f",
+      "secondSize": 1083859
     }
   },
   "changed": true,

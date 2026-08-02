@@ -514,10 +514,15 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
   // still split a row that is taller than a page, but ordinary schedule,
   // grading, alignment, and competency rows should never strand continuation
   // text under blank leading cells on the next page.
-  const makeTableFn = (colDXA, headerTexts, dataRows, { cantSplit = true, centeredColumns = [] } = {}) => {
+  const makeTableFn = (
+    colDXA,
+    headerTexts,
+    dataRows,
+    { cantSplit = true, centeredColumns = [], includeHeader = true, repeatHeader = true, rowOffset = 0 } = {},
+  ) => {
     const centeredColumnSet = new Set(centeredColumns);
     const hdr = new TableRow({
-      tableHeader: true,
+      tableHeader: repeatHeader,
       children: headerTexts.map(
         (h, idx) =>
           new TableCell({
@@ -541,7 +546,10 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             (v, idx) =>
               new TableCell({
                 width: { size: colDXA[idx], type: WidthType.DXA },
-                shading: ri % 2 === 1 ? { type: ShadingType.CLEAR, fill: theme.bandFill || 'F5F7FA' } : undefined,
+                shading:
+                  (ri + rowOffset) % 2 === 1
+                    ? { type: ShadingType.CLEAR, fill: theme.bandFill || 'F5F7FA' }
+                    : undefined,
                 margins: { top: 80, bottom: 80, left: 120, right: 120 },
                 verticalAlign: 'top',
                 children: [
@@ -572,7 +580,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         insideHorizontal: HAIRLINE,
         insideVertical: NO_BORDER,
       },
-      rows: [hdr, ...rows],
+      rows: [...(includeHeader ? [hdr] : []), ...rows],
     });
   };
 
@@ -647,12 +655,27 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             if (row.bloomsLevel) actParts.push(`Bloom: ${row.bloomsLevel}`);
             return [row.time || '', actParts.filter(Boolean).join(' · '), desc];
           });
-          // A complete teaching move must stay together. Without cantSplit,
-          // Word/LibreOffice can leave "9" at the foot of one page and the
-          // orphan word "minutes" at the top of the next.
-          children.push(
-            makeTableFn(colDXA, ['Time', 'Activity', 'Description & Notes'], outlineRows, { cantSplit: true }),
-          );
+          // A continuous, multi-page table makes LibreOffice render the page
+          // continuation above the printable top margin and into the footer.
+          // Emit one bounded table per teaching move instead. Adjacent tables
+          // retain the shared grid, while pagination can happen only between
+          // complete activities and therefore respects the document margins.
+          outlineRows.forEach((row, rowIndex) => {
+            if (rowIndex > 0) {
+              // OOXML requires a paragraph boundary here; without it,
+              // LibreOffice coalesces adjacent tables back into one flowing
+              // table and reintroduces the margin-overflow defect.
+              children.push(new Paragraph({ keepNext: true, spacing: { before: 0, after: 0, line: 1 }, children: [] }));
+            }
+            children.push(
+              makeTableFn(colDXA, ['Time', 'Activity', 'Description & Notes'], [row], {
+                cantSplit: true,
+                includeHeader: rowIndex === 0,
+                repeatHeader: false,
+                rowOffset: rowIndex,
+              }),
+            );
+          });
         }
         // Closing belongs to the live session sequence. Rendering it directly
         // after the outline also prevents a two-line wrap-up from becoming an
