@@ -1067,7 +1067,8 @@ export default function ExportSidePanel({
   if (
     currentPackageReceiptKey &&
     preparedPackageRef.current &&
-    preparedPackageRef.current.receiptKey !== currentPackageReceiptKey
+    preparedPackageRef.current.receiptKey !== currentPackageReceiptKey &&
+    preparedPackageRef.current.parentReceiptKeyAtPreparation !== currentPackageReceiptKey
   ) {
     preparedPackageRef.current = null;
   }
@@ -1212,12 +1213,14 @@ export default function ExportSidePanel({
     }),
     quality = packageQualityPass?.quality || null,
     receipt = packageQualityPass?.receipt || null,
+    parentReceiptKeyAtPreparation = currentPackageReceiptKey,
   } = {}) {
     const featureIds = getExportFeatureIds('all');
     const qualityContext = typeof getQualityContext === 'function' ? getQualityContext() || {} : {};
     const pipelineState = typeof getPipelineState === 'function' ? getPipelineState() : null;
     return {
       receiptKey: packageReceiptKey(receipt),
+      parentReceiptKeyAtPreparation,
       receipt: clonePreparedValue(receipt),
       courseMap: clonePreparedValue(preparedCourseMap),
       deliverables: clonePreparedValue(preparedDeliverables),
