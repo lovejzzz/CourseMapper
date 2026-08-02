@@ -39,6 +39,10 @@ function stableRealizationHash(value) {
   return (hash >>> 0).toString(36);
 }
 
+export function lessonVariantPoolHash(poolDefinition) {
+  return `fnv1a32:${stableRealizationHash(JSON.stringify(poolDefinition))}`;
+}
+
 export function stableRealizationIndex(value, size) {
   if (size <= 1) return 0;
   return Number.parseInt(stableRealizationHash(value), 36) % size;
@@ -78,7 +82,10 @@ function consumedRealizationSlots(lesson, selected) {
     .slice(0, 16);
 }
 
-export function recordLessonVariantTrace({ lesson, variants, selected, index, ownerId, poolSize = variants.length }) {
+export function recordLessonVariantTrace(event) {
+  const { lesson, variants, selected, index, ownerId } = event;
+  const poolSize = event.poolSize ?? variants.length;
+  const poolHash = event.poolHash || lessonVariantPoolHash(variants);
   if (!activeTrace || typeof selected !== 'string') return;
   const lessonSlots = realizationSlotsForLesson(lesson);
   const slots = consumedRealizationSlots(lesson, selected);
@@ -88,6 +95,7 @@ export function recordLessonVariantTrace({ lesson, variants, selected, index, ow
     poolId: ownerId || `pool-${stableRealizationHash(frame)}`,
     lessonNumber: Number(lesson?.lessonNumber || 1),
     poolSize,
+    poolHash,
     index,
     selectedText: selected,
     consumedSlots: slots,
@@ -131,6 +139,7 @@ export function recordCompiledFeatureRealizationTrace(featureId, compiled, bluep
         poolId: ownerId,
         lessonNumber: Number(lesson?.lessonNumber || 1),
         poolSize: 1,
+        poolHash: lessonVariantPoolHash([value]),
         index: 0,
         selectedText: value,
         consumedSlots: consumedRealizationSlots(lesson, value),
@@ -225,6 +234,7 @@ export function selectComposedLessonVariant(lesson = {}, ownerId, leads = [], ta
     index: leadIndex * tails.length + tailIndex,
     ownerId,
     poolSize: leads.length * tails.length,
+    poolHash: lessonVariantPoolHash({ kind: 'composed', leads, separator, tails }),
   });
   return selected;
 }

@@ -151,10 +151,7 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
 
     expect(result.changed).toBe(true);
     expect(JSON.stringify(result.data)).not.toMatch(/ImageJ|Molecule Archives/i);
-    expect(result.data.decks[0].slides[0].bullets).toEqual([
-      'Use policy evidence to bound the recommendation.',
-      'Item 2: add course-aligned, instructor-approved evidence.',
-    ]);
+    expect(result.data.decks[0].slides[0].bullets).toEqual(['Use policy evidence to bound the recommendation.']);
     expect(result.data.decks[0].slides[0].notes).toBe(
       'Compare the policy evidence first. Name one limitation before revising.',
     );
@@ -268,10 +265,8 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
       { courseName: 'Python for Public Policy Analysis' },
     );
     expect(wholeFieldLeak.changed).toBe(true);
-    expect(wholeFieldLeak.data.lessonPlans[0].lessonTitle).toBe('Course-aligned source review');
-    expect(wholeFieldLeak.data.lessonPlans[0].objectives).toEqual([
-      'Item 1: add course-aligned, instructor-approved evidence.',
-    ]);
+    expect(wholeFieldLeak.data.lessonPlans[0].lessonTitle).toBe('Course-aligned evidence review');
+    expect(wholeFieldLeak.data.lessonPlans[0].objectives).toEqual(['Check 1: verify this claim from sources.']);
 
     const repeatedLeaks = repairDeliverableContentQuality(
       'lessonPlans',
@@ -290,6 +285,39 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     expect(repeatedLeaks.data.lessonPlans[0].objectives).toHaveLength(12);
     expect(new Set(repeatedLeaks.data.lessonPlans[0].objectives).size).toBe(12);
     expect(repeatedLeaks.repeatedPhraseCount).toBe(0);
+  });
+
+  it('migrates saved slide directives that no longer retain their original off-topic fact', () => {
+    const result = repairDeliverableContentQuality('slideDecks', {
+      decks: [
+        {
+          slides: [
+            {
+              subtitle: 'Use a course-aligned example and verify its source before publishing.',
+              bullets: [
+                'Supported lesson evidence remains visible.',
+                'Item 2: add course-aligned, instructor-approved evidence.',
+                'Key Takeaway: Item 4: add course-aligned, instructor-approved evidence.',
+              ],
+              visual: {
+                rows: [
+                  ['Fact 1', 'Item 1: add course-aligned, instructor-approved evidence.'],
+                  ['Fact 2', 'Supported source statement.'],
+                ],
+              },
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(result.changed).toBe(true);
+    expect(result.data.decks[0].slides[0]).toEqual({
+      subtitle: 'Use the source-supported lesson evidence to test the claim before extending it.',
+      bullets: ['Supported lesson evidence remains visible.'],
+      visual: { rows: [['Fact 2', 'Supported source statement.']] },
+    });
+    expect(JSON.stringify(result.data)).not.toMatch(/add course-aligned|before publishing/i);
   });
 
   it('does not let generic lesson overlap rescue a known off-topic source leak', () => {

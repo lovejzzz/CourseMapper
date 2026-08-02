@@ -32,6 +32,19 @@ import {
 
 const ROOT = process.cwd();
 const DEFAULT_OUTPUT_DIR = path.join(ROOT, 'verification-output', 'cross-package-texture');
+export const CROSS_PACKAGE_TEXTURE_IMPLEMENTATION_FILES = Object.freeze([
+  'src/lib/courseBlueprintCompiler.js',
+  'src/lib/courseCompilerLensProfiles.js',
+  'src/lib/courseCompilerRealization.js',
+  'src/lib/courseCompilerTextureCopy.js',
+  'src/lib/teachingMoveVariants.js',
+  'src/lib/quality/crossPackageTexture.js',
+  'src/lib/quality/crossPackageTextureUnitClass.js',
+  'scripts/crossPackageTextureAudit.mjs',
+  'scripts/panels/crossPackageThinBriefs.mjs',
+  'scripts/panels/crossPackageUntunedBriefs.mjs',
+  'src/lib/contentFallbackTelemetry.js',
+]);
 const GOLD_PANEL_IDS = [
   'gold-biology-lab-8',
   'gold-business-strategy-case-8',
@@ -89,25 +102,11 @@ function sha256(value) {
   return crypto.createHash('sha256').update(value).digest('hex');
 }
 
-async function fileHash(relativePath) {
-  return sha256(await fs.readFile(path.join(ROOT, relativePath)));
-}
-
-async function implementationFingerprint() {
-  const files = [
-    'src/lib/courseBlueprintCompiler.js',
-    'src/lib/courseCompilerLensProfiles.js',
-    'src/lib/courseCompilerRealization.js',
-    'src/lib/courseCompilerTextureCopy.js',
-    'src/lib/quality/crossPackageTexture.js',
-    'src/lib/quality/crossPackageTextureUnitClass.js',
-    'scripts/crossPackageTextureAudit.mjs',
-    'scripts/panels/crossPackageThinBriefs.mjs',
-    'scripts/panels/crossPackageUntunedBriefs.mjs',
-    'src/lib/contentFallbackTelemetry.js',
-  ];
+export async function implementationFingerprint({ readFile = fs.readFile, root = ROOT } = {}) {
   const entries = [];
-  for (const file of files) entries.push([file, await fileHash(file)]);
+  for (const file of CROSS_PACKAGE_TEXTURE_IMPLEMENTATION_FILES) {
+    entries.push([file, sha256(await readFile(path.join(root, file)))]);
+  }
   return sha256(stableJson(entries));
 }
 

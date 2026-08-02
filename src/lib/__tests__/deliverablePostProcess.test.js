@@ -104,6 +104,21 @@ describe('Course FAQ post-processing', () => {
     expect(result.data.faqs[1].questions).toHaveLength(4);
   });
 
+  it('preserves complete authored FAQ questions when only a package default is lower', () => {
+    const questions = Array.from({ length: 5 }, (_, index) => ({ question: `Question ${index + 1}` }));
+    const data = { faqs: [{ lessonTitle: 'Lesson 1', questions }] };
+
+    const result = normalizeCourseFaqQuestionCounts(data, {
+      questionsPerLesson: 4,
+      preserveQuestionsAboveTarget: true,
+    });
+
+    expect(result.target).toBe(4);
+    expect(result.trimmedQuestions).toBe(0);
+    expect(result.data).toBe(data);
+    expect(result.data.faqs[0].questions).toBe(questions);
+  });
+
   it('trims and reports compact FAQ question arrays before export', () => {
     const data = {
       faqs: [
@@ -1225,6 +1240,17 @@ describe('Syllabus post-processing', () => {
       'this placeholder content',
       'Replace this placeholder',
     ]);
+  });
+
+  it('rejects legacy source-review directives from publishable student materials', () => {
+    expect(
+      findPublishabilityPlaceholders('Item 2: add course-aligned, instructor-approved evidence.', { limit: 10 }),
+    ).toContain('Item 2: add course-aligned, instructor-approved evidence');
+    expect(
+      findPublishabilityPlaceholders('Use a course-aligned example and verify its source before publishing.', {
+        limit: 10,
+      }),
+    ).toContain('Use a course-aligned example and verify its source before publishing');
   });
 
   it('replaces unresolved local-fact placeholders with finished course-relative language', () => {

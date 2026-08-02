@@ -19,6 +19,9 @@ export const PUBLISHABILITY_PLACEHOLDER_PATTERNS = [
   /Learning Objective:\s*Describe what students will need/i,
   /Provide supporting resources for the content\s*&\s*instruction/i,
   /Ask yourself:\s*Is everything in this row aligned and coherent\?/i,
+  /\bItem \d+: add course-aligned, instructor-approved evidence\b/i,
+  /\bUse a course-aligned example and verify its source before publishing\b/i,
+  /\bAdd an instructor-approved, course-aligned definition and source before publishing\b/i,
 ];
 
 // Finished-looking prose can still defer essential assignment logistics to a

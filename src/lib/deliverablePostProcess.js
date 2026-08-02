@@ -139,7 +139,7 @@ export function normalizeCourseFaqQuestionCounts(data, config = {}) {
           ? 'qs'
           : 'questions';
     const questions = Array.isArray(lesson?.[questionKey]) ? lesson[questionKey] : [];
-    if (questions.length > target) {
+    if (questions.length > target && !config?.preserveQuestionsAboveTarget) {
       trimmedQuestions += questions.length - target;
       return { ...lesson, [questionKey]: questions.slice(0, target) };
     }

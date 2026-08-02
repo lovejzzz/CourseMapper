@@ -54,6 +54,8 @@ const SOURCE_FACT_TRAILING_LINK_RE = /^(?:a|an|and|as|at|by|for|from|in|into|of|
 const GENERIC_SOURCE_TOPIC_RE =
   /^(?:approach|claim|components?|data|evidence|fact|framework|method|process|system|tools?)$/i;
 const LEGACY_OPAQUE_SOURCE_REFERENCE_RE = /\bthe cited source claim\b/gi;
+const LEGACY_SOURCE_REVIEW_DIRECTIVE_RE =
+  /^(?:Key Takeaway:\s*)?(?:Item \d+: add course-aligned, instructor-approved evidence|Use a course-aligned example and verify its source before publishing)\.?$/i;
 const DUPLICATED_STUDENT_SUBJECT_RE = /\bstudents?\s+may\s+assume\s+students?\s+(?:often\s+)?/gi;
 const MALFORMED_CONCEPT_DETAIL_RE =
   /\ba\s+(?:solid|strong|clear|specific)\s+([^.!?]{1,80}\b(?:principles|criteria|standards|guidelines|requirements)\b[^.!?]{0,30})\s+detail\b/gi;
@@ -617,6 +619,14 @@ function repairCompilerOwnedSlideCopy(value, context = {}) {
 
 function repairString(value, featureId, parentKey = '', context = {}, path = []) {
   let text = repairCompilerOwnedSlideCopy(repairLegacyOpaqueSourceReferences(value), context);
+  text = text.replace(
+    /\bItem (\d+): add course-aligned, instructor-approved evidence\b/gi,
+    'Check $1: verify this claim from sources',
+  );
+  text = text.replace(
+    /\bUse a course-aligned example and verify its source before publishing\b/gi,
+    'Use the source-supported lesson evidence to test the claim before extending it',
+  );
   text = text.replace(DOUBLE_PERIOD_RE, '$1.');
   text = text.replace(ARTICLE_A_VOWEL_RE, 'an$1$2');
   text = text.replace(FRAMING_ADJECTIVE_DETERMINER_RE, '$1 ');
@@ -720,16 +730,16 @@ function removeOutOfScopeOffenderSentences(value, context = {}) {
 function sourceReviewReplacement(parentKey = '', ordinal = null) {
   const itemNumber = Number.isInteger(ordinal) ? ordinal + 1 : null;
   if (/^(?:title|name|term|lessonTitle|assessmentTitle|assignmentTitle|rubricTitle)$/i.test(parentKey)) {
-    return itemNumber ? `Course-aligned source review ${itemNumber}` : 'Course-aligned source review';
+    return itemNumber ? `Course-aligned evidence review ${itemNumber}` : 'Course-aligned evidence review';
   }
   if (/definition/i.test(parentKey)) {
     return itemNumber
-      ? `Item ${itemNumber}: add a verified, course-aligned definition.`
-      : 'Add an instructor-approved, course-aligned definition and source before publishing.';
+      ? `Check ${itemNumber}: define and source this term.`
+      : 'Define the term from an assigned source and cite the supporting passage or example.';
   }
   return itemNumber
-    ? `Item ${itemNumber}: add course-aligned, instructor-approved evidence.`
-    : 'Use a course-aligned example and verify its source before publishing.';
+    ? `Check ${itemNumber}: verify this claim from sources.`
+    : 'Use the source-supported lesson evidence to test the claim before extending it.';
 }
 
 function worstRepeatedPhrase(node) {
@@ -815,13 +825,35 @@ function repairNode(node, stats, featureId, parentKey = '', context = {}, path =
   if (Array.isArray(node)) {
     let changed = false;
     const next = node.flatMap((item, index) => {
+      if (
+        featureId === 'slideDecks' &&
+        /^rows$/i.test(parentKey) &&
+        Array.isArray(item) &&
+        item.some((cell) => typeof cell === 'string' && LEGACY_SOURCE_REVIEW_DIRECTIVE_RE.test(cell.trim()))
+      ) {
+        stats.changedPaths.add(sourceFactPathKey([...path, index]));
+        changed = true;
+        return [];
+      }
+      if (
+        typeof item === 'string' &&
+        featureId === 'slideDecks' &&
+        /^bullets$/i.test(parentKey) &&
+        LEGACY_SOURCE_REVIEW_DIRECTIVE_RE.test(item.trim())
+      ) {
+        stats.changedPaths.add(sourceFactPathKey([...path, index]));
+        changed = true;
+        return [];
+      }
       if (typeof item === 'string' && knownOffenderIsOutOfScope(item, context)) {
         stats.changedPaths.add(sourceFactPathKey([...path, index]));
         changed = true;
         const remaining = removeOutOfScopeOffenderSentences(item, context);
-        // Preserve collection cardinality and make the intervention explicit.
-        // Silently deleting one list item could make a required section look
-        // complete while hiding that its source was quarantined.
+        if (!remaining && featureId === 'slideDecks' && /^bullets$/i.test(parentKey)) {
+          return [];
+        }
+        // Other collection surfaces retain a finished evidence-check task so
+        // required cardinality is not silently lost; slide bullets are removed.
         return [
           repairString(remaining || sourceReviewReplacement(parentKey, index), featureId, parentKey, context, [
             ...path,

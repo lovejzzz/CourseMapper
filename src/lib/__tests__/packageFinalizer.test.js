@@ -1075,6 +1075,36 @@ describe('packageFinalizer', () => {
       /FAQ has fewer than [35] questions/i,
     );
     expect(configuredFaq.retryActions.filter((action) => action.featureId === 'courseFaq')).toEqual([]);
+
+    const defaultedCompactFaq = runDeterministicPackageFinalizer({
+      courseMap,
+      selectedFeatures: ['courseFaq'],
+      includeClassroomReadiness: false,
+      includePedagogicalValidation: false,
+      retryWarnings: false,
+      deliverableConfig: {
+        courseFaq: { questionsPerLesson: 4, preserveQuestionsAboveTarget: true },
+      },
+      deliverables: {
+        courseFaq: {
+          status: 'done',
+          data: {
+            faqs: [
+              {
+                lessonTitle: 'Lesson 1: Research Topic 1',
+                questions: Array.from({ length: 5 }, (_, index) => ({
+                  question: `How should I apply evidence check ${index + 1}?`,
+                  answer: `Apply check ${index + 1} to the named source and record the result.`,
+                  category: 'Concept Explanation',
+                })),
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    expect(defaultedCompactFaq.deliverables.courseFaq.data.faqs[0].questions).toHaveLength(5);
   });
 
   it('finishes deterministic export issues without requiring a review dead-end', () => {

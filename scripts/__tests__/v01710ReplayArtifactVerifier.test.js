@@ -38,23 +38,43 @@ async function fixture() {
 describe('v0.17.10 replay artifact verifier', () => {
   it('binds the physical ZIP and its embedded quality evidence to the replay receipt', async () => {
     const { receipt, zipBytes } = await fixture();
-    await expect(verifyReplayArtifact({ receipt, zipBytes })).resolves.toMatchObject({ passed: true });
+    await expect(
+      verifyReplayArtifact({ receipt, zipBytes, reproducedZipBytes: [zipBytes, Buffer.from(zipBytes)] }),
+    ).resolves.toMatchObject({ passed: true, freshReproduction: { passed: true } });
   });
 
   it('fails closed when the physical ZIP no longer matches the receipt', async () => {
     const { receipt, zipBytes } = await fixture();
     receipt.retainedPackage.sha256 = '0'.repeat(64);
     receipt.retainedPackage.reproducibility.secondSha256 = '0'.repeat(64);
-    await expect(verifyReplayArtifact({ receipt, zipBytes })).rejects.toThrow(
-      'Retained package does not match replay receipt',
-    );
+    await expect(
+      verifyReplayArtifact({ receipt, zipBytes, reproducedZipBytes: [zipBytes, Buffer.from(zipBytes)] }),
+    ).rejects.toThrow('Retained package does not match replay receipt');
   });
 
   it('fails closed when the replay receipt lacks byte-reproduction proof', async () => {
     const { receipt, zipBytes } = await fixture();
     receipt.retainedPackage.reproducibility.passed = false;
-    await expect(verifyReplayArtifact({ receipt, zipBytes })).rejects.toThrow(
-      'Replay receipt does not prove byte-identical package reproduction',
+    await expect(
+      verifyReplayArtifact({ receipt, zipBytes, reproducedZipBytes: [zipBytes, Buffer.from(zipBytes)] }),
+    ).rejects.toThrow('Replay receipt byte-reproduction attestation is internally inconsistent');
+  });
+
+  it('fails closed unless two fresh package generations are supplied', async () => {
+    const { receipt, zipBytes } = await fixture();
+    await expect(verifyReplayArtifact({ receipt, zipBytes, reproducedZipBytes: [zipBytes] })).rejects.toThrow(
+      'requires two freshly generated package archives',
     );
+  });
+
+  it('fails closed when either fresh generation differs from the retained package', async () => {
+    const { receipt, zipBytes } = await fixture();
+    await expect(
+      verifyReplayArtifact({
+        receipt,
+        zipBytes,
+        reproducedZipBytes: [zipBytes, Buffer.concat([zipBytes, Buffer.from('changed')])],
+      }),
+    ).rejects.toThrow('Fresh replay 2 is not byte-identical');
   });
 });

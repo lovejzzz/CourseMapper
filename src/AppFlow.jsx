@@ -1067,6 +1067,15 @@ export default function AppFlow({
     () => Object.fromEntries(selectedFeatures.map((featureId) => [featureId, deliv.getGenerationConfig(featureId)])),
     [deliverableConfig, deliv.getGenerationConfig, selectedFeatures],
   );
+  const packageDeliverableConfig = useMemo(() => {
+    if (!effectiveDeliverableConfig.courseFaq || deliverableConfig?.courseFaq?.questionsPerLesson !== undefined) {
+      return effectiveDeliverableConfig;
+    }
+    return {
+      ...effectiveDeliverableConfig,
+      courseFaq: { ...effectiveDeliverableConfig.courseFaq, preserveQuestionsAboveTarget: true },
+    };
+  }, [deliverableConfig?.courseFaq?.questionsPerLesson, effectiveDeliverableConfig]);
   const expectedSessionMinutes = useMemo(
     () =>
       resolveRequestedClassSessionMinutes({
@@ -1290,7 +1299,7 @@ export default function AppFlow({
             selectedFeatures: featureIds,
             columns,
             lessonFilter: effectiveLessonFilter,
-            deliverableConfig: effectiveDeliverableConfig,
+            deliverableConfig: packageDeliverableConfig,
             includeClassroomReadiness: true,
             blockOnClassroomWarnings: false,
             includePedagogicalValidation: true,
@@ -2134,7 +2143,7 @@ export default function AppFlow({
       canFinishPackageWithAgent,
       columns,
       commitFinalizerResult,
-      effectiveDeliverableConfig,
+      packageDeliverableConfig,
       expectedSessionMinutes,
       getManifestPipelineState,
       lessonScope.indices,

@@ -15,7 +15,7 @@ function severityCounts(findings) {
   return counts;
 }
 
-export async function verifyReplayArtifact({ receipt, zipBytes }) {
+export async function verifyReplayArtifact({ receipt, zipBytes, reproducedZipBytes = [] }) {
   const expected = receipt?.retainedPackage;
   if (!expected) throw new Error('Replay receipt does not bind a retained package.');
   if (
@@ -23,10 +23,19 @@ export async function verifyReplayArtifact({ receipt, zipBytes }) {
     expected.reproducibility?.secondSha256 !== expected.sha256 ||
     expected.reproducibility?.secondSize !== expected.size
   ) {
-    throw new Error('Replay receipt does not prove byte-identical package reproduction.');
+    throw new Error('Replay receipt byte-reproduction attestation is internally inconsistent.');
   }
 
   const bytes = Buffer.from(zipBytes);
+  const freshReplays = reproducedZipBytes.map((value) => Buffer.from(value));
+  if (freshReplays.length < 2) {
+    throw new Error('Replay verification requires two freshly generated package archives.');
+  }
+  for (const [index, replayBytes] of freshReplays.entries()) {
+    if (!bytes.equals(replayBytes)) {
+      throw new Error(`Fresh replay ${index + 1} is not byte-identical to the retained package.`);
+    }
+  }
   const zip = await JSZip.loadAsync(bytes);
   const regularFiles = Object.values(zip.files).filter((entry) => !entry.dir).length;
   const readinessEntry = zip.file('PACKAGE_READINESS.json');
@@ -68,5 +77,12 @@ export async function verifyReplayArtifact({ receipt, zipBytes }) {
     );
   }
 
-  return { passed: true, package: actual };
+  return {
+    passed: true,
+    package: actual,
+    freshReproduction: {
+      passed: true,
+      runs: freshReplays.map((replayBytes) => ({ sha256: sha256(replayBytes), size: replayBytes.length })),
+    },
+  };
 }

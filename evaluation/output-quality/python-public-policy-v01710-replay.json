@@ -24,9 +24,9 @@
     "repetitionFindings": []
   },
   "retainedPackage": {
-    "file": "edutool-v01710-local-candidate.zip",
-    "sha256": "62b363d4880f4ec4310bae7d719ec4571e1d2813f2553dd7ca9e14d44b21bf0f",
-    "size": 1083859,
+    "file": "edutool-v01710-final-candidate.zip",
+    "sha256": "da0a6c2dbcbff567a2e5171108bf05e2482073c66623394c9d7850384bc2224f",
+    "size": 1083463,
     "files": 61,
     "generatedAt": "2026-08-01T21:48:38.112Z",
     "quality": {
@@ -43,27 +43,27 @@
     },
     "reproducibility": {
       "passed": true,
-      "secondSha256": "62b363d4880f4ec4310bae7d719ec4571e1d2813f2553dd7ca9e14d44b21bf0f",
-      "secondSize": 1083859
+      "secondSha256": "da0a6c2dbcbff567a2e5171108bf05e2482073c66623394c9d7850384bc2224f",
+      "secondSize": 1083463
     }
   },
   "changed": true,
   "repairsApplied": 13,
   "repairMessages": [
-    "Lesson Plans repaired: 47 content-quality seam(s) fixed (deterministic)",
-    "Slide Decks repaired: 90 content-quality seam(s) fixed (deterministic)",
+    "Syllabus repaired: 1 content-quality seam(s) fixed (deterministic)",
+    "Lesson Plans repaired: 52 content-quality seam(s) fixed (deterministic)",
+    "Slide Decks repaired: 99 content-quality seam(s) fixed (deterministic)",
     "Assignment Briefs repaired: 4 content-quality seam(s) fixed (deterministic)",
-    "Rubrics repaired: 10 content-quality seam(s) fixed (deterministic)",
-    "Discussion Prompts repaired: 3 content-quality seam(s) fixed (deterministic)",
-    "Quiz & Exam Bank repaired: 35 content-quality seam(s) fixed (deterministic)",
-    "Study Guides repaired: 37 content-quality seam(s) fixed (deterministic)",
-    "Course FAQ repaired: 6 content-quality seam(s) fixed (deterministic)",
-    "Rubrics repaired: 1 post-readiness content-quality seam(s) fixed (deterministic)"
+    "Rubrics repaired: 12 content-quality seam(s) fixed (deterministic)",
+    "Discussion Prompts repaired: 5 content-quality seam(s) fixed (deterministic)",
+    "Quiz & Exam Bank repaired: 44 content-quality seam(s) fixed (deterministic)",
+    "Study Guides repaired: 43 content-quality seam(s) fixed (deterministic)",
+    "Course FAQ repaired: 7 content-quality seam(s) fixed (deterministic)"
   ],
   "idempotence": {
     "passed": true,
-    "firstSnapshotSha256": "374ed321072dfdd92ba410c4ea14004b676724d825fb24c7e921ff5f91e42852",
-    "secondSnapshotSha256": "374ed321072dfdd92ba410c4ea14004b676724d825fb24c7e921ff5f91e42852",
+    "firstSnapshotSha256": "fbb1f308e671eaf6eeba0702d51ac2e37fa2ac729d4b6b1deb669289bef423e7",
+    "secondSnapshotSha256": "fbb1f308e671eaf6eeba0702d51ac2e37fa2ac729d4b6b1deb669289bef423e7",
     "secondChanged": false,
     "secondRepairMessages": []
   }

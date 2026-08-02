@@ -7,6 +7,7 @@ import {
 } from '../courseBlueprintCompiler.js';
 import {
   beginBlueprintRealizationTrace,
+  lessonVariantPoolHash,
   restoreBlueprintRealizationTrace,
   selectComposedLessonVariant,
 } from '../courseCompilerRealization.js';
@@ -83,6 +84,7 @@ describe('blueprint realization trace', () => {
     );
     expect(contextualEvents.length).toBeGreaterThan(0);
     expect(contextualEvents.every((event) => event.index >= 0 && event.index < event.poolSize)).toBe(true);
+    expect(events.every((event) => /^fnv1a32:[a-z0-9]+$/.test(event.poolHash))).toBe(true);
     expect(events.some((event) => event.consumedSlots.length > 0)).toBe(true);
     expect(legacyEvents.every((event) => /^pool-[a-z0-9]+$/.test(event.poolId))).toBe(true);
     expect(contextualEvents.every((event) => event.poolId === event.ownerId)).toBe(true);
@@ -128,5 +130,22 @@ describe('blueprint realization trace', () => {
 
     expect(new Set(selections).size).toBe(selections.length);
     expect(new Set(selections.map((selection) => selection.split(';')[0])).size).toBeGreaterThan(1);
+  });
+
+  it('binds a composed trace index to the ordered leads, tails, and separator', () => {
+    const leads = ['Lead A', 'Lead B'];
+    const tails = ['tail 1.', 'tail 2.'];
+    const state = beginBlueprintRealizationTrace(true, 'ordered-pool-course');
+    try {
+      selectComposedLessonVariant({ lessonNumber: 2 }, 'test.ordered-pool', leads, tails, ' ');
+    } finally {
+      restoreBlueprintRealizationTrace(state);
+    }
+
+    expect(state.trace).toHaveLength(1);
+    expect(state.trace[0].poolHash).toBe(lessonVariantPoolHash({ kind: 'composed', leads, separator: ' ', tails }));
+    expect(state.trace[0].poolHash).not.toBe(
+      lessonVariantPoolHash({ kind: 'composed', leads, separator: ' ', tails: [...tails].reverse() }),
+    );
   });
 });
