@@ -9,7 +9,7 @@ import { countSourceAdvisoryFindings, countSourceQualityAdvisoryFindings } from 
 // One migration boundary for both receipt production and Export consumption.
 // A one-sided revision bump would otherwise classify every fresh receipt as
 // stale or let obsolete packages bypass the current deterministic finalizer.
-export const CURRENT_FINALIZER_REVISION = 5;
+export const CURRENT_FINALIZER_REVISION = 6;
 const MAX_PACKAGE_RECEIPT_ARRAY_LENGTH = 10_000;
 
 function stablePackageReceiptValueKey(value, ancestors) {

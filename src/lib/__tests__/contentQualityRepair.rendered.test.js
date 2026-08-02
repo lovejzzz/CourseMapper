@@ -73,7 +73,105 @@ async function renderedSlideDeckPackage(dataByLesson) {
   return extractPackage(createMemoryFileProvider(files));
 }
 
+function legacyBoundaryCorrection(term) {
+  return `Correction: Cite the specific definition or fact that supports the ${term} claim, then state what that evidence does not establish.`;
+}
+
+async function renderedBoundaryCorrectionPackage(lessonPlans, studyGuides, slideDecks) {
+  const files = {};
+  for (let index = 0; index < 4; index += 1) {
+    files[`Lesson Plans/Lesson ${index + 1} - Evidence boundary.docx`] = await buildDeliverableDocxBlob(
+      'lessonPlans',
+      lessonPlans[index],
+      'Python for Public Policy Analysis',
+    );
+    files[`Study Guides/Lesson ${index + 1} - Evidence boundary.docx`] = await buildDeliverableDocxBlob(
+      'studyGuides',
+      studyGuides[index],
+      'Python for Public Policy Analysis',
+    );
+    files[`Slide Decks/Lesson ${index + 1} - Evidence boundary.pptx`] = await buildSlideDeckPptxBlob(
+      slideDecks[index],
+      'Python for Public Policy Analysis',
+      0,
+    );
+  }
+  return extractPackage(createMemoryFileProvider(files));
+}
+
 describe('contentQualityRepair rendered package integration', () => {
+  it('clears the production-shaped 38-copy correction P1 across 12 rendered artifacts', async () => {
+    const terms = ['Policy functions', 'Data cleaning', 'Model uncertainty', 'Reproducible reporting'];
+    const lessonPlans = terms.map((term, index) => {
+      const correction = legacyBoundaryCorrection(term);
+      return {
+        lessonPlans: [
+          {
+            lessonTitle: `Lesson ${index + 1}: ${term}`,
+            duration: '75 minutes',
+            outline: [
+              {
+                time: '25 minutes',
+                activity: `${term} evidence clinic`,
+                description: correction,
+                instructorNotes: correction,
+              },
+            ],
+          },
+        ],
+      };
+    });
+    const studyGuides = terms.map((term, index) => {
+      const correction = legacyBoundaryCorrection(term);
+      return {
+        guides: [
+          {
+            lessonTitle: `Lesson ${index + 1}: ${term}`,
+            summary: correction,
+            practiceActivities: [correction, correction],
+          },
+        ],
+      };
+    });
+    const slideDecks = terms.map((term, index) => {
+      const correction = legacyBoundaryCorrection(term);
+      const count = index < 2 ? 5 : 4;
+      return {
+        decks: [
+          {
+            lessonTitle: `Lesson ${index + 1}: ${term}`,
+            slides: Array.from({ length: count }, (_, slideIndex) => ({
+              title: `${term} check ${slideIndex + 1}`,
+              bullets: [correction],
+            })),
+          },
+        ],
+      };
+    });
+
+    const beforePackage = await renderedBoundaryCorrectionPackage(lessonPlans, studyGuides, slideDecks);
+    expect(beforePackage.files).toHaveLength(12);
+    expect(findRepeatedInstructionalPhrase(beforePackage.files)).toMatchObject({
+      phrase: 'correction cite the specific definition or fact that supports the',
+      count: 38,
+      file: 'package (12 files)',
+    });
+
+    const repairedLessonPlans = lessonPlans.map((data) => repairDeliverableContentQuality('lessonPlans', data).data);
+    const repairedStudyGuides = studyGuides.map((data) => repairDeliverableContentQuality('studyGuides', data).data);
+    const repairedSlideDecks = slideDecks.map((data) => repairDeliverableContentQuality('slideDecks', data).data);
+    const afterPackage = await renderedBoundaryCorrectionPackage(
+      repairedLessonPlans,
+      repairedStudyGuides,
+      repairedSlideDecks,
+    );
+
+    expect(findRepeatedInstructionalPhrase(afterPackage.files)).toBeNull();
+    expect(afterPackage.files.map((file) => file.text).join('\n')).not.toContain(
+      'Cite the specific definition or fact',
+    );
+  });
+
   it('removes a real cross-DOCX source-fact P1 without hiding the source evidence', async () => {
     const original = Array.from({ length: 7 }, (_, index) => ({
       plans: [{ lessonTitle: `Stale legacy plan ${index + 1}` }],

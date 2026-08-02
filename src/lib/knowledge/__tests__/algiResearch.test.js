@@ -640,8 +640,7 @@ describe('teaching atoms from the source (gap 3)', () => {
 
     expect(built.kernel.misconceptions[0]).toEqual({
       text: 'Naming Web accessibility without identifying a supporting source detail is sufficient evidence.',
-      corrective:
-        'Cite the specific definition or fact that supports the Web accessibility claim, then state what that evidence does not establish.',
+      corrective: 'Web accessibility: cite supporting evidence and name its limit.',
     });
     expect(built.kernel.misconceptions[0].corrective).not.toBe(built.kernel.definition.text);
   });

@@ -25,6 +25,7 @@ import {
   knownOffenderFitsScope,
   matchesKnownOffender,
 } from './quality/knownOffenderScope.js';
+import { buildCompilerSourceBoundaryCorrection } from './compilerSourceBoundaryCorrection.js';
 
 // Contract word bounds (scionContracts.compactLessonKernelSchemaProfile).
 const FACT_WORDS = [8, 20];
@@ -1588,7 +1589,7 @@ export function expandResearchKernelsForComposition(kernels = [], topic = '') {
           misconceptions: [
             {
               text: `Naming ${term} without identifying a supporting source detail is sufficient evidence.`,
-              corrective: `Cite the specific definition or fact that supports the ${term} claim, then state what that evidence does not establish.`,
+              corrective: buildCompilerSourceBoundaryCorrection(term),
             },
           ],
           examples: supportingFacts.slice(0, 2).map((entry) => ({

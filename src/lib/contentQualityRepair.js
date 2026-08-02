@@ -13,6 +13,7 @@
 
 import { isProvenanceMirrorKey } from './compiledLanguageFinalizer.js';
 import { compactCompilerOwnedAssessmentIdentity } from './compilerAssessmentIdentity.js';
+import { compactLegacyCompilerSourceBoundaryCorrection } from './compilerSourceBoundaryCorrection.js';
 import { hasDanglingClauseSeam } from './contentQualityChecks.js';
 import { semanticIdentityTokens } from './lessonSemanticRelevance.js';
 import { knownOffenderFitsScope, matchesKnownOffender } from './quality/knownOffenderScope.js';
@@ -452,6 +453,10 @@ function repairString(value, featureId, parentKey = '') {
   // legacy package does not repeat the complete direction in every note,
   // accessibility cue, rubric link, and study prompt.
   text = compactCompilerOwnedAssessmentIdentity(text);
+  // Finalizer revision 6 migrates the exact generic fallback that a production
+  // package repeated 38 times across 12 files. The compact form preserves the
+  // evidence-boundary instruction while putting each concept first.
+  text = compactLegacyCompilerSourceBoundaryCorrection(text);
   text = VERBOSE_SOURCE_FACT_REPAIRS.reduce(
     (current, [pattern, replacement]) => current.replace(pattern, replacement),
     text,

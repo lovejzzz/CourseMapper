@@ -38,6 +38,7 @@ import { admitKernel } from '../genome/foundryAdmission';
 import { attachKernelEntailmentReceipt } from './claimEntailment.js';
 import { providerQueryForLesson, providerSupportsLesson } from './algiResearchPlan.js';
 import { isCourseAwareWeakSource } from './sourceLedger.js';
+import { buildCompilerSourceBoundaryCorrection } from '../compilerSourceBoundaryCorrection.js';
 
 export const RESEARCH_ORIGIN = 'algi-research';
 
@@ -1655,7 +1656,7 @@ export function buildKernelFromArticle({ topic, title, extract, provider, factCo
           : [
               {
                 text: `Naming ${head} without identifying a supporting source detail is sufficient evidence.`,
-                corrective: `Cite the specific definition or fact that supports the ${head} claim, then state what that evidence does not establish.`,
+                corrective: buildCompilerSourceBoundaryCorrection(head),
               },
             ],
       examples:

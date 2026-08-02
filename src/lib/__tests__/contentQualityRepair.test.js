@@ -428,6 +428,39 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     });
   });
 
+  it('migrates only the exact legacy source-boundary correction and is idempotent', () => {
+    const legacy =
+      'Cite the specific definition or fact that supports the Statistical Modeling claim, then state what that evidence does not establish.';
+    const instructorAuthored =
+      'Cite the specific definition or fact supporting the Statistical Modeling claim, then discuss its limits.';
+    const data = {
+      lessonPlans: [
+        {
+          misconception: legacy,
+          note: `Before transfer, ${legacy}`,
+          instructorAuthored,
+          provenance: { quote: legacy },
+        },
+      ],
+    };
+
+    const result = repairDeliverableContentQuality('lessonPlans', data);
+
+    expect(result.changed).toBe(true);
+    expect(result.repairedStrings).toBe(2);
+    expect(result.data.lessonPlans[0]).toEqual({
+      misconception: 'Statistical Modeling: cite supporting evidence and name its limit.',
+      note: 'Before transfer, Statistical Modeling: cite supporting evidence and name its limit.',
+      instructorAuthored,
+      provenance: { quote: legacy },
+    });
+    expect(repairDeliverableContentQuality('lessonPlans', result.data)).toMatchObject({
+      data: result.data,
+      changed: false,
+      repairedStrings: 0,
+    });
+  });
+
   it('compacts a production-observed verbose source fact before it fans out across exports', () => {
     const verboseFact = 'Functions in Python allow for the creation of reusable blocks of code for analysis';
     const data = {
