@@ -11,6 +11,8 @@ import { generateCourseHealthReport } from './pedagogicalValidator';
 import { repairMisappliedObservationProtocols } from './observationProtocols';
 import { normalizeReadinessIssue, normalizeReadinessIssues } from './readinessIssueSchema';
 import { compactCompilerOwnedAssessmentIdentity } from './compilerAssessmentIdentity';
+import { collectCompilerSourceBoundaryCorrections } from './compilerSourceBoundaryCorrection';
+import { collectCompilerScenarioMaterials } from './compilerScenarioMaterials';
 import { compactAssignmentBriefBodyReferences } from './courseCompilerCopyVariants';
 import { countAdvisoryQualityFindings, countBlockingQualityFindings } from './qualityFindingPolicy';
 
@@ -384,6 +386,7 @@ function repairAssignmentBriefTextureFromCourseMap(courseMap, deliverables = {})
 
 function applyDeterministicRepairs({
   courseMap,
+  courseGraph = null,
   sourceBrief = '',
   deliverables = {},
   selectedFeatures = null,
@@ -520,6 +523,8 @@ function applyDeterministicRepairs({
     .filter((value) => typeof value === 'string' && value.trim())
     .join(' ');
   const sourceFacts = collectDeliverableSourceFacts(nextDeliverables, contentFeatureIds);
+  const compilerSourceBoundaryCorrections = collectCompilerSourceBoundaryCorrections(courseGraph);
+  const compilerScenarioMaterials = collectCompilerScenarioMaterials(courseGraph);
   for (const featureId of contentFeatureIds) {
     let entry = nextDeliverables?.[featureId];
     if (entry?.status !== 'done' || !entry.data) continue;
@@ -547,6 +552,8 @@ function applyDeterministicRepairs({
       sourceBrief,
       courseScope: trustedCourseScope,
       sourceFacts,
+      compilerSourceBoundaryCorrections,
+      compilerScenarioMaterials,
     });
     if (!contentRepair.changed) continue;
     if (nextDeliverables === deliverables) nextDeliverables = { ...deliverables };
@@ -941,6 +948,7 @@ export function runDeterministicPackageFinalizer({
 } = {}) {
   const repairResult = applyDeterministicRepairs({
     courseMap,
+    courseGraph,
     sourceBrief,
     deliverables,
     selectedFeatures,

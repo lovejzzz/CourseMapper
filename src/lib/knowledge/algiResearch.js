@@ -1656,7 +1656,10 @@ export function buildKernelFromArticle({ topic, title, extract, provider, factCo
           : [
               {
                 text: `Naming ${head} without identifying a supporting source detail is sufficient evidence.`,
-                corrective: buildCompilerSourceBoundaryCorrection(head),
+                corrective: buildCompilerSourceBoundaryCorrection(
+                  head,
+                  `${sourceMeta.providerId || provider.id || 'source'}:${title}:${head}`,
+                ),
               },
             ],
       examples:

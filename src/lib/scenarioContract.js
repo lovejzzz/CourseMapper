@@ -1,3 +1,5 @@
+import { buildDataScenarioMaterials } from './compilerScenarioMaterials.js';
+
 const GENERIC_MATERIALS_RE =
   /^(?:the\s+)?(?:scenario|case|lesson|course|source)?\s*(?:evidence|materials?|example|data|text|artifact)s?\.?$/i;
 
@@ -195,10 +197,10 @@ function scenarioEvidencePacket(kernel, term, facts) {
       context,
     )
   ) {
+    const seed = [term?.term, term?.definition, term?.example, ...facts].map(text).join('|');
     return {
-      compact:
-        'the supplied data records behind Claim A and Claim B, the transformation log, and the claim under review',
-      general: 'the supplied dataset record, transformation log, competing claims, and documented uncertainty',
+      compact: buildDataScenarioMaterials(term?.term, seed, { compact: true }),
+      general: buildDataScenarioMaterials(term?.term, seed),
     };
   }
   if (

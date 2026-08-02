@@ -199,6 +199,18 @@ describe('packageZipExporter', () => {
 
     expect(result.manifest.pipeline).toBeUndefined();
     expect(JSON.stringify(result.manifest)).not.toContain('not evaluated (0 genome-linked lessons)');
+    expect(result.manifest.lessons).toEqual([
+      {
+        lessonNumber: 1,
+        title: 'Lesson 1: Export Reliability',
+        objectives: ['Verify exports.'],
+      },
+      {
+        lessonNumber: 2,
+        title: 'Lesson 2: Portable Course Materials',
+        objectives: ['Package files.'],
+      },
+    ]);
   });
 
   it('embeds truthful run, Scion base, and export-verification provenance in the manifest', async () => {

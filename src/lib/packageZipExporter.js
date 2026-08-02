@@ -1880,6 +1880,24 @@ function buildManifest({
   };
 }
 
+function manifestLessonObjectives(lesson) {
+  const values = [
+    lesson?.learningObjectives,
+    lesson?.objectives,
+    ...(Array.isArray(lesson?.sections)
+      ? lesson.sections.flatMap((section) => [section?.learningObjectives, section?.objectives])
+      : []),
+  ];
+  return [
+    ...new Set(
+      values
+        .flatMap((value) => (Array.isArray(value) ? value : String(value || '').split(/\n+/)))
+        .map((value) => String(value || '').trim())
+        .filter(Boolean),
+    ),
+  ];
+}
+
 export async function buildCourseMaterialsZip({
   deliverables = {},
   courseMap,
@@ -2287,6 +2305,7 @@ export async function buildCourseMaterialsZip({
     lessons: lessonIndices.map((lessonIndex, index) => ({
       lessonNumber: lessonNumbers[index],
       title: String(courseMap?.lessons?.[lessonIndex]?.title || '').trim(),
+      objectives: manifestLessonObjectives(courseMap?.lessons?.[lessonIndex]),
     })),
     readiness: effectiveReadiness,
     files,

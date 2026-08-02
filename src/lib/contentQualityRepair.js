@@ -14,6 +14,7 @@
 import { isProvenanceMirrorKey } from './compiledLanguageFinalizer.js';
 import { compactCompilerOwnedAssessmentIdentity } from './compilerAssessmentIdentity.js';
 import { compactLegacyCompilerSourceBoundaryCorrection } from './compilerSourceBoundaryCorrection.js';
+import { compactCompilerScenarioMaterials } from './compilerScenarioMaterials.js';
 import { hasDanglingClauseSeam } from './contentQualityChecks.js';
 import { semanticIdentityTokens } from './lessonSemanticRelevance.js';
 import { knownOffenderFitsScope, matchesKnownOffender } from './quality/knownOffenderScope.js';
@@ -427,7 +428,7 @@ function repairAssignmentDeferrals(value) {
   );
 }
 
-function repairString(value, featureId, parentKey = '') {
+function repairString(value, featureId, parentKey = '', context = {}, path = []) {
   let text = value;
   text = text.replace(DOUBLE_PERIOD_RE, '$1.');
   text = text.replace(ARTICLE_A_VOWEL_RE, 'an$1$2');
@@ -456,7 +457,16 @@ function repairString(value, featureId, parentKey = '') {
   // Finalizer revision 6 migrates the exact generic fallback that a production
   // package repeated 38 times across 12 files. The compact form preserves the
   // evidence-boundary instruction while putting each concept first.
-  text = compactLegacyCompilerSourceBoundaryCorrection(text);
+  text = compactLegacyCompilerSourceBoundaryCorrection(text, {
+    authorizedCorrections: context.compilerSourceBoundaryCorrections,
+    variantSeed: `${featureId}:${sourceFactPathKey(path)}`,
+    artifactKey: `${featureId}:${sourceFactPathKey(path.slice(0, 2)) || 'document'}`,
+    usageCounts: context.compilerSourceBoundaryCorrectionUsage,
+  });
+  text = compactCompilerScenarioMaterials(text, {
+    authorizedMaterials: context.compilerScenarioMaterials,
+    variantSeed: `${featureId}:${sourceFactPathKey(path)}`,
+  });
   text = VERBOSE_SOURCE_FACT_REPAIRS.reduce(
     (current, [pattern, replacement]) => current.replace(pattern, replacement),
     text,
@@ -558,9 +568,9 @@ function repairNode(node, stats, featureId, parentKey = '', context = {}, path =
     if (knownOffenderIsOutOfScope(node, context)) {
       stats.changedPaths.add(sourceFactPathKey(path));
       const remaining = removeOutOfScopeOffenderSentences(node, context);
-      return repairString(remaining || sourceReviewReplacement(parentKey), featureId, parentKey);
+      return repairString(remaining || sourceReviewReplacement(parentKey), featureId, parentKey, context, path);
     }
-    const repaired = repairString(node, featureId, parentKey);
+    const repaired = repairString(node, featureId, parentKey, context, path);
     if (repaired !== node) stats.changedPaths.add(sourceFactPathKey(path));
     return repaired;
   }
@@ -574,7 +584,12 @@ function repairNode(node, stats, featureId, parentKey = '', context = {}, path =
         // Preserve collection cardinality and make the intervention explicit.
         // Silently deleting one list item could make a required section look
         // complete while hiding that its source was quarantined.
-        return [repairString(remaining || sourceReviewReplacement(parentKey, index), featureId, parentKey)];
+        return [
+          repairString(remaining || sourceReviewReplacement(parentKey, index), featureId, parentKey, context, [
+            ...path,
+            index,
+          ]),
+        ];
       }
       const repaired = repairNode(item, stats, featureId, parentKey, context, [...path, index]);
       if (repaired !== item) changed = true;
@@ -646,11 +661,15 @@ function repairRenderedContentAuthority(featureId, data, stats, context) {
 export function repairDeliverableContentQuality(featureId, data, context = {}) {
   if (!data || typeof data !== 'object') return { data, changed: false, repairedStrings: 0 };
   const stats = { changedPaths: new Set(), repairedPhrases: 0 };
+  const repairContext = {
+    ...context,
+    compilerSourceBoundaryCorrectionUsage: new Map(),
+  };
   // Quarantine unsafe source material before deduplicating valid claims. If
   // the order were reversed, excess copies of an unsafe fact could become
   // generic "cited source claim" references and survive after the only full
   // offender was removed.
-  const seamRepaired = repairRenderedContentAuthority(featureId, data, stats, context);
+  const seamRepaired = repairRenderedContentAuthority(featureId, data, stats, repairContext);
   const sourceFactRepaired = repairRepeatedSourceFactFanOut(featureId, seamRepaired, context.sourceFacts, stats);
   const repeated = worstRepeatedPhrase(renderedDeliverableContentRoot(featureId, sourceFactRepaired));
   // Repetition is a diagnostic for the compiler or a targeted regeneration,

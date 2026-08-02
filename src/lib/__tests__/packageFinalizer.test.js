@@ -82,6 +82,46 @@ function makeIntroPsychCourseMap(lessonCount = 15) {
 }
 
 describe('packageFinalizer', () => {
+  it('requires CourseGraph research lineage before migrating a legacy compiler correction', () => {
+    const legacy =
+      'Cite the specific definition or fact that supports the Statistical Modeling claim, then state what that evidence does not establish.';
+    const deliverables = {
+      lessonPlans: {
+        status: 'done',
+        data: { lessonPlans: [{ lessonTitle: 'Lesson 1: Modeling', instructorDirection: legacy }] },
+      },
+    };
+    const baseOptions = {
+      courseMap: makeCourseMap(1),
+      selectedFeatures: ['lessonPlans'],
+      deliverables,
+      includeClassroomReadiness: false,
+      includePedagogicalValidation: false,
+      retryWarnings: false,
+    };
+
+    const withoutLineage = runDeterministicPackageFinalizer(baseOptions);
+    expect(withoutLineage.deliverables.lessonPlans.data.lessonPlans[0].instructorDirection).toBe(legacy);
+
+    const withLineage = runDeterministicPackageFinalizer({
+      ...baseOptions,
+      courseGraph: {
+        enrichmentOverlay: {
+          lessonContent: {
+            'lesson-1': {
+              enrichmentSource: 'scion-source-researched',
+              conceptProvenance: { source: 'algi-researched' },
+              keyTerms: [{ term: 'Statistical Modeling', correction: legacy }],
+            },
+          },
+        },
+      },
+    });
+    const migrated = withLineage.deliverables.lessonPlans.data.lessonPlans[0].instructorDirection;
+    expect(migrated).toMatch(/^Statistical Modeling:/);
+    expect(migrated).not.toContain('Cite the specific definition or fact');
+  });
+
   it('does not let stale aliases or failed and unselected ledgers rewrite canonical rendered content', async () => {
     const fact =
       'Conditional branching logic allows programs to execute different blocks of code based on specified conditions.';

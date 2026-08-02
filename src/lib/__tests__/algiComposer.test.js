@@ -955,13 +955,12 @@ describe('Algi V0 source receipts', () => {
       'Public transparency',
       'Institutional review',
     ]);
-    expect(expanded.slice(1).map((entry) => entry.misconceptions[0].corrective)).toEqual([
-      'Algorithmic accountability: cite supporting evidence and name its limit.',
-      'Impact assessment: cite supporting evidence and name its limit.',
-      'Platform oversight: cite supporting evidence and name its limit.',
-      'Public transparency: cite supporting evidence and name its limit.',
-      'Institutional review: cite supporting evidence and name its limit.',
-    ]);
+    const expandedCorrections = expanded.slice(1).map((entry) => entry.misconceptions[0].corrective);
+    expect(new Set(expandedCorrections).size).toBe(5);
+    expanded.slice(1).forEach((entry) => {
+      expect(entry.misconceptions[0].corrective).toMatch(new RegExp(`^${entry.term}:`));
+      expect(entry.misconceptions[0].corrective).not.toContain('Cite the specific definition or fact');
+    });
     const payload = composeLessonFromCandidateKernels({ lessonId: 'lesson-1', title: 'AI governance' }, expanded, {
       factCount: 5,
     });

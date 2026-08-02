@@ -148,6 +148,9 @@ describe('contentQualityRepair rendered package integration', () => {
         ],
       };
     });
+    const compilerSourceBoundaryCorrections = new Map(
+      terms.map((term) => [legacyBoundaryCorrection(term).replace(/^Correction: /, ''), term]),
+    );
 
     const beforePackage = await renderedBoundaryCorrectionPackage(lessonPlans, studyGuides, slideDecks);
     expect(beforePackage.files).toHaveLength(12);
@@ -157,9 +160,15 @@ describe('contentQualityRepair rendered package integration', () => {
       file: 'package (12 files)',
     });
 
-    const repairedLessonPlans = lessonPlans.map((data) => repairDeliverableContentQuality('lessonPlans', data).data);
-    const repairedStudyGuides = studyGuides.map((data) => repairDeliverableContentQuality('studyGuides', data).data);
-    const repairedSlideDecks = slideDecks.map((data) => repairDeliverableContentQuality('slideDecks', data).data);
+    const repairedLessonPlans = lessonPlans.map(
+      (data) => repairDeliverableContentQuality('lessonPlans', data, { compilerSourceBoundaryCorrections }).data,
+    );
+    const repairedStudyGuides = studyGuides.map(
+      (data) => repairDeliverableContentQuality('studyGuides', data, { compilerSourceBoundaryCorrections }).data,
+    );
+    const repairedSlideDecks = slideDecks.map(
+      (data) => repairDeliverableContentQuality('slideDecks', data, { compilerSourceBoundaryCorrections }).data,
+    );
     const afterPackage = await renderedBoundaryCorrectionPackage(
       repairedLessonPlans,
       repairedStudyGuides,
@@ -167,9 +176,14 @@ describe('contentQualityRepair rendered package integration', () => {
     );
 
     expect(findRepeatedInstructionalPhrase(afterPackage.files)).toBeNull();
-    expect(afterPackage.files.map((file) => file.text).join('\n')).not.toContain(
-      'Cite the specific definition or fact',
-    );
+    const afterText = afterPackage.files.map((file) => file.text).join('\n');
+    expect(afterText).not.toContain('Cite the specific definition or fact');
+    expect(
+      afterText.match(
+        /(?:cite its supporting source|connect evidence to the claim|identify the supporting fact|show the source basis|justify the claim from evidence|point to a supporting definition)/gi,
+      ),
+    ).toHaveLength(12);
+    expect(afterText.match(/evidence-boundary check/gi)).toHaveLength(26);
   });
 
   it('removes a real cross-DOCX source-fact P1 without hiding the source evidence', async () => {

@@ -1589,7 +1589,10 @@ export function expandResearchKernelsForComposition(kernels = [], topic = '') {
           misconceptions: [
             {
               text: `Naming ${term} without identifying a supporting source detail is sufficient evidence.`,
-              corrective: buildCompilerSourceBoundaryCorrection(term),
+              corrective: buildCompilerSourceBoundaryCorrection(
+                term,
+                `${kernel.id}/claim-${claimIndex + 1}-${expanded.length + 1}`,
+              ),
             },
           ],
           examples: supportingFacts.slice(0, 2).map((entry) => ({
