@@ -387,4 +387,57 @@ describe('prepareProjectSnapshotForRestore', () => {
       expect(restored).not.toHaveProperty('lastRunDigest');
     },
   );
+
+  it('fails closed when the complete project snapshot is a revoked proxy', () => {
+    const revoked = Proxy.revocable(
+      {
+        courseMap: { lessons: [] },
+        packageQualityPass: {
+          status: 'ready',
+          receipt: { exportChecked: 11 },
+        },
+      },
+      {},
+    );
+    revoked.revoke();
+
+    expect(() => prepareProjectSnapshotForRestore(revoked.proxy)).not.toThrow();
+    expect(prepareProjectSnapshotForRestore(revoked.proxy)).toMatchObject({ formatVersion: 1 });
+  });
+
+  it('drops a digest-only accessor before recursive sanitation can read it', () => {
+    let reads = 0;
+    const snapshot = { courseMap: { lessons: [] } };
+    Object.defineProperty(snapshot, 'lastRunDigest', {
+      enumerable: true,
+      get() {
+        reads += 1;
+        throw new Error('lastRunDigest getter executed');
+      },
+    });
+
+    const restored = prepareProjectSnapshotForRestore(snapshot);
+    expect(reads).toBe(0);
+    expect(restored).not.toHaveProperty('lastRunDigest');
+  });
+
+  it('drops a digest-only proxy without semantically reading it', () => {
+    let reads = 0;
+    const digest = new Proxy(
+      { finishRunId: 'proxy-run' },
+      {
+        get(target, property, receiver) {
+          reads += 1;
+          return Reflect.get(target, property, receiver);
+        },
+      },
+    );
+
+    const restored = prepareProjectSnapshotForRestore({
+      courseMap: { lessons: [] },
+      lastRunDigest: digest,
+    });
+    expect(reads).toBe(0);
+    expect(restored).not.toHaveProperty('lastRunDigest');
+  });
 });

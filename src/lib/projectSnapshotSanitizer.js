@@ -162,43 +162,49 @@ export function restoreProjectGenerationConstraints(snapshot) {
 }
 
 export function prepareProjectSnapshotForRestore(snapshot) {
-  const sourceSnapshot = snapshot || {};
+  let sourceSnapshot = snapshot || {};
   let snapshotWithAdmittedPackageEvidence = sourceSnapshot;
-  if (sourceSnapshot && typeof sourceSnapshot === 'object' && !Array.isArray(sourceSnapshot)) {
-    const descriptors = Object.getOwnPropertyDescriptors(sourceSnapshot);
-    const packageDescriptor = descriptors.packageQualityPass;
-    const digestDescriptor = descriptors.lastRunDigest;
-    if (packageDescriptor) {
-      const packageQualityPass = Object.prototype.hasOwnProperty.call(packageDescriptor, 'value')
-        ? packageDescriptor.value
-        : null;
-      const lastRunDigest =
-        digestDescriptor && Object.prototype.hasOwnProperty.call(digestDescriptor, 'value')
-          ? digestDescriptor.value
-          : null;
-      const selected = selectPersistablePackageEvidence({ packageQualityPass, lastRunDigest });
-      if (selected.packageQualityPass) {
-        descriptors.packageQualityPass = {
-          value: selected.packageQualityPass,
-          enumerable: true,
-          writable: true,
-          configurable: true,
-        };
-      } else {
-        delete descriptors.packageQualityPass;
+  try {
+    if (sourceSnapshot && typeof sourceSnapshot === 'object' && !Array.isArray(sourceSnapshot)) {
+      const descriptors = Object.getOwnPropertyDescriptors(sourceSnapshot);
+      const packageDescriptor = descriptors.packageQualityPass;
+      const digestDescriptor = descriptors.lastRunDigest;
+      if (packageDescriptor || digestDescriptor) {
+        const packageQualityPass =
+          packageDescriptor && Object.prototype.hasOwnProperty.call(packageDescriptor, 'value')
+            ? packageDescriptor.value
+            : null;
+        const lastRunDigest =
+          digestDescriptor && Object.prototype.hasOwnProperty.call(digestDescriptor, 'value')
+            ? digestDescriptor.value
+            : null;
+        const selected = selectPersistablePackageEvidence({ packageQualityPass, lastRunDigest });
+        if (selected.packageQualityPass) {
+          descriptors.packageQualityPass = {
+            value: selected.packageQualityPass,
+            enumerable: true,
+            writable: true,
+            configurable: true,
+          };
+        } else {
+          delete descriptors.packageQualityPass;
+        }
+        if (selected.lastRunDigest) {
+          descriptors.lastRunDigest = {
+            value: selected.lastRunDigest,
+            enumerable: true,
+            writable: true,
+            configurable: true,
+          };
+        } else {
+          delete descriptors.lastRunDigest;
+        }
+        snapshotWithAdmittedPackageEvidence = Object.create(Object.getPrototypeOf(sourceSnapshot), descriptors);
       }
-      if (selected.lastRunDigest) {
-        descriptors.lastRunDigest = {
-          value: selected.lastRunDigest,
-          enumerable: true,
-          writable: true,
-          configurable: true,
-        };
-      } else {
-        delete descriptors.lastRunDigest;
-      }
-      snapshotWithAdmittedPackageEvidence = Object.create(Object.getPrototypeOf(sourceSnapshot), descriptors);
     }
+  } catch {
+    sourceSnapshot = {};
+    snapshotWithAdmittedPackageEvidence = sourceSnapshot;
   }
   const restored = sanitizeProjectSnapshot(snapshotWithAdmittedPackageEvidence);
   if (!restored.formatVersion) restored.formatVersion = 1;
