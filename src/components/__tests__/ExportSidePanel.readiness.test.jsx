@@ -1080,6 +1080,19 @@ describe('ExportSidePanel readiness repair timing', () => {
         },
       ],
     ),
+    ...['exportVerification', 'downloadSafety'].map((field) => [
+      `throwing nested ${field} accessor`,
+      (receipt) => {
+        const packageReadinessReceipt = {};
+        Object.defineProperty(packageReadinessReceipt, field, {
+          enumerable: true,
+          get() {
+            throw new Error(`${field} getter executed`);
+          },
+        });
+        return { ...receipt, packageReadinessReceipt };
+      },
+    ]),
   ])('tombstones an unsupported %s receipt until explicit finalization', async (_label, makeInvalidReceipt) => {
     const { props, liveCourseMap, quality, receiptB, onFinishPackage } = await prepareReceiptHandoff();
     await renderPanel({

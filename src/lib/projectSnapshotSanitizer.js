@@ -1,5 +1,6 @@
 import { detectRequestedClassSessionMinutes, parseClassSessionMinutes } from './sourceBriefConstraints';
 import { renderedDeliverableCollection } from './renderedDeliverableRoot.js';
+import { selectPersistablePackageEvidence } from './packageQualityPersistence.js';
 
 const SECRET_FIELD_NAMES = new Set([
   'apikey',
@@ -161,7 +162,45 @@ export function restoreProjectGenerationConstraints(snapshot) {
 }
 
 export function prepareProjectSnapshotForRestore(snapshot) {
-  const restored = sanitizeProjectSnapshot(snapshot || {});
+  const sourceSnapshot = snapshot || {};
+  let snapshotWithAdmittedPackageEvidence = sourceSnapshot;
+  if (sourceSnapshot && typeof sourceSnapshot === 'object' && !Array.isArray(sourceSnapshot)) {
+    const descriptors = Object.getOwnPropertyDescriptors(sourceSnapshot);
+    const packageDescriptor = descriptors.packageQualityPass;
+    const digestDescriptor = descriptors.lastRunDigest;
+    if (packageDescriptor) {
+      const packageQualityPass = Object.prototype.hasOwnProperty.call(packageDescriptor, 'value')
+        ? packageDescriptor.value
+        : null;
+      const lastRunDigest =
+        digestDescriptor && Object.prototype.hasOwnProperty.call(digestDescriptor, 'value')
+          ? digestDescriptor.value
+          : null;
+      const selected = selectPersistablePackageEvidence({ packageQualityPass, lastRunDigest });
+      if (selected.packageQualityPass) {
+        descriptors.packageQualityPass = {
+          value: selected.packageQualityPass,
+          enumerable: true,
+          writable: true,
+          configurable: true,
+        };
+      } else {
+        delete descriptors.packageQualityPass;
+      }
+      if (selected.lastRunDigest) {
+        descriptors.lastRunDigest = {
+          value: selected.lastRunDigest,
+          enumerable: true,
+          writable: true,
+          configurable: true,
+        };
+      } else {
+        delete descriptors.lastRunDigest;
+      }
+      snapshotWithAdmittedPackageEvidence = Object.create(Object.getPrototypeOf(sourceSnapshot), descriptors);
+    }
+  }
+  const restored = sanitizeProjectSnapshot(snapshotWithAdmittedPackageEvidence);
   if (!restored.formatVersion) restored.formatVersion = 1;
   // v0.13.1: cloud snapshots carry the course graph as a JSON string
   // (Firestore rejects nested arrays anywhere in a document, and the graph's

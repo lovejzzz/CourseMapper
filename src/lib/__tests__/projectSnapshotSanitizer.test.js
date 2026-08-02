@@ -292,4 +292,59 @@ describe('prepareProjectSnapshotForRestore', () => {
       },
     });
   });
+
+  it.each([
+    ...[
+      'exportFailed',
+      'exportStatus',
+      'finalizerRevision',
+      'packageReadinessReceipt',
+      'exportChecked',
+      'autoFixedCount',
+    ].map((field) => [
+      field,
+      (onRead) => {
+        const receipt = { exportChecked: 11 };
+        Object.defineProperty(receipt, field, {
+          enumerable: true,
+          get() {
+            onRead();
+            throw new Error(`${field} getter executed`);
+          },
+        });
+        return receipt;
+      },
+    ]),
+    ...['exportVerification', 'downloadSafety'].map((field) => [
+      `nested ${field}`,
+      (onRead) => {
+        const packageReadinessReceipt = {};
+        Object.defineProperty(packageReadinessReceipt, field, {
+          enumerable: true,
+          get() {
+            onRead();
+            throw new Error(`${field} getter executed`);
+          },
+        });
+        return { exportChecked: 11, packageReadinessReceipt };
+      },
+    ]),
+  ])('drops invalid package evidence before restore sanitation can read %s', (_label, makeReceipt) => {
+    let reads = 0;
+    const restored = prepareProjectSnapshotForRestore({
+      courseMap: { lessons: [] },
+      packageQualityPass: {
+        status: 'ready',
+        quality: { status: 'graded', score: 100, grade: 'A' },
+        receipt: makeReceipt(() => {
+          reads += 1;
+        }),
+      },
+      lastRunDigest: { finishRunId: 'invalid-receipt' },
+    });
+
+    expect(reads).toBe(0);
+    expect(restored).not.toHaveProperty('packageQualityPass');
+    expect(restored).not.toHaveProperty('lastRunDigest');
+  });
 });
