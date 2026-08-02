@@ -13,7 +13,7 @@
   },
   "afterQuality": {
     "status": "graded",
-    "graderVersion": "1.15.4",
+    "graderVersion": "1.15.5",
     "score": 97,
     "grade": "A",
     "findingCounts": {
@@ -24,14 +24,14 @@
     "repetitionFindings": []
   },
   "retainedPackage": {
-    "file": "edutool-v01710-final-candidate.zip",
-    "sha256": "00c2b5c3438aa6331e844af6d15a61279dbab9838c2c160652ca464f52bba9fd",
-    "size": 1073862,
+    "file": "edutool-v01710-repaired-candidate-v6.zip",
+    "sha256": "9e59c09f8f26cdf343ef41fb50e1421e423ff42dd9668f94ebe0d193825fcd2b",
+    "size": 1072702,
     "files": 61,
     "generatedAt": "2026-08-01T21:48:38.112Z",
     "quality": {
       "status": "graded",
-      "graderVersion": "1.15.4",
+      "graderVersion": "1.15.5",
       "score": 97,
       "grade": "A",
       "findingCounts": {
@@ -43,8 +43,8 @@
     },
     "reproducibility": {
       "passed": true,
-      "secondSha256": "00c2b5c3438aa6331e844af6d15a61279dbab9838c2c160652ca464f52bba9fd",
-      "secondSize": 1073862
+      "secondSha256": "9e59c09f8f26cdf343ef41fb50e1421e423ff42dd9668f94ebe0d193825fcd2b",
+      "secondSize": 1072702
     }
   },
   "changed": true,
@@ -56,14 +56,14 @@
     "Assignment Briefs repaired: 8 content-quality seam(s) fixed (deterministic)",
     "Rubrics repaired: 15 content-quality seam(s) fixed (deterministic)",
     "Discussion Prompts repaired: 17 content-quality seam(s) fixed (deterministic)",
-    "Quiz & Exam Bank repaired: 94 content-quality seam(s) fixed (deterministic)",
+    "Quiz & Exam Bank repaired: 85 content-quality seam(s) fixed (deterministic)",
     "Study Guides repaired: 62 content-quality seam(s) fixed (deterministic)",
-    "Course FAQ repaired: 18 content-quality seam(s) fixed (deterministic)"
+    "Course FAQ repaired: 29 content-quality seam(s) fixed (deterministic)"
   ],
   "idempotence": {
     "passed": true,
-    "firstSnapshotSha256": "16f0abf6b5886462ce1b1a0ef2fc14d977cdd70fc64e875b83ea8621d194ddc0",
-    "secondSnapshotSha256": "16f0abf6b5886462ce1b1a0ef2fc14d977cdd70fc64e875b83ea8621d194ddc0",
+    "firstSnapshotSha256": "e70d31bfc00f3664cd215ef54ae2e19e4bb18fd68e5763183d01dd4d72eac96f",
+    "secondSnapshotSha256": "e70d31bfc00f3664cd215ef54ae2e19e4bb18fd68e5763183d01dd4d72eac96f",
     "secondChanged": false,
     "secondRepairMessages": []
   }

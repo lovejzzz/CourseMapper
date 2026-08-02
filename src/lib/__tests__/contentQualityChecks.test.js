@@ -12,6 +12,51 @@ import { findPromptArtifactContamination } from '../quality/artifactDefectPatter
 // Defect fixtures lifted verbatim from the June 2026 four-course v0.8.6
 // export audit — these are the exact failure shapes the checks must catch.
 describe('auditDeliverableContentQuality', () => {
+  it('flags an exact compiler evidence-boundary directive used as a Course FAQ answer', () => {
+    const { findings } = auditDeliverableContentQuality('courseFaq', {
+      faqs: [
+        {
+          questions: [
+            {
+              question: 'How does Python actually work?',
+              answer: "Python: show the source basis and mark the inference's reach.",
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(findings).toEqual(expect.arrayContaining([expect.objectContaining({ code: 'faq-compiler-non-answer' })]));
+  });
+
+  it.each([
+    'Do not stop at a definition. Explain how Data cleaning works in the lesson context, then use one example or data point to show why the distinction matters.',
+    'Define the term briefly, connect it to Capstone Policy Memo, and name the decision or tradeoff that changes when the term is applied correctly.',
+  ])('flags an exact generic compiler instruction used in place of a Course FAQ answer', (answer) => {
+    const { findings } = auditDeliverableContentQuality('courseFaq', {
+      faqs: [{ questions: [{ question: 'What does this mean?', answer }] }],
+    });
+    expect(findings).toEqual(expect.arrayContaining([expect.objectContaining({ code: 'faq-compiler-non-answer' })]));
+  });
+
+  it('does not mistake substantive Course FAQ guidance for a compiler non-answer', () => {
+    const { findings } = auditDeliverableContentQuality('courseFaq', {
+      faqs: [
+        {
+          questions: [
+            {
+              question: 'How can I verify which branch runs?',
+              answer:
+                'Substitute one concrete input, mark each condition true or false, trace the selected branch, and compare the trace with the program output.',
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(findings.some((finding) => finding.code === 'faq-compiler-non-answer')).toBe(false);
+  });
+
   it('flags encyclopedia navigation residue in learner prose', () => {
     const { findings } = auditDeliverableContentQuality('lessonPlans', {
       lessonPlans: [

@@ -13,10 +13,14 @@
 
 import { isProvenanceMirrorKey } from './compiledLanguageFinalizer.js';
 import { compactCompilerOwnedAssessmentIdentity } from './compilerAssessmentIdentity.js';
-import { compactLegacyCompilerSourceBoundaryCorrection } from './compilerSourceBoundaryCorrection.js';
+import {
+  compactLegacyCompilerSourceBoundaryCorrection,
+  isCompilerSourceBoundaryDirective,
+} from './compilerSourceBoundaryCorrection.js';
 import { compactCompilerScenarioMaterials } from './compilerScenarioMaterials.js';
 import { hasDanglingClauseSeam } from './contentQualityChecks.js';
 import { semanticIdentityTokens } from './lessonSemanticRelevance.js';
+import { isCourseFaqCompilerNonAnswer } from './quality/courseFaqAnswerAdequacy.js';
 import { knownOffenderFitsScope, matchesKnownOffender } from './quality/knownOffenderScope.js';
 import { containsRejectedLearnerSourceEvidence } from './sourceEvidenceAdmission.js';
 import {
@@ -744,6 +748,26 @@ function removeOutOfScopeOffenderSentences(value, context = {}) {
     .trim();
 }
 
+function containsOutOfScopeOffender(node, context = {}) {
+  if (typeof node === 'string') return knownOffenderIsOutOfScope(node, context);
+  if (Array.isArray(node)) return node.some((entry) => containsOutOfScopeOffender(entry, context));
+  if (!node || typeof node !== 'object') return false;
+  return Object.entries(node).some(([key, value]) => {
+    if (isProvenanceMirrorKey(key)) return false;
+    return containsOutOfScopeOffender(value, context);
+  });
+}
+
+function containsCompilerSourceBoundaryDirective(node) {
+  if (typeof node === 'string') return isCompilerSourceBoundaryDirective(node);
+  if (Array.isArray(node)) return node.some((entry) => containsCompilerSourceBoundaryDirective(entry));
+  if (!node || typeof node !== 'object') return false;
+  return Object.entries(node).some(([key, value]) => {
+    if (isProvenanceMirrorKey(key)) return false;
+    return containsCompilerSourceBoundaryDirective(value);
+  });
+}
+
 function containsQuarantinedEvidence(node, context = {}) {
   if (typeof node === 'string') {
     return containsRejectedLearnerSourceEvidence(
@@ -824,6 +848,354 @@ function stableEvidenceVariant(seed, count) {
     hash = Math.imul(hash, 16777619);
   }
   return Math.abs(hash >>> 0) % Math.max(1, count);
+}
+
+function faqOperationalProfile(lessonTitle = '') {
+  const title = String(lessonTitle || '').toLowerCase();
+  if (/data type|expression|variable|python basic/.test(title)) return 'dataTypes';
+  if (/control flow|condition|branch|loop/.test(title)) return 'controlFlow';
+  if (/function|pytest|unit test|testing/.test(title)) return 'functions';
+  if (/pandas|clean|missing|tabular|data frame|dataframe/.test(title)) return 'dataCleaning';
+  if (/reproduc|visuali[sz]|analysis pipeline/.test(title)) return 'reproducibility';
+  if (/capstone|policy memo|recommendation|final project/.test(title)) return 'capstone';
+  return 'general';
+}
+
+const FAQ_OPERATIONAL_PAIRS = Object.freeze({
+  dataTypes: Object.freeze([
+    Object.freeze({
+      question: 'How can I check what a Python expression does with values of different types?',
+      answer:
+        'Write down each input value and its type, predict the result, run the expression, and compare the actual output with the prediction. Record the operation and input types when the result differs.',
+    }),
+    Object.freeze({
+      question: 'What should I record when a Python expression produces an unexpected result?',
+      answer:
+        'Record the exact expression, each input value and type, the output or error, and the smallest change that alters the result. That record makes the behavior reproducible and easier to explain.',
+    }),
+    Object.freeze({
+      question: 'How do I test a claim about integer and floating-point behavior?',
+      answer:
+        'Build two small examples that differ only in the relevant type or operator, predict both results, run them, and compare the outputs. Limit the conclusion to the cases you actually tested.',
+    }),
+    Object.freeze({
+      question: 'What evidence makes an explanation of a Python data-type result convincing?',
+      answer:
+        'Include the code, the input types, the observed output, and a comparison case. Explain which change produced the different result instead of relying on the type name alone.',
+    }),
+  ]),
+  controlFlow: Object.freeze([
+    Object.freeze({
+      question: 'How can I verify which branch a condition will select?',
+      answer:
+        'List the condition in evaluation order, substitute one concrete input, mark each comparison true or false, and trace the selected branch. Run the case and compare the observed branch with the trace.',
+    }),
+    Object.freeze({
+      question: 'Which test cases should I use for a control-flow boundary?',
+      answer:
+        'Test one value below the boundary, the boundary value itself, and one value above it. Record the branch reached in each case so an incorrect inequality or branch order is visible.',
+    }),
+    Object.freeze({
+      question: 'How do I debug a loop or conditional that takes the wrong path?',
+      answer:
+        'Use the smallest failing input, record the changing values at each decision, and stop at the first point where the observed path differs from the expected path. Revise that condition and rerun the same case.',
+    }),
+    Object.freeze({
+      question: 'What should a clear explanation of a control-flow result include?',
+      answer:
+        'Name the input, show the condition outcomes in order, identify the branch or loop exit that ran, and include one boundary case. Keep the conclusion tied to those traced cases.',
+    }),
+  ]),
+  functions: Object.freeze([
+    Object.freeze({
+      question: 'How can I check whether a function meets its contract?',
+      answer:
+        'State the expected inputs and output, run one ordinary case and one edge case, and compare each result with the expectation. A failing case should identify the smallest contract condition the function breaks.',
+    }),
+    Object.freeze({
+      question: 'What does a useful pytest failure tell me?',
+      answer:
+        'A useful failure names the input, expected result, and observed result. Use that difference to isolate one behavior, revise the function, and rerun both the failing test and a previously passing test.',
+    }),
+    Object.freeze({
+      question: 'How should I choose tests for a Python function?',
+      answer:
+        'Choose a typical input, an edge input, and an invalid or exceptional input when the contract defines one. Give each test one clear expectation so a failure points to a specific behavior.',
+    }),
+    Object.freeze({
+      question: 'How do I explain a function revision after testing?',
+      answer:
+        'Show the failing test, identify the behavior it exposed, describe the smallest code change, and report the rerun results. Distinguish what the tests demonstrate from cases they do not cover.',
+    }),
+  ]),
+  dataCleaning: Object.freeze([
+    Object.freeze({
+      question: 'How can I make a data-cleaning decision auditable?',
+      answer:
+        'State the rule for missing or invalid values before applying it, preserve the original data, and record affected rows and fields. Compare row counts and key summaries before and after the change.',
+    }),
+    Object.freeze({
+      question: 'What should I check before dropping or replacing values in a data frame?',
+      answer:
+        'Count the affected values, inspect representative rows, define the replacement or exclusion rule, and test the rule on a copy. Report how the change affects the analysis variables you will use.',
+    }),
+    Object.freeze({
+      question: 'How do I verify that a cleaning step did what I intended?',
+      answer:
+        'Run a check that targets the rule, compare before-and-after counts, and inspect rows at the rule boundary. Save the code and results so another person can reproduce the same transformation.',
+    }),
+    Object.freeze({
+      question: 'What belongs in a concise data-cleaning log?',
+      answer:
+        'Record the field, detected problem, decision rule, number of affected records, code step, and verification result. Note any unresolved cases instead of silently forcing them into the rule.',
+    }),
+  ]),
+  reproducibility: Object.freeze([
+    Object.freeze({
+      question: 'What makes an analysis result reproducible?',
+      answer:
+        'Start from the preserved input, record the code, parameters, and environment, and rerun the workflow from the beginning. Compare the regenerated result or figure with the original and document any difference.',
+    }),
+    Object.freeze({
+      question: 'How can I verify that a visualization matches the analysis data?',
+      answer:
+        'Trace each plotted quantity to its source field and transformation, check labels and units, and compare a few plotted values with the underlying table. Regenerate the figure from the saved workflow.',
+    }),
+    Object.freeze({
+      question: 'What should I save so another person can rerun my analysis?',
+      answer:
+        'Save the input reference, code, dependency or environment details, parameter values, and the command or ordered steps used to run the work. Include the expected output and a check for successful reproduction.',
+    }),
+    Object.freeze({
+      question: 'How should I report uncertainty in a reproducible analysis?',
+      answer:
+        'Name the assumption or data limitation, show where it enters the workflow, and test one reasonable alternative when possible. Report whether that change alters the result or only its interpretation.',
+    }),
+  ]),
+  capstone: Object.freeze([
+    Object.freeze({
+      question: 'How do I connect a policy recommendation to my analysis?',
+      answer:
+        'State the recommendation, identify the analysis result that supports it, and explain the reasoning link. Add one limitation or counterargument and say what new evidence would change the recommendation.',
+    }),
+    Object.freeze({
+      question: 'What makes the evidence in a policy memo easy to audit?',
+      answer:
+        'Pair each important claim with a locatable result or source, distinguish observed results from interpretation, and keep the analysis steps reproducible. Flag claims that still require confirmation.',
+    }),
+    Object.freeze({
+      question: 'How should I handle a strong counterargument in the final memo?',
+      answer:
+        'Present the counterargument fairly, identify the evidence it relies on, and explain why your recommendation still follows or how it should be narrowed. State the condition under which the counterargument would prevail.',
+    }),
+    Object.freeze({
+      question: 'What should I revise before submitting the capstone?',
+      answer:
+        'Check that the question, analysis, result, recommendation, limitation, and next action form one traceable chain. Remove claims that the evidence does not support and make every remaining result reproducible.',
+    }),
+  ]),
+  general: Object.freeze([
+    Object.freeze({
+      question: 'How can I test the main idea from this lesson?',
+      answer:
+        'Choose one concrete example, predict the result, carry out the lesson method, and compare the observed result with the prediction. Record the evidence and one case the result does not cover.',
+    }),
+    Object.freeze({
+      question: 'What should I include when I explain my result?',
+      answer:
+        'Include the input or example, the method used, the observed result, and the reasoning that connects them. Name one limitation so the conclusion stays within the evidence.',
+    }),
+    Object.freeze({
+      question: 'How do I find the first weak step in my work?',
+      answer:
+        'Replay the work in order and compare each step with its expected result. Stop at the first mismatch, revise only that step, and rerun the complete check.',
+    }),
+    Object.freeze({
+      question: 'What makes a lesson response reproducible for another learner?',
+      answer:
+        'Provide the starting material, ordered steps, relevant settings or choices, and the expected result. Include a check another learner can use to confirm the same outcome.',
+    }),
+  ]),
+});
+
+function quarantinedFaqPair(context = {}, path = []) {
+  const profile = faqOperationalProfile(context.currentLessonTitle);
+  const pairs = FAQ_OPERATIONAL_PAIRS[profile] || FAQ_OPERATIONAL_PAIRS.general;
+  return pairs[stableEvidenceVariant(`courseFaq:${sourceFactPathKey(path)}`, pairs.length)];
+}
+
+function faqQuestionKey(node) {
+  if (Object.hasOwn(node || {}, 'question')) return 'question';
+  if (Object.hasOwn(node || {}, 'q')) return 'q';
+  return '';
+}
+
+function faqAnswerKey(node) {
+  if (Object.hasOwn(node || {}, 'answer')) return 'answer';
+  if (Object.hasOwn(node || {}, 'an')) return 'an';
+  return '';
+}
+
+function isFaqCompilerNonAnswer(value) {
+  return isCourseFaqCompilerNonAnswer(value);
+}
+
+const QUIZ_OPERATIONAL_CONTEXT = Object.freeze({
+  dataTypes: Object.freeze({
+    skill: 'testing a Python expression with explicit input types',
+    record: 'the exact expression, input values and types, prediction, and observed output',
+    comparison: 'a second case that changes only one input type or operator',
+    artifact: 'a reproducible expression trace',
+  }),
+  controlFlow: Object.freeze({
+    skill: 'tracing a conditional or loop through a boundary case',
+    record: 'the input, condition results in evaluation order, selected branch, and observed output',
+    comparison: 'cases immediately below, at, and above the decision boundary',
+    artifact: 'a branch-and-loop trace',
+  }),
+  functions: Object.freeze({
+    skill: 'checking a function against its input-output contract',
+    record: 'the input, expected result, observed result, and named contract condition',
+    comparison: 'one ordinary test and one edge or failing test',
+    artifact: 'a pytest-backed function check',
+  }),
+  dataCleaning: Object.freeze({
+    skill: 'applying and verifying a data-cleaning rule',
+    record: 'the original field values, stated rule, affected rows, and before-and-after counts',
+    comparison: 'representative rows plus cases at the rule boundary',
+    artifact: 'an auditable data-cleaning log',
+  }),
+  reproducibility: Object.freeze({
+    skill: 'rerunning an analysis from preserved inputs',
+    record: 'the input reference, code, parameters, environment, and regenerated result',
+    comparison: 'the original result and a fresh end-to-end rerun',
+    artifact: 'a reproducible analysis record',
+  }),
+  capstone: Object.freeze({
+    skill: 'linking a policy recommendation to an analysis result',
+    record: 'the recommendation, supporting result, reasoning link, limitation, and revision trigger',
+    comparison: 'the preferred recommendation and its strongest evidence-based alternative',
+    artifact: 'an auditable policy-memo reasoning chain',
+  }),
+  general: Object.freeze({
+    skill: 'checking the lesson method on a concrete case',
+    record: 'the starting material, prediction, ordered steps, observed result, and limitation',
+    comparison: 'a second case that changes only one relevant condition',
+    artifact: 'a reproducible lesson-method record',
+  }),
+});
+
+function sentenceCaseForFallback(value) {
+  const text = String(value || '').trim();
+  return text ? `${text.charAt(0).toUpperCase()}${text.slice(1)}` : text;
+}
+
+function quizFieldKey(node, full, compact) {
+  if (Object.hasOwn(node || {}, full)) return full;
+  if (Object.hasOwn(node || {}, compact)) return compact;
+  return full;
+}
+
+function quarantinedQuizItem(node, context = {}, path = []) {
+  const profile = faqOperationalProfile(context.currentLessonTitle);
+  const operational = QUIZ_OPERATIONAL_CONTEXT[profile] || QUIZ_OPERATIONAL_CONTEXT.general;
+  const questionKey = quizFieldKey(node, 'question', 'q');
+  const optionsKey = quizFieldKey(node, 'options', 'op');
+  const answerKey = quizFieldKey(node, 'answer', 'an');
+  const explanationKey = quizFieldKey(node, 'explanation', 'ex');
+  const type = String(node.type || node.ty || '').toLowerCase();
+  const itemIndex = Number(path.at(-1));
+  const variant = Number.isInteger(itemIndex) ? itemIndex % 3 : stableEvidenceVariant(sourceFactPathKey(path), 3);
+
+  if (/multiple/.test(type) || Array.isArray(node[optionsKey])) {
+    const multipleChoice = [
+      {
+        question: `Which record gives the strongest evidence for ${operational.skill}?`,
+        options: [
+          'A. The lesson topic name with no inputs, steps, or observed result',
+          `B. ${sentenceCaseForFallback(operational.record)}`,
+          'C. A final claim with no trace of how it was produced',
+          'D. A different case that changes several conditions at once',
+        ],
+        answer: 'B',
+        explanation: `B is correct because this record—${operational.record}—makes the check inspectable and reproducible.`,
+      },
+      {
+        question: `A result from ${operational.skill} differs from the prediction. Which next step best isolates the cause?`,
+        options: [
+          'A. Change several inputs and steps before rerunning the work',
+          'B. Keep the original claim and omit the unexpected result',
+          `C. Use ${operational.comparison}, then compare the records`,
+          'D. Replace the result with the lesson topic name',
+        ],
+        answer: 'C',
+        explanation: `C is correct because ${operational.comparison} isolates the relevant difference instead of changing several conditions at once.`,
+      },
+      {
+        question: `Which conclusion stays within the evidence recorded in ${operational.artifact}?`,
+        options: [
+          'A. The same result must occur in every untested case',
+          'B. The recorded result supports the tested case; a wider claim requires another targeted check',
+          'C. No conclusion is possible even for the recorded case',
+          'D. The recorded method is the only possible cause of the result',
+        ],
+        answer: 'B',
+        explanation:
+          'B is correct because it reports what the recorded case supports and identifies the evidence needed before extending the conclusion.',
+      },
+    ][variant];
+    return {
+      ...node,
+      [questionKey]: multipleChoice.question,
+      [optionsKey]: multipleChoice.options,
+      [answerKey]: multipleChoice.answer,
+      [explanationKey]: multipleChoice.explanation,
+      distractorRationale:
+        'The incorrect options omit the execution record, change several conditions at once, or extend the conclusion beyond the tested case.',
+      intendedUse: `Operational check for ${context.currentLessonTitle || 'this lesson'} using inspectable work rather than unsupported source claims.`,
+      tags: ['quiz', profile, 'operational evidence', 'reproducible check'],
+    };
+  }
+
+  if (/essay/.test(type) || Object.hasOwn(node, 'rubricHints')) {
+    return {
+      ...node,
+      [questionKey]: `Design an auditable demonstration of ${operational.skill}. Use one concrete case, ${operational.comparison}, and ${operational.record}. Explain what the results support and identify one conclusion they do not establish.`,
+      sampleAnswer: `A strong response presents ${operational.artifact}, compares the two cases, explains the observed difference, and limits the conclusion to the recorded evidence. It names the next targeted check required for a wider claim.`,
+      rubricHints:
+        'Strong responses make the procedure reproducible, compare cases deliberately, interpret the observed result, and state a genuine evidence boundary.',
+      [explanationKey]:
+        'This item measures whether the learner can design, execute, and interpret an inspectable check rather than repeat a topic label.',
+      scoringGuidance:
+        'Full credit requires a reproducible record, a controlled comparison, an evidence-linked conclusion, and one specific limitation or next check.',
+      intendedUse: `Synthesis check for ${context.currentLessonTitle || 'this lesson'} using operational evidence.`,
+      tags: ['quiz', 'essay', profile, 'operational evidence'],
+    };
+  }
+
+  const shortVariants = [
+    {
+      question: `A classmate completes ${operational.skill}, but the observed result differs from the prediction. Identify the course concept or method that controls the check, cite the relevant result or observation from the record, state what the evidence supports and one limitation, then specify the rerun that would test the revision.`,
+      answer: `A complete response names the controlling concept or method, cites ${operational.record}, stops at the first mismatch, changes only that step, and reruns the same case before testing a wider conclusion.`,
+    },
+    {
+      question: `Compare two cases while ${operational.skill}. Choose the course concept or method that explains the comparison, cite the decisive result or observation, state what the evidence supports and one limitation, and name the additional check that would address that uncertainty.`,
+      answer: `A complete response selects the controlling concept or method, uses ${operational.comparison}, cites the decisive record, limits the conclusion to the tested cases, and names one targeted additional check.`,
+    },
+  ];
+  const shortAnswer = shortVariants[Math.abs(Number.isInteger(itemIndex) ? itemIndex : 0) % shortVariants.length];
+  return {
+    ...node,
+    [questionKey]: shortAnswer.question,
+    [answerKey]: shortAnswer.answer,
+    sampleAnswer: `${shortAnswer.answer} The response preserves ${operational.artifact} so another learner can reproduce or challenge the conclusion.`,
+    [explanationKey]:
+      'This item checks whether the learner can diagnose evidence, revise one step, and keep the conclusion within the rerun results.',
+    scoringGuidance:
+      'Full credit requires an inspectable record, a specific mismatch or comparison, a controlled rerun, and a bounded conclusion.',
+    intendedUse: `Constructed-response check for ${context.currentLessonTitle || 'this lesson'} using operational evidence.`,
+    tags: ['quiz', 'short answer', profile, 'operational evidence'],
+  };
 }
 
 function quarantinedEvidenceReplacement(featureId, parentKey = '', context = {}, path = []) {
@@ -1064,15 +1436,48 @@ function repairNode(node, stats, featureId, parentKey = '', context = {}, path =
     return changed ? next : node;
   }
   if (node && typeof node === 'object') {
-    const nodeLessonTitle = String(node.lessonTitle || '')
+    const nodeLessonTitle = String(node.lessonTitle || node.lt || '')
       .replace(/\s+/g, ' ')
       .trim();
     const lessonContext = nodeLessonTitle ? { ...context, currentLessonTitle: nodeLessonTitle } : context;
     const scopedContext = compilerScopedContext(node, lessonContext);
+    const questionKey = faqQuestionKey(node);
+    const answerKey = faqAnswerKey(node);
+    const atomicFaqRewrite =
+      featureId === 'courseFaq' &&
+      /^(?:questions|qs)$/i.test(parentKey) &&
+      questionKey &&
+      answerKey &&
+      (containsQuarantinedEvidence(node, scopedContext) || isFaqCompilerNonAnswer(node[answerKey]));
+    const atomicQuizRewrite =
+      featureId === 'quizBank' &&
+      /^(?:questions|qs)$/i.test(parentKey) &&
+      questionKey &&
+      (containsQuarantinedEvidence(node, scopedContext) ||
+        containsOutOfScopeOffender(node, scopedContext) ||
+        containsCompilerSourceBoundaryDirective(node) ||
+        ORPHAN_CLOSING_QUOTE_RE.test(String(node[questionKey] || '')));
+    let workingNode = atomicQuizRewrite ? quarantinedQuizItem(node, scopedContext, path) : node;
+    if (atomicQuizRewrite) {
+      stats.changedPaths.add(sourceFactPathKey([...path, questionKey]));
+      stats.changedPaths.add(sourceFactPathKey([...path, 'operationalReplacement']));
+    }
+    if (atomicFaqRewrite) {
+      const pair = quarantinedFaqPair(scopedContext, path);
+      workingNode = {
+        ...node,
+        [questionKey]: pair.question,
+        [answerKey]: pair.answer,
+        ...(Object.hasOwn(node, 'relatedConcepts') ? { relatedConcepts: [] } : {}),
+        ...(Object.hasOwn(node, 'rc') ? { rc: [] } : {}),
+      };
+      stats.changedPaths.add(sourceFactPathKey([...path, questionKey]));
+      stats.changedPaths.add(sourceFactPathKey([...path, answerKey]));
+    }
     if (
       /^sourceEvidenceBrief$/i.test(parentKey) &&
-      Object.keys(node).length > 0 &&
-      node.enrichmentSource === 'lesson-content-enrichment' &&
+      Object.keys(workingNode).length > 0 &&
+      workingNode.enrichmentSource === 'lesson-content-enrichment' &&
       scopedContext.rejectedLearnerSourceEvidence?.rejectedLessonScopes?.has(scopedContext.compilerLessonScope)
     ) {
       stats.changedPaths.add(sourceFactPathKey(path));
@@ -1096,19 +1501,19 @@ function repairNode(node, stats, featureId, parentKey = '', context = {}, path =
     }
     if (
       featureId === 'studyGuides' &&
-      typeof node.term === 'string' &&
-      typeof node.definition === 'string' &&
-      PROCEDURAL_TERM_DEFINITION_RE.test(node.definition)
+      typeof workingNode.term === 'string' &&
+      typeof workingNode.definition === 'string' &&
+      PROCEDURAL_TERM_DEFINITION_RE.test(workingNode.definition)
     ) {
       stats.changedPaths.add(sourceFactPathKey([...path, 'definition']));
       return {
-        ...node,
-        definition: `The course map names ${node.term} but does not supply a disciplinary definition. Add an instructor-approved, source-backed definition before publishing.`,
+        ...workingNode,
+        definition: `The course map names ${workingNode.term} but does not supply a disciplinary definition. Add an instructor-approved, source-backed definition before publishing.`,
       };
     }
-    let changed = false;
+    let changed = atomicFaqRewrite || atomicQuizRewrite;
     const next = {};
-    for (const [key, value] of Object.entries(node)) {
+    for (const [key, value] of Object.entries(workingNode)) {
       // Provenance/trace subtrees never render in exports — leave untouched.
       if (isProvenanceMirrorKey(key)) {
         next[key] = value;

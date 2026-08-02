@@ -5,6 +5,64 @@ import { createMemoryFileProvider } from '../fileProviders.js';
 import { normalizeLessonSpecificTokens } from '../semanticSkeletonMask.js';
 
 describe('deep quality package structure', () => {
+  it('scores an exact compiler boundary directive used as a physical Course FAQ answer', async () => {
+    const faqPath = 'Course FAQ/Lesson 01 - Python Data Types - Course FAQ.txt';
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          lessonScope: [1],
+          readiness: { status: 'ready', blockers: 0 },
+          files: [{ path: faqPath, featureId: 'courseFaq', lessonNumber: 1 }],
+        }),
+        [faqPath]: [
+          'Q1. How does Python actually work?',
+          "Python: show the source basis and mark the inference's reach.",
+        ].join('\n'),
+      }),
+      course: { title: 'Python for Public Policy Analysis', featureIds: ['courseFaq'] },
+      honesty: { pipeline: { judgment: 'compiler-verified fixture' } },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: 'course-faq-compiler-non-answer',
+          severity: 'P1',
+          dimension: 'substance',
+          evidence: "Python: show the source basis and mark the inference's reach.",
+        }),
+      ]),
+    );
+    expect(result.overall.score).toBeLessThanOrEqual(89);
+  });
+
+  it('scores a quiz option whose rejected content collapsed to a duplicate bare label', async () => {
+    const quizPath = 'Quiz & Exam Bank/Lesson 01 - Python Data Types - Quiz & Exam Bank.txt';
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          lessonScope: [1],
+          readiness: { status: 'ready', blockers: 0 },
+          files: [{ path: quizPath, featureId: 'quizBank', lessonNumber: 1 }],
+        }),
+        [quizPath]: ['Q1. Which statement is supported?', 'A. A.', 'B. B.'].join('\n'),
+      }),
+      course: { title: 'Python for Public Policy Analysis', featureIds: ['quizBank'] },
+      honesty: { pipeline: { judgment: 'compiler-verified fixture' } },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'format',
+          detail: expect.stringContaining('doubled option letters'),
+        }),
+      ]),
+    );
+    expect(result.overall.score).toBeLessThanOrEqual(89);
+  });
+
   it('blocks an unresolved per-lesson evidence dependency declared by the manifest', async () => {
     const result = await grade({
       fileProvider: createMemoryFileProvider({
@@ -162,7 +220,7 @@ describe('deep quality package structure', () => {
     });
 
     expect(result.findings.some((finding) => /classroom clock/i.test(finding.detail))).toBe(false);
-    expect(GRADER_VERSION).toBe('1.15.4');
+    expect(GRADER_VERSION).toBe('1.15.5');
   });
 
   it('scores opaque source-claim placeholders and their sentence seams as major export defects', async () => {

@@ -8245,6 +8245,32 @@ describe('courseBlueprintCompiler', () => {
     expect(validation.valid, validation.blockers.join('; ')).toBe(true);
   });
 
+  it('does not publish a compiler evidence-boundary directive as a standalone Course FAQ answer', () => {
+    const blueprint = buildCourseBlueprint(makeCourseMap(1));
+    blueprint.lessons[0].enrichment = {
+      ...(blueprint.lessons[0].enrichment || {}),
+      keyTerms: [
+        {
+          term: 'Python',
+          misconception: 'Naming Python without testing a result is sufficient evidence',
+          correction: "Python: show the source basis and mark the inference's reach.",
+          definition: '',
+          example: '',
+          tier: 2,
+          source: 'scion-source-researched',
+        },
+      ],
+    };
+    const compiled = compileBlueprintDeliverables(blueprint, ['courseFaq'], {
+      configMap: { courseFaq: { questionsPerLesson: 5 } },
+    });
+    const questions = compiled.courseFaq.faqs[0].qs;
+
+    expect(questions).toHaveLength(5);
+    expect(questions.some((item) => /How does Python actually work/i.test(item.q))).toBe(false);
+    expect(questions.some((item) => /show the source basis and mark the inference's reach/i.test(item.an))).toBe(false);
+  });
+
   it('keeps fallback misconception guidance specific across a full semester', () => {
     const courseMap = makeCourseMap(14);
     courseMap.lessons.forEach((lesson, index) => {

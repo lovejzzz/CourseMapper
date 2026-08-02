@@ -12,6 +12,7 @@
 import { isProvenanceMirrorKey } from './compiledLanguageFinalizer.js';
 import { findInstructorConfigurationDeferrals } from './publishabilityPlaceholders.js';
 import { hasAdjacentArticleCollision } from './quality/articleCollision.js';
+import { isCourseFaqCompilerNonAnswer } from './quality/courseFaqAnswerAdequacy.js';
 import { renderedDeliverableCollection, renderedDeliverableContentRoot } from './renderedDeliverableRoot.js';
 
 const DANGLING_CLAUSE_RE = /\b(?:and|or|for|in|of|to|the|with|before|after|around|aligned to|into|from)\s*[.]\s*$/i;
@@ -114,6 +115,20 @@ function checkStudentVoice(findings, featureId, data) {
   }
 }
 
+function checkFaqAnswerAdequacy(findings, featureId, data) {
+  if (featureId !== 'courseFaq') return;
+  for (const [path, value] of walkStrings(data)) {
+    if (!/\.(?:answer|an)\b/i.test(path)) continue;
+    const answer = String(value || '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (!answer) continue;
+    if (isCourseFaqCompilerNonAnswer(answer)) {
+      pushFinding(findings, 'faq-compiler-non-answer', path, answer);
+    }
+  }
+}
+
 function checkInstructorConfigurationDeferrals(findings, featureId, data) {
   if (featureId !== 'assignments') return;
   for (const [path, value] of walkStrings(data)) {
@@ -153,6 +168,7 @@ export function auditDeliverableContentQuality(featureId, data) {
     const content = renderedDeliverableContentRoot(featureId, data);
     checkSentenceIntegrity(findings, featureId, content);
     checkStudentVoice(findings, featureId, content);
+    checkFaqAnswerAdequacy(findings, featureId, content);
     checkInstructorConfigurationDeferrals(findings, featureId, content);
     checkQuizAnswerKeyUniformity(findings, featureId, content);
     checkSemanticDefinitions(findings, featureId, content);

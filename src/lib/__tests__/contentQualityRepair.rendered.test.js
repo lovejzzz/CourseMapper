@@ -61,6 +61,30 @@ async function renderedStudyGuidePackage(dataByLesson) {
   return extractPackage(createMemoryFileProvider(files));
 }
 
+async function renderedCourseFaqPackage(dataByLesson) {
+  const files = {};
+  for (const [index, data] of dataByLesson.entries()) {
+    files[`Course FAQ/Lesson ${index + 1} - Evidence - Course FAQ.docx`] = await buildDeliverableDocxBlob(
+      'courseFaq',
+      data,
+      'Python for Public Policy Analysis',
+    );
+  }
+  return extractPackage(createMemoryFileProvider(files));
+}
+
+async function renderedQuizPackage(dataByLesson) {
+  const files = {};
+  for (const [index, data] of dataByLesson.entries()) {
+    files[`Quiz & Exam Bank/Lesson ${index + 1} - Evidence - Quiz & Exam Bank.docx`] = await buildDeliverableDocxBlob(
+      'quizBank',
+      data,
+      'Python for Public Policy Analysis',
+    );
+  }
+  return extractPackage(createMemoryFileProvider(files));
+}
+
 async function renderedSlideDeckPackage(dataByLesson) {
   const files = {};
   for (const [index, data] of dataByLesson.entries()) {
@@ -131,6 +155,91 @@ async function renderedLegacySourceReviewPackage(deliverables) {
 }
 
 describe('contentQualityRepair rendered package integration', () => {
+  it('replaces a quarantined FAQ pair before its physical DOCX is emitted', async () => {
+    const quarantine = {
+      rejectedLessonScopes: new Set(['lesson-1']),
+      phrases: new Set(),
+      markers: new Set(['pygmt']),
+      overlayTermsByLesson: new Map(),
+      overlayExactValuesByLesson: new Map(),
+      sourceAssertionExactValuesByLesson: new Map(),
+    };
+    const original = {
+      faqs: [
+        {
+          lessonId: 'lesson-1',
+          lessonTitle: 'Lesson 1: Python Data Types and Expressions',
+          questions: [
+            {
+              question: 'I thought naming Python was sufficient. How does Python actually work?',
+              answer:
+                "Python: show the source basis and mark the inference's reach. PyGMT turns policy data into a map.",
+              relatedConcepts: ['Python', 'PyGMT'],
+            },
+          ],
+        },
+      ],
+    };
+    const context = {
+      rejectedLearnerSourceEvidence: quarantine,
+      compilerLessonScopeByTitle: new Map([['lesson 1: python data types and expressions', 'lesson-1']]),
+    };
+    const before = await renderedCourseFaqPackage([original]);
+    const repaired = repairDeliverableContentQuality('courseFaq', original, context).data;
+    const after = await renderedCourseFaqPackage([repaired]);
+    const afterText = after.files.map((file) => file.text).join('\n');
+
+    expect(before.files.map((file) => file.text).join('\n')).toMatch(/source basis|PyGMT/i);
+    expect(afterText).toMatch(/input|type|expression|output/i);
+    expect(afterText).not.toMatch(/source basis|bounded conclusion|PyGMT/i);
+    expect(afterText).not.toMatch(/See also:/i);
+    expect(repairDeliverableContentQuality('courseFaq', repaired, context).changed).toBe(false);
+  });
+
+  it('emits four substantive quiz options after an unsafe option record is quarantined', async () => {
+    const quarantine = {
+      rejectedLessonScopes: new Set(['lesson-1']),
+      phrases: new Set(),
+      markers: new Set(['pygmt', 'xso']),
+      overlayTermsByLesson: new Map(),
+      overlayExactValuesByLesson: new Map(),
+      sourceAssertionExactValuesByLesson: new Map(),
+    };
+    const original = {
+      quizzes: [
+        {
+          lessonNumber: 1,
+          lessonTitle: 'Lesson 1: Python Data Types and Expressions',
+          questions: [
+            {
+              type: 'multiple_choice',
+              question: 'Which statement defines Python?',
+              options: [
+                'A. PyGMT maps data.',
+                'B. XSO is embedded in Python.',
+                'C. A broad claim.',
+                'D. Another claim.',
+              ],
+              answer: 'B',
+              explanation: 'B is correct because XSO is embedded in Python.',
+            },
+          ],
+        },
+      ],
+    };
+    const context = {
+      rejectedLearnerSourceEvidence: quarantine,
+      compilerLessonScopeByTitle: new Map([['lesson 1: python data types and expressions', 'lesson-1']]),
+    };
+    const repaired = repairDeliverableContentQuality('quizBank', original, context).data;
+    const after = await renderedQuizPackage([repaired]);
+    const afterText = after.files.map((file) => file.text).join('\n');
+
+    expect(afterText).toMatch(/strongest evidence|expression|input types|observed output/i);
+    expect(afterText).not.toMatch(/PyGMT|XSO|\b([A-D])\.\s+\1\.(?:\s|$)|bounded conclusion/i);
+    expect(repairDeliverableContentQuality('quizBank', repaired, context).changed).toBe(false);
+  });
+
   it('removes legacy source-review production instructions from final DOCX and PPTX XML', async () => {
     const legacySource = {
       title: 'Course-aligned source review',

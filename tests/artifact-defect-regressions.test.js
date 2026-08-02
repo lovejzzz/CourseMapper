@@ -31,6 +31,12 @@ describe('browser-discovered artifact defect regressions', () => {
     expect('The lecture exam uses an answer key.').not.toMatch(pattern('internal-lecture-exam'));
   });
 
+  it('catches an option label whose quarantined body collapsed to the same bare label', () => {
+    expect('A. A.').toMatch(pattern('doubled-option-letters'));
+    expect('B. B. A substantive option').toMatch(pattern('doubled-option-letters'));
+    expect('F. F. S. van der Tak').not.toMatch(pattern('doubled-option-letters'));
+  });
+
   it('catches the subject-free discussion frame seen in the browser audit', () => {
     expect(
       'Which interpretation of the lesson is best supported by the lesson case example, and what detail could change that conclusion?',

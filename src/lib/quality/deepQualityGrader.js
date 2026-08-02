@@ -102,6 +102,7 @@ import {
 } from './deepQualityFormatDetails.js';
 import { normalizeLessonSpecificTokens } from './semanticSkeletonMask.js';
 import { findInstructorConfigurationDeferrals } from '../publishabilityPlaceholders.js';
+import { isCourseFaqCompilerNonAnswer } from './courseFaqAnswerAdequacy.js';
 import { stripStructuralMetadata } from '../exportRenderedTextAudit.js';
 import { GRADER_VERSION } from './graderVersion.js';
 import { addRepeatedInstructionalPhraseFinding } from './repeatedInstructionalPhrase.js';
@@ -3641,6 +3642,27 @@ function checkDeckVisuals(findings, { files }) {
   }
 }
 
+function checkCourseFaqAnswerResidue(findings, { files }) {
+  for (const file of files.filter((entry) => entry.featureId === 'courseFaq')) {
+    const hit = formatScanUnits(file)
+      .map((unit) =>
+        String(unit || '')
+          .replace(/\s+/g, ' ')
+          .trim(),
+      )
+      .find((unit) => unit && isCourseFaqCompilerNonAnswer(unit));
+    if (!hit) continue;
+    findings.add({
+      code: 'course-faq-compiler-non-answer',
+      severity: 'P1',
+      dimension: 'substance',
+      file: file.path,
+      detail: 'Course FAQ answer exposes a compiler evidence-boundary directive instead of learner-usable guidance',
+      evidence: quote(hit),
+    });
+  }
+}
+
 function checkFormat(findings, { files, manifest }) {
   const STRUCTURAL_TEXT_TABLES = [
     ...JSON_SYNTAX_PATTERNS,
@@ -3946,6 +3968,7 @@ export async function grade({
   checkPromptArtifactContamination(findings, pkg, course);
   checkKnownOffenderTeachingContent(findings, pkg, course);
   checkReviewOnlySourceTeachingContent(findings, pkg, course);
+  checkCourseFaqAnswerResidue(findings, pkg);
   checkSubstance(findings, pkg, course);
   addPackageQuizDepthFindings(findings, pkg.files);
   checkDiscipline(findings, pkg, course);

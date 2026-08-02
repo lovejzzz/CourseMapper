@@ -35,6 +35,7 @@ import {
   isCompilerMintedEvidenceBrief,
 } from './compilerOpenCourseSources';
 import { compactCompilerOwnedAssessmentIdentity, isCodeLabAssessmentIdentity } from './compilerAssessmentIdentity';
+import { isCompilerSourceBoundaryOnlyTerm } from './compilerSourceBoundaryCorrection';
 import { finalArtifactLabel, mergeFinalRegistryEntries } from './courseCompilerAssessmentRegistry';
 import {
   alignLensToCourseModality,
@@ -26568,18 +26569,15 @@ function compileCourseFaq(blueprint, config = {}) {
   const target = Math.max(3, Math.min(10, Number(config.questionsPerLesson) || 7));
   const lens = blueprintLens(blueprint);
   const builders = [
-    // v0.16 B4 (Prof mouth catch — FAQ hit rate 0%): the FAQ must answer
-    // DEMAND, not supply-side guesses. Simulated (and real) students ask
-    // about the concept that confused them, in that concept's own words —
-    // so the first two entries per lesson are the documented misconception,
-    // phrased as the student asks it, and the plain "what does X actually
-    // mean" question. Both quote the kernel's own vocabulary.
+    // Demand-focused FAQ starts from the documented misconception in the
+    // kernel's vocabulary; later builders refill any rejected slot.
     (lesson) => {
       const term = lessonPrimaryTeachingKeyTerms(lesson).find(
         (entry) => cleanText(entry?.term) && cleanText(entry?.misconception),
       );
       if (!term) return null;
       const correction = cleanText(term.correction || '');
+      if (isCompilerSourceBoundaryOnlyTerm(term)) return null;
       return {
         q: `I thought ${faqMisconceptionBelief(term.misconception)}. Is that wrong? ${conceptWorkQuestion(term.term)}`,
         an: `${correction ? `${stripTerminalPunctuation(correction)}. ` : ''}${
@@ -26804,7 +26802,8 @@ function compileCourseFaq(blueprint, config = {}) {
       // misunderstanding and its correction — the canonical answer to this
       // question. The generic "don't just summarize" advice is the fallback.
       const contested = lessonPrimaryTeachingKeyTerms(lesson).find(
-        (term) => cleanText(term?.misconception) && cleanText(term?.correction),
+        (term) =>
+          cleanText(term?.misconception) && cleanText(term?.correction) && !isCompilerSourceBoundaryOnlyTerm(term),
       );
       if (contested) {
         const correction = readableCorrection(contested.correction);

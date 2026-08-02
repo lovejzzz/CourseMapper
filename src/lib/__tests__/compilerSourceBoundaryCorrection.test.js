@@ -4,9 +4,20 @@ import {
   buildCompilerSourceBoundaryCorrection,
   collectCompilerSourceBoundaryCorrections,
   compactLegacyCompilerSourceBoundaryCorrection,
+  isCompilerSourceBoundaryCorrection,
+  isCompilerSourceBoundaryDirective,
 } from '../compilerSourceBoundaryCorrection.js';
 
 describe('compilerSourceBoundaryCorrection', () => {
+  it('classifies only exact compiler correction and reference contracts', () => {
+    expect(isCompilerSourceBoundaryCorrection("Python: show the source basis and mark the inference's reach.")).toBe(
+      true,
+    );
+    expect(isCompilerSourceBoundaryDirective('Use the established Python evidence-boundary check.')).toBe(true);
+    expect(isCompilerSourceBoundaryDirective('Cite supporting evidence and name its limit.')).toBe(true);
+    expect(isCompilerSourceBoundaryDirective('Use Python evidence to explain the observed output.')).toBe(false);
+  });
+
   it('preserves punctuation-bearing terms and deterministically varies compiler copy', () => {
     const term = 'U.S. policy (EBP)';
     const corrections = Array.from({ length: 18 }, (_, index) =>

@@ -455,6 +455,130 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     expect(text).not.toContain('the cited source claim');
   });
 
+  it('rewrites a quarantined Course FAQ question and answer as one coherent operational pair', () => {
+    const quarantine = {
+      rejectedLessonScopes: new Set(['lesson-1']),
+      phrases: new Set(),
+      markers: new Set(['pygmt']),
+      overlayTermsByLesson: new Map(),
+      overlayExactValuesByLesson: new Map(),
+      sourceAssertionExactValuesByLesson: new Map(),
+    };
+    const data = {
+      faqs: [
+        {
+          lessonId: 'lesson-1',
+          lessonTitle: 'Lesson 1: Python Data Types and Expressions',
+          questions: [
+            {
+              question: 'I thought naming Python was sufficient evidence. Is that wrong? How does Python work?',
+              answer:
+                "Python: show the source basis and mark the inference's reach. PyGMT turns policy data into a map.",
+              relatedConcepts: ['Python', 'PyGMT'],
+            },
+          ],
+        },
+      ],
+    };
+    const context = {
+      rejectedLearnerSourceEvidence: quarantine,
+      compilerLessonScopeByTitle: new Map([['lesson 1: python data types and expressions', 'lesson-1']]),
+    };
+
+    const first = repairDeliverableContentQuality('courseFaq', data, context);
+    const item = first.data.faqs[0].questions[0];
+    const replay = repairDeliverableContentQuality('courseFaq', first.data, context);
+
+    expect(first.changed).toBe(true);
+    expect(item.question).toMatch(/Python|expression|data-type/i);
+    expect(item.answer).toMatch(/input|type|expression|output/i);
+    expect(item.answer).not.toMatch(/source basis|bounded conclusion|PyGMT/i);
+    expect(item.relatedConcepts).toEqual([]);
+    expect(auditDeliverableContentQuality('courseFaq', first.data).findings).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'faq-compiler-non-answer' })]),
+    );
+    expect(replay.changed).toBe(false);
+    expect(replay.data).toBe(first.data);
+  });
+
+  it('migrates a saved Course FAQ compiler non-answer even when rejected source text is already gone', () => {
+    const data = {
+      faqs: [
+        {
+          lt: 'Lesson 3: Functions and pytest',
+          qs: [
+            {
+              q: 'How does a function actually work?',
+              an: "Functions: show the source basis and mark the inference's reach.",
+              rc: ['Functions'],
+            },
+          ],
+        },
+      ],
+    };
+
+    const first = repairDeliverableContentQuality('courseFaq', data);
+    const item = first.data.faqs[0].qs[0];
+    const replay = repairDeliverableContentQuality('courseFaq', first.data);
+
+    expect(item.q).toMatch(/function|pytest|test/i);
+    expect(item.an).toMatch(/input|output|test|failure/i);
+    expect(item.an).not.toMatch(/source basis/i);
+    expect(item.rc).toEqual([]);
+    expect(replay.changed).toBe(false);
+  });
+
+  it('rewrites a quarantined quiz item atomically so option labels cannot survive without option text', () => {
+    const quarantine = {
+      rejectedLessonScopes: new Set(['lesson-1']),
+      phrases: new Set(),
+      markers: new Set(['pygmt', 'xso']),
+      overlayTermsByLesson: new Map(),
+      overlayExactValuesByLesson: new Map(),
+      sourceAssertionExactValuesByLesson: new Map(),
+    };
+    const data = {
+      quizzes: [
+        {
+          lessonNumber: 1,
+          lessonTitle: 'Lesson 1: Python Data Types and Expressions',
+          questions: [
+            {
+              id: 'lesson-1-q1',
+              type: 'multiple_choice',
+              question: 'Which statement defines Python?',
+              options: [
+                'A. PyGMT maps data.',
+                'B. XSO is embedded in Python.',
+                'C. A broad claim.',
+                'D. Another claim.',
+              ],
+              answer: 'B',
+              explanation: 'B is correct because XSO is embedded in Python.',
+            },
+          ],
+        },
+      ],
+    };
+    const context = {
+      rejectedLearnerSourceEvidence: quarantine,
+      compilerLessonScopeByTitle: new Map([['lesson 1: python data types and expressions', 'lesson-1']]),
+    };
+
+    const first = repairDeliverableContentQuality('quizBank', data, context);
+    const item = first.data.quizzes[0].questions[0];
+    const replay = repairDeliverableContentQuality('quizBank', first.data, context);
+
+    expect(first.changed).toBe(true);
+    expect(item.question).toMatch(/record|expression|result/i);
+    expect(item.options).toHaveLength(4);
+    expect(item.options.every((option) => /^[A-D]\.\s+\S/.test(option))).toBe(true);
+    expect(item.answer).toMatch(/^[A-D]$/);
+    expect(JSON.stringify(item)).not.toMatch(/PyGMT|XSO|A\.\s*A\.|source basis|bounded conclusion/i);
+    expect(replay.changed).toBe(false);
+    expect(replay.data).toBe(first.data);
+  });
+
   it('reports a fixed point when a quarantine replacement also matches a coarse rejected assertion', () => {
     const quarantine = {
       rejectedLessonScopes: new Set(['lesson-6']),

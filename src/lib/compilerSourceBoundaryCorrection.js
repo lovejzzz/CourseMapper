@@ -30,6 +30,15 @@ const CURRENT_CORRECTION_TERM_PATTERNS = [
   /^(.+): point to a supporting definition and explain what it cannot establish\.$/,
 ];
 
+const CURRENT_CORRECTION_REFERENCE_TERM_PATTERNS = [
+  /^(.+): use this lesson's evidence-boundary check\.$/,
+  /^Apply this lesson's (.+) evidence-boundary check\.$/,
+  /^Return to the (.+) evidence-boundary check for this lesson\.$/,
+  /^Use the established (.+) evidence-boundary check\.$/,
+  /^Revisit this artifact's (.+) evidence-boundary check\.$/,
+  /^Follow the (.+) evidence-boundary check already established here\.$/,
+];
+
 function normalizedTerm(value) {
   return String(value || '')
     .replace(/\s+/g, ' ')
@@ -74,6 +83,37 @@ function compilerSourceBoundaryCorrectionTerm(value) {
     if (match) return normalizedTerm(match[1]);
   }
   return '';
+}
+
+/**
+ * Identify the compiler's exact evidence-boundary correction contract. This
+ * is intentionally not a semantic classifier: callers can safely use it as a
+ * provenance-residue check without flagging arbitrary instructor prose.
+ */
+export function isCompilerSourceBoundaryCorrection(value) {
+  const correction = normalizedTerm(value);
+  return (
+    correction === 'Cite supporting evidence and name its limit.' ||
+    Boolean(compilerSourceBoundaryCorrectionTerm(correction))
+  );
+}
+
+/**
+ * Corrections and their compact repeated-use references are useful inside
+ * instructor guidance, but neither is a learner-usable answer on its own.
+ */
+export function isCompilerSourceBoundaryDirective(value) {
+  const directive = normalizedTerm(value);
+  if (isCompilerSourceBoundaryCorrection(directive)) return true;
+  return CURRENT_CORRECTION_REFERENCE_TERM_PATTERNS.some((pattern) => pattern.test(directive));
+}
+
+export function isCompilerSourceBoundaryOnlyTerm(term) {
+  return (
+    !normalizedTerm(term?.definition) &&
+    !normalizedTerm(term?.example) &&
+    isCompilerSourceBoundaryDirective(term?.correction)
+  );
 }
 
 function registerResearchPayload(payload, corrections) {

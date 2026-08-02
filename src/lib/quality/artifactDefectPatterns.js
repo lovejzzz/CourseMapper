@@ -62,7 +62,7 @@ export const ARTIFACT_PATTERNS = [
   // (?![A-Z]\.) keeps real option doubling ("A. A. The mitochondria") matching
   // — the token after the doubled letter there is a word, not a third initial.
   {
-    regex: /(?<!, )\b([A-Z])\. \1\. (?![A-Z]\. )/,
+    regex: /(?<!, )\b([A-Z])\. \1\.(?:\s+(?![A-Z]\. )|$)/,
     label: 'doubled option letters "A. A."',
     name: 'doubled-option-letters',
     severity: 'P1',
