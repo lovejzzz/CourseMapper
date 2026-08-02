@@ -254,7 +254,7 @@ describe('ExportSidePanel readiness repair timing', () => {
     await act(async () => {});
   }
 
-  async function prepareReceiptHandoff() {
+  async function prepareReceiptHandoff({ adversarialValue = null } = {}) {
     const liveCourseMap = structuredClone(cleanCourseMap);
     liveCourseMap.lessons.push({
       ...structuredClone(liveCourseMap.lessons[0]),
@@ -276,7 +276,7 @@ describe('ExportSidePanel readiness repair timing', () => {
       exportFailed: 0,
       generation: 'A',
     };
-    const receiptB = { ...receiptA, generation: 'B', adversarialValue: null };
+    const receiptB = { ...receiptA, generation: 'B', adversarialValue };
     const onFinishPackage = vi.fn(async () => ({
       courseMap: finalizedCourseMap,
       deliverables: {},
@@ -931,6 +931,51 @@ describe('ExportSidePanel readiness repair timing', () => {
       packageQualityPass: { status: 'ready', blockers: 0, warnings: 0, receipt: receiptB, quality },
     });
     expect(container.querySelector('[data-testid="export-download-zip"]')?.textContent).toContain('Prepare package');
+    expect(downloadCourseMaterialsZip).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['map', () => new Map([['different', 1]])],
+    ['set', () => new Set(['different'])],
+    ['regexp', () => /different/],
+    ['typed array', () => new Uint8Array([1])],
+    ['invalid date', () => new Date(Number.NaN)],
+    [
+      'class instance',
+      () =>
+        new (class ReceiptClass {
+          constructor() {
+            this.value = 'different';
+          }
+        })(),
+    ],
+  ])('tombstones a B to unsupported %s collision until explicit finalization', async (_label, makeUnsupported) => {
+    const { props, liveCourseMap, quality, receiptB, onFinishPackage } = await prepareReceiptHandoff({
+      adversarialValue: {},
+    });
+    const receiptC = { ...receiptB, adversarialValue: makeUnsupported() };
+
+    await renderPanel({
+      ...props,
+      courseMapInput: liveCourseMap,
+      packageQualityPass: { status: 'ready', blockers: 0, warnings: 0, receipt: receiptC, quality },
+    });
+    await renderPanel({
+      ...props,
+      courseMapInput: liveCourseMap,
+      packageQualityPass: { status: 'ready', blockers: 0, warnings: 0, receipt: receiptB, quality },
+    });
+    expect(container.querySelector('[data-testid="export-download-zip"]')?.textContent).toContain('Prepare package');
+    expect(downloadCourseMaterialsZip).not.toHaveBeenCalled();
+
+    await act(async () => {
+      container
+        .querySelector('[data-testid="export-download-zip"]')
+        ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await vi.runAllTimersAsync();
+    });
+    expect(onFinishPackage).toHaveBeenCalledTimes(2);
+    expect(container.querySelector('[data-testid="export-download-zip"]')?.textContent).toContain('Download ZIP');
     expect(downloadCourseMaterialsZip).not.toHaveBeenCalled();
   });
 

@@ -47,10 +47,61 @@ describe('package trust quality notes', () => {
   it('canonicalizes ordinary receipts and returns an invalid sentinel for unsupported structures', () => {
     expect(packageReceiptKey({ b: 2, a: { value: null } })).toBe(packageReceiptKey({ a: { value: null }, b: 2 }));
     expect(packageReceiptKey({ value: null })).not.toBe(packageReceiptKey({ value: Number.NaN }));
+    expect(packageReceiptKey(Object.assign(Object.create(null), { value: 'plain data' }))).toBe(
+      packageReceiptKey({ value: 'plain data' }),
+    );
     expect(packageReceiptKey({ value: 1n })).toBeNull();
     const circular = { value: 'cycle' };
     circular.self = circular;
     expect(packageReceiptKey(circular)).toBeNull();
+    class ReceiptClass {
+      constructor() {
+        this.value = 'class';
+      }
+    }
+    const arrayWithProperty = ['value'];
+    arrayWithProperty.extra = true;
+    for (const value of [
+      new Map([['different', 1]]),
+      new Set(['different']),
+      /different/,
+      new Uint8Array([1]),
+      new Date(Number.NaN),
+      new ReceiptClass(),
+      arrayWithProperty,
+    ]) {
+      expect(packageReceiptKey({ adversarialValue: value })).toBeNull();
+    }
+    expect(packageReceiptKey({ adversarialValue: {} })).not.toBeNull();
+  });
+
+  it.each([
+    ['bigint', (receipt) => ({ ...receipt, adversarialValue: 1n })],
+    [
+      'circular',
+      (receipt) => {
+        const circular = { ...receipt };
+        circular.self = circular;
+        return circular;
+      },
+    ],
+  ])('blocks an invalid %s receipt consistently in Agent trust status', (_label, makeInvalidReceipt) => {
+    const status = getPackageTrustStatus({
+      packageQualityPass: {
+        status: 'ready',
+        blockers: 0,
+        warnings: 0,
+        quality: { status: 'graded', score: 100, grade: 'A', findingCounts: { p0: 0, p1: 0, p2: 0 } },
+        receipt: makeInvalidReceipt({ exportFailed: 0, exportWarningCount: 0 }),
+      },
+    });
+
+    expect(status).toMatchObject({ state: 'blocked', clean: false, blocked: true, canDownload: false });
+    expect(status.reviewIssues[0]).toMatchObject({
+      label: 'Package receipt',
+      severity: 'blocker',
+      message: expect.stringContaining('Prepare the package again'),
+    });
   });
 
   it('surfaces those exact notes through the Agent trust status', () => {

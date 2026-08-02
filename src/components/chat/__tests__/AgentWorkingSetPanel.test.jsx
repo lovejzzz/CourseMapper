@@ -73,6 +73,42 @@ describe('AgentWorkingSetPanel', () => {
     expect(summary.hiddenSelectedFeatureCount).toBe(1);
   });
 
+  it.each([
+    ['bigint', (receipt) => ({ ...receipt, adversarialValue: 1n })],
+    [
+      'circular',
+      (receipt) => {
+        const circular = { ...receipt };
+        circular.self = circular;
+        return circular;
+      },
+    ],
+  ])('shows Refine in Agent when Export must reject an invalid %s receipt', (_label, makeInvalidReceipt) => {
+    const packageQualityPass = {
+      status: 'ready',
+      blockers: 0,
+      warnings: 0,
+      quality: { status: 'graded', score: 100, grade: 'A', findingCounts: { p0: 0, p1: 0, p2: 0 } },
+      receipt: makeInvalidReceipt({ exportFailed: 0, exportWarningCount: 0 }),
+    };
+    const summary = buildAgentWorkingSetSummary({
+      courseMap,
+      selectedFeatures: ['courseMap'],
+      packageQualityPass,
+    });
+    const html = renderToStaticMarkup(
+      <AgentWorkingSetPanel
+        courseMap={courseMap}
+        selectedFeatures={['courseMap']}
+        packageQualityPass={packageQualityPass}
+      />,
+    );
+
+    expect(summary.packageStatus.label).toBe('Refine');
+    expect(html).toContain('Refine');
+    expect(html).not.toContain('Package ready');
+  });
+
   it('renders a compact status receipt above the conversation', () => {
     const messages = [
       ...buildLandingAgentContextMessages({

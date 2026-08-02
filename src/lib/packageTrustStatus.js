@@ -15,14 +15,29 @@ function stablePackageReceiptValueKey(value, ancestors) {
   if (value === null) return 'L';
   if (value === undefined) return 'U';
   if (typeof value === 'number') return `N:${Object.is(value, -0) ? '-0' : value}`;
-  if (value instanceof Date) return `D:${value.toJSON()}`;
+  if (value instanceof Date) {
+    if (!Number.isFinite(value.getTime())) throw new TypeError('Package receipts must contain valid dates.');
+    return `D:${value.toJSON()}`;
+  }
   if (typeof value === 'string' || typeof value === 'boolean') return `${typeof value}:${JSON.stringify(value)}`;
   if (typeof value !== 'object') throw new TypeError('Package receipts must contain serializable values.');
   if (ancestors.has(value)) throw new TypeError('Package receipts must not contain circular references.');
   ancestors.add(value);
   try {
     if (Array.isArray(value)) {
+      const extraKeys = Reflect.ownKeys(value).filter((key) => {
+        if (key === 'length') return false;
+        return typeof key !== 'string' || !/^(0|[1-9]\d*)$/.test(key) || Number(key) >= value.length;
+      });
+      if (extraKeys.length > 0) throw new TypeError('Package receipt arrays must not contain custom properties.');
       return `A:[${Array.from(value, (item) => stablePackageReceiptValueKey(item, ancestors)).join(',')}]`;
+    }
+    const prototype = Object.getPrototypeOf(value);
+    if (prototype !== Object.prototype && prototype !== null) {
+      throw new TypeError('Package receipts must contain only plain records.');
+    }
+    if (Object.getOwnPropertySymbols(value).length > 0) {
+      throw new TypeError('Package receipts must not contain symbol properties.');
     }
     return `O:{${Object.keys(value)
       .sort()
@@ -36,7 +51,8 @@ function stablePackageReceiptValueKey(value, ancestors) {
 // '' means no receipt; null means a present but invalid receipt. Consumers
 // must tombstone null so unsupported structures can never authorize bytes.
 export function packageReceiptKey(receipt) {
-  if (!receipt || typeof receipt !== 'object') return '';
+  if (receipt === null || receipt === undefined) return '';
+  if (typeof receipt !== 'object') return null;
   try {
     return stablePackageReceiptValueKey(receipt, new WeakSet());
   } catch {
@@ -351,7 +367,16 @@ export function getPackageTrustStatus({
   featureLabels = {},
 } = {}) {
   const finishStatus = finishStatusOf(packageQualityPass);
-  const packageReceipt = receipt || packageQualityPass?.receipt || null;
+  const packageReceipt = receipt ?? packageQualityPass?.receipt ?? null;
+  const invalidReceiptIssue =
+    packageReceipt !== null && packageReceipt !== undefined && packageReceiptKey(packageReceipt) === null
+      ? {
+          label: 'Package receipt',
+          message: 'The package verification receipt is invalid. Prepare the package again before downloading.',
+          count: 1,
+          severity: 'blocker',
+        }
+      : null;
   const packageQuality = quality || packageQualityPass?.quality || null;
   const sourceEvidence = packageQualityPass?.sourceEvidence || packageQuality?.sourceEvidence || null;
   const qualityIssues = buildQualityReviewIssues(packageQuality);
@@ -384,8 +409,9 @@ export function getPackageTrustStatus({
   // New records use the versioned, non-overlapping blockerDomains ledger.
   const inferredLegacyBlockerCount =
     Math.max(readinessBlockers.length, qualityBlockerCount + unavailableQualityProofCount) + exportFailedCount;
-  const blockerCount =
+  const baseBlockerCount =
     blockerDomainCount === null ? Math.max(packageBlockerCount, inferredLegacyBlockerCount) : blockerDomainCount;
+  const blockerCount = baseBlockerCount + (invalidReceiptIssue ? 1 : 0);
   const operationalWarningCount = Math.max(
     packageWarningCount,
     readinessWarnings.length + exportIssues.reduce((total, issue) => total + compactCount(issue?.count || 1), 0),
@@ -428,6 +454,7 @@ export function getPackageTrustStatus({
     exportIssues,
     sourceIssues,
     reviewIssues: dedupeReviewIssues([
+      invalidReceiptIssue,
       ...receiptReadinessIssues,
       ...(qualityIssues.length > 0 ? qualityIssues : qualityProofIssue ? [qualityProofIssue] : []),
       exportFailureIssue,
