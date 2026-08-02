@@ -1,6 +1,11 @@
 import { Bytes, GeoPoint, Timestamp } from 'firebase/firestore';
 
 const OMIT_FIRESTORE_VALUE = Symbol('omit-firestore-value');
+const MIN_FIRESTORE_TIMESTAMP_SECONDS = -62_135_596_800;
+const MAX_FIRESTORE_TIMESTAMP_SECONDS = 253_402_300_799;
+
+const canonicalBytes = Bytes.fromUint8Array(new Uint8Array());
+const FIRESTORE_BYTE_STRING_PROTOTYPE = Object.getPrototypeOf(canonicalBytes._byteString);
 
 function isPlainRecord(value) {
   const prototype = Object.getPrototypeOf(value);
@@ -21,21 +26,79 @@ function hasExactEnumerableDataKeys(value, expectedKeys) {
   );
 }
 
+function readExactEnumerableDataValues(value, expectedKeys) {
+  if (!hasExactEnumerableDataKeys(value, expectedKeys)) return null;
+  const descriptors = Object.getOwnPropertyDescriptors(value);
+  return Object.fromEntries(expectedKeys.map((key) => [key, descriptors[key].value]));
+}
+
+function readValidTimestampParts(value) {
+  const parts = readExactEnumerableDataValues(value, ['seconds', 'nanoseconds']);
+  if (
+    !parts ||
+    !Number.isInteger(parts.seconds) ||
+    parts.seconds < MIN_FIRESTORE_TIMESTAMP_SECONDS ||
+    parts.seconds > MAX_FIRESTORE_TIMESTAMP_SECONDS ||
+    !Number.isInteger(parts.nanoseconds) ||
+    parts.nanoseconds < 0 ||
+    parts.nanoseconds >= 1_000_000_000
+  ) {
+    return null;
+  }
+  return parts;
+}
+
+function readValidGeoPointParts(value) {
+  const parts = readExactEnumerableDataValues(value, ['_lat', '_long']);
+  if (
+    !parts ||
+    !Number.isFinite(parts._lat) ||
+    parts._lat < -90 ||
+    parts._lat > 90 ||
+    !Number.isFinite(parts._long) ||
+    parts._long < -180 ||
+    parts._long > 180
+  ) {
+    return null;
+  }
+  return { latitude: parts._lat, longitude: parts._long };
+}
+
+function readValidBytesBinaryString(value) {
+  const bytesParts = readExactEnumerableDataValues(value, ['_byteString']);
+  const byteString = bytesParts?._byteString;
+  if (!byteString || Object.getPrototypeOf(byteString) !== FIRESTORE_BYTE_STRING_PROTOTYPE) return null;
+  const innerParts = readExactEnumerableDataValues(byteString, ['binaryString']);
+  if (typeof innerParts?.binaryString !== 'string') return null;
+  for (let index = 0; index < innerParts.binaryString.length; index += 1) {
+    if (innerParts.binaryString.charCodeAt(index) > 255) return null;
+  }
+  return innerParts.binaryString;
+}
+
 function firestoreGraphHasOnlySupportedData(value, ancestors) {
-  if (!value || typeof value !== 'object') return typeof value !== 'function' && typeof value !== 'symbol';
+  if (!value || typeof value !== 'object') {
+    return (
+      value === null ||
+      value === undefined ||
+      typeof value === 'string' ||
+      typeof value === 'number' ||
+      typeof value === 'boolean'
+    );
+  }
   if (ancestors.has(value)) return false;
 
   ancestors.add(value);
   try {
     const prototype = Object.getPrototypeOf(value);
     if (prototype === Timestamp.prototype) {
-      return hasExactEnumerableDataKeys(value, ['seconds', 'nanoseconds']);
+      return readValidTimestampParts(value) !== null;
     }
     if (prototype === GeoPoint.prototype) {
-      return hasExactEnumerableDataKeys(value, ['_lat', '_long']);
+      return readValidGeoPointParts(value) !== null;
     }
     if (prototype === Bytes.prototype) {
-      return hasExactEnumerableDataKeys(value, ['_byteString']);
+      return readValidBytesBinaryString(value) !== null;
     }
     if (prototype === Date.prototype) {
       return (
@@ -93,20 +156,22 @@ function normalizeFirestoreValue(value, ancestors) {
     // prototype identity identifies an SDK-decoded Timestamp. Generic project
     // restore deliberately does not make the same provenance claim.
     if (Object.getPrototypeOf(value) === Timestamp.prototype) {
-      const date = new Date(Timestamp.prototype.toMillis.call(value));
+      const parts = readValidTimestampParts(value);
+      if (!parts) return OMIT_FIRESTORE_VALUE;
+      const date = new Date(new Timestamp(parts.seconds, parts.nanoseconds).toMillis());
       return Number.isFinite(date.getTime()) ? date : OMIT_FIRESTORE_VALUE;
     }
 
     if (Object.getPrototypeOf(value) === GeoPoint.prototype) {
-      const latitude = Object.getOwnPropertyDescriptor(GeoPoint.prototype, 'latitude')?.get?.call(value);
-      const longitude = Object.getOwnPropertyDescriptor(GeoPoint.prototype, 'longitude')?.get?.call(value);
-      return Number.isFinite(latitude) && Number.isFinite(longitude)
-        ? { __firestoreType: 'geo-point', latitude, longitude }
-        : OMIT_FIRESTORE_VALUE;
+      const parts = readValidGeoPointParts(value);
+      return parts ? { __firestoreType: 'geo-point', ...parts } : OMIT_FIRESTORE_VALUE;
     }
 
     if (Object.getPrototypeOf(value) === Bytes.prototype) {
-      return { __firestoreType: 'bytes', base64: Bytes.prototype.toBase64.call(value) };
+      const binaryString = readValidBytesBinaryString(value);
+      if (binaryString === null) return OMIT_FIRESTORE_VALUE;
+      const detachedBytes = Uint8Array.from(binaryString, (character) => character.charCodeAt(0));
+      return { __firestoreType: 'bytes', base64: Bytes.fromUint8Array(detachedBytes).toBase64() };
     }
 
     if (Object.getPrototypeOf(value) === Date.prototype) {

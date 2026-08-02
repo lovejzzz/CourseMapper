@@ -123,4 +123,62 @@ describe('normalizeFirestoreSnapshotData', () => {
 
     expect(normalizeFirestoreSnapshotData({ timestamp })).toBeNull();
   });
+
+  it.each([
+    ['seconds below the minimum', -62_135_596_801, 0],
+    ['seconds above the maximum', 253_402_300_800, 0],
+    ['fractional seconds', 1.5, 0],
+    ['negative nanoseconds', 1, -1],
+    ['overflowing nanoseconds', 1, 1_000_000_000],
+    ['fractional nanoseconds', 1, 0.5],
+  ])('rejects forged Timestamp state with %s', (_label, seconds, nanoseconds) => {
+    const timestamp = Object.create(Timestamp.prototype);
+    Object.defineProperties(timestamp, {
+      seconds: { value: seconds, enumerable: true },
+      nanoseconds: { value: nanoseconds, enumerable: true },
+    });
+
+    expect(normalizeFirestoreSnapshotData({ timestamp })).toBeNull();
+  });
+
+  it.each([
+    ['latitude above the maximum', 90.000_001, 0],
+    ['latitude below the minimum', -90.000_001, 0],
+    ['longitude above the maximum', 0, 180.000_001],
+    ['longitude below the minimum', 0, -180.000_001],
+    ['non-finite latitude', Number.NaN, 0],
+  ])('rejects forged GeoPoint state with %s', (_label, latitude, longitude) => {
+    const geoPoint = Object.create(GeoPoint.prototype);
+    Object.defineProperties(geoPoint, {
+      _lat: { value: latitude, enumerable: true },
+      _long: { value: longitude, enumerable: true },
+    });
+
+    expect(normalizeFirestoreSnapshotData({ geoPoint })).toBeNull();
+  });
+
+  it('rejects forged Bytes internals without invoking source methods', () => {
+    let methodCalls = 0;
+    const hostileByteString = Object.create({
+      toBase64() {
+        methodCalls += 1;
+        return 'forged';
+      },
+    });
+    hostileByteString.binaryString = '\u0001\u0002\u0003';
+    const bytes = Object.create(Bytes.prototype);
+    Object.defineProperty(bytes, '_byteString', {
+      value: hostileByteString,
+      enumerable: true,
+    });
+
+    expect(normalizeFirestoreSnapshotData({ bytes })).toBeNull();
+    expect(methodCalls).toBe(0);
+  });
+
+  it('rejects non-Firestore primitive types', () => {
+    expect(normalizeFirestoreSnapshotData({ value: 1n })).toBeNull();
+    expect(normalizeFirestoreSnapshotData({ value: Symbol('unsupported') })).toBeNull();
+    expect(normalizeFirestoreSnapshotData({ value: () => 'unsupported' })).toBeNull();
+  });
 });

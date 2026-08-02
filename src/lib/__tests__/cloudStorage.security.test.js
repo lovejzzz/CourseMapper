@@ -31,13 +31,23 @@ const firestoreMocks = vi.hoisted(() => {
     }
   }
 
+  class ByteString {
+    constructor(binaryString) {
+      this.binaryString = binaryString;
+    }
+  }
+
   class Bytes {
-    constructor(base64) {
-      this._byteString = base64;
+    constructor(binaryString) {
+      this._byteString = new ByteString(binaryString);
+    }
+
+    static fromUint8Array(array) {
+      return new Bytes(String.fromCharCode(...array));
     }
 
     toBase64() {
-      return this._byteString;
+      return btoa(this._byteString.binaryString);
     }
   }
 
