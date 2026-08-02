@@ -88,6 +88,7 @@ export default defineConfig({
           // the disciplinary frame chunk pay the parsing/invalidation cost.
           if (/src\/lib\/courseCompilerCopyVariants\.js$/.test(id)) return 'compilerCopyVariants';
           if (/src\/lib\/courseCompilerRealization\.js$/.test(id)) return 'compilerRealization';
+          if (/src\/lib\/teachingMoveVariants\.js$/.test(id)) return 'compilerTeachingMoveVariants';
           if (/src\/lib\/courseCompilerTextureCopy\.js$/.test(id)) return 'compilerTextureCopy';
           if (/src\/lib\/courseCompilerAssessmentRegistry\.js$/.test(id)) return 'compilerAssessmentRegistry';
           if (/src\/lib\/courseCompilerTechnicalSessionPlans\.js$/.test(id)) {

@@ -368,6 +368,7 @@ const lazyChunkBudgets = [
   // to this lazy chunk. Keep the ratchet within 4 bytes of the 870,509-byte
   // artifact rather than adding speculative headroom.
   { prefix: 'courseBlueprintCompiler-', rawKiB: 850.11, gzipKiB: 238.85, gzipSlackBytes: 64 },
+  { prefix: 'compilerTeachingMoveVariants-', rawKiB: 4, gzipKiB: 1.5, gzipSlackBytes: 64 },
   // Experiential-activity mechanics are compiler-owned and independently
   // cacheable beside the lazy compiler. The chunk projects the canonical
   // activity clock, evidence, constraints, decisions, artifact, and debrief

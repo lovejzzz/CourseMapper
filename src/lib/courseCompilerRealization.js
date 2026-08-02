@@ -201,7 +201,7 @@ function compositionStep(leadCount, tailCount) {
   return step < combinationCount ? step : 1;
 }
 
-export function selectComposedLessonVariant(lesson = {}, ownerId, leads = [], tails = []) {
+export function selectComposedLessonVariant(lesson = {}, ownerId, leads = [], tails = [], separator = '; ') {
   if (!leads.length || !tails.length) {
     return selectLessonVariant(lesson, [...leads, ...tails], ownerId);
   }
@@ -217,7 +217,7 @@ export function selectComposedLessonVariant(lesson = {}, ownerId, leads = [], ta
   const leadIndex = Math.floor(compositionIndex / tails.length);
   const tailIndex = compositionIndex % tails.length;
   const lead = cleanRealizationText(leads[leadIndex]).replace(/[.!?]+$/g, '');
-  const selected = `${lead}; ${cleanRealizationText(tails[tailIndex])}`;
+  const selected = `${lead}${separator}${cleanRealizationText(tails[tailIndex])}`;
   recordLessonVariantTrace({
     lesson,
     variants: [...leads, ...tails],

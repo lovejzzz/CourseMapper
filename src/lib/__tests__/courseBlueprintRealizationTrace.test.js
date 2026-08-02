@@ -5,7 +5,11 @@ import {
   buildCourseBlueprint,
   compileBlueprintDeliverables,
 } from '../courseBlueprintCompiler.js';
-import { selectComposedLessonVariant } from '../courseCompilerRealization.js';
+import {
+  beginBlueprintRealizationTrace,
+  restoreBlueprintRealizationTrace,
+  selectComposedLessonVariant,
+} from '../courseCompilerRealization.js';
 
 function traceCourseMap() {
   return {
@@ -82,6 +86,37 @@ describe('blueprint realization trace', () => {
     expect(events.some((event) => event.consumedSlots.length > 0)).toBe(true);
     expect(legacyEvents.every((event) => /^pool-[a-z0-9]+$/.test(event.poolId))).toBe(true);
     expect(contextualEvents.every((event) => event.poolId === event.ownerId)).toBe(true);
+    expect(contextualEvents.some((event) => event.ownerId === 'lesson-teaching-moves.practice')).toBe(true);
+  });
+
+  it('keeps contextual practice frames from becoming universal across course packages', () => {
+    const leads = ['practice lead A', 'practice lead B', 'practice lead C', 'practice lead D'];
+    const tails = ['tail 1.', 'tail 2.', 'tail 3.', 'tail 4.'];
+    const support = new Map();
+
+    for (let courseIndex = 0; courseIndex < 12; courseIndex += 1) {
+      const courseId = `course-${courseIndex + 1}`;
+      const state = beginBlueprintRealizationTrace(false, courseId);
+      try {
+        for (let lessonNumber = 1; lessonNumber <= 6; lessonNumber += 1) {
+          const selected = selectComposedLessonVariant(
+            { lessonNumber, title: `Lesson ${lessonNumber}: Topic ${courseIndex + 1}` },
+            'lesson-teaching-moves.practice',
+            leads,
+            tails,
+            ' ',
+          );
+          if (!support.has(selected)) support.set(selected, new Set());
+          support.get(selected).add(courseId);
+        }
+      } finally {
+        restoreBlueprintRealizationTrace(state);
+      }
+    }
+
+    expect(support.size).toBeGreaterThan(4);
+    expect([...support.keys()].every((selection) => !selection.includes(';'))).toBe(true);
+    expect([...support.values()].every((courseIds) => courseIds.size < 12)).toBe(true);
   });
 
   it('rotates both halves of composed teaching copy without repeating a pair', () => {

@@ -77,6 +77,12 @@ import {
   selectContextualLessonVariant as contextualLessonVariant,
   selectLessonVariant as lessonVariant,
 } from './courseCompilerRealization';
+import {
+  lessonPracticeMoveVariant,
+  slideClosingFeedbackVariant,
+  slideInspectableEvidenceVariant,
+  slideObjectiveFallbackVariant,
+} from './teachingMoveVariants';
 import * as textureCopy from './courseCompilerTextureCopy';
 import {
   compactAssignmentBriefBodyReferences,
@@ -2514,33 +2520,21 @@ function lessonTeachingMoves(blueprint, lesson = {}) {
   const basePracticeMove = stripTerminalPunctuation(moves.practiceMove);
   const basePracticeClause = lowercaseClauseLead(basePracticeMove);
   const defaultPracticeMove = /\btest one inspectable\b.+\bwith a peer\b.+\bneeds next\b/i.test(basePracticeMove);
-  const practiceVariants = defaultPracticeMove
-    ? [
-        `Pairs inspect one ${concept} evidence choice, then name the decision it changes in ${artifact}.`,
-        `Students compare two support options for ${concept}, reject the weaker one, and record the next ${artifact} revision.`,
-        `Run a quick peer audit: which evidence is inspectable, which claim overreaches, and what should change in ${artifact}?`,
-        `Move from individual evidence marking into paired critique, with ${artifact} as the place students record the ${concept} decision.`,
-      ]
-    : [
-        `${basePracticeMove}, anchored in ${concept}, before students revise ${artifact}.`,
-        `${basePracticeMove}; students then compare one support choice with a peer and decide what ${artifact} should change.`,
-        `Use a quick peer audit after students ${basePracticeClause}: which evidence supports the decision, which detail is weak, and what revision belongs in ${artifact}?`,
-        `Move from ${basePracticeClause} into paired critique, with ${artifact} as the place students record the ${concept} decision.`,
-      ];
   const feedbackVariants = [
     `${stripTerminalPunctuation(moves.feedbackMove)} tied to ${artifact}.`,
     `Feedback names the strongest ${concept} evidence move first, then one targeted revision for ${artifact}.`,
     `Use feedback to identify the strongest detail about ${concept} and the next reasoning gap in ${artifact}.`,
   ];
-  // v0.12.1: no "For ${lessonTitle}," prefix — every consumer already sits in
-  // a lesson context, and the prefix produced "Practice with X: For X, …"
-  // chains plus a mid-sentence period (the base moves end with one).
   return {
     openingMove: `${stripTerminalPunctuation(moves.openingMove)} around ${concept}.`,
-    // The concept anchor keeps each lesson's move distinct — courses with a
-    // single course-wide artifact would otherwise repeat one identical
-    // sentence across every lesson (boilerplate gate).
-    practiceMove: practiceVariants[lessonRotationIndex(lesson, 1) % practiceVariants.length],
+    practiceMove: lessonPracticeMoveVariant({
+      lesson,
+      concept,
+      artifact,
+      basePracticeMove,
+      basePracticeClause,
+      defaultPracticeMove,
+    }),
     feedbackMove: feedbackVariants[lessonRotationIndex(lesson, 2) % feedbackVariants.length],
     assessmentMove: `${stripTerminalPunctuation(moves.assessmentMove)} using ${artifact}.`,
     reviewMove: `${stripTerminalPunctuation(moves.reviewMove)} before publishing ${artifact}.`,
@@ -25815,7 +25809,7 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
   const objectiveOne =
     lesson.outcomes.find((outcome) => outcome && !/\b(TBD|to be determined)\b/i.test(outcome)) ||
     `Analyze ${concept} using ${lens.evidenceNoun || 'source evidence'} and explain how it informs ${artifact}.`;
-  const objectiveFallback = `Evaluate how ${concept} evidence changes ${compactArtifact}.`;
+  const objectiveFallback = slideObjectiveFallbackVariant({ lesson, concept, artifact: compactArtifact });
   const objectiveTwo = selectSecondSlideObjective(lesson.outcomes, objectiveOne, concept, secondary, objectiveFallback);
   const discussionFeedbackRoutine = completeSlideFeedbackRoutine(modality.feedbackRoutine, {
     concept,
@@ -25960,9 +25954,7 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
                 : 'Use one bounded example students can inspect.',
               hasRealSource ? `Begin from a decision point in ${sourceCue}.` : 'Begin from a concrete decision point.',
             ]),
-            hasRealSource
-              ? `Identify the ${concept} evidence students can actually inspect in ${sourceCue}.`
-              : `Identify the ${concept} evidence students can actually inspect.`,
+            slideInspectableEvidenceVariant({ lesson, concept, sourceCue: hasRealSource ? sourceCue : '' }),
             sparseReasoningFrame
               ? lessonVariant(lesson, [
                   `Strong answers show the ${lens.domain} reasoning chain: ${lens.evidenceNoun}, the ${lens.decisionNoun}, and one justified change to ${artifact}.`,
@@ -26126,7 +26118,7 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
             next
               ? `Preview ${primarySlideConcept(next)} and note one way it extends ${concept}.`
               : `Preview portfolio synthesis and final reflection.`,
-            `Apply the strongest feedback from ${displayTitle} before the next course task.`,
+            slideClosingFeedbackVariant({ lesson, displayTitle }),
           ],
           minutes: 3,
           bloom: null,
