@@ -18,6 +18,7 @@ import { compactCompilerScenarioMaterials } from './compilerScenarioMaterials.js
 import { hasDanglingClauseSeam } from './contentQualityChecks.js';
 import { semanticIdentityTokens } from './lessonSemanticRelevance.js';
 import { knownOffenderFitsScope, matchesKnownOffender } from './quality/knownOffenderScope.js';
+import { containsRejectedLearnerSourceEvidence } from './sourceEvidenceAdmission.js';
 import {
   isRenderedDeliverableCollectionFeature,
   renderedDeliverableCollectionKey,
@@ -37,6 +38,8 @@ const LEGACY_APPLY_ASSESSMENT_IDENTITY_RE = /\bApply\s+([^.!?\n]{3,100}?)\s+to o
 const ASSESSMENT_IDENTITY_KEY_RE =
   /^(?:title|t|name|artifact|assessmentTitle|assignmentTitle|rubricTitle|lessonTitle|relatedLessons|courseMapRef|registryId|assessmentId)$/i;
 const LEADING_COLON_RE = /^\s*:\s*/;
+const ORPHAN_CLOSING_QUOTE_RE = /^\s*[”’]+\s*(?=[A-Z0-9])/;
+const ENCYCLOPEDIA_CROSS_REFERENCE_RE = /\(\s*See also [^)]+\)\s*/gi;
 const PERIOD_BEFORE_COMMA_RE = /[.。](?=,|[”"’'],)/g;
 const PERIOD_COMMA_EXEMPT_RE = /\b(?:e\.g|i\.e|etc)\.$/i;
 const HIGH_CONFIDENCE_DANGLING_CLAUSE_RE =
@@ -55,7 +58,11 @@ const GENERIC_SOURCE_TOPIC_RE =
   /^(?:approach|claim|components?|data|evidence|fact|framework|method|process|system|tools?)$/i;
 const LEGACY_OPAQUE_SOURCE_REFERENCE_RE = /\bthe cited source claim\b/gi;
 const LEGACY_SOURCE_REVIEW_DIRECTIVE_RE =
-  /^(?:Key Takeaway:\s*)?(?:Item \d+: add course-aligned, instructor-approved evidence|Use a course-aligned example and verify its source before publishing)\.?$/i;
+  /^(?:Key Takeaway:\s*)?(?:Item \d+: add course-aligned, instructor-approved evidence|Check \d+: verify this claim from sources|Use a course-aligned example and verify its source before publishing)\.?$/i;
+const LEGACY_SOURCE_REVIEW_TITLE_RE = /^Course-aligned (?:source|evidence) review(?: \d+)?$/i;
+const SOURCE_RECORD_COLLECTION_RE = /^(?:sources|requiredTexts|readings|resources|entries)$/i;
+const QUARANTINED_EVIDENCE_ITEM_COLLECTION_RE =
+  /^(?:claims|commonMisconceptions|facts|keyTerms|materials|positions|quizItems|reviewQuestions|slideContent|sources|requiredTexts|readings|resources|entries)$/i;
 const DUPLICATED_STUDENT_SUBJECT_RE = /\bstudents?\s+may\s+assume\s+students?\s+(?:often\s+)?/gi;
 const MALFORMED_CONCEPT_DETAIL_RE =
   /\ba\s+(?:solid|strong|clear|specific)\s+([^.!?]{1,80}\b(?:principles|criteria|standards|guidelines|requirements)\b[^.!?]{0,30})\s+detail\b/gi;
@@ -120,6 +127,7 @@ function normalizedSourceFact(value) {
 function sourceFactCore(value) {
   return String(value || '')
     .trim()
+    .replace(ENCYCLOPEDIA_CROSS_REFERENCE_RE, '')
     .replace(/[.!?]+$/g, '')
     .trim();
 }
@@ -511,6 +519,8 @@ export const MECHANICAL_FINDING_CODES = [
   'double-period',
   'article-agreement',
   'leading-colon-label',
+  'orphan-closing-quote',
+  'encyclopedia-cross-reference',
   'period-before-comma',
   'dangling-clause',
   'procedural-term-definition',
@@ -621,8 +631,13 @@ function repairString(value, featureId, parentKey = '', context = {}, path = [])
   let text = repairCompilerOwnedSlideCopy(repairLegacyOpaqueSourceReferences(value), context);
   text = text.replace(
     /\bItem (\d+): add course-aligned, instructor-approved evidence\b/gi,
-    'Check $1: verify this claim from sources',
+    'Evidence task $1: compare the lesson claim with assigned evidence',
   );
+  text = text.replace(
+    /\bCheck (\d+): verify this claim from sources\b/gi,
+    'Evidence task $1: compare the lesson claim with assigned evidence',
+  );
+  if (LEGACY_SOURCE_REVIEW_TITLE_RE.test(text.trim())) text = 'Source evidence activity';
   text = text.replace(
     /\bUse a course-aligned example and verify its source before publishing\b/gi,
     'Use the source-supported lesson evidence to test the claim before extending it',
@@ -639,6 +654,8 @@ function repairString(value, featureId, parentKey = '', context = {}, path = [])
     text = text.replace(LEGACY_APPLY_ASSESSMENT_IDENTITY_RE, (_, topic) => `${topic.trim()} application check`);
   }
   text = text.replace(LEADING_COLON_RE, '');
+  text = text.replace(ORPHAN_CLOSING_QUOTE_RE, '');
+  text = text.replace(ENCYCLOPEDIA_CROSS_REFERENCE_RE, '');
   text = repairPeriodBeforeComma(text);
   if (!DANGLING_EXEMPT_RE.test(text) && hasDanglingClauseSeam(text)) {
     // "…aligned to ." → "…." — drop the stranded connective, keep the period.
@@ -727,10 +744,68 @@ function removeOutOfScopeOffenderSentences(value, context = {}) {
     .trim();
 }
 
+function containsQuarantinedEvidence(node, context = {}) {
+  if (typeof node === 'string') {
+    return containsRejectedLearnerSourceEvidence(
+      node,
+      context.rejectedLearnerSourceEvidence,
+      context.compilerLessonScope,
+      { includeOverlayShell: context.currentFeatureId === 'studyGuides' },
+    );
+  }
+  if (Array.isArray(node)) return node.some((entry) => containsQuarantinedEvidence(entry, context));
+  if (!node || typeof node !== 'object') return false;
+  return Object.entries(node).some(([key, value]) => {
+    if (isProvenanceMirrorKey(key)) return false;
+    return containsQuarantinedEvidence(value, context);
+  });
+}
+
+function removeQuarantinedEvidenceSentences(value, context = {}) {
+  if (
+    !containsRejectedLearnerSourceEvidence(value, context.rejectedLearnerSourceEvidence, context.compilerLessonScope, {
+      includeOverlayShell: context.currentFeatureId === 'studyGuides',
+    })
+  )
+    return value;
+  const sentences = String(value).match(/[^.!?]+[.!?]?/g) || [String(value)];
+  return sentences
+    .filter(
+      (sentence) =>
+        !containsRejectedLearnerSourceEvidence(
+          sentence,
+          context.rejectedLearnerSourceEvidence,
+          context.compilerLessonScope,
+          { includeOverlayShell: context.currentFeatureId === 'studyGuides' },
+        ),
+    )
+    .join(' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function removeQuarantinedSourceListEntries(value, context = {}) {
+  const entries = String(value)
+    .split(/\s*;\s*/)
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+  return entries
+    .filter(
+      (entry) =>
+        !containsRejectedLearnerSourceEvidence(
+          entry,
+          context.rejectedLearnerSourceEvidence,
+          context.compilerLessonScope,
+          { includeOverlayShell: context.currentFeatureId === 'studyGuides' },
+        ),
+    )
+    .join('; ');
+}
+
 function sourceReviewReplacement(parentKey = '', ordinal = null) {
   const itemNumber = Number.isInteger(ordinal) ? ordinal + 1 : null;
   if (/^(?:title|name|term|lessonTitle|assessmentTitle|assignmentTitle|rubricTitle)$/i.test(parentKey)) {
-    return itemNumber ? `Course-aligned evidence review ${itemNumber}` : 'Course-aligned evidence review';
+    return itemNumber ? `Source evidence activity ${itemNumber}` : 'Source evidence activity';
   }
   if (/definition/i.test(parentKey)) {
     return itemNumber
@@ -738,8 +813,56 @@ function sourceReviewReplacement(parentKey = '', ordinal = null) {
       : 'Define the term from an assigned source and cite the supporting passage or example.';
   }
   return itemNumber
-    ? `Check ${itemNumber}: verify this claim from sources.`
-    : 'Use the source-supported lesson evidence to test the claim before extending it.';
+    ? `Evidence task ${itemNumber}: compare the lesson claim with assigned evidence.`
+    : 'Compare the lesson claim with assigned evidence.';
+}
+
+function stableEvidenceVariant(seed, count) {
+  let hash = 2166136261;
+  for (const character of String(seed || '')) {
+    hash ^= character.charCodeAt(0);
+    hash = Math.imul(hash, 16777619);
+  }
+  return Math.abs(hash >>> 0) % Math.max(1, count);
+}
+
+function quarantinedEvidenceReplacement(featureId, parentKey = '', context = {}, path = []) {
+  const lessonTitle = String(context.currentLessonTitle || 'this lesson')
+    .replace(/^Lesson\s+\d+\s*:\s*/i, '')
+    .trim();
+  const lesson = lessonTitle || 'this lesson';
+  if (/^(?:title|name|term)$/i.test(parentKey)) return `${lesson} evidence check`;
+  if (/^(?:question|prompt)$/i.test(parentKey)) {
+    return `What conclusion does the assigned evidence for ${lesson} support, and what limitation remains?`;
+  }
+  if (/^(?:answer|sampleAnswer|explanation|definition|correction)$/i.test(parentKey)) {
+    return `A defensible response cites assigned evidence for ${lesson}, states a bounded conclusion, and names one limitation.`;
+  }
+  if (/^(?:notes|speakerNotes)$/i.test(parentKey)) {
+    return `Ask learners to compare the assigned evidence for ${lesson}, then state one bounded conclusion and one limitation.`;
+  }
+  if (/^(?:summary|overview|description)$/i.test(parentKey)) {
+    return `Use the ${lesson} objective and assigned course evidence to develop a bounded, supportable conclusion.`;
+  }
+  if (/^(?:bullets|claims|facts|positions)$/i.test(parentKey)) {
+    const variants = [
+      `Compare the assigned materials for ${lesson}; record the strongest support and one limit.`,
+      `Test a ${lesson} conclusion against course evidence, then identify what remains uncertain.`,
+      `Use one course-approved ${lesson} detail to justify a cautious conclusion.`,
+      `Distinguish supported ${lesson} evidence from an inference that still needs checking.`,
+      `Select the best ${lesson} support, explain its relevance, and mark the evidence boundary.`,
+    ];
+    return variants[stableEvidenceVariant(`${featureId}:${parentKey}:${sourceFactPathKey(path)}`, variants.length)];
+  }
+  const defaults = [
+    `Use the approved ${lesson} materials to justify a cautious conclusion`,
+    `Check one ${lesson} inference against assigned evidence and mark its limit`,
+    `For ${lesson}, separate direct support from a claim that still needs evidence`,
+    `Ground the ${lesson} response in a course-approved detail and disclose uncertainty`,
+    `Connect one assigned ${lesson} detail to the decision without overstating it`,
+    `Test the ${lesson} conclusion against course evidence before extending the claim`,
+  ];
+  return defaults[stableEvidenceVariant(`${featureId}:${parentKey}:${sourceFactPathKey(path)}`, defaults.length)];
 }
 
 function worstRepeatedPhrase(node) {
@@ -813,10 +936,38 @@ function compilerScopedContext(node, context = {}) {
 
 function repairNode(node, stats, featureId, parentKey = '', context = {}, path = []) {
   if (typeof node === 'string') {
+    if (
+      containsRejectedLearnerSourceEvidence(node, context.rejectedLearnerSourceEvidence, context.compilerLessonScope, {
+        includeOverlayShell: context.currentFeatureId === 'studyGuides',
+      })
+    ) {
+      const remaining = SOURCE_RECORD_COLLECTION_RE.test(parentKey)
+        ? removeQuarantinedSourceListEntries(node, context)
+        : removeQuarantinedEvidenceSentences(node, context);
+      const repaired = repairString(
+        remaining ||
+          (SOURCE_RECORD_COLLECTION_RE.test(parentKey)
+            ? ''
+            : quarantinedEvidenceReplacement(featureId, parentKey, context, path)),
+        featureId,
+        parentKey,
+        context,
+        path,
+      );
+      if (repaired !== node) stats.changedPaths.add(sourceFactPathKey(path));
+      return repaired;
+    }
     if (knownOffenderIsOutOfScope(node, context)) {
-      stats.changedPaths.add(sourceFactPathKey(path));
       const remaining = removeOutOfScopeOffenderSentences(node, context);
-      return repairString(remaining || sourceReviewReplacement(parentKey), featureId, parentKey, context, path);
+      const repaired = repairString(
+        remaining || sourceReviewReplacement(parentKey),
+        featureId,
+        parentKey,
+        context,
+        path,
+      );
+      if (repaired !== node) stats.changedPaths.add(sourceFactPathKey(path));
+      return repaired;
     }
     const repaired = repairString(node, featureId, parentKey, context, path);
     if (repaired !== node) stats.changedPaths.add(sourceFactPathKey(path));
@@ -825,6 +976,45 @@ function repairNode(node, stats, featureId, parentKey = '', context = {}, path =
   if (Array.isArray(node)) {
     let changed = false;
     const next = node.flatMap((item, index) => {
+      if (QUARANTINED_EVIDENCE_ITEM_COLLECTION_RE.test(parentKey) && containsQuarantinedEvidence(item, context)) {
+        stats.changedPaths.add(sourceFactPathKey([...path, index]));
+        changed = true;
+        return [];
+      }
+      if (
+        typeof item === 'string' &&
+        containsRejectedLearnerSourceEvidence(
+          item,
+          context.rejectedLearnerSourceEvidence,
+          context.compilerLessonScope,
+          { includeOverlayShell: context.currentFeatureId === 'studyGuides' },
+        )
+      ) {
+        const remaining = removeQuarantinedEvidenceSentences(item, context);
+        const repaired = repairString(
+          remaining || quarantinedEvidenceReplacement(featureId, parentKey, context, [...path, index]),
+          featureId,
+          parentKey,
+          context,
+          [...path, index],
+        );
+        if (repaired !== item) {
+          stats.changedPaths.add(sourceFactPathKey([...path, index]));
+          changed = true;
+        }
+        return [repaired];
+      }
+      if (
+        SOURCE_RECORD_COLLECTION_RE.test(parentKey) &&
+        item &&
+        typeof item === 'object' &&
+        !Array.isArray(item) &&
+        LEGACY_SOURCE_REVIEW_TITLE_RE.test(String(item.title || item.name || '').trim())
+      ) {
+        stats.changedPaths.add(sourceFactPathKey([...path, index]));
+        changed = true;
+        return [];
+      }
       if (
         featureId === 'slideDecks' &&
         /^rows$/i.test(parentKey) &&
@@ -846,20 +1036,26 @@ function repairNode(node, stats, featureId, parentKey = '', context = {}, path =
         return [];
       }
       if (typeof item === 'string' && knownOffenderIsOutOfScope(item, context)) {
-        stats.changedPaths.add(sourceFactPathKey([...path, index]));
-        changed = true;
         const remaining = removeOutOfScopeOffenderSentences(item, context);
         if (!remaining && featureId === 'slideDecks' && /^bullets$/i.test(parentKey)) {
+          stats.changedPaths.add(sourceFactPathKey([...path, index]));
+          changed = true;
           return [];
         }
         // Other collection surfaces retain a finished evidence-check task so
         // required cardinality is not silently lost; slide bullets are removed.
-        return [
-          repairString(remaining || sourceReviewReplacement(parentKey, index), featureId, parentKey, context, [
-            ...path,
-            index,
-          ]),
-        ];
+        const repaired = repairString(
+          remaining || sourceReviewReplacement(parentKey, index),
+          featureId,
+          parentKey,
+          context,
+          [...path, index],
+        );
+        if (repaired !== item) {
+          stats.changedPaths.add(sourceFactPathKey([...path, index]));
+          changed = true;
+        }
+        return [repaired];
       }
       const repaired = repairNode(item, stats, featureId, parentKey, context, [...path, index]);
       if (repaired !== item) changed = true;
@@ -873,6 +1069,31 @@ function repairNode(node, stats, featureId, parentKey = '', context = {}, path =
       .trim();
     const lessonContext = nodeLessonTitle ? { ...context, currentLessonTitle: nodeLessonTitle } : context;
     const scopedContext = compilerScopedContext(node, lessonContext);
+    if (
+      /^sourceEvidenceBrief$/i.test(parentKey) &&
+      Object.keys(node).length > 0 &&
+      node.enrichmentSource === 'lesson-content-enrichment' &&
+      scopedContext.rejectedLearnerSourceEvidence?.rejectedLessonScopes?.has(scopedContext.compilerLessonScope)
+    ) {
+      stats.changedPaths.add(sourceFactPathKey(path));
+      const lessonTitle = scopedContext.currentLessonTitle || 'this lesson';
+      const claimVariants = {
+        syllabus: `For ${lessonTitle}, use the official assigned material and state its limit`,
+        lessonPlans: `Facilitate ${lessonTitle} with course-approved evidence and a bounded conclusion`,
+        slideDecks: `On ${lessonTitle}, identify the strongest assigned support and one uncertainty`,
+        assignments: `In ${lessonTitle}, cite an assigned detail and qualify the resulting claim`,
+        rubrics: `Evaluate ${lessonTitle} by checking evidence relevance, reasoning, and stated limitations`,
+        discussions: `Discuss ${lessonTitle} by comparing support, counterevidence, and an unresolved point`,
+        quizBank: `Answer the ${lessonTitle} item with assigned evidence and an explicit boundary`,
+        studyGuides: `Review ${lessonTitle} through one supported conclusion and one remaining question`,
+        courseFaq: `For ${lessonTitle}, consult assigned materials before extending the course claim`,
+      };
+      return {
+        enrichmentSource: 'course-map-source-boundary',
+        claims: [claimVariants[featureId] || `Use course-approved evidence for ${lessonTitle} and qualify the claim`],
+        sources: [],
+      };
+    }
     if (
       featureId === 'studyGuides' &&
       typeof node.term === 'string' &&
@@ -937,6 +1158,7 @@ export function repairDeliverableContentQuality(featureId, data, context = {}) {
   const stats = { changedPaths: new Set(), repairedPhrases: 0 };
   const repairContext = {
     ...context,
+    currentFeatureId: featureId,
     authorizedCompilerSourceBoundaryCorrections: null,
     authorizedCompilerScenarioMaterials: null,
     compilerLessonScopeIds: new Set([

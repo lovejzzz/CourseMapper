@@ -20,6 +20,8 @@ export const PUBLISHABILITY_PLACEHOLDER_PATTERNS = [
   /Provide supporting resources for the content\s*&\s*instruction/i,
   /Ask yourself:\s*Is everything in this row aligned and coherent\?/i,
   /\bItem \d+: add course-aligned, instructor-approved evidence\b/i,
+  /\bCheck \d+: verify this claim from sources\b/i,
+  /\bCourse-aligned (?:source|evidence) review(?: \d+)?\b/i,
   /\bUse a course-aligned example and verify its source before publishing\b/i,
   /\bAdd an instructor-approved, course-aligned definition and source before publishing\b/i,
 ];

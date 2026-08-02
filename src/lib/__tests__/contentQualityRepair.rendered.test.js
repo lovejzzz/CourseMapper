@@ -99,7 +99,109 @@ async function renderedBoundaryCorrectionPackage(lessonPlans, studyGuides, slide
   return extractPackage(createMemoryFileProvider(files));
 }
 
+async function renderedLegacySourceReviewPackage(deliverables) {
+  const files = {
+    'Lesson Plans/Lesson 1 - Evidence.docx': await buildDeliverableDocxBlob(
+      'lessonPlans',
+      deliverables.lessonPlans,
+      'Python for Public Policy Analysis',
+    ),
+    'Rubrics/Lesson 1 - Evidence.docx': await buildDeliverableDocxBlob(
+      'rubrics',
+      deliverables.rubrics,
+      'Python for Public Policy Analysis',
+    ),
+    'Study Guides/Lesson 1 - Evidence.docx': await buildDeliverableDocxBlob(
+      'studyGuides',
+      deliverables.studyGuides,
+      'Python for Public Policy Analysis',
+    ),
+    'Syllabus/Python for Public Policy Analysis - Syllabus.docx': await buildDeliverableDocxBlob(
+      'syllabus',
+      deliverables.syllabus,
+      'Python for Public Policy Analysis',
+    ),
+    'Slide Decks/Lesson 1 - Evidence.pptx': await buildSlideDeckPptxBlob(
+      deliverables.slideDecks,
+      'Python for Public Policy Analysis',
+      0,
+    ),
+  };
+  return extractPackage(createMemoryFileProvider(files));
+}
+
 describe('contentQualityRepair rendered package integration', () => {
+  it('removes legacy source-review production instructions from final DOCX and PPTX XML', async () => {
+    const legacySource = {
+      title: 'Course-aligned source review',
+      url: 'https://example.test/internal-review',
+      license: 'Instructor review required',
+    };
+    const legacyClaim = 'Check 3: verify this claim from sources.';
+    const original = {
+      lessonPlans: {
+        lessonPlans: [
+          {
+            lessonTitle: 'Lesson 1: Evidence decisions',
+            sourceEvidenceBrief: { claims: [legacyClaim], sources: [legacySource] },
+          },
+        ],
+      },
+      rubrics: {
+        rubrics: [
+          {
+            lessonTitle: 'Lesson 1: Evidence decisions',
+            sourceEvidenceBrief: { claims: [legacyClaim], sources: [legacySource] },
+            criteria: [{ criterion: 'Evidence use', weight: 100, proficient: 'Uses assigned evidence.' }],
+          },
+        ],
+      },
+      studyGuides: {
+        guides: [
+          {
+            lessonTitle: 'Lesson 1: Evidence decisions',
+            sourceEvidenceBrief: { claims: [legacyClaim], sources: [legacySource] },
+          },
+        ],
+      },
+      syllabus: {
+        syllabus: {
+          courseTitle: 'Python for Public Policy Analysis',
+          requiredTexts: [legacySource],
+        },
+      },
+      slideDecks: {
+        decks: [
+          {
+            lessonTitle: 'Lesson 1: Evidence decisions',
+            slides: [{ title: 'Course-aligned evidence review', bullets: [legacyClaim] }],
+          },
+        ],
+      },
+    };
+
+    const before = await renderedLegacySourceReviewPackage(original);
+    const beforeText = before.files.map((file) => file.text).join('\n');
+    expect(before.files).toHaveLength(5);
+    expect(beforeText).toMatch(/Course-aligned (?:source|evidence) review/i);
+    expect(beforeText).toContain(legacyClaim);
+
+    const repaired = Object.fromEntries(
+      Object.entries(original).map(([featureId, data]) => [
+        featureId,
+        repairDeliverableContentQuality(featureId, data).data,
+      ]),
+    );
+    const after = await renderedLegacySourceReviewPackage(repaired);
+    const afterText = after.files.map((file) => file.text).join('\n');
+
+    expect(afterText).not.toMatch(/Course-aligned (?:source|evidence) review/i);
+    expect(afterText).not.toMatch(/Check \d+: verify this claim from sources/i);
+    expect(afterText).not.toContain('https://example.test/internal-review');
+    expect(afterText).toContain('Evidence task 3: compare the lesson claim with assigned evidence.');
+    expect(afterText).toContain('Source evidence activity');
+  });
+
   it('clears the production-shaped 38-copy correction P1 across 12 rendered artifacts', async () => {
     const terms = ['Policy functions', 'Data cleaning', 'Model uncertainty', 'Reproducible reporting'];
     const lessonPlans = terms.map((term, index) => {

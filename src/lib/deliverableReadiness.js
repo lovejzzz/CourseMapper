@@ -2190,6 +2190,21 @@ export function repairWorkspaceReadiness({
           message: `${labelFor(featureId)} has ${countCheck.underfilledIndices.length} lesson(s) below the configured ${countCheck.target}-question target.`,
         });
       }
+      const collection = entry.data?.[countCheck.arrayKey];
+      const oversizedIndices = Array.isArray(collection)
+        ? collection
+            .map((item, index) => ((item?.questions || item?.qs || []).length > 8 ? index : null))
+            .filter((index) => index !== null)
+        : [];
+      if (oversizedIndices.length > 0) {
+        observations.push({
+          featureId,
+          label: labelFor(featureId),
+          lessonIndices: oversizedIndices,
+          target: 8,
+          message: `${labelFor(featureId)} has ${oversizedIndices.length} lesson(s) above the supported 8-question navigation range; content was preserved for instructor review.`,
+        });
+      }
     }
 
     const { data, summaries } = repairFeatureData(featureId, entry.data, {
@@ -2559,6 +2574,15 @@ function checkPerLessonFeature(featureId, data, courseMap, lessonIndices, issues
       const target = getCourseFaqQuestionTarget(config);
       if (questions.length < target) {
         issues.push(makeIssue(READINESS_WARNING, featureId, `${lessonTitle} FAQ has fewer than ${target} questions.`));
+      }
+      if (questions.length > 8) {
+        issues.push(
+          makeIssue(
+            READINESS_WARNING,
+            featureId,
+            `${lessonTitle} FAQ has ${questions.length} questions; review whether more than 8 helps students navigate the lesson.`,
+          ),
+        );
       }
       const badCategories = questions.filter(
         (question) => !FAQ_CATEGORIES.has(text(question.category || question.ca)),

@@ -1814,6 +1814,16 @@ describe('source-ledger quality checks', () => {
               license: 'CC BY-SA 4.0',
               conceptLinks: [{ id: 'c11', label: 'exceptions' }],
             },
+            {
+              id: 'sf-lipidomics',
+              title:
+                'LipidFinder: A computational workflow for discovery of lipids identifies eicosanoid-phosphoinositides in platelets',
+              provider: 'openalex',
+              url: 'https://doi.org/10.7554/eLife.18951',
+              doi: '10.7554/eLife.18951',
+              license: 'CC BY 4.0',
+              conceptLinks: [{ id: 'c1', label: 'Python' }],
+            },
           ],
           sourceReport: {
             path: 'SOURCE_REPORT.md',
@@ -1836,6 +1846,7 @@ describe('source-ledger quality checks', () => {
         'source ledger row sf2 is off-discipline for Computer Science/Python',
         'source ledger row sf10 is off-discipline for Computer Science/Python',
         'source ledger row sf11 is off-discipline for Computer Science/Python',
+        'source ledger row sf-lipidomics is off-discipline for Computer Science/Python',
       ]),
     );
     expect(details).not.toContain('source ledger row sf-good is off-discipline for Computer Science/Python');

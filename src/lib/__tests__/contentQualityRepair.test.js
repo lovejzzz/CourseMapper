@@ -3,8 +3,28 @@ import { collectDeliverableSourceFacts, repairDeliverableContentQuality } from '
 import { auditDeliverableContentQuality } from '../contentQualityChecks';
 import { semanticIdentityTokens } from '../lessonSemanticRelevance';
 import { knownOffenderFitsScope } from '../quality/knownOffenderScope';
+import { normalizeQuarantinedEvidenceText } from '../sourceEvidenceAdmission';
 
 describe('contentQualityRepair (v0.12.1 P2)', () => {
+  it('removes encyclopedia navigation residue without deleting the sourced claim', () => {
+    const result = repairDeliverableContentQuality('lessonPlans', {
+      lessonPlans: [
+        {
+          notes: '(See also Accuracy and precision.) Accuracy is hard to establish in the general case.',
+        },
+      ],
+    });
+    expect(result.changed).toBe(true);
+    expect(result.data.lessonPlans[0].notes).toBe('Accuracy is hard to establish in the general case.');
+  });
+
+  it('removes an orphan closing quote from a learner prompt', () => {
+    const result = repairDeliverableContentQuality('studyGuides', {
+      studyGuides: [{ reviewQuestions: [{ question: '” What decision follows from the evidence?' }] }],
+    });
+    expect(result.data.studyGuides[0].reviewQuestions[0].question).toBe('What decision follows from the evidence?');
+  });
+
   it('requires exact calibrated scope signals, including every token in phrase hints', () => {
     const scope = (value) => new Set(semanticIdentityTokens(value));
 
@@ -265,8 +285,10 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
       { courseName: 'Python for Public Policy Analysis' },
     );
     expect(wholeFieldLeak.changed).toBe(true);
-    expect(wholeFieldLeak.data.lessonPlans[0].lessonTitle).toBe('Course-aligned evidence review');
-    expect(wholeFieldLeak.data.lessonPlans[0].objectives).toEqual(['Check 1: verify this claim from sources.']);
+    expect(wholeFieldLeak.data.lessonPlans[0].lessonTitle).toBe('Source evidence activity');
+    expect(wholeFieldLeak.data.lessonPlans[0].objectives).toEqual([
+      'Evidence task 1: compare the lesson claim with assigned evidence.',
+    ]);
 
     const repeatedLeaks = repairDeliverableContentQuality(
       'lessonPlans',
@@ -318,6 +340,55 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
       visual: { rows: [['Fact 2', 'Supported source statement.']] },
     });
     expect(JSON.stringify(result.data)).not.toMatch(/add course-aligned|before publishing/i);
+  });
+
+  it.each(['syllabus', 'lessonPlans', 'rubrics', 'studyGuides'])(
+    'removes legacy source-review records from rendered %s collections',
+    (featureId) => {
+      const collectionKey = featureId === 'syllabus' ? 'syllabus' : featureId;
+      const rendered =
+        featureId === 'syllabus'
+          ? {
+              syllabus: {
+                requiredTexts: [
+                  { title: 'Assigned policy handbook', note: 'Core reading.' },
+                  { title: 'Course-aligned source review', note: 'https://example.test/unsafe' },
+                ],
+              },
+            }
+          : {
+              [collectionKey]: [
+                {
+                  lessonTitle: 'Lesson 1: Evidence',
+                  sourceEvidenceBrief: {
+                    sources: [
+                      { title: 'Assigned policy handbook', url: 'https://example.test/handbook' },
+                      { title: 'Course-aligned source review', url: 'https://example.test/unsafe' },
+                    ],
+                  },
+                },
+              ],
+            };
+
+      const result = repairDeliverableContentQuality(featureId, rendered);
+      expect(JSON.stringify(result.data)).not.toMatch(/Course-aligned (?:source|evidence) review/i);
+      expect(JSON.stringify(result.data)).toContain('Assigned policy handbook');
+    },
+  );
+
+  it('migrates saved internal claim checks into finished learner evidence tasks', () => {
+    const result = repairDeliverableContentQuality('lessonPlans', {
+      lessonPlans: [
+        {
+          lessonTitle: 'Lesson 1: Evidence',
+          objectives: ['Check 3: verify this claim from sources.'],
+        },
+      ],
+    });
+
+    expect(result.data.lessonPlans[0].objectives).toEqual([
+      'Evidence task 3: compare the lesson claim with assigned evidence.',
+    ]);
   });
 
   it('does not let generic lesson overlap rescue a known off-topic source leak', () => {
@@ -382,6 +453,82 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
 
     expect(text).not.toMatch(/ImageJ|Molecule Archive/i);
     expect(text).not.toContain('the cited source claim');
+  });
+
+  it('reports a fixed point when a quarantine replacement also matches a coarse rejected assertion', () => {
+    const quarantine = {
+      rejectedLessonScopes: new Set(['lesson-6']),
+      phrases: new Set(),
+      markers: new Set(),
+      overlayTermsByLesson: new Map(),
+      overlayExactValuesByLesson: new Map(),
+      sourceAssertionExactValuesByLesson: new Map([
+        ['lesson-6', new Set(['flexible pipelines are big hurdles to adopting these advanced methods'])],
+      ]),
+    };
+    const context = {
+      rejectedLearnerSourceEvidence: quarantine,
+      compilerScenarioMaterialsByLesson: new Map([['lesson-6', []]]),
+    };
+    const data = {
+      decks: [
+        {
+          lessonId: 'lesson-6',
+          lessonTitle: 'Lesson 6: Reproducible Analysis and Visualization',
+          slides: [
+            {
+              bullets: ['Flexible pipelines are big hurdles to adopting these advanced methods.'],
+            },
+          ],
+        },
+      ],
+    };
+
+    const first = repairDeliverableContentQuality('slideDecks', data, context);
+    const replacement = first.data.decks[0].slides[0].bullets[0];
+    quarantine.sourceAssertionExactValuesByLesson.get('lesson-6').add(normalizeQuarantinedEvidenceText(replacement));
+    const replay = repairDeliverableContentQuality('slideDecks', first.data, context);
+
+    expect(first.changed).toBe(true);
+    expect(replay.changed).toBe(false);
+    expect(replay.repairedStrings).toBe(0);
+    expect(replay.data).toBe(first.data);
+  });
+
+  it('drops rejected source-list records whole instead of leaving URL and metadata tails', () => {
+    const quarantine = {
+      rejectedLessonScopes: new Set(),
+      phrases: new Set(),
+      markers: new Set(['pygmt']),
+      sourceIdentityExactValues: new Set(['https doi org 10 1029 rejected']),
+    };
+    const syllabus = repairDeliverableContentQuality(
+      'syllabus',
+      {
+        syllabus: {
+          weeklySchedule: [
+            {
+              readings: 'Official Python guide; PyGMT research article — https://doi. org/10.1029/rejected',
+            },
+          ],
+        },
+      },
+      { rejectedLearnerSourceEvidence: quarantine },
+    );
+    const lessonPlans = repairDeliverableContentQuality(
+      'lessonPlans',
+      {
+        lessonPlans: [
+          {
+            materials: ['Official Python guide', '0 (DOAJ article metadata) — https://doi. org/10.1029/rejected'],
+          },
+        ],
+      },
+      { rejectedLearnerSourceEvidence: quarantine },
+    );
+
+    expect(syllabus.data.syllabus.weeklySchedule[0].readings).toBe('Official Python guide');
+    expect(lessonPlans.data.lessonPlans[0].materials).toEqual(['Official Python guide']);
   });
 
   it('preserves calibrated in-discipline uses of broadly named offender citations', () => {

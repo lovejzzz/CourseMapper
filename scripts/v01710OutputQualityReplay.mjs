@@ -127,7 +127,6 @@ const finalizedSnapshot = canonicalPackageSnapshot(finalized);
 const replayedSnapshot = canonicalPackageSnapshot(replayed);
 const idempotent = finalizedSnapshot === replayedSnapshot && replayed.changed === false;
 const gradeOptions = {
-  courseMap: project.courseMap,
   featureIds: project.selectedFeatures,
   columns: project.columns,
   slideTheme: project.slideTheme,
@@ -138,8 +137,16 @@ const gradeOptions = {
   coursePrompt: project.promptText,
   timeoutMs: 120000,
 };
-const beforeQuality = await gradePackageAtFinalize({ ...gradeOptions, deliverables: project.deliverables });
-const afterQuality = await gradePackageAtFinalize({ ...gradeOptions, deliverables: finalized.deliverables });
+const beforeQuality = await gradePackageAtFinalize({
+  ...gradeOptions,
+  courseMap: project.courseMap,
+  deliverables: project.deliverables,
+});
+const afterQuality = await gradePackageAtFinalize({
+  ...gradeOptions,
+  courseMap: finalized.courseMap,
+  deliverables: finalized.deliverables,
+});
 const zipOutput = argument('--zip');
 let retainedPackage = null;
 if (zipOutput) {

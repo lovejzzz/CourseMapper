@@ -124,7 +124,11 @@ const COMPUTER_SCIENCE_SOURCE_ANCHOR_RE =
 const COMPUTER_SCIENCE_FALSE_FRIEND_RE =
   /\b(?:correlation|statistical\s+variables?|dependent\s+variables?|independent\s+variables?|random\s+variables?|lists?\s+of\s+(?:american\s+colleges|box\s+office|universities|films|songs|albums|people)|list\s+of\s+dictionaries\s+by\s+number\s+of\s+words|session\s+\(software\)|signal\s+foundation|encrypted\s+messag(?:e|ing)|no\s+strings\s+attached|n'?sync|string\s+theory|trigonometric\s+functions?|function\s+\(mathematics\)|continuous\s+or\s+discrete\s+variable|frontiers\s+of\s+flow\s+control|file\s+explorer|file\s+manager|environment\s+variable|conditional\s+sentences?|english\s+conditional\s+sentences?|natural\s+language|subordinate\s+clause|protasis|apodosis|game\s+loops?|game\s+design\s+loops?|game\s+terakoya|ludic\s+language\s+pedagogy|module\s+\(mathematics\)|module\s+theory|modules?\s+over\s+(?:a\s+)?rings?|abstract\s+algebra|exception\s+\(law\)|legal\s+exceptions?|exception\s+clauses?|exceptions?\s+to\s+(?:rules?|laws?))\b/i;
 const COMPUTER_SCIENCE_AMBIGUOUS_CONCEPT_RE =
-  /\b(?:variables?|types?|data\s+types?|control\s+flow|conditionals?|loops?|functions?|lists?|dictionar(?:y|ies)|strings?|file\s+(?:input|output|i\/o)|files?|modules?|exceptions?|testing|debugging|algorithms?)\b/i;
+  /\b(?:variables?|types?|data\s+types?|integer(?:s)?|floats?|floating[-\s]?point|numeric\s+types?|number\s+representation|control\s+flow|conditionals?|loops?|functions?|lists?|dictionar(?:y|ies)|strings?|file\s+(?:input|output|i\/o)|files?|modules?|exceptions?|testing|debugging|algorithms?)\b/i;
+const COMPUTER_SCIENCE_BROAD_LANGUAGE_CONCEPT_RE =
+  /^(?:python(?:\s+programming(?:\s+language)?)?|programming|coding)$/i;
+const COMPUTER_SCIENCE_BROAD_LANGUAGE_SOURCE_PROOF_RE =
+  /(?:docs\.python\.org|python\.org\/doc)|\b(?:python\s+programming|python\s+language|programming\s+language|software\s+development|computer\s+program|source\s+code|coding|algorithm|data\s+structures?|control\s+flow|unit\s+tests?|pytest|debugging)\b/i;
 const DATABASE_COURSE_RE =
   /\b(?:database systems?|database management|relational databases?|\bsql\b|data management systems?)\b/i;
 const DATABASE_TRANSACTION_TOPIC_RE =
@@ -143,14 +147,15 @@ const ORAL_HISTORY_SOURCE_ANCHOR_RE =
   /\b(?:oral history|oral histories|oral tradition|public history|archives?|archival|interviews?|interviewing|open[-\s]?ended questions?|questionnaires?|narrators?|recordings?|sound recording|audio|transcripts?|transcription|qualitative research|thematic analysis|content analysis|coding|storytelling|visual narratives?|visual communication|presentations?|research proposals?|research design|informed consent|release forms?|digital preservation|metadata)\b/i;
 const COMPUTER_SCIENCE_TOPIC_ANCHORS = [
   {
-    concept: /\b(?:variables?|types?|data\s+types?)\b/i,
+    concept:
+      /\b(?:variables?|types?|data\s+types?|integer(?:s)?|floats?|floating[-\s]?point|numeric\s+types?|number\s+representation)\b/i,
     source:
-      /\b(?:data\s+types?|built[-\s]?in\s+types?|variables?\s+(?:in\s+python|in\s+programming)|type\s+systems?|docs\.python\.org\/(?:3\/)?library\/stdtypes)\b/i,
+      /\b(?:data\s+types?|built[-\s]?in\s+types?|integer(?:s)?\s+(?:in\s+python|type|representation)|floats?\s+(?:in\s+python|type|representation)|floating[-\s]?point|numeric\s+types?|number\s+representation|variables?\s+(?:in\s+python|in\s+programming)|type\s+systems?|docs\.python\.org\/(?:3\/)?library\/stdtypes)\b/i,
   },
   {
     concept: /\b(?:control\s+flow|conditionals?|loops?)\b/i,
     source:
-      /\b(?:control\s+flow|branching|iteration|conditional\s+(?:statement|expression|operator|construct|computer|programming)|if\s+statements?|if[-\s]then(?:[-\s]else)?|loops?\s+(?:in\s+python|in\s+programming|programming|statement|construct)|for\s+loops?|while\s+loops?)\b/i,
+      /\b(?:control\s+flow|branching|iteration|conditional(?:\s*\(\s*computer\s+programming\s*\)|\s+(?:statement|expression|operator|construct|computer|programming))|if\s+statements?|if[-\s]then(?:[-\s]else)?|loops?\s+(?:in\s+python|in\s+programming|programming|statement|construct)|for\s+loops?|while\s+loops?)(?=\W|$)/i,
   },
   {
     concept: /\bfunctions?\b/i,
@@ -201,9 +206,13 @@ const COMPUTER_SCIENCE_TOPIC_ANCHORS = [
       /\b(?:algorithms?\s+(?:in\s+computer\s+science|in\s+programming|design|analysis)|computer\s+science|programming|software|pseudocode|complexity|data\s+structures?)\b/i,
   },
   {
-    concept: /\b(?:pandas|data\s*frames?|data\s+clean(?:ing|sing)|missing\s+values?|audit\s+logs?)\b/i,
+    concept: /\b(?:pandas|data\s*frames?)\b/i,
     source:
       /(?=.*\b(?:pandas|data\s*frames?|data\s+clean(?:ing|sing)|missing\s+values?|data\s+quality)\b)(?=.*\b(?:pandas|python|data\s*frames?)\b)/i,
+  },
+  {
+    concept: /\b(?:data\s+clean(?:ing|sing)|missing\s+values?|data\s+quality|audit\s+logs?)\b/i,
+    source: /\b(?:data\s+clean(?:ing|sing)|missing\s+values?|data\s+quality|invalid\s+records?)\b/i,
   },
   {
     concept: /\b(?:reproducib(?:le|ility)|visuali[sz](?:e|ation|ing)|uncertaint(?:y|ies)|matplotlib)\b/i,
@@ -902,6 +911,21 @@ export function isComputerScienceWeakSource(source, courseGraph) {
   const text = sourceSearchText(source);
   if (COMPUTER_SCIENCE_FALSE_FRIEND_RE.test(text)) return true;
   const conceptText = sourceConceptText(source);
+  const conceptLabels = (Array.isArray(source?.conceptLinks) ? source.conceptLinks : [])
+    .map((link) => cleanText(typeof link === 'string' ? link : link?.label || link?.id || '', 160))
+    .filter(Boolean);
+  // A bare “Python” concept link is not enough to turn an arbitrary
+  // scientific Python paper into programming-course evidence. Require the
+  // source itself to identify programming, code, the language, its official
+  // documentation, or another concrete CS construct. Lesson-specific links
+  // continue through the topic-anchor matrix below.
+  if (
+    conceptLabels.length > 0 &&
+    conceptLabels.every((label) => COMPUTER_SCIENCE_BROAD_LANGUAGE_CONCEPT_RE.test(label)) &&
+    !COMPUTER_SCIENCE_BROAD_LANGUAGE_SOURCE_PROOF_RE.test(text)
+  ) {
+    return true;
+  }
   const hasRecognizedLessonTopic = COMPUTER_SCIENCE_TOPIC_ANCHORS.some(({ concept }) => concept.test(conceptText));
   if (hasRecognizedLessonTopic || COMPUTER_SCIENCE_AMBIGUOUS_CONCEPT_RE.test(conceptText)) {
     return !hasComputerScienceTopicAnchor(source);
@@ -1188,8 +1212,8 @@ export function buildSourceLedgerFromCourseGraph(courseGraph, { checkedAt = '' }
     const session = lessonNumber > 0 ? courseGraph.sessions?.[lessonNumber - 1] : null;
     const lessonTitle = cleanText(session?.title || `Lesson ${lessonNumber}`, 180);
     const citations = Array.isArray(payload?.conceptProvenance?.citations) ? payload.conceptProvenance.citations : [];
-    citations.forEach((citation, citationIndex) => {
-      const normalized = normalizeTrustedSource(
+    const normalizedCitations = citations.map((citation, citationIndex) =>
+      normalizeTrustedSource(
         {
           ...citation,
           id: citation.id || citation.sourceRefId || `overlay-${lessonNumber || 'course'}-${citationIndex + 1}`,
@@ -1211,9 +1235,20 @@ export function buildSourceLedgerFromCourseGraph(courseGraph, { checkedAt = '' }
             ...(Array.isArray(citation.conceptLinks) ? citation.conceptLinks : []),
           ],
         },
-      );
-      appendCourseAwareSource(rows, reviewRows, normalized, courseGraph);
-    });
+      ),
+    );
+    // A legacy lesson overlay binds claims to the citation set, not to one
+    // citation per sentence. If any retained citation is off-discipline, that
+    // lesson's overlay is non-separable: none of its rows may expand trusted
+    // lesson coverage. Keep every row visible for review; a matching source
+    // may still be trusted independently in another clean lesson.
+    const coarseOverlayRequiresReview = normalizedCitations.some((source) =>
+      isCourseAwareWeakSource(source, courseGraph),
+    );
+    for (const normalized of normalizedCitations) {
+      if (coarseOverlayRequiresReview) appendUnique(reviewRows, normalized);
+      else appendCourseAwareSource(rows, reviewRows, normalized, courseGraph);
+    }
   }
 
   for (const resource of courseGraph.resources || []) {

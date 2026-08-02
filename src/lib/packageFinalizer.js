@@ -15,6 +15,7 @@ import { collectCompilerSourceBoundaryCorrections } from './compilerSourceBounda
 import { collectCompilerScenarioMaterials } from './compilerScenarioMaterials';
 import { compactAssignmentBriefBodyReferences } from './courseCompilerCopyVariants';
 import { countAdvisoryQualityFindings, countBlockingQualityFindings } from './qualityFindingPolicy';
+import { collectRejectedLearnerSourceEvidence, quarantineRejectedLearnerContent } from './sourceEvidenceAdmission';
 
 function featureLabel(featureId) {
   return READINESS_FEATURE_LABELS[featureId] || (featureId?.startsWith('custom_') ? 'Custom Deliverable' : featureId);
@@ -443,10 +444,23 @@ function applyDeterministicRepairs({
   deliverableConfig = {},
   includeClassroomReadiness = true,
 } = {}) {
-  let nextCourseMap = courseMap;
+  const rejectedLearnerSourceEvidence = collectRejectedLearnerSourceEvidence({ courseMap, courseGraph });
+  const courseMapSourceQuarantine = quarantineRejectedLearnerContent(courseMap, rejectedLearnerSourceEvidence);
+  let nextCourseMap = courseMapSourceQuarantine.data;
   let nextDeliverables = deliverables;
   const repairs = [];
   const observations = [];
+
+  if (courseMapSourceQuarantine.changed) {
+    repairs.push({
+      featureId: 'courseMap',
+      label: 'Course Map',
+      changes: [
+        `source evidence quarantine: ${courseMapSourceQuarantine.repairedStrings} weak-source projection(s) removed`,
+      ],
+      message: `Course Map repaired: ${courseMapSourceQuarantine.repairedStrings} review-only source projection(s) quarantined from learner content`,
+    });
+  }
 
   let workspaceReadiness = evaluateWorkspaceReadiness({
     courseMap: nextCourseMap,
@@ -608,6 +622,7 @@ function applyDeterministicRepairs({
       compilerSourceBoundaryCorrectionsByLesson,
       compilerScenarioMaterialsByLesson,
       compilerLessonScopeByTitle: compilerLessonScopeByTitleMap,
+      rejectedLearnerSourceEvidence,
     });
     if (!contentRepair.changed) continue;
     if (nextDeliverables === deliverables) nextDeliverables = { ...deliverables };
@@ -676,6 +691,7 @@ function applyDeterministicRepairs({
         compilerSourceBoundaryCorrectionsByLesson,
         compilerScenarioMaterialsByLesson,
         compilerLessonScopeByTitle: compilerLessonScopeByTitleMap,
+        rejectedLearnerSourceEvidence,
       });
       if (!contentRepair.changed) continue;
       nextDeliverables = {

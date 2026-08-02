@@ -147,6 +147,20 @@ export const ARTIFACT_PATTERNS = [
   },
   { regex: /[a-z]\.\.(?!\.)/, label: 'double period', name: 'double-period', severity: 'P2', roadmap: 'v0.12.1' },
   {
+    regex: /^\s*[”’]+\s*(?=[A-Z0-9])/m,
+    label: 'orphan closing quote',
+    name: 'orphan-closing-quote',
+    severity: 'P2',
+    roadmap: 'v0.17.10',
+  },
+  {
+    regex: /\(\s*See also [^)]+\)\s*/i,
+    label: 'encyclopedia navigation cross-reference rendered as teaching prose',
+    name: 'encyclopedia-cross-reference',
+    severity: 'P2',
+    roadmap: 'v0.17.10',
+  },
+  {
     regex: /Learning {2}Objectives/,
     label: 'double-space column label',
     name: 'double-space-column-label',

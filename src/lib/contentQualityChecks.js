@@ -21,6 +21,8 @@ const DANGLING_EXEMPT_RE = /\b(?:etc|e\.g|i\.e)[.]\s*$/i;
 const VALID_TERMINAL_PARTICLE_RE =
   /\b(?:watch for|look for|listen for|account for|prepare for|plan for|wait for|care for|ask for|search for|pay for|hope for|wish for|settle for|stand for|call for|aim for|work with|start with|begin with|end with|follow with|connect with|engage with|align with|agree with|meet with|share with|(?:come|comes|came|coming) from|result from|learn from|benefit from|move into|fit into|enter into|look into|go into|check in|turn in|hand in|participate in|belong to|lead to|refer to|listen to|respond to|contribute to|talk to|look around|move around|(?:day|week|night|hour|minute|month|year|session|class) before)[.]\s*$/i;
 const LEADING_COLON_RE = /^\s*:/;
+const ORPHAN_CLOSING_QUOTE_RE = /^\s*[”’]+\s*(?=[A-Z0-9])/;
+const ENCYCLOPEDIA_CROSS_REFERENCE_RE = /\(\s*See also [^)]+\)\s*/i;
 const ARTICLE_A_VOWEL_RE = /\ba\s+[AEIOU][a-z]{3,}/;
 const FRAMING_ADJECTIVE_DETERMINER_RE = /\b(?:practical|concrete|worked|real-world)\s+(?:a|an|the)\b/i;
 const DOUBLE_PERIOD_RE = /[a-z]\.\.(?!\.)/;
@@ -64,6 +66,10 @@ function checkSentenceIntegrity(findings, featureId, data) {
     const trimmed = value.trim();
     if (!trimmed) continue;
     if (LEADING_COLON_RE.test(trimmed)) pushFinding(findings, 'leading-colon-label', path, trimmed);
+    if (ORPHAN_CLOSING_QUOTE_RE.test(trimmed)) pushFinding(findings, 'orphan-closing-quote', path, trimmed);
+    if (ENCYCLOPEDIA_CROSS_REFERENCE_RE.test(trimmed)) {
+      pushFinding(findings, 'encyclopedia-cross-reference', path, trimmed);
+    }
     if (hasDanglingClauseSeam(trimmed)) {
       pushFinding(findings, 'dangling-clause', path, trimmed);
     }

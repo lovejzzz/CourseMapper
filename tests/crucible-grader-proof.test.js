@@ -464,6 +464,49 @@ describe('Crucible grader — seeded defects each produce their exact P0 finding
     }
   }, 120000);
 
+  it('scores review-only evidence as P0 when it leaks into learner-facing Office bytes', async () => {
+    const dir = await freshDir('crucible-review-only-source-leak-');
+    try {
+      const manifestPath = path.join(dir, 'PACKAGE_MANIFEST.json');
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      manifest.sourceReviewRows = [
+        {
+          id: 'review-pygmt',
+          title: 'PyGMT: Bridging Python and the Generic Mapping Tools for Geospatial Visualization and Analysis',
+          evidence:
+            'PyGMT is a Python interface to the Generic Mapping Tools for Earth, ocean, and planetary visualization.',
+          status: 'source-provided',
+          supportReceipt: {
+            semanticSupport: false,
+            readinessEligible: false,
+            claimBoundary: 'Source extraction integrity, not support for downstream teaching claims.',
+          },
+        },
+      ];
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+      const docx = findDocx(dir, 'Lesson Plans');
+      await injectParagraphsIntoDocx(docx, ['Use PyGMT to visualize this lesson result.']);
+
+      const result = await grade({
+        extractedDir: dir,
+        consoleLogText: healthyConsoleLog(),
+        digest: healthyDigest(),
+        course: { id: 'public-policy', title: 'Python for Public Policy Analysis', featureIds: GEO_FEATURES },
+      });
+      expect(result.findings).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            severity: 'P0',
+            dimension: 'substance',
+            detail: 'review-only source evidence leaked into learner-facing teaching content',
+          }),
+        ]),
+      );
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  }, 120000);
+
   it('FP-2: boilerplate header + on-topic Scheherazade reading must NOT flag, but the diabetes reading MUST (graded as world-lit)', async () => {
     const dir = await freshDir('crucible-fp2-');
     try {

@@ -95,6 +95,36 @@ describe('trusted source ledger', () => {
     expect(
       isComputerScienceWeakSource(
         source(
+          'Best practices and tools in R and Python for lipidomics and metabolomics data',
+          'A review of statistical processing and visualization in omics research.',
+          'Integer and Float Representation',
+        ),
+        courseGraph,
+      ),
+    ).toBe(true);
+    expect(
+      isComputerScienceWeakSource(
+        source(
+          'The Python programming language',
+          'An introduction to Python source code, control flow, and functions.',
+          'Python',
+        ),
+        courseGraph,
+      ),
+    ).toBe(false);
+    expect(
+      isComputerScienceWeakSource(
+        source(
+          'Data cleansing',
+          'Data cleansing identifies and corrects inaccurate, corrupt, or irrelevant records in a dataset.',
+          'Data cleansing',
+        ),
+        courseGraph,
+      ),
+    ).toBe(false);
+    expect(
+      isComputerScienceWeakSource(
+        source(
           'XSO: a Python framework for computational plankton modelling',
           'A scientific framework for marine ecosystem simulation.',
           'Functions and pytest',
@@ -133,6 +163,49 @@ describe('trusted source ledger', () => {
         courseGraph,
       ),
     ).toBe(false);
+  });
+
+  it('does not let a mixed coarse overlay expand trusted source coverage into a rejected lesson', () => {
+    const dataCleansing = {
+      displayTitle: 'Data cleansing',
+      sourceUrl: 'https://en.wikipedia.org/wiki/Data_cleansing',
+      provider: 'wikipedia',
+      license: 'CC BY-SA 4.0',
+      evidence: 'Data cleansing identifies and corrects inaccurate or irrelevant records in a dataset.',
+      conceptLinks: [{ label: 'Data cleansing' }],
+    };
+    const mars = {
+      displayTitle: 'Mars molecule archive for bioimages',
+      sourceUrl: 'https://example.test/mars-bioimages',
+      provider: 'doaj',
+      license: 'CC BY 4.0',
+      evidence: 'A molecular bioimage archive for single-molecule analysis.',
+      conceptLinks: [{ label: 'reproducible bioimage analysis' }],
+    };
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'Python for Public Policy Analysis' },
+        sessions: [
+          { id: 's1', number: 1, title: 'Data Cleaning' },
+          { id: 's2', number: 2, title: 'Capstone Policy Memo' },
+        ],
+        enrichmentOverlay: {
+          lessonContent: {
+            'lesson-1': { conceptProvenance: { citations: [dataCleansing] } },
+            'lesson-2': { conceptProvenance: { citations: [dataCleansing, mars] } },
+          },
+        },
+      },
+      { checkedAt: '2026-08-01T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows).toEqual(
+      expect.arrayContaining([expect.objectContaining({ title: 'Data cleansing', sessionRefs: ['s1'] })]),
+    );
+    expect(ledger.rows.flatMap((row) => row.sessionRefs || [])).not.toContain('s2');
+    expect(ledger.reviewRows).toEqual(
+      expect.arrayContaining([expect.objectContaining({ title: 'Mars molecule archive for bioimages' })]),
+    );
   });
 
   it('normalizes accidental sentence seams in scholarly source metadata', () => {

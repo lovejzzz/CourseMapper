@@ -12,6 +12,19 @@ import { findPromptArtifactContamination } from '../quality/artifactDefectPatter
 // Defect fixtures lifted verbatim from the June 2026 four-course v0.8.6
 // export audit — these are the exact failure shapes the checks must catch.
 describe('auditDeliverableContentQuality', () => {
+  it('flags encyclopedia navigation residue in learner prose', () => {
+    const { findings } = auditDeliverableContentQuality('lessonPlans', {
+      lessonPlans: [
+        {
+          notes: '(See also Accuracy and precision.) Accuracy is hard to establish in the general case.',
+        },
+      ],
+    });
+    expect(findings).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'encyclopedia-cross-reference' })]),
+    );
+  });
+
   it('flags procedural glossary copy that does not define the subject term', () => {
     const { findings } = auditDeliverableContentQuality('studyGuides', {
       studyGuides: [
@@ -34,6 +47,13 @@ describe('auditDeliverableContentQuality', () => {
       studyGuides: [{ keyTerms: [{ term: ': Course Framing and Core Concepts', definition: 'x' }] }],
     });
     expect(findings.some((finding) => finding.code === 'leading-colon-label')).toBe(true);
+  });
+
+  it('flags an orphan closing quote at the start of a rendered prompt', () => {
+    const { findings } = auditDeliverableContentQuality('studyGuides', {
+      studyGuides: [{ reviewQuestions: [{ question: '” What decision follows from the evidence?' }] }],
+    });
+    expect(findings).toEqual(expect.arrayContaining([expect.objectContaining({ code: 'orphan-closing-quote' })]));
   });
 
   it('flags dangling clauses that end mid-thought', () => {

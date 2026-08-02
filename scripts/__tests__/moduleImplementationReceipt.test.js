@@ -34,4 +34,17 @@ describe('moduleImplementationReceipt', () => {
     const second = await captureModuleImplementationReceipt({ root, entryPath: 'entry.js' });
     expect(second.implementationSha256).not.toBe(first.implementationSha256);
   });
+
+  it('binds multiline static imports instead of silently omitting their modules', async () => {
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'module-receipt-multiline-'));
+    await Promise.all([
+      fs.writeFile(path.join(root, 'dependency.js'), 'export const value = 1;\n'),
+      fs.writeFile(
+        path.join(root, 'entry.js'),
+        "import {\n  value,\n} from './dependency.js';\nexport default value;\n",
+      ),
+    ]);
+    const receipt = await captureModuleImplementationReceipt({ root, entryPath: 'entry.js' });
+    expect(receipt.files.map((entry) => entry.path)).toEqual(['dependency.js', 'entry.js']);
+  });
 });

@@ -105,6 +105,10 @@ import { findInstructorConfigurationDeferrals } from '../publishabilityPlacehold
 import { stripStructuralMetadata } from '../exportRenderedTextAudit.js';
 import { GRADER_VERSION } from './graderVersion.js';
 import { addRepeatedInstructionalPhraseFinding } from './repeatedInstructionalPhrase.js';
+import {
+  buildReviewOnlySourceEvidenceQuarantine,
+  containsRejectedLearnerSourceEvidence,
+} from '../sourceEvidenceAdmission.js';
 
 // v0.14.3 WS-A A3: the grader version stamped into manifest.quality. Bump on
 // any change to checks, weights, or severity penalties so a package's quality
@@ -660,6 +664,43 @@ function checkKnownOffenderTeachingContent(findings, { files, manifest }, course
       });
       break;
     }
+  }
+}
+
+function checkReviewOnlySourceTeachingContent(findings, { files, manifest }, course) {
+  const semanticReviewOnlyRows = (manifest?.sourceReviewRows || []).filter(
+    (row) =>
+      row?.supportReceipt?.semanticSupport === false ||
+      row?.supportReceipt?.readinessEligible === false ||
+      /not support for downstream teaching claims/i.test(row?.supportReceipt?.claimBoundary || ''),
+  );
+  const quarantine = buildReviewOnlySourceEvidenceQuarantine(semanticReviewOnlyRows, {
+    courseScope: `${course?.title || ''} ${course?.prompt || ''} ${manifest?.courseName || ''}`,
+  });
+  if (!quarantine) return;
+  const learnerFeatures = new Set([
+    'courseMap',
+    'syllabus',
+    'lessonPlans',
+    'slideDecks',
+    'assignments',
+    'rubrics',
+    'discussions',
+    'quizBank',
+    'studyGuides',
+    'courseFaq',
+  ]);
+  for (const file of files) {
+    if (!learnerFeatures.has(file.featureId)) continue;
+    const leakedUnit = formatScanUnits(file).find((unit) => containsRejectedLearnerSourceEvidence(unit, quarantine));
+    if (!leakedUnit) continue;
+    findings.add({
+      severity: 'P0',
+      dimension: 'substance',
+      file: file.path,
+      detail: 'review-only source evidence leaked into learner-facing teaching content',
+      evidence: quote(leakedUnit),
+    });
   }
 }
 
@@ -3904,6 +3945,7 @@ export async function grade({
   checkCitations(findings, pkg, course);
   checkPromptArtifactContamination(findings, pkg, course);
   checkKnownOffenderTeachingContent(findings, pkg, course);
+  checkReviewOnlySourceTeachingContent(findings, pkg, course);
   checkSubstance(findings, pkg, course);
   addPackageQuizDepthFindings(findings, pkg.files);
   checkDiscipline(findings, pkg, course);

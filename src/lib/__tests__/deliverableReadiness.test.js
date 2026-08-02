@@ -186,6 +186,42 @@ describe('evaluateWorkspaceReadiness', () => {
     expect(underfilledFaq.warnings.map((issue) => issue.message).join(' ')).toContain('FAQ has fewer than 3 questions');
   });
 
+  it('preserves oversized FAQ banks while giving Agent a specific review reason', () => {
+    const questions = Array.from({ length: 12 }, (_, index) => ({
+      question: `FAQ ${index + 1}?`,
+      answer: `Answer ${index + 1}.`,
+      category: 'Concept Explanation',
+    }));
+    const deliverables = {
+      courseFaq: {
+        status: 'done',
+        data: { faqs: [{ lessonTitle: 'Lesson 1: Questions', questions }] },
+      },
+    };
+    const config = { courseFaq: { questionsPerLesson: 4, preserveQuestionsAboveTarget: true } };
+    const readiness = evaluateWorkspaceReadiness({
+      courseMap,
+      lessonFilter: [0],
+      selectedFeatures: ['courseFaq'],
+      deliverableConfig: config,
+      deliverables,
+    });
+    const repair = repairWorkspaceReadiness({
+      courseMap,
+      selectedFeatures: ['courseFaq'],
+      deliverableConfig: config,
+      deliverables,
+    });
+
+    expect(readiness.warnings.map((issue) => issue.message).join(' ')).toContain(
+      '12 questions; review whether more than 8 helps students navigate the lesson',
+    );
+    expect(repair.observations).toEqual([
+      expect.objectContaining({ featureId: 'courseFaq', lessonIndices: [0], target: 8 }),
+    ]);
+    expect(repair.deliverables.courseFaq.data.faqs[0].questions).toBe(questions);
+  });
+
   it('treats a compiler-routed empty Assignment Brief as complete', () => {
     const readiness = evaluateWorkspaceReadiness({
       courseMap,

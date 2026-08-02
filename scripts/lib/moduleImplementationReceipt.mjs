@@ -22,7 +22,10 @@ function sha256(buffer) {
 function relativeModuleSpecifiers(source) {
   const found = new Set();
   const patterns = [
-    /(?:^|\n)\s*(?:import|export)\s+(?:[^'"\n]*?\s+from\s+)?['"]([^'"]+)['"]/g,
+    // Static imports/exports are commonly formatted across several lines.
+    // Stop at the statement semicolon while still binding the multiline
+    // `from` dependency into the implementation receipt.
+    /(?:^|\n)\s*(?:import|export)\s+(?:[^;]*?\s+from\s+)?['"]([^'"]+)['"]\s*;?/g,
     /\bimport\s*\(\s*['"]([^'"]+)['"]\s*\)/g,
   ];
   for (const pattern of patterns) {
