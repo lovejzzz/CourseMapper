@@ -7,6 +7,15 @@ import {
   sanitizeProjectSnapshot,
 } from '../projectSnapshotSanitizer';
 
+function forgeTimestampLike(prototype, seconds, nanoseconds) {
+  const value = Object.create(prototype);
+  Object.defineProperties(value, {
+    seconds: { value: seconds, enumerable: true, writable: true, configurable: true },
+    nanoseconds: { value: nanoseconds, enumerable: true, writable: true, configurable: true },
+  });
+  return value;
+}
+
 describe('restoreAuthoredOverlayForSnapshot', () => {
   it('reattaches the compiler-owned overlay when a re-derived graph lost it', () => {
     const graph = {
@@ -211,6 +220,47 @@ describe('prepareProjectSnapshotForRestore', () => {
     expect(restored.updatedAt.toISOString()).toBe('2026-06-01T10:00:00.123Z');
   });
 
+  it('rejects a timestamp-shaped object with an unrelated custom prototype', () => {
+    const spoof = forgeTimestampLike({ unrelated: true }, 1_780_308_000, 123_000_000);
+
+    expect(
+      prepareProjectSnapshotForRestore({
+        courseMap: { courseName: 'Untrusted project', lessons: [] },
+        updatedAt: spoof,
+      }),
+    ).toEqual({ formatVersion: 1 });
+  });
+
+  it.each([
+    ['seconds below minimum', -62_135_596_801, 0],
+    ['seconds above maximum', 253_402_300_800, 0],
+    ['negative nanoseconds', 0, -1],
+    ['nanoseconds at one billion', 0, 1_000_000_000],
+  ])('rejects an SDK-prototype timestamp with %s', (_label, seconds, nanoseconds) => {
+    const invalid = forgeTimestampLike(Timestamp.prototype, seconds, nanoseconds);
+
+    expect(
+      prepareProjectSnapshotForRestore({
+        courseMap: { courseName: 'Untrusted project', lessons: [] },
+        updatedAt: invalid,
+      }),
+    ).toEqual({ formatVersion: 1 });
+  });
+
+  it.each([
+    ['minimum', -62_135_596_800, 0],
+    ['maximum', 253_402_300_799, 999_999_999],
+  ])('accepts the exact Firebase Timestamp %s boundary', (_label, seconds, nanoseconds) => {
+    const boundary = new Timestamp(seconds, nanoseconds);
+    const restored = prepareProjectSnapshotForRestore({
+      courseMap: { courseName: 'Boundary project', lessons: [] },
+      updatedAt: boundary,
+    });
+
+    expect(restored.updatedAt).toBeInstanceOf(Date);
+    expect(restored.updatedAt.getTime()).toBe(seconds * 1_000 + Math.floor(nanoseconds / 1_000_000));
+  });
+
   it('preserves and isolates native Date values across strict restore admission', () => {
     const updatedAt = new Date('2026-06-01T10:00:00.123Z');
 
@@ -232,6 +282,7 @@ describe('prepareProjectSnapshotForRestore', () => {
     ['RegExp', /Synthetic project/],
     ['typed array', new Uint8Array([1, 2, 3])],
     ['custom class', new (class ProjectMetadata {})()],
+    ['Date with custom state', Object.assign(new Date('2026-06-01T10:00:00Z'), { custom: true })],
   ])('fails closed when a project contains an unsupported cloneable %s value', (_label, unsupported) => {
     expect(
       prepareProjectSnapshotForRestore({

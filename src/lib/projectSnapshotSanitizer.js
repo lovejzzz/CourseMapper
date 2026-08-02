@@ -1,3 +1,5 @@
+import { Timestamp } from 'firebase/firestore';
+
 import { detectRequestedClassSessionMinutes, parseClassSessionMinutes } from './sourceBriefConstraints';
 import { renderedDeliverableCollection } from './renderedDeliverableRoot.js';
 import { selectPersistablePackageEvidence } from './packageQualityPersistence.js';
@@ -46,6 +48,8 @@ function redactSecretText(value) {
 }
 
 const OMIT_SNAPSHOT_VALUE = Symbol('omit-snapshot-value');
+const FIRESTORE_TIMESTAMP_MIN_SECONDS = -62_135_596_800;
+const FIRESTORE_TIMESTAMP_MAX_SECONDS = 253_402_300_799;
 
 function isPlainObject(value) {
   const prototype = Object.getPrototypeOf(value);
@@ -101,6 +105,7 @@ function sanitizeProjectSnapshotValue(value, ancestors) {
 
 function readFirestoreTimestampParts(value, descriptors = null) {
   try {
+    if (Object.getPrototypeOf(value) !== Timestamp.prototype) return null;
     const ownDescriptors = descriptors || Object.getOwnPropertyDescriptors(value);
     const ownKeys = Reflect.ownKeys(ownDescriptors);
     if (
@@ -118,6 +123,8 @@ function readFirestoreTimestampParts(value, descriptors = null) {
     const nanoseconds = ownDescriptors.nanoseconds.value;
     if (
       !Number.isSafeInteger(seconds) ||
+      seconds < FIRESTORE_TIMESTAMP_MIN_SECONDS ||
+      seconds > FIRESTORE_TIMESTAMP_MAX_SECONDS ||
       !Number.isInteger(nanoseconds) ||
       nanoseconds < 0 ||
       nanoseconds >= 1_000_000_000
@@ -166,10 +173,7 @@ function snapshotGraphContainsOnlyDataDescriptors(value, ancestors) {
 function normalizeAdmittedFirestoreTimestamps(source, cloned, ancestors) {
   if (!source || typeof source !== 'object') return cloned;
   const timestampParts = readFirestoreTimestampParts(source);
-  if (timestampParts) {
-    const prototype = Object.getPrototypeOf(source);
-    if (prototype !== Object.prototype && prototype !== null) return timestampParts.date;
-  }
+  if (timestampParts) return timestampParts.date;
   if (ancestors.has(source)) return cloned;
 
   ancestors.add(source);
