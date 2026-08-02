@@ -1,5 +1,6 @@
 import { buildHumanReviewRecommendation, summarizeRepairEvidence } from './packageTrust.js';
 import { CURRENT_FINALIZER_REVISION } from './packageTrustStatus.js';
+import { buildPackageReadinessReceipt } from './packageReadinessReceipt.js';
 
 const CONFIDENCE_TONES = {
   Excellent: 'excellent',
@@ -9,6 +10,10 @@ const CONFIDENCE_TONES = {
 
 function count(value) {
   return Number.isFinite(value) ? value : 0;
+}
+
+function issueCount(container, listKey, countKey) {
+  return Array.isArray(container?.[listKey]) ? container[listKey].length : count(container?.[countKey]);
 }
 
 export function resolveProviderCallCount(result = null, fallbackCount = 0) {
@@ -225,6 +230,11 @@ export function buildQualityReceipt({
     exportFailed: exportVerification?.failed || 0,
     exportWarningCount: exportVerification?.warningCount || 0,
     exportWarning: exportWarning?.message || '',
+    packageReadinessReceipt: buildPackageReadinessReceipt({
+      readiness,
+      quality: result?.quality || null,
+      exportVerification,
+    }),
     repairSummary,
     trustBoundary: buildPackageTrustBoundarySummary({
       lessonCount,
@@ -292,12 +302,16 @@ export function normalizePackageSummary(result = {}) {
           ),
         )
     : [];
+  const readinessBlockerCount = issueCount(readiness, 'blockers', 'blockerCount');
+  const readinessWarningCount = issueCount(readiness, 'warnings', 'warningCount');
+  const classroomBlockerCount = issueCount(classroomReadiness, 'blockers', 'blockerCount');
+  const classroomWarningCount = issueCount(classroomReadiness, 'warnings', 'warningCount');
   const repairSummary = result.repairSummary || summarizeRepairEvidence(result.repairs || []);
   const reviewRequiredCount =
-    count(readiness.blockerCount) +
-    count(readiness.warningCount) +
-    count(classroomReadiness.blockerCount) +
-    count(classroomReadiness.warningCount) +
+    readinessBlockerCount +
+    readinessWarningCount +
+    classroomBlockerCount +
+    classroomWarningCount +
     count(validation.errorCount) +
     count(validation.warningCount) +
     count(exportVerification.failed) +
@@ -323,11 +337,11 @@ export function normalizePackageSummary(result = {}) {
     nextAction: result.nextAction || (result.error ? 'Resolve the blocker, then finalize again.' : ''),
     repairsApplied: count(result.repairsApplied),
     repairsFailed: count(result.repairsFailed),
-    blockerCount: count(readiness.blockerCount),
-    warningCount: count(readiness.warningCount),
+    blockerCount: readinessBlockerCount,
+    warningCount: readinessWarningCount,
     classroomStatus: classroomReadiness.status || null,
-    classroomBlockerCount: count(classroomReadiness.blockerCount),
-    classroomWarningCount: count(classroomReadiness.warningCount),
+    classroomBlockerCount,
+    classroomWarningCount,
     classroomCheckedFeatureCount: count(classroomReadiness.checkedFeatureCount),
     classroomCheckedFeatures: classroomReadiness.checkedFeatures || null,
     validationErrorCount: count(validation.errorCount),
@@ -376,13 +390,13 @@ export function normalizePackageSummary(result = {}) {
       result.reviewRecommendation ||
       buildHumanReviewRecommendation({
         blockerCount:
-          count(readiness.blockerCount) +
-          count(classroomReadiness.blockerCount) +
+          readinessBlockerCount +
+          classroomBlockerCount +
           count(validation.errorCount) +
           count(exportVerification.failed),
         warningCount:
-          count(readiness.warningCount) +
-          count(classroomReadiness.warningCount) +
+          readinessWarningCount +
+          classroomWarningCount +
           count(validation.warningCount) +
           count(exportVerification.warningCount),
         repaired: repairSummary !== 'none',

@@ -452,6 +452,16 @@ async function expectDownload(page, click, { extension, nameIncludes, minBytes =
   return { fileName, path, size: stat.size };
 }
 
+async function preparePackageForDownload(page) {
+  const status = page.getByTestId('readiness-status');
+  const button = page.getByTestId('export-download-zip');
+  await expect(status).toContainText('Prepare package');
+  await expect(button).toBeEnabled();
+  await button.click();
+  await expect(status).toContainText('Ready to download', { timeout: 30000 });
+  await expect(button).toContainText('Download ZIP');
+}
+
 async function switchWorkspaceTab(page, label) {
   await page.getByRole('button', { name: new RegExp(`^${label}$`) }).click();
   await expect(page.getByTestId('export-side-panel')).toContainText(`${label} only`);
@@ -516,6 +526,7 @@ test.describe('Export smoke', () => {
 
     await page.getByTestId('export-scope-all').click();
     await expect(page.getByTestId('export-side-panel')).toContainText('4/4 package parts ready');
+    await preparePackageForDownload(page);
     const zipDownload = await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
       extension: 'zip',
       nameIncludes: 'Export Smoke Course',
@@ -550,6 +561,7 @@ test.describe('Export smoke', () => {
 
     await page.getByTestId('export-scope-all').click();
     await expect(page.getByTestId('export-side-panel')).toContainText('2/2 package parts ready');
+    await preparePackageForDownload(page);
 
     const zipDownload = await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
       extension: 'zip',
@@ -1393,7 +1405,7 @@ test.describe('Export smoke', () => {
     });
 
     await page.getByTestId('export-scope-all').click();
-    await expect(page.getByTestId('readiness-status')).toContainText('Ready to download');
+    await preparePackageForDownload(page);
     await expect(page.getByTestId('readiness-panel')).not.toContainText('fewer than 5 questions');
 
     await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
@@ -1438,7 +1450,7 @@ test.describe('Export smoke', () => {
     });
 
     await page.getByTestId('export-scope-all').click();
-    await expect(page.getByTestId('readiness-status')).toContainText('Ready to download');
+    await preparePackageForDownload(page);
     await expect(page.getByTestId('readiness-panel')).not.toContainText('Rubrics are missing assessed lesson');
 
     const zipDownload = await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
@@ -1447,7 +1459,8 @@ test.describe('Export smoke', () => {
       minBytes: 1000,
     });
     const zip = await JSZip.loadAsync(await fs.readFile(zipDownload.path));
-    expect(zip.file('READINESS_REPORT.txt')).toBeFalsy();
+    const readinessReport = await zip.file('READINESS_REPORT.txt')?.async('string');
+    expect(readinessReport || '').not.toContain('Rubrics are missing assessed lesson');
 
     const rubricPath = Object.keys(zip.files).find((name) => /Rubrics\/.*\.docx$/.test(name));
     expect(rubricPath).toBeTruthy();
@@ -1477,7 +1490,7 @@ test.describe('Export smoke', () => {
     });
 
     await page.getByTestId('export-scope-all').click();
-    await expect(page.getByTestId('readiness-status')).toContainText('Ready to download');
+    await preparePackageForDownload(page);
     await expect(page.getByTestId('readiness-panel')).not.toContainText('Rubrics readability');
 
     const zipDownload = await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
@@ -1529,7 +1542,7 @@ test.describe('Export smoke', () => {
     });
 
     await page.getByTestId('export-scope-all').click();
-    await expect(page.getByTestId('readiness-status')).toContainText('Ready to download');
+    await preparePackageForDownload(page);
 
     const zipDownload = await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
       extension: 'zip',
@@ -1560,6 +1573,7 @@ test.describe('Export smoke', () => {
     await expect(page.getByTestId('readiness-status')).toContainText('Prepare package');
     await expect(page.getByTestId('readiness-panel')).toContainText('Course FAQ failed to generate');
     await expect(page.getByTestId('export-download-zip')).toBeEnabled();
+    await preparePackageForDownload(page);
 
     const zipDownload = await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
       extension: 'zip',
@@ -1575,9 +1589,7 @@ test.describe('Export smoke', () => {
     await expect(page.getByTestId('readiness-panel')).not.toContainText('Course FAQ failed to generate');
   });
 
-  test('downloads a verified ZIP without unfinished-product language when generated quiz content has review notes', async ({
-    page,
-  }) => {
+  test('keeps a structurally flawed quiz package calm in Export and specific in Agent', async ({ page }) => {
     await restoreExportWorkspace(page, (snapshot) => {
       snapshot.selectedFeatures = ['courseMap', 'quizBank'];
       snapshot.deliverables = {
@@ -1631,21 +1643,15 @@ test.describe('Export smoke', () => {
     await expect(page.getByTestId('readiness-panel')).toContainText('Lesson 2 quiz keys every multiple-choice answer');
     await expect(page.getByTestId('export-download-zip')).toContainText('Prepare package');
     await page.getByTestId('export-download-zip').click();
-    await expect(page.getByTestId('export-download-zip')).toContainText('Download ZIP');
+    await expect(page.getByTestId('readiness-status')).toContainText('Prepare package', { timeout: 30000 });
+    await expect(page.getByTestId('export-download-zip')).toContainText('Prepare package');
+    await expect(page.getByTestId('export-download-zip')).toBeDisabled();
     await expect(page.getByTestId('export-side-panel')).not.toContainText(/draft/i);
-
-    const zipDownload = await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
-      extension: 'zip',
-      nameIncludes: 'Export Smoke Course',
-      minBytes: 1000,
-    });
-    const zip = await JSZip.loadAsync(await fs.readFile(zipDownload.path));
-    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
-    const qualityReport = await zip.file('QUALITY_REPORT.md').async('string');
-    const readinessReport = await zip.file('READINESS_REPORT.txt').async('string');
-    expect(manifest.readiness).toMatchObject({ status: 'blocked', isBlocked: true });
-    expect(readinessReport).toContain('Lesson 2 quiz keys every multiple-choice answer');
-    expect(qualityReport).toContain('package readiness reports 1 blocker');
+    await expect(page.getByTestId('export-side-panel')).not.toContainText(/evidence \d+\/100|score \d+/i);
+    const agentPanel = page.getByTestId('workspace-agent-panel');
+    await expect(agentPanel).toContainText('Evidence 31/100', { timeout: 30000 });
+    await expect(agentPanel).toContainText('Lesson 2 quiz keys every multiple-choice answer');
+    await expect(agentPanel).toContainText('sourceRef coverage is too thin');
     await expect(page.getByTestId('readiness-confirm')).toBeHidden();
   });
 
@@ -1696,7 +1702,7 @@ test.describe('Export smoke', () => {
     });
 
     await page.getByTestId('export-scope-all').click();
-    await expect(page.getByTestId('readiness-status')).toContainText('Ready to download');
+    await preparePackageForDownload(page);
     await expect(page.getByTestId('readiness-panel')).not.toContainText('missing instructor guidance');
     await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
       extension: 'zip',
@@ -1748,7 +1754,7 @@ test.describe('Export smoke', () => {
     });
 
     await switchWorkspaceTab(page, 'Course FAQ');
-    await expect(page.getByTestId('readiness-status')).toContainText('Ready to download');
+    await expect(page.getByTestId('readiness-status')).toContainText('Ready to export');
     await expectDownload(page, () => page.getByTestId('export-format-csv').click(), {
       extension: 'csv',
       nameIncludes: 'Export Smoke Course',
@@ -1759,6 +1765,7 @@ test.describe('Export smoke', () => {
   test('exports a selected clean lesson without inheriting unselected placeholder blockers', async ({ page }) => {
     await restoreExportWorkspace(page, (snapshot) => {
       snapshot.selectedFeatures = ['courseMap', 'courseFaq'];
+      snapshot.deliverableConfig = { courseFaq: { questionsPerLesson: 5 } };
       snapshot.deliverables = {
         courseFaq: {
           status: 'done',
@@ -1766,11 +1773,33 @@ test.describe('Export smoke', () => {
             faqs: [
               {
                 lessonTitle: 'Lesson 1: Export Reliability',
-                questions: Array.from({ length: 5 }, (_, index) => ({
-                  question: `Lesson 1 question ${index + 1}`,
-                  answer: `Lesson 1 answer ${index + 1}`,
-                  category: 'Course Logistics',
-                })),
+                questions: [
+                  {
+                    question: 'How can an instructor verify that a ZIP contains every selected material?',
+                    answer: 'Compare the ZIP folders with the selected workspace materials and package manifest.',
+                    category: 'Course Logistics',
+                  },
+                  {
+                    question: 'Why should a DOCX export be opened before publication?',
+                    answer: 'Opening it confirms that headings, tables, and page flow survived serialization.',
+                    category: 'Technical Help',
+                  },
+                  {
+                    question: 'What evidence shows that lesson filtering worked?',
+                    answer: 'Only the chosen lesson headings and their matching artifacts appear in the ZIP.',
+                    category: 'Assessment Prep',
+                  },
+                  {
+                    question: 'When is CSV preferable to DOCX for review?',
+                    answer: 'CSV is preferable when a reviewer needs sortable rows or a simple data import.',
+                    category: 'Technical Help',
+                  },
+                  {
+                    question: 'What should be archived with a released course package?',
+                    answer: 'Archive the verified ZIP, its editable project backup, and the review receipt.',
+                    category: 'Course Logistics',
+                  },
+                ],
               },
               {
                 lessonTitle: 'Lesson 2: Portable Course Materials',
@@ -1793,7 +1822,7 @@ test.describe('Export smoke', () => {
     await uncheckAllExportLessons(page);
     await page.getByRole('button', { name: 'Lesson 1: Export Reliability' }).click();
     await expect(page.getByText('1 of 2 lessons selected')).toBeVisible();
-    await expect(page.getByTestId('readiness-status')).toContainText('Ready');
+    await preparePackageForDownload(page);
     await expect(page.getByTestId('readiness-panel')).not.toContainText('placeholder content');
     await expect(page.getByTestId('export-download-zip')).toBeEnabled();
 
@@ -1815,7 +1844,7 @@ test.describe('Export smoke', () => {
     await restoreExportWorkspace(page);
 
     await page.getByTestId('export-scope-all').click();
-    await expect(page.getByTestId('readiness-status')).toContainText('Ready');
+    await expect(page.getByTestId('readiness-status')).toContainText('Prepare package');
     await uncheckAllExportLessons(page);
     await expect(page.getByText('0 of 2 lessons selected')).toBeVisible();
     await expect(page.getByTestId('readiness-status')).toContainText('Prepare package');
@@ -1888,7 +1917,7 @@ test.describe('Export smoke', () => {
     });
 
     await page.getByTestId('export-scope-all').click();
-    await expect(page.getByTestId('readiness-status')).toContainText('Ready to download');
+    await preparePackageForDownload(page);
     await expect(page.getByTestId('readiness-panel')).not.toContainText('[Instructor name]');
     await expect(page.getByTestId('readiness-panel')).not.toContainText('[Verify time]');
 
@@ -1938,7 +1967,7 @@ test.describe('Export smoke', () => {
     });
 
     await page.getByTestId('export-scope-all').click();
-    await expect(page.getByTestId('readiness-status')).toContainText('Ready to download');
+    await preparePackageForDownload(page);
     await expect(page.getByTestId('readiness-panel')).not.toContainText('objective stem');
     await expect(page.getByTestId('readiness-panel')).not.toContainText('Students will be able to');
 
@@ -1980,7 +2009,7 @@ test.describe('Export smoke', () => {
     });
 
     await page.getByTestId('export-scope-all').click();
-    await expect(page.getByTestId('readiness-status')).toContainText('Ready to download');
+    await preparePackageForDownload(page);
     await expect(page.getByTestId('readiness-panel')).not.toContainText('placeholder content');
 
     const zipDownload = await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {

@@ -159,7 +159,7 @@ describe('F1/F2 — source wiring (the header has ONE verb; the paths exist)', (
     expect(read('src/AppFlow.jsx')).toContain('courseGraph={courseGraph}');
     expect(read('src/AppFlow.jsx')).toContain('courseGraph: courseGraphRef.current || null');
     expect(panel).toContain('courseGraph = null');
-    expect(panel).toContain('let exportCourseGraph = courseGraph');
+    expect(panel).toContain('let exportCourseGraph = preparedPackage?.courseGraph || courseGraph');
     expect(panel).toContain('exportCourseGraph = finishResult.courseGraph || exportCourseGraph');
     expect(panel).toContain('courseGraph: exportCourseGraph');
   });

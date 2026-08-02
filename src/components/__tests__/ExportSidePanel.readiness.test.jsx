@@ -568,7 +568,7 @@ describe('ExportSidePanel readiness repair timing', () => {
     expect(container.textContent).toContain('Assembling the verified course files locally');
   });
 
-  it('uses the exact quality proof produced by a same-click finish', async () => {
+  it('prepares first, then downloads with the exact proof and snapshot from that finish', async () => {
     const finishQuality = {
       status: 'graded',
       score: 98,
@@ -576,13 +576,20 @@ describe('ExportSidePanel readiness repair timing', () => {
       graderVersion: 'same-click-proof',
       findingCounts: { p0: 0, p1: 0, p2: 0 },
     };
+    const finishReceipt = {
+      finalizerRevision: CURRENT_FINALIZER_REVISION,
+      finalStatus: 'ready',
+      exportStatus: 'passed',
+      exportChecked: 38,
+      exportFailed: 0,
+    };
     const onFinishPackage = vi.fn(async () => ({
       courseMap: cleanCourseMap,
       deliverables: {},
       readiness: { blockers: [], warnings: [], featureCount: 1 },
       quality: finishQuality,
       exportVerification: { status: 'passed', checked: 38, failed: 0, warningCount: 0 },
-      receipt: { finalStatus: 'ready', exportStatus: 'passed', exportChecked: 38, exportFailed: 0 },
+      receipt: finishReceipt,
     }));
     await renderPanel({
       courseMapInput: cleanCourseMap,
@@ -600,6 +607,22 @@ describe('ExportSidePanel readiness repair timing', () => {
     });
 
     expect(onFinishPackage).toHaveBeenCalledTimes(1);
+    expect(downloadCourseMaterialsZip).not.toHaveBeenCalled();
+
+    await renderPanel({
+      courseMapInput: cleanCourseMap,
+      preferPackageScope: true,
+      canFinishPackage: true,
+      onFinishPackage,
+      packageQualityPass: { status: 'ready', blockers: 0, warnings: 0, receipt: finishReceipt, quality: finishQuality },
+    });
+    await act(async () => {
+      container
+        .querySelector('[data-testid="export-download-zip"]')
+        ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await vi.runAllTimersAsync();
+    });
+
     expect(downloadCourseMaterialsZip).toHaveBeenCalledTimes(1);
     expect(downloadCourseMaterialsZip.mock.calls[0][0].quality.precomputed).toMatchObject(finishQuality);
     expect(downloadCourseMaterialsZip.mock.calls[0][0].quality.precomputed).toMatchObject({
@@ -613,7 +636,7 @@ describe('ExportSidePanel readiness repair timing', () => {
     expect(finishQuality).not.toHaveProperty('packageReadinessBinding');
   });
 
-  it('prepares an obsolete P0 receipt once and binds the refreshed package into the same click', async () => {
+  it('prepares an obsolete P0 receipt once and binds the refreshed package into the later download', async () => {
     const repairedDeliverables = {
       slideDecks: { status: 'done', data: { decks: [{ lessonTitle: 'Repaired lesson', slides: [] }] } },
     };
@@ -624,19 +647,20 @@ describe('ExportSidePanel readiness repair timing', () => {
       graderVersion: 'revision-2-proof',
       findingCounts: { p0: 0, p1: 0, p2: 1 },
     };
+    const refreshedReceipt = {
+      finalizerRevision: CURRENT_FINALIZER_REVISION,
+      finalStatus: 'ready',
+      exportStatus: 'passed',
+      exportChecked: 38,
+      exportFailed: 0,
+    };
     const onFinishPackage = vi.fn(async () => ({
       courseMap: cleanCourseMap,
       deliverables: repairedDeliverables,
       readiness: { status: 'ready', blockers: [], warnings: [], issues: [], featureCount: 1 },
       quality: refreshedQuality,
       exportVerification: { status: 'passed', checked: 38, failed: 0, warningCount: 0 },
-      receipt: {
-        finalizerRevision: CURRENT_FINALIZER_REVISION,
-        finalStatus: 'ready',
-        exportStatus: 'passed',
-        exportChecked: 38,
-        exportFailed: 0,
-      },
+      receipt: refreshedReceipt,
     }));
 
     await renderPanel({
@@ -668,6 +692,29 @@ describe('ExportSidePanel readiness repair timing', () => {
     });
 
     expect(onFinishPackage).toHaveBeenCalledTimes(1);
+    expect(downloadCourseMaterialsZip).not.toHaveBeenCalled();
+
+    await renderPanel({
+      courseMapInput: cleanCourseMap,
+      deliverablesInput: repairedDeliverables,
+      preferPackageScope: true,
+      canFinishPackage: true,
+      onFinishPackage,
+      packageQualityPass: {
+        status: 'ready',
+        blockers: 0,
+        warnings: 0,
+        receipt: refreshedReceipt,
+        quality: refreshedQuality,
+      },
+    });
+    await act(async () => {
+      container
+        .querySelector('[data-testid="export-download-zip"]')
+        ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await vi.runAllTimersAsync();
+    });
+
     expect(downloadCourseMaterialsZip).toHaveBeenCalledTimes(1);
     expect(downloadCourseMaterialsZip.mock.calls[0][0].deliverables).toBe(repairedDeliverables);
     expect(downloadCourseMaterialsZip.mock.calls[0][0].quality.precomputed).toMatchObject(refreshedQuality);
@@ -680,19 +727,27 @@ describe('ExportSidePanel readiness repair timing', () => {
       featureId: 'quizBank',
       message: 'Review the question count before publishing.',
     };
+    const warningReceipt = {
+      finalizerRevision: CURRENT_FINALIZER_REVISION,
+      finalStatus: 'ready',
+      exportStatus: 'passed',
+      exportChecked: 38,
+      exportFailed: 0,
+    };
+    const warningQuality = {
+      status: 'graded',
+      score: 91,
+      grade: 'A',
+      graderVersion: 'warning-proof',
+      findingCounts: { p0: 0, p1: 1, p2: 0 },
+    };
     const onFinishPackage = vi.fn(async () => ({
       courseMap: cleanCourseMap,
       deliverables: {},
       readiness: { status: 'warnings', blockers: [], warnings: [warning], issues: [warning], featureCount: 1 },
-      quality: {
-        status: 'graded',
-        score: 91,
-        grade: 'A',
-        graderVersion: 'warning-proof',
-        findingCounts: { p0: 0, p1: 1, p2: 0 },
-      },
+      quality: warningQuality,
       exportVerification: { status: 'passed', checked: 38, failed: 0, warningCount: 0 },
-      receipt: { finalStatus: 'ready', exportStatus: 'passed', exportChecked: 38, exportFailed: 0 },
+      receipt: warningReceipt,
     }));
     await renderPanel({
       courseMapInput: cleanCourseMap,
@@ -709,6 +764,27 @@ describe('ExportSidePanel readiness repair timing', () => {
       await vi.runAllTimersAsync();
     });
 
+    expect(downloadCourseMaterialsZip).not.toHaveBeenCalled();
+    await renderPanel({
+      courseMapInput: cleanCourseMap,
+      preferPackageScope: true,
+      canFinishPackage: true,
+      onFinishPackage,
+      packageQualityPass: {
+        status: 'ready',
+        blockers: 0,
+        warnings: 1,
+        receipt: warningReceipt,
+        quality: warningQuality,
+      },
+    });
+    await act(async () => {
+      container
+        .querySelector('[data-testid="export-download-zip"]')
+        ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await vi.runAllTimersAsync();
+    });
+
     expect(downloadCourseMaterialsZip).toHaveBeenCalledTimes(1);
     const options = downloadCourseMaterialsZip.mock.calls[0][0];
     expect(options.readiness).toMatchObject({ status: 'warnings', warnings: [warning] });
@@ -718,7 +794,7 @@ describe('ExportSidePanel readiness repair timing', () => {
     });
   });
 
-  it('does not fall back to stale proof when a same-click finish returns no current grade', async () => {
+  it('does not download or fall back to stale proof when preparation returns no current grade', async () => {
     const staleQuality = {
       status: 'graded',
       score: 100,
@@ -750,8 +826,7 @@ describe('ExportSidePanel readiness repair timing', () => {
     });
 
     expect(onFinishPackage).toHaveBeenCalledTimes(1);
-    expect(downloadCourseMaterialsZip).toHaveBeenCalledTimes(1);
-    expect(downloadCourseMaterialsZip.mock.calls[0][0].quality.precomputed).toBeUndefined();
+    expect(downloadCourseMaterialsZip).not.toHaveBeenCalled();
   });
 
   it('returns calmly to preparation while Agent receives a ZIP-time quality-proof failure', async () => {
@@ -843,7 +918,9 @@ describe('ExportSidePanel readiness repair timing', () => {
 
     expect(onFinishPackage).toHaveBeenCalledTimes(1);
     expect(downloadCourseMaterialsZip).not.toHaveBeenCalled();
-    expect(container.querySelector('[data-testid="readiness-confirm"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="readiness-confirm"]')).toBeNull();
+    expect(container.querySelector('[data-testid="readiness-status"]')?.textContent).toContain('Prepare package');
+    expect(container.querySelector('[data-testid="export-side-panel"]')?.textContent).not.toMatch(/score \d+/i);
     expect(container.querySelector('[data-testid="export-error"]')).toBeNull();
     expect(container.querySelector('[data-testid="export-notice"]')).toBeNull();
   });

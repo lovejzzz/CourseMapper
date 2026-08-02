@@ -919,6 +919,11 @@ export default function ExportSidePanel({
   const [pendingReadinessExport, setPendingReadinessExport] = useState(null);
   const [autoRepairingReadiness, setAutoRepairingReadiness] = useState(false);
   const [finishPackageBusy, setFinishPackageBusy] = useState(false);
+  // Preparation and download are deliberately separate user actions. Keep
+  // the exact finalized snapshot beside its receipt so the later download
+  // cannot silently rebuild from a newer (or merely not-yet-rendered) React
+  // snapshot and fail its own quality-scope binding.
+  const preparedPackageRef = useRef(null);
   const [qualityModalOpenLocal, setQualityModalOpenLocal] = useState(false);
   const qualityModalControlled = typeof onQualityModalOpenChange === 'function';
   const qualityModalOpen = qualityModalControlled ? Boolean(qualityModalOpenProp) : qualityModalOpenLocal;
@@ -1092,6 +1097,13 @@ export default function ExportSidePanel({
   }, [verifiedPackageReceipt, packageQualityPass?.receipt]);
 
   useEffect(() => {
+    const prepared = preparedPackageRef.current;
+    if (prepared && packageQualityPass?.receipt !== prepared.receipt) {
+      preparedPackageRef.current = null;
+    }
+  }, [packageQualityPass?.receipt]);
+
+  useEffect(() => {
     if (!canAutoRepairReadiness || isPackageWorkflowRunning || finishPackageBusy) {
       if (!isPackageWorkflowRunning) setAutoRepairingReadiness(false);
       return;
@@ -1150,6 +1162,7 @@ export default function ExportSidePanel({
   }
 
   function clearPendingReadinessExport() {
+    preparedPackageRef.current = null;
     setPendingReadinessExport(null);
     setLastNotice('');
   }
@@ -1178,10 +1191,15 @@ export default function ExportSidePanel({
     }
 
     const exportScope = pendingExport?.scope || scope;
-    let exportCourseMap = courseMap;
-    let exportDeliverables = deliverables || {};
-    let exportCourseGraph = courseGraph;
+    const preparedPackage =
+      format === 'zip' && exportScope === 'all' && preparedPackageRef.current?.receipt === packageQualityPass?.receipt
+        ? preparedPackageRef.current
+        : null;
+    let exportCourseMap = preparedPackage?.courseMap || courseMap;
+    let exportDeliverables = preparedPackage?.deliverables || deliverables || {};
+    let exportCourseGraph = preparedPackage?.courseGraph || courseGraph;
     let exportReadiness = getReadinessSnapshot({ exportCourseMap, exportDeliverables, exportScope });
+    if (preparedPackage?.readiness) exportReadiness = preparedPackage.readiness;
     let repairsApplied =
       pendingExport?.repairsApplied ??
       (hasFinishedPackageReceipt(packageQualityPass) ? Number(packageQualityPass?.repairsApplied) || 0 : 0);
@@ -1226,6 +1244,14 @@ export default function ExportSidePanel({
             finishResult.readiness || getReadinessSnapshot({ exportCourseMap, exportDeliverables, exportScope });
           exportReadiness = mergeFinalizerRetryIssues(exportReadiness, finishResult);
           exportReadiness = mergeExportVerificationIssues(exportReadiness, finishResult.exportVerification);
+          preparedPackageRef.current = {
+            courseMap: exportCourseMap,
+            deliverables: exportDeliverables,
+            courseGraph: exportCourseGraph,
+            readiness: exportReadiness,
+            quality: finishResult.quality || null,
+            receipt: finishResult.receipt || null,
+          };
         } else {
           exportReadiness = getReadinessSnapshot({ exportCourseMap, exportDeliverables, exportScope });
         }
@@ -1254,6 +1280,15 @@ export default function ExportSidePanel({
     const verifiedPackageAvailable =
       format === 'zip' && exportScope === 'all' && hasDownloadableVerifiedPackage(packageQualityPass, finishOutcome);
     if (hasBlockingReadinessIssues(exportReadiness) && !verifiedPackageAvailable) {
+      // A completed preparation pass has already handed every exact reason
+      // to Agent and its receipt. Do not open a second warning card (or echo
+      // a score) in Export; keep this surface at the calm Prepare state.
+      if (finishOutcome) {
+        setPendingReadinessExport(null);
+        setLastError('');
+        setLastNotice('');
+        return;
+      }
       const canFinishPackageAgain =
         !finishOutcome || ((finishOutcome.retryActions?.length || 0) > 0 && !finishOutcome.retryExhausted);
       const pendingExport = {
@@ -1271,6 +1306,16 @@ export default function ExportSidePanel({
       setLastError('');
       setLastOk('');
       // The blue preparation card owns this state; reasons stay in Agent.
+      setLastNotice('');
+      return;
+    }
+
+    // A Prepare click certifies and snapshots bytes; it never also starts a
+    // browser download. The next render exposes Download ZIP, backed by this
+    // exact snapshot and receipt.
+    if (finishOutcome) {
+      setPendingReadinessExport(null);
+      setLastError('');
       setLastNotice('');
       return;
     }
@@ -1310,7 +1355,7 @@ export default function ExportSidePanel({
           // A same-click finish produces fresher proof than the captured
           // React prop. Carry that exact proof into ZIP assembly so the
           // download cannot race a second grader or export stale evidence.
-          const completedQuality = finishOutcome ? finishOutcome.quality : packageQualityPass?.quality;
+          const completedQuality = preparedPackage?.quality || packageQualityPass?.quality;
           if (completedQuality?.status === 'graded') {
             qualityContext.precomputed = {
               ...completedQuality,
@@ -1564,7 +1609,7 @@ export default function ExportSidePanel({
   const zipPendingNeedsAttention = zipPendingReadiness && pendingReadinessExport?.canFinishPackageAgain === false;
   const zipCanFinishPackage =
     scope === 'all' &&
-    (activeHasReadinessIssues || zipNeedsFinalizerMigration) &&
+    !hasFinishedPackageReceipt(packageQualityPass) &&
     canFinishPackage &&
     !zipPendingNeedsAttention &&
     !zipHasExportFailure &&

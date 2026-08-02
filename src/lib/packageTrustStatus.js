@@ -248,6 +248,22 @@ function buildSourceLedgerIssues(packageReceipt, sourceEvidence = null) {
   return issues;
 }
 
+function buildReceiptReadinessIssues(packageReceipt) {
+  const issues = packageReceipt?.packageReadinessReceipt?.readiness?.issues;
+  if (!Array.isArray(issues)) return [];
+  return issues
+    .filter((issue) => issue?.source !== 'qualityGate' && findingMessage(issue))
+    .slice(0, 5)
+    .map((issue) => ({
+      label: issue.label || findingLabel(issue),
+      message: findingMessage(issue),
+      detail: [issue.featureId, issue.target?.type].filter(Boolean).join(' · '),
+      count: 1,
+      severity: issue.severity === 'blocker' || issue.severity === 'error' ? 'blocker' : 'warning',
+      domain: 'readiness',
+    }));
+}
+
 function dedupeReviewIssues(issues) {
   const seen = new Set();
   return issues.filter((issue) => {
@@ -306,6 +322,7 @@ export function getPackageTrustStatus({
   const packageQuality = quality || packageQualityPass?.quality || null;
   const sourceEvidence = packageQualityPass?.sourceEvidence || packageQuality?.sourceEvidence || null;
   const qualityIssues = buildQualityReviewIssues(packageQuality);
+  const receiptReadinessIssues = buildReceiptReadinessIssues(packageReceipt);
   const exportFailureIssue = buildExportFailureIssue(packageReceipt, featureLabels);
   const exportIssues = buildExportWarningIssues(packageReceipt, featureLabels);
   const sourceIssues = buildSourceLedgerIssues(packageReceipt, sourceEvidence);
@@ -378,6 +395,7 @@ export function getPackageTrustStatus({
     exportIssues,
     sourceIssues,
     reviewIssues: dedupeReviewIssues([
+      ...receiptReadinessIssues,
       ...(qualityIssues.length > 0 ? qualityIssues : qualityProofIssue ? [qualityProofIssue] : []),
       exportFailureIssue,
       ...exportIssues,

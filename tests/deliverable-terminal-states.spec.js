@@ -163,7 +163,8 @@ test.describe('All-deliverables terminal states', () => {
       .toEqual({ lessonPlans: 'done', customFailure: 'error' });
 
     await expect(packageSummary.getByText('Package refinement')).toBeVisible({ timeout: 30000 });
-    await expect(packageSummary).toContainText('1 issue to fix');
+    await expect(packageSummary).toContainText('2 issues to fix');
+    await expect(packageSummary).toContainText('2 issues need attention before download');
     await expect(packageSummary).toContainText('Terminal Failure Pack failed to generate');
     await expect(ideButton).toBeEnabled({ timeout: 5000 });
 

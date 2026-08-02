@@ -102,6 +102,38 @@ describe('packageFinalizerSummary', () => {
     });
   });
 
+  it('uses the displayed issue arrays instead of stale numeric counters', () => {
+    const summary = normalizePackageSummary({
+      confidence: 'Needs attention',
+      readiness: {
+        blockerCount: 2,
+        warningCount: 3,
+        blockers: [{ label: 'Terminal material', message: 'The material failed to generate.' }],
+        warnings: [],
+      },
+      classroomReadiness: {
+        blockerCount: 4,
+        warningCount: 5,
+        blockers: [],
+        warnings: [{ label: 'Classroom note', message: 'Confirm the room setup.' }],
+      },
+      exportVerification: {
+        checked: 1,
+        failed: 0,
+        warningCount: 1,
+        checks: [{ status: 'warning', label: 'Export check', message: 'Visually scan one file.' }],
+      },
+    });
+
+    expect(summary).toMatchObject({
+      blockerCount: 1,
+      warningCount: 0,
+      classroomBlockerCount: 0,
+      classroomWarningCount: 1,
+      exportWarningCount: 1,
+    });
+  });
+
   it('builds compact trust boundary rows for package handoff', () => {
     expect(
       buildPackageTrustBoundarySummary({

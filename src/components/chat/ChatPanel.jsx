@@ -117,7 +117,7 @@ function buildPackageReceiptSummary(packageQualityPass, courseMap, selectedFeatu
     nextAction: ready
       ? 'Safe checks passed and the package is ready to download.'
       : blockerCount > 0
-        ? 'Finish package handled safe fixes. The remaining issue needs attention before download.'
+        ? `Finish package handled safe fixes. ${blockerCount === 1 ? 'One issue needs' : `${blockerCount} issues need`} attention before download.`
         : 'Review notes are saved in the Agent panel and package report before publishing.',
     repairsApplied: packageQualityPass.repairsApplied || receipt.autoFixedCount || 0,
     blockerCount,
