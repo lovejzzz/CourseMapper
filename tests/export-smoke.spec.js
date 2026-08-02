@@ -576,6 +576,39 @@ test.describe('Export smoke', () => {
     expect(fileNames.some((name) => name.includes('Course FAQ/'))).toBe(false);
   });
 
+  test('changing lesson scope after preparation requires a new exact package snapshot', async ({ page }) => {
+    await restoreExportWorkspace(page);
+    await page.getByTestId('export-scope-all').click();
+    await preparePackageForDownload(page);
+
+    await page.getByTestId('lesson-scope-edit').click();
+    await page.getByRole('button', { name: /Lesson 1: Export Reliability/ }).click();
+
+    const status = page.getByTestId('readiness-status');
+    const button = page.getByTestId('export-download-zip');
+    await expect(status).toContainText('Prepare package');
+    await expect(button).toContainText('Prepare package');
+    await expect(button).toBeEnabled();
+
+    let unexpectedDownload = false;
+    page.once('download', () => {
+      unexpectedDownload = true;
+    });
+    await button.click();
+    await expect(status).toContainText('Ready to download', { timeout: 30000 });
+    expect(unexpectedDownload).toBe(false);
+
+    const zipDownload = await expectDownload(page, () => button.click(), {
+      extension: 'zip',
+      nameIncludes: 'Export Smoke Course',
+      minBytes: 1000,
+    });
+    const zip = await JSZip.loadAsync(await fs.readFile(zipDownload.path));
+    const lessonFiles = Object.keys(zip.files).filter((name) => /Lesson Plans\/.*\.(docx|pdf)$/i.test(name));
+    expect(lessonFiles.some((name) => name.includes('Portable Course Materials'))).toBe(true);
+    expect(lessonFiles.some((name) => name.includes('Export Reliability'))).toBe(false);
+  });
+
   test('exports compact lesson plans to current-tab CSV and DOCX', async ({ page }) => {
     await restoreExportWorkspace(page, (snapshot) => {
       snapshot.selectedFeatures = ['courseMap', 'lessonPlans'];

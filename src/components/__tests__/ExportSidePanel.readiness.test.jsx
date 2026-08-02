@@ -150,34 +150,45 @@ function ExportPanelHarness({
   deliverableConfigInput = EMPTY_DELIVERABLE_CONFIG,
   readinessDeliverableConfigInput = null,
   selectedFeaturesInput = COURSE_MAP_FEATURES,
+  columnsInput = null,
+  slideThemeInput = null,
+  courseGraphInput = null,
+  getPipelineState = null,
+  getQualityContext = null,
   packageQualityPass = { status: 'idle', message: '' },
   onPackageQualityPassUpdate = null,
   qualityReportOpen = false,
 }) {
-  const { courseMap, setCourseMap, setSelectedFeatures, setDeliverableConfig, setColumns } = useCourse();
+  const { courseMap, setCourseMap, setSelectedFeatures, setDeliverableConfig, setColumns, setSlideTheme } = useCourse();
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     setCourseMap(courseMapInput);
     setSelectedFeatures(selectedFeaturesInput);
     setDeliverableConfig(deliverableConfigInput);
-    setColumns([
-      { key: 'learningGoals', label: 'Learning Goals', enabled: true },
-      { key: 'topicSection', label: 'Topic', enabled: true },
-      { key: 'learningObjectives', label: 'Learning Objectives', enabled: true },
-      { key: 'weeklyAssessments', label: 'Assessments', enabled: true },
-      { key: 'asyncActivities', label: 'Async Activities', enabled: true },
-      { key: 'syncActivities', label: 'Sync Activities', enabled: true },
-    ]);
+    setColumns(
+      columnsInput || [
+        { key: 'learningGoals', label: 'Learning Goals', enabled: true },
+        { key: 'topicSection', label: 'Topic', enabled: true },
+        { key: 'learningObjectives', label: 'Learning Objectives', enabled: true },
+        { key: 'weeklyAssessments', label: 'Assessments', enabled: true },
+        { key: 'asyncActivities', label: 'Async Activities', enabled: true },
+        { key: 'syncActivities', label: 'Sync Activities', enabled: true },
+      ],
+    );
+    setSlideTheme(slideThemeInput);
     setReady(true);
   }, [
     courseMapInput,
+    columnsInput,
     deliverableConfigInput,
     selectedFeaturesInput,
     setColumns,
     setCourseMap,
     setDeliverableConfig,
     setSelectedFeatures,
+    setSlideTheme,
+    slideThemeInput,
   ]);
 
   if (!ready || !courseMap) return null;
@@ -200,6 +211,9 @@ function ExportPanelHarness({
       onQualityModalOpenChange={vi.fn()}
       isPackageGenerationRunning={isPackageGenerationRunning}
       preferPackageScope={preferPackageScope}
+      courseGraph={courseGraphInput}
+      getPipelineState={getPipelineState}
+      getQualityContext={getQualityContext}
     />
   );
 }
@@ -482,7 +496,14 @@ describe('ExportSidePanel readiness repair timing', () => {
         status: 'ready',
         blockers: 0,
         warnings: 0,
-        receipt: { exportWarningCount: 0 },
+        receipt: {
+          finalizerRevision: CURRENT_FINALIZER_REVISION,
+          finalStatus: 'ready',
+          exportStatus: 'passed',
+          exportChecked: 38,
+          exportFailed: 0,
+          exportWarningCount: 0,
+        },
         quality: {
           status: 'graded',
           score: 96,
@@ -546,7 +567,14 @@ describe('ExportSidePanel readiness repair timing', () => {
         status: 'ready',
         blockers: 0,
         warnings: 0,
-        receipt: { exportWarningCount: 0 },
+        receipt: {
+          finalizerRevision: CURRENT_FINALIZER_REVISION,
+          finalStatus: 'ready',
+          exportStatus: 'passed',
+          exportChecked: 38,
+          exportFailed: 0,
+          exportWarningCount: 0,
+        },
         quality: {
           status: 'graded',
           score: 100,
@@ -636,6 +664,110 @@ describe('ExportSidePanel readiness repair timing', () => {
     expect(finishQuality).not.toHaveProperty('packageReadinessBinding');
   });
 
+  it('freezes every ZIP argument against prop replacement and in-place mutation after preparation', async () => {
+    const preparedCourseMap = structuredClone(cleanCourseMap);
+    const preparedDeliverables = {
+      lessonPlans: { status: 'done', data: { lessonPlans: [{ lessonTitle: 'Prepared lesson', outline: [] }] } },
+    };
+    const preparedCourseGraph = { nodes: [{ id: 'prepared-node' }] };
+    const preparedColumns = [{ key: 'learningGoals', label: 'Prepared goals', enabled: true }];
+    const pipelineState = { revision: 1, stages: ['prepared'] };
+    const qualityContext = { digest: 'prepared-digest', budget: { max: 12 } };
+    const finishQuality = {
+      status: 'graded',
+      score: 97,
+      grade: 'A',
+      findingCounts: { p0: 0, p1: 0, p2: 0 },
+    };
+    const finishReceipt = {
+      finalizerRevision: CURRENT_FINALIZER_REVISION,
+      finalStatus: 'ready',
+      exportStatus: 'passed',
+      exportChecked: 38,
+      exportFailed: 0,
+    };
+    const onFinishPackage = vi.fn(async () => ({
+      courseMap: preparedCourseMap,
+      deliverables: preparedDeliverables,
+      courseGraph: preparedCourseGraph,
+      readiness: { status: 'ready', blockers: [], warnings: [], issues: [], featureCount: 2 },
+      quality: finishQuality,
+      exportVerification: { status: 'passed', checked: 38, failed: 0, warningCount: 0 },
+      receipt: finishReceipt,
+    }));
+    const getPipelineState = vi.fn(() => pipelineState);
+    const getQualityContext = vi.fn(() => qualityContext);
+
+    await renderPanel({
+      courseMapInput: cleanCourseMap,
+      deliverablesInput: preparedDeliverables,
+      selectedFeaturesInput: ['courseMap', 'lessonPlans'],
+      columnsInput: preparedColumns,
+      slideThemeInput: 2,
+      courseGraphInput: preparedCourseGraph,
+      getPipelineState,
+      getQualityContext,
+      preferPackageScope: true,
+      canFinishPackage: true,
+      onFinishPackage,
+      packageQualityPass: { status: 'idle', message: '' },
+    });
+    await act(async () => {
+      container
+        .querySelector('[data-testid="export-download-zip"]')
+        ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await vi.runAllTimersAsync();
+    });
+
+    preparedCourseMap.courseName = 'Mutated live course';
+    preparedDeliverables.lessonPlans.data.lessonPlans[0].lessonTitle = 'Mutated live lesson';
+    preparedCourseGraph.nodes[0].id = 'mutated-node';
+    preparedColumns[0].label = 'Mutated goals';
+    pipelineState.revision = 2;
+    pipelineState.stages.push('mutated');
+    qualityContext.digest = 'mutated-digest';
+    qualityContext.budget.max = 99;
+
+    await renderPanel({
+      courseMapInput: preparedCourseMap,
+      deliverablesInput: preparedDeliverables,
+      selectedFeaturesInput: ['courseMap'],
+      columnsInput: [{ key: 'learningGoals', label: 'Replacement goals', enabled: true }],
+      slideThemeInput: 4,
+      courseGraphInput: preparedCourseGraph,
+      getPipelineState,
+      getQualityContext,
+      preferPackageScope: true,
+      canFinishPackage: true,
+      onFinishPackage,
+      packageQualityPass: {
+        status: 'ready',
+        blockers: 0,
+        warnings: 0,
+        receipt: finishReceipt,
+        quality: finishQuality,
+      },
+    });
+    await act(async () => {
+      container
+        .querySelector('[data-testid="export-download-zip"]')
+        ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await vi.runAllTimersAsync();
+    });
+
+    expect(onFinishPackage).toHaveBeenCalledTimes(1);
+    expect(downloadCourseMaterialsZip).toHaveBeenCalledTimes(1);
+    const options = downloadCourseMaterialsZip.mock.calls[0][0];
+    expect(options.courseMap.courseName).toBe('Review Surface Course');
+    expect(options.deliverables.lessonPlans.data.lessonPlans[0].lessonTitle).toBe('Prepared lesson');
+    expect(options.courseGraph.nodes[0].id).toBe('prepared-node');
+    expect(options.columns).toEqual([{ key: 'learningGoals', label: 'Prepared goals', enabled: true }]);
+    expect(options.featureIds).toEqual(['courseMap', 'lessonPlans']);
+    expect(options.slideTheme).toBe(2);
+    expect(options.pipelineState).toEqual({ revision: 1, stages: ['prepared'] });
+    expect(options.quality).toMatchObject({ digest: 'prepared-digest', budget: { max: 12 } });
+  });
+
   it('prepares an obsolete P0 receipt once and binds the refreshed package into the later download', async () => {
     const repairedDeliverables = {
       slideDecks: { status: 'done', data: { decks: [{ lessonTitle: 'Repaired lesson', slides: [] }] } },
@@ -716,7 +848,8 @@ describe('ExportSidePanel readiness repair timing', () => {
     });
 
     expect(downloadCourseMaterialsZip).toHaveBeenCalledTimes(1);
-    expect(downloadCourseMaterialsZip.mock.calls[0][0].deliverables).toBe(repairedDeliverables);
+    expect(downloadCourseMaterialsZip.mock.calls[0][0].deliverables).toStrictEqual(repairedDeliverables);
+    expect(downloadCourseMaterialsZip.mock.calls[0][0].deliverables).not.toBe(repairedDeliverables);
     expect(downloadCourseMaterialsZip.mock.calls[0][0].quality.precomputed).toMatchObject(refreshedQuality);
   });
 
@@ -849,7 +982,13 @@ describe('ExportSidePanel readiness repair timing', () => {
         status: 'ready',
         blockers: 0,
         blockerDomains: { schemaVersion: 1, readiness: 0, quality: 0, export: 0, total: 0 },
-        receipt: { finalStatus: 'ready', exportStatus: 'passed', exportChecked: 38, exportFailed: 0 },
+        receipt: {
+          finalizerRevision: CURRENT_FINALIZER_REVISION,
+          finalStatus: 'ready',
+          exportStatus: 'passed',
+          exportChecked: 38,
+          exportFailed: 0,
+        },
         quality: { status: 'graded', score: 99, grade: 'A', findingCounts: { p0: 0, p1: 0, p2: 0 } },
       },
     });
@@ -948,7 +1087,13 @@ describe('ExportSidePanel readiness repair timing', () => {
         status: 'ready',
         blockers: 0,
         blockerDomains: { schemaVersion: 1, readiness: 0, quality: 0, export: 0, total: 0 },
-        receipt: { finalStatus: 'ready', exportStatus: 'passed', exportChecked: 38, exportFailed: 0 },
+        receipt: {
+          finalizerRevision: CURRENT_FINALIZER_REVISION,
+          finalStatus: 'ready',
+          exportStatus: 'passed',
+          exportChecked: 38,
+          exportFailed: 0,
+        },
         quality: { status: 'graded', score: 92, grade: 'A', findingCounts: { p0: 0, p1: 1, p2: 0 } },
       },
     });
@@ -1258,6 +1403,7 @@ describe('ExportSidePanel readiness repair timing', () => {
 
     await renderPanel({
       courseMapInput: cleanCourseMap,
+      preferPackageScope: true,
       onFinishPackage,
       canFinishPackage: true,
       packageQualityPass: {
@@ -1288,13 +1434,6 @@ describe('ExportSidePanel readiness repair timing', () => {
         },
       },
     });
-
-    await act(async () => {
-      container
-        .querySelector('[data-testid="export-scope-all"]')
-        ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    });
-    await act(async () => {});
 
     const zipButton = container.querySelector('[data-testid="export-download-zip"]');
     expect(container.querySelector('[data-testid="readiness-panel"]')?.textContent).toContain('Ready to download');
@@ -1429,7 +1568,13 @@ describe('ExportSidePanel readiness repair timing', () => {
         status: 'ready',
         blockers: 0,
         warnings: 0,
-        receipt: { finalStatus: 'ready', exportStatus: 'passed', exportChecked: 38, exportFailed: 0 },
+        receipt: {
+          finalizerRevision: CURRENT_FINALIZER_REVISION,
+          finalStatus: 'ready',
+          exportStatus: 'passed',
+          exportChecked: 38,
+          exportFailed: 0,
+        },
         quality: { status: 'graded', score: 89, grade: 'B', readiness: { score: 56, maxScore: 100 } },
       },
     });

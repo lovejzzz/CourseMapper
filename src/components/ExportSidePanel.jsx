@@ -124,6 +124,24 @@ function yieldForExportPaint() {
   });
 }
 
+function stablePreparedValueKey(value) {
+  if (value === undefined) return 'undefined';
+  if (value === null || typeof value !== 'object') return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map((item) => stablePreparedValueKey(item)).join(',')}]`;
+  return `{${Object.keys(value)
+    .sort()
+    .map((key) => `${JSON.stringify(key)}:${stablePreparedValueKey(value[key])}`)
+    .join(',')}}`;
+}
+
+function packageReceiptKey(receipt) {
+  return receipt && typeof receipt === 'object' ? stablePreparedValueKey(receipt) : '';
+}
+
+function clonePreparedValue(value) {
+  return value == null ? value : structuredClone(value);
+}
+
 // ── Spinner ──────────────────────────────────────────────────────────────────
 function Spin() {
   return (
@@ -924,6 +942,10 @@ export default function ExportSidePanel({
   // cannot silently rebuild from a newer (or merely not-yet-rendered) React
   // snapshot and fail its own quality-scope binding.
   const preparedPackageRef = useRef(null);
+  // Clearing a prepared snapshot is a deliberate invalidation. Remember the
+  // receipt it belonged to so an unchanged parent receipt cannot immediately
+  // rehydrate live state and masquerade as the old prepared package.
+  const invalidatedPreparedReceiptKeyRef = useRef('');
   const [qualityModalOpenLocal, setQualityModalOpenLocal] = useState(false);
   const qualityModalControlled = typeof onQualityModalOpenChange === 'function';
   const qualityModalOpen = qualityModalControlled ? Boolean(qualityModalOpenProp) : qualityModalOpenLocal;
@@ -1005,7 +1027,6 @@ export default function ExportSidePanel({
   useEffect(() => {
     if (!preferPackageScope || scopeWasChosen || scope === 'all') return;
     setScope('all');
-    clearPendingReadinessExport();
   }, [preferPackageScope, scope, scopeWasChosen]);
 
   // Effective lesson filter for ZIP
@@ -1042,6 +1063,32 @@ export default function ExportSidePanel({
   const displayedReadiness =
     pendingReadinessExport?.scope === scope ? pendingReadinessExport.readiness : getDownloadReadiness(activeReadiness);
   const verifiedPackageReceipt = scope === 'all' && hasDownloadableVerifiedPackage(packageQualityPass);
+  const currentPackageReceiptKey = packageReceiptKey(packageQualityPass?.receipt);
+  if (
+    currentPackageReceiptKey &&
+    preparedPackageRef.current &&
+    preparedPackageRef.current.receiptKey !== currentPackageReceiptKey
+  ) {
+    preparedPackageRef.current = null;
+  }
+  // A verified receipt restored with the project may be captured once from
+  // the matching saved state. After any explicit scope invalidation, the same
+  // receipt may not silently bless a new live snapshot; preparation must run.
+  if (
+    verifiedPackageReceipt &&
+    !preparedPackageRef.current &&
+    invalidatedPreparedReceiptKeyRef.current !== currentPackageReceiptKey
+  ) {
+    try {
+      preparedPackageRef.current = buildPreparedPackageSnapshot({
+        receipt: packageQualityPass?.receipt,
+        quality: packageQualityPass?.quality || null,
+        readiness: getDownloadReadiness(activeReadiness),
+      });
+    } catch {
+      invalidatedPreparedReceiptKeyRef.current = currentPackageReceiptKey;
+    }
+  }
   const activeExportFeatureIds = useMemo(
     () => (scope === 'all' ? selectedFeatures : [activeTab]),
     [activeTab, scope, selectedFeatures],
@@ -1095,13 +1142,6 @@ export default function ExportSidePanel({
     setLastError('');
     setLastNotice('');
   }, [verifiedPackageReceipt, packageQualityPass?.receipt]);
-
-  useEffect(() => {
-    const prepared = preparedPackageRef.current;
-    if (prepared && packageQualityPass?.receipt !== prepared.receipt) {
-      preparedPackageRef.current = null;
-    }
-  }, [packageQualityPass?.receipt]);
 
   useEffect(() => {
     if (!canAutoRepairReadiness || isPackageWorkflowRunning || finishPackageBusy) {
@@ -1161,7 +1201,41 @@ export default function ExportSidePanel({
     );
   }
 
+  function buildPreparedPackageSnapshot({
+    preparedCourseMap = courseMap,
+    preparedDeliverables = deliverables || {},
+    preparedCourseGraph = courseGraph,
+    readiness = getReadinessSnapshot({
+      exportCourseMap: preparedCourseMap,
+      exportDeliverables: preparedDeliverables,
+      exportScope: 'all',
+    }),
+    quality = packageQualityPass?.quality || null,
+    receipt = packageQualityPass?.receipt || null,
+  } = {}) {
+    const featureIds = getExportFeatureIds('all');
+    const qualityContext = typeof getQualityContext === 'function' ? getQualityContext() || {} : {};
+    const pipelineState = typeof getPipelineState === 'function' ? getPipelineState() : null;
+    return {
+      receiptKey: packageReceiptKey(receipt),
+      receipt: clonePreparedValue(receipt),
+      courseMap: clonePreparedValue(preparedCourseMap),
+      deliverables: clonePreparedValue(preparedDeliverables),
+      courseGraph: clonePreparedValue(preparedCourseGraph),
+      readiness: clonePreparedValue(readiness),
+      quality: clonePreparedValue(quality),
+      columns: clonePreparedValue(columns),
+      courseName: preparedCourseMap?.courseName || courseName,
+      lessonFilter: clonePreparedValue(effectiveLessonFilter),
+      slideTheme: clonePreparedValue(slideTheme),
+      featureIds: clonePreparedValue(featureIds),
+      pipelineState: clonePreparedValue(pipelineState),
+      qualityContext: clonePreparedValue(qualityContext),
+    };
+  }
+
   function clearPendingReadinessExport() {
+    invalidatedPreparedReceiptKeyRef.current = currentPackageReceiptKey;
     preparedPackageRef.current = null;
     setPendingReadinessExport(null);
     setLastNotice('');
@@ -1192,7 +1266,7 @@ export default function ExportSidePanel({
 
     const exportScope = pendingExport?.scope || scope;
     const preparedPackage =
-      format === 'zip' && exportScope === 'all' && preparedPackageRef.current?.receipt === packageQualityPass?.receipt
+      format === 'zip' && exportScope === 'all' && preparedPackageRef.current?.receiptKey === currentPackageReceiptKey
         ? preparedPackageRef.current
         : null;
     let exportCourseMap = preparedPackage?.courseMap || courseMap;
@@ -1205,12 +1279,16 @@ export default function ExportSidePanel({
       (hasFinishedPackageReceipt(packageQualityPass) ? Number(packageQualityPass?.repairsApplied) || 0 : 0);
     let finishOutcome = null;
     const verifiedPackageAvailableAtStart =
-      format === 'zip' && exportScope === 'all' && hasDownloadableVerifiedPackage(packageQualityPass);
+      format === 'zip' &&
+      exportScope === 'all' &&
+      Boolean(preparedPackage) &&
+      hasDownloadableVerifiedPackage(packageQualityPass);
 
     const shouldFinishPackageBeforeExport =
       exportScope === 'all' &&
       typeof onFinishPackage === 'function' &&
       (Boolean(pendingExport) ||
+        (format === 'zip' && !preparedPackage) ||
         !hasFinishedPackageReceipt(packageQualityPass) ||
         (hasBlockingReadinessIssues(exportReadiness) && !verifiedPackageAvailableAtStart));
 
@@ -1244,14 +1322,15 @@ export default function ExportSidePanel({
             finishResult.readiness || getReadinessSnapshot({ exportCourseMap, exportDeliverables, exportScope });
           exportReadiness = mergeFinalizerRetryIssues(exportReadiness, finishResult);
           exportReadiness = mergeExportVerificationIssues(exportReadiness, finishResult.exportVerification);
-          preparedPackageRef.current = {
-            courseMap: exportCourseMap,
-            deliverables: exportDeliverables,
-            courseGraph: exportCourseGraph,
+          invalidatedPreparedReceiptKeyRef.current = '';
+          preparedPackageRef.current = buildPreparedPackageSnapshot({
+            preparedCourseMap: exportCourseMap,
+            preparedDeliverables: exportDeliverables,
+            preparedCourseGraph: exportCourseGraph,
             readiness: exportReadiness,
             quality: finishResult.quality || null,
             receipt: finishResult.receipt || null,
-          };
+          });
         } else {
           exportReadiness = getReadinessSnapshot({ exportCourseMap, exportDeliverables, exportScope });
         }
@@ -1351,7 +1430,7 @@ export default function ExportSidePanel({
       if (exportScope === 'all') {
         // All mode: only ZIP is available
         if (format === 'zip') {
-          const qualityContext = typeof getQualityContext === 'function' ? { ...(getQualityContext() || {}) } : {};
+          const qualityContext = clonePreparedValue(preparedPackage.qualityContext) || {};
           // A same-click finish produces fresher proof than the captured
           // React prop. Carry that exact proof into ZIP assembly so the
           // download cannot race a second grader or export stale evidence.
@@ -1365,14 +1444,14 @@ export default function ExportSidePanel({
           const zipResult = await downloadCourseMaterialsZip({
             deliverables: exportDeliverables || {},
             courseMap: exportCourseMap,
-            columns,
-            courseName: exportCourseMap?.courseName || courseName,
-            lessonFilter: effectiveLessonFilter,
-            slideTheme,
+            columns: preparedPackage.columns,
+            courseName: preparedPackage.courseName,
+            lessonFilter: preparedPackage.lessonFilter,
+            slideTheme: preparedPackage.slideTheme,
             readiness: downloadReadiness,
-            featureIds: getExportFeatureIds(exportScope),
+            featureIds: preparedPackage.featureIds,
             courseGraph: exportCourseGraph,
-            pipelineState: typeof getPipelineState === 'function' ? getPipelineState() : null,
+            pipelineState: preparedPackage.pipelineState,
             // v0.14.3 WS-A: the ZIP grades itself before assembly — budget +
             // digest feed the in-app honesty checks (manifest.quality +
             // QUALITY_REPORT.md ride the download).
@@ -1605,16 +1684,16 @@ export default function ExportSidePanel({
   const zipNeedsFinalizerMigration =
     scope === 'all' && !!packageQualityPass?.receipt && !hasFinishedPackageReceipt(packageQualityPass);
   const zipHasVerifiedReceipt = scope === 'all' && hasDownloadableVerifiedPackage(packageQualityPass);
-  const zipCanDownloadReviewedPackage = scope === 'all' && zipHasTerminalTrustBlocker && zipHasVerifiedReceipt;
+  const zipHasPreparedSnapshot = scope === 'all' && preparedPackageRef.current?.receiptKey === currentPackageReceiptKey;
+  const zipCanDownloadPackage = zipHasVerifiedReceipt && zipHasPreparedSnapshot;
   const zipPendingNeedsAttention = zipPendingReadiness && pendingReadinessExport?.canFinishPackageAgain === false;
   const zipCanFinishPackage =
     scope === 'all' &&
-    !hasFinishedPackageReceipt(packageQualityPass) &&
+    !zipHasPreparedSnapshot &&
     canFinishPackage &&
     !zipPendingNeedsAttention &&
     !zipHasExportFailure &&
-    (!zipHasTerminalTrustBlocker || zipNeedsFinalizerMigration) &&
-    !zipHasVerifiedReceipt;
+    (!zipHasTerminalTrustBlocker || zipNeedsFinalizerMigration || zipHasVerifiedReceipt);
   const zipButtonLabel =
     busy === 'zip'
       ? 'Preparing ZIP…'
@@ -1622,20 +1701,16 @@ export default function ExportSidePanel({
         ? 'Finishing package'
         : zipCanFinishPackage
           ? 'Prepare package'
-          : zipCanDownloadReviewedPackage
+          : zipCanDownloadPackage
             ? 'Download ZIP'
-            : zipPendingNeedsAttention || zipHasExportFailure || zipHasTerminalTrustBlocker
-              ? 'Prepare package'
-              : zipPendingReadiness
-                ? 'Prepare package'
-                : 'Download ZIP';
+            : 'Prepare package';
   // The export panel is the single ZIP owner.
   const zipDownloadDisabled =
     !!busy ||
     isPackageQualityRunning ||
     finishPackageBusy ||
     zipHasExportFailure ||
-    (zipHasTerminalTrustBlocker && !zipCanDownloadReviewedPackage && !zipCanFinishPackage) ||
+    (!zipCanDownloadPackage && !zipCanFinishPackage) ||
     (zipPendingReadiness && !canFinishPackage) ||
     zipPendingNeedsAttention ||
     allReadyCount === 0 ||
@@ -1742,7 +1817,7 @@ export default function ExportSidePanel({
             finishSummary={finishSummary}
             packageReceipt={packageQualityPass?.receipt || null}
             packageQualityPass={packageQualityPass}
-            exportPrepared={zipHasVerifiedReceipt}
+            exportPrepared={zipCanDownloadPackage}
             packageScope={scope === 'all'}
           />
         )}
