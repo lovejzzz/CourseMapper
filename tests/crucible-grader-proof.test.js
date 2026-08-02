@@ -34,7 +34,11 @@ import { buildRunDigest, formatRunDigest } from '../src/lib/runDigest.js';
 import { formatEnrichmentOutcomeLabel } from '../src/lib/apiCallBudget.js';
 import { grade, renderReportMarkdown } from './lib/deepQualityGrader.js';
 import { createMemoryFileProvider } from '../src/lib/quality/fileProviders.js';
-import { ARTIFACT_PATTERNS, isTruncatedBulletLine } from '../src/lib/quality/artifactDefectPatterns.js';
+import {
+  ARTIFACT_PATTERNS,
+  findDoubledQuizOptionLabel,
+  isTruncatedBulletLine,
+} from '../src/lib/quality/artifactDefectPatterns.js';
 import { buildJudgePrompt, truncateArtifactForJudge, JUDGE_TEXT_CHARS } from '../scripts/lib/crucibleRound.mjs';
 
 // ── OffscreenCanvas stub for the pptx text-fit pass (node env) ──────────────
@@ -1254,15 +1258,13 @@ describe('Crucible grader — discipline-breadth calibration (FP-1..5)', () => {
     expect(offTopic.detail).toMatch(/medicine/i);
   });
 
-  // FP-4: author initials ("F. F. S. van der Tak") must NOT trip the
-  // doubled-option-letters pattern; a real "A. A. Option" doubling still does.
-  it('FP-4: author initials "F. F. S." never match doubled-option-letters; real option doubling still does', () => {
-    const pattern = ARTIFACT_PATTERNS.find((p) => p.name === 'doubled-option-letters').regex;
-    expect(pattern.test('F. F. S. van der Tak, J. H. Black, F. L. Schöier et al. (2007).')).toBe(false);
-    expect(
-      pattern.test('(open textbook, CC BY 4.0 — https://openstax.org/books/astronomy-2e); F. F. S. van der Tak'),
-    ).toBe(false);
-    expect(pattern.test('A. A. The mitochondria is the powerhouse of the cell')).toBe(true);
+  // FP-4: author initials stay outside the quiz-option grammar, while an
+  // actual repeated option body remains a structural defect.
+  it('FP-4: author initials never look like doubled quiz options', () => {
+    expect(findDoubledQuizOptionLabel(['F. F. S. van der Tak, J. H. Black, F. L. Schöier et al.'])).toBeNull();
+    expect(findDoubledQuizOptionLabel(['A. A. Milne (1926)', 'E. E. Cummings poetry'])).toBeNull();
+    expect(findDoubledQuizOptionLabel(['Q1. Choose one.', 'A. A. The mitochondria is a cell organelle'])).toBeNull();
+    expect(findDoubledQuizOptionLabel(['Q1. Choose one.', 'A. A.'])).not.toBeNull();
   });
 
   // FP-5: a concept-map relationship bullet (A ↔ B) is exempt from truncation;

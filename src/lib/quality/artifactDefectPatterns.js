@@ -49,25 +49,6 @@ export const ARTIFACT_PATTERNS = [
     severity: 'P0',
     roadmap: 'v0.16.62',
   },
-  // Same letter twice ("A. A. Option"), not preceded by an author-list comma —
-  // v0.13.5's cited references legitimately print APA initials ("H. L.",
-  // "Adesope, O. O.") which the original any-two-initials pattern flagged.
-  //
-  // v0.14.3 (astro FP-4): an author list that OPENS a citation at line/segment
-  // start ("F. F. S. van der Tak, …") was not behind a ", " so the (?<!, )
-  // guard missed it, and "F. F." tripped the option-doubling pattern. The
-  // doubled letter is author initials, not a quiz option, whenever a THIRD
-  // initial-like token follows ("F. F. S." — three initials = an author's
-  // given-name initials, never an "A. A. Option" stem). The negative lookahead
-  // (?![A-Z]\.) keeps real option doubling ("A. A. The mitochondria") matching
-  // — the token after the doubled letter there is a word, not a third initial.
-  {
-    regex: /(?<!, )\b([A-Z])\. \1\.(?:\s+(?![A-Z]\. )|$)/,
-    label: 'doubled option letters "A. A."',
-    name: 'doubled-option-letters',
-    severity: 'P1',
-    roadmap: 'v0.12.1',
-  },
   {
     regex: /\bits the /i,
     label: 'slot grammar "its the"',
@@ -451,6 +432,33 @@ export function scanText(patterns, text, { evidenceChars = 160 } = {}) {
     }
   }
   return hits;
+}
+
+/**
+ * Find an unambiguous rendered quiz option whose body collapsed to the same
+ * bare structural label (for example `A. A.`). Names such as `A. A. Milne`
+ * remain valid. Only option records inside question blocks are inspected;
+ * answer-key rationales and arbitrary prose remain outside this defect class.
+ */
+export function findDoubledQuizOptionLabel(paragraphs = []) {
+  const lines = Array.isArray(paragraphs) ? paragraphs : String(paragraphs || '').split(/\r?\n/);
+  let insideQuestionBlock = false;
+  for (const value of lines) {
+    const line = String(value || '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (/^Answer Key\b/i.test(line)) break;
+    if (/^Q\d+\b/i.test(line)) {
+      insideQuestionBlock = true;
+      continue;
+    }
+    if (!insideQuestionBlock) continue;
+    const option = /^([A-D])[.)]\s*(.*)$/i.exec(line);
+    if (option && new RegExp(`^${option[1]}[.)]$`, 'i').test(option[2].trim())) {
+      return { line };
+    }
+  }
+  return null;
 }
 
 const PROMPT_ARTIFACT_TOPIC_SOURCE =

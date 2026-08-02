@@ -63,6 +63,33 @@ describe('deep quality package structure', () => {
     expect(result.overall.score).toBeLessThanOrEqual(89);
   });
 
+  it('does not score two-initial author names in quiz rationales or other artifacts', async () => {
+    const quizPath = 'Quiz & Exam Bank/Lesson 01 - Literature - Quiz & Exam Bank.txt';
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          lessonScope: [1],
+          readiness: { status: 'ready', blockers: 0 },
+          files: [{ path: quizPath, featureId: 'quizBank', lessonNumber: 1 }],
+        }),
+        [quizPath]: [
+          'Q1. Which claim is supported?',
+          'A. A complete option',
+          'B. Another complete option',
+          'C. A. A. Milne',
+          'D. B. B. King',
+          'Answer Key',
+          'Rationale: Compare A. A. Milne with E. E. Cummings and F. F. S. van der Tak.',
+        ].join('\n'),
+        'Syllabus/Literature - Syllabus.txt': 'Read A. A. Milne (1926) and E. E. Cummings poetry.',
+      }),
+      course: { title: 'Literature', featureIds: ['quizBank', 'syllabus'] },
+      honesty: { pipeline: { judgment: 'compiler-verified fixture' } },
+    });
+
+    expect(result.findings.filter((finding) => finding.code === 'doubled-quiz-option-label')).toEqual([]);
+  });
+
   it('blocks an unresolved per-lesson evidence dependency declared by the manifest', async () => {
     const result = await grade({
       fileProvider: createMemoryFileProvider({
@@ -220,7 +247,7 @@ describe('deep quality package structure', () => {
     });
 
     expect(result.findings.some((finding) => /classroom clock/i.test(finding.detail))).toBe(false);
-    expect(GRADER_VERSION).toBe('1.15.5');
+    expect(GRADER_VERSION).toBe('1.15.6');
   });
 
   it('scores opaque source-claim placeholders and their sentence seams as major export defects', async () => {

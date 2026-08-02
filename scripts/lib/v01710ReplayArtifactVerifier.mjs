@@ -6,6 +6,23 @@ function sha256(value) {
   return crypto.createHash('sha256').update(value).digest('hex');
 }
 
+function retainedFixture(project, sourceProjectSha256) {
+  return {
+    protocol: 'coursemapper-output-quality-replay-fixture-v1',
+    sourceProjectSha256,
+    courseMap: project.courseMap,
+    courseGraph: project.courseGraph,
+    deliverables: project.deliverables,
+    selectedFeatures: project.selectedFeatures,
+    columns: project.columns,
+    slideTheme: project.slideTheme,
+    deliverableConfig: project.deliverableConfig,
+    promptText: project.promptText,
+    lastRunDigest: project.lastRunDigest,
+    apiCallBudgetReceipt: project.apiCallBudgetReceipt,
+  };
+}
+
 function severityCounts(findings) {
   const counts = { p0: 0, p1: 0, p2: 0 };
   for (const finding of findings) {
@@ -15,7 +32,25 @@ function severityCounts(findings) {
   return counts;
 }
 
-export async function verifyReplayArtifact({ receipt, zipBytes, reproducedZipBytes = [] }) {
+export async function verifyReplayArtifact({ receipt, zipBytes, reproducedZipBytes = [], inputBytes, inputProject }) {
+  if (!inputBytes || !inputProject || typeof inputProject !== 'object') {
+    throw new Error('Replay verification requires the exact input bytes and parsed input project.');
+  }
+  const inputDigest = sha256(Buffer.from(inputBytes));
+  if (receipt?.inputSha256 !== inputDigest) {
+    throw new Error('Replay receipt does not match the exact input bytes.');
+  }
+  const sourceProjectSha256 =
+    inputProject.protocol === 'coursemapper-output-quality-replay-fixture-v1'
+      ? inputProject.sourceProjectSha256
+      : inputDigest;
+  if (!sourceProjectSha256 || receipt?.sourceProjectSha256 !== sourceProjectSha256) {
+    throw new Error('Replay receipt does not match the input fixture source-project identity.');
+  }
+  const retainedFixtureSha256 = sha256(JSON.stringify(retainedFixture(inputProject, sourceProjectSha256)));
+  if (receipt?.retainedFixtureSha256 !== retainedFixtureSha256) {
+    throw new Error('Replay receipt does not match the canonical retained fixture.');
+  }
   const expected = receipt?.retainedPackage;
   if (!expected) throw new Error('Replay receipt does not bind a retained package.');
   if (

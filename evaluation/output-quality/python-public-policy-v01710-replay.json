@@ -13,7 +13,7 @@
   },
   "afterQuality": {
     "status": "graded",
-    "graderVersion": "1.15.5",
+    "graderVersion": "1.15.6",
     "score": 97,
     "grade": "A",
     "findingCounts": {
@@ -24,14 +24,14 @@
     "repetitionFindings": []
   },
   "retainedPackage": {
-    "file": "edutool-v01710-repaired-candidate-v6.zip",
-    "sha256": "9e59c09f8f26cdf343ef41fb50e1421e423ff42dd9668f94ebe0d193825fcd2b",
+    "file": "edutool-v01710-repaired-candidate-v7.zip",
+    "sha256": "afc7d010f3c0d16bed5632067b61d0ccc3269448379f4dc6f170205d7fd8405f",
     "size": 1072702,
     "files": 61,
     "generatedAt": "2026-08-01T21:48:38.112Z",
     "quality": {
       "status": "graded",
-      "graderVersion": "1.15.5",
+      "graderVersion": "1.15.6",
       "score": 97,
       "grade": "A",
       "findingCounts": {
@@ -43,7 +43,7 @@
     },
     "reproducibility": {
       "passed": true,
-      "secondSha256": "9e59c09f8f26cdf343ef41fb50e1421e423ff42dd9668f94ebe0d193825fcd2b",
+      "secondSha256": "afc7d010f3c0d16bed5632067b61d0ccc3269448379f4dc6f170205d7fd8405f",
       "secondSize": 1072702
     }
   },

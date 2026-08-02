@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ARTIFACT_PATTERNS } from '../src/lib/quality/artifactDefectPatterns.js';
+import { ARTIFACT_PATTERNS, findDoubledQuizOptionLabel } from '../src/lib/quality/artifactDefectPatterns.js';
 
 function pattern(name) {
   const entry = ARTIFACT_PATTERNS.find((candidate) => candidate.name === name);
@@ -31,10 +31,21 @@ describe('browser-discovered artifact defect regressions', () => {
     expect('The lecture exam uses an answer key.').not.toMatch(pattern('internal-lecture-exam'));
   });
 
-  it('catches an option label whose quarantined body collapsed to the same bare label', () => {
-    expect('A. A.').toMatch(pattern('doubled-option-letters'));
-    expect('B. B. A substantive option').toMatch(pattern('doubled-option-letters'));
-    expect('F. F. S. van der Tak').not.toMatch(pattern('doubled-option-letters'));
+  it('scopes doubled option labels to quiz records instead of author prose', () => {
+    expect(findDoubledQuizOptionLabel(['Q1. Choose one.', 'A. A.'])).toMatchObject({ line: 'A. A.' });
+    expect(findDoubledQuizOptionLabel(['Q1. Choose one.', 'B. B. A substantive option'])).toBeNull();
+    expect(findDoubledQuizOptionLabel(['Q1. Choose one.', 'A. A. Milne'])).toBeNull();
+    expect(findDoubledQuizOptionLabel(['Q1. Choose one.', 'B. B. King'])).toBeNull();
+    expect(findDoubledQuizOptionLabel(['A. A. Milne (1926)', 'E. E. Cummings poetry'])).toBeNull();
+    expect(
+      findDoubledQuizOptionLabel([
+        'Q1. Choose one.',
+        'A. A complete option',
+        'Answer Key',
+        'Rationale: A. A. Milne and E. E. Cummings are relevant authors.',
+      ]),
+    ).toBeNull();
+    expect(findDoubledQuizOptionLabel(['Q1. Choose one.', 'F. F. S. van der Tak'])).toBeNull();
   });
 
   it('catches the subject-free discussion frame seen in the browser audit', () => {

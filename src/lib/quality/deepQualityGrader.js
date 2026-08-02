@@ -70,6 +70,7 @@ import {
   matchesKnownOffender,
   knownOffenderFitsScope,
   findPromptArtifactContamination,
+  findDoubledQuizOptionLabel,
   isInstructionalDesignPackage,
   blacklistYieldsToTopicalOverlap as offenderYieldsToTopicalOverlap,
 } from './artifactDefectPatterns.js';
@@ -3671,6 +3672,19 @@ function checkFormat(findings, { files, manifest }) {
     ...BACKTICK_LEAK_PATTERNS,
   ];
   for (const file of files) {
+    if (file.featureId === 'quizBank') {
+      const doubledOption = findDoubledQuizOptionLabel(file.paragraphs);
+      if (doubledOption) {
+        findings.add({
+          code: 'doubled-quiz-option-label',
+          severity: 'P1',
+          dimension: 'format',
+          file: file.path,
+          detail: 'doubled option letters: body is only its label',
+          evidence: quote(doubledOption.line),
+        });
+      }
+    }
     const opaqueSourceClaim = /\bthe cited source claim\b/i.exec(file.text || '');
     if (opaqueSourceClaim) {
       findings.add({

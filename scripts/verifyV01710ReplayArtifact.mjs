@@ -2,6 +2,7 @@ import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import zlib from 'node:zlib';
 
 import { verifyReplayArtifact } from './lib/v01710ReplayArtifactVerifier.mjs';
 
@@ -46,10 +47,16 @@ function generateFreshReplay(runNumber) {
 }
 
 try {
+  const inputBytes = fs.readFileSync(inputPath);
+  const inputJson = inputPath.endsWith('.gz')
+    ? zlib.gunzipSync(inputBytes).toString('utf8')
+    : inputBytes.toString('utf8');
   const result = await verifyReplayArtifact({
     receipt: JSON.parse(fs.readFileSync(receiptPath, 'utf8')),
     zipBytes: fs.readFileSync(zipPath),
     reproducedZipBytes: [generateFreshReplay(1), generateFreshReplay(2)],
+    inputBytes,
+    inputProject: JSON.parse(inputJson),
   });
   process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
 } finally {
