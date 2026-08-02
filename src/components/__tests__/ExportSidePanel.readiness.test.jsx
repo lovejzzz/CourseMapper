@@ -254,6 +254,73 @@ describe('ExportSidePanel readiness repair timing', () => {
     await act(async () => {});
   }
 
+  async function prepareReceiptHandoff() {
+    const liveCourseMap = structuredClone(cleanCourseMap);
+    liveCourseMap.lessons.push({
+      ...structuredClone(liveCourseMap.lessons[0]),
+      title: 'Lesson 2: Parent Receipt Handoff',
+    });
+    const finalizedCourseMap = structuredClone(liveCourseMap);
+    finalizedCourseMap.courseName = 'Exact finalizer snapshot';
+    const quality = {
+      status: 'graded',
+      score: 96,
+      grade: 'A',
+      findingCounts: { p0: 0, p1: 0, p2: 0 },
+    };
+    const receiptA = {
+      finalizerRevision: CURRENT_FINALIZER_REVISION,
+      finalStatus: 'ready',
+      exportStatus: 'passed',
+      exportChecked: 38,
+      exportFailed: 0,
+      generation: 'A',
+    };
+    const receiptB = { ...receiptA, generation: 'B', adversarialValue: null };
+    const onFinishPackage = vi.fn(async () => ({
+      courseMap: finalizedCourseMap,
+      deliverables: {},
+      readiness: { status: 'ready', blockers: [], warnings: [], issues: [], featureCount: 1 },
+      quality,
+      exportVerification: { status: 'passed', checked: 38, failed: 0, warningCount: 0 },
+      receipt: receiptB,
+    }));
+    const props = {
+      courseMapInput: liveCourseMap,
+      preferPackageScope: true,
+      canFinishPackage: true,
+      onFinishPackage,
+    };
+
+    await renderPanel({
+      ...props,
+      packageQualityPass: { status: 'ready', blockers: 0, warnings: 0, receipt: receiptA, quality },
+    });
+    await act(async () => {
+      container
+        .querySelector('[data-testid="lesson-scope-edit"]')
+        ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+    const firstLessonButton = [...container.querySelectorAll('button')].find((button) =>
+      button.textContent.includes('Lesson 1: Export Readiness'),
+    );
+    expect(firstLessonButton).toBeDefined();
+    await act(async () => {
+      firstLessonButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+    expect(container.querySelector('[data-testid="export-download-zip"]')?.textContent).toContain('Prepare package');
+    await act(async () => {
+      container
+        .querySelector('[data-testid="export-download-zip"]')
+        ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await vi.runAllTimersAsync();
+    });
+    expect(onFinishPackage).toHaveBeenCalledTimes(1);
+    expect(downloadCourseMaterialsZip).not.toHaveBeenCalled();
+
+    return { props, liveCourseMap, finalizedCourseMap, quality, receiptA, receiptB, onFinishPackage };
+  }
+
   it('waits to auto-repair readiness blockers while package generation is still running', async () => {
     const onAutoRepairReadiness = vi.fn();
 
@@ -686,11 +753,12 @@ describe('ExportSidePanel readiness repair timing', () => {
       exportChecked: 38,
       exportFailed: 0,
     };
+    const finishReadiness = { status: 'ready', blockers: [], warnings: [], issues: [], featureCount: 2 };
     const onFinishPackage = vi.fn(async () => ({
       courseMap: preparedCourseMap,
       deliverables: preparedDeliverables,
       courseGraph: preparedCourseGraph,
-      readiness: { status: 'ready', blockers: [], warnings: [], issues: [], featureCount: 2 },
+      readiness: finishReadiness,
       quality: finishQuality,
       exportVerification: { status: 'passed', checked: 38, failed: 0, warningCount: 0 },
       receipt: finishReceipt,
@@ -719,6 +787,7 @@ describe('ExportSidePanel readiness repair timing', () => {
       await vi.runAllTimersAsync();
     });
 
+    const parentReceipt = structuredClone(finishReceipt);
     preparedCourseMap.courseName = 'Mutated live course';
     preparedDeliverables.lessonPlans.data.lessonPlans[0].lessonTitle = 'Mutated live lesson';
     preparedCourseGraph.nodes[0].id = 'mutated-node';
@@ -727,6 +796,11 @@ describe('ExportSidePanel readiness repair timing', () => {
     pipelineState.stages.push('mutated');
     qualityContext.digest = 'mutated-digest';
     qualityContext.budget.max = 99;
+    finishReceipt.exportChecked = 0;
+    finishQuality.score = 1;
+    finishQuality.findingCounts.p0 = 1;
+    finishReadiness.status = 'blocked';
+    finishReadiness.blockers.push({ message: 'Mutated readiness blocker.' });
 
     await renderPanel({
       courseMapInput: preparedCourseMap,
@@ -744,7 +818,7 @@ describe('ExportSidePanel readiness repair timing', () => {
         status: 'ready',
         blockers: 0,
         warnings: 0,
-        receipt: finishReceipt,
+        receipt: parentReceipt,
         quality: finishQuality,
       },
     });
@@ -766,75 +840,18 @@ describe('ExportSidePanel readiness repair timing', () => {
     expect(options.slideTheme).toBe(2);
     expect(options.pipelineState).toEqual({ revision: 1, stages: ['prepared'] });
     expect(options.quality).toMatchObject({ digest: 'prepared-digest', budget: { max: 12 } });
+    expect(options.quality.precomputed).toMatchObject({ score: 97, findingCounts: { p0: 0, p1: 0, p2: 0 } });
+    expect(options.readiness).toMatchObject({ status: 'ready', blockers: [] });
   });
 
   it('retains the exact finalizer snapshot while the parent receipt advances from A to B', async () => {
-    const liveCourseMap = structuredClone(cleanCourseMap);
-    liveCourseMap.lessons.push({
-      ...structuredClone(liveCourseMap.lessons[0]),
-      title: 'Lesson 2: Parent Receipt Handoff',
-    });
-    const finalizedCourseMap = structuredClone(liveCourseMap);
-    finalizedCourseMap.courseName = 'Exact finalizer snapshot';
-    const quality = {
-      status: 'graded',
-      score: 96,
-      grade: 'A',
-      findingCounts: { p0: 0, p1: 0, p2: 0 },
-    };
-    const receiptA = {
-      finalizerRevision: CURRENT_FINALIZER_REVISION,
-      finalStatus: 'ready',
-      exportStatus: 'passed',
-      exportChecked: 38,
-      exportFailed: 0,
-      generation: 'A',
-    };
-    const receiptB = { ...receiptA, generation: 'B' };
-    const onFinishPackage = vi.fn(async () => ({
-      courseMap: finalizedCourseMap,
-      deliverables: {},
-      readiness: { status: 'ready', blockers: [], warnings: [], issues: [], featureCount: 1 },
-      quality,
-      exportVerification: { status: 'passed', checked: 38, failed: 0, warningCount: 0 },
-      receipt: receiptB,
-    }));
+    const { props, liveCourseMap, quality, receiptB } = await prepareReceiptHandoff();
+    const reorderedReceiptB = Object.fromEntries(Object.entries(receiptB).reverse());
 
     await renderPanel({
+      ...props,
       courseMapInput: liveCourseMap,
-      preferPackageScope: true,
-      canFinishPackage: true,
-      onFinishPackage,
-      packageQualityPass: { status: 'ready', blockers: 0, warnings: 0, receipt: receiptA, quality },
-    });
-    await act(async () => {
-      container
-        .querySelector('[data-testid="lesson-scope-edit"]')
-        ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    });
-    const lessonButtons = [...container.querySelectorAll('button')];
-    const firstLessonButton = lessonButtons.find((button) => button.textContent.includes('Lesson 1: Export Readiness'));
-    expect(firstLessonButton).toBeDefined();
-    await act(async () => {
-      firstLessonButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    });
-    expect(container.querySelector('[data-testid="export-download-zip"]')?.textContent).toContain('Prepare package');
-
-    await act(async () => {
-      container
-        .querySelector('[data-testid="export-download-zip"]')
-        ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-      await vi.runAllTimersAsync();
-    });
-    expect(onFinishPackage).toHaveBeenCalledTimes(1);
-    expect(downloadCourseMaterialsZip).not.toHaveBeenCalled();
-
-    await renderPanel({
-      courseMapInput: liveCourseMap,
-      preferPackageScope: true,
-      canFinishPackage: true,
-      onFinishPackage,
-      packageQualityPass: { status: 'ready', blockers: 0, warnings: 0, receipt: receiptB, quality },
+      packageQualityPass: { status: 'ready', blockers: 0, warnings: 0, receipt: reorderedReceiptB, quality },
     });
     const downloadButton = container.querySelector('[data-testid="export-download-zip"]');
     expect(downloadButton?.textContent).toContain('Download ZIP');
@@ -845,6 +862,53 @@ describe('ExportSidePanel readiness repair timing', () => {
 
     expect(downloadCourseMaterialsZip).toHaveBeenCalledTimes(1);
     expect(downloadCourseMaterialsZip.mock.calls[0][0].courseMap.courseName).toBe('Exact finalizer snapshot');
+  });
+
+  it('requires preparation again after scope invalidation interrupts an A to B handoff', async () => {
+    const { props, liveCourseMap, quality, receiptB } = await prepareReceiptHandoff();
+    const firstLessonButton = [...container.querySelectorAll('button')].find((button) =>
+      button.textContent.includes('Lesson 1: Export Readiness'),
+    );
+    expect(firstLessonButton).toBeDefined();
+    await act(async () => {
+      firstLessonButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    await renderPanel({
+      ...props,
+      courseMapInput: liveCourseMap,
+      packageQualityPass: { status: 'ready', blockers: 0, warnings: 0, receipt: receiptB, quality },
+    });
+    expect(container.querySelector('[data-testid="export-download-zip"]')?.textContent).toContain('Prepare package');
+    expect(downloadCourseMaterialsZip).not.toHaveBeenCalled();
+  });
+
+  it('fails closed when the parent receipt disappears during an A to B handoff', async () => {
+    const { props, liveCourseMap, quality, receiptB } = await prepareReceiptHandoff();
+    await renderPanel({
+      ...props,
+      courseMapInput: liveCourseMap,
+      packageQualityPass: { status: 'idle', message: '' },
+    });
+    await renderPanel({
+      ...props,
+      courseMapInput: liveCourseMap,
+      packageQualityPass: { status: 'ready', blockers: 0, warnings: 0, receipt: receiptB, quality },
+    });
+    expect(container.querySelector('[data-testid="export-download-zip"]')?.textContent).toContain('Prepare package');
+    expect(downloadCourseMaterialsZip).not.toHaveBeenCalled();
+  });
+
+  it('fails closed when an unrelated receipt replaces an A to B handoff', async () => {
+    const { props, liveCourseMap, quality, receiptB } = await prepareReceiptHandoff();
+    const receiptC = { ...receiptB, adversarialValue: Number.NaN };
+    await renderPanel({
+      ...props,
+      courseMapInput: liveCourseMap,
+      packageQualityPass: { status: 'ready', blockers: 0, warnings: 0, receipt: receiptC, quality },
+    });
+    expect(container.querySelector('[data-testid="export-download-zip"]')?.textContent).toContain('Prepare package');
+    expect(downloadCourseMaterialsZip).not.toHaveBeenCalled();
   });
 
   it('prepares an obsolete P0 receipt once and binds the refreshed package into the later download', async () => {

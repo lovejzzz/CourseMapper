@@ -125,10 +125,15 @@ function yieldForExportPaint() {
 }
 
 function stablePreparedValueKey(value) {
-  if (value === undefined) return 'undefined';
-  if (value === null || typeof value !== 'object') return JSON.stringify(value);
-  if (Array.isArray(value)) return `[${value.map((item) => stablePreparedValueKey(item)).join(',')}]`;
-  return `{${Object.keys(value)
+  if (value === null) return 'L';
+  if (value === undefined) return 'U';
+  if (typeof value === 'number') {
+    return `N:${Object.is(value, -0) ? '-0' : value}`;
+  }
+  if (value instanceof Date) return `D:${value.toJSON()}`;
+  if (typeof value !== 'object') return `${typeof value}:${JSON.stringify(value)}`;
+  if (Array.isArray(value)) return `A:[${value.map(stablePreparedValueKey).join(',')}]`;
+  return `O:{${Object.keys(value)
     .sort()
     .map((key) => `${JSON.stringify(key)}:${stablePreparedValueKey(value[key])}`)
     .join(',')}}`;
@@ -945,7 +950,11 @@ export default function ExportSidePanel({
   // Clearing a prepared snapshot is a deliberate invalidation. Remember the
   // receipt it belonged to so an unchanged parent receipt cannot immediately
   // rehydrate live state and masquerade as the old prepared package.
-  const invalidatedPreparedReceiptKeyRef = useRef('');
+  // Initial saved-project restoration may hydrate one verified snapshot from
+  // matching live state. After any explicit invalidation or unexpected parent
+  // receipt transition, hydration stays blocked until finalization explicitly
+  // prepares a new immutable snapshot.
+  const preparedPackageHydrationBlockedRef = useRef(false);
   const [qualityModalOpenLocal, setQualityModalOpenLocal] = useState(false);
   const qualityModalControlled = typeof onQualityModalOpenChange === 'function';
   const qualityModalOpen = qualityModalControlled ? Boolean(qualityModalOpenProp) : qualityModalOpenLocal;
@@ -1065,21 +1074,17 @@ export default function ExportSidePanel({
   const verifiedPackageReceipt = scope === 'all' && hasDownloadableVerifiedPackage(packageQualityPass);
   const currentPackageReceiptKey = packageReceiptKey(packageQualityPass?.receipt);
   if (
-    currentPackageReceiptKey &&
     preparedPackageRef.current &&
     preparedPackageRef.current.receiptKey !== currentPackageReceiptKey &&
-    preparedPackageRef.current.parentReceiptKeyAtPreparation !== currentPackageReceiptKey
+    preparedPackageRef.current.parentReceiptKey !== currentPackageReceiptKey
   ) {
     preparedPackageRef.current = null;
+    preparedPackageHydrationBlockedRef.current = true;
   }
   // A verified receipt restored with the project may be captured once from
   // the matching saved state. After any explicit scope invalidation, the same
   // receipt may not silently bless a new live snapshot; preparation must run.
-  if (
-    verifiedPackageReceipt &&
-    !preparedPackageRef.current &&
-    invalidatedPreparedReceiptKeyRef.current !== currentPackageReceiptKey
-  ) {
+  if (verifiedPackageReceipt && !preparedPackageRef.current && !preparedPackageHydrationBlockedRef.current) {
     try {
       preparedPackageRef.current = buildPreparedPackageSnapshot({
         receipt: packageQualityPass?.receipt,
@@ -1087,7 +1092,7 @@ export default function ExportSidePanel({
         readiness: getDownloadReadiness(activeReadiness),
       });
     } catch {
-      invalidatedPreparedReceiptKeyRef.current = currentPackageReceiptKey;
+      preparedPackageHydrationBlockedRef.current = true;
     }
   }
   const activeExportFeatureIds = useMemo(
@@ -1213,14 +1218,14 @@ export default function ExportSidePanel({
     }),
     quality = packageQualityPass?.quality || null,
     receipt = packageQualityPass?.receipt || null,
-    parentReceiptKeyAtPreparation = currentPackageReceiptKey,
+    parentReceiptKey = currentPackageReceiptKey,
   } = {}) {
     const featureIds = getExportFeatureIds('all');
     const qualityContext = typeof getQualityContext === 'function' ? getQualityContext() || {} : {};
     const pipelineState = typeof getPipelineState === 'function' ? getPipelineState() : null;
     return {
       receiptKey: packageReceiptKey(receipt),
-      parentReceiptKeyAtPreparation,
+      parentReceiptKey,
       receipt: clonePreparedValue(receipt),
       courseMap: clonePreparedValue(preparedCourseMap),
       deliverables: clonePreparedValue(preparedDeliverables),
@@ -1238,7 +1243,7 @@ export default function ExportSidePanel({
   }
 
   function clearPendingReadinessExport() {
-    invalidatedPreparedReceiptKeyRef.current = currentPackageReceiptKey;
+    preparedPackageHydrationBlockedRef.current = true;
     preparedPackageRef.current = null;
     setPendingReadinessExport(null);
     setLastNotice('');
@@ -1325,8 +1330,7 @@ export default function ExportSidePanel({
             finishResult.readiness || getReadinessSnapshot({ exportCourseMap, exportDeliverables, exportScope });
           exportReadiness = mergeFinalizerRetryIssues(exportReadiness, finishResult);
           exportReadiness = mergeExportVerificationIssues(exportReadiness, finishResult.exportVerification);
-          invalidatedPreparedReceiptKeyRef.current = '';
-          preparedPackageRef.current = buildPreparedPackageSnapshot({
+          const preparedSnapshot = buildPreparedPackageSnapshot({
             preparedCourseMap: exportCourseMap,
             preparedDeliverables: exportDeliverables,
             preparedCourseGraph: exportCourseGraph,
@@ -1334,6 +1338,8 @@ export default function ExportSidePanel({
             quality: finishResult.quality || null,
             receipt: finishResult.receipt || null,
           });
+          preparedPackageRef.current = preparedSnapshot;
+          preparedPackageHydrationBlockedRef.current = false;
         } else {
           exportReadiness = getReadinessSnapshot({ exportCourseMap, exportDeliverables, exportScope });
         }
@@ -1511,17 +1517,36 @@ export default function ExportSidePanel({
                 zipResult.qualityResult?.texture || zipResult.quality.texture || completedQuality?.texture || null,
             };
             const exportReceipt = zipResult.packageReadinessReceipt?.exportVerification || {};
+            const previousReceipt = preparedPackage.receipt || packageQualityPass?.receipt || {};
+            const receiptCount = (key, fallbackKey) => {
+              const value = exportReceipt?.[key];
+              return value == null || value === ''
+                ? Math.max(0, Number(previousReceipt?.[fallbackKey]) || 0)
+                : Math.max(0, Number(value) || 0);
+            };
+            const downloadedPreparedReceipt = {
+              ...previousReceipt,
+              ...(zipResult.packageReadinessReceipt
+                ? { packageReadinessReceipt: zipResult.packageReadinessReceipt }
+                : {}),
+              exportStatus: exportReceipt.status || previousReceipt.exportStatus || '',
+              exportChecked: receiptCount('checked', 'exportChecked'),
+              exportFailed: receiptCount('failed', 'exportFailed'),
+              exportWarningCount: receiptCount('warningCount', 'exportWarningCount'),
+            };
+            // The downloaded receipt is derived from this exact frozen ZIP,
+            // so advance the snapshot key to the same trusted successor before
+            // the parent publishes it. This preserves safe re-downloads without
+            // hydrating any package input from live state.
+            preparedPackageRef.current = {
+              ...preparedPackage,
+              receipt: clonePreparedValue(downloadedPreparedReceipt),
+              receiptKey: packageReceiptKey(downloadedPreparedReceipt),
+              parentReceiptKey: currentPackageReceiptKey,
+            };
             onPackageQualityPassUpdate((previous) => {
-              const previousReceipt = previous?.receipt || {};
-              const receiptCount = (key, fallbackKey) => {
-                const value = exportReceipt?.[key];
-                return value == null || value === ''
-                  ? Math.max(0, Number(previousReceipt?.[fallbackKey]) || 0)
-                  : Math.max(0, Number(value) || 0);
-              };
-              const exportChecked = receiptCount('checked', 'exportChecked');
-              const exportFailed = receiptCount('failed', 'exportFailed');
-              const exportWarningCount = receiptCount('warningCount', 'exportWarningCount');
+              const exportFailed = downloadedPreparedReceipt.exportFailed;
+              const exportWarningCount = downloadedPreparedReceipt.exportWarningCount;
               const finishDomains = buildPackageFinishDomains({
                 readiness: downloadReadiness,
                 retryWarningCount: previous?.warningDomains?.retry || 0,
@@ -1536,16 +1561,7 @@ export default function ExportSidePanel({
                 blockers: finishDomains.blockerDomains.total,
                 warnings: finishDomains.warningDomains.total,
                 ...finishDomains,
-                receipt: {
-                  ...previousReceipt,
-                  ...(zipResult.packageReadinessReceipt
-                    ? { packageReadinessReceipt: zipResult.packageReadinessReceipt }
-                    : {}),
-                  exportStatus: exportReceipt.status || previousReceipt.exportStatus || '',
-                  exportChecked,
-                  exportFailed,
-                  exportWarningCount,
-                },
+                receipt: downloadedPreparedReceipt,
                 quality: exportedQuality,
               };
             });
