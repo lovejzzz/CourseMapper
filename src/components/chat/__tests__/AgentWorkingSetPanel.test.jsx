@@ -83,6 +83,23 @@ describe('AgentWorkingSetPanel', () => {
         return circular;
       },
     ],
+    [
+      'accessor',
+      (receipt) => {
+        const accessor = { ...receipt };
+        Object.defineProperty(accessor, 'dynamic', { enumerable: true, get: () => 'value' });
+        return accessor;
+      },
+    ],
+    [
+      'non-enumerable property',
+      (receipt) => {
+        const hidden = { ...receipt };
+        Object.defineProperty(hidden, 'hidden', { value: 'state', enumerable: false });
+        return hidden;
+      },
+    ],
+    ['sparse array', (receipt) => ({ ...receipt, adversarialValue: Array(1) })],
   ])('shows Refine in Agent when Export must reject an invalid %s receipt', (_label, makeInvalidReceipt) => {
     const packageQualityPass = {
       status: 'ready',

@@ -61,6 +61,19 @@ describe('package trust quality notes', () => {
     }
     const arrayWithProperty = ['value'];
     arrayWithProperty.extra = true;
+    const accessor = {};
+    let accessorReads = 0;
+    Object.defineProperty(accessor, 'value', {
+      enumerable: true,
+      get() {
+        accessorReads += 1;
+        return 'dynamic';
+      },
+    });
+    const hiddenValue = {};
+    Object.defineProperty(hiddenValue, 'hidden', { value: 'state', enumerable: false });
+    const dateWithProperty = new Date('2026-08-01T00:00:00.000Z');
+    dateWithProperty.extra = true;
     for (const value of [
       new Map([['different', 1]]),
       new Set(['different']),
@@ -69,9 +82,15 @@ describe('package trust quality notes', () => {
       new Date(Number.NaN),
       new ReceiptClass(),
       arrayWithProperty,
+      accessor,
+      hiddenValue,
+      Array(1),
+      dateWithProperty,
     ]) {
       expect(packageReceiptKey({ adversarialValue: value })).toBeNull();
     }
+    expect(accessorReads).toBe(0);
+    expect(packageReceiptKey({ adversarialValue: [undefined] })).not.toBeNull();
     expect(packageReceiptKey({ adversarialValue: {} })).not.toBeNull();
   });
 
@@ -85,6 +104,23 @@ describe('package trust quality notes', () => {
         return circular;
       },
     ],
+    [
+      'accessor',
+      (receipt) => {
+        const accessor = { ...receipt };
+        Object.defineProperty(accessor, 'dynamic', { enumerable: true, get: () => 'value' });
+        return accessor;
+      },
+    ],
+    [
+      'non-enumerable property',
+      (receipt) => {
+        const hidden = { ...receipt };
+        Object.defineProperty(hidden, 'hidden', { value: 'state', enumerable: false });
+        return hidden;
+      },
+    ],
+    ['sparse array', (receipt) => ({ ...receipt, adversarialValue: Array(1) })],
   ])('blocks an invalid %s receipt consistently in Agent trust status', (_label, makeInvalidReceipt) => {
     const status = getPackageTrustStatus({
       packageQualityPass: {

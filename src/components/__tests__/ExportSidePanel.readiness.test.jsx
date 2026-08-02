@@ -941,6 +941,23 @@ describe('ExportSidePanel readiness repair timing', () => {
     ['typed array', () => new Uint8Array([1])],
     ['invalid date', () => new Date(Number.NaN)],
     [
+      'accessor record',
+      () => {
+        const accessor = {};
+        Object.defineProperty(accessor, 'value', { enumerable: true, get: () => 'different' });
+        return accessor;
+      },
+    ],
+    [
+      'non-enumerable record',
+      () => {
+        const hidden = {};
+        Object.defineProperty(hidden, 'value', { value: 'different', enumerable: false });
+        return hidden;
+      },
+    ],
+    ['sparse array', () => Array(1)],
+    [
       'class instance',
       () =>
         new (class ReceiptClass {

@@ -16,6 +16,9 @@ function stablePackageReceiptValueKey(value, ancestors) {
   if (value === undefined) return 'U';
   if (typeof value === 'number') return `N:${Object.is(value, -0) ? '-0' : value}`;
   if (value instanceof Date) {
+    if (Object.getPrototypeOf(value) !== Date.prototype || Reflect.ownKeys(value).length > 0) {
+      throw new TypeError('Package receipts must contain only plain dates.');
+    }
     if (!Number.isFinite(value.getTime())) throw new TypeError('Package receipts must contain valid dates.');
     return `D:${value.toJSON()}`;
   }
@@ -25,23 +28,41 @@ function stablePackageReceiptValueKey(value, ancestors) {
   ancestors.add(value);
   try {
     if (Array.isArray(value)) {
-      const extraKeys = Reflect.ownKeys(value).filter((key) => {
-        if (key === 'length') return false;
-        return typeof key !== 'string' || !/^(0|[1-9]\d*)$/.test(key) || Number(key) >= value.length;
+      const itemKeys = Reflect.ownKeys(value).filter((key) => key !== 'length');
+      if (itemKeys.length !== value.length) {
+        throw new TypeError('Package receipt arrays must be dense and contain no custom properties.');
+      }
+      const itemKeysAreCanonical = itemKeys.every(
+        (key) => typeof key === 'string' && /^(0|[1-9]\d*)$/.test(key) && Number(key) < value.length,
+      );
+      if (!itemKeysAreCanonical) {
+        throw new TypeError('Package receipt arrays must contain only canonical indices.');
+      }
+      const itemValues = Array.from({ length: value.length }, (_, index) => {
+        const descriptor = Object.getOwnPropertyDescriptor(value, String(index));
+        if (!descriptor || !descriptor.enumerable || !Object.prototype.hasOwnProperty.call(descriptor, 'value')) {
+          throw new TypeError('Package receipt arrays must contain only enumerable data properties.');
+        }
+        return descriptor.value;
       });
-      if (extraKeys.length > 0) throw new TypeError('Package receipt arrays must not contain custom properties.');
-      return `A:[${Array.from(value, (item) => stablePackageReceiptValueKey(item, ancestors)).join(',')}]`;
+      return `A:[${itemValues.map((item) => stablePackageReceiptValueKey(item, ancestors)).join(',')}]`;
     }
     const prototype = Object.getPrototypeOf(value);
     if (prototype !== Object.prototype && prototype !== null) {
       throw new TypeError('Package receipts must contain only plain records.');
     }
-    if (Object.getOwnPropertySymbols(value).length > 0) {
-      throw new TypeError('Package receipts must not contain symbol properties.');
-    }
-    return `O:{${Object.keys(value)
-      .sort()
-      .map((key) => `${JSON.stringify(key)}:${stablePackageReceiptValueKey(value[key], ancestors)}`)
+    const keys = Reflect.ownKeys(value);
+    if (keys.some((key) => typeof key !== 'string')) throw new TypeError('Package receipts must not contain symbols.');
+    const entries = keys.map((key) => {
+      const descriptor = Object.getOwnPropertyDescriptor(value, key);
+      if (!descriptor?.enumerable || !Object.prototype.hasOwnProperty.call(descriptor, 'value')) {
+        throw new TypeError('Package receipt records must contain only enumerable data properties.');
+      }
+      return [key, descriptor.value];
+    });
+    return `O:{${entries
+      .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
+      .map(([key, item]) => `${JSON.stringify(key)}:${stablePackageReceiptValueKey(item, ancestors)}`)
       .join(',')}}`;
   } finally {
     ancestors.delete(value);
