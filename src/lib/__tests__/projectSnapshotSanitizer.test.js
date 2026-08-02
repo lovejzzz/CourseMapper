@@ -184,6 +184,27 @@ describe('sanitizeProjectSnapshot', () => {
     expect(0 in sanitized.items).toBe(false);
   });
 
+  it('preserves hostile nested keys as own data without changing prototypes', () => {
+    const nested = JSON.parse(
+      '{"__proto__":{"marker":"prototype-value"},"constructor":{"marker":"constructor-value"},"prototype":{"marker":"prototype-property-value"}}',
+    );
+
+    const sanitized = sanitizeProjectSnapshot({ nested });
+
+    expect(Object.getPrototypeOf(sanitized.nested)).toBe(Object.prototype);
+    expect(Object.keys(sanitized.nested)).toEqual(['__proto__', 'constructor', 'prototype']);
+    for (const key of ['__proto__', 'constructor', 'prototype']) {
+      expect(Object.getOwnPropertyDescriptor(sanitized.nested, key)).toMatchObject({
+        enumerable: true,
+        writable: true,
+        configurable: true,
+      });
+    }
+    expect(sanitized.nested.__proto__).toEqual({ marker: 'prototype-value' });
+    expect(sanitized.nested.constructor).toEqual({ marker: 'constructor-value' });
+    expect(sanitized.nested.prototype).toEqual({ marker: 'prototype-property-value' });
+  });
+
   it('fails closed when direct sanitation receives a revoked proxy', () => {
     const revoked = Proxy.revocable({ title: 'Untrusted project' }, {});
     revoked.revoke();

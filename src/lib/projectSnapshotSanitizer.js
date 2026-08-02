@@ -1,4 +1,5 @@
 import { detectRequestedClassSessionMinutes, parseClassSessionMinutes } from './sourceBriefConstraints';
+import { setOwnEnumerableData } from './ownEnumerableData.js';
 import { renderedDeliverableCollection } from './renderedDeliverableRoot.js';
 import { selectPersistablePackageEvidence } from './packageQualityPersistence.js';
 
@@ -89,7 +90,7 @@ function sanitizeProjectSnapshotValue(value, ancestors) {
         continue;
       }
       const nested = sanitizeProjectSnapshotValue(descriptor.value, ancestors);
-      if (nested !== OMIT_SNAPSHOT_VALUE) sanitized[key] = nested;
+      if (nested !== OMIT_SNAPSHOT_VALUE) setOwnEnumerableData(sanitized, key, nested);
     }
     return sanitized;
   } catch {

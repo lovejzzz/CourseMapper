@@ -181,4 +181,25 @@ describe('normalizeFirestoreSnapshotData', () => {
     expect(normalizeFirestoreSnapshotData({ value: Symbol('unsupported') })).toBeNull();
     expect(normalizeFirestoreSnapshotData({ value: () => 'unsupported' })).toBeNull();
   });
+
+  it('preserves hostile nested record keys as own data without changing prototypes', () => {
+    const source = JSON.parse(
+      '{"__proto__":{"marker":"prototype-value"},"constructor":{"marker":"constructor-value"},"prototype":{"marker":"prototype-property-value"}}',
+    );
+
+    const normalized = normalizeFirestoreSnapshotData({ nested: source });
+
+    expect(Object.getPrototypeOf(normalized.nested)).toBe(Object.prototype);
+    expect(Object.keys(normalized.nested)).toEqual(['__proto__', 'constructor', 'prototype']);
+    for (const key of ['__proto__', 'constructor', 'prototype']) {
+      expect(Object.getOwnPropertyDescriptor(normalized.nested, key)).toMatchObject({
+        enumerable: true,
+        writable: true,
+        configurable: true,
+      });
+    }
+    expect(normalized.nested.__proto__).toEqual({ marker: 'prototype-value' });
+    expect(normalized.nested.constructor).toEqual({ marker: 'constructor-value' });
+    expect(normalized.nested.prototype).toEqual({ marker: 'prototype-property-value' });
+  });
 });

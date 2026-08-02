@@ -11,6 +11,7 @@
 
 import { db } from './firebase';
 import { normalizeFirestoreSnapshotData } from './firestoreSnapshotBoundary.js';
+import { setOwnEnumerableData } from './ownEnumerableData.js';
 import { sanitizeProjectSnapshot } from './projectSnapshotSanitizer';
 import {
   doc,
@@ -77,15 +78,6 @@ function readNormalizedCloudDate(value) {
   } catch {
     return new Date(0);
   }
-}
-
-function setOwnEnumerableData(target, key, value) {
-  Object.defineProperty(target, String(key), {
-    value,
-    enumerable: true,
-    writable: true,
-    configurable: true,
-  });
 }
 
 function getByteLength(value) {

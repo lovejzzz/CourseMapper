@@ -438,6 +438,46 @@ describe('cloudStorage secret sanitation', () => {
     expect(loaded.prototype).toEqual({ status: 'done', data: { marker: 'chunked-prototype' } });
   });
 
+  it('preserves hostile keys nested inside direct and chunk-restored deliverables', async () => {
+    const directValue = JSON.parse('{"status":"done","data":{"__proto__":{"marker":"direct"}}}');
+    const chunkValue = JSON.parse('{"status":"done","data":{"__proto__":{"marker":"chunked"}}}');
+    firestore.getDocs.mockResolvedValueOnce({
+      forEach: (callback) => {
+        callback({ id: 'lessonPlans', data: () => directValue });
+        callback({
+          id: 'slideDecks',
+          data: () => ({ __chunked: true, encoding: 'json', chunkCount: 1, status: 'done' }),
+        });
+        callback({
+          id: '__cm_chunk__slideDecks__0',
+          data: () => ({
+            __deliverableChunk: true,
+            featureId: 'slideDecks',
+            index: 0,
+            text: JSON.stringify(chunkValue),
+          }),
+        });
+      },
+    });
+
+    const loaded = await loadProjectDeliverables('user-1', 'project-1');
+
+    for (const [featureId, marker] of [
+      ['lessonPlans', 'direct'],
+      ['slideDecks', 'chunked'],
+    ]) {
+      const nested = loaded[featureId].data;
+      expect(Object.getPrototypeOf(nested)).toBe(Object.prototype);
+      expect(Object.keys(nested)).toEqual(['__proto__']);
+      expect(Object.getOwnPropertyDescriptor(nested, '__proto__')).toMatchObject({
+        enumerable: true,
+        writable: true,
+        configurable: true,
+      });
+      expect(nested.__proto__).toEqual({ marker });
+    }
+  });
+
   it('sanitizes legacy agent reads while keeping document ids', async () => {
     firestore.getDocs
       .mockResolvedValueOnce({

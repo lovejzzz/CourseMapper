@@ -1,4 +1,5 @@
 import { Bytes, GeoPoint, Timestamp } from 'firebase/firestore';
+import { setOwnEnumerableData } from './ownEnumerableData.js';
 
 const OMIT_FIRESTORE_VALUE = Symbol('omit-firestore-value');
 const MIN_FIRESTORE_TIMESTAMP_SECONDS = -62_135_596_800;
@@ -205,7 +206,7 @@ function normalizeFirestoreValue(value, ancestors) {
         const descriptor = descriptors[key];
         if (!descriptor?.enumerable || !Object.prototype.hasOwnProperty.call(descriptor, 'value')) continue;
         const nested = normalizeFirestoreValue(descriptor.value, ancestors);
-        if (nested !== OMIT_FIRESTORE_VALUE) normalized[key] = nested;
+        if (nested !== OMIT_FIRESTORE_VALUE) setOwnEnumerableData(normalized, key, nested);
       }
       return normalized;
     } finally {
