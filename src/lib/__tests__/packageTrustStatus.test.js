@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { buildPackageFinishDomains } from '../packageFinishEvidence';
 import { applyQualityToFinalizerResult } from '../packageFinalizer';
-import { buildQualityReviewIssue, buildQualityReviewIssues, getPackageTrustStatus } from '../packageTrustStatus';
+import {
+  buildQualityReviewIssue,
+  buildQualityReviewIssues,
+  getPackageTrustStatus,
+  packageReceiptKey,
+} from '../packageTrustStatus';
 
 describe('package trust quality notes', () => {
   const quality = {
@@ -37,6 +42,15 @@ describe('package trust quality notes', () => {
       'Lessons 1–3 rely on one trusted source; attach an authoritative source to each lesson.',
       'The syllabus review row is not proof of a trusted bibliography source.',
     ]);
+  });
+
+  it('canonicalizes ordinary receipts and returns an invalid sentinel for unsupported structures', () => {
+    expect(packageReceiptKey({ b: 2, a: { value: null } })).toBe(packageReceiptKey({ a: { value: null }, b: 2 }));
+    expect(packageReceiptKey({ value: null })).not.toBe(packageReceiptKey({ value: Number.NaN }));
+    expect(packageReceiptKey({ value: 1n })).toBeNull();
+    const circular = { value: 'cycle' };
+    circular.self = circular;
+    expect(packageReceiptKey(circular)).toBeNull();
   });
 
   it('surfaces those exact notes through the Agent trust status', () => {

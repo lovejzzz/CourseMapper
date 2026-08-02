@@ -20,7 +20,7 @@ import {
 import { openTabNow, saveToGoogleSlides } from '../lib/googleDrive';
 import { exportSlideDeckPptx, buildSlideDeckPptxBlob } from '../lib/exporters/pptxExporter';
 import { buildPackageReadinessBinding, downloadCourseMaterialsZip } from '../lib/packageZipExporter';
-import { CURRENT_FINALIZER_REVISION, getPackageTrustStatus } from '../lib/packageTrustStatus';
+import { CURRENT_FINALIZER_REVISION, getPackageTrustStatus, packageReceiptKey } from '../lib/packageTrustStatus';
 import { buildPackageFinishDomains } from '../lib/packageFinishEvidence';
 
 // ── Which formats each deliverable supports ─────────────────────────────────
@@ -122,25 +122,6 @@ function yieldForExportPaint() {
     }
     setTimeout(resolve, 0);
   });
-}
-
-function stablePreparedValueKey(value) {
-  if (value === null) return 'L';
-  if (value === undefined) return 'U';
-  if (typeof value === 'number') {
-    return `N:${Object.is(value, -0) ? '-0' : value}`;
-  }
-  if (value instanceof Date) return `D:${value.toJSON()}`;
-  if (typeof value !== 'object') return `${typeof value}:${JSON.stringify(value)}`;
-  if (Array.isArray(value)) return `A:[${value.map(stablePreparedValueKey).join(',')}]`;
-  return `O:{${Object.keys(value)
-    .sort()
-    .map((key) => `${JSON.stringify(key)}:${stablePreparedValueKey(value[key])}`)
-    .join(',')}}`;
-}
-
-function packageReceiptKey(receipt) {
-  return receipt && typeof receipt === 'object' ? stablePreparedValueKey(receipt) : '';
 }
 
 function clonePreparedValue(value) {
@@ -1073,7 +1054,10 @@ export default function ExportSidePanel({
     pendingReadinessExport?.scope === scope ? pendingReadinessExport.readiness : getDownloadReadiness(activeReadiness);
   const verifiedPackageReceipt = scope === 'all' && hasDownloadableVerifiedPackage(packageQualityPass);
   const currentPackageReceiptKey = packageReceiptKey(packageQualityPass?.receipt);
-  if (
+  if (currentPackageReceiptKey === null) {
+    preparedPackageRef.current = null;
+    preparedPackageHydrationBlockedRef.current = true;
+  } else if (
     preparedPackageRef.current &&
     preparedPackageRef.current.receiptKey !== currentPackageReceiptKey &&
     preparedPackageRef.current.parentReceiptKey !== currentPackageReceiptKey
@@ -1223,8 +1207,10 @@ export default function ExportSidePanel({
     const featureIds = getExportFeatureIds('all');
     const qualityContext = typeof getQualityContext === 'function' ? getQualityContext() || {} : {};
     const pipelineState = typeof getPipelineState === 'function' ? getPipelineState() : null;
+    const receiptKey = packageReceiptKey(receipt);
+    if (receiptKey === null) throw new TypeError('Package preparation returned an invalid receipt.');
     return {
-      receiptKey: packageReceiptKey(receipt),
+      receiptKey,
       parentReceiptKey,
       receipt: clonePreparedValue(receipt),
       courseMap: clonePreparedValue(preparedCourseMap),
@@ -1534,6 +1520,8 @@ export default function ExportSidePanel({
               exportFailed: receiptCount('failed', 'exportFailed'),
               exportWarningCount: receiptCount('warningCount', 'exportWarningCount'),
             };
+            const downloadedReceiptKey = packageReceiptKey(downloadedPreparedReceipt);
+            if (downloadedReceiptKey === null) throw new TypeError('ZIP verification returned an invalid receipt.');
             // The downloaded receipt is derived from this exact frozen ZIP,
             // so advance the snapshot key to the same trusted successor before
             // the parent publishes it. This preserves safe re-downloads without
@@ -1541,7 +1529,7 @@ export default function ExportSidePanel({
             preparedPackageRef.current = {
               ...preparedPackage,
               receipt: clonePreparedValue(downloadedPreparedReceipt),
-              receiptKey: packageReceiptKey(downloadedPreparedReceipt),
+              receiptKey: downloadedReceiptKey,
               parentReceiptKey: currentPackageReceiptKey,
             };
             onPackageQualityPassUpdate((previous) => {

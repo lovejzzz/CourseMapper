@@ -11,6 +11,39 @@ import { countSourceAdvisoryFindings, countSourceQualityAdvisoryFindings } from 
 // stale or let obsolete packages bypass the current deterministic finalizer.
 export const CURRENT_FINALIZER_REVISION = 5;
 
+function stablePackageReceiptValueKey(value, ancestors) {
+  if (value === null) return 'L';
+  if (value === undefined) return 'U';
+  if (typeof value === 'number') return `N:${Object.is(value, -0) ? '-0' : value}`;
+  if (value instanceof Date) return `D:${value.toJSON()}`;
+  if (typeof value === 'string' || typeof value === 'boolean') return `${typeof value}:${JSON.stringify(value)}`;
+  if (typeof value !== 'object') throw new TypeError('Package receipts must contain serializable values.');
+  if (ancestors.has(value)) throw new TypeError('Package receipts must not contain circular references.');
+  ancestors.add(value);
+  try {
+    if (Array.isArray(value)) {
+      return `A:[${Array.from(value, (item) => stablePackageReceiptValueKey(item, ancestors)).join(',')}]`;
+    }
+    return `O:{${Object.keys(value)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${stablePackageReceiptValueKey(value[key], ancestors)}`)
+      .join(',')}}`;
+  } finally {
+    ancestors.delete(value);
+  }
+}
+
+// '' means no receipt; null means a present but invalid receipt. Consumers
+// must tombstone null so unsupported structures can never authorize bytes.
+export function packageReceiptKey(receipt) {
+  if (!receipt || typeof receipt !== 'object') return '';
+  try {
+    return stablePackageReceiptValueKey(receipt, new WeakSet());
+  } catch {
+    return null;
+  }
+}
+
 function compactCount(value) {
   const number = Number(value);
   return Number.isFinite(number) ? Math.max(0, number) : 0;

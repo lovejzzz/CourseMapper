@@ -864,6 +864,57 @@ describe('ExportSidePanel readiness repair timing', () => {
     expect(downloadCourseMaterialsZip.mock.calls[0][0].courseMap.courseName).toBe('Exact finalizer snapshot');
   });
 
+  it('re-downloads the exact frozen package after the ZIP publishes its trusted successor receipt', async () => {
+    const { props, liveCourseMap, quality, receiptB } = await prepareReceiptHandoff();
+    let parentState = { status: 'ready', blockers: 0, warnings: 0, receipt: receiptB, quality };
+    const onPackageQualityPassUpdate = vi.fn((updater) => {
+      parentState = updater(parentState);
+    });
+    downloadCourseMaterialsZip.mockResolvedValue({
+      fileName: 'Review Surface Course - Course Materials.zip',
+      files: ['PACKAGE_MANIFEST.json', 'QUALITY_REPORT.md'],
+      quality,
+      qualityResult: { grades: {}, findings: [], stats: { findingCount: 0, fileCount: 2 } },
+      packageReadinessReceipt: {
+        exportVerification: { status: 'passed', checked: 38, failed: 0, warningCount: 0 },
+      },
+    });
+
+    await renderPanel({
+      ...props,
+      packageQualityPass: parentState,
+      onPackageQualityPassUpdate,
+    });
+    await act(async () => {
+      container
+        .querySelector('[data-testid="export-download-zip"]')
+        ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await vi.runAllTimersAsync();
+    });
+    expect(onPackageQualityPassUpdate).toHaveBeenCalledTimes(1);
+    expect(parentState.receipt.packageReadinessReceipt).toBeDefined();
+
+    const replacedLiveCourseMap = structuredClone(liveCourseMap);
+    replacedLiveCourseMap.courseName = 'Mutated live state after download';
+    await renderPanel({
+      ...props,
+      courseMapInput: replacedLiveCourseMap,
+      packageQualityPass: parentState,
+      onPackageQualityPassUpdate,
+    });
+    expect(container.querySelector('[data-testid="export-download-zip"]')?.textContent).toContain('Download ZIP');
+    await act(async () => {
+      container
+        .querySelector('[data-testid="export-download-zip"]')
+        ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await vi.runAllTimersAsync();
+    });
+
+    expect(downloadCourseMaterialsZip).toHaveBeenCalledTimes(2);
+    expect(downloadCourseMaterialsZip.mock.calls[1][0]).toEqual(downloadCourseMaterialsZip.mock.calls[0][0]);
+    expect(downloadCourseMaterialsZip.mock.calls[1][0].courseMap.courseName).toBe('Exact finalizer snapshot');
+  });
+
   it('requires preparation again after scope invalidation interrupts an A to B handoff', async () => {
     const { props, liveCourseMap, quality, receiptB } = await prepareReceiptHandoff();
     const firstLessonButton = [...container.querySelectorAll('button')].find((button) =>
@@ -908,6 +959,48 @@ describe('ExportSidePanel readiness repair timing', () => {
       packageQualityPass: { status: 'ready', blockers: 0, warnings: 0, receipt: receiptC, quality },
     });
     expect(container.querySelector('[data-testid="export-download-zip"]')?.textContent).toContain('Prepare package');
+    expect(downloadCourseMaterialsZip).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['bigint', (receipt) => ({ ...receipt, adversarialValue: 1n })],
+    [
+      'circular',
+      (receipt) => {
+        const circular = { ...receipt };
+        circular.self = circular;
+        return circular;
+      },
+    ],
+  ])('tombstones an unsupported %s receipt until explicit finalization', async (_label, makeInvalidReceipt) => {
+    const { props, liveCourseMap, quality, receiptB, onFinishPackage } = await prepareReceiptHandoff();
+    await renderPanel({
+      ...props,
+      courseMapInput: liveCourseMap,
+      packageQualityPass: {
+        status: 'ready',
+        blockers: 0,
+        warnings: 0,
+        receipt: makeInvalidReceipt(receiptB),
+        quality,
+      },
+    });
+    await renderPanel({
+      ...props,
+      courseMapInput: liveCourseMap,
+      packageQualityPass: { status: 'ready', blockers: 0, warnings: 0, receipt: receiptB, quality },
+    });
+    expect(container.querySelector('[data-testid="export-download-zip"]')?.textContent).toContain('Prepare package');
+    expect(downloadCourseMaterialsZip).not.toHaveBeenCalled();
+
+    await act(async () => {
+      container
+        .querySelector('[data-testid="export-download-zip"]')
+        ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await vi.runAllTimersAsync();
+    });
+    expect(onFinishPackage).toHaveBeenCalledTimes(2);
+    expect(container.querySelector('[data-testid="export-download-zip"]')?.textContent).toContain('Download ZIP');
     expect(downloadCourseMaterialsZip).not.toHaveBeenCalled();
   });
 
