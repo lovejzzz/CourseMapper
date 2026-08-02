@@ -406,9 +406,11 @@ export function getPackageTrustStatus({
   featureLabels = {},
 } = {}) {
   const finishStatus = finishStatusOf(packageQualityPass);
-  const packageReceipt = receipt ?? packageQualityPass?.receipt ?? null;
+  const packageReceiptSource = receipt ?? packageQualityPass?.receipt ?? null;
+  const packageReceiptAdmission = admitPackageReceipt(packageReceiptSource);
+  const packageReceipt = packageReceiptAdmission.valid ? packageReceiptAdmission.receipt : null;
   const invalidReceiptIssue =
-    packageReceipt !== null && packageReceipt !== undefined && packageReceiptKey(packageReceipt) === null
+    packageReceiptSource !== null && packageReceiptSource !== undefined && !packageReceiptAdmission.valid
       ? {
           label: 'Package receipt',
           message: 'The package verification receipt is invalid. Prepare the package again before downloading.',

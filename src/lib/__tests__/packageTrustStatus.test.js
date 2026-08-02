@@ -129,7 +129,12 @@ describe('package trust quality notes', () => {
       'accessor',
       (receipt) => {
         const accessor = { ...receipt };
-        Object.defineProperty(accessor, 'dynamic', { enumerable: true, get: () => 'value' });
+        Object.defineProperty(accessor, 'exportFailed', {
+          enumerable: true,
+          get() {
+            throw new Error('exportFailed getter executed');
+          },
+        });
         return accessor;
       },
     ],

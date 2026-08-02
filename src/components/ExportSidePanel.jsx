@@ -340,7 +340,10 @@ function getDownloadReadiness(readiness) {
 }
 
 function hasFinishedPackageReceipt(packageQualityPass) {
-  const receiptRevision = Number(packageQualityPass?.receipt?.finalizerRevision) || 0;
+  const receiptAdmission = admitPackageReceipt(packageQualityPass?.receipt);
+  const receipt = receiptAdmission.valid ? receiptAdmission.receipt : null;
+  if (!receipt) return false;
+  const receiptRevision = Number(receipt.finalizerRevision) || 0;
   // A current revision binds the terminal receipt to the finalizer repair
   // contract that produced it. Every missing or mismatched revision is
   // obsolete: trusting a legacy grader's stored P0 count would let packages
@@ -353,12 +356,14 @@ function hasFinishedPackageReceipt(packageQualityPass) {
   // produced a receipt. Treat the receipt—not a zero-warning presentation
   // state—as the proof that finishing completed. Otherwise clicking ZIP
   // starts the complete finalizer again after the UI said "Ready to export".
-  if (finishStatusOf(packageQualityPass) === 'ready' && packageQualityPass?.receipt) return true;
-  return isPackageBlocked(packageQualityPass) && Boolean(packageQualityPass?.quality || packageQualityPass?.receipt);
+  if (finishStatusOf(packageQualityPass) === 'ready') return true;
+  return isPackageBlocked(packageQualityPass) && Boolean(packageQualityPass?.quality || receipt);
 }
 
 function hasPackageExportFailure(packageQualityPass) {
-  const receipt = packageQualityPass?.receipt || {};
+  const receiptAdmission = admitPackageReceipt(packageQualityPass?.receipt);
+  const receipt = receiptAdmission.valid ? receiptAdmission.receipt : null;
+  if (!receipt) return false;
   const exportReceipt = receipt.packageReadinessReceipt?.exportVerification || {};
   const failed = Number(exportReceipt.failed ?? receipt.exportFailed ?? 0);
   return (
@@ -376,7 +381,9 @@ function hasPackageExportFailure(packageQualityPass) {
  */
 export function hasDownloadableVerifiedPackage(packageQualityPass, finishOutcome = null) {
   const verification = finishOutcome?.exportVerification || null;
-  const receipt = finishOutcome?.receipt || packageQualityPass?.receipt || {};
+  const receiptAdmission = admitPackageReceipt(finishOutcome?.receipt ?? packageQualityPass?.receipt);
+  const receipt = receiptAdmission.valid ? receiptAdmission.receipt : null;
+  if (!receipt) return false;
   const embeddedVerification = receipt.packageReadinessReceipt?.exportVerification || {};
   const completedQuality = finishOutcome ? finishOutcome.quality : packageQualityPass?.quality;
   const qualityStatus = String(completedQuality?.status || '').toLowerCase();
@@ -1470,6 +1477,11 @@ export default function ExportSidePanel({
             if (typeof onPackageQualityPassUpdate === 'function') {
               onPackageQualityPassUpdate((previous) => {
                 const previousDomains = previous?.blockerDomains || {};
+                const previousReceiptAdmission = admitPackageReceipt(previous?.receipt);
+                const previousReceipt =
+                  previousReceiptAdmission.valid && previousReceiptAdmission.receipt
+                    ? previousReceiptAdmission.receipt
+                    : {};
                 const blockerDomains = {
                   schemaVersion: previousDomains.schemaVersion || 1,
                   readiness: Number(previousDomains.readiness) || 0,
@@ -1484,7 +1496,7 @@ export default function ExportSidePanel({
                   blockers: Math.max(1, Number(previous?.blockers) || 0),
                   quality: zipResult.quality || previous?.quality,
                   receipt: {
-                    ...(previous?.receipt || {}),
+                    ...previousReceipt,
                     ...(zipResult.packageReadinessReceipt
                       ? { packageReadinessReceipt: zipResult.packageReadinessReceipt }
                       : {}),
@@ -1510,7 +1522,7 @@ export default function ExportSidePanel({
                 zipResult.qualityResult?.texture || zipResult.quality.texture || completedQuality?.texture || null,
             };
             const exportReceipt = zipResult.packageReadinessReceipt?.exportVerification || {};
-            const previousReceipt = preparedPackage.receipt || packageQualityPass?.receipt || {};
+            const previousReceipt = preparedPackage.receipt || {};
             const receiptCount = (key, fallbackKey) => {
               const value = exportReceipt?.[key];
               return value == null || value === ''

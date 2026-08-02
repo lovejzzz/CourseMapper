@@ -13,7 +13,7 @@ import { buildPostGenerationDigest } from '../../lib/agentDigest';
 import { classifyFinalizePackageStepStatus, normalizePackageSummary } from '../../lib/packageFinalizerSummary';
 import { finishStatusOf, isFinishPassActive, isPackageReady } from '../../lib/pipelineMachine';
 import { summarizeLandingAgentContext } from '../../lib/landingAgentContext';
-import { getPackageTrustStatus } from '../../lib/packageTrustStatus';
+import { admitPackageReceipt, getPackageTrustStatus } from '../../lib/packageTrustStatus';
 import { useAIConfig } from '../../contexts/AIConfigContext';
 import { PUBLIC_SCION_MODEL_NAME } from '../../lib/publicScionIdentity';
 
@@ -101,7 +101,8 @@ function buildPackageReceiptSummary(packageQualityPass, courseMap, selectedFeatu
   // finishStatusOf(null) is 'idle', which covers the missing-pass case.
   const finishStatus = finishStatusOf(packageQualityPass);
   if (finishStatus === 'running' || finishStatus === 'idle') return null;
-  const receipt = packageQualityPass.receipt || {};
+  const receiptAdmission = admitPackageReceipt(packageQualityPass.receipt);
+  const receipt = receiptAdmission.valid && receiptAdmission.receipt ? receiptAdmission.receipt : {};
   const trustStatus = getPackageTrustStatus({ packageQualityPass });
   const failedDeliverableIssues = getSelectedFailedDeliverableIssues(deliverables, selectedFeatures);
   const blockerCount = Math.max(trustStatus.blockerCount, failedDeliverableIssues.length);

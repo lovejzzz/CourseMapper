@@ -1,4 +1,5 @@
 import React from 'react';
+import { admitPackageReceipt } from '../lib/packageTrustStatus';
 import { FEATURES } from '../lib/featureCatalog';
 import {
   isRenderedDeliverableCollectionFeature,
@@ -89,8 +90,10 @@ export default function FinishedPackageOverview({
   const readinessMax = packageQualityPass?.quality?.readiness?.maxScore || 100;
   const texture = packageQualityPass?.quality?.texture?.score;
   const qualityCaveats = summarizeQualityCaveats(packageQualityPass?.quality);
-  const repairsApplied = Number(packageQualityPass?.repairsApplied || packageQualityPass?.receipt?.autoFixedCount || 0);
-  const exportChecked = Number(packageQualityPass?.receipt?.exportChecked || 0);
+  const receiptAdmission = admitPackageReceipt(packageQualityPass?.receipt);
+  const receipt = receiptAdmission.valid && receiptAdmission.receipt ? receiptAdmission.receipt : {};
+  const repairsApplied = Number(packageQualityPass?.repairsApplied || receipt.autoFixedCount || 0);
+  const exportChecked = Number(receipt.exportChecked || 0);
 
   return (
     <section

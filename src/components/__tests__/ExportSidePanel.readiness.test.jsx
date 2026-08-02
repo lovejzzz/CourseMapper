@@ -94,6 +94,20 @@ it('requires actual export checks and honors receipt-v2 download safety', () => 
       quality: { ...base.quality, findingCounts: { p0: 1, p1: 0, p2: 0 } },
     }),
   ).toBe(false);
+
+  for (const field of ['exportFailed', 'exportStatus', 'finalizerRevision', 'packageReadinessReceipt']) {
+    let reads = 0;
+    const receipt = { ...base.receipt };
+    Object.defineProperty(receipt, field, {
+      enumerable: true,
+      get() {
+        reads += 1;
+        throw new Error(`${field} getter executed`);
+      },
+    });
+    expect(hasDownloadableVerifiedPackage({ ...base, receipt })).toBe(false);
+    expect(reads).toBe(0);
+  }
   expect(
     hasDownloadableVerifiedPackage({
       ...base,
@@ -1051,6 +1065,21 @@ describe('ExportSidePanel readiness repair timing', () => {
         return circular;
       },
     ],
+    ...['exportFailed', 'exportStatus', 'finalizerRevision', 'packageReadinessReceipt', 'exportChecked'].map(
+      (field) => [
+        `throwing ${field} accessor`,
+        (receipt) => {
+          const invalid = { ...receipt };
+          Object.defineProperty(invalid, field, {
+            enumerable: true,
+            get() {
+              throw new Error(`${field} getter executed`);
+            },
+          });
+          return invalid;
+        },
+      ],
+    ),
   ])('tombstones an unsupported %s receipt until explicit finalization', async (_label, makeInvalidReceipt) => {
     const { props, liveCourseMap, quality, receiptB, onFinishPackage } = await prepareReceiptHandoff();
     await renderPanel({
