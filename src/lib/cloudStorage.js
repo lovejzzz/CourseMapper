@@ -69,6 +69,16 @@ function sanitizeCloudSnapshotData(value) {
   return sanitizeCloudPayload(normalizeFirestoreSnapshotData(value) || {});
 }
 
+function readNormalizedCloudDate(value) {
+  try {
+    if (Object.getPrototypeOf(value) !== Date.prototype) return new Date(0);
+    const milliseconds = Date.prototype.getTime.call(value);
+    return Number.isFinite(milliseconds) ? new Date(milliseconds) : new Date(0);
+  } catch {
+    return new Date(0);
+  }
+}
+
 function getByteLength(value) {
   if (typeof TextEncoder !== 'undefined') return new TextEncoder().encode(value).length;
   return unescape(encodeURIComponent(value)).length;
@@ -212,8 +222,8 @@ export async function listProjects(uid) {
       id: d.id,
       courseName: data.courseName || 'Untitled',
       semester: data.semester || '',
-      updatedAt: data.updatedAt?.toDate?.() || new Date(data.updatedAt || 0),
-      createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt || 0),
+      updatedAt: readNormalizedCloudDate(data.updatedAt),
+      createdAt: readNormalizedCloudDate(data.createdAt),
     };
   });
 }

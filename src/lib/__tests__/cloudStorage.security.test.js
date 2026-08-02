@@ -16,7 +16,34 @@ const firestoreMocks = vi.hoisted(() => {
     }
   }
 
+  class GeoPoint {
+    constructor(latitude, longitude) {
+      this._lat = latitude;
+      this._long = longitude;
+    }
+
+    get latitude() {
+      return this._lat;
+    }
+
+    get longitude() {
+      return this._long;
+    }
+  }
+
+  class Bytes {
+    constructor(base64) {
+      this._byteString = base64;
+    }
+
+    toBase64() {
+      return this._byteString;
+    }
+  }
+
   return {
+    Bytes,
+    GeoPoint,
     Timestamp,
     setDoc: vi.fn(async () => {}),
     getDoc: vi.fn(),
@@ -29,6 +56,8 @@ const firestoreMocks = vi.hoisted(() => {
 });
 
 vi.mock('firebase/firestore', () => ({
+  Bytes: firestoreMocks.Bytes,
+  GeoPoint: firestoreMocks.GeoPoint,
   Timestamp: firestoreMocks.Timestamp,
   doc: vi.fn((db, ...segments) => ({ _kind: 'doc', _db: db, path: segments.join('/') })),
   collection: vi.fn((db, ...segments) => ({ _kind: 'col', _db: db, path: segments.join('/') })),
@@ -421,5 +450,38 @@ describe('cloudStorage secret sanitation', () => {
     expect(loaded.updatedAt).toBeInstanceOf(Date);
     expect(loaded.updatedAt.getTime()).toBe(expectedMilliseconds);
     expect(listed[0].updatedAt.getTime()).toBe(expectedMilliseconds);
+  });
+
+  it('never invokes custom timestamp semantics after a rejected cloud snapshot', async () => {
+    let reads = 0;
+    const customTimestamp = Object.create({});
+    Object.defineProperty(customTimestamp, 'toDate', {
+      enumerable: true,
+      get() {
+        reads += 1;
+        throw new Error('custom timestamp getter executed');
+      },
+    });
+    firestore.getDocs.mockResolvedValueOnce({
+      docs: [
+        {
+          id: 'project-1',
+          data: () => ({ courseName: 'Rejected course', updatedAt: customTimestamp }),
+        },
+      ],
+    });
+
+    const projects = await listProjects('user-1');
+
+    expect(reads).toBe(0);
+    expect(projects).toEqual([
+      {
+        id: 'project-1',
+        courseName: 'Untitled',
+        semester: '',
+        updatedAt: new Date(0),
+        createdAt: new Date(0),
+      },
+    ]);
   });
 });

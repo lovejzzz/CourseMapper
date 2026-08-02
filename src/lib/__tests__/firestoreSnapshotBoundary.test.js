@@ -1,6 +1,17 @@
-import { describe, expect, it } from 'vitest';
-import { Timestamp } from 'firebase/firestore';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { deleteApp, initializeApp } from 'firebase/app';
+import { Bytes, GeoPoint, Timestamp, doc, getFirestore } from 'firebase/firestore';
 import { normalizeFirestoreSnapshotData } from '../firestoreSnapshotBoundary.js';
+
+let firebaseApp;
+
+beforeAll(() => {
+  firebaseApp = initializeApp({ projectId: 'firestore-boundary-test' }, 'firestore-boundary-test');
+});
+
+afterAll(async () => {
+  await deleteApp(firebaseApp);
+});
 
 describe('normalizeFirestoreSnapshotData', () => {
   it('normalizes actual root and nested SDK timestamps to detached Dates', () => {
@@ -43,7 +54,55 @@ describe('normalizeFirestoreSnapshotData', () => {
     expect(normalized.sourceDate).not.toBe(sourceDate);
   });
 
-  it('drops accessors without executing them', () => {
+  it('normalizes supported GeoPoint and Bytes scalars to detached plain records', () => {
+    const geoPoint = new GeoPoint(40.7128, -74.006);
+    const bytes = Bytes.fromUint8Array(new Uint8Array([1, 2, 3]));
+
+    const normalized = normalizeFirestoreSnapshotData({ geoPoint, bytes });
+
+    expect(normalized).toEqual({
+      geoPoint: {
+        __firestoreType: 'geo-point',
+        latitude: 40.7128,
+        longitude: -74.006,
+      },
+      bytes: {
+        __firestoreType: 'bytes',
+        base64: bytes.toBase64(),
+      },
+    });
+    expect(Object.getPrototypeOf(normalized.geoPoint)).toBe(Object.prototype);
+    expect(Object.getPrototypeOf(normalized.bytes)).toBe(Object.prototype);
+
+    geoPoint._lat = 0;
+    expect(normalized.geoPoint.latitude).toBe(40.7128);
+  });
+
+  it('rejects DocumentReference and unknown scalar classes instead of preserving live prototypes', () => {
+    const reference = doc(getFirestore(firebaseApp), 'courses/course-1');
+
+    expect(normalizeFirestoreSnapshotData({ reference })).toBeNull();
+    expect(normalizeFirestoreSnapshotData({ unknown: new (class UnknownScalar {})() })).toBeNull();
+  });
+
+  it('rejects transparent and revoked proxy graphs', () => {
+    const transparent = new Proxy({ kept: 'synthetic' }, {});
+    const revoked = Proxy.revocable({ kept: 'synthetic' }, {});
+    revoked.revoke();
+
+    expect(normalizeFirestoreSnapshotData(transparent)).toBeNull();
+    expect(normalizeFirestoreSnapshotData(revoked.proxy)).toBeNull();
+  });
+
+  it('rejects cycles and nested unsupported values', () => {
+    const cyclic = { kept: 'synthetic' };
+    cyclic.self = cyclic;
+
+    expect(normalizeFirestoreSnapshotData(cyclic)).toBeNull();
+    expect(normalizeFirestoreSnapshotData({ nested: [{ unsupported: new (class UnknownScalar {})() }] })).toBeNull();
+  });
+
+  it('rejects accessors without executing them', () => {
     let reads = 0;
     const source = { kept: 'safe' };
     Object.defineProperty(source, 'computed', {
@@ -54,7 +113,14 @@ describe('normalizeFirestoreSnapshotData', () => {
       },
     });
 
-    expect(normalizeFirestoreSnapshotData(source)).toEqual({ kept: 'safe' });
+    expect(normalizeFirestoreSnapshotData(source)).toBeNull();
     expect(reads).toBe(0);
+  });
+
+  it('rejects custom state on supported SDK scalars', () => {
+    const timestamp = new Timestamp(1, 2);
+    timestamp.custom = true;
+
+    expect(normalizeFirestoreSnapshotData({ timestamp })).toBeNull();
   });
 });

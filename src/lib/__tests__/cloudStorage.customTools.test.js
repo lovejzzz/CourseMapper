@@ -23,7 +23,34 @@ vi.mock('firebase/firestore', () => {
     }
   }
 
+  class GeoPoint {
+    constructor(latitude, longitude) {
+      this._lat = latitude;
+      this._long = longitude;
+    }
+
+    get latitude() {
+      return this._lat;
+    }
+
+    get longitude() {
+      return this._long;
+    }
+  }
+
+  class Bytes {
+    constructor(base64) {
+      this._byteString = base64;
+    }
+
+    toBase64() {
+      return this._byteString;
+    }
+  }
+
   return {
+    Bytes,
+    GeoPoint,
     Timestamp,
     doc: vi.fn((db, ...segments) => ({ _kind: 'doc', _db: db, path: segments.join('/') })),
     collection: vi.fn((db, ...segments) => ({ _kind: 'col', _db: db, path: segments.join('/') })),
