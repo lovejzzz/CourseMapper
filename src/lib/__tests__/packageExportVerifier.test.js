@@ -81,6 +81,34 @@ describe('verifyPackageExports', () => {
     expect(result.checks.map((check) => check.format)).toEqual(['xlsx', 'pdf', 'content', 'csv', 'docx', 'pdf']);
   });
 
+  it('reports DOCX review reasons without a duplicated format preamble', async () => {
+    vi.mocked(buildDeliverableDocxBlob).mockResolvedValueOnce(
+      await makeOfficeXmlBlob(
+        'word/document.xml',
+        '<w:document><w:body><w:p><w:pPr><w:pStyle w:val="Heading1"/></w:pPr><w:r><w:t>Lesson</w:t></w:r></w:p></w:body></w:document>',
+      ),
+    );
+
+    const result = await verifyPackageExports({
+      courseMap: { courseName: 'Research Methods', lessons: [{ title: 'Lesson 1', sections: [] }] },
+      deliverables: {
+        lessonPlans: {
+          status: 'done',
+          data: { lessonPlans: [{ lessonTitle: 'Lesson 1', outline: [] }] },
+        },
+      },
+      selectedFeatures: ['lessonPlans'],
+    });
+
+    const docxCheck = result.checks.find((check) => check.format === 'docx');
+    expect(docxCheck).toMatchObject({
+      label: 'Lesson Plans',
+      status: 'warning',
+      message: 'Accessibility scan: no-footer.',
+    });
+    expect(`${docxCheck.label}: ${docxCheck.message}`).not.toMatch(/\b([A-Z][\w &'-]{3,50}): \1\b/);
+  });
+
   it('does not report a clean export when assignment logistics defer to missing instructor configuration', async () => {
     const result = await verifyPackageExports({
       courseMap: {

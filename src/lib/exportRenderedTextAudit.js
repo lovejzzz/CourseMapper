@@ -195,6 +195,14 @@ export async function auditOfficeAccessibility(blob, format) {
       if (!/w:val="(?:Title|Heading[1-6])"/.test(documentXml)) problems.push('no-heading-structure');
       const tables = documentXml.split('<w:tbl>').slice(1);
       for (const table of tables) {
+        // A one-row table is a layout unit, not a header-plus-data table. The
+        // lesson-plan exporter deliberately emits each teaching move as one
+        // bounded row so pagination can happen between complete activities.
+        // Its first bounded table owns the shared header; requiring every
+        // continuation row to pretend that its data is a header produced a
+        // false accessibility warning in the exported readiness report.
+        const rowCount = table.match(/<w:tr(?:\s[^>]*)?>/g)?.length || 0;
+        if (rowCount < 2) continue;
         const firstRow = table.split('</w:tr>')[0] || '';
         if (!/w:shd /.test(firstRow)) {
           problems.push('table-without-header-shading');

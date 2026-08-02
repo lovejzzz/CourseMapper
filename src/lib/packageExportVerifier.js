@@ -251,14 +251,14 @@ async function verifyDocxExport(featureId, data, courseName) {
   const { auditOfficeBlobRepetition, auditOfficeAccessibility } = await import('./exportRenderedTextAudit');
   const repetition = await auditOfficeBlobRepetition(blob, 'docx');
   if (repetition) {
-    return createCheck(featureId, 'docx', 'warning', `DOCX export generated, but ${repetition.message}`, {
+    return createCheck(featureId, 'docx', 'warning', repetition.message, {
       size,
       repetition,
     });
   }
   const accessibility = await auditOfficeAccessibility(blob, 'docx');
   if (accessibility) {
-    return createCheck(featureId, 'docx', 'warning', `DOCX export generated, but ${accessibility.message}`, {
+    return createCheck(featureId, 'docx', 'warning', accessibility.message, {
       size,
       accessibility,
     });
