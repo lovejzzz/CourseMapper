@@ -131,6 +131,56 @@ describe('sanitizeProjectSnapshot', () => {
     expect(sanitized.updatedAt).toBe(timestampLike);
     expect(sanitized.nested).toEqual({ title: 'Keep this' });
   });
+
+  it('drops unrelated accessors at every plain-data depth without executing them', () => {
+    let reads = 0;
+    const nested = { kept: 'nested value' };
+    Object.defineProperty(nested, 'computed', {
+      enumerable: true,
+      get() {
+        reads += 1;
+        throw new Error('nested getter executed');
+      },
+    });
+    const items = new Array(2);
+    Object.defineProperty(items, '0', {
+      enumerable: true,
+      get() {
+        reads += 1;
+        throw new Error('array getter executed');
+      },
+    });
+    items[1] = 'safe item';
+    const snapshot = { title: 'Safe project', nested, items };
+    Object.defineProperty(snapshot, 'computed', {
+      enumerable: true,
+      get() {
+        reads += 1;
+        throw new Error('root getter executed');
+      },
+    });
+
+    const sanitized = sanitizeProjectSnapshot(snapshot);
+
+    expect(reads).toBe(0);
+    expect(sanitized).toMatchObject({
+      title: 'Safe project',
+      nested: { kept: 'nested value' },
+    });
+    expect(sanitized.items).toHaveLength(2);
+    expect(sanitized.items[1]).toBe('safe item');
+    expect(sanitized).not.toHaveProperty('computed');
+    expect(sanitized.nested).not.toHaveProperty('computed');
+    expect(0 in sanitized.items).toBe(false);
+  });
+
+  it('fails closed when direct sanitation receives a revoked proxy', () => {
+    const revoked = Proxy.revocable({ title: 'Untrusted project' }, {});
+    revoked.revoke();
+
+    expect(() => sanitizeProjectSnapshot(revoked.proxy)).not.toThrow();
+    expect(sanitizeProjectSnapshot(revoked.proxy)).toBeNull();
+  });
 });
 
 describe('prepareProjectSnapshotForRestore', () => {
@@ -440,4 +490,106 @@ describe('prepareProjectSnapshotForRestore', () => {
     expect(reads).toBe(0);
     expect(restored).not.toHaveProperty('lastRunDigest');
   });
+
+  it.each(['absent', 'ready', 'blocked'])(
+    'returns a versioned safe default for an unrelated root accessor with %s package evidence',
+    (status) => {
+      let reads = 0;
+      const snapshot = {
+        courseMap: { courseName: 'Untrusted project', lessons: [] },
+        ...(status === 'absent'
+          ? {}
+          : {
+              packageQualityPass: {
+                status,
+                message: `${status} package`,
+                quality: { status: 'graded', score: status === 'ready' ? 96 : 42, grade: 'C' },
+                receipt: { exportChecked: 11 },
+              },
+              lastRunDigest: { finishRunId: `${status}-run` },
+            }),
+      };
+      Object.defineProperty(snapshot, 'computedProjectState', {
+        enumerable: true,
+        get() {
+          reads += 1;
+          throw new Error('unrelated getter executed');
+        },
+      });
+
+      expect(prepareProjectSnapshotForRestore(snapshot)).toEqual({ formatVersion: 1 });
+      expect(reads).toBe(0);
+    },
+  );
+
+  it.each(['transparent', 'trap-mutating'])(
+    'rejects a %s project-root proxy without admitting trap-created state',
+    (kind) => {
+      let semanticReads = 0;
+      let ownKeyReads = 0;
+      const target = { courseMap: { courseName: 'Original project', lessons: [] } };
+      const snapshot = new Proxy(target, {
+        get(object, property, receiver) {
+          semanticReads += 1;
+          return Reflect.get(object, property, receiver);
+        },
+        ownKeys(object) {
+          ownKeyReads += 1;
+          if (kind === 'trap-mutating') {
+            Object.defineProperty(object, 'injectedProjectState', {
+              value: { title: 'Synthetic state' },
+              enumerable: true,
+              writable: true,
+              configurable: true,
+            });
+          }
+          return Reflect.ownKeys(object);
+        },
+      });
+
+      const restored = prepareProjectSnapshotForRestore(snapshot);
+
+      expect(restored).toEqual({ formatVersion: 1 });
+      expect(restored).not.toHaveProperty('injectedProjectState');
+      expect(semanticReads).toBe(0);
+      expect(ownKeyReads).toBeGreaterThan(0);
+    },
+  );
+
+  it.each(['ready', 'blocked'])(
+    'preserves and isolates legitimate %s evidence after complete root admission',
+    (status) => {
+      const snapshot = {
+        courseMap: { courseName: 'Admitted project', lessons: [{ title: 'Lesson 1' }] },
+        packageQualityPass: {
+          status,
+          message: `${status} package`,
+          quality: { status: 'graded', score: status === 'ready' ? 96 : 42, grade: 'C' },
+          receipt: { exportChecked: 11 },
+        },
+        lastRunDigest: { finishRunId: `${status}-run`, gates: { flaggedChecks: [] } },
+      };
+
+      const restored = prepareProjectSnapshotForRestore(snapshot);
+
+      expect(restored.packageQualityPass).toMatchObject({
+        status,
+        receipt: { exportChecked: 11 },
+      });
+      expect(restored.lastRunDigest).toEqual({
+        finishRunId: `${status}-run`,
+        gates: { flaggedChecks: [] },
+      });
+      expect(restored.packageQualityPass).not.toBe(snapshot.packageQualityPass);
+      expect(restored.lastRunDigest).not.toBe(snapshot.lastRunDigest);
+
+      snapshot.courseMap.lessons[0].title = 'Mutated lesson';
+      snapshot.packageQualityPass.receipt.exportChecked = 0;
+      snapshot.lastRunDigest.gates.flaggedChecks.push('late mutation');
+
+      expect(restored.courseMap.lessons[0].title).toBe('Lesson 1');
+      expect(restored.packageQualityPass.receipt.exportChecked).toBe(11);
+      expect(restored.lastRunDigest.gates.flaggedChecks).toEqual([]);
+    },
+  );
 });

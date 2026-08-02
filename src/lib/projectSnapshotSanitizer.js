@@ -45,9 +45,101 @@ function redactSecretText(value) {
   );
 }
 
+const OMIT_SNAPSHOT_VALUE = Symbol('omit-snapshot-value');
+
 function isPlainObject(value) {
   const prototype = Object.getPrototypeOf(value);
   return prototype === Object.prototype || prototype === null;
+}
+
+function sanitizeProjectSnapshotValue(value, ancestors) {
+  if (typeof value === 'string') return redactSecretText(value);
+  if (!value || typeof value !== 'object') return value;
+  try {
+    if (!isPlainObject(value) && !Array.isArray(value)) return value;
+  } catch {
+    return OMIT_SNAPSHOT_VALUE;
+  }
+  if (ancestors.has(value)) return OMIT_SNAPSHOT_VALUE;
+
+  ancestors.add(value);
+  try {
+    const descriptors = Object.getOwnPropertyDescriptors(value);
+    if (Array.isArray(value)) {
+      const lengthDescriptor = descriptors.length;
+      const length = lengthDescriptor?.value;
+      if (!Number.isSafeInteger(length) || length < 0) return OMIT_SNAPSHOT_VALUE;
+      const sanitized = new Array(length);
+      for (let index = 0; index < length; index += 1) {
+        const descriptor = descriptors[String(index)];
+        if (!descriptor?.enumerable || !Object.prototype.hasOwnProperty.call(descriptor, 'value')) {
+          continue;
+        }
+        const nested = sanitizeProjectSnapshotValue(descriptor.value, ancestors);
+        if (nested !== OMIT_SNAPSHOT_VALUE) sanitized[index] = nested;
+      }
+      return sanitized;
+    }
+
+    const sanitized = Object.getPrototypeOf(value) === null ? Object.create(null) : {};
+    for (const key of Reflect.ownKeys(descriptors)) {
+      if (typeof key !== 'string' || isSecretFieldName(key)) continue;
+      const descriptor = descriptors[key];
+      if (!descriptor?.enumerable || !Object.prototype.hasOwnProperty.call(descriptor, 'value')) {
+        continue;
+      }
+      const nested = sanitizeProjectSnapshotValue(descriptor.value, ancestors);
+      if (nested !== OMIT_SNAPSHOT_VALUE) sanitized[key] = nested;
+    }
+    return sanitized;
+  } catch {
+    return OMIT_SNAPSHOT_VALUE;
+  } finally {
+    ancestors.delete(value);
+  }
+}
+
+function snapshotGraphContainsOnlyDataDescriptors(value, ancestors) {
+  if (!value || typeof value !== 'object') return typeof value !== 'function' && typeof value !== 'symbol';
+  if (ancestors.has(value)) return false;
+
+  ancestors.add(value);
+  try {
+    const descriptors = Object.getOwnPropertyDescriptors(value);
+    for (const key of Reflect.ownKeys(descriptors)) {
+      if (typeof key !== 'string') return false;
+      const descriptor = descriptors[key];
+      if (!Object.prototype.hasOwnProperty.call(descriptor, 'value')) return false;
+      if (!descriptor.enumerable) continue;
+      if (!snapshotGraphContainsOnlyDataDescriptors(descriptor.value, ancestors)) return false;
+    }
+    return true;
+  } catch {
+    return false;
+  } finally {
+    ancestors.delete(value);
+  }
+}
+
+/**
+ * Project restore is a trust boundary, not merely a redaction pass. Inspect
+ * descriptors before cloning so getters never execute, then require the
+ * platform clone to succeed. The clone rejects Proxy objects (including
+ * transparent and trap-mutating roots) and gives every downstream migration a
+ * detached, ordinary data graph.
+ */
+function admitProjectSnapshotRoot(snapshot) {
+  try {
+    if (!snapshot || typeof snapshot !== 'object' || Array.isArray(snapshot) || !isPlainObject(snapshot)) {
+      return null;
+    }
+    if (!snapshotGraphContainsOnlyDataDescriptors(snapshot, new WeakSet())) return null;
+    const cloned = structuredClone(snapshot);
+    if (!cloned || typeof cloned !== 'object' || Array.isArray(cloned) || !isPlainObject(cloned)) return null;
+    return cloned;
+  } catch {
+    return null;
+  }
 }
 
 export function restoreAuthoredOverlayForSnapshot(courseGraph, authoredOverlay) {
@@ -57,19 +149,8 @@ export function restoreAuthoredOverlayForSnapshot(courseGraph, authoredOverlay) 
 }
 
 export function sanitizeProjectSnapshot(value) {
-  if (Array.isArray(value)) return value.map(sanitizeProjectSnapshot);
-
-  if (value && typeof value === 'object') {
-    if (!isPlainObject(value)) return value;
-    return Object.entries(value).reduce((acc, [key, nested]) => {
-      if (isSecretFieldName(key)) return acc;
-      acc[key] = sanitizeProjectSnapshot(nested);
-      return acc;
-    }, {});
-  }
-
-  if (typeof value === 'string') return redactSecretText(value);
-  return value;
+  const sanitized = sanitizeProjectSnapshotValue(value, new WeakSet());
+  return sanitized === OMIT_SNAPSHOT_VALUE ? null : sanitized;
 }
 
 function migrateRestoredDeliverables(snapshot) {
@@ -162,62 +243,55 @@ export function restoreProjectGenerationConstraints(snapshot) {
 }
 
 export function prepareProjectSnapshotForRestore(snapshot) {
-  let sourceSnapshot = snapshot || {};
-  let snapshotWithAdmittedPackageEvidence = sourceSnapshot;
+  const sourceSnapshot = admitProjectSnapshotRoot(snapshot || {});
+  if (!sourceSnapshot) return { formatVersion: 1 };
+
   try {
-    if (sourceSnapshot && typeof sourceSnapshot === 'object' && !Array.isArray(sourceSnapshot)) {
-      const descriptors = Object.getOwnPropertyDescriptors(sourceSnapshot);
-      const packageDescriptor = descriptors.packageQualityPass;
-      const digestDescriptor = descriptors.lastRunDigest;
-      if (packageDescriptor || digestDescriptor) {
-        const packageQualityPass =
-          packageDescriptor && Object.prototype.hasOwnProperty.call(packageDescriptor, 'value')
-            ? packageDescriptor.value
-            : null;
-        const lastRunDigest =
-          digestDescriptor && Object.prototype.hasOwnProperty.call(digestDescriptor, 'value')
-            ? digestDescriptor.value
-            : null;
-        const selected = selectPersistablePackageEvidence({ packageQualityPass, lastRunDigest });
-        if (selected.packageQualityPass) {
-          descriptors.packageQualityPass = {
-            value: selected.packageQualityPass,
-            enumerable: true,
-            writable: true,
-            configurable: true,
-          };
-        } else {
-          delete descriptors.packageQualityPass;
-        }
-        if (selected.lastRunDigest) {
-          descriptors.lastRunDigest = {
-            value: selected.lastRunDigest,
-            enumerable: true,
-            writable: true,
-            configurable: true,
-          };
-        } else {
-          delete descriptors.lastRunDigest;
-        }
-        snapshotWithAdmittedPackageEvidence = Object.create(Object.getPrototypeOf(sourceSnapshot), descriptors);
+    const descriptors = Object.getOwnPropertyDescriptors(sourceSnapshot);
+    const packageDescriptor = descriptors.packageQualityPass;
+    const digestDescriptor = descriptors.lastRunDigest;
+    if (packageDescriptor || digestDescriptor) {
+      const selected = selectPersistablePackageEvidence({
+        packageQualityPass: packageDescriptor?.value,
+        lastRunDigest: digestDescriptor?.value,
+      });
+      if (selected.packageQualityPass) {
+        descriptors.packageQualityPass = {
+          value: selected.packageQualityPass,
+          enumerable: true,
+          writable: true,
+          configurable: true,
+        };
+      } else {
+        delete descriptors.packageQualityPass;
+      }
+      if (selected.lastRunDigest) {
+        descriptors.lastRunDigest = {
+          value: selected.lastRunDigest,
+          enumerable: true,
+          writable: true,
+          configurable: true,
+        };
+      } else {
+        delete descriptors.lastRunDigest;
       }
     }
-  } catch {
-    sourceSnapshot = {};
-    snapshotWithAdmittedPackageEvidence = sourceSnapshot;
-  }
-  const restored = sanitizeProjectSnapshot(snapshotWithAdmittedPackageEvidence);
-  if (!restored.formatVersion) restored.formatVersion = 1;
-  // v0.13.1: cloud snapshots carry the course graph as a JSON string
-  // (Firestore rejects nested arrays anywhere in a document, and the graph's
-  // enrichment overlay can embed model-shaped payloads we don't control).
-  if (!restored.courseGraph && typeof restored.courseGraphJson === 'string' && restored.courseGraphJson) {
-    try {
-      restored.courseGraph = JSON.parse(restored.courseGraphJson);
-    } catch {
-      /* fall back to deriving the graph from the course map on restore */
+    const restored = sanitizeProjectSnapshot(Object.create(Object.getPrototypeOf(sourceSnapshot), descriptors));
+    if (!restored || typeof restored !== 'object' || Array.isArray(restored)) return { formatVersion: 1 };
+    if (!restored.formatVersion) restored.formatVersion = 1;
+    // v0.13.1: cloud snapshots carry the course graph as a JSON string
+    // (Firestore rejects nested arrays anywhere in a document, and the graph's
+    // enrichment overlay can embed model-shaped payloads we don't control).
+    if (!restored.courseGraph && typeof restored.courseGraphJson === 'string' && restored.courseGraphJson) {
+      try {
+        restored.courseGraph = JSON.parse(restored.courseGraphJson);
+      } catch {
+        /* fall back to deriving the graph from the course map on restore */
+      }
     }
+    delete restored.courseGraphJson;
+    return restoreProjectGenerationConstraints(migrateRestoredDeliverables(restored));
+  } catch {
+    return { formatVersion: 1 };
   }
-  delete restored.courseGraphJson;
-  return restoreProjectGenerationConstraints(migrateRestoredDeliverables(restored));
 }
