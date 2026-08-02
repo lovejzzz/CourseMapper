@@ -99,6 +99,38 @@ function sanitizeProjectSnapshotValue(value, ancestors) {
   }
 }
 
+function readFirestoreTimestampParts(value, descriptors = null) {
+  try {
+    const ownDescriptors = descriptors || Object.getOwnPropertyDescriptors(value);
+    const ownKeys = Reflect.ownKeys(ownDescriptors);
+    if (
+      ownKeys.length !== 2 ||
+      !ownKeys.includes('seconds') ||
+      !ownKeys.includes('nanoseconds') ||
+      !ownDescriptors.seconds?.enumerable ||
+      !ownDescriptors.nanoseconds?.enumerable ||
+      !Object.prototype.hasOwnProperty.call(ownDescriptors.seconds, 'value') ||
+      !Object.prototype.hasOwnProperty.call(ownDescriptors.nanoseconds, 'value')
+    ) {
+      return null;
+    }
+    const seconds = ownDescriptors.seconds.value;
+    const nanoseconds = ownDescriptors.nanoseconds.value;
+    if (
+      !Number.isSafeInteger(seconds) ||
+      !Number.isInteger(nanoseconds) ||
+      nanoseconds < 0 ||
+      nanoseconds >= 1_000_000_000
+    ) {
+      return null;
+    }
+    const date = new Date(seconds * 1_000 + Math.floor(nanoseconds / 1_000_000));
+    return Number.isFinite(date.getTime()) ? { date, nanoseconds, seconds } : null;
+  } catch {
+    return null;
+  }
+}
+
 function snapshotGraphContainsOnlyDataDescriptors(value, ancestors) {
   if (!value || typeof value !== 'object') return typeof value !== 'function' && typeof value !== 'symbol';
   if (ancestors.has(value)) return false;
@@ -106,11 +138,21 @@ function snapshotGraphContainsOnlyDataDescriptors(value, ancestors) {
   ancestors.add(value);
   try {
     const descriptors = Object.getOwnPropertyDescriptors(value);
+    if (readFirestoreTimestampParts(value, descriptors)) return true;
+
+    const prototype = Object.getPrototypeOf(value);
+    if (prototype === Date.prototype) {
+      return Reflect.ownKeys(descriptors).length === 0 && Number.isFinite(Date.prototype.getTime.call(value));
+    }
+    const isArray = Array.isArray(value);
+    if (!isArray && prototype !== Object.prototype && prototype !== null) return false;
+
     for (const key of Reflect.ownKeys(descriptors)) {
       if (typeof key !== 'string') return false;
       const descriptor = descriptors[key];
       if (!Object.prototype.hasOwnProperty.call(descriptor, 'value')) return false;
-      if (!descriptor.enumerable) continue;
+      if (isArray && key === 'length') continue;
+      if (!descriptor.enumerable) return false;
       if (!snapshotGraphContainsOnlyDataDescriptors(descriptor.value, ancestors)) return false;
     }
     return true;
@@ -118,6 +160,45 @@ function snapshotGraphContainsOnlyDataDescriptors(value, ancestors) {
     return false;
   } finally {
     ancestors.delete(value);
+  }
+}
+
+function normalizeAdmittedFirestoreTimestamps(source, cloned, ancestors) {
+  if (!source || typeof source !== 'object') return cloned;
+  const timestampParts = readFirestoreTimestampParts(source);
+  if (timestampParts) {
+    const prototype = Object.getPrototypeOf(source);
+    if (prototype !== Object.prototype && prototype !== null) return timestampParts.date;
+  }
+  if (ancestors.has(source)) return cloned;
+
+  ancestors.add(source);
+  try {
+    const sourceDescriptors = Object.getOwnPropertyDescriptors(source);
+    const cloneDescriptors = Object.getOwnPropertyDescriptors(cloned);
+    for (const key of Reflect.ownKeys(sourceDescriptors)) {
+      if (typeof key !== 'string') continue;
+      const sourceDescriptor = sourceDescriptors[key];
+      const cloneDescriptor = cloneDescriptors[key];
+      if (
+        !sourceDescriptor?.enumerable ||
+        !cloneDescriptor ||
+        !Object.prototype.hasOwnProperty.call(sourceDescriptor, 'value') ||
+        !Object.prototype.hasOwnProperty.call(cloneDescriptor, 'value')
+      ) {
+        continue;
+      }
+      const normalized = normalizeAdmittedFirestoreTimestamps(sourceDescriptor.value, cloneDescriptor.value, ancestors);
+      if (normalized !== cloneDescriptor.value) {
+        Object.defineProperty(cloned, key, {
+          ...cloneDescriptor,
+          value: normalized,
+        });
+      }
+    }
+    return cloned;
+  } finally {
+    ancestors.delete(source);
   }
 }
 
@@ -136,7 +217,7 @@ function admitProjectSnapshotRoot(snapshot) {
     if (!snapshotGraphContainsOnlyDataDescriptors(snapshot, new WeakSet())) return null;
     const cloned = structuredClone(snapshot);
     if (!cloned || typeof cloned !== 'object' || Array.isArray(cloned) || !isPlainObject(cloned)) return null;
-    return cloned;
+    return normalizeAdmittedFirestoreTimestamps(snapshot, cloned, new WeakSet());
   } catch {
     return null;
   }

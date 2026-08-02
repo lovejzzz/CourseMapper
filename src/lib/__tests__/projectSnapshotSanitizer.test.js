@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { Timestamp } from 'firebase/firestore';
 import {
   inferSavedLessonPlanSessionMinutes,
   prepareProjectSnapshotForRestore,
@@ -184,6 +185,72 @@ describe('sanitizeProjectSnapshot', () => {
 });
 
 describe('prepareProjectSnapshotForRestore', () => {
+  it('normalizes an admitted Firestore timestamp to a detached Date', () => {
+    const updatedAt = Timestamp.fromDate(new Date('2026-06-01T10:00:00.123Z'));
+    const snapshot = {
+      courseMap: { courseName: 'Cloud project', lessons: [] },
+      updatedAt,
+      deliverables: {
+        lessonPlans: {
+          updatedAt: Timestamp.fromDate(new Date('2026-06-02T11:30:00.456Z')),
+        },
+      },
+      plainTimeParts: { seconds: 123, nanoseconds: 456 },
+    };
+
+    const restored = prepareProjectSnapshotForRestore(snapshot);
+
+    expect(restored.updatedAt).toBeInstanceOf(Date);
+    expect(restored.updatedAt.toISOString()).toBe('2026-06-01T10:00:00.123Z');
+    expect(restored.updatedAt).not.toBe(updatedAt);
+    expect(restored.deliverables.lessonPlans.updatedAt).toBeInstanceOf(Date);
+    expect(restored.deliverables.lessonPlans.updatedAt.toISOString()).toBe('2026-06-02T11:30:00.456Z');
+    expect(restored.plainTimeParts).toEqual({ seconds: 123, nanoseconds: 456 });
+    expect(restored.plainTimeParts).not.toBeInstanceOf(Date);
+    updatedAt.seconds = 0;
+    expect(restored.updatedAt.toISOString()).toBe('2026-06-01T10:00:00.123Z');
+  });
+
+  it('preserves and isolates native Date values across strict restore admission', () => {
+    const updatedAt = new Date('2026-06-01T10:00:00.123Z');
+
+    const restored = prepareProjectSnapshotForRestore({
+      courseMap: { courseName: 'Dated project', lessons: [] },
+      updatedAt,
+    });
+
+    expect(restored.updatedAt).toBeInstanceOf(Date);
+    expect(restored.updatedAt.toISOString()).toBe('2026-06-01T10:00:00.123Z');
+    expect(restored.updatedAt).not.toBe(updatedAt);
+    updatedAt.setTime(0);
+    expect(restored.updatedAt.toISOString()).toBe('2026-06-01T10:00:00.123Z');
+  });
+
+  it.each([
+    ['Map', new Map([['courseName', 'Synthetic project']])],
+    ['Set', new Set(['Synthetic project'])],
+    ['RegExp', /Synthetic project/],
+    ['typed array', new Uint8Array([1, 2, 3])],
+    ['custom class', new (class ProjectMetadata {})()],
+  ])('fails closed when a project contains an unsupported cloneable %s value', (_label, unsupported) => {
+    expect(
+      prepareProjectSnapshotForRestore({
+        courseMap: { courseName: 'Untrusted project', lessons: [] },
+        unsupported,
+      }),
+    ).toEqual({ formatVersion: 1 });
+  });
+
+  it('fails closed on hidden project-root data that structured cloning would discard', () => {
+    const snapshot = { courseMap: { courseName: 'Untrusted project', lessons: [] } };
+    Object.defineProperty(snapshot, 'hiddenProjectState', {
+      value: { title: 'Hidden state' },
+      enumerable: false,
+    });
+
+    expect(prepareProjectSnapshotForRestore(snapshot)).toEqual({ formatVersion: 1 });
+  });
+
   it('migrates a legacy exact package clock before the workspace is finalized again', () => {
     const legacy = {
       courseMap: { lessons: [{ title: 'Lesson 1' }, { title: 'Lesson 2' }] },
