@@ -11,18 +11,32 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Stub the Firebase SDK. Each mocked fn returns an inspectable shape so we can
 // assert what cloudStorage passes through.
-vi.mock('firebase/firestore', () => ({
-  doc: vi.fn((db, ...segments) => ({ _kind: 'doc', _db: db, path: segments.join('/') })),
-  collection: vi.fn((db, ...segments) => ({ _kind: 'col', _db: db, path: segments.join('/') })),
-  getDoc: vi.fn(),
-  getDocs: vi.fn(),
-  setDoc: vi.fn(async () => {}),
-  deleteDoc: vi.fn(async () => {}),
-  query: vi.fn((...args) => ({ _kind: 'query', args })),
-  orderBy: vi.fn((...args) => ({ _kind: 'orderBy', args })),
-  serverTimestamp: vi.fn(() => '__SERVER_TIMESTAMP__'),
-  writeBatch: vi.fn(),
-}));
+vi.mock('firebase/firestore', () => {
+  class Timestamp {
+    constructor(seconds, nanoseconds = 0) {
+      this.seconds = seconds;
+      this.nanoseconds = nanoseconds;
+    }
+
+    toMillis() {
+      return this.seconds * 1_000 + this.nanoseconds / 1_000_000;
+    }
+  }
+
+  return {
+    Timestamp,
+    doc: vi.fn((db, ...segments) => ({ _kind: 'doc', _db: db, path: segments.join('/') })),
+    collection: vi.fn((db, ...segments) => ({ _kind: 'col', _db: db, path: segments.join('/') })),
+    getDoc: vi.fn(),
+    getDocs: vi.fn(),
+    setDoc: vi.fn(async () => {}),
+    deleteDoc: vi.fn(async () => {}),
+    query: vi.fn((...args) => ({ _kind: 'query', args })),
+    orderBy: vi.fn((...args) => ({ _kind: 'orderBy', args })),
+    serverTimestamp: vi.fn(() => '__SERVER_TIMESTAMP__'),
+    writeBatch: vi.fn(),
+  };
+});
 
 vi.mock('../firebase', () => ({ db: { _kind: 'fake-db' } }));
 

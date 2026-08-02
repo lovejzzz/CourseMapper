@@ -10,6 +10,7 @@
  */
 
 import { db } from './firebase';
+import { normalizeFirestoreSnapshotData } from './firestoreSnapshotBoundary.js';
 import { sanitizeProjectSnapshot } from './projectSnapshotSanitizer';
 import {
   doc,
@@ -62,6 +63,10 @@ function developerTemplateDoc(uid, id) {
 
 function sanitizeCloudPayload(value) {
   return sanitizeProjectSnapshot(value || {});
+}
+
+function sanitizeCloudSnapshotData(value) {
+  return sanitizeCloudPayload(normalizeFirestoreSnapshotData(value) || {});
 }
 
 function getByteLength(value) {
@@ -127,7 +132,7 @@ function getChunkDocFeatureId(id, data) {
 export async function loadProfile(uid) {
   if (!db) return null;
   const snap = await getDoc(userDoc(uid));
-  return snap.exists() ? sanitizeCloudPayload(snap.data()) : null;
+  return snap.exists() ? sanitizeCloudSnapshotData(snap.data()) : null;
 }
 
 export async function saveProfile(uid, profile) {
@@ -150,7 +155,7 @@ export async function loadCustomDeliverables(uid) {
   const snap = await getDocs(customDelCol(uid));
   const map = {};
   snap.forEach((d) => {
-    map[d.id] = sanitizeCloudPayload(d.data());
+    map[d.id] = sanitizeCloudSnapshotData(d.data());
   });
   return map;
 }
@@ -176,7 +181,7 @@ export async function loadDeveloperTemplates(uid) {
   const snap = await getDocs(developerTemplateCol(uid));
   const map = {};
   snap.forEach((d) => {
-    map[d.id] = sanitizeCloudPayload(d.data());
+    map[d.id] = sanitizeCloudSnapshotData(d.data());
   });
   return map;
 }
@@ -202,7 +207,7 @@ export async function listProjects(uid) {
   const q = query(projectsCol(uid), orderBy('updatedAt', 'desc'));
   const snap = await getDocs(q);
   return snap.docs.map((d) => {
-    const data = sanitizeCloudPayload(d.data());
+    const data = sanitizeCloudSnapshotData(d.data());
     return {
       id: d.id,
       courseName: data.courseName || 'Untitled',
@@ -217,7 +222,7 @@ export async function loadProject(uid, projectId) {
   if (!db) return null;
   const snap = await getDoc(projectDoc(uid, projectId));
   if (!snap.exists()) return null;
-  return sanitizeCloudPayload(snap.data());
+  return sanitizeCloudSnapshotData(snap.data());
 }
 
 export async function saveProject(uid, projectId, projectData) {
@@ -313,7 +318,7 @@ export async function loadProjectDeliverables(uid, projectId) {
   const chunkParts = new Map();
 
   for (const d of getSnapshotDocs(snap)) {
-    const data = d.data();
+    const data = sanitizeCloudSnapshotData(d.data());
     if (data?.__deliverableChunk || String(d.id || '').startsWith(DELIVERABLE_CHUNK_PREFIX)) {
       const featureId = getChunkDocFeatureId(d.id, data);
       const index = Number.isInteger(data?.index) ? data.index : null;
@@ -325,11 +330,11 @@ export async function loadProjectDeliverables(uid, projectId) {
     }
 
     if (data?.__chunked) {
-      chunkedManifests.set(d.id, sanitizeCloudPayload(data));
+      chunkedManifests.set(d.id, data);
       continue;
     }
 
-    map[d.id] = sanitizeCloudPayload(data);
+    map[d.id] = data;
   }
 
   for (const [featureId, manifest] of chunkedManifests.entries()) {
@@ -366,7 +371,7 @@ function agentPrefsDoc(uid) {
 export async function loadAgentPrefs(uid) {
   if (!db) return null;
   const snap = await getDoc(agentPrefsDoc(uid));
-  return snap.exists() ? sanitizeCloudPayload(snap.data()) : null;
+  return snap.exists() ? sanitizeCloudSnapshotData(snap.data()) : null;
 }
 
 export async function saveAgentPrefs(uid, prefs) {
@@ -394,7 +399,7 @@ function memoryDoc(uid, id) {
 export async function loadAgentMemories(uid) {
   if (!db) return [];
   const snap = await getDocs(memoryCol(uid));
-  return snap.docs.map((d) => ({ id: d.id, ...sanitizeCloudPayload(d.data()) }));
+  return snap.docs.map((d) => ({ id: d.id, ...sanitizeCloudSnapshotData(d.data()) }));
 }
 
 export async function saveAgentMemory(uid, entry) {
@@ -426,7 +431,7 @@ function customToolDoc(uid, name) {
 export async function loadCustomTools(uid) {
   if (!db) return [];
   const snap = await getDocs(customToolsCol(uid));
-  return snap.docs.map((d) => ({ name: d.id, ...sanitizeCloudPayload(d.data()) }));
+  return snap.docs.map((d) => ({ name: d.id, ...sanitizeCloudSnapshotData(d.data()) }));
 }
 
 export async function saveCustomTool(uid, tool) {

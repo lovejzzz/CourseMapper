@@ -1,16 +1,35 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const firestoreMocks = vi.hoisted(() => ({
-  setDoc: vi.fn(async () => {}),
-  getDoc: vi.fn(),
-  getDocs: vi.fn(),
-  deleteDoc: vi.fn(async () => {}),
-  batchSet: vi.fn(),
-  batchDelete: vi.fn(),
-  batchCommit: vi.fn(async () => {}),
-}));
+const firestoreMocks = vi.hoisted(() => {
+  class Timestamp {
+    constructor(seconds, nanoseconds = 0) {
+      this.seconds = seconds;
+      this.nanoseconds = nanoseconds;
+    }
+
+    toMillis() {
+      return this.seconds * 1_000 + this.nanoseconds / 1_000_000;
+    }
+
+    toDate() {
+      return new Date(this.toMillis());
+    }
+  }
+
+  return {
+    Timestamp,
+    setDoc: vi.fn(async () => {}),
+    getDoc: vi.fn(),
+    getDocs: vi.fn(),
+    deleteDoc: vi.fn(async () => {}),
+    batchSet: vi.fn(),
+    batchDelete: vi.fn(),
+    batchCommit: vi.fn(async () => {}),
+  };
+});
 
 vi.mock('firebase/firestore', () => ({
+  Timestamp: firestoreMocks.Timestamp,
   doc: vi.fn((db, ...segments) => ({ _kind: 'doc', _db: db, path: segments.join('/') })),
   collection: vi.fn((db, ...segments) => ({ _kind: 'col', _db: db, path: segments.join('/') })),
   getDoc: firestoreMocks.getDoc,
@@ -54,11 +73,9 @@ function allWritesText() {
 }
 
 function makeTimestamp(iso) {
-  const timestamp = {
-    toDate: vi.fn(() => new Date(iso)),
-  };
-  Object.setPrototypeOf(timestamp, { constructor: { name: 'Timestamp' } });
-  return timestamp;
+  const milliseconds = new Date(iso).getTime();
+  const seconds = Math.floor(milliseconds / 1_000);
+  return new firestore.Timestamp(seconds, (milliseconds - seconds * 1_000) * 1_000_000);
 }
 
 beforeEach(() => {
@@ -290,7 +307,8 @@ describe('cloudStorage secret sanitation', () => {
     const deliverables = await loadProjectDeliverables('user-1', 'project-1');
 
     expect(project.courseName).toBe('Legacy [redacted secret]');
-    expect(project.updatedAt).toBe(updatedAt);
+    expect(project.updatedAt).toEqual(new Date('2026-06-01T10:00:00Z'));
+    expect(project.updatedAt).not.toBe(updatedAt);
     expect(project).not.toHaveProperty('apiKey');
     expect(project.nested).toEqual({ visible: 'keep' });
     expect(deliverables.lessonPlans).not.toHaveProperty('authorization');
@@ -374,7 +392,34 @@ describe('cloudStorage secret sanitation', () => {
         createdAt: new Date('2026-05-31T10:00:00Z'),
       },
     ]);
-    expect(updatedAt.toDate).toHaveBeenCalled();
-    expect(createdAt.toDate).toHaveBeenCalled();
+    expect(projects[0].updatedAt).not.toBe(updatedAt);
+    expect(projects[0].createdAt).not.toBe(createdAt);
+  });
+
+  it.each([
+    ['negative sub-millisecond', -1, 999_999_999],
+    ['maximum boundary', 253_402_300_799, 999_999_999],
+  ])('keeps cloud project load and list conversion consistent at the %s', async (_label, seconds, nanoseconds) => {
+    const updatedAt = new firestore.Timestamp(seconds, nanoseconds);
+    firestore.getDoc.mockResolvedValueOnce({
+      exists: () => true,
+      data: () => ({ courseName: 'Boundary course', updatedAt }),
+    });
+    firestore.getDocs.mockResolvedValueOnce({
+      docs: [
+        {
+          id: 'project-1',
+          data: () => ({ courseName: 'Boundary course', updatedAt }),
+        },
+      ],
+    });
+
+    const loaded = await loadProject('user-1', 'project-1');
+    const listed = await listProjects('user-1');
+    const expectedMilliseconds = new Date(updatedAt.toMillis()).getTime();
+
+    expect(loaded.updatedAt).toBeInstanceOf(Date);
+    expect(loaded.updatedAt.getTime()).toBe(expectedMilliseconds);
+    expect(listed[0].updatedAt.getTime()).toBe(expectedMilliseconds);
   });
 });

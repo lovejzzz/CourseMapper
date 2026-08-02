@@ -1,5 +1,3 @@
-import { Timestamp } from 'firebase/firestore';
-
 import { detectRequestedClassSessionMinutes, parseClassSessionMinutes } from './sourceBriefConstraints';
 import { renderedDeliverableCollection } from './renderedDeliverableRoot.js';
 import { selectPersistablePackageEvidence } from './packageQualityPersistence.js';
@@ -48,8 +46,6 @@ function redactSecretText(value) {
 }
 
 const OMIT_SNAPSHOT_VALUE = Symbol('omit-snapshot-value');
-const FIRESTORE_TIMESTAMP_MIN_SECONDS = -62_135_596_800;
-const FIRESTORE_TIMESTAMP_MAX_SECONDS = 253_402_300_799;
 
 function isPlainObject(value) {
   const prototype = Object.getPrototypeOf(value);
@@ -103,41 +99,6 @@ function sanitizeProjectSnapshotValue(value, ancestors) {
   }
 }
 
-function readFirestoreTimestampParts(value, descriptors = null) {
-  try {
-    if (Object.getPrototypeOf(value) !== Timestamp.prototype) return null;
-    const ownDescriptors = descriptors || Object.getOwnPropertyDescriptors(value);
-    const ownKeys = Reflect.ownKeys(ownDescriptors);
-    if (
-      ownKeys.length !== 2 ||
-      !ownKeys.includes('seconds') ||
-      !ownKeys.includes('nanoseconds') ||
-      !ownDescriptors.seconds?.enumerable ||
-      !ownDescriptors.nanoseconds?.enumerable ||
-      !Object.prototype.hasOwnProperty.call(ownDescriptors.seconds, 'value') ||
-      !Object.prototype.hasOwnProperty.call(ownDescriptors.nanoseconds, 'value')
-    ) {
-      return null;
-    }
-    const seconds = ownDescriptors.seconds.value;
-    const nanoseconds = ownDescriptors.nanoseconds.value;
-    if (
-      !Number.isSafeInteger(seconds) ||
-      seconds < FIRESTORE_TIMESTAMP_MIN_SECONDS ||
-      seconds > FIRESTORE_TIMESTAMP_MAX_SECONDS ||
-      !Number.isInteger(nanoseconds) ||
-      nanoseconds < 0 ||
-      nanoseconds >= 1_000_000_000
-    ) {
-      return null;
-    }
-    const date = new Date(seconds * 1_000 + Math.floor(nanoseconds / 1_000_000));
-    return Number.isFinite(date.getTime()) ? { date, nanoseconds, seconds } : null;
-  } catch {
-    return null;
-  }
-}
-
 function snapshotGraphContainsOnlyDataDescriptors(value, ancestors) {
   if (!value || typeof value !== 'object') return typeof value !== 'function' && typeof value !== 'symbol';
   if (ancestors.has(value)) return false;
@@ -145,8 +106,6 @@ function snapshotGraphContainsOnlyDataDescriptors(value, ancestors) {
   ancestors.add(value);
   try {
     const descriptors = Object.getOwnPropertyDescriptors(value);
-    if (readFirestoreTimestampParts(value, descriptors)) return true;
-
     const prototype = Object.getPrototypeOf(value);
     if (prototype === Date.prototype) {
       return Reflect.ownKeys(descriptors).length === 0 && Number.isFinite(Date.prototype.getTime.call(value));
@@ -170,42 +129,6 @@ function snapshotGraphContainsOnlyDataDescriptors(value, ancestors) {
   }
 }
 
-function normalizeAdmittedFirestoreTimestamps(source, cloned, ancestors) {
-  if (!source || typeof source !== 'object') return cloned;
-  const timestampParts = readFirestoreTimestampParts(source);
-  if (timestampParts) return timestampParts.date;
-  if (ancestors.has(source)) return cloned;
-
-  ancestors.add(source);
-  try {
-    const sourceDescriptors = Object.getOwnPropertyDescriptors(source);
-    const cloneDescriptors = Object.getOwnPropertyDescriptors(cloned);
-    for (const key of Reflect.ownKeys(sourceDescriptors)) {
-      if (typeof key !== 'string') continue;
-      const sourceDescriptor = sourceDescriptors[key];
-      const cloneDescriptor = cloneDescriptors[key];
-      if (
-        !sourceDescriptor?.enumerable ||
-        !cloneDescriptor ||
-        !Object.prototype.hasOwnProperty.call(sourceDescriptor, 'value') ||
-        !Object.prototype.hasOwnProperty.call(cloneDescriptor, 'value')
-      ) {
-        continue;
-      }
-      const normalized = normalizeAdmittedFirestoreTimestamps(sourceDescriptor.value, cloneDescriptor.value, ancestors);
-      if (normalized !== cloneDescriptor.value) {
-        Object.defineProperty(cloned, key, {
-          ...cloneDescriptor,
-          value: normalized,
-        });
-      }
-    }
-    return cloned;
-  } finally {
-    ancestors.delete(source);
-  }
-}
-
 /**
  * Project restore is a trust boundary, not merely a redaction pass. Inspect
  * descriptors before cloning so getters never execute, then require the
@@ -221,7 +144,7 @@ function admitProjectSnapshotRoot(snapshot) {
     if (!snapshotGraphContainsOnlyDataDescriptors(snapshot, new WeakSet())) return null;
     const cloned = structuredClone(snapshot);
     if (!cloned || typeof cloned !== 'object' || Array.isArray(cloned) || !isPlainObject(cloned)) return null;
-    return normalizeAdmittedFirestoreTimestamps(snapshot, cloned, new WeakSet());
+    return cloned;
   } catch {
     return null;
   }

@@ -194,30 +194,26 @@ describe('sanitizeProjectSnapshot', () => {
 });
 
 describe('prepareProjectSnapshotForRestore', () => {
-  it('normalizes an admitted Firestore timestamp to a detached Date', () => {
+  it('rejects SDK timestamps at the generic restore boundary', () => {
     const updatedAt = Timestamp.fromDate(new Date('2026-06-01T10:00:00.123Z'));
-    const snapshot = {
-      courseMap: { courseName: 'Cloud project', lessons: [] },
-      updatedAt,
-      deliverables: {
-        lessonPlans: {
-          updatedAt: Timestamp.fromDate(new Date('2026-06-02T11:30:00.456Z')),
-        },
-      },
-      plainTimeParts: { seconds: 123, nanoseconds: 456 },
-    };
 
-    const restored = prepareProjectSnapshotForRestore(snapshot);
+    expect(
+      prepareProjectSnapshotForRestore({
+        courseMap: { courseName: 'Untrusted project', lessons: [] },
+        updatedAt,
+      }),
+    ).toEqual({ formatVersion: 1 });
+  });
 
-    expect(restored.updatedAt).toBeInstanceOf(Date);
-    expect(restored.updatedAt.toISOString()).toBe('2026-06-01T10:00:00.123Z');
-    expect(restored.updatedAt).not.toBe(updatedAt);
-    expect(restored.deliverables.lessonPlans.updatedAt).toBeInstanceOf(Date);
-    expect(restored.deliverables.lessonPlans.updatedAt.toISOString()).toBe('2026-06-02T11:30:00.456Z');
-    expect(restored.plainTimeParts).toEqual({ seconds: 123, nanoseconds: 456 });
-    expect(restored.plainTimeParts).not.toBeInstanceOf(Date);
-    updatedAt.seconds = 0;
-    expect(restored.updatedAt.toISOString()).toBe('2026-06-01T10:00:00.123Z');
+  it('rejects a valid timestamp forgery using the public SDK prototype', () => {
+    const spoof = forgeTimestampLike(Timestamp.prototype, 1_780_308_000, 123_000_000);
+
+    expect(
+      prepareProjectSnapshotForRestore({
+        courseMap: { courseName: 'Untrusted project', lessons: [] },
+        updatedAt: spoof,
+      }),
+    ).toEqual({ formatVersion: 1 });
   });
 
   it('rejects a timestamp-shaped object with an unrelated custom prototype', () => {
@@ -231,34 +227,16 @@ describe('prepareProjectSnapshotForRestore', () => {
     ).toEqual({ formatVersion: 1 });
   });
 
-  it.each([
-    ['seconds below minimum', -62_135_596_801, 0],
-    ['seconds above maximum', 253_402_300_800, 0],
-    ['negative nanoseconds', 0, -1],
-    ['nanoseconds at one billion', 0, 1_000_000_000],
-  ])('rejects an SDK-prototype timestamp with %s', (_label, seconds, nanoseconds) => {
-    const invalid = forgeTimestampLike(Timestamp.prototype, seconds, nanoseconds);
-
-    expect(
-      prepareProjectSnapshotForRestore({
-        courseMap: { courseName: 'Untrusted project', lessons: [] },
-        updatedAt: invalid,
-      }),
-    ).toEqual({ formatVersion: 1 });
-  });
-
-  it.each([
-    ['minimum', -62_135_596_800, 0],
-    ['maximum', 253_402_300_799, 999_999_999],
-  ])('accepts the exact Firebase Timestamp %s boundary', (_label, seconds, nanoseconds) => {
-    const boundary = new Timestamp(seconds, nanoseconds);
+  it('keeps plain timestamp-shaped project data as plain data', () => {
+    const plainTimeParts = { seconds: 123, nanoseconds: 456 };
     const restored = prepareProjectSnapshotForRestore({
-      courseMap: { courseName: 'Boundary project', lessons: [] },
-      updatedAt: boundary,
+      courseMap: { courseName: 'Plain project', lessons: [] },
+      plainTimeParts,
     });
 
-    expect(restored.updatedAt).toBeInstanceOf(Date);
-    expect(restored.updatedAt.getTime()).toBe(seconds * 1_000 + Math.floor(nanoseconds / 1_000_000));
+    expect(restored.plainTimeParts).toEqual(plainTimeParts);
+    expect(restored.plainTimeParts).not.toBe(plainTimeParts);
+    expect(restored.plainTimeParts).not.toBeInstanceOf(Date);
   });
 
   it('preserves and isolates native Date values across strict restore admission', () => {
