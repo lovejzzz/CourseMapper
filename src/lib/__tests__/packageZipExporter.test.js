@@ -8,6 +8,7 @@ import {
   downloadCourseMaterialsZip,
   hasVerifiedPackageDownloadReceipt,
   mergeSourceLedgerBundles,
+  normalizeOfficeArchiveForPackage,
   PackageZipExportError,
   sanitizeFilePart,
 } from '../packageZipExporter';
@@ -126,6 +127,18 @@ async function makeOfficeXmlBuffer(path, xml) {
   return await (await makeOfficeXmlBlob(path, xml)).arrayBuffer();
 }
 
+async function makeTimestampedOfficeBuffer(path, xml, timestamp) {
+  const zip = new JSZip();
+  const date = new Date(timestamp);
+  zip.file(path, xml, { date });
+  zip.file(
+    'docProps/core.xml',
+    `<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dcterms:created xsi:type="dcterms:W3CDTF">${timestamp}</dcterms:created><dcterms:modified xsi:type="dcterms:W3CDTF">${timestamp}</dcterms:modified></cp:coreProperties>`,
+    { date },
+  );
+  return await zip.generateAsync({ type: 'arraybuffer', compression: 'DEFLATE' });
+}
+
 describe('packageZipExporter', () => {
   it('drops a fallback syllabus review row once trusted research covers the same concept', () => {
     const merged = mergeSourceLedgerBundles(
@@ -188,6 +201,57 @@ describe('packageZipExporter', () => {
   it('sanitizes unsafe filename characters', () => {
     expect(sanitizeFilePart('Course: A/B? <Draft>')).toBe('Course - A - B - Draft');
     expect(sanitizeFilePart('   ')).toBe('Course');
+  });
+
+  it('normalizes Office and package timestamps so identical inputs reproduce identical ZIP bytes', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      buildXlsxBuffer.mockImplementation(async () =>
+        makeTimestampedOfficeBuffer(
+          'xl/worksheets/sheet1.xml',
+          '<worksheet><sheetData><row><c t="inlineStr"><is><t>Stable package</t></is></c></row></sheetData></worksheet>',
+          new Date().toISOString(),
+        ),
+      );
+
+      vi.setSystemTime(new Date('2026-08-02T14:00:00.000Z'));
+      const first = await buildCourseMaterialsZip({
+        courseMap: makeCourseMap('Reproducible Package'),
+        featureIds: ['courseMap'],
+        quality: false,
+        generatedAt: '2026-08-01T21:48:38.112Z',
+      });
+      vi.setSystemTime(new Date('2027-09-03T15:30:00.000Z'));
+      const second = await buildCourseMaterialsZip({
+        courseMap: makeCourseMap('Reproducible Package'),
+        featureIds: ['courseMap'],
+        quality: false,
+        generatedAt: '2026-08-01T21:48:38.112Z',
+      });
+
+      const firstBytes = Buffer.from(await first.blob.arrayBuffer());
+      const secondBytes = Buffer.from(await second.blob.arrayBuffer());
+      expect(firstBytes.equals(secondBytes)).toBe(true);
+
+      const outer = await JSZip.loadAsync(firstBytes);
+      for (const entry of Object.values(outer.files)) {
+        expect(entry.date.toISOString()).toBe('2000-01-01T00:00:00.000Z');
+      }
+      const workbookPath = Object.keys(outer.files).find((name) => name.endsWith('.xlsx'));
+      const workbook = await JSZip.loadAsync(await outer.file(workbookPath).async('uint8array'));
+      const core = await workbook.file('docProps/core.xml').async('string');
+      expect(core).not.toContain('2026-08-02');
+      expect(core).not.toContain('2027-09-03');
+      expect(core.match(/2000-01-01T00:00:00Z/g)).toHaveLength(2);
+      for (const entry of Object.values(workbook.files)) {
+        expect(entry.date.toISOString()).toBe('2000-01-01T00:00:00.000Z');
+      }
+
+      const normalized = await normalizeOfficeArchiveForPackage(await makeOfficeXmlBuffer('word/document.xml', 'x'));
+      expect(normalized).toBeInstanceOf(Uint8Array);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('does not invent a source-pipeline claim for an evidence-free deterministic compile', async () => {

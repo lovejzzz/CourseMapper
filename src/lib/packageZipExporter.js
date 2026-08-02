@@ -37,7 +37,21 @@ const MIN_EXPORT_BYTES = 128;
 // modest laptops can spend more than 30 seconds in that export+grade boundary
 // even when grading is healthy, so keep the honest ceiling at one minute.
 export const DEFAULT_PACKAGE_QUALITY_TIMEOUT_MS = 60000;
-const ZIP_GENERATION_OPTIONS = { type: 'blob', compression: 'STORE', streamFiles: true };
+const DETERMINISTIC_ARCHIVE_TIMESTAMP = '2000-01-01T00:00:00.000Z';
+const DETERMINISTIC_OFFICE_TIMESTAMP = '2000-01-01T00:00:00Z';
+const ZIP_GENERATION_OPTIONS = {
+  type: 'blob',
+  compression: 'STORE',
+  streamFiles: true,
+  platform: 'DOS',
+};
+const OFFICE_ZIP_GENERATION_OPTIONS = {
+  type: 'uint8array',
+  compression: 'DEFLATE',
+  compressionOptions: { level: 6 },
+  streamFiles: true,
+  platform: 'DOS',
+};
 const QUALITY_DIMENSION_ORDER = [
   'identity',
   'substance',
@@ -420,7 +434,7 @@ function renderUnavailableQualityReport(quality, { courseTitle = 'Course' } = {}
   ].join('\n');
 }
 
-function normalizePrecomputedPackageQuality(quality) {
+function normalizePrecomputedPackageQuality(quality, fallbackTimestamp = new Date().toISOString()) {
   if (!quality || quality.status !== 'graded') return null;
   const score = Number(quality.score);
   if (!Number.isFinite(score)) return null;
@@ -455,7 +469,7 @@ function normalizePrecomputedPackageQuality(quality) {
     graderVersion: quality.graderVersion || 'precomputed-finish-pass',
     findingCounts,
     dimensions,
-    gradedAt: quality.gradedAt || new Date().toISOString(),
+    gradedAt: quality.gradedAt || fallbackTimestamp,
     ...(quality.scopeBinding ? { scopeBinding: quality.scopeBinding } : {}),
     ...(readiness ? { readiness } : {}),
     ...(texture ? { texture } : {}),
@@ -649,6 +663,30 @@ async function getZipFileContent(part) {
   return part;
 }
 
+function applyDeterministicArchiveDates(zip) {
+  for (const entry of Object.values(zip.files || {})) {
+    entry.date = new Date(DETERMINISTIC_ARCHIVE_TIMESTAMP);
+  }
+}
+
+export async function normalizeOfficeArchiveForPackage(content, JSZipOverride = null) {
+  const JSZip = JSZipOverride || (await safeImport(() => import('jszip'))).default;
+  const officeZip = await JSZip.loadAsync(await getZipFileContent(content));
+  const coreProperties = officeZip.file('docProps/core.xml');
+  if (coreProperties) {
+    let xml = await coreProperties.async('string');
+    for (const tag of ['created', 'modified']) {
+      xml = xml.replace(
+        new RegExp(`(<dcterms:${tag}\\b[^>]*>)[\\s\\S]*?(<\\/dcterms:${tag}>)`, 'gi'),
+        `$1${DETERMINISTIC_OFFICE_TIMESTAMP}$2`,
+      );
+    }
+    officeZip.file('docProps/core.xml', xml);
+  }
+  applyDeterministicArchiveDates(officeZip);
+  return await officeZip.generateAsync(OFFICE_ZIP_GENERATION_OPTIONS);
+}
+
 function createFailure(featureId, format, message, extra = {}) {
   return {
     featureId,
@@ -691,9 +729,24 @@ async function addRequiredOfficeFile(
   failures,
   path,
   content,
-  { featureId, format, minBytes = MIN_EXPORT_BYTES, fileContents = null } = {},
+  { featureId, format, minBytes = MIN_EXPORT_BYTES, fileContents = null, zipLibrary = null } = {},
 ) {
-  const size = getExportPartSize(content);
+  let zipContent;
+  try {
+    zipContent = await normalizeOfficeArchiveForPackage(content, zipLibrary);
+  } catch (err) {
+    failures.push(
+      createFailure(
+        featureId,
+        format,
+        `${resolveFeatureLabel(featureId)} ${String(format || 'file').toUpperCase()} export could not be normalized: ${err?.message || 'Unknown error.'}`,
+        { path, size: getExportPartSize(content) },
+      ),
+    );
+    return false;
+  }
+
+  const size = getExportPartSize(zipContent);
   if (size < minBytes) {
     failures.push(
       createFailure(
@@ -707,7 +760,7 @@ async function addRequiredOfficeFile(
   }
 
   try {
-    await assertOfficeExportHasNoInternalText(content, format, resolveFeatureLabel(featureId));
+    await assertOfficeExportHasNoInternalText(zipContent, format, resolveFeatureLabel(featureId));
   } catch (err) {
     failures.push(
       createFailure(
@@ -722,7 +775,6 @@ async function addRequiredOfficeFile(
     return false;
   }
 
-  const zipContent = await getZipFileContent(content);
   zip.file(path, zipContent);
   if (fileContents) fileContents[path] = zipContent;
   files.push({ path, featureId: publicFeatureId(featureId), label: resolveFeatureLabel(featureId), format, size });
@@ -1916,6 +1968,7 @@ export async function buildCourseMaterialsZip({
   // file map and quality block without paying for zip compression.
   quality = {},
   assembleOnly = false,
+  generatedAt: requestedGeneratedAt = null,
 } = {}) {
   const JSZip = (await safeImport(() => import('jszip'))).default;
   const { buildDeliverableDocxBlob } = await safeImport(() => import('./exporters/bulkDocxExporter'));
@@ -1973,6 +2026,7 @@ export async function buildCourseMaterialsZip({
       featureId: 'courseMap',
       format: 'xlsx',
       fileContents,
+      zipLibrary: JSZip,
     });
   } catch (err) {
     failures.push(
@@ -2030,6 +2084,7 @@ export async function buildCourseMaterialsZip({
               featureId,
               format: 'pptx',
               fileContents,
+              zipLibrary: JSZip,
             },
           );
         } catch (err) {
@@ -2060,6 +2115,7 @@ export async function buildCourseMaterialsZip({
             featureId,
             format: 'docx',
             fileContents,
+            zipLibrary: JSZip,
           },
         );
       } catch (err) {
@@ -2129,7 +2185,9 @@ export async function buildCourseMaterialsZip({
 
   if (failures.length > 0) throw new PackageZipExportError(failures);
 
-  const generatedAt = new Date().toISOString();
+  const generatedAt = Number.isFinite(Date.parse(requestedGeneratedAt || ''))
+    ? new Date(requestedGeneratedAt).toISOString()
+    : new Date().toISOString();
 
   let derivedCourseGraph = null;
   let attemptedCourseGraphDerive = false;
@@ -2357,7 +2415,7 @@ export async function buildCourseMaterialsZip({
   if (quality !== false) {
     const gradedFileMap = { ...fileContents, 'PACKAGE_MANIFEST.json': JSON.stringify(manifest, null, 2) };
     const evidenceArtifactsBinding = await buildEvidenceArtifactBinding(gradedFileMap);
-    const precomputedQuality = normalizePrecomputedPackageQuality(qualityOptions.precomputed);
+    const precomputedQuality = normalizePrecomputedPackageQuality(qualityOptions.precomputed, generatedAt);
     packageReadinessReceipt = buildPackageReadinessReceipt({
       readiness: effectiveReadiness,
       quality: precomputedQuality?.block || null,
@@ -2442,13 +2500,13 @@ export async function buildCourseMaterialsZip({
           qualityBlock = {
             status: 'not-graded',
             reason: `grading timed out after ${timeoutMs}ms`,
-            attemptedAt: new Date().toISOString(),
+            attemptedAt: generatedAt,
           };
         } else if (raced.error) {
           qualityBlock = {
             status: 'not-graded',
             reason: raced.error?.message || 'grading failed',
-            attemptedAt: new Date().toISOString(),
+            attemptedAt: generatedAt,
           };
         } else {
           qualityResult = raced.value;
@@ -2472,7 +2530,7 @@ export async function buildCourseMaterialsZip({
             graderVersion: GRADER_VERSION,
             findingCounts: { p0: qualityResult.stats.p0, p1: qualityResult.stats.p1, p2: qualityResult.stats.p2 },
             dimensions: qualityResult.scores,
-            gradedAt: new Date().toISOString(),
+            gradedAt: generatedAt,
             scopeBinding: qualityScopeBinding,
             ...(qualityResult.readiness ? { readiness: qualityResult.readiness } : {}),
             // v0.15.6: the score-bearing texture meter rides the manifest
@@ -2493,7 +2551,7 @@ export async function buildCourseMaterialsZip({
         qualityBlock = {
           status: 'not-graded',
           reason: err?.message || 'grader unavailable',
-          attemptedAt: new Date().toISOString(),
+          attemptedAt: generatedAt,
         };
       }
     }
@@ -2632,6 +2690,7 @@ export async function buildCourseMaterialsZip({
     };
   }
 
+  applyDeterministicArchiveDates(zip);
   const blob = await zip.generateAsync(ZIP_GENERATION_OPTIONS);
   const zipSize = getExportPartSize(blob);
   if (zipSize < MIN_EXPORT_BYTES) {

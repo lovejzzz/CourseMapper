@@ -18,6 +18,13 @@ function severityCounts(findings) {
 export async function verifyReplayArtifact({ receipt, zipBytes }) {
   const expected = receipt?.retainedPackage;
   if (!expected) throw new Error('Replay receipt does not bind a retained package.');
+  if (
+    expected.reproducibility?.passed !== true ||
+    expected.reproducibility?.secondSha256 !== expected.sha256 ||
+    expected.reproducibility?.secondSize !== expected.size
+  ) {
+    throw new Error('Replay receipt does not prove byte-identical package reproduction.');
+  }
 
   const bytes = Buffer.from(zipBytes);
   const zip = await JSZip.loadAsync(bytes);

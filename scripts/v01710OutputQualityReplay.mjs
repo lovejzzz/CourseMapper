@@ -143,36 +143,52 @@ const afterQuality = await gradePackageAtFinalize({ ...gradeOptions, deliverable
 const zipOutput = argument('--zip');
 let retainedPackage = null;
 if (zipOutput) {
-  const packageResult = await buildCourseMaterialsZip({
-    deliverables: finalized.deliverables,
-    courseMap: finalized.courseMap,
-    columns: project.columns,
-    courseName: finalized.courseMap?.courseName,
-    slideTheme: project.slideTheme,
-    featureIds: project.selectedFeatures,
-    pipelineState: project.lastRunDigest?.pipeline,
-    courseGraph: project.courseGraph,
-    quality: {
-      budget: project.apiCallBudgetReceipt,
-      digest: project.lastRunDigest,
-      coursePrompt: project.promptText,
-      timeoutMs: 120000,
-    },
-  });
+  const replayPackageGeneratedAt = project.lastRunDigest?.at || '2000-01-01T00:00:00.000Z';
+  const buildReplayPackage = () =>
+    buildCourseMaterialsZip({
+      deliverables: finalized.deliverables,
+      courseMap: finalized.courseMap,
+      columns: project.columns,
+      courseName: finalized.courseMap?.courseName,
+      slideTheme: project.slideTheme,
+      featureIds: project.selectedFeatures,
+      pipelineState: project.lastRunDigest?.pipeline,
+      courseGraph: project.courseGraph,
+      quality: {
+        budget: project.apiCallBudgetReceipt,
+        digest: project.lastRunDigest,
+        coursePrompt: project.promptText,
+        timeoutMs: 120000,
+      },
+      generatedAt: replayPackageGeneratedAt,
+    });
+  const packageResult = await buildReplayPackage();
   const zipBytes = Buffer.from(await packageResult.blob.arrayBuffer());
+  const reproductionResult = await buildReplayPackage();
+  const reproductionBytes = Buffer.from(await reproductionResult.blob.arrayBuffer());
+  const packageSha256 = sha256(zipBytes);
+  const reproductionSha256 = sha256(reproductionBytes);
+  const reproducible = zipBytes.equals(reproductionBytes);
   const resolvedZipOutput = path.resolve(zipOutput);
   fs.mkdirSync(path.dirname(resolvedZipOutput), { recursive: true });
   fs.writeFileSync(resolvedZipOutput, zipBytes);
   retainedPackage = {
     file: path.basename(resolvedZipOutput),
-    sha256: sha256(zipBytes),
+    sha256: packageSha256,
     size: zipBytes.length,
     files: packageResult.files.length,
+    generatedAt: replayPackageGeneratedAt,
     quality: qualitySummary({
       ...packageResult.quality,
       findings: packageResult.qualityResult?.findings || [],
     }),
+    reproducibility: {
+      passed: reproducible,
+      secondSha256: reproductionSha256,
+      secondSize: reproductionBytes.length,
+    },
   };
+  if (!reproducible) process.exitCode = 1;
 }
 
 const receipt = {

@@ -9,7 +9,7 @@ async function fixture() {
   zip.file('PACKAGE_READINESS.json', JSON.stringify({ contentReadiness: { status: 'review', score: 97, grade: 'A' } }));
   zip.file(
     'QUALITY_FINDINGS.json',
-    JSON.stringify({ graderVersion: '1.15.2', findings: [{ severity: 'P2' }, { severity: 'P2' }] }),
+    JSON.stringify({ graderVersion: '1.15.3', findings: [{ severity: 'P2' }, { severity: 'P2' }] }),
   );
   zip.file('Lesson Plans/example.docx', 'fixture');
   const zipBytes = Buffer.from(await zip.generateAsync({ type: 'uint8array' }));
@@ -20,10 +20,15 @@ async function fixture() {
       files: 3,
       quality: {
         status: 'graded',
-        graderVersion: '1.15.2',
+        graderVersion: '1.15.3',
         score: 97,
         grade: 'A',
         findingCounts: { p0: 0, p1: 0, p2: 2 },
+      },
+      reproducibility: {
+        passed: true,
+        secondSha256: crypto.createHash('sha256').update(zipBytes).digest('hex'),
+        secondSize: zipBytes.length,
       },
     },
   };
@@ -39,8 +44,17 @@ describe('v0.17.10 replay artifact verifier', () => {
   it('fails closed when the physical ZIP no longer matches the receipt', async () => {
     const { receipt, zipBytes } = await fixture();
     receipt.retainedPackage.sha256 = '0'.repeat(64);
+    receipt.retainedPackage.reproducibility.secondSha256 = '0'.repeat(64);
     await expect(verifyReplayArtifact({ receipt, zipBytes })).rejects.toThrow(
       'Retained package does not match replay receipt',
+    );
+  });
+
+  it('fails closed when the replay receipt lacks byte-reproduction proof', async () => {
+    const { receipt, zipBytes } = await fixture();
+    receipt.retainedPackage.reproducibility.passed = false;
+    await expect(verifyReplayArtifact({ receipt, zipBytes })).rejects.toThrow(
+      'Replay receipt does not prove byte-identical package reproduction',
     );
   });
 });

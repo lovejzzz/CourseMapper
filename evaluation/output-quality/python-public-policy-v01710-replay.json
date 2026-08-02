@@ -25,9 +25,10 @@
   },
   "retainedPackage": {
     "file": "edutool-v01710-local-candidate.zip",
-    "sha256": "81e9e794ee71ed924de645de870b3dbbaf7c89ae46b28b62c7a6ff55792d5342",
-    "size": 1084098,
+    "sha256": "a7773bfd9847fd2903f31f1c88494b263e2bdde9c515a4b10eb5d8e750b54407",
+    "size": 1083404,
     "files": 61,
+    "generatedAt": "2026-08-01T21:48:38.112Z",
     "quality": {
       "status": "graded",
       "graderVersion": "1.15.3",
@@ -39,6 +40,11 @@
         "p2": 6
       },
       "repetitionFindings": []
+    },
+    "reproducibility": {
+      "passed": true,
+      "secondSha256": "a7773bfd9847fd2903f31f1c88494b263e2bdde9c515a4b10eb5d8e750b54407",
+      "secondSize": 1083404
     }
   },
   "changed": true,
