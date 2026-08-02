@@ -439,8 +439,13 @@ describe('cloudStorage secret sanitation', () => {
   });
 
   it('preserves hostile keys nested inside direct and chunk-restored deliverables', async () => {
-    const directValue = JSON.parse('{"status":"done","data":{"__proto__":{"marker":"direct"}}}');
-    const chunkValue = JSON.parse('{"status":"done","data":{"__proto__":{"marker":"chunked"}}}');
+    const hostileKeys = ['__proto__', 'constructor', 'prototype'];
+    const directValue = JSON.parse(
+      '{"status":"done","data":{"__proto__":{"marker":"direct-__proto__"},"constructor":{"marker":"direct-constructor"},"prototype":{"marker":"direct-prototype"}}}',
+    );
+    const chunkValue = JSON.parse(
+      '{"status":"done","data":{"__proto__":{"marker":"chunked-__proto__"},"constructor":{"marker":"chunked-constructor"},"prototype":{"marker":"chunked-prototype"}}}',
+    );
     firestore.getDocs.mockResolvedValueOnce({
       forEach: (callback) => {
         callback({ id: 'lessonPlans', data: () => directValue });
@@ -457,25 +462,42 @@ describe('cloudStorage secret sanitation', () => {
             text: JSON.stringify(chunkValue),
           }),
         });
+        callback({ id: 'unsupported', data: () => ({ status: 'done', data: { value: 1n } }) });
       },
     });
 
     const loaded = await loadProjectDeliverables('user-1', 'project-1');
 
-    for (const [featureId, marker] of [
-      ['lessonPlans', 'direct'],
-      ['slideDecks', 'chunked'],
+    for (const [featureId, route, source] of [
+      ['lessonPlans', 'direct', directValue],
+      ['slideDecks', 'chunked', chunkValue],
     ]) {
       const nested = loaded[featureId].data;
       expect(Object.getPrototypeOf(nested)).toBe(Object.prototype);
-      expect(Object.keys(nested)).toEqual(['__proto__']);
-      expect(Object.getOwnPropertyDescriptor(nested, '__proto__')).toMatchObject({
-        enumerable: true,
-        writable: true,
-        configurable: true,
-      });
-      expect(nested.__proto__).toEqual({ marker });
+      expect(Object.keys(nested)).toEqual(hostileKeys);
+      expect(nested).not.toBe(source.data);
+
+      for (const key of hostileKeys) {
+        expect(nested[key]).not.toBe(source.data[key]);
+        expect(Object.getOwnPropertyDescriptor(nested, key)).toEqual({
+          value: nested[key],
+          writable: true,
+          enumerable: true,
+          configurable: true,
+        });
+        expect(nested[key]).toEqual({ marker: `${route}-${key}` });
+      }
+
+      source.data.__proto__.marker = `${route}-source-mutated`;
+      expect(nested.__proto__.marker).toBe(`${route}-__proto__`);
+      nested.constructor.marker = `${route}-output-mutated`;
+      expect(source.data.constructor.marker).toBe(`${route}-constructor`);
+      expect(nested.prototype.marker).toBe(`${route}-prototype`);
     }
+
+    expect(loaded.lessonPlans.data).not.toBe(loaded.slideDecks.data);
+    expect(loaded.lessonPlans.data.prototype).not.toBe(loaded.slideDecks.data.prototype);
+    expect(loaded.unsupported).toEqual({});
   });
 
   it('sanitizes legacy agent reads while keeping document ids', async () => {
