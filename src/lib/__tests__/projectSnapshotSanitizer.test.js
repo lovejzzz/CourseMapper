@@ -347,4 +347,44 @@ describe('prepareProjectSnapshotForRestore', () => {
     expect(restored).not.toHaveProperty('packageQualityPass');
     expect(restored).not.toHaveProperty('lastRunDigest');
   });
+
+  it('drops a receiptless terminal judgment even when a stale digest is present', () => {
+    const restored = prepareProjectSnapshotForRestore({
+      courseMap: { lessons: [] },
+      packageQualityPass: { status: 'ready', message: 'Stale terminal state.' },
+      lastRunDigest: { finishRunId: 'old-run' },
+    });
+
+    expect(restored).not.toHaveProperty('packageQualityPass');
+    expect(restored).not.toHaveProperty('lastRunDigest');
+  });
+
+  it.each(['status', 'quality', 'receipt'])(
+    'drops package evidence without reading a package-judgment %s accessor',
+    (field) => {
+      let reads = 0;
+      const packageQualityPass = {
+        status: 'ready',
+        quality: { status: 'graded', score: 100, grade: 'A' },
+        receipt: { exportChecked: 11 },
+      };
+      Object.defineProperty(packageQualityPass, field, {
+        enumerable: true,
+        get() {
+          reads += 1;
+          throw new Error(`${field} getter executed`);
+        },
+      });
+
+      const restored = prepareProjectSnapshotForRestore({
+        courseMap: { lessons: [] },
+        packageQualityPass,
+        lastRunDigest: { finishRunId: 'invalid-envelope' },
+      });
+
+      expect(reads).toBe(0);
+      expect(restored).not.toHaveProperty('packageQualityPass');
+      expect(restored).not.toHaveProperty('lastRunDigest');
+    },
+  );
 });
