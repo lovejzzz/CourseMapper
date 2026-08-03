@@ -1843,6 +1843,17 @@ export function isResearchCandidateDomainAligned({
   const exactSourceTitle =
     Boolean(normalizedTopic) &&
     (normalizedTitle === normalizedTopic || normalizedTitle.startsWith(`${normalizedTopic} (`));
+  // A one-word title is often a disciplinary false friend (for example,
+  // "Functions (physiology)" in a programming lesson). Preserve the exact
+  // title escape hatch only when the page itself identifies a concrete named
+  // entity. Multi-word lesson titles retain their normal exact-match path.
+  const exactNamedEntityTitle =
+    exactSourceTitle &&
+    topicTokens.length === 1 &&
+    new RegExp(
+      `\\b${normalizedTopic.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\$&')}\\s+(?:is|are)\\s+(?:an?\\s+)?(?:bacter(?:ium|ia)|chemical|compound|disease|family|gene|genus|organism|pathogen|protein|species|virus)\\b`,
+      'i',
+    ).test(candidate);
   const exactTopic = topicTokens.length >= 2 && candidate.includes(normalizedTopic);
   const appliedDomainPattern =
     /\b(?:biolog\w*|climat\w*|ecolog\w*|environment\w*|heat|health|medical|clinical|patient\w*|disease\w*|microbi\w*|pathogen\w*|pollution|sustainab\w*|water\w*|wastewater)\b/;
@@ -1852,7 +1863,7 @@ export function isResearchCandidateDomainAligned({
   const candidateTopicOverlap = topicTokens.filter((token) => candidateTokens.has(token)).length;
   const appliedCandidateAligned =
     exactTopic ||
-    exactSourceTitle ||
+    exactNamedEntityTitle ||
     topicAllowsAppliedDomain ||
     (courseAllowsAppliedDomain && topicTokens.length >= 2 && candidateTopicOverlap >= 2);
   const appliedDomainCandidate =

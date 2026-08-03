@@ -627,6 +627,15 @@ describe('course-domain research alignment', () => {
     ).toBe(true);
     expect(
       isResearchCandidateDomainAligned({
+        topic: 'Functions',
+        courseContext: mixedCourse,
+        title: 'Functions (physiology)',
+        extract: 'Physiological functions describe clinical processes observed in patients with disease.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(false);
+    expect(
+      isResearchCandidateDomainAligned({
         topic: 'Reproducible visualization and uncertainty',
         courseContext: mixedCourse,
         title: 'Fear, uncertainty, and doubt',

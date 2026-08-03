@@ -101,6 +101,31 @@ describe('Algi research-first course transaction', () => {
     expect(laterSearch).toHaveBeenCalled();
   });
 
+  it('continues to a later provider when evidence validation rejects a blocking conflict', async () => {
+    const title = 'Platform accountability';
+    const firstSearch = vi.fn(async () => ({ [title]: article(title, 'source-1') }));
+    const laterSearch = vi.fn(async () => ({ [title]: article(title, 'source-2') }));
+
+    const result = await researchLessonKernelSetsCascade([title], {
+      providers: [
+        { id: 'first', provider: researchProvider(firstSearch), options: { maxTargetedFallbacks: 0 } },
+        { id: 'later', provider: researchProvider(laterSearch), options: { maxTargetedFallbacks: 0 } },
+      ],
+      courseContext: 'Platform Policy',
+      want: 5,
+      isTopicReady: (topic, kernels) =>
+        scionResearchTopicReady(topic, kernels, {
+          claimCount: 5,
+          validateEvidence: () => false,
+          canCompose: () => true,
+        }),
+    });
+
+    expect(result.byTopic.get(title)).toHaveLength(2);
+    expect(firstSearch).toHaveBeenCalled();
+    expect(laterSearch).toHaveBeenCalled();
+  });
+
   it('revises a genome-covered lesson only when research adds exact accessible claims', async () => {
     const records = Object.fromEntries(
       [
