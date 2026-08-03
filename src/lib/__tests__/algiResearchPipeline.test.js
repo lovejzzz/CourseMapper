@@ -313,9 +313,7 @@ describe('Algi research-first course transaction', () => {
         }),
       ]),
     );
-    expect(
-      result.researchReceipt.targetedBudgetExhausted.every((entry) => entry.providerId === 'fixture'),
-    ).toBe(true);
+    expect(result.researchReceipt.targetedBudgetExhausted.every((entry) => entry.providerId === 'fixture')).toBe(true);
     resetAlgiGenomeCacheForTests();
   });
 

@@ -2353,9 +2353,7 @@ export async function composeAlgiLessonKernels({
                 signal,
               });
       const targetedBudgetExhausted = (researchBatch.targetedBudgetExhausted || []).map((entry) =>
-        entry?.providerId || !directProvider
-          ? entry
-          : { providerId: directProvider.id || 'direct', ...entry },
+        entry?.providerId || !directProvider ? entry : { providerId: directProvider.id || 'direct', ...entry },
       );
       const kernelsByTopic = new Map(
         allResearchTargets.map((topic) => {
