@@ -129,12 +129,16 @@ const COMPUTER_SCIENCE_BROAD_LANGUAGE_CONCEPT_RE =
   /^(?:python(?:\s+programming(?:\s+language)?)?|programming|coding)$/i;
 const COMPUTER_SCIENCE_BROAD_LANGUAGE_SOURCE_PROOF_RE =
   /(?:docs\.python\.org|python\.org\/doc)|\b(?:python\s+programming|python\s+language|programming\s+language|software\s+development|computer\s+program|source\s+code|coding|algorithm|data\s+structures?|control\s+flow|unit\s+tests?|pytest|debugging)\b/i;
-const STATISTICAL_TEST_CONCEPT_RE =
-  /\b(?:hypothesis tests?|statistical tests?|significance tests?|confidence intervals?|p[-\s]?values?)\b/i;
-const STATISTICAL_TEST_SOURCE_RE =
-  /\b(?:alternative hypothesis|confidence intervals?|hypothesis tests?|null hypothesis|p[-\s]?values?|statistical hypothesis testing|statistical significance)\b/i;
+const STATISTICAL_CONCEPT_RE =
+  /\b(?:confidence intervals?|correlations?|hypothesis tests?|linear regressions?|normal distributions?|p[-\s]?values?|probability distributions?|random samples?|regressions?|sampling distributions?|significance tests?|standard deviations?|statistical tests?|variances?)\b/i;
+const STATISTICAL_SOURCE_RE =
+  /\b(?:alternative hypothesis|confidence intervals?|correlations?|hypothesis tests?|linear regressions?|normal distributions?|null hypothesis|p[-\s]?values?|probability distributions?|random samples?|regressions?|sampling distributions?|statistical hypothesis testing|statistical significance|standard deviations?|variances?)\b/i;
 const NON_STATISTICAL_COMPUTING_TEST_CONCEPT_RE =
   /\b(?:automat\w*|code|computer\s+program\w*|functions?|program\w*|python|software|unit\s+tests?)\b/i;
+const COMPUTER_SCIENCE_AUTOMATION_CONCEPT_RE =
+  /\b(?:automated\s+tests?|programming\s+tests?|software\s+testing|test\s+automation|unit\s+tests?|pytest|unittest)\b/i;
+const COMPUTER_SCIENCE_AUTOMATION_PHYSICAL_FALSE_FRIEND_RE =
+  /\b(?:assembled\s+equipment|billing\s+codes?|brake\s+(?:and\s+)?engine|clinical|diagnostic\s+codes?|dynamometer|factory|highway\s+codes?|patients?|product\s+codes?|specimens?)\b/i;
 const DATABASE_COURSE_RE =
   /\b(?:database systems?|database management|relational databases?|\bsql\b|data management systems?)\b/i;
 const DATABASE_TRANSACTION_TOPIC_RE =
@@ -204,10 +208,9 @@ const COMPUTER_SCIENCE_TOPIC_ANCHORS = [
       /\b(?:exceptions?\s+(?:in\s+python|in\s+programming|handling)|exception\s+handling|try\s*\/?\s*except|try[-\s]catch|python\s+exceptions?)\b/i,
   },
   {
-    concept:
-      /\b(?:automated\s+tests?|programming\s+tests?|software\s+testing|test\s+automation|unit\s+tests?|pytest|unittest)\b/i,
+    concept: COMPUTER_SCIENCE_AUTOMATION_CONCEPT_RE,
     source:
-      /(?:\b(?:unit\s+tests?|software\s+testing|programming\s+tests?|test[-\s]driven|pytest|unittest)\b|(?=.*\b(?:automated\s+tests?|test\s+automation)\b)(?=.*\b(?:application\s+under\s+test|code|computer\s+programs?|continuous\s+integration|software\s+development|software\s+testing)\b))/i,
+      /(?:\b(?:unit\s+tests?|software\s+testing|programming\s+tests?|test[-\s]driven|pytest|unittest)\b|(?=.*\b(?:automated\s+tests?|test\s+automation)\b)(?=.*\b(?:application\s+under\s+test|computer\s+programs?|continuous\s+integration|software\s+(?:being\s+tested|development|testing)|system\s+under\s+test)\b))/i,
   },
   {
     concept: /\bdebugging\b/i,
@@ -1090,7 +1093,7 @@ function hasOnlyArtifactConceptLinks(source = {}) {
   return labels.length > 0 && labels.every((label) => ARTIFACT_ONLY_CONCEPT_RE.test(label));
 }
 
-function hasOnlyStatisticalTestConceptLinks(source = {}) {
+function hasOnlyStatisticalConceptLinks(source = {}) {
   const labels = (Array.isArray(source?.conceptLinks) ? source.conceptLinks : [])
     .map((link) => cleanText(typeof link === 'string' ? link : link?.label || link?.id || '', 160))
     .filter(Boolean)
@@ -1098,7 +1101,7 @@ function hasOnlyStatisticalTestConceptLinks(source = {}) {
   return (
     labels.length > 0 &&
     labels.every(
-      (label) => STATISTICAL_TEST_CONCEPT_RE.test(label) && !NON_STATISTICAL_COMPUTING_TEST_CONCEPT_RE.test(label),
+      (label) => STATISTICAL_CONCEPT_RE.test(label) && !NON_STATISTICAL_COMPUTING_TEST_CONCEPT_RE.test(label),
     )
   );
 }
@@ -1153,7 +1156,13 @@ export function isComputerScienceWeakSource(source, courseGraph) {
   if (hasOnlyArtifactConceptLinks(source)) return true;
   const text = sourceSearchText(source);
   const conceptText = sourceConceptText(source);
-  if (hasOnlyStatisticalTestConceptLinks(source) && STATISTICAL_TEST_SOURCE_RE.test(text)) return false;
+  if (
+    COMPUTER_SCIENCE_AUTOMATION_CONCEPT_RE.test(conceptText) &&
+    COMPUTER_SCIENCE_AUTOMATION_PHYSICAL_FALSE_FRIEND_RE.test(text)
+  ) {
+    return true;
+  }
+  if (hasOnlyStatisticalConceptLinks(source) && STATISTICAL_SOURCE_RE.test(text)) return false;
   if (COMPUTER_SCIENCE_FALSE_FRIEND_RE.test(text)) return true;
   const conceptLabels = (Array.isArray(source?.conceptLinks) ? source.conceptLinks : [])
     .map((link) => cleanText(typeof link === 'string' ? link : link?.label || link?.id || '', 160))

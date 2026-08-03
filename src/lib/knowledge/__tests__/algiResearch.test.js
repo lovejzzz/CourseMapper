@@ -1094,7 +1094,10 @@ describe('relevance scoring', () => {
       ]),
     );
     expect(directResearchTitles('Bioremediation', 'Environmental Microbiology')).toEqual(
-      expect.arrayContaining(['Bioremediation', 'Phytoremediation', 'Mycoremediation', 'Biodegradation']),
+      expect.arrayContaining(['Bioremediation', 'Biodegradation']),
+    );
+    expect(directResearchTitles('Bioremediation', 'Environmental Microbiology')).not.toEqual(
+      expect.arrayContaining(['Phytoremediation', 'Mycoremediation']),
     );
     expect(directResearchTitles('Contextual inquiry and field notes', 'User Experience Research Studio')).toEqual(
       expect.arrayContaining(['Contextual inquiry', 'Fieldnotes', 'Field research']),
@@ -1990,7 +1993,7 @@ describe('lesson research admission', () => {
         'A function supports reuse because the same operation can be invoked from multiple program locations.',
       ].join('\n'),
       'Test automation': [
-        'In software testing, test automation is the use of software to control the execution of tests and compare actual outcomes with predicted outcomes.',
+        'Test automation is the use of software (separate from the software being tested) for controlling the execution of tests and comparing actual outcome with predicted.',
         'Automated tests can repeat checks after a program change and expose a regression.',
         'Test automation records a visible result so a failed expectation can guide revision.',
       ].join('\n'),
@@ -2167,8 +2170,55 @@ describe('lesson research admission', () => {
     expect(queries).toHaveLength(2);
   });
 
+  it('allocates isolated retries fairly before spending budget on child clauses', async () => {
+    const topics = ['Alpha and beta', 'Gamma and delta', 'Epsilon and zeta'];
+    const queries = [];
+    const provider = {
+      id: 'wikipedia',
+      sourceKind: 'open encyclopedia',
+      supportsDirectTitles: false,
+      license: 'CC BY-SA 4.0',
+      searchArticles: async (query) => {
+        queries.push(query);
+        return {};
+      },
+      search: async () => [],
+      articles: async () => ({}),
+      article: async () => null,
+      sourceIdFor: (title) => `wikipedia:${title}`,
+      attributionFor: () => 'Wikipedia contributors',
+    };
+    const researchPlan = planAlgiCourseResearch({
+      courseName: 'General methods',
+      lessons: topics.map((title, index) => ({ lessonId: `lesson-${index + 1}`, title })),
+    });
+
+    const result = await researchLessonKernelSets(topics, {
+      provider,
+      courseContext: 'General methods',
+      researchPlan,
+      providerId: 'wikipedia',
+      maxTargetedFallbacks: 3,
+      maxTargetedSearchRequests: 3,
+    });
+
+    expect(result.targetedSearches).toBe(3);
+    expect(queries.slice(1)).toEqual(['(alpha OR beta)', '(gamma OR delta)', '(epsilon OR zeta)']);
+    expect(result.targetedBudgetExhausted).toEqual([
+      { topic: 'Alpha and beta', scheduled: 1, available: 3 },
+      { topic: 'Gamma and delta', scheduled: 1, available: 3 },
+      { topic: 'Epsilon and zeta', scheduled: 1, available: 3 },
+    ]);
+  });
+
   it('keeps reproducibility distinct from biological reproduction', () => {
     expect(contentTokens('reproducibility reproduction')).toEqual(['reproduc', 'reproduction']);
+    expect(contentTokens('reproduce reproduces reproduced reproducing')).toEqual([
+      'reproduce',
+      'reproduce',
+      'reproduce',
+      'reproduce',
+    ]);
     expect(contentTokens('visualization visual narratives')).toEqual(['visualization', 'visual', 'narrativ']);
     expect(contentTokens('automation automated automatic')).toEqual(['automat', 'automat', 'automatic']);
   });

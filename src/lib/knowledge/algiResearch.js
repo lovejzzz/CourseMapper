@@ -190,6 +190,7 @@ function stem(token) {
   if (/^automat(?:e|ed|es|ing|ion|ions)?$/.test(normalized)) return 'automat';
   if (/^visuali[sz](?:ation|ations|e|ed|es|ing)$/.test(normalized)) return 'visualization';
   if (/^reproducib/.test(normalized)) return 'reproduc';
+  if (/^reproduc(?:e|es|ed|ing)$/.test(normalized)) return 'reproduce';
   if (/^(?:bio|phyto|myco)remediation$/.test(normalized)) return normalized;
   if (/^remediation$/.test(normalized)) return 'remediation';
   if (/^govern(?:ance|ed|ing|ment|ments|s)?$/.test(normalized)) return 'govern';
@@ -443,8 +444,11 @@ export function directResearchTitles(topic = '', courseContext = '') {
         'Extracellular polymeric substance',
       ];
     }
-    if (/^(?:bio)?remediation$/i.test(normalized)) {
-      return ['Bioremediation', 'Phytoremediation', 'Mycoremediation', 'Biodegradation'];
+    if (/^bioremediation$/i.test(normalized)) {
+      return ['Bioremediation', 'Biodegradation'];
+    }
+    if (/^remediation$/i.test(normalized)) {
+      return ['Remediation'];
     }
     if (/\bcontextual inquiry\b/i.test(normalized) && /\bfield\s*notes?\b/i.test(normalized)) {
       // Wikipedia spells Fieldnotes as one word, while instructors almost
@@ -2662,6 +2666,7 @@ export async function researchLessonKernelSets(
   const targetedTitlesByTopic = new Map();
   let targetedRecords = new Map();
   let targetedSearches = 0;
+  const targetedQueryQueues = new Map();
   for (const topic of sparse) {
     const fallbackQuery =
       groupedResearchQueryFromPlan([topic], researchPlan, effectiveProviderId) ||
@@ -2669,12 +2674,37 @@ export async function researchLessonKernelSets(
     const plannedVariants = researchPlan
       ? providerQueryVariantsForLesson(researchPlan, topic, effectiveProviderId)
       : [fallbackQuery];
-    // The first variant repeats the whole lesson in isolation after the
-    // breadth pass grouped it with peers. This separate targeted-search budget
-    // bounds only the revision burst; grouped searches and article batches
-    // remain separately bounded by groupSize and batched provider methods.
-    const remainingTargetedQueries = Math.max(0, Number(maxTargetedSearchRequests) - targetedSearches);
-    const queries = (plannedVariants.length > 0 ? plannedVariants : [fallbackQuery]).slice(0, remainingTargetedQueries);
+    targetedQueryQueues.set(topic, plannedVariants.length > 0 ? plannedVariants : [fallbackQuery]);
+  }
+  // The first variant repeats each whole lesson in isolation after the breadth
+  // pass grouped it with peers. Allocate the targeted revision budget in
+  // rounds so every sparse lesson receives that isolated retry before an
+  // earlier compound title can spend the remainder on child clauses.
+  const scheduledQueriesByTopic = new Map(sparse.map((topic) => [topic, []]));
+  let remainingTargetedBudget = Math.max(0, Math.floor(Number(maxTargetedSearchRequests) || 0));
+  for (let variantIndex = 0; remainingTargetedBudget > 0; variantIndex += 1) {
+    let scheduledInRound = 0;
+    for (const topic of sparse) {
+      const query = targetedQueryQueues.get(topic)?.[variantIndex];
+      if (!query) continue;
+      scheduledQueriesByTopic.get(topic).push(query);
+      remainingTargetedBudget -= 1;
+      scheduledInRound += 1;
+      if (remainingTargetedBudget === 0) break;
+    }
+    if (scheduledInRound === 0) break;
+  }
+  const targetedBudgetExhausted = sparse
+    .filter(
+      (topic) => (scheduledQueriesByTopic.get(topic)?.length || 0) < (targetedQueryQueues.get(topic)?.length || 0),
+    )
+    .map((topic) => ({
+      topic,
+      scheduled: scheduledQueriesByTopic.get(topic)?.length || 0,
+      available: targetedQueryQueues.get(topic)?.length || 0,
+    }));
+  for (const topic of sparse) {
+    const queries = scheduledQueriesByTopic.get(topic) || [];
     const topicTitles = [];
     for (const query of queries) {
       targetedSearches += 1;
@@ -2739,6 +2769,7 @@ export async function researchLessonKernelSets(
     errors,
     searchGroups: groups.length,
     targetedSearches,
+    targetedBudgetExhausted,
     articleCandidates: new Set([...allDirectTitles, ...allSearchTitles, ...targetedTitles]).size,
   };
   onProgress?.({

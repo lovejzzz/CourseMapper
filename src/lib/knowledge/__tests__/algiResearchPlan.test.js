@@ -89,6 +89,21 @@ describe('Algi course research planning', () => {
     ]);
   });
 
+  it('does not mistake systems-engineering inputs and functions for programming', () => {
+    const plan = planAlgiCourseResearch({
+      courseName: 'Systems Engineering',
+      lessons: [{ lessonId: 'lesson-1', title: 'Inputs, outputs, and transfer functions' }],
+    });
+
+    expect(plan.domain).toBe('quantitative');
+    expect(providerQueryVariantsForLesson(plan, 'Inputs, outputs, and transfer functions', 'wikipedia')).toEqual([
+      '(inputs OR outputs OR transfer functions) data analysis',
+      '"inputs" data analysis',
+      '"outputs" data analysis',
+      '"transfer functions" data analysis',
+    ]);
+  });
+
   it('lets biomedical course context outrank collision-prone programming words', () => {
     const plan = planAlgiCourseResearch({
       courseName: 'Molecular Biology',

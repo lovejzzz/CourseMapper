@@ -42,6 +42,8 @@ const BIOMEDICAL =
   /\b(?:anatom\w*|biofilm\w*|biolog\w*|biomed\w*|clinical|disease\w*|epidemi\w*|health|immun\w*|medical|medicine|microbi\w*|nurs\w*|pathogen\w*|physiol\w*|public health|toxicolog\w*|virolog\w*)\b/i;
 const QUANTITATIVE =
   /\b(?:algorithm|calculus|computer science|data|econom|engineering|mathemat|physics|probability|programming|quantitative|statistics)\b/i;
+const COMPUTING_CONTEXT =
+  /\b(?:coding|computer\s+science|programming|python|software\s+development|software\s+engineering)\b/i;
 const HUMANITIES =
   /\b(?:art history|ethics|history|humanities|language|literature|music|philosoph|religion|writing)\b/i;
 const SOCIAL_SCIENCE =
@@ -99,7 +101,7 @@ function quoted(value = '') {
   return `"${clean(value).replace(/"/g, '')}"`;
 }
 
-function coarseDisambiguatorForProvider({ providerId, title, domainTerms, domain }) {
+function coarseDisambiguatorForProvider({ providerId, title, domainTerms, domain, computingContext = false }) {
   if (providerId !== 'wikipedia') {
     const titleTerms = new Set(tokens(title));
     return domainTerms.find((term) => !titleTerms.has(term)) || '';
@@ -108,18 +110,25 @@ function coarseDisambiguatorForProvider({ providerId, title, domainTerms, domain
     /\b(?:algorithm\w*|automated tests?|branch\w*|code|conditional\w*|data types?|debugg\w*|deploy\w*|exceptions?|expressions?|files?|functions?|inputs?|loops?|modules?|outputs?|program\w*|python|scope|software tests?|testing|unit tests?)\b/i.test(
       title,
     );
-  if (domain === 'quantitative') return programmingTopic ? 'computer programming' : 'data analysis';
+  if (domain === 'quantitative') return computingContext && programmingTopic ? 'computer programming' : 'data analysis';
   if (domain === 'biomedical') return 'biology';
   return '';
 }
 
-function queryForProvider({ providerId, title, domainTerms, domain, disambiguatorOverride = '' }) {
+function queryForProvider({
+  providerId,
+  title,
+  domainTerms,
+  domain,
+  computingContext = false,
+  disambiguatorOverride = '',
+}) {
   if (providerId === 'wikipedia') {
     // Encyclopedia search should look for the concepts an instructor named,
-    // not the whole pedagogical wrapper as one exact page title. A query such
-    // as "Functions and automated tests" applied has no canonical article,
-    // while "functions" OR "automated tests" can retrieve source pages for
-    // both sides and still leaves relevance/admission to reject false friends.
+    // not the whole pedagogical wrapper as one exact page title. A compound
+    // lesson phrase may have no canonical article, while an OR query over its
+    // clauses can retrieve source pages for both sides and still leaves
+    // relevance/admission to reject false friends.
     const clauses = clean(title)
       .split(/\s+(?:and|&)\s+|[,;:]/i)
       .map((clause) =>
@@ -131,11 +140,12 @@ function queryForProvider({ providerId, title, domainTerms, domain, disambiguato
       .map((terms) => terms.join(' '));
     // The course wins over a collision-prone lesson word. "Gene expression"
     // and "cardiac function" are not programming topics merely because their
-    // titles contain expression/function. Only a course already classified as
-    // quantitative may use the title vocabulary to choose between computing
-    // and broader data-analysis disambiguation.
+    // titles contain expression/function. A quantitative course must also
+    // contain an explicit computing signal before lesson vocabulary can choose
+    // computer-programming rather than broader data-analysis disambiguation.
     const coarseDisambiguator =
-      disambiguatorOverride || coarseDisambiguatorForProvider({ providerId, title, domainTerms, domain });
+      disambiguatorOverride ||
+      coarseDisambiguatorForProvider({ providerId, title, domainTerms, domain, computingContext });
     if (clauses.length > 1) {
       const concepts = `(${clauses.join(' OR ')})`;
       return [concepts, coarseDisambiguator].filter(Boolean).join(' ');
@@ -151,7 +161,8 @@ function queryForProvider({ providerId, title, domainTerms, domain, disambiguato
   // sides, remove only instructional wrapper words, and let the downstream
   // relevance/entailment gates decide which returned records are admissible.
   const disambiguator =
-    disambiguatorOverride || coarseDisambiguatorForProvider({ providerId, title, domainTerms, domain });
+    disambiguatorOverride ||
+    coarseDisambiguatorForProvider({ providerId, title, domainTerms, domain, computingContext });
   const wrapperHeavy =
     /,\s*(?:implementation|practice|application|comparison|evaluation|trade-offs?)\b/i.test(title) ||
     /\b(?:implementation|practice|evaluation|planning|trade-offs?)\s*$/i.test(title);
@@ -181,9 +192,15 @@ function queryForProvider({ providerId, title, domainTerms, domain, disambiguato
  * unresearched. The variants are derived from the instructor's title and the
  * inferred course domain; no course or source title is memorized here.
  */
-function queryVariantsForProvider({ providerId, title, domainTerms, domain }) {
-  const primary = queryForProvider({ providerId, title, domainTerms, domain });
-  const inheritedDisambiguator = coarseDisambiguatorForProvider({ providerId, title, domainTerms, domain });
+function queryVariantsForProvider({ providerId, title, domainTerms, domain, computingContext = false }) {
+  const primary = queryForProvider({ providerId, title, domainTerms, domain, computingContext });
+  const inheritedDisambiguator = coarseDisambiguatorForProvider({
+    providerId,
+    title,
+    domainTerms,
+    domain,
+    computingContext,
+  });
   const clauses = clean(title)
     .split(/\s+(?:and|&)\s+|[,;:]/i)
     .map(clean)
@@ -198,6 +215,7 @@ function queryVariantsForProvider({ providerId, title, domainTerms, domain }) {
         title: clause,
         domainTerms,
         domain,
+        computingContext,
         disambiguatorOverride: inheritedDisambiguator,
       }),
     ),
@@ -213,6 +231,7 @@ export function planAlgiCourseResearch({ courseName = '', lessons = [], now = Da
     .filter((lesson) => lesson.title);
   const domain = inferAlgiResearchDomain(courseName, normalizedLessons);
   const researchContext = [courseName, ...normalizedLessons.map((lesson) => lesson.title)].join(' ');
+  const computingContext = COMPUTING_CONTEXT.test(researchContext);
   // Standards-oriented accessibility lessons need the canonical concept and
   // conformance vocabulary before a broad empirical paper. A DOAJ-first pass
   // could satisfy the compact schema with a merely related article and stop
@@ -238,6 +257,7 @@ export function planAlgiCourseResearch({ courseName = '', lessons = [], now = Da
           title: lesson.title,
           domainTerms,
           domain,
+          computingContext,
         }),
       ]),
     );
@@ -249,6 +269,7 @@ export function planAlgiCourseResearch({ courseName = '', lessons = [], now = Da
           title: lesson.title,
           domainTerms,
           domain,
+          computingContext,
         }),
       ]),
     );

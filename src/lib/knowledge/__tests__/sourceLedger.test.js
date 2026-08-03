@@ -349,6 +349,17 @@ describe('trusted source ledger', () => {
     expect(
       isComputerScienceWeakSource(
         {
+          title: 'Correlation and regression',
+          evidence:
+            'Correlation describes a statistical relationship between variables, while linear regression estimates their conditional relationship.',
+          conceptLinks: [{ label: 'Correlation and regression' }],
+        },
+        courseGraph,
+      ),
+    ).toBe(false);
+    expect(
+      isComputerScienceWeakSource(
+        {
           title: 'Automated medical screening with statistical thresholds',
           evidence:
             'Clinical laboratory automation screens patient specimens and reports a p-value against a null hypothesis.',
@@ -2834,7 +2845,7 @@ describe('trusted source ledger', () => {
         {
           title: 'Test automation',
           evidence:
-            'In software testing, test automation uses software to control automated tests and compare actual outcomes.',
+            'Test automation is the use of software (separate from the software being tested) for controlling the execution of tests and comparing actual outcome with predicted.',
           conceptLinks: [{ label: 'Functions and automated tests' }, { label: 'Test automation' }],
         },
         graph,
@@ -2852,6 +2863,10 @@ describe('trusted source ledger', () => {
       {
         title: 'Automated medical screening',
         evidence: 'Automated tests screen patient specimens for diagnostic markers.',
+      },
+      {
+        title: 'Automated medical coding validation',
+        evidence: 'Automated tests compare diagnostic codes and billing codes in clinical records.',
       },
       {
         title: 'Industrial test automation',
