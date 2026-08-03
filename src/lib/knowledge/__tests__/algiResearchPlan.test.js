@@ -44,6 +44,20 @@ describe('Algi course research planning', () => {
     expect(providerSupportsLesson(plan, 'Postcolonial narrative and voice', 'europe-pmc')).toBe(false);
   });
 
+  it('learns foundational quantitative concepts from a reference source before adjacent papers', () => {
+    const plan = planAlgiCourseResearch({
+      courseName: 'Applied Programming and Statistics',
+      lessons: [
+        { lessonId: 'lesson-1', title: 'Data types and expressions' },
+        { lessonId: 'lesson-2', title: 'Control flow structures' },
+      ],
+    });
+
+    expect(plan.domain).toBe('quantitative');
+    expect(plan.providerOrder).toEqual(['wikipedia', 'doaj']);
+    expect(plan.lessons.every((lesson) => lesson.providerOrder[0] === 'wikipedia')).toBe(true);
+  });
+
   it('treats digital accessibility as a research domain and disambiguates encyclopedia queries', () => {
     const plan = planAlgiCourseResearch({
       courseName: 'Digital Accessibility for Product Teams',

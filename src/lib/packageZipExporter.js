@@ -4,6 +4,7 @@ import { resolveFeatureLabel } from './exporters/exporterUtils.js';
 import {
   buildSourceLedgerFromCourseGraph,
   buildSourceReportMarkdown,
+  bindRenderedClaimSupport,
   isClaimBoundSourceLedgerRow,
   isLicenseAmbiguous,
   isTrustedConceptLinkedSourceLedgerRow,
@@ -22,6 +23,7 @@ import { isAlgiModel } from './algiIdentity.js';
 import { GRADER_VERSION } from './quality/graderVersion.js';
 import { TEXTURE_VERSION } from './quality/textureMetric.js';
 import { verifyScoreLedger } from './quality/scoreLedgerVerifier.js';
+import { buildAssessmentCoherenceReceipt } from './quality/assessmentCoherence.js';
 import { extractExplicitLessonSequence } from './explicitLessonSequence.js';
 import {
   buildPackageReadinessBinding,
@@ -1389,6 +1391,41 @@ function mergeSourceLedgerRows(existing, incoming) {
     sourceLedgerRowStrength(incoming) > sourceLedgerRowStrength(existing) ? [incoming, existing] : [existing, incoming];
   const conceptLinks = mergeConceptLinks(stronger, weaker);
   const sessionRefs = mergeSourceSessionRefs(stronger, weaker);
+  const receiptStrength = (receipt) =>
+    (receipt?.readinessEligible === true ? 1000 : 0) +
+    (receipt?.semanticSupport === true ? 100 : 0) +
+    (Array.isArray(receipt?.checks) ? receipt.checks.length : 0);
+  const receiptCandidates = [stronger?.supportReceipt, weaker?.supportReceipt].filter(Boolean);
+  const supportReceipt = receiptCandidates.length
+    ? (() => {
+        const strongestReceipt = [...receiptCandidates].sort(
+          (left, right) => receiptStrength(right) - receiptStrength(left),
+        )[0];
+        const checks = [];
+        const seenChecks = new Set();
+        for (const receipt of receiptCandidates) {
+          for (const check of receipt?.checks || []) {
+            const key = [check?.sourceId, check?.locator, check?.claim, check?.quote]
+              .map((value) =>
+                String(value || '')
+                  .trim()
+                  .toLowerCase(),
+              )
+              .join('|');
+            if (!key.replace(/\|/g, '') || seenChecks.has(key)) continue;
+            seenChecks.add(key);
+            checks.push(check);
+          }
+        }
+        return {
+          ...strongestReceipt,
+          checkedClaims: Math.max(Number(strongestReceipt?.checkedClaims) || 0, checks.length),
+          semanticSupport: receiptCandidates.some((receipt) => receipt?.semanticSupport === true),
+          readinessEligible: receiptCandidates.some((receipt) => receipt?.readinessEligible === true),
+          ...(checks.length > 0 ? { checks } : {}),
+        };
+      })()
+    : null;
   return {
     ...stronger,
     ...(!stronger.attribution && weaker.attribution ? { attribution: weaker.attribution } : {}),
@@ -1398,6 +1435,7 @@ function mergeSourceLedgerRows(existing, incoming) {
     ...(!stronger.authors?.length && weaker.authors?.length ? { authors: weaker.authors } : {}),
     ...(sessionRefs.length > 0 ? { sessionRefs } : {}),
     ...(conceptLinks.length > 0 ? { conceptLinks } : {}),
+    ...(supportReceipt ? { supportReceipt } : {}),
   };
 }
 
@@ -1862,6 +1900,7 @@ function buildManifest({
   digest = null,
   generationConstraints = null,
   evidenceDependencies = null,
+  assessmentCoherence = null,
 }) {
   const courseIR = buildManifestCourseIRProof(courseGraph, { sourceRefCoverage });
   const exportVerification = buildManifestExportVerification(digest);
@@ -1909,6 +1948,7 @@ function buildManifest({
     // v0.16.1: the bridged registry's counts and weight total — the same
     // numbers the syllabus grading table renders.
     ...(assessmentSummary ? { assessmentSummary } : {}),
+    ...(assessmentCoherence ? { assessmentCoherence } : {}),
     // v0.14.5 (A5): the readings registry with provenance tags.
     ...(readings && readings.length > 0 ? { readings } : {}),
     ...(Array.isArray(sourceLedger) && sourceLedger.length > 0 ? { sourceLedger } : {}),
@@ -2276,6 +2316,36 @@ export async function buildCourseMaterialsZip({
   sourceManifestGraph = bridgedSourceProof.courseGraph;
   sourceLedgerBundle = bridgedSourceProof.sourceLedgerBundle;
   sourceRefCoverage = bridgedSourceProof.sourceRefCoverage;
+  // Scion's learner memory is not score evidence until the authored claim is
+  // visible in the actual Office bytes. Complete that transaction here, after
+  // every DOCX/PPTX exists but before the manifest and grader are assembled.
+  // Unsupported paraphrases, deleted claims, and compiler-only receipts stay
+  // unbound and cannot raise the deterministic evidence score.
+  const { extractOfficeVisibleText } = await safeImport(() => import('./exportRenderedTextAudit.js'));
+  const renderedOfficeArtifacts = [];
+  for (const file of files) {
+    if (!['docx', 'pptx'].includes(file?.format) || !fileContents[file.path]) continue;
+    const text = await extractOfficeVisibleText(fileContents[file.path], file.format);
+    if (!text) continue;
+    const bytes = await qualityArtifactBytes(fileContents[file.path]);
+    renderedOfficeArtifacts.push({
+      path: file.path,
+      featureId: file.featureId || null,
+      text,
+      sha256: await sha256QualityBytes(bytes),
+    });
+  }
+  if (sourceLedgerBundle?.rows?.length > 0) {
+    const rows = await bindRenderedClaimSupport(sourceLedgerBundle.rows, renderedOfficeArtifacts);
+    sourceLedgerBundle = {
+      ...sourceLedgerBundle,
+      rows,
+      summary: {
+        ...summarizeSourceLedgerRows(rows),
+        ...(sourceLedgerBundle.reviewRows?.length ? { reviewRequiredCount: sourceLedgerBundle.reviewRows.length } : {}),
+      },
+    };
+  }
   // Do not invent a source-pipeline claim for callers that supplied neither a
   // pipeline receipt nor source proof. The old unconditional normalization
   // emitted "not evaluated (0 genome-linked lessons)" for a plain headless
@@ -2338,6 +2408,16 @@ export async function buildCourseMaterialsZip({
     // v0.16.1: the bridge scopes to the same lessons the compile used.
     lessonNumbers,
   });
+  const manifestLessons = lessonIndices.map((lessonIndex, index) => ({
+    lessonNumber: lessonNumbers[index],
+    title: String(courseMap?.lessons?.[lessonIndex]?.title || '').trim(),
+    objectives: manifestLessonObjectives(courseMap?.lessons?.[lessonIndex]),
+  }));
+  const assessmentCoherence = buildAssessmentCoherenceReceipt({
+    lessons: manifestLessons,
+    assessments: manifestAssessments?.entries || [],
+    artifacts: renderedOfficeArtifacts,
+  });
   const evidenceDependencies = buildLessonEvidenceDependencies({
     courseMap,
     courseGraph: sourceManifestGraph,
@@ -2360,11 +2440,7 @@ export async function buildCourseMaterialsZip({
     courseName: safeCourseName,
     lessonFilter,
     lessonNumbers,
-    lessons: lessonIndices.map((lessonIndex, index) => ({
-      lessonNumber: lessonNumbers[index],
-      title: String(courseMap?.lessons?.[lessonIndex]?.title || '').trim(),
-      objectives: manifestLessonObjectives(courseMap?.lessons?.[lessonIndex]),
-    })),
+    lessons: manifestLessons,
     readiness: effectiveReadiness,
     files,
     requestedFeatureIds,
@@ -2394,6 +2470,7 @@ export async function buildCourseMaterialsZip({
       return Object.keys(constraints).length > 0 ? constraints : null;
     })(),
     evidenceDependencies,
+    assessmentCoherence,
   });
 
   // ── v0.14.3 WS-A A2/A3: the package grades itself ─────────────────────────

@@ -83,6 +83,14 @@ export function inferAlgiResearchDomain(courseName = '', lessons = []) {
 
 export function providerOrderForAlgiDomain(domain = 'general') {
   if (domain === 'biomedical') return ['europe-pmc', 'doaj', 'wikipedia'];
+  // Foundational quantitative lessons need canonical concept/mechanism
+  // coverage before a narrowly related research abstract. A scholarly-first
+  // route repeatedly returned domain-adjacent papers for basic programming,
+  // statistics, and data-method lessons; those metadata rows then displaced
+  // the reference source that actually defined the taught concept. Wikipedia
+  // remains subject to the same relevance, exact-passage, license, and
+  // admission gates, so this changes retrieval order rather than trust.
+  if (domain === 'quantitative') return ['wikipedia', 'doaj'];
   return ['doaj', 'wikipedia'];
 }
 

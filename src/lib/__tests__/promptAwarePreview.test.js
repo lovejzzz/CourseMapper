@@ -81,6 +81,7 @@ describe('prompt-aware setup previews', () => {
     expect(repairGeneratedCourseTitle('Community Data Storytelling Studio', prompt)).toBe(
       'Community Data Storytelling Studio',
     );
+    expect(repairGeneratedCourseTitle('Course', prompt)).toBe('Community Data Storytelling Studio');
   });
 
   it('uses the active course in every built-in material preview', () => {

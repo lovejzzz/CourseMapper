@@ -2845,7 +2845,7 @@ describe('packageZipExporter', () => {
       accessStatus: 'reference-present',
       conceptLinks: expect.arrayContaining([expect.objectContaining({ label: 'Fundraising stages' })]),
     });
-    expect(sourceReport).toContain('sf2:');
+    expect(sourceReport).toContain('(source id: sf2)');
     expect(sourceReport).not.toContain('syllabus-src-');
   });
 

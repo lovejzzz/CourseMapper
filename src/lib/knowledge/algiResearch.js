@@ -210,6 +210,31 @@ export function directResearchTitles(topic = '', courseContext = '') {
       /\b(?:database systems?|database management|relational databases?|\bsql\b|data management systems?)\b/i.test(
         courseContext,
       );
+    const programmingCourse =
+      /\b(?:computer science|data analysis|data science|programming|python|software development|software engineering)\b/i.test(
+        courseContext,
+      );
+    if (programmingCourse && /\b(?:data types?|expressions?|type systems?)\b/i.test(baseTopic)) {
+      return ['Data type', 'Expression (computer science)', 'Type system', 'Python (programming language)'];
+    }
+    if (programmingCourse && /\b(?:conditional branching|control flow|loops?|iteration)\b/i.test(baseTopic)) {
+      return ['Control flow', 'Conditional (computer programming)', 'For loop', 'While loop'];
+    }
+    if (programmingCourse && /\b(?:functions?|subroutines?|automated tests?|unit tests?|pytest)\b/i.test(baseTopic)) {
+      return ['Function (computer programming)', 'Subroutine', 'Unit testing', 'Software testing'];
+    }
+    if (
+      programmingCourse &&
+      /\b(?:pandas|tabular data|data cleaning|data cleansing|data wrangling)\b/i.test(baseTopic)
+    ) {
+      return ['Data cleansing', 'Data frame', 'Pandas (software)', 'Data wrangling'];
+    }
+    if (
+      programmingCourse &&
+      /\b(?:reproducib\w*|data visualization|visualisation|uncertainty|statistical inference)\b/i.test(baseTopic)
+    ) {
+      return ['Reproducibility', 'Data visualization', 'Uncertainty quantification', 'Statistical inference'];
+    }
     if (oralHistoryCourse && /\b(?:foundations?|defining|scope)\b/i.test(baseTopic)) {
       return ['Oral history', 'Public history', 'Oral tradition', 'Archival science'];
     }

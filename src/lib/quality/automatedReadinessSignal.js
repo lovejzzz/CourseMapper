@@ -1,5 +1,6 @@
 import { extractExplicitLessonSequence } from '../explicitLessonSequence.js';
-import { isTrustedConceptLinkedSourceLedgerRow } from '../knowledge/sourceLedger.js';
+import { isClaimBoundSourceLedgerRow, isTrustedConceptLinkedSourceLedgerRow } from '../knowledge/sourceLedger.js';
+export { buildAssessmentCoherenceFromPackage as assessment } from './assessmentCoherence.js';
 
 export const AUTOMATED_READINESS_PROTOCOL = 'coursemapper-deterministic-package-evidence-v2';
 // Compatibility exports retained for callers that previously rendered a
@@ -22,7 +23,7 @@ const COMPONENT_WEIGHTS = {
 
 export const AUTOMATED_EVIDENCE_COMPONENT_LABELS = {
   curriculumFidelity: 'Ordered lesson-title sequence match',
-  evidenceGrounding: 'Rendered claim support',
+  evidenceGrounding: 'Rendered exact-source claim coverage',
   instructionalTexture: 'Masked visible-unit variation',
   assessmentCoherence: 'Objective-task-rubric coherence',
   packageIntegrity: 'Encoded package-defect conformance',
@@ -45,7 +46,8 @@ export const AUTOMATED_EVIDENCE_RULE_CONTRACTS = Object.freeze([
     ruleId: 'DPK.EVIDENCE.RENDERED_CLAIM_SUPPORT',
     constructId: 'evidenceGrounding',
     max: 25,
-    evaluatedPolarity: null,
+    evaluatedPolarity: 'positive-metric',
+    evaluatedPredicateOperator: 'rendered-exact-source-claim-lesson-coverage',
     unobservedPredicateOperator: 'rendered-claim-to-source-entailment',
     evidence: [['package.source-support-receipts', 'PACKAGE_MANIFEST.json', '/sourceLedger']],
   },
@@ -62,9 +64,16 @@ export const AUTOMATED_EVIDENCE_RULE_CONTRACTS = Object.freeze([
     ruleId: 'DPK.ASSESSMENT.COHERENCE',
     constructId: 'assessmentCoherence',
     max: 15,
-    evaluatedPolarity: null,
+    evaluatedPolarity: 'positive-metric',
+    evaluatedPredicateOperator: 'rendered-objective-task-evidence-rubric-linkage',
     unobservedPredicateOperator: 'assessment-objective-rubric-coherence',
-    evidence: [['grader.assessment-coherence-checks', 'SCORE_LEDGER.json', '/conformance/checks/assessment']],
+    evidence: [
+      [
+        'grader.assessment-coherence-checks',
+        'SCORE_LEDGER.json',
+        '/readiness/ledger/rules/DPK.ASSESSMENT.COHERENCE/evidence',
+      ],
+    ],
   },
   {
     ruleId: 'DPK.PACKAGE.INTEGRITY',
@@ -162,10 +171,26 @@ export function replayAutomatedEvidenceRule(rule = {}) {
       predicateActual = 0;
     }
   } else if (rule.ruleId === 'DPK.EVIDENCE.RENDERED_CLAIM_SUPPORT') {
-    predicateOperator = contract.unobservedPredicateOperator;
-    predicateExpected = 'independently validated semantic support for rendered instructional claims';
-    predicateActual = 'not implemented by this deterministic protocol';
-    antiGamingInput = ruleEvidenceObserved(rule, 'package.source-support-receipts');
+    const observed = ruleEvidenceObserved(rule, 'package.source-support-receipts');
+    antiGamingInput = observed;
+    const groundingRatio = Number(observed?.groundingRatio);
+    if (
+      observed?.protocol === 'rendered-exact-source-claim-coverage-v1' &&
+      Number(observed?.lessons) > 0 &&
+      Number.isFinite(groundingRatio) &&
+      groundingRatio >= 0 &&
+      groundingRatio <= 1
+    ) {
+      status = 'evaluated';
+      points = replayedPoints(contract.max, groundingRatio * 100);
+      predicateOperator = contract.evaluatedPredicateOperator;
+      predicateExpected = { minimumExactClaimsPerLesson: 1, exactClaimIdentity: true, renderedByteBinding: true };
+      predicateActual = observed;
+    } else {
+      predicateOperator = contract.unobservedPredicateOperator;
+      predicateExpected = 'independently validated semantic support for rendered instructional claims';
+      predicateActual = 'not implemented by this deterministic protocol';
+    }
   } else if (rule.ruleId === 'DPK.INSTRUCTION.TEXTURE') {
     const observed = ruleEvidenceObserved(rule, 'grader.texture-score');
     const textureScore = observed?.textureScore;
@@ -182,10 +207,31 @@ export function replayAutomatedEvidenceRule(rule = {}) {
       predicateActual = null;
     }
   } else if (rule.ruleId === 'DPK.ASSESSMENT.COHERENCE') {
-    predicateOperator = contract.unobservedPredicateOperator;
-    predicateExpected = 'assessment-specific checks with objective and rubric linkage';
-    predicateActual = 'not isolated from broad substance and consistency checks';
-    antiGamingInput = ruleEvidenceObserved(rule, 'grader.assessment-coherence-checks');
+    const observed = ruleEvidenceObserved(rule, 'grader.assessment-coherence-checks');
+    const coherenceRatio = Number(observed?.coherenceRatio);
+    antiGamingInput = observed;
+    if (
+      observed?.protocol === 'rendered-assessment-coherence-v1' &&
+      Number(observed?.eligibleAssessments) > 0 &&
+      Number(observed?.totalChecks) === Number(observed?.eligibleAssessments) * 5 &&
+      Number.isFinite(coherenceRatio) &&
+      coherenceRatio >= 0 &&
+      coherenceRatio <= 1
+    ) {
+      status = 'evaluated';
+      points = replayedPoints(contract.max, coherenceRatio * 100);
+      predicateOperator = contract.evaluatedPredicateOperator;
+      predicateExpected = {
+        checksPerAssessment: 5,
+        renderedTaskAndRubricBytes: true,
+        exactObjectiveVisibility: true,
+      };
+      predicateActual = observed;
+    } else {
+      predicateOperator = contract.unobservedPredicateOperator;
+      predicateExpected = 'assessment-specific checks with objective and rubric linkage';
+      predicateActual = 'no eligible rendered assessment receipt';
+    }
   } else if (rule.ruleId === 'DPK.PACKAGE.INTEGRITY') {
     const observed = {
       structure: ruleEvidenceObserved(rule, 'grader.structure-conformance'),
@@ -247,6 +293,11 @@ function lessonNumbersForSource(row = {}) {
     if (match) lessons.add(Number(match[1]));
   }
   return lessons;
+}
+
+function lessonNumberForRenderedLocation(value = '') {
+  const match = String(value || '').match(/(?:^|\/)Lesson\s+(\d{1,3})\b/i);
+  return match ? Number(match[1]) : null;
 }
 
 function reconstructionDisclosure(manifest) {
@@ -501,6 +552,69 @@ function curriculumRule(manifest, course, lessonTitles) {
 }
 
 function groundingRule(manifest, lessonCount) {
+  const claimBoundRows = (Array.isArray(manifest?.sourceLedger) ? manifest.sourceLedger : []).filter(
+    isClaimBoundSourceLedgerRow,
+  );
+  const claimBoundLessons = new Set();
+  const renderedArtifacts = new Set();
+  let renderedClaims = 0;
+  for (const row of claimBoundRows) {
+    for (const check of row?.supportReceipt?.checks || []) {
+      if (check?.renderedLocation) {
+        renderedArtifacts.add(String(check.renderedLocation));
+        const lesson = lessonNumberForRenderedLocation(check.renderedLocation);
+        if (lesson) claimBoundLessons.add(lesson);
+      }
+      if (check?.renderedLocation && check?.semanticSupport === true && check?.entailed === true) renderedClaims += 1;
+    }
+  }
+  const boundedLessonCount = Math.max(0, Number(lessonCount) || 0);
+  const coveredLessons = [...claimBoundLessons].filter(
+    (lesson) => Number.isInteger(lesson) && lesson >= 1 && lesson <= boundedLessonCount,
+  ).length;
+  if (boundedLessonCount > 0 && coveredLessons > 0 && renderedClaims >= coveredLessons) {
+    const observed = {
+      protocol: 'rendered-exact-source-claim-coverage-v1',
+      construct: 'rendered-exact-source-claim-support',
+      downstreamClaimSupport: true,
+      scoreEligible: true,
+      lessons: boundedLessonCount,
+      receiptBackedLessons: coveredLessons,
+      verifiedClaims: renderedClaims,
+      trustedConceptLinkedSources: claimBoundRows.length,
+      renderedArtifacts: renderedArtifacts.size,
+      groundingRatio: Number((coveredLessons / boundedLessonCount).toFixed(3)),
+      claimBoundary:
+        'Only exact source claims located in exported Office bytes are counted; surrounding prose remains unvalidated.',
+    };
+    return evaluatedRule({
+      ruleId: 'DPK.EVIDENCE.RENDERED_CLAIM_SUPPORT',
+      constructId: 'evidenceGrounding',
+      max: COMPONENT_WEIGHTS.evidenceGrounding,
+      componentScore: observed.groundingRatio * 100,
+      evidence: [evidenceRef('package.source-support-receipts', 'PACKAGE_MANIFEST.json', '/sourceLedger', observed)],
+      predicate: {
+        operator: 'rendered-exact-source-claim-lesson-coverage',
+        expected: { minimumExactClaimsPerLesson: 1, exactClaimIdentity: true, renderedByteBinding: true },
+        actual: observed,
+      },
+      reason: `${coveredLessons}/${boundedLessonCount} lessons contain at least one byte-bound exact claim from an admitted source passage (${renderedClaims} claims across ${renderedArtifacts.size} artifacts).`,
+      action:
+        coveredLessons === boundedLessonCount
+          ? 'Preserve the exact source-to-rendered-claim bindings and independently review surrounding instructional interpretations.'
+          : 'Add at least one admitted, exact source claim to each uncovered lesson without deleting or paraphrasing already bound claims.',
+      antiGaming: {
+        controls: [
+          'lesson-count denominator is fixed by the exported package',
+          'citation rows without rendered byte locations earn no credit',
+          'lexical near-matches and unsupported paraphrases earn no credit',
+          'surrounding prose is explicitly outside the claim',
+        ],
+        inputFingerprint: stableFingerprint(observed),
+      },
+      evidenceTier: 'rendered-exact-source-claim',
+    });
+  }
   const receiptRows = (Array.isArray(manifest?.sourceLedger) ? manifest.sourceLedger : [])
     .filter(isTrustedConceptLinkedSourceLedgerRow)
     .map((row) => ({ row, receipt: passedSupportReceipt(row) }))
@@ -600,24 +714,64 @@ function textureRule(textureScore) {
   });
 }
 
-function assessmentRule() {
-  const observed = { eligibleAssessmentChecks: 0 };
+function assessmentRule(receipt) {
+  const observed = receipt || { eligibleAssessments: 0, totalChecks: 0 };
+  const ratio = Number(observed?.coherenceRatio);
+  const eligible = Number(observed?.eligibleAssessments);
+  const valid =
+    observed?.protocol === 'rendered-assessment-coherence-v1' &&
+    eligible > 0 &&
+    Number(observed?.totalChecks) === eligible * 5 &&
+    Number.isFinite(ratio) &&
+    ratio >= 0 &&
+    ratio <= 1;
+  const evidence = [
+    evidenceRef(
+      'grader.assessment-coherence-checks',
+      'SCORE_LEDGER.json',
+      '/readiness/ledger/rules/DPK.ASSESSMENT.COHERENCE/evidence',
+      observed,
+    ),
+  ];
+  if (valid) {
+    const failedChecks = Number(observed.totalChecks) - Number(observed.passedChecks);
+    return evaluatedRule({
+      ruleId: 'DPK.ASSESSMENT.COHERENCE',
+      constructId: 'assessmentCoherence',
+      max: COMPONENT_WEIGHTS.assessmentCoherence,
+      componentScore: ratio * 100,
+      evidence,
+      predicate: {
+        operator: 'rendered-objective-task-evidence-rubric-linkage',
+        expected: { checksPerAssessment: 5, renderedTaskAndRubricBytes: true, exactObjectiveVisibility: true },
+        actual: observed,
+      },
+      reason: `${observed.passedChecks}/${observed.totalChecks} rendered assessment-link checks passed across ${eligible} graded assessment${eligible === 1 ? '' : 's'}.`,
+      action:
+        failedChecks === 0
+          ? 'Preserve the visible objective, task, student-evidence, and rubric chain when revising assessments.'
+          : `Repair the ${failedChecks} failed task/rubric linkage check${failedChecks === 1 ? '' : 's'} named in the receipt, then re-export and regrade.`,
+      antiGaming: {
+        controls: [
+          'only independently extracted Office text is evaluated',
+          'every graded assessment contributes exactly five checks',
+          'missing or wrong-lesson files fail rather than leave the denominator',
+          'broad substance and consistency scores are not reused',
+        ],
+        inputFingerprint: stableFingerprint(observed),
+      },
+      evidenceTier: 'deterministic-rendered-assessment',
+    });
+  }
   return unobservedRule({
     ruleId: 'DPK.ASSESSMENT.COHERENCE',
     constructId: 'assessmentCoherence',
     max: COMPONENT_WEIGHTS.assessmentCoherence,
-    evidence: [
-      evidenceRef(
-        'grader.assessment-coherence-checks',
-        'SCORE_LEDGER.json',
-        '/conformance/checks/assessment',
-        observed,
-      ),
-    ],
+    evidence,
     predicate: {
       operator: 'assessment-objective-rubric-coherence',
       expected: 'assessment-specific checks with objective and rubric linkage',
-      actual: 'not isolated from broad substance and consistency checks',
+      actual: 'no eligible rendered assessment receipt',
     },
     reason:
       'The current grader does not isolate assessment-specific coherence evidence, so broad conformance scores are not reused here.',
@@ -703,6 +857,7 @@ export function computeAutomatedReadinessSignal({
   lessonTitles = [],
   conformance = {},
   texture = {},
+  assessment = null,
 } = {}) {
   const titles = (Array.isArray(lessonTitles) ? lessonTitles : [])
     .map((title) => String(title || '').trim())
@@ -711,7 +866,7 @@ export function computeAutomatedReadinessSignal({
     curriculumRule(manifest, course, titles),
     groundingRule(manifest, titles.length),
     textureRule(texture?.score),
-    assessmentRule(),
+    assessmentRule(assessment),
     integrityRule(conformance),
   ];
   const points = recomputeAutomatedEvidenceLedger(rules);
@@ -767,3 +922,5 @@ export function computeAutomatedReadinessSignal({
     components,
   };
 }
+
+export { computeAutomatedReadinessSignal as score };

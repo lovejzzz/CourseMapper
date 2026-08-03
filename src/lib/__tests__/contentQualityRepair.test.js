@@ -1163,6 +1163,7 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     const data = {
       lessonPlans: [
         {
+          lessonTitle: 'Lesson 2: Control Flow Structures',
           description: 'Test this admitted claim before deciding: the cited source claim.',
           evidence: 'Evidence: the cited source claim.',
           notes: 'Emphasize the cited source claim. in concrete language and tie it back to the objective.',
@@ -1176,15 +1177,16 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
 
     expect(result.changed).toBe(true);
     expect(result.data.lessonPlans[0].description).toBe(
-      'Compare the retained source statements before deciding which conclusion they support.',
+      'Compare the source evidence for Control Flow Structures before deciding which conclusion it supports.',
     );
     expect(result.data.lessonPlans[0].evidence).toBe(
-      'Evidence: Use the retained source statement and identify its limit.',
+      'Evidence: Use the source evidence for Control Flow Structures and identify its limit.',
     );
     expect(result.data.lessonPlans[0].notes).toContain(
-      'Emphasize the retained source statement for this lesson in concrete language',
+      'Emphasize the source evidence for Control Flow Structures in concrete language',
     );
     expect(text).not.toContain('the cited source claim');
+    expect(text).not.toContain('retained source statement for this lesson');
     expect(text).not.toContain('claim. in concrete language');
   });
 

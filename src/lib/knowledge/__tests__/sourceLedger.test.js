@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  bindRenderedClaimSupport,
   buildSourceLedgerFromCourseGraph,
   buildSourceReportMarkdown,
   isClaimBoundSourceLedgerRow,
@@ -13,6 +14,121 @@ import {
 } from '../sourceLedger.js';
 
 describe('trusted source ledger', () => {
+  it('promotes exact learner-visible source claims only after Office artifact binding', async () => {
+    const claim = 'Conditional branching selects a code path by evaluating a condition.';
+    const row = normalizeTrustedSource({
+      id: 'source-branching',
+      title: 'Conditional statement',
+      provider: 'wikipedia',
+      url: 'https://en.wikipedia.org/wiki/Conditional_(computer_programming)',
+      license: 'CC BY-SA 4.0',
+      sessionRefs: ['lesson-2'],
+      conceptLinks: [{ id: 'lesson-2', label: 'Conditional Branching' }],
+      supportReceipt: {
+        status: 'passed',
+        checkedClaims: 1,
+        minimumScore: 1,
+        semanticSupport: true,
+        readinessEligible: false,
+        checks: [
+          {
+            sourceId: 'source-branching',
+            locator: 'lead paragraph',
+            quote: claim,
+            claim,
+            quoteInSnapshot: true,
+            entailed: true,
+            semanticSupport: true,
+            score: 1,
+          },
+        ],
+      },
+    });
+
+    expect(isClaimBoundSourceLedgerRow(row)).toBe(false);
+    const [bound] = await bindRenderedClaimSupport(
+      [row],
+      [
+        {
+          path: 'Lesson Plans/Lesson 02 - Conditional Branching - Lesson Plans.docx',
+          text: `Source evidence: ${claim}`,
+          sha256: 'artifact-sha-256',
+        },
+        {
+          path: 'Study Guides/Lesson 02 - Conditional Branching - Study Guides.docx',
+          text: `Study note: ${claim}`,
+          sha256: 'study-guide-sha-256',
+        },
+      ],
+    );
+
+    expect(isClaimBoundSourceLedgerRow(bound)).toBe(true);
+    expect(bound.supportReceipt).toMatchObject({
+      readinessEligible: true,
+      semanticSupport: true,
+      method: 'rendered-exact-source-claim-v1',
+      checkedClaims: 2,
+    });
+    expect(bound.supportReceipt.checks).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          renderedLocation: 'Lesson Plans/Lesson 02 - Conditional Branching - Lesson Plans.docx',
+          renderedArtifactSha256: 'artifact-sha-256',
+          verifierVersion: 'rendered-exact-source-claim-v1',
+        }),
+        expect.objectContaining({
+          renderedLocation: 'Study Guides/Lesson 02 - Conditional Branching - Study Guides.docx',
+          renderedArtifactSha256: 'study-guide-sha-256',
+        }),
+      ]),
+    );
+  });
+
+  it('does not bind paraphrased, deleted, or wrong-lesson claims', async () => {
+    const claim = 'A data frame stores tabular data in labeled rows and columns.';
+    const row = normalizeTrustedSource({
+      id: 'source-frame',
+      title: 'Data frame',
+      provider: 'wikipedia',
+      url: 'https://en.wikipedia.org/wiki/Data_frame',
+      license: 'CC BY-SA 4.0',
+      sessionRefs: ['lesson-4'],
+      conceptLinks: [{ id: 'lesson-4', label: 'Tabular Data' }],
+      supportReceipt: {
+        status: 'passed',
+        checkedClaims: 1,
+        minimumScore: 1,
+        semanticSupport: true,
+        readinessEligible: false,
+        checks: [
+          {
+            sourceId: 'source-frame',
+            locator: 'definition',
+            quote: claim,
+            claim,
+            quoteInSnapshot: true,
+            entailed: true,
+            semanticSupport: true,
+            score: 1,
+          },
+        ],
+      },
+    });
+    const [unbound] = await bindRenderedClaimSupport(
+      [row],
+      [
+        {
+          path: 'Lesson Plans/Lesson 03 - Functions - Lesson Plans.docx',
+          text: 'A table-like object can organize labeled observations and variables.',
+          sha256: 'wrong-artifact',
+        },
+      ],
+    );
+
+    expect(isClaimBoundSourceLedgerRow(unbound)).toBe(false);
+    expect(unbound.supportReceipt.readinessEligible).toBe(false);
+  });
+
   it('requires a complete source-to-rendered-claim chain before declaring evidence resolved', () => {
     const base = {
       id: 'source-1',
@@ -163,6 +279,36 @@ describe('trusted source ledger', () => {
         courseGraph,
       ),
     ).toBe(false);
+    expect(
+      isComputerScienceWeakSource(
+        source(
+          'Reproducibility',
+          'Reproducibility is the ability to obtain consistent results using the same data and analysis.',
+          'Reproducible Analysis, Visualization, and Uncertainty',
+        ),
+        courseGraph,
+      ),
+    ).toBe(false);
+    expect(
+      isComputerScienceWeakSource(
+        source(
+          'Data visualization',
+          'Data visualization communicates data through graphical representations and visual encodings.',
+          'Reproducible Analysis, Visualization, and Uncertainty',
+        ),
+        courseGraph,
+      ),
+    ).toBe(false);
+    expect(
+      isComputerScienceWeakSource(
+        source(
+          'Visualization (graphics)',
+          'Visualization is any technique for creating images, diagrams, or animations.',
+          'Reproducible Analysis, Visualization, and Uncertainty',
+        ),
+        courseGraph,
+      ),
+    ).toBe(true);
   });
 
   it('does not let a mixed coarse overlay expand trusted source coverage into a rejected lesson', () => {
@@ -938,6 +1084,8 @@ describe('trusted source ledger', () => {
     expect(report).toContain('Source Ledger');
     expect(report).toContain('Source Review Notes');
     expect(report).toContain('kr1');
+    expect(report).toContain('(source id: kr1)');
+    expect(report).not.toContain('- kr1:');
     expect(report).toContain('attribution=OpenStax, Rice University');
     expect(report).toContain('revisionId=openstax-calculus-v1');
     expect(report).toContain('revisionTimestamp=2026-06-19T00:00:00Z');
@@ -2496,6 +2644,49 @@ describe('trusted source ledger', () => {
       'Exception handling',
     ]);
     expect(ledger.reviewRows || []).toHaveLength(0);
+  });
+
+  it('keeps canonical expression, loop-statement, and uncertainty evidence for a mixed civic-data sequence', () => {
+    const graph = {
+      course: { name: 'Applied Civic Data Analysis' },
+      sessions: [
+        { title: 'Lesson 1: Python data types and expressions' },
+        { title: 'Lesson 2: Conditional branching and loops' },
+        { title: 'Lesson 5: Reproducible visualization and uncertainty' },
+      ],
+    };
+
+    expect(
+      isComputerScienceWeakSource(
+        {
+          title: 'Expression (computer science)',
+          evidence:
+            'In computer science, an expression is a syntactic entity in a programming language that may be evaluated to determine its value.',
+          conceptLinks: [{ label: 'Python data types and expressions' }, { label: 'Expression' }],
+        },
+        graph,
+      ),
+    ).toBe(false);
+    expect(
+      isComputerScienceWeakSource(
+        {
+          title: 'Loop (statement)',
+          evidence: 'Loops are a feature of high-level programming languages.',
+          conceptLinks: [{ label: 'Conditional branching and loops' }, { label: 'Loop' }],
+        },
+        graph,
+      ),
+    ).toBe(false);
+    expect(
+      isComputerScienceWeakSource(
+        {
+          title: 'Uncertainty',
+          evidence: 'Uncertainty or incertitude refers to situations involving imperfect or unknown information.',
+          conceptLinks: [{ label: 'Reproducible visualization and uncertainty' }, { label: 'Uncertainty' }],
+        },
+        graph,
+      ),
+    ).toBe(false);
   });
 
   it('omits domain-rejected artifact-only source-finder rows from both proof and review exports', () => {

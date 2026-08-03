@@ -545,27 +545,31 @@ function repairAssignmentDeferrals(value) {
   );
 }
 
-function repairLegacyOpaqueSourceReferences(value) {
+function lessonSourceReference(context = {}, { capitalized = false } = {}) {
+  const lessonTitle = String(context.currentLessonTitle || '')
+    .replace(/^Lesson\s+\d+\s*:\s*/i, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const phrase = lessonTitle ? `the source evidence for ${lessonTitle}` : "the lesson's named source evidence";
+  return capitalized ? phrase.charAt(0).toUpperCase() + phrase.slice(1) : phrase;
+}
+
+function repairLegacyOpaqueSourceReferences(value, context = {}) {
   let text = String(value || '');
   text = text.replace(
     /\bTest this admitted claim before deciding:\s*the cited source claim[.!?]?/gi,
-    'Compare the retained source statements before deciding which conclusion they support.',
+    `Compare ${lessonSourceReference(context)} before deciding which conclusion it supports.`,
   );
   text = text.replace(
     /\bEvidence:\s*the cited source claim[.!?]?/gi,
-    'Evidence: Use the retained source statement and identify its limit.',
+    `Evidence: Use ${lessonSourceReference(context)} and identify its limit.`,
   );
   text = text.replace(
     /\bthe cited source claim[.!?;:,]+(?=\s+(?:in|with|through|for|to|as|before|after|while|and|or)\b)/gi,
-    (match) =>
-      /^[A-Z]/.test(match)
-        ? 'The retained source statement for this lesson'
-        : 'the retained source statement for this lesson',
+    (match) => lessonSourceReference(context, { capitalized: /^[A-Z]/.test(match) }),
   );
   return text.replace(LEGACY_OPAQUE_SOURCE_REFERENCE_RE, (match) =>
-    /^[A-Z]/.test(match)
-      ? 'The retained source statement for this lesson'
-      : 'the retained source statement for this lesson',
+    lessonSourceReference(context, { capitalized: /^[A-Z]/.test(match) }),
   );
 }
 
@@ -632,7 +636,7 @@ function repairCompilerOwnedSlideCopy(value, context = {}) {
 }
 
 function repairString(value, featureId, parentKey = '', context = {}, path = []) {
-  let text = repairCompilerOwnedSlideCopy(repairLegacyOpaqueSourceReferences(value), context);
+  let text = repairCompilerOwnedSlideCopy(repairLegacyOpaqueSourceReferences(value, context), context);
   text = text.replace(
     /\bItem (\d+): add course-aligned, instructor-approved evidence\b/gi,
     'Evidence task $1: compare the lesson claim with assigned evidence',

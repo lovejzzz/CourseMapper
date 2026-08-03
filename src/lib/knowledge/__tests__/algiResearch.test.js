@@ -421,6 +421,26 @@ describe('course-domain research alignment', () => {
     expect(securityTitles).not.toContain('Integrity');
   });
 
+  it('routes programming and data-analysis lessons to canonical concept families', () => {
+    const context =
+      'Applied Civic Data Analysis · Python data types · Conditional branching · Functions and automated tests · Pandas cleaning';
+    expect(directResearchTitles('Python data types and expressions', context)).toEqual(
+      expect.arrayContaining(['Data type', 'Expression (computer science)', 'Python (programming language)']),
+    );
+    expect(directResearchTitles('Conditional branching and loops', context)).toEqual(
+      expect.arrayContaining(['Control flow', 'Conditional (computer programming)', 'For loop']),
+    );
+    expect(directResearchTitles('Functions and automated tests', context)).toEqual(
+      expect.arrayContaining(['Function (computer programming)', 'Unit testing']),
+    );
+    expect(directResearchTitles('Pandas tabular data cleaning', context)).toEqual(
+      expect.arrayContaining(['Data cleansing', 'Data frame', 'Pandas (software)']),
+    );
+    expect(directResearchTitles('Reproducible visualization and uncertainty', context)).toEqual(
+      expect.arrayContaining(['Reproducibility', 'Data visualization', 'Uncertainty quantification']),
+    );
+  });
+
   it('routes oral-history methods to interview, transcript, analysis, and public-history sources', () => {
     expect(directResearchTitles('Developing Open-Ended Questions', 'Community Oral History Methods')).toEqual(
       expect.arrayContaining(['Open-ended question', 'Interview (research)', 'Semi-structured interview']),

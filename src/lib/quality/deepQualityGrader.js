@@ -4073,12 +4073,15 @@ export async function grade({
     import('./automatedReadinessSignal.js'),
     import('./conformanceScoreLedger.js'),
   ]);
-  const readiness = readinessModule.computeAutomatedReadinessSignal({
+  const readiness = readinessModule.score({
     manifest: pkg.manifest,
     course,
     lessonTitles: exportedLessonTitles,
     conformance,
     texture,
+    // Reconstruct from independently extracted Office text; persisted receipt
+    // metadata is not trusted as score evidence.
+    assessment: readinessModule.assessment(pkg),
   });
   const conformanceLedger = conformanceLedgerModule.buildEncodedDefectConformanceLedger({
     scores,

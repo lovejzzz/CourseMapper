@@ -39,6 +39,22 @@ describe('Scion compiler-first structure route', () => {
     ]);
   });
 
+  it('compiles the six-week civic-data evaluation brief without letting Gemma rename lessons', () => {
+    const source =
+      'Create a six-week advanced undergraduate course called Applied Civic Data Analysis for public-policy students. Use this exact lesson sequence: 1) Python data types and expressions; 2) Conditional branching and loops; 3) Functions and automated tests; 4) Pandas tabular data cleaning; 5) Reproducible visualization and uncertainty; 6) Integrative policy memo capstone. Each class meets for 75 minutes. Require source-backed reasoning, practical coding evidence, revision, and a final policy memo.';
+    const result = composeScionExplicitSequenceSkeleton(nativePrompt(source, 6));
+
+    expect(JSON.parse(result.text).sessions.map((session) => session.title)).toEqual([
+      'Python data types and expressions',
+      'Conditional branching and loops',
+      'Functions and automated tests',
+      'Pandas tabular data cleaning',
+      'Reproducible visualization and uncertainty',
+      'Integrative policy memo capstone',
+    ]);
+    expect(result.route.modelCalls).toBe(0);
+  });
+
   it('declines ambiguous and count-mismatched briefs so Gemma can plan them', () => {
     expect(
       composeScionExplicitSequenceSkeleton(

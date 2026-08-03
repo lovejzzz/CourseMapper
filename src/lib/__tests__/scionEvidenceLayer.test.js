@@ -51,6 +51,7 @@ function payload(overrides = {}) {
       conceptIds: ['ux/contextual-inquiry'],
       citations: [
         {
+          id: 'doaj:contextual-inquiry',
           displayTitle: 'Contextual Inquiry',
           sourceUrl: 'https://example.edu/contextual-inquiry',
           license: 'CC BY 4.0',
@@ -59,6 +60,23 @@ function payload(overrides = {}) {
           topic: 'Contextual inquiry',
           sourceTier: 1,
           evidence: 'The admitted passage.',
+          supportReceipt: {
+            status: 'passed',
+            method: 'exact-source-claim-v1',
+            semanticSupport: true,
+            readinessEligible: false,
+            checks: [
+              {
+                sourceId: 'doaj:contextual-inquiry',
+                locator: 'abstract',
+                quote: 'The admitted passage.',
+                claim: 'The admitted passage.',
+                quoteInSnapshot: true,
+                entailed: true,
+                semanticSupport: true,
+              },
+            ],
+          },
         },
       ],
     },
@@ -107,9 +125,17 @@ describe('Scion evidence layer', () => {
     expect(lesson.sourceLedgerAttribution.author).toBe('Example University');
     expect(lesson.scionEvidenceReceipts[0].sourceUrl).toBe('https://example.edu/contextual-inquiry');
     expect(lesson.scionEvidenceReceipts[0]).toMatchObject({
+      id: 'doaj:contextual-inquiry',
       provider: 'doaj',
       topic: 'Contextual inquiry',
       sourceTier: 1,
+      supportReceipt: {
+        checks: [
+          expect.objectContaining({
+            sourceId: 'doaj:contextual-inquiry',
+          }),
+        ],
+      },
     });
   });
 

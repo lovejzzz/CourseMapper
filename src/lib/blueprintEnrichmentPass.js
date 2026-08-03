@@ -1796,6 +1796,70 @@ export function selectEnrichmentRecoveryChunk(missingLessonIndices, attemptedLes
 
 const COMPOSED_PROVENANCE_SOURCES = new Set(['genome-linked', 'algi-researched']);
 
+function normalizedExactClaim(value = '') {
+  return cleanText(value)
+    .normalize('NFKC')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/[.!?]+$/u, '')
+    .toLowerCase();
+}
+
+function normalizeComposedSupportReceipt(value, citationId) {
+  if (!value || typeof value !== 'object' || !citationId) return null;
+  if (value.status !== 'passed' || value.method !== 'exact-source-claim-v1') return null;
+  const checks = asArray(value.checks)
+    .map((check, index) => {
+      const claim = truncateText(check?.claim, 500);
+      const quote = truncateText(check?.quote, 600);
+      const sourceId = truncateText(check?.sourceId, 160);
+      const locator = truncateText(check?.locator, 200);
+      if (
+        !claim ||
+        !quote ||
+        !sourceId ||
+        sourceId !== citationId ||
+        !locator ||
+        normalizedExactClaim(claim) !== normalizedExactClaim(quote) ||
+        check?.quoteInSnapshot !== true ||
+        check?.entailed !== true ||
+        check?.semanticSupport !== true
+      ) {
+        return null;
+      }
+      return {
+        claimId: truncateText(check?.claimId, 200) || `${citationId}:claim-${index + 1}`,
+        claim,
+        quote,
+        sourceId,
+        locator,
+        quoteInSnapshot: true,
+        entailed: true,
+        score: 1,
+        reason: 'exact-source-claim-identity',
+        method: 'exact-source-claim-v1',
+        construct: 'source-claim-identity',
+        semanticSupport: true,
+      };
+    })
+    .filter(Boolean)
+    .slice(0, 16);
+  if (checks.length === 0) return null;
+  return {
+    status: 'passed',
+    checkedClaims: checks.length,
+    minimumScore: 1,
+    method: 'exact-source-claim-v1',
+    construct: 'source-extraction-integrity',
+    semanticSupport: true,
+    // Rendered readiness can only be awarded later by the Office-byte binder.
+    readinessEligible: false,
+    claimBoundary:
+      'Exact claim identity is bound to an admitted source passage; rendered visibility is verified separately after Office export.',
+    checks,
+  };
+}
+
 function normalizeComposedConceptProvenance(value) {
   if (!value || typeof value !== 'object') return null;
   const source = cleanText(value.source);
@@ -1806,8 +1870,10 @@ function normalizeComposedConceptProvenance(value) {
       if (!entry || typeof entry !== 'object') return null;
       const sourceUrl = cleanText(entry.sourceUrl);
       if (sourceUrl && !/^https:\/\//i.test(sourceUrl)) return null;
+      const id = truncateText(entry.id || entry.sourceId, 160);
       const displayTitle = truncateText(entry.displayTitle || entry.key, 240);
       if (!displayTitle) return null;
+      const supportReceipt = normalizeComposedSupportReceipt(entry.supportReceipt, id);
       const conceptLinks = asArray(entry.conceptLinks)
         .map((link) => ({
           id: truncateText(link?.id, 160),
@@ -1816,18 +1882,21 @@ function normalizeComposedConceptProvenance(value) {
         .filter((link) => link.id || link.label)
         .slice(0, 8);
       return {
+        ...(id ? { id } : {}),
         key: truncateText(entry.key || displayTitle, 260),
         displayTitle,
         sourceUrl,
         license: truncateText(entry.license, 100),
         attribution: truncateText(entry.attribution, 240),
         kind: truncateText(entry.kind || 'open resource', 80),
+        ...(entry.provider ? { provider: truncateText(entry.provider, 80) } : {}),
         ...(entry.topic ? { topic: truncateText(entry.topic, 240) } : {}),
         evidence: truncateText(entry.evidence, 500),
         sourceTier: Math.max(0, Math.min(3, Number(entry.sourceTier) || 0)),
         ...(conceptLinks.length > 0 ? { conceptLinks } : {}),
         ...(entry.revisionId ? { revisionId: truncateText(entry.revisionId, 60) } : {}),
         ...(entry.revisionTimestamp ? { revisionTimestamp: truncateText(entry.revisionTimestamp, 80) } : {}),
+        ...(supportReceipt ? { supportReceipt } : {}),
       };
     })
     .filter(Boolean)

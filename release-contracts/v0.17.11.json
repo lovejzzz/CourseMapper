@@ -1,0 +1,141 @@
+{
+  "version": "0.17.11",
+  "date": "August 2, 2026",
+  "title": "Scion Learns From Evidence",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm run test:unit",
+      "npm run lint",
+      "npm run format:check",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification must pass from a clean checkout of the exact v0.17.11 commit."
+    },
+    "ciDeep": {
+      "status": "pending",
+      "note": "Independent instructor and sealed held-out semantic validation remain incomplete."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Production deployment follows a green exact-commit gate."
+    },
+    "liveProvider": {
+      "status": "pending",
+      "note": "The local 95/100 package is recorded; a fresh post-deployment package must independently clear the acceptance floor."
+    },
+    "manualHuman": {
+      "status": "pending",
+      "note": "No external instructor or classroom result is claimed."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01711-provenance-preserving-claim-portfolio",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Canonical source identity, exact supported claims, locators, and support receipts survive from research through learner-facing artifact assembly.",
+      "anchors": [
+        "src/lib/algiKernelComposer.js",
+        "src/lib/blueprintEnrichmentPass.js",
+        "src/lib/knowledge/sourceLedger.js",
+        "src/lib/scionEvidenceLayer.js",
+        "src/lib/nativeGraphAuthoring.js"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/algiComposer.test.js src/lib/__tests__/algiResearchPipeline.test.js src/lib/__tests__/scionEvidenceLayer.test.js src/lib/knowledge/__tests__/sourceLedger.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01711-preserve-revise-scheduler",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Research composition reuses admitted lesson evidence, targets unresolved needs, and accepts only strict support-ledger improvement.",
+      "anchors": [
+        "src/lib/algiKernelComposer.js",
+        "src/lib/knowledge/algiResearchPlan.js",
+        "src/lib/__tests__/algiResearchPipeline.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/algiResearchPipeline.test.js src/lib/knowledge/__tests__/algiResearchPlan.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01711-course-neutral-research-admission",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Research routing responds to course and lesson context while exact byte binding rejects unsupported source claims without embedding one course corpus.",
+      "anchors": [
+        "src/lib/knowledge/algiResearch.js",
+        "src/lib/knowledge/algiResearchPlan.js",
+        "src/lib/knowledge/sourceLedger.js",
+        "src/lib/knowledge/__tests__/algiResearch.test.js",
+        "src/lib/knowledge/__tests__/sourceLedger.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/knowledge/__tests__/algiResearch.test.js src/lib/knowledge/__tests__/algiResearchPlan.test.js src/lib/knowledge/__tests__/sourceLedger.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01711-exported-grounding-and-assessment-receipts",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The assembled package extracts visible Office text, reconstructs claim support, and verifies objective-task-student-evidence-rubric coherence.",
+      "anchors": [
+        "src/lib/exportRenderedTextAudit.js",
+        "src/lib/packageZipExporter.js",
+        "src/lib/quality/assessmentCoherence.js",
+        "src/lib/quality/__tests__/assessmentCoherence.test.js",
+        "src/lib/__tests__/packageZipExporter.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/quality/__tests__/assessmentCoherence.test.js src/lib/__tests__/packageZipExporter.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output", "static-audit"]
+    },
+    {
+      "id": "v01711-evidence-capped-score-ledger",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Grader 1.15.7 awards bounded grounding and assessment-coherence credit only from final-package receipts and binds the exact implementation in held-out ruler V51.",
+      "anchors": [
+        "src/lib/quality/automatedReadinessSignal.js",
+        "src/lib/quality/deepQualityGrader.js",
+        "src/lib/quality/graderVersion.js",
+        "evaluation/scion-adapters/held-out-course-benchmark-v51.json",
+        "src/lib/quality/__tests__/automatedReadinessSignal.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/quality/__tests__/automatedReadinessSignal.test.js src/lib/quality/__tests__/deepQualityStructure.test.js tests/scion-adapter-tooling.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit", "compiled-output"]
+    },
+    {
+      "id": "v01711-local-95-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 5,
+      "summary": "The exact local six-lesson ZIP scores 95/100 with 21/25 grounding, 15/15 assessment coherence, 38/38 export checks, and zero encoded findings.",
+      "anchors": ["docs/V0.17.11_SCION_LEARNER_CHECKPOINT.md"],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/packageZipExporter.test.js src/lib/quality/__tests__/assessmentCoherence.test.js"
+      ],
+      "proofScopes": ["doc", "compiled-output", "static-audit"]
+    },
+    {
+      "id": "v01711-roundtable-and-claim-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 6,
+      "summary": "Six Roundtable design rounds support the learner architecture while the report preserves unchanged model weights, missing human evidence, and pending production checkpoint gates.",
+      "anchors": ["docs/V0.17.11_SCION_LEARNER_CHECKPOINT.md"],
+      "proofCommands": ["npm run test:unit", "npm run audit:release-history"],
+      "proofScopes": ["doc", "static-audit"]
+    }
+  ]
+}

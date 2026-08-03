@@ -56,6 +56,52 @@ function sourceRow(index, { receipt = true } = {}) {
   };
 }
 
+function assessmentReceipt({ passedChecks = 15, totalChecks = 15 } = {}) {
+  return {
+    protocol: 'rendered-assessment-coherence-v1',
+    verifierVersion: 'objective-task-evidence-rubric-bytes-v1',
+    eligibleAssessments: 3,
+    passedAssessments: passedChecks === totalChecks ? 3 : 0,
+    passedChecks,
+    totalChecks,
+    coherenceRatio: Number((passedChecks / totalChecks).toFixed(3)),
+    assessments: [],
+  };
+}
+
+function claimBoundSourceRow(index) {
+  const claim = `Exact rendered source statement for lesson ${index}.`;
+  return {
+    id: `bound-source-${index}`,
+    title: `Bound source ${index}`,
+    provider: 'wikipedia',
+    url: `https://en.wikipedia.org/wiki/Example_${index}`,
+    license: 'CC BY-SA 4.0',
+    sessionRefs: [`lesson-${index}`],
+    conceptLinks: [{ id: `lesson-${index}`, label: TITLES[index - 1] || `Lesson ${index}` }],
+    supportReceipt: {
+      status: 'passed',
+      checkedClaims: 1,
+      minimumScore: 1,
+      semanticSupport: true,
+      readinessEligible: true,
+      checks: [
+        {
+          sourceId: `bound-source-${index}`,
+          locator: 'lead paragraph',
+          quote: claim,
+          claim,
+          renderedLocation: `Lesson Plans/Lesson ${String(index).padStart(2, '0')} - Lesson Plans.docx`,
+          quoteInSnapshot: true,
+          entailed: true,
+          semanticSupport: true,
+          score: 1,
+        },
+      ],
+    },
+  };
+}
+
 describe('automated readiness signal', () => {
   it('keeps a generic, ungrounded Algi fallback below 30 despite good conformance', () => {
     const result = computeAutomatedReadinessSignal({
@@ -149,6 +195,44 @@ describe('automated readiness signal', () => {
       scoreEligible: false,
       disqualificationReason: 'rendered-claim-semantic-support-not-validated',
     });
+  });
+
+  it('scores only lesson coverage backed by exact claims located in rendered Office artifacts', () => {
+    const result = computeAutomatedReadinessSignal({
+      manifest: { sourceLedger: [1, 2, 3, 4].map(claimBoundSourceRow) },
+      course: { prompt: 'Build a six-week course.' },
+      lessonTitles: [...TITLES, 'Integrative Capstone'],
+      conformance: conformance(100),
+      texture: { score: 100 },
+    });
+
+    expect(result.components.evidenceGrounding.status).toBe('evaluated');
+    expect(result.components.evidenceGrounding.points).toEqual({ max: 25, earned: 17, lost: 8, unobserved: 0 });
+    expect(result.components.evidenceGrounding.evidence['package.source-support-receipts']).toMatchObject({
+      protocol: 'rendered-exact-source-claim-coverage-v1',
+      lessons: 6,
+      receiptBackedLessons: 4,
+      verifiedClaims: 4,
+    });
+  });
+
+  it('does not credit every concept-linked lesson when the claim is rendered in only one lesson', () => {
+    const row = claimBoundSourceRow(1);
+    row.sessionRefs.push('lesson-5');
+    row.conceptLinks.push({ id: 'lesson-5', label: TITLES[4] });
+    const result = computeAutomatedReadinessSignal({
+      manifest: { sourceLedger: [row] },
+      course: { prompt: 'Build a six-week course.' },
+      lessonTitles: [...TITLES, 'Integrative Capstone'],
+      conformance: conformance(100),
+      texture: { score: 100 },
+    });
+
+    expect(result.components.evidenceGrounding.evidence['package.source-support-receipts']).toMatchObject({
+      receiptBackedLessons: 1,
+      renderedArtifacts: 1,
+    });
+    expect(result.components.evidenceGrounding.points.earned).toBe(4);
   });
 
   it('does not promote review-only structural refs when one unrelated trusted row exists', () => {
@@ -247,6 +331,36 @@ describe('automated readiness signal', () => {
       jsonPointer: '/generationConstraints/explicitLessonSequence',
       observed: { expectedLessons: TITLES.length, sequence: TITLES },
     });
+  });
+
+  it('awards assessment coherence only from a fixed rendered check receipt', () => {
+    const result = computeAutomatedReadinessSignal({
+      manifest: { sourceLedger: [] },
+      course: { prompt: 'Build a five-week public policy course.' },
+      lessonTitles: TITLES,
+      conformance: conformance(100),
+      texture: { score: 100 },
+      assessment: assessmentReceipt({ passedChecks: 12 }),
+    });
+
+    expect(result.components.assessmentCoherence.status).toBe('evaluated');
+    expect(result.components.assessmentCoherence.score).toBe(80);
+    expect(result.components.assessmentCoherence.points).toEqual({ max: 15, earned: 12, lost: 3, unobserved: 0 });
+    expect(result.components.assessmentCoherence.reason).toMatch(/12\/15 rendered assessment-link checks/i);
+  });
+
+  it('rejects a forged assessment ratio whose fixed denominator is incomplete', () => {
+    const result = computeAutomatedReadinessSignal({
+      manifest: { sourceLedger: [] },
+      course: { prompt: 'Build a five-week public policy course.' },
+      lessonTitles: TITLES,
+      conformance: conformance(100),
+      texture: { score: 100 },
+      assessment: { ...assessmentReceipt(), totalChecks: 14, coherenceRatio: 1 },
+    });
+
+    expect(result.components.assessmentCoherence.status).toBe('unobserved');
+    expect(result.components.assessmentCoherence.points.unobserved).toBe(15);
   });
 
   it('discloses deterministic reconstruction as provenance rather than evidence', () => {

@@ -147,6 +147,11 @@ const ORAL_HISTORY_SOURCE_ANCHOR_RE =
   /\b(?:oral history|oral histories|oral tradition|public history|archives?|archival|interviews?|interviewing|open[-\s]?ended questions?|questionnaires?|narrators?|recordings?|sound recording|audio|transcripts?|transcription|qualitative research|thematic analysis|content analysis|coding|storytelling|visual narratives?|visual communication|presentations?|research proposals?|research design|informed consent|release forms?|digital preservation|metadata)\b/i;
 const COMPUTER_SCIENCE_TOPIC_ANCHORS = [
   {
+    concept: /\bexpressions?\b/i,
+    source:
+      /\b(?:expression\s*\(\s*computer\s+science\s*\)|expressions?\s+(?:in\s+)?(?:computer\s+science|programming|programming\s+languages?)|syntactic\s+entit(?:y|ies)\b[^.!?]{0,120}\bprogramming\s+language)\b/i,
+  },
+  {
     concept:
       /\b(?:variables?|types?|data\s+types?|integer(?:s)?|floats?|floating[-\s]?point|numeric\s+types?|number\s+representation)\b/i,
     source:
@@ -155,7 +160,7 @@ const COMPUTER_SCIENCE_TOPIC_ANCHORS = [
   {
     concept: /\b(?:control\s+flow|conditionals?|loops?)\b/i,
     source:
-      /\b(?:control\s+flow|branching|iteration|conditional(?:\s*\(\s*computer\s+programming\s*\)|\s+(?:statement|expression|operator|construct|computer|programming))|if\s+statements?|if[-\s]then(?:[-\s]else)?|loops?\s+(?:in\s+python|in\s+programming|programming|statement|construct)|for\s+loops?|while\s+loops?)(?=\W|$)/i,
+      /\b(?:control\s+flow|branching|iteration|conditional(?:\s*\(\s*computer\s+programming\s*\)|\s+(?:statement|expression|operator|construct|computer|programming))|if\s+statements?|if[-\s]then(?:[-\s]else)?|loops?\s*\(\s*statement\s*\)|loops?\s+(?:in\s+python|in\s+programming|programming|statement|construct)|loops?\b[^.!?]{0,80}\bhigh[-\s]+level\s+programming\s+languages?|for\s+loops?|while\s+loops?)(?=\W|$)/i,
   },
   {
     concept: /\bfunctions?\b/i,
@@ -215,9 +220,14 @@ const COMPUTER_SCIENCE_TOPIC_ANCHORS = [
     source: /\b(?:data\s+clean(?:ing|sing)|missing\s+values?|data\s+quality|invalid\s+records?)\b/i,
   },
   {
-    concept: /\b(?:reproducib(?:le|ility)|visuali[sz](?:e|ation|ing)|uncertaint(?:y|ies)|matplotlib)\b/i,
+    concept: /\b(?:reproducib(?:le|ility)|visuali[sz](?:e|ation|ing)|matplotlib)\b/i,
     source:
-      /(?=.*\b(?:matplotlib|pandas|data\s*frames?)\b)(?=.*\b(?:reproducib(?:le|ility)|visuali[sz](?:e|ation|ing)|uncertaint(?:y|ies)|confidence\s+intervals?|error\s+bars?)\b)/i,
+      /\b(?:reproducib(?:le|ility)|reproducible\s+research|data\s+visuali[sz]ation|information\s+visuali[sz]ation|scientific\s+visuali[sz]ation|uncertainty\s+quantification|confidence\s+intervals?|error\s+bars?|matplotlib|seaborn)\b/i,
+  },
+  {
+    concept: /\buncertaint(?:y|ies)\b/i,
+    source:
+      /\b(?:uncertaint(?:y|ies)|incertitude|imperfect\s+(?:or\s+)?unknown\s+information|unknown\s+information|confidence\s+intervals?|error\s+bars?|measurement\s+error)\b/i,
   },
   {
     concept: /\b(?:correlation|causation|causal\s+inference|policy\s+memo|policy\s+analysis|capstone)\b/i,
@@ -565,11 +575,16 @@ export function normalizeTrustedSource(entry = {}, { fallbackId = '', checkedAt 
           checks: (Array.isArray(rawSupportReceipt.checks) ? rawSupportReceipt.checks : [])
             .slice(0, 16)
             .map((check) => ({
+              claimId: cleanText(check?.claimId, 200),
               claim: cleanText(check?.claim, 400),
               quote: cleanText(check?.quote, 500),
               sourceId: cleanText(check?.sourceId, 160),
               locator: cleanText(check?.locator, 200),
               renderedLocation: cleanText(check?.renderedLocation || check?.artifactLocation || check?.renderedAt, 240),
+              verifierVersion: cleanText(check?.verifierVersion, 80),
+              sourcePassageSha256: cleanText(check?.sourcePassageSha256, 80),
+              claimSha256: cleanText(check?.claimSha256, 80),
+              renderedArtifactSha256: cleanText(check?.renderedArtifactSha256, 80),
               quoteInSnapshot: check?.quoteInSnapshot === true,
               entailed: check?.entailed === true,
               score: Math.max(0, Math.min(1, Number(check?.score) || 0)),
@@ -633,6 +648,7 @@ export function isClaimBoundSourceLedgerRow(row = {}) {
   return (Array.isArray(receipt.checks) ? receipt.checks : []).some(
     (check) =>
       Boolean(cleanText(check?.sourceId, 160)) &&
+      cleanText(check?.sourceId, 160) === cleanText(row?.id, 160) &&
       Boolean(cleanText(check?.locator, 200)) &&
       Boolean(cleanText(check?.quote, 500)) &&
       Boolean(cleanText(check?.claim, 400)) &&
@@ -640,6 +656,110 @@ export function isClaimBoundSourceLedgerRow(row = {}) {
       check?.quoteInSnapshot === true &&
       check?.entailed === true &&
       check?.semanticSupport === true,
+  );
+}
+
+const RENDERED_CLAIM_VERIFIER_VERSION = 'rendered-exact-source-claim-v1';
+
+function normalizedClaimText(value = '', maxLength = 2000) {
+  return cleanText(value, maxLength)
+    .normalize('NFKC')
+    .replace(/[.!?]+$/u, '')
+    .toLowerCase();
+}
+
+function lessonNumbersForClaimRow(row = {}) {
+  const numbers = new Set();
+  for (const value of [row?.scope, ...(row?.sessionRefs || []), ...(row?.conceptLinks || [])]) {
+    const text = typeof value === 'string' ? value : `${value?.id || ''} ${value?.label || ''}`;
+    const match = String(text).match(/(?:lesson|session|^s|^c)\s*[-:]?\s*(\d+)/i);
+    if (match) numbers.add(Number(match[1]));
+  }
+  return numbers;
+}
+
+function artifactLessonNumber(path = '') {
+  return Number(String(path).match(/(?:^|\/)Lesson\s+(\d+)/i)?.[1]) || 0;
+}
+
+async function sha256Text(value = '') {
+  const bytes = new TextEncoder().encode(String(value || ''));
+  const digest = await globalThis.crypto.subtle.digest('SHA-256', bytes);
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * Complete the source-to-rendered-claim transaction after Office bytes exist.
+ * Only byte-identical atomic claims qualify. A lexical near-match, compiler
+ * assertion, source count, or citation alone remains ineligible.
+ */
+export async function bindRenderedClaimSupport(sourceRows = [], artifacts = []) {
+  const visibleArtifacts = (Array.isArray(artifacts) ? artifacts : [])
+    .map((artifact) => ({
+      path: cleanText(artifact?.path, 300),
+      text: cleanText(artifact?.text, 200000),
+      sha256: cleanText(artifact?.sha256, 80),
+      lessonNumber: artifactLessonNumber(artifact?.path),
+    }))
+    .filter((artifact) => artifact.path && artifact.text && artifact.sha256);
+
+  return Promise.all(
+    (Array.isArray(sourceRows) ? sourceRows : []).map(async (row) => {
+      const receipt = row?.supportReceipt;
+      const lessons = lessonNumbersForClaimRow(row);
+      const candidates = visibleArtifacts.filter(
+        (artifact) => lessons.size === 0 || (artifact.lessonNumber > 0 && lessons.has(artifact.lessonNumber)),
+      );
+      const boundChecks = [];
+      for (const check of Array.isArray(receipt?.checks) ? receipt.checks : []) {
+        const claim = cleanText(check?.claim, 500);
+        const quote = cleanText(check?.quote, 600);
+        const normalizedClaim = normalizedClaimText(claim);
+        if (
+          !normalizedClaim ||
+          normalizedClaim !== normalizedClaimText(quote) ||
+          !cleanText(check?.sourceId, 160) ||
+          cleanText(check?.sourceId, 160) !== cleanText(row?.id, 160) ||
+          !cleanText(check?.locator, 200) ||
+          check?.quoteInSnapshot !== true ||
+          check?.entailed !== true ||
+          check?.semanticSupport !== true
+        ) {
+          continue;
+        }
+        const matches = candidates.filter((entry) => normalizedClaimText(entry.text, 200000).includes(normalizedClaim));
+        for (const artifact of matches) {
+          boundChecks.push({
+            ...check,
+            claimId: cleanText(check?.claimId, 200) || `claim-${boundChecks.length + 1}`,
+            renderedLocation: artifact.path,
+            verifierVersion: RENDERED_CLAIM_VERIFIER_VERSION,
+            sourcePassageSha256: await sha256Text(quote),
+            claimSha256: await sha256Text(claim),
+            renderedArtifactSha256: artifact.sha256,
+            method: RENDERED_CLAIM_VERIFIER_VERSION,
+            construct: 'rendered-exact-source-claim-support',
+            semanticSupport: true,
+          });
+        }
+      }
+      if (boundChecks.length === 0 || !isTrustedSourceLedgerRow(row)) return row;
+      return {
+        ...row,
+        supportReceipt: {
+          status: 'passed',
+          checkedClaims: boundChecks.length,
+          minimumScore: 1,
+          method: RENDERED_CLAIM_VERIFIER_VERSION,
+          construct: 'rendered-exact-source-claim-support',
+          semanticSupport: true,
+          readinessEligible: true,
+          claimBoundary:
+            'This receipt proves that specific learner-visible claims are byte-bound exact copies of admitted source passages. It does not validate unsupported surrounding prose or classroom effectiveness.',
+          checks: boundChecks,
+        },
+      };
+    }),
   );
 }
 
@@ -1339,7 +1459,11 @@ export function buildSourceReportMarkdown({
   if (rows.length > 0) {
     lines.push('## Source Ledger');
     for (const row of rows) {
-      lines.push(`- ${row.id}: ${row.citation || row.title}`);
+      // Keep the stable machine identity visible without rendering an
+      // identifier/title pair as "X: X". Besides being easier to scan, this
+      // prevents source IDs such as "wikipedia:Data type" from looking like
+      // duplicated prose to deterministic format checks.
+      lines.push(`- ${row.citation || row.title} (source id: ${row.id})`);
       const details = [
         row.provider ? `provider=${row.provider}` : '',
         row.license ? `license=${row.license}` : 'license=missing',
@@ -1361,7 +1485,7 @@ export function buildSourceReportMarkdown({
   if (reviewRows.length > 0) {
     lines.push('## Source Review Notes');
     for (const row of reviewRows) {
-      lines.push(`- ${row.id}: ${row.title || row.evidence || 'CourseIR source row requires review'}`);
+      lines.push(`- ${row.title || row.evidence || 'CourseIR source row requires review'} (source id: ${row.id})`);
       const details = [
         row.provider ? `provider=${row.provider}` : '',
         row.status ? `status=${row.status}` : '',

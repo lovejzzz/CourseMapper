@@ -112,6 +112,7 @@ export function repairGeneratedCourseTitle(courseMapTitle, promptText) {
   const mappedTitle = clean(courseMapTitle);
   const promptTitle = clean(promptText) ? derivePromptPreviewTitle(promptText) : '';
   const looksLikeInstruction =
+    /^(?:course|class|seminar|studio|workshop|untitled(?:\s+course)?|your\s+course)$/i.test(mappedTitle) ||
     /^(?:build|create|generate|design|make|draft|prepare)\b/i.test(mappedTitle) ||
     /\b(?:use|follow|preserve)\s+(?:exactly\s+)?(?:these|the)?\s*(?:\w+\s+)?(?:lessons?|sessions?|modules?)\s+in\s+(?:this\s+)?order\b/i.test(
       mappedTitle,

@@ -37,8 +37,36 @@ function xmlToParagraphTexts(xml, paragraphTag) {
 async function toArrayBuffer(blob) {
   if (!blob) return null;
   if (blob instanceof ArrayBuffer) return blob;
+  if (ArrayBuffer.isView(blob)) {
+    return blob.buffer.slice(blob.byteOffset, blob.byteOffset + blob.byteLength);
+  }
   if (typeof blob.arrayBuffer === 'function') return await blob.arrayBuffer();
   return null;
+}
+
+/**
+ * Return the learner-visible text carried by one Office artifact. This is a
+ * shared post-export boundary for score evidence: callers inspect the actual
+ * DOCX/PPTX bytes rather than trusting compiler JSON or a pre-render receipt.
+ */
+export async function extractOfficeVisibleText(blob, format) {
+  const buffer = await toArrayBuffer(blob);
+  if (!buffer) return '';
+  const JSZip = (await import('jszip')).default;
+  const zip = await JSZip.loadAsync(buffer);
+  const paragraphs = [];
+  if (format === 'docx') {
+    for (const file of Object.values(zip.files)) {
+      if (file.dir || !/^word\/(?:document|header\d+|footer\d+)\.xml$/.test(file.name)) continue;
+      paragraphs.push(...xmlToParagraphTexts(await file.async('string'), '</w:p>'));
+    }
+  } else if (format === 'pptx') {
+    for (const file of Object.values(zip.files)) {
+      if (file.dir || !/^ppt\/(?:slides|notesSlides)\/[^/]+\.xml$/.test(file.name)) continue;
+      paragraphs.push(...xmlToParagraphTexts(await file.async('string'), '</a:p>'));
+    }
+  }
+  return paragraphs.join(' ').replace(/\s+/g, ' ').trim();
 }
 
 // ── v0.14.4 WS-C3a: structural metadata never counts toward repetition ──────

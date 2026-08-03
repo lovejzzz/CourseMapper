@@ -126,6 +126,14 @@ describe('Algi V0 prompt reading', () => {
     expect(extractCourseName(SYLLABUS)).toBe('Introduction to Environmental Policy');
   });
 
+  it('reads a course name introduced by called inside an imperative brief', () => {
+    expect(
+      extractCourseName(
+        'Create a six-week advanced undergraduate course called Applied Civic Data Analysis for public-policy students. Use this exact lesson sequence: 1) Data types; 2) Loops.',
+      ),
+    ).toBe('Applied Civic Data Analysis');
+  });
+
   it('separates a concise course title from an inline quick-start brief', () => {
     expect(
       extractCourseName(
@@ -573,6 +581,33 @@ describe('Algi V0 source sentence compaction', () => {
     ).not.toMatch(/\bwith[,;:.]*$/i);
   });
 
+  it('recognizes a source definition with a descriptive related-to appositive', () => {
+    expect(
+      fitSourceSentence(
+        'Reproducibility, closely related to replicability and repeatability, is a major principle underpinning the scientific method.',
+        [7, 45],
+      ),
+    ).toBe(
+      'Reproducibility, closely related to replicability and repeatability, is a major principle underpinning the scientific method.',
+    );
+    expect(
+      fitSourceSentence(
+        'Uncertainty arises in partially observable or stochastic or complex or dynamic environments, as well as due to ignorance, indolence, or both.',
+        [5, 30],
+      ),
+    ).toBe(
+      'Uncertainty arises in partially observable or stochastic or complex or dynamic environments, as well as due to ignorance, indolence, or both.',
+    );
+    expect(
+      fitSourceSentence(
+        'For the findings of a study to be reproducible means that results obtained by an experiment or an observational study or in a statistical analysis of a data set should be achieved again with a high degree of reliability when the study is replicated.',
+        [5, 30],
+      ),
+    ).toBe(
+      'Results obtained by an experiment or an observational study or in a statistical analysis of a data set should be achieved again with a high degree of reliability.',
+    );
+  });
+
   it('rejects a punctuated prepositional phrase with no finite predicate', () => {
     expect(fitSourceFact('In quantum computing and specifically the quantum circuit model of computation.')).toBe('');
     expect(fitSourceFact('Given a pure bipartite quantum state of the composite system.')).toBe('');
@@ -665,6 +700,13 @@ describe('Algi V0 source receipts', () => {
       license: 'CC BY-SA 4.0',
       attribution: 'Wikipedia contributors, “Concept 1”',
       revisionId: '1001',
+      supportReceipt: {
+        status: 'passed',
+        checkedClaims: 3,
+        semanticSupport: true,
+        readinessEligible: false,
+        method: 'exact-source-claim-v1',
+      },
     });
 
     const parsed = parseLessonKernelResponse(JSON.stringify({ lessons: [payload] }), {
@@ -675,6 +717,15 @@ describe('Algi V0 source receipts', () => {
     expect(parsed.lessons['lesson-1'].conceptProvenance.citations[0].sourceUrl).toBe(
       'https://en.wikipedia.org/wiki/Concept_1',
     );
+    expect(parsed.lessons['lesson-1'].conceptProvenance.citations[0]).toMatchObject({
+      id: 'wikipedia:Concept 1',
+      supportReceipt: {
+        status: 'passed',
+        checkedClaims: 3,
+        semanticSupport: true,
+        readinessEligible: false,
+      },
+    });
     expect(parsed.lessons['lesson-1'].keyTerms).toHaveLength(3);
   });
 
@@ -870,6 +921,82 @@ describe('Algi V0 source receipts', () => {
     );
   });
 
+  it('turns canonical reproducibility and uncertainty sources into a complete lesson', () => {
+    const sourceKernel = (index, term, definition, facts) => {
+      const source = kernel(index, true);
+      const sourceId = `wikipedia:${term}`;
+      const anchor = (quote) => ({ src: sourceId, loc: term, quote, tier: 2 });
+      source.id = `researched/${term.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+      source.term = term;
+      source.definition = { text: definition, anchor: anchor(definition), tier: 2 };
+      source.facts = facts.map((text) => ({ text, anchor: anchor(text), tier: 2 }));
+      source.examples = [{ text: facts[0], anchor: anchor(facts[0]), tier: 2 }];
+      source.misconceptions = [
+        {
+          text: `Naming ${term} without identifying a supporting source detail is sufficient evidence.`,
+          corrective: `Use the cited source to justify ${term} and state the claim's boundary.`,
+        },
+      ];
+      source.mcBank = [];
+      source.provenance = {
+        ...source.provenance,
+        title: term,
+        topic: 'Reproducible visualization and uncertainty',
+        sourceUrl: `https://en.wikipedia.org/wiki/${encodeURIComponent(term.replace(/\s+/g, '_'))}`,
+      };
+      return source;
+    };
+    const sources = [
+      sourceKernel(
+        1,
+        'Uncertainty quantification',
+        'Uncertainty quantification (UQ) is the science of quantitative characterization and estimation of uncertainties in both computational and real world applications.',
+        [
+          'Computer experiments on computer simulations are the most common approach to study problems in uncertainty quantification.',
+          'Many problems in the natural sciences and engineering are also rife with sources of uncertainty.',
+        ],
+      ),
+      sourceKernel(
+        2,
+        'Uncertainty',
+        'Uncertainty or incertitude refers to situations involving imperfect or unknown information.',
+        [
+          'Uncertainty arises in partially observable or stochastic or complex or dynamic environments, as well as due to ignorance, indolence, or both.',
+        ],
+      ),
+      sourceKernel(
+        3,
+        'Reproducibility',
+        'Reproducibility, closely related to replicability and repeatability, is a major principle underpinning the scientific method.',
+        [
+          'For the findings of a study to be reproducible means that results obtained by an experiment or an observational study or in a statistical analysis of a data set should be achieved again with a high degree of reliability when the study is replicated.',
+        ],
+      ),
+    ];
+
+    const diagnostics = {};
+    const payload = composeLessonFromCandidateKernels(
+      { lessonId: 'lesson-5', title: 'Reproducible visualization and uncertainty' },
+      sources,
+      { factCount: 5, diagnostics },
+    );
+
+    expect(diagnostics.reason).toBe('composed');
+    expect(payload).not.toBeNull();
+    expect(payload.keyTerms.map((entry) => entry.tr)).toEqual([
+      'Uncertainty',
+      'Uncertainty quantification',
+      'Reproducibility',
+    ]);
+    expect(payload.conceptProvenance.citations.map((citation) => citation.id)).toEqual(
+      expect.arrayContaining([
+        'wikipedia:Uncertainty quantification',
+        'wikipedia:Uncertainty',
+        'wikipedia:Reproducibility',
+      ]),
+    );
+  });
+
   it('spreads a researched synthesis across lesson topics before reusing a topic', () => {
     const used = [kernel(1, true), kernel(2, true), kernel(3, true), kernel(4, true), kernel(5, true), kernel(6, true)];
     [
@@ -890,6 +1017,13 @@ describe('Algi V0 source receipts', () => {
       'Algorithmic audits',
       'Public policy',
     ]);
+    const synthesis = composeLessonFromKernels(
+      { lessonId: 'lesson-7', title: 'Current Technology Policy synthesis' },
+      picked,
+      { factCount: 5 },
+    );
+    expect(synthesis).not.toBeNull();
+    expect(synthesis.keyTerms.map((entry) => entry.tr)).toEqual(['Concept 1', 'Concept 3', 'Concept 4']);
   });
 
   it('recognizes a bounded recommendations lesson as course synthesis', () => {

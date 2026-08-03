@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "release": "0.17.11",
+  "recordedAt": "2026-08-03T02:27:00Z",
+  "status": "bounded-predeploy",
+  "claimBoundary": "This tracked predeploy receipt proves the course-neutral learner architecture, exact source binding, exported-artifact grounding, assessment-coherence reconstruction, and deterministic score regressions passed before deployment. The local package score is bound to its exact ZIP hash. This is not a live production result, factual certification, independent instructor result, accessibility certification, classroom outcome, model-weight improvement, adapter promotion, or paid-reference comparison.",
+  "checks": [
+    {
+      "command": "npm run test:unit",
+      "status": "pass",
+      "testFilesPassed": 506,
+      "testFilesSkipped": 16,
+      "testsPassed": 6540,
+      "testsSkipped": 162
+    },
+    {
+      "command": "npm run audit:contract:pr",
+      "status": "pass",
+      "fixtures": 12,
+      "availableFixtures": 40
+    },
+    {
+      "command": "npm run audit:evaluation:main",
+      "status": "pass",
+      "claimStatus": "compiler-contract-only"
+    },
+    {
+      "command": "npm run audit:automated-readiness",
+      "status": "pass",
+      "benchmarkProtocol": "deterministic-package-evidence-benchmark-v3",
+      "cases": 3
+    },
+    {
+      "command": "npm run audit:texture:cross-package:untuned",
+      "status": "pass",
+      "packages": 12,
+      "clusters": 432,
+      "unclassifiedPaths": 0,
+      "canonicalSha256": "dd2dde4867d4b0e33bcb367fa224fcd17477dfaa39ded6d7bab25aa0c0af06e3"
+    },
+    {
+      "command": "npm run audit:scion:browser-base",
+      "status": "pass",
+      "mode": "base-only",
+      "adapterActive": false,
+      "baseIntegrity": "full-file-digest-verified"
+    },
+    {
+      "command": "npm run audit:algi:research-first",
+      "status": "protocol-ready-no-result",
+      "cases": 8,
+      "domains": 8,
+      "claimBoundary": "No same-commit comparison evidence is recorded, so no research-first viability result is claimed."
+    },
+    {
+      "command": "npm run audit:algi:hybrid",
+      "status": "expected-nonzero-no-result",
+      "cases": 5,
+      "domains": 5,
+      "blocker": "paired-evidence-not-recorded",
+      "claimBoundary": "The strict promotion protocol correctly refuses a hybrid-promotion claim without same-commit paired evidence."
+    },
+    {
+      "mode": "local-physical-zip-and-render-audit",
+      "status": "pass",
+      "zipSha256": "4a2ed350b78c96a707c17f43236f5c702118c92e7564c73c53ce979eb940b4aa",
+      "score": 95,
+      "grounding": 21,
+      "assessmentCoherence": 15,
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "exportChecks": "38/38",
+      "renderedPages": 163
+    },
+    {
+      "mode": "roundtable-learner-architecture-audit",
+      "status": "pass",
+      "sessionId": "681bd065-f174-4971-80f1-1fecb81ed21c",
+      "rounds": 6,
+      "completionAudits": 2,
+      "materialConcerns": 0,
+      "report": "docs/V0.17.11_SCION_LEARNER_CHECKPOINT.md"
+    }
+  ],
+  "knownMissingEvidence": [
+    "A fresh v0.17.11 production package cannot exist until the exact release commit deploys.",
+    "No independent instructor, accessibility, classroom, or sealed external held-out result is claimed.",
+    "The optional adapter remains inactive and Gemma weights are unchanged."
+  ]
+}

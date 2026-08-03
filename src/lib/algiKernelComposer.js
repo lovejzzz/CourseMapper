@@ -98,11 +98,11 @@ const CONTEXT_DEPENDENT_FACT_START =
 const DEICTIC_REFERENCE =
   /\b(?:this|that|these|those)\s+(?:article|case|diagram|example|figure|line|lines|section|situation|table)\b/i;
 const FINITE_PREDICATE =
-  /\b(?:is|are|was|were|be|been|has|have|had|can|could|may|might|will|would|should|must|ought|need|needs|refer|refers|mean|means|occur|occurs|involve|involves|use|uses|allow|allows|include|includes|describe|describes|communicate|communicates|concern|concerns|represent|represents|form|forms|support|supports|provide|provides|require|requires|consist|consists|comprise|comprises|cover|covers|become|becomes|evolve|evolves|produce|produces|give|gives|ask|asks|follow|follows|contain|contains|compute|computes|measure|measures|operate|operates|appear|appears|apply|applies|change|changes|detect|detects|distinguish|distinguishes|enable|enables|explain|explains|group|groups|link|links|perform|performs|protect|protects|quantify|quantifies|remain|remains|run|runs|solve|solves|store|stores|evaluate|evaluates|identify|identifies|document|documents|eliminate|eliminates|govern|governs|prohibit|prohibits|implement|implements|establish|establishes|coordinate|coordinates|monitor|monitors|assess|assesses|define|defines|supersede|supersedes|address|addresses|develop|develops|propose|proposes|align|aligns|regulate|regulates|promote|promotes|limit|limits|reconcile|reconciles|diagnose|diagnoses|reflect|reflects|design|designs|conceptualize|conceptualizes|position|positions|bridge|bridges|uphold|upholds|underscore|underscores|adopt|adopts|introduced|developed|showed|demonstrated|placed)\b/i;
+  /\b(?:is|are|was|were|be|been|has|have|had|can|could|may|might|will|would|should|must|ought|need|needs|refer|refers|mean|means|occur|occurs|arise|arises|involve|involves|use|uses|allow|allows|include|includes|describe|describes|communicate|communicates|concern|concerns|represent|represents|form|forms|support|supports|provide|provides|require|requires|consist|consists|comprise|comprises|cover|covers|become|becomes|evolve|evolves|produce|produces|give|gives|ask|asks|follow|follows|contain|contains|compute|computes|measure|measures|operate|operates|appear|appears|apply|applies|change|changes|detect|detects|distinguish|distinguishes|enable|enables|explain|explains|group|groups|link|links|perform|performs|protect|protects|quantify|quantifies|remain|remains|run|runs|solve|solves|store|stores|evaluate|evaluates|identify|identifies|document|documents|eliminate|eliminates|govern|governs|prohibit|prohibits|implement|implements|establish|establishes|coordinate|coordinates|monitor|monitors|assess|assesses|define|defines|supersede|supersedes|address|addresses|develop|develops|propose|proposes|align|aligns|regulate|regulates|promote|promotes|limit|limits|reconcile|reconciles|diagnose|diagnoses|reflect|reflects|design|designs|conceptualize|conceptualizes|position|positions|bridge|bridges|uphold|upholds|underscore|underscores|adopt|adopts|introduced|developed|showed|demonstrated|placed)\b/i;
 const PREPOSITIONAL_FACT_START = /^(?:in|on|at|for|by|with|from)\b/i;
 const DEPENDENT_FACT_START = /^(?:given|together with|along with|including|such as)\b/i;
 
-function hasIndependentPredicate(text) {
+function hasIndependentPredicate(text, { maxSubjectWords = 12 } = {}) {
   const clause = String(text || '')
     .replace(/^(?:however|ideally|specifically|therefore|consequently|additionally|moreover),\s*/i, '')
     .replace(/^(?:in|on|at|for|by|with|from)\b[^,]{1,80},\s*/i, '')
@@ -114,6 +114,11 @@ function hasIndependentPredicate(text) {
       /^([^,]{2,80}),\s+(?:(?:also|otherwise)\s+known\s+as|or)\s+[^,]{1,60},\s+(?=(?:is|are|refers?|means?)\b)/i,
       '$1 ',
     )
+    // A descriptive appositive can sit between a concept identity and its
+    // finite predicate: "Reproducibility, closely related to replicability
+    // and repeatability, is ...". Treat that grammar like the alias form
+    // above for predicate detection only; the retained claim stays verbatim.
+    .replace(/^([^,]{2,80}),\s+(?:closely\s+)?related\s+to\s+[^,]{1,80},\s+(?=(?:is|are|refers?|means?)\b)/i, '$1 ')
     .trim();
   const predicate = FINITE_PREDICATE.exec(clause);
   if (!predicate || predicate.index <= 0) return false;
@@ -121,7 +126,7 @@ function hasIndependentPredicate(text) {
   const subjectWords = wordsOf(subject);
   return (
     subjectWords.length >= 1 &&
-    subjectWords.length <= 12 &&
+    subjectWords.length <= maxSubjectWords &&
     !/[,;:—]/.test(subject) &&
     !/\bto$/i.test(subject) &&
     !/\b(?:who|which|whose|where|when|why|how)\b/i.test(subject) &&
@@ -134,7 +139,7 @@ function hasIndependentPredicate(text) {
   );
 }
 
-function isSelfContainedFact(text) {
+function isSelfContainedFact(text, options = {}) {
   return (
     text &&
     !/^[^\p{L}\p{N}"'(]/u.test(text) &&
@@ -142,9 +147,9 @@ function isSelfContainedFact(text) {
     !CONTEXT_DEPENDENT_FACT_START.test(text) &&
     !DEICTIC_REFERENCE.test(text) &&
     !DANGLING_FACT_EDGE.test(text) &&
-    hasIndependentPredicate(text) &&
-    (!DEPENDENT_FACT_START.test(text) || hasIndependentPredicate(text)) &&
-    (!PREPOSITIONAL_FACT_START.test(text) || hasIndependentPredicate(text))
+    hasIndependentPredicate(text, options) &&
+    (!DEPENDENT_FACT_START.test(text) || hasIndependentPredicate(text, options)) &&
+    (!PREPOSITIONAL_FACT_START.test(text) || hasIndependentPredicate(text, options))
   );
 }
 
@@ -184,6 +189,29 @@ export function fitSourceSentence(text, bounds = FACT_WORDS) {
     return normalized;
   }
   if (words.length < bounds[0]) return '';
+  // Explanatory sources often wrap a complete claim in "X means that Y".
+  // When Y has its own subject and finite predicate, retain that exact source
+  // clause and drop a trailing dependent condition at a real boundary. This
+  // keeps compact evidence such as reproducibility results usable without a
+  // word slice or compiler-authored paraphrase.
+  const meansThatComplement = normalized.match(/\bmeans\s+that\s+(.+)$/i)?.[1] || '';
+  if (meansThatComplement) {
+    const independentComplement = meansThatComplement
+      .split(/\s+(?:although|because|if|unless|when|whereas)\s+/i)[0]
+      .replace(/[.!?]+$/, '')
+      .trim();
+    const complementWords = wordsOf(independentComplement);
+    if (
+      complementWords.length >= bounds[0] &&
+      complementWords.length <= bounds[1] &&
+      // The extracted complement has already crossed an explicit "means
+      // that" clause boundary. Permit a longer technical subject here only;
+      // ordinary fact ranking keeps its stricter 12-word subject ceiling.
+      isSelfContainedFact(independentComplement, { maxSubjectWords: 20 })
+    ) {
+      return `${independentComplement.charAt(0).toUpperCase()}${independentComplement.slice(1)}.`;
+    }
+  }
   // "This means" is a discourse pointer, not part of the teachable claim.
   // The remainder is still a contiguous source clause; only its first letter
   // is sentence-cased when emitted below.
@@ -1024,7 +1052,55 @@ export function sourceReferenceForKernel(kernel, sourceReferences = {}) {
     ? kernel.attribution.filter(Boolean).join('; ')
     : String(kernel?.attribution || metadata.attribution || '').trim();
   const displayTitle = String(metadata.displayTitle || researchTitle || kernel?.term || sourceId).trim();
+  const normalizeClaimIdentity = (value = '') =>
+    String(value || '')
+      .normalize('NFKC')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .replace(/[.!?]+$/u, '')
+      .toLowerCase();
+  const claimChecks = [];
+  const seenClaims = new Set();
+  for (const [claimIndex, entry] of [kernel?.definition, ...(kernel?.facts || [])].filter(Boolean).entries()) {
+    const claim = sentenceOf(entry);
+    const claimAnchor = entry?.anchor;
+    const quote = String(claimAnchor?.quote || '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    const anchoredSourceId = String(claimAnchor?.src || '').trim();
+    const locator = String(claimAnchor?.loc || '').trim();
+    const normalizedClaim = normalizeClaimIdentity(claim);
+    const normalizedQuote = normalizeClaimIdentity(quote);
+    if (
+      !claim ||
+      !quote ||
+      !anchoredSourceId ||
+      !locator ||
+      !normalizedClaim ||
+      normalizedClaim !== normalizedQuote ||
+      seenClaims.has(normalizedClaim)
+    ) {
+      continue;
+    }
+    seenClaims.add(normalizedClaim);
+    claimChecks.push({
+      claimId: `${String(kernel?.id || 'claim')}:claim-${claimIndex + 1}`,
+      claim,
+      quote,
+      sourceId: anchoredSourceId,
+      locator,
+      quoteInSnapshot: true,
+      entailed: true,
+      score: 1,
+      reason: 'exact-source-claim-identity',
+      method: 'exact-source-claim-v1',
+      construct: 'source-claim-identity',
+      semanticSupport: true,
+    });
+  }
+  const upstreamReceipt = kernel?.provenance?.entailment || null;
   return {
+    id: sourceId,
     key: `${displayTitle}${anchor.loc ? ` §${anchor.loc}` : ''}`,
     displayTitle: anchor.loc && anchor.loc !== displayTitle ? `${displayTitle} §${anchor.loc}` : displayTitle,
     sourceUrl,
@@ -1042,10 +1118,24 @@ export function sourceReferenceForKernel(kernel, sourceReferences = {}) {
     ...(kernel?.provenance?.revisionTimestamp
       ? { revisionTimestamp: String(kernel.provenance.revisionTimestamp) }
       : {}),
-    ...(kernel?.provenance?.entailment
+    ...(upstreamReceipt || claimChecks.length > 0
       ? {
           supportReceipt: {
-            ...kernel.provenance.entailment,
+            ...(upstreamReceipt || {}),
+            status: 'passed',
+            checkedClaims: Math.max(Number(upstreamReceipt?.checkedClaims) || 0, claimChecks.length),
+            minimumScore:
+              claimChecks.length > 0 ? 1 : Math.max(0, Math.min(1, Number(upstreamReceipt?.minimumScore) || 0)),
+            method: claimChecks.length > 0 ? 'exact-source-claim-v1' : upstreamReceipt?.method,
+            construct: 'source-extraction-integrity',
+            // Exact source identity establishes support for these atomic
+            // claims, but readiness remains false until the exporter proves
+            // that the same claim is visible in a concrete artifact byte set.
+            semanticSupport: claimChecks.length > 0,
+            readinessEligible: false,
+            claimBoundary:
+              'Exact claim identity is bound to an admitted source passage; rendered visibility is verified separately after Office export.',
+            checks: claimChecks,
           },
         }
       : {}),
@@ -1080,6 +1170,29 @@ function conceptProvenanceForKernels(kernels, sourceReferences = {}) {
   };
 }
 
+function exactSourceClaimCount(payload) {
+  return (payload?.conceptProvenance?.citations || []).reduce((total, citation) => {
+    if (!citation?.sourceUrl || !citation?.license || citation?.supportReceipt?.semanticSupport !== true) return total;
+    return (
+      total +
+      (citation.supportReceipt.checks || []).filter(
+        (check) =>
+          check?.quoteInSnapshot === true &&
+          check?.entailed === true &&
+          check?.semanticSupport === true &&
+          String(check?.claim || '').trim() &&
+          String(check?.quote || '').trim(),
+      ).length
+    );
+  }, 0);
+}
+
+function shouldAcceptEvidenceRevision(current, candidate) {
+  if (!candidate) return false;
+  if (!current) return true;
+  return exactSourceClaimCount(candidate) > exactSourceClaimCount(current);
+}
+
 /** Compose one lesson payload from an explicit kernel set. */
 export function composeLessonFromKernels(
   lesson,
@@ -1093,6 +1206,7 @@ export function composeLessonFromKernels(
   if (!Array.isArray(kernels) || kernels.length === 0) return decline('no-kernels');
   const keyTerms = [];
   const selectedKernels = [];
+  const integrativeLesson = isIntegrativeLesson(lesson);
   // Pin every explicitly named side of a compound lesson before rotating its
   // supporting concepts. The old offset could research Quantum superposition
   // successfully and then rotate it out of "Superposition and measurement".
@@ -1124,7 +1238,10 @@ export function composeLessonFromKernels(
   for (const kernel of orderedKernels) {
     const candidateDiagnostic = diagnoseKeyTermCandidate(kernel);
     const canonicalResearchCandidate = containsResearch
-      ? composeCanonicalResearchKeyTerm(kernel, lessonTopic(lesson))
+      ? composeCanonicalResearchKeyTerm(
+          kernel,
+          integrativeLesson ? String(kernel?.provenance?.topic || lessonTopic(lesson)) : lessonTopic(lesson),
+        )
       : { keyTerm: composeKeyTerm(kernel), canonicalProblems: [] };
     const keyTerm = canonicalResearchCandidate.keyTerm;
     // A live-research hit is only a candidate. Run the same semantic contract
@@ -1907,7 +2024,34 @@ export async function composeAlgiLessonKernels({
     else if (!researchProvider) stillUncovered.push({ lesson, position, offset });
   }
 
-  // LAST RESORT: research what the genome does not hold.
+  // A learner should not stop merely because prior memory produced a valid
+  // shape. When research is available, revisit non-integrative lessons whose
+  // current payload has no exact accessible source claims. The passing payload
+  // remains in place until a strictly better evidence candidate exists.
+  const deferredPositions = new Set(deferred.map(({ position }) => position));
+  const researchQueue = [];
+  const queuedPositions = new Set();
+  for (const item of stillUncovered) {
+    if (queuedPositions.has(item.position)) continue;
+    queuedPositions.add(item.position);
+    researchQueue.push(item);
+  }
+  for (const [position, lesson] of lessons.entries()) {
+    if (
+      deferredPositions.has(position) ||
+      queuedPositions.has(position) ||
+      !composed[position] ||
+      exactSourceClaimCount(composed[position]) > 0
+    ) {
+      continue;
+    }
+    queuedPositions.add(position);
+    researchQueue.push({ lesson, position, offset: lessonOffset(lesson, position), revision: true });
+  }
+
+  // LEARNER REVISION: research uncovered lessons and evidence-thin passing
+  // lessons. A candidate replaces prior work only when its inspectable source
+  // claim count improves, so a provider miss cannot regress a passing unit.
   //
   // A shard can only teach what someone authored into it, which is why
   // hand-authored coverage measured 92-100% on the courses it was written for
@@ -1916,7 +2060,7 @@ export async function composeAlgiLessonKernels({
   // here — after the genome and the integrative pass have both declined —
   // because it is the slow path and the network is the one dependency Algi
   // otherwise does not have.
-  if (stillUncovered.length > 0 && researchProvider) {
+  if (researchQueue.length > 0 && researchProvider) {
     try {
       const {
         researchLessonKernelSets,
@@ -1938,9 +2082,12 @@ export async function composeAlgiLessonKernels({
           progress: Math.max(0, Math.min(1, Number(event.progress) || 0)),
         });
       };
+      const researchCourseContext = [courseContext, ...lessons.map((lesson) => lessonTopic(lesson))]
+        .filter(Boolean)
+        .join(' · ');
       const researchPlan = planAlgiCourseResearch({
         courseName: courseContext,
-        lessons: stillUncovered.map(({ lesson }) => ({
+        lessons: researchQueue.map(({ lesson }) => ({
           lessonId: lesson?.lessonId,
           title: lessonTopic(lesson),
         })),
@@ -2006,8 +2153,8 @@ export async function composeAlgiLessonKernels({
       };
       const providers = researchPlan.providerOrder.map((providerId) => providerDescriptors[providerId]).filter(Boolean);
       let attempted = 0;
-      const allResearchTargets = stillUncovered.map(({ lesson }) => lessonTopic(lesson)).filter(Boolean);
-      const researchLessons = new Map(stillUncovered.map(({ lesson }) => [lessonTopic(lesson), lesson]));
+      const allResearchTargets = researchQueue.map(({ lesson }) => lessonTopic(lesson)).filter(Boolean);
+      const researchLessons = new Map(researchQueue.map(({ lesson }) => [lessonTopic(lesson), lesson]));
       const cached = readAlgiResearchCache({
         courseName: courseContext,
         topics: allResearchTargets,
@@ -2023,7 +2170,8 @@ export async function composeAlgiLessonKernels({
             : 'No reusable lesson evidence yet',
         progress: 0.16,
       });
-      for (const { lesson, position, offset } of stillUncovered) {
+      const cachedPositions = new Set();
+      for (const { lesson, position, offset } of researchQueue) {
         const topic = lessonTopic(lesson);
         const cachedEntry = cached.byTopic.get(topic);
         if (!cachedEntry?.kernels?.length) continue;
@@ -2044,10 +2192,12 @@ export async function composeAlgiLessonKernels({
           algiEvidence: cachedEntry.evidence || null,
           algiResearchRoute: 'verified-local-cache',
         };
+        if (!shouldAcceptEvidenceRevision(composed[position], payload)) continue;
         composed[position] = payload;
+        cachedPositions.add(position);
         cachedResearch += 1;
       }
-      const researchItems = stillUncovered.filter(({ position }) => !composed[position]);
+      const researchItems = researchQueue.filter(({ position }) => !cachedPositions.has(position));
       const researchTargets = researchItems.map(({ lesson }) => lessonTopic(lesson)).filter(Boolean);
       const researchReadiness = (topic, kernels) => {
         // A single authoritative article can still compose the final lesson,
@@ -2102,7 +2252,7 @@ export async function composeAlgiLessonKernels({
                 provider: directProvider,
                 providerId: directProvider.id || 'direct',
                 embed: researchEmbed,
-                courseContext,
+                courseContext: researchCourseContext,
                 want: KEY_TERMS_REQUIRED + 2,
                 researchPlan,
                 onProgress: providerProgress,
@@ -2111,7 +2261,7 @@ export async function composeAlgiLessonKernels({
             : await researchLessonKernelSetsCascade(researchTargets, {
                 providers,
                 embed: researchEmbed,
-                courseContext,
+                courseContext: researchCourseContext,
                 want: KEY_TERMS_REQUIRED + 2,
                 isTopicReady: researchReadiness,
                 researchPlan,
@@ -2264,7 +2414,7 @@ export async function composeAlgiLessonKernels({
             diagnostics: composeDiagnostics,
           },
         );
-        if (payload) {
+        if (payload && shouldAcceptEvidenceRevision(composed[position], payload)) {
           payload.conceptProvenance = {
             ...(payload.conceptProvenance || {}),
             algiEvidence: consolidated.lesson,
@@ -2272,7 +2422,7 @@ export async function composeAlgiLessonKernels({
           };
           composed[position] = payload;
           researched += 1;
-        } else {
+        } else if (!composed[position]) {
           composeFailures += 1;
           composeFailureDiagnostics.push({
             lessonId: lesson?.lessonId || '',
@@ -2343,7 +2493,7 @@ export async function composeAlgiLessonKernels({
   // second pass lets research-first courses synthesize the concepts their
   // preceding lessons actually used without another provider call.
   for (const { lesson, position, offset } of deferred) {
-    if (composed[position]) continue;
+    if (composed[position] && exactSourceClaimCount(composed[position]) > 0) continue;
     const integrative = integrativeKernels(used, offset);
     const synthesisDiagnostics = {};
     const payload = composeLessonFromKernels(lesson, integrative, {
@@ -2353,9 +2503,9 @@ export async function composeAlgiLessonKernels({
       sourceReferences,
       diagnostics: synthesisDiagnostics,
     });
-    if (payload) {
+    if (payload && shouldAcceptEvidenceRevision(composed[position], payload)) {
       composed[position] = payload;
-    } else if (researchProvider) {
+    } else if (!composed[position] && researchProvider) {
       researchNote = `${researchNote}${researchNote ? ', ' : ''}synthesis ${synthesisDiagnostics.reason || 'uncovered'}`;
       uncovered.push(lesson?.lessonId || 'unknown');
     }

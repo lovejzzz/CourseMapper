@@ -64,8 +64,15 @@ export function selectScionEvidenceCandidate(
 function normalizeCitation(entry = {}) {
   const sourceUrl = clean(entry.sourceUrl);
   const displayTitle = clean(entry.displayTitle || entry.key);
+  const id = clean(
+    entry.id ||
+      entry.sourceId ||
+      entry.sourceRefId ||
+      entry.supportReceipt?.checks?.find?.((check) => clean(check?.sourceId))?.sourceId,
+  );
   if (!displayTitle || (sourceUrl && !/^https:\/\//i.test(sourceUrl))) return null;
   return {
+    ...(id ? { id } : {}),
     displayTitle,
     sourceUrl,
     license: clean(entry.license),

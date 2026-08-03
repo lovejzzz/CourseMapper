@@ -49,6 +49,36 @@ function researchProvider(searchArticles) {
 }
 
 describe('Algi research-first course transaction', () => {
+  it('revises a genome-covered lesson only when research adds exact accessible claims', async () => {
+    const records = Object.fromEntries(
+      [
+        ['Market failure', 'source-1'],
+        ['Externality', 'source-2'],
+        ['Social cost', 'source-3'],
+      ].map(([title, sourceId]) => [title, article(title, sourceId)]),
+    );
+    const searchArticles = vi.fn(async () => records);
+
+    resetAlgiGenomeCacheForTests();
+    const result = await composeAlgiLessonKernels({
+      structuredPrompt: {
+        courseTitle: 'Introduction to Environmental Policy',
+        lessons: [{ lessonId: 'lesson-1', title: 'Market failure and social cost', objectives: [], topics: [] }],
+      },
+      researchProvider: researchProvider(searchArticles),
+      researchStorage: memoryStorage(),
+      now: Date.UTC(2026, 6, 27),
+    });
+
+    expect(result).toMatchObject({ covered: 1, requested: 1, researched: 1, uncovered: [] });
+    const lesson = JSON.parse(result.text).lessons[0];
+    expect(lesson.enrichmentSource).toBe('algi-researched');
+    expect(
+      lesson.conceptProvenance.citations.flatMap((citation) => citation.supportReceipt?.checks || []),
+    ).not.toHaveLength(0);
+    resetAlgiGenomeCacheForTests();
+  });
+
   it('plans, adjudicates, consolidates, and then reuses verified lesson evidence locally', async () => {
     const records = Object.fromEntries(
       [

@@ -1960,6 +1960,11 @@ function mergeGenericFinalAssessmentPairs(entries = []) {
       return (
         candidateTitle.length > title.length + 4 &&
         new RegExp(`\\b${family}\\b`, 'i').test(candidateTitle) &&
+        // A recurring cadence carries the lesson title after a colon. When
+        // that lesson happens to be named “final paper …”, it is still a
+        // weekly response/check—not the named final artifact that this
+        // deduper is allowed to merge with.
+        !/^[^:]{1,100}:\s/.test(candidateTitle) &&
         !/^final\s+(?:course\s+)?(?:portfolio|project|paper|presentation|report|performance)$/i.test(candidateTitle)
       );
     });
@@ -2240,7 +2245,14 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
     (sourceSequenceIsAuthoritative || repeatedSessionTitles || misalignedOrders.length >= 2)
   ) {
     const authoredTitles = sessions.map((session) => session.title);
-    const restoreSourceTitles = repeatedSessionTitles || misalignedOrders.length >= 2;
+    // An explicitly ordered source sequence is an identity contract, not a
+    // suggestion. Even a model title that shares one token can broaden or
+    // redirect the lesson (for example “data types and expressions” becoming
+    // a general “data ethics and expression” lesson). Preserve the exact
+    // instructor-authored title at every position whenever the sequence was
+    // admitted; semantic recovery remains the fallback for non-authoritative
+    // coverage lists.
+    const restoreSourceTitles = sourceSequenceIsAuthoritative || repeatedSessionTitles || misalignedOrders.length >= 2;
     sessions = sessions.map((session, index) => {
       const sourceTitle = sourceLessonSequence[index];
       const canonicalSourceTitle = cleanText(

@@ -74,6 +74,17 @@ export function extractExpectedSessions(userPrompt) {
 
 /** Course name from an explicit title line, else the first substantial line. */
 export function extractCourseName(source) {
+  const explicitlyNamed = String(source || '').match(
+    /\b(?:course|class|seminar|studio|workshop)\s+(?:called|titled|named)\s+["“]?([^"”,.;!?]{4,90})["”]?/i,
+  );
+  if (explicitlyNamed?.[1]) {
+    const value = clamp(
+      explicitlyNamed[1].replace(/\s+for\s+(?:[\w-]+\s+){0,5}(?:students?|learners?|participants?)$/i, '').trim(),
+      MAX_COURSE_NAME,
+      3,
+    );
+    if (value) return value;
+  }
   const lines = String(source || '')
     .split('\n')
     .map((line) => line.replace(/^[#\s>*-]+/, '').trim())

@@ -561,6 +561,28 @@ describe('Pass A skeleton contract (B1)', () => {
     });
   });
 
+  it('restores every exact source title even when a changed model title shares one semantic token', () => {
+    const sourceText =
+      'Create exactly 3 lessons: Python data types and expressions; Conditional branching and loops; Functions and automated tests.';
+    const skeleton = parseNativeSkeletonResponse(
+      JSON.stringify({
+        course: { name: 'Applied Programming' },
+        sessions: [
+          { order: 1, title: 'Data ethics and public expression', sectionTitles: ['Data ethics'] },
+          { order: 2, title: 'Branching policy narratives', sectionTitles: ['Policy narratives'] },
+          { order: 3, title: 'Functions and automated tests', sectionTitles: ['Functions and tests'] },
+        ],
+      }),
+      { expectedLessons: 3, sourceText },
+    );
+
+    expect(skeleton.sessions.map((session) => session.title)).toEqual([
+      'Python data types and expressions',
+      'Conditional branching and loops',
+      'Functions and automated tests',
+    ]);
+  });
+
   it('promotes distinct authored subtopics when a compact brief produces repeated titles and assessment filler', () => {
     const sourceText =
       'Introduction to Genetics, a 15-lesson undergraduate biology course with problem sets, a model-organism lab, two midterms, and a final. Covers Mendelian inheritance, meiosis, linkage and gene mapping, the molecular structure of DNA, gene expression, mutation, population genetics, epigenetics, and modern genetic technologies.';
@@ -961,17 +983,17 @@ describe('Pass A skeleton contract (B1)', () => {
 
     expect(parsed.assessments).toHaveLength(30);
     expect(parsed.assessments.filter((entry) => entry.dueSession === 1).map((entry) => entry.title)).toEqual([
-      'weekly reading responses: What Counts as World Literature',
-      'close-reading checks: What Counts as World Literature',
+      'weekly reading responses: what counts as world literature',
+      'close-reading checks: what counts as world literature',
     ]);
     expect(parsed.assessments.filter((entry) => entry.dueSession === 8).map((entry) => entry.title)).toEqual([
-      'weekly reading responses: Comparative Reading Methods',
-      'close-reading checks: Comparative Reading Methods',
+      'weekly reading responses: comparative reading methods culminating in a comparative essay proposal',
+      'close-reading checks: comparative reading methods culminating in a comparative essay proposal',
       'comparative essay proposal',
     ]);
     expect(parsed.assessments.filter((entry) => entry.dueSession === 14).map((entry) => entry.title)).toEqual([
-      'weekly reading responses: Course Synthesis',
-      'close-reading checks: Course Synthesis',
+      'weekly reading responses: final paper with course synthesis',
+      'close-reading checks: final paper with course synthesis',
       'final paper',
     ]);
     expect(parsed.assessments.map((entry) => entry.title).join(' ')).not.toMatch(
