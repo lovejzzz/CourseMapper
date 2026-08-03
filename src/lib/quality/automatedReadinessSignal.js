@@ -139,6 +139,15 @@ function replayedPoints(max, componentScore) {
   return { max, earned, lost: max - earned, unobserved: 0 };
 }
 
+function assessmentCoherencePoints(max, observed = {}) {
+  const passed = Number(observed.passedChecks);
+  const total = Number(observed.totalChecks);
+  if (!Number.isFinite(passed) || !Number.isFinite(total) || total <= 0) return replayedPoints(max, 0);
+  const proportional = Math.floor((Math.min(total, Math.max(0, passed)) / total) * max);
+  const earned = passed === total ? max : Math.min(max - 1, proportional);
+  return { max, earned, lost: max - earned, unobserved: 0 };
+}
+
 export function replayAutomatedEvidenceRule(rule = {}) {
   const contract = AUTOMATED_EVIDENCE_RULE_CONTRACTS.find((entry) => entry.ruleId === rule.ruleId);
   if (!contract) throw new Error(`${rule.ruleId || 'rule'} is not part of the deterministic evidence protocol`);
@@ -219,7 +228,7 @@ export function replayAutomatedEvidenceRule(rule = {}) {
       coherenceRatio <= 1
     ) {
       status = 'evaluated';
-      points = replayedPoints(contract.max, coherenceRatio * 100);
+      points = assessmentCoherencePoints(contract.max, observed);
       predicateOperator = contract.evaluatedPredicateOperator;
       predicateExpected = {
         checksPerAssessment: 5,
@@ -333,8 +342,9 @@ function evaluatedRule({
   antiGaming,
   evidenceTier = 'deterministic-structural',
   evidencePolarity = 'positive-metric',
+  points: declaredPoints,
 }) {
-  const earned = Math.min(max, Math.max(0, Math.round((clamp(componentScore) / 100) * max)));
+  const points = declaredPoints || replayedPoints(max, componentScore);
   return {
     ruleId,
     ruleVersion: AUTOMATED_EVIDENCE_RULE_VERSION,
@@ -343,7 +353,7 @@ function evaluatedRule({
     recoverability: 'author-recoverable',
     evidence,
     predicate,
-    points: { max, earned, lost: max - earned, unobserved: 0 },
+    points,
     evidenceTier,
     evidencePolarity,
     confidence: {
@@ -740,6 +750,7 @@ function assessmentRule(receipt) {
       constructId: 'assessmentCoherence',
       max: COMPONENT_WEIGHTS.assessmentCoherence,
       componentScore: ratio * 100,
+      points: assessmentCoherencePoints(COMPONENT_WEIGHTS.assessmentCoherence, observed),
       evidence,
       predicate: {
         operator: 'rendered-objective-task-evidence-rubric-linkage',

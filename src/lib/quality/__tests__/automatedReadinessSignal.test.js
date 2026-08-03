@@ -367,6 +367,27 @@ describe('automated readiness signal', () => {
     expect(result.components.assessmentCoherence.reason).toMatch(/12\/15 rendered assessment-link checks/i);
   });
 
+  it('never rounds a partial assessment receipt up to full credit', () => {
+    const result = computeAutomatedReadinessSignal({
+      manifest: { sourceLedger: [] },
+      course: { prompt: 'Build a six-week public policy course.' },
+      lessonTitles: [...TITLES, 'Policy memo capstone'],
+      conformance: conformance(100),
+      texture: { score: 100 },
+      assessment: {
+        ...assessmentReceipt(),
+        eligibleAssessments: 6,
+        passedAssessments: 5,
+        passedChecks: 29,
+        totalChecks: 30,
+        coherenceRatio: 0.967,
+      },
+    });
+
+    expect(result.components.assessmentCoherence.points).toEqual({ max: 15, earned: 14, lost: 1, unobserved: 0 });
+    expect(recomputeAutomatedEvidenceLedger(result.ledger.rules)).toEqual(result.points);
+  });
+
   it('rejects a forged assessment ratio whose fixed denominator is incomplete', () => {
     const result = computeAutomatedReadinessSignal({
       manifest: { sourceLedger: [] },
