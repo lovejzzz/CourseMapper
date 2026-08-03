@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
-import { composeAlgiLessonKernels, resetAlgiGenomeCacheForTests } from '../algiKernelComposer.js';
+import {
+  composeAlgiLessonKernels,
+  resetAlgiGenomeCacheForTests,
+  scionResearchTopicReady,
+} from '../algiKernelComposer.js';
+import { researchLessonKernelSetsCascade } from '../knowledge/algiResearch.js';
 
 function memoryStorage() {
   const values = new Map();
@@ -49,6 +54,53 @@ function researchProvider(searchArticles) {
 }
 
 describe('Algi research-first course transaction', () => {
+  it('does not call a later provider after the production readiness policy admits one source kernel', async () => {
+    const title = 'Platform accountability';
+    const firstSearch = vi.fn(async () => ({ [title]: article(title, 'source-1') }));
+    const laterSearch = vi.fn(async () => {
+      throw new Error('later provider must not run after source admission');
+    });
+
+    const result = await researchLessonKernelSetsCascade([title], {
+      providers: [
+        { id: 'first', provider: researchProvider(firstSearch), options: { maxTargetedFallbacks: 0 } },
+        { id: 'later', provider: researchProvider(laterSearch), options: { maxTargetedFallbacks: 0 } },
+      ],
+      courseContext: 'Platform Policy',
+      want: 5,
+      isTopicReady: (topic, kernels) =>
+        scionResearchTopicReady(topic, kernels, { claimCount: 5, canCompose: () => true }),
+    });
+
+    expect(result.byTopic.get(title)).toHaveLength(1);
+    expect(firstSearch).toHaveBeenCalled();
+    expect(laterSearch).not.toHaveBeenCalled();
+  });
+
+  it('continues to a later provider when one admitted source cannot compose', async () => {
+    const title = 'Platform accountability';
+    const firstSearch = vi.fn(async () => ({ [title]: article(title, 'source-1') }));
+    const laterSearch = vi.fn(async () => ({ [title]: article(title, 'source-2') }));
+
+    const result = await researchLessonKernelSetsCascade([title], {
+      providers: [
+        { id: 'first', provider: researchProvider(firstSearch), options: { maxTargetedFallbacks: 0 } },
+        { id: 'later', provider: researchProvider(laterSearch), options: { maxTargetedFallbacks: 0 } },
+      ],
+      courseContext: 'Platform Policy',
+      want: 5,
+      isTopicReady: (topic, kernels) =>
+        scionResearchTopicReady(topic, kernels, {
+          claimCount: kernels.length * 3,
+          canCompose: () => true,
+        }),
+    });
+
+    expect(result.byTopic.get(title)).toHaveLength(2);
+    expect(firstSearch).toHaveBeenCalled();
+    expect(laterSearch).toHaveBeenCalled();
+  });
+
   it('revises a genome-covered lesson only when research adds exact accessible claims', async () => {
     const records = Object.fromEntries(
       [

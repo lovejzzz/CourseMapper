@@ -618,6 +618,17 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
       const key = term.toLowerCase();
       if (!term || seenTerms.has(key)) continue;
       const comparisonFact = projectionFacts[(factIndex + 1) % projectionFacts.length] || fact;
+      const misconceptionVariants = [
+        `Mistake: treating ${term} as proof of a broader cause or outcome.`,
+        `Overreach: using ${term} to justify a conclusion beyond the admitted evidence.`,
+        `${term} error: inferring an unverified mechanism or result from the admitted statement.`,
+      ];
+      const correctionVariants = [
+        `Correction for ${term}: stay inside the admitted fact and flag any broader inference as unsupported.`,
+        `Repair the ${term} claim by treating its admitted fact as the ceiling and labeling wider conclusions unsupported.`,
+        `${term} correction: preserve only the admitted statement and identify every unsupported extension explicitly.`,
+      ];
+      const variantIndex = factIndex % correctionVariants.length;
       const derived = {
         term,
         definition: fact,
@@ -628,8 +639,8 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
         // Keep this pair term-specific and scope-specific without cloning the
         // fact: the false move is overreach; the repair points back to the
         // adjacent admitted definition as the explicit ceiling.
-        misconception: `Mistake: treating ${term} as proof of a broader cause or outcome.`,
-        correction: `Correction for ${term}: use its admitted fact as the limit; mark the unsupported extension.`,
+        misconception: misconceptionVariants[variantIndex],
+        correction: correctionVariants[variantIndex],
         source: 'fact-subject-projection',
         tier: 1,
         derivedFromFactIndex: factIndex,

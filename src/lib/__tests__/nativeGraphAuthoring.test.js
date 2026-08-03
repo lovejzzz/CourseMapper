@@ -97,11 +97,15 @@ describe('source-grounded native authoring backfill', () => {
       expect.arrayContaining([expect.objectContaining({ source: 'fact-subject-projection' })]),
     );
     expect(JSON.stringify(completed)).not.toContain('can be applied without checking the scope or conditions stated');
-    for (const term of completed.keyTerms.filter((entry) => entry.source === 'fact-subject-projection')) {
+    const projectedTerms = completed.keyTerms.filter((entry) => entry.source === 'fact-subject-projection');
+    for (const term of projectedTerms) {
       expect(term.misconception).not.toContain(term.definition);
       expect(term.correction).not.toContain(term.definition);
       expect(term.correction).toContain(term.term);
+      expect(term.correction.toLowerCase().split(term.term.toLowerCase())).toHaveLength(2);
     }
+    expect(new Set(projectedTerms.map((term) => term.misconception)).size).toBe(projectedTerms.length);
+    expect(new Set(projectedTerms.map((term) => term.correction)).size).toBe(projectedTerms.length);
   });
 
   it('preserves a complete seven-word admitted-fact subject instead of cutting a word', () => {

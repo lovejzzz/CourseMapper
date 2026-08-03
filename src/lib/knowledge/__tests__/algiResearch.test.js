@@ -550,6 +550,62 @@ describe('course-domain research alignment', () => {
     ).toBe(true);
   });
 
+  it('rejects clinical false friends from non-clinical programming lessons', () => {
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Functions and automated tests',
+        courseContext: 'Applied Civic Data Analysis with Python programming',
+        title: 'Cognitive functions and autoantibodies in patients with systemic lupus erythematosus',
+        extract:
+          'This clinical study measures cognitive functions and autoantibodies in patients with systemic disease.',
+        provider: 'doaj',
+      }),
+    ).toBe(false);
+  });
+
+  it('rejects broad uncertainty false friends from a data-visualization lesson', () => {
+    const courseContext = 'Applied Civic Data Analysis with Python and statistics';
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Reproducible visualization and uncertainty',
+        courseContext,
+        title: 'Fear, uncertainty, and doubt',
+        extract: 'Fear, uncertainty, and doubt is a rhetorical strategy used to influence perception.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(false);
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Reproducible visualization and uncertainty',
+        courseContext,
+        title: 'Measurement uncertainty',
+        extract: 'Measurement uncertainty characterizes dispersion in measured values and reported results.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(true);
+  });
+
+  it('preserves environmental evidence in a mixed environmental data-analysis course', () => {
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Waterborne pathogens',
+        courseContext: 'Environmental data analysis and public-health monitoring',
+        title: 'Water pollution',
+        extract: 'Water pollution can spread waterborne disease when contaminated water carries pathogenic organisms.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(true);
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Urban heat risk',
+        courseContext: 'Climate Risk and Urban Planning',
+        title: 'Wastewater and community health risk under extreme heat',
+        extract: 'Wastewater exposure can create a community health risk during climate-driven extreme heat.',
+        provider: 'doaj',
+      }),
+    ).toBe(true);
+  });
+
   it('rejects enterprise BTM from a database transaction lesson', () => {
     expect(
       isResearchCandidateDomainAligned({
@@ -1765,9 +1821,11 @@ describe('lesson research admission', () => {
     expect(fullReads).toBe(1);
   });
 
-  it('counts failed deep reads and gives later lessons a first chance before any second attempt', async () => {
+  it('prioritizes zero-source lessons before deepening sparse intro evidence', async () => {
     const topics = ['Alpha methods and beta checks', 'Gamma methods and delta checks'];
     const attempts = [];
+    const missingIntroTitles = new Set(directResearchTitles(topics[1], 'General methods'));
+    const sparseIntroTitle = directResearchTitles(topics[0], 'General methods')[0];
     const articleFor = (title) => ({
       title,
       extract: [
@@ -1783,10 +1841,15 @@ describe('lesson research admission', () => {
       supportsDirectTitles: true,
       license: 'CC BY-SA 4.0',
       search: async () => [],
-      articles: async (titles) => Object.fromEntries(titles.map((title) => [title, articleFor(title)])),
+      articles: async (titles) =>
+        Object.fromEntries(
+          titles
+            .filter((title) => !missingIntroTitles.has(title) && title === sparseIntroTitle)
+            .map((title) => [title, articleFor(title)]),
+        ),
       fullArticle: async (title) => {
         attempts.push(title);
-        return null;
+        return articleFor(title);
       },
       sourceIdFor: (title) => `wikipedia:${title}`,
       attributionFor: () => 'Wikipedia contributors',
@@ -1797,10 +1860,49 @@ describe('lesson research admission', () => {
       courseContext: 'General methods',
       minimum: 3,
       want: 3,
-      maxTargetedFallbacks: 0,
+      maxTargetedFallbacks: 1,
     });
 
-    expect(attempts.slice(0, topics.length)).toEqual(topics.map((topic) => directResearchTitles(topic)[0]));
+    expect(attempts).toEqual([directResearchTitles(topics[1], 'General methods')[0]]);
+  });
+
+  it('deepens a still-sparse intro only inside the targeted pass', async () => {
+    const topic = 'Sparse methods and bounded checks';
+    const introTitle = directResearchTitles(topic, 'General methods')[0];
+    let fullReads = 0;
+    const articleFor = (title) => ({
+      title,
+      extract: [
+        `${title} is a documented method for examining a bounded system.`,
+        `${title} records visible evidence and one limitation for later review.`,
+      ].join('\n'),
+      sourceUrl: `https://en.wikipedia.org/wiki/${encodeURIComponent(title)}`,
+    });
+    const provider = {
+      id: 'wikipedia',
+      sourceKind: 'open encyclopedia',
+      supportsDirectTitles: true,
+      license: 'CC BY-SA 4.0',
+      search: async () => [],
+      articles: async (titles) =>
+        Object.fromEntries(titles.filter((title) => title === introTitle).map((title) => [title, articleFor(title)])),
+      fullArticle: async (title) => {
+        fullReads += 1;
+        return articleFor(title);
+      },
+      sourceIdFor: (title) => `wikipedia:${title}`,
+      attributionFor: () => 'Wikipedia contributors',
+    };
+
+    await researchLessonKernelSets([topic], {
+      provider,
+      courseContext: 'General methods',
+      minimum: 3,
+      want: 3,
+      maxTargetedFallbacks: 1,
+    });
+
+    expect(fullReads).toBe(1);
   });
 
   it('composes waterborne pathogens from three admitted source concepts', async () => {

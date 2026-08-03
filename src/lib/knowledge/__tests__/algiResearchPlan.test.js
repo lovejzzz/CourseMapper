@@ -42,6 +42,9 @@ describe('Algi course research planning', () => {
     expect(inferAlgiResearchDomain('World Literature', plan.lessons)).toBe('humanities');
     expect(plan.providerOrder).toEqual(['doaj', 'wikipedia']);
     expect(providerSupportsLesson(plan, 'Postcolonial narrative and voice', 'europe-pmc')).toBe(false);
+    expect(providerQueryForLesson(plan, 'Postcolonial narrative and voice', 'wikipedia')).toBe(
+      '(postcolonial narrative OR voice)',
+    );
   });
 
   it('learns foundational quantitative concepts from a reference source before adjacent papers', () => {
@@ -56,6 +59,27 @@ describe('Algi course research planning', () => {
     expect(plan.domain).toBe('quantitative');
     expect(plan.providerOrder).toEqual(['wikipedia', 'doaj']);
     expect(plan.lessons.every((lesson) => lesson.providerOrder[0] === 'wikipedia')).toBe(true);
+    expect(providerQueryForLesson(plan, 'Data types and expressions', 'wikipedia')).toBe(
+      '(data types OR expressions) computer programming',
+    );
+  });
+
+  it('lets biomedical course context outrank collision-prone programming words', () => {
+    const plan = planAlgiCourseResearch({
+      courseName: 'Molecular Biology',
+      lessons: [
+        { lessonId: 'lesson-1', title: 'Gene expression and regulation' },
+        { lessonId: 'lesson-2', title: 'Cardiac function and output' },
+      ],
+    });
+
+    expect(plan.domain).toBe('biomedical');
+    expect(providerQueryForLesson(plan, 'Gene expression and regulation', 'wikipedia')).toBe(
+      '(gene expression OR regulation) biology',
+    );
+    expect(providerQueryForLesson(plan, 'Cardiac function and output', 'wikipedia')).toBe(
+      '(cardiac function OR output) biology',
+    );
   });
 
   it('treats digital accessibility as a research domain and disambiguates encyclopedia queries', () => {

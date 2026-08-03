@@ -177,6 +177,10 @@ function claimAtoms(kernel = {}) {
   ].filter((atom) => clean(atom?.text) && clean(atom?.anchor?.src) && clean(atom?.anchor?.quote));
 }
 
+export function countAlgiEvidenceClaims(kernels = []) {
+  return (Array.isArray(kernels) ? kernels : []).reduce((total, kernel) => total + claimAtoms(kernel).length, 0);
+}
+
 function numberSet(value = '') {
   return new Set([...clean(value).matchAll(NUMBER)].map((match) => match[0]));
 }

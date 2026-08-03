@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildAlgiEvidenceGraph,
   consolidateAlgiLessonEvidence,
+  countAlgiEvidenceClaims,
   summarizeAlgiEvidenceGraph,
 } from '../algiEvidenceGraph.js';
 import { planAlgiCourseResearch } from '../algiResearchPlan.js';
@@ -33,6 +34,17 @@ function kernel(index, provider = 'doaj', overrides = {}) {
 }
 
 describe('Algi claim evidence graph', () => {
+  it('counts only source-anchored definition and fact atoms used by admission', () => {
+    const admitted = kernel(1);
+    const unanchored = {
+      ...kernel(2),
+      definition: { text: 'An unanchored definition is not evidence.' },
+      facts: [{ text: 'An unanchored fact is not evidence.' }],
+    };
+
+    expect(countAlgiEvidenceClaims([admitted, unanchored])).toBe(2);
+  });
+
   it('consolidates diverse admitted sources without generating new claims', () => {
     const plan = planAlgiCourseResearch({
       courseName: 'Test Course',

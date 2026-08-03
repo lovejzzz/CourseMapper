@@ -1833,15 +1833,25 @@ export function isResearchCandidateDomainAligned({
   if (digitalAccessibilityCourse && provider === 'w3c-wai') {
     return isWaiSourceFamilyAligned(topic, title);
   }
-  const technologyPolicyCourse =
-    /\b(?:technology|digital|internet|platform|algorithmic|artificial intelligence|ai)\b/.test(courseAndTopic) &&
-    /\b(?:policy|governance|regulation|accountability|audit|oversight)\b/.test(courseAndTopic);
+  const exactTopic = candidate.includes(String(topic || '').toLowerCase());
+  const courseAllowsAppliedDomain =
+    /\b(?:biolog\w*|climat\w*|ecolog\w*|environment\w*|health|medical|clinical|patient\w*|disease\w*|microbi\w*|pathogen\w*|pollution|sustainab\w*|water\w*|wastewater)\b/.test(
+      courseAndTopic,
+    );
   const unrelatedAppliedDomain =
     /\b(?:pollutants?|pollution|environmental protection|wastewater|clinical|patients?|disease|medical|health risks?)\b/.test(
       candidate,
-    ) && !/\b(?:environment|health|medical|clinical)\b/.test(courseAndTopic);
-  const exactTopic = candidate.includes(String(topic || '').toLowerCase());
-  if (technologyPolicyCourse && unrelatedAppliedDomain && !exactTopic) return false;
+    ) && !courseAllowsAppliedDomain;
+  if (unrelatedAppliedDomain && !courseAllowsAppliedDomain && !exactTopic) return false;
+  const dataComputingCourse =
+    /\b(?:computer science|data analysis|data science|programming|python|software|statistics|statistical)\b/.test(
+      courseAndTopic,
+    );
+  const dataComputingCandidate =
+    /\b(?:algorithm\w*|analysis|chart\w*|code|computer|data|measurement|plot\w*|program\w*|software|statistic\w*|test\w*|visuali[sz]\w*)\b/.test(
+      candidate,
+    );
+  if (dataComputingCourse && !courseAllowsAppliedDomain && !dataComputingCandidate && !exactTopic) return false;
   return !isCourseAwareWeakSource(
     {
       title,
@@ -2417,7 +2427,7 @@ export async function researchLessonKernels(
   return backfillMultipleChoice(admittedKernels);
 }
 
-function providerFromArticleRecords(provider, records, candidateTitles) {
+function providerFromArticleRecords(provider, records, candidateTitles, { allowFullArticle = true } = {}) {
   const selected = [...new Set(candidateTitles)].filter(Boolean);
   return {
     search: async () => selected,
@@ -2426,7 +2436,9 @@ function providerFromArticleRecords(provider, records, candidateTitles) {
         titles.map((title) => [title, records.get(title)]).filter(([, article]) => article && article.extract),
       ),
     article: async (title) => records.get(title) || null,
-    ...(typeof provider.fullArticle === 'function' ? { fullArticle: (title) => provider.fullArticle(title) } : {}),
+    ...(allowFullArticle && typeof provider.fullArticle === 'function'
+      ? { fullArticle: (title) => provider.fullArticle(title) }
+      : {}),
     license: provider.license,
     attributionFor: provider.attributionFor,
     sourceIdFor: provider.sourceIdFor,
@@ -2524,7 +2536,13 @@ export async function researchLessonKernelSets(
 
   for (const topic of uniqueTopics) {
     const titles = directByTopic.get(topic) || [];
-    const localProvider = providerFromArticleRecords(provider, directRecords, titles);
+    // Batched intro extracts are already exact source snapshots. Let every
+    // lesson attempt admission from them before spending a burst-limited
+    // single-page deep read. Depth is reserved for the targeted revision pass
+    // below when a lesson still has no admitted source at all.
+    const localProvider = providerFromArticleRecords(provider, directRecords, titles, {
+      allowFullArticle: false,
+    });
     const kernels = await researchLessonKernels(topic, {
       provider: localProvider,
       embed,
@@ -2576,7 +2594,9 @@ export async function researchLessonKernelSets(
 
   for (const topic of unresolved) {
     const titles = [...(directByTopic.get(topic) || []), ...(searchTitlesByTopic.get(topic) || [])];
-    const localProvider = providerFromArticleRecords(provider, combinedRecords, titles);
+    const localProvider = providerFromArticleRecords(provider, combinedRecords, titles, {
+      allowFullArticle: false,
+    });
     const kernels = await researchLessonKernels(topic, {
       provider: localProvider,
       embed,
@@ -2596,6 +2616,9 @@ export async function researchLessonKernelSets(
   // old search+article pair for every lesson.
   const sparse = unresolved
     .filter((topic) => needsTargetedResearch(byTopic.get(topic) || [], topic, minimum))
+    // Preserve the bounded request budget while preventing lesson order from
+    // starving a later zero-source topic behind earlier partial matches.
+    .sort((left, right) => (byTopic.get(left) || []).length - (byTopic.get(right) || []).length)
     .slice(0, Math.max(0, maxTargetedFallbacks));
   const targetedTitlesByTopic = new Map();
   let targetedRecords = new Map();
@@ -2636,7 +2659,12 @@ export async function researchLessonKernelSets(
       ...(searchTitlesByTopic.get(topic) || []),
       ...(targetedTitlesByTopic.get(topic) || []),
     ];
-    const localProvider = providerFromArticleRecords(provider, allRecords, titles);
+    const localProvider = providerFromArticleRecords(provider, allRecords, titles, {
+      // A short intro can establish relevance without containing enough
+      // mechanism for a multi-concept lesson. Spend deep-read budget only in
+      // this targeted pass, but permit it for every still-sparse topic.
+      allowFullArticle: (byTopic.get(topic) || []).length < minimum,
+    });
     const kernels = await researchLessonKernels(topic, {
       provider: localProvider,
       embed,

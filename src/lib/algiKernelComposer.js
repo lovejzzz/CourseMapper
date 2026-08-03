@@ -1968,6 +1968,23 @@ export function needsAuthoritativeSourceResearch(lesson, payload) {
   );
 }
 
+// Breadth before redundancy: one admitted source kernel may stop the provider
+// cascade, but only after the production composer proves that the source can
+// actually become a lesson. A related-yet-incomplete kernel must leave the
+// topic open so a later provider can recover it.
+export function scionResearchTopicReady(
+  topic,
+  kernels = [],
+  { minimumClaims = 5, claimCount = 0, validateEvidence = () => true, canCompose = () => true } = {},
+) {
+  return (
+    kernels.length > 0 &&
+    claimCount >= minimumClaims &&
+    Boolean(validateEvidence(topic, kernels)) &&
+    Boolean(canCompose(topic, kernels))
+  );
+}
+
 export async function composeAlgiLessonKernels({
   structuredPrompt,
   factCount = 5,
@@ -2114,8 +2131,12 @@ export async function composeAlgiLessonKernels({
         buildWaiProvider,
         buildWikipediaProvider,
       } = await import('./knowledge/algiResearch.js');
-      const { buildAlgiEvidenceGraph, consolidateAlgiLessonEvidence, summarizeAlgiEvidenceGraph } =
-        await import('./knowledge/algiEvidenceGraph.js');
+      const {
+        buildAlgiEvidenceGraph,
+        consolidateAlgiLessonEvidence,
+        countAlgiEvidenceClaims,
+        summarizeAlgiEvidenceGraph,
+      } = await import('./knowledge/algiEvidenceGraph.js');
       const { readAlgiResearchCache, writeAlgiResearchCache } = await import('./knowledge/algiResearchCache.js');
       const { planAlgiCourseResearch, summarizeAlgiResearchPlan } = await import('./knowledge/algiResearchPlan.js');
       const publishResearchProgress = (event = {}) => {
@@ -2243,26 +2264,44 @@ export async function composeAlgiLessonKernels({
       }
       const researchItems = researchQueue.filter(({ position }) => !cachedPositions.has(position));
       const researchTargets = researchItems.map(({ lesson }) => lessonTopic(lesson)).filter(Boolean);
-      const researchReadiness = (topic, kernels) => {
-        // A single authoritative article can still compose the final lesson,
-        // but it should not stop the source cascade before Scion has tried to
-        // obtain three independent head concepts. This is a retrieval effort
-        // rule, not an admission rule: if later providers add nothing, the
-        // original source-derived terms remain eligible.
-        if ((kernels || []).length < KEY_TERMS_REQUIRED) return false;
-        return Boolean(
-          composeLessonFromCandidateKernels(
-            researchLessons.get(topic),
-            expandResearchKernelsForComposition(kernels, topic),
-            {
-              factCount,
-              claimed: new Set(),
-              offset: 0,
-              sourceReferences,
-            },
-          ),
-        );
-      };
+      const researchMinimumClaims = new Map(
+        (researchPlan.lessons || []).map((lesson) => [lesson.title, Number(lesson.minimumClaims) || 5]),
+      );
+      const researchReadiness = (topic, kernels) =>
+        scionResearchTopicReady(topic, kernels, {
+          minimumClaims: researchMinimumClaims.get(topic) || 5,
+          claimCount: countAlgiEvidenceClaims(kernels),
+          validateEvidence: (candidateTopic, candidateKernels) => {
+            const planLesson = (researchPlan.lessons || []).find((lesson) => lesson.title === candidateTopic);
+            if (!planLesson) return false;
+            const candidateEvidenceGraph = buildAlgiEvidenceGraph({
+              courseName: courseContext,
+              plan: { ...researchPlan, lessons: [planLesson] },
+              kernelsByTopic: new Map([[candidateTopic, candidateKernels]]),
+              now,
+            });
+            return consolidateAlgiLessonEvidence({
+              topic: candidateTopic,
+              kernels: candidateKernels,
+              evidenceGraph: candidateEvidenceGraph,
+              minimum: 1,
+              want: KEY_TERMS_REQUIRED + 2,
+            }).admitted;
+          },
+          canCompose: (candidateTopic, candidateKernels) =>
+            Boolean(
+              composeLessonFromCandidateKernels(
+                researchLessons.get(candidateTopic),
+                expandResearchKernelsForComposition(candidateKernels, candidateTopic),
+                {
+                  factCount,
+                  claimed: new Set(),
+                  offset: 0,
+                  sourceReferences,
+                },
+              ),
+            ),
+        });
       const providerProgress = (event = {}) => {
         const providerIndex = Math.max(0, researchPlan.providerOrder.indexOf(event.providerId));
         const providerSpan = researchPlan.providerOrder.length > 0 ? 0.48 / researchPlan.providerOrder.length : 0.48;

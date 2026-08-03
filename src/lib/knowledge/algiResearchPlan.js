@@ -98,11 +98,46 @@ function quoted(value = '') {
   return `"${clean(value).replace(/"/g, '')}"`;
 }
 
-function queryForProvider({ providerId, title, domainTerms }) {
+function queryForProvider({ providerId, title, domainTerms, domain }) {
   if (providerId === 'wikipedia') {
+    // Encyclopedia search should look for the concepts an instructor named,
+    // not the whole pedagogical wrapper as one exact page title. A query such
+    // as "Functions and automated tests" applied has no canonical article,
+    // while "functions" OR "automated tests" can retrieve source pages for
+    // both sides and still leaves relevance/admission to reject false friends.
+    const clauses = clean(title)
+      .split(/\s+(?:and|&)\s+|[,;:]/i)
+      .map((clause) =>
+        tokens(clause)
+          .filter((term) => !SEARCH_WRAPPER.test(term))
+          .slice(0, 5),
+      )
+      .filter((terms) => terms.length > 0)
+      .map((terms) => terms.join(' '));
+    const programmingTopic =
+      /\b(?:algorithm\w*|automated tests?|branch\w*|code|conditional\w*|data types?|expressions?|functions?|loops?|program\w*|python|software tests?|unit tests?)\b/i.test(
+        title,
+      );
+    // The course wins over a collision-prone lesson word. "Gene expression"
+    // and "cardiac function" are not programming topics merely because their
+    // titles contain expression/function. Only a course already classified as
+    // quantitative may use the title vocabulary to choose between computing
+    // and broader data-analysis disambiguation.
+    const coarseDisambiguator =
+      domain === 'quantitative'
+        ? programmingTopic
+          ? 'computer programming'
+          : 'data analysis'
+        : domain === 'biomedical'
+          ? 'biology'
+          : '';
+    if (clauses.length > 1) {
+      const concepts = `(${clauses.join(' OR ')})`;
+      return [concepts, coarseDisambiguator].filter(Boolean).join(' ');
+    }
     const titleTerms = new Set(tokens(title));
-    const disambiguator = domainTerms.find((term) => !titleTerms.has(term)) || '';
-    return [quoted(title), disambiguator].filter(Boolean).join(' ');
+    const disambiguator = coarseDisambiguator || domainTerms.find((term) => !titleTerms.has(term)) || '';
+    return [quoted(clauses[0] || title), disambiguator].filter(Boolean).join(' ');
   }
   // Scholarly indexes rarely contain an instructor's whole pedagogical label
   // verbatim. Searching "Cooling interventions, implementation trade-offs,
@@ -166,6 +201,7 @@ export function planAlgiCourseResearch({ courseName = '', lessons = [], now = Da
           providerId,
           title: lesson.title,
           domainTerms,
+          domain,
         }),
       ]),
     );

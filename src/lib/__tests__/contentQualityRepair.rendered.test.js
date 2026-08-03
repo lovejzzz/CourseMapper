@@ -103,7 +103,7 @@ function legacyBoundaryCorrection(term) {
 
 async function renderedBoundaryCorrectionPackage(lessonPlans, studyGuides, slideDecks) {
   const files = {};
-  for (let index = 0; index < 4; index += 1) {
+  for (let index = 0; index < lessonPlans.length; index += 1) {
     files[`Lesson Plans/Lesson ${index + 1} - Evidence boundary.docx`] = await buildDeliverableDocxBlob(
       'lessonPlans',
       lessonPlans[index],
@@ -121,6 +121,14 @@ async function renderedBoundaryCorrectionPackage(lessonPlans, studyGuides, slide
     );
   }
   return extractPackage(createMemoryFileProvider(files));
+}
+
+function factProjectionCorrection(term, index) {
+  return [
+    `Correction for ${term}: stay inside the admitted fact and flag any broader inference as unsupported.`,
+    `Repair the ${term} claim by treating its admitted fact as the ceiling and labeling wider conclusions unsupported.`,
+    `${term} correction: preserve only the admitted statement and identify every unsupported extension explicitly.`,
+  ][index % 3];
 }
 
 async function renderedLegacySourceReviewPackage(deliverables) {
@@ -402,6 +410,70 @@ describe('contentQualityRepair rendered package integration', () => {
       ),
     ).toHaveLength(12);
     expect(afterText.match(/evidence-boundary check/gi)).toHaveLength(26);
+  });
+
+  it('keeps the new fact-projection correction below the rendered package repetition threshold', async () => {
+    const terms = [
+      'Policy functions',
+      'Conditional branches',
+      'Data cleaning',
+      'Model uncertainty',
+      'Reproducible reporting',
+      'Policy synthesis',
+    ];
+    const lessonPlans = terms.map((term, index) => {
+      const correction = factProjectionCorrection(term, index);
+      return {
+        lessonPlans: [
+          {
+            lessonNumber: index + 1,
+            lessonTitle: `Lesson ${index + 1}: ${term}`,
+            duration: '75 minutes',
+            outline: [
+              {
+                time: '25 minutes',
+                activity: `${term} evidence clinic`,
+                description: correction,
+                instructorNotes: correction,
+              },
+            ],
+          },
+        ],
+      };
+    });
+    const studyGuides = terms.map((term, index) => {
+      const correction = factProjectionCorrection(term, index);
+      return {
+        guides: [
+          {
+            lessonNumber: index + 1,
+            lessonTitle: `Lesson ${index + 1}: ${term}`,
+            summary: correction,
+            practiceActivities: [correction, correction],
+          },
+        ],
+      };
+    });
+    const slideDecks = terms.map((term, index) => {
+      const correction = factProjectionCorrection(term, index);
+      return {
+        decks: [
+          {
+            lessonNumber: index + 1,
+            lessonTitle: `Lesson ${index + 1}: ${term}`,
+            slides: Array.from({ length: 3 }, (_, slideIndex) => ({
+              title: `${term} boundary ${slideIndex + 1}`,
+              bullets: [correction],
+            })),
+          },
+        ],
+      };
+    });
+
+    const pkg = await renderedBoundaryCorrectionPackage(lessonPlans, studyGuides, slideDecks);
+    expect(pkg.files).toHaveLength(18);
+    expect(findRepeatedInstructionalPhrase(pkg.files)).toBeNull();
+    expect(pkg.files.map((file) => file.text).join('\n')).toContain(factProjectionCorrection(terms[0], 0));
   });
 
   it('removes a real cross-DOCX source-fact P1 without hiding the source evidence', async () => {
