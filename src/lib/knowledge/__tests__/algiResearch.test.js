@@ -616,6 +616,31 @@ describe('course-domain research alignment', () => {
         provider: 'doaj',
       }),
     ).toBe(false);
+    for (const [topic, extract] of [
+      ['Malaria', 'Malaria is a mosquito-borne infectious disease that affects humans and other animals.'],
+      ['Cholera', 'Cholera is an infection of the small intestine by some strains of bacteria.'],
+      ['Asthma', 'Asthma is a long-term inflammatory disease of the airways of the lungs.'],
+      ['Ozone', 'Ozone is an inorganic molecule with the chemical formula O3.'],
+    ]) {
+      expect(
+        isResearchCandidateDomainAligned({
+          topic,
+          courseContext: mixedCourse,
+          title: topic,
+          extract,
+          provider: 'wikipedia',
+        }),
+      ).toBe(true);
+    }
+    expect(() =>
+      isResearchCandidateDomainAligned({
+        topic: '*args',
+        courseContext: 'Python programming',
+        title: '*args',
+        extract: '*args collects positional arguments supplied to a Python function.',
+        provider: 'wikipedia',
+      }),
+    ).not.toThrow();
     expect(
       isResearchCandidateDomainAligned({
         topic: 'Salmonella',

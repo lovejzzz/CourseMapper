@@ -1843,27 +1843,37 @@ export function isResearchCandidateDomainAligned({
   const exactSourceTitle =
     Boolean(normalizedTopic) &&
     (normalizedTitle === normalizedTopic || normalizedTitle.startsWith(`${normalizedTopic} (`));
-  // A one-word title is often a disciplinary false friend (for example,
-  // "Functions (physiology)" in a programming lesson). Preserve the exact
-  // title escape hatch only when the page itself identifies a concrete named
-  // entity. Multi-word lesson titles retain their normal exact-match path.
-  const exactNamedEntityTitle =
-    exactSourceTitle &&
-    topicTokens.length === 1 &&
-    new RegExp(
-      `\\b${normalizedTopic.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\$&')}\\s+(?:is|are)\\s+(?:an?\\s+)?(?:bacter(?:ium|ia)|chemical|compound|disease|family|gene|genus|organism|pathogen|protein|species|virus)\\b`,
-      'i',
-    ).test(candidate);
   const exactTopic = topicTokens.length >= 2 && candidate.includes(normalizedTopic);
   const appliedDomainPattern =
-    /\b(?:biolog\w*|climat\w*|ecolog\w*|environment\w*|heat|health|medical|clinical|patient\w*|disease\w*|microbi\w*|pathogen\w*|pollution|sustainab\w*|water\w*|wastewater)\b/;
+    /\b(?:anatom\w*|biolog\w*|climat\w*|ecolog\w*|environment\w*|heat|health|medical|clinical|patient\w*|disease\w*|microbi\w*|pathogen\w*|physiolog\w*|pollution|sustainab\w*|water\w*|wastewater)\b/;
   const courseAllowsAppliedDomain = appliedDomainPattern.test(String(courseContext || '').toLowerCase());
   const topicAllowsAppliedDomain = appliedDomainPattern.test(String(topic || '').toLowerCase());
+  const dataComputingCourse =
+    /\b(?:computer science|data analysis|data science|programming|python|software|statistics|statistical)\b/.test(
+      courseAndTopic,
+    );
+  const parentheticalQualifier =
+    exactSourceTitle && normalizedTitle.startsWith(`${normalizedTopic} (`) && normalizedTitle.endsWith(')')
+      ? normalizedTitle.slice(normalizedTopic.length + 2, -1).trim()
+      : '';
+  // Disambiguation qualifiers, rather than definition sentence grammar,
+  // decide whether a one-word exact title is a disciplinary false friend.
+  // This rejects "Functions (physiology)" in a computing lesson while
+  // retaining canonical exact pages such as Salmonella, Malaria, or Ozone.
+  const exactTitleDomainAligned =
+    exactSourceTitle &&
+    !(
+      topicTokens.length === 1 &&
+      dataComputingCourse &&
+      parentheticalQualifier &&
+      appliedDomainPattern.test(parentheticalQualifier) &&
+      !topicAllowsAppliedDomain
+    );
   const candidateTokens = new Set(contentTokens(candidate));
   const candidateTopicOverlap = topicTokens.filter((token) => candidateTokens.has(token)).length;
   const appliedCandidateAligned =
     exactTopic ||
-    exactNamedEntityTitle ||
+    exactTitleDomainAligned ||
     topicAllowsAppliedDomain ||
     (courseAllowsAppliedDomain && topicTokens.length >= 2 && candidateTopicOverlap >= 2);
   const appliedDomainCandidate =
@@ -1871,10 +1881,6 @@ export function isResearchCandidateDomainAligned({
       candidate,
     );
   if (appliedDomainCandidate && !appliedCandidateAligned) return false;
-  const dataComputingCourse =
-    /\b(?:computer science|data analysis|data science|programming|python|software|statistics|statistical)\b/.test(
-      courseAndTopic,
-    );
   const dataComputingCandidate =
     /\b(?:algorithm\w*|analysis|chart\w*|code|computer|data|measurement|plot\w*|program\w*|software|statistic\w*|test\w*|visuali[sz]\w*)\b/.test(
       candidate,
