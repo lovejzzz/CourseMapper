@@ -2551,7 +2551,14 @@ export async function researchLessonKernelSets(
   const byTopic = new Map();
   const errors = [];
   if (!provider || uniqueTopics.length === 0) {
-    return { byTopic, errors, searchGroups: 0, articleCandidates: 0 };
+    return {
+      byTopic,
+      errors,
+      searchGroups: 0,
+      targetedSearches: 0,
+      targetedBudgetExhausted: [],
+      articleCandidates: 0,
+    };
   }
   const effectiveProviderId = providerId || provider.id || 'research-provider';
   onProgress?.({
@@ -2868,8 +2875,8 @@ export async function researchLessonKernelSetsCascade(
     targetedSearches += Number(batch.targetedSearches) || 0;
     articleCandidates += Number(batch.articleCandidates) || 0;
     const providerBudgetExhausted = (batch.targetedBudgetExhausted || []).map((entry) => ({
-      providerId,
       ...entry,
+      providerId,
     }));
     targetedBudgetExhausted.push(...providerBudgetExhausted);
     providerStats.push({

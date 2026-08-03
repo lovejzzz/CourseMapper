@@ -2353,7 +2353,7 @@ export async function composeAlgiLessonKernels({
                 signal,
               });
       const targetedBudgetExhausted = (researchBatch.targetedBudgetExhausted || []).map((entry) =>
-        entry?.providerId || !directProvider ? entry : { providerId: directProvider.id || 'direct', ...entry },
+        entry?.providerId || !directProvider ? entry : { ...entry, providerId: directProvider.id || 'direct' },
       );
       const kernelsByTopic = new Map(
         allResearchTargets.map((topic) => {
@@ -2537,9 +2537,12 @@ export async function composeAlgiLessonKernels({
         }`;
       }
       if (targetedBudgetExhausted.length > 0) {
-        researchNote += `, ${targetedBudgetExhausted.length} targeted budget limit${
-          targetedBudgetExhausted.length === 1 ? '' : 's'
-        }`;
+        const budgetLimitedLessons =
+          new Set(targetedBudgetExhausted.map((entry) => String(entry?.topic || '').trim()).filter(Boolean)).size ||
+          targetedBudgetExhausted.length;
+        researchNote += `, ${budgetLimitedLessons} lesson${
+          budgetLimitedLessons === 1 ? '' : 's'
+        } reached targeted budget limit${budgetLimitedLessons === 1 ? '' : 's'}`;
       }
       if (Array.isArray(researchBatch.providersUsed) && researchBatch.providersUsed.length > 0) {
         researchNote += `, sources ${researchBatch.providersUsed.join(' → ')}`;

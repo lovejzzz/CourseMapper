@@ -1359,6 +1359,17 @@ describe('Wikipedia request architecture', () => {
 });
 
 describe('open scholarly provider architecture', () => {
+  it('returns a stable empty research diagnostic shape', async () => {
+    const result = await researchLessonKernelSets([], {});
+
+    expect(result).toMatchObject({
+      searchGroups: 0,
+      targetedSearches: 0,
+      targetedBudgetExhausted: [],
+      articleCandidates: 0,
+    });
+  });
+
   it('normalizes DOAJ CC0 article metadata into source-specific records', async () => {
     const providerWithMetadata = buildDoajProvider(async (url) => {
       expect(url).toContain('doaj.org/api/search/articles/');
