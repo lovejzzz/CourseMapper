@@ -171,7 +171,12 @@ function sourceAdmissionFailure(row, receipt) {
 
 export async function verifyPackageEvidenceZipBytes(
   zipBytes,
-  { courseContractBytes = null, expectedCourseContractSha256 = null, releaseAttestationBytes = null } = {},
+  {
+    courseContractBytes = null,
+    expectedCourseContractSha256 = null,
+    releaseAttestationBytes = null,
+    expectedReleaseAttestationSha256 = null,
+  } = {},
 ) {
   const packageBuffer = Buffer.from(zipBytes);
   const packageSha256 = sha256(packageBuffer);
@@ -192,10 +197,18 @@ export async function verifyPackageEvidenceZipBytes(
     const attestationBuffer = Buffer.from(releaseAttestationBytes);
     releaseAttestationSha256 = sha256(attestationBuffer);
     releaseAttestation = JSON.parse(attestationBuffer.toString('utf8'));
+    if (!expectedReleaseAttestationSha256 || releaseAttestationSha256 !== expectedReleaseAttestationSha256) {
+      failures.push('release attestation does not match the caller-supplied immutable root');
+    }
     if (releaseAttestation?.protocol !== 'coursemapper-release-evidence-attestation-v1') {
       failures.push('release attestation protocol is missing or unsupported');
     }
-    expectedCourseContractSha256 = cleanText(releaseAttestation?.courseContractSha256);
+    const attestedContractSha256 = cleanText(releaseAttestation?.courseContractSha256);
+    if (expectedCourseContractSha256 && cleanText(expectedCourseContractSha256) !== attestedContractSha256) {
+      failures.push('release attestation conflicts with the caller-supplied course-contract root');
+    } else if (!expectedCourseContractSha256) {
+      expectedCourseContractSha256 = attestedContractSha256;
+    }
   }
 
   for (const row of rows) {
@@ -424,13 +437,23 @@ async function main() {
   const zipPath = process.argv[2];
   const contractPath = process.argv[3];
   const attestationPath = process.argv[4];
-  if (!zipPath || !contractPath || !attestationPath)
+  const expectedReleaseAttestationSha256 = process.argv[5];
+  const expectedCourseContractSha256 = process.argv[6];
+  if (
+    !zipPath ||
+    !contractPath ||
+    !attestationPath ||
+    !expectedReleaseAttestationSha256 ||
+    !expectedCourseContractSha256
+  )
     throw new Error(
-      'Usage: npm run audit:package-evidence -- /path/to/package.zip /path/to/course-contract.json /path/to/release-attestation.json',
+      'Usage: npm run audit:package-evidence -- /path/to/package.zip /path/to/course-contract.json /path/to/release-attestation.json expected-attestation-sha256 expected-contract-sha256',
     );
   const result = await verifyPackageEvidenceZipBytes(await fs.readFile(path.resolve(zipPath)), {
     courseContractBytes: await fs.readFile(path.resolve(contractPath)),
     releaseAttestationBytes: await fs.readFile(path.resolve(attestationPath)),
+    expectedReleaseAttestationSha256,
+    expectedCourseContractSha256,
   });
   console.log(JSON.stringify(result, null, 2));
   if (result.status !== 'pass') process.exitCode = 1;

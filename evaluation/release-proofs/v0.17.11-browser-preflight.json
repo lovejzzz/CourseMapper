@@ -10,7 +10,7 @@
       "status": "pass",
       "testFilesPassed": 507,
       "testFilesSkipped": 16,
-      "testsPassed": 6556,
+      "testsPassed": 6557,
       "testsSkipped": 162
     },
     {
@@ -77,7 +77,7 @@
       "visualDefectsRepaired": 1
     },
     {
-      "command": "npm run audit:package-evidence -- <accepted-zip> evaluation/release-proofs/v0.17.11-course-contract.json evaluation/release-proofs/v0.17.11-local-package-attestation.json",
+      "command": "npm run audit:package-evidence -- <accepted-zip> evaluation/release-proofs/v0.17.11-course-contract.json evaluation/release-proofs/v0.17.11-local-package-attestation.json ee1316ef7eb057cbe05b9bbc5445ab5bc71dc3c5da3392a305da56350f6c066c d6a6a9b3cd9bbc68ca34eae635cb62000eee80ad460c530489fe298722bec60c",
       "status": "pass",
       "protocol": "coursemapper-package-evidence-replay-v2",
       "verifiedSources": 3,
@@ -134,6 +134,19 @@
         "independent provider, URL, license, provenance, and semantic admission replay",
         "one attestation graph for ZIP, contract, evidence bundle, score ledger, counts, score, and grader"
       ],
+      "report": "docs/V0.17.11_SCION_LEARNER_CHECKPOINT.md"
+    },
+    {
+      "mode": "roundtable-post-remediation-root-precedence-audit",
+      "status": "one-p1-root-precedence-finding-remediated-pending-final-audit",
+      "sessionId": "aa509b74-6574-422d-b5da-463ade0f8b1c",
+      "rounds": 3,
+      "plannedTurns": 9,
+      "completedArticles": 7,
+      "claudeStatus": "unavailable-without-login-interruption",
+      "auditedCommit": "77b4f007",
+      "finding": "release attestation could overwrite the caller-supplied trusted course-contract root",
+      "remediation": "require and preserve independently supplied attestation and contract digests, reject conflicts, and cover precedence with an adversarial test",
       "report": "docs/V0.17.11_SCION_LEARNER_CHECKPOINT.md"
     }
   ],

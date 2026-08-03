@@ -255,10 +255,13 @@ describe('independent package evidence replay', () => {
       readinessScore: replay.readinessScore,
       graderVersion: replay.graderVersion,
     };
+    const attestationBytes = Buffer.from(JSON.stringify(attestation));
     await expect(
       verifyPackageEvidenceZipBytes(packageZip, {
         courseContractBytes: contract,
-        releaseAttestationBytes: Buffer.from(JSON.stringify(attestation)),
+        releaseAttestationBytes: attestationBytes,
+        expectedReleaseAttestationSha256: sha256(attestationBytes),
+        expectedCourseContractSha256: sha256(contract),
       }),
     ).resolves.toMatchObject({ status: 'pass' });
 
@@ -273,11 +276,46 @@ describe('independent package evidence replay', () => {
     zip.file('PACKAGE_MANIFEST.json', JSON.stringify(manifest));
     const expandedZip = await zip.generateAsync({ type: 'uint8array' });
     const resignedAttestation = { ...attestation, packageSha256: sha256(expandedZip) };
+    const resignedAttestationBytes = Buffer.from(JSON.stringify(resignedAttestation));
     await expect(
       verifyPackageEvidenceZipBytes(expandedZip, {
         courseContractBytes: contract,
-        releaseAttestationBytes: Buffer.from(JSON.stringify(resignedAttestation)),
+        releaseAttestationBytes: resignedAttestationBytes,
+        expectedReleaseAttestationSha256: sha256(resignedAttestationBytes),
+        expectedCourseContractSha256: sha256(contract),
       }),
     ).resolves.toMatchObject({ status: 'fail', verifiedSources: 2, verifiedClaims: 2 });
+  });
+
+  it('never lets an internally consistent attestation replace a caller-trusted contract root', async () => {
+    const contract = courseContractBytes();
+    const packageZip = await packageBytes({ withAssessment: true });
+    const replay = await verifyPackageEvidenceZipBytes(packageZip, {
+      courseContractBytes: contract,
+      expectedCourseContractSha256: sha256(contract),
+    });
+    const forgedAttestation = Buffer.from(
+      JSON.stringify({
+        protocol: 'coursemapper-release-evidence-attestation-v1',
+        packageSha256: replay.packageSha256,
+        courseContractSha256: '0'.repeat(64),
+        evidenceBundleSha256: replay.evidenceBundleSha256,
+        scoreLedgerSha256: replay.scoreLedgerSha256,
+        verifiedSources: replay.verifiedSources,
+        verifiedClaims: replay.verifiedClaims,
+        verifiedArtifacts: replay.verifiedArtifacts,
+        verifiedAssessmentObligations: replay.verifiedAssessmentObligations,
+        readinessScore: replay.readinessScore,
+        graderVersion: replay.graderVersion,
+      }),
+    );
+    await expect(
+      verifyPackageEvidenceZipBytes(packageZip, {
+        courseContractBytes: contract,
+        expectedCourseContractSha256: sha256(contract),
+        releaseAttestationBytes: forgedAttestation,
+        expectedReleaseAttestationSha256: sha256(forgedAttestation),
+      }),
+    ).resolves.toMatchObject({ status: 'fail' });
   });
 });
