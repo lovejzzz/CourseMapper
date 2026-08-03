@@ -1834,7 +1834,16 @@ export function isResearchCandidateDomainAligned({
     return isWaiSourceFamilyAligned(topic, title);
   }
   const topicTokens = contentTokens(topic);
-  const exactTopic = topicTokens.length >= 2 && candidate.includes(String(topic || '').toLowerCase());
+  const normalizedTopic = String(topic || '')
+    .trim()
+    .toLowerCase();
+  const normalizedTitle = String(title || '')
+    .trim()
+    .toLowerCase();
+  const exactSourceTitle =
+    Boolean(normalizedTopic) &&
+    (normalizedTitle === normalizedTopic || normalizedTitle.startsWith(`${normalizedTopic} (`));
+  const exactTopic = topicTokens.length >= 2 && candidate.includes(normalizedTopic);
   const appliedDomainPattern =
     /\b(?:biolog\w*|climat\w*|ecolog\w*|environment\w*|heat|health|medical|clinical|patient\w*|disease\w*|microbi\w*|pathogen\w*|pollution|sustainab\w*|water\w*|wastewater)\b/;
   const courseAllowsAppliedDomain = appliedDomainPattern.test(String(courseContext || '').toLowerCase());
@@ -1843,6 +1852,7 @@ export function isResearchCandidateDomainAligned({
   const candidateTopicOverlap = topicTokens.filter((token) => candidateTokens.has(token)).length;
   const appliedCandidateAligned =
     exactTopic ||
+    exactSourceTitle ||
     topicAllowsAppliedDomain ||
     (courseAllowsAppliedDomain && topicTokens.length >= 2 && candidateTopicOverlap >= 2);
   const appliedDomainCandidate =

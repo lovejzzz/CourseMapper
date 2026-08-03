@@ -618,6 +618,15 @@ describe('course-domain research alignment', () => {
     ).toBe(false);
     expect(
       isResearchCandidateDomainAligned({
+        topic: 'Salmonella',
+        courseContext: mixedCourse,
+        title: 'Salmonella',
+        extract: 'Salmonella is a genus of bacteria that can cause foodborne illness in humans.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(true);
+    expect(
+      isResearchCandidateDomainAligned({
         topic: 'Reproducible visualization and uncertainty',
         courseContext: mixedCourse,
         title: 'Fear, uncertainty, and doubt',
