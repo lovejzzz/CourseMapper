@@ -4,7 +4,9 @@ import {
   resetAlgiGenomeCacheForTests,
   scionResearchTopicReady,
 } from '../algiKernelComposer.js';
+import { buildAlgiEvidenceGraph, consolidateAlgiLessonEvidence } from '../knowledge/algiEvidenceGraph.js';
 import { researchLessonKernelSetsCascade } from '../knowledge/algiResearch.js';
+import { planAlgiCourseResearch } from '../knowledge/algiResearchPlan.js';
 
 function memoryStorage() {
   const values = new Map();
@@ -103,8 +105,41 @@ describe('Algi research-first course transaction', () => {
 
   it('continues to a later provider when evidence validation rejects a blocking conflict', async () => {
     const title = 'Platform accountability';
-    const firstSearch = vi.fn(async () => ({ [title]: article(title, 'source-1') }));
+    const conflictingArticle = (sourceId, negative = false) => ({
+      ...article(title, sourceId),
+      title: `${title} ${negative ? 'counterevidence' : 'evidence'}`,
+      suggestedTerm: title,
+      extract: [
+        `${title} is ${negative ? 'not ' : ''}a source-defined duty that requires intervention when a platform decision exceeds its policy boundary.`,
+        `${title} requires evidence because platform decisions depend on traceable relationships between policy and action.`,
+        `${title} allows investigators to compare one platform decision with a bounded alternative.`,
+      ].join('\n'),
+    });
+    const firstSearch = vi.fn(async () => ({
+      affirmative: conflictingArticle('source-1'),
+      negative: conflictingArticle('source-2', true),
+    }));
     const laterSearch = vi.fn(async () => ({ [title]: article(title, 'source-2') }));
+    const plan = planAlgiCourseResearch({
+      courseName: 'Platform Policy',
+      lessons: [{ lessonId: 'lesson-1', title }],
+    });
+    let blockingConflicts = 0;
+    const validateEvidence = (candidateTopic, kernels) => {
+      const evidenceGraph = buildAlgiEvidenceGraph({
+        courseName: 'Platform Policy',
+        plan,
+        kernelsByTopic: new Map([[candidateTopic, kernels]]),
+        now: Date.UTC(2026, 6, 27),
+      });
+      blockingConflicts = Math.max(blockingConflicts, evidenceGraph.summary.blockingConflicts);
+      return consolidateAlgiLessonEvidence({
+        topic: candidateTopic,
+        kernels,
+        evidenceGraph,
+        minimum: 1,
+      }).admitted;
+    };
 
     const result = await researchLessonKernelSetsCascade([title], {
       providers: [
@@ -116,12 +151,14 @@ describe('Algi research-first course transaction', () => {
       isTopicReady: (topic, kernels) =>
         scionResearchTopicReady(topic, kernels, {
           claimCount: 5,
-          validateEvidence: () => false,
+          validateEvidence,
           canCompose: () => true,
         }),
     });
 
-    expect(result.byTopic.get(title)).toHaveLength(2);
+    expect(result.byTopic.get(title).length).toBeGreaterThanOrEqual(2);
+    expect(validateEvidence(title, result.byTopic.get(title))).toBe(false);
+    expect(blockingConflicts).toBeGreaterThan(0);
     expect(firstSearch).toHaveBeenCalled();
     expect(laterSearch).toHaveBeenCalled();
   });
