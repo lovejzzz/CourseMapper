@@ -73,6 +73,8 @@ import {
   genreAlignedAssignmentParameters,
   genreRequiredAssignmentInstructions,
   kernelSlideEvidenceDiscussionCopy,
+  LEARNER_CHECKPOINT_ARTIFACT_GENRE_PROFILES,
+  lessonOwnedArtifactGenre,
   prerequisiteDiagnosticCopy,
   shortAnswerGuidanceCopy,
   shortAnswerSampleCopy,
@@ -8118,27 +8120,16 @@ function buildArtifactGenreDecode(lesson = {}, profile = {}, modalityDecode = {}
   const artifact = stripTerminalPunctuation(lesson.studentArtifact || 'the lesson artifact');
   const concept = lesson.keyConcepts?.[0] || stripLessonPrefix(lesson.title) || 'the lesson focus';
   const artifactText = `${lesson.studentArtifact || ''} ${lesson.title || ''}`.toLowerCase();
-  // Outcomes are part of the decode context: genre signals like
-  // "target-language vocabulary" live in objective sentences that phrase-based
-  // concept extraction may legitimately drop from keyConcepts.
   const contextText =
     `${lesson.title || ''} ${lesson.studentArtifact || ''} ${lesson.activityPattern || ''} ${(lesson.keyConcepts || []).join(' ')} ${(lesson.outcomes || []).join(' ')}`.toLowerCase();
   const artifactMatches = (pattern) => pattern.test(artifactText);
   const contextMatches = (pattern) => pattern.test(contextText);
-  // Lesson-owned code-lab or policy-memo signals outrank a broad course mode.
-  const lessonRequiresCodeLab =
-    contextMatches(/\b(unit tests?|automated tests?|test suite|test cases?|assertions?|debugging|code review)\b/) &&
-    contextMatches(/\b(code|coding|programming|python|javascript|typescript|java|functions?|modules?|scripts?)\b/);
-  const lessonRequiresPolicyBrief = contextMatches(
-    /\b(policy memo|policy brief|policy option|stakeholder policy|equity policy|policy recommendation|policy implementation)\b/,
-  );
+  const lessonOwnedGenre = lessonOwnedArtifactGenre(contextText);
   let genre = 'applied-artifact';
   if (isMusicIntervalLesson(lesson)) {
     genre = 'music-interval-analysis';
-  } else if (lessonRequiresCodeLab) {
-    genre = 'code-lab';
-  } else if (lessonRequiresPolicyBrief) {
-    genre = 'policy-brief';
+  } else if (lessonOwnedGenre) {
+    genre = lessonOwnedGenre;
   } else if (
     profile.primaryMode === 'lecture-exam' &&
     (artifactMatches(
@@ -8628,6 +8619,7 @@ function buildArtifactGenreDecode(lesson = {}, profile = {}, modalityDecode = {}
   }
 
   const details = {
+    ...LEARNER_CHECKPOINT_ARTIFACT_GENRE_PROFILES,
     'clinical-placement-evidence': {
       outputFormat:
         'clinical hours log, competency log, preceptor-feedback response, deidentified patient encounter note, skills checklist, site evaluation, or clinical placement reflection',
@@ -8766,18 +8758,6 @@ function buildArtifactGenreDecode(lesson = {}, profile = {}, modalityDecode = {}
       commonFailure:
         'students state personal opinion or broad values without mapping reasons, applying a framework, answering objections, or naming the limit of the judgment',
     },
-    'policy-brief': {
-      outputFormat:
-        'policy memo, policy brief, option matrix, stakeholder analysis, equity review, cost-benefit note, impact assessment, implementation plan, regulatory analysis, or administrative-burden review',
-      evidenceRequirement:
-        'public problem definition, affected population, policy authority or decision maker, evidence source, option comparison, stakeholder/equity effect, feasibility or cost constraint, implementation risk, and recommendation rationale',
-      qualityFocus:
-        'problem framing, source credibility, stakeholder representation, equity reasoning, option tradeoff logic, feasibility, implementation realism, and decision usefulness',
-      reviewProtocol:
-        'check the problem definition and authority, trace each option to evidence, test stakeholder and equity effects, inspect feasibility and implementation risks, and require a revised recommendation with a named evidence limit',
-      commonFailure:
-        'students write a persuasive recommendation without a precise public problem, policy authority, evidence trace, stakeholder/equity analysis, feasibility check, or implementation plan',
-    },
     'data-science-notebook': {
       outputFormat:
         'analytics notebook, data-cleaning log, visualization, dashboard, model evaluation, model card, data story, or bias-audit note',
@@ -8849,18 +8829,6 @@ function buildArtifactGenreDecode(lesson = {}, profile = {}, modalityDecode = {}
         'check client context and goals, inspect the exact helping response, code listening or reflection evidence, verify risk/safety and ethics boundaries, compare referral options, and require a revised helping response or service decision',
       commonFailure:
         'students write broad empathy reflections without client-specific evidence, observable helping skills, risk or ethics reasoning, supervision feedback, or referral rationale',
-    },
-    'code-lab': {
-      outputFormat:
-        'repository commit, notebook, script or module, test suite, debugging log, pull-request note, or code review response',
-      evidenceRequirement:
-        'source code, failing and passing test result, debugging trace, edge-case check, code review note, and implementation rationale',
-      qualityFocus:
-        'correctness, readability, test coverage, edge-case reasoning, debugging discipline, refactor quality, and commit clarity',
-      reviewProtocol:
-        'run or inspect the tests, compare the code diff to the requirement, review one edge case and one readability concern, and require a revised commit or pull-request note',
-      commonFailure:
-        'students submit code that appears complete without test evidence, debugging trace, edge-case reasoning, or reviewable implementation rationale',
     },
     'lab-report': {
       outputFormat: 'lab notebook entry, protocol log, data table, analysis note, or concise lab report',
@@ -17750,16 +17718,9 @@ function compileAssignments(blueprint) {
           /\b(?:simple|compound|invert|inversion|number pair|quality change)\b/i.test(
             [lesson.title, ...(lesson.outcomes || []), ...(lesson.keyConcepts || [])].join(' '),
           );
-        // v0.16.1: code-lab twins carry a distinct brief scaffold (environment
-        // setup, computational task, verification milestone) instead of a
-        // clone of the sibling proof brief. Registry-linked assessments only —
-        // twins exist only on the registry path; legacy compiles are untouched.
         const isCodeLab = !isOral && (isCodeLabAssessment(assessment) || lesson?.artifactGenre?.genre === 'code-lab');
         const brief = {
           title: assessment.title,
-          // v0.14.1 (3.3b): the reverse stamp — every registry brief names the
-          // map cell it fulfills ("Course Map L8 · A8.1 · 5%"), rendered in the
-          // brief's meta line.
           ...(assessment.registryId
             ? {
                 assessmentId: assessment.registryId,
@@ -18296,9 +18257,6 @@ function compileRubrics(blueprint) {
   // lesson with two graded artifacts gets two rubric entries. Exams carry
   // answer keys in the quiz bank, not rubrics. Legacy anchors (no kind)
   // all keep their rubrics.
-  // v0.16.1: exam-kind assessments now emit a short answer-key handoff
-  // entry (not a criterion rubric) so the per-lesson rubric file for an
-  // exam lesson is never an empty title-only shell.
   const rubricAssessments = blueprint.assessments;
   return {
     rubrics: rubricAssessments.map((assessment) => {
@@ -18311,8 +18269,7 @@ function compileRubrics(blueprint) {
       ) {
         return buildQuizRubricHandoffEntry(assessment);
       }
-      // Registry-linked assessments only — twins exist only on the registry
-      // path; legacy compiles are untouched.
+      // Registry-linked assessment twins only.
       const lesson = blueprint.lessons.find((item) => item.lessonNumber === assessment.lessonNumbers[0]);
       const isCodeLab = isCodeLabAssessment(assessment) || lesson?.artifactGenre?.genre === 'code-lab';
       const sourceEvidenceBrief = buildLessonEvidenceBrief(lesson, { claimLimit: 4, sourceLimit: 4 });

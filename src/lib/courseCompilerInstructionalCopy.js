@@ -1,6 +1,49 @@
 import { cleanText, sentenceCase, stripTerminalPunctuation } from './compilerText';
 import { selectVariant } from './courseCompilerCopyVariants';
 
+export const LEARNER_CHECKPOINT_ARTIFACT_GENRE_PROFILES = Object.freeze({
+  'policy-brief': {
+    outputFormat:
+      'policy memo, policy brief, option matrix, stakeholder analysis, equity review, cost-benefit note, impact assessment, implementation plan, regulatory analysis, or administrative-burden review',
+    evidenceRequirement:
+      'public problem definition, affected population, policy authority or decision maker, evidence source, option comparison, stakeholder/equity effect, feasibility or cost constraint, implementation risk, and recommendation rationale',
+    qualityFocus:
+      'problem framing, source credibility, stakeholder representation, equity reasoning, option tradeoff logic, feasibility, implementation realism, and decision usefulness',
+    reviewProtocol:
+      'check the problem definition and authority, trace each option to evidence, test stakeholder and equity effects, inspect feasibility and implementation risks, and require a revised recommendation with a named evidence limit',
+    commonFailure:
+      'students write a persuasive recommendation without a precise public problem, policy authority, evidence trace, stakeholder/equity analysis, feasibility check, or implementation plan',
+  },
+  'code-lab': {
+    outputFormat:
+      'repository commit, notebook, script or module, test suite, debugging log, pull-request note, or code review response',
+    evidenceRequirement:
+      'source code, failing and passing test result, debugging trace, edge-case check, code review note, and implementation rationale',
+    qualityFocus:
+      'correctness, readability, test coverage, edge-case reasoning, debugging discipline, refactor quality, and commit clarity',
+    reviewProtocol:
+      'run or inspect the tests, compare the code diff to the requirement, review one edge case and one readability concern, and require a revised commit or pull-request note',
+    commonFailure:
+      'students submit code that appears complete without test evidence, debugging trace, edge-case reasoning, or reviewable implementation rationale',
+  },
+});
+
+export function lessonOwnedArtifactGenre(value) {
+  const text = cleanText(value).toLowerCase();
+  const codeLab =
+    /\b(unit tests?|automated tests?|test suite|test cases?|assertions?|debugging|code review)\b/.test(text) &&
+    /\b(code|coding|programming|python|javascript|typescript|java|functions?|modules?|scripts?)\b/.test(text);
+  if (codeLab) return 'code-lab';
+  if (
+    /\b(policy memo|policy brief|policy option|stakeholder policy|equity policy|policy recommendation|policy implementation)\b/.test(
+      text,
+    )
+  ) {
+    return 'policy-brief';
+  }
+  return '';
+}
+
 export function genreAlignedAssignmentParameters({ lesson = {}, authored = [] } = {}) {
   const genre = lesson?.artifactGenre?.genre || '';
   if (genre === 'code-lab') {
