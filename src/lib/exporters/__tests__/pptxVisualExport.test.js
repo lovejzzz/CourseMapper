@@ -487,7 +487,9 @@ describe('PPTX export — visual placeholders', () => {
     const semanticObjects = slideXmls.flatMap((xml) =>
       [...xml.matchAll(/<(?:p|pic):cNvPr\b[^>]*>/g)]
         .map((match) => match[0])
-        .filter((tag) => /\bname="(?:cmA11y-|cmViz(?:Hub|Spoke|Chart|Layer)|slide-counter-label-)/.test(tag)),
+        .filter((tag) =>
+          /\bname="(?:cmA11y-|cmViz(?:Hub|Spoke|Chart|Layer|Table|Matrix)|slide-counter-label-)/.test(tag),
+        ),
     );
     expect(semanticObjects.length).toBeGreaterThan(FIXTURE.decks[0].slides.length);
     for (const object of semanticObjects) {
@@ -496,6 +498,10 @@ describe('PPTX export — visual placeholders', () => {
     }
     expect(slideXmls.join('\n')).toContain('descr="Central concept: Opportunity Cost"');
     expect(slideXmls.join('\n')).toContain('descr="Related idea: Includes non-money costs like time"');
+    expect(slideXmls.join('\n')).toContain('name="cmVizTable"');
+    expect(slideXmls.join('\n')).toContain('descr="Three-row table of market evidence signals."');
+    expect(slideXmls.join('\n')).toContain('name="cmVizMatrix"');
+    expect(slideXmls.join('\n')).toContain('descr="Two-by-two grid of policy options."');
   });
 
   it('fails accessibility verification when a tracked semantic description is lost', async () => {
@@ -513,6 +519,27 @@ describe('PPTX export — visual placeholders', () => {
       code: 'accessibility',
       problems: expect.arrayContaining(['semantic-object-without-description']),
     });
+  });
+
+  it('fails accessibility verification when a native table or matrix description is lost', async () => {
+    for (const [path, objectName] of [
+      ['ppt/slides/slide6.xml', 'cmVizTable'],
+      ['ppt/slides/slide7.xml', 'cmVizMatrix'],
+    ]) {
+      const zip = await JSZip.loadAsync(await pptxBlob.arrayBuffer());
+      const xml = await zip.file(path).async('string');
+      const damaged = xml.replace(
+        new RegExp(`(<p:cNvPr\\b(?=[^>]*\\bname="${objectName}")[^>]*)(\\sdescr="[^"]*")([^>]*>)`),
+        '$1$3',
+      );
+      expect(damaged).not.toBe(xml);
+      zip.file(path, damaged);
+      const damagedBlob = await zip.generateAsync({ type: 'blob' });
+      expect(await auditOfficeAccessibility(damagedBlob, 'pptx')).toMatchObject({
+        code: 'accessibility',
+        problems: expect.arrayContaining(['semantic-object-without-description']),
+      });
+    }
   });
 
   it('checks actual PowerPoint picture elements instead of passing a media deck vacuously', async () => {

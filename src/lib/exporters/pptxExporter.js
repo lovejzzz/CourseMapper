@@ -62,6 +62,7 @@ function instrumentPptxAccessibility(pptx) {
     for (const [method, optionsIndex] of [
       ['addShape', 1],
       ['addText', 1],
+      ['addTable', 1],
       ['addChart', 2],
       ['addImage', 0],
     ]) {
@@ -609,7 +610,7 @@ function planNativeVisual(s, slideType, visKind, hasGeneratedImage, hasLatex) {
 }
 
 /** Render the evidence table on the right half of a content slide. */
-function addEvidenceTable(pptx, slide, theme, plan, visKind, tracker) {
+function addEvidenceTable(pptx, slide, theme, plan, visKind, tracker, authoredAltText = '') {
   const tableX = 4.95,
     tableY = 1.35;
   const tableW = SLIDE_W - tableX - 0.4;
@@ -661,6 +662,9 @@ function addEvidenceTable(pptx, slide, theme, plan, visKind, tracker) {
     autoPage: false,
     // v0.14.5 (C3): cmViz name — counts as a native visual in the grader bar.
     objectName: 'cmVizTable',
+    altText:
+      String(authoredAltText || '').trim() ||
+      `Evidence table comparing ${headerRow.map((cell) => cell.text).join(' and ')}.`,
   });
   tracker.add({
     x: tableX,
@@ -672,7 +676,7 @@ function addEvidenceTable(pptx, slide, theme, plan, visKind, tracker) {
 }
 
 /** Render the decision matrix grid on a discussion slide. */
-function addDecisionMatrix(pptx, slide, theme, plan, tracker) {
+function addDecisionMatrix(pptx, slide, theme, plan, tracker, authoredAltText = '') {
   const x = 0.7,
     y = 2.15;
   const w = SLIDE_W - 1.4;
@@ -699,6 +703,7 @@ function addDecisionMatrix(pptx, slide, theme, plan, tracker) {
     autoPage: false,
     // v0.14.5 (C3): cmViz name — counts as a native visual in the grader bar.
     objectName: 'cmVizMatrix',
+    altText: String(authoredAltText || '').trim() || `Decision matrix comparing ${plan.cells.length} visible options.`,
   };
   const pairs = [];
   for (let i = 0; i + 1 < plan.cells.length; i += 2) {
@@ -2038,7 +2043,7 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
     // a matrix and the prompts fit, lay them out as a 2-column comparison
     // grid instead of a flat bullet list.
     if (nativeVisual?.type === 'decisionMatrix') {
-      addDecisionMatrix(pptx, slide, theme, nativeVisual, tracker);
+      addDecisionMatrix(pptx, slide, theme, nativeVisual, tracker, visAlt);
     } else if (s.bullets?.length > 0) {
       const bulletText = s.bullets.map((b) => ({
         text: b,
@@ -2170,7 +2175,7 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
         fit: 'shrink',
       });
       tracker.add({ x: 0.45, y: 1.35, w: leadW, h: leadH, label: 'evidence-lead' });
-      addEvidenceTable(pptx, slide, theme, nativeVisual, visKind, tracker);
+      addEvidenceTable(pptx, slide, theme, nativeVisual, visKind, tracker, visAlt);
     } else if (nativeVisual?.type === 'wePlot') {
       // Worked-example plot (v0.14.5 C2): the authored step bullets keep the
       // left half (the reasoning IS the content) and the computed values

@@ -256,7 +256,7 @@ export async function auditOfficeAccessibility(blob, format) {
         .map((match) => match[0])
         .filter((tag) => {
           const name = tag.match(/\bname="([^"]*)"/)?.[1] || '';
-          return /^(?:cmA11y-|cmViz(?:Hub|Spoke|Chart|Layer)|slide-counter-label-)/.test(name);
+          return /^(?:cmA11y-|cmViz(?:Hub|Spoke|Chart|Layer|Table|Matrix)|slide-counter-label-)/.test(name);
         });
       for (const object of semanticObjects) {
         const descr = object.match(/\bdescr="([^"]*)"/);
