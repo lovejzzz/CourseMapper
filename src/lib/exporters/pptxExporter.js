@@ -2533,11 +2533,7 @@ async function createPptxWithDecks(data, courseName, themeIndex) {
  * override lets renderers fall back correctly.
  */
 function escapeXmlAttribute(value) {
-  return String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/"/g, '&quot;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+  return String(value).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 function decodeXmlAttribute(value) {
