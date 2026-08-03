@@ -376,6 +376,11 @@ async function validateProductionCheckpointBinding({ release, failures }) {
     failures,
   );
   assert(
+    Number(attestation.heldOutRuler?.implementationFileCount) === Number(ruler?.implementationFileCount),
+    'Production package attestation implementation file count must match the held-out ruler',
+    failures,
+  );
+  assert(
     attestation.heldOutRuler?.exportBoundaryImplementationSha256 === ruler?.exportBoundaryImplementationSha256,
     'Production package attestation export-boundary digest must match the held-out ruler',
     failures,

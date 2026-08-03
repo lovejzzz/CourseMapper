@@ -549,6 +549,21 @@ describe('PPTX export — visual placeholders', () => {
     });
   });
 
+  it('keeps every structural object family in the denominator when metadata is absent', () => {
+    const xml = [
+      '<p:sp><p:spPr/></p:sp>',
+      '<p:pic><p:blipFill/></p:pic>',
+      '<p:cxnSp><p:spPr/></p:cxnSp>',
+      '<p:graphicFrame><a:graphic/></p:graphicFrame>',
+    ].join('');
+    expect(extractPptxStructuralObjectTags(xml)).toEqual([
+      '<missing-cNvPr>',
+      '<missing-cNvPr>',
+      '<missing-cNvPr>',
+      '<missing-cNvPr>',
+    ]);
+  });
+
   it('fails closed when Office bytes cannot be read', async () => {
     expect(await auditOfficeAccessibility({ size: 256 }, 'pptx')).toMatchObject({
       code: 'accessibility',
