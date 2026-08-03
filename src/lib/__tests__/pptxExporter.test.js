@@ -426,8 +426,14 @@ describe('pptxExporter', () => {
       const zip = await loadPptxZip(blob);
       const xml = await zip.file('ppt/slides/slide1.xml').async('string');
 
-      const runSizes = [...xml.matchAll(/<a:rPr[^>]*\bsz="(\d+)"/g)].map((match) => Number(match[1]));
-      const summarySizes = runSizes.filter((size) => size >= 1100 && size <= 1600);
+      const summaryTextIndex = xml.indexOf('following critique');
+      expect(summaryTextIndex).toBeGreaterThan(-1);
+      const summaryShapeStart = xml.lastIndexOf('<p:sp>', summaryTextIndex);
+      const summaryShapeEnd = xml.indexOf('</p:sp>', summaryTextIndex);
+      expect(summaryShapeStart).toBeGreaterThan(-1);
+      expect(summaryShapeEnd).toBeGreaterThan(summaryShapeStart);
+      const summaryXml = xml.slice(summaryShapeStart, summaryShapeEnd);
+      const summarySizes = [...summaryXml.matchAll(/<a:rPr[^>]*\bsz="(\d+)"/g)].map((match) => Number(match[1]));
 
       expect(summarySizes.length).toBeGreaterThanOrEqual(4);
       expect(new Set(summarySizes)).toEqual(new Set([1100]));
