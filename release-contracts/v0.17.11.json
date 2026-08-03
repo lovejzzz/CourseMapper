@@ -13,20 +13,23 @@
       "npm run audit:release-history"
     ],
     "ciFast": {
-      "status": "pending-push",
-      "note": "The V65 fail-closed structural-metadata repair must pass all nine lanes from its exact commit."
+      "status": "success",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/30850902593",
+      "note": "All nine exact-commit V65 lanes passed for ccbba4d74397140aafc8dbc6a820995aa9582231."
     },
     "ciDeep": {
       "status": "pending",
       "note": "Independent instructor and sealed held-out semantic validation remain incomplete."
     },
     "deploy": {
-      "status": "pending-push",
-      "note": "Production deployment follows a green exact-commit V65 gate."
+      "status": "success",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/30851467662",
+      "note": "GitHub Pages published the exact green V65 commit before candidate 27 generation."
     },
     "liveProvider": {
-      "status": "pending",
-      "note": "Candidate 26 remains valid 91-point content evidence but is rejected as checkpoint evidence because a missing cNvPr node could shrink the V64 denominator. A fresh V65 package must pass the stricter structural Office scan."
+      "status": "success",
+      "url": "https://edutool.dev/?run=v01711-checkpoint-ccbba4d7-c27",
+      "note": "Candidate 27 generated in 29 seconds and passed independent package replay, the V65 structural Office scan, all-file conversion, and representative visual inspection at an honest 91/100."
     },
     "manualHuman": {
       "status": "pending",
@@ -108,13 +111,13 @@
       "id": "v01711-evidence-capped-score-ledger",
       "status": "verified-current",
       "changelogHighlightIndex": 4,
-      "highlightSha256": "8918df3e1d827224fb5a9c7db03ebeb9bc1d4f6a4a7ed8ec8a52648badb96fcf",
-      "summary": "Grader 1.15.9 awards bounded grounding and assessment-coherence credit only from independently replayable final-package receipts and V64 binds the structural Office accessibility denominator plus the export-verification implementation.",
+      "highlightSha256": "822d7a603ca5fae46d2d0d0eeab2ed3243c6f473a8df855e9eaf5cdf52f881fa",
+      "summary": "Grader 1.15.9 awards bounded grounding and assessment-coherence credit only from independently replayable final-package receipts, while V65 separately binds the raw Office denominator, grader implementation, tracked ruler, attestation root, and export-verification boundary.",
       "anchors": [
         "src/lib/quality/automatedReadinessSignal.js",
         "src/lib/quality/deepQualityGrader.js",
         "src/lib/quality/graderVersion.js",
-        "evaluation/scion-adapters/held-out-course-benchmark-v64.json",
+        "evaluation/scion-adapters/held-out-course-benchmark-v65.json",
         "src/lib/quality/__tests__/automatedReadinessSignal.test.js"
       ],
       "proofCommands": [
@@ -123,23 +126,27 @@
       "proofScopes": ["unit", "static-audit", "compiled-output"]
     },
     {
-      "id": "v01711-v65-predeploy-boundary",
+      "id": "v01711-v65-production-checkpoint",
       "status": "verified-current",
       "changelogHighlightIndex": 5,
-      "highlightSha256": "2372723dd5a4ecf03cba07da6d6ddec4bdbcbc70771472428bc923a70261d5dc",
-      "summary": "Candidate 26 remains valid 91-point historical content evidence, but V65 closes the final fail-open structural-metadata denominator path before checkpoint acceptance.",
-      "anchors": ["docs/V0.17.11_SCION_LEARNER_CHECKPOINT.md"],
-      "proofCommands": [
-        "npx vitest run src/lib/__tests__/packageZipExporter.test.js src/lib/quality/__tests__/assessmentCoherence.test.js"
+      "highlightSha256": "bab72eb9728a0867208c85edd7721388ddff92267fb3508bca859abd7bec5dbf",
+      "summary": "Candidate 27 binds exact green CI and deployment to fresh production bytes that replay at 91/100 with 5 sources, 60 claims, 29 artifacts, all 6 assessment obligations, and zero P0/P1 findings.",
+      "anchors": [
+        "docs/V0.17.11_SCION_LEARNER_CHECKPOINT.md",
+        "evaluation/release-proofs/v0.17.11-browser-preflight.json",
+        "evaluation/release-proofs/v0.17.11-production-package-attestation.json"
       ],
-      "proofScopes": ["doc", "compiled-output", "static-audit"]
+      "proofCommands": [
+        "npm run audit:package-evidence -- <candidate-27-zip> evaluation/release-proofs/v0.17.11-production-course-contract.json evaluation/release-proofs/v0.17.11-production-package-attestation.json 6d398352e449644dbadc2b2fbae16e0e00a2c8bb6a2e817a9af93d41fbc86dbe 5182b64ba6314013de3e6b7e473f807d98a2fbcf0fb9dbb6d8df11f896c45d60"
+      ],
+      "proofScopes": ["doc", "browser-live", "compiled-output", "static-audit"]
     },
     {
       "id": "v01711-roundtable-and-claim-boundary",
       "status": "verified-current",
       "changelogHighlightIndex": 6,
-      "highlightSha256": "89a6705d6408c8bc64c91e862e5540fa3b93a5a87e392bf386cf6f6aee8d101e",
-      "summary": "V65 is explicitly predeploy; the report preserves unchanged model weights and optional-adapter state while withholding checkpoint, instructor, accessibility-certification, classroom, and paid-reference claims pending fresh evidence.",
+      "highlightSha256": "655ef49dadaaa0d9e6e6b2f361125eb4692950457a1d77b3af4dc4809a947568",
+      "summary": "The accepted deterministic checkpoint binds 1,891 raw, audited, and described PowerPoint objects plus 50 rendered files and 221 pages, while explicitly withholding instructor, accessibility-certification, classroom, learned-weight, and paid-reference claims.",
       "anchors": ["docs/V0.17.11_SCION_LEARNER_CHECKPOINT.md"],
       "proofCommands": ["npm run test:unit", "npm run audit:release-history"],
       "proofScopes": ["doc", "static-audit"]
