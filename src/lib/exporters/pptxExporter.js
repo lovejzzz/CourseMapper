@@ -274,23 +274,6 @@ function addProgressDots(pptx, slide, theme, slideIndex, totalSlides, isDark) {
   }
 }
 
-// Font-free seven-segment glyphs for the slide-number badge. A previous 5x7
-// pixel implementation was technically complete in OOXML, but LibreOffice
-// intermittently omitted individual 0.025-inch rectangles. Thick native lines
-// need far fewer objects and survive both PowerPoint and LibreOffice rendering.
-const SLIDE_COUNTER_SEGMENTS = {
-  0: ['a', 'b', 'c', 'd', 'e', 'f'],
-  1: ['b', 'c'],
-  2: ['a', 'b', 'g', 'e', 'd'],
-  3: ['a', 'b', 'g', 'c', 'd'],
-  4: ['f', 'g', 'b', 'c'],
-  5: ['a', 'f', 'g', 'c', 'd'],
-  6: ['a', 'f', 'g', 'e', 'c', 'd'],
-  7: ['a', 'b', 'c'],
-  8: ['a', 'b', 'c', 'd', 'e', 'f', 'g'],
-  9: ['a', 'b', 'c', 'd', 'f', 'g'],
-};
-
 function addSlideCounterBadge(pptx, slide, label, backgroundColor, glyphColor, x, y, w, h) {
   slide.addShape(pptx.ShapeType.roundRect, {
     x,
@@ -299,47 +282,24 @@ function addSlideCounterBadge(pptx, slide, label, backgroundColor, glyphColor, x
     h,
     fill: { color: backgroundColor },
     line: { color: backgroundColor, transparency: 100 },
-    altText: `Slide ${label.replace('/', ' of ')}`,
+    altText: 'Decorative slide counter background',
     objectName: `slide-counter-${label.replace('/', '-of-')}`,
   });
-  const digitW = 0.105;
-  const digitH = 0.205;
-  const advance = 0.205;
-  const slashW = 0.09;
-  const slashAdvance = 0.17;
-  const totalGlyphW = [...label].reduce((sum, character) => sum + (character === '/' ? slashAdvance : advance), 0);
-  let cursorX = x + (w - totalGlyphW) / 2;
-  const glyphY = y + (h - digitH) / 2;
-  const segmentCoords = {
-    a: [0, 0, digitW, 0],
-    b: [digitW, 0, 0.001, digitH / 2],
-    c: [digitW, digitH / 2, 0.001, digitH / 2],
-    d: [0, digitH, digitW, 0],
-    e: [0, digitH / 2, 0.001, digitH / 2],
-    f: [0, 0, 0.001, digitH / 2],
-    g: [0, digitH / 2, digitW, 0],
-  };
-  const addCounterLine = (shapeType, lineX, lineY, lineW, lineH) => {
-    slide.addShape(shapeType, {
-      x: lineX,
-      y: lineY,
-      w: lineW,
-      h: lineH,
-      line: { color: glyphColor, width: 2.25, beginArrowType: 'none', endArrowType: 'none' },
-      altText: 'Decorative counter segment',
-    });
-  };
-  [...label].forEach((character) => {
-    if (character === '/') {
-      addCounterLine(pptx.ShapeType.lineInv, cursorX, glyphY + 0.01, slashW, digitH - 0.02);
-      cursorX += slashAdvance;
-      return;
-    }
-    (SLIDE_COUNTER_SEGMENTS[character] || SLIDE_COUNTER_SEGMENTS[0]).forEach((segment) => {
-      const [segmentX, segmentY, segmentW, segmentH] = segmentCoords[segment];
-      addCounterLine(pptx.ShapeType.line, cursorX + segmentX, glyphY + segmentY, segmentW, segmentH);
-    });
-    cursorX += advance;
+  slide.addText(label.replace('/', ' / '), {
+    x,
+    y,
+    w,
+    h,
+    margin: 0,
+    fontFace: FONT_BODY,
+    fontSize: 12,
+    bold: true,
+    color: glyphColor,
+    align: 'center',
+    valign: 'middle',
+    fit: 'shrink',
+    altText: `Slide ${label.replace('/', ' of ')}`,
+    objectName: `slide-counter-label-${label.replace('/', '-of-')}`,
   });
 }
 

@@ -8172,11 +8172,15 @@ describe('courseBlueprintCompiler', () => {
       'quizBank',
       'studyGuides',
       'faq',
+      'slideDecks',
     ]);
     const visibleText = JSON.stringify(compiled);
+    const lessonThreeSpokes = compiled.slideDecks.decks[2].slides.flatMap((slide) => slide.visual?.spokes || []);
 
     expect(visibleText).toContain('Function (computer programming)');
     expect(visibleText).not.toMatch(/\bFunction computer\b/i);
+    expect(lessonThreeSpokes).toContain('Function (computer programming)');
+    expect(lessonThreeSpokes).not.toContain('Function (computer');
   });
 
   it('splits inline numbered resources without treating decimal versions as list markers', () => {

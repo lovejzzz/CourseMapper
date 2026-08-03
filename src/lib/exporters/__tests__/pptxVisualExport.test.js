@@ -544,6 +544,9 @@ describe('PPTX export — visual placeholders', () => {
     expect(oneBulletXml).not.toContain('Key Takeaway');
     expect(oneBulletXml).toContain('slide-counter-1-of-2');
     expect(takeawayXml).toContain('slide-counter-2-of-2');
+    expect(oneBulletXml).toContain('1 / 2');
+    expect(takeawayXml).toContain('2 / 2');
+    expect(oneBulletXml).not.toContain('Decorative counter segment');
     expect(Object.keys(zip.files).filter((path) => /^ppt\/media\/.+/.test(path))).toHaveLength(0);
     expect(takeawayXml).toContain('Key Takeaway:');
     expect(takeawayXml).toContain('strong answers explain how evidence changes the decision');

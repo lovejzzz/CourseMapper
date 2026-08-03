@@ -23187,9 +23187,9 @@ function slideVisual(lesson, slide) {
             ...lessonTeachingKeyTerms(lesson).map((term) => cleanText(term.term)),
             ...(lesson.keyConcepts || []).map((term) => cleanText(term)),
             cleanText(secondary),
-            conciseClause(source, 'Source evidence', 26),
-            conciseClause(artifactGenre.label || artifact, 'Course artifact', 26),
-          ].filter((term) => term && term.length <= 26 && term.toLowerCase() !== hub.toLowerCase()),
+            conciseClause(source, 'Source evidence', 52),
+            conciseClause(artifactGenre.label || artifact, 'Course artifact', 52),
+          ].filter((term) => term && term.length <= 52 && term.toLowerCase() !== hub.toLowerCase()),
           6,
         );
         return spokes.length >= 2 ? { hub, spokes } : { kind: 'concept definition panel' };
