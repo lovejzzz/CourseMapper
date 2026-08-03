@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { formatAssessmentBlockEntry, mastheadTitleLineSpacing, mastheadTitleSize } from '../exporters/docxExporter.js';
+import {
+  docxPageSize,
+  formatAssessmentBlockEntry,
+  mastheadTitleLineSpacing,
+  mastheadTitleSize,
+} from '../exporters/docxExporter.js';
 
 describe('DOCX masthead sizing', () => {
   it('shrinks long titles using course-agnostic length tiers', () => {
@@ -16,6 +21,11 @@ describe('DOCX masthead sizing', () => {
     expect(mastheadTitleLineSpacing(36)).toBe(432);
     expect(mastheadTitleLineSpacing(32)).toBe(384);
     expect(mastheadTitleLineSpacing(28)).toBe(336);
+  });
+
+  it('lets the DOCX library perform exactly one landscape rotation', () => {
+    expect(docxPageSize(true)).toEqual({ width: 12240, height: 15840, orientation: 'landscape' });
+    expect(docxPageSize(false)).toEqual({ width: 12240, height: 15840 });
   });
 });
 

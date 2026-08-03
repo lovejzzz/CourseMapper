@@ -83,6 +83,13 @@ export function mastheadTitleLineSpacing(titleSize) {
   // line into the kicker above it and can render it outside the left margin.
   return Math.max(LINE_SP, Math.round((Number.isFinite(size) ? size : H1_SIZE) * 12));
 }
+export function docxPageSize(landscape = false) {
+  // docx applies the landscape rotation itself. Supplying pre-swapped
+  // dimensions makes it swap twice, leaving w:pgSz portrait-shaped even
+  // though w:orient says landscape; LibreOffice then renders the six-column
+  // rubric on a portrait page and can displace the wrapped masthead.
+  return landscape ? { width: 12240, height: 15840, orientation: 'landscape' } : { width: 12240, height: 15840 };
+}
 const SINGLE_SP = 252;
 
 function formatSourceArtifact(artifact) {
@@ -238,9 +245,7 @@ export function buildDocxDocument(docx, children, { courseName, label, landscape
   // v0.12.1: explicit US Letter (the docx default is A4, which clipped every
   // fixed-width table in the v0.12 audit); rubrics render landscape so the
   // 6-column matrix gets usable column widths.
-  const pageSize = landscape
-    ? { width: 15840, height: 12240, orientation: 'landscape' }
-    : { width: 12240, height: 15840 };
+  const pageSize = docxPageSize(landscape);
   const footer = new Footer({
     children: [
       new Paragraph({
