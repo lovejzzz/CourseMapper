@@ -3,15 +3,9 @@ import { asArray, cleanText } from './compilerText';
 export function openCourseSourceTitle(value) {
   const citation = cleanText(value);
   const urlMatch = citation.match(/https?:\/\//i);
-  if (!urlMatch) return '';
 
-  // Algi citations are shaped as
-  //   Lesson focus — Source title (open source metadata — https://...)
-  // Keep parentheticals that belong to the source title itself (for example,
-  // “Function (computer programming)”) while removing only the metadata
-  // wrapper that contains the URL. Splitting on the first parenthesis loses
-  // meaningful title text and later produces malformed reader-facing prose.
-  const beforeUrl = citation.slice(0, urlMatch.index);
+  // Preserve title parentheticals; display citations can retain metadata after the URL is omitted.
+  const beforeUrl = urlMatch ? citation.slice(0, urlMatch.index) : citation;
   const metadataOpen = beforeUrl.lastIndexOf('(');
   const metadataLead = metadataOpen >= 0 ? beforeUrl.slice(metadataOpen + 1) : '';
   const hasMetadataWrapper =
@@ -19,12 +13,13 @@ export function openCourseSourceTitle(value) {
     /\b(?:open|official|public|licensed?|creative commons|cc\s+by|source|tutorial|standard|encyclopedia|textbook|article)\b/i.test(
       metadataLead,
     );
-  let title = cleanText(hasMetadataWrapper ? beforeUrl.slice(0, metadataOpen) : beforeUrl);
-  title = cleanText(title.replace(/\s+[—–-]\s*$/, ''));
+  let title = cleanText(
+    urlMatch || hasMetadataWrapper ? (hasMetadataWrapper ? beforeUrl.slice(0, metadataOpen) : beforeUrl) : '',
+  );
 
   const focusSeparator = title.indexOf(' — ');
   if (focusSeparator >= 0) title = cleanText(title.slice(focusSeparator + 3));
-  return title;
+  return cleanText(title.replace(/\s+[—–-]\s*$/, ''));
 }
 
 export function firstOpenCourseSourceTitle(lesson = {}) {

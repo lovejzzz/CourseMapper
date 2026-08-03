@@ -8133,6 +8133,73 @@ describe('courseBlueprintCompiler', () => {
     expect(quizText).not.toMatch(/evidence explanation quantum reasoning decision/i);
   });
 
+  it('preserves canonical source-title parentheticals across learner-facing projections', () => {
+    // Production Scion output can leave an empty trailing enumerator when a
+    // second retrieved source is rejected. The compiler must still recover
+    // the first source's canonical title instead of tokenizing its
+    // parenthetical into "Function computer".
+    const sourceCitation = '1. Functions and automated tests — Function (computer programming) (open encyclopedia) 2.';
+    const lessonTitles = [
+      'Python data types and expressions',
+      'Conditional branching and loops',
+      'Functions and automated tests',
+      'Pandas tabular data cleaning',
+      'Reproducible visualization and uncertainty',
+      'Integrative policy memo capstone',
+    ];
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Applied Civic Data Analysis',
+      lessons: lessonTitles.map((title, index) => ({
+        title: `Lesson ${index + 1}: ${title}`,
+        sections: [
+          {
+            topicSection: title,
+            learningObjectives: `Apply ${title} in one practical example and justify one evidence-based revision.`,
+            weeklyAssessments: `Comparison brief: ${title}`,
+            supportingResources: index === 2 ? sourceCitation : `${title} course materials`,
+          },
+        ],
+      })),
+    });
+
+    expect(blueprint.lessons[2].evidencePlan.sourceCue).toBe('Function (computer programming)');
+
+    const compiled = compileBlueprintDeliverables(blueprint, [
+      'lessonPlans',
+      'assignments',
+      'rubrics',
+      'discussions',
+      'quizBank',
+      'studyGuides',
+      'faq',
+    ]);
+    const visibleText = JSON.stringify(compiled);
+
+    expect(visibleText).toContain('Function (computer programming)');
+    expect(visibleText).not.toMatch(/\bFunction computer\b/i);
+  });
+
+  it('splits inline numbered resources without treating decimal versions as list markers', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Digital Accessibility',
+      lessons: [
+        {
+          title: 'Lesson 1: Accessibility standards',
+          sections: [
+            {
+              topicSection: 'Accessibility standards',
+              learningObjectives: 'Compare two accessibility resources and justify one design decision.',
+              supportingResources: '1. WCAG 2.0 overview 2. ARIA authoring practices',
+            },
+          ],
+        },
+      ],
+    });
+    expect(blueprint.lessons[0].readings).toEqual(
+      expect.arrayContaining(['WCAG 2.0 overview', 'ARIA authoring practices']),
+    );
+  });
+
   it('does not promote a clipped activity instruction into the source-cue slot', () => {
     const blueprint = buildCourseBlueprint({
       courseName: 'Digital Accessibility for Product Teams',

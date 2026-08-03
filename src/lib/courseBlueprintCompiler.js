@@ -34,6 +34,7 @@ import {
   appendOpenCourseSourceTexts,
   firstOpenCourseSourceTitle,
   isCompilerMintedEvidenceBrief,
+  openCourseSourceTitle,
 } from './compilerOpenCourseSources';
 import { compactCompilerOwnedAssessmentIdentity, isCodeLabAssessmentIdentity } from './compilerAssessmentIdentity';
 import { isCompilerSourceBoundaryOnlyTerm } from './compilerSourceBoundaryCorrection';
@@ -4856,15 +4857,14 @@ function lessonStubFromTitle(title, artifact = '') {
 function buildEvidencePlan({ title, concepts, resources, activities, artifact, protectedSourceCue = '' }) {
   const concept = concepts[0] || stripLessonPrefix(title) || 'the lesson focus';
   const secondary = concepts[1] || concept;
-  // Instructor-named works are identity, not disposable summary prose. Keep
-  // their canonical title intact even when it exceeds the ordinary compact
-  // source-cue budget (for example, "selected poems of Li Bai and Du Fu").
-  const sourceCue = protectedSourceCue
-    ? stripTerminalPunctuation(cleanText(protectedSourceCue))
-    : compactSourceCue(
-        resources[0] || activities[0] || `${stripLessonPrefix(title)} course materials`,
-        `${stripLessonPrefix(title)} materials`,
-      );
+  const canonicalOpenSourceTitle = resources.map(openCourseSourceTitle).find(Boolean) || '';
+  const sourceCue =
+    protectedSourceCue || canonicalOpenSourceTitle
+      ? stripTerminalPunctuation(cleanText(protectedSourceCue || canonicalOpenSourceTitle))
+      : compactSourceCue(
+          resources[0] || activities[0] || `${stripLessonPrefix(title)} course materials`,
+          `${stripLessonPrefix(title)} materials`,
+        );
   const lessonStub = lessonStubFromTitle(title, artifact);
   return {
     sourceCue,
@@ -4887,12 +4887,14 @@ function buildEvidencePlan({ title, concepts, resources, activities, artifact, p
 function buildSourceUsePlan({ title, concepts, resources, evidencePlan, artifact, protectedSourceCue = '' }) {
   const concept = concepts[0] || stripLessonPrefix(title) || 'the lesson focus';
   const artifactName = stripTerminalPunctuation(artifact);
-  const sourceCue = protectedSourceCue
-    ? stripTerminalPunctuation(cleanText(protectedSourceCue))
-    : compactSourceCue(
-        evidencePlan?.sourceCue || resources?.[0] || `${stripLessonPrefix(title)} course materials`,
-        `${stripLessonPrefix(title)} materials`,
-      );
+  const canonicalOpenSourceTitle = resources.map(openCourseSourceTitle).find(Boolean) || '';
+  const sourceCue =
+    protectedSourceCue || canonicalOpenSourceTitle
+      ? stripTerminalPunctuation(cleanText(protectedSourceCue || canonicalOpenSourceTitle))
+      : compactSourceCue(
+          evidencePlan?.sourceCue || resources?.[0] || `${stripLessonPrefix(title)} course materials`,
+          `${stripLessonPrefix(title)} materials`,
+        );
   const approvedSources =
     Array.isArray(resources) && resources.length > 0
       ? resources.slice(0, 4)
@@ -14115,6 +14117,11 @@ function lessonLearnerContextCue(blueprint, lesson) {
   return lesson?.learnerContextCue || buildLessonLearnerContextCue(blueprint?.learnerContextProfile || {}, lesson);
 }
 
+function splitCourseMapResourceList(value) {
+  const text = String(value || '').trim();
+  return (/^\d+[.)]\s/.test(text) ? text.split(/\s+\d+[.)](?=\s|$)/).filter(Boolean) : [value]).flatMap(splitList);
+}
+
 function extractLessonBlueprint(
   lesson,
   originalIndex,
@@ -14140,7 +14147,7 @@ function extractLessonBlueprint(
   const hasGoals = goalEntries.length > 0;
   const objectives = unique(objectiveEntries.length > 0 ? objectiveEntries : goalEntries, 5);
   const topicEntries = meaningfulEntries(splitList(topicText));
-  const readingEntries = meaningfulEntries(splitList(readingText));
+  const readingEntries = meaningfulEntries(splitCourseMapResourceList(readingText));
   const hasTopics = topicEntries.length > 0;
   const topics = normalizeConceptCandidates(topicEntries.length > 0 ? topicEntries : goalEntries, { title, limit: 8 });
   const topicTitleFallback = titleFallbackFromTopics(
@@ -14169,7 +14176,7 @@ function extractLessonBlueprint(
   const resources = unique(
     [
       ...registryReadingTitles,
-      ...meaningfulEntries(splitList(resourceText)).map((entry) =>
+      ...meaningfulEntries(splitCourseMapResourceList(resourceText)).map((entry) =>
         normalizeLessonPlanMaterial(entry, { title, lessonNumber }),
       ),
     ],

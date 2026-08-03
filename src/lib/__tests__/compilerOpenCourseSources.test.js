@@ -24,7 +24,7 @@ describe('compiler open-course source titles', () => {
     ).toBe('State-of-the-art methods');
   });
 
-  it('returns no open-course title when the citation has no URL', () => {
-    expect(openCourseSourceTitle('Quantum gates — Quantum logic gate (open encyclopedia)')).toBe('');
+  it('recognizes explicit open-source metadata even when a display citation omits its URL', () => {
+    expect(openCourseSourceTitle('Quantum gates — Quantum logic gate (open encyclopedia)')).toBe('Quantum logic gate');
   });
 });
