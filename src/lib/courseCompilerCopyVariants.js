@@ -100,7 +100,6 @@ const ASSIGNMENT_BRIEF_BODY_FIELDS = [
   'overview',
   'description',
   'speakingPrompts',
-  'objectives',
   'instructions',
   'formatRequirements',
   'deliverables',

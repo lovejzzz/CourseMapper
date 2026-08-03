@@ -8699,7 +8699,7 @@ describe('courseBlueprintCompiler', () => {
     expect(assignments.map((assignment) => assignment.objectives[0])).toEqual([
       'Apply Homeric Epic in one practical example and justify one evidence-based revision.',
       'Apply Tang Poetry in one practical example and justify one evidence-based revision.',
-      'Apply the Comparative Reading focus in one practical example and justify one evidence-based revision.',
+      'Apply Comparative Reading Methods in one practical example and justify one evidence-based revision.',
     ]);
     expect(new Set(assignments.map((assignment) => JSON.stringify(assignment.instructions))).size).toBe(3);
     expect(JSON.stringify(assignments)).not.toMatch(/locally approved submission form|feedback-based the /i);

@@ -17615,9 +17615,7 @@ function compileExperientialActivityAssignmentBrief(blueprint, lesson) {
   });
 }
 
-// Keep exact identity headings, but compact repeated titles in student-facing
-// body fields so source-grounded briefs do not read like templates or trip the
-// rendered eight-word repetition audit.
+// Keep exact headings while compacting repeated identity strings in student-facing body copy.
 function compileAssignments(blueprint) {
   const lens = blueprintLens(blueprint);
   const preference = featurePreference(blueprint, 'assignments');
@@ -17858,9 +17856,12 @@ function compileAssignments(blueprint) {
                   ]),
           ...(lesson.enrichment?.assignmentCore ? { enrichmentSource: 'lesson-content-enrichment' } : {}),
           gradingWeightProvenance: compactWeightProvenance(assessment.weightProvenance),
-          objectives: unique([stableLessonContractObjective(lesson), ...asArray(assessment.objectives)]).map(
-            (objective) => sentenceCase(objective),
-          ),
+          objectives: unique([
+            stableLessonContractObjective({
+              title: lesson.semanticIdentityTerms?.[0] || assessment.relatedLessons?.[0] || lesson.title,
+            }),
+            ...asArray(assessment.objectives),
+          ]).map((objective) => sentenceCase(objective)),
           objectiveEvidenceChecklist: objectiveEvidenceChecklist(lesson.objectiveEvidencePlan),
           instructions: [
             lesson.prerequisitePlan?.studentReadinessCheck ||

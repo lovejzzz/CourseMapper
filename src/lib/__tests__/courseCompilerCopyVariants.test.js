@@ -51,6 +51,26 @@ describe('course compiler copy variants', () => {
     expect(result.overview).not.toContain('Week 13 Week 13');
   });
 
+  it('preserves exact assessment-contract objectives while compacting ordinary body copy', () => {
+    const focus = 'Functions and automated tests';
+    const objective = `Apply ${focus} in one practical example and justify one evidence-based revision.`;
+    const result = compactAssignmentBriefBodyReferences({
+      brief: {
+        title: 'Comparison brief: Functions and automated tests',
+        dueWeek: 'Week 3',
+        assignmentType: 'Comparison brief',
+        objectives: [objective],
+        overview: `${focus} asks students to compare evidence from ${focus}.`,
+      },
+      lesson: { lessonNumber: 3 },
+      fullFocus: focus,
+      fallbackArtifact: 'Comparison brief: Functions and automated tests',
+    });
+
+    expect(result.objectives).toEqual([objective]);
+    expect(result.overview).not.toContain(focus);
+  });
+
   it('uses the discipline-aware genre when a week-prefixed artifact alias is still too long', () => {
     const canonicalTitle =
       "Homer's Epic Structure evidence memo: explain how form, language, or context changes the reading.";
