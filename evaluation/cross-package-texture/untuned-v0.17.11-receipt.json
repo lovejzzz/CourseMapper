@@ -3,7 +3,7 @@
   "appVersion": "0.17.11",
   "profile": "untuned",
   "panelVersion": "1.0.0",
-  "canonicalSha256": "3c9bbb8a032b67fbe60bad615c6c498f7fe0c99acbe002bdc503c3eb62606ec7",
+  "canonicalSha256": "d5a62d7f93f6625876b5f0c857bcb05e2d455741f646431a978f077205bf1825",
   "packageCount": 12,
   "clusterCount": 432,
   "supportBurdenRate": 0.061155,
