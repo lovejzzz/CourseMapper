@@ -24,7 +24,7 @@
 import { describe, it, expect, beforeAll, vi } from 'vitest';
 import JSZip from 'jszip';
 import { buildSlideDeckPptxBlob } from '../pptxExporter.js';
-import { auditOfficeAccessibility, isAuditedPptxSemanticObjectName } from '../../exportRenderedTextAudit.js';
+import { auditOfficeAccessibility, extractPptxStructuralObjectTags } from '../../exportRenderedTextAudit.js';
 
 // happy-dom ships a Canvas element but its getContext('2d') returns null,
 // which breaks slideTextFit.js auto-fit sizing. Rather than pull in the full
@@ -484,11 +484,7 @@ describe('PPTX export — visual placeholders', () => {
   });
 
   it('serializes authored descriptions onto semantic shapes and text objects', () => {
-    const semanticObjects = slideXmls.flatMap((xml) =>
-      [...xml.matchAll(/<(?:p|pic):cNvPr\b[^>]*>/g)]
-        .map((match) => match[0])
-        .filter((tag) => isAuditedPptxSemanticObjectName(tag.match(/\bname="([^"]*)"/)?.[1])),
-    );
+    const semanticObjects = slideXmls.flatMap(extractPptxStructuralObjectTags);
     expect(semanticObjects.length).toBeGreaterThan(FIXTURE.decks[0].slides.length);
     for (const object of semanticObjects) {
       expect(object).toMatch(/title="(?:CourseMapper semantic visual|Slide counter)"/);
@@ -512,6 +508,23 @@ describe('PPTX export — visual placeholders', () => {
     const damaged = xml.replace(
       /(<p:cNvPr\b(?=[^>]*\bname="(?:cmA11y-|slide-counter-label-))[^>]*)(\sdescr="[^"]*")([^>]*>)/,
       '$1$3',
+    );
+    expect(damaged).not.toBe(xml);
+    zip.file(path, damaged);
+    const damagedBlob = await zip.generateAsync({ type: 'blob' });
+    expect(await auditOfficeAccessibility(damagedBlob, 'pptx')).toMatchObject({
+      code: 'accessibility',
+      problems: expect.arrayContaining(['semantic-object-without-description']),
+    });
+  });
+
+  it('fails accessibility verification for an uninstrumented structural shape', async () => {
+    const zip = await JSZip.loadAsync(await pptxBlob.arrayBuffer());
+    const path = 'ppt/slides/slide1.xml';
+    const xml = await zip.file(path).async('string');
+    const damaged = xml.replace(
+      /(<p:cNvPr\b(?=[^>]*\bname="cmA11y-[^"]+")[^>]*)(\sdescr="[^"]*")([^>]*>)/,
+      '$1 name="Uninstrumented shape"$3',
     );
     expect(damaged).not.toBe(xml);
     zip.file(path, damaged);

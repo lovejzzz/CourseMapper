@@ -14,7 +14,7 @@
     ],
     "ciFast": {
       "status": "pending-push",
-      "note": "Fast verification must pass from a clean checkout of the exact v0.17.11 commit."
+      "note": "The V64 structural-denominator repair must pass all nine lanes from its exact commit."
     },
     "ciDeep": {
       "status": "pending",
@@ -22,11 +22,11 @@
     },
     "deploy": {
       "status": "pending-push",
-      "note": "Production deployment follows a green exact-commit gate."
+      "note": "Production deployment follows a green exact-commit V64 gate."
     },
     "liveProvider": {
       "status": "pending",
-      "note": "The rejected local 95/100 package is historical context only. The repaired 87/100 package is the accepted predeploy evidence; a fresh post-deployment package must independently clear the acceptance floor."
+      "note": "Candidate 25 remains valid 91-point content evidence but is rejected as checkpoint evidence because its PowerPoint accessibility denominator was producer-selected. A fresh V64 package must pass the structural Office scan."
     },
     "manualHuman": {
       "status": "pending",
@@ -38,6 +38,7 @@
       "id": "v01711-provenance-preserving-claim-portfolio",
       "status": "verified-current",
       "changelogHighlightIndex": 0,
+      "highlightSha256": "613496a4ee6ea387b41270cdef5facb519c5e20bbb4da350def1d2bcb94f8ba4",
       "summary": "Canonical source identity, exact supported claims, locators, and support receipts survive from research through learner-facing artifact assembly.",
       "anchors": [
         "src/lib/algiKernelComposer.js",
@@ -55,6 +56,7 @@
       "id": "v01711-preserve-revise-scheduler",
       "status": "verified-current",
       "changelogHighlightIndex": 1,
+      "highlightSha256": "6979063e8d55013395490a3472ee747b2e127b92f6fcaf8302adf55914b3ed1b",
       "summary": "Research composition reuses admitted lesson evidence, targets unresolved needs, and accepts only strict support-ledger improvement.",
       "anchors": [
         "src/lib/algiKernelComposer.js",
@@ -70,6 +72,7 @@
       "id": "v01711-course-neutral-research-admission",
       "status": "verified-current",
       "changelogHighlightIndex": 2,
+      "highlightSha256": "f6110b67661e0ee82f7b433f225a317fb4bd5bb9c3a0266ffa936da79cb918ae",
       "summary": "Research routing responds to course and lesson context while exact byte binding rejects unsupported source claims without embedding one course corpus.",
       "anchors": [
         "src/lib/knowledge/algiResearch.js",
@@ -87,6 +90,7 @@
       "id": "v01711-exported-grounding-and-assessment-receipts",
       "status": "verified-current",
       "changelogHighlightIndex": 3,
+      "highlightSha256": "919278b7344d4f2a24c8c0683ad41e3086031aba055b52f31715db9a51738fe2",
       "summary": "The assembled package extracts visible Office text, reconstructs claim support, and verifies objective-task-student-evidence-rubric coherence.",
       "anchors": [
         "src/lib/exportRenderedTextAudit.js",
@@ -104,12 +108,13 @@
       "id": "v01711-evidence-capped-score-ledger",
       "status": "verified-current",
       "changelogHighlightIndex": 4,
-      "summary": "Grader 1.15.9 awards bounded grounding and assessment-coherence credit only from independently replayable final-package receipts and binds the source-title parser repair under held-out ruler V56.",
+      "highlightSha256": "8918df3e1d827224fb5a9c7db03ebeb9bc1d4f6a4a7ed8ec8a52648badb96fcf",
+      "summary": "Grader 1.15.9 awards bounded grounding and assessment-coherence credit only from independently replayable final-package receipts and V64 binds the structural Office accessibility denominator plus the export-verification implementation.",
       "anchors": [
         "src/lib/quality/automatedReadinessSignal.js",
         "src/lib/quality/deepQualityGrader.js",
         "src/lib/quality/graderVersion.js",
-        "evaluation/scion-adapters/held-out-course-benchmark-v56.json",
+        "evaluation/scion-adapters/held-out-course-benchmark-v64.json",
         "src/lib/quality/__tests__/automatedReadinessSignal.test.js"
       ],
       "proofCommands": [
@@ -118,10 +123,11 @@
       "proofScopes": ["unit", "static-audit", "compiled-output"]
     },
     {
-      "id": "v01711-local-87-evidence",
+      "id": "v01711-v64-predeploy-boundary",
       "status": "verified-current",
       "changelogHighlightIndex": 5,
-      "summary": "The repaired local six-lesson ZIP scores 87/100 with 13/25 grounding, 15/15 assessment coherence, 38/38 export checks, zero encoded findings, a clean 225-page Office render, and independent replay of 49 claims across 17 artifacts after the first 95-point candidate was rejected.",
+      "highlightSha256": "c2e8152863184f172d529d67abc52f26e0114e517813ef5009c21507da5a2496",
+      "summary": "Candidate 25 retains independently replayable 91-point content evidence, but V64 rejects its producer-selected PowerPoint accessibility denominator and requires a fresh post-deployment package before checkpoint acceptance.",
       "anchors": ["docs/V0.17.11_SCION_LEARNER_CHECKPOINT.md"],
       "proofCommands": [
         "npx vitest run src/lib/__tests__/packageZipExporter.test.js src/lib/quality/__tests__/assessmentCoherence.test.js"
@@ -132,7 +138,8 @@
       "id": "v01711-roundtable-and-claim-boundary",
       "status": "verified-current",
       "changelogHighlightIndex": 6,
-      "summary": "Six Roundtable design rounds and a nine-turn exact-commit audit support and challenge the learner architecture while the report preserves unchanged model weights, missing human evidence, and pending production checkpoint gates.",
+      "highlightSha256": "e79ff3e9421e3dfe95408be82caf6395ab25a556926ff8c4c65cdb1a7df94691",
+      "summary": "Roundtable design and exact-code falsification rejected candidate 25 as checkpoint evidence and drove the V64 structural-denominator repair while the report preserves unchanged model weights and missing independent instructor, accessibility-certification, and classroom evidence.",
       "anchors": ["docs/V0.17.11_SCION_LEARNER_CHECKPOINT.md"],
       "proofCommands": ["npm run test:unit", "npm run audit:release-history"],
       "proofScopes": ["doc", "static-audit"]

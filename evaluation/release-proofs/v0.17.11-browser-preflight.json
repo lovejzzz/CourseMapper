@@ -1,16 +1,16 @@
 {
   "schemaVersion": 1,
   "release": "0.17.11",
-  "recordedAt": "2026-08-03T03:58:00Z",
-  "status": "bounded-predeploy",
-  "claimBoundary": "This tracked predeploy receipt proves the course-neutral learner architecture, exact source binding, exported-artifact grounding, assessment-coherence reconstruction, and deterministic score regressions passed before deployment. The local package score is bound to its exact ZIP hash. This is not a live production result, factual certification, independent instructor result, accessibility certification, classroom outcome, model-weight improvement, adapter promotion, or paid-reference comparison.",
+  "recordedAt": "2026-08-03T19:14:18Z",
+  "status": "predeploy-candidate",
+  "claimBoundary": "This tracked production receipt binds the course-neutral learner architecture to the exact deployed code, physical production ZIP, independently replayed source and assessment evidence, and representative rendered output. It proves the declared deterministic release gates for this package, not universal factual correctness, independent instructor approval, accessibility certification, classroom outcomes, learned-weight improvement, adapter promotion, or paid-reference comparison.",
   "checks": [
     {
       "command": "npm run test:unit",
       "status": "pass",
-      "testFilesPassed": 507,
+      "testFilesPassed": 508,
       "testFilesSkipped": 16,
-      "testsPassed": 6557,
+      "testsPassed": 6613,
       "testsSkipped": 162
     },
     {
@@ -36,7 +36,19 @@
       "packages": 12,
       "clusters": 432,
       "unclassifiedPaths": 0,
-      "canonicalSha256": "dd2dde4867d4b0e33bcb367fa224fcd17477dfaa39ded6d7bab25aa0c0af06e3"
+      "canonicalSha256": "2381fd54cad8aa773c4c014eeb92762114bbc3dd5c3fad8d6de85f25bccbd69b"
+    },
+    {
+      "mode": "immutable-held-out-ruler-binding",
+      "status": "pass",
+      "path": "evaluation/scion-adapters/held-out-course-benchmark-v64.json",
+      "sha256": "f07742d08084d246248cb446041d2410f6c9624ac1e41222aedfc65417502bab",
+      "graderVersion": "1.15.9",
+      "implementationSha256": "ee6f0b425ff2f22a73fc1f0f0b052d60bbe3d7f9049e3ce1cd5b938039ce0dc1",
+      "implementationFileCount": 34,
+      "exportBoundaryImplementationSha256": "fb69b3065c8b42c06bdb2197fccaf5cee6ea1092a7cb3a7b161981c9f3058ea2",
+      "exportBoundaryImplementationFileCount": 159,
+      "priorRuler": "V63 remains immutable; V64 derives the PowerPoint accessibility denominator from exported structural objects and separately binds the package-verification implementation."
     },
     {
       "command": "npm run audit:scion:browser-base",
@@ -92,6 +104,58 @@
       "failures": 0
     },
     {
+      "mode": "production-physical-zip-and-render-audit",
+      "status": "pass",
+      "auditedCommit": "cba17825c151f6013d5a0fd54304a131343c3afe",
+      "ciRun": 30843776937,
+      "deployRun": 30844381289,
+      "zipSha256": "bcb8e36cd11522d960a79345034e2d7c9e77520879ac407b13ca7ddfd3831fd7",
+      "score": 91,
+      "dimensions": {
+        "curriculumFidelity": 25,
+        "evidenceGrounding": 17,
+        "instructionalTexture": 19,
+        "assessmentCoherence": 15,
+        "exportIntegrity": 15
+      },
+      "verifiedSources": 5,
+      "verifiedClaims": 60,
+      "verifiedArtifacts": 29,
+      "verifiedAssessmentObligations": 6,
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "exportChecks": "38/38",
+      "renderedOfficeFiles": 50,
+      "renderedPages": 221,
+      "semanticObjects": 1565,
+      "semanticObjectsWithDescriptions": 1565,
+      "nativeTables": 11,
+      "nativeMatrices": 4,
+      "nativeConnectors": 22,
+      "decorativeBackgroundsWithDescriptions": 36,
+      "nativeSlideCounters": 78,
+      "rubricPageSizePoints": "792 x 612",
+      "visualDefectsFound": 0
+    },
+    {
+      "command": "npm run audit:package-evidence -- /Users/tianxing/Downloads/Applied Civic Data Analysis - Course Materials (5).zip evaluation/release-proofs/v0.17.11-production-course-contract.json evaluation/release-proofs/v0.17.11-production-package-attestation.json 1de3892af9d8aca0fe928a44e1f879e15a50236f6f66bb2120bd592bd8da2fb9 5182b64ba6314013de3e6b7e473f807d98a2fbcf0fb9dbb6d8df11f896c45d60",
+      "status": "pass",
+      "protocol": "coursemapper-package-evidence-replay-v2",
+      "packageSha256": "bcb8e36cd11522d960a79345034e2d7c9e77520879ac407b13ca7ddfd3831fd7",
+      "verifiedSources": 5,
+      "verifiedClaims": 60,
+      "verifiedArtifacts": 29,
+      "verifiedAssessmentObligations": 6,
+      "evidenceBundleSha256": "f5ce95266def24abc4477bda15923d3775b4acf622dcdd8f8a95e6d930319a37",
+      "scoreLedgerSha256": "a8453574a67ac8aba04190a73b9f76802c0d4e176ac6a03a12cfb6e18c9c1cd0",
+      "readinessScore": 91,
+      "graderVersion": "1.15.9",
+      "courseContractSha256": "5182b64ba6314013de3e6b7e473f807d98a2fbcf0fb9dbb6d8df11f896c45d60",
+      "releaseAttestationSha256": "1de3892af9d8aca0fe928a44e1f879e15a50236f6f66bb2120bd592bd8da2fb9",
+      "failures": 0
+    },
+    {
       "mode": "roundtable-learner-architecture-audit",
       "status": "pass",
       "sessionId": "681bd065-f174-4971-80f1-1fecb81ed21c",
@@ -102,7 +166,7 @@
     },
     {
       "mode": "roundtable-exact-commit-audit",
-      "status": "four-p1-findings-and-one-proof-contradiction-remediated-pending-postcommit-audit",
+      "status": "four-p1-findings-and-one-proof-contradiction-remediated-and-finally-verified",
       "turns": 9,
       "initialP1": 4,
       "remediations": [
@@ -115,7 +179,7 @@
     },
     {
       "mode": "roundtable-release-attestation-falsification",
-      "status": "four-p1-attestation-findings-remediated-pending-postfix-audit",
+      "status": "four-p1-attestation-findings-remediated-and-finally-verified",
       "sessionId": "d1a89853-bf12-4373-b88b-c05f94426df6",
       "rounds": 6,
       "plannedTurns": 18,
@@ -138,7 +202,7 @@
     },
     {
       "mode": "roundtable-post-remediation-root-precedence-audit",
-      "status": "one-p1-root-precedence-finding-remediated-pending-final-audit",
+      "status": "one-p1-root-precedence-finding-remediated-and-finally-verified",
       "sessionId": "aa509b74-6574-422d-b5da-463ade0f8b1c",
       "rounds": 3,
       "plannedTurns": 9,
@@ -148,10 +212,126 @@
       "finding": "release attestation could overwrite the caller-supplied trusted course-contract root",
       "remediation": "require and preserve independently supplied attestation and contract digests, reject conflicts, and cover precedence with an adversarial test",
       "report": "docs/V0.17.11_SCION_LEARNER_CHECKPOINT.md"
+    },
+    {
+      "mode": "roundtable-production-zip17-audit",
+      "status": "checkpoint-rejected-one-p2-remediated",
+      "sessionId": "f4ff3a53-2fd0-46f0-b10c-f6b5791b4f8f",
+      "auditedCommit": "a401b17467b4d8cc07ad96c9ec31340a47b28d41",
+      "auditedZipSha256": "c7bf1472e4d3548a6a0149d0504d4ee2fb0acad751ad60b60faf7a92355db5b8",
+      "p0": 0,
+      "p1": 0,
+      "p2": 1,
+      "finding": "Lesson 2 speaker notes duplicated a sentence-opening instructional imperative: Use Use Conditional branching structures.",
+      "remediation": "repair the course-neutral compiler seam, arm the shared defect detector, add a regression test, preserve V53, and bind the repaired implementation under immutable ruler V54"
+    },
+    {
+      "mode": "roundtable-production-zip18-audit",
+      "status": "checkpoint-rejected-one-p2-class-finding-remediated",
+      "sessionId": "8bb9f539-9edc-4c1b-acf5-d7ce8d294f5d",
+      "auditedCommit": "2d532141888687887de70d321e61ebb34ca98f4a",
+      "auditedZipSha256": "8bba43eb19d38674d2007529c8c19ac4b8f84cfc37fa2989b09e2103ddbdaa64",
+      "claudeStatus": "authenticated",
+      "p0": 0,
+      "p1": 0,
+      "p2": 1,
+      "finding": "Two agenda-note sites could still duplicate a leading instructional imperative, and the shared detector missed mixed-case repetition.",
+      "remediation": "centralize all six agenda variants behind one safe composer, make repeated-imperative detection case-insensitive, add production-shaped regression coverage, preserve V54, and bind the repaired implementation under immutable ruler V55"
+    },
+    {
+      "mode": "roundtable-production-zip19-audit",
+      "status": "checkpoint-rejected-proof-binding-and-two-physical-defects-remediated",
+      "sessionId": "a08b1f70-83c8-474e-8fa7-fb23cd8be71d",
+      "auditedCommit": "d7e777d36f0a50912a9c2db47e00762004d4bfc4",
+      "auditedZipSha256": "ceb68c027735c246c818bcdb10fdcd82f2eeb01fc820ee356c4a835af441b003",
+      "p0": 0,
+      "p1": 1,
+      "p2": 2,
+      "findings": [
+        "the release proof graph did not bind one tracked commit, ruler, ZIP, contract, ledger, and accepted attestation",
+        "the reader-visible source label collapsed to Function computer",
+        "final rubric footer text was clipped"
+      ]
+    },
+    {
+      "mode": "production-zip20-physical-audit",
+      "status": "checkpoint-rejected-one-source-title-defect-remediated",
+      "auditedCommit": "163b9c74e00fccb2f17728bb5d090337615f3f54",
+      "auditedZipSha256": "a07739d21c6b2b22990f3272032a4fb4359a984ae81813b1c63d8b4e21ab157b",
+      "p0": 0,
+      "p1": 0,
+      "p2": 1,
+      "finding": "interrupted numbered-list source text still produced the reader-visible title Function computer",
+      "remediation": "parse interrupted inline numbered lists locally in the course compiler and preserve canonical source titles through evidence plans under immutable ruler V57"
+    },
+    {
+      "mode": "production-zip21-physical-audit",
+      "status": "checkpoint-rejected-two-slide-layout-defects-remediated",
+      "auditedCommit": "2eac79ee0dc8209900ecd75d4ffa72fad5b3e037",
+      "auditedZipSha256": "241a750ed94f325da64b18dc50b0e1d61091e353657ccb6be0302f5244232d29",
+      "p0": 0,
+      "p1": 0,
+      "p2": 2,
+      "findings": [
+        "the concept-map evidence spoke clipped Function (computer programming)",
+        "the bespoke seven-segment slide counter rendered ambiguously"
+      ],
+      "remediation": "preserve 52-character evidence-spoke labels, use an accessible native text counter, add production-shaped render coverage, and bind the 34-file implementation under immutable ruler V58"
+    },
+    {
+      "mode": "roundtable-production-zip24-code-falsification",
+      "status": "checkpoint-rejected-four-boundary-findings-remediated-before-zip25",
+      "sessionId": "71990d46-52e2-47a2-9a01-8b95f924affa",
+      "rounds": 3,
+      "completedArticles": 8,
+      "antigravityStatus": "unavailable-and-auto-skipped-without-login-interruption",
+      "auditedCommit": "f0a5e06f1ba980fbd8bc85b5f0be3d0b37aa9f15",
+      "rejectedZipSha256": "d9b309bcf17546d2f2ffc7e858e642cf5216aa09e2dc8107729ef9221dc86baf",
+      "findings": [
+        "native PowerPoint tables and matrices were omitted from accessibility instrumentation and the audit denominator",
+        "complex inline LaTeX could be replaced by a truncated placeholder while its generated image was never serialized",
+        "accessibility defects were detected but mapped only to non-blocking export warnings",
+        "decorative alt text and unreadable Office inputs could remove objects from the audited set or fail open"
+      ],
+      "remediations": [
+        "instrument addTable and audit every CourseMapper semantic object family from one shared predicate",
+        "preserve complete inline mathematics as readable text and describe display-equation images",
+        "promote Office accessibility findings to export failures before repetition review can short-circuit them",
+        "serialize decorative descriptions and reject unreadable Office inputs",
+        "bind the repaired 34-file implementation under immutable ruler V63 and generate fresh production candidate 25"
+      ],
+      "transcriptSha256": "af3a84725fe41230f14c06f86339447d0b415279be8cc2deaeac4661fb64c02a"
+    },
+    {
+      "mode": "roundtable-candidate25-final-checkpoint-audit",
+      "status": "checkpoint-rejected-and-v64-predeploy-remediation-armed",
+      "sessionId": "d2db99de-6948-4255-b054-b12dccfad93d",
+      "rounds": 2,
+      "completedArticles": 4,
+      "antigravityStatus": "quota-unavailable-and-auto-skipped-without-login-interruption",
+      "auditedCommit": "77d63155",
+      "rejectedZipSha256": "bcb8e36cd11522d960a79345034e2d7c9e77520879ac407b13ca7ddfd3831fd7",
+      "postAuditStructuralScan": {
+        "status": "failed-as-expected",
+        "failedDecks": 6,
+        "problem": "semantic-object-without-description"
+      },
+      "findings": [
+        "checkpoint validation did not enforce pass statuses, zero replay failures, score floors, P0/P1 maxima, cross-record counts, or the dimension sum",
+        "verified-current contract claims contradicted their indexed release highlights",
+        "the 1,565-object accessibility denominator was producer-selected rather than derived from exported OOXML structure",
+        "the successor validator authorized its own modification and V63 prose exceeded the grader implementation receipt"
+      ],
+      "remediations": [
+        "enforce every recorded checkpoint predicate, exact count, dimension, score sum, and fail-closed status",
+        "keep contract claims aligned with the predeploy state until fresh production evidence exists",
+        "audit every emitted p:sp, p:pic, p:cxnSp, and p:graphicFrame object independent of authored alt text",
+        "move the five-path successor policy into the deployed code commit, prohibit successor validator changes, and add a 159-file export-boundary receipt under immutable ruler V64"
+      ],
+      "transcriptSha256": "2454806a8258ecb3937009e6efe508d0a56069089d55578a4b9aabd36e2df415"
     }
   ],
   "knownMissingEvidence": [
-    "A fresh v0.17.11 production package cannot exist until the exact release commit deploys.",
     "No independent instructor, accessibility, classroom, or sealed external held-out result is claimed.",
     "The optional adapter remains inactive and Gemma weights are unchanged."
   ]

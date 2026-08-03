@@ -1,0 +1,10 @@
+{
+  "protocol": "coursemapper-production-checkpoint-successor-policy-v1",
+  "allowedPaths": [
+    "docs/V0.17.11_SCION_LEARNER_CHECKPOINT.md",
+    "evaluation/release-proofs/v0.17.11-browser-preflight.json",
+    "evaluation/release-proofs/v0.17.11-production-package-attestation.json",
+    "release-contracts/v0.17.11.json",
+    "src/lib/currentRelease.js"
+  ]
+}

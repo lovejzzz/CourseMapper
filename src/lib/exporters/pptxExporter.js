@@ -37,6 +37,40 @@ async function getPptxGen() {
 
 const PPTX_ACCESSIBILITY_REGISTRY = Symbol('courseMapperPptxAccessibilityRegistry');
 
+function flattenPptxAccessibleText(value, depth = 0) {
+  if (value == null || depth > 5) return '';
+  if (typeof value === 'string' || typeof value === 'number') return String(value);
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => flattenPptxAccessibleText(item, depth + 1))
+      .filter(Boolean)
+      .join(' ');
+  }
+  if (typeof value !== 'object') return '';
+  if (Object.prototype.hasOwnProperty.call(value, 'text')) {
+    return flattenPptxAccessibleText(value.text, depth + 1);
+  }
+  return Object.entries(value)
+    .filter(([key]) => !['options', 'style', 'color', 'fill', 'line'].includes(key))
+    .map(([, item]) => flattenPptxAccessibleText(item, depth + 1))
+    .filter(Boolean)
+    .join(' ');
+}
+
+function derivedPptxDescription(method, methodArgs, optionsIndex) {
+  const authored = String(methodArgs[optionsIndex]?.altText || '').trim();
+  if (authored) return authored;
+  if (method === 'addText') return 'Visible slide text; content is exposed through the text box.';
+  const content = flattenPptxAccessibleText(methodArgs.slice(0, optionsIndex))
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 500);
+  if (!content) return '';
+  if (method === 'addTable') return `Table content: ${content}`;
+  if (method === 'addChart') return `Chart content: ${content}`;
+  return '';
+}
+
 /**
  * pptxgenjs currently ignores `altText` on shapes and text boxes. Keep the
  * authoring API useful by assigning every semantic object a stable name and
@@ -65,13 +99,11 @@ function instrumentPptxAccessibility(pptx) {
       if (typeof slide[method] !== 'function') continue;
       const original = slide[method].bind(slide);
       slide[method] = (...methodArgs) => {
-        const options = methodArgs[optionsIndex];
-        const description = String(options?.altText || '').trim();
-        if (description) {
-          const objectName = String(options.objectName || `cmA11y-s${slideNumber}-${records.length + 1}`);
-          methodArgs[optionsIndex] = { ...options, objectName };
-          records.push({ objectName, description });
-        }
+        const options = methodArgs[optionsIndex] || {};
+        const description = derivedPptxDescription(method, methodArgs, optionsIndex);
+        const objectName = String(options.objectName || `cmA11y-s${slideNumber}-${records.length + 1}`);
+        methodArgs[optionsIndex] = { ...options, objectName };
+        records.push({ objectName, description });
         return original(...methodArgs);
       };
     }

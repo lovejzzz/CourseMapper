@@ -573,7 +573,7 @@ describe('Scion adapter tooling', () => {
       await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v9.json', 'utf8'),
     );
     const currentGraderBenchmark = JSON.parse(
-      await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v63.json', 'utf8'),
+      await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v64.json', 'utf8'),
     );
     expect(validateScionHeldoutBenchmark(benchmark)).toMatchObject({
       valid: true,
@@ -595,6 +595,15 @@ describe('Scion adapter tooling', () => {
       protocol: currentGraderBenchmark.grader.implementationReceiptProtocol,
       fileCount: currentGraderBenchmark.grader.implementationFileCount,
       implementationSha256: currentGraderBenchmark.grader.implementationSha256,
+    });
+    const currentExportBoundaryReceipt = await captureModuleImplementationReceipt({
+      root: process.cwd(),
+      entryPath: currentGraderBenchmark.exportBoundary.path,
+    });
+    expect(currentExportBoundaryReceipt).toMatchObject({
+      protocol: currentGraderBenchmark.exportBoundary.implementationReceiptProtocol,
+      fileCount: currentGraderBenchmark.exportBoundary.implementationFileCount,
+      implementationSha256: currentGraderBenchmark.exportBoundary.implementationSha256,
     });
 
     const cleanDataset = {
@@ -735,7 +744,7 @@ describe('Scion adapter tooling', () => {
 
   it('derives promotion evidence from two hash-bound Crucible rounds', async () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-paired-evidence-'));
-    const benchmarkPath = path.resolve('evaluation/scion-adapters/held-out-course-benchmark-v63.json');
+    const benchmarkPath = path.resolve('evaluation/scion-adapters/held-out-course-benchmark-v64.json');
     const benchmark = JSON.parse(await fs.readFile(benchmarkPath, 'utf8'));
     const benchmarkSha256 = await sha256File(benchmarkPath);
     const datasetDir = path.join(root, 'dataset');

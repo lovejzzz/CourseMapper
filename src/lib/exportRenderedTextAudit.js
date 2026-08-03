@@ -44,8 +44,13 @@ async function toArrayBuffer(blob) {
   return null;
 }
 
-export function isAuditedPptxSemanticObjectName(value) {
-  return /^(?:cmA11y-|cmViz|cmDecorativeBackground|slide-counter-)/.test(String(value || ''));
+export function extractPptxStructuralObjectTags(xml) {
+  const tags = [];
+  for (const match of String(xml || '').matchAll(/<p:(sp|pic|cxnSp|graphicFrame)\b[\s\S]*?<\/p:\1>/g)) {
+    const tag = match[0].match(/<(?:p|pic):cNvPr\b[^>]*>/)?.[0];
+    if (tag) tags.push(tag);
+  }
+  return tags;
 }
 
 function accessibilityFinding(problems) {
@@ -268,12 +273,7 @@ export async function auditOfficeAccessibility(blob, format) {
           break;
         }
       }
-      const semanticObjects = [...xml.matchAll(/<(?:p|pic):cNvPr\b[^>]*>/g)]
-        .map((match) => match[0])
-        .filter((tag) => {
-          const name = tag.match(/\bname="([^"]*)"/)?.[1] || '';
-          return isAuditedPptxSemanticObjectName(name);
-        });
+      const semanticObjects = extractPptxStructuralObjectTags(xml);
       for (const object of semanticObjects) {
         const descr = object.match(/\bdescr="([^"]*)"/);
         if (!descr || !descr[1].trim()) {

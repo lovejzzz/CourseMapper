@@ -6,7 +6,8 @@ import { APP_VERSION } from './appVersion.js';
  */
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
-  date: 'August 2, 2026',
+  checkpointPhase: 'predeploy',
+  date: 'August 3, 2026',
   title: 'Scion Learns From Evidence',
   landingTitle: 'EDUTOOL V0.17.11 Helps Scion Learn, Revise, and Prove Its Work',
   highlights: [
@@ -15,8 +16,8 @@ export const CURRENT_RELEASE = {
     'Research planning uses course and lesson context to select source families without embedding one course’s facts, while source admission fails closed when a claim cannot be bound to the retrieved bytes.',
     'The exported ZIP independently reconstructs rendered-claim support across DOCX, PPTX, and text artifacts and verifies objective-to-task-to-student-evidence-to-rubric coherence.',
     'The honest deterministic ledger now awards evidence-capped grounding and assessment-coherence points with exact reasons, while retaining separate curriculum, texture, and package-integrity dimensions.',
-    'After Roundtable rejected the first 95-point candidate, a fresh repaired local package scores 87/100 under grader 1.15.9: 13/25 grounding, 15/15 assessment coherence, and zero P0/P1/P2 findings. An independent ZIP verifier replays 49 claims across 17 artifacts from included open-source snapshot bytes.',
-    'Six design rounds and a separate nine-turn exact-commit audit shaped and challenged the learner architecture. A fresh production package must still clear the 15/25 grounding gate; Gemma weights plus the optional adapter remain unchanged.',
+    'Candidate 25 independently replayed at 91/100, but the final code audit rejected its producer-selected PowerPoint accessibility denominator. V64 now derives coverage from every emitted structural shape and separately binds the export-verification implementation.',
+    'The V64 repair is a predeploy candidate, not an accepted production checkpoint. Gemma weights plus the optional adapter remain unchanged, the 17/25 grounding result remains historical evidence, and a fresh post-deployment package must clear the structural Office scan before acceptance.',
   ],
   landingHighlights: [
     'Claims keep their source identity.',
@@ -37,8 +38,8 @@ export const CURRENT_RELEASE = {
     },
     browser: {
       path: 'evaluation/release-proofs/v0.17.11-browser-preflight.json',
-      sha256: '9275a9c077cd4eb68f55ef2ed3a47ba4c10696a05652179fad166d9bf07099aa',
-      bytes: 7100,
+      sha256: '2960fa0ecba8415ff8dc128fddd09e4946b5f86706b2925d88ad256ee4271e26',
+      bytes: 17171,
     },
     courseContract: {
       path: 'evaluation/release-proofs/v0.17.11-course-contract.json',
@@ -49,6 +50,16 @@ export const CURRENT_RELEASE = {
       path: 'evaluation/release-proofs/v0.17.11-local-package-attestation.json',
       sha256: 'ee1316ef7eb057cbe05b9bbc5445ab5bc71dc3c5da3392a305da56350f6c066c',
       bytes: 1221,
+    },
+    productionCourseContract: {
+      path: 'evaluation/release-proofs/v0.17.11-production-course-contract.json',
+      sha256: '5182b64ba6314013de3e6b7e473f807d98a2fbcf0fb9dbb6d8df11f896c45d60',
+      bytes: 2578,
+    },
+    productionPackageAttestation: {
+      path: 'evaluation/release-proofs/v0.17.11-production-package-attestation.json',
+      sha256: '1de3892af9d8aca0fe928a44e1f879e15a50236f6f66bb2120bd592bd8da2fb9',
+      bytes: 1645,
     },
     auditCommand: 'npm run audit:release-history',
   },
