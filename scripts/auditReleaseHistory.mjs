@@ -339,9 +339,10 @@ async function validateProductionCheckpointBinding({ release, failures }) {
     failures,
   );
   assert(
-    Number(production?.semanticObjects) > 0 &&
-      Number(production?.semanticObjects) === Number(production?.semanticObjectsWithDescriptions),
-    'Every tracked production semantic object must carry a description',
+    Number(production?.rawStructuralObjects) > 0 &&
+      Number(production?.rawStructuralObjects) === Number(production?.auditedStructuralObjects) &&
+      Number(production?.auditedStructuralObjects) === Number(production?.semanticObjectsWithDescriptions),
+    'Every raw production structural object must remain in the audited denominator and carry a description',
     failures,
   );
   assert(

@@ -38,8 +38,8 @@ export const CURRENT_RELEASE = {
     },
     browser: {
       path: 'evaluation/release-proofs/v0.17.11-browser-preflight.json',
-      sha256: '0b21a277b1f0f0e2ed56588f21e047cea8c25465af67331ef7dc9bc283d187ff',
-      bytes: 17050,
+      sha256: 'bef823112fe0d3906113ca2f276f83bceae9ebabc3d5eb390ccb6eec428ff7c0',
+      bytes: 17126,
     },
     courseContract: {
       path: 'evaluation/release-proofs/v0.17.11-course-contract.json',
