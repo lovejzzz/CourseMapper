@@ -3314,17 +3314,22 @@ export function normalizeStudyGuideQuestions(data) {
     while (questions.length < 3) {
       const usesCompact = questionKey === 'rq';
       const questionIndex = questions.length;
+      const hint = [
+        'Answer from memory, check the guide, then revise one claim with evidence.',
+        'Draft a response without notes, compare it with the guide, and correct one unsupported step.',
+        'Recall the method, verify it against the guide, then add the missing evidence boundary.',
+      ][questionIndex];
       questions.push(
         usesCompact
           ? {
               q: buildReplacementReviewQuestion(guide, questionIndex),
               bl: questionIndex === 0 ? 'Apply' : 'Analyze',
-              ht: 'Answer from memory first, then check the guide and revise with one piece of evidence.',
+              ht: hint,
             }
           : {
               question: buildReplacementReviewQuestion(guide, questionIndex),
               bloomsLevel: questionIndex === 0 ? 'Apply' : 'Analyze',
-              hint: 'Answer from memory first, then check the guide and revise with one piece of evidence.',
+              hint,
             },
       );
       addedReviewQuestions++;

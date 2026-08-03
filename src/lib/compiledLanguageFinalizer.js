@@ -769,9 +769,10 @@ const DUPLICATE_SLIDE_TITLE_PURPOSES = {
   closing: 'transfer check',
 };
 
-function dedupeDeckSlideTitles(deck) {
+export function dedupeDeckSlideTitles(deck) {
   const slides = Array.isArray(deck?.slides) ? deck.slides : [];
   const used = new Set();
+  let changed = false;
   for (const slide of slides) {
     const title = String(slide?.title || '').trim();
     if (!title) continue;
@@ -790,8 +791,10 @@ function dedupeDeckSlideTitles(deck) {
       ordinal += 1;
     }
     slide.title = candidate;
+    changed = true;
     used.add(candidate.toLowerCase());
   }
+  return changed;
 }
 
 function rewriteDeckScope(deck, targets, contextLessonNumber = 0) {

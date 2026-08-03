@@ -82,6 +82,65 @@ function makeIntroPsychCourseMap(lessonCount = 15) {
 }
 
 describe('packageFinalizer', () => {
+  it('enforces lesson-title and slide-title uniqueness after readiness has finished mutating copy', () => {
+    const focus = 'Functions and automated tests';
+    const repeated = (label) => `${label}: Use ${focus} evidence to justify a bounded decision.`;
+    const result = runDeterministicPackageFinalizer({
+      courseMap: {
+        courseName: 'Unseen Methods',
+        lessons: [{ title: `Lesson 1: ${focus}`, sections: [{ topicSection: focus }] }],
+      },
+      selectedFeatures: ['lessonPlans', 'slideDecks'],
+      includeClassroomReadiness: false,
+      includePedagogicalValidation: false,
+      retryWarnings: false,
+      deliverables: {
+        lessonPlans: {
+          status: 'done',
+          data: {
+            lessonPlans: [
+              {
+                lessonTitle: `Lesson 1: ${focus}`,
+                objectives: [repeated('Objective A'), repeated('Objective B'), repeated('Objective C')],
+                sourceEvidenceBrief: { claims: [repeated('Source')] },
+                warmUp: { prompt: repeated('Prompt'), purpose: repeated('Purpose') },
+                outline: Array.from({ length: 4 }, (_, index) => ({ description: repeated(`Activity ${index + 1}`) })),
+                evidenceBase: [repeated('Evidence A'), repeated('Evidence B')],
+                formativeCheck: { prompt: repeated('Check') },
+                homework: { description: repeated('Homework'), connectionToNextLesson: repeated('Connection') },
+              },
+            ],
+          },
+        },
+        slideDecks: {
+          status: 'done',
+          data: {
+            decks: [
+              {
+                lessonTitle: `Lesson 1: ${focus}`,
+                slides: [
+                  { title: `${focus} evidence check`, type: 'content' },
+                  { title: `${focus} evidence check`, type: 'closing' },
+                ],
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    const planText = JSON.stringify(result.deliverables.lessonPlans.data.lessonPlans[0]);
+    expect(planText.split(focus)).toHaveLength(6);
+    const slideTitles = result.deliverables.slideDecks.data.decks[0].slides.map((slide) => slide.title);
+    expect(new Set(slideTitles.map((title) => title.toLowerCase())).size).toBe(slideTitles.length);
+    expect(result.repairs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ featureId: 'lessonPlans', changes: ['final reader texture normalized'] }),
+        expect.objectContaining({ featureId: 'slideDecks', changes: ['final reader texture normalized'] }),
+      ]),
+    );
+  });
+
   it('reaches a byte-stable fixed point when source compaction makes slide notes underfilled', () => {
     const fact =
       'Conditional branching logic allows programs to execute different blocks of code based on specified conditions.';

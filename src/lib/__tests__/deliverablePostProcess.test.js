@@ -2184,6 +2184,7 @@ describe('Study guide post-processing', () => {
     expect(result.addedKeyTerms).toBeGreaterThan(0);
     expect(result.addedRetrievalPrompts).toBe(1);
     expect(result.data.guides[0].rq).toHaveLength(3);
+    expect(new Set(result.data.guides[0].rq.map((question) => question.ht)).size).toBe(3);
     expect(result.data.guides[0].kt.length).toBeGreaterThanOrEqual(3);
     expect(result.data.guides[0].rp).toContain('Retrieval practice');
   });

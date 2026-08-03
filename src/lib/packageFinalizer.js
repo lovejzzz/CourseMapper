@@ -16,6 +16,8 @@ import { collectCompilerScenarioMaterials } from './compilerScenarioMaterials';
 import { compactAssignmentBriefBodyReferences } from './courseCompilerCopyVariants';
 import { countAdvisoryQualityFindings, countBlockingQualityFindings } from './qualityFindingPolicy';
 import { collectRejectedLearnerSourceEvidence, quarantineRejectedLearnerContent } from './sourceEvidenceAdmission';
+import { compressLessonPlanTitleReferences, dedupeDeckSlideTitles } from './compiledLanguageFinalizer';
+import { renderedDeliverableCollectionKey } from './renderedDeliverableRoot';
 
 function featureLabel(featureId) {
   return READINESS_FEATURE_LABELS[featureId] || (featureId?.startsWith('custom_') ? 'Custom Deliverable' : featureId);
@@ -26,6 +28,50 @@ function contentRepairFeatureIds(selectedFeatures, deliverables = {}) {
   return Object.entries(deliverables)
     .filter(([, entry]) => entry?.status === 'done')
     .map(([featureId]) => featureId);
+}
+
+function repairFinalReaderTexture(courseMap, deliverables = {}) {
+  let nextDeliverables = deliverables;
+  const repaired = [];
+  const lessons = selectedCourseMapLessons(courseMap);
+
+  const lessonEntry = deliverables?.lessonPlans;
+  const lessonKey = renderedDeliverableCollectionKey('lessonPlans', lessonEntry?.data);
+  if (lessonEntry?.status === 'done' && lessonKey) {
+    const plans = lessonEntry.data[lessonKey];
+    const nextPlans = plans.map((plan, index) => compressLessonPlanTitleReferences(plan, lessons[index] || {}));
+    if (nextPlans.some((plan, index) => JSON.stringify(plan) !== JSON.stringify(plans[index]))) {
+      nextDeliverables = {
+        ...nextDeliverables,
+        lessonPlans: { ...lessonEntry, data: { ...lessonEntry.data, [lessonKey]: nextPlans } },
+      };
+      repaired.push('lessonPlans');
+    }
+  }
+
+  const slideEntry = nextDeliverables?.slideDecks;
+  const slideKey = renderedDeliverableCollectionKey('slideDecks', slideEntry?.data);
+  if (slideEntry?.status === 'done' && slideKey) {
+    let changed = false;
+    const nextDecks = slideEntry.data[slideKey].map((deck) => {
+      const candidate = {
+        ...deck,
+        slides: Array.isArray(deck?.slides) ? deck.slides.map((slide) => ({ ...slide })) : [],
+      };
+      if (!dedupeDeckSlideTitles(candidate)) return deck;
+      changed = true;
+      return candidate;
+    });
+    if (changed) {
+      nextDeliverables = {
+        ...nextDeliverables,
+        slideDecks: { ...slideEntry, data: { ...slideEntry.data, [slideKey]: nextDecks } },
+      };
+      repaired.push('slideDecks');
+    }
+  }
+
+  return { changed: repaired.length > 0, deliverables: nextDeliverables, repaired };
 }
 
 function dedupeIssues(issues = []) {
@@ -703,6 +749,23 @@ function applyDeterministicRepairs({
         label: featureLabel(featureId),
         changes: [`post-readiness content quality: ${contentRepair.repairedStrings} string(s) normalized`],
         message: `${featureLabel(featureId)} repaired: ${contentRepair.repairedStrings} post-readiness content-quality seam(s) fixed (deterministic)`,
+      });
+    }
+  }
+
+  // Readiness and post-processing can add reader-visible copy after compiler
+  // language finalization. Reapply the two document-local invariants at the
+  // actual handoff boundary so export can never reintroduce mail-merge titles
+  // or duplicate slide identities.
+  const finalTextureRepair = repairFinalReaderTexture(nextCourseMap, nextDeliverables);
+  if (finalTextureRepair.changed) {
+    nextDeliverables = finalTextureRepair.deliverables;
+    for (const featureId of finalTextureRepair.repaired) {
+      repairs.push({
+        featureId,
+        label: featureLabel(featureId),
+        changes: ['final reader texture normalized'],
+        message: `${featureLabel(featureId)} repaired at the final reader-visible boundary`,
       });
     }
   }
