@@ -586,15 +586,45 @@ describe('course-domain research alignment', () => {
   });
 
   it('preserves environmental evidence in a mixed environmental data-analysis course', () => {
+    const mixedCourse = 'Environmental data analysis and public-health monitoring';
     expect(
       isResearchCandidateDomainAligned({
         topic: 'Waterborne pathogens',
-        courseContext: 'Environmental data analysis and public-health monitoring',
+        courseContext: mixedCourse,
         title: 'Water pollution',
         extract: 'Water pollution can spread waterborne disease when contaminated water carries pathogenic organisms.',
         provider: 'wikipedia',
       }),
     ).toBe(true);
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Functions and automated tests',
+        courseContext: mixedCourse,
+        title: 'Cognitive functions and autoantibodies in patients with systemic lupus erythematosus',
+        extract:
+          'This clinical study measures cognitive functions and autoantibodies in patients with systemic disease.',
+        provider: 'doaj',
+      }),
+    ).toBe(false);
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Functions',
+        courseContext: mixedCourse,
+        title: 'Cognitive functions and autoantibodies in patients with systemic lupus erythematosus',
+        extract:
+          'This clinical study measures cognitive functions and autoantibodies in patients with systemic disease.',
+        provider: 'doaj',
+      }),
+    ).toBe(false);
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Reproducible visualization and uncertainty',
+        courseContext: mixedCourse,
+        title: 'Fear, uncertainty, and doubt',
+        extract: 'Fear, uncertainty, and doubt is a rhetorical strategy used to influence perception.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(false);
     expect(
       isResearchCandidateDomainAligned({
         topic: 'Urban heat risk',

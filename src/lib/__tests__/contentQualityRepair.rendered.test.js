@@ -6,6 +6,7 @@ import { buildSlideDeckPptxBlob } from '../exporters/pptxExporter.js';
 import { extractPackage } from '../quality/deepQualityGrader.js';
 import { createMemoryFileProvider } from '../quality/fileProviders.js';
 import { findRepeatedInstructionalPhrase } from '../quality/repeatedInstructionalPhrase.js';
+import { completeNativeKernelSurfaces } from '../nativeGraphAuthoring.js';
 
 const FACT =
   'Conditional branching logic allows programs to execute different blocks of code based on specified conditions.';
@@ -124,11 +125,43 @@ async function renderedBoundaryCorrectionPackage(lessonPlans, studyGuides, slide
 }
 
 function factProjectionCorrection(term, index) {
-  return [
-    `Correction for ${term}: stay inside the admitted fact and flag any broader inference as unsupported.`,
-    `Repair the ${term} claim by treating its admitted fact as the ceiling and labeling wider conclusions unsupported.`,
-    `${term} correction: preserve only the admitted statement and identify every unsupported extension explicitly.`,
-  ][index % 3];
+  const targetFact = `${term} provides a bounded mechanism for testing a visible civic-data claim.`;
+  const paddingFacts = [
+    'Anchor evidence records the exact source boundary for a reviewed decision.',
+    'Boundary reasoning distinguishes an admitted statement from a wider inference.',
+  ];
+  // Every lesson projects from fact index zero, matching the production case
+  // that previously restarted the correction selector at variant zero.
+  const targetIndex = 0;
+  const facts = [...paddingFacts.slice(0, targetIndex), targetFact, ...paddingFacts.slice(targetIndex)];
+  const keyTerms = facts.slice(0, targetIndex).map((fact, factIndex) => ({
+    term: factIndex === 0 ? 'Anchor evidence' : 'Boundary reasoning',
+    definition: fact,
+    example: `Apply ${factIndex === 0 ? 'anchor evidence' : 'boundary reasoning'} to the visible claim.`,
+    misconception: `Ignoring ${factIndex === 0 ? 'anchor evidence' : 'boundary reasoning'} makes the claim overbroad.`,
+    correction: `Use ${factIndex === 0 ? 'anchor evidence' : 'boundary reasoning'} to preserve the claim boundary.`,
+  }));
+  if (keyTerms.length === 0) {
+    keyTerms.push({
+      term: 'Anchor evidence',
+      definition: paddingFacts[0],
+      example: 'Apply anchor evidence to the visible claim.',
+      misconception: 'Ignoring anchor evidence makes the claim overbroad.',
+      correction: 'Use anchor evidence to preserve the claim boundary.',
+    });
+  }
+  const completed = completeNativeKernelSurfaces(
+    { keyTerms, kernel: { facts } },
+    {
+      title: `Lesson ${index + 1}: ${term}`,
+      sections: [{ topicSection: term, weeklyAssessments: `${term} evidence memo` }],
+    },
+  );
+  const projected = completed.keyTerms.find(
+    (entry) => entry.source === 'fact-subject-projection' && entry.term.toLowerCase() === term.toLowerCase(),
+  );
+  expect(projected).toBeTruthy();
+  return projected.correction;
 }
 
 async function renderedLegacySourceReviewPackage(deliverables) {

@@ -618,17 +618,21 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
       const key = term.toLowerCase();
       if (!term || seenTerms.has(key)) continue;
       const comparisonFact = projectionFacts[(factIndex + 1) % projectionFacts.length] || fact;
+      const comparisonSubject = admittedFactSubject(comparisonFact) || 'the adjacent admitted claim';
       const misconceptionVariants = [
-        `Mistake: treating ${term} as proof of a broader cause or outcome.`,
-        `Overreach: using ${term} to justify a conclusion beyond the admitted evidence.`,
-        `${term} error: inferring an unverified mechanism or result from the admitted statement.`,
+        `${term} overreach: treating it as proof beyond ${comparisonSubject}.`,
+        `Mistake for ${term}: extending the claim past ${comparisonSubject}.`,
+        `${term} error: inferring a result not supported by ${comparisonSubject}.`,
       ];
       const correctionVariants = [
-        `Correction for ${term}: stay inside the admitted fact and flag any broader inference as unsupported.`,
-        `Repair the ${term} claim by treating its admitted fact as the ceiling and labeling wider conclusions unsupported.`,
-        `${term} correction: preserve only the admitted statement and identify every unsupported extension explicitly.`,
+        `Bound ${term} by ${comparisonSubject}; flag broader inferences.`,
+        `Repair ${term} against ${comparisonSubject}; label wider conclusions unsupported.`,
+        `${term}: preserve the admitted statement beside ${comparisonSubject}; reject unsupported extensions.`,
       ];
-      const variantIndex = factIndex % correctionVariants.length;
+      // Fact ordinals restart inside every lesson. Salt the rotation with the
+      // stable lesson ordinal so the first projected term is not stamped with
+      // variant zero across an entire package.
+      const variantIndex = (factIndex + lessonOrdinal - 1) % correctionVariants.length;
       const derived = {
         term,
         definition: fact,

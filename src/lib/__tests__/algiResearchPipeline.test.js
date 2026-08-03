@@ -91,8 +91,8 @@ describe('Algi research-first course transaction', () => {
       want: 5,
       isTopicReady: (topic, kernels) =>
         scionResearchTopicReady(topic, kernels, {
-          claimCount: kernels.length * 3,
-          canCompose: () => true,
+          claimCount: 5,
+          canCompose: (_candidateTopic, admitted) => admitted.length > 1,
         }),
     });
 

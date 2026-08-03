@@ -1833,16 +1833,23 @@ export function isResearchCandidateDomainAligned({
   if (digitalAccessibilityCourse && provider === 'w3c-wai') {
     return isWaiSourceFamilyAligned(topic, title);
   }
-  const exactTopic = candidate.includes(String(topic || '').toLowerCase());
-  const courseAllowsAppliedDomain =
-    /\b(?:biolog\w*|climat\w*|ecolog\w*|environment\w*|health|medical|clinical|patient\w*|disease\w*|microbi\w*|pathogen\w*|pollution|sustainab\w*|water\w*|wastewater)\b/.test(
-      courseAndTopic,
-    );
-  const unrelatedAppliedDomain =
+  const topicTokens = contentTokens(topic);
+  const exactTopic = topicTokens.length >= 2 && candidate.includes(String(topic || '').toLowerCase());
+  const appliedDomainPattern =
+    /\b(?:biolog\w*|climat\w*|ecolog\w*|environment\w*|heat|health|medical|clinical|patient\w*|disease\w*|microbi\w*|pathogen\w*|pollution|sustainab\w*|water\w*|wastewater)\b/;
+  const courseAllowsAppliedDomain = appliedDomainPattern.test(String(courseContext || '').toLowerCase());
+  const topicAllowsAppliedDomain = appliedDomainPattern.test(String(topic || '').toLowerCase());
+  const candidateTokens = new Set(contentTokens(candidate));
+  const candidateTopicOverlap = topicTokens.filter((token) => candidateTokens.has(token)).length;
+  const appliedCandidateAligned =
+    exactTopic ||
+    topicAllowsAppliedDomain ||
+    (courseAllowsAppliedDomain && topicTokens.length >= 2 && candidateTopicOverlap >= 2);
+  const appliedDomainCandidate =
     /\b(?:pollutants?|pollution|environmental protection|wastewater|clinical|patients?|disease|medical|health risks?)\b/.test(
       candidate,
-    ) && !courseAllowsAppliedDomain;
-  if (unrelatedAppliedDomain && !courseAllowsAppliedDomain && !exactTopic) return false;
+    );
+  if (appliedDomainCandidate && !appliedCandidateAligned) return false;
   const dataComputingCourse =
     /\b(?:computer science|data analysis|data science|programming|python|software|statistics|statistical)\b/.test(
       courseAndTopic,
@@ -1851,7 +1858,7 @@ export function isResearchCandidateDomainAligned({
     /\b(?:algorithm\w*|analysis|chart\w*|code|computer|data|measurement|plot\w*|program\w*|software|statistic\w*|test\w*|visuali[sz]\w*)\b/.test(
       candidate,
     );
-  if (dataComputingCourse && !courseAllowsAppliedDomain && !dataComputingCandidate && !exactTopic) return false;
+  if (dataComputingCourse && !appliedCandidateAligned && !dataComputingCandidate && !exactTopic) return false;
   return !isCourseAwareWeakSource(
     {
       title,
