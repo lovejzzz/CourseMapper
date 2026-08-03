@@ -24,7 +24,7 @@
 import { describe, it, expect, beforeAll, vi } from 'vitest';
 import JSZip from 'jszip';
 import { buildSlideDeckPptxBlob } from '../pptxExporter.js';
-import { auditOfficeAccessibility } from '../../exportRenderedTextAudit.js';
+import { auditOfficeAccessibility, isAuditedPptxSemanticObjectName } from '../../exportRenderedTextAudit.js';
 
 // happy-dom ships a Canvas element but its getContext('2d') returns null,
 // which breaks slideTextFit.js auto-fit sizing. Rather than pull in the full
@@ -487,9 +487,7 @@ describe('PPTX export — visual placeholders', () => {
     const semanticObjects = slideXmls.flatMap((xml) =>
       [...xml.matchAll(/<(?:p|pic):cNvPr\b[^>]*>/g)]
         .map((match) => match[0])
-        .filter((tag) =>
-          /\bname="(?:cmA11y-|cmViz(?:Hub|Spoke|Chart|Layer|Table|Matrix)|slide-counter-label-)/.test(tag),
-        ),
+        .filter((tag) => isAuditedPptxSemanticObjectName(tag.match(/\bname="([^"]*)"/)?.[1])),
     );
     expect(semanticObjects.length).toBeGreaterThan(FIXTURE.decks[0].slides.length);
     for (const object of semanticObjects) {
@@ -502,6 +500,9 @@ describe('PPTX export — visual placeholders', () => {
     expect(slideXmls.join('\n')).toContain('descr="Three-row table of market evidence signals."');
     expect(slideXmls.join('\n')).toContain('name="cmVizMatrix"');
     expect(slideXmls.join('\n')).toContain('descr="Two-by-two grid of policy options."');
+    expect(slideXmls.join('\n')).toMatch(/name="cmVizConn"[^>]*descr="Decorative"/);
+    expect(slideXmls.join('\n')).toMatch(/name="cmDecorativeBackground"[^>]*descr="Decorative[^\"]*"/);
+    expect(slideXmls.join('\n')).toMatch(/name="slide-counter-[^"]+"[^>]*descr="Decorative slide counter background"/);
   });
 
   it('fails accessibility verification when a tracked semantic description is lost', async () => {
@@ -518,6 +519,13 @@ describe('PPTX export — visual placeholders', () => {
     expect(await auditOfficeAccessibility(damagedBlob, 'pptx')).toMatchObject({
       code: 'accessibility',
       problems: expect.arrayContaining(['semantic-object-without-description']),
+    });
+  });
+
+  it('fails closed when Office bytes cannot be read', async () => {
+    expect(await auditOfficeAccessibility({ size: 256 }, 'pptx')).toMatchObject({
+      code: 'accessibility',
+      problems: ['unreadable-office-artifact'],
     });
   });
 
@@ -540,6 +548,23 @@ describe('PPTX export — visual placeholders', () => {
         problems: expect.arrayContaining(['semantic-object-without-description']),
       });
     }
+  });
+
+  it('keeps decorative object families inside the audited denominator', async () => {
+    const zip = await JSZip.loadAsync(await pptxBlob.arrayBuffer());
+    const path = 'ppt/slides/slide1.xml';
+    const xml = await zip.file(path).async('string');
+    const damaged = xml.replace(
+      /(<p:cNvPr\b(?=[^>]*\bname="slide-counter-[^"]+")[^>]*)(\sdescr="[^"]*")([^>]*>)/,
+      '$1$3',
+    );
+    expect(damaged).not.toBe(xml);
+    zip.file(path, damaged);
+    const damagedBlob = await zip.generateAsync({ type: 'blob' });
+    expect(await auditOfficeAccessibility(damagedBlob, 'pptx')).toMatchObject({
+      code: 'accessibility',
+      problems: expect.arrayContaining(['semantic-object-without-description']),
+    });
   });
 
   it('checks actual PowerPoint picture elements instead of passing a media deck vacuously', async () => {

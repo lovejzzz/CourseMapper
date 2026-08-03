@@ -249,18 +249,18 @@ async function verifyDocxExport(featureId, data, courseName) {
     );
   }
   const { auditOfficeBlobRepetition, auditOfficeAccessibility } = await import('./exportRenderedTextAudit');
+  const accessibility = await auditOfficeAccessibility(blob, 'docx');
+  if (accessibility) {
+    return createCheck(featureId, 'docx', 'failed', accessibility.message, {
+      size,
+      accessibility,
+    });
+  }
   const repetition = await auditOfficeBlobRepetition(blob, 'docx');
   if (repetition) {
     return createCheck(featureId, 'docx', 'warning', repetition.message, {
       size,
       repetition,
-    });
-  }
-  const accessibility = await auditOfficeAccessibility(blob, 'docx');
-  if (accessibility) {
-    return createCheck(featureId, 'docx', 'warning', accessibility.message, {
-      size,
-      accessibility,
     });
   }
   return createCheck(featureId, 'docx', 'passed', 'DOCX export can be generated.', { size });
@@ -284,18 +284,18 @@ async function verifyPptxExport(data, courseName, slideTheme) {
     );
   }
   const { auditOfficeBlobRepetition, auditOfficeAccessibility } = await import('./exportRenderedTextAudit');
+  const accessibility = await auditOfficeAccessibility(blob, 'pptx');
+  if (accessibility) {
+    return createCheck('slideDecks', 'pptx', 'failed', `PPTX export generated, but ${accessibility.message}`, {
+      size,
+      accessibility,
+    });
+  }
   const repetition = await auditOfficeBlobRepetition(blob, 'pptx');
   if (repetition) {
     return createCheck('slideDecks', 'pptx', 'warning', `PPTX export generated, but ${repetition.message}`, {
       size,
       repetition,
-    });
-  }
-  const accessibility = await auditOfficeAccessibility(blob, 'pptx');
-  if (accessibility) {
-    return createCheck('slideDecks', 'pptx', 'warning', `PPTX export generated, but ${accessibility.message}`, {
-      size,
-      accessibility,
     });
   }
   return createCheck('slideDecks', 'pptx', 'passed', 'Slide deck PowerPoint export can be generated.', { size });
@@ -384,10 +384,10 @@ export async function verifyPackageExports({
   const passed = checks.filter((check) => check.status === 'passed');
 
   return {
-    // `status` is the file-integrity promise only. Content, accessibility,
-    // and review findings remain visible in `checks`/`warningCount` and drive
-    // the separate publication disposition; an openable ZIP must not become
-    // an integrity failure merely because its prose needs review.
+    // `failed` includes structural accessibility defects because an Office
+    // artifact that excludes learner-visible meaning is not release-ready.
+    // Content/repetition review findings remain warnings and continue to drive
+    // the separate publication disposition.
     status: failed.length > 0 ? 'failed' : 'passed',
     contentDisposition: failed.length > 0 ? 'blocked' : warnings.length > 0 ? 'needs-review' : 'publishable',
     checked: checks.length,

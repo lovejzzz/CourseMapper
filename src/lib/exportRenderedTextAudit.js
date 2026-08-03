@@ -44,6 +44,19 @@ async function toArrayBuffer(blob) {
   return null;
 }
 
+export function isAuditedPptxSemanticObjectName(value) {
+  return /^(?:cmA11y-|cmViz|cmDecorativeBackground|slide-counter-)/.test(String(value || ''));
+}
+
+function accessibilityFinding(problems) {
+  const uniqueProblems = [...new Set(problems)];
+  return {
+    code: 'accessibility',
+    problems: uniqueProblems,
+    message: `Accessibility scan: ${uniqueProblems.join(', ')}.`,
+  };
+}
+
 /**
  * Return the learner-visible text carried by one Office artifact. This is a
  * shared post-export boundary for score evidence: callers inspect the actual
@@ -214,7 +227,7 @@ export async function auditOfficeBlobRepetition(blob, format) {
  */
 export async function auditOfficeAccessibility(blob, format) {
   const buffer = await toArrayBuffer(blob);
-  if (!buffer) return null;
+  if (!buffer) return accessibilityFinding(['unreadable-office-artifact']);
   const JSZip = (await import('jszip')).default;
   const zip = await JSZip.loadAsync(buffer);
   const problems = [];
@@ -259,7 +272,7 @@ export async function auditOfficeAccessibility(blob, format) {
         .map((match) => match[0])
         .filter((tag) => {
           const name = tag.match(/\bname="([^"]*)"/)?.[1] || '';
-          return /^(?:cmA11y-|cmViz(?:Hub|Spoke|Chart|Layer|Table|Matrix)|slide-counter-label-)/.test(name);
+          return isAuditedPptxSemanticObjectName(name);
         });
       for (const object of semanticObjects) {
         const descr = object.match(/\bdescr="([^"]*)"/);
@@ -271,9 +284,5 @@ export async function auditOfficeAccessibility(blob, format) {
     }
   }
   if (problems.length === 0) return null;
-  return {
-    code: 'accessibility',
-    problems: [...new Set(problems)],
-    message: `Accessibility scan: ${[...new Set(problems)].join(', ')}.`,
-  };
+  return accessibilityFinding(problems);
 }

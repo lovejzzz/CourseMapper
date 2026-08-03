@@ -37,10 +37,6 @@ async function getPptxGen() {
 
 const PPTX_ACCESSIBILITY_REGISTRY = Symbol('courseMapperPptxAccessibilityRegistry');
 
-function isDecorativeAltText(value) {
-  return /^decorative\b/i.test(String(value || '').trim());
-}
-
 /**
  * pptxgenjs currently ignores `altText` on shapes and text boxes. Keep the
  * authoring API useful by assigning every semantic object a stable name and
@@ -71,7 +67,7 @@ function instrumentPptxAccessibility(pptx) {
       slide[method] = (...methodArgs) => {
         const options = methodArgs[optionsIndex];
         const description = String(options?.altText || '').trim();
-        if (description && !isDecorativeAltText(description)) {
+        if (description) {
           const objectName = String(options.objectName || `cmA11y-s${slideNumber}-${records.length + 1}`);
           methodArgs[optionsIndex] = { ...options, objectName };
           records.push({ objectName, description });

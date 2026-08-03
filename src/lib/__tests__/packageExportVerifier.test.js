@@ -42,6 +42,23 @@ async function makeOfficeXmlBuffer(path, xml) {
   return await (await makeOfficeXmlBlob(path, xml)).arrayBuffer();
 }
 
+async function makeHealthyDocxBlob() {
+  const zip = new JSZip();
+  zip.file(
+    'word/document.xml',
+    '<w:document><w:body><w:p><w:pPr><w:pStyle w:val="Heading1"/></w:pPr><w:r><w:t>Lesson</w:t></w:r></w:p></w:body></w:document>',
+  );
+  zip.file('word/footer1.xml', '<w:ftr><w:p><w:r><w:t>Course footer</w:t></w:r></w:p></w:ftr>');
+  return await zip.generateAsync({ type: 'blob' });
+}
+
+async function makeHealthyPptxBlob() {
+  return await makeOfficeXmlBlob(
+    'ppt/slides/slide1.xml',
+    '<p:sld><p:cSld><p:sp><p:nvSpPr><p:cNvPr name="cmA11y-test" descr="A test semantic object."/></p:nvSpPr><p:txBody><a:p><a:r><a:t>Lesson</a:t></a:r></a:p></p:txBody></p:sp></p:cSld></p:sld>',
+  );
+}
+
 beforeEach(async () => {
   vi.mocked(buildXlsxBuffer).mockReset();
   vi.mocked(deliverableToCsvRows).mockReset();
@@ -55,8 +72,8 @@ beforeEach(async () => {
     ),
   );
   vi.mocked(deliverableToCsvRows).mockReturnValue({ headers: ['Lesson'], rows: [['Lesson 1']] });
-  vi.mocked(buildDeliverableDocxBlob).mockResolvedValue({ size: 256 });
-  vi.mocked(buildSlideDeckPptxBlob).mockResolvedValue({ size: 256 });
+  vi.mocked(buildDeliverableDocxBlob).mockResolvedValue(await makeHealthyDocxBlob());
+  vi.mocked(buildSlideDeckPptxBlob).mockResolvedValue(await makeHealthyPptxBlob());
 });
 
 describe('verifyPackageExports', () => {
@@ -81,7 +98,7 @@ describe('verifyPackageExports', () => {
     expect(result.checks.map((check) => check.format)).toEqual(['xlsx', 'pdf', 'content', 'csv', 'docx', 'pdf']);
   });
 
-  it('reports DOCX review reasons without a duplicated format preamble', async () => {
+  it('blocks DOCX accessibility failures without a duplicated format preamble', async () => {
     vi.mocked(buildDeliverableDocxBlob).mockResolvedValueOnce(
       await makeOfficeXmlBlob(
         'word/document.xml',
@@ -101,9 +118,10 @@ describe('verifyPackageExports', () => {
     });
 
     const docxCheck = result.checks.find((check) => check.format === 'docx');
+    expect(result).toMatchObject({ status: 'failed', contentDisposition: 'blocked' });
     expect(docxCheck).toMatchObject({
       label: 'Lesson Plans',
-      status: 'warning',
+      status: 'failed',
       message: 'Accessibility scan: no-footer.',
     });
     expect(`${docxCheck.label}: ${docxCheck.message}`).not.toMatch(/\b([A-Z][\w &'-]{3,50}): \1\b/);
