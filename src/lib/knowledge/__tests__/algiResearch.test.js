@@ -1596,6 +1596,40 @@ describe('open scholarly provider architecture', () => {
     expect(queries.find(([providerId]) => providerId === 'doaj')?.[1]).toContain('"Postcolonial narrative voice"');
     expect(result.providerStats.map((entry) => entry.providerId)).toEqual(['doaj', 'wikipedia']);
   });
+
+  it('propagates targeted budget exhaustion through provider statistics', async () => {
+    const topics = ['Alpha and beta', 'Gamma and delta', 'Epsilon and zeta'];
+    const provider = {
+      id: 'wikipedia',
+      supportsDirectTitles: false,
+      searchArticles: async () => ({}),
+      search: async () => [],
+      articles: async () => ({}),
+      article: async () => null,
+      license: 'CC BY-SA 4.0',
+      attributionFor: (title) => `Wikipedia, ${title}`,
+      sourceIdFor: (title) => `wikipedia:${title}`,
+    };
+    const researchPlan = planAlgiCourseResearch({
+      courseName: 'General methods',
+      lessons: topics.map((title, index) => ({ lessonId: `lesson-${index + 1}`, title })),
+    });
+
+    const result = await researchLessonKernelSetsCascade(topics, {
+      providers: [
+        {
+          id: 'wikipedia',
+          provider,
+          options: { maxTargetedFallbacks: 3, maxTargetedSearchRequests: 3 },
+        },
+      ],
+      researchPlan,
+    });
+
+    const expected = topics.map((topic) => ({ providerId: 'wikipedia', topic, scheduled: 1, available: 3 }));
+    expect(result.targetedBudgetExhausted).toEqual(expected);
+    expect(result.providerStats[0].targetedBudgetExhausted).toEqual(expected);
+  });
 });
 
 describe('lesson research admission', () => {

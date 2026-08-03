@@ -2808,6 +2808,7 @@ export async function researchLessonKernelSetsCascade(
   const byTopic = new Map(uniqueTopics.map((topic) => [topic, []]));
   const errors = [];
   const providerStats = [];
+  const targetedBudgetExhausted = [];
   let searchGroups = 0;
   let targetedSearches = 0;
   let articleCandidates = 0;
@@ -2865,6 +2866,11 @@ export async function researchLessonKernelSetsCascade(
     searchGroups += Number(batch.searchGroups) || 0;
     targetedSearches += Number(batch.targetedSearches) || 0;
     articleCandidates += Number(batch.articleCandidates) || 0;
+    const providerBudgetExhausted = (batch.targetedBudgetExhausted || []).map((entry) => ({
+      providerId,
+      ...entry,
+    }));
+    targetedBudgetExhausted.push(...providerBudgetExhausted);
     providerStats.push({
       providerId,
       attemptedTopics: pending.length,
@@ -2872,6 +2878,7 @@ export async function researchLessonKernelSetsCascade(
       contributedKernels,
       searchGroups: Number(batch.searchGroups) || 0,
       targetedSearches: Number(batch.targetedSearches) || 0,
+      targetedBudgetExhausted: providerBudgetExhausted,
     });
   }
 
@@ -2880,6 +2887,7 @@ export async function researchLessonKernelSetsCascade(
     errors,
     searchGroups,
     targetedSearches,
+    targetedBudgetExhausted,
     articleCandidates,
     providerStats,
     providersUsed: providerStats.filter((entry) => entry.contributedKernels > 0).map((entry) => entry.providerId),

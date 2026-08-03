@@ -243,6 +243,7 @@ describe('Algi research-first course transaction', () => {
         blockingConflicts: 0,
       },
       cache: { written: 1, persisted: true },
+      targetedBudgetExhausted: [],
     });
     expect(progress.map((event) => event.phase)).toEqual(
       expect.arrayContaining(['planning', 'cache', 'provider-start', 'provider-complete', 'adjudicating', 'complete']),

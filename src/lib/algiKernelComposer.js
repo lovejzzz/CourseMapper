@@ -2326,6 +2326,7 @@ export async function composeAlgiLessonKernels({
               errors: [],
               searchGroups: 0,
               targetedSearches: 0,
+              targetedBudgetExhausted: [],
               articleCandidates: 0,
               providerStats: [],
               providersUsed: [],
@@ -2532,6 +2533,11 @@ export async function composeAlgiLessonKernels({
           researchBatch.targetedSearches === 1 ? '' : 's'
         }`;
       }
+      if (researchBatch.targetedBudgetExhausted?.length > 0) {
+        researchNote += `, ${researchBatch.targetedBudgetExhausted.length} targeted budget limit${
+          researchBatch.targetedBudgetExhausted.length === 1 ? '' : 's'
+        }`;
+      }
       if (Array.isArray(researchBatch.providersUsed) && researchBatch.providersUsed.length > 0) {
         researchNote += `, sources ${researchBatch.providersUsed.join(' → ')}`;
       }
@@ -2552,6 +2558,7 @@ export async function composeAlgiLessonKernels({
         },
         providers: researchBatch.providerStats || [],
         providersUsed: researchBatch.providersUsed || [],
+        targetedBudgetExhausted: researchBatch.targetedBudgetExhausted || [],
         sourceRequests: Number(diagnostics?.requestCount) || 0,
         compositionDeclines: composeFailureDiagnostics,
       };
