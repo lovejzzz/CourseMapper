@@ -2117,9 +2117,13 @@ export async function researchLessonKernels(
     // Initiative” disappear before the full extract could expose its WCAG
     // sections. Hydrate at most three explicit family titles before ranking;
     // this is still a bounded title lookup and every retained claim must pass
-    // the ordinary relevance, source-admission, and entailment gates.
+    // the ordinary relevance, source-admission, and entailment gates. Limit
+    // each lesson pass to one deep read: spending three reads on the first
+    // lesson could exhaust the course request budget before later lessons got
+    // any full-article evidence. Later grouped/targeted passes can revisit a
+    // still-thin lesson after every peer has received the same first chance.
     if (
-      directFullExtracts < 3 &&
+      directFullExtracts < 1 &&
       directTitleKeys.has(titleKey) &&
       String(article.extract || '').length < 4000 &&
       typeof provider.fullArticle === 'function'
@@ -2348,7 +2352,7 @@ export async function researchLessonKernels(
       .replace(/[^a-z0-9]+/g, ' ')
       .trim();
     if (
-      entryIndex < 3 &&
+      entryIndex < 1 &&
       currentExtractLength < 4000 &&
       !directlyHydratedTitles.has(entryTitleKey) &&
       typeof provider.fullArticle === 'function'

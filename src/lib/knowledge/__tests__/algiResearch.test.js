@@ -1708,6 +1708,63 @@ describe('lesson research admission', () => {
     expect(kernels[0].facts.map((fact) => fact.text).join(' ')).toContain('Web Content Accessibility Guidelines');
   });
 
+  it('gives each lesson pass one deep read before spending more course research budget', async () => {
+    const pages = {
+      'Conditional branching and loops': [
+        'Conditional branching and loops are control-flow structures that select or repeat program operations.',
+        'Conditional branching selects a path when a tested condition changes the next operation.',
+        'Loops repeat a bounded operation while an iteration condition remains active.',
+      ].join('\n'),
+      'Conditional branching': [
+        'Conditional branching is a control-flow decision that selects one of multiple paths.',
+        'A branch tests a condition before choosing the next statement to execute.',
+        'Alternative branches make different operations visible under different conditions.',
+      ].join('\n'),
+      loops: [
+        'Loops are control-flow structures that repeat a sequence of statements.',
+        'A loop evaluates its continuation condition around repeated operations.',
+        'Iteration state changes so a bounded loop can eventually terminate.',
+      ].join('\n'),
+    };
+    let fullReads = 0;
+    const provider = {
+      id: 'wikipedia',
+      sourceKind: 'open encyclopedia',
+      license: 'CC BY-SA 4.0',
+      search: async () => Object.keys(pages),
+      articles: async (titles) =>
+        Object.fromEntries(
+          titles.map((title) => [
+            title,
+            {
+              title,
+              extract: pages[title],
+              sourceUrl: `https://en.wikipedia.org/wiki/${encodeURIComponent(title)}`,
+            },
+          ]),
+        ),
+      fullArticle: async (title) => {
+        fullReads += 1;
+        return {
+          title,
+          extract: `${pages[title]} ${pages[title]}`,
+          sourceUrl: `https://en.wikipedia.org/wiki/${encodeURIComponent(title)}`,
+        };
+      },
+      sourceIdFor: (title) => `wikipedia:${title}`,
+      attributionFor: () => 'Wikipedia contributors',
+    };
+
+    await researchLessonKernels('Conditional branching and loops', {
+      provider,
+      courseContext: 'Applied programming',
+      floor: 0.1,
+      want: 3,
+    });
+
+    expect(fullReads).toBe(1);
+  });
+
   it('composes waterborne pathogens from three admitted source concepts', async () => {
     const pages = {
       'Waterborne disease': {
