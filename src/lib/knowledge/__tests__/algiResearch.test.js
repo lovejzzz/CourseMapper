@@ -22,6 +22,7 @@ import {
   researchLessonKernels,
   researchLessonKernelSets,
   researchLessonKernelSetsCascade,
+  stampTargetedBudgetProvider,
   isResearchCandidateDomainAligned,
   isWaiSourceFamilyAligned,
   conciseDefinitionOption,
@@ -1359,6 +1360,22 @@ describe('Wikipedia request architecture', () => {
 });
 
 describe('open scholarly provider architecture', () => {
+  it('overrides an undefined upstream provider label with the cascade provider', () => {
+    expect(
+      stampTargetedBudgetProvider(
+        [{ topic: 'Sparse lesson', scheduled: 0, available: 2, providerId: undefined }],
+        'wikipedia',
+      ),
+    ).toEqual([
+      {
+        topic: 'Sparse lesson',
+        scheduled: 0,
+        available: 2,
+        providerId: 'wikipedia',
+      },
+    ]);
+  });
+
   it('returns a stable empty research diagnostic shape', async () => {
     const result = await researchLessonKernelSets([], {});
 

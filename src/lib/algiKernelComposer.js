@@ -50,6 +50,15 @@ function wordsOf(text) {
     .filter(Boolean);
 }
 
+export function describeTargetedBudgetLimits(entries = []) {
+  if (!Array.isArray(entries) || entries.length === 0) return '';
+  const budgetLimitedLessons =
+    new Set(entries.map((entry) => String(entry?.topic || '').trim()).filter(Boolean)).size || entries.length;
+  return `${budgetLimitedLessons} lesson${budgetLimitedLessons === 1 ? '' : 's'} reached targeted budget limit${
+    budgetLimitedLessons === 1 ? '' : 's'
+  }`;
+}
+
 /**
  * Fit text to a word window. Over-long text is cut at a word boundary and
  * repunctuated; under-long text is padded from `filler` (never from invented
@@ -2126,6 +2135,7 @@ export async function composeAlgiLessonKernels({
       const {
         researchLessonKernelSets,
         researchLessonKernelSetsCascade,
+        stampTargetedBudgetProvider,
         buildDoajProvider,
         buildEuropePmcProvider,
         buildWaiProvider,
@@ -2353,7 +2363,9 @@ export async function composeAlgiLessonKernels({
                 signal,
               });
       const targetedBudgetExhausted = (researchBatch.targetedBudgetExhausted || []).map((entry) =>
-        entry?.providerId || !directProvider ? entry : { ...entry, providerId: directProvider.id || 'direct' },
+        entry?.providerId || !directProvider
+          ? entry
+          : stampTargetedBudgetProvider([entry], directProvider.id || 'direct')[0],
       );
       const kernelsByTopic = new Map(
         allResearchTargets.map((topic) => {
@@ -2537,12 +2549,7 @@ export async function composeAlgiLessonKernels({
         }`;
       }
       if (targetedBudgetExhausted.length > 0) {
-        const budgetLimitedLessons =
-          new Set(targetedBudgetExhausted.map((entry) => String(entry?.topic || '').trim()).filter(Boolean)).size ||
-          targetedBudgetExhausted.length;
-        researchNote += `, ${budgetLimitedLessons} lesson${
-          budgetLimitedLessons === 1 ? '' : 's'
-        } reached targeted budget limit${budgetLimitedLessons === 1 ? '' : 's'}`;
+        researchNote += `, ${describeTargetedBudgetLimits(targetedBudgetExhausted)}`;
       }
       if (Array.isArray(researchBatch.providersUsed) && researchBatch.providersUsed.length > 0) {
         researchNote += `, sources ${researchBatch.providersUsed.join(' → ')}`;

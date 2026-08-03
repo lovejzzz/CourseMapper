@@ -2518,6 +2518,10 @@ export function needsTargetedResearch(kernels, topic, minimum) {
   return kernels.length < minimum || !kernelsCoverTopic(kernels, topic);
 }
 
+export function stampTargetedBudgetProvider(entries = [], providerId = 'research-provider') {
+  return entries.map((entry) => ({ ...entry, providerId }));
+}
+
 /**
  * Research every uncovered lesson as one bounded course transaction.
  *
@@ -2874,10 +2878,7 @@ export async function researchLessonKernelSetsCascade(
     searchGroups += Number(batch.searchGroups) || 0;
     targetedSearches += Number(batch.targetedSearches) || 0;
     articleCandidates += Number(batch.articleCandidates) || 0;
-    const providerBudgetExhausted = (batch.targetedBudgetExhausted || []).map((entry) => ({
-      ...entry,
-      providerId,
-    }));
+    const providerBudgetExhausted = stampTargetedBudgetProvider(batch.targetedBudgetExhausted || [], providerId);
     targetedBudgetExhausted.push(...providerBudgetExhausted);
     providerStats.push({
       providerId,

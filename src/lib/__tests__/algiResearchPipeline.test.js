@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   composeAlgiLessonKernels,
+  describeTargetedBudgetLimits,
   resetAlgiGenomeCacheForTests,
   scionResearchTopicReady,
 } from '../algiKernelComposer.js';
@@ -56,6 +57,15 @@ function researchProvider(searchArticles) {
 }
 
 describe('Algi research-first course transaction', () => {
+  it('counts one budget-limited lesson once across multiple providers', () => {
+    expect(
+      describeTargetedBudgetLimits([
+        { providerId: 'first', topic: 'Sparse lesson' },
+        { providerId: 'later', topic: 'Sparse lesson' },
+      ]),
+    ).toBe('1 lesson reached targeted budget limit');
+  });
+
   it('does not call a later provider after the production readiness policy admits one source kernel', async () => {
     const title = 'Platform accountability';
     const firstSearch = vi.fn(async () => ({ [title]: article(title, 'source-1') }));
