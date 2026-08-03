@@ -141,9 +141,38 @@ export function buildAssessmentCoherenceReceipt({ lessons = [], assessments = []
       .filter((artifact) => cleanText(artifact?.path))
       .map((artifact) => [cleanText(artifact.path), artifact]),
   );
-  const eligible = (Array.isArray(assessments) ? assessments : []).filter(
+  const declaredEligible = (Array.isArray(assessments) ? assessments : []).filter(
     (assessment) => assessment?.kind !== 'in-class' && Number.isInteger(Number(assessment?.lesson)),
   );
+  const declaredLessons = new Set(declaredEligible.map((assessment) => Number(assessment.lesson)));
+  const assignmentLessons = new Set(
+    (Array.isArray(artifacts) ? artifacts : [])
+      .filter((artifact) => artifact?.featureId === 'assignments')
+      .map(lessonNumberFromArtifact)
+      .filter(Number.isInteger),
+  );
+  const rubricLessons = new Set(
+    (Array.isArray(artifacts) ? artifacts : [])
+      .filter((artifact) => artifact?.featureId === 'rubrics')
+      .map(lessonNumberFromArtifact)
+      .filter(Number.isInteger),
+  );
+  // The obligation inventory is reconstructed from independently rendered
+  // assignment/rubric pairs. Deleting a manifest assessment therefore creates
+  // an explicit 0/5 row instead of shrinking the denominator.
+  const renderedObligationLessons = new Set([...assignmentLessons, ...rubricLessons]);
+  const missingDeclarations = [...renderedObligationLessons]
+    .filter((lessonNumber) => !declaredLessons.has(lessonNumber))
+    .sort((left, right) => left - right)
+    .map((lessonNumber) => ({
+      id: `missing-assessment-lesson-${lessonNumber}`,
+      title: `Undeclared rendered assessment for lesson ${lessonNumber}`,
+      kind: 'missing-declaration',
+      lesson: lessonNumber,
+      artifact: '',
+      missingDeclaration: true,
+    }));
+  const eligible = [...declaredEligible, ...missingDeclarations];
 
   const rows = eligible.map((assessment) => {
     const lessonNumber = Number(assessment.lesson);
@@ -156,53 +185,82 @@ export function buildAssessmentCoherenceReceipt({ lessons = [], assessments = []
     const taskIdentity = assessmentIdentityVisible(assessment, taskText);
     const rubricIdentity = assessmentIdentityVisible(assessment, rubricText);
     const objectiveMatches = objectives.filter((objective) => exactVisible(objective, taskText));
-    const checks = [
-      check(
-        'task-identity-visible',
-        Boolean(taskArtifact) && taskIdentity.passed,
-        taskArtifact
-          ? `Declared task identity is ${taskIdentity.passed ? '' : 'not '}visible in the task artifact.`
-          : 'Declared task artifact is missing.',
-        {
-          method: taskIdentity.method,
-          ...(taskIdentity.coverage !== undefined ? { coverage: taskIdentity.coverage } : {}),
-        },
-      ),
-      check(
-        'lesson-objective-visible-in-task',
-        objectives.length > 0 && objectiveMatches.length > 0,
-        objectives.length === 0
-          ? 'The lesson declares no objective.'
-          : `${objectiveMatches.length}/${objectives.length} declared lesson objectives are visible verbatim in the task artifact.`,
-        { declaredObjectives: objectives.length, matchedObjectives: objectiveMatches.length },
-      ),
-      check(
-        'student-evidence-visible',
-        Boolean(taskArtifact) && visibleStudentEvidence(taskText),
-        'The task must name both an evidence/deliverable boundary and an observable student product or action.',
-      ),
-      check(
-        'matching-rubric-identity-visible',
-        Boolean(rubricArtifact) && rubricIdentity.passed,
-        rubricArtifact
-          ? `The same assessment identity is ${rubricIdentity.passed ? '' : 'not '}visible in the lesson rubric.`
-          : 'The lesson rubric artifact is missing.',
-        {
-          method: rubricIdentity.method,
-          ...(rubricIdentity.coverage !== undefined ? { coverage: rubricIdentity.coverage } : {}),
-        },
-      ),
-      check(
-        'observable-rubric-criteria-visible',
-        Boolean(rubricArtifact) && visibleRubricCriteria(rubricText),
-        'The rubric must expose weighted observable criteria and at least two performance levels.',
-      ),
-    ];
+    const checks = assessment.missingDeclaration
+      ? [
+          check(
+            'task-identity-visible',
+            false,
+            'Rendered assignment and rubric artifacts exist, but the assessment declaration is missing.',
+          ),
+          check(
+            'lesson-objective-visible-in-task',
+            false,
+            'A missing assessment declaration cannot bind the rendered task to a declared lesson objective.',
+          ),
+          check(
+            'student-evidence-visible',
+            false,
+            'A missing assessment declaration cannot establish the expected student-evidence contract.',
+          ),
+          check(
+            'matching-rubric-identity-visible',
+            false,
+            'A missing assessment declaration cannot prove task-to-rubric identity.',
+          ),
+          check(
+            'observable-rubric-criteria-visible',
+            false,
+            'A missing assessment declaration leaves the rendered rubric outside the declared assessment registry.',
+          ),
+        ]
+      : [
+          check(
+            'task-identity-visible',
+            Boolean(taskArtifact) && taskIdentity.passed,
+            taskArtifact
+              ? `Declared task identity is ${taskIdentity.passed ? '' : 'not '}visible in the task artifact.`
+              : 'Declared task artifact is missing.',
+            {
+              method: taskIdentity.method,
+              ...(taskIdentity.coverage !== undefined ? { coverage: taskIdentity.coverage } : {}),
+            },
+          ),
+          check(
+            'lesson-objective-visible-in-task',
+            objectives.length > 0 && objectiveMatches.length > 0,
+            objectives.length === 0
+              ? 'The lesson declares no objective.'
+              : `${objectiveMatches.length}/${objectives.length} declared lesson objectives are visible verbatim in the task artifact.`,
+            { declaredObjectives: objectives.length, matchedObjectives: objectiveMatches.length },
+          ),
+          check(
+            'student-evidence-visible',
+            Boolean(taskArtifact) && visibleStudentEvidence(taskText),
+            'The task must name both an evidence/deliverable boundary and an observable student product or action.',
+          ),
+          check(
+            'matching-rubric-identity-visible',
+            Boolean(rubricArtifact) && rubricIdentity.passed,
+            rubricArtifact
+              ? `The same assessment identity is ${rubricIdentity.passed ? '' : 'not '}visible in the lesson rubric.`
+              : 'The lesson rubric artifact is missing.',
+            {
+              method: rubricIdentity.method,
+              ...(rubricIdentity.coverage !== undefined ? { coverage: rubricIdentity.coverage } : {}),
+            },
+          ),
+          check(
+            'observable-rubric-criteria-visible',
+            Boolean(rubricArtifact) && visibleRubricCriteria(rubricText),
+            'The rubric must expose weighted observable criteria and at least two performance levels.',
+          ),
+        ];
     const passedChecks = checks.filter((entry) => entry.passed).length;
     return {
       assessmentId: cleanText(assessment.id),
       title: cleanText(assessment.title),
       lesson: lessonNumber,
+      ...(assessment.missingDeclaration ? { missingDeclaration: true } : {}),
       taskArtifact: artifactReceipt(taskArtifact),
       rubricArtifact: artifactReceipt(rubricArtifact),
       checks,
@@ -226,7 +284,8 @@ export function buildAssessmentCoherenceReceipt({ lessons = [], assessments = []
     claimBoundary:
       'This receipt proves visible linkage among declared objectives, task directions, student evidence, and rubric criteria; it does not judge pedagogical wisdom or disciplinary accuracy.',
     antiGaming: [
-      'only graded assessments enter the fixed denominator',
+      'declared graded assessments and independently rendered assignment/rubric obligations enter the denominator',
+      'deleting a declaration for an exported assessment creates an explicit zero-of-five row',
       'missing and wrong-lesson artifacts fail their checks',
       'compiler-only IDs and rubric links earn no credit',
       'each task must expose student evidence and each rubric must expose weighted performance criteria',

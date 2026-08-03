@@ -26,7 +26,7 @@
     },
     "liveProvider": {
       "status": "pending",
-      "note": "The local 95/100 package is recorded; a fresh post-deployment package must independently clear the acceptance floor."
+      "note": "The rejected local 95/100 package is historical context only. The repaired 87/100 package is the accepted predeploy evidence; a fresh post-deployment package must independently clear the acceptance floor."
     },
     "manualHuman": {
       "status": "pending",
@@ -104,12 +104,12 @@
       "id": "v01711-evidence-capped-score-ledger",
       "status": "verified-current",
       "changelogHighlightIndex": 4,
-      "summary": "Grader 1.15.7 awards bounded grounding and assessment-coherence credit only from final-package receipts and binds the exact implementation in held-out ruler V51.",
+      "summary": "Grader 1.15.8 awards bounded grounding and assessment-coherence credit only from final-package receipts and binds the exact implementation in held-out ruler V52.",
       "anchors": [
         "src/lib/quality/automatedReadinessSignal.js",
         "src/lib/quality/deepQualityGrader.js",
         "src/lib/quality/graderVersion.js",
-        "evaluation/scion-adapters/held-out-course-benchmark-v51.json",
+        "evaluation/scion-adapters/held-out-course-benchmark-v52.json",
         "src/lib/quality/__tests__/automatedReadinessSignal.test.js"
       ],
       "proofCommands": [
@@ -118,10 +118,10 @@
       "proofScopes": ["unit", "static-audit", "compiled-output"]
     },
     {
-      "id": "v01711-local-95-evidence",
+      "id": "v01711-local-87-evidence",
       "status": "verified-current",
       "changelogHighlightIndex": 5,
-      "summary": "The exact local six-lesson ZIP scores 95/100 with 21/25 grounding, 15/15 assessment coherence, 38/38 export checks, and zero encoded findings.",
+      "summary": "The repaired local six-lesson ZIP scores 87/100 with 13/25 grounding, 15/15 assessment coherence, 38/38 export checks, zero encoded findings, and a clean 225-page Office render after the first 95-point candidate was rejected.",
       "anchors": ["docs/V0.17.11_SCION_LEARNER_CHECKPOINT.md"],
       "proofCommands": [
         "npx vitest run src/lib/__tests__/packageZipExporter.test.js src/lib/quality/__tests__/assessmentCoherence.test.js"
@@ -132,7 +132,7 @@
       "id": "v01711-roundtable-and-claim-boundary",
       "status": "verified-current",
       "changelogHighlightIndex": 6,
-      "summary": "Six Roundtable design rounds support the learner architecture while the report preserves unchanged model weights, missing human evidence, and pending production checkpoint gates.",
+      "summary": "Six Roundtable design rounds and a nine-turn exact-commit audit support and challenge the learner architecture while the report preserves unchanged model weights, missing human evidence, and pending production checkpoint gates.",
       "anchors": ["docs/V0.17.11_SCION_LEARNER_CHECKPOINT.md"],
       "proofCommands": ["npm run test:unit", "npm run audit:release-history"],
       "proofScopes": ["doc", "static-audit"]

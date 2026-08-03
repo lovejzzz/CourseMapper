@@ -46,6 +46,68 @@ export const RESEARCH_ORIGIN = 'algi-research';
 const WIKI_API = 'https://en.wikipedia.org/w/api.php';
 const DOAJ_API = 'https://doaj.org/api/search/articles';
 const EUROPE_PMC_API = 'https://www.ebi.ac.uk/europepmc/webservices/rest/search';
+const SOURCE_SNAPSHOT_PROTOCOL = 'retrieved-source-snapshot-sha256-v1';
+
+async function sha256Text(value = '') {
+  const bytes = new TextEncoder().encode(String(value));
+  const digest = await globalThis.crypto.subtle.digest('SHA-256', bytes);
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * Bind every admitted quote to the complete normalized source snapshot that
+ * produced it. The package keeps the digest, revision identity, byte length,
+ * and byte offsets without copying an entire third-party page into the ZIP.
+ */
+export async function attachKernelSourceSnapshotReceipt(kernel = {}, snapshot = {}) {
+  const encoder = new TextEncoder();
+  const sources = await Promise.all(
+    Object.entries(snapshot || {}).map(async ([sourceId, rawText]) => {
+      const text = String(rawText || '')
+        .replace(/\s+/g, ' ')
+        .trim();
+      return {
+        sourceId,
+        retrievedSnapshotSha256: await sha256Text(text),
+        retrievedSnapshotBytes: encoder.encode(text).byteLength,
+        text,
+      };
+    }),
+  );
+  const sourceById = new Map(sources.map((source) => [source.sourceId, source]));
+  const claims = [];
+  for (const entry of [kernel?.definition, ...(kernel?.facts || [])].filter(Boolean)) {
+    const sourceId = String(entry?.anchor?.src || '').trim();
+    const quote = String(entry?.anchor?.quote || '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    const source = sourceById.get(sourceId);
+    const characterStart = source?.text.indexOf(quote) ?? -1;
+    if (!source || !quote || characterStart < 0) continue;
+    const byteStart = encoder.encode(source.text.slice(0, characterStart)).byteLength;
+    claims.push({
+      sourceId,
+      locator: String(entry?.anchor?.loc || '').trim(),
+      quote,
+      retrievedSnapshotSha256: source.retrievedSnapshotSha256,
+      retrievedSnapshotBytes: source.retrievedSnapshotBytes,
+      quoteByteStart: byteStart,
+      quoteByteEnd: byteStart + encoder.encode(quote).byteLength,
+      quoteSha256: await sha256Text(quote),
+    });
+  }
+  return {
+    ...kernel,
+    provenance: {
+      ...(kernel?.provenance || {}),
+      sourceSnapshot: {
+        protocol: SOURCE_SNAPSHOT_PROTOCOL,
+        sources: sources.map(({ text: _text, ...source }) => source),
+        claims,
+      },
+    },
+  };
+}
 
 /**
  * Below this the source is treated as drift. Deliberately low: the entity
@@ -160,6 +222,26 @@ export function researchQueryForTopic(topic = '', courseContext = '') {
   return domainToken ? `${domainToken} (${alternatives})` : alternatives;
 }
 
+function singularizeTitlePhrase(value = '') {
+  const words = String(value).trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return '';
+  words[words.length - 1] = words[words.length - 1]
+    .replace(/ies$/i, 'y')
+    .replace(/(?<!s)ses$/i, 's')
+    .replace(/(?<!s)s$/i, '');
+  return words.join(' ');
+}
+
+function coarseDomainTitleQualifiers(courseContext = '') {
+  const context = String(courseContext);
+  if (/\b(?:computer science|data analysis|data science|programming|python|software)\b/i.test(context)) {
+    return ['computer science', 'computer programming'];
+  }
+  if (/\b(?:statistics|statistical|probability|quantitative methods?)\b/i.test(context)) return ['statistics'];
+  if (/\b(?:linear algebra|calculus|mathematics|mathematical)\b/i.test(context)) return ['mathematics'];
+  return [];
+}
+
 /**
  * Candidate pages MediaWiki can resolve directly in one batched title lookup.
  * Compound lesson names contribute both named sides, so an exact-title pass
@@ -182,10 +264,22 @@ export function directResearchTitles(topic = '', courseContext = '') {
   // Three-plus-word pedagogical labels often wrap a canonical concept:
   // “microbial risk assessment” should try both “risk assessment” and
   // “microbial risk” in the same exact-title batch before spending a search.
-  const phraseWindows =
-    clauses.length === 1 && normalizedWords.length >= 3
-      ? [normalizedWords.slice(0, 2).join(' '), normalizedWords.slice(-2).join(' ')]
-      : [];
+  const phraseWindows = clauses.flatMap((clause) => {
+    const words = clause.split(/\s+/).filter(Boolean);
+    return words.length >= 3 ? [words.slice(-2).join(' '), words.slice(0, 2).join(' ')] : [];
+  });
+  // Generic canonicalization handles plural pedagogical labels and ambiguous
+  // encyclopedia headwords without mapping any lesson to a hand-picked page.
+  // Coarse domain qualifiers are derived from the course context and applied
+  // uniformly to every noun phrase; search and relevance gates still decide
+  // which candidate survives.
+  const canonicalPhrases = [...new Set([...clauses, ...phraseWindows].map(singularizeTitlePhrase).filter(Boolean))];
+  const domainQualifiedTitles = [
+    ...canonicalPhrases,
+    ...canonicalPhrases.flatMap((phrase) =>
+      coarseDomainTitleQualifiers(courseContext).map((qualifier) => `${phrase} (${qualifier})`),
+    ),
+  ];
   // Course authors name the causal agent (“waterborne pathogens”), while an
   // encyclopedia commonly titles the same coverage area by outcome
   // (“Waterborne disease”). Admit that narrow modifier-preserving alias
@@ -210,31 +304,6 @@ export function directResearchTitles(topic = '', courseContext = '') {
       /\b(?:database systems?|database management|relational databases?|\bsql\b|data management systems?)\b/i.test(
         courseContext,
       );
-    const programmingCourse =
-      /\b(?:computer science|data analysis|data science|programming|python|software development|software engineering)\b/i.test(
-        courseContext,
-      );
-    if (programmingCourse && /\b(?:data types?|expressions?|type systems?)\b/i.test(baseTopic)) {
-      return ['Data type', 'Expression (computer science)', 'Type system', 'Python (programming language)'];
-    }
-    if (programmingCourse && /\b(?:conditional branching|control flow|loops?|iteration)\b/i.test(baseTopic)) {
-      return ['Control flow', 'Conditional (computer programming)', 'For loop', 'While loop'];
-    }
-    if (programmingCourse && /\b(?:functions?|subroutines?|automated tests?|unit tests?|pytest)\b/i.test(baseTopic)) {
-      return ['Function (computer programming)', 'Subroutine', 'Unit testing', 'Software testing'];
-    }
-    if (
-      programmingCourse &&
-      /\b(?:pandas|tabular data|data cleaning|data cleansing|data wrangling)\b/i.test(baseTopic)
-    ) {
-      return ['Data cleansing', 'Data frame', 'Pandas (software)', 'Data wrangling'];
-    }
-    if (
-      programmingCourse &&
-      /\b(?:reproducib\w*|data visualization|visualisation|uncertainty|statistical inference)\b/i.test(baseTopic)
-    ) {
-      return ['Reproducibility', 'Data visualization', 'Uncertainty quantification', 'Statistical inference'];
-    }
     if (oralHistoryCourse && /\b(?:foundations?|defining|scope)\b/i.test(baseTopic)) {
       return ['Oral history', 'Public history', 'Oral tradition', 'Archival science'];
     }
@@ -451,6 +520,7 @@ export function directResearchTitles(topic = '', courseContext = '') {
     // and phrase windows so the eight-title request budget cannot be consumed
     // by ambiguous candidates such as "Integrity" before "Data integrity".
     ...conceptFamilyTitles,
+    ...domainQualifiedTitles,
     ...(clauses.length === 2 ? clauses : []),
     ...phraseWindows,
     ...pathogenOutcomeAliases,
@@ -1908,6 +1978,7 @@ export async function researchConcept(
       entailment: entailed.entailment,
     };
   }
+  const kernelWithSnapshot = await attachKernelSourceSnapshotReceipt(entailed.kernel, best.built.snapshot);
   return {
     ok: true,
     topic,
@@ -1917,7 +1988,7 @@ export async function researchConcept(
     defScore: Number(best.defScore.toFixed(3)),
     mode: best.mode,
     tier: admission.tier,
-    kernel: entailed.kernel,
+    kernel: kernelWithSnapshot,
     snapshot: best.built.snapshot,
   };
 }
@@ -2327,7 +2398,9 @@ export async function researchLessonKernels(
     const admission = admitKernel(candidateKernel, { sources: entry.candidate.snapshot });
     if (!admission.admitted) continue;
     const entailed = attachKernelEntailmentReceipt(admission.kernel, entry.candidate.snapshot);
-    if (entailed.admitted) admittedKernels.push(entailed.kernel);
+    if (entailed.admitted) {
+      admittedKernels.push(await attachKernelSourceSnapshotReceipt(entailed.kernel, entry.candidate.snapshot));
+    }
   }
   return backfillMultipleChoice(admittedKernels);
 }

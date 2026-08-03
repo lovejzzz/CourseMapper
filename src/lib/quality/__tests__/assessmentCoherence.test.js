@@ -71,9 +71,12 @@ describe('rendered assessment coherence receipt', () => {
     );
     const receipt = buildAssessmentCoherenceReceipt({ lessons, assessments, artifacts: wrongLessonArtifacts });
 
-    expect(receipt.totalChecks).toBe(5);
+    expect(receipt.totalChecks).toBe(10);
     expect(receipt.passedChecks).toBe(3);
-    expect(receipt.coherenceRatio).toBe(0.6);
+    expect(receipt.coherenceRatio).toBe(0.3);
+    expect(receipt.assessments).toEqual(
+      expect.arrayContaining([expect.objectContaining({ lesson: 3, missingDeclaration: true, passedChecks: 0 })]),
+    );
     expect(
       receipt.assessments[0].checks.find((entry) => entry.id === 'matching-rubric-identity-visible'),
     ).toMatchObject({ passed: false });
@@ -94,5 +97,26 @@ describe('rendered assessment coherence receipt', () => {
       receipt.assessments[0].checks.find((entry) => entry.id === 'observable-rubric-criteria-visible').passed,
     ).toBe(false);
     expect(receipt.coherenceRatio).toBeLessThan(1);
+  });
+
+  it('records an explicit zero-of-five obligation when the declaration is deleted', () => {
+    const receipt = buildAssessmentCoherenceReceipt({ lessons, assessments: [], artifacts: artifacts() });
+
+    expect(receipt).toMatchObject({
+      eligibleAssessments: 1,
+      passedAssessments: 0,
+      passedChecks: 0,
+      totalChecks: 5,
+      coherenceRatio: 0,
+    });
+    expect(receipt.assessments[0]).toMatchObject({
+      assessmentId: 'missing-assessment-lesson-2',
+      lesson: 2,
+      missingDeclaration: true,
+      passedChecks: 0,
+      totalChecks: 5,
+    });
+    expect(receipt.assessments[0].checks).toHaveLength(5);
+    expect(receipt.assessments[0].checks.every((entry) => entry.passed === false)).toBe(true);
   });
 });

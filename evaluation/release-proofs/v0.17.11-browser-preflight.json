@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "release": "0.17.11",
-  "recordedAt": "2026-08-03T02:27:00Z",
+  "recordedAt": "2026-08-03T03:39:00Z",
   "status": "bounded-predeploy",
   "claimBoundary": "This tracked predeploy receipt proves the course-neutral learner architecture, exact source binding, exported-artifact grounding, assessment-coherence reconstruction, and deterministic score regressions passed before deployment. The local package score is bound to its exact ZIP hash. This is not a live production result, factual certification, independent instructor result, accessibility certification, classroom outcome, model-weight improvement, adapter promotion, or paid-reference comparison.",
   "checks": [
@@ -10,13 +10,13 @@
       "status": "pass",
       "testFilesPassed": 506,
       "testFilesSkipped": 16,
-      "testsPassed": 6540,
+      "testsPassed": 6546,
       "testsSkipped": 162
     },
     {
-      "command": "npm run audit:contract:pr",
+      "command": "npm run audit:contract:full",
       "status": "pass",
-      "fixtures": 12,
+      "fixtures": 40,
       "availableFixtures": 40
     },
     {
@@ -63,15 +63,18 @@
     {
       "mode": "local-physical-zip-and-render-audit",
       "status": "pass",
-      "zipSha256": "4a2ed350b78c96a707c17f43236f5c702118c92e7564c73c53ce979eb940b4aa",
-      "score": 95,
-      "grounding": 21,
+      "zipSha256": "80fd50f2d19ef4625865b3ed941925e5f846d27ea7b17b7d9e8682cc85727f22",
+      "score": 87,
+      "grounding": 13,
       "assessmentCoherence": 15,
       "p0": 0,
       "p1": 0,
       "p2": 0,
       "exportChecks": "38/38",
-      "renderedPages": 163
+      "renderedOfficeFiles": 50,
+      "renderedPages": 225,
+      "visualDefectsFound": 1,
+      "visualDefectsRepaired": 1
     },
     {
       "mode": "roundtable-learner-architecture-audit",
@@ -80,6 +83,18 @@
       "rounds": 6,
       "completionAudits": 2,
       "materialConcerns": 0,
+      "report": "docs/V0.17.11_SCION_LEARNER_CHECKPOINT.md"
+    },
+    {
+      "mode": "roundtable-exact-commit-audit",
+      "status": "three-p1-findings-remediated-pending-postcommit-audit",
+      "turns": 9,
+      "initialP1": 3,
+      "remediations": [
+        "replaced audited-course retrieval branches with generic noun-phrase planning",
+        "bound claims to complete source-snapshot digests, byte lengths, quote offsets, quote hashes, and rendered artifact hashes",
+        "derived assessment obligations independently from rendered assignment and rubric inventories"
+      ],
       "report": "docs/V0.17.11_SCION_LEARNER_CHECKPOINT.md"
     }
   ],

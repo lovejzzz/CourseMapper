@@ -13,9 +13,34 @@ import {
   sourceLedgerFromOpenStax,
 } from '../sourceLedger.js';
 
+async function sha256Text(value) {
+  const digest = await globalThis.crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
+function snapshotReceipt(sourceId, quote, overrides = {}) {
+  const quoteBytes = new TextEncoder().encode(quote).byteLength;
+  return {
+    sourceSnapshot: {
+      protocol: 'retrieved-source-snapshot-sha256-v1',
+      sourceId,
+      retrievedSnapshotSha256: 'a'.repeat(64),
+      retrievedSnapshotBytes: quoteBytes + 20,
+    },
+    check: {
+      retrievedSnapshotSha256: 'a'.repeat(64),
+      retrievedSnapshotBytes: quoteBytes + 20,
+      quoteByteStart: 10,
+      quoteByteEnd: 10 + quoteBytes,
+      ...overrides,
+    },
+  };
+}
+
 describe('trusted source ledger', () => {
   it('promotes exact learner-visible source claims only after Office artifact binding', async () => {
     const claim = 'Conditional branching selects a code path by evaluating a condition.';
+    const snapshot = snapshotReceipt('source-branching', claim);
     const row = normalizeTrustedSource({
       id: 'source-branching',
       title: 'Conditional statement',
@@ -30,12 +55,15 @@ describe('trusted source ledger', () => {
         minimumScore: 1,
         semanticSupport: true,
         readinessEligible: false,
+        sourceSnapshot: snapshot.sourceSnapshot,
         checks: [
           {
             sourceId: 'source-branching',
             locator: 'lead paragraph',
             quote: claim,
             claim,
+            ...snapshot.check,
+            sourcePassageSha256: await sha256Text(claim),
             quoteInSnapshot: true,
             entailed: true,
             semanticSupport: true,
@@ -52,12 +80,12 @@ describe('trusted source ledger', () => {
         {
           path: 'Lesson Plans/Lesson 02 - Conditional Branching - Lesson Plans.docx',
           text: `Source evidence: ${claim}`,
-          sha256: 'artifact-sha-256',
+          sha256: 'b'.repeat(64),
         },
         {
           path: 'Study Guides/Lesson 02 - Conditional Branching - Study Guides.docx',
           text: `Study note: ${claim}`,
-          sha256: 'study-guide-sha-256',
+          sha256: 'c'.repeat(64),
         },
       ],
     );
@@ -73,12 +101,12 @@ describe('trusted source ledger', () => {
       expect.arrayContaining([
         expect.objectContaining({
           renderedLocation: 'Lesson Plans/Lesson 02 - Conditional Branching - Lesson Plans.docx',
-          renderedArtifactSha256: 'artifact-sha-256',
+          renderedArtifactSha256: 'b'.repeat(64),
           verifierVersion: 'rendered-exact-source-claim-v1',
         }),
         expect.objectContaining({
           renderedLocation: 'Study Guides/Lesson 02 - Conditional Branching - Study Guides.docx',
-          renderedArtifactSha256: 'study-guide-sha-256',
+          renderedArtifactSha256: 'c'.repeat(64),
         }),
       ]),
     );
@@ -86,6 +114,7 @@ describe('trusted source ledger', () => {
 
   it('does not bind paraphrased, deleted, or wrong-lesson claims', async () => {
     const claim = 'A data frame stores tabular data in labeled rows and columns.';
+    const snapshot = snapshotReceipt('source-frame', claim);
     const row = normalizeTrustedSource({
       id: 'source-frame',
       title: 'Data frame',
@@ -100,12 +129,15 @@ describe('trusted source ledger', () => {
         minimumScore: 1,
         semanticSupport: true,
         readinessEligible: false,
+        sourceSnapshot: snapshot.sourceSnapshot,
         checks: [
           {
             sourceId: 'source-frame',
             locator: 'definition',
             quote: claim,
             claim,
+            ...snapshot.check,
+            sourcePassageSha256: await sha256Text(claim),
             quoteInSnapshot: true,
             entailed: true,
             semanticSupport: true,
@@ -120,7 +152,7 @@ describe('trusted source ledger', () => {
         {
           path: 'Lesson Plans/Lesson 03 - Functions - Lesson Plans.docx',
           text: 'A table-like object can organize labeled observations and variables.',
-          sha256: 'wrong-artifact',
+          sha256: 'd'.repeat(64),
         },
       ],
     );
@@ -129,7 +161,7 @@ describe('trusted source ledger', () => {
     expect(unbound.supportReceipt.readinessEligible).toBe(false);
   });
 
-  it('requires a complete source-to-rendered-claim chain before declaring evidence resolved', () => {
+  it('requires a complete source-to-rendered-claim chain before declaring evidence resolved', async () => {
     const base = {
       id: 'source-1',
       provider: 'doaj',
@@ -137,6 +169,8 @@ describe('trusted source ledger', () => {
       license: 'CC BY 4.0',
       provenanceMismatch: false,
     };
+    const quote = 'The study distinguishes observed association from causal identification.';
+    const snapshot = snapshotReceipt('source-1', quote);
     const complete = normalizeTrustedSource({
       ...base,
       title: 'Evidence-based policy analysis',
@@ -146,13 +180,18 @@ describe('trusted source ledger', () => {
         minimumScore: 1,
         semanticSupport: true,
         readinessEligible: true,
+        sourceSnapshot: snapshot.sourceSnapshot,
         checks: [
           {
             sourceId: 'source-1',
             locator: 'p. 4, paragraph 2',
-            quote: 'The study distinguishes observed association from causal identification.',
+            quote,
             claim: 'Observed association alone does not establish causation.',
             renderedLocation: 'Lesson 6 study guide > Worked example',
+            ...snapshot.check,
+            sourcePassageSha256: await sha256Text(quote),
+            claimSha256: 'e'.repeat(64),
+            renderedArtifactSha256: 'f'.repeat(64),
             quoteInSnapshot: true,
             entailed: true,
             semanticSupport: true,
@@ -178,6 +217,46 @@ describe('trusted source ledger', () => {
         supportReceipt: { ...complete.supportReceipt, semanticSupport: false },
       }),
     ).toBe(false);
+  });
+
+  it('rejects stale snapshot digests and invalid quote offsets', async () => {
+    const claim = 'A source-bound claim remains inspectable after export.';
+    const snapshot = snapshotReceipt('source-stale', claim, { retrievedSnapshotSha256: '9'.repeat(64) });
+    const row = normalizeTrustedSource({
+      id: 'source-stale',
+      title: 'Inspectable evidence',
+      provider: 'wikipedia',
+      url: 'https://example.test/source-stale',
+      license: 'CC BY-SA 4.0',
+      supportReceipt: {
+        status: 'passed',
+        checkedClaims: 1,
+        minimumScore: 1,
+        semanticSupport: true,
+        readinessEligible: false,
+        sourceSnapshot: snapshot.sourceSnapshot,
+        checks: [
+          {
+            sourceId: 'source-stale',
+            locator: 'lead paragraph',
+            quote: claim,
+            claim,
+            ...snapshot.check,
+            sourcePassageSha256: await sha256Text(claim),
+            quoteInSnapshot: true,
+            entailed: true,
+            semanticSupport: true,
+          },
+        ],
+      },
+    });
+    const [bound] = await bindRenderedClaimSupport(
+      [row],
+      [{ path: 'Lesson Plans/Lesson 01 - Evidence.docx', text: claim, sha256: '1'.repeat(64) }],
+    );
+
+    expect(bound.supportReceipt.readinessEligible).toBe(false);
+    expect(isClaimBoundSourceLedgerRow(bound)).toBe(false);
   });
 
   it('rejects broad Python-package bycatch while admitting exact lesson evidence', () => {

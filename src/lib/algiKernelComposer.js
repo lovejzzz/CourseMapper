@@ -1061,6 +1061,13 @@ export function sourceReferenceForKernel(kernel, sourceReferences = {}) {
       .toLowerCase();
   const claimChecks = [];
   const seenClaims = new Set();
+  const snapshotProtocol = String(kernel?.provenance?.sourceSnapshot?.protocol || '').trim();
+  const snapshotSource = (kernel?.provenance?.sourceSnapshot?.sources || []).find(
+    (candidate) => String(candidate?.sourceId || '').trim() === sourceId,
+  );
+  const snapshotClaims = Array.isArray(kernel?.provenance?.sourceSnapshot?.claims)
+    ? kernel.provenance.sourceSnapshot.claims
+    : [];
   for (const [claimIndex, entry] of [kernel?.definition, ...(kernel?.facts || [])].filter(Boolean).entries()) {
     const claim = sentenceOf(entry);
     const claimAnchor = entry?.anchor;
@@ -1071,6 +1078,12 @@ export function sourceReferenceForKernel(kernel, sourceReferences = {}) {
     const locator = String(claimAnchor?.loc || '').trim();
     const normalizedClaim = normalizeClaimIdentity(claim);
     const normalizedQuote = normalizeClaimIdentity(quote);
+    const snapshotClaim = snapshotClaims.find(
+      (candidate) =>
+        String(candidate?.sourceId || '').trim() === anchoredSourceId &&
+        String(candidate?.locator || '').trim() === locator &&
+        normalizeClaimIdentity(candidate?.quote) === normalizedQuote,
+    );
     if (
       !claim ||
       !quote ||
@@ -1078,6 +1091,19 @@ export function sourceReferenceForKernel(kernel, sourceReferences = {}) {
       !locator ||
       !normalizedClaim ||
       normalizedClaim !== normalizedQuote ||
+      snapshotProtocol !== 'retrieved-source-snapshot-sha256-v1' ||
+      String(snapshotSource?.sourceId || '').trim() !== anchoredSourceId ||
+      !/^[a-f0-9]{64}$/i.test(String(snapshotClaim?.retrievedSnapshotSha256 || '')) ||
+      String(snapshotClaim?.retrievedSnapshotSha256 || '') !== String(snapshotSource?.retrievedSnapshotSha256 || '') ||
+      Number(snapshotClaim?.retrievedSnapshotBytes) !== Number(snapshotSource?.retrievedSnapshotBytes) ||
+      !/^[a-f0-9]{64}$/i.test(String(snapshotClaim?.quoteSha256 || '')) ||
+      !Number.isInteger(Number(snapshotClaim?.retrievedSnapshotBytes)) ||
+      Number(snapshotClaim?.retrievedSnapshotBytes) <= 0 ||
+      !Number.isInteger(Number(snapshotClaim?.quoteByteStart)) ||
+      !Number.isInteger(Number(snapshotClaim?.quoteByteEnd)) ||
+      Number(snapshotClaim?.quoteByteStart) < 0 ||
+      Number(snapshotClaim?.quoteByteEnd) <= Number(snapshotClaim?.quoteByteStart) ||
+      Number(snapshotClaim?.quoteByteEnd) > Number(snapshotClaim?.retrievedSnapshotBytes) ||
       seenClaims.has(normalizedClaim)
     ) {
       continue;
@@ -1089,6 +1115,11 @@ export function sourceReferenceForKernel(kernel, sourceReferences = {}) {
       quote,
       sourceId: anchoredSourceId,
       locator,
+      retrievedSnapshotSha256: snapshotClaim.retrievedSnapshotSha256,
+      retrievedSnapshotBytes: Number(snapshotClaim.retrievedSnapshotBytes),
+      quoteByteStart: Number(snapshotClaim.quoteByteStart),
+      quoteByteEnd: Number(snapshotClaim.quoteByteEnd),
+      sourcePassageSha256: snapshotClaim.quoteSha256,
       quoteInSnapshot: true,
       entailed: true,
       score: 1,
@@ -1133,6 +1164,16 @@ export function sourceReferenceForKernel(kernel, sourceReferences = {}) {
             // that the same claim is visible in a concrete artifact byte set.
             semanticSupport: claimChecks.length > 0,
             readinessEligible: false,
+            ...(claimChecks.length > 0
+              ? {
+                  sourceSnapshot: {
+                    protocol: snapshotProtocol,
+                    sourceId,
+                    retrievedSnapshotSha256: snapshotSource.retrievedSnapshotSha256,
+                    retrievedSnapshotBytes: Number(snapshotSource.retrievedSnapshotBytes),
+                  },
+                }
+              : {}),
             claimBoundary:
               'Exact claim identity is bound to an admitted source passage; rendered visibility is verified separately after Office export.',
             checks: claimChecks,

@@ -572,6 +572,19 @@ export function normalizeTrustedSource(entry = {}, { fallbackId = '', checkedAt 
               'This receipt proves source extraction integrity, not support for downstream teaching claims.',
             240,
           ),
+          ...(rawSupportReceipt?.sourceSnapshot
+            ? {
+                sourceSnapshot: {
+                  protocol: cleanText(rawSupportReceipt.sourceSnapshot.protocol, 120),
+                  sourceId: cleanText(rawSupportReceipt.sourceSnapshot.sourceId, 160),
+                  retrievedSnapshotSha256: cleanText(rawSupportReceipt.sourceSnapshot.retrievedSnapshotSha256, 80),
+                  retrievedSnapshotBytes: Math.max(
+                    0,
+                    Math.floor(Number(rawSupportReceipt.sourceSnapshot.retrievedSnapshotBytes) || 0),
+                  ),
+                },
+              }
+            : {}),
           checks: (Array.isArray(rawSupportReceipt.checks) ? rawSupportReceipt.checks : [])
             .slice(0, 16)
             .map((check) => ({
@@ -580,6 +593,10 @@ export function normalizeTrustedSource(entry = {}, { fallbackId = '', checkedAt 
               quote: cleanText(check?.quote, 500),
               sourceId: cleanText(check?.sourceId, 160),
               locator: cleanText(check?.locator, 200),
+              retrievedSnapshotSha256: cleanText(check?.retrievedSnapshotSha256, 80),
+              retrievedSnapshotBytes: Math.max(0, Math.floor(Number(check?.retrievedSnapshotBytes) || 0)),
+              quoteByteStart: Math.max(0, Math.floor(Number(check?.quoteByteStart) || 0)),
+              quoteByteEnd: Math.max(0, Math.floor(Number(check?.quoteByteEnd) || 0)),
               renderedLocation: cleanText(check?.renderedLocation || check?.artifactLocation || check?.renderedAt, 240),
               verifierVersion: cleanText(check?.verifierVersion, 80),
               sourcePassageSha256: cleanText(check?.sourcePassageSha256, 80),
@@ -645,6 +662,16 @@ export function isClaimBoundSourceLedgerRow(row = {}) {
   if (receipt?.status !== 'passed' || receipt?.semanticSupport !== true || receipt?.readinessEligible !== true) {
     return false;
   }
+  const snapshot = receipt?.sourceSnapshot;
+  if (
+    snapshot?.protocol !== 'retrieved-source-snapshot-sha256-v1' ||
+    snapshot?.sourceId !== row?.id ||
+    !/^[a-f0-9]{64}$/i.test(cleanText(snapshot?.retrievedSnapshotSha256, 80)) ||
+    !Number.isInteger(Number(snapshot?.retrievedSnapshotBytes)) ||
+    Number(snapshot?.retrievedSnapshotBytes) <= 0
+  ) {
+    return false;
+  }
   return (Array.isArray(receipt.checks) ? receipt.checks : []).some(
     (check) =>
       Boolean(cleanText(check?.sourceId, 160)) &&
@@ -653,6 +680,16 @@ export function isClaimBoundSourceLedgerRow(row = {}) {
       Boolean(cleanText(check?.quote, 500)) &&
       Boolean(cleanText(check?.claim, 400)) &&
       Boolean(cleanText(check?.renderedLocation, 240)) &&
+      /^[a-f0-9]{64}$/i.test(cleanText(check?.sourcePassageSha256, 80)) &&
+      /^[a-f0-9]{64}$/i.test(cleanText(check?.claimSha256, 80)) &&
+      /^[a-f0-9]{64}$/i.test(cleanText(check?.renderedArtifactSha256, 80)) &&
+      cleanText(check?.retrievedSnapshotSha256, 80) === cleanText(snapshot.retrievedSnapshotSha256, 80) &&
+      Number(check?.retrievedSnapshotBytes) === Number(snapshot.retrievedSnapshotBytes) &&
+      Number.isInteger(Number(check?.quoteByteStart)) &&
+      Number.isInteger(Number(check?.quoteByteEnd)) &&
+      Number(check?.quoteByteStart) >= 0 &&
+      Number(check?.quoteByteEnd) > Number(check?.quoteByteStart) &&
+      Number(check?.quoteByteEnd) <= Number(snapshot.retrievedSnapshotBytes) &&
       check?.quoteInSnapshot === true &&
       check?.entailed === true &&
       check?.semanticSupport === true,
@@ -706,6 +743,7 @@ export async function bindRenderedClaimSupport(sourceRows = [], artifacts = []) 
   return Promise.all(
     (Array.isArray(sourceRows) ? sourceRows : []).map(async (row) => {
       const receipt = row?.supportReceipt;
+      const snapshot = receipt?.sourceSnapshot;
       const lessons = lessonNumbersForClaimRow(row);
       const candidates = visibleArtifacts.filter(
         (artifact) => lessons.size === 0 || (artifact.lessonNumber > 0 && lessons.has(artifact.lessonNumber)),
@@ -715,12 +753,33 @@ export async function bindRenderedClaimSupport(sourceRows = [], artifacts = []) 
         const claim = cleanText(check?.claim, 500);
         const quote = cleanText(check?.quote, 600);
         const normalizedClaim = normalizedClaimText(claim);
+        const quoteBytes = new TextEncoder().encode(quote).byteLength;
+        const quoteSha256 = quote ? await sha256Text(quote) : '';
+        const snapshotSha256 = cleanText(snapshot?.retrievedSnapshotSha256, 80);
+        const snapshotBytes = Number(snapshot?.retrievedSnapshotBytes);
+        const quoteByteStart = Number(check?.quoteByteStart);
+        const quoteByteEnd = Number(check?.quoteByteEnd);
         if (
           !normalizedClaim ||
           normalizedClaim !== normalizedClaimText(quote) ||
           !cleanText(check?.sourceId, 160) ||
           cleanText(check?.sourceId, 160) !== cleanText(row?.id, 160) ||
           !cleanText(check?.locator, 200) ||
+          cleanText(snapshot?.sourceId, 160) !== cleanText(row?.id, 160) ||
+          cleanText(snapshot?.protocol, 120) !== 'retrieved-source-snapshot-sha256-v1' ||
+          !/^[a-f0-9]{64}$/i.test(snapshotSha256) ||
+          !Number.isInteger(snapshotBytes) ||
+          snapshotBytes <= 0 ||
+          cleanText(check?.retrievedSnapshotSha256, 80) !== snapshotSha256 ||
+          Number(check?.retrievedSnapshotBytes) !== snapshotBytes ||
+          !Number.isInteger(quoteByteStart) ||
+          !Number.isInteger(quoteByteEnd) ||
+          quoteByteStart < 0 ||
+          quoteByteEnd <= quoteByteStart ||
+          quoteByteEnd > snapshotBytes ||
+          quoteByteEnd - quoteByteStart !== quoteBytes ||
+          !/^[a-f0-9]{64}$/i.test(cleanText(check?.sourcePassageSha256, 80)) ||
+          cleanText(check?.sourcePassageSha256, 80) !== quoteSha256 ||
           check?.quoteInSnapshot !== true ||
           check?.entailed !== true ||
           check?.semanticSupport !== true
@@ -734,7 +793,7 @@ export async function bindRenderedClaimSupport(sourceRows = [], artifacts = []) 
             claimId: cleanText(check?.claimId, 200) || `claim-${boundChecks.length + 1}`,
             renderedLocation: artifact.path,
             verifierVersion: RENDERED_CLAIM_VERIFIER_VERSION,
-            sourcePassageSha256: await sha256Text(quote),
+            sourcePassageSha256: quoteSha256,
             claimSha256: await sha256Text(claim),
             renderedArtifactSha256: artifact.sha256,
             method: RENDERED_CLAIM_VERIFIER_VERSION,
@@ -754,6 +813,7 @@ export async function bindRenderedClaimSupport(sourceRows = [], artifacts = []) 
           construct: 'rendered-exact-source-claim-support',
           semanticSupport: true,
           readinessEligible: true,
+          sourceSnapshot: snapshot,
           claimBoundary:
             'This receipt proves that specific learner-visible claims are byte-bound exact copies of admitted source passages. It does not validate unsupported surrounding prose or classroom effectiveness.',
           checks: boundChecks,

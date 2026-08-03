@@ -633,7 +633,7 @@ describe('Algi V0 source receipts', () => {
     const sourceId = researched ? `wikipedia:${title}` : `openstax:test#${index}`;
     const anchor = (quote) => ({ src: sourceId, loc: title, quote, tier: 2 });
     const definition = `${title} is a source anchored idea with a distinct purpose in this instructional domain.`;
-    return {
+    const result = {
       id: researched ? `researched/concept-${index}` : `test/concept-${index}`,
       term: title,
       aliases: [],
@@ -680,6 +680,27 @@ describe('Algi V0 source receipts', () => {
           }
         : { origin: 'genome' },
     };
+    if (researched) {
+      const claims = [result.definition, ...result.facts].map((entry, claimIndex) => {
+        const quoteBytes = new TextEncoder().encode(entry.text).byteLength;
+        return {
+          sourceId,
+          locator: title,
+          quote: entry.text,
+          retrievedSnapshotSha256: 'a'.repeat(64),
+          retrievedSnapshotBytes: 4096,
+          quoteByteStart: claimIndex * 512,
+          quoteByteEnd: claimIndex * 512 + quoteBytes,
+          quoteSha256: 'b'.repeat(64),
+        };
+      });
+      result.provenance.sourceSnapshot = {
+        protocol: 'retrieved-source-snapshot-sha256-v1',
+        sources: [{ sourceId, retrievedSnapshotSha256: 'a'.repeat(64), retrievedSnapshotBytes: 4096 }],
+        claims,
+      };
+    }
+    return result;
   };
 
   it('carries researched attribution through the compact parser into the lesson overlay', () => {

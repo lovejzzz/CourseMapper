@@ -71,6 +71,8 @@ function assessmentReceipt({ passedChecks = 15, totalChecks = 15 } = {}) {
 
 function claimBoundSourceRow(index) {
   const claim = `Exact rendered source statement for lesson ${index}.`;
+  const snapshotSha256 = String(index).repeat(64).slice(0, 64);
+  const quoteBytes = new TextEncoder().encode(claim).byteLength;
   return {
     id: `bound-source-${index}`,
     title: `Bound source ${index}`,
@@ -85,13 +87,26 @@ function claimBoundSourceRow(index) {
       minimumScore: 1,
       semanticSupport: true,
       readinessEligible: true,
+      sourceSnapshot: {
+        protocol: 'retrieved-source-snapshot-sha256-v1',
+        sourceId: `bound-source-${index}`,
+        retrievedSnapshotSha256: snapshotSha256,
+        retrievedSnapshotBytes: quoteBytes + 20,
+      },
       checks: [
         {
           sourceId: `bound-source-${index}`,
           locator: 'lead paragraph',
           quote: claim,
           claim,
+          retrievedSnapshotSha256: snapshotSha256,
+          retrievedSnapshotBytes: quoteBytes + 20,
+          quoteByteStart: 10,
+          quoteByteEnd: 10 + quoteBytes,
           renderedLocation: `Lesson Plans/Lesson ${String(index).padStart(2, '0')} - Lesson Plans.docx`,
+          sourcePassageSha256: 'a'.repeat(64),
+          claimSha256: 'b'.repeat(64),
+          renderedArtifactSha256: 'c'.repeat(64),
           quoteInSnapshot: true,
           entailed: true,
           semanticSupport: true,

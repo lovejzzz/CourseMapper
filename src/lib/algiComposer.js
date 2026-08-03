@@ -558,7 +558,7 @@ export function buildResearchProvider({
   gapMs = 300,
   signal,
   timeoutMs = 8000,
-  maxRequests = 20,
+  maxRequests = 24,
   fetchImpl = globalThis.fetch,
 } = {}) {
   if (!enabled) return null;
@@ -573,7 +573,7 @@ export function buildResearchProvider({
     if (cache.has(cacheKey)) return cache.get(cacheKey);
     if (requestCount >= maxRequests) throw new Error(`algi-research-budget-exhausted:${maxRequests}`);
     const request = (async () => {
-      for (let attempt = 0; attempt < 2; attempt += 1) {
+      for (let attempt = 0; attempt < 3; attempt += 1) {
         if (requestCount >= maxRequests) throw new Error(`algi-research-budget-exhausted:${maxRequests}`);
         let origin = 'unknown';
         try {
@@ -581,7 +581,11 @@ export function buildResearchProvider({
         } catch {}
         // DOAJ asks automated clients to leave roughly half a second between
         // calls; Wikipedia's batched read path is safe at the default gap.
-        const providerGapMs = origin.includes('doaj.org') ? Math.max(600, gapMs) : gapMs;
+        const providerGapMs = origin.includes('doaj.org')
+          ? Math.max(600, gapMs)
+          : origin.includes('wikipedia.org')
+            ? Math.max(800, gapMs)
+            : gapMs;
         const wait = (lastByOrigin.get(origin) || 0) + providerGapMs - Date.now();
         await waitForResearchGap(wait, signal);
         throwIfAlgiAborted(signal);
@@ -602,11 +606,11 @@ export function buildResearchProvider({
             headers: { Accept: accept },
             signal: controller.signal,
           });
-          if (response.status === 429 && attempt === 0) {
+          if (response.status === 429 && attempt < 2) {
             const retryAfterSeconds = Number(response.headers?.get?.('retry-after'));
             const retryMs = Number.isFinite(retryAfterSeconds)
-              ? Math.min(4000, Math.max(750, retryAfterSeconds * 1000))
-              : Math.max(1200, gapMs * 4);
+              ? Math.min(8000, Math.max(1000, retryAfterSeconds * 1000))
+              : Math.max(1500 * 2 ** attempt, gapMs * 4);
             await waitForResearchGap(retryMs, signal);
             continue;
           }

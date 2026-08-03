@@ -9,6 +9,7 @@ import {
   lexicalRelevance,
   researchQueryForTopic,
   directResearchTitles,
+  attachKernelSourceSnapshotReceipt,
   cosine,
   buildKernelFromArticle,
   buildDoajProvider,
@@ -421,24 +422,53 @@ describe('course-domain research alignment', () => {
     expect(securityTitles).not.toContain('Integrity');
   });
 
-  it('routes programming and data-analysis lessons to canonical concept families', () => {
+  it('derives programming and data-analysis candidates generically from unseen noun phrases', () => {
     const context =
       'Applied Civic Data Analysis · Python data types · Conditional branching · Functions and automated tests · Pandas cleaning';
-    expect(directResearchTitles('Python data types and expressions', context)).toEqual(
-      expect.arrayContaining(['Data type', 'Expression (computer science)', 'Python (programming language)']),
+    const programming = directResearchTitles('Binary trees and graph traversals', context);
+    const mathematics = directResearchTitles('Eigenvalues and vector spaces', 'Advanced Linear Algebra');
+    const policy = directResearchTitles(
+      'Environmental impact assessments and carbon pricing',
+      'Environmental Policy Studio',
     );
-    expect(directResearchTitles('Conditional branching and loops', context)).toEqual(
-      expect.arrayContaining(['Control flow', 'Conditional (computer programming)', 'For loop']),
+
+    expect(programming).toEqual(
+      expect.arrayContaining(['Binary tree', 'graph traversal', 'Binary tree (computer science)']),
     );
-    expect(directResearchTitles('Functions and automated tests', context)).toEqual(
-      expect.arrayContaining(['Function (computer programming)', 'Unit testing']),
-    );
-    expect(directResearchTitles('Pandas tabular data cleaning', context)).toEqual(
+    expect(mathematics).toEqual(expect.arrayContaining(['Eigenvalue', 'vector space', 'Eigenvalue (mathematics)']));
+    expect(policy).toEqual(expect.arrayContaining(['Environmental impact assessment', 'carbon pricing']));
+    expect(directResearchTitles('Pandas tabular data cleaning', context)).not.toEqual(
       expect.arrayContaining(['Data cleansing', 'Data frame', 'Pandas (software)']),
     );
-    expect(directResearchTitles('Reproducible visualization and uncertainty', context)).toEqual(
-      expect.arrayContaining(['Reproducibility', 'Data visualization', 'Uncertainty quantification']),
-    );
+  });
+
+  it('binds admitted quotes to a complete retrieved snapshot digest and byte offsets', async () => {
+    const quote = 'A binary tree is a tree data structure in which each node has at most two children.';
+    const sourceId = 'wikipedia:Binary tree';
+    const snapshotText = `Lead material. ${quote} Additional context.`;
+    const kernel = {
+      id: 'binary-tree',
+      term: 'Binary tree',
+      definition: { text: quote, anchor: { src: sourceId, loc: 'lead paragraph', quote } },
+      facts: [],
+      provenance: { origin: RESEARCH_ORIGIN },
+    };
+
+    const bound = await attachKernelSourceSnapshotReceipt(kernel, { [sourceId]: snapshotText });
+    const source = bound.provenance.sourceSnapshot.sources[0];
+    const claim = bound.provenance.sourceSnapshot.claims[0];
+
+    expect(bound.provenance.sourceSnapshot.protocol).toBe('retrieved-source-snapshot-sha256-v1');
+    expect(source).toMatchObject({ sourceId, retrievedSnapshotBytes: new TextEncoder().encode(snapshotText).length });
+    expect(source.retrievedSnapshotSha256).toMatch(/^[a-f0-9]{64}$/);
+    expect(claim).toMatchObject({
+      sourceId,
+      locator: 'lead paragraph',
+      retrievedSnapshotSha256: source.retrievedSnapshotSha256,
+      retrievedSnapshotBytes: source.retrievedSnapshotBytes,
+    });
+    expect(claim.quoteByteEnd - claim.quoteByteStart).toBe(new TextEncoder().encode(quote).length);
+    expect(claim.quoteSha256).toMatch(/^[a-f0-9]{64}$/);
   });
 
   it('routes oral-history methods to interview, transcript, analysis, and public-history sources', () => {
@@ -1105,6 +1135,25 @@ describe('the research flag is opt-in', () => {
     });
     await expect(recovered.httpJson('https://example.test/rate-limited')).resolves.toEqual({ recovered: true });
     expect(recovered.diagnostics()).toMatchObject({ requestCount: 2, maxRequests: 2 });
+  });
+
+  it('recovers two consecutive 429 responses without starting a new course transaction', async () => {
+    const { buildResearchProvider, ALGI_RESEARCH_FLAG } = await import('../../algiComposer.js');
+    const storage = { getItem: (key) => (key === ALGI_RESEARCH_FLAG ? 'on' : null) };
+    let calls = 0;
+    const recovered = buildResearchProvider({
+      storage,
+      gapMs: 0,
+      maxRequests: 3,
+      fetchImpl: async () => {
+        calls += 1;
+        if (calls < 3) return { ok: false, status: 429, headers: { get: () => '0' } };
+        return { ok: true, status: 200, headers: { get: () => null }, json: async () => ({ recovered: true }) };
+      },
+    });
+
+    await expect(recovered.httpJson('https://example.test/repeated-rate-limit')).resolves.toEqual({ recovered: true });
+    expect(recovered.diagnostics()).toMatchObject({ requestCount: 3, maxRequests: 3 });
   });
 });
 

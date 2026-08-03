@@ -61,6 +61,20 @@ const META_SIZE = 18;
 // characterSpacing is in twentieths of a point: 16 ≈ 0.8pt letter tracking.
 const LABEL_TRACKING = 16;
 export const LINE_SP = 276;
+
+// Keep long per-lesson export titles inside the masthead in Word-compatible
+// renderers. LibreOffice can otherwise pull the first line of a long Title
+// paragraph into the tracked label above it. The thresholds are intentionally
+// based only on normalized title length, so this works for any course rather
+// than recognizing particular lesson names.
+export function mastheadTitleSize(title) {
+  const length = String(title || '')
+    .replace(/\s+/g, ' ')
+    .trim().length;
+  if (length > 96) return 28;
+  if (length > 72) return 32;
+  return H1_SIZE;
+}
 const SINGLE_SP = 252;
 
 function formatSourceArtifact(artifact) {
@@ -114,6 +128,7 @@ export function formatAssessmentBlockEntry(entry = {}) {
 export function buildDocxTitleChildren(docx, courseName, label, options = {}) {
   const { Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle, PageBreak } = docx;
   const theme = activeTheme();
+  const titleSize = mastheadTitleSize(courseName);
   const children = [];
   // Cover page for multi-lesson documents: course identity gets a designed
   // first page instead of dropping straight into Lesson 1.
@@ -193,7 +208,7 @@ export function buildDocxTitleChildren(docx, courseName, label, options = {}) {
         new TextRun({
           text: courseName || 'Course',
           bold: true,
-          size: H1_SIZE,
+          size: titleSize,
           font: FONT_HEAD,
           color: theme.headingColor,
         }),

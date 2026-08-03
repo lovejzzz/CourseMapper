@@ -15,8 +15,8 @@ export const CURRENT_RELEASE = {
     'Research planning uses course and lesson context to select source families without embedding one course’s facts, while source admission fails closed when a claim cannot be bound to the retrieved bytes.',
     'The exported ZIP independently reconstructs rendered-claim support across DOCX, PPTX, and text artifacts and verifies objective-to-task-to-student-evidence-to-rubric coherence.',
     'The honest deterministic ledger now awards evidence-capped grounding and assessment-coherence points with exact reasons, while retaining separate curriculum, texture, and package-integrity dimensions.',
-    'A fresh local six-lesson package scores 95/100 under grader 1.15.7: 21/25 grounding, 15/15 assessment coherence, and zero P0/P1/P2 findings; this remains automated engineering evidence, not instructor or classroom validation.',
-    'Six Roundtable rounds shaped the learner architecture. A separate exact-commit and production-package audit remains the checkpoint gate, and Gemma weights plus the optional adapter remain unchanged.',
+    'After Roundtable rejected the first 95-point candidate, a fresh repaired local package scores 87/100 under grader 1.15.8: 13/25 grounding, 15/15 assessment coherence, and zero P0/P1/P2 findings. The stricter score is the accepted local evidence.',
+    'Six design rounds and a separate nine-turn exact-commit audit shaped and challenged the learner architecture. A fresh production package must still clear the 15/25 grounding gate; Gemma weights plus the optional adapter remain unchanged.',
   ],
   landingHighlights: [
     'Claims keep their source identity.',
@@ -37,8 +37,8 @@ export const CURRENT_RELEASE = {
     },
     browser: {
       path: 'evaluation/release-proofs/v0.17.11-browser-preflight.json',
-      sha256: '5f74a14c07193d684af84e2df106665b386eda2001f1cb3f785e97b6fe3baae8',
-      bytes: 3321,
+      sha256: 'db704a6b6e416d84cf8e8541885b210b356d833ec8bddd848f7b185534dca8bf',
+      bytes: 4011,
     },
     auditCommand: 'npm run audit:release-history',
   },
