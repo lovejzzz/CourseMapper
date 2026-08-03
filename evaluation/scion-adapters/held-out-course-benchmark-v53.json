@@ -30,7 +30,7 @@
     "path": "tests/lib/deepQualityGrader.js",
     "sha256": "d19641f8492fafa979c47ee8ea178f7277d0c09e485908b4dfa326a3d9bfbfea",
     "implementationReceiptProtocol": "module-implementation-receipt-v1",
-    "implementationSha256": "f0283c6bebdf6b3a8c00e10e3016a608e025f6ebb6073c5d49f682537dce7a5e",
+    "implementationSha256": "5a964508f07e72633dbf24725f284b1b0c283671fab70f3271110e2685c991b7",
     "implementationFileCount": 34
   },
   "courses": [

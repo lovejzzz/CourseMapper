@@ -70,6 +70,25 @@ describe('Algi course research planning', () => {
     ]);
   });
 
+  it('inherits one bounded parent-domain disambiguator across clause revisions', () => {
+    const plan = planAlgiCourseResearch({
+      courseName: 'Applied Programming and Statistics',
+      lessons: [{ lessonId: 'lesson-1', title: 'Inputs, outputs, debugging, deployment, and review' }],
+    });
+
+    const variants = providerQueryVariantsForLesson(
+      plan,
+      'Inputs, outputs, debugging, deployment, and review',
+      'wikipedia',
+    );
+    expect(variants).toHaveLength(4);
+    expect(variants.slice(1)).toEqual([
+      '"inputs" computer programming',
+      '"outputs" computer programming',
+      '"debugging" computer programming',
+    ]);
+  });
+
   it('lets biomedical course context outrank collision-prone programming words', () => {
     const plan = planAlgiCourseResearch({
       courseName: 'Molecular Biology',

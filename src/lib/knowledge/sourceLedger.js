@@ -129,6 +129,10 @@ const COMPUTER_SCIENCE_BROAD_LANGUAGE_CONCEPT_RE =
   /^(?:python(?:\s+programming(?:\s+language)?)?|programming|coding)$/i;
 const COMPUTER_SCIENCE_BROAD_LANGUAGE_SOURCE_PROOF_RE =
   /(?:docs\.python\.org|python\.org\/doc)|\b(?:python\s+programming|python\s+language|programming\s+language|software\s+development|computer\s+program|source\s+code|coding|algorithm|data\s+structures?|control\s+flow|unit\s+tests?|pytest|debugging)\b/i;
+const STATISTICAL_TEST_CONCEPT_RE =
+  /\b(?:hypothesis tests?|statistical tests?|significance tests?|confidence intervals?|p[-\s]?values?)\b/i;
+const STATISTICAL_TEST_SOURCE_RE =
+  /\b(?:alternative hypothesis|confidence intervals?|hypothesis tests?|null hypothesis|p[-\s]?values?|statistical hypothesis testing|statistical significance)\b/i;
 const DATABASE_COURSE_RE =
   /\b(?:database systems?|database management|relational databases?|\bsql\b|data management systems?)\b/i;
 const DATABASE_TRANSACTION_TOPIC_RE =
@@ -198,9 +202,10 @@ const COMPUTER_SCIENCE_TOPIC_ANCHORS = [
       /\b(?:exceptions?\s+(?:in\s+python|in\s+programming|handling)|exception\s+handling|try\s*\/?\s*except|try[-\s]catch|python\s+exceptions?)\b/i,
   },
   {
-    concept: /\b(?:tests?|testing|test\s+automation)\b/i,
+    concept:
+      /\b(?:automated\s+tests?|programming\s+tests?|software\s+testing|test\s+automation|unit\s+tests?|pytest|unittest)\b/i,
     source:
-      /\b(?:automated\s+tests?|test\s+automation|unit\s+tests?|software\s+testing|programming\s+tests?|test[-\s]driven|pytest|unittest)\b/i,
+      /(?:\b(?:unit\s+tests?|software\s+testing|programming\s+tests?|test[-\s]driven|pytest|unittest)\b|(?=.*\b(?:automated\s+tests?|test\s+automation)\b)(?=.*\b(?:application\s+under\s+test|code|computer\s+programs?|continuous\s+integration|software\s+development|software\s+testing)\b))/i,
   },
   {
     concept: /\bdebugging\b/i,
@@ -1132,8 +1137,9 @@ export function isComputerScienceWeakSource(source, courseGraph) {
   if (isCanonicalComputerScienceOerSource(source)) return false;
   if (hasOnlyArtifactConceptLinks(source)) return true;
   const text = sourceSearchText(source);
-  if (COMPUTER_SCIENCE_FALSE_FRIEND_RE.test(text)) return true;
   const conceptText = sourceConceptText(source);
+  if (STATISTICAL_TEST_CONCEPT_RE.test(conceptText) && STATISTICAL_TEST_SOURCE_RE.test(text)) return false;
+  if (COMPUTER_SCIENCE_FALSE_FRIEND_RE.test(text)) return true;
   const conceptLabels = (Array.isArray(source?.conceptLinks) ? source.conceptLinks : [])
     .map((link) => cleanText(typeof link === 'string' ? link : link?.label || link?.id || '', 160))
     .filter(Boolean);

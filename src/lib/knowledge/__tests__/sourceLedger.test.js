@@ -337,6 +337,17 @@ describe('trusted source ledger', () => {
     ).toBe(true);
     expect(
       isComputerScienceWeakSource(
+        {
+          title: 'Statistical hypothesis testing',
+          evidence:
+            'A statistical hypothesis test evaluates a null hypothesis and reports a p-value for statistical significance.',
+          conceptLinks: [{ label: 'Hypothesis tests and confidence intervals' }],
+        },
+        courseGraph,
+      ),
+    ).toBe(false);
+    expect(
+      isComputerScienceWeakSource(
         source(
           'Best practices and tools in R and Python for lipidomics and metabolomics data',
           'A review of statistical processing and visualization in omics research.',
@@ -2808,12 +2819,41 @@ describe('trusted source ledger', () => {
       isComputerScienceWeakSource(
         {
           title: 'Test automation',
-          evidence: 'Test automation uses software to control automated tests and compare actual outcomes.',
+          evidence:
+            'In software testing, test automation uses software to control automated tests and compare actual outcomes.',
           conceptLinks: [{ label: 'Functions and automated tests' }, { label: 'Test automation' }],
         },
         graph,
       ),
     ).toBe(false);
+    for (const source of [
+      {
+        title: 'Automated vehicle test system',
+        evidence: 'Vehicle test automation repeats brake and engine measurements on a dynamometer.',
+      },
+      {
+        title: 'Automated laboratory testing',
+        evidence: 'Laboratory test automation moves clinical samples through diagnostic instruments.',
+      },
+      {
+        title: 'Automated medical screening',
+        evidence: 'Automated tests screen patient specimens for diagnostic markers.',
+      },
+      {
+        title: 'Industrial test automation',
+        evidence: 'Factory test automation repeats electrical measurements on assembled equipment.',
+      },
+    ]) {
+      expect(
+        isComputerScienceWeakSource(
+          {
+            ...source,
+            conceptLinks: [{ label: 'Functions and automated tests' }, { label: 'Automated tests' }],
+          },
+          graph,
+        ),
+      ).toBe(true);
+    }
     expect(
       isComputerScienceWeakSource(
         {

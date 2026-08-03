@@ -8,6 +8,7 @@ import {
   explanatoryScore,
   lexicalRelevance,
   researchQueryForTopic,
+  contentTokens,
   directResearchTitles,
   attachKernelSourceSnapshotReceipt,
   cosine,
@@ -1006,7 +1007,7 @@ describe('teaching atoms from the source (gap 3)', () => {
 
   it('preserves a compact topic-relevant source concept instead of collapsing every article to the lesson title', () => {
     const built = buildKernelFromArticle({
-      topic: 'bioremediation',
+      topic: 'phytoremediation approaches',
       title: 'Phytoremediation approaches to bioremediation of contaminated water',
       extract: [
         'Phytoremediation is the use of plants and associated microorganisms to remove or contain environmental contaminants.',
@@ -1067,7 +1068,8 @@ describe('relevance scoring', () => {
 
   it('normalizes scientific morphology used by environmental microbiology sources', () => {
     expect(lexicalRelevance('microbial risk', 'microbiological risk')).toBe(1);
-    expect(lexicalRelevance('bioremediation', 'phytoremediation')).toBe(1);
+    expect(lexicalRelevance('bioremediation', 'phytoremediation')).toBe(0);
+    expect(lexicalRelevance('phytoremediation', 'phytoremediation methods')).toBe(1);
     expect(lexicalRelevance('pathogens', 'pathogenic microorganisms')).toBeGreaterThan(0);
   });
 
@@ -1988,7 +1990,7 @@ describe('lesson research admission', () => {
         'A function supports reuse because the same operation can be invoked from multiple program locations.',
       ].join('\n'),
       'Test automation': [
-        'Test automation is the use of software to control the execution of tests and compare actual outcomes with predicted outcomes.',
+        'In software testing, test automation is the use of software to control the execution of tests and compare actual outcomes with predicted outcomes.',
         'Automated tests can repeat checks after a program change and expose a regression.',
         'Test automation records a visible result so a failed expectation can guide revision.',
       ].join('\n'),
@@ -2069,10 +2071,106 @@ describe('lesson research admission', () => {
     expect(queries).toEqual(
       expect.arrayContaining(['"functions" computer programming', '"automated tests" computer programming']),
     );
-    expect(result.targetedSearches).toBe(2);
+    expect(result.targetedSearches).toBe(3);
     expect(result.byTopic.get(topic).map((kernel) => kernel.term)).toEqual(
       expect.arrayContaining(['Function', 'Test automation']),
     );
+  });
+
+  it('retains successful clause evidence when a sibling query fails', async () => {
+    const topic = 'Functions and automated tests';
+    const queries = [];
+    const functionExtract = [
+      'A function in computer programming is a named sequence of program instructions that performs a specific task.',
+      'A function accepts parameters and can return a value to the calling program.',
+      'A function supports reuse because the same operation can be invoked from multiple program locations.',
+    ].join('\n');
+    const provider = {
+      id: 'wikipedia',
+      sourceKind: 'open encyclopedia',
+      supportsDirectTitles: false,
+      license: 'CC BY-SA 4.0',
+      searchArticles: async (query) => {
+        queries.push(query);
+        if (/^"functions" computer programming$/i.test(query)) {
+          return {
+            'Function (computer programming)': {
+              title: 'Function (computer programming)',
+              extract: functionExtract,
+            },
+          };
+        }
+        if (/^"automated tests" computer programming$/i.test(query)) throw new Error('HTTP 429');
+        return {};
+      },
+      search: async () => [],
+      articles: async () => ({}),
+      article: async () => null,
+      sourceIdFor: (title) => `wikipedia:${title}`,
+      attributionFor: () => 'Wikipedia contributors',
+    };
+    const researchPlan = planAlgiCourseResearch({
+      courseName: 'Applied Programming and Statistics',
+      lessons: [{ lessonId: 'lesson-1', title: topic }],
+    });
+
+    const result = await researchLessonKernelSets([topic], {
+      provider,
+      courseContext: 'Applied Programming and Statistics',
+      researchPlan,
+      providerId: 'wikipedia',
+      want: 4,
+      minimum: 3,
+      maxTargetedFallbacks: 1,
+      maxTargetedQueries: 3,
+      floor: 0.15,
+    });
+
+    expect(result.targetedSearches).toBe(3);
+    expect(result.errors).toEqual(expect.arrayContaining([expect.stringContaining('HTTP 429')]));
+    expect(result.byTopic.get(topic).map((kernel) => kernel.term)).toContain('Function');
+  });
+
+  it('caps targeted clause requests across the provider transaction', async () => {
+    const topics = ['Alpha and beta', 'Gamma and delta'];
+    const queries = [];
+    const provider = {
+      id: 'wikipedia',
+      sourceKind: 'open encyclopedia',
+      supportsDirectTitles: false,
+      license: 'CC BY-SA 4.0',
+      searchArticles: async (query) => {
+        queries.push(query);
+        return {};
+      },
+      search: async () => [],
+      articles: async () => ({}),
+      article: async () => null,
+      sourceIdFor: (title) => `wikipedia:${title}`,
+      attributionFor: () => 'Wikipedia contributors',
+    };
+    const researchPlan = planAlgiCourseResearch({
+      courseName: 'General methods',
+      lessons: topics.map((title, index) => ({ lessonId: `lesson-${index + 1}`, title })),
+    });
+
+    const result = await researchLessonKernelSets(topics, {
+      provider,
+      courseContext: 'General methods',
+      researchPlan,
+      providerId: 'wikipedia',
+      maxTargetedFallbacks: 2,
+      maxTargetedQueries: 1,
+    });
+
+    expect(result.targetedSearches).toBe(1);
+    expect(queries).toHaveLength(2);
+  });
+
+  it('keeps reproducibility distinct from biological reproduction', () => {
+    expect(contentTokens('reproducibility reproduction')).toEqual(['reproduc', 'reproduction']);
+    expect(contentTokens('visualization visual narratives')).toEqual(['visualization', 'visual', 'narrativ']);
+    expect(contentTokens('automation automated automatic')).toEqual(['automat', 'automat', 'automatic']);
   });
 
   it('composes waterborne pathogens from three admitted source concepts', async () => {

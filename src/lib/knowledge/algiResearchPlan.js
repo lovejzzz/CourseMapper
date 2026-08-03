@@ -52,6 +52,7 @@ const APPLICATION =
   /\b(?:application|case|decision|design|diagnos\w*|field|intervention|law|policy|practice|project|regulation|risk|standard|strategy)\b/i;
 const SEARCH_WRAPPER =
   /^(?:application|applications|comparison|comparisons|evaluation|evaluations|evidence|implementation|implications|introduction|overview|planning|practice|practices|trade-off|trade-offs)$/i;
+const MAX_QUERY_VARIANTS_PER_LESSON = 4;
 
 function clean(value = '') {
   return String(value || '')
@@ -98,7 +99,21 @@ function quoted(value = '') {
   return `"${clean(value).replace(/"/g, '')}"`;
 }
 
-function queryForProvider({ providerId, title, domainTerms, domain }) {
+function coarseDisambiguatorForProvider({ providerId, title, domainTerms, domain }) {
+  if (providerId !== 'wikipedia') {
+    const titleTerms = new Set(tokens(title));
+    return domainTerms.find((term) => !titleTerms.has(term)) || '';
+  }
+  const programmingTopic =
+    /\b(?:algorithm\w*|automated tests?|branch\w*|code|conditional\w*|data types?|debugg\w*|deploy\w*|exceptions?|expressions?|files?|functions?|inputs?|loops?|modules?|outputs?|program\w*|python|scope|software tests?|testing|unit tests?)\b/i.test(
+      title,
+    );
+  if (domain === 'quantitative') return programmingTopic ? 'computer programming' : 'data analysis';
+  if (domain === 'biomedical') return 'biology';
+  return '';
+}
+
+function queryForProvider({ providerId, title, domainTerms, domain, disambiguatorOverride = '' }) {
   if (providerId === 'wikipedia') {
     // Encyclopedia search should look for the concepts an instructor named,
     // not the whole pedagogical wrapper as one exact page title. A query such
@@ -114,23 +129,13 @@ function queryForProvider({ providerId, title, domainTerms, domain }) {
       )
       .filter((terms) => terms.length > 0)
       .map((terms) => terms.join(' '));
-    const programmingTopic =
-      /\b(?:algorithm\w*|automated tests?|branch\w*|code|conditional\w*|data types?|expressions?|functions?|loops?|program\w*|python|software tests?|unit tests?)\b/i.test(
-        title,
-      );
     // The course wins over a collision-prone lesson word. "Gene expression"
     // and "cardiac function" are not programming topics merely because their
     // titles contain expression/function. Only a course already classified as
     // quantitative may use the title vocabulary to choose between computing
     // and broader data-analysis disambiguation.
     const coarseDisambiguator =
-      domain === 'quantitative'
-        ? programmingTopic
-          ? 'computer programming'
-          : 'data analysis'
-        : domain === 'biomedical'
-          ? 'biology'
-          : '';
+      disambiguatorOverride || coarseDisambiguatorForProvider({ providerId, title, domainTerms, domain });
     if (clauses.length > 1) {
       const concepts = `(${clauses.join(' OR ')})`;
       return [concepts, coarseDisambiguator].filter(Boolean).join(' ');
@@ -145,8 +150,8 @@ function queryForProvider({ providerId, title, domainTerms, domain }) {
   // the index held papers on cooling interventions. Preserve explicit concept
   // sides, remove only instructional wrapper words, and let the downstream
   // relevance/entailment gates decide which returned records are admissible.
-  const titleTerms = new Set(tokens(title));
-  const disambiguator = domainTerms.find((term) => !titleTerms.has(term)) || '';
+  const disambiguator =
+    disambiguatorOverride || coarseDisambiguatorForProvider({ providerId, title, domainTerms, domain });
   const wrapperHeavy =
     /,\s*(?:implementation|practice|application|comparison|evaluation|trade-offs?)\b/i.test(title) ||
     /\b(?:implementation|practice|evaluation|planning|trade-offs?)\s*$/i.test(title);
@@ -178,15 +183,25 @@ function queryForProvider({ providerId, title, domainTerms, domain }) {
  */
 function queryVariantsForProvider({ providerId, title, domainTerms, domain }) {
   const primary = queryForProvider({ providerId, title, domainTerms, domain });
+  const inheritedDisambiguator = coarseDisambiguatorForProvider({ providerId, title, domainTerms, domain });
   const clauses = clean(title)
     .split(/\s+(?:and|&)\s+|[,;:]/i)
     .map(clean)
-    .filter((clause) => tokens(clause).length > 0);
+    .filter((clause) => tokens(clause).length > 0)
+    .slice(0, MAX_QUERY_VARIANTS_PER_LESSON - 1);
   if (clauses.length < 2) return [primary];
   return unique([
     primary,
-    ...clauses.map((clause) => queryForProvider({ providerId, title: clause, domainTerms, domain })),
-  ]);
+    ...clauses.map((clause) =>
+      queryForProvider({
+        providerId,
+        title: clause,
+        domainTerms,
+        domain,
+        disambiguatorOverride: inheritedDisambiguator,
+      }),
+    ),
+  ]).slice(0, MAX_QUERY_VARIANTS_PER_LESSON);
 }
 
 export function planAlgiCourseResearch({ courseName = '', lessons = [], now = Date.now() } = {}) {
