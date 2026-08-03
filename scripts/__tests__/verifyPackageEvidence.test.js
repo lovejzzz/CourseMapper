@@ -289,16 +289,22 @@ describe('independent package evidence replay', () => {
 
   it('never lets an internally consistent attestation replace a caller-trusted contract root', async () => {
     const contract = courseContractBytes();
+    const alternateContract = Buffer.from(
+      JSON.stringify({
+        ...JSON.parse(contract.toString('utf8')),
+        alternateRootMarker: 'self-consistent-forged-contract',
+      }),
+    );
     const packageZip = await packageBytes({ withAssessment: true });
     const replay = await verifyPackageEvidenceZipBytes(packageZip, {
-      courseContractBytes: contract,
-      expectedCourseContractSha256: sha256(contract),
+      courseContractBytes: alternateContract,
+      expectedCourseContractSha256: sha256(alternateContract),
     });
     const forgedAttestation = Buffer.from(
       JSON.stringify({
         protocol: 'coursemapper-release-evidence-attestation-v1',
         packageSha256: replay.packageSha256,
-        courseContractSha256: '0'.repeat(64),
+        courseContractSha256: sha256(alternateContract),
         evidenceBundleSha256: replay.evidenceBundleSha256,
         scoreLedgerSha256: replay.scoreLedgerSha256,
         verifiedSources: replay.verifiedSources,
@@ -311,7 +317,7 @@ describe('independent package evidence replay', () => {
     );
     await expect(
       verifyPackageEvidenceZipBytes(packageZip, {
-        courseContractBytes: contract,
+        courseContractBytes: alternateContract,
         expectedCourseContractSha256: sha256(contract),
         releaseAttestationBytes: forgedAttestation,
         expectedReleaseAttestationSha256: sha256(forgedAttestation),
