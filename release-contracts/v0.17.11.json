@@ -14,8 +14,8 @@
     ],
     "ciFast": {
       "status": "success",
-      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/30850902593",
-      "note": "All nine exact-commit V65 lanes passed for ccbba4d74397140aafc8dbc6a820995aa9582231."
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/30854770039",
+      "note": "All nine exact-commit V65 lanes passed for 86d154f00d46fedd5a4107aa8233c811417bc6fa with release-history verification owned once by the full-history lineage lane."
     },
     "ciDeep": {
       "status": "pending",
@@ -23,13 +23,13 @@
     },
     "deploy": {
       "status": "success",
-      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/30851467662",
-      "note": "GitHub Pages published the exact green V65 commit before candidate 27 generation."
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/30855278222",
+      "note": "GitHub Pages published the exact green CI-topology repair commit before candidate 28 generation."
     },
     "liveProvider": {
       "status": "success",
-      "url": "https://edutool.dev/?run=v01711-checkpoint-ccbba4d7-c27",
-      "note": "Candidate 27 generated in 29 seconds and passed independent package replay, the V65 structural Office scan, all-file conversion, and representative visual inspection at an honest 91/100."
+      "url": "https://edutool.dev/?run=v01711-checkpoint-86d154f0-c28",
+      "note": "Candidate 28 generated in 31 seconds, independently replayed at 91/100, and emitted 50 Office artifacts byte-identical to the fully rendered and visually inspected candidate 27 set."
     },
     "manualHuman": {
       "status": "pending",
@@ -129,15 +129,15 @@
       "id": "v01711-v65-production-checkpoint",
       "status": "verified-current",
       "changelogHighlightIndex": 5,
-      "highlightSha256": "bab72eb9728a0867208c85edd7721388ddff92267fb3508bca859abd7bec5dbf",
-      "summary": "Candidate 27 binds exact green CI and deployment to fresh production bytes that replay at 91/100 with 5 sources, 60 claims, 29 artifacts, all 6 assessment obligations, and zero P0/P1 findings.",
+      "highlightSha256": "2af8a0940af01394dd365d609665b496dc43d05e8431afe6e9ede44820d1fc0e",
+      "summary": "Candidate 28 binds the simplified exact green CI topology and deployment to fresh production bytes that replay at 91/100 with 5 sources, 60 claims, 29 artifacts, all 6 assessment obligations, and zero P0/P1 findings.",
       "anchors": [
         "docs/V0.17.11_SCION_LEARNER_CHECKPOINT.md",
         "evaluation/release-proofs/v0.17.11-browser-preflight.json",
         "evaluation/release-proofs/v0.17.11-production-package-attestation.json"
       ],
       "proofCommands": [
-        "npm run audit:package-evidence -- <candidate-27-zip> evaluation/release-proofs/v0.17.11-production-course-contract.json evaluation/release-proofs/v0.17.11-production-package-attestation.json 6d398352e449644dbadc2b2fbae16e0e00a2c8bb6a2e817a9af93d41fbc86dbe 5182b64ba6314013de3e6b7e473f807d98a2fbcf0fb9dbb6d8df11f896c45d60"
+        "npm run audit:package-evidence -- <candidate-28-zip> evaluation/release-proofs/v0.17.11-production-course-contract.json evaluation/release-proofs/v0.17.11-production-package-attestation.json b6e9c894d1bddfb824b5fd0abe1d23a2fa0c14578d41330f2b61fc5f1cb3ef29 5182b64ba6314013de3e6b7e473f807d98a2fbcf0fb9dbb6d8df11f896c45d60"
       ],
       "proofScopes": ["doc", "browser-live", "compiled-output", "static-audit"]
     },

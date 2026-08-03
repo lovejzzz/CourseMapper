@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "release": "0.17.11",
-  "recordedAt": "2026-08-03T20:49:31Z",
-  "status": "predeploy-candidate",
+  "recordedAt": "2026-08-03T21:38:58Z",
+  "status": "production-checkpoint",
   "claimBoundary": "This tracked production receipt binds the course-neutral learner architecture to the exact deployed code, physical production ZIP, independently replayed source and assessment evidence, and representative rendered output. It proves the declared deterministic release gates for this package, not universal factual correctness, independent instructor approval, accessibility certification, classroom outcomes, learned-weight improvement, adapter promotion, or paid-reference comparison.",
   "checks": [
     {
@@ -106,13 +106,13 @@
     {
       "mode": "production-physical-zip-and-render-audit",
       "status": "pass",
-      "auditedCommit": "ccbba4d74397140aafc8dbc6a820995aa9582231",
-      "ciRun": 30850902593,
-      "ciUrl": "https://github.com/lovejzzz/CourseMapper/actions/runs/30850902593",
-      "deployRun": 30851467662,
-      "deployUrl": "https://github.com/lovejzzz/CourseMapper/actions/runs/30851467662",
-      "generationSeconds": 29,
-      "zipSha256": "e07c90e75d12d5978726fe6ed96e8fc50083e42429f375bf9e1fc81e75ec5289",
+      "auditedCommit": "86d154f00d46fedd5a4107aa8233c811417bc6fa",
+      "ciRun": 30854770039,
+      "ciUrl": "https://github.com/lovejzzz/CourseMapper/actions/runs/30854770039",
+      "deployRun": 30855278222,
+      "deployUrl": "https://github.com/lovejzzz/CourseMapper/actions/runs/30855278222",
+      "generationSeconds": 31,
+      "zipSha256": "c3be8b91731dfeb08ba9994e5ae6e9105d232717bedd8afcf6591ec5a4ec7f0f",
       "score": 91,
       "dimensions": {
         "curriculumFidelity": 25,
@@ -136,13 +136,20 @@
       "semanticObjects": 1891,
       "semanticObjectsWithDescriptions": 1891,
       "rubricPageSizePoints": "792 x 612",
-      "visualDefectsFound": 0
+      "visualDefectsFound": 0,
+      "officeArtifactByteIdentity": {
+        "status": "pass",
+        "comparedWithCandidate27": 50,
+        "identicalOfficeArtifacts": 50,
+        "changedReportFiles": ["SOURCE_REPORT.md", "SCORE_LEDGER.json", "PACKAGE_MANIFEST.json"],
+        "renderDisposition": "The 50 Office artifacts are byte-identical to the fully converted and visually inspected candidate 27 artifacts, so its 50-file/221-page physical render evidence transfers exactly."
+      }
     },
     {
-      "command": "npm run audit:package-evidence -- /Users/tianxing/Downloads/Applied Civic Data Analysis - Course Materials.zip evaluation/release-proofs/v0.17.11-production-course-contract.json evaluation/release-proofs/v0.17.11-production-package-attestation.json 6d398352e449644dbadc2b2fbae16e0e00a2c8bb6a2e817a9af93d41fbc86dbe 5182b64ba6314013de3e6b7e473f807d98a2fbcf0fb9dbb6d8df11f896c45d60",
+      "command": "npm run audit:package-evidence -- /Users/tianxing/Downloads/Applied Civic Data Analysis - Course Materials (1).zip evaluation/release-proofs/v0.17.11-production-course-contract.json evaluation/release-proofs/v0.17.11-production-package-attestation.json b6e9c894d1bddfb824b5fd0abe1d23a2fa0c14578d41330f2b61fc5f1cb3ef29 5182b64ba6314013de3e6b7e473f807d98a2fbcf0fb9dbb6d8df11f896c45d60",
       "status": "pass",
       "protocol": "coursemapper-package-evidence-replay-v2",
-      "packageSha256": "e07c90e75d12d5978726fe6ed96e8fc50083e42429f375bf9e1fc81e75ec5289",
+      "packageSha256": "c3be8b91731dfeb08ba9994e5ae6e9105d232717bedd8afcf6591ec5a4ec7f0f",
       "verifiedSources": 5,
       "verifiedClaims": 60,
       "verifiedArtifacts": 29,
@@ -152,7 +159,7 @@
       "readinessScore": 91,
       "graderVersion": "1.15.9",
       "courseContractSha256": "5182b64ba6314013de3e6b7e473f807d98a2fbcf0fb9dbb6d8df11f896c45d60",
-      "releaseAttestationSha256": "6d398352e449644dbadc2b2fbae16e0e00a2c8bb6a2e817a9af93d41fbc86dbe",
+      "releaseAttestationSha256": "b6e9c894d1bddfb824b5fd0abe1d23a2fa0c14578d41330f2b61fc5f1cb3ef29",
       "failures": 0
     },
     {
