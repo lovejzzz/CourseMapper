@@ -2103,7 +2103,7 @@ export async function researchLessonKernels(
     ),
   );
   const records = await articleRecords(provider, titles, signal);
-  let directFullExtracts = 0;
+  let fullArticleAttempts = 0;
   const directlyHydratedTitles = new Set();
   for (const title of titles) {
     let article = records.get(title) || { extract: '' };
@@ -2123,16 +2123,20 @@ export async function researchLessonKernels(
     // any full-article evidence. Later grouped/targeted passes can revisit a
     // still-thin lesson after every peer has received the same first chance.
     if (
-      directFullExtracts < 1 &&
+      fullArticleAttempts < 1 &&
       directTitleKeys.has(titleKey) &&
       String(article.extract || '').length < 4000 &&
       typeof provider.fullArticle === 'function'
     ) {
+      // Count the network attempt, not only a successful extract. A missing
+      // page, timeout, or 429 spends the same shared course budget and must not
+      // let an early lesson probe every remaining title before the next lesson
+      // receives its first chance.
+      fullArticleAttempts += 1;
       try {
         const fullArticle = normalizeArticleResult(await provider.fullArticle(article.title || title));
         if (fullArticle.extract) {
           article = fullArticle;
-          directFullExtracts += 1;
           directlyHydratedTitles.add(titleKey);
         }
       } catch (error) {
@@ -2353,10 +2357,12 @@ export async function researchLessonKernels(
       .trim();
     if (
       entryIndex < 1 &&
+      fullArticleAttempts < 1 &&
       currentExtractLength < 4000 &&
       !directlyHydratedTitles.has(entryTitleKey) &&
       typeof provider.fullArticle === 'function'
     ) {
+      fullArticleAttempts += 1;
       try {
         const fullArticle = normalizeArticleResult(await provider.fullArticle(entry.title));
         if (fullArticle.extract) {

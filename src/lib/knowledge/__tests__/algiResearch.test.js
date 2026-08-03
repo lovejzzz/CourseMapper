@@ -1765,6 +1765,44 @@ describe('lesson research admission', () => {
     expect(fullReads).toBe(1);
   });
 
+  it('counts failed deep reads and gives later lessons a first chance before any second attempt', async () => {
+    const topics = ['Alpha methods and beta checks', 'Gamma methods and delta checks'];
+    const attempts = [];
+    const articleFor = (title) => ({
+      title,
+      extract: [
+        `${title} is a documented method for examining ${title} in a bounded system.`,
+        `${title} uses visible evidence because each decision must remain inspectable.`,
+        `${title} records one limitation so later reviewers can distinguish observation from inference.`,
+      ].join('\n'),
+      sourceUrl: `https://en.wikipedia.org/wiki/${encodeURIComponent(title)}`,
+    });
+    const provider = {
+      id: 'wikipedia',
+      sourceKind: 'open encyclopedia',
+      supportsDirectTitles: true,
+      license: 'CC BY-SA 4.0',
+      search: async () => [],
+      articles: async (titles) => Object.fromEntries(titles.map((title) => [title, articleFor(title)])),
+      fullArticle: async (title) => {
+        attempts.push(title);
+        return null;
+      },
+      sourceIdFor: (title) => `wikipedia:${title}`,
+      attributionFor: () => 'Wikipedia contributors',
+    };
+
+    await researchLessonKernelSets(topics, {
+      provider,
+      courseContext: 'General methods',
+      minimum: 3,
+      want: 3,
+      maxTargetedFallbacks: 0,
+    });
+
+    expect(attempts.slice(0, topics.length)).toEqual(topics.map((topic) => directResearchTitles(topic)[0]));
+  });
+
   it('composes waterborne pathogens from three admitted source concepts', async () => {
     const pages = {
       'Waterborne disease': {
