@@ -2122,7 +2122,7 @@ describe('lesson research admission', () => {
       want: 4,
       minimum: 3,
       maxTargetedFallbacks: 1,
-      maxTargetedQueries: 3,
+      maxTargetedSearchRequests: 3,
       floor: 0.15,
     });
 
@@ -2131,7 +2131,7 @@ describe('lesson research admission', () => {
     expect(result.byTopic.get(topic).map((kernel) => kernel.term)).toContain('Function');
   });
 
-  it('caps targeted clause requests across the provider transaction', async () => {
+  it('caps targeted clause requests across the revision burst', async () => {
     const topics = ['Alpha and beta', 'Gamma and delta'];
     const queries = [];
     const provider = {
@@ -2160,7 +2160,7 @@ describe('lesson research admission', () => {
       researchPlan,
       providerId: 'wikipedia',
       maxTargetedFallbacks: 2,
-      maxTargetedQueries: 1,
+      maxTargetedSearchRequests: 1,
     });
 
     expect(result.targetedSearches).toBe(1);

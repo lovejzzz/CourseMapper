@@ -133,6 +133,8 @@ const STATISTICAL_TEST_CONCEPT_RE =
   /\b(?:hypothesis tests?|statistical tests?|significance tests?|confidence intervals?|p[-\s]?values?)\b/i;
 const STATISTICAL_TEST_SOURCE_RE =
   /\b(?:alternative hypothesis|confidence intervals?|hypothesis tests?|null hypothesis|p[-\s]?values?|statistical hypothesis testing|statistical significance)\b/i;
+const NON_STATISTICAL_COMPUTING_TEST_CONCEPT_RE =
+  /\b(?:automat\w*|code|computer\s+program\w*|functions?|program\w*|python|software|unit\s+tests?)\b/i;
 const DATABASE_COURSE_RE =
   /\b(?:database systems?|database management|relational databases?|\bsql\b|data management systems?)\b/i;
 const DATABASE_TRANSACTION_TOPIC_RE =
@@ -1088,6 +1090,19 @@ function hasOnlyArtifactConceptLinks(source = {}) {
   return labels.length > 0 && labels.every((label) => ARTIFACT_ONLY_CONCEPT_RE.test(label));
 }
 
+function hasOnlyStatisticalTestConceptLinks(source = {}) {
+  const labels = (Array.isArray(source?.conceptLinks) ? source.conceptLinks : [])
+    .map((link) => cleanText(typeof link === 'string' ? link : link?.label || link?.id || '', 160))
+    .filter(Boolean)
+    .filter((label) => !ARTIFACT_ONLY_CONCEPT_RE.test(label));
+  return (
+    labels.length > 0 &&
+    labels.every(
+      (label) => STATISTICAL_TEST_CONCEPT_RE.test(label) && !NON_STATISTICAL_COMPUTING_TEST_CONCEPT_RE.test(label),
+    )
+  );
+}
+
 function hasUserExperienceTopicAnchor(source = {}) {
   const conceptText = sourceConceptText(source);
   const text = sourceSearchText(source);
@@ -1138,7 +1153,7 @@ export function isComputerScienceWeakSource(source, courseGraph) {
   if (hasOnlyArtifactConceptLinks(source)) return true;
   const text = sourceSearchText(source);
   const conceptText = sourceConceptText(source);
-  if (STATISTICAL_TEST_CONCEPT_RE.test(conceptText) && STATISTICAL_TEST_SOURCE_RE.test(text)) return false;
+  if (hasOnlyStatisticalTestConceptLinks(source) && STATISTICAL_TEST_SOURCE_RE.test(text)) return false;
   if (COMPUTER_SCIENCE_FALSE_FRIEND_RE.test(text)) return true;
   const conceptLabels = (Array.isArray(source?.conceptLinks) ? source.conceptLinks : [])
     .map((link) => cleanText(typeof link === 'string' ? link : link?.label || link?.id || '', 160))

@@ -2537,7 +2537,7 @@ export async function researchLessonKernelSets(
     groupSize = 3,
     candidatesPerGroup = 24,
     maxTargetedFallbacks = 6,
-    maxTargetedQueries = 8,
+    maxTargetedSearchRequests = 8,
     researchPlan = null,
     providerId = '',
     onProgress = null,
@@ -2669,10 +2669,11 @@ export async function researchLessonKernelSets(
     const plannedVariants = researchPlan
       ? providerQueryVariantsForLesson(researchPlan, topic, effectiveProviderId)
       : [fallbackQuery];
-    // The first variant is the whole-lesson query already used by the grouped
-    // pass. A provider transaction has an explicit query budget in addition
-    // to the lesson cap, so punctuation-heavy titles cannot multiply calls.
-    const remainingTargetedQueries = Math.max(0, Number(maxTargetedQueries) - targetedSearches);
+    // The first variant repeats the whole lesson in isolation after the
+    // breadth pass grouped it with peers. This separate targeted-search budget
+    // bounds only the revision burst; grouped searches and article batches
+    // remain separately bounded by groupSize and batched provider methods.
+    const remainingTargetedQueries = Math.max(0, Number(maxTargetedSearchRequests) - targetedSearches);
     const queries = (plannedVariants.length > 0 ? plannedVariants : [fallbackQuery]).slice(0, remainingTargetedQueries);
     const topicTitles = [];
     for (const query of queries) {

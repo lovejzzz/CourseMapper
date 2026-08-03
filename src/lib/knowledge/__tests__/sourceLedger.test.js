@@ -348,6 +348,20 @@ describe('trusted source ledger', () => {
     ).toBe(false);
     expect(
       isComputerScienceWeakSource(
+        {
+          title: 'Automated medical screening with statistical thresholds',
+          evidence:
+            'Clinical laboratory automation screens patient specimens and reports a p-value against a null hypothesis.',
+          conceptLinks: [
+            { label: 'Functions and automated tests' },
+            { label: 'Hypothesis tests and confidence intervals' },
+          ],
+        },
+        courseGraph,
+      ),
+    ).toBe(true);
+    expect(
+      isComputerScienceWeakSource(
         source(
           'Best practices and tools in R and Python for lipidomics and metabolomics data',
           'A review of statistical processing and visualization in omics research.',
