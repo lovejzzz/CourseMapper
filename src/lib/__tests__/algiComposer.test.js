@@ -681,22 +681,34 @@ describe('Algi V0 source receipts', () => {
         : { origin: 'genome' },
     };
     if (researched) {
-      const claims = [result.definition, ...result.facts].map((entry, claimIndex) => {
+      let normalizedSnapshotText = '';
+      const claims = [result.definition, ...result.facts].map((entry) => {
         const quoteBytes = new TextEncoder().encode(entry.text).byteLength;
-        return {
+        const quoteByteStart = new TextEncoder().encode(normalizedSnapshotText).byteLength;
+        const claim = {
           sourceId,
           locator: title,
           quote: entry.text,
           retrievedSnapshotSha256: 'a'.repeat(64),
-          retrievedSnapshotBytes: 4096,
-          quoteByteStart: claimIndex * 512,
-          quoteByteEnd: claimIndex * 512 + quoteBytes,
+          quoteByteStart,
+          quoteByteEnd: quoteByteStart + quoteBytes,
           quoteSha256: 'b'.repeat(64),
         };
+        normalizedSnapshotText += `${entry.text} `;
+        return claim;
       });
+      const retrievedSnapshotBytes = new TextEncoder().encode(normalizedSnapshotText.trim()).byteLength;
+      for (const claim of claims) claim.retrievedSnapshotBytes = retrievedSnapshotBytes;
       result.provenance.sourceSnapshot = {
-        protocol: 'retrieved-source-snapshot-sha256-v1',
-        sources: [{ sourceId, retrievedSnapshotSha256: 'a'.repeat(64), retrievedSnapshotBytes: 4096 }],
+        protocol: 'retrieved-source-snapshot-sha256-v2',
+        sources: [
+          {
+            sourceId,
+            retrievedSnapshotSha256: 'a'.repeat(64),
+            retrievedSnapshotBytes,
+            normalizedSnapshotText: normalizedSnapshotText.trim(),
+          },
+        ],
         claims,
       };
     }

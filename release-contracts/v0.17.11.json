@@ -104,12 +104,12 @@
       "id": "v01711-evidence-capped-score-ledger",
       "status": "verified-current",
       "changelogHighlightIndex": 4,
-      "summary": "Grader 1.15.8 awards bounded grounding and assessment-coherence credit only from final-package receipts and binds the exact implementation in held-out ruler V52.",
+      "summary": "Grader 1.15.9 awards bounded grounding and assessment-coherence credit only from independently replayable final-package receipts and binds the exact implementation in held-out ruler V53.",
       "anchors": [
         "src/lib/quality/automatedReadinessSignal.js",
         "src/lib/quality/deepQualityGrader.js",
         "src/lib/quality/graderVersion.js",
-        "evaluation/scion-adapters/held-out-course-benchmark-v52.json",
+        "evaluation/scion-adapters/held-out-course-benchmark-v53.json",
         "src/lib/quality/__tests__/automatedReadinessSignal.test.js"
       ],
       "proofCommands": [
@@ -121,7 +121,7 @@
       "id": "v01711-local-87-evidence",
       "status": "verified-current",
       "changelogHighlightIndex": 5,
-      "summary": "The repaired local six-lesson ZIP scores 87/100 with 13/25 grounding, 15/15 assessment coherence, 38/38 export checks, zero encoded findings, and a clean 225-page Office render after the first 95-point candidate was rejected.",
+      "summary": "The repaired local six-lesson ZIP scores 87/100 with 13/25 grounding, 15/15 assessment coherence, 38/38 export checks, zero encoded findings, a clean 225-page Office render, and independent replay of 49 claims across 17 artifacts after the first 95-point candidate was rejected.",
       "anchors": ["docs/V0.17.11_SCION_LEARNER_CHECKPOINT.md"],
       "proofCommands": [
         "npx vitest run src/lib/__tests__/packageZipExporter.test.js src/lib/quality/__tests__/assessmentCoherence.test.js"

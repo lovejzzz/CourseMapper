@@ -582,6 +582,10 @@ export function normalizeTrustedSource(entry = {}, { fallbackId = '', checkedAt 
                     0,
                     Math.floor(Number(rawSupportReceipt.sourceSnapshot.retrievedSnapshotBytes) || 0),
                   ),
+                  normalizedSnapshotText: isLicenseAmbiguous(license)
+                    ? ''
+                    : cleanText(rawSupportReceipt.sourceSnapshot.normalizedSnapshotText, 500000),
+                  contentVerified: rawSupportReceipt.sourceSnapshot.contentVerified === true,
                 },
               }
             : {}),
@@ -663,12 +667,16 @@ export function isClaimBoundSourceLedgerRow(row = {}) {
     return false;
   }
   const snapshot = receipt?.sourceSnapshot;
+  const snapshotText = cleanText(snapshot?.normalizedSnapshotText, 500000);
+  const snapshotBytes = new TextEncoder().encode(snapshotText);
   if (
-    snapshot?.protocol !== 'retrieved-source-snapshot-sha256-v1' ||
+    snapshot?.protocol !== 'retrieved-source-snapshot-sha256-v2' ||
     snapshot?.sourceId !== row?.id ||
     !/^[a-f0-9]{64}$/i.test(cleanText(snapshot?.retrievedSnapshotSha256, 80)) ||
     !Number.isInteger(Number(snapshot?.retrievedSnapshotBytes)) ||
-    Number(snapshot?.retrievedSnapshotBytes) <= 0
+    Number(snapshot?.retrievedSnapshotBytes) <= 0 ||
+    snapshotBytes.byteLength !== Number(snapshot?.retrievedSnapshotBytes) ||
+    snapshot?.contentVerified !== true
   ) {
     return false;
   }
@@ -690,6 +698,10 @@ export function isClaimBoundSourceLedgerRow(row = {}) {
       Number(check?.quoteByteStart) >= 0 &&
       Number(check?.quoteByteEnd) > Number(check?.quoteByteStart) &&
       Number(check?.quoteByteEnd) <= Number(snapshot.retrievedSnapshotBytes) &&
+      cleanText(
+        new TextDecoder().decode(snapshotBytes.slice(Number(check?.quoteByteStart), Number(check?.quoteByteEnd))),
+        500,
+      ) === cleanText(check?.quote, 500) &&
       check?.quoteInSnapshot === true &&
       check?.entailed === true &&
       check?.semanticSupport === true,
@@ -723,6 +735,34 @@ async function sha256Text(value = '') {
   const bytes = new TextEncoder().encode(String(value || ''));
   const digest = await globalThis.crypto.subtle.digest('SHA-256', bytes);
   return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
+/** Replay a source receipt from the normalized bytes that travel in the package. */
+export async function verifySourceSnapshotReceipt(snapshot = {}, check = {}) {
+  const text = cleanText(snapshot?.normalizedSnapshotText, 500000);
+  const bytes = new TextEncoder().encode(text);
+  const byteStart = Number(check?.quoteByteStart);
+  const byteEnd = Number(check?.quoteByteEnd);
+  const quote = cleanText(check?.quote, 600);
+  if (
+    snapshot?.protocol !== 'retrieved-source-snapshot-sha256-v2' ||
+    !text ||
+    !Number.isInteger(byteStart) ||
+    !Number.isInteger(byteEnd) ||
+    byteStart < 0 ||
+    byteEnd <= byteStart ||
+    byteEnd > bytes.byteLength ||
+    Number(snapshot?.retrievedSnapshotBytes) !== bytes.byteLength ||
+    cleanText(check?.retrievedSnapshotSha256, 80) !== cleanText(snapshot?.retrievedSnapshotSha256, 80)
+  ) {
+    return false;
+  }
+  const slicedQuote = cleanText(new TextDecoder().decode(bytes.slice(byteStart, byteEnd)), 600);
+  return (
+    slicedQuote === quote &&
+    (await sha256Text(text)) === cleanText(snapshot?.retrievedSnapshotSha256, 80) &&
+    (await sha256Text(slicedQuote)) === cleanText(check?.sourcePassageSha256, 80)
+  );
 }
 
 /**
@@ -759,6 +799,7 @@ export async function bindRenderedClaimSupport(sourceRows = [], artifacts = []) 
         const snapshotBytes = Number(snapshot?.retrievedSnapshotBytes);
         const quoteByteStart = Number(check?.quoteByteStart);
         const quoteByteEnd = Number(check?.quoteByteEnd);
+        const snapshotReceiptVerified = await verifySourceSnapshotReceipt(snapshot, check);
         if (
           !normalizedClaim ||
           normalizedClaim !== normalizedClaimText(quote) ||
@@ -766,7 +807,7 @@ export async function bindRenderedClaimSupport(sourceRows = [], artifacts = []) 
           cleanText(check?.sourceId, 160) !== cleanText(row?.id, 160) ||
           !cleanText(check?.locator, 200) ||
           cleanText(snapshot?.sourceId, 160) !== cleanText(row?.id, 160) ||
-          cleanText(snapshot?.protocol, 120) !== 'retrieved-source-snapshot-sha256-v1' ||
+          cleanText(snapshot?.protocol, 120) !== 'retrieved-source-snapshot-sha256-v2' ||
           !/^[a-f0-9]{64}$/i.test(snapshotSha256) ||
           !Number.isInteger(snapshotBytes) ||
           snapshotBytes <= 0 ||
@@ -781,6 +822,7 @@ export async function bindRenderedClaimSupport(sourceRows = [], artifacts = []) 
           !/^[a-f0-9]{64}$/i.test(cleanText(check?.sourcePassageSha256, 80)) ||
           cleanText(check?.sourcePassageSha256, 80) !== quoteSha256 ||
           check?.quoteInSnapshot !== true ||
+          snapshotReceiptVerified !== true ||
           check?.entailed !== true ||
           check?.semanticSupport !== true
         ) {
@@ -813,9 +855,9 @@ export async function bindRenderedClaimSupport(sourceRows = [], artifacts = []) 
           construct: 'rendered-exact-source-claim-support',
           semanticSupport: true,
           readinessEligible: true,
-          sourceSnapshot: snapshot,
+          sourceSnapshot: { ...snapshot, contentVerified: true },
           claimBoundary:
-            'This receipt proves that specific learner-visible claims are byte-bound exact copies of admitted source passages. It does not validate unsupported surrounding prose or classroom effectiveness.',
+            'This receipt proves that specific learner-visible claims are byte-bound exact copies of admitted, package-included normalized source snapshots. It does not validate unsupported surrounding prose or classroom effectiveness.',
           checks: boundChecks,
         },
       };

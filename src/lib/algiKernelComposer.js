@@ -1091,8 +1091,9 @@ export function sourceReferenceForKernel(kernel, sourceReferences = {}) {
       !locator ||
       !normalizedClaim ||
       normalizedClaim !== normalizedQuote ||
-      snapshotProtocol !== 'retrieved-source-snapshot-sha256-v1' ||
+      snapshotProtocol !== 'retrieved-source-snapshot-sha256-v2' ||
       String(snapshotSource?.sourceId || '').trim() !== anchoredSourceId ||
+      !String(snapshotSource?.normalizedSnapshotText || '').trim() ||
       !/^[a-f0-9]{64}$/i.test(String(snapshotClaim?.retrievedSnapshotSha256 || '')) ||
       String(snapshotClaim?.retrievedSnapshotSha256 || '') !== String(snapshotSource?.retrievedSnapshotSha256 || '') ||
       Number(snapshotClaim?.retrievedSnapshotBytes) !== Number(snapshotSource?.retrievedSnapshotBytes) ||
@@ -1171,6 +1172,8 @@ export function sourceReferenceForKernel(kernel, sourceReferences = {}) {
                     sourceId,
                     retrievedSnapshotSha256: snapshotSource.retrievedSnapshotSha256,
                     retrievedSnapshotBytes: Number(snapshotSource.retrievedSnapshotBytes),
+                    normalizedSnapshotText: String(snapshotSource.normalizedSnapshotText),
+                    contentVerified: false,
                   },
                 }
               : {}),

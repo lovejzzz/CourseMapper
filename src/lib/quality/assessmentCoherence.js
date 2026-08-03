@@ -157,10 +157,12 @@ export function buildAssessmentCoherenceReceipt({ lessons = [], assessments = []
       .map(lessonNumberFromArtifact)
       .filter(Number.isInteger),
   );
-  // The obligation inventory is reconstructed from independently rendered
-  // assignment/rubric pairs. Deleting a manifest assessment therefore creates
-  // an explicit 0/5 row instead of shrinking the denominator.
-  const renderedObligationLessons = new Set([...assignmentLessons, ...rubricLessons]);
+  // The scoped lesson contract exists before assignment/rubric export and is
+  // therefore the denominator root. Rendered artifacts add obligations but
+  // can never remove them. Jointly deleting a declaration and both artifacts
+  // still creates an explicit 0/5 row for the expected lesson.
+  const expectedLessonNumbers = new Set(lessonByNumber.keys());
+  const renderedObligationLessons = new Set([...expectedLessonNumbers, ...assignmentLessons, ...rubricLessons]);
   const missingDeclarations = [...renderedObligationLessons]
     .filter((lessonNumber) => !declaredLessons.has(lessonNumber))
     .sort((left, right) => left - right)
@@ -190,7 +192,7 @@ export function buildAssessmentCoherenceReceipt({ lessons = [], assessments = []
           check(
             'task-identity-visible',
             false,
-            'Rendered assignment and rubric artifacts exist, but the assessment declaration is missing.',
+            'The scoped lesson contract requires an assessment, but its declaration is missing.',
           ),
           check(
             'lesson-objective-visible-in-task',
@@ -284,8 +286,9 @@ export function buildAssessmentCoherenceReceipt({ lessons = [], assessments = []
     claimBoundary:
       'This receipt proves visible linkage among declared objectives, task directions, student evidence, and rubric criteria; it does not judge pedagogical wisdom or disciplinary accuracy.',
     antiGaming: [
-      'declared graded assessments and independently rendered assignment/rubric obligations enter the denominator',
+      'the pre-export scoped lesson contract, declared graded assessments, and rendered assignment/rubric obligations enter the denominator',
       'deleting a declaration for an exported assessment creates an explicit zero-of-five row',
+      'jointly deleting a declaration and both rendered artifacts cannot shrink the scoped lesson denominator',
       'missing and wrong-lesson artifacts fail their checks',
       'compiler-only IDs and rubric links earn no credit',
       'each task must expose student evidence and each rubric must expose weighted performance criteria',

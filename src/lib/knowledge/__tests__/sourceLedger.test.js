@@ -18,17 +18,21 @@ async function sha256Text(value) {
   return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
-function snapshotReceipt(sourceId, quote, overrides = {}) {
+async function snapshotReceipt(sourceId, quote, overrides = {}) {
+  const normalizedSnapshotText = `0123456789${quote}0123456789`;
   const quoteBytes = new TextEncoder().encode(quote).byteLength;
+  const snapshotSha256 = await sha256Text(normalizedSnapshotText);
   return {
     sourceSnapshot: {
-      protocol: 'retrieved-source-snapshot-sha256-v1',
+      protocol: 'retrieved-source-snapshot-sha256-v2',
       sourceId,
-      retrievedSnapshotSha256: 'a'.repeat(64),
+      retrievedSnapshotSha256: snapshotSha256,
       retrievedSnapshotBytes: quoteBytes + 20,
+      normalizedSnapshotText,
+      contentVerified: false,
     },
     check: {
-      retrievedSnapshotSha256: 'a'.repeat(64),
+      retrievedSnapshotSha256: snapshotSha256,
       retrievedSnapshotBytes: quoteBytes + 20,
       quoteByteStart: 10,
       quoteByteEnd: 10 + quoteBytes,
@@ -40,7 +44,7 @@ function snapshotReceipt(sourceId, quote, overrides = {}) {
 describe('trusted source ledger', () => {
   it('promotes exact learner-visible source claims only after Office artifact binding', async () => {
     const claim = 'Conditional branching selects a code path by evaluating a condition.';
-    const snapshot = snapshotReceipt('source-branching', claim);
+    const snapshot = await snapshotReceipt('source-branching', claim);
     const row = normalizeTrustedSource({
       id: 'source-branching',
       title: 'Conditional statement',
@@ -55,7 +59,7 @@ describe('trusted source ledger', () => {
         minimumScore: 1,
         semanticSupport: true,
         readinessEligible: false,
-        sourceSnapshot: snapshot.sourceSnapshot,
+        sourceSnapshot: { ...snapshot.sourceSnapshot, contentVerified: true },
         checks: [
           {
             sourceId: 'source-branching',
@@ -114,7 +118,7 @@ describe('trusted source ledger', () => {
 
   it('does not bind paraphrased, deleted, or wrong-lesson claims', async () => {
     const claim = 'A data frame stores tabular data in labeled rows and columns.';
-    const snapshot = snapshotReceipt('source-frame', claim);
+    const snapshot = await snapshotReceipt('source-frame', claim);
     const row = normalizeTrustedSource({
       id: 'source-frame',
       title: 'Data frame',
@@ -170,7 +174,7 @@ describe('trusted source ledger', () => {
       provenanceMismatch: false,
     };
     const quote = 'The study distinguishes observed association from causal identification.';
-    const snapshot = snapshotReceipt('source-1', quote);
+    const snapshot = await snapshotReceipt('source-1', quote);
     const complete = normalizeTrustedSource({
       ...base,
       title: 'Evidence-based policy analysis',
@@ -180,7 +184,7 @@ describe('trusted source ledger', () => {
         minimumScore: 1,
         semanticSupport: true,
         readinessEligible: true,
-        sourceSnapshot: snapshot.sourceSnapshot,
+        sourceSnapshot: { ...snapshot.sourceSnapshot, contentVerified: true },
         checks: [
           {
             sourceId: 'source-1',
@@ -221,7 +225,7 @@ describe('trusted source ledger', () => {
 
   it('rejects stale snapshot digests and invalid quote offsets', async () => {
     const claim = 'A source-bound claim remains inspectable after export.';
-    const snapshot = snapshotReceipt('source-stale', claim, { retrievedSnapshotSha256: '9'.repeat(64) });
+    const snapshot = await snapshotReceipt('source-stale', claim, { retrievedSnapshotSha256: '9'.repeat(64) });
     const row = normalizeTrustedSource({
       id: 'source-stale',
       title: 'Inspectable evidence',
@@ -253,6 +257,50 @@ describe('trusted source ledger', () => {
     const [bound] = await bindRenderedClaimSupport(
       [row],
       [{ path: 'Lesson Plans/Lesson 01 - Evidence.docx', text: claim, sha256: '1'.repeat(64) }],
+    );
+
+    expect(bound.supportReceipt.readinessEligible).toBe(false);
+    expect(isClaimBoundSourceLedgerRow(bound)).toBe(false);
+  });
+
+  it('rejects package snapshot bytes that do not reproduce the declared digest', async () => {
+    const claim = 'A replayable receipt includes the normalized source bytes.';
+    const snapshot = await snapshotReceipt('source-forged', claim);
+    const row = normalizeTrustedSource({
+      id: 'source-forged',
+      title: 'Replayable evidence',
+      provider: 'wikipedia',
+      url: 'https://example.test/source-forged',
+      license: 'CC BY-SA 4.0',
+      sessionRefs: ['lesson-1'],
+      supportReceipt: {
+        status: 'passed',
+        checkedClaims: 1,
+        minimumScore: 1,
+        semanticSupport: true,
+        readinessEligible: false,
+        sourceSnapshot: {
+          ...snapshot.sourceSnapshot,
+          normalizedSnapshotText: snapshot.sourceSnapshot.normalizedSnapshotText.replace(/^0/, '9'),
+        },
+        checks: [
+          {
+            sourceId: 'source-forged',
+            locator: 'lead paragraph',
+            quote: claim,
+            claim,
+            ...snapshot.check,
+            sourcePassageSha256: await sha256Text(claim),
+            quoteInSnapshot: true,
+            entailed: true,
+            semanticSupport: true,
+          },
+        ],
+      },
+    });
+    const [bound] = await bindRenderedClaimSupport(
+      [row],
+      [{ path: 'Lesson Plans/Lesson 01 - Evidence.docx', text: claim, sha256: '2'.repeat(64) }],
     );
 
     expect(bound.supportReceipt.readinessEligible).toBe(false);

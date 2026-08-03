@@ -15,7 +15,7 @@ export const CURRENT_RELEASE = {
     'Research planning uses course and lesson context to select source families without embedding one course’s facts, while source admission fails closed when a claim cannot be bound to the retrieved bytes.',
     'The exported ZIP independently reconstructs rendered-claim support across DOCX, PPTX, and text artifacts and verifies objective-to-task-to-student-evidence-to-rubric coherence.',
     'The honest deterministic ledger now awards evidence-capped grounding and assessment-coherence points with exact reasons, while retaining separate curriculum, texture, and package-integrity dimensions.',
-    'After Roundtable rejected the first 95-point candidate, a fresh repaired local package scores 87/100 under grader 1.15.8: 13/25 grounding, 15/15 assessment coherence, and zero P0/P1/P2 findings. The stricter score is the accepted local evidence.',
+    'After Roundtable rejected the first 95-point candidate, a fresh repaired local package scores 87/100 under grader 1.15.9: 13/25 grounding, 15/15 assessment coherence, and zero P0/P1/P2 findings. An independent ZIP verifier replays 49 claims across 17 artifacts from included open-source snapshot bytes.',
     'Six design rounds and a separate nine-turn exact-commit audit shaped and challenged the learner architecture. A fresh production package must still clear the 15/25 grounding gate; Gemma weights plus the optional adapter remain unchanged.',
   ],
   landingHighlights: [
@@ -37,8 +37,13 @@ export const CURRENT_RELEASE = {
     },
     browser: {
       path: 'evaluation/release-proofs/v0.17.11-browser-preflight.json',
-      sha256: 'db704a6b6e416d84cf8e8541885b210b356d833ec8bddd848f7b185534dca8bf',
-      bytes: 4011,
+      sha256: '740c9b4612b1f37629d4f5ca912137f219f53336d930c8e17fa76c78d44688e8',
+      bytes: 4712,
+    },
+    courseContract: {
+      path: 'evaluation/release-proofs/v0.17.11-course-contract.json',
+      sha256: 'd37333e29bca9bf1802b7725708db097b5adae6c0f97491b2443a209956f442e',
+      bytes: 1036,
     },
     auditCommand: 'npm run audit:release-history',
   },

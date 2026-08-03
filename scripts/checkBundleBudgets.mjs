@@ -99,7 +99,7 @@ const repositoryBudgets = {
   // V0.17.01 adds one report-only entry point for the untuned course panel.
   // It reuses the cross-package audit implementation rather than introducing
   // another runner.
-  npmScripts: 386,
+  npmScripts: 387,
   // v0.17.10 shipped 296 tracked release-ledger files (contracts plus the
   // directory README); v0.17.11 may add exactly one current-release contract.
   releaseContractFiles: 296,

@@ -46,7 +46,7 @@ export const RESEARCH_ORIGIN = 'algi-research';
 const WIKI_API = 'https://en.wikipedia.org/w/api.php';
 const DOAJ_API = 'https://doaj.org/api/search/articles';
 const EUROPE_PMC_API = 'https://www.ebi.ac.uk/europepmc/webservices/rest/search';
-const SOURCE_SNAPSHOT_PROTOCOL = 'retrieved-source-snapshot-sha256-v1';
+const SOURCE_SNAPSHOT_PROTOCOL = 'retrieved-source-snapshot-sha256-v2';
 
 async function sha256Text(value = '') {
   const bytes = new TextEncoder().encode(String(value));
@@ -56,8 +56,10 @@ async function sha256Text(value = '') {
 
 /**
  * Bind every admitted quote to the complete normalized source snapshot that
- * produced it. The package keeps the digest, revision identity, byte length,
- * and byte offsets without copying an entire third-party page into the ZIP.
+ * produced it. Only openly licensed admitted sources can later earn grounding
+ * credit, so their normalized snapshot text travels with the receipt. This
+ * lets an independent package verifier recompute the digest and byte slice
+ * without relying on the generator's assertions or a mutable network fetch.
  */
 export async function attachKernelSourceSnapshotReceipt(kernel = {}, snapshot = {}) {
   const encoder = new TextEncoder();
@@ -102,7 +104,7 @@ export async function attachKernelSourceSnapshotReceipt(kernel = {}, snapshot = 
       ...(kernel?.provenance || {}),
       sourceSnapshot: {
         protocol: SOURCE_SNAPSHOT_PROTOCOL,
-        sources: sources.map(({ text: _text, ...source }) => source),
+        sources: sources.map(({ text, ...source }) => ({ ...source, normalizedSnapshotText: text })),
         claims,
       },
     },

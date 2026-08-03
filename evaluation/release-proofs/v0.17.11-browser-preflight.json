@@ -1,16 +1,16 @@
 {
   "schemaVersion": 1,
   "release": "0.17.11",
-  "recordedAt": "2026-08-03T03:39:00Z",
+  "recordedAt": "2026-08-03T03:58:00Z",
   "status": "bounded-predeploy",
   "claimBoundary": "This tracked predeploy receipt proves the course-neutral learner architecture, exact source binding, exported-artifact grounding, assessment-coherence reconstruction, and deterministic score regressions passed before deployment. The local package score is bound to its exact ZIP hash. This is not a live production result, factual certification, independent instructor result, accessibility certification, classroom outcome, model-weight improvement, adapter promotion, or paid-reference comparison.",
   "checks": [
     {
       "command": "npm run test:unit",
       "status": "pass",
-      "testFilesPassed": 506,
+      "testFilesPassed": 507,
       "testFilesSkipped": 16,
-      "testsPassed": 6546,
+      "testsPassed": 6551,
       "testsSkipped": 162
     },
     {
@@ -63,7 +63,7 @@
     {
       "mode": "local-physical-zip-and-render-audit",
       "status": "pass",
-      "zipSha256": "80fd50f2d19ef4625865b3ed941925e5f846d27ea7b17b7d9e8682cc85727f22",
+      "zipSha256": "d945f8cf52a77a92a489dd63d51413d1f85519316b4a9de76dbe8e5ba75106a9",
       "score": 87,
       "grounding": 13,
       "assessmentCoherence": 15,
@@ -77,6 +77,18 @@
       "visualDefectsRepaired": 1
     },
     {
+      "command": "npm run audit:package-evidence -- <accepted-zip>",
+      "status": "pass",
+      "protocol": "coursemapper-package-evidence-replay-v1",
+      "verifiedSources": 3,
+      "verifiedClaims": 49,
+      "verifiedArtifacts": 27,
+      "verifiedAssessmentObligations": 6,
+      "courseContractSha256": "d37333e29bca9bf1802b7725708db097b5adae6c0f97491b2443a209956f442e",
+      "evidenceBundleSha256": "ba0b80b0aefa0963ef9ae9474bf9140f6ba26f6d607f59997085f602beaf5e6e",
+      "failures": 0
+    },
+    {
       "mode": "roundtable-learner-architecture-audit",
       "status": "pass",
       "sessionId": "681bd065-f174-4971-80f1-1fecb81ed21c",
@@ -87,13 +99,14 @@
     },
     {
       "mode": "roundtable-exact-commit-audit",
-      "status": "three-p1-findings-remediated-pending-postcommit-audit",
+      "status": "four-p1-findings-and-one-proof-contradiction-remediated-pending-postcommit-audit",
       "turns": 9,
-      "initialP1": 3,
+      "initialP1": 4,
       "remediations": [
         "replaced audited-course retrieval branches with generic noun-phrase planning",
-        "bound claims to complete source-snapshot digests, byte lengths, quote offsets, quote hashes, and rendered artifact hashes",
-        "derived assessment obligations independently from rendered assignment and rubric inventories"
+        "included admitted open-source snapshot bytes and independently replayed their complete digests, byte lengths, quote offsets, quote hashes, and rendered artifact hashes",
+        "derived assessment obligations independently from rendered assignment and rubric inventories",
+        "removed the stale release-contract note that treated the rejected 95-point artifact as accepted evidence"
       ],
       "report": "docs/V0.17.11_SCION_LEARNER_CHECKPOINT.md"
     }

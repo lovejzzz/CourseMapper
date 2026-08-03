@@ -458,7 +458,8 @@ describe('course-domain research alignment', () => {
     const source = bound.provenance.sourceSnapshot.sources[0];
     const claim = bound.provenance.sourceSnapshot.claims[0];
 
-    expect(bound.provenance.sourceSnapshot.protocol).toBe('retrieved-source-snapshot-sha256-v1');
+    expect(bound.provenance.sourceSnapshot.protocol).toBe('retrieved-source-snapshot-sha256-v2');
+    expect(source.normalizedSnapshotText).toContain(claim.quote);
     expect(source).toMatchObject({ sourceId, retrievedSnapshotBytes: new TextEncoder().encode(snapshotText).length });
     expect(source.retrievedSnapshotSha256).toMatch(/^[a-f0-9]{64}$/);
     expect(claim).toMatchObject({

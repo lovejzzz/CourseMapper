@@ -119,4 +119,21 @@ describe('rendered assessment coherence receipt', () => {
     expect(receipt.assessments[0].checks).toHaveLength(5);
     expect(receipt.assessments[0].checks.every((entry) => entry.passed === false)).toBe(true);
   });
+
+  it('keeps the lesson-contract obligation when declaration and both artifacts are deleted', () => {
+    const receipt = buildAssessmentCoherenceReceipt({ lessons, assessments: [], artifacts: [] });
+
+    expect(receipt).toMatchObject({
+      eligibleAssessments: 1,
+      passedAssessments: 0,
+      passedChecks: 0,
+      totalChecks: 5,
+      coherenceRatio: 0,
+    });
+    expect(receipt.assessments[0]).toMatchObject({
+      assessmentId: 'missing-assessment-lesson-2',
+      lesson: 2,
+      missingDeclaration: true,
+    });
+  });
 });

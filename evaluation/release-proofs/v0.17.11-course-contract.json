@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "protocol": "coursemapper-pre-generation-course-contract-v1",
+  "courseName": "Applied Civic Data Analysis",
+  "promptSha256": "6ab4ade1ecb5b39685b59ebcf463d3e8dc55e26f431847c6a8c92e28247b7125",
+  "lessons": [
+    {
+      "lessonNumber": 1,
+      "title": "Lesson 1: Python data types and expressions",
+      "assessmentRequired": true
+    },
+    {
+      "lessonNumber": 2,
+      "title": "Lesson 2: Conditional branching and loops",
+      "assessmentRequired": true
+    },
+    {
+      "lessonNumber": 3,
+      "title": "Lesson 3: Functions and automated tests",
+      "assessmentRequired": true
+    },
+    {
+      "lessonNumber": 4,
+      "title": "Lesson 4: Pandas tabular data cleaning",
+      "assessmentRequired": true
+    },
+    {
+      "lessonNumber": 5,
+      "title": "Lesson 5: Reproducible visualization and uncertainty",
+      "assessmentRequired": true
+    },
+    {
+      "lessonNumber": 6,
+      "title": "Lesson 6: Integrative policy memo capstone",
+      "assessmentRequired": true
+    }
+  ]
+}
