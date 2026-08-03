@@ -97,8 +97,8 @@ jobs:
           npm run audit:scion:codex-reverse-order
           npm run audit:scion:codex-paired-order-evidence
 
-  quality-smoke:
-    name: Quality and package smoke
+  adapter-readiness:
+    name: Adapter and readiness receipts
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -120,9 +120,56 @@ jobs:
           npm run audit:scion:adapter:corpus-readiness
           npm run audit:scion:adapter:exact-lineage
           npm run audit:automated-readiness
+
+  texture-quality:
+    name: Cross-package texture receipts
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify texture receipts
+        run: |
           npm run audit:texture:cross-package -- --profile thin --compare-baseline
           npm run audit:texture:cross-package -- --profile gold --compare-baseline
           npm run audit:texture:cross-package:untuned
+
+      - name: Upload texture reports
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: fast-texture-reports
+          path: verification-output/cross-package-texture/**
+          if-no-files-found: ignore
+
+  package-smoke:
+    name: Package proof smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
 
       - name: Proof smoke
         run: |
@@ -140,7 +187,6 @@ jobs:
             verification-output/gold-sample-quality-audit/latest.*
             verification-output/independent-benchmark/**
             verification-output/production-canary/**
-            verification-output/cross-package-texture/**
           if-no-files-found: ignore
 
   unit:
@@ -211,7 +257,9 @@ jobs:
       - static-build
       - evidence-lineage
       - evidence-review
-      - quality-smoke
+      - adapter-readiness
+      - texture-quality
+      - package-smoke
       - unit
       - contract-evaluation
 
@@ -223,6 +271,8 @@ jobs:
           [[ "${{ needs.static-build.result }}" == "success" ]]
           [[ "${{ needs.evidence-lineage.result }}" == "success" ]]
           [[ "${{ needs.evidence-review.result }}" == "success" ]]
-          [[ "${{ needs.quality-smoke.result }}" == "success" ]]
+          [[ "${{ needs.adapter-readiness.result }}" == "success" ]]
+          [[ "${{ needs.texture-quality.result }}" == "success" ]]
+          [[ "${{ needs.package-smoke.result }}" == "success" ]]
           [[ "${{ needs.unit.result }}" == "success" ]]
           [[ "${{ needs.contract-evaluation.result }}" == "success" ]]
