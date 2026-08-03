@@ -43,8 +43,11 @@ import {
   resolvePreciseDisciplineLens,
 } from './courseCompilerLensProfiles';
 import { buildTechnicalSessionSegments } from './courseCompilerTechnicalSessionPlans';
-import { finalizeCompiledDeliverableLanguage, shortArtifactReference } from './compiledLanguageFinalizer';
-import { compressLessonPlanTitleReferences } from './lessonPlanTitleCompression.js';
+import {
+  compressLessonPlanTitleReferences,
+  finalizeCompiledDeliverableLanguage,
+  shortArtifactReference,
+} from './compiledLanguageFinalizer';
 import { compactLongArtifactMentionsInValue, compactLongArtifactTitle } from './artifactDisplayReference';
 import { getChunkCount } from './parallelGenerator';
 import { MAX_QUIZ_QUESTIONS_PER_LESSON, resolveQuizQuestionTarget } from './quizQuestionTarget';
@@ -8044,7 +8047,6 @@ function visibleLessonPlanArtifactReplacement(plan = {}, lesson = {}) {
       ) || 'lesson artifact'
   );
 }
-
 function sanitizeCompiledLessonPlans(compiled = {}, blueprint = {}) {
   if (!Array.isArray(compiled.lessonPlans)) return compiled;
   return {
@@ -8056,7 +8058,6 @@ function sanitizeCompiledLessonPlans(compiled = {}, blueprint = {}) {
     }),
   };
 }
-
 function buildLessonModalityDecode(profile = {}, lesson = {}) {
   const pattern = profile.teachingPattern || {};
   const mode = profile.primaryMode || 'weekly-applied-seminar';

@@ -19,6 +19,7 @@ import { collapseMechanicalContentWordEchoes } from './mechanicalTextSeams.js';
 import { renderedDeliverableCollection, renderedDeliverableContentRoot } from './renderedDeliverableRoot.js';
 
 export { shortArtifactReference } from './artifactReference';
+export { compressLessonPlanTitleReferences } from './lessonPlanTitleCompression.js';
 
 const TITLE_LIKE_KEY_RE =
   /^(?:id|key|slug|tags|anchor|sourceColumns|relatedLessons|lessonNumbers|format|type|category|difficulty|bloomsLevel|weight|points)$/i;
