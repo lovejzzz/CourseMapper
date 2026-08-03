@@ -1,18 +1,20 @@
 {
   "schemaVersion": 1,
   "protocol": "coursemapper-release-evidence-attestation-v1",
-  "scope": "production-checkpoint",
-  "deployedCodeCommit": "cba17825c151f6013d5a0fd54304a131343c3afe",
+  "scope": "predeploy-candidate",
+  "deployedCodeCommit": "1102fcab8f4218725be3f89b6343272810756aa8",
   "heldOutRuler": {
-    "path": "evaluation/scion-adapters/held-out-course-benchmark-v63.json",
-    "sha256": "dfd4e4e0ac2b9e0424902d15db2e8e4b2a51ab71603e58d463dcdf3585d916cf",
+    "path": "evaluation/scion-adapters/held-out-course-benchmark-v64.json",
+    "sha256": "f07742d08084d246248cb446041d2410f6c9624ac1e41222aedfc65417502bab",
     "graderVersion": "1.15.9",
-    "implementationSha256": "97dea5ec30085c37701c950b8f6d4e5602c650b6ac97bb22055b1193718f090f",
-    "implementationFileCount": 34
+    "implementationSha256": "ee6f0b425ff2f22a73fc1f0f0b052d60bbe3d7f9049e3ce1cd5b938039ce0dc1",
+    "implementationFileCount": 34,
+    "exportBoundaryImplementationSha256": "fb69b3065c8b42c06bdb2197fccaf5cee6ea1092a7cb3a7b161981c9f3058ea2",
+    "exportBoundaryImplementationFileCount": 159
   },
-  "packageSha256": "bcb8e36cd11522d960a79345034e2d7c9e77520879ac407b13ca7ddfd3831fd7",
+  "packageSha256": "9735ac3f44dcf259ba373e993174b0ca8faf458fd0ef414ba46abfdad71cfb4a",
   "courseContractSha256": "5182b64ba6314013de3e6b7e473f807d98a2fbcf0fb9dbb6d8df11f896c45d60",
-  "evidenceBundleSha256": "f5ce95266def24abc4477bda15923d3775b4acf622dcdd8f8a95e6d930319a37",
+  "evidenceBundleSha256": "02e4da533a4f51d56d0ce0ff6bd369d9f313e315960113bb695ab179f4ba5947",
   "scoreLedgerSha256": "a8453574a67ac8aba04190a73b9f76802c0d4e176ac6a03a12cfb6e18c9c1cd0",
   "verifiedSources": 5,
   "verifiedClaims": 60,

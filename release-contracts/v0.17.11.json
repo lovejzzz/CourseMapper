@@ -14,7 +14,7 @@
     ],
     "ciFast": {
       "status": "pending-push",
-      "note": "The V64 structural-denominator repair must pass all nine lanes from its exact commit."
+      "note": "The V65 fail-closed structural-metadata repair must pass all nine lanes from its exact commit."
     },
     "ciDeep": {
       "status": "pending",
@@ -22,11 +22,11 @@
     },
     "deploy": {
       "status": "pending-push",
-      "note": "Production deployment follows a green exact-commit V64 gate."
+      "note": "Production deployment follows a green exact-commit V65 gate."
     },
     "liveProvider": {
       "status": "pending",
-      "note": "Candidate 25 remains valid 91-point content evidence but is rejected as checkpoint evidence because its PowerPoint accessibility denominator was producer-selected. A fresh V64 package must pass the structural Office scan."
+      "note": "Candidate 26 remains valid 91-point content evidence but is rejected as checkpoint evidence because a missing cNvPr node could shrink the V64 denominator. A fresh V65 package must pass the stricter structural Office scan."
     },
     "manualHuman": {
       "status": "pending",
@@ -123,11 +123,11 @@
       "proofScopes": ["unit", "static-audit", "compiled-output"]
     },
     {
-      "id": "v01711-v64-predeploy-boundary",
+      "id": "v01711-v65-predeploy-boundary",
       "status": "verified-current",
       "changelogHighlightIndex": 5,
-      "highlightSha256": "c2e8152863184f172d529d67abc52f26e0114e517813ef5009c21507da5a2496",
-      "summary": "Candidate 25 retains independently replayable 91-point content evidence, but V64 rejects its producer-selected PowerPoint accessibility denominator and requires a fresh post-deployment package before checkpoint acceptance.",
+      "highlightSha256": "2372723dd5a4ecf03cba07da6d6ddec4bdbcbc70771472428bc923a70261d5dc",
+      "summary": "Candidate 26 remains valid 91-point historical content evidence, but V65 closes the final fail-open structural-metadata denominator path before checkpoint acceptance.",
       "anchors": ["docs/V0.17.11_SCION_LEARNER_CHECKPOINT.md"],
       "proofCommands": [
         "npx vitest run src/lib/__tests__/packageZipExporter.test.js src/lib/quality/__tests__/assessmentCoherence.test.js"
@@ -138,8 +138,8 @@
       "id": "v01711-roundtable-and-claim-boundary",
       "status": "verified-current",
       "changelogHighlightIndex": 6,
-      "highlightSha256": "e79ff3e9421e3dfe95408be82caf6395ab25a556926ff8c4c65cdb1a7df94691",
-      "summary": "Roundtable design and exact-code falsification rejected candidate 25 as checkpoint evidence and drove the V64 structural-denominator repair while the report preserves unchanged model weights and missing independent instructor, accessibility-certification, and classroom evidence.",
+      "highlightSha256": "89a6705d6408c8bc64c91e862e5540fa3b93a5a87e392bf386cf6f6aee8d101e",
+      "summary": "V65 is explicitly predeploy; the report preserves unchanged model weights and optional-adapter state while withholding checkpoint, instructor, accessibility-certification, classroom, and paid-reference claims pending fresh evidence.",
       "anchors": ["docs/V0.17.11_SCION_LEARNER_CHECKPOINT.md"],
       "proofCommands": ["npm run test:unit", "npm run audit:release-history"],
       "proofScopes": ["doc", "static-audit"]

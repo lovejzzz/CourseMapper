@@ -535,6 +535,20 @@ describe('PPTX export — visual placeholders', () => {
     });
   });
 
+  it('fails accessibility verification when a structural shape loses its metadata node', async () => {
+    const zip = await JSZip.loadAsync(await pptxBlob.arrayBuffer());
+    const path = 'ppt/slides/slide1.xml';
+    const xml = await zip.file(path).async('string');
+    const damaged = xml.replace(/<p:cNvPr\b(?=[^>]*\bname="cmA11y-[^"]+")[^>]*>(?:[\s\S]*?<\/p:cNvPr>)?/, '');
+    expect(damaged).not.toBe(xml);
+    zip.file(path, damaged);
+    const damagedBlob = await zip.generateAsync({ type: 'blob' });
+    expect(await auditOfficeAccessibility(damagedBlob, 'pptx')).toMatchObject({
+      code: 'accessibility',
+      problems: expect.arrayContaining(['semantic-object-without-description']),
+    });
+  });
+
   it('fails closed when Office bytes cannot be read', async () => {
     expect(await auditOfficeAccessibility({ size: 256 }, 'pptx')).toMatchObject({
       code: 'accessibility',

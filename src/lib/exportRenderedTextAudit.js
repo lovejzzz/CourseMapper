@@ -48,7 +48,11 @@ export function extractPptxStructuralObjectTags(xml) {
   const tags = [];
   for (const match of String(xml || '').matchAll(/<p:(sp|pic|cxnSp|graphicFrame)\b[\s\S]*?<\/p:\1>/g)) {
     const tag = match[0].match(/<(?:p|pic):cNvPr\b[^>]*>/)?.[0];
-    if (tag) tags.push(tag);
+    // The denominator is the exported structural object, not its metadata.
+    // A damaged object that has lost cNvPr must therefore remain visible to
+    // the accessibility audit and fail for its missing description instead
+    // of disappearing from the audited set.
+    tags.push(tag || '<missing-cNvPr>');
   }
   return tags;
 }

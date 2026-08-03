@@ -16,8 +16,8 @@ export const CURRENT_RELEASE = {
     'Research planning uses course and lesson context to select source families without embedding one course’s facts, while source admission fails closed when a claim cannot be bound to the retrieved bytes.',
     'The exported ZIP independently reconstructs rendered-claim support across DOCX, PPTX, and text artifacts and verifies objective-to-task-to-student-evidence-to-rubric coherence.',
     'The honest deterministic ledger now awards evidence-capped grounding and assessment-coherence points with exact reasons, while retaining separate curriculum, texture, and package-integrity dimensions.',
-    'Candidate 25 independently replayed at 91/100, but the final code audit rejected its producer-selected PowerPoint accessibility denominator. V64 now derives coverage from every emitted structural shape and separately binds the export-verification implementation.',
-    'The V64 repair is a predeploy candidate, not an accepted production checkpoint. Gemma weights plus the optional adapter remain unchanged, the 17/25 grounding result remains historical evidence, and a fresh post-deployment package must clear the structural Office scan before acceptance.',
+    'Candidate 26 independently replayed at 91/100, but final falsification found that removing an entire PowerPoint metadata node could erase an object from the V64 accessibility denominator. V65 keeps every exported structural object in the denominator and binds the stricter verifier graph.',
+    'V65 is a predeploy repair, not an accepted checkpoint. Candidate 26 remains valid historical content evidence at 17/25 grounding and 15/15 assessment coherence, while a fresh exact-deployment package must clear the stricter boundary before acceptance.',
   ],
   landingHighlights: [
     'Claims keep their source identity.',
@@ -38,8 +38,8 @@ export const CURRENT_RELEASE = {
     },
     browser: {
       path: 'evaluation/release-proofs/v0.17.11-browser-preflight.json',
-      sha256: '2960fa0ecba8415ff8dc128fddd09e4946b5f86706b2925d88ad256ee4271e26',
-      bytes: 17171,
+      sha256: '0b21a277b1f0f0e2ed56588f21e047cea8c25465af67331ef7dc9bc283d187ff',
+      bytes: 17050,
     },
     courseContract: {
       path: 'evaluation/release-proofs/v0.17.11-course-contract.json',
@@ -58,8 +58,8 @@ export const CURRENT_RELEASE = {
     },
     productionPackageAttestation: {
       path: 'evaluation/release-proofs/v0.17.11-production-package-attestation.json',
-      sha256: '1de3892af9d8aca0fe928a44e1f879e15a50236f6f66bb2120bd592bd8da2fb9',
-      bytes: 1645,
+      sha256: '77673e623c556c5c7a9722173839cd749e9b7905c91e67f414228857fcf4d10c',
+      bytes: 1803,
     },
     auditCommand: 'npm run audit:release-history',
   },

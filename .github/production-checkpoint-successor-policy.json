@@ -6,5 +6,10 @@
     "evaluation/release-proofs/v0.17.11-production-package-attestation.json",
     "release-contracts/v0.17.11.json",
     "src/lib/currentRelease.js"
-  ]
+  ],
+  "requiredProofPaths": {
+    "browser": "evaluation/release-proofs/v0.17.11-browser-preflight.json",
+    "productionCourseContract": "evaluation/release-proofs/v0.17.11-production-course-contract.json",
+    "productionPackageAttestation": "evaluation/release-proofs/v0.17.11-production-package-attestation.json"
+  }
 }

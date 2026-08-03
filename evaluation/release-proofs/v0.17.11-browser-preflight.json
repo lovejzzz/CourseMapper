@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "release": "0.17.11",
-  "recordedAt": "2026-08-03T19:14:18Z",
+  "recordedAt": "2026-08-03T20:07:10Z",
   "status": "predeploy-candidate",
   "claimBoundary": "This tracked production receipt binds the course-neutral learner architecture to the exact deployed code, physical production ZIP, independently replayed source and assessment evidence, and representative rendered output. It proves the declared deterministic release gates for this package, not universal factual correctness, independent instructor approval, accessibility certification, classroom outcomes, learned-weight improvement, adapter promotion, or paid-reference comparison.",
   "checks": [
@@ -41,14 +41,14 @@
     {
       "mode": "immutable-held-out-ruler-binding",
       "status": "pass",
-      "path": "evaluation/scion-adapters/held-out-course-benchmark-v64.json",
-      "sha256": "f07742d08084d246248cb446041d2410f6c9624ac1e41222aedfc65417502bab",
+      "path": "evaluation/scion-adapters/held-out-course-benchmark-v65.json",
+      "sha256": "aa555c4d8f1cd7ed6a1303d67e56f357c2e47eb4e79c8491db22d377df0a09e6",
       "graderVersion": "1.15.9",
-      "implementationSha256": "ee6f0b425ff2f22a73fc1f0f0b052d60bbe3d7f9049e3ce1cd5b938039ce0dc1",
+      "implementationSha256": "03feb534eca4d26e1e412132b1752ea213f613848aa6c54e64eab712ed6a90c1",
       "implementationFileCount": 34,
-      "exportBoundaryImplementationSha256": "fb69b3065c8b42c06bdb2197fccaf5cee6ea1092a7cb3a7b161981c9f3058ea2",
+      "exportBoundaryImplementationSha256": "5f4349822f7a8c5960eaaf37a5f6db9bb6cd1da0f8d857acfcfd35794650b33a",
       "exportBoundaryImplementationFileCount": 159,
-      "priorRuler": "V63 remains immutable; V64 derives the PowerPoint accessibility denominator from exported structural objects and separately binds the package-verification implementation."
+      "priorRuler": "V64 remains immutable; V65 keeps structural objects in the denominator even when their complete cNvPr metadata node is absent and cross-checks the separate package-verification receipt."
     },
     {
       "command": "npm run audit:scion:browser-base",
@@ -106,10 +106,11 @@
     {
       "mode": "production-physical-zip-and-render-audit",
       "status": "pass",
-      "auditedCommit": "cba17825c151f6013d5a0fd54304a131343c3afe",
-      "ciRun": 30843776937,
-      "deployRun": 30844381289,
-      "zipSha256": "bcb8e36cd11522d960a79345034e2d7c9e77520879ac407b13ca7ddfd3831fd7",
+      "auditedCommit": "1102fcab8f4218725be3f89b6343272810756aa8",
+      "ciRun": 30847471858,
+      "deployRun": 30848041236,
+      "generationSeconds": 37,
+      "zipSha256": "9735ac3f44dcf259ba373e993174b0ca8faf458fd0ef414ba46abfdad71cfb4a",
       "score": 91,
       "dimensions": {
         "curriculumFidelity": 25,
@@ -128,31 +129,26 @@
       "exportChecks": "38/38",
       "renderedOfficeFiles": 50,
       "renderedPages": 221,
-      "semanticObjects": 1565,
-      "semanticObjectsWithDescriptions": 1565,
-      "nativeTables": 11,
-      "nativeMatrices": 4,
-      "nativeConnectors": 22,
-      "decorativeBackgroundsWithDescriptions": 36,
-      "nativeSlideCounters": 78,
+      "semanticObjects": 1891,
+      "semanticObjectsWithDescriptions": 1891,
       "rubricPageSizePoints": "792 x 612",
       "visualDefectsFound": 0
     },
     {
-      "command": "npm run audit:package-evidence -- /Users/tianxing/Downloads/Applied Civic Data Analysis - Course Materials (5).zip evaluation/release-proofs/v0.17.11-production-course-contract.json evaluation/release-proofs/v0.17.11-production-package-attestation.json 1de3892af9d8aca0fe928a44e1f879e15a50236f6f66bb2120bd592bd8da2fb9 5182b64ba6314013de3e6b7e473f807d98a2fbcf0fb9dbb6d8df11f896c45d60",
+      "command": "npm run audit:package-evidence -- /Users/tianxing/Downloads/Applied Civic Data Analysis - Course Materials (6).zip evaluation/release-proofs/v0.17.11-production-course-contract.json evaluation/release-proofs/v0.17.11-production-package-attestation.json 77673e623c556c5c7a9722173839cd749e9b7905c91e67f414228857fcf4d10c 5182b64ba6314013de3e6b7e473f807d98a2fbcf0fb9dbb6d8df11f896c45d60",
       "status": "pass",
       "protocol": "coursemapper-package-evidence-replay-v2",
-      "packageSha256": "bcb8e36cd11522d960a79345034e2d7c9e77520879ac407b13ca7ddfd3831fd7",
+      "packageSha256": "9735ac3f44dcf259ba373e993174b0ca8faf458fd0ef414ba46abfdad71cfb4a",
       "verifiedSources": 5,
       "verifiedClaims": 60,
       "verifiedArtifacts": 29,
       "verifiedAssessmentObligations": 6,
-      "evidenceBundleSha256": "f5ce95266def24abc4477bda15923d3775b4acf622dcdd8f8a95e6d930319a37",
+      "evidenceBundleSha256": "02e4da533a4f51d56d0ce0ff6bd369d9f313e315960113bb695ab179f4ba5947",
       "scoreLedgerSha256": "a8453574a67ac8aba04190a73b9f76802c0d4e176ac6a03a12cfb6e18c9c1cd0",
       "readinessScore": 91,
       "graderVersion": "1.15.9",
       "courseContractSha256": "5182b64ba6314013de3e6b7e473f807d98a2fbcf0fb9dbb6d8df11f896c45d60",
-      "releaseAttestationSha256": "1de3892af9d8aca0fe928a44e1f879e15a50236f6f66bb2120bd592bd8da2fb9",
+      "releaseAttestationSha256": "77673e623c556c5c7a9722173839cd749e9b7905c91e67f414228857fcf4d10c",
       "failures": 0
     },
     {

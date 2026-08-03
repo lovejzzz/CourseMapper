@@ -88,6 +88,13 @@ function sha256Text(value) {
     .digest('hex');
 }
 
+async function sha256File(relativePath) {
+  return crypto
+    .createHash('sha256')
+    .update(await fs.readFile(path.join(repoRoot, relativePath)))
+    .digest('hex');
+}
+
 function recordedFailureCount(value) {
   if (Array.isArray(value)) return value.length;
   const count = Number(value);
@@ -207,6 +214,13 @@ async function validateProductionCheckpointBinding({ release, failures }) {
         'Checkpoint successor policy must not authorize changes to its own validator',
         failures,
       );
+      for (const proofKey of ['browser', 'productionCourseContract', 'productionPackageAttestation']) {
+        assert(
+          release.proof?.[proofKey]?.path === policy?.requiredProofPaths?.[proofKey],
+          `Checkpoint successor must preserve the deployed ${proofKey} proof path`,
+          failures,
+        );
+      }
       const { stdout = '' } = await execFileAsync(
         'git',
         ['diff', '--name-only', `${attestation.deployedCodeCommit}..HEAD`],
@@ -247,6 +261,11 @@ async function validateProductionCheckpointBinding({ release, failures }) {
   assert(
     attestation.scoreLedgerSha256 === replay?.scoreLedgerSha256,
     'Production package attestation scoreLedgerSha256 must match the independent replay',
+    failures,
+  );
+  assert(
+    release.proof?.productionPackageAttestation?.sha256 === replay?.releaseAttestationSha256,
+    'Tracked production attestation digest must match the independent replay root',
     failures,
   );
   assert(
@@ -335,6 +354,17 @@ async function validateProductionCheckpointBinding({ release, failures }) {
     'Production package attestation held-out ruler digest must match the browser proof',
     failures,
   );
+  const trackedRulerSha256 = ruler?.path
+    ? await sha256File(ruler.path).catch((error) => {
+        failures.push(`Cannot hash held-out ruler ${ruler.path}: ${error.message}`);
+        return null;
+      })
+    : null;
+  assert(
+    isSha256(trackedRulerSha256) && trackedRulerSha256 === ruler?.sha256,
+    'Tracked held-out ruler digest must match the browser proof',
+    failures,
+  );
   assert(
     attestation.heldOutRuler?.graderVersion === ruler?.graderVersion,
     'Production package attestation grader version must match the held-out ruler',
@@ -343,6 +373,17 @@ async function validateProductionCheckpointBinding({ release, failures }) {
   assert(
     attestation.heldOutRuler?.implementationSha256 === ruler?.implementationSha256,
     'Production package attestation implementation digest must match the held-out ruler',
+    failures,
+  );
+  assert(
+    attestation.heldOutRuler?.exportBoundaryImplementationSha256 === ruler?.exportBoundaryImplementationSha256,
+    'Production package attestation export-boundary digest must match the held-out ruler',
+    failures,
+  );
+  assert(
+    Number(attestation.heldOutRuler?.exportBoundaryImplementationFileCount) ===
+      Number(ruler?.exportBoundaryImplementationFileCount),
+    'Production package attestation export-boundary file count must match the held-out ruler',
     failures,
   );
 }
