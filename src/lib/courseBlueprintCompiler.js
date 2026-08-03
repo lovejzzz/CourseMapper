@@ -92,6 +92,7 @@ import {
 import * as textureCopy from './courseCompilerTextureCopy';
 import {
   compactAssignmentBriefBodyReferences,
+  agendaSlideNote,
   compactCourseCopyEmbeddedReference,
   compactCourseCopyFocus,
   compactRepeatedCourseFocusReferences,
@@ -23601,32 +23602,13 @@ function slideNoteAnchor({ type, anchor, concept, artifact, displayTitle, lesson
         artifactReference: shortArtifactReference(slideArtifact(lesson), Number(lesson?.lessonNumber) || 0),
       });
     case 'agenda':
-      return lessonVariant(lesson, [
-        `Keep the ${displayTitle} pacing visible and point to the first ${concept} checkpoint: ${safeAnchor}. Students should leave knowing which evidence cue changes ${shortArtifactReference(
-          slideArtifact(lesson),
-          Number(lesson?.lessonNumber) || 0,
-        )}.`,
-        `Use ${safeAnchor} to show the lesson arc: listen for the evidence, practice the move, compare drafts, and name the next ${shortArtifactReference(
-          slideArtifact(lesson),
-          Number(lesson?.lessonNumber) || 0,
-        )} revision.`,
-        `Connect ${safeAnchor} to the work sequence so students can explain what the practice step proves before they update ${shortArtifactReference(
-          slideArtifact(lesson),
-          Number(lesson?.lessonNumber) || 0,
-        )}.`,
-        `Make the agenda practical: after ${safeAnchor}, students should be able to identify the evidence, peer check, and revision action for ${shortArtifactReference(
-          slideArtifact(lesson),
-          Number(lesson?.lessonNumber) || 0,
-        )}.`,
-        `Use ${safeAnchor} as the first checkpoint, then have students track which part of the sequence changes their next ${shortArtifactReference(
-          slideArtifact(lesson),
-          Number(lesson?.lessonNumber) || 0,
-        )} decision.`,
-        `Keep the flow tied to ${concept}: the opening cue, practice block, peer comparison, and exit decision should each shape ${shortArtifactReference(
-          slideArtifact(lesson),
-          Number(lesson?.lessonNumber) || 0,
-        )}.`,
-      ]);
+      return agendaSlideNote({
+        lessonNumber: lesson.lessonNumber,
+        displayTitle,
+        safeAnchor,
+        concept,
+        artifactReference: shortArtifactReference(slideArtifact(lesson), Number(lesson?.lessonNumber) || 0),
+      });
     case 'objectives':
       return lessonVariant(lesson, [
         `Turn "${anchor}" into an observable performance target; ask students what evidence would prove they can do it.`,

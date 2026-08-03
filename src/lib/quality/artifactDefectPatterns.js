@@ -37,7 +37,7 @@ export {
 export const ARTIFACT_PATTERNS = [
   {
     regex:
-      /(?:^|[.!?]\s+)(Use|Ask|Have|Start|Open|Begin|Close|End|Name|Preview|Introduce|Lead|Launch|Frame|Make|Keep|Connect|Guide|Review|Compare|Identify|Explain|Apply|Check|Model|Show|Point|Turn|Set)\s+\1\b/m,
+      /(?:^|[.!?]\s+)(Use|Ask|Have|Start|Open|Begin|Close|End|Name|Preview|Introduce|Lead|Launch|Frame|Make|Keep|Connect|Guide|Review|Compare|Identify|Explain|Apply|Check|Model|Show|Point|Turn|Set)\s+\1\b/im,
     label: 'repeated sentence-opening instructional imperative such as "Use Use"',
     name: 'repeated-instructional-imperative',
     severity: 'P2',

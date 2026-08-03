@@ -5,6 +5,7 @@ import {
   compactAssignmentBriefBodyReferences,
   compactCourseCopyFocus,
   compactRepeatedCourseFocusReferences,
+  agendaSlideNote,
   titleSlideNote,
 } from '../courseCompilerCopyVariants';
 import { examAtomPaddingOptions } from '../courseCompilerExamCopy';
@@ -28,6 +29,23 @@ describe('course compiler copy variants', () => {
     expect(note).not.toContain('Use Use');
     expect(pattern).toBeDefined();
     expect(pattern.regex.test(note)).toBe(false);
+  });
+
+  it('does not duplicate an instructional imperative in any agenda-note variant', () => {
+    const pattern = ARTIFACT_PATTERNS.find((candidate) => candidate.name === 'repeated-instructional-imperative');
+    const notes = Array.from({ length: 6 }, (_, index) =>
+      agendaSlideNote({
+        lessonNumber: index + 1,
+        displayTitle: `Lesson ${index + 1}: Conditional branching and loops`,
+        safeAnchor: 'Use Conditional branching structures in the lesson artifact',
+        concept: 'Conditional branching and loops',
+        artifactReference: `Week ${index + 1} assignment`,
+      }),
+    );
+
+    expect(notes.join(' ')).not.toContain('Use Use');
+    expect(notes.every((note) => pattern.regex.test(note) === false)).toBe(true);
+    expect(pattern.regex.test('Use use to inspect the evidence.')).toBe(true);
   });
 
   it('does not expose a generic Evidence artifact label on slides', () => {

@@ -423,6 +423,17 @@ export function titleSlideNote({ lessonNumber, displayTitle, safeAnchor, concept
   ]);
 }
 
+export function agendaSlideNote({ lessonNumber, displayTitle, safeAnchor, concept, artifactReference }) {
+  return selectVariant(lessonNumber, [
+    `Keep the ${displayTitle} pacing visible and point to the first ${concept} checkpoint: ${safeAnchor}. Students should leave knowing which evidence cue changes ${artifactReference}.`,
+    `Start with this agenda cue: ${safeAnchor}. Then show the lesson arc: listen for the evidence, practice the move, compare drafts, and name the next ${artifactReference} revision.`,
+    `Connect ${safeAnchor} to the work sequence so students can explain what the practice step proves before they update ${artifactReference}.`,
+    `Make the agenda practical: after ${safeAnchor}, students should be able to identify the evidence, peer check, and revision action for ${artifactReference}.`,
+    `Treat this agenda cue as the first checkpoint: ${safeAnchor}. Then have students track which part of the sequence changes their next ${artifactReference} decision.`,
+    `Keep the flow tied to ${concept}: the opening cue, practice block, peer comparison, and exit decision should each shape ${artifactReference}.`,
+  ]);
+}
+
 export function kernelFactInstructorNote({ lessonNumber, kernelFactLedger }) {
   return selectVariant(lessonNumber, [
     `Teach from the verified source fact set: ${kernelFactLedger} Keep the claims visible during the model; students identify the fact behind each practice decision.`,

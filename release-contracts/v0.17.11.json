@@ -104,12 +104,12 @@
       "id": "v01711-evidence-capped-score-ledger",
       "status": "verified-current",
       "changelogHighlightIndex": 4,
-      "summary": "Grader 1.15.9 awards bounded grounding and assessment-coherence credit only from independently replayable final-package receipts and binds the exact implementation in held-out ruler V54.",
+      "summary": "Grader 1.15.9 awards bounded grounding and assessment-coherence credit only from independently replayable final-package receipts and binds the exact implementation in held-out ruler V55.",
       "anchors": [
         "src/lib/quality/automatedReadinessSignal.js",
         "src/lib/quality/deepQualityGrader.js",
         "src/lib/quality/graderVersion.js",
-        "evaluation/scion-adapters/held-out-course-benchmark-v54.json",
+        "evaluation/scion-adapters/held-out-course-benchmark-v55.json",
         "src/lib/quality/__tests__/automatedReadinessSignal.test.js"
       ],
       "proofCommands": [
