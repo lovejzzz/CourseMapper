@@ -36,6 +36,14 @@ export {
 // Every entry mirrors a defect class shipped in the v0.12 production audit.
 export const ARTIFACT_PATTERNS = [
   {
+    regex:
+      /(?:^|[.!?]\s+)(Use|Ask|Have|Start|Open|Begin|Close|End|Name|Preview|Introduce|Lead|Launch|Frame|Make|Keep|Connect|Guide|Review|Compare|Identify|Explain|Apply|Check|Model|Show|Point|Turn|Set)\s+\1\b/m,
+    label: 'repeated sentence-opening instructional imperative such as "Use Use"',
+    name: 'repeated-instructional-imperative',
+    severity: 'P2',
+    roadmap: 'v0.17.11',
+  },
+  {
     regex: /\b(?:the|assigned) this lesson\b/i,
     label: 'lesson-reference determiner collision',
     name: 'slot-grammar-this-lesson-determiner',

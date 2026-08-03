@@ -5,13 +5,31 @@ import {
   compactAssignmentBriefBodyReferences,
   compactCourseCopyFocus,
   compactRepeatedCourseFocusReferences,
+  titleSlideNote,
 } from '../courseCompilerCopyVariants';
 import { examAtomPaddingOptions } from '../courseCompilerExamCopy';
 import { assessmentRevisionCriterion, examFactCopy, slideDecisionMove } from '../courseCompilerPolish';
 import { finalizeCompiledDeliverableLanguage } from '../compiledLanguageFinalizer';
+import { ARTIFACT_PATTERNS } from '../quality/artifactDefectPatterns';
 import { isAppliedQuizStem } from '../quality/quizItemDepth';
 
 describe('course compiler copy variants', () => {
+  it('does not duplicate an instructional imperative when the title-slide anchor already starts with one', () => {
+    const note = titleSlideNote({
+      lessonNumber: 2,
+      displayTitle: 'Lesson 2: Conditional branching and loops',
+      safeAnchor: 'Use Conditional branching structures in the Week 2 loops',
+      concept: 'Conditional branching and loops',
+      artifactReference: 'Week 2 loops',
+    });
+    const pattern = ARTIFACT_PATTERNS.find((candidate) => candidate.name === 'repeated-instructional-imperative');
+
+    expect(note).toContain('Start with this cue: Use Conditional branching structures');
+    expect(note).not.toContain('Use Use');
+    expect(pattern).toBeDefined();
+    expect(pattern.regex.test(note)).toBe(false);
+  });
+
   it('does not expose a generic Evidence artifact label on slides', () => {
     const copy = slideDecisionMove({
       lessonNumber: 1,

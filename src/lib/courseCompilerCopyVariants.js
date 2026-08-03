@@ -415,7 +415,7 @@ export function titleSlideOpening({ lessonNumber, displayTitle, concepts, artifa
 export function titleSlideNote({ lessonNumber, displayTitle, safeAnchor, concept, artifactReference }) {
   return selectVariant(lessonNumber, [
     `Start the ${displayTitle} working session by connecting ${safeAnchor} to ${artifactReference}. Students should be able to name the ${concept} decision the product will capture.`,
-    `Use ${safeAnchor} to open ${displayTitle}, then ask students where ${concept} should become visible in ${artifactReference}.`,
+    `Start with this cue: ${safeAnchor}. Then ask students where ${concept} should become visible in ${artifactReference}.`,
     `Introduce ${displayTitle} through ${safeAnchor}; before moving on, students point to the ${concept} evidence that will guide ${artifactReference}.`,
     `Lead into ${displayTitle} with ${safeAnchor} and have students state which ${concept} choice ${artifactReference} will test.`,
     `Make ${safeAnchor} the entry point for ${displayTitle}; students identify the ${concept} decision they will defend in ${artifactReference}.`,
