@@ -9,7 +9,7 @@ import { inspectEvidenceRecord } from './lib/evidenceRecord.mjs';
 
 const repoRoot = process.cwd();
 const execFileAsync = promisify(execFile);
-const PRODUCTION_CHECKPOINT_SUCCESSOR_POLICY_PATH = 'release-contracts/production-checkpoint-successor-policy.json';
+const PRODUCTION_CHECKPOINT_SUCCESSOR_POLICY_PATH = '.github/production-checkpoint-successor-policy.json';
 const VALID_CONTRACT_STATUSES = new Set([
   'verified-current',
   'historical',
