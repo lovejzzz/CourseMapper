@@ -10,7 +10,7 @@
       "status": "pass",
       "testFilesPassed": 507,
       "testFilesSkipped": 16,
-      "testsPassed": 6551,
+      "testsPassed": 6556,
       "testsSkipped": 162
     },
     {
@@ -77,15 +77,18 @@
       "visualDefectsRepaired": 1
     },
     {
-      "command": "npm run audit:package-evidence -- <accepted-zip>",
+      "command": "npm run audit:package-evidence -- <accepted-zip> evaluation/release-proofs/v0.17.11-course-contract.json evaluation/release-proofs/v0.17.11-local-package-attestation.json",
       "status": "pass",
-      "protocol": "coursemapper-package-evidence-replay-v1",
+      "protocol": "coursemapper-package-evidence-replay-v2",
       "verifiedSources": 3,
       "verifiedClaims": 49,
       "verifiedArtifacts": 27,
       "verifiedAssessmentObligations": 6,
-      "courseContractSha256": "d37333e29bca9bf1802b7725708db097b5adae6c0f97491b2443a209956f442e",
+      "packageSha256": "d945f8cf52a77a92a489dd63d51413d1f85519316b4a9de76dbe8e5ba75106a9",
+      "courseContractSha256": "d6a6a9b3cd9bbc68ca34eae635cb62000eee80ad460c530489fe298722bec60c",
       "evidenceBundleSha256": "ba0b80b0aefa0963ef9ae9474bf9140f6ba26f6d607f59997085f602beaf5e6e",
+      "scoreLedgerSha256": "9c838c76d323aeff4025e7c9d21fab386b893d13fecbff4a9b729bcf3b8e294f",
+      "releaseAttestationSha256": "ee1316ef7eb057cbe05b9bbc5445ab5bc71dc3c5da3392a305da56350f6c066c",
       "failures": 0
     },
     {
@@ -107,6 +110,29 @@
         "included admitted open-source snapshot bytes and independently replayed their complete digests, byte lengths, quote offsets, quote hashes, and rendered artifact hashes",
         "derived assessment obligations independently from rendered assignment and rubric inventories",
         "removed the stale release-contract note that treated the rejected 95-point artifact as accepted evidence"
+      ],
+      "report": "docs/V0.17.11_SCION_LEARNER_CHECKPOINT.md"
+    },
+    {
+      "mode": "roundtable-release-attestation-falsification",
+      "status": "four-p1-attestation-findings-remediated-pending-postfix-audit",
+      "sessionId": "d1a89853-bf12-4373-b88b-c05f94426df6",
+      "rounds": 6,
+      "plannedTurns": 18,
+      "completedArticles": 13,
+      "claudeStatus": "unavailable-without-login-interruption",
+      "auditedCommit": "50db5720",
+      "findingClasses": [
+        "self-consistent claim and artifact forgery",
+        "unreplayed assessment predicates and weak external semantic root",
+        "unreplayed source admission policy",
+        "evidence-row omission without a completeness root"
+      ],
+      "remediations": [
+        "independent Office-visible claim containment and exact claim/quote identity",
+        "rich external objective and assessment contract with five-predicate replay",
+        "independent provider, URL, license, provenance, and semantic admission replay",
+        "one attestation graph for ZIP, contract, evidence bundle, score ledger, counts, score, and grader"
       ],
       "report": "docs/V0.17.11_SCION_LEARNER_CHECKPOINT.md"
     }

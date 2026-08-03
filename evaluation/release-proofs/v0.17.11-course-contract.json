@@ -1,37 +1,79 @@
 {
-  "schemaVersion": 1,
-  "protocol": "coursemapper-pre-generation-course-contract-v1",
+  "schemaVersion": 2,
+  "protocol": "coursemapper-pre-export-course-contract-v2",
   "courseName": "Applied Civic Data Analysis",
   "promptSha256": "6ab4ade1ecb5b39685b59ebcf463d3e8dc55e26f431847c6a8c92e28247b7125",
   "lessons": [
     {
       "lessonNumber": 1,
       "title": "Lesson 1: Python data types and expressions",
+      "objectives": [
+        "Explain Expression using the available course evidence.",
+        "Apply Data type in one practical example from Python data types and expressions and justify one revision.",
+        "Evaluate a claim about Notion, then state the evidence boundary."
+      ],
+      "assessmentId": "A1.1",
+      "assessmentTitle": "Evidence explanation: Python data types and expressions",
       "assessmentRequired": true
     },
     {
       "lessonNumber": 2,
       "title": "Lesson 2: Conditional branching and loops",
+      "objectives": [
+        "Explain Conditional branching and loops using the available course evidence.",
+        "Apply Conditional branching structures in one practical example from Conditional branching and loops and justify one revision.",
+        "Evaluate a claim about Loops, then state the evidence boundary."
+      ],
+      "assessmentId": "A2.1",
+      "assessmentTitle": "Worked example: Conditional branching and loops",
       "assessmentRequired": true
     },
     {
       "lessonNumber": 3,
       "title": "Lesson 3: Functions and automated tests",
+      "objectives": [
+        "Explain Functions and automated tests using the available course evidence.",
+        "Apply Functions in programming in one practical example from Functions and automated tests and justify one revision.",
+        "Evaluate a claim about Automated tests, then state the evidence boundary."
+      ],
+      "assessmentId": "A3.1",
+      "assessmentTitle": "Comparison brief: Functions and automated tests",
       "assessmentRequired": true
     },
     {
       "lessonNumber": 4,
       "title": "Lesson 4: Pandas tabular data cleaning",
+      "objectives": [
+        "Explain Data cleansing using the available course evidence.",
+        "Apply Data cleaning in one practical example from Pandas tabular data cleaning and justify one revision.",
+        "Evaluate a claim about common data cleansing practice, then state the evidence boundary."
+      ],
+      "assessmentId": "A4.1",
+      "assessmentTitle": "Application analysis: Pandas tabular data cleaning",
       "assessmentRequired": true
     },
     {
       "lessonNumber": 5,
       "title": "Lesson 5: Reproducible visualization and uncertainty",
+      "objectives": [
+        "Explain Reproducible visualization and uncertainty using the available course evidence.",
+        "Apply Reproducible visualization in one practical example from Reproducible visualization and uncertainty and justify one revision.",
+        "Evaluate a claim about Advanced visualization techniques, then state the evidence boundary."
+      ],
+      "assessmentId": "A5.1",
+      "assessmentTitle": "Evidence explanation: Reproducible visualization and uncertainty",
       "assessmentRequired": true
     },
     {
       "lessonNumber": 6,
       "title": "Lesson 6: Integrative policy memo capstone",
+      "objectives": [
+        "Explain Expression using the available course evidence.",
+        "Apply Data cleansing in one practical example from Integrative policy memo capstone and justify one revision.",
+        "Evaluate a claim about Data type, then state the evidence boundary."
+      ],
+      "assessmentId": "A6.1",
+      "assessmentTitle": "Course synthesis: Integrative policy memo capstone",
       "assessmentRequired": true
     }
   ]

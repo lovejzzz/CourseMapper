@@ -8,15 +8,174 @@ function sha256(value) {
   return crypto.createHash('sha256').update(value).digest('hex');
 }
 
+function canonicalize(value) {
+  if (Array.isArray(value)) return value.map(canonicalize);
+  if (!value || typeof value !== 'object') return value;
+  return Object.fromEntries(
+    Object.keys(value)
+      .sort()
+      .map((key) => [key, canonicalize(value[key])]),
+  );
+}
+
+function canonicalJson(value) {
+  return JSON.stringify(canonicalize(value));
+}
+
 function cleanText(value) {
   return String(value ?? '')
+    .normalize('NFKC')
     .replace(/<[^>]+>/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 }
 
-export async function verifyPackageEvidenceZipBytes(zipBytes, { courseContractBytes = null } = {}) {
-  const zip = await JSZip.loadAsync(zipBytes);
+function normalized(value) {
+  return cleanText(value)
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function decodeXmlEntities(value) {
+  return String(value ?? '')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'");
+}
+
+function visibleXmlText(xml) {
+  return decodeXmlEntities(String(xml ?? '').replace(/<[^>]+>/g, ' '))
+    .normalize('NFKC')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+async function extractOfficeVisibleText(artifactBytes, artifactPath) {
+  const office = await JSZip.loadAsync(artifactBytes);
+  const extension = path.extname(String(artifactPath || '')).toLowerCase();
+  const parts = [];
+  const names = Object.keys(office.files).sort();
+  for (const name of names) {
+    const visiblePart =
+      extension === '.docx'
+        ? /^word\/(?:document|header\d+|footer\d+)\.xml$/.test(name)
+        : extension === '.pptx'
+          ? /^ppt\/(?:slides\/slide\d+|notesSlides\/notesSlide\d+)\.xml$/.test(name)
+          : false;
+    if (!visiblePart) continue;
+    parts.push(visibleXmlText(await office.file(name).async('string')));
+  }
+  if (parts.length === 0) throw new Error(`${artifactPath}: no independently readable Office text parts`);
+  return cleanText(parts.join(' '));
+}
+
+function textContains(haystack, needle) {
+  const expected = normalized(needle);
+  return Boolean(expected) && normalized(haystack).includes(expected);
+}
+
+function assessmentIdentityVisible(expected, text) {
+  const id = cleanText(expected?.assessmentId);
+  if (id) {
+    const escaped = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (new RegExp(`(?:^|[^\\p{L}\\p{N}])${escaped}(?:$|[^\\p{L}\\p{N}])`, 'iu').test(text)) return true;
+  }
+  return textContains(text, expected?.assessmentTitle);
+}
+
+function visibleStudentEvidence(text) {
+  const value = cleanText(text);
+  return (
+    /\b(?:deliverables?|student evidence|evidence|submission requirements?)\b/i.test(value) &&
+    /\b(?:submit|turn in|prepare|produce|create|provide|record|write|present|attach|final file|revision trace|reflection)\b/i.test(
+      value,
+    )
+  );
+}
+
+function visibleRubricCriteria(text) {
+  const value = cleanText(text);
+  const levels = ['excellent', 'proficient', 'developing', 'beginning'].filter((level) =>
+    new RegExp(`\\b${level}\\b`, 'i').test(value),
+  ).length;
+  return (
+    levels >= 2 &&
+    /\b(?:criterion|criteria|evidence|reasoning|analysis|revision|decision|demonstrate)\b/i.test(value) &&
+    /\b\d{1,3}\s*%/.test(value)
+  );
+}
+
+const ASSESSMENT_CHECK_IDS = [
+  'task-identity-visible',
+  'lesson-objective-visible-in-task',
+  'student-evidence-visible',
+  'matching-rubric-identity-visible',
+  'observable-rubric-criteria-visible',
+];
+
+const TRUST_ELIGIBLE_PROVIDERS = new Set([
+  'courseir',
+  'genome',
+  'genome-prerequisite',
+  'openalex',
+  'openlibrary',
+  'openstax',
+  'open-music-theory',
+  'gutenberg',
+  'eric',
+  'instructor',
+  'instructor-provided',
+  'source-finder',
+  'w3c-wai',
+  'crossref',
+  'doaj',
+  'europe-pmc',
+  'wikipedia',
+]);
+const REVIEW_ONLY_PROVIDERS = new Set(['courseir', 'instructor', 'instructor-provided', 'openlibrary']);
+const AMBIGUOUS_LICENSE_RE =
+  /^(?:|unknown|open access|open license|other[-\s]?oa|(?:[\w.-]+\s+)*public metadata|instructor review required|review required|varies|mixed|metadata only|in copyright|all rights reserved)$/i;
+const RESTRICTED_LICENSE_RE =
+  /rightsstatements\.org\/vocab\/inc(?:[-/]|$)|(?:\/tdm(?:[_/-]|$)|\btdm(?:[_-]?license)?\b|text[-\s]?and[-\s]?data[-\s]?mining|policy-029)|(?:\bCC[-_\s]+BY(?:[-_\s]+(?:NC|SA|ND))*[-_\s]+ND(?:[-_\s]+(?:NC|SA|ND))*\b|creativecommons\.org\/licenses\/by(?:-[a-z]+)*-nd(?:\/|$))/i;
+
+function hasAccessibleReference(row) {
+  if (cleanText(row?.doi)) return true;
+  try {
+    const url = new URL(cleanText(row?.url));
+    return ['http:', 'https:'].includes(url.protocol) && Boolean(url.hostname);
+  } catch {
+    return false;
+  }
+}
+
+function sourceAdmissionFailure(row, receipt) {
+  const provider = cleanText(row?.provider).toLowerCase();
+  const license = cleanText(row?.license);
+  if (!TRUST_ELIGIBLE_PROVIDERS.has(provider) || REVIEW_ONLY_PROVIDERS.has(provider)) {
+    return 'provider is not independently trust-eligible';
+  }
+  if (!hasAccessibleReference(row)) return 'source has no accessible URL or DOI';
+  if (AMBIGUOUS_LICENSE_RE.test(license) || RESTRICTED_LICENSE_RE.test(license)) {
+    return 'source license is ambiguous or restricted';
+  }
+  if (row?.provenanceMismatch === true) return 'source declares a provenance mismatch';
+  if (receipt?.status !== 'passed' || receipt?.semanticSupport !== true || receipt?.readinessEligible !== true) {
+    return 'source receipt did not pass semantic-support admission';
+  }
+  return '';
+}
+
+export async function verifyPackageEvidenceZipBytes(
+  zipBytes,
+  { courseContractBytes = null, expectedCourseContractSha256 = null, releaseAttestationBytes = null } = {},
+) {
+  const packageBuffer = Buffer.from(zipBytes);
+  const packageSha256 = sha256(packageBuffer);
+  const zip = await JSZip.loadAsync(packageBuffer);
   const manifestEntry = zip.file('PACKAGE_MANIFEST.json');
   if (!manifestEntry) throw new Error('PACKAGE_MANIFEST.json is missing');
   const manifest = JSON.parse(await manifestEntry.async('string'));
@@ -25,11 +184,28 @@ export async function verifyPackageEvidenceZipBytes(zipBytes, { courseContractBy
   let verifiedSources = 0;
   let verifiedClaims = 0;
   const artifactDigests = new Map();
+  const artifactVisibleText = new Map();
   const evidenceBundle = [];
+  let releaseAttestation = null;
+  let releaseAttestationSha256 = null;
+  if (releaseAttestationBytes) {
+    const attestationBuffer = Buffer.from(releaseAttestationBytes);
+    releaseAttestationSha256 = sha256(attestationBuffer);
+    releaseAttestation = JSON.parse(attestationBuffer.toString('utf8'));
+    if (releaseAttestation?.protocol !== 'coursemapper-release-evidence-attestation-v1') {
+      failures.push('release attestation protocol is missing or unsupported');
+    }
+    expectedCourseContractSha256 = cleanText(releaseAttestation?.courseContractSha256);
+  }
 
   for (const row of rows) {
     const receipt = row?.supportReceipt;
     if (receipt?.readinessEligible !== true) continue;
+    const admissionFailure = sourceAdmissionFailure(row, receipt);
+    if (admissionFailure) {
+      failures.push(`${String(row?.id || 'unknown-source')}: ${admissionFailure}`);
+      continue;
+    }
     const snapshot = receipt?.sourceSnapshot;
     const text = cleanText(snapshot?.normalizedSnapshotText);
     const bytes = Buffer.from(text, 'utf8');
@@ -37,6 +213,7 @@ export async function verifyPackageEvidenceZipBytes(zipBytes, { courseContractBy
     if (
       snapshot?.protocol !== 'retrieved-source-snapshot-sha256-v2' ||
       snapshot?.sourceId !== row?.id ||
+      snapshot?.contentVerified !== true ||
       bytes.length !== Number(snapshot?.retrievedSnapshotBytes) ||
       sha256(bytes) !== snapshot?.retrievedSnapshotSha256
     ) {
@@ -54,6 +231,10 @@ export async function verifyPackageEvidenceZipBytes(zipBytes, { courseContractBy
       const artifact = zip.file(artifactPath);
       if (
         check?.sourceId !== row?.id ||
+        !cleanText(check?.locator) ||
+        check?.quoteInSnapshot !== true ||
+        check?.entailed !== true ||
+        check?.semanticSupport !== true ||
         check?.retrievedSnapshotSha256 !== snapshot.retrievedSnapshotSha256 ||
         Number(check?.retrievedSnapshotBytes) !== bytes.length ||
         !Number.isInteger(start) ||
@@ -69,13 +250,28 @@ export async function verifyPackageEvidenceZipBytes(zipBytes, { courseContractBy
         failures.push(`${sourceId}: ${check?.claimId || 'claim'} cannot be replayed`);
         continue;
       }
+      const artifactBytes = Buffer.from(await artifact.async('uint8array'));
       let artifactDigest = artifactDigests.get(artifactPath);
       if (!artifactDigest) {
-        artifactDigest = sha256(Buffer.from(await artifact.async('uint8array')));
+        artifactDigest = sha256(artifactBytes);
         artifactDigests.set(artifactPath, artifactDigest);
       }
       if (artifactDigest !== check?.renderedArtifactSha256) {
         failures.push(`${sourceId}: ${check?.claimId || 'claim'} artifact digest mismatch`);
+        continue;
+      }
+      let visibleText = artifactVisibleText.get(artifactPath);
+      try {
+        if (visibleText === undefined) {
+          visibleText = await extractOfficeVisibleText(artifactBytes, artifactPath);
+          artifactVisibleText.set(artifactPath, visibleText);
+        }
+      } catch (error) {
+        failures.push(`${sourceId}: ${check?.claimId || 'claim'} ${error.message}`);
+        continue;
+      }
+      if (normalized(claim) !== normalized(quote) || !textContains(visibleText, claim)) {
+        failures.push(`${sourceId}: ${check?.claimId || 'claim'} claim is not the quoted text visible in its artifact`);
         continue;
       }
       sourceClaims += 1;
@@ -89,6 +285,9 @@ export async function verifyPackageEvidenceZipBytes(zipBytes, { courseContractBy
   if (courseContractBytes) {
     const contractBuffer = Buffer.from(courseContractBytes);
     courseContractSha256 = sha256(contractBuffer);
+    if (!expectedCourseContractSha256 || courseContractSha256 !== expectedCourseContractSha256) {
+      failures.push('course contract does not match the caller-supplied immutable root');
+    }
     const contract = JSON.parse(contractBuffer.toString('utf8'));
     const manifestLessons = new Map(
       (Array.isArray(manifest?.lessons) ? manifest.lessons : []).map((lesson) => [
@@ -111,26 +310,64 @@ export async function verifyPackageEvidenceZipBytes(zipBytes, { courseContractBy
       if (expected?.assessmentRequired !== true) continue;
       const row = assessmentRows.get(lessonNumber);
       const paths = [row?.taskArtifact, row?.rubricArtifact];
-      if (!row || Number(row?.totalChecks) !== 5 || paths.some((entry) => !entry?.path || !entry?.sha256)) {
+      const declaredCheckIds = Array.isArray(row?.checks) ? row.checks.map((entry) => entry?.id) : [];
+      if (
+        !row ||
+        cleanText(row?.assessmentId) !== cleanText(expected?.assessmentId) ||
+        cleanText(row?.title) !== cleanText(expected?.assessmentTitle) ||
+        Number(row?.totalChecks) !== ASSESSMENT_CHECK_IDS.length ||
+        Number(row?.passedChecks) !== ASSESSMENT_CHECK_IDS.length ||
+        row?.passed !== true ||
+        JSON.stringify(declaredCheckIds) !== JSON.stringify(ASSESSMENT_CHECK_IDS) ||
+        row.checks.some((entry) => entry?.passed !== true) ||
+        paths.some((entry) => !entry?.path || !entry?.sha256)
+      ) {
         failures.push(`course contract assessment ${lessonNumber} is missing its five-check artifact chain`);
         continue;
       }
       let validArtifacts = true;
+      const texts = [];
       for (const entry of paths) {
         const artifact = zip.file(entry.path);
         if (!artifact) {
           validArtifacts = false;
           break;
         }
+        const artifactBytes = Buffer.from(await artifact.async('uint8array'));
         let digest = artifactDigests.get(entry.path);
         if (!digest) {
-          digest = sha256(Buffer.from(await artifact.async('uint8array')));
+          digest = sha256(artifactBytes);
           artifactDigests.set(entry.path, digest);
         }
         if (digest !== entry.sha256) validArtifacts = false;
+        try {
+          let text = artifactVisibleText.get(entry.path);
+          if (text === undefined) {
+            text = await extractOfficeVisibleText(artifactBytes, entry.path);
+            artifactVisibleText.set(entry.path, text);
+          }
+          texts.push(text);
+        } catch {
+          validArtifacts = false;
+        }
       }
       if (!validArtifacts) {
         failures.push(`course contract assessment ${lessonNumber} artifact digest mismatch`);
+        continue;
+      }
+      const [taskText, rubricText] = texts;
+      const objectives = (Array.isArray(expected?.objectives) ? expected.objectives : [])
+        .map(cleanText)
+        .filter(Boolean);
+      const replayedChecks = [
+        assessmentIdentityVisible(expected, taskText),
+        objectives.length > 0 && objectives.some((objective) => textContains(taskText, objective)),
+        visibleStudentEvidence(taskText),
+        assessmentIdentityVisible(expected, rubricText),
+        visibleRubricCriteria(rubricText),
+      ];
+      if (replayedChecks.some((passed) => !passed)) {
+        failures.push(`course contract assessment ${lessonNumber} fails independent visible-text replay`);
         continue;
       }
       verifiedAssessmentObligations += 1;
@@ -138,14 +375,47 @@ export async function verifyPackageEvidenceZipBytes(zipBytes, { courseContractBy
   }
 
   if (verifiedSources === 0 || verifiedClaims === 0) failures.push('no replayable claim-bound source evidence found');
+  const evidenceBundleSha256 = sha256(Buffer.from(JSON.stringify(evidenceBundle), 'utf8'));
+  const scoreLedger = manifest?.quality?.readiness?.ledger;
+  const scoreLedgerSha256 = scoreLedger ? sha256(Buffer.from(canonicalJson(scoreLedger), 'utf8')) : null;
+  const readinessScore = Number(manifest?.quality?.readiness?.score);
+  const graderVersion = cleanText(manifest?.quality?.graderVersion);
+  if (releaseAttestation) {
+    const expected = [
+      ['package SHA-256', packageSha256, releaseAttestation.packageSha256],
+      ['course-contract SHA-256', courseContractSha256, releaseAttestation.courseContractSha256],
+      ['evidence-bundle SHA-256', evidenceBundleSha256, releaseAttestation.evidenceBundleSha256],
+      ['score-ledger SHA-256', scoreLedgerSha256, releaseAttestation.scoreLedgerSha256],
+      ['verified source count', verifiedSources, releaseAttestation.verifiedSources],
+      ['verified claim count', verifiedClaims, releaseAttestation.verifiedClaims],
+      ['verified artifact count', artifactDigests.size, releaseAttestation.verifiedArtifacts],
+      [
+        'verified assessment obligation count',
+        verifiedAssessmentObligations,
+        releaseAttestation.verifiedAssessmentObligations,
+      ],
+      ['readiness score', readinessScore, releaseAttestation.readinessScore],
+      ['grader version', graderVersion, releaseAttestation.graderVersion],
+    ];
+    for (const [label, actual, declared] of expected) {
+      if (actual === null || actual === undefined || String(actual) !== String(declared ?? '')) {
+        failures.push(`${label} does not match the release attestation`);
+      }
+    }
+  }
   return {
-    protocol: 'coursemapper-package-evidence-replay-v1',
+    protocol: 'coursemapper-package-evidence-replay-v2',
     status: failures.length === 0 ? 'pass' : 'fail',
+    packageSha256,
     verifiedSources,
     verifiedClaims,
     verifiedArtifacts: artifactDigests.size,
-    evidenceBundleSha256: sha256(Buffer.from(JSON.stringify(evidenceBundle), 'utf8')),
+    evidenceBundleSha256,
+    scoreLedgerSha256,
+    readinessScore,
+    graderVersion,
     ...(courseContractSha256 ? { courseContractSha256, verifiedAssessmentObligations } : {}),
+    ...(releaseAttestationSha256 ? { releaseAttestationSha256 } : {}),
     failures,
   };
 }
@@ -153,10 +423,14 @@ export async function verifyPackageEvidenceZipBytes(zipBytes, { courseContractBy
 async function main() {
   const zipPath = process.argv[2];
   const contractPath = process.argv[3];
-  if (!zipPath)
-    throw new Error('Usage: npm run audit:package-evidence -- /path/to/package.zip [/path/to/course-contract.json]');
+  const attestationPath = process.argv[4];
+  if (!zipPath || !contractPath || !attestationPath)
+    throw new Error(
+      'Usage: npm run audit:package-evidence -- /path/to/package.zip /path/to/course-contract.json /path/to/release-attestation.json',
+    );
   const result = await verifyPackageEvidenceZipBytes(await fs.readFile(path.resolve(zipPath)), {
-    courseContractBytes: contractPath ? await fs.readFile(path.resolve(contractPath)) : null,
+    courseContractBytes: await fs.readFile(path.resolve(contractPath)),
+    releaseAttestationBytes: await fs.readFile(path.resolve(attestationPath)),
   });
   console.log(JSON.stringify(result, null, 2));
   if (result.status !== 'pass') process.exitCode = 1;

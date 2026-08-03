@@ -37,13 +37,18 @@ export const CURRENT_RELEASE = {
     },
     browser: {
       path: 'evaluation/release-proofs/v0.17.11-browser-preflight.json',
-      sha256: '740c9b4612b1f37629d4f5ca912137f219f53336d930c8e17fa76c78d44688e8',
-      bytes: 4712,
+      sha256: 'ecd33c3158a26edf0327765c849bf1d2bd0ad48a1db3605556d243e0421e5fa1',
+      bytes: 6246,
     },
     courseContract: {
       path: 'evaluation/release-proofs/v0.17.11-course-contract.json',
-      sha256: 'd37333e29bca9bf1802b7725708db097b5adae6c0f97491b2443a209956f442e',
-      bytes: 1036,
+      sha256: 'd6a6a9b3cd9bbc68ca34eae635cb62000eee80ad460c530489fe298722bec60c',
+      bytes: 3638,
+    },
+    localPackageAttestation: {
+      path: 'evaluation/release-proofs/v0.17.11-local-package-attestation.json',
+      sha256: 'ee1316ef7eb057cbe05b9bbc5445ab5bc71dc3c5da3392a305da56350f6c066c',
+      bytes: 1221,
     },
     auditCommand: 'npm run audit:release-history',
   },

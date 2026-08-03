@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "protocol": "coursemapper-release-evidence-attestation-v1",
+  "scope": "local-preproduction-candidate",
+  "packageSha256": "d945f8cf52a77a92a489dd63d51413d1f85519316b4a9de76dbe8e5ba75106a9",
+  "courseContractSha256": "d6a6a9b3cd9bbc68ca34eae635cb62000eee80ad460c530489fe298722bec60c",
+  "evidenceBundleSha256": "ba0b80b0aefa0963ef9ae9474bf9140f6ba26f6d607f59997085f602beaf5e6e",
+  "scoreLedgerSha256": "9c838c76d323aeff4025e7c9d21fab386b893d13fecbff4a9b729bcf3b8e294f",
+  "verifiedSources": 3,
+  "verifiedClaims": 49,
+  "verifiedArtifacts": 27,
+  "verifiedAssessmentObligations": 6,
+  "readinessScore": 87,
+  "graderVersion": "1.15.9",
+  "observedDimensions": {
+    "curriculumFidelity": 25,
+    "evidenceGrounding": 13,
+    "instructionalTexture": 19,
+    "assessmentCoherence": 15,
+    "exportIntegrity": 15
+  },
+  "releaseGate": {
+    "minimumReadinessScore": 60,
+    "minimumEvidenceGrounding": 15,
+    "minimumAssessmentCoherence": 10,
+    "maximumP0": 0,
+    "maximumP1": 0,
+    "passed": false,
+    "reason": "The local candidate proves the requested score lift and semantic replay, but its 13/25 grounding result remains below the separately declared production checkpoint floor."
+  }
+}
