@@ -35,6 +35,57 @@ async function getPptxGen() {
   return _PptxGenJS;
 }
 
+const PPTX_ACCESSIBILITY_REGISTRY = Symbol('courseMapperPptxAccessibilityRegistry');
+
+function isDecorativeAltText(value) {
+  return /^decorative\b/i.test(String(value || '').trim());
+}
+
+/**
+ * pptxgenjs currently ignores `altText` on shapes and text boxes. Keep the
+ * authoring API useful by assigning every semantic object a stable name and
+ * recording its description for an OOXML post-processing pass. Records are
+ * scoped per slide because native visual names (for example cmVizSpoke) are
+ * intentionally repeated and are also used as deterministic quality markers.
+ */
+function instrumentPptxAccessibility(pptx) {
+  const registry = new Map();
+  const addSlide = pptx.addSlide.bind(pptx);
+  let slideNumber = 0;
+
+  pptx.addSlide = (...args) => {
+    const slide = addSlide(...args);
+    slideNumber += 1;
+    const records = [];
+    registry.set(slideNumber, records);
+
+    for (const [method, optionsIndex] of [
+      ['addShape', 1],
+      ['addText', 1],
+      ['addChart', 2],
+      ['addImage', 0],
+    ]) {
+      if (typeof slide[method] !== 'function') continue;
+      const original = slide[method].bind(slide);
+      slide[method] = (...methodArgs) => {
+        const options = methodArgs[optionsIndex];
+        const description = String(options?.altText || '').trim();
+        if (description && !isDecorativeAltText(description)) {
+          const objectName = String(options.objectName || `cmA11y-s${slideNumber}-${records.length + 1}`);
+          methodArgs[optionsIndex] = { ...options, objectName };
+          records.push({ objectName, description });
+        }
+        return original(...methodArgs);
+      };
+    }
+
+    return slide;
+  };
+
+  Object.defineProperty(pptx, PPTX_ACCESSIBILITY_REGISTRY, { value: registry });
+  return pptx;
+}
+
 // ── Font constants (installed on every Windows/macOS machine + Google
 // Slides native — see header note; do not spec fonts that need installing) ──
 const FONT_HEADING = 'Georgia';
@@ -2401,7 +2452,7 @@ function isCompleteExperientialDeck(slides = []) {
 async function createPptxWithDecks(data, courseName, themeIndex) {
   const expanded = expandKeys('slideDecks', data);
   const PptxGenJS = await getPptxGen();
-  const pptx = new PptxGenJS();
+  const pptx = instrumentPptxAccessibility(new PptxGenJS());
 
   pptx.layout = 'LAYOUT_16x9';
   pptx.lang = 'en-US';
@@ -2481,23 +2532,59 @@ async function createPptxWithDecks(data, courseName, themeIndex) {
  * per-script font tables are CJK-capable), so removing the run-level
  * override lets renderers fall back correctly.
  */
-async function stripLatinEastAsiaOverrides(blob) {
+function escapeXmlAttribute(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function decodeXmlAttribute(value) {
+  return String(value)
+    .replace(/&quot;/g, '"')
+    .replace(/&gt;/g, '>')
+    .replace(/&lt;/g, '<')
+    .replace(/&amp;/g, '&');
+}
+
+function attachSemanticDescriptions(xml, records = []) {
+  if (records.length === 0) return xml;
+  const descriptionsByName = new Map();
+  for (const record of records) {
+    const descriptions = descriptionsByName.get(record.objectName) || [];
+    descriptions.push(record.description);
+    descriptionsByName.set(record.objectName, descriptions);
+  }
+
+  return xml.replace(/<(?:p|pic):cNvPr\b[^>]*>/g, (tag) => {
+    const name = tag.match(/\bname="([^"]*)"/)?.[1];
+    if (!name) return tag;
+    const descriptions = descriptionsByName.get(decodeXmlAttribute(name));
+    if (!descriptions?.length) return tag;
+    const description = descriptions.shift();
+    const withoutExistingMetadata = tag.replace(/\s+(?:title|descr)="[^"]*"/g, '');
+    const suffix = withoutExistingMetadata.endsWith('/>') ? '/>' : '>';
+    const title = /^slide-counter-label-/.test(decodeXmlAttribute(name))
+      ? 'Slide counter'
+      : 'CourseMapper semantic visual';
+    return `${withoutExistingMetadata.slice(0, -suffix.length)} title="${title}" descr="${escapeXmlAttribute(description)}"${suffix}`;
+  });
+}
+
+async function stripLatinEastAsiaOverrides(blob, accessibilityRegistry = new Map()) {
   const mod = await safeImport(() => import('jszip'));
   const JSZip = mod.default || mod;
   const zip = await JSZip.loadAsync(typeof blob.arrayBuffer === 'function' ? await blob.arrayBuffer() : blob);
   const escapeFace = (face) => face.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const faces = [...new Set([FONT_HEADING, FONT_BODY, FONT_LABEL])].map(escapeFace).join('|');
   const eaOverride = new RegExp(`<a:ea typeface="(?:${faces})"[^>]*/>`, 'g');
-  const counterAccessibility = /<p:cNvPr\b[^>]*\bname="slide-counter-label-(\d+)-of-(\d+)"[^>]*>/g;
   let changed = false;
   for (const name of Object.keys(zip.files)) {
     if (!/^ppt\/.*\.xml$/.test(name)) continue;
     const xml = await zip.file(name).async('string');
-    const next = xml.replace(eaOverride, '').replace(counterAccessibility, (tag, current, total) => {
-      if (/\bdescr="/.test(tag)) return tag;
-      const suffix = tag.endsWith('/>') ? '/>' : '>';
-      return `${tag.slice(0, -suffix.length)} title="Slide counter" descr="Slide ${current} of ${total}"${suffix}`;
-    });
+    const slideNumber = Number(name.match(/^ppt\/slides\/slide(\d+)\.xml$/)?.[1] || 0);
+    const next = attachSemanticDescriptions(xml.replace(eaOverride, ''), accessibilityRegistry.get(slideNumber));
     if (next !== xml) {
       zip.file(name, next);
       changed = true;
@@ -2525,7 +2612,7 @@ export async function exportSlideDeckPptx(data, courseName, themeIndex) {
 export async function buildSlideDeckPptxBlob(data, courseName, themeIndex) {
   const pptx = await createPptxWithDecks(data, courseName, themeIndex);
   const blob = await pptx.write({ outputType: 'blob' });
-  return await stripLatinEastAsiaOverrides(blob);
+  return await stripLatinEastAsiaOverrides(blob, pptx[PPTX_ACCESSIBILITY_REGISTRY]);
 }
 
 /**
@@ -2534,7 +2621,7 @@ export async function buildSlideDeckPptxBlob(data, courseName, themeIndex) {
 export async function buildSingleDeckPptxBlob(deck, deckIndex, courseName, themeIndex) {
   const expandedDeck = expandKeys('slideDecks', { decks: [deck] })?.decks?.[0] || deck;
   const PptxGenJS = await getPptxGen();
-  const pptx = new PptxGenJS();
+  const pptx = instrumentPptxAccessibility(new PptxGenJS());
 
   pptx.layout = 'LAYOUT_16x9';
   pptx.lang = 'en-US';
@@ -2553,7 +2640,7 @@ export async function buildSingleDeckPptxBlob(deck, deckIndex, courseName, theme
   }
 
   const blob = await pptx.write({ outputType: 'blob' });
-  return await stripLatinEastAsiaOverrides(blob);
+  return await stripLatinEastAsiaOverrides(blob, pptx[PPTX_ACCESSIBILITY_REGISTRY]);
 }
 
 /**

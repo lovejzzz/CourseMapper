@@ -24,6 +24,7 @@
 import { describe, it, expect, beforeAll, vi } from 'vitest';
 import JSZip from 'jszip';
 import { buildSlideDeckPptxBlob } from '../pptxExporter.js';
+import { auditOfficeAccessibility } from '../../exportRenderedTextAudit.js';
 
 // happy-dom ships a Canvas element but its getContext('2d') returns null,
 // which breaks slideTextFit.js auto-fit sizing. Rather than pull in the full
@@ -259,15 +260,16 @@ const firstMarkerIndex = (xml, markers) =>
 
 let slideXmls;
 let notesXmls;
+let pptxBlob;
 
 beforeAll(async () => {
   install2dContextStub();
   // Run the real exporter — produces a real Blob through pptxgenjs.
-  const blob = await buildSlideDeckPptxBlob(FIXTURE, 'Test Course', 0);
-  expect(blob, 'exporter returned no blob').toBeTruthy();
+  pptxBlob = await buildSlideDeckPptxBlob(FIXTURE, 'Test Course', 0);
+  expect(pptxBlob, 'exporter returned no blob').toBeTruthy();
 
   // Convert to ArrayBuffer for JSZip (happy-dom's Blob has .arrayBuffer()).
-  const ab = await blob.arrayBuffer();
+  const ab = await pptxBlob.arrayBuffer();
   const zip = await JSZip.loadAsync(ab);
 
   // Sort by the numeric suffix so slide1.xml comes before slide10.xml, etc.
@@ -479,6 +481,81 @@ describe('PPTX export — visual placeholders', () => {
     // Distinctive phrase from our fixture's altText string — proves the
     // altText value reached the exported PPTX, not just the marker label.
     expect(notes).toContain('four-step horizontal flow');
+  });
+
+  it('serializes authored descriptions onto semantic shapes and text objects', () => {
+    const semanticObjects = slideXmls.flatMap((xml) =>
+      [...xml.matchAll(/<(?:p|pic):cNvPr\b[^>]*>/g)]
+        .map((match) => match[0])
+        .filter((tag) => /\bname="(?:cmA11y-|cmViz(?:Hub|Spoke|Chart|Layer)|slide-counter-label-)/.test(tag)),
+    );
+    expect(semanticObjects.length).toBeGreaterThan(FIXTURE.decks[0].slides.length);
+    for (const object of semanticObjects) {
+      expect(object).toMatch(/title="(?:CourseMapper semantic visual|Slide counter)"/);
+      expect(object).toMatch(/\bdescr="[^"]+"/);
+    }
+    expect(slideXmls.join('\n')).toContain('descr="Central concept: Opportunity Cost"');
+    expect(slideXmls.join('\n')).toContain('descr="Related idea: Includes non-money costs like time"');
+  });
+
+  it('fails accessibility verification when a tracked semantic description is lost', async () => {
+    const zip = await JSZip.loadAsync(await pptxBlob.arrayBuffer());
+    const path = 'ppt/slides/slide1.xml';
+    const xml = await zip.file(path).async('string');
+    const damaged = xml.replace(
+      /(<p:cNvPr\b(?=[^>]*\bname="(?:cmA11y-|slide-counter-label-))[^>]*)(\sdescr="[^"]*")([^>]*>)/,
+      '$1$3',
+    );
+    expect(damaged).not.toBe(xml);
+    zip.file(path, damaged);
+    const damagedBlob = await zip.generateAsync({ type: 'blob' });
+    expect(await auditOfficeAccessibility(damagedBlob, 'pptx')).toMatchObject({
+      code: 'accessibility',
+      problems: expect.arrayContaining(['semantic-object-without-description']),
+    });
+  });
+
+  it('checks actual PowerPoint picture elements instead of passing a media deck vacuously', async () => {
+    const pixel =
+      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M/wHwAF/gL+XlZ8WQAAAABJRU5ErkJggg==';
+    const blob = await buildSlideDeckPptxBlob(
+      {
+        decks: [
+          {
+            lessonTitle: 'Lesson 1: Picture accessibility',
+            slides: [
+              {
+                title: 'A generated visual has a real description',
+                type: 'content',
+                bullets: ['Inspect the visible evidence.'],
+                visual: {
+                  kind: 'image',
+                  description: 'A one-pixel test image.',
+                  altText: 'A test image used to verify PowerPoint accessibility metadata.',
+                  generatedImage: { url: pixel },
+                },
+              },
+            ],
+          },
+        ],
+      },
+      'Picture accessibility',
+      0,
+    );
+    expect(await auditOfficeAccessibility(blob, 'pptx')).toBeNull();
+
+    const zip = await JSZip.loadAsync(await blob.arrayBuffer());
+    const path = 'ppt/slides/slide1.xml';
+    const xml = await zip.file(path).async('string');
+    expect(xml).toContain('<p:pic>');
+    const damaged = xml.replace(/(<p:pic>[\s\S]*?<p:cNvPr\b[^>]*?)\sdescr="[^"]*"/, '$1');
+    expect(damaged).not.toBe(xml);
+    zip.file(path, damaged);
+    const damagedBlob = await zip.generateAsync({ type: 'blob' });
+    expect(await auditOfficeAccessibility(damagedBlob, 'pptx')).toMatchObject({
+      code: 'accessibility',
+      problems: expect.arrayContaining(['image-without-alt']),
+    });
   });
 
   it('expands compact slide deck keys before building the PPTX artifact', async () => {

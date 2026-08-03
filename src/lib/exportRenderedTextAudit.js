@@ -208,8 +208,9 @@ export async function auditOfficeBlobRepetition(blob, format) {
 /**
  * Accessibility structure scan (v0.9.1 Phase 3 — CCR D5.1 proxy).
  * DOCX: requires a real heading structure and a footer part; flags tables
- * whose first row carries no header shading. PPTX: every picture needs a
- * non-empty alt description.
+ * whose first row carries no header shading. PPTX: every picture and every
+ * CourseMapper-authored semantic object needs a non-empty description. The
+ * named-object check makes this contract non-vacuous for decks with no media.
  */
 export async function auditOfficeAccessibility(blob, format) {
   const buffer = await toArrayBuffer(blob);
@@ -243,11 +244,24 @@ export async function auditOfficeAccessibility(blob, format) {
     for (const file of Object.values(zip.files)) {
       if (file.dir || !/^ppt\/slides\/[^/]+\.xml$/.test(file.name)) continue;
       const xml = await file.async('string');
-      const pictures = xml.split('<pic:pic>').slice(1);
+      const pictures = xml.split('<p:pic>').slice(1);
       for (const picture of pictures) {
         const descr = picture.match(/descr="([^"]*)"/);
         if (!descr || !descr[1].trim()) {
           problems.push('image-without-alt');
+          break;
+        }
+      }
+      const semanticObjects = [...xml.matchAll(/<(?:p|pic):cNvPr\b[^>]*>/g)]
+        .map((match) => match[0])
+        .filter((tag) => {
+          const name = tag.match(/\bname="([^"]*)"/)?.[1] || '';
+          return /^(?:cmA11y-|cmViz(?:Hub|Spoke|Chart|Layer)|slide-counter-label-)/.test(name);
+        });
+      for (const object of semanticObjects) {
+        const descr = object.match(/\bdescr="([^"]*)"/);
+        if (!descr || !descr[1].trim()) {
+          problems.push('semantic-object-without-description');
           break;
         }
       }

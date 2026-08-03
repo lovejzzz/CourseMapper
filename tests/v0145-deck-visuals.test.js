@@ -573,6 +573,8 @@ describe('C1/C2 — native rendering through the real exporter', () => {
     expect(count(xml, 'name="cmVizHub"')).toBe(1);
     expect(count(xml, 'name="cmVizSpoke"')).toBe(5);
     expect(count(xml, 'name="cmVizConn"')).toBe(5);
+    expect(xml).toContain('descr="Central concept: Stream discharge"');
+    expect(count(xml, 'title="CourseMapper semantic visual"')).toBeGreaterThanOrEqual(7);
     // Hub + spokes are real ellipse geometry (progress dots add more).
     expect(count(xml, 'prst="ellipse"')).toBeGreaterThanOrEqual(6);
     // Native seven-segment slide counters also use line geometry; the named
@@ -599,6 +601,7 @@ describe('C1/C2 — native rendering through the real exporter', () => {
   it('renders the wePlot as a native bar chart with the cmVizChart frame', async () => {
     // Chart graphic frame on the worked-example slide
     expect(slideXmls[2]).toContain('name="cmVizChart"');
+    expect(slideXmls[2]).toContain('descr="Bar chart of worked-example values:');
     expect(slideXmls[2]).toContain('graphicFrame');
     // A real chart part exists with the bar type and the pair labels
     const chartPath = Object.keys(zip.files).find((p) => /^ppt\/charts\/chart\d+\.xml$/.test(p));
