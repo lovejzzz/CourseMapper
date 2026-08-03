@@ -19,6 +19,13 @@ describe('browser-discovered artifact defect regressions', () => {
     expect("James's notes preserve the passage context.").not.toMatch(pattern('malformed-plural-possessive'));
   });
 
+  it('catches course-neutral lesson-reference determiner collisions', () => {
+    const seam = pattern('slot-grammar-this-lesson-determiner');
+    expect('Test the this lesson conclusion before submission.').toMatch(seam);
+    expect('Connect one assigned this lesson detail to the decision.').toMatch(seam);
+    expect('Test this lesson conclusion before submission.').not.toMatch(seam);
+  });
+
   it('catches assessment sentence seams and internal modality ids', () => {
     expect('The Week 3 reflection. is formative practice.').toMatch(pattern('assessment-sentence-seam'));
     expect('Close with a one-line check. Is this fact true?').not.toMatch(pattern('assessment-sentence-seam'));

@@ -531,6 +531,8 @@ describe('deep quality package structure', () => {
           'Transfer the feedback-based the Comparative Reading focus revision into the next task.',
           'Audit a practical the pandas workflow example with a partner.',
           'Audit a the policy example before submission.',
+          'Test the this lesson conclusion before submission.',
+          'Connect one assigned this lesson detail to the decision.',
           'Format: present the response in the locally approved submission form.',
         ].join('\n'),
       }),

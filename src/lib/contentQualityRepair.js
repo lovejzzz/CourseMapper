@@ -1218,25 +1218,25 @@ function quarantinedEvidenceReplacement(featureId, parentKey = '', context = {},
     return `Ask learners to compare the assigned evidence for ${lesson}, then state one bounded conclusion and one limitation.`;
   }
   if (/^(?:summary|overview|description)$/i.test(parentKey)) {
-    return `Use the ${lesson} objective and assigned course evidence to develop a bounded, supportable conclusion.`;
+    return `Use the objective for ${lesson} and assigned course evidence to develop a bounded, supportable conclusion.`;
   }
   if (/^(?:bullets|claims|facts|positions)$/i.test(parentKey)) {
     const variants = [
       `Compare the assigned materials for ${lesson}; record the strongest support and one limit.`,
-      `Test a ${lesson} conclusion against course evidence, then identify what remains uncertain.`,
-      `Use one course-approved ${lesson} detail to justify a cautious conclusion.`,
-      `Distinguish supported ${lesson} evidence from an inference that still needs checking.`,
-      `Select the best ${lesson} support, explain its relevance, and mark the evidence boundary.`,
+      `Test a conclusion about ${lesson} against course evidence, then identify what remains uncertain.`,
+      `Use one course-approved detail from ${lesson} to justify a cautious conclusion.`,
+      `Distinguish supported evidence about ${lesson} from an inference that still needs checking.`,
+      `Select the strongest support for ${lesson}, explain its relevance, and mark the evidence boundary.`,
     ];
     return variants[stableEvidenceVariant(`${featureId}:${parentKey}:${sourceFactPathKey(path)}`, variants.length)];
   }
   const defaults = [
-    `Use the approved ${lesson} materials to justify a cautious conclusion`,
-    `Check one ${lesson} inference against assigned evidence and mark its limit`,
+    `Use the approved materials for ${lesson} to justify a cautious conclusion`,
+    `Check one inference about ${lesson} against assigned evidence and mark its limit`,
     `For ${lesson}, separate direct support from a claim that still needs evidence`,
-    `Ground the ${lesson} response in a course-approved detail and disclose uncertainty`,
-    `Connect one assigned ${lesson} detail to the decision without overstating it`,
-    `Test the ${lesson} conclusion against course evidence before extending the claim`,
+    `Ground the response about ${lesson} in a course-approved detail and disclose uncertainty`,
+    `Connect one assigned detail from ${lesson} to the decision without overstating it`,
+    `Test the conclusion for ${lesson} against course evidence before extending the claim`,
   ];
   // Different paths can hash to the same fallback seat. That collision used
   // to stamp one otherwise-safe sentence into several sections of the same

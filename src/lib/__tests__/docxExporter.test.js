@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatAssessmentBlockEntry, mastheadTitleSize } from '../exporters/docxExporter.js';
+import { formatAssessmentBlockEntry, mastheadTitleLineSpacing, mastheadTitleSize } from '../exporters/docxExporter.js';
 
 describe('DOCX masthead sizing', () => {
   it('shrinks long titles using course-agnostic length tiers', () => {
@@ -10,6 +10,12 @@ describe('DOCX masthead sizing', () => {
 
   it('normalizes repeated whitespace before choosing a tier', () => {
     expect(mastheadTitleSize(`  ${'x'.repeat(70)}   `)).toBe(36);
+  });
+
+  it('gives wrapped mastheads enough line height for Word-compatible renderers', () => {
+    expect(mastheadTitleLineSpacing(36)).toBe(432);
+    expect(mastheadTitleLineSpacing(32)).toBe(384);
+    expect(mastheadTitleLineSpacing(28)).toBe(336);
   });
 });
 

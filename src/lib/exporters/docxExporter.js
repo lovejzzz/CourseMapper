@@ -75,6 +75,14 @@ export function mastheadTitleSize(title) {
   if (length > 72) return 32;
   return H1_SIZE;
 }
+export function mastheadTitleLineSpacing(titleSize) {
+  const size = Number(titleSize);
+  // DOCX font sizes are half-points while paragraph line spacing is twips.
+  // A 16pt wrapped masthead therefore needs at least 19.2pt (384 twips), not
+  // the 13.8pt body rhythm. LibreOffice otherwise pulls the first wrapped
+  // line into the kicker above it and can render it outside the left margin.
+  return Math.max(LINE_SP, Math.round((Number.isFinite(size) ? size : H1_SIZE) * 12));
+}
 const SINGLE_SP = 252;
 
 function formatSourceArtifact(artifact) {
@@ -129,6 +137,7 @@ export function buildDocxTitleChildren(docx, courseName, label, options = {}) {
   const { Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle, PageBreak } = docx;
   const theme = activeTheme();
   const titleSize = mastheadTitleSize(courseName);
+  const titleLineSpacing = mastheadTitleLineSpacing(titleSize);
   const children = [];
   // Cover page for multi-lesson documents: course identity gets a designed
   // first page instead of dropping straight into Lesson 1.
@@ -203,7 +212,7 @@ export function buildDocxTitleChildren(docx, courseName, label, options = {}) {
     }),
     new Paragraph({
       heading: HeadingLevel.TITLE,
-      spacing: { line: LINE_SP, after: 100 },
+      spacing: { line: titleLineSpacing, after: 100 },
       children: [
         new TextRun({
           text: courseName || 'Course',

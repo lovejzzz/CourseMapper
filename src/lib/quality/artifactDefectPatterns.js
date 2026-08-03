@@ -36,6 +36,13 @@ export {
 // Every entry mirrors a defect class shipped in the v0.12 production audit.
 export const ARTIFACT_PATTERNS = [
   {
+    regex: /\b(?:the|assigned) this lesson\b/i,
+    label: 'lesson-reference determiner collision',
+    name: 'slot-grammar-this-lesson-determiner',
+    severity: 'P1',
+    roadmap: 'v0.17.11',
+  },
+  {
     regex: ADJACENT_ARTICLE_COLLISION_RE,
     label: 'adjacent article collision such as "a the policy example"',
     name: 'slot-grammar-adjacent-articles',

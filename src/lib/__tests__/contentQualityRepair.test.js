@@ -540,6 +540,33 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     expect(visible.join(' ')).not.toMatch(/PyGMT/i);
   });
 
+  it('keeps course-neutral quarantine fallbacks grammatical without a lesson title', () => {
+    const repaired = repairDeliverableContentQuality(
+      'studyGuides',
+      {
+        guides: [
+          {
+            practiceActivities: Array.from({ length: 6 }, () => 'PyGMT supplies the conclusion.'),
+          },
+        ],
+      },
+      {
+        rejectedLearnerSourceEvidence: {
+          rejectedLessonScopes: new Set(),
+          phrases: new Set(),
+          markers: new Set(['pygmt']),
+          overlayTermsByLesson: new Map(),
+          overlayExactValuesByLesson: new Map(),
+          sourceAssertionExactValuesByLesson: new Map(),
+        },
+      },
+    ).data;
+
+    const text = repaired.guides[0].practiceActivities.join(' ');
+    expect(text).not.toMatch(/PyGMT|the this lesson|assigned this lesson/i);
+    expect(text).toContain('this lesson');
+  });
+
   it('migrates a saved Course FAQ compiler non-answer even when rejected source text is already gone', () => {
     const data = {
       faqs: [
