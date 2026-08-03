@@ -1183,7 +1183,7 @@ describe('D1(3)+(4) — weight-0 invariance and the report row on a real package
       Object.fromEntries(
         result.texture.visibleUnitPolicy.families.map((family) => [family.family, family.eligibleUnitCount]),
       ),
-    ).toEqual({ lessonPlans: 66, assignments: 134, rubrics: 84 });
+    ).toEqual({ lessonPlans: 66, assignments: 138, rubrics: 84 });
     expect(result.texture.score).toBe(
       Math.max(0, result.texture.baseScore - result.texture.visibleUnitPolicy.scorePenalty),
     );

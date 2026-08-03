@@ -267,12 +267,18 @@ describe('packageZipExporter', () => {
       {
         lessonNumber: 1,
         title: 'Lesson 1: Export Reliability',
-        objectives: ['Verify exports.'],
+        objectives: [
+          'Apply Export Reliability in one practical example and justify one evidence-based revision.',
+          'Verify exports.',
+        ],
       },
       {
         lessonNumber: 2,
         title: 'Lesson 2: Portable Course Materials',
-        objectives: ['Package files.'],
+        objectives: [
+          'Apply Portable Course Materials in one practical example and justify one evidence-based revision.',
+          'Package files.',
+        ],
       },
     ]);
   });
@@ -606,6 +612,9 @@ describe('packageZipExporter', () => {
       { featureId: 'lessonPlans', label: 'Lesson Plans' },
       { featureId: 'slideDecks', label: 'Slide Decks' },
     ]);
+    expect(manifest.lessons[0].objectives).toContain(
+      'Apply Export Reliability in one practical example and justify one evidence-based revision.',
+    );
     expect(buildXlsxBuffer).toHaveBeenCalledOnce();
     expect(buildDeliverableDocxBlob).toHaveBeenCalledTimes(2);
     expect(buildSlideDeckPptxBlob).toHaveBeenCalledTimes(2);

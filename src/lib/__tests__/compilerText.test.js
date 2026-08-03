@@ -7,6 +7,15 @@ import {
   isInternalSourceCue,
   repairMalformedClearPluralPossessives,
 } from '../compilerText.js';
+import { stableLessonContractObjective } from '../lessonAssessmentContract.js';
+
+describe('stable lesson assessment contract', () => {
+  it('derives a course-neutral objective from an unseen lesson identity', () => {
+    expect(stableLessonContractObjective({ title: 'Week 7: Coastal Flood Adaptation' })).toBe(
+      'Apply Coastal Flood Adaptation in one practical example and justify one evidence-based revision.',
+    );
+  });
+});
 
 describe('learner-facing possessives', () => {
   it('repairs a duplicated possessive marker on clearly plural title nouns', () => {

@@ -11,7 +11,7 @@ import {
   isTrustedSourceLedgerRow,
   summarizeSourceLedgerRows,
 } from './knowledge/sourceLedger.js';
-import { dedupeNumberedAssessmentEcho } from './compilerText.js';
+import { dedupeNumberedAssessmentEcho, stripLessonPrefix } from './compilerText.js';
 import { classifyAssessmentKind } from './courseGraph/deriveFromCourseMap.js';
 import { isDeliverableNotApplicable } from './deliverableApplicability.js';
 import { safeImport } from './safeImport';
@@ -1973,7 +1973,9 @@ function buildManifest({
 }
 
 function manifestLessonObjectives(lesson) {
+  const lessonFocus = stripLessonPrefix(lesson?.title || lesson?.topic || 'this lesson') || 'this lesson';
   const values = [
+    `Apply ${lessonFocus} in one practical example and justify one evidence-based revision.`,
     lesson?.learningObjectives,
     lesson?.objectives,
     ...(Array.isArray(lesson?.sections)

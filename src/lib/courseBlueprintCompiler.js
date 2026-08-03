@@ -21,6 +21,7 @@ import {
   unique,
   wordCount,
 } from './compilerText';
+import { stableLessonContractObjective } from './lessonAssessmentContract';
 import {
   conceptWorkQuestion,
   containsWeakPlaceholder,
@@ -17614,12 +17615,9 @@ function compileExperientialActivityAssignmentBrief(blueprint, lesson) {
   });
 }
 
-// Assignment headings and the Related Lessons line are identity surfaces: they
-// keep the exact assessment and lesson titles so a reader can trace the brief
-// back to the Course Map. Body copy is a different surface. Repeating a long
-// title in instructions, criteria, milestone copy, and self-assessment prose
-// makes a source-grounded brief read like a template (and can trip the rendered
-// eight-word repetition audit). Compact only those student-facing body fields.
+// Keep exact identity headings, but compact repeated titles in student-facing
+// body fields so source-grounded briefs do not read like templates or trip the
+// rendered eight-word repetition audit.
 function compileAssignments(blueprint) {
   const lens = blueprintLens(blueprint);
   const preference = featurePreference(blueprint, 'assignments');
@@ -17860,7 +17858,9 @@ function compileAssignments(blueprint) {
                   ]),
           ...(lesson.enrichment?.assignmentCore ? { enrichmentSource: 'lesson-content-enrichment' } : {}),
           gradingWeightProvenance: compactWeightProvenance(assessment.weightProvenance),
-          objectives: asArray(assessment.objectives).map((objective) => sentenceCase(objective)),
+          objectives: unique([stableLessonContractObjective(lesson), ...asArray(assessment.objectives)]).map(
+            (objective) => sentenceCase(objective),
+          ),
           objectiveEvidenceChecklist: objectiveEvidenceChecklist(lesson.objectiveEvidencePlan),
           instructions: [
             lesson.prerequisitePlan?.studentReadinessCheck ||
