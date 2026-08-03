@@ -585,6 +585,41 @@ describe('PPTX export — visual placeholders', () => {
     });
   });
 
+  it('preserves complex inline LaTeX as complete readable slide text', async () => {
+    const blob = await buildSlideDeckPptxBlob(
+      {
+        decks: [
+          {
+            lessonTitle: 'Lesson 1: Inline mathematics',
+            slides: [
+              {
+                title: 'Compare two quantities',
+                type: 'content',
+                bullets: ['Compare $\\frac{a}{b}$ with the policy threshold.'],
+              },
+            ],
+          },
+        ],
+      },
+      'Inline mathematics',
+      0,
+    );
+    const zip = await JSZip.loadAsync(await blob.arrayBuffer());
+    const xml = await zip.file('ppt/slides/slide1.xml').async('string');
+    expect(xml).toContain('Compare (a)/(b) with the policy threshold.');
+    expect(xml).not.toContain('[\\frac{a}{b}...]');
+    expect(await auditOfficeAccessibility(blob, 'pptx')).toBeNull();
+
+    const damaged = xml.replace('(a)/(b)', '[\\frac{a}{b}...]');
+    expect(damaged).not.toBe(xml);
+    zip.file('ppt/slides/slide1.xml', damaged);
+    const damagedBlob = await zip.generateAsync({ type: 'blob' });
+    expect(await auditOfficeAccessibility(damagedBlob, 'pptx')).toMatchObject({
+      code: 'accessibility',
+      problems: expect.arrayContaining(['truncated-inline-latex']),
+    });
+  });
+
   it('expands compact slide deck keys before building the PPTX artifact', async () => {
     const blob = await buildSlideDeckPptxBlob(
       {

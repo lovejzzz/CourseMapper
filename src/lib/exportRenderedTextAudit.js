@@ -244,6 +244,9 @@ export async function auditOfficeAccessibility(blob, format) {
     for (const file of Object.values(zip.files)) {
       if (file.dir || !/^ppt\/slides\/[^/]+\.xml$/.test(file.name)) continue;
       const xml = await file.async('string');
+      if (/\[\\[A-Za-z]+[^\]]*\.\.\.\]/.test(xmlToParagraphTexts(xml, '</a:p>').join(' '))) {
+        problems.push('truncated-inline-latex');
+      }
       const pictures = xml.split('<p:pic>').slice(1);
       for (const picture of pictures) {
         const descr = picture.match(/descr="([^"]*)"/);

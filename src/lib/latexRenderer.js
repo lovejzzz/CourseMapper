@@ -2,8 +2,8 @@
  * latexRenderer.js — LaTeX detection, Unicode conversion, and KaTeX image rendering.
  *
  * Two-tier approach:
- *   Tier 1 (Unicode): Simple LaTeX → Unicode characters (no dependencies)
- *   Tier 2 (Image):   Complex LaTeX → KaTeX → html2canvas → PNG base64
+ *   Tier 1 (text):  Inline LaTeX → Unicode/readable source-preserving text
+ *   Tier 2 (image): Display LaTeX → KaTeX → html2canvas → PNG base64
  *
  * KaTeX is lazy-loaded only when complex expressions are detected during export.
  */
@@ -280,6 +280,33 @@ export function latexToUnicode(expr) {
   return result;
 }
 
+/**
+ * Keep complex inline expressions complete and learner-readable. PowerPoint
+ * text runs cannot contain inline images, so emitting an unplaced PNG loses
+ * the equation before OOXML verification can see it. Convert common stacked
+ * forms to linear notation and preserve the original expression whenever a
+ * command remains unsupported.
+ */
+export function latexToReadableInlineText(expr) {
+  const source = String(expr || '').trim();
+  if (!source) return '';
+  let readable = source;
+  for (let pass = 0; pass < 4; pass += 1) {
+    const next = readable.replace(/\\frac\s*\{([^{}]+)\}\s*\{([^{}]+)\}/g, '($1)/($2)');
+    if (next === readable) break;
+    readable = next;
+  }
+  readable = readable
+    .replace(/\\sqrt\s*\{([^{}]+)\}/g, '√($1)')
+    .replace(/\\mathbb\s*\{R\}/g, 'ℝ')
+    .replace(/\\mathbb\s*\{Z\}/g, 'ℤ')
+    .replace(/\\mathbb\s*\{N\}/g, 'ℕ')
+    .replace(/\\mathbb\s*\{Q\}/g, 'ℚ')
+    .replace(/\\mathbb\s*\{C\}/g, 'ℂ');
+  const unicode = latexToUnicode(readable);
+  return /\\[A-Za-z]+/.test(unicode) ? source : unicode;
+}
+
 // ── Tier 2: KaTeX Image Rendering ─────────────────────────────────────────
 
 /**
@@ -360,7 +387,7 @@ export async function processSlideText(text, { color = '#000000', fontSizePt = 1
     const expr = match[1].trim();
     try {
       const img = await renderLatexToImage(expr, { displayMode: true, fontSizePx, color });
-      images.push({ ...img, displayMode: true });
+      images.push({ ...img, displayMode: true, sourceExpression: expr });
       processedText = processedText.replace(match[0], '');
     } catch (err) {
       console.warn(`[CM] LaTeX render failed (display): ${expr}`, err);
@@ -377,15 +404,10 @@ export async function processSlideText(text, { color = '#000000', fontSizePt = 1
       // Tier 1: Unicode substitution (preserves text editability)
       processedText = processedText.replace(match[0], latexToUnicode(expr));
     } else {
-      // Tier 2: Render as image
-      try {
-        const img = await renderLatexToImage(expr, { displayMode: false, fontSizePx, color });
-        images.push({ ...img, displayMode: false });
-        processedText = processedText.replace(match[0], `[${expr.slice(0, 20)}...]`);
-      } catch (err) {
-        console.warn(`[CM] LaTeX render failed (inline): ${expr}`, err);
-        processedText = processedText.replace(match[0], latexToUnicode(expr));
-      }
+      // PowerPoint text boxes cannot place an image inside a text run. Keep a
+      // complete linear representation in the text instead of creating an
+      // image that no exporter insertion site can serialize.
+      processedText = processedText.replace(match[0], latexToReadableInlineText(expr));
     }
   }
 

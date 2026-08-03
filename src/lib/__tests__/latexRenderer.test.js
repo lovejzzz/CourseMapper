@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { containsLatex, isSimpleLatex, latexToUnicode, deckDataContainsLatex } from '../latexRenderer';
+import {
+  containsLatex,
+  isSimpleLatex,
+  latexToUnicode,
+  latexToReadableInlineText,
+  processSlideText,
+  deckDataContainsLatex,
+} from '../latexRenderer';
 
 describe('containsLatex', () => {
   it('returns false for null/empty input', () => {
@@ -94,6 +101,21 @@ describe('latexToUnicode', () => {
     const result = latexToUnicode('{x} + {y}');
     expect(result).not.toContain('{');
     expect(result).not.toContain('}');
+  });
+});
+
+describe('complex inline LaTeX preservation', () => {
+  it('linearizes common fractions without truncating or creating an unplaced image', async () => {
+    expect(latexToReadableInlineText('\\frac{a}{b}')).toBe('(a)/(b)');
+    const result = await processSlideText('Compare $\\frac{a}{b}$ with the threshold.');
+    expect(result.text).toBe('Compare (a)/(b) with the threshold.');
+    expect(result.text).not.toContain('...');
+    expect(result.images).toEqual([]);
+  });
+
+  it('preserves unsupported complex source instead of deleting it', () => {
+    const expression = '\\begin{matrix} a & b \\\\ c & d \\end{matrix}';
+    expect(latexToReadableInlineText(expression)).toBe(expression);
   });
 });
 

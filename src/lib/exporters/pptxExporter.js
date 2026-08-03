@@ -1008,7 +1008,14 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
     tracker.add({ x: 0.7, y: 1.15, w: titleBoxW, h: titleBoxH, label: 'title' });
     // Add LaTeX display images for title if any
     for (const img of titleResult.images.filter((i) => i.displayMode)) {
-      slide.addImage({ data: img.base64, x: (W - img.widthIn) / 2, y: 3.5, w: img.widthIn, h: img.heightIn });
+      slide.addImage({
+        data: img.base64,
+        x: (W - img.widthIn) / 2,
+        y: 3.5,
+        w: img.widthIn,
+        h: img.heightIn,
+        altText: `LaTeX equation: ${img.sourceExpression || 'display equation'}`,
+      });
     }
 
     // Accent line under title
@@ -1173,6 +1180,7 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
             y: y + 1.0,
             w: Math.min(img.widthIn, objTextW),
             h: img.heightIn,
+            altText: `LaTeX equation: ${img.sourceExpression || 'display equation'}`,
           });
         }
       }
@@ -1690,6 +1698,7 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
         y: cardY + conceptH + 0.4,
         w: img.widthIn,
         h: img.heightIn,
+        altText: `LaTeX equation: ${img.sourceExpression || 'display equation'}`,
       });
     }
 
@@ -2277,7 +2286,14 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
         );
         let imgY2col = H - 1.0;
         for (const img of twoColImages) {
-          slide.addImage({ data: img.base64, x: (W - img.widthIn) / 2, y: imgY2col, w: img.widthIn, h: img.heightIn });
+          slide.addImage({
+            data: img.base64,
+            x: (W - img.widthIn) / 2,
+            y: imgY2col,
+            w: img.widthIn,
+            h: img.heightIn,
+            altText: `LaTeX equation: ${img.sourceExpression || 'display equation'}`,
+          });
           imgY2col += img.heightIn + 0.1;
         }
       } else {
@@ -2315,7 +2331,14 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
         const oneColImages = oneColProcessed.flatMap((r) => r.images.filter((i) => i.displayMode));
         let imgY1col = H - 1.0;
         for (const img of oneColImages) {
-          slide.addImage({ data: img.base64, x: (W - img.widthIn) / 2, y: imgY1col, w: img.widthIn, h: img.heightIn });
+          slide.addImage({
+            data: img.base64,
+            x: (W - img.widthIn) / 2,
+            y: imgY1col,
+            w: img.widthIn,
+            h: img.heightIn,
+            altText: `LaTeX equation: ${img.sourceExpression || 'display equation'}`,
+          });
           imgY1col += img.heightIn + 0.1;
         }
       }
