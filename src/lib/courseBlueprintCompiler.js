@@ -8044,16 +8044,98 @@ function visibleLessonPlanArtifactReplacement(plan = {}, lesson = {}) {
   );
 }
 
+const LESSON_PLAN_TITLE_REFERENCE_BUDGET = 4;
+const LESSON_PLAN_TITLE_IDENTITY_KEYS =
+  /^(?:title|lessonTitle|assessmentTitle|assignmentTitle|rubricTitle|name|id|tags)$/i;
+const LESSON_PLAN_RENDERED_PROSE_KEYS = [
+  'objectives',
+  'sourceEvidenceBrief',
+  'experientialActivityStatus',
+  'warmUp',
+  'outline',
+  'closingActivity',
+  'dialoguePractice',
+  'workedExample',
+  'observationProtocol',
+  'evidenceBase',
+  'prerequisiteCheck',
+  'formativeCheck',
+  'udlNotes',
+  'homework',
+];
+const LESSON_PLAN_TITLE_COMPRESSIONS = ['this lesson', "today's focus", 'this session', 'the lesson focus'];
+const LESSON_PLAN_TITLE_POSSESSIVE_COMPRESSIONS = ["this lesson's", "this session's"];
+
+function compressLessonPlanTitleReferences(plan, lesson = {}, blueprint = {}) {
+  const canonicalTitle = cleanText(plan.lessonTitle || lesson.title);
+  const focus = stripLessonPrefix(cleanText(lesson.title || canonicalTitle));
+  if (focus.split(/\s+/).filter(Boolean).length < 4) return plan;
+
+  const registryTitles = [
+    ...(Array.isArray(blueprint.assessmentRegistry) ? blueprint.assessmentRegistry : []),
+    ...(Array.isArray(blueprint.assessments) ? blueprint.assessments : []),
+    ...(Array.isArray(blueprint.readingsRegistry) ? blueprint.readingsRegistry : []),
+  ]
+    .map((entry) => cleanText(entry?.title))
+    .filter(
+      (title) =>
+        title && title.toLowerCase() !== focus.toLowerCase() && title.toLowerCase().includes(focus.toLowerCase()),
+    );
+  const identitySpans = unique(
+    [canonicalTitle.toLowerCase() === focus.toLowerCase() ? '' : canonicalTitle, ...registryTitles].filter(Boolean),
+    registryTitles.length + 1,
+  );
+  const mention = new RegExp(
+    `(\\b(?:the|a|an|your|their|its|our)\\s+)?\\b${escapeRegExpCompiler(focus)}(?![A-Za-z0-9])`,
+    'gi',
+  );
+  let used = 0;
+
+  const compressString = (value) => {
+    const masks = [];
+    let working = value;
+    for (const span of identitySpans) {
+      working = working.replace(new RegExp(escapeRegExpCompiler(span), 'gi'), (match) => {
+        masks.push(match);
+        return `\u0000${masks.length - 1}\u0000`;
+      });
+    }
+    working = working.replace(mention, (match, determiner, offset, whole) => {
+      used += 1;
+      if (used <= LESSON_PLAN_TITLE_REFERENCE_BUDGET) return match;
+      const possessive = determiner && /^(?:your|their|its|our)\s+$/i.test(determiner);
+      const replacementIndex = used - LESSON_PLAN_TITLE_REFERENCE_BUDGET - 1;
+      const replacements = possessive ? LESSON_PLAN_TITLE_POSSESSIVE_COMPRESSIONS : LESSON_PLAN_TITLE_COMPRESSIONS;
+      const replacement = replacements[replacementIndex % replacements.length];
+      return offset === 0 || /[.!?]\s+$|\n\s*$/.test(whole.slice(0, offset)) ? sentenceCase(replacement) : replacement;
+    });
+    return masks.length ? working.replace(/\u0000(\d+)\u0000/g, (_, index) => masks[Number(index)]) : working;
+  };
+
+  const visit = (value, key = '') => {
+    if (typeof value === 'string') return LESSON_PLAN_TITLE_IDENTITY_KEYS.test(key) ? value : compressString(value);
+    if (Array.isArray(value)) return value.map((item) => visit(item, key));
+    if (value && typeof value === 'object') {
+      return Object.fromEntries(Object.entries(value).map(([childKey, item]) => [childKey, visit(item, childKey)]));
+    }
+    return value;
+  };
+  const next = { ...plan };
+  for (const key of LESSON_PLAN_RENDERED_PROSE_KEYS) {
+    if (plan[key] !== undefined) next[key] = visit(plan[key], key);
+  }
+  return next;
+}
+
 function sanitizeCompiledLessonPlans(compiled = {}, blueprint = {}) {
   if (!Array.isArray(compiled.lessonPlans)) return compiled;
   return {
     ...compiled,
-    lessonPlans: compiled.lessonPlans.map((plan, index) =>
-      sanitizeGenericArtifactLabelsInValue(
-        plan,
-        visibleLessonPlanArtifactReplacement(plan, blueprint.lessons?.[index] || {}),
-      ),
-    ),
+    lessonPlans: compiled.lessonPlans.map((plan, index) => {
+      const lesson = blueprint.lessons?.[index] || {};
+      const sanitized = sanitizeGenericArtifactLabelsInValue(plan, visibleLessonPlanArtifactReplacement(plan, lesson));
+      return compressLessonPlanTitleReferences(sanitized, lesson, blueprint);
+    }),
   };
 }
 

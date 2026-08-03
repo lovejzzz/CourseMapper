@@ -501,6 +501,45 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     expect(replay.data).toBe(first.data);
   });
 
+  it('does not repeat one quarantined fallback sentence across a study guide', () => {
+    const quarantine = {
+      rejectedLessonScopes: new Set(['lesson-4']),
+      phrases: new Set(),
+      markers: new Set(['pygmt']),
+      overlayTermsByLesson: new Map(),
+      overlayExactValuesByLesson: new Map(),
+      sourceAssertionExactValuesByLesson: new Map(),
+    };
+    const data = {
+      guides: [
+        {
+          lessonId: 'lesson-4',
+          lessonTitle: 'Lesson 4: Coastal Risk Decisions',
+          summary: 'PyGMT supplies the conclusion.',
+          practiceActivities: ['PyGMT supplies the conclusion.', 'PyGMT supplies the conclusion.'],
+          examPrep: {
+            reviewStrategy: 'PyGMT supplies the conclusion.',
+            timeManagement: 'PyGMT supplies the conclusion.',
+          },
+        },
+      ],
+    };
+
+    const repaired = repairDeliverableContentQuality('studyGuides', data, {
+      rejectedLearnerSourceEvidence: quarantine,
+      compilerLessonScopeByTitle: new Map([['lesson 4: coastal risk decisions', 'lesson-4']]),
+    }).data;
+    const visible = [
+      repaired.guides[0].summary,
+      ...repaired.guides[0].practiceActivities,
+      repaired.guides[0].examPrep.reviewStrategy,
+      repaired.guides[0].examPrep.timeManagement,
+    ];
+
+    expect(new Set(visible).size).toBe(visible.length);
+    expect(visible.join(' ')).not.toMatch(/PyGMT/i);
+  });
+
   it('migrates a saved Course FAQ compiler non-answer even when rejected source text is already gone', () => {
     const data = {
       faqs: [

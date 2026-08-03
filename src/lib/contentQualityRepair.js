@@ -1238,7 +1238,27 @@ function quarantinedEvidenceReplacement(featureId, parentKey = '', context = {},
     `Connect one assigned ${lesson} detail to the decision without overstating it`,
     `Test the ${lesson} conclusion against course evidence before extending the claim`,
   ];
-  return defaults[stableEvidenceVariant(`${featureId}:${parentKey}:${sourceFactPathKey(path)}`, defaults.length)];
+  // Different paths can hash to the same fallback seat. That collision used
+  // to stamp one otherwise-safe sentence into several sections of the same
+  // study guide, which the rendered package correctly rejected as repeated
+  // substantive prose. Keep the stable starting seat, then probe for an
+  // unused alternative inside this lesson scope. This is deterministic,
+  // course-neutral, and does not change the evidence boundary.
+  const usage = context.quarantinedEvidenceReplacementUsage;
+  const scope = `${featureId}:${context.compilerLessonScope || context.currentLessonTitle || 'document'}`;
+  const used = usage instanceof Map ? usage.get(scope) || new Set() : null;
+  const start = stableEvidenceVariant(`${featureId}:${parentKey}:${sourceFactPathKey(path)}`, defaults.length);
+  for (let offset = 0; offset < defaults.length; offset += 1) {
+    const candidate = defaults[(start + offset) % defaults.length];
+    if (!used || !used.has(candidate)) {
+      if (used) {
+        used.add(candidate);
+        usage.set(scope, used);
+      }
+      return candidate;
+    }
+  }
+  return defaults[start];
 }
 
 function worstRepeatedPhrase(node) {
@@ -1579,6 +1599,7 @@ export function repairDeliverableContentQuality(featureId, data, context = {}) {
         : []),
     ]),
     compilerSourceBoundaryCorrectionUsage: new Map(),
+    quarantinedEvidenceReplacementUsage: new Map(),
   };
   // Quarantine unsafe source material before deduplicating valid claims. If
   // the order were reversed, excess copies of an unsafe fact could become

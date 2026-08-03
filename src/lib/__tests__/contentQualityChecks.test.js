@@ -445,6 +445,28 @@ describe('compiledLanguageFinalizer', () => {
     ],
   };
 
+  it('keeps slide titles unique after final reference rewriting', () => {
+    const data = {
+      slideDecks: [
+        {
+          lessonNumber: 1,
+          lessonTitle: 'Lesson 1: Watershed Governance and Public Accountability',
+          slides: [
+            { type: 'content', title: 'Watershed evidence check', bullets: ['Inspect the source record.'] },
+            { type: 'summary', title: 'Watershed evidence check', bullets: ['Bound the conclusion.'] },
+            { type: 'closing', title: 'Watershed evidence check', bullets: ['Name the next test.'] },
+          ],
+        },
+      ],
+    };
+
+    finalizeCompiledDeliverableLanguage('slideDecks', data, { lessons: [] });
+
+    const titles = data.slideDecks[0].slides.map((slide) => slide.title.toLowerCase());
+    expect(new Set(titles).size).toBe(titles.length);
+    expect(titles).toEqual(['watershed evidence check', 'evidence synthesis', 'evidence transfer check']);
+  });
+
   it('shortens repeated artifact titles after the first mentions', () => {
     const data = {
       assignments: [

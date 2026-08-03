@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 
 import { buildCourseBlueprint, compileBlueprintDeliverables } from '../courseBlueprintCompiler.js';
 import { resolvePreciseDisciplineLens } from '../courseCompilerLensProfiles.js';
+import { buildDeliverableDocxBlob } from '../exporters/bulkDocxExporter.js';
+import { extractPackage } from '../quality/deepQualityGrader.js';
+import { createMemoryFileProvider } from '../quality/fileProviders.js';
 
 const PRECISE_CASES = [
   ['Community Oral History Methods', 'oral-history fieldwork and interpretation'],
@@ -72,5 +75,37 @@ describe('precise discipline lenses', () => {
     );
 
     expect(contentSlide.bullets[0]).toContain('focuses attention on evidence quality');
+  });
+
+  it('bounds full lesson-focus repetition throughout a compiled lesson plan', async () => {
+    const focus = 'Watershed Governance and Public Accountability';
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Civic Watershed Studio',
+      semester: 'Spring 2027',
+      lessons: [
+        {
+          title: `Lesson 1: ${focus}`,
+          sections: [
+            {
+              topicSection: focus,
+              learningObjectives: `Evaluate ${focus} evidence and revise a public recommendation.`,
+              weeklyAssessments: 'Public watershed evidence brief',
+              asyncActivities: `Annotate one ${focus} source and identify its limit.`,
+              syncActivities: `Compare two ${focus} claims and revise the brief.`,
+              supportingResources: `${focus} source packet`,
+            },
+          ],
+        },
+      ],
+    });
+
+    const plan = compileBlueprintDeliverables(blueprint, ['lessonPlans']).lessonPlans.lessonPlans[0];
+    const blob = await buildDeliverableDocxBlob('lessonPlans', { lessonPlans: [plan] }, 'Civic Watershed Studio');
+    const rendered = await extractPackage(
+      createMemoryFileProvider({ 'Lesson Plans/Lesson 01 - Watershed Governance.docx': blob }),
+    );
+    const text = rendered.files[0].text;
+
+    expect((text.match(new RegExp(focus, 'gi')) || []).length).toBeLessThan(12);
   });
 });

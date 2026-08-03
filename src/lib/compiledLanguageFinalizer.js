@@ -755,6 +755,44 @@ function rewriteStudyGuideScope(guide, targets, contextLessonNumber = 0) {
   walkAndRewrite(guide, (value) => fixMechanicalSeams(value));
 }
 
+const DUPLICATE_SLIDE_TITLE_PURPOSES = {
+  agenda: 'session roadmap',
+  objectives: 'learning targets',
+  bridge: 'concept bridge',
+  content: 'guided analysis',
+  activity: 'guided practice',
+  discussion: 'discussion',
+  example: 'worked example',
+  keyterm: 'key concept',
+  summary: 'synthesis',
+  closing: 'transfer check',
+};
+
+function dedupeDeckSlideTitles(deck) {
+  const slides = Array.isArray(deck?.slides) ? deck.slides : [];
+  const used = new Set();
+  for (const slide of slides) {
+    const title = String(slide?.title || '').trim();
+    if (!title) continue;
+    const key = title.toLowerCase();
+    if (!used.has(key)) {
+      used.add(key);
+      continue;
+    }
+    const purpose = DUPLICATE_SLIDE_TITLE_PURPOSES[String(slide?.type || '').toLowerCase()] || 'next step';
+    const evidenceTitle = /\bevidence\s+(?:check|review|audit)\b/i.test(title);
+    const stem = evidenceTitle ? `Evidence ${purpose}` : `${title} — ${purpose}`;
+    let candidate = stem;
+    let ordinal = 2;
+    while (used.has(candidate.toLowerCase())) {
+      candidate = `${stem} ${ordinal}`;
+      ordinal += 1;
+    }
+    slide.title = candidate;
+    used.add(candidate.toLowerCase());
+  }
+}
+
 function rewriteDeckScope(deck, targets, contextLessonNumber = 0) {
   // Slide surfaces (titles, subtitles, bullets) carry the projection-space
   // cost of long titles, so they get short references. Deck-internal
@@ -777,6 +815,11 @@ function rewriteDeckScope(deck, targets, contextLessonNumber = 0) {
       slide.notes = compressNoteLessonTitleMentions(slide.notes, deck?.lessonTitle);
     }
   }
+  // Reference shortening and content repair can collapse independently
+  // authored titles onto the same final wording. Resolve that at the last
+  // deck-local boundary so the exported PPTX never carries duplicate title
+  // identities even when upstream atoms were distinct.
+  dedupeDeckSlideTitles(deck);
   walkAndRewrite(deck, (value) => fixMechanicalSeams(value));
 }
 
@@ -915,6 +958,9 @@ export function finalizeCompiledDeliverableLanguage(featureId, data, blueprint =
   const targets = buildReferenceTargets(blueprint);
   if (targets.length === 0) {
     walkAndRewrite(content, (value) => fixMechanicalSeams(value));
+    if (featureId === 'slideDecks') {
+      for (const deck of renderedDeliverableCollection(featureId, data)) dedupeDeckSlideTitles(deck);
+    }
     if (!preserveDraftingVocabulary(blueprint)) {
       walkAndRewrite(content, (value) => polishCompletionLanguage(value));
     }
