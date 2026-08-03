@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "release": "0.17.11",
   "recordedAt": "2026-08-03T20:49:31Z",
-  "status": "production-checkpoint",
+  "status": "predeploy-candidate",
   "claimBoundary": "This tracked production receipt binds the course-neutral learner architecture to the exact deployed code, physical production ZIP, independently replayed source and assessment evidence, and representative rendered output. It proves the declared deterministic release gates for this package, not universal factual correctness, independent instructor approval, accessibility certification, classroom outcomes, learned-weight improvement, adapter promotion, or paid-reference comparison.",
   "checks": [
     {

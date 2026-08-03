@@ -6,7 +6,7 @@ import { APP_VERSION } from './appVersion.js';
  */
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
-  checkpointPhase: 'production-checkpoint',
+  checkpointPhase: 'predeploy',
   date: 'August 3, 2026',
   title: 'Scion Learns From Evidence',
   landingTitle: 'EDUTOOL V0.17.11 Helps Scion Learn, Revise, and Prove Its Work',
@@ -38,8 +38,8 @@ export const CURRENT_RELEASE = {
     },
     browser: {
       path: 'evaluation/release-proofs/v0.17.11-browser-preflight.json',
-      sha256: '0fcb16774bc70a16260ca53d6397a5bc43f0ef437273a6240192cff18dd9ab9b',
-      bytes: 20891,
+      sha256: '0260070d19769acac9090df3dbaf345ff076a7cea40088d5ffedb58db05bd744',
+      bytes: 20889,
     },
     courseContract: {
       path: 'evaluation/release-proofs/v0.17.11-course-contract.json',

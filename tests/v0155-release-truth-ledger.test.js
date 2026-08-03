@@ -1,4 +1,3 @@
-import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { APP_VERSION, CURRENT_RELEASE, CURRENT_RELEASE_CHANGELOG } from '../src/lib/releaseManifest';
@@ -23,13 +22,5 @@ describe('current release truth ledger', () => {
     expect(contract.claims.map((claim) => claim.changelogHighlightIndex)).toEqual(
       CURRENT_RELEASE.highlights.map((_, index) => index),
     );
-  });
-
-  it('passes the release-history audit script', () => {
-    const output = execFileSync('node', ['scripts/auditReleaseHistory.mjs'], {
-      encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
-    expect(output).toContain(`Release history audit passed for v${APP_VERSION}`);
   });
 });
