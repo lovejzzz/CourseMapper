@@ -165,7 +165,7 @@ const COMPUTER_SCIENCE_TOPIC_ANCHORS = [
   {
     concept: /\bfunctions?\b/i,
     source:
-      /\b(?:functions?\s+(?:in\s+python|in\s+programming|programming)|function\s+definitions?|def\s+statements?|subroutine|procedure|callable\s+objects?)\b/i,
+      /\b(?:functions?\s*\(\s*computer\s+programming\s*\)|functions?\s+(?:in\s+python|in\s+programming|programming)|function\s+definitions?|def\s+statements?|subroutine|procedure|callable\s+objects?)(?=\W|$)/i,
   },
   {
     concept: /\blists?\b/i,
@@ -198,8 +198,9 @@ const COMPUTER_SCIENCE_TOPIC_ANCHORS = [
       /\b(?:exceptions?\s+(?:in\s+python|in\s+programming|handling)|exception\s+handling|try\s*\/?\s*except|try[-\s]catch|python\s+exceptions?)\b/i,
   },
   {
-    concept: /\btesting\b/i,
-    source: /\b(?:unit\s+tests?|software\s+testing|programming\s+tests?|test[-\s]driven|pytest|unittest)\b/i,
+    concept: /\b(?:tests?|testing|test\s+automation)\b/i,
+    source:
+      /\b(?:automated\s+tests?|test\s+automation|unit\s+tests?|software\s+testing|programming\s+tests?|test[-\s]driven|pytest|unittest)\b/i,
   },
   {
     concept: /\bdebugging\b/i,

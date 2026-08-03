@@ -2797,6 +2797,26 @@ describe('trusted source ledger', () => {
     expect(
       isComputerScienceWeakSource(
         {
+          title: 'Function (computer programming)',
+          evidence: 'A function in computer programming is a named sequence of program instructions.',
+          conceptLinks: [{ label: 'Functions and automated tests' }, { label: 'Function' }],
+        },
+        graph,
+      ),
+    ).toBe(false);
+    expect(
+      isComputerScienceWeakSource(
+        {
+          title: 'Test automation',
+          evidence: 'Test automation uses software to control automated tests and compare actual outcomes.',
+          conceptLinks: [{ label: 'Functions and automated tests' }, { label: 'Test automation' }],
+        },
+        graph,
+      ),
+    ).toBe(false);
+    expect(
+      isComputerScienceWeakSource(
+        {
           title: 'Loop (statement)',
           evidence: 'Loops are a feature of high-level programming languages.',
           conceptLinks: [{ label: 'Conditional branching and loops' }, { label: 'Loop' }],

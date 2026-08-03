@@ -36,7 +36,7 @@
 
 import { admitKernel } from '../genome/foundryAdmission';
 import { attachKernelEntailmentReceipt } from './claimEntailment.js';
-import { providerQueryForLesson, providerSupportsLesson } from './algiResearchPlan.js';
+import { providerQueryForLesson, providerQueryVariantsForLesson, providerSupportsLesson } from './algiResearchPlan.js';
 import { isCourseAwareWeakSource } from './sourceLedger.js';
 import { buildCompilerSourceBoundaryCorrection } from '../compilerSourceBoundaryCorrection.js';
 
@@ -187,6 +187,9 @@ function stem(token) {
   if (/^microbi(?:al|olog|ome|ota)/.test(normalized)) return 'microbi';
   if (/^pathogen/.test(normalized)) return 'pathogen';
   if (/^waterborne/.test(normalized)) return 'water';
+  if (/^automat(?:e|ed|es|ing|ion|ions)?$/.test(normalized)) return 'automat';
+  if (/^visuali[sz]/.test(normalized)) return 'visual';
+  if (/^reproduc/.test(normalized)) return 'reproduc';
   if (/(?:^|[a-z])remediation$/.test(normalized)) return 'remediation';
   if (/^govern(?:ance|ed|ing|ment|ments|s)?$/.test(normalized)) return 'govern';
   return normalized
@@ -2306,6 +2309,9 @@ export async function researchLessonKernels(
         const definitionCoversClause = topicClauseTokens.some((clause) =>
           clause.every((token) => definitionTokens.has(token)),
         );
+        const evidenceCoversClause = topicClauseTokens.some((clause) =>
+          clause.every((token) => evidenceTokens.has(token)),
+        );
         return {
           ...entry,
           titleScore,
@@ -2319,6 +2325,7 @@ export async function researchLessonKernels(
           topicTokenCount: topicTokens.size,
           compoundTopic,
           definitionCoversClause,
+          evidenceCoversClause,
           titleTopicMatches,
           definitionTopicMatches,
           evidenceTopicMatches,
@@ -2380,6 +2387,7 @@ export async function researchLessonKernels(
               // course-qualified, and the source definition itself must carry
               // every topic token.
               (entry.compoundTopic && entry.definitionCoversClause) ||
+              (entry.compoundTopic && entry.evidenceCoversClause && entry.titleTopicMatches >= 1) ||
               // Compound lesson names ("Qubits and quantum states") rarely
               // appear verbatim as article titles. Keep a candidate when its
               // title names one component and its definition supplies two.
@@ -2656,21 +2664,32 @@ export async function researchLessonKernelSets(
     .slice(0, Math.max(0, maxTargetedFallbacks));
   const targetedTitlesByTopic = new Map();
   let targetedRecords = new Map();
+  let targetedSearches = 0;
   for (const topic of sparse) {
     try {
-      const query =
+      const plannedVariants = providerQueryVariantsForLesson(researchPlan, topic, effectiveProviderId);
+      const fallbackQuery =
         groupedResearchQueryFromPlan([topic], researchPlan, effectiveProviderId) ||
         researchQueryForTopic(topic, courseContext);
-      if (typeof provider.searchArticles === 'function') {
-        const records = await provider.searchArticles(query, Math.max(12, candidatesPerGroup));
-        const titles = Object.entries(records || {})
-          .filter(([, record]) => record?.title)
-          .map(([key]) => key);
-        targetedTitlesByTopic.set(topic, titles);
-        for (const title of titles) targetedRecords.set(title, normalizeArticleResult(records[title]));
-      } else {
-        targetedTitlesByTopic.set(topic, [...new Set(await provider.search(query, Math.max(12, candidatesPerGroup)))]);
+      // The first variant is the whole-lesson query already used by the
+      // grouped pass. On a compound lesson, revise with each concept clause
+      // independently so one high-frequency clause cannot crowd out its peer.
+      const queries = plannedVariants.length > 1 ? plannedVariants.slice(1) : [plannedVariants[0] || fallbackQuery];
+      const topicTitles = [];
+      for (const query of queries) {
+        targetedSearches += 1;
+        if (typeof provider.searchArticles === 'function') {
+          const records = await provider.searchArticles(query, Math.max(12, candidatesPerGroup));
+          const titles = Object.entries(records || {})
+            .filter(([, record]) => record?.title)
+            .map(([key]) => key);
+          topicTitles.push(...titles);
+          for (const title of titles) targetedRecords.set(title, normalizeArticleResult(records[title]));
+        } else {
+          topicTitles.push(...(await provider.search(query, Math.max(12, candidatesPerGroup))));
+        }
       }
+      targetedTitlesByTopic.set(topic, [...new Set(topicTitles)]);
     } catch (error) {
       if (error?.name === 'AbortError' || signal?.aborted) throw error;
       errors.push(`targeted-search:${error?.message || 'failed'}`);
@@ -2716,7 +2735,7 @@ export async function researchLessonKernelSets(
     byTopic,
     errors,
     searchGroups: groups.length,
-    targetedSearches: sparse.length,
+    targetedSearches,
     articleCandidates: new Set([...allDirectTitles, ...allSearchTitles, ...targetedTitles]).size,
   };
   onProgress?.({

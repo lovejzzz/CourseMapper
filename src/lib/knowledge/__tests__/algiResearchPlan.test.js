@@ -3,6 +3,7 @@ import {
   inferAlgiResearchDomain,
   planAlgiCourseResearch,
   providerQueryForLesson,
+  providerQueryVariantsForLesson,
   providerSupportsLesson,
   summarizeAlgiResearchPlan,
 } from '../algiResearchPlan.js';
@@ -62,6 +63,11 @@ describe('Algi course research planning', () => {
     expect(providerQueryForLesson(plan, 'Data types and expressions', 'wikipedia')).toBe(
       '(data types OR expressions) computer programming',
     );
+    expect(providerQueryVariantsForLesson(plan, 'Data types and expressions', 'wikipedia')).toEqual([
+      '(data types OR expressions) computer programming',
+      '"data types" computer programming',
+      '"expressions" computer programming',
+    ]);
   });
 
   it('lets biomedical course context outrank collision-prone programming words', () => {

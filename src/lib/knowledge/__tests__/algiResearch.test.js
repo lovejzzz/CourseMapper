@@ -1978,6 +1978,103 @@ describe('lesson research admission', () => {
     expect(fullReads).toBe(1);
   });
 
+  it('revises compound lessons with one independent search per named concept', async () => {
+    const topic = 'Functions and automated tests';
+    const queries = [];
+    const pages = {
+      'Function (computer programming)': [
+        'A function in computer programming is a named sequence of program instructions that performs a specific task.',
+        'A function accepts parameters and can return a value to the calling program.',
+        'A function supports reuse because the same operation can be invoked from multiple program locations.',
+      ].join('\n'),
+      'Test automation': [
+        'Test automation is the use of software to control the execution of tests and compare actual outcomes with predicted outcomes.',
+        'Automated tests can repeat checks after a program change and expose a regression.',
+        'Test automation records a visible result so a failed expectation can guide revision.',
+      ].join('\n'),
+    };
+    const provider = {
+      id: 'wikipedia',
+      sourceKind: 'open encyclopedia',
+      supportsDirectTitles: true,
+      license: 'CC BY-SA 4.0',
+      searchArticles: async (query) => {
+        queries.push(query);
+        if (/^"?functions"? computer programming$/i.test(query)) {
+          return {
+            'Function (computer programming)': {
+              title: 'Function (computer programming)',
+              extract: pages['Function (computer programming)'],
+            },
+          };
+        }
+        if (/^"?automated tests"? computer programming$/i.test(query)) {
+          return { 'Test automation': { title: 'Test automation', extract: pages['Test automation'] } };
+        }
+        return {};
+      },
+      search: async () => [],
+      articles: async () => ({}),
+      article: async () => null,
+      sourceIdFor: (title) => `wikipedia:${title}`,
+      attributionFor: () => 'Wikipedia contributors',
+    };
+    const researchPlan = planAlgiCourseResearch({
+      courseName: 'Applied Programming and Statistics',
+      lessons: [{ lessonId: 'lesson-1', title: topic }],
+    });
+    const directProvider = {
+      ...provider,
+      search: async () => Object.keys(pages),
+      articles: async () =>
+        Object.fromEntries(Object.entries(pages).map(([title, extract]) => [title, { title, extract }])),
+    };
+    const builtFunction = buildKernelFromArticle({
+      topic,
+      title: 'Function (computer programming)',
+      extract: pages['Function (computer programming)'],
+      provider: directProvider,
+    });
+    expect(builtFunction).not.toBeNull();
+    expect(
+      isResearchCandidateDomainAligned({
+        topic,
+        courseContext: 'Applied Programming and Statistics',
+        title: 'Function (computer programming)',
+        extract: pages['Function (computer programming)'],
+        definition: builtFunction.kernel.definition.text,
+        provider: 'wikipedia',
+      }),
+    ).toBe(true);
+    const directKernels = await researchLessonKernels(topic, {
+      provider: directProvider,
+      courseContext: 'Applied Programming and Statistics',
+      want: 4,
+      minimum: 3,
+      floor: 0.15,
+    });
+    expect(directKernels.map((kernel) => kernel.term)).toEqual(expect.arrayContaining(['Function', 'Test automation']));
+
+    const result = await researchLessonKernelSets([topic], {
+      provider,
+      courseContext: 'Applied Programming and Statistics',
+      researchPlan,
+      providerId: 'wikipedia',
+      want: 4,
+      minimum: 3,
+      maxTargetedFallbacks: 1,
+      floor: 0.15,
+    });
+
+    expect(queries).toEqual(
+      expect.arrayContaining(['"functions" computer programming', '"automated tests" computer programming']),
+    );
+    expect(result.targetedSearches).toBe(2);
+    expect(result.byTopic.get(topic).map((kernel) => kernel.term)).toEqual(
+      expect.arrayContaining(['Function', 'Test automation']),
+    );
+  });
+
   it('composes waterborne pathogens from three admitted source concepts', async () => {
     const pages = {
       'Waterborne disease': {

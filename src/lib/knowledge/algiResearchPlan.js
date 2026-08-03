@@ -168,6 +168,27 @@ function queryForProvider({ providerId, title, domainTerms, domain }) {
   return [quoted(title), disambiguator].filter(Boolean).join(' AND ');
 }
 
+/**
+ * Keep the economical whole-lesson query for the breadth pass, then expose
+ * one bounded query per explicit concept clause for revision. Search engines
+ * rank an OR expression globally, so a popular result for the first clause
+ * can otherwise consume every result slot and leave the second clause
+ * unresearched. The variants are derived from the instructor's title and the
+ * inferred course domain; no course or source title is memorized here.
+ */
+function queryVariantsForProvider({ providerId, title, domainTerms, domain }) {
+  const primary = queryForProvider({ providerId, title, domainTerms, domain });
+  const clauses = clean(title)
+    .split(/\s+(?:and|&)\s+|[,;:]/i)
+    .map(clean)
+    .filter((clause) => tokens(clause).length > 0);
+  if (clauses.length < 2) return [primary];
+  return unique([
+    primary,
+    ...clauses.map((clause) => queryForProvider({ providerId, title: clause, domainTerms, domain })),
+  ]);
+}
+
 export function planAlgiCourseResearch({ courseName = '', lessons = [], now = Date.now() } = {}) {
   const normalizedLessons = (Array.isArray(lessons) ? lessons : [])
     .map((lesson, index) => ({
@@ -205,6 +226,17 @@ export function planAlgiCourseResearch({ courseName = '', lessons = [], now = Da
         }),
       ]),
     );
+    const providerQueryVariants = Object.fromEntries(
+      providerOrder.map((providerId) => [
+        providerId,
+        queryVariantsForProvider({
+          providerId,
+          title: lesson.title,
+          domainTerms,
+          domain,
+        }),
+      ]),
+    );
     return {
       lessonId: lesson.lessonId,
       title: lesson.title,
@@ -215,6 +247,7 @@ export function planAlgiCourseResearch({ courseName = '', lessons = [], now = Da
       minimumClaims: 5,
       minimumSources: 2,
       providerQueries,
+      providerQueryVariants,
       providerOrder,
     };
   });
@@ -238,6 +271,14 @@ export function researchPlanByTopic(plan = {}) {
 export function providerQueryForLesson(plan = {}, topic = '', providerId = '') {
   const lesson = researchPlanByTopic(plan).get(clean(topic));
   return clean(lesson?.providerQueries?.[providerId]) || clean(topic);
+}
+
+export function providerQueryVariantsForLesson(plan = {}, topic = '', providerId = '') {
+  const lesson = researchPlanByTopic(plan).get(clean(topic));
+  const variants = Array.isArray(lesson?.providerQueryVariants?.[providerId])
+    ? lesson.providerQueryVariants[providerId].map(clean).filter(Boolean)
+    : [];
+  return variants.length > 0 ? unique(variants) : [providerQueryForLesson(plan, topic, providerId)];
 }
 
 export function providerSupportsLesson(plan = {}, topic = '', providerId = '') {
