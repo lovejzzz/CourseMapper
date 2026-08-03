@@ -2488,11 +2488,16 @@ async function stripLatinEastAsiaOverrides(blob) {
   const escapeFace = (face) => face.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const faces = [...new Set([FONT_HEADING, FONT_BODY, FONT_LABEL])].map(escapeFace).join('|');
   const eaOverride = new RegExp(`<a:ea typeface="(?:${faces})"[^>]*/>`, 'g');
+  const counterAccessibility = /<p:cNvPr\b[^>]*\bname="slide-counter-label-(\d+)-of-(\d+)"[^>]*>/g;
   let changed = false;
   for (const name of Object.keys(zip.files)) {
     if (!/^ppt\/.*\.xml$/.test(name)) continue;
     const xml = await zip.file(name).async('string');
-    const next = xml.replace(eaOverride, '');
+    const next = xml.replace(eaOverride, '').replace(counterAccessibility, (tag, current, total) => {
+      if (/\bdescr="/.test(tag)) return tag;
+      const suffix = tag.endsWith('/>') ? '/>' : '>';
+      return `${tag.slice(0, -suffix.length)} title="Slide counter" descr="Slide ${current} of ${total}"${suffix}`;
+    });
     if (next !== xml) {
       zip.file(name, next);
       changed = true;

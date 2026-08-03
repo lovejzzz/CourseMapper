@@ -579,6 +579,12 @@ describe('Algi V0 source sentence compaction', () => {
         [5, 18],
       ),
     ).not.toMatch(/\bwith[,;:.]*$/i);
+    expect(
+      fitSourceSentence(
+        'The actual process of data cleansing may involve removing typographical errors or validating and correcting values against a known list of entities.',
+        [8, 20],
+      ),
+    ).toBe('The actual process of data cleansing may involve removing typographical errors.');
   });
 
   it('recognizes a source definition with a descriptive related-to appositive', () => {

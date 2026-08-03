@@ -111,6 +111,13 @@ export const ARTIFACT_PATTERNS = [
     roadmap: 'v0.16.72',
   },
   {
+    regex: /\bdiscussion leads into (?:explain|apply|compare|evaluate|identify|revise|justify|synthesize)\b/i,
+    label: 'discussion transition missing an infinitive complement',
+    name: 'discussion-transition-infinitive-seam',
+    severity: 'P2',
+    roadmap: 'v0.17.11',
+  },
+  {
     regex: /\bWhich interpretation of the lesson is best supported by the lesson case example\b/i,
     label: 'generic discussion prompt without subject matter',
     name: 'generic-discussion-prompt',

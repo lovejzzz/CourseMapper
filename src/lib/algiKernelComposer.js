@@ -275,6 +275,12 @@ export function fitSourceSentence(text, bounds = FACT_WORDS) {
       .slice(0, match.index)
       .replace(/[.!?]+$/, '')
       .trim();
+    const continuation = clauseSource.slice((match.index || 0) + match[0].length).trim();
+    // Do not split a coordinated verb phrase before its shared object.
+    // "validating and correcting values" cannot become the polished-looking
+    // fragment "... or validating." The earlier complete coordination edge
+    // remains eligible, so evidence is retained without changing source text.
+    if (/\b[\p{L}-]+ing$/iu.test(clause) && /^[\p{L}-]+ing\b/iu.test(continuation)) continue;
     const clauseWords = wordsOf(clause);
     if (
       clauseWords.length >= bounds[0] &&

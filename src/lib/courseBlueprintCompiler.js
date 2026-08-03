@@ -24502,7 +24502,7 @@ function buildDiscussionArtifactSet(lesson, phrase) {
       use: lessonVariant(lesson, [
         `Compare the prompt with the ${artifact} requirements so students can check whether the decision survives scoring and ${phrase.decisionMove}.`,
         `Use the artifact criteria as a stress test before students ${phrase.decisionMove}.`,
-        `Have students trace the decision against the assessed artifact so the discussion leads into ${phrase.decisionMove}.`,
+        `Have students trace the decision against the assessed artifact so the discussion prepares them to ${phrase.decisionMove}.`,
         `Treat the artifact brief as the proof target: the decision should be defensible enough to ${phrase.decisionMove}.`,
       ]),
     },
