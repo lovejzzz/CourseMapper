@@ -29,9 +29,9 @@ const budgets = {
 // caught an unaccounted increase, and the fix is to re-freeze at the released
 // state, not to widen the allowance. Every future release must do the same.
 const repositoryBudgets = {
-  // v0.17.11 advances the frozen state through the shipped v0.17.10 contract;
-  // its own v0.17.11 contract consumes the single declared-release allowance.
-  baselineVersion: '0.17.10',
+  // v0.17.12 advances the frozen state through the shipped v0.17.11 contract;
+  // its own v0.17.12 contract consumes the single declared-release allowance.
+  baselineVersion: '0.17.11',
   // v0.16.82 adds 29 net lines of reusable compiler control logic for
   // policy-domain separation and concept-owned evidence binding. Source-
   // statement copy and prerequisite selection moved to a cacheable leaf; the
@@ -56,7 +56,10 @@ const repositoryBudgets = {
   // V0.17.09 adds 39 measured controller lines for role-indexed fact and term
   // consumption. The evidence ledger retains canonical order; only the
   // professor-facing instructional seat changes. Freeze the exact result.
-  compilerLines: 28_224,
+  // V0.17.12 adds course-neutral genre precedence plus executable code-lab
+  // and authentic policy-memo requirements. The exact increase is frozen by
+  // Applied Civic Data Analysis and compiler regression proofs.
+  compilerLines: 28_265,
   // V0.16.97 moved compiler logic into cacheable courseCompiler*.js leaves.
   // Freeze the whole ownership family so extracting modules cannot make the
   // monolith-only counter report a false reduction. The 69-line post-release
@@ -81,7 +84,7 @@ const repositoryBudgets = {
   // evidence while moving identity classification and visual selection into
   // focused leaves. Policy, qualitative-coding, and genuine-programming
   // regressions freeze the exact state without speculative headroom.
-  compilerFamilyLines: 31_224,
+  compilerFamilyLines: 31_291,
   // v0.16.81 adds one executable Algi→Scion hybrid benchmark audit. It freezes
   // evidence, route, quality, call, latency, and export promotion rules; this
   // is a release gate rather than product-side script sprawl.
@@ -100,9 +103,9 @@ const repositoryBudgets = {
   // It reuses the cross-package audit implementation rather than introducing
   // another runner.
   npmScripts: 387,
-  // v0.17.10 shipped 296 tracked release-ledger files (contracts plus the
-  // directory README); v0.17.11 may add exactly one current-release contract.
-  releaseContractFiles: 296,
+  // v0.17.11 shipped 297 tracked release-ledger files (contracts plus the
+  // directory README); v0.17.12 may add exactly one current-release contract.
+  releaseContractFiles: 297,
   trackedWeightFiles: 62,
   trackedWeightBytes: 1_053_339_981,
   largeBinaryBytes: 1024 * 1024,

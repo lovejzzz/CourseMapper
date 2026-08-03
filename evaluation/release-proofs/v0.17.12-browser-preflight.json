@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "release": "0.17.12",
+  "recordedAt": "2026-08-03T22:50:00Z",
+  "status": "predeploy-candidate",
+  "claimBoundary": "This predeploy record binds a fresh local CourseGraph recompile, deterministic package grade, executable bundled test suite, and representative Office rendering. It makes no production, instructor, classroom, or universal-quality claim.",
+  "checks": [
+    {
+      "mode": "local-coursegraph-recompile",
+      "status": "pass",
+      "sourceProjectSha256": "0b3bcb3b37c66e11d91ce266eeed148435914f3f07e2826806937b663d0f69c9",
+      "zipSha256": "5c4b8af75084859ba268964ef682b347eb7a353c9238f109ecb88f0397c338c8",
+      "reproductionSha256": "5c4b8af75084859ba268964ef682b347eb7a353c9238f109ecb88f0397c338c8",
+      "score": 99,
+      "grade": "A",
+      "findingCounts": { "p0": 0, "p1": 0, "p2": 0 }
+    },
+    {
+      "mode": "learner-capability-audit",
+      "status": "pass",
+      "automatedTesting": "Executable source or notebook, clean-start command, failing-to-passing evidence, typical case, boundary/error case, and debugging note are required.",
+      "policyMemo": "Problem, population, authority, two options, stakeholder/equity effects, tradeoffs, recommendation, implementation, risk, and monitoring are required."
+    },
+    {
+      "mode": "local-physical-render-audit",
+      "status": "pass",
+      "slideDecksStructurallyChecked": 6,
+      "representativeDocxFamilies": [
+        "assignment-code-lab",
+        "assignment-policy-memo",
+        "rubric-code-lab",
+        "rubric-policy-memo"
+      ],
+      "bundledStarterTestsPassed": 3,
+      "courseMapPrintSetup": "landscape scale 64; repeat row 1 and columns A:B"
+    }
+  ]
+}

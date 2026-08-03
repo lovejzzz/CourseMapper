@@ -248,6 +248,31 @@ describe('xlsxGenerator', () => {
     expect(workbook).toContain("'Course Map'!$1:$1");
   });
 
+  it('prints wide course maps at a readable scale across pages instead of shrinking eleven columns to one page', async () => {
+    const map = twoLessonMap();
+    map.lessons = map.lessons.map((lesson) => ({
+      ...lesson,
+      sections: lesson.sections.map((section) => ({
+        ...section,
+        learningObjectives: 'Apply the lesson method and explain one evidence-based revision.',
+        weeklyAssessments: 'Submit a criterion-aligned applied artifact.',
+        asyncActivities: 'Review the assigned evidence packet.',
+        syncActivities: 'Practice the method and compare decisions.',
+        technologyNeeded: 'Course site and approved authoring tools.',
+        presentationFormat: 'Slides, demonstration, and guided practice.',
+        supportingResources: 'Assigned source packet and review guide.',
+      })),
+    }));
+    const buffer = await buildXlsxBuffer(map);
+    const text = await sheetText(buffer);
+    const workbook = await workbookText(buffer);
+
+    expect(text).toContain('<pageSetUpPr/>');
+    expect(text).toContain('<pageSetup orientation="landscape" scale="64"/>');
+    expect(text).not.toContain('fitToWidth="1"');
+    expect(workbook).toContain("'Course Map'!$1:$1,'Course Map'!$A:$B");
+  });
+
   it('balances long course maps across two print pages at a lesson boundary', async () => {
     const map = twoLessonMap();
     map.lessons = Array.from({ length: 14 }, (_, lessonIndex) => ({

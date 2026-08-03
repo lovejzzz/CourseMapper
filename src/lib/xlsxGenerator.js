@@ -274,13 +274,19 @@ export async function buildXlsxBuffer(courseMap, customColumns, options = {}) {
       },
     ],
   });
-  return await polishCourseMapWorkbook(buffer, columnName(columns.length), hyperlinks, printPageBreakRow);
+  return await polishCourseMapWorkbook(
+    buffer,
+    columnName(columns.length),
+    hyperlinks,
+    printPageBreakRow,
+    columns.length,
+  );
 }
 
 // Workbook polish that the shared lightweight builder has no API for:
 // universal fonts, centered header labels, tab color, autofilter, print setup,
 // and (v0.14.1 3.4, package context only) cell hyperlinks + their rels part.
-async function polishCourseMapWorkbook(buffer, lastColumn, hyperlinks = [], printPageBreakRow = null) {
+async function polishCourseMapWorkbook(buffer, lastColumn, hyperlinks = [], printPageBreakRow = null, columnCount = 1) {
   const JSZip = await getJSZip();
   const zip = await JSZip.loadAsync(buffer);
 
@@ -295,7 +301,8 @@ async function polishCourseMapWorkbook(buffer, lastColumn, hyperlinks = [], prin
   zip.file('xl/styles.xml', styles);
 
   let sheet = await zip.file('xl/worksheets/sheet1.xml').async('string');
-  const pageSetupProperties = printPageBreakRow ? '<pageSetUpPr/>' : '<pageSetUpPr fitToPage="1"/>';
+  const widePrint = columnCount >= 8;
+  const pageSetupProperties = printPageBreakRow || widePrint ? '<pageSetUpPr/>' : '<pageSetUpPr fitToPage="1"/>';
   sheet = sheet.replace(
     '<sheetViews>',
     `<sheetPr><tabColor rgb="${HEADER_TAB_COLOR}"/>${pageSetupProperties}</sheetPr><sheetViews>`,
@@ -334,10 +341,13 @@ async function polishCourseMapWorkbook(buffer, lastColumn, hyperlinks = [], prin
   const rowBreaks = printPageBreakRow
     ? `<rowBreaks count="1" manualBreakCount="1"><brk id="${printPageBreakRow}" min="0" max="16383" man="1"/></rowBreaks>`
     : '';
-  const printOptions = printPageBreakRow ? '<printOptions horizontalCentered="1" verticalCentered="1"/>' : '';
+  const printOptions =
+    printPageBreakRow || widePrint ? '<printOptions horizontalCentered="1" verticalCentered="1"/>' : '';
   const pageSetup = printPageBreakRow
     ? '<pageSetup orientation="landscape" scale="38"/>'
-    : '<pageSetup orientation="landscape" fitToWidth="1" fitToHeight="0"/>';
+    : widePrint
+      ? '<pageSetup orientation="landscape" scale="64"/>'
+      : '<pageSetup orientation="landscape" fitToWidth="1" fitToHeight="0"/>';
   sheet = sheet.replace(
     '</worksheet>',
     rowBreaks +
@@ -349,9 +359,10 @@ async function polishCourseMapWorkbook(buffer, lastColumn, hyperlinks = [], prin
 
   // Repeat the header row on every printed page.
   let workbook = await zip.file('xl/workbook.xml').async('string');
+  const printTitles = widePrint ? "'Course Map'!$1:$1,'Course Map'!$A:$B" : "'Course Map'!$1:$1";
   workbook = workbook.replace(
     '</sheets>',
-    `</sheets>\n  <definedNames><definedName name="_xlnm.Print_Titles" localSheetId="0">'Course Map'!$1:$1</definedName></definedNames>`,
+    `</sheets>\n  <definedNames><definedName name="_xlnm.Print_Titles" localSheetId="0">${printTitles}</definedName></definedNames>`,
   );
   zip.file('xl/workbook.xml', workbook);
 

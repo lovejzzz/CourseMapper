@@ -638,6 +638,16 @@ function repairCompilerOwnedSlideCopy(value, context = {}) {
 function repairString(value, featureId, parentKey = '', context = {}, path = []) {
   let text = repairCompilerOwnedSlideCopy(repairLegacyOpaqueSourceReferences(value, context), context);
   text = text.replace(
+    /\bAt\s+(?:a\s+)?(\d{1,2}|100)%\s+confidence\b[^.!?]{0,120}\bin\s+(?:exactly\s+)?(?:\d{1,3}|\w+)\s+out\s+of\s+100\s+samples\b[^.!?]*[.!?]?/gi,
+    (_match, level) =>
+      `Across many repetitions of the same sampling procedure, about ${level}% of intervals constructed this way would contain the true parameter. This does not assign a ${level}% probability to the fixed parameter for the interval already computed.`,
+  );
+  text = text.replace(
+    /\b(?:The confidence level[^.!?\n]{0,160}?[—–-]\s*)?at\s+(?:CL|confidence(?:\s+level)?)\s*=?\s*(\d{1,2}|100)%\s*,?\s*in\s+(?:exactly\s+)?(?:\d{1,3}|\w+)\s+out\s+of\s+100\s+samples\b[^.!?]*[.!?]?/gi,
+    (_match, level) =>
+      `Across many repetitions of the same sampling procedure, about ${level}% of intervals constructed this way would contain the true parameter. This does not assign a ${level}% probability to the fixed parameter for the interval already computed.`,
+  );
+  text = text.replace(
     /\bItem (\d+): add course-aligned, instructor-approved evidence\b/gi,
     'Evidence task $1: compare the lesson claim with assigned evidence',
   );

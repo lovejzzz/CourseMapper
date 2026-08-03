@@ -70,6 +70,8 @@ import {
   additionalEvidenceRequirementCopy,
   closeReadingDiscussionCopy,
   faqCoreClaimsCopy,
+  genreAlignedAssignmentParameters,
+  genreRequiredAssignmentInstructions,
   kernelSlideEvidenceDiscussionCopy,
   prerequisiteDiagnosticCopy,
   shortAnswerGuidanceCopy,
@@ -8123,9 +8125,20 @@ function buildArtifactGenreDecode(lesson = {}, profile = {}, modalityDecode = {}
     `${lesson.title || ''} ${lesson.studentArtifact || ''} ${lesson.activityPattern || ''} ${(lesson.keyConcepts || []).join(' ')} ${(lesson.outcomes || []).join(' ')}`.toLowerCase();
   const artifactMatches = (pattern) => pattern.test(artifactText);
   const contextMatches = (pattern) => pattern.test(contextText);
+  // Lesson-owned code-lab or policy-memo signals outrank a broad course mode.
+  const lessonRequiresCodeLab =
+    contextMatches(/\b(unit tests?|automated tests?|test suite|test cases?|assertions?|debugging|code review)\b/) &&
+    contextMatches(/\b(code|coding|programming|python|javascript|typescript|java|functions?|modules?|scripts?)\b/);
+  const lessonRequiresPolicyBrief = contextMatches(
+    /\b(policy memo|policy brief|policy option|stakeholder policy|equity policy|policy recommendation|policy implementation)\b/,
+  );
   let genre = 'applied-artifact';
   if (isMusicIntervalLesson(lesson)) {
     genre = 'music-interval-analysis';
+  } else if (lessonRequiresCodeLab) {
+    genre = 'code-lab';
+  } else if (lessonRequiresPolicyBrief) {
+    genre = 'policy-brief';
   } else if (
     profile.primaryMode === 'lecture-exam' &&
     (artifactMatches(
@@ -15298,14 +15311,15 @@ function buildCriterionPerformanceBand({
   lens,
   submissionProfile = null,
 }) {
-  const codeLabBand = isCodeLabAssessment(assessment)
-    ? buildCodeLabCriterionPerformanceBand({
-        artifact: stripTerminalPunctuation(cleanText(assessment.artifact || assessment.title, 'the code lab')),
-        criterion,
-        criteria: assessment.criteria,
-        evidenceEntry,
-      })
-    : null;
+  const codeLabBand =
+    isCodeLabAssessment(assessment) || lesson?.artifactGenre?.genre === 'code-lab'
+      ? buildCodeLabCriterionPerformanceBand({
+          artifact: stripTerminalPunctuation(cleanText(assessment.artifact || assessment.title, 'the code lab')),
+          criterion,
+          criteria: assessment.criteria,
+          evidenceEntry,
+        })
+      : null;
   if (codeLabBand) return codeLabBand;
   const musicProfile = musicIntervalRubricProfile(lesson);
   const musicCriterion = musicProfile?.find((entry) => entry.criterion === criterion);
@@ -15903,7 +15917,7 @@ function buildRegistryAssessmentAnchors(lessons, registry) {
         : normalizedEntry.kind === 'oral'
           ? registryOralRoleDescriptor(lesson, normalizedEntry)
           : lessonRoleDescriptors[lessonIndex];
-    const isCodeLab = isCodeLabAssessment(normalizedEntry);
+    const isCodeLab = isCodeLabAssessment(normalizedEntry) || lesson?.artifactGenre?.genre === 'code-lab';
     const literatureCriteria = buildLiteratureAssessmentCriteria(normalizedEntry.title);
     const criteria =
       normalizedEntry.kind === 'oral'
@@ -15995,7 +16009,10 @@ function buildAssessmentAnchors(lessons, registry = null) {
   const weights = weightPlan.weights.length > 0 ? weightPlan.weights : distributePercent(source.length || 1);
   return source.map((lesson, index) => {
     const validityEvidence = buildAssessmentValidityEvidence(lesson);
-    const criteria = buildAssessmentCriteria(lesson);
+    const criteria =
+      lesson?.artifactGenre?.genre === 'code-lab'
+        ? buildCodeLabAssessmentCriteria(lesson, lesson.studentArtifact || lesson.title)
+        : buildAssessmentCriteria(lesson);
     const criterionEvidenceMap = buildCriterionEvidenceMap(lesson, criteria, validityEvidence);
     const criterionWeightPlan = buildCriterionWeightPlan(lesson, criteria, criterionEvidenceMap, 100);
     const criterionObjectiveAlignment = buildCriterionObjectiveAlignment({
@@ -17694,10 +17711,13 @@ function compileAssignments(blueprint) {
         const assessmentArtifact = stripTerminalPunctuation(
           assessment.artifact || submissionProfile.artifact || assessment.title,
         );
-        const assignmentParameters =
-          asArray(submissionProfile.parameterLines).length > 0
-            ? submissionProfile.parameterLines
-            : assignmentCoreParametersForStudent(lesson);
+        const assignmentParameters = genreAlignedAssignmentParameters({
+          lesson,
+          authored:
+            asArray(submissionProfile.parameterLines).length > 0
+              ? submissionProfile.parameterLines
+              : assignmentCoreParametersForStudent(lesson),
+        });
         const assignmentCoreInstructions =
           asArray(submissionProfile.instructionSteps).length > 0
             ? submissionProfile.instructionSteps
@@ -17734,7 +17754,7 @@ function compileAssignments(blueprint) {
         // setup, computational task, verification milestone) instead of a
         // clone of the sibling proof brief. Registry-linked assessments only —
         // twins exist only on the registry path; legacy compiles are untouched.
-        const isCodeLab = !isOral && Boolean(assessment.registryId) && isCodeLabAssessment(assessment);
+        const isCodeLab = !isOral && (isCodeLabAssessment(assessment) || lesson?.artifactGenre?.genre === 'code-lab');
         const brief = {
           title: assessment.title,
           // v0.14.1 (3.3b): the reverse stamp — every registry brief names the
@@ -17811,6 +17831,7 @@ function compileAssignments(blueprint) {
             learnerContextCue: lessonLearnerContextCue(blueprint, lesson),
             ...(preference ? { instructorPreference: preference } : {}),
           }),
+          sourceEvidenceBrief: buildLessonEvidenceBrief(lesson, { claimLimit: 4, sourceLimit: 4 }),
           workloadEstimate: submissionProfile.workload,
           difficultyProfile: lesson.difficultyProfile || null,
           evidencePlan: lesson.evidencePlan || null,
@@ -17883,6 +17904,7 @@ function compileAssignments(blueprint) {
                   `Include at least one test or verification milestone for ${assessmentTitle}: show the check (test case, assertion, or hand-computed comparison) that confirms the results before submission.`,
                 ]
               : []),
+            ...genreRequiredAssignmentInstructions({ lesson, assessment }),
             ...(assignmentParameters.length > 0
               ? [
                   `Meet these submission requirements. ${assignmentParameters
@@ -18291,8 +18313,8 @@ function compileRubrics(blueprint) {
       }
       // Registry-linked assessments only — twins exist only on the registry
       // path; legacy compiles are untouched.
-      const isCodeLab = Boolean(assessment.registryId) && isCodeLabAssessment(assessment);
       const lesson = blueprint.lessons.find((item) => item.lessonNumber === assessment.lessonNumbers[0]);
+      const isCodeLab = isCodeLabAssessment(assessment) || lesson?.artifactGenre?.genre === 'code-lab';
       const sourceEvidenceBrief = buildLessonEvidenceBrief(lesson, { claimLimit: 4, sourceLimit: 4 });
       const rubricSubmissionProfile = buildAssignmentSubmissionProfile({
         lesson,

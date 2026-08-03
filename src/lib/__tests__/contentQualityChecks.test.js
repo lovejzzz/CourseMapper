@@ -215,6 +215,48 @@ describe('auditDeliverableContentQuality', () => {
     expect(findings.some((finding) => finding.code === 'instructor-configuration-deferral')).toBe(false);
   });
 
+  it('flags testing lessons that do not require executable fail-pass evidence', () => {
+    const { findings } = auditDeliverableContentQuality('assignments', {
+      assignments: [
+        {
+          title: 'Comparison brief',
+          relatedLessons: ['Lesson 3: Functions and automated tests'],
+          instructions: ['Write a PDF reflection about automated tests.'],
+          formatRequirements: { format: 'PDF, PPTX, or MP4' },
+        },
+      ],
+    });
+
+    expect(findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'testing-lesson-without-executable-work' }),
+        expect.objectContaining({ code: 'testing-lesson-without-fail-pass-evidence' }),
+      ]),
+    );
+  });
+
+  it('flags policy memos that omit decision architecture and referenced support materials', () => {
+    const { findings } = auditDeliverableContentQuality('assignments', {
+      assignments: [
+        {
+          title: 'Integrative policy memo capstone',
+          relatedLessons: ['Lesson 6: Integrative policy memo capstone'],
+          instructions: [
+            'Summarize the data and make a recommendation. Review the strong and partial samples and use the assigned evidence packet.',
+          ],
+        },
+      ],
+    });
+
+    expect(findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'policy-memo-missing-decision-architecture' }),
+        expect.objectContaining({ code: 'assignment-references-missing-anchor-samples' }),
+        expect.objectContaining({ code: 'assignment-references-missing-evidence-packet' }),
+      ]),
+    );
+  });
+
   it('flags a uniform multiple-choice answer key across lessons', () => {
     const quiz = (lessonNumber) => ({
       lessonNumber,

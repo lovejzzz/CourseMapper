@@ -290,6 +290,22 @@ function collectDataScienceAssets(text) {
       note: 'Provide only when the course expects command-line or script-based practice outside notebooks.',
     });
   }
+  if (/\b(unit tests?|automated tests?|test suite|test cases?|assertions?|test[-\s]?driven)\b/.test(text)) {
+    requirements.push(
+      {
+        id: 'automated-test-exercise',
+        label: 'Automated-testing lab guide',
+        formats: ['.md', '.docx', '.pdf'],
+        note: 'Provide a runnable exercise that begins with a failing test, requires an implementation change, and records the passing result plus one boundary case.',
+      },
+      {
+        id: 'starter-test-suite',
+        label: 'Starter automated test suite',
+        formats: ['.py'],
+        note: 'Provide executable tests aligned to the bundled starter code, including a normal case and a boundary or error case.',
+      },
+    );
+  }
   return requirements;
 }
 
@@ -453,18 +469,97 @@ const STARTER_POLICY_SCRIPT = [
   'DATA_PATH = Path(__file__).with_name("policy_outcomes_sample.csv")',
   '',
   '',
+  'def load_policy_data(path: Path = DATA_PATH) -> pd.DataFrame:',
+  '    """Load the instructional dataset without hiding missing observations."""',
+  '    data = pd.read_csv(path)',
+  '    required = {"jurisdiction", "year", "program_participation", "outcome_index"}',
+  '    missing = required.difference(data.columns)',
+  '    if missing:',
+  '        raise ValueError(f"Missing required columns: {sorted(missing)}")',
+  '    return data',
+  '',
+  '',
+  'def observed_outcome_means(data: pd.DataFrame) -> pd.Series:',
+  '    """Return descriptive means; this is not a causal policy estimate."""',
+  '    return data.groupby("jurisdiction")["outcome_index"].mean().round(2)',
+  '',
+  '',
   'def main() -> None:',
-  '    data = pd.read_csv(DATA_PATH)',
+  '    data = load_policy_data()',
   '    print("Missing values by field:")',
   '    print(data.isna().sum().to_string())',
   '    print("\\nObserved outcome means by jurisdiction:")',
-  '    print(data.groupby("jurisdiction")["outcome_index"].mean().round(2).to_string())',
+  '    print(observed_outcome_means(data).to_string())',
   '',
   '',
   'if __name__ == "__main__":',
   '    main()',
   '',
 ].join('\n');
+
+const STARTER_POLICY_TEST_SUITE = [
+  '"""Executable checks for the bundled policy-analysis starter."""',
+  'import unittest',
+  '',
+  'import pandas as pd',
+  '',
+  'from starter_policy_analysis import DATA_PATH, load_policy_data, observed_outcome_means',
+  '',
+  '',
+  'class PolicyAnalysisTests(unittest.TestCase):',
+  '    def test_bundled_data_preserves_the_documented_missing_value(self) -> None:',
+  '        data = load_policy_data(DATA_PATH)',
+  '        self.assertEqual(int(data["outcome_index"].isna().sum()), 1)',
+  '        self.assertEqual(sorted(data["jurisdiction"].unique().tolist()), ["District A", "District B", "District C", "District D"])',
+  '',
+  '    def test_observed_means_ignore_only_missing_outcomes(self) -> None:',
+  '        data = pd.DataFrame({"jurisdiction": ["A", "A", "B"], "outcome_index": [2.0, None, 5.0]})',
+  '        means = observed_outcome_means(data)',
+  '        self.assertEqual(means.to_dict(), {"A": 2.0, "B": 5.0})',
+  '',
+  '    def test_missing_required_column_fails_closed(self) -> None:',
+  '        from pathlib import Path',
+  '        from tempfile import TemporaryDirectory',
+  '',
+  '        with TemporaryDirectory() as directory:',
+  '            path = Path(directory) / "incomplete.csv"',
+  '            path.write_text("jurisdiction,outcome_index\\nA,1\\n", encoding="utf-8")',
+  '            with self.assertRaisesRegex(ValueError, "Missing required columns"):',
+  '                load_policy_data(path)',
+  '',
+  '',
+  'if __name__ == "__main__":',
+  '    unittest.main()',
+  '',
+].join('\n');
+
+function automatedTestingLabGuide(courseName) {
+  return [
+    '# Automated-Testing Lab',
+    '',
+    `Runnable testing practice for ${courseName || 'this course'}.`,
+    '',
+    '## Learning target',
+    '',
+    'Use an automated test to expose a defect or unmet requirement, revise the implementation, and preserve evidence that the test passes without breaking a boundary case.',
+    '',
+    '## Run the starter suite',
+    '',
+    '1. Place starter_policy_analysis.py, test_starter_policy_analysis.py, and policy_outcomes_sample.csv in the same folder.',
+    '2. Run: python -m unittest -v test_starter_policy_analysis.py',
+    '3. Record the command, environment, and complete result.',
+    '',
+    '## Required exercise',
+    '',
+    '1. Add a failing test for a documented requirement or edge case before changing the implementation.',
+    '2. Run the suite and preserve the failure message.',
+    '3. Make the smallest implementation change that satisfies the requirement.',
+    '4. Run the full suite again and preserve the passing output.',
+    '5. Explain what the test proves, what it does not prove, and which boundary case should be tested next.',
+    '',
+    'The bundled data are synthetic and support workflow practice only; passing tests do not authorize real policy claims.',
+  ].join('\n');
+}
 
 function modelCardTemplate(courseName) {
   return [
@@ -534,6 +629,22 @@ export function buildBundledRequiredLabAssets(requirements = [], { courseName = 
       path: 'Required Assets/starter_policy_analysis.py',
       format: 'py',
       content: STARTER_POLICY_SCRIPT,
+    });
+  }
+  if (supportsPolicyStarter && requestedIds.has('automated-test-exercise')) {
+    assets.push({
+      requirementId: 'automated-test-exercise',
+      path: 'Required Assets/AUTOMATED_TESTING_LAB.md',
+      format: 'md',
+      content: automatedTestingLabGuide(courseName),
+    });
+  }
+  if (supportsPolicyStarter && requestedIds.has('starter-test-suite')) {
+    assets.push({
+      requirementId: 'starter-test-suite',
+      path: 'Required Assets/test_starter_policy_analysis.py',
+      format: 'py',
+      content: STARTER_POLICY_TEST_SUITE,
     });
   }
   if (requestedIds.has('model-card-template')) {

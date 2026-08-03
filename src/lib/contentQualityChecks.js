@@ -35,6 +35,8 @@ const MALFORMED_CONCEPT_DETAIL_RE =
   /\ba\s+(?:solid|strong|clear|specific)\s+[^.!?]{0,80}\b(?:principles|criteria|standards|guidelines|requirements)\b[^.!?]{0,30}\bdetail\b/i;
 const MISSING_DISCIPLINARY_DEFINITION_RE =
   /does not supply a disciplinary definition|source-backed disciplinary definition (?:is )?(?:needed|required)|add an instructor-approved, source-backed definition/i;
+const OVEREXACT_CONFIDENCE_COVERAGE_RE =
+  /(?:\bat\s+(?:a\s+)?(?:\d{1,2}|100)%\s+confidence\b|\bat\s+(?:CL|confidence(?:\s+level)?)\s*=?\s*(?:\d{1,2}|100)%\b)[^.!?]{0,120}\bin\s+(?:exactly\s+)?(?:\d{1,3}|\w+)\s+out\s+of\s+100\s+samples\b/i;
 
 function* walkStrings(node, path = '$') {
   if (typeof node === 'string') {
@@ -89,6 +91,9 @@ function checkSentenceIntegrity(findings, featureId, data) {
     if (MALFORMED_CONCEPT_DETAIL_RE.test(trimmed)) {
       pushFinding(findings, 'malformed-concept-detail', path, trimmed);
     }
+    if (OVEREXACT_CONFIDENCE_COVERAGE_RE.test(trimmed)) {
+      pushFinding(findings, 'overexact-confidence-coverage', path, trimmed);
+    }
   }
 }
 
@@ -139,6 +144,68 @@ function checkInstructorConfigurationDeferrals(findings, featureId, data) {
   }
 }
 
+function checkAssignmentLearnerReadiness(findings, featureId, data) {
+  if (featureId !== 'assignments') return;
+  const assignments = Array.isArray(data) ? data : renderedDeliverableCollection('assignments', data);
+  assignments.forEach((assignment, index) => {
+    const identity = [assignment?.title, ...(assignment?.relatedLessons || [])].filter(Boolean).join(' ');
+    const visible = [
+      assignment?.assignmentType,
+      assignment?.overview,
+      assignment?.formatRequirements?.format,
+      ...(assignment?.instructions || []),
+      ...(assignment?.deliverables || []),
+      ...(assignment?.anchorExampleGuidance || []),
+    ]
+      .map((value) => (typeof value === 'string' ? value : JSON.stringify(value || '')))
+      .join(' ');
+    const path = `assignments[${index}]`;
+
+    if (/\b(unit tests?|automated tests?|test suite|test cases?)\b/i.test(identity)) {
+      if (!/\b(executable|source code|notebook|test suite|assertion|python -m unittest|pytest)\b/i.test(visible)) {
+        pushFinding(findings, 'testing-lesson-without-executable-work', path, identity);
+      }
+      if (
+        !/\b(failing test|initially failing|failure message)\b/i.test(visible) ||
+        !/\bpassing (?:test|result|output)|test passes\b/i.test(visible)
+      ) {
+        pushFinding(findings, 'testing-lesson-without-fail-pass-evidence', path, identity);
+      }
+    }
+
+    if (/\bpolicy memo\b/i.test(identity)) {
+      const requiredPolicySignals = [
+        /\b(public problem|problem definition)\b/i,
+        /\b(decision maker|policy authority)\b/i,
+        /\b(?:two|2|at least two) (?:feasible )?(?:policy )?options\b/i,
+        /\b(stakeholder|equity)\b/i,
+        /\b(tradeoffs?|trade[-\s]?offs?)\b/i,
+        /\bimplementation\b/i,
+        /\brecommend(?:ation|ed| one)\b/i,
+      ];
+      if (requiredPolicySignals.some((pattern) => !pattern.test(visible))) {
+        pushFinding(findings, 'policy-memo-missing-decision-architecture', path, identity);
+      }
+    }
+
+    if (/strong and partial .*samples?|strong .*partial .*samples?/i.test(visible)) {
+      const anchors = assignment?.anchorExampleGuidance || [];
+      if (!Array.isArray(anchors) || anchors.filter(Boolean).length < 2) {
+        pushFinding(findings, 'assignment-references-missing-anchor-samples', path, identity);
+      }
+    }
+
+    if (/\b(source record|assigned evidence packet|exact detail from the .* record)\b/i.test(visible)) {
+      if (
+        !Array.isArray(assignment?.sourceEvidenceBrief?.claims) ||
+        assignment.sourceEvidenceBrief.claims.length === 0
+      ) {
+        pushFinding(findings, 'assignment-references-missing-evidence-packet', path, identity);
+      }
+    }
+  });
+}
+
 function checkQuizAnswerKeyUniformity(findings, featureId, data) {
   if (featureId !== 'quizBank') return;
   const quizzes = Array.isArray(data) ? data : renderedDeliverableCollection('quizBank', data);
@@ -170,6 +237,7 @@ export function auditDeliverableContentQuality(featureId, data) {
     checkStudentVoice(findings, featureId, content);
     checkFaqAnswerAdequacy(findings, featureId, content);
     checkInstructorConfigurationDeferrals(findings, featureId, content);
+    checkAssignmentLearnerReadiness(findings, featureId, content);
     checkQuizAnswerKeyUniformity(findings, featureId, content);
     checkSemanticDefinitions(findings, featureId, content);
   }

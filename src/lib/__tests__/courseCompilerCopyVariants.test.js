@@ -107,6 +107,35 @@ describe('course compiler copy variants', () => {
     expect(result.overview).not.toContain(focus);
   });
 
+  it('compacts repeated lesson identity inside evidence packets and anchor samples', () => {
+    const focus = 'Conditional branching and loops';
+    const result = compactAssignmentBriefBodyReferences({
+      brief: {
+        title: `Worked example: ${focus}`,
+        relatedLessons: [`Lesson 2: ${focus}`],
+        sourceEvidenceBrief: {
+          claims: [
+            `Explain ${focus} using the available course evidence.`,
+            `Apply ${focus} in one practical example and justify the revision.`,
+          ],
+          sources: [{ title: `${focus} evidence brief` }],
+        },
+        anchorExampleGuidance: [
+          `A strong sample points to ${focus} evidence and explains the ${focus} decision.`,
+          `A partial sample names ${focus} but does not connect ${focus} to the revision.`,
+        ],
+      },
+      lesson: { lessonNumber: 2 },
+      fullFocus: focus,
+      fallbackArtifact: 'worked example',
+    });
+
+    const renderedBody = JSON.stringify([result.sourceEvidenceBrief, result.anchorExampleGuidance]);
+    expect(renderedBody).not.toContain(focus);
+    expect(result.title).toContain(focus);
+    expect(result.relatedLessons).toContain(`Lesson 2: ${focus}`);
+  });
+
   it('uses the discipline-aware genre when a week-prefixed artifact alias is still too long', () => {
     const canonicalTitle =
       "Homer's Epic Structure evidence memo: explain how form, language, or context changes the reading.";

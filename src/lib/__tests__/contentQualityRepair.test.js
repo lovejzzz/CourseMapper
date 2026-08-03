@@ -6,6 +6,36 @@ import { knownOffenderFitsScope } from '../quality/knownOffenderScope';
 import { normalizeQuarantinedEvidenceText } from '../sourceEvidenceAdmission';
 
 describe('contentQualityRepair (v0.12.1 P2)', () => {
+  it('repairs and flags over-exact confidence-interval coverage language', () => {
+    const source = {
+      decks: [
+        {
+          slides: [
+            {
+              bullets: [
+                'At 90% confidence, in 90 out of 100 samples the interval encloses the population parameter.',
+                'The confidence level describes the procedure across repeated samples — at CL = 90%, in 90 out of 100 samples the interval estimate encloses the parameter.',
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    expect(auditDeliverableContentQuality('slideDecks', source).findings).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'overexact-confidence-coverage' })]),
+    );
+
+    const result = repairDeliverableContentQuality('slideDecks', source);
+    const repaired = result.data.decks[0].slides[0].bullets[0];
+    const repairedAbbreviation = result.data.decks[0].slides[0].bullets[1];
+    expect(repaired).toContain('Across many repetitions of the same sampling procedure');
+    expect(repaired).toContain('does not assign a 90% probability');
+    expect(repairedAbbreviation).toContain('Across many repetitions of the same sampling procedure');
+    expect(repairedAbbreviation).not.toContain('90 out of 100 samples');
+    expect(auditDeliverableContentQuality('slideDecks', result.data).findings).toHaveLength(0);
+  });
+
   it('removes encyclopedia navigation residue without deleting the sourced claim', () => {
     const result = repairDeliverableContentQuality('lessonPlans', {
       lessonPlans: [

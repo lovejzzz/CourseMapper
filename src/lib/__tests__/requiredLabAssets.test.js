@@ -70,6 +70,7 @@ describe('collectRequiredLabAssets', () => {
         courseName: 'Python for Public Policy',
         lessons: [
           { title: 'Python and pandas for public datasets' },
+          { title: 'Functions and automated tests' },
           { title: 'Data cleaning, missing values, and reproducible notebooks' },
           { title: 'Data visualization with matplotlib for policy audiences' },
         ],
@@ -77,7 +78,14 @@ describe('collectRequiredLabAssets', () => {
     });
 
     expect(requirements.map((item) => item.id)).toEqual(
-      expect.arrayContaining(['course-dataset', 'data-dictionary', 'starter-notebook', 'starter-script']),
+      expect.arrayContaining([
+        'course-dataset',
+        'data-dictionary',
+        'starter-notebook',
+        'starter-script',
+        'automated-test-exercise',
+        'starter-test-suite',
+      ]),
     );
 
     const bundled = buildBundledRequiredLabAssets(requirements, { courseName: 'Python for Public Policy' });
@@ -87,10 +95,18 @@ describe('collectRequiredLabAssets', () => {
         'Required Assets/DATA_DICTIONARY.md',
         'Required Assets/starter_policy_analysis.ipynb',
         'Required Assets/starter_policy_analysis.py',
+        'Required Assets/AUTOMATED_TESTING_LAB.md',
+        'Required Assets/test_starter_policy_analysis.py',
       ]),
     );
     expect(JSON.parse(bundled.find((asset) => asset.format === 'ipynb').content).nbformat).toBe(4);
     expect(bundled.find((asset) => asset.format === 'csv').content).toContain('reported_missing');
+    expect(bundled.find((asset) => asset.path.endsWith('test_starter_policy_analysis.py')).content).toContain(
+      'test_missing_required_column_fails_closed',
+    );
+    expect(bundled.find((asset) => asset.path.endsWith('AUTOMATED_TESTING_LAB.md')).content).toContain(
+      'Add a failing test',
+    );
   });
 
   it('does not treat computational Linear Algebra labs as physical wet-lab work', () => {

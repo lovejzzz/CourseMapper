@@ -8183,6 +8183,55 @@ describe('courseBlueprintCompiler', () => {
     expect(lessonThreeSpokes).not.toContain('Function (computer');
   });
 
+  it('lets lesson-specific code-lab and policy-memo evidence outrank a broad capstone course mode', () => {
+    const lessonTitles = [
+      'Python data types and expressions',
+      'Conditional branching and loops',
+      'Functions and automated tests',
+      'Pandas tabular data cleaning',
+      'Reproducible visualization and uncertainty',
+      'Integrative policy memo capstone',
+    ];
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Applied Civic Data Analysis',
+      description:
+        'An advanced public-policy data course with practical coding evidence, revision, and a final policy memo capstone.',
+      lessons: lessonTitles.map((title, index) => ({
+        title: `Lesson ${index + 1}: ${title}`,
+        sections: [
+          {
+            topicSection: title,
+            learningObjectives: `Apply ${title} in one practical example and justify one evidence-based revision.`,
+            weeklyAssessments: `Comparison brief: ${title}`,
+            supportingResources: `${title} course materials`,
+          },
+        ],
+      })),
+    });
+
+    expect(blueprint.lessons[2].artifactGenre.genre).toBe('code-lab');
+    expect(blueprint.lessons[5].artifactGenre.genre).toBe('policy-brief');
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['assignments', 'rubrics']);
+    const codeBrief = compiled.assignments.assignments[2];
+    const policyBrief = compiled.assignments.assignments[5];
+
+    expect(codeBrief.assignmentType).toBe('Code lab and test evidence');
+    expect(codeBrief.formatRequirements.format).toMatch(/source code|test suite|debugging log/i);
+    expect(codeBrief.instructions.join(' ')).toMatch(/initially failing test.*passing result/i);
+    expect(codeBrief.instructions.join(' ')).toMatch(/clean start.*reproduce/i);
+    expect(codeBrief.formatRequirements.format).not.toMatch(/PDF document|MP4/i);
+    expect(compiled.rubrics.rubrics[2].criteria.map((criterion) => criterion.criterion).join(' ')).toMatch(
+      /Test evidence.*verification run|assertion/i,
+    );
+
+    expect(policyBrief.assignmentType).toBe('Policy analysis memo');
+    expect(policyBrief.formatRequirements.format).toMatch(/policy memo|option matrix|stakeholder analysis/i);
+    expect(policyBrief.instructions.join(' ')).toMatch(/authentic policy memo.*decision requested/i);
+    expect(policyBrief.instructions.join(' ')).toMatch(/at least two feasible policy options/i);
+    expect(policyBrief.instructions.join(' ')).toMatch(/implementation steps.*material risk/i);
+  });
+
   it('splits inline numbered resources without treating decimal versions as list markers', () => {
     const blueprint = buildCourseBlueprint({
       courseName: 'Digital Accessibility',

@@ -1,6 +1,45 @@
 import { cleanText, sentenceCase, stripTerminalPunctuation } from './compilerText';
 import { selectVariant } from './courseCompilerCopyVariants';
 
+export function genreAlignedAssignmentParameters({ lesson = {}, authored = [] } = {}) {
+  const genre = lesson?.artifactGenre?.genre || '';
+  if (genre === 'code-lab') {
+    return [
+      'Submit executable source code or a notebook plus the exact command or steps used to run it',
+      'Include at least one initially failing test and the corresponding passing result after the implementation is corrected',
+      'Test one typical case and one boundary or error case, and preserve the observed output',
+      'Attach a short implementation note that explains the design choice, debugging evidence, and revision made after review',
+    ];
+  }
+  if (genre === 'policy-brief') {
+    return [
+      'Define the public problem, affected population, and decision maker or policy authority',
+      'Compare at least two feasible policy options using named evidence, stakeholder and equity effects, costs or constraints, and tradeoffs',
+      'Recommend one option, explain why it is preferable to the alternatives, and state the evidence limit that could change the recommendation',
+      'Include implementation steps, ownership, timing, and one material risk with a mitigation or monitoring response',
+    ];
+  }
+  return authored;
+}
+
+export function genreRequiredAssignmentInstructions({ lesson = {}, assessment = {} } = {}) {
+  const genre = lesson?.artifactGenre?.genre || '';
+  const title = stripTerminalPunctuation(assessment.title || assessment.artifact || 'the assignment');
+  if (genre === 'code-lab') {
+    return [
+      `Run ${title} from a clean start and preserve the command, test output, or notebook execution evidence needed for another learner to reproduce the result.`,
+      `Explain what the failing test revealed, what code changed, and why the passing test and boundary check support the revised implementation.`,
+    ];
+  }
+  if (genre === 'policy-brief') {
+    return [
+      `Organize ${title} as an authentic policy memo: decision requested, executive recommendation, problem and evidence, option analysis, stakeholder and equity effects, implementation, and limitations.`,
+      `Tie every recommendation to a named evidence source and show why the selected option is preferable to at least one credible alternative.`,
+    ];
+  }
+  return [];
+}
+
 export function prerequisiteDiagnosticCopy({ lessonNumber, previousConcept, concept }) {
   return selectVariant(lessonNumber, [
     `Ask students to explain one relationship and one difference between ${previousConcept} and ${concept}.`,

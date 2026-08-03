@@ -643,8 +643,11 @@ function addEvidenceTable(pptx, slide, theme, plan, visKind, tracker, authoredAl
     tableY = 1.35;
   const tableW = SLIDE_W - tableX - 0.4;
   const leadColW = plan.isMisconceptionComparison ? 2.05 : 1.55;
-  const bodyFontSize = plan.isMisconceptionComparison ? 8.5 : 10;
-  const rowH = plan.isMisconceptionComparison ? 0.9 : 0.72;
+  const bodyFontSize = plan.isMisconceptionComparison ? 8.25 : 10;
+  // Four rows (header + three comparisons) must stay below the counter while
+  // leaving enough vertical room for LibreOffice's less compact line metrics.
+  // The former 0.9in rows let wrapped corrections bleed into the next row.
+  const rowH = plan.isMisconceptionComparison ? 0.95 : 0.72;
   const headerOptions = {
     fill: { color: theme.primary },
     color: 'FFFFFF',
@@ -2144,7 +2147,11 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
     });
 
     // Slide title — assertion-evidence style (auto-fit from 28pt down to 18pt)
-    const contentTitleText = s.title || '';
+    const authoredContentTitle = s.title || '';
+    const isPitfallsTitle = /^Common pitfalls in\s+/i.test(authoredContentTitle);
+    const contentTitleText = isPitfallsTitle
+      ? authoredContentTitle.replace(/^Common pitfalls in\s+/i, 'Pitfalls: ')
+      : authoredContentTitle;
     const contentTitleW = W - 0.7,
       contentTitleH = 0.9;
     // Canvas and LibreOffice wrap long Georgia headings differently. Apply a
@@ -2153,22 +2160,32 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
     // through the accent rule.
     const contentTitleLength = [...contentTitleText].length;
     const contentTitleMax =
-      contentTitleLength > 125
+      contentTitleLength > 110
         ? 14
-        : contentTitleLength > 100
+        : contentTitleLength > 88
           ? 16
-          : contentTitleLength > 80
+          : contentTitleLength > 68
             ? 18
-            : contentTitleLength > 60
-              ? 22
-              : 28;
+            : contentTitleLength > 48
+              ? 20
+              : contentTitleLength > 34
+                ? 22
+                : 28;
+    // LibreOffice's Georgia metrics are materially wider than the browser
+    // canvas estimate for some comparison headings (notably "Conditional
+    // branching and loops"). At 22pt the text wrapped after "Pitfalls:" and
+    // vertically centered the first line above the slide canvas. Comparison
+    // headings therefore use a conservative 18pt ceiling; the full title is
+    // still prominent and remains on one line in the exported deck.
+    const renderTitleMax =
+      nativeVisual?.isMisconceptionComparison || isPitfallsTitle ? Math.min(contentTitleMax, 18) : contentTitleMax;
     const contentTitleSize = autoFitFontSize(
       contentTitleText,
       contentTitleW,
       contentTitleH,
       FONT_HEADING,
-      contentTitleMax,
-      Math.min(14, contentTitleMax),
+      renderTitleMax,
+      Math.min(14, renderTitleMax),
       1.1,
     );
     const contentTitleResult = await maybeProcessLatex(contentTitleText, hasLatex, {

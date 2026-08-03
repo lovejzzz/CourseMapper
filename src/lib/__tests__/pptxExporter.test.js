@@ -554,6 +554,15 @@ describe('pptxExporter', () => {
                   type: 'content',
                   bullets,
                   notes: 'Correct each misconception with evidence.',
+                  visual: {
+                    kind: 'misconception comparison table',
+                    tableLead: 'Commit to a judgment before revealing the correction.',
+                    columnLabels: ['Misconception', 'Correction'],
+                    rows: [
+                      ['Observation alone is enough.', 'Combine observation with guided questioning.'],
+                      ['Think-aloud is only a transcript.', 'Connect narration to decisions and mental models.'],
+                    ],
+                  },
                 },
               ],
             },
@@ -568,6 +577,11 @@ describe('pptxExporter', () => {
       expect(xml).not.toMatch(/guided questioning[^<]*\n<\/a:t>/);
       expect(xml).not.toMatch(/decision points[^<]*\n<\/a:t>/);
       expect(xml).not.toMatch(/nuanced reasoning[^<]*\n<\/a:t>/);
+      expect(xml).toContain('<a:t>Pitfalls: contextual interviews and observation</a:t>');
+      const titleIndex = xml.indexOf('<a:t>Pitfalls: contextual interviews and observation</a:t>');
+      const titlePrefix = xml.slice(0, titleIndex);
+      const titleSize = Number(titlePrefix.slice(titlePrefix.lastIndexOf('sz="') + 4).match(/^\d+/)?.[0]);
+      expect(titleSize).toBeLessThanOrEqual(1800);
     });
   });
 });

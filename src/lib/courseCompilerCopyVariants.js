@@ -101,6 +101,12 @@ const ASSIGNMENT_BRIEF_BODY_FIELDS = [
   'description',
   'speakingPrompts',
   'instructions',
+  // These two learner-facing evidence surfaces were added after the original
+  // repetition reducer. Leaving them out let the exact lesson title reappear
+  // throughout the evidence packet and both anchor samples even though the
+  // rest of the brief had already been compacted.
+  'sourceEvidenceBrief',
+  'anchorExampleGuidance',
   'formatRequirements',
   'deliverables',
   'submissionFormat',

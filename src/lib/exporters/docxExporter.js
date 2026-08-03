@@ -493,8 +493,9 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
       rows: [headerRow, ...rows],
     });
   };
-  const makeBullet = (text) =>
+  const makeBullet = (text, { keepNext = false } = {}) =>
     new Paragraph({
+      keepNext,
       keepLines: true,
       spacing: { line: SINGLE_SP, before: 20, after: 50 },
       indent: { left: 360, hanging: 180 },
@@ -886,9 +887,21 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         if (r.instructorFacilitationNote)
           children.push(makeBold('Instructor Facilitation', r.instructorFacilitationNote));
         if (r.accessibilityAndUDL) children.push(makeBold('Accessibility & UDL', r.accessibilityAndUDL));
-        if (Array.isArray(r.anchorExamples) && r.anchorExamples.length > 0) {
+        const renderedAnchorExamples = Array.isArray(r.anchorExamples)
+          ? r.anchorExamples
+          : r.anchorExamples && typeof r.anchorExamples === 'object'
+            ? [
+                r.anchorExamples.strongSample,
+                r.anchorExamples.partialSample,
+                r.anchorExamples.scoringRationale,
+                r.anchorExamples.revisionPrompt,
+              ].filter(Boolean)
+            : [];
+        if (renderedAnchorExamples.length > 0) {
           children.push(makeSubHeading('Anchor Examples'));
-          r.anchorExamples.forEach((example) => children.push(makeBullet(example)));
+          renderedAnchorExamples.forEach((example, index) =>
+            children.push(makeBullet(example, { keepNext: index < renderedAnchorExamples.length - 1 })),
+          );
         }
         const criteria = r.criteria || [];
         if (criteria.length > 0) {
@@ -1228,6 +1241,22 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           children.push(makeSubHeading('Learning Objectives'));
           a.objectives.forEach((o) => children.push(makeBullet(o)));
         }
+        if (a.sourceEvidenceBrief?.claims?.length) {
+          children.push(makeSubHeading('Assigned Evidence Packet'));
+          a.sourceEvidenceBrief.claims.forEach((claim) => children.push(makeBullet(claim)));
+          if (a.sourceEvidenceBrief.sources?.length) {
+            children.push(makeBold('Use these retained sources', ''));
+            a.sourceEvidenceBrief.sources.forEach((source) =>
+              children.push(
+                makeBullet(
+                  [source.title, source.url, source.license ? `License: ${source.license}` : '']
+                    .filter(Boolean)
+                    .join(' — '),
+                ),
+              ),
+            );
+          }
+        }
         if (a.instructions?.length) {
           children.push(makeSubHeading('Instructions'));
           a.instructions.forEach((inst, j) => {
@@ -1274,6 +1303,12 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           children.push(makeSubHeading('Student Self-Assessment'));
           a.selfAssessmentRubric.forEach((item) => children.push(makeBullet(item)));
         }
+        if (a.anchorExampleGuidance?.length) {
+          children.push(makeSubHeading('Anchor Samples and Revision Check'));
+          a.anchorExampleGuidance.forEach((item, index) =>
+            children.push(makeBullet(item, { keepNext: index < a.anchorExampleGuidance.length - 1 })),
+          );
+        }
         if (a.feedbackLoop) children.push(makeBold('Feedback Loop', a.feedbackLoop));
         // Scaffolding milestones
         if (a.scaffoldingMilestones?.length) {
@@ -1287,9 +1322,12 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             ]
               .filter(Boolean)
               .join(' ');
-            children.push(makeBold(parts.join(' '), details));
-            if (Array.isArray(m.uploadChecklist) && m.uploadChecklist.length > 0) {
-              m.uploadChecklist.forEach((item) => children.push(makeBullet(item)));
+            const checklist = Array.isArray(m.uploadChecklist) ? m.uploadChecklist : [];
+            children.push(makeBold(parts.join(' '), details, { keepNext: checklist.length > 0 }));
+            if (checklist.length > 0) {
+              checklist.forEach((item, index) =>
+                children.push(makeBullet(item, { keepNext: index < checklist.length - 1 })),
+              );
             }
           });
         }

@@ -1183,15 +1183,15 @@ describe('D1(3)+(4) — weight-0 invariance and the report row on a real package
       Object.fromEntries(
         result.texture.visibleUnitPolicy.families.map((family) => [family.family, family.eligibleUnitCount]),
       ),
-    ).toEqual({ lessonPlans: 66, assignments: 138, rubrics: 84 });
+    ).toEqual({ lessonPlans: 66, assignments: 150, rubrics: 100 });
     expect(result.texture.score).toBe(
       Math.max(0, result.texture.baseScore - result.texture.visibleUnitPolicy.scorePenalty),
     );
 
     const textureFindings = result.findings.filter((finding) => finding.dimension === 'texture');
     expect(result.stats.byDimension.texture).toBe(textureFindings.length);
-    expect(result.texture.baseScore).toBe(97);
-    expect(result.texture.score).toBe(97);
+    expect(result.texture.baseScore).toBe(96);
+    expect(result.texture.score).toBe(96);
     expect(result.texture.visibleUnitPolicy.scorePenalty).toBe(0);
     expect(textureFindings).toEqual([]);
     const severities = { p0: 'P0', p1: 'P1', p2: 'P2' };

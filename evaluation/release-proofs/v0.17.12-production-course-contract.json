@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 2,
+  "protocol": "coursemapper-pre-export-course-contract-v2",
+  "courseName": "Applied Civic Data Analysis",
+  "promptSha256": "6ab4ade1ecb5b39685b59ebcf463d3e8dc55e26f431847c6a8c92e28247b7125",
+  "lessons": [
+    {
+      "lessonNumber": 1,
+      "title": "Lesson 1: Python data types and expressions",
+      "objectives": [
+        "Apply Python data types and expressions in one practical example and justify one evidence-based revision."
+      ],
+      "assessmentId": "A1.1",
+      "assessmentTitle": "Evidence explanation: Python data types and expressions",
+      "assessmentRequired": true
+    },
+    {
+      "lessonNumber": 2,
+      "title": "Lesson 2: Conditional branching and loops",
+      "objectives": [
+        "Apply Conditional branching and loops in one practical example and justify one evidence-based revision."
+      ],
+      "assessmentId": "A2.1",
+      "assessmentTitle": "Worked example: Conditional branching and loops",
+      "assessmentRequired": true
+    },
+    {
+      "lessonNumber": 3,
+      "title": "Lesson 3: Functions and automated tests",
+      "objectives": [
+        "Apply Functions and automated tests in one practical example and justify one evidence-based revision."
+      ],
+      "assessmentId": "A3.1",
+      "assessmentTitle": "Comparison brief: Functions and automated tests",
+      "assessmentRequired": true
+    },
+    {
+      "lessonNumber": 4,
+      "title": "Lesson 4: Pandas tabular data cleaning",
+      "objectives": [
+        "Apply Pandas tabular data cleaning in one practical example and justify one evidence-based revision."
+      ],
+      "assessmentId": "A4.1",
+      "assessmentTitle": "Application analysis: Pandas tabular data cleaning",
+      "assessmentRequired": true
+    },
+    {
+      "lessonNumber": 5,
+      "title": "Lesson 5: Reproducible visualization and uncertainty",
+      "objectives": [
+        "Apply Reproducible visualization and uncertainty in one practical example and justify one evidence-based revision."
+      ],
+      "assessmentId": "A5.1",
+      "assessmentTitle": "Evidence explanation: Reproducible visualization and uncertainty",
+      "assessmentRequired": true
+    },
+    {
+      "lessonNumber": 6,
+      "title": "Lesson 6: Integrative policy memo capstone",
+      "objectives": [
+        "Apply Integrative policy memo capstone in one practical example and justify one evidence-based revision."
+      ],
+      "assessmentId": "A6.1",
+      "assessmentTitle": "Course synthesis: Integrative policy memo capstone",
+      "assessmentRequired": true
+    }
+  ]
+}
