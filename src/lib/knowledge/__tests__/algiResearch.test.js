@@ -1626,9 +1626,48 @@ describe('open scholarly provider architecture', () => {
       researchPlan,
     });
 
-    const expected = topics.map((topic) => ({ providerId: 'wikipedia', topic, scheduled: 1, available: 3 }));
+    const expected = topics.map((topic) => ({
+      providerId: 'wikipedia',
+      topic,
+      scheduled: 1,
+      available: 3,
+      reason: 'query-budget',
+    }));
     expect(result.targetedBudgetExhausted).toEqual(expected);
     expect(result.providerStats[0].targetedBudgetExhausted).toEqual(expected);
+  });
+
+  it('reports lessons omitted by the targeted fallback slot cap', async () => {
+    const topics = ['Alpha and beta', 'Gamma and delta', 'Epsilon and zeta'];
+    const provider = {
+      id: 'wikipedia',
+      supportsDirectTitles: false,
+      searchArticles: async () => ({}),
+      search: async () => [],
+      articles: async () => ({}),
+      article: async () => null,
+      license: 'CC BY-SA 4.0',
+      attributionFor: (title) => `Wikipedia, ${title}`,
+      sourceIdFor: (title) => `wikipedia:${title}`,
+    };
+    const researchPlan = planAlgiCourseResearch({
+      courseName: 'General methods',
+      lessons: topics.map((title, index) => ({ lessonId: `lesson-${index + 1}`, title })),
+    });
+
+    const result = await researchLessonKernelSets(topics, {
+      provider,
+      providerId: 'wikipedia',
+      researchPlan,
+      maxTargetedFallbacks: 1,
+      maxTargetedSearchRequests: 1,
+    });
+
+    expect(result.targetedBudgetExhausted).toEqual([
+      { topic: 'Alpha and beta', scheduled: 1, available: 3, reason: 'query-budget' },
+      { topic: 'Gamma and delta', scheduled: 0, available: 3, reason: 'fallback-slots' },
+      { topic: 'Epsilon and zeta', scheduled: 0, available: 3, reason: 'fallback-slots' },
+    ]);
   });
 });
 
@@ -2239,9 +2278,9 @@ describe('lesson research admission', () => {
     expect(result.targetedSearches).toBe(3);
     expect(queries.slice(1)).toEqual(['(alpha OR beta)', '(gamma OR delta)', '(epsilon OR zeta)']);
     expect(result.targetedBudgetExhausted).toEqual([
-      { topic: 'Alpha and beta', scheduled: 1, available: 3 },
-      { topic: 'Gamma and delta', scheduled: 1, available: 3 },
-      { topic: 'Epsilon and zeta', scheduled: 1, available: 3 },
+      { topic: 'Alpha and beta', scheduled: 1, available: 3, reason: 'query-budget' },
+      { topic: 'Gamma and delta', scheduled: 1, available: 3, reason: 'query-budget' },
+      { topic: 'Epsilon and zeta', scheduled: 1, available: 3, reason: 'query-budget' },
     ]);
   });
 

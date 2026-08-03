@@ -2352,6 +2352,11 @@ export async function composeAlgiLessonKernels({
                 onProgress: providerProgress,
                 signal,
               });
+      const targetedBudgetExhausted = (researchBatch.targetedBudgetExhausted || []).map((entry) =>
+        entry?.providerId || !directProvider
+          ? entry
+          : { providerId: directProvider.id || 'direct', ...entry },
+      );
       const kernelsByTopic = new Map(
         allResearchTargets.map((topic) => {
           const merged = [];
@@ -2533,9 +2538,9 @@ export async function composeAlgiLessonKernels({
           researchBatch.targetedSearches === 1 ? '' : 's'
         }`;
       }
-      if (researchBatch.targetedBudgetExhausted?.length > 0) {
-        researchNote += `, ${researchBatch.targetedBudgetExhausted.length} targeted budget limit${
-          researchBatch.targetedBudgetExhausted.length === 1 ? '' : 's'
+      if (targetedBudgetExhausted.length > 0) {
+        researchNote += `, ${targetedBudgetExhausted.length} targeted budget limit${
+          targetedBudgetExhausted.length === 1 ? '' : 's'
         }`;
       }
       if (Array.isArray(researchBatch.providersUsed) && researchBatch.providersUsed.length > 0) {
@@ -2558,7 +2563,7 @@ export async function composeAlgiLessonKernels({
         },
         providers: researchBatch.providerStats || [],
         providersUsed: researchBatch.providersUsed || [],
-        targetedBudgetExhausted: researchBatch.targetedBudgetExhausted || [],
+        targetedBudgetExhausted,
         sourceRequests: Number(diagnostics?.requestCount) || 0,
         compositionDeclines: composeFailureDiagnostics,
       };

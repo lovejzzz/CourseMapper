@@ -2657,17 +2657,17 @@ export async function researchLessonKernelSets(
   // Spend a targeted search only on the small remainder, then batch those
   // articles together. This restores topic recall without returning to the
   // old search+article pair for every lesson.
-  const sparse = unresolved
+  const targetedCandidates = unresolved
     .filter((topic) => needsTargetedResearch(byTopic.get(topic) || [], topic, minimum))
     // Preserve the bounded request budget while preventing lesson order from
     // starving a later zero-source topic behind earlier partial matches.
-    .sort((left, right) => (byTopic.get(left) || []).length - (byTopic.get(right) || []).length)
-    .slice(0, Math.max(0, maxTargetedFallbacks));
+    .sort((left, right) => (byTopic.get(left) || []).length - (byTopic.get(right) || []).length);
+  const sparse = targetedCandidates.slice(0, Math.max(0, maxTargetedFallbacks));
   const targetedTitlesByTopic = new Map();
   let targetedRecords = new Map();
   let targetedSearches = 0;
   const targetedQueryQueues = new Map();
-  for (const topic of sparse) {
+  for (const topic of targetedCandidates) {
     const fallbackQuery =
       groupedResearchQueryFromPlan([topic], researchPlan, effectiveProviderId) ||
       researchQueryForTopic(topic, courseContext);
@@ -2694,7 +2694,7 @@ export async function researchLessonKernelSets(
     }
     if (scheduledInRound === 0) break;
   }
-  const targetedBudgetExhausted = sparse
+  const targetedBudgetExhausted = targetedCandidates
     .filter(
       (topic) => (scheduledQueriesByTopic.get(topic)?.length || 0) < (targetedQueryQueues.get(topic)?.length || 0),
     )
@@ -2702,6 +2702,7 @@ export async function researchLessonKernelSets(
       topic,
       scheduled: scheduledQueriesByTopic.get(topic)?.length || 0,
       available: targetedQueryQueues.get(topic)?.length || 0,
+      reason: scheduledQueriesByTopic.has(topic) ? 'query-budget' : 'fallback-slots',
     }));
   for (const topic of sparse) {
     const queries = scheduledQueriesByTopic.get(topic) || [];

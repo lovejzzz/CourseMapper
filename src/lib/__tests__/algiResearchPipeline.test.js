@@ -269,8 +269,53 @@ describe('Algi research-first course transaction', () => {
       cachedResearch: 1,
       uncovered: [],
     });
+    expect(second.researchReceipt.targetedBudgetExhausted).toEqual([]);
     expect(second.researchReceipt.cache.hits).toBe(1);
     expect(failIfCalled).not.toHaveBeenCalled();
+    resetAlgiGenomeCacheForTests();
+  });
+
+  it('labels direct-provider budget diagnostics in the transaction receipt', async () => {
+    const topics = [
+      'Xenobiotic archive and choreography',
+      'Quasar registry and braiding',
+      'Cryogenic atlas and weaving',
+      'Neutrino ledger and folding',
+      'Tectonic cipher and stitching',
+      'Phosphor index and knotting',
+      'Aerogel catalog and latticing',
+      'Isotope folio and binding',
+      'Magnetar codex and threading',
+    ];
+    const emptySearch = vi.fn(async () => ({}));
+
+    resetAlgiGenomeCacheForTests();
+    const result = await composeAlgiLessonKernels({
+      structuredPrompt: {
+        courseTitle: 'General methods',
+        lessons: topics.map((title, index) => ({
+          lessonId: `lesson-${index + 1}`,
+          title,
+          objectives: [],
+          topics: [title],
+        })),
+      },
+      researchProvider: researchProvider(emptySearch),
+      researchStorage: memoryStorage(),
+      now: Date.UTC(2026, 7, 3),
+    });
+
+    expect(result.researchReceipt.targetedBudgetExhausted).not.toHaveLength(0);
+    expect(result.researchReceipt.targetedBudgetExhausted).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          providerId: 'fixture',
+        }),
+      ]),
+    );
+    expect(
+      result.researchReceipt.targetedBudgetExhausted.every((entry) => entry.providerId === 'fixture'),
+    ).toBe(true);
     resetAlgiGenomeCacheForTests();
   });
 
