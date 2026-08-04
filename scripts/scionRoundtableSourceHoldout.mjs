@@ -85,7 +85,9 @@ async function buildHoldoutPool() {
         admissionMode: 'captured',
       });
       if (!verification.valid) throw new Error(`${projectFile} failed source-capture verification`);
-      const rawByPrompt = new Map(value.scionSourceCapture.compilerRecovery.rawCalls.map((call) => [call.promptId, call]));
+      const rawByPrompt = new Map(
+        value.scionSourceCapture.compilerRecovery.rawCalls.map((call) => [call.promptId, call]),
+      );
       for (const prompt of group.prompts) {
         let terms = [];
         try {
@@ -98,7 +100,8 @@ async function buildHoldoutPool() {
           if (!contract.eligible || !validIndexes(term, prompt.sourceClaims.length)) return;
           const referenceCorrection = correctionOf(term);
           const definition = definitionOf(term);
-          if (!referenceCorrection || !definition || referenceCorrection.toLowerCase() === definition.toLowerCase()) return;
+          if (!referenceCorrection || !definition || referenceCorrection.toLowerCase() === definition.toLowerCase())
+            return;
           const caseId = `${prompt.id}:key-term-${index}`;
           const originalTerm = { ...term, cx: definition };
           rows.push({
@@ -184,7 +187,12 @@ async function prepare() {
     developmentProjectIdsExcludedSha256: scionLessonKernelSha256(
       [...new Set(SCION_KEY_TERM_RECOVERY_FROZEN_CASES.map((caseId) => caseId.split(':')[0]))].sort(),
     ),
-    split: { cases: cases.length, domains: DOMAINS, casesPerDomain: CASES_PER_DOMAIN, sourceDisjointFromDevelopment: true },
+    split: {
+      cases: cases.length,
+      domains: DOMAINS,
+      casesPerDomain: CASES_PER_DOMAIN,
+      sourceDisjointFromDevelopment: true,
+    },
     cases: cases.map((entry, index) => ({
       caseId: entry.id,
       domain: entry.domain,
@@ -206,22 +214,31 @@ async function prepare() {
   await fs.mkdir(path.dirname(PRIVATE_REGISTRY), { recursive: true });
   await fs.writeFile(PUBLIC_PREREG, `${JSON.stringify(preregistration, null, 2)}\n`);
   await fs.writeFile(PRIVATE_REGISTRY, `${JSON.stringify(privateRegistry, null, 2)}\n`);
-  console.log(JSON.stringify({ status: 'prepared', preregistrationSha256: preregistration.identity.sha256, cases: cases.length }, null, 2));
+  console.log(
+    JSON.stringify(
+      { status: 'prepared', preregistrationSha256: preregistration.identity.sha256, cases: cases.length },
+      null,
+      2,
+    ),
+  );
 }
 
 function paired(control, teacher) {
   return {
     gains: control.filter((entry, index) => !entry.assessment.eligible && teacher[index].assessment.eligible).length,
     losses: control.filter((entry, index) => entry.assessment.eligible && !teacher[index].assessment.eligible).length,
-    tiesAdmitted: control.filter((entry, index) => entry.assessment.eligible && teacher[index].assessment.eligible).length,
-    tiesRejected: control.filter((entry, index) => !entry.assessment.eligible && !teacher[index].assessment.eligible).length,
+    tiesAdmitted: control.filter((entry, index) => entry.assessment.eligible && teacher[index].assessment.eligible)
+      .length,
+    tiesRejected: control.filter((entry, index) => !entry.assessment.eligible && !teacher[index].assessment.eligible)
+      .length,
   };
 }
 
 async function run() {
   const preregistration = JSON.parse(await fs.readFile(PUBLIC_PREREG, 'utf8'));
   const privateRegistry = JSON.parse(await fs.readFile(PRIVATE_REGISTRY, 'utf8'));
-  if (!identityValid(preregistration) || !identityValid(privateRegistry)) throw new Error('Holdout preregistration identity is invalid');
+  if (!identityValid(preregistration) || !identityValid(privateRegistry))
+    throw new Error('Holdout preregistration identity is invalid');
   const pool = new Map((await buildHoldoutPool()).map((entry) => [entry.id, entry]));
   const privateByCase = new Map(privateRegistry.cases.map((entry) => [entry.caseId, entry]));
   const cases = preregistration.cases.map((commitment) => {
@@ -242,7 +259,11 @@ async function run() {
     return { entry, commitment };
   });
   const health = await fetch(`${ENDPOINT}/health`).then((response) => response.json());
-  if (health.modelReady !== true || health.modelId !== 'scion-1' || health.sourceModelId !== SCION_KEY_TERM_RECOVERY_LOCAL_MODEL.id) {
+  if (
+    health.modelReady !== true ||
+    health.modelId !== 'scion-1' ||
+    health.sourceModelId !== SCION_KEY_TERM_RECOVERY_LOCAL_MODEL.id
+  ) {
     throw new Error('The authenticated local Scion runtime is not ready');
   }
   const rows = [];
@@ -273,7 +294,9 @@ async function run() {
   const calls = rows.flatMap((row) => [...row.matchedControl.attempts, ...row.teacher.attempts]);
   const receiptPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   if (
-    calls.some((call) => call.responseModel !== health.modelId || !receiptPattern.test(call.serverRequestReceipt || '')) ||
+    calls.some(
+      (call) => call.responseModel !== health.modelId || !receiptPattern.test(call.serverRequestReceipt || ''),
+    ) ||
     new Set(calls.map((call) => call.serverRequestReceipt)).size !== calls.length
   ) {
     throw new Error('Holdout provider receipt verification failed');
@@ -281,7 +304,9 @@ async function run() {
   const control = rows.map((row) => row.matchedControl);
   const teacher = rows.map((row) => row.teacher);
   const pairedResult = paired(control, teacher);
-  const safeAdmitted = rows.filter((row) => row.matchedControl.assessment.eligible || row.teacher.assessment.eligible).length;
+  const safeAdmitted = rows.filter(
+    (row) => row.matchedControl.assessment.eligible || row.teacher.assessment.eligible,
+  ).length;
   const summary = {
     cases: rows.length,
     domains: DOMAINS,
@@ -343,7 +368,18 @@ async function run() {
   };
   report.identity = identityFor(report);
   await fs.writeFile(REPORT, `${JSON.stringify(report, null, 2)}\n`);
-  console.log(JSON.stringify({ status: report.status, preregistrationSha256: report.preregistrationSha256, summary, blockers: report.promotion.issues }, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        status: report.status,
+        preregistrationSha256: report.preregistrationSha256,
+        summary,
+        blockers: report.promotion.issues,
+      },
+      null,
+      2,
+    ),
+  );
 }
 
 const mode = process.argv[2];

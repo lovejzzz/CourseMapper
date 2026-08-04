@@ -1,7 +1,4 @@
-import {
-  scionLessonKernelSha256,
-  stableScionLessonKernelJson,
-} from './scionLessonKernelCampaign.mjs';
+import { scionLessonKernelSha256, stableScionLessonKernelJson } from './scionLessonKernelCampaign.mjs';
 
 export const SCION_ROUNDTABLE_QUESTION_PROTOCOL = 'scion-roundtable-student-question-v2';
 export const SCION_ROUNDTABLE_TEACHING_PROTOCOL = 'scion-roundtable-teaching-candidate-v1';
@@ -77,7 +74,9 @@ function withoutIdentity(value = {}) {
 }
 
 function clean(value) {
-  return String(value ?? '').replace(/\s+/g, ' ').trim();
+  return String(value ?? '')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 function issueFamily(value) {
@@ -135,7 +134,9 @@ function terminalIssueState(attempts = []) {
   );
   return {
     finalIssueCodes,
-    trajectory: [...trajectory.values()].sort((a, b) => a.firstAttempt - b.firstAttempt || a.issueCode.localeCompare(b.issueCode)),
+    trajectory: [...trajectory.values()].sort(
+      (a, b) => a.firstAttempt - b.firstAttempt || a.issueCode.localeCompare(b.issueCode),
+    ),
     unknownFinalIssueCodesCount: finalIssues.filter((rawIssue) => !issueFamily(rawIssue)).length,
   };
 }
@@ -245,8 +246,9 @@ export function validateScionRoundtableStudentQuestion(question = {}) {
     issues.push('issue-families');
   }
   if (
-    Object.keys(question.evidence || {}).sort().join(',') !==
-    'finalIssueCodes,sourceBindingDigest,terminalReason,trajectory,unknownFinalIssueCodesCount'
+    Object.keys(question.evidence || {})
+      .sort()
+      .join(',') !== 'finalIssueCodes,sourceBindingDigest,terminalReason,trajectory,unknownFinalIssueCodesCount'
   ) {
     issues.push('non-allowlisted-evidence');
   }
@@ -271,7 +273,8 @@ export function validateScionRoundtableStudentQuestion(question = {}) {
   if (unique(alternatives).length < 2) issues.push('bounded-alternatives');
   if (!clean(question.decision?.request).endsWith('?')) issues.push('explicit-question');
   if (!Array.isArray(question.successCriteria) || question.successCriteria.length < 4) issues.push('success-criteria');
-  if (!Array.isArray(question.forbiddenContext) || question.forbiddenContext.length < 4) issues.push('forbidden-context');
+  if (!Array.isArray(question.forbiddenContext) || question.forbiddenContext.length < 4)
+    issues.push('forbidden-context');
   for (const path of forbiddenKeys(question)) issues.push(`forbidden-key:${path}`);
   if (question.identity?.sha256 !== scionLessonKernelSha256(withoutIdentity(question))) issues.push('identity');
   return { valid: issues.length === 0, issues: unique(issues) };
@@ -304,7 +307,10 @@ export function validateScionRoundtableTeachingCandidate(candidate = {}, questio
   if (candidate.trainingEligible !== false) issues.push('training-eligible');
   if (candidate.questionSha256 !== question.identity?.sha256) issues.push('question-sha256');
   if (!SHA256_RE.test(clean(candidate.teacherPanelRef))) issues.push('teacher-panel-ref');
-  if (!Number.isInteger(candidate.teacherAttestation?.participantCount) || candidate.teacherAttestation.participantCount < 2) {
+  if (
+    !Number.isInteger(candidate.teacherAttestation?.participantCount) ||
+    candidate.teacherAttestation.participantCount < 2
+  ) {
     issues.push('teacher-participants');
   }
   if (candidate.teacherPanel !== undefined) issues.push('embedded-teacher-panel');

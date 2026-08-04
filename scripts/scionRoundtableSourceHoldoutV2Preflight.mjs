@@ -11,16 +11,14 @@ import {
 } from './lib/scionKeyTermRecovery.mjs';
 import { scionLessonKernelSha256 } from './lib/scionLessonKernelCampaign.mjs';
 import { materializeSourceCaptureCampaign, parseSourceAtomResponse } from './lib/scionSourceCapture.mjs';
-import {
-  assessScionTruthGate,
-  decideScionTruthGatePreflight,
-} from './lib/scionTruthGate.mjs';
+import { assessScionTruthGate, decideScionTruthGatePreflight } from './lib/scionTruthGate.mjs';
 
 const PRIOR_PREREG = 'evaluation/scion-adapters/evidence/scion-roundtable-source-holdout-prereg-v0.17.12.json';
 const PRIOR_RESULT = 'evaluation/scion-adapters/evidence/scion-roundtable-source-holdout-v0.17.12.json';
 const OUTPUT = 'evaluation/scion-adapters/evidence/scion-roundtable-source-holdout-v2-preflight-v0.17.13.json';
 const FULL_SEED_PACKET = 'evaluation/scion-adapters/evidence/scion-truth-gate-full-holdout-packet-v0.17.13.json';
-const FULL_REVIEW_BUNDLE = 'evaluation/scion-adapters/evidence/scion-truth-gate-full-holdout-review-bundle-v0.17.13.json';
+const FULL_REVIEW_BUNDLE =
+  'evaluation/scion-adapters/evidence/scion-truth-gate-full-holdout-review-bundle-v0.17.13.json';
 const REQUIRED_DOMAINS = ['computer-science', 'geology', 'music-theory'];
 const REQUIRED_PER_DOMAIN = 4;
 const execFile = promisify(execFileCallback);
@@ -38,7 +36,12 @@ async function main() {
   const priorPrompts = new Set(prior.cases.map((entry) => entry.caseId.replace(/:key-term-\d+$/, '')));
   const priorProjects = new Set(prior.cases.map((entry) => entry.caseId.split(':')[0]));
   const normalizedSourceHash = (value) =>
-    scionLessonKernelSha256(String(value || '').toLowerCase().replace(/\s+/g, ' ').trim());
+    scionLessonKernelSha256(
+      String(value || '')
+        .toLowerCase()
+        .replace(/\s+/g, ' ')
+        .trim(),
+    );
   const priorSourceContentHashes = new Set(
     priorResult.rows.flatMap((row) =>
       row.postRunReview.numberedSourceClaims.map((claim) => normalizedSourceHash(claim.text)),
@@ -55,7 +58,9 @@ async function main() {
       if (developmentProjects.has(group.id) || priorProjects.has(group.id)) continue;
       const file = path.posix.join(config.evidenceDir, `${group.id}-local.json`);
       const value = JSON.parse(await fs.readFile(file, 'utf8'));
-      const rawByPrompt = new Map(value.scionSourceCapture.compilerRecovery.rawCalls.map((call) => [call.promptId, call]));
+      const rawByPrompt = new Map(
+        value.scionSourceCapture.compilerRecovery.rawCalls.map((call) => [call.promptId, call]),
+      );
       for (const prompt of group.prompts) {
         if (priorPrompts.has(prompt.id)) continue;
         if (prompt.sourceClaims.some((claim) => priorSourceContentHashes.has(normalizedSourceHash(claim)))) continue;
@@ -113,7 +118,8 @@ async function main() {
     fullSeedPacket.trainingEligible === false &&
     fullSeedPacket.trustedReviewAuthorityFingerprints?.length === 1 &&
     ['sourceIds', 'sourceUrls', 'sourceEvidenceHashes', 'sourcePacketSha256s'].every((key) =>
-      Array.isArray(priorSourceExclusions[key])) &&
+      Array.isArray(priorSourceExclusions[key]),
+    ) &&
     fullSeedPacket.identity?.algorithm === 'sha256-canonical-json' &&
     fullSeedPacket.identity?.sha256 === scionLessonKernelSha256(fullSeedPacketCopy);
   const fullReviewBundleCopy = structuredClone(fullReviewBundle);
@@ -137,14 +143,8 @@ async function main() {
     fullReviewBundle.identity?.sha256 === scionLessonKernelSha256(fullReviewBundleCopy);
   const receiptAssessment = assessScionTruthGate({
     seeds: fullSeedPacketValid ? fullSeedPacket.seeds || [] : [],
-    receipts:
-      fullSeedPacketValid && fullReviewBundleValid
-        ? fullReviewBundle.receipts || []
-        : [],
-    reviewAuthorities:
-      fullSeedPacketValid && fullReviewBundleValid
-        ? fullReviewBundle.reviewAuthorities || []
-        : [],
+    receipts: fullSeedPacketValid && fullReviewBundleValid ? fullReviewBundle.receipts || [] : [],
+    reviewAuthorities: fullSeedPacketValid && fullReviewBundleValid ? fullReviewBundle.reviewAuthorities || [] : [],
     trustedReviewAuthorityFingerprints: fullSeedPacketValid
       ? fullSeedPacket.trustedReviewAuthorityFingerprints || []
       : [],
@@ -206,22 +206,29 @@ async function main() {
       })),
     },
     receiptAdmission: receiptAssessment,
-    nextAction: receiptAssessment.seedAssessments.length === 0
-      ? 'Prepare twelve new source-disjoint Truth Gate seeds, then obtain two bound independent reviews per seed.'
-      : 'Resolve every Truth Gate quarantine; counts alone cannot unlock preregistration.',
+    nextAction:
+      receiptAssessment.seedAssessments.length === 0
+        ? 'Prepare twelve new source-disjoint Truth Gate seeds, then obtain two bound independent reviews per seed.'
+        : 'Resolve every Truth Gate quarantine; counts alone cannot unlock preregistration.',
     claimBoundary:
       'This preflight can become ready only through executable source, semantic, and independent-review admission. It performs no model inference and creates no model-quality claim.',
   };
   preflight.identity = { algorithm: 'sha256-canonical-json', sha256: scionLessonKernelSha256(preflight) };
   await fs.writeFile(OUTPUT, `${JSON.stringify(preflight, null, 2)}\n`);
-  console.log(JSON.stringify({
-    status: preflight.status,
-    discoveryAvailableByDomain: availableByDomain,
-    discoveryDeficits: deficits,
-    receiptAdmittedByDomain: receiptAssessment.availableByDomain,
-    receiptGateValid: decision.receiptGateValid,
-    nextAction: preflight.nextAction,
-  }, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        status: preflight.status,
+        discoveryAvailableByDomain: availableByDomain,
+        discoveryDeficits: deficits,
+        receiptAdmittedByDomain: receiptAssessment.availableByDomain,
+        receiptGateValid: decision.receiptGateValid,
+        nextAction: preflight.nextAction,
+      },
+      null,
+      2,
+    ),
+  );
 }
 
 main().catch((error) => {

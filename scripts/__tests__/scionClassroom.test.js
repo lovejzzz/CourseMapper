@@ -41,7 +41,8 @@ describe('Scion classroom', () => {
   it('rejects fabricated or provenance-mismatched learning before creating a policy card', async () => {
     const teacher = await runScionRoundtableTeacherAudit();
     const fabricated = structuredClone(teacher.learning);
-    fabricated.recommendedPolicy.selectionRule = 'Use an arbitrary replacement policy without its bound teacher candidate.';
+    fabricated.recommendedPolicy.selectionRule =
+      'Use an arbitrary replacement policy without its bound teacher candidate.';
     const copy = structuredClone(fabricated);
     delete copy.identity;
     fabricated.identity.sha256 = scionLessonKernelSha256(copy);
@@ -125,7 +126,9 @@ describe('Scion classroom', () => {
 
   it('rejects source overlap between practice and sealed-transfer splits', async () => {
     const result = await runScionClassroomAudit();
-    const keyByCase = new Map([...result.answerKey.cases, ...result.sealedAnswerKey.cases].map((entry) => [entry.caseId, entry]));
+    const keyByCase = new Map(
+      [...result.answerKey.cases, ...result.sealedAnswerKey.cases].map((entry) => [entry.caseId, entry]),
+    );
     const cases = [...result.packet.cases, ...result.sealedPacket.cases].map((entry) => ({
       ...entry,
       expectedDecision: keyByCase.get(entry.caseId).expectedDecision,
@@ -158,9 +161,9 @@ describe('Scion classroom', () => {
     const copy = structuredClone(attempt);
     delete copy.identity;
     attempt.identity.sha256 = scionLessonKernelSha256(copy);
-    expect(scoreScionClassroomAttempt({ packet: result.packet, answerKey: result.answerKey, attempt }).issues).toContain(
-      'attempt-policy-card-mismatch',
-    );
+    expect(
+      scoreScionClassroomAttempt({ packet: result.packet, answerKey: result.answerKey, attempt }).issues,
+    ).toContain('attempt-policy-card-mismatch');
   });
 
   it('fails the sealed safety gate when Scion acts instead of abstaining on one negative case', async () => {

@@ -50,7 +50,8 @@ function buildPilotSeeds() {
         retrievedAt: CREATED_AT,
         sourceEvidence: {
           locator: 'Boolean operations, paragraph describing x and y',
-          capturedText: 'The expression x and y first evaluates x; if x is false, its value is returned; otherwise, y is evaluated.',
+          capturedText:
+            'The expression x and y first evaluates x; if x is false, its value is returned; otherwise, y is evaluated.',
         },
         claims: [
           "Short-circuit evaluation for Python's and operator evaluates the left operand first; if it is false, that operand is returned without evaluating the right operand, otherwise the right operand is evaluated and returned.",
@@ -78,11 +79,13 @@ function buildPilotSeeds() {
           captures: [
             {
               locator: 'Glossary entry: hashable, opening definition',
-              capturedText: 'An object is hashable if it has a hash value which never changes during its lifetime (it needs a __hash__() method), and can be compared to other objects (it needs an __eq__() method).',
+              capturedText:
+                'An object is hashable if it has a hash value which never changes during its lifetime (it needs a __hash__() method), and can be compared to other objects (it needs an __eq__() method).',
             },
             {
               locator: 'Glossary entry: hashable, container examples',
-              capturedText: 'Mutable containers such as lists or dictionaries are not hashable; tuples and frozensets are only hashable if their elements are hashable.',
+              capturedText:
+                'Mutable containers such as lists or dictionaries are not hashable; tuples and frozensets are only hashable if their elements are hashable.',
             },
           ],
         },
@@ -112,11 +115,13 @@ function buildPilotSeeds() {
           captures: [
             {
               locator: 'How can scientists tell where the earthquake happened?, wave-speed paragraph',
-              capturedText: 'P waves are also faster than S waves, and this fact is what allows us to tell where an earthquake was.',
+              capturedText:
+                'P waves are also faster than S waves, and this fact is what allows us to tell where an earthquake was.',
             },
             {
               locator: 'How can scientists tell where the earthquake happened?, arrival-gap paragraph',
-              capturedText: 'If you are close to the earthquake, the P and S wave will come one right after the other, but if you are far away, there will be more time between the two.',
+              capturedText:
+                'If you are close to the earthquake, the P and S wave will come one right after the other, but if you are far away, there will be more time between the two.',
             },
           ],
         },
@@ -146,11 +151,13 @@ function buildPilotSeeds() {
           captures: [
             {
               locator: 'Intrusive Igneous Rocks',
-              capturedText: 'Slow cooling means the individual mineral grains have a very long time to grow, so they grow to a relatively large size.',
+              capturedText:
+                'Slow cooling means the individual mineral grains have a very long time to grow, so they grow to a relatively large size.',
             },
             {
               locator: 'Extrusive Igneous Rocks',
-              capturedText: "Quick cooling means that mineral crystals don't have much time to grow, so these rocks have a very fine-grained or even glassy texture.",
+              capturedText:
+                "Quick cooling means that mineral crystals don't have much time to grow, so these rocks have a very fine-grained or even glassy texture.",
             },
           ],
         },
@@ -178,7 +185,8 @@ function buildPilotSeeds() {
         retrievedAt: CREATED_AT,
         sourceEvidence: {
           locator: 'The major scale',
-          capturedText: 'A major scale consists of seven whole and half steps in the following succession: W-W-H-W-W-W-H.',
+          capturedText:
+            'A major scale consists of seven whole and half steps in the following succession: W-W-H-W-W-W-H.',
         },
         claims: [
           'A major scale uses the ordered step pattern whole, whole, half, whole, whole, whole, half from tonic to the octave.',
@@ -204,11 +212,10 @@ function buildPilotSeeds() {
         retrievedAt: CREATED_AT,
         sourceEvidence: {
           locator: 'Deceptive motion',
-          capturedText: 'Deceptive motion most commonly occurs when V moves to vi rather than I, with the bass moving sol-la.',
+          capturedText:
+            'Deceptive motion most commonly occurs when V moves to vi rather than I, with the bass moving sol-la.',
         },
-        claims: [
-          'Deceptive motion most commonly occurs when dominant V moves to vi rather than I.',
-        ],
+        claims: ['Deceptive motion most commonly occurs when dominant V moves to vi rather than I.'],
       },
       term: {
         tr: 'Deceptive dominant motion',
@@ -249,7 +256,8 @@ async function main() {
       seeds: buildPilotSeeds(),
       productionEligible: false,
       trainingEligible: false,
-      claimBoundary: 'This packet exists to test semantic admission. It contains no model outcome and cannot prove Scion quality.',
+      claimBoundary:
+        'This packet exists to test semantic admission. It contains no model outcome and cannot prove Scion quality.',
     };
     packet.identity = identityFor(packet);
     await fs.writeFile(PACKET, `${JSON.stringify(packet, null, 2)}\n`);
@@ -337,13 +345,19 @@ async function main() {
   }
   result.identity = identityFor(result);
   await fs.writeFile(OUTPUT, `${JSON.stringify(result, null, 2)}\n`);
-  console.log(JSON.stringify({
-    status: result.status,
-    gateEligible: result.gateEligible,
-    availableByDomain: result.availableByDomain,
-    receiptCount: result.reviewBundle.receiptCount,
-    issueCount: result.issues.length,
-  }, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        status: result.status,
+        gateEligible: result.gateEligible,
+        availableByDomain: result.availableByDomain,
+        receiptCount: result.reviewBundle.receiptCount,
+        issueCount: result.issues.length,
+      },
+      null,
+      2,
+    ),
+  );
 }
 
 main().catch((error) => {

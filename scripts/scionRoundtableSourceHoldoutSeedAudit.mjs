@@ -58,9 +58,8 @@ async function main() {
       sourceStrictMatchedControlOutputs: rows.filter((row) => row.matchedControl.eligible).length,
       sourceStrictTeacherOutputs: rows.filter((row) => row.teacher.eligible).length,
       strictSelectorEmittedOutputs: rows.filter((row) => row.emittedSelection.status === 'selected').length,
-      strictSelectorControlRetentions: rows.filter(
-        (row) => row.emittedSelection.selectedArm === 'matched-control',
-      ).length,
+      strictSelectorControlRetentions: rows.filter((row) => row.emittedSelection.selectedArm === 'matched-control')
+        .length,
       strictSelectorTeacherRescues: rows.filter((row) => row.emittedSelection.selectedArm === 'teacher-rescue').length,
       strictSelectorQuarantines: rows.filter((row) => row.emittedSelection.selectedArm === 'quarantine').length,
     },
@@ -80,7 +79,9 @@ async function main() {
   };
   audit.identity = { algorithm: 'sha256-canonical-json', sha256: scionLessonKernelSha256(audit) };
   await fs.writeFile(OUTPUT, `${JSON.stringify(audit, null, 2)}\n`);
-  console.log(JSON.stringify({ status: audit.status, summary: audit.summary, blockers: audit.promotion.issues }, null, 2));
+  console.log(
+    JSON.stringify({ status: audit.status, summary: audit.summary, blockers: audit.promotion.issues }, null, 2),
+  );
 }
 
 main().catch((error) => {

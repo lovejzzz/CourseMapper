@@ -63,13 +63,17 @@ function teacherCandidate(question) {
       selectedActions: ['narrow-stem-to-one-claim', 'replace-overlapping-distractor'],
       selectionRule:
         'First narrow the stem to one cited claim; replace a distractor only when overlap still prevents a unique supported option.',
-      stopCondition: 'Stop and drop the item when deterministic replay still finds more than one source-supported option.',
+      stopCondition:
+        'Stop and drop the item when deterministic replay still finds more than one source-supported option.',
       evidenceRequired: ['issue-family delta', 'source-ledger violation delta'],
       forbiddenInferences: ['teacher agreement proves correctness', 'one course proves generality'],
     },
     attestations: { policyOnly: true, noExternalCourseFacts: true, noTrainingAuthorization: true },
   };
-  candidate.identity = { algorithm: 'sha256-canonical-json', sha256: scionLessonKernelSha256(withoutIdentity(candidate)) };
+  candidate.identity = {
+    algorithm: 'sha256-canonical-json',
+    sha256: scionLessonKernelSha256(withoutIdentity(candidate)),
+  };
   return candidate;
 }
 
@@ -105,8 +109,18 @@ describe('Scion Roundtable teacher protocol', () => {
     expect(question.evidence.sourceBindingDigest).not.toBe(HASH_B);
     expect(question.evidence.trajectory).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ issueCode: 'explanation-key-conflict', firstAttempt: 1, lastAttempt: 1, attemptsSeen: 1 }),
-        expect.objectContaining({ issueCode: 'multiple-source-supported-options', firstAttempt: 2, lastAttempt: 3, attemptsSeen: 2 }),
+        expect.objectContaining({
+          issueCode: 'explanation-key-conflict',
+          firstAttempt: 1,
+          lastAttempt: 1,
+          attemptsSeen: 1,
+        }),
+        expect.objectContaining({
+          issueCode: 'multiple-source-supported-options',
+          firstAttempt: 2,
+          lastAttempt: 3,
+          attemptsSeen: 2,
+        }),
       ]),
     );
     expect(question).toMatchObject({ evidenceStatus: 'diagnostic-only', trainingEligible: false });

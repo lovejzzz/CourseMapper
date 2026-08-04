@@ -4,10 +4,7 @@ import { execFile as execFileCallback } from 'node:child_process';
 import { promisify } from 'node:util';
 
 import { scionLessonKernelSha256 } from './lib/scionLessonKernelCampaign.mjs';
-import {
-  buildScionTruthGateReviewAuthority,
-  buildScionTruthGateReviewReceipt,
-} from './lib/scionTruthGate.mjs';
+import { buildScionTruthGateReviewAuthority, buildScionTruthGateReviewReceipt } from './lib/scionTruthGate.mjs';
 
 const PACKET = 'evaluation/scion-adapters/evidence/scion-truth-gate-pilot-packet-v0.17.13.json';
 const OUTPUT = 'evaluation/scion-adapters/evidence/scion-truth-gate-pilot-review-bundle-v0.17.13.json';
@@ -61,20 +58,21 @@ async function main() {
   if (snapshot.id !== sessionId || snapshot.phase !== 'complete') {
     throw new Error('Roundtable review session is not complete or has the wrong identity');
   }
-  const candidates = (snapshot.messages || []).filter((message) =>
-    message.stage === 'sealed' &&
-    message.round === 1 &&
-    ['codex', 'claude', 'antigravity'].includes(message.role),
+  const candidates = (snapshot.messages || []).filter(
+    (message) =>
+      message.stage === 'sealed' && message.round === 1 && ['codex', 'claude', 'antigravity'].includes(message.role),
   );
   const reviewAuthorities = [];
   const rejectedMessages = [];
   for (const message of candidates) {
     try {
-      reviewAuthorities.push(buildScionTruthGateReviewAuthority({
-        message,
-        expectedSeedSha256s,
-        trustedBridgePublicKeyFingerprints,
-      }));
+      reviewAuthorities.push(
+        buildScionTruthGateReviewAuthority({
+          message,
+          expectedSeedSha256s,
+          trustedBridgePublicKeyFingerprints,
+        }),
+      );
     } catch (error) {
       rejectedMessages.push({ role: message.role, reason: error.message });
     }
@@ -88,7 +86,9 @@ async function main() {
     distinctSessions.size < 2 ||
     distinctRawReviews.size < 2
   ) {
-    throw new Error(`Need two distinct signed sealed reviews; accepted ${reviewAuthorities.length}, rejected ${JSON.stringify(rejectedMessages)}`);
+    throw new Error(
+      `Need two distinct signed sealed reviews; accepted ${reviewAuthorities.length}, rejected ${JSON.stringify(rejectedMessages)}`,
+    );
   }
   const receipts = packet.seeds.flatMap((seed) =>
     reviewAuthorities.map((reviewAuthority) => buildScionTruthGateReviewReceipt({ seed, reviewAuthority })),
@@ -110,13 +110,19 @@ async function main() {
   };
   bundle.identity = identityFor(bundle);
   await fs.writeFile(OUTPUT, `${JSON.stringify(bundle, null, 2)}\n`);
-  console.log(JSON.stringify({
-    sessionId,
-    authorityCount: reviewAuthorities.length,
-    receiptCount: receipts.length,
-    rejectedMessages,
-    output: OUTPUT,
-  }, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        sessionId,
+        authorityCount: reviewAuthorities.length,
+        receiptCount: receipts.length,
+        rejectedMessages,
+        output: OUTPUT,
+      },
+      null,
+      2,
+    ),
+  );
 }
 
 main().catch((error) => {

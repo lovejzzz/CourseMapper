@@ -101,11 +101,13 @@ const repositoryBudgets = {
   // than multiplying scripts for every profile.
   // V0.17.01 adds one report-only entry point for the untuned course panel.
   // It reuses the cross-package audit implementation rather than introducing
-  // another runner.
-  npmScripts: 387,
-  // v0.17.11 shipped 297 tracked release-ledger files (contracts plus the
-  // directory README); v0.17.12 may add exactly one current-release contract.
-  releaseContractFiles: 297,
+  // another runner. V0.17.13 freezes 14 bounded Scion learning and Truth Gate
+  // reproduction commands. They share the same classroom, teacher, holdout,
+  // and gate implementations rather than multiplying product runtime paths.
+  npmScripts: 401,
+  // v0.17.12 shipped 298 tracked release-ledger files (contracts plus the
+  // directory README); v0.17.13 may add exactly one current-release contract.
+  releaseContractFiles: 298,
   trackedWeightFiles: 62,
   trackedWeightBytes: 1_053_339_981,
   largeBinaryBytes: 1024 * 1024,

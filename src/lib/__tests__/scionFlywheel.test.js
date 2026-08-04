@@ -1,10 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { assessScionFlywheelEvent } from '../scionFlywheel';
-import {
-  SCION_PREFERENCE_GATE_VERSION,
-  deriveDeterministicContractEvidence,
-} from '../scionPreferenceGate';
+import { SCION_PREFERENCE_GATE_VERSION, deriveDeterministicContractEvidence } from '../scionPreferenceGate';
 
 function goodItem(overrides = {}) {
   return {

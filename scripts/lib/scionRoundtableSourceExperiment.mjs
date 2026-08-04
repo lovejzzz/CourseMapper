@@ -1,9 +1,7 @@
 export const SCION_SOURCE_TEACHER_MAX_ATTEMPTS = 3;
 
 export function withholdRejectedCorrection(term = {}) {
-  return Object.fromEntries(
-    Object.entries(term).filter(([field]) => field !== 'cx' && field !== 'correction'),
-  );
+  return Object.fromEntries(Object.entries(term).filter(([field]) => field !== 'cx' && field !== 'correction'));
 }
 
 export function shouldContinueSourceTeacherDrafting(assessment = {}) {
@@ -91,7 +89,10 @@ export function summarizeSourceTeacherRows(rows = []) {
       const domainRows = rows.filter((row) => row.domain === domain);
       const baseline = domainRows.filter((row) => row.baseline.assessment.eligible).length;
       const advised = domainRows.filter((row) => row.advised.assessment.eligible).length;
-      return [domain, { cases: domainRows.length, baselineAdmitted: baseline, advisedAdmitted: advised, delta: advised - baseline }];
+      return [
+        domain,
+        { cases: domainRows.length, baselineAdmitted: baseline, advisedAdmitted: advised, delta: advised - baseline },
+      ];
     }),
   );
   const matchedByDomain = rows.every((row) => row.matchedControl)
@@ -100,7 +101,15 @@ export function summarizeSourceTeacherRows(rows = []) {
           const domainRows = rows.filter((row) => row.domain === domain);
           const control = domainRows.filter((row) => row.matchedControl.assessment.eligible).length;
           const teacher = domainRows.filter((row) => row.advised.assessment.eligible).length;
-          return [domain, { cases: domainRows.length, matchedControlAdmitted: control, teacherAdmitted: teacher, delta: teacher - control }];
+          return [
+            domain,
+            {
+              cases: domainRows.length,
+              matchedControlAdmitted: control,
+              teacherAdmitted: teacher,
+              delta: teacher - control,
+            },
+          ];
         }),
       )
     : null;
@@ -141,7 +150,8 @@ export function summarizeSourceTeacherRows(rows = []) {
       : null,
     safeLearnerRetention: rows.every((row) => row.matchedControl)
       ? {
-          admitted: rows.filter((row) => row.advised.assessment.eligible || row.matchedControl.assessment.eligible).length,
+          admitted: rows.filter((row) => row.advised.assessment.eligible || row.matchedControl.assessment.eligible)
+            .length,
           teacherRescues: rows.filter(
             (row) => !row.matchedControl.assessment.eligible && row.advised.assessment.eligible,
           ).length,

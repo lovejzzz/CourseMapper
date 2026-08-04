@@ -17,12 +17,18 @@ const REVIEWED_AT = '2026-08-04T18:30:00.000Z';
 const ASSESSED_AT = '2026-08-04T19:00:00.000Z';
 const DOMAINS = ['computer-science', 'geology', 'music-theory'];
 const FACTS = {
-  'computer-science-1': 'A stable sorting algorithm preserves the original relative order of records whose comparison keys are equal.',
-  'computer-science-2': 'A cache hit returns a previously stored result for the same lookup key without recomputing the original operation.',
-  'geology-1': 'Cross-cutting relationships show that a geologic feature cutting another rock body formed after the body it cuts.',
-  'geology-2': 'Rounded sediment grains have experienced abrasion during transport that removed sharp corners from the particles.',
-  'music-theory-1': 'A perfect authentic cadence places dominant before tonic with both chords in root position and soprano ending on tonic.',
-  'music-theory-2': 'Melodic sequence repeats a musical pattern at successively higher or lower pitch levels while preserving its recognizable shape.',
+  'computer-science-1':
+    'A stable sorting algorithm preserves the original relative order of records whose comparison keys are equal.',
+  'computer-science-2':
+    'A cache hit returns a previously stored result for the same lookup key without recomputing the original operation.',
+  'geology-1':
+    'Cross-cutting relationships show that a geologic feature cutting another rock body formed after the body it cuts.',
+  'geology-2':
+    'Rounded sediment grains have experienced abrasion during transport that removed sharp corners from the particles.',
+  'music-theory-1':
+    'A perfect authentic cadence places dominant before tonic with both chords in root position and soprano ending on tonic.',
+  'music-theory-2':
+    'Melodic sequence repeats a musical pattern at successively higher or lower pitch levels while preserving its recognizable shape.',
 };
 const TERM_NAMES = {
   'computer-science-1': 'Stable sorting algorithm',
@@ -151,7 +157,9 @@ function validPilot(authorityOverrides = {}) {
     seeds,
     receipts,
     reviewAuthorities,
-    trustedReviewAuthorityFingerprints: reviewAuthorities.map((authority) => authority.bridgePublicKeyFingerprintSha256),
+    trustedReviewAuthorityFingerprints: reviewAuthorities.map(
+      (authority) => authority.bridgePublicKeyFingerprintSha256,
+    ),
   };
 }
 
@@ -193,11 +201,13 @@ describe('Scion Truth Gate', () => {
     pilot.receipts = pilot.receipts.filter((receipt) => receipt.seedSha256 !== seed.identity.sha256);
     pilot.receipts.push(duplicate, structuredClone(duplicate));
     const result = assessScionTruthGate({ ...pilot, assessedAt: ASSESSED_AT, requiredCasesPerDomain: 2 });
-    expect(result.issues).toEqual(expect.arrayContaining([
-      expect.stringContaining('duplicate-reviewer'),
-      expect.stringContaining('duplicate-review-session'),
-      expect.stringContaining('duplicate-raw-review-evidence'),
-    ]));
+    expect(result.issues).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('duplicate-reviewer'),
+        expect.stringContaining('duplicate-review-session'),
+        expect.stringContaining('duplicate-raw-review-evidence'),
+      ]),
+    );
   });
 
   it('derives a negative verdict from the signed review and fails closed', () => {
@@ -208,9 +218,12 @@ describe('Scion Truth Gate', () => {
     const result = assessScionTruthGate({
       seeds,
       reviewAuthorities: [first, second],
-      trustedReviewAuthorityFingerprints: [first, second].map((authority) => authority.bridgePublicKeyFingerprintSha256),
-      receipts: seeds.flatMap((seed) => [first, second].map((authority) =>
-        buildScionTruthGateReviewReceipt({ seed, reviewAuthority: authority }))),
+      trustedReviewAuthorityFingerprints: [first, second].map(
+        (authority) => authority.bridgePublicKeyFingerprintSha256,
+      ),
+      receipts: seeds.flatMap((seed) =>
+        [first, second].map((authority) => buildScionTruthGateReviewReceipt({ seed, reviewAuthority: authority })),
+      ),
       assessedAt: ASSESSED_AT,
       requiredCasesPerDomain: 2,
     });
@@ -238,7 +251,9 @@ describe('Scion Truth Gate', () => {
     const authority = structuredClone(pilot.reviewAuthorities[0]);
     authority.message.body += ' tampered';
     authority.identity = identityFor(authority);
-    expect(() => buildScionTruthGateReviewReceipt({ seed: pilot.seeds[0], reviewAuthority: authority })).toThrow(/signed Roundtable authority/);
+    expect(() => buildScionTruthGateReviewReceipt({ seed: pilot.seeds[0], reviewAuthority: authority })).toThrow(
+      /signed Roundtable authority/,
+    );
   });
 
   it('rejects a valid self-signed review whose bridge key was not pre-registered', () => {
@@ -256,7 +271,10 @@ describe('Scion Truth Gate', () => {
   it('fails closed on exact and semantic prior source overlap', () => {
     const pilot = validPilot();
     const claim = pilot.seeds[0].sourcePacket.claims[0];
-    const rearranged = claim.replace('A stable sorting algorithm preserves', 'Equal-key records retain their relative order because a stable sorting algorithm preserves');
+    const rearranged = claim.replace(
+      'A stable sorting algorithm preserves',
+      'Equal-key records retain their relative order because a stable sorting algorithm preserves',
+    );
     const exact = assessScionTruthGate({
       ...pilot,
       assessedAt: ASSESSED_AT,
@@ -282,10 +300,12 @@ describe('Scion Truth Gate', () => {
       excludedProjectIds: [pilot.seeds[0].projectId],
       excludedPromptIds: [pilot.seeds[1].promptId],
     });
-    expect(result.issues).toEqual(expect.arrayContaining([
-      expect.stringContaining('excluded-project-overlap'),
-      expect.stringContaining('excluded-prompt-overlap'),
-    ]));
+    expect(result.issues).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('excluded-project-overlap'),
+        expect.stringContaining('excluded-prompt-overlap'),
+      ]),
+    );
   });
 
   it('does not declare preregistration ready from discovery counts or a pilot alone', () => {

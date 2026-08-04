@@ -4,17 +4,11 @@
   "status": "frozen-before-independent-review",
   "frozenAt": "2026-08-04T19:30:00.000Z",
   "design": {
-    "domains": [
-      "computer-science",
-      "geology",
-      "music-theory"
-    ],
+    "domains": ["computer-science", "geology", "music-theory"],
     "casesPerDomain": 2,
     "totalCases": 6
   },
-  "trustedReviewAuthorityFingerprints": [
-    "9f02945d1b0fd909683c073d89ea2602377c565cddafb098dec7f0aab0ae13c5"
-  ],
+  "trustedReviewAuthorityFingerprints": ["9f02945d1b0fd909683c073d89ea2602377c565cddafb098dec7f0aab0ae13c5"],
   "seeds": [
     {
       "schemaVersion": 1,
@@ -45,18 +39,14 @@
         }
       },
       "sourcePacketSha256": "95914537437062c6943861d22ab3930410623851b8fb13389317dc51856d797f",
-      "sourceClaimSha256s": [
-        "b49dd8a069c03cd23b05da3f5a38e89c00a9eb9a20cf377685fb98b5c66f762e"
-      ],
+      "sourceClaimSha256s": ["b49dd8a069c03cd23b05da3f5a38e89c00a9eb9a20cf377685fb98b5c66f762e"],
       "term": {
         "tr": "Short-circuit evaluation",
         "df": "For Python's and operator, a false left operand is returned and the right operand is skipped instead of being evaluated.",
         "eg": "With a false left operand, Python returns that operand without evaluating the right operand.",
         "mi": "Python and always evaluates both operands before choosing a Boolean result.",
         "cx": "The right operand is skipped when the left operand is false, rather than both operands always being evaluated.",
-        "sourceFactIndexes": [
-          0
-        ]
+        "sourceFactIndexes": [0]
       },
       "inputSha256": "1061388cc5b0c447bd071c0d672d435729b3a0291ba41c15e22966297ca6cb02",
       "trainingEligible": false,
@@ -101,18 +91,14 @@
         }
       },
       "sourcePacketSha256": "26507eae8db319a935ba22afde503376a1336a71c4927f383049ece636db7794",
-      "sourceClaimSha256s": [
-        "87c023003a19062a8775701c1a81bdf8686964d54907f2ce2934463d2228a655"
-      ],
+      "sourceClaimSha256s": ["87c023003a19062a8775701c1a81bdf8686964d54907f2ce2934463d2228a655"],
       "term": {
         "tr": "Hashable tuples",
         "df": "A Python tuple is hashable only when every element stored inside that tuple is itself hashable.",
         "eg": "A tuple containing a list is not hashable because its list element is not hashable.",
         "mi": "Every tuple is hashable simply because the outer tuple container is immutable.",
         "cx": "A tuple is hashable only when all its elements are hashable, not merely because the outer container is immutable.",
-        "sourceFactIndexes": [
-          0
-        ]
+        "sourceFactIndexes": [0]
       },
       "inputSha256": "878b7ed6b708679bc3b55b3d6df32eba88e42d6d17608dc8a4923b58802c445c",
       "trainingEligible": false,
@@ -157,18 +143,14 @@
         }
       },
       "sourcePacketSha256": "01d573b5732126ce73afbf153c7f7a0403e312600c1280af68e0272740b53898",
-      "sourceClaimSha256s": [
-        "3d3572dbe6830a5817df767e2b714384eb822f2a45bebcb42eee6c720ae83be5"
-      ],
+      "sourceClaimSha256s": ["3d3572dbe6830a5817df767e2b714384eb822f2a45bebcb42eee6c720ae83be5"],
       "term": {
         "tr": "P-wave and S-wave arrival interval",
         "df": "The arrival interval is the time between the faster P wave arriving first and the S wave following later.",
         "eg": "A station farther from the earthquake records a larger delay between its P-wave and S-wave arrivals.",
         "mi": "The P-wave and S-wave arrival interval becomes smaller as a station gets farther from the earthquake.",
         "cx": "The arrival interval grows with station distance, rather than shrinking as the station moves farther away.",
-        "sourceFactIndexes": [
-          0
-        ]
+        "sourceFactIndexes": [0]
       },
       "inputSha256": "95ef98a532ab0ae0354e3d7f6b8233c58b3d5478188dea2bc3bf29b8d433b02b",
       "trainingEligible": false,
@@ -213,18 +195,14 @@
         }
       },
       "sourcePacketSha256": "8329cc6aeb41c18d7dfd98f5840b42ffad2f43db83ed50d89bebb7455bb2ae5a",
-      "sourceClaimSha256s": [
-        "311de807d998cf7e6fc71fa2273f635c1fd7be764a710789a12975684a5d61d0"
-      ],
+      "sourceClaimSha256s": ["311de807d998cf7e6fc71fa2273f635c1fd7be764a710789a12975684a5d61d0"],
       "term": {
         "tr": "Igneous cooling rate and crystal texture",
         "df": "Cooling rate controls the time available for mineral growth, linking slow cooling to coarse grains and rapid cooling to fine texture.",
         "eg": "Slow cooling gives mineral grains a long time to grow; quick cooling produces fine-grained or glassy texture.",
         "mi": "Rapid cooling gives mineral crystals more time to grow and therefore creates a coarse-grained rock.",
         "cx": "Slow cooling permits larger crystals, whereas rapid cooling limits growth instead of producing coarse grains.",
-        "sourceFactIndexes": [
-          0
-        ]
+        "sourceFactIndexes": [0]
       },
       "inputSha256": "c253e57be8fc89a4829185300a155f9411f052268a5900f766f5f0d95cce349c",
       "trainingEligible": false,
@@ -264,18 +242,14 @@
         }
       },
       "sourcePacketSha256": "3449be45e042cabdb321190858af8a20c27d8c6022b46afd099e92a8cbac0d72",
-      "sourceClaimSha256s": [
-        "8ffbd5fc0cc4f6efbd5c281f46f3c4db312c31c3cca5dee21095c0e886f3b9a7"
-      ],
+      "sourceClaimSha256s": ["8ffbd5fc0cc4f6efbd5c281f46f3c4db312c31c3cca5dee21095c0e886f3b9a7"],
       "term": {
         "tr": "Major-scale whole-step and half-step pattern",
         "df": "A major scale orders its seven adjacent steps as whole, whole, half, whole, whole, whole, then half.",
         "eg": "A learner checks seven successive scale steps against the W-W-H-W-W-W-H major-scale pattern.",
         "mi": "A major scale alternates whole steps and half steps evenly from tonic to octave.",
         "cx": "The pattern is W-W-H-W-W-W-H, not an even alternation of whole and half steps.",
-        "sourceFactIndexes": [
-          0
-        ]
+        "sourceFactIndexes": [0]
       },
       "inputSha256": "567a3ade0646d20839aeaf2d199b6f32d1ce8c9640325f0992dcc1b5351e5b0b",
       "trainingEligible": false,
@@ -301,9 +275,7 @@
         "title": "La in the Bass at Beginnings, Middles, and Endings",
         "publisher": "Open Music Theory",
         "retrievedAt": "2026-08-04T19:30:00.000Z",
-        "claims": [
-          "Deceptive motion most commonly occurs when dominant V moves to vi rather than I."
-        ],
+        "claims": ["Deceptive motion most commonly occurs when dominant V moves to vi rather than I."],
         "sourceEvidence": {
           "captures": [
             {
@@ -315,18 +287,14 @@
         }
       },
       "sourcePacketSha256": "149d5f87a8e44e6f2df78ba3f1cf3f8c19e0716eefd56b5a2ca0c4f60aa05ead",
-      "sourceClaimSha256s": [
-        "7de12836e6a0ff2a8020b31605aabf1cc356933eb1e242d84285526971986abf"
-      ],
+      "sourceClaimSha256s": ["7de12836e6a0ff2a8020b31605aabf1cc356933eb1e242d84285526971986abf"],
       "term": {
         "tr": "Deceptive dominant motion",
         "df": "Deceptive motion most commonly moves dominant V to vi rather than moving that dominant to I.",
         "eg": "A dominant V moving to vi rather than I demonstrates the most common deceptive motion.",
         "mi": "The common deceptive pattern reverses the order, moving vi to V rather than moving V to vi.",
         "cx": "V is the starting harmony and vi is the destination; the common motion is V-to-vi, not vi-to-V.",
-        "sourceFactIndexes": [
-          0
-        ]
+        "sourceFactIndexes": [0]
       },
       "inputSha256": "69670aa0b0b20d761eb31bdb33b444878c7299265324066395a6ae3102c080b7",
       "trainingEligible": false,

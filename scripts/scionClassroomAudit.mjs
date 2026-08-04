@@ -113,7 +113,10 @@ export async function runScionClassroomAudit({ output = DEFAULT_OUTPUT, write = 
     cases,
     frozenAt: '2026-08-04T14:30:30.000Z',
     commitmentNonces: Object.fromEntries(
-      cases.map((entry) => [entry.caseId, scionLessonKernelSha256({ type: 'fixture-case-nonce', caseId: entry.caseId })]),
+      cases.map((entry) => [
+        entry.caseId,
+        scionLessonKernelSha256({ type: 'fixture-case-nonce', caseId: entry.caseId }),
+      ]),
     ),
   });
   const practiceCases = cases.filter((entry) => entry.split === 'practice');
@@ -162,9 +165,21 @@ export async function runScionClassroomAudit({ output = DEFAULT_OUTPUT, write = 
     answers: answersFor(sealedPacket, sealedAnswerKey),
     generatedAt: '2026-08-04T14:34:00.000Z',
   });
-  const baseline = scoreScionClassroomAttempt({ packet: baselinePacket, answerKey: baselineAnswerKey, attempt: baselineAttempt });
-  const immediate = scoreScionClassroomAttempt({ packet: practicePacket, answerKey: practiceAnswerKey, attempt: classroomAttempt });
-  const delayed = scoreScionClassroomAttempt({ packet: sealedPacket, answerKey: sealedAnswerKey, attempt: delayedAttempt });
+  const baseline = scoreScionClassroomAttempt({
+    packet: baselinePacket,
+    answerKey: baselineAnswerKey,
+    attempt: baselineAttempt,
+  });
+  const immediate = scoreScionClassroomAttempt({
+    packet: practicePacket,
+    answerKey: practiceAnswerKey,
+    attempt: classroomAttempt,
+  });
+  const delayed = scoreScionClassroomAttempt({
+    packet: sealedPacket,
+    answerKey: sealedAnswerKey,
+    attempt: delayedAttempt,
+  });
   const reviewReceipts = ['fixture-a', 'fixture-b'].map((verifier) =>
     buildScionClassroomReviewReceipt({
       verifierRef: scionLessonKernelSha256({ type: 'classroom-reviewer', verifier }),
@@ -195,7 +210,8 @@ export async function runScionClassroomAudit({ output = DEFAULT_OUTPUT, write = 
     practiceDomains: preregistration.design.practiceDomains,
     sealedTransferDomains: preregistration.design.sealedTransferDomains,
     privateKeySeparated:
-      !JSON.stringify(practicePacket).includes('expectedDecision') && !JSON.stringify(sealedPacket).includes('expectedDecision'),
+      !JSON.stringify(practicePacket).includes('expectedDecision') &&
+      !JSON.stringify(sealedPacket).includes('expectedDecision'),
     baselineFixtureScore: baseline.score,
     classroomFixtureScore: immediate.score,
     measuredModelGain: false,
@@ -211,9 +227,18 @@ export async function runScionClassroomAudit({ output = DEFAULT_OUTPUT, write = 
       fs.writeFile(path.join(output, 'private-registry.fixture.json'), `${JSON.stringify(privateRegistry, null, 2)}\n`),
       fs.writeFile(path.join(output, 'blind-practice-packet.json'), `${JSON.stringify(practicePacket, null, 2)}\n`),
       fs.writeFile(path.join(output, 'blind-baseline-packet.json'), `${JSON.stringify(baselinePacket, null, 2)}\n`),
-      fs.writeFile(path.join(output, 'blind-sealed-transfer-packet.json'), `${JSON.stringify(sealedPacket, null, 2)}\n`),
-      fs.writeFile(path.join(output, 'private-practice-answer-key.fixture.json'), `${JSON.stringify(practiceAnswerKey, null, 2)}\n`),
-      fs.writeFile(path.join(output, 'private-sealed-answer-key.fixture.json'), `${JSON.stringify(sealedAnswerKey, null, 2)}\n`),
+      fs.writeFile(
+        path.join(output, 'blind-sealed-transfer-packet.json'),
+        `${JSON.stringify(sealedPacket, null, 2)}\n`,
+      ),
+      fs.writeFile(
+        path.join(output, 'private-practice-answer-key.fixture.json'),
+        `${JSON.stringify(practiceAnswerKey, null, 2)}\n`,
+      ),
+      fs.writeFile(
+        path.join(output, 'private-sealed-answer-key.fixture.json'),
+        `${JSON.stringify(sealedAnswerKey, null, 2)}\n`,
+      ),
       fs.writeFile(path.join(output, 'promotion-audit.fixture.json'), `${JSON.stringify(promotion, null, 2)}\n`),
       fs.writeFile(path.join(output, 'review-receipts.fixture.json'), `${JSON.stringify(reviewReceipts, null, 2)}\n`),
     ]);
@@ -239,7 +264,8 @@ export async function runScionClassroomAudit({ output = DEFAULT_OUTPUT, write = 
 
 async function main() {
   const args = new Set(process.argv.slice(2));
-  if ([...args].some((arg) => arg !== '--write')) throw new Error('Usage: node scripts/scionClassroomAudit.mjs [--write]');
+  if ([...args].some((arg) => arg !== '--write'))
+    throw new Error('Usage: node scripts/scionClassroomAudit.mjs [--write]');
   const result = await runScionClassroomAudit({ write: args.has('--write') });
   console.log(JSON.stringify(result.summary, null, 2));
 }

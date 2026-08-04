@@ -75,11 +75,17 @@ function candidateFor(question) {
 function relevantFinalIssues(call = {}) {
   const issues = call.attempts?.at(-1)?.assessment?.issues || [];
   return issues.some((issue) =>
-    /multiple-source-supported-options|source-answer-conflict|source-fact-key-mismatch|explanation-key-conflict|invalid-source-fact-index|correction-repeats-definition|missing-seat/.test(issue),
+    /multiple-source-supported-options|source-answer-conflict|source-fact-key-mismatch|explanation-key-conflict|invalid-source-fact-index|correction-repeats-definition|missing-seat/.test(
+      issue,
+    ),
   );
 }
 
-export async function runScionRoundtableTeacherAudit({ source = DEFAULT_SOURCE, output = DEFAULT_OUTPUT, write = false } = {}) {
+export async function runScionRoundtableTeacherAudit({
+  source = DEFAULT_SOURCE,
+  output = DEFAULT_OUTPUT,
+  write = false,
+} = {}) {
   const report = JSON.parse(await fs.readFile(source, 'utf8'));
   const call = (report.calls || []).find(
     (entry) => entry.attempts?.at(-1)?.assessment?.needsRetry === true && relevantFinalIssues(entry),
@@ -96,7 +102,8 @@ export async function runScionRoundtableTeacherAudit({ source = DEFAULT_SOURCE, 
 
   const candidate = candidateFor(built.question);
   const candidateValidation = validateScionRoundtableTeachingCandidate(candidate, built.question);
-  if (!candidateValidation.valid) throw new Error(`Invalid teacher candidate: ${candidateValidation.issues.join(', ')}`);
+  if (!candidateValidation.valid)
+    throw new Error(`Invalid teacher candidate: ${candidateValidation.issues.join(', ')}`);
   const learning = quarantineScionRoundtableTeaching({ candidate, question: built.question });
   const roundtableTopic = buildScionRoundtableTeacherTopic(built.question);
 

@@ -32,9 +32,7 @@
           "text": "A variable created outside any function has global scope and can be accessed anywhere in the program."
         }
       ],
-      "authorizedSourceFactIndexes": [
-        0
-      ],
+      "authorizedSourceFactIndexes": [0],
       "authorizedSourceClaims": [
         {
           "index": 0,
@@ -47,9 +45,7 @@
         "eg": "Defining a function named 'calculate_area' to perform a calculation.",
         "mi": "A block of code that runs every time the program starts.",
         "cx": "A named, reusable block of code defined with def that runs only when it is called.",
-        "sourceFactIndexes": [
-          0
-        ]
+        "sourceFactIndexes": [0]
       },
       "matchedControl": {
         "selectedOutput": {
@@ -58,9 +54,7 @@
           "eg": "Defining a function named 'calculate_area' to perform a calculation.",
           "mi": "A block of code that runs every time the program starts.",
           "cx": "Instead of executing automatically upon program initiation, a function is a named, reusable segment of code, defined using 'def', which only executes when it is explicitly invoked; variables established within this scope are confined to that specific invocation.",
-          "sourceFactIndexes": [
-            0
-          ]
+          "sourceFactIndexes": [0]
         },
         "eligible": true,
         "issues": []
@@ -72,14 +66,10 @@
           "eg": "Defining a function named 'calculate_area' to perform a calculation.",
           "mi": "A block of code that runs every time the program starts.",
           "cx": "A named code block, defined with def, is a reusable segment of code that only executes when it is called, contrasting with the mistaken notion that it runs automatically every time the program starts.",
-          "sourceFactIndexes": [
-            0
-          ]
+          "sourceFactIndexes": [0]
         },
         "eligible": false,
-        "issues": [
-          "correction-reuses-misconception-structure"
-        ],
+        "issues": ["correction-reuses-misconception-structure"],
         "originalVerifierIssuesRemoved": true
       }
     },
@@ -109,9 +99,7 @@
           "text": "A variable created outside any function has global scope and can be accessed anywhere in the program."
         }
       ],
-      "authorizedSourceFactIndexes": [
-        2
-      ],
+      "authorizedSourceFactIndexes": [2],
       "authorizedSourceClaims": [
         {
           "index": 2,
@@ -124,9 +112,7 @@
         "eg": "Accessing a variable defined globally from inside a function.",
         "mi": "The specific line of code where the variable was first assigned a value.",
         "cx": "The part of the program where a variable can be accessed.",
-        "sourceFactIndexes": [
-          2
-        ]
+        "sourceFactIndexes": [2]
       },
       "matchedControl": {
         "selectedOutput": {
@@ -135,9 +121,7 @@
           "eg": "Accessing a variable defined globally from inside a function.",
           "mi": "The specific line of code where the variable was first assigned a value.",
           "cx": "The extent to which a variable can be utilized is determined by the specific program segment where it is accessible, rather than the initial point of its declaration.",
-          "sourceFactIndexes": [
-            2
-          ]
+          "sourceFactIndexes": [2]
         },
         "eligible": true,
         "issues": []
@@ -149,9 +133,7 @@
           "eg": "Accessing a variable defined globally from inside a function.",
           "mi": "The specific line of code where the variable was first assigned a value.",
           "cx": "The reach of a variable is determined by the segment of the code where it can be utilized, not the exact line where it receives its initial value.",
-          "sourceFactIndexes": [
-            2
-          ]
+          "sourceFactIndexes": [2]
         },
         "eligible": true,
         "issues": [],
@@ -184,9 +166,7 @@
           "text": "A for loop can iterate through a list, visiting each element in order."
         }
       ],
-      "authorizedSourceFactIndexes": [
-        0
-      ],
+      "authorizedSourceFactIndexes": [0],
       "authorizedSourceClaims": [
         {
           "index": 0,
@@ -199,9 +179,7 @@
         "eg": "A list of student scores in the order they were recorded.",
         "mi": "A collection where the order of items does not affect retrieval.",
         "cx": "A sequence where the arrangement of items matters.",
-        "sourceFactIndexes": [
-          0
-        ]
+        "sourceFactIndexes": [0]
       },
       "matchedControl": {
         "selectedOutput": {
@@ -210,15 +188,10 @@
           "eg": "A list of student scores in the order they were recorded.",
           "mi": "A collection where the order of items does not affect retrieval.",
           "cx": "A sequence where the arrangement of items matters.",
-          "sourceFactIndexes": [
-            0
-          ]
+          "sourceFactIndexes": [0]
         },
         "eligible": false,
-        "issues": [
-          "correction-repeats-definition",
-          "correction-lacks-explicit-contrast"
-        ]
+        "issues": ["correction-repeats-definition", "correction-lacks-explicit-contrast"]
       },
       "teacher": {
         "selectedOutput": {
@@ -227,9 +200,7 @@
           "eg": "A list of student scores in the order they were recorded.",
           "mi": "A collection where the order of items does not affect retrieval.",
           "cx": "A list is an ordered collection of values written in square brackets; each element has an index, beginning at 0, meaning the arrangement of items is crucial for retrieval, not that the order is unimportant.",
-          "sourceFactIndexes": [
-            0
-          ]
+          "sourceFactIndexes": [0]
         },
         "eligible": true,
         "issues": [],
@@ -266,11 +237,7 @@
           "text": "In many styles of popular and traditional music, chord progressions are expressed using the name and \"quality\" of the chords."
         }
       ],
-      "authorizedSourceFactIndexes": [
-        2,
-        3,
-        4
-      ],
+      "authorizedSourceFactIndexes": [2, 3, 4],
       "authorizedSourceClaims": [
         {
           "index": 2,
@@ -291,11 +258,7 @@
         "eg": "The progression of i, iv, and v chords in the key of A minor (A minor, D minor, E minor).",
         "mi": "A single chord used repeatedly throughout a piece.",
         "cx": "A sequence of chords that forms the foundation of harmony in Western musical tradition.",
-        "sourceFactIndexes": [
-          2,
-          3,
-          4
-        ]
+        "sourceFactIndexes": [2, 3, 4]
       },
       "matchedControl": {
         "selectedOutput": {
@@ -304,17 +267,10 @@
           "eg": "The progression of i, iv, and v chords in the key of A minor (A minor, D minor, E minor).",
           "mi": "A single chord used repeatedly throughout a piece.",
           "cx": "A single chord used repeatedly throughout a piece is not the foundation of harmony in Western musical tradition; rather, a sequence of chords that forms the foundation of harmony in Western musical tradition is the progression of chords.",
-          "sourceFactIndexes": [
-            2,
-            3,
-            4
-          ]
+          "sourceFactIndexes": [2, 3, 4]
         },
         "eligible": false,
-        "issues": [
-          "correction-repeats-misconception",
-          "correction-reuses-misconception-structure"
-        ]
+        "issues": ["correction-repeats-misconception", "correction-reuses-misconception-structure"]
       },
       "teacher": {
         "selectedOutput": {
@@ -323,11 +279,7 @@
           "eg": "The progression of i, iv, and v chords in the key of A minor (A minor, D minor, E minor).",
           "mi": "A single chord used repeatedly throughout a piece.",
           "cx": "A chord progression is not defined by one chord being used repeatedly; rather, it is the sequence formed by linking a first chord to a second, and a second to a third, establishing a harmonic foundation.",
-          "sourceFactIndexes": [
-            2,
-            3,
-            4
-          ]
+          "sourceFactIndexes": [2, 3, 4]
         },
         "eligible": true,
         "issues": [],
@@ -364,9 +316,7 @@
           "text": "In many styles of popular and traditional music, chord progressions are expressed using the name and \"quality\" of the chords."
         }
       ],
-      "authorizedSourceFactIndexes": [
-        0
-      ],
+      "authorizedSourceFactIndexes": [0],
       "authorizedSourceClaims": [
         {
           "index": 0,
@@ -379,9 +329,7 @@
         "eg": "Combining sounds to create new, distinct musical ideas.",
         "mi": "The specific arrangement of notes in a single chord.",
         "cx": "The concept of combining different sounds to create new, distinct musical ideas.",
-        "sourceFactIndexes": [
-          0
-        ]
+        "sourceFactIndexes": [0]
       },
       "matchedControl": {
         "selectedOutput": {
@@ -390,15 +338,10 @@
           "eg": "Combining sounds to create new, distinct musical ideas.",
           "mi": "The specific arrangement of notes in a single chord.",
           "cx": "Harmony is understood as the process of blending various sonic elements to generate novel and unique musical concepts.",
-          "sourceFactIndexes": [
-            0
-          ]
+          "sourceFactIndexes": [0]
         },
         "eligible": false,
-        "issues": [
-          "example-repeats-definition",
-          "correction-lacks-explicit-contrast"
-        ]
+        "issues": ["example-repeats-definition", "correction-lacks-explicit-contrast"]
       },
       "teacher": {
         "selectedOutput": {
@@ -407,14 +350,10 @@
           "eg": "Combining sounds to create new, distinct musical ideas.",
           "mi": "The specific arrangement of notes in a single chord.",
           "cx": "Harmony is defined as the process of blending various sounds to generate novel musical concepts, not merely the precise configuration of notes within one chord.",
-          "sourceFactIndexes": [
-            0
-          ]
+          "sourceFactIndexes": [0]
         },
         "eligible": false,
-        "issues": [
-          "example-repeats-definition"
-        ],
+        "issues": ["example-repeats-definition"],
         "originalVerifierIssuesRemoved": true
       }
     },
@@ -444,9 +383,7 @@
           "text": "Journey analysis should include gaps between online and offline parts of a service."
         }
       ],
-      "authorizedSourceFactIndexes": [
-        0
-      ],
+      "authorizedSourceFactIndexes": [0],
       "authorizedSourceClaims": [
         {
           "index": 0,
@@ -459,9 +396,7 @@
         "eg": "Mapping the steps from initial search to final purchase.",
         "mi": "Thinking a map is just a list of features.",
         "cx": "A visual representation covering the entire user path.",
-        "sourceFactIndexes": [
-          0
-        ]
+        "sourceFactIndexes": [0]
       },
       "matchedControl": {
         "selectedOutput": {
@@ -470,9 +405,7 @@
           "eg": "Mapping the steps from initial search to final purchase.",
           "mi": "Thinking a map is just a list of features.",
           "cx": "Instead of viewing a map as just a collection of isolated features, journey mapping provides an end-to-end experience visualization that shows the entire user path, including connected steps, potential boundaries, points of breakdown, and areas for opportunity.",
-          "sourceFactIndexes": [
-            0
-          ]
+          "sourceFactIndexes": [0]
         },
         "eligible": true,
         "issues": []
@@ -484,9 +417,7 @@
           "eg": "Mapping the steps from initial search to final purchase.",
           "mi": "Thinking a map is just a list of features.",
           "cx": "Journey mapping is not simply a catalog of individual components; it is a comprehensive depiction of the entire user journey, showing how connected steps, obstacles, and potential improvements link together.",
-          "sourceFactIndexes": [
-            0
-          ]
+          "sourceFactIndexes": [0]
         },
         "eligible": true,
         "issues": [],
@@ -519,9 +450,7 @@
           "text": "Journey analysis should include gaps between online and offline parts of a service."
         }
       ],
-      "authorizedSourceFactIndexes": [
-        1
-      ],
+      "authorizedSourceFactIndexes": [1],
       "authorizedSourceClaims": [
         {
           "index": 1,
@@ -534,9 +463,7 @@
         "eg": "Analyzing the steps users take to complete a banking task.",
         "mi": "Confusing flow analysis with simple feature listing.",
         "cx": "Examining the sequence of user actions and transactions.",
-        "sourceFactIndexes": [
-          1
-        ]
+        "sourceFactIndexes": [1]
       },
       "matchedControl": {
         "selectedOutput": {
@@ -545,14 +472,10 @@
           "eg": "Analyzing the steps users take to complete a banking task.",
           "mi": "Confusing flow analysis with simple feature listing.",
           "cx": "To accurately map the user journey, one must examine the sequence of user actions and transactions involved, rather than simply listing every available feature. For example, instead of just listing 'Login Button' and 'Checkout Page,' a flow analysis details the specific steps a user takes, such as 'User enters credentials $\rightarrow$ System validates credentials $\rightarrow$ User clicks 'Proceed to Payment' $\rightarrow$ User selects shipping address $\rightarrow$ User confirms order.' This sequence-based examination is the core of flow analysis.",
-          "sourceFactIndexes": [
-            1
-          ]
+          "sourceFactIndexes": [1]
         },
         "eligible": false,
-        "issues": [
-          "cx-length"
-        ]
+        "issues": ["cx-length"]
       },
       "teacher": {
         "selectedOutput": {
@@ -561,9 +484,7 @@
           "eg": "Analyzing the steps users take to complete a banking task.",
           "mi": "Confusing flow analysis with simple feature listing.",
           "cx": "A journey map must begin by researching the actual steps users perform and the transactions they engage in, rather than simply listing the features available.",
-          "sourceFactIndexes": [
-            1
-          ]
+          "sourceFactIndexes": [1]
         },
         "eligible": true,
         "issues": [],
@@ -596,9 +517,7 @@
           "text": "A single disabled participant's experience should not be generalized to all people with disabilities."
         }
       ],
-      "authorizedSourceFactIndexes": [
-        1
-      ],
+      "authorizedSourceFactIndexes": [1],
       "authorizedSourceClaims": [
         {
           "index": 1,
@@ -611,9 +530,7 @@
         "eg": "Checking if a website meets WCAG criteria for contrast ratios.",
         "mi": "Assuming that meeting all technical standards guarantees full usability.",
         "cx": "Verification against established guidelines for accessibility.",
-        "sourceFactIndexes": [
-          1
-        ]
+        "sourceFactIndexes": [1]
       },
       "matchedControl": {
         "selectedOutput": {
@@ -622,9 +539,7 @@
           "eg": "Checking if a website meets WCAG criteria for contrast ratios.",
           "mi": "Assuming that meeting all technical standards guarantees full usability.",
           "cx": "Adhering to the principles of perceivability, operability, understandability, and robustness, as outlined by WCAG, ensures that a website is usable for everyone, rather than simply meeting technical benchmarks.",
-          "sourceFactIndexes": [
-            1
-          ]
+          "sourceFactIndexes": [1]
         },
         "eligible": true,
         "issues": []
@@ -636,9 +551,7 @@
           "eg": "Checking if a website meets WCAG criteria for contrast ratios.",
           "mi": "Assuming that meeting all technical standards guarantees full usability.",
           "cx": "Achieving compliance with WCAG principles—perceivable, operable, understandable, and robust—is a requirement for web accessibility, but it does not inherently guarantee that a website will be fully usable by every individual.",
-          "sourceFactIndexes": [
-            1
-          ]
+          "sourceFactIndexes": [1]
         },
         "eligible": true,
         "issues": [],
@@ -671,9 +584,7 @@
           "text": "A single disabled participant's experience should not be generalized to all people with disabilities."
         }
       ],
-      "authorizedSourceFactIndexes": [
-        3
-      ],
+      "authorizedSourceFactIndexes": [3],
       "authorizedSourceClaims": [
         {
           "index": 3,
@@ -686,9 +597,7 @@
         "eg": "Watching a user struggle to complete a checkout process while verbalizing their confusion.",
         "mi": "A usability test only measures task completion time without observing user thought processes.",
         "cx": "Observing users attempting to use a product or service while thinking aloud.",
-        "sourceFactIndexes": [
-          3
-        ]
+        "sourceFactIndexes": [3]
       },
       "matchedControl": {
         "selectedOutput": {
@@ -697,9 +606,7 @@
           "eg": "Watching a user struggle to complete a checkout process while verbalizing their confusion.",
           "mi": "A usability test only measures task completion time without observing user thought processes.",
           "cx": "Instead of solely focusing on how long it takes to finish a task, a usability test involves watching users as they attempt to use a product or service while verbalizing their thoughts.",
-          "sourceFactIndexes": [
-            3
-          ]
+          "sourceFactIndexes": [3]
         },
         "eligible": true,
         "issues": []
@@ -711,9 +618,7 @@
           "eg": "Watching a user struggle to complete a checkout process while verbalizing their confusion.",
           "mi": "A usability test only measures task completion time without observing user thought processes.",
           "cx": "A usability test captures the user's mental journey by observing them as they attempt to use a product or service while thinking aloud, rather than just recording how long it takes to finish a task.",
-          "sourceFactIndexes": [
-            3
-          ]
+          "sourceFactIndexes": [3]
         },
         "eligible": true,
         "issues": [],
@@ -742,9 +647,7 @@
           "text": "range() produces a sequence of integers and is commonly paired with a for loop to repeat the body a fixed number of times; range(n) yields 0 through n-1."
         }
       ],
-      "authorizedSourceFactIndexes": [
-        3
-      ],
+      "authorizedSourceFactIndexes": [3],
       "authorizedSourceClaims": [
         {
           "index": 3,
@@ -757,9 +660,7 @@
         "eg": "Using range(5) to loop exactly five times.",
         "mi": "Thinking range() is the loop itself.",
         "cx": "A function that generates a sequence of integers.",
-        "sourceFactIndexes": [
-          3
-        ]
+        "sourceFactIndexes": [3]
       },
       "matchedControl": {
         "selectedOutput": {
@@ -768,9 +669,7 @@
           "eg": "Using range(5) to loop exactly five times.",
           "mi": "Thinking range() is the loop itself.",
           "cx": "The range function generates a sequence of integers, which is typically used in conjunction with a for loop to execute a block of code a specific number of times, rather than the range function being the loop itself.",
-          "sourceFactIndexes": [
-            3
-          ]
+          "sourceFactIndexes": [3]
         },
         "eligible": true,
         "issues": []
@@ -782,9 +681,7 @@
           "eg": "Using range(5) to loop exactly five times.",
           "mi": "Thinking range() is the loop itself.",
           "cx": "The range function generates a sequence of integers, which is commonly paired with a for loop to repeat the body a fixed number of times, rather than being the loop mechanism itself.",
-          "sourceFactIndexes": [
-            3
-          ]
+          "sourceFactIndexes": [3]
         },
         "eligible": true,
         "issues": [],
@@ -817,9 +714,7 @@
           "text": "Prototypes should support fast iteration and be inexpensive enough to discard after learning from them."
         }
       ],
-      "authorizedSourceFactIndexes": [
-        0
-      ],
+      "authorizedSourceFactIndexes": [0],
       "authorizedSourceClaims": [
         {
           "index": 0,
@@ -832,9 +727,7 @@
         "eg": "A low-fidelity wireframe of a new mobile app screen.",
         "mi": "A prototype that includes every production detail.",
         "cx": "A visual model of an experience that can be used for testing.",
-        "sourceFactIndexes": [
-          0
-        ]
+        "sourceFactIndexes": [0]
       },
       "matchedControl": {
         "selectedOutput": {
@@ -843,14 +736,10 @@
           "eg": "A low-fidelity wireframe of a new mobile app screen.",
           "mi": "A prototype that includes every production detail.",
           "cx": "Instead of creating a prototype that incorporates every production specification, interactive prototyping establishes a testable representation of how an experience functions and appears, allowing for validation without needing full production fidelity.",
-          "sourceFactIndexes": [
-            0
-          ]
+          "sourceFactIndexes": [0]
         },
         "eligible": false,
-        "issues": [
-          "correction-reuses-misconception-structure"
-        ]
+        "issues": ["correction-reuses-misconception-structure"]
       },
       "teacher": {
         "selectedOutput": {
@@ -859,15 +748,10 @@
           "eg": "A low-fidelity wireframe of a new mobile app screen.",
           "mi": "A prototype that includes every production detail.",
           "cx": "A visual model of an experience that can be used for testing.",
-          "sourceFactIndexes": [
-            0
-          ]
+          "sourceFactIndexes": [0]
         },
         "eligible": false,
-        "issues": [
-          "correction-repeats-definition",
-          "correction-lacks-explicit-contrast"
-        ],
+        "issues": ["correction-repeats-definition", "correction-lacks-explicit-contrast"],
         "originalVerifierIssuesRemoved": false
       }
     },
@@ -897,9 +781,7 @@
           "text": "Prototypes should support fast iteration and be inexpensive enough to discard after learning from them."
         }
       ],
-      "authorizedSourceFactIndexes": [
-        2
-      ],
+      "authorizedSourceFactIndexes": [2],
       "authorizedSourceClaims": [
         {
           "index": 2,
@@ -912,9 +794,7 @@
         "eg": "A clickable mock-up demonstrating the main navigation flow.",
         "mi": "A prototype that only shows major interactions without functionality.",
         "cx": "Models that allow users to observe how they interact with a product.",
-        "sourceFactIndexes": [
-          2
-        ]
+        "sourceFactIndexes": [2]
       },
       "matchedControl": {
         "selectedOutput": {
@@ -923,9 +803,7 @@
           "eg": "A clickable mock-up demonstrating the main navigation flow.",
           "mi": "A prototype that only shows major interactions without functionality.",
           "cx": "Functional prototypes enable a team to witness user engagement with a product, which is distinct from static models that merely illustrate primary navigation paths.",
-          "sourceFactIndexes": [
-            2
-          ]
+          "sourceFactIndexes": [2]
         },
         "eligible": true,
         "issues": []
@@ -937,14 +815,10 @@
           "eg": "A clickable mock-up demonstrating the main navigation flow.",
           "mi": "A prototype that only shows major interactions without functionality.",
           "cx": "A functional prototype enables a team to witness user engagement with a product, contrasting with a prototype that merely displays primary interactions without operational capability.",
-          "sourceFactIndexes": [
-            2
-          ]
+          "sourceFactIndexes": [2]
         },
         "eligible": false,
-        "issues": [
-          "correction-reuses-misconception-structure"
-        ],
+        "issues": ["correction-reuses-misconception-structure"],
         "originalVerifierIssuesRemoved": true
       }
     }

@@ -1648,9 +1648,7 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
       trainingEligible: false,
     });
     expect(
-      result.events.some(
-        (event) => event.pass === 'admissionGate' && event.reason === 'generation-or-parse',
-      ),
+      result.events.some((event) => event.pass === 'admissionGate' && event.reason === 'generation-or-parse'),
     ).toBe(false);
   });
 

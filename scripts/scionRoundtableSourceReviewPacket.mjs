@@ -69,7 +69,13 @@ async function main() {
   packet.identity = { algorithm: 'sha256-canonical-json', sha256: scionLessonKernelSha256(packet) };
   await fs.mkdir(path.dirname(OUTPUT), { recursive: true });
   await fs.writeFile(OUTPUT, `${JSON.stringify(packet, null, 2)}\n`);
-  console.log(JSON.stringify({ cases: cases.length, experimentSha256: packet.experimentSha256, packetSha256: packet.identity.sha256 }, null, 2));
+  console.log(
+    JSON.stringify(
+      { cases: cases.length, experimentSha256: packet.experimentSha256, packetSha256: packet.identity.sha256 },
+      null,
+      2,
+    ),
+  );
 }
 
 main().catch((error) => {

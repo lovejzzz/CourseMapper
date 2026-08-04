@@ -28,9 +28,15 @@ describe('Scion Roundtable source experiment', () => {
   it('reports target resolution separately from whole-atom admission', () => {
     const entry = { originalIssues: ['correction-repeats-definition'] };
     expect(
-      sourceTeacherTargetResolved(entry, { term: { cx: 'supported correction' }, eligible: false, issues: ['example-repeats-definition'] }),
+      sourceTeacherTargetResolved(entry, {
+        term: { cx: 'supported correction' },
+        eligible: false,
+        issues: ['example-repeats-definition'],
+      }),
     ).toBe(true);
-    expect(sourceTeacherTargetResolved(entry, { term: null, eligible: false, issues: ['parse:empty-output'] })).toBe(false);
+    expect(sourceTeacherTargetResolved(entry, { term: null, eligible: false, issues: ['parse:empty-output'] })).toBe(
+      false,
+    );
   });
 
   it('rejects definition padding and corrections that never make the contrast explicit', () => {

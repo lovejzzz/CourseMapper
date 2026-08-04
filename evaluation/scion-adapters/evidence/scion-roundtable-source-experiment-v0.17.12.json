@@ -33,10 +33,7 @@
           "source-ledger violation delta",
           "paired holdout preference"
         ],
-        "forbiddenInferences": [
-          "teacher agreement implies correctness",
-          "one course proves a course-neutral rule"
-        ]
+        "forbiddenInferences": ["teacher agreement implies correctness", "one course proves a course-neutral rule"]
       },
       "attestations": {
         "policyOnly": true,
@@ -69,10 +66,7 @@
       "caseId": "python-data-structures-lab:cs/functions:key-term-0",
       "domain": "computer-science",
       "inputSha256": "bcb8c82ae6a047440b76b61ae5fcea1287905870a56a8506e8e882e08094f082",
-      "matchedArmOrder": [
-        "matched-control",
-        "teacher"
-      ],
+      "matchedArmOrder": ["matched-control", "teacher"],
       "baseline": {
         "serverRequestReceipt": "f2b21a8e-1897-467b-b360-2352dccc5627",
         "responseModel": "scion-1",
@@ -96,28 +90,19 @@
         "authorizedSourceFactIndexes": [],
         "assessment": {
           "eligible": false,
-          "issues": [
-            "correction-repeats-definition",
-            "correction-reuses-misconception-structure"
-          ],
+          "issues": ["correction-repeats-definition", "correction-reuses-misconception-structure"],
           "term": {
-            "sourceFactIndexes": [
-              0
-            ],
+            "sourceFactIndexes": [0],
             "tr": "Named code block",
             "df": "A named, reusable block of code defined with def that runs only when it is called; variables created inside it are local to that call.",
             "eg": "Defining a function named 'calculate_area' to perform a calculation.",
             "mi": "A block of code that runs every time the program starts.",
             "cx": "A named, reusable block of code defined with def that runs only when it is called."
           },
-          "rawIssues": [
-            "correction-repeats-definition"
-          ],
+          "rawIssues": ["correction-repeats-definition"],
           "compilerRepairs": [],
           "contractEligible": false,
-          "pedagogicalIssues": [
-            "correction-reuses-misconception-structure"
-          ]
+          "pedagogicalIssues": ["correction-reuses-misconception-structure"]
         }
       },
       "matchedControl": {
@@ -139,13 +124,7 @@
         "scoredOutputSha256": "a3768577ed46fbd991bffe45fc1abf3d81623468a74ae5cb6eeda94ccb60b8eb",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -153,9 +132,7 @@
           "supportedDistinction": "A function is a named, reusable block of code defined with def that runs only when it is called; variables created inside it are local to that call."
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          0
-        ],
+        "authorizedSourceFactIndexes": [0],
         "assessment": {
           "eligible": true,
           "issues": [],
@@ -165,9 +142,7 @@
             "eg": "Defining a function named 'calculate_area' to perform a calculation.",
             "mi": "A block of code that runs every time the program starts.",
             "cx": "Instead of executing automatically upon program initiation, a function is a named, reusable segment of code, defined using 'def', which only executes when it is explicitly invoked; variables established within this scope are confined to that specific invocation.",
-            "sourceFactIndexes": [
-              0
-            ]
+            "sourceFactIndexes": [0]
           },
           "rawIssues": [],
           "compilerRepairs": [],
@@ -196,13 +171,7 @@
             "scoredOutputSha256": "a3768577ed46fbd991bffe45fc1abf3d81623468a74ae5cb6eeda94ccb60b8eb",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -210,9 +179,7 @@
               "supportedDistinction": "A function is a named, reusable block of code defined with def that runs only when it is called; variables created inside it are local to that call."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0
-            ],
+            "authorizedSourceFactIndexes": [0],
             "assessment": {
               "eligible": true,
               "issues": [],
@@ -222,9 +189,7 @@
                 "eg": "Defining a function named 'calculate_area' to perform a calculation.",
                 "mi": "A block of code that runs every time the program starts.",
                 "cx": "Instead of executing automatically upon program initiation, a function is a named, reusable segment of code, defined using 'def', which only executes when it is explicitly invoked; variables established within this scope are confined to that specific invocation.",
-                "sourceFactIndexes": [
-                  0
-                ]
+                "sourceFactIndexes": [0]
               },
               "rawIssues": [],
               "compilerRepairs": [],
@@ -255,13 +220,7 @@
         "scoredOutputSha256": "3ff8ff8a0ca640d2db0bc8b738a43398e33fcc3bd5b986f22ea7caa1adad30cc",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -269,30 +228,22 @@
           "supportedDistinction": "A function is a named, reusable segment of code that only executes when explicitly invoked."
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          0
-        ],
+        "authorizedSourceFactIndexes": [0],
         "assessment": {
           "eligible": false,
-          "issues": [
-            "correction-reuses-misconception-structure"
-          ],
+          "issues": ["correction-reuses-misconception-structure"],
           "term": {
             "tr": "Named code block",
             "df": "A named, reusable block of code defined with def that runs only when it is called.",
             "eg": "Defining a function named 'calculate_area' to perform a calculation.",
             "mi": "A block of code that runs every time the program starts.",
             "cx": "A named code block, defined with def, is a reusable segment of code that only executes when it is called, contrasting with the mistaken notion that it runs automatically every time the program starts.",
-            "sourceFactIndexes": [
-              0
-            ]
+            "sourceFactIndexes": [0]
           },
           "rawIssues": [],
           "compilerRepairs": [],
           "contractEligible": true,
-          "pedagogicalIssues": [
-            "correction-reuses-misconception-structure"
-          ]
+          "pedagogicalIssues": ["correction-reuses-misconception-structure"]
         },
         "selectedAttempt": 2,
         "attemptCount": 3,
@@ -316,13 +267,7 @@
             "scoredOutputSha256": "ffc4eda734d3f5b1986277baa6cc60323248a66ca5b24fea9f2e9903319978eb",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -330,30 +275,22 @@
               "supportedDistinction": "A function is a named, reusable segment of code that only executes when explicitly invoked."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0
-            ],
+            "authorizedSourceFactIndexes": [0],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-reuses-misconception-structure"
-              ],
+              "issues": ["correction-reuses-misconception-structure"],
               "term": {
                 "tr": "Named code block",
                 "df": "A named, reusable block of code defined with def that runs only when it is called.",
                 "eg": "Defining a function named 'calculate_area' to perform a calculation.",
                 "mi": "A block of code that runs every time the program starts.",
                 "cx": "A named code block is a reusable segment of code that only executes when it is called, not automatically when the program begins.",
-                "sourceFactIndexes": [
-                  0
-                ]
+                "sourceFactIndexes": [0]
               },
               "rawIssues": [],
               "compilerRepairs": [],
               "contractEligible": true,
-              "pedagogicalIssues": [
-                "correction-reuses-misconception-structure"
-              ]
+              "pedagogicalIssues": ["correction-reuses-misconception-structure"]
             }
           },
           {
@@ -375,13 +312,7 @@
             "scoredOutputSha256": "f95f3e104deb827d18e6dae0dd788d211aa1f1b474b93c5fa3461bfebca6eac2",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -389,30 +320,22 @@
               "supportedDistinction": "A function is a named, reusable segment of code that only executes when explicitly invoked."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0
-            ],
+            "authorizedSourceFactIndexes": [0],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-reuses-misconception-structure"
-              ],
+              "issues": ["correction-reuses-misconception-structure"],
               "term": {
                 "tr": "Named code block",
                 "df": "A named, reusable block of code defined with def that runs only when it is called.",
                 "eg": "Defining a function named 'calculate_area' to perform a calculation.",
                 "mi": "A block of code that runs every time the program starts.",
                 "cx": "A named code block, defined with def, is a reusable segment of code that only executes when it is called, contrasting with the mistaken idea that it runs automatically every time the program starts.",
-                "sourceFactIndexes": [
-                  0
-                ]
+                "sourceFactIndexes": [0]
               },
               "rawIssues": [],
               "compilerRepairs": [],
               "contractEligible": true,
-              "pedagogicalIssues": [
-                "correction-reuses-misconception-structure"
-              ]
+              "pedagogicalIssues": ["correction-reuses-misconception-structure"]
             }
           },
           {
@@ -434,13 +357,7 @@
             "scoredOutputSha256": "3ff8ff8a0ca640d2db0bc8b738a43398e33fcc3bd5b986f22ea7caa1adad30cc",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -448,30 +365,22 @@
               "supportedDistinction": "A function is a named, reusable segment of code that only executes when explicitly invoked."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0
-            ],
+            "authorizedSourceFactIndexes": [0],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-reuses-misconception-structure"
-              ],
+              "issues": ["correction-reuses-misconception-structure"],
               "term": {
                 "tr": "Named code block",
                 "df": "A named, reusable block of code defined with def that runs only when it is called.",
                 "eg": "Defining a function named 'calculate_area' to perform a calculation.",
                 "mi": "A block of code that runs every time the program starts.",
                 "cx": "A named code block, defined with def, is a reusable segment of code that only executes when it is called, contrasting with the mistaken notion that it runs automatically every time the program starts.",
-                "sourceFactIndexes": [
-                  0
-                ]
+                "sourceFactIndexes": [0]
               },
               "rawIssues": [],
               "compilerRepairs": [],
               "contractEligible": true,
-              "pedagogicalIssues": [
-                "correction-reuses-misconception-structure"
-              ]
+              "pedagogicalIssues": ["correction-reuses-misconception-structure"]
             }
           }
         ],
@@ -483,10 +392,7 @@
       "caseId": "python-data-structures-lab:cs/functions:key-term-1",
       "domain": "computer-science",
       "inputSha256": "33f4bd0d8615350aba5e6be1e8567a7d0cecaebedc31e5a18794a03fc7e58143",
-      "matchedArmOrder": [
-        "teacher",
-        "matched-control"
-      ],
+      "matchedArmOrder": ["teacher", "matched-control"],
       "baseline": {
         "serverRequestReceipt": "19ae0472-6a4d-49e3-b0a3-803fee8653d8",
         "responseModel": "scion-1",
@@ -510,15 +416,9 @@
         "authorizedSourceFactIndexes": [],
         "assessment": {
           "eligible": false,
-          "issues": [
-            "correction-lacks-explicit-contrast"
-          ],
+          "issues": ["correction-lacks-explicit-contrast"],
           "term": {
-            "sourceFactIndexes": [
-              2,
-              3,
-              4
-            ],
+            "sourceFactIndexes": [2, 3, 4],
             "tr": "Variable accessibility",
             "df": "The part of the program where a variable can be accessed.",
             "eg": "Accessing a variable defined globally from inside a function.",
@@ -528,9 +428,7 @@
           "rawIssues": [],
           "compilerRepairs": [],
           "contractEligible": true,
-          "pedagogicalIssues": [
-            "correction-lacks-explicit-contrast"
-          ]
+          "pedagogicalIssues": ["correction-lacks-explicit-contrast"]
         }
       },
       "matchedControl": {
@@ -552,13 +450,7 @@
         "scoredOutputSha256": "4f839c2f9001593a77065663174cde60d814d985b0335553186b391eb09b06d7",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -566,9 +458,7 @@
           "supportedDistinction": "A variable's scope is strictly limited to the specific segment of the program where it is permitted to be referenced."
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          2
-        ],
+        "authorizedSourceFactIndexes": [2],
         "assessment": {
           "eligible": true,
           "issues": [],
@@ -578,9 +468,7 @@
             "eg": "Accessing a variable defined globally from inside a function.",
             "mi": "The specific line of code where the variable was first assigned a value.",
             "cx": "The extent to which a variable can be utilized is determined by the specific program segment where it is accessible, rather than the initial point of its declaration.",
-            "sourceFactIndexes": [
-              2
-            ]
+            "sourceFactIndexes": [2]
           },
           "rawIssues": [],
           "compilerRepairs": [],
@@ -609,13 +497,7 @@
             "scoredOutputSha256": "4f839c2f9001593a77065663174cde60d814d985b0335553186b391eb09b06d7",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -623,9 +505,7 @@
               "supportedDistinction": "A variable's scope is strictly limited to the specific segment of the program where it is permitted to be referenced."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              2
-            ],
+            "authorizedSourceFactIndexes": [2],
             "assessment": {
               "eligible": true,
               "issues": [],
@@ -635,9 +515,7 @@
                 "eg": "Accessing a variable defined globally from inside a function.",
                 "mi": "The specific line of code where the variable was first assigned a value.",
                 "cx": "The extent to which a variable can be utilized is determined by the specific program segment where it is accessible, rather than the initial point of its declaration.",
-                "sourceFactIndexes": [
-                  2
-                ]
+                "sourceFactIndexes": [2]
               },
               "rawIssues": [],
               "compilerRepairs": [],
@@ -668,13 +546,7 @@
         "scoredOutputSha256": "6772ba53fcb96db7b9772d0338100933acc3a0cbdc22d1c2cdc68d61f64ed2ff",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -682,9 +554,7 @@
           "supportedDistinction": "The scope of a variable is defined by the section of the program where it is reachable"
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          2
-        ],
+        "authorizedSourceFactIndexes": [2],
         "assessment": {
           "eligible": true,
           "issues": [],
@@ -694,9 +564,7 @@
             "eg": "Accessing a variable defined globally from inside a function.",
             "mi": "The specific line of code where the variable was first assigned a value.",
             "cx": "The reach of a variable is determined by the segment of the code where it can be utilized, not the exact line where it receives its initial value.",
-            "sourceFactIndexes": [
-              2
-            ]
+            "sourceFactIndexes": [2]
           },
           "rawIssues": [],
           "compilerRepairs": [],
@@ -725,13 +593,7 @@
             "scoredOutputSha256": "6772ba53fcb96db7b9772d0338100933acc3a0cbdc22d1c2cdc68d61f64ed2ff",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -739,9 +601,7 @@
               "supportedDistinction": "The scope of a variable is defined by the section of the program where it is reachable"
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              2
-            ],
+            "authorizedSourceFactIndexes": [2],
             "assessment": {
               "eligible": true,
               "issues": [],
@@ -751,9 +611,7 @@
                 "eg": "Accessing a variable defined globally from inside a function.",
                 "mi": "The specific line of code where the variable was first assigned a value.",
                 "cx": "The reach of a variable is determined by the segment of the code where it can be utilized, not the exact line where it receives its initial value.",
-                "sourceFactIndexes": [
-                  2
-                ]
+                "sourceFactIndexes": [2]
               },
               "rawIssues": [],
               "compilerRepairs": [],
@@ -770,10 +628,7 @@
       "caseId": "python-data-structures-lab:cs/lists:key-term-0",
       "domain": "computer-science",
       "inputSha256": "4176f366314e06034389fc2065dc303657715dfd1500ca76be10d17d5df15bfe",
-      "matchedArmOrder": [
-        "matched-control",
-        "teacher"
-      ],
+      "matchedArmOrder": ["matched-control", "teacher"],
       "baseline": {
         "serverRequestReceipt": "e9a4d744-e191-4b12-9078-056222df1336",
         "responseModel": "scion-1",
@@ -797,17 +652,9 @@
         "authorizedSourceFactIndexes": [],
         "assessment": {
           "eligible": false,
-          "issues": [
-            "correction-lacks-explicit-contrast"
-          ],
+          "issues": ["correction-lacks-explicit-contrast"],
           "term": {
-            "sourceFactIndexes": [
-              0,
-              1,
-              2,
-              3,
-              4
-            ],
+            "sourceFactIndexes": [0, 1, 2, 3, 4],
             "tr": "Ordered collection of values",
             "df": "A sequence where the arrangement of items matters, such as a list of stock prices recorded chronologically.",
             "eg": "A list of student scores in the order they were recorded: [85, 92, 78].",
@@ -817,9 +664,7 @@
           "rawIssues": [],
           "compilerRepairs": [],
           "contractEligible": true,
-          "pedagogicalIssues": [
-            "correction-lacks-explicit-contrast"
-          ]
+          "pedagogicalIssues": ["correction-lacks-explicit-contrast"]
         }
       },
       "matchedControl": {
@@ -841,13 +686,7 @@
         "scoredOutputSha256": "55ac9c262dbdf7254fcffcb0d21973751447064fde9550ab8aa5c0725520cf05",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -855,29 +694,19 @@
           "supportedDistinction": "A sequence where the arrangement of items is significant for retrieval"
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          0
-        ],
+        "authorizedSourceFactIndexes": [0],
         "assessment": {
           "eligible": false,
-          "issues": [
-            "correction-repeats-definition",
-            "correction-lacks-explicit-contrast"
-          ],
+          "issues": ["correction-repeats-definition", "correction-lacks-explicit-contrast"],
           "term": {
             "tr": "Ordered collection of values",
             "df": "A sequence where the arrangement of items matters.",
             "eg": "A list of student scores in the order they were recorded.",
             "mi": "A collection where the order of items does not affect retrieval.",
             "cx": "A sequence where the arrangement of items matters.",
-            "sourceFactIndexes": [
-              0
-            ]
+            "sourceFactIndexes": [0]
           },
-          "rawIssues": [
-            "cx-length",
-            "correction-repeats-misconception"
-          ],
+          "rawIssues": ["cx-length", "correction-repeats-misconception"],
           "compilerRepairs": [
             {
               "field": "correction",
@@ -888,9 +717,7 @@
             }
           ],
           "contractEligible": false,
-          "pedagogicalIssues": [
-            "correction-lacks-explicit-contrast"
-          ]
+          "pedagogicalIssues": ["correction-lacks-explicit-contrast"]
         },
         "selectedAttempt": 2,
         "attemptCount": 3,
@@ -914,13 +741,7 @@
             "scoredOutputSha256": "b9f1ab5f707367a5541f53ec4754a1825bfecd1f14c26eb330cd2acc80f88906",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -928,29 +749,19 @@
               "supportedDistinction": "A sequence where the arrangement of items matters"
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0
-            ],
+            "authorizedSourceFactIndexes": [0],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-repeats-definition",
-                "correction-lacks-explicit-contrast"
-              ],
+              "issues": ["correction-repeats-definition", "correction-lacks-explicit-contrast"],
               "term": {
                 "tr": "Ordered collection of values",
                 "df": "A sequence where the arrangement of items matters.",
                 "eg": "A list of student scores in the order they were recorded.",
                 "mi": "A collection where the order of items does not affect retrieval.",
                 "cx": "A sequence where the arrangement of items matters.",
-                "sourceFactIndexes": [
-                  0
-                ]
+                "sourceFactIndexes": [0]
               },
-              "rawIssues": [
-                "correction-repeats-example",
-                "correction-repeats-misconception"
-              ],
+              "rawIssues": ["correction-repeats-example", "correction-repeats-misconception"],
               "compilerRepairs": [
                 {
                   "field": "correction",
@@ -961,9 +772,7 @@
                 }
               ],
               "contractEligible": false,
-              "pedagogicalIssues": [
-                "correction-lacks-explicit-contrast"
-              ]
+              "pedagogicalIssues": ["correction-lacks-explicit-contrast"]
             }
           },
           {
@@ -985,13 +794,7 @@
             "scoredOutputSha256": "cedef12399608393c5619bdda3edbf587caa370581e7dd6b57308425554aea65",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -999,29 +802,19 @@
               "supportedDistinction": "A sequence where the arrangement of items is significant for retrieval"
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0
-            ],
+            "authorizedSourceFactIndexes": [0],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-repeats-definition",
-                "correction-lacks-explicit-contrast"
-              ],
+              "issues": ["correction-repeats-definition", "correction-lacks-explicit-contrast"],
               "term": {
                 "tr": "Ordered collection of values",
                 "df": "A sequence where the arrangement of items matters.",
                 "eg": "A list of student scores in the order they were recorded.",
                 "mi": "A collection where the order of items does not affect retrieval.",
                 "cx": "A sequence where the arrangement of items matters.",
-                "sourceFactIndexes": [
-                  0
-                ]
+                "sourceFactIndexes": [0]
               },
-              "rawIssues": [
-                "cx-length",
-                "correction-repeats-misconception"
-              ],
+              "rawIssues": ["cx-length", "correction-repeats-misconception"],
               "compilerRepairs": [
                 {
                   "field": "correction",
@@ -1032,9 +825,7 @@
                 }
               ],
               "contractEligible": false,
-              "pedagogicalIssues": [
-                "correction-lacks-explicit-contrast"
-              ]
+              "pedagogicalIssues": ["correction-lacks-explicit-contrast"]
             }
           },
           {
@@ -1056,13 +847,7 @@
             "scoredOutputSha256": "55ac9c262dbdf7254fcffcb0d21973751447064fde9550ab8aa5c0725520cf05",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -1070,29 +855,19 @@
               "supportedDistinction": "A sequence where the arrangement of items is significant for retrieval"
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0
-            ],
+            "authorizedSourceFactIndexes": [0],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-repeats-definition",
-                "correction-lacks-explicit-contrast"
-              ],
+              "issues": ["correction-repeats-definition", "correction-lacks-explicit-contrast"],
               "term": {
                 "tr": "Ordered collection of values",
                 "df": "A sequence where the arrangement of items matters.",
                 "eg": "A list of student scores in the order they were recorded.",
                 "mi": "A collection where the order of items does not affect retrieval.",
                 "cx": "A sequence where the arrangement of items matters.",
-                "sourceFactIndexes": [
-                  0
-                ]
+                "sourceFactIndexes": [0]
               },
-              "rawIssues": [
-                "cx-length",
-                "correction-repeats-misconception"
-              ],
+              "rawIssues": ["cx-length", "correction-repeats-misconception"],
               "compilerRepairs": [
                 {
                   "field": "correction",
@@ -1103,9 +878,7 @@
                 }
               ],
               "contractEligible": false,
-              "pedagogicalIssues": [
-                "correction-lacks-explicit-contrast"
-              ]
+              "pedagogicalIssues": ["correction-lacks-explicit-contrast"]
             }
           }
         ],
@@ -1131,13 +904,7 @@
         "scoredOutputSha256": "8a3aa69df79afd5b8a1b3a6ca85a6b0570e21513a9c13a467eca8b6a9ab93822",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -1145,9 +912,7 @@
           "supportedDistinction": "A list is defined as an ordered collection where the position of each element is significant."
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          0
-        ],
+        "authorizedSourceFactIndexes": [0],
         "assessment": {
           "eligible": true,
           "issues": [],
@@ -1157,9 +922,7 @@
             "eg": "A list of student scores in the order they were recorded.",
             "mi": "A collection where the order of items does not affect retrieval.",
             "cx": "A list is an ordered collection of values written in square brackets; each element has an index, beginning at 0, meaning the arrangement of items is crucial for retrieval, not that the order is unimportant.",
-            "sourceFactIndexes": [
-              0
-            ]
+            "sourceFactIndexes": [0]
           },
           "rawIssues": [],
           "compilerRepairs": [],
@@ -1188,13 +951,7 @@
             "scoredOutputSha256": "6de5faf1944242fbfb031b0f83a41019452043a3775a0273b7f3cc8432c39cef",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -1202,30 +959,22 @@
               "supportedDistinction": "A list is fundamentally an ordered sequence where the specific position of each element is significant for identification."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0
-            ],
+            "authorizedSourceFactIndexes": [0],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-lacks-explicit-contrast"
-              ],
+              "issues": ["correction-lacks-explicit-contrast"],
               "term": {
                 "tr": "Ordered collection of values",
                 "df": "A sequence where the arrangement of items matters.",
                 "eg": "A list of student scores in the order they were recorded.",
                 "mi": "A collection where the order of items does not affect retrieval.",
                 "cx": "A list is a specific arrangement of values denoted by square brackets, where every element possesses a unique index starting from zero, meaning the sequence's arrangement is crucial for locating any particular item.",
-                "sourceFactIndexes": [
-                  0
-                ]
+                "sourceFactIndexes": [0]
               },
               "rawIssues": [],
               "compilerRepairs": [],
               "contractEligible": true,
-              "pedagogicalIssues": [
-                "correction-lacks-explicit-contrast"
-              ]
+              "pedagogicalIssues": ["correction-lacks-explicit-contrast"]
             }
           },
           {
@@ -1247,13 +996,7 @@
             "scoredOutputSha256": "8a3aa69df79afd5b8a1b3a6ca85a6b0570e21513a9c13a467eca8b6a9ab93822",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -1261,9 +1004,7 @@
               "supportedDistinction": "A list is defined as an ordered collection where the position of each element is significant."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0
-            ],
+            "authorizedSourceFactIndexes": [0],
             "assessment": {
               "eligible": true,
               "issues": [],
@@ -1273,9 +1014,7 @@
                 "eg": "A list of student scores in the order they were recorded.",
                 "mi": "A collection where the order of items does not affect retrieval.",
                 "cx": "A list is an ordered collection of values written in square brackets; each element has an index, beginning at 0, meaning the arrangement of items is crucial for retrieval, not that the order is unimportant.",
-                "sourceFactIndexes": [
-                  0
-                ]
+                "sourceFactIndexes": [0]
               },
               "rawIssues": [],
               "compilerRepairs": [],
@@ -1292,10 +1031,7 @@
       "caseId": "harmony-form-analysis:music/harmony-and-progressions:key-term-0",
       "domain": "music-theory",
       "inputSha256": "86abe935a4a1221314538ecfcf44615e8d1d58aa6ffd3980ae55f95e7042e66e",
-      "matchedArmOrder": [
-        "teacher",
-        "matched-control"
-      ],
+      "matchedArmOrder": ["teacher", "matched-control"],
       "baseline": {
         "serverRequestReceipt": "42d1fe57-b298-4fb9-8859-d3bece3e9af3",
         "responseModel": "scion-1",
@@ -1319,15 +1055,9 @@
         "authorizedSourceFactIndexes": [],
         "assessment": {
           "eligible": false,
-          "issues": [
-            "correction-lacks-explicit-contrast"
-          ],
+          "issues": ["correction-lacks-explicit-contrast"],
           "term": {
-            "sourceFactIndexes": [
-              2,
-              3,
-              4
-            ],
+            "sourceFactIndexes": [2, 3, 4],
             "tr": "Chord progression",
             "df": "A sequence of chords that forms the foundation of harmony in Western musical tradition from the common practice era of classical music to the 21st century.",
             "eg": "The progression of i, iv, and v chords in the key of A minor (A minor, D minor, E minor).",
@@ -1337,9 +1067,7 @@
           "rawIssues": [],
           "compilerRepairs": [],
           "contractEligible": true,
-          "pedagogicalIssues": [
-            "correction-lacks-explicit-contrast"
-          ]
+          "pedagogicalIssues": ["correction-lacks-explicit-contrast"]
         }
       },
       "matchedControl": {
@@ -1361,13 +1089,7 @@
         "scoredOutputSha256": "f0448a56a11fed4c0accf503f898bbcad06cb26d5e23cf08306b62d8d4279a9c",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -1375,37 +1097,22 @@
           "supportedDistinction": "A sequence of chords that forms the foundation of harmony in Western musical tradition"
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          2,
-          3,
-          4
-        ],
+        "authorizedSourceFactIndexes": [2, 3, 4],
         "assessment": {
           "eligible": false,
-          "issues": [
-            "correction-repeats-misconception",
-            "correction-reuses-misconception-structure"
-          ],
+          "issues": ["correction-repeats-misconception", "correction-reuses-misconception-structure"],
           "term": {
             "tr": "Chord progression",
             "df": "A sequence of chords that forms the foundation of harmony in Western musical tradition.",
             "eg": "The progression of i, iv, and v chords in the key of A minor (A minor, D minor, E minor).",
             "mi": "A single chord used repeatedly throughout a piece.",
             "cx": "A single chord used repeatedly throughout a piece is not the foundation of harmony in Western musical tradition; rather, a sequence of chords that forms the foundation of harmony in Western musical tradition is the progression of chords.",
-            "sourceFactIndexes": [
-              2,
-              3,
-              4
-            ]
+            "sourceFactIndexes": [2, 3, 4]
           },
-          "rawIssues": [
-            "correction-repeats-misconception"
-          ],
+          "rawIssues": ["correction-repeats-misconception"],
           "compilerRepairs": [],
           "contractEligible": false,
-          "pedagogicalIssues": [
-            "correction-reuses-misconception-structure"
-          ]
+          "pedagogicalIssues": ["correction-reuses-misconception-structure"]
         },
         "selectedAttempt": 2,
         "attemptCount": 3,
@@ -1429,13 +1136,7 @@
             "scoredOutputSha256": "1f4d0ea7247bf9ad48a43670d1fa4e0fb303cccb78d64ac194881a849d4245b0",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -1443,31 +1144,19 @@
               "supportedDistinction": "A sequence of chords that forms the foundation of harmony in Western musical tradition."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              2,
-              3,
-              4
-            ],
+            "authorizedSourceFactIndexes": [2, 3, 4],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-repeats-definition"
-              ],
+              "issues": ["correction-repeats-definition"],
               "term": {
                 "tr": "Chord progression",
                 "df": "A sequence of chords that forms the foundation of harmony in Western musical tradition.",
                 "eg": "The progression of i, iv, and v chords in the key of A minor (A minor, D minor, E minor).",
                 "mi": "A single chord used repeatedly throughout a piece.",
                 "cx": "The concept of a single chord repeated throughout a composition is distinct from a chord progression, which is defined as a sequence of chords that forms the foundation of harmony in Western musical tradition.",
-                "sourceFactIndexes": [
-                  2,
-                  3,
-                  4
-                ]
+                "sourceFactIndexes": [2, 3, 4]
               },
-              "rawIssues": [
-                "correction-repeats-definition"
-              ],
+              "rawIssues": ["correction-repeats-definition"],
               "compilerRepairs": [],
               "contractEligible": false,
               "pedagogicalIssues": []
@@ -1492,13 +1181,7 @@
             "scoredOutputSha256": "a4d13bc05816780b1196fa8ebe8a92c36fc59a9fd8f0763e8c7ab26c8f0d691e",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -1506,34 +1189,22 @@
               "supportedDistinction": "A sequence of chords that forms the foundation of harmony in Western musical tradition"
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              2,
-              3,
-              4
-            ],
+            "authorizedSourceFactIndexes": [2, 3, 4],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-lacks-explicit-contrast"
-              ],
+              "issues": ["correction-lacks-explicit-contrast"],
               "term": {
                 "tr": "Chord progression",
                 "df": "A sequence of chords that forms the foundation of harmony in Western musical tradition.",
                 "eg": "The progression of i, iv, and v chords in the key of A minor (A minor, D minor, E minor).",
                 "mi": "A single chord used repeatedly throughout a piece.",
                 "cx": "The fundamental building blocks of Western musical harmony are chord progressions, which are defined as a sequence of chords that establishes the harmonic framework across musical eras, ranging from the common practice era to the 21st century.",
-                "sourceFactIndexes": [
-                  2,
-                  3,
-                  4
-                ]
+                "sourceFactIndexes": [2, 3, 4]
               },
               "rawIssues": [],
               "compilerRepairs": [],
               "contractEligible": true,
-              "pedagogicalIssues": [
-                "correction-lacks-explicit-contrast"
-              ]
+              "pedagogicalIssues": ["correction-lacks-explicit-contrast"]
             }
           },
           {
@@ -1555,13 +1226,7 @@
             "scoredOutputSha256": "f0448a56a11fed4c0accf503f898bbcad06cb26d5e23cf08306b62d8d4279a9c",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -1569,37 +1234,22 @@
               "supportedDistinction": "A sequence of chords that forms the foundation of harmony in Western musical tradition"
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              2,
-              3,
-              4
-            ],
+            "authorizedSourceFactIndexes": [2, 3, 4],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-repeats-misconception",
-                "correction-reuses-misconception-structure"
-              ],
+              "issues": ["correction-repeats-misconception", "correction-reuses-misconception-structure"],
               "term": {
                 "tr": "Chord progression",
                 "df": "A sequence of chords that forms the foundation of harmony in Western musical tradition.",
                 "eg": "The progression of i, iv, and v chords in the key of A minor (A minor, D minor, E minor).",
                 "mi": "A single chord used repeatedly throughout a piece.",
                 "cx": "A single chord used repeatedly throughout a piece is not the foundation of harmony in Western musical tradition; rather, a sequence of chords that forms the foundation of harmony in Western musical tradition is the progression of chords.",
-                "sourceFactIndexes": [
-                  2,
-                  3,
-                  4
-                ]
+                "sourceFactIndexes": [2, 3, 4]
               },
-              "rawIssues": [
-                "correction-repeats-misconception"
-              ],
+              "rawIssues": ["correction-repeats-misconception"],
               "compilerRepairs": [],
               "contractEligible": false,
-              "pedagogicalIssues": [
-                "correction-reuses-misconception-structure"
-              ]
+              "pedagogicalIssues": ["correction-reuses-misconception-structure"]
             }
           }
         ],
@@ -1625,13 +1275,7 @@
         "scoredOutputSha256": "13320e165dae470231813665564f7bdbae540afb83817b57bc882b36b72340d0",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -1639,11 +1283,7 @@
           "supportedDistinction": "A chord progression is established by the relationship between successive chords, where each subsequent chord follows a specific structural role in the sequence."
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          2,
-          3,
-          4
-        ],
+        "authorizedSourceFactIndexes": [2, 3, 4],
         "assessment": {
           "eligible": true,
           "issues": [],
@@ -1653,11 +1293,7 @@
             "eg": "The progression of i, iv, and v chords in the key of A minor (A minor, D minor, E minor).",
             "mi": "A single chord used repeatedly throughout a piece.",
             "cx": "A chord progression is not defined by one chord being used repeatedly; rather, it is the sequence formed by linking a first chord to a second, and a second to a third, establishing a harmonic foundation.",
-            "sourceFactIndexes": [
-              2,
-              3,
-              4
-            ]
+            "sourceFactIndexes": [2, 3, 4]
           },
           "rawIssues": [],
           "compilerRepairs": [],
@@ -1686,13 +1322,7 @@
             "scoredOutputSha256": "13320e165dae470231813665564f7bdbae540afb83817b57bc882b36b72340d0",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -1700,11 +1330,7 @@
               "supportedDistinction": "A chord progression is established by the relationship between successive chords, where each subsequent chord follows a specific structural role in the sequence."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              2,
-              3,
-              4
-            ],
+            "authorizedSourceFactIndexes": [2, 3, 4],
             "assessment": {
               "eligible": true,
               "issues": [],
@@ -1714,11 +1340,7 @@
                 "eg": "The progression of i, iv, and v chords in the key of A minor (A minor, D minor, E minor).",
                 "mi": "A single chord used repeatedly throughout a piece.",
                 "cx": "A chord progression is not defined by one chord being used repeatedly; rather, it is the sequence formed by linking a first chord to a second, and a second to a third, establishing a harmonic foundation.",
-                "sourceFactIndexes": [
-                  2,
-                  3,
-                  4
-                ]
+                "sourceFactIndexes": [2, 3, 4]
               },
               "rawIssues": [],
               "compilerRepairs": [],
@@ -1735,10 +1357,7 @@
       "caseId": "harmony-form-analysis:music/harmony-and-progressions:key-term-1",
       "domain": "music-theory",
       "inputSha256": "ec1838dedf3cb120a05ee4f9944f0ecda034b7e67991c833aef54b9c911d0a18",
-      "matchedArmOrder": [
-        "matched-control",
-        "teacher"
-      ],
+      "matchedArmOrder": ["matched-control", "teacher"],
       "baseline": {
         "serverRequestReceipt": "1f04c703-5cbc-4df7-91fe-465e415e5f16",
         "responseModel": "scion-1",
@@ -1762,28 +1381,19 @@
         "authorizedSourceFactIndexes": [],
         "assessment": {
           "eligible": false,
-          "issues": [
-            "example-repeats-definition",
-            "correction-lacks-explicit-contrast"
-          ],
+          "issues": ["example-repeats-definition", "correction-lacks-explicit-contrast"],
           "term": {
-            "sourceFactIndexes": [
-              0
-            ],
+            "sourceFactIndexes": [0],
             "tr": "Harmony",
             "df": "The concept of combining different sounds in order to create new, distinct musical ideas.",
             "eg": "Combining sounds to create new, distinct musical ideas.",
             "mi": "The specific arrangement of notes in a single chord.",
             "cx": "The process of synthesizing disparate sonic elements into novel musical structures."
           },
-          "rawIssues": [
-            "example-repeats-definition"
-          ],
+          "rawIssues": ["example-repeats-definition"],
           "compilerRepairs": [],
           "contractEligible": false,
-          "pedagogicalIssues": [
-            "correction-lacks-explicit-contrast"
-          ]
+          "pedagogicalIssues": ["correction-lacks-explicit-contrast"]
         }
       },
       "matchedControl": {
@@ -1805,13 +1415,7 @@
         "scoredOutputSha256": "859e73629d20c6cb424ef9bd8d1650d19b28aece9c40889895c1238e3a79004f",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -1819,33 +1423,22 @@
           "supportedDistinction": "Harmony is the concept of combining different sounds in order to create new, distinct musical ideas."
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          0
-        ],
+        "authorizedSourceFactIndexes": [0],
         "assessment": {
           "eligible": false,
-          "issues": [
-            "example-repeats-definition",
-            "correction-lacks-explicit-contrast"
-          ],
+          "issues": ["example-repeats-definition", "correction-lacks-explicit-contrast"],
           "term": {
             "tr": "Harmony",
             "df": "The concept of combining different sounds to create new, distinct musical ideas.",
             "eg": "Combining sounds to create new, distinct musical ideas.",
             "mi": "The specific arrangement of notes in a single chord.",
             "cx": "Harmony is understood as the process of blending various sonic elements to generate novel and unique musical concepts.",
-            "sourceFactIndexes": [
-              0
-            ]
+            "sourceFactIndexes": [0]
           },
-          "rawIssues": [
-            "example-repeats-definition"
-          ],
+          "rawIssues": ["example-repeats-definition"],
           "compilerRepairs": [],
           "contractEligible": false,
-          "pedagogicalIssues": [
-            "correction-lacks-explicit-contrast"
-          ]
+          "pedagogicalIssues": ["correction-lacks-explicit-contrast"]
         },
         "selectedAttempt": 2,
         "attemptCount": 3,
@@ -1869,13 +1462,7 @@
             "scoredOutputSha256": "859e73629d20c6cb424ef9bd8d1650d19b28aece9c40889895c1238e3a79004f",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -1883,33 +1470,22 @@
               "supportedDistinction": "The concept of combining different sounds in order to create new, distinct musical ideas"
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0
-            ],
+            "authorizedSourceFactIndexes": [0],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "example-repeats-definition",
-                "correction-lacks-explicit-contrast"
-              ],
+              "issues": ["example-repeats-definition", "correction-lacks-explicit-contrast"],
               "term": {
                 "tr": "Harmony",
                 "df": "The concept of combining different sounds to create new, distinct musical ideas.",
                 "eg": "Combining sounds to create new, distinct musical ideas.",
                 "mi": "The specific arrangement of notes in a single chord.",
                 "cx": "Harmony is understood as the process of blending various sonic elements to generate novel and unique musical concepts.",
-                "sourceFactIndexes": [
-                  0
-                ]
+                "sourceFactIndexes": [0]
               },
-              "rawIssues": [
-                "example-repeats-definition"
-              ],
+              "rawIssues": ["example-repeats-definition"],
               "compilerRepairs": [],
               "contractEligible": false,
-              "pedagogicalIssues": [
-                "correction-lacks-explicit-contrast"
-              ]
+              "pedagogicalIssues": ["correction-lacks-explicit-contrast"]
             }
           },
           {
@@ -1931,13 +1507,7 @@
             "scoredOutputSha256": "7a6e3eddbda4011a604055b69f05e10fda369d88689721a5604242cc085e5af7",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -1945,33 +1515,22 @@
               "supportedDistinction": "The concept of combining different sounds in order to create new, distinct musical ideas"
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0
-            ],
+            "authorizedSourceFactIndexes": [0],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "example-repeats-definition",
-                "correction-reuses-misconception-structure"
-              ],
+              "issues": ["example-repeats-definition", "correction-reuses-misconception-structure"],
               "term": {
                 "tr": "Harmony",
                 "df": "The concept of combining different sounds to create new, distinct musical ideas.",
                 "eg": "Combining sounds to create new, distinct musical ideas.",
                 "mi": "The specific arrangement of notes in a single chord.",
                 "cx": "Harmony is the process of blending various sonic elements to generate novel, unique musical concepts, not merely the specific configuration of notes within a single chord.",
-                "sourceFactIndexes": [
-                  0
-                ]
+                "sourceFactIndexes": [0]
               },
-              "rawIssues": [
-                "example-repeats-definition"
-              ],
+              "rawIssues": ["example-repeats-definition"],
               "compilerRepairs": [],
               "contractEligible": false,
-              "pedagogicalIssues": [
-                "correction-reuses-misconception-structure"
-              ]
+              "pedagogicalIssues": ["correction-reuses-misconception-structure"]
             }
           },
           {
@@ -1993,13 +1552,7 @@
             "scoredOutputSha256": "859e73629d20c6cb424ef9bd8d1650d19b28aece9c40889895c1238e3a79004f",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -2007,33 +1560,22 @@
               "supportedDistinction": "Harmony is the concept of combining different sounds in order to create new, distinct musical ideas."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0
-            ],
+            "authorizedSourceFactIndexes": [0],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "example-repeats-definition",
-                "correction-lacks-explicit-contrast"
-              ],
+              "issues": ["example-repeats-definition", "correction-lacks-explicit-contrast"],
               "term": {
                 "tr": "Harmony",
                 "df": "The concept of combining different sounds to create new, distinct musical ideas.",
                 "eg": "Combining sounds to create new, distinct musical ideas.",
                 "mi": "The specific arrangement of notes in a single chord.",
                 "cx": "Harmony is understood as the process of blending various sonic elements to generate novel and unique musical concepts.",
-                "sourceFactIndexes": [
-                  0
-                ]
+                "sourceFactIndexes": [0]
               },
-              "rawIssues": [
-                "example-repeats-definition"
-              ],
+              "rawIssues": ["example-repeats-definition"],
               "compilerRepairs": [],
               "contractEligible": false,
-              "pedagogicalIssues": [
-                "correction-lacks-explicit-contrast"
-              ]
+              "pedagogicalIssues": ["correction-lacks-explicit-contrast"]
             }
           }
         ],
@@ -2059,13 +1601,7 @@
         "scoredOutputSha256": "f4262f2ca0943776aac7296d19abe768ea557ec567276fd71354777d8d3834a8",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -2073,27 +1609,19 @@
           "supportedDistinction": "Harmony is the concept of combining different sounds in order to create new, distinct musical ideas."
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          0
-        ],
+        "authorizedSourceFactIndexes": [0],
         "assessment": {
           "eligible": false,
-          "issues": [
-            "example-repeats-definition"
-          ],
+          "issues": ["example-repeats-definition"],
           "term": {
             "tr": "Harmony",
             "df": "The concept of combining different sounds to create new, distinct musical ideas.",
             "eg": "Combining sounds to create new, distinct musical ideas.",
             "mi": "The specific arrangement of notes in a single chord.",
             "cx": "Harmony is defined as the process of blending various sounds to generate novel musical concepts, not merely the precise configuration of notes within one chord.",
-            "sourceFactIndexes": [
-              0
-            ]
+            "sourceFactIndexes": [0]
           },
-          "rawIssues": [
-            "example-repeats-definition"
-          ],
+          "rawIssues": ["example-repeats-definition"],
           "compilerRepairs": [],
           "contractEligible": false,
           "pedagogicalIssues": []
@@ -2120,13 +1648,7 @@
             "scoredOutputSha256": "f4262f2ca0943776aac7296d19abe768ea557ec567276fd71354777d8d3834a8",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -2134,27 +1656,19 @@
               "supportedDistinction": "Harmony is the concept of combining different sounds in order to create new, distinct musical ideas."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0
-            ],
+            "authorizedSourceFactIndexes": [0],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "example-repeats-definition"
-              ],
+              "issues": ["example-repeats-definition"],
               "term": {
                 "tr": "Harmony",
                 "df": "The concept of combining different sounds to create new, distinct musical ideas.",
                 "eg": "Combining sounds to create new, distinct musical ideas.",
                 "mi": "The specific arrangement of notes in a single chord.",
                 "cx": "Harmony is defined as the process of blending various sounds to generate novel musical concepts, not merely the precise configuration of notes within one chord.",
-                "sourceFactIndexes": [
-                  0
-                ]
+                "sourceFactIndexes": [0]
               },
-              "rawIssues": [
-                "example-repeats-definition"
-              ],
+              "rawIssues": ["example-repeats-definition"],
               "compilerRepairs": [],
               "contractEligible": false,
               "pedagogicalIssues": []
@@ -2169,10 +1683,7 @@
       "caseId": "ux-research-synthesis-studio:ux/journey-mapping:key-term-0",
       "domain": "user-experience-design",
       "inputSha256": "bff6b6caad16fcca7215a858f66640c9596f0253e775da9453e06d81d486717a",
-      "matchedArmOrder": [
-        "teacher",
-        "matched-control"
-      ],
+      "matchedArmOrder": ["teacher", "matched-control"],
       "baseline": {
         "serverRequestReceipt": "a7b65922-adc7-4d11-82e4-e8f4faa47743",
         "responseModel": "scion-1",
@@ -2198,9 +1709,7 @@
           "eligible": true,
           "issues": [],
           "term": {
-            "sourceFactIndexes": [
-              0
-            ],
+            "sourceFactIndexes": [0],
             "tr": "End-to-end experience visualization",
             "df": "A visual representation covering the entire user path, allowing a team to see connected steps, boundaries, breakdowns, and opportunities.",
             "eg": "Mapping the steps from initial search to final purchase.",
@@ -2232,13 +1741,7 @@
         "scoredOutputSha256": "fa6aa9c4abeecc166d6eceb3b9d12b58c1ee51399b05beab34f4edff069aa899",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -2246,9 +1749,7 @@
           "supportedDistinction": "Journey mapping is an end-to-end experience visualization that illustrates connected steps, boundaries, breakdowns, and opportunities from the user's viewpoint."
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          0
-        ],
+        "authorizedSourceFactIndexes": [0],
         "assessment": {
           "eligible": true,
           "issues": [],
@@ -2258,9 +1759,7 @@
             "eg": "Mapping the steps from initial search to final purchase.",
             "mi": "Thinking a map is just a list of features.",
             "cx": "Instead of viewing a map as just a collection of isolated features, journey mapping provides an end-to-end experience visualization that shows the entire user path, including connected steps, potential boundaries, points of breakdown, and areas for opportunity.",
-            "sourceFactIndexes": [
-              0
-            ]
+            "sourceFactIndexes": [0]
           },
           "rawIssues": [],
           "compilerRepairs": [],
@@ -2289,13 +1788,7 @@
             "scoredOutputSha256": "fa6aa9c4abeecc166d6eceb3b9d12b58c1ee51399b05beab34f4edff069aa899",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -2303,9 +1796,7 @@
               "supportedDistinction": "Journey mapping is an end-to-end experience visualization that illustrates connected steps, boundaries, breakdowns, and opportunities from the user's viewpoint."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0
-            ],
+            "authorizedSourceFactIndexes": [0],
             "assessment": {
               "eligible": true,
               "issues": [],
@@ -2315,9 +1806,7 @@
                 "eg": "Mapping the steps from initial search to final purchase.",
                 "mi": "Thinking a map is just a list of features.",
                 "cx": "Instead of viewing a map as just a collection of isolated features, journey mapping provides an end-to-end experience visualization that shows the entire user path, including connected steps, potential boundaries, points of breakdown, and areas for opportunity.",
-                "sourceFactIndexes": [
-                  0
-                ]
+                "sourceFactIndexes": [0]
               },
               "rawIssues": [],
               "compilerRepairs": [],
@@ -2348,13 +1837,7 @@
         "scoredOutputSha256": "25294a0f3aa224efb300083bd0d455b452f0bd98faf061b8df638688f1a030ab",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -2362,9 +1845,7 @@
           "supportedDistinction": "Journey mapping illustrates a continuous sequence of connected stages from the user's viewpoint"
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          0
-        ],
+        "authorizedSourceFactIndexes": [0],
         "assessment": {
           "eligible": true,
           "issues": [],
@@ -2374,9 +1855,7 @@
             "eg": "Mapping the steps from initial search to final purchase.",
             "mi": "Thinking a map is just a list of features.",
             "cx": "Journey mapping is not simply a catalog of individual components; it is a comprehensive depiction of the entire user journey, showing how connected steps, obstacles, and potential improvements link together.",
-            "sourceFactIndexes": [
-              0
-            ]
+            "sourceFactIndexes": [0]
           },
           "rawIssues": [],
           "compilerRepairs": [],
@@ -2405,13 +1884,7 @@
             "scoredOutputSha256": "8249c11e39ded6125e6390ac1b1fc9704090c13bed7ea63b10b714c6bfeb5bcc",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -2419,30 +1892,22 @@
               "supportedDistinction": "A map is a comprehensive depiction of the entire user journey, illustrating interconnected stages, obstacles, and potential improvements."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0
-            ],
+            "authorizedSourceFactIndexes": [0],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-lacks-explicit-contrast"
-              ],
+              "issues": ["correction-lacks-explicit-contrast"],
               "term": {
                 "tr": "End-to-end experience visualization",
                 "df": "A visual representation covering the entire user path.",
                 "eg": "Mapping the steps from initial search to final purchase.",
                 "mi": "Thinking a map is just a list of features.",
                 "cx": "A map functions as a complete depiction of the entire user experience from the user's viewpoint, allowing a team to observe the linked stages, points of failure, and chances for enhancement.",
-                "sourceFactIndexes": [
-                  0
-                ]
+                "sourceFactIndexes": [0]
               },
               "rawIssues": [],
               "compilerRepairs": [],
               "contractEligible": true,
-              "pedagogicalIssues": [
-                "correction-lacks-explicit-contrast"
-              ]
+              "pedagogicalIssues": ["correction-lacks-explicit-contrast"]
             }
           },
           {
@@ -2464,13 +1929,7 @@
             "scoredOutputSha256": "25294a0f3aa224efb300083bd0d455b452f0bd98faf061b8df638688f1a030ab",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -2478,9 +1937,7 @@
               "supportedDistinction": "Journey mapping illustrates a continuous sequence of connected stages from the user's viewpoint"
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0
-            ],
+            "authorizedSourceFactIndexes": [0],
             "assessment": {
               "eligible": true,
               "issues": [],
@@ -2490,9 +1947,7 @@
                 "eg": "Mapping the steps from initial search to final purchase.",
                 "mi": "Thinking a map is just a list of features.",
                 "cx": "Journey mapping is not simply a catalog of individual components; it is a comprehensive depiction of the entire user journey, showing how connected steps, obstacles, and potential improvements link together.",
-                "sourceFactIndexes": [
-                  0
-                ]
+                "sourceFactIndexes": [0]
               },
               "rawIssues": [],
               "compilerRepairs": [],
@@ -2509,10 +1964,7 @@
       "caseId": "ux-research-synthesis-studio:ux/journey-mapping:key-term-1",
       "domain": "user-experience-design",
       "inputSha256": "a6c89ad962efd29a347d4e1b1891f52003475a10bf24738078388ca48f7548bb",
-      "matchedArmOrder": [
-        "matched-control",
-        "teacher"
-      ],
+      "matchedArmOrder": ["matched-control", "teacher"],
       "baseline": {
         "serverRequestReceipt": "ef915bbd-970e-40b2-9cfc-7e575d8b369c",
         "responseModel": "scion-1",
@@ -2536,13 +1988,9 @@
         "authorizedSourceFactIndexes": [],
         "assessment": {
           "eligible": false,
-          "issues": [
-            "correction-lacks-explicit-contrast"
-          ],
+          "issues": ["correction-lacks-explicit-contrast"],
           "term": {
-            "sourceFactIndexes": [
-              0
-            ],
+            "sourceFactIndexes": [0],
             "tr": "Service flow analysis",
             "df": "Examining the sequence of user actions and transactions.",
             "eg": "Analyzing the steps users take to complete a banking task.",
@@ -2552,9 +2000,7 @@
           "rawIssues": [],
           "compilerRepairs": [],
           "contractEligible": true,
-          "pedagogicalIssues": [
-            "correction-lacks-explicit-contrast"
-          ]
+          "pedagogicalIssues": ["correction-lacks-explicit-contrast"]
         }
       },
       "matchedControl": {
@@ -2576,13 +2022,7 @@
         "scoredOutputSha256": "ffa86b4284966cb84c6237a5a6e3974a356a974dd57b45eb47fbe46996139103",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -2590,27 +2030,19 @@
           "supportedDistinction": "Flow analysis involves examining the sequence of user actions and transactions, whereas feature listing only enumerates available components."
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          1
-        ],
+        "authorizedSourceFactIndexes": [1],
         "assessment": {
           "eligible": false,
-          "issues": [
-            "cx-length"
-          ],
+          "issues": ["cx-length"],
           "term": {
             "tr": "Service flow analysis",
             "df": "Examining the sequence of user actions and transactions.",
             "eg": "Analyzing the steps users take to complete a banking task.",
             "mi": "Confusing flow analysis with simple feature listing.",
             "cx": "To accurately map the user journey, one must examine the sequence of user actions and transactions involved, rather than simply listing every available feature. For example, instead of just listing 'Login Button' and 'Checkout Page,' a flow analysis details the specific steps a user takes, such as 'User enters credentials $\rightarrow$ System validates credentials $\rightarrow$ User clicks 'Proceed to Payment' $\rightarrow$ User selects shipping address $\rightarrow$ User confirms order.' This sequence-based examination is the core of flow analysis.",
-            "sourceFactIndexes": [
-              1
-            ]
+            "sourceFactIndexes": [1]
           },
-          "rawIssues": [
-            "cx-length"
-          ],
+          "rawIssues": ["cx-length"],
           "compilerRepairs": [],
           "contractEligible": false,
           "pedagogicalIssues": []
@@ -2637,13 +2069,7 @@
             "scoredOutputSha256": "ffa86b4284966cb84c6237a5a6e3974a356a974dd57b45eb47fbe46996139103",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -2651,27 +2077,19 @@
               "supportedDistinction": "Flow analysis involves examining the sequence of user actions and transactions, whereas feature listing only enumerates available components."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              1
-            ],
+            "authorizedSourceFactIndexes": [1],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "cx-length"
-              ],
+              "issues": ["cx-length"],
               "term": {
                 "tr": "Service flow analysis",
                 "df": "Examining the sequence of user actions and transactions.",
                 "eg": "Analyzing the steps users take to complete a banking task.",
                 "mi": "Confusing flow analysis with simple feature listing.",
                 "cx": "To accurately map the user journey, one must examine the sequence of user actions and transactions involved, rather than simply listing every available feature. For example, instead of just listing 'Login Button' and 'Checkout Page,' a flow analysis details the specific steps a user takes, such as 'User enters credentials $\rightarrow$ System validates credentials $\rightarrow$ User clicks 'Proceed to Payment' $\rightarrow$ User selects shipping address $\rightarrow$ User confirms order.' This sequence-based examination is the core of flow analysis.",
-                "sourceFactIndexes": [
-                  1
-                ]
+                "sourceFactIndexes": [1]
               },
-              "rawIssues": [
-                "cx-length"
-              ],
+              "rawIssues": ["cx-length"],
               "compilerRepairs": [],
               "contractEligible": false,
               "pedagogicalIssues": []
@@ -2700,13 +2118,7 @@
         "scoredOutputSha256": "a10a04ae1b40f0dcb6017850175908de6987924e908cc32d9774576d997ca6b0",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -2714,9 +2126,7 @@
           "supportedDistinction": "A journey map must originate from investigating the actual sequence of user steps and the specific transactions that occur during those steps."
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          1
-        ],
+        "authorizedSourceFactIndexes": [1],
         "assessment": {
           "eligible": true,
           "issues": [],
@@ -2726,9 +2136,7 @@
             "eg": "Analyzing the steps users take to complete a banking task.",
             "mi": "Confusing flow analysis with simple feature listing.",
             "cx": "A journey map must begin by researching the actual steps users perform and the transactions they engage in, rather than simply listing the features available.",
-            "sourceFactIndexes": [
-              1
-            ]
+            "sourceFactIndexes": [1]
           },
           "rawIssues": [],
           "compilerRepairs": [],
@@ -2757,13 +2165,7 @@
             "scoredOutputSha256": "a10a04ae1b40f0dcb6017850175908de6987924e908cc32d9774576d997ca6b0",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -2771,9 +2173,7 @@
               "supportedDistinction": "A journey map must originate from investigating the actual sequence of user steps and the specific transactions that occur during those steps."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              1
-            ],
+            "authorizedSourceFactIndexes": [1],
             "assessment": {
               "eligible": true,
               "issues": [],
@@ -2783,9 +2183,7 @@
                 "eg": "Analyzing the steps users take to complete a banking task.",
                 "mi": "Confusing flow analysis with simple feature listing.",
                 "cx": "A journey map must begin by researching the actual steps users perform and the transactions they engage in, rather than simply listing the features available.",
-                "sourceFactIndexes": [
-                  1
-                ]
+                "sourceFactIndexes": [1]
               },
               "rawIssues": [],
               "compilerRepairs": [],
@@ -2802,10 +2200,7 @@
       "caseId": "ux-prototyping-accessibility-lab:ux/accessibility-usability-evaluation:key-term-0",
       "domain": "user-experience-design",
       "inputSha256": "26d4d1c0e509e18927b93728785b69f2983276615920c5c233082e5c181849b0",
-      "matchedArmOrder": [
-        "teacher",
-        "matched-control"
-      ],
+      "matchedArmOrder": ["teacher", "matched-control"],
       "baseline": {
         "serverRequestReceipt": "b518fd0b-b1cd-4314-93cc-25e8b1bea049",
         "responseModel": "scion-1",
@@ -2829,13 +2224,9 @@
         "authorizedSourceFactIndexes": [],
         "assessment": {
           "eligible": false,
-          "issues": [
-            "correction-lacks-explicit-contrast"
-          ],
+          "issues": ["correction-lacks-explicit-contrast"],
           "term": {
-            "sourceFactIndexes": [
-              0
-            ],
+            "sourceFactIndexes": [0],
             "tr": "Standard-based conformance checks",
             "df": "Verification against established guidelines for accessibility. This involves checking if a website meets WCAG criteria for contrast ratios, keyboard navigation, and screen reader compatibility.",
             "eg": "Checking if a website meets WCAG criteria for contrast ratios (e.g., AA level contrast of 4.5:1 for normal text) and ensuring all interactive elements are reachable via keyboard.",
@@ -2845,9 +2236,7 @@
           "rawIssues": [],
           "compilerRepairs": [],
           "contractEligible": true,
-          "pedagogicalIssues": [
-            "correction-lacks-explicit-contrast"
-          ]
+          "pedagogicalIssues": ["correction-lacks-explicit-contrast"]
         }
       },
       "matchedControl": {
@@ -2869,13 +2258,7 @@
         "scoredOutputSha256": "f44b97c4b64cb10ef0a984a28efd39202aa03bc1cdcea9d9091e041071fb42ea",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -2883,9 +2266,7 @@
           "supportedDistinction": "Verification against established guidelines for accessibility."
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          1
-        ],
+        "authorizedSourceFactIndexes": [1],
         "assessment": {
           "eligible": true,
           "issues": [],
@@ -2895,9 +2276,7 @@
             "eg": "Checking if a website meets WCAG criteria for contrast ratios.",
             "mi": "Assuming that meeting all technical standards guarantees full usability.",
             "cx": "Adhering to the principles of perceivability, operability, understandability, and robustness, as outlined by WCAG, ensures that a website is usable for everyone, rather than simply meeting technical benchmarks.",
-            "sourceFactIndexes": [
-              1
-            ]
+            "sourceFactIndexes": [1]
           },
           "rawIssues": [],
           "compilerRepairs": [],
@@ -2926,13 +2305,7 @@
             "scoredOutputSha256": "f44b97c4b64cb10ef0a984a28efd39202aa03bc1cdcea9d9091e041071fb42ea",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -2940,9 +2313,7 @@
               "supportedDistinction": "Verification against established guidelines for accessibility."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              1
-            ],
+            "authorizedSourceFactIndexes": [1],
             "assessment": {
               "eligible": true,
               "issues": [],
@@ -2952,9 +2323,7 @@
                 "eg": "Checking if a website meets WCAG criteria for contrast ratios.",
                 "mi": "Assuming that meeting all technical standards guarantees full usability.",
                 "cx": "Adhering to the principles of perceivability, operability, understandability, and robustness, as outlined by WCAG, ensures that a website is usable for everyone, rather than simply meeting technical benchmarks.",
-                "sourceFactIndexes": [
-                  1
-                ]
+                "sourceFactIndexes": [1]
               },
               "rawIssues": [],
               "compilerRepairs": [],
@@ -2985,13 +2354,7 @@
         "scoredOutputSha256": "9a61ecc156dd58ca1bf1532d16a9677944888d4388f42462d0d4f6810d3a9b0c",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -2999,9 +2362,7 @@
           "supportedDistinction": "Adhering to WCAG principles ensures a website is perceivable, operable, understandable, and robust, which is a necessary but not sufficient condition for complete usability."
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          1
-        ],
+        "authorizedSourceFactIndexes": [1],
         "assessment": {
           "eligible": true,
           "issues": [],
@@ -3011,9 +2372,7 @@
             "eg": "Checking if a website meets WCAG criteria for contrast ratios.",
             "mi": "Assuming that meeting all technical standards guarantees full usability.",
             "cx": "Achieving compliance with WCAG principles—perceivable, operable, understandable, and robust—is a requirement for web accessibility, but it does not inherently guarantee that a website will be fully usable by every individual.",
-            "sourceFactIndexes": [
-              1
-            ]
+            "sourceFactIndexes": [1]
           },
           "rawIssues": [],
           "compilerRepairs": [],
@@ -3042,13 +2401,7 @@
             "scoredOutputSha256": "9a61ecc156dd58ca1bf1532d16a9677944888d4388f42462d0d4f6810d3a9b0c",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -3056,9 +2409,7 @@
               "supportedDistinction": "Adhering to WCAG principles ensures a website is perceivable, operable, understandable, and robust, which is a necessary but not sufficient condition for complete usability."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              1
-            ],
+            "authorizedSourceFactIndexes": [1],
             "assessment": {
               "eligible": true,
               "issues": [],
@@ -3068,9 +2419,7 @@
                 "eg": "Checking if a website meets WCAG criteria for contrast ratios.",
                 "mi": "Assuming that meeting all technical standards guarantees full usability.",
                 "cx": "Achieving compliance with WCAG principles—perceivable, operable, understandable, and robust—is a requirement for web accessibility, but it does not inherently guarantee that a website will be fully usable by every individual.",
-                "sourceFactIndexes": [
-                  1
-                ]
+                "sourceFactIndexes": [1]
               },
               "rawIssues": [],
               "compilerRepairs": [],
@@ -3087,10 +2436,7 @@
       "caseId": "ux-prototyping-accessibility-lab:ux/accessibility-usability-evaluation:key-term-1",
       "domain": "user-experience-design",
       "inputSha256": "9e0e17f8d830ed3370c16d351cdc1034a207fe8f7bc58f936ba933b70cff1303",
-      "matchedArmOrder": [
-        "matched-control",
-        "teacher"
-      ],
+      "matchedArmOrder": ["matched-control", "teacher"],
       "baseline": {
         "serverRequestReceipt": "61bed679-1277-4a18-b901-25a7307fe787",
         "responseModel": "scion-1",
@@ -3116,18 +2462,14 @@
           "eligible": true,
           "issues": [],
           "term": {
-            "sourceFactIndexes": [
-              3
-            ],
+            "sourceFactIndexes": [3],
             "tr": "Usability test",
             "df": "Observing users attempting to use a product or service while thinking aloud.",
             "eg": "Watching a user struggle to complete a checkout process while verbalizing their confusion.",
             "mi": "A usability test only measures task completion time without observing user thought processes.",
             "cx": "Unlike measuring only task completion time, a usability test actively observes users attempting to use a product or service while thinking aloud to understand their cognitive hurdles."
           },
-          "rawIssues": [
-            "circular-definition"
-          ],
+          "rawIssues": ["circular-definition"],
           "compilerRepairs": [
             {
               "field": "definition",
@@ -3160,13 +2502,7 @@
         "scoredOutputSha256": "472da3f7448d4e6de54c24bf5e37288fbcfa3f2feb59aadae333074afb393aba",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -3174,9 +2510,7 @@
           "supportedDistinction": "A usability test involves observing users attempting to use a product or service while thinking aloud."
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          3
-        ],
+        "authorizedSourceFactIndexes": [3],
         "assessment": {
           "eligible": true,
           "issues": [],
@@ -3186,9 +2520,7 @@
             "eg": "Watching a user struggle to complete a checkout process while verbalizing their confusion.",
             "mi": "A usability test only measures task completion time without observing user thought processes.",
             "cx": "Instead of solely focusing on how long it takes to finish a task, a usability test involves watching users as they attempt to use a product or service while verbalizing their thoughts.",
-            "sourceFactIndexes": [
-              3
-            ]
+            "sourceFactIndexes": [3]
           },
           "rawIssues": [],
           "compilerRepairs": [],
@@ -3217,13 +2549,7 @@
             "scoredOutputSha256": "472da3f7448d4e6de54c24bf5e37288fbcfa3f2feb59aadae333074afb393aba",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -3231,9 +2557,7 @@
               "supportedDistinction": "A usability test involves observing users attempting to use a product or service while thinking aloud."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              3
-            ],
+            "authorizedSourceFactIndexes": [3],
             "assessment": {
               "eligible": true,
               "issues": [],
@@ -3243,9 +2567,7 @@
                 "eg": "Watching a user struggle to complete a checkout process while verbalizing their confusion.",
                 "mi": "A usability test only measures task completion time without observing user thought processes.",
                 "cx": "Instead of solely focusing on how long it takes to finish a task, a usability test involves watching users as they attempt to use a product or service while verbalizing their thoughts.",
-                "sourceFactIndexes": [
-                  3
-                ]
+                "sourceFactIndexes": [3]
               },
               "rawIssues": [],
               "compilerRepairs": [],
@@ -3276,13 +2598,7 @@
         "scoredOutputSha256": "1e721884d9a8a241b566d3f3fd3ef37842fe60282fff073d14c9d9a8381dfd40",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -3290,9 +2606,7 @@
           "supportedDistinction": "A usability test involves watching users as they interact with a product or service while they articulate their internal cognitive steps."
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          3
-        ],
+        "authorizedSourceFactIndexes": [3],
         "assessment": {
           "eligible": true,
           "issues": [],
@@ -3302,9 +2616,7 @@
             "eg": "Watching a user struggle to complete a checkout process while verbalizing their confusion.",
             "mi": "A usability test only measures task completion time without observing user thought processes.",
             "cx": "A usability test captures the user's mental journey by observing them as they attempt to use a product or service while thinking aloud, rather than just recording how long it takes to finish a task.",
-            "sourceFactIndexes": [
-              3
-            ]
+            "sourceFactIndexes": [3]
           },
           "rawIssues": [],
           "compilerRepairs": [],
@@ -3333,13 +2645,7 @@
             "scoredOutputSha256": "1e721884d9a8a241b566d3f3fd3ef37842fe60282fff073d14c9d9a8381dfd40",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -3347,9 +2653,7 @@
               "supportedDistinction": "A usability test involves watching users as they interact with a product or service while they articulate their internal cognitive steps."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              3
-            ],
+            "authorizedSourceFactIndexes": [3],
             "assessment": {
               "eligible": true,
               "issues": [],
@@ -3359,9 +2663,7 @@
                 "eg": "Watching a user struggle to complete a checkout process while verbalizing their confusion.",
                 "mi": "A usability test only measures task completion time without observing user thought processes.",
                 "cx": "A usability test captures the user's mental journey by observing them as they attempt to use a product or service while thinking aloud, rather than just recording how long it takes to finish a task.",
-                "sourceFactIndexes": [
-                  3
-                ]
+                "sourceFactIndexes": [3]
               },
               "rawIssues": [],
               "compilerRepairs": [],
@@ -3378,10 +2680,7 @@
       "caseId": "python-program-architecture-studio:cs/for-loops:key-term-1",
       "domain": "computer-science",
       "inputSha256": "29b9a023a82a0734e3804e68cfbc1769f1ac6c504ce801d75d9db98153f9c6f3",
-      "matchedArmOrder": [
-        "teacher",
-        "matched-control"
-      ],
+      "matchedArmOrder": ["teacher", "matched-control"],
       "baseline": {
         "serverRequestReceipt": "01bb9503-d670-41a3-86fb-6f32919c8b69",
         "responseModel": "scion-1",
@@ -3407,9 +2706,7 @@
           "eligible": true,
           "issues": [],
           "term": {
-            "sourceFactIndexes": [
-              3
-            ],
+            "sourceFactIndexes": [3],
             "tr": "Range function",
             "df": "A function that generates a sequence of integers, commonly used with a for loop to repeat a block of code a specific number of times. For example, range(5) generates the sequence 0, 1, 2, 3, 4.",
             "eg": "Using range(5) to loop exactly five times.",
@@ -3441,13 +2738,7 @@
         "scoredOutputSha256": "2e125b75b6818a5d895f7065e4cd7943e35701528f305764b668fb2237e9bbf1",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -3455,9 +2746,7 @@
           "supportedDistinction": "The range function generates a sequence of integers, which is typically used in conjunction with a for loop to execute a block of code a specific number of times."
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          3
-        ],
+        "authorizedSourceFactIndexes": [3],
         "assessment": {
           "eligible": true,
           "issues": [],
@@ -3467,9 +2756,7 @@
             "eg": "Using range(5) to loop exactly five times.",
             "mi": "Thinking range() is the loop itself.",
             "cx": "The range function generates a sequence of integers, which is typically used in conjunction with a for loop to execute a block of code a specific number of times, rather than the range function being the loop itself.",
-            "sourceFactIndexes": [
-              3
-            ]
+            "sourceFactIndexes": [3]
           },
           "rawIssues": [],
           "compilerRepairs": [],
@@ -3498,13 +2785,7 @@
             "scoredOutputSha256": "2e125b75b6818a5d895f7065e4cd7943e35701528f305764b668fb2237e9bbf1",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -3512,9 +2793,7 @@
               "supportedDistinction": "The range function generates a sequence of integers, which is typically used in conjunction with a for loop to execute a block of code a specific number of times."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              3
-            ],
+            "authorizedSourceFactIndexes": [3],
             "assessment": {
               "eligible": true,
               "issues": [],
@@ -3524,9 +2803,7 @@
                 "eg": "Using range(5) to loop exactly five times.",
                 "mi": "Thinking range() is the loop itself.",
                 "cx": "The range function generates a sequence of integers, which is typically used in conjunction with a for loop to execute a block of code a specific number of times, rather than the range function being the loop itself.",
-                "sourceFactIndexes": [
-                  3
-                ]
+                "sourceFactIndexes": [3]
               },
               "rawIssues": [],
               "compilerRepairs": [],
@@ -3557,13 +2834,7 @@
         "scoredOutputSha256": "96faebf84c047cf2b325856f9e97f672271bda130cfaaf6f59f9aae16da3d69f",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -3571,9 +2842,7 @@
           "supportedDistinction": "The range function generates a sequence of integers, which is then typically used in conjunction with a for loop to execute the loop body a specific number of times."
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          3
-        ],
+        "authorizedSourceFactIndexes": [3],
         "assessment": {
           "eligible": true,
           "issues": [],
@@ -3583,9 +2852,7 @@
             "eg": "Using range(5) to loop exactly five times.",
             "mi": "Thinking range() is the loop itself.",
             "cx": "The range function generates a sequence of integers, which is commonly paired with a for loop to repeat the body a fixed number of times, rather than being the loop mechanism itself.",
-            "sourceFactIndexes": [
-              3
-            ]
+            "sourceFactIndexes": [3]
           },
           "rawIssues": [],
           "compilerRepairs": [],
@@ -3614,13 +2881,7 @@
             "scoredOutputSha256": "96faebf84c047cf2b325856f9e97f672271bda130cfaaf6f59f9aae16da3d69f",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -3628,9 +2889,7 @@
               "supportedDistinction": "The range function generates a sequence of integers, which is then typically used in conjunction with a for loop to execute the loop body a specific number of times."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              3
-            ],
+            "authorizedSourceFactIndexes": [3],
             "assessment": {
               "eligible": true,
               "issues": [],
@@ -3640,9 +2899,7 @@
                 "eg": "Using range(5) to loop exactly five times.",
                 "mi": "Thinking range() is the loop itself.",
                 "cx": "The range function generates a sequence of integers, which is commonly paired with a for loop to repeat the body a fixed number of times, rather than being the loop mechanism itself.",
-                "sourceFactIndexes": [
-                  3
-                ]
+                "sourceFactIndexes": [3]
               },
               "rawIssues": [],
               "compilerRepairs": [],
@@ -3659,10 +2916,7 @@
       "caseId": "ux-evidence-to-prototype-capstone:ux/interactive-prototyping:key-term-0",
       "domain": "user-experience-design",
       "inputSha256": "c2548dc3dafd36e3ac47d1ee95e8d14a2b4e27cbc57fb3689b8c7f77d54f05c3",
-      "matchedArmOrder": [
-        "matched-control",
-        "teacher"
-      ],
+      "matchedArmOrder": ["matched-control", "teacher"],
       "baseline": {
         "serverRequestReceipt": "b5352574-8d45-44e5-bbbe-714cdffdbce7",
         "responseModel": "scion-1",
@@ -3686,13 +2940,9 @@
         "authorizedSourceFactIndexes": [],
         "assessment": {
           "eligible": false,
-          "issues": [
-            "correction-reuses-misconception-structure"
-          ],
+          "issues": ["correction-reuses-misconception-structure"],
           "term": {
-            "sourceFactIndexes": [
-              0
-            ],
+            "sourceFactIndexes": [0],
             "tr": "Testable representation",
             "df": "A visual model of an experience that can be used for testing.",
             "eg": "A low-fidelity wireframe of a new mobile app screen.",
@@ -3702,9 +2952,7 @@
           "rawIssues": [],
           "compilerRepairs": [],
           "contractEligible": true,
-          "pedagogicalIssues": [
-            "correction-reuses-misconception-structure"
-          ]
+          "pedagogicalIssues": ["correction-reuses-misconception-structure"]
         }
       },
       "matchedControl": {
@@ -3726,13 +2974,7 @@
         "scoredOutputSha256": "b71d549c45792147e64bcdf56be9181387cf9720a5f57897eccc94211c324ffd",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -3740,30 +2982,22 @@
           "supportedDistinction": "A visual model of an experience that can be used for testing"
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          0
-        ],
+        "authorizedSourceFactIndexes": [0],
         "assessment": {
           "eligible": false,
-          "issues": [
-            "correction-reuses-misconception-structure"
-          ],
+          "issues": ["correction-reuses-misconception-structure"],
           "term": {
             "tr": "Testable representation",
             "df": "A visual model of an experience that can be used for testing.",
             "eg": "A low-fidelity wireframe of a new mobile app screen.",
             "mi": "A prototype that includes every production detail.",
             "cx": "Instead of creating a prototype that incorporates every production specification, interactive prototyping establishes a testable representation of how an experience functions and appears, allowing for validation without needing full production fidelity.",
-            "sourceFactIndexes": [
-              0
-            ]
+            "sourceFactIndexes": [0]
           },
           "rawIssues": [],
           "compilerRepairs": [],
           "contractEligible": true,
-          "pedagogicalIssues": [
-            "correction-reuses-misconception-structure"
-          ]
+          "pedagogicalIssues": ["correction-reuses-misconception-structure"]
         },
         "selectedAttempt": 2,
         "attemptCount": 3,
@@ -3787,13 +3021,7 @@
             "scoredOutputSha256": "a3cc07562c93a3fdb3ce7f4be8d48b8ea9d59cbf7c42ca82517e9be9203043dc",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -3801,30 +3029,22 @@
               "supportedDistinction": "A visual model of an experience that can be used for testing"
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0
-            ],
+            "authorizedSourceFactIndexes": [0],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-reuses-misconception-structure"
-              ],
+              "issues": ["correction-reuses-misconception-structure"],
               "term": {
                 "tr": "Testable representation",
                 "df": "A visual model of an experience that can be used for testing.",
                 "eg": "A low-fidelity wireframe of a new mobile app screen.",
                 "mi": "A prototype that includes every production detail.",
                 "cx": "Instead of a prototype that incorporates every production specification, interactive prototyping serves as a testable representation of how a planned experience functions and appears, eliminating the need for complete production fidelity.",
-                "sourceFactIndexes": [
-                  0
-                ]
+                "sourceFactIndexes": [0]
               },
               "rawIssues": [],
               "compilerRepairs": [],
               "contractEligible": true,
-              "pedagogicalIssues": [
-                "correction-reuses-misconception-structure"
-              ]
+              "pedagogicalIssues": ["correction-reuses-misconception-structure"]
             }
           },
           {
@@ -3846,13 +3066,7 @@
             "scoredOutputSha256": "afc04c7cbbc583fa6bc28b401f9842d4dc88db82f531b69a3d7c2afc594a46e2",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -3860,30 +3074,22 @@
               "supportedDistinction": "A visual model of an experience that can be used for testing"
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0
-            ],
+            "authorizedSourceFactIndexes": [0],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-reuses-misconception-structure"
-              ],
+              "issues": ["correction-reuses-misconception-structure"],
               "term": {
                 "tr": "Testable representation",
                 "df": "A visual model of an experience that can be used for testing.",
                 "eg": "A low-fidelity wireframe of a new mobile app screen.",
                 "mi": "A prototype that includes every production detail.",
                 "cx": "Instead of creating a prototype that incorporates every production specification, interactive prototyping establishes a testable representation of how an experience functions and appears, allowing for validation without needing final production fidelity.",
-                "sourceFactIndexes": [
-                  0
-                ]
+                "sourceFactIndexes": [0]
               },
               "rawIssues": [],
               "compilerRepairs": [],
               "contractEligible": true,
-              "pedagogicalIssues": [
-                "correction-reuses-misconception-structure"
-              ]
+              "pedagogicalIssues": ["correction-reuses-misconception-structure"]
             }
           },
           {
@@ -3905,13 +3111,7 @@
             "scoredOutputSha256": "b71d549c45792147e64bcdf56be9181387cf9720a5f57897eccc94211c324ffd",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -3919,30 +3119,22 @@
               "supportedDistinction": "A visual model of an experience that can be used for testing"
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0
-            ],
+            "authorizedSourceFactIndexes": [0],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-reuses-misconception-structure"
-              ],
+              "issues": ["correction-reuses-misconception-structure"],
               "term": {
                 "tr": "Testable representation",
                 "df": "A visual model of an experience that can be used for testing.",
                 "eg": "A low-fidelity wireframe of a new mobile app screen.",
                 "mi": "A prototype that includes every production detail.",
                 "cx": "Instead of creating a prototype that incorporates every production specification, interactive prototyping establishes a testable representation of how an experience functions and appears, allowing for validation without needing full production fidelity.",
-                "sourceFactIndexes": [
-                  0
-                ]
+                "sourceFactIndexes": [0]
               },
               "rawIssues": [],
               "compilerRepairs": [],
               "contractEligible": true,
-              "pedagogicalIssues": [
-                "correction-reuses-misconception-structure"
-              ]
+              "pedagogicalIssues": ["correction-reuses-misconception-structure"]
             }
           }
         ],
@@ -3968,13 +3160,7 @@
         "scoredOutputSha256": "d30246d86b86a8d593ad6a9fde9f45ae5e8d42e8fcc1ea2adf6f10d38860a8c8",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -3982,29 +3168,19 @@
           "supportedDistinction": "A testable representation of how an experience functions without needing every production detail"
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          0
-        ],
+        "authorizedSourceFactIndexes": [0],
         "assessment": {
           "eligible": false,
-          "issues": [
-            "correction-repeats-definition",
-            "correction-lacks-explicit-contrast"
-          ],
+          "issues": ["correction-repeats-definition", "correction-lacks-explicit-contrast"],
           "term": {
             "tr": "Testable representation",
             "df": "A visual model of an experience that can be used for testing.",
             "eg": "A low-fidelity wireframe of a new mobile app screen.",
             "mi": "A prototype that includes every production detail.",
             "cx": "A visual model of an experience that can be used for testing.",
-            "sourceFactIndexes": [
-              0
-            ]
+            "sourceFactIndexes": [0]
           },
-          "rawIssues": [
-            "correction-repeats-definition",
-            "correction-repeats-misconception"
-          ],
+          "rawIssues": ["correction-repeats-definition", "correction-repeats-misconception"],
           "compilerRepairs": [
             {
               "field": "correction",
@@ -4015,9 +3191,7 @@
             }
           ],
           "contractEligible": false,
-          "pedagogicalIssues": [
-            "correction-lacks-explicit-contrast"
-          ]
+          "pedagogicalIssues": ["correction-lacks-explicit-contrast"]
         },
         "selectedAttempt": 2,
         "attemptCount": 3,
@@ -4041,13 +3215,7 @@
             "scoredOutputSha256": "93a46ea45074fa5fbec97ed35e2b32d49c0d85ae73b7806d689d94d317606537",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -4055,33 +3223,22 @@
               "supportedDistinction": "A testable representation that omits every production detail"
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0
-            ],
+            "authorizedSourceFactIndexes": [0],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-repeats-definition",
-                "correction-lacks-explicit-contrast"
-              ],
+              "issues": ["correction-repeats-definition", "correction-lacks-explicit-contrast"],
               "term": {
                 "tr": "Testable representation",
                 "df": "A visual model of an experience that can be used for testing.",
                 "eg": "A low-fidelity wireframe of a new mobile app screen.",
                 "mi": "A prototype that includes every production detail.",
                 "cx": "A visual model of an experience that can be used for testing, which intentionally excludes every specific production element.",
-                "sourceFactIndexes": [
-                  0
-                ]
+                "sourceFactIndexes": [0]
               },
-              "rawIssues": [
-                "correction-repeats-definition"
-              ],
+              "rawIssues": ["correction-repeats-definition"],
               "compilerRepairs": [],
               "contractEligible": false,
-              "pedagogicalIssues": [
-                "correction-lacks-explicit-contrast"
-              ]
+              "pedagogicalIssues": ["correction-lacks-explicit-contrast"]
             }
           },
           {
@@ -4103,13 +3260,7 @@
             "scoredOutputSha256": "90ae9b34cb13aee120e755f9ef69184df8292461c78d7de43269190c2a488f40",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -4117,30 +3268,22 @@
               "supportedDistinction": "A testable representation that omits every production detail"
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0
-            ],
+            "authorizedSourceFactIndexes": [0],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-reuses-misconception-structure"
-              ],
+              "issues": ["correction-reuses-misconception-structure"],
               "term": {
                 "tr": "Testable representation",
                 "df": "A visual model of an experience that can be used for testing.",
                 "eg": "A low-fidelity wireframe of a new mobile app screen.",
                 "mi": "A prototype that includes every production detail.",
                 "cx": "A testable representation is not a prototype that incorporates every specific production element; rather, it is a visual model of an experience that can be used for testing without requiring every production detail.",
-                "sourceFactIndexes": [
-                  0
-                ]
+                "sourceFactIndexes": [0]
               },
               "rawIssues": [],
               "compilerRepairs": [],
               "contractEligible": true,
-              "pedagogicalIssues": [
-                "correction-reuses-misconception-structure"
-              ]
+              "pedagogicalIssues": ["correction-reuses-misconception-structure"]
             }
           },
           {
@@ -4162,13 +3305,7 @@
             "scoredOutputSha256": "d30246d86b86a8d593ad6a9fde9f45ae5e8d42e8fcc1ea2adf6f10d38860a8c8",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -4176,29 +3313,19 @@
               "supportedDistinction": "A testable representation of how an experience functions without needing every production detail"
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0
-            ],
+            "authorizedSourceFactIndexes": [0],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-repeats-definition",
-                "correction-lacks-explicit-contrast"
-              ],
+              "issues": ["correction-repeats-definition", "correction-lacks-explicit-contrast"],
               "term": {
                 "tr": "Testable representation",
                 "df": "A visual model of an experience that can be used for testing.",
                 "eg": "A low-fidelity wireframe of a new mobile app screen.",
                 "mi": "A prototype that includes every production detail.",
                 "cx": "A visual model of an experience that can be used for testing.",
-                "sourceFactIndexes": [
-                  0
-                ]
+                "sourceFactIndexes": [0]
               },
-              "rawIssues": [
-                "correction-repeats-definition",
-                "correction-repeats-misconception"
-              ],
+              "rawIssues": ["correction-repeats-definition", "correction-repeats-misconception"],
               "compilerRepairs": [
                 {
                   "field": "correction",
@@ -4209,9 +3336,7 @@
                 }
               ],
               "contractEligible": false,
-              "pedagogicalIssues": [
-                "correction-lacks-explicit-contrast"
-              ]
+              "pedagogicalIssues": ["correction-lacks-explicit-contrast"]
             }
           }
         ],
@@ -4223,10 +3348,7 @@
       "caseId": "ux-evidence-to-prototype-capstone:ux/interactive-prototyping:key-term-1",
       "domain": "user-experience-design",
       "inputSha256": "ca6d519d988c3da6ec1cefb75acd0b979b34b299f6d5db7a7ac6f9bf5d09dd79",
-      "matchedArmOrder": [
-        "teacher",
-        "matched-control"
-      ],
+      "matchedArmOrder": ["teacher", "matched-control"],
       "baseline": {
         "serverRequestReceipt": "dc1f464f-f466-4a5d-8b00-dd0e9d5098ee",
         "responseModel": "scion-1",
@@ -4250,28 +3372,19 @@
         "authorizedSourceFactIndexes": [],
         "assessment": {
           "eligible": false,
-          "issues": [
-            "correction-repeats-misconception",
-            "correction-reuses-misconception-structure"
-          ],
+          "issues": ["correction-repeats-misconception", "correction-reuses-misconception-structure"],
           "term": {
-            "sourceFactIndexes": [
-              2
-            ],
+            "sourceFactIndexes": [2],
             "tr": "Functional prototypes",
             "df": "Models that allow a team to observe how users interact with a product.",
             "eg": "A clickable mock-up demonstrating the main navigation flow.",
             "mi": "A prototype that only shows major interactions without functionality.",
             "cx": "Functional prototypes allow a team to observe how users interact with a product, unlike a prototype that only shows major interactions without functionality."
           },
-          "rawIssues": [
-            "correction-repeats-misconception"
-          ],
+          "rawIssues": ["correction-repeats-misconception"],
           "compilerRepairs": [],
           "contractEligible": false,
-          "pedagogicalIssues": [
-            "correction-reuses-misconception-structure"
-          ]
+          "pedagogicalIssues": ["correction-reuses-misconception-structure"]
         }
       },
       "matchedControl": {
@@ -4293,13 +3406,7 @@
         "scoredOutputSha256": "b45b37e7ce0ea00b72a2988ec4b04e28c175ca04fb73b20f9ab3e48e32514e72",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -4307,9 +3414,7 @@
           "supportedDistinction": "Models that allow users to observe how they interact with a product"
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          2
-        ],
+        "authorizedSourceFactIndexes": [2],
         "assessment": {
           "eligible": true,
           "issues": [],
@@ -4319,9 +3424,7 @@
             "eg": "A clickable mock-up demonstrating the main navigation flow.",
             "mi": "A prototype that only shows major interactions without functionality.",
             "cx": "Functional prototypes enable a team to witness user engagement with a product, which is distinct from static models that merely illustrate primary navigation paths.",
-            "sourceFactIndexes": [
-              2
-            ]
+            "sourceFactIndexes": [2]
           },
           "rawIssues": [],
           "compilerRepairs": [],
@@ -4350,13 +3453,7 @@
             "scoredOutputSha256": "b45b37e7ce0ea00b72a2988ec4b04e28c175ca04fb73b20f9ab3e48e32514e72",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -4364,9 +3461,7 @@
               "supportedDistinction": "Models that allow users to observe how they interact with a product"
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              2
-            ],
+            "authorizedSourceFactIndexes": [2],
             "assessment": {
               "eligible": true,
               "issues": [],
@@ -4376,9 +3471,7 @@
                 "eg": "A clickable mock-up demonstrating the main navigation flow.",
                 "mi": "A prototype that only shows major interactions without functionality.",
                 "cx": "Functional prototypes enable a team to witness user engagement with a product, which is distinct from static models that merely illustrate primary navigation paths.",
-                "sourceFactIndexes": [
-                  2
-                ]
+                "sourceFactIndexes": [2]
               },
               "rawIssues": [],
               "compilerRepairs": [],
@@ -4409,13 +3502,7 @@
         "scoredOutputSha256": "efa776c1499a1cc7257d208b548337494b7f1c378ef2da6b36e8164435d7c747",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -4423,30 +3510,22 @@
           "supportedDistinction": "Functional prototypes enable a team to observe how users interact with a product."
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          2
-        ],
+        "authorizedSourceFactIndexes": [2],
         "assessment": {
           "eligible": false,
-          "issues": [
-            "correction-reuses-misconception-structure"
-          ],
+          "issues": ["correction-reuses-misconception-structure"],
           "term": {
             "tr": "Functional prototypes",
             "df": "Models that allow users to observe how they interact with a product.",
             "eg": "A clickable mock-up demonstrating the main navigation flow.",
             "mi": "A prototype that only shows major interactions without functionality.",
             "cx": "A functional prototype enables a team to witness user engagement with a product, contrasting with a prototype that merely displays primary interactions without operational capability.",
-            "sourceFactIndexes": [
-              2
-            ]
+            "sourceFactIndexes": [2]
           },
           "rawIssues": [],
           "compilerRepairs": [],
           "contractEligible": true,
-          "pedagogicalIssues": [
-            "correction-reuses-misconception-structure"
-          ]
+          "pedagogicalIssues": ["correction-reuses-misconception-structure"]
         },
         "selectedAttempt": 2,
         "attemptCount": 3,
@@ -4470,13 +3549,7 @@
             "scoredOutputSha256": "1702731c0fc889dc632eb4ed30a47f5b56bd9f78e3339050f7f2616e85feea21",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -4484,33 +3557,22 @@
               "supportedDistinction": "Functional prototypes enable a team to observe how users interact with a product"
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              2
-            ],
+            "authorizedSourceFactIndexes": [2],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-repeats-misconception",
-                "correction-reuses-misconception-structure"
-              ],
+              "issues": ["correction-repeats-misconception", "correction-reuses-misconception-structure"],
               "term": {
                 "tr": "Functional prototypes",
                 "df": "Models that allow users to observe how they interact with a product.",
                 "eg": "A clickable mock-up demonstrating the main navigation flow.",
                 "mi": "A prototype that only shows major interactions without functionality.",
                 "cx": "A functional prototype enables a team to witness user engagement with a product, whereas a prototype that only shows major interactions without functionality fails to allow for the observation of user interaction.",
-                "sourceFactIndexes": [
-                  2
-                ]
+                "sourceFactIndexes": [2]
               },
-              "rawIssues": [
-                "correction-repeats-misconception"
-              ],
+              "rawIssues": ["correction-repeats-misconception"],
               "compilerRepairs": [],
               "contractEligible": false,
-              "pedagogicalIssues": [
-                "correction-reuses-misconception-structure"
-              ]
+              "pedagogicalIssues": ["correction-reuses-misconception-structure"]
             }
           },
           {
@@ -4532,13 +3594,7 @@
             "scoredOutputSha256": "2aad6889d757975f42f3bcd3e36ae7511e745cba2941517fffcbdbbb8f23c1cf",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -4546,30 +3602,22 @@
               "supportedDistinction": "Functional prototypes enable a team to observe how users interact with a product."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              2
-            ],
+            "authorizedSourceFactIndexes": [2],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-reuses-misconception-structure"
-              ],
+              "issues": ["correction-reuses-misconception-structure"],
               "term": {
                 "tr": "Functional prototypes",
                 "df": "Models that allow users to observe how they interact with a product.",
                 "eg": "A clickable mock-up demonstrating the main navigation flow.",
                 "mi": "A prototype that only shows major interactions without functionality.",
                 "cx": "A functional prototype enables a team to witness user engagement with a product, contrasting with a version that merely displays primary interactions without operational capability.",
-                "sourceFactIndexes": [
-                  2
-                ]
+                "sourceFactIndexes": [2]
               },
               "rawIssues": [],
               "compilerRepairs": [],
               "contractEligible": true,
-              "pedagogicalIssues": [
-                "correction-reuses-misconception-structure"
-              ]
+              "pedagogicalIssues": ["correction-reuses-misconception-structure"]
             }
           },
           {
@@ -4591,13 +3639,7 @@
             "scoredOutputSha256": "efa776c1499a1cc7257d208b548337494b7f1c378ef2da6b36e8164435d7c747",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -4605,30 +3647,22 @@
               "supportedDistinction": "Functional prototypes enable a team to observe how users interact with a product."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              2
-            ],
+            "authorizedSourceFactIndexes": [2],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-reuses-misconception-structure"
-              ],
+              "issues": ["correction-reuses-misconception-structure"],
               "term": {
                 "tr": "Functional prototypes",
                 "df": "Models that allow users to observe how they interact with a product.",
                 "eg": "A clickable mock-up demonstrating the main navigation flow.",
                 "mi": "A prototype that only shows major interactions without functionality.",
                 "cx": "A functional prototype enables a team to witness user engagement with a product, contrasting with a prototype that merely displays primary interactions without operational capability.",
-                "sourceFactIndexes": [
-                  2
-                ]
+                "sourceFactIndexes": [2]
               },
               "rawIssues": [],
               "compilerRepairs": [],
               "contractEligible": true,
-              "pedagogicalIssues": [
-                "correction-reuses-misconception-structure"
-              ]
+              "pedagogicalIssues": ["correction-reuses-misconception-structure"]
             }
           }
         ],
@@ -4639,11 +3673,7 @@
   ],
   "summary": {
     "realSourceBoundCases": 12,
-    "domains": [
-      "computer-science",
-      "music-theory",
-      "user-experience-design"
-    ],
+    "domains": ["computer-science", "music-theory", "user-experience-design"],
     "baselineAdmitted": 3,
     "advisedAdmitted": 8,
     "matchedControlAdmitted": 7,

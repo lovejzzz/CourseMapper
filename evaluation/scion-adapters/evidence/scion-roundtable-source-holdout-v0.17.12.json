@@ -14,11 +14,7 @@
   },
   "summary": {
     "cases": 12,
-    "domains": [
-      "computer-science",
-      "geology",
-      "music-theory"
-    ],
+    "domains": ["computer-science", "geology", "music-theory"],
     "matchedControlAdmitted": 7,
     "teacherAdmitted": 8,
     "matchedControlFirstAttemptAdmitted": 4,
@@ -59,10 +55,7 @@
       "caseId": "python-control-flow-workshop:cs/conditionals:key-term-0",
       "domain": "computer-science",
       "inputSha256": "cba91557c89aa15c655274e699cdd35bcb1e97f15d5cc81aa23c9ee159a26293",
-      "matchedArmOrder": [
-        "matched-control",
-        "teacher"
-      ],
+      "matchedArmOrder": ["matched-control", "teacher"],
       "matchedControl": {
         "serverRequestReceipt": "3737212b-7833-474d-b7ac-f4acc68c67d6",
         "responseModel": "scion-1",
@@ -82,13 +75,7 @@
         "scoredOutputSha256": "270ef84b839e7d7381e728b7266529ac524847e8c6c199ab3c1d6d72fc526f0e",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -96,9 +83,7 @@
           "supportedDistinction": "The 'and' operator yields a true result if at least one of the constituent simple tests evaluates to true, or if both tests evaluate to true."
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          3
-        ],
+        "authorizedSourceFactIndexes": [3],
         "assessment": {
           "eligible": true,
           "issues": [],
@@ -108,9 +93,7 @@
             "eg": "Using 'and' to check if a variable is greater than five AND less than ten.",
             "mi": "Believing 'and' always requires both parts to be true for the whole statement to be true.",
             "cx": "When employing the 'and' operator, the resulting statement is deemed true if either of the individual conditions is satisfied, rather than requiring both conditions to be true simultaneously.",
-            "sourceFactIndexes": [
-              3
-            ]
+            "sourceFactIndexes": [3]
           },
           "rawIssues": [],
           "compilerRepairs": [],
@@ -139,13 +122,7 @@
             "scoredOutputSha256": "270ef84b839e7d7381e728b7266529ac524847e8c6c199ab3c1d6d72fc526f0e",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -153,9 +130,7 @@
               "supportedDistinction": "The 'and' operator yields a true result if at least one of the constituent simple tests evaluates to true, or if both tests evaluate to true."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              3
-            ],
+            "authorizedSourceFactIndexes": [3],
             "assessment": {
               "eligible": true,
               "issues": [],
@@ -165,9 +140,7 @@
                 "eg": "Using 'and' to check if a variable is greater than five AND less than ten.",
                 "mi": "Believing 'and' always requires both parts to be true for the whole statement to be true.",
                 "cx": "When employing the 'and' operator, the resulting statement is deemed true if either of the individual conditions is satisfied, rather than requiring both conditions to be true simultaneously.",
-                "sourceFactIndexes": [
-                  3
-                ]
+                "sourceFactIndexes": [3]
               },
               "rawIssues": [],
               "compilerRepairs": [],
@@ -198,13 +171,7 @@
         "scoredOutputSha256": "e6a0534c98d421e7d0f245e42ca3006786d5c6473007476948663268d508d423",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -212,9 +179,7 @@
           "supportedDistinction": "The compound condition operator yields a true result if at least one of the constituent tests evaluates to true, rather than requiring all tests to be true."
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          3
-        ],
+        "authorizedSourceFactIndexes": [3],
         "assessment": {
           "eligible": true,
           "issues": [],
@@ -224,9 +189,7 @@
             "eg": "Using 'and' to check if a variable is greater than five AND less than ten.",
             "mi": "Believing 'and' always requires both parts to be true for the whole statement to be true.",
             "cx": "The compound condition operator evaluates to true if either of the constituent tests is true, rather than demanding that every single test must be true for the overall statement to be true.",
-            "sourceFactIndexes": [
-              3
-            ]
+            "sourceFactIndexes": [3]
           },
           "rawIssues": [],
           "compilerRepairs": [],
@@ -255,13 +218,7 @@
             "scoredOutputSha256": "e6a0534c98d421e7d0f245e42ca3006786d5c6473007476948663268d508d423",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -269,9 +226,7 @@
               "supportedDistinction": "The compound condition operator yields a true result if at least one of the constituent tests evaluates to true, rather than requiring all tests to be true."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              3
-            ],
+            "authorizedSourceFactIndexes": [3],
             "assessment": {
               "eligible": true,
               "issues": [],
@@ -281,9 +236,7 @@
                 "eg": "Using 'and' to check if a variable is greater than five AND less than ten.",
                 "mi": "Believing 'and' always requires both parts to be true for the whole statement to be true.",
                 "cx": "The compound condition operator evaluates to true if either of the constituent tests is true, rather than demanding that every single test must be true for the overall statement to be true.",
-                "sourceFactIndexes": [
-                  3
-                ]
+                "sourceFactIndexes": [3]
               },
               "rawIssues": [],
               "compilerRepairs": [],
@@ -314,18 +267,14 @@
             "text": "and returns True only if both conditions are true; or returns True if either is true; not inverts a single condition."
           }
         ],
-        "authorizedSourceFactIndexes": [
-          3
-        ],
+        "authorizedSourceFactIndexes": [3],
         "syntheticDefectTerm": {
           "tr": "Compound condition operator",
           "df": "Operators like 'and', 'or', and 'not' combine multiple simple tests into one complex test.",
           "eg": "Using 'and' to check if a variable is greater than five AND less than ten.",
           "mi": "Believing 'and' always requires both parts to be true for the whole statement to be true.",
           "cx": "Operators like 'and', 'or', and 'not' combine multiple simple tests into one complex test.",
-          "sourceFactIndexes": [
-            3
-          ]
+          "sourceFactIndexes": [3]
         },
         "committedReferenceCorrection": "The 'and' operator returns True only if both conditions are true."
       }
@@ -334,10 +283,7 @@
       "caseId": "python-control-flow-workshop:cs/expressions-and-types:key-term-1",
       "domain": "computer-science",
       "inputSha256": "836c2b6d534283d4c280ba0b3fcc9b2fa3299ecee3a4e6f438ccd8c52e3229cd",
-      "matchedArmOrder": [
-        "teacher",
-        "matched-control"
-      ],
+      "matchedArmOrder": ["teacher", "matched-control"],
       "matchedControl": {
         "serverRequestReceipt": "75419d3a-1581-4a9b-9439-48c5b08f5081",
         "responseModel": "scion-1",
@@ -357,13 +303,7 @@
         "scoredOutputSha256": "2b1f6b6dcfbbf5b8b23e136973b66edacd85316974feb9bb57ff4c0c11c439e0",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -371,30 +311,22 @@
           "supportedDistinction": "The interpreter automatically executes type promotion within a mixed expression."
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          1
-        ],
+        "authorizedSourceFactIndexes": [1],
         "assessment": {
           "eligible": false,
-          "issues": [
-            "correction-reuses-misconception-structure"
-          ],
+          "issues": ["correction-reuses-misconception-structure"],
           "term": {
             "tr": "Implicit type conversion",
             "df": "The automatic type promotion performed by the interpreter within a mixed expression.",
             "eg": "A mixed expression involving an int and a float will result in a float.",
             "mi": "Assuming the interpreter only performs explicit type changes when functions are called.",
             "cx": "When evaluating a mixed expression, the interpreter automatically handles the promotion of types, meaning that an operation between an integer and a floating-point number will result in a float, rather than requiring an explicit type change only when a function is called.",
-            "sourceFactIndexes": [
-              1
-            ]
+            "sourceFactIndexes": [1]
           },
           "rawIssues": [],
           "compilerRepairs": [],
           "contractEligible": true,
-          "pedagogicalIssues": [
-            "correction-reuses-misconception-structure"
-          ]
+          "pedagogicalIssues": ["correction-reuses-misconception-structure"]
         },
         "selectedAttempt": 2,
         "attemptCount": 3,
@@ -418,13 +350,7 @@
             "scoredOutputSha256": "39ee7d26fb4dccacff743d1a896a92c248459228537415f82b9c792ccd3058fd",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -432,30 +358,22 @@
               "supportedDistinction": "The interpreter automatically executes type promotion within a mixed expression."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              1
-            ],
+            "authorizedSourceFactIndexes": [1],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-reuses-misconception-structure"
-              ],
+              "issues": ["correction-reuses-misconception-structure"],
               "term": {
                 "tr": "Implicit type conversion",
                 "df": "The automatic type promotion performed by the interpreter within a mixed expression.",
                 "eg": "A mixed expression involving an int and a float will result in a float.",
                 "mi": "Assuming the interpreter only performs explicit type changes when functions are called.",
                 "cx": "When evaluating a mixed expression, the interpreter automatically handles the promotion of types, rather than requiring explicit type changes only when a function is called.",
-                "sourceFactIndexes": [
-                  1
-                ]
+                "sourceFactIndexes": [1]
               },
               "rawIssues": [],
               "compilerRepairs": [],
               "contractEligible": true,
-              "pedagogicalIssues": [
-                "correction-reuses-misconception-structure"
-              ]
+              "pedagogicalIssues": ["correction-reuses-misconception-structure"]
             }
           },
           {
@@ -477,13 +395,7 @@
             "scoredOutputSha256": "62fb9ed65717f66c9fbcca03b0fe340cdfd685abf090c9d1654dd53bd8e7b85c",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -491,30 +403,22 @@
               "supportedDistinction": "The interpreter automatically executes type promotion within a mixed expression."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              1
-            ],
+            "authorizedSourceFactIndexes": [1],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-reuses-misconception-structure"
-              ],
+              "issues": ["correction-reuses-misconception-structure"],
               "term": {
                 "tr": "Implicit type conversion",
                 "df": "The automatic type promotion performed by the interpreter within a mixed expression.",
                 "eg": "A mixed expression involving an int and a float will result in a float.",
                 "mi": "Assuming the interpreter only performs explicit type changes when functions are called.",
                 "cx": "When evaluating a mixed expression, the interpreter automatically executes type promotion, meaning that an operation involving an integer and a floating-point number will result in a float, rather than requiring an explicit type change only when a function is called.",
-                "sourceFactIndexes": [
-                  1
-                ]
+                "sourceFactIndexes": [1]
               },
               "rawIssues": [],
               "compilerRepairs": [],
               "contractEligible": true,
-              "pedagogicalIssues": [
-                "correction-reuses-misconception-structure"
-              ]
+              "pedagogicalIssues": ["correction-reuses-misconception-structure"]
             }
           },
           {
@@ -536,13 +440,7 @@
             "scoredOutputSha256": "2b1f6b6dcfbbf5b8b23e136973b66edacd85316974feb9bb57ff4c0c11c439e0",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -550,30 +448,22 @@
               "supportedDistinction": "The interpreter automatically executes type promotion within a mixed expression."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              1
-            ],
+            "authorizedSourceFactIndexes": [1],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-reuses-misconception-structure"
-              ],
+              "issues": ["correction-reuses-misconception-structure"],
               "term": {
                 "tr": "Implicit type conversion",
                 "df": "The automatic type promotion performed by the interpreter within a mixed expression.",
                 "eg": "A mixed expression involving an int and a float will result in a float.",
                 "mi": "Assuming the interpreter only performs explicit type changes when functions are called.",
                 "cx": "When evaluating a mixed expression, the interpreter automatically handles the promotion of types, meaning that an operation between an integer and a floating-point number will result in a float, rather than requiring an explicit type change only when a function is called.",
-                "sourceFactIndexes": [
-                  1
-                ]
+                "sourceFactIndexes": [1]
               },
               "rawIssues": [],
               "compilerRepairs": [],
               "contractEligible": true,
-              "pedagogicalIssues": [
-                "correction-reuses-misconception-structure"
-              ]
+              "pedagogicalIssues": ["correction-reuses-misconception-structure"]
             }
           }
         ],
@@ -599,13 +489,7 @@
         "scoredOutputSha256": "6e22ec64e08076f84ba54a3001694ab1f4a6ef92665afac3ffc5f09206d7de4f",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -613,9 +497,7 @@
           "supportedDistinction": "The interpreter automatically elevates data types during the evaluation of a combined expression."
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          1
-        ],
+        "authorizedSourceFactIndexes": [1],
         "assessment": {
           "eligible": true,
           "issues": [],
@@ -625,9 +507,7 @@
             "eg": "A mixed expression involving an int and a float will result in a float.",
             "mi": "Assuming the interpreter only performs explicit type changes when functions are called.",
             "cx": "The interpreter automatically elevates data types during the evaluation of a combined expression, contrasting with the idea that type adjustments only occur when a function is called.",
-            "sourceFactIndexes": [
-              1
-            ]
+            "sourceFactIndexes": [1]
           },
           "rawIssues": [],
           "compilerRepairs": [],
@@ -656,13 +536,7 @@
             "scoredOutputSha256": "6e22ec64e08076f84ba54a3001694ab1f4a6ef92665afac3ffc5f09206d7de4f",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -670,9 +544,7 @@
               "supportedDistinction": "The interpreter automatically elevates data types during the evaluation of a combined expression."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              1
-            ],
+            "authorizedSourceFactIndexes": [1],
             "assessment": {
               "eligible": true,
               "issues": [],
@@ -682,9 +554,7 @@
                 "eg": "A mixed expression involving an int and a float will result in a float.",
                 "mi": "Assuming the interpreter only performs explicit type changes when functions are called.",
                 "cx": "The interpreter automatically elevates data types during the evaluation of a combined expression, contrasting with the idea that type adjustments only occur when a function is called.",
-                "sourceFactIndexes": [
-                  1
-                ]
+                "sourceFactIndexes": [1]
               },
               "rawIssues": [],
               "compilerRepairs": [],
@@ -719,18 +589,14 @@
             "text": "Floor division (//) computes the whole-number quotient, discarding the remainder."
           }
         ],
-        "authorizedSourceFactIndexes": [
-          1
-        ],
+        "authorizedSourceFactIndexes": [1],
         "syntheticDefectTerm": {
           "tr": "Implicit type conversion",
           "df": "The automatic type promotion performed by the interpreter within a mixed expression.",
           "eg": "A mixed expression involving an int and a float will result in a float.",
           "mi": "Assuming the interpreter only performs explicit type changes when functions are called.",
           "cx": "The automatic type promotion performed by the interpreter within a mixed expression.",
-          "sourceFactIndexes": [
-            1
-          ]
+          "sourceFactIndexes": [1]
         },
         "committedReferenceCorrection": "Recognizing that the interpreter performs implicit type conversion to promote types automatically inside a mixed expression."
       }
@@ -739,10 +605,7 @@
       "caseId": "python-control-flow-workshop:cs/variables:key-term-1",
       "domain": "computer-science",
       "inputSha256": "4004bb81b08c0d474edd185614724bebf8b206ed35f90d7b2ae9f9091f614750",
-      "matchedArmOrder": [
-        "matched-control",
-        "teacher"
-      ],
+      "matchedArmOrder": ["matched-control", "teacher"],
       "matchedControl": {
         "serverRequestReceipt": "9ee4a464-7603-4eb6-a23d-628deb23826b",
         "responseModel": "scion-1",
@@ -762,13 +625,7 @@
         "scoredOutputSha256": "179fa768d95d1da57c8c1ccc71d92fa967e4d82b18573c5bedbaa20c19465880",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -776,10 +633,7 @@
           "supportedDistinction": "Assignment is not mathematical equality; it functions by copying a value into a designated variable."
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          1,
-          2
-        ],
+        "authorizedSourceFactIndexes": [1, 2],
         "assessment": {
           "eligible": true,
           "issues": [],
@@ -789,10 +643,7 @@
             "eg": "The statement 'x = 10' uses the assignment operator to set the variable 'x' to the value 10.",
             "mi": "Thinking the operator checks for mathematical equality between the two sides.",
             "cx": "The assignment operator performs a value transfer by placing a specific value into a variable, which is distinct from asserting that two sides of an equation are mathematically equal.",
-            "sourceFactIndexes": [
-              1,
-              2
-            ]
+            "sourceFactIndexes": [1, 2]
           },
           "rawIssues": [],
           "compilerRepairs": [],
@@ -821,13 +672,7 @@
             "scoredOutputSha256": "179fa768d95d1da57c8c1ccc71d92fa967e4d82b18573c5bedbaa20c19465880",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -835,10 +680,7 @@
               "supportedDistinction": "Assignment is not mathematical equality; it functions by copying a value into a designated variable."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              1,
-              2
-            ],
+            "authorizedSourceFactIndexes": [1, 2],
             "assessment": {
               "eligible": true,
               "issues": [],
@@ -848,10 +690,7 @@
                 "eg": "The statement 'x = 10' uses the assignment operator to set the variable 'x' to the value 10.",
                 "mi": "Thinking the operator checks for mathematical equality between the two sides.",
                 "cx": "The assignment operator performs a value transfer by placing a specific value into a variable, which is distinct from asserting that two sides of an equation are mathematically equal.",
-                "sourceFactIndexes": [
-                  1,
-                  2
-                ]
+                "sourceFactIndexes": [1, 2]
               },
               "rawIssues": [],
               "compilerRepairs": [],
@@ -882,13 +721,7 @@
         "scoredOutputSha256": "9efab1b0c68d8761062b0207e1959bf18b8cc55b5be5b18e1029cd1c4c98055e",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -896,10 +729,7 @@
           "supportedDistinction": "The assignment operator functions by copying the value from the right side into the variable named on the left, rather than establishing a mathematical equivalence between the two expressions."
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          1,
-          2
-        ],
+        "authorizedSourceFactIndexes": [1, 2],
         "assessment": {
           "eligible": true,
           "issues": [],
@@ -909,10 +739,7 @@
             "eg": "The statement 'x = 10' uses the assignment operator to set the variable 'x' to the value 10.",
             "mi": "Thinking the operator checks for mathematical equality between the two sides.",
             "cx": "The assignment operator is not a test for mathematical balance; instead, it functions by transferring the value from the right side into the designated variable on the left.",
-            "sourceFactIndexes": [
-              1,
-              2
-            ]
+            "sourceFactIndexes": [1, 2]
           },
           "rawIssues": [],
           "compilerRepairs": [],
@@ -941,13 +768,7 @@
             "scoredOutputSha256": "9efab1b0c68d8761062b0207e1959bf18b8cc55b5be5b18e1029cd1c4c98055e",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -955,10 +776,7 @@
               "supportedDistinction": "The assignment operator functions by copying the value from the right side into the variable named on the left, rather than establishing a mathematical equivalence between the two expressions."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              1,
-              2
-            ],
+            "authorizedSourceFactIndexes": [1, 2],
             "assessment": {
               "eligible": true,
               "issues": [],
@@ -968,10 +786,7 @@
                 "eg": "The statement 'x = 10' uses the assignment operator to set the variable 'x' to the value 10.",
                 "mi": "Thinking the operator checks for mathematical equality between the two sides.",
                 "cx": "The assignment operator is not a test for mathematical balance; instead, it functions by transferring the value from the right side into the designated variable on the left.",
-                "sourceFactIndexes": [
-                  1,
-                  2
-                ]
+                "sourceFactIndexes": [1, 2]
               },
               "rawIssues": [],
               "compilerRepairs": [],
@@ -1006,20 +821,14 @@
             "text": "Variable names are case-sensitive, so total and Total are two different variables."
           }
         ],
-        "authorizedSourceFactIndexes": [
-          1,
-          2
-        ],
+        "authorizedSourceFactIndexes": [1, 2],
         "syntheticDefectTerm": {
           "tr": "Operator for value transfer",
           "df": "The symbol used to set a variable to a value using the assignment operator.",
           "eg": "The statement 'x = 10' uses the assignment operator to set the variable 'x' to the value 10.",
           "mi": "Thinking the operator checks for mathematical equality between the two sides.",
           "cx": "The symbol used to set a variable to a value using the assignment operator.",
-          "sourceFactIndexes": [
-            1,
-            2
-          ]
+          "sourceFactIndexes": [1, 2]
         },
         "committedReferenceCorrection": "The assignment operator sets a variable to a value, and assignment is not mathematical equality; it copies a value rather than asserting two sides are equal."
       }
@@ -1028,10 +837,7 @@
       "caseId": "python-control-flow-workshop:cs/expressions-and-types:key-term-0",
       "domain": "computer-science",
       "inputSha256": "a3cade610c5c81524bde35d67e5baa05e8c710979f8e0454974baf75f0026930",
-      "matchedArmOrder": [
-        "teacher",
-        "matched-control"
-      ],
+      "matchedArmOrder": ["teacher", "matched-control"],
       "matchedControl": {
         "serverRequestReceipt": "c4742011-414e-4a19-a508-e0551828575e",
         "responseModel": "scion-1",
@@ -1051,13 +857,7 @@
         "scoredOutputSha256": "42e1321bcd0cc8d0bee3cf309793f8cb57cf4dfb41e50576e0817c9cc5710849",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -1065,34 +865,22 @@
           "supportedDistinction": "Python values possess a specific data type (like int, float, or str), and conversion functions facilitate moving a value from one type to another."
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          0,
-          2
-        ],
+        "authorizedSourceFactIndexes": [0, 2],
         "assessment": {
           "eligible": false,
-          "issues": [
-            "correction-lacks-explicit-contrast",
-            "correction-reuses-misconception-structure"
-          ],
+          "issues": ["correction-lacks-explicit-contrast", "correction-reuses-misconception-structure"],
           "term": {
             "tr": "Type conversion",
             "df": "The process of changing a value from one data type to another.",
             "eg": "Using int(3.9) results in 3.",
             "mi": "Believing that all operations automatically maintain the original data type.",
             "cx": "While Python values possess a specific data type (such as int, float, or str), expressions combine values, and conversion functions move a value from one type to another; this contrasts with the notion that all operations automatically maintain the original data type.",
-            "sourceFactIndexes": [
-              0,
-              2
-            ]
+            "sourceFactIndexes": [0, 2]
           },
           "rawIssues": [],
           "compilerRepairs": [],
           "contractEligible": true,
-          "pedagogicalIssues": [
-            "correction-lacks-explicit-contrast",
-            "correction-reuses-misconception-structure"
-          ]
+          "pedagogicalIssues": ["correction-lacks-explicit-contrast", "correction-reuses-misconception-structure"]
         },
         "selectedAttempt": 2,
         "attemptCount": 3,
@@ -1116,13 +904,7 @@
             "scoredOutputSha256": "dd576285534b4918273f4b891190f5fb3a9170a840521412fdd37bb452a28fe2",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -1130,34 +912,22 @@
               "supportedDistinction": "Python mandates that every value possesses a specific data type, and conversion functions facilitate the movement of a value between these types."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0,
-              2
-            ],
+            "authorizedSourceFactIndexes": [0, 2],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-lacks-explicit-contrast",
-                "correction-reuses-misconception-structure"
-              ],
+              "issues": ["correction-lacks-explicit-contrast", "correction-reuses-misconception-structure"],
               "term": {
                 "tr": "Type conversion",
                 "df": "The process of changing a value from one data type to another.",
                 "eg": "Using int(3.9) results in 3.",
                 "mi": "Believing that all operations automatically maintain the original data type.",
                 "cx": "Contrary to the notion that operations automatically preserve the initial data type, every Python value is assigned a specific data type, and conversion functions are the mechanism used to shift a value from one type to another.",
-                "sourceFactIndexes": [
-                  0,
-                  2
-                ]
+                "sourceFactIndexes": [0, 2]
               },
               "rawIssues": [],
               "compilerRepairs": [],
               "contractEligible": true,
-              "pedagogicalIssues": [
-                "correction-lacks-explicit-contrast",
-                "correction-reuses-misconception-structure"
-              ]
+              "pedagogicalIssues": ["correction-lacks-explicit-contrast", "correction-reuses-misconception-structure"]
             }
           },
           {
@@ -1179,13 +949,7 @@
             "scoredOutputSha256": "9f34f2653c48934f28181b735a675f64e3dec8b69f51b4477af18e72ffedb2dd",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -1193,34 +957,22 @@
               "supportedDistinction": "Python values possess a specific data type (like int, float, or str), and conversion functions facilitate moving a value from one type to another."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0,
-              2
-            ],
+            "authorizedSourceFactIndexes": [0, 2],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-lacks-explicit-contrast",
-                "correction-reuses-misconception-structure"
-              ],
+              "issues": ["correction-lacks-explicit-contrast", "correction-reuses-misconception-structure"],
               "term": {
                 "tr": "Type conversion",
                 "df": "The process of changing a value from one data type to another.",
                 "eg": "Using int(3.9) results in 3.",
                 "mi": "Believing that all operations automatically maintain the original data type.",
                 "cx": "While Python values possess a specific data type such as int, float, or str, expressions combine values, and conversion functions move a value from one type to another; this contrasts with the idea that all operations automatically maintain the original data type.",
-                "sourceFactIndexes": [
-                  0,
-                  2
-                ]
+                "sourceFactIndexes": [0, 2]
               },
               "rawIssues": [],
               "compilerRepairs": [],
               "contractEligible": true,
-              "pedagogicalIssues": [
-                "correction-lacks-explicit-contrast",
-                "correction-reuses-misconception-structure"
-              ]
+              "pedagogicalIssues": ["correction-lacks-explicit-contrast", "correction-reuses-misconception-structure"]
             }
           },
           {
@@ -1242,13 +994,7 @@
             "scoredOutputSha256": "42e1321bcd0cc8d0bee3cf309793f8cb57cf4dfb41e50576e0817c9cc5710849",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -1256,34 +1002,22 @@
               "supportedDistinction": "Python values possess a specific data type (like int, float, or str), and conversion functions facilitate moving a value from one type to another."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0,
-              2
-            ],
+            "authorizedSourceFactIndexes": [0, 2],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-lacks-explicit-contrast",
-                "correction-reuses-misconception-structure"
-              ],
+              "issues": ["correction-lacks-explicit-contrast", "correction-reuses-misconception-structure"],
               "term": {
                 "tr": "Type conversion",
                 "df": "The process of changing a value from one data type to another.",
                 "eg": "Using int(3.9) results in 3.",
                 "mi": "Believing that all operations automatically maintain the original data type.",
                 "cx": "While Python values possess a specific data type (such as int, float, or str), expressions combine values, and conversion functions move a value from one type to another; this contrasts with the notion that all operations automatically maintain the original data type.",
-                "sourceFactIndexes": [
-                  0,
-                  2
-                ]
+                "sourceFactIndexes": [0, 2]
               },
               "rawIssues": [],
               "compilerRepairs": [],
               "contractEligible": true,
-              "pedagogicalIssues": [
-                "correction-lacks-explicit-contrast",
-                "correction-reuses-misconception-structure"
-              ]
+              "pedagogicalIssues": ["correction-lacks-explicit-contrast", "correction-reuses-misconception-structure"]
             }
           }
         ],
@@ -1309,13 +1043,7 @@
         "scoredOutputSha256": "538d9aa258ce355834b9e1588efe2e558541bb7bf7121510865e7c3726cdfa92",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -1323,10 +1051,7 @@
           "supportedDistinction": "The actual mechanism involves explicit conversion functions, such as int(), which force a value into a specific type by discarding non-integer components."
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          0,
-          2
-        ],
+        "authorizedSourceFactIndexes": [0, 2],
         "assessment": {
           "eligible": true,
           "issues": [],
@@ -1336,10 +1061,7 @@
             "eg": "Using int(3.9) results in 3.",
             "mi": "Believing that all operations automatically maintain the original data type.",
             "cx": "The idea that calculations inherently keep a variable's original data type is incorrect; instead, functions like int() actively transform a value, for instance, by truncating decimals, thereby changing its type.",
-            "sourceFactIndexes": [
-              0,
-              2
-            ]
+            "sourceFactIndexes": [0, 2]
           },
           "rawIssues": [],
           "compilerRepairs": [],
@@ -1368,13 +1090,7 @@
             "scoredOutputSha256": "538d9aa258ce355834b9e1588efe2e558541bb7bf7121510865e7c3726cdfa92",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -1382,10 +1098,7 @@
               "supportedDistinction": "The actual mechanism involves explicit conversion functions, such as int(), which force a value into a specific type by discarding non-integer components."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0,
-              2
-            ],
+            "authorizedSourceFactIndexes": [0, 2],
             "assessment": {
               "eligible": true,
               "issues": [],
@@ -1395,10 +1108,7 @@
                 "eg": "Using int(3.9) results in 3.",
                 "mi": "Believing that all operations automatically maintain the original data type.",
                 "cx": "The idea that calculations inherently keep a variable's original data type is incorrect; instead, functions like int() actively transform a value, for instance, by truncating decimals, thereby changing its type.",
-                "sourceFactIndexes": [
-                  0,
-                  2
-                ]
+                "sourceFactIndexes": [0, 2]
               },
               "rawIssues": [],
               "compilerRepairs": [],
@@ -1433,20 +1143,14 @@
             "text": "Floor division (//) computes the whole-number quotient, discarding the remainder."
           }
         ],
-        "authorizedSourceFactIndexes": [
-          0,
-          2
-        ],
+        "authorizedSourceFactIndexes": [0, 2],
         "syntheticDefectTerm": {
           "tr": "Type conversion",
           "df": "The process of changing a value from one data type to another.",
           "eg": "Using int(3.9) results in 3.",
           "mi": "Believing that all operations automatically maintain the original data type.",
           "cx": "The process of changing a value from one data type to another.",
-          "sourceFactIndexes": [
-            0,
-            2
-          ]
+          "sourceFactIndexes": [0, 2]
         },
         "committedReferenceCorrection": "Explicitly using conversion functions like int() to change types."
       }
@@ -1455,10 +1159,7 @@
       "caseId": "tectonics-seismology-field-lab:geo/plate-tectonics:key-term-0",
       "domain": "geology",
       "inputSha256": "97cba5ca2330672bba526fe7d1eec525b0601c2664b8a1d9f6abc6021e6c5827",
-      "matchedArmOrder": [
-        "matched-control",
-        "teacher"
-      ],
+      "matchedArmOrder": ["matched-control", "teacher"],
       "matchedControl": {
         "serverRequestReceipt": "e45e9db4-4828-408d-91da-4f2dfb426284",
         "responseModel": "scion-1",
@@ -1478,13 +1179,7 @@
         "scoredOutputSha256": "c49c8bc18b27266d596f0b739503f8cc090e9546f1ef0c8ede2bfbfd29fcdd23",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -1492,9 +1187,7 @@
           "supportedDistinction": "The rigid outer layer of Earth's crust and upper mantle"
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          0
-        ],
+        "authorizedSourceFactIndexes": [0],
         "assessment": {
           "eligible": true,
           "issues": [],
@@ -1504,9 +1197,7 @@
             "eg": "The oceanic crust involved in a subduction zone.",
             "mi": "The entire Earth's interior.",
             "cx": "The Earth's interior is not the entire system; rather, the rigid outer layer of Earth's crust and upper mantle is the component that is broken into plates moving over the ductile asthenosphere.",
-            "sourceFactIndexes": [
-              0
-            ]
+            "sourceFactIndexes": [0]
           },
           "rawIssues": [],
           "compilerRepairs": [],
@@ -1535,13 +1226,7 @@
             "scoredOutputSha256": "c49c8bc18b27266d596f0b739503f8cc090e9546f1ef0c8ede2bfbfd29fcdd23",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -1549,9 +1234,7 @@
               "supportedDistinction": "The rigid outer layer of Earth's crust and upper mantle"
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0
-            ],
+            "authorizedSourceFactIndexes": [0],
             "assessment": {
               "eligible": true,
               "issues": [],
@@ -1561,9 +1244,7 @@
                 "eg": "The oceanic crust involved in a subduction zone.",
                 "mi": "The entire Earth's interior.",
                 "cx": "The Earth's interior is not the entire system; rather, the rigid outer layer of Earth's crust and upper mantle is the component that is broken into plates moving over the ductile asthenosphere.",
-                "sourceFactIndexes": [
-                  0
-                ]
+                "sourceFactIndexes": [0]
               },
               "rawIssues": [],
               "compilerRepairs": [],
@@ -1594,13 +1275,7 @@
         "scoredOutputSha256": "807a66e5268b1fd5ae9ae40af43c9e6a9ab7f049a5404d94c95ac0cd1baf2951",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -1608,9 +1283,7 @@
           "supportedDistinction": "The rigid outer layer of Earth's crust and upper mantle"
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          0
-        ],
+        "authorizedSourceFactIndexes": [0],
         "assessment": {
           "eligible": true,
           "issues": [],
@@ -1620,9 +1293,7 @@
             "eg": "The oceanic crust involved in a subduction zone.",
             "mi": "The entire Earth's interior.",
             "cx": "The Earth's interior is not the rigid outer layer of Earth's crust and upper mantle; rather, the rigid outer layer of Earth's crust and upper mantle is broken into plates that move over the ductile asthenosphere.",
-            "sourceFactIndexes": [
-              0
-            ]
+            "sourceFactIndexes": [0]
           },
           "rawIssues": [],
           "compilerRepairs": [],
@@ -1651,13 +1322,7 @@
             "scoredOutputSha256": "807a66e5268b1fd5ae9ae40af43c9e6a9ab7f049a5404d94c95ac0cd1baf2951",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -1665,9 +1330,7 @@
               "supportedDistinction": "The rigid outer layer of Earth's crust and upper mantle"
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0
-            ],
+            "authorizedSourceFactIndexes": [0],
             "assessment": {
               "eligible": true,
               "issues": [],
@@ -1677,9 +1340,7 @@
                 "eg": "The oceanic crust involved in a subduction zone.",
                 "mi": "The entire Earth's interior.",
                 "cx": "The Earth's interior is not the rigid outer layer of Earth's crust and upper mantle; rather, the rigid outer layer of Earth's crust and upper mantle is broken into plates that move over the ductile asthenosphere.",
-                "sourceFactIndexes": [
-                  0
-                ]
+                "sourceFactIndexes": [0]
               },
               "rawIssues": [],
               "compilerRepairs": [],
@@ -1710,18 +1371,14 @@
             "text": "At a transform boundary, plates slide horizontally past each other."
           }
         ],
-        "authorizedSourceFactIndexes": [
-          0
-        ],
+        "authorizedSourceFactIndexes": [0],
         "syntheticDefectTerm": {
           "tr": "Lithosphere",
           "df": "The rigid outer layer of Earth's crust and upper mantle.",
           "eg": "The oceanic crust involved in a subduction zone.",
           "mi": "The entire Earth's interior.",
           "cx": "The rigid outer layer of Earth's crust and upper mantle.",
-          "sourceFactIndexes": [
-            0
-          ]
+          "sourceFactIndexes": [0]
         },
         "committedReferenceCorrection": "The rigid lithosphere is broken into plates that move over the ductile asthenosphere."
       }
@@ -1730,10 +1387,7 @@
       "caseId": "earth-materials-history-lab:geo/geologic-time:key-term-0",
       "domain": "geology",
       "inputSha256": "2640b258bd23ea9187c02671826f6207c14037732ba9adf7a07e82ed8f3824a1",
-      "matchedArmOrder": [
-        "teacher",
-        "matched-control"
-      ],
+      "matchedArmOrder": ["teacher", "matched-control"],
       "matchedControl": {
         "serverRequestReceipt": "a1f97dab-c6c1-44bf-b0aa-5c8616d0a105",
         "responseModel": "scion-1",
@@ -1753,13 +1407,7 @@
         "scoredOutputSha256": "91fc079db501df1d114c6c640840d377e1c8bd5da30f7c53592f26467c7c806c",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -1767,30 +1415,22 @@
           "supportedDistinction": "Absolute dating methods provide specific ages in years for mineral grains within a rock, contrasting with relative dating methods which only establish chronological order."
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          1
-        ],
+        "authorizedSourceFactIndexes": [1],
         "assessment": {
           "eligible": false,
-          "issues": [
-            "correction-reuses-misconception-structure"
-          ],
+          "issues": ["correction-reuses-misconception-structure"],
           "term": {
             "tr": "Numerical age assignment",
             "df": "Assigning specific ages in years to mineral grains within a rock.",
             "eg": "Determining the exact age of a specific quartz grain in a sandstone sample.",
             "mi": "Assuming that relative dating methods can provide precise numerical ages.",
             "cx": "Absolute (numerical) dating assigns specific ages in years to mineral grains within a rock, not the assumption that relative dating methods can provide precise numerical ages.",
-            "sourceFactIndexes": [
-              1
-            ]
+            "sourceFactIndexes": [1]
           },
           "rawIssues": [],
           "compilerRepairs": [],
           "contractEligible": true,
-          "pedagogicalIssues": [
-            "correction-reuses-misconception-structure"
-          ]
+          "pedagogicalIssues": ["correction-reuses-misconception-structure"]
         },
         "selectedAttempt": 2,
         "attemptCount": 3,
@@ -1814,13 +1454,7 @@
             "scoredOutputSha256": "f5542568f0ba586644376126861efa1663d104d3830609ff352e1b1fbd3a9455",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -1828,30 +1462,22 @@
               "supportedDistinction": "Absolute (numerical) dating assigns specific ages in years to mineral grains within a rock."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              1
-            ],
+            "authorizedSourceFactIndexes": [1],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-reuses-misconception-structure"
-              ],
+              "issues": ["correction-reuses-misconception-structure"],
               "term": {
                 "tr": "Numerical age assignment",
                 "df": "Assigning specific ages in years to mineral grains within a rock.",
                 "eg": "Determining the exact age of a specific quartz grain in a sandstone sample.",
                 "mi": "Assuming that relative dating methods can provide precise numerical ages.",
                 "cx": "Relative dating methods do not yield specific numerical ages, whereas absolute dating provides exact ages in years for mineral grains within a rock.",
-                "sourceFactIndexes": [
-                  1
-                ]
+                "sourceFactIndexes": [1]
               },
               "rawIssues": [],
               "compilerRepairs": [],
               "contractEligible": true,
-              "pedagogicalIssues": [
-                "correction-reuses-misconception-structure"
-              ]
+              "pedagogicalIssues": ["correction-reuses-misconception-structure"]
             }
           },
           {
@@ -1873,13 +1499,7 @@
             "scoredOutputSha256": "96fbd0ff040ddedd5063ada86c63dc8d33f36f5ad17e4c8d5ed8c1764f07831a",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -1887,32 +1507,22 @@
               "supportedDistinction": "Absolute (numerical) dating methods are the specific techniques that assign exact ages in years to mineral grains found within a rock."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              1
-            ],
+            "authorizedSourceFactIndexes": [1],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-lacks-explicit-contrast",
-                "correction-reuses-misconception-structure"
-              ],
+              "issues": ["correction-lacks-explicit-contrast", "correction-reuses-misconception-structure"],
               "term": {
                 "tr": "Numerical age assignment",
                 "df": "Assigning specific ages in years to mineral grains within a rock.",
                 "eg": "Determining the exact age of a specific quartz grain in a sandstone sample.",
                 "mi": "Assuming that relative dating methods can provide precise numerical ages.",
                 "cx": "While relative dating methods establish chronological order, absolute (numerical) dating assigns specific ages in years to mineral grains within a rock, such as using radiometric dating to determine the exact age of a specific quartz grain in a sandstone sample.",
-                "sourceFactIndexes": [
-                  1
-                ]
+                "sourceFactIndexes": [1]
               },
               "rawIssues": [],
               "compilerRepairs": [],
               "contractEligible": true,
-              "pedagogicalIssues": [
-                "correction-lacks-explicit-contrast",
-                "correction-reuses-misconception-structure"
-              ]
+              "pedagogicalIssues": ["correction-lacks-explicit-contrast", "correction-reuses-misconception-structure"]
             }
           },
           {
@@ -1934,13 +1544,7 @@
             "scoredOutputSha256": "91fc079db501df1d114c6c640840d377e1c8bd5da30f7c53592f26467c7c806c",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -1948,30 +1552,22 @@
               "supportedDistinction": "Absolute dating methods provide specific ages in years for mineral grains within a rock, contrasting with relative dating methods which only establish chronological order."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              1
-            ],
+            "authorizedSourceFactIndexes": [1],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-reuses-misconception-structure"
-              ],
+              "issues": ["correction-reuses-misconception-structure"],
               "term": {
                 "tr": "Numerical age assignment",
                 "df": "Assigning specific ages in years to mineral grains within a rock.",
                 "eg": "Determining the exact age of a specific quartz grain in a sandstone sample.",
                 "mi": "Assuming that relative dating methods can provide precise numerical ages.",
                 "cx": "Absolute (numerical) dating assigns specific ages in years to mineral grains within a rock, not the assumption that relative dating methods can provide precise numerical ages.",
-                "sourceFactIndexes": [
-                  1
-                ]
+                "sourceFactIndexes": [1]
               },
               "rawIssues": [],
               "compilerRepairs": [],
               "contractEligible": true,
-              "pedagogicalIssues": [
-                "correction-reuses-misconception-structure"
-              ]
+              "pedagogicalIssues": ["correction-reuses-misconception-structure"]
             }
           }
         ],
@@ -1997,13 +1593,7 @@
         "scoredOutputSha256": "8420e9cebd271bfb76d4826389cc17ca8db124f4f34af266c4aa46f085cb3411",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -2011,32 +1601,22 @@
           "supportedDistinction": "Absolute dating methods are the only techniques capable of assigning specific ages in years to mineral grains within a rock."
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          1
-        ],
+        "authorizedSourceFactIndexes": [1],
         "assessment": {
           "eligible": false,
-          "issues": [
-            "correction-lacks-explicit-contrast",
-            "correction-reuses-misconception-structure"
-          ],
+          "issues": ["correction-lacks-explicit-contrast", "correction-reuses-misconception-structure"],
           "term": {
             "tr": "Numerical age assignment",
             "df": "Assigning specific ages in years to mineral grains within a rock.",
             "eg": "Determining the exact age of a specific quartz grain in a sandstone sample.",
             "mi": "Assuming that relative dating methods can provide precise numerical ages.",
             "cx": "The notion that relative dating methods can provide precise numerical ages in years for mineral grains is incorrect; absolute dating methods are the only techniques that assign specific ages in years to mineral grains within a rock.",
-            "sourceFactIndexes": [
-              1
-            ]
+            "sourceFactIndexes": [1]
           },
           "rawIssues": [],
           "compilerRepairs": [],
           "contractEligible": true,
-          "pedagogicalIssues": [
-            "correction-lacks-explicit-contrast",
-            "correction-reuses-misconception-structure"
-          ]
+          "pedagogicalIssues": ["correction-lacks-explicit-contrast", "correction-reuses-misconception-structure"]
         },
         "selectedAttempt": 2,
         "attemptCount": 3,
@@ -2060,13 +1640,7 @@
             "scoredOutputSha256": "31d8ccef634355b1e11d5a1a42eac4d9a931d8d3626d0a787b69856988657b94",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -2074,9 +1648,7 @@
               "supportedDistinction": "Absolute dating methods are the only techniques capable of assigning specific ages in years to mineral grains within a rock."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              1
-            ],
+            "authorizedSourceFactIndexes": [1],
             "assessment": {
               "eligible": false,
               "issues": [
@@ -2090,19 +1662,12 @@
                 "eg": "Determining the exact age of a specific quartz grain in a sandstone sample.",
                 "mi": "Assuming that relative dating methods can provide precise numerical ages.",
                 "cx": "The notion that relative dating methods can provide precise numerical ages in years for mineral grains is incorrect; only absolute dating methods are capable of assigning specific ages in years to mineral grains within a rock.",
-                "sourceFactIndexes": [
-                  1
-                ]
+                "sourceFactIndexes": [1]
               },
-              "rawIssues": [
-                "correction-repeats-definition"
-              ],
+              "rawIssues": ["correction-repeats-definition"],
               "compilerRepairs": [],
               "contractEligible": false,
-              "pedagogicalIssues": [
-                "correction-lacks-explicit-contrast",
-                "correction-reuses-misconception-structure"
-              ]
+              "pedagogicalIssues": ["correction-lacks-explicit-contrast", "correction-reuses-misconception-structure"]
             }
           },
           {
@@ -2124,13 +1689,7 @@
             "scoredOutputSha256": "374d0cc4c09d85cadaaa850baaee1a150a935acd5a18b37c21e622e253ae826e",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -2138,32 +1697,22 @@
               "supportedDistinction": "Absolute dating methods are the only techniques capable of assigning specific ages in years to mineral grains within a rock."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              1
-            ],
+            "authorizedSourceFactIndexes": [1],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-lacks-explicit-contrast",
-                "correction-reuses-misconception-structure"
-              ],
+              "issues": ["correction-lacks-explicit-contrast", "correction-reuses-misconception-structure"],
               "term": {
                 "tr": "Numerical age assignment",
                 "df": "Assigning specific ages in years to mineral grains within a rock.",
                 "eg": "Determining the exact age of a specific quartz grain in a sandstone sample.",
                 "mi": "Assuming that relative dating methods can provide precise numerical ages.",
                 "cx": "The notion that relative dating methods can establish precise numerical ages in years for mineral grains is incorrect; absolute dating methods are the only techniques that assign specific ages in years to mineral grains within a rock.",
-                "sourceFactIndexes": [
-                  1
-                ]
+                "sourceFactIndexes": [1]
               },
               "rawIssues": [],
               "compilerRepairs": [],
               "contractEligible": true,
-              "pedagogicalIssues": [
-                "correction-lacks-explicit-contrast",
-                "correction-reuses-misconception-structure"
-              ]
+              "pedagogicalIssues": ["correction-lacks-explicit-contrast", "correction-reuses-misconception-structure"]
             }
           },
           {
@@ -2185,13 +1734,7 @@
             "scoredOutputSha256": "8420e9cebd271bfb76d4826389cc17ca8db124f4f34af266c4aa46f085cb3411",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -2199,32 +1742,22 @@
               "supportedDistinction": "Absolute dating methods are the only techniques capable of assigning specific ages in years to mineral grains within a rock."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              1
-            ],
+            "authorizedSourceFactIndexes": [1],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-lacks-explicit-contrast",
-                "correction-reuses-misconception-structure"
-              ],
+              "issues": ["correction-lacks-explicit-contrast", "correction-reuses-misconception-structure"],
               "term": {
                 "tr": "Numerical age assignment",
                 "df": "Assigning specific ages in years to mineral grains within a rock.",
                 "eg": "Determining the exact age of a specific quartz grain in a sandstone sample.",
                 "mi": "Assuming that relative dating methods can provide precise numerical ages.",
                 "cx": "The notion that relative dating methods can provide precise numerical ages in years for mineral grains is incorrect; absolute dating methods are the only techniques that assign specific ages in years to mineral grains within a rock.",
-                "sourceFactIndexes": [
-                  1
-                ]
+                "sourceFactIndexes": [1]
               },
               "rawIssues": [],
               "compilerRepairs": [],
               "contractEligible": true,
-              "pedagogicalIssues": [
-                "correction-lacks-explicit-contrast",
-                "correction-reuses-misconception-structure"
-              ]
+              "pedagogicalIssues": ["correction-lacks-explicit-contrast", "correction-reuses-misconception-structure"]
             }
           }
         ],
@@ -2254,18 +1787,14 @@
             "text": "The Earth is about 4.54 billion years old, and this vastness of geologic time allowed life to evolve."
           }
         ],
-        "authorizedSourceFactIndexes": [
-          1
-        ],
+        "authorizedSourceFactIndexes": [1],
         "syntheticDefectTerm": {
           "tr": "Numerical age assignment",
           "df": "Assigning specific ages in years to mineral grains within a rock.",
           "eg": "Determining the exact age of a specific quartz grain in a sandstone sample.",
           "mi": "Assuming that relative dating methods can provide precise numerical ages.",
           "cx": "Assigning specific ages in years to mineral grains within a rock.",
-          "sourceFactIndexes": [
-            1
-          ]
+          "sourceFactIndexes": [1]
         },
         "committedReferenceCorrection": "Absolute dating assigns specific ages in years to mineral grains within a rock."
       }
@@ -2274,10 +1803,7 @@
       "caseId": "earth-materials-history-lab:geo/rock-cycle:key-term-0",
       "domain": "geology",
       "inputSha256": "7e05a609d7fcc0655350f6c28b08ad23f6176b4cae426cc42664cc1d1fd1bbf1",
-      "matchedArmOrder": [
-        "matched-control",
-        "teacher"
-      ],
+      "matchedArmOrder": ["matched-control", "teacher"],
       "matchedControl": {
         "serverRequestReceipt": "5d5f501f-91aa-4217-bbcc-2eee9599710b",
         "responseModel": "scion-1",
@@ -2297,13 +1823,7 @@
         "scoredOutputSha256": "1f1283d632a0591c8ee2e6697de2c4041f3caff0ed69ec775f93a09bf7fa2e60",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -2311,35 +1831,22 @@
           "supportedDistinction": "The rock cycle encompasses the entire transformation of Earth's three rock families—igneous, sedimentary, and metamorphic—through various geologic processes."
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          0,
-          1
-        ],
+        "authorizedSourceFactIndexes": [0, 1],
         "assessment": {
           "eligible": false,
-          "issues": [
-            "correction-repeats-definition",
-            "correction-lacks-explicit-contrast"
-          ],
+          "issues": ["correction-repeats-definition", "correction-lacks-explicit-contrast"],
           "term": {
             "tr": "Rock cycle",
             "df": "The continuous transformation of Earth's three rock families.",
             "eg": "A limestone layer being subjected to intense heat and pressure to become marble.",
             "mi": "Believing the rock cycle only involves the formation of igneous rocks.",
             "cx": "The rock cycle illustrates the continuous transformation of Earth's three rock families—igneous, sedimentary, and metamorphic—through geologic processes, demonstrating how these materials form and change into one another.",
-            "sourceFactIndexes": [
-              0,
-              1
-            ]
+            "sourceFactIndexes": [0, 1]
           },
-          "rawIssues": [
-            "correction-repeats-definition"
-          ],
+          "rawIssues": ["correction-repeats-definition"],
           "compilerRepairs": [],
           "contractEligible": false,
-          "pedagogicalIssues": [
-            "correction-lacks-explicit-contrast"
-          ]
+          "pedagogicalIssues": ["correction-lacks-explicit-contrast"]
         },
         "selectedAttempt": 2,
         "attemptCount": 3,
@@ -2363,13 +1870,7 @@
             "scoredOutputSha256": "e376d51f9d97b6bbc00f6f48681250fb50600591b9cc690f95f0ac30ba5e3004",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -2377,32 +1878,22 @@
               "supportedDistinction": "The rock cycle encompasses the entire transformation of Earth's three rock families—igneous, sedimentary, and metamorphic—through geologic processes."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0,
-              1
-            ],
+            "authorizedSourceFactIndexes": [0, 1],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-reuses-misconception-structure"
-              ],
+              "issues": ["correction-reuses-misconception-structure"],
               "term": {
                 "tr": "Rock cycle",
                 "df": "The continuous transformation of Earth's three rock families.",
                 "eg": "A limestone layer being subjected to intense heat and pressure to become marble.",
                 "mi": "Believing the rock cycle only involves the formation of igneous rocks.",
                 "cx": "The rock cycle illustrates the continuous transformation of Earth's three rock families—igneous, sedimentary, and metamorphic—through geologic processes, rather than being restricted solely to the formation of igneous rocks.",
-                "sourceFactIndexes": [
-                  0,
-                  1
-                ]
+                "sourceFactIndexes": [0, 1]
               },
               "rawIssues": [],
               "compilerRepairs": [],
               "contractEligible": true,
-              "pedagogicalIssues": [
-                "correction-reuses-misconception-structure"
-              ]
+              "pedagogicalIssues": ["correction-reuses-misconception-structure"]
             }
           },
           {
@@ -2424,13 +1915,7 @@
             "scoredOutputSha256": "ff3deb269ac79f9e002cb345f56bd50a159cf93b57f926082bb0413c6bcb283d",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -2438,32 +1923,22 @@
               "supportedDistinction": "The rock cycle encompasses the entire system of Earth's three rock families—igneous, sedimentary, and metamorphic—and the processes that cause their continuous transformation."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0,
-              1
-            ],
+            "authorizedSourceFactIndexes": [0, 1],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-reuses-misconception-structure"
-              ],
+              "issues": ["correction-reuses-misconception-structure"],
               "term": {
                 "tr": "Rock cycle",
                 "df": "The continuous transformation of Earth's three rock families.",
                 "eg": "A limestone layer being subjected to intense heat and pressure to become marble.",
                 "mi": "Believing the rock cycle only involves the formation of igneous rocks.",
                 "cx": "The rock cycle illustrates the continuous transformation among Earth's three rock families—igneous, sedimentary, and metamorphic—through geologic processes, rather than being restricted solely to the formation of igneous rocks.",
-                "sourceFactIndexes": [
-                  0,
-                  1
-                ]
+                "sourceFactIndexes": [0, 1]
               },
               "rawIssues": [],
               "compilerRepairs": [],
               "contractEligible": true,
-              "pedagogicalIssues": [
-                "correction-reuses-misconception-structure"
-              ]
+              "pedagogicalIssues": ["correction-reuses-misconception-structure"]
             }
           },
           {
@@ -2485,13 +1960,7 @@
             "scoredOutputSha256": "1f1283d632a0591c8ee2e6697de2c4041f3caff0ed69ec775f93a09bf7fa2e60",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -2499,35 +1968,22 @@
               "supportedDistinction": "The rock cycle encompasses the entire transformation of Earth's three rock families—igneous, sedimentary, and metamorphic—through various geologic processes."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0,
-              1
-            ],
+            "authorizedSourceFactIndexes": [0, 1],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-repeats-definition",
-                "correction-lacks-explicit-contrast"
-              ],
+              "issues": ["correction-repeats-definition", "correction-lacks-explicit-contrast"],
               "term": {
                 "tr": "Rock cycle",
                 "df": "The continuous transformation of Earth's three rock families.",
                 "eg": "A limestone layer being subjected to intense heat and pressure to become marble.",
                 "mi": "Believing the rock cycle only involves the formation of igneous rocks.",
                 "cx": "The rock cycle illustrates the continuous transformation of Earth's three rock families—igneous, sedimentary, and metamorphic—through geologic processes, demonstrating how these materials form and change into one another.",
-                "sourceFactIndexes": [
-                  0,
-                  1
-                ]
+                "sourceFactIndexes": [0, 1]
               },
-              "rawIssues": [
-                "correction-repeats-definition"
-              ],
+              "rawIssues": ["correction-repeats-definition"],
               "compilerRepairs": [],
               "contractEligible": false,
-              "pedagogicalIssues": [
-                "correction-lacks-explicit-contrast"
-              ]
+              "pedagogicalIssues": ["correction-lacks-explicit-contrast"]
             }
           }
         ],
@@ -2553,13 +2009,7 @@
         "scoredOutputSha256": "e14a6b17b2ed2966e2fed30243add55df6eb357f2ad13741679c764127ffab20",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -2567,32 +2017,22 @@
           "supportedDistinction": "The rock cycle encompasses the formation and transformation of all three rock families—igneous, sedimentary, and metamorphic—through geologic processes."
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          0,
-          1
-        ],
+        "authorizedSourceFactIndexes": [0, 1],
         "assessment": {
           "eligible": false,
-          "issues": [
-            "correction-reuses-misconception-structure"
-          ],
+          "issues": ["correction-reuses-misconception-structure"],
           "term": {
             "tr": "Rock cycle",
             "df": "The continuous transformation of Earth's three rock families.",
             "eg": "A limestone layer being subjected to intense heat and pressure to become marble.",
             "mi": "Believing the rock cycle only involves the formation of igneous rocks.",
             "cx": "The rock cycle involves the complete transformation of Earth's three rock families, not just the creation of igneous rocks.",
-            "sourceFactIndexes": [
-              0,
-              1
-            ]
+            "sourceFactIndexes": [0, 1]
           },
           "rawIssues": [],
           "compilerRepairs": [],
           "contractEligible": true,
-          "pedagogicalIssues": [
-            "correction-reuses-misconception-structure"
-          ]
+          "pedagogicalIssues": ["correction-reuses-misconception-structure"]
         },
         "selectedAttempt": 2,
         "attemptCount": 3,
@@ -2616,13 +2056,7 @@
             "scoredOutputSha256": "4dff6f571a001381e06adb4c7d094b012162bd83d20a45a915ad4f491a79d15f",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -2630,32 +2064,22 @@
               "supportedDistinction": "The rock cycle encompasses the entire system of Earth's three rock families—igneous, sedimentary, and metamorphic—and the processes linking them."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0,
-              1
-            ],
+            "authorizedSourceFactIndexes": [0, 1],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-reuses-misconception-structure"
-              ],
+              "issues": ["correction-reuses-misconception-structure"],
               "term": {
                 "tr": "Rock cycle",
                 "df": "The continuous transformation of Earth's three rock families.",
                 "eg": "A limestone layer being subjected to intense heat and pressure to become marble.",
                 "mi": "Believing the rock cycle only involves the formation of igneous rocks.",
                 "cx": "The rock cycle is not restricted to the genesis of igneous rocks; rather, it details the complete system where igneous, sedimentary, and metamorphic materials are formed and continuously change into one another via geologic processes.",
-                "sourceFactIndexes": [
-                  0,
-                  1
-                ]
+                "sourceFactIndexes": [0, 1]
               },
               "rawIssues": [],
               "compilerRepairs": [],
               "contractEligible": true,
-              "pedagogicalIssues": [
-                "correction-reuses-misconception-structure"
-              ]
+              "pedagogicalIssues": ["correction-reuses-misconception-structure"]
             }
           },
           {
@@ -2677,13 +2101,7 @@
             "scoredOutputSha256": "e14a6b17b2ed2966e2fed30243add55df6eb357f2ad13741679c764127ffab20",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -2691,32 +2109,22 @@
               "supportedDistinction": "The rock cycle encompasses the formation and transformation of all three rock families—igneous, sedimentary, and metamorphic—through geologic processes."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0,
-              1
-            ],
+            "authorizedSourceFactIndexes": [0, 1],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-reuses-misconception-structure"
-              ],
+              "issues": ["correction-reuses-misconception-structure"],
               "term": {
                 "tr": "Rock cycle",
                 "df": "The continuous transformation of Earth's three rock families.",
                 "eg": "A limestone layer being subjected to intense heat and pressure to become marble.",
                 "mi": "Believing the rock cycle only involves the formation of igneous rocks.",
                 "cx": "The rock cycle involves the complete transformation of Earth's three rock families, not just the creation of igneous rocks.",
-                "sourceFactIndexes": [
-                  0,
-                  1
-                ]
+                "sourceFactIndexes": [0, 1]
               },
               "rawIssues": [],
               "compilerRepairs": [],
               "contractEligible": true,
-              "pedagogicalIssues": [
-                "correction-reuses-misconception-structure"
-              ]
+              "pedagogicalIssues": ["correction-reuses-misconception-structure"]
             }
           },
           {
@@ -2738,13 +2146,7 @@
             "scoredOutputSha256": "e14a6b17b2ed2966e2fed30243add55df6eb357f2ad13741679c764127ffab20",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -2752,32 +2154,22 @@
               "supportedDistinction": "The rock cycle encompasses the formation and transformation of all three rock families—igneous, sedimentary, and metamorphic—through geologic processes."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0,
-              1
-            ],
+            "authorizedSourceFactIndexes": [0, 1],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-reuses-misconception-structure"
-              ],
+              "issues": ["correction-reuses-misconception-structure"],
               "term": {
                 "tr": "Rock cycle",
                 "df": "The continuous transformation of Earth's three rock families.",
                 "eg": "A limestone layer being subjected to intense heat and pressure to become marble.",
                 "mi": "Believing the rock cycle only involves the formation of igneous rocks.",
                 "cx": "The rock cycle involves the complete transformation of Earth's three rock families, not just the creation of igneous rocks.",
-                "sourceFactIndexes": [
-                  0,
-                  1
-                ]
+                "sourceFactIndexes": [0, 1]
               },
               "rawIssues": [],
               "compilerRepairs": [],
               "contractEligible": true,
-              "pedagogicalIssues": [
-                "correction-reuses-misconception-structure"
-              ]
+              "pedagogicalIssues": ["correction-reuses-misconception-structure"]
             }
           }
         ],
@@ -2803,20 +2195,14 @@
             "text": "If conditions melt the rocks into magma, the cycle begins anew with new igneous rocks."
           }
         ],
-        "authorizedSourceFactIndexes": [
-          0,
-          1
-        ],
+        "authorizedSourceFactIndexes": [0, 1],
         "syntheticDefectTerm": {
           "tr": "Rock cycle",
           "df": "The continuous transformation of Earth's three rock families.",
           "eg": "A limestone layer being subjected to intense heat and pressure to become marble.",
           "mi": "Believing the rock cycle only involves the formation of igneous rocks.",
           "cx": "The continuous transformation of Earth's three rock families.",
-          "sourceFactIndexes": [
-            0,
-            1
-          ]
+          "sourceFactIndexes": [0, 1]
         },
         "committedReferenceCorrection": "The cycle involves igneous, sedimentary, and metamorphic rocks continually transforming into one another."
       }
@@ -2825,10 +2211,7 @@
       "caseId": "tectonics-seismology-field-lab:geo/plate-tectonics:key-term-1",
       "domain": "geology",
       "inputSha256": "f59c00b9cc0c487ea9d13ecfea904b843bdcdd7e63d1fac0e9395a3332a87272",
-      "matchedArmOrder": [
-        "teacher",
-        "matched-control"
-      ],
+      "matchedArmOrder": ["teacher", "matched-control"],
       "matchedControl": {
         "serverRequestReceipt": "44ff80be-88da-43fd-9d28-4011060187dc",
         "responseModel": "scion-1",
@@ -2848,13 +2231,7 @@
         "scoredOutputSha256": "0769cb60e806e68a586db2aeb5f65ad15a912f7ecdc20fcea5b92d9dd2480aeb",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -2862,33 +2239,22 @@
           "supportedDistinction": "The solid, brittle outer crust is the lithosphere, which is broken into plates that move over the ductile layer beneath it."
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          0
-        ],
+        "authorizedSourceFactIndexes": [0],
         "assessment": {
           "eligible": false,
-          "issues": [
-            "correction-repeats-misconception",
-            "correction-lacks-explicit-contrast"
-          ],
+          "issues": ["correction-repeats-misconception", "correction-lacks-explicit-contrast"],
           "term": {
             "tr": "Asthenosphere",
             "df": "The ductile layer beneath the lithosphere that allows plate movement.",
             "eg": "The layer beneath the Pacific Plate where movement occurs.",
             "mi": "The solid, brittle outer crust.",
             "cx": "The solid, brittle outer crust is actually the lithosphere, which is broken into plates that move over the ductile layer beneath it, the asthenosphere.",
-            "sourceFactIndexes": [
-              0
-            ]
+            "sourceFactIndexes": [0]
           },
-          "rawIssues": [
-            "correction-repeats-misconception"
-          ],
+          "rawIssues": ["correction-repeats-misconception"],
           "compilerRepairs": [],
           "contractEligible": false,
-          "pedagogicalIssues": [
-            "correction-lacks-explicit-contrast"
-          ]
+          "pedagogicalIssues": ["correction-lacks-explicit-contrast"]
         },
         "selectedAttempt": 2,
         "attemptCount": 3,
@@ -2912,13 +2278,7 @@
             "scoredOutputSha256": "421fabba2362c7315bc233afd3ec05f62807cb90e162f3aa060137e74de20230",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -2926,33 +2286,22 @@
               "supportedDistinction": "The solid, brittle outer crust is the lithosphere, which is broken into plates that move over the ductile asthenosphere."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0
-            ],
+            "authorizedSourceFactIndexes": [0],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-repeats-misconception",
-                "correction-lacks-explicit-contrast"
-              ],
+              "issues": ["correction-repeats-misconception", "correction-lacks-explicit-contrast"],
               "term": {
                 "tr": "Asthenosphere",
                 "df": "The ductile layer beneath the lithosphere that allows plate movement.",
                 "eg": "The layer beneath the Pacific Plate where movement occurs.",
                 "mi": "The solid, brittle outer crust.",
                 "cx": "The solid, brittle outer crust is actually the lithosphere, which is broken into plates that move over the ductile asthenosphere.",
-                "sourceFactIndexes": [
-                  0
-                ]
+                "sourceFactIndexes": [0]
               },
-              "rawIssues": [
-                "correction-repeats-misconception"
-              ],
+              "rawIssues": ["correction-repeats-misconception"],
               "compilerRepairs": [],
               "contractEligible": false,
-              "pedagogicalIssues": [
-                "correction-lacks-explicit-contrast"
-              ]
+              "pedagogicalIssues": ["correction-lacks-explicit-contrast"]
             }
           },
           {
@@ -2974,13 +2323,7 @@
             "scoredOutputSha256": "f2be7f4a81d45d73c620f456042d727ae57bd03b8088bc488b40ff119a27ced8",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -2988,27 +2331,19 @@
               "supportedDistinction": "The solid, brittle outer crust is the lithosphere, which is broken into plates that move over the ductile layer beneath it."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0
-            ],
+            "authorizedSourceFactIndexes": [0],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-repeats-misconception"
-              ],
+              "issues": ["correction-repeats-misconception"],
               "term": {
                 "tr": "Asthenosphere",
                 "df": "The ductile layer beneath the lithosphere that allows plate movement.",
                 "eg": "The layer beneath the Pacific Plate where movement occurs.",
                 "mi": "The solid, brittle outer crust.",
                 "cx": "The solid, brittle outer crust is the lithosphere, which is broken into plates that move over the ductile layer beneath it, rather than being a single, unmoving entity.",
-                "sourceFactIndexes": [
-                  0
-                ]
+                "sourceFactIndexes": [0]
               },
-              "rawIssues": [
-                "correction-repeats-misconception"
-              ],
+              "rawIssues": ["correction-repeats-misconception"],
               "compilerRepairs": [],
               "contractEligible": false,
               "pedagogicalIssues": []
@@ -3033,13 +2368,7 @@
             "scoredOutputSha256": "0769cb60e806e68a586db2aeb5f65ad15a912f7ecdc20fcea5b92d9dd2480aeb",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -3047,33 +2376,22 @@
               "supportedDistinction": "The solid, brittle outer crust is the lithosphere, which is broken into plates that move over the ductile layer beneath it."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0
-            ],
+            "authorizedSourceFactIndexes": [0],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-repeats-misconception",
-                "correction-lacks-explicit-contrast"
-              ],
+              "issues": ["correction-repeats-misconception", "correction-lacks-explicit-contrast"],
               "term": {
                 "tr": "Asthenosphere",
                 "df": "The ductile layer beneath the lithosphere that allows plate movement.",
                 "eg": "The layer beneath the Pacific Plate where movement occurs.",
                 "mi": "The solid, brittle outer crust.",
                 "cx": "The solid, brittle outer crust is actually the lithosphere, which is broken into plates that move over the ductile layer beneath it, the asthenosphere.",
-                "sourceFactIndexes": [
-                  0
-                ]
+                "sourceFactIndexes": [0]
               },
-              "rawIssues": [
-                "correction-repeats-misconception"
-              ],
+              "rawIssues": ["correction-repeats-misconception"],
               "compilerRepairs": [],
               "contractEligible": false,
-              "pedagogicalIssues": [
-                "correction-lacks-explicit-contrast"
-              ]
+              "pedagogicalIssues": ["correction-lacks-explicit-contrast"]
             }
           }
         ],
@@ -3099,13 +2417,7 @@
         "scoredOutputSha256": "562541a32288ab306e37ceff99fb44065258c1cec35f85b18d5d1e038b8b05f8",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -3113,9 +2425,7 @@
           "supportedDistinction": "The rigid lithosphere is fractured into plates that glide atop the ductile asthenosphere"
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          0
-        ],
+        "authorizedSourceFactIndexes": [0],
         "assessment": {
           "eligible": true,
           "issues": [],
@@ -3125,9 +2435,7 @@
             "eg": "The layer beneath the Pacific Plate where movement occurs.",
             "mi": "The solid, brittle outer crust.",
             "cx": "The rigid outer shell of the Earth is not a single unit but is segmented into plates that shift across the yielding asthenosphere.",
-            "sourceFactIndexes": [
-              0
-            ]
+            "sourceFactIndexes": [0]
           },
           "rawIssues": [],
           "compilerRepairs": [],
@@ -3156,13 +2464,7 @@
             "scoredOutputSha256": "562541a32288ab306e37ceff99fb44065258c1cec35f85b18d5d1e038b8b05f8",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -3170,9 +2472,7 @@
               "supportedDistinction": "The rigid lithosphere is fractured into plates that glide atop the ductile asthenosphere"
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0
-            ],
+            "authorizedSourceFactIndexes": [0],
             "assessment": {
               "eligible": true,
               "issues": [],
@@ -3182,9 +2482,7 @@
                 "eg": "The layer beneath the Pacific Plate where movement occurs.",
                 "mi": "The solid, brittle outer crust.",
                 "cx": "The rigid outer shell of the Earth is not a single unit but is segmented into plates that shift across the yielding asthenosphere.",
-                "sourceFactIndexes": [
-                  0
-                ]
+                "sourceFactIndexes": [0]
               },
               "rawIssues": [],
               "compilerRepairs": [],
@@ -3215,18 +2513,14 @@
             "text": "At a transform boundary, plates slide horizontally past each other."
           }
         ],
-        "authorizedSourceFactIndexes": [
-          0
-        ],
+        "authorizedSourceFactIndexes": [0],
         "syntheticDefectTerm": {
           "tr": "Asthenosphere",
           "df": "The ductile layer beneath the lithosphere that allows plate movement.",
           "eg": "The layer beneath the Pacific Plate where movement occurs.",
           "mi": "The solid, brittle outer crust.",
           "cx": "The ductile layer beneath the lithosphere that allows plate movement.",
-          "sourceFactIndexes": [
-            0
-          ]
+          "sourceFactIndexes": [0]
         },
         "committedReferenceCorrection": "Earth's rigid lithosphere is broken into plates that move over the ductile asthenosphere."
       }
@@ -3235,10 +2529,7 @@
       "caseId": "tonal-analysis-integration-studio:music/scales-and-key-signatures:key-term-1",
       "domain": "music-theory",
       "inputSha256": "d031f6a97a86c0c9d2100511c0690912eaaf8b4c55a562e1cc9d35fd54e85707",
-      "matchedArmOrder": [
-        "matched-control",
-        "teacher"
-      ],
+      "matchedArmOrder": ["matched-control", "teacher"],
       "matchedControl": {
         "serverRequestReceipt": "17672bae-bccd-4649-aff4-8b7030a3f464",
         "responseModel": "scion-1",
@@ -3258,13 +2549,7 @@
         "scoredOutputSha256": "c354751c8c8e91f8b5450d10be0b750e05e3833a783de8091649c33e8ce17101",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -3272,10 +2557,7 @@
           "supportedDistinction": "A specific scale is defined by its characteristic interval pattern and by a special note, known as its first degree (or tonic)."
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          3,
-          4
-        ],
+        "authorizedSourceFactIndexes": [3, 4],
         "assessment": {
           "eligible": true,
           "issues": [],
@@ -3285,10 +2567,7 @@
             "eg": "The pattern of whole and half steps in a mode.",
             "mi": "The characteristic interval pattern and the first degree.",
             "cx": "A specific scale is determined by the way its intervals between consecutive notes interact, which is its step-pattern, and by a special note called its first degree or tonic.",
-            "sourceFactIndexes": [
-              3,
-              4
-            ]
+            "sourceFactIndexes": [3, 4]
           },
           "rawIssues": [],
           "compilerRepairs": [],
@@ -3317,13 +2596,7 @@
             "scoredOutputSha256": "c354751c8c8e91f8b5450d10be0b750e05e3833a783de8091649c33e8ce17101",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -3331,10 +2604,7 @@
               "supportedDistinction": "A specific scale is defined by its characteristic interval pattern and by a special note, known as its first degree (or tonic)."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              3,
-              4
-            ],
+            "authorizedSourceFactIndexes": [3, 4],
             "assessment": {
               "eligible": true,
               "issues": [],
@@ -3344,10 +2614,7 @@
                 "eg": "The pattern of whole and half steps in a mode.",
                 "mi": "The characteristic interval pattern and the first degree.",
                 "cx": "A specific scale is determined by the way its intervals between consecutive notes interact, which is its step-pattern, and by a special note called its first degree or tonic.",
-                "sourceFactIndexes": [
-                  3,
-                  4
-                ]
+                "sourceFactIndexes": [3, 4]
               },
               "rawIssues": [],
               "compilerRepairs": [],
@@ -3378,13 +2645,7 @@
         "scoredOutputSha256": "7a79bf5c8892e6300ad41802012ae93a804da2211fcff0d541ace66db481bde9",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -3392,32 +2653,22 @@
           "supportedDistinction": "A specific scale is uniquely determined by the sequence of its characteristic intervals and the designation of its tonic note."
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          3,
-          4
-        ],
+        "authorizedSourceFactIndexes": [3, 4],
         "assessment": {
           "eligible": false,
-          "issues": [
-            "correction-lacks-explicit-contrast"
-          ],
+          "issues": ["correction-lacks-explicit-contrast"],
           "term": {
             "tr": "Step-pattern",
             "df": "The way the intervals between consecutive notes in a scale interact.",
             "eg": "The pattern of whole and half steps in a mode.",
             "mi": "The characteristic interval pattern and the first degree.",
             "cx": "The unique identity of a scale is established by the specific sequence of its characteristic intervals and the designation of its tonic note.",
-            "sourceFactIndexes": [
-              3,
-              4
-            ]
+            "sourceFactIndexes": [3, 4]
           },
           "rawIssues": [],
           "compilerRepairs": [],
           "contractEligible": true,
-          "pedagogicalIssues": [
-            "correction-lacks-explicit-contrast"
-          ]
+          "pedagogicalIssues": ["correction-lacks-explicit-contrast"]
         },
         "selectedAttempt": 2,
         "attemptCount": 3,
@@ -3441,13 +2692,7 @@
             "scoredOutputSha256": "d8445d6e1746df6f525025ee123d574f57be7cc9c1f2b7c22fc6f59a871ea8e0",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -3455,32 +2700,22 @@
               "supportedDistinction": "A specific scale is determined by its unique sequence of intervals and the identification of its tonic note."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              3,
-              4
-            ],
+            "authorizedSourceFactIndexes": [3, 4],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-lacks-explicit-contrast"
-              ],
+              "issues": ["correction-lacks-explicit-contrast"],
               "term": {
                 "tr": "Step-pattern",
                 "df": "The way the intervals between consecutive notes in a scale interact.",
                 "eg": "The pattern of whole and half steps in a mode.",
                 "mi": "The characteristic interval pattern and the first degree.",
                 "cx": "A particular scale is distinguished by the arrangement of its successive intervals and the designation of its tonic note.",
-                "sourceFactIndexes": [
-                  3,
-                  4
-                ]
+                "sourceFactIndexes": [3, 4]
               },
               "rawIssues": [],
               "compilerRepairs": [],
               "contractEligible": true,
-              "pedagogicalIssues": [
-                "correction-lacks-explicit-contrast"
-              ]
+              "pedagogicalIssues": ["correction-lacks-explicit-contrast"]
             }
           },
           {
@@ -3502,13 +2737,7 @@
             "scoredOutputSha256": "10b87e3704468b8d68711075dc4e570f2bb5e0f2140f64fddfe2725ae1496987",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -3516,35 +2745,22 @@
               "supportedDistinction": "A specific scale is uniquely identified by its distinctive sequence of intervals and the identification of its tonic note."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              3,
-              4
-            ],
+            "authorizedSourceFactIndexes": [3, 4],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-repeats-misconception",
-                "correction-reuses-misconception-structure"
-              ],
+              "issues": ["correction-repeats-misconception", "correction-reuses-misconception-structure"],
               "term": {
                 "tr": "Step-pattern",
                 "df": "The way the intervals between consecutive notes in a scale interact.",
                 "eg": "The pattern of whole and half steps in a mode.",
                 "mi": "The characteristic interval pattern and the first degree.",
                 "cx": "A specific scale is distinguished by the arrangement of its intervals and the designation of its tonic, not by the characteristic interval pattern and the first degree alone.",
-                "sourceFactIndexes": [
-                  3,
-                  4
-                ]
+                "sourceFactIndexes": [3, 4]
               },
-              "rawIssues": [
-                "correction-repeats-misconception"
-              ],
+              "rawIssues": ["correction-repeats-misconception"],
               "compilerRepairs": [],
               "contractEligible": false,
-              "pedagogicalIssues": [
-                "correction-reuses-misconception-structure"
-              ]
+              "pedagogicalIssues": ["correction-reuses-misconception-structure"]
             }
           },
           {
@@ -3566,13 +2782,7 @@
             "scoredOutputSha256": "7a79bf5c8892e6300ad41802012ae93a804da2211fcff0d541ace66db481bde9",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -3580,32 +2790,22 @@
               "supportedDistinction": "A specific scale is uniquely determined by the sequence of its characteristic intervals and the designation of its tonic note."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              3,
-              4
-            ],
+            "authorizedSourceFactIndexes": [3, 4],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-lacks-explicit-contrast"
-              ],
+              "issues": ["correction-lacks-explicit-contrast"],
               "term": {
                 "tr": "Step-pattern",
                 "df": "The way the intervals between consecutive notes in a scale interact.",
                 "eg": "The pattern of whole and half steps in a mode.",
                 "mi": "The characteristic interval pattern and the first degree.",
                 "cx": "The unique identity of a scale is established by the specific sequence of its characteristic intervals and the designation of its tonic note.",
-                "sourceFactIndexes": [
-                  3,
-                  4
-                ]
+                "sourceFactIndexes": [3, 4]
               },
               "rawIssues": [],
               "compilerRepairs": [],
               "contractEligible": true,
-              "pedagogicalIssues": [
-                "correction-lacks-explicit-contrast"
-              ]
+              "pedagogicalIssues": ["correction-lacks-explicit-contrast"]
             }
           }
         ],
@@ -3639,20 +2839,14 @@
             "text": "The expression scale degree refers to these numerical labels."
           }
         ],
-        "authorizedSourceFactIndexes": [
-          3,
-          4
-        ],
+        "authorizedSourceFactIndexes": [3, 4],
         "syntheticDefectTerm": {
           "tr": "Step-pattern",
           "df": "The way the intervals between consecutive notes in a scale interact.",
           "eg": "The pattern of whole and half steps in a mode.",
           "mi": "The characteristic interval pattern and the first degree.",
           "cx": "The way the intervals between consecutive notes in a scale interact.",
-          "sourceFactIndexes": [
-            3,
-            4
-          ]
+          "sourceFactIndexes": [3, 4]
         },
         "committedReferenceCorrection": "The specific scale that is defined by its characteristic interval pattern."
       }
@@ -3661,10 +2855,7 @@
       "caseId": "tonal-analysis-integration-studio:music/staff-clefs-pitch-notation:key-term-1",
       "domain": "music-theory",
       "inputSha256": "796652c905263be6c0f10c0c5013c27dbd2b9061c6becad73d7d6cf9104d742d",
-      "matchedArmOrder": [
-        "teacher",
-        "matched-control"
-      ],
+      "matchedArmOrder": ["teacher", "matched-control"],
       "matchedControl": {
         "serverRequestReceipt": "11ebda7f-893f-4048-a138-01444ef8009c",
         "responseModel": "scion-1",
@@ -3684,13 +2875,7 @@
         "scoredOutputSha256": "01536d5ac1fb166586ff7ef20f76a4cde7ea7174fa496f86e26b8dbd7fc3238a",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -3698,9 +2883,7 @@
           "supportedDistinction": "A clef is a musical symbol that specifies which notes are represented by the lines and spaces on a musical staff."
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          2
-        ],
+        "authorizedSourceFactIndexes": [2],
         "assessment": {
           "eligible": true,
           "issues": [],
@@ -3710,9 +2893,7 @@
             "eg": "The symbol placed at the beginning of the staff that dictates note representation.",
             "mi": "A specific musical pitch.",
             "cx": "A clef is not a specific musical pitch; rather, it is a musical symbol that indicates which notes are represented by the lines and spaces on a musical staff.",
-            "sourceFactIndexes": [
-              2
-            ]
+            "sourceFactIndexes": [2]
           },
           "rawIssues": [],
           "compilerRepairs": [],
@@ -3741,13 +2922,7 @@
             "scoredOutputSha256": "a5972f00d1b75b2fc6e24ac00c808f84b7ebebf9ebfe0810aec39f0d91108e6a",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -3755,30 +2930,22 @@
               "supportedDistinction": "A musical symbol used to indicate which notes are represented by the lines and spaces on a musical staff"
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              2
-            ],
+            "authorizedSourceFactIndexes": [2],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-lacks-explicit-contrast"
-              ],
+              "issues": ["correction-lacks-explicit-contrast"],
               "term": {
                 "tr": "Clef",
                 "df": "A musical symbol used to indicate which notes are represented by the lines and spaces on a musical staff.",
                 "eg": "The symbol placed at the beginning of the staff that dictates note representation.",
                 "mi": "A specific musical pitch.",
                 "cx": "The symbol employed on a musical staff to specify which notes are depicted by the lines and spaces is a clef.",
-                "sourceFactIndexes": [
-                  2
-                ]
+                "sourceFactIndexes": [2]
               },
               "rawIssues": [],
               "compilerRepairs": [],
               "contractEligible": true,
-              "pedagogicalIssues": [
-                "correction-lacks-explicit-contrast"
-              ]
+              "pedagogicalIssues": ["correction-lacks-explicit-contrast"]
             }
           },
           {
@@ -3800,13 +2967,7 @@
             "scoredOutputSha256": "01536d5ac1fb166586ff7ef20f76a4cde7ea7174fa496f86e26b8dbd7fc3238a",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -3814,9 +2975,7 @@
               "supportedDistinction": "A clef is a musical symbol that specifies which notes are represented by the lines and spaces on a musical staff."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              2
-            ],
+            "authorizedSourceFactIndexes": [2],
             "assessment": {
               "eligible": true,
               "issues": [],
@@ -3826,9 +2985,7 @@
                 "eg": "The symbol placed at the beginning of the staff that dictates note representation.",
                 "mi": "A specific musical pitch.",
                 "cx": "A clef is not a specific musical pitch; rather, it is a musical symbol that indicates which notes are represented by the lines and spaces on a musical staff.",
-                "sourceFactIndexes": [
-                  2
-                ]
+                "sourceFactIndexes": [2]
               },
               "rawIssues": [],
               "compilerRepairs": [],
@@ -3859,13 +3016,7 @@
         "scoredOutputSha256": "8c278991298c0116451e25208ab777a45b22049f35554392028a88c70262296b",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -3873,9 +3024,7 @@
           "supportedDistinction": "A musical symbol used to indicate which notes are represented by the lines and spaces on a musical staff"
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          2
-        ],
+        "authorizedSourceFactIndexes": [2],
         "assessment": {
           "eligible": true,
           "issues": [],
@@ -3885,9 +3034,7 @@
             "eg": "The symbol placed at the beginning of the staff that dictates note representation.",
             "mi": "A specific musical pitch.",
             "cx": "The symbol used on a musical staff to show which notes are represented by the lines and spaces is not a specific musical pitch.",
-            "sourceFactIndexes": [
-              2
-            ]
+            "sourceFactIndexes": [2]
           },
           "rawIssues": [],
           "compilerRepairs": [],
@@ -3916,13 +3063,7 @@
             "scoredOutputSha256": "8c278991298c0116451e25208ab777a45b22049f35554392028a88c70262296b",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -3930,9 +3071,7 @@
               "supportedDistinction": "A musical symbol used to indicate which notes are represented by the lines and spaces on a musical staff"
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              2
-            ],
+            "authorizedSourceFactIndexes": [2],
             "assessment": {
               "eligible": true,
               "issues": [],
@@ -3942,9 +3081,7 @@
                 "eg": "The symbol placed at the beginning of the staff that dictates note representation.",
                 "mi": "A specific musical pitch.",
                 "cx": "The symbol used on a musical staff to show which notes are represented by the lines and spaces is not a specific musical pitch.",
-                "sourceFactIndexes": [
-                  2
-                ]
+                "sourceFactIndexes": [2]
               },
               "rawIssues": [],
               "compilerRepairs": [],
@@ -3979,18 +3116,14 @@
             "text": "Bass clef is the bottom clef in the grand staff for harp and keyboard instruments."
           }
         ],
-        "authorizedSourceFactIndexes": [
-          2
-        ],
+        "authorizedSourceFactIndexes": [2],
         "syntheticDefectTerm": {
           "tr": "Clef",
           "df": "A musical symbol used to indicate which notes are represented by the lines and spaces on a musical staff.",
           "eg": "The symbol placed at the beginning of the staff that dictates note representation.",
           "mi": "A specific musical pitch.",
           "cx": "A musical symbol used to indicate which notes are represented by the lines and spaces on a musical staff.",
-          "sourceFactIndexes": [
-            2
-          ]
+          "sourceFactIndexes": [2]
         },
         "committedReferenceCorrection": "A set of horizontal lines and spaces."
       }
@@ -3999,10 +3132,7 @@
       "caseId": "tonal-analysis-integration-studio:music/musical-form:key-term-0",
       "domain": "music-theory",
       "inputSha256": "107cc98d1740c82e70ea52dc96a4a9ce6ed2eea1604e824ce0e38ec4b320d347",
-      "matchedArmOrder": [
-        "matched-control",
-        "teacher"
-      ],
+      "matchedArmOrder": ["matched-control", "teacher"],
       "matchedControl": {
         "serverRequestReceipt": "9968c3a6-cf57-4805-8bb7-b74ff9795f4a",
         "responseModel": "scion-1",
@@ -4022,13 +3152,7 @@
         "scoredOutputSha256": "f999b67a4620b378251b3fa81cab4832d34c5106f65555a6de3e7828af05dde5",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -4036,10 +3160,7 @@
           "supportedDistinction": "Form is the comprehensive framework governing the entire arrangement of a musical composition or performance."
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          0,
-          5
-        ],
+        "authorizedSourceFactIndexes": [0, 5],
         "assessment": {
           "eligible": true,
           "issues": [],
@@ -4049,10 +3170,7 @@
             "eg": "Analyzing the entire structure of a single movement.",
             "mi": "A specific melodic line or chord progression.",
             "cx": "The organization of a musical piece is not defined by isolated melodic lines or chord progressions, but rather by the overarching structure that dictates the entire arrangement of the composition or performance.",
-            "sourceFactIndexes": [
-              0,
-              5
-            ]
+            "sourceFactIndexes": [0, 5]
           },
           "rawIssues": [],
           "compilerRepairs": [],
@@ -4081,13 +3199,7 @@
             "scoredOutputSha256": "425bfc138727558bb82e2e550bc7dd94ec339da5cec46a7e4356c7314f4307f8",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -4095,32 +3207,22 @@
               "supportedDistinction": "The next level concerns the entire structure of any single self-contained musical piece or movement."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0,
-              5
-            ],
+            "authorizedSourceFactIndexes": [0, 5],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-reuses-misconception-structure"
-              ],
+              "issues": ["correction-reuses-misconception-structure"],
               "term": {
                 "tr": "Structure of a musical work",
                 "df": "The overall arrangement of a musical composition or performance.",
                 "eg": "Analyzing the entire structure of a single movement.",
                 "mi": "A specific melodic line or chord progression.",
                 "cx": "Understanding the overall arrangement of a musical composition or performance involves examining the complete framework of a single movement, rather than focusing solely on an individual melodic line or chord progression.",
-                "sourceFactIndexes": [
-                  0,
-                  5
-                ]
+                "sourceFactIndexes": [0, 5]
               },
               "rawIssues": [],
               "compilerRepairs": [],
               "contractEligible": true,
-              "pedagogicalIssues": [
-                "correction-reuses-misconception-structure"
-              ]
+              "pedagogicalIssues": ["correction-reuses-misconception-structure"]
             }
           },
           {
@@ -4142,13 +3244,7 @@
             "scoredOutputSha256": "f999b67a4620b378251b3fa81cab4832d34c5106f65555a6de3e7828af05dde5",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -4156,10 +3252,7 @@
               "supportedDistinction": "Form is the comprehensive framework governing the entire arrangement of a musical composition or performance."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0,
-              5
-            ],
+            "authorizedSourceFactIndexes": [0, 5],
             "assessment": {
               "eligible": true,
               "issues": [],
@@ -4169,10 +3262,7 @@
                 "eg": "Analyzing the entire structure of a single movement.",
                 "mi": "A specific melodic line or chord progression.",
                 "cx": "The organization of a musical piece is not defined by isolated melodic lines or chord progressions, but rather by the overarching structure that dictates the entire arrangement of the composition or performance.",
-                "sourceFactIndexes": [
-                  0,
-                  5
-                ]
+                "sourceFactIndexes": [0, 5]
               },
               "rawIssues": [],
               "compilerRepairs": [],
@@ -4203,13 +3293,7 @@
         "scoredOutputSha256": "d9fd731fdfca4caa4f8762ae27e126a04cf28d0e6853c0f764df27e7de5ae422",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -4217,32 +3301,22 @@
           "supportedDistinction": "Form encompasses the complete organization of a self-contained musical piece or movement."
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          0,
-          5
-        ],
+        "authorizedSourceFactIndexes": [0, 5],
         "assessment": {
           "eligible": false,
-          "issues": [
-            "correction-reuses-misconception-structure"
-          ],
+          "issues": ["correction-reuses-misconception-structure"],
           "term": {
             "tr": "Structure of a musical work",
             "df": "The overall arrangement of a musical composition or performance.",
             "eg": "Analyzing the entire structure of a single movement.",
             "mi": "A specific melodic line or chord progression.",
             "cx": "The form of a musical work is defined by the complete organization of a self-contained musical piece or movement, not by the structure of just one melodic line or chord progression.",
-            "sourceFactIndexes": [
-              0,
-              5
-            ]
+            "sourceFactIndexes": [0, 5]
           },
           "rawIssues": [],
           "compilerRepairs": [],
           "contractEligible": true,
-          "pedagogicalIssues": [
-            "correction-reuses-misconception-structure"
-          ]
+          "pedagogicalIssues": ["correction-reuses-misconception-structure"]
         },
         "selectedAttempt": 2,
         "attemptCount": 3,
@@ -4266,13 +3340,7 @@
             "scoredOutputSha256": "23cdb000ce9ab5233489bf7c50fd1380992e29ec14071a64de78a1b2f02ee217",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -4280,35 +3348,22 @@
               "supportedDistinction": "The musical work's form encompasses the complete organization of any single self-contained musical piece or movement."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0,
-              5
-            ],
+            "authorizedSourceFactIndexes": [0, 5],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-repeats-misconception",
-                "correction-reuses-misconception-structure"
-              ],
+              "issues": ["correction-repeats-misconception", "correction-reuses-misconception-structure"],
               "term": {
                 "tr": "Structure of a musical work",
                 "df": "The overall arrangement of a musical composition or performance.",
                 "eg": "Analyzing the entire structure of a single movement.",
                 "mi": "A specific melodic line or chord progression.",
                 "cx": "The form of a musical work describes the complete organization of any single self-contained musical piece or movement, rather than just a specific melodic line or chord progression.",
-                "sourceFactIndexes": [
-                  0,
-                  5
-                ]
+                "sourceFactIndexes": [0, 5]
               },
-              "rawIssues": [
-                "correction-repeats-misconception"
-              ],
+              "rawIssues": ["correction-repeats-misconception"],
               "compilerRepairs": [],
               "contractEligible": false,
-              "pedagogicalIssues": [
-                "correction-reuses-misconception-structure"
-              ]
+              "pedagogicalIssues": ["correction-reuses-misconception-structure"]
             }
           },
           {
@@ -4330,13 +3385,7 @@
             "scoredOutputSha256": "2b75056d4159e0859fab0228fa81213ca4975494a50dacc38dbbed352a65a6ae",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -4344,32 +3393,22 @@
               "supportedDistinction": "Form encompasses the complete organization of a self-contained musical piece or movement."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0,
-              5
-            ],
+            "authorizedSourceFactIndexes": [0, 5],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-reuses-misconception-structure"
-              ],
+              "issues": ["correction-reuses-misconception-structure"],
               "term": {
                 "tr": "Structure of a musical work",
                 "df": "The overall arrangement of a musical composition or performance.",
                 "eg": "Analyzing the entire structure of a single movement.",
                 "mi": "A specific melodic line or chord progression.",
                 "cx": "The organization of a musical piece is the comprehensive framework of its entire self-contained movement, not just one specific melodic line or chord progression.",
-                "sourceFactIndexes": [
-                  0,
-                  5
-                ]
+                "sourceFactIndexes": [0, 5]
               },
               "rawIssues": [],
               "compilerRepairs": [],
               "contractEligible": true,
-              "pedagogicalIssues": [
-                "correction-reuses-misconception-structure"
-              ]
+              "pedagogicalIssues": ["correction-reuses-misconception-structure"]
             }
           },
           {
@@ -4391,13 +3430,7 @@
             "scoredOutputSha256": "d9fd731fdfca4caa4f8762ae27e126a04cf28d0e6853c0f764df27e7de5ae422",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -4405,32 +3438,22 @@
               "supportedDistinction": "Form encompasses the complete organization of a self-contained musical piece or movement."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0,
-              5
-            ],
+            "authorizedSourceFactIndexes": [0, 5],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-reuses-misconception-structure"
-              ],
+              "issues": ["correction-reuses-misconception-structure"],
               "term": {
                 "tr": "Structure of a musical work",
                 "df": "The overall arrangement of a musical composition or performance.",
                 "eg": "Analyzing the entire structure of a single movement.",
                 "mi": "A specific melodic line or chord progression.",
                 "cx": "The form of a musical work is defined by the complete organization of a self-contained musical piece or movement, not by the structure of just one melodic line or chord progression.",
-                "sourceFactIndexes": [
-                  0,
-                  5
-                ]
+                "sourceFactIndexes": [0, 5]
               },
               "rawIssues": [],
               "compilerRepairs": [],
               "contractEligible": true,
-              "pedagogicalIssues": [
-                "correction-reuses-misconception-structure"
-              ]
+              "pedagogicalIssues": ["correction-reuses-misconception-structure"]
             }
           }
         ],
@@ -4464,20 +3487,14 @@
             "text": "The next level concerns the entire structure of any single self-contained musical piece or movement."
           }
         ],
-        "authorizedSourceFactIndexes": [
-          0,
-          5
-        ],
+        "authorizedSourceFactIndexes": [0, 5],
         "syntheticDefectTerm": {
           "tr": "Structure of a musical work",
           "df": "The overall arrangement of a musical composition or performance.",
           "eg": "Analyzing the entire structure of a single movement.",
           "mi": "A specific melodic line or chord progression.",
           "cx": "The overall arrangement of a musical composition or performance.",
-          "sourceFactIndexes": [
-            0,
-            5
-          ]
+          "sourceFactIndexes": [0, 5]
         },
         "committedReferenceCorrection": "The overall structure of any single self-contained musical piece or movement."
       }
@@ -4486,10 +3503,7 @@
       "caseId": "tonal-analysis-integration-studio:music/staff-clefs-pitch-notation:key-term-0",
       "domain": "music-theory",
       "inputSha256": "9374da8ecbee933e4993e9fbf6afb5f72827af6a393aee1e0564e223ea9c03d1",
-      "matchedArmOrder": [
-        "teacher",
-        "matched-control"
-      ],
+      "matchedArmOrder": ["teacher", "matched-control"],
       "matchedControl": {
         "serverRequestReceipt": "e11496b4-f7e4-453c-aee5-36dfe9988a69",
         "responseModel": "scion-1",
@@ -4509,13 +3523,7 @@
         "scoredOutputSha256": "c2e183e341646e94b583b2caa972dffd6b4a88fb7dd39f7b65442fb74a9a5d88",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -4523,9 +3531,7 @@
           "supportedDistinction": "A set of horizontal lines with spaces on which musical pitches are represented"
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          0
-        ],
+        "authorizedSourceFactIndexes": [0],
         "assessment": {
           "eligible": true,
           "issues": [],
@@ -4535,9 +3541,7 @@
             "eg": "The five horizontal lines and spaces on which notes are written.",
             "mi": "A single musical pitch.",
             "cx": "The concept of a single musical pitch is mistaken; rather, the staff is defined as a set of horizontal lines with spaces on which musical pitches are represented, such as the lines and spaces on which notes are written.",
-            "sourceFactIndexes": [
-              0
-            ]
+            "sourceFactIndexes": [0]
           },
           "rawIssues": [],
           "compilerRepairs": [],
@@ -4566,13 +3570,7 @@
             "scoredOutputSha256": "135d2cdbcf8228b26c5c47769a21adb3d88cdedb88049c7f67deea4110c12248",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -4580,33 +3578,22 @@
               "supportedDistinction": "A set of horizontal lines with spaces on which musical pitches are represented"
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0
-            ],
+            "authorizedSourceFactIndexes": [0],
             "assessment": {
               "eligible": false,
-              "issues": [
-                "correction-repeats-definition",
-                "correction-lacks-explicit-contrast"
-              ],
+              "issues": ["correction-repeats-definition", "correction-lacks-explicit-contrast"],
               "term": {
                 "tr": "Staff",
                 "df": "A set of horizontal lines with spaces on which musical pitches are represented.",
                 "eg": "The five horizontal lines and spaces on which notes are written.",
                 "mi": "A single musical pitch.",
                 "cx": "The concept of a single musical pitch is incorrect; the correct representation involves a set of horizontal lines with spaces on which musical pitches are represented.",
-                "sourceFactIndexes": [
-                  0
-                ]
+                "sourceFactIndexes": [0]
               },
-              "rawIssues": [
-                "correction-repeats-definition"
-              ],
+              "rawIssues": ["correction-repeats-definition"],
               "compilerRepairs": [],
               "contractEligible": false,
-              "pedagogicalIssues": [
-                "correction-lacks-explicit-contrast"
-              ]
+              "pedagogicalIssues": ["correction-lacks-explicit-contrast"]
             }
           },
           {
@@ -4628,13 +3615,7 @@
             "scoredOutputSha256": "c2e183e341646e94b583b2caa972dffd6b4a88fb7dd39f7b65442fb74a9a5d88",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -4642,9 +3623,7 @@
               "supportedDistinction": "A set of horizontal lines with spaces on which musical pitches are represented"
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0
-            ],
+            "authorizedSourceFactIndexes": [0],
             "assessment": {
               "eligible": true,
               "issues": [],
@@ -4654,9 +3633,7 @@
                 "eg": "The five horizontal lines and spaces on which notes are written.",
                 "mi": "A single musical pitch.",
                 "cx": "The concept of a single musical pitch is mistaken; rather, the staff is defined as a set of horizontal lines with spaces on which musical pitches are represented, such as the lines and spaces on which notes are written.",
-                "sourceFactIndexes": [
-                  0
-                ]
+                "sourceFactIndexes": [0]
               },
               "rawIssues": [],
               "compilerRepairs": [],
@@ -4687,13 +3664,7 @@
         "scoredOutputSha256": "9c1d403989d078a48b66cbeb0c0f9933b9230e109f4d9c3d034ffc2f08b9596d",
         "deterministicRepair": {
           "type": "surgical-correction-merge",
-          "preservedFields": [
-            "sourceFactIndexes",
-            "tr",
-            "df",
-            "eg",
-            "mi"
-          ],
+          "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
           "changedField": "cx"
         },
         "boundedScaffold": {
@@ -4701,9 +3672,7 @@
           "supportedDistinction": "The staff is the collection of lines and spaces that collectively represent all possible musical pitches."
         },
         "quarantine": null,
-        "authorizedSourceFactIndexes": [
-          0
-        ],
+        "authorizedSourceFactIndexes": [0],
         "assessment": {
           "eligible": true,
           "issues": [],
@@ -4713,9 +3682,7 @@
             "eg": "The five horizontal lines and spaces on which notes are written.",
             "mi": "A single musical pitch.",
             "cx": "A single musical pitch is not the staff itself; rather, the staff is the arrangement of horizontal lines and spaces that collectively denote every distinct musical pitch.",
-            "sourceFactIndexes": [
-              0
-            ]
+            "sourceFactIndexes": [0]
           },
           "rawIssues": [],
           "compilerRepairs": [],
@@ -4744,13 +3711,7 @@
             "scoredOutputSha256": "9c1d403989d078a48b66cbeb0c0f9933b9230e109f4d9c3d034ffc2f08b9596d",
             "deterministicRepair": {
               "type": "surgical-correction-merge",
-              "preservedFields": [
-                "sourceFactIndexes",
-                "tr",
-                "df",
-                "eg",
-                "mi"
-              ],
+              "preservedFields": ["sourceFactIndexes", "tr", "df", "eg", "mi"],
               "changedField": "cx"
             },
             "boundedScaffold": {
@@ -4758,9 +3719,7 @@
               "supportedDistinction": "The staff is the collection of lines and spaces that collectively represent all possible musical pitches."
             },
             "quarantine": null,
-            "authorizedSourceFactIndexes": [
-              0
-            ],
+            "authorizedSourceFactIndexes": [0],
             "assessment": {
               "eligible": true,
               "issues": [],
@@ -4770,9 +3729,7 @@
                 "eg": "The five horizontal lines and spaces on which notes are written.",
                 "mi": "A single musical pitch.",
                 "cx": "A single musical pitch is not the staff itself; rather, the staff is the arrangement of horizontal lines and spaces that collectively denote every distinct musical pitch.",
-                "sourceFactIndexes": [
-                  0
-                ]
+                "sourceFactIndexes": [0]
               },
               "rawIssues": [],
               "compilerRepairs": [],
@@ -4807,18 +3764,14 @@
             "text": "Bass clef is the bottom clef in the grand staff for harp and keyboard instruments."
           }
         ],
-        "authorizedSourceFactIndexes": [
-          0
-        ],
+        "authorizedSourceFactIndexes": [0],
         "syntheticDefectTerm": {
           "tr": "Staff",
           "df": "A set of horizontal lines with spaces on which musical pitches are represented.",
           "eg": "The five horizontal lines and spaces on which notes are written.",
           "mi": "A single musical pitch.",
           "cx": "A set of horizontal lines with spaces on which musical pitches are represented.",
-          "sourceFactIndexes": [
-            0
-          ]
+          "sourceFactIndexes": [0]
         },
         "committedReferenceCorrection": "The staff is the set of lines and spaces, not a single pitch."
       }

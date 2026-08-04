@@ -16,7 +16,11 @@ export function assessScionSourceStrictCandidate({ term, authorizedClaims = [] }
 export function selectScionSourceRetentionCandidate({ control, teacher, authorizedClaims = [] } = {}) {
   const controlAssessment = assessScionSourceStrictCandidate({ term: control, authorizedClaims });
   const teacherAssessment = assessScionSourceStrictCandidate({ term: teacher, authorizedClaims });
-  const selectedArm = controlAssessment.eligible ? 'matched-control' : teacherAssessment.eligible ? 'teacher-rescue' : 'quarantine';
+  const selectedArm = controlAssessment.eligible
+    ? 'matched-control'
+    : teacherAssessment.eligible
+      ? 'teacher-rescue'
+      : 'quarantine';
   const selectedTerm = selectedArm === 'matched-control' ? control : selectedArm === 'teacher-rescue' ? teacher : null;
   const selection = {
     schemaVersion: 1,

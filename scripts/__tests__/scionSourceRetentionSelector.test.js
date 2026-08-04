@@ -13,7 +13,10 @@ const base = {
 
 describe('Scion source retention selector', () => {
   it('retains an admitted control instead of letting teacher output replace it', () => {
-    const control = { ...base, cx: 'Accessibility depends on the program region, not merely the first assignment line.' };
+    const control = {
+      ...base,
+      cx: 'Accessibility depends on the program region, not merely the first assignment line.',
+    };
     const teacher = { ...base, cx: 'A variable is available everywhere after assignment.' };
     expect(selectScionSourceRetentionCandidate({ control, teacher, authorizedClaims: claims })).toMatchObject({
       status: 'selected',
@@ -23,7 +26,10 @@ describe('Scion source retention selector', () => {
 
   it('uses teacher output only as a strict-gate rescue', () => {
     const control = { ...base, cx: base.df };
-    const teacher = { ...base, cx: 'Accessibility depends on the program region, not merely the first assignment line.' };
+    const teacher = {
+      ...base,
+      cx: 'Accessibility depends on the program region, not merely the first assignment line.',
+    };
     expect(selectScionSourceRetentionCandidate({ control, teacher, authorizedClaims: claims })).toMatchObject({
       status: 'selected',
       selectedArm: 'teacher-rescue',
@@ -32,7 +38,9 @@ describe('Scion source retention selector', () => {
 
   it('quarantines when neither candidate clears the strict source gate', () => {
     const invalid = { ...base, cx: base.df };
-    expect(selectScionSourceRetentionCandidate({ control: invalid, teacher: invalid, authorizedClaims: claims })).toMatchObject({
+    expect(
+      selectScionSourceRetentionCandidate({ control: invalid, teacher: invalid, authorizedClaims: claims }),
+    ).toMatchObject({
       status: 'quarantined',
       selectedArm: 'quarantine',
       selectedTermSha256: null,

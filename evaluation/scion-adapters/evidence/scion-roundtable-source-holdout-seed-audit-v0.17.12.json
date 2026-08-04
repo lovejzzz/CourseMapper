@@ -20,24 +20,15 @@
       "domain": "computer-science",
       "reference": {
         "eligible": false,
-        "issues": [
-          "term-not-source-anchored",
-          "misconception-repeats-known-fact"
-        ]
+        "issues": ["term-not-source-anchored", "misconception-repeats-known-fact"]
       },
       "matchedControl": {
         "eligible": false,
-        "issues": [
-          "term-not-source-anchored",
-          "misconception-repeats-known-fact"
-        ]
+        "issues": ["term-not-source-anchored", "misconception-repeats-known-fact"]
       },
       "teacher": {
         "eligible": false,
-        "issues": [
-          "term-not-source-anchored",
-          "misconception-repeats-known-fact"
-        ]
+        "issues": ["term-not-source-anchored", "misconception-repeats-known-fact"]
       },
       "emittedSelection": {
         "schemaVersion": 1,
@@ -47,17 +38,11 @@
         "selectionRule": "Retain the matched-control candidate whenever it passes source-strict-v6; use the teacher only when control fails and teacher passes; quarantine when neither passes.",
         "controlAssessment": {
           "eligible": false,
-          "issues": [
-            "term-not-source-anchored",
-            "misconception-repeats-known-fact"
-          ]
+          "issues": ["term-not-source-anchored", "misconception-repeats-known-fact"]
         },
         "teacherAssessment": {
           "eligible": false,
-          "issues": [
-            "term-not-source-anchored",
-            "misconception-repeats-known-fact"
-          ]
+          "issues": ["term-not-source-anchored", "misconception-repeats-known-fact"]
         },
         "selectedTermSha256": null,
         "productionEligible": false,
@@ -113,21 +98,15 @@
       "domain": "computer-science",
       "reference": {
         "eligible": false,
-        "issues": [
-          "term-not-source-anchored"
-        ]
+        "issues": ["term-not-source-anchored"]
       },
       "matchedControl": {
         "eligible": false,
-        "issues": [
-          "term-not-source-anchored"
-        ]
+        "issues": ["term-not-source-anchored"]
       },
       "teacher": {
         "eligible": false,
-        "issues": [
-          "term-not-source-anchored"
-        ]
+        "issues": ["term-not-source-anchored"]
       },
       "emittedSelection": {
         "schemaVersion": 1,
@@ -137,15 +116,11 @@
         "selectionRule": "Retain the matched-control candidate whenever it passes source-strict-v6; use the teacher only when control fails and teacher passes; quarantine when neither passes.",
         "controlAssessment": {
           "eligible": false,
-          "issues": [
-            "term-not-source-anchored"
-          ]
+          "issues": ["term-not-source-anchored"]
         },
         "teacherAssessment": {
           "eligible": false,
-          "issues": [
-            "term-not-source-anchored"
-          ]
+          "issues": ["term-not-source-anchored"]
         },
         "selectedTermSha256": null,
         "productionEligible": false,
@@ -240,21 +215,15 @@
       "domain": "geology",
       "reference": {
         "eligible": false,
-        "issues": [
-          "term-not-source-anchored"
-        ]
+        "issues": ["term-not-source-anchored"]
       },
       "matchedControl": {
         "eligible": false,
-        "issues": [
-          "term-not-source-anchored"
-        ]
+        "issues": ["term-not-source-anchored"]
       },
       "teacher": {
         "eligible": false,
-        "issues": [
-          "term-not-source-anchored"
-        ]
+        "issues": ["term-not-source-anchored"]
       },
       "emittedSelection": {
         "schemaVersion": 1,
@@ -264,15 +233,11 @@
         "selectionRule": "Retain the matched-control candidate whenever it passes source-strict-v6; use the teacher only when control fails and teacher passes; quarantine when neither passes.",
         "controlAssessment": {
           "eligible": false,
-          "issues": [
-            "term-not-source-anchored"
-          ]
+          "issues": ["term-not-source-anchored"]
         },
         "teacherAssessment": {
           "eligible": false,
-          "issues": [
-            "term-not-source-anchored"
-          ]
+          "issues": ["term-not-source-anchored"]
         },
         "selectedTermSha256": null,
         "productionEligible": false,
@@ -293,9 +258,7 @@
       },
       "matchedControl": {
         "eligible": false,
-        "issues": [
-          "correction-repeats-definition"
-        ]
+        "issues": ["correction-repeats-definition"]
       },
       "teacher": {
         "eligible": true,
@@ -309,9 +272,7 @@
         "selectionRule": "Retain the matched-control candidate whenever it passes source-strict-v6; use the teacher only when control fails and teacher passes; quarantine when neither passes.",
         "controlAssessment": {
           "eligible": false,
-          "issues": [
-            "correction-repeats-definition"
-          ]
+          "issues": ["correction-repeats-definition"]
         },
         "teacherAssessment": {
           "eligible": true,
@@ -336,9 +297,7 @@
       },
       "matchedControl": {
         "eligible": false,
-        "issues": [
-          "correction-repeats-misconception"
-        ]
+        "issues": ["correction-repeats-misconception"]
       },
       "teacher": {
         "eligible": true,
@@ -352,9 +311,7 @@
         "selectionRule": "Retain the matched-control candidate whenever it passes source-strict-v6; use the teacher only when control fails and teacher passes; quarantine when neither passes.",
         "controlAssessment": {
           "eligible": false,
-          "issues": [
-            "correction-repeats-misconception"
-          ]
+          "issues": ["correction-repeats-misconception"]
         },
         "teacherAssessment": {
           "eligible": true,
@@ -375,21 +332,15 @@
       "domain": "music-theory",
       "reference": {
         "eligible": false,
-        "issues": [
-          "misconception-repeats-known-fact"
-        ]
+        "issues": ["misconception-repeats-known-fact"]
       },
       "matchedControl": {
         "eligible": false,
-        "issues": [
-          "misconception-repeats-known-fact"
-        ]
+        "issues": ["misconception-repeats-known-fact"]
       },
       "teacher": {
         "eligible": false,
-        "issues": [
-          "misconception-repeats-known-fact"
-        ]
+        "issues": ["misconception-repeats-known-fact"]
       },
       "emittedSelection": {
         "schemaVersion": 1,
@@ -399,15 +350,11 @@
         "selectionRule": "Retain the matched-control candidate whenever it passes source-strict-v6; use the teacher only when control fails and teacher passes; quarantine when neither passes.",
         "controlAssessment": {
           "eligible": false,
-          "issues": [
-            "misconception-repeats-known-fact"
-          ]
+          "issues": ["misconception-repeats-known-fact"]
         },
         "teacherAssessment": {
           "eligible": false,
-          "issues": [
-            "misconception-repeats-known-fact"
-          ]
+          "issues": ["misconception-repeats-known-fact"]
         },
         "selectedTermSha256": null,
         "productionEligible": false,
@@ -463,21 +410,15 @@
       "domain": "music-theory",
       "reference": {
         "eligible": false,
-        "issues": [
-          "term-not-source-anchored"
-        ]
+        "issues": ["term-not-source-anchored"]
       },
       "matchedControl": {
         "eligible": false,
-        "issues": [
-          "term-not-source-anchored"
-        ]
+        "issues": ["term-not-source-anchored"]
       },
       "teacher": {
         "eligible": false,
-        "issues": [
-          "term-not-source-anchored"
-        ]
+        "issues": ["term-not-source-anchored"]
       },
       "emittedSelection": {
         "schemaVersion": 1,
@@ -487,15 +428,11 @@
         "selectionRule": "Retain the matched-control candidate whenever it passes source-strict-v6; use the teacher only when control fails and teacher passes; quarantine when neither passes.",
         "controlAssessment": {
           "eligible": false,
-          "issues": [
-            "term-not-source-anchored"
-          ]
+          "issues": ["term-not-source-anchored"]
         },
         "teacherAssessment": {
           "eligible": false,
-          "issues": [
-            "term-not-source-anchored"
-          ]
+          "issues": ["term-not-source-anchored"]
         },
         "selectedTermSha256": null,
         "productionEligible": false,

@@ -15,7 +15,10 @@ const DEFAULT_ENDPOINT = 'http://127.0.0.1:8799';
 const DEFAULT_OUTPUT = 'verification-output/scion-classroom-model-run';
 
 function parseJsonObject(text) {
-  const clean = String(text || '').replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+  const clean = String(text || '')
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/\s*```$/, '')
+    .trim();
   return JSON.parse(clean);
 }
 
@@ -79,7 +82,9 @@ function modelPrompt({ packet, policy }) {
       })}`,
     );
   } else {
-    system.push('No teacher policy is available in this baseline session. Reason only from the bounded actions and signals.');
+    system.push(
+      'No teacher policy is available in this baseline session. Reason only from the bounded actions and signals.',
+    );
   }
   return {
     system: system.join('\n'),
@@ -169,7 +174,9 @@ async function invokeScionPhase({ endpoint, model, packet, policy, batchSize = 1
       const counts = new Map();
       const valid = candidate.filter((entry) => {
         counts.set(entry?.caseId, (counts.get(entry?.caseId) || 0) + 1);
-        return expectedIds.has(entry?.caseId) && typeof entry?.decision === 'string' && Array.isArray(entry?.evidenceUsed);
+        return (
+          expectedIds.has(entry?.caseId) && typeof entry?.decision === 'string' && Array.isArray(entry?.evidenceUsed)
+        );
       });
       if (valid.length > best.length) best = valid;
       if (
@@ -208,7 +215,13 @@ export async function runScionClassroomModelExperiment({
   const fixture = await runScionClassroomAudit();
   const model = await discoverModel(endpoint);
   const phases = [
-    { name: 'baseline', packet: fixture.baselinePacket, key: fixture.baselineAnswerKey, policyAccess: 'none', policy: null },
+    {
+      name: 'baseline',
+      packet: fixture.baselinePacket,
+      key: fixture.baselineAnswerKey,
+      policyAccess: 'none',
+      policy: null,
+    },
     {
       name: 'immediate',
       packet: fixture.packet,
@@ -268,8 +281,7 @@ export async function runScionClassroomModelExperiment({
       distinctPhaseReceipts: true,
       independentRuntimeSessions: false,
       independentlyAttested: false,
-      note:
-        'The three phase references bind distinct server request receipts on one local runtime; phase labels and UUIDs do not prove independent runtime sessions.',
+      note: 'The three phase references bind distinct server request receipts on one local runtime; phase labels and UUIDs do not prove independent runtime sessions.',
     },
     phaseResults: Object.fromEntries(phases.map((phase) => [phase.name, phase.result])),
     regression,

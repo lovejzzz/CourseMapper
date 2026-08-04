@@ -81,7 +81,9 @@ async function completeCase({
                 ? ['Use an explicit contrast marker in cx, such as not, rather than, whereas, unlike, or instead.']
                 : []),
               ...(priorIssues.includes('correction-reuses-misconception-structure')
-                ? ['Paraphrase the mistaken dimension more deeply; do not pad a copied misconception with extra definition text.']
+                ? [
+                    'Paraphrase the mistaken dimension more deeply; do not pad a copied misconception with extra definition text.',
+                  ]
                 : []),
             ]
           : []),
@@ -117,7 +119,12 @@ async function completeCase({
   let quarantine = null;
   if (surgical) {
     try {
-      const parsed = JSON.parse(rawOutput.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim());
+      const parsed = JSON.parse(
+        rawOutput
+          .replace(/^```(?:json)?\s*/i, '')
+          .replace(/\s*```$/, '')
+          .trim(),
+      );
       const correction = String(parsed.cx || parsed.correction || '').trim();
       if (parsed.quarantine === true) {
         quarantine = { requested: true, reason: String(parsed.reason || 'unspecified').trim() };
@@ -213,7 +220,12 @@ async function implementationBindings() {
   ];
   return Object.fromEntries(
     await Promise.all(
-      files.map(async (file) => [file, createHash('sha256').update(await fs.readFile(file)).digest('hex')]),
+      files.map(async (file) => [
+        file,
+        createHash('sha256')
+          .update(await fs.readFile(file))
+          .digest('hex'),
+      ]),
     ),
   );
 }
@@ -222,11 +234,7 @@ function assertProviderEvidence({ endpointHealth, rows }) {
   if (endpointHealth.sourceModelId !== SCION_KEY_TERM_RECOVERY_LOCAL_MODEL.id) {
     throw new Error(`Unexpected Scion source model: ${endpointHealth.sourceModelId}`);
   }
-  const calls = rows.flatMap((row) => [
-    row.baseline,
-    ...row.matchedControl.attempts,
-    ...row.advised.attempts,
-  ]);
+  const calls = rows.flatMap((row) => [row.baseline, ...row.matchedControl.attempts, ...row.advised.attempts]);
   const receiptPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   if (calls.some((call) => call.responseModel !== endpointHealth.modelId)) {
     throw new Error('A source experiment response did not bind to the requested Scion model');
@@ -322,8 +330,7 @@ export async function runScionRoundtableSourceExperiment() {
       legacyComparableProviderBudget: false,
       matchedComparableProviderCeiling: true,
       matchedEqualActualCalls: summary.matchedControlProviderCalls === summary.advisedProviderCalls,
-      note:
-        'The teacher prompt was refined after observing this frozen set. The legacy baseline uses one full-atom call and is not a causal control. A separate matched control uses the same surgical projection, contamination withholding, verifier feedback, and three-call ceiling as the teacher arm, varying only access to the Roundtable policy; neither comparison is an unseen transfer estimate.',
+      note: 'The teacher prompt was refined after observing this frozen set. The legacy baseline uses one full-atom call and is not a causal control. A separate matched control uses the same surgical projection, contamination withholding, verifier feedback, and three-call ceiling as the teacher arm, varying only access to the Roundtable policy; neither comparison is an unseen transfer estimate.',
     },
     promotion: {
       status: 'blocked',

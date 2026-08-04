@@ -32,7 +32,9 @@ const REVIEW_RECEIPT_KEYS = [
 ].sort();
 
 function clean(value) {
-  return String(value ?? '').replace(/\s+/g, ' ').trim();
+  return String(value ?? '')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 function sha256Hex(value) {
@@ -57,8 +59,10 @@ function identityFor(value) {
 }
 
 function identityValid(value = {}) {
-  return value.identity?.algorithm === 'sha256-canonical-json' &&
-    value.identity?.sha256 === scionLessonKernelSha256(withoutIdentity(value));
+  return (
+    value.identity?.algorithm === 'sha256-canonical-json' &&
+    value.identity?.sha256 === scionLessonKernelSha256(withoutIdentity(value))
+  );
 }
 
 function validIsoInstant(value) {
@@ -89,10 +93,12 @@ export function canonicalScionTruthGateSourceUrl(value) {
 function sourcePacketPayload(sourcePacket = {}) {
   const rawCaptures = Array.isArray(sourcePacket.sourceEvidence?.captures)
     ? sourcePacket.sourceEvidence.captures
-    : [{
-        locator: sourcePacket.sourceEvidence?.locator,
-        capturedText: sourcePacket.sourceEvidence?.capturedText,
-      }];
+    : [
+        {
+          locator: sourcePacket.sourceEvidence?.locator,
+          capturedText: sourcePacket.sourceEvidence?.capturedText,
+        },
+      ];
   const captures = rawCaptures.map((capture) => {
     const capturedText = clean(capture?.capturedText);
     return {
@@ -135,7 +141,9 @@ function validateSourcePacket(sourcePacket = {}) {
   if (
     captures.length < 1 ||
     captures.length > 3 ||
-    captures.some((capture, index) => !capture.locator || evidenceWordCounts[index] < 6 || evidenceWordCounts[index] > 35) ||
+    captures.some(
+      (capture, index) => !capture.locator || evidenceWordCounts[index] < 6 || evidenceWordCounts[index] > 35,
+    ) ||
     evidenceWordCounts.reduce((sum, count) => sum + count, 0) > 80 ||
     unique(captures.map((capture) => capture.capturedTextSha256)).length !== captures.length
   ) {
@@ -163,7 +171,9 @@ export function buildScionTruthGateSeed({
   const authorizedIndexes = [...new Set(term?.sourceFactIndexes || [])];
   if (
     authorizedIndexes.length === 0 ||
-    authorizedIndexes.some((index) => !Number.isInteger(index) || index < 0 || source.payload.claims[index] === undefined)
+    authorizedIndexes.some(
+      (index) => !Number.isInteger(index) || index < 0 || source.payload.claims[index] === undefined,
+    )
   ) {
     throw new Error('Truth Gate seeds require valid authorized source indexes');
   }
@@ -192,7 +202,8 @@ export function buildScionTruthGateSeed({
 
 export function validateScionTruthGateSeed(seed = {}) {
   const issues = [];
-  if (seed.protocol !== SCION_TRUTH_GATE_SEED_PROTOCOL || seed.schemaVersion !== 1) issues.push('invalid-seed-protocol');
+  if (seed.protocol !== SCION_TRUTH_GATE_SEED_PROTOCOL || seed.schemaVersion !== 1)
+    issues.push('invalid-seed-protocol');
   if (!identityValid(seed)) issues.push('invalid-seed-identity');
   if (!DOMAINS.has(seed.domain)) issues.push('invalid-seed-domain');
   if (!validIsoInstant(seed.createdAt)) issues.push('invalid-seed-created-at');
@@ -294,7 +305,11 @@ export function parseScionTruthGateReviewResponse(body = '') {
     'sourceSupport',
   ].sort();
   const reviews = parsed.reviews.map((review) => {
-    if (Object.keys(review || {}).sort().join(',') !== expectedKeys.join(',')) {
+    if (
+      Object.keys(review || {})
+        .sort()
+        .join(',') !== expectedKeys.join(',')
+    ) {
       throw new Error('Signed review entry has an invalid schema');
     }
     if (
@@ -375,7 +390,8 @@ export function buildScionTruthGateReviewAuthority({
   expectedSeedSha256s = [],
   trustedBridgePublicKeyFingerprints = [],
 } = {}) {
-  if (!verifyRoundtableTruthGateReviewMessage(message)) throw new Error('Truth Gate review authority requires a valid Roundtable bridge signature');
+  if (!verifyRoundtableTruthGateReviewMessage(message))
+    throw new Error('Truth Gate review authority requires a valid Roundtable bridge signature');
   if (message.stage !== 'sealed' || message.round !== 1 || !['codex', 'claude', 'antigravity'].includes(message.role)) {
     throw new Error('Truth Gate review authority requires a sealed independent participant opening');
   }
@@ -385,8 +401,7 @@ export function buildScionTruthGateReviewAuthority({
   }
   const expected = expectedReviewAuthorityFields(message);
   if (
-    scionLessonKernelSha256(expected.reviewedSeedSha256s) !==
-    scionLessonKernelSha256([...expectedSeedSha256s].sort())
+    scionLessonKernelSha256(expected.reviewedSeedSha256s) !== scionLessonKernelSha256([...expectedSeedSha256s].sort())
   ) {
     throw new Error('Truth Gate review authority must contain exactly one verdict for every frozen seed hash');
   }
@@ -403,25 +418,34 @@ export function buildScionTruthGateReviewAuthority({
 
 function validateReviewReceiptSchema(receipt = {}) {
   const issues = [];
-  if (Object.keys(receipt).sort().join(',') !== REVIEW_RECEIPT_KEYS.join(',')) issues.push('review-receipt-schema-mismatch');
+  if (Object.keys(receipt).sort().join(',') !== REVIEW_RECEIPT_KEYS.join(','))
+    issues.push('review-receipt-schema-mismatch');
   if (receipt.protocol !== SCION_TRUTH_GATE_REVIEW_PROTOCOL || receipt.schemaVersion !== 1 || !identityValid(receipt)) {
     issues.push('invalid-review-receipt');
   }
-  if (![receipt.reviewerRef, receipt.reviewSessionRef, receipt.reviewAuthorityRef, receipt.rawReviewSha256].every((value) => SHA256_RE.test(value || ''))) {
+  if (
+    ![receipt.reviewerRef, receipt.reviewSessionRef, receipt.reviewAuthorityRef, receipt.rawReviewSha256].every(
+      (value) => SHA256_RE.test(value || ''),
+    )
+  ) {
     issues.push('invalid-review-references');
   }
   if (!/^[a-z0-9][a-z0-9-]{2,63}$/.test(receipt.reviewerSeat || '') || !validIsoInstant(receipt.reviewedAt)) {
     issues.push('invalid-reviewer-seat-or-time');
   }
   if (
-    Object.keys(receipt.blindness || {}).sort().join(',') !== 'modelOutcomesHidden,peerResponsesHidden' ||
+    Object.keys(receipt.blindness || {})
+      .sort()
+      .join(',') !== 'modelOutcomesHidden,peerResponsesHidden' ||
     receipt.blindness?.peerResponsesHidden !== true ||
     receipt.blindness?.modelOutcomesHidden !== true
   ) {
     issues.push('invalid-review-blindness');
   }
   if (
-    Object.keys(receipt.verdicts || {}).sort().join(',') !== 'factual,pedagogical,sourceSupport' ||
+    Object.keys(receipt.verdicts || {})
+      .sort()
+      .join(',') !== 'factual,pedagogical,sourceSupport' ||
     !Object.values(receipt.verdicts || {}).every((value) => VERDICTS.has(value))
   ) {
     issues.push('invalid-review-verdicts');
@@ -437,11 +461,9 @@ function validateReviewReceiptSchema(receipt = {}) {
   return unique(issues);
 }
 
-export function buildScionTruthGateReviewReceipt({
-  seed,
-  reviewAuthority,
-} = {}) {
-  if (!validateScionTruthGateSeed(seed).valid) throw new Error('A review receipt requires an identity-valid Truth Gate seed');
+export function buildScionTruthGateReviewReceipt({ seed, reviewAuthority } = {}) {
+  if (!validateScionTruthGateSeed(seed).valid)
+    throw new Error('A review receipt requires an identity-valid Truth Gate seed');
   if (
     validateReviewAuthority(reviewAuthority).length > 0 ||
     !reviewAuthority.reviewedSeedSha256s.includes(seed.identity.sha256)
@@ -485,7 +507,11 @@ export function buildScionTruthGateReviewReceipt({
   return receipt;
 }
 
-const SOURCE_OVERLAP_STOP = new Set('a an and are as at be by for from has have in is it of on or that the their this to was were when while with'.split(' '));
+const SOURCE_OVERLAP_STOP = new Set(
+  'a an and are as at be by for from has have in is it of on or that the their this to was were when while with'.split(
+    ' ',
+  ),
+);
 
 function sourceSemanticTokens(value) {
   return new Set(
@@ -591,13 +617,15 @@ export function assessScionTruthGate({
     if (excludedProjects.has(seed.projectId)) seedIssues.push('excluded-project-overlap');
     if (excludedPrompts.has(seed.promptId)) seedIssues.push('excluded-prompt-overlap');
     if (priorIds.has(seed.sourcePacket?.sourceId)) seedIssues.push('prior-source-id-overlap');
-    if (priorUrls.has(canonicalScionTruthGateSourceUrl(seed.sourcePacket?.url))) seedIssues.push('prior-source-url-overlap');
+    if (priorUrls.has(canonicalScionTruthGateSourceUrl(seed.sourcePacket?.url)))
+      seedIssues.push('prior-source-url-overlap');
     if (priorPackets.has(seed.sourcePacketSha256)) seedIssues.push('prior-source-packet-overlap');
     if (sourceIds.has(seed.sourcePacket?.sourceId)) seedIssues.push('duplicate-source-id');
     const canonicalSourceUrl = canonicalScionTruthGateSourceUrl(seed.sourcePacket?.url);
     if (sourceUrls.has(canonicalSourceUrl)) seedIssues.push('duplicate-source-url');
-    const capturedEvidenceHashes = (seed.sourcePacket?.sourceEvidence?.captures || [])
-      .map((capture) => capture.capturedTextSha256);
+    const capturedEvidenceHashes = (seed.sourcePacket?.sourceEvidence?.captures || []).map(
+      (capture) => capture.capturedTextSha256,
+    );
     if (capturedEvidenceHashes.some((sha256) => priorEvidence.has(sha256))) {
       seedIssues.push('prior-source-evidence-overlap');
     }
@@ -690,7 +718,10 @@ export function assessScionTruthGate({
   }
 
   const availableByDomain = Object.fromEntries(
-    requiredDomains.map((domain) => [domain, seedAssessments.filter((entry) => entry.domain === domain && entry.status === 'admitted').length]),
+    requiredDomains.map((domain) => [
+      domain,
+      seedAssessments.filter((entry) => entry.domain === domain && entry.status === 'admitted').length,
+    ]),
   );
   const deficits = Object.fromEntries(
     requiredDomains.map((domain) => [domain, Math.max(0, requiredCasesPerDomain - availableByDomain[domain])]),
