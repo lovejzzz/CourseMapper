@@ -1,38 +1,118 @@
 {
   "schemaVersion": 1,
   "release": "0.17.12",
-  "recordedAt": "2026-08-04T00:25:00Z",
-  "status": "predeploy-candidate",
-  "claimBoundary": "This predeploy record binds a fresh local CourseGraph recompile, deterministic package grade, executable bundled test suite, and representative Office rendering. It makes no production, instructor, classroom, or universal-quality claim.",
+  "recordedAt": "2026-08-04T00:50:00Z",
+  "status": "production-checkpoint",
+  "claimBoundary": "This production receipt binds the exact deployed commit to a fresh prompt-started CourseGraph generation, physical production ZIP, independent evidence replay, executable bundled tests, and representative Office rendering. It proves the declared deterministic learner gates for this package, not universal factual correctness, independent instructor approval, accessibility certification, classroom outcomes, or learned model-weight improvement.",
   "checks": [
     {
-      "mode": "local-coursegraph-recompile",
+      "mode": "immutable-held-out-ruler-binding",
       "status": "pass",
-      "sourceProjectSha256": "0b3bcb3b37c66e11d91ce266eeed148435914f3f07e2826806937b663d0f69c9",
-      "zipSha256": "024789cdd0f3b21c5ed3bdcfc693192ae7268623ad04423567971443797833e3",
-      "reproductionSha256": "024789cdd0f3b21c5ed3bdcfc693192ae7268623ad04423567971443797833e3",
-      "score": 99,
+      "path": "evaluation/scion-adapters/held-out-course-benchmark-v66.json",
+      "sha256": "137cc23a2567bd296cd83756bb184e6d1910fddf95de2a82370ff34c0c8a0fcf",
+      "graderVersion": "1.15.9",
+      "implementationSha256": "03feb534eca4d26e1e412132b1752ea213f613848aa6c54e64eab712ed6a90c1",
+      "implementationFileCount": 34,
+      "exportBoundaryImplementationSha256": "12646d8f698e9b93614dca054cd8dcc705f72b4590bad1e8c5bb187aa88b4833",
+      "exportBoundaryImplementationFileCount": 159,
+      "priorRuler": "V65 remains immutable; V66 binds the v0.17.12 compiler and the independently ratcheted export boundary without inheriting a benchmark result."
+    },
+    {
+      "mode": "exact-commit-ci-and-deploy",
+      "status": "pass",
+      "commit": "5848fc775e292e837c82d8a9a536000c4f87feb0",
+      "ciRun": 30865804670,
+      "ciUrl": "https://github.com/lovejzzz/CourseMapper/actions/runs/30865804670",
+      "deployRun": 30866210217,
+      "deployUrl": "https://github.com/lovejzzz/CourseMapper/actions/runs/30866210217"
+    },
+    {
+      "mode": "fresh-production-generation",
+      "status": "pass",
+      "site": "https://edutool.dev/",
+      "appVersion": "0.17.12",
+      "sourceBriefSha256": "6ab4ade1ecb5b39685b59ebcf463d3e8dc55e26f431847c6a8c92e28247b7125",
+      "courseName": "Applied Civic Data Analysis",
+      "lessonCount": 6,
+      "packagePartsReady": "10/10",
+      "zipSha256": "d4c29d085c7d9a2dab345ed84fcb2c9b96c5482a03d8866cb59586f8c44ae1d5",
+      "zipBytes": 1280380,
+      "zipEntries": 74,
+      "readinessScore": 91,
+      "conformanceScore": 99,
       "grade": "A",
       "findingCounts": { "p0": 0, "p1": 0, "p2": 0 }
     },
     {
-      "mode": "learner-capability-audit",
+      "mode": "production-physical-zip-and-render-audit",
       "status": "pass",
-      "automatedTesting": "Executable source or notebook, clean-start command, failing-to-passing evidence, typical case, boundary/error case, and debugging note are required.",
-      "policyMemo": "Problem, population, authority, two options, stakeholder/equity effects, tradeoffs, recommendation, implementation, risk, and monitoring are required."
+      "auditedCommit": "5848fc775e292e837c82d8a9a536000c4f87feb0",
+      "ciRun": 30865804670,
+      "ciUrl": "https://github.com/lovejzzz/CourseMapper/actions/runs/30865804670",
+      "deployRun": 30866210217,
+      "deployUrl": "https://github.com/lovejzzz/CourseMapper/actions/runs/30866210217",
+      "zipSha256": "d4c29d085c7d9a2dab345ed84fcb2c9b96c5482a03d8866cb59586f8c44ae1d5",
+      "score": 91,
+      "dimensions": {
+        "curriculumFidelity": 25,
+        "evidenceGrounding": 17,
+        "instructionalTexture": 19,
+        "assessmentCoherence": 15,
+        "exportIntegrity": 15
+      },
+      "verifiedSources": 5,
+      "verifiedClaims": 64,
+      "verifiedArtifacts": 29,
+      "verifiedAssessmentObligations": 6,
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "exportChecks": "38/38",
+      "renderScope": "Four representative DOCX families were physically rendered and visually inspected; every slide deck received structural overflow and semantic-object inspection.",
+      "renderedOfficeFiles": 10,
+      "renderedPages": 16,
+      "slideDecksStructurallyChecked": 6,
+      "slideOverflowFailures": 0,
+      "rawStructuralObjects": 1891,
+      "auditedStructuralObjects": 1891,
+      "semanticObjects": 1891,
+      "semanticObjectsWithDescriptions": 1891,
+      "visualDefectsFound": 0
     },
     {
-      "mode": "local-physical-render-audit",
+      "command": "npm run audit:package-evidence -- /Users/tianxing/Downloads/Applied Civic Data Analysis - Course Materials (3).zip evaluation/release-proofs/v0.17.12-production-course-contract.json evaluation/release-proofs/v0.17.12-production-package-attestation.json e2b24a3e402ea98b43e619bd5e119b6d9651d6f7dc456cf29a656853fd32b195 5182b64ba6314013de3e6b7e473f807d98a2fbcf0fb9dbb6d8df11f896c45d60",
       "status": "pass",
-      "slideDecksStructurallyChecked": 6,
-      "representativeDocxFamilies": [
-        "assignment-code-lab",
-        "assignment-policy-memo",
-        "rubric-code-lab",
-        "rubric-policy-memo"
-      ],
+      "protocol": "coursemapper-package-evidence-replay-v2",
+      "packageSha256": "d4c29d085c7d9a2dab345ed84fcb2c9b96c5482a03d8866cb59586f8c44ae1d5",
+      "verifiedSources": 5,
+      "verifiedClaims": 64,
+      "verifiedArtifacts": 29,
+      "verifiedAssessmentObligations": 6,
+      "evidenceBundleSha256": "fa9c6c3da1512ab33cbfed9e269c91bd2fd811a157dcccaeb9c3628261ac413e",
+      "scoreLedgerSha256": "03cafb307756baac12529848c8ca5d16314d32028a33197fd96b046703534d14",
+      "readinessScore": 91,
+      "graderVersion": "1.15.9",
+      "courseContractSha256": "5182b64ba6314013de3e6b7e473f807d98a2fbcf0fb9dbb6d8df11f896c45d60",
+      "releaseAttestationSha256": "e2b24a3e402ea98b43e619bd5e119b6d9651d6f7dc456cf29a656853fd32b195",
+      "failures": 0
+    },
+    {
+      "mode": "production-executable-learner-assets",
+      "status": "pass",
       "bundledStarterTestsPassed": 3,
-      "courseMapPrintSetup": "landscape scale 64; repeat row 1 and columns A:B"
+      "bundledStarterTestsFailed": 0,
+      "failClosedBoundary": "missing required column"
+    },
+    {
+      "mode": "browser-runtime-diagnostics",
+      "status": "pass-with-bounded-model-warnings",
+      "appErrors": 0,
+      "warnings": "Model tokenizer/context-capacity warnings only; no export, application, or API error was recorded."
+    },
+    {
+      "mode": "legacy-restore-control",
+      "status": "excluded-from-checkpoint",
+      "reason": "An exact restore of older saved deliverables correctly retained six historical P2 findings. The accepted package was generated fresh from the course brief under the deployed v0.17.12 compiler and has zero findings."
     }
   ]
 }

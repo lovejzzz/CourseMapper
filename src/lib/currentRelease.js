@@ -6,7 +6,7 @@ import { APP_VERSION } from './appVersion.js';
  */
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
-  checkpointPhase: 'predeploy',
+  checkpointPhase: 'production-checkpoint',
   date: 'August 3, 2026',
   title: 'Learner-Ready Course Work',
   landingTitle: 'EDUTOOL V0.17.12 Makes the Assignment Match the Learning',
@@ -17,7 +17,7 @@ export const CURRENT_RELEASE = {
     'Every assignment and rubric exports its retained evidence packet and strong/partial anchor contrast, while page grouping keeps anchor samples and milestone checklists attached to their labels.',
     'Confidence-interval language is repaired at the content boundary, including abbreviated CL forms, so learner materials describe repeated-procedure coverage without assigning probability to a fixed parameter.',
     'PowerPoint pitfall headings use renderer-safe sizing, wide course maps retain readable print scale with repeated identity columns, and bundled automated-testing assets execute as a real three-test starter suite.',
-    'A fresh six-lesson Applied Civic Data Analysis recompile is byte-reproducible and grades 99/A with zero P0, P1, or P2 findings; rendered Office inspection remains engineering evidence, not instructor approval or classroom validation.',
+    'A fresh production generation of Applied Civic Data Analysis earns 91/100 deterministic learner evidence and 99/A conformance with zero P0, P1, or P2 findings; independent replay, executable starter tests, and rendered Office inspection remain engineering evidence, not instructor approval or classroom validation.',
   ],
   landingHighlights: [
     'Testing lessons assign real testing work.',
@@ -38,8 +38,8 @@ export const CURRENT_RELEASE = {
     },
     browser: {
       path: 'evaluation/release-proofs/v0.17.12-browser-preflight.json',
-      sha256: '2b1f5848b2765b045657e788ca5d69c4204196583c6562b0d529c8aa4846887c',
-      bytes: 1695,
+      sha256: 'b682ea5084508d12be73a8141ccfb7906bbc52b4ab2e4c8b00c0939223d04935',
+      bytes: 5761,
     },
     productionCourseContract: {
       path: 'evaluation/release-proofs/v0.17.12-production-course-contract.json',
@@ -48,8 +48,8 @@ export const CURRENT_RELEASE = {
     },
     productionPackageAttestation: {
       path: 'evaluation/release-proofs/v0.17.12-production-package-attestation.json',
-      sha256: 'c33ceed3c30ba034e54132d109a68395e16cab20447d01ccfcaac66617bb1d0e',
-      bytes: 578,
+      sha256: 'e2b24a3e402ea98b43e619bd5e119b6d9651d6f7dc456cf29a656853fd32b195',
+      bytes: 2094,
     },
     auditCommand: 'npm run audit:release-history',
   },

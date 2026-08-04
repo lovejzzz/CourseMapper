@@ -12,15 +12,24 @@
       "npm run bundle:check",
       "npm run audit:release-history"
     ],
-    "ciFast": { "status": "pending-push", "note": "Exact-commit CI is required before production generation." },
+    "ciFast": {
+      "status": "success",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/30865804670",
+      "note": "Every exact-commit fast-verification lane passed for 5848fc775e292e837c82d8a9a536000c4f87feb0, including both unit shards, contract evaluation, cross-package texture, evidence lineage, package proof, adapter readiness, review evidence, and static/build budgets."
+    },
     "ciDeep": {
       "status": "pending",
       "note": "Independent instructor and classroom validation remain outside this engineering checkpoint."
     },
-    "deploy": { "status": "pending-push", "note": "Production deployment follows exact-commit CI." },
+    "deploy": {
+      "status": "success",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/30866210217",
+      "note": "GitHub Pages deployed the exact green learner-checkpoint commit before production generation."
+    },
     "liveProvider": {
-      "status": "pending",
-      "note": "Fresh production generation is intentionally deferred until deployment."
+      "status": "success",
+      "url": "https://edutool.dev/",
+      "note": "A fresh prompt-started Applied Civic Data Analysis package replayed at 91/100 deterministic evidence and 99/A conformance with zero P0, P1, or P2 findings; all release evidence roots and six assessment obligations verified."
     },
     "manualHuman": { "status": "pending", "note": "No external instructor or classroom result is claimed." }
   },
@@ -107,7 +116,7 @@
       "id": "v01712-local-replay-boundary",
       "status": "verified-current",
       "changelogHighlightIndex": 6,
-      "highlightSha256": "a487843933a656bfec4348eae7207544d3e9e24c4134de205925513f621fc1f8",
+      "highlightSha256": "21310ff76730e5a7a4a97e9541133a285ee3a71e2fd0f8320f845ccd81b606b9",
       "summary": "The fresh local package is reproducible and finding-free while instructor and classroom claims remain withheld.",
       "anchors": [
         "scripts/v01712LearnerCheckpointReplay.mjs",
