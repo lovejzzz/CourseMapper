@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { execFile as execFileCallback } from 'node:child_process';
+import { promisify } from 'node:util';
 
 import { assessScionKeyTermContract } from '../src/lib/scionKeyTermContract.js';
 import {
@@ -21,6 +23,7 @@ const FULL_SEED_PACKET = 'evaluation/scion-adapters/evidence/scion-truth-gate-fu
 const FULL_REVIEW_BUNDLE = 'evaluation/scion-adapters/evidence/scion-truth-gate-full-holdout-review-bundle-v0.17.13.json';
 const REQUIRED_DOMAINS = ['computer-science', 'geology', 'music-theory'];
 const REQUIRED_PER_DOMAIN = 4;
+const execFile = promisify(execFileCallback);
 
 function domainFor(caseId) {
   if (caseId.includes(':cs/')) return 'computer-science';
@@ -101,6 +104,7 @@ async function main() {
   const fullReviewBundle = await readJsonIfPresent(FULL_REVIEW_BUNDLE, { receipts: [] });
   const fullSeedPacketCopy = structuredClone(fullSeedPacket);
   delete fullSeedPacketCopy.identity;
+  const priorSourceExclusions = fullSeedPacket.priorSourceExclusions || {};
   const fullSeedPacketValid =
     fullSeedPacket.protocol === 'scion-truth-gate-full-holdout-packet-v1' &&
     fullSeedPacket.schemaVersion === 1 &&
@@ -108,14 +112,27 @@ async function main() {
     fullSeedPacket.productionEligible === false &&
     fullSeedPacket.trainingEligible === false &&
     fullSeedPacket.trustedReviewAuthorityFingerprints?.length === 1 &&
+    ['sourceIds', 'sourceUrls', 'sourceEvidenceHashes', 'sourcePacketSha256s'].every((key) =>
+      Array.isArray(priorSourceExclusions[key])) &&
     fullSeedPacket.identity?.algorithm === 'sha256-canonical-json' &&
     fullSeedPacket.identity?.sha256 === scionLessonKernelSha256(fullSeedPacketCopy);
   const fullReviewBundleCopy = structuredClone(fullReviewBundle);
   delete fullReviewBundleCopy.identity;
+  let fullPacketGitBound = false;
+  try {
+    if (!/^[a-f0-9]{40}$/.test(fullReviewBundle.seedPacketGitCommit || '')) throw new Error('invalid commit');
+    const { stdout } = await execFile('git', ['show', `${fullReviewBundle.seedPacketGitCommit}:${FULL_SEED_PACKET}`], {
+      maxBuffer: 5_000_000,
+    });
+    fullPacketGitBound = JSON.parse(stdout).identity?.sha256 === fullSeedPacket.identity?.sha256;
+  } catch {
+    fullPacketGitBound = false;
+  }
   const fullReviewBundleValid =
     fullReviewBundle.protocol === 'scion-truth-gate-full-holdout-review-bundle-v1' &&
     fullReviewBundle.schemaVersion === 1 &&
     fullReviewBundle.seedPacketSha256 === fullSeedPacket.identity?.sha256 &&
+    fullPacketGitBound &&
     fullReviewBundle.identity?.algorithm === 'sha256-canonical-json' &&
     fullReviewBundle.identity?.sha256 === scionLessonKernelSha256(fullReviewBundleCopy);
   const receiptAssessment = assessScionTruthGate({
@@ -133,6 +150,10 @@ async function main() {
       : [],
     priorSourceContentHashes: [...priorSourceContentHashes],
     priorSourceClaims,
+    priorSourceIds: priorSourceExclusions.sourceIds || [],
+    priorSourceUrls: priorSourceExclusions.sourceUrls || [],
+    priorSourceEvidenceHashes: priorSourceExclusions.sourceEvidenceHashes || [],
+    priorSourcePacketSha256s: priorSourceExclusions.sourcePacketSha256s || [],
     excludedProjectIds: [...new Set([...developmentProjects, ...priorProjects])],
     excludedPromptIds: [...priorPrompts],
     requiredDomains: REQUIRED_DOMAINS,
@@ -168,6 +189,7 @@ async function main() {
       requireIdentityValidPacketBoundReviewBundle: true,
       fullSeedPacketValid,
       fullReviewBundleValid,
+      fullPacketGitBound,
       requiredDomains: REQUIRED_DOMAINS,
       requiredCasesPerDomain: REQUIRED_PER_DOMAIN,
       freezeMembershipAndArmOrderBeforeInference: true,

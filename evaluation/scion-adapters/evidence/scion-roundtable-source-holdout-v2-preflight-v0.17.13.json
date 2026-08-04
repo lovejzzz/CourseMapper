@@ -32,6 +32,7 @@
     "requireIdentityValidPacketBoundReviewBundle": true,
     "fullSeedPacketValid": false,
     "fullReviewBundleValid": false,
+    "fullPacketGitBound": false,
     "requiredDomains": [
       "computer-science",
       "geology",
@@ -106,6 +107,6 @@
   "claimBoundary": "This preflight can become ready only through executable source, semantic, and independent-review admission. It performs no model inference and creates no model-quality claim.",
   "identity": {
     "algorithm": "sha256-canonical-json",
-    "sha256": "a535e7004a9dd9adddfa7222c11cc3d4e5d90e16771dcb18472b23f115b72257"
+    "sha256": "eebc71e25f612703beea4807b3069c62e6213fe8368486d3efa7039b255135c8"
   }
 }

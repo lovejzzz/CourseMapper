@@ -37,7 +37,7 @@
   "seedAssessments": [
     {
       "caseIdSha256": "087a35d02a07dd21a4d5a672fce61b98c674e19a205de47c793311dc31e2d883",
-      "seedSha256": "dd343ae9bf0cd8eca201dea615ccd2643fd07fc6cd8bb29fb1af9952ea25f262",
+      "seedSha256": "ef43f90758098c8b64c720322182191960c4c902610538de72f6e196f56a6daa",
       "domain": "computer-science",
       "status": "quarantined",
       "issues": [
@@ -49,7 +49,7 @@
     },
     {
       "caseIdSha256": "3b4bcfa0d66d33e0bdd98dc1f5468ad1516fdb0c4242bb7907086d398a2c9b75",
-      "seedSha256": "d465b2ae8fefc75975f5efcfcbd7f3bf5aedeeb50f00ad19e84a1d7bd297c9a8",
+      "seedSha256": "8ca4dfb55b8a85529fe39ad883b329999a51cdee8fcf648bbcae5c4fc06daf6c",
       "domain": "computer-science",
       "status": "quarantined",
       "issues": [
@@ -61,7 +61,7 @@
     },
     {
       "caseIdSha256": "0ccc79c9327e2eaba456443868a21aa5751a0ff84af20ec20b4d907d84cfd242",
-      "seedSha256": "fd841bc7d39c9b8d89c66c967b2d0a2e4cdcf6a33524a815b32e61498e601117",
+      "seedSha256": "dca2b2b61b72954355cc80252003a9eb67ab5dc5011b9f2c7d67b335dd986359",
       "domain": "geology",
       "status": "quarantined",
       "issues": [
@@ -73,7 +73,7 @@
     },
     {
       "caseIdSha256": "63770da3221e3550c5562aa1b9aeea15b935686b78b8021190fadc59250485bd",
-      "seedSha256": "547fd878781e80a5444421f37eaf3ab45c43a3d8ce43a83ad261a3ab7451f76e",
+      "seedSha256": "310241090f75dc72465919520cf4cc730d312d8469d659bf774ade18ad311a12",
       "domain": "geology",
       "status": "quarantined",
       "issues": [
@@ -85,7 +85,7 @@
     },
     {
       "caseIdSha256": "b989df8b29d032bd870ee8cd3acccd89602aa10915c7d46e5e39f6084062058a",
-      "seedSha256": "26482abf6d800a2c6abeb36703b315ce9222e2403eaa278ee791a8cbf14f0363",
+      "seedSha256": "c72be603fc722977e6655d99b6f88457cadbca9d1e05fb92881c95e87933c6e8",
       "domain": "music-theory",
       "status": "quarantined",
       "issues": [
@@ -97,7 +97,7 @@
     },
     {
       "caseIdSha256": "d8a0a9bf9b6cefd7560a33c150f1a4fd2a76c14c7fd5a6289236cb8a8aa9c405",
-      "seedSha256": "ed2d56272de384f8b5ec3f5852ad0d6a1c1f5097eedefd9e88cfa780edb77a86",
+      "seedSha256": "b49a24bcef080cf5f3ca21d59f23462bfe9b7534a9553cdbd9aedd840c1f0cb5",
       "domain": "music-theory",
       "status": "quarantined",
       "issues": [
@@ -120,7 +120,7 @@
   "claimBoundary": "Passing proves only that the review gate behaved correctly for this frozen corpus. It is not Scion learning, model-quality, production, or training evidence.",
   "identity": {
     "algorithm": "sha256-canonical-json",
-    "sha256": "58e87b084a0dd6b8e4bc6b4dfddb50226f427449ee6ddd1326b98e24520270d1"
+    "sha256": "03a27dd009da8a767a42409c8678e9d3cf69c3090221f4fb5e0c3d06962fecf5"
   },
   "reviewBundle": {
     "present": false,

@@ -59,7 +59,7 @@ function buildPilotSeeds() {
       term: {
         tr: 'Short-circuit evaluation',
         df: "For Python's and operator, a false left operand is returned and the right operand is skipped instead of being evaluated.",
-        eg: 'The expression 0 and expensive_call() returns 0 without calling expensive_call().',
+        eg: 'With a false left operand, Python returns that operand without evaluating the right operand.',
         mi: 'Python and always evaluates both operands before choosing a Boolean result.',
         cx: 'The right operand is skipped when the left operand is false, rather than both operands always being evaluated.',
         sourceFactIndexes: [0],
@@ -87,13 +87,13 @@ function buildPilotSeeds() {
           ],
         },
         claims: [
-          'Hashable dictionary keys have stable hash and equality behavior: mutable containers such as lists and dictionaries are not hashable, while tuples are hashable only when all of their elements are hashable.',
+          'Python lists and dictionaries are not hashable, while tuples and frozensets are hashable only when all of their elements are hashable.',
         ],
       },
       term: {
-        tr: 'Hashable dictionary keys',
-        df: 'A Python dictionary key must have a stable hash and equality behavior, so mutable containers cannot serve as keys.',
-        eg: 'A tuple of strings can be a key, but a tuple containing a list cannot be a key.',
+        tr: 'Hashable tuples',
+        df: 'A Python tuple is hashable only when every element stored inside that tuple is itself hashable.',
+        eg: 'A tuple containing a list is not hashable because its list element is not hashable.',
         mi: 'Every tuple is a valid dictionary key simply because tuples are immutable containers.',
         cx: 'A tuple is hashable only when all its elements are hashable, not merely because the outer container is immutable.',
         sourceFactIndexes: [0],
@@ -126,7 +126,7 @@ function buildPilotSeeds() {
       },
       term: {
         tr: 'P-wave and S-wave arrival interval',
-        df: 'The arrival interval is the measured time between the faster P wave and the later S wave on a seismogram.',
+        df: 'The arrival interval is the time between the faster P wave arriving first and the S wave following later.',
         eg: 'A station farther from the earthquake records a larger delay between its P-wave and S-wave arrivals.',
         mi: 'The P-wave and S-wave arrival interval becomes smaller as a station gets farther from the earthquake.',
         cx: 'The arrival interval grows with station distance, rather than shrinking as the station moves farther away.',
@@ -161,7 +161,7 @@ function buildPilotSeeds() {
       term: {
         tr: 'Igneous cooling rate and crystal texture',
         df: 'Cooling rate controls the time available for mineral growth, linking slow cooling to coarse grains and rapid cooling to fine texture.',
-        eg: 'Slowly cooled intrusive granite has coarser grains than rapidly cooled extrusive obsidian.',
+        eg: 'Slow cooling gives mineral grains a long time to grow; quick cooling produces fine-grained or glassy texture.',
         mi: 'Rapid cooling gives mineral crystals more time to grow and therefore creates a coarse-grained rock.',
         cx: 'Slow cooling permits larger crystals, whereas rapid cooling limits growth instead of producing coarse grains.',
         sourceFactIndexes: [0],
@@ -187,7 +187,7 @@ function buildPilotSeeds() {
       term: {
         tr: 'Major-scale whole-step and half-step pattern',
         df: 'A major scale orders its seven adjacent steps as whole, whole, half, whole, whole, whole, then half.',
-        eg: 'C to D and D to E are whole steps, while E to F is the first half step in C major.',
+        eg: 'A learner checks seven successive scale steps against the W-W-H-W-W-W-H major-scale pattern.',
         mi: 'A major scale alternates whole steps and half steps evenly from tonic to octave.',
         cx: 'The pattern is W-W-H-W-W-W-H, not an even alternation of whole and half steps.',
         sourceFactIndexes: [0],
@@ -213,7 +213,7 @@ function buildPilotSeeds() {
       term: {
         tr: 'Deceptive dominant motion',
         df: 'Deceptive motion redirects an expected dominant resolution to a non-tonic harmony, most commonly from V to vi.',
-        eg: 'In C major, a G dominant harmony moving to A minor creates the common V-to-vi deceptive motion.',
+        eg: 'A dominant V moving to vi rather than the expected I creates the most common deceptive motion.',
         mi: 'Deceptive motion is the expected resolution from dominant V directly to tonic I.',
         cx: 'The dominant moves unexpectedly to a non-tonic harmony such as vi, rather than resolving as expected to I.',
         sourceFactIndexes: [0],
