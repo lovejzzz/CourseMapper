@@ -4,6 +4,8 @@ import path from 'node:path';
 import { execFile as execFileCallback } from 'node:child_process';
 import { promisify } from 'node:util';
 
+import * as prettier from 'prettier';
+
 import { assessScionKeyTermContract } from '../src/lib/scionKeyTermContract.js';
 import {
   SCION_KEY_TERM_RECOVERY_CAMPAIGNS,
@@ -22,6 +24,12 @@ const FULL_REVIEW_BUNDLE =
 const REQUIRED_DOMAINS = ['computer-science', 'geology', 'music-theory'];
 const REQUIRED_PER_DOMAIN = 4;
 const execFile = promisify(execFileCallback);
+
+async function writeFormattedJson(output, value) {
+  const options = (await prettier.resolveConfig(output)) || {};
+  const formatted = await prettier.format(JSON.stringify(value), { ...options, filepath: output });
+  await fs.writeFile(output, formatted);
+}
 
 function domainFor(caseId) {
   if (caseId.includes(':cs/')) return 'computer-science';
@@ -214,7 +222,7 @@ async function main() {
       'This preflight can become ready only through executable source, semantic, and independent-review admission. It performs no model inference and creates no model-quality claim.',
   };
   preflight.identity = { algorithm: 'sha256-canonical-json', sha256: scionLessonKernelSha256(preflight) };
-  await fs.writeFile(OUTPUT, `${JSON.stringify(preflight, null, 2)}\n`);
+  await writeFormattedJson(OUTPUT, preflight);
   console.log(
     JSON.stringify(
       {

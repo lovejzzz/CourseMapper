@@ -9,11 +9,7 @@
   "productionEligible": false,
   "trainingEligible": false,
   "requirements": {
-    "requiredDomains": [
-      "computer-science",
-      "geology",
-      "music-theory"
-    ],
+    "requiredDomains": ["computer-science", "geology", "music-theory"],
     "requiredCasesPerDomain": 2,
     "minimumIndependentReceipts": 2,
     "requireUnanimousPositiveVerdicts": true,
@@ -24,16 +20,8 @@
     "requireBoundedSourceEvidenceCapture": true,
     "requireProjectPromptExactAndSemanticSourceDisjointness": true
   },
-  "availableByDomain": {
-    "computer-science": 2,
-    "geology": 2,
-    "music-theory": 2
-  },
-  "deficits": {
-    "computer-science": 0,
-    "geology": 0,
-    "music-theory": 0
-  },
+  "availableByDomain": { "computer-science": 2, "geology": 2, "music-theory": 2 },
+  "deficits": { "computer-science": 0, "geology": 0, "music-theory": 0 },
   "seedAssessments": [
     {
       "caseIdSha256": "087a35d02a07dd21a4d5a672fce61b98c674e19a205de47c793311dc31e2d883",
@@ -102,11 +90,5 @@
     "algorithm": "sha256-canonical-json",
     "sha256": "55f8180ac87478abd755adce613d356e21b3a63c0bb66fabb65687d6968b4fa6"
   },
-  "reviewBundle": {
-    "present": true,
-    "receiptCount": 12,
-    "authorityCount": 2,
-    "packetBindingValid": true,
-    "issues": []
-  }
+  "reviewBundle": { "present": true, "receiptCount": 12, "authorityCount": 2, "packetBindingValid": true, "issues": [] }
 }

@@ -3,6 +3,8 @@ import fs from 'node:fs/promises';
 import { execFile as execFileCallback } from 'node:child_process';
 import { promisify } from 'node:util';
 
+import * as prettier from 'prettier';
+
 import { scionLessonKernelSha256 } from './lib/scionLessonKernelCampaign.mjs';
 import {
   assessScionTruthGate,
@@ -18,6 +20,12 @@ const OUTPUT = 'evaluation/scion-adapters/evidence/scion-truth-gate-pilot-result
 const CREATED_AT = '2026-08-04T19:30:00.000Z';
 const ASSESSED_AT = '2026-08-04T20:00:00.000Z';
 const execFile = promisify(execFileCallback);
+
+async function writeFormattedJson(output, value) {
+  const options = (await prettier.resolveConfig(output)) || {};
+  const formatted = await prettier.format(JSON.stringify(value), { ...options, filepath: output });
+  await fs.writeFile(output, formatted);
+}
 
 function identityFor(value) {
   const copy = structuredClone(value);
@@ -260,7 +268,7 @@ async function main() {
         'This packet exists to test semantic admission. It contains no model outcome and cannot prove Scion quality.',
     };
     packet.identity = identityFor(packet);
-    await fs.writeFile(PACKET, `${JSON.stringify(packet, null, 2)}\n`);
+    await writeFormattedJson(PACKET, packet);
   } else {
     packet = JSON.parse(await fs.readFile(PACKET, 'utf8'));
     const packetCopy = structuredClone(packet);
@@ -344,7 +352,7 @@ async function main() {
     result.issues = [...new Set([...result.issues, ...bundleIssues])];
   }
   result.identity = identityFor(result);
-  await fs.writeFile(OUTPUT, `${JSON.stringify(result, null, 2)}\n`);
+  await writeFormattedJson(OUTPUT, result);
   console.log(
     JSON.stringify(
       {

@@ -33,27 +33,15 @@
     "fullSeedPacketValid": false,
     "fullReviewBundleValid": false,
     "fullPacketGitBound": false,
-    "requiredDomains": [
-      "computer-science",
-      "geology",
-      "music-theory"
-    ],
+    "requiredDomains": ["computer-science", "geology", "music-theory"],
     "requiredCasesPerDomain": 4,
     "freezeMembershipAndArmOrderBeforeInference": true,
     "failClosedWhenCorpusIsInsufficient": true
   },
   "discovery": {
     "claimBoundary": "Discovery counts are planning evidence only and can never make preregistration ready.",
-    "availableByDomain": {
-      "computer-science": 0,
-      "geology": 0,
-      "music-theory": 0
-    },
-    "deficits": {
-      "computer-science": 4,
-      "geology": 4,
-      "music-theory": 4
-    },
+    "availableByDomain": { "computer-science": 0, "geology": 0, "music-theory": 0 },
+    "deficits": { "computer-science": 4, "geology": 4, "music-theory": 4 },
     "candidateCommitments": []
   },
   "receiptAdmission": {
@@ -67,11 +55,7 @@
     "productionEligible": false,
     "trainingEligible": false,
     "requirements": {
-      "requiredDomains": [
-        "computer-science",
-        "geology",
-        "music-theory"
-      ],
+      "requiredDomains": ["computer-science", "geology", "music-theory"],
       "requiredCasesPerDomain": 4,
       "minimumIndependentReceipts": 2,
       "requireUnanimousPositiveVerdicts": true,
@@ -82,21 +66,10 @@
       "requireBoundedSourceEvidenceCapture": true,
       "requireProjectPromptExactAndSemanticSourceDisjointness": true
     },
-    "availableByDomain": {
-      "computer-science": 0,
-      "geology": 0,
-      "music-theory": 0
-    },
-    "deficits": {
-      "computer-science": 4,
-      "geology": 4,
-      "music-theory": 4
-    },
+    "availableByDomain": { "computer-science": 0, "geology": 0, "music-theory": 0 },
+    "deficits": { "computer-science": 4, "geology": 4, "music-theory": 4 },
     "seedAssessments": [],
-    "issues": [
-      "domain-quota-not-met",
-      "unexpected-seed-count"
-    ],
+    "issues": ["domain-quota-not-met", "unexpected-seed-count"],
     "claimBoundary": "Passing proves only that the review gate behaved correctly for this frozen corpus. It is not Scion learning, model-quality, production, or training evidence.",
     "identity": {
       "algorithm": "sha256-canonical-json",
