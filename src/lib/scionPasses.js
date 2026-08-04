@@ -414,7 +414,7 @@ async function verifyMcAnswers(lesson, promptLesson, generateJson, events) {
       rejected: item,
       chosen: fresh,
       prompt,
-      trainingEligible: true,
+      trainingEligible: false,
       preferenceEvidence: {
         kind: first[index] === INVALID_MC_ANSWER_INDEX ? 'double-blind-validity-repair' : 'double-blind-key-repair',
         verified: true,
@@ -718,14 +718,17 @@ async function admissionGate(
       });
       return;
     }
-    const first = await blindSolve(
-      candidates.map(({ fresh }) => fresh),
-      generateJson,
-    ).catch(() => null);
-    const second = await blindSolve(
-      candidates.map(({ fresh }) => fresh),
-      generateJson,
-    ).catch(() => null);
+    const solveCandidates = candidates.map(({ fresh }) => fresh);
+    let first = null;
+    let second = null;
+    try {
+      first = await blindSolve(solveCandidates, generateJson);
+      second = await blindSolve(solveCandidates, generateJson);
+    } catch (error) {
+      // Preserve the budget discriminator for the outer event receipt. Other
+      // solver failures remain a non-fatal inability to verify the repair.
+      if (error?.code === 'SCION_PASS_CALL_BUDGET_EXHAUSTED') throw error;
+    }
     if (!first || !second) return;
     candidates.forEach(({ fresh, item, index, rejectedAdmission }, candidateIndex) => {
       const expected = Number(fresh.ai);
@@ -748,21 +751,34 @@ async function admissionGate(
         rejected: item,
         chosen: fresh,
         prompt: `System: ${system}\nUser: ${user}`,
-        trainingEligible: Boolean(item),
+        // Two solves by the same authoring model are a useful diagnostic,
+        // but they are not independent semantic verification. Keep the
+        // repaired item when it clears the compiler; never let this branch
+        // self-authorize a flywheel preference row.
+        trainingEligible: false,
         ...(item
           ? {
-              preferenceEvidence: {
-                kind: 'admission-and-key-repair',
-                verified: true,
+              verification: {
+                kind: 'same-model-key-agreement',
+                verified: false,
                 rejectedIssues: rejectedAdmission.issues,
                 chosenAnswers: [first[candidateIndex], second[candidateIndex]],
+                claimBoundary: 'same-model diagnostic; not independent evidence or training authorization',
               },
             }
           : {}),
       });
     });
-  } catch {
-    events.push({ pass: 'admissionGate', lessonId: lesson.lessonId, action: 'failed', reason: 'generation-or-parse' });
+  } catch (error) {
+    const budgetExhausted = error?.code === 'SCION_PASS_CALL_BUDGET_EXHAUSTED';
+    events.push({
+      pass: 'admissionGate',
+      lessonId: lesson.lessonId,
+      action: budgetExhausted ? 'bounded' : 'failed',
+      reason: budgetExhausted ? 'call-budget-exhausted' : 'generation-or-parse',
+      terminalReason: budgetExhausted ? 'call-budget-exhausted' : 'generation-or-parse',
+      trainingEligible: false,
+    });
   }
 }
 
@@ -1045,7 +1061,7 @@ async function appliedDepthGate(lesson, promptLesson, generateJson, events) {
         rejected: item,
         chosen: fresh,
         prompt: `System: ${system}\nUser: ${user}`,
-        trainingEligible: true,
+        trainingEligible: false,
         preferenceEvidence: {
           kind: 'applied-depth-and-key-repair',
           verified: true,

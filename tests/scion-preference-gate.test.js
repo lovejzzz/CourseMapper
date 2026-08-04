@@ -436,6 +436,13 @@ describe('Scion preference admission gate', () => {
     });
   });
 
+  it('does not treat a repeated key-term correction as non-semantic training evidence', () => {
+    const chosen = goodLesson().keyTerms[0];
+    const rejected = { ...chosen, cx: chosen.df };
+
+    expect(deriveDeterministicContractEvidence({ kind: 'key-term', chosen, rejected })).toBeNull();
+  });
+
   it('rejects semantic index placeholders before a quiz item can ship or enter training', () => {
     const rejected = goodMc({ op: ['index: 0', 'index: 1', 'index: 2', 'index: 3'] });
     expect(assessScionMcItem(rejected)).toMatchObject({

@@ -96,7 +96,12 @@ function pairKind(row) {
 export function assessCorpusRow(
   row,
   source = '',
-  { semanticAdmission = true, semanticProfile = 'legacy', allowFirstSentenceLexicalCue = semanticAdmission } = {},
+  {
+    semanticAdmission = true,
+    semanticProfile = 'legacy',
+    allowFirstSentenceLexicalCue = semanticAdmission,
+    legacyCorrectionRepeatMargin = false,
+  } = {},
 ) {
   const kind = pairKind(row);
   const issues = [];
@@ -128,6 +133,7 @@ export function assessCorpusRow(
       sourceTerm: row?.sourceContext?.term || '',
       userPrompt: row?.admissionPrompt || row?.prompt || '',
       allowFirstSentenceLexicalCue,
+      legacyCorrectionRepeatMargin,
     },
   );
   return { ...result, kind, source };

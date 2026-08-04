@@ -1,0 +1,348 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-truth-gate-pilot-packet-v1",
+  "status": "frozen-before-independent-review",
+  "frozenAt": "2026-08-04T19:30:00.000Z",
+  "design": {
+    "domains": [
+      "computer-science",
+      "geology",
+      "music-theory"
+    ],
+    "casesPerDomain": 2,
+    "totalCases": 6
+  },
+  "trustedReviewAuthorityFingerprints": [
+    "9f02945d1b0fd909683c073d89ea2602377c565cddafb098dec7f0aab0ae13c5"
+  ],
+  "seeds": [
+    {
+      "schemaVersion": 1,
+      "protocol": "scion-truth-gate-seed-v1",
+      "status": "awaiting-independent-review",
+      "createdAt": "2026-08-04T19:30:00.000Z",
+      "caseId": "truth-gate-pilot/python-short-circuit-and:key-term-0",
+      "projectId": "truth-gate-pilot-python-short-circuit-and",
+      "promptId": "truth-gate-pilot/python-short-circuit-and",
+      "domain": "computer-science",
+      "sourcePacket": {
+        "sourceId": "python-reference-boolean-and",
+        "url": "https://docs.python.org/3/reference/expressions.html#boolean-operations",
+        "title": "Python Language Reference: Boolean operations",
+        "publisher": "Python Software Foundation",
+        "retrievedAt": "2026-08-04T19:30:00.000Z",
+        "claims": [
+          "Short-circuit evaluation for Python's and operator evaluates the left operand first; if it is false, that operand is returned without evaluating the right operand, otherwise the right operand is evaluated and returned."
+        ],
+        "sourceEvidence": {
+          "captures": [
+            {
+              "locator": "Boolean operations, paragraph describing x and y",
+              "capturedText": "The expression x and y first evaluates x; if x is false, its value is returned; otherwise, y is evaluated.",
+              "capturedTextSha256": "26f4deb9fa32dbb1b0c338d83dfaa4d4d7cb74a024ad9d758b613d88af0578ee"
+            }
+          ]
+        }
+      },
+      "sourcePacketSha256": "95914537437062c6943861d22ab3930410623851b8fb13389317dc51856d797f",
+      "sourceClaimSha256s": [
+        "b49dd8a069c03cd23b05da3f5a38e89c00a9eb9a20cf377685fb98b5c66f762e"
+      ],
+      "term": {
+        "tr": "Short-circuit evaluation",
+        "df": "For Python's and operator, a false left operand is returned and the right operand is skipped instead of being evaluated.",
+        "eg": "The expression 0 and expensive_call() returns 0 without calling expensive_call().",
+        "mi": "Python and always evaluates both operands before choosing a Boolean result.",
+        "cx": "The right operand is skipped when the left operand is false, rather than both operands always being evaluated.",
+        "sourceFactIndexes": [
+          0
+        ]
+      },
+      "inputSha256": "e3200acf1cb067e7368d0b665af2169c906e313b4416d20a1ebf907bf39613a4",
+      "trainingEligible": false,
+      "productionEligible": false,
+      "claimBoundary": "This is a review candidate. Structural admission and source binding do not establish factual or pedagogical truth.",
+      "identity": {
+        "algorithm": "sha256-canonical-json",
+        "sha256": "dd343ae9bf0cd8eca201dea615ccd2643fd07fc6cd8bb29fb1af9952ea25f262"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "protocol": "scion-truth-gate-seed-v1",
+      "status": "awaiting-independent-review",
+      "createdAt": "2026-08-04T19:30:00.000Z",
+      "caseId": "truth-gate-pilot/python-hashable-dictionary-keys:key-term-0",
+      "projectId": "truth-gate-pilot-python-hashable-dictionary-keys",
+      "promptId": "truth-gate-pilot/python-hashable-dictionary-keys",
+      "domain": "computer-science",
+      "sourcePacket": {
+        "sourceId": "python-glossary-hashable-keys",
+        "url": "https://docs.python.org/3/glossary.html#term-hashable",
+        "title": "Python Glossary: hashable",
+        "publisher": "Python Software Foundation",
+        "retrievedAt": "2026-08-04T19:30:00.000Z",
+        "claims": [
+          "Hashable dictionary keys have stable hash and equality behavior: mutable containers such as lists and dictionaries are not hashable, while tuples are hashable only when all of their elements are hashable."
+        ],
+        "sourceEvidence": {
+          "captures": [
+            {
+              "locator": "Glossary entry: hashable, opening definition",
+              "capturedText": "An object is hashable if it has a hash value which never changes during its lifetime (it needs a __hash__() method), and can be compared to other objects (it needs an __eq__() method).",
+              "capturedTextSha256": "92bf46982e47774276351360c16d2159ed5abe2f912972ed9a8236c7e7002b57"
+            },
+            {
+              "locator": "Glossary entry: hashable, container examples",
+              "capturedText": "Mutable containers such as lists or dictionaries are not hashable; tuples and frozensets are only hashable if their elements are hashable.",
+              "capturedTextSha256": "2534ec68523f8800c3864c177690c0531af4fc4c7a71c6ac9a6727c39e297180"
+            }
+          ]
+        }
+      },
+      "sourcePacketSha256": "9c24d20c513f69586ce18cb4beb279a948a40edc8ae8cceb10b1acbc3b1a8478",
+      "sourceClaimSha256s": [
+        "ca48d70b5a4fc33d8c403ee71f62c7338cc172f8812371bd2c4b9538d86d01c7"
+      ],
+      "term": {
+        "tr": "Hashable dictionary keys",
+        "df": "A Python dictionary key must have a stable hash and equality behavior, so mutable containers cannot serve as keys.",
+        "eg": "A tuple of strings can be a key, but a tuple containing a list cannot be a key.",
+        "mi": "Every tuple is a valid dictionary key simply because tuples are immutable containers.",
+        "cx": "A tuple is hashable only when all its elements are hashable, not merely because the outer container is immutable.",
+        "sourceFactIndexes": [
+          0
+        ]
+      },
+      "inputSha256": "f3343dd62303fdc06d31882351cf03d0698269be574af9f29fd826fb56942a0f",
+      "trainingEligible": false,
+      "productionEligible": false,
+      "claimBoundary": "This is a review candidate. Structural admission and source binding do not establish factual or pedagogical truth.",
+      "identity": {
+        "algorithm": "sha256-canonical-json",
+        "sha256": "d465b2ae8fefc75975f5efcfcbd7f3bf5aedeeb50f00ad19e84a1d7bd297c9a8"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "protocol": "scion-truth-gate-seed-v1",
+      "status": "awaiting-independent-review",
+      "createdAt": "2026-08-04T19:30:00.000Z",
+      "caseId": "truth-gate-pilot/earthquake-p-s-arrival-gap:key-term-0",
+      "projectId": "truth-gate-pilot-earthquake-p-s-arrival-gap",
+      "promptId": "truth-gate-pilot/earthquake-p-s-arrival-gap",
+      "domain": "geology",
+      "sourcePacket": {
+        "sourceId": "usgs-earthquake-p-s-arrivals",
+        "url": "https://www.usgs.gov/programs/earthquake-hazards/science-earthquakes",
+        "title": "The Science of Earthquakes",
+        "publisher": "U.S. Geological Survey",
+        "retrievedAt": "2026-08-04T19:30:00.000Z",
+        "claims": [
+          "The P-wave and S-wave arrival interval records the faster P wave first, and the time between P and S arrivals becomes larger as a station is farther from the earthquake."
+        ],
+        "sourceEvidence": {
+          "captures": [
+            {
+              "locator": "How can scientists tell where the earthquake happened?, wave-speed paragraph",
+              "capturedText": "P waves are also faster than S waves, and this fact is what allows us to tell where an earthquake was.",
+              "capturedTextSha256": "062808d8223ff5519299f6f953024effd39e285ffa78259460c75768211b093b"
+            },
+            {
+              "locator": "How can scientists tell where the earthquake happened?, arrival-gap paragraph",
+              "capturedText": "If you are close to the earthquake, the P and S wave will come one right after the other, but if you are far away, there will be more time between the two.",
+              "capturedTextSha256": "66eb9f6db3fad8995cb936eac0d3f5189e5b9fb8d5339aa82b3b67ab35b4af77"
+            }
+          ]
+        }
+      },
+      "sourcePacketSha256": "01d573b5732126ce73afbf153c7f7a0403e312600c1280af68e0272740b53898",
+      "sourceClaimSha256s": [
+        "3d3572dbe6830a5817df767e2b714384eb822f2a45bebcb42eee6c720ae83be5"
+      ],
+      "term": {
+        "tr": "P-wave and S-wave arrival interval",
+        "df": "The arrival interval is the measured time between the faster P wave and the later S wave on a seismogram.",
+        "eg": "A station farther from the earthquake records a larger delay between its P-wave and S-wave arrivals.",
+        "mi": "The P-wave and S-wave arrival interval becomes smaller as a station gets farther from the earthquake.",
+        "cx": "The arrival interval grows with station distance, rather than shrinking as the station moves farther away.",
+        "sourceFactIndexes": [
+          0
+        ]
+      },
+      "inputSha256": "4bdbe848341831571e8396b257395adb04b6170da1a4444e98fee0dec2e2fc40",
+      "trainingEligible": false,
+      "productionEligible": false,
+      "claimBoundary": "This is a review candidate. Structural admission and source binding do not establish factual or pedagogical truth.",
+      "identity": {
+        "algorithm": "sha256-canonical-json",
+        "sha256": "fd841bc7d39c9b8d89c66c967b2d0a2e4cdcf6a33524a815b32e61498e601117"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "protocol": "scion-truth-gate-seed-v1",
+      "status": "awaiting-independent-review",
+      "createdAt": "2026-08-04T19:30:00.000Z",
+      "caseId": "truth-gate-pilot/igneous-cooling-crystal-texture:key-term-0",
+      "projectId": "truth-gate-pilot-igneous-cooling-crystal-texture",
+      "promptId": "truth-gate-pilot/igneous-cooling-crystal-texture",
+      "domain": "geology",
+      "sourcePacket": {
+        "sourceId": "usgs-igneous-cooling-texture",
+        "url": "https://www.usgs.gov/faqs/what-are-igneous-rocks",
+        "title": "What are igneous rocks?",
+        "publisher": "U.S. Geological Survey",
+        "retrievedAt": "2026-08-04T19:30:00.000Z",
+        "claims": [
+          "Igneous cooling rate and crystal texture are linked: intrusive magma cools slowly underground and develops relatively large grains, whereas extrusive lava cools quickly near the surface and develops fine-grained or glassy texture."
+        ],
+        "sourceEvidence": {
+          "captures": [
+            {
+              "locator": "Intrusive Igneous Rocks",
+              "capturedText": "Slow cooling means the individual mineral grains have a very long time to grow, so they grow to a relatively large size.",
+              "capturedTextSha256": "d2afae835b7840326525dd1f42f1944c444597d58531c6fb72a75233d0c21278"
+            },
+            {
+              "locator": "Extrusive Igneous Rocks",
+              "capturedText": "Quick cooling means that mineral crystals don't have much time to grow, so these rocks have a very fine-grained or even glassy texture.",
+              "capturedTextSha256": "491d7ca1646d645765bc3bfd1095cc64f7be1b685af430d224dcdedb684e1644"
+            }
+          ]
+        }
+      },
+      "sourcePacketSha256": "8329cc6aeb41c18d7dfd98f5840b42ffad2f43db83ed50d89bebb7455bb2ae5a",
+      "sourceClaimSha256s": [
+        "311de807d998cf7e6fc71fa2273f635c1fd7be764a710789a12975684a5d61d0"
+      ],
+      "term": {
+        "tr": "Igneous cooling rate and crystal texture",
+        "df": "Cooling rate controls the time available for mineral growth, linking slow cooling to coarse grains and rapid cooling to fine texture.",
+        "eg": "Slowly cooled intrusive granite has coarser grains than rapidly cooled extrusive obsidian.",
+        "mi": "Rapid cooling gives mineral crystals more time to grow and therefore creates a coarse-grained rock.",
+        "cx": "Slow cooling permits larger crystals, whereas rapid cooling limits growth instead of producing coarse grains.",
+        "sourceFactIndexes": [
+          0
+        ]
+      },
+      "inputSha256": "4d7457cb64181cff4c468f98d7fed1ed1f36af9ed6bbcc5abeed8d583f667380",
+      "trainingEligible": false,
+      "productionEligible": false,
+      "claimBoundary": "This is a review candidate. Structural admission and source binding do not establish factual or pedagogical truth.",
+      "identity": {
+        "algorithm": "sha256-canonical-json",
+        "sha256": "547fd878781e80a5444421f37eaf3ab45c43a3d8ce43a83ad261a3ab7451f76e"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "protocol": "scion-truth-gate-seed-v1",
+      "status": "awaiting-independent-review",
+      "createdAt": "2026-08-04T19:30:00.000Z",
+      "caseId": "truth-gate-pilot/major-scale-step-pattern:key-term-0",
+      "projectId": "truth-gate-pilot-major-scale-step-pattern",
+      "promptId": "truth-gate-pilot/major-scale-step-pattern",
+      "domain": "music-theory",
+      "sourcePacket": {
+        "sourceId": "open-music-theory-major-scale-pattern",
+        "url": "https://open-musictheory.github.io/docs/fundamentals/scales/",
+        "title": "Scales and scale degrees",
+        "publisher": "Open Music Theory",
+        "retrievedAt": "2026-08-04T19:30:00.000Z",
+        "claims": [
+          "A major scale uses the ordered step pattern whole, whole, half, whole, whole, whole, half from tonic to the octave."
+        ],
+        "sourceEvidence": {
+          "captures": [
+            {
+              "locator": "The major scale",
+              "capturedText": "A major scale consists of seven whole and half steps in the following succession: W-W-H-W-W-W-H.",
+              "capturedTextSha256": "10d2caab0cb50127ac712a9001bbf48103751ca864b709933f2887aa01d010c2"
+            }
+          ]
+        }
+      },
+      "sourcePacketSha256": "3449be45e042cabdb321190858af8a20c27d8c6022b46afd099e92a8cbac0d72",
+      "sourceClaimSha256s": [
+        "8ffbd5fc0cc4f6efbd5c281f46f3c4db312c31c3cca5dee21095c0e886f3b9a7"
+      ],
+      "term": {
+        "tr": "Major-scale whole-step and half-step pattern",
+        "df": "A major scale orders its seven adjacent steps as whole, whole, half, whole, whole, whole, then half.",
+        "eg": "C to D and D to E are whole steps, while E to F is the first half step in C major.",
+        "mi": "A major scale alternates whole steps and half steps evenly from tonic to octave.",
+        "cx": "The pattern is W-W-H-W-W-W-H, not an even alternation of whole and half steps.",
+        "sourceFactIndexes": [
+          0
+        ]
+      },
+      "inputSha256": "cf55cbba51adb0435374ad246a5fba7435cc4e33bcc2c0e58d49c94d901627ff",
+      "trainingEligible": false,
+      "productionEligible": false,
+      "claimBoundary": "This is a review candidate. Structural admission and source binding do not establish factual or pedagogical truth.",
+      "identity": {
+        "algorithm": "sha256-canonical-json",
+        "sha256": "26482abf6d800a2c6abeb36703b315ce9222e2403eaa278ee791a8cbf14f0363"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "protocol": "scion-truth-gate-seed-v1",
+      "status": "awaiting-independent-review",
+      "createdAt": "2026-08-04T19:30:00.000Z",
+      "caseId": "truth-gate-pilot/deceptive-dominant-motion:key-term-0",
+      "projectId": "truth-gate-pilot-deceptive-dominant-motion",
+      "promptId": "truth-gate-pilot/deceptive-dominant-motion",
+      "domain": "music-theory",
+      "sourcePacket": {
+        "sourceId": "open-music-theory-deceptive-motion",
+        "url": "https://viva.pressbooks.pub/openmusictheory/chapter/la-in-the-bass/",
+        "title": "La in the Bass at Beginnings, Middles, and Endings",
+        "publisher": "Open Music Theory",
+        "retrievedAt": "2026-08-04T19:30:00.000Z",
+        "claims": [
+          "Deceptive motion occurs when a dominant sets up a cadential expectation but moves to an unexpected non-tonic harmony, most commonly vi instead of I."
+        ],
+        "sourceEvidence": {
+          "captures": [
+            {
+              "locator": "Deceptive motion",
+              "capturedText": "Deceptive motion most commonly occurs when V moves to vi rather than I, with the bass moving sol-la.",
+              "capturedTextSha256": "25c241c463dbe1627935c81a6bebca92ab08354e0be24e2215862b3e9ad3026f"
+            }
+          ]
+        }
+      },
+      "sourcePacketSha256": "0c807b2b4abb5a0dd54e79161556e3a3158310002daa654013aeae8fe0f8d565",
+      "sourceClaimSha256s": [
+        "7fec9d327587bb45c9ce575244deeea3769df4309efe17c8aa5e73e3557a3246"
+      ],
+      "term": {
+        "tr": "Deceptive dominant motion",
+        "df": "Deceptive motion redirects an expected dominant resolution to a non-tonic harmony, most commonly from V to vi.",
+        "eg": "In C major, a G dominant harmony moving to A minor creates the common V-to-vi deceptive motion.",
+        "mi": "Deceptive motion is the expected resolution from dominant V directly to tonic I.",
+        "cx": "The dominant moves unexpectedly to a non-tonic harmony such as vi, rather than resolving as expected to I.",
+        "sourceFactIndexes": [
+          0
+        ]
+      },
+      "inputSha256": "942552f44b5190db417635e025a6ac0805081dc0c4c770b1a8e81f75ddb99fc1",
+      "trainingEligible": false,
+      "productionEligible": false,
+      "claimBoundary": "This is a review candidate. Structural admission and source binding do not establish factual or pedagogical truth.",
+      "identity": {
+        "algorithm": "sha256-canonical-json",
+        "sha256": "ed2d56272de384f8b5ec3f5852ad0d6a1c1f5097eedefd9e88cfa780edb77a86"
+      }
+    }
+  ],
+  "productionEligible": false,
+  "trainingEligible": false,
+  "claimBoundary": "This packet exists to test semantic admission. It contains no model outcome and cannot prove Scion quality.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "7fdb78172b616ea8e00e0ccc4b5a7627446712cfab5dec145f6bd741986c8db9"
+  }
+}

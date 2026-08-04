@@ -432,7 +432,11 @@ export function toScionOrpoTrainingRow(entry, { sourceBoundPrompt = true } = {})
 
 function withDerivedContractEvidence(
   row,
-  { semanticAdmission = true, allowFirstSentenceLexicalCue = semanticAdmission } = {},
+  {
+    semanticAdmission = true,
+    allowFirstSentenceLexicalCue = semanticAdmission,
+    legacyCorrectionRepeatMargin = false,
+  } = {},
 ) {
   // A claimed model-judge preference must pass its own evidence protocol. Never
   // downgrade malformed judge or teacher lineage into deterministic evidence.
@@ -443,7 +447,7 @@ function withDerivedContractEvidence(
   const rejected = ['lesson', 'lesson-kernel'].includes(kind) ? lessonValue(row.rejected) : parsed(row.rejected);
   const evidence = deriveDeterministicContractEvidence(
     { kind, chosen, rejected },
-    { semanticAdmission, allowFirstSentenceLexicalCue },
+    { semanticAdmission, allowFirstSentenceLexicalCue, legacyCorrectionRepeatMargin },
   );
   if (!evidence) return row;
   return {
@@ -539,6 +543,7 @@ export async function buildScionAdapterDataset({
   sourceBoundPrompt = true,
   requireSourceBoundModelJudge = true,
   legacyTrainingContract = false,
+  legacyCorrectionRepeatMargin = false,
 } = {}) {
   const sourceReceipts = await Promise.all(sources.map(inspectDatasetSource));
   const loaded = (await Promise.all(sources.map(readJsonl))).flat();
@@ -549,7 +554,12 @@ export async function buildScionAdapterDataset({
   const seen = new Set();
   const seenLessonKernelCases = new Set();
   for (const entry of loaded) {
-    const admissionOptions = { semanticAdmission, semanticProfile, allowFirstSentenceLexicalCue };
+    const admissionOptions = {
+      semanticAdmission,
+      semanticProfile,
+      allowFirstSentenceLexicalCue,
+      legacyCorrectionRepeatMargin,
+    };
     const auditedRow = withDerivedContractEvidence(entry.row, admissionOptions);
     const assessment = assessCorpusRow(auditedRow, entry.source, admissionOptions);
     const sourceContextIssues = requireSourceBoundModelJudge ? sourceContextBindingIssues(auditedRow) : [];

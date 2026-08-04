@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-roundtable-source-holdout-v2-preflight-v1",
+  "status": "blocked-insufficient-semantically-admitted-corpus",
+  "exclusions": {
+    "developmentProjects": [
+      "harmony-form-analysis",
+      "igneous-volcanic-processes",
+      "python-data-structures-lab",
+      "python-program-architecture-studio",
+      "ux-evidence-to-prototype-capstone",
+      "ux-prototyping-accessibility-lab",
+      "ux-research-synthesis-studio"
+    ],
+    "priorHoldoutPromptIdsSha256": "adbc4d13e2f2d761b8248b39eb2fbe00cd69c1ac3f33aca25054fa6a57446c38",
+    "priorHoldoutProjectIdsSha256": "3ebba183dd7911a2dc8e86b94b90a73acafca5fe8446869d951270ae216c0d63",
+    "requirePromptLevelSourceDisjointness": true,
+    "requireProjectDisjointness": true,
+    "requireNormalizedSourceContentOverlapZero": true,
+    "priorSourceContentSetSha256": "5d62025919e1a05da32e2f3262f020b22cce19d7e52976da58b844e710b378bc"
+  },
+  "gate": {
+    "sourceStrictProfile": "source-strict-v6",
+    "onlyAuthorizedSourceFactIndexes": true,
+    "minimumIndependentSeedReviewReceipts": 2,
+    "requiredDomains": [
+      "computer-science",
+      "geology",
+      "music-theory"
+    ],
+    "requiredCasesPerDomain": 4,
+    "freezeMembershipAndArmOrderBeforeInference": true,
+    "failClosedWhenCorpusIsInsufficient": true
+  },
+  "availableByDomain": {
+    "computer-science": 0,
+    "geology": 0,
+    "music-theory": 0
+  },
+  "deficits": {
+    "computer-science": 4,
+    "geology": 4,
+    "music-theory": 4
+  },
+  "candidateCommitments": [],
+  "nextAction": "Expand verified source-capture evidence with new prompt-level source groups; do not reuse development or v1 holdout prompts to fill the quota.",
+  "claimBoundary": "This preflight inspects corpus eligibility and source disjointness only. It performs no model inference and does not create or promote a holdout result.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "a3112a88d2c16868ff9bbdcbd315476ec275719774621c7f23c5839b752b7a9b"
+  }
+}

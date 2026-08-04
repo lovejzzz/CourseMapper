@@ -59,13 +59,19 @@ const TRAINABLE_PREFERENCE_EVIDENCE_KINDS = new Set([
   'blind-instructor-preference',
   'single-model-judge-preference',
 ]);
-export const SCION_PREFERENCE_GATE_VERSION = '1.0.2';
+export const SCION_PREFERENCE_GATE_VERSION = '1.0.3';
+const LEGACY_SCION_PREFERENCE_GATE_VERSION = '1.0.2';
 
 // These checks describe form, contract completeness, or answer-cue hygiene.
 // They do not claim that either side is factually correct. A deterministic
 // training pair is admitted only when the chosen side clears the whole gate
 // and the rejected side fails exclusively inside this non-semantic set.
 const DETERMINISTIC_CONTRACT_ISSUE_RE =
+  /^(?:facts-count|fact-length|key-terms-count|mc-count|discussion-(?:prompt|tension|positions)|assignment-(?:task|parameters)|study-guide-(?:summary|strategy)|scenario:scenario-(?:missing-decision|missing-tension|missing-evidence-packet)|(?:key-term-\d+:)?(?:tr|df|eg|mi|cx)-length|(?:key-term-\d+:)?(?:term-is-lesson-title|circular-definition|meta-definition)|(?:mc-\d+:)?(?:stem-length|option-count|option-length|option-homogeneity|duplicate-options|placeholder-options|truncated-option|option-label-suffixes|explanation-length|explanation-repeats-answer|truncated-explanation|process-leakage|meta-surface|template-residue|generation-marker-residue|answer-position-residue|claim-marker-residue|repetitive-explanation|all-none-of-above|longest-option-cue|clang-association-cue))$/;
+// Historical v0.16.40-v0.16.46 receipts were generated under v1.0.2.
+// Keep their ruler reproducible only when an offline historical auditor opts
+// in explicitly; live and current dataset admission always uses the safer set.
+const LEGACY_DETERMINISTIC_CONTRACT_ISSUE_RE =
   /^(?:facts-count|fact-length|key-terms-count|mc-count|discussion-(?:prompt|tension|positions)|assignment-(?:task|parameters)|study-guide-(?:summary|strategy)|scenario:scenario-(?:missing-decision|missing-tension|missing-evidence-packet)|(?:key-term-\d+:)?(?:tr|df|eg|mi|cx)-length|(?:key-term-\d+:)?(?:term-is-lesson-title|circular-definition|meta-definition|correction-repeats-definition)|(?:mc-\d+:)?(?:stem-length|option-count|option-length|option-homogeneity|duplicate-options|placeholder-options|truncated-option|option-label-suffixes|explanation-length|explanation-repeats-answer|truncated-explanation|process-leakage|meta-surface|template-residue|generation-marker-residue|answer-position-residue|claim-marker-residue|repetitive-explanation|all-none-of-above|longest-option-cue|clang-association-cue))$/;
 
 function clean(value) {
@@ -383,8 +389,15 @@ function sameIssues(left = [], right = []) {
 
 export function deriveDeterministicContractEvidence(
   { kind, chosen, rejected } = {},
-  { semanticAdmission = true, allowFirstSentenceLexicalCue = semanticAdmission } = {},
+  {
+    semanticAdmission = true,
+    allowFirstSentenceLexicalCue = semanticAdmission,
+    legacyCorrectionRepeatMargin = false,
+  } = {},
 ) {
+  const deterministicIssuePattern = legacyCorrectionRepeatMargin
+    ? LEGACY_DETERMINISTIC_CONTRACT_ISSUE_RE
+    : DETERMINISTIC_CONTRACT_ISSUE_RE;
   let chosenResult;
   let rejectedResult;
   if (kind === 'mc-item') {
@@ -404,7 +417,7 @@ export function deriveDeterministicContractEvidence(
     !chosenResult.eligible ||
     rejectedResult.eligible ||
     rejectedIssues.length === 0 ||
-    !rejectedIssues.every((issue) => DETERMINISTIC_CONTRACT_ISSUE_RE.test(issue))
+    !rejectedIssues.every((issue) => deterministicIssuePattern.test(issue))
   ) {
     return null;
   }
@@ -412,7 +425,9 @@ export function deriveDeterministicContractEvidence(
     kind: 'deterministic-contract-margin',
     verified: true,
     validator: 'scion-preference-gate',
-    validatorVersion: SCION_PREFERENCE_GATE_VERSION,
+    validatorVersion: legacyCorrectionRepeatMargin
+      ? LEGACY_SCION_PREFERENCE_GATE_VERSION
+      : SCION_PREFERENCE_GATE_VERSION,
     rejectedIssues,
     scope: 'non-semantic-contract-only',
   };
@@ -433,8 +448,15 @@ export function assessScionPreferencePair(
     knownFacts = sourceClaims,
     userPrompt = '',
     allowFirstSentenceLexicalCue = semanticAdmission,
+    legacyCorrectionRepeatMargin = false,
   } = {},
 ) {
+  const deterministicIssuePattern = legacyCorrectionRepeatMargin
+    ? LEGACY_DETERMINISTIC_CONTRACT_ISSUE_RE
+    : DETERMINISTIC_CONTRACT_ISSUE_RE;
+  const deterministicValidatorVersion = legacyCorrectionRepeatMargin
+    ? LEGACY_SCION_PREFERENCE_GATE_VERSION
+    : SCION_PREFERENCE_GATE_VERSION;
   let chosenResult;
   let rejectedResult;
   if (kind === 'mc-item') {
@@ -474,11 +496,11 @@ export function assessScionPreferencePair(
     preferenceEvidence?.kind === 'deterministic-contract-margin' &&
     preferenceEvidence?.verified === true &&
     preferenceEvidence?.validator === 'scion-preference-gate' &&
-    preferenceEvidence?.validatorVersion === SCION_PREFERENCE_GATE_VERSION &&
+    preferenceEvidence?.validatorVersion === deterministicValidatorVersion &&
     preferenceEvidence?.scope === 'non-semantic-contract-only' &&
     chosenResult.eligible &&
     rejectedResult.eligible === false &&
-    sortedIssues(rejectedResult.issues).every((issue) => DETERMINISTIC_CONTRACT_ISSUE_RE.test(issue)) &&
+    sortedIssues(rejectedResult.issues).every((issue) => deterministicIssuePattern.test(issue)) &&
     sameIssues(preferenceEvidence?.rejectedIssues, rejectedResult.issues);
   if (preferenceEvidence?.kind === 'deterministic-contract-margin' && !deterministicContractMargin) {
     issues.push('invalid-deterministic-contract-evidence');

@@ -13,6 +13,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { AsyncLocalStorage } from 'node:async_hooks';
+import { randomUUID } from 'node:crypto';
 import { sGenerate, startItems, stopS } from '../../trellis/tendril/sModel.mjs';
 import { sha256File, verifyScionAdapterPackage } from '../scionAdapterPackage.mjs';
 import { computeScionAdapterPackageIdentity } from '../lib/scionBrowserDeviceMatrix.mjs';
@@ -1441,6 +1442,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
   const raw = await readBody(req);
+  const requestReceipt = randomUUID();
   let body = {};
   try {
     body = JSON.parse(raw);
@@ -1710,6 +1712,9 @@ const server = http.createServer(async (req, res) => {
   const payload = isResponses
     ? {
         id: 'e2b-shim',
+        model: LOCAL_MODEL_ID,
+        scion_request_receipt: requestReceipt,
+        scion_source_model: LOCAL_SOURCE_MODEL_ID,
         object: 'response',
         output_text: text,
         output: [{ type: 'message', content: [{ type: 'output_text', text }] }],
@@ -1717,6 +1722,9 @@ const server = http.createServer(async (req, res) => {
       }
     : {
         id: 'e2b-shim',
+        model: LOCAL_MODEL_ID,
+        scion_request_receipt: requestReceipt,
+        scion_source_model: LOCAL_SOURCE_MODEL_ID,
         object: 'chat.completion',
         choices: [{ index: 0, message: { role: 'assistant', content: text }, finish_reason: 'stop' }],
         usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },

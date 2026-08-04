@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-roundtable-source-holdout-preregistration-v1",
+  "status": "precommitted-before-model-inference",
+  "createdAt": "2026-08-04T17:22:19.476Z",
+  "seedSha256": "cf25336052defdf6e665254e061746ea4a7f43ce794c80ce3ea52ce97058ea5d",
+  "teacherPolicySha256": "e5e5af819a1599ad43efd6593d034789fce6ab5bacfe4a07561220b1dd73322c",
+  "developmentProjectIdsExcludedSha256": "152beb71fbbaf63e548da1cb6f264106c4333fb79fdad24d4111c688f450c879",
+  "split": {
+    "cases": 12,
+    "domains": [
+      "computer-science",
+      "geology",
+      "music-theory"
+    ],
+    "casesPerDomain": 4,
+    "sourceDisjointFromDevelopment": true
+  },
+  "cases": [
+    {
+      "caseId": "python-control-flow-workshop:cs/conditionals:key-term-0",
+      "domain": "computer-science",
+      "order": [
+        "matched-control",
+        "teacher"
+      ],
+      "inputSha256": "cba91557c89aa15c655274e699cdd35bcb1e97f15d5cc81aa23c9ee159a26293",
+      "referenceCorrectionCommitment": "3c232d90b72866c05650167009a381a6740a89a0aaf245beb314d77d48a4fbf1"
+    },
+    {
+      "caseId": "python-control-flow-workshop:cs/expressions-and-types:key-term-1",
+      "domain": "computer-science",
+      "order": [
+        "teacher",
+        "matched-control"
+      ],
+      "inputSha256": "836c2b6d534283d4c280ba0b3fcc9b2fa3299ecee3a4e6f438ccd8c52e3229cd",
+      "referenceCorrectionCommitment": "5865e11ede4a73d373cbd2e7892f3fcb98b0a9fb2c30e449cd617e50a6ba0121"
+    },
+    {
+      "caseId": "python-control-flow-workshop:cs/variables:key-term-1",
+      "domain": "computer-science",
+      "order": [
+        "matched-control",
+        "teacher"
+      ],
+      "inputSha256": "4004bb81b08c0d474edd185614724bebf8b206ed35f90d7b2ae9f9091f614750",
+      "referenceCorrectionCommitment": "29688d37cad55caef9d61e9e20c6fbc057aa9f582fa0f2f9d768e538d755af68"
+    },
+    {
+      "caseId": "python-control-flow-workshop:cs/expressions-and-types:key-term-0",
+      "domain": "computer-science",
+      "order": [
+        "teacher",
+        "matched-control"
+      ],
+      "inputSha256": "a3cade610c5c81524bde35d67e5baa05e8c710979f8e0454974baf75f0026930",
+      "referenceCorrectionCommitment": "650c3e24f9935de8f127bc0ae67c99001da27b3ac7a085d6a0691f9b010a5b87"
+    },
+    {
+      "caseId": "tectonics-seismology-field-lab:geo/plate-tectonics:key-term-0",
+      "domain": "geology",
+      "order": [
+        "matched-control",
+        "teacher"
+      ],
+      "inputSha256": "97cba5ca2330672bba526fe7d1eec525b0601c2664b8a1d9f6abc6021e6c5827",
+      "referenceCorrectionCommitment": "3af4aa2183fcef707f1f78fe7b4368fb40166ec98fdbd0a52dc9694a34e4f672"
+    },
+    {
+      "caseId": "earth-materials-history-lab:geo/geologic-time:key-term-0",
+      "domain": "geology",
+      "order": [
+        "teacher",
+        "matched-control"
+      ],
+      "inputSha256": "2640b258bd23ea9187c02671826f6207c14037732ba9adf7a07e82ed8f3824a1",
+      "referenceCorrectionCommitment": "de84bd732f9a7f7cd52f6643b9ba33a9a19e4ef587206a69370d68b4c500810c"
+    },
+    {
+      "caseId": "earth-materials-history-lab:geo/rock-cycle:key-term-0",
+      "domain": "geology",
+      "order": [
+        "matched-control",
+        "teacher"
+      ],
+      "inputSha256": "7e05a609d7fcc0655350f6c28b08ad23f6176b4cae426cc42664cc1d1fd1bbf1",
+      "referenceCorrectionCommitment": "1bee004e0176138fb16f182257210ce2f5507acdba4d4dcbe084b982b7a28d40"
+    },
+    {
+      "caseId": "tectonics-seismology-field-lab:geo/plate-tectonics:key-term-1",
+      "domain": "geology",
+      "order": [
+        "teacher",
+        "matched-control"
+      ],
+      "inputSha256": "f59c00b9cc0c487ea9d13ecfea904b843bdcdd7e63d1fac0e9395a3332a87272",
+      "referenceCorrectionCommitment": "b0a849ba19fcc6c4439a1edc0a9efcb52d739eb13fd60eb8e11f9e5d25bd8ff1"
+    },
+    {
+      "caseId": "tonal-analysis-integration-studio:music/scales-and-key-signatures:key-term-1",
+      "domain": "music-theory",
+      "order": [
+        "matched-control",
+        "teacher"
+      ],
+      "inputSha256": "d031f6a97a86c0c9d2100511c0690912eaaf8b4c55a562e1cc9d35fd54e85707",
+      "referenceCorrectionCommitment": "43c4890b97d889309ee2de09881d9ab5d2717164cdbe36aa78d2203bbc133a60"
+    },
+    {
+      "caseId": "tonal-analysis-integration-studio:music/staff-clefs-pitch-notation:key-term-1",
+      "domain": "music-theory",
+      "order": [
+        "teacher",
+        "matched-control"
+      ],
+      "inputSha256": "796652c905263be6c0f10c0c5013c27dbd2b9061c6becad73d7d6cf9104d742d",
+      "referenceCorrectionCommitment": "29658af074dc2fee1bd31a8f2dc2a056b319761ae44503709bb74d932b788ca0"
+    },
+    {
+      "caseId": "tonal-analysis-integration-studio:music/musical-form:key-term-0",
+      "domain": "music-theory",
+      "order": [
+        "matched-control",
+        "teacher"
+      ],
+      "inputSha256": "107cc98d1740c82e70ea52dc96a4a9ce6ed2eea1604e824ce0e38ec4b320d347",
+      "referenceCorrectionCommitment": "426fb8dcad0ce946add479126909620fc84128be9dcb15f5d8036ed5ea742f82"
+    },
+    {
+      "caseId": "tonal-analysis-integration-studio:music/staff-clefs-pitch-notation:key-term-0",
+      "domain": "music-theory",
+      "order": [
+        "teacher",
+        "matched-control"
+      ],
+      "inputSha256": "9374da8ecbee933e4993e9fbf6afb5f72827af6a393aee1e0564e223ea9c03d1",
+      "referenceCorrectionCommitment": "7a7718904618648bc773148ac42216b0bb878d8ee2025019fcb5fd0127def7a9"
+    }
+  ],
+  "thresholds": {
+    "maximumAttemptsPerArm": 3,
+    "maximumTeacherPairedLosses": 0,
+    "minimumSafeRetentionAdmissionRate": 75,
+    "requiredIndependentFactualReviews": 2
+  },
+  "claimBoundary": "Membership, arm order, inputs, hidden reference corrections, and thresholds were frozen before either matched arm ran. The holdout is project/source-disjoint from the twelve development defects but covers three domains only.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "36b6e39fcaeff04629e88c22a89006e99af4f0a298c2f9d875c9176f5323d092"
+  }
+}

@@ -298,6 +298,9 @@ export async function buildScionAdapterCorpusReadinessSnapshot({ generatedAt, pr
       sourceBoundPrompt: false,
       requireSourceBoundModelJudge: false,
       legacyTrainingContract: true,
+      // Reproduce the release's original v1.0.2 ruler without reopening that
+      // semantic margin in current corpus or browser admission.
+      legacyCorrectionRepeatMargin: true,
     });
     const replayPath =
       release === SCION_ADAPTER_CORPUS_READINESS_RELEASE

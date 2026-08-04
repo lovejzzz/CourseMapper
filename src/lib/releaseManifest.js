@@ -3,6 +3,21 @@ import { CURRENT_RELEASE } from './currentRelease.js';
 
 export { CURRENT_RELEASE };
 
+const V01712_RELEASE = {
+  version: '0.17.12',
+  date: 'August 3, 2026',
+  title: 'Learner-Ready Course Work',
+  highlights: [
+    'Assignment genre is inferred from each lesson’s actual work before broad course defaults, so an automated-testing lesson becomes a code lab and an explicit policy-memo capstone becomes a policy brief.',
+    'Code-lab briefs now require executable source or a notebook, a clean-start command, initially failing and then passing test evidence, a normal case, a boundary or error case, and a short debugging record.',
+    'Policy-memo briefs now require a public problem, affected population, decision maker, at least two feasible options, stakeholder and equity effects, tradeoffs, a recommendation, implementation ownership, risk, and monitoring.',
+    'Every assignment and rubric exports its retained evidence packet and strong/partial anchor contrast, while page grouping keeps anchor samples and milestone checklists attached to their labels.',
+    'Confidence-interval language is repaired at the content boundary, including abbreviated CL forms, so learner materials describe repeated-procedure coverage without assigning probability to a fixed parameter.',
+    'PowerPoint pitfall headings use renderer-safe sizing, wide course maps retain readable print scale with repeated identity columns, and bundled automated-testing assets execute as a real three-test starter suite.',
+    'A fresh production generation of Applied Civic Data Analysis earns 91/100 deterministic learner evidence and 99/A conformance with zero P0, P1, or P2 findings; independent replay, executable starter tests, and rendered Office inspection remain engineering evidence, not instructor approval or classroom validation.',
+  ],
+};
+
 const V01704_RELEASE = {
   version: '0.17.04',
   date: 'July 31, 2026',
@@ -1328,33 +1343,52 @@ export const CURRENT_RELEASE_CHANGELOG = {
   highlights: CURRENT_RELEASE.highlights,
   sections: [
     {
-      label: 'Teach Scion to preserve and revise',
+      label: 'Make learning admission earned',
       icon: 'CHECK',
       color: 'emerald',
       items: [
-        'A course-neutral claim portfolio retains source identity, exact claim text, locator, and support state.',
-        'The scheduler preserves admitted evidence, focuses on unresolved lessons, and accepts only strict ledger improvements.',
-        'Integrative work can reuse already admitted evidence without losing provenance or inventing a new source relationship.',
+        'Same-model repairs remain diagnostic and cannot authorize browser flywheel rows.',
+        'Bounded student questions reveal only the failed dimension and authorized evidence.',
+        'Strict selection keeps a passing control, accepts a teacher rescue, and quarantines uncertainty.',
       ],
     },
     {
-      label: 'Make rendered evidence earn the score',
+      label: 'Bind independent review to evidence',
       icon: 'AI',
       color: 'blue',
       items: [
-        'The final ZIP extracts visible text from Office artifacts and binds supported claims to the retrieved source bytes.',
-        'Grounding points require exact exported-artifact support across lessons; internal pipeline wiring earns nothing by itself.',
-        'Assessment points require aligned objectives, tasks, student evidence, and rubric criteria with a reason-bearing receipt.',
+        'Every seed carries a bounded captured source excerpt plus exact project, prompt, source, and input hashes.',
+        'Sealed Roundtable verdict blocks are signed by a bridge key frozen before review.',
+        'Receipt fields are derived from the signed body, and reviewer, message, raw-review, and source reuse fail closed.',
       ],
     },
     {
-      label: 'Keep the checkpoint honest',
+      label: 'Keep the quality claim honest',
       icon: 'PROOF',
       color: 'violet',
       items: [
-        'The local candidate reaches 95/100 with zero encoded findings under the newly frozen V51 implementation receipt.',
-        'The score is automated package evidence, not factual certification, instructor approval, accessibility certification, or a classroom outcome.',
-        'Gemma weights are unchanged; exact-commit Roundtable review and a fresh deployed ZIP remain release gates.',
+        'The six-seed pilot tests the gate across three domains without running or scoring Scion.',
+        'The invalid first holdout remains negative evidence instead of being repaired into a win.',
+        'The full holdout stays blocked; no learned weights, factual certification, instructor approval, or classroom result is claimed.',
+      ],
+    },
+  ],
+};
+
+const V01712_RELEASE_CHANGELOG = {
+  version: V01712_RELEASE.version,
+  date: V01712_RELEASE.date,
+  title: V01712_RELEASE.title,
+  highlights: V01712_RELEASE.highlights,
+  sections: [
+    {
+      label: 'Make assignments match the learning',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'Lesson-local capability signals own assignment genre before broad course defaults.',
+        'Code labs and policy memos carry their authentic evidence obligations into exports.',
+        'The fresh package checkpoint remains engineering evidence rather than classroom validation.',
       ],
     },
   ],
@@ -2250,6 +2284,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V01712_RELEASE_CHANGELOG,
   V01704_RELEASE_CHANGELOG,
   V01703_RELEASE_CHANGELOG,
   V01702_RELEASE_CHANGELOG,

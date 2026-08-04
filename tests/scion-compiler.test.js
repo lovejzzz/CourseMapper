@@ -1122,7 +1122,7 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     ]);
     expect(blindSchemas[0].properties.answers.items).toBe(false);
     const event = events.find((entry) => entry.pass === 'mcVerify' && entry.action === 'regenerated');
-    expect(event).toMatchObject({ trainingEligible: true });
+    expect(event).toMatchObject({ trainingEligible: false });
     expect(event.preferenceEvidence).toMatchObject({ verified: true, chosenAnswers: [1, 1] });
   });
 
@@ -1533,7 +1533,7 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     expect(result.events.some((event) => event.trainingEligible)).toBe(false);
   });
 
-  it('D3: repairs admission failures before projection can silently drop quiz seats', async () => {
+  it('D3: repairs admission failures without treating same-model agreement as training proof', async () => {
     const brokenItem = (suffix) => ({
       q: `Which method organizes interview response ${suffix}?`,
       op: ['Thematic coding', 'Thematic coding', 'Random sampling', 'A/B testing'],
@@ -1586,8 +1586,72 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     expect(patched.mc.every((item) => new Set(item.op).size === 4)).toBe(true);
     const repairs = result.events.filter((event) => event.pass === 'admissionGate' && event.action === 'regenerated');
     expect(repairs).toHaveLength(4);
-    expect(repairs.every((event) => event.trainingEligible && event.preferenceEvidence?.verified)).toBe(true);
-    expect(repairs[0].preferenceEvidence.rejectedIssues).toContain('duplicate-options');
+    expect(repairs.every((event) => event.trainingEligible === false)).toBe(true);
+    expect(repairs.every((event) => event.preferenceEvidence == null)).toBe(true);
+    expect(repairs[0].verification).toMatchObject({
+      kind: 'same-model-key-agreement',
+      verified: false,
+      rejectedIssues: expect.arrayContaining(['duplicate-options']),
+    });
+  });
+
+  it('D3: distinguishes an exhausted admission budget from malformed model output', async () => {
+    const calls = [];
+    const lesson = {
+      lessonId: 'lesson-1',
+      mc: [
+        {
+          q: 'Which method organizes recurring interview evidence?',
+          op: ['Thematic coding', 'Thematic coding', 'Random sampling', 'A/B testing'],
+          ai: 0,
+          ex: 'Thematic coding organizes recurring ideas in interview transcripts.',
+        },
+      ],
+      scenario: {
+        su: 'A researcher observes recurring navigation confusion across three participant interviews and must decide how to organize the evidence.',
+        ma: 'Three interview transcripts, timestamped observations, and a coding worksheet',
+      },
+    };
+    const result = await applyScionKernelPasses(JSON.stringify({ lessons: [lesson] }), {
+      promptLessons: [{ lessonId: 'lesson-1', title: 'Interview coding', topics: 'interview thematic coding' }],
+      verifyDraftMcWithSameModel: false,
+      maxCallsPerLesson: 2,
+      generateJson: async ({ schemaProfile, user }) => {
+        calls.push(schemaProfile.name);
+        if (schemaProfile.name === 'mc_admission_batch') {
+          return JSON.stringify({
+            repairs: [
+              {
+                index: 0,
+                q: 'A researcher observes navigation confusion in three interview transcripts. Which method best organizes this evidence?',
+                op: ['Thematic coding', 'Random sampling', 'A/B testing', 'Linear regression'],
+                ai: 0,
+                ex: 'Thematic coding organizes recurring transcript evidence, while random sampling changes recruitment instead of analyzing these records.',
+              },
+            ],
+          });
+        }
+        if (schemaProfile.name === 'blind_solve') {
+          return JSON.stringify({ answers: JSON.parse(user).map(() => 0) });
+        }
+        return JSON.stringify({});
+      },
+    });
+
+    expect(calls).toEqual(['mc_admission_batch', 'blind_solve']);
+    expect(result.events).toContainEqual({
+      pass: 'admissionGate',
+      lessonId: 'lesson-1',
+      action: 'bounded',
+      reason: 'call-budget-exhausted',
+      terminalReason: 'call-budget-exhausted',
+      trainingEligible: false,
+    });
+    expect(
+      result.events.some(
+        (event) => event.pass === 'admissionGate' && event.reason === 'generation-or-parse',
+      ),
+    ).toBe(false);
   });
 
   it('D3: protects admitted siblings when the browser model cannot independently verify itself', async () => {
@@ -1986,7 +2050,7 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     expect(patched.mc[1].ex).toBe(lesson.mc[1].ex);
     const repairs = result.events.filter((event) => event.pass === 'appliedDepth');
     expect(repairs).toHaveLength(2);
-    expect(repairs.every((event) => event.trainingEligible && event.preferenceEvidence?.verified)).toBe(true);
+    expect(repairs.every((event) => event.trainingEligible === false && event.preferenceEvidence?.verified)).toBe(true);
     expect(repairs[0].preferenceEvidence).toMatchObject({
       kind: 'applied-depth-and-key-repair',
       chosenAnswers: [0, 0],

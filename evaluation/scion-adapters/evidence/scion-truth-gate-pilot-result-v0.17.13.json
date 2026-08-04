@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-truth-gate-assessment-v1",
+  "mode": "pilot",
+  "assessedAt": "2026-08-04T20:00:00.000Z",
+  "status": "blocked-truth-gate",
+  "gateEligible": false,
+  "holdoutPreregistrationEligible": false,
+  "productionEligible": false,
+  "trainingEligible": false,
+  "requirements": {
+    "requiredDomains": [
+      "computer-science",
+      "geology",
+      "music-theory"
+    ],
+    "requiredCasesPerDomain": 2,
+    "minimumIndependentReceipts": 2,
+    "requireUnanimousPositiveVerdicts": true,
+    "requirePeerAndOutcomeBlindness": true,
+    "requireBridgeSignedReviewAuthority": true,
+    "requirePreregisteredBridgePublicKeyFingerprint": true,
+    "requireDistinctSignedMessagesAndRawEvidence": true,
+    "requireBoundedSourceEvidenceCapture": true,
+    "requireProjectPromptExactAndSemanticSourceDisjointness": true
+  },
+  "availableByDomain": {
+    "computer-science": 0,
+    "geology": 0,
+    "music-theory": 0
+  },
+  "deficits": {
+    "computer-science": 2,
+    "geology": 2,
+    "music-theory": 2
+  },
+  "seedAssessments": [
+    {
+      "caseIdSha256": "087a35d02a07dd21a4d5a672fce61b98c674e19a205de47c793311dc31e2d883",
+      "seedSha256": "dd343ae9bf0cd8eca201dea615ccd2643fd07fc6cd8bb29fb1af9952ea25f262",
+      "domain": "computer-science",
+      "status": "quarantined",
+      "issues": [
+        "insufficient-review-receipts"
+      ],
+      "validReceiptCount": 0,
+      "distinctReviewerCount": 0,
+      "reviewerSetSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "caseIdSha256": "3b4bcfa0d66d33e0bdd98dc1f5468ad1516fdb0c4242bb7907086d398a2c9b75",
+      "seedSha256": "d465b2ae8fefc75975f5efcfcbd7f3bf5aedeeb50f00ad19e84a1d7bd297c9a8",
+      "domain": "computer-science",
+      "status": "quarantined",
+      "issues": [
+        "insufficient-review-receipts"
+      ],
+      "validReceiptCount": 0,
+      "distinctReviewerCount": 0,
+      "reviewerSetSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "caseIdSha256": "0ccc79c9327e2eaba456443868a21aa5751a0ff84af20ec20b4d907d84cfd242",
+      "seedSha256": "fd841bc7d39c9b8d89c66c967b2d0a2e4cdcf6a33524a815b32e61498e601117",
+      "domain": "geology",
+      "status": "quarantined",
+      "issues": [
+        "insufficient-review-receipts"
+      ],
+      "validReceiptCount": 0,
+      "distinctReviewerCount": 0,
+      "reviewerSetSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "caseIdSha256": "63770da3221e3550c5562aa1b9aeea15b935686b78b8021190fadc59250485bd",
+      "seedSha256": "547fd878781e80a5444421f37eaf3ab45c43a3d8ce43a83ad261a3ab7451f76e",
+      "domain": "geology",
+      "status": "quarantined",
+      "issues": [
+        "insufficient-review-receipts"
+      ],
+      "validReceiptCount": 0,
+      "distinctReviewerCount": 0,
+      "reviewerSetSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "caseIdSha256": "b989df8b29d032bd870ee8cd3acccd89602aa10915c7d46e5e39f6084062058a",
+      "seedSha256": "26482abf6d800a2c6abeb36703b315ce9222e2403eaa278ee791a8cbf14f0363",
+      "domain": "music-theory",
+      "status": "quarantined",
+      "issues": [
+        "insufficient-review-receipts"
+      ],
+      "validReceiptCount": 0,
+      "distinctReviewerCount": 0,
+      "reviewerSetSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "caseIdSha256": "d8a0a9bf9b6cefd7560a33c150f1a4fd2a76c14c7fd5a6289236cb8a8aa9c405",
+      "seedSha256": "ed2d56272de384f8b5ec3f5852ad0d6a1c1f5097eedefd9e88cfa780edb77a86",
+      "domain": "music-theory",
+      "status": "quarantined",
+      "issues": [
+        "insufficient-review-receipts"
+      ],
+      "validReceiptCount": 0,
+      "distinctReviewerCount": 0,
+      "reviewerSetSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  ],
+  "issues": [
+    "truth-gate-pilot/python-short-circuit-and:key-term-0:insufficient-review-receipts",
+    "truth-gate-pilot/python-hashable-dictionary-keys:key-term-0:insufficient-review-receipts",
+    "truth-gate-pilot/earthquake-p-s-arrival-gap:key-term-0:insufficient-review-receipts",
+    "truth-gate-pilot/igneous-cooling-crystal-texture:key-term-0:insufficient-review-receipts",
+    "truth-gate-pilot/major-scale-step-pattern:key-term-0:insufficient-review-receipts",
+    "truth-gate-pilot/deceptive-dominant-motion:key-term-0:insufficient-review-receipts",
+    "domain-quota-not-met"
+  ],
+  "claimBoundary": "Passing proves only that the review gate behaved correctly for this frozen corpus. It is not Scion learning, model-quality, production, or training evidence.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "58e87b084a0dd6b8e4bc6b4dfddb50226f427449ee6ddd1326b98e24520270d1"
+  },
+  "reviewBundle": {
+    "present": false,
+    "receiptCount": 0,
+    "authorityCount": 0,
+    "packetBindingValid": true,
+    "issues": []
+  }
+}
