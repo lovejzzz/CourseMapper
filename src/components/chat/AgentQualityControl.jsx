@@ -41,14 +41,14 @@ export default function AgentQualityControl({ quality, trustStatus, onOpen }) {
   return (
     <div
       data-testid="agent-quality-control"
-      className="mb-2 flex min-h-10 items-center justify-between gap-3 rounded-xl border border-slate-200/70 bg-white/86 px-3 shadow-sm"
+      className="mb-2 flex min-h-11 items-center justify-between gap-3 rounded-xl border border-slate-200/70 bg-white/86 px-3 shadow-sm sm:min-h-10"
     >
       <span className="text-[11px] font-semibold text-slate-500">Agent quality report</span>
       <button
         type="button"
         data-testid="agent-quality-score"
         onClick={() => onOpen?.(true)}
-        className={`inline-flex min-h-8 items-center rounded-full border px-2.5 text-[10px] font-bold transition-colors hover:brightness-95 ${tone}`}
+        className={`inline-flex min-h-11 items-center rounded-full border px-2.5 text-[10px] font-bold transition-colors hover:brightness-95 sm:min-h-8 ${tone}`}
         aria-label="Open the honest package quality score, reasons, and improvement actions"
       >
         {scoreLabel}

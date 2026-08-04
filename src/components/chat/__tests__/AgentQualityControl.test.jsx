@@ -45,6 +45,8 @@ describe('AgentQualityControl', () => {
     expect(container.textContent).toContain('Agent quality report');
     expect(button?.textContent).toContain('Evidence 34/100');
     expect(button?.getAttribute('aria-label')).toContain('reasons, and improvement actions');
+    expect(button?.className).toContain('min-h-11');
+    expect(button?.className).toContain('sm:min-h-8');
 
     act(() => button.dispatchEvent(new MouseEvent('click', { bubbles: true })));
     expect(onOpen).toHaveBeenCalledWith(true);
