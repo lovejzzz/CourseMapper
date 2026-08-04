@@ -75,8 +75,8 @@
     },
     {
       "path": "src/lib/scionPreferenceGate.js",
-      "bytes": 24360,
-      "sha256": "e60b8f420ed72e8a12d523c36d069e70b0e0e2d12b29b27155ea23d25db3c331"
+      "bytes": 26085,
+      "sha256": "58aca88df60024edfb774b7f00bd3ca1f5e589b73a1c037631d79ca7518590bf"
     },
     {
       "path": "scripts/lib/scionSourceCapture.mjs",
@@ -96,8 +96,8 @@
       "sourceProjectPath": "evaluation/scion-source-capture-evidence/python-control-flow-workshop-local.json",
       "path": "evaluation/scion-source-compiler-replay-v0.16.47/python-control-flow-workshop-local.json",
       "bytes": 76765,
-      "sha256": "7f1d0f0ece773ccb3bb297eac0fa239b8c632b85baf8f91cc0e4acf0a273cd91",
-      "replayIdentitySha256": "dda5d815fea5820a641882040d454f6b87cdcd2d3dfb8800f03c885a68ae464b",
+      "sha256": "247d6350fb1390d1279f40cab74f364eb4a49974e0063dbcc8bcf7b8ab28683d",
+      "replayIdentitySha256": "020210a83b3b72b25c78f7d7e459ccc2133928213b1ef8a6d23c850077d9b69a",
       "repairCounts": {
         "total": 4,
         "incompleteExplanationTail": 2,
@@ -111,8 +111,8 @@
       "sourceProjectPath": "evaluation/scion-source-capture-evidence/python-data-structures-lab-local.json",
       "path": "evaluation/scion-source-compiler-replay-v0.16.47/python-data-structures-lab-local.json",
       "bytes": 73594,
-      "sha256": "de744068e5c04edb12e81aee0198743661c0ec30ca1cd14b77f9a3681d2f2a54",
-      "replayIdentitySha256": "eaf103785c010293af8245d569e298f6c72e488fe2207d6400448532b0799cc3",
+      "sha256": "c15c04a3db35a6d38f26604e74f1cc779e4a3200a939f126c876e3cd83e38e8a",
+      "replayIdentitySha256": "c93f7281408a21cea7a87c01ebb9d187c41a6acdb202fea0e274b872e481c62b",
       "repairCounts": {
         "total": 4,
         "incompleteExplanationTail": 0,
@@ -126,8 +126,8 @@
       "sourceProjectPath": "evaluation/scion-source-capture-expansion-evidence/python-program-architecture-studio-local.json",
       "path": "evaluation/scion-source-compiler-replay-v0.16.47/python-program-architecture-studio-local.json",
       "bytes": 136462,
-      "sha256": "773645a4c9ca156a628a31059ecee1e0107a96073fbe0d66e7ddb8bc75f3a245",
-      "replayIdentitySha256": "9629bcaf2a943561cc92755a9d808aa5049d566d7f6f090cf6acaa5809a6c719",
+      "sha256": "247dab242dba75ca6e76ca5a65aec5ebef897d7b9c92ad403bff9357df145a1f",
+      "replayIdentitySha256": "ec0eafa062916760bdbdba6131effe035bf3c22d1f225ae2a85f26d30287e216",
       "repairCounts": {
         "total": 7,
         "incompleteExplanationTail": 2,
@@ -141,8 +141,8 @@
       "sourceProjectPath": "evaluation/scion-source-capture-expansion-evidence/earth-materials-history-lab-local.json",
       "path": "evaluation/scion-source-compiler-replay-v0.16.47/earth-materials-history-lab-local.json",
       "bytes": 138406,
-      "sha256": "55c4219ad98afacfe64a41e4d1bbe38491062735ce53b1b2dccceeffc3e94753",
-      "replayIdentitySha256": "7403a40c08150e1afc47cbf7c41a2c4b07c854ab026a4c5a798d21a7efdc8b9b",
+      "sha256": "90f21f5dc17846ac9fc0f428d26898407c3a89a7967869298be03a4a0d06897b",
+      "replayIdentitySha256": "0692eacb6aa76018aa5aae661ad4852d5ebbc13f4723b313548b203b9197f461",
       "repairCounts": {
         "total": 7,
         "incompleteExplanationTail": 0,
@@ -156,8 +156,8 @@
       "sourceProjectPath": "evaluation/scion-source-capture-evidence/igneous-volcanic-processes-local.json",
       "path": "evaluation/scion-source-compiler-replay-v0.16.47/igneous-volcanic-processes-local.json",
       "bytes": 46619,
-      "sha256": "2a411cf4ee8bd3d4283c03003ade046b0acb036be8c5f52e22c45c2999f6c4be",
-      "replayIdentitySha256": "46e2aa50a488caa018ddcd64de354886c74e34a62afac617eba9c640d93a72c5",
+      "sha256": "6603d35300791ea5ed0f5b4e014c87edbba305a64deda2427fd789ee9b8de7f3",
+      "replayIdentitySha256": "3b6aea70a74bb8b16634c1a7395ed065308a8923202c025a12de4d8acb1bf1d2",
       "repairCounts": {
         "total": 1,
         "incompleteExplanationTail": 0,
@@ -171,8 +171,8 @@
       "sourceProjectPath": "evaluation/scion-source-capture-evidence/tectonics-seismology-field-lab-local.json",
       "path": "evaluation/scion-source-compiler-replay-v0.16.47/tectonics-seismology-field-lab-local.json",
       "bytes": 85118,
-      "sha256": "37874babe86ec9814ff28f0612599285e951f8e1072e9e15001b26da67a65162",
-      "replayIdentitySha256": "e11b901532121978fa3be978b2381eace0e77d438a4a14bc76b947014533585e",
+      "sha256": "df774324311f08b75753abaf8e0d7cf9270dbeb3b226f5af19dae90f13d44005",
+      "replayIdentitySha256": "8652d39e009eaa41d50d86e28aef04c98f891e67e1cc57384794985a50de6291",
       "repairCounts": {
         "total": 7,
         "incompleteExplanationTail": 2,
@@ -186,8 +186,8 @@
       "sourceProjectPath": "evaluation/scion-source-capture-evidence/harmony-form-analysis-local.json",
       "path": "evaluation/scion-source-compiler-replay-v0.16.47/harmony-form-analysis-local.json",
       "bytes": 82397,
-      "sha256": "6fea675ac1af706ae3bbab33c096192f5520edf13337195c5a24a7b9dacf000e",
-      "replayIdentitySha256": "8293aaf7f0d64660a901ea5d5ac84bd980cdddc47423a62e0ddca5845c0e56e7",
+      "sha256": "33bd43c17b266c7680f4086db6a53f01bb03664bcc71844395f53b67c02ad438",
+      "replayIdentitySha256": "459a64e52556b758a9cc202d257eb1aba6e94d2d88c139dd68930cb78e30b29d",
       "repairCounts": {
         "total": 6,
         "incompleteExplanationTail": 2,
@@ -201,8 +201,8 @@
       "sourceProjectPath": "evaluation/scion-source-capture-evidence/music-notation-ear-training-local.json",
       "path": "evaluation/scion-source-compiler-replay-v0.16.47/music-notation-ear-training-local.json",
       "bytes": 53563,
-      "sha256": "4f6e4b29303d7eee37c1d4bab2fd658ca0d2987018dcb9e2121b9b50a7f7aae4",
-      "replayIdentitySha256": "15fb90ca15d612a707dd55a53d28cde41139d673a1a8afeb5a8d8622ed287298",
+      "sha256": "5fcc704f5f9f4646854b38bb3279442834f21292d9ec33833d134f567210c5f0",
+      "replayIdentitySha256": "5f8daf4d80c87f0cca78a3916c851f10525c64791924209e5f9b1bab468f34e3",
       "repairCounts": {
         "total": 2,
         "incompleteExplanationTail": 0,
@@ -216,8 +216,8 @@
       "sourceProjectPath": "evaluation/scion-source-capture-expansion-evidence/tonal-analysis-integration-studio-local.json",
       "path": "evaluation/scion-source-compiler-replay-v0.16.47/tonal-analysis-integration-studio-local.json",
       "bytes": 139227,
-      "sha256": "9a1f8a3cfb31d6753a2a9686b978f737c09703d1c491fd9b99b04a94c478a07b",
-      "replayIdentitySha256": "ffb8ca69d677cbcc263796ed698043cbd5ee0902cb087d07132c568b4c1c5167",
+      "sha256": "391f75dc18794019414f6fea0863bdd1fe7305d62a8532a9239f027e0e11da95",
+      "replayIdentitySha256": "604022d5494ed784bdbed000bac08d6fe78d1cf276330391e28e705338d6ac8c",
       "repairCounts": {
         "total": 9,
         "incompleteExplanationTail": 4,
@@ -231,8 +231,8 @@
       "sourceProjectPath": "evaluation/scion-source-capture-expansion-evidence/ux-evidence-to-prototype-capstone-local.json",
       "path": "evaluation/scion-source-compiler-replay-v0.16.47/ux-evidence-to-prototype-capstone-local.json",
       "bytes": 164395,
-      "sha256": "efeffd73f64a924720e57ef5baa2bd01267ca0db4230a27b3780ac3e32ff3c46",
-      "replayIdentitySha256": "a3fb10264be394773fe1d458048cbd29d45d5a05b69f28494e5b61d3aa4d4b6e",
+      "sha256": "2fd5f02befbc0acb2f41bc34b8ee4c76b18aad47e214bddc45c598af94e1980c",
+      "replayIdentitySha256": "8aeafda085b8ee4a23078189ac3347d6fcffbe62d3349e9382643c50dc00cf30",
       "repairCounts": {
         "total": 13,
         "incompleteExplanationTail": 8,
@@ -246,8 +246,8 @@
       "sourceProjectPath": "evaluation/scion-source-capture-evidence/ux-prototyping-accessibility-lab-local.json",
       "path": "evaluation/scion-source-compiler-replay-v0.16.47/ux-prototyping-accessibility-lab-local.json",
       "bytes": 62400,
-      "sha256": "f64cb6c35fe25aa53c01834143845d7f711d8c5e494c90f1e75816e74ef5be2c",
-      "replayIdentitySha256": "7d66f64dc1cffc7809935510c00e7395d1087d138a880320af94c205a09df319",
+      "sha256": "0e32f4ba9ebc7a35b9c24493623b413eab09196527ba0e610fcab5d2d6b021c4",
+      "replayIdentitySha256": "7a5b4bca61a853171796276cdfa4001652d0a3bc276db4b613e32dfc5ece172c",
       "repairCounts": {
         "total": 1,
         "incompleteExplanationTail": 0,
@@ -261,8 +261,8 @@
       "sourceProjectPath": "evaluation/scion-source-capture-evidence/ux-research-synthesis-studio-local.json",
       "path": "evaluation/scion-source-compiler-replay-v0.16.47/ux-research-synthesis-studio-local.json",
       "bytes": 72425,
-      "sha256": "b42c5f7b3584ec92fc163a14918e711dfed6ce25ec5175efe73b27f9e5aeb3bf",
-      "replayIdentitySha256": "b4d6857a2b64d9973614a40203876ac8b09a4405281e458386656dbcc84e1efa",
+      "sha256": "070dab385e9583c507eeab57d4d42c2265bc3077e3ac64e3638399ed0faba88b",
+      "replayIdentitySha256": "a840c68f99c9030493c430e7243175041dc146ec6859e24ec7616f1bb64bf335",
       "repairCounts": {
         "total": 3,
         "incompleteExplanationTail": 0,
@@ -470,6 +470,6 @@
   },
   "identity": {
     "algorithm": "sha256-canonical-source-compiler-replay-receipt-v1",
-    "sha256": "ff63ce23b80c36729f54c84bc42810291898d963a808f161b425de3dad4a5e60"
+    "sha256": "105ae935657fecadd10ad696df03c3fe728c9f2eea32dba3ad7da976eb9d39bf"
   }
 }
