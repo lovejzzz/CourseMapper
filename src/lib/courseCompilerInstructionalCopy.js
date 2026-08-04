@@ -64,7 +64,7 @@ export function genreAlignedAssignmentParameters({ lesson = {}, authored = [] } 
       'Define the public problem, affected population, and decision maker or policy authority',
       'Compare at least two feasible policy options using named evidence, stakeholder and equity effects, costs or constraints, and tradeoffs',
       'Recommend one option, explain why it is preferable to the alternatives, and state the evidence limit that could change the recommendation',
-      'Include implementation steps, ownership, timing, and one material risk with a mitigation or monitoring response',
+      `For lesson ${lesson.lessonNumber || 1}, include implementation steps, ownership, timing, and one material risk with a mitigation or monitoring response`,
     ];
   }
   return authored;

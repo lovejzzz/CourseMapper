@@ -38,7 +38,7 @@ export const CURRENT_RELEASE = {
     },
     browser: {
       path: 'evaluation/release-proofs/v0.17.12-browser-preflight.json',
-      sha256: '7dc681c4aa61137ecce24ef44ebdbc15681c71b0ab260bf074671a407958af23',
+      sha256: '2b1f5848b2765b045657e788ca5d69c4204196583c6562b0d529c8aa4846887c',
       bytes: 1695,
     },
     productionCourseContract: {
@@ -48,7 +48,7 @@ export const CURRENT_RELEASE = {
     },
     productionPackageAttestation: {
       path: 'evaluation/release-proofs/v0.17.12-production-package-attestation.json',
-      sha256: '78e45fc2cb7ca5e9f392b125eb415e0ecd3e4136f5f8a2eab7668c60eeacb42c',
+      sha256: 'c33ceed3c30ba034e54132d109a68395e16cab20447d01ccfcaac66617bb1d0e',
       bytes: 578,
     },
     auditCommand: 'npm run audit:release-history',

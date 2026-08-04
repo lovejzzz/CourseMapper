@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "protocol": "coursemapper-release-evidence-attestation-v1",
   "scope": "local-preproduction-candidate",
-  "packageSha256": "10f5978584cecc7ce5e941ddda0951fde1ede1821efa4546d74841b717631461",
+  "packageSha256": "024789cdd0f3b21c5ed3bdcfc693192ae7268623ad04423567971443797833e3",
   "sourceProjectSha256": "0b3bcb3b37c66e11d91ce266eeed148435914f3f07e2826806937b663d0f69c9",
   "score": 99,
   "grade": "A",
