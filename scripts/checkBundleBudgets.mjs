@@ -105,9 +105,9 @@ const repositoryBudgets = {
   // reproduction commands. They share the same classroom, teacher, holdout,
   // and gate implementations rather than multiplying product runtime paths.
   npmScripts: 401,
-  // v0.17.12 shipped 298 tracked release-ledger files (contracts plus the
-  // directory README); v0.17.13 may add exactly one current-release contract.
-  releaseContractFiles: 298,
+  // v0.17.13 shipped 299 tracked release-ledger files (contracts plus the
+  // directory README); v0.17.14 may add exactly one current-release contract.
+  releaseContractFiles: 299,
   trackedWeightFiles: 62,
   trackedWeightBytes: 1_053_339_981,
   largeBinaryBytes: 1024 * 1024,

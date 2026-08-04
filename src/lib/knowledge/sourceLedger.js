@@ -57,6 +57,13 @@ const WORLD_LITERATURE_SOURCE_ANCHOR_RE =
 const BUSINESS_ETHICS_COURSE_RE = /\b(?:business\s+ethics|corporate\s+ethics)\b/i;
 const BUSINESS_ETHICS_SOURCE_ANCHOR_RE =
   /\b(?:business|corporat(?:e|ion)|ethic(?:al|s)?|moral(?:ity)?|utilitarian(?:ism)?|deontolog(?:y|ical)|virtue\s+ethics|stakeholders?|whistleblow(?:ing|er)|conflicts?\s+of\s+interest|employment|workplace|labor|civil\s+rights|discrimination|harassment|consumer\s+protection|consumer\s+rights|product\s+safety|dodd[–—-]frank|financial\s+reform|fiduciary|governance|compliance|sustainab(?:ility|le)|environmental\s+responsibility|marketing\s+ethics|advertising\s+ethics)\b/i;
+const FILM_COURSE_RE = /\b(?:film|cinema|cinematic|motion pictures?|screen studies|filmmaking)\b/i;
+const FILM_EDITING_TOPIC_RE =
+  /\b(?:editing|montage|cutting|continuity|match cuts?|cross[-\s]?cutting|rhythm and meter)\b/i;
+const FILM_SOURCE_ANCHOR_RE =
+  /\b(?:film|films|cinema|cinematic|motion pictures?|screen|filmmaking|director|directing|shot|shots|editing|editor|montage|mise[-\s]en[-\s]sc[eè]ne|cinematograph|camera|soundtrack)\b/i;
+const FILM_EDITING_METRE_FALSE_FRIEND_RE =
+  /\b(?:Metre \((?:music|poetry)\)|tala|taal|prosody|triple metre|additive rhythm|divisive rhythm|hypermetre|regular recurring pattern of strong and weak beats)\b/i;
 const USER_EXPERIENCE_SOURCE_ANCHOR_RE =
   /\b(?:user[-\s]+experience|ux\b|human[-\s]?centered\s+design|user[-\s]?centered\s+design|human[-\s]?computer\s+interaction|human[-\s]?ai\s+interaction|hci\b|hai\b|user\s+interfaces?|interface\s+design|usability|design\s+research|user\s+research|contextual\s+inquiry|field\s*notes?|fieldnotes?|field\s+research|personas?\b(?!\s*5)|journey\s+maps?|customer\s+journey|information\s+architecture|wirefram|prototype|prototyping|iterative\s+design|interaction\s+design|accessibility|inclusive\s+design|design\s+rationale|design\s+handoff|design\s+studio|co[-\s]?design|service\s+design|material\s+experience|design\s+patterns?|screen\s+flows?|navigation|portfolio\s+case\s+study|critique\s+session|a\/b\s+test(?:ing)?)\b/i;
 const USER_EXPERIENCE_FALSE_FRIEND_RE =
@@ -1227,6 +1234,14 @@ export function isBusinessEthicsWeakSource(source, courseGraph) {
   return !BUSINESS_ETHICS_SOURCE_ANCHOR_RE.test(sourceSearchText(source));
 }
 
+export function isFilmStudiesWeakSource(source, courseGraph) {
+  if (!FILM_COURSE_RE.test(courseText(courseGraph))) return false;
+  const conceptText = sourceConceptText(source);
+  if (!FILM_EDITING_TOPIC_RE.test(conceptText)) return false;
+  const text = sourceSearchText(source);
+  return FILM_EDITING_METRE_FALSE_FRIEND_RE.test(text) && !FILM_SOURCE_ANCHOR_RE.test(text);
+}
+
 export function isCourseAwareWeakSource(source, courseGraph) {
   return (
     hasOnlyArtifactConceptLinks(source) ||
@@ -1236,6 +1251,7 @@ export function isCourseAwareWeakSource(source, courseGraph) {
     isComputerScienceWeakSource(source, courseGraph) ||
     isWorldLiteratureWeakSource(source, courseGraph) ||
     isBusinessEthicsWeakSource(source, courseGraph) ||
+    isFilmStudiesWeakSource(source, courseGraph) ||
     isMusicTheoryIntervalWeakSource(source, courseGraph)
   );
 }

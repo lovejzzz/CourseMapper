@@ -47,7 +47,10 @@ export const SOURCE_FINDER_ORIGIN = 'source-finder';
 // static, backend-free app cannot safely ship a shared key. Crossref and the
 // existing open providers remain the zero-configuration path. Callers that
 // explicitly inject an OpenAlex provider still opt into it.
-const SOURCE_FINDER_VERSION = 'source-finder-v11';
+// v12 makes the course discipline authoritative when an overloaded lesson
+// word names a different field. A film-editing lesson about rhythm must not
+// activate the music-theory gate and admit Metre (music) or Metre (poetry).
+const SOURCE_FINDER_VERSION = 'source-finder-v12';
 const CACHE_PREFIX = 'cm-source-finder:';
 const SNIPPET_LIMIT = 320;
 const DEFAULT_MAX_TOPICS = 8;
@@ -232,6 +235,16 @@ const DISCIPLINE_ANCHOR_GATES = [
     applies: /\b(?:music theory|musical|notation|pitch|clefs?|rhythm|meter|melody|harmony|chords?|scales?)\b/i,
     source:
       /\b(?:music|musical|notation|pitch|clefs?|rhythm|meter|melody|harmony|chords?|scales?|intervals?|staff notation|sheet music)\b/i,
+    unlessTopic: /\b(?:film|cinema|cinematic|motion pictures?|screen studies|filmmaking)\b/i,
+  },
+  {
+    // Film vocabulary is highly overloaded: rhythm/meter can resolve to
+    // music or poetry, framing to construction, and montage to unrelated
+    // image collections. Require the source itself to identify a moving-image
+    // context before it can become learner-facing evidence.
+    applies: /\b(?:film|cinema|cinematic|motion pictures?|screen studies|filmmaking)\b/i,
+    source:
+      /\b(?:film|films|cinema|cinematic|motion pictures?|screen|filmmaking|director|directing|shot|shots|editing|editor|montage|mise[-\s]en[-\s]sc[eè]ne|cinematograph|camera|soundtrack)\b/i,
   },
   {
     applies:

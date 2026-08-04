@@ -410,6 +410,28 @@ export function attachGenomeResources(graph) {
         !normalizedTopic.toLowerCase().includes(cleanText(entry?.displayTitle).toLowerCase())
           ? `${normalizedTopic} — ${citation}`
           : citation;
+      const fitCandidate = {
+        title: displayTitle || cleanText(entry?.displayTitle || entry?.title || entry?.key),
+        citation: contextualCitation,
+        evidence,
+        sourceType: kind,
+        conceptLinks: [
+          ...conceptLinks,
+          ...(normalizedTopic ? [{ label: normalizedTopic }] : []),
+          { label: cleanText(session?.title).replace(/^Lesson \d+:?\s*/i, '') },
+        ].filter((link) => cleanText(typeof link === 'string' ? link : link?.label || link?.id)),
+      };
+      if (isCourseAwareWeakSource(fitCandidate, graph)) {
+        if (!Array.isArray(graph.readingListDecisions)) graph.readingListDecisions = [];
+        graph.readingListDecisions.push({
+          type: 'rejected-off-discipline-enrichment-source',
+          lesson: session.number ?? null,
+          sessionId: session.id ?? null,
+          source: fitCandidate.title || contextualCitation,
+          message: `rejected off-discipline enrichment source for L${session.number ?? '?'}`,
+        });
+        continue;
+      }
       if (seen.has(contextualCitation.toLowerCase())) continue;
       seen.add(contextualCitation.toLowerCase());
       seen.add(dedupeKey);

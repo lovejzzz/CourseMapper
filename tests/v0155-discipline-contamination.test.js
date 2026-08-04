@@ -233,6 +233,29 @@ describe('foreign-domain contamination quality gate', () => {
     expect(music.findings.some((finding) => /foreign music-theory content/i.test(finding.detail))).toBe(false);
   });
 
+  it('grades music and poetry metre sources propagated through a film-editing lesson as a P0', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'Slide Decks/Lesson 03 - Editing rhythms - Slide Decks.txt':
+          'Editing rhythms. Evidence: Metre (music). Meter may be defined as a regular recurring pattern of strong and weak beats. In Indian music, tala organizes rhythmic cycles; compare triple metre and additive rhythm before revising the cut.',
+      }),
+      course: { title: 'Film Form and Cultural Analysis', probeProfile: 'generic' },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: 'film-editing-music-metre-contamination',
+          severity: 'P0',
+          dimension: 'discipline',
+          detail: expect.stringMatching(/foreign music\/poetry metre content/i),
+        }),
+      ]),
+    );
+    expect(result.scores.discipline).toBeLessThan(100);
+    expect(result.overall.grade).not.toBe('A');
+  });
+
   it('blocks mathematical interval definitions inside an abstractly titled music package', async () => {
     const result = await grade({
       fileProvider: createMemoryFileProvider({

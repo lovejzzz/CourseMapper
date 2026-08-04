@@ -1,5 +1,27 @@
 import { findMechanicalContentWordEcho } from '../mechanicalTextSeams.js';
 
+function filmEditingMusicMetreFinding(courseTitle, file) {
+  const identity = `${file.path || ''} ${file.text || ''}`;
+  if (!/\b(?:film|cinema|cinematic|screen studies|filmmaking)\b/i.test(courseTitle)) return null;
+  if (!/\b(?:editing|montage|cutting|continuity|cross[-\s]?cutting)\b/i.test(identity)) return null;
+  const markers =
+    String(file.text || '').match(
+      /\b(?:Metre \((?:music|poetry)\)|tala|taal|regular recurring pattern of strong and weak beats|triple metre|additive rhythm|divisive rhythm|hypermetre)\b/gi,
+    ) || [];
+  if (new Set(markers.map((marker) => marker.toLowerCase())).size < 2) return false;
+  return {
+    code: 'film-editing-music-metre-contamination',
+    severity: 'P0',
+    dimension: 'discipline',
+    file: file.path,
+    detail: 'foreign music/poetry metre content appears in a film-editing lesson',
+    evidence: String(file.text || '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 200),
+  };
+}
+
 // High-signal finish checks live in this lazy leaf so adding a premium polish
 // rule never expands the grader's control-flow chunk or the initial route.
 function repeatedLongParagraphs(file, minimumCopies = 3) {
@@ -146,6 +168,14 @@ export function buildExperientialActivityFindings({ files = [], titleForFile = (
 
 export function buildAdditionalSubstanceFindings({ files = [], course = {}, quoteEvidence }) {
   const findings = [];
+  const courseTitle = String(course?.title || course?.courseName || course?.id || '');
+  for (const file of files) {
+    const finding = filmEditingMusicMetreFinding(courseTitle, file);
+    if (finding) {
+      findings.push(finding);
+      break;
+    }
+  }
   // Mechanical echoes are small on screen but expensive in perceived
   // quality: one "allusion and allusion" makes an otherwise polished package
   // feel unedited. The compiler repairs this before export; this check makes

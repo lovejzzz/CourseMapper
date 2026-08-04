@@ -1,6 +1,6 @@
 {
   "name": "course-mapper",
-  "version": "0.17.13",
+  "version": "0.17.14",
   "type": "module",
   "description": "AI-powered course syllabus to course map generator",
   "scripts": {
@@ -29,7 +29,7 @@
     "knowledge:audit": "npx vite-node scripts/knowledgeAudit.mjs",
     "audit:constitution": "node scripts/constitutionAudit.mjs",
     "audit:texture:cross-package": "node scripts/crossPackageTextureAudit.mjs",
-    "audit:texture:cross-package:untuned": "node scripts/crossPackageTextureAudit.mjs --profile untuned --receipt evaluation/cross-package-texture/untuned-v0.17.13-receipt.json",
+    "audit:texture:cross-package:untuned": "node scripts/crossPackageTextureAudit.mjs --profile untuned --receipt evaluation/cross-package-texture/untuned-v0.17.14-receipt.json",
     "audit:release-history": "node scripts/auditReleaseHistory.mjs",
     "audit:pipeline": "node scripts/hybridPipelineAudit.mjs",
     "audit:algi:hybrid": "node scripts/algiScionHybridBenchmarkAudit.mjs --strict",

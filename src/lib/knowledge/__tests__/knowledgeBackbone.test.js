@@ -315,6 +315,54 @@ describe('reading-list engine (P2)', () => {
     expect(attachGenomeResources(graph)).toBe(0);
   });
 
+  it('quarantines music-metre research before it can become a film-editing resource or compiler payload', () => {
+    const graph = createEmptyCourseGraph({ courseName: 'Film Form and Cultural Analysis' });
+    graph.sessions = [
+      {
+        id: 's1',
+        number: 1,
+        title: 'Lesson 1: Editing rhythms',
+        sections: [{ topic: '1.1: Continuity, montage, rhythm and meter' }],
+      },
+    ];
+    graph.concepts = [{ id: 'c1', term: 'Rhythm and meter' }];
+    graph.edges.teaches = [{ from: 's1', to: 'c1' }];
+    graph.enrichmentOverlay = {
+      lessonContent: {
+        'lesson-1': {
+          facts: ['Meter may be defined as a regular recurring pattern of strong and weak beats.'],
+          keyTerms: [{ term: 'Rhythm and meter', definition: 'Tala organizes meter in Indian music.' }],
+          conceptProvenance: {
+            source: 'algi-researched',
+            citations: [
+              {
+                displayTitle: 'Metre (music)',
+                sourceUrl: 'https://en.wikipedia.org/wiki/Metre_(music)',
+                license: 'CC BY-SA 4.0',
+                attribution: 'Wikipedia contributors, “Metre (music)”',
+                kind: 'open reference',
+                topic: 'Rhythm and meter',
+                evidence: 'Tala and triple metre are systems of musical meter.',
+              },
+            ],
+          },
+        },
+      },
+    };
+
+    expect(attachGenomeResources(graph)).toBe(0);
+    expect(graph.resources).toEqual([]);
+    expect(graph.sessions[0].sections[0].resourceRefs).toBeUndefined();
+    expect(graph.readingListDecisions).toEqual(
+      expect.arrayContaining([expect.objectContaining({ type: 'rejected-off-discipline-enrichment-source' })]),
+    );
+
+    const blueprint = buildBlueprintFromGraph(graph);
+    const compiled = compileBlueprintDeliverables(blueprint, ['lessonPlans', 'slideDecks']);
+    const rendered = JSON.stringify(compiled);
+    expect(rendered).not.toMatch(/Metre \(music\)|Tala|triple metre|strong and weak beats/i);
+  });
+
   it('preserves scholarly provider identity instead of flattening research into genome', () => {
     const graph = genomeLinkedGraph();
     graph.enrichmentOverlay.lessonContent = {

@@ -145,7 +145,7 @@ describe('source finder mini-shard', () => {
     });
 
     expect(first.temporary).toBe(true);
-    expect(first.id).toContain('source-finder-v11');
+    expect(first.id).toContain('source-finder-v12');
     expect(first.stats).toMatchObject({ topics: 2, topicsWithSources: 2, sources: 4, cacheHits: 0 });
     expect(second.stats.cacheHits).toBe(2);
     expect(providers.searchScholarlyReadings).toHaveBeenCalledTimes(2);
@@ -279,6 +279,45 @@ describe('source finder mini-shard', () => {
     });
 
     expect(miniShard.topics[0].sources.map((item) => item.title)).toEqual(['Staff (music)']);
+  });
+
+  it('keeps film-editing rhythm inside cinema instead of admitting music and poetry metre homonyms', async () => {
+    const graph = createEmptyCourseGraph({ courseName: 'Film Form and Cultural Analysis' });
+    graph.sessions = [
+      {
+        id: 's1',
+        number: 1,
+        title: 'Lesson 1: Editing rhythms',
+        sections: [{ topic: '1.1: rhythm and meter in film editing' }],
+      },
+    ];
+    graph.concepts = [{ id: 'c1', term: 'Editing rhythm' }];
+    graph.edges.teaches = [{ from: 's1', to: 'c1' }];
+
+    const miniShard = await findCourseSources(graph, {
+      storage: memoryStorage(),
+      maxTopics: 1,
+      limitPerTopic: 3,
+      minUsefulSources: 1,
+      providers: {
+        searchScholarlyReadings: vi.fn(async () => []),
+        searchCrossrefWorks: vi.fn(async () => []),
+        searchWikipediaPages: vi.fn(async () => [
+          source('wikipedia', 'Metre (music)', {
+            abstract: 'Music meter organizes a recurring pattern of strong and weak beats, including triple metre.',
+          }),
+          source('wikipedia', 'Metre (poetry)', {
+            abstract: 'Poetic metre organizes rhythm in verse through feet and recurring stress patterns.',
+          }),
+          source('wikipedia', 'Film editing', {
+            abstract:
+              'Film editing is the cinematic craft of selecting and combining shots. Editors shape rhythm, continuity, montage, and screen time through cuts.',
+          }),
+        ]),
+      },
+    });
+
+    expect(miniShard.topics[0].sources.map((item) => item.title)).toEqual(['Film editing']);
   });
 
   it('restores a specific literature lesson identity before retrieval and rejects the audited Focus false friends', async () => {

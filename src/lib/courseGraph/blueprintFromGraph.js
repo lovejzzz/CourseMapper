@@ -15,6 +15,7 @@
 import { buildCourseBlueprint } from '../courseBlueprintCompiler.js';
 import { detectForeignLanguageTeachingContent } from '../languageIdentityGuard.js';
 import { sanitizeGenomeEnrichmentForLesson, semanticIdentityTokens } from '../lessonSemanticRelevance.js';
+import { isCourseAwareWeakSource } from '../knowledge/sourceLedger.js';
 import { repairScionEnrichmentAnswerKeys } from '../scionAnswerKeyAlignment.js';
 import { renderCourseMapFromGraph } from './renderCourseMap.js';
 
@@ -147,6 +148,13 @@ function compilerSafeKnowledgeGraph(graph) {
       .map((resource) => resource.id)
       .filter(Boolean),
   );
+  const courseAwareWeakResourceIds = new Set(
+    (graph?.resources || [])
+      .filter((resource) => KNOWLEDGE_BACKBONE_ORIGINS.has(resource?.origin))
+      .filter((resource) => isCourseAwareWeakSource(resource, graph))
+      .map((resource) => resource.id)
+      .filter(Boolean),
+  );
   const lessonContent = graph?.enrichmentOverlay?.lessonContent || {};
   const renderedLessons = renderCourseMapFromGraph(graph)?.lessons || [];
   const resourcesById = new Map((graph?.resources || []).map((resource) => [resource.id, resource]));
@@ -155,8 +163,36 @@ function compilerSafeKnowledgeGraph(graph) {
       (session.sections || []).flatMap((section) => section.resourceRefs || []),
     ),
   );
-  let changed = foreignLanguageResourceIds.size > 0;
+  let changed = foreignLanguageResourceIds.size > 0 || courseAwareWeakResourceIds.size > 0;
   const retainedResourceIds = new Set();
+  const rejectedLessonContentKeys = new Set();
+
+  for (const [lessonKey, payload] of Object.entries(lessonContent)) {
+    const lessonNumber = Number(String(lessonKey).match(/(\d+)$/)?.[1]) || 0;
+    const session = (graph?.sessions || []).find((entry) => entry?.number === lessonNumber);
+    const conceptLinks = [
+      { label: session?.title || '' },
+      ...(session?.sections || []).map((section) => ({ label: section?.topic || '' })),
+      ...(Array.isArray(payload?.keyTerms) ? payload.keyTerms.map((term) => ({ label: term?.term || '' })) : []),
+    ].filter((link) => link.label);
+    const citations = Array.isArray(payload?.conceptProvenance?.citations) ? payload.conceptProvenance.citations : [];
+    const hasWeakCitation = citations.some((citation) =>
+      isCourseAwareWeakSource(
+        {
+          title: citation?.displayTitle || citation?.title || citation?.key,
+          citation: citation?.text || citation?.label || citation?.source,
+          evidence: citation?.evidence,
+          sourceType: citation?.kind,
+          conceptLinks: [...conceptLinks, ...(Array.isArray(citation?.conceptLinks) ? citation.conceptLinks : [])],
+        },
+        graph,
+      ),
+    );
+    if (hasWeakCitation) {
+      rejectedLessonContentKeys.add(lessonKey);
+      changed = true;
+    }
+  }
 
   const resourceMatchesRejectedGenomeContent = (resource, receipt) => {
     if (!resource || !KNOWLEDGE_BACKBONE_ORIGINS.has(resource.origin)) return false;
@@ -189,7 +225,7 @@ function compilerSafeKnowledgeGraph(graph) {
     let sessionChanged = false;
     const sections = (session.sections || []).map((section) => {
       const resourceRefs = (section.resourceRefs || []).filter((id) => {
-        if (foreignLanguageResourceIds.has(id)) {
+        if (foreignLanguageResourceIds.has(id) || courseAwareWeakResourceIds.has(id)) {
           sessionChanged = true;
           return false;
         }
@@ -208,10 +244,16 @@ function compilerSafeKnowledgeGraph(graph) {
   });
 
   if (!changed) return graph;
+  const safeLessonContent = Object.fromEntries(
+    Object.entries(lessonContent).filter(([lessonKey]) => !rejectedLessonContentKeys.has(lessonKey)),
+  );
   return {
     ...graph,
+    enrichmentOverlay: graph?.enrichmentOverlay
+      ? { ...graph.enrichmentOverlay, lessonContent: safeLessonContent }
+      : graph?.enrichmentOverlay,
     resources: (graph.resources || []).filter((resource) => {
-      if (foreignLanguageResourceIds.has(resource?.id)) return false;
+      if (foreignLanguageResourceIds.has(resource?.id) || courseAwareWeakResourceIds.has(resource?.id)) return false;
       if (!KNOWLEDGE_BACKBONE_ORIGINS.has(resource?.origin)) return true;
       return !originallyReferencedResourceIds.has(resource?.id) || retainedResourceIds.has(resource?.id);
     }),
@@ -225,7 +267,7 @@ export function buildBlueprintFromGraph(graph, options = {}) {
   // The compile render is CANONICAL (no display reference suffixes) — the
   // registry, not cell text, carries assessment identity into the compiler.
   const courseMap = renderCourseMapFromGraph(safeGraph);
-  const graphEnrichment = enrichmentFromGraph(graph);
+  const graphEnrichment = enrichmentFromGraph(safeGraph);
   const knowledgeResources = (safeGraph?.resources || []).filter((resource) =>
     KNOWLEDGE_BACKBONE_ORIGINS.has(resource?.origin),
   );

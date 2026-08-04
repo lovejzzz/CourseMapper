@@ -1,0 +1,59 @@
+{
+  "version": "0.17.14",
+  "date": "2026-08-04",
+  "construct": "production-film-grounding-and-score-honesty-audit",
+  "sourceRun": {
+    "appVersion": "0.17.13",
+    "courseTitle": "Film Form and Cultural Analysis",
+    "lessonCount": 10,
+    "zip": {
+      "sha256": "664ac7a233ff1b14b935870559f81d22b3ea556169a271c90fdb8a2b690db9c1",
+      "bytes": 1901812,
+      "entryCount": 98,
+      "contentFileCount": 83
+    },
+    "qualityReport": {
+      "sha256": "0ef5f70693a2c0d4aa6a8945434f0693b10124677bb1cd26394bba7e219eae4b",
+      "bytes": 5795,
+      "deterministicEvidenceScore": 51,
+      "conformanceScore": 89,
+      "conformanceGrade": "B"
+    },
+    "sourceReport": {
+      "sha256": "064cf593aed1d282356684baad1d0f763458cac8de5a85ae4ba20bc6e5584ebb",
+      "bytes": 3363,
+      "lessonsWithByteBoundExactClaims": 1,
+      "totalLessons": 10
+    },
+    "auditedLessonPlan": {
+      "lesson": 3,
+      "title": "Editing rhythms",
+      "sha256": "00cb03b4e7f76a6970076c0c3aa6862bf95d3ce2a3ecad921993ace430484786",
+      "bytes": 14153
+    },
+    "auditedSlideDeck": {
+      "lesson": 3,
+      "title": "Editing rhythms",
+      "sha256": "96c0ccdc961585cd1eb31a9de1a7c1dffdb144661d96601b67c0a46edbbbf61b",
+      "bytes": 64567,
+      "slides": 13
+    }
+  },
+  "confirmedDefect": {
+    "code": "film-editing-music-metre-contamination",
+    "retainedSources": ["Metre (music)", "Rhythm", "Metre (poetry)"],
+    "evidenceMarkers": ["tala", "strong and weak beats", "triple metre", "additive rhythm", "prosody"],
+    "oldDisciplineScore": 100,
+    "newDisciplineScore": 75,
+    "oldOverall": { "score": 89, "grade": "B" },
+    "newOverall": { "score": 74, "grade": "C" },
+    "newSeverity": "P0"
+  },
+  "roundtable": {
+    "sessionId": "0adbd954-73cd-40b0-9677-ebb9a6958760",
+    "completedTurns": 7,
+    "steeredWithFreshArtifactEvidence": true,
+    "participantLimit": "Claude, Antigravity, and Fable became unavailable; resilient mode completed with two independent Codex audits and one completion brief."
+  },
+  "claimBoundary": "This receipt binds one production package, its exact bytes, an encoded regression, and a deterministic regrade. It does not prove factual accuracy, teachability, accessibility, instructor approval, or classroom outcomes."
+}
