@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { preferredScrollBehavior } from '../lib/motionPreference';
 
 export default function ChatWindow({ courseMap, onRevision, isRevising }) {
   const [messages, setMessages] = useState([
@@ -12,7 +13,7 @@ export default function ChatWindow({ courseMap, onRevision, isRevising }) {
   const inputRef = useRef(null);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: preferredScrollBehavior() });
   }, [messages]);
 
   async function handleSend() {

@@ -21,7 +21,7 @@
  *      the ready card's detail line), and the chat ProgressHeader defers to
  *      the ribbon while the finish pass runs.
  */
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import React, { act } from 'react';
 import { createRoot } from 'react-dom/client';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -1452,6 +1452,36 @@ describe('B1 — BuildRibbon render', () => {
     globalThis.IS_REACT_ACT_ENVIRONMENT = previousActEnvironment;
   });
 
+  it('invokes the stop contract without leaking the browser click event', () => {
+    const onStop = vi.fn();
+    const container = document.createElement('div');
+    const root = createRoot(container);
+    const previousActEnvironment = globalThis.IS_REACT_ACT_ENVIRONMENT;
+    globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+    act(() =>
+      root.render(
+        <BuildRibbon
+          model={{
+            activeStartedAt: 0,
+            compilerArtifacts: [],
+            compilerState: 'live',
+            pipelineChips: [],
+            progressPct: 20,
+            running: true,
+            stageLabel: 'Building materials',
+            steps: [],
+          }}
+          onStop={onStop}
+        />,
+      ),
+    );
+    act(() => container.querySelector('button')?.click());
+    expect(onStop).toHaveBeenCalledTimes(1);
+    expect(onStop.mock.calls[0]).toEqual([]);
+    act(() => root.unmount());
+    globalThis.IS_REACT_ACT_ENVIRONMENT = previousActEnvironment;
+  });
+
   it('generating state: pulsing active step, aria-live sub-label, cost ticker', () => {
     const budget = applyEvents(createApiCallBudget({ startedAt: Date.now() - 5_000 }), [
       ...MAP_EVENTS,
@@ -1466,7 +1496,7 @@ describe('B1 — BuildRibbon render', () => {
       }),
     );
     expect(html).toContain('data-testid="build-ribbon"');
-    expect(html).toContain('Living Course Compiler');
+    expect(html).toContain('Build details');
     expect(html).toContain('data-testid="living-compiler-signal"');
     expect(html).toContain('data-state="live"');
     expect(html).toContain('data-testid="living-compiler-artifacts"');
@@ -1628,7 +1658,8 @@ describe('B3 — per-tab ready ticks replace the rainbow dots', () => {
   it('AppFlow tab bar: dots and the "Generating 0/9…" counter are gone, ticks and ribbon are in', () => {
     const source = readSource('src/AppFlow.jsx');
     expect(source).toContain('<TabReadyTick');
-    expect(source).toContain('<BuildRibbon model={buildRibbonModel}');
+    expect(source).toContain('<BuildRibbon');
+    expect(source).toContain('model={buildRibbonModel}');
     expect(source).toContain("buildRibbonModel?.stage === 'ready'");
     expect(source).toContain("chip?.id === 'coverage' && chip?.warn");
     expect(source).toContain('packageReady');

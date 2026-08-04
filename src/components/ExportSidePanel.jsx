@@ -27,6 +27,7 @@ import {
   packageReceiptKey,
 } from '../lib/packageTrustStatus';
 import { buildPackageFinishDomains } from '../lib/packageFinishEvidence';
+import { preferredScrollBehavior } from '../lib/motionPreference';
 
 // ── Which formats each deliverable supports ─────────────────────────────────
 // courseMap handled separately via useExport (xlsx, csv, pdf, docx, gsheets, gdocs)
@@ -1132,7 +1133,7 @@ export default function ExportSidePanel({
       setLastError('');
       return;
     }
-    readinessConfirmRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    readinessConfirmRef.current?.scrollIntoView({ block: 'nearest', behavior: preferredScrollBehavior() });
   }, [pendingReadinessExport, scope, verifiedPackageReceipt]);
 
   useEffect(() => {
@@ -1344,7 +1345,12 @@ export default function ExportSidePanel({
           exportReadiness = getReadinessSnapshot({ exportCourseMap, exportDeliverables, exportScope });
         }
       } catch (err) {
-        setLastError(err?.message || 'Could not finish the package for export.');
+        if (err?.name === 'AbortError') {
+          setLastError('');
+          setLastNotice('');
+          return;
+        }
+        setLastError(err?.message || 'Could not finish export.');
         return;
       } finally {
         setFinishPackageBusy(false);

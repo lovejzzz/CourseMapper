@@ -21,6 +21,7 @@ import {
   LessonGroupHeader,
 } from './shared/SharedComponents';
 import { groupItemsByLesson, lessonTitleForNumber, resolveLessonNumber } from './shared/lessonGrouping';
+import { preferredScrollBehavior } from '../../lib/motionPreference';
 
 // v0.14.4 (D1): the brief a rubric grades — registry rubrics are titled
 // "<brief title> Rubric"; the stripped title doubles as the focus probe.
@@ -72,7 +73,7 @@ export default function RubricsView({
   // v0.14.4 (D1): group headers register here for the jump rail.
   const groupRefs = useRef({});
   const jumpToGroup = useCallback((key) => {
-    groupRefs.current[key]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    groupRefs.current[key]?.scrollIntoView({ behavior: preferredScrollBehavior(), block: 'start' });
   }, []);
   if (!data) return isStreaming ? <StreamingBanner /> : <EmptyState />;
   if (data.deliverableDisposition?.status === 'not-applicable') {

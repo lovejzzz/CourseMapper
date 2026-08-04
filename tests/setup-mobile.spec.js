@@ -37,7 +37,10 @@ test('keeps the setup journey readable at the 320px minimum width', async ({ pag
   await page.getByRole('button', { name: 'Recommended set' }).click();
   await continuation.click();
   await expect(page.getByRole('heading', { name: 'Configure generation' })).toBeVisible();
-  await expect(page.getByText('Scion runs locally in this browser and needs no API key.')).toBeVisible();
+  const generationBoundary = page.getByTestId('scion-generation-boundary');
+  await expect(generationBoundary.getByText('Private local generation · Details')).toBeVisible();
+  await generationBoundary.locator('summary').click();
+  await expect(generationBoundary.getByText(/Scion runs locally in this browser and needs no API key/)).toBeVisible();
   await expect(page.getByRole('button', { name: 'Generate workspace' })).toBeVisible();
   await expect(page.getByText('Generation settings', { exact: true })).toBeVisible();
   await expect(page.getByText('Course Map + 5 materials selected.', { exact: true })).toBeVisible();
@@ -77,6 +80,7 @@ test('keeps the setup journey readable at the 320px minimum width', async ({ pag
 });
 
 test('keeps custom-material orientation and actions fixed while its phone form scrolls', async ({ page }) => {
+  test.setTimeout(45000);
   await page.setViewportSize({ width: 320, height: 700 });
   await page.goto('/');
   await page.evaluate(() => {
@@ -126,4 +130,80 @@ test('keeps custom-material orientation and actions fixed while its phone form s
   await expect(reopened.getByRole('textbox', { name: 'Name *' })).toHaveValue('');
   await expect(reopened.getByRole('button', { name: 'Next' })).toBeDisabled();
   await expect(reopened.getByText('Add a name to continue.')).toBeVisible();
+
+  await reopened.getByRole('textbox', { name: 'Name *' }).fill('Weekly learning journal');
+  await reopened.getByRole('button', { name: 'Next' }).click();
+  await reopened.getByRole('button', { name: 'Create Deliverable' }).click();
+  const customTitle = page.getByRole('heading', { name: 'Weekly learning journal' });
+  const edit = page.getByRole('button', { name: 'Edit Weekly learning journal' });
+  await expect(customTitle).toBeVisible();
+  await expect(edit).toBeVisible();
+  const customTitleBox = await customTitle.boundingBox();
+  const editBox = await edit.boundingBox();
+  expect(customTitleBox.y + customTitleBox.height).toBeLessThanOrEqual(editBox.y);
+});
+
+test('keeps the running build cancelable at 375px', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 760 });
+  let providerRequestStarted = false;
+  let providerRequestFailed = false;
+  let providerCallCount = 0;
+  let releaseProviderRequest;
+  const providerRequestRelease = new Promise((resolve) => {
+    releaseProviderRequest = resolve;
+  });
+  page.on('requestfailed', (request) => {
+    if (request.url() === 'https://api.openai.com/v1/chat/completions') providerRequestFailed = true;
+  });
+  await page.route('https://api.openai.com/v1/models', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ data: [{ id: 'gpt-4o-mini', created: 1 }] }),
+    }),
+  );
+  await page.route('https://api.openai.com/v1/chat/completions', async (route) => {
+    providerCallCount += 1;
+    if (providerCallCount === 1) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          choices: [{ message: { content: 'Connection ready.' }, finish_reason: 'stop' }],
+          usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 },
+        }),
+      });
+      return;
+    }
+    providerRequestStarted = true;
+    await providerRequestRelease;
+    await route.abort().catch(() => {});
+  });
+  await page.addInitScript(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+    localStorage.setItem('coursemapper-provider', 'openai');
+    localStorage.setItem('coursemapper-apikey', 'sk-proj-mobile-stop-test');
+    localStorage.setItem('coursemapper-modelid', 'gpt-4o-mini');
+    localStorage.setItem('coursemapper-modelname', 'GPT-4o mini');
+  });
+
+  await page.goto('/');
+  await expect(page.getByText('Connected').first()).toBeVisible({ timeout: 10000 });
+  await page.getByRole('textbox', { name: 'Describe your course' }).fill('Build a two-lesson design course.');
+  await page.getByRole('button', { name: 'Customize package' }).click();
+  await page.getByTestId('feature-select-continue').click();
+  await page.getByTestId('config-generate-button').click();
+
+  await expect(page.getByTestId('workspace-shell')).toBeVisible({ timeout: 10000 });
+  await expect.poll(() => providerRequestStarted).toBe(true);
+  const stop = page.getByRole('button', { name: 'Stop build' });
+  await expect(stop).toBeVisible();
+  await stop.click();
+  await expect.poll(() => providerRequestFailed, { timeout: 3000 }).toBe(true);
+  const callsAtStop = providerCallCount;
+  await page.waitForTimeout(500);
+  expect(providerCallCount).toBe(callsAtStop);
+  releaseProviderRequest();
+  await expect(stop).toBeHidden();
 });

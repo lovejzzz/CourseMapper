@@ -599,7 +599,7 @@ export default function ProgressPanel({
                 {isDelivGenerating && onStopDeliverables && (
                   <div className="mb-2">
                     <button
-                      onClick={onStopDeliverables}
+                      onClick={() => onStopDeliverables()}
                       className="tactile flex items-center gap-1.5 px-3 py-1.5 rounded-squircle-xs text-[10px] font-semibold text-red-500 bg-red-50/80 border border-red-200/40 hover:bg-red-100/80 transition-all duration-200"
                     >
                       <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">

@@ -108,7 +108,7 @@ export function TabReadyTick({ status }) {
   return null;
 }
 
-export default function BuildRibbon({ model }) {
+export default function BuildRibbon({ model, onStop = null }) {
   const activeElapsed = useActiveElapsed(model?.activeStartedAt || 0);
   const visibleProgress = useVisibleProgress(model);
   if (!model) return null;
@@ -127,163 +127,172 @@ export default function BuildRibbon({ model }) {
   return (
     <div
       data-testid="build-ribbon"
-      className="w-full overflow-hidden rounded-lg border border-slate-200/70 bg-white/80 shadow-sm dark:border-slate-700/70 dark:bg-slate-900/70"
+      className="w-full overflow-hidden rounded-lg border border-slate-200/70 bg-white/80 dark:border-slate-700/70 dark:bg-slate-900/70"
     >
-      <div className="flex min-h-10 flex-wrap items-center gap-x-3 gap-y-0.5 px-3 py-1.5 sm:flex-nowrap">
-        <div className="flex min-w-0 flex-1 items-center gap-2 sm:flex-none">
-          <span
-            data-testid="living-compiler-signal"
-            data-state={compilerState}
-            aria-hidden="true"
-            className={`h-2 w-2 rounded-full ${ribbonSignalClass(compilerState)}`}
-          />
-          <span
-            className="min-w-0 truncate whitespace-nowrap text-[12px] font-bold tracking-tight text-slate-600 dark:text-slate-300"
-            title="Living Course Compiler"
-          >
-            <span className="min-[360px]:hidden">Living Compiler</span>
-            <span className="hidden min-[360px]:inline">Living Course Compiler</span>
-          </span>
-        </div>
+      <div className="flex items-start">
+        <details className="min-w-0 flex-1">
+          <summary className="flex min-h-10 cursor-pointer list-none flex-wrap items-center gap-x-3 gap-y-0.5 px-3 py-1.5 sm:flex-nowrap [&::-webkit-details-marker]:hidden">
+            <span
+              data-testid="living-compiler-signal"
+              data-state={compilerState}
+              aria-hidden="true"
+              className={`h-2 w-2 rounded-full ${ribbonSignalClass(compilerState)}`}
+            />
 
-        <p
-          data-testid="ribbon-stage-label"
-          aria-live="polite"
-          className="order-3 w-full min-w-0 text-[13px] leading-4 text-slate-600 sm:order-none sm:w-auto sm:flex-1 sm:truncate dark:text-slate-300"
-        >
-          {stageNarrative}
-        </p>
-
-        <span
-          data-testid="ribbon-progress-label"
-          className="ml-2 shrink-0 text-[12px] font-bold tabular-nums text-indigo-600 sm:ml-0 dark:text-indigo-300"
-        >
-          {ribbonProgressLabel(compilerState, visibleProgress)}
-          {activeElapsed && (
-            <span data-testid="ribbon-active-elapsed" className="font-medium text-slate-400 dark:text-slate-500">
-              {' · '}
-              {activeElapsed}
-            </span>
-          )}
-        </span>
-      </div>
-
-      <div className="flex items-center gap-3 border-t border-slate-100/80 px-3 py-1.5 dark:border-slate-800/80">
-        <ol
-          aria-label="Build stages"
-          className="grid min-w-0 flex-1 auto-cols-fr grid-flow-col gap-1.5 sm:flex sm:flex-none sm:items-center sm:gap-2.5"
-        >
-          {model.steps.map((step) => (
-            <li
-              key={step.id}
-              data-testid={`ribbon-step-${step.id}`}
-              data-status={step.status}
-              className="flex min-w-0 items-center justify-center gap-0 sm:justify-start sm:gap-1"
+            <span
+              data-testid="ribbon-stage-label"
+              aria-live="polite"
+              className="order-3 w-full min-w-0 text-[13px] leading-4 text-slate-600 sm:order-none sm:w-auto sm:flex-1 sm:truncate dark:text-slate-300"
             >
-              <span className="hidden sm:block">
-                <ArtifactStatusMark status={step.status} />
-              </span>
-              <span
-                className={`min-w-0 text-[12px] font-semibold tracking-tight ${
-                  step.status === 'active'
-                    ? 'text-indigo-600 dark:text-indigo-300'
-                    : step.status === 'warn'
-                      ? 'text-amber-700 dark:text-amber-200'
-                      : step.status === 'done'
-                        ? 'text-emerald-500 sm:text-slate-600 dark:text-emerald-400 sm:dark:text-slate-300'
-                        : step.status === 'settled'
-                          ? 'text-slate-500 dark:text-slate-400'
-                          : 'text-slate-400 dark:text-slate-500'
-                }`}
-              >
-                <span className="min-[360px]:hidden">{compactStepLabels[step.id] || step.label}</span>
-                <span className="hidden min-[360px]:inline">{step.label}</span>
-              </span>
-            </li>
-          ))}
-        </ol>
+              {stageNarrative}
+            </span>
 
-        {/* v0.14.7 F3: the pipeline chips are dense diagnostics the Seal
+            <span
+              data-testid="ribbon-progress-label"
+              className="ml-2 shrink-0 text-[12px] font-bold tabular-nums text-indigo-600 sm:ml-0 dark:text-indigo-300"
+            >
+              {ribbonProgressLabel(compilerState, visibleProgress)}
+              {activeElapsed && (
+                <span data-testid="ribbon-active-elapsed" className="font-medium text-slate-400 dark:text-slate-500">
+                  {' · '}
+                  {activeElapsed}
+                </span>
+              )}
+            </span>
+            <span className="shrink-0 text-[12px] font-semibold text-slate-500 dark:text-slate-400">Build details</span>
+          </summary>
+
+          <div data-testid="build-ribbon-details" className="border-t border-slate-100/80 dark:border-slate-800/80">
+            <div className="flex items-center gap-3 px-3 py-1.5">
+              <ol
+                aria-label="Build stages"
+                className="grid min-w-0 flex-1 auto-cols-fr grid-flow-col gap-1.5 sm:flex sm:flex-none sm:items-center sm:gap-2.5"
+              >
+                {model.steps.map((step) => (
+                  <li
+                    key={step.id}
+                    data-testid={`ribbon-step-${step.id}`}
+                    data-status={step.status}
+                    className="flex min-w-0 items-center justify-center gap-0 sm:justify-start sm:gap-1"
+                  >
+                    <span className="hidden sm:block">
+                      <ArtifactStatusMark status={step.status} />
+                    </span>
+                    <span
+                      className={`min-w-0 text-[12px] font-semibold tracking-tight ${
+                        step.status === 'active'
+                          ? 'text-indigo-600 dark:text-indigo-300'
+                          : step.status === 'warn'
+                            ? 'text-amber-700 dark:text-amber-200'
+                            : step.status === 'done'
+                              ? 'text-emerald-500 sm:text-slate-600 dark:text-emerald-400 sm:dark:text-slate-300'
+                              : step.status === 'settled'
+                                ? 'text-slate-500 dark:text-slate-400'
+                                : 'text-slate-400 dark:text-slate-500'
+                      }`}
+                    >
+                      <span className="min-[360px]:hidden">{compactStepLabels[step.id] || step.label}</span>
+                      <span className="hidden min-[360px]:inline">{step.label}</span>
+                    </span>
+                  </li>
+                ))}
+              </ol>
+
+              {/* v0.14.7 F3: the pipeline chips are dense diagnostics the Seal
           already summarizes — on phones they pushed the page wide (658px at
           a 375px viewport), so they render from md up. */}
-        <div className="hidden flex-shrink-0 items-center gap-1.5 md:flex">
-          {model.pipelineChips.map((chip) => (
-            <span
-              key={chip.id}
-              data-testid={`ribbon-chip-${chip.id}`}
-              className={`ribbon-chip ${
-                chip.warn
-                  ? 'ribbon-chip-warning'
-                  : chip.muted
-                    ? 'ribbon-chip-muted'
-                    : chip.emphasis
-                      ? 'ribbon-chip-emphasis'
-                      : 'ribbon-chip-neutral'
-              }`}
-            >
-              {chip.label}
-            </span>
-          ))}
-          {model.elapsedDisplay && (
-            <span data-testid="ribbon-elapsed" className="text-[12px] font-medium text-slate-400 dark:text-slate-500">
-              {model.elapsedDisplay}
-            </span>
-          )}
-          {model.spendDisplay && (
-            <span
-              data-testid="ribbon-spend"
-              className="font-mono text-[12px] font-semibold tabular-nums text-slate-500 dark:text-slate-400"
-              title="Model spend so far this run (provider-reported where available)"
-            >
-              {model.spendDisplay}
-            </span>
-          )}
-        </div>
-      </div>
-
-      <ol
-        data-testid="living-compiler-artifacts"
-        aria-label="Course artifacts being compiled"
-        className="grid grid-cols-2 gap-px overflow-hidden border-t border-slate-100/80 bg-slate-100/80 sm:grid-cols-4 dark:border-slate-800/80 dark:bg-slate-800/80"
-      >
-        {model.compilerArtifacts.map((artifact) => (
-          <li
-            key={artifact.id}
-            data-testid={`living-artifact-${artifact.id}`}
-            data-status={artifact.status}
-            className={`min-w-0 bg-white/90 px-3 py-2 dark:bg-slate-900/85 ${
-              artifact.status === 'active'
-                ? 'shadow-[inset_0_2px_0_rgb(99_102_241)]'
-                : artifact.status === 'warn'
-                  ? 'shadow-[inset_0_2px_0_rgb(245_158_11)]'
-                  : ''
-            }`}
-          >
-            <div className="flex items-center gap-1.5">
-              <ArtifactStatusMark status={artifact.status} />
-              <span className="truncate text-[12px] font-medium text-slate-400 dark:text-slate-500">
-                {artifact.label}
-              </span>
+              <div className="hidden flex-shrink-0 items-center gap-1.5 md:flex">
+                {model.pipelineChips.map((chip) => (
+                  <span
+                    key={chip.id}
+                    data-testid={`ribbon-chip-${chip.id}`}
+                    className={`ribbon-chip ${
+                      chip.warn
+                        ? 'ribbon-chip-warning'
+                        : chip.muted
+                          ? 'ribbon-chip-muted'
+                          : chip.emphasis
+                            ? 'ribbon-chip-emphasis'
+                            : 'ribbon-chip-neutral'
+                    }`}
+                  >
+                    {chip.label}
+                  </span>
+                ))}
+                {model.elapsedDisplay && (
+                  <span
+                    data-testid="ribbon-elapsed"
+                    className="text-[12px] font-medium text-slate-400 dark:text-slate-500"
+                  >
+                    {model.elapsedDisplay}
+                  </span>
+                )}
+                {model.spendDisplay && (
+                  <span
+                    data-testid="ribbon-spend"
+                    className="font-mono text-[12px] font-semibold tabular-nums text-slate-500 dark:text-slate-400"
+                  >
+                    {model.spendDisplay}
+                  </span>
+                )}
+              </div>
             </div>
-            <p
-              className={`mt-0.5 truncate text-[12px] font-semibold ${
-                artifact.status === 'active'
-                  ? 'text-indigo-600 dark:text-indigo-300'
-                  : artifact.status === 'warn'
-                    ? 'text-amber-700 dark:text-amber-200'
-                    : artifact.status === 'done'
-                      ? 'text-slate-700 dark:text-slate-200'
-                      : artifact.status === 'settled'
-                        ? 'text-slate-600 dark:text-slate-300'
-                        : 'text-slate-400 dark:text-slate-500'
-              }`}
-              title={artifact.value}
+
+            <ol
+              data-testid="living-compiler-artifacts"
+              aria-label="Course artifacts being compiled"
+              className="grid grid-cols-2 gap-px overflow-hidden border-t border-slate-100/80 bg-slate-100/80 sm:grid-cols-4 dark:border-slate-800/80 dark:bg-slate-800/80"
             >
-              {artifact.value}
-            </p>
-          </li>
-        ))}
-      </ol>
+              {model.compilerArtifacts.map((artifact) => (
+                <li
+                  key={artifact.id}
+                  data-testid={`living-artifact-${artifact.id}`}
+                  data-status={artifact.status}
+                  className={`min-w-0 bg-white/90 px-3 py-2 dark:bg-slate-900/85 ${
+                    artifact.status === 'active'
+                      ? 'shadow-[inset_0_2px_0_rgb(99_102_241)]'
+                      : artifact.status === 'warn'
+                        ? 'shadow-[inset_0_2px_0_rgb(245_158_11)]'
+                        : ''
+                  }`}
+                >
+                  <div className="flex items-center gap-1.5">
+                    <ArtifactStatusMark status={artifact.status} />
+                    <span className="truncate text-[12px] font-medium text-slate-400 dark:text-slate-500">
+                      {artifact.label}
+                    </span>
+                  </div>
+                  <p
+                    className={`mt-0.5 truncate text-[12px] font-semibold ${
+                      artifact.status === 'active'
+                        ? 'text-indigo-600 dark:text-indigo-300'
+                        : artifact.status === 'warn'
+                          ? 'text-amber-700 dark:text-amber-200'
+                          : artifact.status === 'done'
+                            ? 'text-slate-700 dark:text-slate-200'
+                            : artifact.status === 'settled'
+                              ? 'text-slate-600 dark:text-slate-300'
+                              : 'text-slate-400 dark:text-slate-500'
+                    }`}
+                    title={artifact.value}
+                  >
+                    {artifact.value}
+                  </p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </details>
+        {onStop && model.running && (
+          <button
+            type="button"
+            onClick={() => onStop()}
+            className="m-1 min-h-11 shrink-0 rounded-md border px-2 text-[12px] font-semibold"
+          >
+            Stop build
+          </button>
+        )}
+      </div>
       <div
         data-testid="build-progress-track"
         role="progressbar"

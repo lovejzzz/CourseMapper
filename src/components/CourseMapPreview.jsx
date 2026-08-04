@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { buildLessonGroupMap, GROUP_COLORS } from '../lib/moduleGrouper';
 import { deriveCourseGraphFromCourseMap } from '../lib/courseGraph/deriveFromCourseMap.js';
+import { preferredScrollBehavior } from '../lib/motionPreference';
 
 // Flatten a cell value to a plain string (handles arrays from AI responses)
 function toStr(val) {
@@ -479,7 +480,7 @@ export default function CourseMapPreview({
     autoScrollPausedRef.current = true;
     const direction = event.key === 'ArrowRight' ? 1 : -1;
     const step = Math.max(96, Math.round(event.currentTarget.clientWidth * 0.35));
-    event.currentTarget.scrollBy({ left: direction * step, behavior: 'smooth' });
+    event.currentTarget.scrollBy({ left: direction * step, behavior: preferredScrollBehavior() });
   };
 
   // Cleanup timer on unmount
@@ -505,8 +506,8 @@ export default function CourseMapPreview({
         });
         if (!match) return;
 
-        wrapperRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        match.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+        wrapperRef.current?.scrollIntoView({ behavior: preferredScrollBehavior(), block: 'start' });
+        match.scrollIntoView({ behavior: preferredScrollBehavior(), block: 'center', inline: 'center' });
         const focusable = match.querySelector('[tabindex], textarea, button, [role="button"]') || match;
         focusable.focus?.({ preventScroll: true });
       }, 120);
@@ -537,11 +538,11 @@ export default function CourseMapPreview({
         revisionScrolledRef.current = true;
         // Scroll page so the preview is visible
         if (wrapperRef.current) {
-          wrapperRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          wrapperRef.current.scrollIntoView({ behavior: preferredScrollBehavior(), block: 'start' });
         }
         // After page scroll settles, scroll inner table to the changed cell
         setTimeout(() => {
-          changedEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+          changedEl.scrollIntoView({ behavior: preferredScrollBehavior(), block: 'center', inline: 'nearest' });
         }, 400);
         return;
       }
@@ -549,7 +550,7 @@ export default function CourseMapPreview({
 
     // Initial generation streaming: scroll to bottom
     if (!oldCourseMap && tableRef.current) {
-      tableRef.current.scrollTo({ top: tableRef.current.scrollHeight, behavior: 'smooth' });
+      tableRef.current.scrollTo({ top: tableRef.current.scrollHeight, behavior: preferredScrollBehavior() });
     }
   }, [courseMap, isStreaming, oldCourseMap]);
 

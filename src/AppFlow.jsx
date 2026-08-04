@@ -10,6 +10,12 @@ import PackageTrustStrip from './components/PackageTrustStrip';
 import BuildRibbon, { TabReadyTick } from './components/BuildRibbon';
 import PrimaryCta from './components/PrimaryCta';
 import UserMenu from './components/UserMenu';
+import { preferredScrollBehavior } from './lib/motionPreference';
+import {
+  continuePackageFinalizer,
+  detachPackageFinalizer,
+  releasePackageFinalizer,
+} from './lib/packageFinalizerOwnership';
 
 // Lazy-load screens/components not needed on initial landing page
 const Config = lazy(() => import('./screens/Config'));
@@ -131,9 +137,12 @@ import { matchEntityIds, preserveSourceProof, restoreCourseGraphForProject } fro
 import { knowledgeCoverage } from './lib/knowledge';
 import { normalizePipelineStateWithSourceBackedJudgment } from './lib/sourceBackedJudgment';
 
-const PACKAGE_READY_MESSAGE = 'All required files passed export checks and the package is ready to download.';
-const PACKAGE_REVIEW_MESSAGE =
-  'The package is downloadable, but its saved review notes must be resolved before classroom publication.';
+const PACKAGE_READY_MESSAGE = 'Ready to download.';
+const PACKAGE_REVIEW_MESSAGE = 'Review needed.';
+const WORKSPACE_MENU_ITEM_CLASS =
+  'flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50';
+const TAB_SCROLL_BUTTON_CLASS =
+  'pointer-events-auto tactile flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-md hover:border-indigo-200 hover:text-indigo-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300';
 
 function summarizeReceiptIssue(issue) {
   if (!issue) return null;
@@ -159,14 +168,6 @@ function getReadOnlyPackageConfidence(readiness, classroomReadiness, healthRepor
     return 'Good with assumptions';
   }
   return 'Excellent';
-}
-
-function getReadOnlyPackageNextAction(confidence) {
-  if (confidence === 'Excellent') return 'Read-only audit passed. The package is ready for final instructor review.';
-  if (confidence === 'Good with assumptions') {
-    return 'Read-only audit found review notes. Decide whether they need edits before export.';
-  }
-  return 'Read-only audit found blockers. Fix them before presenting the package as ready.';
 }
 
 function getReceiptFeatureLabel(featureId) {
@@ -688,7 +689,7 @@ export default function AppFlow({
       // v0.13: the package records the graph it was compiled from.
       ...(graphStats
         ? {
-            courseGraph: `${graphStats.sessions} sessions · ${graphStats.concepts} concepts (${graphStats.genomeLinkedConcepts} genome-linked, ${graphStats.authoredConcepts} authored) · ${graphStats.outcomes} outcomes`,
+            courseGraph: `${graphStats.sessions}/${graphStats.concepts}/${graphStats.outcomes} sessions/concepts/outcomes`,
           }
         : {}),
       // v0.13.5 P4: the coverage meter — how much of this package is backed
@@ -717,8 +718,7 @@ export default function AppFlow({
           nativeReconstruction: {
             status: 'deterministic-reconstruction',
             readinessRepairedFieldCount: Number(nativeAuthoringEvent.repairedFieldCount),
-            claimBoundary:
-              'Reconstructed fields are deterministic fallback content, not model-authored or independently verified evidence.',
+            claimBoundary: 'Fallback; unverified.',
           },
         }
       : normalizedPipelineState;
@@ -750,7 +750,7 @@ export default function AppFlow({
     if (!container) return;
     container.scrollBy({
       left: direction * Math.max(180, Math.round(container.clientWidth * 0.68)),
-      behavior: 'smooth',
+      behavior: preferredScrollBehavior(),
     });
   }, []);
   const tabButtonRefs = useRef(new Map());
@@ -843,6 +843,13 @@ export default function AppFlow({
   const chatSendRef = useRef(null);
   const packageFinalizerRef = useRef(null);
   const packageFinalizerInFlightRef = useRef(null);
+  // One epoch owns the complete build, including final checks and retries.
+  // Stop advances it so work already queued in AppFlow cannot start a fresh
+  // hook operation after the hook-level controllers have been aborted.
+  // Zero is reserved for "no sync regrade pending". A restored project may
+  // sync before any build in this browser session, so its live epoch must be
+  // non-zero or React can collapse setSyncRegradeEpoch(0) into no state change.
+  const packageWorkflowEpochRef = useRef(1);
   // v0.14.3 WS-A A2: the last run digest, kept so the ZIP download path can
   // hand the quality grader the same honesty source the finalize grade used.
   const lastRunDigestRef = useRef(null);
@@ -1149,7 +1156,12 @@ export default function AppFlow({
   // selected feature done/error and the sync runner idle) before grading —
   // refs lag dispatches by a render, and grading mid-write parked live
   // packages on phantom "not ready" blockers.
-  const [syncRegradePending, setSyncRegradePending] = useState(false);
+  const [syncRegradeEpoch, setSyncRegradeEpoch] = useState(0);
+  const beginPackageWorkflow = useCallback(() => {
+    detachPackageFinalizer(packageFinalizerInFlightRef);
+    setSyncRegradeEpoch(0);
+    return ++packageWorkflowEpochRef.current;
+  }, []);
 
   const handleReviewQueueOpenChange = useCallback((open, focusId = null) => {
     if (!open) {
@@ -1212,7 +1224,15 @@ export default function AppFlow({
       courseMapOverride = null,
       deliverablesOverride = null,
       source = 'auto',
+      workflowEpoch = null,
     } = {}) => {
+      const finishWorkflowEpoch = workflowEpoch ?? packageWorkflowEpochRef.current;
+      const assertPackageWorkflowActive = () => {
+        if (packageWorkflowEpochRef.current !== finishWorkflowEpoch) {
+          throw new DOMException('Stopped', 'AbortError');
+        }
+      };
+      assertPackageWorkflowActive();
       // v0.15 (sync-proof race): a finish pass that STARTS while a sync is
       // still rewriting deliverables grades a half-synced package — the live
       // repro left a permanent "blocked · Study Guides is not ready" verdict
@@ -1234,18 +1254,17 @@ export default function AppFlow({
             selectedFeatureIds,
           });
           const prior = packageFinalizerInFlightRef.current;
-          return prior
-            .catch(() => {})
-            .then(() =>
-              packageFinalizerRef.current
-                ? packageFinalizerRef.current({
-                    retry: false,
-                    source: 'sync',
-                    selectedFeatureIds,
-                    lessonFilter,
-                  })
-                : null,
-            );
+          return continuePackageFinalizer(prior, packageWorkflowEpochRef, finishWorkflowEpoch, () =>
+            packageFinalizerRef.current
+              ? packageFinalizerRef.current({
+                  retry: false,
+                  source: 'sync',
+                  selectedFeatureIds,
+                  lessonFilter,
+                  workflowEpoch: finishWorkflowEpoch,
+                })
+              : null,
+          );
         }
         tracePackageFinish('existing', 'join_existing', {
           source,
@@ -1257,6 +1276,7 @@ export default function AppFlow({
 
       const finishRunId = createPackageFinishRunId();
       const finishPromise = (async () => {
+        assertPackageWorkflowActive();
         const featureIds =
           Array.isArray(selectedFeatureIds) && selectedFeatureIds.length > 0 ? selectedFeatureIds : selectedFeatures;
         let finalizerCourseMap = courseMapOverride || courseMapRef.current;
@@ -1321,7 +1341,7 @@ export default function AppFlow({
         setPackageQualityPass({
           status: 'running',
           phase: 'finish',
-          message: 'Finishing package: checking, repairing, and preparing export...',
+          message: 'Preparing export...',
           repairsApplied: 0,
           warnings: 0,
           blockers: 0,
@@ -1349,19 +1369,20 @@ export default function AppFlow({
         recordApiCallEvent({
           type: 'costPlan',
           postBuildActivity: true,
-          label: 'Package finalizer call plan',
+          label: 'Finish call plan',
           detail:
             finalizerCostPlan.finalizerRetryReserve > 0
               ? `Up to ${finalizerCostPlan.finalizerRetryReserve} finish provider call${
                   finalizerCostPlan.finalizerRetryReserve === 1 ? '' : 's'
                 } reserved`
-              : 'No provider calls planned for deterministic final checks',
+              : 'No calls planned',
           costPlan: finalizerCostPlan,
         });
 
         const retryPassLimit = Math.max(0, Number(maxRetryPasses) || 0);
         let remainingRetryCallBudget = Math.max(0, Number(maxRetryCallBudget) || 0);
         let result = runFinalizer(canRetryWeakSpots ? maxRetryActions : 0);
+        assertPackageWorkflowActive();
         commitFinalizerResult(result);
         finalizerCourseMap = result.courseMap || finalizerCourseMap;
         finalizerDeliverables = result.deliverables || finalizerDeliverables;
@@ -1559,14 +1580,9 @@ export default function AppFlow({
           setPackageQualityPass({
             status: 'running',
             phase: 'finish',
-            message:
-              providerRetryActionCount === 0
-                ? `Finishing package: pass ${retryPassCount}/${retryPassLimit}, rebuilding ${localCompilerActionCount} material${
-                    localCompilerActionCount === 1 ? '' : 's'
-                  } locally...`
-                : `Finishing package: retry pass ${retryPassCount}/${retryPassLimit}, fixing ${retryActionsToRun.length} weak area${
-                    retryActionsToRun.length === 1 ? '' : 's'
-                  } (up to ${retryBudget.usedCalls} provider call${retryBudget.usedCalls === 1 ? '' : 's'})...`,
+            message: `Finish ${retryPassCount}/${retryPassLimit} · ${
+              providerRetryActionCount === 0 ? 'rebuild' : 'repairing'
+            }...`,
             repairsApplied: totalRepairsApplied,
             warnings: 0,
             blockers: 0,
@@ -1574,6 +1590,7 @@ export default function AppFlow({
 
           let retryProviderCallsThisPass = 0;
           const runRetryAction = async (action) => {
+            assertPackageWorkflowActive();
             const retryActionKey = getRetryActionKey(action);
             attemptedRetryKeys.add(retryActionKey);
             tracePackageFinish(finishRunId, 'retry_action_start', {
@@ -1596,6 +1613,7 @@ export default function AppFlow({
                   maxProviderCalls: action.estimatedCalls || 1,
                 },
               );
+              assertPackageWorkflowActive();
               retryResultTrace = {
                 status: retryResult?.status || 'unknown',
                 returnedDeliverables: Object.keys(retryResult?.deliverables || {}),
@@ -1621,8 +1639,10 @@ export default function AppFlow({
                   // task (the live CS run replaced the entire 17-entry quiz
                   // bank with a single regenerated lesson because of this).
                   currentData: finalizerDeliverables[action.featureId]?.data || null,
+                  currentEntry: finalizerDeliverables[action.featureId] || null,
                 },
               );
+              assertPackageWorkflowActive();
               retryResultTrace = {
                 status: retryResult?.status || 'unknown',
                 itemCount: retryResult?.itemCount,
@@ -1631,7 +1651,7 @@ export default function AppFlow({
               if (retryResult?.data) {
                 finalizerDeliverables = {
                   ...finalizerDeliverables,
-                  [action.featureId]: {
+                  [action.featureId]: retryResult.entry || {
                     ...(finalizerDeliverables[action.featureId] || {}),
                     status: 'done',
                     data: retryResult.data,
@@ -1655,6 +1675,7 @@ export default function AppFlow({
             retryCallCount += providerCallCount;
             retryProviderCallsThisPass += providerCallCount;
             await new Promise((resolve) => window.setTimeout(resolve, 0));
+            assertPackageWorkflowActive();
             // The finalizer result is the authoritative package view. A React
             // render triggered by feature regeneration can briefly expose the
             // pre-normalized Course Map through the ref; never let that stale
@@ -1664,6 +1685,7 @@ export default function AppFlow({
           };
           const runLocalCompilerRetryBatch = async (actions) => {
             if (actions.length === 0) return;
+            assertPackageWorkflowActive();
             const featureIdsToCompile = [...new Set(actions.map((action) => action.featureId).filter(Boolean))];
             actions.forEach((action) => attemptedRetryKeys.add(getRetryActionKey(action)));
             const retryResult = await regenerateFeatureRef.current?.(
@@ -1677,6 +1699,7 @@ export default function AppFlow({
                 maxProviderCalls: 0,
               },
             );
+            assertPackageWorkflowActive();
             if (retryResult?.deliverables) {
               finalizerDeliverables = {
                 ...finalizerDeliverables,
@@ -1686,10 +1709,12 @@ export default function AppFlow({
             }
             retryCount += actions.length;
             await new Promise((resolve) => window.setTimeout(resolve, 0));
+            assertPackageWorkflowActive();
             finalizerCourseMap = result.courseMap || finalizerCourseMap;
             finalizerDeliverables = deliverablesRef.current || finalizerDeliverables;
           };
           await runLocalCompilerRetryBatch(localCompilerActions);
+          assertPackageWorkflowActive();
           // v0.15.186: retry actions used to run strictly one at a time.
           // Actions on DIFFERENT features are independent — run the feature
           // groups concurrently (limit 3) and keep actions WITHIN a feature
@@ -1706,11 +1731,13 @@ export default function AppFlow({
             [...retryActionsByFeature.values()].map((group) =>
               retryGroupLimit(async () => {
                 for (const action of group) {
+                  assertPackageWorkflowActive();
                   await runRetryAction(action);
                 }
               }),
             ),
           );
+          assertPackageWorkflowActive();
 
           remainingRetryCallBudget = Math.max(0, remainingRetryCallBudget - retryProviderCallsThisPass);
           const preparedRetryScope = prepareMaterializedPackageScope({
@@ -1722,6 +1749,7 @@ export default function AppFlow({
           finalizerCourseMap = preparedRetryScope.courseMap;
           finalizerDeliverables = preparedRetryScope.deliverables;
           result = runFinalizer(canRetryWeakSpots ? maxRetryActions : 0);
+          assertPackageWorkflowActive();
           commitFinalizerResult(result);
           finalizerCourseMap = result.courseMap || finalizerCourseMap;
           finalizerDeliverables = result.deliverables || finalizerDeliverables;
@@ -1743,16 +1771,19 @@ export default function AppFlow({
           retryPassLimitReached = retryPassCount >= retryPassLimit;
         }
 
+        assertPackageWorkflowActive();
         setPackageQualityPass({ status: 'running', phase: 'finish' });
 
         let exportVerification = null;
         try {
+          assertPackageWorkflowActive();
           tracePackageFinish(finishRunId, 'export_verify_start', {
             selectedFeatureIds: featureIds,
             lessonFilter: effectiveLessonFilter,
             status: result.status,
           });
           const { verifyPackageExports } = await import('./lib/packageExportVerifier');
+          assertPackageWorkflowActive();
           exportVerification = await verifyPackageExports({
             courseMap: result.courseMap || courseMapRef.current,
             deliverables: result.deliverables || deliverablesRef.current || {},
@@ -1761,6 +1792,7 @@ export default function AppFlow({
             lessonFilter: effectiveLessonFilter,
             slideTheme,
           });
+          assertPackageWorkflowActive();
           tracePackageFinish(finishRunId, 'export_verify_done', {
             status: exportVerification?.status,
             checked: exportVerification?.checked || 0,
@@ -1793,6 +1825,7 @@ export default function AppFlow({
             ],
           };
         }
+        assertPackageWorkflowActive();
 
         const unresolvedRetryCount = result.status === 'needs_retry' ? result.retryActions.length : 0;
         const unresolvedProviderRetryCount = result.retryActions.filter(
@@ -1810,17 +1843,17 @@ export default function AppFlow({
         const retryText = retryCount > 0 ? `Retried ${retryCount} weak area${retryCount === 1 ? '' : 's'}. ` : '';
         const skippedRetryText =
           unresolvedProviderRetryCount > 0
-            ? `AI setup is needed to retry ${unresolvedProviderRetryCount} model-dependent weak area${unresolvedProviderRetryCount === 1 ? '' : 's'}. `
+            ? `AI setup needed for ${unresolvedProviderRetryCount} weak area${unresolvedProviderRetryCount === 1 ? '' : 's'}. `
             : retryNoProgress
               ? suppressedRetryActionCount > 0 && retryCount === 0
-                ? `Automatic retry already ran without progress; not spending another model call on the same weak area. `
-                : `Stopped after retrying the same weak area without progress. `
+                ? `Retry made no progress; no extra model call spent. `
+                : `Retry stopped without progress. `
               : retryPassLimitReached
-                ? `Reached the ${retryPassLimit}-pass finishing limit with ${unresolvedRetryCount} weak area${unresolvedRetryCount === 1 ? '' : 's'} remaining. `
+                ? `${retryPassLimit}-pass limit reached; ${unresolvedRetryCount} weak area${unresolvedRetryCount === 1 ? '' : 's'} remains. `
                 : retryBudgetExhausted
-                  ? `Reached the ${maxRetryCallBudget}-call finishing budget with ${unresolvedRetryCount} weak area${unresolvedRetryCount === 1 ? '' : 's'} remaining. `
+                  ? `${maxRetryCallBudget}-call limit reached; ${unresolvedRetryCount} weak area${unresolvedRetryCount === 1 ? '' : 's'} remains. `
                   : skippedRetryActionCount > 0
-                    ? `Skipped ${skippedRetryActionCount} broad retry action${skippedRetryActionCount === 1 ? '' : 's'} within the ${maxRetryCallBudget}-call budget. `
+                    ? `Skipped ${skippedRetryActionCount} broad retr${skippedRetryActionCount === 1 ? 'y' : 'ies'}. `
                     : '';
         const repairText =
           totalRepairsApplied > 0
@@ -1828,9 +1861,9 @@ export default function AppFlow({
             : '';
         const exportText =
           exportFailures > 0
-            ? `Export verification found ${exportFailures} file issue${exportFailures === 1 ? '' : 's'}. `
+            ? `Export found ${exportFailures} file issue${exportFailures === 1 ? '' : 's'}. `
             : exportWarnings > 0
-              ? `Export verification found ${exportWarnings} warning${exportWarnings === 1 ? '' : 's'}. `
+              ? `Export found ${exportWarnings} warning${exportWarnings === 1 ? '' : 's'}. `
               : '';
         let finalizerMessage =
           finalStatus === 'ready'
@@ -1887,6 +1920,7 @@ export default function AppFlow({
         let trustState = '';
         try {
           const { buildRunDigest, emitRunDigest } = await import('./lib/runDigest');
+          assertPackageWorkflowActive();
           emitRunDigestForFinish = emitRunDigest;
           buildCurrentRunDigest = (quality = null) => {
             const currentBudget = apiCallBudgetRef.current || {};
@@ -1937,11 +1971,13 @@ export default function AppFlow({
         } catch {
           /* digest is diagnostics-only — never block the finish on it */
         }
+        assertPackageWorkflowActive();
 
         // v0.14.3 WS-A A2: after export_verify passes, the package grades
         // itself — deterministic deep-quality grade over the same in-memory
         // file map the ZIP download assembles. Lazy chunk, bounded timeout,
         // non-blocking: any failure becomes quality { status: 'not-graded' }.
+        assertPackageWorkflowActive();
         setPackageQualityPass({ status: 'running', phase: 'grade' });
 
         let packageQuality = null;
@@ -1953,6 +1989,7 @@ export default function AppFlow({
         } else {
           try {
             const { gradePackageAtFinalize } = await import('./lib/quality/finalizeQualityGate');
+            assertPackageWorkflowActive();
             packageQuality = await gradePackageAtFinalize({
               courseMap: result.courseMap || courseMapRef.current,
               deliverables: result.deliverables || deliverablesRef.current || {},
@@ -1967,6 +2004,7 @@ export default function AppFlow({
               coursePrompt: promptText,
               expectedSessionMinutes,
             });
+            assertPackageWorkflowActive();
           } catch (err) {
             packageQuality = {
               status: 'not-graded',
@@ -1974,6 +2012,7 @@ export default function AppFlow({
             };
           }
         }
+        assertPackageWorkflowActive();
         // P0 quality findings update the same readiness object the export
         // panel consumes; recompute the visible package receipt after grading.
         result = applyQualityToFinalizerResult(result, packageQuality);
@@ -1984,6 +2023,7 @@ export default function AppFlow({
         let finishDomains = {};
         try {
           const { buildPackageFinishDomains } = await import('./lib/packageFinishEvidence');
+          assertPackageWorkflowActive();
           finishDomains = buildPackageFinishDomains({
             readiness: result.readiness,
             retryWarningCount: unresolvedRetryCount,
@@ -1996,6 +2036,7 @@ export default function AppFlow({
           // a thrown finish. The fallback remains conservative; consumers use
           // legacy blocker views when the blocker ledger is unavailable.
         }
+        assertPackageWorkflowActive();
         ({ warningDomains, blockerDomains } = finishDomains);
         blockers = blockerDomains?.total ?? (result.readiness?.blockers?.length || 0) + exportFailures;
         reviewWarningCount = warningDomains?.total ?? reviewWarningCount;
@@ -2058,6 +2099,7 @@ export default function AppFlow({
           /* digest is diagnostics-only — never block the finish on it */
         }
         lastRunDigestRef.current = runDigest;
+        assertPackageWorkflowActive();
         setLastRunDigest(runDigest);
 
         setPackageQualityPass({
@@ -2134,9 +2176,7 @@ export default function AppFlow({
       try {
         return await finishPromise;
       } finally {
-        if (packageFinalizerInFlightRef.current === finishPromise) {
-          packageFinalizerInFlightRef.current = null;
-        }
+        releasePackageFinalizer(packageFinalizerInFlightRef, finishPromise);
       }
     },
     [
@@ -2244,19 +2284,18 @@ export default function AppFlow({
     // blast-radius recompile diffs against.
     courseGraphRef,
     selectedFeatures,
-    onSyncComplete: useCallback((featureIds) => {
+    workflowEpochRef: packageWorkflowEpochRef,
+    onSyncComplete: useCallback((featureIds, workflowEpoch) => {
+      if (packageWorkflowEpochRef.current !== workflowEpoch) return;
       setUnseenChanges((prev) => {
         const next = new Set(prev);
         featureIds.forEach((id) => next.add(id));
         return next;
       });
-      // v0.14.7 WS-G3 → v0.15: post-sync truth — a sync changes the
-      // package, so the grade must change with it. The regrade no longer
-      // fires HERE: at this moment the deliverables ref can lag the last
-      // synced feature by one render (the live proof graded a package whose
-      // Assignment Briefs were "not ready" and parked it on a blocker).
-      // The flag below hands off to a settle-aware effect.
-      setSyncRegradePending(true);
+      // Wait for the final store write, but preserve the epoch captured
+      // before Smart Sync awaited any feature work. Stop or a new build
+      // invalidates the callback instead of letting it adopt a newer run.
+      setSyncRegradeEpoch(workflowEpoch);
     }, []),
     onRequestProposal: useCallback(
       ({ featureId, lessonIndex, editContext, courseMap: cm }) => {
@@ -2274,7 +2313,7 @@ export default function AppFlow({
   // because its deps read smartSync, which is initialized just above —
   // referencing it earlier is a temporal-dead-zone crash at render.)
   useEffect(() => {
-    if (!syncRegradePending) return;
+    if (!syncRegradeEpoch) return;
     if (smartSync.isSyncing) return;
     const pendingFeature = selectedFeatures.some((featureId) => {
       if (featureId === 'courseMap') return false;
@@ -2282,11 +2321,12 @@ export default function AppFlow({
       return entry && entry.status !== 'done' && entry.status !== 'error';
     });
     if (pendingFeature) return;
-    setSyncRegradePending(false);
-    if (typeof packageFinalizerRef.current === 'function') {
-      packageFinalizerRef.current({ retry: false, source: 'sync' }).catch(() => {});
+    setSyncRegradeEpoch(0);
+    if (packageWorkflowEpochRef.current !== syncRegradeEpoch) return;
+    if (packageFinalizerRef.current) {
+      packageFinalizerRef.current({ retry: false, source: 'sync', workflowEpoch: syncRegradeEpoch }).catch(() => {});
     }
-  }, [syncRegradePending, smartSync.isSyncing, deliv.deliverables, selectedFeatures]);
+  }, [syncRegradeEpoch, smartSync.isSyncing, deliv.deliverables, selectedFeatures]);
 
   // v0.15.1 C1: the review queue's single owner lives in
   // useReviewQueueOwner (extracted from the v0.14.9 B1 block) — one queue
@@ -2448,6 +2488,7 @@ export default function AppFlow({
     setUnseenChanges,
     setLessonCount,
     setNewProjectConfirm,
+    onBeforeNewProject: onStop,
     provider,
     modelId,
     modelName,
@@ -2497,7 +2538,14 @@ export default function AppFlow({
     return allFeats.filter((f) => selectedFeatures.includes(f.id) && f.id !== 'courseMap').map((f) => f.id);
   }
 
-  async function finalizeGeneratedPackage(finalCourseMap, generatedDeliverables, generatedFeatureIds, scopeIndices) {
+  async function finalizeGeneratedPackage(
+    finalCourseMap,
+    generatedDeliverables,
+    generatedFeatureIds,
+    scopeIndices,
+    workflowEpoch,
+  ) {
+    if (packageWorkflowEpochRef.current !== workflowEpoch) return null;
     const selectedForFinalizer = ['courseMap', ...generatedFeatureIds];
     if (selectedForFinalizer.length === 0) return null;
     const finalizerCourseMap = selectGeneratedCourseMapForFinalizer(finalCourseMap, courseMapRef.current);
@@ -2512,6 +2560,7 @@ export default function AppFlow({
       courseMapOverride: finalizerCourseMap,
       deliverablesOverride: generatedDeliverables || {},
       source: 'generation',
+      workflowEpoch,
     });
   }
 
@@ -2541,7 +2590,10 @@ export default function AppFlow({
         };
       }
 
-      packageGenerationInFlightRef.current = true;
+      const workflowEpoch = beginPackageWorkflow();
+      const stopped = () => packageWorkflowEpochRef.current !== workflowEpoch;
+      const aborted = () => ({ status: 'aborted', completedFeatureIds: [], failedFeatureIds: requestedFeatures });
+      packageGenerationInFlightRef.current = workflowEpoch;
       setPackageGenerationBusy(true);
       try {
         setHasGenerated(true);
@@ -2549,9 +2601,7 @@ export default function AppFlow({
         setPackageQualityPass({
           status: 'running',
           phase: 'generation',
-          message: `Generating ${requestedFeatures.length} deliverable${
-            requestedFeatures.length === 1 ? '' : 's'
-          }, then checking the package...`,
+          message: `Building ${requestedFeatures.length} deliverable${requestedFeatures.length === 1 ? '' : 's'}...`,
           repairsApplied: 0,
           warnings: 0,
           blockers: 0,
@@ -2563,6 +2613,7 @@ export default function AppFlow({
               ? lessonScope.indices
               : null;
         const result = await deliv.generateAll(currentCourseMap, requestedFeatures, scopeIndices);
+        if (stopped() || result?.status === 'aborted') return aborted();
         const completedFeatureIds = Array.isArray(result?.completedFeatureIds) ? result.completedFeatureIds : [];
         const failedFeatureIds = Array.isArray(result?.failedFeatureIds) ? result.failedFeatureIds : [];
         const generatedDeliverables = result?.deliverables || {};
@@ -2577,11 +2628,12 @@ export default function AppFlow({
             courseMapOverride: currentCourseMap,
             deliverablesOverride: generatedDeliverables,
             source,
+            workflowEpoch,
           });
         } else {
           setPackageQualityPass({
             status: 'blocked',
-            message: 'Generation did not complete. Fix the generation issue and try again.',
+            message: 'Generation did not complete. Try again.',
             repairsApplied: 0,
             warnings: 0,
             blockers: 1,
@@ -2594,20 +2646,30 @@ export default function AppFlow({
           deliverables: generatedDeliverables,
         };
       } catch (err) {
+        if (err?.name === 'AbortError' || stopped()) return aborted();
         setPackageQualityPass({
           status: 'blocked',
-          message: err?.message || 'Agent generation could not complete.',
+          message: err?.message || 'Agent build failed.',
           repairsApplied: 0,
           warnings: 0,
           blockers: 1,
         });
         throw err;
       } finally {
-        packageGenerationInFlightRef.current = false;
-        setPackageGenerationBusy(false);
+        if (packageGenerationInFlightRef.current === workflowEpoch) {
+          packageGenerationInFlightRef.current = false;
+          setPackageGenerationBusy(false);
+        }
       }
     },
-    [deliv, handleDeterministicPackageFinalization, lessonScope.indices, lessonScope.type, setDownloadedFile],
+    [
+      beginPackageWorkflow,
+      deliv,
+      handleDeterministicPackageFinalization,
+      lessonScope.indices,
+      lessonScope.type,
+      setDownloadedFile,
+    ],
   );
 
   const handleAgentAuditPackage = useCallback(
@@ -2681,7 +2743,7 @@ export default function AppFlow({
       return {
         confidence,
         ready: confidence === 'Excellent',
-        nextAction: getReadOnlyPackageNextAction(confidence),
+        nextAction: 'Review package',
         repairsApplied: 0,
         repairsFailed: 0,
         repairs: [],
@@ -2754,15 +2816,17 @@ export default function AppFlow({
 
   async function onGenerate() {
     if (packageGenerationInFlightRef.current) return;
+    const workflowEpoch = beginPackageWorkflow();
+    const stopped = () => packageWorkflowEpochRef.current !== workflowEpoch;
     clearSetupRecovery();
-    packageGenerationInFlightRef.current = true;
+    packageGenerationInFlightRef.current = workflowEpoch;
     setPackageGenerationBusy(true);
     try {
       setHasGenerated(true);
       setPackageQualityPass({
         status: 'running',
         phase: 'generation',
-        message: 'Generating, repairing, and verifying the package before export...',
+        message: 'Building and checking the package...',
         repairsApplied: 0,
         warnings: 0,
         blockers: 0,
@@ -2774,10 +2838,11 @@ export default function AppFlow({
       setScreen('workspace');
 
       const finalCourseMap = await gen.handleGenerate();
+      if (stopped()) return;
       if (!finalCourseMap?.lessons?.length) {
         setPackageQualityPass({
           status: 'blocked',
-          message: 'Generation did not complete. Fix the generation issue and try again.',
+          message: 'Generation did not complete. Try again.',
           repairsApplied: 0,
           warnings: 0,
           blockers: 1,
@@ -2790,21 +2855,32 @@ export default function AppFlow({
       let generatedDeliverables = {};
       if (orderedFeatures.length > 0) {
         const deliverableResult = await deliv.generateAll(finalCourseMap, orderedFeatures, scopeIndices);
+        if (stopped() || deliverableResult?.status === 'aborted') return;
         generatedDeliverables = deliverableResult?.deliverables || {};
       }
 
-      await finalizeGeneratedPackage(finalCourseMap, generatedDeliverables, orderedFeatures, scopeIndices);
+      if (stopped()) return;
+      await finalizeGeneratedPackage(
+        finalCourseMap,
+        generatedDeliverables,
+        orderedFeatures,
+        scopeIndices,
+        workflowEpoch,
+      );
     } catch (err) {
+      if (err?.name === 'AbortError' || stopped()) return;
       setPackageQualityPass({
         status: 'blocked',
-        message: err?.message || 'Package generation could not complete.',
+        message: err?.message || 'Package build failed.',
         repairsApplied: 0,
         warnings: 0,
         blockers: 1,
       });
     } finally {
-      packageGenerationInFlightRef.current = false;
-      setPackageGenerationBusy(false);
+      if (packageGenerationInFlightRef.current === workflowEpoch) {
+        packageGenerationInFlightRef.current = false;
+        setPackageGenerationBusy(false);
+      }
     }
   }
 
@@ -2837,22 +2913,25 @@ export default function AppFlow({
 
   async function onResume() {
     if (packageGenerationInFlightRef.current) return;
-    packageGenerationInFlightRef.current = true;
+    const workflowEpoch = beginPackageWorkflow();
+    const stopped = () => packageWorkflowEpochRef.current !== workflowEpoch;
+    packageGenerationInFlightRef.current = workflowEpoch;
     setPackageGenerationBusy(true);
     try {
       setPackageQualityPass({
         status: 'running',
         phase: 'generation',
-        message: 'Resuming generation, then repairing and verifying the package...',
+        message: 'Resuming and checking the package...',
         repairsApplied: 0,
         warnings: 0,
         blockers: 0,
       });
       const finalCourseMap = await gen.handleResume();
+      if (stopped()) return;
       if (!finalCourseMap?.lessons?.length) {
         setPackageQualityPass({
           status: 'blocked',
-          message: 'Resume did not complete. Fix the generation issue and try again.',
+          message: 'Resume did not complete. Try again.',
           repairsApplied: 0,
           warnings: 0,
           blockers: 1,
@@ -2864,24 +2943,41 @@ export default function AppFlow({
       let generatedDeliverables = {};
       if (orderedFeatures.length > 0) {
         const deliverableResult = await deliv.generateAll(finalCourseMap, orderedFeatures, scopeIndices);
+        if (stopped() || deliverableResult?.status === 'aborted') return;
         generatedDeliverables = deliverableResult?.deliverables || {};
       }
-      await finalizeGeneratedPackage(finalCourseMap, generatedDeliverables, orderedFeatures, scopeIndices);
+      if (stopped()) return;
+      await finalizeGeneratedPackage(
+        finalCourseMap,
+        generatedDeliverables,
+        orderedFeatures,
+        scopeIndices,
+        workflowEpoch,
+      );
     } catch (err) {
+      if (err?.name === 'AbortError' || stopped()) return;
       setPackageQualityPass({
         status: 'blocked',
-        message: err?.message || 'Package resume could not complete.',
+        message: err?.message || 'Package resume failed.',
         repairsApplied: 0,
         warnings: 0,
         blockers: 1,
       });
     } finally {
-      packageGenerationInFlightRef.current = false;
-      setPackageGenerationBusy(false);
+      if (packageGenerationInFlightRef.current === workflowEpoch) {
+        packageGenerationInFlightRef.current = false;
+        setPackageGenerationBusy(false);
+      }
     }
   }
   function onStop() {
+    packageWorkflowEpochRef.current += 1;
+    setSyncRegradeEpoch(0);
+    detachPackageFinalizer(packageFinalizerInFlightRef);
     gen.handleStop();
+    deliv.stopGenerating();
+    setPackageGenerationBusy(false);
+    setPackageQualityPass({ status: 'idle', message: 'Build stopped.' });
   }
 
   // ── Detect lesson count using AI when user proceeds from landing ──
@@ -3173,8 +3269,7 @@ export default function AppFlow({
     ? `${workspaceLessonCount} lesson${workspaceLessonCount === 1 ? '' : 's'} mapped so far`
     : `${workspaceLessonCount} lesson${workspaceLessonCount === 1 ? '' : 's'}`;
   const isPackageGenerationRunning = packageGenerationBusy || gen.isStreaming || deliv.isGenerating;
-  const workspaceWorkflowRunning =
-    isPackageGenerationRunning || Boolean(buildRibbonModel?.running) || syncRegradePending;
+  const workspaceWorkflowRunning = isPackageGenerationRunning || buildRibbonModel?.running || syncRegradeEpoch;
   // A large anonymous package can briefly exceed the synchronous browser
   // save quota while its graph and deliverables are still changing. The
   // persistence hook retries with progressively smaller recoverable
@@ -3200,7 +3295,7 @@ export default function AppFlow({
   const workspaceModelLabel = workspaceModelName;
   const workspaceSaveTitle = user
     ? 'Signed-in projects autosave locally and to My Projects.'
-    : 'Anonymous projects autosave only in this browser. Export .coursemapper for a portable backup.';
+    : 'Anonymous projects save in this browser. Export .coursemapper for backup.';
   const canRunPackageFinalizer =
     Boolean(courseMap) && gen.progressStep === 'done' && typeof handleFinishPackageFromExport === 'function';
   const confirmDeleteDeliverable = () => {
@@ -3338,7 +3433,7 @@ export default function AppFlow({
                           type="button"
                           data-testid="workspace-menu-save-project"
                           onClick={handleSaveProject}
-                          className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                          className={WORKSPACE_MENU_ITEM_CLASS}
                         >
                           Save .coursemapper
                         </button>
@@ -3348,7 +3443,7 @@ export default function AppFlow({
                             data-testid="workspace-menu-contribute-kernels"
                             onClick={() => downloadContribution({ appVersion: APP_VERSION })}
                             title="Download kernels."
-                            className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                            className={WORKSPACE_MENU_ITEM_CLASS}
                           >
                             Contribute {extractedKernelCount} extracted kernel
                             {extractedKernelCount === 1 ? '' : 's'}
@@ -3365,7 +3460,7 @@ export default function AppFlow({
                         setNewProjectCloudSaveFailed(false);
                         setNewProjectConfirm(true);
                       }}
-                      className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                      className={WORKSPACE_MENU_ITEM_CLASS}
                     >
                       New Project
                     </button>
@@ -3377,7 +3472,10 @@ export default function AppFlow({
 
           {/* v0.14.4 WS-B1: the build ribbon — the single status spine.
               Hidden entirely on a fresh/empty workspace (model is null). */}
-          <BuildRibbon model={buildRibbonModel} />
+          <BuildRibbon
+            model={buildRibbonModel}
+            onStop={isPackageGenerationRunning || isFinishPassRunning(packageQualityPass) ? onStop : null}
+          />
 
           {/* ── Deliverable tabs ──
               v0.14.9 B3: the old standalone utility row (dependency-map button
@@ -3542,7 +3640,7 @@ export default function AppFlow({
                   if (staleCount === 0 || deliv.isGenerating || smartSync.isSyncing) return null;
                   return (
                     <button
-                      onClick={() => {
+                      onClick={async () => {
                         // The Agent owns the durable suggestion message. When
                         // that plan exists, approve it through the same router
                         // as the card/review queue so the work executes AND the
@@ -3556,17 +3654,10 @@ export default function AppFlow({
                         const staleIds = selectedFeatures.filter(
                           (f) => f !== 'courseMap' && deliv.deliverables[f]?.stale === true,
                         );
-                        for (const fid of staleIds) {
-                          const se = deliv.deliverables[fid]?.staleEdits;
-                          if (se?.lessonIndices?.length > 0) {
-                            for (const idx of se.lessonIndices) {
-                              deliv.regenerateLesson(fid, courseMap, idx);
-                            }
-                          } else {
-                            const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
-                            deliv.generateAll(courseMap, [fid], scopeIndices);
-                          }
-                        }
+                        // This restored-workspace fallback favors an atomic
+                        // feature rebuild. The normal approved Smart Sync path
+                        // remains surgical and chains lesson snapshots safely.
+                        await deliv.generateAll(courseMap, staleIds, null);
                       }}
                       className="tactile flex items-center gap-1.5 ml-2 px-3 py-1.5 rounded-pill text-xs font-semibold text-amber-700 bg-amber-50/70 border border-amber-200/60 hover:bg-amber-100 transition-all duration-200 whitespace-nowrap flex-shrink-0"
                     >
@@ -3646,7 +3737,7 @@ export default function AppFlow({
                     type="button"
                     data-testid="workspace-materials-previous"
                     onClick={() => scrollWorkspaceTabs(-1)}
-                    className="pointer-events-auto tactile flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-md hover:border-indigo-200 hover:text-indigo-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+                    className={TAB_SCROLL_BUTTON_CLASS}
                     aria-label="Show previous materials"
                     title="Show previous materials"
                   >
@@ -3662,7 +3753,7 @@ export default function AppFlow({
                     type="button"
                     data-testid="workspace-materials-next"
                     onClick={() => scrollWorkspaceTabs(1)}
-                    className="pointer-events-auto tactile flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-md hover:border-indigo-200 hover:text-indigo-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+                    className={TAB_SCROLL_BUTTON_CLASS}
                     aria-label="Show more materials"
                     title="Show more materials"
                   >
@@ -3805,22 +3896,22 @@ export default function AppFlow({
                     </div>
                     <div>
                       <h3 className="text-sm font-bold text-slate-800">Start a new project?</h3>
-                      <p className="text-[11px] text-slate-500 mt-0.5">This clears the current browser workspace.</p>
+                      <p className="text-[11px] text-slate-500 mt-0.5">This clears this workspace.</p>
                     </div>
                   </div>
                   <p className="text-[11px] text-slate-400 mb-5 leading-relaxed">
                     {user
                       ? newProjectError
-                        ? 'My Projects sync did not finish. Your workspace is still open; download a backup before starting over.'
-                        : 'We will save a compact project to My Projects before starting over. If saving fails, your workspace stays open.'
-                      : 'You are not signed in, so this browser autosave is the only in-app copy. Download a .coursemapper backup if you want to keep it.'}
+                        ? 'My Projects did not sync. Download a backup before starting over.'
+                        : 'We will save to My Projects first. If that fails, this workspace stays open.'
+                      : 'Signed out: download a .coursemapper backup before starting over.'}
                   </p>
                   <div className="mb-4 rounded-xl bg-slate-50/80 border border-slate-100 px-3 py-2 text-[10px] text-slate-500 leading-relaxed">
                     {user
                       ? newProjectError
-                        ? 'Backup recommended: download a .coursemapper file or continue without sync.'
+                        ? 'Download a .coursemapper backup, or continue without sync.'
                         : 'Autosave: browser backup plus My Projects sync.'
-                      : 'Autosave: local browser backup only. It is cleared when you start over.'}
+                      : 'Browser autosave clears when you start over.'}
                   </div>
                   {newProjectError && (
                     <p className="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-[11px] text-amber-700 leading-relaxed">
@@ -4028,7 +4119,7 @@ export default function AppFlow({
                   isDelivGenerating={deliv.isGenerating}
                   delivTimings={deliv.delivTimings}
                   packageQualityPass={packageQualityPass}
-                  onStopDeliverables={deliv.isGenerating ? deliv.stopGenerating : null}
+                  onStopDeliverables={deliv.isGenerating ? onStop : null}
                   onPackageQualityPassUpdate={setPackageQualityPass}
                   onAutoRepairReadiness={applyPackageReadinessRepairs}
                   onFinalizePackage={handleDeterministicPackageFinalization}
@@ -4265,18 +4356,11 @@ export default function AppFlow({
                     }
                     isStale={deliv.deliverables[activeTab]?.stale === true}
                     staleConfidence={deliv.deliverables[activeTab]?.staleConfidence}
-                    onSyncNow={() => {
-                      const staleEdits = deliv.deliverables[activeTab]?.staleEdits;
-                      if (staleEdits?.lessonIndices?.length > 0) {
-                        // Surgical: only regen the affected lessons
-                        for (const idx of staleEdits.lessonIndices) {
-                          deliv.regenerateLesson(activeTab, courseMap, idx);
-                        }
-                      } else {
-                        // Fallback: full regen
-                        const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
-                        deliv.generateAll(courseMap, [activeTab], scopeIndices);
-                      }
+                    onSyncNow={async () => {
+                      // Direct stale recovery is atomic. Approved Smart Sync
+                      // handles surgical lesson updates through its chained
+                      // snapshot path.
+                      await deliv.generateAll(courseMap, [activeTab], null);
                     }}
                     slideTheme={slideTheme}
                     onSlideThemeChange={setSlideTheme}

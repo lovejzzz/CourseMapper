@@ -2003,18 +2003,6 @@ export default function Config({
   const configurableFeatures = allFeatures.filter((f) => selected.includes(f.id));
   const selectedMaterialCount = Math.max(0, configurableFeatures.length - 1);
 
-  const scopeDescription = (() => {
-    if (lessonScope.type === 'all') {
-      const total = courseMap?.lessons?.length || lessonCount || 0;
-      if (total === 1) return '1 lesson';
-      return total ? `All ${total} lessons` : 'All lessons';
-    }
-    const indices = lessonScope.indices || [];
-    if (indices.length === 0) return 'No lessons selected';
-    if (indices.length === 1) return `Lesson ${indices[0] + 1} only`;
-    return `Lessons ${indices.map((i) => i + 1).join(', ')}`;
-  })();
-
   const scopeValid = lessonScope.type === 'all' || lessonScope.indices?.length > 0;
   const previewLessonCount = resolvePreviewLessonCount({ lessonScope, courseMap, lessonCount });
   const previewLessonTitles =
@@ -2028,24 +2016,18 @@ export default function Config({
       className="rounded-2xl border border-slate-200/80 bg-white/95 p-3 shadow-lg backdrop-blur-xl dark:border-slate-700 dark:bg-slate-950/95 sm:sticky sm:top-3 sm:z-20"
     >
       {provider === PUBLIC_SCION_PROVIDER_ID && (
-        <div
+        <details
           data-testid="scion-generation-boundary"
-          role="note"
-          className="mb-3 flex items-start gap-2 rounded-xl border border-blue-200/70 bg-blue-50/75 px-3 py-2 text-left text-body text-blue-700 dark:border-blue-400/25 dark:bg-blue-400/10 dark:text-blue-200"
+          className="mb-3 rounded-xl border border-slate-200/80 bg-slate-50/75 px-3 py-2 text-left text-body text-slate-600 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-300"
         >
-          <svg className="mt-0.5 h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          <span>
+          <summary className="cursor-pointer list-none font-semibold text-slate-700 [&::-webkit-details-marker]:hidden dark:text-slate-200">
+            Private local generation · Details
+          </summary>
+          <p className="mt-2 leading-relaxed">
             Scion runs locally in this browser and needs no API key. The first generation may download the model. Like
             all AI-generated materials, review the course before publishing.
-          </span>
-        </div>
+          </p>
+        </details>
       )}
       {lessonScope.type === 'specific' && !scopeValid && (
         <p className="text-center text-xs text-amber-500 mb-2">Select at least one lesson to continue.</p>
@@ -2062,7 +2044,6 @@ export default function Config({
       >
         <span className="flex items-center justify-center gap-2.5">
           Generate workspace
-          <span className="hidden text-white/70 sm:inline">· {scopeDescription}</span>
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
@@ -2118,19 +2099,14 @@ export default function Config({
               </p>
             </div>
 
-            {generationAction}
-
             <div className="rounded-2xl border border-slate-200/80 bg-white/86 p-4 shadow-sm dark:border-slate-700/80 dark:bg-slate-950/70 sm:p-5">
-              <div className="mb-4 flex flex-col gap-2 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between dark:border-slate-800">
+              <div className="mb-4 border-b border-slate-100 pb-4 dark:border-slate-800">
                 <div>
                   <p className="text-base font-semibold text-slate-900 dark:text-white">Generation settings</p>
                   <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
                     Course Map + {selectedMaterialCount} material{selectedMaterialCount === 1 ? '' : 's'} selected.
                   </p>
                 </div>
-                <span className="w-fit rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
-                  {scopeDescription}
-                </span>
               </div>
 
               <div className="space-y-5">
@@ -2142,6 +2118,8 @@ export default function Config({
                   lessonScope={lessonScope}
                   setLessonScope={setLessonScope}
                 />
+
+                {generationAction}
 
                 <AdvancedSection label="Course defaults" testId="config-top-advanced">
                   <ModelTuningSummary modelLabel={modelLabel} plan={modelConfigPlan} />

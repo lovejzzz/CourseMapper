@@ -375,7 +375,7 @@ export default function ProgressHeader({
                 <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Deliverables</span>
                 {isDelivGenerating && onStopDeliverables && (
                   <button
-                    onClick={onStopDeliverables}
+                    onClick={() => onStopDeliverables()}
                     className="text-[11px] font-semibold text-red-500 hover:text-red-700 transition-colors"
                   >
                     Stop

@@ -533,8 +533,8 @@ export default function Landing({
   });
   const handleQuickStartClick = useCallback(() => {
     if (quickStartNeedsCurrentSources) {
-      // The button names this network boundary before the click. Persist the
-      // choice for later runs, and also hand it to this run explicitly. The
+      // The visible source notice names this network boundary before the click.
+      // Persist the choice for later runs, and also hand it to this run explicitly. The
       // explicit handoff prevents a fresh-origin build from depending on a
       // storage read across the lazy Landing -> AppFlow transition.
       saveScionResearchEnabled(true);
@@ -604,10 +604,9 @@ export default function Landing({
           <div className="mt-7">
             <section className="rounded-[28px] border border-slate-200/80 bg-white/80 p-4 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur-xl dark:border-slate-700/80 dark:bg-slate-950/70 dark:shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:p-5">
               <SetupProgress current="brief" />
-              <div className="mt-5 text-center">
-                <h2 className="text-base font-semibold text-slate-900 dark:text-white">Start a course workspace</h2>
-                <p className="mt-1 text-body text-ink-muted">Describe the course or attach what you already have.</p>
-              </div>
+              <p className="mt-5 text-center text-body text-ink-muted">
+                Describe the course or attach what you already have.
+              </p>
 
               {missingRecoveryAttachments.length > 0 && (
                 <div
@@ -835,25 +834,15 @@ export default function Landing({
                 {configCollapsed ? (
                   <div
                     data-testid="ai-config-summary"
-                    className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 rounded-xl border border-line-strong bg-surface-alt/80 px-3 py-2 text-sm text-ink-muted"
+                    className="flex items-center justify-between gap-3 rounded-xl border border-line-strong bg-surface-alt/80 px-3 py-2 text-sm text-ink-muted"
                   >
-                    <span className="flex items-center gap-1.5">
-                      <span className="inline-block h-2 w-2 rounded-full bg-emerald-400" />
-                      {configSummaryLabel}
+                    <span className="flex min-w-0 items-center gap-1.5 font-medium text-ink-secondary">
+                      <span className="inline-block h-2 w-2 shrink-0 rounded-full bg-emerald-400" />
+                      <span className="truncate">{configSummaryLabel} · Connected</span>
                     </span>
-                    <span className="font-semibold text-status-success">Connected</span>
-                    {provider === PUBLIC_SCION_PROVIDER_ID && (
-                      <span className="rounded-full border border-line-strong bg-surface px-2 py-1 text-label font-semibold text-ink-muted">
-                        {scionDeviceCapability.phase === 'checking'
-                          ? 'Checking device'
-                          : scionDeviceCapability.evidenceCompiler
-                            ? 'Zero-download'
-                            : 'Local model'}
-                      </span>
-                    )}
                     <button
                       onClick={expandConfigForEditing}
-                      className="tactile flex min-h-11 items-center gap-1 rounded-lg px-2 text-blue-600 transition-colors duration-150 hover:bg-blue-50 hover:text-blue-800 dark:text-blue-300 dark:hover:bg-blue-400/10 dark:hover:text-blue-100"
+                      className="tactile flex min-h-11 shrink-0 items-center gap-1 rounded-lg px-2 text-blue-600 transition-colors duration-150 hover:bg-blue-50 hover:text-blue-800 dark:text-blue-300 dark:hover:bg-blue-400/10 dark:hover:text-blue-100"
                     >
                       <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path
@@ -886,24 +875,23 @@ export default function Landing({
               </div>
 
               {scionSelected && promptText.trim().length >= 3 && (
-                <div
+                <details
                   data-testid="scion-evidence-forecast"
-                  aria-live="polite"
                   className="mt-4 rounded-xl border border-indigo-100 bg-indigo-50/55 px-4 py-3 text-left dark:border-indigo-400/20 dark:bg-indigo-400/10"
                 >
                   {scionForecastStatus === 'checking' ? (
-                    <div className="flex items-center gap-2 text-xs font-semibold text-indigo-700 dark:text-indigo-200">
+                    <summary className="flex cursor-pointer list-none items-center gap-2 text-xs font-semibold text-indigo-700 [&::-webkit-details-marker]:hidden dark:text-indigo-200">
                       <span className="h-2 w-2 animate-pulse rounded-full bg-indigo-500" />
                       Checking private source coverage…
-                    </div>
+                    </summary>
                   ) : scionCoverageForecast?.status === 'ready' ? (
                     <>
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <p className="text-xs font-semibold text-slate-800 dark:text-slate-100">
+                      <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
+                        <span className="text-xs font-semibold text-slate-800 dark:text-slate-100">
                           {scionCoverageForecast.externalNeeded === 0
                             ? `Private evidence ready for all ${scionCoverageForecast.requested} lessons`
                             : `${scionCoverageForecast.privateCovered}/${scionCoverageForecast.requested} lessons ready on this device`}
-                        </p>
+                        </span>
                         <span
                           className={`rounded-full px-2 py-1 text-xs font-semibold ${
                             scionCoverageForecast.externalNeeded === 0
@@ -919,7 +907,7 @@ export default function Landing({
                               ? `${scionCoverageForecast.externalNeeded} source check${scionCoverageForecast.externalNeeded === 1 ? '' : 's'} planned`
                               : `${scionCoverageForecast.externalNeeded} source gap${scionCoverageForecast.externalNeeded === 1 ? '' : 's'}`}
                         </span>
-                      </div>
+                      </summary>
                       <p className="mt-1 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
                         {scionCoverageForecast.externalNeeded === 0
                           ? 'Scion can ground these lesson knowledge kernels in EduTool’s source-anchored teaching library without an external request.'
@@ -956,12 +944,33 @@ export default function Landing({
                       )}
                     </>
                   ) : (
-                    <p className="text-xs text-slate-600 dark:text-slate-300">
+                    <summary className="cursor-pointer list-none text-xs text-slate-600 [&::-webkit-details-marker]:hidden dark:text-slate-300">
                       Coverage will be checked again when the build starts.
-                    </p>
+                    </summary>
                   )}
-                </div>
+                </details>
               )}
+
+              {scionSelected &&
+                (scionResearchEnabled ||
+                  (scionCoverageForecast?.status === 'ready' && scionCoverageForecast.externalNeeded > 0)) && (
+                  <p
+                    data-testid="scion-external-source-notice"
+                    className="mt-2 text-center text-xs leading-relaxed text-slate-600 dark:text-slate-300"
+                  >
+                    {scionCoverageForecast?.status === 'ready' && scionCoverageForecast.externalNeeded > 0 ? (
+                      <>
+                        Generating sends only the course title and {scionCoverageForecast.externalNeeded} uncovered
+                        lesson topic{scionCoverageForecast.externalNeeded === 1 ? '' : 's'} to{' '}
+                        {formatResearchProviderOrder(scionCoverageForecast.researchPlan?.providerOrder)}.
+                      </>
+                    ) : (
+                      <>
+                        Current-source research may send the course title and uncovered lesson topics to web providers.
+                      </>
+                    )}
+                  </p>
+                )}
 
               {canQuickStart && (
                 <>
@@ -1014,12 +1023,6 @@ export default function Landing({
               {!canGenerate && !isGenerating && (
                 <p data-testid="landing-requirement" className="mt-2 text-center text-body text-ink-muted">
                   {landingRequirement}
-                </p>
-              )}
-
-              {canQuickStart && (
-                <p className="mt-2 text-center text-body text-ink-muted">
-                  Full course uses every material with editable defaults. Customize to choose a smaller package.
                 </p>
               )}
             </section>

@@ -28,6 +28,11 @@ export const actions = {
     featureId,
     error,
   }),
+  restoreDeliverableSnapshot: (featureId, entry) => ({
+    type: 'RESTORE_DELIVERABLE_SNAPSHOT',
+    featureId,
+    entry,
+  }),
   resetDeliverables: () => ({
     type: 'RESET_DELIVERABLES',
   }),
@@ -121,7 +126,7 @@ export function normalizeRestoredDeliverables(deliverables) {
   );
 }
 
-function reducer(state, action) {
+export function reducer(state, action) {
   switch (action.type) {
     case 'SET_DELIVERABLE_STREAMING':
       return {
@@ -147,6 +152,12 @@ function reducer(state, action) {
           [action.featureId]: { status: 'error', data: null, error: action.error, stale: false, staleConfidence: null },
         },
       };
+    case 'RESTORE_DELIVERABLE_SNAPSHOT': {
+      const nextDeliverables = { ...state.deliverables };
+      if (action.entry == null) delete nextDeliverables[action.featureId];
+      else nextDeliverables[action.featureId] = action.entry;
+      return { ...state, deliverables: nextDeliverables };
+    }
     case 'RESET_DELIVERABLES':
       return { ...state, deliverables: {} };
     case 'RESTORE_DELIVERABLES':
@@ -274,8 +285,8 @@ export const CourseDispatchContext = createContext(null);
 
 // ── Provider ───────────────────────────────────────────────────────────────────
 
-export function CourseStoreProvider({ children }) {
-  const [state, dispatch] = useReducer(reducer, { deliverables: {} });
+export function CourseStoreProvider({ children, initialState = { deliverables: {} } }) {
+  const [state, dispatch] = useReducer(reducer, initialState);
   return (
     <CourseStateContext.Provider value={state}>
       <CourseDispatchContext.Provider value={dispatch}>{children}</CourseDispatchContext.Provider>

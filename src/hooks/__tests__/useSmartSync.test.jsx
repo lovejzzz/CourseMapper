@@ -136,7 +136,16 @@ describe('useSmartSync canonical patch requests', () => {
       }),
     );
     expect(onApplyCanonicalPatches).toHaveBeenCalledWith([resolvedPatch], expect.any(Object));
-    expect(deliv.regenerateLesson).toHaveBeenCalledWith('lessonPlans', expect.any(Object), 0, expect.any(Number));
+    expect(deliv.regenerateLesson).toHaveBeenCalledWith(
+      'lessonPlans',
+      expect.any(Object),
+      0,
+      expect.objectContaining({
+        syncGenId: expect.any(Number),
+        currentData: null,
+        currentEntry: deliv.deliverables.lessonPlans,
+      }),
+    );
     expect(compiledCourseMap.lessons[0].sections[0].topicSection).toContain('Riverton validation dataset');
     expect([...completed]).toEqual(['lessonPlans']);
     expect(completed.syncSummary).toMatchObject({
@@ -146,6 +155,306 @@ describe('useSmartSync canonical patch requests', () => {
       compilerSyncCount: 1,
       modelFallbackCount: 1,
     });
+  });
+
+  it('feeds each completed lesson snapshot into the next lesson regeneration', async () => {
+    const courseMapRef = {
+      current: {
+        lessons: [
+          { title: 'One', sections: [{ topicSection: 'One' }] },
+          { title: 'Two', sections: [{ topicSection: 'Two' }] },
+        ],
+      },
+    };
+    const startingData = { lessonPlans: [{ lessonNumber: 1 }, { lessonNumber: 2 }] };
+    const deliv = {
+      isGenerating: false,
+      deliverables: { lessonPlans: { status: 'done', data: startingData } },
+      generateAll: vi.fn(),
+      markFeatureStale: vi.fn(),
+      regenerateLesson: vi.fn(async (_featureId, _courseMap, lessonIndex, options) => {
+        const data = {
+          ...options.currentData,
+          completedLessons: [...(options.currentData.completedLessons || []), lessonIndex],
+        };
+        return {
+          status: 'done',
+          syncSource: 'blueprint-compiler',
+          data,
+          entry: { status: 'done', data, error: null, stale: false, staleConfidence: null },
+        };
+      }),
+    };
+    let hook;
+
+    root = createRoot(container);
+    await act(async () => {
+      root.render(
+        <Harness
+          onHook={(value) => {
+            hook = value;
+          }}
+          props={{
+            deliv,
+            gen: { isStreaming: false },
+            courseMapRef,
+            selectedFeatures: ['courseMap', 'lessonPlans'],
+            onSyncComplete: vi.fn(),
+            onRequestProposal: vi.fn(),
+          }}
+        />,
+      );
+    });
+
+    await act(async () => {
+      await hook.executeSyncPlan([{ featureId: 'lessonPlans', lessonIndices: [0, 1] }], 'two lessons');
+    });
+
+    expect(deliv.regenerateLesson).toHaveBeenCalledTimes(2);
+    expect(deliv.regenerateLesson.mock.calls[0][3].currentData).toBe(startingData);
+    expect(deliv.regenerateLesson.mock.calls[1][3].currentData).toMatchObject({ completedLessons: [0] });
+    expect(deliv.regenerateLesson.mock.calls[1][3].currentEntry).toMatchObject({
+      status: 'done',
+      data: { completedLessons: [0] },
+      stale: false,
+    });
+  });
+
+  it('stops the lesson sequence and withholds completion after an aborted regeneration', async () => {
+    const courseMapRef = {
+      current: {
+        lessons: [
+          { title: 'One', sections: [{ topicSection: 'One' }] },
+          { title: 'Two', sections: [{ topicSection: 'Two' }] },
+        ],
+      },
+    };
+    const onSyncComplete = vi.fn();
+    const deliv = {
+      isGenerating: false,
+      deliverables: {
+        lessonPlans: { status: 'done', data: { lessonPlans: [] } },
+        syllabus: { status: 'done', data: { courseTitle: 'Course' } },
+      },
+      generateAll: vi.fn(async () => ({ status: 'aborted', completedFeatureIds: [] })),
+      markFeatureStale: vi.fn(),
+      regenerateLesson: vi.fn(async () => ({ status: 'aborted', data: { lessonPlans: [] } })),
+    };
+    let hook;
+
+    root = createRoot(container);
+    await act(async () => {
+      root.render(
+        <Harness
+          onHook={(value) => {
+            hook = value;
+          }}
+          props={{
+            deliv,
+            gen: { isStreaming: false },
+            courseMapRef,
+            selectedFeatures: ['courseMap', 'lessonPlans', 'syllabus'],
+            onSyncComplete,
+            onRequestProposal: vi.fn(),
+          }}
+        />,
+      );
+    });
+
+    let completed;
+    await act(async () => {
+      completed = await hook.executeSyncPlan(
+        [
+          { featureId: 'lessonPlans', lessonIndices: [0, 1] },
+          { featureId: 'syllabus', lessonIndices: null },
+        ],
+        'two lessons',
+      );
+    });
+
+    expect(deliv.regenerateLesson).toHaveBeenCalledTimes(1);
+    expect(deliv.generateAll).toHaveBeenCalledTimes(1);
+    expect([...completed]).toEqual([]);
+    expect(onSyncComplete).not.toHaveBeenCalled();
+    expect(completed.syncSummary.resultDetails).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ status: 'aborted', featureId: 'lessonPlans', lessonIndex: 0 }),
+        expect.objectContaining({ status: 'aborted', featureId: 'syllabus', lessonIndices: null }),
+      ]),
+    );
+  });
+
+  it('keeps a partial sync completion bound to the epoch captured before Stop', async () => {
+    const courseMapRef = {
+      current: { lessons: [{ title: 'One', sections: [{ topicSection: 'One' }] }] },
+    };
+    let workflowEpoch = 7;
+    let settleSecondFeature;
+    const secondFeature = new Promise((resolve) => {
+      settleSecondFeature = resolve;
+    });
+    const setSyncRegradeEpoch = vi.fn();
+    const onSyncComplete = vi.fn((featureIds, capturedEpoch) => {
+      if (workflowEpoch !== capturedEpoch) return;
+      setSyncRegradeEpoch(capturedEpoch);
+    });
+    const deliv = {
+      isGenerating: false,
+      deliverables: {
+        lessonPlans: { status: 'done', data: { lessonPlans: [] } },
+        syllabus: { status: 'done', data: { courseTitle: 'Course' } },
+      },
+      generateAll: vi.fn(async (_courseMap, [featureId]) => {
+        if (featureId === 'lessonPlans') {
+          return { status: 'complete', completedFeatureIds: ['lessonPlans'] };
+        }
+        return secondFeature;
+      }),
+      markFeatureStale: vi.fn(),
+      regenerateLesson: vi.fn(),
+    };
+    let hook;
+
+    root = createRoot(container);
+    await act(async () => {
+      root.render(
+        <Harness
+          onHook={(value) => {
+            hook = value;
+          }}
+          props={{
+            deliv,
+            gen: { isStreaming: false },
+            courseMapRef,
+            selectedFeatures: ['courseMap', 'lessonPlans', 'syllabus'],
+            workflowEpochRef: {
+              get current() {
+                return workflowEpoch;
+              },
+            },
+            onSyncComplete,
+            onRequestProposal: vi.fn(),
+          }}
+        />,
+      );
+    });
+
+    let syncPromise;
+    await act(async () => {
+      syncPromise = hook.executeSyncPlan(
+        [
+          { featureId: 'lessonPlans', lessonIndices: null },
+          { featureId: 'syllabus', lessonIndices: null },
+        ],
+        'partial stop',
+      );
+      await Promise.resolve();
+    });
+    expect(deliv.generateAll).toHaveBeenCalledTimes(2);
+
+    // Global Stop advances the package epoch while the second feature is
+    // still awaiting its hook-level abort result.
+    workflowEpoch = 8;
+    let completed;
+    await act(async () => {
+      settleSecondFeature({ status: 'aborted', completedFeatureIds: [] });
+      completed = await syncPromise;
+    });
+
+    expect([...completed]).toEqual(['lessonPlans']);
+    expect(completed.syncSummary).toMatchObject({ status: 'aborted', completedFeatureIds: ['lessonPlans'] });
+    expect(onSyncComplete).not.toHaveBeenCalled();
+    expect(setSyncRegradeEpoch).not.toHaveBeenCalled();
+  });
+
+  it('does not apply a resolved blueprint patch after Stop advances the workflow epoch', async () => {
+    const workflowEpochRef = { current: 4 };
+    const courseMapRef = {
+      current: { lessons: [{ title: 'One', sections: [{ topicSection: 'Before' }] }] },
+    };
+    let settleResolver;
+    const resolverResult = new Promise((resolve) => {
+      settleResolver = resolve;
+    });
+    const onApplyCanonicalPatches = vi.fn();
+    const onSyncComplete = vi.fn();
+    const deliv = {
+      isGenerating: false,
+      deliverables: { lessonPlans: { status: 'done', data: { lessonPlans: [] } } },
+      generateAll: vi.fn(),
+      markFeatureStale: vi.fn(),
+      regenerateLesson: vi.fn(),
+    };
+    let hook;
+
+    root = createRoot(container);
+    await act(async () => {
+      root.render(
+        <Harness
+          onHook={(value) => {
+            hook = value;
+          }}
+          props={{
+            deliv,
+            gen: { isStreaming: false },
+            courseMapRef,
+            selectedFeatures: ['courseMap', 'lessonPlans'],
+            workflowEpochRef,
+            onSyncComplete,
+            onRequestProposal: vi.fn(),
+            onApplyCanonicalPatches,
+            onResolveCanonicalPatchRequests: vi.fn(() => resolverResult),
+          }}
+        />,
+      );
+    });
+
+    let syncPromise;
+    await act(async () => {
+      syncPromise = hook.executeSyncPlan(
+        [
+          {
+            featureId: 'lessonPlans',
+            lessonIndices: [0],
+            canonicalPatchRequests: [
+              {
+                id: 'late-patch',
+                sourceFeatureId: 'lessonPlans',
+                lessonIndex: 0,
+                sectionIndex: 0,
+                field: 'topicSection',
+                value: 'After',
+              },
+            ],
+          },
+        ],
+        'late resolver',
+      );
+      await Promise.resolve();
+    });
+
+    workflowEpochRef.current = 5;
+    let completed;
+    await act(async () => {
+      settleResolver({
+        patches: [
+          {
+            sourceFeatureId: 'lessonPlans',
+            lessonIndex: 0,
+            sectionIndex: 0,
+            field: 'topicSection',
+            value: 'After',
+          },
+        ],
+      });
+      completed = await syncPromise;
+    });
+
+    expect([...completed]).toEqual([]);
+    expect(completed.syncSummary).toMatchObject({ status: 'aborted', completedFeatureIds: [] });
+    expect(onApplyCanonicalPatches).not.toHaveBeenCalled();
+    expect(deliv.regenerateLesson).not.toHaveBeenCalled();
+    expect(onSyncComplete).not.toHaveBeenCalled();
   });
 
   it('marks course-map sync plan targets stale before waiting for approval', async () => {

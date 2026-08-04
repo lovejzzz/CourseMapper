@@ -101,6 +101,7 @@ export default function useProjectPersistence({
   setUnseenChanges,
   setLessonCount,
   setNewProjectConfirm,
+  onBeforeNewProject,
   // AI config
   provider,
   modelId,
@@ -872,6 +873,8 @@ export default function useProjectPersistence({
   }
 
   function handleNewProject() {
+    // Invalidate AppFlow-owned finalization before resetting hook state.
+    onBeforeNewProject?.();
     // 1. Stop any active generation / streaming first
     gen.handleStop();
     deliv.stopGenerating();

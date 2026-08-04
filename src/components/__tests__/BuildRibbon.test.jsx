@@ -41,8 +41,8 @@ describe('BuildRibbon', () => {
   it('uses compact, readable labels below 360px without shrinking the type floor', () => {
     const html = renderToStaticMarkup(<BuildRibbon model={makeModel()} />);
 
-    expect(html).toContain('Living Compiler');
-    expect(html).toContain('Living Course Compiler');
+    expect(html).toContain('Build details');
+    expect(html).not.toContain('Living Course Compiler');
     for (const label of ['AI', 'Map', 'Enrich', 'Build', 'Check', 'Grade']) {
       expect(html).toContain(`>${label}</span>`);
     }

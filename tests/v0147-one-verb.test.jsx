@@ -3,8 +3,8 @@
  *
  * v0.14.7 WS-F — one verb, one decision.
  *
- * F1 — PrimaryCta, the morphing header CTA: pipeline running → "Building…"
- *      (disabled, spinner); ready with reviews outstanding → "Review N"
+ * F1 — PrimaryCta, the morphing header CTA: pipeline running → nothing
+ *      (BuildRibbon is the sole narrator); ready with reviews outstanding → "Review N"
  *      (indigo, opens the queue); ready and downloadable → nothing, because
  *      Download ZIP belongs only to the export panel. Project/file actions stay in the
  *      workspace disclosure; package actions stay with export/agent surfaces.
@@ -65,13 +65,11 @@ const READY_MODEL = { stage: 'ready', running: false };
 const RUNNING_MODEL = { stage: 'compile', running: true };
 
 describe('F1 — the morphing CTA state matrix', () => {
-  it('pipeline running → "Building…", disabled, with the house spinner', () => {
+  it('pipeline running → no duplicate header action', () => {
     const { container } = mount(<PrimaryCta ribbonModel={RUNNING_MODEL} reviewCount={0} canDownload={false} />);
     const cta = container.querySelector('[data-testid="primary-cta"]');
-    expect(cta).not.toBeNull();
-    expect(cta.textContent).toContain('Building…');
-    expect(cta.disabled).toBe(true);
-    expect(cta.querySelector('.animate-spin')).not.toBeNull();
+    expect(cta).toBeNull();
+    expect(container.textContent).toBe('');
   });
 
   it('ready + reviews outstanding + not downloadable → "Review N" (indigo interactive), click opens the queue', () => {

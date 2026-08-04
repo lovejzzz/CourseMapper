@@ -1,12 +1,59 @@
-import { describe, it, expect } from 'vitest';
-import {
+/**
+ * @vitest-environment happy-dom
+ */
+import React from 'react';
+import { act } from 'react';
+import { createRoot } from 'react-dom/client';
+import { afterEach, describe, it, expect, vi } from 'vitest';
+import ProgressHeader, {
   getDeliverableDoneCount,
   getPendingSyncWorkCount,
   getProgressDisplayStatus,
   getProgressPhaseLabel,
 } from '../ProgressHeader';
 
+let mountedRoot = null;
+let mountedContainer = null;
+
+afterEach(() => {
+  if (mountedRoot) {
+    act(() => mountedRoot.unmount());
+  }
+  mountedRoot = null;
+  mountedContainer?.remove();
+  mountedContainer = null;
+});
+
 describe('ProgressHeader progress helpers', () => {
+  it('does not pass the click event into deliverable cancellation', () => {
+    const onStopDeliverables = vi.fn();
+    mountedContainer = document.createElement('div');
+    document.body.appendChild(mountedContainer);
+    mountedRoot = createRoot(mountedContainer);
+    act(() => {
+      mountedRoot.render(
+        <ProgressHeader
+          currentStep="done"
+          deliverables={{ lessonPlans: { status: 'streaming' } }}
+          delivProgress={{ done: 0, total: 1, perFeature: {} }}
+          currentDelivFeatures={new Set(['lessonPlans'])}
+          isDelivGenerating
+          onStopDeliverables={onStopDeliverables}
+        />,
+      );
+    });
+
+    const expand = mountedContainer.querySelector('button[aria-expanded="false"]');
+    act(() => expand.click());
+    const stop = [...mountedContainer.querySelectorAll('button')].find(
+      (button) => button.textContent.trim() === 'Stop',
+    );
+    act(() => stop.click());
+
+    expect(onStopDeliverables).toHaveBeenCalledTimes(1);
+    expect(onStopDeliverables).toHaveBeenCalledWith();
+  });
+
   it('uses persisted done status while deliverables are still generating', () => {
     const delivRows = [
       { id: 'lessonPlans', status: 'done' },

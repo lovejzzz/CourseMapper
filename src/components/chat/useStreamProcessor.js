@@ -831,7 +831,14 @@ export function buildAgentChatHistory(messages) {
       history.push({ role: 'assistant', content: `[Image search: ${m.imageSearch?.query || 'images'}]` });
     } else if (m.role === 'syncSuggestion') {
       const featureNames = (m.plan || []).map((p) => resolveLabel(p.featureId)).join(', ');
-      const statusText = m.status === 'done' ? 'synced' : m.status === 'skipped' ? 'skipped' : 'pending';
+      const statusText =
+        m.status === 'done'
+          ? 'synced'
+          : m.status === 'stopped'
+            ? 'stopped'
+            : m.status === 'skipped'
+              ? 'skipped'
+              : 'pending';
       history.push({ role: 'assistant', content: `[Sync suggestion: ${featureNames} — ${statusText}]` });
     } else if (m.role === 'agentProgress') {
       // Serialize agentic turn as a summary

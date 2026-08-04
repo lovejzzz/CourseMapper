@@ -12,11 +12,12 @@ export default function SyncSuggestionCard({ suggestion, onApprove, onSkip }) {
 
   if (!suggestion) return null;
 
-  const { id, status, editSource, editSummary, plan, failedItems } = suggestion;
+  const { id, status, editSource, editSummary, plan, failedItems, completedFeatureIds = [] } = suggestion;
   const isPending = status === 'pending';
   const isSyncing = status === 'syncing';
   const isDone = status === 'done';
   const isSkipped = status === 'skipped';
+  const isStopped = status === 'stopped';
   const isPartialFail = status === 'partialFail';
   const effectivePlan = plan || [];
   const isBlueprintSync =
@@ -47,7 +48,7 @@ export default function SyncSuggestionCard({ suggestion, onApprove, onSkip }) {
         text: 'text-emerald-700',
         subtext: 'text-emerald-600/70',
       }
-    : isSkipped
+    : isSkipped || isStopped
       ? {
           bg: 'bg-slate-50/60',
           border: 'border-slate-200/30',
@@ -86,6 +87,7 @@ export default function SyncSuggestionCard({ suggestion, onApprove, onSkip }) {
     if (isDone) return isBlueprintSync ? 'Blueprint Sync Complete' : 'Sync Complete';
     if (isSyncing) return 'Syncing...';
     if (isSkipped) return isBlueprintSync ? 'Kept Local' : 'Sync Skipped';
+    if (isStopped) return 'Sync Stopped';
     if (isPartialFail) return 'Sync Partially Failed';
     if (isBlueprintSync) return 'Sync Choice';
     return `${effectivePlan.length} Deliverable${effectivePlan.length !== 1 ? 's' : ''} Need Syncing`;
@@ -209,13 +211,14 @@ export default function SyncSuggestionCard({ suggestion, onApprove, onSkip }) {
                 ? `Lesson${entry.lessonIndices.length > 1 ? 's' : ''} ${entry.lessonIndices.map((n) => n + 1).join(', ')}`
                 : 'full regeneration';
               const isFailed = failedItems?.some((f) => f.featureId === entry.featureId);
+              const completedBeforeStop = isStopped && completedFeatureIds.includes(entry.featureId);
 
               return (
                 <label
                   key={i}
                   className={`flex items-center gap-2 text-[12px] py-0.5 ${
                     isPending ? 'cursor-pointer hover:bg-amber-50/50 rounded px-1 -mx-1' : ''
-                  } ${isFailed ? 'text-red-600' : isDone ? 'text-emerald-700' : isSkipped ? 'text-slate-400' : 'text-amber-700'}`}
+                  } ${isFailed ? 'text-red-600' : isDone || completedBeforeStop ? 'text-emerald-700' : isSkipped || isStopped ? 'text-slate-400' : 'text-amber-700'}`}
                 >
                   {/* Checkbox only when pending. Blueprint sync uses explicit choice buttons below. */}
                   {isPending && !isBlueprintSync && (
@@ -228,9 +231,9 @@ export default function SyncSuggestionCard({ suggestion, onApprove, onSkip }) {
                   )}
                   {!isPending && (
                     <span
-                      className={`font-mono text-[11px] ${isFailed ? 'text-red-400' : isDone ? 'text-emerald-400' : 'text-slate-300'}`}
+                      className={`font-mono text-[11px] ${isFailed ? 'text-red-400' : isDone || completedBeforeStop ? 'text-emerald-400' : 'text-slate-300'}`}
                     >
-                      {isFailed ? '✗' : isDone ? '✓' : '•'}
+                      {isFailed ? '✗' : isDone || completedBeforeStop ? '✓' : '•'}
                     </span>
                   )}
                   <span className="flex-1">

@@ -69,7 +69,8 @@ describe('v0.16.3 first-five-minutes UX contract', () => {
     expect(landing).toContain('data-testid="ai-config-summary"');
     expect(landing).toContain('useState(isReady)');
     expect(landing).toContain('Connected');
-    expect(landing).toContain('Zero-download');
+    expect(landing).not.toContain('Zero-download');
+    expect(landing).toContain('<details');
     expect(landing).toContain('Generate full course');
     expect(landing).toContain('Customize package');
     expect(landing).toContain('data-testid="landing-requirement"');

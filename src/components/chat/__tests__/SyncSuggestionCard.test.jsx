@@ -121,4 +121,23 @@ describe('SyncSuggestionCard', () => {
     expect(buttonByText(container, 'Sync this lesson')).not.toBeNull();
     expect(buttonByText(container, 'Sync related materials')).not.toBeNull();
   });
+
+  it('shows an intentional Stop as neutral instead of a failed sync', () => {
+    root = renderCard(container, {
+      suggestion: {
+        id: 'sync-stopped',
+        status: 'stopped',
+        completedFeatureIds: ['lessonPlans'],
+        editSource: 'artifactBlueprint',
+        editSummary: { fields: ['topic'], lessonIndices: [0] },
+        plan: [{ featureId: 'lessonPlans', lessonIndices: [0] }],
+      },
+      onApprove: vi.fn(),
+      onSkip: vi.fn(),
+    });
+
+    expect(container.textContent).toContain('Sync Stopped');
+    expect(container.textContent).not.toContain('Failed');
+    expect(buttonByText(container, 'Retry Failed (1)')).toBeUndefined();
+  });
 });

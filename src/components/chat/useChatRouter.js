@@ -729,10 +729,17 @@ export default function useChatRouter({
         : Array.isArray(completed?.completedFeatureIds)
           ? completed.completedFeatureIds
           : [];
+      const syncStopped = completed?.syncSummary?.status === 'aborted';
       const completedIds = new Set(completedFeatureIds);
       const failed = effectivePlan.filter((p) => !completedIds.has(p.featureId));
       const result = {
-        status: failed.length > 0 ? (completedFeatureIds.length > 0 ? 'partialFail' : 'failed') : 'done',
+        status: syncStopped
+          ? 'stopped'
+          : failed.length > 0
+            ? completedFeatureIds.length > 0
+              ? 'partialFail'
+              : 'failed'
+            : 'done',
         suggestion: matchMsg || null,
         selectedPlan: effectivePlan,
         completedFeatureIds,
@@ -741,7 +748,11 @@ export default function useChatRouter({
         syncSummary: completed?.syncSummary || null,
       };
 
-      if (failed.length > 0 && completedFeatureIds.length > 0) {
+      if (syncStopped) {
+        setMessages((prev) =>
+          prev.map((m) => (m.id === suggestionId ? { ...m, status: 'stopped', completedFeatureIds } : m)),
+        );
+      } else if (failed.length > 0 && completedFeatureIds.length > 0) {
         // Partial failure — some succeeded, some didn't
         setMessages((prev) =>
           prev.map((m) =>

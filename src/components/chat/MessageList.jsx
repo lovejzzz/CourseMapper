@@ -27,6 +27,7 @@ import {
   LANDING_AGENT_CONTEXT_SOURCE,
   summarizeLandingAgentContext,
 } from '../../lib/landingAgentContext';
+import { preferredScrollBehavior } from '../../lib/motionPreference';
 
 // Stable key generator: assigns a unique ID to each message object (by identity).
 // Uses WeakMap so keys are GC'd when messages are removed.
@@ -112,7 +113,7 @@ export default function MessageList({
     return -1;
   }, [messages]);
 
-  const scrollToBottom = useCallback((behavior = 'smooth') => {
+  const scrollToBottom = useCallback((behavior = preferredScrollBehavior()) => {
     const container = containerRef.current;
     if (container) {
       const applyScroll = () => {
@@ -175,7 +176,7 @@ export default function MessageList({
       }
       setPendingNewCount(0);
     } else if (isAtBottom || shouldFollowAgentAction) {
-      scrollToBottom(shouldFollowAgentAction ? 'auto' : 'smooth');
+      scrollToBottom(shouldFollowAgentAction ? 'auto' : preferredScrollBehavior());
     } else {
       // User is scrolled up — accumulate how many arrived while they're away.
       const delta = messages.length - prev;
@@ -441,7 +442,7 @@ export default function MessageList({
       {!isAtBottom && pendingNewCount > 0 && (
         <button
           type="button"
-          onClick={() => scrollToBottom('smooth')}
+          onClick={() => scrollToBottom(preferredScrollBehavior())}
           className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500 text-white text-xs font-semibold shadow-lg hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all animate-in fade-in slide-in-from-bottom-2 duration-200"
           aria-label={`Jump to ${pendingNewCount} new message${pendingNewCount === 1 ? '' : 's'}`}
         >

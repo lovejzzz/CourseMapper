@@ -780,6 +780,18 @@ function buildGenerationReceipt(result = {}, featureSummary, requestedFeatureIds
 }
 
 function buildSyncReceipt(featureSummary, mode = 'Sync', syncResult = null) {
+  if (syncResult?.status === 'stopped') {
+    const updatedCount = syncResult.completedFeatureIds?.length || 0;
+    return buildAgentReceiptMessage({
+      title: 'Sync stopped',
+      status: 'done',
+      badge: 'Stopped',
+      mode,
+      target: featureSummary,
+      changed: updatedCount ? `${updatedCount} updated before Stop` : 'No changes',
+      next: 'Sync when ready.',
+    });
+  }
   const canonicalPatches = collectSyncCanonicalPatches(syncResult);
   if (canonicalPatches.length > 0) {
     const providerCallText = getSyncReceiptProviderCallText(syncResult, true);
@@ -1513,11 +1525,11 @@ export default function ChatPanel({
     [],
   );
 
-  const showProgressHeader = !!(
+  const showProgressHeader = Boolean(
     error ||
-    (currentStep && currentStep !== 'done') ||
-    isDelivGenerating ||
-    finishStatus === 'running'
+    isStopped ||
+    (!ribbonModel?.running &&
+      ((currentStep && currentStep !== 'done') || isDelivGenerating || finishStatus === 'running')),
   );
   const compactReady = Boolean(
     compactReadyMode && isPackageReady(packageQualityPass) && !chat.isStreaming && !showProgressHeader,
@@ -2880,7 +2892,7 @@ export default function ChatPanel({
         </div>
       )}
 
-      {showsAgentIdentity && !compactReady && (
+      {showsAgentIdentity && !compactReady && !ribbonModel?.running && (
         <AgentWorkingSetPanel
           courseMap={courseMap}
           activeTab={activeTab}

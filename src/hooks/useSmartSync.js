@@ -100,7 +100,8 @@ export default function useSmartSync({
   provider = '',
   modelId = '',
   selectedFeatures,
-  onSyncComplete, // callback(affectedFeatureIds[]) — called when sync batch done
+  workflowEpochRef, // owning package workflow, captured before sync awaits
+  onSyncComplete, // callback(affectedFeatureIds[], workflowEpoch) — called when sync batch done
   onRequestProposal, // callback({ featureId, lessonIndex, editContext, courseMap })
   onApplyCanonicalPatches, // callback(patches[]) — applies approved artifact edits to course map before compile
   onResolveCanonicalPatchRequests, // callback(requests[]) — tiny model fallback that returns canonical patches
@@ -163,10 +164,16 @@ export default function useSmartSync({
 
       syncGenIdRef.current += 1;
       const currentGenId = syncGenIdRef.current;
+      const workflowEpoch = workflowEpochRef?.current ?? null;
 
       isSyncingRef.current = true;
       setIsSyncing(true);
       setPendingSyncCount(plan.length);
+      const finishSync = () => {
+        isSyncingRef.current = false;
+        setIsSyncing(false);
+        setPendingSyncCount(0);
+      };
 
       const completedFeatureIds = [];
       const resultDetails = [];
@@ -193,6 +200,17 @@ export default function useSmartSync({
         ...collectPlanCanonicalPatches(plan),
         ...resolvedCanonicalPatches,
       ]);
+      if ((workflowEpochRef?.current ?? null) !== workflowEpoch) {
+        finishSync();
+        const stopped = [];
+        stopped.syncSummary = {
+          status: 'aborted',
+          completedFeatureIds: [],
+          changedFieldsSummary,
+          plan,
+        };
+        return stopped;
+      }
       let canonicalPatchResult = null;
       if (canonicalPatchRequests.length > 0 && canonicalPatches.length === 0) {
         const result = [];
@@ -222,9 +240,7 @@ export default function useSmartSync({
           'courseMap',
           canonicalPatchResolution?.error || 'Could not map the approved edit to a blueprint patch',
         );
-        isSyncingRef.current = false;
-        setIsSyncing(false);
-        setPendingSyncCount(0);
+        finishSync();
         return result;
       }
       if (canonicalPatches.length > 0 && onApplyCanonicalPatchesRef.current) {
@@ -255,24 +271,37 @@ export default function useSmartSync({
           );
 
           try {
+            let featureCompleted = false;
+            let failureStatus = 'incomplete';
             if (lessonIndices === null) {
-              await delivRef.current.generateAll(currentCourseMap, [featureId], null, currentGenId);
+              const generationResult = await delivRef.current.generateAll(
+                currentCourseMap,
+                [featureId],
+                null,
+                currentGenId,
+              );
+              featureCompleted = Boolean(generationResult?.completedFeatureIds?.includes(featureId));
+              if (!featureCompleted) failureStatus = generationResult?.status || 'incomplete';
               resultDetails.push({
-                status: 'done',
+                status: featureCompleted ? 'done' : failureStatus,
                 featureId,
                 lessonIndices: null,
                 syncSource: 'feature-generation',
+                providerCallCount: Number(generationResult?.providerCallCount || 0),
               });
             } else {
+              featureCompleted = true;
+              let currentEntry = delivRef.current.deliverables?.[featureId] ?? null;
+              let currentData = currentEntry?.data ?? null;
               for (const lessonIdx of lessonIndices) {
-                const lessonResult = await delivRef.current.regenerateLesson(
-                  featureId,
-                  currentCourseMap,
-                  lessonIdx,
-                  currentGenId,
-                );
+                const lessonResult = await delivRef.current.regenerateLesson(featureId, currentCourseMap, lessonIdx, {
+                  syncGenId: currentGenId,
+                  currentData,
+                  currentEntry,
+                });
+                const lessonStatus = lessonResult?.status || 'incomplete';
                 resultDetails.push({
-                  status: lessonResult?.status || 'done',
+                  status: lessonStatus,
                   featureId,
                   lessonIndex: lessonIdx,
                   syncSource: lessonResult?.syncSource || 'unknown',
@@ -281,7 +310,26 @@ export default function useSmartSync({
                   // 'missing' = template tier, surfaced loudly below.
                   enrichment: lessonResult?.enrichment || null,
                 });
+                if (lessonStatus !== 'done') {
+                  featureCompleted = false;
+                  failureStatus = lessonStatus;
+                  break;
+                }
+                if (lessonResult.data) {
+                  currentData = lessonResult.data;
+                  currentEntry = lessonResult.entry || {
+                    status: 'done',
+                    data: currentData,
+                    error: null,
+                    stale: false,
+                    staleConfidence: null,
+                  };
+                }
               }
+            }
+            if (!featureCompleted) {
+              appendSyncLog('error', featureId, failureStatus === 'aborted' ? 'Sync stopped' : `Sync ${failureStatus}`);
+              return;
             }
             appendSyncLog(
               'done',
@@ -293,6 +341,7 @@ export default function useSmartSync({
             completedFeatureIds.push(featureId);
           } catch (err) {
             appendSyncLog('error', featureId, err.message || 'Sync failed');
+            resultDetails.push({ status: 'error', featureId });
           } finally {
             setSyncingFeatures((prev) => {
               const next = new Set(prev);
@@ -305,12 +354,11 @@ export default function useSmartSync({
 
       await Promise.all(tasks);
 
-      isSyncingRef.current = false;
-      setIsSyncing(false);
-      setPendingSyncCount(0);
+      const syncStopped = (workflowEpochRef?.current ?? null) !== workflowEpoch;
+      finishSync();
 
-      if (completedFeatureIds.length > 0 && onSyncCompleteRef.current) {
-        onSyncCompleteRef.current(completedFeatureIds);
+      if (!syncStopped && completedFeatureIds.length > 0 && onSyncCompleteRef.current) {
+        onSyncCompleteRef.current(completedFeatureIds, workflowEpoch);
       }
 
       const providerCallCount = resultDetails.reduce((sum, item) => sum + Number(item.providerCallCount || 0), 0);
@@ -325,6 +373,7 @@ export default function useSmartSync({
         );
       }
       const syncSummary = {
+        status: syncStopped ? 'aborted' : undefined,
         completedFeatureIds: [...completedFeatureIds],
         changedFieldsSummary,
         canonicalPatches,
@@ -342,7 +391,7 @@ export default function useSmartSync({
       completedFeatureIds.syncSummary = syncSummary;
       return completedFeatureIds;
     },
-    [appendSyncLog, courseMapRef],
+    [appendSyncLog, courseMapRef, workflowEpochRef],
   );
 
   /**

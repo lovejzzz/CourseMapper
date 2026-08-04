@@ -8,6 +8,7 @@ import {
   parseOpenAIResponsesStreamChunk,
   prefersOpenAIResponsesApi,
 } from '../lib/openaiProvider';
+import { preferredScrollBehavior } from '../lib/motionPreference';
 
 function getSystemPrompt(courseMap, activeTab) {
   let contextSection = '';
@@ -416,7 +417,7 @@ function ChatBody({ messages, input, setInput, isStreaming, sendMessage, handleS
   const suggestedQuestions = getSuggestedQuestions(courseMap);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: preferredScrollBehavior() });
   }, [messages]);
 
   useEffect(() => {

@@ -89,6 +89,22 @@ import {
 } from '../lib/materializedLessonScope';
 import { resolveAlgiEnrichmentBatchSize, supportsModelVoicePass } from '../lib/algiIdentity';
 import { resolveQuizQuestionTarget } from '../lib/quizQuestionTarget';
+import {
+  abortDeliverableControllers,
+  abortDeliverableOperationControllers,
+  releaseDeliverableController,
+} from '../lib/deliverableCancellation';
+import {
+  beginGenerationEpoch,
+  cancelGenerationFeatureActivity,
+  cancelGenerationEpoch,
+  cancelFeatureGenerationEpoch,
+  captureFeatureGenerationEpoch,
+  createGenerationAbortController,
+  isFeatureGenerationEpochCancelled,
+  isGenerationEpochCancelled,
+  readGenerationActivity,
+} from '../lib/generationCancellation';
 
 const PROVIDER_CALL_EVENT_TYPES = new Set([
   'deliverableChunkCall',
@@ -232,6 +248,10 @@ function getDeliverableItemCount(featureId, data) {
   if (key) return Array.isArray(data?.[key]) ? data[key].length : 0;
   if (isRenderedDeliverableCollectionFeature(featureId)) return 0;
   return data && Object.keys(data).length > 0 ? 1 : 0;
+}
+
+function buildDoneEntry(data) {
+  return { status: 'done', data, error: null, stale: false, staleConfidence: null };
 }
 
 const IMAGE_WORTHY_SLIDE_TYPES = new Set(['content', 'bridge', 'example', 'keyTerm', 'activity']);
@@ -425,8 +445,12 @@ export default function useDeliverables({
   const freshTimersRef = useRef(new Map());
   // Per-feature/chunk abort controllers: Map<"featureId" | "featureId:chunkN", AbortController>
   const abortMapRef = useRef(new Map());
-  const timedOutFeaturesRef = useRef(new Set());
-  const featureActivityRef = useRef(new Map());
+  // Every generation captures an epoch. Stop advances it, permanently
+  // invalidating the rest of that run even if a later run starts immediately.
+  const generationEpochRef = useRef(0);
+  const featureGenerationEpochRef = useRef(new Map());
+  const activeGenerationOperationsRef = useRef(new Map());
+  const generationSnapshotsRef = useRef(new Map());
   const startedRef = useRef(false);
   // Track the active sync generation ID so stale results can be discarded
   const activeSyncGenRef = useRef(0);
@@ -435,6 +459,20 @@ export default function useDeliverables({
   // matter. Reload-survival comes from the fingerprint-keyed kernel cache;
   // this ref covers the common same-session edit path for free.
   const lastEnrichmentOverlayRef = useRef(null);
+
+  const syncGenerationActivity = useCallback(() => {
+    setIsGenerating(activeGenerationOperationsRef.current.size > 0);
+    setCurrentFeatures(readGenerationActivity(activeGenerationOperationsRef));
+  }, []);
+
+  const trackGenerationOperation = useCallback(
+    (operationId, featureIds) => {
+      if (featureIds) activeGenerationOperationsRef.current.set(operationId, new Set(featureIds));
+      else activeGenerationOperationsRef.current.delete(operationId);
+      syncGenerationActivity();
+    },
+    [syncGenerationActivity],
+  );
 
   // A restored project already carries its accepted lesson kernels on the
   // CourseGraph. Rehydrate the compiler ref before any manual Regen action;
@@ -522,10 +560,19 @@ export default function useDeliverables({
         ? Math.max(0, Math.floor(rawMaxProviderCalls))
         : null;
       let providerCallsUsed = 0;
+      let generationActivityAt = Date.now();
+      const buildAbortedGenerationResult = () => ({
+        status: 'aborted',
+        completedFeatureIds: [],
+        failedFeatureIds: [],
+        deliverables: {},
+        providerCallCount: providerCallsUsed,
+      });
       const getRemainingProviderCalls = () =>
         maxProviderCalls === null ? Number.POSITIVE_INFINITY : Math.max(0, maxProviderCalls - providerCallsUsed);
       const hasProviderCallBudget = (count = 1) => getRemainingProviderCalls() >= count;
       const recordGenerationApiCallEvent = (event) => {
+        generationActivityAt = Date.now();
         providerCallsUsed += getProviderCallEventCount(event);
         recordApiCallEvent({
           ...event,
@@ -534,8 +581,23 @@ export default function useDeliverables({
       };
       const getAllowedStreamRetries = (requested) =>
         maxProviderCalls === null ? requested : Math.max(0, Math.min(requested, getRemainingProviderCalls()));
-      const requestedFeatures = features.filter((f) => f && f !== 'courseMap');
+      let requestedFeatures = features.filter((f) => f && f !== 'courseMap');
       if (requestedFeatures.length === 0 || !courseMap) return;
+      const generationEpoch = beginGenerationEpoch(generationEpochRef);
+      const featureGenerationEpochs = new Map(
+        requestedFeatures.map((featureId) => [
+          featureId,
+          captureFeatureGenerationEpoch(featureGenerationEpochRef, featureId),
+        ]),
+      );
+      const isGenerationCancelled = (featureId = null) =>
+        isGenerationEpochCancelled(generationEpochRef, generationEpoch) ||
+        (featureId != null &&
+          isFeatureGenerationEpochCancelled(
+            featureGenerationEpochRef,
+            featureId,
+            featureGenerationEpochs.get(featureId) ?? 0,
+          ));
       const sourceBriefConstraints = analyzeSourceBriefConstraints(sourceBrief);
       const scionSourceLedgerRequested =
         (provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID) &&
@@ -548,7 +610,27 @@ export default function useDeliverables({
       });
       const blueprintCompilerEnabled =
         generationOptions.useBlueprintCompiler !== false && generationPlan?.blueprintCompiler !== false;
-      const blueprintCompiler = blueprintCompilerEnabled ? await import('../lib/courseBlueprintCompiler') : null;
+      const generationRunId = createGenerationRunId();
+      const alreadyActive = readGenerationActivity(activeGenerationOperationsRef);
+      for (const featureId of requestedFeatures) {
+        if (!alreadyActive.has(featureId))
+          generationSnapshotsRef.current.set(featureId, deliverables[featureId] ?? null);
+      }
+      trackGenerationOperation(generationRunId, requestedFeatures);
+      let blueprintCompiler;
+      try {
+        blueprintCompiler = blueprintCompilerEnabled ? await import('../lib/courseBlueprintCompiler') : null;
+      } catch (error) {
+        trackGenerationOperation(generationRunId);
+        throw error;
+      }
+      requestedFeatures = requestedFeatures.filter((featureId) => !isGenerationCancelled(featureId));
+      if (requestedFeatures.length === 0) {
+        trackGenerationOperation(generationRunId);
+        return buildAbortedGenerationResult();
+      }
+      const timedOutFeatures = new Set();
+      const featureActivity = new Map();
       const getBlueprintCompiledFeatures = blueprintCompiler?.getBlueprintCompiledFeatures || (() => []);
       const estimateBlueprintCompilerSavings = blueprintCompiler?.estimateBlueprintCompilerSavings || (() => 0);
       const compactBlueprintForStorage = blueprintCompiler?.compactBlueprintForStorage || ((blueprint) => blueprint);
@@ -587,24 +669,16 @@ export default function useDeliverables({
           type: 'pipelineDecision',
           stage: 'planHealth',
           label: 'Generation plan degraded',
-          detail:
-            'degraded: capability profile missing structured-output metadata — enrichment and lean contract disabled; re-validate the model in Config',
+          detail: 'enrichment off until model revalidation',
         });
-        appendLog(
-          '⚠ Generation plan degraded — stale model capability profile disabled enrichment and the lean contract; re-validate the model in Config',
-          'warn',
-        );
+        appendLog('⚠ Revalidate this model before building', 'warn');
       }
 
       startedRef.current = true;
-      timedOutFeaturesRef.current = new Set();
-      featureActivityRef.current = new Map();
       if (syncGenId !== null) activeSyncGenRef.current = syncGenId;
-      setIsGenerating(true);
       setGenerationLog([]);
       setDelivTimings({});
       const generationStartTime = Date.now();
-      const generationRunId = createGenerationRunId();
 
       const lessonCount = (courseMap.lessons || []).length;
       const lessonIndices = scopeIndices ?? Array.from({ length: lessonCount }, (_, i) => i);
@@ -727,7 +801,7 @@ export default function useDeliverables({
         : `all ${lessonCount} lesson${lessonCount !== 1 ? 's' : ''}`;
 
       appendLog(
-        `Starting package materials: ${requestedFeatures.length} deliverable${requestedFeatures.length !== 1 ? 's' : ''}, ${blueprintCompiledFeatureIds.length} blueprint-compiled, ${tasks.length} model task${tasks.length === 1 ? '' : 's'} for ${scopeDesc}`,
+        `Building ${requestedFeatures.length} materials · ${blueprintCompiledFeatureIds.length} local · ${tasks.length} model · ${scopeDesc}`,
         'start',
       );
       traceGeneration(generationRunId, 'run_start', {
@@ -772,6 +846,7 @@ export default function useDeliverables({
       }
 
       const markFeatureDone = (featureId, data) => {
+        if (isGenerationCancelled(featureId) || timedOutFeatures.has(featureId)) return;
         generatedDeliverables[featureId] = { status: 'done', data, error: null, stale: false };
         completedFeatureIds.add(featureId);
         failedFeatureIds.delete(featureId);
@@ -784,6 +859,7 @@ export default function useDeliverables({
       };
 
       const markFeatureError = (featureId, message) => {
+        if (isGenerationCancelled(featureId) || timedOutFeatures.has(featureId)) return;
         generatedDeliverables[featureId] = { status: 'error', data: null, error: message, stale: false };
         failedFeatureIds.add(featureId);
         dispatch(actions.setDeliverableError(featureId, message));
@@ -805,7 +881,8 @@ export default function useDeliverables({
       const featureStartTimes = {};
 
       const markFeatureActivity = (featureId) => {
-        featureActivityRef.current.set(featureId, Date.now());
+        generationActivityAt = Date.now();
+        featureActivity.set(featureId, generationActivityAt);
       };
 
       const getRetryBlockReason = (featureId) => retryBlockedFeatures.get(featureId) || '';
@@ -883,21 +960,14 @@ export default function useDeliverables({
         return allowed;
       };
 
-      const abortFeatureControllers = (featureId) => {
-        for (const [key, ctrl] of abortMapRef.current) {
-          if (key === featureId || key.startsWith(featureId + ':')) {
-            ctrl.abort();
-            abortMapRef.current.delete(key);
-          }
-        }
-      };
-
       const markFeatureTimedOut = (featureId, timeoutMs, timeoutType = 'idle') => {
-        if (timedOutFeaturesRef.current.has(featureId)) return;
-        timedOutFeaturesRef.current.add(featureId);
+        if (timedOutFeatures.has(featureId)) return;
+        timedOutFeatures.add(featureId);
         const label = getFeatureLabel(featureId);
         const message = buildDeliverableTimeoutError(label, timeoutMs, timeoutType);
-        abortFeatureControllers(featureId);
+        abortDeliverableControllers(abortMapRef.current, featureId, generationRunId);
+        generatedDeliverables[featureId] = { status: 'error', data: null, error: message, stale: false };
+        failedFeatureIds.add(featureId);
         dispatch(actions.setDeliverableError(featureId, message));
         appendLog(`✗ ${message}`, 'error');
         traceGeneration(
@@ -920,11 +990,13 @@ export default function useDeliverables({
             durationMs: endedAt - (featureStartTimes[featureId] || generationStartTime),
           },
         }));
-        setCurrentFeatures((prev) => {
-          const next = new Set(prev);
-          next.delete(featureId);
-          return next;
-        });
+        const activeFeatures = activeGenerationOperationsRef.current.get(generationRunId);
+        activeFeatures?.delete(featureId);
+        if (activeFeatures?.size === 0) {
+          activeGenerationOperationsRef.current.delete(generationRunId);
+          abortDeliverableOperationControllers(abortMapRef.current, generationRunId);
+        }
+        syncGenerationActivity();
         setProgress((prev) => ({
           ...prev,
           perFeature: {
@@ -945,8 +1017,9 @@ export default function useDeliverables({
       // unchanged); fully linked lessons ride Pass B as content-sourced
       // entries (goal/outcomes/activities only — augment, never displace).
       const runBlueprintEnrichment = async (blueprintCourseMap, nativeSkeleton = null) => {
-        const abortKey = 'blueprintEnrichment';
-        const controller = new AbortController();
+        const abortKey = `shared:${generationRunId}:blueprintEnrichment`;
+        const controller = createGenerationAbortController(generationEpochRef, generationEpoch);
+        if (!controller) return;
         abortMapRef.current.set(abortKey, controller);
         const outputCap = Number(generationOptions.blueprintEnrichmentMaxOutputTokens) || 1800;
         const enrichmentMaxOutputTokens = Math.max(512, Math.min(outputCap, Number(maxOutputTokens) || outputCap));
@@ -1181,7 +1254,7 @@ export default function useDeliverables({
             }
           } catch (linkErr) {
             if (linkErr?.name === 'AbortError') {
-              abortMapRef.current.delete(abortKey);
+              releaseDeliverableController(abortMapRef.current, abortKey, controller);
               throw linkErr;
             }
             // Genome is best-effort; the model path (or plain compile) continues.
@@ -1216,7 +1289,7 @@ export default function useDeliverables({
         const scionEvidencePromptOptions = scionEvidenceHandoff?.promptOptions || {};
 
         const genomeOnlyEnrichment = () => {
-          abortMapRef.current.delete(abortKey);
+          releaseDeliverableController(abortMapRef.current, abortKey, controller);
           const linkedCount = genomeLink ? Object.keys(genomeLink.lessonContent).length : 0;
           const missingLessons = allLessonIndices
             .filter((lessonIndex) => !genomeLink?.lessonContent?.[`lesson-${lessonIndex + 1}`])
@@ -1771,10 +1844,10 @@ export default function useDeliverables({
               return genomeOnlyEnrichment();
             }
             appendLog(
-              `✓ Native Pass B authored ${Object.keys(nativeAuthored).length} lesson(s) of outcomes + activities onto the skeleton (${enrichedLessonCount}/${allLessonIndices.length} lesson kernel${allLessonIndices.length === 1 ? '' : 's'} admitted; ${availablePayloadCount} payload${availablePayloadCount === 1 ? '' : 's'} available)`,
+              `✓ Authored ${Object.keys(nativeAuthored).length}; kernels ${enrichedLessonCount}/${allLessonIndices.length}; payloads ${availablePayloadCount}`,
               'done',
             );
-            abortMapRef.current.delete(abortKey);
+            releaseDeliverableController(abortMapRef.current, abortKey, controller);
             return {
               signatureTerms: absorbedCourseLevel?.signatureTerms || [],
               lens: absorbedCourseLevel?.lens || null,
@@ -1803,7 +1876,7 @@ export default function useDeliverables({
             };
           } catch (nativeErr) {
             if (nativeErr?.name === 'AbortError') {
-              abortMapRef.current.delete(abortKey);
+              releaseDeliverableController(abortMapRef.current, abortKey, controller);
               appendLog('Native Pass B stopped', 'warn');
               return null;
             }
@@ -2279,7 +2352,7 @@ export default function useDeliverables({
             stageDecisions,
           };
           appendLog(
-            `✓ Knowledge kernels admitted for ${enrichedLessonCount}/${allLessonIndices.length} lesson${allLessonIndices.length === 1 ? '' : 's'} (${availablePayloadCount} payload${availablePayloadCount === 1 ? '' : 's'} available; quiz, slides, study guide, discussion, assignment from one payload)${absorbedCourseLevel ? ` + course lens (${absorbedCourseLevel.signatureTerms.length} terms)` : ''}`,
+            `✓ Kernels ${enrichedLessonCount}/${allLessonIndices.length}; payloads ${availablePayloadCount}${absorbedCourseLevel ? `; course lens ${absorbedCourseLevel.signatureTerms.length} terms` : ''}`,
             'done',
           );
           return enrichment;
@@ -2294,12 +2367,16 @@ export default function useDeliverables({
           stageDecisions.modelStage = `failed: ${err.message || 'model error'}`;
           return genomeOnlyEnrichment();
         } finally {
-          abortMapRef.current.delete(abortKey);
+          releaseDeliverableController(abortMapRef.current, abortKey, controller);
         }
       };
 
+      const shouldStopBlueprintCompiler = () =>
+        isGenerationCancelled() || blueprintCompiledFeatureIds.every((featureId) => isGenerationCancelled(featureId));
+
       const runBlueprintCompiler = async () => {
         if (blueprintCompiledFeatureIds.length === 0) return;
+        if (shouldStopBlueprintCompiler()) return;
         const compiledStart = Date.now();
         const labelList = blueprintCompiledFeatureIds.map(getFeatureLabel).join(', ');
         appendLog(
@@ -2317,6 +2394,7 @@ export default function useDeliverables({
         let directCourseIRResult;
         if (authoringNative) {
           const { takeDirectCourseIRCompileState } = await import('../lib/courseIRAuthoringRuntime');
+          if (shouldStopBlueprintCompiler()) return;
           directCourseIRResult = takeDirectCourseIRCompileState(courseMap, [recordGenerationApiCallEvent, appendLog]);
         }
         const directCourseIR = directCourseIRResult?.courseIR;
@@ -2324,6 +2402,7 @@ export default function useDeliverables({
           authoringNative &&
           !directCourseIR &&
           (await import('../lib/nativeGraphAuthoring')).takeNativeSkeleton(courseMap);
+        if (shouldStopBlueprintCompiler()) return;
         if (authoringNative && !directCourseIR && !nativeSkeleton) {
           const mapLooksUnauthored = !(courseMap.lessons || []).some((lesson) =>
             (lesson?.sections || []).some((section) => {
@@ -2335,12 +2414,9 @@ export default function useDeliverables({
             recordGenerationApiCallEvent({
               type: 'nativeAuthoringFellBack',
               label: 'Native authoring fell back to prose',
-              detail: 'no Pass A skeleton available for an unauthored course map',
+              detail: 'missing Pass A skeleton',
             });
-            appendLog(
-              '⚠ Native authoring: no Pass A skeleton reached the deliverables stage — compiling through the prose pipeline',
-              'warn',
-            );
+            appendLog('⚠ Native authoring unavailable — prose fallback', 'warn');
           }
         }
         // The skeleton render is intentionally thin pre-Pass-B; the readiness
@@ -2357,6 +2433,7 @@ export default function useDeliverables({
               });
         const blueprintCourseMap = courseMapRepair.courseMap || courseMap;
         if (courseMapRepair.changed) {
+          if (shouldStopBlueprintCompiler()) return;
           appendLog(
             `Filled sparse fields for blueprint compile: ${courseMapRepair.repairedFields.slice(0, 3).join('; ')}${courseMapRepair.repairedFields.length > 3 ? ` +${courseMapRepair.repairedFields.length - 3} more` : ''}`,
             'progress',
@@ -2385,6 +2462,7 @@ export default function useDeliverables({
           lastEnrichmentOverlayRef.current?.lessonContent
         ) {
           const { restoreCompleteEnrichmentOverlay } = await import('../lib/compiledLessonSync');
+          if (shouldStopBlueprintCompiler()) return;
           const restored = restoreCompleteEnrichmentOverlay(
             lastEnrichmentOverlayRef.current,
             blueprintCourseMap,
@@ -2404,6 +2482,7 @@ export default function useDeliverables({
         }
         if (!directCourseIRState && !blueprintEnrichment) {
           blueprintEnrichment = await runBlueprintEnrichment(blueprintCourseMap, nativeSkeleton);
+          if (shouldStopBlueprintCompiler()) return;
         }
         // v0.12.1: structured outcome for the run digest's content-risk
         // gate — string parsing of `detail` is too fragile to gate on.
@@ -2411,13 +2490,17 @@ export default function useDeliverables({
         // missing lesson numbers) so partial enrichment reads as
         // "ran (12/14 — lessons 13, 14 fell back to template)" everywhere
         // (digest pipeline line, PACKAGE_MANIFEST, finalizer warning).
-        const { buildEnrichmentDecisionEvent } = await import('../lib/enrichmentDecisionEvent');
+        const [{ buildEnrichmentDecisionEvent }, instructorPreferenceProfile, courseGraphLib] = await Promise.all([
+          import('../lib/enrichmentDecisionEvent'),
+          loadInstructorPreferenceProfile(),
+          import('../lib/courseGraph'),
+        ]);
+        if (shouldStopBlueprintCompiler()) return;
         const { outcome: enrichmentOutcome, event: enrichmentDecisionEvent } = buildEnrichmentDecisionEvent({
           blueprintEnrichment,
           compilerRoute: nativeSkeleton?.scionRoute,
         });
         recordGenerationApiCallEvent(enrichmentDecisionEvent);
-        const instructorPreferenceProfile = await loadInstructorPreferenceProfile();
         if (instructorPreferenceProfile?.signalCount > 0) {
           appendLog(
             `Applying ${instructorPreferenceProfile.signalCount} learned edit pattern${instructorPreferenceProfile.signalCount === 1 ? '' : 's'}...`,
@@ -2432,7 +2515,6 @@ export default function useDeliverables({
         // CurriculumV1: native assembly now validates a CourseIR brain and
         // projects the graph from it before compile. Assembly failures still
         // fall back to the prose path loudly.
-        const courseGraphLib = await import('../lib/courseGraph');
         // Pass B's nativeAuthored block is assembly input, not overlay data —
         // strip it so the stored enrichmentOverlay keeps the standard shape.
         // The prose path passes blueprintEnrichment through UNTOUCHED
@@ -2464,6 +2546,7 @@ export default function useDeliverables({
         } else if (nativeSkeleton) {
           const { backfillNativeAuthoringFromLessonContent, resolveNativeAssembly } =
             await import('../lib/nativeGraphAuthoring');
+          if (shouldStopBlueprintCompiler()) return;
           const effectiveNativeAuthored = backfillNativeAuthoringFromLessonContent({
             skeleton: nativeSkeleton,
             authoredBySession: blueprintEnrichment?.nativeAuthored || {},
@@ -2524,10 +2607,7 @@ export default function useDeliverables({
               label: 'Native authoring fell back to prose',
               detail: resolution.reason,
             });
-            appendLog(
-              `⚠ Native authoring fell back (${resolution.reason}) — compiling through the prose pipeline`,
-              'warn',
-            );
+            appendLog(`⚠ Native authoring fell back: ${resolution.reason}`, 'warn');
             nativeFallbackMap = resolution.fallbackMap;
           }
         }
@@ -2583,6 +2663,7 @@ export default function useDeliverables({
         } else {
           try {
             const knowledge = await import('../lib/knowledge');
+            if (shouldStopBlueprintCompiler()) return;
             genomeResourceCount = knowledge.attachGenomeResources(courseGraph);
             let coverage = knowledge.knowledgeCoverage(courseGraph);
             if (!allowExternalKnowledge) {
@@ -2590,7 +2671,7 @@ export default function useDeliverables({
                 type: 'pipelineDecision',
                 stage: 'knowledgeBackbone',
                 label: 'Private knowledge backbone',
-                detail: 'Private mode · shipped teaching genome only · no external course-topic requests',
+                detail: 'Private mode · teaching genome only · no external requests',
               });
             } else if (enrichmentForGraph?.stageDecisions?.scionEvidenceReadingSkip) {
               recordGenerationApiCallEvent(enrichmentForGraph.stageDecisions.scionEvidenceReadingSkip);
@@ -2599,7 +2680,7 @@ export default function useDeliverables({
                 type: 'knowledgeBackboneLookup',
                 stage: 'knowledge-backbone',
                 label: 'Finding open readings',
-                detail: `Checking public sources for up to ${Math.min(24, courseGraph.sessions?.length || 0)} lessons`,
+                detail: `Checking sources for ${Math.min(24, courseGraph.sessions?.length || 0)} lessons`,
               });
               openReadingCount = await knowledge.attachOpenReadings(courseGraph, {
                 maxSessions: 24,
@@ -2612,6 +2693,7 @@ export default function useDeliverables({
                   });
                 },
               });
+              if (shouldStopBlueprintCompiler()) return;
               coverage = knowledge.knowledgeCoverage(courseGraph);
               if (knowledge.shouldRunSourceFinder?.(coverage)) {
                 const sourceTopicCount = Math.min(24, courseGraph.sessions?.length || 0);
@@ -2619,7 +2701,7 @@ export default function useDeliverables({
                   type: 'knowledgeBackboneLookup',
                   stage: 'knowledge-backbone',
                   label: 'Finding complementary sources',
-                  detail: `Checking complementary public sources for up to ${sourceTopicCount} lessons`,
+                  detail: `Checking complementary sources for ${sourceTopicCount} lessons`,
                 });
                 const sourceMiniShard = await knowledge.findCourseSources(courseGraph, {
                   maxTopics: 24,
@@ -2637,6 +2719,7 @@ export default function useDeliverables({
                     });
                   },
                 });
+                if (shouldStopBlueprintCompiler()) return;
                 if (sourceMiniShard?.stats?.timedOut) {
                   recordGenerationApiCallEvent({
                     type: 'pipelineDecision',
@@ -2657,18 +2740,14 @@ export default function useDeliverables({
                   ? coverage.sessions
                   : coverage.sessionsWithResources;
               appendLog(
-                `✓ Reading lists attached: ${genomeResourceCount} cited textbook section${genomeResourceCount === 1 ? '' : 's'} + ${openReadingCount} open reading${openReadingCount === 1 ? '' : 's'}${sourceFinderCount > 0 ? ` + ${sourceFinderCount} source-finder citation${sourceFinderCount === 1 ? '' : 's'}` : ''} across ${lessonCountWithReadings} lesson${lessonCountWithReadings === 1 ? '' : 's'}`,
+                `✓ Readings: ${genomeResourceCount + openReadingCount + sourceFinderCount} sources across ${lessonCountWithReadings} lessons`,
                 'done',
               );
               recordGenerationApiCallEvent({
                 type: 'pipelineDecision',
                 stage: 'knowledgeBackbone',
                 label: 'Knowledge backbone',
-                detail: `${coverage.genomeLinkedLessons}/${coverage.sessions} lessons genome-linked · ${coverage.openResources} graph reading resources (${Object.entries(
-                  coverage.resourcesByOrigin,
-                )
-                  .map(([origin, count]) => `${origin}: ${count}`)
-                  .join(', ')}) · ${lessonCountWithReadings}/${coverage.sessions} lessons with readings`,
+                detail: `${coverage.genomeLinkedLessons}/${coverage.sessions} genome-linked · ${coverage.openResources} readings · ${lessonCountWithReadings}/${coverage.sessions} lessons covered`,
               });
               const sourceBackedJudgment = buildSourceBackedJudgmentStageEvent({
                 sourceRefCoverage: courseGraph?.courseIR?.sourceRefCoverage || null,
@@ -2685,6 +2764,7 @@ export default function useDeliverables({
             /* the knowledge backbone is additive — generation never fails on it */
           }
         }
+        if (shouldStopBlueprintCompiler()) return;
         if (typeof onCourseGraph === 'function') {
           onCourseGraph(courseGraph, { source: 'generation' });
         }
@@ -2705,7 +2785,7 @@ export default function useDeliverables({
             type: 'pipelineDecision',
             stage: 'courseGraph',
             label: 'Course graph',
-            detail: `${graphStats.sessions} sessions · ${graphStats.concepts} concepts (${graphStats.genomeLinkedConcepts} genome-linked) · ${graphStats.outcomes} outcomes · ${graphStats.assessments} assessments${alignmentFindings.length > 0 ? ` · ${alignmentFindings.length} alignment finding(s)` : ''}`,
+            detail: `${graphStats.sessions} sessions · ${graphStats.concepts} concepts · ${graphStats.outcomes} outcomes · ${graphStats.assessments} assessments · ${alignmentFindings.length} findings`,
           });
         }
         // v0.13 P6: alignment as structural lint — misalignments the prose
@@ -2718,6 +2798,7 @@ export default function useDeliverables({
         let courseMapReadingsRegistry = null;
         try {
           const { bridgeCompilerRegistries } = await import('../lib/compilerRegistryBridge');
+          if (shouldStopBlueprintCompiler()) return;
           const registryBridges = bridgeCompilerRegistries({
             courseGraph,
             courseMap: blueprintCourseMap,
@@ -2731,11 +2812,16 @@ export default function useDeliverables({
           courseMapAssessmentRegistry = null;
           courseMapReadingsRegistry = null;
         }
+        const [professorProfile, { applyLessonDepthToConfigMap }] = await Promise.all([
+          import('../lib/professorProfile'),
+          import('../lib/lessonDepth'),
+        ]);
+        if (shouldStopBlueprintCompiler()) return;
         const blueprint = compactBlueprintForStorage(
           courseGraphLib.buildBlueprintFromGraph(courseGraph, {
             scopeIndices,
             sourceBrief,
-            localization: (await import('../lib/professorProfile')).getProfile(),
+            localization: professorProfile.getProfile(),
             ...(courseMapAssessmentRegistry ? { assessmentRegistry: courseMapAssessmentRegistry } : {}),
             ...(courseMapReadingsRegistry ? { readingsRegistry: courseMapReadingsRegistry } : {}),
             ...(requestedSessionMinutes ? { sessionMinutes: requestedSessionMinutes } : {}),
@@ -2758,7 +2844,6 @@ export default function useDeliverables({
         // v0.15.3 D1: the lesson-depth flag rides the configMap on EVERY
         // app compile path (generation here, sync recompile, compact
         // restore) — a path that forgot it would surface as phantom drift.
-        const { applyLessonDepthToConfigMap } = await import('../lib/lessonDepth');
         const compilerConfigMap = applyLessonDepthToConfigMap(
           Object.fromEntries(
             blueprintCompiledFeatureIds.map((featureId) => [featureId, getGenerationConfig(featureId)]),
@@ -2788,9 +2873,7 @@ export default function useDeliverables({
           type: 'compilerPlan',
           stage: 'blueprint-compiler',
           label: blueprintEnrichment ? 'Enriched blueprint compiler plan' : 'Blueprint compiler plan',
-          detail: `${blueprintCompiledFeatureIds.length} deliverable${
-            blueprintCompiledFeatureIds.length === 1 ? '' : 's'
-          } will compile locally; about ${compiledSavings} provider call${compiledSavings === 1 ? '' : 's'} avoided`,
+          detail: `${blueprintCompiledFeatureIds.length} local material${blueprintCompiledFeatureIds.length === 1 ? '' : 's'} · ~${compiledSavings} calls saved`,
           featureIds: blueprintCompiledFeatureIds,
           compiledFeatureCount: blueprintCompiledFeatureIds.length,
           savedProviderCalls: compiledSavings,
@@ -2799,13 +2882,12 @@ export default function useDeliverables({
         const compiled = await compileBlueprintDeliverables(blueprint, blueprintCompiledFeatureIds, {
           configMap: compilerConfigMap,
         });
+        if (shouldStopBlueprintCompiler()) return;
         const admittedCompilerBlueprint = compiled[Symbol.for('coursemapper.blueprintCompileContext')] || blueprint;
         recordApiCallEvent({
           type: 'compiledDeliverable',
           label: blueprintEnrichment ? 'Enriched blueprint compiler' : 'Blueprint compiler',
-          detail: `Compiled ${blueprintCompiledFeatureIds.length} deliverable${
-            blueprintCompiledFeatureIds.length === 1 ? '' : 's'
-          }; saved about ${compiledSavings} generation call${compiledSavings === 1 ? '' : 's'}`,
+          detail: `${blueprintCompiledFeatureIds.length} compiled · ~${compiledSavings} calls saved`,
           featureIds: blueprintCompiledFeatureIds,
           savedProviderCalls: compiledSavings,
           compiledFeatureCount: blueprintCompiledFeatureIds.length,
@@ -2829,6 +2911,7 @@ export default function useDeliverables({
         // never fail a generation.
         try {
           const { buildGroundingMetricsEvent } = await import('../lib/groundingMetricsEvent');
+          if (shouldStopBlueprintCompiler()) return;
           const { event, trace } = buildGroundingMetricsEvent(compiled);
           recordGenerationApiCallEvent(event);
           traceGeneration(generationRunId, 'grounding_metrics', trace);
@@ -2846,6 +2929,7 @@ export default function useDeliverables({
           ]),
         );
         for (const fid of blueprintCompiledFeatureIds) {
+          if (isGenerationCancelled(fid)) continue;
           const data = compiled[fid];
           if (!data && featureCompileErrors.has(fid)) {
             const compileErrorMessage = `Compiler error: ${featureCompileErrors.get(fid)}`;
@@ -2931,6 +3015,7 @@ export default function useDeliverables({
         // (AbortError) escapes this block.
         try {
           const voicePassLib = await import('../lib/voicePass');
+          if (shouldStopBlueprintCompiler()) return;
           // D4 single-run disclosure stash: cleared every compile so a
           // toggled-off run never inherits a stale "voice pass ran" claim.
           voicePassLib.clearVoicePassOutcome();
@@ -2942,8 +3027,9 @@ export default function useDeliverables({
             !enrichmentOutcome.missingLessons?.length &&
             !nativeSkeleton?.scionRoute
           ) {
-            const voiceAbortKey = 'voicePass';
-            const controller = new AbortController();
+            const voiceAbortKey = `shared:${generationRunId}:voicePass`;
+            const controller = createGenerationAbortController(generationEpochRef, generationEpoch);
+            if (!controller) return;
             abortMapRef.current.set(voiceAbortKey, controller);
             try {
               const callModel = async (prompt) => {
@@ -2967,6 +3053,7 @@ export default function useDeliverables({
                   },
                   signal: controller.signal,
                 });
+                if (shouldStopBlueprintCompiler()) throw new DOMException('Stopped', 'AbortError');
                 if (!usage && result?.modelRequests === 0) usage = { costUsd: 0 };
                 return { fullText: result?.fullText || '', usage };
               };
@@ -3010,6 +3097,7 @@ export default function useDeliverables({
                   }
                 },
               });
+              if (shouldStopBlueprintCompiler()) return;
               const voicedFeatureIds = new Set(voiceResult.voiced.map((surfaceId) => String(surfaceId).split(':')[0]));
               for (const fid of voicedFeatureIds) {
                 if (voiceResult.deliverables[fid]) markFeatureDone(fid, voiceResult.deliverables[fid]);
@@ -3057,7 +3145,7 @@ export default function useDeliverables({
                 exhausted: voiceResult.exhausted,
               });
             } finally {
-              abortMapRef.current.delete(voiceAbortKey);
+              releaseDeliverableController(abortMapRef.current, voiceAbortKey, controller);
             }
           }
         } catch (voiceErr) {
@@ -3074,7 +3162,20 @@ export default function useDeliverables({
       // blueprint-compiled feature is marked errored LOUDLY and the run
       // completes through the normal tail (run_complete + finalize gating).
       try {
-        await runBlueprintCompiler();
+        await runDeliverableFeatureWithTimeout({
+          featureId: 'blueprintCompiler',
+          featureTasks: blueprintCompiledFeatureIds,
+          runFeature: runBlueprintCompiler,
+          onTimeout: (_featureId, timeoutMs, timeoutType) => {
+            abortDeliverableOperationControllers(abortMapRef.current, generationRunId);
+            for (const fid of blueprintCompiledFeatureIds) {
+              if (!completedFeatureIds.has(fid) && !failedFeatureIds.has(fid) && !isGenerationCancelled(fid)) {
+                markFeatureTimedOut(fid, timeoutMs, timeoutType);
+              }
+            }
+          },
+          getLastActivityAt: () => generationActivityAt,
+        });
       } catch (compileErr) {
         if (compileErr?.name === 'AbortError') throw compileErr;
         const compileErrMessage = compileErr?.message || 'Blueprint compile failed';
@@ -3104,7 +3205,8 @@ export default function useDeliverables({
       }
 
       const runChunk = async ({ featureId, chunkIndex, chunkScope, isWholeCourse }) => {
-        if (timedOutFeaturesRef.current.has(featureId)) return;
+        if (isGenerationCancelled(featureId)) return;
+        if (timedOutFeatures.has(featureId)) return;
         const label = getFeatureLabel(featureId);
         const chunkLabel = isWholeCourse
           ? label
@@ -3120,9 +3222,6 @@ export default function useDeliverables({
             [featureId]: { startedAt: taskStartTime, endedAt: null, durationMs: null },
           }));
         }
-
-        // Add to active features set
-        setCurrentFeatures((prev) => new Set([...prev, featureId]));
 
         // Update per-feature status to generating
         setProgress((prev) => ({
@@ -3182,8 +3281,10 @@ export default function useDeliverables({
         }
 
         // Create abort controller
-        const abortKey = isWholeCourse ? featureId : `${featureId}:chunk${chunkIndex}`;
-        const controller = new AbortController();
+        const abortKey = `${featureId}:${generationRunId}:${isWholeCourse ? 'whole' : `chunk${chunkIndex}`}`;
+        if (isGenerationCancelled(featureId)) return;
+        const controller = createGenerationAbortController(generationEpochRef, generationEpoch);
+        if (!controller) return;
         abortMapRef.current.set(abortKey, controller);
 
         let tokenCount = 0;
@@ -3243,7 +3344,7 @@ export default function useDeliverables({
             allowProviderFallback: maxProviderCalls === null || getRemainingProviderCalls() > 0,
             onApiCallEvent: recordGenerationApiCallEvent,
             onChunk: (accumulatedText, streamChunkCount) => {
-              if (timedOutFeaturesRef.current.has(featureId)) return;
+              if (isGenerationCancelled(featureId) || timedOutFeatures.has(featureId)) return;
               markFeatureActivity(featureId);
               fullText = accumulatedText;
               tokenCount = Math.round(accumulatedText.length / 4);
@@ -3309,7 +3410,7 @@ export default function useDeliverables({
           logIfRecovered(featureId, '(initial chunk)');
 
           if (parsed) {
-            if (timedOutFeaturesRef.current.has(featureId)) return;
+            if (timedOutFeatures.has(featureId)) return;
             // Discard if superseded by newer sync cycle
             if (syncGenId !== null && syncGenId !== activeSyncGenRef.current) {
               appendLog(`⚠ ${chunkLabel}: discarded (superseded)`, 'warn');
@@ -3471,10 +3572,10 @@ export default function useDeliverables({
             );
           }
         } finally {
-          abortMapRef.current.delete(abortKey);
+          releaseDeliverableController(abortMapRef.current, abortKey, controller);
         }
 
-        if (timedOutFeaturesRef.current.has(featureId)) return;
+        if (isGenerationCancelled(featureId) || timedOutFeatures.has(featureId)) return;
 
         // Update per-feature chunk progress
         setProgress((prev) => {
@@ -3511,7 +3612,7 @@ export default function useDeliverables({
         });
         try {
           for (const task of featureTasks) {
-            if (timedOutFeaturesRef.current.has(featureId)) break;
+            if (isGenerationCancelled(featureId) || timedOutFeatures.has(featureId)) break;
             await runChunk(task);
           }
         } finally {
@@ -3519,7 +3620,7 @@ export default function useDeliverables({
             featureId,
             label: getFeatureLabel(featureId),
             chunksCompleted: chunkResults[featureId]?.size || 0,
-            timedOut: timedOutFeaturesRef.current.has(featureId),
+            timedOut: timedOutFeatures.has(featureId),
             durationMs: Date.now() - (featureStartTimes[featureId] || generationStartTime),
           });
         }
@@ -3534,25 +3635,27 @@ export default function useDeliverables({
             runFeature: () => runFeatureChain(featureId, featureTasks),
             onTimeout: markFeatureTimedOut,
             getLastActivityAt: (activeFeatureId) =>
-              featureActivityRef.current.get(activeFeatureId) ||
-              featureStartTimes[activeFeatureId] ||
-              generationStartTime,
+              featureActivity.get(activeFeatureId) || featureStartTimes[activeFeatureId] || generationStartTime,
           }),
         ),
       );
 
       // ── 5. Wait for all feature chains ──
       await Promise.allSettled(featurePromises);
+      if (isGenerationCancelled()) {
+        return buildAbortedGenerationResult();
+      }
       traceGeneration(generationRunId, 'feature_chains_settled', {
         completedChunks: Object.fromEntries(
           Object.entries(chunkResults).map(([featureId, chunks]) => [featureId, chunks.size]),
         ),
-        timedOutFeatures: [...timedOutFeaturesRef.current],
+        timedOutFeatures: [...timedOutFeatures],
       });
 
       // ── 6. Post-generation: merge, verify, retry ──
       for (const fid of toGenerate) {
-        if (timedOutFeaturesRef.current.has(fid)) {
+        if (isGenerationCancelled(fid)) continue;
+        if (timedOutFeatures.has(fid)) {
           setProgress((prev) => ({
             ...prev,
             perFeature: {
@@ -3586,7 +3689,7 @@ export default function useDeliverables({
           });
           let retryRound = 0;
 
-          while (!validation.valid && retryRound < repairRoundLimit) {
+          while (!isGenerationCancelled(fid) && !validation.valid && retryRound < repairRoundLimit) {
             if (reserveRepairRetryCalls(fid, 1, `whole-deliverable retry round ${retryRound + 1}`) < 1) {
               appendLog(`⚠ ${label}: stopped whole-deliverable retries to control API cost`, 'warn');
               break;
@@ -3616,8 +3719,10 @@ export default function useDeliverables({
             );
             if (!prompts) break;
 
-            const controller = new AbortController();
-            const retryAbortKey = `${fid}:wholeRetry${retryRound}`;
+            if (isGenerationCancelled(fid)) break;
+            const controller = createGenerationAbortController(generationEpochRef, generationEpoch);
+            if (!controller) break;
+            const retryAbortKey = `${fid}:${generationRunId}:wholeRetry${retryRound}`;
             abortMapRef.current.set(retryAbortKey, controller);
             try {
               let fullText = '';
@@ -3727,7 +3832,7 @@ export default function useDeliverables({
                 );
               }
             } finally {
-              abortMapRef.current.delete(retryAbortKey);
+              releaseDeliverableController(abortMapRef.current, retryAbortKey, controller);
             }
           }
 
@@ -4154,7 +4259,7 @@ export default function useDeliverables({
         if (mergedArr.length < adjustedExpected) {
           const label = getFeatureLabel(fid);
           let retryRound = 0;
-          while (mergedArr.length < adjustedExpected && retryRound < repairRoundLimit) {
+          while (!isGenerationCancelled(fid) && mergedArr.length < adjustedExpected && retryRound < repairRoundLimit) {
             retryRound++;
             const missing = findMissingIndices(mergedArr, lessonIndices);
             warn(
@@ -4192,6 +4297,7 @@ export default function useDeliverables({
             const retryLimit = pLimit(getRetryConcurrency(generationPlan));
             const retryPromises = retryChunks.map((retryScope, idx) =>
               retryLimit(async () => {
+                if (isGenerationCancelled(fid)) return;
                 const retryChunkIndex = chunks.size + idx + (retryRound - 1) * 100; // unique index
                 const retryLabel = `${label} retry [${retryScope[0] + 1}-${retryScope[retryScope.length - 1] + 1}]`;
                 appendLog(`Retrying ${retryLabel}...`, 'progress');
@@ -4213,11 +4319,13 @@ export default function useDeliverables({
                 const _sysLen = prompts.systemPrompt?.length || 0;
                 const _usrLen = prompts.userPrompt?.length || 0;
                 log(
-                  `${retryLabel}: prompt sizes — system: ${_sysLen} chars (~${Math.round(_sysLen / 4)} tokens), user: ${_usrLen} chars (~${Math.round(_usrLen / 4)} tokens), total: ~${Math.round((_sysLen + _usrLen) / 4)} tokens`,
+                  `${retryLabel}: prompt ${_sysLen} system + ${_usrLen} user chars (~${Math.round((_sysLen + _usrLen) / 4)} tokens)`,
                 );
 
-                const controller = new AbortController();
-                const retryAbortKey = `${fid}:retry${retryChunkIndex}`;
+                if (isGenerationCancelled(fid)) return;
+                const controller = createGenerationAbortController(generationEpochRef, generationEpoch);
+                if (!controller) return;
+                const retryAbortKey = `${fid}:${generationRunId}:retry${retryChunkIndex}`;
                 abortMapRef.current.set(retryAbortKey, controller);
 
                 try {
@@ -4344,7 +4452,7 @@ export default function useDeliverables({
                     );
                   }
                 } finally {
-                  abortMapRef.current.delete(retryAbortKey);
+                  releaseDeliverableController(abortMapRef.current, retryAbortKey, controller);
                 }
               }),
             );
@@ -4437,6 +4545,7 @@ export default function useDeliverables({
               const retryLimit = pLimit(getRetryConcurrency(generationPlan));
               const retryPromises = retryIndices.map((idx) =>
                 retryLimit(async () => {
+                  if (isGenerationCancelled(fid)) return;
                   const retryChunkIndex = chunks.size + 500 + idx;
                   const retryLabel = `${label} coverage-retry [${idx + 1}]`;
                   appendLog(`Retrying ${retryLabel}...`, 'progress');
@@ -4465,8 +4574,10 @@ export default function useDeliverables({
                   );
                   if (!prompts) return;
 
-                  const controller = new AbortController();
-                  const retryAbortKey = `${fid}:covretry${idx}`;
+                  if (isGenerationCancelled(fid)) return;
+                  const controller = createGenerationAbortController(generationEpochRef, generationEpoch);
+                  if (!controller) return;
+                  const retryAbortKey = `${fid}:${generationRunId}:covretry${idx}`;
                   abortMapRef.current.set(retryAbortKey, controller);
 
                   try {
@@ -4587,7 +4698,7 @@ export default function useDeliverables({
                       }
                     }
                   } finally {
-                    abortMapRef.current.delete(retryAbortKey);
+                    releaseDeliverableController(abortMapRef.current, retryAbortKey, controller);
                   }
                 }),
               );
@@ -4942,14 +5053,18 @@ export default function useDeliverables({
         }
 
         if (
+          !isGenerationCancelled(fid) &&
           fid === 'slideDecks' &&
           provider === 'openai' &&
           config.generateAiImages === true &&
           apiKey &&
           costMode !== 'finalizerRetry'
         ) {
-          const imageController = new AbortController();
-          const imageAbortKey = `${fid}:images`;
+          const imageController = createGenerationAbortController(generationEpochRef, generationEpoch);
+          if (!imageController) {
+            return buildAbortedGenerationResult();
+          }
+          const imageAbortKey = `${fid}:${generationRunId}:images`;
           abortMapRef.current.set(imageAbortKey, imageController);
           try {
             appendLog('Enriching Slide Decks with GPT Image visuals...', 'progress');
@@ -4966,7 +5081,7 @@ export default function useDeliverables({
               appendLog(`GPT Image enrichment failed: ${err.message || 'image generation failed'}`, 'warn');
             }
           } finally {
-            abortMapRef.current.delete(imageAbortKey);
+            releaseDeliverableController(abortMapRef.current, imageAbortKey, imageController);
           }
         }
         traceGeneration(generationRunId, 'final_validation_passed', {
@@ -4991,6 +5106,7 @@ export default function useDeliverables({
         }
 
         // Dispatch final result
+        if (isGenerationCancelled(fid)) continue;
         markFeatureDone(fid, finalData);
 
         // Quality scoring + quality gate
@@ -5030,11 +5146,17 @@ export default function useDeliverables({
       }
 
       // ── 7. Finalize ──
-      setIsGenerating(false);
-      setCurrentFeatures(new Set());
+      if (isGenerationCancelled()) {
+        trackGenerationOperation(generationRunId);
+        return buildAbortedGenerationResult();
+      }
+      trackGenerationOperation(generationRunId);
       const totalDur = formatDuration(Date.now() - generationStartTime);
-      const failed = requestedFeatures.filter((fid) => failedFeatureIds.has(fid) && !completedFeatureIds.has(fid));
       const completed = requestedFeatures.filter((fid) => completedFeatureIds.has(fid));
+      // Every requested feature that did not commit is incomplete, including
+      // a feature-specific Stop. Never turn an unresolved target into a
+      // generated-success notification merely because it has no error entry.
+      const failed = requestedFeatures.filter((fid) => !completedFeatureIds.has(fid));
       traceGeneration(generationRunId, 'run_complete', {
         status: failed.length > 0 ? 'partial' : 'generated',
         completed,
@@ -5080,26 +5202,52 @@ export default function useDeliverables({
       logIfRecovered,
       getGenerationConfig,
       sourceBrief,
+      deliverables,
+      trackGenerationOperation,
+      syncGenerationActivity,
     ],
   );
 
   // ── Stop by featureId or stop all ──
-  const stopGenerating = useCallback((featureId = null) => {
-    if (featureId) {
-      // Abort all entries for this feature (featureId, featureId:chunk0, etc.)
-      for (const [key, ctrl] of abortMapRef.current) {
-        if (key === featureId || key.startsWith(featureId + ':')) {
-          ctrl.abort();
-          abortMapRef.current.delete(key);
+  const stopGenerating = useCallback(
+    (featureId = null) => {
+      const targetOperationIds =
+        featureId == null
+          ? [...activeGenerationOperationsRef.current.keys()]
+          : [...activeGenerationOperationsRef.current]
+              .filter(([, featureIds]) => featureIds.has(featureId))
+              .map(([operationId]) => operationId);
+      const snapshotFeatureIds =
+        featureId == null ? [...readGenerationActivity(activeGenerationOperationsRef)] : [featureId];
+      for (const snapshotFeatureId of snapshotFeatureIds) {
+        if (generationSnapshotsRef.current.has(snapshotFeatureId)) {
+          dispatch(
+            actions.restoreDeliverableSnapshot(
+              snapshotFeatureId,
+              generationSnapshotsRef.current.get(snapshotFeatureId),
+            ),
+          );
         }
       }
-    } else {
-      for (const [, ctrl] of abortMapRef.current) ctrl.abort();
-      abortMapRef.current.clear();
-    }
-    setIsGenerating(false);
-    setCurrentFeatures(new Set());
-  }, []);
+      if (featureId == null) cancelGenerationEpoch(generationEpochRef);
+      else cancelFeatureGenerationEpoch(featureGenerationEpochRef, featureId);
+      abortDeliverableControllers(abortMapRef.current, featureId);
+      if (featureId == null) {
+        activeGenerationOperationsRef.current.clear();
+        generationSnapshotsRef.current.clear();
+      } else {
+        generationSnapshotsRef.current.delete(featureId);
+        cancelGenerationFeatureActivity(activeGenerationOperationsRef, featureId);
+        for (const operationId of targetOperationIds) {
+          if (!activeGenerationOperationsRef.current.has(operationId)) {
+            abortDeliverableOperationControllers(abortMapRef.current, operationId);
+          }
+        }
+      }
+      syncGenerationActivity();
+    },
+    [dispatch, syncGenerationActivity],
+  );
 
   const resetDeliverables = useCallback(() => {
     stopGenerating();
@@ -5237,6 +5385,32 @@ export default function useDeliverables({
         appendLog(`⚠ Lesson ${lessonIndex + 1} is locked — skipping regeneration`, 'warn');
         return { status: 'skipped', reason: 'locked_lesson', featureId, lessonIndex };
       }
+      const optionCurrentEntry =
+        regenerationOptions.currentEntry && typeof regenerationOptions.currentEntry === 'object'
+          ? regenerationOptions.currentEntry
+          : null;
+      const optionCurrentData =
+        regenerationOptions.currentData && typeof regenerationOptions.currentData === 'object'
+          ? regenerationOptions.currentData
+          : null;
+      const existingDataSnapshot =
+        optionCurrentEntry?.data ?? optionCurrentData ?? deliverables[featureId]?.data ?? null;
+      const authoritativeEntry =
+        optionCurrentEntry ??
+        (optionCurrentData ? buildDoneEntry(optionCurrentData) : (deliverables[featureId] ?? null));
+      const regenerationEpoch = generationEpochRef.current;
+      const regenerationFeatureEpoch = captureFeatureGenerationEpoch(featureGenerationEpochRef, featureId);
+      const isRegenerationCancelled = () =>
+        isGenerationEpochCancelled(generationEpochRef, regenerationEpoch) ||
+        isFeatureGenerationEpochCancelled(featureGenerationEpochRef, featureId, regenerationFeatureEpoch);
+      const buildAbortedResult = () => ({
+        status: 'aborted',
+        featureId,
+        lessonIndex,
+        data: existingDataSnapshot,
+        itemCount: getDeliverableItemCount(featureId, existingDataSnapshot),
+        providerCallCount: providerCallsUsed,
+      });
       const label = getFeatureLabel(featureId);
       const regenerationRunId = createGenerationRunId();
       traceGeneration(regenerationRunId, 'lesson_regen_start', {
@@ -5251,8 +5425,10 @@ export default function useDeliverables({
       if (syncGenId !== null) activeSyncGenRef.current = syncGenId;
 
       // Signal that this feature is actively regenerating
-      setCurrentFeatures((prev) => new Set([...prev, featureId]));
-      setIsGenerating(true);
+      if (!readGenerationActivity(activeGenerationOperationsRef).has(featureId)) {
+        generationSnapshotsRef.current.set(featureId, authoritativeEntry);
+      }
+      trackGenerationOperation(regenerationRunId, [featureId]);
 
       // Capture CURRENT data snapshot NOW (before any async work) to prevent snap-back.
       // v0.14.1 round 2: callers that hold authoritative state (the package
@@ -5261,11 +5437,6 @@ export default function useDeliverables({
       // be STALE) pass it via options.currentData — the live CS run's null
       // closure snapshot let a one-lesson regen result replace the entire
       // 17-entry quiz bank.
-      const optionCurrentData =
-        regenerationOptions.currentData && typeof regenerationOptions.currentData === 'object'
-          ? regenerationOptions.currentData
-          : null;
-      const existingDataSnapshot = optionCurrentData ?? deliverables[featureId]?.data ?? null;
       const existingKey = getArrayKey(featureId, existingDataSnapshot);
       const existingArr = existingDataSnapshot?.[existingKey] || [];
       const onLessonMergeReject = (reason) => {
@@ -5303,6 +5474,7 @@ export default function useDeliverables({
       };
 
       let abortKey = null;
+      let activeController = null;
       try {
         // Scion's lesson-level Regen button should take the same compiler path
         // as smart sync. Sending an already-compiled lesson back through the
@@ -5319,8 +5491,11 @@ export default function useDeliverables({
         if (canCompileSyncLesson) {
           try {
             const { compileBlueprintLessonPatch } = await import('../lib/compiledLessonSync');
+            if (isRegenerationCancelled()) return buildAbortedResult();
             const { createLessonKernelCache } = await import('../lib/genome/lessonKernelCache');
+            if (isRegenerationCancelled()) return buildAbortedResult();
             const instructorPreferenceProfile = await loadInstructorPreferenceProfile();
+            if (isRegenerationCancelled()) return buildAbortedResult();
             // v0.14.7 WS-G1: the sync compile rides the stored enrichment
             // overlay (this session's kernels) + the fingerprint-keyed
             // kernel cache (survives reloads). An invalidating edit misses
@@ -5377,7 +5552,13 @@ export default function useDeliverables({
                   provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID
                     ? await import('../lib/scionPassB')
                     : null;
+                if (isRegenerationCancelled()) return buildAbortedResult();
                 const expectedLessonIds = [`lesson-${lessonIndex + 1}`];
+                const kernelController = createGenerationAbortController(generationEpochRef, regenerationEpoch);
+                if (!kernelController) return buildAbortedResult();
+                abortKey = `${featureId}:${regenerationRunId}:kernel`;
+                activeController = kernelController;
+                abortMapRef.current.set(abortKey, kernelController);
                 recordRegenerationApiCallEvent({
                   type: 'blueprintEnrichmentCall',
                   label: 'Sync kernel refresh',
@@ -5385,27 +5566,36 @@ export default function useDeliverables({
                   featureId: 'blueprintEnrichment',
                 });
                 kernelRefreshCalls += 1;
-                const kernelResult = await streamProvider(
-                  provider,
-                  apiKey,
-                  modelId,
-                  kernelPrompt.systemPrompt,
-                  kernelPrompt.userPrompt,
-                  {
-                    maxOutputTokens: 2400,
-                    modelCapabilities,
-                    featureId: 'blueprintEnrichment',
-                    task: 'blueprintEnrichment',
-                    ...(scionMod
-                      ? scionMod.scionCallOpts({
-                          prompt: kernelPrompt,
-                          expectedLessonIds,
-                          recoveryAttempt: 0,
-                        })
-                      : {}),
-                    onApiCallEvent: recordRegenerationApiCallEvent,
-                  },
-                );
+                let kernelResult;
+                try {
+                  kernelResult = await streamProvider(
+                    provider,
+                    apiKey,
+                    modelId,
+                    kernelPrompt.systemPrompt,
+                    kernelPrompt.userPrompt,
+                    {
+                      maxOutputTokens: 2400,
+                      modelCapabilities,
+                      featureId: 'blueprintEnrichment',
+                      task: 'blueprintEnrichment',
+                      ...(scionMod
+                        ? scionMod.scionCallOpts({
+                            prompt: kernelPrompt,
+                            expectedLessonIds,
+                            recoveryAttempt: 0,
+                          })
+                        : {}),
+                      onApiCallEvent: recordRegenerationApiCallEvent,
+                      signal: kernelController.signal,
+                    },
+                  );
+                } finally {
+                  releaseDeliverableController(abortMapRef.current, abortKey, kernelController);
+                  abortKey = null;
+                  activeController = null;
+                }
+                if (isRegenerationCancelled()) return buildAbortedResult();
                 const parsedKernels = parseLessonKernelResponse(kernelResult?.fullText || '', {
                   prompt: kernelPrompt,
                   expectedLessonIds,
@@ -5437,6 +5627,7 @@ export default function useDeliverables({
             }
             const lessonPatchData = compileResult?.data || null;
             if (lessonPatchData) {
+              if (isRegenerationCancelled()) return buildAbortedResult();
               const finalParsed = prepareRegeneratedLessonData(featureId, lessonPatchData, lessonIndex, courseMap);
               let nextData = finalParsed;
               if (existingKey && existingDataSnapshot) {
@@ -5488,6 +5679,7 @@ export default function useDeliverables({
                 featureId,
                 lessonIndex,
                 data: nextData,
+                entry: buildDoneEntry(nextData),
                 itemCount: getDeliverableItemCount(featureId, nextData),
                 syncSource: 'blueprint-compiler',
                 providerCallCount: kernelRefreshCalls,
@@ -5508,6 +5700,7 @@ export default function useDeliverables({
               return doneResult;
             }
           } catch (compileErr) {
+            if (compileErr?.name === 'AbortError' || isRegenerationCancelled()) return buildAbortedResult();
             appendLog(`⚠ ${label}: compiler sync fell back to model`, 'warn');
             traceGeneration(
               regenerationRunId,
@@ -5524,6 +5717,7 @@ export default function useDeliverables({
         }
 
         const regenConfig = getGenerationConfig(featureId);
+        if (isRegenerationCancelled()) return buildAbortedResult();
         const prompts = await getDeliverablePrompt(
           featureId,
           courseMap,
@@ -5535,6 +5729,7 @@ export default function useDeliverables({
           columnsRef.current,
           deliverableConfigRef.current,
         );
+        if (isRegenerationCancelled()) return buildAbortedResult();
         if (!prompts) {
           if (existingDataSnapshot) {
             dispatch({
@@ -5560,8 +5755,10 @@ export default function useDeliverables({
           return skippedResult;
         }
 
-        const controller = new AbortController();
-        abortKey = `${featureId}:lesson-${lessonIndex}:regen-${Date.now()}`;
+        const controller = createGenerationAbortController(generationEpochRef, regenerationEpoch);
+        if (!controller) return buildAbortedResult();
+        abortKey = `${featureId}:${regenerationRunId}:model`;
+        activeController = controller;
         abortMapRef.current.set(abortKey, controller);
 
         let fullText = '';
@@ -5601,6 +5798,7 @@ export default function useDeliverables({
           allowProviderFallback: maxProviderCalls === null || getRemainingProviderCalls() > 0,
           onApiCallEvent: recordRegenerationApiCallEvent,
           onChunk: (accumulatedText) => {
+            if (isRegenerationCancelled()) return;
             fullText = accumulatedText;
             const now = Date.now();
             if (now - lastParseTime > 150) {
@@ -5633,6 +5831,8 @@ export default function useDeliverables({
             });
           },
         });
+
+        if (isRegenerationCancelled()) return buildAbortedResult();
 
         const parsed = expandKeys(featureId, parsePartialJSON(fullText));
         logIfRecovered(featureId, '(regenerate lesson)');
@@ -5703,6 +5903,7 @@ export default function useDeliverables({
             featureId,
             lessonIndex,
             data: nextData,
+            entry: buildDoneEntry(nextData),
             itemCount: getDeliverableItemCount(featureId, nextData),
             syncSource: 'model-fallback',
             providerCallCount: providerCallsUsed,
@@ -5741,6 +5942,7 @@ export default function useDeliverables({
           return incompleteResult;
         }
       } catch (err) {
+        if (err?.name === 'AbortError' || isRegenerationCancelled()) return buildAbortedResult();
         if (err?.name !== 'AbortError') {
           console.warn(`Regenerate lesson ${lessonIndex} failed:`, err);
           appendLog(
@@ -5778,16 +5980,10 @@ export default function useDeliverables({
         );
         return failedResult;
       } finally {
-        if (abortKey) abortMapRef.current.delete(abortKey);
-        // Remove from active features
-        setCurrentFeatures((prev) => {
-          const s = new Set(prev);
-          s.delete(featureId);
-          return s;
-        });
-        if (abortMapRef.current.size === 0) {
-          setIsGenerating(false);
+        if (abortKey && activeController) {
+          releaseDeliverableController(abortMapRef.current, abortKey, activeController);
         }
+        trackGenerationOperation(regenerationRunId);
       }
     },
     [
@@ -5808,6 +6004,7 @@ export default function useDeliverables({
       logIfRecovered,
       getGenerationConfig,
       sourceBrief,
+      trackGenerationOperation,
     ],
   );
 
@@ -5902,7 +6099,8 @@ export default function useDeliverables({
       }
       if (Object.keys(compiledForVoice).length === 0) return { ran: false, reason: 'no compiled deliverables' };
       const controller = new AbortController();
-      abortMapRef.current.set('voicePassPostHoc', controller);
+      const abortKey = `shared:${createGenerationRunId()}:voicePassPostHoc`;
+      abortMapRef.current.set(abortKey, controller);
       try {
         const callModel = async (prompt) => {
           let usage = null;
@@ -5963,7 +6161,7 @@ export default function useDeliverables({
         appendLog(`⚠ Post-hoc voice pass failed (compiled text kept): ${err?.message || 'voice pass error'}`, 'warn');
         return { ran: false, reason: err?.message || 'voice pass error' };
       } finally {
-        abortMapRef.current.delete('voicePassPostHoc');
+        releaseDeliverableController(abortMapRef.current, abortKey, controller);
       }
     },
     [apiKey, appendLog, deliverables, dispatch, modelCapabilities, modelId, onApiCallEvent, provider, streamProvider],

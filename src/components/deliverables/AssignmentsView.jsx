@@ -21,6 +21,7 @@ import {
   LessonGroupHeader,
 } from './shared/SharedComponents';
 import { groupItemsByLesson, lessonTitleForNumber, resolveLessonNumber } from './shared/lessonGrouping';
+import { preferredScrollBehavior } from '../../lib/motionPreference';
 
 const ExperientialActivityPanel = React.lazy(() => import('./ExperientialActivityPanel'));
 
@@ -78,7 +79,7 @@ export default function AssignmentsView({
   // them inside the view's own scroll container.
   const groupRefs = useRef({});
   const jumpToGroup = useCallback((key) => {
-    groupRefs.current[key]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    groupRefs.current[key]?.scrollIntoView({ behavior: preferredScrollBehavior(), block: 'start' });
   }, []);
   if (!data) return isStreaming ? <StreamingBanner /> : <EmptyState />;
   if (data.deliverableDisposition?.status === 'not-applicable') {

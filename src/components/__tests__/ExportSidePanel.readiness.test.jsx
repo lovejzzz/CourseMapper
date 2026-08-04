@@ -351,6 +351,31 @@ describe('ExportSidePanel readiness repair timing', () => {
     expect(container.textContent).not.toContain('Finishing package is repairing');
   });
 
+  it('shows no export warning after an intentional package-finish AbortError', async () => {
+    const onFinishPackage = vi.fn(async () => {
+      throw new DOMException('Stopped', 'AbortError');
+    });
+    await renderPanel({
+      courseMapInput: cleanCourseMap,
+      preferPackageScope: true,
+      canFinishPackage: true,
+      onFinishPackage,
+    });
+
+    const zipButton = container.querySelector('[data-testid="export-download-zip"]');
+    expect(zipButton).not.toBeNull();
+    await act(async () => {
+      zipButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await vi.runAllTimersAsync();
+    });
+
+    expect(onFinishPackage).toHaveBeenCalledTimes(1);
+    expect(container.querySelector('[data-testid="export-error"]')).toBeNull();
+    expect(container.querySelector('[data-testid="export-notice"]')).toBeNull();
+    expect(container.textContent).not.toContain('Finishing, verifying');
+    expect(downloadCourseMaterialsZip).not.toHaveBeenCalled();
+  });
+
   it('auto-repairs readiness blockers once the package is idle', async () => {
     const onAutoRepairReadiness = vi.fn(() => ({
       changed: true,

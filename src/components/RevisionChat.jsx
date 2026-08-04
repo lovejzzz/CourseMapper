@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { parseFiles } from '../lib/fileParser';
 import { generateSuggestions } from '../lib/revisionSuggestions';
 import { getProfile } from '../lib/professorProfile';
+import { preferredScrollBehavior } from '../lib/motionPreference';
 
 export default function RevisionChat({
   onRevision,
@@ -25,7 +26,7 @@ export default function RevisionChat({
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: preferredScrollBehavior() });
   }, [messages]);
 
   // Sync messages to parent for persistence — only when messages actually change,
