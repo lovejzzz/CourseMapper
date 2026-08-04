@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "release": "0.17.12",
   "recordedAt": "2026-08-04T00:50:00Z",
-  "status": "production-checkpoint",
+  "status": "predeploy-candidate",
   "claimBoundary": "This production receipt binds the exact deployed commit to a fresh prompt-started CourseGraph generation, physical production ZIP, independent evidence replay, executable bundled tests, and representative Office rendering. It proves the declared deterministic learner gates for this package, not universal factual correctness, independent instructor approval, accessibility certification, classroom outcomes, or learned model-weight improvement.",
   "checks": [
     {

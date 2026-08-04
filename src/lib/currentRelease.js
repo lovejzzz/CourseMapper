@@ -6,7 +6,7 @@ import { APP_VERSION } from './appVersion.js';
  */
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
-  checkpointPhase: 'production-checkpoint',
+  checkpointPhase: 'predeploy',
   date: 'August 3, 2026',
   title: 'Learner-Ready Course Work',
   landingTitle: 'EDUTOOL V0.17.12 Makes the Assignment Match the Learning',
@@ -38,8 +38,8 @@ export const CURRENT_RELEASE = {
     },
     browser: {
       path: 'evaluation/release-proofs/v0.17.12-browser-preflight.json',
-      sha256: 'b682ea5084508d12be73a8141ccfb7906bbc52b4ab2e4c8b00c0939223d04935',
-      bytes: 5761,
+      sha256: '959269fcac8fbd99074676a1a4a77a7e55b090fdc9109f550a0feb72ff45ca88',
+      bytes: 5759,
     },
     productionCourseContract: {
       path: 'evaluation/release-proofs/v0.17.12-production-course-contract.json',
