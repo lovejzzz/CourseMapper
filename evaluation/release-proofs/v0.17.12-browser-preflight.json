@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "release": "0.17.12",
-  "recordedAt": "2026-08-03T22:50:00Z",
+  "recordedAt": "2026-08-03T23:52:00Z",
   "status": "predeploy-candidate",
   "claimBoundary": "This predeploy record binds a fresh local CourseGraph recompile, deterministic package grade, executable bundled test suite, and representative Office rendering. It makes no production, instructor, classroom, or universal-quality claim.",
   "checks": [
@@ -9,8 +9,8 @@
       "mode": "local-coursegraph-recompile",
       "status": "pass",
       "sourceProjectSha256": "0b3bcb3b37c66e11d91ce266eeed148435914f3f07e2826806937b663d0f69c9",
-      "zipSha256": "5c4b8af75084859ba268964ef682b347eb7a353c9238f109ecb88f0397c338c8",
-      "reproductionSha256": "5c4b8af75084859ba268964ef682b347eb7a353c9238f109ecb88f0397c338c8",
+      "zipSha256": "10f5978584cecc7ce5e941ddda0951fde1ede1821efa4546d74841b717631461",
+      "reproductionSha256": "10f5978584cecc7ce5e941ddda0951fde1ede1821efa4546d74841b717631461",
       "score": 99,
       "grade": "A",
       "findingCounts": { "p0": 0, "p1": 0, "p2": 0 }

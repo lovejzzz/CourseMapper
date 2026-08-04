@@ -177,7 +177,7 @@ const RESEARCH_METHODS_ARTIFACT_GENRES = [
   'memo-brief',
   'memo-brief',
   'applied-artifact',
-  'memo-brief',
+  'policy-brief',
   'memo-brief',
   'competency-evidence',
 ];

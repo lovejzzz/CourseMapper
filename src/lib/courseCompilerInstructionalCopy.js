@@ -48,7 +48,12 @@ export function genreAlignedAssignmentParameters({ lesson = {}, authored = [] } 
   const genre = lesson?.artifactGenre?.genre || '';
   if (genre === 'code-lab') {
     return [
-      'Submit executable source code or a notebook plus the exact command or steps used to run it',
+      selectVariant(Number(lesson.lessonNumber || 1), [
+        'Submit executable source code or a notebook plus the exact command or steps used to run it',
+        'Provide runnable source or a notebook and record the precise clean-start command',
+        'Turn in the executable implementation with reproducible setup and launch steps',
+        'Package the runnable code or notebook with the command another learner should execute first',
+      ]),
       'Include at least one initially failing test and the corresponding passing result after the implementation is corrected',
       'Test one typical case and one boundary or error case, and preserve the observed output',
       'Attach a short implementation note that explains the design choice, debugging evidence, and revision made after review',
@@ -68,16 +73,24 @@ export function genreAlignedAssignmentParameters({ lesson = {}, authored = [] } 
 export function genreRequiredAssignmentInstructions({ lesson = {}, assessment = {} } = {}) {
   const genre = lesson?.artifactGenre?.genre || '';
   const title = stripTerminalPunctuation(assessment.title || assessment.artifact || 'the assignment');
+  const lessonFocus = stripTerminalPunctuation(lesson.title || lesson.studentArtifact || title)
+    .replace(/^(?:lesson|week)\s*\d+\s*[:.\-–—]\s*/i, '')
+    .replace(/\bfocus$/i, 'work');
   if (genre === 'code-lab') {
     return [
-      `Run ${title} from a clean start and preserve the command, test output, or notebook execution evidence needed for another learner to reproduce the result.`,
-      `Explain what the failing test revealed, what code changed, and why the passing test and boundary check support the revised implementation.`,
+      `For ${lessonFocus}, run ${title} from a clean start and preserve the command, test output, or notebook evidence another learner needs to reproduce the result.`,
+      selectVariant(Number(lesson.lessonNumber || 1), [
+        `For ${lessonFocus}, explain what the failing test exposed, what code changed, and how the passing rerun plus boundary check support the revision.`,
+        `Trace the ${lessonFocus} debugging cycle from the original failure through the smallest code change, passing rerun, and boundary result.`,
+        `Connect the failing test for ${lessonFocus} to the code revision, passing result, and one boundary or error-case check.`,
+        `Document why ${lessonFocus} first failed, which implementation decision repaired it, and what the passing and boundary tests demonstrate.`,
+      ]),
     ];
   }
   if (genre === 'policy-brief') {
     return [
-      `Organize ${title} as an authentic policy memo: decision requested, executive recommendation, problem and evidence, option analysis, stakeholder and equity effects, implementation, and limitations.`,
-      `Tie every recommendation to a named evidence source and show why the selected option is preferable to at least one credible alternative.`,
+      `For ${lessonFocus}, organize ${title} as an authentic policy memo: decision requested, executive recommendation, problem and evidence, option analysis, stakeholder and equity effects, implementation, and limitations.`,
+      `In ${title}, tie the ${lessonFocus} recommendation to named evidence and show why the selected option is preferable to at least one credible alternative.`,
     ];
   }
   return [];

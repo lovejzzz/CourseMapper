@@ -511,6 +511,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
   const makeNumbered = (num, text, { keepNext = false } = {}) =>
     new Paragraph({
       keepNext,
+      keepLines: true,
       spacing: { line: SINGLE_SP, before: 20, after: 50 },
       indent: { left: 360 },
       children: [

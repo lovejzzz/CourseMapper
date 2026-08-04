@@ -17612,9 +17612,7 @@ function compileExperientialActivityAssignmentBrief(blueprint, lesson) {
 function compileAssignments(blueprint) {
   const lens = blueprintLens(blueprint);
   const preference = featurePreference(blueprint, 'assignments');
-  // v0.14.1 (3.2b): exam-kind registry assessments compile as REAL exam
-  // documents in the quiz bank, not as assignment briefs. Legacy anchors
-  // carry no kind and all keep their briefs.
+  // Registry exams live in the quiz bank; legacy anchors retain briefs.
   const briefAssessments = blueprint.assessments.filter(assessmentNeedsStandaloneAssignmentBrief);
   const experientialActivityBriefs = blueprint.lessons
     .filter(hasExperientialActivity)
@@ -17728,8 +17726,7 @@ function compileAssignments(blueprint) {
                 courseMapRef: `Course Map L${assessment.lessonNumbers[0]} · ${assessment.registryId} · ${assessment.weightPercent}%`,
               }
             : {}),
-          // v0.14.1 (3.2c): an oral assessment's brief is a prompt sheet — the
-          // speaking tasks come from the lesson's kernel terms and scenario.
+          // Oral briefs use kernel-grounded speaking prompts.
           ...(isOral
             ? {
                 speakingPrompts: buildSpeakingPrompts({
@@ -18253,10 +18250,7 @@ function discussionInstructorPreferenceNote(preference, lesson = {}) {
 function compileRubrics(blueprint) {
   const lens = blueprintLens(blueprint);
   const preference = featurePreference(blueprint, 'rubrics');
-  // v0.14.1 (3.2e): rubrics attach per graded assessment (id-linked) — a
-  // lesson with two graded artifacts gets two rubric entries. Exams carry
-  // answer keys in the quiz bank, not rubrics. Legacy anchors (no kind)
-  // all keep their rubrics.
+  // Rubrics attach per graded assessment; exams keep answer keys in the quiz bank.
   const rubricAssessments = blueprint.assessments;
   return {
     rubrics: rubricAssessments.map((assessment) => {
@@ -18269,7 +18263,6 @@ function compileRubrics(blueprint) {
       ) {
         return buildQuizRubricHandoffEntry(assessment);
       }
-      // Registry-linked assessment twins only.
       const lesson = blueprint.lessons.find((item) => item.lessonNumber === assessment.lessonNumbers[0]);
       const isCodeLab = isCodeLabAssessment(assessment) || lesson?.artifactGenre?.genre === 'code-lab';
       const sourceEvidenceBrief = buildLessonEvidenceBrief(lesson, { claimLimit: 4, sourceLimit: 4 });
@@ -27444,9 +27437,7 @@ function compileLessonPlans(blueprint, options = {}) {
   const lessonDepth = options.configMap?.lessonPlans?.depth === 'deep' ? 'deep' : 'flat';
   return {
     lessonPlans: blueprint.lessons.map((lesson, index) => {
-      // v0.16 exam-day fix: an exam session compiles a logistics + brief
-      // warm-up review plan — never a full active-learning teaching plan with
-      // a misconception poll, mini-lesson, and homework due on exam day.
+      // Exam sessions use logistics and a brief warm-up, not a full teaching plan.
       if (isExamDayLesson(lesson, blueprint)) {
         return buildExamDayLessonPlan(blueprint, lesson);
       }
@@ -27476,11 +27467,8 @@ function compileLessonPlans(blueprint, options = {}) {
       const matchedAssessment = blueprint.assessments.find((item) =>
         (item.lessonNumbers || []).includes(lesson.lessonNumber),
       );
-      // Registry-backed arrays are sparse by design: lessons with only an
-      // in-class check do not have a standalone graded brief. Positional
-      // fallback borrowed the next lesson's assignment and mislabeled the
-      // in-class check as homework. Legacy one-assessment-per-lesson inputs
-      // retain their positional behavior.
+      // Sparse registry arrays omit in-class-only briefs; never borrow the next lesson's assignment.
+      // Legacy one-assessment-per-lesson inputs retain positional behavior.
       const assessment =
         matchedAssessment || (!Array.isArray(blueprint.assessmentRegistry) ? blueprint.assessments[index] : null) || {};
       const hasStandaloneAssessment = Boolean(matchedAssessment);
@@ -28117,8 +28105,7 @@ function rotateFactsForDeliverableFamily(blueprint, featureId) {
 export const BLUEPRINT_COMPILE_ERRORS = Symbol.for('coursemapper.blueprintCompileErrors');
 export const BLUEPRINT_COMPILE_CONTEXT = Symbol.for('coursemapper.blueprintCompileContext');
 
-// Renderer failures stay loud and per-feature; blueprint contract failures still
-// fail the whole compile because they indicate invalid shared input.
+// Renderer failures stay per-feature; invalid shared blueprint contracts fail the whole compile.
 function compileFeatureInto(result, compileErrors, featureId, compilerBlueprint, options) {
   try {
     const data = compileBlueprintDeliverable(featureId, compilerBlueprint, {
