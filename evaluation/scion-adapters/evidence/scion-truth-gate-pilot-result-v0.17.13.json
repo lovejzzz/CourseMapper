@@ -49,7 +49,7 @@
     },
     {
       "caseIdSha256": "3b4bcfa0d66d33e0bdd98dc1f5468ad1516fdb0c4242bb7907086d398a2c9b75",
-      "seedSha256": "8ca4dfb55b8a85529fe39ad883b329999a51cdee8fcf648bbcae5c4fc06daf6c",
+      "seedSha256": "d02dddbcf5dfc0c5ffca24360b646ea1f1c63678d04f90de8821f77d35c5f166",
       "domain": "computer-science",
       "status": "quarantined",
       "issues": [
@@ -97,7 +97,7 @@
     },
     {
       "caseIdSha256": "d8a0a9bf9b6cefd7560a33c150f1a4fd2a76c14c7fd5a6289236cb8a8aa9c405",
-      "seedSha256": "b49a24bcef080cf5f3ca21d59f23462bfe9b7534a9553cdbd9aedd840c1f0cb5",
+      "seedSha256": "d6dfc9bd64f4500d2c9bc38744b40b3682e1432349a76a9289914d28bee515f2",
       "domain": "music-theory",
       "status": "quarantined",
       "issues": [
@@ -120,7 +120,7 @@
   "claimBoundary": "Passing proves only that the review gate behaved correctly for this frozen corpus. It is not Scion learning, model-quality, production, or training evidence.",
   "identity": {
     "algorithm": "sha256-canonical-json",
-    "sha256": "03a27dd009da8a767a42409c8678e9d3cf69c3090221f4fb5e0c3d06962fecf5"
+    "sha256": "7ace5cfc67334d6d73c4ced9c506c763f68e96664ccef3366c7cdfa936c9dc53"
   },
   "reviewBundle": {
     "present": false,

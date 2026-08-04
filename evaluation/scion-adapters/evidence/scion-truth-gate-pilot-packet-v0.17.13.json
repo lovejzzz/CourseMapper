@@ -108,19 +108,19 @@
         "tr": "Hashable tuples",
         "df": "A Python tuple is hashable only when every element stored inside that tuple is itself hashable.",
         "eg": "A tuple containing a list is not hashable because its list element is not hashable.",
-        "mi": "Every tuple is a valid dictionary key simply because tuples are immutable containers.",
+        "mi": "Every tuple is hashable simply because the outer tuple container is immutable.",
         "cx": "A tuple is hashable only when all its elements are hashable, not merely because the outer container is immutable.",
         "sourceFactIndexes": [
           0
         ]
       },
-      "inputSha256": "661cd0c7fb41316c93ddd80d440e0510336aac0d70a5c28782477dc657eb480d",
+      "inputSha256": "878b7ed6b708679bc3b55b3d6df32eba88e42d6d17608dc8a4923b58802c445c",
       "trainingEligible": false,
       "productionEligible": false,
       "claimBoundary": "This is a review candidate. Structural admission and source binding do not establish factual or pedagogical truth.",
       "identity": {
         "algorithm": "sha256-canonical-json",
-        "sha256": "8ca4dfb55b8a85529fe39ad883b329999a51cdee8fcf648bbcae5c4fc06daf6c"
+        "sha256": "d02dddbcf5dfc0c5ffca24360b646ea1f1c63678d04f90de8821f77d35c5f166"
       }
     },
     {
@@ -302,7 +302,7 @@
         "publisher": "Open Music Theory",
         "retrievedAt": "2026-08-04T19:30:00.000Z",
         "claims": [
-          "Deceptive motion occurs when a dominant sets up a cadential expectation but moves to an unexpected non-tonic harmony, most commonly vi instead of I."
+          "Deceptive motion most commonly occurs when dominant V moves to vi rather than I."
         ],
         "sourceEvidence": {
           "captures": [
@@ -314,27 +314,27 @@
           ]
         }
       },
-      "sourcePacketSha256": "0c807b2b4abb5a0dd54e79161556e3a3158310002daa654013aeae8fe0f8d565",
+      "sourcePacketSha256": "149d5f87a8e44e6f2df78ba3f1cf3f8c19e0716eefd56b5a2ca0c4f60aa05ead",
       "sourceClaimSha256s": [
-        "7fec9d327587bb45c9ce575244deeea3769df4309efe17c8aa5e73e3557a3246"
+        "7de12836e6a0ff2a8020b31605aabf1cc356933eb1e242d84285526971986abf"
       ],
       "term": {
         "tr": "Deceptive dominant motion",
-        "df": "Deceptive motion redirects an expected dominant resolution to a non-tonic harmony, most commonly from V to vi.",
-        "eg": "A dominant V moving to vi rather than the expected I creates the most common deceptive motion.",
-        "mi": "Deceptive motion is the expected resolution from dominant V directly to tonic I.",
-        "cx": "The dominant moves unexpectedly to a non-tonic harmony such as vi, rather than resolving as expected to I.",
+        "df": "Deceptive motion most commonly moves dominant V to vi rather than moving that dominant to I.",
+        "eg": "A dominant V moving to vi rather than I demonstrates the most common deceptive motion.",
+        "mi": "The common deceptive pattern reverses the order, moving vi to V rather than moving V to vi.",
+        "cx": "V is the starting harmony and vi is the destination; the common motion is V-to-vi, not vi-to-V.",
         "sourceFactIndexes": [
           0
         ]
       },
-      "inputSha256": "61eb40f9632688f0a305578943f0101fba8c648369db6bbade8557f81207133d",
+      "inputSha256": "69670aa0b0b20d761eb31bdb33b444878c7299265324066395a6ae3102c080b7",
       "trainingEligible": false,
       "productionEligible": false,
       "claimBoundary": "This is a review candidate. Structural admission and source binding do not establish factual or pedagogical truth.",
       "identity": {
         "algorithm": "sha256-canonical-json",
-        "sha256": "b49a24bcef080cf5f3ca21d59f23462bfe9b7534a9553cdbd9aedd840c1f0cb5"
+        "sha256": "d6dfc9bd64f4500d2c9bc38744b40b3682e1432349a76a9289914d28bee515f2"
       }
     }
   ],
@@ -343,6 +343,6 @@
   "claimBoundary": "This packet exists to test semantic admission. It contains no model outcome and cannot prove Scion quality.",
   "identity": {
     "algorithm": "sha256-canonical-json",
-    "sha256": "fe89426d77f0a90f8d0617ddb38a28e625467426b478c80c23d2259b31f8bc6a"
+    "sha256": "3976add2bd652ef8817dd2d2bfacdb3a8c6457f90a7eca0ecf34b59277014547"
   }
 }
