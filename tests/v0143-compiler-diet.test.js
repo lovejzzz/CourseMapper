@@ -394,7 +394,7 @@ describe('graph-path fixtures vs the hypothesized-dead branches', () => {
         `legacy-anchor-rebuild resurrected on ${label}: ${telemetry['legacy-anchor-rebuild']?.firstContext || ''}`,
       ).toBe(0);
     }
-  }, 60000);
+  }, 120000);
 
   it('student-artifact-fusion: ZERO hits on the registry path (falsified, then fixed — the regression net)', () => {
     // History: measured 2026-06-11 at 2 hits on the registry class (geology

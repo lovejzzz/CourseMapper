@@ -41,7 +41,7 @@
   "exportBoundary": {
     "path": "src/lib/packageExportVerifier.js",
     "implementationReceiptProtocol": "module-implementation-receipt-v1",
-    "implementationSha256": "728879c99993ec16963634c5f5b0c3e1552ce7667a4236124801755ba52a8c79",
+    "implementationSha256": "7619e7c4a361c267ae68494e8b9bab24719c613924b36ddef7dbec837d8f9d67",
     "implementationFileCount": 191
   },
   "courses": [

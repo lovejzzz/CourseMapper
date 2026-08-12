@@ -170,7 +170,7 @@ export function createAssessmentEvidencePresentation({
         `Review the strong and partial ${artifact} samples before you submit, then self-check your ${concept} evidence, reasoning, limitation, and revision quality.`,
         `Before submitting ${artifact}, compare the two anchors and mark where the evidence for ${concept}, its boundary, and the revision choice are visible.`,
         `Use the anchor contrast to audit your ${artifact}: name the source detail, explain the ${concept} decision, and revise any unsupported claim.`,
-        `Check your ${artifact} against the stronger anchor by finding the evidence, limitation, reasoning link, and improvement that a scorer can inspect.`,
+        `Check your ${artifact} against the stronger anchor by finding the ${concept} evidence, limitation, reasoning link, and improvement that a scorer can inspect.`,
       ]),
       instructorAnchorShare: lessonVariant(lesson, [
         `Share the strong/partial ${artifact} anchor contrast before students submit so they can self-check evidence, reasoning, limitation, and revision quality.`,

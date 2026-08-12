@@ -1,29 +1,34 @@
 const ACTIVITY_FALLBACKS = [
   [
-    'Test one {concept} evidence choice, then revise the work',
-    'Compare two {concept} choices, then improve the work',
-    'Apply {concept}, inspect the result, and revise one choice',
-    'Use {concept} evidence to make one visible improvement',
+    'Test one {concept} choice, then revise',
+    'Compare two {concept} choices, then improve',
+    'Apply {concept}, inspect the result, then revise',
+    'Use {concept} evidence to improve one choice',
   ],
   [
-    'Cite the source detail that warrants the revision',
-    'Point to the observation that supports the change',
-    'Link the revised choice to one inspectable detail',
-    'Record the strongest detail behind the revision',
+    'Cite one detail supporting the {concept} revision',
+    'Point to one observation supporting the {concept} change',
+    'Link one {concept} choice to inspectable evidence',
+    'Record one detail behind the {concept} revision',
   ],
   [
-    'Name the feedback, revision, and evidence to keep',
-    'Explain what changed and which evidence justified it',
-    'Record the revision move worth transferring next',
-    'Identify the feedback that made the work stronger',
+    'Name the feedback and {concept} revision to keep',
+    'Explain which evidence changed the {concept} work',
+    'Record the next transferable {concept} revision',
+    'Name the feedback that strengthened the {concept} work',
   ],
 ];
 
 export function longActivityDisplayFallback(index, concept, selectVariant) {
   const key = ['practice', 'evidence', 'debrief'][index];
   if (!key || !ACTIVITY_FALLBACKS[index]) return `Step ${index + 1}: Complete the practice move`;
+  const compactConcept = String(concept || 'lesson focus')
+    .trim()
+    .split(/\s+/)
+    .reduce((value, word) => (!value || `${value} ${word}`.length <= 16 ? `${value} ${word}`.trim() : value), '')
+    .replace(/\s+(?:and|of|for|to|their)$/i, '');
   return `${key[0].toUpperCase()}${key.slice(1)}: ${selectVariant(
-    ACTIVITY_FALLBACKS[index].map((line) => line.replace('{concept}', concept)),
+    ACTIVITY_FALLBACKS[index].map((line) => line.replace('{concept}', compactConcept)),
     `slide-activity-long-${key}-display`,
   )}`;
 }
