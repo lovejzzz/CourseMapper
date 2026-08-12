@@ -575,8 +575,14 @@ export function applyApiCallBudgetEvent(currentBudget, event = {}) {
     // run digest can flag compiled-without-enrichment packages without
     // parsing the human-readable detail string.
     if (event.stage === 'enrichmentModelStage' && event.outcome) {
-      const preferredOutcome = preferEnrichmentOutcome(next.enrichmentOutcome || null, event.outcome);
-      const incomingWon = preferredOutcome === event.outcome;
+      const normalizedIncomingOutcome = normalizeEnrichmentOutcome(event.outcome);
+      const preferredOutcome = preferEnrichmentOutcome(next.enrichmentOutcome || null, normalizedIncomingOutcome);
+      // preferEnrichmentOutcome normalizes both candidates and therefore
+      // returns a fresh object. Reference identity can never say whether the
+      // incoming reconciliation won; compare the normalized values instead.
+      // Otherwise the structured 14/14 receipt updates while the persisted
+      // human-readable pipeline remains at 13/14 and blocks a clean export.
+      const incomingWon = JSON.stringify(preferredOutcome) === JSON.stringify(normalizedIncomingOutcome);
       next.enrichmentOutcome = { ...preferredOutcome };
       shouldRecordPipelineDecision = incomingWon || !next.pipeline?.[stage];
     }

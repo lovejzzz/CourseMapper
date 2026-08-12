@@ -56,10 +56,10 @@ function sourceRow(index, { receipt = true } = {}) {
   };
 }
 
-function assessmentReceipt({ passedChecks = 15, totalChecks = 15 } = {}) {
+function assessmentReceipt({ passedChecks = 18, totalChecks = 18 } = {}) {
   return {
-    protocol: 'rendered-assessment-coherence-v1',
-    verifierVersion: 'objective-task-evidence-rubric-bytes-v1',
+    protocol: 'rendered-assessment-coherence-v5',
+    verifierVersion: 'graded-and-formative-manifest-objective-independent-construct-mapping-v5',
     eligibleAssessments: 3,
     passedAssessments: passedChecks === totalChecks ? 3 : 0,
     passedChecks,
@@ -88,6 +88,9 @@ function claimBoundSourceRow(index) {
       minimumScore: 1,
       semanticSupport: true,
       readinessEligible: true,
+      sourceIdentityVerified: true,
+      semanticAdmissionVerified: true,
+      artifactVisibilityVerified: true,
       sourceSnapshot: {
         protocol: 'retrieved-source-snapshot-sha256-v2',
         sourceId: `bound-source-${index}`,
@@ -95,6 +98,9 @@ function claimBoundSourceRow(index) {
         retrievedSnapshotBytes: quoteBytes + 20,
         normalizedSnapshotText,
         contentVerified: true,
+        sourceIdentityVerified: true,
+        semanticAdmissionVerified: true,
+        artifactVisibilityVerified: true,
       },
       checks: [
         {
@@ -113,6 +119,9 @@ function claimBoundSourceRow(index) {
           quoteInSnapshot: true,
           entailed: true,
           semanticSupport: true,
+          sourceIdentityVerified: true,
+          semanticAdmissionVerified: true,
+          artifactVisibilityVerified: true,
           score: 1,
         },
       ],
@@ -230,7 +239,23 @@ describe('automated readiness signal', () => {
       protocol: 'rendered-exact-source-claim-coverage-v1',
       lessons: 6,
       receiptBackedLessons: 4,
+      coveredLessonNumbers: [1, 2, 3, 4],
+      missingLessonNumbers: [5, 6],
       verifiedClaims: 4,
+    });
+    const lessonCoverage =
+      result.components.evidenceGrounding.evidence['package.source-support-receipts'].lessonCoverage;
+    expect(lessonCoverage.find((entry) => entry.lessonNumber === 1)).toMatchObject({
+      covered: true,
+      verifiedClaims: 1,
+      renderedArtifacts: 1,
+      reasonCode: 'rendered-exact-source-claim',
+    });
+    expect(lessonCoverage.find((entry) => entry.lessonNumber === 5)).toMatchObject({
+      covered: false,
+      verifiedClaims: 0,
+      renderedArtifacts: 0,
+      reasonCode: 'no-byte-bound-exact-claim',
     });
   });
 
@@ -248,6 +273,8 @@ describe('automated readiness signal', () => {
 
     expect(result.components.evidenceGrounding.evidence['package.source-support-receipts']).toMatchObject({
       receiptBackedLessons: 1,
+      coveredLessonNumbers: [1],
+      missingLessonNumbers: [2, 3, 4, 5, 6],
       renderedArtifacts: 1,
     });
     expect(result.components.evidenceGrounding.points.earned).toBe(4);
@@ -346,8 +373,48 @@ describe('automated readiness signal', () => {
     const curriculumLedgerRule = result.ledger.rules.find((rule) => rule.ruleId === 'DPK.CURRICULUM.ORDERED_SEQUENCE');
     expect(curriculumLedgerRule.evidence[0]).toMatchObject({
       artifactPath: 'PACKAGE_MANIFEST.json',
-      jsonPointer: '/generationConstraints/explicitLessonSequence',
+      jsonPointer: '/generationConstraints',
       observed: { expectedLessons: TITLES.length, sequence: TITLES },
+    });
+  });
+
+  it('scores an exact count-matched natural-language topic contract without calling it an explicit schedule', () => {
+    const titles = [
+      'Composition Foundations',
+      'Visual Hierarchy',
+      'Color and Contrast',
+      'Perspective and Framing',
+      'Ethical Contextual Interpretation',
+    ];
+    const result = computeAutomatedReadinessSignal({
+      manifest: {
+        generationConstraints: {
+          orderedLessonContract: {
+            mode: 'count-matched-coverage-list',
+            declaredCount: 5,
+            topics: [
+              'composition',
+              'visual hierarchy',
+              'color and contrast',
+              'perspective and framing',
+              'ethical contextual interpretation',
+            ],
+          },
+        },
+        sourceLedger: [],
+      },
+      course: {},
+      lessonTitles: titles,
+      conformance: conformance(100),
+      texture: { score: 100 },
+    });
+
+    expect(result.components.curriculumFidelity.points).toEqual({ max: 25, earned: 25, lost: 0, unobserved: 0 });
+    expect(
+      result.ledger.rules.find((rule) => rule.ruleId === 'DPK.CURRICULUM.ORDERED_SEQUENCE').evidence[0],
+    ).toMatchObject({
+      evidenceId: 'course.ordered-lesson-contract',
+      jsonPointer: '/generationConstraints',
     });
   });
 
@@ -358,13 +425,13 @@ describe('automated readiness signal', () => {
       lessonTitles: TITLES,
       conformance: conformance(100),
       texture: { score: 100 },
-      assessment: assessmentReceipt({ passedChecks: 12 }),
+      assessment: assessmentReceipt({ passedChecks: 15 }),
     });
 
     expect(result.components.assessmentCoherence.status).toBe('evaluated');
     expect(result.components.assessmentCoherence.score).toBe(80);
     expect(result.components.assessmentCoherence.points).toEqual({ max: 15, earned: 12, lost: 3, unobserved: 0 });
-    expect(result.components.assessmentCoherence.reason).toMatch(/12\/15 rendered assessment-link checks/i);
+    expect(result.components.assessmentCoherence.reason).toMatch(/15\/18 rendered assessment-link checks/i);
   });
 
   it('never rounds a partial assessment receipt up to full credit', () => {
@@ -378,9 +445,9 @@ describe('automated readiness signal', () => {
         ...assessmentReceipt(),
         eligibleAssessments: 6,
         passedAssessments: 5,
-        passedChecks: 29,
-        totalChecks: 30,
-        coherenceRatio: 0.967,
+        passedChecks: 35,
+        totalChecks: 36,
+        coherenceRatio: 0.972,
       },
     });
 
@@ -395,7 +462,7 @@ describe('automated readiness signal', () => {
       lessonTitles: TITLES,
       conformance: conformance(100),
       texture: { score: 100 },
-      assessment: { ...assessmentReceipt(), totalChecks: 14, coherenceRatio: 1 },
+      assessment: { ...assessmentReceipt(), totalChecks: 17, coherenceRatio: 1 },
     });
 
     expect(result.components.assessmentCoherence.status).toBe('unobserved');

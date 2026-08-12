@@ -7,11 +7,14 @@ import {
   isComputerScienceWeakSource,
   isLicenseAmbiguous,
   isTrustedSourceLedgerRow,
+  isVisualAnalysisWeakSource,
   normalizeTrustedSource,
   sourceLedgerFromOpenAlex,
   sourceLedgerFromOpenLibrary,
   sourceLedgerFromOpenStax,
+  verifySourceSnapshotReceipt,
 } from '../sourceLedger.js';
+import { buildInstructionalInstanceContract } from '../../instructionalInstanceContract.js';
 
 async function sha256Text(value) {
   const digest = await globalThis.crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
@@ -30,18 +33,97 @@ async function snapshotReceipt(sourceId, quote, overrides = {}) {
       retrievedSnapshotBytes: quoteBytes + 20,
       normalizedSnapshotText,
       contentVerified: false,
+      sourceIdentityVerified: true,
+      semanticAdmissionVerified: true,
+      artifactVisibilityVerified: false,
     },
     check: {
       retrievedSnapshotSha256: snapshotSha256,
       retrievedSnapshotBytes: quoteBytes + 20,
       quoteByteStart: 10,
       quoteByteEnd: 10 + quoteBytes,
+      sourceIdentityVerified: true,
+      semanticAdmissionVerified: true,
+      artifactVisibilityVerified: false,
       ...overrides,
     },
   };
 }
 
 describe('trusted source ledger', () => {
+  it('replays NFKC-sensitive snapshot bytes exactly', async () => {
+    const quote = '/kʰáá/ contrasts with /káá/.';
+    const snapshot = await snapshotReceipt('wals:phonology', quote);
+    await expect(
+      verifySourceSnapshotReceipt(snapshot.sourceSnapshot, {
+        ...snapshot.check,
+        quote,
+        sourcePassageSha256: await sha256Text(quote),
+      }),
+    ).resolves.toBe(true);
+  });
+
+  it('binds a lesson-specific occurrence row to its underlying source-work receipt', async () => {
+    const claim = 'A sampling distribution describes a statistic across repeated samples.';
+    const snapshot = await snapshotReceipt('openstax:statistics#7', claim);
+    const row = {
+      ...normalizeTrustedSource({
+        id: 'openstax:statistics#7--lesson-7',
+        title: 'Sampling distributions',
+        provider: 'openstax',
+        url: 'https://openstax.org/books/introductory-statistics-2e/pages/7-1',
+        license: 'CC BY 4.0',
+        sessionRefs: ['s7'],
+        conceptLinks: [{ id: 'stats/sampling-distribution', label: 'Sampling distribution' }],
+        supportReceipt: {
+          status: 'passed',
+          checkedClaims: 1,
+          minimumScore: 1,
+          sourceIdentityVerified: true,
+          semanticAdmissionVerified: true,
+          artifactVisibilityVerified: false,
+          semanticSupport: true,
+          readinessEligible: false,
+          sourceSnapshot: { ...snapshot.sourceSnapshot, contentVerified: true },
+          checks: [
+            {
+              sourceId: 'openstax:statistics#7',
+              locator: '7.1',
+              quote: claim,
+              claim,
+              ...snapshot.check,
+              sourcePassageSha256: await sha256Text(claim),
+              quoteInSnapshot: true,
+              entailed: true,
+              semanticSupport: true,
+              score: 1,
+            },
+          ],
+        },
+      }),
+      sourceWorkId: 'openstax:statistics#7',
+    };
+
+    const [bound] = await bindRenderedClaimSupport(
+      [row],
+      [
+        {
+          path: 'Study Guides/Lesson 07 - Sampling - Study Guides.docx',
+          text: claim,
+          sha256: '7'.repeat(64),
+        },
+      ],
+    );
+
+    expect(bound.id).toBe('openstax:statistics#7--lesson-7');
+    expect(bound.sourceWorkId).toBe('openstax:statistics#7');
+    expect(isClaimBoundSourceLedgerRow(bound)).toBe(true);
+    expect(bound.supportReceipt.checks[0]).toMatchObject({
+      sourceId: 'openstax:statistics#7',
+      renderedLocation: 'Study Guides/Lesson 07 - Sampling - Study Guides.docx',
+    });
+  });
+
   it('promotes exact learner-visible source claims only after Office artifact binding', async () => {
     const claim = 'Conditional branching selects a code path by evaluating a condition.';
     const snapshot = await snapshotReceipt('source-branching', claim);
@@ -57,6 +139,9 @@ describe('trusted source ledger', () => {
         status: 'passed',
         checkedClaims: 1,
         minimumScore: 1,
+        sourceIdentityVerified: true,
+        semanticAdmissionVerified: true,
+        artifactVisibilityVerified: false,
         semanticSupport: true,
         readinessEligible: false,
         sourceSnapshot: { ...snapshot.sourceSnapshot, contentVerified: true },
@@ -91,6 +176,11 @@ describe('trusted source ledger', () => {
           text: `Study note: ${claim}`,
           sha256: 'c'.repeat(64),
         },
+        {
+          path: 'Syllabus/Programming Foundations - Syllabus.docx',
+          text: `Week 2 core idea: ${claim}`,
+          sha256: 'd'.repeat(64),
+        },
       ],
     );
 
@@ -98,22 +188,201 @@ describe('trusted source ledger', () => {
     expect(bound.supportReceipt).toMatchObject({
       readinessEligible: true,
       semanticSupport: true,
-      method: 'rendered-exact-source-claim-v1',
-      checkedClaims: 2,
+      method: 'rendered-admitted-source-claim-v2',
+      checkedClaims: 3,
     });
     expect(bound.supportReceipt.checks).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           renderedLocation: 'Lesson Plans/Lesson 02 - Conditional Branching - Lesson Plans.docx',
           renderedArtifactSha256: 'b'.repeat(64),
-          verifierVersion: 'rendered-exact-source-claim-v1',
+          verifierVersion: 'rendered-admitted-source-claim-v2',
         }),
         expect.objectContaining({
           renderedLocation: 'Study Guides/Lesson 02 - Conditional Branching - Study Guides.docx',
           renderedArtifactSha256: 'c'.repeat(64),
         }),
+        expect.objectContaining({
+          renderedLocation: 'Syllabus/Programming Foundations - Syllabus.docx',
+          renderedArtifactSha256: 'd'.repeat(64),
+        }),
       ]),
     );
+  });
+
+  it('rejects persisted visual-analysis false friends without blocking graphical perspective sources', () => {
+    const courseGraph = {
+      course: { name: 'Visual Evidence and Image Analysis' },
+      sessions: [{ title: 'Perspective and Framing' }],
+    };
+    const conceptLinks = [
+      { id: 'c4', label: 'Perspective and Framing' },
+      { id: 'c4-mechanism', label: 'Linear Perspective Systems' },
+    ];
+    expect(
+      isVisualAnalysisWeakSource(
+        {
+          title: 'Perceived Emotional and Social Effects of TikTok Among Youth: A Visual Communication Perspective',
+          evidence:
+            'Young people describe emotional and social effects of a platform where interface design contributes to user engagement.',
+          conceptLinks,
+        },
+        courseGraph,
+      ),
+    ).toBe(true);
+    expect(
+      isVisualAnalysisWeakSource(
+        {
+          title: 'Perspective (graphical)',
+          evidence:
+            'Linear perspective uses a horizon line and vanishing points to project spatial depth onto a picture plane.',
+          conceptLinks,
+        },
+        courseGraph,
+      ),
+    ).toBe(false);
+  });
+
+  it('replays and migrates a strict legacy exact-source receipt before rendered binding', async () => {
+    const sourceId = 'wikipedia:Language acquisition';
+    const claim = 'Language acquisition usually refers to first-language acquisition.';
+    const snapshot = await snapshotReceipt(sourceId, claim, {
+      sourceIdentityVerified: false,
+      semanticAdmissionVerified: false,
+    });
+    const row = normalizeTrustedSource({
+      id: sourceId,
+      title: 'Language acquisition',
+      provider: 'wikipedia',
+      url: 'https://en.wikipedia.org/wiki/Language_acquisition',
+      license: 'CC BY-SA 4.0',
+      sessionRefs: ['lesson-8'],
+      supportReceipt: {
+        status: 'passed',
+        checkedClaims: 1,
+        minimumScore: 1,
+        method: 'exact-source-claim-v1',
+        construct: 'source-extraction-integrity',
+        sourceIdentityVerified: false,
+        semanticAdmissionVerified: false,
+        artifactVisibilityVerified: false,
+        semanticSupport: true,
+        readinessEligible: false,
+        sourceSnapshot: {
+          ...snapshot.sourceSnapshot,
+          sourceIdentityVerified: false,
+          semanticAdmissionVerified: false,
+        },
+        checks: [
+          {
+            claimId: 'language-acquisition:claim-1',
+            sourceId,
+            locator: 'lead section',
+            quote: claim,
+            claim,
+            ...snapshot.check,
+            sourcePassageSha256: await sha256Text(claim),
+            quoteInSnapshot: true,
+            entailed: true,
+            semanticSupport: true,
+            method: 'exact-source-claim-v1',
+            construct: 'source-claim-identity',
+            reason: 'exact-source-claim-identity',
+            score: 1,
+          },
+        ],
+      },
+    });
+
+    const [bound] = await bindRenderedClaimSupport(
+      [row],
+      [
+        {
+          path: 'Study Guides/Lesson 08 - Language Acquisition - Study Guides.docx',
+          text: claim,
+          sha256: 'd'.repeat(64),
+        },
+      ],
+    );
+
+    expect(bound.supportReceipt).toMatchObject({
+      sourceIdentityVerified: true,
+      semanticAdmissionVerified: true,
+      artifactVisibilityVerified: true,
+      readinessEligible: true,
+      legacyExactClaimMigrationCount: 1,
+    });
+    expect(bound.supportReceipt.checks[0]).toMatchObject({
+      legacyExactClaimMigrated: true,
+      sourceIdentityVerified: true,
+      semanticAdmissionVerified: true,
+      artifactVisibilityVerified: true,
+    });
+    expect(isClaimBoundSourceLedgerRow(bound)).toBe(true);
+  });
+
+  it('binds a learner-visible curated paraphrase without pretending it is an exact quotation', async () => {
+    const quote = 'A confidence interval is an interval estimate for an unknown population parameter.';
+    const claim = 'A confidence interval gives a range of plausible values for an unknown population parameter.';
+    const snapshot = await snapshotReceipt('openstax:statistics#8', quote);
+    const row = normalizeTrustedSource({
+      id: 'openstax:statistics#8',
+      title: 'Introductory Statistics 2e',
+      provider: 'openstax',
+      url: 'https://openstax.org/books/introductory-statistics-2e/pages/8-introduction',
+      license: 'CC BY 4.0',
+      sessionRefs: ['lesson-8'],
+      conceptLinks: [{ id: 'lesson-8', label: 'Confidence intervals' }],
+      supportReceipt: {
+        status: 'passed',
+        checkedClaims: 1,
+        minimumScore: 1,
+        sourceIdentityVerified: true,
+        semanticAdmissionVerified: true,
+        artifactVisibilityVerified: false,
+        semanticSupport: true,
+        readinessEligible: false,
+        sourceSnapshot: snapshot.sourceSnapshot,
+        checks: [
+          {
+            sourceId: 'openstax:statistics#8',
+            locator: '8.1',
+            quote,
+            claim,
+            ...snapshot.check,
+            sourcePassageSha256: await sha256Text(quote),
+            quoteInSnapshot: true,
+            entailed: true,
+            semanticSupport: true,
+            semanticAdmission: {
+              admitted: true,
+              policy: 'shipped-source-curated-anchor-v1',
+              topic: 'Confidence interval',
+              topicMatches: [],
+              issues: [],
+            },
+          },
+        ],
+      },
+    });
+
+    const [bound] = await bindRenderedClaimSupport(
+      [row],
+      [{ path: 'Lesson Plans/Lesson 08 - Inference.docx', text: claim, sha256: 'e'.repeat(64) }],
+    );
+
+    expect(bound.supportReceipt).toMatchObject({
+      method: 'rendered-admitted-source-claim-v2',
+      readinessEligible: true,
+      semanticSupport: true,
+    });
+    expect(bound.supportReceipt.checks[0]).toMatchObject({
+      claim,
+      quote,
+      artifactVisibilityVerified: true,
+      semanticAdmission: { policy: 'shipped-source-curated-anchor-v1' },
+    });
+    expect(isClaimBoundSourceLedgerRow(bound)).toBe(true);
   });
 
   it('does not bind paraphrased, deleted, or wrong-lesson claims', async () => {
@@ -165,6 +434,54 @@ describe('trusted source ledger', () => {
     expect(unbound.supportReceipt.readinessEligible).toBe(false);
   });
 
+  it('never derives semantic entailment from source bytes plus artifact visibility', async () => {
+    const claim = 'A visible sentence can still lack an independent semantic admission decision.';
+    const snapshot = await snapshotReceipt('source-unadmitted', claim, {
+      entailed: false,
+      semanticAdmissionVerified: false,
+      semanticSupport: false,
+    });
+    const row = normalizeTrustedSource({
+      id: 'source-unadmitted',
+      title: 'Unadmitted visibility fixture',
+      provider: 'wikipedia',
+      url: 'https://example.test/source-unadmitted',
+      license: 'CC BY-SA 4.0',
+      sessionRefs: ['lesson-1'],
+      supportReceipt: {
+        status: 'passed',
+        checkedClaims: 1,
+        minimumScore: 1,
+        sourceIdentityVerified: true,
+        semanticAdmissionVerified: false,
+        artifactVisibilityVerified: false,
+        semanticSupport: false,
+        readinessEligible: false,
+        sourceSnapshot: { ...snapshot.sourceSnapshot, semanticAdmissionVerified: false },
+        checks: [
+          {
+            sourceId: 'source-unadmitted',
+            locator: 'lead paragraph',
+            quote: claim,
+            claim,
+            ...snapshot.check,
+            sourcePassageSha256: await sha256Text(claim),
+            quoteInSnapshot: true,
+          },
+        ],
+      },
+    });
+
+    const [bound] = await bindRenderedClaimSupport(
+      [row],
+      [{ path: 'Lesson Plans/Lesson 01 - Fixture.docx', text: claim, sha256: 'a'.repeat(64) }],
+    );
+
+    expect(bound.supportReceipt.readinessEligible).toBe(false);
+    expect(bound.supportReceipt.semanticSupport).toBe(false);
+    expect(isClaimBoundSourceLedgerRow(bound)).toBe(false);
+  });
+
   it('requires a complete source-to-rendered-claim chain before declaring evidence resolved', async () => {
     const base = {
       id: 'source-1',
@@ -182,9 +499,12 @@ describe('trusted source ledger', () => {
         status: 'passed',
         checkedClaims: 1,
         minimumScore: 1,
+        sourceIdentityVerified: true,
+        semanticAdmissionVerified: true,
+        artifactVisibilityVerified: true,
         semanticSupport: true,
         readinessEligible: true,
-        sourceSnapshot: { ...snapshot.sourceSnapshot, contentVerified: true },
+        sourceSnapshot: { ...snapshot.sourceSnapshot, artifactVisibilityVerified: true },
         checks: [
           {
             sourceId: 'source-1',
@@ -198,6 +518,7 @@ describe('trusted source ledger', () => {
             renderedArtifactSha256: 'f'.repeat(64),
             quoteInSnapshot: true,
             entailed: true,
+            artifactVisibilityVerified: true,
             semanticSupport: true,
             score: 1,
           },
@@ -474,7 +795,7 @@ describe('trusted source ledger', () => {
     ).toBe(true);
   });
 
-  it('does not let a mixed coarse overlay expand trusted source coverage into a rejected lesson', () => {
+  it('does not let a mixed coarse overlay expand trusted source coverage or export rejected research bycatch', () => {
     const dataCleansing = {
       displayTitle: 'Data cleansing',
       sourceUrl: 'https://en.wikipedia.org/wiki/Data_cleansing',
@@ -512,9 +833,79 @@ describe('trusted source ledger', () => {
       expect.arrayContaining([expect.objectContaining({ title: 'Data cleansing', sessionRefs: ['s1'] })]),
     );
     expect(ledger.rows.flatMap((row) => row.sessionRefs || [])).not.toContain('s2');
-    expect(ledger.reviewRows).toEqual(
+    expect(ledger.reviewRows || []).toEqual([]);
+    expect([...(ledger.rows || []), ...(ledger.reviewRows || [])]).not.toEqual(
       expect.arrayContaining([expect.objectContaining({ title: 'Mars molecule archive for bioimages' })]),
     );
+  });
+
+  it('omits a persisted social-platform false friend from visual-analysis source review surfaces', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'Visual Evidence and Image Analysis' },
+        sessions: [{ id: 's4', number: 4, title: 'Perspective and Framing' }],
+        enrichmentOverlay: {
+          lessonContent: {
+            'lesson-4': {
+              conceptProvenance: {
+                citations: [
+                  {
+                    id: 'doaj:tiktok',
+                    displayTitle:
+                      'Perceived Emotional and Social Effects of TikTok Among Youth: A Visual Communication Perspective',
+                    sourceUrl: 'https://example.test/tiktok-study',
+                    provider: 'doaj',
+                    license: 'CC0 1.0',
+                    evidence:
+                      'Young people report emotional and social effects of a visually intensive social platform.',
+                    conceptLinks: [{ id: 'c4', label: 'Perspective and Framing' }],
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+      { checkedAt: '2026-08-06T00:00:00.000Z' },
+    );
+
+    expect(ledger).toBeNull();
+    expect(buildSourceReportMarkdown({ sourceLedger: ledger })).not.toContain('TikTok');
+  });
+
+  it('omits a persisted algi-research false friend resource from visual-analysis source review surfaces', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'Visual Evidence and Image Analysis' },
+        concepts: [{ id: 'c4', term: 'Linear Perspective Systems' }],
+        sessions: [
+          {
+            id: 's4',
+            number: 4,
+            title: 'Perspective and Framing',
+            sections: [{ topic: 'Perspective and Framing', conceptRefs: ['c4'], resourceRefs: ['kr3'] }],
+          },
+        ],
+        resources: [
+          {
+            id: 'kr3',
+            title: 'Perceived Emotional and Social Effects of TikTok Among Youth: A Visual Communication Perspective',
+            topic: 'Perspective and Framing',
+            evidence: 'Young people report emotional and social effects of a visually intensive social platform.',
+            origin: 'algi-research',
+            provider: 'doaj',
+            url: 'https://example.test/tiktok-study',
+            license: 'CC0 1.0',
+            sessionRefs: ['s4'],
+            conceptLinks: [{ id: 'c4', label: 'Linear Perspective Systems' }],
+          },
+        ],
+      },
+      { checkedAt: '2026-08-06T00:00:00.000Z' },
+    );
+
+    expect(ledger).toBeNull();
+    expect(buildSourceReportMarkdown({ sourceLedger: ledger })).not.toContain('TikTok');
   });
 
   it('normalizes accidental sentence seams in scholarly source metadata', () => {
@@ -1246,6 +1637,10 @@ describe('trusted source ledger', () => {
     });
     expect(report).toContain('Source Ledger');
     expect(report).toContain('Source Review Notes');
+    expect(report).toContain('## Rights and Attribution');
+    expect(report).toContain('only the portions quoted or adapted from that source');
+    expect(report).toContain('does not relicense independently authored package content');
+    expect(report).toContain('receives no reuse permission from CourseMapper');
     expect(report).toContain('kr1');
     expect(report).toContain('(source id: kr1)');
     expect(report).not.toContain('- kr1:');
@@ -3283,5 +3678,434 @@ describe('trusted source ledger', () => {
     expect(buildSourceReportMarkdown({ sourceLedger: ledger })).toContain(
       'https://www.w3.org/WAI/test-evaluate/conformance/wcag-em/',
     );
+  });
+
+  it('does not let a trusted source occurrence fan out across an unrelated construct binding', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'Introductory Statistics' },
+        sessions: [
+          { id: 's1', number: 1, title: 'Sampling', sections: [] },
+          { id: 's2', number: 2, title: 'Confidence intervals', sections: [] },
+        ],
+        enrichmentOverlay: {
+          lessonContent: {
+            'lesson-1': {
+              conceptProvenance: {
+                citations: [
+                  {
+                    id: 'openstax:statistics#8',
+                    displayTitle: 'Legacy statistics source',
+                    license: 'CC BY 4.0',
+                    conceptLinks: [{ id: 'sampling', label: 'Sampling' }],
+                  },
+                ],
+              },
+            },
+            'lesson-2': {
+              conceptProvenance: {
+                citations: [
+                  {
+                    id: 'openstax:statistics#8',
+                    displayTitle: 'Introductory Statistics 2e, section 8',
+                    sourceUrl: 'https://openstax.org/books/introductory-statistics-2e/pages/8-introduction',
+                    provider: 'openstax',
+                    license: 'CC BY 4.0',
+                    conceptLinks: [{ id: 'confidence-interval', label: 'Confidence interval' }],
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+      { checkedAt: '2026-08-05T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows).toHaveLength(1);
+    expect(ledger.reviewRows || []).toHaveLength(1);
+    expect(ledger.rows[0]).toMatchObject({
+      id: 'openstax:statistics#8',
+      provider: 'openstax',
+      accessStatus: 'reference-present',
+      sessionRefs: ['s2'],
+    });
+    expect(ledger.rows[0].conceptLinks).toEqual(
+      expect.arrayContaining([expect.objectContaining({ label: 'Confidence interval' })]),
+    );
+    expect(ledger.rows[0].conceptLinks).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ label: 'Sampling' })]),
+    );
+    expect(ledger.reviewRows[0]).toMatchObject({
+      sourceWorkId: 'openstax:statistics#8',
+      sessionRefs: ['s1'],
+      conceptLinks: expect.arrayContaining([expect.objectContaining({ label: 'Sampling' })]),
+    });
+  });
+
+  it('infers the publisher from a citation URL instead of treating an operational origin as the provider', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'Introductory Statistics' },
+        sessions: [{ id: 's1', number: 1, title: 'Sampling distributions', sections: [] }],
+        enrichmentOverlay: {
+          lessonContent: {
+            'lesson-1': {
+              sourceFactAuthority: 'shipped-source-library',
+              conceptProvenance: {
+                citations: [
+                  {
+                    id: 'openstax:statistics#7',
+                    displayTitle: 'Introductory Statistics, section 7',
+                    sourceUrl: 'https://openstax.org/books/introductory-statistics/pages/7-key-terms',
+                    license: 'CC BY 4.0',
+                    origin: 'scion-evidence-overlay',
+                    supportReceipt: {
+                      status: 'passed',
+                      checkedClaims: 1,
+                      minimumScore: 1,
+                      sourceIdentityVerified: true,
+                      semanticAdmissionVerified: true,
+                      artifactVisibilityVerified: false,
+                      semanticSupport: true,
+                      readinessEligible: false,
+                      checks: [
+                        {
+                          claimId: 'openstax:statistics#7:claim-1',
+                          claim: 'a sampling distribution is the probability distribution of a statistic',
+                          quote: 'a sampling distribution is the probability distribution of a statistic',
+                          sourceId: 'openstax:statistics#7',
+                        },
+                      ],
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+      { checkedAt: '2026-08-06T00:00:00.000Z' },
+    );
+
+    expect(ledger.reviewRows || []).toHaveLength(0);
+    expect(ledger.rows).toHaveLength(1);
+    expect(ledger.rows[0]).toMatchObject({
+      id: 'openstax:statistics#7',
+      provider: 'openstax',
+      origin: 'scion-evidence-overlay',
+      trustLevel: 'open-educational-resource',
+    });
+    expect(ledger.rows[0].supportReceipt).toMatchObject({
+      status: 'passed',
+      sourceIdentityVerified: true,
+      semanticAdmissionVerified: true,
+    });
+  });
+
+  it('admits authentic packet sources into the governing ledger and binds their curated claims to rendered artifacts', async () => {
+    const analysisFocus = 'Prosodic comparison: pitch distinguishes the cited lexical meanings.';
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'Language Structure Laboratory' },
+        sessions: [{ id: 's1', number: 1, title: 'Tone contrasts', sections: [] }],
+        authenticLanguageData: {
+          protocol: 'coursemapper-authentic-language-data-v1',
+          sources: [
+            {
+              id: 'wals-tone-13',
+              title: 'WALS Online — Tone',
+              url: 'https://wals.info/chapter/13',
+              license: 'CC BY 4.0',
+              attribution: 'Maddieson, Ian. 2013. Tone.',
+            },
+          ],
+          examples: [
+            {
+              id: 'wals-13-yoruba-tone',
+              language: 'Yoruba',
+              form: '/bí/ · /bī/ · /bì/',
+              gloss: 'high · mid · low tone',
+              translation: 'give birth · ask · vomit',
+              analysisFocus,
+              sourceId: 'wals-tone-13',
+              sourceLocator: 'Chapter 13, section 1',
+            },
+          ],
+        },
+        authenticLanguageDataCoverage: {
+          lessons: [
+            {
+              lessonNumber: 1,
+              sessionId: 's1',
+              evidenceSubtype: 'prosody',
+              operation: 'comparison',
+              taskBinding: { examples: [{ sourceId: 'wals-tone-13' }] },
+            },
+          ],
+        },
+      },
+      { checkedAt: '2026-08-06T00:00:00.000Z' },
+    );
+
+    expect(ledger.reviewRows || []).toHaveLength(0);
+    expect(ledger.rows).toHaveLength(1);
+    expect(ledger.rows[0]).toMatchObject({
+      id: 'wals-tone-13',
+      provider: 'wals',
+      license: 'CC BY 4.0',
+      sessionRefs: ['s1'],
+      supportReceipt: {
+        method: 'shipped-source-curated-anchor-v1',
+        sourceIdentityVerified: true,
+        semanticAdmissionVerified: true,
+      },
+    });
+    const [bound] = await bindRenderedClaimSupport(ledger.rows, [
+      {
+        path: 'Lesson Plans/Lesson 01 - Tone contrasts.docx',
+        text: `Evidence boundary. ${analysisFocus}`,
+        sha256: 'a'.repeat(64),
+      },
+    ]);
+    expect(isClaimBoundSourceLedgerRow(bound)).toBe(true);
+    expect(bound.supportReceipt.checks[0]).toMatchObject({
+      renderedLocation: 'Lesson Plans/Lesson 01 - Tone contrasts.docx',
+      artifactVisibilityVerified: true,
+      semanticSupport: true,
+    });
+  });
+
+  it('preserves the original source-work identity and upstream receipt on rebound graph resources', async () => {
+    const quote = 'Visual hierarchy creates a perceived order of importance.';
+    const snapshot = await snapshotReceipt('wikipedia-visual-hierarchy', quote);
+    const receipt = {
+      status: 'passed',
+      checkedClaims: 1,
+      minimumScore: 1,
+      sourceIdentityVerified: true,
+      semanticAdmissionVerified: true,
+      artifactVisibilityVerified: false,
+      semanticSupport: true,
+      readinessEligible: false,
+      sourceSnapshot: snapshot.sourceSnapshot,
+      checks: [
+        {
+          ...snapshot.check,
+          sourceId: 'wikipedia-visual-hierarchy',
+          claim: quote,
+          quote,
+          quoteInSnapshot: true,
+          entailed: true,
+          semanticSupport: true,
+        },
+      ],
+    };
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'Visual Evidence' },
+        sessions: [{ id: 's1', number: 1, title: 'Visual hierarchy', sections: [{ conceptRefs: ['c1'] }] }],
+        concepts: [{ id: 'c1', label: 'Visual hierarchy' }],
+        resources: [
+          {
+            id: 'evidence-source-1-1',
+            sourceWorkId: 'wikipedia-visual-hierarchy',
+            title: 'Visual hierarchy',
+            url: 'https://en.wikipedia.org/wiki/Visual_hierarchy',
+            license: 'CC BY-SA 4.0',
+            provider: 'wikipedia',
+            kind: 'open encyclopedia',
+            sessionRefs: ['s1', 1],
+            supportReceipt: receipt,
+            authorityKind: 'verified-open-research',
+            governingSourceReceiptSha256: 'a'.repeat(64),
+          },
+        ],
+      },
+      { checkedAt: '2026-08-10T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows[0]).toMatchObject({
+      id: 'evidence-source-1-1',
+      sourceWorkId: 'wikipedia-visual-hierarchy',
+      authorityKind: 'verified-open-research',
+      governingSourceReceiptSha256: 'a'.repeat(64),
+      supportReceipt: { status: 'passed', sourceSnapshot: { sourceId: 'wikipedia-visual-hierarchy' } },
+    });
+  });
+
+  it('binds only lesson-declared research roots before minting overlay scope and concept links', () => {
+    const citations = (titles) =>
+      titles.map((title, index) => ({
+        id: `wikipedia:${title}`,
+        displayTitle: title,
+        sourceUrl: `https://example.test/source-${index + 1}`,
+        provider: 'wikipedia',
+        license: 'CC BY-SA 4.0',
+      }));
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'Introductory Statistics' },
+        sessions: [
+          { id: 's1', number: 1, title: 'The Normal Distribution', sections: [] },
+          { id: 's2', number: 2, title: 'Regression', sections: [] },
+          { id: 's3', number: 3, title: 'Producing Data: Sampling', sections: [] },
+        ],
+        enrichmentOverlay: {
+          lessonContent: {
+            'lesson-1': {
+              conceptProvenance: {
+                citations: citations([
+                  'Normal distribution',
+                  'Truncated normal distribution',
+                  'Normal-gamma distribution',
+                  'Normal-Wishart distribution',
+                ]),
+              },
+            },
+            'lesson-2': {
+              conceptProvenance: {
+                citations: citations([
+                  'Regression analysis',
+                  'Poisson regression',
+                  'Robust regression',
+                  'Binomial regression',
+                  'Semiparametric regression',
+                ]),
+              },
+            },
+            'lesson-3': { conceptProvenance: { citations: citations(['Sampling (statistics)']) } },
+          },
+        },
+      },
+      { checkedAt: '2026-08-11T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows.map((row) => row.title)).toEqual([
+      'Normal distribution',
+      'Regression analysis',
+      'Sampling (statistics)',
+    ]);
+    expect(JSON.stringify(ledger)).not.toMatch(
+      /Truncated normal|Normal-gamma|Normal-Wishart|Poisson regression|Robust regression|Binomial regression|Semiparametric regression/,
+    );
+    expect(ledger.rows.map((row) => row.sessionRefs)).toEqual([['s1'], ['s2'], ['s3']]);
+  });
+
+  it('retains an exact admitted specialization when its claim survives in the lesson kernel', () => {
+    const rootClaim =
+      'Auditory phonetics is the branch of phonetics concerned with the hearing of speech sounds and speech perception.';
+    const specializedClaim =
+      'The speech motor system participates in both producing speech articulations and detecting them.';
+    const citation = (title, claim, index) => ({
+      id: `wikipedia:${title}`,
+      displayTitle: title,
+      sourceUrl: `https://example.test/phonetics-${index}`,
+      provider: 'wikipedia',
+      license: 'CC BY-SA 4.0',
+      supportReceipt: {
+        status: 'passed',
+        checkedClaims: 1,
+        minimumScore: 1,
+        sourceIdentityVerified: true,
+        semanticAdmissionVerified: true,
+        artifactVisibilityVerified: false,
+        semanticSupport: true,
+        readinessEligible: false,
+        checks: [
+          {
+            claimId: `claim-${index}`,
+            claim,
+            quote: claim,
+            sourceId: `wikipedia:${title}`,
+            entailed: true,
+            sourceIdentityVerified: true,
+            semanticAdmissionVerified: true,
+            artifactVisibilityVerified: false,
+            semanticSupport: true,
+          },
+        ],
+      },
+    });
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'Introduction to Language Structure' },
+        sessions: [{ id: 's1', number: 1, title: 'Phonetics and Articulation', sections: [] }],
+        enrichmentOverlay: {
+          lessonContent: {
+            'lesson-1': {
+              kernel: { facts: [rootClaim, specializedClaim] },
+              conceptProvenance: {
+                citations: [
+                  citation('Auditory phonetics', rootClaim, 1),
+                  citation('Motor theory of speech perception', specializedClaim, 2),
+                ],
+              },
+            },
+          },
+        },
+      },
+      { checkedAt: '2026-08-11T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows.map((row) => row.title)).toEqual(['Auditory phonetics', 'Motor theory of speech perception']);
+    expect(ledger.reviewRows || []).toHaveLength(0);
+  });
+
+  it('keeps a specialization explicitly authorized by the hash-bound pre-retrieval lesson plan', async () => {
+    const instructionalInstance = buildInstructionalInstanceContract({
+      course: { name: 'Introductory Statistics', lessonCount: 1 },
+      lessonIntents: [
+        {
+          id: 'lesson-1',
+          lessonNumber: 1,
+          title: 'Producing Data: Experiments',
+          focusConcepts: ['Producing Data: Experiments'],
+          targetObjectives: ['Design and audit a randomized experiment with a replayable assignment rule.'],
+          learnerAction: 'Execute and audit a randomized assignment rule.',
+          expectedEvidence: {
+            artifact: 'randomized-experiment design record',
+            evidenceRequirement: 'units, treatments, assignment trace, and validity boundary',
+            successCriteria: ['Replays the assignment rule.', 'Limits the causal claim to the design.'],
+          },
+          evidenceNeedKind: 'operation-specimen',
+        },
+      ],
+    }).instances[0];
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'Introductory Statistics' },
+        sessions: [{ id: 's1', number: 1, title: 'Producing Data: Experiments', sections: [] }],
+        enrichmentOverlay: {
+          lessonContent: {
+            'lesson-1': {
+              evidenceAuthorityReceipt: { instructionalInstance },
+              conceptProvenance: {
+                citations: [
+                  {
+                    id: 'wikipedia:Experiment',
+                    displayTitle: 'Experiment',
+                    provider: 'wikipedia',
+                    sourceUrl: 'https://example.test/experiment',
+                    license: 'CC BY-SA 4.0',
+                  },
+                  {
+                    id: 'wikipedia:Randomized experiment',
+                    displayTitle: 'Randomized experiment',
+                    provider: 'wikipedia',
+                    sourceUrl: 'https://example.test/randomized-experiment',
+                    license: 'CC BY-SA 4.0',
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+      { checkedAt: '2026-08-11T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows.map((row) => row.title)).toEqual(['Experiment', 'Randomized experiment']);
+    expect(ledger.rows.every((row) => row.sessionRefs[0] === 's1')).toBe(true);
   });
 });

@@ -302,7 +302,11 @@ async function polishCourseMapWorkbook(buffer, lastColumn, hyperlinks = [], prin
 
   let sheet = await zip.file('xl/worksheets/sheet1.xml').async('string');
   const widePrint = columnCount >= 8;
-  const pageSetupProperties = printPageBreakRow || widePrint ? '<pageSetUpPr/>' : '<pageSetUpPr fitToPage="1"/>';
+  // Wide maps should use a bounded two-page horizontal spread. A fixed scale
+  // produced three pages across in LibreOffice, repeating the identity columns
+  // on a nearly empty third sheet. Fit-to-page keeps the map readable while
+  // making the published print surface deterministic.
+  const pageSetupProperties = '<pageSetUpPr fitToPage="1"/>';
   sheet = sheet.replace(
     '<sheetViews>',
     `<sheetPr><tabColor rgb="${HEADER_TAB_COLOR}"/>${pageSetupProperties}</sheetPr><sheetViews>`,
@@ -343,11 +347,9 @@ async function polishCourseMapWorkbook(buffer, lastColumn, hyperlinks = [], prin
     : '';
   const printOptions =
     printPageBreakRow || widePrint ? '<printOptions horizontalCentered="1" verticalCentered="1"/>' : '';
-  const pageSetup = printPageBreakRow
-    ? '<pageSetup orientation="landscape" scale="38"/>'
-    : widePrint
-      ? '<pageSetup orientation="landscape" scale="64"/>'
-      : '<pageSetup orientation="landscape" fitToWidth="1" fitToHeight="0"/>';
+  const pageSetup = widePrint
+    ? '<pageSetup orientation="landscape" fitToWidth="2" fitToHeight="0"/>'
+    : '<pageSetup orientation="landscape" fitToWidth="1" fitToHeight="0"/>';
   sheet = sheet.replace(
     '</worksheet>',
     rowBreaks +
@@ -377,13 +379,13 @@ async function polishCourseMapWorkbook(buffer, lastColumn, hyperlinks = [], prin
  */
 function balancedPrintPageBreakRow(courseMap) {
   const lessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons : [];
-  if (lessons.length < 10) return null;
+  if (lessons.length < 8) return null;
 
   const rowCounts = lessons.map((lesson) =>
     Array.isArray(lesson?.sections) && lesson.sections.length > 0 ? lesson.sections.length : 1,
   );
   const totalRows = rowCounts.reduce((sum, count) => sum + count, 0);
-  if (totalRows < 16) return null;
+  if (totalRows < 8) return null;
 
   const target = totalRows / 2;
   let accumulated = 0;

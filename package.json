@@ -1,6 +1,6 @@
 {
   "name": "course-mapper",
-  "version": "0.17.14",
+  "version": "0.17.18",
   "type": "module",
   "description": "AI-powered course syllabus to course map generator",
   "scripts": {
@@ -29,7 +29,7 @@
     "knowledge:audit": "npx vite-node scripts/knowledgeAudit.mjs",
     "audit:constitution": "node scripts/constitutionAudit.mjs",
     "audit:texture:cross-package": "node scripts/crossPackageTextureAudit.mjs",
-    "audit:texture:cross-package:untuned": "node scripts/crossPackageTextureAudit.mjs --profile untuned --receipt evaluation/cross-package-texture/untuned-v0.17.14-receipt.json",
+    "audit:texture:cross-package:untuned": "node scripts/crossPackageTextureAudit.mjs --profile untuned --receipt evaluation/cross-package-texture/untuned-v0.17.18-receipt.json",
     "audit:release-history": "node scripts/auditReleaseHistory.mjs",
     "audit:pipeline": "node scripts/hybridPipelineAudit.mjs",
     "audit:algi:hybrid": "node scripts/algiScionHybridBenchmarkAudit.mjs --strict",
@@ -52,6 +52,7 @@
     "test:quality-benchmark": "node scripts/qualityBenchmarkSelfTest.mjs",
     "test:quality-benchmark:unit": "vitest run --config vitest.quality-benchmark.config.js",
     "audit:quality-model-comparison": "node scripts/qualityModelComparison.mjs",
+    "audit:checkpoint:v1": "node scripts/verifiedCoherentDraftV1Audit.mjs",
     "audit:canary": "node scripts/productionCanaryAudit.mjs --mode advisory",
     "audit:canary:strict": "node scripts/productionCanaryAudit.mjs --mode strict",
     "retain:canary": "node scripts/retainProductionCanaryArtifacts.mjs",
@@ -444,6 +445,7 @@
     "happy-dom": "^20.9.0",
     "postcss": "^8.4.33",
     "prettier": "^3.8.3",
+    "sharp": "^0.34.5",
     "tailwindcss": "^3.4.1",
     "vite": "^8.0.10",
     "vite-node": "^6.0.0",

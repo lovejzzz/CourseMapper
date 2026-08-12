@@ -11,9 +11,20 @@ import { stableLessonContractObjective } from '../lessonAssessmentContract.js';
 
 describe('stable lesson assessment contract', () => {
   it('derives a course-neutral objective from an unseen lesson identity', () => {
-    expect(stableLessonContractObjective({ title: 'Week 7: Coastal Flood Adaptation' })).toBe(
-      'Apply Coastal Flood Adaptation in one practical example and justify one evidence-based revision.',
+    expect(stableLessonContractObjective({ title: 'Week 7: Coastal Flood Adaptation' })).toMatch(
+      /Coastal Flood Adaptation.*(?:evidence|revision|revise|conclusion)/,
     );
+  });
+
+  it('varies the course-neutral objective shell by lesson identity on a long course', () => {
+    const objectives = Array.from({ length: 8 }, (_, index) =>
+      stableLessonContractObjective({
+        title: `Lesson ${index + 1}: Unseen Topic ${index + 1}`,
+        lessonNumber: index + 1,
+      }).replace(/Unseen Topic \d+/g, '<topic>'),
+    );
+
+    expect(new Set(objectives).size).toBeGreaterThanOrEqual(5);
   });
 });
 

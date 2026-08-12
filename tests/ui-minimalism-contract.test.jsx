@@ -82,8 +82,13 @@ describe('minimal workspace status contract', () => {
       14,
     );
     expect(
-      generateAllSource.indexOf('if (shouldStopBlueprintCompiler()) return;\n        if (typeof onCourseGraph'),
+      generateAllSource.indexOf(
+        'if (shouldStopBlueprintCompiler()) return;\n        // Knowledge attachment is allowed to discover review material',
+      ),
     ).toBeGreaterThan(-1);
+    expect(generateAllSource).toContain(
+      'const boundSources = scionEvidenceHandoff?.bindTeachingSurfaces(blueprintCourseMap, courseGraph);',
+    );
     expect(generateAllSource).toContain(
       'for (const fid of blueprintCompiledFeatureIds) {\n          if (isGenerationCancelled(fid)) continue;',
     );

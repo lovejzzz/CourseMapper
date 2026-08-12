@@ -65,6 +65,45 @@ function source(provider, title, extra = {}) {
 }
 
 describe('source finder mini-shard', () => {
+  it('rejects programming-language false friends from a human-language lesson', async () => {
+    const graph = createEmptyCourseGraph({ courseName: 'Introduction to Language Structure' });
+    graph.sessions = [
+      {
+        id: 's1',
+        number: 1,
+        title: 'Lesson 1: Authentic Data Application',
+        sections: [{ topic: '1.1: Waunana imperative language' }],
+      },
+    ];
+    const candidates = [
+      source('wikipedia', 'Imperative programming', {
+        abstract:
+          'Imperative programming is a software programming paradigm that gives specific instructions for computations. In much the same way that the imperative mood in natural languages expresses commands, a program consists of commands for a computer to perform.',
+      }),
+      source('wikipedia', 'Imperative mood', {
+        abstract:
+          'The imperative mood is a grammatical mood used in human language utterances. Linguistics compares imperative forms, morphology, syntax, and pragmatic speech acts.',
+      }),
+    ];
+    const miniShard = await findCourseSources(graph, {
+      storage: memoryStorage(),
+      maxTopics: 1,
+      minUsefulSources: 1,
+      limitPerTopic: 3,
+      providers: {
+        crossref: vi.fn(async () => candidates),
+        wikipedia: vi.fn(async () => candidates),
+        openlibrary: vi.fn(async () => []),
+        loc: vi.fn(async () => []),
+        internetarchive: vi.fn(async () => []),
+      },
+    });
+
+    const titles = miniShard.topics[0].sources.map((entry) => entry.title);
+    expect(titles).toContain('Imperative mood');
+    expect(titles).not.toContain('Imperative programming');
+  });
+
   it('releases the course pipeline when a complementary provider ignores abort signals', async () => {
     const never = vi.fn(() => new Promise(() => {}));
     const startedAt = Date.now();

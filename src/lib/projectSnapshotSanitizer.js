@@ -2,6 +2,7 @@ import { detectRequestedClassSessionMinutes, parseClassSessionMinutes } from './
 import { setOwnEnumerableData } from './ownEnumerableData.js';
 import { renderedDeliverableCollection } from './renderedDeliverableRoot.js';
 import { selectPersistablePackageEvidence } from './packageQualityPersistence.js';
+import { quarantineInvalidInstructionalPlanLineage } from './instructionalPlanLineage.js';
 
 const SECRET_FIELD_NAMES = new Set([
   'apikey',
@@ -299,6 +300,9 @@ export function prepareProjectSnapshotForRestore(snapshot) {
       }
     }
     delete restored.courseGraphJson;
+    if (restored.courseGraph && typeof restored.courseGraph === 'object') {
+      quarantineInvalidInstructionalPlanLineage(restored.courseGraph);
+    }
     return restoreProjectGenerationConstraints(migrateRestoredDeliverables(restored));
   } catch {
     return { formatVersion: 1 };

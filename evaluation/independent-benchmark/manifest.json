@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "rubricVersion": "1.0.0",
   "rubricPath": "evaluation/quality-benchmark/v1/rubric.json",
-  "rubricSha256": "508486c8e2db26c6a146903caa20e2f39384437d2066ec040fe206ff757382bd",
+  "rubricSha256": "75d474f0ddc811a5b3aa9f16c58dbe2e2120ee7dfcd6b683e59a6eedba3f25ce",
   "reviewSchemaVersion": 2,
   "targetCases": 8,
   "minimumCompletedCases": 6,

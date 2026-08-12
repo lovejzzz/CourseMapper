@@ -90,6 +90,22 @@ function itemText(value) {
 }
 
 const BOILERPLATE_METADATA_KEYS = new Set([
+  // Machine-facing question metadata can form a long pseudo-sentence when
+  // flattened (for example, id + type + Bloom level + timing + points). It is
+  // not learner-facing prose and must not create a boilerplate warning.
+  'id',
+  'type',
+  'bloomsLevel',
+  'difficulty',
+  'estimatedMinutes',
+  'points',
+  'minutes',
+  'bloom',
+  'objective',
+  'activity',
+  'activityType',
+  'timer',
+  'objectiveLink',
   'sourceGrounding',
   'blueprintGrounding',
   'sourceAnchors',
@@ -108,7 +124,13 @@ const BOILERPLATE_METADATA_KEYS = new Set([
   'criterionWeightCue',
   'weightedGradingCriteria',
   'localReviewNeeded',
+  // A governing or compiler-estimated time budget is intentionally uniform
+  // across weekly artifacts. Repetition here is workload transparency, not
+  // generic instructional copy.
+  'workload',
   'workloadEstimate',
+  'estimatedTime',
+  'studentFacingEstimate',
   'classSessionPlan',
   'classroomDryRun',
   'classroomDryRunPlan',
@@ -178,6 +200,17 @@ const BOILERPLATE_METADATA_KEYS = new Set([
   'quizBlueprint',
   'tags',
   'visualPlan',
+  // Typed visual contracts and predicates are embedded audit metadata. The
+  // learner-facing slide text is checked separately; counting this shared
+  // machine contract as classroom prose creates false boilerplate warnings.
+  'typedSpecimen',
+  'taskContract',
+  // Audit/provenance fields travel with operation-qualified worked examples
+  // so package receipts can verify them. They are not learner-facing prose
+  // and must not be counted as repeated instructional boilerplate.
+  'verification',
+  'truthProof',
+  'curriculumAdmission',
 ]);
 
 function collectBoilerplateStrings(value, output = []) {
@@ -660,10 +693,38 @@ function checkStudyGuides(items, issues) {
   const weakRetrieval = items.filter((guide) => {
     const reviewQuestions = asArray(guide?.reviewQuestions || guide?.rq || guide?.questions || guide?.qs);
     const keyTerms = asArray(guide?.keyTerms || guide?.kt || guide?.terms);
+    const practiceActivities = asArray(guide?.practiceActivities || guide?.practice || guide?.activities);
+    const workedExample = guide?.workedExample;
+    const hasVerifiedOperationPractice =
+      workedExample?.protocol === 'coursemapper-operation-qualified-evidence-v1' &&
+      workedExample?.verification?.checked === true &&
+      asArray(workedExample?.steps).length >= 2 &&
+      hasMeaningfulValue(workedExample?.result) &&
+      hasMeaningfulValue(workedExample?.transferTask) &&
+      practiceActivities.length >= 2;
+    const hasVerifiedEvidencePractice =
+      [
+        'coursemapper-functional-visual-study-practice-v1',
+        'coursemapper-authentic-evidence-study-practice-v1',
+        'coursemapper-source-claim-comparison-study-practice-v1',
+      ].includes(workedExample?.protocol) &&
+      workedExample?.verification?.checked === true &&
+      asArray(workedExample?.steps).length >= 2 &&
+      hasMeaningfulValue(workedExample?.result) &&
+      hasMeaningfulValue(workedExample?.boundary) &&
+      hasMeaningfulValue(workedExample?.transferTask) &&
+      practiceActivities.length >= 2;
     // Two source-backed terms plus three retrieval questions is stronger than
     // inventing a third definition merely to satisfy a count. The compiler's
-    // source-strict admission pass may deliberately reject a weak term.
-    return reviewQuestions.length < 3 || keyTerms.length < 2 || !REVIEW_CUE_RE.test(itemText(guide));
+    // source-strict admission pass may deliberately reject a weak term. A
+    // verified procedural specimen plus two practice activities is the
+    // quantitative equivalent of that glossary depth; do not pressure the
+    // compiler to fabricate definitions merely to satisfy a vocabulary count.
+    return (
+      reviewQuestions.length < 3 ||
+      (keyTerms.length < 2 && !hasVerifiedOperationPractice && !hasVerifiedEvidencePractice) ||
+      !REVIEW_CUE_RE.test(itemText(guide))
+    );
   }).length;
   addRatioWarning({
     issues,

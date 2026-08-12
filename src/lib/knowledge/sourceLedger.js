@@ -1,4 +1,7 @@
 import { isMusicIntervalWeakSource } from './musicSourceRelevance.js';
+import { sha256HexSync } from '../sha256Sync.js';
+import { isLessonResearchSurfaceBound } from '../lessonSemanticRelevance.js';
+import { instructionalInstanceReceiptMatches } from '../instructionalInstanceContract.js';
 
 const TRUSTED_PROVIDERS = new Set([
   'courseir',
@@ -13,7 +16,10 @@ const TRUSTED_PROVIDERS = new Set([
   'instructor',
   'instructor-provided',
   'source-finder',
+  'w3c',
   'w3c-wai',
+  'wals',
+  'mit-ocw',
 ]);
 
 const ACADEMIC_PROVIDERS = new Set(['openalex', 'eric', 'crossref', 'doaj', 'europe-pmc']);
@@ -23,7 +29,10 @@ const OER_PROVIDERS = new Set([
   'gutenberg',
   'genome',
   'genome-prerequisite',
+  'w3c',
   'w3c-wai',
+  'wals',
+  'mit-ocw',
 ]);
 const METADATA_ONLY_PROVIDERS = new Set(['openlibrary']);
 const LICENSED_BACKGROUND_PROVIDERS = new Set(['wikipedia']);
@@ -64,6 +73,18 @@ const FILM_SOURCE_ANCHOR_RE =
   /\b(?:film|films|cinema|cinematic|motion pictures?|screen|filmmaking|director|directing|shot|shots|editing|editor|montage|mise[-\s]en[-\s]sc[eè]ne|cinematograph|camera|soundtrack)\b/i;
 const FILM_EDITING_METRE_FALSE_FRIEND_RE =
   /\b(?:Metre \((?:music|poetry)\)|tala|taal|prosody|triple metre|additive rhythm|divisive rhythm|hypermetre|regular recurring pattern of strong and weak beats)\b/i;
+const VISUAL_ANALYSIS_COURSE_RE =
+  /\b(?:art history|composition|color theory|colour theory|graphic design|image analysis|perspective and framing|visual analysis|visual arts?|visual communication|visual evidence|visual hierarchy)\b/i;
+const VISUAL_PERSPECTIVE_TOPIC_RE =
+  /\b(?:linear perspective|perspective and framing|perspective systems?|vanishing points?|picture plane|camera framing|shot framing)\b/i;
+const VISUAL_SOCIAL_PLATFORM_FALSE_FRIEND_RE =
+  /\b(?:social media|social network|tiktok|instagram|facebook|young people|youth|emotional effects?|social effects?|user engagement|platform engagement)\b/i;
+const VISUAL_PERSPECTIVE_SOURCE_ANCHOR_RE =
+  /\b(?:(?:linear|aerial|one[-\s]?point|two[-\s]?point|three[-\s]?point) perspective|vanishing points?|horizon line|picture plane|foreshortening|camera (?:angle|framing|position)|shot (?:composition|framing)|field of view|perspective projection|graphical perspective)\b/i;
+const VISUAL_COMPUTATIONAL_FALSE_FRIEND_RE =
+  /\b(?:attention mechanisms?|change detection|cnn|convolutional neural|deep learning|encoder|eye[-\s]?hand|fMRI|frequency[-\s]?domain|multiscale|neural networks?|neuroimaging|proprioceptive|remote sensing|sensorimotor|siamese|transformers?|visuo[-\s]?proprioceptive)\b/i;
+const VISUAL_COMPUTATIONAL_TOPIC_RE =
+  /\b(?:cognitive neuroscience|computer vision|computational imaging|deep learning|image processing|machine learning|neural networks?|neuroimaging|remote sensing|sensorimotor)\b/i;
 const USER_EXPERIENCE_SOURCE_ANCHOR_RE =
   /\b(?:user[-\s]+experience|ux\b|human[-\s]?centered\s+design|user[-\s]?centered\s+design|human[-\s]?computer\s+interaction|human[-\s]?ai\s+interaction|hci\b|hai\b|user\s+interfaces?|interface\s+design|usability|design\s+research|user\s+research|contextual\s+inquiry|field\s*notes?|fieldnotes?|field\s+research|personas?\b(?!\s*5)|journey\s+maps?|customer\s+journey|information\s+architecture|wirefram|prototype|prototyping|iterative\s+design|interaction\s+design|accessibility|inclusive\s+design|design\s+rationale|design\s+handoff|design\s+studio|co[-\s]?design|service\s+design|material\s+experience|design\s+patterns?|screen\s+flows?|navigation|portfolio\s+case\s+study|critique\s+session|a\/b\s+test(?:ing)?)\b/i;
 const USER_EXPERIENCE_FALSE_FRIEND_RE =
@@ -274,6 +295,14 @@ function cleanText(value, maxLength = 500) {
     : text;
 }
 
+function exactSnapshotText(value, maxLength = 500000) {
+  const text = String(value ?? '');
+  // A snapshot receipt binds byte offsets and hashes to the exact carried
+  // string. Collapsing whitespace or applying Unicode compatibility
+  // normalization after hashing makes legitimate source bytes unreplayable.
+  return text.length <= maxLength ? text : '';
+}
+
 function normalizeSessionRef(value) {
   const ref = cleanText(value, 120);
   const numbered = /^(?:s|session|lesson|week)?[-_\s]*(\d{1,3})$/i.exec(ref);
@@ -418,11 +447,20 @@ function sourceStatus(entry) {
 }
 
 function sourceProvider(entry, fallback = 'courseir') {
-  const direct = cleanText(entry?.provider || entry?.origin || entry?.sourceProvider || '', 80).toLowerCase();
+  const explicit = cleanText(entry?.provider || entry?.sourceProvider || '', 80).toLowerCase();
+  const origin = cleanText(entry?.origin || '', 80).toLowerCase();
+  const direct = explicit || origin;
   const sourceText = [entry?.url, entry?.sourceUrl, entry?.title, entry?.citation, entry?.evidence, entry?.scope]
     .filter(Boolean)
     .join(' ');
   const inferred = inferProviderFromText(sourceText);
+  // `origin` describes how a citation entered the graph (for example,
+  // `scion-evidence-overlay` or `algi-research`); it is not necessarily the
+  // publisher/provider. When no provider was recorded, prefer an identity
+  // that can be recovered from the URL/title over that operational origin.
+  // Otherwise a fully verified OpenStax/W3C receipt is silently demoted to an
+  // unknown provider at export time.
+  if (!explicit && inferred) return inferred;
   if (!direct || ['course-resource', 'course-map', 'resource', 'syllabus'].includes(direct)) {
     return inferred || direct || fallback;
   }
@@ -583,6 +621,9 @@ export function normalizeTrustedSource(entry = {}, { fallbackId = '', checkedAt 
           minimumScore: Math.max(0, Math.min(1, Number(rawSupportReceipt.minimumScore))),
           method: cleanText(rawSupportReceipt.method || 'source-anchor', 80),
           construct: cleanText(rawSupportReceipt.construct || 'source-extraction-integrity', 80),
+          sourceIdentityVerified: rawSupportReceipt.sourceIdentityVerified === true,
+          semanticAdmissionVerified: rawSupportReceipt.semanticAdmissionVerified === true,
+          artifactVisibilityVerified: rawSupportReceipt.artifactVisibilityVerified === true,
           semanticSupport: rawSupportReceipt.semanticSupport === true,
           readinessEligible: rawSupportReceipt.readinessEligible === true,
           claimBoundary: cleanText(
@@ -602,8 +643,11 @@ export function normalizeTrustedSource(entry = {}, { fallbackId = '', checkedAt 
                   ),
                   normalizedSnapshotText: isLicenseAmbiguous(license)
                     ? ''
-                    : cleanText(rawSupportReceipt.sourceSnapshot.normalizedSnapshotText, 500000),
+                    : exactSnapshotText(rawSupportReceipt.sourceSnapshot.normalizedSnapshotText),
                   contentVerified: rawSupportReceipt.sourceSnapshot.contentVerified === true,
+                  sourceIdentityVerified: rawSupportReceipt.sourceSnapshot.sourceIdentityVerified === true,
+                  semanticAdmissionVerified: rawSupportReceipt.sourceSnapshot.semanticAdmissionVerified === true,
+                  artifactVisibilityVerified: rawSupportReceipt.sourceSnapshot.artifactVisibilityVerified === true,
                 },
               }
             : {}),
@@ -630,12 +674,41 @@ export function normalizeTrustedSource(entry = {}, { fallbackId = '', checkedAt 
               reason: cleanText(check?.reason, 80),
               method: cleanText(check?.method, 80),
               construct: cleanText(check?.construct || 'lexical-extraction-integrity', 80),
+              sourceIdentityVerified: check?.sourceIdentityVerified === true,
+              semanticAdmissionVerified: check?.semanticAdmissionVerified === true,
+              artifactVisibilityVerified: check?.artifactVisibilityVerified === true,
               semanticSupport: check?.semanticSupport === true,
+              ...(check?.semanticAdmission
+                ? {
+                    semanticAdmission: {
+                      admitted: check.semanticAdmission.admitted === true,
+                      policy: cleanText(check.semanticAdmission.policy, 120),
+                      topic: cleanText(check.semanticAdmission.topic, 180),
+                      topicMatches: (Array.isArray(check.semanticAdmission.topicMatches)
+                        ? check.semanticAdmission.topicMatches
+                        : []
+                      )
+                        .map((value) => cleanText(value, 80))
+                        .filter(Boolean)
+                        .slice(0, 24),
+                      issues: (Array.isArray(check.semanticAdmission.issues) ? check.semanticAdmission.issues : [])
+                        .map((value) => cleanText(value, 120))
+                        .filter(Boolean)
+                        .slice(0, 24),
+                    },
+                  }
+                : {}),
             })),
         }
       : null;
+  const normalizedSourceId = sourceId(entry, fallbackId, 0);
+  const sourceWorkId = cleanText(
+    entry.sourceWorkId || supportReceipt?.sourceSnapshot?.sourceId || normalizedSourceId,
+    160,
+  );
   const source = {
-    id: sourceId(entry, fallbackId, 0),
+    id: normalizedSourceId,
+    ...(sourceWorkId && sourceWorkId !== normalizedSourceId ? { sourceWorkId } : {}),
     title,
     authors: normalizeAuthors(entry.authors || entry.author || entry.creators),
     url,
@@ -655,6 +728,10 @@ export function normalizeTrustedSource(entry = {}, { fallbackId = '', checkedAt 
     ...(cleanText(entry.revisionTimestamp, 100) ? { revisionTimestamp: cleanText(entry.revisionTimestamp, 100) } : {}),
     ...(sessionRefs.length > 0 ? { sessionRefs } : {}),
     ...(supportReceipt ? { supportReceipt } : {}),
+    ...(cleanText(entry.authorityKind, 120) ? { authorityKind: cleanText(entry.authorityKind, 120) } : {}),
+    ...(cleanText(entry.governingSourceReceiptSha256, 80)
+      ? { governingSourceReceiptSha256: cleanText(entry.governingSourceReceiptSha256, 80) }
+      : {}),
     conceptLinks: normalizeConceptLinks([...(conceptLinks || []), ...(entry.conceptLinks || [])]),
     checkedAt: cleanText(entry.checkedAt || checkedAt, 80),
     accessStatus: isSourceAccessible({ url, doi }) ? 'reference-present' : 'no-url-or-doi',
@@ -681,27 +758,37 @@ export function isTrustedSourceLedgerRow(row = {}) {
 export function isClaimBoundSourceLedgerRow(row = {}) {
   if (!isTrustedSourceLedgerRow(row)) return false;
   const receipt = row?.supportReceipt;
-  if (receipt?.status !== 'passed' || receipt?.semanticSupport !== true || receipt?.readinessEligible !== true) {
+  if (
+    receipt?.status !== 'passed' ||
+    receipt?.sourceIdentityVerified !== true ||
+    receipt?.semanticAdmissionVerified !== true ||
+    receipt?.artifactVisibilityVerified !== true ||
+    receipt?.semanticSupport !== true ||
+    receipt?.readinessEligible !== true
+  ) {
     return false;
   }
   const snapshot = receipt?.sourceSnapshot;
-  const snapshotText = cleanText(snapshot?.normalizedSnapshotText, 500000);
+  const sourceIdentityId = cleanText(row?.sourceWorkId || row?.id, 160);
+  const snapshotText = exactSnapshotText(snapshot?.normalizedSnapshotText);
   const snapshotBytes = new TextEncoder().encode(snapshotText);
   if (
     snapshot?.protocol !== 'retrieved-source-snapshot-sha256-v2' ||
-    snapshot?.sourceId !== row?.id ||
+    cleanText(snapshot?.sourceId, 160) !== sourceIdentityId ||
     !/^[a-f0-9]{64}$/i.test(cleanText(snapshot?.retrievedSnapshotSha256, 80)) ||
     !Number.isInteger(Number(snapshot?.retrievedSnapshotBytes)) ||
     Number(snapshot?.retrievedSnapshotBytes) <= 0 ||
     snapshotBytes.byteLength !== Number(snapshot?.retrievedSnapshotBytes) ||
-    snapshot?.contentVerified !== true
+    snapshot?.sourceIdentityVerified !== true ||
+    snapshot?.semanticAdmissionVerified !== true ||
+    snapshot?.artifactVisibilityVerified !== true
   ) {
     return false;
   }
   return (Array.isArray(receipt.checks) ? receipt.checks : []).some(
     (check) =>
       Boolean(cleanText(check?.sourceId, 160)) &&
-      cleanText(check?.sourceId, 160) === cleanText(row?.id, 160) &&
+      cleanText(check?.sourceId, 160) === sourceIdentityId &&
       Boolean(cleanText(check?.locator, 200)) &&
       Boolean(cleanText(check?.quote, 500)) &&
       Boolean(cleanText(check?.claim, 400)) &&
@@ -716,17 +803,18 @@ export function isClaimBoundSourceLedgerRow(row = {}) {
       Number(check?.quoteByteStart) >= 0 &&
       Number(check?.quoteByteEnd) > Number(check?.quoteByteStart) &&
       Number(check?.quoteByteEnd) <= Number(snapshot.retrievedSnapshotBytes) &&
-      cleanText(
-        new TextDecoder().decode(snapshotBytes.slice(Number(check?.quoteByteStart), Number(check?.quoteByteEnd))),
-        500,
-      ) === cleanText(check?.quote, 500) &&
+      new TextDecoder().decode(snapshotBytes.slice(Number(check?.quoteByteStart), Number(check?.quoteByteEnd))) ===
+        String(check?.quote ?? '') &&
       check?.quoteInSnapshot === true &&
       check?.entailed === true &&
+      check?.sourceIdentityVerified === true &&
+      check?.semanticAdmissionVerified === true &&
+      check?.artifactVisibilityVerified === true &&
       check?.semanticSupport === true,
   );
 }
 
-const RENDERED_CLAIM_VERIFIER_VERSION = 'rendered-exact-source-claim-v1';
+const RENDERED_CLAIM_VERIFIER_VERSION = 'rendered-admitted-source-claim-v2';
 
 function normalizedClaimText(value = '', maxLength = 2000) {
   return cleanText(value, maxLength)
@@ -757,11 +845,11 @@ async function sha256Text(value = '') {
 
 /** Replay a source receipt from the normalized bytes that travel in the package. */
 export async function verifySourceSnapshotReceipt(snapshot = {}, check = {}) {
-  const text = cleanText(snapshot?.normalizedSnapshotText, 500000);
+  const text = exactSnapshotText(snapshot?.normalizedSnapshotText);
   const bytes = new TextEncoder().encode(text);
   const byteStart = Number(check?.quoteByteStart);
   const byteEnd = Number(check?.quoteByteEnd);
-  const quote = cleanText(check?.quote, 600);
+  const quote = String(check?.quote ?? '');
   if (
     snapshot?.protocol !== 'retrieved-source-snapshot-sha256-v2' ||
     !text ||
@@ -775,11 +863,29 @@ export async function verifySourceSnapshotReceipt(snapshot = {}, check = {}) {
   ) {
     return false;
   }
-  const slicedQuote = cleanText(new TextDecoder().decode(bytes.slice(byteStart, byteEnd)), 600);
+  const slicedQuote = new TextDecoder().decode(bytes.slice(byteStart, byteEnd));
   return (
     slicedQuote === quote &&
     (await sha256Text(text)) === cleanText(snapshot?.retrievedSnapshotSha256, 80) &&
     (await sha256Text(slicedQuote)) === cleanText(check?.sourcePassageSha256, 80)
+  );
+}
+
+function isStrictLegacyExactSourceAdmission(receipt = {}, snapshotReceiptVerified = false, check = {}) {
+  return (
+    receipt?.status === 'passed' &&
+    receipt?.method === 'exact-source-claim-v1' &&
+    Number(receipt?.minimumScore) === 1 &&
+    receipt?.semanticSupport === true &&
+    snapshotReceiptVerified === true &&
+    check?.method === 'exact-source-claim-v1' &&
+    check?.construct === 'source-claim-identity' &&
+    check?.reason === 'exact-source-claim-identity' &&
+    Number(check?.score) === 1 &&
+    normalizedClaimText(check?.claim) === normalizedClaimText(check?.quote) &&
+    check?.quoteInSnapshot === true &&
+    check?.entailed === true &&
+    check?.semanticSupport === true
   );
 }
 
@@ -802,9 +908,21 @@ export async function bindRenderedClaimSupport(sourceRows = [], artifacts = []) 
     (Array.isArray(sourceRows) ? sourceRows : []).map(async (row) => {
       const receipt = row?.supportReceipt;
       const snapshot = receipt?.sourceSnapshot;
+      // A binding-specific row id distinguishes the same work when it is used
+      // for incompatible lesson/construct occurrences. The snapshot and its
+      // exact claim checks still identify the underlying work, so verify them
+      // against sourceWorkId while retaining row.id as the occurrence key.
+      const sourceIdentityId = cleanText(row?.sourceWorkId || row?.id, 160);
       const lessons = lessonNumbersForClaimRow(row);
       const candidates = visibleArtifacts.filter(
-        (artifact) => lessons.size === 0 || (artifact.lessonNumber > 0 && lessons.has(artifact.lessonNumber)),
+        (artifact) =>
+          lessons.size === 0 ||
+          // Global artifacts such as the syllabus have no lesson number in
+          // their path. Exact admitted-claim identity is still sufficient to
+          // bind an occurrence there; excluding it left a real source claim
+          // visible but permanently unreviewable.
+          artifact.lessonNumber === 0 ||
+          lessons.has(artifact.lessonNumber),
       );
       const boundChecks = [];
       for (const check of Array.isArray(receipt?.checks) ? receipt.checks : []) {
@@ -818,13 +936,33 @@ export async function bindRenderedClaimSupport(sourceRows = [], artifacts = []) 
         const quoteByteStart = Number(check?.quoteByteStart);
         const quoteByteEnd = Number(check?.quoteByteEnd);
         const snapshotReceiptVerified = await verifySourceSnapshotReceipt(snapshot, check);
+        const exactClaimIdentity = normalizedClaim === normalizedClaimText(quote);
+        const curatedParaphraseAdmission =
+          check?.semanticAdmission?.admitted === true &&
+          check?.semanticAdmission?.policy === 'shipped-source-curated-anchor-v1';
+        const explicitUpstreamAdmission =
+          receipt?.sourceIdentityVerified === true &&
+          receipt?.semanticAdmissionVerified === true &&
+          snapshot?.sourceIdentityVerified === true &&
+          snapshot?.semanticAdmissionVerified === true &&
+          check?.sourceIdentityVerified === true &&
+          check?.semanticAdmissionVerified === true &&
+          check?.semanticSupport === true;
+        // Saved projects from before the three-axis receipt split have false
+        // defaults for identity/admission even though they carry a complete
+        // exact-source-claim-v1 transaction. Upgrade only after replaying the
+        // packaged snapshot bytes, byte range, passage hash, exact claim
+        // identity, provider row, and original score. This is evidence
+        // migration, not a boolean compatibility bypass.
+        const legacyExactAdmission = isStrictLegacyExactSourceAdmission(receipt, snapshotReceiptVerified, check);
+        const upstreamAdmissionVerified = explicitUpstreamAdmission || legacyExactAdmission;
         if (
           !normalizedClaim ||
-          normalizedClaim !== normalizedClaimText(quote) ||
+          (!exactClaimIdentity && !curatedParaphraseAdmission) ||
           !cleanText(check?.sourceId, 160) ||
-          cleanText(check?.sourceId, 160) !== cleanText(row?.id, 160) ||
+          cleanText(check?.sourceId, 160) !== sourceIdentityId ||
           !cleanText(check?.locator, 200) ||
-          cleanText(snapshot?.sourceId, 160) !== cleanText(row?.id, 160) ||
+          cleanText(snapshot?.sourceId, 160) !== sourceIdentityId ||
           cleanText(snapshot?.protocol, 120) !== 'retrieved-source-snapshot-sha256-v2' ||
           !/^[a-f0-9]{64}$/i.test(snapshotSha256) ||
           !Number.isInteger(snapshotBytes) ||
@@ -840,9 +978,10 @@ export async function bindRenderedClaimSupport(sourceRows = [], artifacts = []) 
           !/^[a-f0-9]{64}$/i.test(cleanText(check?.sourcePassageSha256, 80)) ||
           cleanText(check?.sourcePassageSha256, 80) !== quoteSha256 ||
           check?.quoteInSnapshot !== true ||
-          snapshotReceiptVerified !== true ||
           check?.entailed !== true ||
-          check?.semanticSupport !== true
+          check?.semanticSupport !== true ||
+          !upstreamAdmissionVerified ||
+          snapshotReceiptVerified !== true
         ) {
           continue;
         }
@@ -856,9 +995,17 @@ export async function bindRenderedClaimSupport(sourceRows = [], artifacts = []) 
             sourcePassageSha256: quoteSha256,
             claimSha256: await sha256Text(claim),
             renderedArtifactSha256: artifact.sha256,
+            // Source identity/semantic admission and artifact visibility are
+            // separate claims. This boundary may add only the latter; it must
+            // never manufacture entailment from byte identity and visibility.
+            entailed: check.entailed,
             method: RENDERED_CLAIM_VERIFIER_VERSION,
             construct: 'rendered-exact-source-claim-support',
-            semanticSupport: true,
+            sourceIdentityVerified: true,
+            semanticAdmissionVerified: true,
+            artifactVisibilityVerified: true,
+            semanticSupport: check.semanticSupport,
+            ...(legacyExactAdmission ? { legacyExactClaimMigrated: true } : {}),
           });
         }
       }
@@ -871,11 +1018,21 @@ export async function bindRenderedClaimSupport(sourceRows = [], artifacts = []) 
           minimumScore: 1,
           method: RENDERED_CLAIM_VERIFIER_VERSION,
           construct: 'rendered-exact-source-claim-support',
-          semanticSupport: true,
+          sourceIdentityVerified: true,
+          semanticAdmissionVerified: true,
+          artifactVisibilityVerified: true,
+          semanticSupport: receipt.semanticSupport,
           readinessEligible: true,
-          sourceSnapshot: { ...snapshot, contentVerified: true },
+          legacyExactClaimMigrationCount: boundChecks.filter((check) => check.legacyExactClaimMigrated === true).length,
+          sourceSnapshot: {
+            ...snapshot,
+            contentVerified: true,
+            sourceIdentityVerified: true,
+            semanticAdmissionVerified: true,
+            artifactVisibilityVerified: true,
+          },
           claimBoundary:
-            'This receipt proves that specific learner-visible claims are byte-bound exact copies of admitted, package-included normalized source snapshots. It does not validate unsupported surrounding prose or classroom effectiveness.',
+            'This receipt binds specific learner-visible claims to admitted source passages in package-included normalized snapshots. Semantic admission is inherited from the upstream exact-identity or curated-source receipt; this step adds only rendered visibility and does not validate unsupported surrounding prose or classroom effectiveness.',
           checks: boundChecks,
         },
       };
@@ -1242,6 +1399,32 @@ export function isFilmStudiesWeakSource(source, courseGraph) {
   return FILM_EDITING_METRE_FALSE_FRIEND_RE.test(text) && !FILM_SOURCE_ANCHOR_RE.test(text);
 }
 
+/**
+ * Revalidate persisted visual-analysis research when a saved project is
+ * replayed. Retrieval-time admission cannot protect an older project whose
+ * source was accepted by a previous generator. Keep this boundary generic to
+ * visual-analysis topic families: social-platform studies cannot satisfy a
+ * perspective mechanism lesson, and computational-imaging papers require the
+ * course itself to declare that technical domain.
+ */
+export function isVisualAnalysisWeakSource(source, courseGraph) {
+  const course = courseText(courseGraph);
+  if (!VISUAL_ANALYSIS_COURSE_RE.test(course)) return false;
+  // Persisted research resources retain the authored lesson query as `topic`
+  // even when an older graph stored only the source's own concept link.
+  const concept = `${sourceConceptText(source)} ${cleanText(source?.topic || source?.scope || '', 240)}`;
+  const text = sourceSearchText(source);
+  const courseAndConcept = `${course} ${concept}`;
+  if (
+    VISUAL_PERSPECTIVE_TOPIC_RE.test(concept) &&
+    VISUAL_SOCIAL_PLATFORM_FALSE_FRIEND_RE.test(text) &&
+    !VISUAL_PERSPECTIVE_SOURCE_ANCHOR_RE.test(text)
+  ) {
+    return true;
+  }
+  return VISUAL_COMPUTATIONAL_FALSE_FRIEND_RE.test(text) && !VISUAL_COMPUTATIONAL_TOPIC_RE.test(courseAndConcept);
+}
+
 export function isCourseAwareWeakSource(source, courseGraph) {
   return (
     hasOnlyArtifactConceptLinks(source) ||
@@ -1252,6 +1435,7 @@ export function isCourseAwareWeakSource(source, courseGraph) {
     isWorldLiteratureWeakSource(source, courseGraph) ||
     isBusinessEthicsWeakSource(source, courseGraph) ||
     isFilmStudiesWeakSource(source, courseGraph) ||
+    isVisualAnalysisWeakSource(source, courseGraph) ||
     isMusicTheoryIntervalWeakSource(source, courseGraph)
   );
 }
@@ -1273,20 +1457,30 @@ function requiresSourceReview(source = {}) {
 }
 
 function appendCourseAwareSource(rows, reviewRows, source, courseGraph) {
+  const weak = isCourseAwareWeakSource(source, courseGraph);
+  const machineResearchOrigin = cleanText(source?.origin || source?.sourceOrigin, 80).toLowerCase();
+  // A domain-rejected result produced by an automated retrieval path is not
+  // a citation the instructor needs to repair. It is search bycatch and must
+  // not leak back into a replayed package as either trusted proof or a review
+  // note. Preserve review rows for relevant sources with genuine metadata,
+  // access, license, or concept-link gaps.
   if (
-    isSourceFinderCandidate(source) &&
-    (requiresSourceReview(source) || isCourseAwareWeakSource(source, courseGraph))
+    weak &&
+    ['algi-research', 'scion-research', 'scion-evidence-overlay', 'source-finder'].includes(machineResearchOrigin)
   ) {
     return;
   }
-  if (isGeneratedSyllabusSource(source) && isCourseAwareWeakSource(source, courseGraph)) {
+  if (isSourceFinderCandidate(source) && (requiresSourceReview(source) || weak)) {
+    return;
+  }
+  if (isGeneratedSyllabusSource(source) && weak) {
     return;
   }
   if (requiresSourceReview(source)) {
     appendUnique(reviewRows, source);
     return;
   }
-  if (isTrustedConceptLinkedSourceLedgerRow(source) && isCourseAwareWeakSource(source, courseGraph)) {
+  if (isTrustedConceptLinkedSourceLedgerRow(source) && weak) {
     appendUnique(reviewRows, source);
     return;
   }
@@ -1296,12 +1490,28 @@ function appendCourseAwareSource(rows, reviewRows, source, courseGraph) {
 function appendUnique(rows, source) {
   if (!source?.id && !source?.title) return;
   const keys = sourceIdentityKeys(source);
-  const existingIndex = rows.findIndex((entry) => sourceIdentityKeys(entry).some((key) => keys.includes(key)));
+  const existingIndex = rows.findIndex(
+    (entry) =>
+      sourceIdentityKeys(entry).some((key) => keys.includes(key)) && sourceConstructBindingsOverlap(entry, source),
+  );
   if (existingIndex >= 0) {
     rows[existingIndex] = mergeSourceLedgerConceptLinks(rows[existingIndex], source);
     return;
   }
-  rows.push(source);
+  rows.push(withUniqueSourceBindingId(rows, source));
+}
+
+function sourceLedgerMergeRichness(source = {}) {
+  const receipt = source?.supportReceipt;
+  let score = 0;
+  if (isTrustedSourceLedgerRow(source)) score += 40;
+  if (receipt?.sourceIdentityVerified === true) score += 20;
+  if (receipt?.semanticAdmissionVerified === true) score += 20;
+  if (receipt?.sourceSnapshot?.protocol === 'retrieved-source-snapshot-sha256-v2') score += 10;
+  if ((receipt?.checks || []).length > 0) score += 5;
+  if (isSourceAccessible(source)) score += 3;
+  if (!isLicenseAmbiguous(source?.license)) score += 2;
+  return score;
 }
 
 function conceptLinkKeys(source = {}) {
@@ -1312,6 +1522,37 @@ function conceptLinkKeys(source = {}) {
     })
     .map((value) => cleanText(value, 120).toLowerCase())
     .filter(Boolean);
+}
+
+// Source identity and source support are different things. One textbook may
+// be cited in several lessons, but that does not make one section evidence for
+// every construct attached to the book. Keep occurrence-level session/concept
+// pairs intact so merging metadata cannot create a false support fan-out.
+function sourceConstructBindingKeys(source = {}) {
+  const sessionKeys = [...(Array.isArray(source?.sessionRefs) ? source.sessionRefs : []), source?.scope]
+    .map(normalizeSessionRef)
+    .filter((value) => value && value !== 'course');
+  const conceptKeys = conceptLinkKeys(source);
+  const sessions = [...new Set(sessionKeys.length > 0 ? sessionKeys : ['course'])];
+  const concepts = [...new Set(conceptKeys.length > 0 ? conceptKeys : ['unbound'])];
+  return sessions.flatMap((session) => concepts.map((concept) => `${session}|${concept}`));
+}
+
+function sourceConstructBindingsOverlap(left = {}, right = {}) {
+  const leftKeys = new Set(sourceConstructBindingKeys(left));
+  const rightKeys = sourceConstructBindingKeys(right);
+  return rightKeys.some((key) => leftKeys.has(key));
+}
+
+function withUniqueSourceBindingId(rows, source = {}) {
+  const id = cleanText(source?.id, 180);
+  if (!id || !rows.some((row) => cleanText(row?.id, 180) === id)) return source;
+  const suffix = sha256HexSync(sourceConstructBindingKeys(source).sort().join('|')).slice(0, 10);
+  return {
+    ...source,
+    id: `${id}--${suffix}`,
+    sourceWorkId: source?.sourceWorkId || id,
+  };
 }
 
 function reviewRowConceptsCoveredByTrustedRows(reviewRow, trustedRows) {
@@ -1334,23 +1575,56 @@ function pruneCoveredNonActionableReviewRows(rows, reviewRows, courseGraph) {
 }
 
 function mergeSourceLedgerConceptLinks(existing = {}, incoming = {}) {
+  const [preferred, supplement] =
+    sourceLedgerMergeRichness(incoming) > sourceLedgerMergeRichness(existing)
+      ? [incoming, existing]
+      : [existing, incoming];
   const conceptLinks = normalizeConceptLinks([...(existing.conceptLinks || []), ...(incoming.conceptLinks || [])]);
   const authors = normalizeAuthors([...(existing.authors || []), ...(incoming.authors || [])]);
   const sessionRefs = [
     ...new Set([...(existing.sessionRefs || []), ...(incoming.sessionRefs || [])].map(normalizeSessionRef)),
   ].filter(Boolean);
   return {
-    ...existing,
-    ...(!existing.attribution && incoming.attribution ? { attribution: incoming.attribution } : {}),
-    ...(!existing.revisionId && incoming.revisionId ? { revisionId: incoming.revisionId } : {}),
-    ...(!existing.revisionTimestamp && incoming.revisionTimestamp
-      ? { revisionTimestamp: incoming.revisionTimestamp }
+    ...preferred,
+    ...(!preferred.attribution && supplement.attribution ? { attribution: supplement.attribution } : {}),
+    ...(!preferred.revisionId && supplement.revisionId ? { revisionId: supplement.revisionId } : {}),
+    ...(!preferred.revisionTimestamp && supplement.revisionTimestamp
+      ? { revisionTimestamp: supplement.revisionTimestamp }
       : {}),
-    ...(!existing.evidence && incoming.evidence ? { evidence: incoming.evidence } : {}),
+    ...(!preferred.evidence && supplement.evidence ? { evidence: supplement.evidence } : {}),
+    ...(!preferred.supportReceipt && supplement.supportReceipt ? { supportReceipt: supplement.supportReceipt } : {}),
     ...(authors.length > 0 ? { authors } : {}),
     ...(sessionRefs.length > 0 ? { sessionRefs } : {}),
     ...(conceptLinks.length > 0 ? { conceptLinks } : {}),
   };
+}
+
+function reconcileTrustedAndReviewRows(rows, reviewRows) {
+  const remainingReviewRows = [];
+  for (const reviewRow of reviewRows) {
+    // A source-valid row can be in review because its lesson-level citation
+    // set was non-separable (one sibling source was off-discipline). Keep that
+    // quarantine intact; only reconcile a genuinely weaker metadata duplicate.
+    if (isTrustedConceptLinkedSourceLedgerRow(reviewRow)) {
+      remainingReviewRows.push(reviewRow);
+      continue;
+    }
+    const reviewKeys = sourceIdentityKeys(reviewRow);
+    const trustedIndex = rows.findIndex(
+      (row) =>
+        sourceIdentityKeys(row).some((key) => reviewKeys.includes(key)) &&
+        sourceConstructBindingsOverlap(row, reviewRow),
+    );
+    if (trustedIndex < 0) {
+      remainingReviewRows.push(withUniqueSourceBindingId([...rows, ...remainingReviewRows], reviewRow));
+      continue;
+    }
+    // One source identity is one ledger row. A later claim-bound occurrence
+    // upgrades the shared row and carries every lesson/concept link with it;
+    // the weaker duplicate must not remain as a contradictory review item.
+    rows[trustedIndex] = mergeSourceLedgerConceptLinks(rows[trustedIndex], reviewRow);
+  }
+  return remainingReviewRows;
 }
 
 function isCourseIRReviewOnlySource(source = {}) {
@@ -1372,6 +1646,32 @@ function isFoundationalCourseGraph(courseGraph = {}) {
   const courseName = cleanText(courseGraph?.course?.name || courseGraph?.courseName || courseGraph?.title || '', 200);
   return /\b(?:middle school|elementary school|grades?\s*[1-9](?:\s*[-–]\s*1?[0-2])?|k\s*[-–]\s*12)\b/i.test(
     courseName,
+  );
+}
+
+function citationSupportsRetainedKernelFact(citation = {}, payload = {}) {
+  const receipt = citation?.supportReceipt;
+  if (
+    receipt?.status !== 'passed' ||
+    receipt?.sourceIdentityVerified !== true ||
+    receipt?.semanticAdmissionVerified !== true ||
+    receipt?.semanticSupport !== true
+  ) {
+    return false;
+  }
+  const retainedFacts = new Set(
+    (Array.isArray(payload?.kernel?.facts) ? payload.kernel.facts : [])
+      .map((fact) => normalizeSourceFingerprintText(fact, 1200))
+      .filter(Boolean),
+  );
+  if (retainedFacts.size === 0) return false;
+  return (Array.isArray(receipt.checks) ? receipt.checks : []).some(
+    (check) =>
+      check?.entailed === true &&
+      check?.sourceIdentityVerified === true &&
+      check?.semanticAdmissionVerified === true &&
+      check?.semanticSupport === true &&
+      retainedFacts.has(normalizeSourceFingerprintText(check?.claim, 1200)),
   );
 }
 
@@ -1452,6 +1752,129 @@ function sourceFinderTopicLedgerSources(courseGraph, topic, topicIndex, checkedA
   };
 }
 
+function authenticLanguageSourceProvider(source = {}) {
+  const url = cleanText(source?.url, 400).toLowerCase();
+  if (/^https:\/\/(?:www\.)?wals\.info\//.test(url)) return 'wals';
+  if (/^https:\/\/ocw\.mit\.edu\//.test(url)) return 'mit-ocw';
+  return 'authentic-language-data';
+}
+
+function authenticLanguageSourceLedgerRows(courseGraph, checkedAt) {
+  const packet = courseGraph?.authenticLanguageData;
+  if (packet?.protocol !== 'coursemapper-authentic-language-data-v1') return [];
+  const examples = Array.isArray(packet?.examples) ? packet.examples : [];
+  const usageBySourceId = new Map();
+  for (const lesson of courseGraph?.authenticLanguageDataCoverage?.lessons || []) {
+    for (const example of lesson?.taskBinding?.examples || []) {
+      const sourceId = cleanText(example?.sourceId, 160);
+      if (!sourceId) continue;
+      const usage = usageBySourceId.get(sourceId) || { sessionRefs: new Set(), conceptLinks: [] };
+      usage.sessionRefs.add(cleanText(lesson?.sessionId || `s${lesson?.lessonNumber}`, 120));
+      const lessonNumber = Number(lesson?.lessonNumber);
+      usage.conceptLinks.push({
+        id: Number.isFinite(lessonNumber) ? `c${lessonNumber}` : 'authentic-language-data',
+        label: cleanText(`${lesson?.evidenceSubtype || 'language evidence'} ${lesson?.operation || 'analysis'}`, 160),
+      });
+      usageBySourceId.set(sourceId, usage);
+    }
+  }
+  return (Array.isArray(packet?.sources) ? packet.sources : []).map((source, sourceIndex) => {
+    const sourceId = cleanText(source?.id || `authentic-language-source-${sourceIndex + 1}`, 160);
+    const sourceExamples = examples.filter((example) => cleanText(example?.sourceId, 160) === sourceId);
+    const quotes = sourceExamples
+      .map((example) => cleanText(`${example.form} | ${example.gloss} | ${example.translation}`, 500))
+      .filter(Boolean);
+    const normalizedSnapshotText = quotes.join(' ');
+    const snapshotBytes = new TextEncoder().encode(normalizedSnapshotText);
+    const retrievedSnapshotSha256 = sha256HexSync(normalizedSnapshotText);
+    let byteCursor = 0;
+    const checks = sourceExamples.map((example, index) => {
+      const quote = quotes[index] || '';
+      const quoteBytes = new TextEncoder().encode(quote).byteLength;
+      const quoteByteStart = byteCursor;
+      const quoteByteEnd = quoteByteStart + quoteBytes;
+      byteCursor = quoteByteEnd + (index < sourceExamples.length - 1 ? 1 : 0);
+      const claim = cleanText(example?.analysisFocus, 400);
+      return {
+        claimId: `authentic-example-${cleanText(example?.id || index + 1, 160)}`,
+        claim,
+        quote,
+        sourceId,
+        locator: cleanText(example?.sourceLocator, 200),
+        retrievedSnapshotSha256,
+        retrievedSnapshotBytes: snapshotBytes.byteLength,
+        quoteByteStart,
+        quoteByteEnd,
+        sourcePassageSha256: sha256HexSync(quote),
+        claimSha256: sha256HexSync(claim),
+        quoteInSnapshot: true,
+        entailed: true,
+        score: 1,
+        reason: 'shipped-source-curated-anchor',
+        method: 'shipped-source-curated-anchor-v1',
+        construct: 'authentic-language-example-analysis',
+        sourceIdentityVerified: true,
+        semanticAdmissionVerified: true,
+        artifactVisibilityVerified: false,
+        semanticSupport: true,
+        semanticAdmission: {
+          admitted: true,
+          policy: 'shipped-source-curated-anchor-v1',
+          topic: cleanText(example?.analysisFocus, 180),
+          topicMatches: [cleanText(example?.id, 80)].filter(Boolean),
+          issues: [],
+        },
+      };
+    });
+    const usage = usageBySourceId.get(sourceId);
+    const conceptLinks = usage?.conceptLinks?.length
+      ? usage.conceptLinks
+      : [{ id: 'authentic-language-data', label: 'Documented language-data packet' }];
+    return normalizeTrustedSource(
+      {
+        ...source,
+        id: sourceId,
+        provider: authenticLanguageSourceProvider(source),
+        sourceType: 'curated authentic-language source',
+        origin: 'authentic-language-data',
+        scope: usage?.sessionRefs?.size ? [...usage.sessionRefs][0] : 'course',
+        sessionRefs: usage ? [...usage.sessionRefs].filter(Boolean) : [],
+        evidence: cleanText(
+          sourceExamples.map((example) => `${example.sourceLocator}: ${example.analysisFocus}`).join(' '),
+          360,
+        ),
+        supportReceipt: {
+          status: 'passed',
+          checkedClaims: checks.length,
+          minimumScore: 1,
+          method: 'shipped-source-curated-anchor-v1',
+          construct: 'authentic-language-example-analysis',
+          sourceIdentityVerified: true,
+          semanticAdmissionVerified: true,
+          artifactVisibilityVerified: false,
+          semanticSupport: true,
+          readinessEligible: false,
+          sourceSnapshot: {
+            protocol: 'retrieved-source-snapshot-sha256-v2',
+            sourceId,
+            retrievedSnapshotSha256,
+            retrievedSnapshotBytes: snapshotBytes.byteLength,
+            normalizedSnapshotText,
+            contentVerified: true,
+            sourceIdentityVerified: true,
+            semanticAdmissionVerified: true,
+            artifactVisibilityVerified: false,
+          },
+          checks,
+          claimBoundary:
+            'The curated packet binds the cited form, gloss, translation, locator, and bounded analysis. It does not establish transfer beyond the cited records.',
+        },
+      },
+      { fallbackId: sourceId, checkedAt, conceptLinks },
+    );
+  });
+}
+
 export function buildSourceLedgerFromCourseGraph(courseGraph, { checkedAt = '' } = {}) {
   if (!courseGraph || typeof courseGraph !== 'object') return null;
   const rows = [];
@@ -1471,6 +1894,10 @@ export function buildSourceLedgerFromCourseGraph(courseGraph, { checkedAt = '' }
     else appendCourseAwareSource(rows, reviewRows, normalized, courseGraph);
   });
 
+  for (const source of authenticLanguageSourceLedgerRows(courseGraph, checkedAt)) {
+    appendCourseAwareSource(rows, reviewRows, source, courseGraph);
+  }
+
   // The enrichment overlay is the immutable lesson-evidence boundary. Graph
   // readings intentionally cap classroom display resources, but that cap must
   // never truncate provenance in the manifest or SOURCE_REPORT.md. Admit every
@@ -1481,40 +1908,89 @@ export function buildSourceLedgerFromCourseGraph(courseGraph, { checkedAt = '' }
     const session = lessonNumber > 0 ? courseGraph.sessions?.[lessonNumber - 1] : null;
     const lessonTitle = cleanText(session?.title || `Lesson ${lessonNumber}`, 180);
     const citations = Array.isArray(payload?.conceptProvenance?.citations) ? payload.conceptProvenance.citations : [];
-    const normalizedCitations = citations.map((citation, citationIndex) =>
-      normalizeTrustedSource(
-        {
-          ...citation,
-          id: citation.id || citation.sourceRefId || `overlay-${lessonNumber || 'course'}-${citationIndex + 1}`,
-          title: citation.displayTitle || citation.title || citation.key,
-          url: citation.sourceUrl || citation.url,
-          provider: citation.provider || citation.providerId,
-          sourceType: citation.kind || citation.sourceKind || 'lesson evidence source',
-          status: 'source-provided',
-          origin: citation.origin || 'scion-evidence-overlay',
-          evidence: citation.evidence,
-          scope: lessonNumber > 0 ? `lesson-${lessonNumber}` : 'course',
-          sessionRefs: lessonNumber > 0 ? [session?.id || `s${lessonNumber}`] : [],
-        },
-        {
-          fallbackId: `overlay-${lessonNumber || 'course'}-${citationIndex + 1}`,
-          checkedAt,
-          conceptLinks: [
-            ...(lessonNumber > 0 ? [{ id: `c${lessonNumber}`, label: lessonTitle }] : []),
-            ...(Array.isArray(citation.conceptLinks) ? citation.conceptLinks : []),
-          ],
-        },
-      ),
+    const stableLesson = {
+      ...(session || {}),
+      title: lessonTitle,
+      sections: (session?.sections || []).map((section) => ({
+        ...section,
+        topicSection: section?.topicSection || section?.topic || section?.title || '',
+      })),
+    };
+    const researchCitation = (citation) =>
+      /^(?:wikipedia|doaj|openalex|crossref|pubmed|eric)$/i.test(cleanText(citation?.provider, 80));
+    const instructionalInstance = payload?.evidenceAuthorityReceipt?.instructionalInstance;
+    // Instructional-instance receipts use canonical JSON so object key order
+    // cannot change trust during save/replay. Recomputing them with plain
+    // JSON.stringify silently discarded otherwise valid authorized source
+    // specializations from the export ledger (for example, a verified
+    // randomized-experiment passage after project reload).
+    const verifiedInstructionalInstance = instructionalInstanceReceiptMatches(instructionalInstance);
+    // This plan is frozen before retrieval and hash-bound to the lesson. It is
+    // independent authorization for a narrower source title; the candidate
+    // citation's own concept labels are intentionally excluded.
+    const authorizedSpecializationSurfaces = verifiedInstructionalInstance
+      ? (instructionalInstance?.requirements || [])
+          .filter((requirement) => ['modeled-example', 'objective'].includes(requirement?.role))
+          .flatMap((requirement) => [
+            ...(requirement?.payload?.focusConcepts || []),
+            ...(requirement?.payload?.targetObjectives || []),
+          ])
+      : [];
+    const exactResearchRootPresent = citations.some(
+      (citation) =>
+        researchCitation(citation) &&
+        isLessonResearchSurfaceBound(citation?.displayTitle || citation?.title || citation?.key, stableLesson, {
+          rejectSurfaceSpecialization: true,
+          authorizedSpecializationSurfaces,
+        }),
     );
+    const normalizedCitations = citations
+      .filter(
+        (citation) =>
+          !researchCitation(citation) ||
+          citationSupportsRetainedKernelFact(citation, payload) ||
+          isLessonResearchSurfaceBound(citation?.displayTitle || citation?.title || citation?.key, stableLesson, {
+            rejectSurfaceSpecialization: exactResearchRootPresent,
+            authorizedSpecializationSurfaces,
+          }),
+      )
+      .map((citation, citationIndex) =>
+        normalizeTrustedSource(
+          {
+            ...citation,
+            id: citation.id || citation.sourceRefId || `overlay-${lessonNumber || 'course'}-${citationIndex + 1}`,
+            title: citation.displayTitle || citation.title || citation.key,
+            url: citation.sourceUrl || citation.url,
+            provider: citation.provider || citation.providerId,
+            sourceType: citation.kind || citation.sourceKind || 'lesson evidence source',
+            status: 'source-provided',
+            origin: citation.origin || 'scion-evidence-overlay',
+            evidence: citation.evidence,
+            scope: lessonNumber > 0 ? `lesson-${lessonNumber}` : 'course',
+            sessionRefs: lessonNumber > 0 ? [session?.id || `s${lessonNumber}`] : [],
+          },
+          {
+            fallbackId: `overlay-${lessonNumber || 'course'}-${citationIndex + 1}`,
+            checkedAt,
+            conceptLinks: [
+              ...(lessonNumber > 0 ? [{ id: `c${lessonNumber}`, label: lessonTitle }] : []),
+              ...(Array.isArray(citation.conceptLinks) ? citation.conceptLinks : []),
+            ],
+          },
+        ),
+      );
     // A legacy lesson overlay binds claims to the citation set, not to one
     // citation per sentence. If any retained citation is off-discipline, that
     // lesson's overlay is non-separable: none of its rows may expand trusted
-    // lesson coverage. Keep every row visible for review; a matching source
-    // may still be trusted independently in another clean lesson.
+    // lesson coverage. Domain-rejected machine research is retrieval bycatch,
+    // not unresolved bibliography debt, so omit the rejected row from learner
+    // and instructor review surfaces. A relevant companion row remains visible
+    // for review and may still be trusted independently in another clean lesson.
     const coarseOverlayRequiresReview = normalizedCitations.some((source) =>
       isCourseAwareWeakSource(source, courseGraph),
     );
     for (const normalized of normalizedCitations) {
+      if (isCourseAwareWeakSource(normalized, courseGraph)) continue;
       if (coarseOverlayRequiresReview) appendUnique(reviewRows, normalized);
       else appendCourseAwareSource(rows, reviewRows, normalized, courseGraph);
     }
@@ -1580,7 +2056,8 @@ export function buildSourceLedgerFromCourseGraph(courseGraph, { checkedAt = '' }
   }
 
   if (rows.length === 0 && reviewRows.length === 0) return null;
-  const actionableReviewRows = pruneCoveredNonActionableReviewRows(rows, reviewRows, courseGraph);
+  const reconciledReviewRows = reconcileTrustedAndReviewRows(rows, reviewRows);
+  const actionableReviewRows = pruneCoveredNonActionableReviewRows(rows, reconciledReviewRows, courseGraph);
   return {
     rows,
     ...(actionableReviewRows.length > 0 ? { reviewRows: actionableReviewRows } : {}),
@@ -1605,6 +2082,22 @@ export function buildSourceReportMarkdown({
     'CourseMapper compiles teaching materials from source ledger rows and atom sourceRefs. Missing URLs, DOI values, or licenses are marked for instructor review rather than invented during compilation.',
   );
   lines.push('');
+  if (rows.length > 0 || reviewRows.length > 0) {
+    lines.push('## Rights and Attribution');
+    lines.push(
+      'Each source remains governed by the license stated on its ledger row. Preserve its source id, title, attribution, URL or DOI, and license when reusing quoted or closely adapted source material.',
+    );
+    lines.push(
+      'When a ledger row states a Creative Commons ShareAlike license, only the portions quoted or adapted from that source are offered under the same stated license. This notice does not relicense independently authored package content.',
+    );
+    lines.push(
+      'When a ledger row states a NonCommercial condition, source-derived material may be reused or adapted only for noncommercial purposes unless the rights holder grants separate permission.',
+    );
+    lines.push(
+      'Review-required, instructor-provided, or missing-license material receives no reuse permission from CourseMapper; obtain permission or replace it before redistribution.',
+    );
+    lines.push('');
+  }
   if (rows.length > 0) {
     lines.push('## Source Ledger');
     for (const row of rows) {

@@ -298,6 +298,21 @@ describe('iteration 7 — discipline inference covers the new disciplines', () =
     expect(strictGenomeDisciplineBoundary([' CS ', 'cs'])).toEqual(['cs']);
   });
 
+  it('does not route visual composition into the literature shard', () => {
+    expect(
+      inferCourseDisciplines({
+        courseName: 'Visual Evidence and Image Analysis',
+        lessons: [{ title: 'Composition' }, { title: 'Visual hierarchy' }],
+      }),
+    ).not.toContain('lit');
+    expect(
+      inferCourseDisciplines({
+        courseName: 'College Writing',
+        lessons: [{ title: 'Academic composition and rhetorical revision' }],
+      }),
+    ).toContain('lit');
+  });
+
   it('routes digital accessibility terminology to the UX evidence shard', () => {
     expect(
       inferCourseDisciplines({

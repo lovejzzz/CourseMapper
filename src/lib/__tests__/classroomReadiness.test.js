@@ -87,6 +87,134 @@ describe('classroomReadiness', () => {
     expect(summarizeClassroomReadiness(result)).toMatch(/Lesson Plans|Course FAQ/);
   });
 
+  it('does not treat repeated typed visual audit metadata as learner-facing boilerplate', () => {
+    const result = evaluateClassroomReadiness({
+      courseMap: makeCourseMap(5),
+      selectedFeatures: ['slideDecks'],
+      deliverables: {
+        slideDecks: {
+          status: 'done',
+          data: {
+            decks: Array.from({ length: 5 }, (_, index) => ({
+              lessonNumber: index + 1,
+              lessonTitle: `Lesson ${index + 1}`,
+              slides: [
+                {
+                  title: `Inspect evidence configuration ${index + 1}`,
+                  bullets: [`Compare the visible relation for lesson ${index + 1} and justify one bounded inference.`],
+                  visual: {
+                    typedSpecimen: {
+                      taskContract: {
+                        claimBoundary:
+                          'This generator authored contract can prove source record identity compiler to render consistency predicate direction and counterexample presence.',
+                      },
+                    },
+                  },
+                },
+              ],
+            })),
+          },
+        },
+      },
+    });
+
+    expect(result.warnings.some((issue) => issue.message.includes('repeats the same boilerplate'))).toBe(false);
+  });
+
+  it('does not treat repeated machine-scored quiz metadata as learner-facing boilerplate', () => {
+    const result = evaluateClassroomReadiness({
+      courseMap: makeCourseMap(5),
+      selectedFeatures: ['quizBank'],
+      deliverables: {
+        quizBank: {
+          status: 'done',
+          data: {
+            quizzes: Array.from({ length: 5 }, (_, index) => ({
+              lessonNumber: index + 1,
+              questions: [
+                {
+                  id: `lesson-${index + 1}-q3`,
+                  type: 'short_answer',
+                  bloomsLevel: 'Apply',
+                  difficulty: 'Medium',
+                  estimatedMinutes: 7,
+                  points: 4,
+                  objectiveAligned: 'State one limitation.',
+                  question: `Using evidence specimen ${index + 1}, explain the bounded observation it supports.`,
+                },
+              ],
+            })),
+          },
+        },
+      },
+    });
+
+    expect(result.warnings.some((issue) => issue.message.includes('repeats the same boilerplate'))).toBe(false);
+  });
+
+  it('does not treat one governing weekly workload statement as assignment boilerplate', () => {
+    const workload =
+      'The governing syllabus expects 9 hours weekly: 3 hours in class plus at least 6 hours outside class.';
+    const result = evaluateClassroomReadiness({
+      courseMap: makeCourseMap(5),
+      selectedFeatures: ['assignments'],
+      deliverables: {
+        assignments: {
+          status: 'done',
+          data: {
+            assignments: Array.from({ length: 5 }, (_, index) => ({
+              lessonNumber: index + 1,
+              title: `Evidence task ${index + 1}`,
+              instructions: `Analyze the lesson ${index + 1} evidence and justify one bounded conclusion.`,
+              expectedSubmissionFormat: `Submit a lesson ${index + 1} evidence memo with a traceable claim and limitation.`,
+              submissionProfile: {
+                estimatedTime: workload,
+                workload: { studentFacingEstimate: workload },
+              },
+            })),
+          },
+        },
+      },
+    });
+
+    expect(
+      result.warnings.some(
+        (issue) =>
+          issue.message.includes('repeats the same boilerplate') && /governing syllabus|9 hours/i.test(issue.message),
+      ),
+    ).toBe(false);
+  });
+
+  it('does not fabricate slide boilerplate by joining activity metadata to an objective', () => {
+    const result = evaluateClassroomReadiness({
+      courseMap: makeCourseMap(5),
+      selectedFeatures: ['slideDecks'],
+      deliverables: {
+        slideDecks: {
+          status: 'done',
+          data: {
+            decks: Array.from({ length: 5 }, (_, index) => ({
+              lessonNumber: index + 1,
+              slides: [
+                {
+                  type: 'discussion',
+                  title: `Evidence decision ${index + 1}`,
+                  bullets: [`Use source ${index + 1} to test the lesson-specific claim and record a bounded revision.`],
+                  timer: '8 min',
+                  bloomsLevel: 'Evaluate',
+                  objectiveLink: 'Cite the deciding visual detail.',
+                  activityType: 'Small Group Discussion',
+                },
+              ],
+            })),
+          },
+        },
+      },
+    });
+
+    expect(result.warnings.some((issue) => issue.message.includes('repeats the same boilerplate'))).toBe(false);
+  });
+
   it('passes a concrete package with coverage, scoring, and instructor guidance', () => {
     const courseMap = makeCourseMap(2);
     const questions = Array.from({ length: 5 }, (_, index) => ({
@@ -226,6 +354,93 @@ describe('classroomReadiness', () => {
 
     expect(result.status).toBe('blocked');
     expect(result.blockers[0]).toEqual(expect.objectContaining({ featureId: 'slideDecks' }));
+  });
+
+  it('accepts verified procedural study practice without fabricated glossary terms', () => {
+    const courseMap = makeCourseMap(4);
+    const operations = ['histogram binning', 'confidence interval', 'correlation trace', 'probability sampling'];
+    const studyGuides = Array.from({ length: 4 }, (_, index) => ({
+      lessonTitle: `Lesson ${index + 1}`,
+      summary: `The ${operations[index]} specimen asks students to verify its inputs, calculation, interpretation, and boundary.`,
+      studyStrategy: `Use retrieval practice for ${operations[index]}, then check every calculation step.`,
+      keyTerms: [],
+      reviewQuestions: [
+        { question: `Recompute operation ${index + 1}.` },
+        { question: `Interpret result ${index + 1}.` },
+        { question: `Name boundary ${index + 1}.` },
+      ],
+      practiceActivities: [
+        `Change one ${operations[index]} input and recompute its checked result.`,
+        `Compare the original ${operations[index]} interpretation with the revised calculation and explain the difference.`,
+      ],
+      workedExample: {
+        protocol: 'coursemapper-operation-qualified-evidence-v1',
+        operation: `operation-${index + 1}`,
+        steps: [
+          `Compute the first ${operations[index]} quantity from the supplied values and record its units.`,
+          `Check the final ${operations[index]} quantity against the original inputs and interpretation.`,
+        ],
+        result: `Verified synthetic result ${index + 1}.`,
+        transferTask: `Change one input in operation ${index + 1} and explain the effect.`,
+        verification: {
+          method: 'deterministic-arithmetic-fixture',
+          checked: true,
+          claimBoundary:
+            'The numbers are an explicitly synthetic practice specimen and do not make an empirical population claim.',
+        },
+      },
+    }));
+
+    const result = evaluateClassroomReadiness({
+      courseMap,
+      selectedFeatures: ['studyGuides'],
+      deliverables: { studyGuides: { status: 'done', data: { studyGuides } } },
+    });
+
+    expect(
+      result.warnings.some((issue) => issue.message.includes('repeats the same boilerplate')),
+      JSON.stringify(result.warnings, null, 2),
+    ).toBe(false);
+    expect(result.warnings.some((issue) => issue.message.includes('need stronger key terms'))).toBe(false);
+  });
+
+  it.each([
+    'coursemapper-functional-visual-study-practice-v1',
+    'coursemapper-authentic-evidence-study-practice-v1',
+    'coursemapper-source-claim-comparison-study-practice-v1',
+  ])('accepts verified %s study practice without fabricated glossary terms', (protocol) => {
+    const courseMap = makeCourseMap(4);
+    const studyGuides = Array.from({ length: 4 }, (_, index) => ({
+      lessonTitle: `Lesson ${index + 1}`,
+      summary: `Lesson ${index + 1} studies a checked evidence specimen and its transfer boundary.`,
+      studyStrategy: `Use retrieval practice to inspect specimen ${index + 1} and verify its evidence relation.`,
+      keyTerms: [],
+      reviewQuestions: [
+        { question: `Identify the evidence in specimen ${index + 1}.` },
+        { question: `Explain the result for specimen ${index + 1}.` },
+        { question: `State the transfer boundary for specimen ${index + 1}.` },
+      ],
+      practiceActivities: [
+        `Annotate the evidence relation in specimen ${index + 1}.`,
+        `Test whether specimen ${index + 1} transfers to a contrasting case.`,
+      ],
+      workedExample: {
+        protocol,
+        steps: [`Inspect evidence item ${index + 1}.`, `Trace its declared relation ${index + 1}.`],
+        result: `Checked observation ${index + 1}.`,
+        boundary: `The observation is limited to specimen ${index + 1}.`,
+        transferTask: `Test a second specimen for lesson ${index + 1}.`,
+        verification: { checked: true },
+      },
+    }));
+
+    const result = evaluateClassroomReadiness({
+      courseMap,
+      selectedFeatures: ['studyGuides'],
+      deliverables: { studyGuides: { status: 'done', data: { studyGuides } } },
+    });
+
+    expect(result.warnings.some((issue) => issue.message.includes('need stronger key terms'))).toBe(false);
   });
 
   it('flags generic discussion artifact labels before classroom handoff', () => {

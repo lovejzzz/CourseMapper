@@ -167,6 +167,21 @@ function normalizeProvenance(raw) {
     ...(raw.sourceKind ? { sourceKind: cleanText(raw.sourceKind) } : {}),
     ...(raw.revisionId !== undefined && raw.revisionId !== null ? { revisionId: cleanText(raw.revisionId) } : {}),
     ...(raw.revisionTimestamp ? { revisionTimestamp: cleanText(raw.revisionTimestamp) } : {}),
+    ...(raw.research && typeof raw.research === 'object'
+      ? {
+          research: {
+            query: cleanText(raw.research.query),
+            relevance: Math.max(0, Math.min(1, Number(raw.research.relevance) || 0)),
+            titleScore: Math.max(0, Math.min(1, Number(raw.research.titleScore) || 0)),
+            definitionScore: Math.max(0, Math.min(1, Number(raw.research.definitionScore) || 0)),
+            directTitleMatch: raw.research.directTitleMatch === true,
+            ...(raw.research.plannedEvidenceContext
+              ? { plannedEvidenceContext: cleanText(raw.research.plannedEvidenceContext) }
+              : {}),
+            mode: ['lexical', 'semantic'].includes(raw.research.mode) ? raw.research.mode : 'lexical',
+          },
+        }
+      : {}),
   };
 }
 

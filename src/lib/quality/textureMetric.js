@@ -48,7 +48,7 @@
  * actionable findings.
  */
 
-export const TEXTURE_VERSION = '1.4.0';
+export const TEXTURE_VERSION = '1.4.1';
 
 // V2 covers the three long-form surfaces with stable visible-unit extraction.
 // The family floors evaluate an ordinary four-lesson course while avoiding a
@@ -81,14 +81,25 @@ const MIN_OPENER_TOKENS = 4;
 const STRUCTURAL_HEADING_PATTERN =
   /^(?:overview|objectives?|learning objectives?|materials?(?:\s*&\s*resources)?|outline|session outline|agenda|activity|activities|closing activity|purpose|prompt|deliverables?|grading criteria|rubric|criteria|criterion|question|answer|sample answer|explanation|scoring guidance|rubric hints|intended use|objective aligned|difficulty|points|estimated minutes|tags|speaker notes|suggested visual|discussion prompt|instructor notes|course faq|faq|key terms?|review questions?|practice activities|concept connections|summary|assignment brief|lesson plans?|slide decks?|study guides?|warm-up|assessments this week|time|description\s*&\s*notes|why this works(?:\s*\(research base\))?|formative assessment|udl notes|representation|engagement|expression|homework|connection to next lesson|closing\s*&\s*wrap-up)$/i;
 const STRUCTURAL_PREFIX_PATTERN =
-  /^(?:overview|objectives?|learning objectives?|materials?(?:\s*&\s*resources)?|outline|session outline|agenda|activity|activities|closing activity|purpose|prompt|deliverables?|grading criteria|rubric|criteria|criterion|exemplary|proficient|developing|beginning|question|answer|sample answer|explanation|scoring guidance|rubric hints|intended use|objective aligned|bloom(?:['’]s)? levels?|difficulty|points|estimated minutes|tags|speaker notes|suggested visual|discussion prompt|instructor notes|class format|course faq|faq|key terms?|review questions?|practice activities|concept connections|summary|calibration check|bias check|source check|student transparency|post-score review|post score review|revision prompt|scorer calibration use|student-facing use|student facing use|grade policy connection|accessibility and udl|teacher notes|assessment cadence)\s*:?\s*/i;
+  /^(?:overview|objectives?|learning objectives?|materials?(?:\s*&\s*resources)?|outline|session outline|agenda|activity|activities|closing activity|purpose|prompt|deliverables?|grading criteria|graded student work|rubric|criteria|criterion|exemplary|proficient|developing|beginning|question|answer|sample answer|explanation|scoring guidance|rubric hints|intended use|objective aligned|bloom(?:['’]s)? levels?|difficulty|points|estimated minutes|tags|speaker notes|suggested visual|discussion prompt|instructor notes|class format|course faq|faq|key terms?|review questions?|practice activities|concept connections|summary|calibration check|bias check|source check|student transparency|post-score review|post score review|revision prompt|scorer calibration use|student-facing use|student facing use|grade policy connection|accessibility and udl|teacher notes|assessment cadence)\s*:?\s*/i;
 const STRUCTURAL_REFERENCE_PATTERN = /\b(?:doi\b|et al\.?|https?:\/\/|isbn\b|retrieved from)\b/i;
+const STRUCTURAL_SOURCE_APPARATUS_PATTERN =
+  /^(?:license and attribution\s*:|admitted (?:visual specimen|source packet) and attribution record\b)/i;
+const STRUCTURAL_PACKAGE_RESOURCE_PATTERN = new RegExp(
+  '^(?:(?:required\\s+assets?|source\\s+materials?)\\/)?' +
+    '[a-z0-9][a-z0-9_.-]*\\.(?:csv|md|txt|json|xlsx?|docx?|pptx?|pdf)' +
+    '(?:\\s*(?:,|and|&)\\s*(?:(?:required\\s+assets?|source\\s+materials?)\\/)?' +
+    '[a-z0-9][a-z0-9_.-]*\\.(?:csv|md|txt|json|xlsx?|docx?|pptx?|pdf))*$',
+  'i',
+);
 const STRUCTURAL_LEDGER_REFERENCE_PATTERN = /\b(?:course\s+map\s+l\d+|a\d+\.\d+)\b/i;
 const STRUCTURAL_LEDGER_NUMERIC_PATTERN = /\b(?:week\s+\d+|\d+(?:\.\d+)?\s*(?:pts?|points|%|hours?|hrs?))\b/i;
 const STRUCTURAL_LEDGER_SEPARATOR_PATTERN = /[·|•]|\s+-\s+/;
 const STRUCTURAL_QUESTION_METADATA_PATTERN =
   /^q\s*\d+\s*:\s*\((?:remember|understand|apply|analyze|evaluate|create)\s*,\s*(?:easy|medium|hard)\)\s*$/i;
 const STRUCTURAL_QUESTION_PREFIX_PATTERN = /^q\s*\d+\s*(?:\([^)]*\))?\s*:\s*/i;
+const STRUCTURAL_ANSWER_KEY_PREFIX_PATTERN =
+  /^q\s*\d+\s*(?:\([^)]*\))?\s*[·|•]\s*answer\s*(?:[—:|-]\s*)?(?:[a-d]\s*(?:[—:|-]\s*)?)?(?:evidence\s+basis\s*:\s*)?/i;
 const STRUCTURAL_DOCUMENT_CHROME_PATTERN =
   /^(?:.+?\s+-\s+)?lesson\s+\d{1,3}\s*(?::|-)\s*[^.!?]+(?:\s+—\s+.+\s+page\s+of)?$/i;
 const STRUCTURAL_LESSON_SCHEDULE_PATTERN = new RegExp(
@@ -106,6 +117,34 @@ const STRUCTURAL_LESSON_SCHEDULE_PATTERN = new RegExp(
 const MASK_SLOT = 'xslotx';
 const MASK_NUM = 'xnumx';
 const MASK_DISPLAY = { [MASK_SLOT]: '[slot]', [MASK_NUM]: '[n]' };
+const CAPITALIZED_SENTENCE_LEADS = new Set([
+  'after',
+  'apply',
+  'before',
+  'build',
+  'check',
+  'compare',
+  'create',
+  'explain',
+  'final',
+  'for',
+  'identify',
+  'if',
+  'in',
+  'inspect',
+  'mark',
+  'organize',
+  'partial',
+  'prepare',
+  'review',
+  'state',
+  'strong',
+  'submit',
+  'trace',
+  'upload',
+  'use',
+  'when',
+]);
 
 function escapeRegExp(value) {
   return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -128,7 +167,22 @@ export function maskSlots(text, slotValues = []) {
   for (const slot of slots) {
     masked = masked.replace(new RegExp(escapeRegExp(slot), 'gi'), ` ${MASK_SLOT} `);
   }
-  masked = masked.replace(/\b[A-Z][A-Za-z'’-]*(?:\s+[A-Z][A-Za-z'’-]*)+\b/g, ` ${MASK_SLOT} `);
+  // Stable package-resource locators are evidence identities, not prose
+  // texture. Mask only the locator tokens; instructions wrapped around them
+  // remain measurable. This prevents broader packet coverage from being
+  // punished merely because every relevant lesson correctly names the same
+  // CSV/guide while still exposing repeated directions.
+  masked = masked.replace(
+    /\b(?:required\s+assets?\/)?[a-z0-9][a-z0-9_.-]*\.(?:csv|md|txt|json|xlsx?|docx?|pptx?|pdf)\b/gi,
+    ` ${MASK_SLOT} `,
+  );
+  masked = masked.replace(/\b[A-Z][A-Za-z'’-]*(?:\s+[A-Z][A-Za-z'’-]*)+\b/g, (match) => {
+    const words = match.split(/\s+/);
+    if (words.length > 1 && CAPITALIZED_SENTENCE_LEADS.has(words[0].toLowerCase())) {
+      return `${words[0]} ${MASK_SLOT}`;
+    }
+    return ` ${MASK_SLOT} `;
+  });
   masked = masked.replace(/\d+(?:[.,:/-]\d+)*/g, ` ${MASK_NUM} `);
   return masked;
 }
@@ -163,6 +217,19 @@ function sentencesOf(maskedText) {
     .split(/(?<=[.!?])\s+|\n+/)
     .map((sentence) => sentence.trim())
     .filter(Boolean);
+}
+
+function semanticOpener(tokens = []) {
+  let start = 0;
+  // A bound source/product locator such as CM-SRC-L05 is machine-readable
+  // evidence identity, not the prose move a reader experiences. Slot masking
+  // turns that locator into "xslotx l xnumx"; skip only this precise leading
+  // shape so ordinary assessment-title openings remain measurable.
+  if (tokens[0] === MASK_SLOT && tokens[1] === 'l' && tokens[2] === MASK_NUM) start = 3;
+  else if (tokens[0] === 'cm' && ['src', 'prod'].includes(tokens[1]) && tokens[2] === 'l') {
+    start = tokens[3] === MASK_NUM ? 4 : 3;
+  }
+  return tokens.slice(start, start + 3).join(' ');
 }
 
 function round1(value) {
@@ -503,7 +570,7 @@ export function computeTexture(docs = [], { slotValues = [] } = {}) {
       .map((sentence) => tokensOf(sentence))
       .filter((sentenceTokens) => sentenceTokens.length >= MIN_OPENER_TOKENS);
     if (sentences.length < MIN_OPENER_SENTENCES) continue;
-    const openers = new Set(sentences.map((sentenceTokens) => sentenceTokens.slice(0, 3).join(' ')));
+    const openers = new Set(sentences.map(semanticOpener).filter(Boolean));
     openerRatioSum += openers.size / sentences.length;
     openerDocCount += 1;
   }
@@ -571,6 +638,7 @@ export function normalizeTextureText(text) {
       // Question numbers, type/point/time badges, and Bloom/difficulty rows
       // are export structure. Strip them before measuring sentence openers so
       // six genuinely different stems do not all look like “Q [n] multiple”.
+      cleaned = cleaned.replace(STRUCTURAL_ANSWER_KEY_PREFIX_PATTERN, '').trim();
       cleaned = cleaned.replace(STRUCTURAL_QUESTION_PREFIX_PATTERN, '').trim();
       for (let index = 0; index < 3; index += 1) {
         const next = cleaned.replace(STRUCTURAL_PREFIX_PATTERN, '').trim();
@@ -584,6 +652,8 @@ export function normalizeTextureText(text) {
         line &&
         !STRUCTURAL_HEADING_PATTERN.test(line) &&
         !STRUCTURAL_REFERENCE_PATTERN.test(line) &&
+        !STRUCTURAL_SOURCE_APPARATUS_PATTERN.test(line) &&
+        !STRUCTURAL_PACKAGE_RESOURCE_PATTERN.test(line) &&
         !isStructuralLedgerLine(line),
     )
     .join('\n');

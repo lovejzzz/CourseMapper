@@ -77,6 +77,43 @@ describe('apiCallBudget', () => {
     expect(JSON.stringify(receipt)).not.toContain('private-model-row');
   });
 
+  it('replaces stale partial pipeline text when hash-bound evidence replay wins', () => {
+    let budget = createApiCallBudget();
+    budget = applyApiCallBudgetEvent(budget, {
+      type: 'pipelineDecision',
+      stage: 'enrichmentModelStage',
+      detail: 'ran (13/14 — lesson 3 fell back to template) (linker: ran)',
+      outcome: { modelStage: 'ran', requestedLessons: 14, enrichedLessons: 13, missingLessons: [3] },
+    });
+    budget = applyApiCallBudgetEvent(budget, {
+      type: 'pipelineDecision',
+      stage: 'enrichmentModelStage',
+      detail: 'reconciled 13/14 initial kernels to 14/14 hash-bound evidence-authority kernels',
+      outcome: {
+        modelStage: 'ran',
+        requestedLessons: 14,
+        enrichedLessons: 14,
+        missingLessons: [],
+        evidenceReplayRecovery: {
+          protocol: 'coursemapper-evidence-authority-coverage-recovery-v1',
+          status: 'complete',
+          recoveredLessonNumbers: Array.from({ length: 14 }, (_, index) => index + 1),
+          recoveredLessonCount: 14,
+        },
+      },
+    });
+
+    expect(budget.enrichmentOutcome).toMatchObject({
+      requestedLessons: 14,
+      enrichedLessons: 14,
+      missingLessons: [],
+    });
+    expect(budget.pipeline.enrichmentModelStage).toBe(
+      'reconciled 13/14 initial kernels to 14/14 hash-bound evidence-authority kernels',
+    );
+    expect(buildApiCallBudgetReceipt(budget).pipeline.enrichmentModelStage).not.toContain('fell back to template');
+  });
+
   it('keeps pipeline call units separate from actual model attempts', () => {
     let budget = createApiCallBudget();
     budget = applyApiCallBudgetEvent(budget, { type: 'courseMapCall' });

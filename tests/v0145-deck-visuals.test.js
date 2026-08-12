@@ -363,16 +363,18 @@ describe('C1/C2 — compiler slide-visual descriptors', () => {
     });
     const factDecks = compileBlueprintDeliverable('slideDecks', factBlueprint, { skipLanguageFinalizer: true });
     const ledgerSlide = factDecks.decks[0].slides.find(
-      (slide) => slide.type === 'content' && slide.visual?.columnLabels?.[0] === 'SOURCE ATOM',
+      (slide) => slide.type === 'content' && slide.visual?.columnLabels?.[0] === 'SOURCE POINT',
     );
 
     expect(ledgerSlide).toBeTruthy();
     expect(ledgerSlide.visual.rows).toHaveLength(3);
     expect(ledgerSlide.visual.rows).toEqual([
-      ['Fact 1', 'A rating curve estimates discharge from repeated stage and flow measurements.'],
-      ['Fact 2', 'A fourth long fact remains in the lesson ledger but does not crowd the fixed slide table.'],
-      ['Fact 3', 'Stream discharge is the volume of water passing a cross-section per unit time.'],
+      ['Point 1', 'A rating curve estimates discharge from repeated stage and flow measurements.'],
+      ['Point 2', 'A fourth long fact remains in the lesson ledger but does not crowd the fixed slide table.'],
+      ['Point 3', 'Stream discharge is the volume of water passing a cross-section per unit time.'],
     ]);
+    expect(ledgerSlide.visual.tableLead).toMatch(/^Before deciding, evaluate what this source statement supports:/);
+    expect(ledgerSlide.visual.tableLead).not.toMatch(/admitted claim|fact ledger|source atom/i);
 
     const { allXml } = await unzipPptx(await buildSlideDeckPptxBlob(factDecks));
     const pptxXml = Object.values(allXml).join('\n');

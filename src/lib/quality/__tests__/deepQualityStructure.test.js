@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { GRADER_VERSION, grade } from '../deepQualityGrader.js';
 import { createMemoryFileProvider } from '../fileProviders.js';
 import { normalizeLessonSpecificTokens } from '../semanticSkeletonMask.js';
+import { sha256HexSync } from '../../sha256Sync.js';
 
 describe('deep quality package structure', () => {
   it('scores an exact compiler boundary directive used as a physical Course FAQ answer', async () => {
@@ -131,6 +132,189 @@ describe('deep quality package structure', () => {
     );
   });
 
+  it('requires human-review evidence dependencies to be resolved before promotion', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          lessonScope: [1],
+          readiness: { status: 'ready', blockers: 0 },
+          evidenceDependencies: {
+            version: 'coursemapper-lesson-evidence-dependencies-v1',
+            lessons: [
+              {
+                lesson: 1,
+                title: 'Evidence interpretation',
+                requirements: [
+                  {
+                    kind: 'source-passage',
+                    label: 'Source passage supporting the interpretation',
+                    status: 'review-required',
+                    evidence: 'A passage was found but has not been admitted.',
+                  },
+                ],
+              },
+            ],
+          },
+        }),
+      }),
+      course: { title: 'Evidence Methods', featureIds: [] },
+      honesty: { pipeline: { judgment: 'compiler-verified fixture' } },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: 'review-required-lesson-evidence-dependency',
+          severity: 'P1',
+          dimension: 'substance',
+        }),
+      ]),
+    );
+  });
+
+  it('caps a package whose semantic claim inventory still requires review', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          lessonScope: [1],
+          readiness: { status: 'ready', blockers: 0 },
+          files: [],
+          semanticClaimInventory: {
+            protocol: 'coursemapper-semantic-claim-inventory-v1',
+            summary: {
+              total: 1,
+              verified: 0,
+              reviewRequired: 1,
+              sourceRequired: 1,
+              sourceRequiredVerified: 0,
+            },
+            items: [
+              {
+                id: 'claim-lesson-1-definition',
+                fieldPath: 'lessons[0].keyTerms[0].definition',
+                surface: 'An unsupported definition remains visible to learners.',
+                status: 'review-required',
+                requiresSourcePassage: true,
+                provenanceVerified: false,
+                artifactVisibilityVerified: true,
+                semanticEntailmentVerified: false,
+              },
+            ],
+          },
+        }),
+      }),
+      course: { title: 'Evidence Methods', featureIds: [] },
+      honesty: { pipeline: { judgment: 'compiler-verified fixture' } },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: 'semantic-claim-inventory-unresolved',
+          severity: 'P1',
+          dimension: 'citations',
+          file: 'PACKAGE_MANIFEST.json',
+          detail: expect.stringContaining('1 learner-visible semantic claim remain review-required'),
+          evidence: expect.stringContaining('claim-lesson-1-definition'),
+        }),
+      ]),
+    );
+    expect(result.overall.score).toBeLessThanOrEqual(89);
+  });
+
+  it('rejects a finalized lineage whose post-draft atomic admission receipt is inconsistent', async () => {
+    const artifactPath = 'Study Guides/Lesson 01 - Evidence - Study Guides.txt';
+    const inventory = {
+      protocol: 'coursemapper-semantic-claim-inventory-v1',
+      summary: { total: 1, verified: 1, reviewRequired: 0, sourceRequired: 1, sourceRequiredVerified: 1 },
+      items: [
+        {
+          id: 'claim-1',
+          lessonNumber: 1,
+          status: 'verified',
+          requiresSourcePassage: true,
+          provenanceVerified: true,
+          artifactVisibilityVerified: true,
+          semanticEntailmentVerified: true,
+        },
+      ],
+    };
+    const payload = {
+      protocol: 'coursemapper-post-draft-admission-v1',
+      policy: 'all-visible-semantic-atoms-v1',
+      status: 'admitted',
+      promotionEligible: true,
+      predecessor: {},
+      draftSha256: 'a'.repeat(64),
+      semanticClaimInventorySha256: sha256HexSync(JSON.stringify(inventory)),
+      renderedArtifactCount: 1,
+      renderedArtifacts: [{ path: artifactPath, textSha256: 'b'.repeat(64), textBytes: 42 }],
+      plannedLessonCount: 1,
+      sourceGroundedLessonCount: 0,
+      semanticClaimCount: 1,
+      verifiedSemanticClaimCount: 1,
+      reviewRequiredSemanticClaimCount: 0,
+      lessonAdmissions: [{ lessonNumber: 1, status: 'quarantined' }],
+      blockers: [],
+    };
+    const admission = { ...payload, receiptSha256: sha256HexSync(JSON.stringify(payload)) };
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          lessonScope: [1],
+          readiness: { status: 'ready', blockers: 0 },
+          files: [{ path: artifactPath, featureId: 'studyGuides' }],
+          semanticClaimInventory: inventory,
+          postDraftAdmission: admission,
+          instructionalPlanLineage: {
+            protocol: 'coursemapper-linked-instructional-plan-receipts-v3',
+            status: 'admitted',
+            promotionEligible: true,
+            draftSha256: admission.draftSha256,
+            semanticClaimInventorySha256: admission.semanticClaimInventorySha256,
+            admissionSha256: admission.receiptSha256,
+          },
+        }),
+        [artifactPath]: 'A supported evidence statement is visible here.',
+      }),
+      course: { title: 'Evidence Methods', featureIds: ['studyGuides'] },
+      honesty: { pipeline: { judgment: 'compiler-verified fixture' } },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: 'post-draft-admission-invalid',
+          severity: 'P1',
+          dimension: 'citations',
+          detail: expect.stringContaining('failed atomic post-draft admission'),
+        }),
+      ]),
+    );
+  });
+
+  it('fails a Verified Coherent Draft checkpoint closed when trust receipts are absent', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          lessonScope: [1],
+          readiness: { status: 'ready', blockers: 0 },
+          files: [],
+          generationConstraints: { checkpoint: 'verified-coherent-draft-v1' },
+        }),
+      }),
+      course: { title: 'Evidence Methods', featureIds: [] },
+      honesty: { pipeline: { judgment: 'compiler-verified fixture' } },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'semantic-claim-inventory-missing', severity: 'P0' }),
+        expect.objectContaining({ code: 'post-draft-admission-invalid', severity: 'P0' }),
+      ]),
+    );
+  });
+
   it('carries stable discipline policy codes through graded findings', async () => {
     const result = await grade({
       fileProvider: createMemoryFileProvider({
@@ -247,7 +431,7 @@ describe('deep quality package structure', () => {
     });
 
     expect(result.findings.some((finding) => /classroom clock/i.test(finding.detail))).toBe(false);
-    expect(GRADER_VERSION).toBe('1.16.0');
+    expect(GRADER_VERSION).toBe('1.16.4');
   });
 
   it('scores opaque source-claim placeholders and their sentence seams as major export defects', async () => {

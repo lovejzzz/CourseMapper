@@ -55,6 +55,23 @@ describe('Scion key-term composite integrity', () => {
     expect(corrected.issues).not.toContain('example-confuses-pinyin-syllable-with-initial');
   });
 
+  it.each([
+    'Here we',
+    'In addition, visual rhetoric',
+    'In the main experiment, the task',
+    'Since visual and proprioceptive sensory modalities',
+  ])('rejects source-sentence residue masquerading as the key term: %s', (tr) => {
+    const assessment = assessScionKeyTermContract(completeTerm({ tr }), {
+      lessonTitle: 'Ethical contextual interpretation',
+      semanticProfile: 'source-strict-v6',
+      sourceTerm: tr,
+      knownFacts: [`${tr} is a phrase copied from a source sentence rather than a stable disciplinary concept.`],
+    });
+
+    expect(assessment.issues).toContain('term-is-source-sentence-fragment');
+    expect(assessment.eligible).toBe(false);
+  });
+
   it('rejects a joined concept label when its definition covers only one member', () => {
     const assessment = assessScionKeyTermContract(completeTerm(), {
       lessonTitle: 'Theories of International Relations',

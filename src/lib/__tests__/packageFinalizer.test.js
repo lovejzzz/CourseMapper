@@ -3,6 +3,7 @@ import { buildCourseBlueprint, compileBlueprintDeliverable } from '../courseBlue
 import { buildDeliverableDocxBlob } from '../exporters/bulkDocxExporter';
 import {
   applyQualityToFinalizerResult,
+  buildLessonIdentityIssues,
   evaluateStrictPackageReadiness,
   runDeterministicPackageFinalizer,
 } from '../packageFinalizer';
@@ -82,6 +83,35 @@ function makeIntroPsychCourseMap(lessonCount = 15) {
 }
 
 describe('packageFinalizer', () => {
+  it('blocks an ordered artifact family whose body has shifted to the following Course Map lesson', () => {
+    const courseMap = {
+      courseName: 'Visual Evidence',
+      lessons: [
+        { title: 'Lesson 1: Composition', sections: [] },
+        { title: 'Lesson 2: Color and contrast', sections: [] },
+        { title: 'Lesson 3: Perspective and framing', sections: [] },
+      ],
+    };
+    const deliverables = {
+      lessonPlans: {
+        status: 'done',
+        data: {
+          lessonPlans: [
+            { lessonNumber: 1, lessonTitle: 'Lesson 1: Foundational Composition Principles' },
+            { lessonNumber: 2, lessonTitle: 'Lesson 2: Perspective and Framing' },
+            { lessonNumber: 3, lessonTitle: 'Lesson 3: Integrated Visual Analysis' },
+          ],
+        },
+      },
+    };
+
+    const issues = buildLessonIdentityIssues({ courseMap, deliverables });
+
+    expect(issues).toHaveLength(2);
+    expect(issues.every((issue) => issue.severity === 'blocker')).toBe(true);
+    expect(issues.map((issue) => issue.lessonNumber)).toEqual([2, 3]);
+  });
+
   it('enforces lesson-title and slide-title uniqueness after readiness has finished mutating copy', () => {
     const focus = 'Functions and automated tests';
     const repeated = (label) => `${label}: Use ${focus} evidence to justify a bounded decision.`;

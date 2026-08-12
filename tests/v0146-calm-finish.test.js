@@ -88,57 +88,29 @@ describe('v0.14.6 (1) — exam correct-option rotation stays under the shingle a
   const compiled = compileBlueprintDeliverables(blueprint, ['quizBank']);
   const exam = compiled.quizBank.quizzes.find((quiz) => quiz.kind === 'exam');
 
-  it('the comprehensive final still mints one Understand item per covered lesson', () => {
+  it('the comprehensive final still mints one independently answerable item per covered lesson', () => {
     expect(exam).toBeTruthy();
-    const understandItems = exam.questions.filter(
-      (question) => question.type === 'multiple_choice' && question.bloomsLevel === 'Understand',
-    );
-    expect(understandItems.length).toBeGreaterThanOrEqual(12);
+    expect(exam.questions.length).toBeGreaterThanOrEqual(12);
+    expect(exam.questions.filter((question) => question.type === 'multiple_choice')).toHaveLength(0);
+    expect(
+      exam.questions
+        .filter((question) => question.type === 'short_answer')
+        .every((question) => question.sampleAnswer && question.scoringGuidance),
+    ).toBe(true);
   });
 
-  it('correct options rotate phrasings: no 8-word shingle reaches the audit limit of 12', () => {
-    const correctOptions = exam.questions
-      .filter((question) => question.type === 'multiple_choice')
-      .map((question) => {
-        const letter = String(question.answer || '')
-          .trim()
-          .charAt(0);
-        const index = letter ? letter.charCodeAt(0) - 65 : -1;
-        return Array.isArray(question.options) && index >= 0 ? question.options[index] : '';
-      })
-      .filter(Boolean);
-    expect(correctOptions.length).toBeGreaterThanOrEqual(12);
-    // The live failure repeated one tail 15x; rotation caps any shared
-    // 8-word chunk at ceil(15/5) = 3 — well under the audit's 12.
-    expect(worstShingleCount(correctOptions)).toBeLessThan(12);
-    expect(worstShingleCount(correctOptions)).toBeLessThanOrEqual(4);
+  it('constructed prompts stay below the rendered-text repetition threshold', () => {
+    const prompts = exam.questions.map((question) => question.question).filter(Boolean);
+    expect(prompts.length).toBeGreaterThanOrEqual(12);
+    expect(worstShingleCount(prompts)).toBeLessThan(12);
   });
 
-  it('at least four distinct phrasings appear across the covered lessons', () => {
-    const understandCorrect = exam.questions
-      .filter((question) => question.type === 'multiple_choice' && question.bloomsLevel === 'Understand')
-      .map((question) => {
-        const letter = String(question.answer || '')
-          .trim()
-          .charAt(0);
-        const index = letter ? letter.charCodeAt(0) - 65 : -1;
-        return Array.isArray(question.options) && index >= 0 ? question.options[index] : '';
-      });
-    const signatures = new Set(
-      understandCorrect.map((option) =>
-        String(option)
-          // Drop the variable slots (concept + lesson focus) to expose the template skeleton.
-          .toLowerCase()
-          .replace(/[^a-z ]+/g, ' ')
-          .split(/\s+/)
-          .slice(-4)
-          .join(' '),
-      ),
-    );
-    expect(signatures.size).toBeGreaterThanOrEqual(4);
+  it('covered lessons produce distinct prompts instead of one repeated frame', () => {
+    const prompts = exam.questions.map((question) => question.question).filter(Boolean);
+    expect(new Set(prompts).size).toBe(prompts.length);
   });
 
-  it('rotates sparse-kernel padding instead of repeating one generic wrong answer', () => {
+  it('converts sparse-kernel recognition items instead of padding them with generic wrong answers', () => {
     const sparseBlueprint = buildBlueprintFromGraph(deriveCourseGraphFromCourseMap(calculusCourseMap()));
     sparseBlueprint.lessons.forEach((lesson) => {
       lesson.enrichment = {
@@ -157,27 +129,15 @@ describe('v0.14.6 (1) — exam correct-option rotation stays under the shingle a
     const sparseExam = compileBlueprintDeliverables(sparseBlueprint, ['quizBank'], {
       enforceCompilerContract: false,
     }).quizBank.quizzes.find((quiz) => quiz.kind === 'exam');
-    const incorrectOptions = sparseExam.questions
-      .filter((question) => question.type === 'multiple_choice')
-      .flatMap((question) => {
-        const correctLetter = String(question.answer || '')
-          .trim()
-          .charAt(0);
-        return (question.options || []).filter((_, index) => String.fromCharCode(65 + index) !== correctLetter);
-      });
-    const padding = incorrectOptions.filter((option) =>
-      /evidence never changes|later evidence contradicts|without checking limits|every example supports|no relevant evidence|regardless of the claim|no relationship needs|equally defensible|course vocabulary|cannot alter the conclusion|broadest statement|connecting it to the question/i.test(
-        option,
-      ),
-    );
-
-    expect(incorrectOptions.join(' ')).not.toMatch(/another name for the whole of/i);
-    expect(JSON.stringify(sparseExam)).not.toMatch(/states the authored course fact for/i);
-    expect(padding.length).toBeGreaterThan(0);
-    // Forty-five fallback seats spread across twelve skeletons; even the
-    // busiest frame stays far below both the 12-hit export audit and the
-    // 60%-of-documents texture threshold.
-    expect(worstShingleCount(padding)).toBeLessThanOrEqual(5);
+    const paper = JSON.stringify(sparseExam);
+    expect(sparseExam.questions.filter((question) => question.type === 'multiple_choice')).toHaveLength(0);
+    expect(paper).not.toMatch(/another name for the whole of|states the authored course fact for/i);
+    expect(paper).not.toMatch(/evidence never changes|every example supports|no relevant evidence/i);
+    expect(
+      sparseExam.questions
+        .filter((question) => question.type === 'short_answer')
+        .every((question) => question.sampleAnswer && question.scoringGuidance),
+    ).toBe(true);
   });
 
   it('varies title-slide framing and speaker-note launches across the course', () => {

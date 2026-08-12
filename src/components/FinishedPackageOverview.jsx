@@ -84,7 +84,6 @@ export default function FinishedPackageOverview({
     ready: featureId === 'courseMap' || deliverables?.[featureId]?.status === 'done',
   }));
   const readyCount = materialRows.filter((row) => row.ready).length;
-  const grade = packageQualityPass?.quality?.grade || 'A';
   const score = packageQualityPass?.quality?.score;
   const readinessScore = packageQualityPass?.quality?.readiness?.score;
   const readinessMax = packageQualityPass?.quality?.readiness?.maxScore || 100;
@@ -133,7 +132,7 @@ export default function FinishedPackageOverview({
                     : 'border-emerald-200 bg-emerald-50 text-emerald-700'
                 }`}
               >
-                Conformance {score} · {grade}
+                Conformance {score}/100
               </button>
             )}
             {Number.isFinite(texture) && (

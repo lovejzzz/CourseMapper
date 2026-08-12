@@ -192,11 +192,20 @@ describe('F1/F2 — source wiring (the header has ONE verb; the paths exist)', (
     expect(appFlow).toContain('function handleQuickStart(options = {})');
     expect(appFlow).toContain('scionResearchEnabledOverride');
     expect(appFlow).toContain('onQuickStart={handleQuickStart}');
-    // Select-all mirror: built-ins (minus syllabus with a syllabus file) + customs.
-    expect(appFlow).toMatch(/hasSyllabusFile \? FEATURES\.filter\(\(f\) => f\.id !== 'syllabus'\) : FEATURES/);
+    // Select-all mirror: every built-in output remains present even when an
+    // attached syllabus is the governing input source, plus customs.
+    expect(appFlow).toContain('setSelectedFeatures([...FEATURES, ...listCustomDeliverables().map(toFeatureEntry)]');
+    expect(appFlow).not.toMatch(/hasSyllabusFile \? FEATURES\.filter\(\(f\) => f\.id !== 'syllabus'\) : FEATURES/);
     expect(appFlow).toContain('listCustomDeliverables().map(toFeatureEntry)');
     // No duplicated generation logic — the pending flag hands off to onGenerate().
     expect(appFlow).toContain('if (!quickStartPending) return;');
     expect(appFlow.match(/^\s*onGenerate\(\);$/gm)?.length).toBe(1);
+  });
+
+  it('keeps an aligned syllabus output selectable when a syllabus source is attached', () => {
+    const featureSelect = read('src/screens/FeatureSelect.jsx');
+    expect(featureSelect).toContain('An uploaded syllabus is governing source material');
+    expect(featureSelect).toContain('Editable, aligned syllabus derived from the attached governing source');
+    expect(featureSelect).not.toMatch(/FEATURES\.filter\(\(f\) => f\.id !== 'syllabus'\)/);
   });
 });

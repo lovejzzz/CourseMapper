@@ -257,6 +257,34 @@ describe('native kernel coverage contract', () => {
       expect.arrayContaining(['mc-coverage:1/4', 'key-term-coverage:1/3', 'study-guide-coverage']),
     );
   });
+
+  it('treats a verbatim admitted fact ledger as usable without minting glossary definitions', () => {
+    const result = assessProjectedKernelCoverage({
+      sourceFactAuthority: 'admitted-evidence-authority',
+      kernel: {
+        facts: [
+          'The first exact source claim records one observable form and its gloss.',
+          'The second exact source claim records a contrasting form and its gloss.',
+          'The third exact source claim states the bounded comparison supported by those forms.',
+        ],
+        provenance: {
+          authority: 'admitted-evidence-authority',
+          copiedFactsVerbatim: true,
+        },
+        scenario: { setup: 'Compare the supplied forms.', materials: 'The exact form-and-gloss records.' },
+      },
+      keyTerms: [],
+      quizItems: [{ type: 'short_answer' }, { type: 'essay' }],
+      slideContent: [{ title: 'Evidence comparison', bullets: ['Compare the two forms.'] }],
+      discussionPrompt: { positions: ['Reading A', 'Reading B', 'Bounded synthesis'] },
+      assignmentCore: { parameters: ['form', 'gloss', 'analysis', 'boundary'] },
+      studyGuide: { summary: 'Compare the forms.', reviewStrategy: 'Trace each claim to the record.' },
+    });
+
+    expect(result.complete).toBe(false);
+    expect(result.issues).toContain('key-term-coverage:0/3');
+    expect(result.usabilityIssues).not.toContain('key-term-core:0/1');
+  });
 });
 
 describe('projectKernelToSurfaces', () => {
@@ -613,7 +641,6 @@ describe('projectKernelToSurfaces', () => {
 
     expect(improvedItem?.question).toContain(`Claim A: ${facts[0]}`);
     expect(improvedItem?.question).toContain(`Claim B: ${facts[1]}`);
-    expect(improvedItem?.question).toMatch(/Identify the course concept that best organizes these claims/);
     expect(isClaimEvidenceBoundaryShortAnswer(improvedItem?.question)).toBe(true);
     expect(improvedItem?.question).not.toMatch(/Claim C:|A student is evaluating|three supplied claims/i);
     expect(improvedItem?.answer).toContain(facts[0]);

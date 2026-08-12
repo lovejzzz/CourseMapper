@@ -145,6 +145,48 @@ describe('pptxExporter', () => {
     expect(slideNames(zip)).toHaveLength(4);
   });
 
+  it('prints the complete original-native image provenance boundary on evidence specimens', async () => {
+    const blob = await buildSlideDeckPptxBlob(
+      {
+        decks: [
+          {
+            lessonTitle: 'Lesson 1: Composition',
+            slides: [
+              {
+                title: 'Composition evidence',
+                type: 'keyTerm',
+                bullets: ['Inspect the visible entities and relation before interpreting.'],
+                visual: {
+                  kind: 'evidence specimen',
+                  specimenLabel: 'Composition evidence',
+                  typedSpecimen: {
+                    protocol: 'coursemapper-typed-evidence-specimen-v1',
+                    conceptBinding: 'Composition',
+                    sourceBinding: { id: 'CM-SRC-L01' },
+                    learnerProduct: { id: 'CM-PROD-L01' },
+                    visibleTask: {
+                      protocol: 'coursemapper-visible-functional-task-v1',
+                      cardText:
+                        'Analyze the Composition specimen. Test it against CM-SRC-L01 and carry the supported observation into CM-PROD-L01.',
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      },
+      'Visual Evidence',
+      0,
+    );
+
+    const zip = await loadPptxZip(blob);
+    const xml = await zip.file('ppt/slides/slide1.xml').async('string');
+    expect(xml).toContain('VISUAL PROVENANCE · ORIGINAL NATIVE · NO EXTERNAL IMAGE ASSET');
+    expect(xml).toContain('Analyze the Composition specimen. Test it against CM-SRC-L01');
+    expect(xml).toContain('name="cmVisibleTaskCard"');
+  });
+
   it('punctuates example-slide key takeaway callouts in rendered PPTX XML', async () => {
     const blob = await buildSlideDeckPptxBlob(
       {

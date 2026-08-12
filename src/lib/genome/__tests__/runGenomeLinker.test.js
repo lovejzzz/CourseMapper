@@ -208,7 +208,8 @@ describe('runGenomeLinker', () => {
       license: 'CC BY 4.0',
       attribution: 'OpenStax',
       kind: 'open textbook',
-      evidence: 'Price elasticity of demand measures responsiveness of quantity demanded to price.',
+      evidence:
+        'Price elasticity of demand is the percentage change in quantity demanded divided by the percentage change in price.',
       sourceTier: 2,
       conceptLinks: [{ id: 'econ/price-elasticity-of-demand', label: 'Price elasticity of demand' }],
     });

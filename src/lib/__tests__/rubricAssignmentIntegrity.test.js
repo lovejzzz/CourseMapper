@@ -406,7 +406,12 @@ describe('package manifest uses the bridged registry', () => {
 
     // The bridged summary is the syllabus's story: graded rows sum to 100.
     expect(manifest.assessmentSummary).toBeTruthy();
-    expect(manifest.assessmentSummary.weightSource).toBe('course-map-bridge');
+    expect(manifest.assessmentSummary).toMatchObject({
+      weightSource: 'compiler-distributed-draft',
+      weightSourceStatus: 'compiler-distributed-draft',
+      weightReviewRequired: true,
+      weightConfirmationPolicy: expect.stringContaining('must be confirmed by the instructor'),
+    });
     expect(manifest.assessmentSummary.gradedWeightTotal).toBe(100);
     expect(manifest.assessmentSummary.graded).toBe(blueprint.assessments.length);
 
@@ -421,6 +426,10 @@ describe('package manifest uses the bridged registry', () => {
       manifestGradedTotal += row.weightPct;
       const compiledWeight = briefById.get(row.id)?.weightPercent ?? blueprintById.get(row.id)?.weightPercent;
       expect(row.weightPct, `manifest weight disagrees with compile for ${row.id}`).toBe(compiledWeight);
+      expect(row).toMatchObject({
+        weightSource: 'compiler-distributed-draft',
+        weightReviewRequired: true,
+      });
     }
     expect(manifestGradedTotal).toBe(100);
   }, 120000);

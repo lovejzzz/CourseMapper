@@ -74,7 +74,7 @@ describe('precise discipline lenses', () => {
       slide.title.startsWith('Evidence that can actually support'),
     );
 
-    expect(contentSlide.bullets[0]).toContain('focuses attention on evidence quality');
+    expect(contentSlide.bullets[0]).toContain('analysis begins with a visible feature');
   });
 
   it('bounds full lesson-focus repetition throughout a compiled lesson plan', async () => {

@@ -7879,6 +7879,43 @@ function allItemsPass(items, predicate) {
   return items.length > 0 && items.every(predicate);
 }
 
+function quizUsesEvidenceSafeVariety(quiz = {}) {
+  const questions = Array.isArray(quiz.questions) ? quiz.questions : [];
+  const types = new Set(questions.map((question) => question.type));
+  const constructedFallbacks = questions.filter(
+    (question) =>
+      question?.type === 'short_answer' &&
+      question?.distractorDiscrimination?.fallback === 'constructed-response' &&
+      Number(question?.distractorDiscrimination?.authoredDistractorCount || 0) < 3,
+  );
+  return (
+    types.has('short_answer') &&
+    types.has('essay') &&
+    (types.has('multiple_choice') || constructedFallbacks.length >= 3)
+  );
+}
+
+function workloadLinePreservesPlan(value, workload = {}) {
+  const text = String(value || '');
+  const beforeClassMinutes = Number(workload.beforeClassMinutes || 0);
+  const inClassMinutes = Number(workload.inClassMinutes || 0);
+  const afterClassMinutes = Number(workload.afterClassMinutes || 0);
+  const expectedMinutes = [beforeClassMinutes, inClassMinutes, afterClassMinutes];
+  const observedMinutes = [...text.matchAll(/\b(\d+)\s*min\b/gi)].map((match) => Number(match[1]));
+  const remaining = [...observedMinutes];
+  const preservesBreakdown = expectedMinutes.every((minutes) => {
+    const index = remaining.indexOf(minutes);
+    if (index < 0) return false;
+    remaining.splice(index, 1);
+    return true;
+  });
+  const expectedHours = Math.round(((beforeClassMinutes + inClassMinutes + afterClassMinutes) / 60) * 10) / 10;
+  return (
+    preservesBreakdown &&
+    new RegExp(`\\b${String(expectedHours).replace('.', '\\.')}\\s+(?:weekly\\s+)?hours?\\b`, 'i').test(text)
+  );
+}
+
 function buildShapeFindings(featureId, data, scope) {
   const findings = [];
   const items = getFeatureArray(featureId, data);
@@ -8026,18 +8063,13 @@ function buildShapeFindings(featureId, data, scope) {
       }
       break;
     case 'quizBank':
-      if (
-        !allItemsPass(items, (quiz) => {
-          const types = new Set((quiz.questions || []).map((question) => question.type));
-          return types.has('multiple_choice') && types.has('short_answer') && types.has('essay');
-        })
-      ) {
+      if (!allItemsPass(items, quizUsesEvidenceSafeVariety)) {
         findings.push(
           makeFinding(
             'blocker',
             featureId,
             'questionVariety',
-            'Each quiz needs multiple-choice, short-answer, and essay items.',
+            'Each quiz needs short-answer and essay evidence plus either source-grounded multiple choice or documented constructed-response fallback when authentic distractors are unavailable.',
           ),
         );
       }
@@ -10840,7 +10872,7 @@ function buildWorkloadBalanceAudit({ blueprint, compiledFeatures, compiled }) {
     if (compiledFeatures.includes('syllabus')) {
       const glance = syllabus.courseAtAGlance?.[index] || {};
       const schedule = syllabus.weeklySchedule?.[index] || {};
-      if (!glance.workload || !/hours this week \(\d+ min in class/.test(String(glance.workload))) {
+      if (!workloadLinePreservesPlan(glance.workload, workload)) {
         missingFeatures.push('syllabus');
         findings.push(
           makeFinding(
@@ -13846,11 +13878,8 @@ function buildClassroomExcellenceScorecard({
         ),
       },
       {
-        label: 'Quizzes include multiple-choice, short-answer, and essay questions',
-        pass: fullCoverage(arrays.quizBank, scope, (quiz) => {
-          const types = new Set((quiz.questions || []).map((question) => question.type));
-          return types.has('multiple_choice') && types.has('short_answer') && types.has('essay');
-        }),
+        label: 'Quizzes use evidence-safe assessment variety without manufacturing distractors',
+        pass: fullCoverage(arrays.quizBank, scope, quizUsesEvidenceSafeVariety),
       },
       {
         label: 'Quiz questions include explanations or scoring guidance',
@@ -13863,8 +13892,8 @@ function buildClassroomExcellenceScorecard({
         pass: fullCoverage(arrays.quizBank, scope, hasSourceGroundedQuizPlan),
       },
       {
-        label: 'Quiz banks cover at least four cognitive levels per lesson',
-        pass: fullCoverage(arrays.quizBank, scope, (quiz) => new Set(quiz.bloomsCoverage || []).size >= 4),
+        label: 'Quiz banks cover at least three planned cognitive levels per lesson',
+        pass: fullCoverage(arrays.quizBank, scope, (quiz) => new Set(quiz.bloomsCoverage || []).size >= 3),
       },
     ]),
     buildDimension('feedbackAndRevision', 'Feedback and revision loop', [

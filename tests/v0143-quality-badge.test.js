@@ -92,7 +92,7 @@ function geologyCourseMap(courseName = 'Physical Geology') {
         {
           topicSection: `${index + 1}.1: ${title}`,
           learningGoals: `1. Build field-ready understanding of ${concept}.`,
-          learningObjectives: `Analyze ${concept} using specimen evidence.\nEvaluate how ${concept} changes a field decision.`,
+          learningObjectives: `Analyze ${concept} using published open-license diagram evidence.\nEvaluate how ${concept} changes a field decision.`,
           weeklyAssessments: `Quiz: ${concept} problems`,
           asyncActivities: `Read the assigned chapter on ${title.toLowerCase()}.`,
           syncActivities: `Workshop: ${concept} case analysis.`,
@@ -490,12 +490,12 @@ describe('B2 — WorkspaceQualityChip header states', () => {
   it('renders the emerald graded chip only for a clean 100/100 package, as a ≥32px button', () => {
     const html = render({ status: 'ready', quality: gradedQuality() });
     expect(html).toContain('workspace-quality-chip');
-    expect(html).toContain('Conformance 100 · A');
+    expect(html).toContain('Conformance 100/100');
     expect(html).toContain('emerald');
     expect(html).toContain('<button');
     expect(html).toContain('min-h-[32px]');
     expect(html).toContain(
-      'aria-label="Package quality: conformance 100 out of 100, grade A, 0 issues — open the quality report"',
+      'aria-label="Package quality: automated conformance 100 out of 100, 0 issues — open the quality report"',
     );
   });
 
@@ -526,7 +526,7 @@ describe('B2 — WorkspaceQualityChip header states', () => {
     });
     expect(withP0).toContain('border-red-200');
     expect(withP0).not.toContain('emerald');
-    expect(withP0).toContain('Conformance 88 · B');
+    expect(withP0).toContain('Conformance 88/100');
     expect(withP0).toContain('including 1 critical');
 
     const gradeC = render({
@@ -534,7 +534,7 @@ describe('B2 — WorkspaceQualityChip header states', () => {
       quality: gradedQuality({ score: 74, grade: 'C', findingCounts: { p0: 0, p1: 3, p2: 1 } }),
     });
     expect(gradeC).toContain('amber');
-    expect(gradeC).toContain('Conformance 74 · C');
+    expect(gradeC).toContain('Conformance 74/100');
   });
 
   it('does not foreground a 100/100 grade when the finish pass is blocked', () => {
@@ -550,10 +550,10 @@ describe('B2 — WorkspaceQualityChip header states', () => {
       }),
     });
     expect(html).toContain('workspace-quality-chip');
-    expect(html).toContain('Conformance 100 · A');
+    expect(html).toContain('Conformance 100/100');
     expect(html).toContain('border-red-200');
     expect(html).toContain('export paused for 1 item to refine');
-    expect(html).toContain('conformance result 100 out of 100');
+    expect(html).toContain('automated conformance 100 out of 100');
     expect(html).toContain('Texture 94');
     expect(html).not.toContain('Quality 100');
     expect(html).not.toContain('emerald');
@@ -576,10 +576,11 @@ describe('B2 — WorkspaceQualityChip header states', () => {
 describe('B2 — ExportSidePanel compact download-card stamp', () => {
   const render = (quality) => renderToStaticMarkup(React.createElement(QualityStamp, { quality, onOpen: () => {} }));
 
-  it('stamps "100 · A" on the card for a graded package', () => {
+  it('stamps automated conformance without presenting a teaching grade', () => {
     const html = render(gradedQuality());
     expect(html).toContain('quality-stamp');
-    expect(html).toContain('100 · A');
+    expect(html).toContain('100/100');
+    expect(html).toContain('not a teaching-quality grade');
     expect(html).toContain('emerald');
     expect(html).toContain('<button');
   });

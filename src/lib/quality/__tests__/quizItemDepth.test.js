@@ -160,6 +160,13 @@ describe('quiz item depth', () => {
     expect(isClaimEvidenceBoundaryShortAnswer(task)).toBe(true);
   });
 
+  it('recognizes the sparse-course constructed-response frame as independent selection', () => {
+    const task =
+      'In 2-3 sentences, independently select the course concept or method that should guide an analyst making the decision in the Week 3 report. Cite one inspectable evidence detail from the source packet, then state a limitation or evidence boundary.';
+    expect(isConceptCuedCompilerShortAnswer(task)).toBe(false);
+    expect(isClaimEvidenceBoundaryShortAnswer(task)).toBe(true);
+  });
+
   it('recognizes a two-card synthesis that independently selects a concept and bounds the relationship', () => {
     const task =
       'Claim A states one course proposition. Claim B states a related proposition. Identify the course concept that best organizes these claims, explain how they differ or connect, and state what they do not establish. Use both claim cards and keep the conclusion bounded.';

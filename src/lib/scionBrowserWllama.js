@@ -31,6 +31,8 @@ const SCION_MODEL_STORAGE_ERROR_RE =
   /(?:browser storage is full|quotaexceeded|not enough space|no space|4294967288|wrote -8 of)/i;
 const SCION_MODEL_CACHE_ERROR_RE =
   /(?:model file not found|failed to open file|model may be invalid|cached \d+ bytes but expected|opfs worker: wrote|filesystemsyncaccesshandle.+failed to read)/i;
+const SCION_MODEL_TRANSIENT_ACTIVATION_ERROR_RE =
+  /(?:ggml_webgpu[^\n]*queue wait timed out|queue wait timed out after \d+\s*ms|webgpu[^\n]*(?:device lost|internal error))/i;
 
 // wllama emits CPU-thread fallback warnings before it applies its WebGPU
 // backend choice. Scion deliberately ships only the JSPI single-thread WASM
@@ -133,6 +135,14 @@ export function classifyScionBrowserModelLoadError(error) {
       kind: 'cache-incomplete',
       clearCache: true,
       message: 'Scion removed an incomplete local model download. Try again to download a clean copy.',
+    };
+  }
+  if (SCION_MODEL_TRANSIENT_ACTIVATION_ERROR_RE.test(detail)) {
+    return {
+      code: 'SCION_WLLAMA_ACTIVATION_TRANSIENT',
+      kind: 'activation-transient',
+      clearCache: false,
+      message: 'Scion took longer than the WebGPU queue allowed while activating the downloaded model.',
     };
   }
   return {
@@ -344,6 +354,7 @@ export async function loadScionBrowserWllama({
       );
     }
     let repairedCache = false;
+    let restartedActivation = false;
     let cleanRedownload = false;
     for (;;) {
       publish(
@@ -387,29 +398,48 @@ export async function loadScionBrowserWllama({
       } catch (error) {
         const classified = classifyScionBrowserModelLoadError(error);
         const canRepair = classified.kind === 'cache-incomplete' && cachedModel && !repairedCache && !signal?.aborted;
-        if (!canRepair) {
+        const canRestartActivation =
+          classified.kind === 'activation-transient' && !restartedActivation && !signal?.aborted;
+        if (!canRepair && !canRestartActivation) {
           await exitRuntime(candidate);
           if (classified.clearCache) await removeCandidateModelCache(candidate, modelUrl);
           if (loadingRuntime === candidate) loadingRuntime = null;
           throw runtimeError(classified.code, classified.message, error);
         }
 
-        repairedCache = true;
-        publish(
-          {
-            phase: 'repairing-cache',
-            progress: status.progress,
-            message: 'The saved model copy is incomplete · replacing it once…',
-            error: null,
-          },
-          onProgress,
-        );
-        await exitRuntime(candidate);
-        await removeCandidateModelCache(candidate, modelUrl);
-        candidate = createRuntimeCandidate(runtimeModule.Wllama, wasmUrl);
-        loadingRuntime = candidate;
-        cachedModel = false;
-        cleanRedownload = true;
+        if (canRestartActivation) {
+          restartedActivation = true;
+          publish(
+            {
+              phase: 'restarting-activation',
+              progress: status.progress,
+              message: 'Scion is still responsive · restarting activation from the downloaded model once…',
+              error: null,
+            },
+            onProgress,
+          );
+          await exitRuntime(candidate);
+          candidate = createRuntimeCandidate(runtimeModule.Wllama, wasmUrl);
+          loadingRuntime = candidate;
+          cachedModel = await hasCachedCandidateModel(candidate, modelUrl);
+        } else {
+          repairedCache = true;
+          publish(
+            {
+              phase: 'repairing-cache',
+              progress: status.progress,
+              message: 'The saved model copy is incomplete · replacing it once…',
+              error: null,
+            },
+            onProgress,
+          );
+          await exitRuntime(candidate);
+          await removeCandidateModelCache(candidate, modelUrl);
+          candidate = createRuntimeCandidate(runtimeModule.Wllama, wasmUrl);
+          loadingRuntime = candidate;
+          cachedModel = false;
+          cleanRedownload = true;
+        }
       }
     }
     const metadata = validateLoadedBase(candidate);

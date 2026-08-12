@@ -5,6 +5,18 @@ playwright-report
 test-results
 verification-output
 evaluation/production-canaries/artifacts
+# Local audit workspaces and sealed Roundtable evidence are byte-bound,
+# machine-generated receipts. Their dedicated verifiers own serialization;
+# generic source formatting would invalidate evidence without improving code.
+.audit-work
+.roundtable-evidence-*
+# Campaign preregistrations are immutable, hash-bound declarations written
+# before official generation. Never rewrite their captured bytes afterward.
+evaluation/output-quality/campaigns/*.preregistration.json
+# Held-out benchmark manifests and local probe outputs are generated,
+# byte-bound evidence. Their dedicated verifiers own canonical serialization.
+evaluation/scion-adapters/held-out-course-benchmark-v*.json
+tmp
 # Retained, minified project snapshots are immutable comparison inputs. Keep
 # their captured bytes stable; format the manifest and generated report instead.
 evaluation/scion-contrast-evidence

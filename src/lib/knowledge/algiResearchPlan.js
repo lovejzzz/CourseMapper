@@ -8,6 +8,8 @@
  * should be disambiguated by the course domain.
  */
 
+import { sha256HexSync } from '../sha256Sync.js';
+
 export const ALGI_RESEARCH_PLAN_PROTOCOL = 'algi-course-research-plan-v1';
 
 const STOPWORDS = new Set([
@@ -42,6 +44,10 @@ const BIOMEDICAL =
   /\b(?:anatom\w*|biofilm\w*|biolog\w*|biomed\w*|clinical|disease\w*|epidemi\w*|health|immun\w*|medical|medicine|microbi\w*|nurs\w*|pathogen\w*|physiol\w*|public health|toxicolog\w*|virolog\w*)\b/i;
 const QUANTITATIVE =
   /\b(?:algorithm|calculus|computer science|data|econom|engineering|mathemat|physics|probability|programming|quantitative|statistics)\b/i;
+const LINGUISTICS =
+  /\b(?:language structure|linguistics?|phonetics?|phonology|phoneme|morphology|morpheme|syntax|syntactic|semantics|pragmatics|prosody|suprasegmentals?|speech acts?|dialectal|typology|corpus linguistics)\b/i;
+const VISUAL_HUMANITIES =
+  /\b(?:art history|composition|color theory|colour theory|graphic design|image analysis|photograph\w*|perspective and framing|visual analysis|visual arts?|visual communication|visual evidence|visual hierarchy)\b/i;
 const COMPUTING_CONTEXT =
   /\b(?:coding|computer\s+science|programming|python|software\s+development|software\s+engineering)\b/i;
 const HUMANITIES =
@@ -53,8 +59,15 @@ const TIME_SENSITIVE =
 const APPLICATION =
   /\b(?:application|case|decision|design|diagnos\w*|field|intervention|law|policy|practice|project|regulation|risk|standard|strategy)\b/i;
 const SEARCH_WRAPPER =
-  /^(?:application|applications|comparison|comparisons|evaluation|evaluations|evidence|implementation|implications|introduction|overview|planning|practice|practices|trade-off|trade-offs)$/i;
+  /^(?:analyzing|analysing|applying|application|applications|audit|audits|comparing|comparison|comparisons|construction|defining|definition|definitions|evaluating|evaluation|evaluations|examining|explaining|exploring|implementation|implications|integration|interpreting|introduction|investigating|justifying|mechanics|overview|planning|practice|practices|production|trade-off|trade-offs|understanding|using|verification)$/i;
 const MAX_QUERY_VARIANTS_PER_LESSON = 4;
+
+export function stripResearchCurricularLocator(value = '') {
+  return String(value || '')
+    .replace(/\s*\((?:ch(?:apter)?\.?\s*)?\d+(?:\.\d+)*(?:\s*[-–—]\s*\d+(?:\.\d+)*)?\)\s*/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
 function clean(value = '') {
   return String(value || '')
@@ -75,10 +88,27 @@ function unique(values = []) {
   return [...new Set(values.map(clean).filter(Boolean))];
 }
 
+function catalogMorphologyTerms(value = '') {
+  return tokens(value).map((term) => {
+    if (/^context(?:ual|ually|ualism|ualist|ualized|ualization)$/.test(term)) return 'context';
+    // Catalogs index canonical concept nouns more reliably than instructional
+    // verbs. Preserve an authored noun such as “interpretation”; only convert
+    // adjectival and verbal forms to that noun surface.
+    if (/^interpret(?:ative|atively|ive|ively|ed|ing)$/.test(term)) return 'interpretation';
+    return term;
+  });
+}
+
 export function inferAlgiResearchDomain(courseName = '', lessons = []) {
   const text = [courseName, ...lessons.map((lesson) => clean(lesson?.title || lesson?.topic))].join(' ');
   if (BIOMEDICAL.test(text)) return 'biomedical';
+  // “Language data” and “corpus data” are ordinary linguistics phrases. A
+  // bare data token must not route a language-structure course through the
+  // quantitative disambiguator, which appends “data analysis” to searches
+  // for phonemes, prosody, and head movement.
+  if (LINGUISTICS.test(text)) return 'linguistics';
   if (QUANTITATIVE.test(text)) return 'quantitative';
+  if (VISUAL_HUMANITIES.test(text)) return 'visual-humanities';
   if (HUMANITIES.test(text)) return 'humanities';
   if (SOCIAL_SCIENCE.test(text)) return 'social-science';
   return 'general';
@@ -94,6 +124,8 @@ export function providerOrderForAlgiDomain(domain = 'general') {
   // remains subject to the same relevance, exact-passage, license, and
   // admission gates, so this changes retrieval order rather than trust.
   if (domain === 'quantitative') return ['wikipedia', 'doaj'];
+  if (domain === 'linguistics') return ['wikipedia', 'doaj'];
+  if (domain === 'visual-humanities') return ['wikipedia', 'doaj'];
   return ['doaj', 'wikipedia'];
 }
 
@@ -110,8 +142,13 @@ function coarseDisambiguatorForProvider({ providerId, title, domainTerms, domain
     /\b(?:algorithm\w*|automated tests?|branch\w*|code|conditional\w*|data types?|debugg\w*|deploy\w*|exceptions?|expressions?|files?|functions?|inputs?|loops?|modules?|outputs?|program\w*|python|scope|software tests?|testing|unit tests?)\b/i.test(
       title,
     );
-  if (domain === 'quantitative') return computingContext && programmingTopic ? 'computer programming' : 'data analysis';
+  if (domain === 'quantitative') {
+    if (computingContext && programmingTopic) return 'computer programming';
+    return domainTerms.some((term) => /^statistic/.test(term)) ? 'statistics' : 'data analysis';
+  }
+  if (domain === 'linguistics') return 'linguistics';
   if (domain === 'biomedical') return 'biology';
+  if (domain === 'visual-humanities') return 'visual arts';
   return '';
 }
 
@@ -123,14 +160,15 @@ function queryForProvider({
   computingContext = false,
   disambiguatorOverride = '',
 }) {
+  const researchTitle = stripResearchCurricularLocator(title);
   if (providerId === 'wikipedia') {
     // Encyclopedia search should look for the concepts an instructor named,
     // not the whole pedagogical wrapper as one exact page title. A compound
     // lesson phrase may have no canonical article, while an OR query over its
     // clauses can retrieve source pages for both sides and still leaves
     // relevance/admission to reject false friends.
-    const clauses = clean(title)
-      .split(/\s+(?:and|&)\s+|[,;:]/i)
+    const clauses = clean(researchTitle)
+      .split(/\s+(?:and|&)\s+|\s*[·|]\s*|[,;:]/i)
       .map((clause) =>
         tokens(clause)
           .filter((term) => !SEARCH_WRAPPER.test(term))
@@ -145,14 +183,25 @@ function queryForProvider({
     // computer-programming rather than broader data-analysis disambiguation.
     const coarseDisambiguator =
       disambiguatorOverride ||
-      coarseDisambiguatorForProvider({ providerId, title, domainTerms, domain, computingContext });
+      coarseDisambiguatorForProvider({ providerId, title: researchTitle, domainTerms, domain, computingContext });
     if (clauses.length > 1) {
       const concepts = `(${clauses.join(' OR ')})`;
       return [concepts, coarseDisambiguator].filter(Boolean).join(' ');
     }
-    const titleTerms = new Set(tokens(title));
+    // A source catalog searches headword language, while an instructor often
+    // writes an abstract adjectival label. For a three-or-more-token single
+    // concept, make the primary query itself useful under a tight request
+    // budget (“ethical contextual interpretation” → “ethical context
+    // interpretation”). Exact provider passages still have to pass every downstream
+    // relevance, domain, entailment, and lesson-intent gate.
+    const catalogTerms = catalogMorphologyTerms(researchTitle);
+    const authoredTerms = tokens(researchTitle);
+    if (catalogTerms.length >= 3 && catalogTerms.some((term, index) => term !== authoredTerms[index])) {
+      return [catalogTerms.join(' '), coarseDisambiguator].filter(Boolean).join(' ');
+    }
+    const titleTerms = new Set(tokens(researchTitle));
     const disambiguator = coarseDisambiguator || domainTerms.find((term) => !titleTerms.has(term)) || '';
-    return [quoted(clauses[0] || title), disambiguator].filter(Boolean).join(' ');
+    return [quoted(clauses[0] || researchTitle), disambiguator].filter(Boolean).join(' ');
   }
   // Scholarly indexes rarely contain an instructor's whole pedagogical label
   // verbatim. Searching "Cooling interventions, implementation trade-offs,
@@ -162,13 +211,13 @@ function queryForProvider({
   // relevance/entailment gates decide which returned records are admissible.
   const disambiguator =
     disambiguatorOverride ||
-    coarseDisambiguatorForProvider({ providerId, title, domainTerms, domain, computingContext });
+    coarseDisambiguatorForProvider({ providerId, title: researchTitle, domainTerms, domain, computingContext });
   const wrapperHeavy =
-    /,\s*(?:implementation|practice|application|comparison|evaluation|trade-offs?)\b/i.test(title) ||
-    /\b(?:implementation|practice|evaluation|planning|trade-offs?)\s*$/i.test(title);
+    /,\s*(?:implementation|practice|application|comparison|evaluation|trade-offs?)\b/i.test(researchTitle) ||
+    /\b(?:implementation|practice|evaluation|planning|trade-offs?)\s*$/i.test(researchTitle);
   if (wrapperHeavy) {
-    const clauses = clean(title)
-      .split(/\s+(?:and|&)\s+|[,;:]/i)
+    const clauses = clean(researchTitle)
+      .split(/\s+(?:and|&)\s+|\s*[·|]\s*|[,;:]/i)
       .map((clause) =>
         tokens(clause)
           .filter((term) => !SEARCH_WRAPPER.test(term))
@@ -181,7 +230,7 @@ function queryForProvider({
       return [conceptQuery, disambiguator].filter(Boolean).join(' AND ');
     }
   }
-  return [quoted(title), disambiguator].filter(Boolean).join(' AND ');
+  return [quoted(researchTitle), disambiguator].filter(Boolean).join(' AND ');
 }
 
 /**
@@ -192,33 +241,106 @@ function queryForProvider({
  * unresearched. The variants are derived from the instructor's title and the
  * inferred course domain; no course or source title is memorized here.
  */
-function queryVariantsForProvider({ providerId, title, domainTerms, domain, computingContext = false }) {
-  const primary = queryForProvider({ providerId, title, domainTerms, domain, computingContext });
+function queryVariantsForProvider({
+  providerId,
+  title,
+  domainTerms,
+  domain,
+  computingContext = false,
+  evidenceContext = '',
+}) {
+  const researchTitle = stripResearchCurricularLocator(title);
+  const primary = queryForProvider({ providerId, title: researchTitle, domainTerms, domain, computingContext });
   const inheritedDisambiguator = coarseDisambiguatorForProvider({
     providerId,
-    title,
+    title: researchTitle,
     domainTerms,
     domain,
     computingContext,
   });
-  const clauses = clean(title)
-    .split(/\s+(?:and|&)\s+|[,;:]/i)
+  const clauses = clean(researchTitle)
+    .split(/\s+(?:and|&)\s+|\s*[·|]\s*|[,;:]/i)
     .map(clean)
     .filter((clause) => tokens(clause).length > 0)
     .slice(0, MAX_QUERY_VARIANTS_PER_LESSON - 1);
-  if (clauses.length < 2) return [primary];
+  const clauseQueries = clauses.map((clause) =>
+    queryForProvider({
+      providerId,
+      title: clause,
+      domainTerms,
+      domain,
+      computingContext,
+      disambiguatorOverride: inheritedDisambiguator,
+    }),
+  );
+  const unquotedWikipediaQueries =
+    providerId === 'wikipedia'
+      ? clauses.map((clause) => {
+          const core = tokens(clause)
+            .filter((term) => !SEARCH_WRAPPER.test(term))
+            .slice(0, 5)
+            .join(' ');
+          return [core, inheritedDisambiguator].filter(Boolean).join(' ');
+        })
+      : [];
+  // The lesson title is a curriculum label, not the whole evidence need.
+  // Preserve one bounded query that carries the locally planned object and
+  // operation (for example, visual attribution or categorical comparison).
+  // The terms are derived uniformly from the lesson plan; no course/page
+  // mapping is encoded here, and ordinary relevance/admission still decides
+  // whether any returned source may be taught.
+  const titleTokenSet = new Set(tokens(researchTitle));
+  const evidenceTerms = unique(
+    tokens(evidenceContext).filter(
+      (term) =>
+        !titleTokenSet.has(term) &&
+        !SEARCH_WRAPPER.test(term) &&
+        !/^(?:analysis|apply|choose|claim|claiming|compare|conclusion|course|decision|declare|detail|evidence|four|identify|interpret|learner|lesson|limitation|main|name|noncausal|observed|one|practice|restating|source|state|student|task|three|two|use|uses|using|verify|without)$/.test(
+          term,
+        ),
+    ),
+  ).slice(0, 6);
+  const evidenceContextQuery =
+    evidenceTerms.length > 0
+      ? providerId === 'wikipedia'
+        ? [quoted(researchTitle), evidenceTerms.join(' '), inheritedDisambiguator].filter(Boolean).join(' ')
+        : [quoted(researchTitle), quoted(evidenceTerms.join(' ')), inheritedDisambiguator].filter(Boolean).join(' AND ')
+      : '';
+  // The frozen lesson plan often names a sharper evidence object than its
+  // catalog-style lesson title. Give up to two of those explicit clauses an
+  // independent provider query so a popular broad result cannot consume every
+  // slot before the typology, specimen, denominator, or other planned object
+  // is searched directly.
+  const evidenceClauses = clean(evidenceContext)
+    .split(/\s*[·|]\s*|[,;:]/i)
+    .map(clean)
+    .filter((clause) => {
+      const clauseTerms = tokens(clause).filter((term) => !SEARCH_WRAPPER.test(term));
+      return clauseTerms.length >= 2 && clauseTerms.some((term) => !titleTokenSet.has(term));
+    })
+    .slice(0, 2);
+  const evidenceClauseQueries = evidenceClauses.map((clause) =>
+    queryForProvider({
+      providerId,
+      title: clause,
+      domainTerms,
+      domain,
+      computingContext,
+      disambiguatorOverride: inheritedDisambiguator,
+    }),
+  );
+  if (clauses.length < 2) {
+    return unique([primary, ...evidenceClauseQueries, evidenceContextQuery, ...unquotedWikipediaQueries]).slice(
+      0,
+      MAX_QUERY_VARIANTS_PER_LESSON,
+    );
+  }
   return unique([
     primary,
-    ...clauses.map((clause) =>
-      queryForProvider({
-        providerId,
-        title: clause,
-        domainTerms,
-        domain,
-        computingContext,
-        disambiguatorOverride: inheritedDisambiguator,
-      }),
-    ),
+    ...evidenceClauseQueries,
+    evidenceContextQuery,
+    ...clauseQueries,
+    ...unquotedWikipediaQueries,
   ]).slice(0, MAX_QUERY_VARIANTS_PER_LESSON);
 }
 
@@ -226,7 +348,19 @@ export function planAlgiCourseResearch({ courseName = '', lessons = [], now = Da
   const normalizedLessons = (Array.isArray(lessons) ? lessons : [])
     .map((lesson, index) => ({
       lessonId: clean(lesson?.lessonId) || `lesson-${index + 1}`,
+      instructionalInstanceId: clean(lesson?.instructionalInstanceId),
+      planBodySha256: clean(lesson?.planBodySha256 || lesson?.instructionalInstance?.planBodySha256),
       title: clean(lesson?.title || lesson?.topic || lesson?.topicSection),
+      evidenceContext: unique([
+        ...(Array.isArray(lesson?.topics) ? lesson.topics : [lesson?.topics]),
+        // The frozen evidence object and operation are often more specific
+        // than a legacy objective (“apply the main concepts”). Put them before
+        // that prose so a bounded query spends its six discriminating terms
+        // on cells, denominators, contrasts, source types, or other inspectable
+        // evidence rather than generic pedagogical verbs.
+        ...(Array.isArray(lesson?.evidenceIntent) ? lesson.evidenceIntent : [lesson?.evidenceIntent]),
+        ...(Array.isArray(lesson?.objectives) ? lesson.objectives : [lesson?.objectives]),
+      ]).join(' · '),
     }))
     .filter((lesson) => lesson.title);
   const domain = inferAlgiResearchDomain(courseName, normalizedLessons);
@@ -270,20 +404,51 @@ export function planAlgiCourseResearch({ courseName = '', lessons = [], now = Da
           domainTerms,
           domain,
           computingContext,
+          evidenceContext: lesson.evidenceContext,
         }),
+      ]),
+    );
+    const providerQueryReceipts = Object.fromEntries(
+      providerOrder.map((providerId) => [
+        providerId,
+        (providerQueryVariants[providerId] || []).map((query) => ({
+          query,
+          queryId: sha256HexSync(
+            JSON.stringify({
+              protocol: 'scion-instance-query-v1',
+              instructionalInstanceId: lesson.instructionalInstanceId,
+              normalizedQuestion: clean(query),
+              allowedCoverageNodes: titleTerms,
+              retrievalPolicyVersion: 'scion-evidence-admission-v2',
+            }),
+          ),
+        })),
       ]),
     );
     return {
       lessonId: lesson.lessonId,
+      instructionalInstanceId: lesson.instructionalInstanceId,
+      planBodySha256: lesson.planBodySha256,
       title: lesson.title,
       focusTerms: titleTerms,
+      evidenceContext: lesson.evidenceContext,
       intent: applied ? 'concept-and-application' : 'concept-and-mechanism',
       timeSensitive,
       freshnessDays: timeSensitive ? 2 : 14,
-      minimumClaims: 5,
+      // Three independently admitted claims are the same minimum the Scion
+      // evidence layer and lesson-kernel contract require. Asking research for
+      // five before it may compose discarded lessons with three or four exact
+      // source passages and then invited the model to fill the gap. Breadth is
+      // still preferred (and confidence records source count), but one strong
+      // open source can honestly support a compact draft lesson.
+      minimumClaims: 3,
+      // Keep the receipt honest about breadth: one evidence-rich source may
+      // be usable, but it remains labeled usable-single-source rather than
+      // being promoted to the plan's stronger multi-source "ready" state.
       minimumSources: 2,
       providerQueries,
       providerQueryVariants,
+      providerQueryReceipts,
       providerOrder,
     };
   });

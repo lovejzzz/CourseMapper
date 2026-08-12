@@ -298,6 +298,7 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     expect(Object.keys(grounded.lessons[0])).toEqual([
       'lessonId',
       'sourceFactPolicy',
+      'sourceFactAuthority',
       'title',
       'objectives',
       'topics',

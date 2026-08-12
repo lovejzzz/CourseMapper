@@ -714,6 +714,12 @@ function buildShortAnswerItem(kernel, index, seed = 0, { compactFactLedgerAnswer
   return {
     index,
     type: 'short_answer',
+    ...(cleanText(term?.source) === 'fact-ledger-projection'
+      ? {
+          enrichmentSource: 'fact-ledger-projection',
+          projectionKind: 'fact-ledger-comparison-analysis',
+        }
+      : {}),
     question: `${ensureSentence(setup || exampleAnchor)} ${questionTail}`,
     options: [],
     answerIndex: 0,

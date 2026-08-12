@@ -1,6 +1,37 @@
 {
   "_comment": "CurriculumOS V1 genesis seed. Curated foundational concepts from open educational resources (OpenStax). Each kernel's anchored quotes are verified by the foundry's mechanical anchor check against the sourceSnapshots below before admission. Scaling to the full ~50-title library is the next foundry run.",
   "references": {
+    "openstax:statistics#1": {
+      "displayTitle": "OpenStax Introductory Statistics — Chapter 1",
+      "sourceUrl": "https://openstax.org/books/introductory-statistics/pages/1-introduction",
+      "license": "CC BY 4.0",
+      "attribution": "OpenStax, Introductory Statistics, Chapter 1"
+    },
+    "w3c:prov-dm": {
+      "displayTitle": "W3C PROV-DM — Provenance Data Model",
+      "sourceUrl": "https://www.w3.org/TR/prov-dm/",
+      "license": "W3C Software and Document License",
+      "attribution": "W3C Provenance Working Group, PROV-DM",
+      "provider": "w3c"
+    },
+    "openstax:statistics#7": {
+      "displayTitle": "OpenStax Introductory Statistics 2e — 7.1 Central Limit Theorem for Sample Means",
+      "sourceUrl": "https://openstax.org/books/introductory-statistics-2e/pages/7-1-the-central-limit-theorem-for-sample-means-averages",
+      "license": "CC BY 4.0",
+      "attribution": "OpenStax, Introductory Statistics 2e, Section 7.1"
+    },
+    "openstax:statistics#9": {
+      "displayTitle": "OpenStax Introductory Statistics — Chapter 9",
+      "sourceUrl": "https://openstax.org/books/introductory-statistics/pages/9-key-terms",
+      "license": "CC BY 4.0",
+      "attribution": "OpenStax, Introductory Statistics, Chapter 9"
+    },
+    "openstax:statistics#12": {
+      "displayTitle": "OpenStax Introductory Statistics — Chapter 12",
+      "sourceUrl": "https://openstax.org/books/introductory-statistics/pages/12-introduction",
+      "license": "CC BY 4.0",
+      "attribution": "OpenStax, Introductory Statistics, Chapter 12"
+    },
     "writing-about-literature:reference": {
       "displayTitle": "Writing About Literature",
       "sourceUrl": "https://human.libretexts.org/Bookshelves/Literature_and_Literacy"
@@ -25,7 +56,7 @@
   "sourceSnapshots": {
     "openstax:microeconomics-3e#5": "Price elasticity of demand measures the responsiveness of quantity demanded to a change in price; it is computed as the percentage change in quantity demanded divided by the percentage change in price. Demand is described as elastic when the absolute value of the elasticity is greater than one, meaning quantity responds proportionally more than price. Demand is inelastic when the absolute value is less than one. Necessities tend to have inelastic demand because consumers have few substitutes, while luxuries tend to have elastic demand. The availability of close substitutes is a primary determinant of elasticity.",
     "openstax:microeconomics-3e#3": "A demand curve shows the quantity of a good that consumers are willing and able to purchase at each price, holding all other factors constant. Demand curves typically slope downward, reflecting the law of demand: as price falls, quantity demanded rises. A change in price causes a movement along the demand curve, whereas a change in income, tastes, or the price of related goods shifts the entire curve.",
-    "openstax:statistics#7": "A sampling distribution is the probability distribution of a statistic obtained from a large number of samples drawn from a specific population. The central limit theorem states that the sampling distribution of the sample mean approaches a normal distribution as the sample size increases, regardless of the shape of the population distribution. The standard deviation of the sampling distribution of the mean is the population standard deviation divided by the square root of the sample size.",
+    "openstax:statistics#7": "Suppose X is a random variable with a distribution that may be known or unknown. Suppose the mean and standard deviation of X are defined. If you draw random samples of size n, then as n increases, the random variable consisting of sample means tends to be normally distributed. The distribution of the random variable consisting of sample means is called the sampling distribution of the mean. The sampling distribution of the mean approaches a normal distribution as n, the sample size, increases. The standard deviation of the sampling distribution is the standard deviation of the original distribution divided by the square root of n.",
     "openstax:statistics#9": "A p-value is the probability of obtaining a test statistic at least as extreme as the one observed, assuming the null hypothesis is true. A small p-value indicates that the observed data would be unlikely under the null hypothesis. The p-value is not the probability that the null hypothesis is true, and it does not measure the size of an effect.",
     "openstax:biology-2e#8": "Photosynthesis is the process by which plants, algae, and some bacteria convert light energy into chemical energy stored in glucose. The light-dependent reactions capture energy from sunlight to produce ATP and NADPH, which the Calvin cycle then uses to fix carbon dioxide into sugar. Oxygen is released as a byproduct of splitting water molecules.",
     "openstax:biology-2e#3": "The cell membrane, also called the plasma membrane, is a selectively permeable barrier that regulates which substances enter and leave the cell. It is composed of a phospholipid bilayer with embedded proteins. The membrane maintains the internal environment of the cell while allowing the exchange of nutrients and wastes.",
@@ -46,7 +77,7 @@
     "openstax:macroeconomics-2e#1": "In the circular flow of income, money that households earn returns to firms as spending unless it leaks out of the flow as saving, taxes, or spending on imports. Leakages are balanced by injections such as investment, government spending, and exports that add spending back into the flow. When total leakages equal total injections, the circular flow is in balance and national income neither rises nor falls.",
     "openstax:macroeconomics-2e#7": "The capital stock is the total quantity of equipment, structures, and tools available for production at a point in time. It rises through gross investment and falls through depreciation as capital wears out. Net investment, which is gross investment minus depreciation, is the change in the capital stock over a period; the stock grows only when net investment is positive.",
     "historical-method:reference": "In historical method, a primary source is evidence about its maker and moment as much as its ostensible subject. Source criticism asks who created the source, when, why, and for whom before asking what it reports, because the maker's position and purpose shape what the source can reliably support. A single source is corroborated against others, since provenance and bias bound the claims any one document can support.",
-    "openstax:statistics#2": "Data provenance is the record of where a dataset came from: who collected it, by what method, and for what purpose. Before trusting the numbers, a statistician asks how the data were sampled and measured, because the collection method and its purpose can bias what the data can support. Conclusions are only as trustworthy as the provenance of the data behind them.",
+    "w3c:prov-dm": "record that describes the people, institutions, entities, and activities involved. provenance of information is crucial in deciding whether information is to be trusted",
     "openstax:macroeconomics-2e#6": "Economists use a proxy variable, an observable stand-in, to measure a construct they cannot observe directly. Gross domestic product is widely used as a proxy for economic well-being, but it captures only marketed output and misses unpaid work, income distribution, and environmental costs. Because the proxy is not the construct, conclusions drawn from it inherit whatever the measure leaves out.",
     "openstax:biology-2e#47": "A bioindicator is a species or biological response used to measure the health of an ecosystem that cannot be assessed all at once. The presence of pollution-sensitive mayfly larvae, for example, indicates good water quality, while their absence signals degradation. A bioindicator captures the conditions it is sensitive to and misses stressors it does not respond to, so one indicator alone gives an incomplete picture.",
     "literary-close-reading:reference": "Close reading interprets a literary work by moving between its parts and the whole: each textual detail is read in light of the whole work, and the reader's sense of the whole is revised as more details accumulate. A close reading earns an interpretive claim by showing how specific passages support it, rather than cataloguing details for their own sake. Meaning emerges from the circle between part and whole, not from any single line in isolation.",
@@ -216,28 +247,28 @@
     },
     {
       "id": "stats/sampling-distribution",
-      "rev": 1,
+      "rev": 2,
       "term": "Sampling distribution",
       "aliases": ["distribution of the sample mean", "central limit theorem"],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Apply",
       "definition": {
-        "text": "A sampling distribution is the probability distribution of a statistic obtained from many samples drawn from a population.",
+        "text": "The sampling distribution of the mean is the probability distribution formed by the means of repeated random samples from a population.",
         "anchor": {
           "src": "openstax:statistics#7",
           "loc": "7.1",
-          "quote": "the probability distribution of a statistic obtained from a large number of samples drawn from a specific population"
+          "quote": "The distribution of the random variable consisting of sample means is called the sampling distribution of the mean"
         },
         "tier": 2
       },
       "facts": [
         {
-          "text": "The central limit theorem states the sampling distribution of the mean approaches normal as sample size increases, regardless of population shape.",
+          "text": "For random samples from a population with a defined mean and standard deviation, the sampling distribution of the mean approaches normal as sample size increases.",
           "anchor": {
             "src": "openstax:statistics#7",
-            "loc": "7.2",
-            "quote": "the sampling distribution of the sample mean approaches a normal distribution as the sample size increases, regardless of the shape of the population distribution"
+            "loc": "7.1",
+            "quote": "Suppose X is a random variable with a distribution that may be known or unknown. Suppose the mean and standard deviation of X are defined. If you draw random samples of size n, then as n increases, the random variable consisting of sample means tends to be normally distributed"
           },
           "tier": 2
         },
@@ -245,8 +276,8 @@
           "text": "The standard deviation of the sampling distribution of the mean equals the population standard deviation divided by the square root of the sample size.",
           "anchor": {
             "src": "openstax:statistics#7",
-            "loc": "7.2",
-            "quote": "the population standard deviation divided by the square root of the sample size"
+            "loc": "7.1",
+            "quote": "The standard deviation of the sampling distribution is the standard deviation of the original distribution divided by the square root of n"
           },
           "tier": 2
         }
@@ -254,6 +285,7 @@
       "misconceptions": [
         {
           "text": "Students believe a larger sample makes the population itself normal, rather than the sampling distribution of the mean.",
+          "corrective": "The approximation concerns means from repeated random samples, assumes the population mean and standard deviation are defined, and does not make the population itself normal.",
           "tier": 1
         }
       ],
@@ -293,7 +325,7 @@
           }
         ]
       },
-      "attribution": ["OpenStax Introductory Statistics, Ch. 7"]
+      "attribution": ["OpenStax, Introductory Statistics 2e, Section 7.1"]
     },
     {
       "id": "stats/p-value",
@@ -2077,62 +2109,62 @@
     },
     {
       "id": "stats/data-provenance",
-      "rev": 1,
+      "rev": 2,
       "term": "Data provenance",
       "aliases": ["data collection bias", "how the data were collected"],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Analyze",
       "definition": {
-        "text": "Data provenance is the record of where a dataset came from: who collected it, by what method, and for what purpose.",
+        "text": "Data provenance records the agents, data entities, and activities involved in producing or influencing a dataset.",
         "anchor": {
-          "src": "openstax:statistics#2",
-          "loc": "1.2",
-          "quote": "Data provenance is the record of where a dataset came from: who collected it, by what method, and for what purpose"
+          "src": "w3c:prov-dm",
+          "loc": "§1",
+          "quote": "record that describes the people, institutions, entities, and activities involved"
         },
         "tier": 2
       },
       "facts": [
         {
-          "text": "The collection method and its purpose can bias what the data can support.",
+          "text": "Inspecting provenance helps determine whether information is trustworthy.",
           "anchor": {
-            "src": "openstax:statistics#2",
-            "loc": "1.2",
-            "quote": "the collection method and its purpose can bias what the data can support"
+            "src": "w3c:prov-dm",
+            "loc": "§1",
+            "quote": "provenance of information is crucial in deciding whether information is to be trusted"
           },
           "tier": 2
         },
         {
-          "text": "Conclusions are only as trustworthy as the provenance of the data behind them.",
+          "text": "A provenance review identifies the people, institutions, entities, and activities that shaped the dataset.",
           "anchor": {
-            "src": "openstax:statistics#2",
-            "loc": "1.2",
-            "quote": "Conclusions are only as trustworthy as the provenance of the data behind them"
+            "src": "w3c:prov-dm",
+            "loc": "§1",
+            "quote": "record that describes the people, institutions, entities, and activities involved"
           },
           "tier": 2
         }
       ],
       "misconceptions": [
         {
-          "text": "Students treat a dataset as objective fact, ignoring how the collection method and purpose shape what it can support.",
-          "corrective": "Ask who collected the data, how, and why before trusting what the numbers say.",
+          "text": "Students judge a dataset without checking which agents and activities produced or influenced it.",
+          "corrective": "Identify the responsible agents, data entities, and production activities before deciding whether the information is trustworthy.",
           "tier": 1
         }
       ],
       "examples": [
         {
-          "text": "A customer-satisfaction survey emailed only to repeat buyers overstates satisfaction, because its provenance excludes the unhappy customers who already left.",
+          "text": "A dataset record names the survey organization, collection activity, source responses, and transformation steps so reviewers can judge how to use it.",
           "domain": "statistics"
         }
       ],
       "mcBank": [
         {
-          "stem": "Before trusting the numbers in a dataset, a statistician first asks",
+          "stem": "A useful provenance record for a dataset identifies",
           "options": [
-            "who collected it, how, and for what purpose",
-            "whether the spreadsheet file opens without any errors",
-            "whether the reported numbers are large",
-            "whether the average is a round value"
+            "the agents, entities, and activities involved in producing or influencing it",
+            "only whether the spreadsheet opens without an error",
+            "only whether the reported numbers are large",
+            "only whether the average is a round value"
           ],
           "answerIndex": 0,
           "explanationFactRef": 0,
@@ -2154,7 +2186,8 @@
           }
         ]
       },
-      "attribution": ["OpenStax Introductory Statistics, Ch. 1"]
+      "license": "W3C Software and Document License",
+      "attribution": ["W3C Provenance Working Group, PROV-DM"]
     },
     {
       "id": "econ/proxy-variable",

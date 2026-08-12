@@ -6,6 +6,50 @@ import { knownOffenderFitsScope } from '../quality/knownOffenderScope';
 import { normalizeQuarantinedEvidenceText } from '../sourceEvidenceAdmission';
 
 describe('contentQualityRepair (v0.12.1 P2)', () => {
+  it('never compacts a shorter ledger fact inside a semantic answer field', () => {
+    const shortFact = 'Evidence triangulation compares independent records before a researcher extends a claim';
+    const richerDefinition = `${shortFact} and requires the researcher to explain any conflict.`;
+    const data = {
+      studyGuides: [
+        {
+          sourceEvidenceBrief: { claims: [shortFact] },
+          keyTerms: [{ term: 'Evidence triangulation', definition: richerDefinition }],
+          summary: `Review this source statement: ${shortFact}.`,
+          practiceActivities: [
+            `Apply this source statement: ${shortFact}.`,
+            `Challenge this source statement: ${shortFact}.`,
+          ],
+        },
+      ],
+    };
+
+    const repaired = repairDeliverableContentQuality('studyGuides', data, { sourceFacts: [shortFact] }).data;
+    expect(repaired.studyGuides[0].keyTerms[0].definition).toBe(richerDefinition);
+  });
+
+  it('preserves a legitimate repeated comparative in an exact definition', () => {
+    const definition =
+      'In statistics, multistage sampling is the taking of samples in stages using smaller and smaller sampling units at each stage.';
+    const repaired = repairDeliverableContentQuality('studyGuides', {
+      studyGuides: [{ keyTerms: [{ term: 'Multistage sampling', definition }] }],
+    }).data;
+    expect(repaired.studyGuides[0].keyTerms[0].definition).toBe(definition);
+  });
+
+  it('removes a legacy internal provenance label from rendered learner copy', () => {
+    const repaired = repairDeliverableContentQuality('assignments', {
+      assignments: [
+        {
+          instructions: 'Inspect the original CourseMapper-native vector and preserve its stated rights boundary.',
+        },
+      ],
+    }).data;
+
+    expect(repaired.assignments[0].instructions).toBe(
+      'Inspect the original course-created vector and preserve its stated rights boundary.',
+    );
+  });
+
   it('repairs and flags over-exact confidence-interval coverage language', () => {
     const source = {
       decks: [
@@ -984,7 +1028,7 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     expect(
       visible.match(/iterative structures enable the systematic processing of sequential data elements/g),
     ).toHaveLength(1);
-    expect(visible).toContain('the earlier source claim on conditional branching logic');
+    expect(visible).toContain('the source statement about conditional branching logic');
     expect(visible).not.toContain('the cited source claim');
     expect(result.data.lessonPlans[0].evidencePlan.sourceCue).toContain(branchingFact);
 
@@ -1065,7 +1109,7 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
       text.match(/Conditional branching logic allows programs to execute different blocks of code/g) || [];
 
     expect(occurrences).toHaveLength(2);
-    expect(text).toContain('the earlier source claim on Conditional branching logic');
+    expect(text).toContain('the documented evidence on Conditional branching logic');
     expect(text).not.toContain('the cited source claim');
   });
 
@@ -1191,11 +1235,9 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     const result = repairDeliverableContentQuality('lessonPlans', data, { sourceFacts: [fact] });
 
     expect(result.data.lessonPlans[0].description).toContain(
-      'Start with the anchor. Return to the source-backed claim about Conditional branching logic.',
+      'Start with the anchor. Return to the source statement about Conditional branching logic.',
     );
-    expect(result.data.lessonPlans[0].catchUpPlan).toContain(
-      'board: the source claim concerning Conditional branching logic',
-    );
+    expect(result.data.lessonPlans[0].catchUpPlan).toContain('board: the cited Conditional branching logic statement');
   });
 
   it('turns a leading adverbial source fact into a grammatical topic reference', () => {
@@ -1213,9 +1255,94 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     const result = repairDeliverableContentQuality('lessonPlans', data, { sourceFacts: [fact] });
     const text = JSON.stringify(result.data);
 
-    expect(text).toContain('the earlier source claim on PyGMT');
-    expect(text).toContain('Recheck the source claim concerning PyGMT.');
+    expect(text).toContain('the cited evidence on PyGMT');
+    expect(text).toContain('Recheck the documented evidence on PyGMT.');
     expect(text).not.toMatch(/\b(?:claim (?:about|concerning|on)|source claim concerns) By bridging\b/i);
+  });
+
+  it('removes parenthetical aliases before deriving a compact source topic', () => {
+    const facts = [
+      'In statistics, a contingency table (also known as a cross tabulation or crosstab) is a type of table that displays a multivariate frequency distribution.',
+      'Latin hypercube sampling (LHS) is a statistical method for generating a near-random sample of parameter values.',
+    ];
+    const data = {
+      lessonPlans: facts.map((fact) => ({
+        sourceEvidenceBrief: { claims: [fact] },
+        descriptions: Array.from({ length: 5 }, () => `Compare the decision against ${fact}`),
+      })),
+    };
+
+    const result = repairDeliverableContentQuality('lessonPlans', data, { sourceFacts: facts });
+    const text = JSON.stringify(result.data.lessonPlans.map((plan) => plan.descriptions));
+
+    expect(text).toMatch(/(?:evidence on|statement about|statement) contingency table/i);
+    expect(text).toMatch(/(?:evidence on|statement about|statement) Latin hypercube sampling/i);
+    expect(text).not.toContain('contingency table (also known as a cross');
+    expect(text).not.toContain('Latin hypercube sampling (LHS');
+  });
+
+  it('unwraps replayed source references and removes leading context clauses from the topic', () => {
+    const fact =
+      'the previously stated claim about In primates, color vision supports finding nutritious young leaves, ripe fruit, and flowers.';
+    const data = {
+      lessonPlans: [
+        {
+          sourceEvidenceBrief: { claims: [fact] },
+          descriptions: [fact, fact, `Compare the decision against ${fact}`, `Start with the evidence. ${fact}`],
+        },
+      ],
+    };
+
+    const result = repairDeliverableContentQuality('lessonPlans', data, { sourceFacts: [fact] });
+    const text = JSON.stringify(result.data.lessonPlans[0].descriptions.slice(2));
+
+    expect(text).toMatch(/(?:evidence on|statement about) color vision/i);
+    expect(text).not.toMatch(/claim about (?:the previously stated claim|In primates)/i);
+    expect(text).not.toMatch(/evidence on In primates/i);
+  });
+
+  it('migrates legacy source-reference shells anywhere in a replayed learner artifact', () => {
+    const data = {
+      lessonPlans: [
+        {
+          title: 'Lesson 3: Color Vision',
+          descriptions: [
+            'Consider the previously stated claim about In primates, color vision supports foraging decisions.',
+            'Return to the source-backed claim about the retained claim about color vision.',
+            'The retained source claim concerns color vision.',
+          ],
+        },
+      ],
+    };
+
+    const result = repairDeliverableContentQuality('lessonPlans', data);
+    const text = JSON.stringify(result.data);
+
+    expect(text).toContain('Consider the cited evidence on color vision supports foraging decisions.');
+    expect(text).toContain('Return to the source statement about color vision.');
+    expect(text).toContain('The cited evidence concerns color vision.');
+    expect(text).not.toMatch(
+      /(?:earlier source claim|source-backed claim|previously stated claim|source claim concerning|retained claim|retained source claim)/i,
+    );
+    expect(text).not.toMatch(/evidence on In primates/i);
+  });
+
+  it('does not turn an unfamiliar predicate into a truncated claim topic', () => {
+    const fact = 'The rule of thirds dictates placing key visual elements along intersecting lines or at power points.';
+    const data = {
+      lessonPlans: [
+        {
+          sourceEvidenceBrief: { claims: [fact] },
+          descriptions: [fact, fact, `Compare the decision against ${fact}`, `Start with the evidence. ${fact}`],
+        },
+      ],
+    };
+
+    const result = repairDeliverableContentQuality('lessonPlans', data, { sourceFacts: [fact] });
+    const text = JSON.stringify(result.data);
+
+    expect(text).toMatch(/(?:cited|documented) evidence on rule of thirds/i);
+    expect(text).not.toContain('claim about rule of thirds dictates placing key visual');
   });
 
   it('anchors a generic source-fact subject to a named entity from the fact', () => {
@@ -1232,7 +1359,7 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     const result = repairDeliverableContentQuality('lessonPlans', data, { sourceFacts: [fact] });
     const text = JSON.stringify(result.data);
 
-    expect(text).toContain('the earlier source claim on XSO components');
+    expect(text).toContain('the cited evidence on XSO components');
     expect(text).not.toContain('source claim on components');
   });
 
@@ -1251,7 +1378,7 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     const result = repairDeliverableContentQuality('lessonPlans', data, { sourceFacts: [fact] });
 
     expect(result.data.lessonPlans[0].description).toContain(
-      `${conjunction} the retained claim about Conditional branching logic applies`,
+      `${conjunction} the documented evidence on Conditional branching logic applies`,
     );
   });
 
@@ -1284,6 +1411,25 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     expect(text).not.toContain('the cited source claim');
     expect(text).not.toContain('retained source statement for this lesson');
     expect(text).not.toContain('claim. in concrete language');
+  });
+
+  it('replaces the legacy Claim A/Claim B packet with a lesson-bound evidence reference', () => {
+    const legacy = 'the source records behind Claim A and Claim B and the documented evidence boundary';
+    const result = repairDeliverableContentQuality('slideDecks', {
+      decks: [
+        {
+          lessonTitle: 'Lesson 4: Perspective and Framing',
+          slides: [{ title: 'Evidence lab', bullets: [`Compare ${legacy}.`, `Test ${legacy}.`] }],
+        },
+      ],
+    });
+
+    const text = JSON.stringify(result.data);
+    expect(result.changed).toBe(true);
+    expect(text).toContain(
+      'the evidence records for Perspective and Framing, the competing claims about Perspective and Framing, and the documented limit for Perspective and Framing',
+    );
+    expect(text).not.toContain('Claim A and Claim B');
   });
 
   it('migrates the exact saved-slide signatures that previously survived package preparation', () => {
@@ -1367,10 +1513,10 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     );
 
     const text = JSON.stringify(result.data);
-    expect(text).toContain('Compare the source statements before deciding which conclusion they support.');
     expect(text).toContain(
-      'Evidence: Use the source claim concerning Conditional branching logic and identify its limit.',
+      "Compare the lesson's named source evidence before deciding which conclusion it supports for this lesson.",
     );
+    expect(text).toContain('Evidence: Use the cited Conditional branching logic statement and identify its limit.');
     expect(text).not.toContain('Test this admitted claim');
   });
 
@@ -1393,7 +1539,7 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
 
     expect(result.changed).toBe(true);
     expect(text.match(/Ｃｏｎｄｉｔｉｏｎａｌ/g) || []).toHaveLength(0);
-    expect(text).toContain('the earlier source claim on Conditional branching logic');
+    expect(text).toContain('the source statement about Conditional branching logic');
     expect(text).not.toContain('the cited source claim');
   });
 
@@ -1468,8 +1614,8 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     const result = repairDeliverableContentQuality('lessonPlans', data, { sourceFacts: [fact] });
     const text = JSON.stringify(result.data);
 
-    expect(text).toContain('the earlier source claim on Accuracy');
-    expect(text).not.toContain('(the earlier source claim');
+    expect(text).toContain('the source statement about Accuracy');
+    expect(text).not.toContain('(the source statement');
   });
 
   it('selects the feature collection instead of an earlier metadata array', () => {
@@ -1489,9 +1635,7 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     const result = repairDeliverableContentQuality('lessonPlans', data, { sourceFacts: [fact] });
 
     expect(result.data.metadata).toBe(metadata);
-    expect(JSON.stringify(result.data.lessonPlans)).toContain(
-      'the earlier source claim on Conditional branching logic',
-    );
+    expect(JSON.stringify(result.data.lessonPlans)).toContain('the source statement about Conditional branching logic');
     expect(JSON.stringify(result.data.lessonPlans)).not.toContain('the cited source claim');
   });
 
@@ -1581,9 +1725,7 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
 
     expect(result.data.plans).toBe(data.plans);
     expect(result.data.lessonPlans).not.toBe(lessonPlans);
-    expect(JSON.stringify(result.data.lessonPlans)).toContain(
-      'the earlier source claim on Conditional branching logic',
-    );
+    expect(JSON.stringify(result.data.lessonPlans)).toContain('the retained evidence on Conditional branching logic');
     expect(JSON.stringify(result.data.lessonPlans)).not.toContain('the cited source claim');
   });
 
@@ -1607,7 +1749,7 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     expect(
       text.match(/Conditional branching logic allows programs to execute different blocks of code/g) || [],
     ).toHaveLength(1);
-    expect(text).toContain('the earlier source claim on Conditional branching logic');
+    expect(text).toContain('the source statement about Conditional branching logic');
     expect(text).not.toContain('the cited source claim');
   });
 

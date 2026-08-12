@@ -572,8 +572,29 @@ describe('Scion adapter tooling', () => {
     const priorGraderBenchmarkV9 = JSON.parse(
       await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v9.json', 'utf8'),
     );
+    const priorGraderBenchmarkV90 = JSON.parse(
+      await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v90.json', 'utf8'),
+    );
+    const priorGraderBenchmarkV91 = JSON.parse(
+      await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v91.json', 'utf8'),
+    );
+    const priorGraderBenchmarkV92 = JSON.parse(
+      await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v92.json', 'utf8'),
+    );
+    const priorGraderBenchmarkV93 = JSON.parse(
+      await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v93.json', 'utf8'),
+    );
+    const priorGraderBenchmarkV94 = JSON.parse(
+      await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v94.json', 'utf8'),
+    );
+    const priorGraderBenchmarkV95 = JSON.parse(
+      await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v95.json', 'utf8'),
+    );
+    const priorGraderBenchmarkV96 = JSON.parse(
+      await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v96.json', 'utf8'),
+    );
     const currentGraderBenchmark = JSON.parse(
-      await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v68.json', 'utf8'),
+      await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v137.json', 'utf8'),
     );
     expect(validateScionHeldoutBenchmark(benchmark)).toMatchObject({
       valid: true,
@@ -586,6 +607,13 @@ describe('Scion adapter tooling', () => {
     expect(validateScionHeldoutBenchmark(sessionClockBenchmark)).toMatchObject({ valid: true, issues: [] });
     expect(validateScionHeldoutBenchmark(priorGraderBenchmarkV8)).toMatchObject({ valid: true, issues: [] });
     expect(validateScionHeldoutBenchmark(priorGraderBenchmarkV9)).toMatchObject({ valid: true, issues: [] });
+    expect(validateScionHeldoutBenchmark(priorGraderBenchmarkV90)).toMatchObject({ valid: true, issues: [] });
+    expect(validateScionHeldoutBenchmark(priorGraderBenchmarkV91)).toMatchObject({ valid: true, issues: [] });
+    expect(validateScionHeldoutBenchmark(priorGraderBenchmarkV92)).toMatchObject({ valid: true, issues: [] });
+    expect(validateScionHeldoutBenchmark(priorGraderBenchmarkV93)).toMatchObject({ valid: true, issues: [] });
+    expect(validateScionHeldoutBenchmark(priorGraderBenchmarkV94)).toMatchObject({ valid: true, issues: [] });
+    expect(validateScionHeldoutBenchmark(priorGraderBenchmarkV95)).toMatchObject({ valid: true, issues: [] });
+    expect(validateScionHeldoutBenchmark(priorGraderBenchmarkV96)).toMatchObject({ valid: true, issues: [] });
     expect(validateScionHeldoutBenchmark(currentGraderBenchmark)).toMatchObject({ valid: true, issues: [] });
     const currentGraderReceipt = await captureModuleImplementationReceipt({
       root: process.cwd(),
@@ -744,7 +772,7 @@ describe('Scion adapter tooling', () => {
 
   it('derives promotion evidence from two hash-bound Crucible rounds', async () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-paired-evidence-'));
-    const benchmarkPath = path.resolve('evaluation/scion-adapters/held-out-course-benchmark-v68.json');
+    const benchmarkPath = path.resolve('evaluation/scion-adapters/held-out-course-benchmark-v137.json');
     const benchmark = JSON.parse(await fs.readFile(benchmarkPath, 'utf8'));
     const benchmarkSha256 = await sha256File(benchmarkPath);
     const datasetDir = path.join(root, 'dataset');

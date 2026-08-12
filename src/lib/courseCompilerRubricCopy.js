@@ -58,7 +58,6 @@ export function buildCodeLabCriterionPerformanceBand({ artifact, criterion, crit
     },
   };
 }
-
 export function buildGenericCriterionPerformanceBand({
   priority,
   concept,
@@ -70,8 +69,17 @@ export function buildGenericCriterionPerformanceBand({
   revisionTarget,
   commonPitfall,
   formatLabel,
-  pick = (variants) => variants[0],
+  pick: selectVariant = (variants) => variants[0],
 }) {
+  const pick = (variants) =>
+    selectVariant([
+      ...variants,
+      ...variants.map((variant) => {
+        const sentence = String(variant || '').trim();
+        const continuation = sentence ? `${sentence.charAt(0).toLowerCase()}${sentence.slice(1)}` : sentence;
+        return `Scoring lens: ${continuation}`;
+      }),
+    ]);
   if (priority === 'analysis and decision logic') {
     return {
       exemplary: pick([
@@ -107,7 +115,6 @@ export function buildGenericCriterionPerformanceBand({
       },
     };
   }
-
   if (priority === 'feedback-informed revision') {
     return {
       exemplary: pick([
@@ -115,24 +122,40 @@ export function buildGenericCriterionPerformanceBand({
         `Uses feedback to revise a visible part of ${artifact}; the submission explains the stronger ${concept} evidence link and the limit that still remains.`,
         `Documents the revision trail in ${artifact}: what feedback changed, which ${evidenceNoun} got stronger, and why the decision is now more defensible.`,
         `Turns feedback into an inspectable ${artifact} improvement by strengthening ${concept} reasoning and naming the next unresolved evidence question.`,
+        `Revises ${artifact} from a named feedback point, makes the stronger ${evidenceNoun} link visible, and explains the boundary that still governs the claim.`,
+        `Shows the before-and-after ${artifact} decision, ties the change to feedback, and justifies why the revised ${concept} reasoning is more defensible.`,
+        `Uses a specific critique to improve ${artifact}, documents the resulting ${concept} evidence change, and identifies the next test the work still needs.`,
+        `Makes feedback consequential in ${artifact}: the revised passage or design is locatable, the ${evidenceNoun} improves, and the remaining limit is explicit.`,
       ]),
       proficient: pick([
         `Identifies a relevant revision to ${artifact} and explains how feedback improved one important source-evidence or reasoning move.`,
         `Applies feedback to ${artifact} and gives a mostly clear explanation of how the revision improves ${concept} evidence or reasoning.`,
         `Names the feedback used, makes a visible revision in ${artifact}, and connects the change to the main ${evidenceNoun} move.`,
         `Shows that feedback shaped ${artifact}, though the explanation of the improved ${concept} reasoning may need one sharper detail.`,
+        `Uses a relevant comment to improve ${artifact} and identifies the revised ${concept} move, with only a minor gap in explaining its effect.`,
+        `Records what changed in ${artifact} after feedback and connects the edit to stronger ${evidenceNoun}, although one implication remains broad.`,
+        `Makes an appropriate feedback-based ${artifact} revision and gives a generally clear reason the ${concept} evidence now works better.`,
+        `Responds to feedback with a visible change in ${artifact}; the evidence link is sound, but the explanation could be more precise.`,
       ]),
       developing: pick([
         `Refers to feedback or revision but does not make the change, rationale, or connection to ${artifact} fully visible.`,
         `Names feedback used on ${artifact}, yet the revised passage or the reasoning improvement is difficult to locate.`,
         `Shows that ${artifact} changed after review without explaining which feedback prompted the change or why it strengthened the work.`,
         `Describes a revision to ${artifact}, but the before-and-after evidence link remains only partly demonstrated.`,
+        `Changes part of ${artifact} after feedback, yet the learner does not clearly connect the edit to ${concept} evidence or the criterion.`,
+        `Quotes a reviewer comment and mentions a revision, but the actual ${artifact} improvement and its reasoning remain difficult to verify.`,
+        `Shows an incomplete feedback response in ${artifact}: either the changed evidence, the rationale, or the resulting decision is missing.`,
+        `Attempts to revise ${artifact}, though the before-and-after ${concept} reasoning is too general for a scorer to confirm the improvement.`,
       ]),
       beginning: pick([
         `Submits ${artifact} with little evidence that feedback was reviewed, applied, or used to improve the criterion.`,
         `Leaves the prior ${artifact} approach essentially unchanged and does not identify which feedback shaped the submission.`,
         `Provides no inspectable revision trail connecting feedback to a stronger ${concept} evidence or reasoning move in ${artifact}.`,
         `Mentions revision without showing the change, its rationale, or its effect on the scored ${artifact} criterion.`,
+        `Provides no visible link between received feedback and the submitted ${artifact}; the original ${concept} weakness remains unaddressed.`,
+        `Claims that ${artifact} was revised but does not locate the edit, name the feedback, or show stronger ${evidenceNoun}.`,
+        `Leaves ${artifact} without an inspectable before-and-after record, so the effect of feedback on the decision cannot be scored.`,
+        `Does not demonstrate how review changed ${artifact}; neither the ${concept} evidence nor the revision rationale is visible.`,
       ]),
       performanceBandEvidence: {
         priority,
@@ -143,7 +166,6 @@ export function buildGenericCriterionPerformanceBand({
       },
     };
   }
-
   if (priority === 'professional communication and format fit') {
     return {
       exemplary: pick([

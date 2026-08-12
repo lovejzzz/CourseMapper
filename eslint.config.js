@@ -13,6 +13,14 @@ export default [
       'playwright-report/**',
       'test-results/**',
       'verification-output/**',
+      // Local, ignored audit campaigns contain disposable probes and copied
+      // evidence scripts; production source and tracked evaluation tools lint
+      // independently of this scratch workspace.
+      '.audit-work/**',
+      // Sealed Roundtable bundles copy the exact production harness and
+      // machine-generated evidence. Lint the production source, not its
+      // immutable review copies.
+      '.roundtable-evidence-*/**',
       '.firebase/**',
       // Background-task worktrees are separate checkouts that lint themselves.
       '.claude/**',

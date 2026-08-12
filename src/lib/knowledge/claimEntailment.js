@@ -29,6 +29,8 @@ const STOPWORDS = new Set([
 ]);
 const NEGATION = /\b(?:cannot|can't|doesn't|don't|isn't|never|no|not|without)\b/i;
 const NUMBER = /\b\d+(?:\.\d+)?%?\b/g;
+const UNRESOLVED_STANDALONE_REFERENCE =
+  /^(?:this|that|these|those)\b|^(?:the\s+)?most\s+common\s+of\s+(?:these|those)\b|^(?:in addition|furthermore|moreover),\s+|\b(?:in|with|by|through|using) (?:the )?same (?:manner|way|method|process|approach)\b|\b(?:as|like) (?:described|discussed|explained|shown|noted|mentioned) (?:above|below|earlier|previously)\b|\b(?:the former|the latter|the above|the following|the example above)\b|\bthis allows\b/i;
 
 function normalizedText(value = '') {
   return String(value)
@@ -43,6 +45,20 @@ function supportTokens(value = '') {
   return normalizedText(value)
     .split(' ')
     .filter((token) => token.length >= 3 && !STOPWORDS.has(token));
+}
+
+/**
+ * A source sentence can be byte-exact yet still be unusable after extraction
+ * when a compact anaphor points to context that is no longer learner-visible.
+ * Keep this predicate shared by live research and saved-project replay so an
+ * older admitted claim cannot bypass a newer intake rule during recompilation.
+ */
+export function isStandaloneSourceClaim(value = '') {
+  const surface = String(value || '')
+    .normalize('NFKC')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return Boolean(surface) && !UNRESOLVED_STANDALONE_REFERENCE.test(surface);
 }
 
 /**

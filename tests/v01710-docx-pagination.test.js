@@ -38,7 +38,7 @@ describe('v0.17.10 lesson-plan DOCX pagination', () => {
     expect(await auditOfficeAccessibility(blob, 'docx')).toBeNull();
   });
 
-  it('still flags an unshaded table when it has a header-plus-data relationship', async () => {
+  it('flags a data table whose first row is not marked as a semantic header', async () => {
     const zip = new JSZip();
     zip.file(
       'word/document.xml',
@@ -57,7 +57,99 @@ describe('v0.17.10 lesson-plan DOCX pagination', () => {
 
     expect(await auditOfficeAccessibility(blob, 'docx')).toMatchObject({
       code: 'accessibility',
-      problems: ['table-without-header-shading'],
+      problems: ['table-without-header-semantics'],
     });
+  });
+});
+
+describe('working-document tail pagination', () => {
+  it('lets long quiz answer keys paginate naturally without a forced continuation page', async () => {
+    const questions = Array.from({ length: 12 }, (_, index) => ({
+      question: `Question ${index + 1}`,
+      answer: `Answer ${index + 1} ${'with evidence and reasoning '.repeat(12)}`,
+      scoringGuidance: `Award credit for a supported answer ${index + 1}.`,
+    }));
+    const blob = await buildDeliverableDocxBlob(
+      'quizBank',
+      { quizzes: [{ lessonTitle: 'Lesson 1: Pagination', questions }] },
+      'Quiz Pagination Proof',
+    );
+    const zip = await JSZip.loadAsync(await blob.arrayBuffer());
+    const xml = await zip.file('word/document.xml').async('string');
+
+    expect(xml).not.toContain('Answer Key Continued');
+    expect(xml).not.toContain('<w:pageBreakBefore/>');
+    expect(xml).toContain('Answer 12');
+  });
+
+  it('omits repeated package-wide support and integrity boilerplate from lesson briefs', async () => {
+    const blob = await buildDeliverableDocxBlob(
+      'assignments',
+      {
+        assignments: [
+          {
+            lessonNumber: 4,
+            title: 'Evidence brief',
+            task: 'Write the brief.',
+            supportResources: ['Writing center', 'Source ledger'],
+            academicIntegrityStatement: 'Required',
+          },
+        ],
+      },
+      'Assignment Pagination Proof',
+    );
+    const zip = await JSZip.loadAsync(await blob.arrayBuffer());
+    const xml = await zip.file('word/document.xml').async('string');
+    expect(xml).not.toContain('Support Resources');
+    expect(xml).not.toContain('Academic Integrity');
+  });
+});
+
+describe('syllabus source-appendix pagination', () => {
+  it('renders a short source appendix as readable citation and rights blocks', async () => {
+    const blob = await buildDeliverableDocxBlob(
+      'syllabus',
+      {
+        syllabus: {
+          sourcesAndLicenses: {
+            title: 'Sources & Licenses',
+            note: 'Open resources used in this course package.',
+            groups: [
+              {
+                label: 'Course resources',
+                entries: [
+                  {
+                    citation: 'Open resource one — https://example.edu/one',
+                    url: 'https://example.edu/one',
+                    license: 'CC BY 4.0',
+                    attribution: 'Example University',
+                  },
+                  {
+                    citation: 'Open resource two — https://example.edu/two',
+                    url: 'https://example.edu/two',
+                    license: 'CC BY-SA 4.0',
+                    attribution: 'Example Press metadata.',
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      },
+      'Source Appendix Proof',
+    );
+    const zip = await JSZip.loadAsync(await blob.arrayBuffer());
+    const xml = await zip.file('word/document.xml').async('string');
+
+    expect(xml).toContain('Open resource one — https://example.edu/one');
+    expect(xml).toContain('License and attribution: CC BY 4.0 · Example University.');
+    expect(xml).toContain('Open resource two — https://example.edu/two');
+    expect(xml).toContain('License and attribution: CC BY-SA 4.0 · Example Press metadata.');
+    expect(xml).not.toContain('Example Press metadata..');
+    // Short appendices use the normal readable 11pt body size (22 half-points),
+    // not the compact 9pt bibliography fallback.
+    const firstCitation = xml.indexOf('Open resource one');
+    expect(xml.slice(Math.max(0, firstCitation - 400), firstCitation)).toContain('<w:sz w:val="22"/>');
+    expect(await auditOfficeAccessibility(blob, 'docx')).toBeNull();
   });
 });

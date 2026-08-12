@@ -56,8 +56,10 @@ import { projectKernelToSurfaces } from './kernelProjection';
 import { NATIVE_PASS_B_AUTHORING_ADDITION } from './prompts';
 import { extractExplicitCoverageTopics, extractExplicitLessonSequence } from './explicitLessonSequence';
 import { semanticIdentityTokens } from './lessonSemanticRelevance';
+import { operationEvidenceDemandForLesson } from './operationEvidenceContract.js';
 import { buildFactLedgerFeedback } from './factLedgerFeedback.js';
-import { hasExactSourceLedgerProvenance } from './sourceLedgerProvenance.js';
+import { buildGoverningSourceCourseContract } from './governingSourceCourseContract.js';
+import { hasAuthoritativeSourceLedgerProvenance, hasExactSourceLedgerProvenance } from './sourceLedgerProvenance.js';
 import {
   recoverScionMandarinLessonSequence,
   resolveScionCumulativeTargetLanguagePair,
@@ -267,6 +269,10 @@ export async function runNativeKernelRecovery({
 
 export function pickNativeKernel(previous, candidate) {
   if (!previous) return candidate;
+  const previousIsAuthoritative = hasAuthoritativeSourceLedgerProvenance(previous);
+  const candidateIsAuthoritative = hasAuthoritativeSourceLedgerProvenance(candidate);
+  if (candidateIsAuthoritative && !previousIsAuthoritative) return candidate;
+  if (previousIsAuthoritative && !candidateIsAuthoritative) return previous;
   // A compiler-owned exact ledger is a stronger evidence boundary than a
   // generated or cached payload, even when the latter has more optional
   // surfaces. The old score-first choice silently replaced two of three exact
@@ -322,7 +328,7 @@ export function mergeNativePartialOverlays(lessonContent = {}, partialOverlays =
     ).toLowerCase();
     const ownsCurrentEvidence =
       ['algi-researched', 'scion-source-researched', 'scion-source-library'].includes(currentSource) ||
-      hasExactSourceLedgerProvenance(modelPayload);
+      hasAuthoritativeSourceLedgerProvenance(modelPayload);
     if (
       !modelPayload ||
       modelPayload === partial ||
@@ -374,6 +380,11 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
       1,
   );
   const lessonVariant = (variants) => variants[(lessonOrdinal - 1) % variants.length];
+  const extentCycle = [
+    'Check that the selected form leaves room for the evidence and its limitation.',
+    'Use the available space for reasoning and revision rather than unsupported background.',
+    'Before submission, remove material that does not help a reviewer verify the conclusion.',
+  ][Math.floor((lessonOrdinal - 1) / 6) % 3];
   const topics = sections
     .map((section) => cleanText(section?.topicSection, 120).replace(/^\d+(?:\.\d+)*\s*[:.-]\s*/i, ''))
     .filter(Boolean);
@@ -405,10 +416,16 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
   // structural context, but a weak map phrase may not rename source-backed
   // knowledge after canonical admission (for example, a noisy Pinyin topic
   // once became “Invasive Pinyin System” across an otherwise-correct course).
-  const sourceProjectionLabel = hasExactSourceLedgerProvenance(payload)
+  const sourceProjectionLabel = hasAuthoritativeSourceLedgerProvenance(payload)
     ? cleanText(payload?.kernel?.projectionLabel, 80)
     : '';
   const concept = cleanText(authoredConcept || sourceProjectionLabel || topic || title || 'the central concept', 80);
+  const operationDemand = operationEvidenceDemandForLesson({
+    ...courseMapLesson,
+    title: courseMapLesson?.title || title,
+    outcomes: sections.flatMap((section) => asArray(section?.learningObjectives || section?.learningGoals)),
+    keyConcepts: [concept],
+  });
   const definition = cleanTextAtBoundary(payload?.keyTerms?.[0]?.definition, 260);
   const facts = asArray(payload?.kernel?.facts)
     .map((fact) => cleanTextAtBoundary(fact, 220))
@@ -461,9 +478,27 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
         }
       : null;
   const authoredScenario = payload?.kernel?.scenario;
+  const legacyComparisonVariants = [
+    `Use ${concept} to organize Claim A and Claim B; explain their relationship and bound the conclusion to what both claims establish`,
+    `For ${concept}, compare Claim A with Claim B, name the connection or tension, and state the inference their evidence cannot support`,
+    `Test the two claims through ${concept}; identify the warranted relationship and the unresolved evidence boundary`,
+    `Map Claim A and Claim B onto ${concept}, separating shared support, disagreement, and what remains unproven`,
+    `Decide how ${concept} connects the two claims, cite the decisive difference, and limit the conclusion to the supplied evidence`,
+    `Evaluate both claims as evidence for ${concept}; state what the pair warrants and where that account stops`,
+  ];
+  const normalizedAuthoredScenario = authoredScenario
+    ? {
+        ...authoredScenario,
+        setup: cleanTextAtBoundary(authoredScenario.setup, 500).replace(
+          /\bIdentify the course concept that best organizes these claims, explain how the claims differ or connect, and state what they do not establish\b/gi,
+          lessonVariant(legacyComparisonVariants),
+        ),
+      }
+    : authoredScenario;
   const scenario =
-    cleanTextAtBoundary(authoredScenario?.setup, 500) && cleanTextAtBoundary(authoredScenario?.materials, 300)
-      ? authoredScenario
+    cleanTextAtBoundary(normalizedAuthoredScenario?.setup, 500) &&
+    cleanTextAtBoundary(normalizedAuthoredScenario?.materials, 300)
+      ? normalizedAuthoredScenario
       : assignedReadingScenario || {};
   const materials =
     cleanTextAtBoundary(scenario?.materials, 180) || `${concept} examples and the named reading or activity`;
@@ -663,6 +698,9 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
   }
   let completed = {
     ...payload,
+    ...(normalizedAuthoredScenario && normalizedAuthoredScenario !== authoredScenario
+      ? { kernel: { ...(payload.kernel || {}), scenario: normalizedAuthoredScenario } }
+      : {}),
     keyTerms,
     ...(keyTermFallbacks.length > 0
       ? { keyTermFallbacks: [...(payload.keyTermFallbacks || []), ...keyTermFallbacks] }
@@ -675,7 +713,7 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
   // teaching core from the admitted facts and terminology instead. The two
   // assessment seats are constructed response, so the compiler never invents
   // distractors or a new correct answer.
-  const replaceExactLedgerConstructedResponses = hasExactSourceLedgerProvenance(completed);
+  const replaceExactLedgerConstructedResponses = hasAuthoritativeSourceLedgerProvenance(completed);
   const existingQuizItems = asArray(completed.quizItems).filter((item) => {
     // Canonical admission has no course-map lesson context, so a facts-only
     // exact ledger initially receives safe generic constructed responses. At
@@ -827,6 +865,13 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
   }
 
   if (!completed.assignmentCore) {
+    const nativeExtent =
+      operationDemand.demanded &&
+      /(?:calculat|comput|summar|standardiz|histogram|regress|correlat|proportion|interval|numeric|table)/i.test(
+        String(operationDemand.operation || ''),
+      )
+        ? `submit one replayable calculation record showing the supplied inputs, each named operation step, the checked result, a 150–250-word interpretation, and one boundary or sensitivity check; do not turn the procedure into an essay. ${extentCycle}`
+        : `use 750–1,250 words, 6–10 slides, or a 5–8 minute recording, matching the chosen format. ${extentCycle}`;
     const assignmentCore = {
       taskDescription: lessonVariant([
         `Analyze ${teachingMaterials} through ${concept}. Produce ${product} that states the best-supported conclusion, cites the decisive detail, and names one limit.`,
@@ -841,43 +886,60 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
           `Scope: use the named ${concept} case or example only.`,
           `Format: submit ${product} as a PDF document, a slide file with speaker notes, or an MP4 recording; name the chosen format in the file title.`,
           `Required Evidence/Source: cite at least one detail from ${teachingMaterials}.`,
-          `Length or Time: use 750–1,250 words, 6–10 slides, or a 5–8 minute recording, matching the chosen format.`,
+          `Week ${lessonOrdinal} scope for ${product}: ${nativeExtent}`,
         ],
         [
           `Scope: focus the response on ${concept} and the assigned materials.`,
           `Format: prepare ${product} as a PDF, a narrated slide deck, or an MP4 recording and label every required section.`,
           `Evidence: quote or cite one specific point from ${teachingMaterials}.`,
-          `Length/Time: provide 750–1,250 words, 6–10 narrated slides, or 5–8 recorded minutes.`,
+          `Week ${lessonOrdinal} format boundary for ${product}: ${nativeExtent}`,
         ],
         [
           `Boundary: keep the analysis within the supplied ${concept} example.`,
           `Submission format: use a PDF for written work, PPTX or PDF with speaker notes for slides, or MP4 for recorded work.`,
           `Source use: identify the exact detail from ${teachingMaterials} that warrants the conclusion.`,
-          `Extent: use 750–1,250 words, 6–10 slides, or 5–8 minutes according to the selected submission format.`,
+          `Week ${lessonOrdinal} extent for ${product}: ${nativeExtent}`,
         ],
         [
           `Case limit: analyze only the named ${concept} situation and avoid unsupported extensions.`,
           `Deliverable: submit ${product} through the course-site assignment area as a PDF, PPTX, or MP4 file.`,
           `Required support: anchor the reasoning in a visible detail from ${teachingMaterials}.`,
-          `Length or duration: provide 750–1,250 words, 6–10 slides with notes, or a 5–8 minute recording.`,
+          `Week ${lessonOrdinal} length or duration for ${product}: ${nativeExtent}`,
         ],
         [
           `Analytical scope: apply ${concept} to the provided case rather than inventing a new one.`,
           `Output: complete ${product} as a PDF document, a slide deck with speaker notes, or an MP4 recording.`,
           `Evidence requirement: point to at least one inspectable detail in ${teachingMaterials}.`,
-          `Scale: use 750–1,250 words, 6–10 slides, or 5–8 minutes and remove material that does not support the conclusion.`,
+          `Week ${lessonOrdinal} scale for ${product}: ${nativeExtent}`,
         ],
         [
           `Focus: keep every claim tied to the assigned ${concept} materials.`,
           `Product form: prepare ${product} as a labeled PDF, PPTX with notes, or MP4 file.`,
           `Source trail: name the detail from ${teachingMaterials} that supports the judgment.`,
-          `Completion boundary: submit 750–1,250 words, 6–10 slides, or 5–8 recorded minutes, depending on the selected form.`,
+          `Week ${lessonOrdinal} completion boundary for ${product}: ${nativeExtent}`,
         ],
       ]),
     };
     if (lintEnrichedAssignmentCore(assignmentCore).length === 0) {
       completed.assignmentCore = assignmentCore;
       fallbackFields.push('assignmentCore');
+    }
+  }
+  if (completed.assignmentCore?.parameters?.length) {
+    const parameters = completed.assignmentCore.parameters.map((parameter) => {
+      const text = String(parameter || '');
+      if (
+        !/\b(?:Length or Time|Length\/Time|Extent|Length or duration|Scale|Completion boundary)(?: for [^:]+)?:/i.test(
+          text,
+        ) ||
+        text.includes(extentCycle)
+      ) {
+        return parameter;
+      }
+      return `${text} ${extentCycle}`;
+    });
+    if (parameters.some((parameter, index) => parameter !== completed.assignmentCore.parameters[index])) {
+      completed.assignmentCore = { ...completed.assignmentCore, parameters };
     }
   }
   const canonicalAssessment = compactCompilerOwnedAssessmentIdentity(
@@ -2169,6 +2231,306 @@ export function briefNamesResources(sourceText) {
   return BRIEF_RESOURCE_CUE_RE.test(String(sourceText || ''));
 }
 
+function sourcePercentPattern(value) {
+  const text = String(value ?? '');
+  if (!/^\d+(?:\.\d+)?$/.test(text)) return null;
+  const [integer, decimal] = text.split('.');
+  const integerPattern = integer
+    .split('')
+    .map((digit) => digit.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+    .join('\\s*');
+  return new RegExp(`${integerPattern}${decimal ? `\\s*\\.\\s*${decimal.split('').join('\\s*')}` : ''}\\s*%`, 'i');
+}
+
+function sourceSupportsCoursePolicyCategory(entry, sourceText) {
+  const source = cleanText(sourceText, Number.MAX_SAFE_INTEGER);
+  const title = cleanText(entry?.title, 180);
+  const weight = Number(entry?.weightPct);
+  if (!source || !title || !Number.isFinite(weight) || weight < 0 || weight > 100) return false;
+  const sourceLower = source.toLowerCase();
+  const titleIndex = sourceLower.indexOf(title.toLowerCase());
+  if (titleIndex < 0) return false;
+  const nearby = source.slice(titleIndex, titleIndex + Math.max(420, title.length + 240));
+  return Boolean(sourcePercentPattern(weight)?.test(nearby));
+}
+
+function recoverExplicitGradeBands(sourceText, modelBands = null) {
+  const source = cleanText(sourceText, Number.MAX_SAFE_INTEGER);
+  const segment =
+    source.match(
+      /\bGrading\s+Scale\b([\s\S]{0,1200}?)(?=\b(?:Faculty\s+Response|Instructor\s+Feedback|Course\s+Schedule)\b|$)/i,
+    )?.[1] || '';
+  const bands = [];
+  const rangePattern = /(\d{1,3}(?:\s*\.\s*\d+)?)\s*[–—-]\s*(\d{1,3}(?:\s*\.\s*\d+)?)\s*:\s*([A-EF]\s*[+-]?)/gi;
+  let range;
+  while ((range = rangePattern.exec(segment))) {
+    const minPct = Number(range[1].replace(/\s+/g, ''));
+    const maxPct = Number(range[2].replace(/\s+/g, ''));
+    const label = range[3].replace(/\s+/g, '').toUpperCase();
+    if (!Number.isFinite(minPct) || !Number.isFinite(maxPct) || minPct > maxPct) continue;
+    bands.push({
+      label,
+      range: `${minPct}–${maxPct}`,
+      minPct,
+      maxPct,
+      sourceStatus: 'source-table',
+    });
+  }
+  const below = segment.match(/\bBelow\s+(\d{1,3}(?:\s*\.\s*\d+)?)\s*:\s*([A-EF]\s*[+-]?)/i);
+  if (below) {
+    const maxExclusivePct = Number(below[1].replace(/\s+/g, ''));
+    if (Number.isFinite(maxExclusivePct)) {
+      bands.push({
+        label: below[2].replace(/\s+/g, '').toUpperCase(),
+        range: `Below ${maxExclusivePct}`,
+        maxExclusivePct,
+        sourceStatus: 'source-table',
+      });
+    }
+  }
+  if (bands.length > 0) return bands;
+  return asArray(modelBands)
+    .map((entry) => ({
+      label: cleanText(entry?.label || entry?.grade, 12)
+        .replace(/\s+/g, '')
+        .toUpperCase(),
+      range: cleanText(entry?.range, 60),
+      sourceStatus: 'source-transcribed',
+    }))
+    .filter((entry) => entry.label && entry.range && source.toLowerCase().includes(entry.range.toLowerCase()))
+    .slice(0, 20);
+}
+
+/**
+ * Recover a governing grading policy without asking the model to reconcile
+ * lesson artifacts with course-level weights. Formula terms are especially
+ * reliable because the coefficient and category are adjacent and the base
+ * formula excludes separately named extra credit by construction.
+ */
+export function recoverExplicitCourseGradingPolicy(sourceText, modelPolicy = null) {
+  const source = cleanText(sourceText, Number.MAX_SAFE_INTEGER);
+  if (!source) return null;
+  const formulaMatch = source.match(
+    /\bFinal\s+Grade\s*=([\s\S]{0,1200}?)(?=\bRecitation\s+Activities\s*:|\b(?:Assignment\s+or\s+Category|Grading\s+Scale|Extra\s+Credit)\b|$)/i,
+  );
+  const formulaCategories = [];
+  if (formulaMatch) {
+    const termPattern = /0\s*\.\s*(\d{1,3})\s*\(\s*([^()]{2,100}?)\s*%\s*\)/gi;
+    let term;
+    while ((term = termPattern.exec(formulaMatch[1]))) {
+      const decimalDigits = term[1];
+      const weightPct = Number(`0.${decimalDigits}`) * 100;
+      const title = cleanText(term[2], 100).replace(/\s+/g, ' ').trim();
+      if (!title || !Number.isFinite(weightPct) || weightPct <= 0 || weightPct > 100) continue;
+      formulaCategories.push({
+        id: `g${formulaCategories.length + 1}`,
+        title,
+        weightPct: Number(weightPct.toFixed(3)),
+        extraCredit: false,
+        sourceStatus: 'source-formula',
+      });
+    }
+  }
+
+  let baseCategories = formulaCategories;
+  if (baseCategories.length === 0) {
+    baseCategories = asArray(modelPolicy?.categories)
+      .map((entry, index) => ({
+        id: cleanText(entry?.id, 24) || `g${index + 1}`,
+        title: cleanText(entry?.title, 180),
+        weightPct: Number(entry?.weightPct),
+        extraCredit: entry?.extraCredit === true,
+        sourceStatus: 'source-transcribed',
+      }))
+      .filter((entry) => !entry.extraCredit && sourceSupportsCoursePolicyCategory(entry, source));
+  }
+
+  const extraSegment = source.match(/\bExtra\s+Credit\b([\s\S]{0,500}?)(?=\bTotal\b|$)/i)?.[0] || '';
+  const extraWeights = [...extraSegment.matchAll(/(\d{1,3}(?:\s*\.\s*\d{1,3})?)\s*%/g)]
+    .map((match) => Number(match[1].replace(/\s+/g, '')))
+    .filter((value) => Number.isFinite(value) && value > 0 && value <= 100);
+  const explicitExtraWeight = extraWeights.length > 0 ? extraWeights[extraWeights.length - 1] : null;
+  const modelExtraCategories = asArray(modelPolicy?.categories)
+    .map((entry, index) => ({
+      id: cleanText(entry?.id, 24) || `gx${index + 1}`,
+      title: cleanText(entry?.title, 180),
+      weightPct: Number(entry?.weightPct),
+      extraCredit: entry?.extraCredit === true,
+      sourceStatus: 'source-transcribed',
+    }))
+    .filter((entry) => entry.extraCredit && sourceSupportsCoursePolicyCategory(entry, source));
+  const extraCategories = explicitExtraWeight
+    ? [
+        {
+          id: `g${baseCategories.length + 1}`,
+          title: (() => {
+            const detail = cleanText(extraSegment.match(/\bExtra\s+Credit\b\s*(?:[-–—]\s*)?([^+(]{1,120})/i)?.[1], 120);
+            return detail ? `Extra Credit — ${detail}` : 'Extra Credit';
+          })(),
+          weightPct: explicitExtraWeight,
+          extraCredit: true,
+          sourceStatus: 'source-table',
+        },
+      ]
+    : modelExtraCategories;
+  const categories = [...baseCategories, ...extraCategories].map((entry, index) => ({
+    ...entry,
+    id: entry.id || `g${index + 1}`,
+  }));
+  const baseTotalPct = Number(baseCategories.reduce((sum, entry) => sum + Number(entry.weightPct || 0), 0).toFixed(3));
+  const extraCreditTotalPct = Number(
+    extraCategories.reduce((sum, entry) => sum + Number(entry.weightPct || 0), 0).toFixed(3),
+  );
+  if (categories.length === 0 || baseTotalPct <= 0) return null;
+  const gradeBands = recoverExplicitGradeBands(source, modelPolicy?.gradeBands);
+  return {
+    version: 1,
+    sourceStatus: 'source-explicit',
+    categories,
+    ...(gradeBands.length > 0 ? { gradeBands } : {}),
+    baseTotalPct,
+    extraCreditTotalPct,
+    displayedTotalPct: Number((baseTotalPct + extraCreditTotalPct).toFixed(3)),
+  };
+}
+
+export function recoverExplicitCoursePrerequisites(sourceText, modelPrerequisites = null) {
+  const source = cleanText(sourceText, Number.MAX_SAFE_INTEGER);
+  if (!source) return [];
+  const sentences = source
+    .split(/(?<=[.!?])\s+(?=[A-Z])/)
+    .map((sentence) => cleanText(sentence, 420))
+    .filter(Boolean);
+  const explicit = sentences.filter(
+    (sentence) =>
+      /\bprerequisites?\b/i.test(sentence) ||
+      /\b(?:this|the)\s+(?:\d+\s*-?\s*credit\s+hour\s+)?course\s+(?:expects?|requires?|assumes?)\b/i.test(sentence),
+  );
+  if (explicit.length > 0) {
+    return uniqueStrings(explicit, 4).map((text) => ({
+      text,
+      status: /\brequires?\b|\bprerequisites?\b/i.test(text) ? 'required' : 'expected',
+      sourceStatus: 'source-explicit',
+    }));
+  }
+  return asArray(modelPrerequisites)
+    .map((entry) => (typeof entry === 'string' ? { text: entry } : entry))
+    .map((entry) => ({
+      text: cleanText(entry?.text, 420),
+      status: entry?.status === 'required' ? 'required' : 'expected',
+      sourceStatus: 'source-transcribed',
+    }))
+    .filter((entry) => entry.text && source.toLowerCase().includes(entry.text.toLowerCase()))
+    .slice(0, 4);
+}
+
+export function recoverExplicitRequiredCourseMaterials(sourceText, modelMaterials = null) {
+  const source = cleanText(sourceText, Number.MAX_SAFE_INTEGER);
+  if (!source) return [];
+  const section =
+    source.match(
+      /\bRequired\s+Course\s+Materials\b([\s\S]{0,2600}?)(?=\b(?:Student\s+Registration\s+Instructions|Recitation\s+Device|Technology\s+Requirements?|Course\s+Requirements?)\b|$)/i,
+    )?.[1] || '';
+  const materials = [];
+  const textbook = (section || source).match(
+    /([^•\n]{2,120})\s*•\s*([^•\n]{3,180})\s*•\s*([^•\n]{1,30})\s*•\s*([^•\n]{2,100})\s*•\s*ISBN\s*:\s*([0-9Xx-]{10,20})/i,
+  );
+  if (textbook) {
+    const repairSplitPublisherWord = (value) =>
+      cleanText(value, 100).replace(/\b([A-Z][a-z]{2,})\s+([a-z])\s+([a-z]{2,})\b/g, '$1$2$3');
+    const authorField = cleanText(textbook[1], 120);
+    const author = authorField.match(/([A-Z][\p{L}'-]+(?:,\s*[A-Z][\p{L}'-]+)*(?:,?\s+and\s+[A-Z][\p{L}'-]+)?)$/u)?.[1];
+    materials.push({
+      kind: 'textbook',
+      author: author || authorField,
+      title: cleanText(textbook[2], 180),
+      edition: cleanText(textbook[3], 30),
+      publisher: repairSplitPublisherWord(textbook[4]),
+      isbn: cleanText(textbook[5], 24),
+      sourceStatus: 'source-explicit',
+    });
+  }
+  if (/\bAchieve\b/i.test(source)) {
+    materials.push({
+      kind: 'courseware',
+      title: 'Achieve courseware',
+      publisher: /\bMac\s*m?\s*illan\b/i.test(source) ? 'Macmillan Learning' : '',
+      access: /\bCarmenBooks\b/i.test(source)
+        ? 'Access through the institution-provided CarmenBooks/CarmenCanvas course link.'
+        : 'Access through the instructor-provided course link.',
+      sourceStatus: 'source-explicit',
+    });
+  }
+  if (materials.length > 0) return materials;
+  return asArray(modelMaterials)
+    .map((entry) => (typeof entry === 'string' ? { title: entry } : entry))
+    .map((entry) => ({
+      kind: cleanText(entry?.kind, 40) || 'course-material',
+      title: cleanText(entry?.title, 180),
+      author: cleanText(entry?.author, 120),
+      edition: cleanText(entry?.edition, 30),
+      publisher: cleanText(entry?.publisher, 100),
+      isbn: cleanText(entry?.isbn, 24),
+      access: cleanText(entry?.access || entry?.note, 240),
+      sourceStatus: 'source-transcribed',
+    }))
+    .filter((entry) => entry.title && source.toLowerCase().includes(entry.title.toLowerCase()))
+    .slice(0, 8);
+}
+
+export function recoverExplicitCoursePolicies(sourceText, modelPolicies = null) {
+  const source = cleanText(sourceText, Number.MAX_SAFE_INTEGER);
+  if (!source) return null;
+  const lateSegment = source.match(/\bLate\s+Submissions?\s*:\s*([\s\S]{0,650})/i)?.[1] || '';
+  const noLateWork = /\bno\s+late\s+work\s+is\s+accepted\b/i.test(lateSegment);
+  const beforeDeadline = /\bbefore\s+the\s+assignment\s+deadline\b/i.test(lateSegment);
+  const afterFour = /\bafter\s+4\s*(?::\s*00)?\s*(?:p\.?m\.?)?\b/i.test(lateSegment);
+  const droppedAssignment = /\bdropped\s+assignments?\b/i.test(lateSegment);
+  const lateWork = noLateWork
+    ? [
+        'No late work is accepted.',
+        ...(beforeDeadline
+          ? ['For extenuating circumstances, contact the instructor before the assignment deadline.']
+          : []),
+        ...(afterFour && droppedAssignment
+          ? ['A request received after 4 p.m. on the assignment due date counts as a dropped assignment.']
+          : []),
+      ].join(' ')
+    : '';
+  if (lateWork) return { lateWork, sourceStatus: 'source-explicit-paraphrase' };
+  const modelLateWork = cleanText(modelPolicies?.lateWork, 520);
+  return modelLateWork && source.toLowerCase().includes(modelLateWork.toLowerCase())
+    ? { lateWork: modelLateWork, sourceStatus: 'source-transcribed' }
+    : null;
+}
+
+export function recoverExplicitCourseWorkload(sourceText, modelWorkload = null) {
+  const source = cleanText(sourceText, Number.MAX_SAFE_INTEGER);
+  if (!source) return null;
+  const match = source.match(
+    /\bminimum\s+of\s+(\d+(?:\.\d+)?)\s+hours?\s+to\s+prepare[\s\S]{0,180}?equates?\s+to\s+(\d+(?:\.\d+)?)\s+hours?\s+weekly[\s\S]{0,120}?(\d+(?:\.\d+)?)\s+hours?\s+for\s+(?:lecture|class)/i,
+  );
+  if (match) {
+    return {
+      weeklyHours: Number(match[2]),
+      outOfClassHours: Number(match[1]),
+      inClassHours: Number(match[3]),
+      sourceStatus: 'source-explicit',
+      studentFacingEstimate: `The governing syllabus expects ${Number(match[2])} hours weekly: ${Number(match[3])} hours of lecture and recitation attendance plus at least ${Number(match[1])} hours of preparation and follow-through.`,
+    };
+  }
+  const weeklyHours = Number(modelWorkload?.weeklyHours);
+  return Number.isFinite(weeklyHours) && weeklyHours > 0
+    ? {
+        weeklyHours,
+        outOfClassHours: Number(modelWorkload?.outOfClassHours) || null,
+        inClassHours: Number(modelWorkload?.inClassHours) || null,
+        sourceStatus: 'source-transcribed',
+        studentFacingEstimate: cleanText(modelWorkload?.studentFacingEstimate, 300),
+      }
+    : null;
+}
+
 // ── B1: Pass A parser ───────────────────────────────────────────────────────
 
 /**
@@ -2541,6 +2903,13 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
   const resources =
     typeof sourceText === 'string' && sourceText.trim() && !briefNamesResources(sourceText) ? [] : parsedResources;
 
+  const prerequisites = recoverExplicitCoursePrerequisites(sourceText, parsed.course?.prerequisites);
+  const gradingPolicy = recoverExplicitCourseGradingPolicy(sourceText, parsed.course?.gradingPolicy);
+  const requiredMaterials = recoverExplicitRequiredCourseMaterials(sourceText, parsed.course?.requiredMaterials);
+  const policies = recoverExplicitCoursePolicies(sourceText, parsed.course?.policies);
+  const workloadPolicy = recoverExplicitCourseWorkload(sourceText, parsed.course?.workloadPolicy);
+  const orderedLessonContract = buildGoverningSourceCourseContract(sourceText, sessions);
+
   return {
     course: {
       name: compactBriefCourseName(parsed.course?.name, sourceText) || 'Untitled Course',
@@ -2549,6 +2918,12 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
         .map((goal) => cleanText(goal, 160))
         .filter(Boolean)
         .slice(0, 8),
+      ...(prerequisites.length > 0 ? { prerequisites } : {}),
+      ...(gradingPolicy ? { gradingPolicy } : {}),
+      ...(requiredMaterials.length > 0 ? { requiredMaterials } : {}),
+      ...(policies ? { policies } : {}),
+      ...(workloadPolicy ? { workloadPolicy } : {}),
+      ...(orderedLessonContract ? { orderedLessonContract } : {}),
     },
     sessions,
     assessments,
@@ -2615,10 +2990,26 @@ function canBackfillSourceGroundedAuthoring(payload) {
   const facts = sourceGroundedAuthoringFacts(payload);
   const provenance = payload?.conceptProvenance || {};
   const sourceAnchored =
-    hasExactSourceLedgerProvenance(payload) ||
+    hasAuthoritativeSourceLedgerProvenance(payload) ||
     (provenance.fullyAnchored === true &&
       ['algi-researched', 'genome-linked'].includes(String(provenance.source || '').trim()));
-  return sourceAnchored && terms.length >= 3 && facts.length >= 3;
+  return sourceAnchored && facts.length >= 3 && (terms.length >= 1 || facts.some(admittedFactSubject));
+}
+
+function sourceGroundedAuthoringLabels(payload, session) {
+  const candidates = [
+    ...sourceGroundedAuthoringTerms(payload).map((entry) => entry.term),
+    ...asArray(session?.sectionTitles),
+    ...sourceGroundedAuthoringFacts(payload).map(admittedFactSubject),
+    cleanText(session?.title, 120).replace(/^lesson\s+\d+\s*[:.-]\s*/i, ''),
+  ]
+    .map((value) => cleanText(value, 80))
+    .filter(Boolean)
+    .filter(
+      (value, index, values) =>
+        values.findIndex((candidate) => candidate.toLowerCase() === value.toLowerCase()) === index,
+    );
+  return candidates.slice(0, 3);
 }
 
 /**
@@ -2642,37 +3033,96 @@ export function backfillNativeAuthoringFromLessonContent({
     if (!canBackfillSourceGroundedAuthoring(payload)) continue;
 
     const existing = result[lessonId] || {};
-    const [first, second, third] = sourceGroundedAuthoringTerms(payload).map((entry) => entry.term);
+    const labels = sourceGroundedAuthoringLabels(payload, session);
+    const first = labels[0];
+    const second = labels[1] || first;
+    const third = labels[2] || second || first;
     const lessonTitle =
       cleanText(session?.title, 120).replace(/^lesson\s+\d+\s*[:.-]\s*/i, '') || first || 'the lesson focus';
     const outcomes = cleanAtomList(existing.outcomes, { maxItems: 8, maxChars: 180 });
     const asyncActivities = cleanAtomList(existing.asyncActivities, { maxItems: 4, maxChars: 160 });
     const syncActivities = cleanAtomList(existing.syncActivities, { maxItems: 4, maxChars: 160 });
+    const lessonNumber = Number(session?.order || String(lessonId).match(/\d+/)?.[0] || 1);
+    const choose = (variants) => variants[(Math.max(1, lessonNumber) - 1) % variants.length];
 
     result[lessonId] = {
       ...existing,
       goal:
         cleanText(existing.goal, 140) ||
-        `Use source evidence about ${first} and ${second} to justify one decision in ${lessonTitle}.`,
+        choose([
+          `Use source evidence about ${first} and ${second} to justify one decision in ${lessonTitle}.`,
+          `Connect evidence about ${first} with ${second}, then defend a bounded ${lessonTitle} judgment.`,
+          `Compare source-grounded claims about ${first} and ${second} to make one defensible choice in ${lessonTitle}.`,
+          `Trace how evidence for ${first} and ${second} changes a practical ${lessonTitle} decision.`,
+          `Evaluate one ${lessonTitle} claim by linking ${first} evidence to the boundary supplied by ${second}.`,
+          `Build a source-traceable ${lessonTitle} explanation that distinguishes ${first} evidence from ${second} assumptions.`,
+          `Use the admitted evidence for ${first} and ${second} to revise one ${lessonTitle} conclusion.`,
+          `Make the ${lessonTitle} reasoning inspectable by connecting ${first}, ${second}, and one evidence limit.`,
+        ]),
       outcomes:
         outcomes.length > 0
           ? outcomes
           : [
-              `Explain ${first} using the available course evidence.`,
-              `Apply ${second} in one practical example from ${lessonTitle} and justify one revision.`,
-              `Evaluate a claim about ${third}, then state the evidence boundary.`,
+              choose([
+                `Explain ${first} using the available course evidence.`,
+                `Describe ${first} from an admitted source detail and identify what that detail does not prove.`,
+                `Interpret one source-backed ${first} claim without extending it beyond the recorded evidence.`,
+                `Distinguish observed ${first} evidence from an assumption in the ${lessonTitle} case.`,
+                `Compare two records about ${first} and state the conclusion their evidence warrants.`,
+                `Use a cited ${first} detail to explain one bounded relationship in ${lessonTitle}.`,
+                `Analyze how an admitted ${first} fact supports, limits, or complicates the lesson claim.`,
+                `Construct a source-traceable explanation of ${first} with one explicit evidence boundary.`,
+              ]),
+              choose([
+                `Apply ${second} in one practical example from ${lessonTitle} and justify one revision.`,
+                `Use ${second} to analyze one ${lessonTitle} example, then document a justified revision.`,
+                `Compare a ${second} example in ${lessonTitle} with the source evidence and explain one revision.`,
+                `Test ${second} in an observable ${lessonTitle} case and defend one evidence-based change.`,
+                `Trace how ${second} operates in a ${lessonTitle} example, then revise the analysis from evidence.`,
+                `Analyze an observable ${second} pattern from ${lessonTitle} and justify how the evidence changes the work.`,
+                `Apply ${second} to a bounded ${lessonTitle} case and record one source-supported correction.`,
+                `Use observable evidence to evaluate ${second} in ${lessonTitle} and explain a defensible improvement.`,
+              ]),
+              choose([
+                `Evaluate a claim about ${third}, then state the evidence boundary.`,
+                `Judge one ${third} interpretation and identify the source limit that constrains it.`,
+                `Assess whether the available ${third} evidence warrants the proposed conclusion.`,
+                `Compare competing ${third} readings and name the evidence needed to decide between them.`,
+                `Revise an overbroad ${third} claim so it matches the admitted source record.`,
+                `Defend a bounded ${third} conclusion and distinguish it from one unsupported extension.`,
+                `Audit a ${third} explanation for evidence, inference, and an unresolved limitation.`,
+                `Formulate a ${third} claim whose scope stays within the observable evidence.`,
+              ]),
             ],
       asyncActivities:
         asyncActivities.length > 0
           ? asyncActivities
           : [
-              `Annotate the available course evidence for one claim about ${first}, its supporting detail, and one limitation.`,
+              choose([
+                `Annotate the available course evidence for one claim about ${first}, its supporting detail, and one limitation.`,
+                `Mark the exact source detail that supports a ${first} claim, then label one inference the detail cannot establish.`,
+                `Build a two-column ${first} evidence note: observed source detail on one side and bounded interpretation on the other.`,
+                `Compare two recorded statements about ${first}; identify their shared warrant and one unresolved difference.`,
+                `Trace a ${first} conclusion back to its quoted evidence, then revise any language that exceeds the source.`,
+                `Sort the ${first} lesson records into observation, interpretation, and unsupported extension, citing one example of each.`,
+                `Write a short ${first} evidence chain that names the source detail, warranted claim, and remaining uncertainty.`,
+                `Audit one ${first} explanation by locating its evidence, testing its boundary, and recording a corrected version.`,
+              ]),
             ],
       syncActivities:
         syncActivities.length > 0
           ? syncActivities
           : [
-              `Audit one practical example from ${lessonTitle} in pairs, then revise one decision using evidence about ${second}.`,
+              choose([
+                `Audit one practical example from ${lessonTitle} in pairs, then revise one decision using evidence about ${second}.`,
+                `In pairs, compare two ${lessonTitle} analyses and use ${second} evidence to strengthen the better-supported conclusion.`,
+                `Test a case from ${lessonTitle} in a small group, identify where ${second} changes the reasoning, and document the revision.`,
+                `Exchange ${lessonTitle} evidence notes, challenge one ${second} assumption, and produce a bounded group judgment.`,
+                `Work through an observable ${lessonTitle} example, then use ${second} to correct one overextended interpretation.`,
+                `Calibrate two ${lessonTitle} claims against the ${second} source record and agree on one evidence-based improvement.`,
+                `Use a paired think-aloud to trace ${second} through the ${lessonTitle} decision and record what remains uncertain.`,
+                `Review a peer's ${lessonTitle} reasoning for ${second} evidence, source boundary, and one actionable revision.`,
+              ]),
             ],
       source: existing.source || 'scion-source-kernel-backfill',
     };
@@ -2762,6 +3212,24 @@ export function buildNativeWireMap(skeleton, passBBySession = {}) {
     courseName: skeleton.course.name,
     semester: skeleton.course.term || 'TBD',
     ...(skeleton.course.goals.length > 0 ? { learningOutcomes: skeleton.course.goals } : {}),
+    ...(Array.isArray(skeleton.course.prerequisites) && skeleton.course.prerequisites.length > 0
+      ? { prerequisites: skeleton.course.prerequisites }
+      : {}),
+    ...(skeleton.course.gradingPolicy && typeof skeleton.course.gradingPolicy === 'object'
+      ? { gradingPolicy: skeleton.course.gradingPolicy }
+      : {}),
+    ...(Array.isArray(skeleton.course.requiredMaterials) && skeleton.course.requiredMaterials.length > 0
+      ? { requiredMaterials: skeleton.course.requiredMaterials }
+      : {}),
+    ...(skeleton.course.policies && typeof skeleton.course.policies === 'object'
+      ? { policies: skeleton.course.policies }
+      : {}),
+    ...(skeleton.course.workloadPolicy && typeof skeleton.course.workloadPolicy === 'object'
+      ? { workloadPolicy: skeleton.course.workloadPolicy }
+      : {}),
+    ...(skeleton.course.orderedLessonContract && typeof skeleton.course.orderedLessonContract === 'object'
+      ? { orderedLessonContract: skeleton.course.orderedLessonContract }
+      : {}),
     lessons,
   };
 }
@@ -2805,6 +3273,7 @@ export function buildNativePassBPrompt(wireMap, lessonIndices, options = {}) {
     sourceBrief: options.sourceBrief,
     instructorProvidedFacts: options.instructorProvidedFacts,
     evidenceByLessonId: options.evidenceByLessonId,
+    instructionalPlan: options.instructionalPlan,
   });
   const contentSourced = asArray(options.contentSourcedLessonIds).filter(Boolean);
   const recoveryAttempt = Number(options.recoveryAttempt || 0);
@@ -3001,8 +3470,12 @@ function mergeNativeSourceSurfaces(projectedCourseMap, nativeCourseMap) {
   const projectedLessons = asArray(projectedCourseMap?.lessons);
   const nativeLessons = asArray(nativeCourseMap?.lessons);
   const nativeAuthoredKeys = ['learningGoals', 'learningObjectives', 'asyncActivities', 'syncActivities'];
+  const nativeCourseFields = Object.fromEntries(
+    Object.entries(nativeCourseMap || {}).filter(([key]) => key !== 'lessons' && key !== 'courseName'),
+  );
   return {
     ...projectedCourseMap,
+    ...nativeCourseFields,
     lessons: projectedLessons.map((lesson, lessonIndex) => {
       const nativeLesson = nativeLessons[lessonIndex] || {};
       const nativeSections = asArray(nativeLesson.sections);
@@ -3471,10 +3944,30 @@ function preserveResourceMetadata(oldGraph, graph) {
   return resourceRemap;
 }
 
+const GRAPH_EVIDENCE_TRANSACTION_FIELDS = Object.freeze([
+  'authenticLanguageData',
+  'authenticLanguageDataCoverage',
+  'preDraftInstructionalPlan',
+  'evidenceGroundedInstructionalPlan',
+  'governingSourceContract',
+  'instructionalIntentGraph',
+  'instructionalPlanLineage',
+  'instructionalPlanLineageValidation',
+]);
+
+function preserveGraphEvidenceTransactions(oldGraph, graph) {
+  for (const field of GRAPH_EVIDENCE_TRANSACTION_FIELDS) {
+    if (oldGraph?.[field] == null || graph?.[field] != null) continue;
+    graph[field] = JSON.parse(JSON.stringify(oldGraph[field]));
+  }
+  return graph;
+}
+
 export function preserveSourceProof(oldGraph, newGraph) {
   if (!oldGraph || !newGraph) return newGraph;
   const graph = JSON.parse(JSON.stringify(newGraph));
   preserveResourceMetadata(oldGraph, graph);
+  preserveGraphEvidenceTransactions(oldGraph, graph);
   return graph;
 }
 
@@ -3542,6 +4035,7 @@ export function matchEntityIds(oldGraph, newGraph) {
   }
 
   preserveResourceMetadata(oldGraph, graph);
+  preserveGraphEvidenceTransactions(oldGraph, graph);
 
   if (oldGraph.authoredBy && !graph.authoredBy) graph.authoredBy = oldGraph.authoredBy;
   return graph;

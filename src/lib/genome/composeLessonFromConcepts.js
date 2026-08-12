@@ -18,6 +18,8 @@
 import { projectKernelToSurfaces } from '../kernelProjection';
 import { kernelTrustTier, TRUST_TIER_LABELS } from './kernelSchema';
 import { instantiateArchetype } from './archetypeInstantiation';
+import { EXACT_SOURCE_LEDGER_PROVENANCE, SOURCE_LEDGER_AUTHORITIES } from '../sourceLedgerProvenance';
+import { sha256HexSync } from '../sha256Sync.js';
 
 function cleanText(value) {
   return String(value ?? '')
@@ -48,7 +50,112 @@ function citationLabel(anchor) {
   return anchor.loc ? `${src} §${anchor.loc}` : src;
 }
 
-function citationProvenance(anchor, kernel, sourceReferences = {}) {
+function shippedAnchorSupportReceipt(anchor, claimText, kernel, sourceKey, metadata = {}) {
+  const snapshot = metadata?.sourceSnapshot;
+  const sources = Array.isArray(snapshot?.sources) ? snapshot.sources : [];
+  const claims = Array.isArray(snapshot?.claims) ? snapshot.claims : [];
+  const anchorQuote = cleanText(anchor?.quote);
+  const locator = cleanText(anchor?.loc);
+  const sourceClaim = claims.find(
+    (claim) =>
+      cleanText(claim?.quote) === anchorQuote &&
+      (!locator || cleanText(claim?.locator) === locator) &&
+      [sourceKey, sourceKey.replace(/#.*$/, '')].includes(cleanText(claim?.sourceId)),
+  );
+  const sourceId = cleanText(sourceClaim?.sourceId);
+  const source = sources.find((entry) => cleanText(entry?.sourceId) === sourceId);
+  const normalizedSnapshotText = String(source?.normalizedSnapshotText || '');
+  const snapshotBytes = new TextEncoder().encode(normalizedSnapshotText);
+  const quoteByteStart = Number(sourceClaim?.quoteByteStart);
+  const quoteByteEnd = Number(sourceClaim?.quoteByteEnd);
+  const exactQuote =
+    Number.isInteger(quoteByteStart) &&
+    Number.isInteger(quoteByteEnd) &&
+    quoteByteStart >= 0 &&
+    quoteByteEnd > quoteByteStart &&
+    quoteByteEnd <= snapshotBytes.byteLength
+      ? new TextDecoder().decode(snapshotBytes.slice(quoteByteStart, quoteByteEnd))
+      : '';
+  const snapshotSha256 = cleanText(source?.retrievedSnapshotSha256);
+  const quoteSha256 = cleanText(sourceClaim?.quoteSha256);
+  const claim = cleanText(claimText) || anchorQuote;
+  if (
+    snapshot?.protocol !== 'retrieved-source-snapshot-sha256-v2' ||
+    !sourceId ||
+    !claim ||
+    !anchorQuote ||
+    !locator ||
+    !normalizedSnapshotText ||
+    snapshotBytes.byteLength !== Number(source?.retrievedSnapshotBytes) ||
+    snapshotSha256 !== sha256HexSync(normalizedSnapshotText) ||
+    cleanText(sourceClaim?.retrievedSnapshotSha256) !== snapshotSha256 ||
+    Number(sourceClaim?.retrievedSnapshotBytes) !== snapshotBytes.byteLength ||
+    exactQuote !== anchorQuote ||
+    quoteSha256 !== sha256HexSync(anchorQuote)
+  ) {
+    return null;
+  }
+  const conceptId = cleanText(kernel?.id);
+  const topic = cleanText(kernel?.term);
+  const check = {
+    claimId: `${conceptId || sourceId}:shipped-anchor-${sha256HexSync(`${locator}|${claim}`).slice(0, 12)}`,
+    claim,
+    quote: anchorQuote,
+    sourceId,
+    locator,
+    retrievedSnapshotSha256: snapshotSha256,
+    retrievedSnapshotBytes: snapshotBytes.byteLength,
+    quoteByteStart,
+    quoteByteEnd,
+    sourcePassageSha256: quoteSha256,
+    claimSha256: sha256HexSync(claim),
+    quoteInSnapshot: true,
+    entailed: true,
+    score: 1,
+    reason: 'shipped-source-curated-anchor',
+    method: 'shipped-source-curated-anchor-v1',
+    construct: 'shipped-source-curated-anchor',
+    sourceIdentityVerified: true,
+    semanticAdmissionVerified: true,
+    artifactVisibilityVerified: false,
+    semanticSupport: true,
+    semanticAdmission: {
+      admitted: true,
+      policy: 'shipped-source-curated-anchor-v1',
+      topic,
+      topicMatches: [conceptId].filter(Boolean),
+      issues: [],
+    },
+  };
+  return {
+    status: 'passed',
+    checkedClaims: 1,
+    minimumScore: 1,
+    method: 'shipped-source-curated-anchor-v1',
+    construct: 'shipped-source-curated-anchor',
+    sourceIdentityVerified: true,
+    semanticAdmissionVerified: true,
+    artifactVisibilityVerified: false,
+    semanticSupport: true,
+    readinessEligible: false,
+    sourceSnapshot: {
+      protocol: 'retrieved-source-snapshot-sha256-v2',
+      sourceId,
+      retrievedSnapshotSha256: snapshotSha256,
+      retrievedSnapshotBytes: snapshotBytes.byteLength,
+      normalizedSnapshotText,
+      contentVerified: true,
+      sourceIdentityVerified: true,
+      semanticAdmissionVerified: true,
+      artifactVisibilityVerified: false,
+    },
+    checks: [check],
+    claimBoundary:
+      'This checked-in source-library receipt binds one curated teaching claim to an exact passage in the hash-pinned source snapshot. Rendered visibility is verified from exported artifact bytes.',
+  };
+}
+
+function citationProvenance(anchor, kernel, sourceReferences = {}, claimText = '') {
   const label = citationLabel(anchor);
   if (!label) return null;
   // Foundry anchors may carry a section fragment in `src` while the genome
@@ -58,29 +165,61 @@ function citationProvenance(anchor, kernel, sourceReferences = {}) {
   const sourceKey = String(anchor?.src || '');
   const metadata = sourceReferences?.[sourceKey] || sourceReferences?.[sourceKey.replace(/#.*$/, '')];
   if (!metadata?.sourceUrl) return label;
+  const supportReceipt = shippedAnchorSupportReceipt(anchor, claimText, kernel, sourceKey, metadata);
   const locator = cleanText(anchor?.loc);
   const displayTitle = cleanText(metadata.displayTitle) || label;
   const attribution = Array.isArray(kernel?.attribution)
     ? kernel.attribution.map(cleanText).filter(Boolean).join('; ')
     : cleanText(kernel?.attribution);
   return {
+    ...(supportReceipt?.sourceSnapshot?.sourceId ? { id: supportReceipt.sourceSnapshot.sourceId } : {}),
     key: label,
     displayTitle: locator ? `${displayTitle} §${locator}` : displayTitle,
     sourceUrl: cleanText(metadata.sourceUrl),
-    license: cleanText(kernel?.license),
+    license: cleanText(metadata.license || kernel?.license),
     attribution: attribution || displayTitle,
     kind: /^openstax:/i.test(String(anchor?.src || '')) ? 'open textbook' : 'open resource',
-    evidence: cleanText(anchor?.quote),
+    evidence: cleanText(claimText) || cleanText(anchor?.quote),
     sourceTier: anchor?.tier ?? kernel?.definition?.tier ?? kernelTrustTier(kernel),
     conceptLinks: [{ id: cleanText(kernel?.id), label: cleanText(kernel?.term) }].filter(
       (link) => link.id || link.label,
     ),
+    ...(cleanText(metadata.provider) ? { provider: cleanText(metadata.provider) } : {}),
+    ...(supportReceipt ? { supportReceipt } : {}),
+  };
+}
+
+function mergeCitationReceipts(existing = {}, incoming = {}) {
+  const receipts = [existing?.supportReceipt, incoming?.supportReceipt].filter(Boolean);
+  if (receipts.length === 0) return existing;
+  const checks = [];
+  const seen = new Set();
+  for (const receipt of receipts) {
+    for (const check of receipt?.checks || []) {
+      const key = [check?.sourceId, check?.locator, check?.claim, check?.quote].map(cleanText).join('|').toLowerCase();
+      if (!key.replace(/\|/g, '') || seen.has(key)) continue;
+      seen.add(key);
+      checks.push(check);
+    }
+  }
+  const strongest = receipts.find((receipt) => receipt?.sourceSnapshot) || receipts[0];
+  return {
+    ...existing,
+    ...(!existing.id && incoming.id ? { id: incoming.id } : {}),
+    ...(!existing.provider && incoming.provider ? { provider: incoming.provider } : {}),
+    supportReceipt: {
+      ...strongest,
+      checkedClaims: checks.length,
+      checks,
+    },
   };
 }
 
 function citationProvenanceKey(entry) {
   if (!entry) return '';
-  if (typeof entry === 'object') return cleanText(entry.key || entry.sourceUrl || entry.displayTitle).toLowerCase();
+  if (typeof entry === 'object') {
+    return cleanText(entry.id || entry.sourceUrl || entry.key || entry.displayTitle).toLowerCase();
+  }
   return cleanText(entry).toLowerCase();
 }
 
@@ -172,7 +311,7 @@ export function composeLessonFromConcepts(conceptKernels = [], courseLayer = {},
   for (const kernel of kernels) {
     for (const fact of kernel.facts || []) {
       facts.push(cleanText(fact.text));
-      factSources.push({ anchor: fact.anchor || null, kernel });
+      factSources.push({ anchor: fact.anchor || null, kernel, claim: cleanText(fact.text) });
     }
   }
 
@@ -310,15 +449,24 @@ export function composeLessonFromConcepts(conceptKernels = [], courseLayer = {},
   // Provenance: tiers, citations, and the concept ids that fed this lesson.
   const tier = Math.max(0, ...kernels.map((kernel) => kernelTrustTier(kernel)));
   const citationCandidates = [
-    ...kernels.map((kernel) => citationProvenance(kernel.definition?.anchor, kernel, options.sourceReferences)),
-    ...factSources.map(({ anchor, kernel }) => citationProvenance(anchor, kernel, options.sourceReferences)),
+    ...kernels.map((kernel) =>
+      citationProvenance(kernel.definition?.anchor, kernel, options.sourceReferences, kernel.definition?.text),
+    ),
+    ...factSources.map(({ anchor, kernel, claim }) =>
+      citationProvenance(anchor, kernel, options.sourceReferences, claim),
+    ),
   ].filter(Boolean);
   const citations = [];
-  const seenCitationKeys = new Set();
+  const citationIndexByKey = new Map();
   for (const entry of citationCandidates) {
     const key = citationProvenanceKey(entry);
-    if (!key || seenCitationKeys.has(key)) continue;
-    seenCitationKeys.add(key);
+    if (!key) continue;
+    const existingIndex = citationIndexByKey.get(key);
+    if (existingIndex !== undefined) {
+      citations[existingIndex] = mergeCitationReceipts(citations[existingIndex], entry);
+      continue;
+    }
+    citationIndexByKey.set(key, citations.length);
     citations.push(entry);
   }
   // v0.14 P2: competency data rides along so the syllabus can build a
@@ -347,6 +495,24 @@ export function composeLessonFromConcepts(conceptKernels = [], courseLayer = {},
       ? { archetypes: [...new Set(archetypesUsed)], archetypeMisconceptionCount: archetypeMisconceptions.length }
       : {}),
   };
+
+  // This payload is assembled inside the compiler from the checked-in genome
+  // shard, not accepted from a provider response. Bind the projected facts to
+  // that shipped-library authority so the shared learner-facing projection
+  // boundary can distinguish curated course knowledge from model-provisional
+  // enrichment. A later genome/model merge deliberately does not preserve
+  // this receipt because its combined fact set is no longer this exact ledger.
+  if (payload.kernel?.facts?.length > 0) {
+    payload.kernel = {
+      ...payload.kernel,
+      provenance: {
+        source: EXACT_SOURCE_LEDGER_PROVENANCE,
+        authority: SOURCE_LEDGER_AUTHORITIES.SHIPPED_SOURCE_LIBRARY,
+        copiedFactsVerbatim: true,
+        factCount: payload.kernel.facts.length,
+      },
+    };
+  }
 
   // v0.14.1 (4.6): the worked example counts as shipped only if it survived
   // the projection (an empty `problem` is dropped there).

@@ -291,7 +291,15 @@ export function inferCourseDisciplines(courseMap) {
       'worldlit',
       /\bworld literature\b|\bcomparative literature\b|\bglobal (?:literature|fiction)\b|\bpostcolonial\b|\bmagical? realism\b|\bframe narrative\b|\bworld lit\b/,
     ],
-    ['lit', /\bliterat|literary|poetry|poem|novel|fiction|close reading|rhetoric|composition/],
+    // "Composition" by itself is not a literature signal. Visual composition,
+    // musical composition, chemical composition, and function composition all
+    // collided with the English-literature shard in fresh production runs.
+    // Keep writing-course composition, while named literary signals continue
+    // to select the shard directly.
+    [
+      'lit',
+      /\bliterat|literary|poetry|poem|novel|fiction|close reading|rhetoric|\b(?:academic|college|essay|rhetorical|written|writing) composition\b/,
+    ],
     [
       'music',
       /\bmusic theory\b|\bmusicianship\b|\bear training\b|\bsight singing\b|\bsolf[eè]ge\b|\b(?:staff|clef|interval|triad|seventh chord|rhythm|harmony|chord progression|musical form)s?\b|\b(?:musical|major|minor|chromatic|diatonic)\s+scales?\b|\bscale degrees?\b|\bkey signatures?\b|\b(?:duple|triple|compound|musical)\s+meters?\b/,

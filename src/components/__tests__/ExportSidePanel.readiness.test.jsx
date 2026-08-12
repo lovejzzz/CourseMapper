@@ -639,7 +639,8 @@ describe('ExportSidePanel readiness repair timing', () => {
     expect(modal?.parentElement).toBe(document.body);
     expect(container.querySelector('[data-testid="quality-report-modal"]')).toBeNull();
     expect(modal?.textContent).toContain('Deterministic package evidence — 61/100 earned');
-    expect(modal?.textContent).toContain('Package conformance 96/100 (A)');
+    expect(modal?.textContent).toContain('Automated conformance 96/100');
+    expect(modal?.textContent).toContain('not a teaching-quality grade');
     expect(modal?.textContent).toContain('Missing evidence stays in the fixed 100-point potential');
   });
 

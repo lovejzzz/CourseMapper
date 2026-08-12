@@ -105,6 +105,7 @@ import {
   isGenerationEpochCancelled,
   readGenerationActivity,
 } from '../lib/generationCancellation';
+import { admitInstructionalPlanForGeneration } from '../lib/instructionalPlanGenerationAdmission';
 
 const PROVIDER_CALL_EVENT_TYPES = new Set([
   'deliverableChunkCall',
@@ -1016,7 +1017,17 @@ export default function useDeliverables({
       // skeleton's session ids. The genome linker stage is SHARED (runs first,
       // unchanged); fully linked lessons ride Pass B as content-sourced
       // entries (goal/outcomes/activities only — augment, never displace).
-      const runBlueprintEnrichment = async (blueprintCourseMap, nativeSkeleton = null) => {
+      let commitAdmittedLessonKernelCache = null;
+      let evidenceGroundedInstructionalPlan = null;
+      let governingSourceContract = null;
+      let scionEvidenceHandoff = null;
+      let authenticLanguageDataTransaction;
+      const runBlueprintEnrichment = async (
+        blueprintCourseMap,
+        nativeSkeleton = null,
+        preDraftInstructionalPlan = null,
+        authenticLanguageEvidenceAuthorityByLessonId = {},
+      ) => {
         const abortKey = `shared:${generationRunId}:blueprintEnrichment`;
         const controller = createGenerationAbortController(generationEpochRef, generationEpoch);
         if (!controller) return;
@@ -1045,6 +1056,19 @@ export default function useDeliverables({
         // and never ran when enrichment was off — which it was, by default).
         let genomeLink = null;
         let lessonKernelCache = null;
+        const stagedLessonKernelCacheEntries = new Map();
+        const stageLessonKernelCache = (lesson, payload) => {
+          if (!lessonKernelCache || !lesson || !payload) return;
+          stagedLessonKernelCacheEntries.set(lesson, payload);
+        };
+        const armLessonKernelCacheCommit = () => {
+          if (!lessonKernelCache || stagedLessonKernelCacheEntries.size === 0) return;
+          commitAdmittedLessonKernelCache = () => {
+            for (const [lesson, payload] of stagedLessonKernelCacheEntries) {
+              lessonKernelCache.set(lesson, payload);
+            }
+          };
+        };
         if (sourceBriefConstraints.instructorSourcesOnly) {
           recordGenerationApiCallEvent({
             type: 'pipelineDecision',
@@ -1263,7 +1287,6 @@ export default function useDeliverables({
           }
         }
 
-        let scionEvidenceHandoff = null;
         if (provider === PUBLIC_SCION_PROVIDER_ID && !sourceBriefConstraints.instructorSourcesOnly) {
           const { prepareScionEvidenceGenerationHandoff } = await import('../lib/scionEvidenceLayer');
           scionEvidenceHandoff = await prepareScionEvidenceGenerationHandoff({
@@ -1275,6 +1298,8 @@ export default function useDeliverables({
             signal: controller.signal,
             recordEvent: recordGenerationApiCallEvent,
             appendLog,
+            instructionalPlan: preDraftInstructionalPlan,
+            authenticLanguageEvidenceAuthorityByLessonId,
           });
           stageDecisions.scionEvidence = scionEvidenceHandoff.stageDecision;
           if (scionEvidenceHandoff.knowledgeBackboneEvent) {
@@ -1286,7 +1311,82 @@ export default function useDeliverables({
           scionEvidenceHandoff?.selectCandidate ||
           ((_lessonId, previous, candidate, fallbackPick) => fallbackPick(previous, candidate));
         const scionEvidenceContentSourceOverrides = new Set(scionEvidenceHandoff?.contentSourceOverrideLessonIds || []);
+        const scionEvidenceSeedLessonContent = scionEvidenceHandoff?.lessonContent || {};
         const scionEvidencePromptOptions = scionEvidenceHandoff?.promptOptions || {};
+        const applyScionEvidenceAuthorityToLessonContent = (lessonContent = {}) => {
+          if (!scionEvidenceHandoff) return lessonContent;
+          for (const [lessonId, payload] of Object.entries(lessonContent)) {
+            lessonContent[lessonId] = bindScionEvidenceProvenance(lessonId, payload);
+          }
+          return lessonContent;
+        };
+
+        // Stage 2 is evidence-only admission. The curriculum plan may have
+        // ended `needs-evidence`; no semantic prompt is built until exact
+        // claims and their source receipts satisfy every lesson need.
+        if (preDraftInstructionalPlan?.admission?.status === 'approved') {
+          evidenceGroundedInstructionalPlan = preDraftInstructionalPlan;
+        } else {
+          const { createScionEvidenceAuthorityContract } = await import('../lib/scionEvidenceLayer');
+          governingSourceContract =
+            scionEvidenceHandoff?.governingSourceContract ||
+            createScionEvidenceAuthorityContract({
+              lessonIndices: allLessonIndices,
+              genomeLessonContent: genomeLink?.lessonContent,
+              authenticLanguageEvidenceAuthorityByLessonId,
+              instructionalPlan: preDraftInstructionalPlan,
+            });
+          try {
+            const { prepareInstructionalPlan } = await import('../lib/prepareInstructionalPlan');
+            evidenceGroundedInstructionalPlan = prepareInstructionalPlan({
+              courseMap: blueprintCourseMap,
+              scopeIndices,
+              sourceBrief,
+              sessionMinutes: requestedSessionMinutes,
+              instructorProvidedFacts: sourceBriefConstraints.instructorProvidedFacts,
+              governingSourceContract,
+              ...authenticLanguageDataTransaction,
+              authorityKind: nativeSkeleton ? 'native-skeleton-render' : 'repaired-course-map',
+            }).instructionalPlan;
+          } catch (evidencePlanError) {
+            const evidenceAdmissionFailures = Object.entries(governingSourceContract?.byLessonId || {})
+              .filter(([, authority]) => authority?.status !== 'admitted')
+              .map(([lessonId, authority]) => {
+                const reasons = [
+                  ...(authority?.admissionDiagnostics?.researched?.reasons || []),
+                  ...(authority?.admissionDiagnostics?.shipped?.reasons || []),
+                ].filter((reason, index, entries) => reason && entries.indexOf(reason) === index);
+                return `${lessonId}${reasons.length > 0 ? ` (${reasons.join(', ')})` : ''}`;
+              });
+            recordGenerationApiCallEvent({
+              type: 'instructionalPlanAdmission',
+              stage: 'evidence-grounded-planning',
+              label: 'Evidence-grounded instructional plan',
+              status: 'blocked',
+              receiptSha256: governingSourceContract?.receiptSha256 || null,
+              providerCallsPrevented: true,
+              detail: `${
+                evidencePlanError?.message ||
+                'Scion gathered evidence but did not earn authorization to draft every lesson.'
+              }${evidenceAdmissionFailures.length > 0 ? ` · ${evidenceAdmissionFailures.join('; ')}` : ''}`,
+            });
+            appendLog(
+              'Scion paused before drafting because one or more lessons still need source-bound claims.',
+              'warn',
+            );
+            throw evidencePlanError;
+          }
+        }
+        recordGenerationApiCallEvent({
+          type: 'instructionalPlanAdmission',
+          stage: 'evidence-grounded-planning',
+          label: 'Evidence-grounded instructional plan',
+          status: 'approved',
+          lessonCount: evidenceGroundedInstructionalPlan.lessonIntents.length,
+          receiptSha256: evidenceGroundedInstructionalPlan.receipt.exactInputSha256,
+          governingSourceReceiptSha256: governingSourceContract?.receiptSha256 || null,
+          detail: `${evidenceGroundedInstructionalPlan.lessonIntents.length}/${evidenceGroundedInstructionalPlan.lessonIntents.length} lessons earned claim-bound drafting authority`,
+        });
 
         const genomeOnlyEnrichment = () => {
           releaseDeliverableController(abortMapRef.current, abortKey, controller);
@@ -1398,7 +1498,10 @@ export default function useDeliverables({
               import('../lib/blueprintEnrichmentPass'),
               import('../lib/adaptiveProviderBatching'),
             ]);
-            const lessonContent = { ...(genomeLink?.lessonContent || {}) };
+            const lessonContent = applyScionEvidenceAuthorityToLessonContent({
+              ...(genomeLink?.lessonContent || {}),
+              ...scionEvidenceSeedLessonContent,
+            });
             const partialOverlays = genomeLink?.partialOverlays || {};
             const genomeTelemetry = genomeLink?.telemetry || null;
             const genomeLinkPowers = genomeLink?.powers || null;
@@ -1506,6 +1609,7 @@ export default function useDeliverables({
                   ? { instructorProvidedFacts: sourceBriefConstraints.instructorProvidedFacts }
                   : {}),
                 ...(scionProvider ? scionEvidencePromptOptions : {}),
+                instructionalPlan: evidenceGroundedInstructionalPlan,
                 contentSourcedLessonIds: scionProvider ? [] : contentSourcedLessonIds,
                 recoveryAttempt,
                 expectedLessonIds,
@@ -1616,7 +1720,7 @@ export default function useDeliverables({
                 if (lessonKernelCache && kernelIsUsable(lessonContent[lessonId])) {
                   const lessonIdx = Number(String(lessonId).replace('lesson-', '')) - 1;
                   const lesson = blueprintCourseMap.lessons?.[lessonIdx];
-                  if (lesson) lessonKernelCache.set(lesson, lessonContent[lessonId]);
+                  if (lesson) stageLessonKernelCache(lesson, lessonContent[lessonId]);
                 }
               }
               for (const [lessonId, authored] of Object.entries(parsed.authored)) {
@@ -1642,7 +1746,7 @@ export default function useDeliverables({
                 for (const lessonId of mergedLessonIds) {
                   const lessonIdx = Number(String(lessonId).replace('lesson-', '')) - 1;
                   const lesson = blueprintCourseMap.lessons?.[lessonIdx];
-                  if (lesson) lessonKernelCache.set(lesson, lessonContent[lessonId]);
+                  if (lesson) stageLessonKernelCache(lesson, lessonContent[lessonId]);
                 }
               }
               return mergedLessonIds;
@@ -1847,6 +1951,7 @@ export default function useDeliverables({
               `✓ Authored ${Object.keys(nativeAuthored).length}; kernels ${enrichedLessonCount}/${allLessonIndices.length}; payloads ${availablePayloadCount}`,
               'done',
             );
+            armLessonKernelCacheCommit();
             releaseDeliverableController(abortMapRef.current, abortKey, controller);
             return {
               signatureTerms: absorbedCourseLevel?.signatureTerms || [],
@@ -1934,7 +2039,10 @@ export default function useDeliverables({
           if (!kernelStage) {
             // Standalone course-level call — only when the kernel stage is off
             // (v0.9.11 P4c absorbed it into kernel chunk #1 otherwise).
-            const prompts = buildBlueprintEnrichmentPrompt(blueprintCourseMap, { scopeIndices });
+            const prompts = buildBlueprintEnrichmentPrompt(blueprintCourseMap, {
+              scopeIndices,
+              instructionalPlan: evidenceGroundedInstructionalPlan,
+            });
             appendLog('Enriching blueprint...', 'progress');
             recordGenerationApiCallEvent({
               type: 'blueprintEnrichmentCall',
@@ -1982,7 +2090,10 @@ export default function useDeliverables({
           // model too — the genome augments, never displaces; the model
           // payload below overwrites the thin one and the merge after the
           // loops folds the cited genome terms back in.
-          const lessonContent = { ...(genomeLink?.lessonContent || {}) };
+          const lessonContent = applyScionEvidenceAuthorityToLessonContent({
+            ...(genomeLink?.lessonContent || {}),
+            ...scionEvidenceSeedLessonContent,
+          });
           const semanticRepairs = [];
           let absorbedCourseLevel = null;
           const genomeTelemetry = genomeLink?.telemetry || null;
@@ -2025,6 +2136,7 @@ export default function useDeliverables({
                 ? { instructorProvidedFacts: sourceBriefConstraints.instructorProvidedFacts }
                 : {}),
               ...scionEvidencePromptOptions,
+              instructionalPlan: evidenceGroundedInstructionalPlan,
             });
             const scionMod =
               provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID ? await import('../lib/scionPassB') : null;
@@ -2085,7 +2197,7 @@ export default function useDeliverables({
                   for (const [lessonId, payload] of Object.entries(parsedKernels.lessons)) {
                     const lessonIdx = Number(String(lessonId).replace('lesson-', '')) - 1;
                     const lesson = blueprintCourseMap.lessons?.[lessonIdx];
-                    if (lesson) lessonKernelCache.set(lesson, payload);
+                    if (lesson) stageLessonKernelCache(lesson, payload);
                   }
                 }
                 if (parsedKernels.issues.length > 0) {
@@ -2184,6 +2296,7 @@ export default function useDeliverables({
                 ? { instructorProvidedFacts: sourceBriefConstraints.instructorProvidedFacts }
                 : {}),
               ...scionEvidencePromptOptions,
+              instructionalPlan: evidenceGroundedInstructionalPlan,
               ...(romanizationChunk.length > 0 ? { romanizationFocus } : {}),
             });
             const scionMod =
@@ -2261,7 +2374,7 @@ export default function useDeliverables({
                   lessonContent[lessonId] = bindScionEvidenceProvenance(lessonId, lessonContent[lessonId]);
                   if (lessonKernelCache) {
                     const lesson = blueprintCourseMap.lessons?.[lessonNumber - 1];
-                    if (lesson) lessonKernelCache.set(lesson, lessonContent[lessonId]);
+                    if (lesson) stageLessonKernelCache(lesson, lessonContent[lessonId]);
                   }
                 }
                 if (restoredNumbers.length > 0) {
@@ -2302,7 +2415,7 @@ export default function useDeliverables({
               if (lessonKernelCache) {
                 const lessonIdx = Number(String(lessonId).replace('lesson-', '')) - 1;
                 const lesson = blueprintCourseMap.lessons?.[lessonIdx];
-                if (lesson) lessonKernelCache.set(lesson, merged);
+                if (lesson) stageLessonKernelCache(lesson, merged);
               }
             }
             if (mergedCount > 0) {
@@ -2355,6 +2468,7 @@ export default function useDeliverables({
             `✓ Kernels ${enrichedLessonCount}/${allLessonIndices.length}; payloads ${availablePayloadCount}${absorbedCourseLevel ? `; course lens ${absorbedCourseLevel.signatureTerms.length} terms` : ''}`,
             'done',
           );
+          armLessonKernelCacheCommit();
           return enrichment;
         } catch (err) {
           if (err?.name === 'AbortError') {
@@ -2431,7 +2545,7 @@ export default function useDeliverables({
                 columns,
                 lessonFilter: scopeIndices,
               });
-        const blueprintCourseMap = courseMapRepair.courseMap || courseMap;
+        let blueprintCourseMap = courseMapRepair.courseMap || courseMap;
         if (courseMapRepair.changed) {
           if (shouldStopBlueprintCompiler()) return;
           appendLog(
@@ -2455,9 +2569,59 @@ export default function useDeliverables({
           directCourseIRState = directCourseIRResult.state;
           blueprintEnrichment = directCourseIRResult.blueprintEnrichment;
         }
+        let preDraftInstructionalPlan = null;
+        let authenticLanguageEvidenceAuthorityByLessonId = {};
+        if (!directCourseIRState) {
+          try {
+            const { prepareInstructionalPlan } = await import('../lib/prepareInstructionalPlan');
+            const preparedInstructionalPlan = prepareInstructionalPlan({
+              courseMap: blueprintCourseMap,
+              scopeIndices,
+              sourceBrief,
+              sessionMinutes: requestedSessionMinutes,
+              instructorProvidedFacts: sourceBriefConstraints.instructorProvidedFacts,
+              authorityKind: nativeSkeleton ? 'native-skeleton-render' : 'repaired-course-map',
+            });
+            blueprintCourseMap = preparedInstructionalPlan.courseMap;
+            preDraftInstructionalPlan = preparedInstructionalPlan.instructionalPlan;
+            authenticLanguageEvidenceAuthorityByLessonId =
+              preparedInstructionalPlan.authenticLanguageEvidenceAuthorityByLessonId || {};
+            authenticLanguageDataTransaction = preparedInstructionalPlan.authenticLanguageDataTransaction;
+          } catch (planError) {
+            recordGenerationApiCallEvent({
+              type: 'instructionalPlanAdmission',
+              stage: 'pre-draft-instructional-planning',
+              label: 'Pre-draft instructional plan',
+              status: 'blocked',
+              detail: planError?.message || 'Instructional planning blocked semantic drafting.',
+              providerCallsPrevented: true,
+            });
+            appendLog(`Scion did not draft because the instructional plan is unresolved: ${planError.message}`, 'warn');
+            throw planError;
+          }
+          recordGenerationApiCallEvent({
+            type: 'instructionalPlanAdmission',
+            stage: 'pre-draft-instructional-planning',
+            label: 'Pre-draft instructional plan',
+            status: preDraftInstructionalPlan.admission.status,
+            lessonCount: preDraftInstructionalPlan.lessonIntents.length,
+            receiptSha256: preDraftInstructionalPlan.receipt.exactInputSha256,
+            detail:
+              preDraftInstructionalPlan.admission.status === 'needs-evidence'
+                ? `${preDraftInstructionalPlan.lessonIntents.length} lesson intents; evidence required before drafting`
+                : `${preDraftInstructionalPlan.lessonIntents.length} lesson intents approved before drafting`,
+          });
+          appendLog(
+            preDraftInstructionalPlan.admission.status === 'needs-evidence'
+              ? `✓ Evidence plan: ${preDraftInstructionalPlan.lessonIntents.length} lessons`
+              : `✓ Draft plan approved: ${preDraftInstructionalPlan.lessonIntents.length} lessons`,
+            'done',
+          );
+        }
         if (
           !directCourseIRState &&
           !nativeSkeleton &&
+          preDraftInstructionalPlan?.admission?.status === 'approved' &&
           generationOptions.refreshEnrichment !== true &&
           lastEnrichmentOverlayRef.current?.lessonContent
         ) {
@@ -2468,7 +2632,10 @@ export default function useDeliverables({
             blueprintCourseMap,
             scopeIndices,
           );
-          if (restored) {
+          const restoredPlanReceipt = restored?.enrichment?.preDraftInstructionalPlanReceipt;
+          const restoredPlanMatches =
+            restoredPlanReceipt?.exactInputSha256 === preDraftInstructionalPlan?.receipt?.exactInputSha256;
+          if (restored && restoredPlanMatches) {
             blueprintEnrichment = restored.enrichment;
             appendLog(
               `✓ Reused ${restored.enrichedLessonIds.length}/${lessonIndices.length} saved knowledge kernel${restored.enrichedLessonIds.length === 1 ? '' : 's'} after admission recheck`,
@@ -2478,10 +2645,39 @@ export default function useDeliverables({
               lessonIds: restored.enrichedLessonIds,
               admissionRevalidation: restored.receipt,
             });
+          } else if (restored) {
+            recordGenerationApiCallEvent({
+              type: 'pipelineDecision',
+              stage: 'pre-draft-instructional-planning',
+              label: 'Saved kernels quarantined',
+              detail: 'The saved semantic output was not authorized by the current pre-draft plan receipt.',
+            });
+            appendLog(
+              'Saved knowledge kernels were not reused because their instructional-plan receipt is stale.',
+              'progress',
+            );
           }
         }
         if (!directCourseIRState && !blueprintEnrichment) {
-          blueprintEnrichment = await runBlueprintEnrichment(blueprintCourseMap, nativeSkeleton);
+          blueprintEnrichment = await runBlueprintEnrichment(
+            blueprintCourseMap,
+            nativeSkeleton,
+            preDraftInstructionalPlan,
+            authenticLanguageEvidenceAuthorityByLessonId,
+          );
+          if (blueprintEnrichment && typeof blueprintEnrichment === 'object') {
+            blueprintEnrichment.preDraftInstructionalPlanReceipt = {
+              protocol: 'coursemapper-pre-draft-instructional-plan-v1',
+              exactInputSha256: evidenceGroundedInstructionalPlan.receipt.exactInputSha256,
+              curriculumPlanReceiptSha256: preDraftInstructionalPlan.receipt.exactInputSha256,
+              evidenceNeedsReceiptSha256:
+                preDraftInstructionalPlan.evidenceNeedsPlan?.receipt?.exactInputSha256 || null,
+              draftAuthorizationReceiptSha256: evidenceGroundedInstructionalPlan.receipt.exactInputSha256,
+              governingSourceContractReceiptSha256: governingSourceContract?.receiptSha256 || null,
+              lessonCount: preDraftInstructionalPlan.lessonIntents.length,
+              status: evidenceGroundedInstructionalPlan.admission.status,
+            };
+          }
           if (shouldStopBlueprintCompiler()) return;
         }
         // v0.12.1: structured outcome for the run digest's content-risk
@@ -2490,13 +2686,17 @@ export default function useDeliverables({
         // missing lesson numbers) so partial enrichment reads as
         // "ran (12/14 — lessons 13, 14 fell back to template)" everywhere
         // (digest pipeline line, PACKAGE_MANIFEST, finalizer warning).
-        const [{ buildEnrichmentDecisionEvent }, instructorPreferenceProfile, courseGraphLib] = await Promise.all([
+        const [
+          { buildEnrichmentDecisionEvent, reconcileEnrichmentOutcomeWithEvidenceReplay },
+          instructorPreferenceProfile,
+          courseGraphLib,
+        ] = await Promise.all([
           import('../lib/enrichmentDecisionEvent'),
           loadInstructorPreferenceProfile(),
           import('../lib/courseGraph'),
         ]);
         if (shouldStopBlueprintCompiler()) return;
-        const { outcome: enrichmentOutcome, event: enrichmentDecisionEvent } = buildEnrichmentDecisionEvent({
+        let { outcome: enrichmentOutcome, event: enrichmentDecisionEvent } = buildEnrichmentDecisionEvent({
           blueprintEnrichment,
           compilerRoute: nativeSkeleton?.scionRoute,
         });
@@ -2645,6 +2845,15 @@ export default function useDeliverables({
             enrichmentForGraph,
           );
         }
+        // The pre-draft language-data packet is part of the governing evidence
+        // transaction, not a compiler-only option. Freeze it onto the final
+        // native/prose graph before the first workspace/save callback so the
+        // project, source ledger, and exports cannot lose the evidence that
+        // authorized drafting.
+        courseGraph = courseGraphLib.attachAuthenticLanguageDataTransactionToGraph(
+          courseGraph,
+          authenticLanguageDataTransaction,
+        );
         // v0.13.5 P2: the Open Knowledge Backbone — genome anchor sections
         // become cited Resource entities (free, offline), then open
         // peer-reviewed readings and book metadata attach when the network
@@ -2765,6 +2974,16 @@ export default function useDeliverables({
           }
         }
         if (shouldStopBlueprintCompiler()) return;
+        // Knowledge attachment is allowed to discover review material, but it
+        // must not be the final writer of learner-visible source edges. Rebind
+        // the exact authority transaction after every additive source stage so
+        // scaffold packets, weak genome matches, and duplicate URLs cannot
+        // reappear between evidence admission and compiler registry creation.
+        const boundSources = scionEvidenceHandoff?.bindTeachingSurfaces(blueprintCourseMap, courseGraph);
+        if (boundSources) {
+          blueprintCourseMap = boundSources.courseMap;
+          courseGraph = boundSources.courseGraph;
+        }
         if (typeof onCourseGraph === 'function') {
           onCourseGraph(courseGraph, { source: 'generation' });
         }
@@ -2828,6 +3047,14 @@ export default function useDeliverables({
             ...(sourceBriefConstraints.instructorProvidedFacts.length > 0
               ? { instructorProvidedFacts: sourceBriefConstraints.instructorProvidedFacts }
               : {}),
+            ...(evidenceGroundedInstructionalPlan?.planningAuthority
+              ? { planningAuthority: evidenceGroundedInstructionalPlan.planningAuthority }
+              : {}),
+            ...(evidenceGroundedInstructionalPlan ? { instructionalPlan: evidenceGroundedInstructionalPlan } : {}),
+            ...(governingSourceContract?.byLessonId
+              ? { evidenceAuthorityByLessonId: governingSourceContract.byLessonId }
+              : {}),
+            ...authenticLanguageDataTransaction,
             compilerPath: {
               mode: blueprintEnrichment ? 'enriched' : 'deterministic',
               reason: !blueprintEnrichment
@@ -2841,6 +3068,39 @@ export default function useDeliverables({
             instructorPreferences: instructorPreferenceProfile,
           }),
         );
+        const replayReconciledOutcome = reconcileEnrichmentOutcomeWithEvidenceReplay(
+          enrichmentOutcome,
+          blueprint?.enrichment?.coverage,
+        );
+        if (JSON.stringify(replayReconciledOutcome) !== JSON.stringify(enrichmentOutcome)) {
+          const priorEnrichedLessons = enrichmentOutcome.enrichedLessons;
+          enrichmentOutcome = replayReconciledOutcome;
+          recordGenerationApiCallEvent({
+            type: 'pipelineDecision',
+            stage: 'enrichmentModelStage',
+            label: 'Evidence replay coverage reconciliation',
+            detail: `reconciled ${priorEnrichedLessons}/${enrichmentOutcome.requestedLessons} initial kernels to ${enrichmentOutcome.enrichedLessons}/${enrichmentOutcome.requestedLessons} hash-bound evidence-authority kernels`,
+            outcome: enrichmentOutcome,
+          });
+        }
+        const instructionalPlan = admitInstructionalPlanForGeneration({
+          appendLog,
+          blueprint,
+          blueprintEnrichment,
+          commitKernelCache() {
+            commitAdmittedLessonKernelCache?.();
+            commitAdmittedLessonKernelCache = null;
+          },
+          courseGraph,
+          discardKernelCacheCommit() {
+            commitAdmittedLessonKernelCache = null;
+          },
+          evidenceGroundedInstructionalPlan,
+          governingSourceContract,
+          onCourseGraph,
+          preDraftInstructionalPlan,
+          recordEvent: recordGenerationApiCallEvent,
+        });
         // v0.15.3 D1: the lesson-depth flag rides the configMap on EVERY
         // app compile path (generation here, sync recompile, compact
         // restore) — a path that forgot it would surface as phantom drift.

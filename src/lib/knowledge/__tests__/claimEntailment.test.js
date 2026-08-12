@@ -3,9 +3,39 @@ import {
   attachKernelEntailmentReceipt,
   evaluateClaimEntailment,
   evaluateKernelEntailment,
+  isStandaloneSourceClaim,
 } from '../claimEntailment.js';
 
 describe('claim-to-passage entailment admission', () => {
+  it('rejects byte-exact source fragments that retain an unresolved antecedent', () => {
+    expect(
+      isStandaloneSourceClaim(
+        'Combining one secondary color and a primary color in the same manner produces a tertiary color.',
+      ),
+    ).toBe(false);
+    expect(
+      isStandaloneSourceClaim(
+        'A tertiary color is produced by mixing full saturation of one primary color with half saturation of another primary color.',
+      ),
+    ).toBe(true);
+    expect(isStandaloneSourceClaim('This allows a larger sample to be compared.')).toBe(false);
+    expect(isStandaloneSourceClaim('The example above is the simplest kind of contingency table.')).toBe(false);
+    expect(isStandaloneSourceClaim('These results distinguish the two methods.')).toBe(false);
+    expect(
+      isStandaloneSourceClaim(
+        'The most common of these is the Pearson correlation coefficient, which measures linear association.',
+      ),
+    ).toBe(false);
+    expect(
+      isStandaloneSourceClaim(
+        'In addition, Narrative visualization uses visual elements to communicate data through a structured story.',
+      ),
+    ).toBe(false);
+    expect(
+      isStandaloneSourceClaim('A contingency table displays joint frequencies for two categorical variables.'),
+    ).toBe(true);
+  });
+
   it('accepts an exact source claim and a conservative compression', () => {
     expect(
       evaluateClaimEntailment({

@@ -40,6 +40,7 @@ function qualitySummary(result) {
 const inputArgument = argument('--input');
 const zipArgument = argument('--zip');
 const receiptArgument = argument('--output');
+const reproductionZipArgument = argument('--reproduction-zip');
 if (!inputArgument || !zipArgument || !receiptArgument) {
   throw new Error(
     'Usage: npx vite-node scripts/v01712LearnerCheckpointReplay.mjs --input <project.coursemapper> --zip <package.zip> --output <receipt.json>',
@@ -117,6 +118,11 @@ const firstBytes = Buffer.from(await first.blob.arrayBuffer());
 const secondBytes = Buffer.from(await second.blob.arrayBuffer());
 fs.mkdirSync(path.dirname(zipPath), { recursive: true });
 fs.writeFileSync(zipPath, firstBytes);
+if (reproductionZipArgument) {
+  const reproductionZipPath = path.resolve(reproductionZipArgument);
+  fs.mkdirSync(path.dirname(reproductionZipPath), { recursive: true });
+  fs.writeFileSync(reproductionZipPath, secondBytes);
+}
 
 const assignmentProof = (finalized.deliverables?.assignments?.data?.assignments || []).map((assignment) => ({
   lessonNumber: assignment.lessonNumber,

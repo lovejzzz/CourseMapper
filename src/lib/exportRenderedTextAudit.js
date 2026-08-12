@@ -24,10 +24,20 @@ function decodeXmlEntities(value) {
 }
 
 function xmlToParagraphTexts(xml, paragraphTag) {
-  return String(xml || '')
-    .split(paragraphTag)
-    .map((chunk) =>
-      decodeXmlEntities(chunk.replace(/<[^>]+>/g, ' '))
+  const closingTag = String(paragraphTag || '')
+    .replace(/^<\//, '')
+    .replace(/>$/, '');
+  const namespace = closingTag.includes(':') ? closingTag.split(':')[0] : '';
+  const localName = closingTag.includes(':') ? closingTag.split(':')[1] : closingTag;
+  if (!localName) return [];
+  const qualified = namespace ? `${namespace}:${localName}` : `(?:[A-Za-z0-9_-]+:)?${localName}`;
+  // Match only real paragraph elements. Splitting on a closing tag leaves the
+  // XML that follows the last paragraph in a synthetic final chunk; slide
+  // extension metadata (including URI-encoded audit contracts) was therefore
+  // misclassified as learner-visible prose and could trigger false P0 repeats.
+  return [...String(xml || '').matchAll(new RegExp(`<${qualified}\\b[^>]*>([\\s\\S]*?)<\\/${qualified}>`, 'g'))]
+    .map((match) =>
+      decodeXmlEntities(match[1].replace(/<[^>]+>/g, ' '))
         .replace(/\s+/g, ' ')
         .trim(),
     )
@@ -55,6 +65,20 @@ export function extractPptxStructuralObjectTags(xml) {
     tags.push(tag || '<missing-cNvPr>');
   }
   return tags;
+}
+
+function xmlAttribute(tag = '', name = '') {
+  return decodeXmlEntities(String(tag).match(new RegExp(`\\b${name}="([^"]*)"`))?.[1] || '').trim();
+}
+
+export function pptxSemanticDescriptionIsMeaningful(tag = '') {
+  const name = xmlAttribute(tag, 'name');
+  const description = xmlAttribute(tag, 'descr');
+  if (!description) return false;
+  if (!/^cmViz/i.test(name)) return true;
+  return !/^(?:decorative|coursemapper semantic visual|visible slide text(?: and authored visual guidance)?\.?|visual)$/i.test(
+    description,
+  );
 }
 
 function accessibilityFinding(problems) {
@@ -134,6 +158,18 @@ export function findWorstPhraseRepetition(paragraphs) {
   for (const paragraph of paragraphs) {
     const words = stripStructuralMetadata(paragraph)
       .toLowerCase()
+      // A bibliography may correctly repeat the same rights-and-attribution
+      // tuple for many independently titled sources. Collapse the complete
+      // CC-license + URL + Wikipedia-credit tail as citation structure while
+      // leaving both the source title and ordinary license prose auditable.
+      .replace(
+        /\bcc\s+by(?:[-\s](?:sa|nc|nd))*\s+\d(?:\.\d+)?\s*[—–-]\s*https?:\/\/\S+(?:\s*[—–-]\s*wikipedia contributors(?:,\s*[“"][^”"]+[”"])?\s*)?/gi,
+        ' xsourcecreditx ',
+      )
+      // Repeated host/path tokens in a bibliography are source identity, not
+      // instructional boilerplate. Keep the surrounding visible metadata in
+      // the audit while collapsing each complete URL before shingling.
+      .replace(/https?:\/\/\S+/gi, ' xurlx ')
       .replace(/[^a-z0-9\s]/g, ' ')
       .split(/\s+/)
       .filter(Boolean);
@@ -244,6 +280,15 @@ export async function auditOfficeAccessibility(blob, format) {
     const documentXml = await zip.file('word/document.xml')?.async('string');
     if (documentXml) {
       if (!/w:val="(?:Title|Heading[1-6])"/.test(documentXml)) problems.push('no-heading-structure');
+      const headingLevels = [
+        ...documentXml.matchAll(/<w:p\b[\s\S]*?<w:pStyle\b[^>]*w:val="(Title|Heading([1-6]))"[^>]*>[\s\S]*?<\/w:p>/g),
+      ].map((match) => (match[1] === 'Title' ? 1 : Number(match[2])));
+      for (let index = 1; index < headingLevels.length; index += 1) {
+        if (headingLevels[index] > headingLevels[index - 1] + 1) {
+          problems.push('heading-level-skip');
+          break;
+        }
+      }
       const tables = documentXml.split('<w:tbl>').slice(1);
       for (const table of tables) {
         // A one-row table is a layout unit, not a header-plus-data table. The
@@ -255,8 +300,19 @@ export async function auditOfficeAccessibility(blob, format) {
         const rowCount = table.match(/<w:tr(?:\s[^>]*)?>/g)?.length || 0;
         if (rowCount < 2) continue;
         const firstRow = table.split('</w:tr>')[0] || '';
-        if (!/w:shd /.test(firstRow)) {
-          problems.push('table-without-header-shading');
+        if (!/<w:tblHeader(?:\s[^>]*)?\/?\s*>/.test(firstRow)) {
+          problems.push('table-without-header-semantics');
+          break;
+        }
+      }
+      for (const hyperlink of documentXml.match(/<w:hyperlink\b[\s\S]*?<\/w:hyperlink>/g) || []) {
+        const label =
+          xmlToParagraphTexts(hyperlink, '</w:p>').join(' ') ||
+          decodeXmlEntities(hyperlink.replace(/<[^>]+>/g, ' '))
+            .replace(/\s+/g, ' ')
+            .trim();
+        if (!label || /^(?:click here|here|link)$/i.test(label)) {
+          problems.push('hyperlink-without-readable-label');
           break;
         }
       }
@@ -282,6 +338,10 @@ export async function auditOfficeAccessibility(blob, format) {
         const descr = object.match(/\bdescr="([^"]*)"/);
         if (!descr || !descr[1].trim()) {
           problems.push('semantic-object-without-description');
+          break;
+        }
+        if (!pptxSemanticDescriptionIsMeaningful(object)) {
+          problems.push('semantic-object-description-not-meaningful');
           break;
         }
       }

@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "protocol": "coursemapper-representative-export-audit-v1",
+  "release": "0.17.18",
+  "recordedAt": "2026-08-12T04:04:00Z",
+  "course": {
+    "title": "Visual Evidence and Image Analysis",
+    "lessonCount": 5,
+    "inputCondition": "frozen prompt-authored project recompiled under the release candidate"
+  },
+  "bindings": {
+    "packageSha256": "86b9b77ee38e21e53b75bfdcb4be3b529440539dd706f3862faec18f28997041",
+    "packageBytes": 2384313,
+    "savedProjectSha256": "ca87ffbe2d25ccc3bad0e52c08825bd7dd675f049229593ccdc97bd37c297ac0",
+    "savedProjectBytes": 11352721,
+    "renderIndexSha256": "8e3dba52fec77ddaa697374a13f6e2362639b76b852f3ab5c5c02f081a865843",
+    "renderIndexBytes": 28853
+  },
+  "results": {
+    "requestedExportFamilyCount": 10,
+    "officeArtifactCount": 42,
+    "renderedItemCount": 141,
+    "exportVerification": { "checked": 38, "failed": 0, "warnings": 0 },
+    "encodedConformance": { "score": 99, "maximum": 100, "p0": 0, "p1": 0, "p2": 0 },
+    "packageReadiness": { "status": "ready", "blockers": 0, "warnings": 0 },
+    "manualRenderSample": ["syllabus", "course map", "lesson plan", "assignment brief", "rubric", "slide deck"]
+  },
+  "decision": "pass",
+  "claimBoundary": "This is a bounded representative engineering audit. It supports publication of a coherent draft generator, not factual certification, accessibility certification, instructor approval, classroom effectiveness, or universal course quality."
+}

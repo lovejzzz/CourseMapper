@@ -79,4 +79,28 @@ describe('Scion runtime failure boundary', () => {
       'warning',
     );
   });
+
+  it('stops before research instead of falling back when Pass A cannot name the lesson', async () => {
+    const streamProvider = vi.fn(async () => ({
+      fullText: JSON.stringify({
+        course: { name: 'Course', term: 'TBD', goals: [] },
+        sessions: [{ id: 's1', order: 1, title: 'Session 1 topic', sectionTitles: ['Session 1 topic'] }],
+        assessments: [],
+        readings: [],
+        resources: [],
+      }),
+    }));
+    const recordApiCallEvent = vi.fn();
+    const addLog = vi.fn();
+
+    await expect(
+      runNativeSkeletonGenerationFlow(nativeFlowInput(streamProvider, recordApiCallEvent), nativeFlowOutput(addLog)),
+    ).rejects.toMatchObject({ code: 'SCION_INSTRUCTIONAL_PLAN_NOT_READY' });
+
+    expect(streamProvider).toHaveBeenCalledTimes(1);
+    expect(recordApiCallEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'pipelineDecision', label: 'Instructional plan blocked' }),
+    );
+    expect(recordApiCallEvent).not.toHaveBeenCalledWith(expect.objectContaining({ type: 'nativeAuthoringFellBack' }));
+  });
 });

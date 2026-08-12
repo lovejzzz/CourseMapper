@@ -30,7 +30,7 @@ const TITLE_LIKE_KEY_RE =
 // must keep its lesson-specific wording or readiness gates (rightly) flag it
 // as generic guidance.
 const REPLACEMENT_EXEMPT_KEY_RE =
-  /^(?:notes|speakerNotes|instructorNotes|localReviewAction|reviewerAction|reviewFocus|localConfirmationCue|localReviewNeeded|assignedReadings|supportResources|objectives|learningObjectives)$/i;
+  /^(?:notes|speakerNotes|instructorNotes|localReviewAction|reviewerAction|reviewFocus|localConfirmationCue|localReviewNeeded|assignedReadings|supportResources|objectives|learningObjectives|estimatedTime|studentFacingEstimate)$/i;
 
 // ── v0.14.5 WS-D (D1): registry-keyed reference nouns ───────────────────────
 // Targets that carry registry identity (assessmentId — the Phase 3a fields)
@@ -148,6 +148,7 @@ function fixMechanicalSeams(value) {
   // notes. Repair them at the final reader-visible boundary without another
   // model call or any change to the underlying requirement.
   text = text
+    .replace(/\byour\s+the\s+/gi, 'your ')
     .replace(/\blocally approved submission form\b/gi, 'submission format specified in the course site')
     .replace(
       /\bconfirm the course-specific limit with the instructor\b/gi,
@@ -185,7 +186,16 @@ function fixMechanicalSeams(value) {
   // Space before punctuation.
   text = text.replace(/[ \t]+([.,;:!?])(?=\s|$)/g, '$1');
   // Doubled connectives produced by reference replacement ("the the Week 2 check").
-  text = text.replace(/\b(the|a|an|to|of|for|and|or|in|on|with|at|by)\s+\1\b/gi, '$1');
+  text = text.replace(/\b(the|a|an|to|of|for|and|or|in|on|with|at|by)\s+\1\b(?=\s|[.,;:!?)\]}'’”]|$)/gi, '$1');
+  // A source title may bring its own leading article into a template slot
+  // that already supplied one ("the a visual perspective", "a the policy
+  // example"). Keep the frame's determiner and drop the nested title article.
+  // Fixed expressions and labels intentionally excluded by the quality rule
+  // (a priori, a posteriori, a.m./a.d., A/B, an A grade) remain untouched.
+  text = text.replace(
+    /\b([Aa]|[Aa]n|[Tt]he)\s+(?:a(?!\.(?:m|d)\b|\s+(?:priori|posteriori)\b)|an|the|An|The)\b(?=\s|[.,;:!?)\]}'’”]|$)/g,
+    '$1',
+  );
   text = text.replace(/\b(one targeted|a guided|one|the next)\s+the\s+(?=[A-Za-z])/gi, '$1 ');
   // Compacted proper-name surfaces can lose an apostrophe at an upstream
   // token boundary ("Earth s Structure", "Erikson s Psychosocial"). Restore
@@ -530,7 +540,7 @@ function replaceReferencesInString(value, targets, counts, contextLessonNumber =
 }
 
 const PROVENANCE_KEY_RE =
-  /^(?:evidencePlan|sourceUsePlan|objectiveEvidencePlan|calibrationPlan|weightProvenance|gradingWeightProvenance)$/;
+  /^(?:evidencePlan|sourceUsePlan|objectiveEvidencePlan|calibrationPlan|weightProvenance|gradingWeightProvenance|typedSpecimen|taskContract|specimenIR|sourceBinding|learnerProduct|rightsBinding|visibleTask)$/;
 
 /**
  * True for subtrees the finalizer leaves byte-faithful to the blueprint
@@ -560,6 +570,104 @@ function walkAndRewrite(node, rewrite, parentKey = '') {
     return node;
   }
   return node;
+}
+
+// Fingerprinted authentic-evidence values are data, not prose. The language
+// finalizer is intentionally aggressive about repairing template seams, but
+// those repairs must never rewrite a cited form, interlinear gloss, or other
+// payload covered by an authentic-evidence hash. Mask the reader-visible
+// evidence spans before any generic cleanup and restore them at the final
+// boundary. Wrapped short forms are protected without masking every ordinary
+// occurrence of a one-letter token elsewhere in the course.
+function protectedAuthenticEvidenceSpans(blueprint = {}) {
+  const tasks = [
+    ...(Array.isArray(blueprint?.lessons) ? blueprint.lessons.map((lesson) => lesson?.authenticDataTaskPlan) : []),
+    ...(Array.isArray(blueprint?.assessments)
+      ? blueprint.assessments.map((assessment) => assessment?.authenticDataTaskPlan)
+      : []),
+  ].filter((task) => task?.protocol === 'coursemapper-authentic-evidence-task-binding-v1');
+  const spans = new Set();
+  const add = (value) => {
+    const text = String(value || '').trim();
+    if (text) spans.add(text);
+  };
+  for (const task of tasks) {
+    for (const example of Array.isArray(task?.examples) ? task.examples : []) {
+      const form = String(example?.form || '').trim();
+      const gloss = String(example?.gloss || '').trim();
+      const translation = String(example?.translation || '').trim();
+      if (form) {
+        add(`“${form}”`);
+        add(`"${form}"`);
+        add(`‘${form}’`);
+        add(`'${form}'`);
+        if (form.length >= 4 || /[-=·/]/u.test(form)) add(form);
+      }
+      if (gloss) {
+        add(`gloss: ${gloss}`);
+        add(`[${gloss}]`);
+      }
+      if (translation) add(`translation: ${translation}`);
+      add(example?.analysisFocus);
+      add(example?.communityContext);
+    }
+  }
+  // Typed visual identifiers are machine-readable contract data even when a
+  // learner-facing sentence happens to quote one of them. Generic article
+  // repair previously rewrote `image-a` to `image-an`, breaking the contract
+  // after it had already been hashed. Protect every identifier-like atom in a
+  // functional-visual contract; learner prose should use human labels, while
+  // these values remain available to render and audit code byte-for-byte.
+  const visited = new WeakSet();
+  const collectFunctionalVisualIds = (node, insideContract = false) => {
+    if (!node || typeof node !== 'object' || visited.has(node)) return;
+    visited.add(node);
+    const contract = insideContract || node.protocol === 'coursemapper-functional-visual-task-contract-v1';
+    for (const [key, value] of Object.entries(node)) {
+      if (contract && typeof value === 'string') {
+        const text = value.trim();
+        if (
+          /^(?:observable:|inference:|cmEntity_)/.test(text) ||
+          (/^[a-z0-9]+(?:[-_:][a-z0-9]+)+$/i.test(text) &&
+            /^(?:id|entityId|renderedSelector|stateId|relationId|predicateIds?|left|right|inner|outer|from|to|leftForeground|leftBackground|rightForeground|rightBackground|fromEntityId)$/i.test(
+              key,
+            ))
+        ) {
+          add(text);
+        }
+      } else if (contract && Array.isArray(value) && key === 'predicateIds') {
+        value.forEach(add);
+      }
+      if (value && typeof value === 'object') collectFunctionalVisualIds(value, contract);
+    }
+  };
+  collectFunctionalVisualIds(blueprint);
+  return [...spans].sort((left, right) => right.length - left.length);
+}
+
+function maskAuthenticEvidenceSpans(content, blueprint = {}) {
+  const spans = protectedAuthenticEvidenceSpans(blueprint);
+  if (spans.length === 0) return [];
+  const bindings = spans.map((span, index) => ({ span, token: `\uE000CM_EVIDENCE_${index}\uE001` }));
+  walkAndRewrite(content, (value) => {
+    let text = value;
+    for (const { span, token } of bindings) {
+      if (text.includes(span)) text = text.split(span).join(token);
+    }
+    return text;
+  });
+  return bindings;
+}
+
+function restoreAuthenticEvidenceSpans(content, bindings = []) {
+  if (bindings.length === 0) return;
+  walkAndRewrite(content, (value) => {
+    let text = value;
+    for (const { span, token } of bindings) {
+      if (text.includes(token)) text = text.split(token).join(span);
+    }
+    return text;
+  });
 }
 
 function preserveDraftingVocabulary(blueprint = {}) {
@@ -958,6 +1066,7 @@ function capLessonTitleMentions(featureId, data, blueprint) {
 export function finalizeCompiledDeliverableLanguage(featureId, data, blueprint = {}) {
   if (!data || typeof data !== 'object') return data;
   const content = renderedDeliverableContentRoot(featureId, data);
+  const protectedEvidenceBindings = maskAuthenticEvidenceSpans(content, blueprint);
 
   const targets = buildReferenceTargets(blueprint);
   if (targets.length === 0) {
@@ -969,6 +1078,7 @@ export function finalizeCompiledDeliverableLanguage(featureId, data, blueprint =
       walkAndRewrite(content, (value) => polishCompletionLanguage(value));
     }
     capLessonTitleMentions(featureId, data, blueprint);
+    restoreAuthenticEvidenceSpans(content, protectedEvidenceBindings);
     return data;
   }
   const rewriteItem =
@@ -984,5 +1094,6 @@ export function finalizeCompiledDeliverableLanguage(featureId, data, blueprint =
   if (!preserveDraftingVocabulary(blueprint)) {
     walkAndRewrite(content, (value) => polishCompletionLanguage(value));
   }
+  restoreAuthenticEvidenceSpans(content, protectedEvidenceBindings);
   return data;
 }

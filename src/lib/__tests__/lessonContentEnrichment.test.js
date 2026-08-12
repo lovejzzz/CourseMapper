@@ -61,6 +61,26 @@ const GOOD_TERM = {
   correction: 'Greenhouse warming comes from gases absorbing outgoing infrared radiation, not from ozone depletion.',
 };
 
+function instructorVerifiedPayload(payload = {}) {
+  const facts =
+    Array.isArray(payload?.kernel?.facts) && payload.kernel.facts.length > 0
+      ? payload.kernel.facts
+      : (payload.keyTerms || []).map((term) => term.definition).filter(Boolean);
+  return {
+    ...payload,
+    kernel: {
+      ...(payload.kernel || {}),
+      facts,
+      provenance: {
+        source: 'compiler-owned-exact-source-ledger',
+        authority: 'instructor-supplied',
+        copiedFactsVerbatim: true,
+        factCount: facts.length,
+      },
+    },
+  };
+}
+
 describe('lesson content enrichment contracts', () => {
   it('builds a grounded per-lesson prompt with the item plan', () => {
     const prompt = buildLessonContentEnrichmentPrompt(COURSE_MAP, [0], { questionsPerLesson: 6 });
@@ -307,6 +327,7 @@ describe('lesson content enrichment contracts', () => {
     expect(parsed.lessons['lesson-1'].kernel.facts).toEqual(sourceFacts);
     expect(parsed.lessons['lesson-1'].kernel.provenance).toEqual({
       source: 'compiler-owned-exact-source-ledger',
+      authority: 'model-provisional',
       copiedFactsVerbatim: true,
       factCount: 3,
     });
@@ -318,6 +339,108 @@ describe('lesson content enrichment contracts', () => {
         expect.objectContaining({ surface: 'facts', problems: expect.arrayContaining(['meta-fact']) }),
       ]),
     );
+  });
+
+  it('preserves a hash-bound curated source paraphrase through canonical parsing', () => {
+    const sourceId = 'openstax:statistics#point-estimate';
+    const quote = 'a single number computed from a sample and used to estimate a population parameter';
+    const claim =
+      'A point estimate is a single number computed from a sample and used to estimate a population parameter.';
+    const snapshotText = `point estimate: ${quote}.`;
+    const quoteByteStart = new TextEncoder().encode('point estimate: ').byteLength;
+    const quoteByteEnd = quoteByteStart + new TextEncoder().encode(quote).byteLength;
+    const sourceFacts = [
+      claim,
+      'A sample supplies the observations used to compute the point estimate.',
+      'The population parameter remains unknown when the sample estimate is calculated.',
+    ];
+    const prompt = {
+      lessons: [
+        {
+          lessonId: 'lesson-1',
+          title: 'Point estimation',
+          sourceFactPolicy: 'numbered-source-ledger-v1',
+          sourceFactAuthority: 'shipped-source-library',
+          sourceFacts,
+        },
+      ],
+      itemPlan: [],
+    };
+    const parsed = parseLessonKernelResponse(
+      JSON.stringify({
+        lessons: [
+          {
+            lessonId: 'lesson-1',
+            facts: sourceFacts,
+            keyTerms: [],
+            mc: [],
+            conceptProvenance: {
+              source: 'genome-linked',
+              fullyAnchored: true,
+              citations: [
+                {
+                  id: sourceId,
+                  displayTitle: 'OpenStax point-estimate source',
+                  sourceUrl: 'https://openstax.org/example',
+                  supportReceipt: {
+                    status: 'passed',
+                    method: 'curated-source-paraphrase-v1',
+                    sourceIdentityVerified: true,
+                    semanticAdmissionVerified: true,
+                    semanticSupport: true,
+                    sourceSnapshot: {
+                      protocol: 'retrieved-source-snapshot-sha256-v2',
+                      sourceId,
+                      retrievedSnapshotSha256: 'a'.repeat(64),
+                      retrievedSnapshotBytes: new TextEncoder().encode(snapshotText).byteLength,
+                      normalizedSnapshotText: snapshotText,
+                    },
+                    checks: [
+                      {
+                        claimId: 'point-estimate:claim-1',
+                        claim,
+                        quote,
+                        sourceId,
+                        locator: 'Key terms',
+                        retrievedSnapshotSha256: 'a'.repeat(64),
+                        retrievedSnapshotBytes: new TextEncoder().encode(snapshotText).byteLength,
+                        quoteByteStart,
+                        quoteByteEnd,
+                        sourcePassageSha256: 'b'.repeat(64),
+                        quoteInSnapshot: true,
+                        entailed: true,
+                        sourceIdentityVerified: true,
+                        semanticAdmissionVerified: true,
+                        semanticAdmission: { admitted: true, policy: 'shipped-source-curated-anchor-v1' },
+                        semanticSupport: true,
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      }),
+      { prompt, expectedLessonIds: ['lesson-1'] },
+    );
+
+    expect(parsed.lessons['lesson-1'].conceptProvenance.citations[0].supportReceipt).toMatchObject({
+      method: 'curated-source-paraphrase-v1',
+      sourceIdentityVerified: true,
+      semanticAdmissionVerified: true,
+      sourceSnapshot: {
+        retrievedSnapshotSha256: 'a'.repeat(64),
+      },
+      checks: [
+        {
+          claim,
+          quote,
+          sourcePassageSha256: 'b'.repeat(64),
+          semanticAdmission: { policy: 'shipped-source-curated-anchor-v1' },
+        },
+      ],
+    });
   });
 
   it('quarantines a contaminated adapter atom without discarding an exact source ledger', () => {
@@ -470,6 +593,21 @@ describe('lesson content enrichment contracts', () => {
     expect(problems).not.toContain('definition-multiple-sentences');
   });
 
+  it('does not count a country initialism as extra definition sentences', () => {
+    const problems = lintEnrichedKeyTerm(
+      {
+        term: 'Creative Commons license',
+        definition:
+          'A Creative Commons license is a public copyright license produced by a U.S. non-profit corporation.',
+        example: 'An author uses the license to let other people share an otherwise copyrighted work.',
+        misconception: 'Any public work can be reused without checking the stated license conditions.',
+        correction: 'Check the named license and its conditions before sharing or adapting the work.',
+      },
+      { lessonTitle: 'Source attribution and license' },
+    );
+    expect(problems).not.toContain('definition-multiple-sentences');
+  });
+
   it('requests the short-key contract and parses it identically to full keys (v0.9.11 P2)', () => {
     const prompt = buildLessonContentEnrichmentPrompt(COURSE_MAP, [0]);
     // The output contract must use abbreviated keys — that is where the savings are.
@@ -580,7 +718,7 @@ describe('enriched compile (end to end with mock payload)', () => {
   const enrichment = {
     source: 'test-enrichment',
     lessonContent: {
-      'lesson-1': { quizItems: [GOOD_ITEM], keyTerms: [GOOD_TERM] },
+      'lesson-1': instructorVerifiedPayload({ quizItems: [GOOD_ITEM], keyTerms: [GOOD_TERM] }),
     },
   };
 
@@ -696,6 +834,549 @@ describe('enriched compile (end to end with mock payload)', () => {
     expect(lessonTwoText).not.toMatch(/retrieve one value by key/i);
   });
 
+  it('assigns a duplicated nonadjacent term to the lesson supported by its example instead of spraying it upstream', () => {
+    const statisticsMap = {
+      courseName: 'Introduction to Statistics',
+      lessons: [
+        {
+          title: 'Lesson 1: Picturing Distributions',
+          sections: [
+            {
+              topicSection: 'Histograms and box plots',
+              learningObjectives: 'Interpret the shape, center, spread, and outliers in a distribution.',
+              weeklyAssessments: 'Distribution interpretation.',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 2: Describing Distributions',
+          sections: [{ topicSection: 'Center and spread', weeklyAssessments: 'Numerical summary.' }],
+        },
+        {
+          title: 'Lesson 3: Normal Distributions',
+          sections: [{ topicSection: 'Normal models', weeklyAssessments: 'Normal-model calculation.' }],
+        },
+        {
+          title: 'Lesson 4: Scatterplots',
+          sections: [{ topicSection: 'Correlation', weeklyAssessments: 'Scatterplot interpretation.' }],
+        },
+        {
+          title: 'Lesson 5: Regression Analysis',
+          sections: [
+            {
+              topicSection: 'Simple linear regression and model assumptions',
+              learningObjectives: 'Check regression assumptions before interpreting model fit.',
+              weeklyAssessments: 'Regression diagnostics memo.',
+            },
+          ],
+        },
+      ],
+    };
+    const statisticalModel = {
+      term: 'Statistical model',
+      definition: 'A statistical model is a simplified mathematical representation of how data are generated.',
+      example: 'A regression with strong R-squared can still mislead if the errors are not independent.',
+      misconception: 'Good sample fit guarantees that the model assumptions hold.',
+      correction: 'Inspect the regression assumptions before interpreting model fit.',
+    };
+    const enrichment = {
+      lessonContent: {
+        'lesson-1': {
+          keyTerms: [statisticalModel],
+          kernel: { facts: ['A box plot gives a quick picture of the middle 50% of the data.'] },
+          quizItems: [
+            { type: 'short_answer', question: statisticalModel.example, answer: statisticalModel.correction },
+          ],
+        },
+        'lesson-5': {
+          keyTerms: [statisticalModel],
+          kernel: { facts: ['The model conclusions can be misleading even if it fits the sample well.'] },
+          quizItems: [
+            { type: 'short_answer', question: statisticalModel.example, answer: statisticalModel.correction },
+          ],
+        },
+      },
+    };
+
+    const blueprint = buildCourseBlueprint(statisticsMap, { enrichment });
+    expect(JSON.stringify(blueprint.lessons[0].enrichment || {})).not.toMatch(/strong R-squared/i);
+    expect(JSON.stringify(blueprint.lessons[4].enrichment || {})).toMatch(/strong R-squared/i);
+    expect(blueprint.lessons[0].enrichment?.semanticAdmissionReceipt).toMatchObject({
+      crossLessonTermOwnershipApplied: true,
+    });
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['quizBank', 'studyGuides'], {});
+    const lessonOneSurfaces = JSON.stringify({
+      quiz: compiled.quizBank.quizzes[0],
+      guide: compiled.studyGuides.studyGuides[0],
+    });
+    const lessonFiveSurfaces = JSON.stringify({
+      quiz: compiled.quizBank.quizzes[4],
+      guide: compiled.studyGuides.studyGuides[4],
+    });
+    expect(lessonOneSurfaces).not.toMatch(/Statistical model|strong R-squared/i);
+    expect(lessonFiveSurfaces).toMatch(/Statistical model|strong R-squared/i);
+  });
+
+  it('aligns an admitted quiz item to the objective for the concept it actually tests', () => {
+    const map = {
+      courseName: 'Introduction to Statistics',
+      lessons: [
+        {
+          title: 'Lesson 1: Inference in Practice',
+          sections: [
+            {
+              topicSection: 'Confidence intervals and p-values',
+              learningObjectives:
+                'Explain Confidence interval using the available course evidence.\nApply p-value in one practical example from Inference in Practice and justify one revision.',
+              weeklyAssessments: 'Inference knowledge check.',
+            },
+          ],
+        },
+      ],
+    };
+    const enrichment = {
+      lessonContent: {
+        'lesson-1': instructorVerifiedPayload({
+          keyTerms: [
+            {
+              term: 'p-value',
+              definition:
+                'A p-value is the probability of obtaining a test statistic at least as extreme as the one observed, assuming the null hypothesis is true.',
+              misconception: 'Interpret the p-value as the probability that the null hypothesis is true.',
+              correction: 'It is a probability about the data given the null, not about the hypothesis given the data.',
+            },
+          ],
+          kernel: {
+            facts: [
+              'A p-value of 0.03 means data this extreme would occur 3 percent of the time if the null were true.',
+            ],
+          },
+        }),
+      },
+    };
+    const blueprint = buildCourseBlueprint(map, { enrichment });
+    const compiled = compileBlueprintDeliverables(blueprint, ['quizBank'], {});
+    const pValueItems = compiled.quizBank.quizzes[0].questions.filter(
+      (question) =>
+        (question.tags || []).some((tag) => /p-value/i.test(tag)) &&
+        /(?:definition|role) of p-value/i.test(question.question),
+    );
+    expect(pValueItems.length).toBeGreaterThan(0);
+    expect(
+      pValueItems.every((question) => /p-value/i.test(question.objectiveAligned)),
+      JSON.stringify(
+        pValueItems.map((question) => ({
+          question: question.question,
+          objectiveAligned: question.objectiveAligned,
+          tags: question.tags,
+        })),
+        null,
+        2,
+      ),
+    ).toBe(true);
+  });
+
+  it('quarantines a kernel assertion that restates a documented misconception contradicted by its correction', () => {
+    const map = {
+      courseName: 'Introduction to Statistics',
+      lessons: [
+        {
+          title: 'Lesson 1: Confidence Intervals',
+          sections: [
+            {
+              topicSection: 'Confidence intervals and repeated-sampling coverage',
+              learningObjectives:
+                'Interpret confidence intervals without assigning probability to a computed interval.',
+              weeklyAssessments: 'Confidence-interval interpretation.',
+            },
+          ],
+        },
+      ],
+    };
+    const falseClaim =
+      'The confidence level is the percent expression for the probability that the interval contains the true population parameter.';
+    const enrichment = {
+      lessonContent: {
+        'lesson-1': {
+          keyTerms: [
+            {
+              term: 'Confidence interval',
+              definition: 'A confidence interval is an interval estimate for an unknown population parameter.',
+              example: 'Repeated samples produce different intervals around the unknown parameter.',
+              misconception:
+                'Students read a 95% confidence interval as a 95% probability that the parameter lies inside the one interval they computed.',
+              correction:
+                'The confidence level describes the repeated-sampling procedure rather than a probability attached to one interval.',
+            },
+            {
+              term: 'confidence level',
+              definition: falseClaim,
+              example: `Compare the claim: ${falseClaim}`,
+              misconception: 'Treat the interval as a probability statement.',
+              correction: 'Do not assign probability to an interval already calculated.',
+              source: 'fact-subject-projection',
+            },
+          ],
+          kernel: {
+            facts: [
+              falseClaim,
+              'A confidence interval is an interval estimate for an unknown population parameter.',
+              'Repeated-sampling coverage describes a procedure across many samples.',
+            ],
+          },
+          quizItems: [{ type: 'short_answer', question: falseClaim, answer: falseClaim }],
+        },
+      },
+    };
+
+    const blueprint = buildCourseBlueprint(map, { enrichment });
+    const serialized = JSON.stringify(blueprint.lessons[0].enrichment || {});
+    expect(serialized).not.toContain(falseClaim);
+    expect(blueprint.lessons[0].enrichment?.semanticAdmissionReceipt).toMatchObject({
+      crossFieldContradictionPolicy: 'definition-misconception-correction-v1',
+    });
+  });
+
+  it('preserves a source fact that affirms the correct side of a contrastive misconception', () => {
+    const map = {
+      courseName: 'Introduction to Statistics',
+      lessons: [
+        {
+          title: 'Lesson 1: Sampling Distributions and the Central Limit Theorem',
+          sections: [
+            {
+              topicSection: 'The sampling distribution of the mean',
+              learningObjectives: 'Explain what approaches normal as sample size increases.',
+              weeklyAssessments: 'Sampling-distribution interpretation.',
+            },
+          ],
+        },
+      ],
+    };
+    const correctFact =
+      'For random samples from a population with a defined mean and standard deviation, the sampling distribution of the mean approaches normal as sample size increases.';
+    const enrichment = {
+      lessonContent: {
+        'lesson-1': instructorVerifiedPayload({
+          keyTerms: [
+            {
+              term: 'Sampling distribution',
+              definition: 'The sampling distribution of the mean is formed by the means of repeated random samples.',
+              misconception:
+                'A larger sample makes the population itself normal, rather than the sampling distribution of the mean.',
+              correction:
+                'The approximation concerns means from repeated random samples and does not make the population itself normal.',
+            },
+          ],
+          kernel: { facts: [correctFact] },
+        }),
+      },
+    };
+
+    const blueprint = buildCourseBlueprint(map, { enrichment });
+    expect(blueprint.lessons[0].enrichment?.kernel?.facts).toContain(correctFact);
+    expect(
+      blueprint.lessons[0].enrichment?.semanticAdmissionReceipt?.quarantinedContradictoryClaims || [],
+    ).not.toContain(
+      correctFact
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim(),
+    );
+  });
+
+  it('preserves raw research provenance while quarantining malformed or off-topic claims from lesson surfaces', () => {
+    const map = {
+      courseName: 'Introduction to Language Structure',
+      lessons: [
+        {
+          title: 'Lesson 1: Language Acquisition',
+          sections: [
+            {
+              topicSection: 'First-language acquisition',
+              learningObjectives: 'Use acquisition evidence to compare accounts of how children learn language.',
+              weeklyAssessments: 'Acquisition evidence memo.',
+            },
+          ],
+        },
+      ],
+    };
+    const malformed = 'Project different cartographies because one language is subJect-initial ltypologically.';
+    const offTopic = 'Non-cognitive factors have a crucial incidence in the degree of success.';
+    const unresolved = 'Little is known about the mechanisms that allow us to extract these two types of information.';
+    const enrichment = {
+      lessonContent: {
+        'lesson-1': {
+          enrichmentSource: 'scion-source-library',
+          conceptProvenance: {
+            citations: [{ provider: 'doaj', title: 'Preserved raw source record' }],
+          },
+          kernel: {
+            facts: [
+              'Language acquisition is the process by which humans learn to perceive and comprehend language.',
+              malformed,
+              offTopic,
+              unresolved,
+            ],
+          },
+          keyTerms: [
+            {
+              term: 'Her main claim',
+              definition: 'Her main claim concerns language learning.',
+              example: offTopic,
+            },
+            {
+              term: 'Language acquisition usually',
+              definition: 'Language acquisition usually refers to first-language acquisition.',
+              example: 'Children build knowledge from linguistic input.',
+            },
+          ],
+          quizItems: [{ type: 'short_answer', question: malformed, answer: offTopic }],
+        },
+      },
+    };
+
+    const blueprint = buildCourseBlueprint(map, { enrichment });
+    const payload = blueprint.lessons[0].enrichment;
+    expect(JSON.stringify(payload)).not.toContain(malformed);
+    expect(JSON.stringify(payload)).not.toContain(offTopic);
+    expect(JSON.stringify(payload)).not.toContain(unresolved);
+    expect(JSON.stringify(payload)).not.toContain('Her main claim');
+    expect(JSON.stringify(payload)).not.toContain('Language acquisition usually');
+    expect(payload.conceptProvenance.citations[0].title).toBe('Preserved raw source record');
+    expect(payload.semanticAdmissionReceipt).toMatchObject({
+      sourceIdentityPreserved: true,
+      semanticAdmissionPolicy: 'lesson-topic-source-integrity-v4',
+    });
+  });
+
+  it('keeps exact-topic research in learner surfaces while retaining related sources only in provenance', () => {
+    const map = {
+      courseName: 'Introductory Quantitative Reasoning',
+      lessons: [
+        {
+          title: 'Lesson 1: Normal Distribution',
+          sections: [
+            {
+              topicSection: 'Properties of the normal distribution',
+              learningObjectives:
+                'Explain the normal distribution and inspect whether a bell-shaped model is defensible.',
+              weeklyAssessments: 'Normal-distribution evidence check.',
+            },
+          ],
+        },
+      ],
+    };
+    const rootClaim =
+      'A normal distribution is a continuous probability distribution for a real-valued random variable.';
+    const outOfScopeClaim =
+      'An elliptical distribution generalizes the multivariate normal distribution to a broader distribution family.';
+    const enrichment = {
+      lessonContent: {
+        'lesson-1': {
+          enrichmentSource: 'scion-source-researched',
+          conceptProvenance: {
+            citations: [
+              {
+                provider: 'wikipedia',
+                displayTitle: 'Normal distribution',
+                evidence: rootClaim,
+                supportReceipt: {
+                  checks: [{ claim: rootClaim, quote: rootClaim, semanticSupport: true, quoteInSnapshot: true }],
+                },
+              },
+              {
+                provider: 'wikipedia',
+                displayTitle: 'Elliptical distribution',
+                evidence: outOfScopeClaim,
+                supportReceipt: {
+                  checks: [
+                    { claim: outOfScopeClaim, quote: outOfScopeClaim, semanticSupport: true, quoteInSnapshot: true },
+                  ],
+                },
+              },
+            ],
+          },
+          keyTerms: [
+            { term: 'Normal distribution', definition: rootClaim, example: rootClaim },
+            { term: 'Elliptical distribution', definition: outOfScopeClaim, example: outOfScopeClaim },
+          ],
+          kernel: { facts: [rootClaim, outOfScopeClaim] },
+          quizItems: [{ type: 'short_answer', question: outOfScopeClaim, answer: outOfScopeClaim }],
+          slideContent: [{ title: 'Specialist extension', bullets: [outOfScopeClaim] }],
+        },
+      },
+    };
+
+    const blueprint = buildCourseBlueprint(map, { enrichment });
+    const payload = blueprint.lessons[0].enrichment;
+    const learnerSurface = JSON.stringify({
+      keyTerms: payload.keyTerms,
+      kernel: payload.kernel,
+      quizItems: payload.quizItems,
+      slideContent: payload.slideContent,
+    });
+    expect(learnerSurface).toContain(rootClaim);
+    expect(learnerSurface).not.toContain(outOfScopeClaim);
+    expect(payload.conceptProvenance.citations).toHaveLength(2);
+    expect(payload.semanticAdmissionReceipt).toMatchObject({
+      semanticAdmissionPolicy: 'lesson-topic-source-integrity-v4',
+      exactTopicalRootPolicy: 'exact-lesson-title-source-root-v1',
+      exactTopicalRootTitle: 'Normal distribution',
+    });
+  });
+
+  it('keeps a receipt-backed exact lesson-title source when the section label is narrower', () => {
+    const map = {
+      courseName: 'Language and Cognition',
+      lessons: [
+        {
+          title: 'Lesson 1: Language Acquisition',
+          sections: [
+            {
+              topicSection: 'Universal Grammar Principles',
+              learningObjectives: 'Evaluate a bounded account of how language knowledge is acquired.',
+            },
+          ],
+        },
+      ],
+    };
+    const rootClaim =
+      'Language acquisition is the process by which humans acquire the capacity to perceive and comprehend language.';
+    const unrelatedClaim = 'A phoneme is a contrastive unit in a language sound system.';
+    const legacyExactReceipt = (sourceId, claim) => ({
+      status: 'passed',
+      method: 'exact-source-claim-v1',
+      sourceSnapshot: {
+        protocol: 'retrieved-source-snapshot-sha256-v2',
+        retrievedSnapshotSha256: 'a'.repeat(64),
+        retrievedSnapshotBytes: 512,
+      },
+      checks: [
+        {
+          sourceId,
+          claim,
+          quote: claim,
+          semanticSupport: true,
+          quoteInSnapshot: true,
+          entailed: true,
+          retrievedSnapshotSha256: 'a'.repeat(64),
+          sourcePassageSha256: 'b'.repeat(64),
+          quoteByteStart: 20,
+          quoteByteEnd: 20 + claim.length,
+        },
+      ],
+    });
+    const enrichment = {
+      lessonContent: {
+        'lesson-1': {
+          enrichmentSource: 'scion-source-researched',
+          sourceFactAuthority: 'verified-open-research',
+          conceptProvenance: {
+            source: 'algi-researched',
+            authority: 'verified-open-research',
+            citations: [
+              {
+                provider: 'wikipedia',
+                displayTitle: 'Language acquisition',
+                sourceUrl: 'https://example.edu/language-acquisition',
+                topic: 'Language Acquisition',
+                evidence: rootClaim,
+                supportReceipt: legacyExactReceipt('wikipedia:language-acquisition', rootClaim),
+              },
+              {
+                provider: 'wikipedia',
+                displayTitle: 'Phoneme',
+                sourceUrl: 'https://example.edu/phoneme',
+                topic: 'Language Acquisition',
+                evidence: unrelatedClaim,
+                supportReceipt: legacyExactReceipt('wikipedia:phoneme', unrelatedClaim),
+              },
+            ],
+          },
+          keyTerms: [{ term: 'Language acquisition', definition: rootClaim, example: rootClaim }],
+          kernel: {
+            facts: [rootClaim, unrelatedClaim],
+            provenance: {
+              source: 'compiler-owned-exact-source-ledger',
+              authority: 'verified-open-research',
+              copiedFactsVerbatim: true,
+              factCount: 2,
+            },
+          },
+        },
+      },
+    };
+
+    const blueprint = buildCourseBlueprint(map, { enrichment });
+    const payload = blueprint.lessons[0].enrichment;
+
+    expect(payload.kernel.facts).toContain(rootClaim);
+    expect(JSON.stringify(payload.keyTerms)).toContain(rootClaim);
+    expect(JSON.stringify({ facts: payload.kernel.facts, terms: payload.keyTerms })).not.toContain(unrelatedClaim);
+    expect(payload.semanticAdmissionReceipt).toMatchObject({
+      semanticAdmissionPolicy: 'lesson-topic-source-integrity-v4',
+      exactTopicalRootPolicy: 'exact-lesson-title-source-root-v1',
+      exactTopicalRootTitle: 'Language acquisition',
+      quarantinedResearchSources: [{ title: 'Phoneme', url: 'https://example.edu/phoneme' }],
+      legacyExactClaimMigrationCount: 2,
+    });
+  });
+
+  it('quarantines a valid source that matches only the broad course domain, not the taught section', () => {
+    const wrongClaim =
+      'Linguistic prescription is the establishment of rules defining publicly preferred language usage.';
+    const map = {
+      courseName: 'Introduction to Language Structure',
+      lessons: [
+        {
+          title: 'Lesson 1: Linguistic Evidence Foundations',
+          sections: [
+            {
+              topicSection: 'Phonetics: Speech Production',
+              learningObjectives: 'Explain how articulators produce contrasting speech sounds.',
+            },
+          ],
+        },
+      ],
+    };
+    const enrichment = {
+      lessonContent: {
+        'lesson-1': {
+          enrichmentSource: 'scion-source-researched',
+          conceptProvenance: {
+            source: 'algi-researched',
+            citations: [
+              {
+                provider: 'wikipedia',
+                displayTitle: 'Linguistic prescription',
+                sourceUrl: 'https://example.edu/prescription',
+                evidence: wrongClaim,
+                topic: 'Phonetics: Speech Production · Linguistic Evidence Foundations',
+                supportReceipt: {
+                  checks: [{ claim: wrongClaim, quote: wrongClaim, semanticSupport: true, quoteInSnapshot: true }],
+                },
+              },
+            ],
+          },
+          keyTerms: [{ term: 'Linguistic prescription', definition: wrongClaim, example: wrongClaim }],
+          kernel: { facts: [wrongClaim] },
+        },
+      },
+    };
+
+    const blueprint = buildCourseBlueprint(map, { enrichment });
+    const compiled = compileBlueprintDeliverables(blueprint, ['courseFaq', 'slideDecks']);
+    const learnerSurface = JSON.stringify(compiled);
+
+    expect(learnerSurface).not.toContain(wrongClaim);
+    expect(blueprint.lessons[0].enrichment.semanticAdmissionReceipt).toMatchObject({
+      semanticAdmissionPolicy: 'lesson-topic-source-integrity-v4',
+      quarantinedResearchSources: [{ title: 'Linguistic prescription', url: 'https://example.edu/prescription' }],
+    });
+  });
+
   it('keeps lesson-grounded enrichment when the scenario uses different case vocabulary', () => {
     const studioMap = {
       courseName: 'User Experience Design Studio',
@@ -715,7 +1396,7 @@ describe('enriched compile (end to end with mock payload)', () => {
     const enrichment = {
       source: 'scion-public',
       lessonContent: {
-        'lesson-1': {
+        'lesson-1': instructorVerifiedPayload({
           keyTerms: [
             {
               term: 'Empathy Mapping',
@@ -740,7 +1421,7 @@ describe('enriched compile (end to end with mock payload)', () => {
               'Analyze prototype testing data for a smart kitchen appliance and propose either a menu redesign or tutorial overlay.',
             parameters: ['Complete the proposal in two iterative sprints.'],
           },
-        },
+        }),
       },
     };
 

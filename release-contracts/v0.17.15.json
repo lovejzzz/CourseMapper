@@ -1,0 +1,78 @@
+{
+  "version": "0.17.15",
+  "date": "August 5, 2026",
+  "title": "Verified Coherent Draft",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": ["npm test", "npm run lint", "npm run build", "npm run audit:release-history"],
+    "ciFast": {
+      "status": "pending",
+      "note": "Remote exact-commit verification begins after push."
+    },
+    "ciDeep": {
+      "status": "pending",
+      "note": "No paid-provider or instructor panel is claimed."
+    },
+    "deploy": {
+      "status": "pending",
+      "note": "Deployment is downstream of the pushed commit."
+    },
+    "liveProvider": {
+      "status": "success",
+      "note": "Three fresh exact packages are retained in the local hash-bound campaign."
+    },
+    "manualHuman": {
+      "status": "pending",
+      "note": "No instructor, accessibility, or classroom validation is claimed."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01715-1",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "highlightSha256": "9d7f9542f384e627111445ec44aaba5b20f801521caa560e0a8b7ba9d565c631",
+      "summary": "Verified Coherent Draft v1 is a machine-readable promotion contract: three preregistered 5-, 8-, and 14-lesson packages must pass independent source, claim, render, functional-visual, operation, and quality-benchmark gates without averaging away a failure.",
+      "anchors": [
+        "evaluation/output-quality/verified-coherent-draft-v1.policy.json",
+        "scripts/verifiedCoherentDraftV1Audit.mjs"
+      ],
+      "proofCommands": ["npm run audit:checkpoint:v1"],
+      "proofScopes": ["unit", "compiled-output", "static-audit"]
+    },
+    {
+      "id": "v01715-2",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "highlightSha256": "d4750e69e4c599ede59737a7a70c469093ce9d6dbe52e27133fd6528d8f6a9e0",
+      "summary": "Source authority is field-level and fail-closed. Model-provisional exact-copy markers cannot authorize learner-facing facts, while verified research, instructor-supplied ledgers, and the shipped source library retain explicit authority and claim bindings.",
+      "anchors": ["src/lib/sourceLedgerProvenance.js", "src/lib/courseBlueprintCompiler.js"],
+      "proofCommands": ["npm test"],
+      "proofScopes": ["unit", "compiled-output", "static-audit"]
+    },
+    {
+      "id": "v01715-3",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "highlightSha256": "db8de12da6289178e8ea3130b8fe59b612a9deb1c760bd6a04bd0053550a51d4",
+      "summary": "Every Office artifact is replay-rendered and hash-bound. The final V14 campaign passes all 219 documents and decks after removing sparse spill pages without deleting content or shrinking readable 11-point body text.",
+      "anchors": ["scripts/renderPackageV1.mjs", "scripts/captureInspectedPackageRenderV1.mjs"],
+      "proofCommands": ["npm test"],
+      "proofScopes": ["unit", "compiled-output", "static-audit"]
+    },
+    {
+      "id": "v01715-4",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "highlightSha256": "d1f20c91ba65e850bc6db9c6910f2ed0134d61ca5e014a333226b9ad8f159dde",
+      "summary": "The compiler now supplies inspectable quantitative operations, authentic language-data coverage, and task-linked visual specimens; exhaustive reviews bind 807 semantic claims to visible artifact anchors while keeping the public checkpoint claim at coherent draft—not classroom validation.",
+      "anchors": ["src/lib/semanticClaimInventory.js", "src/lib/courseBlueprintCompiler.js"],
+      "proofCommands": ["npm test"],
+      "proofScopes": ["unit", "compiled-output", "static-audit"]
+    }
+  ],
+  "boundaries": [
+    "Verified Coherent Draft v1 is engineering evidence, not instructor approval or classroom effectiveness.",
+    "Remote CI and deployment are not claimed before push."
+  ]
+}

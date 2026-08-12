@@ -248,7 +248,7 @@ describe('xlsxGenerator', () => {
     expect(workbook).toContain("'Course Map'!$1:$1");
   });
 
-  it('prints wide course maps at a readable scale across pages instead of shrinking eleven columns to one page', async () => {
+  it('prints wide course maps as a bounded two-page horizontal spread', async () => {
     const map = twoLessonMap();
     map.lessons = map.lessons.map((lesson) => ({
       ...lesson,
@@ -267,9 +267,9 @@ describe('xlsxGenerator', () => {
     const text = await sheetText(buffer);
     const workbook = await workbookText(buffer);
 
-    expect(text).toContain('<pageSetUpPr/>');
-    expect(text).toContain('<pageSetup orientation="landscape" scale="64"/>');
-    expect(text).not.toContain('fitToWidth="1"');
+    expect(text).toContain('<pageSetUpPr fitToPage="1"/>');
+    expect(text).toContain('<pageSetup orientation="landscape" fitToWidth="2" fitToHeight="0"/>');
+    expect(text).not.toContain('scale=');
     expect(workbook).toContain("'Course Map'!$1:$1,'Course Map'!$A:$B");
   });
 
@@ -292,9 +292,30 @@ describe('xlsxGenerator', () => {
     expect(text).toContain(
       '<rowBreaks count="1" manualBreakCount="1"><brk id="15" min="0" max="16383" man="1"/></rowBreaks>',
     );
-    expect(text).toContain('<pageSetUpPr/>');
+    expect(text).toContain('<pageSetUpPr fitToPage="1"/>');
     expect(text).toContain('<printOptions horizontalCentered="1" verticalCentered="1"/>');
-    expect(text).toContain('<pageSetup orientation="landscape" scale="38"/>');
+    expect(text).toContain('<pageSetup orientation="landscape" fitToWidth="1" fitToHeight="0"/>');
+  });
+
+  it('balances eight one-section lessons instead of stranding the final lesson on a sparse page', async () => {
+    const map = twoLessonMap();
+    map.lessons = Array.from({ length: 8 }, (_, lessonIndex) => ({
+      ...map.lessons[lessonIndex % map.lessons.length],
+      title: `Lesson ${lessonIndex + 1}`,
+      sections: [
+        {
+          ...map.lessons[lessonIndex % map.lessons.length].sections[0],
+          topicSection: `${lessonIndex + 1}.1: Topic`,
+        },
+      ],
+    }));
+
+    const buffer = await buildXlsxBuffer(map, columns);
+    const text = await sheetText(buffer);
+
+    expect(text).toContain(
+      '<rowBreaks count="1" manualBreakCount="1"><brk id="5" min="0" max="16383" man="1"/></rowBreaks>',
+    );
   });
 
   it('right-sizes columns from the production audit', async () => {

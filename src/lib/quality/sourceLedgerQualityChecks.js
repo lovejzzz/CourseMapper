@@ -36,6 +36,7 @@ const TRUST_ELIGIBLE_PROVIDERS = new Set([
   'europe-pmc',
   'wikipedia',
   'w3c-wai',
+  'wals',
 ]);
 
 const REVIEW_ONLY_PROVIDERS = new Set(['courseir', 'instructor', 'instructor-provided', 'openlibrary']);
@@ -434,6 +435,29 @@ export function shouldCheckSourceLedger(manifest) {
   return hasSourceLedgerProof(manifest) || expectsSourceLedgerProof(manifest);
 }
 
+function hasCompleteCompilerOperationAuthority(manifest = {}) {
+  const receipt = manifest?.operationQualifiedEvidence;
+  const summary = receipt?.summary;
+  const demanded = Number(summary?.demandedLessonCount) || 0;
+  const complete = Number(summary?.completeLessonCount) || 0;
+  const sourceRequired = Number(manifest?.semanticClaimInventory?.summary?.sourceRequired) || 0;
+  return (
+    receipt?.protocol === 'coursemapper-operation-qualified-evidence-receipt-v1' &&
+    summary?.status === 'passed' &&
+    demanded > 0 &&
+    complete === demanded &&
+    sourceRequired === 0 &&
+    Array.isArray(receipt?.items) &&
+    receipt.items.length >= demanded &&
+    receipt.items.every(
+      (item) =>
+        item?.complete === true &&
+        item?.deterministicVerification === true &&
+        item?.authority === 'compiler-verified-calculation',
+    )
+  );
+}
+
 export function checkSourceLedger(findings, { files, manifest }) {
   const ledger = rows(manifest);
   const review = reviewRows(manifest);
@@ -591,12 +615,14 @@ export function checkSourceLedger(findings, { files, manifest }) {
   }
 
   if (trustedConceptLinkedBibliographyRows.length <= 1 && (coverageTotal >= 12 || evidenceClaimedLessonCount >= 2)) {
+    const completeCompilerOperationAuthority = hasCompleteCompilerOperationAuthority(manifest);
     findings.add({
-      severity: 'P1',
+      severity: completeCompilerOperationAuthority ? 'P2' : 'P1',
       dimension: 'citations',
       file: 'PACKAGE_MANIFEST.json',
-      detail:
-        coverageTotal >= 12
+      detail: completeCompilerOperationAuthority
+        ? `curriculum sourceRef coverage remains review-only, while ${Number(manifest?.operationQualifiedEvidence?.summary?.demandedLessonCount) || 0} lesson operation(s) are independently covered by complete compiler-verified synthetic receipts`
+        : coverageTotal >= 12
           ? `sourceRef coverage is too thin: ${coverageTotal} atom(s) rely on ${trustedConceptLinkedBibliographyRows.length} trusted concept-linked source row(s)`
           : `source evidence is too thin: ${evidenceClaimedLessonCount} lesson(s) rely on ${trustedConceptLinkedBibliographyRows.length} trusted concept-linked source row(s)`,
       evidence: JSON.stringify({

@@ -29,9 +29,9 @@ const budgets = {
 // caught an unaccounted increase, and the fix is to re-freeze at the released
 // state, not to widen the allowance. Every future release must do the same.
 const repositoryBudgets = {
-  // v0.17.12 advances the frozen state through the shipped v0.17.11 contract;
-  // its own v0.17.12 contract consumes the single declared-release allowance.
-  baselineVersion: '0.17.11',
+  // V0.17.18 advances the frozen ledger through V0.17.17. Its own contract
+  // consumes the single declared-release allowance.
+  baselineVersion: '0.17.17',
   // v0.16.82 adds 29 net lines of reusable compiler control logic for
   // policy-domain separation and concept-owned evidence binding. Source-
   // statement copy and prerequisite selection moved to a cacheable leaf; the
@@ -59,7 +59,22 @@ const repositoryBudgets = {
   // V0.17.12 adds course-neutral genre precedence plus executable code-lab
   // and authentic policy-memo requirements. The exact increase is frozen by
   // Applied Civic Data Analysis and compiler regression proofs.
-  compilerLines: 28_265,
+  // V0.17.17 adds 47 measured controller lines for plan-before-draft replay,
+  // operation-bound evidence selection, and exact source-title admission.
+  // The code remains compile-only and is covered by the three-discipline
+  // replay campaign plus the complete unit suite; freeze the measured state.
+  // V0.17.18 adds 30 course-neutral controller lines that keep governing
+  // materials, workload, and strict syllabus policy authoritative through
+  // replay compilation. The source recovery and compiler projections are
+  // regression-covered; freeze the exact candidate instead of granting room.
+  // The publish-readiness checkpoint adds 143 measured lines for atomic
+  // objective→assessment→rubric lineage, evidence-safe mixed quizzes,
+  // operation-family fail-closure, and lesson-specific slide-note checks.
+  // These are course-neutral compiler controls covered by the 40-fixture
+  // contract audit and the three-discipline replay; freeze the exact state.
+  // Final V0.17.18 review adds 11 measured lines for nonredundant objective
+  // projection and lesson-specific discussion evidence criteria.
+  compilerLines: 28_496,
   // V0.16.97 moved compiler logic into cacheable courseCompiler*.js leaves.
   // Freeze the whole ownership family so extracting modules cannot make the
   // monolith-only counter report a false reduction. The 69-line post-release
@@ -84,7 +99,18 @@ const repositoryBudgets = {
   // evidence while moving identity classification and visual selection into
   // focused leaves. Policy, qualitative-coding, and genuine-programming
   // regressions freeze the exact state without speculative headroom.
-  compilerFamilyLines: 31_291,
+  // V0.17.16 adds 87 measured lines for source-authority admission and the
+  // official introductory-statistics identity repair. The individual compiler
+  // remains below its prior ceiling; freeze the complete ownership family at
+  // the measured state so extraction cannot masquerade as future reduction.
+  // V0.17.17 adds 90 net family lines for the same replay, evidence-ranking,
+  // and source-identity boundary. No learner-copy corpus moved into the
+  // controller family; freeze the exact measured total.
+  // V0.17.18's governing-source continuity adds the same 30 controller lines
+  // and no new courseCompiler leaf, so the ownership-family delta is exact.
+  // The same publish-readiness controls add 147 net family lines after
+  // extraction accounting. No fixed course corpus moved into a leaf.
+  compilerFamilyLines: 31_656,
   // v0.16.81 adds one executable Algi→Scion hybrid benchmark audit. It freezes
   // evidence, route, quality, call, latency, and export promotion rules; this
   // is a release gate rather than product-side script sprawl.
@@ -104,10 +130,13 @@ const repositoryBudgets = {
   // another runner. V0.17.13 freezes 14 bounded Scion learning and Truth Gate
   // reproduction commands. They share the same classroom, teacher, holdout,
   // and gate implementations rather than multiplying product runtime paths.
-  npmScripts: 401,
-  // v0.17.13 shipped 299 tracked release-ledger files (contracts plus the
-  // directory README); v0.17.14 may add exactly one current-release contract.
-  releaseContractFiles: 299,
+  // V0.17.15 exposes one replayable checkpoint-audit orchestrator. Its
+  // internal render, functional-visual, and evidence tools remain direct Node
+  // entry points instead of multiplying package-script aliases.
+  npmScripts: 402,
+  // V0.17.17 closes with 303 tracked ledger files; V0.17.18 may add exactly
+  // its one current-release contract.
+  releaseContractFiles: 303,
   trackedWeightFiles: 62,
   trackedWeightBytes: 1_053_339_981,
   largeBinaryBytes: 1024 * 1024,
@@ -224,7 +253,20 @@ const lazyChunkBudgets = [
   // Node 22 zlib measures the same chunk about 0.2 KiB above Node 26; a
   // bounded 640-byte compressor tolerance covers the observed platform spread
   // without increasing either content ceiling.
-  { prefix: 'AppFlow-', rawKiB: 283.5, gzipKiB: 85.25, gzipSlackBytes: 640 },
+  // V0.17.16 carries one lesson-indexed authentic-evidence authority map into
+  // the existing enrichment handoff. The measured route shell is 283.8 KiB;
+  // retain less than one tenth KiB of content headroom.
+  // V0.17.16's replay repair retains the exact pre-draft packet and coverage
+  // object through final compilation. After extracting its policy code to a
+  // compiler-only leaf, the route measures 283.96 KiB; freeze at 284.0.
+  // The August 2026 security refresh moves Vite 8.0.10 to 8.2.1. Its emitted
+  // module wrappers add about 0.4 KiB raw while gzip remains under the same
+  // content ceiling; bound that toolchain-only variance at half a KiB.
+  // V0.17.17 splits operation-quiz and slide-depth ownership out of the
+  // compiler. Two additional lazy import edges add 0.1 KiB of wrapper bytes
+  // to AppFlow while removing 20+ KiB from the compiler chunk; gzip remains
+  // inside the existing content ceiling plus platform tolerance.
+  { prefix: 'AppFlow-', rawKiB: 284.75, gzipKiB: 85.25, gzipSlackBytes: 640 },
   // v0.16.47: the Living Course Compiler component and pure selector gained
   // an independently cacheable route boundary instead of raising AppFlow's
   // long-standing ratchet. Clean measurement: AppFlow 251.6/75.9; ribbon
@@ -278,7 +320,11 @@ const lazyChunkBudgets = [
   // 1 KiB and gzip stays far under the existing ceiling.
   // v0.16.73 measured 355.0/97.8 after package-readiness and compiled-answer
   // receipts; preserve the existing generous gzip ceiling.
-  { prefix: 'ChatPanel-', rawKiB: 356, gzipKiB: 105 },
+  // The transaction-bound run context changes the measured raw output by
+  // fewer than 64 bytes while gzip remains far below its existing ceiling.
+  // The replay leaf changes Rolldown's shared-chunk edge by two raw bytes;
+  // keep less than eleven bytes of headroom rather than granting 0.1 KiB.
+  { prefix: 'ChatPanel-', rawKiB: 356.11, gzipKiB: 105 },
   // V0.16.82: compact compiled evidence cards are independently cacheable.
   // Keep source-grounded Agent context out of the conversation-control chunk.
   { prefix: 'agentEvidenceCards-', rawKiB: 2, gzipKiB: 1 },
@@ -374,7 +420,56 @@ const lazyChunkBudgets = [
   // V0.17.10's honest <2-spoke concept-map fallback adds 7 measured raw bytes
   // to this lazy chunk. Keep the ratchet within 4 bytes of the 870,509-byte
   // artifact rather than adding speculative headroom.
-  { prefix: 'courseBlueprintCompiler-', rawKiB: 850.11, gzipKiB: 238.85, gzipSlackBytes: 64 },
+  // V0.17.17's plan/evidence admission seam measures 239.16 KiB gzip while
+  // raw bytes remain below the previous ceiling. Freeze 239.2 with no broad
+  // allowance and keep this compiler off the landing route.
+  // V0.17.18 keeps raw below the existing ceiling; governing-source continuity
+  // measures 239.3301 KiB gzip. Freeze 239.34 with the existing bounded
+  // compressor tolerance and no speculative raw allowance.
+  // The verified-draft compiler controls above measure 246,425 gzip bytes on
+  // the locked Node 22 build. Final objective and discussion specificity
+  // measures 240.8 KiB gzip; retain only a narrow measured ceiling.
+  // V0.17.18's final anti-repetition fallback adds four bounded, course-neutral
+  // activity variants and measures 246,526 gzip bytes on locked Node 22. The
+  // raw chunk shrank; freeze the exact gzip result with the existing 64-byte
+  // platform-variance allowance instead of granting speculative headroom.
+  { prefix: 'courseBlueprintCompiler-', rawKiB: 850.11, gzipKiB: 241.09, gzipSlackBytes: 64 },
+  // Verified Coherent Draft policy is independently cacheable from compiler
+  // orchestration. These narrow ceilings freeze the measured course-agnostic
+  // semantic-admission, evidence-operation, and specimen contract layer.
+  // V52 adds lesson-indexed identification guidance so a 14-lesson language
+  // package cannot repeat one observation-before-interpretation sentence.
+  // V0.17.17 adds the prospective-plan/draft-integrity split, exact source-
+  // alias joins, and operation-family drift rejection. The measured leaf is
+  // 85.5/27.6 KiB and remains off both landing and workspace-shell routes.
+  // V0.17.18's assessment-tuple and semantic-claim boundaries measure
+  // 86.4102/27.5195 KiB. Freeze raw at 86.42; gzip stays below its old cap.
+  { prefix: 'verifiedDraftCompilerContracts-', rawKiB: 86.42, gzipKiB: 27.75 },
+  // Research-title and claim admission is an independently cacheable,
+  // compile-only policy leaf. Freeze the measured 3.37/1.44 KiB boundary.
+  { prefix: 'researchCitationAdmission-', rawKiB: 3.5, gzipKiB: 1.55 },
+  // V0.17.15 keeps learner-facing authentic-evidence reasoning in a focused
+  // compile-only leaf. Statistical operation intent and artifact decisions
+  // share the existing semantic-contract boundary because Rolldown correctly
+  // coalesces their common dependency; freeze that measured boundary instead
+  // of requiring a fictional duplicate chunk.
+  // V0.17.17 adds a course-neutral articulatory evidence composite. The
+  // measured leaf is 5.87/2.36 KiB and remains compile-only.
+  { prefix: 'authenticEvidenceStudyPractice-', rawKiB: 6, gzipKiB: 2.5 },
+  // V0.17.17 keeps the source-claim comparison rehearsal in its own
+  // compile-only boundary. This prevents a general fallback from expanding
+  // the compiler, semantic-contract, or authentic-data ratchets; freeze the
+  // measured 2.55/1.26 KiB leaf with less than 0.2/0.1 KiB headroom.
+  { prefix: 'sourceBoundStudyWorkedExample-', rawKiB: 2.75, gzipKiB: 1.35 },
+  { prefix: 'blueprintSemanticContract-', rawKiB: 49, gzipKiB: 15.5 },
+  // Artifact-genre decoding is a deterministic cross-discipline decision
+  // table; isolating it removes almost 1,000 controller lines and keeps the
+  // V0.17.17 adds source-role and lesson-intent qualifiers without adding a
+  // course-specific profile. Freeze the measured 59.0/14.0 KiB boundary.
+  { prefix: 'artifactGenreDecode-', rawKiB: 59.25, gzipKiB: 14.25 },
+  // Discussion choreography and accessibility policy are compile-only and
+  // independently cacheable; retain sub-quarter-KiB measured headroom.
+  { prefix: 'discussionProtocol-', rawKiB: 24.5, gzipKiB: 7.25 },
   { prefix: 'compilerTeachingMoveVariants-', rawKiB: 4, gzipKiB: 1.5, gzipSlackBytes: 64 },
   // Experiential-activity mechanics are compiler-owned and independently
   // cacheable beside the lazy compiler. The chunk projects the canonical
@@ -390,12 +485,14 @@ const lazyChunkBudgets = [
   { prefix: 'compilerExperientialActivity-', rawKiB: 38, gzipKiB: 12 },
   // Source-bound answer exemplars are isolated from the compiler monolith and
   // remain compile-only; freeze the measured leaf with narrow headroom.
-  { prefix: 'compilerAssessmentEvidenceCopy-', rawKiB: 7, gzipKiB: 3.25 },
+  // V0.17.15 adds six lesson-rotated evidence-definition cues so assessment
+  // exemplars no longer repeat one high-salience fallback sentence.
+  { prefix: 'compilerAssessmentEvidenceCopy-', rawKiB: 7.5, gzipKiB: 3.25 },
   // V0.17.10 selects a complete grammatical concept-map identity instead of
   // truncating a hub into a plausible fragment or accepting a dangling
   // function word. The measured compile-only leaf is 3218/1629 bytes; freeze
   // it at 3.15/1.6 KiB with only the standard compressor-variance allowance.
-  { prefix: 'compilerFactLedgerVisuals-', rawKiB: 3.15, gzipKiB: 1.6, gzipSlackBytes: 64 },
+  { prefix: 'compilerFactLedgerVisuals-', rawKiB: 3.2, gzipKiB: 1.6, gzipSlackBytes: 64 },
   // Exact target-language assessment and lesson-plan frames are substantial
   // compile-only data. They remain cacheable beside the compiler without
   // weakening the compiler's long-standing size ratchet.
@@ -451,15 +548,12 @@ const lazyChunkBudgets = [
   // v0.16.71: literature submission profiles are substantial instructional
   // data, not compiler control flow. They load only with compilation.
   { prefix: 'compilerReadingProfiles-', rawKiB: 30, gzipKiB: 9 },
-  // v0.16.71: evidence-check rotations and criterion-level performance bands
-  // are a separate compile-only leaf (measured 9.1/3.2 KiB).
-  // V0.17.10 adds inspectable correctness, clarity, verification, and revision
-  // bands for true code labs. Policy memos remain excluded by identity tests;
-  // freeze the measured 11.7/3.8 KiB result without broad headroom.
-  { prefix: 'compilerRubricCopy-', rawKiB: 11.8, gzipKiB: 3.9 },
-  // v0.16.74: assessment-specific comparative literature bands are compile-
-  // only instructional data, kept out of the compiler control-flow chunk.
-  { prefix: 'compilerComparativeRubricBands-', rawKiB: 10, gzipKiB: 3.5 },
+  // V0.17.15 consolidates generic, code-lab, comparative-literature, and
+  // source-bound anchor presentation behind one compile-only boundary. This
+  // removes 174 controller lines, preserves the whole-family line ratchet,
+  // and replaces two transitively coalesced chunks with one explicit measured
+  // leaf. Freeze the 35.3/11.4 KiB result with narrow platform headroom.
+  { prefix: 'assessmentEvidencePresentation-', rawKiB: 36, gzipKiB: 11.5 },
   // v0.16.65: varied assessment and material-polish copy moved out of the
   // compiler hot chunk. This compile-only leaf stays independently cacheable.
   { prefix: 'compilerPolish-', rawKiB: 8, gzipKiB: 3 },
@@ -467,10 +561,14 @@ const lazyChunkBudgets = [
   // and study-guide evidence copy into this compile-only leaf. The main
   // compiler remains under its shipped chunk ceiling; the final learner-copy
   // guard measures 7.9/3.2 KiB and retains narrow platform-variance headroom.
-  { prefix: 'compilerEvidenceCopy-', rawKiB: 8, gzipKiB: 3.3 },
+  // Cross-source study questions now rotate supported judgment, tension, and
+  // evidence-boundary operations instead of repeating one comparison prompt.
+  { prefix: 'compilerEvidenceCopy-', rawKiB: 9, gzipKiB: 3.8 },
   // Cross-artifact repetition analysis is grader-only and independently
   // cacheable from the quality controller.
-  { prefix: 'repeatedInstructionalPhrase-', rawKiB: 5, gzipKiB: 2 },
+  // Longest-first identity masking closes false repetition findings for
+  // structured evidence composites; measured 5.24/2.02 KiB.
+  { prefix: 'repeatedInstructionalPhrase-', rawKiB: 5.25, gzipKiB: 2.05 },
   // v0.16.73 learner-visible not-applicable states measured 163.8/35.2.
   // The editable activity briefing remains isolated from the main view.
   { prefix: 'DeliverableView-', rawKiB: 170, gzipKiB: 36.5 },
@@ -487,7 +585,9 @@ const lazyChunkBudgets = [
   // in THIS chunk (not AppFlow's) so the queue loads with the export panel
   // that hosts it (measured at 47.5 KiB raw / 13.0 gzip). Deliberate feature
   // growth; the checklist banner UI it replaces was already here.
-  { prefix: 'ExportSidePanel-', rawKiB: 52, gzipKiB: 15 },
+  // Vite 8.2.1 adds about 0.1 KiB of raw wrapper output to this lazy chunk
+  // without increasing its gzip ceiling; retain only quarter-KiB headroom.
+  { prefix: 'ExportSidePanel-', rawKiB: 52.25, gzipKiB: 15 },
   // v0.14.3 WS-A A4: the deep quality grader + defect patterns — the
   // package-grades-itself chunk, lazy-loaded only when finalize-grading or a
   // ZIP download runs (measured at 38.6 KiB raw / 13.9 KiB gzip; the roadmap
@@ -531,7 +631,17 @@ const lazyChunkBudgets = [
   // public grader identity to a tiny shared module. Measured 73.6/25.6 KiB.
   // V0.17.09 renders attainable readiness denominators and deterministic
   // reconstruction disclosure in the finalize-only report path (74.9/26.0).
-  { prefix: 'deepQualityGrader-', rawKiB: 75, gzipKiB: 26.1 },
+  // V0.17.15 verifies source-stated grading rows/bands and the complete
+  // semantic-claim inventory before a package can present as ready.
+  { prefix: 'deepQualityGrader-', rawKiB: 78, gzipKiB: 27 },
+  // Atomic semantic-inventory and post-draft admission verification is a
+  // finalize-only trust leaf. Extracting it keeps the grader controller below
+  // its frozen raw ceiling while preserving one auditable transaction gate.
+  // V0.17.17 also requires prospective plan evidence and draft-integrity
+  // admission independently. The measured finalize-only leaf is 3.5/1.4 KiB.
+  // V0.17.18 distinguishes semantic verification from structural receipt
+  // integrity in the same finalize-only leaf. Freeze 4.5781/1.7051 KiB.
+  { prefix: 'deepQualityTrustAdmission-', rawKiB: 4.59, gzipKiB: 1.72 },
   // Citation-to-ledger matching is independently cacheable and finalize-only.
   { prefix: 'sourceLedgerCitationSupport-', rawKiB: 0.75, gzipKiB: 0.5 },
   // High-signal format patterns stay finalize-only and independently
@@ -566,6 +676,8 @@ const forbiddenInitialChunks = [
   /compilerInstructionalCopy/i,
   /compilerSelfAssessmentCopy/i,
   /compilerReadingProfiles/i,
+  /assessmentEvidencePresentation/i,
+  /deepQualityTrustAdmission/i,
   /compilerRubricCopy/i,
   /compilerComparativeRubricBands/i,
   /compilerPolish/i,

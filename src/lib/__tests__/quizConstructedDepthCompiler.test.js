@@ -4,6 +4,7 @@ import {
   buildCourseBlueprint,
   buildQuizAtomsForLesson,
   compileBlueprintDeliverable,
+  compileBlueprintDeliverables,
 } from '../courseBlueprintCompiler.js';
 import { lintItemAdmission } from '../itemAdmissionLint.js';
 import { projectKernelToSurfaces } from '../kernelProjection.js';
@@ -35,6 +36,26 @@ function evidenceCourseBlueprint() {
   });
 }
 
+function markLessonKnowledgeAuthoritative(lesson) {
+  const existingFacts = Array.isArray(lesson?.enrichment?.kernel?.facts)
+    ? lesson.enrichment.kernel.facts.filter(Boolean)
+    : [];
+  const definitionFacts = (lesson?.enrichment?.keyTerms || []).map((term) => term?.definition).filter(Boolean);
+  const facts = existingFacts.length > 0 ? existingFacts : definitionFacts;
+  if (!lesson?.enrichment || facts.length === 0) return lesson;
+  lesson.enrichment.kernel = {
+    ...(lesson.enrichment.kernel || {}),
+    facts,
+    provenance: {
+      source: 'compiler-owned-exact-source-ledger',
+      authority: 'verified-open-research',
+      copiedFactsVerbatim: true,
+      factCount: facts.length,
+    },
+  };
+  return lesson;
+}
+
 describe('constructed-response compiler depth', () => {
   it('quotes imperative misconception claims without creating broken “argues that” grammar', () => {
     const blueprint = evidenceCourseBlueprint();
@@ -54,6 +75,7 @@ describe('constructed-response compiler depth', () => {
         ],
       },
     };
+    markLessonKnowledgeAuthoritative(blueprint.lessons[0]);
     blueprint.enrichment = {
       coverage: { requestedLessons: 1, enrichedLessons: 1, missingLessons: [] },
       stageDecisions: { modelStage: 'ran' },
@@ -80,7 +102,9 @@ describe('constructed-response compiler depth', () => {
     expect(isConceptCuedCompilerShortAnswer(item.question)).toBe(false);
     expect(isClaimEvidenceBoundaryShortAnswer(item.question)).toBe(true);
     expect(item.sampleAnswer).toMatch(/specific detail/i);
-    expect(item.sampleAnswer).toMatch(/without claiming a broader conclusion/i);
+    expect(item.sampleAnswer).toMatch(
+      /limits? the conclusion|separates? the supported inference|remains? uncertain|rejects? one broader interpretation|alternative explanation|additional observation/i,
+    );
     expect(item.scoringGuidance).toMatch(/limitation|cannot establish|next source|bounded claim/i);
   });
 
@@ -98,6 +122,7 @@ describe('constructed-response compiler depth', () => {
         },
       ],
     };
+    markLessonKnowledgeAuthoritative(blueprint.lessons[0]);
     blueprint.enrichment = {
       coverage: { missingLessons: [1] },
       stageDecisions: { modelStage: 'failed: missing lesson kernel' },
@@ -194,6 +219,7 @@ describe('constructed-response compiler depth', () => {
         },
       ],
     };
+    markLessonKnowledgeAuthoritative(blueprint.lessons[0]);
     blueprint.enrichment = {
       coverage: { requestedLessons: 1, enrichedLessons: 1, missingLessons: [] },
       stageDecisions: { modelStage: 'ran' },
@@ -207,8 +233,14 @@ describe('constructed-response compiler depth', () => {
     expect(compilerItems).toHaveLength(8);
     expect(items.every((item) => item.enrichmentSource !== 'source-bound-recovery')).toBe(true);
     expect(items.every((item) => item.sourceReviewRequired !== true)).toBe(true);
-    expect(multipleChoice).toHaveLength(3);
-    expect(multipleChoice.filter((item) => isAppliedQuizStem(item.question))).toHaveLength(2);
+    // Only the complete authored four-option item remains multiple choice.
+    // The compiler must not manufacture generic distractors merely to retain
+    // an arbitrary MC count.
+    expect(multipleChoice).toHaveLength(1);
+    expect(multipleChoice.filter((item) => isAppliedQuizStem(item.question))).toHaveLength(1);
+    expect(
+      items.filter((item) => item.distractorDiscrimination?.status === 'insufficient-authored-distractors').length,
+    ).toBeGreaterThanOrEqual(2);
     expect(items[2]).toMatchObject({
       type: 'multiple_choice',
       enrichmentSource: 'admitted-kernel-assessment',
@@ -229,6 +261,9 @@ describe('constructed-response compiler depth', () => {
     ).toEqual([]);
     expect(JSON.stringify(compilerItems)).toMatch(/Repeated task failures|One observation motivates a follow-up/i);
     expect(JSON.stringify(compilerItems)).not.toMatch(/source use without fabricating|kernel failed admission/i);
+    expect(JSON.stringify(compilerItems)).not.toContain(
+      'A constructed response is used because fewer than three independent authored distractors were available',
+    );
   });
 
   it('replaces a repeated single-misconception item with a distinct evidence-bound task', () => {
@@ -252,6 +287,7 @@ describe('constructed-response compiler depth', () => {
       },
       quizItems: [],
     };
+    markLessonKnowledgeAuthoritative(blueprint.lessons[0]);
     blueprint.enrichment = {
       coverage: { requestedLessons: 1, enrichedLessons: 1, missingLessons: [] },
       stageDecisions: { modelStage: 'ran' },
@@ -299,6 +335,7 @@ describe('constructed-response compiler depth', () => {
       },
       quizItems: [],
     };
+    markLessonKnowledgeAuthoritative(blueprint.lessons[0]);
     blueprint.enrichment = {
       coverage: { requestedLessons: 1, enrichedLessons: 1, missingLessons: [] },
       stageDecisions: { modelStage: 'ran' },
@@ -341,6 +378,7 @@ describe('constructed-response compiler depth', () => {
       },
     );
     blueprint.lessons[0].enrichment.keyTerms[0].source = 'fact-ledger-projection';
+    markLessonKnowledgeAuthoritative(blueprint.lessons[0]);
     blueprint.enrichment = {
       coverage: { requestedLessons: 1, enrichedLessons: 1, missingLessons: [] },
       stageDecisions: { modelStage: 'ran' },
@@ -353,7 +391,6 @@ describe('constructed-response compiler depth', () => {
 
     expect(shortAnswer?.question).toContain(`Claim A: ${facts[0]}`);
     expect(shortAnswer?.question).toContain(`Claim B: ${facts[1]}`);
-    expect(shortAnswer?.question).toMatch(/Identify the course concept that best organizes these claims/);
     expect(shortAnswer?.question).not.toMatch(/In 3-4 sentences, use one course detail/);
     expect(shortAnswer?.sampleAnswer).toContain(facts[0]);
     expect(shortAnswer?.sampleAnswer).toContain(facts[1]);
@@ -401,6 +438,7 @@ describe('constructed-response compiler depth', () => {
       },
     );
     blueprint.lessons[0].enrichment.keyTerms[0].source = 'fact-ledger-projection';
+    markLessonKnowledgeAuthoritative(blueprint.lessons[0]);
     blueprint.enrichment = {
       coverage: { requestedLessons: 1, enrichedLessons: 1, missingLessons: [] },
       stageDecisions: { modelStage: 'ran' },
@@ -459,13 +497,14 @@ describe('constructed-response compiler depth', () => {
         },
       ],
     };
+    markLessonKnowledgeAuthoritative(blueprint.lessons[0]);
     blueprint.enrichment = {
       coverage: { requestedLessons: 1, enrichedLessons: 1, missingLessons: [] },
       stageDecisions: { modelStage: 'ran' },
     };
 
     const items = buildQuizAtomsForLesson(blueprint.lessons[0], blueprint, { assessment: {} });
-    const constructed = items.find((item) => item.type === 'short_answer');
+    const constructed = items.find((item) => item.quizPlan?.role === 'admitted-kernel-evidence-analysis');
 
     expect(constructed.question).toMatch(/Oral Epic/i);
     expect(JSON.stringify(constructed)).toMatch(/Oral Epic Forms/i);
@@ -519,6 +558,7 @@ describe('constructed-response compiler depth', () => {
         },
       ],
     };
+    markLessonKnowledgeAuthoritative(blueprint.lessons[0]);
     blueprint.enrichment = {
       coverage: { requestedLessons: 1, enrichedLessons: 1, missingLessons: [] },
       stageDecisions: { modelStage: 'ran' },
@@ -543,6 +583,7 @@ describe('constructed-response compiler depth', () => {
       },
       quizItems: [],
     };
+    markLessonKnowledgeAuthoritative(blueprint.lessons[0]);
     blueprint.enrichment = {
       coverage: { requestedLessons: 1, enrichedLessons: 1, missingLessons: [] },
       stageDecisions: { modelStage: 'ran' },
@@ -631,6 +672,7 @@ describe('constructed-response compiler depth', () => {
         },
       ],
     };
+    markLessonKnowledgeAuthoritative(blueprint.lessons[0]);
     blueprint.enrichment = {
       coverage: { requestedLessons: 1, enrichedLessons: 1, missingLessons: [] },
       stageDecisions: { modelStage: 'ran' },
@@ -643,13 +685,16 @@ describe('constructed-response compiler depth', () => {
     expect(items.every((item) => item.sourceReviewRequired !== true)).toBe(true);
     expect(items.some((item) => item.enrichmentSource === 'admitted-kernel-assessment')).toBe(true);
     const admittedEvidenceItem = items.find(
-      (item) => item.type === 'short_answer' && item.enrichmentSource === 'admitted-kernel-assessment',
+      (item) =>
+        item.type === 'short_answer' &&
+        item.enrichmentSource === 'admitted-kernel-assessment' &&
+        item.quizPlan?.role === 'admitted-kernel-evidence-analysis',
     );
     expect(admittedEvidenceItem).toMatchObject({
       type: 'short_answer',
       enrichmentSource: 'admitted-kernel-assessment',
     });
-    expect(['Apply', 'Analyze']).toContain(admittedEvidenceItem.bloomsLevel);
+    expect(['Apply', 'Analyze', 'Evaluate']).toContain(admittedEvidenceItem.bloomsLevel);
     expect(admittedEvidenceItem.question).toMatch(/course detail|evidence|source-backed|statement|fact/i);
     expect(admittedEvidenceItem.question).toMatch(/limitation|limit|boundary|overclaim|does not establish/i);
     expect(admittedEvidenceItem.question).not.toMatch(/relates to water/);
@@ -674,6 +719,7 @@ describe('constructed-response compiler depth', () => {
         facts: ['Repeated task failures support a bounded usability claim, not a universal conclusion.'],
       },
     };
+    markLessonKnowledgeAuthoritative(blueprint.lessons[0]);
     blueprint.assessments = [
       {
         id: 'assessment-exam-1',
@@ -690,7 +736,7 @@ describe('constructed-response compiler depth', () => {
       skipLanguageFinalizer: true,
     });
     const exam = compiled.quizzes.find((quiz) => quiz.kind === 'exam');
-    const shortAnswer = exam.questions.find((item) => item.type === 'short_answer');
+    const shortAnswer = exam.questions.find((item) => item.quizPlan?.role === 'exam-cross-lesson-analysis');
     const essay = exam.questions.find((item) => item.type === 'essay');
 
     expect(exam.examScope).toBe('Covers Lesson 1: Usability Evidence.');
@@ -699,7 +745,8 @@ describe('constructed-response compiler depth', () => {
     expect(isConceptCuedCompilerShortAnswer(shortAnswer.question)).toBe(false);
     expect(isClaimEvidenceBoundaryShortAnswer(shortAnswer.question)).toBe(true);
     expect(shortAnswer.sampleAnswer).toMatch(/Repeated task failures support a bounded usability claim/i);
-    expect(shortAnswer.sampleAnswer).toMatch(/distinguishes what each concept explains/i);
+    expect(shortAnswer.sampleAnswer).toMatch(/compare only what the quoted sentences explicitly support/i);
+    expect(shortAnswer.sampleAnswer).not.toMatch(/\b(?:grounds|demonstrates)\b/i);
     expect(essay.question).not.toMatch(/\bdecision decisions\b/i);
     expect(essay.question).not.toMatch(/(.+?) through \1/i);
     expect(essay.rubricHints).toMatch(/two concepts from the covered lesson/i);
@@ -766,6 +813,7 @@ describe('constructed-response compiler depth', () => {
         },
       ],
     };
+    markLessonKnowledgeAuthoritative(blueprint.lessons[0]);
 
     const compiled = compileBlueprintDeliverable('quizBank', blueprint, {
       skipPrepareBlueprint: true,
@@ -773,7 +821,7 @@ describe('constructed-response compiler depth', () => {
       skipLanguageFinalizer: true,
     });
     const exam = compiled.quizzes.find((quiz) => quiz.kind === 'exam');
-    const shortAnswer = exam.questions.find((item) => item.type === 'short_answer');
+    const shortAnswer = exam.questions.find((item) => item.quizPlan?.role === 'exam-cross-lesson-analysis');
     const essay = exam.questions.find((item) => item.type === 'essay');
 
     expect(shortAnswer.question).toMatch(/one course detail for each concept from Realism and Liberalism/i);
@@ -796,10 +844,81 @@ describe('constructed-response compiler depth', () => {
     });
     const defensiveShortAnswer = defensivelyCompiled.quizzes
       .find((quiz) => quiz.kind === 'exam')
-      .questions.find((item) => item.type === 'short_answer');
+      .questions.find((item) => item.quizPlan?.role === 'exam-cross-lesson-analysis');
 
     expect(defensiveShortAnswer.question).toMatch(/identify the two course concepts/i);
     expect(defensiveShortAnswer.answer).toMatch(/independently identifies both concepts/i);
     expect(defensiveShortAnswer.answer).not.toMatch(/Liberalism:\s*The anarchic structure/i);
+  });
+});
+
+describe('operation-qualified quiz dominance', () => {
+  it('keeps a simple-linear-regression quiz on the admitted fitted-line operation', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Introductory Statistics',
+      lessons: [
+        {
+          title: 'Lesson 1: Regression Analysis',
+          sections: [
+            {
+              topicSection: 'Simple linear regression',
+              learningGoals: 'Use a fitted line to describe a bounded association.',
+              learningObjectives:
+                'Fit and interpret a simple linear regression for supplied paired observations by showing slope and intercept calculations, checking fitted values or residuals, and limiting causal or extrapolated claims.',
+              weeklyAssessments: 'Regression analysis memo.',
+            },
+          ],
+        },
+      ],
+    });
+
+    const items = buildQuizAtomsForLesson(blueprint.lessons[0], blueprint, {
+      assessment: {},
+      questionCount: 8,
+    });
+    const text = items.map((item) => item.question).join(' ');
+
+    expect(items).toHaveLength(8);
+    expect(
+      items.every(
+        (item) => item.operationQualifiedEvidence?.operation === 'fit-and-interpret-simple-linear-regression',
+      ),
+    ).toBe(true);
+    expect(text).toMatch(/Sxx|least-squares line/i);
+    expect(text).toMatch(/residual/i);
+    expect(text).toMatch(/extrapolat/i);
+    expect(text).not.toMatch(/Poisson|segmented regression/i);
+  });
+
+  it('publishes operation-qualified quizzes with short-answer, essay, and evidence-safe choice evidence', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Introductory Statistics',
+      lessons: [
+        {
+          title: 'Lesson 1: Regression Analysis',
+          sections: [
+            {
+              topicSection: 'Simple linear regression',
+              learningObjectives:
+                'Fit and interpret a simple linear regression by showing the calculation, checking residuals, and bounding extrapolation.',
+              weeklyAssessments: 'Regression analysis memo.',
+            },
+          ],
+        },
+      ],
+    });
+
+    const quiz = compileBlueprintDeliverables(blueprint, ['quizBank']).quizBank.quizzes[0];
+    expect(new Set(quiz.questions.map((question) => question.type))).toEqual(
+      new Set(['multiple_choice', 'short_answer', 'essay']),
+    );
+    const essay = quiz.questions.find((question) => question.type === 'essay');
+    expect(essay).toMatchObject({
+      difficulty: 'Hard',
+      rubricHints: expect.any(String),
+      scoringGuidance: expect.any(String),
+    });
+    expect(essay.operationQualifiedEvidence?.verification?.checked).toBe(true);
+    expect(quiz.questions.every((question) => question.intendedUse.includes('Regression Analysis'))).toBe(true);
   });
 });

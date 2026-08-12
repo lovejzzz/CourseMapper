@@ -630,7 +630,7 @@ function ReadinessConfirm({
 
 // ── Quality stamp (v0.14.4 WS-B2) ─────────────────────────────────────────────
 // The PRIMARY quality chip moved to the workspace header (WorkspaceQualityChip
-// beside the course title); the panel keeps only this compact "100 · A" stamp
+// beside the course title); the panel keeps only a compact evidence stamp
 // on the Ready-to-download card. Click opens the same report modal — which
 // stays in this file: it renders a STRUCTURED summary from the grade result
 // object instead of markdown — the app's markdown renderer lives in the chat
@@ -638,8 +638,8 @@ function ReadinessConfirm({
 // heavier than the data it formats; the full markdown report ships in the
 // ZIP as QUALITY_REPORT.md.
 export function QualityStamp({ quality, onOpen, trustStatus = null, informational = false }) {
-  const grade = typeof quality?.grade === 'string' ? quality.grade.trim() : '';
-  if (quality?.status !== 'graded' || !Number.isFinite(quality.score) || !grade) return null;
+  const hasLegacyReceiptGrade = typeof quality?.grade === 'string' && Boolean(quality.grade.trim());
+  if (quality?.status !== 'graded' || !Number.isFinite(quality.score) || !hasLegacyReceiptGrade) return null;
   const readinessScore = Number.isFinite(quality.readiness?.score) ? quality.readiness.score : null;
   const readinessMax = Number.isFinite(quality.readiness?.maxScore) ? quality.readiness.maxScore : 100;
   const unobservedPoints = Number.isFinite(quality.readiness?.points?.unobserved)
@@ -658,17 +658,17 @@ export function QualityStamp({ quality, onOpen, trustStatus = null, informationa
       onClick={onOpen}
       title={`${
         readinessScore !== null
-          ? `Deterministic package evidence ${readinessScore}/${readinessMax} earned${unobservedPoints !== null ? `, ${unobservedPoints} unobserved` : ''}; package conformance ${quality.score}/100 (${grade})`
-          : `Package conformance ${quality.score}/100 (${grade})`
+          ? `Deterministic package evidence ${readinessScore}/${readinessMax} earned${unobservedPoints !== null ? `, ${unobservedPoints} unobserved` : ''}; automated conformance ${quality.score}/100`
+          : `Automated conformance ${quality.score}/100; not a teaching-quality grade`
       } — click for the full report`}
       aria-label={`Package quality ${
         readinessScore !== null
           ? `deterministic package evidence ${readinessScore} earned out of ${readinessMax}`
-          : `${quality.score} out of 100, grade ${grade}`
+          : `automated conformance ${quality.score} out of 100`
       } — open the quality report`}
       className={`inline-flex items-center gap-0.5 rounded-full border px-1.5 py-0.5 font-mono text-[10px] font-bold transition-colors hover:brightness-95 ${tone}`}
     >
-      {readinessScore !== null ? `${readinessScore}/${readinessMax}` : `${quality.score} · ${grade}`}
+      {readinessScore !== null ? `${readinessScore}/${readinessMax}` : `${quality.score}/100`}
     </button>
   );
 }
@@ -689,8 +689,8 @@ function humanizeReadinessLabel(value) {
 }
 
 function QualityReportModal({ quality, onClose }) {
-  const grade = typeof quality?.grade === 'string' ? quality.grade.trim() : '';
-  const hasReportableQuality = quality?.status === 'graded' && Number.isFinite(quality.score) && Boolean(grade);
+  const hasLegacyReceiptGrade = typeof quality?.grade === 'string' && Boolean(quality.grade.trim());
+  const hasReportableQuality = quality?.status === 'graded' && Number.isFinite(quality.score) && hasLegacyReceiptGrade;
   useEffect(() => {
     if (!hasReportableQuality) return undefined;
     const handleKeyDown = (event) => {
@@ -726,11 +726,11 @@ function QualityReportModal({ quality, onClose }) {
               <p id="quality-report-title" className="text-sm font-bold text-slate-800">
                 {readiness
                   ? `Deterministic package evidence — ${readiness.points?.earned ?? readiness.score}/100 earned`
-                  : `Package conformance — ${quality.score}/100 (${grade})`}
+                  : `Automated conformance — ${quality.score}/100`}
               </p>
               <p id="quality-report-summary" className="text-xs text-slate-400">
-                Package conformance {quality.score}/100 ({grade}) · {counts.p0 || 0} P0 · {counts.p1 || 0} P1 ·{' '}
-                {counts.p2 || 0} P2 · grader v{quality.graderVersion}
+                Automated conformance {quality.score}/100 · {counts.p0 || 0} P0 · {counts.p1 || 0} P1 · {counts.p2 || 0}{' '}
+                P2 · grader v{quality.graderVersion}
                 {quality.gradedAt ? ` · ${new Date(quality.gradedAt).toLocaleString()}` : ''}
               </p>
             </div>
@@ -832,7 +832,7 @@ function QualityReportModal({ quality, onClose }) {
               <p className="text-xs font-semibold text-slate-500 mb-1.5">Findings ({findings.length})</p>
               {findings.length === 0 ? (
                 <p className="rounded-lg bg-emerald-50 px-2 py-1.5 text-xs font-semibold text-emerald-700">
-                  No detectable defects — every deterministic check passed.
+                  No encoded defects detected. Teaching quality is reviewed separately.
                 </p>
               ) : (
                 <ul className="space-y-1.5">
@@ -865,8 +865,8 @@ function QualityReportModal({ quality, onClose }) {
               )}
             </div>
             <p className="text-xs text-slate-400 leading-snug">
-              The full markdown report ships inside the package ZIP as QUALITY_REPORT.md, and the manifest carries this
-              grade under <span className="font-mono">quality</span>.
+              The package includes QUALITY_REPORT.md. Automated conformance detects encoded defects; it is not a
+              teaching-quality grade.
             </p>
           </div>
         </div>

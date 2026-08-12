@@ -18,6 +18,7 @@ import { countAdvisoryQualityFindings, countBlockingQualityFindings } from './qu
 import { collectRejectedLearnerSourceEvidence, quarantineRejectedLearnerContent } from './sourceEvidenceAdmission';
 import { compressLessonPlanTitleReferences, dedupeDeckSlideTitles } from './compiledLanguageFinalizer';
 import { renderedDeliverableCollectionKey } from './renderedDeliverableRoot';
+import { reconcileCourseMapWithBlueprintSemanticAdmission } from './courseBlueprintCompiler.js';
 
 function featureLabel(featureId) {
   return READINESS_FEATURE_LABELS[featureId] || (featureId?.startsWith('custom_') ? 'Custom Deliverable' : featureId);
@@ -276,6 +277,94 @@ function courseMapAssessmentTitle(lesson, index) {
     if (firstLine) return stripFinalizerTerminalPunctuation(firstLine);
   }
   return `${courseMapLessonFocus(lesson, index)} evidence check`;
+}
+
+const LESSON_IDENTITY_COLLECTIONS = Object.freeze([
+  { featureId: 'lessonPlans', keys: ['lessonPlans', 'lessons'], titleKeys: ['lessonTitle', 'title'] },
+  { featureId: 'slideDecks', keys: ['decks', 'slideDecks'], titleKeys: ['lessonTitle', 'deckTitle', 'title'] },
+  { featureId: 'studyGuides', keys: ['studyGuides', 'guides'], titleKeys: ['lessonTitle', 'title'] },
+  { featureId: 'discussions', keys: ['discussions'], titleKeys: ['lessonTitle', 'title'] },
+  { featureId: 'quizBank', keys: ['quizzes'], titleKeys: ['lessonTitle', 'title'] },
+  { featureId: 'courseFaq', keys: ['faqs', 'faq'], titleKeys: ['lessonTitle', 'lt', 'title'] },
+]);
+
+function firstCollection(data, keys) {
+  for (const key of keys) {
+    if (Array.isArray(data?.[key])) return data[key];
+  }
+  return null;
+}
+
+function itemLessonTitle(item, titleKeys) {
+  for (const key of titleKeys) {
+    const value = compactFinalizerText(item?.[key]);
+    if (value) return value;
+  }
+  return '';
+}
+
+function lessonIdentityMatches(expectedTitle, actualTitle) {
+  const expected = identityTokenList(expectedTitle);
+  const actual = new Set(identityTokenList(actualTitle));
+  if (expected.length === 0 || actual.size === 0) return true;
+  const shared = expected.filter((token) => actual.has(token)).length;
+  return shared >= Math.min(2, expected.length);
+}
+
+/**
+ * A per-lesson package may be perfectly openable while its filename and
+ * body teach different lessons. Treat that positional/semantic shift as an
+ * export blocker: mechanical conformance cannot substitute for curriculum
+ * identity. The check is intentionally limited to artifact families that
+ * promise one ordered item per Course Map lesson.
+ */
+export function buildLessonIdentityIssues({ courseMap, deliverables } = {}) {
+  const lessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons : [];
+  if (lessons.length === 0) return [];
+  const issues = [];
+
+  for (const spec of LESSON_IDENTITY_COLLECTIONS) {
+    const entry = deliverables?.[spec.featureId];
+    if (entry?.status !== 'done') continue;
+    const collection = firstCollection(entry.data, spec.keys);
+    if (!collection) continue;
+    if (collection.length !== lessons.length) {
+      issues.push(
+        normalizeReadinessIssue({
+          severity: 'blocker',
+          featureId: spec.featureId,
+          label: `${featureLabel(spec.featureId)} lesson identity`,
+          message: `${featureLabel(spec.featureId)} contains ${collection.length} ordered lesson item(s), but the Course Map contains ${lessons.length}; rebuild before export.`,
+          source: 'lessonIdentity',
+          retryable: false,
+          autoFixable: false,
+        }),
+      );
+      continue;
+    }
+    collection.forEach((item, index) => {
+      const expectedTitle = courseMapLessonTitle(lessons[index], index);
+      const actualTitle = itemLessonTitle(item, spec.titleKeys);
+      const explicitNumber = Number(item?.lessonNumber);
+      const numberMismatch = Number.isFinite(explicitNumber) && explicitNumber !== index + 1;
+      const titleMismatch = actualTitle && !lessonIdentityMatches(expectedTitle, actualTitle);
+      if (!numberMismatch && !titleMismatch) return;
+      issues.push(
+        normalizeReadinessIssue({
+          severity: 'blocker',
+          featureId: spec.featureId,
+          label: `${featureLabel(spec.featureId)} lesson identity`,
+          lessonIndex: index,
+          lessonNumber: index + 1,
+          message: `${featureLabel(spec.featureId)} item ${index + 1} must match “${expectedTitle}” but identifies “${actualTitle || `Lesson ${explicitNumber}`}”; rebuild the curriculum projection before export.`,
+          source: 'lessonIdentity',
+          retryable: false,
+          autoFixable: false,
+        }),
+      );
+    });
+  }
+  return issues;
 }
 
 function assignmentLessonIndex(assignment, lessons) {
@@ -1150,8 +1239,9 @@ export function runDeterministicPackageFinalizer({
   blueprint = null,
   expectedSessionMinutes = null,
 } = {}) {
+  const admittedCourseMap = reconcileCourseMapWithBlueprintSemanticAdmission(courseMap, blueprint);
   const repairResult = applyDeterministicRepairs({
-    courseMap,
+    courseMap: admittedCourseMap,
     courseGraph,
     sourceBrief,
     deliverables,
@@ -1161,7 +1251,7 @@ export function runDeterministicPackageFinalizer({
     deliverableConfig,
     includeClassroomReadiness,
   });
-  const finalCourseMap = repairResult.courseMap || courseMap;
+  const finalCourseMap = repairResult.courseMap || admittedCourseMap;
   const finalDeliverables = repairResult.deliverables || deliverables;
   // v0.12.1 P2: findings that survive the deterministic content repair need
   // authorship — surface them as readiness warnings HERE (not only in the
@@ -1221,8 +1311,15 @@ export function runDeterministicPackageFinalizer({
     deliverables: finalDeliverables,
   });
   const reconciliationWarnings = assessmentReconciliationIssues.filter((issue) => issue.severity !== 'info');
+  const lessonIdentityIssues = buildLessonIdentityIssues({
+    courseMap: finalCourseMap,
+    deliverables: finalDeliverables,
+  });
   const readiness =
-    contentQualityIssues.length === 0 && enrichmentCoverageIssues.length === 0 && reconciliationWarnings.length === 0
+    contentQualityIssues.length === 0 &&
+    enrichmentCoverageIssues.length === 0 &&
+    reconciliationWarnings.length === 0 &&
+    lessonIdentityIssues.length === 0
       ? baseReadiness
       : (() => {
           const issues = normalizeReadinessIssues(
@@ -1231,6 +1328,7 @@ export function runDeterministicPackageFinalizer({
               ...contentQualityIssues,
               ...enrichmentCoverageIssues,
               ...reconciliationWarnings,
+              ...lessonIdentityIssues,
             ]),
           );
           const blockers = issues.filter((issue) => issue.severity === 'blocker');

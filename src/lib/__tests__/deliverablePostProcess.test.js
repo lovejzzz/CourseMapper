@@ -730,6 +730,27 @@ describe('Discussion prompt post-processing', () => {
       'Evidence explanation: AI governance',
     ]);
   });
+
+  it('collapses a complete assessment-title echo inside a source locator', () => {
+    const title = 'Morpheme Identification short analysis: claim, evidence, and next question.';
+    const data = {
+      discussions: [
+        {
+          lessonTitle: 'Lesson 4: Morphological Structure',
+          sourceArtifacts: [
+            {
+              title: 'Morphological Structure Assessment Brief',
+              locator: `${title}: ${title}`,
+              use: 'Use the artifact criteria as a stress test.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const discussion = normalizeDiscussionPromptFields(data).data.discussions[0];
+    expect(discussion.sourceArtifacts[0].locator).toBe(title);
+  });
 });
 
 describe('Study guide post-processing', () => {
@@ -1610,9 +1631,8 @@ describe('Rubric and assignment post-processing', () => {
     expect(result.data.rubrics[0].tp).toBe(40);
     expect(result.data.rubrics[0].gp).toContain('20%');
     expect(result.data.rubrics[0].gp).toContain('graded student work');
-    expect(result.data.rubrics[0].taskDirections).toContain(
-      'This rubric evaluates the graded student work: Sampling Strategy Quiz',
-    );
+    expect(result.data.rubrics[0].taskDirections).toContain('Sampling Strategy Quiz');
+    expect(result.data.rubrics[0].taskDirections).toMatch(/rubric evaluates|students submit|student work/i);
     expect(result.data.rubrics[0].cr[0].oa).toContain('Compare sampling strategies');
     expect(result.data.rubrics[0].cr[0].cn).toContain('Sampling Strategy Quiz');
     expect(result.data.rubrics[0].cr[0].ex).toContain('Sampling');
@@ -1679,6 +1699,49 @@ describe('Rubric and assignment post-processing', () => {
     expect(rubric.td).not.toContain('Course Overview and Decision Memo');
     expect(rubric.td).not.toContain('Existing task focus');
     expect(rubric.cr[0].cn).toContain('Diagnostic discussion post response');
+  });
+
+  it('removes terminal punctuation before composing rubric task directions', () => {
+    const localCourseMap = {
+      lessons: Array.from({ length: 3 }, (_, index) => ({
+        title: `Lesson ${index + 1}: ${index === 2 ? 'Interpretation' : `Foundation ${index + 1}`}`,
+        sections: [
+          {
+            learningObjectives:
+              index === 2
+                ? 'Interpret the result within the stated evidence boundary.'
+                : `Explain foundation ${index + 1}.`,
+            weeklyAssessments: index === 2 ? 'Interpretation memo.' : `Foundation check ${index + 1}`,
+          },
+        ],
+      })),
+    };
+    const rubrics = {
+      rubrics: [
+        {
+          t: 'Lesson Rubric',
+          lt: 'Lesson 3: Interpretation',
+          cr: [{ cn: 'Interpretation', oa: '', wt: 100 }],
+        },
+      ],
+    };
+    const assignments = {
+      assignments: [
+        {
+          t: 'Interpretation memo.',
+          dw: 'Week 3',
+          pg: '10%',
+          tp: 100,
+          ob: ['Interpret the result within the stated evidence boundary.'],
+        },
+      ],
+    };
+
+    const result = normalizeRubricAssessmentAlignment(rubrics, localCourseMap, assignments);
+    const taskDirections = result.data.rubrics[0].taskDirections;
+
+    expect(taskDirections).toContain('Students submit Interpretation memo for Lesson 3: Interpretation');
+    expect(taskDirections).not.toContain('Interpretation memo. for Lesson');
   });
 
   it('never rebinds an explicitly labeled rubric to another lesson when its assessment is not rubric-worthy', () => {
@@ -2100,7 +2163,8 @@ describe('Slide Deck post-processing', () => {
     expect(result.patchedAltText).toBe(1);
     expect(result.patchedDuePlaceholders).toBe(2);
     expect(result.addedSequenceGuides).toBe(1);
-    expect(result.data.decks[0].sl[0].vi.at).toContain('Text-only');
+    expect(result.data.decks[0].sl[0].vi.at).toContain('text-only');
+    expect(result.data.decks[0].sl[0].vi.at).toContain('Lesson 5: Data Collection');
     expect(JSON.stringify(result.data)).not.toMatch(/TBD|to be confirmed/i);
     expect(result.data.decks[0].slideDeckSequenceGuide.accessibilityStandards).toContain('screen readers');
   });

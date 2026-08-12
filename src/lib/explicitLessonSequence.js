@@ -8,6 +8,36 @@ function cleanText(value, max = 300) {
 const COUNT_WORD =
   '(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|\\d{1,2})';
 
+const COUNT_WORD_VALUES = new Map(
+  [
+    'one',
+    'two',
+    'three',
+    'four',
+    'five',
+    'six',
+    'seven',
+    'eight',
+    'nine',
+    'ten',
+    'eleven',
+    'twelve',
+    'thirteen',
+    'fourteen',
+    'fifteen',
+    'sixteen',
+    'seventeen',
+    'eighteen',
+    'nineteen',
+    'twenty',
+  ].map((word, index) => [word, index + 1]),
+);
+
+const DECLARED_COURSE_COUNT_RE = new RegExp(
+  `\\b(${COUNT_WORD})[\\s-]+(?:distinct\\s+)?(?:weekly\\s+)?(?:lessons?|sessions?|modules?|weeks?)\\b`,
+  'i',
+);
+
 const LABELED_SEQUENCE_HEADER_RE = new RegExp(
   `\\b(?:` +
     `lessons?\\s+(?:cover|include)|` +
@@ -146,8 +176,100 @@ export function extractExplicitLessonSequence(source = '', { expectedCount = nul
   return numbered.slice(0, 52);
 }
 
+function declaredCourseCount(source = '') {
+  const token = DECLARED_COURSE_COUNT_RE.exec(String(source || ''))?.[1]?.toLowerCase();
+  if (!token) return null;
+  const parsed = /^\d+$/.test(token) ? Number(token) : COUNT_WORD_VALUES.get(token);
+  return Number.isInteger(parsed) && parsed >= 2 && parsed <= 52 ? parsed : null;
+}
+
+function compactCoverageTopics(source = '') {
+  const text = String(source || '');
+  const patterns = [
+    /\bin\s+order,\s+(?:the\s+)?(?:lessons?|sessions?|modules?)\s+(?:teach|cover|address|examine)\s+([^.!?\n]{8,500})[.!?](?:\s|$)/i,
+    /\b(?:students?|learners?)\s+(?:will\s+)?(?:learn|study|examine|investigate|practice)\s+([^.!?\n]{8,500})[.!?](?:\s|$)/i,
+    /\b(?:course|class|seminar|studio|workshop)\b[^.!?\n]{0,80}?\b(?:focused\s+on|on|about|covering|including)\s+([^.!?\n]{8,500})[.!?](?:\s|$)/i,
+  ];
+  for (const pattern of patterns) {
+    const match = pattern.exec(text);
+    if (!match?.[1]) continue;
+    const topics = extractExplicitCoverageTopics(`Cover ${match[1]}.`);
+    if (topics.length >= 3) return topics;
+  }
+  return [];
+}
+
+/**
+ * Recover a named course arc written as “progress from A and B through C, D,
+ * and E.”  This is not treated as an exact one-topic-per-lesson schedule: it
+ * is ordered coverage that a planner may deepen when the requested lesson
+ * count is larger. Requiring both the from/through frame and a list of at
+ * least three bounded nouns keeps ordinary prose from becoming a curriculum.
+ */
+export function extractNamedProgressionTopics(source = '') {
+  const text = String(source || '');
+  const match =
+    /\b(?:progress|proceed|move|advance|develop|build)\s+from\s+([^.!?\n]{3,180}?)\s+through\s+([^.!?\n]{3,600})[.!?](?:\s|$)/i.exec(
+      text,
+    );
+  if (!match) return [];
+
+  const rightBlock = match[2].replace(/\s*,\s*and\s+/gi, ', ');
+  const right = rightBlock
+    .split(/\s*,\s*/)
+    .map(cleanSequenceItem)
+    .filter((topic) => topic.length >= 3 && topic.length <= 120);
+  if (right.length < 2) return [];
+
+  const leftBlock = match[1].trim();
+  const left = /\s+and\s+/i.test(leftBlock)
+    ? leftBlock
+        .split(/\s+and\s+/i)
+        .map(cleanSequenceItem)
+        .filter((topic) => topic.length >= 3 && topic.length <= 120)
+    : [cleanSequenceItem(leftBlock)].filter(Boolean);
+  const topics = [...left, ...right];
+  return topics.length >= 3 ? [...new Set(topics.map((topic) => topic.toLowerCase()))].slice(0, 52) : [];
+}
+
+/**
+ * Return the source-authored one-topic-per-lesson contract together with its
+ * provenance. A natural-language coverage list is admitted only when the same
+ * source declares a course count and the list has exactly that many bounded
+ * topics. This keeps a nine-topic list in a ten-session syllabus as coverage,
+ * while making an exact five-topic/five-lesson brief replayable and auditable.
+ */
+export function extractOrderedLessonContract(source = '', { expectedCount = null } = {}) {
+  const explicit = extractExplicitLessonSequence(source, { expectedCount });
+  if (explicit.length >= 2) {
+    return {
+      mode: 'explicit-lesson-sequence',
+      declaredCount: explicit.length,
+      topics: explicit,
+    };
+  }
+
+  const declaredCount = declaredCourseCount(source);
+  if (!declaredCount || (Number.isInteger(expectedCount) && declaredCount !== expectedCount)) return null;
+  const coverage = [...extractExplicitCoverageTopics(source), ...compactCoverageTopics(source)];
+  const topics = [...new Set(coverage.map((topic) => cleanSequenceItem(topic)).filter(Boolean))];
+  if (topics.length !== declaredCount) return null;
+  return {
+    mode: 'count-matched-coverage-list',
+    declaredCount,
+    topics,
+  };
+}
+
 const COVERAGE_LIST_HEADER_RE =
   /\b(?:cover|covers|covering|include|includes|including)\s+([^.!?\n]{8,800})[.!?](?:\s|$)/i;
+
+function isPerLessonOutputRequirement(text, match) {
+  const prefix = String(text || '').slice(Math.max(0, Number(match?.index || 0) - 120), Number(match?.index || 0));
+  return /\b(?:each|every)\s+(?:lesson|session|module|week)\b[^.!?\n]{0,80}\b(?:must|should|will|needs?\s+to|is\s+to)\s*$/i.test(
+    prefix,
+  );
+}
 
 /**
  * Extract a source-authored coverage list without pretending it is an ordered
@@ -165,6 +287,11 @@ export function extractExplicitCoverageTopics(source = '') {
   const text = String(source || '');
   const match = COVERAGE_LIST_HEADER_RE.exec(text);
   if (!match?.[1]) return [];
+  // “Each lesson must include a worked procedure, calculation record, …”
+  // declares what every lesson must produce; those nouns are not curriculum
+  // topics. Keeping this boundary here protects both zero-model composition
+  // and model prompts because they share this coverage extractor.
+  if (isPerLessonOutputRequirement(text, match)) return [];
   const block = match[1].replace(/\s*,\s*and\s+/gi, ', ');
   if (!block.includes(',')) return [];
   const topics = block

@@ -31,6 +31,61 @@ function hashContent(text) {
   return createHash('sha256').update(text).digest('hex').slice(0, 16);
 }
 
+function sha256(value) {
+  return createHash('sha256').update(value).digest('hex');
+}
+
+function normalizedSnapshotText(value) {
+  return String(value || '')
+    .normalize('NFKC')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function snapshotReceipt(sourceId, text, kernels = []) {
+  const snapshotText = normalizedSnapshotText(text);
+  const snapshotBytes = Buffer.from(snapshotText, 'utf8');
+  const claims = [];
+  const seen = new Set();
+  for (const kernel of kernels) {
+    for (const entry of [kernel?.definition, ...(kernel?.facts || [])].filter(Boolean)) {
+      const anchor = entry?.anchor;
+      if (String(anchor?.src || '') !== sourceId) continue;
+      const quote = normalizedSnapshotText(anchor?.quote);
+      const locator = String(anchor?.loc || '').trim();
+      const identity = `${locator}|${quote}`;
+      if (!quote || seen.has(identity)) continue;
+      const characterStart = snapshotText.indexOf(quote);
+      if (characterStart < 0) continue;
+      seen.add(identity);
+      const quoteByteStart = Buffer.byteLength(snapshotText.slice(0, characterStart), 'utf8');
+      const quoteBytes = Buffer.from(quote, 'utf8');
+      claims.push({
+        sourceId,
+        locator,
+        quote,
+        retrievedSnapshotSha256: sha256(snapshotBytes),
+        retrievedSnapshotBytes: snapshotBytes.length,
+        quoteByteStart,
+        quoteByteEnd: quoteByteStart + quoteBytes.length,
+        quoteSha256: sha256(quoteBytes),
+      });
+    }
+  }
+  return {
+    protocol: 'retrieved-source-snapshot-sha256-v2',
+    sources: [
+      {
+        sourceId,
+        normalizedSnapshotText: snapshotText,
+        retrievedSnapshotSha256: sha256(snapshotBytes),
+        retrievedSnapshotBytes: snapshotBytes.length,
+      },
+    ],
+    claims,
+  };
+}
+
 function serializeIndex(index) {
   // Ship the inverted index so the browser never recomputes it.
   return {
@@ -63,6 +118,8 @@ function main() {
         references[key] = {
           displayTitle: String(meta.displayTitle || '').trim(),
           ...(meta.sourceUrl ? { sourceUrl: String(meta.sourceUrl).trim() } : {}),
+          ...(meta.license ? { license: String(meta.license).trim() } : {}),
+          ...(meta.attribution ? { attribution: String(meta.attribution).trim() } : {}),
         };
       }
     }
@@ -83,6 +140,12 @@ function main() {
     }
     const sources = raw.sourceSnapshots || {};
     const { admitted, report } = admitBatch(raw.kernels || [], { sources, requireAnchors: true });
+    for (const [sourceId, snapshot] of Object.entries(sources)) {
+      references[sourceId] = {
+        ...(references[sourceId] || { displayTitle: sourceId }),
+        sourceSnapshot: snapshotReceipt(sourceId, snapshot, admitted),
+      };
+    }
     allAdmitted.push(...admitted);
     fullReport.push(...report.map((entry) => ({ file, ...entry })));
     console.log(`[foundry] ${file}: admitted ${admitted.length}/${(raw.kernels || []).length}`);

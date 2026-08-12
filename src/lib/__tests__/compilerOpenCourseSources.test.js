@@ -52,7 +52,7 @@ describe('compiler open-course source titles', () => {
     appendOpenCourseSourceTexts({ lessons: [{ readings: [citation] }] }, texts, new Set());
     expect(texts[0]).toMatchObject({
       title: 'Assessing multisensor integration for geological modeling',
-      note: 'Assigned open course source (open scholarly article, CC0 1.0 (DOAJ article metadata)) — https://example.org/doi/10.1000/example.',
+      note: '(open scholarly article, CC0 1.0 (DOAJ article metadata)) — https://example.org/doi/10.1000/example.',
     });
   });
 });

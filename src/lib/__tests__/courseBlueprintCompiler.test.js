@@ -6,6 +6,7 @@ import {
   bloomLevelFromStemVerb,
   compileBlueprintDeliverable,
   compileBlueprintDeliverables,
+  constructedFactAnalysisInstructionForLesson,
   contextualizeModalityRoutine,
   estimateBlueprintCompilerSavings,
   getBlueprintCompiledFeatures,
@@ -14,6 +15,8 @@ import {
   validateCourseBlueprintContract,
   validateCompilerOutputContract,
 } from '../courseBlueprintCompiler';
+import { conceptIdentityForComparison } from '../lessonSemanticRelevance.js';
+import { rebalanceSlideTimingToSession } from '../slideTimingPlan';
 import { evaluateClassroomReadiness } from '../classroomReadiness';
 import { auditDeliverableContentQuality } from '../contentQualityChecks';
 import { deriveCourseGraphFromCourseMap } from '../courseGraph/deriveFromCourseMap';
@@ -27,9 +30,100 @@ import { DEFAULT_AUDIT_PROJECTS, MESSY_IMPORT_STRESS_PROJECT } from '../../../sc
 
 let customDeliverables = {};
 
+function verifiedKnowledgeKernel(facts) {
+  return {
+    facts,
+    provenance: {
+      source: 'compiler-owned-exact-source-ledger',
+      authority: 'verified-open-research',
+      copiedFactsVerbatim: true,
+      factCount: facts.length,
+    },
+  };
+}
+
+function markLessonKnowledgeVerified(lesson) {
+  const facts =
+    lesson?.enrichment?.kernel?.facts?.length > 0
+      ? lesson.enrichment.kernel.facts
+      : (lesson?.enrichment?.keyTerms || []).map((term) => term?.definition).filter(Boolean);
+  if (!lesson?.enrichment || facts.length === 0) return;
+  lesson.enrichment.kernel = {
+    ...lesson.enrichment.kernel,
+    ...verifiedKnowledgeKernel(facts),
+  };
+}
+
 vi.mock('../customDeliverableLibrary', () => ({
   getCustomDeliverable: vi.fn((id) => customDeliverables[id] || null),
 }));
+
+describe('slide timing admission', () => {
+  it('fits enrichment depth slides into the approved live-session budget without cutting the core activity', () => {
+    const slides = [
+      { type: 'title', minutes: 1 },
+      { type: 'agenda', minutes: 2 },
+      { type: 'objectives', minutes: 3 },
+      ...Array.from({ length: 10 }, (_, index) => ({
+        type: 'content',
+        minutes: index === 0 ? 6 : 5,
+        enrichmentSource: index > 0 ? 'kernel-subject-matter' : undefined,
+      })),
+      { type: 'activity', minutes: 16 },
+      { type: 'discussion', minutes: 8 },
+      { type: 'summary', minutes: 4 },
+      { type: 'closing', minutes: 3 },
+    ];
+    const originalActivityMinutes = slides.find((slide) => slide.type === 'activity').minutes;
+    const result = rebalanceSlideTimingToSession(slides, 75);
+
+    expect(result.originalMinutes).toBeGreaterThan(75);
+    expect(result.slideMinutes).toBe(75);
+    expect(result.adjustedSlideCount).toBeGreaterThan(0);
+    expect(slides.find((slide) => slide.type === 'activity').minutes).toBe(originalActivityMinutes);
+    expect(slides.every((slide) => slide.minutes > 0)).toBe(true);
+  });
+});
+
+describe('concept comparison identity', () => {
+  it('treats section-number variants as the same instructional concept', () => {
+    expect(conceptIdentityForComparison('Describing Distributions with Numbers (2.4)')).toBe(
+      conceptIdentityForComparison('Describing Distributions with Numbers'),
+    );
+    expect(conceptIdentityForComparison('2.4: Describing Distributions with Numbers')).toBe(
+      conceptIdentityForComparison('Describing Distributions with Numbers'),
+    );
+  });
+
+  it('preserves genuinely different concepts', () => {
+    expect(conceptIdentityForComparison('Measures of center')).not.toBe(
+      conceptIdentityForComparison('Measures of spread'),
+    );
+  });
+
+  it('keeps decimal section identities intact when a complete slide bullet already fits', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Statistics Practice',
+      lessons: [
+        {
+          title: 'Lesson 1: Describing Distributions with Numbers',
+          sections: [
+            {
+              topicSection: 'Describing Distributions with Numbers (2.4)',
+              learningObjectives: 'Explain Describing Distributions with Numbers (2.4) using course evidence.',
+              weeklyAssessments: 'Evidence check.',
+            },
+          ],
+        },
+      ],
+    });
+    const bullets = compileBlueprintDeliverable('slideDecks', blueprint).decks.flatMap((deck) =>
+      deck.slides.flatMap((slide) => slide.bullets || []),
+    );
+    expect(bullets.some((bullet) => bullet.includes('(2.4)'))).toBe(true);
+    expect(bullets).not.toEqual(expect.arrayContaining([expect.stringMatching(/\(\d+\.$/)]));
+  });
+});
 
 describe('focused lesson concept extraction', () => {
   it('keeps one clean source concept instead of padding it with objective fragments', () => {
@@ -83,9 +177,145 @@ describe('focused lesson concept extraction', () => {
       ]),
     );
   });
+
+  it('never promotes an objective scaffold into a disciplinary concept token', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Visual Analysis',
+      lessons: [
+        {
+          title: 'Lesson 1: Perspective and Framing',
+          sections: [
+            {
+              learningObjectives: 'Explain Perspective and Framing using the available course evidence.',
+              weeklyAssessments: 'Application analysis: Perspective and Framing',
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(blueprint.conceptDependencyGraph.nodes[0].concept).toBe('Perspective and Framing');
+    expect(JSON.stringify(blueprint)).not.toContain('Framing using the available course evidence evidence');
+    expect(blueprint.courseConcepts).not.toEqual(
+      expect.arrayContaining([expect.stringMatching(/using the available course evidence/i)]),
+    );
+  });
+
+  it('selects the taught objective concept ahead of a broader lesson-title label', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Visual Analysis',
+      lessons: [
+        {
+          title: 'Lesson 1: Visual Hierarchy Structure',
+          sections: [
+            {
+              topicSection: 'Focal Point Identification',
+              learningObjectives: 'Apply Focal Point Identification to a course task or example.',
+              weeklyAssessments: 'Worked example: Visual Hierarchy Structure',
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(blueprint.lessons[0].keyConcepts).toEqual(
+      expect.arrayContaining(['Visual Hierarchy Structure', 'Focal Point Identification']),
+    );
+    expect(blueprint.conceptDependencyGraph.nodes[0].concept).toBe('Focal Point Identification');
+  });
 });
 
 describe('cross-deliverable fact routing', () => {
+  it('does not relabel verified research claims as glossary examples or concrete cases', () => {
+    const definition =
+      'Color theory describes the behavior of colors in mixing, contrast, harmony, schemes, and symbolism.';
+    const broadClaim = 'Traditional color symbolism can vary across cultures and contexts.';
+    const secondaryClaim = 'A secondary color is made by mixing two primary colors in even proportions.';
+    const facts = [definition, broadClaim, secondaryClaim];
+    const snapshotSha = 'a'.repeat(64);
+    const citation = {
+      id: 'wikipedia:Color theory',
+      displayTitle: 'Color theory',
+      sourceUrl: 'https://en.wikipedia.org/wiki/Color_theory',
+      license: 'CC BY-SA 4.0',
+      provider: 'wikipedia',
+      topic: 'Color Theory Application · Color and Contrast Dynamics',
+      evidence: definition,
+      conceptLinks: [
+        { id: 'researched/wikipedia-color-theory', label: 'Color theory' },
+        { id: 'researched/wikipedia-secondary-color', label: 'Secondary color' },
+      ],
+      supportReceipt: {
+        status: 'passed',
+        method: 'exact-source-claim-v1',
+        sourceSnapshot: {
+          protocol: 'retrieved-source-snapshot-sha256-v2',
+          retrievedSnapshotSha256: snapshotSha,
+          retrievedSnapshotBytes: 500,
+        },
+        checks: facts.map((claim, index) => ({
+          sourceId: 'wikipedia:Color theory',
+          claim,
+          quote: claim,
+          retrievedSnapshotSha256: snapshotSha,
+          sourcePassageSha256: String(index + 1).repeat(64),
+          quoteByteStart: index * 100,
+          quoteByteEnd: index * 100 + 50,
+          quoteInSnapshot: true,
+          entailed: true,
+          semanticSupport: true,
+        })),
+      },
+    };
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Visual Analysis',
+      lessons: [
+        {
+          title: 'Lesson 1: Color and Contrast',
+          sections: [
+            {
+              topicSection: 'Color theory',
+              learningObjectives: 'Compare color evidence and state one bounded interpretation.',
+              weeklyAssessments: 'Color evidence brief',
+            },
+          ],
+        },
+      ],
+    });
+    blueprint.enrichment = {
+      coverage: { requestedLessons: 1, enrichedLessons: 1, missingLessons: [] },
+      stageDecisions: { modelStage: 'ran' },
+      lessonContent: {},
+    };
+    blueprint.lessons[0].enrichment = {
+      enrichmentSource: 'algi-researched',
+      sourceFactAuthority: 'verified-open-research',
+      keyTerms: [
+        { term: 'Color theory', definition, example: broadClaim },
+        { term: 'Secondary color', definition: secondaryClaim },
+        { term: 'Duplicate color label', definition: secondaryClaim },
+      ],
+      kernel: verifiedKnowledgeKernel(facts),
+      conceptProvenance: {
+        source: 'algi-researched',
+        authority: 'verified-open-research',
+        fullyAnchored: true,
+        conceptIds: ['researched/wikipedia-color-theory', 'researched/wikipedia-secondary-color'],
+        citations: [citation],
+      },
+    };
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['studyGuides', 'slideDecks']);
+    const guide = compiled.studyGuides.studyGuides[0];
+    const slides = compiled.slideDecks.decks[0].slides;
+    expect(guide.keyTerms.length).toBeGreaterThan(0);
+    expect(guide.keyTerms.every((term) => !term.example)).toBe(true);
+    expect(new Set(guide.keyTerms.map((term) => term.definition)).size).toBe(guide.keyTerms.length);
+    expect(slides.some((slide) => /with a concrete case/i.test(slide.title))).toBe(false);
+    expect(JSON.stringify(slides)).not.toContain(`Case: ${broadClaim}`);
+    expect(JSON.stringify(slides)).toContain('Decision check: use both claims to bound what Color theory supports');
+  });
+
   it('keeps one admitted fact from dominating the entire package', () => {
     const facts = [
       'Pandas data structures provide efficient methods for manipulating large structured datasets in Python.',
@@ -210,6 +440,33 @@ describe('quiz Bloom inference', () => {
         'The record states a peer claim. State the strongest conclusion the evidence supports, name the limitation, and identify the evidence needed before accepting the broader claim.',
       ),
     ).toBe('Evaluate');
+    expect(
+      bloomLevelFromStemVerb(
+        'Start from admitted evidence. Bound the conclusion, reject one overclaim, and identify the next evidence needed.',
+      ),
+    ).toBe('Evaluate');
+    expect(
+      bloomLevelFromStemVerb(
+        'Revise and transfer the evidence-backed explanation, then identify the assumption that changed.',
+      ),
+    ).toBe('Create');
+  });
+
+  it('varies constructed fact-analysis operations without weakening the evidence boundary', () => {
+    const instructions = Array.from({ length: 8 }, (_, index) =>
+      constructedFactAnalysisInstructionForLesson({
+        lessonNumber: index + 1,
+        title: `Lesson ${index + 1}: Evidence reasoning ${index + 1}`,
+      }),
+    );
+
+    expect(new Set(instructions).size).toBe(8);
+    expect(instructions.every((instruction) => /concept|evidence|statement/i.test(instruction))).toBe(true);
+    expect(
+      instructions.every((instruction) =>
+        /conclusion|claim|inference|unresolved|unproven|boundary|transfer|limitation/i.test(instruction),
+      ),
+    ).toBe(true);
   });
 });
 
@@ -244,7 +501,8 @@ describe('experiential activity compilation', () => {
             sections: [
               {
                 topicSection: 'Evolving event updates and stakeholder roles',
-                learningObjectives: 'Evaluate evidence under uncertainty and negotiate a defensible crisis response.',
+                learningObjectives:
+                  'Evaluate evidence under uncertainty and negotiate a defensible crisis response.; Explain how a source limitation changes the final monitoring proposal.',
                 weeklyAssessments: 'Crisis decision memo.',
                 asyncActivities: 'Read the crisis brief and identify one uncertainty.',
                 syncActivities: 'Multi-round crisis simulation with stakeholder negotiation.',
@@ -369,6 +627,7 @@ describe('experiential activity compilation', () => {
     expect(plan.objectives).toContain(
       'Evaluate evidence under uncertainty and negotiate a defensible crisis response.',
     );
+    expect(plan.objectives).toContain('Explain how a source limitation changes the final monitoring proposal.');
     const activityAssignments = compiled.assignments.assignments.filter((brief) => brief.activityPacket);
     expect(activityAssignments).toHaveLength(1);
     expect(activityAssignments[0].activityPacket).toMatchObject({
@@ -555,6 +814,8 @@ describe('discussion assessment references', () => {
     expect(workingBody).not.toMatch(/weekly reading quizzes:/i);
     expect(workingBody).not.toMatch(/\bcurrent the\b/i);
     expect(workingBody).toContain('the Week 1 quiz');
+    expect(discussion.evaluationCriteria[0]).toMatch(/retrieval failure/i);
+    expect(discussion.evaluationCriteria[0]).toMatch(/(?:cited|source|evidence|observable)/i);
     expect(discussion.facilitationTips.opening).toMatch(/\.\s+Then run /);
     expect(discussion.discussionProtocol.modalityFit).not.toMatch(/\.\s+instead of/i);
     expect(
@@ -661,6 +922,7 @@ describe('pitfalls-slide sentence integrity', () => {
         },
       ],
     };
+    markLessonKnowledgeVerified(blueprint.lessons[0]);
 
     const deck = compileBlueprintDeliverable('slideDecks', blueprint, {
       skipPrepareBlueprint: true,
@@ -713,6 +975,7 @@ describe('pitfalls-slide sentence integrity', () => {
         },
       ],
     };
+    markLessonKnowledgeVerified(blueprint.lessons[0]);
 
     const deck = compileBlueprintDeliverable('slideDecks', blueprint, {
       skipPrepareBlueprint: true,
@@ -820,6 +1083,7 @@ describe('learner-readable compiler projection', () => {
         ],
       },
     };
+    markLessonKnowledgeVerified(blueprint.lessons[0]);
 
     const studyGuides = compileBlueprintDeliverables(blueprint, ['studyGuides']).studyGuides;
     const guide = studyGuides.studyGuides[0];
@@ -1047,6 +1311,7 @@ describe('comparative literature assessment contracts', () => {
         ],
       },
     };
+    markLessonKnowledgeVerified(blueprint.lessons[0]);
 
     const faq = compileBlueprintDeliverables(blueprint, ['courseFaq']).courseFaq;
     const text = JSON.stringify(faq);
@@ -2797,6 +3062,51 @@ describe('courseBlueprintCompiler', () => {
     });
     expect(blueprint.courseModalityProfile.primaryMode).not.toBe('applied-lab');
     expect(blueprint.courseModalityProfile.primaryMode).not.toBe('data-science-lab');
+    const officialTitleMap = makeStatisticsInferenceCourseMap();
+    officialTitleMap.courseName = 'INTRODUCTION TO THE PRACTICE OF STATISTICS';
+    expect(buildCourseBlueprint(officialTitleMap).courseModalityProfile.primaryMode).toBe('statistics-inference');
+    const descriptiveStatisticsMap = {
+      courseName: 'INTRODUCTION TO THE PRACTICE OF STATISTICS',
+      lessons: [
+        {
+          title: 'Lesson 1: Picturing Distributions',
+          sections: [
+            {
+              topicSection: 'Graphs and Data Visualization',
+              learningObjectives: 'Interpret a distribution and justify a bounded statistical conclusion.',
+              weeklyAssessments: 'Distribution interpretation evidence check.',
+              asyncActivities: 'Inspect a chart and record the visible distribution features.',
+              syncActivities: 'Compare two visualizations and revise the statistical interpretation.',
+              supportingResources: 'Official statistics syllabus and distribution examples.',
+            },
+          ],
+        },
+      ],
+    };
+    expect(buildCourseBlueprint(descriptiveStatisticsMap).courseModalityProfile.primaryMode).toBe(
+      'statistics-inference',
+    );
+    const conditioningStatisticsMap = {
+      courseName: 'STAT 1450.01: Introduction to the Practice of Statistics',
+      lessons: [
+        {
+          title: 'Lesson 6: Two-Way Tables',
+          sections: [
+            {
+              topicSection: 'Two-way tables and conditional proportions',
+              learningObjectives:
+                'Verify table totals, declare the conditioning direction, compare conditional proportions, and state a noncausal association conclusion.',
+              weeklyAssessments: 'Two-way-table analysis and conditional-proportion comparison.',
+            },
+          ],
+        },
+      ],
+    };
+    expect(buildCourseBlueprint(conditioningStatisticsMap).enrichment.lens).toMatchObject({
+      domain: 'statistical inference',
+      evidenceNoun: 'statistical evidence',
+      decisionNoun: 'inference decision',
+    });
     expect(blueprint.enrichment.lens).toMatchObject({
       domain: 'statistical inference',
       evidenceNoun: 'statistical evidence',
@@ -2868,11 +3178,11 @@ describe('courseBlueprintCompiler', () => {
       }),
     });
     expect(compiled.discussions.discussions[0]).toMatchObject({
-      format: 'Inference Interpretation Clinic',
+      format: 'Confidence Interval Clinic',
       modalityDecode: expect.objectContaining({ mode: 'statistics-inference' }),
       discussionProtocol: expect.objectContaining({
-        participationPattern: expect.stringContaining('p-value or interval interpretation'),
-        reviewFocus: expect.stringContaining('uncertainty interpretation'),
+        participationPattern: expect.stringContaining('endpoint verification'),
+        reviewFocus: expect.stringContaining('repeated-sampling interpretation'),
       }),
     });
   });
@@ -3193,7 +3503,7 @@ describe('courseBlueprintCompiler', () => {
       modalityDecode: expect.objectContaining({ mode: 'policy-analysis' }),
       discussionProtocol: expect.objectContaining({
         participationPattern: expect.stringContaining('stakeholder map'),
-        reviewFocus: expect.stringContaining('implementation realism'),
+        reviewFocus: expect.stringContaining('implementation'),
       }),
     });
   });
@@ -3312,7 +3622,7 @@ describe('courseBlueprintCompiler', () => {
       modalityDecode: expect.objectContaining({ mode: 'economics-analysis' }),
       discussionProtocol: expect.objectContaining({
         participationPattern: expect.stringContaining('comparative-static challenge'),
-        reviewFocus: expect.stringContaining('welfare or distributional effect'),
+        reviewFocus: expect.stringContaining('welfare effects'),
       }),
     });
   });
@@ -3368,7 +3678,7 @@ describe('courseBlueprintCompiler', () => {
       modalityDecode: expect.objectContaining({ mode: 'ethics-argumentation' }),
       discussionProtocol: expect.objectContaining({
         participationPattern: expect.stringContaining('objection and reply'),
-        reviewFocus: expect.stringContaining('moral decision quality'),
+        reviewFocus: expect.stringContaining('moral judgment'),
       }),
     });
   });
@@ -4042,6 +4352,7 @@ describe('courseBlueprintCompiler', () => {
         ],
         conceptProvenance: { citations: [`OpenStax Psychology chapter ${index + 1}`] },
       };
+      markLessonKnowledgeVerified(lesson);
     });
 
     const compiled = compileBlueprintDeliverables(
@@ -4673,6 +4984,7 @@ describe('courseBlueprintCompiler', () => {
     const blueprint = buildCourseBlueprint(makeCourseMap(4));
 
     expect(blueprint.lessons).toHaveLength(4);
+    expect(new Set(blueprint.lessons.map((lesson) => lesson.sourceUsePlan.sourceEvaluationPrompt))).toHaveLength(4);
     expect(blueprint.assessments).toHaveLength(4);
     expect(blueprint.lessons.map((lesson) => lesson.bloomsLevel)).toEqual([
       'Evaluate',
@@ -5038,7 +5350,7 @@ describe('courseBlueprintCompiler', () => {
       priority: 'source-grounded concept evidence',
       rationale: expect.stringContaining('Policy memo checkpoint 1'),
       evidenceSignal: expect.stringContaining('inspectable Policy Topic 1 detail'),
-      calibrationUse: expect.stringContaining('compare one strong and one partial Policy memo checkpoint 1'),
+      calibrationUse: expect.stringContaining('For "Policy Topic 1 accuracy'),
       feedbackUse: expect.stringContaining('Policy memo checkpoint 1'),
     });
     expect(blueprint.assessments[0].criterionObjectiveAlignment).toHaveLength(4);
@@ -5385,8 +5697,13 @@ describe('courseBlueprintCompiler', () => {
       strongSignal: expect.stringContaining('Strong evidence names'),
       partialSignal: expect.stringContaining('Partial evidence mentions Policy Topic 1'),
       feedbackMove: expect.stringContaining('tying the Policy Topic 1 evidence'),
-      calibrationQuestion: expect.stringContaining('compare one strong and one partial Policy memo checkpoint 1'),
+      calibrationQuestion: expect.stringContaining('For "Policy Topic 1 accuracy'),
     });
+    expect(
+      blueprint.assessments[0].criterionEvidenceMap.every(
+        (row) => !row.calibrationQuestion.includes('compare one strong and one partial Policy memo checkpoint 1'),
+      ),
+    ).toBe(true);
     expect(blueprint.assessments[0].anchorExampleSet).toMatchObject({
       strongSample: expect.stringContaining('Strong Policy memo checkpoint 1 anchor'),
       partialSample: expect.stringContaining('Partial Policy memo checkpoint 1 anchor'),
@@ -5764,12 +6081,22 @@ describe('courseBlueprintCompiler', () => {
     expect(storedBlueprint.semanticContract).toBeUndefined();
     expect(storedBlueprint.compilerContract).toBeUndefined();
 
-    // v0.14.1 (3.2): weight/weightPercent joined the persisted anchor keys —
-    // the registry path's grading weights must survive storage (kind/
+    // Weight, weightPercent, and their provenance remain joined to the
+    // persisted anchor — the registry path's grading weights must survive storage (kind/
     // registryId/dueSession persist too, but only registry anchors carry
     // them; this legacy anchor does not).
     expect(Object.keys(storedBlueprint.assessments[0]).sort()).toEqual(
-      ['artifact', 'id', 'lessonNumbers', 'relatedLessons', 'source', 'title', 'weight', 'weightPercent'].sort(),
+      [
+        'artifact',
+        'id',
+        'lessonNumbers',
+        'relatedLessons',
+        'source',
+        'title',
+        'weight',
+        'weightPercent',
+        'weightProvenance',
+      ].sort(),
     );
     expect(storedBlueprint.assessments[0]).toMatchObject({
       id: 'assessment-1',
@@ -6087,7 +6414,7 @@ describe('courseBlueprintCompiler', () => {
       masteryEvidencePlan: expect.objectContaining({
         independentPerformanceEvidence: expect.stringContaining('Policy memo checkpoint 1'),
         feedbackRevisionEvidence: expect.stringContaining('evidence-backed Policy Topic 1 reasoning'),
-        masteryThreshold: expect.stringContaining('Strong evidence names'),
+        masteryThreshold: expect.stringContaining('Ready work cites'),
       }),
       evidenceResponsePlan: expect.objectContaining({
         readyMove: expect.stringContaining('compare two possible evidence choices'),
@@ -6146,7 +6473,7 @@ describe('courseBlueprintCompiler', () => {
     expect(compiled.lessonPlans.lessonPlans[0].prerequisitePlan.diagnosticCheck).toContain('define Policy Topic 1');
     expect(compiled.lessonPlans.lessonPlans[0].conceptDependencyPlan.transferCue).toContain('Policy memo checkpoint 2');
     expect(compiled.lessonPlans.lessonPlans[0].practiceProgressionPlan.practiceFocus).toContain('stakeholder');
-    expect(compiled.lessonPlans.lessonPlans[0].masteryEvidencePlan.masteryThreshold).toContain('Strong evidence names');
+    expect(compiled.lessonPlans.lessonPlans[0].masteryEvidencePlan.masteryThreshold).toContain('Ready work cites');
     expect(compiled.lessonPlans.lessonPlans[0].evidenceResponsePlan.partialMove).toContain('criterion-level feedback');
     expect(compiled.lessonPlans.lessonPlans[0].classSessionPlan).toMatchObject({
       feasibilityStatus: 'fits-session',
@@ -6213,7 +6540,7 @@ describe('courseBlueprintCompiler', () => {
       masteryPerformanceEvidence: expect.stringContaining('Policy memo checkpoint 1'),
       masteryRevisionEvidence: expect.stringContaining('evidence-backed Policy Topic 1 reasoning'),
       masteryTransferEvidence: expect.stringContaining('Policy memo checkpoint 2'),
-      masteryThreshold: expect.stringContaining('Strong evidence names'),
+      masteryThreshold: expect.stringContaining('Ready work cites'),
       evidenceReadyResponse: expect.stringContaining('compare two possible evidence choices'),
       evidencePartialResponse: expect.stringContaining('criterion-level feedback'),
       evidenceSupportResponse: expect.stringContaining('sentence frame'),
@@ -6707,6 +7034,7 @@ describe('courseBlueprintCompiler', () => {
       'Remember',
       'Understand',
       'Apply',
+      'Analyze',
       'Evaluate',
       'Create',
     ]);
@@ -6729,10 +7057,9 @@ describe('courseBlueprintCompiler', () => {
       bloomSource: 'prerequisite diagnostic',
     });
     expect(compiled.quizBank.quizzes[0].questions[4]).toMatchObject({
-      // v0.14.1 (5.4): the tag follows the question's stem verb ("Which use
-      // of evidence…" → Apply); the planned Evaluate level stays visible in
-      // quizPlan.bloom as provenance.
-      bloomsLevel: 'Apply',
+      // A constructed response preserves the planned evaluation demand. It
+      // no longer downgrades the Bloom tag to match a recognition-style stem.
+      bloomsLevel: 'Evaluate',
       objectiveAligned: expect.stringContaining('Evaluate implementation tradeoffs 1'),
       quizPlan: expect.objectContaining({
         role: 'quality-evaluation',
@@ -6790,8 +7117,9 @@ describe('courseBlueprintCompiler', () => {
       'definition to memorize',
     );
     expect(compiled.courseFaq.faqs).toHaveLength(6);
-    // v0.16 B4: default FAQ depth is 7 (two demand-driven entries added).
-    expect(compiled.courseFaq.faqs[0].qs).toHaveLength(7);
+    // Six substantive default questions keep the learner handout on one page;
+    // explicit configurations can still request a deeper FAQ.
+    expect(compiled.courseFaq.faqs[0].qs).toHaveLength(6);
     expect(compiled.courseFaq.faqGuide.sourceGroundingPolicy).toContain('source anchors');
     expect(compiled.courseFaq.faqs[0].sourceGrounding).toMatchObject({
       confidence: 'high',
@@ -6806,8 +7134,10 @@ describe('courseBlueprintCompiler', () => {
     expect(compiled.courseFaq.faqs[0].anchorExampleSet.strongSample).toContain(
       'Strong Policy memo checkpoint 1 anchor',
     );
-    expect(compiled.courseFaq.faqs[0].qs[2].an).toContain('Policy brief');
-    expect(compiled.courseFaq.faqs[0].qs[2].an).toContain('A strong example of Policy memo checkpoint 1');
+    const strongWorkFaq = compiled.courseFaq.faqs[0].qs.find((item) =>
+      item.an.includes('A strong example of Policy memo checkpoint 1'),
+    );
+    expect(strongWorkFaq?.an).toContain('Policy brief');
     expect(compiled.courseFaq.faqs[0].sourceGrounding.courseModalityProfile.primaryMode).toBe('policy-analysis');
     expect(compiled.courseFaq.faqs[0].teachingIntent.feedbackDecision).toContain('criterion-level feedback');
   });
@@ -6873,7 +7203,7 @@ describe('courseBlueprintCompiler', () => {
         reason: 'Adaptive compiler accepted source-grounded enrichment before deterministic output.',
       },
     });
-    const compiled = compileBlueprintDeliverables(blueprint, ['syllabus']);
+    const compiled = compileBlueprintDeliverables(blueprint, ['syllabus', 'lessonPlans']);
 
     expect(blueprint.compilerPath).toMatchObject({
       mode: 'enriched',
@@ -7270,7 +7600,7 @@ describe('courseBlueprintCompiler', () => {
       format: 'Clinical Placement Conference',
       modalityDecode: expect.objectContaining({ mode: 'clinical-placement-practicum' }),
       discussionProtocol: expect.objectContaining({
-        participationPattern: expect.stringContaining('preceptor-feedback review'),
+        participationPattern: expect.stringContaining('preceptor feedback'),
         reviewFocus: expect.stringContaining('scope of practice'),
       }),
     });
@@ -7873,6 +8203,7 @@ describe('courseBlueprintCompiler', () => {
         reviewStrategy: 'Use algorithmic bias as the evidence for Public policy before comparing the concepts.',
       },
     };
+    markLessonKnowledgeVerified(blueprint.lessons[0]);
 
     const compiled = compileBlueprintDeliverables(blueprint, ['studyGuides', 'quizBank']);
     const guideText = JSON.stringify(compiled.studyGuides.studyGuides[0]);
@@ -7966,6 +8297,7 @@ describe('courseBlueprintCompiler', () => {
         ],
       },
     };
+    markLessonKnowledgeVerified(blueprint.lessons[0]);
 
     const faqText = JSON.stringify(compileBlueprintDeliverables(blueprint, ['courseFaq']).courseFaq);
 
@@ -8032,7 +8364,13 @@ describe('courseBlueprintCompiler', () => {
     expect(compiledText).not.toMatch(/\b(Riverton|Westbrook)\b/);
     expect(compiledText).not.toMatch(/\b(?:Jupyter|starter notebook|model card)\b/i);
     expect(studentFacingText).not.toMatch(/background information and move directly to a general summary/i);
-    expect(new Set(mcQuestions.map((question) => question.answer)).size).toBeGreaterThan(1);
+    expect(mcQuestions).toHaveLength(0);
+    expect(new Set(firstQuiz.questions.map((question) => question.question)).size).toBe(firstQuiz.questions.length);
+    expect(
+      firstQuiz.questions
+        .filter((question) => question.type === 'short_answer')
+        .every((question) => question.sampleAnswer && question.scoringGuidance),
+    ).toBe(true);
     expect(firstQuiz.questions.flatMap((question) => question.tags || [])).not.toContain(
       'Lesson 1: What Psychology Is and Why It Matters',
     );
@@ -8365,6 +8703,44 @@ describe('courseBlueprintCompiler', () => {
     expect(validation.valid, validation.blockers.join('; ')).toBe(true);
   });
 
+  it('keeps the default Course FAQ to six substantive one-page questions', () => {
+    const blueprint = buildCourseBlueprint(makeCourseMap(1));
+    const compiled = compileBlueprintDeliverables(blueprint, ['courseFaq']);
+    const questions = compiled.courseFaq.faqs[0].qs;
+
+    expect(questions).toHaveLength(6);
+    expect(questions.some((item) => /materials should I review first/i.test(item.q))).toBe(true);
+    expect(questions.some((item) => /Where should I ask questions|feedback from|critique notes/i.test(item.q))).toBe(
+      false,
+    );
+  });
+
+  it('varies default FAQ intent profiles instead of repeating one six-question skeleton', () => {
+    const blueprint = buildCourseBlueprint(makeCourseMap(8));
+    const compiled = compileBlueprintDeliverables(blueprint, ['courseFaq']);
+    const profiles = compiled.courseFaq.faqs.map((faq) => faq.qs.map((item) => item.ca).join(' > '));
+
+    expect(compiled.courseFaq.faqs.every((faq) => faq.qs.length === 6)).toBe(true);
+    expect(new Set(profiles).size).toBeGreaterThanOrEqual(4);
+    expect(
+      compiled.courseFaq.faqs.every((faq) => faq.qs.some((item) => /materials should I review first/i.test(item.q))),
+    ).toBe(true);
+  });
+
+  it('keeps formal citation metadata and URLs out of learner FAQ reading labels', () => {
+    const blueprint = buildCourseBlueprint(makeCourseMap(1));
+    blueprint.lessons[0].readings = [
+      'Lesson 1 — Malay and Cebuano ditransitives: A minimalist perspective (open scholarly article, CC0 1.0 (DOAJ article metadata) — https://example.edu/article)',
+      'Language acquisition (open encyclopedia, CC BY-SA 4.0 — https://example.edu/reference)',
+    ];
+    const compiled = compileBlueprintDeliverables(blueprint, ['courseFaq']);
+    const materials = compiled.courseFaq.faqs[0].qs.find((item) => /materials should I review first/i.test(item.q));
+
+    expect(materials).toBeTruthy();
+    expect(`${materials.an} ${(materials.rc || []).join(' ')}`).toContain('Malay and Cebuano ditransitives');
+    expect(`${materials.an} ${(materials.rc || []).join(' ')}`).not.toMatch(/https?:|CC0|CC BY|DOAJ|open scholarly/i);
+  });
+
   it('does not publish a compiler evidence-boundary directive as a standalone Course FAQ answer', () => {
     const blueprint = buildCourseBlueprint(makeCourseMap(1));
     blueprint.lessons[0].enrichment = {
@@ -8389,6 +8765,30 @@ describe('courseBlueprintCompiler', () => {
     expect(questions).toHaveLength(5);
     expect(questions.some((item) => /How does Python actually work/i.test(item.q))).toBe(false);
     expect(questions.some((item) => /show the source basis and mark the inference's reach/i.test(item.an))).toBe(false);
+  });
+
+  it('does not relabel a repeated definition as a concrete FAQ case', () => {
+    const blueprint = buildCourseBlueprint(makeCourseMap(1));
+    blueprint.lessons[0].enrichment = {
+      ...(blueprint.lessons[0].enrichment || {}),
+      keyTerms: [
+        {
+          term: 'Rule of thirds',
+          definition:
+            'The rule of thirds is a rule of thumb for composing visual art such as designs, films, paintings, and photographs.',
+          example:
+            'The rule of thirds is a rule of thumb for composing visual art such as designs, films, paintings, and photographs.',
+          misconception: 'The rule requires every subject to sit at the center.',
+          correction: 'Align evidence with thirds intersections while testing whether the composition benefits.',
+          tier: 2,
+          source: 'algi-researched',
+        },
+      ],
+    };
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['courseFaq']);
+    const answerText = compiled.courseFaq.faqs[0].qs.map((item) => item.an).join(' ');
+    expect(answerText).not.toMatch(/A concrete case:\s+The rule of thirds is a rule of thumb/i);
   });
 
   it('keeps fallback misconception guidance specific across a full semester', () => {
@@ -8570,7 +8970,8 @@ describe('courseBlueprintCompiler', () => {
       'Weekly assessment was derived from evaluation/design notes and needs local review.',
     );
     expect(blueprint.qualitySignals.reviewFlagCount).toBe(1);
-    expect(blueprint.qualitySignals.sourceGroundedLessonCount).toBe(2);
+    expect(blueprint.qualitySignals.sourceGroundedLessonCount).toBe(0);
+    expect(blueprint.qualitySignals.sourceGroundingPolicy).toBe('pre-draft-admitted-evidence-authority-v1');
     expect(blueprint.compilerPath.adaptiveSafety).toMatchObject({
       status: 'review-required',
       locallyRepairedLessonCount: 1,
@@ -8817,12 +9218,40 @@ describe('courseBlueprintCompiler', () => {
     expect(proposal.instructions.join(' ')).toMatch(/two assigned texts|paired evidence/i);
     expect(proposal.formatRequirements.format).toMatch(/two-text proposal/i);
     expect(assignments.map((assignment) => assignment.objectives[0])).toEqual([
-      'Apply Homeric Epic in one practical example and justify one evidence-based revision.',
-      'Apply Tang Poetry in one practical example and justify one evidence-based revision.',
-      'Apply Comparative Reading Methods in one practical example and justify one evidence-based revision.',
+      expect.stringMatching(/Homeric Epic.*(?:evidence|revision|revise|conclusion)/),
+      expect.stringMatching(/Tang Poetry.*(?:evidence|revision|revise|conclusion)/),
+      expect.stringMatching(/Comparative Reading Methods.*(?:evidence|revision|revise|conclusion)/),
     ]);
     expect(new Set(assignments.map((assignment) => JSON.stringify(assignment.instructions))).size).toBe(3);
     expect(JSON.stringify(assignments)).not.toMatch(/locally approved submission form|feedback-based the /i);
+  });
+
+  it('makes every compiled assessment objective construct operational outside the objective list', () => {
+    const courseMap = {
+      courseName: 'Language Change Seminar',
+      lessons: [
+        {
+          title: 'Lesson 1: Language Change',
+          sections: [
+            {
+              topicSection: 'Sound Change Mechanisms',
+              learningObjectives:
+                'Explain the key ideas in Sound Change Mechanisms and apply them in course activities.',
+              weeklyAssessments: 'Evidence explanation: Language Change',
+            },
+          ],
+        },
+      ],
+    };
+
+    const assignment = compileBlueprintDeliverables(buildCourseBlueprint(courseMap), ['assignments']).assignments
+      .assignments[0];
+    expect(assignment.objectives).toContain(
+      'Explain the key ideas in Sound Change Mechanisms and apply them in course activities.',
+    );
+    expect(assignment.instructions.join(' ')).toMatch(
+      /First, explain the key ideas in Sound Change Mechanisms; then apply them in course activities.*(?:evidence|analysis|decision)/i,
+    );
   });
 
   it('varies recurring weekly reading-response prose without changing its four required reasoning moves', () => {
@@ -8876,6 +9305,75 @@ describe('courseBlueprintCompiler', () => {
     expect(syllabus.blueprintQualityReceipt.compilerPath.reviewPolicy).toMatch(/official dates|source inputs/i);
   });
 
+  it('publishes source-stated grading categories and prerequisites without turning lesson planning shares into official weights', () => {
+    const courseMap = makeCourseMap(2);
+    courseMap.prerequisites = [
+      {
+        text: 'This course expects students to have completed a baccalaureate-level mathematics course.',
+        status: 'expected',
+        sourceStatus: 'source-explicit',
+      },
+    ];
+    courseMap.gradingPolicy = {
+      version: 1,
+      sourceStatus: 'source-explicit',
+      categories: [
+        { id: 'g1', title: 'Exam 1', weightPct: 21, extraCredit: false, sourceStatus: 'source-formula' },
+        { id: 'g2', title: 'Exam 2', weightPct: 21, extraCredit: false, sourceStatus: 'source-formula' },
+        { id: 'g3', title: 'Final Exam', weightPct: 21, extraCredit: false, sourceStatus: 'source-formula' },
+        { id: 'g4', title: 'Participation', weightPct: 11, extraCredit: false, sourceStatus: 'source-table' },
+        { id: 'g5', title: 'Homework', weightPct: 15, extraCredit: false, sourceStatus: 'source-table' },
+        { id: 'g6', title: 'Quizzes', weightPct: 11, extraCredit: false, sourceStatus: 'source-table' },
+        {
+          id: 'g7',
+          title: 'Extra Credit — LearningCurve',
+          weightPct: 2,
+          extraCredit: true,
+          sourceStatus: 'source-table',
+        },
+      ],
+      gradeBands: [
+        { label: 'A', range: '93–100', minPct: 93, maxPct: 100, sourceStatus: 'source-table' },
+        { label: 'D', range: '60–66.9', minPct: 60, maxPct: 66.9, sourceStatus: 'source-table' },
+        { label: 'E', range: 'Below 60', maxExclusivePct: 60, sourceStatus: 'source-table' },
+      ],
+    };
+
+    const blueprint = buildCourseBlueprint(courseMap, {
+      assessmentRegistry: deriveCourseGraphFromCourseMap(courseMap).assessments,
+    });
+    const compiled = compileBlueprintDeliverables(blueprint, ['syllabus', 'lessonPlans']);
+    const syllabus = compiled.syllabus.syllabus;
+
+    expect(blueprint.courseGradingPolicy).toMatchObject({
+      baseTotalPct: 100,
+      extraCreditTotalPct: 2,
+      displayedTotalPct: 102,
+    });
+    expect(syllabus.prerequisites).toMatch(/baccalaureate-level mathematics/i);
+    expect(syllabus.courseRequirements).toHaveLength(7);
+    expect(syllabus.courseRequirements).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: 'Exam 1', weight: '21%' }),
+        expect.objectContaining({ name: 'Extra Credit — LearningCurve', weight: '+2% extra credit' }),
+      ]),
+    );
+    expect(
+      syllabus.courseAtAGlance.every(
+        (row) => row.pointsOrWeight === 'Planning artifact; see official grading categories',
+      ),
+    ).toBe(true);
+    expect(syllabus.gradingScale).toEqual([
+      { grade: 'A', range: '93–100' },
+      { grade: 'D', range: '60–66.9' },
+      { grade: 'E', range: 'Below 60' },
+    ]);
+    const lessonAssessmentRows = compiled.lessonPlans.lessonPlans.flatMap((plan) => plan.assessmentBlock || []);
+    expect(lessonAssessmentRows.length).toBeGreaterThan(0);
+    expect(lessonAssessmentRows.every((entry) => entry.weight === '')).toBe(true);
+    expect(JSON.stringify(syllabus.courseRequirements)).not.toMatch(/A\d+\.\d+|draft planning weight/i);
+  });
+
   it('lists real open lesson sources and does not publish compiler-minted evidence briefs as materials', () => {
     const courseMap = makeCourseMap(1);
     courseMap.courseName = 'Digital Accessibility for Product Teams';
@@ -8926,6 +9424,69 @@ describe('courseBlueprintCompiler', () => {
         sourceUsePlan: blueprint.lessons[0].sourceUsePlan,
       }),
     ).not.toMatch(/\bWCAG principles evidence brief\b/i);
+  });
+
+  it('lets governing course materials, policy, and workload outrank generated defaults', () => {
+    const courseMap = {
+      ...makeCourseMap(2),
+      requiredMaterials: [
+        {
+          kind: 'textbook',
+          author: 'Moore, Notz, and Fligner',
+          title: 'The Basic Practice of Statistics',
+          edition: '9th',
+          publisher: 'Macmillan',
+          isbn: '9781319344641',
+          sourceStatus: 'source-explicit',
+        },
+        {
+          kind: 'courseware',
+          title: 'Achieve courseware',
+          publisher: 'Macmillan Learning',
+          access: 'Access through CarmenBooks/CarmenCanvas.',
+          sourceStatus: 'source-explicit',
+        },
+      ],
+      policies: {
+        lateWork:
+          'No late work is accepted. For extenuating circumstances, contact the instructor before the assignment deadline.',
+        sourceStatus: 'source-explicit-paraphrase',
+      },
+      workloadPolicy: {
+        weeklyHours: 9,
+        outOfClassHours: 6,
+        inClassHours: 3,
+        sourceStatus: 'source-explicit',
+        studentFacingEstimate:
+          'The governing syllabus expects 9 hours weekly: 3 hours in class plus at least 6 hours outside class.',
+      },
+    };
+    const blueprint = buildCourseBlueprint(courseMap);
+    blueprint.knowledgeResources = [
+      {
+        origin: 'other',
+        kind: 'article',
+        citation: 'Supplemental encyclopedia article',
+        attribution: 'Open reference authors',
+      },
+    ];
+    const syllabus = compileBlueprintDeliverables(blueprint, ['syllabus']).syllabus.syllabus;
+
+    expect(syllabus.requiredTexts.map((entry) => entry.title)).toEqual([
+      'The Basic Practice of Statistics',
+      'Achieve courseware',
+    ]);
+    expect(syllabus.latePolicy).toMatch(/No late work is accepted/i);
+    expect(blueprint.courseWorkload.lessonRows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          inClassMinutes: 180,
+          outOfClassMinutes: 360,
+          totalStudentMinutes: 540,
+          studentFacingEstimate: expect.stringContaining('9 hours weekly'),
+        }),
+      ]),
+    );
   });
 
   it('groups repeated open-resource attribution once while preserving every cited section', () => {
@@ -8987,6 +9548,24 @@ describe('courseBlueprintCompiler', () => {
 
     expect(group.entries).toHaveLength(2);
     expect(group.entries.every((entry) => !entry.license && !entry.attribution)).toBe(true);
+  });
+
+  it('deduplicates the same lesson source in the syllabus bibliography without merging distinct sections', () => {
+    const blueprint = buildCourseBlueprint(makeCourseMap(2));
+    const repeated = {
+      origin: 'other',
+      citation: 'WALS Online — Lateral Consonants',
+      license: 'CC BY 4.0',
+      attribution: 'WALS Online editors',
+      url: 'https://wals.info/chapter/8',
+    };
+    blueprint.knowledgeResources = [repeated, { ...repeated }];
+
+    const syllabus = compileBlueprintDeliverables(blueprint, ['syllabus']).syllabus.syllabus;
+    const group = syllabus.sourcesAndLicenses.groups.find((entry) => entry.origin === 'other');
+
+    expect(group.entries).toHaveLength(1);
+    expect(group.entries[0].citation).toBe('WALS Online — Lateral Consonants');
   });
 
   it('preserves explicit source grading weights and labels compiler-distributed weights as draft policy', () => {
@@ -9215,6 +9794,20 @@ describe('courseBlueprintCompiler', () => {
       'Name one source detail about WCAG principles and conformance, one limitation, and the revision it supports.',
     );
     expect(compoundDeckText).not.toContain('one WCAG principles and conformance source detail');
+  });
+
+  it('keeps rubric criteria grammatical when a researched concept starts with an article', () => {
+    const blueprint = buildCourseBlueprint(makeCourseMap(1));
+    blueprint.lessons[0].keyConcepts = ['a visual communication perspective'];
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['rubrics']);
+    const rubric = compiled.rubrics.rubrics[0];
+    const rubricText = JSON.stringify({
+      criteria: rubric.criteria,
+      criterionEvidenceMap: rubric.criterionEvidenceMap,
+    });
+
+    expect(rubricText).not.toMatch(/\b(?:the\s+a|the\s+an|a\s+the|an\s+the)\b/i);
   });
 
   it('keeps course-prefixed title anchors and numbered assessment echoes out of slide decks', () => {
@@ -9861,6 +10454,7 @@ describe('courseBlueprintCompiler', () => {
         },
       ],
     };
+    markLessonKnowledgeVerified(blueprint.lessons[0]);
 
     const guide = compileBlueprintDeliverables(blueprint, ['studyGuides']).studyGuides.studyGuides[0];
     expect(guide.examScope).toContain('checks on Quantum circuit, Quantum gate.');
@@ -10016,7 +10610,7 @@ describe('courseBlueprintCompiler', () => {
                 correction: facts[1],
               },
             ],
-            kernel: { facts },
+            kernel: verifiedKnowledgeKernel(facts),
           },
         },
       },
@@ -10072,6 +10666,7 @@ describe('courseBlueprintCompiler', () => {
         },
       },
     });
+    markLessonKnowledgeVerified(blueprint.lessons[0]);
 
     const compiled = compileBlueprintDeliverables(blueprint, ['quizBank']);
     const optionText = compiled.quizBank.quizzes[0].questions.flatMap((question) => question.options || []).join(' ');
@@ -10141,7 +10736,7 @@ describe('courseBlueprintCompiler', () => {
         lessonContent: {
           'lesson-1': {
             keyTerms: terms,
-            kernel: { facts },
+            kernel: verifiedKnowledgeKernel(facts),
           },
         },
       },
@@ -10202,15 +10797,13 @@ describe('courseBlueprintCompiler', () => {
                 source: 'fact-subject-projection',
               },
             ],
-            kernel: {
-              facts: [
-                'Python supports reproducible analysis of large public datasets.',
-                'Pandas data frames preserve labelled rows and columns for inspection.',
-                'Data cleaning identifies and manages missing or inconsistent observations.',
-                'A cleaning log records every transformation applied to the source data.',
-                'Reproducible notebooks preserve code, outputs, and reasoning in sequence.',
-              ],
-            },
+            kernel: verifiedKnowledgeKernel([
+              'Python supports reproducible analysis of large public datasets.',
+              'Pandas data frames preserve labelled rows and columns for inspection.',
+              'Data cleaning identifies and manages missing or inconsistent observations.',
+              'A cleaning log records every transformation applied to the source data.',
+              'Reproducible notebooks preserve code, outputs, and reasoning in sequence.',
+            ]),
             studyGuide: {
               reviewStrategy:
                 'Rehearse Python by explaining why Python supports reproducible analysis of large public datasets.',
@@ -10285,6 +10878,7 @@ describe('courseBlueprintCompiler', () => {
         ],
       },
     };
+    markLessonKnowledgeVerified(blueprint.lessons[0]);
 
     const [lessonPlan] = compileBlueprintDeliverables(blueprint, ['lessonPlans']).lessonPlans.lessonPlans;
     const planText = JSON.stringify(lessonPlan.outline);
@@ -10622,9 +11216,11 @@ describe('courseBlueprintCompiler', () => {
     expect(agenda.bullets.join(' ')).not.toMatch(
       /Frame Control Flow Structures through Control Flow Structures evidence brief/i,
     );
-    expect(objectives.bullets[1]).toContain('Week 2 check');
-    expect(objectives.bullets[1].match(/Control Flow Structures/gi) || []).toHaveLength(1);
-    expect(objectives.bullets[1]).not.toMatch(/Conditional Branching Logic.*Conditional Branching Logic/i);
+    // The objective card is the single visible declaration of each governing
+    // course-map outcome. Preserve that contract verbatim so package receipts
+    // can prove every objective was actually published; applied slides carry
+    // the learner-friendly paraphrases.
+    expect(objectives.bullets[1]).toBe(lesson.outcomes[1]);
     expect(bridge.bullets).toEqual(
       expect.arrayContaining([
         expect.stringMatching(/^Last time:/),
@@ -10635,7 +11231,104 @@ describe('courseBlueprintCompiler', () => {
     expect(activity.bullets[0]).not.toContain('problem-to-policy cycle');
     expect(activity.bullets[0]).not.toMatch(/frame the public\??$/i);
     expect(closing.bullets[0]).toMatch(/Conditional Branching Logic application check/i);
-    expect(closing.bullets[0]).toMatch(/one decision and one limitation/i);
+    expect(closing.bullets[0]).toMatch(/decision|choice|move/i);
+    expect(closing.bullets[0]).toMatch(/evidence|source detail/i);
+    expect(closing.bullets[0]).toMatch(/limit|cannot establish|uncertainty|boundary|caveat/i);
+  });
+
+  it('does not echo an artifact label as its own submission format', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Applied Statistics',
+      semester: 'Fall 2026',
+      lessons: [
+        {
+          title: 'Lesson 1: Sampling distributions',
+          sections: [
+            {
+              topicSection: 'Sampling distributions',
+              learningObjectives: 'Calculate and interpret a sampling distribution.',
+              weeklyAssessments: 'Week 1 memo',
+            },
+          ],
+        },
+      ],
+    });
+    const artifact = blueprint.assessments[0].artifact;
+    blueprint.lessons[0].artifactGenre = {
+      ...blueprint.lessons[0].artifactGenre,
+      outputFormat: artifact,
+      outputFormatVariants: [`Format profile for ${artifact}: ${artifact}`],
+    };
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['assignments']);
+    const expectedFormat = compiled.assignments.assignments[0].submissionProfile.expectedFormat;
+
+    expect(expectedFormat).not.toBe(`Format profile for ${artifact}: ${artifact}`);
+    expect(expectedFormat).toMatch(/memo|brief|rationale|recommendation|evidence|reasoning|decision|revision/i);
+  });
+
+  it('keeps in-class checks in lesson plans instead of duplicating them as assignment briefs', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Evidence Seminar',
+      lessons: [
+        {
+          title: 'Lesson 1: Evidence boundaries',
+          sections: [
+            {
+              topicSection: 'Evidence boundaries',
+              learningObjectives: 'Bound one conclusion using visible evidence.',
+              weeklyAssessments: 'In-class evidence boundary check.',
+            },
+          ],
+        },
+      ],
+    });
+    blueprint.assessments[0].kind = 'in-class';
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['assignments']);
+
+    expect(compiled.assignments.assignments).toEqual([]);
+    expect(compiled.assignments.deliverableDisposition).toMatchObject({ reasonCode: 'no-standalone-assessment' });
+  });
+
+  it('keeps source-bound simple-regression evidence while excluding neighboring regression families', () => {
+    const relevant =
+      'A properly conducted regression analysis must assess fit within the range of values actually available.';
+    const multiple = 'In multiple linear regression, several independent variables enter the fitted model.';
+    const poisson = 'Poisson regression is a generalized linear model used to model count data.';
+    const blueprint = buildCourseBlueprint(
+      {
+        courseName: 'Applied Statistics',
+        lessons: [
+          {
+            title: 'Lesson 1: Regression',
+            sections: [
+              {
+                topicSection: 'Simple linear regression',
+                learningObjectives:
+                  'Fit and interpret a simple linear regression using slope, intercept, fitted values, and residuals.',
+                weeklyAssessments: 'Least-squares calculation trace.',
+              },
+            ],
+          },
+        ],
+      },
+      {
+        enrichment: {
+          lessonContent: {
+            'lesson-1': {
+              lessonId: 'lesson-1',
+              enrichmentSource: 'scion-source-researched',
+              sourceFactAuthority: 'verified-open-research',
+              kernel: verifiedKnowledgeKernel([relevant, multiple, poisson]),
+            },
+          },
+        },
+      },
+    );
+
+    expect(blueprint.lessons[0].enrichment.kernel.facts).toContain(relevant);
+    expect(blueprint.lessons[0].enrichment.kernel.facts).not.toEqual(expect.arrayContaining([multiple, poisson]));
   });
 
   it('preserves repeated model correction shells so quality checks can reject them instead of laundering them', () => {
@@ -10669,6 +11362,7 @@ describe('courseBlueprintCompiler', () => {
         source: 'W3C WCAG 2.2',
       })),
     };
+    markLessonKnowledgeVerified(blueprint.lessons[0]);
 
     const compiled = compileBlueprintDeliverables(blueprint, [
       'lessonPlans',

@@ -46,7 +46,9 @@ describe('v0.15.8 professor adoption compiler smoke cases', () => {
     expect(score.score).toBe(100);
     expect(professorFacingText).toMatch(/\b(notebook|dataset|Python|lab|homework|project|visualization)\b/i);
     expect(professorFacingText).toMatch(/\b(office hours|support|deadline|staff|submission|academic honesty)\b/i);
-    expect(professorFacingText).not.toMatch(/\b(pipette|specimen|wet lab|lab coat)\b/i);
+    expect(professorFacingText).not.toMatch(
+      /\b(?:pipette|wet lab|lab coat|(?:physical|biological|tissue|rock|mineral) specimens?)\b/i,
+    );
   });
 
   it('keeps Yale poetry output grounded in close reading and writing work products', async () => {

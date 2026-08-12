@@ -1,0 +1,92 @@
+{
+  "version": "0.17.17",
+  "date": "August 10, 2026",
+  "title": "Publish-Readiness Candidate",
+  "status": "verification-in-progress",
+  "proofSummary": {
+    "local": ["npm test", "npm run lint", "npm run build", "npm run bundle:check"],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Remote exact-commit verification begins only after the local promotion gates pass."
+    },
+    "ciDeep": {
+      "status": "pending",
+      "note": "The fresh three-course campaign and authenticated Roundtable review have not yet promoted this candidate."
+    },
+    "deploy": {
+      "status": "pending",
+      "note": "Production deployment is downstream of an earned local promotion decision."
+    },
+    "liveProvider": {
+      "status": "pending",
+      "note": "No replay package or earlier provider run can satisfy the fresh-generation gate."
+    },
+    "manualHuman": {
+      "status": "pending",
+      "note": "No instructor, accessibility certification, or classroom validation is claimed."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01717-1",
+      "status": "verified-local-code",
+      "changelogHighlightIndex": 0,
+      "highlightSha256": "fc808c25d93b2eec5150574ae830490228f8eb28d5a7ec54f43d18ef616e5be9",
+      "summary": "Replay and prospective generation use distinct promotion lineages.",
+      "anchors": [
+        "src/lib/replayInstructionalPlanLineage.js",
+        "src/lib/instructionalPlanGenerationAdmission.js",
+        "src/lib/instructionalPlanLineage.js"
+      ],
+      "proofCommands": ["npm test"],
+      "proofScopes": ["unit", "trust-boundary"]
+    },
+    {
+      "id": "v01717-2",
+      "status": "verified-local-code",
+      "changelogHighlightIndex": 1,
+      "highlightSha256": "5bd84cdc7ed4bda9621640db96b462ccc24e844487f541b3a55f66b0ae1012c8",
+      "summary": "Evidence admission rejects neighboring operations and preserves exact source identity.",
+      "anchors": [
+        "src/lib/verifiedDraftCompilerContracts.js",
+        "src/lib/operationQualifiedQuizItems.js",
+        "src/lib/packageZipExporter.js"
+      ],
+      "proofCommands": ["npm test", "npm run bundle:check"],
+      "proofScopes": ["unit", "compiler", "package"]
+    },
+    {
+      "id": "v01717-3",
+      "status": "verified-local-code",
+      "changelogHighlightIndex": 2,
+      "highlightSha256": "9614c30a8104ea1860606f48bdd2658faf522ac761ff568f0d3884d1ef9fddc5",
+      "summary": "Render evidence includes child receipts and raster bytes while accessibility remains a structural claim.",
+      "anchors": [
+        "scripts/lib/verifiedCoherentDraftEvidenceV1.mjs",
+        "scripts/lib/renderAuditV1.mjs",
+        "scripts/lib/accessibilityAuditV1.mjs"
+      ],
+      "proofCommands": ["npm test"],
+      "proofScopes": ["unit", "render-evidence"]
+    },
+    {
+      "id": "v01717-4",
+      "status": "verification-in-progress",
+      "changelogHighlightIndex": 3,
+      "highlightSha256": "13125fd3e080cc57eca6a9d4648f1f533219813b0c1a595c5edd351396e24758",
+      "summary": "Promotion remains pending until fresh packages and independent review satisfy the frozen ruler.",
+      "anchors": [
+        "src/lib/packageReadinessReceipt.js",
+        "scripts/lib/verifiedCoherentDraftV1.mjs",
+        "evaluation/output-quality/verified-coherent-draft-v1.policy.json"
+      ],
+      "proofCommands": ["npm run audit:checkpoint:v1"],
+      "proofScopes": ["promotion-contract", "pending-fresh-evidence"]
+    }
+  ],
+  "boundaries": [
+    "This contract records a candidate, not an earned publication checkpoint.",
+    "No replay package, deterministic conformance score, or structural accessibility audit proves teaching quality or promotion readiness.",
+    "Fresh generation, independent review, remote CI, and deployment remain pending."
+  ]
+}

@@ -1,4 +1,5 @@
 import { formatScanUnits } from './deepQualityFormatDetails.js';
+import { verifiedAuthenticEvidenceIdentitySurfaces } from '../authenticEvidenceQualityUtils.js';
 
 const SHINGLE_SIZE = 10;
 const SHORT_DIRECTIVE_SHINGLE_SIZE = 7;
@@ -13,6 +14,12 @@ function words(value) {
       .normalize('NFKC')
       .toLowerCase()
       .replace(/https?:\/\/\S+|\bdoi\s*:\s*\S+/gi, ' ')
+      // A required asset path is a stable citation identity, not reusable
+      // instructional prose. A well-aligned course should name the same data
+      // packet across every lesson that uses it; counting that path as a
+      // ten-word boilerplate phrase creates a false P1 precisely when coverage
+      // improves. The surrounding directions remain in the scan.
+      .replace(/\b(?:required\s+assets?|source\s+materials?)\/[^\s,;]+/gi, ' xresourcex ')
       .match(/[a-z0-9]+(?:['’-][a-z0-9]+)*/g) || []
   );
 }
@@ -51,8 +58,14 @@ export function findRepeatedInstructionalPhrase(files = [], manifest = {}, ident
   ];
   const registeredObjectiveIdentities = [
     ...new Set(
-      (Array.isArray(manifest?.lessons) ? manifest.lessons : [])
-        .flatMap((lesson) => (Array.isArray(lesson?.objectives) ? lesson.objectives : []))
+      [
+        ...(Array.isArray(manifest?.lessons) ? manifest.lessons : []).flatMap((lesson) =>
+          Array.isArray(lesson?.objectives) ? lesson.objectives : [],
+        ),
+        ...(Array.isArray(manifest?.functionalVisualBindings) ? manifest.functionalVisualBindings : [])
+          .filter((binding) => binding?.visibleTask?.hashBound === true)
+          .map((binding) => binding.visibleTask.successCriterion),
+      ]
         .map((value) =>
           String(value || '')
             .replace(/[.!?]+$/, '')
@@ -61,7 +74,67 @@ export function findRepeatedInstructionalPhrase(files = [], manifest = {}, ident
         .filter((value) => words(value).length >= SHORT_DIRECTIVE_SHINGLE_SIZE),
     ),
   ];
-  const maskedIdentities = [...new Set([...registeredAssessmentIdentities, ...registeredObjectiveIdentities])];
+  const registeredCourseIdentities = [manifest?.courseName, manifest?.course?.title, manifest?.title]
+    .map((value) =>
+      String(value || '')
+        .replace(/[.!?]+$/, '')
+        .trim(),
+    )
+    .filter((value) => words(value).length >= 4);
+  const registeredSourceIdentities = (Array.isArray(manifest?.sourceLedger) ? manifest.sourceLedger : [])
+    .flatMap((source) => [source?.displayTitle, source?.title, source?.key])
+    .map((value) =>
+      String(value || '')
+        .replace(/\s+§.+$/, '')
+        .replace(/[.!?]+$/, '')
+        .trim(),
+    )
+    .filter((value) => words(value).length >= 4);
+  const registeredVerifiedSourceClaims = [
+    ...new Set(
+      (Array.isArray(manifest?.sourceLedger) ? manifest.sourceLedger : [])
+        .flatMap((source) => (Array.isArray(source?.supportReceipt?.checks) ? source.supportReceipt.checks : []))
+        .filter(
+          (check) =>
+            check?.semanticSupport === true &&
+            check?.entailed === true &&
+            check?.sourceIdentityVerified === true &&
+            check?.artifactVisibilityVerified === true,
+        )
+        .map((check) =>
+          String(check?.claim || '')
+            .replace(/[.!?]+$/, '')
+            .trim(),
+        )
+        .filter((value) => words(value).length >= SHINGLE_SIZE),
+    ),
+  ];
+  const registeredVerifiedAuthenticEvidence = verifiedAuthenticEvidenceIdentitySurfaces(manifest).filter(
+    (value) => words(value).length >= 3,
+  );
+  const maskedIdentities = [
+    ...new Set([
+      ...registeredCourseIdentities,
+      ...registeredAssessmentIdentities,
+      ...registeredObjectiveIdentities,
+      ...registeredSourceIdentities,
+      // Exact source claims are deliberately repeated across aligned artifact
+      // families. Only receipt-backed, semantically entailed, visibly
+      // rendered claims are masked; surrounding directions and unsupported
+      // model prose remain fully subject to the repetition gate.
+      ...registeredVerifiedSourceClaims,
+      // Fingerprinted authentic-data payloads must recur verbatim wherever a
+      // learner is asked to inspect them. Mask only the exact bound fields
+      // from a complete truth-proof receipt; the directions around those
+      // fields remain subject to both repetition gates.
+      ...registeredVerifiedAuthenticEvidence,
+    ]),
+    // Mask the most specific fingerprinted surface first. A shorter field
+    // such as the airflow value can be a substring of the complete
+    // articulatory-evidence record; replacing that substring first prevents
+    // the full hash-bound identity from matching and leaves a false repeated
+    // phrase around the marker.
+  ].sort((left, right) => right.length - left.length);
   const identityCounts = new Map();
   const excluded = new Set();
   const excludedShortDirectives = new Set();
@@ -91,9 +164,19 @@ export function findRepeatedInstructionalPhrase(files = [], manifest = {}, ident
         const matches = instructionalUnit.match(pattern) || [];
         if (matches.length > 0) {
           if (registeredAssessmentIdentities.includes(registeredIdentity)) {
-            const entry = identityCounts.get(registeredIdentity) || { count: 0, files: new Map() };
-            entry.count += matches.length;
-            entry.files.set(file.path, (entry.files.get(file.path) || 0) + matches.length);
+            const entry = identityCounts.get(registeredIdentity) || { count: 0, files: new Map(), contexts: new Map() };
+            const fileContexts = entry.contexts.get(file.path) || new Set();
+            const contextKey = instructionalUnit.toLowerCase();
+            // Office parsers can surface one table paragraph through both its
+            // cell and paragraph projections. Count the visible instructional
+            // context once, while still counting repeated identity mentions
+            // inside that context and distinct contexts in the same file.
+            if (!fileContexts.has(contextKey)) {
+              entry.count += matches.length;
+              entry.files.set(file.path, (entry.files.get(file.path) || 0) + matches.length);
+              fileContexts.add(contextKey);
+              entry.contexts.set(file.path, fileContexts);
+            }
             identityCounts.set(registeredIdentity, entry);
           }
           instructionalUnit = instructionalUnit.replace(pattern, ' xartifactx ');

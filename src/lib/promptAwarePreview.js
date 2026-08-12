@@ -1,4 +1,6 @@
 import { PREVIEW_EXAMPLES } from './previewExamples';
+import { repairCourseIdentityTypography } from './courseIdentityTypography.js';
+import { extractCourseName } from './algiComposer.js';
 
 const clean = (value) =>
   String(value || '')
@@ -109,10 +111,14 @@ export function derivePromptPreviewTitle(promptText) {
 }
 
 export function repairGeneratedCourseTitle(courseMapTitle, promptText) {
-  const mappedTitle = clean(courseMapTitle);
-  const promptTitle = clean(promptText) ? derivePromptPreviewTitle(promptText) : '';
+  const mappedTitle = repairCourseIdentityTypography(clean(courseMapTitle));
+  const markerRecoveredTitle = /^===/.test(mappedTitle) ? extractCourseName(promptText) : '';
+  const promptTitle = clean(promptText)
+    ? repairCourseIdentityTypography(markerRecoveredTitle || derivePromptPreviewTitle(promptText))
+    : '';
   const looksLikeInstruction =
     /^(?:course|class|seminar|studio|workshop|untitled(?:\s+course)?|your\s+course)$/i.test(mappedTitle) ||
+    /^===/.test(mappedTitle) ||
     /^(?:build|create|generate|design|make|draft|prepare)\b/i.test(mappedTitle) ||
     /\b(?:use|follow|preserve)\s+(?:exactly\s+)?(?:these|the)?\s*(?:\w+\s+)?(?:lessons?|sessions?|modules?)\s+in\s+(?:this\s+)?order\b/i.test(
       mappedTitle,

@@ -5,10 +5,15 @@ import { SCION_BROWSER_GEMMA4_DOWNLOAD_LABEL } from '../lib/scionBrowserConstant
 export default function ScionRuntimeStatusBanner({ enabled = false, status: suppliedStatus = null }) {
   const subscribedStatus = useScionRuntimeStatus(enabled && suppliedStatus == null);
   const status = suppliedStatus || subscribedStatus;
-  if (!enabled || !['loading-runtime', 'loading-model', 'repairing-cache', 'error'].includes(status.phase)) return null;
+  if (
+    !enabled ||
+    !['loading-runtime', 'loading-model', 'restarting-activation', 'repairing-cache', 'error'].includes(status.phase)
+  )
+    return null;
 
   const failed = status.phase === 'error';
   const repairing = status.phase === 'repairing-cache';
+  const restarting = status.phase === 'restarting-activation';
   const progress = Math.max(0, Math.min(1, Number(status.progress) || 0));
   // Model preparation is the first 15% of the same end-to-end meter the
   // workspace ribbon continues through map, enrich, compile, verify, and grade.
@@ -42,14 +47,18 @@ export default function ScionRuntimeStatusBanner({ enabled = false, status: supp
               ? 'Scion could not start on this device'
               : repairing
                 ? 'Repairing Scion on this device · step 1 of 6'
-                : 'Preparing Scion · step 1 of 6'}
+                : restarting
+                  ? 'Scion is still working · step 1 of 6'
+                  : 'Preparing Scion · step 1 of 6'}
           </p>
           <p className="mt-0.5 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
             {failed
               ? status.error || 'Scion requires a WebGPU and WebAssembly JSPI capable browser.'
               : repairing
                 ? `${status.message} Scion is replacing the unreadable local copy once, then it will continue this build automatically.`
-                : `${status.message} The first run downloads ${SCION_BROWSER_GEMMA4_DOWNLOAD_LABEL}; then Scion maps, enriches, compiles, verifies, and grades the package.`}
+                : restarting
+                  ? `${status.message} The downloaded model is intact; this is an activation retry, not a new download or a stalled reasoning request.`
+                  : `${status.message} The first run downloads ${SCION_BROWSER_GEMMA4_DOWNLOAD_LABEL}; then Scion maps, enriches, compiles, verifies, and grades the package.`}
           </p>
         </div>
         {!failed && (

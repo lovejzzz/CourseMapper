@@ -2,6 +2,7 @@ import { classifyAssessmentKind } from './courseGraph/deriveFromCourseMap.js';
 import { compactCompilerOwnedEvidenceCheckIdentity } from './compilerAssessmentIdentity.js';
 import { isDeliverableNotApplicable } from './deliverableApplicability';
 import { deriveEvaluateDesign } from './leanCourseMap.js';
+import { collapseMechanicalContentWordEchoes } from './mechanicalTextSeams.js';
 import { findPublishabilityPlaceholders } from './publishabilityPlaceholders';
 import { normalizeReadinessIssue, normalizeReadinessIssues } from './readinessIssueSchema';
 import { resolveQuizQuestionTarget } from './quizQuestionTarget';
@@ -852,6 +853,14 @@ const UX_DESIGN_COURSE_MAP_RE =
 const WORLD_LANGUAGE_COURSE_MAP_RE =
   /\b(?:world language|foreign language|second language|language proficiency|mandarin|chinese|pinyin|tones?|hanzi|characters?|greetings?|self-introductions?|classroom expressions?|oral performance|speaking practice|listening drills?)\b/i;
 
+// Linguistics courses routinely discuss tone, speech, and language without
+// teaching a target language. Letting one of those shared words select the
+// world-language fallback invents audio models, pronunciation practice, and
+// recording dependencies that the course never requested. A strong
+// discipline identity therefore wins before the world-language profile.
+const LINGUISTICS_COURSE_MAP_RE =
+  /\b(?:linguistics?|language structure|phonetics?|phonology|phoneme|morphology|morpheme|syntax|syntactic|semantics|pragmatics|language variation|language acquisition|language change|form[- ]gloss|minimal pairs?)\b/i;
+
 // v0.16.1: the CS profile used to fire on generic tokens every quantitative
 // course contains — "variables", "functions", "testing", "lists" — which is
 // how a pure Linear Algebra course got a Python-programming course map
@@ -911,6 +920,7 @@ function inferCourseMapFallbackProfile(courseMap, lesson, section) {
   if (PROJECT_MANAGEMENT_COURSE_RE.test(context)) return 'project-management';
   if (DATA_STORY_COURSE_MAP_RE.test(context)) return 'data-storytelling';
   if (UX_DESIGN_COURSE_MAP_RE.test(context)) return 'ux-design';
+  if (LINGUISTICS_COURSE_MAP_RE.test(text(courseMap?.courseName))) return 'general';
   if (WORLD_LANGUAGE_COURSE_MAP_RE.test(context)) return 'world-language';
   if (COMPUTER_SCIENCE_COURSE_MAP_RE.test(context) || ALGORITHMS_COURSE_IDENTITY_RE.test(text(courseMap?.courseName))) {
     return 'computer-science';
@@ -931,6 +941,11 @@ function inferCourseMapFallbackProfile(courseMap, lesson, section) {
 function displayCourseMapTopic(topic) {
   const value = text(topic);
   return value ? `${value.slice(0, 1).toUpperCase()}${value.slice(1)}` : 'Project decision';
+}
+
+function definiteCourseMapTopic(topic) {
+  const value = text(topic);
+  return /^the\b/i.test(value) ? value : `the ${value}`;
 }
 
 function getOralHistoryCourseMapFallbacks(topic, pick) {
@@ -1025,7 +1040,7 @@ function getHistoryCourseMapFallbacks(topic, pick) {
       `Course reader selection, visual source, map, or chronology handout aligned to ${topic}.`,
       `Source-analysis guide and background reading for ${topic}.`,
     ]),
-    evaluateDesign: `Check that the ${topic} activity, source, and assessment ask students to support a historical claim with evidence.`,
+    evaluateDesign: `Check that ${definiteCourseMapTopic(topic)} activity, source, and assessment ask students to support a historical claim with evidence.`,
   };
 }
 
@@ -1075,7 +1090,7 @@ function getLiteratureCourseMapFallbacks(topic, pick) {
       `Course-reader selection, passage annotation guide, and interpretive model aligned to ${topic}.`,
       `Primary literary text, brief context source, and evidence checklist for ${topic}.`,
     ]),
-    evaluateDesign: `Check that the ${topic} reading, discussion, and assessment require students to support the same interpretive claim with textual evidence.`,
+    evaluateDesign: `Check that ${definiteCourseMapTopic(topic)} reading, discussion, and assessment require students to support the same interpretive claim with textual evidence.`,
   };
 }
 
@@ -1124,7 +1139,7 @@ function getDataStoryCourseMapFallbacks(topic, pick) {
       `Instructor-verified ${topic} example, accessible chart guide, uncertainty checklist, and revision template.`,
       `Public-transit data files, provenance notes, visual-encoding guidance, and portfolio evidence record for ${topic}.`,
     ]),
-    evaluateDesign: `Confirm the ${topic} activity and assessment preserve the same source, transformation, claim, uncertainty, and revision trail.`,
+    evaluateDesign: `Confirm ${/^(?:the|a|an)\b/i.test(topic) ? '' : 'the '}${topic} activity and assessment preserve the same source, transformation, claim, uncertainty, and revision trail.`,
   };
 }
 
@@ -1197,7 +1212,7 @@ function getProjectManagementCourseMapFallbacks(topic, pick) {
     ]),
     weeklyAssessments: pick([
       `${displayTopic} evidence check: choose the project decision the evidence supports.`,
-      `${displayTopic} mini-brief with one stakeholder, one constraint, and one recommended action.`,
+      `${displayTopic} brief: stakeholder, constraint, recommendation.`,
       `${displayTopic} scenario response that links the artifact to scope, schedule, risk, or quality evidence.`,
     ]),
     asyncActivities: pick([
@@ -1225,7 +1240,7 @@ function getProjectManagementCourseMapFallbacks(topic, pick) {
       `Sample project artifact, decision-log guide, and ${topic} rubric criteria.`,
       `Project scenario packet, planning worksheet, and ${topic} example for comparison.`,
     ]),
-    evaluateDesign: `Check that the ${topic} activity, artifact, and assessment ask students to justify the same project decision with evidence.`,
+    evaluateDesign: `Check that ${definiteCourseMapTopic(topic)} activity, artifact, and assessment ask students to justify the same project decision with evidence.`,
   };
 }
 
@@ -1298,7 +1313,7 @@ function getUxDesignCourseMapFallbacks(topic, pick) {
       `Usability or critique notes, design example, and revision prompt for ${topic}.`,
     ]),
     evaluateDesign: pick([
-      `Check that the ${topic} activity and assessment ask students to justify the same design revision.`,
+      `Check that ${definiteCourseMapTopic(topic)} activity and assessment ask students to justify the same design revision.`,
       `Confirm the ${topic} resource, critique task, and artifact standard point to one user-evidence claim.`,
       `Make the ${topic} studio task produce evidence students can reuse in the portfolio case.`,
       `Align the ${topic} example and assessment around a visible artifact change.`,
@@ -1476,6 +1491,11 @@ function assessmentCellCarriesExamIdentity(value) {
     .some((atom) => classifyAssessmentKind(atom) === 'exam');
 }
 
+function assessmentCellCarriesOnlyInClassEvidence(value) {
+  const atoms = text(value).split(/\n|;/).map(assessmentAtomIdentity).filter(Boolean);
+  return atoms.length > 0 && atoms.every((atom) => classifyAssessmentKind(atom) === 'in-class');
+}
+
 function stripExamNouns(topic) {
   return text(topic)
     .replace(/\b(?:midterms?|finals?|comprehensive|exams?|examinations?)\b/gi, ' ')
@@ -1527,7 +1547,9 @@ function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex)
   // later sections are formative checks, not new graded artifacts. Naming
   // that intent here keeps a late CourseMap→Graph derivation from promising
   // two extra assignment briefs the compiler never scheduled.
-  const formativeAssessmentPrefix = sectionIndex > 0 ? 'In-class ' : '';
+  const preserveNativeInClassBoundary =
+    key === 'weeklyAssessments' && assessmentCellCarriesOnlyInClassEvidence(section?.[key]);
+  const formativeAssessmentPrefix = sectionIndex > 0 || preserveNativeInClassBoundary ? 'In-class ' : '';
   const profile = inferCourseMapFallbackProfile(courseMap, lesson, section);
   const fieldFallbacks =
     profile === 'oral-history'
@@ -1566,6 +1588,14 @@ function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex)
                             `${formativeAssessmentPrefix}${displayCourseMapTopic(topic)} application check: apply one example and name one limitation.`,
                             `${formativeAssessmentPrefix}${displayCourseMapTopic(topic)} exit reflection: connect evidence to the lesson task.`,
                             `${formativeAssessmentPrefix}${displayCourseMapTopic(topic)} short analysis: claim, evidence, and next question.`,
+                            `${formativeAssessmentPrefix}${displayCourseMapTopic(topic)} evidence annotation: mark the deciding detail and bound the conclusion.`,
+                            `${formativeAssessmentPrefix}${displayCourseMapTopic(topic)} comparison note: test two interpretations against the lesson evidence.`,
+                            `${formativeAssessmentPrefix}${displayCourseMapTopic(topic)} reasoning trace: show the observation, inference, and revision move.`,
+                            `${formativeAssessmentPrefix}${displayCourseMapTopic(topic)} transfer check: apply the idea to a new case and name what remains uncertain.`,
+                            `${formativeAssessmentPrefix}${displayCourseMapTopic(topic)} source audit: connect one claim to its evidence and repair an overreach.`,
+                            `${formativeAssessmentPrefix}${displayCourseMapTopic(topic)} decision memo: defend one choice and identify the evidence that could change it.`,
+                            `${formativeAssessmentPrefix}${displayCourseMapTopic(topic)} misconception repair: diagnose a tempting error and submit a corrected explanation.`,
+                            `${formativeAssessmentPrefix}${displayCourseMapTopic(topic)} synthesis ticket: state the strongest supported conclusion and its boundary.`,
                           ]),
                           asyncActivities: pick([
                             `Annotate the lesson resource for ${topic} and bring one usable example.`,
@@ -1597,7 +1627,7 @@ function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex)
                             `Activity guide for ${topic} with reference notes and feedback cues.`,
                           ]),
                           evaluateDesign: pick([
-                            `Check that the ${topic} resource, activity, and assessment all ask for one visible product.`,
+                            `Check that ${definiteCourseMapTopic(topic)} resource, activity, and assessment all ask for one visible product.`,
                             `Confirm students use the same source detail or example for ${topic} practice and assessment.`,
                             `Align the ${topic} activity with one observable response, artifact, or explanation.`,
                             `Make the ${topic} practice task produce evidence students can reuse in the assessment.`,
@@ -1611,7 +1641,7 @@ function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex)
   // separate assignment brief and rubric for every repaired section.
   if (
     key === 'weeklyAssessments' &&
-    sectionIndex > 0 &&
+    (sectionIndex > 0 || preserveNativeInClassBoundary) &&
     classifyAssessmentKind(value) !== 'exam' &&
     !/^\s*in[\s-]?class\b/i.test(value)
   ) {
@@ -1724,10 +1754,11 @@ function normalizeCourseMapObjectives(value) {
         .replace(/^students?\s+will\s+be\s+able\s+to:?\s*/i, '')
         .trim();
       if (!body) return '';
+      const readableBody = body.replace(/^[a-z]/, (letter) => letter.toUpperCase());
       // v0.12.1: deterministic terminal punctuation — the v0.12 audit shipped
       // one course with 120/120 objective lines missing periods while the
       // other three had them (same template, different-run drift).
-      const punctuated = /[.?!:]$/.test(body) ? body : `${body}.`;
+      const punctuated = /[.?!:]$/.test(readableBody) ? readableBody : `${readableBody}.`;
       return label ? `${label} ${punctuated}` : punctuated;
     })
     .filter(Boolean);
@@ -1764,6 +1795,9 @@ function normalizeCourseMapCellValue(key, value, lessonCount) {
   if (key === 'weeklyAssessments' && typeof next === 'string') {
     next = next.replace(/^\s*character writing homework\b/i, 'Character Writing Homework');
     next = compactCompilerOwnedEvidenceCheckIdentity(next);
+  }
+  if (typeof next === 'string') {
+    next = collapseMechanicalContentWordEchoes(next);
   }
   next = normalizeLessonRangeReferences(next, lessonCount);
   return next;
@@ -2828,10 +2862,13 @@ export function summarizeReadiness(readiness) {
   return 'All selected materials passed readiness checks.';
 }
 
-export function buildReadinessReport(readiness, { courseName = 'Course' } = {}) {
+export function buildReadinessReport(readiness, { courseName = 'Course', generatedAt = null } = {}) {
+  const reportGeneratedAt = Number.isFinite(Date.parse(generatedAt || ''))
+    ? new Date(generatedAt).toISOString()
+    : new Date().toISOString();
   const lines = [
     `${courseName} - Readiness Report`,
-    `Generated: ${new Date().toISOString()}`,
+    `Generated: ${reportGeneratedAt}`,
     '',
     `Status: ${readiness?.status || 'unknown'}`,
     `Checked materials: ${readiness?.doneFeatureCount ?? 0}/${readiness?.featureCount ?? 0}`,
@@ -2850,7 +2887,7 @@ export function buildReadinessReport(readiness, { courseName = 'Course' } = {}) 
   if (blockers.length > 0) {
     lines.push(`Critical issues (${blockers.length})`);
     blockers.forEach((issue, index) => {
-      lines.push(`${index + 1}. ${issue.label}: ${issue.message}`);
+      lines.push(`${index + 1}. ${issue.label} — ${issue.message}`);
     });
     lines.push('');
   }
@@ -2858,7 +2895,7 @@ export function buildReadinessReport(readiness, { courseName = 'Course' } = {}) 
   if (warnings.length > 0) {
     lines.push(`Warnings (${warnings.length})`);
     warnings.forEach((issue, index) => {
-      lines.push(`${index + 1}. ${issue.label}: ${issue.message}`);
+      lines.push(`${index + 1}. ${issue.label} — ${issue.message}`);
     });
   }
 

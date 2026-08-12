@@ -136,7 +136,7 @@ describe('source-backed music quiz bank', () => {
     expect(visibleText).not.toMatch(/§\s*extract|open textbook|open license/i);
     expect(visibleText).not.toMatch(/chords and chords/i);
     expect(visibleText).not.toMatch(/\b(?:same|successive)[.!]?$/im);
-    expect(visibleText).toMatch(/organizes chords into progressions/i);
+    expect(visibleText).toMatch(/uses Chords and Harmony terminology precisely/i);
     expect(discussion.bullets.join('\n')).not.toMatch(/[,;:]\s*(?:evidence|risk|assumption|mark)[.!]?$/im);
     expect(discussion.bullets.join('\n')).not.toMatch(/\bstudents?\s+mark[.!]?$/im);
   });

@@ -320,6 +320,14 @@ export const PENDING_INTERNAL_VOCAB_PATTERNS = [
     severity: 'P1',
     roadmap: '1.10',
   },
+  {
+    regex:
+      /\bthe (?:earlier source claim on|source-backed claim about|previously stated claim about|source claim concerning|retained (?:claim about|source claim concerns))\b/i,
+    label: 'legacy compiler source-reference template',
+    name: 'compiler-source-reference-template',
+    severity: 'P1',
+    roadmap: '1.10',
+  },
 ];
 
 // All internal-vocab patterns as one table (the grader scans the union).

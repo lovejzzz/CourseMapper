@@ -13,8 +13,21 @@ import { assessmentRevisionCriterion, examFactCopy, slideDecisionMove } from '..
 import { finalizeCompiledDeliverableLanguage } from '../compiledLanguageFinalizer';
 import { ARTIFACT_PATTERNS } from '../quality/artifactDefectPatterns';
 import { isAppliedQuizStem } from '../quality/quizItemDepth';
+import { lessonPlanCollaborativeNotes } from '../courseCompilerTextureCopy';
 
 describe('course compiler copy variants', () => {
+  it('keeps collaborative evidence prompts grammatical when a concept already has a determiner', () => {
+    const note = lessonPlanCollaborativeNotes({
+      lesson: { lessonNumber: 2 },
+      concept: 'the Describing Distributions Numbers focus (2.4)',
+      artifact: 'weekly homework',
+      artifactCheck: 'the report-out must expose the evidence decision.',
+    });
+
+    expect(note).not.toMatch(/\bits the\b/i);
+    expect(note).not.toMatch(/\bthe the\b/i);
+  });
+
   it('does not duplicate an instructional imperative when the title-slide anchor already starts with one', () => {
     const note = titleSlideNote({
       lessonNumber: 2,
@@ -380,6 +393,20 @@ describe('course compiler copy variants', () => {
     expect(text).not.toContain('Qubits quantum states');
   });
 
+  it('preserves a concise compound disciplinary identity instead of collapsing one field', () => {
+    const focus = 'Semantics and Pragmatics';
+    const result = compactRepeatedCourseFocusReferences(
+      Array.from({ length: 8 }, () => `Use ${focus} evidence, then revisit the ${focus} decision.`),
+      focus,
+      { limit: 1 },
+    );
+
+    expect((result.join(' ').match(/Semantics and Pragmatics/g) || []).length).toBe(1);
+    expect(result.join(' ')).toContain('Semantics–Pragmatics');
+    expect(result.join(' ')).not.toMatch(/\bthe Semantics (?:focus|work|decision)\b/i);
+    expect(result.join(' ')).not.toMatch(/\bthe Pragmatics (?:focus|work|decision)\b/i);
+  });
+
   it('keeps compact compiler assessment identities title-shaped', () => {
     const result = compactRepeatedCourseFocusReferences(
       {
@@ -412,6 +439,19 @@ describe('course compiler copy variants', () => {
     expect((text.match(/The Medieval Journey Narrative/gi) || []).length).toBe(2);
     expect(text).toContain('Medieval Journey–specific claim');
     expect(text).not.toContain('the Medieval Journey Narrative focus');
+  });
+
+  it('fails closed in ambiguous possessive grammar instead of inventing “your the” copy', () => {
+    const focus = 'Visual Evidence and Contextual Interpretation';
+    const result = compactRepeatedCourseFocusReferences(
+      Array.from({ length: 8 }, () => `Defend your ${focus} interpretation with one visible detail.`),
+      focus,
+      { limit: 1 },
+    );
+
+    const text = result.join(' ');
+    expect(text).not.toMatch(/\byour the\b/i);
+    expect(text).not.toMatch(/\bfocus interpretation\b/i);
   });
 
   it('drops introductory prepositions and possessive fragments from compact focus labels', () => {
@@ -502,7 +542,7 @@ describe('course compiler copy variants', () => {
     );
 
     expect(results).toEqual([
-      'Identify one inspectable Statistical Inference Review detail from the lesson materials, explain the checkpoint response decision it supports, and state one limitation',
+      'Identify one inspectable Statistical Inference Review detail from the lesson materials, explain the checkpoint response decision it supports, and name the evidence boundary it cannot cross',
       'Trace the reasoning from Statistical Inference Review evidence to the checkpoint response decision and name the assumption or tradeoff that could change it',
       'Make the evidence, decision, and limitation easy for a reader to locate in the checkpoint response',
       'Name one feedback-informed revision to the checkpoint response and explain how it strengthened the evidence or reasoning',

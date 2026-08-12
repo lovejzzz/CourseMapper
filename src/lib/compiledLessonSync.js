@@ -4,6 +4,7 @@ import {
   compactBlueprintForStorage,
   compileBlueprintDeliverables,
   isBlueprintCompiledFeature,
+  quarantineUnadmittedResearchClaims,
 } from './courseBlueprintCompiler';
 import { attachEnrichmentToGraph, buildBlueprintFromGraph, deriveCourseGraphFromCourseMap } from './courseGraph';
 import { applyLessonDepthToConfigMap } from './lessonDepth';
@@ -40,9 +41,42 @@ function persistedTermAssessment(term, lesson, payload) {
   });
 }
 
+function researchAdmissionLesson(lesson = {}) {
+  const sections = Array.isArray(lesson?.sections) ? lesson.sections : [];
+  const keyConcepts = sections
+    .flatMap((section) => [section?.topicSection, section?.topic])
+    .map(cleanText)
+    .filter(Boolean);
+  const outcomes = sections
+    .flatMap((section) => [section?.learningObjectives, section?.learningGoals])
+    .flatMap((value) => String(value || '').split(/\n+/))
+    .map(cleanText)
+    .filter(Boolean);
+  return {
+    ...lesson,
+    keyConcepts: Array.isArray(lesson?.keyConcepts) && lesson.keyConcepts.length > 0 ? lesson.keyConcepts : keyConcepts,
+    outcomes: Array.isArray(lesson?.outcomes) && lesson.outcomes.length > 0 ? lesson.outcomes : outcomes,
+  };
+}
+
 function payloadReferencesAnyTerm(value, rejectedTerms) {
   const text = JSON.stringify(value || '').toLowerCase();
   return rejectedTerms.some((term) => term && text.includes(term));
+}
+
+function hasReplayableExactLedger(payload) {
+  const factCount = Array.isArray(payload?.kernel?.facts) ? payload.kernel.facts.filter(Boolean).length : 0;
+  const provenance = payload?.kernel?.provenance;
+  const authority = String(payload?.sourceFactAuthority || provenance?.authority || '');
+  return (
+    factCount >= 3 &&
+    provenance?.source === 'compiler-owned-exact-source-ledger' &&
+    provenance?.copiedFactsVerbatim === true &&
+    Number(provenance?.factCount) === factCount &&
+    ['verified-open-research', 'instructor-supplied', 'shipped-source-library', 'admitted-evidence-authority'].includes(
+      authority,
+    )
+  );
 }
 
 export function revalidatePersistedLessonContent(lessonContent = {}, courseMap = {}) {
@@ -73,7 +107,16 @@ export function revalidatePersistedLessonContent(lessonContent = {}, courseMap =
 
     const titleResult = sanitizeLessonTitleEchoEnrichment(lesson, payload);
     const semanticResult = sanitizeGenomeEnrichmentForLesson(lesson, titleResult.enrichment);
-    const candidatePayload = semanticResult.enrichment || payload;
+    const semanticPayload = semanticResult.enrichment || payload;
+    // Saved research does not retain authority merely because an older build
+    // admitted it. Replay applies the same current curricular-role and exact
+    // claim admission used by fresh compilation before any atom is reused.
+    const persistedResearch =
+      semanticPayload?.enrichmentSource === 'algi-researched' ||
+      semanticPayload?.conceptProvenance?.source === 'algi-researched';
+    const candidatePayload = persistedResearch
+      ? quarantineUnadmittedResearchClaims(researchAdmissionLesson(lesson), semanticPayload)
+      : semanticPayload;
     receipt.rejectedKeyTerms += titleResult.receipt.rejectedTitleTerms.length;
     receipt.removedQuizItems += titleResult.receipt.removedQuizItems;
     receipt.removedSlides += titleResult.receipt.removedSlides;
@@ -82,6 +125,13 @@ export function revalidatePersistedLessonContent(lessonContent = {}, courseMap =
     receipt.removedQuizItems += semanticResult.receipt.removedQuizItems;
     receipt.removedSlides += semanticResult.receipt.removedSlides;
     receipt.removedFacts += semanticResult.receipt.removedFacts;
+    if (persistedResearch) {
+      receipt.removedFacts += Math.max(
+        0,
+        (Array.isArray(semanticPayload?.kernel?.facts) ? semanticPayload.kernel.facts.length : 0) -
+          (Array.isArray(candidatePayload?.kernel?.facts) ? candidatePayload.kernel.facts.length : 0),
+      );
+    }
     if (semanticResult.receipt.resetAuthoredAtoms) receipt.semanticAtomResets += 1;
 
     const rejectedTerms = [];
@@ -94,7 +144,11 @@ export function revalidatePersistedLessonContent(lessonContent = {}, courseMap =
       return false;
     });
     if (rejectedTerms.length === 0) {
-      if (keyTerms.length === 0 && !(candidatePayload.quizItems || []).length) {
+      if (
+        keyTerms.length === 0 &&
+        !(candidatePayload.quizItems || []).length &&
+        !hasReplayableExactLedger(candidatePayload)
+      ) {
         receipt.droppedLessonIds.push(lessonId);
       } else {
         sanitized[lessonId] = candidatePayload;
@@ -117,7 +171,7 @@ export function revalidatePersistedLessonContent(lessonContent = {}, courseMap =
       receipt.removedWalkthroughs += 1;
     }
 
-    if (keyTerms.length === 0 && quizItems.length === 0) {
+    if (keyTerms.length === 0 && quizItems.length === 0 && !hasReplayableExactLedger(nextPayload)) {
       receipt.droppedLessonIds.push(lessonId);
       continue;
     }

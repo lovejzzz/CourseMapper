@@ -37,6 +37,11 @@ function text(value) {
     .trim();
 }
 
+function definiteConcept(value, fallback = 'quantitative method') {
+  const concept = text(value) || fallback;
+  return /^(?:the|a|an)\s+/i.test(concept) ? concept : `the ${concept}`;
+}
+
 function scenarioTemplateIdentity(value) {
   return text(value)
     .toLowerCase()
@@ -244,30 +249,59 @@ function scenarioEvidencePacket(kernel, term, facts) {
       context,
     )
   ) {
+    const concept = text(term?.term) || 'quantitative method';
+    const conceptWithArticle = definiteConcept(concept);
+    const quantitativeVariant = scenarioSeed([concept, ...facts]) % 3;
     return {
-      compact:
-        'the two supplied solution claims labeled Claim A and Claim B, the recorded quantities, and the answer check',
-      general: 'the problem record, competing solution paths, intermediate evidence, and documented answer check',
+      compact: [
+        `${conceptWithArticle} problem record, Claims A and B, recorded quantities, and ${conceptWithArticle} answer check`,
+        `Claims A and B for ${concept}, their recorded quantities, and the documented ${concept} check`,
+        `the recorded ${concept} quantities, two supplied solution claims, and one ${concept} verification check`,
+      ][quantitativeVariant],
+      general: [
+        `${conceptWithArticle} problem record, two ${concept} solution paths, intermediate evidence, and the documented check`,
+        `two solution paths for ${concept}, their intermediate quantities, and one documented verification check`,
+        `the recorded ${concept} evidence, competing solution paths, and the documented ${concept} boundary check`,
+      ][quantitativeVariant],
     };
   }
+  const concept = text(term?.term) || 'lesson';
+  const genericVariant = scenarioSeed([concept, ...facts]) % 3;
+  const genericCompact = [
+    `the ${concept} records, competing ${concept} claims, and the documented ${concept} boundary`,
+    `Claims A and B about ${concept}, their ${concept} records, and one ${concept} limit`,
+    `the documented ${concept} boundary and records supplied for two ${concept} claims`,
+  ][genericVariant];
+  const genericGeneral = [
+    `the ${concept} record, two bounded ${concept} interpretations, and the cited ${concept} limit`,
+    `two interpretations of ${concept}, their ${concept} records, and one documented ${concept} boundary`,
+    `the recorded ${concept} evidence, competing ${concept} readings, and one unresolved ${concept} limit`,
+  ][genericVariant];
   return {
-    compact: 'the source records behind Claim A and Claim B and the documented evidence boundary',
-    general: 'the source record, two competing interpretations, and the documented evidence boundary',
+    compact: genericCompact,
+    general: genericGeneral,
   };
 }
 
 function deriveFactLedgerComparisonScenario(kernel, term, facts, { compactFactLedgerScenarios = true } = {}) {
   if (term?.source !== 'fact-ledger-projection' || facts.length < 3) return null;
+  const concept = text(term?.term) || 'lesson';
   const evidencePacket = scenarioEvidencePacket(kernel, term, facts);
   if (compactFactLedgerScenarios) {
     const [claimA, claimB] = facts;
+    const comparisonDirection = [
+      'Select the course concept or method that best organizes the two claims; cite both cards, explain their connection or disagreement, and mark the conclusion they cannot support',
+      'Choose the relevant course concept or method for Claim A and Claim B; use both cards, then separate the warranted conclusion from the unresolved boundary',
+      'Identify the course concept or method that best relates these claims; cite the decisive difference and state what remains unproven',
+      'Name the course concept or method that lets you test both claims; use both cards and identify the inference the evidence does not permit',
+      'Select a course concept or method for mapping Claim A and Claim B; cite both cards and distinguish shared support, tension, and the limit on any conclusion',
+      'Choose the course concept or method that best accounts for the claims; point to both cards, explain what they warrant, and state where that account stops',
+    ][scenarioSeed([concept, ...facts, 'comparison-direction']) % 6];
     const derived = {
       setup: [
         ensureSentence(`Claim A: ${claimA}`),
         ensureSentence(`Claim B: ${claimB}`),
-        ensureSentence(
-          'Identify the course concept that best organizes these claims, explain how the claims differ or connect, and state what they do not establish',
-        ),
+        ensureSentence(comparisonDirection),
       ].join(' '),
       materials: evidencePacket.compact,
       source: 'derived-kernel-fallback',

@@ -1,4 +1,5 @@
-const NON_FALLBACK_SCION_RUNTIME_CODES = /^(?:SCION_WLLAMA_|SCION_LOCAL_RUNTIME_API$)/;
+const NON_FALLBACK_SCION_RUNTIME_CODES =
+  /^(?:SCION_WLLAMA_|SCION_LOCAL_RUNTIME_API$|SCION_INSTRUCTIONAL_PLAN_NOT_READY$)/;
 
 /**
  * A browser-runtime boundary failure cannot be repaired by asking the same

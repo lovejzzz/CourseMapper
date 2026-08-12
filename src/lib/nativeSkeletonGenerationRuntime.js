@@ -1,4 +1,5 @@
 import { completeCourseMapGeneration } from './generationCompletionRuntime.js';
+import { enforceInstructionalPlanContract } from './instructionalPlanContract.js';
 import { repairGeneratedCourseTitle } from './promptAwarePreview.js';
 import { isNonFallbackScionRuntimeError } from './scionRuntimeErrors.js';
 
@@ -160,10 +161,49 @@ export async function runNativeSkeletonGenerationFlow(input = [], output = []) {
       );
     }
     const nativeMap = nativeAuthoring.buildNativeWireMap(skeleton);
-    nativeAuthoring.stashNativeSkeleton(skeleton);
+    const instructionalPlanContract = enforceInstructionalPlanContract(nativeMap, skeletonSource);
+    const authorizedNativeMap = instructionalPlanContract.courseMap;
+    if (instructionalPlanContract.receipt?.status === 'plan-blocked') {
+      nativeAuthoring.stashNativeSkeleton(null);
+      recordApiCallEvent?.({
+        type: 'pipelineDecision',
+        stage: 'instructionalPlan',
+        label: 'Instructional plan blocked',
+        detail: `${instructionalPlanContract.receipt.semanticIdentity?.weakLessonNumbers?.length || 0} lesson identities remained generic; evidence acquisition did not start`,
+      });
+      const error = new nativeAuthoring.NativeAuthoringError(
+        'SCION_INSTRUCTIONAL_PLAN_NOT_READY',
+        'Scion could not establish a distinct, source-grounded identity for every lesson. Add a named progression or a source schedule, then retry.',
+      );
+      throw error;
+    }
+    if (instructionalPlanContract.changed) {
+      // The exact source plan now supersedes the model skeleton. Do not hand
+      // the stale skeleton to Pass B: the fully populated authorized course
+      // map will be normalized into CourseIR, and every later stage will see
+      // the same lesson identities that research sees.
+      nativeAuthoring.stashNativeSkeleton(null);
+      recordApiCallEvent?.({
+        type: 'pipelineDecision',
+        stage: 'instructionalPlan',
+        label: 'Instructional plan authorized',
+        detail: `${authorizedNativeMap.lessons.length} ${
+          instructionalPlanContract.receipt?.source === 'source-derived-semantic-recovery'
+            ? 'source-derived'
+            : 'source-authored'
+        } lesson identities frozen before evidence acquisition`,
+      });
+      addLog?.(
+        currentModelName,
+        `Authorized the ${authorizedNativeMap.lessons.length}-lesson instructional plan before evidence acquisition`,
+        'success',
+      );
+    } else {
+      nativeAuthoring.stashNativeSkeleton(skeleton);
+    }
     return completeCourseMapGeneration(
       [
-        nativeMap,
+        authorizedNativeMap,
         provider,
         apiKey,
         modelId,
@@ -171,8 +211,8 @@ export async function runNativeSkeletonGenerationFlow(input = [], output = []) {
         'Initial generation (native graph authoring)',
         `Pass A skeleton: ${skeleton.sessions.length} sessions, ${skeleton.assessments.length} assessments, ${skeleton.readings.length} named readings, ${(skeleton.resources || []).length} resources`,
         'success',
-        detected?.expected || skeleton.sessions.length,
-        skeleton.sessions.length,
+        detected?.expected || authorizedNativeMap.lessons.length,
+        authorizedNativeMap.lessons.length,
         detected?.confidence || 'high',
         detected?.expected && skeleton.sessions.length < detected.expected ? 'incomplete' : 'complete',
         'native authoring — Pass B authors lesson content next',
@@ -201,7 +241,7 @@ export async function runNativeSkeletonGenerationFlow(input = [], output = []) {
     );
   } catch (nativeErr) {
     if (nativeErr?.name === 'AbortError') throw nativeErr;
-    if (provider === 'public' && isNonFallbackScionRuntimeError(nativeErr)) {
+    if (isNonFallbackScionRuntimeError(nativeErr)) {
       nativeAuthoring?.stashNativeSkeleton?.(null);
       throw nativeErr;
     }

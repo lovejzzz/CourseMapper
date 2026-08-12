@@ -451,11 +451,19 @@ describe('3.2 — compiler consumes the registry (Geology)', () => {
     expect(exam.lessonNumber).toBe(7);
     expect(exam.examScope).toContain('Lessons 1–6');
     expect(exam.questions.length).toBeGreaterThanOrEqual(10);
-    // Mixed item types with a complete answer key.
+    // A complete answer key without synthetic recognition items. This sparse
+    // fixture has no three-way authored distractor set, so the compiler must
+    // preserve the exam demand as constructed response instead of fabricating
+    // multiple choice solely to satisfy a legacy shape.
     const types = new Set(exam.questions.map((question) => question.type));
-    expect(types.has('multiple_choice')).toBe(true);
+    expect(types.has('multiple_choice')).toBe(false);
     expect(types.has('short_answer')).toBe(true);
     expect(types.has('essay')).toBe(true);
+    expect(
+      exam.questions
+        .filter((question) => question.type === 'short_answer')
+        .every((question) => question.sampleAnswer && question.scoringGuidance),
+    ).toBe(true);
     expect(exam.answerKey).toHaveLength(exam.questions.length);
     // Every item is keyable: a letter answer or a scoring guide (essays key
     // on rubric hints, like the weekly bank's essay frames).

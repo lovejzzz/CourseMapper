@@ -19,7 +19,11 @@
 import { describe, expect, it } from 'vitest';
 import JSZip from 'jszip';
 
-import { buildCourseBlueprint, compileBlueprintDeliverable } from '../src/lib/courseBlueprintCompiler';
+import {
+  buildCourseBlueprint,
+  compileBlueprintDeliverable,
+  deduplicateSlideEvidenceTableVisual,
+} from '../src/lib/courseBlueprintCompiler';
 import { buildDeliverableDocxBlob } from '../src/lib/exporters/bulkDocxExporter';
 
 const COURSE_NAME = 'Introduction to Linear Algebra';
@@ -182,17 +186,29 @@ describe('v0.16.1 deck integrity — key-terms/evidence table renders once per d
   }, 120000);
 
   it('a repeat table occurrence downgrades to a rows-free self-check descriptor, not a second table', () => {
-    const decks = compiledDecks().decks;
-    const selfChecks = decks.flatMap((deck) =>
-      (deck.slides || []).filter((slide) => slide.visual?.kind === 'evidence self-check'),
-    );
-    for (const slide of selfChecks) {
-      expect(slide.visual.rows).toBeUndefined();
-      expect(String(slide.visual.description)).not.toMatch(/\btable\b/i);
-    }
-    // At least one deck in this fixture has two table-eligible content
-    // slides, so the downgrade path is actually exercised.
-    expect(selfChecks.length).toBeGreaterThan(0);
+    const lesson = linearAlgebraBlueprint().lessons[0];
+    const rows = [
+      ['Row reduction', 'Preserves the solution set'],
+      ['Pivot position', 'Marks a bound variable'],
+    ];
+    const seenEvidenceRowKeys = new Set();
+    const first = deduplicateSlideEvidenceTableVisual({
+      visual: { kind: 'evidence table', rows, description: 'Claim and evidence table' },
+      seenEvidenceRowKeys,
+      lesson,
+      slideTitle: 'First evidence view',
+    });
+    const repeat = deduplicateSlideEvidenceTableVisual({
+      visual: { kind: 'evidence table', rows, description: 'Claim and evidence table' },
+      seenEvidenceRowKeys,
+      lesson,
+      slideTitle: 'Repeated evidence view',
+    });
+
+    expect(first.rows).toEqual(rows);
+    expect(repeat.kind).toBe('evidence self-check');
+    expect(repeat.rows).toBeUndefined();
+    expect(String(repeat.description)).not.toMatch(/\btable\b/i);
   }, 120000);
 });
 

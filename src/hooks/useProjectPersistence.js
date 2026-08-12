@@ -476,13 +476,17 @@ export default function useProjectPersistence({
         }, idleDelay);
         return true;
       };
-      const deferLocalSaveFailure = () => {
+      const deferLocalSaveFailure = (autosaveError = null) => {
         clearTimeout(localStatusTimerRef.current);
         localStatusTimerRef.current = deferLatestAutosaveFailure({
           attemptId: saveAttemptId,
           getLatestAttemptId: () => localSaveAttemptIdRef.current,
           applyStatus: setLocalSaveStatus,
           onVisibleFailure: () => {
+            // A recoverable or superseded write is normal background control
+            // flow, not a console warning. Log only a confirmed current
+            // failure at the same boundary where the UI becomes honest-red.
+            if (autosaveError) warn('Save failed:', autosaveError);
             localStatusTimerRef.current = setTimeout(() => {
               settleLatestAutosaveAttempt(saveAttemptId, localSaveAttemptIdRef.current, 'idle', setLocalSaveStatus);
             }, 5000);
@@ -509,6 +513,10 @@ export default function useProjectPersistence({
           indexedDbSaveQueueRef.current = indexedDbSaveQueueRef.current
             .catch(() => {})
             .then(async () => {
+              // Coalesce a burst of large snapshots. A queued write that is
+              // already stale must not serialize 8–25 MB into IndexedDB just
+              // to be overwritten by the latest intent immediately after it.
+              if (saveAttemptId !== localSaveAttemptIdRef.current) return;
               const { persistOversizedProjectSnapshot } = await import('../lib/projectExactAutosave');
               await runAutosaveWithRetry(() =>
                 persistOversizedProjectSnapshot({
@@ -520,8 +528,8 @@ export default function useProjectPersistence({
               settleLocalSaveAttempt('saved', 3000);
             })
             .catch((autosaveError) => {
-              warn('Save failed:', autosaveError);
-              deferLocalSaveFailure();
+              if (saveAttemptId !== localSaveAttemptIdRef.current) return;
+              deferLocalSaveFailure(autosaveError);
             });
           return true;
         }
@@ -535,6 +543,7 @@ export default function useProjectPersistence({
         indexedDbSaveQueueRef.current = indexedDbSaveQueueRef.current
           .catch(() => {})
           .then(async () => {
+            if (saveAttemptId !== localSaveAttemptIdRef.current) return;
             const exactPayload = JSON.stringify(fullSnapshot);
             await runAutosaveWithRetry(() => saveProjectIndexedDbAutosave(exactPayload));
             try {
@@ -547,6 +556,7 @@ export default function useProjectPersistence({
             settleLocalSaveAttempt('saved', 3000);
           })
           .catch(async (indexedDbError) => {
+            if (saveAttemptId !== localSaveAttemptIdRef.current) return;
             // Older/private browsers can disable IndexedDB. Keep the former
             // course-map-only recovery belt as the last available option.
             try {
@@ -554,8 +564,7 @@ export default function useProjectPersistence({
               localStorage.setItem(STORAGE_KEY, buildCourseMapRecoveryAutosavePayload(compactSnapshot));
               settleLocalSaveAttempt('saved', 3000);
             } catch (fallbackError) {
-              warn('Save failed:', fallbackError, indexedDbError);
-              deferLocalSaveFailure();
+              deferLocalSaveFailure(new AggregateError([indexedDbError, fallbackError], 'Local autosave failed.'));
             }
           });
         return true;

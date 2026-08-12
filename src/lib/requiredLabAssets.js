@@ -95,11 +95,18 @@ function hasLanguageCourseSignal(identityText, text) {
   return LANGUAGE_TOKENS.filter((pattern) => pattern.test(text)).length >= 2;
 }
 
+const LINGUISTICS_IDENTITY =
+  /\b(linguistics?|language structure|phonetics?|phonology|morphology|syntax|semantics|pragmatics|sociolinguistics?|language variation)\b/;
+
+function hasLinguisticsCourseSignal(identityText) {
+  return LINGUISTICS_IDENTITY.test(identityText);
+}
+
 // Physical lab assets require physical lab evidence. A bare "lab" is too
 // broad: computational labs, language labs, and notebook labs are normal in
 // non-wet-lab courses and must not ship goggles/specimen kits.
 const WET_LAB_SIGNAL =
-  /\b(wet lab|lab safety|bench lab|bench experiment\w*|laboratory methods?|titration|spectroscop\w+|chromatograph\w+|microscop\w+|chemical synthesis|organic synthesis|reagent|specimen|dissect\w+|assay|recrystalliz\w+|pipette|beaker|streak plate|hand lens|field notebook|(?:rock|mineral|biological|chemical)\s+samples?|sample kit)\b/i;
+  /\b(wet lab|lab safety|bench lab|bench experiment\w*|laboratory methods?|titration|spectroscop\w+|chromatograph\w+|microscop\w+|chemical synthesis|organic synthesis|reagent|(?:rock|mineral|biological|chemical|anatomical|laboratory|physical)\s+specimens?|dissect\w+|assay|recrystalliz\w+|pipette|beaker|streak plate|hand lens|field notebook|(?:rock|mineral|biological|chemical)\s+samples?|sample kit)\b/i;
 
 const ANATOMY_PHYSIOLOGY_IDENTITY_SIGNAL = /\b(?:anatomy|physiology|a&p|histology)\b/i;
 const ANATOMY_PHYSIOLOGY_LAB_SIGNAL =
@@ -114,6 +121,11 @@ const ANATOMY_PHYSIOLOGY_LAB_SIGNAL =
 export function classifyCourseAssetGenre({ courseMap }) {
   const text = searchableExportText({ courseMap });
   const identityText = courseIdentityText(courseMap);
+  // A linguistics course may culminate in a small language-data analysis,
+  // but that does not make it a data-science course or authorize notebooks,
+  // parquet files, and model cards. Course identity wins over a downstream
+  // artifact keyword.
+  if (hasLinguisticsCourseSignal(identityText)) return 'linguistics';
   if (hasDataScienceCourseSignal(identityText, text)) return 'data-science';
   if (hasLanguageCourseSignal(identityText, text)) return 'language';
   // Nursing, psychology, and health courses legitimately discuss
@@ -244,6 +256,35 @@ function collectLanguageAssets() {
   ];
 }
 
+function collectLinguisticsAssets(text = '') {
+  return [
+    {
+      id: 'language-data-packet',
+      label: 'Documented language-data packet',
+      formats: ['.txt', '.csv', '.pdf'],
+      note: 'Provide attested forms from more than one language with language name, source, glossing conventions, permitted use, and any speaker or community context needed for responsible analysis.',
+    },
+    {
+      id: 'ipa-reference',
+      label: 'IPA chart, fonts, and input guide',
+      formats: ['.pdf', '.md', 'app'],
+      note: 'Name the approved phonetic chart and input method students use, and confirm that symbols remain readable in exported work.',
+    },
+    ...(/\b(?:audio|waveform|spectrogram|playback|listening|listen\s+to|(?:sound|voice|speech|acoustic)\s+recordings?)\b/i.test(
+      text,
+    )
+      ? [
+          {
+            id: 'audio-analysis-access',
+            label: 'Audio playback and annotation access',
+            formats: ['app', '.wav', '.mp3'],
+            note: 'Provide only the recordings used for phonetic or phonological analysis, with transcripts, source attribution, accessibility support, and permission to reuse.',
+          },
+        ]
+      : []),
+  ];
+}
+
 function collectDataScienceAssets(text) {
   const requirements = [
     {
@@ -311,7 +352,31 @@ function collectDataScienceAssets(text) {
 
 export function collectRequiredLabAssets({ courseMap }) {
   const text = searchableExportText({ courseMap });
+  const lessonNumbersMatching = (pattern) =>
+    (courseMap?.lessons || [])
+      .map((lesson, index) => ({
+        number: index + 1,
+        text: [lesson?.title, ...(lesson?.sections || []).flatMap((section) => Object.values(section || {}))]
+          .flat()
+          .filter(Boolean)
+          .join(' '),
+      }))
+      .filter((lesson) => pattern.test(lesson.text))
+      .map((lesson) => lesson.number);
   switch (classifyCourseAssetGenre({ courseMap })) {
+    case 'linguistics': {
+      const allLessons = (courseMap?.lessons || []).map((_, index) => index + 1);
+      const phoneticLessons = lessonNumbersMatching(/\b(?:phonetics?|phonology|phoneme|speech|ipa)\b/i);
+      return collectLinguisticsAssets(text).map((asset) => ({
+        ...asset,
+        requiredFor:
+          asset.id === 'ipa-reference' || asset.id === 'audio-analysis-access'
+            ? phoneticLessons.length > 0
+              ? phoneticLessons
+              : allLessons
+            : allLessons,
+      }));
+    }
     case 'data-science':
       return collectDataScienceAssets(text);
     case 'anatomy-physiology':
@@ -587,12 +652,149 @@ function modelCardTemplate(courseName) {
   ].join('\n');
 }
 
+function csvCell(value) {
+  const text = String(value ?? '')
+    .replace(/\r?\n/g, ' ')
+    .trim();
+  return /[",]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+function validAuthenticLanguageData(courseGraph = {}) {
+  const packet = courseGraph?.authenticLanguageData;
+  if (packet?.protocol !== 'coursemapper-authentic-language-data-v1') return null;
+  const sources = Array.isArray(packet.sources) ? packet.sources : [];
+  const sourceIds = new Set(
+    sources
+      .filter(
+        (source) =>
+          source?.id &&
+          source?.title &&
+          /^https:\/\//i.test(String(source?.url || '')) &&
+          source?.license &&
+          source?.attribution,
+      )
+      .map((source) => String(source.id)),
+  );
+  const examples = (Array.isArray(packet.examples) ? packet.examples : []).filter(
+    (example) =>
+      example?.id &&
+      example?.language &&
+      example?.form &&
+      example?.gloss &&
+      example?.translation &&
+      example?.analysisFocus &&
+      sourceIds.has(String(example?.sourceId || '')) &&
+      example?.sourceLocator,
+  );
+  const languages = new Set(examples.map((example) => String(example.language).trim().toLowerCase()).filter(Boolean));
+  if (sourceIds.size === 0 || examples.length < 2 || languages.size < 2) return null;
+  return {
+    protocol: packet.protocol,
+    sources: sources.filter((source) => sourceIds.has(String(source.id))),
+    examples,
+    languageCount: languages.size,
+  };
+}
+
+function authenticLanguageDataCsv(packet) {
+  const header = [
+    'id',
+    'language',
+    'form',
+    'gloss',
+    'translation',
+    'analysis_focus',
+    'source_id',
+    'source_locator',
+    'community_context',
+  ];
+  const rows = packet.examples.map((example) =>
+    [
+      example.id,
+      example.language,
+      example.form,
+      example.gloss,
+      example.translation,
+      example.analysisFocus,
+      example.sourceId,
+      example.sourceLocator,
+      example.communityContext || '',
+    ]
+      .map(csvCell)
+      .join(','),
+  );
+  return `${[header.join(','), ...rows].join('\n')}\n`;
+}
+
+function authenticLanguageDataGuide(packet, courseName) {
+  const licenses = packet.sources.map((source) => String(source?.license || '').trim()).filter(Boolean);
+  const rightsNotices = [
+    'Each source row remains governed by its stated license; this package does not relicense source-derived forms, glosses, translations, or close adaptations.',
+    ...(licenses.some((license) => /(?:^|[-\s])NC(?:[-\s]|$)|noncommercial/i.test(license))
+      ? [
+          'NonCommercial condition: material from an NC-licensed source may be reused or adapted only for noncommercial purposes unless separate permission is obtained.',
+        ]
+      : []),
+    ...(licenses.some((license) => /(?:^|[-\s])SA(?:[-\s]|$)|sharealike/i.test(license))
+      ? [
+          'ShareAlike condition: adaptations of an SA-licensed source must be distributed under the same or a compatible license, with attribution preserved.',
+        ]
+      : []),
+    ...(licenses.some((license) => /(?:^|[-\s])ND(?:[-\s]|$)|no derivatives/i.test(license))
+      ? ['NoDerivatives condition: do not distribute an adapted version of ND-licensed material without permission.']
+      : []),
+  ];
+  return [
+    '# Documented Language-Data Packet',
+    '',
+    `Attested analysis examples for ${courseName || 'this course'}.`,
+    '',
+    `Coverage: ${packet.examples.length} example(s) across ${packet.languageCount} languages. Forms, glosses, and translations are reproduced from the cited source locations; learners must distinguish the recorded form from the accompanying analysis.`,
+    '',
+    '## Analysis protocol',
+    '',
+    '1. Name the observable segment, morpheme, or word-order relation before proposing an analysis.',
+    '2. Keep hyphen and equals-sign boundaries aligned between the form and gloss.',
+    '3. Cite the source ID and locator for every example used.',
+    '4. Treat the gloss as an analysis, not as raw language data, and state an alternative analysis when the evidence permits one.',
+    '5. Do not generalize from one example to an entire language or community.',
+    '',
+    '## Sources and permitted reuse',
+    '',
+    ...packet.sources.flatMap((source) => [
+      `- **${source.id}** — ${source.title}`,
+      `  ${source.attribution}; ${source.license}; ${source.url}${source.checkedAt ? `; checked ${source.checkedAt}` : ''}`,
+    ]),
+    '',
+    '## Rights boundary',
+    '',
+    ...rightsNotices.map((notice) => `- ${notice}`),
+    '',
+    'The accompanying CSV is UTF-8 and preserves each cited form, gloss, translation, and source locator as a separate field.',
+  ].join('\n');
+}
+
+function ipaReferenceGuide(courseName) {
+  return [
+    '# IPA Reference and Input Guide',
+    '',
+    `Reference support for ${courseName || 'this course'}.`,
+    '',
+    '- Use the International Phonetic Association’s official chart: https://www.internationalphoneticassociation.org/content/ipa-chart',
+    '- Enter symbols as Unicode; do not substitute look-alike ASCII characters.',
+    '- Keep the spoken-form source, transcription convention, and uncertainty note beside every analysis.',
+    '- Verify fonts and symbol order in the exported PDF before release.',
+    '',
+    'This file links to the authoritative chart and records the input/verification workflow; it does not reproduce or relicense the chart artwork.',
+  ].join('\n');
+}
+
 /**
  * Deterministic starter files for computational requirements the exporter can
  * satisfy honestly. Physical kits, licensed readings, and institution-owned
  * resources remain unresolved requirements and are never fabricated.
  */
-export function buildBundledRequiredLabAssets(requirements = [], { courseName = 'Course' } = {}) {
+export function buildBundledRequiredLabAssets(requirements = [], { courseName = 'Course', courseGraph = null } = {}) {
   const requestedIds = new Set((Array.isArray(requirements) ? requirements : []).map((item) => item?.id));
   const assets = [];
   // The bundled dataset encodes a public-policy exercise. Do not silently put
@@ -653,6 +855,31 @@ export function buildBundledRequiredLabAssets(requirements = [], { courseName = 
       path: 'Required Assets/MODEL_CARD_TEMPLATE.md',
       format: 'md',
       content: modelCardTemplate(courseName),
+    });
+  }
+  const languageData = validAuthenticLanguageData(courseGraph || {});
+  if (requestedIds.has('language-data-packet') && languageData) {
+    assets.push(
+      {
+        requirementId: 'language-data-packet',
+        path: 'Required Assets/AUTHENTIC_LANGUAGE_DATA.csv',
+        format: 'csv',
+        content: authenticLanguageDataCsv(languageData),
+      },
+      {
+        requirementId: 'language-data-packet',
+        path: 'Required Assets/AUTHENTIC_LANGUAGE_DATA_GUIDE.md',
+        format: 'md',
+        content: authenticLanguageDataGuide(languageData, courseName),
+      },
+    );
+  }
+  if (requestedIds.has('ipa-reference')) {
+    assets.push({
+      requirementId: 'ipa-reference',
+      path: 'Required Assets/IPA_REFERENCE_AND_INPUT_GUIDE.md',
+      format: 'md',
+      content: ipaReferenceGuide(courseName),
     });
   }
   return assets;

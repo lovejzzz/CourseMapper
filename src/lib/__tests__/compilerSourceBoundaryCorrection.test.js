@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildCompilerSourceBoundaryCorrection,
+  buildCompilerSourceBoundaryMisconception,
   collectCompilerSourceBoundaryCorrections,
   compactLegacyCompilerSourceBoundaryCorrection,
   isCompilerSourceBoundaryCorrection,
@@ -27,6 +28,14 @@ describe('compilerSourceBoundaryCorrection', () => {
     expect(corrections.every((correction) => correction.startsWith(`${term}:`))).toBe(true);
     expect(new Set(corrections).size).toBeGreaterThanOrEqual(4);
     expect(buildCompilerSourceBoundaryCorrection(term, 'lesson-3')).toBe(corrections[2]);
+  });
+
+  it('varies false evidence-boundary claims across neighboring concepts', () => {
+    const misconceptions = ['Probability distribution', 'Normal distribution', 'Sampling distribution'].map((term) =>
+      buildCompilerSourceBoundaryMisconception(term, term),
+    );
+    expect(new Set(misconceptions).size).toBe(3);
+    expect(misconceptions.every((value) => /source|evidence|support/i.test(value))).toBe(true);
   });
 
   it('authorizes only exact corrections from explicitly research-backed CourseGraph payloads', () => {

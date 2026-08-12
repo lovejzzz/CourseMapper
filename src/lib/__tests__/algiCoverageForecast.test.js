@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { estimateAlgiSessionCount, forecastAlgiCoverage, formatCoverageTopicLabel } from '../algiCoverageForecast.js';
-import { resetAlgiGenomeCacheForTests } from '../algiKernelComposer.js';
+import { composeAlgiLessonKernels, resetAlgiGenomeCacheForTests } from '../algiKernelComposer.js';
 
 describe('Algi pre-generation coverage forecast', () => {
   it('preserves common course acronyms in visible lesson labels', () => {
@@ -20,6 +20,11 @@ describe('Algi pre-generation coverage forecast', () => {
     expect(
       estimateAlgiSessionCount(
         'Urban Heat Resilience — a five-week course. Use this exact lesson sequence: 1) Heat measurement; 2) Environmental justice; 3) Public-health evidence; 4) Cooling interventions; 5) Community planning.',
+      ),
+    ).toBe(5);
+    expect(
+      estimateAlgiSessionCount(
+        'Create a five-lesson introductory undergraduate course titled Visual Evidence and Image Analysis. Students learn composition, visual hierarchy, color and contrast, perspective and framing, and ethical contextual interpretation. Every lesson must require students to analyze a concrete visual.',
       ),
     ).toBe(5);
   });
@@ -92,6 +97,42 @@ describe('Algi pre-generation coverage forecast', () => {
         domain: 'biomedical',
         providerOrder: ['europe-pmc', 'doaj', 'wikipedia'],
       });
+    } finally {
+      globalThis.fetch = originalFetch;
+      resetAlgiGenomeCacheForTests();
+    }
+  });
+
+  it('does not let verbose teaching directions erase a source-matched section identity', async () => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async (input) => {
+      const relative = String(input)
+        .replace(/^https?:\/\/[^/]+/, '')
+        .replace(/^\//, '');
+      return new Response(readFileSync(join(process.cwd(), 'public', relative), 'utf8'), { status: 200 });
+    };
+    resetAlgiGenomeCacheForTests();
+    try {
+      const result = await composeAlgiLessonKernels({
+        structuredPrompt: {
+          courseName: 'Introduction to Statistics',
+          lessons: [
+            {
+              lessonId: 'lesson-1',
+              title: 'Inference in Practice',
+              topics: [
+                '8.1: Confidence Intervals: The Basics',
+                'Use source evidence about confidence intervals and p-values to justify one decision in inference.',
+              ],
+              objectives: ['Apply the evidence in an assessment and document the lesson-specific revision path.'],
+            },
+          ],
+        },
+        factCount: 5,
+      });
+
+      expect(result.covered).toBe(1);
+      expect(JSON.parse(result.text).lessons[0]).toMatchObject({ lessonId: 'lesson-1' });
     } finally {
       globalThis.fetch = originalFetch;
       resetAlgiGenomeCacheForTests();

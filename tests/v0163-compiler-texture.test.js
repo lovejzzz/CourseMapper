@@ -206,6 +206,36 @@ describe('v0.16.3 compiler texture', () => {
     expect(debriefs.filter((line) => /Debrief by naming the revision choice/i.test(line))).toHaveLength(0);
   });
 
+  it('marks unsupported institutional policy copy for local verification instead of inventing rules', () => {
+    const compiled = compileBlueprintDeliverables(buildCourseBlueprint(studioCourseMap()), ['syllabus'], {
+      skipLanguageFinalizer: true,
+    });
+    const syllabus = compiled.syllabus.syllabus;
+
+    expect(syllabus.accommodations).toMatch(/Before publishing/);
+    expect(syllabus.accommodations).toMatch(/do not invent deadlines, offices, services, or assessment rules/i);
+    expect(syllabus.accommodations).not.toMatch(/one week|midterm|final assessment/i);
+    expect(syllabus.titleIX).toMatch(/Before publishing/);
+    expect(syllabus.mentalHealth).toMatch(/Before publishing/);
+    expect(syllabus.supportServices).toMatch(/Before publishing/);
+  });
+
+  it('keeps equivalent-format and source agenda copy grammatical', () => {
+    const compiled = compileBlueprintDeliverables(
+      buildCourseBlueprint(studioCourseMap()),
+      ['lessonPlans', 'slideDecks'],
+      {
+        configMap: { slideDecks: { slideCount: 12 } },
+        skipLanguageFinalizer: true,
+      },
+    );
+    const visible = JSON.stringify(compiled);
+
+    expect(visible).not.toMatch(/Accept equivalent\b/i);
+    expect(visible).toMatch(/as equivalent evidence for/i);
+    expect(visible).not.toMatch(/Trace .+ from the evidence in .+ from/i);
+  });
+
   it('projects distinct admitted evidence into agenda, discussion, and fact-table instructions', () => {
     const blueprint = buildCourseBlueprint(studioCourseMap());
     const compiled = compileBlueprintDeliverables(blueprint, ['slideDecks'], {

@@ -493,10 +493,17 @@ describe('PPTX export — visual placeholders', () => {
     expect(slideXmls.join('\n')).toContain('descr="Central concept: Opportunity Cost"');
     expect(slideXmls.join('\n')).toContain('descr="Related idea: Includes non-money costs like time"');
     expect(slideXmls.join('\n')).toContain('name="cmVizTable"');
-    expect(slideXmls.join('\n')).toContain('descr="Three-row table of market evidence signals."');
+    expect(slideXmls.join('\n')).toContain(
+      'descr="Three-row table of market evidence signals. Columns CLAIM and EVIDENCE. Rows: Price signal means shows willingness to pay at the margin; Cost curve means reveals the producer break-even point; Elasticity means predicts the response to a price change."',
+    );
     expect(slideXmls.join('\n')).toContain('name="cmVizMatrix"');
-    expect(slideXmls.join('\n')).toContain('descr="Two-by-two grid of policy options."');
-    expect(slideXmls.join('\n')).toMatch(/name="cmVizConn"[^>]*descr="Decorative"/);
+    expect(slideXmls.join('\n')).toContain(
+      'descr="Two-by-two grid of policy options. Options: Price ceiling: protects renters now; Subsidy: raises supply over time; Voucher: targets the neediest households; Deregulation: lowers building costs."',
+    );
+    expect(slideXmls.join('\n')).toMatch(
+      /name="cmVizConn"[^>]*descr="Connector from central concept Opportunity Cost to related idea/,
+    );
+    expect(slideXmls.join('\n')).not.toMatch(/name="cmViz[^\"]*"[^>]*descr="Decorative"/);
     expect(slideXmls.join('\n')).toMatch(/name="cmDecorativeBackground"[^>]*descr="Decorative[^\"]*"/);
     expect(slideXmls.join('\n')).toMatch(/name="slide-counter-[^"]+"[^>]*descr="Decorative slide counter background"/);
   });
@@ -590,6 +597,28 @@ describe('PPTX export — visual placeholders', () => {
         problems: expect.arrayContaining(['semantic-object-without-description']),
       });
     }
+  });
+
+  it('rejects a decorative label on a semantic native visual object', async () => {
+    const zip = await JSZip.loadAsync(await pptxBlob.arrayBuffer());
+    const slidePaths = Object.keys(zip.files).filter((candidate) => /^ppt\/slides\/slide\d+\.xml$/.test(candidate));
+    let path = '';
+    for (const candidate of slidePaths) {
+      if ((await zip.file(candidate).async('string')).includes('name="cmVizConn"')) {
+        path = candidate;
+        break;
+      }
+    }
+    expect(path).not.toBe('');
+    const xml = await zip.file(path).async('string');
+    const damaged = xml.replace(/(<p:cNvPr\b(?=[^>]*\bname="cmVizConn")[^>]*\bdescr=")[^"]*(")/, '$1Decorative$2');
+    expect(damaged).not.toBe(xml);
+    zip.file(path, damaged);
+    const damagedBlob = await zip.generateAsync({ type: 'blob' });
+    expect(await auditOfficeAccessibility(damagedBlob, 'pptx')).toMatchObject({
+      code: 'accessibility',
+      problems: expect.arrayContaining(['semantic-object-description-not-meaningful']),
+    });
   });
 
   it('keeps decorative object families inside the audited denominator', async () => {
@@ -1068,6 +1097,9 @@ describe('PPTX export — native visuals (v0.12.1)', () => {
     expect(count(xml, 'name="cmVizSpoke"')).toBe(3);
     expect(count(xml, 'name="cmVizConn"')).toBe(3);
     expect(count(xml, 'prst="ellipse"')).toBeGreaterThanOrEqual(4); // hub + 3 spokes (+ progress dots)
+    // Explicit shrink-to-fit prevents LibreOffice from resizing long concept
+    // text boxes and pushing the map outside the physical slide canvas.
+    expect(count(xml, 'normAutofit')).toBeGreaterThanOrEqual(5);
     // …and one connector line per spoke
     expect(count(xml, 'prst="line"')).toBeGreaterThanOrEqual(3);
     // Short teaching phrases remain complete instead of ending in an

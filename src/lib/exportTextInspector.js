@@ -22,6 +22,11 @@ export const INTERNAL_EXPORT_TEXT_PATTERNS = [
     pattern:
       /(?:\(\s*the earlier source claim\b|\bsource claim on [^.!?()\n]{1,80}\)|\b(?:Revisit the|the) earlier source claim on (?:although|because|by|if|through|using|when|while)\b)/i,
   },
+  {
+    label: 'compiler source-reference template',
+    pattern:
+      /\b(?:the earlier source claim on|the source-backed claim about|the previously stated claim about|the source claim concerning|the retained claim about|the retained source claim concerns)\b/i,
+  },
 ];
 
 export const OFFICE_TEXT_PATH_PATTERNS = {

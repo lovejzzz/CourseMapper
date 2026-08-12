@@ -21,6 +21,7 @@ import {
 import { isCourseAwareWeakSource, isLicenseAmbiguous } from './sourceLedger.js';
 import { isMusicIntervalWeakSource } from './musicSourceRelevance.js';
 import { detectForeignLanguageTeachingContent } from '../languageIdentityGuard.js';
+import { sourceIdentityScopeMismatch } from '../lessonSemanticRelevance.js';
 
 export const SOURCE_FINDER_ORIGIN = 'source-finder';
 
@@ -232,6 +233,20 @@ const TOPICAL_MISMATCH_GATES = [
 
 const DISCIPLINE_ANCHOR_GATES = [
   {
+    // Linguistics lessons contain overloaded words such as "imperative",
+    // "structure", "form", "function", and "data". A one-word query hit
+    // once admitted Imperative programming as evidence for an authentic
+    // Waunana imperative analysis. Require the source to identify human-
+    // language analysis, not merely contain the word "language" in a
+    // programming sense.
+    applies:
+      /\b(?:linguistics?|language structure|phonetics?|phonology|morphology|morphemes?|syntax|semantics?|pragmatics?|dialects?|language acquisition|language variation|language change)\b/i,
+    source:
+      /\b(?:linguistics?|grammar|grammatical|phonetics?|phonology|phonemes?|morphology|morphemes?|syntax|syntactic|semantics?|pragmatics?|dialects?|speech|spoken|utterances?|natural language|human language|word forms?|sentence structure|imperative mood)\b/i,
+    unlessTopic:
+      /\b(?:computational linguistics|natural language processing|programming languages?|software|coding)\b/i,
+  },
+  {
     applies: /\b(?:music theory|musical|notation|pitch|clefs?|rhythm|meter|melody|harmony|chords?|scales?)\b/i,
     source:
       /\b(?:music|musical|notation|pitch|clefs?|rhythm|meter|melody|harmony|chords?|scales?|intervals?|staff notation|sheet music)\b/i,
@@ -304,6 +319,14 @@ function sourceContext(source) {
     `${source?.title || ''} ${source?.snippet || source?.abstract || source?.description || ''} ${source?.primaryTopic?.name || ''} ${
       source?.primaryTopic?.field || ''
     } ${source?.primaryTopic?.domain || ''} ${(source?.topics || []).map((topic) => topic?.name || '').join(' ')}`,
+  ).toLowerCase();
+}
+
+function sourceIdentityContext(source) {
+  return cleanText(
+    `${source?.title || ''} ${source?.url || source?.doi || ''} ${source?.primaryTopic?.name || ''} ${
+      source?.primaryTopic?.field || ''
+    } ${source?.primaryTopic?.domain || ''}`,
   ).toLowerCase();
 }
 
@@ -456,7 +479,11 @@ function meaningfulQueryTerms(topic) {
 function sourcePassesDisciplineAnchor(source, topic) {
   const topicText = topicContext(topic);
   const sourceText = sourceContext(source);
+  const sourceIdentityText = sourceIdentityContext(source);
   if (isMusicIntervalWeakSource(sourceText, topicText, topic?.query || topic?.topic || '')) return false;
+  if (sourceIdentityScopeMismatch({ lessonIdentity: topicText, sourceIdentity: sourceIdentityText }).mismatch) {
+    return false;
+  }
   if (
     detectForeignLanguageTeachingContent({
       courseIdentity: topic?.courseName || '',

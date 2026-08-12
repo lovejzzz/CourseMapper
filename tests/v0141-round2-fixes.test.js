@@ -871,9 +871,10 @@ describe('fix 7 — review-week weekly quizzes draw from PRIOR lessons, not the 
     expect(reviewQuiz.lessonTitle).toBe('Lesson 8: Midterm Review and Exam');
     expect(reviewQuiz.questions).toHaveLength(8);
     const types = reviewQuiz.questions.map((question) => question.type);
-    expect(types.filter((type) => type === 'multiple_choice')).toHaveLength(4);
+    expect(types.filter((type) => type === 'multiple_choice')).toHaveLength(0);
     expect(types).toContain('short_answer');
     expect(types).toContain('essay');
+    expect(new Set(reviewQuiz.questions.map((question) => question.question)).size).toBe(8);
     // Ids live in the review lesson's namespace — no bank-index collision
     // with the source lessons' own quizzes.
     for (const question of reviewQuiz.questions) {
@@ -1092,17 +1093,17 @@ describe('fix 8 — the live CS L11 configuration yields varied review-quiz answ
     expect(compiled.assignments.assignments.some((brief) => /midterm preparation/i.test(brief.title))).toBe(true);
   });
 
-  it('the Lesson 11 weekly review quiz never keys nearly all MC answers to one letter (live: all D)', () => {
+  it('the Lesson 11 weekly review quiz avoids fake answer-key variation when distractors are not authored', () => {
     const reviewQuiz = quizzes[10];
     expect(reviewQuiz.lessonTitle).toBe('Lesson 11: Midterm Review and Midterm Exam');
-    const letters = reviewQuiz.questions
-      .filter((question) => question.type === 'multiple_choice')
-      .map((question) => question.answer);
-    expect(letters).toHaveLength(4);
-    const counts = {};
-    for (const letter of letters) counts[letter] = (counts[letter] || 0) + 1;
-    expect(Math.max(...Object.values(counts)), `answer letters: ${letters.join('')}`).toBeLessThanOrEqual(2);
-    expect(new Set(letters).size).toBeGreaterThanOrEqual(3);
+    expect(reviewQuiz.questions.filter((question) => question.type === 'multiple_choice')).toHaveLength(0);
+    expect(reviewQuiz.questions).toHaveLength(8);
+    expect(new Set(reviewQuiz.questions.map((question) => question.question)).size).toBe(8);
+    expect(
+      reviewQuiz.questions
+        .filter((question) => question.type === 'short_answer')
+        .every((question) => question.sampleAnswer && question.scoringGuidance),
+    ).toBe(true);
   });
 
   it('every review-style weekly quiz in the bank keeps the spread invariant and a consistent key', () => {
@@ -1125,13 +1126,14 @@ describe('fix 8 — the live CS L11 configuration yields varied review-quiz answ
     }
   });
 
-  it('geology-style review weeks (the Round-2 pass case) stay varied too', () => {
+  it('geology-style review weeks use varied constructed tasks rather than synthetic option padding', () => {
     const { compiled: geoCompiled } = compileReviewWeekQuizBank();
     const geoWeekly = geoCompiled.quizBank.quizzes.filter((quiz) => quiz.kind !== 'exam')[7];
-    const letters = geoWeekly.questions
-      .filter((question) => question.type === 'multiple_choice')
-      .map((question) => question.answer);
-    expect(new Set(letters).size).toBeGreaterThanOrEqual(3);
+    expect(geoWeekly.questions.filter((question) => question.type === 'multiple_choice')).toHaveLength(0);
+    expect(new Set(geoWeekly.questions.map((question) => question.question)).size).toBe(8);
+    expect(JSON.stringify(geoWeekly)).not.toMatch(
+      /evidence never changes|every example supports|no relevant evidence/i,
+    );
   });
 });
 

@@ -392,7 +392,10 @@ export function buildLivingCompilerArtifacts({
   const blockers = Math.max(0, Number(packageQualityPass?.blockers) || 0);
   const scionRuntime = generation.scionRuntimeStatus || {};
   const scionPreparing =
-    generation.isScion && ['loading-runtime', 'loading-model'].includes(String(scionRuntime.phase || ''));
+    generation.isScion &&
+    ['loading-runtime', 'loading-model', 'restarting-activation', 'repairing-cache'].includes(
+      String(scionRuntime.phase || ''),
+    );
   const generationFailed = pipeline?.state === 'error';
   const failure = generationFailed ? buildRibbonFailureState({ generation, mappedLessonCount }) : null;
   const mapStreamDetail = String(generation.streamDetail || '').trim();
@@ -486,7 +489,10 @@ export function buildLivingCompilerArtifacts({
 export function deriveRibbonProgress({ pipeline, budget = {}, generation = {}, deliverables = {} } = {}) {
   const scionRuntime = generation.scionRuntimeStatus || {};
   const scionPreparing =
-    generation.isScion && ['loading-runtime', 'loading-model'].includes(String(scionRuntime.phase || ''));
+    generation.isScion &&
+    ['loading-runtime', 'loading-model', 'restarting-activation', 'repairing-cache'].includes(
+      String(scionRuntime.phase || ''),
+    );
   if (scionPreparing) {
     const modelProgress = Math.max(0, Math.min(1, Number(scionRuntime.progress) || 0));
     return Math.round(modelProgress * 15);
@@ -688,7 +694,10 @@ export function buildBuildRibbonModel({
   let steps = deriveStepStatuses(pipeline);
   const scionRuntime = generation.scionRuntimeStatus || {};
   const scionPreparing =
-    generation.isScion && ['loading-runtime', 'loading-model'].includes(String(scionRuntime.phase || ''));
+    generation.isScion &&
+    ['loading-runtime', 'loading-model', 'restarting-activation', 'repairing-cache'].includes(
+      String(scionRuntime.phase || ''),
+    );
   if (generation.isScion) {
     steps = [
       { id: 'model', label: 'Model', status: scionPreparing ? 'active' : 'done' },

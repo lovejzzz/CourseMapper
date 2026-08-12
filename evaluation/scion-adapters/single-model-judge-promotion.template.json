@@ -6,11 +6,11 @@
   "benchmark": {
     "qualityManifest": {
       "path": "evaluation/quality-benchmark/v1/manifest.json",
-      "sha256": "ccb374c9e7974132fa9680e4c4bd22487fb456d02953322d7c4ed1e52a9a0984"
+      "sha256": "f16e795f17a7259f07b07c1906fc6e1c2a58e925ec365ba226608e188d56d116"
     },
     "rubric": {
       "path": "evaluation/quality-benchmark/v1/rubric.json",
-      "sha256": "508486c8e2db26c6a146903caa20e2f39384437d2066ec040fe206ff757382bd"
+      "sha256": "75d474f0ddc811a5b3aa9f16c58dbe2e2120ee7dfcd6b683e59a6eedba3f25ce"
     },
     "judgePrompt": {
       "path": "evaluation/quality-benchmark/v1/single-model-judge-prompt-v1.md",

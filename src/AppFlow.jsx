@@ -411,7 +411,6 @@ export default function AppFlow({
     setShowCustomBuilder,
     showDepMap,
     setShowDepMap,
-    newProjectConfirm,
     setNewProjectConfirm,
     showProjectPicker,
     setShowProjectPicker,
@@ -575,7 +574,7 @@ export default function AppFlow({
 
   // ── Workspace tab ──
   // (activeTab, showAddDeliverable, showCustomBuilder, tab drag,
-  //  addLessonsModal, showDepMap, cascadeHover, newProjectConfirm
+  //  addLessonsModal, showDepMap, cascadeHover
   //  moved to UIContext)
 
   useEffect(() => {
@@ -2426,10 +2425,6 @@ export default function AppFlow({
     localSaveStatus,
     cloudSaveStatus,
     isStartingNewProject,
-    newProjectError,
-    setNewProjectError,
-    newProjectCloudSaveFailed,
-    setNewProjectCloudSaveFailed,
     developerTemplates,
     activeDeveloperTemplateId,
     buildProjectSnapshot,
@@ -2445,7 +2440,6 @@ export default function AppFlow({
     removeDeveloperTemplate,
     applyDeveloperTemplate,
     handleConfirmNewProject,
-    handleStartNewProjectWithoutCloudSave,
   } = useProjectPersistence({
     user,
     screen,
@@ -2885,8 +2879,8 @@ export default function AppFlow({
   }
 
   // v0.14.7 WS-F2: one decision to first value. Mirrors FeatureSelect's
-  // "Select all" (built-ins minus syllabus when a syllabus file is attached,
-  // plus custom deliverables), keeps model/config defaults untouched, then
+  // "Select all" (all built-ins plus custom deliverables), keeps model/config
+  // defaults untouched, then
   // runs the SAME generation path the Config screen's CTA calls.
   function handleQuickStart(options = {}) {
     if (options?.scionResearchEnabled === true) {
@@ -2897,8 +2891,9 @@ export default function AppFlow({
     setChatHistory((prev) => upsertLandingAgentContextMessages(prev, { promptText, files }));
     const promptRegex = detectExpectedLessons(promptText);
     if (promptRegex.expected) setLessonCount(promptRegex.expected);
-    const baseFeatures = hasSyllabusFile ? FEATURES.filter((f) => f.id !== 'syllabus') : FEATURES;
-    setSelectedFeatures([...baseFeatures, ...listCustomDeliverables().map(toFeatureEntry)].map((f) => f.id));
+    // An attached syllabus governs generation; it does not replace the aligned,
+    // editable syllabus artifact expected in a complete output package.
+    setSelectedFeatures([...FEATURES, ...listCustomDeliverables().map(toFeatureEntry)].map((f) => f.id));
     setQuickStartPending(true);
   }
 
@@ -3455,14 +3450,11 @@ export default function AppFlow({
                     <button
                       type="button"
                       data-testid="workspace-menu-new-project"
-                      onClick={() => {
-                        setNewProjectError('');
-                        setNewProjectCloudSaveFailed(false);
-                        setNewProjectConfirm(true);
-                      }}
+                      onClick={() => void handleConfirmNewProject()}
+                      disabled={isStartingNewProject}
                       className={WORKSPACE_MENU_ITEM_CLASS}
                     >
-                      New Project
+                      {isStartingNewProject ? 'Starting…' : 'New Project'}
                     </button>
                   </div>
                 </details>
@@ -3868,91 +3860,6 @@ export default function AppFlow({
                       className="tactile px-4 py-2 rounded-lg text-xs font-semibold text-white bg-red-500 hover:bg-red-600 transition-all"
                     >
                       Remove
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </FocusTrap>
-          )}
-
-          {/* ── New Project Confirmation Modal ── */}
-          {newProjectConfirm && (
-            <FocusTrap focusTrapOptions={{ clickOutsideDeactivates: true }}>
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md">
-                <div
-                  data-testid="new-project-confirmation"
-                  className="bg-white rounded-2xl border border-slate-200/60 shadow-2xl p-6 max-w-sm w-full mx-4 animate-spring-scale"
-                >
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
-                      <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                        />
-                      </svg>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-bold text-slate-800">Start a new project?</h3>
-                      <p className="text-[11px] text-slate-500 mt-0.5">This clears this workspace.</p>
-                    </div>
-                  </div>
-                  <p className="text-[11px] text-slate-400 mb-5 leading-relaxed">
-                    {user
-                      ? newProjectError
-                        ? 'My Projects did not sync. Download a backup before starting over.'
-                        : 'We will save to My Projects first. If that fails, this workspace stays open.'
-                      : 'Signed out: download a .coursemapper backup before starting over.'}
-                  </p>
-                  <div className="mb-4 rounded-xl bg-slate-50/80 border border-slate-100 px-3 py-2 text-[10px] text-slate-500 leading-relaxed">
-                    {user
-                      ? newProjectError
-                        ? 'Download a .coursemapper backup, or continue without sync.'
-                        : 'Autosave: browser backup plus My Projects sync.'
-                      : 'Browser autosave clears when you start over.'}
-                  </div>
-                  {newProjectError && (
-                    <p className="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-[11px] text-amber-700 leading-relaxed">
-                      {newProjectError}
-                    </p>
-                  )}
-                  <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:justify-end">
-                    {courseMap && (
-                      <button
-                        onClick={handleSaveProject}
-                        disabled={isStartingNewProject}
-                        className="tactile col-span-2 w-full px-4 py-2 rounded-lg text-xs font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100/80 hover:bg-indigo-100 transition-all disabled:opacity-50 sm:col-span-1 sm:w-auto"
-                      >
-                        Download backup
-                      </button>
-                    )}
-                    <button
-                      onClick={() => setNewProjectConfirm(false)}
-                      disabled={isStartingNewProject}
-                      className="tactile w-full px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 bg-white border border-slate-200/60 hover:bg-slate-50 transition-all sm:w-auto"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={
-                        newProjectCloudSaveFailed || newProjectError
-                          ? handleStartNewProjectWithoutCloudSave
-                          : handleConfirmNewProject
-                      }
-                      disabled={isStartingNewProject}
-                      className="tactile w-full px-4 py-2 rounded-lg text-xs font-semibold text-white bg-red-500 hover:bg-red-600 transition-all disabled:opacity-60 disabled:cursor-wait sm:w-auto"
-                    >
-                      {isStartingNewProject ? (
-                        <span className="inline-flex items-center gap-1.5">
-                          <Spinner /> Saving
-                        </span>
-                      ) : newProjectCloudSaveFailed || newProjectError ? (
-                        'Start without sync'
-                      ) : (
-                        'Start New Project'
-                      )}
                     </button>
                   </div>
                 </div>

@@ -42,6 +42,7 @@ export async function buildDeliverableDocxBlob(featureId, data, courseName) {
   const children = buildDocxTitleChildren(docx, courseName, label, {
     cover: itemCount >= 4,
     coverMeta: itemCount >= 4 ? `${itemCount} ${coverNoun}` : '',
+    compact: featureId === 'studyGuides',
   });
 
   // Build content using shared helper

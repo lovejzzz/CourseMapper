@@ -8,6 +8,7 @@ describe('internal export text boundary', () => {
     ['verified-quiz-projection', 'verified-quiz projection'],
     ['Existing course map fields.', 'course-map source placeholder'],
     ['Use the cited source claim.', 'opaque source-claim placeholder'],
+    ['Consider the previously stated claim about color vision.', 'compiler source-reference template'],
     ['Emphasize the claim. in concrete language.', 'mechanical sentence seam'],
     ['Test this admitted claim before deciding: evidence.', 'compiler-owned admitted-claim shell'],
     ['Compare “(the earlier source claim on Accuracy”.', 'malformed compacted source reference'],

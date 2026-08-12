@@ -9,6 +9,7 @@ __pycache__/
 .env
 test-results/
 verification-output/
+.audit-work/
 API-dontComit/
 .claude/
 scripts/foundry/snapshots/

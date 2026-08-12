@@ -19,7 +19,7 @@ function factLedgerLead(rows) {
   // removed the claim's predicate from the lead sentence.
   const firstEvidence = cleanText(rows?.[0]?.[1]);
   if (!firstEvidence) return '';
-  return `Test this admitted claim before deciding: ${firstEvidence}`;
+  return `Before deciding, evaluate what this source statement supports: ${firstEvidence}`;
 }
 
 export function preferredKernelFacts(kernel = {}) {
@@ -151,12 +151,12 @@ export function buildEvidenceTableVisualDescriptor(termAtoms = [], facts = []) {
     // A fourth long fact forces the Office renderer to clip the final cell;
     // the complete ledger still remains in the lesson's authored content.
     .slice(0, 3)
-    .map((fact, index) => [`Fact ${index + 1}`, fact.charAt(0).toUpperCase() + fact.slice(1)]);
+    .map((fact, index) => [`Point ${index + 1}`, fact.charAt(0).toUpperCase() + fact.slice(1)]);
 
   return rows.length >= 2
     ? {
         rows,
-        columnLabels: ['SOURCE ATOM', 'LESSON EVIDENCE'],
+        columnLabels: ['SOURCE POINT', 'WHAT IT SUPPORTS'],
         tableLead: factLedgerLead(rows),
       }
     : { rows: [] };

@@ -10,6 +10,7 @@ import {
   researchQueryForTopic,
   contentTokens,
   directResearchTitles,
+  directResearchTitleVariants,
   attachKernelSourceSnapshotReceipt,
   cosine,
   buildKernelFromArticle,
@@ -22,6 +23,7 @@ import {
   researchLessonKernels,
   researchLessonKernelSets,
   researchLessonKernelSetsCascade,
+  mergeResearchKernelSets,
   stampTargetedBudgetProvider,
   isResearchCandidateDomainAligned,
   isWaiSourceFamilyAligned,
@@ -80,6 +82,18 @@ describe('sentence selection (gap 2)', () => {
 
   it('drops fragments that are too short or unterminated', () => {
     expect(sentencesFrom('Too short.\nAlso short')).toEqual([]);
+  });
+
+  it('drops exact source sentences whose relation depends on a missing antecedent', () => {
+    const extract =
+      'Primary and secondary colors can be combined in several proportions. Combining one secondary color and a primary color in the same manner produces a tertiary color. A tertiary color is produced by mixing full saturation of one primary color with half saturation of another primary color.';
+
+    expect(sentencesFrom(extract)).not.toContain(
+      'Combining one secondary color and a primary color in the same manner produces a tertiary color.',
+    );
+    expect(sentencesFrom(extract)).toContain(
+      'A tertiary color is produced by mixing full saturation of one primary color with half saturation of another primary color.',
+    );
   });
 
   it('scores narration below explanation', () => {
@@ -316,6 +330,160 @@ describe('official W3C/WAI research provider', () => {
     expect(
       kernels.every((kernel) => kernel.provenance.sourceUrl.startsWith('https://www.w3.org/WAI/test-evaluate')),
     ).toBe(true);
+  });
+});
+
+describe('course-agnostic pedagogical title recovery', () => {
+  it('offers multi-word concept cores without elevating ambiguous fragments', () => {
+    expect(
+      directResearchTitles('Rule of Thirds Application · Foundational Composition Elements', 'Visual Evidence'),
+    ).toContain('Rule of Thirds');
+    expect(
+      directResearchTitles('Focal Point Identification · Visual Hierarchy Structure', 'Visual Evidence'),
+    ).toContain('Visual Hierarchy');
+    expect(
+      directResearchTitles('Color Theory Application · Color and Contrast Dynamics', 'Visual Evidence'),
+    ).not.toContain('Theory');
+  });
+
+  it('keeps broad and specific query variants while exposing the canonical concept core', () => {
+    const topic = 'Rule of Thirds Application · Foundational Composition Elements';
+    expect(researchQueryForTopic(topic, 'Visual Evidence and Image Analysis')).toContain(
+      '"Rule of Thirds Application"',
+    );
+    expect(directResearchTitles(topic, 'Visual Evidence and Image Analysis')).toEqual(
+      expect.arrayContaining(['Rule of Thirds']),
+    );
+  });
+
+  it('adds sentence-case variants for case-sensitive encyclopedia title lookup', () => {
+    expect(
+      directResearchTitleVariants(
+        'Focal Point Identification · Visual Hierarchy Structure',
+        'Visual Evidence and Image Analysis',
+      ),
+    ).toEqual(expect.arrayContaining(['Visual Hierarchy', 'Visual hierarchy']));
+  });
+
+  it('derives an ethics headword from the course domain instead of a course-specific page map', () => {
+    expect(directResearchTitles('Ethical contextual interpretation', 'Visual Evidence and Image Analysis')).toContain(
+      'Visual ethics',
+    );
+    expect(directResearchTitles('Ethical decision-making', 'Business Leadership')).toContain('Business ethics');
+    expect(directResearchTitles('Ethical patient communication', 'Medical Practice')).toContain('Medical ethics');
+  });
+
+  it('removes curricular section locators and expands statistical concept families', () => {
+    const descriptive = directResearchTitles(
+      'Describing Distributions with Numbers (2.4) · Describing Distributions with Numbers',
+      'Introduction to Statistics',
+    );
+    expect(descriptive).toEqual(
+      expect.arrayContaining(['Descriptive statistics', 'Central tendency', 'Statistical dispersion']),
+    );
+    expect(descriptive.join(' ')).not.toContain('(2.4)');
+
+    expect(
+      directResearchTitles(
+        'Analyzing Relationships via Scatterplots · Scatterplots and Correlation',
+        'Introduction to Statistics',
+      ),
+    ).toEqual(expect.arrayContaining(['Scatter plot', 'Correlation', 'Pearson correlation coefficient']));
+  });
+
+  it('rejects physics collisions from a visual-analysis transaction but keeps rights sources', () => {
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Linear Perspective Systems · Perspective and Framing',
+        courseContext: 'Visual Evidence and Image Analysis',
+        title: 'Frame of reference',
+        definition:
+          'In physics and astronomy, a frame of reference is an abstract coordinate system in physical space.',
+        extract: 'A reference frame specifies an origin and orientation in physical space.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(false);
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Source Attribution and License · Ethical Contextual Interpretation',
+        courseContext: 'Visual Evidence and Image Analysis',
+        title: 'Creative Commons license',
+        definition: 'A Creative Commons license is a public copyright license used to enable reuse of a work.',
+        extract: 'Attribution terms communicate the license and reuse rights.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(true);
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Source Attribution and License · Ethical Contextual Interpretation',
+        courseContext: 'Visual Evidence and Image Analysis',
+        title: 'Source attribution',
+        definition:
+          'In epidemiology, source attribution reconstructs transmission of an infectious disease from a pathogen source.',
+        extract: 'Molecular source attribution supports public health surveillance of transmission events.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(false);
+    expect(
+      directResearchTitles(
+        'Source Attribution and License · Ethical Contextual Interpretation',
+        'Visual Evidence and Image Analysis',
+      ),
+    ).toEqual(expect.arrayContaining(['Attribution (copyright)', 'Creative Commons license', 'Public domain']));
+  });
+
+  it('rejects computational-imaging false friends and broad-wrapper-only matches', () => {
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Linear Perspective Systems · Perspective and Framing',
+        courseContext: 'Visual Evidence and Image Analysis',
+        title: 'Rethinking Building Change Detection: Dual-Frequency Learnable Visual Encoder',
+        definition:
+          'A remote-sensing change-detection network uses a dual-frequency visual encoder with convolutional neural networks and attention mechanisms.',
+        extract:
+          'The image-processing method compares two remote-sensing signals with a Siamese deep-learning framework.',
+        provider: 'doaj',
+      }),
+    ).toBe(false);
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Linear Perspective Systems · Perspective and Framing',
+        courseContext: 'Visual Evidence and Image Analysis',
+        title: 'A Visual Communication Perspective on Social Media',
+        definition: 'The study examines visual communication and youth responses to social-media framing.',
+        extract: 'The article reports perceived emotional effects of short-form video.',
+        provider: 'doaj',
+      }),
+    ).toBe(false);
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Linear Perspective Systems · Perspective and Framing',
+        courseContext: 'Visual Evidence and Image Analysis',
+        title: 'Perspective (graphical)',
+        definition:
+          'Linear perspective represents three-dimensional scenes in two dimensions using converging lines and a vanishing point.',
+        extract: 'Artists use linear perspective to depict depth and spatial relationships.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(true);
+  });
+});
+
+describe('research evidence refinement', () => {
+  it('never erases an admitted kernel when a later search variant is empty or thinner', () => {
+    const strong = {
+      id: 'source-a',
+      facts: [{ text: 'a' }, { text: 'b' }],
+      provenance: { sourceSnapshot: { claims: [{}, {}, {}] } },
+    };
+    const thin = {
+      id: 'source-a',
+      facts: [],
+      provenance: { sourceSnapshot: { claims: [{}] } },
+    };
+
+    expect(mergeResearchKernelSets([strong], [], 5)).toEqual([strong]);
+    expect(mergeResearchKernelSets([strong], [thin], 5)).toEqual([strong]);
   });
 });
 
@@ -587,6 +755,29 @@ describe('course-domain research alignment', () => {
     ).toBe(true);
   });
 
+  it('does not apply the visual-humanities source gate to quantitative visual-evidence lessons', () => {
+    const courseContext = 'Visual Evidence for Public Decisions';
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Histogram Verification · Distribution Visualization',
+        courseContext,
+        title: 'Histogram',
+        extract:
+          'A histogram is a graphical representation of the distribution of numerical data. Each bin covers an interval and its rectangle shows the frequency of observations in that interval.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(true);
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Histogram Verification · Distribution Visualization',
+        courseContext,
+        title: 'Perspective (graphical)',
+        extract: 'Perspective is a drawing technique used in painting and visual art.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(false);
+  });
+
   it('preserves environmental evidence in a mixed environmental data-analysis course', () => {
     const mixedCourse = 'Environmental data analysis and public-health monitoring';
     expect(
@@ -753,6 +944,38 @@ describe('course-domain research alignment', () => {
     ).toBe(true);
   });
 
+  it('rejects computing meanings of overloaded language-study concepts', () => {
+    const courseContext = 'Introduction to Language Structure';
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Semantic Interpretation',
+        courseContext,
+        title: 'Semantics (computer science)',
+        extract:
+          'In programming language theory, semantics is the rigorous mathematical study of the meaning of programming languages.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(false);
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Pragmatic Context',
+        courseContext,
+        title: 'Dialog act recognition',
+        extract: 'Dialog act recognition uses AI inference models or statistical models to classify spoken utterances.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(false);
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Computational Semantics',
+        courseContext: 'Computational Linguistics',
+        title: 'Computational semantics',
+        extract: 'Computational semantics uses formal and algorithmic methods to represent natural-language meaning.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(true);
+  });
+
   it('rejects wrong-domain biology from a digital-accessibility lesson', () => {
     expect(
       isResearchCandidateDomainAligned({
@@ -821,7 +1044,9 @@ describe('teaching atoms from the source (gap 3)', () => {
     });
 
     expect(built.kernel.misconceptions[0]).toEqual({
-      text: 'Naming Web accessibility without identifying a supporting source detail is sufficient evidence.',
+      text: expect.stringMatching(
+        /Web accessibility.*(?:source|evidence|support)|(?:source|evidence|support).*Web accessibility/i,
+      ),
       corrective: expect.stringMatching(/^Web accessibility:/),
     });
     expect(built.kernel.misconceptions[0].corrective).not.toContain('Cite the specific definition or fact');
@@ -919,6 +1144,24 @@ describe('teaching atoms from the source (gap 3)', () => {
     });
     expect(built).not.toBeNull();
     expect(built.kernel.facts).toHaveLength(1);
+  });
+
+  it('does not promote discourse markers or unresolved comparisons into source concepts', () => {
+    const built = buildKernelFromArticle({
+      topic: 'narrative visualization',
+      title: 'Data visualization',
+      extract: [
+        'Narrative visualization combines data displays with a structured explanatory sequence for an intended audience.',
+        'A clear narrative visualization connects each displayed relationship to the claim it is meant to support.',
+        'In addition, Narrative visualization is a method that uses visual elements to convey data or information.',
+        'The most common of these is a chart sequence that depends on context established in the previous section.',
+      ].join('\n'),
+      provider,
+      sourceMeta: { suggestedTerm: 'In addition, Narrative visualization' },
+    });
+
+    expect(built.kernel.term).toBe('Narrative visualization');
+    expect(JSON.stringify(built.kernel)).not.toMatch(/In addition,|most common of these/i);
   });
 
   it('does not promote an unrelated sentence from a long canonical article', () => {
@@ -1076,6 +1319,10 @@ describe('relevance scoring', () => {
 
   it('normalizes governance morphology across lesson titles and source prose', () => {
     expect(lexicalRelevance('platform governance', 'Platforms are governed by shared rules')).toBe(1);
+  });
+
+  it('normalizes descriptive and describing as the same research concept', () => {
+    expect(lexicalRelevance('describing distributions', 'descriptive statistics for a distribution')).toBe(1);
   });
 
   it('tries canonical phrase windows for a three-word pedagogical topic', () => {
@@ -1291,9 +1538,67 @@ describe('the research flag is opt-in', () => {
     await expect(recovered.httpJson('https://example.test/repeated-rate-limit')).resolves.toEqual({ recovered: true });
     expect(recovered.diagnostics()).toMatchObject({ requestCount: 3, maxRequests: 3 });
   });
+
+  it('identifies browser-originated Wikimedia research requests', async () => {
+    const { buildResearchProvider, ALGI_RESEARCH_FLAG } = await import('../../algiComposer.js');
+    const storage = { getItem: (key) => (key === ALGI_RESEARCH_FLAG ? 'on' : null) };
+    let requestOptions;
+    const provider = buildResearchProvider({
+      storage,
+      gapMs: 0,
+      fetchImpl: async (_url, options) => {
+        requestOptions = options;
+        return { ok: true, status: 200, headers: { get: () => null }, json: async () => ({ ok: true }) };
+      },
+    });
+
+    await provider.httpJson('https://en.wikipedia.org/w/api.php?action=query');
+
+    expect(requestOptions.headers).toMatchObject({
+      Accept: 'application/json',
+      'Api-User-Agent': 'EduTool.dev/0.17 (+https://edutool.dev/#/contact)',
+    });
+  });
 });
 
 describe('Wikipedia request architecture', () => {
+  it('hydrates the extract continuation without widening the ranked search result set', async () => {
+    const requests = [];
+    const httpJson = async (url) => {
+      requests.push(url);
+      if (!url.includes('excontinue=')) {
+        return {
+          continue: { excontinue: 20, continue: '||info|revisions' },
+          query: {
+            pages: {
+              1: { title: 'Ranked page 1', extract: 'First ranked extract.', fullurl: 'https://example.test/1' },
+              21: { title: 'Ranked page 21', fullurl: 'https://example.test/21' },
+            },
+          },
+        };
+      }
+      return {
+        continue: { gsroffset: 24, continue: 'gsroffset||' },
+        query: {
+          pages: {
+            1: { title: 'Ranked page 1', fullurl: 'https://example.test/1' },
+            21: { title: 'Ranked page 21', extract: 'Continued ranked extract.', fullurl: 'https://example.test/21' },
+          },
+        },
+      };
+    };
+    const provider = buildWikipediaProvider(httpJson);
+
+    const records = await provider.searchArticles('bounded lesson query', 24);
+
+    expect(Object.keys(records)).toEqual(['Ranked page 1', 'Ranked page 21']);
+    expect(records['Ranked page 21'].extract).toBe('Continued ranked extract.');
+    expect(requests).toHaveLength(2);
+    expect(requests[1]).toContain('excontinue=20');
+    expect(requests[1]).toContain('continue=%7C%7Cinfo%7Crevisions');
+    expect(requests.every((request) => !request.includes('gsroffset='))).toBe(true);
+  });
+
   it('retrieves all candidate articles in one attributed batch', async () => {
     const httpJson = async (url) => {
       expect(url).toContain('titles=Photosynthesis%7CCellular%20respiration');
@@ -1421,6 +1726,26 @@ describe('open scholarly provider architecture', () => {
       definitionMode: 'scholarly-abstract',
     });
     expect(records['Biofilm removal in water systems'].attribution).toContain('A. Researcher (2026)');
+  });
+
+  it('uses the HTTPS DOI resolver when DOAJ advertises only an HTTP full-text link', async () => {
+    const providerWithLegacyLink = buildDoajProvider(async () => ({
+      results: [
+        {
+          id: 'legacy-link',
+          bibjson: {
+            title: 'Visual hierarchy evidence',
+            abstract:
+              'Visual hierarchy organizes elements so viewers can distinguish relative importance. The study reports focal placement and contrast as observable signals in a controlled comparison.',
+            identifier: [{ type: 'doi', id: '10.1000/secure-record' }],
+            link: [{ type: 'fulltext', url: 'http://publisher.example/article' }],
+          },
+        },
+      ],
+    }));
+
+    const records = await providerWithLegacyLink.searchArticles('visual hierarchy', 5);
+    expect(records['Visual hierarchy evidence'].sourceUrl).toBe('https://doi.org/10.1000/secure-record');
   });
 
   it('admits only explicitly licensed open Europe PMC abstracts', async () => {
@@ -1658,7 +1983,7 @@ describe('open scholarly provider architecture', () => {
       providerId: 'wikipedia',
       topic,
       scheduled: 1,
-      available: 3,
+      available: 4,
       reason: 'query-budget',
     }));
     expect(result.targetedBudgetExhausted).toEqual(expected);
@@ -1692,9 +2017,9 @@ describe('open scholarly provider architecture', () => {
     });
 
     expect(result.targetedBudgetExhausted).toEqual([
-      { topic: 'Alpha and beta', scheduled: 1, available: 3, reason: 'query-budget' },
-      { topic: 'Gamma and delta', scheduled: 0, available: 3, reason: 'fallback-slots' },
-      { topic: 'Epsilon and zeta', scheduled: 0, available: 3, reason: 'fallback-slots' },
+      { topic: 'Alpha and beta', scheduled: 1, available: 4, reason: 'query-budget' },
+      { topic: 'Gamma and delta', scheduled: 0, available: 4, reason: 'fallback-slots' },
+      { topic: 'Epsilon and zeta', scheduled: 0, available: 4, reason: 'fallback-slots' },
     ]);
   });
 });
@@ -1862,6 +2187,68 @@ describe('lesson research admission', () => {
     expect(kernels.map((kernel) => kernel.term)).not.toContain('Post-quantum cryptography');
   });
 
+  it('rejects a one-token same-domain false friend from a long lesson scope', async () => {
+    const pages = {
+      'Probability distribution': {
+        hits: ['numerical', 'representation', 'data', 'describing', 'distributions'],
+        text: [
+          'In statistics, a probability distribution is a mathematical function that gives probabilities of occurrence for possible outcomes.',
+          'A probability distribution describes how values of a random variable are distributed.',
+          'A probability distribution can be discrete or continuous depending on the variable and sample space.',
+          'A probability distribution supports describing distributions by connecting possible values to their probabilities.',
+        ].join('\n'),
+      },
+      'Data assimilation': {
+        hits: ['numerical', 'representation', 'data', 'describing', 'distributions'],
+        text: [
+          'Data assimilation is a mathematical discipline that combines a numerical model with observations.',
+          'Data assimilation updates model states and trajectories when new observations become available.',
+          'Data assimilation supports forecasting by reconciling modeled and observed system behavior.',
+        ].join('\n'),
+      },
+    };
+    const kernels = await researchLessonKernels('Probability Distribution · Describing Distributions', {
+      provider: stubProvider(pages),
+      courseContext: 'Statistics',
+      want: 4,
+    });
+    expect(kernels.map((kernel) => kernel.term)).toContain('Probability distribution');
+    expect(kernels.map((kernel) => kernel.term)).not.toContain('Data assimilation');
+  });
+
+  it('admits separately sourced sides of a compound statistical lesson', async () => {
+    const pages = {
+      'Scatter plot': {
+        hits: ['statistics'],
+        text: [
+          'A scatter plot is a mathematical diagram that uses Cartesian coordinates to display paired values for two variables.',
+          'A scatter plot reveals the form, direction, and strength of a relationship because each case appears as one point.',
+          'A scatter plot can expose clusters and outliers that a numerical summary may conceal.',
+          'A scatter plot does not by itself establish that one variable causes the other.',
+        ].join('\n'),
+      },
+      Correlation: {
+        hits: ['statistics'],
+        text: [
+          'In statistics, correlation is a measure of the direction and strength of association between two variables.',
+          'Correlation is positive when larger values of one variable tend to accompany larger values of the other.',
+          'Correlation is negative when larger values of one variable tend to accompany smaller values of the other.',
+          'Correlation can be distorted by an outlier and does not establish causation.',
+        ].join('\n'),
+      },
+    };
+    const kernels = await researchLessonKernels(
+      'Analyzing Relationships via Scatterplots · Scatterplots and Correlation',
+      {
+        provider: stubProvider(pages),
+        courseContext: 'Introduction to Statistics',
+        want: 4,
+      },
+    );
+
+    expect(kernels.map((kernel) => kernel.term)).toEqual(expect.arrayContaining(['Scatter plot', 'Correlation']));
+  });
+
   it('admits a canonical family concept when its definition explicitly supplies the lesson topic', async () => {
     const pages = {
       Biofilm: {
@@ -1943,6 +2330,103 @@ describe('lesson research admission', () => {
     expect(kernels[0].facts.map((fact) => fact.text).join(' ')).toContain('Web Content Accessibility Guidelines');
   });
 
+  it('does not spend the only deep read on a missing synthetic title', async () => {
+    const topic = 'Focal Point Identification · Visual Hierarchy Structure';
+    const intro = [
+      'Visual hierarchy describes how elements in a visual field create a perceived order of importance.',
+      'Visual contrast makes some forms stand out from their surroundings.',
+    ].join('\n');
+    const full = [
+      intro,
+      'Graphic designers arrange elements so the most important information is recognized first.',
+      'Scale, color, alignment, and contrast can each influence the perceived visual order.',
+      'A focal element receives attention when it differs visibly from nearby forms.',
+    ].join('\n');
+    const reads = [];
+    const provider = {
+      id: 'wikipedia',
+      sourceKind: 'open encyclopedia',
+      supportsDirectTitles: true,
+      license: 'CC BY-SA 4.0',
+      search: async () => ['Focal Point Identification · Visual Hierarchy Structure', 'Visual Hierarchy'],
+      articles: async () => ({
+        'Visual Hierarchy': {
+          title: 'Visual Hierarchy',
+          extract: intro,
+          sourceUrl: 'https://en.wikipedia.org/wiki/Visual_hierarchy',
+        },
+      }),
+      fullArticle: async (title) => {
+        reads.push(title);
+        return title === 'Visual Hierarchy'
+          ? {
+              title,
+              extract: full,
+              sourceUrl: 'https://en.wikipedia.org/wiki/Visual_hierarchy',
+            }
+          : null;
+      },
+      sourceIdFor: (title) => `wikipedia:${title}`,
+      attributionFor: () => 'Wikipedia contributors',
+    };
+
+    const kernels = await researchLessonKernels(topic, {
+      provider,
+      courseContext: 'Visual Evidence and Image Analysis',
+      want: 5,
+    });
+
+    expect(reads).toEqual(['Visual Hierarchy']);
+    expect(kernels.map((kernel) => kernel.term)).toContain('Visual Hierarchy');
+    expect(kernels[0].provenance.sourceSnapshot.claims.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('deep-reads a canonical parenthetical page whose base is an exact requested title', async () => {
+    const intro = [
+      'Perspective is the representation of objects as they appear to an observer.',
+      'Perspective represents a three-dimensional scene in a two-dimensional medium.',
+    ].join('\n');
+    const full = [
+      intro,
+      'Linear perspective makes distant objects appear smaller to an observer.',
+      'Foreshortening makes dimensions parallel to the line of sight appear shorter.',
+      'Artists incorporated linear perspective into their artworks.',
+    ].join('\n');
+    const reads = [];
+    const provider = {
+      id: 'wikipedia',
+      sourceKind: 'open encyclopedia',
+      license: 'CC BY-SA 4.0',
+      search: async () => ['Perspective'],
+      articles: async () => ({
+        Perspective: {
+          title: 'Perspective (graphical)',
+          extract: intro,
+          sourceUrl: 'https://en.wikipedia.org/wiki/Perspective_(graphical)',
+        },
+      }),
+      fullArticle: async (title) => {
+        reads.push(title);
+        return {
+          title: 'Perspective (graphical)',
+          extract: full,
+          sourceUrl: 'https://en.wikipedia.org/wiki/Perspective_(graphical)',
+        };
+      },
+      sourceIdFor: () => 'wikipedia:Perspective_(graphical)',
+      attributionFor: () => 'Wikipedia contributors',
+    };
+
+    const kernels = await researchLessonKernels('Perspective', {
+      provider,
+      courseContext: 'Visual Evidence and Image Analysis',
+      want: 4,
+    });
+
+    expect(reads).toEqual(['Perspective (graphical)']);
+    expect(kernels[0].provenance.sourceSnapshot.claims.length).toBeGreaterThanOrEqual(4);
+  });
+
   it('gives each lesson pass one deep read before spending more course research budget', async () => {
     const pages = {
       'Conditional branching and loops': [
@@ -2000,7 +2484,7 @@ describe('lesson research admission', () => {
     expect(fullReads).toBe(1);
   });
 
-  it('prioritizes zero-source lessons before deepening sparse intro evidence', async () => {
+  it('does not spend targeted deep reads on titles with no admitted introduction', async () => {
     const topics = ['Alpha methods and beta checks', 'Gamma methods and delta checks'];
     const attempts = [];
     const missingIntroTitles = new Set(directResearchTitles(topics[1], 'General methods'));
@@ -2042,7 +2526,7 @@ describe('lesson research admission', () => {
       maxTargetedFallbacks: 1,
     });
 
-    expect(attempts).toEqual([directResearchTitles(topics[1], 'General methods')[0]]);
+    expect(attempts).toEqual([]);
   });
 
   it('deepens a still-sparse intro only inside the targeted pass', async () => {
@@ -2175,7 +2659,7 @@ describe('lesson research admission', () => {
     expect(queries).toEqual(
       expect.arrayContaining(['"functions" computer programming', '"automated tests" computer programming']),
     );
-    expect(result.targetedSearches).toBe(3);
+    expect(result.targetedSearches).toBe(4);
     expect(result.byTopic.get(topic).map((kernel) => kernel.term)).toEqual(
       expect.arrayContaining(['Function', 'Test automation']),
     );
@@ -2306,9 +2790,9 @@ describe('lesson research admission', () => {
     expect(result.targetedSearches).toBe(3);
     expect(queries.slice(1)).toEqual(['(alpha OR beta)', '(gamma OR delta)', '(epsilon OR zeta)']);
     expect(result.targetedBudgetExhausted).toEqual([
-      { topic: 'Alpha and beta', scheduled: 1, available: 3, reason: 'query-budget' },
-      { topic: 'Gamma and delta', scheduled: 1, available: 3, reason: 'query-budget' },
-      { topic: 'Epsilon and zeta', scheduled: 1, available: 3, reason: 'query-budget' },
+      { topic: 'Alpha and beta', scheduled: 1, available: 4, reason: 'query-budget' },
+      { topic: 'Gamma and delta', scheduled: 1, available: 4, reason: 'query-budget' },
+      { topic: 'Epsilon and zeta', scheduled: 1, available: 4, reason: 'query-budget' },
     ]);
   });
 
@@ -2322,6 +2806,37 @@ describe('lesson research admission', () => {
     ]);
     expect(contentTokens('visualization visual narratives')).toEqual(['visualization', 'visual', 'narrativ']);
     expect(contentTokens('automation automated automatic')).toEqual(['automat', 'automat', 'automatic']);
+    expect(contentTokens('ethical ethics context contextual interpretation interpretive')).toEqual([
+      'ethic',
+      'ethic',
+      'context',
+      'context',
+      'interpret',
+      'interpret',
+    ]);
+  });
+
+  it('recognizes source language that changes an abstract lesson label from adjective to noun', async () => {
+    const pages = {
+      'Visual literacy in education': {
+        hits: ['ethical'],
+        text: [
+          'Visual literacy in education is the ability to interpret, analyze, and create meaning from visual texts.',
+          'Visual literacy education emphasizes equitable access to technology and the ethical use of educational technology.',
+          'Learners use context to distinguish observable visual evidence from a later interpretation.',
+          'Ethical interpretation requires explaining which contextual detail supports a visual claim and which conclusion remains uncertain.',
+        ].join('\n'),
+      },
+    };
+
+    const kernels = await researchLessonKernels('Ethical contextual interpretation', {
+      provider: stubProvider(pages),
+      courseContext: 'Visual Evidence and Image Analysis',
+      plannedQuery: 'ethical contextual interpretation visual arts',
+      want: 4,
+    });
+
+    expect(kernels.map((kernel) => kernel.term)).toContain('Visual literacy in education');
   });
 
   it('composes waterborne pathogens from three admitted source concepts', async () => {

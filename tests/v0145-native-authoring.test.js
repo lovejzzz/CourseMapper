@@ -37,6 +37,7 @@ import {
 } from '../src/lib/courseBlueprintCompiler';
 import { repairNativeFallbackWithCurriculumV1 } from '../src/lib/curriculumV1Repair';
 import { assessProjectedKernelCoverage } from '../src/lib/blueprintEnrichmentPass';
+import { isClaimEvidenceBoundaryShortAnswer } from '../src/lib/quality/quizItemDepth.js';
 import {
   AUTHORING_MODE_STORAGE_KEY,
   NativeAuthoringError,
@@ -52,7 +53,10 @@ import {
   parseNativePassBResponse,
   parseNativeSkeletonResponse,
   recoverExplicitRecurringAssessmentCadences,
+  recoverExplicitCoursePolicies,
+  recoverExplicitCourseWorkload,
   recoverExplicitNamedReadings,
+  recoverExplicitRequiredCourseMaterials,
   pickNativeKernel,
   readAuthoringMode,
   recoverTruncatedSkeletonObject,
@@ -222,6 +226,73 @@ describe('Pass A skeleton contract (B1)', () => {
     expect(NATIVE_SKELETON_SYSTEM_PROMPT).toMatch(/"sessions"/);
     expect(NATIVE_SKELETON_SYSTEM_PROMPT).toMatch(/conceptual spine/i);
     expect(NATIVE_SKELETON_SYSTEM_PROMPT).toMatch(/Never use delivery modes/i);
+    expect(NATIVE_SKELETON_SYSTEM_PROMPT).toMatch(/COURSE POLICY IS NOT A LESSON PLAN/i);
+  });
+
+  it('separates exact course prerequisites and a 100% base plus extra credit from lesson assessments', () => {
+    const sourceText = [
+      'This 3-credit hour course expects all students to have completed a baccalaureate-level mathematics course.',
+      'Final Grade = 0.21(Exam 1%) + 0.21(Exam 2%) + 0.21(Final Exam%) + 0.05(Recitation Activity%) + 0.01(Recitation Survey%) + 0.05(Lecture Participation%) + 0.15(HW%) + 0.11(Quiz%)',
+      'Extra Credit – LearningCurve via Achieve (+0.105% for each completed chapter) 2% Total 102',
+      'Grading Scale 93 – 100: A 90 – 92.9: A - 87 – 89.9: B+ 83 – 86.9: B 80 – 82.9: B - 77 – 79.9: C+ 73 – 76.9: C 70 – 72.9: C - 67 – 69.9: D+ 60 – 66.9: D Below 60: E Faculty Response',
+      'Week 1: Picturing Distributions. Week 2: Describing Distributions.',
+    ].join(' ');
+    const skeleton = parseNativeSkeletonResponse(
+      JSON.stringify({
+        course: { name: 'Introductory Statistics', term: 'SP26' },
+        sessions: [
+          { order: 1, title: 'Picturing Distributions' },
+          { order: 2, title: 'Describing Distributions' },
+        ],
+        assessments: [
+          { id: 'a1', title: 'Homework', dueSession: 1 },
+          { id: 'a2', title: 'Homework', dueSession: 2 },
+        ],
+      }),
+      { expectedLessons: 2, sourceText },
+    );
+
+    expect(skeleton.course.prerequisites).toEqual([
+      expect.objectContaining({
+        text: 'This 3-credit hour course expects all students to have completed a baccalaureate-level mathematics course.',
+        status: 'expected',
+        sourceStatus: 'source-explicit',
+      }),
+    ]);
+    expect(skeleton.course.gradingPolicy).toMatchObject({
+      baseTotalPct: 100,
+      extraCreditTotalPct: 2,
+      displayedTotalPct: 102,
+    });
+    expect(skeleton.course.gradingPolicy.categories).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ title: 'Exam 1', weightPct: 21, extraCredit: false }),
+        expect.objectContaining({ title: 'Lecture Participation', weightPct: 5, extraCredit: false }),
+        expect.objectContaining({ title: 'Extra Credit — LearningCurve via Achieve', weightPct: 2, extraCredit: true }),
+      ]),
+    );
+    expect(skeleton.course.gradingPolicy.gradeBands).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'A', range: '93–100' }),
+        expect.objectContaining({ label: 'D', range: '60–66.9' }),
+        expect.objectContaining({ label: 'E', range: 'Below 60' }),
+      ]),
+    );
+    expect(skeleton.course.orderedLessonContract).toMatchObject({
+      protocol: 'coursemapper-governing-source-course-contract-v1',
+      mode: 'governing-source-ordered-subset',
+      topics: ['Picturing Distributions', 'Describing Distributions'],
+    });
+    const wireMap = buildNativeWireMap(skeleton);
+    expect(wireMap.gradingPolicy.displayedTotalPct).toBe(102);
+    expect(wireMap.orderedLessonContract.topics).toEqual(['Picturing Distributions', 'Describing Distributions']);
+    const { graph, courseMap } = assembleNativeCourseGraph({ skeleton });
+    expect(graph.course.meta.gradingPolicy.displayedTotalPct).toBe(102);
+    expect(graph.course.meta.orderedLessonContract.topics).toEqual([
+      'Picturing Distributions',
+      'Describing Distributions',
+    ]);
+    expect(courseMap.prerequisites[0].text).toMatch(/baccalaureate-level mathematics/i);
   });
 
   it('parses a well-formed skeleton: ids, order, clamped dueSession, kind validation', () => {
@@ -1019,6 +1090,44 @@ describe('Pass A skeleton contract (B1)', () => {
     ]);
   });
 
+  it('preserves governing materials, late-work rules, and workload through the native wire map', () => {
+    const sourceText = [
+      'Required C ourse M aterials. There is no need to wait for financial aid to purchase your textbook.',
+      'Moore, Notz, and Fligner • The Basic Practice of Statistics • 9th • Mac m illan • ISBN:9781319344641',
+      'Students access Macmillan Achieve through the institution-provided CarmenBooks link in CarmenCanvas.',
+      'Student Registration Instructions',
+      'Late Submissions: NO LATE WORK IS ACCEPTED. For extenuating circumstances, contact the instructor BEFORE the assignment deadline. A request received after 4 pm on the due date is considered a dropped assignment. Multiple dropped assignments may affect progress.',
+      'Students should expect a minimum of 6 hours to prepare each week. This equates to 9 hours weekly, including 3 hours for lecture and recitation attendance.',
+    ].join(' ');
+
+    expect(recoverExplicitRequiredCourseMaterials(sourceText)).toEqual([
+      expect.objectContaining({
+        kind: 'textbook',
+        author: 'Moore, Notz, and Fligner',
+        title: 'The Basic Practice of Statistics',
+        edition: '9th',
+        publisher: 'Macmillan',
+        isbn: '9781319344641',
+      }),
+      expect.objectContaining({ kind: 'courseware', title: 'Achieve courseware' }),
+    ]);
+    expect(recoverExplicitCoursePolicies(sourceText)?.lateWork).toMatch(/No late work is accepted/i);
+    expect(recoverExplicitCourseWorkload(sourceText)).toMatchObject({
+      weeklyHours: 9,
+      outOfClassHours: 6,
+      inClassHours: 3,
+    });
+
+    const skeleton = parseNativeSkeletonResponse(SKELETON_RESPONSE, {
+      expectedLessons: 3,
+      sourceText,
+    });
+    const wireMap = buildNativeWireMap(skeleton);
+    expect(wireMap.requiredMaterials).toHaveLength(2);
+    expect(wireMap.policies.lateWork).toMatch(/after 4 p\.m\./i);
+    expect(wireMap.workloadPolicy.weeklyHours).toBe(9);
+  });
+
   it('merges a generic final-portfolio echo into the named portfolio assessment', () => {
     const sourceText =
       'Community Data Storytelling has six lessons and one final portfolio: the Annotated Public-Transit Data Story Portfolio.';
@@ -1645,7 +1754,7 @@ describe('Pass B contract (B2)', () => {
     expect(factsOnly.kernel.scenario.setup).toContain(
       'Claim B: Contemporary art includes artistic expressions created from the mid-twentieth century onward.',
     );
-    expect(factsOnly.kernel.scenario.setup).toContain('Identify the course concept that best organizes these claims');
+    expect(isClaimEvidenceBoundaryShortAnswer(factsOnly.kernel.scenario.setup)).toBe(true);
     expect(factsOnly.kernel.scenario.setup).not.toMatch(/learner compares|named reading or activity/i);
     expect(JSON.stringify(factsOnly.quizItems)).not.toMatch(/learner compares|named reading or activity/i);
     expect(
@@ -1655,7 +1764,8 @@ describe('Pass B contract (B2)', () => {
         studyGuide: factsOnly.studyGuide,
       }),
     ).not.toMatch(/named reading or activity/i);
-    expect(factsOnly.discussionPrompt.prompt).toContain('source records behind Claim A and Claim B');
+    expect(factsOnly.discussionPrompt.prompt).toMatch(/records supplied for (?:Claims A and B|two .* claims)/i);
+    expect(factsOnly.discussionPrompt.prompt).not.toContain('source records behind Claim A and Claim B');
     expect(factsOnly.discussionPrompt.prompt).not.toContain('supplied claim cards');
     expect(factsOnly.quizItems).toHaveLength(2);
     expect(factsOnly.coreFallbacks).toEqual(

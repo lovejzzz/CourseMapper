@@ -28,7 +28,7 @@ import { scionFactContractForLesson } from './scionEvidenceContract';
 import { resolveScionTargetLanguageKnowledge } from './scionLanguageKnowledge';
 import { resolveScionLiteratureKnowledge } from './scionLiteratureKnowledge';
 import { META_SURFACE_RE } from './metaSurfaceAdmission';
-import { EXACT_SOURCE_LEDGER_PROVENANCE } from './sourceLedgerProvenance';
+import { EXACT_SOURCE_LEDGER_PROVENANCE, SOURCE_LEDGER_AUTHORITIES } from './sourceLedgerProvenance';
 import {
   compactActivityBlueprintShape,
   experientialLessonIds,
@@ -417,6 +417,8 @@ export function buildBlueprintEnrichmentPayload(courseMap, options = {}) {
 
 export function buildBlueprintEnrichmentPrompt(courseMap, options = {}) {
   const payload = buildBlueprintEnrichmentPayload(courseMap, options);
+  const instructionalPlan =
+    options.instructionalPlan && typeof options.instructionalPlan === 'object' ? options.instructionalPlan : null;
   const schema = {
     signatureTerms: ['4-10 discipline-specific terms that should recur across compiled materials'],
     lens: {
@@ -445,6 +447,21 @@ export function buildBlueprintEnrichmentPrompt(courseMap, options = {}) {
 
   const userPrompt = [
     'Build one compact enrichment object for the deterministic CourseMapper compiler.',
+    ...(instructionalPlan?.receipt?.exactInputSha256
+      ? [
+          `Approved pre-draft instructional-plan receipt: ${instructionalPlan.receipt.exactInputSha256}.`,
+          `Approved lesson intents: ${JSON.stringify(
+            (instructionalPlan.lessonIntents || []).map((intent) => ({
+              id: intent.id,
+              targetObjectives: intent.targetObjectives,
+              learnerAction: intent.learnerAction,
+              expectedEvidence: intent.expectedEvidence,
+              evidenceBoundary: intent.evidenceBoundary,
+            })),
+          )}`,
+          'Do not replace or broaden this approved plan.',
+        ]
+      : []),
     'Use only the source course-map facts below. Keep each phrase short enough to reuse inside compiled materials.',
     'Avoid generic phrases like "course evidence" unless the source summary gives a more specific discipline term.',
     'Do not use internal scaffolding phrases such as "field pattern", "Week N covering", "lesson evidence thread", or "genre-specific quality focus"; name the concrete concept or student task instead.',
@@ -461,6 +478,7 @@ export function buildBlueprintEnrichmentPrompt(courseMap, options = {}) {
     systemPrompt: BLUEPRINT_ENRICHMENT_SYSTEM_PROMPT,
     userPrompt,
     payload,
+    instructionalPlanReceiptSha256: instructionalPlan?.receipt?.exactInputSha256 || null,
     approxInputTokens: Math.ceil((BLUEPRINT_ENRICHMENT_SYSTEM_PROMPT.length + userPrompt.length) / 4),
   };
 }
@@ -1048,11 +1066,22 @@ function summarizeLessonsForContent(
         instructorFacts.length >= 3 ? [] : compilerKnowledge?.concepts || evidence?.sourceConcepts || [];
       const compilerKnowledgeSource =
         instructorFacts.length >= 3 ? null : compilerKnowledge?.source || evidence?.sourceLedgerAttribution || null;
+      const sourceFactAuthority =
+        instructorFacts.length >= 3
+          ? SOURCE_LEDGER_AUTHORITIES.INSTRUCTOR_SUPPLIED
+          : compilerKnowledge
+            ? SOURCE_LEDGER_AUTHORITIES.SHIPPED_SOURCE_LIBRARY
+            : evidence?.evidenceOrigin === 'verified-open-research'
+              ? SOURCE_LEDGER_AUTHORITIES.VERIFIED_OPEN_RESEARCH
+              : evidence
+                ? SOURCE_LEDGER_AUTHORITIES.SHIPPED_SOURCE_LIBRARY
+                : SOURCE_LEDGER_AUTHORITIES.MODEL_PROVISIONAL;
       return {
         lessonId: `lesson-${lessonIndex + 1}`,
         ...(sourceFacts.length >= 3
           ? {
               sourceFactPolicy: 'numbered-source-ledger-v1',
+              sourceFactAuthority,
               sourceFacts,
               ...(compilerKnowledge?.pair ? { targetLanguagePair: { ...compilerKnowledge.pair } } : {}),
               ...(compilerKnowledge?.projectionLabel
@@ -1156,6 +1185,12 @@ export function assessProjectedKernelCoverage(payload, { requiredMcCount = 4 } =
   const assignmentParameterCount = asArray(payload?.assignmentCore?.parameters).length;
   const scenario = payload?.kernel?.scenario || {};
   const studyGuide = payload?.studyGuide || {};
+  const exactLedgerOnlyBackbone =
+    factCount >= 3 &&
+    keyTermCount === 0 &&
+    (payload?.sourceFactAuthority === 'admitted-evidence-authority' ||
+      payload?.kernel?.provenance?.authority === 'admitted-evidence-authority') &&
+    payload?.kernel?.provenance?.copiedFactsVerbatim === true;
   const issues = [];
   if (mcCount < requiredMcCount) issues.push(`mc-coverage:${mcCount}/${requiredMcCount}`);
   if (keyTermCount < 3) issues.push(`key-term-coverage:${keyTermCount}/3`);
@@ -1175,7 +1210,12 @@ export function assessProjectedKernelCoverage(payload, { requiredMcCount = 4 } =
   // same model repair without weakening any atomic semantic lint.
   const usabilityIssues = [];
   if (factCount + keyTermCount < 4) usabilityIssues.push(`semantic-backbone:${factCount + keyTermCount}/4`);
-  if (keyTermCount < 1) usabilityIssues.push(`key-term-core:${keyTermCount}/1`);
+  // An exact, receipt-bound fact ledger is a real semantic backbone even when
+  // the admitted source exposes no safe glossary definitions. Requiring a
+  // minted key term here turned a seven-claim lesson into "template fallback"
+  // and encouraged the model to invent terminology. Keep the optional term
+  // gap visible in `issues`, but do not discard an otherwise complete lesson.
+  if (keyTermCount < 1 && !exactLedgerOnlyBackbone) usabilityIssues.push(`key-term-core:${keyTermCount}/1`);
   if (quizItemCount < 2) usabilityIssues.push(`quiz-core:${quizItemCount}/2`);
   if (slideCount < 1) usabilityIssues.push(`slide-core:${slideCount}/1`);
   if (discussionPositionCount !== 3) usabilityIssues.push(`discussion-positions:${discussionPositionCount}/3`);
@@ -1674,6 +1714,26 @@ export function buildLessonKernelPrompt(courseMap, lessonIndices, options = {}) 
     /\b(?:world|comparative|english|american|global|classical)\s+literature\b|\b(?:literary studies|poetry|fiction|drama|close reading)\b/i.test(
       [courseMap?.courseName, courseMap?.learningOutcomes, courseMap?.outcomes].filter(Boolean).join(' '),
     );
+  const instructionalPlan =
+    options.instructionalPlan && typeof options.instructionalPlan === 'object' ? options.instructionalPlan : null;
+  const requestedLessonIds = new Set(lessons.map((lesson) => lesson.lessonId));
+  const plannedLessonIntents = (instructionalPlan?.lessonIntents || []).filter((intent) =>
+    requestedLessonIds.has(intent?.id),
+  );
+  const instructionalPlanPrompt = instructionalPlan?.receipt?.exactInputSha256
+    ? {
+        protocol: 'coursemapper-pre-draft-instructional-plan-v1',
+        receiptSha256: instructionalPlan.receipt.exactInputSha256,
+        admissionStatus: instructionalPlan.admission?.status || 'missing',
+        lessonIntents: plannedLessonIntents.map((intent) => ({
+          id: intent.id,
+          targetObjectives: intent.targetObjectives,
+          learnerAction: intent.learnerAction,
+          expectedEvidence: intent.expectedEvidence,
+          evidenceBoundary: intent.evidenceBoundary,
+        })),
+      }
+    : null;
 
   const systemPrompt = [
     LESSON_CONTENT_SYSTEM_PROMPT,
@@ -1748,6 +1808,12 @@ export function buildLessonKernelPrompt(courseMap, lessonIndices, options = {}) 
 
   const userPrompt = [
     `Course: ${truncateText(courseMap?.courseName || 'Untitled Course', 120)}`,
+    ...(instructionalPlanPrompt
+      ? [
+          `APPROVED PRE-DRAFT INSTRUCTIONAL PLAN (immutable authority for this call): ${JSON.stringify(instructionalPlanPrompt)}`,
+          'Author knowledge only inside these approved lesson objectives, learner actions, expected evidence, and evidence boundaries. Do not replace or broaden the plan.',
+        ]
+      : []),
     'Lessons:',
     JSON.stringify(lessons),
     ...(activityLessonIds.length > 0
@@ -1783,6 +1849,7 @@ export function buildLessonKernelPrompt(courseMap, lessonIndices, options = {}) 
     activityLessonIds,
     itemPlan,
     includeCourseLevel,
+    instructionalPlanReceiptSha256: instructionalPlanPrompt?.receiptSha256 || null,
     approxInputTokens: Math.ceil((systemPrompt.length + userPrompt.length) / 4),
   };
 }
@@ -1807,22 +1874,67 @@ function normalizedExactClaim(value = '') {
 
 function normalizeComposedSupportReceipt(value, citationId) {
   if (!value || typeof value !== 'object' || !citationId) return null;
-  if (value.status !== 'passed' || value.method !== 'exact-source-claim-v1') return null;
+  if (value.status !== 'passed' || !['exact-source-claim-v1', 'curated-source-paraphrase-v1'].includes(value.method)) {
+    return null;
+  }
+  const snapshot = value.sourceSnapshot && typeof value.sourceSnapshot === 'object' ? value.sourceSnapshot : null;
+  const snapshotText = cleanText(snapshot?.normalizedSnapshotText);
+  const snapshotSha256 = cleanText(snapshot?.retrievedSnapshotSha256);
+  const snapshotBytes = Number(snapshot?.retrievedSnapshotBytes);
+  const encodedSnapshot = new TextEncoder().encode(snapshotText);
+  const snapshotValid = Boolean(
+    snapshot &&
+    snapshot?.protocol === 'retrieved-source-snapshot-sha256-v2' &&
+    cleanText(snapshot?.sourceId) === citationId &&
+    /^[a-f0-9]{64}$/i.test(snapshotSha256) &&
+    Number.isInteger(snapshotBytes) &&
+    snapshotBytes > 0 &&
+    snapshotBytes === encodedSnapshot.byteLength &&
+    snapshotText.length <= 50000 &&
+    value.sourceIdentityVerified === true &&
+    value.semanticAdmissionVerified === true &&
+    value.semanticSupport === true,
+  );
+  if (!snapshotValid) return null;
   const checks = asArray(value.checks)
     .map((check, index) => {
       const claim = truncateText(check?.claim, 500);
       const quote = truncateText(check?.quote, 600);
       const sourceId = truncateText(check?.sourceId, 160);
       const locator = truncateText(check?.locator, 200);
+      const checkSnapshotSha256 = cleanText(check?.retrievedSnapshotSha256);
+      const checkSnapshotBytes = Number(check?.retrievedSnapshotBytes);
+      const quoteByteStart = Number(check?.quoteByteStart);
+      const quoteByteEnd = Number(check?.quoteByteEnd);
+      const sourcePassageSha256 = cleanText(check?.sourcePassageSha256);
+      const slicedQuote =
+        Number.isInteger(quoteByteStart) &&
+        Number.isInteger(quoteByteEnd) &&
+        quoteByteStart >= 0 &&
+        quoteByteEnd > quoteByteStart &&
+        quoteByteEnd <= encodedSnapshot.byteLength
+          ? new TextDecoder().decode(encodedSnapshot.slice(quoteByteStart, quoteByteEnd))
+          : '';
+      const exactClaim = normalizedExactClaim(claim) === normalizedExactClaim(quote);
+      const curatedParaphrase = Boolean(
+        check?.semanticAdmission?.admitted === true &&
+        check?.semanticAdmission?.policy === 'shipped-source-curated-anchor-v1',
+      );
       if (
         !claim ||
         !quote ||
         !sourceId ||
         sourceId !== citationId ||
         !locator ||
-        normalizedExactClaim(claim) !== normalizedExactClaim(quote) ||
+        (!exactClaim && !curatedParaphrase) ||
+        checkSnapshotSha256 !== snapshotSha256 ||
+        checkSnapshotBytes !== snapshotBytes ||
+        normalizedExactClaim(slicedQuote) !== normalizedExactClaim(quote) ||
+        !/^[a-f0-9]{64}$/i.test(sourcePassageSha256) ||
         check?.quoteInSnapshot !== true ||
         check?.entailed !== true ||
+        check?.sourceIdentityVerified !== true ||
+        check?.semanticAdmissionVerified !== true ||
         check?.semanticSupport !== true
       ) {
         return null;
@@ -1833,12 +1945,27 @@ function normalizeComposedSupportReceipt(value, citationId) {
         quote,
         sourceId,
         locator,
+        retrievedSnapshotSha256: snapshotSha256,
+        retrievedSnapshotBytes: snapshotBytes,
+        quoteByteStart,
+        quoteByteEnd,
+        sourcePassageSha256,
         quoteInSnapshot: true,
         entailed: true,
         score: 1,
-        reason: 'exact-source-claim-identity',
-        method: 'exact-source-claim-v1',
-        construct: 'source-claim-identity',
+        reason: exactClaim ? 'exact-source-claim-identity' : 'curated-source-paraphrase-admission',
+        method: exactClaim ? 'exact-source-claim-v1' : 'curated-source-paraphrase-v1',
+        construct: exactClaim ? 'source-claim-identity' : 'semantic-source-support',
+        sourceIdentityVerified: true,
+        semanticAdmissionVerified: true,
+        ...(curatedParaphrase
+          ? {
+              semanticAdmission: {
+                admitted: true,
+                policy: 'shipped-source-curated-anchor-v1',
+              },
+            }
+          : {}),
         semanticSupport: true,
       };
     })
@@ -1849,13 +1976,29 @@ function normalizeComposedSupportReceipt(value, citationId) {
     status: 'passed',
     checkedClaims: checks.length,
     minimumScore: 1,
-    method: 'exact-source-claim-v1',
+    method: checks.every((check) => check.method === 'exact-source-claim-v1')
+      ? 'exact-source-claim-v1'
+      : 'curated-source-paraphrase-v1',
     construct: 'source-extraction-integrity',
+    sourceIdentityVerified: true,
+    semanticAdmissionVerified: true,
     semanticSupport: true,
+    artifactVisibilityVerified: false,
+    sourceSnapshot: {
+      protocol: 'retrieved-source-snapshot-sha256-v2',
+      sourceId: citationId,
+      retrievedSnapshotSha256: snapshotSha256,
+      retrievedSnapshotBytes: snapshotBytes,
+      normalizedSnapshotText: snapshotText,
+      contentVerified: false,
+      sourceIdentityVerified: true,
+      semanticAdmissionVerified: true,
+      artifactVisibilityVerified: false,
+    },
     // Rendered readiness can only be awarded later by the Office-byte binder.
     readinessEligible: false,
     claimBoundary:
-      'Exact claim identity is bound to an admitted source passage; rendered visibility is verified separately after Office export.',
+      'Each claim is bound to an admitted source passage by exact identity or a shipped curated paraphrase receipt; rendered visibility is verified separately after Office export.',
     checks,
   };
 }
@@ -1916,7 +2059,7 @@ export function lintKernelFact(fact, { exactSourceLedger = false } = {}) {
   const issues = [];
   const text = cleanText(fact);
   if (text.length < 20) issues.push('fact-too-short');
-  if (text.split(/\s+/).length > 24) issues.push('fact-too-long');
+  if (text.split(/\s+/).length > (exactSourceLedger ? 40 : 24)) issues.push('fact-too-long');
   if (/\b(?:a|an|and|as|at|by|for|from|in|of|on|or|the|to|with|[a-z])\s*[.!?]?$/i.test(text)) {
     issues.push('fact-incomplete');
   }
@@ -2001,6 +2144,7 @@ export function normalizeAbsorbedCourseLevel(courseLevel, payload) {
 export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = {}) {
   const parsed = expandKeys('enrichment', parseJsonObject(text));
   if (!parsed || !Array.isArray(parsed.lessons)) return null;
+  const preDraftInstructionalPlanReceiptSha256 = cleanText(prompt?.instructionalPlanReceiptSha256);
   const groundingText = JSON.stringify(prompt?.lessons || []);
   const itemPlan = Array.isArray(prompt?.itemPlan) ? prompt.itemPlan : buildQuizItemPlan();
   const chunkLessonIds = new Set(
@@ -2427,6 +2571,7 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
         ...(sourceProjectionLabel ? { projectionLabel: sourceProjectionLabel } : {}),
         provenance: {
           source: EXACT_SOURCE_LEDGER_PROVENANCE,
+          authority: cleanText(promptLesson?.sourceFactAuthority) || SOURCE_LEDGER_AUTHORITIES.MODEL_PROVISIONAL,
           copiedFactsVerbatim: true,
           factCount: facts.length,
         },
@@ -2480,9 +2625,21 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
       if (slideContent.length > 0) payload.slideContent = slideContent;
       else delete payload.slideContent;
     }
+    if (preDraftInstructionalPlanReceiptSha256) {
+      // The parser is the trusted envelope boundary: it binds accepted atoms
+      // to the exact approved plan that was present in this provider request.
+      // The model is not trusted to self-attest or invent this receipt.
+      payload.preDraftInstructionalPlanReceiptSha256 = preDraftInstructionalPlanReceiptSha256;
+    }
     lessons[lessonId] = payload;
   }
 
   if (Object.keys(lessons).length === 0) return null;
-  return { lessons, issues, repairs, courseLevel: parsed.courseLevel || null };
+  return {
+    lessons,
+    issues,
+    repairs,
+    courseLevel: parsed.courseLevel || null,
+    preDraftInstructionalPlanReceiptSha256: preDraftInstructionalPlanReceiptSha256 || null,
+  };
 }

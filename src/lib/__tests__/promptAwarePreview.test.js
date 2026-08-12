@@ -82,6 +82,15 @@ describe('prompt-aware setup previews', () => {
       'Community Data Storytelling Studio',
     );
     expect(repairGeneratedCourseTitle('Course', prompt)).toBe('Community Data Storytelling Studio');
+    expect(
+      repairGeneratedCourseTitle('INTRODUCTION TO T HE PRACTICE OF STATISTICS', 'Use the attached syllabus.'),
+    ).toBe('INTRODUCTION TO THE PRACTICE OF STATISTICS');
+    expect(
+      repairGeneratedCourseTitle(
+        '=== Instructor Notes ===',
+        '=== Instructor Notes ===\nBuild eight lessons.\n=== File: syllabus.pdf ===\nSTATISTICS: 1450 .01 (19952) INTRODUCTION TO T HE PRACTICE OF STATISTICS SPRING 2026 Course Overview',
+      ),
+    ).toBe('Introduction to the Practice of Statistics');
   });
 
   it('uses the active course in every built-in material preview', () => {

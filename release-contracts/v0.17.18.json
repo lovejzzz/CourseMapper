@@ -1,0 +1,93 @@
+{
+  "version": "0.17.18",
+  "date": "August 11, 2026",
+  "title": "Plan-First Coherent Draft",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": ["npm test", "npm run lint", "npm run build", "npm run bundle:check", "npm run audit:release-history"],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Remote exact-commit verification begins after this locally verified release is pushed."
+    },
+    "ciDeep": {
+      "status": "pending",
+      "note": "Broader multi-course and independent-instructor evaluation remains research evidence, not a claim of this release."
+    },
+    "deploy": {
+      "status": "pending",
+      "note": "Production deployment is downstream of the successful push and remote fast verification."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "A fresh representative package is bound by SHA-256 and render-audited locally; the live deployed build remains pending."
+    },
+    "manualHuman": {
+      "status": "pending",
+      "note": "No instructor, accessibility certification, or classroom validation is claimed."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01718-1",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "highlightSha256": "c776f24af0323a31a71c190b3975b643947221063d3e4e3413a6f74ae9784150",
+      "summary": "Instructional intent is prepared and admitted before package drafting.",
+      "anchors": [
+        "src/lib/prepareInstructionalPlan.js",
+        "src/lib/instructionalIntentGraph.js",
+        "src/lib/instructionalPlanGenerationAdmission.js"
+      ],
+      "proofCommands": ["npm test"],
+      "proofScopes": ["unit", "course-graph", "compiled-output"]
+    },
+    {
+      "id": "v01718-2",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "highlightSha256": "0ffd5c496f88307546993353340cabbbba2303811608b70bb5dced48c08b9310",
+      "summary": "Governing course materials, policies, workload, and grading survive source recovery and compilation.",
+      "anchors": [
+        "src/lib/nativeGraphAuthoring.js",
+        "src/lib/courseBlueprintCompiler.js",
+        "scripts/recompileCoursemapperProject.mjs"
+      ],
+      "proofCommands": ["npm test"],
+      "proofScopes": ["unit", "course-graph", "compiled-output"]
+    },
+    {
+      "id": "v01718-3",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "highlightSha256": "fa639ca3a11a30f58bf6dd952a4778b2eddf876bccaf9fe694dcbff2c61c05ba",
+      "summary": "Semantic claims and structural receipts are verified without treating one as the other.",
+      "anchors": [
+        "src/lib/semanticClaimInventory.js",
+        "src/lib/verifiedDraftCompilerContracts.js",
+        "src/lib/quality/deepQualityGrader.js"
+      ],
+      "proofCommands": ["npm test"],
+      "proofScopes": ["unit", "static-audit", "compiled-output"]
+    },
+    {
+      "id": "v01718-4",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "highlightSha256": "46451620c67cd53dde00a8948ff12f2587b57d448adea0b4be1df6667fd725c7",
+      "summary": "A fresh representative package passes export, render, and deterministic conformance checks.",
+      "anchors": [
+        "evaluation/release-proofs/v0.17.18-representative-export-audit.json",
+        "evaluation/release-proofs/v0.17.18-production-package-attestation.json",
+        "docs/V0.17.18_VERIFIED_COHERENT_DRAFT_CHECKPOINT.md"
+      ],
+      "proofCommands": ["npm test", "npm run build", "npm run bundle:check"],
+      "proofScopes": ["unit", "build", "compiled-output", "static-audit", "doc"]
+    }
+  ],
+  "boundaries": [
+    "This contract records a locally verified predeploy release; remote CI and deployment are still downstream facts.",
+    "A deterministic score, replay package, structural accessibility audit, or visual polish does not prove teaching quality.",
+    "The representative export is bounded evidence and does not prove universal course quality.",
+    "Remote CI, deployment, instructor review, accessibility certification, and classroom outcomes remain separate."
+  ]
+}

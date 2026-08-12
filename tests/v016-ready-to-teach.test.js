@@ -865,11 +865,12 @@ describe('B4 — the FAQ answers demand', () => {
 });
 
 describe('E — professional credibility tail', () => {
-  it('E2: testing accommodations are tied to exams in the accessibility policy', () => {
+  it('E2: unsupported accommodation rules stay behind a local verification boundary', () => {
     const { compiled } = compiledBig(['syllabus']);
     const syl = compiled.syllabus.syllabus ?? compiled.syllabus;
-    expect(syl.accommodations).toMatch(/testing accommodations/i);
-    expect(syl.accommodations).toMatch(/quiz, midterm, and final/i);
+    expect(syl.accommodations).toMatch(/Before publishing/i);
+    expect(syl.accommodations).toMatch(/institution-approved accessibility statement/i);
+    expect(syl.accommodations).not.toMatch(/quiz, midterm, and final|one week/i);
   });
 
   it('E4: Lesson 1 slides never reference "Last time"', () => {

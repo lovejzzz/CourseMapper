@@ -84,6 +84,9 @@ export function flattenRubric(rubric) {
 export function validateRubric(rubric) {
   const issues = [];
   if (rubric?.rubricVersion !== '1.0.0') issues.push('rubricVersion must identify the implemented 1.0.0 construct');
+  for (const field of ['coverageFormula', 'notApplicablePolicy', 'missingRatingPolicy']) {
+    if (!concreteText(rubric?.scoring?.[field], 80)) issues.push(`scoring.${field} must freeze the coverage policy`);
+  }
   const dimensions = rubric?.dimensions || [];
   const dimensionIds = new Set();
   const criterionIds = new Set();
@@ -422,7 +425,11 @@ function chosenEvidenceClass(validReviews) {
   return null;
 }
 
-export function aggregateQualityReviews(reviews, rubric, { benchmarkCase = null, bootstrapSamples = 1000 } = {}) {
+export function aggregateQualityReviews(
+  reviews,
+  rubric,
+  { benchmarkCase = null, bootstrapSamples = 1000, modelJudgeMode = 'single-identity' } = {},
+) {
   const criteria = flattenRubric(rubric);
   const reviewRows = (reviews || []).map((review) => ({
     review,
@@ -473,11 +480,28 @@ export function aggregateQualityReviews(reviews, rubric, { benchmarkCase = null,
       });
     }
   }
-  if (evidenceClass === 'model-judge' && selectedModelJudgeIdentities.size !== 1) {
-    aggregateIssues.push('model-judge scorecard requires one exact model, revision, and prompt identity');
+  if (
+    evidenceClass === 'model-judge' &&
+    modelJudgeMode === 'single-identity' &&
+    selectedModelJudgeIdentities.size !== 1
+  ) {
+    aggregateIssues.push(
+      'single-identity model-judge scorecard requires one exact model, revision, and prompt identity',
+    );
+  }
+  if (
+    evidenceClass === 'model-judge' &&
+    modelJudgeMode === 'independent-multi-model' &&
+    selectedModelJudgeIdentities.size < 2
+  ) {
+    aggregateIssues.push('independent multi-model scorecard requires at least two distinct model identities');
+  }
+  if (!['single-identity', 'independent-multi-model'].includes(modelJudgeMode)) {
+    aggregateIssues.push(`unsupported model-judge aggregation mode: ${modelJudgeMode}`);
   }
   const selectedModelJudgeIdentity =
     selectedModelJudgeIdentities.size === 1 ? [...selectedModelJudgeIdentities.values()][0] : null;
+  const modelJudgeIdentities = [...selectedModelJudgeIdentities.values()];
   const dimensions = [];
   let scoredWeight = 0;
   let applicableWeight = 0;
@@ -540,8 +564,23 @@ export function aggregateQualityReviews(reviews, rubric, { benchmarkCase = null,
   const uncappedProfileScore = profileWeight
     ? scorableDimensions.reduce((sum, dimension) => sum + dimension.score * dimension.weight, 0) / profileWeight
     : null;
-  const coverage = applicableWeight ? scoredWeight / applicableWeight : 0;
-  const criticalCoverage = criticalApplicableWeight ? criticalScoredWeight / criticalApplicableWeight : 0;
+  const coveredDimensions = dimensions.filter((dimension) => Number.isFinite(dimension.coverage));
+  const coveredDimensionWeight = coveredDimensions.reduce((sum, dimension) => sum + Number(dimension.weight), 0);
+  const coverage = coveredDimensionWeight
+    ? coveredDimensions.reduce((sum, dimension) => sum + Number(dimension.coverage) * Number(dimension.weight), 0) /
+      coveredDimensionWeight
+    : 0;
+  const coveredCriticalDimensions = coveredDimensions.filter((dimension) => dimension.critical);
+  const coveredCriticalDimensionWeight = coveredCriticalDimensions.reduce(
+    (sum, dimension) => sum + Number(dimension.weight),
+    0,
+  );
+  const criticalCoverage = coveredCriticalDimensionWeight
+    ? coveredCriticalDimensions.reduce(
+        (sum, dimension) => sum + Number(dimension.coverage) * Number(dimension.weight),
+        0,
+      ) / coveredCriticalDimensionWeight
+    : 0;
   const reliability = bootstrapOrdinalReliability(ratingUnits, {
     samples: bootstrapSamples,
     seed: `${benchmarkCase?.id || reviews?.[0]?.caseId || 'case'}:ordinal-alpha`,
@@ -556,26 +595,31 @@ export function aggregateQualityReviews(reviews, rubric, { benchmarkCase = null,
     Number.isFinite(reliability.alpha) &&
     reliability.alpha >= rubric.scoring.minimumKrippendorffAlpha;
   const perReviewerCoverage = selectedRows.map((row) => {
-    let reviewApplicableWeight = 0;
-    let reviewScoredWeight = 0;
-    let reviewCriticalApplicableWeight = 0;
-    let reviewCriticalScoredWeight = 0;
-    for (const criterion of criteria) {
-      const rating = row.review.ratings?.[criterion.id];
-      if (rating?.state === 'not-applicable') continue;
-      reviewApplicableWeight += criterion.normalizedWeight;
-      if (criterion.dimensionCritical) reviewCriticalApplicableWeight += criterion.normalizedWeight;
-      if (rating?.state === 'scored') {
-        reviewScoredWeight += criterion.normalizedWeight;
-        if (criterion.dimensionCritical) reviewCriticalScoredWeight += criterion.normalizedWeight;
-      }
-    }
+    const reviewDimensions = (rubric.dimensions || []).map((dimension) => {
+      const localCriteria = criteria.filter((criterion) => criterion.dimensionId === dimension.id);
+      const applicable = localCriteria.filter(
+        (criterion) => row.review.ratings?.[criterion.id]?.state !== 'not-applicable',
+      );
+      const scored = applicable.filter((criterion) => row.review.ratings?.[criterion.id]?.state === 'scored');
+      const localApplicableWeight = applicable.reduce((sum, criterion) => sum + criterion.normalizedWeight, 0);
+      const localScoredWeight = scored.reduce((sum, criterion) => sum + criterion.normalizedWeight, 0);
+      return {
+        weight: Number(dimension.weight),
+        critical: dimension.critical === true,
+        coverage: localApplicableWeight ? localScoredWeight / localApplicableWeight : null,
+      };
+    });
+    const weightedCoverage = (rows) => {
+      const applicableRows = rows.filter((dimension) => Number.isFinite(dimension.coverage));
+      const weight = applicableRows.reduce((sum, dimension) => sum + dimension.weight, 0);
+      return weight
+        ? applicableRows.reduce((sum, dimension) => sum + dimension.coverage * dimension.weight, 0) / weight
+        : 0;
+    };
     return {
       evaluatorId: row.review.evaluator.id,
-      coverage: round(reviewApplicableWeight ? reviewScoredWeight / reviewApplicableWeight : 0),
-      criticalCoverage: round(
-        reviewCriticalApplicableWeight ? reviewCriticalScoredWeight / reviewCriticalApplicableWeight : 0,
-      ),
+      coverage: round(weightedCoverage(reviewDimensions)),
+      criticalCoverage: round(weightedCoverage(reviewDimensions.filter((dimension) => dimension.critical))),
     };
   });
   const applicabilityDisagreementCount = criterionResults.filter(
@@ -589,6 +633,15 @@ export function aggregateQualityReviews(reviews, rubric, { benchmarkCase = null,
         row.criticalCoverage >= rubric.scoring.minimumCoverageForValidatedBand,
     ) &&
     applicabilityDisagreementCount === 0;
+  const modelPanelPass =
+    evidenceClass === 'model-judge' &&
+    (modelJudgeMode === 'single-identity'
+      ? selectedRows.length > 0 && selectedModelJudgeIdentities.size === 1
+      : selectedRows.length >= 2 &&
+        selectedModelJudgeIdentities.size >= 2 &&
+        selectedRows.every(
+          (row) => row.review.evaluator.independent === true && row.review.evaluator.conflictOfInterest === false,
+        ));
 
   let validationTier = 'unscored';
   if (evidenceClass === 'deterministic') validationTier = 'automated-signal';
@@ -675,7 +728,10 @@ export function aggregateQualityReviews(reviews, rubric, { benchmarkCase = null,
       uniqueQualifiedReviewerCount: uniqueQualifiedReviewers,
       reliabilityPass,
       independentCoveragePass,
+      modelJudgeMode,
+      modelPanelPass,
       modelJudgeIdentity: selectedModelJudgeIdentity,
+      modelJudgeIdentities,
       applicabilityDisagreementCount,
       perReviewerCoverage,
       reliability,
@@ -687,6 +743,19 @@ export function aggregateQualityReviews(reviews, rubric, { benchmarkCase = null,
       band,
       coverage: round(coverage),
       criticalCoverage: round(criticalCoverage),
+      coveragePolicy: {
+        protocol: 'nested-dimension-weighted-applicable-coverage-v1',
+        numerator: 'dimension-weighted mean of within-dimension scored/applicable criterion-weight ratios',
+        denominator: 'sum of weights for dimensions with at least one applicable criterion',
+        notApplicableRule: 'exclude only when every selected reviewer marks not-applicable',
+        missingRatingRule: 'not-evaluated, insufficient-evidence, and missing remain applicable and unscored',
+        coveredDimensionWeight: round(coveredDimensionWeight, 6),
+        coveredCriticalDimensionWeight: round(coveredCriticalDimensionWeight, 6),
+        scoredWeight: round(scoredWeight, 6),
+        applicableWeight: round(applicableWeight, 6),
+        criticalScoredWeight: round(criticalScoredWeight, 6),
+        criticalApplicableWeight: round(criticalApplicableWeight, 6),
+      },
       perfectScoreEligible,
       caps,
     },

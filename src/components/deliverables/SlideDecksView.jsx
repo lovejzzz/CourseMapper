@@ -68,18 +68,18 @@ const SLIDE_THEMES = [
   {
     name: 'Navy & Gold',
     primary: '#1E3A5F',
-    secondary: '#2E86AB',
+    secondary: '#246B8A',
     accent: '#F6C90E',
     light: '#EEF4FF',
     sidebar: '#1E3A5F',
     titleText: '#FFFFFF',
     bodyText: '#1A1A2E',
-    subtleText: '#6B7FA3',
+    subtleText: '#566987',
   },
   {
     name: 'Forest & Amber',
     primary: '#1B4332',
-    secondary: '#52B788',
+    secondary: '#2F7A56',
     accent: '#F4A261',
     light: '#F0FFF4',
     sidebar: '#1B4332',
@@ -118,14 +118,14 @@ const SLIDE_THEMES = [
     sidebar: '#0C3547',
     titleText: '#FFFFFF',
     bodyText: '#0A1628',
-    subtleText: '#2196F3',
+    subtleText: '#0B6AA2',
   },
 ];
 
 // ─── SVG decorative elements for slides ───
 function SlideDecor({ type, theme }) {
   const p = theme?.primary || '#1E3A5F';
-  const s = theme?.secondary || '#2E86AB';
+  const s = theme?.secondary || '#246B8A';
   const a = theme?.accent || '#F6C90E';
   const l = theme?.light || '#EEF4FF';
 

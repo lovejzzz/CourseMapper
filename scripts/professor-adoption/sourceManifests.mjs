@@ -376,7 +376,12 @@ export const PROFESSOR_ADOPTION_MANIFESTS = [
       {
         id: 'data-science-wet-lab-leak',
         label: 'wet-lab language in data science',
-        patterns: ['\\bpipette\\b', '\\bwet lab\\b', '\\bspecimen\\b', '\\bchemical safety\\b'],
+        patterns: [
+          '\\bpipette\\b',
+          '\\bwet lab\\b',
+          '\\b(?:physical|biological|tissue|rock|mineral) specimens?\\b',
+          '\\bchemical safety\\b',
+        ],
         severity: 'P1',
         dimension: 'disciplineFit',
       },

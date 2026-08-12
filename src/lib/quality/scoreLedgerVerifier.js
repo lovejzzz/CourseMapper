@@ -101,7 +101,28 @@ function verifyDeterministicRuleContract(rules) {
       !sameJson(rule.predicate?.actual, replay.predicateActual) ||
       rule.antiGaming?.inputFingerprint !== replay.antiGamingInputFingerprint
     ) {
-      return invalid(`${contract.ruleId} status, points, predicate, or polarity cannot be replayed`);
+      return invalid(
+        `${contract.ruleId} status, points, predicate, or polarity cannot be replayed: ${JSON.stringify({
+          stored: {
+            status: rule.status,
+            evidencePolarity: rule.evidencePolarity,
+            points: rule.points,
+            predicate: rule.predicate,
+            inputFingerprint: rule.antiGaming?.inputFingerprint,
+          },
+          replayed: {
+            status: replay.status,
+            evidencePolarity: replay.evidencePolarity,
+            points: replay.points,
+            predicate: {
+              operator: replay.predicateOperator,
+              expected: replay.predicateExpected,
+              actual: replay.predicateActual,
+            },
+            inputFingerprint: replay.antiGamingInputFingerprint,
+          },
+        })}`,
+      );
     }
     for (const evidence of rule.evidence || []) {
       if (evidence.inputFingerprint !== replay.evidenceInputFingerprints[evidence.evidenceId]) {

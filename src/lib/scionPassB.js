@@ -13,6 +13,7 @@ import {
   scionFactCountForPrompt,
   scionPromptUsesSourceLedger,
 } from './scionEvidenceContract';
+import { SOURCE_LEDGER_AUTHORITIES } from './sourceLedgerProvenance';
 import { applyScionKernelPasses } from './scionPasses';
 import { postFlywheelEvents } from './scionFlywheel';
 import { assessProjectedKernelCoverage } from './blueprintEnrichmentPass';
@@ -130,6 +131,7 @@ function buildGroundedAdapterLesson(lesson, facts) {
   const adapterLesson = {
     lessonId: lesson.lessonId,
     sourceFactPolicy: 'numbered-source-ledger-v1',
+    sourceFactAuthority: lesson?.sourceFactAuthority || SOURCE_LEDGER_AUTHORITIES.MODEL_PROVISIONAL,
     title: String(lesson.title || ''),
     objectives: GROUNDED_ADAPTER_OBJECTIVE,
     topics: facts.map((fact, index) => `Claim ${index}: ${fact}`).join(' '),

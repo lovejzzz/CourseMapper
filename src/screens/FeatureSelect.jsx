@@ -572,11 +572,21 @@ export default function FeatureSelect({
   const selectedCount = selected.length;
   const selectedMaterialCount = Math.max(0, selectedCount - 1);
 
-  // Build ordered list:
-  // - No syllabus file: syllabus appears right after courseMap (position 2)
-  // - Has syllabus file: syllabus is hidden entirely
+  // An uploaded syllabus is governing source material, not a replacement for the
+  // aligned syllabus artifact in the generated package. Keep the output visible
+  // and selectable in both flows; clarify its source-backed role when applicable.
   const visibleFeatures = (() => {
-    const base = hasSyllabusFile ? FEATURES.filter((f) => f.id !== 'syllabus') : FEATURES;
+    const base = hasSyllabusFile
+      ? FEATURES.map((feature) =>
+          feature.id === 'syllabus'
+            ? {
+                ...feature,
+                description:
+                  'Editable, aligned syllabus derived from the attached governing source, with policies, grading, schedule, and outcomes.',
+              }
+            : feature,
+        )
+      : FEATURES;
     return [...base, ...customFeatures];
   })();
   const baseFeature = visibleFeatures.find((feature) => feature.id === 'courseMap');

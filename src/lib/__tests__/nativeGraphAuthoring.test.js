@@ -159,6 +159,59 @@ describe('source-grounded native authoring backfill', () => {
     expect(authored['lesson-1'].syncActivities[0]).toContain('using evidence about Labels');
   });
 
+  it('backfills the instructional spine from an exact ledger when no safe glossary term exists', () => {
+    const exactLedger = {
+      sourceFactAuthority: 'admitted-evidence-authority',
+      conceptProvenance: { source: 'evidence-authority-replay', fullyAnchored: true },
+      keyTerms: [],
+      kernel: {
+        facts: [
+          'Waunana imperative forms record an appeal to the addressee to perform a future action.',
+          'English minimal sets contrast word-initial consonants across otherwise comparable forms.',
+          'A bounded language-data analysis separates the observed form from a wider typological claim.',
+        ],
+        provenance: {
+          source: 'compiler-owned-exact-source-ledger',
+          authority: 'admitted-evidence-authority',
+          copiedFactsVerbatim: true,
+          factCount: 3,
+        },
+      },
+    };
+    const authored = backfillNativeAuthoringFromLessonContent({
+      skeleton: {
+        sessions: [
+          {
+            id: 's11',
+            order: 11,
+            title: 'Authentic Data Application',
+            sectionTitles: ['Data Set Selection'],
+          },
+        ],
+      },
+      lessonContent: { 'lesson-11': exactLedger },
+    });
+
+    expect(authored['lesson-11'].goal).toMatch(/Data Set Selection|Waunana imperative forms/i);
+    expect(authored['lesson-11'].outcomes).toHaveLength(3);
+    expect(JSON.stringify(authored['lesson-11'])).not.toContain('undefined');
+  });
+
+  it('varies source-grounded objectives and activities across a long course', () => {
+    const sessions = Array.from({ length: 8 }, (_, index) => ({
+      id: `s${index + 1}`,
+      order: index + 1,
+      title: `Evidence lesson ${index + 1}`,
+      sectionTitles: [`Evidence lesson ${index + 1}`],
+    }));
+    const lessonContent = Object.fromEntries(sessions.map((_, index) => [`lesson-${index + 1}`, anchoredKernel]));
+    const authored = backfillNativeAuthoringFromLessonContent({ skeleton: { sessions }, lessonContent });
+
+    expect(new Set(Object.values(authored).map((entry) => entry.outcomes[1])).size).toBe(8);
+    expect(new Set(Object.values(authored).map((entry) => entry.asyncActivities[0])).size).toBe(8);
+    expect(Object.values(authored)[0].outcomes[1]).toContain('Apply Labels in one practical example');
+  });
+
   it('composes determiner-led lesson titles without article collisions', () => {
     const authored = backfillNativeAuthoringFromLessonContent({
       skeleton: {
@@ -182,6 +235,24 @@ describe('source-grounded native authoring backfill', () => {
       'one practical example from The pandas workflow for public datasets',
     );
     expect(JSON.stringify(authored)).not.toMatch(/\ba practical the\b/i);
+
+    const thirdStructure = backfillNativeAuthoringFromLessonContent({
+      skeleton: {
+        sessions: Array.from({ length: 3 }, (_, index) => ({
+          id: `s${index + 1}`,
+          order: index + 1,
+          title: 'The Normal Distribution',
+          sectionTitles: ['The Normal Distribution'],
+        })),
+      },
+      lessonContent: {
+        'lesson-1': anchoredKernel,
+        'lesson-2': anchoredKernel,
+        'lesson-3': anchoredKernel,
+      },
+    });
+    expect(thirdStructure['lesson-3'].syncActivities[0]).toContain('Test a case from The Normal Distribution');
+    expect(JSON.stringify(thirdStructure)).not.toMatch(/\b(?:a|an) the\b/i);
   });
 
   it('preserves existing authored fields and refuses thin or unverified kernels', () => {
@@ -298,6 +369,35 @@ describe('nativeGraphAuthoring matchEntityIds', () => {
       license: 'open access',
     });
     expect(matched.sessions[0].sections[0].resourceRefs).toContain('kr1');
+  });
+
+  it('preserves the evidence and planning transaction when the generated display map is re-derived', () => {
+    const oldGraph = deriveCourseGraphFromCourseMap(sourceBackedMap());
+    oldGraph.authenticLanguageData = { protocol: 'authentic-language-data-v1', specimens: [{ id: 'specimen-1' }] };
+    oldGraph.authenticLanguageDataCoverage = { protocol: 'authentic-language-data-coverage-v1', admitted: 1 };
+    oldGraph.preDraftInstructionalPlan = { receipt: { exactInputSha256: 'a'.repeat(64) } };
+    oldGraph.evidenceGroundedInstructionalPlan = { receipt: { exactInputSha256: 'b'.repeat(64) } };
+    oldGraph.governingSourceContract = { receiptSha256: 'c'.repeat(64) };
+    oldGraph.instructionalIntentGraph = { receipt: { exactInputSha256: 'd'.repeat(64) } };
+    oldGraph.instructionalPlanLineage = { status: 'draft-authorized', evidenceSetSha256: 'c'.repeat(64) };
+
+    const rederived = deriveCourseGraphFromCourseMap(
+      renderCourseMapFromGraph(oldGraph, { assessmentReferences: true }),
+    );
+    const matched = matchEntityIds(oldGraph, rederived);
+    const sourcePreserved = preserveSourceProof(oldGraph, rederived);
+
+    for (const graph of [matched, sourcePreserved]) {
+      expect(graph).toMatchObject({
+        authenticLanguageData: oldGraph.authenticLanguageData,
+        authenticLanguageDataCoverage: oldGraph.authenticLanguageDataCoverage,
+        preDraftInstructionalPlan: oldGraph.preDraftInstructionalPlan,
+        evidenceGroundedInstructionalPlan: oldGraph.evidenceGroundedInstructionalPlan,
+        governingSourceContract: oldGraph.governingSourceContract,
+        instructionalIntentGraph: oldGraph.instructionalIntentGraph,
+        instructionalPlanLineage: oldGraph.instructionalPlanLineage,
+      });
+    }
   });
 
   it('preserves unmatched source-backed resources when a later map repair drops the rendered citation', () => {
@@ -551,6 +651,49 @@ describe('nativeGraphAuthoring matchEntityIds', () => {
 });
 
 describe('completeNativeKernelSurfaces', () => {
+  it('uses a bounded calculation record instead of an essay fallback for an operation-qualified lesson', () => {
+    const completed = completeNativeKernelSurfaces(
+      {
+        keyTerms: [
+          {
+            term: 'Five-number summary',
+            definition:
+              'A five-number summary records the minimum, first quartile, median, third quartile, and maximum.',
+            example: 'For eight ordered values, record all five landmarks before interpreting spread.',
+            misconception: 'The five values are interchangeable with the original observations.',
+            correction: 'Keep the original observations and show how each landmark was obtained.',
+          },
+        ],
+        kernel: {
+          facts: [
+            'A five-number summary records the minimum, first quartile, median, third quartile, and maximum.',
+            'The median separates the ordered observations into lower and upper halves.',
+            'The interquartile range is the difference between the third and first quartiles.',
+          ],
+          scenario: {
+            setup: 'A learner recomputes the summary for eight supplied values and checks one unusual value.',
+            materials: 'the eight supplied values and the checked summary record',
+          },
+        },
+      },
+      {
+        lessonNumber: 2,
+        title: 'Lesson 2: Describing Distributions Numerically',
+        sections: [
+          {
+            topicSection: 'Describing distributions with numbers',
+            learningObjectives: 'Summarize center and spread and interpret an unusual value.',
+            weeklyAssessments: 'Eight-value summary check',
+          },
+        ],
+      },
+    );
+
+    expect(completed.assignmentCore.parameters.join(' ')).toMatch(/replayable calculation record/i);
+    expect(completed.assignmentCore.parameters.join(' ')).toMatch(/150–250-word interpretation/i);
+    expect(completed.assignmentCore.parameters.join(' ')).not.toMatch(/750–1,250 words/i);
+  });
+
   it.each(['algi-researched', 'scion-source-researched'])(
     'retains source-researched facts whose topical receipt already passed admission (%s)',
     (enrichmentSource) => {
@@ -972,6 +1115,7 @@ describe('completeNativeKernelSurfaces', () => {
         ],
         provenance: {
           source: 'compiler-owned-exact-source-ledger',
+          authority: 'verified-open-research',
           copiedFactsVerbatim: true,
           factCount: 3,
         },
@@ -994,6 +1138,36 @@ describe('completeNativeKernelSurfaces', () => {
 
     expect(mergeNativePartialOverlays(lessonContent, partialOverlays, mergeLessonPayloads)).toEqual([]);
     expect(lessonContent['lesson-4']).toBe(exactLedger);
+  });
+
+  it('does not mistake a verbatim model draft for authoritative source evidence', () => {
+    const provisional = {
+      enrichmentSource: 'compiler-owned-exact-source-ledger',
+      kernel: {
+        facts: [
+          'A model-authored statement may be copied exactly without becoming externally verified.',
+          'Copy integrity and disciplinary correctness are different review claims.',
+          'A cited partial can improve an otherwise provisional lesson ledger.',
+        ],
+        provenance: {
+          source: 'compiler-owned-exact-source-ledger',
+          authority: 'model-provisional',
+          copiedFactsVerbatim: true,
+          factCount: 3,
+        },
+      },
+    };
+    const lessonContent = { 'lesson-1': provisional };
+    const partialOverlays = {
+      'lesson-1': {
+        enrichmentSource: 'genome-linked',
+        kernel: { facts: ['A verified source statement remains available for source-aware merging.'] },
+        conceptProvenance: { source: 'genome-linked', citations: [{ sourceUrl: 'https://example.test/source' }] },
+      },
+    };
+
+    expect(mergeNativePartialOverlays(lessonContent, partialOverlays, mergeLessonPayloads)).toEqual(['lesson-1']);
+    expect(lessonContent['lesson-1']).not.toBe(provisional);
   });
 
   it('keeps fact-ledger misconception feedback lesson-specific across a full course', () => {

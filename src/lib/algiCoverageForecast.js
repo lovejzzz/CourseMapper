@@ -1,5 +1,6 @@
 import { extractCourseName, planSessionTopics } from './algiComposer.js';
 import { composeAlgiLessonKernels } from './algiKernelComposer.js';
+import { detectExpectedLessons } from './detectLessons.js';
 import { extractExplicitLessonSequence } from './explicitLessonSequence.js';
 import { planAlgiCourseResearch, summarizeAlgiResearchPlan } from './knowledge/algiResearchPlan.js';
 
@@ -36,6 +37,8 @@ function clampSessions(value) {
  */
 export function estimateAlgiSessionCount(source = '') {
   const text = String(source || '');
+  const sharedScope = clampSessions(detectExpectedLessons(text).expected);
+  if (sharedScope) return sharedScope;
   const stated =
     /\b(?:exactly|around|about)\s+(\d{1,2})\s+(?:weeks?|lessons?|sessions?|modules?|units?)\b/i.exec(text)?.[1] ||
     /\b(\d{1,2})[-\s](?:week|lesson|session|module|unit)\b/i.exec(text)?.[1];

@@ -35,10 +35,18 @@
  */
 
 import { admitKernel } from '../genome/foundryAdmission';
-import { attachKernelEntailmentReceipt } from './claimEntailment.js';
-import { providerQueryForLesson, providerQueryVariantsForLesson, providerSupportsLesson } from './algiResearchPlan.js';
+import { attachKernelEntailmentReceipt, isStandaloneSourceClaim } from './claimEntailment.js';
+import {
+  providerQueryForLesson,
+  providerQueryVariantsForLesson,
+  providerSupportsLesson,
+  stripResearchCurricularLocator,
+} from './algiResearchPlan.js';
 import { isCourseAwareWeakSource } from './sourceLedger.js';
-import { buildCompilerSourceBoundaryCorrection } from '../compilerSourceBoundaryCorrection.js';
+import {
+  buildCompilerSourceBoundaryCorrection,
+  buildCompilerSourceBoundaryMisconception,
+} from '../compilerSourceBoundaryCorrection.js';
 
 export const RESEARCH_ORIGIN = 'algi-research';
 
@@ -189,11 +197,23 @@ function stem(token) {
   if (/^waterborne/.test(normalized)) return 'water';
   if (/^automat(?:e|ed|es|ing|ion|ions)?$/.test(normalized)) return 'automat';
   if (/^visuali[sz](?:ation|ations|e|ed|es|ing)$/.test(normalized)) return 'visualization';
+  if (/^describ(?:e|ed|es|ing)?$/.test(normalized) || /^descriptiv(?:e|ely|eness)?$/.test(normalized)) {
+    return 'describ';
+  }
   if (/^reproducib/.test(normalized)) return 'reproduc';
   if (/^reproduc(?:e|es|ed|ing)$/.test(normalized)) return 'reproduce';
   if (/^(?:bio|phyto|myco)remediation$/.test(normalized)) return normalized;
   if (/^remediation$/.test(normalized)) return 'remediation';
   if (/^govern(?:ance|ed|ing|ment|ments|s)?$/.test(normalized)) return 'govern';
+  // Curricula often name an abstract practice with an adjective or noun while
+  // source catalogs use the neighbouring form. Keep these ordinary academic
+  // families aligned so “ethical contextual interpretation” can recognize a
+  // source that says “ethics”, “context”, or “interpretive” without teaching a
+  // model-authored synonym. The source still has to clear title/definition,
+  // domain, passage, and claim-admission gates.
+  if (/^ethic(?:al|ally|s)?$/.test(normalized)) return 'ethic';
+  if (/^context(?:ual|ually|ualism|ualist|ualized|ualization|s)?$/.test(normalized)) return 'context';
+  if (/^interpret(?:ation|ations|ative|atively|ive|ively|ed|ing|s)?$/.test(normalized)) return 'interpret';
   return normalized
     .replace(/(?:ies)$/, 'y')
     .replace(/(?:sses|shes|ches|xes)$/, '')
@@ -202,13 +222,19 @@ function stem(token) {
 }
 
 export function contentTokens(text = '') {
-  return String(text)
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, ' ')
-    .split(/\s+/)
-    .filter((token) => token.length >= 3 && !STOPWORDS.has(token))
-    .map(stem)
-    .filter((token) => token.length >= 3);
+  return (
+    String(text)
+      .toLowerCase()
+      // Encyclopedia titles use both “scatterplot” and “scatter plot”. Treat
+      // the typography as one concept so a canonical source is not rejected
+      // after retrieval merely because the instructor chose the fused form.
+      .replace(/\bscatter\s+plots?\b/g, 'scatterplot')
+      .replace(/[^a-z0-9\s-]/g, ' ')
+      .split(/\s+/)
+      .filter((token) => token.length >= 3 && !STOPWORDS.has(token))
+      .map(stem)
+      .filter((token) => token.length >= 3)
+  );
 }
 
 /**
@@ -220,10 +246,10 @@ export function contentTokens(text = '') {
  */
 export function researchQueryForTopic(topic = '', courseContext = '') {
   const clauses = String(topic)
-    .split(/\s+(?:and|&)\s+/i)
+    .split(/\s+(?:and|&)\s+|\s*[·|]\s*/i)
     .map((clause) => clause.replace(/"/g, '').trim())
     .filter(Boolean);
-  if (clauses.length !== 2 || clauses.some((clause) => contentTokens(clause).length === 0)) return String(topic);
+  if (clauses.length < 2 || clauses.some((clause) => contentTokens(clause).length === 0)) return String(topic);
   const domainToken = contentTokens(courseContext)[0] || '';
   const alternatives = clauses.map((clause) => `"${clause}"`).join(' OR ');
   return domainToken ? `${domainToken} (${alternatives})` : alternatives;
@@ -255,7 +281,7 @@ function coarseDomainTitleQualifiers(courseContext = '') {
  * can find Qubit and Quantum state without paying for two search requests.
  */
 export function directResearchTitles(topic = '', courseContext = '') {
-  const normalized = String(topic)
+  const normalized = stripResearchCurricularLocator(topic)
     .replace(/^(?:an?\s+)?(?:introduction|overview|foundations?|fundamentals?)\s+(?:to|of)\s+/i, '')
     .trim();
   if (!normalized) return [];
@@ -264,10 +290,27 @@ export function directResearchTitles(topic = '', courseContext = '') {
     '',
   );
   const clauses = normalized
-    .split(/\s+(?:and|&)\s+/i)
+    .split(/\s+(?:and|&)\s+|\s*[·|]\s*/i)
     .map((clause) => clause.trim())
     .filter((clause) => contentTokens(clause).length > 0);
   const normalizedWords = normalized.split(/\s+/).filter(Boolean);
+  // Section labels often append an authoring action to a canonical concept:
+  // “Rule of Thirds Application”, “Focal Point Identification”, or “Linear
+  // Perspective Systems”. Keep the original label, but also offer the concept
+  // core as an exact-title candidate. This is morphology, not a course/page
+  // mapping; returned pages still pass the ordinary relevance and claim gates.
+  const conceptCorePhrases = clauses
+    .map((clause) => {
+      const words = clause.split(/\s+/).filter(Boolean);
+      if (words.length < 2) return '';
+      return clause
+        .replace(
+          /\s+(?:applications?|identification|implementations?|methods?|models?|process(?:es)?|systems?|structures?|dynamics|elements?|techniques?|frameworks?|strategies?)$/i,
+          '',
+        )
+        .trim();
+    })
+    .filter((phrase) => phrase && contentTokens(phrase).length > 0);
   // Three-plus-word pedagogical labels often wrap a canonical concept:
   // “microbial risk assessment” should try both “risk assessment” and
   // “microbial risk” in the same exact-title batch before spending a search.
@@ -280,7 +323,9 @@ export function directResearchTitles(topic = '', courseContext = '') {
   // Coarse domain qualifiers are derived from the course context and applied
   // uniformly to every noun phrase; search and relevance gates still decide
   // which candidate survives.
-  const canonicalPhrases = [...new Set([...clauses, ...phraseWindows].map(singularizeTitlePhrase).filter(Boolean))];
+  const canonicalPhrases = [
+    ...new Set([...clauses, ...conceptCorePhrases, ...phraseWindows].map(singularizeTitlePhrase).filter(Boolean)),
+  ];
   const domainQualifiedTitles = [
     ...canonicalPhrases,
     ...canonicalPhrases.flatMap((phrase) =>
@@ -295,6 +340,23 @@ export function directResearchTitles(topic = '', courseContext = '') {
     normalizedWords.length === 2 && /^pathogens?$/i.test(normalizedWords[1])
       ? [`${normalizedWords[0]} disease`, `${normalizedWords[0]} diseases`]
       : [];
+  // Convert a distinguishing abstract concept into a domain headword without
+  // mapping any course to a particular page. Encyclopedia catalogs commonly
+  // title this family as “Business ethics”, “Visual ethics”, or “Medical
+  // ethics”, while an instructor writes “ethical decision-making”. The course
+  // supplies the domain and morphology supplies the noun; retrieval,
+  // relevance, exact-source admission, and lesson-intent checks still decide
+  // whether any returned page is usable.
+  const domainHeadwordTitles = (() => {
+    const domain = String(courseContext || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, ' ')
+      .split(/\s+/)
+      .find((token) => token.length >= 3 && !STOPWORDS.has(token));
+    const topicTokens = contentTokens(normalized);
+    if (!domain || !topicTokens.includes('ethic')) return [];
+    return [`${domain.charAt(0).toUpperCase()}${domain.slice(1)} ethics`];
+  })();
   // Canonical concept families for topics whose encyclopedia page naturally
   // teaches through named sub-concepts. These are title lookups in the same
   // batched request, not hard-coded facts: every returned page still has to
@@ -311,6 +373,42 @@ export function directResearchTitles(topic = '', courseContext = '') {
       /\b(?:database systems?|database management|relational databases?|\bsql\b|data management systems?)\b/i.test(
         courseContext,
       );
+    const visualHumanitiesCourse =
+      /\b(?:art history|composition|color theory|colour theory|graphic design|image analysis|photograph\w*|visual analysis|visual arts?|visual communication|visual evidence|visual hierarchy)\b/i.test(
+        courseContext,
+      );
+    const statisticsCourse =
+      /\b(?:applied statistics|biostatistics|data analysis|descriptive statistics|introductory statistics|probability and statistics|quantitative methods?|statistics|statistical methods?)\b/i.test(
+        courseContext,
+      );
+    if (
+      statisticsCourse &&
+      /\b(?:describ(?:e|ing) distributions? with numbers?|numerical summaries|summary statistics)\b/i.test(baseTopic)
+    ) {
+      return [
+        'Descriptive statistics',
+        'Summary statistics',
+        'Central tendency',
+        'Statistical dispersion',
+        'Five-number summary',
+      ];
+    }
+    if (
+      statisticsCourse &&
+      /\bscatter\s*plots?\b/i.test(baseTopic) &&
+      /\b(?:association|correlation|relationship)\b/i.test(baseTopic)
+    ) {
+      return ['Scatter plot', 'Correlation', 'Correlation and dependence', 'Pearson correlation coefficient'];
+    }
+    if (statisticsCourse && /\btwo[- ]way tables?\b|\bcross[- ]tabulations?\b/i.test(baseTopic)) {
+      return ['Contingency table', 'Categorical variable', 'Conditional probability'];
+    }
+    if (
+      visualHumanitiesCourse &&
+      /\b(?:attribution|copyright|licen[cs]e|open content|public domain|source rights)\b/i.test(baseTopic)
+    ) {
+      return ['Attribution (copyright)', 'Creative Commons license', 'Copyright', 'Public domain'];
+    }
     if (oralHistoryCourse && /\b(?:foundations?|defining|scope)\b/i.test(baseTopic)) {
       return ['Oral history', 'Public history', 'Oral tradition', 'Archival science'];
     }
@@ -525,13 +623,15 @@ export function directResearchTitles(topic = '', courseContext = '') {
   const named = [
     normalized,
     ...(baseTopic !== normalized ? [baseTopic] : []),
+    ...domainHeadwordTitles,
     // Explicit course-aware source families are more reliable than fragments
     // extracted from pedagogical titles. Keep them ahead of generic clauses
     // and phrase windows so the eight-title request budget cannot be consumed
     // by ambiguous candidates such as "Integrity" before "Data integrity".
     ...conceptFamilyTitles,
+    ...conceptCorePhrases,
     ...domainQualifiedTitles,
-    ...(clauses.length === 2 ? clauses : []),
+    ...clauses,
     ...phraseWindows,
     ...pathogenOutcomeAliases,
   ];
@@ -542,6 +642,24 @@ export function directResearchTitles(topic = '', courseContext = '') {
         .map((clause) => `${domain.charAt(0).toUpperCase()}${domain.slice(1)} ${clause}`)
     : [];
   return [...new Set([...named, ...qualified])].slice(0, 8);
+}
+
+/**
+ * MediaWiki titles are case-sensitive after the first character. Instructor
+ * labels arrive in title case ("Visual Hierarchy"), while the canonical page
+ * is often sentence case ("Visual hierarchy"). Preserve the authored form and
+ * add bounded sentence-case lookup variants; search/relevance/admission still
+ * decide whether either record is usable.
+ */
+export function directResearchTitleVariants(topic = '', courseContext = '') {
+  const authored = directResearchTitles(topic, courseContext);
+  const sentenceCase = authored
+    .filter((title) => !/[·|]/.test(title) && title.length <= 80)
+    .flatMap((title) => {
+      const variant = `${title.charAt(0).toUpperCase()}${title.slice(1).toLowerCase()}`;
+      return variant === title ? [] : [variant];
+    });
+  return [...new Set([...authored, ...sentenceCase])].slice(0, 14);
 }
 
 /**
@@ -647,6 +765,14 @@ export function sentencesFrom(extract = '') {
       if (sentence.length < 45 || sentence.length > 320) continue;
       if (!/[.!?]$/.test(sentence)) continue;
       if (!/\s/.test(sentence)) continue;
+      // A byte-exact quote can still be unusable as a standalone teaching
+      // claim when it points to context that was not retained. These compact
+      // anaphoric relations are especially common in encyclopedia paragraphs:
+      // the extracted sentence is true only after a preceding procedure or
+      // comparison supplies the missing antecedent. Reject the fragment here
+      // instead of allowing exact-quote identity to masquerade as semantic
+      // completeness downstream.
+      if (!isStandaloneSourceClaim(sentence)) continue;
       out.push(sentence);
     }
   }
@@ -725,6 +851,7 @@ export function looksLikeEntity(title = '', definition = '') {
 export function headOf(title = '') {
   return String(title)
     .replace(/\s*\([^)]*\)\s*$/, '')
+    .replace(/^(?:in addition|furthermore|moreover|however),\s+/i, '')
     .trim();
 }
 
@@ -967,11 +1094,28 @@ export function buildWikipediaProvider(httpJson) {
       // Generator search returns ranked titles and their lead extracts in the
       // SAME request. This removes the last search→article fan-out that could
       // put a six-lesson course over Wikipedia's anonymous burst limit.
-      const url = `${WIKI_API}?action=query&generator=search&gsrsearch=${encodeURIComponent(topic)}&gsrlimit=${Math.min(
-        50,
-        Math.max(1, Number(limit) || 12),
-      )}&prop=extracts%7Cinfo%7Crevisions&explaintext=1&exintro=1&exsectionformat=plain&exlimit=max&inprop=url&rvprop=ids%7Ctimestamp&redirects=1&format=json&origin=*`;
-      return recordsFromQuery(await httpJson(url));
+      const boundedLimit = Math.min(50, Math.max(1, Number(limit) || 12));
+      const url = `${WIKI_API}?action=query&generator=search&gsrsearch=${encodeURIComponent(topic)}&gsrlimit=${boundedLimit}&prop=extracts%7Cinfo%7Crevisions&explaintext=1&exintro=1&exsectionformat=plain&exlimit=max&inprop=url&rvprop=ids%7Ctimestamp&redirects=1&format=json&origin=*`;
+      let data = await httpJson(url);
+      const records = recordsFromQuery(data);
+      // The extracts prop hydrates at most twenty generator pages per response,
+      // even when gsrLimit correctly returns a larger ranked set. MediaWiki
+      // exposes the unhydrated tail through excontinue. Follow only that prop
+      // continuation (never gsroffset, which would widen the declared search)
+      // so candidates 21–50 receive the same lead-text admission opportunity.
+      // At the current 50-result cap this costs at most two bounded follow-ups.
+      const seenExtractOffsets = new Set();
+      while (data?.continue?.excontinue != null && Object.keys(records).length < boundedLimit) {
+        const extractOffset = String(data.continue.excontinue);
+        if (seenExtractOffsets.has(extractOffset)) break;
+        seenExtractOffsets.add(extractOffset);
+        const continuedUrl = `${url}&excontinue=${encodeURIComponent(extractOffset)}&continue=${encodeURIComponent(
+          String(data.continue.continue || ''),
+        )}`;
+        data = await httpJson(continuedUrl);
+        Object.assign(records, recordsFromQuery(data));
+      }
+      return records;
     },
     async article(title) {
       const records = await loadArticles([title]);
@@ -1290,9 +1434,14 @@ function doajRecord(result, query = '') {
   const extract = cleanDoajText(bibjson.abstract);
   if (!title || !extract) return null;
   const doi = (bibjson.identifier || []).find((identifier) => String(identifier?.type).toLowerCase() === 'doi')?.id;
-  const sourceUrl =
-    (bibjson.link || []).find((link) => String(link?.type).toLowerCase() === 'fulltext')?.url ||
-    (doi ? `https://doi.org/${doi}` : `https://doaj.org/article/${result.id}`);
+  const fullTextUrl = (bibjson.link || []).find(
+    (link) => String(link?.type).toLowerCase() === 'fulltext' && /^https:\/\//i.test(String(link?.url || '')),
+  )?.url;
+  // Some DOAJ records still advertise an HTTP publisher link even when the
+  // article has a durable DOI. Scion exports only secure, openable source
+  // identities; prefer an HTTPS full-text link, then the DOI resolver, then
+  // the HTTPS DOAJ record rather than dropping an otherwise verified ledger.
+  const sourceUrl = fullTextUrl || (doi ? `https://doi.org/${doi}` : `https://doaj.org/article/${result.id}`);
   const authors = (bibjson.author || [])
     .map((author) => cleanDoajText(author?.name))
     .filter(Boolean)
@@ -1760,7 +1909,10 @@ export function buildKernelFromArticle({ topic, title, extract, provider, factCo
           ? contrasts.slice(0, 2).map((sentence) => misconceptionFromContrast(sentence, head))
           : [
               {
-                text: `Naming ${head} without identifying a supporting source detail is sufficient evidence.`,
+                text: buildCompilerSourceBoundaryMisconception(
+                  head,
+                  `${sourceMeta.providerId || provider.id || 'source'}:${title}:${head}`,
+                ),
                 corrective: buildCompilerSourceBoundaryCorrection(
                   head,
                   `${sourceMeta.providerId || provider.id || 'source'}:${title}:${head}`,
@@ -1806,6 +1958,7 @@ export function buildKernelFromArticle({ topic, title, extract, provider, factCo
 export function isResearchCandidateDomainAligned({
   topic = '',
   courseContext = '',
+  plannedEvidenceContext = '',
   title = '',
   extract = '',
   definition = '',
@@ -1840,6 +1993,122 @@ export function isResearchCandidateDomainAligned({
   // both pages repeat broad accessibility vocabulary.
   if (digitalAccessibilityCourse && provider === 'w3c-wai') {
     return isWaiSourceFamilyAligned(topic, title);
+  }
+  const languageStudiesCourse =
+    /\b(?:language acquisition|language change|language structure|linguistics?|morphology|phonetics?|phonology|pragmatics?|semantics?|syntax)\b/.test(
+      courseAndTopic,
+    );
+  const computingLanguageAllowed =
+    /\b(?:computational linguistics|computer science|corpus analysis|data analysis|natural language processing|nlp|programming|software)\b/.test(
+      courseAndTopic,
+    );
+  const computingLanguageCandidate =
+    /\b(?:ai inference models?|algorithm(?:ic)?|computational modelling|computer programs?|dialog act recognition|programming language theory|software implementation|statistical models?)\b/.test(
+      candidate,
+    );
+  if (languageStudiesCourse && computingLanguageCandidate && !computingLanguageAllowed) return false;
+  // “Visual evidence” also names statistical/data-visualization courses. The
+  // research planner already routes those through the quantitative lane, but
+  // this independent safety gate previously reclassified the same course as
+  // visual humanities and rejected canonical pages such as Histogram because
+  // their lead says “graphical representation” rather than “art”. Preserve the
+  // art/design boundary only when the course lacks an explicit quantitative
+  // visualization signal.
+  const quantitativeVisualizationCourse =
+    /\b(?:bar charts?|charts?|dashboards?|data analysis|data visualization|distribution|histograms?|plots?|statistics|statistical|variables?)\b/.test(
+      courseAndTopic,
+    );
+  const visualHumanitiesCourse =
+    !quantitativeVisualizationCourse &&
+    /\b(?:art history|composition|color theory|colour theory|graphic design|image analysis|photograph\w*|perspective and framing|visual analysis|visual arts?|visual communication|visual evidence|visual hierarchy)\b/.test(
+      courseAndTopic,
+    );
+  if (visualHumanitiesCourse) {
+    const sourceRightsTopic = /\b(?:attribution|copyright|license|licence|public domain|source rights)\b/i.test(topic);
+    const visualCandidate =
+      /\b(?:art|artistic|color|colour|composition|design|drawing|film|framing|graphic|image|painting|perspective|photograph\w*|visual)\b/.test(
+        candidate,
+      );
+    const rightsCandidate =
+      /\b(?:attribution|copyright|creative commons|license|licence|open content|public domain|reuse|rights)\b/.test(
+        candidate,
+      );
+    const rightsHomonymDomain =
+      /\b(?:epidemiolog\w*|infectious disease|molecular source attribution|pathogen\w*|public health surveillance|transmission events?)\b/.test(
+        candidate,
+      );
+    const lessonAllowsRightsHomonymDomain =
+      /\b(?:epidemiolog\w*|infectious disease|molecular source attribution|pathogen\w*|public health)\b/.test(
+        courseAndTopic,
+      );
+    const computationalImagingCandidate =
+      /\b(?:attention mechanisms?|change detection|cnn|convolutional neural|deep learning|encoder|frequency-domain|multiscale|neural networks?|remote sensing|siamese|transformers?)\b/.test(
+        candidate,
+      );
+    const lessonAllowsComputationalImaging =
+      /\b(?:computer vision|computational imaging|deep learning|image processing|machine learning|neural networks?|remote sensing)\b/.test(
+        courseAndTopic,
+      );
+    if (!visualCandidate && !(sourceRightsTopic && rightsCandidate)) return false;
+    if (sourceRightsTopic && rightsCandidate && rightsHomonymDomain && !lessonAllowsRightsHomonymDomain) return false;
+    // "Visual encoder", "image", and "framing" are common in computational
+    // imaging abstracts but do not make those papers sources for an art/design
+    // analysis lesson. Require the course itself to authorize that technical
+    // domain before admitting it.
+    if (computationalImagingCandidate && !lessonAllowsComputationalImaging) return false;
+    // Collision-heavy visual vocabulary must not admit a different formal
+    // meaning merely because the lesson contains "dynamics", "frame", or
+    // "perspective". An actual visual/art anchor is required when the source
+    // visibly declares a physics, astronomy, or mathematical domain.
+    const nonVisualFormalDomain =
+      /\b(?:astronom\w*|coordinate system|galax(?:y|ies)|mathematical physics|modified newtonian|newton(?:ian)?|physical space|physics)\b/.test(
+        candidate,
+      );
+    if (
+      nonVisualFormalDomain &&
+      !/\b(?:art|artistic|design|drawing|film|graphic|image|painting|photograph\w*|visual arts?)\b/.test(candidate)
+    ) {
+      return false;
+    }
+    if (sourceRightsTopic && rightsCandidate) return true;
+  }
+  const authoredScopeClauses = stripResearchCurricularLocator(topic)
+    .split(/\s*[·|]\s*/)
+    .map((clause) => clause.trim())
+    .filter(Boolean);
+  if (authoredScopeClauses.length > 1) {
+    const genericScopeTokens =
+      /^(?:application|audit|comparison|construction|definition|dynamic|element|encoding|framework|identification|implementation|integration|mechanics|method|model|point|practice|process|production|strategy|structure|system|technique|verification|visualization)$/;
+    const candidateTokens = new Set(contentTokens(candidate));
+    const authoredScopeSegments = authoredScopeClauses.flatMap((scope) =>
+      scope
+        .split(/\s+(?:and|&|via)\s+/i)
+        .map((segment) => segment.trim())
+        .filter(Boolean),
+    );
+    const supportsNamedScope = authoredScopeSegments.some((scope) => {
+      const specificTokens = contentTokens(scope).filter((token) => !genericScopeTokens.test(token));
+      if (specificTokens.length === 0) return false;
+      const specificOverlap = specificTokens.filter((token) => candidateTokens.has(token)).length;
+      return specificOverlap >= Math.min(2, specificTokens.length);
+    });
+    const plannedEvidenceTokens = contentTokens(plannedEvidenceContext).filter(
+      (token) =>
+        !genericScopeTokens.test(token) &&
+        !/^(?:analysis|apply|claim|compare|conclusion|course|decision|evidence|lesson|practice|source|student|task|use|using)$/.test(
+          token,
+        ),
+    );
+    const plannedEvidenceOverlap = [...new Set(plannedEvidenceTokens)].filter((token) =>
+      candidateTokens.has(token),
+    ).length;
+    // The middle-dot transport explicitly means "specific authored section ·
+    // broad lesson wrapper". Either side is a legitimate authored scope for
+    // lesson grounding; requiring only the first side made a source defining
+    // the complete lesson construct fail because it did not repeat one narrow
+    // application label. Each accepted source must still cover a substantive
+    // named scope and pass the independent relevance/admission checks below.
+    if (!supportsNamedScope && plannedEvidenceOverlap < 2) return false;
   }
   const topicTokens = contentTokens(topic);
   const normalizedTopic = String(topic || '')
@@ -2134,6 +2403,7 @@ export async function researchLessonKernels(
     floor = null,
     courseContext = '',
     plannedQuery = '',
+    plannedEvidenceContext = '',
     signal,
   } = {},
 ) {
@@ -2145,9 +2415,8 @@ export async function researchLessonKernels(
     titles = [...new Set(await provider.search(`${courseContext} ${topic}`, candidates))];
   }
 
-  const built = [];
   const directTitleKeys = new Set(
-    directResearchTitles(topic, courseContext).map((title) =>
+    directResearchTitleVariants(topic, courseContext).map((title) =>
       String(title || '')
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, ' ')
@@ -2156,79 +2425,112 @@ export async function researchLessonKernels(
   );
   const records = await articleRecords(provider, titles, signal);
   let fullArticleAttempts = 0;
-  const directlyHydratedTitles = new Set();
+  const rawLeads = [];
   for (const title of titles) {
-    let article = records.get(title) || { extract: '' };
-    const titleKey = String(article.title || title)
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, ' ')
-      .trim();
-    // Canonical-family pages can explain the lesson relationship later in
-    // the article even when their lead does not repeat the instructor's exact
-    // phrase. Ranking an intro-only candidate first made “Web Accessibility
-    // Initiative” disappear before the full extract could expose its WCAG
-    // sections. Hydrate at most three explicit family titles before ranking;
-    // this is still a bounded title lookup and every retained claim must pass
-    // the ordinary relevance, source-admission, and entailment gates. Limit
-    // each lesson pass to one deep read: spending three reads on the first
-    // lesson could exhaust the course request budget before later lessons got
-    // any full-article evidence. Later grouped/targeted passes can revisit a
-    // still-thin lesson after every peer has received the same first chance.
-    if (
-      fullArticleAttempts < 1 &&
-      directTitleKeys.has(titleKey) &&
-      String(article.extract || '').length < 4000 &&
-      typeof provider.fullArticle === 'function'
-    ) {
-      // Count the network attempt, not only a successful extract. A missing
-      // page, timeout, or 429 spends the same shared course budget and must not
-      // let an early lesson probe every remaining title before the next lesson
-      // receives its first chance.
-      fullArticleAttempts += 1;
-      try {
-        const fullArticle = normalizeArticleResult(await provider.fullArticle(article.title || title));
-        if (fullArticle.extract) {
-          article = fullArticle;
-          directlyHydratedTitles.add(titleKey);
-        }
-      } catch (error) {
-        if (error?.name === 'AbortError' || signal?.aborted) throw error;
-        // Keep the already-batched introduction when the optional full read
-        // is unavailable. Research can still succeed from another candidate.
-      }
-    }
+    const article = records.get(title) || { extract: '' };
     const extract = article.extract;
     if (!extract) continue;
-    const canonicalTitle = article.title || title;
-    const candidate = buildKernelFromArticle({ topic, title: canonicalTitle, extract, provider, sourceMeta: article });
-    if (!candidate) continue;
-    if (looksLikeEntity(canonicalTitle, candidate.kernel.definition.text)) continue;
+    rawLeads.push({ title: article.title || title, article, extract });
+  }
+  if (rawLeads.length === 0) return [];
+
+  // Hydrate the best available direct-title lead, not the first provider
+  // result. This happens before kernel construction because a terse lead may
+  // have too few sentences to form a kernel at all. Ranking on the authored
+  // title and raw lead also prevents a valid but wrong-domain homonym from
+  // consuming the lesson's only deep read merely because it appeared first.
+  const directHydrationCandidates = rawLeads
+    .map((entry, index) => {
+      const key = String(entry.title || '')
+        .replace(/\s*\([^)]{1,80}\)\s*$/, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim();
+      return {
+        entry,
+        index,
+        direct: directTitleKeys.has(key),
+        snapshotLength: String(entry.extract || '').length,
+        score:
+          lexicalRelevance(topic, entry.title) * 2 +
+          lexicalRelevance(topic, entry.extract || '') +
+          lexicalRelevance(courseContext, entry.title) * 3 +
+          lexicalRelevance(courseContext, entry.extract || '') * 0.25,
+      };
+    })
+    .filter(
+      ({ entry, direct, snapshotLength }) =>
+        direct &&
+        snapshotLength < 4000 &&
+        !/\b(?:may|can)(?:\s+also)?\s+refer\s+to\b/i.test(String(entry.extract || '').slice(0, 800)),
+    )
+    .sort((left, right) => right.score - left.score || left.index - right.index);
+  const directHydration = directHydrationCandidates[0];
+  if (directHydration && typeof provider.fullArticle === 'function') {
+    fullArticleAttempts += 1;
+    try {
+      const fullArticle = normalizeArticleResult(await provider.fullArticle(directHydration.entry.title));
+      if (fullArticle.extract) {
+        rawLeads[directHydration.index] = {
+          title: fullArticle.title || directHydration.entry.title,
+          article: fullArticle,
+          extract: fullArticle.extract,
+        };
+      }
+    } catch (error) {
+      if (error?.name === 'AbortError' || signal?.aborted) throw error;
+      // The ranked lead remains available when the bounded deep read fails.
+    }
+  }
+
+  const candidateLeads = [];
+  for (const entry of rawLeads) {
+    const candidate = buildKernelFromArticle({
+      topic,
+      title: entry.title,
+      extract: entry.extract,
+      provider,
+      factCount: 8,
+      sourceMeta: entry.article,
+    });
+    if (candidate) candidateLeads.push({ title: entry.title, candidate });
+  }
+  if (candidateLeads.length === 0) return [];
+
+  const built = [];
+  for (const entry of candidateLeads) {
+    const snapshotText = Object.values(entry.candidate?.snapshot || {}).join(' ');
+    if (looksLikeEntity(entry.title, entry.candidate?.kernel?.definition?.text)) continue;
     if (
       !isResearchCandidateDomainAligned({
         topic,
         courseContext,
-        title: canonicalTitle,
-        extract,
-        definition: candidate.kernel.definition.text,
-        provider: candidate.kernel.provenance?.providerId,
+        plannedEvidenceContext,
+        title: entry.title,
+        extract: snapshotText,
+        definition: entry.candidate?.kernel?.definition?.text,
+        provider: entry.candidate?.kernel?.provenance?.providerId,
       })
     ) {
       continue;
     }
     if (
       built.some(
-        (entry) =>
-          entry.title.toLowerCase() === canonicalTitle.toLowerCase() &&
-          String(entry.candidate?.kernel?.term || '').toLowerCase() ===
-            String(candidate.kernel?.term || '').toLowerCase(),
+        (prior) =>
+          prior.title.toLowerCase() === entry.title.toLowerCase() &&
+          String(prior.candidate?.kernel?.term || '').toLowerCase() ===
+            String(entry.candidate?.kernel?.term || '').toLowerCase(),
       )
     ) {
       continue;
     }
-    built.push({ title: canonicalTitle, candidate });
+    built.push(entry);
   }
   if (built.length === 0) return [];
 
+  const abstractMorphologyBridge = contentTokens(topic).some((token) =>
+    ['ethic', 'context', 'interpret'].includes(token),
+  );
   let ranked;
   if (typeof embed === 'function') {
     const vectors = await embed([
@@ -2260,17 +2562,22 @@ export async function researchLessonKernels(
     const topicTokens = new Set(contentTokens(topic));
     const courseDomainToken = contentTokens(courseContext)[0] || '';
     const topicTokenSequence = [...topicTokens];
-    const compoundTopic = /\s+(?:and|&)\s+/i.test(topic);
-    const topicClauseTokens = compoundTopic
+    const weakScopeToken =
+      /^(?:analysis|approach|data|evidence|framework|information|method|model|numerical|practice|process|representation|structure|system)$/i;
+    const strongTopicTokens = topicTokenSequence.filter((token) => !weakScopeToken.test(token));
+    const compoundTopic = /\s+(?:and|&)\s+|\s*[·|]\s*/i.test(topic);
+    const queryWrapperToken =
+      /^(?:application|identification|implementation|method|model|process|system|structure|dynamics|element|technique|framework|strategy)$/i;
+    const topicClauseQueries = compoundTopic
       ? String(topic)
-          .split(/\s+(?:and|&)\s+/i)
-          .map((clause) => contentTokens(clause))
+          .split(/\s+(?:and|&)\s+|\s*[·|]\s*/i)
+          .map((clause) => contentTokens(clause).filter((token) => !queryWrapperToken.test(token)))
           .filter((tokens) => tokens.length > 0)
+          .map((tokens) => tokens.join(' '))
       : [];
+    const topicClauseTokens = compoundTopic ? topicClauseQueries.map((clause) => contentTokens(clause)) : [];
     ranked = built
       .map((entry) => {
-        const titleScore = lexicalRelevance(relevanceQuery, entry.title);
-        const defScore = lexicalRelevance(relevanceQuery, entry.candidate.kernel.definition.text);
         const titleTokens = contentTokens(entry.title);
         const definitionTokenSequence = contentTokens(entry.candidate.kernel.definition.text);
         const definitionTokens = new Set(definitionTokenSequence);
@@ -2279,10 +2586,26 @@ export async function researchLessonKernels(
             .filter(Boolean)
             .join(' '),
         );
+        const evidenceText = evidenceTokenSequence.join(' ');
+        // A middle-dot query carries two authored levels (specific section and
+        // broad lesson frame). Score each whole clause independently so adding
+        // context improves recall without diluting a correct canonical page
+        // below the lexical floor.
+        const lexicalQueries = topicClauseQueries.length > 0 ? topicClauseQueries : [relevanceQuery];
+        const clauseScores = lexicalQueries.map((query) => ({
+          title: lexicalRelevance(query, entry.title),
+          definition: lexicalRelevance(query, entry.candidate.kernel.definition.text),
+          evidence: lexicalRelevance(query, evidenceText),
+        }));
+        const titleScore = Math.max(...clauseScores.map((score) => score.title));
+        const defScore = Math.max(...clauseScores.map((score) => score.definition));
+        const pairedRelevance = Math.max(...clauseScores.map((score) => Math.min(score.title, score.definition)));
         const evidenceTokens = new Set(evidenceTokenSequence);
         const titleTopicMatches = [...topicTokens].filter((token) => titleTokens.includes(token)).length;
         const definitionTopicMatches = [...topicTokens].filter((token) => definitionTokens.has(token)).length;
         const evidenceTopicMatches = [...topicTokens].filter((token) => evidenceTokens.has(token)).length;
+        const strongTitleTopicMatches = strongTopicTokens.filter((token) => titleTokens.includes(token)).length;
+        const strongDefinitionTopicMatches = strongTopicTokens.filter((token) => definitionTokens.has(token)).length;
         const explicitDirectTitleMatch = directTitleKeys.has(
           String(entry.title || '')
             .toLowerCase()
@@ -2300,7 +2623,7 @@ export async function researchLessonKernels(
           entry.candidate.kernel?.provenance?.providerId === 'w3c-wai' &&
           catalogHintMatches >= Math.min(2, Math.max(1, topicTokens.size));
         const directTitleMatch = explicitDirectTitleMatch || curatedCatalogMatch;
-        const evidenceScore = lexicalRelevance(relevanceQuery, evidenceTokenSequence.join(' '));
+        const evidenceScore = Math.max(...clauseScores.map((score) => score.evidence));
         const relevance = Math.max(
           titleScore,
           defScore,
@@ -2323,17 +2646,19 @@ export async function researchLessonKernels(
           // one must still provide independent evidence.
           relevance,
           evidenceScore,
-          secondaryRelevance: Math.min(titleScore, defScore),
+          secondaryRelevance: pairedRelevance,
           topicTokenCount: topicTokens.size,
           compoundTopic,
           definitionCoversClause,
           titleTopicMatches,
           definitionTopicMatches,
+          strongTitleTopicMatches,
+          strongDefinitionTopicMatches,
           evidenceTopicMatches,
           topicSequenceMatch,
           directTitleMatch,
           curatedCatalogMatch,
-          rankingScore: Math.min(titleScore, defScore) + relevance * 0.25,
+          rankingScore: pairedRelevance + relevance * 0.25,
           domainMatch:
             !courseDomainToken || titleTokens.includes(courseDomainToken) || definitionTokens.has(courseDomainToken),
         };
@@ -2369,6 +2694,11 @@ export async function researchLessonKernels(
           entry.titleTopicMatches >= Math.min(2, entry.topicTokenCount) ||
           (entry.directTitleMatch && (entry.evidenceTopicMatches >= 1 || entry.curatedCatalogMatch))) &&
         (typeof embed === 'function' ||
+          entry.topicTokenCount < 4 ||
+          entry.directTitleMatch ||
+          entry.strongTitleTopicMatches >= 1 ||
+          entry.strongDefinitionTopicMatches >= 1) &&
+        (typeof embed === 'function' ||
           ((entry.secondaryRelevance >= effectiveFloor * 0.25 ||
             // A curated canonical family title can legitimately name the
             // neighbouring concept rather than repeat the lesson label
@@ -2376,10 +2706,25 @@ export async function researchLessonKernels(
             // its definition explicitly supplies the lesson topic.
             (entry.directTitleMatch && (entry.evidenceTopicMatches >= 1 || entry.curatedCatalogMatch)) ||
             entry.definitionTopicMatches >= 2 ||
+            // Abstract curriculum labels often change grammatical form in a
+            // canonical source. Accept the source only when its definition
+            // names one distinguishing lesson family and the exact admitted
+            // passage set covers at least two. This lets “interpretation” find
+            // an interpretive/contextual source without admitting a page that
+            // merely shares the broad course domain.
+            (abstractMorphologyBridge &&
+              entry.titleTopicMatches === 0 &&
+              entry.strongDefinitionTopicMatches >= 1 &&
+              entry.evidenceTopicMatches >= Math.min(2, entry.topicTokenCount)) ||
             (entry.compoundTopic && entry.definitionCoversClause)) &&
             (entry.topicTokenCount <= 1 ||
               entry.topicSequenceMatch ||
               (entry.directTitleMatch && (entry.evidenceTopicMatches >= 1 || entry.curatedCatalogMatch)) ||
+              (entry.strongTitleTopicMatches >= 1 && entry.strongDefinitionTopicMatches >= 1) ||
+              (abstractMorphologyBridge &&
+                entry.titleTopicMatches === 0 &&
+                entry.strongDefinitionTopicMatches >= 1 &&
+                entry.evidenceTopicMatches >= Math.min(2, entry.topicTokenCount)) ||
               entry.titleTopicMatches >= Math.min(2, entry.topicTokenCount) ||
               // For an explicitly compound lesson, one related named concept
               // may explain the relationship between both sides without
@@ -2403,15 +2748,10 @@ export async function researchLessonKernels(
       (total, value) => total + String(value || '').length,
       0,
     );
-    const entryTitleKey = String(entry.title || '')
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, ' ')
-      .trim();
     if (
       entryIndex < 1 &&
       fullArticleAttempts < 1 &&
       currentExtractLength < 4000 &&
-      !directlyHydratedTitles.has(entryTitleKey) &&
       typeof provider.fullArticle === 'function'
     ) {
       fullArticleAttempts += 1;
@@ -2431,6 +2771,7 @@ export async function researchLessonKernels(
             isResearchCandidateDomainAligned({
               topic,
               courseContext,
+              plannedEvidenceContext,
               title: fullArticle.title || entry.title,
               extract: fullArticle.extract,
               definition: rebuilt.kernel.definition?.text,
@@ -2455,6 +2796,8 @@ export async function researchLessonKernels(
           relevance: Number(entry.relevance.toFixed(3)),
           titleScore: Number((entry.titleScore || 0).toFixed(3)),
           definitionScore: Number((entry.defScore || 0).toFixed(3)),
+          directTitleMatch: Boolean(entry.directTitleMatch),
+          ...(plannedEvidenceContext ? { plannedEvidenceContext: String(plannedEvidenceContext) } : {}),
           mode: typeof embed === 'function' ? 'semantic' : 'lexical',
         },
       },
@@ -2497,25 +2840,90 @@ function researchGroups(values, size) {
 }
 
 export function kernelsCoverTopic(kernels, topic) {
-  const clauses = String(topic)
-    .split(/\s+(?:and|&)\s+/i)
-    .map((clause) => contentTokens(clause))
-    .filter((tokens) => tokens.length > 0);
-  if (clauses.length === 0) return false;
-  return clauses.every((clause) =>
-    kernels.some((kernel) => {
-      // Research aliases record the QUERY topic, and a related definition can
-      // merely mention a clause without teaching it (Linear combination
-      // mentions superposition). Require an admitted article TITLE to name
-      // each explicit side before calling a compound lesson covered.
-      const kernelTokens = new Set(contentTokens(kernel?.term));
-      return clause.every((token) => kernelTokens.has(token));
-    }),
+  const equivalentScopes = String(topic)
+    .split(/\s*[·|]\s*/)
+    .map((scope) =>
+      scope
+        .split(/\s+(?:and|&)\s+/i)
+        .map((clause) => contentTokens(clause))
+        .filter((tokens) => tokens.length > 0),
+    )
+    .filter((scope) => scope.length > 0);
+  if (equivalentScopes.length === 0) return false;
+  // The middle dot separates the concrete section topic from its broader
+  // lesson title; either names the same authored scope. Within one scope,
+  // explicit "and" clauses still all need a titled kernel.
+  return equivalentScopes.some((clauses) =>
+    clauses.every((clause) =>
+      kernels.some((kernel) => {
+        const kernelTokens = new Set(contentTokens(kernel?.term));
+        return clause.every((token) => kernelTokens.has(token));
+      }),
+    ),
   );
 }
 
 export function needsTargetedResearch(kernels, topic, minimum) {
   return kernels.length < minimum || !kernelsCoverTopic(kernels, topic);
+}
+
+function kernelInspectableClaimCount(kernel = {}) {
+  return Math.max(
+    Number(kernel?.provenance?.sourceSnapshot?.claims?.length) || 0,
+    1 + (Array.isArray(kernel?.facts) ? kernel.facts.length : 0),
+  );
+}
+
+/** Preserve admitted evidence when a later search variant is empty or thinner. */
+function researchKernelTopicRank(kernel = {}, topic = '') {
+  if (!topic) return 0;
+  const scopes = String(topic)
+    .split(/\s*[·|]\s*/)
+    .map((scope) => contentTokens(scope))
+    .filter((tokens) => tokens.length > 0);
+  const nameTokens = new Set(contentTokens([kernel?.term, kernel?.provenance?.title].filter(Boolean).join(' ')));
+  const bodyTokens = new Set(
+    contentTokens(
+      [kernel?.definition?.text, ...(kernel?.aliases || []), ...(kernel?.tags || [])].filter(Boolean).join(' '),
+    ),
+  );
+  return Math.max(
+    0,
+    ...scopes.map((tokens) => {
+      const nameMatches = tokens.filter((token) => nameTokens.has(token)).length;
+      const bodyMatches = tokens.filter((token) => bodyTokens.has(token)).length;
+      const exactName = tokens.length > 0 && nameMatches === tokens.length;
+      return (exactName ? 100 : 0) + nameMatches * 12 + bodyMatches * 2;
+    }),
+  );
+}
+
+export function mergeResearchKernelSets(previous = [], next = [], want = Infinity, topic = '') {
+  const merged = [];
+  const positionById = new Map();
+  for (const kernel of [...previous, ...next]) {
+    const id = String(kernel?.id || '').trim();
+    if (!id) continue;
+    if (!positionById.has(id)) {
+      positionById.set(id, merged.length);
+      merged.push(kernel);
+      continue;
+    }
+    const position = positionById.get(id);
+    if (kernelInspectableClaimCount(kernel) > kernelInspectableClaimCount(merged[position])) merged[position] = kernel;
+  }
+  const ranked = topic
+    ? merged
+        .map((kernel, index) => ({ kernel, index, rank: researchKernelTopicRank(kernel, topic) }))
+        .sort(
+          (left, right) =>
+            right.rank - left.rank ||
+            kernelInspectableClaimCount(right.kernel) - kernelInspectableClaimCount(left.kernel) ||
+            left.index - right.index,
+        )
+        .map(({ kernel }) => kernel)
+    : merged;
+  return ranked.slice(0, Math.max(0, Number.isFinite(Number(want)) ? Math.floor(Number(want)) : ranked.length));
 }
 
 export function stampTargetedBudgetProvider(entries = [], providerId = 'research-provider') {
@@ -2565,6 +2973,8 @@ export async function researchLessonKernelSets(
     };
   }
   const effectiveProviderId = providerId || provider.id || 'research-provider';
+  const plannedEvidenceContextForTopic = (topic) =>
+    String((researchPlan?.lessons || []).find((lesson) => lesson?.title === topic)?.evidenceContext || '').trim();
   onProgress?.({
     phase: 'provider-start',
     providerId: effectiveProviderId,
@@ -2576,7 +2986,7 @@ export async function researchLessonKernelSets(
   const directByTopic = new Map(
     uniqueTopics.map((topic) => [
       topic,
-      provider.supportsDirectTitles === false ? [] : directResearchTitles(topic, courseContext),
+      provider.supportsDirectTitles === false ? [] : directResearchTitleVariants(topic, courseContext),
     ]),
   );
   const allDirectTitles = [...new Set([...directByTopic.values()].flat())];
@@ -2605,9 +3015,10 @@ export async function researchLessonKernelSets(
       floor,
       courseContext,
       plannedQuery: providerQueryForLesson(researchPlan, topic, effectiveProviderId),
+      plannedEvidenceContext: plannedEvidenceContextForTopic(topic),
       signal,
     });
-    byTopic.set(topic, kernels);
+    byTopic.set(topic, mergeResearchKernelSets(byTopic.get(topic), kernels, want, topic));
   }
 
   const unresolved = uniqueTopics.filter((topic) => needsTargetedResearch(byTopic.get(topic) || [], topic, minimum));
@@ -2659,9 +3070,10 @@ export async function researchLessonKernelSets(
       floor,
       courseContext,
       plannedQuery: providerQueryForLesson(researchPlan, topic, effectiveProviderId),
+      plannedEvidenceContext: plannedEvidenceContextForTopic(topic),
       signal,
     });
-    byTopic.set(topic, kernels);
+    byTopic.set(topic, mergeResearchKernelSets(byTopic.get(topic), kernels, want, topic));
   }
 
   // A grouped search can still be dominated by one topic's popular pages.
@@ -2771,9 +3183,10 @@ export async function researchLessonKernelSets(
       floor,
       courseContext,
       plannedQuery: providerQueryForLesson(researchPlan, topic, effectiveProviderId),
+      plannedEvidenceContext: plannedEvidenceContextForTopic(topic),
       signal,
     });
-    byTopic.set(topic, kernels);
+    byTopic.set(topic, mergeResearchKernelSets(byTopic.get(topic), kernels, want, topic));
   }
 
   const result = {

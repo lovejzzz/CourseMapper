@@ -148,7 +148,8 @@ function compactRepeatedLessonFocus(value, fullFocus, state) {
       const before = source.slice(Math.max(0, offset - 24), offset);
       const after = source.slice(offset + match.length, offset + match.length + 28);
       const topic = state.topicKeyword || 'lesson';
-      const hasDeterminer = /\b(?:a|an|the|this|that)(?:\s+[a-z-]+){0,2}\s*$/i.test(before);
+      const hasPossessive = /\b(?:my|your|his|her|its|our|their)(?:\s+[a-z-]+){0,2}\s*$/i.test(before);
+      const hasDeterminer = /\b(?:a|an|the|this|that)(?:\s+[a-z-]+){0,2}\s*$/i.test(before) || hasPossessive;
       // Compiler-owned assessment identities use a label + topic form
       // ("Evidence explanation: Qubits and quantum states"). Appending the
       // generic local-reference suffix after that colon produced awkward
@@ -175,6 +176,9 @@ function compactRepeatedLessonFocus(value, fullFocus, state) {
       if (/(?:\bfor|\bin|\bfrom|\babout|\bon|\bof|\bto|\bwith|\busing|\baround)\s*$/i.test(before)) {
         return `${hasDeterminer ? '' : 'the '}${topic} work`;
       }
+      // Possessive slots fail closed. Preserving a repeated title is less
+      // harmful than manufacturing “your the … focus interpretation”.
+      if (hasPossessive) return match;
       return `${hasDeterminer ? '' : 'the '}${topic} focus`;
     });
   }
@@ -236,7 +240,16 @@ export function compactRepeatedCourseFocusReferences(value, fullFocus, { limit =
       }))
       .filter((side) => side.words.length > 0)
       .sort((left, right) => right.words.length - left.words.length);
-    if (sides[0]?.text) topicKeyword = sides[0].text;
+    if (sides.length === 2 && sides.every((side) => side.words.length === 1)) {
+      // Two-field identities such as “Semantics and Pragmatics” lose their
+      // meaning when reduced to either side, yet repeating the exact title in
+      // every local sentence creates mail-merge texture. A compact en-dash
+      // identity preserves both fields without reproducing the full title.
+      topicKeyword = sides
+        .map((side) => side.text)
+        .sort((left, right) => focus.indexOf(left) - focus.indexOf(right))
+        .join('–');
+    } else if (sides[0]?.text) topicKeyword = sides[0].text;
   }
   return compactRepeatedLessonFocus(value, focus, {
     count: 0,
@@ -562,7 +575,7 @@ export function slideTransitionCopy({ type, lessonNumber, nextCue, concept, evid
     example: [
       `Carry the strongest ${concept} detail into “${nextCue}” as the next piece of evidence for ${artifact}.`,
       `Use the example to open “${nextCue}”: students identify the detail that should revise ${artifact}.`,
-      `Move into “${nextCue}” by separating what the ${concept} example proves from what it leaves uncertain.`,
+      `Move into “${nextCue}” by asking students to label the supported observation and the inference that still needs testing.`,
       `At “${nextCue},” have students transfer one evidence-backed move from the example to ${artifact}.`,
       `Bridge from the example to “${nextCue}” with the ${concept} choice students can now defend.`,
       `Make “${nextCue}” test whether the example's ${evidenceNoun} still applies in ${artifact}.`,

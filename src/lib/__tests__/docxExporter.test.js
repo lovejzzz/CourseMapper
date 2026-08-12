@@ -43,8 +43,11 @@ describe('DOCX assessment labels', () => {
     expect(formatAssessmentBlockEntry({ title: 'Translation Mediation interpretation', weight: '7%' })).toBe(
       'Translation Mediation interpretation (7%)',
     );
+    expect(formatAssessmentBlockEntry({ title: 'Close-reading clinic', weight: 'in class' })).toMatch(
+      /^Close-reading clinic — in class; .+/,
+    );
     expect(formatAssessmentBlockEntry({ title: 'Close-reading clinic', weight: 'in class' })).toBe(
-      'Close-reading clinic — in class',
+      formatAssessmentBlockEntry({ title: 'Close-reading clinic', weight: 'in class' }),
     );
   });
 });

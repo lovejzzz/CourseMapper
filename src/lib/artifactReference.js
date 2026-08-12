@@ -1,5 +1,9 @@
 const ARTIFACT_KIND_PATTERNS = [
   [/\bdiscussion\b.*\bquiz\b|\bquiz\b.*\bdiscussion\b/, 'discussion-and-quiz'],
+  [/\bevidence explanation\b/, 'evidence explanation'],
+  [/\bworked example\b/, 'worked example'],
+  [/\bweekly homework\b|\bhomework\b/, 'homework'],
+  [/\bcourse synthesis\b|\bsynthesis\b/, 'synthesis'],
   [/\bdiscussion post\b|\bdiscussion\b/, 'discussion post'],
   [/\bquiz(?:zes)?\b/, 'quiz'],
   [/\bcheck for understanding\b|\blow-stakes check\b|\bcheck-in\b|\bcheck\b/, 'check'],

@@ -92,7 +92,11 @@ export function appendOpenCourseSourceTexts(blueprint, texts, seen) {
         author,
         edition: '',
         isbn: '',
-        note: `Assigned open course source${details ? ` (${details})` : ''} — ${url}.`,
+        // The title field already identifies the assigned source. Repeating a
+        // generic “Assigned open course source” prefix for every bibliography
+        // row adds no learner information and creates a visibly mechanical
+        // block in long syllabi.
+        note: `${details ? `(${details}) — ` : ''}${url}.`,
       });
     }
   }

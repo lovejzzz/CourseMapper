@@ -12,8 +12,13 @@
 // downstream (the same linker Scion relies on), and any request this module
 // cannot answer from the source is declined so the compiler's deterministic
 // path owns it rather than a fabricated payload.
-import { extractExplicitCoverageTopics, extractExplicitLessonSequence } from './explicitLessonSequence';
+import {
+  extractExplicitCoverageTopics,
+  extractExplicitLessonSequence,
+  extractNamedProgressionTopics,
+} from './explicitLessonSequence';
 import { ALGI_RESEARCH_FLAG, readAlgiResearchEnabled } from './algiResearchPolicy';
+import { repairCourseIdentityTypography } from './courseIdentityTypography.js';
 
 export { ALGI_RESEARCH_FLAG } from './algiResearchPolicy';
 
@@ -74,6 +79,10 @@ export function extractExpectedSessions(userPrompt) {
 
 /** Course name from an explicit title line, else the first substantial line. */
 export function extractCourseName(source) {
+  const normalizedSource = String(source || '')
+    .split('\n')
+    .map((line) => repairCourseIdentityTypography(line))
+    .join('\n');
   const explicitlyNamed = String(source || '').match(
     /\b(?:course|class|seminar|studio|workshop)\s+(?:called|titled|named)\s+["“]?([^"”,.;!?]{4,90})["”]?/i,
   );
@@ -85,10 +94,34 @@ export function extractCourseName(source) {
     );
     if (value) return value;
   }
-  const lines = String(source || '')
+  // Official syllabus PDFs commonly put a subject/catalog prefix before an
+  // all-caps title and term. Read that identity before instructor-note and
+  // file-boundary markers can become the first "substantial" line.
+  const officialHeader =
+    /\b[A-Z][A-Z &]{2,}\s*:\s*\d[\d .-]*(?:\([^)]*\))?\s+([A-Z][A-Z0-9 &:/,'’-]{7,120}?)\s+(?:SPRING|SUMMER|FALL|WINTER)\b/i.exec(
+      normalizedSource,
+    );
+  if (officialHeader?.[1]) {
+    const rawTitle = repairCourseIdentityTypography(officialHeader[1]);
+    const title = rawTitle
+      .toLowerCase()
+      .replace(/\b\w/g, (letter) => letter.toUpperCase())
+      .replace(/\b(?:And|For|In|Of|The|To|With)\b/g, (word) => word.toLowerCase());
+    const value = clamp(title, MAX_COURSE_NAME, 3);
+    if (value) return value;
+  }
+  const imperativeTypedCourse = normalizedSource.match(
+    /^(?:build|create|generate|design|make|draft|prepare)\s+(?:an?\s+)?(?:(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|\d{1,2})[-\s](?:lesson|week|module|session)\s+)?(?:(?:introductory|advanced|undergraduate|graduate|upper[-\s]division|first[-\s]year)\s+)*(.{4,90}?)\s+(?:course|class|seminar|studio|workshop)\b(?=\s+(?:for|with|that|where|covering|including)\b|[.,;!?])/i,
+  );
+  if (imperativeTypedCourse?.[1]) {
+    const value = clamp(imperativeTypedCourse[1], MAX_COURSE_NAME, 3);
+    if (value) return value;
+  }
+  const lines = normalizedSource
     .split('\n')
     .map((line) => line.replace(/^[#\s>*-]+/, '').trim())
-    .filter(Boolean);
+    .filter(Boolean)
+    .filter((line) => !/^===\s*(?:instructor notes|file:|course map reference example)/i.test(line));
   const labelled = lines.find((line) => /^(course|title)\s*[:\-—]/i.test(line));
   if (labelled) {
     const value = clamp(labelled.replace(/^(course|title)\s*[:\-—]\s*/i, ''), MAX_COURSE_NAME, 3);
@@ -202,6 +235,107 @@ function extractCompactBriefCoverage(source) {
   return match?.[1] ? extractExplicitCoverageTopics(`Cover ${match[1]}.`) : [];
 }
 
+export function extractChapterScheduleTopics(source) {
+  const text = repairCourseIdentityTypography(String(source || ''));
+  const markers = [...text.matchAll(/\bCh\s*\.\s*\d{1,3}\s*:?\s*/gi)];
+  if (markers.length < 3) return [];
+  const topics = [];
+  const seen = new Set();
+  markers.forEach((marker, index) => {
+    const start = Number(marker.index) + marker[0].length;
+    const end = index + 1 < markers.length ? Number(markers[index + 1].index) : text.length;
+    const candidate = text
+      .slice(start, end)
+      .split(
+        /\s+(?:(?:Jan(?:uary)?|Febr\s*uary|Mar(?:ch)?|Apr(?:il)?|May|June|July|Aug(?:ust)?|Sept(?:ember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\b|HW\s*\d+\b|Qz\s*\d+\b|Exam\s*\d*\b|Spring\s+Break\b|LearningCurve\b|Final\s+Exam\b|Review\s+for\b)/i,
+      )[0]
+      .replace(/\s*\((?:thru|through)\s*[^)]*\)\s*/gi, ' ')
+      .replace(/\b([A-Za-z]+)\s+-\s+([A-Za-z]+)\b/g, '$1-$2')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .replace(/[.;:,]+$/g, '');
+    const value = clamp(titleCase(candidate), MAX_TITLE, MIN_TITLE);
+    const key = value.toLowerCase();
+    if (!value || seen.has(key)) return;
+    seen.add(key);
+    topics.push(value);
+  });
+  return topics.length >= 3 ? topics.slice(0, 52) : [];
+}
+
+function compactTopicGroup(group) {
+  if (group.length === 1) return group[0];
+  const stop = new Set(['a', 'an', 'about', 'and', 'for', 'in', 'introducing', 'of', 'producing', 'the', 'to', 'with']);
+  const tokenRows = group.map(
+    (topic) =>
+      String(topic)
+        .match(/[A-Za-z][A-Za-z'-]*/g)
+        ?.map((token) => ({ display: token, stem: token.toLowerCase().replace(/s$/, '') }))
+        .filter((token) => !stop.has(token.stem)) || [],
+  );
+  const cueSummary = tokenRows
+    .map((row) =>
+      row
+        .slice(0, 3)
+        .map((token) => token.display)
+        .join(' '),
+    )
+    .join(' / ')
+    .replace(/\bTwo\s+Way\b/g, 'Two-Way');
+  if (cueSummary.length <= MAX_TITLE) return cueSummary;
+  const sharedStem = tokenRows[0]?.find(
+    (token) =>
+      token.stem.length >= 5 && tokenRows.every((row) => row.some((candidate) => candidate.stem === token.stem)),
+  )?.stem;
+  if (sharedStem) {
+    const sharedDisplay = tokenRows[0].find((token) => token.stem === sharedStem)?.display || sharedStem;
+    const cues = tokenRows.map((row) =>
+      row
+        .filter((token) => token.stem !== sharedStem)
+        .slice(0, 2)
+        .map((token) => token.display)
+        .join(' '),
+    );
+    const summary = `${sharedDisplay}: ${cues.join(', ')}`;
+    if (summary.length <= MAX_TITLE) return summary;
+  }
+  const separators = (group.length - 1) * 3;
+  const perTopic = Math.max(12, Math.floor((MAX_TITLE - separators) / group.length));
+  return group.map((topic) => clamp(topic, perTopic, MIN_TITLE)).join(' / ');
+}
+
+function condenseOrderedTopics(topics, targetCount) {
+  if (topics.length <= targetCount) return topics;
+  const baseSize = Math.floor(topics.length / targetCount);
+  let extra = topics.length % targetCount;
+  let cursor = 0;
+  return Array.from({ length: targetCount }, () => {
+    const size = baseSize + (extra > 0 ? 1 : 0);
+    extra -= extra > 0 ? 1 : 0;
+    const group = topics.slice(cursor, cursor + size);
+    cursor += size;
+    return compactTopicGroup(group);
+  });
+}
+
+function expandBeforeTerminalTopic(topics, sessionCount) {
+  const terminal = topics.at(-1);
+  if (!terminal || !/\b(?:capstone|culminating|final|portfolio|project|presentation)\b/i.test(terminal)) return null;
+  const body = topics.slice(0, -1);
+  if (body.length === 0 || topics.length >= sessionCount) return null;
+  let remaining = sessionCount - topics.length;
+  const expanded = [];
+  for (const topic of body) {
+    expanded.push(topic);
+    if (remaining > 0) {
+      expanded.push(clamp(`${topic}: evidence and methods`, MAX_TITLE, MIN_TITLE));
+      remaining -= 1;
+    }
+  }
+  expanded.push(terminal);
+  return remaining === 0 ? expanded : null;
+}
+
 /** Topics for every session: transcribed where the source says, derived where it does not. */
 export function planSessionTopics(source, sessionCount) {
   const explicit = extractExplicitLessonSequence(source, { expectedCount: sessionCount });
@@ -212,7 +346,14 @@ export function planSessionTopics(source, sessionCount) {
   // unaffected, which is why this never surfaced on the Scion path. Take the
   // listed topics at whatever length they come, and extend from there.
   const listed = explicit.length > 0 ? explicit : extractExplicitLessonSequence(source);
-  const coverage = [...extractExplicitCoverageTopics(source), ...extractCompactBriefCoverage(source)];
+  const scheduled = extractChapterScheduleTopics(source);
+  if (scheduled.length >= sessionCount) return condenseOrderedTopics(scheduled, sessionCount);
+  const coverage = [
+    ...extractExplicitCoverageTopics(source),
+    ...extractCompactBriefCoverage(source),
+    ...extractNamedProgressionTopics(source),
+    ...scheduled,
+  ];
   const topics = [];
   const seen = new Set();
   for (const topic of [...listed, ...coverage]) {
@@ -223,6 +364,8 @@ export function planSessionTopics(source, sessionCount) {
     topics.push(value);
     if (topics.length === sessionCount) return topics;
   }
+  const terminalExpansion = expandBeforeTerminalTopic(topics, sessionCount);
+  if (terminalExpansion) return terminalExpansion;
   // When an instructor names a substantial sequence but leaves one final
   // meeting open, close with synthesis instead of mechanically repeating the
   // first topic through an arbitrary lens. The kernel composer recognizes the
@@ -566,6 +709,7 @@ export function buildResearchProvider({
   let requestCount = 0;
   const requestCountByOrigin = {};
   const lastByOrigin = new Map();
+  const rateLimitedUntilByOrigin = new Map();
   const cache = new Map();
   const requestPayload = async (url, { kind = 'json', accept = 'application/json' } = {}) => {
     throwIfAlgiAborted(signal);
@@ -579,6 +723,14 @@ export function buildResearchProvider({
         try {
           origin = new URL(url).origin;
         } catch {}
+        const rateLimitedUntil = rateLimitedUntilByOrigin.get(origin) || 0;
+        if (rateLimitedUntil > Date.now()) {
+          throw Object.assign(new Error('research-origin-rate-limited'), {
+            code: 'RESEARCH_ORIGIN_RATE_LIMITED',
+            origin,
+            retryAt: new Date(rateLimitedUntil).toISOString(),
+          });
+        }
         // DOAJ asks automated clients to leave roughly half a second between
         // calls; Wikipedia's batched read path is safe at the default gap.
         const providerGapMs = origin.includes('doaj.org')
@@ -596,16 +748,34 @@ export function buildResearchProvider({
         const controller = new AbortController();
         const onAbort = () => controller.abort(algiAbortError(signal?.reason));
         signal?.addEventListener?.('abort', onAbort, { once: true });
-        const timer = setTimeout(
-          () =>
-            controller.abort(Object.assign(new Error(`algi-research-timeout:${timeoutMs}`), { name: 'TimeoutError' })),
-          timeoutMs,
-        );
+        let timer;
+        const timeout = new Promise((_resolve, reject) => {
+          timer = setTimeout(() => {
+            const error = Object.assign(new Error(`algi-research-timeout:${timeoutMs}`), {
+              name: 'TimeoutError',
+            });
+            controller.abort(error);
+            reject(error);
+          }, timeoutMs);
+        });
         try {
-          const response = await fetchImpl(url, {
-            headers: { Accept: accept },
-            signal: controller.signal,
-          });
+          const requestHeaders = { Accept: accept };
+          // Wikimedia asks browser applications to identify themselves with
+          // Api-User-Agent because the browser owns the ordinary User-Agent
+          // header. Anonymous requests without an application identity are
+          // much more likely to receive a 429 during a multi-lesson research
+          // transaction. Keep the header origin-specific so unrelated public
+          // providers do not incur a needless CORS preflight.
+          if (origin.includes('wikipedia.org')) {
+            requestHeaders['Api-User-Agent'] = 'EduTool.dev/0.17 (+https://edutool.dev/#/contact)';
+          }
+          const response = await Promise.race([
+            fetchImpl(url, {
+              headers: requestHeaders,
+              signal: controller.signal,
+            }),
+            timeout,
+          ]);
           if (response.status === 429 && attempt < 2) {
             const retryAfterSeconds = Number(response.headers?.get?.('retry-after'));
             const retryMs = Number.isFinite(retryAfterSeconds)
@@ -614,8 +784,20 @@ export function buildResearchProvider({
             await waitForResearchGap(retryMs, signal);
             continue;
           }
+          if (response.status === 429) {
+            const retryAfterSeconds = Number(response.headers?.get?.('retry-after'));
+            const cooldownMs = Number.isFinite(retryAfterSeconds)
+              ? Math.min(5 * 60_000, Math.max(30_000, retryAfterSeconds * 1000))
+              : 60_000;
+            rateLimitedUntilByOrigin.set(origin, Date.now() + cooldownMs);
+          }
           if (!response.ok) throw new Error(`research-http-${response.status}`);
-          return kind === 'text' ? response.text() : response.json();
+          // Keep the abort timer armed through body consumption. `return
+          // response.json()` exits this try immediately and runs `finally`, so
+          // a server that sends headers but stalls its body could previously
+          // leave the course transaction alive forever with 0% CPU.
+          const payload = await Promise.race([kind === 'text' ? response.text() : response.json(), timeout]);
+          return payload;
         } finally {
           clearTimeout(timer);
           signal?.removeEventListener?.('abort', onAbort);
@@ -642,6 +824,9 @@ export function buildResearchProvider({
       maxRequests,
       cachedRequestCount: cache.size,
       requestCountByOrigin: { ...requestCountByOrigin },
+      rateLimitedOrigins: [...rateLimitedUntilByOrigin.entries()]
+        .filter(([, retryAt]) => retryAt > Date.now())
+        .map(([origin, retryAt]) => ({ origin, retryAt: new Date(retryAt).toISOString() })),
     }),
   };
 }

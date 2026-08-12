@@ -73,6 +73,8 @@ const CIRCULAR_DEFINITION_GENERIC_TOKENS = new Set(
 );
 const TONE_MARKED_PINYIN_AS_INITIAL_RE =
   /\b[a-zü]*[āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ][a-zü]*\s+is\s+(?:a|the)\s+(?:pinyin\s+)?initial\b/iu;
+const SOURCE_SENTENCE_FRAGMENT_TERM_RE =
+  /^(?:here\s+we\b|we\s+(?:show|find|report|provide)\b|in\s+addition\b|in\s+the\s+(?:main|present|current)\s+(?:study|experiment|analysis)\b|since\b|because\b|although\b|whereas\b|while\b|these?\s+(?:findings?|results?)\b)/i;
 
 function comparableScionKeyTermText(value) {
   return (
@@ -686,6 +688,9 @@ export function assessScionKeyTermContract(
   ) {
     issues.push('term-is-lesson-title');
   }
+  if (strictSemanticAdmission && SOURCE_SENTENCE_FRAGMENT_TERM_RE.test(normalized.term)) {
+    issues.push('term-is-source-sentence-fragment');
+  }
   const definitionLead = normalized.definition.split(/\s+/).slice(0, 6).join(' ').toLowerCase();
   if (
     normalized.term.length > 6 &&
@@ -699,7 +704,12 @@ export function assessScionKeyTermContract(
     // Decimal versions are not sentence boundaries. Treating “WCAG 2.2
     // covers…” as two sentences rejected an otherwise canonical definition
     // and let weaker claim fragments replace the official standard concept.
-    const sentenceCountText = normalized.definition.replace(/(\d)\.(?=\d)/g, '$1\u2060');
+    const sentenceCountText = normalized.definition
+      .replace(/(\d)\.(?=\d)/g, '$1\u2060')
+      // Initialisms such as “U.S.” and “U.K.” are internal punctuation, not
+      // three definition sentences. Mask their dots only for sentence
+      // counting; the exported source wording remains untouched.
+      .replace(/\b(?:[A-Z]\.){2,}/g, (initialism) => initialism.replace(/\./g, '\u2060'));
     const completeDefinitionSentences = sentenceCountText.match(/[^.!?]+[.!?]+/g) || [];
     if (!/[.!?][\])}"']?$/.test(normalized.definition)) issues.push('truncated-definition');
     if (completeDefinitionSentences.length > 1) issues.push('definition-multiple-sentences');

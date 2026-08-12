@@ -45,9 +45,9 @@ function courseContractBytes() {
 async function packageBytes({
   snapshotText = 'prefix Exact open-source claim. suffix',
   claim = 'Exact open-source claim.',
-  artifactText = claim,
+  artifactText = `${claim} Learning objective: Explain evidence using the available course evidence. Model how to explain the cited evidence, identify its boundary, and connect it to the lesson decision.`,
   withAssessment = false,
-  taskText = 'A1.1 Evidence explanation. Explain evidence using the available course evidence. Student evidence submission requirements: submit a written reflection.',
+  taskText = 'A1.1 Evidence explanation. Explain evidence using the available course evidence. Explain the cited evidence and identify its boundary. Student evidence submission requirements: submit a written reflection.',
   rubricText = 'A1.1 Evidence explanation. Criteria: evidence analysis 50%. Excellent, Proficient, Developing, Beginning.',
 } = {}) {
   const quote = 'Exact open-source claim.';
@@ -71,6 +71,7 @@ async function packageBytes({
     'student-evidence-visible',
     'matching-rubric-identity-visible',
     'observable-rubric-criteria-visible',
+    'manifest-objective-visible-in-instruction',
   ].map((id) => ({ id, passed: true }));
   const manifest = {
     quality: {
@@ -93,12 +94,13 @@ async function packageBytes({
               lesson: 1,
               assessmentId: 'A1.1',
               title: 'Evidence explanation',
-              totalChecks: 5,
-              passedChecks: 5,
+              totalChecks: 6,
+              passedChecks: 6,
               passed: true,
               checks: assessmentChecks,
               taskArtifact: { path: taskPath, sha256: sha256(taskBytes) },
               rubricArtifact: { path: rubricPath, sha256: sha256(rubricBytes) },
+              instructionArtifacts: [{ path: artifactPath, sha256: sha256(artifactBytes) }],
             },
           ],
         }
@@ -159,6 +161,134 @@ describe('independent package evidence replay', () => {
       verifiedArtifacts: 1,
       failures: [],
     });
+  });
+
+  it('replays binding-specific occurrence rows against their immutable source-work identity', async () => {
+    const bytes = await packageBytes();
+    const zip = await JSZip.loadAsync(bytes);
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+    manifest.sourceLedger[0].id = 'source-1--lesson-binding';
+    manifest.sourceLedger[0].sourceWorkId = 'source-1';
+    zip.file('PACKAGE_MANIFEST.json', JSON.stringify(manifest));
+    await expect(verifyPackageEvidenceZipBytes(await zip.generateAsync({ type: 'uint8array' }))).resolves.toMatchObject(
+      {
+        status: 'pass',
+        verifiedSources: 1,
+        verifiedClaims: 1,
+      },
+    );
+  });
+
+  it('uses the source-ledger trust policy for admitted OER providers', async () => {
+    const bytes = await packageBytes();
+    const zip = await JSZip.loadAsync(bytes);
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+    manifest.sourceLedger[0].provider = 'wals';
+    manifest.sourceLedger[0].url = 'https://wals.info/chapter/1';
+    manifest.sourceLedger[0].license = 'CC BY 4.0';
+    zip.file('PACKAGE_MANIFEST.json', JSON.stringify(manifest));
+    await expect(verifyPackageEvidenceZipBytes(await zip.generateAsync({ type: 'uint8array' }))).resolves.toMatchObject(
+      {
+        status: 'pass',
+        verifiedSources: 1,
+      },
+    );
+  });
+
+  it('replays Unicode-sensitive source bytes without compatibility normalization', async () => {
+    const bytes = await packageBytes();
+    const zip = await JSZip.loadAsync(bytes);
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+    const row = manifest.sourceLedger[0];
+    const check = row.supportReceipt.checks[0];
+    const quote = '/kʰáá/ contrasts with /káá/.';
+    const snapshotText = `WALS record: ${quote} End.`;
+    const artifactBytes = await docxBytes(quote);
+    const start = Buffer.from(snapshotText, 'utf8').indexOf(Buffer.from(quote, 'utf8'));
+    row.provider = 'wals';
+    row.url = 'https://wals.info/chapter/1';
+    row.license = 'CC BY 4.0';
+    Object.assign(row.supportReceipt.sourceSnapshot, {
+      normalizedSnapshotText: snapshotText,
+      retrievedSnapshotBytes: Buffer.byteLength(snapshotText),
+      retrievedSnapshotSha256: sha256(snapshotText),
+    });
+    Object.assign(check, {
+      quote,
+      claim: quote,
+      retrievedSnapshotBytes: Buffer.byteLength(snapshotText),
+      retrievedSnapshotSha256: sha256(snapshotText),
+      quoteByteStart: start,
+      quoteByteEnd: start + Buffer.byteLength(quote),
+      sourcePassageSha256: sha256(quote),
+      claimSha256: sha256(quote),
+      renderedArtifactSha256: sha256(artifactBytes),
+    });
+    zip.file(check.renderedLocation, artifactBytes);
+    zip.file('PACKAGE_MANIFEST.json', JSON.stringify(manifest));
+
+    await expect(verifyPackageEvidenceZipBytes(await zip.generateAsync({ type: 'uint8array' }))).resolves.toMatchObject(
+      {
+        status: 'pass',
+        verifiedSources: 1,
+        verifiedClaims: 1,
+      },
+    );
+  });
+
+  it('accepts a visible curated paraphrase only with the complete upstream admission chain', async () => {
+    const bytes = await packageBytes();
+    const zip = await JSZip.loadAsync(bytes);
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+    const row = manifest.sourceLedger[0];
+    const receipt = row.supportReceipt;
+    const check = receipt.checks[0];
+    const claim = 'The source example supplies evidence for a bounded language-analysis comparison.';
+    const artifactBytes = await docxBytes(claim);
+    Object.assign(receipt, {
+      sourceIdentityVerified: true,
+      semanticAdmissionVerified: true,
+      artifactVisibilityVerified: true,
+    });
+    Object.assign(receipt.sourceSnapshot, {
+      sourceIdentityVerified: true,
+      semanticAdmissionVerified: true,
+      artifactVisibilityVerified: true,
+    });
+    Object.assign(check, {
+      claim,
+      claimSha256: sha256(claim),
+      renderedArtifactSha256: sha256(artifactBytes),
+      sourceIdentityVerified: true,
+      semanticAdmissionVerified: true,
+      artifactVisibilityVerified: true,
+      semanticAdmission: {
+        admitted: true,
+        policy: 'shipped-source-curated-anchor-v1',
+        topic: 'bounded language analysis',
+        topicMatches: [],
+        issues: [],
+      },
+    });
+    zip.file(check.renderedLocation, artifactBytes);
+    zip.file('PACKAGE_MANIFEST.json', JSON.stringify(manifest));
+
+    await expect(verifyPackageEvidenceZipBytes(await zip.generateAsync({ type: 'uint8array' }))).resolves.toMatchObject(
+      {
+        status: 'pass',
+        verifiedSources: 1,
+        verifiedClaims: 1,
+      },
+    );
+
+    check.semanticAdmissionVerified = false;
+    zip.file('PACKAGE_MANIFEST.json', JSON.stringify(manifest));
+    await expect(verifyPackageEvidenceZipBytes(await zip.generateAsync({ type: 'uint8array' }))).resolves.toMatchObject(
+      {
+        status: 'fail',
+        verifiedClaims: 0,
+      },
+    );
   });
 
   it('fails closed when snapshot bytes or visible artifact claims are changed and re-signed', async () => {

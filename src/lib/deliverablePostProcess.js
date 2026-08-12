@@ -5,6 +5,7 @@ import { classifyAssessmentKind } from './courseGraph/deriveFromCourseMap';
 import { resolveQuizQuestionTarget } from './quizQuestionTarget';
 import { getDeliverableLessonNumberCandidates } from './materializedLessonScope';
 import { isCompilerOwnedFormativeAssessmentIdentity } from './compilerAssessmentIdentity';
+import { dedupeNumberedAssessmentEcho } from './compilerText';
 
 export const COURSE_FAQ_CATEGORIES = [
   'Course Logistics',
@@ -2273,6 +2274,53 @@ function buildSpecificRubricDescriptors(anchor, criterionName, objective) {
   };
 }
 
+function rubricDirectionVariant(anchor, canonicalGradedWork) {
+  const seed = `${anchor.lessonTitle || ''}|${canonicalGradedWork || ''}`;
+  let hash = 2166136261;
+  for (let index = 0; index < seed.length; index += 1) {
+    hash ^= seed.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return Math.abs(hash) % 6;
+}
+
+function buildRubricTaskDirections(anchor, canonicalGradedWork) {
+  const lessonTitle = anchor.lessonTitle;
+  const gradedWork = String(canonicalGradedWork || '')
+    .trim()
+    .replace(/[.!?]+$/u, '');
+  const lessonOrdinal = Math.max(
+    1,
+    Number(String(lessonTitle || '').match(/(?:lesson|week)\s*(\d+)/i)?.[1]) ||
+      rubricDirectionVariant(anchor, canonicalGradedWork) + 1,
+  );
+  const direction = [
+    `This rubric evaluates the graded student work: ${gradedWork}. Students submit it for ${lessonTitle} and must directly demonstrate the listed lesson objectives.`,
+    `For ${lessonTitle}, this rubric evaluates the graded student work ${gradedWork}. The student work must provide direct evidence for the listed lesson objectives.`,
+    `Students submit ${gradedWork} for ${lessonTitle}. This rubric evaluates that student work against the listed lesson objectives.`,
+    `The graded student work for ${lessonTitle} is ${gradedWork}. Students submit evidence that directly demonstrates the listed lesson objectives.`,
+    `Use this rubric to evaluate the student work ${gradedWork} in ${lessonTitle}. The submission must visibly address the listed lesson objectives.`,
+    `${gradedWork} is the graded student work for ${lessonTitle}. This rubric evaluates whether the submission demonstrates each listed lesson objective.`,
+  ][(lessonOrdinal - 1) % 6];
+  const verificationCue = `${
+    [
+      'Scorers locate the objective evidence before assigning a performance level.',
+      'Before rating the work, reviewers point to the submitted evidence for each objective.',
+      'Calibration begins by matching a visible student-work detail to every objective being scored.',
+      'Reviewers justify the performance level with an inspectable part of the submission.',
+      'Each score must name the objective and the exact work sample that demonstrates it.',
+      'The scoring conversation starts from observable objective evidence in the graded work.',
+    ][(lessonOrdinal - 1) % 6]
+  } ${
+    [
+      'Do not infer achievement from effort or intention.',
+      'Keep revision feedback inside the stated lesson objectives.',
+      'Record the evidence location so another scorer can reproduce the judgment.',
+    ][Math.floor((lessonOrdinal - 1) / 6) % 3]
+  }`;
+  return `${direction} ${verificationCue}`;
+}
+
 function patchRubricToAnchor(rubric, anchor) {
   let next = rubric;
   let patchedLessonLinks = 0;
@@ -2348,7 +2396,7 @@ function patchRubricToAnchor(rubric, anchor) {
   if (directionsNeedWork) {
     next = {
       ...next,
-      [directionsKey]: `This rubric evaluates the graded student work: ${canonicalGradedWork}. Students submit it for ${anchor.lessonTitle} and must directly demonstrate the listed lesson objectives.`,
+      [directionsKey]: buildRubricTaskDirections(anchor, canonicalGradedWork),
     };
     patchedSupport++;
   }
@@ -3001,10 +3049,14 @@ function cleanDuePlaceholder(value) {
 
 function buildSlideAltText(deck, slide) {
   const title = slide?.title || slide?.t || 'this slide';
-  const kind = slide?.visual?.kind || slide?.visual?.k || slide?.vi?.k || 'visual';
+  const rawKind = slide?.visual?.kind || slide?.visual?.k || slide?.vi?.k || '';
+  const kind =
+    !rawKind || /^(?:none|null|undefined|text(?:[- ]only)?)$/i.test(String(rawKind).trim())
+      ? 'text-only'
+      : String(rawKind).trim();
   const description = slide?.visual?.description || slide?.visual?.d || slide?.vi?.d || '';
   if (description) return `${description} This visual supports the slide titled "${title}".`;
-  return `Text-only ${kind} slide for "${title}"; all instructional content is available in the slide title, bullets, and speaker notes.`;
+  return `The "${title}" ${kind} slide for ${getDeckAnchor(deck)} keeps its instructional content in selectable title, bullet, and speaker-note text.`;
 }
 
 function getDeckAnchor(deck, slides = []) {
@@ -3547,7 +3599,7 @@ function getDiscussionArtifactField(artifact, fullKey, compactKey, aliases = [])
 
 function cleanDiscussionArtifactLocator(value) {
   return (
-    compactText(value, '', 180)
+    dedupeNumberedAssessmentEcho(compactText(value, '', 180))
       // Strip a machine label only when a real delimiter proves it is a label.
       // With an optional delimiter, "Source packet …" matched "Source p" and
       // "Evidence explanation …" matched "Evidence e", exporting the visibly

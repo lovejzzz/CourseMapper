@@ -402,22 +402,27 @@ describe('v0.14.1 phase 1 batch A compiler fixes', () => {
       expect(question.question).not.toMatch(/instructor question/i);
       expect(question.question).not.toMatch(/feedback move/i);
     }
-    // Frame 2 applies the secondary concept inside a concrete scenario.
-    expect(atoms[2].question).toMatch(/^In the /);
+    // Frame 2 preserves the secondary-concept scenario as an independent
+    // response when the lesson cannot supply three authored distractors.
+    expect(atoms[2]).toMatchObject({
+      type: 'short_answer',
+      distractorDiscrimination: { status: 'insufficient-authored-distractors' },
+    });
+    expect(atoms[2].question).toContain('In the ');
     expect(atoms[2].question).toContain('for loops');
     // Frame 4 asks which evidence supports a claim about the concept.
     expect(atoms[4].question).toContain('evidence');
     expect(atoms[4].question).toContain('claim');
   });
 
-  it('1.7 rotates the distractor pool so adjacent lessons differ', () => {
+  it('1.7 varies honest constructed-response fallbacks across adjacent lessons', () => {
     const lessonOne = makeLoopLesson(1);
     const lessonTwo = makeLoopLesson(2);
     const atomsOne = buildQuizAtomsForLesson(lessonOne, loopBlueprint(lessonOne), { assessment: {} });
     const atomsTwo = buildQuizAtomsForLesson(lessonTwo, loopBlueprint(lessonTwo), { assessment: {} });
-    const setOne = new Set(distractorTexts(atomsOne[0]));
-    const setTwo = new Set(distractorTexts(atomsTwo[0]));
-    expect([...setOne].some((text) => !setTwo.has(text))).toBe(true);
+    expect(atomsOne[0].type).toBe('short_answer');
+    expect(atomsTwo[0].type).toBe('short_answer');
+    expect(atomsOne[0].question).not.toBe(atomsTwo[0].question);
   });
 
   it('1.9 never comma-splits objective sentences into fragment key terms', () => {

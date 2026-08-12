@@ -17,7 +17,7 @@ export function assignmentSelfAssessmentEvidenceCheck({
   const artifact = stripTerminalPunctuation(cleanText(assignmentType, 'assignment')).toLowerCase();
   const checkFamilies = [
     [
-      `Identify one inspectable ${focus} detail from the lesson materials, explain the ${artifact} decision it supports, and state one limitation`,
+      `Identify one inspectable ${focus} detail from the lesson materials, explain the ${artifact} decision it supports, and name the evidence boundary it cannot cross`,
       `Point to a concrete ${focus} detail, connect it to a visible choice in the ${artifact}, and mark the boundary of the evidence`,
       `Use one verifiable ${focus} example to support the ${artifact}; show why it matters and what it cannot establish`,
       `Locate the specific ${focus} evidence behind the ${artifact} choice and distinguish the supported claim from an assumption`,

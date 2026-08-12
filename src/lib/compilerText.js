@@ -91,6 +91,18 @@ export function splitList(value) {
   return items.map((item) => stripListPrefix(item).trim()).filter(Boolean);
 }
 
+export function lastSentenceBoundaryIndex(value, fullValue = value) {
+  const text = String(value || '');
+  const fullText = String(fullValue || '');
+  let boundary = -1;
+  for (let index = 0; index < text.length; index += 1) {
+    if (!/[.!?;]/.test(text[index])) continue;
+    if (text[index] === '.' && /\d/.test(fullText[index - 1] || '') && /\d/.test(fullText[index + 1] || '')) continue;
+    boundary = index;
+  }
+  return boundary;
+}
+
 export function unique(values, limit = 12) {
   const seen = new Set();
   const result = [];

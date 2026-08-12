@@ -87,4 +87,78 @@ describe('typed compiler inputs', () => {
     expect(text).toContain('Close Reading in Literary Study §1');
     expect(text).not.toContain(`${title}: ${title}`);
   });
+
+  it('preserves a governing category total through storage and semantic anchor rebuilds', () => {
+    const graph = deriveCourseGraphFromCourseMap({
+      courseName: 'Introductory Statistics',
+      gradingPolicy: {
+        version: 1,
+        sourceStatus: 'source-explicit',
+        categories: [{ id: 'g1', title: 'HW', weightPct: 15, extraCredit: false, sourceStatus: 'source-formula' }],
+      },
+      lessons: [
+        {
+          title: 'Lesson 1: Regression Analysis',
+          sections: [
+            {
+              topicSection: 'Simple linear regression',
+              learningObjectives: 'Fit and interpret a simple linear regression for supplied paired observations.',
+              weeklyAssessments: 'weekly homework: Regression Analysis',
+            },
+          ],
+        },
+      ],
+    });
+    const blueprint = compactBlueprintForStorage(buildBlueprintFromGraph(graph));
+    const compiled = compileBlueprintDeliverables(blueprint, ['assignments']);
+    const assignment = compiled.assignments.assignments[0];
+
+    expect(blueprint.assessments[0].officialGradingCategory).toMatchObject({ title: 'HW', weightPct: 15 });
+    expect(assignment.percentOfGrade).toBe('Part of HW — 15% total course category');
+    expect(assignment.courseMapRef).toContain('HW · 15% category total');
+    expect(assignment.assessmentArchitecture.weightProvenance.sourceStatus).toBe('source-explicit-category-total');
+  });
+
+  it('lets an explicit simple-linear objective quarantine neighboring regression families', () => {
+    const graph = deriveCourseGraphFromCourseMap({
+      courseName: 'Introductory Statistics',
+      lessons: [
+        {
+          title: 'Lesson 1: Regression Analysis',
+          sections: [
+            {
+              topicSection: 'Simple linear regression',
+              learningObjectives:
+                'Fit and interpret a simple linear regression for supplied paired observations by showing slope and intercept calculations, checking fitted values or residuals, and limiting causal or extrapolated claims.',
+              weeklyAssessments: 'Regression analysis memo',
+            },
+          ],
+        },
+      ],
+    });
+    graph.enrichmentOverlay = {
+      lessonContent: {
+        'lesson-1': {
+          keyTerms: [
+            { term: 'Poisson regression', definition: 'Poisson regression models count outcomes.' },
+            { term: 'Segmented regression', definition: 'Segmented regression estimates breakpoints.' },
+            { term: 'Least-squares slope', definition: 'The fitted slope uses Sxy divided by Sxx.' },
+          ],
+          kernel: {
+            facts: [
+              'Poisson regression models count outcomes.',
+              'Segmented regression estimates breakpoints.',
+              'The least-squares slope uses Sxy divided by Sxx.',
+            ],
+          },
+        },
+      },
+    };
+    const blueprint = compactBlueprintForStorage(buildBlueprintFromGraph(graph));
+    const compiled = compileBlueprintDeliverables(blueprint, ['lessonPlans', 'quizBank']);
+    const learnerFacing = JSON.stringify(compiled);
+
+    expect(learnerFacing).toMatch(/least[- ]squares|slope|residual/i);
+    expect(learnerFacing).not.toMatch(/Poisson regression|Segmented regression/i);
+  });
 });

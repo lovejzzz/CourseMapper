@@ -4,6 +4,9 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import JSZip from 'jszip';
 
+import { isLicenseAmbiguous, isSourceAccessible, isTrustedSourceLedgerRow } from '../src/lib/knowledge/sourceLedger.js';
+import { objectiveTaskMapping } from '../src/lib/quality/assessmentCoherence.js';
+
 function sha256(value) {
   return crypto.createHash('sha256').update(value).digest('hex');
 }
@@ -28,6 +31,14 @@ function cleanText(value) {
     .replace(/<[^>]+>/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+function exactSnapshotText(value) {
+  const text = String(value ?? '');
+  // Snapshot hashes and byte offsets describe the bytes that travel in the
+  // package. Never compatibility-normalize or collapse whitespace here: NFKC
+  // changes valid linguistic evidence such as superscript aspiration.
+  return text.length <= 500000 ? text : '';
 }
 
 function normalized(value) {
@@ -115,54 +126,17 @@ const ASSESSMENT_CHECK_IDS = [
   'student-evidence-visible',
   'matching-rubric-identity-visible',
   'observable-rubric-criteria-visible',
+  'manifest-objective-visible-in-instruction',
 ];
 
-const TRUST_ELIGIBLE_PROVIDERS = new Set([
-  'courseir',
-  'genome',
-  'genome-prerequisite',
-  'openalex',
-  'openlibrary',
-  'openstax',
-  'open-music-theory',
-  'gutenberg',
-  'eric',
-  'instructor',
-  'instructor-provided',
-  'source-finder',
-  'w3c-wai',
-  'crossref',
-  'doaj',
-  'europe-pmc',
-  'wikipedia',
-]);
-const REVIEW_ONLY_PROVIDERS = new Set(['courseir', 'instructor', 'instructor-provided', 'openlibrary']);
-const AMBIGUOUS_LICENSE_RE =
-  /^(?:|unknown|open access|open license|other[-\s]?oa|(?:[\w.-]+\s+)*public metadata|instructor review required|review required|varies|mixed|metadata only|in copyright|all rights reserved)$/i;
-const RESTRICTED_LICENSE_RE =
-  /rightsstatements\.org\/vocab\/inc(?:[-/]|$)|(?:\/tdm(?:[_/-]|$)|\btdm(?:[_-]?license)?\b|text[-\s]?and[-\s]?data[-\s]?mining|policy-029)|(?:\bCC[-_\s]+BY(?:[-_\s]+(?:NC|SA|ND))*[-_\s]+ND(?:[-_\s]+(?:NC|SA|ND))*\b|creativecommons\.org\/licenses\/by(?:-[a-z]+)*-nd(?:\/|$))/i;
-
-function hasAccessibleReference(row) {
-  if (cleanText(row?.doi)) return true;
-  try {
-    const url = new URL(cleanText(row?.url));
-    return ['http:', 'https:'].includes(url.protocol) && Boolean(url.hostname);
-  } catch {
-    return false;
-  }
-}
-
 function sourceAdmissionFailure(row, receipt) {
-  const provider = cleanText(row?.provider).toLowerCase();
-  const license = cleanText(row?.license);
-  if (!TRUST_ELIGIBLE_PROVIDERS.has(provider) || REVIEW_ONLY_PROVIDERS.has(provider)) {
-    return 'provider is not independently trust-eligible';
-  }
-  if (!hasAccessibleReference(row)) return 'source has no accessible URL or DOI';
-  if (AMBIGUOUS_LICENSE_RE.test(license) || RESTRICTED_LICENSE_RE.test(license)) {
-    return 'source license is ambiguous or restricted';
-  }
+  // The package verifier must share the generator's trust policy rather than
+  // maintain a second provider allowlist. The duplicated list previously
+  // rejected WALS and MIT OCW rows that the source ledger had already admitted.
+  if (!isSourceAccessible(row)) return 'source has no accessible URL or DOI';
+  if (isLicenseAmbiguous(row?.license)) return 'source license is ambiguous or restricted';
   if (row?.provenanceMismatch === true) return 'source declares a provenance mismatch';
+  if (!isTrustedSourceLedgerRow(row)) return 'provider is not independently trust-eligible';
   if (receipt?.status !== 'passed' || receipt?.semanticSupport !== true || receipt?.readinessEligible !== true) {
     return 'source receipt did not pass semantic-support admission';
   }
@@ -220,12 +194,16 @@ export async function verifyPackageEvidenceZipBytes(
       continue;
     }
     const snapshot = receipt?.sourceSnapshot;
-    const text = cleanText(snapshot?.normalizedSnapshotText);
+    const text = exactSnapshotText(snapshot?.normalizedSnapshotText);
     const bytes = Buffer.from(text, 'utf8');
     const sourceId = String(row?.id || 'unknown-source');
+    // Binding-specific ledger rows retain the immutable source-work identity
+    // in sourceWorkId. Snapshot and claim receipts are signed against that
+    // work identity while row.id remains the occurrence key.
+    const sourceIdentityId = String(row?.sourceWorkId || row?.id || 'unknown-source');
     if (
       snapshot?.protocol !== 'retrieved-source-snapshot-sha256-v2' ||
-      snapshot?.sourceId !== row?.id ||
+      snapshot?.sourceId !== sourceIdentityId ||
       snapshot?.contentVerified !== true ||
       bytes.length !== Number(snapshot?.retrievedSnapshotBytes) ||
       sha256(bytes) !== snapshot?.retrievedSnapshotSha256
@@ -233,17 +211,19 @@ export async function verifyPackageEvidenceZipBytes(
       failures.push(`${sourceId}: snapshot bytes do not reproduce the declared receipt`);
       continue;
     }
-    evidenceBundle.push({ sourceId, snapshot, checks: receipt.checks || [] });
+    evidenceBundle.push({ sourceId, sourceIdentityId, snapshot, checks: receipt.checks || [] });
     let sourceClaims = 0;
     for (const check of Array.isArray(receipt?.checks) ? receipt.checks : []) {
       const start = Number(check?.quoteByteStart);
       const end = Number(check?.quoteByteEnd);
-      const quote = cleanText(check?.quote);
-      const claim = cleanText(check?.claim);
+      const exactQuote = String(check?.quote ?? '');
+      const exactClaim = String(check?.claim ?? '');
+      const quote = cleanText(exactQuote);
+      const claim = cleanText(exactClaim);
       const artifactPath = String(check?.renderedLocation || '');
       const artifact = zip.file(artifactPath);
       if (
-        check?.sourceId !== row?.id ||
+        check?.sourceId !== sourceIdentityId ||
         !cleanText(check?.locator) ||
         check?.quoteInSnapshot !== true ||
         check?.entailed !== true ||
@@ -255,9 +235,9 @@ export async function verifyPackageEvidenceZipBytes(
         start < 0 ||
         end <= start ||
         end > bytes.length ||
-        cleanText(bytes.subarray(start, end).toString('utf8')) !== quote ||
-        sha256(Buffer.from(quote, 'utf8')) !== check?.sourcePassageSha256 ||
-        sha256(Buffer.from(claim, 'utf8')) !== check?.claimSha256 ||
+        bytes.subarray(start, end).toString('utf8') !== exactQuote ||
+        sha256(Buffer.from(exactQuote, 'utf8')) !== check?.sourcePassageSha256 ||
+        sha256(Buffer.from(exactClaim, 'utf8')) !== check?.claimSha256 ||
         !artifact
       ) {
         failures.push(`${sourceId}: ${check?.claimId || 'claim'} cannot be replayed`);
@@ -283,8 +263,22 @@ export async function verifyPackageEvidenceZipBytes(
         failures.push(`${sourceId}: ${check?.claimId || 'claim'} ${error.message}`);
         continue;
       }
-      if (normalized(claim) !== normalized(quote) || !textContains(visibleText, claim)) {
-        failures.push(`${sourceId}: ${check?.claimId || 'claim'} claim is not the quoted text visible in its artifact`);
+      const exactClaimIdentity = normalized(claim) === normalized(quote);
+      const curatedParaphraseAdmission =
+        check?.semanticAdmission?.admitted === true &&
+        check?.semanticAdmission?.policy === 'shipped-source-curated-anchor-v1' &&
+        receipt?.sourceIdentityVerified === true &&
+        receipt?.semanticAdmissionVerified === true &&
+        receipt?.artifactVisibilityVerified === true &&
+        snapshot?.sourceIdentityVerified === true &&
+        snapshot?.semanticAdmissionVerified === true &&
+        check?.sourceIdentityVerified === true &&
+        check?.semanticAdmissionVerified === true &&
+        check?.artifactVisibilityVerified === true;
+      if ((!exactClaimIdentity && !curatedParaphraseAdmission) || !textContains(visibleText, claim)) {
+        failures.push(
+          `${sourceId}: ${check?.claimId || 'claim'} claim is neither the quoted text nor an explicitly admitted curated paraphrase visible in its artifact`,
+        );
         continue;
       }
       sourceClaims += 1;
@@ -322,7 +316,8 @@ export async function verifyPackageEvidenceZipBytes(
       }
       if (expected?.assessmentRequired !== true) continue;
       const row = assessmentRows.get(lessonNumber);
-      const paths = [row?.taskArtifact, row?.rubricArtifact];
+      const instructionArtifacts = Array.isArray(row?.instructionArtifacts) ? row.instructionArtifacts : [];
+      const paths = [row?.taskArtifact, row?.rubricArtifact, ...instructionArtifacts];
       const declaredCheckIds = Array.isArray(row?.checks) ? row.checks.map((entry) => entry?.id) : [];
       if (
         !row ||
@@ -333,9 +328,10 @@ export async function verifyPackageEvidenceZipBytes(
         row?.passed !== true ||
         JSON.stringify(declaredCheckIds) !== JSON.stringify(ASSESSMENT_CHECK_IDS) ||
         row.checks.some((entry) => entry?.passed !== true) ||
+        instructionArtifacts.length === 0 ||
         paths.some((entry) => !entry?.path || !entry?.sha256)
       ) {
-        failures.push(`course contract assessment ${lessonNumber} is missing its five-check artifact chain`);
+        failures.push(`course contract assessment ${lessonNumber} is missing its six-check artifact chain`);
         continue;
       }
       let validArtifacts = true;
@@ -368,16 +364,20 @@ export async function verifyPackageEvidenceZipBytes(
         failures.push(`course contract assessment ${lessonNumber} artifact digest mismatch`);
         continue;
       }
-      const [taskText, rubricText] = texts;
+      const [taskText, rubricText, ...instructionTexts] = texts;
       const objectives = (Array.isArray(expected?.objectives) ? expected.objectives : [])
         .map(cleanText)
         .filter(Boolean);
       const replayedChecks = [
         assessmentIdentityVisible(expected, taskText),
-        objectives.length > 0 && objectives.some((objective) => textContains(taskText, objective)),
+        objectives.length > 0 && objectives.every((objective) => objectiveTaskMapping(objective, taskText).passed),
         visibleStudentEvidence(taskText),
         assessmentIdentityVisible(expected, rubricText),
         visibleRubricCriteria(rubricText),
+        objectives.length > 0 &&
+          objectives.every((objective) =>
+            instructionTexts.some((text) => objectiveTaskMapping(objective, text).passed),
+          ),
       ];
       if (replayedChecks.some((passed) => !passed)) {
         failures.push(`course contract assessment ${lessonNumber} fails independent visible-text replay`);

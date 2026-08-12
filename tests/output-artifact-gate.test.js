@@ -395,13 +395,14 @@ describe('v0.14.1 detector self-tests (audited defect strings must trip)', () =>
     }
   });
 
-  it('flags all four audited internal-vocabulary strings', () => {
+  it('flags all audited internal-vocabulary strings', () => {
     const allVocab = [...ARMED_INTERNAL_VOCAB_PATTERNS, ...PENDING_INTERNAL_VOCAB_PATTERNS];
     const defects = [
       'Lab Evidence Thread',
       'Evidence Thread packet item',
       'Preference profile: criterion-specific',
       'lecture exam evidence routine',
+      'Consider the previously stated claim about color vision.',
     ];
     for (const sample of defects) {
       expect(matchesAny(allVocab, sample), sample).toBe(true);

@@ -21,6 +21,21 @@ const CORRECTION_REFERENCE_TEMPLATES = [
   (term) => `Follow the ${term} evidence-boundary check already established here.`,
 ];
 
+const MISCONCEPTION_TEMPLATES = [
+  (term) => `Naming ${term} needs no supporting source.`,
+  (term) => `${term} can be accepted without a source trace.`,
+  (term) => `A ${term} claim needs no cited supporting fact.`,
+  (term) => `Students may treat ${term} as evidence without a passage.`,
+  (term) => `${term} may stand alone without a stated source boundary.`,
+  (term) => `The ${term} label proves the claim without source support.`,
+  (term) => `Repeating ${term} is sufficient without a source basis.`,
+  (term) => `${term} supports the conclusion without an inspectable source link.`,
+  (term) => `No exact source detail is needed for ${term}.`,
+  (term) => `${term} removes the need to identify source support.`,
+  (term) => `${term} is self-evident without a supporting claim.`,
+  (term) => `A learner may treat ${term} as untraced evidence.`,
+];
+
 const CURRENT_CORRECTION_TERM_PATTERNS = [
   /^(.+): cite its supporting source and state the claim's boundary\.$/,
   /^(.+): connect evidence to the claim and name what remains unproven\.$/,
@@ -52,19 +67,27 @@ function normalizedTerm(value) {
  * not inherit one generic ten-word prefix through every lesson-plan, slide,
  * and study-guide projection.
  */
-function stableVariantIndex(value) {
+function stableVariantIndex(value, variantCount = CORRECTION_TEMPLATES.length) {
   let hash = 2166136261;
   for (const char of String(value || '')) {
     hash ^= char.codePointAt(0);
     hash = Math.imul(hash, 16777619);
   }
-  return (hash >>> 0) % CORRECTION_TEMPLATES.length;
+  return (hash >>> 0) % variantCount;
 }
 
 export function buildCompilerSourceBoundaryCorrection(term, variantSeed = term) {
   const subject = normalizedTerm(term);
   if (!subject) return 'Cite supporting evidence and name its limit.';
   return CORRECTION_TEMPLATES[stableVariantIndex(variantSeed)](subject);
+}
+
+export function buildCompilerSourceBoundaryMisconception(term, variantSeed = term) {
+  const subject = normalizedTerm(term);
+  if (!subject) return 'A claim needs no inspectable supporting source.';
+  return MISCONCEPTION_TEMPLATES[stableVariantIndex(`${variantSeed}:misconception`, MISCONCEPTION_TEMPLATES.length)](
+    subject,
+  );
 }
 
 function buildCompilerSourceBoundaryReference(term, variantSeed) {

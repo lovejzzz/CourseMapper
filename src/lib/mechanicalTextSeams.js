@@ -31,10 +31,12 @@ const LEGITIMATE_REPEATED_CONJUNCTION_WORDS = new Set([
   'less',
   'longer',
   'lower',
+  'larger',
   'more',
   'nearer',
   'over',
   'shorter',
+  'smaller',
   'slower',
   'stronger',
   'weaker',
@@ -82,4 +84,39 @@ export function collapseMechanicalContentWordEchoes(value) {
     const match = { 0: whole, 1: word, index: offset };
     return isMechanicalEcho(text, match) ? word : whole;
   });
+}
+
+const LEARNER_FACING_COMPILER_LEAKS = Object.freeze([
+  { code: 'determiner-collision', pattern: /\byour\s+the\b/i },
+  { code: 'missing-context-fragment', pattern: /\bWhat\s+missing\s+(?:the\s+)?[^?.]{1,80}?\s+context\b/i },
+  { code: 'internal-source-id', pattern: /\bCM-(?:SRC|PROD)-L\d{1,3}\b/i },
+  { code: 'internal-brand-provenance', pattern: /\bCourseMapper-native\b/i },
+  { code: 'artifact-menu-fragment', pattern: /(?:^|[.!?]\s+)or\s+comparison memo\b/i },
+]);
+
+function isCompleteFunctionalVisualLocatorSurface(text) {
+  if (
+    !/\bVISUAL EVIDENCE LAB\b/i.test(text) ||
+    !/\bVISUAL PROVENANCE\b/i.test(text) ||
+    !/\bORIGINAL NATIVE\b/i.test(text) ||
+    !/\bRIGHTS\s*[·:]\s*/i.test(text)
+  ) {
+    return false;
+  }
+  const sourceLessons = [...text.matchAll(/\bCM-SRC-L(\d{1,3})\b/gi)].map((match) => Number(match[1]));
+  const productLessons = [...text.matchAll(/\bCM-PROD-L(\d{1,3})\b/gi)].map((match) => Number(match[1]));
+  if (sourceLessons.length === 0 || productLessons.length === 0) return false;
+  const sources = [...new Set(sourceLessons)].sort((left, right) => left - right);
+  const products = [...new Set(productLessons)].sort((left, right) => left - right);
+  return sources.length === products.length && sources.every((lesson, index) => lesson === products[index]);
+}
+
+export function findLearnerFacingCompilerLeak(value) {
+  const text = String(value || '');
+  for (const leak of LEARNER_FACING_COMPILER_LEAKS) {
+    const match = text.match(leak.pattern);
+    if (leak.code === 'internal-source-id' && match && isCompleteFunctionalVisualLocatorSurface(text)) continue;
+    if (match) return { code: leak.code, evidence: match[0] };
+  }
+  return null;
 }

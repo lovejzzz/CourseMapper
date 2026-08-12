@@ -36,6 +36,8 @@ async function getPptxGen() {
 }
 
 const PPTX_ACCESSIBILITY_REGISTRY = Symbol('courseMapperPptxAccessibilityRegistry');
+const PPTX_SPECIMEN_CONTRACT_REGISTRY = Symbol('courseMapperPptxSpecimenContractRegistry');
+const PPTX_REGISTER_SPECIMEN_CONTRACT = Symbol('courseMapperRegisterSpecimenContract');
 
 function flattenPptxAccessibleText(value, depth = 0) {
   if (value == null || depth > 5) return '';
@@ -80,6 +82,7 @@ function derivedPptxDescription(method, methodArgs, optionsIndex) {
  */
 function instrumentPptxAccessibility(pptx) {
   const registry = new Map();
+  const specimenContractRegistry = new Map();
   const addSlide = pptx.addSlide.bind(pptx);
   let slideNumber = 0;
 
@@ -88,6 +91,9 @@ function instrumentPptxAccessibility(pptx) {
     slideNumber += 1;
     const records = [];
     registry.set(slideNumber, records);
+    Object.defineProperty(slide, PPTX_REGISTER_SPECIMEN_CONTRACT, {
+      value: (contract) => specimenContractRegistry.set(slideNumber, structuredClone(contract)),
+    });
 
     for (const [method, optionsIndex] of [
       ['addShape', 1],
@@ -112,6 +118,7 @@ function instrumentPptxAccessibility(pptx) {
   };
 
   Object.defineProperty(pptx, PPTX_ACCESSIBILITY_REGISTRY, { value: registry });
+  Object.defineProperty(pptx, PPTX_SPECIMEN_CONTRACT_REGISTRY, { value: specimenContractRegistry });
   return pptx;
 }
 
@@ -126,19 +133,19 @@ export const THEMES = [
   {
     name: 'Navy & Gold',
     primary: '1E3A5F',
-    secondary: '2E86AB',
+    secondary: '246B8A',
     accent: 'F6C90E',
     light: 'EEF4FF',
     sideBar: '1E3A5F',
     body: 'FFFFFF',
     titleText: 'FFFFFF',
     bodyText: '1A1A2E',
-    subtleText: '6B7FA3',
+    subtleText: '566987',
   },
   {
     name: 'Forest & Amber',
     primary: '1B4332',
-    secondary: '52B788',
+    secondary: '2F7A56',
     accent: 'F4A261',
     light: 'F0FFF4',
     sideBar: '1B4332',
@@ -181,7 +188,7 @@ export const THEMES = [
     body: 'FFFFFF',
     titleText: 'FFFFFF',
     bodyText: '0A1628',
-    subtleText: '2196F3',
+    subtleText: '0B6AA2',
   },
 ];
 
@@ -551,7 +558,12 @@ function planNativeVisual(s, slideType, visKind, hasGeneratedImage, hasLatex) {
       // descriptor itself is valid.
       .slice(0, 3);
     if (rows.length < 2) return null;
-    const descriptorLead = String(visual.tableLead || '').trim();
+    const rawDescriptorLead = String(visual.tableLead || '').trim();
+    const descriptorLead = /\b(?:a|an|and|as|at|by|for|from|in|of|on|or|that|the|to|with|without)$/i.test(
+      rawDescriptorLead,
+    )
+      ? `Use the source points below to evaluate ${String(s.title || 'the lesson claim').trim()}.`
+      : rawDescriptorLead;
     const lead = descriptorLead || bullets[0];
     if (!lead || lead.length > NATIVE_VISUAL_LIMITS.tableLead) return null;
     const columnLabels = (Array.isArray(visual.columnLabels) ? visual.columnLabels : [])
@@ -579,6 +591,30 @@ function planNativeVisual(s, slideType, visKind, hasGeneratedImage, hasLatex) {
     if (cells.length < 2) return null;
     if (cells.some((b) => b.length > NATIVE_VISUAL_LIMITS.matrixCell)) return null;
     return { type: 'decisionMatrix', cells };
+  }
+
+  if (slideType === 'keyTerm' && /\bevidence\s*specimen\b/i.test(visKind)) {
+    const visual = s.visual || s.vi || {};
+    const typedSpecimen = visual.typedSpecimen || null;
+    const hasBoundVisibleTask =
+      typedSpecimen?.protocol === 'coursemapper-typed-evidence-specimen-v1' &&
+      typedSpecimen?.visibleTask?.protocol === 'coursemapper-visible-functional-task-v1';
+    const definition = String(
+      hasBoundVisibleTask ? typedSpecimen.visibleTask.cardText : visual.observationPrompt || '',
+    ).trim();
+    // Typed tasks are hash-bound by the compiler. Keep that authored text
+    // visible and let the card shrink/reflow; never substitute generic prose
+    // or silently drop the promised specimen because the task is long.
+    if (!definition || (!hasBoundVisibleTask && definition.length > NATIVE_VISUAL_LIMITS.definition)) return null;
+    return {
+      type: 'evidenceSpecimen',
+      definition,
+      seed: String(visual.specimenSeed || s.title || 'specimen'),
+      label: String(visual.specimenLabel || 'Visual evidence').trim(),
+      evidenceLabel: String(visual.evidenceLabel || 'Supporting detail').trim(),
+      altText: String(visual.altText || '').trim(),
+      typedSpecimen,
+    };
   }
 
   if (slideType === 'keyTerm' && /\bconcept\s*map\b/i.test(visKind)) {
@@ -623,14 +659,72 @@ function planNativeVisual(s, slideType, visKind, hasGeneratedImage, hasLatex) {
     // here so a hand-edited descriptor can never chart garbage; anything
     // short of 2 clean pairs keeps the step-by-step text layout.
     const visual = s.visual || s.vi || {};
-    const pairs = (Array.isArray(visual.wePlot?.pairs) ? visual.wePlot.pairs : [])
+    const descriptor = visual.wePlot || {};
+    const kind = String(descriptor.kind || 'bar').trim();
+    const pairs = (Array.isArray(descriptor.pairs) ? descriptor.pairs : [])
       .map((pair) => ({
         label: String(pair?.label || '').trim(),
         value: Number(pair?.value),
         unit: String(pair?.unit || '').trim(),
       }))
       .filter((pair) => pair.label && Number.isFinite(pair.value));
-    if (pairs.length >= 2 && pairs.length <= 6) return { type: 'wePlot', pairs };
+    if (['bar', 'histogram'].includes(kind) && pairs.length >= 2 && pairs.length <= 8) {
+      return { type: 'wePlot', kind, pairs };
+    }
+    if (kind === 'scatter') {
+      const points = (Array.isArray(descriptor.points) ? descriptor.points : [])
+        .map((point) => ({ x: Number(point?.x), y: Number(point?.y) }))
+        .filter((point) => Number.isFinite(point.x) && Number.isFinite(point.y));
+      if (points.length >= 2 && points.length <= 24) {
+        return { type: 'wePlot', kind, points, showFit: descriptor.showFit === true };
+      }
+    }
+    if (kind === 'dotplot') {
+      const values = (Array.isArray(descriptor.values) ? descriptor.values : []).map(Number).filter(Number.isFinite);
+      if (values.length >= 3 && values.length <= 30) return { type: 'wePlot', kind, values };
+    }
+    if (kind === 'contingency-table') {
+      const columns = (Array.isArray(descriptor.columns) ? descriptor.columns : []).map((value) => String(value));
+      const rows = (Array.isArray(descriptor.rows) ? descriptor.rows : [])
+        .map((row) => (Array.isArray(row) ? row.slice(0, 3) : []))
+        .filter((row) => row.length === 3 && row.every((value) => String(value).trim()));
+      if (columns.length === 3 && rows.length >= 2 && rows.length <= 6) {
+        return { type: 'wePlot', kind, columns, rows };
+      }
+    }
+    if (kind === 'number-line') {
+      const domain = (Array.isArray(descriptor.domain) ? descriptor.domain : []).map(Number);
+      const markers = (Array.isArray(descriptor.markers) ? descriptor.markers : [])
+        .map((marker) => ({ label: String(marker?.label || '').trim(), value: Number(marker?.value) }))
+        .filter((marker) => marker.label && Number.isFinite(marker.value));
+      if (domain.length === 2 && domain.every(Number.isFinite) && domain[0] < domain[1] && markers.length >= 2) {
+        return { type: 'wePlot', kind, domain, markers };
+      }
+    }
+    if (kind === 'interval') {
+      const low = Number(descriptor.low);
+      const center = Number(descriptor.center);
+      const high = Number(descriptor.high);
+      if ([low, center, high].every(Number.isFinite) && low <= center && center <= high && low < high) {
+        return {
+          type: 'wePlot',
+          kind,
+          low,
+          center,
+          high,
+          labels: (Array.isArray(descriptor.labels) ? descriptor.labels : ['lower', 'estimate', 'upper']).map(String),
+        };
+      }
+    }
+    if (kind === 'sampling-frame') {
+      const frame = (Array.isArray(descriptor.frame) ? descriptor.frame : []).map(Number).filter(Number.isFinite);
+      const selected = (Array.isArray(descriptor.selected) ? descriptor.selected : [])
+        .map(Number)
+        .filter(Number.isFinite);
+      if (frame.length >= 4 && frame.length <= 24 && selected.length >= 1) {
+        return { type: 'wePlot', kind, frame, selected };
+      }
+    }
     return null;
   }
 
@@ -679,6 +773,15 @@ function addEvidenceTable(pptx, slide, theme, plan, visKind, tracker, authoredAl
       },
     })),
   );
+  const tableRecoveryDescription = `Columns ${headerRow.map((cell) => cell.text).join(' and ')}. Rows: ${plan.rows
+    .map((cells) =>
+      cells
+        .map((cell) => String(cell || '').trim())
+        .filter(Boolean)
+        .join(' means '),
+    )
+    .filter(Boolean)
+    .join('; ')}.`;
   slide.addTable([headerRow, ...bodyRows], {
     x: tableX,
     y: tableY,
@@ -693,9 +796,7 @@ function addEvidenceTable(pptx, slide, theme, plan, visKind, tracker, authoredAl
     autoPage: false,
     // v0.14.5 (C3): cmViz name — counts as a native visual in the grader bar.
     objectName: 'cmVizTable',
-    altText:
-      String(authoredAltText || '').trim() ||
-      `Evidence table comparing ${headerRow.map((cell) => cell.text).join(' and ')}.`,
+    altText: `${String(authoredAltText || '').trim() || 'Evidence table.'} ${tableRecoveryDescription}`,
   });
   tracker.add({
     x: tableX,
@@ -734,7 +835,10 @@ function addDecisionMatrix(pptx, slide, theme, plan, tracker, authoredAltText = 
     autoPage: false,
     // v0.14.5 (C3): cmViz name — counts as a native visual in the grader bar.
     objectName: 'cmVizMatrix',
-    altText: String(authoredAltText || '').trim() || `Decision matrix comparing ${plan.cells.length} visible options.`,
+    altText: `${String(authoredAltText || '').trim() || 'Decision matrix.'} Options: ${plan.cells
+      .map((cell) => String(cell || '').trim())
+      .filter(Boolean)
+      .join('; ')}.`,
   };
   const pairs = [];
   for (let i = 0; i + 1 < plan.cells.length; i += 2) {
@@ -791,7 +895,7 @@ function addConceptMapGroup(pptx, slide, theme, plan, tracker) {
       flipH: (scx - hubCx) * (scy - hubCy) < 0,
       line: { color: theme.secondary, pt: 1.25 },
       objectName: 'cmVizConn',
-      altText: 'Decorative',
+      altText: `Connector from central concept ${plan.hub} to related idea ${spoke.text}`,
     });
   }
 
@@ -806,21 +910,34 @@ function addConceptMapGroup(pptx, slide, theme, plan, tracker) {
     );
     const spokeMaxSize = longestToken >= 11 ? 9 : 11;
     const spokeSize = autoFitFontSize(spoke.text, spoke.w - 0.3, spokeH - 0.25, FONT_BODY, spokeMaxSize, 8, 1.15);
-    slide.addText(spoke.text, {
-      shape: pptx.ShapeType.ellipse,
+    // Keep geometry and text in separate objects. LibreOffice may interpret a
+    // text-bearing ellipse as "resize shape to fit text" and expand a lower
+    // spoke into a large white mask over the rest of the slide. A fixed shape
+    // plus a transparent shrink-to-fit label preserves the physical slot.
+    slide.addShape(pptx.ShapeType.ellipse, {
       x: spoke.x,
       y: spoke.y,
       w: spoke.w,
       h: spokeH,
       fill: { color: 'FFFFFF' },
       line: { color: theme.secondary, pt: 1 },
+      objectName: 'cmVizSpoke',
+      altText: `Concept-map node containing related idea ${spoke.text}`,
+    });
+    slide.addText(spoke.text, {
+      x: spoke.x,
+      y: spoke.y,
+      w: spoke.w,
+      h: spokeH,
       fontSize: spokeSize,
       fontFace: FONT_BODY,
       color: theme.bodyText,
       align: 'center',
       valign: 'middle',
       lineSpacingMultiple: 1.15,
-      objectName: 'cmVizSpoke',
+      fit: 'shrink',
+      margin: 0.08,
+      objectName: 'cmVizSpokeLabel',
       altText: `Related idea: ${spoke.text}`,
     });
     tracker.add({ x: spoke.x, y: spoke.y, w: spoke.w, h: spokeH, label: 'concept-spoke' });
@@ -832,14 +949,21 @@ function addConceptMapGroup(pptx, slide, theme, plan, tracker) {
   // starting size for long hubs so the rendered text remains word-shaped.
   const hubMaxSize = String(plan.hub || '').length > 24 ? 11 : 14;
   const hubSize = autoFitFontSize(plan.hub, hub.w - 0.35, hub.h - 0.25, FONT_HEADING, hubMaxSize, 8, 1.1);
-  slide.addText(plan.hub, {
-    shape: pptx.ShapeType.ellipse,
+  slide.addShape(pptx.ShapeType.ellipse, {
     x: hub.x,
     y: hub.y,
     w: hub.w,
     h: hub.h,
     fill: { color: theme.accent },
     line: { color: theme.primary, pt: 1.5 },
+    objectName: 'cmVizHub',
+    altText: `Concept-map hub containing central concept ${plan.hub}`,
+  });
+  slide.addText(plan.hub, {
+    x: hub.x,
+    y: hub.y,
+    w: hub.w,
+    h: hub.h,
     fontSize: hubSize,
     fontFace: FONT_HEADING,
     color: theme.primary,
@@ -847,10 +971,553 @@ function addConceptMapGroup(pptx, slide, theme, plan, tracker) {
     align: 'center',
     valign: 'middle',
     lineSpacingMultiple: 1.1,
-    objectName: 'cmVizHub',
+    fit: 'shrink',
+    margin: 0.08,
+    objectName: 'cmVizHubLabel',
     altText: `Central concept: ${plan.hub}`,
   });
   tracker.add({ x: hub.x, y: hub.y, w: hub.w, h: hub.h, label: 'concept-hub' });
+}
+
+function specimenVariant(seed = '') {
+  let hash = 0;
+  for (const character of String(seed)) hash = (hash * 31 + character.codePointAt(0)) >>> 0;
+  return hash % 4;
+}
+
+function typedSpecimenTone(theme, tone) {
+  if (tone === 'accent') return theme.accent;
+  if (tone === 'secondary') return theme.secondary;
+  if (tone === 'muted') return 'CBD5E1';
+  return theme.primary;
+}
+
+function specimenGeometry(canvas, geometry = {}) {
+  const x = Number(geometry.x) || 0;
+  const y = Number(geometry.y) || 0;
+  const w = Math.max(2, Number(geometry.w) || 10);
+  const h = Math.max(2, Number(geometry.h) || 10);
+  return {
+    x: canvas.x + (canvas.w * x) / 100,
+    y: canvas.y + (canvas.h * y) / 100,
+    w: (canvas.w * w) / 100,
+    h: (canvas.h * h) / 100,
+  };
+}
+
+function addTypedSpecimenGeometryInvariants(pptx, slide, theme, contract, canvas, rendered) {
+  const kind = String(contract?.specimenKind || '');
+  if (kind === 'spatial-composition') {
+    for (const [axis, fraction] of [
+      ['v1', 1 / 3],
+      ['v2', 2 / 3],
+    ]) {
+      slide.addShape(pptx.ShapeType.line, {
+        x: canvas.x + canvas.w * fraction,
+        y: canvas.y,
+        w: 0,
+        h: canvas.h,
+        line: { color: '94A3B8', pt: 0.8, dash: 'dash' },
+        objectName: `cmInvariant_thirds-${axis}`,
+        altText: `Rule-of-thirds vertical guide ${axis.slice(-1)}.`,
+      });
+    }
+    for (const [axis, fraction] of [
+      ['h1', 1 / 3],
+      ['h2', 2 / 3],
+    ]) {
+      slide.addShape(pptx.ShapeType.line, {
+        x: canvas.x,
+        y: canvas.y + canvas.h * fraction,
+        w: canvas.w,
+        h: 0,
+        line: { color: '94A3B8', pt: 0.8, dash: 'dash' },
+        objectName: `cmInvariant_thirds-${axis}`,
+        altText: `Rule-of-thirds horizontal guide ${axis.slice(-1)}.`,
+      });
+    }
+    const from = rendered.get('primary-mass');
+    const to = rendered.get('focal-anchor');
+    if (from && to) {
+      const x1 = from.x + from.w;
+      const y1 = from.y + from.h / 2;
+      const x2 = to.x + to.w / 2;
+      const y2 = to.y + to.h / 2;
+      slide.addShape(pptx.ShapeType.line, {
+        x: Math.min(x1, x2),
+        y: Math.min(y1, y2),
+        w: Math.abs(x2 - x1),
+        h: Math.abs(y2 - y1),
+        flipH: x2 < x1,
+        flipV: y2 < y1,
+        line: { color: theme.accent, pt: 2.2, endArrowType: 'triangle' },
+        objectName: 'cmRelation_eye-path',
+        altText: 'Visible relation eye-path: the primary mass directs attention to the focal anchor.',
+      });
+    }
+  }
+}
+
+function specimenBoundaryPoint(from, toward) {
+  const fromCenter = { x: from.x + from.w / 2, y: from.y + from.h / 2 };
+  const towardCenter = { x: toward.x + toward.w / 2, y: toward.y + toward.h / 2 };
+  const dx = towardCenter.x - fromCenter.x;
+  const dy = towardCenter.y - fromCenter.y;
+  if (Math.abs(dx) < 0.0001 && Math.abs(dy) < 0.0001) return fromCenter;
+  const xScale = Math.abs(dx) < 0.0001 ? Number.POSITIVE_INFINITY : from.w / 2 / Math.abs(dx);
+  const yScale = Math.abs(dy) < 0.0001 ? Number.POSITIVE_INFINITY : from.h / 2 / Math.abs(dy);
+  const scale = Math.min(xScale, yScale);
+  return { x: fromCenter.x + dx * scale, y: fromCenter.y + dy * scale };
+}
+
+function addSpatialCompositionEvidenceScene(pptx, slide, theme, contract, canvas) {
+  const byId = new Map(
+    (contract.entities || []).map((entity) => [String(entity?.id || ''), specimenGeometry(canvas, entity.geometry)]),
+  );
+  const house = byId.get('primary-mass');
+  const tree = byId.get('secondary-mass');
+  const sun = byId.get('focal-anchor');
+  const thirdsFrame = byId.get('thirds-frame');
+  if (!house || !tree || !sun) return false;
+
+  slide.addShape(pptx.ShapeType.rect, {
+    ...canvas,
+    fill: { color: 'DCEFFC' },
+    line: { color: '94A3B8', pt: 0.7 },
+    objectName: 'cmScene_sky',
+    altText: 'Pale sky field in an original native landscape composition.',
+  });
+  const horizonY = canvas.y + canvas.h * 0.64;
+  slide.addShape(pptx.ShapeType.rect, {
+    x: canvas.x,
+    y: horizonY,
+    w: canvas.w,
+    h: canvas.y + canvas.h - horizonY,
+    fill: { color: 'D9E8C8' },
+    line: { color: '7C9A67', pt: 0.7 },
+    objectName: 'cmScene_ground',
+    altText: 'Ground field beginning at the lower horizontal third.',
+  });
+  addTypedSpecimenGeometryInvariants(pptx, slide, theme, contract, canvas, byId);
+
+  if (thirdsFrame) {
+    slide.addShape(pptx.ShapeType.rect, {
+      ...thirdsFrame,
+      fill: { color: 'FFFFFF', transparency: 100 },
+      line: { color: 'FFFFFF', transparency: 100, pt: 0.1 },
+      objectName: 'cmEntity_thirds-frame',
+      altText: 'Observable entity thirds-frame: the measurable rule-of-thirds analysis boundary.',
+    });
+  }
+
+  slide.addShape(pptx.ShapeType.rect, {
+    x: house.x,
+    y: house.y + house.h * 0.3,
+    w: house.w,
+    h: house.h * 0.7,
+    fill: { color: 'F7F1E3' },
+    line: { color: theme.primary, pt: 1.2 },
+    objectName: 'cmEntity_primary-mass',
+    altText: 'Observable entity: a small house positioned near the lower-left rule-of-thirds intersection.',
+  });
+  slide.addShape(pptx.ShapeType.triangle, {
+    x: house.x - house.w * 0.08,
+    y: house.y,
+    w: house.w * 1.16,
+    h: house.h * 0.45,
+    fill: { color: 'B65C45' },
+    line: { color: theme.primary, pt: 1.1 },
+    objectName: 'cmScene_house-roof',
+    altText: 'Observable entity: a triangular house roof whose slope points toward the sun.',
+  });
+  slide.addShape(pptx.ShapeType.rect, {
+    x: house.x + house.w * 0.39,
+    y: house.y + house.h * 0.58,
+    w: house.w * 0.22,
+    h: house.h * 0.42,
+    fill: { color: '8B5E3C' },
+    line: { color: theme.primary, pt: 0.6 },
+    objectName: 'cmScene_house-door',
+    altText: 'Observable entity: a centered dark door within the house.',
+  });
+  slide.addShape(pptx.ShapeType.rect, {
+    x: tree.x + tree.w * 0.42,
+    y: tree.y + tree.h * 0.45,
+    w: tree.w * 0.18,
+    h: tree.h * 0.55,
+    fill: { color: '8B5E3C' },
+    line: { color: '6B442A', pt: 0.6 },
+    objectName: 'cmScene_tree-trunk',
+    altText: 'Observable entity: a tree trunk crossing the lower horizontal third.',
+  });
+  slide.addShape(pptx.ShapeType.ellipse, {
+    x: tree.x,
+    y: tree.y,
+    w: tree.w,
+    h: tree.h * 0.58,
+    fill: { color: '5E9B62' },
+    line: { color: '356B3A', pt: 1 },
+    objectName: 'cmEntity_secondary-mass',
+    altText: 'Observable entity: a tree canopy serving as a smaller middle-ground counterweight.',
+  });
+  slide.addShape(pptx.ShapeType.ellipse, {
+    ...sun,
+    fill: { color: 'F6C945' },
+    line: { color: 'D39B16', pt: 1.1 },
+    objectName: 'cmEntity_focal-anchor',
+    altText: 'Observable entity: the sun positioned near the upper-right rule-of-thirds intersection.',
+  });
+  const counterStart = specimenBoundaryPoint(tree, house);
+  const counterEnd = specimenBoundaryPoint(house, tree);
+  slide.addShape(pptx.ShapeType.line, {
+    x: Math.min(counterStart.x, counterEnd.x),
+    y: Math.min(counterStart.y, counterEnd.y),
+    w: Math.abs(counterEnd.x - counterStart.x),
+    h: Math.abs(counterEnd.y - counterStart.y),
+    flipH: counterEnd.x < counterStart.x,
+    flipV: counterEnd.y < counterStart.y,
+    line: { color: theme.secondary, pt: 1.1, dash: 'dash', endArrowType: 'triangle' },
+    objectName: 'cmRelation_counter-balance',
+    altText: 'Visible relation from the tree to the house: the smaller tree counterbalances the primary mass.',
+  });
+  slide[PPTX_REGISTER_SPECIMEN_CONTRACT]?.(contract);
+  return true;
+}
+
+function addTypedEvidenceSpecimenContent(pptx, slide, theme, plan, canvas) {
+  const contract = plan?.typedSpecimen;
+  if (contract?.protocol !== 'coursemapper-typed-evidence-specimen-v1') return false;
+  if (contract.specimenKind === 'spatial-composition') {
+    return addSpatialCompositionEvidenceScene(pptx, slide, theme, contract, canvas);
+  }
+  const entities = Array.isArray(contract.entities) ? contract.entities : [];
+  const relations = Array.isArray(contract.relations) ? contract.relations : [];
+  if (entities.length < 3 || relations.length < 1) return false;
+  const rendered = new Map();
+  const preparedEntities = [];
+  for (const item of entities) {
+    const id = String(item?.id || '').trim();
+    if (!/^[a-z0-9-]+$/.test(id)) continue;
+    const box = specimenGeometry(canvas, item.geometry);
+    const color = typedSpecimenTone(theme, item.tone);
+    const shape =
+      item.shape === 'ellipse'
+        ? pptx.ShapeType.ellipse
+        : item.shape === 'frame'
+          ? pptx.ShapeType.rect
+          : pptx.ShapeType.roundRect;
+    const isFrame = item.shape === 'frame';
+    const backgroundEntity =
+      isFrame ||
+      /(?:^|-)field(?:-|$)/.test(String(item.role || '')) ||
+      /(?:^|-)image(?:-|$)/.test(String(item.role || ''));
+    preparedEntities.push({ item, id, box, color, shape, isFrame, backgroundEntity });
+    rendered.set(id, box);
+  }
+  const renderShape = ({ item, id, box, color, shape, isFrame }) => {
+    slide.addShape(shape, {
+      ...box,
+      fill: isFrame ? { color: 'FFFFFF', transparency: 100 } : { color, transparency: item.tone === 'muted' ? 35 : 8 },
+      line: { color, pt: isFrame ? 1.5 : 0.8, dash: isFrame ? 'dash' : 'solid' },
+      rectRadius: item.shape === 'rect' || item.shape === 'label' ? 0.05 : 0,
+      objectName: `cmEntity_${id}`,
+      altText: `Observable entity ${id}: ${item.label}; role ${item.role}.`,
+    });
+  };
+  const renderLabel = ({ item, id, box, backgroundEntity, isFrame }) => {
+    const visibleLabel = String(item.label || id).toUpperCase();
+    const labelColor = isFrame || item.tone === 'muted' || item.tone === 'accent' ? theme.primary : 'FFFFFF';
+    const compactFontSize = Math.max(
+      7,
+      Math.min(11, box.h * 10, ((Math.max(0.12, box.w - 0.12) * 72) / Math.max(1, visibleLabel.length)) * 1.45),
+    );
+    slide.addText(visibleLabel, {
+      x: box.x + 0.03,
+      y: box.y + (backgroundEntity ? 0.05 : 0.03),
+      w: Math.max(0.12, box.w - 0.06),
+      h: backgroundEntity ? Math.min(0.28, Math.max(0.18, box.h * 0.18)) : Math.max(0.18, box.h - 0.06),
+      fontSize: backgroundEntity ? 9 : compactFontSize,
+      fontFace: FONT_BODY,
+      bold: true,
+      color: labelColor,
+      align: 'center',
+      valign: backgroundEntity ? 'top' : 'middle',
+      fit: 'shrink',
+      margin: 0.02,
+      objectName: `cmEntityLabel_${id}`,
+      altText: `Visible label for observable entity ${id}.`,
+    });
+  };
+
+  // Establish the visual stack explicitly: fields/frames and guides first,
+  // relations second, semantic marks third, and labels last. This keeps grid
+  // and relation strokes from obscuring the observable marks or their text.
+  preparedEntities.filter((entry) => entry.backgroundEntity).forEach(renderShape);
+  addTypedSpecimenGeometryInvariants(pptx, slide, theme, contract, canvas, rendered);
+  for (const item of relations) {
+    const id = String(item?.id || '').trim();
+    const from = rendered.get(String(item?.from || ''));
+    const to = rendered.get(String(item?.to || ''));
+    if (!/^[a-z0-9-]+$/.test(id) || !from || !to) continue;
+    const start = specimenBoundaryPoint(from, to);
+    const end = specimenBoundaryPoint(to, from);
+    const startX = start.x;
+    const startY = start.y;
+    const endX = end.x;
+    const endY = end.y;
+    slide.addShape(pptx.ShapeType.line, {
+      x: Math.min(startX, endX),
+      y: Math.min(startY, endY),
+      w: Math.abs(endX - startX),
+      h: Math.abs(endY - startY),
+      flipH: endX < startX,
+      flipV: endY < startY,
+      line: { color: theme.secondary, pt: 1.6, dash: 'dash', endArrowType: 'triangle' },
+      objectName: `cmRelation_${id}`,
+      altText: `Visible relation ${id}: ${item.visibleStatement || `${item.from} ${item.type} ${item.to}`}`,
+    });
+  }
+  preparedEntities.filter((entry) => !entry.backgroundEntity).forEach(renderShape);
+  // Image fields already carry a dedicated SAME EVENT token. Repeating
+  // EVENT A/B on the field itself created a visible collision without adding
+  // evidence, so keep those container identities in OOXML/alt text only.
+  preparedEntities.filter((entry) => !/(?:^|-)image(?:-|$)/.test(String(entry.item?.role || ''))).forEach(renderLabel);
+  slide[PPTX_REGISTER_SPECIMEN_CONTRACT]?.(contract);
+  return rendered.size === entities.length;
+}
+
+/**
+ * Render a concrete native specimen for visual-analysis briefs. Unlike the
+ * concept map, the object itself carries observable composition: scale,
+ * alignment, contrast, a grid, and a directional path. It remains an
+ * original vector with an explicit rights boundary and varies deterministically
+ * by lesson seed without inventing subject-matter facts or external licenses.
+ */
+function addEvidenceSpecimenGroup(pptx, slide, theme, plan, tracker) {
+  const panel = { x: 5.02, y: 1.0, w: 4.5, h: 3.85 };
+  // Keep a real gutter between the specimen title and the evidence canvas.
+  // The earlier 1.64in canvas origin intersected the title's 1.43–1.71in
+  // text box after LibreOffice rendering.
+  const canvas = { x: 5.27, y: 1.78, w: 4.0, h: 2.3 };
+  const variant = specimenVariant(plan.seed);
+  const focalPositions = [
+    { x: canvas.x + 2.86, y: canvas.y + 0.22 },
+    { x: canvas.x + 2.65, y: canvas.y + 1.48 },
+    { x: canvas.x + 0.26, y: canvas.y + 0.25 },
+    { x: canvas.x + 0.32, y: canvas.y + 1.43 },
+  ];
+  const focal = focalPositions[variant];
+  const barsOnLeft = variant < 2;
+  const barX = barsOnLeft ? canvas.x + 0.32 : canvas.x + 2.08;
+  const barWidths = variant % 2 === 0 ? [1.7, 1.2, 0.72] : [0.8, 1.55, 1.08];
+
+  slide.addShape(pptx.ShapeType.roundRect, {
+    ...panel,
+    fill: { color: 'FFFFFF' },
+    line: { color: theme.secondary, pt: 1.5 },
+    rectRadius: 0.12,
+    shadow: { type: 'outer', blur: 5, offset: 2, opacity: 0.12, color: '000000' },
+    objectName: 'cmSpecimenPanel',
+    altText: plan.altText || 'Concrete visual evidence specimen',
+  });
+  slide.addText('VISUAL PROVENANCE · ORIGINAL NATIVE · NO EXTERNAL IMAGE ASSET', {
+    x: panel.x + 0.25,
+    y: panel.y + 0.16,
+    w: panel.w - 0.5,
+    h: 0.22,
+    fontSize: 8.5,
+    fontFace: FONT_BODY,
+    bold: true,
+    charSpacing: 0.35,
+    color: theme.secondary,
+    margin: 0,
+    objectName: 'cmSpecimenProvenance',
+    altText: 'Visual provenance: original course-created vector; no external image asset.',
+  });
+  slide.addText(`SPECIMEN · ${spokeShapeLabel(plan.label || 'Visual evidence', 5)}`, {
+    x: panel.x + 0.25,
+    y: panel.y + 0.43,
+    w: panel.w - 0.5,
+    h: 0.28,
+    fontSize: 12,
+    fontFace: FONT_HEADING,
+    bold: true,
+    color: theme.primary,
+    margin: 0,
+    fit: 'shrink',
+    objectName: 'cmSpecimenLabel',
+  });
+  slide.addShape(pptx.ShapeType.rect, {
+    ...canvas,
+    fill: { color: 'F8FAFC' },
+    line: { color: theme.rule || theme.secondary, pt: 0.75 },
+    objectName: 'cmSpecimenCanvas',
+    altText: plan.altText || 'Abstract visual specimen',
+  });
+
+  if (addTypedEvidenceSpecimenContent(pptx, slide, theme, plan, canvas)) {
+    const sourceBindingLabel = String(plan?.typedSpecimen?.sourceBinding?.label || '').trim();
+    const learnerArtifact = String(plan?.typedSpecimen?.learnerProduct?.artifact || '').trim();
+    const lessonNumber = Math.max(1, Number(plan?.typedSpecimen?.lessonNumber || 1));
+    const sourceBindingId = String(plan?.typedSpecimen?.sourceBinding?.id || '').trim();
+    const productBindingId = String(plan?.typedSpecimen?.learnerProduct?.id || '').trim();
+    const sourceDisplay = `LESSON ${lessonNumber} EVIDENCE · ${sourceBindingId}`;
+    const productDisplay = `LESSON ${lessonNumber} APPLICATION · ${productBindingId}`;
+    const progressionIndex = Math.max(0, Number(plan?.typedSpecimen?.lessonNumber || 1) - 1) % 5;
+    const analysisCues = [
+      'OBSERVE · label entities · trace one visible relation',
+      'DISTINGUISH · separate the record from the inference',
+      'CONNECT · follow the relation from evidence to claim',
+      'CHALLENGE · compare views · reject one overreach',
+      'BOUND · preserve context · stop where evidence stops',
+    ];
+    const transferCues = [
+      `VERIFY ${sourceDisplay} · APPLY TO ${productDisplay}`,
+      `TRACE ${sourceDisplay} · TEST ${productDisplay}`,
+      `WARRANT IN ${sourceDisplay} · REVISE ${productDisplay}`,
+      `COMPARE ${sourceDisplay} · QUALIFY ${productDisplay}`,
+      `AUDIT ${sourceDisplay} · PUBLISH ${productDisplay}`,
+    ];
+    slide.addText(analysisCues[progressionIndex], {
+      x: panel.x + 0.25,
+      y: panel.y + panel.h - 0.42,
+      w: panel.w - 0.5,
+      h: 0.22,
+      fontSize: 8.5,
+      fontFace: FONT_BODY,
+      bold: true,
+      charSpacing: 0.45,
+      color: theme.primary,
+      margin: 0,
+      align: 'center',
+      objectName: 'cmSpecimenObserve',
+      altText: `Analysis cues for ${plan.evidenceLabel || 'the specimen'}: annotate or compare visible entities and relations before interpreting them.`,
+    });
+    slide.addText(transferCues[progressionIndex], {
+      x: panel.x + 0.25,
+      y: panel.y + panel.h - 0.19,
+      w: panel.w - 0.5,
+      h: 0.15,
+      fontSize: 8.5,
+      fontFace: FONT_BODY,
+      bold: true,
+      charSpacing: 0.2,
+      color: theme.secondary,
+      margin: 0,
+      align: 'center',
+      objectName: 'cmSpecimenTransfer',
+      fit: 'shrink',
+      altText: `Test the interpretation against the Lesson ${lessonNumber} evidence specimen, ${sourceBindingLabel.replace(/CourseMapper-native/gi, 'course-created')}, and carry the evidence into the Lesson ${lessonNumber} application artifact, ${learnerArtifact}.`,
+    });
+    tracker.add({ ...panel, label: 'typed-evidence-specimen' });
+    return;
+  }
+
+  for (const fraction of [1 / 3, 2 / 3]) {
+    slide.addShape(pptx.ShapeType.line, {
+      x: canvas.x + canvas.w * fraction,
+      y: canvas.y,
+      w: 0,
+      h: canvas.h,
+      line: { color: 'CBD5E1', pt: 0.6, dash: 'dash' },
+      objectName: 'cmSpecimenGrid',
+      altText: 'Decorative grid line',
+    });
+    slide.addShape(pptx.ShapeType.line, {
+      x: canvas.x,
+      y: canvas.y + canvas.h * fraction,
+      w: canvas.w,
+      h: 0,
+      line: { color: 'CBD5E1', pt: 0.6, dash: 'dash' },
+      objectName: 'cmSpecimenGrid',
+      altText: 'Decorative grid line',
+    });
+  }
+
+  barWidths.forEach((width, index) => {
+    slide.addShape(pptx.ShapeType.roundRect, {
+      x: barX,
+      y: canvas.y + 0.42 + index * 0.52,
+      w: width,
+      h: index === 0 ? 0.3 : 0.24,
+      fill: { color: index === 0 ? theme.primary : index === 1 ? theme.secondary : theme.accent },
+      line: { color: index === 0 ? theme.primary : index === 1 ? theme.secondary : theme.accent, pt: 0.5 },
+      rectRadius: 0.06,
+      objectName: 'cmSpecimenBar',
+      altText: `Visible bar ${index + 1} with ${index === 0 ? 'largest' : index === 1 ? 'medium' : 'smallest'} scale`,
+    });
+  });
+
+  slide.addShape(pptx.ShapeType.ellipse, {
+    x: focal.x,
+    y: focal.y,
+    w: 0.72,
+    h: 0.72,
+    fill: { color: theme.accent },
+    line: { color: theme.primary, pt: 1.5 },
+    objectName: 'cmSpecimenFocal',
+    altText: 'High-contrast circular focal point',
+  });
+  const lineStartX = barsOnLeft ? canvas.x + 1.75 : canvas.x + 0.45;
+  const lineEndX = focal.x + 0.36;
+  const lineStartY = variant % 2 === 0 ? canvas.y + 2.13 : canvas.y + 0.38;
+  const lineEndY = focal.y + 0.36;
+  slide.addShape(pptx.ShapeType.line, {
+    x: Math.min(lineStartX, lineEndX),
+    y: Math.min(lineStartY, lineEndY),
+    w: Math.abs(lineEndX - lineStartX),
+    h: Math.abs(lineEndY - lineStartY),
+    flipH: (lineEndX - lineStartX) * (lineEndY - lineStartY) < 0,
+    line: { color: theme.secondary, pt: 2, beginArrowType: 'none', endArrowType: 'triangle' },
+    objectName: 'cmSpecimenDirection',
+    altText: 'Directional line leading toward the focal point',
+  });
+  slide.addText('A', {
+    x: focal.x + 0.18,
+    y: focal.y + 0.17,
+    w: 0.36,
+    h: 0.3,
+    fontSize: 11,
+    fontFace: FONT_BODY,
+    bold: true,
+    color: theme.primary,
+    align: 'center',
+    valign: 'middle',
+    margin: 0,
+    objectName: 'cmSpecimenAnchor',
+    altText: 'Annotation anchor A',
+  });
+  slide.addText('ANALYZE · annotate or compare · observe before inferring', {
+    x: panel.x + 0.25,
+    y: panel.y + panel.h - 0.42,
+    w: panel.w - 0.5,
+    h: 0.22,
+    fontSize: 8,
+    fontFace: FONT_BODY,
+    bold: true,
+    charSpacing: 1.2,
+    color: theme.primary,
+    margin: 0,
+    align: 'center',
+    objectName: 'cmSpecimenObserve',
+    altText: `Analysis cues for ${plan.evidenceLabel || 'the specimen'}: inspect scale, alignment, contrast, and direction`,
+  });
+  slide.addText('TEST AGAINST LESSON SOURCE · CARRY INTO COURSE ARTIFACT', {
+    x: panel.x + 0.25,
+    y: panel.y + panel.h - 0.18,
+    w: panel.w - 0.5,
+    h: 0.12,
+    fontSize: 6.5,
+    fontFace: FONT_BODY,
+    bold: true,
+    charSpacing: 0.9,
+    color: theme.secondary,
+    margin: 0,
+    align: 'center',
+    objectName: 'cmSpecimenTransfer',
+    altText: 'Test the interpretation against the lesson source and carry the evidence into the course artifact.',
+  });
+  tracker.add({ ...panel, label: 'evidence-specimen' });
 }
 
 /**
@@ -864,7 +1531,7 @@ function addConceptMapGroup(pptx, slide, theme, plan, tracker) {
  * on, no legend; category labels are the extracted pair labels under the
  * 3-word ellipsis rule. Data is ONLY the descriptor's authored pairs.
  */
-function addWorkedExamplePlot(pptx, slide, theme, plan, tracker) {
+function addWorkedExampleBarPlot(pptx, slide, theme, plan, tracker) {
   const box = WE_PLOT_GEOMETRY;
   const labels = plan.pairs.map((pair) => spokeShapeLabel(pair.label, 3));
   const values = plan.pairs.map((pair) => pair.value);
@@ -886,12 +1553,344 @@ function addWorkedExamplePlot(pptx, slide, theme, plan, tracker) {
     catAxisLabelFontSize: 9,
     valAxisHidden: true,
     valGridLine: { style: 'none' },
+    ...(plan.kind === 'histogram' ? { gapWidthPct: 0 } : {}),
     objectName: 'cmVizChart',
-    altText: `Bar chart of worked-example values: ${plan.pairs
+    altText: `${plan.kind === 'histogram' ? 'Histogram' : 'Bar chart'} of worked-example values: ${plan.pairs
       .map((pair) => `${pair.label} ${pair.value}${pair.unit ? ` ${pair.unit}` : ''}`)
       .join(', ')}`,
   });
   tracker.add({ x: box.x, y: box.y, w: box.w, h: box.h, label: 'worked-example-plot' });
+}
+
+function plotPoint(domain, value, start, span) {
+  const [minimum, maximum] = domain;
+  return start + ((value - minimum) / Math.max(maximum - minimum, Number.EPSILON)) * span;
+}
+
+function addPlotLine(pptx, slide, from, to, options = {}) {
+  slide.addShape(pptx.ShapeType.line, {
+    x: Math.min(from.x, to.x),
+    y: Math.min(from.y, to.y),
+    w: Math.abs(to.x - from.x),
+    h: Math.abs(to.y - from.y),
+    flipH: (to.x - from.x) * (to.y - from.y) < 0,
+    line: options.line,
+    objectName: options.objectName,
+    altText: options.altText,
+  });
+}
+
+function addWorkedExampleScatterPlot(pptx, slide, theme, plan, tracker) {
+  const box = WE_PLOT_GEOMETRY;
+  const plot = { x: box.x + 0.45, y: box.y + 0.25, w: box.w - 0.7, h: box.h - 0.75 };
+  const xs = plan.points.map((point) => point.x);
+  const ys = plan.points.map((point) => point.y);
+  const xPad = Math.max(0.5, (Math.max(...xs) - Math.min(...xs)) * 0.15);
+  const yPad = Math.max(0.5, (Math.max(...ys) - Math.min(...ys)) * 0.15);
+  const xDomain = [Math.min(...xs) - xPad, Math.max(...xs) + xPad];
+  const yDomain = [Math.min(...ys) - yPad, Math.max(...ys) + yPad];
+  slide.addShape(pptx.ShapeType.rect, {
+    ...box,
+    fill: { color: 'F8FAFC' },
+    line: { color: 'CBD5E1', pt: 0.8 },
+    objectName: 'cmVizScatterFrame',
+    altText: `Scatterplot of ${plan.points.map((point) => `(${point.x}, ${point.y})`).join(', ')}`,
+  });
+  addPlotLine(
+    pptx,
+    slide,
+    { x: plot.x, y: plot.y + plot.h },
+    { x: plot.x + plot.w, y: plot.y + plot.h },
+    {
+      line: { color: theme.bodyText, pt: 1.1, endArrowType: 'triangle' },
+      objectName: 'cmVizScatterXAxis',
+      altText: 'Horizontal x axis',
+    },
+  );
+  addPlotLine(
+    pptx,
+    slide,
+    { x: plot.x, y: plot.y + plot.h },
+    { x: plot.x, y: plot.y },
+    {
+      line: { color: theme.bodyText, pt: 1.1, endArrowType: 'triangle' },
+      objectName: 'cmVizScatterYAxis',
+      altText: 'Vertical y axis',
+    },
+  );
+  const positioned = plan.points.map((point) => ({
+    ...point,
+    px: plotPoint(xDomain, point.x, plot.x, plot.w),
+    py: plot.y + plot.h - plotPoint(yDomain, point.y, 0, plot.h),
+  }));
+  for (const point of positioned) {
+    slide.addShape(pptx.ShapeType.ellipse, {
+      x: point.px - 0.09,
+      y: point.py - 0.09,
+      w: 0.18,
+      h: 0.18,
+      fill: { color: theme.secondary },
+      line: { color: theme.primary, pt: 0.8 },
+      objectName: 'cmVizScatterPoint',
+      altText: `Observed point x ${point.x}, y ${point.y}`,
+    });
+  }
+  if (plan.showFit && plan.points.length >= 2) {
+    const meanX = xs.reduce((sum, value) => sum + value, 0) / xs.length;
+    const meanY = ys.reduce((sum, value) => sum + value, 0) / ys.length;
+    const denominator = xs.reduce((sum, value) => sum + (value - meanX) ** 2, 0);
+    if (denominator > 0) {
+      const slope = plan.points.reduce((sum, point) => sum + (point.x - meanX) * (point.y - meanY), 0) / denominator;
+      const intercept = meanY - slope * meanX;
+      const fitted = (x) => intercept + slope * x;
+      addPlotLine(
+        pptx,
+        slide,
+        {
+          x: plotPoint(xDomain, xDomain[0], plot.x, plot.w),
+          y: plot.y + plot.h - plotPoint(yDomain, fitted(xDomain[0]), 0, plot.h),
+        },
+        {
+          x: plotPoint(xDomain, xDomain[1], plot.x, plot.w),
+          y: plot.y + plot.h - plotPoint(yDomain, fitted(xDomain[1]), 0, plot.h),
+        },
+        {
+          line: { color: theme.accent, pt: 2 },
+          objectName: 'cmVizRegressionLine',
+          altText: 'Least-squares fitted line through the synthetic observations',
+        },
+      );
+    }
+  }
+  slide.addText('x', { x: plot.x + plot.w - 0.1, y: plot.y + plot.h + 0.08, w: 0.2, h: 0.2, fontSize: 9, margin: 0 });
+  slide.addText('y', { x: plot.x - 0.28, y: plot.y - 0.05, w: 0.2, h: 0.2, fontSize: 9, margin: 0 });
+  tracker.add({ ...box, label: 'worked-example-scatterplot' });
+}
+
+function addWorkedExampleDotPlot(pptx, slide, theme, plan, tracker) {
+  const box = WE_PLOT_GEOMETRY;
+  const axis = { x: box.x + 0.4, y: box.y + 2.45, w: box.w - 0.75 };
+  const minimum = Math.min(...plan.values);
+  const maximum = Math.max(...plan.values);
+  const pad = Math.max(0.5, (maximum - minimum) * 0.08);
+  const domain = [minimum - pad, maximum + pad];
+  slide.addShape(pptx.ShapeType.rect, {
+    ...box,
+    fill: { color: 'F8FAFC' },
+    line: { color: 'CBD5E1', pt: 0.8 },
+    objectName: 'cmVizDotPlotFrame',
+    altText: `Dot plot of synthetic observations ${plan.values.join(', ')}`,
+  });
+  addPlotLine(
+    pptx,
+    slide,
+    { x: axis.x, y: axis.y },
+    { x: axis.x + axis.w, y: axis.y },
+    {
+      line: { color: theme.bodyText, pt: 1.2 },
+      objectName: 'cmVizDotPlotAxis',
+      altText: 'Numeric axis for the dot plot',
+    },
+  );
+  const stacks = new Map();
+  for (const value of [...plan.values].sort((a, b) => a - b)) {
+    const level = stacks.get(value) || 0;
+    stacks.set(value, level + 1);
+    const x = plotPoint(domain, value, axis.x, axis.w);
+    slide.addShape(pptx.ShapeType.ellipse, {
+      x: x - 0.09,
+      y: axis.y - 0.24 - level * 0.22,
+      w: 0.18,
+      h: 0.18,
+      fill: { color: value === maximum ? theme.accent : theme.secondary },
+      line: { color: theme.primary, pt: 0.7 },
+      objectName: 'cmVizDotPlotPoint',
+      altText: `Observation ${value}${level ? `, stack ${level + 1}` : ''}`,
+    });
+  }
+  for (const value of [...stacks.keys()].sort((a, b) => a - b)) {
+    const x = plotPoint(domain, value, axis.x, axis.w);
+    slide.addText(String(value), {
+      x: x - 0.2,
+      y: axis.y + 0.08,
+      w: 0.4,
+      h: 0.2,
+      fontSize: 8,
+      align: 'center',
+      margin: 0,
+    });
+  }
+  tracker.add({ ...box, label: 'worked-example-dotplot' });
+}
+
+function addWorkedExampleTable(pptx, slide, theme, plan, tracker) {
+  const box = WE_PLOT_GEOMETRY;
+  const rows = [plan.columns, ...plan.rows].map((row, rowIndex) =>
+    row.map((value) => ({
+      text: String(value),
+      options:
+        rowIndex === 0
+          ? { bold: true, color: 'FFFFFF', fill: { color: theme.primary } }
+          : { color: theme.bodyText, fill: { color: rowIndex % 2 ? 'F8FAFC' : 'EAF2F8' } },
+    })),
+  );
+  slide.addTable(rows, {
+    ...box,
+    border: { type: 'solid', color: '94A3B8', pt: 0.8 },
+    fontFace: FONT_BODY,
+    fontSize: 13,
+    color: theme.bodyText,
+    margin: 0.08,
+    valign: 'mid',
+    align: 'center',
+    rowH: 0.72,
+    colW: [box.w * 0.46, box.w * 0.27, box.w * 0.27],
+    autoPage: false,
+    objectName: 'cmVizContingencyTable',
+    altText: `Two-way table with ${plan.rows.map((row) => row.join(', ')).join('; ')}`,
+  });
+  tracker.add({ ...box, label: 'worked-example-contingency-table' });
+}
+
+function addWorkedExampleNumberLine(pptx, slide, theme, plan, tracker) {
+  const box = WE_PLOT_GEOMETRY;
+  const axis = { x: box.x + 0.45, y: box.y + 2.0, w: box.w - 0.85 };
+  slide.addShape(pptx.ShapeType.rect, {
+    ...box,
+    fill: { color: 'F8FAFC' },
+    line: { color: 'CBD5E1', pt: 0.8 },
+    objectName: 'cmVizNumberLineFrame',
+    altText: `Number line from ${plan.domain[0]} to ${plan.domain[1]} with ${plan.markers.map((marker) => `${marker.label} ${marker.value}`).join(', ')}`,
+  });
+  addPlotLine(
+    pptx,
+    slide,
+    { x: axis.x, y: axis.y },
+    { x: axis.x + axis.w, y: axis.y },
+    {
+      line: { color: theme.bodyText, pt: 1.4, beginArrowType: 'triangle', endArrowType: 'triangle' },
+      objectName: 'cmVizNumberLineAxis',
+      altText: 'Numeric model axis',
+    },
+  );
+  for (const [index, marker] of plan.markers.entries()) {
+    const x = plotPoint(plan.domain, marker.value, axis.x, axis.w);
+    slide.addShape(pptx.ShapeType.line, {
+      x,
+      y: axis.y - 0.45,
+      w: 0,
+      h: 0.9,
+      line: { color: index === 0 ? theme.secondary : theme.accent, pt: 3 },
+      objectName: 'cmVizNumberLineMarker',
+      altText: `${marker.label} at ${marker.value}`,
+    });
+    slide.addText(`${marker.label}\n${marker.value}`, {
+      x: x - 0.55,
+      y: axis.y - 0.92,
+      w: 1.1,
+      h: 0.42,
+      fontFace: FONT_BODY,
+      fontSize: 10,
+      bold: true,
+      align: 'center',
+      margin: 0,
+      fit: 'shrink',
+    });
+  }
+  tracker.add({ ...box, label: 'worked-example-number-line' });
+}
+
+function addWorkedExampleInterval(pptx, slide, theme, plan, tracker) {
+  const spread = plan.high - plan.low;
+  const domain = [plan.low - spread * 0.2, plan.high + spread * 0.2];
+  addWorkedExampleNumberLine(
+    pptx,
+    slide,
+    theme,
+    {
+      domain,
+      markers: [
+        { label: plan.labels?.[0] || 'lower', value: plan.low },
+        { label: plan.labels?.[1] || 'estimate', value: plan.center },
+        { label: plan.labels?.[2] || 'upper', value: plan.high },
+      ],
+    },
+    tracker,
+  );
+  const box = WE_PLOT_GEOMETRY;
+  const axis = { x: box.x + 0.45, y: box.y + 2.0, w: box.w - 0.85 };
+  const lowX = plotPoint(domain, plan.low, axis.x, axis.w);
+  const highX = plotPoint(domain, plan.high, axis.x, axis.w);
+  addPlotLine(
+    pptx,
+    slide,
+    { x: lowX, y: axis.y },
+    { x: highX, y: axis.y },
+    {
+      line: { color: theme.secondary, pt: 7 },
+      objectName: 'cmVizIntervalBand',
+      altText: `Interval from ${plan.low} to ${plan.high}`,
+    },
+  );
+}
+
+function addWorkedExampleSamplingFrame(pptx, slide, theme, plan, tracker) {
+  const box = WE_PLOT_GEOMETRY;
+  const selected = new Set(plan.selected);
+  const columns = Math.min(6, Math.ceil(Math.sqrt(plan.frame.length * 1.5)));
+  const rows = Math.ceil(plan.frame.length / columns);
+  const gap = 0.08;
+  const cellW = (box.w - gap * (columns + 1)) / columns;
+  const cellH = Math.min(0.68, (box.h - gap * (rows + 1)) / rows);
+  slide.addShape(pptx.ShapeType.rect, {
+    ...box,
+    fill: { color: 'F8FAFC' },
+    line: { color: 'CBD5E1', pt: 0.8 },
+    objectName: 'cmVizSamplingFrame',
+    altText: `Sampling frame ${plan.frame.join(', ')}; selected units ${plan.selected.join(', ')}`,
+  });
+  plan.frame.forEach((value, index) => {
+    const column = index % columns;
+    const row = Math.floor(index / columns);
+    const chosen = selected.has(value);
+    slide.addText(String(value).padStart(2, '0'), {
+      x: box.x + gap + column * (cellW + gap),
+      y: box.y + gap + row * (cellH + gap),
+      w: cellW,
+      h: cellH,
+      fontFace: FONT_BODY,
+      fontSize: 11,
+      bold: chosen,
+      align: 'center',
+      valign: 'mid',
+      margin: 0,
+      fill: { color: chosen ? theme.secondary : 'FFFFFF' },
+      color: chosen ? 'FFFFFF' : theme.bodyText,
+      line: { color: chosen ? theme.secondary : '94A3B8', pt: chosen ? 1.5 : 0.7 },
+      objectName: chosen ? 'cmVizSelectedUnit' : 'cmVizFrameUnit',
+      altText: `Unit ${value}${chosen ? ', selected' : ', not selected'}`,
+    });
+  });
+  tracker.add({ ...box, label: 'worked-example-sampling-frame' });
+}
+
+function addWorkedExamplePlot(pptx, slide, theme, plan, tracker) {
+  switch (plan.kind) {
+    case 'scatter':
+      return addWorkedExampleScatterPlot(pptx, slide, theme, plan, tracker);
+    case 'dotplot':
+      return addWorkedExampleDotPlot(pptx, slide, theme, plan, tracker);
+    case 'contingency-table':
+      return addWorkedExampleTable(pptx, slide, theme, plan, tracker);
+    case 'number-line':
+      return addWorkedExampleNumberLine(pptx, slide, theme, plan, tracker);
+    case 'interval':
+      return addWorkedExampleInterval(pptx, slide, theme, plan, tracker);
+    case 'sampling-frame':
+      return addWorkedExampleSamplingFrame(pptx, slide, theme, plan, tracker);
+    default:
+      return addWorkedExampleBarPlot(pptx, slide, theme, plan, tracker);
+  }
 }
 
 /**
@@ -1003,7 +2002,7 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
       h: 0.4,
       fontSize: 11,
       fontFace: FONT_LABEL,
-      color: theme.accent,
+      color: theme.titleText,
       bold: true,
       charSpacing: 4,
     });
@@ -1125,7 +2124,7 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
       h: 0.4,
       fontSize: 10,
       fontFace: FONT_LABEL,
-      color: theme.accent,
+      color: theme.titleText,
       charSpacing: 4,
       bold: true,
     });
@@ -1248,7 +2247,7 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
       w: 5,
       h: 0.35,
       fontSize: 10,
-      color: theme.accent,
+      color: theme.titleText,
       charSpacing: 4,
       bold: true,
       fontFace: FONT_LABEL,
@@ -1634,6 +2633,9 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
   } else if (slideType === 'keyTerm') {
     // ── KEY CONCEPT / DEFINITION SLIDE ────────────────────────────────────
     slide.background = { color: theme.light };
+    const isConceptMap = nativeVisual?.type === 'conceptMap';
+    const isEvidenceSpecimen = nativeVisual?.type === 'evidenceSpecimen';
+    const hasSplitNativeVisual = isConceptMap || isEvidenceSpecimen;
 
     // Left sidebar
     slide.addShape(pptx.ShapeType.rect, {
@@ -1646,8 +2648,10 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
       altText: 'Decorative',
     });
 
-    // "KEY CONCEPT" label
-    slide.addText('KEY CONCEPT', {
+    // Use the authored visual-task genre on functional specimen slides. A
+    // generic "KEY CONCEPT" label misstates the learner action and makes the
+    // slide look like a definition card instead of an inspectable lab.
+    slide.addText(isEvidenceSpecimen ? 'VISUAL EVIDENCE LAB' : 'KEY CONCEPT', {
       x: 0.5,
       y: 0.3,
       w: W - 0.8,
@@ -1661,11 +2665,10 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
 
     // Large central card — shifts to the left half when the visual
     // descriptor's concept map renders natively beside it (v0.12.1).
-    const isConceptMap = nativeVisual?.type === 'conceptMap';
-    const cardX = isConceptMap ? 0.5 : 1.2,
+    const cardX = hasSplitNativeVisual ? 0.5 : 1.2,
       cardY = 1.0;
-    const cardW = isConceptMap ? 4.3 : W - 2.4,
-      cardH = isConceptMap ? 3.4 : 2.8;
+    const cardW = hasSplitNativeVisual ? 4.3 : W - 2.4,
+      cardH = hasSplitNativeVisual ? 3.4 : 2.8;
     slide.addShape(pptx.ShapeType.roundRect, {
       x: cardX,
       y: cardY,
@@ -1691,16 +2694,16 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
 
     // Main term/concept (auto-fit from 26pt down to 16pt; tighter when the
     // definition shares the slide with a native concept map)
-    const mainText = isConceptMap ? nativeVisual.definition : s.bullets?.[0] || s.title || 'Key Concept';
+    const mainText = hasSplitNativeVisual ? nativeVisual.definition : s.bullets?.[0] || s.title || 'Key Concept';
     const conceptW = cardW - 0.8,
-      conceptH = isConceptMap ? cardH - 0.6 : 1.6;
+      conceptH = hasSplitNativeVisual ? cardH - 0.6 : 1.6;
     const conceptSize = autoFitFontSize(
       mainText,
       conceptW,
       conceptH,
       FONT_HEADING,
-      isConceptMap ? 20 : 26,
-      isConceptMap ? 12 : 16,
+      isEvidenceSpecimen ? 11 : hasSplitNativeVisual ? 20 : 26,
+      isEvidenceSpecimen ? 8 : hasSplitNativeVisual ? 12 : 16,
       1.3,
     );
     const conceptResult = await maybeProcessLatex(mainText, hasLatex, {
@@ -1713,12 +2716,15 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
       w: conceptW,
       h: conceptH,
       fontSize: conceptSize,
-      fontFace: FONT_HEADING,
+      fontFace: isEvidenceSpecimen ? FONT_BODY : FONT_HEADING,
       color: theme.primary,
-      bold: true,
-      align: 'center',
-      valign: 'middle',
-      lineSpacingMultiple: 1.3,
+      bold: !isEvidenceSpecimen,
+      align: isEvidenceSpecimen ? 'left' : 'center',
+      valign: isEvidenceSpecimen ? 'top' : 'middle',
+      lineSpacingMultiple: isEvidenceSpecimen ? 1.15 : 1.3,
+      fit: 'shrink',
+      margin: 0.08,
+      objectName: isEvidenceSpecimen ? 'cmVisibleTaskCard' : undefined,
     });
     tracker.add({ x: cardX + 0.4, y: cardY + 0.3, w: conceptW, h: conceptH, label: 'key-concept' });
     // Add LaTeX images for key concept
@@ -1738,6 +2744,8 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
       // hub-and-spoke group on the right, so no separate explanation block —
       // the full bullet text remains available in the speaker notes.
       addConceptMapGroup(pptx, slide, theme, nativeVisual, tracker);
+    } else if (isEvidenceSpecimen) {
+      addEvidenceSpecimenGroup(pptx, slide, theme, nativeVisual, tracker);
     } else if (s.bullets?.length > 1) {
       // Explanatory text below card
       const explanation = s.bullets.slice(1).join('\n');
@@ -2054,7 +3062,7 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
       w: 1.2,
       h: 1.5,
       fontSize: 80,
-      color: theme.accent,
+      color: theme.titleText,
       bold: true,
       align: 'center',
       fontFace: FONT_HEADING,
@@ -2462,7 +3470,35 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
         .filter(Boolean)
         .join('\n')
     : '';
-  const augmentedNotes = visualGuidance ? `${visualGuidance}${baseNotes ? `\n\n---\n\n${baseNotes}` : ''}` : baseNotes;
+  const typedSpecimen = nativeVisual?.type === 'evidenceSpecimen' ? nativeVisual.typedSpecimen : null;
+  const typedSpecimenGuidance =
+    typedSpecimen?.protocol === 'coursemapper-typed-evidence-specimen-v1'
+      ? [
+          `TYPED SPECIMEN · ${typedSpecimen.specimenKind} · ${typedSpecimen.conceptBinding}`,
+          ...(typedSpecimen.taskContract?.protocol === 'coursemapper-functional-visual-task-contract-v1'
+            ? [
+                `VISUAL TASK CONTRACT [${typedSpecimen.taskContract.contractId}]: ${typedSpecimen.taskContractSha256}`,
+                `UPSTREAM REQUIREMENT: ${typedSpecimen.taskContract.upstreamRequirementSha256}`,
+                `RENDER PREDICATES: ${(typedSpecimen.taskContract.predicates || []).map((predicate) => predicate.id).join(', ')}`,
+                `COUNTEREXAMPLE STATE: ${typedSpecimen.taskContract.counterexample?.stateId}`,
+              ]
+            : []),
+          `EXPECTED OBSERVATION [${typedSpecimen.expectedObservation?.id}]: ${typedSpecimen.expectedObservation?.claim}`,
+          `EVIDENCE IDS: ${(typedSpecimen.expectedObservation?.evidenceIds || []).join(', ')}`,
+          `ANSWER/RUBRIC LINK [${typedSpecimen.answerRubricBinding?.expectedObservationId}]: ${typedSpecimen.answerRubricBinding?.scoringUse}`,
+          ...(typedSpecimen.visibleTask?.protocol === 'coursemapper-visible-functional-task-v1'
+            ? [
+                `VTASK SHA256: ${typedSpecimen.visibleTask.cardTextSha256}`,
+                `ASUM SHA256: ${typedSpecimen.visibleTask.authoredSummarySha256}`,
+                `ABULLETS SHA256: ${typedSpecimen.visibleTask.authoredBulletsSha256} · COUNT: ${(typedSpecimen.visibleTask.authoredBullets || []).length}`,
+              ]
+            : []),
+          `SOURCE BINDING: ${typedSpecimen.sourceBinding?.label}`,
+          `RIGHTS BINDING: ${typedSpecimen.rightsBinding?.disclosure}`,
+        ].join('\n')
+      : '';
+  const guidance = [visualGuidance, typedSpecimenGuidance].filter(Boolean).join('\n\n');
+  const augmentedNotes = guidance ? `${guidance}${baseNotes ? `\n\n---\n\n${baseNotes}` : ''}` : baseNotes;
   if (augmentedNotes) slide.addNotes(augmentedNotes);
 
   // Generated visual images render on the slide; visual *suggestions* live in
@@ -2641,7 +3677,19 @@ function attachSemanticDescriptions(xml, records = []) {
   });
 }
 
-async function stripLatinEastAsiaOverrides(blob, accessibilityRegistry = new Map()) {
+function attachTypedSpecimenContract(xml, contract = null) {
+  if (!contract || typeof contract !== 'object') return xml;
+  const payload = encodeURIComponent(JSON.stringify(contract));
+  const extension = `<p:ext uri="{F242A84D-6D34-4EAE-9D52-8C52017A1501}"><cm:specimenContract xmlns:cm="https://edutool.dev/ns/coursemapper/specimen-contract/v1" encoding="uri-json">${payload}</cm:specimenContract></p:ext>`;
+  if (/<p:extLst\b[^>]*>/i.test(xml)) return xml.replace(/<\/p:extLst>/i, `${extension}</p:extLst>`);
+  return xml.replace(/<\/p:sld>\s*$/i, `<p:extLst>${extension}</p:extLst></p:sld>`);
+}
+
+async function stripLatinEastAsiaOverrides(
+  blob,
+  accessibilityRegistry = new Map(),
+  specimenContractRegistry = new Map(),
+) {
   const mod = await safeImport(() => import('jszip'));
   const JSZip = mod.default || mod;
   const zip = await JSZip.loadAsync(typeof blob.arrayBuffer === 'function' ? await blob.arrayBuffer() : blob);
@@ -2653,7 +3701,10 @@ async function stripLatinEastAsiaOverrides(blob, accessibilityRegistry = new Map
     if (!/^ppt\/.*\.xml$/.test(name)) continue;
     const xml = await zip.file(name).async('string');
     const slideNumber = Number(name.match(/^ppt\/slides\/slide(\d+)\.xml$/)?.[1] || 0);
-    const next = attachSemanticDescriptions(xml.replace(eaOverride, ''), accessibilityRegistry.get(slideNumber));
+    const next = attachTypedSpecimenContract(
+      attachSemanticDescriptions(xml.replace(eaOverride, ''), accessibilityRegistry.get(slideNumber)),
+      specimenContractRegistry.get(slideNumber),
+    );
     if (next !== xml) {
       zip.file(name, next);
       changed = true;
@@ -2681,7 +3732,11 @@ export async function exportSlideDeckPptx(data, courseName, themeIndex) {
 export async function buildSlideDeckPptxBlob(data, courseName, themeIndex) {
   const pptx = await createPptxWithDecks(data, courseName, themeIndex);
   const blob = await pptx.write({ outputType: 'blob' });
-  return await stripLatinEastAsiaOverrides(blob, pptx[PPTX_ACCESSIBILITY_REGISTRY]);
+  return await stripLatinEastAsiaOverrides(
+    blob,
+    pptx[PPTX_ACCESSIBILITY_REGISTRY],
+    pptx[PPTX_SPECIMEN_CONTRACT_REGISTRY],
+  );
 }
 
 /**
@@ -2709,7 +3764,11 @@ export async function buildSingleDeckPptxBlob(deck, deckIndex, courseName, theme
   }
 
   const blob = await pptx.write({ outputType: 'blob' });
-  return await stripLatinEastAsiaOverrides(blob, pptx[PPTX_ACCESSIBILITY_REGISTRY]);
+  return await stripLatinEastAsiaOverrides(
+    blob,
+    pptx[PPTX_ACCESSIBILITY_REGISTRY],
+    pptx[PPTX_SPECIMEN_CONTRACT_REGISTRY],
+  );
 }
 
 /**

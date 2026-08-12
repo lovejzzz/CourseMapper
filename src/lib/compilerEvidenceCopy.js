@@ -125,6 +125,7 @@ export function evidenceClaimKey(value) {
 }
 
 export function distinctLessonEvidenceClaims(lesson = {}, limit = 5) {
+  if (!Number.isFinite(Number(limit)) || Number(limit) <= 0) return [];
   const enrichment = lesson?.enrichment || {};
   const canonicalFacts = asArray(enrichment.kernel?.canonicalFacts);
   const candidates = [
@@ -163,8 +164,21 @@ function distinctSentenceSequence(value = '') {
 function lessonEvidenceSources(lesson = {}, limit = 4) {
   const seen = new Set();
   const sources = [];
-  for (const citation of asArray(lesson?.enrichment?.conceptProvenance?.citations)) {
-    const title = cleanText(citation?.displayTitle || citation?.key || citation?.attribution);
+  const provenance = lesson?.enrichment?.conceptProvenance || {};
+  // The full discovery ledger stays in provenance for auditability, while an
+  // explicit admittedCitations array is the instructional publication
+  // boundary. Falling back only when the field is absent preserves legacy and
+  // instructor-authored packets; an intentionally empty admitted set must not
+  // republish quarantined source titles into learner handouts.
+  const citationPool = Array.isArray(provenance.admittedCitations)
+    ? provenance.admittedCitations
+    : asArray(provenance.citations);
+  for (const citation of citationPool) {
+    const attribution = asArray(citation?.attribution)
+      .map((value) => cleanText(value))
+      .filter(Boolean)
+      .join('; ');
+    const title = cleanText(citation?.displayTitle || citation?.key || attribution);
     const url = cleanText(citation?.sourceUrl);
     const key = `${url}|${title}`.toLowerCase();
     if ((!title && !url) || seen.has(key)) continue;
@@ -172,6 +186,7 @@ function lessonEvidenceSources(lesson = {}, limit = 4) {
     sources.push({
       title: title || url,
       ...(url ? { url } : {}),
+      ...(attribution ? { attribution } : {}),
       ...(cleanText(citation?.license) ? { license: cleanText(citation.license) } : {}),
     });
     if (sources.length >= limit) break;
@@ -240,21 +255,13 @@ export function sourceComposedReviewStrategy({
 }
 
 export function groundedSyllabusCourseDescription(blueprint = {}) {
-  const seen = new Set();
-  const claims = [];
-  for (const lesson of blueprint.lessons || []) {
-    const claim = distinctLessonEvidenceClaims(lesson, 1)[0];
-    const key = evidenceClaimKey(claim);
-    if (!claim || !key || seen.has(key)) continue;
-    seen.add(key);
-    claims.push(claim);
-    if (claims.length >= 3) break;
-  }
+  const topics = (blueprint.lessons || [])
+    .map((lesson) => stripTerminalPunctuation(cleanText(lesson?.title)).replace(/^Lesson\s+\d+\s*:\s*/i, ''))
+    .filter(Boolean)
+    .slice(0, 3);
   const evidenceArc =
-    claims.length > 0
-      ? `Students test course decisions against source evidence, including ${claims
-          .map((claim) => stripTerminalPunctuation(claim))
-          .join('; ')}.`
+    topics.length > 0
+      ? `Students test decisions about ${topics.join(', ')} and later course topics against assigned source evidence while preserving attribution, license, and claim boundaries.`
       : '';
   return `In ${blueprint.courseName}, students work through ${blueprint.totalLessons} connected lessons that build from core concepts to applied decisions. ${blueprint.courseArc?.throughline || ''} ${evidenceArc} The course emphasizes evidence use, structured practice, and feedback-informed improvement across the major assessments.`
     .replace(/\s+/g, ' ')
@@ -277,7 +284,14 @@ export function buildGroundedStudyGuideEvidenceCopy({
   );
   const sourceComparisonQuestion =
     claims.length >= 2
-      ? `Compare Source Claim 1 and Source Claim 2 in the evidence brief. What ${primaryConcept} decision follows from reading them together, and what remains unproven?`
+      ? chooseVariant([
+          `For ${primaryConcept}, compare Source Claim 1 with Source Claim 2. What decision follows from their combined evidence, and what remains unproven?`,
+          `Read Source Claims 1 and 2 through ${primaryConcept}. Where do they reinforce or complicate each other, and which conclusion is still unwarranted?`,
+          `Use ${primaryConcept} to test Source Claim 1 against Source Claim 2. Name the supported judgment and its evidence boundary.`,
+          `Which ${primaryConcept} conclusion survives a comparison of Source Claims 1 and 2, and what additional evidence could reverse it?`,
+          `Trace the ${primaryConcept} relationship between Source Claims 1 and 2. Identify their shared support, their tension, and one unresolved question.`,
+          `Evaluate Source Claims 1 and 2 as evidence for ${primaryConcept}. State what the pair warrants and what neither claim establishes.`,
+        ])
       : '';
   const materials = stripTerminalPunctuation(cleanText(lesson.enrichment?.kernel?.scenario?.materials));
   if (claims.length >= 2 && (!materials || SOURCE_PLACEHOLDER_RE.test(materials))) {
@@ -285,7 +299,14 @@ export function buildGroundedStudyGuideEvidenceCopy({
       secondaryAlignedFact,
       secondaryClaimNumber,
       sourceComparisonQuestion,
-      sourceEvidencePractice: `Annotate Source Claim 1 and Source Claim 2 in the evidence brief. Mark the detail each claim supports, identify any tension or dependency between them, and write one bounded ${primaryConcept} conclusion.`,
+      sourceEvidencePractice: chooseVariant([
+        `For ${primaryConcept}, annotate Source Claims 1 and 2; mark each supporting detail, their tension or dependency, and one bounded conclusion.`,
+        `Build a ${primaryConcept} evidence note from Source Claims 1 and 2: label each claim's support, their relationship, and the limit on your conclusion.`,
+        `Test ${primaryConcept} with Source Claims 1 and 2. Identify what each supports, where they converge or conflict, and what remains unproven.`,
+        `Trace a ${primaryConcept} judgment across Source Claims 1 and 2; cite both details, name their dependency, and set the claim boundary.`,
+        `Compare Source Claims 1 and 2 as ${primaryConcept} evidence. Mark their distinct contributions and write a conclusion no broader than the pair permits.`,
+        `Use the evidence brief to audit ${primaryConcept}: connect Source Claims 1 and 2, surface one tension, and revise an overbroad conclusion.`,
+      ]),
     };
   }
   const boundary = primaryAlignedFact ? stripTerminalPunctuation(primaryAlignedFact) : '';

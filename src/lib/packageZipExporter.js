@@ -1,6 +1,7 @@
 import { buildReadinessReport, scopeCourseMapToLessons, scopeDeliverableDataToLessons } from './deliverableReadiness';
 import { assertOfficeExportHasNoInternalText, sanitizeInternalExportLanguage } from './exportTextInspector';
 import { resolveFeatureLabel } from './exporters/exporterUtils.js';
+import { renderedDeliverableCollection } from './renderedDeliverableRoot.js';
 import {
   buildSourceLedgerFromCourseGraph,
   buildSourceReportMarkdown,
@@ -24,7 +25,20 @@ import { GRADER_VERSION } from './quality/graderVersion.js';
 import { TEXTURE_VERSION } from './quality/textureMetric.js';
 import { verifyScoreLedger } from './quality/scoreLedgerVerifier.js';
 import { buildAssessmentCoherenceReceipt } from './quality/assessmentCoherence.js';
-import { extractExplicitLessonSequence } from './explicitLessonSequence.js';
+import { extractOrderedLessonContract } from './explicitLessonSequence.js';
+import { extractBriefQualityContract } from './briefQualityContract.js';
+import { evaluateFunctionalVisualRights } from './functionalVisualRights.js';
+import { lessonContractObjectives } from './lessonAssessmentContract.js';
+import { buildSemanticClaimInventory } from './semanticClaimInventory.js';
+import { buildPostDraftAdmissionReceipt, finalizeInstructionalPlanLineage } from './instructionalPlanLineage.js';
+import { sha256HexSync } from './sha256Sync.js';
+import {
+  OPERATION_EVIDENCE_REQUIRED_PROJECTIONS,
+  OPERATION_QUALIFIED_EVIDENCE_PROTOCOL,
+  OPERATION_QUALIFIED_EVIDENCE_RECEIPT_PROTOCOL,
+  operationEvidenceDemandForLesson,
+  operationEvidenceLessonNumber,
+} from './operationEvidenceContract.js';
 import {
   buildPackageReadinessBinding,
   buildPackageReadinessReceipt,
@@ -212,6 +226,7 @@ async function buildPackageQualityScopeBinding({
       courseId: qualityOptions?.courseId || '',
       coursePrompt: qualityOptions?.coursePrompt || '',
       expectedSessionMinutes: qualityOptions?.expectedSessionMinutes || null,
+      checkpoint: qualityOptions?.checkpoint || null,
     },
   };
   return {
@@ -245,6 +260,45 @@ function publicizeScionResearchVocabulary(value) {
     );
   }
   return value;
+}
+
+function buildInstructionalEvidenceAudit(governingSourceContract = null) {
+  if (governingSourceContract?.status !== 'admitted') return null;
+  const lessons = Object.entries(governingSourceContract?.byLessonId || {})
+    .filter(([, authority]) => authority?.status === 'admitted')
+    .map(([lessonId, authority]) => ({
+      lessonId,
+      instructionalInstanceId: String(authority?.instructionalInstanceId || ''),
+      planBodySha256: String(authority?.planBodySha256 || ''),
+      authorityReceiptSha256: String(authority?.receiptSha256 || ''),
+      admissionPolicyVersion: String(authority?.admissionPolicyVersion || ''),
+      atomAdmission: authority?.atomAdmission ? structuredClone(authority.atomAdmission) : null,
+      sources: (authority?.sources || []).map((source) => ({
+        id: String(source?.id || ''),
+        title: String(source?.title || ''),
+        url: String(source?.url || ''),
+        sourceSnapshotSha256: String(source?.sourceSnapshotSha256 || ''),
+      })),
+      claims: (authority?.claims || []).map((claim) => ({
+        id: String(claim?.id || ''),
+        text: String(claim?.text || ''),
+        sourceIds: [...new Set(claim?.sourceIds || [])].map(String).sort(),
+        instructionalInstanceId: String(claim?.instructionalInstanceId || ''),
+        queryId: String(claim?.queryId || ''),
+        candidateId: String(claim?.candidateId || ''),
+        queryReceipt: claim?.queryReceipt ? structuredClone(claim.queryReceipt) : null,
+        candidateReceipt: claim?.candidateReceipt ? structuredClone(claim.candidateReceipt) : null,
+      })),
+    }))
+    .sort((left, right) => left.lessonId.localeCompare(right.lessonId));
+  const payload = {
+    protocol: 'coursemapper-instructional-evidence-audit-v1',
+    sourceContractReceiptSha256: String(governingSourceContract.receiptSha256 || ''),
+    predecessor: structuredClone(governingSourceContract?.predecessor || null),
+    lessonCount: lessons.length,
+    lessons,
+  };
+  return { ...payload, receiptSha256: sha256HexSync(JSON.stringify(payload)) };
 }
 
 function buildManifestGenerator(digest, pipelineState) {
@@ -333,9 +387,13 @@ function buildManifestExportVerification(digest) {
   return {
     status: String(gates.exportStatus || 'unknown'),
     contentDisposition: String(gates.exportContentDisposition || ''),
+    scope: 'aggregate-selected-feature-export-probes',
     checked: Number(gates.exportChecked) || 0,
     failed: Number(gates.exportFailed) || 0,
     warnings: Number(gates.exportWarnings) || 0,
+    archivedOfficeMembersInspected: 0,
+    claimBoundary:
+      'This receipt counts aggregate content and export-format probes run against selected in-memory deliverables. It does not enumerate or visually inspect every archived Office member; package-level render evidence is separate.',
   };
 }
 
@@ -935,6 +993,9 @@ function buildLessonEvidenceDependencies({
   ];
   const trustedRows = ledgerRows.filter(isTrustedSourceLedgerRow);
   const trustedById = new Map(trustedRows.map((row) => [String(row?.id || ''), row]));
+  const trustedByUrl = new Map(
+    trustedRows.map((row) => [normalizeSourceIdentity(row?.url), row]).filter(([sourceIdentity]) => sourceIdentity),
+  );
   const ledgerById = new Map(ledgerRows.map((row) => [String(row?.id || ''), row]));
   const graphResourceById = new Map(
     (Array.isArray(courseGraph?.resources) ? courseGraph.resources : []).map((resource) => [
@@ -943,7 +1004,9 @@ function buildLessonEvidenceDependencies({
     ]),
   );
   const packageAssetText = [
-    ...(Array.isArray(requiredAssets) ? requiredAssets : []),
+    ...(Array.isArray(requiredAssets)
+      ? requiredAssets.filter((entry) => ['resolved', 'bundled-starter'].includes(entry?.status))
+      : []),
     ...(Array.isArray(files) ? files : []),
   ]
     .map((entry) =>
@@ -952,13 +1015,33 @@ function buildLessonEvidenceDependencies({
         : `${entry?.path || ''} ${entry?.title || ''} ${entry?.label || ''} ${entry?.kind || ''}`,
     )
     .join(' ');
+  const trustedRowForResourceRef = (ref) => {
+    const exactIdRow = trustedById.get(ref);
+    if (exactIdRow) return exactIdRow;
+    const graphResource = graphResourceById.get(ref);
+    const citationUrl = String(graphResource?.citation || '').match(/https?:\/\/[^\s)]+(?:\)[^\s)]*)?/i)?.[0] || '';
+    const sourceIdentity = normalizeSourceIdentity(graphResource?.url || citationUrl);
+    return sourceIdentity ? trustedByUrl.get(sourceIdentity) || null : null;
+  };
   const lessons = (Array.isArray(lessonIndices) ? lessonIndices : []).map((lessonIndex) => {
     const lesson = courseMap?.lessons?.[lessonIndex] || {};
     const lessonNumber = materializedLessonNumber(courseMap, lessonIndex);
     const session = graphSessionForLesson(courseGraph, lessonNumber, lessonIndex);
     const resourceRefs = [...new Set(sessionResourceRefs(session))];
-    const lessonSourceRows = resourceRefs.map((ref) => trustedById.get(ref)).filter(Boolean);
-    const claimBoundLessonSourceRows = lessonSourceRows.filter(isClaimBoundSourceLedgerRow);
+    const lessonScopeIds = new Set([`s${lessonNumber}`, `lesson-${lessonNumber}`]);
+    const lessonSourceRows = [
+      ...resourceRefs.map(trustedRowForResourceRef).filter(Boolean),
+      ...trustedRows.filter((row) => {
+        const refs = [...(Array.isArray(row?.sessionRefs) ? row.sessionRefs : []), row?.scope]
+          .map((value) => String(value || '').toLowerCase())
+          .filter(Boolean);
+        return refs.some((ref) => lessonScopeIds.has(ref));
+      }),
+    ];
+    const dedupedLessonSourceRows = [
+      ...new Map(lessonSourceRows.map((row) => [String(row?.id || row?.url || ''), row])).values(),
+    ].slice(0, 256);
+    const claimBoundLessonSourceRows = dedupedLessonSourceRows.filter(isClaimBoundSourceLedgerRow);
     const scopedText = Object.entries(deliverables || {})
       .filter(([featureId, entry]) => SPLIT_BY_LESSON_FEATURES.has(featureId) && entry?.data)
       .map(([featureId, entry]) =>
@@ -970,21 +1053,62 @@ function buildLessonEvidenceDependencies({
       .join(' ');
     const requirements = [];
 
+    for (const asset of Array.isArray(requiredAssets) ? requiredAssets : []) {
+      const requiredFor = Array.isArray(asset?.requiredFor)
+        ? asset.requiredFor.map(Number).filter(Number.isInteger)
+        : [];
+      if (requiredFor.length > 0 && !requiredFor.includes(lessonNumber)) continue;
+      const resolved = ['resolved', 'bundled-starter'].includes(String(asset?.status || ''));
+      requirements.push({
+        kind: 'required-course-asset',
+        id: asset?.id || '',
+        label: asset?.label || asset?.id || 'required course asset',
+        status: resolved ? 'resolved' : 'unresolved',
+        requiredFor: requiredFor.length > 0 ? requiredFor : [lessonNumber],
+        ...(asset?.path ? { artifact: asset.path } : {}),
+        evidence: asset?.note || '',
+      });
+    }
+
     if (resourceRefs.length > 0) {
       const unresolvedRefs = resourceRefs.filter((ref) => !ledgerById.has(ref) && !graphResourceById.has(ref));
-      const reviewRefs = resourceRefs.filter((ref) => {
+      const externalRefs = resourceRefs.filter((ref) => {
+        const row = ledgerById.get(ref);
+        const resource = graphResourceById.get(ref);
+        return Boolean(
+          row?.url ||
+          row?.doi ||
+          resource?.url ||
+          /https?:\/\//i.test(String(resource?.citation || '')) ||
+          /\b(?:reading|source|article|chapter|book|dataset|corpus)\b/i.test(String(resource?.kind || '')),
+        );
+      });
+      const reviewRefs = externalRefs.filter((ref) => {
         if (unresolvedRefs.includes(ref)) return false;
-        const trustedRow = trustedById.get(ref);
+        const trustedRow = trustedRowForResourceRef(ref);
         return !trustedRow || !isClaimBoundSourceLedgerRow(trustedRow);
       });
-      requirements.push({
-        kind: 'source-references',
-        label: 'lesson source references',
-        status: unresolvedRefs.length > 0 ? 'unresolved' : reviewRefs.length > 0 ? 'review-required' : 'resolved',
-        refs: resourceRefs,
-        ...(unresolvedRefs.length > 0 ? { unresolvedRefs } : {}),
-        ...(reviewRefs.length > 0 ? { reviewRefs } : {}),
-      });
+      // A lesson can list optional or locally authored supplemental resources
+      // alongside its admitted evidence. Publication readiness asks whether
+      // the lesson has at least one rendered, claim-bound source chain—not
+      // whether every bibliography row independently carries a teaching
+      // claim. Keep unresolved ids blocking, but do not let metadata-only
+      // supplements downgrade an otherwise verified lesson.
+      if (externalRefs.length > 0 || unresolvedRefs.length > 0) {
+        requirements.push({
+          kind: 'source-references',
+          label: 'lesson source references',
+          status:
+            unresolvedRefs.length > 0
+              ? 'unresolved'
+              : claimBoundLessonSourceRows.length > 0
+                ? 'resolved'
+                : 'review-required',
+          refs: externalRefs,
+          ...(unresolvedRefs.length > 0 ? { unresolvedRefs } : {}),
+          ...(claimBoundLessonSourceRows.length === 0 && reviewRefs.length > 0 ? { reviewRefs } : {}),
+        });
+      }
     }
 
     for (const requirement of EXTERNAL_EVIDENCE_REQUIREMENT_PATTERNS) {
@@ -1003,7 +1127,7 @@ function buildLessonEvidenceDependencies({
       ) {
         continue;
       }
-      const sourceAssetText = lessonSourceRows
+      const sourceAssetText = dedupedLessonSourceRows
         .map((row) => `${row?.title || ''} ${row?.citation || ''} ${row?.url || ''} ${row?.kind || ''}`)
         .join(' ');
       const resolved =
@@ -1121,8 +1245,37 @@ function bridgeManifestRegistryWeights(registry, lessonNumbers) {
 // assessment with its kind, lesson, weight, and the package file that
 // fulfills it (briefs/orals → the lesson's Assignment Briefs docx, exams →
 // the lesson's Quiz & Exam Bank docx, in-class → the Lesson Plans listing).
-function buildManifestAssessments({ registry, files, lessonNumbers = null }) {
+function compiledAssignmentRows(deliverables) {
+  const data = deliverables?.assignments?.data ?? deliverables?.assignments;
+  if (Array.isArray(data?.assignments)) return data.assignments;
+  return Array.isArray(data) ? data : [];
+}
+
+function compiledAssignmentForAssessment(assignments, assessment) {
+  const assessmentId = String(assessment?.id || '').trim();
+  const assessmentTitle = String(assessment?.title || '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+  const lessonNumber = Number(assessment?.dueSession);
+  const lessonAssignments = assignments.filter((assignment) => Number(assignment?.lessonNumber) === lessonNumber);
+  return (
+    assignments.find((assignment) => assessmentId && String(assignment?.assessmentId || '').trim() === assessmentId) ||
+    lessonAssignments.find(
+      (assignment) =>
+        assessmentTitle &&
+        String(assignment?.title || '')
+          .replace(/\s+/g, ' ')
+          .trim()
+          .toLowerCase() === assessmentTitle,
+    ) ||
+    (lessonAssignments.length === 1 ? lessonAssignments[0] : null)
+  );
+}
+
+function buildManifestAssessments({ registry, files, lessonNumbers = null, deliverables = null }) {
   if (!Array.isArray(registry) || registry.length === 0) return null;
+  const assignments = compiledAssignmentRows(deliverables);
   const fileFor = (featureId, lessonNumber) => {
     const prefix = `Lesson ${String(lessonNumber).padStart(2, '0')} - `;
     return (
@@ -1152,6 +1305,10 @@ function buildManifestAssessments({ registry, files, lessonNumbers = null }) {
           ? fileFor('lessonPlans', assessment.dueSession)
           : fileFor('assignments', assessment.dueSession);
     const bridgedWeight = bridge.weightByEntry.has(assessment) ? bridge.weightByEntry.get(assessment) : null;
+    const compiledAssignment = compiledAssignmentForAssessment(assignments, assessment);
+    const objectives = Array.isArray(compiledAssignment?.objectives)
+      ? [...new Set(compiledAssignment.objectives.map((objective) => String(objective || '').trim()).filter(Boolean))]
+      : [];
     return {
       id: assessment.id || '',
       // v0.15.187: legacy saved graphs can carry "Title: 1. Title"
@@ -1172,10 +1329,21 @@ function buildManifestAssessments({ registry, files, lessonNumbers = null }) {
             : Number.isFinite(assessment.weightPct)
               ? assessment.weightPct
               : null,
+      weightSource:
+        assessment.weightSource === 'source-explicit' || assessment.weightSource === 'course-map-explicit'
+          ? 'source-explicit'
+          : 'compiler-distributed-draft',
+      weightReviewRequired: !['source-explicit', 'course-map-explicit'].includes(assessment.weightSource),
       artifact,
+      ...(objectives.length > 0 ? { objectives } : {}),
       ...(kind === 'in-class' ? { note: 'in-class activity — listed in the lesson plan' } : {}),
     };
   });
+  const weightSourceStatus = entries.every(
+    (entry) => entry.kind === 'in-class' || entry.weightSource === 'source-explicit',
+  )
+    ? 'source-explicit'
+    : 'compiler-distributed-draft';
   return {
     entries,
     summary: {
@@ -1183,7 +1351,11 @@ function buildManifestAssessments({ registry, files, lessonNumbers = null }) {
       graded: bridge.gradedCount,
       inClass: entries.filter((entry) => entry.kind === 'in-class').length,
       gradedWeightTotal: bridge.gradedWeightTotal,
-      weightSource: 'course-map-bridge',
+      weightSourceStatus,
+      weightSource: weightSourceStatus,
+      weightReviewRequired: weightSourceStatus !== 'source-explicit',
+      weightConfirmationPolicy:
+        'Official grading weights must be confirmed by the instructor; compiler-distributed weights are draft planning weights, not institutional policy.',
     },
   };
 }
@@ -1343,6 +1515,30 @@ function sourceLedgerIdentityKeys(row = {}) {
   return title ? [`title:${title}`] : [];
 }
 
+function sourceLedgerBindingKeys(row = {}) {
+  const sessionRefs = [...(Array.isArray(row?.sessionRefs) ? row.sessionRefs : []), row?.scope]
+    .map((value) => {
+      const text = cleanSourceText(value, 120).toLowerCase();
+      const numbered = /^(?:s|session|lesson|week)?[-_\s]*(\d{1,3})$/i.exec(text);
+      return numbered ? `s${Number(numbered[1])}` : text;
+    })
+    .filter((value) => value && value !== 'course');
+  const conceptKeys = (row?.conceptLinks || [])
+    .flatMap((link) =>
+      typeof link === 'string' ? [link] : [cleanSourceText(link?.id, 120), cleanSourceText(link?.label, 160)],
+    )
+    .map((value) => cleanSourceText(value, 160).toLowerCase())
+    .filter(Boolean);
+  const sessions = [...new Set(sessionRefs.length > 0 ? sessionRefs : ['course'])];
+  const concepts = [...new Set(conceptKeys.length > 0 ? conceptKeys : ['unbound'])];
+  return sessions.flatMap((session) => concepts.map((concept) => `${session}|${concept}`));
+}
+
+function sourceLedgerBindingsOverlap(left = {}, right = {}) {
+  const leftKeys = new Set(sourceLedgerBindingKeys(left));
+  return sourceLedgerBindingKeys(right).some((key) => leftKeys.has(key));
+}
+
 function sourceLedgerRowStrength(row = {}) {
   const provider = cleanSourceText(row.provider, 80).toLowerCase();
   const license = cleanSourceText(row.license, 180);
@@ -1441,8 +1637,12 @@ function mergeSourceLedgerRows(existing, incoming) {
 
 function appendMergedSourceRow(rows, keyIndex, row) {
   const identityKeys = sourceLedgerIdentityKeys(row);
-  const existingIndex = identityKeys.map((key) => keyIndex.get(key)).find((index) => Number.isInteger(index));
-  if (Number.isInteger(existingIndex)) {
+  const existingIndex = rows.findIndex(
+    (candidate) =>
+      sourceLedgerIdentityKeys(candidate).some((key) => identityKeys.includes(key)) &&
+      sourceLedgerBindingsOverlap(candidate, row),
+  );
+  if (existingIndex >= 0) {
     rows[existingIndex] = mergeSourceLedgerRows(rows[existingIndex], row);
     for (const key of sourceLedgerIdentityKeys(rows[existingIndex])) keyIndex.set(key, existingIndex);
     return;
@@ -1499,7 +1699,14 @@ export function mergeSourceLedgerBundles(...bundles) {
       // as an unresolved review note.
       if (reviewRowCoveredByTrustedSources(row, rows)) continue;
       const identityKeys = sourceLedgerIdentityKeys(row);
-      if (identityKeys.some((key) => rowKeyIndex.has(key))) continue;
+      if (
+        rows.some(
+          (candidate) =>
+            sourceLedgerIdentityKeys(candidate).some((key) => identityKeys.includes(key)) &&
+            sourceLedgerBindingsOverlap(candidate, row),
+        )
+      )
+        continue;
       appendMergedSourceRow(reviewRows, reviewKeyIndex, row);
     }
   }
@@ -1901,6 +2108,14 @@ function buildManifest({
   generationConstraints = null,
   evidenceDependencies = null,
   assessmentCoherence = null,
+  functionalVisualBindings = null,
+  courseGradingPolicy = null,
+  semanticClaimInventory = null,
+  instructionalPlanLineage = null,
+  postDraftAdmission = null,
+  instructionalEvidenceAudit = null,
+  authenticLanguageDataCoverage = null,
+  operationQualifiedEvidence = null,
 }) {
   const courseIR = buildManifestCourseIRProof(courseGraph, { sourceRefCoverage });
   const exportVerification = buildManifestExportVerification(digest);
@@ -1917,6 +2132,9 @@ function buildManifest({
         ? lessonNumbers || lessonFilter.map((index) => index + 1)
         : 'all',
     lessons,
+    ...(Array.isArray(functionalVisualBindings) && functionalVisualBindings.length > 0
+      ? { functionalVisualBindings }
+      : {}),
     ...(generationConstraints ? { generationConstraints } : {}),
     // v0.12.1: how the content was produced (enrichment / genome linker /
     // plan health) so downloaded packages are auditable without console logs.
@@ -1949,6 +2167,7 @@ function buildManifest({
     // numbers the syllabus grading table renders.
     ...(assessmentSummary ? { assessmentSummary } : {}),
     ...(assessmentCoherence ? { assessmentCoherence } : {}),
+    ...(courseGradingPolicy ? { courseGradingPolicy } : {}),
     // v0.14.5 (A5): the readings registry with provenance tags.
     ...(readings && readings.length > 0 ? { readings } : {}),
     ...(Array.isArray(sourceLedger) && sourceLedger.length > 0 ? { sourceLedger } : {}),
@@ -1957,6 +2176,12 @@ function buildManifest({
     ...(sourceReport ? { sourceReport } : {}),
     ...(courseIR ? { courseIR } : {}),
     ...(evidenceDependencies ? { evidenceDependencies } : {}),
+    ...(semanticClaimInventory ? { semanticClaimInventory } : {}),
+    ...(instructionalPlanLineage ? { instructionalPlanLineage } : {}),
+    ...(postDraftAdmission ? { postDraftAdmission } : {}),
+    ...(instructionalEvidenceAudit ? { instructionalEvidenceAudit } : {}),
+    ...(operationQualifiedEvidence ? { operationQualifiedEvidence } : {}),
+    ...(authenticLanguageDataCoverage ? { authenticLanguageDataCoverage } : {}),
     requestedFeatures: requestedFeatureIds.map((featureId) => ({
       featureId: publicFeatureId(featureId),
       label: resolveFeatureLabel(featureId),
@@ -1972,24 +2197,272 @@ function buildManifest({
   };
 }
 
-function manifestLessonObjectives(lesson) {
-  const lessonFocus = stripLessonPrefix(lesson?.title || lesson?.topic || 'this lesson') || 'this lesson';
-  const values = [
-    `Apply ${lessonFocus} in one practical example and justify one evidence-based revision.`,
-    lesson?.learningObjectives,
-    lesson?.objectives,
-    ...(Array.isArray(lesson?.sections)
-      ? lesson.sections.flatMap((section) => [section?.learningObjectives, section?.objectives])
-      : []),
-  ];
-  return [
-    ...new Set(
-      values
-        .flatMap((value) => (Array.isArray(value) ? value : String(value || '').split(/\n+/)))
-        .map((value) => String(value || '').trim())
-        .filter(Boolean),
-    ),
-  ];
+export function buildOperationQualifiedEvidenceReceipt({ deliverables, lessons }) {
+  const demands = new Map(
+    (Array.isArray(lessons) ? lessons : [])
+      .map((lesson) => [Number(lesson?.lessonNumber), operationEvidenceDemandForLesson(lesson)])
+      .filter(([lessonNumber, demand]) => Number.isInteger(lessonNumber) && demand.demanded && demand.operation),
+  );
+  const records = new Map();
+  const visited = new WeakSet();
+  const visit = (value, context = {}) => {
+    if (!value || typeof value !== 'object') return;
+    if (Array.isArray(value)) {
+      value.forEach((entry) => visit(entry, context));
+      return;
+    }
+    const lessonNumber = operationEvidenceLessonNumber(value, context.lessonNumber);
+    if (value.protocol === OPERATION_QUALIFIED_EVIDENCE_PROTOCOL) {
+      const key = `${lessonNumber || 0}|${String(value.operation || '')}`;
+      const prior = records.get(key) || {
+        lessonNumber,
+        operation: String(value.operation || ''),
+        authority: String(value.authority || ''),
+        curriculumAdmission:
+          value?.curriculumAdmission && typeof value.curriculumAdmission === 'object'
+            ? {
+                protocol: String(value.curriculumAdmission.protocol || ''),
+                status: String(value.curriculumAdmission.status || ''),
+                operation: String(value.curriculumAdmission.operation || ''),
+                lessonNumber: Number(value.curriculumAdmission.lessonNumber) || null,
+                demandSurface: String(value.curriculumAdmission.demandSurface || '').trim(),
+              }
+            : null,
+        projections: [],
+        inputs: Array.isArray(value.inputs) ? value.inputs : [],
+        stepCount: Array.isArray(value.steps) ? value.steps.length : 0,
+        hasOutput: Boolean(String(value.result || '').trim()),
+        hasInterpretation: Boolean(String(value.interpretation || '').trim()),
+        hasBoundary: Boolean(String(value.boundary || '').trim()),
+        hasTransferTask: Boolean(String(value.transferTask || '').trim()),
+        studentTask: String(value.studentTask || '').trim(),
+        hasExplicitStudentDemand:
+          /\b(?:calculate|compute|construct|fit|summari[sz]e|standardize|audit)\b/i.test(
+            String(value.studentTask || ''),
+          ) && /\b(?:show|verify|interpret|inspect|audit|state)\b/i.test(String(value.studentTask || '')),
+        deterministicVerification: value?.verification?.checked === true,
+      };
+      if (context.featureId && !prior.projections.includes(context.featureId))
+        prior.projections.push(context.featureId);
+      records.set(key, prior);
+    }
+    // Shared compiler-owned specimens intentionally appear in several
+    // deliverable families. Record each projection before cycle protection so
+    // the receipt proves the cross-artifact join instead of retaining only the
+    // first object identity encountered.
+    if (visited.has(value)) return;
+    visited.add(value);
+    for (const [key, child] of Object.entries(value)) {
+      visit(child, {
+        lessonNumber,
+        featureId: context.featureId || (Object.prototype.hasOwnProperty.call(deliverables || {}, key) ? key : ''),
+      });
+    }
+  };
+  for (const [featureId, payload] of Object.entries(deliverables || {})) {
+    visit(payload, { featureId, lessonNumber: null });
+  }
+  // The public manifest lesson list is deliberately compact and can omit the
+  // blueprint identity term that specialized a generic objective (for
+  // example, “Picturing Distributions” to a histogram construction). Rejoin
+  // that specificity only when the compiler-owned specimen carries a matching
+  // curriculum-admission receipt for the same lesson and exact demand surface.
+  // This prevents a lossy manifest projection from declaring a different
+  // operation than the one actually admitted and rendered, without allowing
+  // an arbitrary specimen to invent a demand.
+  const normalizedDemandSurface = (value) =>
+    String(value || '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase();
+  for (const record of records.values()) {
+    const demand = demands.get(record.lessonNumber);
+    const admission = record.curriculumAdmission;
+    if (
+      !demand ||
+      !admission ||
+      admission.protocol !== 'coursemapper-compiled-operation-curriculum-admission-v1' ||
+      admission.status !== 'admitted' ||
+      admission.lessonNumber !== record.lessonNumber ||
+      admission.operation !== record.operation ||
+      !normalizedDemandSurface(admission.demandSurface).includes(normalizedDemandSurface(demand.matchedSurface))
+    ) {
+      continue;
+    }
+    if (record.operation && record.operation !== demand.operation) {
+      demands.set(record.lessonNumber, {
+        ...demand,
+        operation: record.operation,
+        source: 'compiler-admitted-curriculum-specificity',
+      });
+    }
+  }
+  const items = [...records.values()]
+    .map((item) => ({
+      ...item,
+      curriculumAdmission: item.curriculumAdmission || null,
+      demandedOperation: demands.get(item.lessonNumber)?.operation || null,
+      projections: [...item.projections].sort(),
+      complete:
+        Number.isInteger(item.lessonNumber) &&
+        Boolean(item.operation) &&
+        item.authority === 'compiler-verified-calculation' &&
+        item.inputs.length >= 2 &&
+        item.stepCount >= 2 &&
+        item.hasOutput &&
+        item.hasInterpretation &&
+        item.hasBoundary &&
+        item.hasTransferTask &&
+        item.hasExplicitStudentDemand &&
+        item.deterministicVerification &&
+        (!demands.has(item.lessonNumber) || item.operation === demands.get(item.lessonNumber).operation) &&
+        OPERATION_EVIDENCE_REQUIRED_PROJECTIONS.every((featureId) => item.projections.includes(featureId)),
+    }))
+    .sort((left, right) => Number(left.lessonNumber) - Number(right.lessonNumber));
+  const coveredLessons = new Set(
+    items
+      .filter((item) => item.complete && demands.get(item.lessonNumber)?.operation === item.operation)
+      .map((item) => item.lessonNumber),
+  );
+  const missingLessonNumbers = [...demands.keys()].filter((lessonNumber) => !coveredLessons.has(lessonNumber)).sort();
+  if (demands.size === 0 && items.length === 0) return null;
+  return {
+    protocol: OPERATION_QUALIFIED_EVIDENCE_RECEIPT_PROTOCOL,
+    requiredProjectionFamilies: OPERATION_EVIDENCE_REQUIRED_PROJECTIONS,
+    demandedLessonNumbers: [...demands.keys()].sort(),
+    demandedOperations: [...demands.entries()]
+      .map(([lessonNumber, demand]) => ({
+        lessonNumber,
+        operation: demand.operation,
+        matchedSurface: demand.matchedSurface,
+      }))
+      .sort((left, right) => left.lessonNumber - right.lessonNumber),
+    missingLessonNumbers,
+    summary: {
+      demandedLessonCount: demands.size,
+      completeLessonCount: [...demands.keys()].filter((lessonNumber) => coveredLessons.has(lessonNumber)).length,
+      specimenCount: items.length,
+      status: missingLessonNumbers.length === 0 && items.every((item) => item.complete) ? 'passed' : 'failed',
+    },
+    items,
+    claimBoundary:
+      'This receipt proves that quantitative Apply/Calculate objectives have inspectable synthetic inputs, an executable step trace, output, interpretation, boundary, and aligned variation across the named artifact families. It does not claim empirical validity for the synthetic data.',
+  };
+}
+
+function buildFunctionalVisualBindings(deliverables, assessments = [], sourceLedger = [], briefQualityContract = null) {
+  const sourceLedgerIds = new Set(
+    (Array.isArray(sourceLedger) ? sourceLedger : []).map((row) => String(row?.id || '')),
+  );
+  const assessmentRows = Array.isArray(assessments) ? assessments : [];
+  const decks = deliverables?.slideDecks?.data?.decks;
+  if (!Array.isArray(decks)) return [];
+  const bindings = [];
+  for (const deck of decks) {
+    for (const slide of Array.isArray(deck?.slides) ? deck.slides : []) {
+      const specimen = slide?.visual?.typedSpecimen;
+      if (specimen?.protocol !== 'coursemapper-typed-evidence-specimen-v1') continue;
+      const lessonNumber = Number(specimen?.lessonNumber || deck?.lessonNumber);
+      const sourceLedgerId = String(specimen?.sourceBinding?.sourceLedgerId || '').trim();
+      const artifact = String(specimen?.learnerProduct?.artifact || '').trim();
+      const assessment = assessmentRows.find(
+        (row) => Number(row?.lesson) === lessonNumber && String(row?.title || '').trim() === artifact,
+      );
+      const nativeSourceStructurallyResolved = (() => {
+        if (specimen?.sourceBinding?.resolution !== 'native-evidence-specimen') return false;
+        const entities = Array.isArray(specimen?.entities) ? specimen.entities : [];
+        const relations = Array.isArray(specimen?.relations) ? specimen.relations : [];
+        const entityIds = new Set(entities.map((item) => String(item?.id || '').trim()).filter(Boolean));
+        return Boolean(
+          /^CM-SRC-L\d{2,}$/i.test(String(specimen?.sourceBinding?.id || '').trim()) &&
+          String(specimen?.sourceBinding?.label || '').trim() &&
+          String(specimen?.sourceBinding?.verificationRule || '').trim() &&
+          ['original-native-owner-controlled', 'open-licensed', 'public-domain'].includes(
+            specimen?.rightsBinding?.assetRightsClass,
+          ) &&
+          String(specimen?.rightsBinding?.disclosure || '').trim() &&
+          entities.length >= 3 &&
+          entityIds.size === entities.length &&
+          relations.length >= 1 &&
+          relations.every(
+            (relation) =>
+              /^[a-z0-9-]+$/.test(String(relation?.id || '')) &&
+              entityIds.has(String(relation?.from || '')) &&
+              entityIds.has(String(relation?.to || '')) &&
+              String(relation?.visibleStatement || '').trim(),
+          ),
+        );
+      })();
+      const rightsEvaluation = evaluateFunctionalVisualRights(briefQualityContract, specimen);
+      bindings.push({
+        protocol: 'coursemapper-functional-visual-binding-v1',
+        lessonNumber,
+        ...(specimen?.taskContract?.protocol === 'coursemapper-functional-visual-task-contract-v1'
+          ? {
+              taskContract: {
+                protocol: specimen.taskContract.protocol,
+                contractId: String(specimen.taskContract.contractId || ''),
+                contractSha256: String(specimen?.taskContractSha256 || ''),
+                upstreamRequirementSha256: String(specimen.taskContract.upstreamRequirementSha256 || ''),
+                constructFamily: String(specimen.taskContract.constructFamily || ''),
+                predicateIds: (Array.isArray(specimen.taskContract.predicates) ? specimen.taskContract.predicates : [])
+                  .map((predicate) => String(predicate?.id || ''))
+                  .filter(Boolean),
+                counterexampleStateId: String(specimen.taskContract.counterexample?.stateId || ''),
+              },
+            }
+          : {}),
+        ...(specimen?.visibleTask?.protocol === 'coursemapper-visible-functional-task-v1'
+          ? {
+              visibleTask: {
+                protocol: specimen.visibleTask.protocol,
+                hashBound: [
+                  specimen?.taskContractSha256,
+                  specimen.visibleTask.cardTextSha256,
+                  specimen.visibleTask.authoredSummarySha256,
+                  specimen.visibleTask.authoredBulletsSha256,
+                ].every((value) => /^[a-f0-9]{64}$/i.test(String(value || ''))),
+                cardTextSha256: String(specimen.visibleTask.cardTextSha256 || ''),
+                authoredSummarySha256: String(specimen.visibleTask.authoredSummarySha256 || ''),
+                authoredBulletsSha256: String(specimen.visibleTask.authoredBulletsSha256 || ''),
+                sourceBindingId: String(specimen.visibleTask.sourceBindingId || ''),
+                learnerProductId: String(specimen.visibleTask.learnerProductId || ''),
+                artifact: String(specimen.visibleTask.artifact || ''),
+                successCriterion: String(specimen.visibleTask.successCriterion || ''),
+                rightsDisclosure: String(specimen.visibleTask.rightsDisclosure || ''),
+              },
+            }
+          : {}),
+        source: {
+          bindingId: String(specimen?.sourceBinding?.id || '').trim(),
+          label: String(specimen?.sourceBinding?.label || '').trim(),
+          resolution: specimen?.sourceBinding?.resolution,
+          ...(sourceLedgerId ? { sourceLedgerId } : {}),
+          resolved:
+            specimen?.sourceBinding?.resolution === 'course-map-source-cue'
+              ? Boolean(String(specimen?.sourceBinding?.label || '').trim())
+              : specimen?.sourceBinding?.resolution === 'native-evidence-specimen'
+                ? nativeSourceStructurallyResolved
+                : sourceLedgerIds.has(sourceLedgerId),
+        },
+        rights: {
+          ...rightsEvaluation,
+          nativeSourceStructurallyResolved,
+        },
+        product: {
+          bindingId: String(specimen?.learnerProduct?.id || '').trim(),
+          label: artifact,
+          ...(assessment?.id ? { assessmentId: assessment.id } : {}),
+          resolved: Boolean(assessment?.id),
+        },
+      });
+    }
+  }
+  return bindings.sort((left, right) => left.lessonNumber - right.lessonNumber);
+}
+
+function manifestLessonObjectives(lesson, lessonNumber = null) {
+  return lessonContractObjectives({ ...lesson, lessonNumber: lesson?.lessonNumber || lessonNumber });
 }
 
 export async function buildCourseMaterialsZip({
@@ -2019,6 +2492,9 @@ export async function buildCourseMaterialsZip({
 
   const zip = new JSZip();
   const safeCourseName = sanitizeFilePart(courseName || courseMap?.courseName || 'Course');
+  const generatedAt = Number.isFinite(Date.parse(requestedGeneratedAt || ''))
+    ? new Date(requestedGeneratedAt).toISOString()
+    : new Date().toISOString();
   const requestedFeatureIds = getRequestedFeatureIds(featureIds, deliverables);
   const requestedDeliverableIds = requestedFeatureIds.filter((featureId) => featureId !== 'courseMap');
   const lessonIndices = getLessonIndicesForZip(courseMap, lessonFilter);
@@ -2047,7 +2523,7 @@ export async function buildCourseMaterialsZip({
 
   if (effectiveReadiness?.issues?.length > 0) {
     const reportPath = 'READINESS_REPORT.txt';
-    const report = buildReadinessReport(effectiveReadiness, { courseName: safeCourseName });
+    const report = buildReadinessReport(effectiveReadiness, { courseName: safeCourseName, generatedAt });
     zip.file(reportPath, report);
     fileContents[reportPath] = report;
     files.push({ path: reportPath, featureId: 'readiness', format: 'txt', size: getExportPartSize(report) });
@@ -2097,11 +2573,18 @@ export async function buildCourseMaterialsZip({
     const shouldSplitByLesson =
       SPLIT_BY_LESSON_FEATURES.has(featureId) && !isDeliverableNotApplicable(featureId, entry.data);
     const exportSlices = shouldSplitByLesson
-      ? lessonIndices.map((lessonIndex) => ({
-          lessonIndex,
-          fileStem: lessonFileStem(courseMap, lessonIndex),
-          data: scopeDeliverableDataToLessons(featureId, entry.data, [lessonIndex], courseMap),
-        }))
+      ? lessonIndices
+          .map((lessonIndex) => ({
+            lessonIndex,
+            fileStem: lessonFileStem(courseMap, lessonIndex),
+            data: scopeDeliverableDataToLessons(featureId, entry.data, [lessonIndex], courseMap),
+          }))
+          // A partially populated family should contain only useful lesson
+          // artifacts. The family-level not-applicable path above still emits
+          // one honest handoff when an entire requested family is empty, but
+          // a missing entry in one lesson must not become a repetitive,
+          // title-only placeholder file.
+          .filter((slice) => renderedDeliverableCollection(featureId, slice.data).length > 0)
       : [
           {
             lessonIndex: null,
@@ -2182,7 +2665,10 @@ export async function buildCourseMaterialsZip({
   } = await safeImport(() => import('./requiredLabAssets'));
   let requiredAssets = collectRequiredLabAssets({ courseMap, deliverables, requestedFeatureIds });
   if (requiredAssets.length > 0) {
-    const bundledAssets = buildBundledRequiredLabAssets(requiredAssets, { courseName: safeCourseName });
+    const bundledAssets = buildBundledRequiredLabAssets(requiredAssets, {
+      courseName: safeCourseName,
+      courseGraph,
+    });
     const bundledByRequirement = new Map();
     for (const asset of bundledAssets) {
       addRequiredFile(zip, files, failures, asset.path, asset.content, {
@@ -2226,10 +2712,6 @@ export async function buildCourseMaterialsZip({
   }
 
   if (failures.length > 0) throw new PackageZipExportError(failures);
-
-  const generatedAt = Number.isFinite(Date.parse(requestedGeneratedAt || ''))
-    ? new Date(requestedGeneratedAt).toISOString()
-    : new Date().toISOString();
 
   let derivedCourseGraph = null;
   let attemptedCourseGraphDerive = false;
@@ -2407,13 +2889,14 @@ export async function buildCourseMaterialsZip({
   const manifestAssessments = buildManifestAssessments({
     registry: assessmentRegistry,
     files,
+    deliverables,
     // v0.16.1: the bridge scopes to the same lessons the compile used.
     lessonNumbers,
   });
   const manifestLessons = lessonIndices.map((lessonIndex, index) => ({
     lessonNumber: lessonNumbers[index],
     title: String(courseMap?.lessons?.[lessonIndex]?.title || '').trim(),
-    objectives: manifestLessonObjectives(courseMap?.lessons?.[lessonIndex]),
+    objectives: manifestLessonObjectives(courseMap?.lessons?.[lessonIndex], lessonNumbers[index]),
   }));
   const assessmentCoherence = buildAssessmentCoherenceReceipt({
     lessons: manifestLessons,
@@ -2431,13 +2914,48 @@ export async function buildCourseMaterialsZip({
     requiredAssets,
     files,
   });
+  const semanticClaimInventory = await buildSemanticClaimInventory({
+    courseGraph: sourceManifestGraph,
+    deliverables,
+    sourceLedger: sourceLedgerBundle?.rows || [],
+    renderedArtifacts: renderedOfficeArtifacts,
+  });
   const publicScionRun = isScionRunDigest(qualityOptions.digest);
+  const manifestSemanticClaimInventory = publicScionRun
+    ? publicizeScionResearchVocabulary(semanticClaimInventory)
+    : semanticClaimInventory;
+  const postDraftAdmission = sourceManifestGraph?.instructionalPlanLineage
+    ? buildPostDraftAdmissionReceipt({
+        courseGraph: sourceManifestGraph,
+        semanticClaimInventory: manifestSemanticClaimInventory,
+        renderedArtifacts: renderedOfficeArtifacts,
+      })
+    : null;
+  const instructionalPlanLineage = postDraftAdmission
+    ? finalizeInstructionalPlanLineage(sourceManifestGraph, postDraftAdmission)
+    : null;
+  const operationQualifiedEvidence = buildOperationQualifiedEvidenceReceipt({
+    deliverables,
+    lessons: manifestLessons,
+  });
   const manifestPipelineState = publicScionRun
     ? publicizeScionResearchVocabulary(disclosedPipelineState)
     : disclosedPipelineState;
   const manifestSourceLedgerBundle = publicScionRun
     ? publicizeScionResearchVocabulary(sourceLedgerBundle)
     : sourceLedgerBundle;
+  const sourceBriefText = String(qualityOptions.coursePrompt || '');
+  const briefQualityContract = extractBriefQualityContract(sourceBriefText, {
+    lessonCount: manifestLessons.length,
+  });
+  const sourceBriefBinding = sourceBriefText
+    ? {
+        protocol: 'coursemapper-source-brief-binding-v1',
+        text: sourceBriefText,
+        utf8Bytes: new TextEncoder().encode(sourceBriefText).byteLength,
+        sha256: sha256HexSync(sourceBriefText),
+      }
+    : null;
   const manifest = buildManifest({
     courseName: safeCourseName,
     lessonFilter,
@@ -2463,16 +2981,51 @@ export async function buildCourseMaterialsZip({
     voicePass: finalPipelineState?.voicePass || peekVoicePassOutcome(),
     digest: qualityOptions.digest || null,
     generationConstraints: (() => {
-      const explicitLessonSequence = extractExplicitLessonSequence(qualityOptions.coursePrompt || '');
-      const sessionMinutes = Number(qualityOptions.expectedSessionMinutes);
+      const suppliedOrderedLessonContract =
+        qualityOptions.orderedLessonContract || sourceManifestGraph?.course?.meta?.orderedLessonContract;
+      const suppliedTopics = Array.isArray(suppliedOrderedLessonContract?.topics)
+        ? suppliedOrderedLessonContract.topics.map((topic) => String(topic || '').trim()).filter(Boolean)
+        : [];
+      const orderedLessonContract =
+        suppliedTopics.length === manifestLessons.length
+          ? { ...suppliedOrderedLessonContract, topics: suppliedTopics }
+          : extractOrderedLessonContract(qualityOptions.coursePrompt || '', {
+              expectedCount: manifestLessons.length,
+            });
+      const rawSessionMinutes = qualityOptions.expectedSessionMinutes;
+      const sessionMinutes =
+        rawSessionMinutes == null || rawSessionMinutes === '' ? Number.NaN : Number(rawSessionMinutes);
       const constraints = {
+        ...(qualityOptions.checkpoint ? { checkpoint: qualityOptions.checkpoint } : {}),
         ...(Number.isFinite(sessionMinutes) ? { sessionMinutes } : {}),
-        ...(explicitLessonSequence.length >= 2 ? { explicitLessonSequence } : {}),
+        ...(orderedLessonContract
+          ? {
+              orderedLessonContract,
+              ...(orderedLessonContract.mode === 'explicit-lesson-sequence'
+                ? { explicitLessonSequence: orderedLessonContract.topics }
+                : {}),
+            }
+          : {}),
+        ...(briefQualityContract ? { briefQualityContract } : {}),
+        ...(sourceBriefBinding ? { sourceBriefBinding } : {}),
       };
       return Object.keys(constraints).length > 0 ? constraints : null;
     })(),
     evidenceDependencies,
     assessmentCoherence,
+    functionalVisualBindings: buildFunctionalVisualBindings(
+      deliverables,
+      manifestAssessments?.entries || [],
+      manifestSourceLedgerBundle?.rows || [],
+      briefQualityContract,
+    ),
+    courseGradingPolicy: sourceManifestGraph?.course?.meta?.gradingPolicy || courseMap?.gradingPolicy || null,
+    semanticClaimInventory: manifestSemanticClaimInventory,
+    instructionalPlanLineage,
+    postDraftAdmission,
+    instructionalEvidenceAudit: buildInstructionalEvidenceAudit(sourceManifestGraph?.governingSourceContract),
+    operationQualifiedEvidence,
+    authenticLanguageDataCoverage: sourceManifestGraph?.authenticLanguageDataCoverage || null,
   });
 
   // ── v0.14.3 WS-A A2/A3: the package grades itself ─────────────────────────
@@ -2499,6 +3052,8 @@ export async function buildCourseMaterialsZip({
       readiness: effectiveReadiness,
       quality: precomputedQuality?.block || null,
       exportVerification: manifest.exportVerification || null,
+      authenticLanguageDataCoverage: manifest.authenticLanguageDataCoverage || null,
+      operationQualifiedEvidence: manifest.operationQualifiedEvidence || null,
     });
     const precomputedVerification = precomputedQuality
       ? await verifyScoreLedger({
@@ -2645,6 +3200,8 @@ export async function buildCourseMaterialsZip({
         readiness: effectiveReadiness,
         quality: qualityBlock,
         exportVerification: manifest.exportVerification || null,
+        authenticLanguageDataCoverage: manifest.authenticLanguageDataCoverage || null,
+        operationQualifiedEvidence: manifest.operationQualifiedEvidence || null,
       });
     }
     if (qualityBlock?.status === 'graded' && scoreLedger) {
@@ -2652,6 +3209,8 @@ export async function buildCourseMaterialsZip({
         readiness: effectiveReadiness,
         quality: qualityBlock,
         exportVerification: manifest.exportVerification || null,
+        authenticLanguageDataCoverage: manifest.authenticLanguageDataCoverage || null,
+        operationQualifiedEvidence: manifest.operationQualifiedEvidence || null,
       });
       const packageReadinessText = JSON.stringify(packageReadinessReceipt, null, 2);
       const packageReadinessSha256 = await sha256QualityText(packageReadinessText);

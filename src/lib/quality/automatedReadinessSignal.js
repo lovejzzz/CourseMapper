@@ -1,4 +1,4 @@
-import { extractExplicitLessonSequence } from '../explicitLessonSequence.js';
+import { extractOrderedLessonContract } from '../explicitLessonSequence.js';
 import { isClaimBoundSourceLedgerRow, isTrustedConceptLinkedSourceLedgerRow } from '../knowledge/sourceLedger.js';
 export { buildAssessmentCoherenceFromPackage as assessment } from './assessmentCoherence.js';
 
@@ -38,7 +38,7 @@ export const AUTOMATED_EVIDENCE_RULE_CONTRACTS = Object.freeze([
     evaluatedPredicateOperator: 'weighted-ordered-coverage',
     unobservedPredicateOperator: 'ordered-topic-alignment',
     evidence: [
-      ['course.explicit-lesson-sequence', 'PACKAGE_MANIFEST.json', '/generationConstraints/explicitLessonSequence'],
+      ['course.ordered-lesson-contract', 'PACKAGE_MANIFEST.json', '/generationConstraints'],
       ['package.lesson-titles-for-sequence', 'PACKAGE_MANIFEST.json', '/lessons/*/title'],
     ],
   },
@@ -101,7 +101,7 @@ function rounded(value) {
 }
 
 function stableFingerprint(value) {
-  const text = JSON.stringify(value);
+  const text = JSON.stringify(value) ?? 'undefined';
   let hash = 2166136261;
   for (let index = 0; index < text.length; index += 1) {
     hash ^= text.charCodeAt(index);
@@ -159,7 +159,9 @@ export function replayAutomatedEvidenceRule(rule = {}) {
   let antiGamingInput;
 
   if (rule.ruleId === 'DPK.CURRICULUM.ORDERED_SEQUENCE') {
-    const sequenceObserved = ruleEvidenceObserved(rule, 'course.explicit-lesson-sequence');
+    const sequenceObserved =
+      ruleEvidenceObserved(rule, 'course.ordered-lesson-contract') ||
+      ruleEvidenceObserved(rule, 'course.explicit-lesson-sequence');
     const titlesObserved = ruleEvidenceObserved(rule, 'package.lesson-titles-for-sequence');
     const sequence = Array.isArray(sequenceObserved) ? sequenceObserved : sequenceObserved?.sequence || [];
     const titles = Array.isArray(titlesObserved) ? titlesObserved : titlesObserved?.titles || [];
@@ -176,7 +178,7 @@ export function replayAutomatedEvidenceRule(rule = {}) {
       predicateActual = { orderedMatched, orderedCoverage, countParity };
     } else {
       predicateOperator = contract.unobservedPredicateOperator;
-      predicateExpected = 'explicit sequence with at least 2 lessons';
+      predicateExpected = 'source-authored ordered contract with at least 2 lessons';
       predicateActual = 0;
     }
   } else if (rule.ruleId === 'DPK.EVIDENCE.RENDERED_CLAIM_SUPPORT') {
@@ -220,9 +222,9 @@ export function replayAutomatedEvidenceRule(rule = {}) {
     const coherenceRatio = Number(observed?.coherenceRatio);
     antiGamingInput = observed;
     if (
-      observed?.protocol === 'rendered-assessment-coherence-v1' &&
+      ['rendered-assessment-coherence-v4', 'rendered-assessment-coherence-v5'].includes(observed?.protocol) &&
       Number(observed?.eligibleAssessments) > 0 &&
-      Number(observed?.totalChecks) === Number(observed?.eligibleAssessments) * 5 &&
+      Number(observed?.totalChecks) === Number(observed?.eligibleAssessments) * 6 &&
       Number.isFinite(coherenceRatio) &&
       coherenceRatio >= 0 &&
       coherenceRatio <= 1
@@ -231,9 +233,10 @@ export function replayAutomatedEvidenceRule(rule = {}) {
       points = assessmentCoherencePoints(contract.max, observed);
       predicateOperator = contract.evaluatedPredicateOperator;
       predicateExpected = {
-        checksPerAssessment: 5,
+        checksPerAssessment: 6,
         renderedTaskAndRubricBytes: true,
         exactObjectiveVisibility: true,
+        manifestObjectiveInstructionMapping: true,
       };
       predicateActual = observed;
     } else {
@@ -483,19 +486,20 @@ export function deriveAutomatedEvidenceBand(summary = {}, points = {}) {
 }
 
 function curriculumRule(manifest, course, lessonTitles) {
-  const manifestSequence = Array.isArray(manifest?.generationConstraints?.explicitLessonSequence)
-    ? manifest.generationConstraints.explicitLessonSequence.map((title) => String(title || '').trim()).filter(Boolean)
-    : [];
-  const explicitSequence =
-    manifestSequence.length >= 2
-      ? manifestSequence
-      : extractExplicitLessonSequence(course?.prompt || course?.sourceBrief || '');
+  const manifestContract = manifest?.generationConstraints?.orderedLessonContract;
+  const manifestSequence = Array.isArray(manifestContract?.topics)
+    ? manifestContract.topics.map((title) => String(title || '').trim()).filter(Boolean)
+    : Array.isArray(manifest?.generationConstraints?.explicitLessonSequence)
+      ? manifest.generationConstraints.explicitLessonSequence.map((title) => String(title || '').trim()).filter(Boolean)
+      : [];
+  const sourceContract = extractOrderedLessonContract(course?.prompt || course?.sourceBrief || '');
+  const explicitSequence = manifestSequence.length >= 2 ? manifestSequence : sourceContract?.topics || [];
   const evidence = [
     evidenceRef(
-      'course.explicit-lesson-sequence',
+      'course.ordered-lesson-contract',
       'PACKAGE_MANIFEST.json',
-      '/generationConstraints/explicitLessonSequence',
-      explicitSequence,
+      '/generationConstraints',
+      manifestContract || sourceContract || explicitSequence,
     ),
     evidenceRef('package.lesson-titles-for-sequence', 'PACKAGE_MANIFEST.json', '/lessons/*/title', lessonTitles),
   ];
@@ -507,12 +511,12 @@ function curriculumRule(manifest, course, lessonTitles) {
       evidence,
       predicate: {
         operator: 'ordered-topic-alignment',
-        expected: 'explicit sequence with at least 2 lessons',
+        expected: 'source-authored ordered contract with at least 2 lessons',
         actual: 0,
       },
-      reason: 'No explicit ordered source sequence was available, so curriculum fidelity was not scored.',
+      reason: 'No source-authored ordered lesson contract was available, so curriculum fidelity was not scored.',
       action:
-        'Provide the intended ordered lesson sequence in the course brief, then regenerate and review title alignment.',
+        'Provide either an intended ordered lesson sequence or an exact count-matched topic list in the course brief, then regenerate and review title alignment.',
       recoverability: 'author-recoverable',
       evidenceTier: 'deterministic-structural',
       antiGaming: {
@@ -535,7 +539,7 @@ function curriculumRule(manifest, course, lessonTitles) {
     componentScore,
     evidence: evidence.map((entry) => {
       const observed =
-        entry.evidenceId === 'course.explicit-lesson-sequence'
+        entry.evidenceId === 'course.ordered-lesson-contract' || entry.evidenceId === 'course.explicit-lesson-sequence'
           ? { expectedLessons: explicitSequence.length, sequence: explicitSequence }
           : { exportedLessons: lessonTitles.length, titles: lessonTitles, alignmentRatios: comparisons };
       return { ...entry, observed, inputFingerprint: stableFingerprint(observed) };
@@ -567,21 +571,46 @@ function groundingRule(manifest, lessonCount) {
   );
   const claimBoundLessons = new Set();
   const renderedArtifacts = new Set();
+  const lessonClaimCounts = new Map();
+  const lessonArtifactSets = new Map();
   let renderedClaims = 0;
   for (const row of claimBoundRows) {
     for (const check of row?.supportReceipt?.checks || []) {
       if (check?.renderedLocation) {
         renderedArtifacts.add(String(check.renderedLocation));
         const lesson = lessonNumberForRenderedLocation(check.renderedLocation);
-        if (lesson) claimBoundLessons.add(lesson);
+        if (lesson) {
+          claimBoundLessons.add(lesson);
+          const lessonArtifacts = lessonArtifactSets.get(lesson) || new Set();
+          lessonArtifacts.add(String(check.renderedLocation));
+          lessonArtifactSets.set(lesson, lessonArtifacts);
+          if (check?.semanticSupport === true && check?.entailed === true) {
+            lessonClaimCounts.set(lesson, (lessonClaimCounts.get(lesson) || 0) + 1);
+          }
+        }
       }
       if (check?.renderedLocation && check?.semanticSupport === true && check?.entailed === true) renderedClaims += 1;
     }
   }
   const boundedLessonCount = Math.max(0, Number(lessonCount) || 0);
-  const coveredLessons = [...claimBoundLessons].filter(
-    (lesson) => Number.isInteger(lesson) && lesson >= 1 && lesson <= boundedLessonCount,
-  ).length;
+  const coveredLessonNumbers = [...claimBoundLessons]
+    .filter((lesson) => Number.isInteger(lesson) && lesson >= 1 && lesson <= boundedLessonCount)
+    .sort((left, right) => left - right);
+  const coveredLessons = coveredLessonNumbers.length;
+  const missingLessonNumbers = Array.from({ length: boundedLessonCount }, (_, index) => index + 1).filter(
+    (lesson) => !claimBoundLessons.has(lesson),
+  );
+  const lessonCoverage = Array.from({ length: boundedLessonCount }, (_, index) => {
+    const lessonNumber = index + 1;
+    const covered = claimBoundLessons.has(lessonNumber);
+    return {
+      lessonNumber,
+      covered,
+      verifiedClaims: lessonClaimCounts.get(lessonNumber) || 0,
+      renderedArtifacts: lessonArtifactSets.get(lessonNumber)?.size || 0,
+      reasonCode: covered ? 'rendered-exact-source-claim' : 'no-byte-bound-exact-claim',
+    };
+  });
   if (boundedLessonCount > 0 && coveredLessons > 0 && renderedClaims >= coveredLessons) {
     const observed = {
       protocol: 'rendered-exact-source-claim-coverage-v1',
@@ -590,6 +619,9 @@ function groundingRule(manifest, lessonCount) {
       scoreEligible: true,
       lessons: boundedLessonCount,
       receiptBackedLessons: coveredLessons,
+      coveredLessonNumbers,
+      missingLessonNumbers,
+      lessonCoverage,
       verifiedClaims: renderedClaims,
       trustedConceptLinkedSources: claimBoundRows.length,
       renderedArtifacts: renderedArtifacts.size,
@@ -643,6 +675,12 @@ function groundingRule(manifest, lessonCount) {
     scoreEligible: false,
     disqualificationReason: 'rendered-claim-semantic-support-not-validated',
     receiptBackedLessons: receiptBackedLessons.size,
+    coveredLessonNumbers: [...receiptBackedLessons]
+      .filter((lesson) => Number.isInteger(lesson) && lesson >= 1 && lesson <= lessonCount)
+      .sort((left, right) => left - right),
+    missingLessonNumbers: Array.from({ length: Math.max(0, Number(lessonCount) || 0) }, (_, index) => index + 1).filter(
+      (lesson) => !receiptBackedLessons.has(lesson),
+    ),
     verifiedClaims: checkedClaims,
     trustedConceptLinkedSources: receiptRows.length,
     lessons: lessonCount,
@@ -729,9 +767,9 @@ function assessmentRule(receipt) {
   const ratio = Number(observed?.coherenceRatio);
   const eligible = Number(observed?.eligibleAssessments);
   const valid =
-    observed?.protocol === 'rendered-assessment-coherence-v1' &&
+    ['rendered-assessment-coherence-v4', 'rendered-assessment-coherence-v5'].includes(observed?.protocol) &&
     eligible > 0 &&
-    Number(observed?.totalChecks) === eligible * 5 &&
+    Number(observed?.totalChecks) === eligible * 6 &&
     Number.isFinite(ratio) &&
     ratio >= 0 &&
     ratio <= 1;
@@ -754,7 +792,12 @@ function assessmentRule(receipt) {
       evidence,
       predicate: {
         operator: 'rendered-objective-task-evidence-rubric-linkage',
-        expected: { checksPerAssessment: 5, renderedTaskAndRubricBytes: true, exactObjectiveVisibility: true },
+        expected: {
+          checksPerAssessment: 6,
+          renderedTaskAndRubricBytes: true,
+          exactObjectiveVisibility: true,
+          manifestObjectiveInstructionMapping: true,
+        },
         actual: observed,
       },
       reason: `${observed.passedChecks}/${observed.totalChecks} rendered assessment-link checks passed across ${eligible} graded assessment${eligible === 1 ? '' : 's'}.`,

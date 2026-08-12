@@ -1043,7 +1043,9 @@ export default function ModelConfig({ reserveTrailingActionSpace = false }) {
               </button>
             </div>
           </div>
-          {['loading-runtime', 'loading-model'].includes(scionRuntimeStatus.phase) && (
+          {['loading-runtime', 'loading-model', 'restarting-activation', 'repairing-cache'].includes(
+            scionRuntimeStatus.phase,
+          ) && (
             <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-indigo-100 dark:bg-indigo-950">
               <div
                 className="h-full rounded-full bg-indigo-500 transition-[width] duration-300"

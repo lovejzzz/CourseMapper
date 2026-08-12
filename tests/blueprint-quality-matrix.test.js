@@ -59,12 +59,22 @@ function assertCompilerOwnedFieldsAreNotStored(storedBlueprint, scenarioName) {
 
 function assertAssessmentAnchorsStayCompact(storedBlueprint, scenarioName) {
   for (const assessment of storedBlueprint.assessments || []) {
-    // v0.14.1 (3.2): weight/weightPercent joined the persisted anchor keys —
-    // registry-path grading weights must survive storage. These scenarios
+    // Weight, weightPercent, and their authority provenance are persisted
+    // anchors — registry-path grading weights must survive storage. These scenarios
     // compile the legacy path (no registry), so kind/registryId/dueSession
     // stay absent.
     expect(Object.keys(assessment).sort(), `${scenarioName}: stored assessment should only keep anchors`).toEqual(
-      ['artifact', 'id', 'lessonNumbers', 'relatedLessons', 'source', 'title', 'weight', 'weightPercent'].sort(),
+      [
+        'artifact',
+        'id',
+        'lessonNumbers',
+        'relatedLessons',
+        'source',
+        'title',
+        'weight',
+        'weightPercent',
+        'weightProvenance',
+      ].sort(),
     );
     expect(assessment.criteria, `${scenarioName}: stored assessment criteria are compiler-owned`).toBeUndefined();
     expect(

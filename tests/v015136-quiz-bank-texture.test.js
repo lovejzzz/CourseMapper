@@ -46,27 +46,23 @@ function textValues(value) {
 }
 
 describe('v0.15.136 quiz-bank texture', () => {
-  it('varies multiple-choice intended-use notes instead of repeating the distractor-review shingle', () => {
+  it('varies intended-use notes without manufacturing distractor-review prose', () => {
     const blueprint = buildCourseBlueprint(uxStudioCourseMap());
     const compiled = compileBlueprintDeliverables(blueprint, ['quizBank'], {
       configMap: { quizBank: { questionsPerLesson: 6 } },
     });
     const values = textValues(compiled.quizBank);
     const quizText = values.join('\n');
-    const intendedUses = compiled.quizBank.quizzes.flatMap((quiz) =>
-      quiz.questions
-        .filter((question) => question.type === 'multiple_choice')
-        .map((question) => question.intendedUse)
-        .filter(Boolean),
-    );
+    const questions = compiled.quizBank.quizzes.flatMap((quiz) => quiz.questions);
+    const intendedUses = questions.map((question) => question.intendedUse).filter(Boolean);
 
     expect(quizText).not.toMatch(/review distractor choices before the next/i);
     expect(intendedUses.length).toBeGreaterThanOrEqual(UX_TOPICS.length);
-    expect(intendedUses.some((value) => /compare each distractor/i.test(value))).toBe(true);
-    expect(intendedUses.some((value) => /use the options to surface/i.test(value))).toBe(true);
-    expect(intendedUses.some((value) => /wrong option misses/i.test(value))).toBe(false);
-    expect(intendedUses.some((value) => /breaks the evidence rule/i.test(value))).toBe(true);
-    expect(intendedUses.some((value) => /practice moment/i.test(value))).toBe(true);
-    expect(intendedUses.some((value) => /most tempting option/i.test(value))).toBe(true);
+    expect(new Set(intendedUses).size).toBeGreaterThanOrEqual(UX_TOPICS.length);
+    expect(intendedUses.some((value) => /wrong option misses|breaks the evidence rule/i.test(value))).toBe(false);
+    expect(questions.filter((question) => question.type === 'multiple_choice')).toHaveLength(0);
+    expect(
+      questions.filter((question) => question.type === 'short_answer').every((question) => question.scoringGuidance),
+    ).toBe(true);
   });
 });

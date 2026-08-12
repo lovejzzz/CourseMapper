@@ -1,4 +1,4 @@
-import { findMechanicalContentWordEcho } from '../mechanicalTextSeams.js';
+import { findLearnerFacingCompilerLeak, findMechanicalContentWordEcho } from '../mechanicalTextSeams.js';
 
 function filmEditingMusicMetreFinding(courseTitle, file) {
   const identity = `${file.path || ''} ${file.text || ''}`;
@@ -175,6 +175,17 @@ export function buildAdditionalSubstanceFindings({ files = [], course = {}, quot
       findings.push(finding);
       break;
     }
+  }
+  for (const file of files) {
+    const leak = findLearnerFacingCompilerLeak(file.text);
+    if (!leak) continue;
+    findings.push({
+      severity: 'P1',
+      dimension: 'substance',
+      file: file.path,
+      detail: `learner-facing copy exposes a compiler seam (${leak.code})`,
+      evidence: leak.evidence,
+    });
   }
   // Mechanical echoes are small on screen but expensive in perceived
   // quality: one "allusion and allusion" makes an otherwise polished package

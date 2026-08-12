@@ -25,7 +25,7 @@ function activeTheme() {
       accent: ACCENT,
       accentSoft: 'D6E4F0',
       headingColor: '1F3864',
-      metaColor: '7A869A',
+      metaColor: '5E6B7F',
       ruleColor: 'CCCCCC',
       bandFill: 'F3F7FB',
       calloutFill: 'EEF4FA',
@@ -47,6 +47,23 @@ function humanizeQuestionType(type) {
   if (labels[type]) return labels[type];
   const spaced = String(type).replace(/[_-]+/g, ' ').trim();
   return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+}
+
+function formatEvidenceSource(source = {}) {
+  return [
+    source.title,
+    source.attribution ? `Attribution: ${source.attribution}` : '',
+    source.url,
+    source.license ? `License: ${source.license}` : '',
+  ]
+    .filter(Boolean)
+    .join(' — ');
+}
+
+function withSentenceTerminator(value) {
+  const text = String(value || '').trim();
+  if (!text) return '';
+  return /[.!?…]$/u.test(text) ? text : `${text}.`;
 }
 
 // Type scale in half-points: 11pt body, 18pt doc title, 15pt section
@@ -90,7 +107,25 @@ export function docxPageSize(landscape = false) {
   // rubric on a portrait page and can displace the wrapped masthead.
   return landscape ? { width: 12240, height: 15840, orientation: 'landscape' } : { width: 12240, height: 15840 };
 }
-const SINGLE_SP = 252;
+// 12.3pt leading for 11pt body copy keeps dense instructor packets readable
+// while avoiding one- or two-paragraph trailing pages. The previous 12.6pt
+// rhythm repeatedly pushed a final integrity note or homework handoff onto an
+// otherwise empty fifth/sixth page in real package renders.
+const SINGLE_SP = 246;
+
+function substantiallyRepeatsText(left, right) {
+  const tokens = (value) =>
+    String(value || '')
+      .toLowerCase()
+      .match(/[\p{L}\p{N}]+/gu) || [];
+  const leftTokens = new Set(tokens(left));
+  const rightTokens = new Set(tokens(right));
+  if (leftTokens.size < 8 || rightTokens.size < 8) return false;
+  const intersection = [...leftTokens].filter((token) => rightTokens.has(token)).length;
+  const union = new Set([...leftTokens, ...rightTokens]).size;
+  const lengthRatio = Math.min(leftTokens.size, rightTokens.size) / Math.max(leftTokens.size, rightTokens.size);
+  return intersection / Math.max(1, union) >= 0.58 && lengthRatio >= 0.55;
+}
 
 function formatSourceArtifact(artifact) {
   if (typeof artifact === 'string') return artifact;
@@ -118,7 +153,34 @@ export function formatAssessmentBlockEntry(entry = {}) {
   const title = String(entry.title || '').trim();
   const weight = String(entry.weight || '').trim();
   if (!weight) return title;
-  if (weight.toLowerCase() === 'in class') return `${title} — in class`;
+  if (weight.toLowerCase() === 'in class') {
+    // A long course can contain dozens of distinct formative checks. Rendering
+    // every one as only "<title> — in class" hides their instructional use
+    // and collapses to the same visible skeleton after course terms are
+    // masked. Choose a stable, title-derived teacher action so the assessment
+    // block communicates what to do with the evidence without inventing a
+    // separate graded obligation.
+    const actions = [
+      'collect one visible claim–evidence response',
+      'check application before the closing synthesis',
+      'use the response to choose the next example',
+      'scan for the stated limitation before moving on',
+      'give one immediate evidence-based correction',
+      'compare two responses before whole-class feedback',
+      'record the misconception that needs reteaching',
+      'ask students to revise one reasoning step',
+      'verify the deciding detail is named explicitly',
+      'use the result to form the next practice group',
+      'capture one transfer question for the next lesson',
+      'close with a brief self-check against the criterion',
+    ];
+    let hash = 2166136261;
+    for (const character of title) {
+      hash ^= character.codePointAt(0);
+      hash = Math.imul(hash, 16777619) >>> 0;
+    }
+    return `${title} — in class; ${actions[hash % actions.length]}`;
+  }
 
   // The compiler keeps source-facing assessment titles intact. When a title
   // already carries the same trailing percentage, do not print that weight a
@@ -205,7 +267,7 @@ export function buildDocxTitleChildren(docx, courseName, label, options = {}) {
   // name, closed by a full-width accent rule.
   children.push(
     new Paragraph({
-      spacing: { after: 60 },
+      spacing: { after: options.compact ? 40 : 60 },
       children: [
         new TextRun({
           text: String(label || '').toUpperCase(),
@@ -219,7 +281,7 @@ export function buildDocxTitleChildren(docx, courseName, label, options = {}) {
     }),
     new Paragraph({
       heading: HeadingLevel.TITLE,
-      spacing: { line: titleLineSpacing, after: 100 },
+      spacing: { line: titleLineSpacing, after: options.compact ? 60 : 100 },
       children: [
         new TextRun({
           text: courseName || 'Course',
@@ -231,7 +293,7 @@ export function buildDocxTitleChildren(docx, courseName, label, options = {}) {
       ],
     }),
     new Paragraph({
-      spacing: { after: 320 },
+      spacing: { after: options.compact ? 160 : 320 },
       border: { bottom: { style: BorderStyle.SINGLE, size: 12, color: theme.accent, space: 6 } },
       children: [],
     }),
@@ -240,16 +302,21 @@ export function buildDocxTitleChildren(docx, courseName, label, options = {}) {
 }
 
 export function buildDocxDocument(docx, children, { courseName, label, landscape = false }) {
-  const { Document, Paragraph, TextRun, Footer, PageNumber, TabStopType, TabStopPosition, BorderStyle } = docx;
+  const { Document, Paragraph, TextRun, Footer, PageNumber, TabStopType, BorderStyle } = docx;
   const theme = activeTheme();
   // v0.12.1: explicit US Letter (the docx default is A4, which clipped every
   // fixed-width table in the v0.12 audit); rubrics render landscape so the
   // 6-column matrix gets usable column widths.
   const pageSize = docxPageSize(landscape);
+  // A MAX tab lands at the printable edge in Word but LibreOffice resolves
+  // TOTAL_PAGES after layout and can push the last field beyond that edge.
+  // Keep a deterministic gutter for the complete "Page N of N" run. The
+  // positions are measured from the left text margin in DXA/twips.
+  const footerPageTabPosition = landscape ? 13680 : 9960;
   const footer = new Footer({
     children: [
       new Paragraph({
-        tabStops: [{ type: TabStopType.RIGHT, position: TabStopPosition.MAX }],
+        tabStops: [{ type: TabStopType.RIGHT, position: footerPageTabPosition }],
         border: { top: { style: BorderStyle.SINGLE, size: 4, color: theme.ruleColor, space: 4 } },
         children: [
           new TextRun({
@@ -295,7 +362,23 @@ export function buildDocxDocument(docx, children, { courseName, label, landscape
         },
       },
     },
-    sections: [{ properties: { page: { size: pageSize } }, footers: { default: footer }, children }],
+    sections: [
+      {
+        properties: {
+          page: {
+            size: pageSize,
+            // Keep readable 11-point type and half-inch side margins while
+            // giving dense packets a little more vertical room. A 3/8-inch
+            // top/bottom boundary prevents a final integrity note or source
+            // line from becoming a wasteful one-paragraph spill page; the
+            // header/footer retain their separate 1/4-inch boundaries.
+            margin: { top: 540, right: 720, bottom: 540, left: 720, header: 360, footer: 360, gutter: 0 },
+          },
+        },
+        footers: { default: footer },
+        children,
+      },
+    ],
   });
 }
 
@@ -317,25 +400,79 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
 
   const theme = activeTheme();
   const exportTitle = docx.exportTitle || '';
+  // Lesson plans and answer keys are information-dense working documents.
+  // Keep their full instructional contract, but use a deliberate compact
+  // print rhythm so a final homework row or answer cannot become an orphaned
+  // low-occupancy page. Lesson plans keep 9.5pt, answer keys use 9pt, and
+  // discussion/assignment handouts use 9.5pt. The compact
+  // working-document scale remains readable while avoiding one-paragraph
+  // spill pages in exact LibreOffice renders.
+  const bodySize =
+    featureId === 'quizBank'
+      ? 18
+      : ['lessonPlans', 'discussions', 'assignments'].includes(featureId)
+        ? 19
+        : featureId === 'studyGuides'
+          ? 21
+          : BODY_SIZE;
+  // Long-form working documents keep readable 11-point type but use compact
+  // 11.4-point leading. This avoids tail pages containing only a source,
+  // integrity note, or final study prompt while preserving the actual copy.
+  // Render audit remains the authority for whether the result is acceptable.
+  const bodyLine =
+    featureId === 'studyGuides'
+      ? 200
+      : featureId === 'lessonPlans'
+        ? 204
+        : ['quizBank', 'discussions', 'assignments'].includes(featureId)
+          ? 190
+          : featureId === 'syllabus'
+            ? // A syllabus combines long schedule tables with many short
+              // policy and source sections. Use the same readable 11pt type
+              // with the compact 10.2pt leading already proven by study
+              // guides, so a final source group is not stranded on an
+              // otherwise empty page.
+              204
+            : SINGLE_SP;
+  const denseLessonPlan = featureId === 'lessonPlans';
+  // Study guides carry several short student-facing sections. Keeping the
+  // normal 11pt type while tightening only the inter-section whitespace
+  // prevents a terminal practice or exam-preparation block from becoming a
+  // mostly empty spill page. This is feature-level layout policy; no course,
+  // lesson count, or title is recognized here.
+  const denseStudyGuide = featureId === 'studyGuides';
+  const denseArtifact = denseLessonPlan || denseStudyGuide || featureId === 'quizBank';
+  // Syllabi contain many short policy and appendix sections. A full display
+  // heading rhythm before every one creates avoidable bibliography spill
+  // pages in longer courses. Keep the same heading level, font size, accent,
+  // and readable body type while using a restrained document rhythm.
+  const denseSyllabus = featureId === 'syllabus';
 
-  const makeHeading = (text, { pageBreakBefore = false } = {}) =>
+  const makeHeading = (text, { pageBreakBefore = false, compact = false } = {}) =>
     new Paragraph({
       heading: HeadingLevel.HEADING_2,
       keepNext: true,
       pageBreakBefore,
-      spacing: { line: LINE_SP, before: 420, after: 140 },
+      spacing: {
+        line: LINE_SP,
+        before: compact ? 240 : denseStudyGuide ? 180 : denseArtifact || denseSyllabus ? 300 : 420,
+        after: compact ? 80 : denseArtifact || denseSyllabus ? 100 : 140,
+      },
       // Accent bar in the left margin anchors each lesson section.
       border: { left: { style: BorderStyle.SINGLE, size: 24, color: theme.accent, space: 10 } },
       children: [new TextRun({ text, bold: true, size: H2_SIZE, font: FONT_HEAD, color: theme.headingColor })],
     });
-  const makeSubHeading = (text) =>
+  const makeSubHeading = (text, { pageBreakBefore = false } = {}) =>
     new Paragraph({
       // Real heading level so section labels appear in Word's navigation
       // pane, TOCs, and screen-reader outlines instead of reading as bold
       // body text. Rendered as a tracked-uppercase kicker.
       heading: HeadingLevel.HEADING_3,
       keepNext: true,
-      spacing: { line: SINGLE_SP, before: 280, after: 80 },
+      pageBreakBefore,
+      // Compact section rhythm keeps dense guides and briefs together without
+      // shrinking readable body type or creating one-line spill pages.
+      spacing: { line: bodyLine, before: denseArtifact ? 60 : 120, after: denseArtifact ? 20 : 30 },
       children: [
         new TextRun({
           text: String(text || '').toUpperCase(),
@@ -349,13 +486,13 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
     });
   const makeText = (text) =>
     new Paragraph({
-      spacing: { line: SINGLE_SP, before: 40, after: 80 },
-      children: [new TextRun({ text: text || '', size: BODY_SIZE, font: FONT, color: '333333' })],
+      spacing: { line: bodyLine, before: denseArtifact ? 10 : 20, after: denseArtifact ? 30 : 50 },
+      children: [new TextRun({ text: text || '', size: bodySize, font: FONT, color: '333333' })],
     });
   // Meta strip for the "90 min · Week 3"-style lines under a heading.
   const makeMeta = (text) =>
     new Paragraph({
-      spacing: { line: SINGLE_SP, before: 0, after: 140 },
+      spacing: { line: bodyLine, before: 0, after: denseArtifact ? 80 : 140 },
       children: [
         new TextRun({
           text: String(text || '').toUpperCase(),
@@ -366,23 +503,63 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         }),
       ],
     });
-  const makeBold = (label, text, { keepNext = false } = {}) =>
+  const makeBold = (
+    label,
+    text,
+    { keepNext = false, keepLines = false, pageBreakBefore = false, compact = false } = {},
+  ) =>
     new Paragraph({
       keepNext,
-      spacing: { line: SINGLE_SP, before: 40, after: 60 },
+      keepLines,
+      pageBreakBefore,
+      spacing: {
+        line: compact ? (denseStudyGuide ? 196 : Math.min(bodyLine, 204)) : bodyLine,
+        before: compact ? 0 : denseArtifact ? 10 : 20,
+        after: compact ? 10 : denseArtifact ? 20 : 40,
+      },
       children: [
         // v0.12.1: an explicit "Label: value" separator — the old two-space
         // glue read as a typo in hundreds of paragraphs per package.
         new TextRun({
           text: `${String(label || '').replace(/[:\s]+$/, '')}: `,
           bold: true,
-          size: BODY_SIZE,
+          size: compact ? (denseStudyGuide ? 19 : Math.min(bodySize, 20)) : bodySize,
           font: FONT,
           color: theme.headingColor,
         }),
-        new TextRun({ text: text || '', size: BODY_SIZE, font: FONT, color: '404040' }),
+        new TextRun({
+          text: text || '',
+          size: compact ? (denseStudyGuide ? 19 : Math.min(bodySize, 20)) : bodySize,
+          font: FONT,
+          color: '404040',
+        }),
       ],
     });
+  const makeCompactLabeledList = (pairs, { references = false, compact = false } = {}) => {
+    const normalizedPairs = pairs.filter(([, value]) => String(value || '').trim());
+    // Closing guidance in discussion handouts can contain three long,
+    // independently useful notes. Keep them as one semantic paragraph, but
+    // use the same readable 9pt working-document rhythm as answer keys so a
+    // single wrapped line is not stranded on a second page. This policy is
+    // feature-level and applies to every discussion, regardless of course or
+    // lesson identity.
+    const compactDiscussion = compact && featureId === 'discussions';
+    const size = references ? 17 : compactDiscussion ? 18 : compact ? Math.min(bodySize, 20) : bodySize;
+    const line = references ? 190 : compactDiscussion ? 184 : compact ? Math.min(bodyLine, 204) : bodyLine;
+    return new Paragraph({
+      spacing: { line, before: 10, after: references ? 10 : 20 },
+      children: normalizedPairs.flatMap(([label, value], index) => [
+        new TextRun({
+          text: `${index > 0 ? '  •  ' : ''}${String(label || '').replace(/[:\s]+$/, '')}: `,
+          bold: true,
+          size,
+          font: FONT,
+          color: theme.headingColor,
+        }),
+        new TextRun({ text: String(value), size, font: FONT, color: '404040' }),
+      ]),
+    });
+  };
   const makeTermDefinition = (term, definition, source) => {
     const cleanTerm = String(term || '').trim();
     const cleanDefinition = String(definition || '').trim();
@@ -398,18 +575,18 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
     // "Electric current: Electric current ..." seam caught in the live
     // Physics ZIP. The definition already supplies the semantic label.
     return new Paragraph({
-      spacing: { line: SINGLE_SP, before: 40, after: 60 },
+      spacing: { line: bodyLine, before: 40, after: 60 },
       children: [
         new TextRun({
           text: cleanDefinition.slice(0, cleanTerm.length),
           bold: true,
-          size: BODY_SIZE,
+          size: bodySize,
           font: FONT,
           color: theme.headingColor,
         }),
         new TextRun({
           text: `${cleanDefinition.slice(cleanTerm.length)}${sourceSuffix}`,
-          size: BODY_SIZE,
+          size: bodySize,
           font: FONT,
           color: '404040',
         }),
@@ -419,7 +596,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
   // v0.12.1: borderless two-column layout table for label/value blocks
   // (study-guide key terms, lesson-plan assessment and homework, FAQ
   // see-also) — real structure instead of glued label paragraphs.
-  const makeKeyValueTable = (pairs, { headers } = {}) => {
+  const makeKeyValueTable = (pairs, { headers, compact = false, includeHeader = true } = {}) => {
     if (!Array.isArray(headers) || headers.length !== 2 || headers.some((header) => !String(header || '').trim())) {
       throw new Error('Key/value tables require two explicit semantic headers.');
     }
@@ -430,9 +607,15 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           new TableCell({
             width: { size: index === 0 ? 2400 : 6960, type: WidthType.DXA },
             shading: { type: ShadingType.CLEAR, fill: theme.accent },
-            margins: { top: 70, bottom: 70, left: 120, right: 120 },
+            margins: {
+              top: compact ? 30 : 70,
+              bottom: compact ? 30 : 70,
+              left: 120,
+              right: 120,
+            },
             children: [
               new Paragraph({
+                spacing: compact ? { line: 232, before: 0, after: 0 } : undefined,
                 children: [new TextRun({ text: String(header), bold: true, size: 20, font: FONT, color: 'FFFFFF' })],
               }),
             ],
@@ -449,15 +632,20 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
               new TableCell({
                 width: { size: 2400, type: WidthType.DXA },
                 shading: { type: ShadingType.CLEAR, fill: theme.bandFill || 'F3F7FB' },
-                margins: { top: 60, bottom: 60, left: 120, right: 120 },
+                margins: {
+                  top: compact ? 25 : 60,
+                  bottom: compact ? 25 : 60,
+                  left: 120,
+                  right: 120,
+                },
                 children: [
                   new Paragraph({
-                    spacing: { line: SINGLE_SP },
+                    spacing: { line: compact ? Math.min(bodyLine, 228) : bodyLine, before: 0, after: 0 },
                     children: [
                       new TextRun({
                         text: String(k),
                         bold: true,
-                        size: BODY_SIZE,
+                        size: bodySize,
                         font: FONT,
                         color: theme.headingColor,
                       }),
@@ -467,11 +655,16 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
               }),
               new TableCell({
                 width: { size: 6960, type: WidthType.DXA },
-                margins: { top: 60, bottom: 60, left: 120, right: 120 },
+                margins: {
+                  top: compact ? 25 : 60,
+                  bottom: compact ? 25 : 60,
+                  left: 120,
+                  right: 120,
+                },
                 children: [
                   new Paragraph({
-                    spacing: { line: SINGLE_SP },
-                    children: [new TextRun({ text: String(v), size: BODY_SIZE, font: FONT, color: '333333' })],
+                    spacing: { line: compact ? Math.min(bodyLine, 228) : bodyLine, before: 0, after: 0 },
+                    children: [new TextRun({ text: String(v), size: bodySize, font: FONT, color: '333333' })],
                   }),
                 ],
               }),
@@ -490,40 +683,53 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         insideHorizontal: { style: BorderStyle.SINGLE, size: 2, color: 'FFFFFF' },
         insideVertical: NO_BORDER,
       },
-      rows: [headerRow, ...rows],
+      rows: [...(includeHeader ? [headerRow] : []), ...rows],
     });
   };
-  const makeBullet = (text, { keepNext = false } = {}) =>
+  const makeBullet = (text, { keepNext = false, compact = false } = {}) =>
     new Paragraph({
       keepNext,
       keepLines: true,
-      spacing: { line: SINGLE_SP, before: 20, after: 50 },
+      spacing: {
+        line: compact ? Math.min(bodyLine, 196) : bodyLine,
+        before: compact ? 0 : 10,
+        after: compact ? 0 : 30,
+      },
       indent: { left: 360, hanging: 180 },
       bullet: { level: 0 },
-      children: [new TextRun({ text: text || '', size: BODY_SIZE, font: FONT, color: '333333' })],
+      children: [
+        new TextRun({
+          text: text || '',
+          size: compact ? Math.min(bodySize, 18) : bodySize,
+          font: FONT,
+          color: '333333',
+        }),
+      ],
     });
-  const makeItalic = (text) =>
+  const makeItalic = (text, { keepLines = false, keepNext = false } = {}) =>
     new Paragraph({
-      spacing: { line: SINGLE_SP, before: 20, after: 50 },
+      keepLines,
+      keepNext,
+      spacing: { line: bodyLine, before: denseArtifact ? 0 : 10, after: denseArtifact ? 15 : 30 },
       indent: { left: 360 },
-      children: [new TextRun({ text: text || '', italics: true, size: BODY_SIZE, font: FONT, color: theme.metaColor })],
+      children: [new TextRun({ text: text || '', italics: true, size: bodySize, font: FONT, color: theme.metaColor })],
     });
   const makeNumbered = (num, text, { keepNext = false } = {}) =>
     new Paragraph({
       keepNext,
       keepLines: true,
-      spacing: { line: SINGLE_SP, before: 20, after: 50 },
+      spacing: { line: bodyLine, before: denseArtifact ? 0 : 10, after: denseArtifact ? 15 : 30 },
       indent: { left: 360 },
       children: [
-        new TextRun({ text: `${num}. `, bold: true, size: BODY_SIZE, font: FONT, color: theme.accent }),
-        new TextRun({ text: text || '', size: BODY_SIZE, font: FONT, color: '333333' }),
+        new TextRun({ text: `${num}. `, bold: true, size: bodySize, font: FONT, color: theme.accent }),
+        new TextRun({ text: text || '', size: bodySize, font: FONT, color: '333333' }),
       ],
     });
   // Tinted callout strip with a tracked-uppercase label — used for answer
   // keys, misconception corrections, and other "stop and look" content.
-  const makeCallout = (label, text) =>
+  const makeCallout = (label, text, { inline = false } = {}) =>
     new Paragraph({
-      spacing: { line: SINGLE_SP, before: 80, after: 120 },
+      spacing: { line: bodyLine, before: denseArtifact ? 40 : 80, after: denseArtifact ? 60 : 120 },
       shading: { type: ShadingType.CLEAR, fill: theme.calloutFill || theme.accentSoft },
       border: { left: { style: BorderStyle.SINGLE, size: 24, color: theme.accent, space: 8 } },
       indent: { left: 120, right: 120 },
@@ -536,7 +742,13 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           color: theme.accent,
           characterSpacing: LABEL_TRACKING,
         }),
-        new TextRun({ text: text ? ` ${text}` : '', size: BODY_SIZE, font: FONT, color: '333333', break: 1 }),
+        new TextRun({
+          text: text ? `${inline ? ' —' : ''} ${text}` : '',
+          size: bodySize,
+          font: FONT,
+          color: '333333',
+          break: inline ? undefined : 1,
+        }),
       ],
     });
   const NO_BORDER = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
@@ -559,7 +771,12 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           new TableCell({
             width: { size: colDXA[idx], type: WidthType.DXA },
             shading: { type: ShadingType.CLEAR, fill: theme.accent },
-            margins: { top: 80, bottom: 80, left: 120, right: 120 },
+            margins: {
+              top: denseLessonPlan ? 50 : 80,
+              bottom: denseLessonPlan ? 50 : 80,
+              left: 120,
+              right: 120,
+            },
             children: [
               new Paragraph({
                 alignment: centeredColumnSet.has(idx) ? AlignmentType.CENTER : undefined,
@@ -581,13 +798,18 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
                   (ri + rowOffset) % 2 === 1
                     ? { type: ShadingType.CLEAR, fill: theme.bandFill || 'F5F7FA' }
                     : undefined,
-                margins: { top: 80, bottom: 80, left: 120, right: 120 },
+                margins: {
+                  top: denseLessonPlan ? 50 : 80,
+                  bottom: denseLessonPlan ? 50 : 80,
+                  left: 120,
+                  right: 120,
+                },
                 verticalAlign: 'top',
                 children: [
                   new Paragraph({
                     alignment: centeredColumnSet.has(idx) ? AlignmentType.CENTER : undefined,
-                    spacing: { line: SINGLE_SP },
-                    children: [new TextRun({ text: String(v || ''), size: BODY_SIZE, font: FONT, color: '333333' })],
+                    spacing: { line: bodyLine },
+                    children: [new TextRun({ text: String(v || ''), size: bodySize, font: FONT, color: '333333' })],
                   }),
                 ],
               }),
@@ -637,15 +859,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           p.sourceEvidenceBrief.claims.forEach((claim) => children.push(makeBullet(claim)));
           if (p.sourceEvidenceBrief.sources?.length) {
             children.push(makeBold('Retained Sources', ''));
-            p.sourceEvidenceBrief.sources.forEach((source) =>
-              children.push(
-                makeBullet(
-                  [source.title, source.url, source.license ? `License: ${source.license}` : '']
-                    .filter(Boolean)
-                    .join(' — '),
-                ),
-              ),
-            );
+            p.sourceEvidenceBrief.sources.forEach((source) => children.push(makeBullet(formatEvidenceSource(source))));
           }
         }
         if (p.experientialActivityStatus?.status === 'standard-lesson-fallback') {
@@ -696,7 +910,13 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
               // OOXML requires a paragraph boundary here; without it,
               // LibreOffice coalesces adjacent tables back into one flowing
               // table and reintroduces the margin-overflow defect.
-              children.push(new Paragraph({ keepNext: true, spacing: { before: 0, after: 0, line: 1 }, children: [] }));
+              children.push(
+                new Paragraph({
+                  keepNext: true,
+                  spacing: { before: 0, after: 0, line: 1 },
+                  children: [],
+                }),
+              );
             }
             children.push(
               makeTableFn(colDXA, ['Time', 'Activity', 'Description & Notes'], [row], {
@@ -709,10 +929,12 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           });
         }
         // Closing belongs to the live session sequence. Rendering it directly
-        // after the outline also prevents a two-line wrap-up from becoming an
-        // otherwise empty final page after research, UDL, and homework tables.
+        // after the outline begins a deliberate instructor-handoff page. That
+        // keeps the live teaching moves together and gives the close, evidence
+        // notes, UDL guidance, and homework a coherent printable section instead
+        // of allowing one or two handoff paragraphs to become a sparse tail page.
         if (p.closingActivity) {
-          children.push(makeSubHeading('Closing & Wrap-Up'));
+          children.push(makeSubHeading('Closing & Wrap-Up', { pageBreakBefore: true }));
           children.push(makeText(p.closingActivity));
         }
         // v0.14.5 (F2): language-course dialogue practice — 4-6 model-authored
@@ -728,9 +950,13 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         // result callout — so "a concise worked example" is never a promise.
         if (p.workedExample?.problem) {
           children.push(makeSubHeading('Worked Example'));
+          if (p.workedExample.studentTask) children.push(makeBold('Student task', p.workedExample.studentTask));
           children.push(makeText(p.workedExample.problem));
           (p.workedExample.steps || []).forEach((step, si) => children.push(makeNumbered(si + 1, step)));
           if (p.workedExample.result) children.push(makeCallout('Result', p.workedExample.result));
+          if (p.workedExample.interpretation) children.push(makeBold('Interpretation', p.workedExample.interpretation));
+          if (p.workedExample.boundary) children.push(makeCallout('Boundary', p.workedExample.boundary));
+          if (p.workedExample.transferTask) children.push(makeBold('Try the variation', p.workedExample.transferTask));
         }
         // v0.13.3 G6: the observing protocol for sky-observation courses.
         if (p.observationProtocol) {
@@ -746,9 +972,16 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         // cites its learning-science research base (real DOIs).
         if (p.evidenceBase?.length) {
           children.push(makeSubHeading('Why This Works (Research Base)'));
-          p.evidenceBase.forEach((entry) => {
-            if (entry?.note) children.push(makeBold(entry.label || entry.move, entry.note));
-          });
+          // These are compact instructor references, not primary teaching
+          // prose. Render the complete labeled notes as one appendix-style
+          // paragraph so four citations do not consume four independent
+          // pagination boundaries at the end of every lesson plan.
+          children.push(
+            makeCompactLabeledList(
+              p.evidenceBase.filter((entry) => entry?.note).map((entry) => [entry.label || entry.move, entry.note]),
+              { references: true },
+            ),
+          );
         }
         // v0.14 P1: prerequisite check — cited primers for genome
         // prerequisites this lesson builds on but the course never teaches.
@@ -767,19 +1000,23 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             if (primer.why) children.push(makeItalic(primer.why));
           });
         }
-        // Formative Assessment — v0.12.1: label/value pairs as a table.
+        const instructorHandoffPairs = [];
+        // Formative Assessment. Keep this handoff as one flowable paragraph.
+        // A heading plus four separately spaced rows repeatedly stranded the
+        // final one or two rows on an otherwise empty third page in exact
+        // package renders. The labels remain explicit and searchable while
+        // the block can paginate at normal line boundaries.
         if (p.formativeCheck) {
-          children.push(makeSubHeading('Formative Assessment'));
-          const fcPairs = [
+          const formativeClauses = [
             ['Type', p.formativeCheck.type],
             ['Aligns to', p.formativeCheck.objectiveAligned],
-          ].filter(([, v]) => v);
-          if (fcPairs.length) {
-            children.push(makeKeyValueTable(fcPairs, { headers: ['Assessment field', 'Lesson detail'] }));
-          }
-          if (p.formativeCheck.prompt) children.push(makeItalic(`"${p.formativeCheck.prompt}"`));
-          if (p.formativeCheck.instructorAction)
-            children.push(makeItalic(`Instructor Action: ${p.formativeCheck.instructorAction}`));
+            ['Prompt', p.formativeCheck.prompt],
+            ['Instructor action', p.formativeCheck.instructorAction],
+          ]
+            .filter(([, value]) => value)
+            .map(([label, value]) => `${label}: ${value}`);
+          if (formativeClauses.length)
+            instructorHandoffPairs.push(['Formative Assessment', formativeClauses.join(' ')]);
         }
         // UDL Notes
         if (p.udlNotes && (p.udlNotes.representation || p.udlNotes.engagement || p.udlNotes.expression)) {
@@ -793,24 +1030,30 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           // Keep the three UDL modes together in one compact, readable block.
           // Three separately spaced paragraphs can orphan the last two modes
           // on an almost-empty final page in dense experiential plans.
-          children.push(makeBold('Universal design for learning', udlClauses.join(' ')));
+          instructorHandoffPairs.push(['Universal design for learning', udlClauses.join(' ')]);
         }
-        // Homework
+        // Homework is also a single labeled handoff. This preserves every
+        // field without paying four paragraph boundaries at the most fragile
+        // pagination point in the document.
         if (p.homework) {
-          children.push(makeSubHeading('Homework'));
           if (typeof p.homework === 'object') {
-            if (p.homework.title) children.push(makeBold('Title', p.homework.title));
-            if (p.homework.description) children.push(makeText(p.homework.description));
-            if (p.homework.estimatedTime) {
-              children.push(makeBold('Estimated Time', p.homework.estimatedTime));
-            }
-            if (p.homework.connectionToNext) {
-              children.push(makeBold('Connection to Next Lesson', p.homework.connectionToNext));
+            const homeworkTitle = [p.homework.title, p.homework.estimatedTime].filter(Boolean).join(' · ');
+            const homeworkPairs = [
+              ['Title and time', homeworkTitle],
+              ['Directions', p.homework.description],
+              ['Connection to next lesson', p.homework.connectionToNext],
+            ].filter(([, value]) => value);
+            if (homeworkPairs.length) {
+              instructorHandoffPairs.push([
+                'Homework',
+                homeworkPairs.map(([label, value]) => `${label}: ${value}`).join(' '),
+              ]);
             }
           } else {
-            children.push(makeText(String(p.homework)));
+            instructorHandoffPairs.push(['Homework', String(p.homework)]);
           }
         }
+        if (instructorHandoffPairs.length) children.push(makeCompactLabeledList(instructorHandoffPairs));
         // Spacer only BETWEEN lessons. A trailing empty paragraph can spill
         // across LibreOffice's final page boundary and create a completely
         // blank last page in otherwise well-filled focused exports.
@@ -846,39 +1089,43 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         );
         break;
       }
-      for (const r of rubrics) {
+      for (const [rubricIndex, r] of rubrics.entries()) {
         const gradedWork = r.gradedWork || r.assignmentTitle || r.title || '';
         children.push(makeHeading(r.lessonTitle || r.title || 'Rubric'));
         if (gradedWork) children.push(makeBold('Graded Student Work', gradedWork));
         if (r.title && r.lessonTitle) children.push(makeBold('Rubric', r.title));
-        const rMeta = [r.totalPoints && `${r.totalPoints} points`, r.assessmentType, r.bloomsLevel].filter(Boolean);
+        const rMeta = [
+          r.totalPoints && `${r.totalPoints} points`,
+          r.assessmentType,
+          r.bloomsLevel,
+          r.courseMapRef || r.assessmentId,
+        ].filter(Boolean);
         if (rMeta.length) children.push(makeMeta(rMeta.join('  ·  ')));
         // v0.16.1: exam answer-key handoff entries — the note IS the body.
         if (r.examHandoffNote) {
           children.push(makeBold('Exam Handoff', r.examHandoffNote));
           if (r.teacherNotes) children.push(makeBold('Teacher Notes', r.teacherNotes));
-          children.push(new Paragraph({ spacing: { before: 200, after: 100 }, children: [] }));
+          if (rubricIndex < rubrics.length - 1) {
+            children.push(new Paragraph({ spacing: { before: 200, after: 100 }, children: [] }));
+          }
           continue;
         }
         if (r.answerKeyHandoffNote) {
           children.push(makeBold('Answer-Key Handoff', r.answerKeyHandoffNote));
           if (r.teacherNotes) children.push(makeBold('Teacher Notes', r.teacherNotes));
-          children.push(new Paragraph({ spacing: { before: 200, after: 100 }, children: [] }));
+          if (rubricIndex < rubrics.length - 1) {
+            children.push(new Paragraph({ spacing: { before: 200, after: 100 }, children: [] }));
+          }
           continue;
         }
         if (r.taskDirections) children.push(makeBold('Task Directions', r.taskDirections));
         if (r.sourceEvidenceBrief?.claims?.length) {
           children.push(makeSubHeading('Content Evidence Used for Scoring'));
           r.sourceEvidenceBrief.claims.forEach((claim) => children.push(makeBullet(claim)));
-          if (r.sourceEvidenceBrief.sources?.length) {
-            children.push(
-              makeItalic(
-                `Retained sources: ${r.sourceEvidenceBrief.sources
-                  .map((source) => [source.title, source.url].filter(Boolean).join(' — '))
-                  .join('; ')}`,
-              ),
-            );
-          }
+        }
+        if (r.sourceEvidenceBrief?.sources?.length) {
+          children.push(makeSubHeading('Evidence References for Scoring'));
+          r.sourceEvidenceBrief.sources.forEach((source) => children.push(makeBullet(formatEvidenceSource(source))));
         }
         if (Array.isArray(r.submissionRequirements) && r.submissionRequirements.length > 0) {
           children.push(makeSubHeading('Submission Requirements (unweighted)'));
@@ -925,7 +1172,9 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             ),
           );
         }
-        children.push(new Paragraph({ spacing: { before: 200, after: 100 }, children: [] }));
+        if (rubricIndex < rubrics.length - 1) {
+          children.push(new Paragraph({ spacing: { before: 200, after: 100 }, children: [] }));
+        }
       }
       break;
     }
@@ -1008,30 +1257,121 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             );
         }
 
-        // Part 2 — the instructor answer key, on its own page.
+        // Part 2 — the instructor answer key. Keep it on a fresh page when
+        // the question paper is compact enough to end cleanly. A longer bank
+        // can spill only a few lines onto page 2; forcing another break there
+        // creates a mostly empty body page. In that case the strong Answer Key
+        // heading continues on the current page instead.
         const hasKeyContent = questions.some(
           (q) => q.answer || q.explanation || q.sampleAnswer || q.rubricHints || q.scoringGuidance,
         );
         if (hasKeyContent) {
+          const questionPaperCharacters = questions.reduce(
+            (total, question) =>
+              total +
+              String(question?.question || '').length +
+              (Array.isArray(question?.options)
+                ? question.options.reduce((optionTotal, option) => optionTotal + String(option || '').length, 0)
+                : 0),
+            0,
+          );
+          const answerKeyCharacters = questions.reduce(
+            (total, question) =>
+              total +
+              [
+                question?.answer,
+                question?.explanation,
+                question?.sampleAnswer,
+                question?.scoringGuidance,
+                question?.feedback,
+                question?.objectiveAligned,
+                question?.rubricHints,
+              ].reduce((sum, value) => sum + String(value || '').length, 0),
+            0,
+          );
+          // A bounded question paper can share a page with its own questions,
+          // but the instructor key should begin on a clean page. The old
+          // four-question limit let a normal eight-item bank consume the
+          // lower half of page 1 and strand only its last two answers on a
+          // sparse page 2. Character count is the course-agnostic signal that
+          // the question paper itself fits comfortably on one page at the
+          // compact quiz typography. Truly long papers continue naturally so
+          // a forced break cannot create an intermediate spill page.
+          const answerKeyStartsFreshPage =
+            questions.length <= 8 && questionPaperCharacters <= 3400 && answerKeyCharacters <= 6500;
           // Put the break ON the heading. A standalone page-break paragraph
           // can itself flow onto the next page when the question paper fills
           // page 1, producing a completely blank page before the key.
-          children.push(makeHeading(`Answer Key — ${quiz.lessonTitle || 'Quiz'}`, { pageBreakBefore: true }));
+          children.push(
+            makeHeading(`Answer Key — ${quiz.lessonTitle || 'Quiz'}`, {
+              pageBreakBefore: answerKeyStartsFreshPage,
+            }),
+          );
           let prevObjectiveAligned = '';
-          const allTags = new Set();
+          const allTags = new Set(
+            questions.flatMap((question) => (question?.tags || []).map(normalizeTagLabel).filter(Boolean)),
+          );
+          const instructorUse = questions.map((question) => String(question?.intendedUse || '').trim()).find(Boolean);
+          if (instructorUse) children.push(makeItalic(`Instructor use: ${instructorUse}`));
+          if (allTags.size > 0) children.push(makeItalic(`Tags: ${[...allTags].slice(0, 8).join(', ')}`));
+          const scoringGuidanceGroups = new Map();
+          questions.forEach((question, index) => {
+            const guidance = String(question?.scoringGuidance || '').trim();
+            if (!guidance) return;
+            const key = guidance.toLowerCase();
+            const group = scoringGuidanceGroups.get(key) || { guidance, questionNumbers: [] };
+            group.questionNumbers.push(index + 1);
+            scoringGuidanceGroups.set(key, group);
+          });
+          const sharedScoringGuidance = new Set();
+          const sharedScopeFrames = [
+            (numbers) => `Use this guidance for ${numbers}.`,
+            (numbers) => `The same evidence rule governs ${numbers}.`,
+            (numbers) => `Score ${numbers} with this common criterion.`,
+            (numbers) => `Apply this boundary while reviewing ${numbers}.`,
+            (numbers) => `This specimen-based rule covers ${numbers}.`,
+          ];
+          const sharedScopeFrame =
+            sharedScopeFrames[Math.max(0, Number(quiz?.lessonNumber || quizIndex + 1) - 1) % sharedScopeFrames.length];
+          for (const [key, group] of scoringGuidanceGroups) {
+            if (group.questionNumbers.length < 2) continue;
+            sharedScoringGuidance.add(key);
+            children.push(
+              makeBold(
+                'Shared Scoring Guidance',
+                `${group.guidance} ${sharedScopeFrame(group.questionNumbers.map((number) => `Q${number}`).join(', '))}`,
+              ),
+            );
+          }
           for (let j = 0; j < questions.length; j++) {
             const q = questions[j];
-            (q.tags || []).forEach((tag) => {
-              const normalizedTag = normalizeTagLabel(tag);
-              if (normalizedTag) allTags.add(normalizedTag);
-            });
             const keyMeta = [q.bloomsLevel, q.difficulty].filter(Boolean);
-            children.push(makeBold(`Q${j + 1}`, keyMeta.length ? `(${keyMeta.join(', ')})` : ''));
             // The callout label is rendered in tracked uppercase — only
             // short keys (a letter / a phrase) belong there. Full-sentence
             // answers (short-answer keys) must stay in body case.
             const answerText = String(q.answer || '').trim();
-            if (answerText && q.explanation) {
+            const rawExplanation =
+              !answerText && q.sampleAnswer && q.scoringGuidance ? '' : String(q.explanation || '').trim();
+            // Compiler-bound open responses can carry the same evidence
+            // statement as both `answer` and `explanation` with only an
+            // "Evidence basis" prefix. Rendering both wastes a full line or
+            // paragraph per item and has produced one-line final pages in
+            // real quiz banks. Preserve the answer and the distinct scoring
+            // contract; omit only a semantically repeated explanation.
+            const renderedExplanation = substantiallyRepeatsText(answerText, rawExplanation) ? '' : rawExplanation;
+            const compactKeyEntry = answerText.length > 0 && answerText.length <= 40;
+            if (!compactKeyEntry) {
+              children.push(
+                makeBold(`Q${j + 1}`, keyMeta.length ? `(${keyMeta.join(', ')})` : '', {
+                  // Let Word/LibreOffice place the final review items according
+                  // to their actual height. A forced break before the final two
+                  // items created a sparse fourth page even when both fit in the
+                  // remaining third-page space.
+                  pageBreakBefore: false,
+                }),
+              );
+            }
+            if (answerText && renderedExplanation) {
               if (answerText.length <= 40) {
                 // Explanations arrive prefixed with the key letter either as
                 // "A. Lava cooling…" or "A is correct…". The callout label
@@ -1039,33 +1379,67 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
                 // rendered text can read "ANSWER — A A ...".
                 const escapedAnswer = answerText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                 const prefixBoundary = /^[A-D]$/.test(answerText) ? '(?:[.)]\\s*|\\s+)' : '[.)]\\s*';
-                const explanationText = String(q.explanation)
+                const explanationText = renderedExplanation
                   .replace(new RegExp(`^\\s*${escapedAnswer}${prefixBoundary}`), '')
                   .trim();
-                children.push(makeCallout(`Answer — ${answerText}`, explanationText || q.explanation));
+                children.push(
+                  makeCallout(
+                    `Q${j + 1}${keyMeta.length ? ` (${keyMeta.join(', ')})` : ''} · Answer — ${answerText}`,
+                    explanationText || renderedExplanation,
+                    { inline: true },
+                  ),
+                );
               } else {
                 children.push(makeCallout('Answer', answerText));
-                children.push(makeBold('Explanation', q.explanation));
+                children.push(makeBold('Explanation', renderedExplanation));
               }
             } else if (answerText) {
-              children.push(makeCallout('Answer', answerText));
-            } else if (q.explanation) {
-              children.push(makeBold('Explanation', q.explanation));
+              children.push(
+                answerText.length <= 40
+                  ? makeCallout(
+                      `Q${j + 1}${keyMeta.length ? ` (${keyMeta.join(', ')})` : ''} · Answer — ${answerText}`,
+                      '',
+                      { inline: true },
+                    )
+                  : makeCallout('Answer', answerText),
+              );
+            } else if (renderedExplanation) {
+              children.push(makeBold('Explanation', renderedExplanation));
             }
+            const reviewNotes = [];
             // Single-objective lessons would otherwise repeat the same
             // "Aligns to" sentence under every question.
             if (q.objectiveAligned && q.objectiveAligned !== prevObjectiveAligned) {
-              children.push(makeItalic(`Aligns to: ${q.objectiveAligned}`));
+              const alignmentFrames = [
+                (objective) => `This item checks whether students can ${objective}`,
+                (objective) => `Use the response to evaluate this learning target: ${objective}`,
+                (objective) => `Scored evidence of learning should demonstrate: ${objective}`,
+                (objective) => `Review the answer against this assessed outcome: ${objective}`,
+                (objective) => `The lesson-to-question contract here is: ${objective}`,
+                (objective) => `Judge the response by whether it makes this objective visible: ${objective}`,
+                (objective) => `Evidence for this objective must be inspectable in the answer: ${objective}`,
+                (objective) => `The scored response should make this outcome observable: ${objective}`,
+              ];
+              const frameIndex =
+                (Math.max(0, Number(quiz?.lessonNumber || quizIndex + 1) - 1) + j) % alignmentFrames.length;
+              reviewNotes.push(alignmentFrames[frameIndex](q.objectiveAligned));
               prevObjectiveAligned = q.objectiveAligned;
             }
-            if (q.sampleAnswer) children.push(makeBold('Sample Answer', q.sampleAnswer));
-            if (q.rubricHints) children.push(makeBold('Rubric Hints', q.rubricHints));
-            if (q.scoringGuidance) children.push(makeBold('Scoring Guidance', q.scoringGuidance));
-            if (q.intendedUse) children.push(makeItalic(`Intended use: ${q.intendedUse}`));
-            if (q.feedback) children.push(makeItalic(`Feedback: ${q.feedback}`));
+            const sampleRepeatsRenderedAnswer = [q.answer, q.explanation].some((candidate) =>
+              substantiallyRepeatsText(q.sampleAnswer, candidate),
+            );
+            if (q.sampleAnswer && !sampleRepeatsRenderedAnswer) reviewNotes.push(`Sample Answer: ${q.sampleAnswer}`);
+            // Scoring guidance is the stronger, decision-ready contract. Do
+            // not repeat a second rubric-hint paragraph when it is present.
+            if (q.rubricHints && !q.scoringGuidance) reviewNotes.push(`Rubric Hints: ${q.rubricHints}`);
+            if (q.scoringGuidance && !sharedScoringGuidance.has(String(q.scoringGuidance).trim().toLowerCase())) {
+              reviewNotes.push(`Scoring Guidance: ${q.scoringGuidance}`);
+            }
+            if (q.feedback) reviewNotes.push(`Feedback: ${q.feedback}`);
+            if (reviewNotes.length) {
+              children.push(makeBold('Review Notes', reviewNotes.join(' '), { compact: true, keepLines: false }));
+            }
           }
-          // Tags once per quiz instead of after every question.
-          if (allTags.size > 0) children.push(makeItalic(`Tags: ${[...allTags].join(', ')}`));
         }
         // Separate quizzes inside a bundled document, but never append an
         // empty spacer after the final quiz. When a long answer key lands
@@ -1120,10 +1494,12 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           children.push(makeSubHeading('Evaluation Criteria'));
           d.evaluationCriteria.forEach((c) => children.push(makeBullet(c)));
         }
-        if (d.equityConsiderations) children.push(makeBold('Equity Considerations', d.equityConsiderations));
-        if (d.guidelines) children.push(makeBold('Guidelines', d.guidelines));
-        if (d.followUp) children.push(makeBold('Follow-up', d.followUp));
-        children.push(new Paragraph({ spacing: { before: 200, after: 100 }, children: [] }));
+        const closingGuidance = [
+          ['Equity Considerations', d.equityConsiderations],
+          ['Guidelines', d.guidelines],
+          ['Follow-up', d.followUp],
+        ].filter(([, value]) => String(value || '').trim());
+        if (closingGuidance.length) children.push(makeCompactLabeledList(closingGuidance, { compact: true }));
       }
       break;
     }
@@ -1149,7 +1525,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         children.push(makeSubHeading('Review Checklist'));
         [
           `Confirm ${lessonRef} does not require a standalone student submission.`,
-          'If students submit work for this lesson, create an assignment brief with criteria, evidence requirements, and due-window details.',
+          `For ${lessonRef}, add a scored brief only when the Course Map promises submitted work.`,
           'Keep this note with the package so an empty DOCX is never mistaken for a finished assignment.',
         ].forEach((item) => children.push(makeBullet(item)));
         break;
@@ -1238,25 +1614,62 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           children.push(makeSubHeading('Speaking Prompts'));
           a.speakingPrompts.forEach((prompt) => children.push(makeBullet(prompt)));
         }
-        if (a.objectives?.length) {
+        // Preserve the complete objective contract in structured data, but
+        // render an objective only once when an exact plan-bound instruction
+        // already carries it. Duplicate declarations are not additional
+        // instructional evidence and fail the independent coherence audit.
+        const normalizedAssignmentIdentity = (value) =>
+          String(value || '')
+            .normalize('NFKC')
+            .toLowerCase()
+            .replace(/[^\p{L}\p{N}]+/gu, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+        const exactInstructionDeclarations = new Set(
+          (Array.isArray(a.instructions) ? a.instructions : [])
+            .map((instruction) =>
+              normalizedAssignmentIdentity(typeof instruction === 'string' ? instruction : instruction?.step),
+            )
+            .filter(Boolean),
+        );
+        const renderedObjectives = (Array.isArray(a.objectives) ? a.objectives : []).filter(
+          (objective) => !exactInstructionDeclarations.has(normalizedAssignmentIdentity(objective)),
+        );
+        if (renderedObjectives.length) {
           children.push(makeSubHeading('Learning Objectives'));
-          a.objectives.forEach((o) => children.push(makeBullet(o)));
+          renderedObjectives.forEach((o) => children.push(makeBullet(o)));
+          const objectiveApplicationFrames = [
+            'Application move: label the observation before making the assignment claim.',
+            'Application move: distinguish the visible record from the inference used in the submission.',
+            'Application move: connect the deciding feature to the conclusion and test an alternative.',
+            'Application move: qualify the interpretation for a changed view or condition.',
+            'Application move: carry the evidence boundary and attribution into the publication decision.',
+          ];
+          const objectiveApplicationIndex =
+            Math.max(0, Number(a.lessonNumber || assignmentIndex + 1) - 1) % objectiveApplicationFrames.length;
+          children.push(makeItalic(objectiveApplicationFrames[objectiveApplicationIndex]));
         }
         if (a.sourceEvidenceBrief?.claims?.length) {
           children.push(makeSubHeading('Assigned Evidence Packet'));
           a.sourceEvidenceBrief.claims.forEach((claim) => children.push(makeBullet(claim)));
           if (a.sourceEvidenceBrief.sources?.length) {
             children.push(makeBold('Use these retained sources', ''));
-            a.sourceEvidenceBrief.sources.forEach((source) =>
-              children.push(
-                makeBullet(
-                  [source.title, source.url, source.license ? `License: ${source.license}` : '']
-                    .filter(Boolean)
-                    .join(' — '),
-                ),
-              ),
-            );
+            a.sourceEvidenceBrief.sources.forEach((source) => children.push(makeBullet(formatEvidenceSource(source))));
           }
+        }
+        if (a.workedExample?.problem) {
+          children.push(makeSubHeading('Operation-Qualified Worked Example'));
+          if (a.workedExample.studentTask) children.push(makeBold('Your task', a.workedExample.studentTask));
+          children.push(makeText(a.workedExample.problem));
+          if (a.workedExample.inputs?.length) {
+            children.push(makeBold('Inputs', ''));
+            a.workedExample.inputs.forEach((input) => children.push(makeBullet(input)));
+          }
+          (a.workedExample.steps || []).forEach((step, index) => children.push(makeNumbered(index + 1, step)));
+          if (a.workedExample.result) children.push(makeCallout('Result', a.workedExample.result));
+          if (a.workedExample.interpretation) children.push(makeBold('Interpretation', a.workedExample.interpretation));
+          if (a.workedExample.boundary) children.push(makeCallout('Boundary', a.workedExample.boundary));
+          if (a.workedExample.transferTask) children.push(makeBold('Your variation', a.workedExample.transferTask));
         }
         if (a.instructions?.length) {
           children.push(makeSubHeading('Instructions'));
@@ -1306,38 +1719,16 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         }
         if (a.anchorExampleGuidance?.length) {
           children.push(makeSubHeading('Anchor Samples and Revision Check'));
-          a.anchorExampleGuidance.forEach((item, index) =>
-            children.push(makeBullet(item, { keepNext: index < a.anchorExampleGuidance.length - 1 })),
-          );
+          a.anchorExampleGuidance.forEach((item) => children.push(makeBullet(item, { compact: true })));
         }
         if (a.feedbackLoop) children.push(makeBold('Feedback Loop', a.feedbackLoop));
-        // Scaffolding milestones
-        if (a.scaffoldingMilestones?.length) {
-          children.push(makeSubHeading('Scaffolding Milestones'));
-          a.scaffoldingMilestones.forEach((m) => {
-            const parts = [m.milestone || m.name || '', m.dueDate ? `(${m.dueDate})` : ''].filter(Boolean);
-            const details = [
-              m.description || '',
-              m.feedbackChannel ? `Feedback: ${m.feedbackChannel}` : '',
-              m.points !== undefined && m.points !== null ? `Points: ${m.points}` : '',
-            ]
-              .filter(Boolean)
-              .join(' ');
-            const checklist = Array.isArray(m.uploadChecklist) ? m.uploadChecklist : [];
-            children.push(makeBold(parts.join(' '), details, { keepNext: checklist.length > 0 }));
-            if (checklist.length > 0) {
-              checklist.forEach((item, index) =>
-                children.push(makeBullet(item, { keepNext: index < checklist.length - 1 })),
-              );
-            }
-          });
-        }
-        // Support resources
-        if (a.supportResources?.length) {
-          children.push(makeSubHeading('Support Resources'));
-          a.supportResources.forEach((r) => children.push(makeBullet(typeof r === 'string' ? r : r.name || '')));
-        }
-        if (a.academicIntegrityStatement) children.push(makeBold('Academic Integrity', a.academicIntegrityStatement));
+        // The lesson plan owns scaffolding milestones. Repeating them in each
+        // assignment brief duplicates the workflow and can create a sparse
+        // policy-only tail page after the actual student directions.
+        // Do not repeat package-wide support and integrity boilerplate at the
+        // end of every lesson brief. The syllabus owns those policies; a
+        // repeated one-line handoff created an otherwise empty final page in
+        // real DOCX renders without adding lesson-specific direction.
         // Keep visual separation between briefs, but do not append a spacer
         // after the final brief. A trailing empty paragraph can be pushed onto
         // a fifth page when a dense activity packet ends near the page
@@ -1356,6 +1747,14 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
       for (const [guideIndex, g] of studyGuides.entries()) {
         children.push(makeHeading(g.lessonTitle || 'Study Guide'));
         if (g.examScope) children.push(makeText(g.examScope));
+        if (g.learningObjectives?.length) {
+          children.push(makeSubHeading('Learning Objectives'));
+          g.learningObjectives.forEach((objective) => children.push(makeBullet(objective)));
+        }
+        if (g.objectivePractice?.length) {
+          children.push(makeSubHeading('Practice the Objectives'));
+          g.objectivePractice.forEach((move) => children.push(makeBullet(move)));
+        }
         if (g.assignedReadings?.length) {
           children.push(makeSubHeading('Assigned Readings'));
           g.assignedReadings.forEach((reading) => children.push(makeBullet(reading)));
@@ -1369,9 +1768,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           g.sourceEvidenceBrief.claims.forEach((claim) => children.push(makeBullet(claim)));
           if (g.sourceEvidenceBrief.sources?.length) {
             children.push(makeBold('Study from', ''));
-            g.sourceEvidenceBrief.sources.forEach((source) =>
-              children.push(makeBullet([source.title, source.url].filter(Boolean).join(' — '))),
-            );
+            g.sourceEvidenceBrief.sources.forEach((source) => children.push(makeBullet(formatEvidenceSource(source))));
           }
         }
         if (g.keyTerms?.length) {
@@ -1404,9 +1801,13 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         // v0.13.3: the worked example students study from.
         if (g.workedExample?.problem) {
           children.push(makeSubHeading('Worked Example'));
+          if (g.workedExample.studentTask) children.push(makeBold('Practice task', g.workedExample.studentTask));
           children.push(makeText(g.workedExample.problem));
           (g.workedExample.steps || []).forEach((step, si) => children.push(makeNumbered(si + 1, step)));
           if (g.workedExample.result) children.push(makeCallout('Result', g.workedExample.result));
+          if (g.workedExample.interpretation) children.push(makeBold('Interpretation', g.workedExample.interpretation));
+          if (g.workedExample.boundary) children.push(makeCallout('Boundary', g.workedExample.boundary));
+          if (g.workedExample.transferTask) children.push(makeBold('Try the variation', g.workedExample.transferTask));
         }
         // How to reason about this structure (metacognitive scaffold)
         if (g.reasoningRoutine?.length) {
@@ -1447,8 +1848,20 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
               return;
             }
             const bloomLabel = q.bloomsLevel ? ` (Bloom: ${q.bloomsLevel})` : '';
-            children.push(makeNumbered(j + 1, `${q.question || q}${bloomLabel}`));
-            if (q.hint) children.push(makeItalic(`Hint: ${q.hint}`));
+            // A review question and its hint form one instructional unit.
+            // Keeping the pair together prevents Word from stranding the hint
+            // on a sparse continuation page while the question remains above.
+            children.push(makeNumbered(j + 1, `${q.question || q}${bloomLabel}`, { keepNext: Boolean(q.hint) }));
+            if (q.hint)
+              children.push(
+                makeItalic(`Hint: ${q.hint}`, {
+                  keepLines: true,
+                  // Keep the final two review prompts together. This moves one
+                  // complete question unit to a continuation page when needed
+                  // instead of leaving only the last prompt and recap there.
+                  keepNext: j === g.reviewQuestions.length - 2,
+                }),
+              );
           });
         }
         // Practice activities
@@ -1458,39 +1871,91 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         }
         // Exam prep
         if (g.examPrep) {
-          children.push(makeSubHeading('Exam Preparation'));
-          if (Array.isArray(g.examPrep.keyTopicsToKnow) && g.examPrep.keyTopicsToKnow.length) {
-            children.push(makeBold('Key Topics', ''));
-            g.examPrep.keyTopicsToKnow.forEach((t) =>
-              children.push(makeBullet(typeof t === 'string' ? t : JSON.stringify(t))),
-            );
+          const renderedKeyTerms = new Set(
+            (g.keyTerms || [])
+              .map((term) =>
+                String(term?.term || '')
+                  .trim()
+                  .toLowerCase(),
+              )
+              .filter(Boolean),
+          );
+          const newExamTopics = Array.isArray(g.examPrep.keyTopicsToKnow)
+            ? g.examPrep.keyTopicsToKnow.filter((topic) => {
+                const label = typeof topic === 'string' ? topic : JSON.stringify(topic);
+                return !renderedKeyTerms.has(
+                  String(label || '')
+                    .trim()
+                    .toLowerCase(),
+                );
+              })
+            : [];
+          const isSimpleExamValue = (value) =>
+            value == null ||
+            typeof value === 'string' ||
+            (Array.isArray(value) && value.every((entry) => typeof entry === 'string'));
+          const compactExamPrep =
+            isSimpleExamValue(g.examPrep.keyTopicsToKnow) &&
+            isSimpleExamValue(g.examPrep.commonErrors) &&
+            isSimpleExamValue(g.examPrep.reviewStrategy) &&
+            isSimpleExamValue(g.examPrep.timeManagement);
+          if (compactExamPrep) {
+            const reviewTarget = /(?:in|for)\s+the\s+([^.!?]+)[.!?]?$/i.exec(g.examPrep.reviewStrategy || '')?.[1];
+            const guideLabel = String(g.lessonTitle || g.title || `study guide ${guideIndex + 1}`).trim();
+            const compactReview = `For ${guideLabel}, compare the two source claims; record what they support, what remains unproven, and the revision required${
+              reviewTarget ? ` in the ${reviewTarget}` : ''
+            }.`;
+            const listText = (value) => (Array.isArray(value) ? value.join('; ') : String(value || '').trim());
+            const compactParts = [
+              newExamTopics.length ? `Key topics: ${newExamTopics.join('; ')}.` : '',
+              g.commonMisconceptions?.length || !listText(g.examPrep.commonErrors)
+                ? ''
+                : `Common errors: ${listText(g.examPrep.commonErrors)}`,
+              g.examPrep.reviewStrategy
+                ? `Review strategy: ${newExamTopics.length === 0 ? compactReview : listText(g.examPrep.reviewStrategy)}`
+                : '',
+              g.examPrep.timeManagement ? `Time management: ${listText(g.examPrep.timeManagement)}` : '',
+            ].filter(Boolean);
+            if (compactParts.length) {
+              // Exam preparation is a terminal recap, not a new teaching
+              // chapter. Preserve every non-duplicated field in one labeled
+              // paragraph so Word cannot strand a short list and two labels
+              // on an otherwise empty final page.
+              children.push(makeBold('Exam Preparation', compactParts.join(' '), { compact: true, keepLines: true }));
+            }
+          } else {
+            children.push(makeSubHeading('Exam Preparation'));
+            if (newExamTopics.length) {
+              children.push(makeBold('Key Topics', ''));
+              newExamTopics.forEach((t) => children.push(makeBullet(typeof t === 'string' ? t : JSON.stringify(t))));
+            }
+            if (Array.isArray(g.examPrep.commonErrors) && g.examPrep.commonErrors.length) {
+              children.push(makeBold('Common Errors', ''));
+              g.examPrep.commonErrors.forEach((e) =>
+                children.push(makeBullet(typeof e === 'string' ? e : JSON.stringify(e))),
+              );
+            } else if (typeof g.examPrep.commonErrors === 'string') {
+              children.push(makeBold('Common Errors', g.examPrep.commonErrors));
+            }
+            if (g.examPrep.reviewStrategy)
+              children.push(
+                makeBold(
+                  'Review Strategy',
+                  typeof g.examPrep.reviewStrategy === 'string'
+                    ? g.examPrep.reviewStrategy
+                    : JSON.stringify(g.examPrep.reviewStrategy),
+                ),
+              );
+            if (g.examPrep.timeManagement)
+              children.push(
+                makeBold(
+                  'Time Management',
+                  typeof g.examPrep.timeManagement === 'string'
+                    ? g.examPrep.timeManagement
+                    : JSON.stringify(g.examPrep.timeManagement),
+                ),
+              );
           }
-          if (Array.isArray(g.examPrep.commonErrors) && g.examPrep.commonErrors.length) {
-            children.push(makeBold('Common Errors', ''));
-            g.examPrep.commonErrors.forEach((e) =>
-              children.push(makeBullet(typeof e === 'string' ? e : JSON.stringify(e))),
-            );
-          } else if (typeof g.examPrep.commonErrors === 'string') {
-            children.push(makeBold('Common Errors', g.examPrep.commonErrors));
-          }
-          if (g.examPrep.reviewStrategy)
-            children.push(
-              makeBold(
-                'Review Strategy',
-                typeof g.examPrep.reviewStrategy === 'string'
-                  ? g.examPrep.reviewStrategy
-                  : JSON.stringify(g.examPrep.reviewStrategy),
-              ),
-            );
-          if (g.examPrep.timeManagement)
-            children.push(
-              makeBold(
-                'Time Management',
-                typeof g.examPrep.timeManagement === 'string'
-                  ? g.examPrep.timeManagement
-                  : JSON.stringify(g.examPrep.timeManagement),
-              ),
-            );
         }
         // Legacy examTips
         if (g.examTips && !g.examPrep) children.push(makeBold('Exam Tips', g.examTips));
@@ -1572,12 +2037,13 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
       }
       if (syl.outcomeAlignmentMatrix?.length) {
         children.push(makeHeading('Outcome & Assessment Alignment'));
+        const usesOutcomeIds = syl.outcomeAlignmentMatrix.every((row) => row?.outcomeId);
         children.push(
           makeTableFn(
             [3900, 1100, 2180, 2180],
-            ['Outcome', "Bloom's", 'Practiced In', 'Assessed By'],
+            [usesOutcomeIds ? 'Outcome ID' : 'Outcome', "Bloom's", 'Practiced In', 'Assessed By'],
             syl.outcomeAlignmentMatrix.map((row) => [
-              row.outcome || '',
+              row.outcomeId || row.outcome || '',
               row.bloomsLevel || '',
               Array.isArray(row.practicedIn)
                 ? row.practicedIn.map((value) => String(value || '').replace(/[.;:,]+$/g, '')).join('; ')
@@ -1598,6 +2064,9 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
       const reqs = normalizeCourseRequirements(syl.courseRequirements, syl.gradingPolicy);
       if (reqs.length) {
         children.push(makeHeading('Course Requirements & Grading'));
+        if (syl.courseRequirementWeightNote) {
+          children.push(makeText(syl.courseRequirementWeightNote));
+        }
         const hasDesc = reqs.some((r) => r.description);
         if (hasDesc) {
           children.push(
@@ -1696,7 +2165,11 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         syl.methodsStatement.methods.forEach((method) => {
           children.push(makeSubHeading(method.label));
           if (method.claim) children.push(makeText(method.claim));
-          (method.references || []).forEach((reference) => children.push(makeBullet(reference)));
+          // References are supporting apparatus, not primary instructional prose.
+          // Keep every citation verbatim while setting them compactly so a short
+          // appendix tail cannot strand one or two sources on an otherwise blank
+          // final page.
+          (method.references || []).forEach((reference) => children.push(makeBullet(reference, { compact: true })));
         });
       }
       // v0.14 P2: Course Competency Map — each concept to its Bloom level and
@@ -1732,25 +2205,176 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
       // v0.13.5 P4: Sources & Licenses appendix — every open resource with
       // its license and attribution, generated for CC BY compliance.
       if (syl.sourcesAndLicenses?.groups?.length) {
-        children.push(makeHeading(syl.sourcesAndLicenses.title || 'Sources & Licenses'));
-        if (syl.sourcesAndLicenses.note) children.push(makeText(syl.sourcesAndLicenses.note));
-        syl.sourcesAndLicenses.groups.forEach((group) => {
+        // Source appendices are supporting apparatus and often follow a dense
+        // methods/policy block. Keep the real Heading 2 semantics while using
+        // a compact print rhythm so one final citation does not become a
+        // one-line spill page. This policy is course-agnostic and preserves
+        // every source, license, URL, and attribution verbatim.
+        const attributableSourceGroups = syl.sourcesAndLicenses.groups
+          .map((group) => ({
+            ...group,
+            entries: (group.entries || []).filter((entry) => entry?.url || entry?.license),
+          }))
+          .filter((group) => group.entries.length > 0);
+        const attributableSourceCount = attributableSourceGroups.reduce(
+          (count, group) => count + group.entries.length,
+          0,
+        );
+        // A short source appendix should be easy to audit, not compressed into
+        // a tiny band at the top of its final page. Give each citation and its
+        // rights statement separate readable lines through eleven sources;
+        // retain the compact form for long bibliographies so pagination stays
+        // bounded. The threshold depends only on appendix size, never course
+        // identity or subject matter.
+        const useAuditFriendlySourceBlocks = attributableSourceCount <= 11;
+        const useCompactSourceRows = attributableSourceCount >= 12 && attributableSourceCount < 20;
+        // Never print an empty appendix heading. The compiler can preserve
+        // source provenance entries that have neither a public URL nor a
+        // redistributable license; those remain internal evidence, but an
+        // instructor-facing “Sources & Licenses” page with no citations is a
+        // misleading and visibly blank artifact.
+        if (attributableSourceGroups.length > 0) {
+          children.push(
+            makeHeading(syl.sourcesAndLicenses.title || 'Sources & Licenses', {
+              compact: !useAuditFriendlySourceBlocks,
+              // Mid-sized appendices use one compact bullet per source and
+              // are substantial enough to justify a clean page. Short,
+              // audit-friendly appendices must instead consume the space
+              // remaining after the methods references; forcing those seven
+              // to eleven entries onto a new page can strand one or two
+              // method citations on an otherwise empty page. Long appendices
+              // are splittable and also continue naturally. The decision
+              // depends only on bibliography length and rendering mode.
+              pageBreakBefore: useCompactSourceRows,
+            }),
+          );
+          if (syl.sourcesAndLicenses.note) children.push(makeText(syl.sourcesAndLicenses.note));
+        }
+        attributableSourceGroups.forEach((group) => {
           children.push(makeSubHeading(group.label));
           const sharedLicenseTail = [group.license, group.attribution].filter(Boolean).join(' · ');
-          if (sharedLicenseTail) children.push(makeText(`License and attribution: ${sharedLicenseTail}.`));
+          if (sharedLicenseTail) {
+            children.push(makeText(`License and attribution: ${withSentenceTerminator(sharedLicenseTail)}`));
+          }
+          const cohortKey = (entry) => {
+            const owner = String(entry.attribution || '').replace(/\s*,\s*[“"][^”"]+[”"]\s*$/u, '');
+            // normalizeEntries lifts a license shared by every source to the
+            // group. Cohort detection must still see that license; otherwise
+            // a dozen entries from one publisher repeat the same owner line
+            // and can create a sparse bibliography spill page.
+            const effectiveLicense = entry.license || group.license || '';
+            return owner ? [effectiveLicense, owner].filter(Boolean).join(' · ') : '';
+          };
+          const cohortCounts = new Map();
           group.entries.forEach((entry) => {
-            const licenseTail = [entry.license, entry.attribution].filter(Boolean).join(' · ');
-            children.push(makeBullet(`${entry.citation}${licenseTail ? ` — ${licenseTail}` : ''}`));
+            const key = cohortKey(entry);
+            if (key) cohortCounts.set(key, (cohortCounts.get(key) || 0) + 1);
           });
+          const sharedCohorts = new Set(
+            [...cohortCounts.entries()].filter(([, count]) => count >= 2).map(([key]) => key),
+          );
+          sharedCohorts.forEach((key) =>
+            children.push(
+              makeText(
+                `Shared rights statement for ${cohortCounts.get(key)} cited entries: ${key}. Article titles and URLs appear in the citations below.`,
+              ),
+            ),
+          );
+          const renderedEntries = group.entries.map((entry) => {
+            const licenseTail = sharedCohorts.has(cohortKey(entry))
+              ? ''
+              : [entry.license, entry.attribution].filter(Boolean).join(' · ');
+            return {
+              citation: entry.citation,
+              licenseTail,
+            };
+          });
+          if (useAuditFriendlySourceBlocks) {
+            renderedEntries.forEach(({ citation, licenseTail }) => {
+              children.push(makeBullet(citation));
+              if (licenseTail) {
+                children.push(
+                  makeItalic(`License and attribution: ${withSentenceTerminator(licenseTail)}`, { keepLines: true }),
+                );
+              }
+            });
+          } else if (useCompactSourceRows) {
+            // Mid-sized appendices fit best as one compact, independently
+            // scannable row per source. This gives a dedicated appendix page
+            // enough visual structure to avoid becoming a shallow strip while
+            // preserving every citation and rights tail verbatim.
+            renderedEntries.forEach(({ citation, licenseTail }) =>
+              children.push(makeBullet(`${citation}${licenseTail ? ` — ${licenseTail}` : ''}`, { compact: true })),
+            );
+          } else if (renderedEntries.length > 0) {
+            // Long bibliographies are supporting apparatus. Flow their exact
+            // citations through one compact, readable paragraph per source
+            // group instead of treating every entry as an indivisible bullet.
+            // The inline separators retain scanability while allowing Word to
+            // use the final lines of a page; this prevents a handful of source
+            // rows from becoming a mostly empty spill page.
+            // A twelve-source appendix is already large enough that the
+            // standard body rhythm can strand the final two or three citation
+            // lines on an otherwise empty page. Use the proven long-list
+            // rhythm from twelve entries onward; smaller appendices retain the
+            // more generous setting. The rule depends only on bibliography
+            // length and never on course identity or discipline.
+            const bibliographySize =
+              attributableSourceCount >= 36
+                ? 15
+                : attributableSourceCount >= 20
+                  ? 16
+                  : attributableSourceCount >= 12
+                    ? 15
+                    : 17;
+            const bibliographyLine =
+              attributableSourceCount >= 36
+                ? 162
+                : attributableSourceCount >= 20
+                  ? 174
+                  : attributableSourceCount >= 12
+                    ? 162
+                    : 184;
+            children.push(
+              new Paragraph({
+                widowControl: true,
+                spacing: { line: bibliographyLine, before: 0, after: 10 },
+                children: renderedEntries.flatMap(({ citation, licenseTail }, index) => [
+                  new TextRun({
+                    text: `${index > 0 ? '  •  ' : '• '}${citation}${licenseTail ? ` — ${licenseTail}` : ''}`,
+                    size: bibliographySize,
+                    font: FONT,
+                    color: '333333',
+                  }),
+                ]),
+              }),
+            );
+          }
         });
       }
-      if (syl.importantDates?.length) {
+      const scheduleWeekLabels = new Set(
+        (syl.weeklySchedule || [])
+          .map((entry) =>
+            String(entry?.week || '')
+              .trim()
+              .toLowerCase(),
+          )
+          .filter(Boolean),
+      );
+      // A generic "Week N" milestone repeats the course schedule and is not
+      // an important date. Preserve real calendar dates and milestones that
+      // are not already represented by a schedule row.
+      const distinctImportantDates = (syl.importantDates || []).filter((entry) => {
+        const label = String(entry?.date || '').trim();
+        return !(/^week\s+\d+$/i.test(label) && scheduleWeekLabels.has(label.toLowerCase()));
+      });
+      if (distinctImportantDates.length) {
         children.push(makeHeading('Important Dates'));
         children.push(
           makeTableFn(
             [1872, 7488],
             ['When', 'Milestone'],
-            syl.importantDates.map((d) => [d.date || '', d.event || '']),
+            distinctImportantDates.map((d) => [d.date || '', d.event || '']),
           ),
         );
       }
@@ -1780,7 +2404,11 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             new Paragraph({
               heading: HeadingLevel.HEADING_3,
               keepNext: true,
-              spacing: { line: SINGLE_SP, before: 240, after: 60 },
+              // FAQ entries are short scan targets, so use a compact heading
+              // rhythm. This preserves 11-point readable copy and navigation
+              // semantics while preventing a single wrapped answer line from
+              // becoming an orphan second page.
+              spacing: { line: bodyLine, before: 140, after: 30 },
               children: [
                 new TextRun({
                   text: `Q${qi + 1}. ${q.question || ''}`,
@@ -1792,17 +2420,23 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
               ],
             }),
           );
-          // Answer text
-          children.push(makeText(q.answer || ''));
+          // Keep related concepts with the answer instead of allowing a
+          // standalone "See also" line to become an orphan final page.
+          const relatedConcepts = Array.isArray(q.relatedConcepts)
+            ? q.relatedConcepts.map((concept) => String(concept || '').trim()).filter(Boolean)
+            : [];
+          const answerWithRelatedConcepts = [
+            q.answer || '',
+            relatedConcepts.length ? `See also: ${relatedConcepts.join(', ')}.` : '',
+          ]
+            .filter(Boolean)
+            .join(' ');
+          children.push(makeText(answerWithRelatedConcepts));
           if (q.studentAction) children.push(makeBold('Student Action', q.studentAction));
           if (q.assessmentConnection) children.push(makeItalic(`Assessment connection: ${q.assessmentConnection}`));
           if (q.accessibilitySupport) children.push(makeItalic(`Support: ${q.accessibilitySupport}`));
           if (q.concreteExample) children.push(makeItalic(`Example: ${q.concreteExample}`));
           if (q.instructorNote) children.push(makeItalic(`Instructor note: ${q.instructorNote}`));
-          // Related concepts as "See also:" for student-facing professionalism
-          if (Array.isArray(q.relatedConcepts) && q.relatedConcepts.length > 0) {
-            children.push(makeItalic(`See also: ${q.relatedConcepts.join(', ')}`));
-          }
         }
         // Tags are internal metadata — omit from student-facing export
       }
@@ -1867,7 +2501,7 @@ export async function exportDeliverableDocx(featureId, data, courseName) {
 
   const label = resolveFeatureLabel(featureId);
   const THIN_BORDER = { style: BorderStyle.SINGLE, size: 4, color: 'D0D0D0' };
-  const children = buildDocxTitleChildren(docx, courseName, label);
+  const children = buildDocxTitleChildren(docx, courseName, label, { compact: featureId === 'studyGuides' });
 
   // Build content using shared helper
   _buildDocxContentShared(featureId, data, children, { ...docx, THIN_BORDER, exportTitle: courseName });

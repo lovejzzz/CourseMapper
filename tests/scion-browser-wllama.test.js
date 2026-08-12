@@ -292,6 +292,61 @@ describe('Scion WebGPU GGUF runtime', () => {
     });
   });
 
+  it('retries one transient WebGPU activation timeout from the cached model without redownloading', async () => {
+    const modelUrl = 'https://example.test/cached-model.gguf';
+    let loads = 0;
+    let removals = 0;
+    let clears = 0;
+    class ActivationRetryWllama extends FakeWllama {
+      constructor(paths, config) {
+        super(paths, config);
+        this.modelManager = {
+          getModels: vi.fn(async () => [
+            {
+              url: modelUrl,
+              size: 2048,
+              remove: vi.fn(async () => {
+                removals += 1;
+              }),
+            },
+          ]),
+          clear: vi.fn(async () => {
+            clears += 1;
+          }),
+        };
+      }
+
+      async loadModelFromUrl(url, options) {
+        loads += 1;
+        options.progressCallback({ loaded: 100, total: 100 });
+        if (loads === 1) throw new Error('ggml_webgpu: Queue wait timed out after 30000 ms');
+        return super.loadModelFromUrl(url, options);
+      }
+    }
+    const progress = [];
+
+    await expect(
+      loadScionBrowserWllama({
+        ...browser,
+        modelUrl,
+        runtimeLoader: vi.fn(async () => ({ Wllama: ActivationRetryWllama })),
+        onProgress: (entry) => progress.push(entry),
+      }),
+    ).resolves.toMatchObject({ status: { phase: 'ready' } });
+
+    expect(loads).toBe(2);
+    expect(removals).toBe(0);
+    expect(clears).toBe(0);
+    expect(progress).toContainEqual(
+      expect.objectContaining({
+        phase: 'restarting-activation',
+        progress: 1,
+        message: 'Scion is still responsive · restarting activation from the downloaded model once…',
+      }),
+    );
+    expect(progress.at(-1)).toMatchObject({ phase: 'ready', progress: 1 });
+  });
+
   it('does not redownload or clear the model for an unrelated load failure', async () => {
     let loads = 0;
     let clears = 0;

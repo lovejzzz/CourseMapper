@@ -39,8 +39,9 @@ describe('B2 — the two-number Seal', () => {
     expect(html).toContain('data-testid="workspace-texture-meter"');
     // The meter is slate — never the chip's emerald/amber health tone.
     expect(html).toContain('text-slate-500');
-    // Score-bearing framing reaches the tooltip and the accessible name.
-    expect(html).toContain('counted lightly in the grade');
+    // Evidence framing reaches the tooltip without implying a teaching grade.
+    expect(html).toContain('style and repetition evidence');
+    expect(html).toContain('not a teaching-quality grade');
     expect(html).not.toContain('ADVISORY');
     expect(html).not.toContain('weight 0 in the grade');
   });
@@ -62,7 +63,7 @@ describe('B2 — the two-number Seal', () => {
       />,
     );
     expect(blocked).toContain('border-red-200');
-    expect(blocked).toContain('Conformance 81 · B');
+    expect(blocked).toContain('Conformance 81/100');
     expect(blocked).toContain('including 1 critical');
     expect(blocked).toContain('· Texture 90');
   });
@@ -77,7 +78,7 @@ describe('B2 — the two-number Seal', () => {
         onOpenReport={() => {}}
       />,
     );
-    expect(html).toContain('Conformance 100 · A');
+    expect(html).toContain('Conformance 100/100');
     expect(html).not.toContain('workspace-texture-meter');
   });
 

@@ -69,7 +69,7 @@ function geologyCourseMap() {
         {
           topicSection: `${index + 1}.1: ${title}`,
           learningGoals: `1. Build field-ready understanding of ${concept}.`,
-          learningObjectives: `Analyze ${concept} using specimen evidence.\nEvaluate how ${concept} changes a field decision.`,
+          learningObjectives: `Analyze ${concept} using published open-license diagram evidence.\nEvaluate how ${concept} changes a field decision.`,
           weeklyAssessments: `Quiz: ${concept} problems`,
           asyncActivities: `Read the assigned chapter on ${title.toLowerCase()}.`,
           syncActivities: `Workshop: ${concept} case analysis.`,

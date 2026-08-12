@@ -832,12 +832,17 @@ describe('evaluateWorkspaceReadiness', () => {
       },
     });
 
-    const report = buildReadinessReport(readiness, { courseName: 'Readiness Course' });
+    const report = buildReadinessReport(readiness, {
+      courseName: 'Readiness Course',
+      generatedAt: '2026-08-10T21:12:49.955Z',
+    });
 
     expect(report).toContain('Readiness Course - Readiness Report');
+    expect(report).toContain('Generated: 2026-08-10T21:12:49.955Z');
     expect(report).toContain('Warnings');
     expect(report).toContain('Quiz & Exam Bank');
     expect(report).toContain('fewer than 8 questions');
+    expect(report).not.toContain('Quiz & Exam Bank: Quiz & Exam Bank');
   });
 });
 
@@ -1373,6 +1378,35 @@ describe('repairCourseMapReadiness', () => {
     expect(repaired).toMatch(/historical|primary-source|source|map|timeline/i);
   });
 
+  it('does not duplicate an article when a repaired topic already begins with The', () => {
+    const result = repairCourseMapReadiness({
+      courseMap: {
+        courseName: 'Introduction to Language Structure',
+        lessons: [
+          {
+            title: 'Lesson 2: Phonetics and Articulation',
+            sections: [
+              {
+                topicSection: 'The IPA Chart: Consonants and Vowels',
+                learningGoals: '',
+                learningObjectives: '',
+                weeklyAssessments: '',
+                asyncActivities: '',
+                syncActivities: '',
+                technologyNeeded: '',
+                presentationFormat: '',
+                supportingResources: '',
+                evaluateDesign: '',
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    expect(JSON.stringify(result.courseMap)).not.toMatch(/\bthe The\b/);
+  });
+
   it('keeps oral-history methods out of the Western-civilization fallback profile', () => {
     const result = repairCourseMapReadiness({
       courseMap: {
@@ -1576,7 +1610,7 @@ describe('repairWorkspaceReadiness', () => {
     });
 
     const assessment = result.courseMap.lessons[0].sections[0].weeklyAssessments;
-    expect(assessment).toBe('Uncertainty Quantification evidence check.');
+    expect(assessment).toBe('In-class Uncertainty Quantification evidence check.');
     expect(classifyAssessmentKind(assessment)).toBe('in-class');
   });
 
@@ -1858,7 +1892,9 @@ describe('repairWorkspaceReadiness', () => {
 
     expect(repaired.deliverables.rubrics.data.rubrics).toHaveLength(2);
     expect(repaired.deliverables.rubrics.data.rubrics.some((rubric) => rubric.lessonNumber === 5)).toBe(false);
-    expect(repairedCourseMap.lessons[4].sections[0].weeklyAssessments).toBe('Current and Resistance evidence check.');
+    expect(repairedCourseMap.lessons[4].sections[0].weeklyAssessments).toMatch(
+      /^In-class Current and Resistance (?:evidence check|application check|exit reflection|short analysis|evidence annotation|comparison note|reasoning trace|transfer check|source audit|decision memo|misconception repair|synthesis ticket)\b/,
+    );
     expect(classifyAssessmentKind(repairedCourseMap.lessons[4].sections[0].weeklyAssessments)).toBe('in-class');
   });
 });

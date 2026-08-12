@@ -10,6 +10,8 @@ import { buildConceptIndex, resolveCourseConcepts, resolveLessonConcepts } from 
 import { createKernelLibrary } from '../kernelLibrary.js';
 import { composeLessonFromConcepts } from '../composeLessonFromConcepts.js';
 import { buildQuizItemPlan } from '../../blueprintEnrichmentPass.js';
+import { bindRenderedClaimSupport } from '../../knowledge/sourceLedger.js';
+import { sha256HexSync } from '../../sha256Sync.js';
 import uxGenome from '../../../../public/genome/ux-intro.json';
 
 const ANCHOR = {
@@ -101,6 +103,35 @@ describe('kernelSchema', () => {
     expect(kernel.facts[0].anchor).toBeNull();
     expect(kernel.mcBank[0].explanationFactRef).toBeNull();
     expect(kernel.mcBank[0].rationaleRefs).toEqual([null]);
+  });
+
+  it('preserves bounded research-admission provenance through normalization', () => {
+    const { kernel } = normalizeConceptKernel({
+      ...ELASTICITY,
+      provenance: {
+        origin: 'algi-research',
+        topic: 'Describing distributions with numbers',
+        title: 'Summary statistics',
+        research: {
+          query: 'describing distributions data analysis',
+          relevance: 0.72,
+          titleScore: 0.5,
+          definitionScore: 0.75,
+          directTitleMatch: true,
+          mode: 'lexical',
+          ignoredField: 'not admitted',
+        },
+      },
+    });
+
+    expect(kernel.provenance.research).toEqual({
+      query: 'describing distributions data analysis',
+      relevance: 0.72,
+      titleScore: 0.5,
+      definitionScore: 0.75,
+      directTitleMatch: true,
+      mode: 'lexical',
+    });
   });
 
   it('validates concept ids', () => {
@@ -384,5 +415,101 @@ describe('composeLessonFromConcepts', () => {
 
   it('returns null when no concepts resolved', () => {
     expect(composeLessonFromConcepts([], {}, { itemPlan })).toBeNull();
+  });
+
+  it('carries every curated shipped claim through a replayable rendered-support receipt', async () => {
+    const sourceId = 'openstax:microeconomics-3e';
+    const anchors = [elasticity.definition.anchor, ...elasticity.facts.map((fact) => fact.anchor)];
+    const normalizedSnapshotText = anchors.map((anchor) => anchor.quote).join(' ');
+    const snapshotBytes = new TextEncoder().encode(normalizedSnapshotText);
+    let byteCursor = 0;
+    const claims = anchors.map((anchor) => {
+      const quoteBytes = new TextEncoder().encode(anchor.quote).byteLength;
+      const claim = {
+        sourceId,
+        locator: anchor.loc,
+        quote: anchor.quote,
+        retrievedSnapshotSha256: sha256HexSync(normalizedSnapshotText),
+        retrievedSnapshotBytes: snapshotBytes.byteLength,
+        quoteByteStart: byteCursor,
+        quoteByteEnd: byteCursor + quoteBytes,
+        quoteSha256: sha256HexSync(anchor.quote),
+      };
+      byteCursor += quoteBytes + 1;
+      return claim;
+    });
+    const sourceReferences = {
+      [sourceId]: {
+        displayTitle: 'OpenStax Principles of Microeconomics 3e',
+        sourceUrl: 'https://openstax.org/books/principles-economics-3e',
+        license: 'CC BY 4.0',
+        attribution: 'OpenStax',
+        provider: 'openstax',
+        sourceSnapshot: {
+          protocol: 'retrieved-source-snapshot-sha256-v2',
+          sources: [
+            {
+              sourceId,
+              normalizedSnapshotText,
+              retrievedSnapshotSha256: sha256HexSync(normalizedSnapshotText),
+              retrievedSnapshotBytes: snapshotBytes.byteLength,
+            },
+          ],
+          claims,
+        },
+      },
+    };
+    const { payload } = composeLessonFromConcepts([elasticity], {}, { itemPlan, sourceReferences });
+    const citation = payload.conceptProvenance.citations[0];
+
+    expect(citation).toMatchObject({
+      id: sourceId,
+      provider: 'openstax',
+      supportReceipt: {
+        status: 'passed',
+        checkedClaims: 3,
+        sourceIdentityVerified: true,
+        semanticAdmissionVerified: true,
+        artifactVisibilityVerified: false,
+      },
+    });
+    expect(citation.supportReceipt.checks.map((check) => check.claim)).toEqual([
+      elasticity.definition.text,
+      ...elasticity.facts.map((fact) => fact.text),
+    ]);
+
+    const renderedText = `Key concept: ${elasticity.definition.text}`;
+    const [bound] = await bindRenderedClaimSupport(
+      [
+        {
+          ...citation,
+          title: citation.displayTitle,
+          url: citation.sourceUrl,
+          scope: 'lesson-1',
+          sessionRefs: ['s1'],
+          status: 'source-provided',
+          origin: 'scion-evidence-overlay',
+        },
+      ],
+      [
+        {
+          path: 'Study Guides/Lesson 01 - Elasticity - Study Guides.docx',
+          text: renderedText,
+          sha256: sha256HexSync(renderedText),
+        },
+      ],
+    );
+    expect(bound.supportReceipt).toMatchObject({
+      method: 'rendered-admitted-source-claim-v2',
+      readinessEligible: true,
+      artifactVisibilityVerified: true,
+      checks: [
+        expect.objectContaining({
+          claim: elasticity.definition.text,
+          renderedLocation: 'Study Guides/Lesson 01 - Elasticity - Study Guides.docx',
+          artifactVisibilityVerified: true,
+        }),
+      ],
+    });
   });
 });

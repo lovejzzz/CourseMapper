@@ -17,6 +17,7 @@ export {
 } from './deriveFromCourseMap.js';
 export { renderCourseMapFromGraph } from './renderCourseMap.js';
 export {
+  attachAuthenticLanguageDataTransactionToGraph,
   attachEnrichmentToGraph,
   buildBlueprintFromGraph,
   enrichmentFromGraph,

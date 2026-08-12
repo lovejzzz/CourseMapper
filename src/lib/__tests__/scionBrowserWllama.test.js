@@ -42,6 +42,16 @@ describe('Scion browser model storage recovery', () => {
     });
   });
 
+  it('classifies a WebGPU queue timeout as a retryable activation failure without clearing the model', () => {
+    expect(
+      classifyScionBrowserModelLoadError(new Error('ggml_webgpu: Queue wait timed out after 30000 ms')),
+    ).toMatchObject({
+      code: 'SCION_WLLAMA_ACTIVATION_TRANSIENT',
+      kind: 'activation-transient',
+      clearCache: false,
+    });
+  });
+
   it('reports usable quota and includes working headroom in the requirement', async () => {
     const estimate = vi.fn().mockResolvedValue({ quota: 10_000_000_000, usage: 2_000_000_000 });
 

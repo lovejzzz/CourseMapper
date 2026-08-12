@@ -108,6 +108,82 @@ describe('G1 — the sync compile keeps its subject matter', () => {
     expect(result.receipt).toMatchObject({ rejectedKeyTerms: 1, removedQuizItems: 1 });
   });
 
+  it('reapplies current curricular-role admission to persisted research instead of grandfathering drift', () => {
+    const computingDrift = 'Semantic interpretation is an important component in dialog systems.';
+    const cited = (displayTitle, claim) => ({
+      displayTitle,
+      provider: 'wikipedia',
+      evidence: claim,
+      supportReceipt: {
+        checks: [{ claim, quote: claim, semanticSupport: true, quoteInSnapshot: true }],
+      },
+    });
+    const courseMap = {
+      courseName: 'Introduction to Language Structure',
+      lessons: [
+        {
+          title: 'Lesson 1: Semantic Interpretation',
+          sections: [
+            {
+              topicSection: 'Lexical Semantics',
+              learningObjectives: 'Compare lexical meanings using observable language data.',
+            },
+          ],
+        },
+      ],
+    };
+    const result = revalidatePersistedLessonContent(
+      {
+        'lesson-1': {
+          enrichmentSource: 'algi-researched',
+          keyTerms: [{ term: 'Semantic interpretation in dialog systems', definition: computingDrift }],
+          quizItems: [],
+          slideContent: [],
+          kernel: { facts: [computingDrift], provenance: { factCount: 1 } },
+          conceptProvenance: {
+            source: 'algi-researched',
+            citations: [cited('Semantic interpretation', computingDrift)],
+          },
+        },
+      },
+      courseMap,
+    );
+
+    expect(result.lessonContent).not.toHaveProperty('lesson-1');
+    expect(result.receipt.droppedLessonIds).toContain('lesson-1');
+    expect(result.receipt.removedFacts).toBe(1);
+  });
+
+  it('keeps an authoritative exact ledger when replay has no optional glossary or quiz atoms', () => {
+    const facts = [
+      'Isostatic equilibrium describes gravitational balance between the lithosphere and asthenosphere.',
+      'Crustal thickness and density both affect the elevation predicted by an isostatic model.',
+      'A field interpretation must distinguish measured elevation from an inferred subsurface structure.',
+    ];
+    const result = revalidatePersistedLessonContent(
+      {
+        'lesson-1': {
+          sourceFactAuthority: 'admitted-evidence-authority',
+          keyTerms: [],
+          quizItems: [],
+          kernel: {
+            facts,
+            provenance: {
+              source: 'compiler-owned-exact-source-ledger',
+              authority: 'admitted-evidence-authority',
+              copiedFactsVerbatim: true,
+              factCount: facts.length,
+            },
+          },
+        },
+      },
+      geologyMap(),
+    );
+
+    expect(result.lessonContent['lesson-1']?.kernel?.facts).toEqual(facts);
+    expect(result.receipt.droppedLessonIds).not.toContain('lesson-1');
+  });
+
   it('rejects genome terms that match only generic lesson descriptors and resets unattributed atoms', () => {
     const courseMap = {
       courseName: 'World Literature',
@@ -216,6 +292,62 @@ describe('G1 — the sync compile keeps its subject matter', () => {
     expect(result.enrichment.kernel.facts).toHaveLength(2);
     expect(result.enrichment.conceptProvenance.competencies[0].aliases).toContain('functional fixedness');
     expect(result.receipt).toMatchObject({ rejectedGenomeTerms: [], resetAuthoredAtoms: false });
+  });
+
+  it('rejects legacy concept contamination without letting generated objectives self-authorize it', () => {
+    const samplingClaim = 'A sampling frame lists the units eligible for selection.';
+    const pValueClaim = 'A p-value is computed under a null hypothesis.';
+    const citation = (id, label, claim) => ({
+      id: `source-${id}`,
+      conceptLinks: [{ id, label }],
+      supportReceipt: { checks: [{ claim }] },
+    });
+    const result = sanitizeGenomeEnrichmentForLesson(
+      {
+        title: 'Lesson 7: Producing Data: Sampling',
+        keyConcepts: ['Producing Data: Sampling', 'Principles of Sampling Techniques'],
+        semanticIdentityTerms: [
+          'Producing Data: Sampling',
+          'Explain p-value using the available course evidence.',
+          'Apply p-value in one practical example from Producing Data: Sampling and justify one revision.',
+        ],
+        outcomes: ['Explain p-value using the available course evidence.'],
+      },
+      {
+        enrichmentSource: 'genome-linked',
+        kernel: {
+          facts: [samplingClaim, pValueClaim],
+          provenance: {
+            source: 'compiler-owned-exact-source-ledger',
+            copiedFactsVerbatim: true,
+            factCount: 2,
+            authority: 'shipped-source-library',
+          },
+        },
+        conceptProvenance: {
+          source: 'genome-linked',
+          conceptIds: ['stats/sampling-distribution', 'stats/p-value'],
+          citations: [
+            citation('stats/sampling-distribution', 'Sampling distribution', samplingClaim),
+            citation('stats/p-value', 'p-value', pValueClaim),
+          ],
+        },
+      },
+    );
+
+    expect(result.receipt).toMatchObject({
+      rejectedGenomeTerms: ['Sampling distribution', 'p-value'],
+      rejectedConceptIds: ['stats/sampling-distribution', 'stats/p-value'],
+      removedFacts: 2,
+      resetAuthoredAtoms: true,
+    });
+    expect(result.enrichment.conceptProvenance.conceptIds).toEqual([]);
+    expect(result.enrichment.conceptProvenance.citations).toHaveLength(0);
+    expect(result.enrichment.kernel.facts).toEqual([]);
+    expect(result.enrichment.kernel.provenance.factCount).toBe(0);
+    expect(result.enrichment.semanticAdmission.rejectedSourceLocators).toEqual(
+      expect.arrayContaining(['source-stats/p-value']),
+    );
   });
 
   it('keeps a source-anchored title-shaped term but rejects an unverified title echo', () => {

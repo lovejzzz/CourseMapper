@@ -97,13 +97,14 @@ describe('fact-ledger relation projection', () => {
       enrichmentSource: 'lesson-content-enrichment',
     });
     expect(items[3].question).toContain('坐 (zuò)');
-    expect(items[3].question).toContain('去学校 (qù xuéxiào)');
+    expect(items[3].question).toContain('qù xuéxiào');
     expect(items[3].question).not.toMatch(/Use one course detail for each concept/i);
     expect(items[5]).toMatchObject({
       type: 'essay',
       enrichmentSource: 'lesson-content-enrichment',
     });
     expect(items[5].question).toContain('as an evidence chain');
+    expect(items[5].question).toContain('Use only the course fact ledger');
     expect(items[5].question).not.toMatch(/Synthesize the covered material/i);
   });
 
@@ -123,7 +124,15 @@ describe('fact-ledger relation projection', () => {
       {
         quizItems: [],
         keyTerms: [],
-        kernel: { facts: MANDARIN_TRANSPORT_KERNEL.facts },
+        kernel: {
+          facts: MANDARIN_TRANSPORT_KERNEL.facts,
+          provenance: {
+            source: 'compiler-owned-exact-source-ledger',
+            authority: 'shipped-source-library',
+            copiedFactsVerbatim: true,
+            factCount: MANDARIN_TRANSPORT_KERNEL.facts.length,
+          },
+        },
         targetLanguagePair: {
           hanzi: '我坐地铁去学校。',
           pinyin: 'Wǒ zuò dìtiě qù xuéxiào.',
@@ -145,8 +154,9 @@ describe('fact-ledger relation projection', () => {
     const items = buildQuizAtomsForLesson(blueprint.lessons[0], blueprint, { assessment: {} });
     expect(completed.kernel.facts).toHaveLength(3);
     expect(items[3].question).toContain('坐 (zuò)');
-    expect(items[3].question).toContain('去学校 (qù xuéxiào)');
-    expect(items[5].question).toContain('as an evidence chain');
+    expect(items[3].question).toContain('qù xuéxiào');
+    expect(items[5].question).toContain('two exact lesson facts');
+    expect(items[5].question).toContain('Do not add an unverified Mandarin form');
   });
 
   it('keeps a compiler-owned exact ledger ahead of a richer-looking stale overlay', () => {
@@ -206,6 +216,7 @@ describe('fact-ledger relation projection', () => {
               lessonId: 'lesson-13',
               title: lesson.title,
               sourceFactPolicy: 'numbered-source-ledger-v1',
+              sourceFactAuthority: 'instructor-supplied',
               sourceFacts: MANDARIN_TRANSPORT_KERNEL.facts,
             },
           ],
@@ -281,6 +292,7 @@ describe('fact-ledger relation projection', () => {
               lessonId: 'lesson-1',
               title: 'Lesson 1: Pinyin and Tones',
               sourceFactPolicy: 'numbered-source-ledger-v1',
+              sourceFactAuthority: 'instructor-supplied',
               sourceFacts: facts,
               sourceProjectionLabel: 'Pinyin and Tones',
             },
@@ -351,6 +363,7 @@ describe('fact-ledger relation projection', () => {
           facts: knowledge.facts,
           provenance: {
             source: 'compiler-owned-exact-source-ledger',
+            authority: 'shipped-source-library',
             copiedFactsVerbatim: true,
             factCount: knowledge.facts.length,
           },

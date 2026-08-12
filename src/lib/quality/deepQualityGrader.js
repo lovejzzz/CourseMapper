@@ -111,6 +111,7 @@ import {
   buildReviewOnlySourceEvidenceQuarantine,
   containsRejectedLearnerSourceEvidence,
 } from '../sourceEvidenceAdmission.js';
+import { addSemanticTrustAdmissionFindings } from './deepQualityTrustAdmission.js';
 
 // v0.14.3 WS-A A3: the grader version stamped into manifest.quality. Bump on
 // any change to checks, weights, or severity penalties so a package's quality
@@ -1144,7 +1145,9 @@ function checkIdentity(findings, { files, manifest }, _course) {
   const syllabus = files.find((file) => file.featureId === 'syllabus' && file.kind === 'docx');
   if (syllabus) {
     const ids = syllabus.text.match(/\bA\d+\.\d+\b/g) || [];
-    if (assessments.length > 0 && ids.length === 0) {
+    const gradingPolicy = manifest?.courseGradingPolicy;
+    const officialCategories = Array.isArray(gradingPolicy?.categories) ? gradingPolicy.categories : [];
+    if (assessments.length > 0 && officialCategories.length === 0 && ids.length === 0) {
       findings.add({
         severity: 'P1',
         dimension: 'identity',
@@ -1152,6 +1155,65 @@ function checkIdentity(findings, { files, manifest }, _course) {
         detail: 'syllabus grading table carries no registry ids (A<N>.<M>) although the manifest registry is populated',
         evidence: quote(syllabus.text, 120),
       });
+    }
+    if (officialCategories.length > 0) {
+      const baseTotal = officialCategories
+        .filter((entry) => entry?.extraCredit !== true)
+        .reduce((sum, entry) => sum + (Number(entry?.weightPct) || 0), 0);
+      const extraTotal = officialCategories
+        .filter((entry) => entry?.extraCredit === true)
+        .reduce((sum, entry) => sum + (Number(entry?.weightPct) || 0), 0);
+      if (
+        Math.abs(baseTotal - 100) > 0.5 ||
+        Math.abs(baseTotal - Number(gradingPolicy?.baseTotalPct)) > 0.01 ||
+        Math.abs(extraTotal - Number(gradingPolicy?.extraCreditTotalPct || 0)) > 0.01
+      ) {
+        findings.add({
+          severity: 'P1',
+          dimension: 'identity',
+          file: 'PACKAGE_MANIFEST.json',
+          detail: `source-stated grading policy has inconsistent totals (base ${baseTotal}%, extra credit ${extraTotal}%)`,
+          evidence: JSON.stringify(gradingPolicy),
+        });
+      }
+      for (const category of officialCategories) {
+        const title = String(category?.title || '').trim();
+        const weight = Number(category?.weightPct);
+        const weightPattern = Number.isFinite(weight)
+          ? new RegExp(`(?:\\+\\s*)?${String(weight).replace('.', '\\.')}\\s*%`, 'i')
+          : null;
+        const titleIndex = title ? syllabus.text.toLowerCase().indexOf(title.toLowerCase()) : -1;
+        const visibleRow = titleIndex >= 0 ? syllabus.text.slice(titleIndex, titleIndex + title.length + 220) : '';
+        if (!title || titleIndex < 0 || !weightPattern?.test(visibleRow)) {
+          findings.add({
+            severity: 'P1',
+            dimension: 'identity',
+            file: syllabus.path,
+            detail: `source-stated grading category "${title || '(untitled)'}" is not visibly rendered with its ${weight}% weight`,
+            evidence: quote(syllabus.text, 160),
+          });
+        }
+      }
+      const visibleSyllabus = syllabus.text.replace(/[–—]/g, '-').replace(/\s+/g, ' ');
+      for (const band of Array.isArray(gradingPolicy?.gradeBands) ? gradingPolicy.gradeBands : []) {
+        const label = String(band?.label || '').trim();
+        const range = String(band?.range || '')
+          .replace(/[–—]/g, '-')
+          .replace(/\s+/g, ' ')
+          .trim();
+        const rangeIndex = range ? visibleSyllabus.toLowerCase().indexOf(range.toLowerCase()) : -1;
+        const visibleBand =
+          rangeIndex >= 0 ? visibleSyllabus.slice(Math.max(0, rangeIndex - 16), rangeIndex + range.length + 16) : '';
+        if (!label || !range || rangeIndex < 0 || !visibleBand.toLowerCase().includes(label.toLowerCase())) {
+          findings.add({
+            severity: 'P1',
+            dimension: 'identity',
+            file: syllabus.path,
+            detail: `source-stated grade band "${label || '(untitled)'} ${range || '(missing range)'}" is not visibly rendered`,
+            evidence: quote(syllabus.text, 160),
+          });
+        }
+      }
     }
     const weights = (syllabus.text.match(/\b(\d{1,3})\s?%/g) || []).map((value) => Number(value.replace(/\D/g, '')));
     // Use the manifest registry as the authoritative weight sum when present.
@@ -2147,7 +2209,12 @@ function checkCitations(findings, { files, manifest }, course) {
       continue;
     }
     const ledgerSupportTokens = contentTokens(sourceLedgerSupportForCitation(cite, manifest).replace(/[-–—/]/g, ' '));
-    if (!overlapsVocab(cTokens, disciplineVocab) && !overlapsVocab(ledgerSupportTokens, disciplineVocab)) {
+    const citationMatchesBoundLedgerConcept = overlapsVocab(cTokens, new Set(ledgerSupportTokens));
+    if (
+      !overlapsVocab(cTokens, disciplineVocab) &&
+      !overlapsVocab(ledgerSupportTokens, disciplineVocab) &&
+      !citationMatchesBoundLedgerConcept
+    ) {
       seenRelevance.add(dedupeKey);
       findings.add({
         severity: 'P1',
@@ -2197,13 +2264,14 @@ function checkLessonEvidenceDependencies(findings, { manifest }) {
   if (!matrix || matrix.version !== 'coursemapper-lesson-evidence-dependencies-v1') return;
   for (const lesson of Array.isArray(matrix.lessons) ? matrix.lessons : []) {
     for (const requirement of Array.isArray(lesson?.requirements) ? lesson.requirements : []) {
-      if (requirement?.status !== 'unresolved') continue;
+      if (requirement?.status === 'resolved') continue;
+      const unresolved = requirement?.status === 'unresolved';
       findings.add({
-        code: 'unresolved-lesson-evidence-dependency',
-        severity: 'P0',
+        code: unresolved ? 'unresolved-lesson-evidence-dependency' : 'review-required-lesson-evidence-dependency',
+        severity: unresolved ? 'P0' : 'P1',
         dimension: 'substance',
         file: `Lesson ${lesson.lesson || '?'} evidence dependencies`,
-        detail: `${requirement.label || requirement.kind || 'required evidence'} is required by the lesson but is not resolved to a trusted source or packaged artifact`,
+        detail: `${requirement.label || requirement.kind || 'required evidence'} is required by the lesson but is ${unresolved ? 'not resolved' : 'still review-required'} against a trusted source or packaged artifact`,
         evidence: quote(requirement.evidence || requirement.unresolvedRefs?.join(', ') || lesson.title || ''),
       });
     }
@@ -3620,7 +3688,8 @@ function checkDiscipline(findings, { files }, course) {
 // anywhere → the package pre-dates the feature → not graded on visuals (the
 // stored Crucible rounds stay quiet). P2 initially — calibration severity.
 const VISUAL_LAYER_MARKER = /name="cmViz/;
-const NATIVE_VISUAL_SHAPE = /name="cmViz(?:Hub|Spoke|Conn|Chart|Table|Matrix)/;
+const NATIVE_VISUAL_SHAPE =
+  /name="cmViz(?:Hub|Spoke|Conn|Chart|Table|Matrix|DotPlot|Scatter|RegressionLine|ContingencyTable|NumberLine|IntervalBand|SamplingFrame|SelectedUnit)/;
 // Kernel-derived slide titles the compiler emits deterministically — the
 // "enriched deck" signal readable from rendered XML alone.
 function checkDeckVisuals(findings, { files }) {
@@ -3964,6 +4033,7 @@ export async function grade({
     }
   }
   checkLessonEvidenceDependencies(findings, pkg);
+  addSemanticTrustAdmissionFindings(findings, pkg, quote);
   const lessonTitles = checkConsistency(findings, pkg);
   checkRequestedLessonTiming(findings, pkg, course);
   {

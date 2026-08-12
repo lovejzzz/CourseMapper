@@ -11,6 +11,12 @@ async function docxDocumentXml(blob) {
   return await zip.file('word/document.xml').async('string');
 }
 
+async function docxPartXml(blob, partPath) {
+  const buffer = await blob.arrayBuffer();
+  const zip = await JSZip.loadAsync(buffer);
+  return await zip.file(partPath).async('string');
+}
+
 async function extractedDocxParagraphs(blob, filePath) {
   const pkg = await extractPackage(createMemoryFileProvider({ [filePath]: blob }));
   const file = pkg.files.find((entry) => entry.path === filePath);
@@ -18,7 +24,25 @@ async function extractedDocxParagraphs(blob, filePath) {
 }
 
 describe('buildDeliverableDocxBlob', () => {
-  it('does not append an empty spacer paragraph after the final assignment brief', async () => {
+  it('keeps the resolved total-page field inside the portrait footer gutter', async () => {
+    const blob = await buildDeliverableDocxBlob(
+      'syllabus',
+      { syllabus: { semester: 'Fall 2026', courseDescription: 'A concise course description.' } },
+      'A Deliberately Long Course Title for Footer Geometry Verification',
+    );
+
+    const footer = await docxPartXml(blob, 'word/footer1.xml');
+    expect(footer).toContain('w:pos="9960"');
+    expect(footer).toContain('NUMPAGES');
+    expect(footer).not.toContain('w:pos="9026"');
+
+    const documentXml = await docxDocumentXml(blob);
+    expect(documentXml).toContain(
+      '<w:pgMar w:top="540" w:right="720" w:bottom="540" w:left="720" w:header="360" w:footer="360" w:gutter="0"/>',
+    );
+  });
+
+  it('ends an assignment brief on lesson-specific content without repeated package policy', async () => {
     const blob = await buildDeliverableDocxBlob(
       'assignments',
       {
@@ -37,8 +61,66 @@ describe('buildDeliverableDocxBlob', () => {
     const bodyBeforeSection = xml.slice(0, xml.lastIndexOf('<w:sectPr'));
     const lastParagraph = bodyBeforeSection.slice(bodyBeforeSection.lastIndexOf('<w:p>'));
 
-    expect(lastParagraph).toContain('Academic Integrity');
+    expect(lastParagraph).toContain('Overview');
     expect(lastParagraph).not.toMatch(/<w:pPr>\s*<w:spacing[^>]*\/>\s*<\/w:pPr>\s*<\/w:p>\s*$/);
+    expect(xml).toContain('w:line="190"');
+    expect(xml).not.toContain('Academic Integrity');
+  });
+
+  it('uses a compact readable rhythm for dense instructor lesson plans', async () => {
+    const blob = await buildDeliverableDocxBlob(
+      'lessonPlans',
+      {
+        lessonPlans: [
+          {
+            lessonTitle: 'Lesson 2: Evidence Structure',
+            objectives: ['Compare two visible structures and justify one revision.'],
+            outline: [{ time: '20 min', activity: 'Compare', description: 'Annotate the evidence before revising.' }],
+            homework: {
+              title: 'Evidence revision',
+              estimatedTime: '45 minutes',
+              description: 'Revise one claim and mark the evidence that changed it.',
+              connectionToNext: 'Bring the revision to the next comparison.',
+            },
+          },
+        ],
+      },
+      'Evidence Methods',
+    );
+
+    const xml = await docxDocumentXml(blob);
+    expect(xml).toContain('w:line="204"');
+    expect(xml).toContain('w:sz w:val="19"');
+    expect(xml).toContain('<w:tcMar><w:top w:type="dxa" w:w="50"');
+  });
+
+  it('uses a compact closing-guidance rhythm in discussion handouts', async () => {
+    const blob = await buildDeliverableDocxBlob(
+      'discussions',
+      {
+        discussions: [
+          {
+            lessonTitle: 'Lesson 9: Evidence Review',
+            prompt: 'Compare two interpretations and identify the deciding evidence.',
+            equityConsiderations:
+              'Offer a choice of annotated note, short spoken claim, or partner summary so students can make their evidence visible.',
+            guidelines:
+              'Name the evidence, distinguish observation from inference, and respond to one alternative interpretation.',
+            followUp: 'Revise one claim after the discussion and record which evidence changed the conclusion.',
+          },
+        ],
+      },
+      'Evidence Methods',
+    );
+
+    const xml = await docxDocumentXml(blob);
+    const closingParagraphEnd = xml.indexOf('which evidence changed the conclusion');
+    const closingParagraph = xml.slice(
+      xml.lastIndexOf('<w:p>', closingParagraphEnd),
+      xml.indexOf('</w:p>', closingParagraphEnd),
+    );
+    expect(closingParagraph).toContain('w:line="184"');
+    expect(closingParagraph).toContain('w:sz w:val="18"');
   });
 
   it('ends a study guide on content and gives its term table a semantic header row', async () => {
@@ -67,8 +149,107 @@ describe('buildDeliverableDocxBlob', () => {
     expect(xml).toContain('Definition');
     expect(xml).toContain('<w:keepLines/>');
     expect(xml).toContain('w:hanging="180"');
+    expect(xml).toContain('w:after="160"');
     expect(lastParagraph).toContain('Connection to Next Lesson');
     expect(lastParagraph).not.toMatch(/<w:pPr>\s*<w:spacing[^>]*\/>\s*<\/w:pPr>\s*<\/w:p>\s*$/);
+  });
+
+  it('compacts exam preparation when its key topics already appear in the term table', async () => {
+    const blob = await buildDeliverableDocxBlob(
+      'studyGuides',
+      {
+        studyGuides: [
+          {
+            lessonTitle: 'Lesson 1: Evidence',
+            keyTerms: [{ term: 'Corroboration', definition: 'Checking a claim against independent evidence.' }],
+            commonMisconceptions: [
+              {
+                misconception: 'Repeated claims are independent evidence.',
+                correction: 'Trace each claim to its source.',
+              },
+            ],
+            examPrep: {
+              keyTopicsToKnow: ['Corroboration'],
+              commonErrors: 'Do not confuse repetition with independent support.',
+              reviewStrategy: 'Compare two records and mark the independent detail.',
+            },
+          },
+        ],
+      },
+      'Evidence Methods',
+    );
+    const xml = await docxDocumentXml(blob);
+    expect(xml.match(/Exam Preparation/g)?.length || 0).toBe(1);
+    expect(xml).not.toContain('Common errors: Do not confuse repetition with independent support.');
+    expect(xml).toContain(
+      'Review strategy: For Lesson 1: Evidence, compare the two source claims; record what they support, what remains unproven, and the revision required.',
+    );
+    expect(xml).not.toContain('Key Topics');
+    expect(xml).toContain('w:line="196"');
+    expect(xml).toContain('w:sz w:val="19"');
+    expect(xml).toContain('<w:keepLines/>');
+    expect(xml).toContain('w:before="60"');
+  });
+
+  it('keeps each study-guide review question with its hint during pagination', async () => {
+    const blob = await buildDeliverableDocxBlob(
+      'studyGuides',
+      {
+        studyGuides: [
+          {
+            lessonTitle: 'Lesson 4: Correlation',
+            reviewQuestions: [
+              {
+                question: 'Which evidence would change the correlation claim?',
+                bloomsLevel: 'Analyze',
+                hint: 'Compare the observed pattern with the stated boundary.',
+              },
+            ],
+          },
+        ],
+      },
+      'Statistics in Practice',
+    );
+
+    const xml = await docxDocumentXml(blob);
+    const questionParagraph = xml.match(
+      /<w:p><w:pPr>[\s\S]*?<\/w:pPr>[\s\S]*?Which evidence would change the correlation claim\?[\s\S]*?<\/w:p>/,
+    )?.[0];
+    const hintParagraph = xml.match(
+      /<w:p><w:pPr>[\s\S]*?<\/w:pPr>[\s\S]*?Hint: Compare the observed pattern with the stated boundary\.[\s\S]*?<\/w:p>/,
+    )?.[0];
+
+    expect(questionParagraph).toContain('<w:keepNext/>');
+    expect(questionParagraph).toContain('<w:keepLines/>');
+    expect(hintParagraph).toContain('<w:keepLines/>');
+  });
+
+  it('consolidates simple terminal exam-preparation fields without dropping unique topics', async () => {
+    const blob = await buildDeliverableDocxBlob(
+      'studyGuides',
+      {
+        studyGuides: [
+          {
+            lessonTitle: 'Lesson 8: Evidence Synthesis',
+            examPrep: {
+              keyTopicsToKnow: ['Source triangulation', 'Boundary statements'],
+              commonErrors: ['Treating repetition as corroboration'],
+              reviewStrategy: 'Compare the sources before revising the claim.',
+              timeManagement: 'Reserve five minutes for the evidence boundary.',
+            },
+          },
+        ],
+      },
+      'Evidence Methods',
+    );
+
+    const xml = await docxDocumentXml(blob);
+    expect(xml.match(/Exam Preparation/g)?.length || 0).toBe(1);
+    expect(xml).toContain('Key topics: Source triangulation; Boundary statements.');
+    expect(xml).toContain('Common errors: Treating repetition as corroboration');
+    expect(xml).toContain('Review strategy: Compare the sources before revising the claim.');
+    expect(xml).toContain('Time management: Reserve five minutes for the evidence boundary.');
+    expect(xml).not.toContain('>Key Topics<');
   });
 
   it('uses semantic table headers without forcing sparse syllabus page breaks', async () => {
@@ -108,6 +289,231 @@ describe('buildDeliverableDocxBlob', () => {
     expect(xml).toContain('The Week 1 assignment; Final source memo');
     expect(xml).not.toContain('assignment.;');
     expect(xml).not.toContain('<w:br w:type="page"/>');
+    expect(xml).toContain('w:before="300" w:after="100"');
+    expect(xml).toContain('w:line="204"');
+  });
+
+  it('uses readable source blocks for a nine-source appendix', async () => {
+    const blob = await buildDeliverableDocxBlob(
+      'syllabus',
+      {
+        syllabus: {
+          semester: 'Fall 2026',
+          sourcesAndLicenses: {
+            title: 'Sources & Licenses',
+            groups: [
+              {
+                label: 'Open course sources',
+                entries: Array.from({ length: 9 }, (_, index) => ({
+                  citation: `Source ${index + 1}: A deliberately long source citation retained verbatim for auditability.`,
+                  url: `https://example.edu/source-${index + 1}`,
+                  license: 'CC BY 4.0',
+                })),
+              },
+            ],
+          },
+        },
+      },
+      'Evidence Methods',
+    );
+
+    const xml = await docxDocumentXml(blob);
+    expect(xml).toContain('Source 1: A deliberately long source citation retained verbatim for auditability.');
+    expect(xml).toContain('Source 9: A deliberately long source citation retained verbatim for auditability.');
+    expect(xml).not.toContain('<w:pageBreakBefore/>');
+    expect(xml).toContain('w:line="204"');
+    expect(xml).toContain('w:sz w:val="22"');
+    expect(xml).toContain('License and attribution: CC BY 4.0.');
+  });
+
+  it('tightens twelve-source appendices before they create a sparse spill page', async () => {
+    const blob = await buildDeliverableDocxBlob(
+      'syllabus',
+      {
+        syllabus: {
+          semester: 'Fall 2026',
+          sourcesAndLicenses: {
+            title: 'Sources & Licenses',
+            groups: [
+              {
+                label: 'Open course sources',
+                entries: Array.from({ length: 12 }, (_, index) => ({
+                  citation: `Source ${index + 1}: A deliberately long source citation retained verbatim for auditability.`,
+                  url: `https://example.edu/source-${index + 1}`,
+                  license: 'CC BY 4.0',
+                })),
+              },
+            ],
+          },
+        },
+      },
+      'Evidence Methods',
+    );
+
+    const xml = await docxDocumentXml(blob);
+    expect(xml).toContain('Source 12: A deliberately long source citation retained verbatim for auditability.');
+    expect(xml.match(/<w:numPr>/g)?.length).toBe(12);
+    expect(xml).toContain('w:line="196"');
+    expect(xml).toContain('w:sz w:val="18"');
+    expect(xml).toContain('<w:pageBreakBefore/>');
+  });
+
+  it('lets a seven-source appendix fill the preceding methods page instead of stranding citations', async () => {
+    const blob = await buildDeliverableDocxBlob(
+      'syllabus',
+      {
+        syllabus: {
+          semester: 'Fall 2026',
+          sourcesAndLicenses: {
+            title: 'Sources & Licenses',
+            groups: [
+              {
+                label: 'Open course sources',
+                entries: Array.from({ length: 7 }, (_, index) => ({
+                  citation: `Source ${index + 1}: A complete source citation retained verbatim.`,
+                  url: `https://example.edu/source-${index + 1}`,
+                  license: 'CC BY 4.0',
+                })),
+              },
+            ],
+          },
+        },
+      },
+      'Evidence Methods',
+    );
+
+    const xml = await docxDocumentXml(blob);
+    expect(xml).toContain('Source 7: A complete source citation retained verbatim.');
+    expect(xml).not.toContain('<w:pageBreakBefore/>');
+  });
+
+  it('keeps the penultimate review hint with the final question unit', async () => {
+    const blob = await buildDeliverableDocxBlob(
+      'studyGuides',
+      {
+        studyGuides: [
+          {
+            lessonTitle: 'Lesson 1: Evidence Analysis',
+            reviewQuestions: [
+              { question: 'First question', hint: 'First hint' },
+              { question: 'Second question', hint: 'Second hint' },
+              { question: 'Final question', hint: 'Final hint' },
+            ],
+          },
+        ],
+      },
+      'Evidence Methods',
+    );
+
+    const xml = await docxDocumentXml(blob);
+    const secondHintEnd = xml.indexOf('Second hint');
+    const secondHintParagraph = xml.slice(
+      xml.lastIndexOf('<w:p>', secondHintEnd),
+      xml.indexOf('</w:p>', secondHintEnd),
+    );
+    expect(secondHintParagraph).toContain('<w:keepNext/>');
+    expect(secondHintParagraph).toContain('<w:keepLines/>');
+    const finalHintEnd = xml.indexOf('Final hint');
+    const finalHintParagraph = xml.slice(xml.lastIndexOf('<w:p>', finalHintEnd), xml.indexOf('</w:p>', finalHintEnd));
+    expect(finalHintParagraph).not.toContain('<w:keepNext/>');
+  });
+
+  it('lets long splittable bibliographies absorb remaining methods-page space', async () => {
+    const blob = await buildDeliverableDocxBlob(
+      'syllabus',
+      {
+        syllabus: {
+          semester: 'Fall 2026',
+          methodsStatement: {
+            title: 'Evidence-Based Course Design',
+            methods: [
+              {
+                label: 'Retrieval practice',
+                claim: 'Students revisit core distinctions.',
+                references: ['A complete peer-reviewed reference retained verbatim.'],
+              },
+            ],
+          },
+          sourcesAndLicenses: {
+            title: 'Sources & Licenses',
+            groups: [
+              {
+                label: 'Open course sources',
+                entries: Array.from({ length: 20 }, (_, index) => ({
+                  citation: `Source ${index + 1}: A complete source citation retained verbatim.`,
+                  url: `https://example.edu/source-${index + 1}`,
+                  license: 'CC BY 4.0',
+                })),
+              },
+            ],
+          },
+        },
+      },
+      'Evidence Methods',
+    );
+
+    const xml = await docxDocumentXml(blob);
+    expect(xml).toContain('Source 20: A complete source citation retained verbatim.');
+    expect(xml).not.toContain('<w:pageBreakBefore/>');
+    expect(xml).toContain('w:line="174"');
+  });
+
+  it('cohorts repeated source owners when their license is shared at group level', async () => {
+    const blob = await buildDeliverableDocxBlob(
+      'syllabus',
+      {
+        syllabus: {
+          semester: 'Fall 2026',
+          sourcesAndLicenses: {
+            title: 'Sources & Licenses',
+            groups: [
+              {
+                label: 'Open encyclopedia',
+                license: 'CC BY-SA 4.0',
+                entries: Array.from({ length: 12 }, (_, index) => ({
+                  citation: `Article ${index + 1} (open encyclopedia)`,
+                  url: `https://example.edu/article-${index + 1}`,
+                  attribution: `Wikipedia contributors, “Article ${index + 1}”`,
+                })),
+              },
+            ],
+          },
+        },
+      },
+      'Evidence Methods',
+    );
+
+    const xml = await docxDocumentXml(blob);
+    expect(xml).toContain('Shared rights statement for 12 cited entries: CC BY-SA 4.0 · Wikipedia contributors.');
+    expect(xml.match(/Wikipedia contributors/g)?.length).toBe(1);
+    expect(xml).toContain('Article 12 (open encyclopedia)');
+  });
+
+  it('does not render an empty sources and licenses appendix', async () => {
+    const blob = await buildDeliverableDocxBlob(
+      'syllabus',
+      {
+        syllabus: {
+          semester: 'Fall 2026',
+          sourcesAndLicenses: {
+            title: 'Sources & Licenses',
+            note: 'Only attributable sources should appear here.',
+            groups: [
+              {
+                label: 'Internal evidence',
+                entries: [{ citation: 'Private instructor note without redistribution metadata.' }],
+              },
+            ],
+          },
+        },
+      },
+      'Evidence Methods',
+    );
+
+    const xml = await docxDocumentXml(blob);
+    expect(xml).not.toContain('Sources &amp; Licenses');
+    expect(xml).not.toContain('Only attributable sources should appear here.');
+    expect(xml).not.toContain('Private instructor note without redistribution metadata.');
   });
 
   it('omits internal compiler metadata from generic custom deliverable DOCX exports', async () => {
@@ -322,6 +728,7 @@ describe('buildDeliverableDocxBlob', () => {
     expect(xml).toContain('Course Map L14');
     expect(xml).toContain('No submitted assignment brief was generated');
     expect(xml).toContain('add or regenerate that assignment before publishing');
+    expect(xml).toContain('For Course Map L14, add a scored brief only when the Course Map promises submitted work.');
   });
 
   it('renders a complete distributable experiential activity packet instead of an empty assignment handoff', async () => {
@@ -453,6 +860,207 @@ describe('buildDeliverableDocxBlob', () => {
     // Tables are pct-width, never the old fixed letter-width grid.
     expect(xml).not.toContain('w:w="9360"');
     expect(xml).not.toContain('<w:spacing w:before="200" w:after="100"/></w:pPr></w:p><w:sectPr>');
+  });
+
+  it('starts a bounded quiz answer key on a fresh page', async () => {
+    const questions = Array.from({ length: 6 }, (_, index) => ({
+      type: 'multiple_choice',
+      question: `Question ${index + 1} asks students to inspect a detailed case, identify the relevant evidence boundary, compare two plausible interpretations, and choose the conclusion that the supplied record can actually support.`,
+      options: [
+        'A. Keep the claim because it sounds familiar.',
+        'B. Select the conclusion with an inspectable evidence trail.',
+        'C. Ignore the stated boundary and generalize.',
+        'D. Replace the evidence with an unsupported assumption.',
+      ],
+      answer: 'B',
+      explanation: 'The supported choice preserves the evidence boundary and makes the decision inspectable.',
+    }));
+    const blob = await buildDeliverableDocxBlob(
+      'quizBank',
+      { quizzes: [{ lessonTitle: 'Lesson 6: Evidence Audit', questions }] },
+      'Evidence Audit',
+    );
+
+    const xml = await docxDocumentXml(blob);
+    expect(xml).toContain('Answer Key — Lesson 6: Evidence Audit');
+    expect(xml).toContain('w:line="190"');
+    expect(xml).toContain('w:sz w:val="18"');
+    // The bounded paper fits on one page; starting its key on page 2 prevents
+    // the final answers from becoming an orphaned low-occupancy tail page.
+    expect(xml.match(/<w:pageBreakBefore\/>/g)?.length || 0).toBe(1);
+  });
+
+  it('lets an extensive answer key flow without creating a sparse tail page', async () => {
+    const questions = Array.from({ length: 8 }, (_, index) => ({
+      type: 'short_answer',
+      question: `Question ${index + 1} asks for one bounded observation.`,
+      answer: `Answer ${index + 1}.`,
+      explanation: `Evidence explanation ${index + 1}. ${'Inspect the source boundary and justify the decision. '.repeat(18)}`,
+    }));
+    const blob = await buildDeliverableDocxBlob(
+      'quizBank',
+      { quizzes: [{ lessonTitle: 'Lesson 8: Extended Evidence Review', questions }] },
+      'Evidence Review',
+    );
+
+    const xml = await docxDocumentXml(blob);
+    expect(xml).toContain('Answer Key — Lesson 8: Extended Evidence Review');
+    expect(xml.match(/<w:pageBreakBefore\/>/g)?.length || 0).toBe(0);
+  });
+
+  it('omits a sample answer that substantially repeats an already rendered answer', async () => {
+    const repeated =
+      'The evidence supports a bounded conclusion about the observed pattern, identifies the relevant record, and explains why a broader causal claim would require an additional independent source.';
+    const blob = await buildDeliverableDocxBlob(
+      'quizBank',
+      {
+        quizzes: [
+          {
+            lessonTitle: 'Lesson 4: Evidence Boundaries',
+            questions: [
+              {
+                question: 'What conclusion does the record support?',
+                answer: repeated,
+                sampleAnswer: `${repeated} The response should stay within that documented boundary.`,
+              },
+            ],
+          },
+        ],
+      },
+      'Evidence Methods',
+    );
+
+    const xml = await docxDocumentXml(blob);
+    expect(xml).toContain(repeated);
+    expect(xml).not.toContain('Sample Answer');
+  });
+
+  it('omits an explanation that substantially repeats an open-response answer', async () => {
+    const answer =
+      'The cited record supports a bounded morphological identification from the displayed form and gloss, while the evidence does not establish how every language marks the same category.';
+    const blob = await buildDeliverableDocxBlob(
+      'quizBank',
+      {
+        quizzes: [
+          {
+            lessonTitle: 'Lesson 3: Morphological Structures',
+            questions: [
+              {
+                question: 'What conclusion does this form support?',
+                answer,
+                explanation: `Evidence basis: ${answer}`,
+                scoringGuidance: 'Score the evidence, operation, source, and boundary.',
+              },
+            ],
+          },
+        ],
+      },
+      'Language Structure',
+    );
+
+    const xml = await docxDocumentXml(blob);
+    expect(xml.match(new RegExp(answer.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'))?.length || 0).toBe(1);
+    expect(xml).not.toContain('Evidence basis:');
+    expect(xml).toContain('Scoring Guidance');
+  });
+
+  it('consolidates identical scoring guidance once per answer key', async () => {
+    const guidance = 'Score evidence, operation, source, and boundary.';
+    const blob = await buildDeliverableDocxBlob(
+      'quizBank',
+      {
+        quizzes: [
+          {
+            lessonTitle: 'Lesson 3: Evidence Analysis',
+            questions: [
+              { question: 'Analyze record one.', answer: 'A bounded answer.', scoringGuidance: guidance },
+              { question: 'Analyze record two.', answer: 'A second bounded answer.', scoringGuidance: guidance },
+            ],
+          },
+        ],
+      },
+      'Evidence Methods',
+    );
+
+    const xml = await docxDocumentXml(blob);
+    expect(xml.match(/Shared Scoring Guidance/g)?.length || 0).toBe(1);
+    expect(xml.match(/Score evidence, operation, source, and boundary\./g)?.length || 0).toBe(1);
+    expect(xml).toContain('Use this guidance for Q1, Q2.');
+  });
+
+  it('does not repeat a generic explanation when model and scoring guidance already cover an open response', async () => {
+    const blob = await buildDeliverableDocxBlob(
+      'quizBank',
+      {
+        quizzes: [
+          {
+            lessonTitle: 'Lesson 6: Synthesis',
+            questions: [
+              {
+                question: 'Synthesize the two lesson ideas.',
+                explanation: 'Scoring rewards synthesis rather than a list of terms.',
+                sampleAnswer: 'A strong response connects both ideas with inspectable evidence and one limitation.',
+                rubricHints: 'The response should connect both ideas.',
+                scoringGuidance:
+                  'Full credit requires two accurate ideas, evidence for each, a relationship, and a limitation.',
+              },
+            ],
+          },
+        ],
+      },
+      'Evidence Methods',
+    );
+    const xml = await docxDocumentXml(blob);
+    expect(xml).not.toContain('Scoring rewards synthesis rather than a list of terms.');
+    expect(xml).not.toContain('Rubric Hints');
+    expect(xml).toContain('Sample Answer');
+    expect(xml).toContain('Scoring Guidance');
+  });
+
+  it('keeps FAQ related concepts in the answer paragraph', async () => {
+    const blob = await buildDeliverableDocxBlob(
+      'courseFaq',
+      {
+        faqs: [
+          {
+            lessonTitle: 'Lesson 2: Evidence',
+            questions: [
+              {
+                question: 'What should I compare?',
+                answer: 'Compare the two admitted records.',
+                relatedConcepts: ['scope', 'warrant'],
+              },
+            ],
+          },
+        ],
+      },
+      'Evidence Methods',
+    );
+    const xml = await docxDocumentXml(blob);
+    expect(xml).toContain('Compare the two admitted records. See also: scope, warrant.');
+    expect(xml.match(/See also:/g)?.length || 0).toBe(1);
+  });
+
+  it('does not repeat schedule-only week labels as important dates', async () => {
+    const blob = await buildDeliverableDocxBlob(
+      'syllabus',
+      {
+        syllabus: {
+          weeklySchedule: [
+            { week: 'Week 1', topic: 'Evidence', readings: 'Course packet', assignments: 'Source note' },
+          ],
+          importantDates: [
+            { date: 'Week 1', event: 'Source note' },
+            { date: 'October 12', event: 'Instructor-confirmed portfolio review' },
+          ],
+        },
+      },
+      'Evidence Methods',
+    );
+    const xml = await docxDocumentXml(blob);
+    expect(xml).toContain('October 12');
+    expect(xml).toContain('Instructor-confirmed portfolio review');
+    expect(xml).not.toContain('<w:t>Source note</w:t></w:r></w:p></w:tc><w:tc');
   });
 
   it('keeps quiz answer callout labels separated in extracted DOCX text', async () => {

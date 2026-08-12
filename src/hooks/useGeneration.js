@@ -30,6 +30,7 @@ import { PUBLIC_SCION_MODEL_NAME, PUBLIC_SCION_PROVIDER_ID } from '../lib/public
 import { ALGI_MODEL_NAME, isAlgiModel } from '../lib/algiIdentity';
 import { applyPublicScionBriefDirectives, projectPublicScionCourseMapContinuations } from '../lib/publicScionProvider';
 import { admitCourseMapContinuationLessons, buildCourseMapContinuationPrompt } from '../lib/courseMapContinuation';
+import { repairCourseMapIdentityTypography } from '../lib/courseIdentityTypography';
 
 export { admitCourseMapContinuationLessons, buildCourseMapContinuationPrompt } from '../lib/courseMapContinuation';
 
@@ -1158,6 +1159,7 @@ export default function useGeneration({
             );
           }
           finalResult = preserveMaterializedLessonNumbers(finalResult, scopeIndices);
+          finalResult = repairCourseMapIdentityTypography(finalResult);
 
           // Post-generation structural validation — auto-fix missing titles, sections, column keys
           let { warnings: validationWarnings } = validateCourseMap(finalResult, columns);
@@ -1218,6 +1220,7 @@ export default function useGeneration({
             finalResult = expandLeanCourseMap(finalResult);
             if (leanCourseMap) finalResult = deriveCompilerOwnedColumns(finalResult);
             finalResult = preserveMaterializedLessonNumbers(finalResult, scopeIndices);
+            finalResult = repairCourseMapIdentityTypography(finalResult);
             if (finalResult.lessons.length < expected) {
               setCompletenessInfo({
                 expected,
@@ -1250,6 +1253,7 @@ export default function useGeneration({
 
           if (provider === PUBLIC_SCION_PROVIDER_ID) {
             finalResult = applyPublicScionBriefDirectives(finalResult, combinedText);
+            finalResult = repairCourseMapIdentityTypography(finalResult);
             setCourseMap(finalResult);
             courseMapRef.current = finalResult;
           }

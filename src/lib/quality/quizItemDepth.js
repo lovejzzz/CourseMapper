@@ -94,7 +94,7 @@ export function isClaimEvidenceBoundaryShortAnswer(stem) {
       text,
     );
   const boundsClaim =
-    /\b(?:limit(?:ation)?|boundary|alternative|next piece of evidence|additional evidence|does not (?:prove|establish)|do not (?:prove|establish))\b/i.test(
+    /\b(?:limit(?:ation)?|boundary|alternative|next piece of evidence|additional evidence|cannot support|remains? unproven|does not permit|where (?:that|the) account stops|does not (?:prove|establish)|do not (?:prove|establish))\b/i.test(
       text,
     );
   return selectsConcept && usesEvidence && boundsClaim;

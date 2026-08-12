@@ -245,7 +245,8 @@ describe('evidence-to-decision scenario contract', () => {
 
     expect(scenario.setup).not.toContain(misconception);
     expect(scenario.setup).toMatch(/bounded|documented scope|supplied evidence/i);
-    expect(scenario.materials).toBe(
+    expect(scenario.materials).toMatch(/Biofilm|source record|supporting records|recorded evidence/i);
+    expect(scenario.materials).not.toBe(
       'the source record, two competing interpretations, and the documented evidence boundary',
     );
     expect(analyzeDecisionScenario(scenario).ready).toBe(true);
@@ -332,5 +333,32 @@ describe('evidence-to-decision scenario contract', () => {
     };
     expect(resolveDecisionScenario({ ...KERNEL, scenario: authored })).toEqual({ ...authored, source: 'authored' });
     expect(resolveDecisionScenario(KERNEL).source).toBe('derived-kernel-fallback');
+  });
+
+  it('binds compact generic evidence packets to the lesson concept instead of repeating one package-wide phrase', () => {
+    const makeKernel = (term) => ({
+      facts: [
+        `${term} claim one is supported by the first supplied record.`,
+        `${term} claim two is supported by the second supplied record.`,
+        `The ${term} evidence boundary limits both claims.`,
+      ],
+      keyTerms: [
+        {
+          term,
+          source: 'fact-ledger-projection',
+          definition: `${term} is interpreted from bounded source evidence.`,
+          example: `A learner compares two records about ${term}.`,
+          misconception: `Every ${term} claim is equally supported.`,
+          correction: `Check each ${term} claim against its record.`,
+        },
+      ],
+    });
+
+    const composition = deriveDecisionScenario(makeKernel('composition'));
+    const attribution = deriveDecisionScenario(makeKernel('source attribution'));
+    expect(composition.materials).toContain('composition');
+    expect(attribution.materials).toContain('source attribution');
+    expect(composition.materials).not.toBe(attribution.materials);
+    expect(composition.materials).not.toContain('the source records behind Claim A and Claim B and');
   });
 });

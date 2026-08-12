@@ -25,7 +25,15 @@ import {
   knownOffenderFitsScope,
   matchesKnownOffender,
 } from './quality/knownOffenderScope.js';
-import { buildCompilerSourceBoundaryCorrection } from './compilerSourceBoundaryCorrection.js';
+import {
+  buildCompilerSourceBoundaryCorrection,
+  buildCompilerSourceBoundaryMisconception,
+} from './compilerSourceBoundaryCorrection.js';
+import {
+  isDiscriminativeSurfaceMatch,
+  semanticIdentityTokens,
+  sourceIdentityScopeMismatch,
+} from './lessonSemanticRelevance.js';
 
 // Contract word bounds (scionContracts.compactLessonKernelSchemaProfile).
 const FACT_WORDS = [8, 20];
@@ -101,13 +109,13 @@ function fitWords(text, [min, max], filler = '') {
 }
 
 const DANGLING_FACT_EDGE =
-  /\b(?:a|an|and|are|as|at|be|because|by|different|each|for|from|if|in|is|of|on|or|precise|that|the|this|to|when|whether|which|whose|with)\.?$/i;
+  /\b(?:a|an|and|are|as|at|be|because|by|different|each|for|from|however|if|in|is|moreover|of|on|or|precise|that|the|therefore|this|to|when|whether|which|whose|with)\.?$/i;
 const CONTEXT_DEPENDENT_FACT_START =
   /^(?:(?:sometimes|often|typically|generally)\s+)?(?:it|its|this|that|these|those|they|their|there(?!\s+(?:is|are|was|were)\b)|such|when|where|why|how|an example|another example|one example|examples include)\b/i;
 const DEICTIC_REFERENCE =
   /\b(?:this|that|these|those)\s+(?:article|case|diagram|example|figure|line|lines|section|situation|table)\b/i;
 const FINITE_PREDICATE =
-  /\b(?:is|are|was|were|be|been|has|have|had|can|could|may|might|will|would|should|must|ought|need|needs|refer|refers|mean|means|occur|occurs|arise|arises|involve|involves|use|uses|allow|allows|include|includes|describe|describes|communicate|communicates|concern|concerns|represent|represents|form|forms|support|supports|provide|provides|require|requires|consist|consists|comprise|comprises|cover|covers|become|becomes|evolve|evolves|produce|produces|give|gives|ask|asks|follow|follows|contain|contains|compute|computes|measure|measures|operate|operates|appear|appears|apply|applies|change|changes|detect|detects|distinguish|distinguishes|enable|enables|explain|explains|group|groups|link|links|perform|performs|protect|protects|quantify|quantifies|remain|remains|run|runs|solve|solves|store|stores|evaluate|evaluates|identify|identifies|document|documents|eliminate|eliminates|govern|governs|prohibit|prohibits|implement|implements|establish|establishes|coordinate|coordinates|monitor|monitors|assess|assesses|define|defines|supersede|supersedes|address|addresses|develop|develops|propose|proposes|align|aligns|regulate|regulates|promote|promotes|limit|limits|reconcile|reconciles|diagnose|diagnoses|reflect|reflects|design|designs|conceptualize|conceptualizes|position|positions|bridge|bridges|uphold|upholds|underscore|underscores|adopt|adopts|introduced|developed|showed|demonstrated|placed)\b/i;
+  /\b(?:is|are|was|were|be|been|has|have|had|can|could|may|might|will|would|should|must|ought|need|needs|refer|refers|mean|means|occur|occurs|arise|arises|involve|involves|use|uses|allow|allows|include|includes|describe|describes|display|displays|communicate|communicates|concern|concerns|represent|represents|form|forms|support|supports|provide|provides|require|requires|consist|consists|comprise|comprises|cover|covers|become|becomes|evolve|evolves|produce|produces|give|gives|ask|asks|follow|follows|contain|contains|compute|computes|measure|measures|operate|operates|appear|appears|apply|applies|change|changes|detect|detects|distinguish|distinguishes|enable|enables|explain|explains|group|groups|link|links|perform|performs|protect|protects|quantify|quantifies|remain|remains|run|runs|solve|solves|store|stores|evaluate|evaluates|identify|identifies|document|documents|eliminate|eliminates|govern|governs|prohibit|prohibits|implement|implements|establish|establishes|coordinate|coordinates|monitor|monitors|assess|assesses|define|defines|supersede|supersedes|address|addresses|develop|develops|propose|proposes|align|aligns|regulate|regulates|promote|promotes|limit|limits|reconcile|reconciles|diagnose|diagnoses|reflect|reflects|design|designs|conceptualize|conceptualizes|position|positions|bridge|bridges|uphold|upholds|underscore|underscores|adopt|adopts|introduced|developed|showed|demonstrated|placed)\b/i;
 const PREPOSITIONAL_FACT_START = /^(?:in|on|at|for|by|with|from)\b/i;
 const DEPENDENT_FACT_START = /^(?:given|together with|along with|including|such as)\b/i;
 
@@ -128,6 +136,11 @@ function hasIndependentPredicate(text, { maxSubjectWords = 12 } = {}) {
     // and repeatability, is ...". Treat that grammar like the alias form
     // above for predicate detection only; the retained claim stays verbatim.
     .replace(/^([^,]{2,80}),\s+(?:closely\s+)?related\s+to\s+[^,]{1,80},\s+(?=(?:is|are|refers?|means?)\b)/i, '$1 ')
+    // Disciplinary locators are also parenthetical appositives rather than
+    // unresolved context: “Visual hierarchy, in Gestalt psychology,
+    // describes …” has an explicit subject and predicate. Normalize only for
+    // the grammar check; the admitted claim remains byte-exact source text.
+    .replace(/^([^,]{2,80}),\s+(?:in|within)\s+[^,]{1,80},\s+(?=(?:is|are|refers?|means?|describes?)\b)/i, '$1 ')
     .trim();
   const predicate = FINITE_PREDICATE.exec(clause);
   if (!predicate || predicate.index <= 0) return false;
@@ -301,7 +314,7 @@ export function fitSourceSentence(text, bounds = FACT_WORDS) {
   // the prefix already has a finite predicate and complete object:
   // "refers to the allocation of responsibility for consequences" becomes
   // the still-verbatim "refers to the allocation of responsibility."
-  for (const match of clauseSource.matchAll(/\s+(?:because|for|through)\s+/gi)) {
+  for (const match of clauseSource.matchAll(/\s+(?:because|for|through|on\s+the\s+basis\s+of)\s+/gi)) {
     const clause = clauseSource
       .slice(0, match.index)
       .replace(/[.!?]+$/, '')
@@ -348,6 +361,26 @@ export function fitSourceFacts(text) {
   if (primary === normalized) return [primary];
   const clauses = [primary];
   const clauseSource = normalized.replace(/^This means\s+/i, '');
+  // A source can state a compact claim and then define its consequence with
+  // "meaning that". The complement has its own subject and finite predicate,
+  // so preserve it as a second exact, independently readable claim rather
+  // than dropping useful evidence behind the first compact prefix.
+  const meaningThatComplement = clauseSource.match(/\b(?:means|meaning)\s+that\s+(.+)$/i)?.[1] || '';
+  if (meaningThatComplement) {
+    const independentComplement = meaningThatComplement
+      .split(/\s+(?:although|because|if|unless|when|whereas)\s+/i)[0]
+      .replace(/[.!?]+$/, '')
+      .trim();
+    const complementWords = wordsOf(independentComplement);
+    if (
+      complementWords.length >= FACT_WORDS[0] &&
+      complementWords.length <= FACT_WORDS[1] &&
+      isSelfContainedFact(independentComplement, { maxSubjectWords: 20 })
+    ) {
+      const sentenceCased = `${independentComplement.charAt(0).toUpperCase()}${independentComplement.slice(1)}.`;
+      if (!clauses.some((clause) => clause.toLowerCase() === sentenceCased.toLowerCase())) clauses.push(sentenceCased);
+    }
+  }
   for (const match of clauseSource.matchAll(/[,;:—]/g)) {
     const before = clauseSource.slice(0, match.index);
     if ((before.match(/\(/g) || []).length > (before.match(/\)/g) || []).length) continue;
@@ -433,6 +466,55 @@ export function resolverLessonShape(lesson) {
 }
 
 /**
+ * Pass B receives lesson topics in two equivalent transport shapes:
+ * authoring callers use an array, while the compact enrichment payload joins
+ * section topics with semicolons. Keep that serialization detail out of
+ * research, relevance, and evidence-composition decisions. Treating the
+ * joined string as absent caused research to fall back to broad lesson titles;
+ * spreading it later also turned the context into one entry per character.
+ */
+function lessonTopicValues(lesson = {}) {
+  const raw = Array.isArray(lesson?.topics) ? lesson.topics : [lesson?.topics];
+  return raw
+    .flatMap((value) => String(value || '').split(/\s*;\s*/))
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
+
+function lessonObjectiveValues(lesson = {}) {
+  const raw = Array.isArray(lesson?.objectives) ? lesson.objectives : [lesson?.objectives];
+  return raw
+    .flatMap((value) => String(value || '').split(/\s*;\s*/))
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
+
+// These words describe a broad course context, not a concept identity. Keep
+// them when they are the only authored signal (a lesson genuinely can be
+// titled "Data"), but do not let one shared generic word admit an unrelated
+// source when the title also supplies a more discriminative head concept.
+const GENERIC_TOPIC_IDENTITY_TOKENS = new Set([
+  'analysis',
+  'application',
+  'basic',
+  'data',
+  'distribution',
+  'foundational',
+  'information',
+  'intro',
+  'introduction',
+  'overview',
+  'practice',
+  'producing',
+]);
+
+function topicIdentityTokens(topic) {
+  const tokens = [...lessonSupportTokens(topic)];
+  const discriminative = tokens.filter((token) => !GENERIC_TOPIC_IDENTITY_TOKENS.has(token));
+  return discriminative.length > 0 ? discriminative : tokens;
+}
+
+/**
  * Concept ids a kernel points at. `edges` is a relation map — { recommends:
  * [...], requires: [...] } — so every relation's targets are collected.
  */
@@ -467,6 +549,7 @@ export function constrainConceptIdsToDisciplines(ids, index, allowedDisciplines 
 function kernelsForLesson(lesson, index, wanted = KEY_TERMS_REQUIRED, claimed = new Set(), allowedDisciplines = []) {
   if (!index) return [];
   const resolved = resolveLessonConcepts(resolverLessonShape(lesson), index, { maxConcepts: Math.max(4, wanted) });
+  const relevanceTopic = [lessonTopic(lesson), ...lessonTopicValues(lesson)].filter(Boolean).join(' ');
   let ids = [];
   for (const ref of resolved.conceptRefs || []) {
     const id = ref?.conceptId || ref?.id;
@@ -478,7 +561,69 @@ function kernelsForLesson(lesson, index, wanted = KEY_TERMS_REQUIRED, claimed = 
   // supplies a discipline, reject cross-discipline hits before graph widening;
   // an honest research miss is safer than a fluent wrong-domain lesson.
   ids = constrainConceptIdsToDisciplines(ids, index, allowedDisciplines);
+  ids = ids.filter((id) => kernelSupportsTopic(index.kernels.get(id), relevanceTopic));
+  // Resolver ranking can decline a short, overloaded lesson title even when
+  // one in-discipline kernel explicitly declares that exact phrase as a tag.
+  // Recover only an exact canonical surface (never a token substring), so a
+  // lesson titled “Regression” can use a statistics kernel tagged
+  // “regression” without adding the broad alias that collides with linear
+  // algebra and other disciplines.
+  if (ids.length === 0) {
+    const exactTopic = String(lessonTopic(lesson) || '')
+      .replace(/^\s*(?:lesson|week|session)\s*\d+\s*[:.–—-]\s*/i, '')
+      .replace(/[^a-z0-9]+/gi, ' ')
+      .trim()
+      .toLowerCase();
+    const allowed = new Set((allowedDisciplines || []).map((discipline) => String(discipline || '').toLowerCase()));
+    ids = [...index.kernels.entries()]
+      .filter(([, kernel]) => allowed.size === 0 || allowed.has(String(kernel?.discipline || '').toLowerCase()))
+      .filter(([, kernel]) =>
+        [kernel?.term, ...(kernel?.aliases || []), ...(kernel?.tags || [])].some(
+          (surface) =>
+            String(surface || '')
+              .replace(/[^a-z0-9]+/gi, ' ')
+              .trim()
+              .toLowerCase() === exactTopic,
+        ),
+      )
+      .map(([id]) => id);
+  }
   if (ids.length === 0) return [];
+  // Coverage is an identity check, not a demand that one kernel repeat every
+  // sentence in a generated teaching brief. `topics` can also carry goals,
+  // assessment paths, and model-authored directions; counting all of those
+  // tokens made a precisely matched concept look uncovered. Prefer the first
+  // authored section topic (the same concrete signal used by research), then
+  // fall back to the lesson title. The full brief still participates in
+  // resolver ranking and the per-kernel topical firewall above.
+  const primarySectionTopic = lessonTopicValues(lesson)
+    .map((topic) =>
+      String(topic || '')
+        .replace(/^\s*\d+(?:\.\d+)*\s*[:.–—-]\s*/i, '')
+        .trim(),
+    )
+    .find((topic) => topic && !/^topic|focus|overview$/i.test(topic));
+  const identityTopic = primarySectionTopic || lessonTopic(lesson);
+  const topicTokens = topicIdentityTokens(identityTopic);
+  const directlyCoveredTopicTokens = new Set(
+    ids.flatMap((id) => [
+      ...lessonSupportTokens(
+        [
+          index.kernels.get(id)?.term,
+          ...(index.kernels.get(id)?.aliases || []),
+          ...(index.kernels.get(id)?.tags || []),
+        ].join(' '),
+      ),
+    ]),
+  );
+  const coveredTopicCount = topicTokens.filter((token) => directlyCoveredTopicTokens.has(token)).length;
+  const headTopicToken = topicTokens.at(-1);
+  const requiredTopicCoverage = Math.max(1, Math.ceil(topicTokens.length * 0.5));
+  // The named head concept is decisive ("pathogen" in "waterborne
+  // pathogens"). Requiring every modifier to repeat in a source label loses
+  // precise curated concepts; accepting only a modifier recreates the broad
+  // "data" false positives this gate exists to stop.
+  if (!directlyCoveredTopicTokens.has(headTopicToken) || coveredTopicCount < requiredTopicCoverage) return [];
   const unclaimed = (id) => !claimed.has(id);
   // Every widening step stays inside the lesson's own discipline. Without this
   // the resolver's near-misses leak across subjects on a single shared token:
@@ -486,6 +631,7 @@ function kernelsForLesson(lesson, index, wanted = KEY_TERMS_REQUIRED, claimed = 
   // minerals", and one on triads pulled in "Water quality sampling".
   const homeDiscipline = index.kernels.get(ids[0])?.discipline || null;
   const sameDiscipline = (id) => !homeDiscipline || index.kernels.get(id)?.discipline === homeDiscipline;
+  const supportsLesson = (id) => kernelTopicOverlapScore(index.kernels.get(id), identityTopic) > 0;
   // One kernel rarely carries three distinct key terms, five in-window facts,
   // and two question items on its own, so widen deliberately — nearest first,
   // and never outside the lesson's own discipline.
@@ -504,7 +650,8 @@ function kernelsForLesson(lesson, index, wanted = KEY_TERMS_REQUIRED, claimed = 
   for (const suggestion of resolved.suggestions || []) {
     if (ids.length >= target) break;
     const id = suggestion?.conceptId || suggestion?.id;
-    if (id && !ids.includes(id) && index.kernels.has(id) && sameDiscipline(id) && unclaimed(id)) ids.push(id);
+    if (id && !ids.includes(id) && index.kernels.has(id) && sameDiscipline(id) && supportsLesson(id) && unclaimed(id))
+      ids.push(id);
   }
   // 3. same-discipline siblings, unclaimed ones first. Still this course's
   //    subject matter, and the honest alternative to an incomplete lesson.
@@ -513,7 +660,7 @@ function kernelsForLesson(lesson, index, wanted = KEY_TERMS_REQUIRED, claimed = 
     for (const pass of [unclaimed, () => true]) {
       for (const [id, kernel] of index.kernels) {
         if (ids.length >= target) break;
-        if (kernel?.discipline === discipline && !ids.includes(id) && pass(id)) ids.push(id);
+        if (kernel?.discipline === discipline && !ids.includes(id) && supportsLesson(id) && pass(id)) ids.push(id);
       }
     }
   }
@@ -530,8 +677,21 @@ const CORRECTION_MIN_CHARS = 12;
 const CORRECTION_MAX_CHARS = 300;
 
 function composeCorrection(misconception, kernel) {
-  const right = String(misconception?.corrective || sentenceOf(kernel.definition)).trim();
+  const explicitCorrection = String(misconception?.corrective || '').trim();
+  const right = String(explicitCorrection || sentenceOf(kernel.definition)).trim();
   if (!right) return '';
+  if (!explicitCorrection) {
+    const term = String(kernel?.term || '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (!term) return '';
+    // The source may identify a misconception without authoring a separate
+    // corrective sentence. Repeating the definition in `cx` fails the
+    // teaching contract and makes correction indistinguishable from recall.
+    // State only the safe epistemic repair: reject the supplied belief and
+    // return to the already admitted source definition and conditions.
+    return `For ${term}, reject that belief and apply the source-backed definition only under its stated conditions.`;
+  }
   if (
     /^A related idea can be labeled .+ without checking the source definition\.?$/i.test(
       String(sentenceOf(misconception)).trim(),
@@ -600,6 +760,7 @@ export function diagnoseKeyTermCandidate(kernel) {
     const termPattern = String(kernel?.term || '')
       .trim()
       .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      .replace(/×/g, '\\s*×\\s*')
       .replace(/\s+/g, '[\\s-]+');
     const candidates = [kernel.definition, ...(kernel.facts || [])].map(sentenceOf).filter(Boolean);
     const named = termPattern
@@ -963,7 +1124,7 @@ export function lessonOffset(lesson, fallback = 0) {
  * to say "review" is never diverted here.
  */
 const INTEGRATIVE_LESSON =
-  /\b(capstone|integrativ|synthesis|synthesiz|culminating|final (?:project|paper|report|presentation|analysis)|accountable case recommendations?|(?:course|policy|evidence-based policy) recommendations?|portfolio|showcase|wrap[- ]?up|putting it (?:all )?together|review of)\b/i;
+  /\b(capstone|integrativ|synthesis|synthesiz|culminating|final(?:\s+[\w-]+){0,4}\s+(?:project|paper|report|presentation|analysis)|project proposal (?:and )?defen[cs]e|accountable case recommendations?|(?:course|policy|evidence-based policy) recommendations?|portfolio|showcase|wrap[- ]?up|putting it (?:all )?together|review of)\b/i;
 
 export function isIntegrativeLesson(lesson) {
   return INTEGRATIVE_LESSON.test(String(lesson?.title || lesson?.topic || lesson?.lessonId || ''));
@@ -1045,6 +1206,93 @@ export function composeLessonKernelFromGenome(
   return composeLessonFromKernels(lesson, kernels, { factCount, claimed, offset, usedOut, sourceReferences });
 }
 
+export function sourceClaimSemanticAdmission(kernel = {}, claim = '') {
+  const text = String(claim || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const topic = String(kernel?.provenance?.topic || kernel?.term || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const integrityIssues = [
+    /\b[a-z]{2,}[A-Z][a-z]+\b/,
+    /\b[b-hj-z]\s+[a-z]{3,}\b/i,
+    /\uFFFD/,
+    /\b(?:https?:\/\/|www\.)\S+\s+\S+\s+\S+/i,
+  ].filter((pattern) => pattern.test(text));
+  const topicTokens = [...new Set(semanticIdentityTokens(topic))];
+  const claimTokenList = [...new Set(semanticIdentityTokens(text))];
+  const claimTokens = new Set(claimTokenList);
+  const topicMatches = topicTokens.filter((token) => claimTokens.has(token));
+  const kernelScopeTokens = [
+    ...new Set(semanticIdentityTokens(`${kernel?.term || ''} ${kernel?.provenance?.title || ''}`)),
+  ];
+  const kernelScopeMatches = kernelScopeTokens.filter((token) => claimTokens.has(token));
+  const directCanonicalMatch = kernel?.provenance?.research?.directTitleMatch === true;
+  const topicClauses = topic
+    .split(/\s*[·|]\s*/)
+    .map((value) => [...new Set(semanticIdentityTokens(value))])
+    .filter((tokens) => tokens.length > 0);
+  const canonicalSourceTokens = [
+    ...new Set(semanticIdentityTokens(`${kernel?.term || ''} ${kernel?.provenance?.title || ''}`)),
+  ];
+  const directCanonicalSourceMatch =
+    directCanonicalMatch &&
+    canonicalSourceTokens.length > 0 &&
+    topicClauses.some(
+      (tokens) =>
+        tokens.length === canonicalSourceTokens.length &&
+        tokens.every((token) => canonicalSourceTokens.includes(token)) &&
+        canonicalSourceTokens.every((token) => tokens.includes(token)),
+    );
+  const plannedEvidenceTokens = [
+    ...new Set(semanticIdentityTokens(kernel?.provenance?.research?.plannedEvidenceContext || '')),
+  ];
+  const plannedEvidenceMatches = plannedEvidenceTokens.filter((token) => claimTokens.has(token));
+  const identityMismatch = sourceIdentityScopeMismatch({
+    lessonIdentity: topic,
+    sourceIdentity: `${kernel?.provenance?.title || ''} ${kernel?.provenance?.sourceUrl || ''} ${kernel?.term || ''}`,
+    sourceContent: text,
+  });
+  // Exact bytes prove that a claim belongs to a source; they do not prove the
+  // source belongs in this lesson. Require the claim to share a
+  // discriminating lesson-topic identity. Exact generic lesson identities
+  // (for example, a lesson literally titled "Graph Theory") still pass, but
+  // one overloaded descriptor cannot import a neighboring discipline.
+  const exactCanonicalTopicMatch =
+    directCanonicalMatch &&
+    kernelScopeTokens.length > 0 &&
+    kernelScopeTokens.every((token) => topicTokens.includes(token)) &&
+    topicTokens.every((token) => kernelScopeTokens.includes(token)) &&
+    kernelScopeTokens.every((token) => claimTokens.has(token));
+  const plannedEvidenceMatch =
+    directCanonicalMatch &&
+    plannedEvidenceMatches.length >= 2 &&
+    isDiscriminativeSurfaceMatch(claimTokenList, plannedEvidenceMatches);
+  const semanticScopeMatch =
+    !identityMismatch.mismatch &&
+    (isDiscriminativeSurfaceMatch(claimTokenList, topicMatches) ||
+      exactCanonicalTopicMatch ||
+      plannedEvidenceMatch ||
+      directCanonicalSourceMatch);
+  const admitted = Boolean(text && integrityIssues.length === 0 && semanticScopeMatch && isSelfContainedFact(text));
+  return {
+    admitted,
+    policy: 'lesson-topic-source-integrity-v4',
+    topic,
+    topicMatches,
+    kernelScopeMatches,
+    directCanonicalMatch,
+    directCanonicalSourceMatch,
+    plannedEvidenceMatches,
+    issues: [
+      ...(integrityIssues.length > 0 ? ['source-text-integrity'] : []),
+      ...(identityMismatch.mismatch ? [identityMismatch.reason] : []),
+      ...(!semanticScopeMatch ? ['lesson-topic-mismatch'] : []),
+      ...(!isSelfContainedFact(text) ? ['non-self-contained-claim'] : []),
+    ],
+  };
+}
+
 export function sourceReferenceForKernel(kernel, sourceReferences = {}) {
   const anchor =
     kernel?.definition?.anchor ||
@@ -1063,6 +1311,19 @@ export function sourceReferenceForKernel(kernel, sourceReferences = {}) {
     (research && researchProvider === 'wikipedia' && researchTitle
       ? `https://en.wikipedia.org/wiki/${encodeURIComponent(researchTitle.replace(/\s+/g, '_'))}`
       : '');
+  const shippedProvider = (() => {
+    const explicit = String(metadata.provider || metadata.providerId || '')
+      .trim()
+      .toLowerCase();
+    if (explicit) return explicit;
+    const identity = `${sourceId} ${sourceUrl}`.toLowerCase();
+    if (/\bopenstax\b/.test(identity)) return 'openstax';
+    if (/\bopen-music-theory\b|openmusictheory\.com/.test(identity)) return 'open-music-theory';
+    if (/\bgutenberg\b/.test(identity)) return 'gutenberg';
+    if (/\bw3c-wai\b|w3\.org\/wai\//.test(identity)) return 'w3c-wai';
+    if (/\bw3c\b|w3\.org\/TR\//.test(identity)) return 'w3c';
+    return '';
+  })();
   const attribution = Array.isArray(kernel?.attribution)
     ? kernel.attribution.filter(Boolean).join('; ')
     : String(kernel?.attribution || metadata.attribution || '').trim();
@@ -1075,14 +1336,14 @@ export function sourceReferenceForKernel(kernel, sourceReferences = {}) {
       .replace(/[.!?]+$/u, '')
       .toLowerCase();
   const claimChecks = [];
+  const rejectedClaimChecks = [];
   const seenClaims = new Set();
-  const snapshotProtocol = String(kernel?.provenance?.sourceSnapshot?.protocol || '').trim();
-  const snapshotSource = (kernel?.provenance?.sourceSnapshot?.sources || []).find(
+  const sourceSnapshot = kernel?.provenance?.sourceSnapshot || metadata?.sourceSnapshot || null;
+  const snapshotProtocol = String(sourceSnapshot?.protocol || '').trim();
+  const snapshotSource = (sourceSnapshot?.sources || []).find(
     (candidate) => String(candidate?.sourceId || '').trim() === sourceId,
   );
-  const snapshotClaims = Array.isArray(kernel?.provenance?.sourceSnapshot?.claims)
-    ? kernel.provenance.sourceSnapshot.claims
-    : [];
+  const snapshotClaims = Array.isArray(sourceSnapshot?.claims) ? sourceSnapshot.claims : [];
   for (const [claimIndex, entry] of [kernel?.definition, ...(kernel?.facts || [])].filter(Boolean).entries()) {
     const claim = sentenceOf(entry);
     const claimAnchor = entry?.anchor;
@@ -1105,7 +1366,7 @@ export function sourceReferenceForKernel(kernel, sourceReferences = {}) {
       !anchoredSourceId ||
       !locator ||
       !normalizedClaim ||
-      normalizedClaim !== normalizedQuote ||
+      (research && normalizedClaim !== normalizedQuote) ||
       snapshotProtocol !== 'retrieved-source-snapshot-sha256-v2' ||
       String(snapshotSource?.sourceId || '').trim() !== anchoredSourceId ||
       !String(snapshotSource?.normalizedSnapshotText || '').trim() ||
@@ -1125,7 +1386,17 @@ export function sourceReferenceForKernel(kernel, sourceReferences = {}) {
       continue;
     }
     seenClaims.add(normalizedClaim);
-    claimChecks.push({
+    const semanticAdmission = research
+      ? sourceClaimSemanticAdmission(kernel, claim)
+      : {
+          admitted: true,
+          policy: 'shipped-source-curated-anchor-v1',
+          topic: String(kernel?.term || '').trim(),
+          topicMatches: [],
+          issues: [],
+        };
+    const exactClaimIdentity = normalizedClaim === normalizedQuote;
+    const claimCheck = {
       claimId: `${String(kernel?.id || 'claim')}:claim-${claimIndex + 1}`,
       claim,
       quote,
@@ -1137,13 +1408,18 @@ export function sourceReferenceForKernel(kernel, sourceReferences = {}) {
       quoteByteEnd: Number(snapshotClaim.quoteByteEnd),
       sourcePassageSha256: snapshotClaim.quoteSha256,
       quoteInSnapshot: true,
-      entailed: true,
+      entailed: semanticAdmission.admitted,
       score: 1,
-      reason: 'exact-source-claim-identity',
-      method: 'exact-source-claim-v1',
-      construct: 'source-claim-identity',
-      semanticSupport: true,
-    });
+      reason: exactClaimIdentity ? 'exact-source-claim-identity' : 'curated-source-paraphrase-admission',
+      method: exactClaimIdentity ? 'exact-source-claim-v1' : 'curated-source-paraphrase-v1',
+      construct: exactClaimIdentity ? 'source-claim-identity' : 'semantic-source-support',
+      sourceIdentityVerified: true,
+      semanticAdmissionVerified: semanticAdmission.admitted,
+      semanticAdmission,
+      semanticSupport: semanticAdmission.admitted,
+    };
+    if (semanticAdmission.admitted) claimChecks.push(claimCheck);
+    else rejectedClaimChecks.push(claimCheck);
   }
   const upstreamReceipt = kernel?.provenance?.entailment || null;
   return {
@@ -1154,7 +1430,7 @@ export function sourceReferenceForKernel(kernel, sourceReferences = {}) {
     license: String(kernel?.license || metadata.license || '').trim(),
     attribution: attribution || displayTitle,
     kind: research ? researchKind || 'open source' : 'open resource',
-    ...(researchProvider ? { provider: researchProvider } : {}),
+    ...(researchProvider || shippedProvider ? { provider: researchProvider || shippedProvider } : {}),
     ...(research && kernel?.provenance?.topic ? { topic: String(kernel.provenance.topic).trim() } : {}),
     evidence: String(anchor.quote || '').trim(),
     sourceTier: Number(anchor.tier ?? kernel?.definition?.tier ?? 2),
@@ -1173,12 +1449,21 @@ export function sourceReferenceForKernel(kernel, sourceReferences = {}) {
             checkedClaims: Math.max(Number(upstreamReceipt?.checkedClaims) || 0, claimChecks.length),
             minimumScore:
               claimChecks.length > 0 ? 1 : Math.max(0, Math.min(1, Number(upstreamReceipt?.minimumScore) || 0)),
-            method: claimChecks.length > 0 ? 'exact-source-claim-v1' : upstreamReceipt?.method,
+            method:
+              claimChecks.length > 0
+                ? claimChecks.every((check) => check.method === 'exact-source-claim-v1')
+                  ? 'exact-source-claim-v1'
+                  : 'curated-source-paraphrase-v1'
+                : upstreamReceipt?.method,
             construct: 'source-extraction-integrity',
             // Exact source identity establishes support for these atomic
             // claims, but readiness remains false until the exporter proves
             // that the same claim is visible in a concrete artifact byte set.
-            semanticSupport: claimChecks.length > 0,
+            sourceIdentityVerified: claimChecks.length > 0,
+            semanticAdmissionVerified:
+              claimChecks.length > 0 && claimChecks.every((check) => check.semanticAdmissionVerified === true),
+            semanticSupport:
+              claimChecks.length > 0 && claimChecks.every((check) => check.semanticAdmissionVerified === true),
             readinessEligible: false,
             ...(claimChecks.length > 0
               ? {
@@ -1189,15 +1474,49 @@ export function sourceReferenceForKernel(kernel, sourceReferences = {}) {
                     retrievedSnapshotBytes: Number(snapshotSource.retrievedSnapshotBytes),
                     normalizedSnapshotText: String(snapshotSource.normalizedSnapshotText),
                     contentVerified: false,
+                    sourceIdentityVerified: true,
+                    semanticAdmissionVerified:
+                      claimChecks.length > 0 && claimChecks.every((check) => check.semanticAdmissionVerified === true),
+                    artifactVisibilityVerified: false,
                   },
                 }
               : {}),
             claimBoundary:
               'Exact claim identity is bound to an admitted source passage; rendered visibility is verified separately after Office export.',
             checks: claimChecks,
+            ...(rejectedClaimChecks.length > 0 ? { rejectedChecks: rejectedClaimChecks } : {}),
           },
         }
       : {}),
+  };
+}
+
+/**
+ * Research retrieval may extract several exact sentences from one page, but
+ * exact bytes alone do not make every sentence relevant or self-contained.
+ * Quarantine rejected atoms before readiness, composition, and caching so a
+ * dangling or off-topic sentence cannot become one of the learner's facts.
+ */
+export function semanticAdmissionSafeResearchKernel(kernel) {
+  if (!kernel || kernel?.provenance?.origin !== 'algi-research') return kernel || null;
+  const definition = kernel?.definition;
+  if (!definition || !sourceClaimSemanticAdmission(kernel, sentenceOf(definition)).admitted) return null;
+  const facts = (kernel?.facts || []).filter((fact) => sourceClaimSemanticAdmission(kernel, sentenceOf(fact)).admitted);
+  const admittedClaims = new Set(
+    [sentenceOf(definition), ...facts.map(sentenceOf)].map((claim) => claim.toLowerCase()),
+  );
+  const exactAdmittedExamples = (kernel?.examples || []).filter((example) =>
+    admittedClaims.has(sentenceOf(example).toLowerCase()),
+  );
+  const exactAdmittedWorkedExamples = (kernel?.workedExamples || []).filter((example) =>
+    admittedClaims.has(sentenceOf(example).toLowerCase()),
+  );
+  return {
+    ...kernel,
+    definition,
+    facts,
+    examples: exactAdmittedExamples,
+    workedExamples: exactAdmittedWorkedExamples,
   };
 }
 
@@ -1205,13 +1524,69 @@ function conceptProvenanceForKernels(kernels, sourceReferences = {}) {
   const selected = kernels.slice(0, 6).filter(Boolean);
   const researched = selected.some((kernel) => kernel?.provenance?.origin === 'algi-research');
   const citations = [];
-  const seen = new Set();
+  const citationByKey = new Map();
   for (const kernel of selected) {
     const citation = sourceReferenceForKernel(kernel, sourceReferences);
     const key = `${citation?.sourceUrl || ''}|${citation?.displayTitle || citation?.key || ''}`.toLowerCase();
-    if (!citation || !key || seen.has(key)) continue;
-    seen.add(key);
-    citations.push(citation);
+    if (!citation || !key) continue;
+    const existing = citationByKey.get(key);
+    if (!existing) {
+      citationByKey.set(key, citation);
+      citations.push(citation);
+      continue;
+    }
+    // One retrieved article can yield several lesson-relevant kernels. The
+    // previous URL de-duplication kept only the first kernel's claims, which
+    // made a well-supported lesson appear sparse and discarded the rest of
+    // the immutable source ledger. Merge atomic checks while retaining one
+    // human-facing citation row.
+    const existingChecks = existing?.supportReceipt?.checks || [];
+    const incomingChecks = citation?.supportReceipt?.checks || [];
+    const mergedChecks = [];
+    const seenChecks = new Set();
+    for (const check of [...existingChecks, ...incomingChecks]) {
+      const identity = `${check?.sourceId || ''}|${check?.locator || ''}|${check?.sourcePassageSha256 || ''}|${String(
+        check?.claim || '',
+      )
+        .normalize('NFKC')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .toLowerCase()}`;
+      if (!check || seenChecks.has(identity)) continue;
+      seenChecks.add(identity);
+      mergedChecks.push(check);
+    }
+    existing.conceptLinks = [...(existing.conceptLinks || []), ...(citation.conceptLinks || [])].filter(
+      (link, index, entries) =>
+        entries.findIndex((candidate) => candidate?.id === link?.id && candidate?.label === link?.label) === index,
+    );
+    if (existing.supportReceipt || citation.supportReceipt) {
+      const mergedRejectedChecks = [
+        ...(existing?.supportReceipt?.rejectedChecks || []),
+        ...(citation?.supportReceipt?.rejectedChecks || []),
+      ].filter(
+        (check, index, entries) =>
+          entries.findIndex(
+            (candidate) =>
+              candidate?.sourceId === check?.sourceId &&
+              candidate?.claimId === check?.claimId &&
+              candidate?.sourcePassageSha256 === check?.sourcePassageSha256,
+          ) === index,
+      );
+      existing.supportReceipt = {
+        ...(existing.supportReceipt || citation.supportReceipt),
+        checks: mergedChecks,
+        checkedClaims: mergedChecks.length,
+        minimumScore: mergedChecks.length > 0 ? Math.min(...mergedChecks.map((check) => Number(check?.score) || 0)) : 0,
+        sourceIdentityVerified:
+          mergedChecks.length > 0 && mergedChecks.every((check) => check?.sourceIdentityVerified === true),
+        semanticAdmissionVerified:
+          mergedChecks.length > 0 && mergedChecks.every((check) => check?.semanticAdmissionVerified === true),
+        semanticSupport: mergedChecks.length > 0 && mergedChecks.every((check) => check?.semanticSupport === true),
+        readinessEligible: false,
+        ...(mergedRejectedChecks.length > 0 ? { rejectedChecks: mergedRejectedChecks } : {}),
+      };
+    }
   }
   return {
     source: researched ? 'algi-researched' : 'genome-linked',
@@ -1246,10 +1621,158 @@ function exactSourceClaimCount(payload) {
   }, 0);
 }
 
-function shouldAcceptEvidenceRevision(current, candidate) {
+export function hasOnlyVerifiedResearchPassageCitations(payload) {
+  const citations = Array.isArray(payload?.conceptProvenance?.citations) ? payload.conceptProvenance.citations : [];
+  return (
+    citations.length > 0 &&
+    citations.every((citation) => {
+      const receipt = citation?.supportReceipt;
+      const checks = Array.isArray(receipt?.checks) ? receipt.checks : [];
+      return (
+        receipt?.status === 'passed' &&
+        checks.length > 0 &&
+        checks.every(
+          (check) =>
+            check?.quoteInSnapshot === true &&
+            check?.entailed === true &&
+            check?.semanticSupport === true &&
+            String(check?.sourceId || '').trim() &&
+            String(check?.claim || '').trim() &&
+            String(check?.quote || '').trim(),
+        )
+      );
+    })
+  );
+}
+
+export function selectResearchAuthorityPayload(composedPayload, ledgerOnlyPayload) {
+  // A compact teaching payload may top up a narrow research result with
+  // bundled concepts for glossary or question-bank completeness. That mixed
+  // projection is useful pedagogy, but it must not relabel the bundled atoms
+  // as passage-verified research. Prefer the exact research-only ledger for
+  // authority whenever any citation lacks a complete passage receipt.
+  if (composedPayload && hasOnlyVerifiedResearchPassageCitations(composedPayload)) return composedPayload;
+  return ledgerOnlyPayload || null;
+}
+
+export function shouldAcceptEvidenceRevision(current, candidate, { authorityRevision = false } = {}) {
   if (!candidate) return false;
   if (!current) return true;
+  // An authority-rejected current ledger is not a valid quality baseline. A
+  // newly admitted research candidate may replace it even when the old ledger
+  // contains more exact-looking claims; downstream source authority still
+  // rechecks the replacement before any lesson is authorized to draft.
+  if (authorityRevision) return true;
   return exactSourceClaimCount(candidate) > exactSourceClaimCount(current);
+}
+
+// Research can establish a complete immutable fact ledger even when the
+// source headings do not yield three clean glossary labels. Treating that as
+// “uncovered” threw away verified passages and sent the same lesson back to
+// the model's weights. Preserve the source ledger; the existing compiler can
+// derive review-oriented teaching surfaces without inventing a keyed claim.
+export function composeResearchLedgerOnlyPayload(
+  lesson,
+  kernels,
+  { factCount = 5, offset = 0, sourceReferences = {}, diagnostics = null } = {},
+) {
+  const decline = (reason, detail = {}) => {
+    if (diagnostics && typeof diagnostics === 'object') Object.assign(diagnostics, { reason, ...detail });
+    return null;
+  };
+  const topic = lessonTopic(lesson);
+  const evidenceKernels = (Array.isArray(kernels) ? kernels : []).filter(Boolean).filter((kernel) => {
+    if (kernel?.provenance?.origin !== 'algi-research') return false;
+    const sourceTopic = String(kernel?.provenance?.topic || '').trim();
+    const boundedLessonScope = String(kernel?.provenance?.research?.lessonScopeTopic || '').trim();
+    const boundedQuestion =
+      kernel?.provenance?.research?.questionBasis === 'bounded-lesson-question-v1' &&
+      researchSourceTopicMatchesLesson(boundedLessonScope, lesson);
+    return (
+      !sourceTopic ||
+      researchSourceTopicMatchesLesson(sourceTopic, lesson) ||
+      boundedQuestion ||
+      kernelSupportsTopic(kernel, topic)
+    );
+  });
+  if (evidenceKernels.length === 0) return decline('ledger-no-research-kernels');
+  const conceptProvenance = conceptProvenanceForKernels(evidenceKernels, sourceReferences);
+  if (conceptProvenance.source !== 'algi-researched' || conceptProvenance.fullyAnchored !== true) {
+    return decline('ledger-provenance', {
+      source: conceptProvenance.source,
+      fullyAnchored: conceptProvenance.fullyAnchored,
+      kernelCount: evidenceKernels.length,
+    });
+  }
+  const facts = [];
+  const seenFacts = new Set();
+  const candidateChecks = conceptProvenance.citations.flatMap((citation) => citation?.supportReceipt?.checks || []);
+  const rotatedChecks =
+    candidateChecks.length > 1
+      ? [
+          ...candidateChecks.slice(offset % candidateChecks.length),
+          ...candidateChecks.slice(0, offset % candidateChecks.length),
+        ]
+      : candidateChecks;
+  for (const check of rotatedChecks) {
+    if (
+      check?.sourceIdentityVerified !== true ||
+      check?.semanticAdmissionVerified !== true ||
+      check?.semanticSupport !== true
+    ) {
+      continue;
+    }
+    const claim = String(check?.claim || '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    // Keep the fact byte-identical to the reviewed atomic source claim. If it
+    // needs rewriting to fit the learner-facing fact contract, it is not safe
+    // for this no-model fallback and remains available only in the citation
+    // ledger.
+    const claimWords = wordsOf(claim);
+    const complete = !/\b(?:a|an|and|as|at|by|for|from|in|of|on|or|the|to|with|[a-z])\s*[.!?]?$/i.test(claim);
+    if (
+      !claim ||
+      claimWords.length < FACT_WORDS[0] ||
+      // Research ledgers preserve the reviewed source sentence byte-for-byte.
+      // A compact target is still preferred, but rejecting a complete 25–40
+      // word source claim forces the model to invent a shorter replacement.
+      // Long facts remain paragraph evidence; slide projection independently
+      // keeps its tighter display boundary.
+      claimWords.length > 40 ||
+      !complete ||
+      seenFacts.has(claim.toLowerCase())
+    ) {
+      continue;
+    }
+    seenFacts.add(claim.toLowerCase());
+    facts.push(claim);
+    if (facts.length === factCount) break;
+  }
+  // The learner contract admits three to five independent source facts. A
+  // lesson with three verified claims is safer and more useful than replacing
+  // them with five unsupported model assertions merely to fill a fixed slot.
+  if (facts.length < 3) {
+    return decline('ledger-facts', {
+      factCount: facts.length,
+      candidateClaimCount: candidateChecks.length,
+      candidateWordCounts: candidateChecks.map((check) => wordsOf(check?.claim).length),
+    });
+  }
+  if (exactSourceClaimCount({ conceptProvenance }) < facts.length) {
+    return decline('ledger-source-claim-count', {
+      factCount: facts.length,
+      exactSourceClaimCount: exactSourceClaimCount({ conceptProvenance }),
+    });
+  }
+  return {
+    lessonId: lesson?.lessonId,
+    facts,
+    keyTerms: [],
+    enrichmentSource: conceptProvenance.source,
+    conceptProvenance,
+    projectionKind: 'verified-source-ledger-only',
+  };
 }
 
 /** Compose one lesson payload from an explicit kernel set. */
@@ -1356,7 +1879,7 @@ export function composeLessonFromKernels(
         if (activeKernels.includes(kernel)) return true;
         if (kernel?.provenance?.origin !== 'algi-research') return false;
         const sourceTopic = String(kernel?.provenance?.topic || '').trim();
-        if (!sourceTopic || sourceTopic.toLowerCase() !== String(lessonTopic(lesson)).toLowerCase()) return false;
+        if (sourceTopic && !researchSourceTopicMatchesLesson(sourceTopic, lesson)) return false;
         // Preserve all matched official vertical concepts, but do not let a
         // broad open-reference neighbour inject facts merely because it was
         // fetched for the same lesson. “Web accessibility” supplied a Wix
@@ -1467,7 +1990,7 @@ export function composeLessonFromCandidateKernels(lesson, kernels, options = {})
           if (integrative) return true;
           if (kernel?.provenance?.origin !== 'algi-research') return true;
           const sourceTopic = String(kernel?.provenance?.topic || '').trim();
-          if (!sourceTopic || sourceTopic.toLowerCase() === String(topic || '').toLowerCase()) return true;
+          if (!sourceTopic || researchSourceTopicMatchesLesson(sourceTopic, lesson)) return true;
           return kernelSupportsTopic(kernel, topic);
         })
         .slice(0, MAX_COMPOSITION_CANDIDATES)
@@ -1518,12 +2041,14 @@ const NON_CONCEPT_TERM_START =
   /^(?:although|because|few|generally|if|many|most|often|other|several|since|some|sometimes|typically|usually|various|when|where|while)\b/i;
 const TERM_PREDICATE =
   /\b(?:allows?|are|defines?|enables?|governs?|has|have|includes?|is|limits?|means?|provides?|refers?|requires?|supports?|was|were)\b/i;
+const DANGLING_CONCEPT_CONNECTIVE =
+  /(?:^(?:and|or|but|but also|as well as|rather than)\b|\b(?:and|or|but|but also|as well as|rather than)\s*$)/i;
 
 function isConceptLikeClaimTerm(value = '') {
   const term = String(value || '')
     .replace(/\s+/g, ' ')
     .trim();
-  if (!term || NON_CONCEPT_TERM_START.test(term)) return false;
+  if (!term || NON_CONCEPT_TERM_START.test(term) || DANGLING_CONCEPT_CONNECTIVE.test(term)) return false;
   // A label names a concept; it is not a clipped proposition. This rejects
   // source fragments such as “Often require non-standard devices” while
   // preserving noun phrases such as “Web Accessibility Initiative”.
@@ -1548,8 +2073,17 @@ function claimSubjectTerm(value = '') {
   if (
     words.length < 1 ||
     words.length > 4 ||
+    /^["'“‘]/.test(subject.trim()) ||
     !isConceptLikeClaimTerm(words.join(' ')) ||
-    words.some((word) => /^(?:it|this|that|these|those|they|there)$/i.test(word)) ||
+    (words.length === 1 && /ly$/i.test(words[0])) ||
+    words.some((word) =>
+      /^(?:can|could|may|might|must|shall|should|will|would|directly|formally|generally|often)$/i.test(word),
+    ) ||
+    words.some((word) =>
+      /^(?:above|below|earlier|following|former|it|later|latter|preceding|previous|such|this|that|these|those|they|there)$/i.test(
+        word,
+      ),
+    ) ||
     /^(?:it|this|that|these|those|they|there|which|who|what|article|study|paper|result|analysis|framework|law|legislation|regulations?|research)$/i.test(
       words[0],
     )
@@ -1560,7 +2094,7 @@ function claimSubjectTerm(value = '') {
 }
 
 const CLAIM_OBJECT_RELATION =
-  /\b(?:requires?|governs?|prohibits?|allows?|includes?|implements?|establishes?|provides?|coordinates?|monitors?|evaluates?|assesses?|defines?|supersedes?|protects?|addresses?|supports?|produces?|develops?|proposes?|aligns?|regulates?|promotes?|enables?|limits?|diagnoses?|diagnosing|reflects?|reflecting|designs?|designing|reconciles?|eliminates?|affected by|result(?:s|ed)? from|lie(?:s)? with)\b/gi;
+  /\b(?:requires?|governs?|prohibits?|allows?|includes?|implements?|establishes?|provides?|coordinates?|monitors?|evaluates?|assesses?|defines?|supersedes?|protects?|addresses?|supports?|produces?|develops?|proposes?|aligns?|regulates?|promotes?|enables?|limits?|diagnoses?|diagnosing|reflects?|reflecting|represents?|representing|designs?|designing|reconciles?|eliminates?|calls?|called|known as|affected by|result(?:s|ed)? from|lie(?:s)? with)\b/gi;
 const GENERIC_CLAIM_TERM =
   /^(?:claim|concept|factor|issue|item|method|model|process|result|thing|approach|article|study|paper|analysis|framework|law|legislation|research|source|system|bias|collection|conflicts?|decisions?|designers?|developers?|experts?|investigators?|learners?|organizations?|participants?|people|practitioners?|researchers?|respondents?|responsibilities|reviewers?|students?|systems?|teams?|users?)$/i;
 
@@ -1571,15 +2105,22 @@ function cleanClaimObjectPhrase(value = '') {
     .split(
       /[,;:—]|\b(?:and|or|that|which|who|whose|where|when|because|although|whereas|across|through|within|without|with|from|into|onto|among|between|under|over|during|after|before|around|as|for|of|to|in|on)\b/i,
     )[0]
+    .replace(/\s*×\s*/g, '×')
     .replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N})]+$/gu, '')
     .trim();
   const words = phrase.split(/\s+/).filter(Boolean);
   if (
     words.length < 1 ||
     words.length > 4 ||
+    /^["'“‘]/.test(phrase) ||
+    (words.length === 1 && /ly$/i.test(words[0])) ||
     /^(?:all|any|better|different|less|many|more|most|several|some|various|worse)\b/i.test(words.join(' ')) ||
     !isConceptLikeClaimTerm(words.join(' ')) ||
-    words.some((word) => /^(?:it|this|that|these|those|they|there|itself|themselves)$/i.test(word)) ||
+    words.some((word) =>
+      /^(?:above|below|earlier|following|former|it|later|latter|preceding|previous|such|this|that|these|those|they|there|itself|themselves)$/i.test(
+        word,
+      ),
+    ) ||
     GENERIC_CLAIM_TERM.test(words.join(' '))
   ) {
     return '';
@@ -1764,7 +2305,10 @@ export function expandResearchKernelsForComposition(kernels = [], topic = '') {
           facts: supportingFacts,
           misconceptions: [
             {
-              text: `Naming ${term} without identifying a supporting source detail is sufficient evidence.`,
+              text: buildCompilerSourceBoundaryMisconception(
+                term,
+                `${kernel.id}/claim-${claimIndex + 1}-${expanded.length + 1}`,
+              ),
               corrective: buildCompilerSourceBoundaryCorrection(
                 term,
                 `${kernel.id}/claim-${claimIndex + 1}-${expanded.length + 1}`,
@@ -1874,13 +2418,26 @@ function lessonSupportTokens(text) {
       .filter(
         (token) =>
           token.length >= 4 &&
-          !['course', 'lesson', 'week', 'intro', 'introduction', 'overview', 'practice', 'application'].includes(token),
+          ![
+            'application',
+            'basic',
+            'course',
+            'foundational',
+            'intro',
+            'introduction',
+            'lesson',
+            'overview',
+            'practice',
+            'principle',
+            'property',
+            'week',
+          ].includes(token),
       ),
   );
 }
 
 function kernelSupportsTopic(kernel, topic) {
-  const topicTokens = [...lessonSupportTokens(topic)];
+  const topicTokens = topicIdentityTokens(topic);
   if (topicTokens.length === 0) return false;
   const namedTokens = lessonSupportTokens(
     [kernel?.term, ...(kernel?.aliases || []), ...(kernel?.tags || [])].join(' '),
@@ -1888,11 +2445,61 @@ function kernelSupportsTopic(kernel, topic) {
   // A modifier-only definition mention is not lesson support: "Microbial mat"
   // belongs in the course but cannot fill "Microbial risk assessment." The
   // lesson's head concept must appear in the source's own named concept.
-  return namedTokens.has(topicTokens.at(-1));
+  return topicTokens.some((token) => namedTokens.has(token));
+}
+
+/**
+ * Sibling research is optional enrichment, so it must clear a substantially
+ * stronger identity test than the lesson's own query result. One shared word
+ * such as "visual", "data", or "analysis" cannot move an otherwise unrelated
+ * article into another lesson and later into a course synthesis.
+ */
+export function kernelStronglySupportsTopic(kernel, topic) {
+  const namedTokens = lessonSupportTokens(
+    [kernel?.term, ...(kernel?.aliases || []), ...(kernel?.tags || []), sentenceOf(kernel?.definition)]
+      .filter(Boolean)
+      .join(' '),
+  );
+  return String(topic || '')
+    .split(/\s*[·|;]\s*/)
+    .map((clause) => topicIdentityTokens(clause))
+    .filter((tokens) => tokens.length > 0)
+    .some((tokens) => {
+      const head = tokens.at(-1);
+      const overlap = tokens.filter((token) => namedTokens.has(token)).length;
+      return namedTokens.has(head) && overlap >= Math.max(1, Math.ceil(tokens.length * 0.5));
+    });
+}
+
+function normalizedResearchScopeClauses(value = '') {
+  return String(value || '')
+    .split(/\s*[·|]\s*/)
+    .map((clause) =>
+      clause
+        .toLowerCase()
+        .replace(/[^\p{L}\p{N}]+/gu, ' ')
+        .trim(),
+    )
+    .filter(Boolean);
+}
+
+/**
+ * Research provenance can intentionally carry both the concrete section topic
+ * and the broader lesson title ("specific · broad"). Treat either authored
+ * clause as the same lesson scope. Exact comparison against only the broad
+ * title otherwise discards valid same-lesson claims after key-term expansion.
+ */
+function researchSourceTopicMatchesLesson(sourceTopic = '', lesson = {}) {
+  const sourceScopes = new Set(normalizedResearchScopeClauses(sourceTopic));
+  if (sourceScopes.size === 0) return false;
+  const lessonScopes = [lessonTopic(lesson), ...lessonTopicValues(lesson)]
+    .flatMap(normalizedResearchScopeClauses)
+    .filter(Boolean);
+  return lessonScopes.some((scope) => sourceScopes.has(scope));
 }
 
 export function kernelTopicOverlapScore(kernel, topic) {
-  const topicTokens = [...lessonSupportTokens(topic)];
+  const topicTokens = topicIdentityTokens(topic);
   if (topicTokens.length === 0) return 0;
   const kernelTokens = lessonSupportTokens(
     [kernel?.term, ...(kernel?.aliases || []), ...(kernel?.tags || []), kernel?.definition?.text]
@@ -1955,6 +2562,187 @@ export function lessonTopic(lesson) {
 }
 
 /**
+ * Prefer the most concrete authored section topic for live source research.
+ *
+ * Course maps commonly use a broad pedagogical lesson title (for example,
+ * "Foundational Composition Elements") and put the source-searchable concept
+ * in the first section ("Rule of Thirds Application"). Searching only the
+ * wrapper title leaves an otherwise well-formed lesson ungrounded. The
+ * evidence prepass already carries those section topics; use that existing
+ * course input instead of maintaining course-specific page mappings.
+ *
+ * This affects only the consented research transaction. The stable lesson
+ * title still owns ordering, display, cache-independent compilation, and the
+ * final payload identity.
+ */
+export function researchTopicForLesson(lesson = {}) {
+  const title = lessonTopic(lesson);
+  const authoredTopics = lessonTopicValues(lesson).map((topic) => ({
+    hasSectionLocator: /^\s*\d+(?:\.\d+)*\s*[:.–—-]\s*/i.test(String(topic || '')),
+    text: String(topic || '')
+      .replace(/^\s*\d+(?:\.\d+)*\s*[:.–—-]\s*/i, '')
+      .trim(),
+  }));
+  // A generated lesson normally has three explicit section concepts followed
+  // by pedagogical goal sentences. Preserve all bounded section concepts so a
+  // weak first search phrase cannot starve the entire lesson of evidence. The
+  // research planner turns each middle-dot clause into its own bounded query;
+  // if section locators are unavailable, retain the historical first-topic
+  // fallback for compact and hand-authored callers.
+  const located = authoredTopics.filter(({ hasSectionLocator, text }) => hasSectionLocator && text);
+  const candidates = located.length > 0 ? located : authoredTopics.slice(0, 1);
+  const seen = new Set();
+  const specifics = candidates
+    .map(({ text }) => text)
+    .filter((topic) => topic && !/^topic|focus|overview$/i.test(topic))
+    .filter((topic) => {
+      const key = topic.toLowerCase();
+      if (key === title.toLowerCase() || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, 3);
+  if (specifics.length === 0) return title;
+  // Keep both authored levels. The middle dot is a query-variant delimiter,
+  // not prose: research providers search each concept clause independently,
+  // while the relevance gate still requires support for a whole clause.
+  return [...specifics, title].join(' · ');
+}
+
+/**
+ * Turn a failed broad retrieval into a small set of questions a useful
+ * student would ask next. These variants come only from the authored lesson
+ * title, topics, objectives, and evidence intent; no course-specific answer or
+ * source name is injected. The normal relevance and exact-source admission
+ * gates still decide whether any result is usable.
+ */
+export function researchQuestionVariantsForLesson(topic = '', lesson = {}, { courseContext = '' } = {}) {
+  const cleanQuestion = (value = '') =>
+    String(value || '')
+      .replace(/^\s*(?:learners?|students?|participants?)\s+(?:will|can|should)\s+/i, '')
+      .replace(/^\s*(?:by the end of (?:this|the) (?:lesson|session),?\s*)/i, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  const values = [
+    ...String(topic || '').split(/\s*[·|]\s*/),
+    ...(Array.isArray(lesson?.topics) ? lesson.topics : [lesson?.topics]),
+    ...(Array.isArray(lesson?.objectives) ? lesson.objectives : [lesson?.objectives]),
+    ...(Array.isArray(lesson?.evidenceIntent) ? lesson.evidenceIntent : [lesson?.evidenceIntent]),
+  ]
+    .flatMap((value) => String(value || '').split(/\s*;\s*/))
+    .map(cleanQuestion)
+    .filter((value) => value.length >= 4 && value.length <= 220);
+  // When an approved evidence intent names concrete examples or records, ask
+  // about those inspectable objects before repeating a broad lesson label. A
+  // good learner turns “evidence basis” into a bounded source question; the
+  // provider and unchanged semantic/receipt gates still decide whether the
+  // answer belongs. The pattern is discipline-neutral and extracts only text
+  // the pre-draft plan already named.
+  const evidenceLookupQuestions = [
+    ...(Array.isArray(lesson?.objectives) ? lesson.objectives : [lesson?.objectives]),
+    ...(Array.isArray(lesson?.evidenceIntent) ? lesson.evidenceIntent : [lesson?.evidenceIntent]),
+  ]
+    .flatMap((value) =>
+      [
+        ...String(value || '').matchAll(
+          /\b([A-Z][\p{L}\p{N}'’.-]*\s+(?:[\p{L}\p{N}'’.-]+\s+){0,3}(?:examples?|records?|datasets?|corpora?))\b/gu,
+        ),
+      ].map((match) => cleanQuestion(match[1])),
+    )
+    .filter((value) => value.length >= 4 && value.length <= 100);
+  const contextHint = String(courseContext || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, ' ')
+    .split(/\s+/)
+    .filter(
+      (token) =>
+        token.length >= 4 &&
+        ![
+          'course',
+          'foundations',
+          'fundamentals',
+          'introductory',
+          'introduction',
+          'practice',
+          'structure',
+          'undergraduate',
+        ].includes(token),
+    )[0];
+  const contextualEvidenceQuestions = contextHint
+    ? evidenceLookupQuestions
+        .map((question) => question.replace(/\s+(?:examples?|records?|datasets?|corpora?)$/i, '').trim())
+        .filter((question) => question && !new Set(lessonSupportTokens(question)).has(contextHint))
+        .map((question) => `${question} ${contextHint}`)
+    : [];
+  // Long objectives are useful planning records but poor catalogue queries.
+  // Mine their authored comma/colon clauses for short concept phrases before
+  // retrying the full sentence. This is deliberately syntax-driven rather
+  // than discipline-specific: it helps a statistics lesson ask for
+  // “descriptive statistics” and a studio lesson ask for “color contrast”
+  // without embedding either course or a preferred source in the pipeline.
+  const conciseConceptQuestions = [
+    ...(Array.isArray(lesson?.objectives) ? lesson.objectives : [lesson?.objectives]),
+    ...(Array.isArray(lesson?.evidenceIntent) ? lesson.evidenceIntent : [lesson?.evidenceIntent]),
+  ]
+    .filter((value) => /[:,;]/.test(String(value || '')))
+    .flatMap((value) => String(value || '').split(/\s*[:,;]\s*/))
+    .map((value) =>
+      cleanQuestion(value)
+        .replace(/[-–—]+/g, ' ')
+        .replace(/^(?:and|or)\s+/i, '')
+        .replace(/[.!?]+$/g, '')
+        .replace(
+          /\s+(?:analysis|application|audit|brief|check|comparison|design sheet|interpretation|memo|note|record|summary|trace|worksheet)$/i,
+          '',
+        )
+        .replace(/\s+/g, ' ')
+        .trim(),
+    )
+    .filter(
+      (value) =>
+        value.length >= 4 &&
+        value.split(/\s+/).length <= 7 &&
+        !/^(?:and|or|question|interpretation|limitation|conclusion|comparison)$/i.test(value) &&
+        !/^(?:(?:source|evidence|bound)\s*)+$/i.test(value) &&
+        !/(?:examples?|records?|datasets?|corpora?)$/i.test(value),
+    );
+  const seen = new Set();
+  return [...contextualEvidenceQuestions, ...evidenceLookupQuestions, ...conciseConceptQuestions, ...values]
+    .filter((value) => {
+      const key = value.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, 5);
+}
+
+export function researchSourceTitleFollowups(kernels = [], originalTopic = '') {
+  const original = String(originalTopic || '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+  const seen = new Set();
+  return (Array.isArray(kernels) ? kernels : [])
+    .map((kernel) =>
+      String(kernel?.provenance?.title || kernel?.term || '')
+        .replace(/\s+/g, ' ')
+        .trim(),
+    )
+    .filter(
+      (title) =>
+        title.length >= 4 && title.length <= 120 && !/^https?:\/\//i.test(title) && title.toLowerCase() !== original,
+    )
+    .filter((title) => {
+      const key = title.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, 2);
+}
+
+/**
  * A generally related genome citation is not enough when a lesson explicitly
  * promises an accessibility evaluation method. WCAG background and usability
  * concepts can produce a structurally complete kernel while leaving testing,
@@ -2007,12 +2795,23 @@ export async function composeAlgiLessonKernels({
   researchEmbed = null,
   researchStorage = typeof window !== 'undefined' ? window.localStorage : null,
   courseContext: courseContextInput = '',
+  forceResearchLessonIds = [],
   onResearchProgress = null,
   now = Date.now(),
   signal,
 } = {}) {
   const lessons = Array.isArray(structuredPrompt?.lessons) ? structuredPrompt.lessons : [];
   if (lessons.length === 0) return { text: '', covered: 0, requested: 0, uncovered: [] };
+  // Source-authority admission is stricter than structural completeness. A
+  // lesson that failed that contract must be allowed to ask fresh questions
+  // even when the bundled genome contains a complete-looking citation ledger.
+  // This set is supplied by the generic authority contract; it never encodes a
+  // course, topic, source, or expected answer.
+  const forcedResearchLessonIds = new Set(
+    (Array.isArray(forceResearchLessonIds) ? forceResearchLessonIds : [forceResearchLessonIds])
+      .map((lessonId) => String(lessonId || '').trim())
+      .filter(Boolean),
+  );
   const { index, sourceReferences } = await loadGenomeIndex();
   if (!index) return { text: '', covered: 0, requested: lessons.length, uncovered: lessons.map((l) => l?.lessonId) };
   // Slotted by position so a deferred capstone lands in its own place rather
@@ -2113,16 +2912,23 @@ export async function composeAlgiLessonKernels({
     researchQueue.push(item);
   }
   for (const [position, lesson] of lessons.entries()) {
+    const forceResearch = forcedResearchLessonIds.has(String(lesson?.lessonId || '').trim());
     if (
       deferredPositions.has(position) ||
       queuedPositions.has(position) ||
       !composed[position] ||
-      exactSourceClaimCount(composed[position]) > 0
+      (!forceResearch && exactSourceClaimCount(composed[position]) > 0)
     ) {
       continue;
     }
     queuedPositions.add(position);
-    researchQueue.push({ lesson, position, offset: lessonOffset(lesson, position), revision: true });
+    researchQueue.push({
+      lesson,
+      position,
+      offset: lessonOffset(lesson, position),
+      revision: true,
+      authorityRevision: forceResearch,
+    });
   }
 
   // LEARNER REVISION: research uncovered lessons and evidence-thin passing
@@ -2139,6 +2945,7 @@ export async function composeAlgiLessonKernels({
   if (researchQueue.length > 0 && researchProvider) {
     try {
       const {
+        mergeResearchKernelSets,
         researchLessonKernelSets,
         researchLessonKernelSetsCascade,
         stampTargetedBudgetProvider,
@@ -2163,14 +2970,19 @@ export async function composeAlgiLessonKernels({
           progress: Math.max(0, Math.min(1, Number(event.progress) || 0)),
         });
       };
-      const researchCourseContext = [courseContext, ...lessons.map((lesson) => lessonTopic(lesson))]
+      const researchCourseContext = [courseContext, ...lessons.map((lesson) => researchTopicForLesson(lesson))]
         .filter(Boolean)
         .join(' · ');
       const researchPlan = planAlgiCourseResearch({
         courseName: courseContext,
         lessons: researchQueue.map(({ lesson }) => ({
           lessonId: lesson?.lessonId,
-          title: lessonTopic(lesson),
+          instructionalInstanceId: lesson?.instructionalInstanceId,
+          planBodySha256: lesson?.instructionalInstance?.planBodySha256 || lesson?.planBodySha256,
+          title: researchTopicForLesson(lesson),
+          topics: lesson?.topics,
+          objectives: lesson?.objectives,
+          evidenceIntent: lesson?.evidenceIntent,
         })),
         now,
       });
@@ -2192,7 +3004,8 @@ export async function composeAlgiLessonKernels({
           options: {
             groupSize: 5,
             candidatesPerGroup: 24,
-            maxTargetedFallbacks: 0,
+            maxTargetedFallbacks: Math.max(2, Math.min(12, researchQueue.length)),
+            maxTargetedSearchRequests: Math.max(4, Math.min(24, researchQueue.length * 2)),
           },
         },
         'europe-pmc': {
@@ -2228,14 +3041,20 @@ export async function composeAlgiLessonKernels({
           options: {
             groupSize: 3,
             candidatesPerGroup: 24,
-            maxTargetedFallbacks: 6,
+            maxTargetedFallbacks: Math.max(6, Math.min(32, researchQueue.length * 3)),
+            // Give every sparse lesson at least one isolated query before
+            // spending a second round on compound-title variants. The old
+            // fixed budget of eight meant Lessons 9–14 of a fourteen-lesson
+            // course received zero targeted attempts even while the overall
+            // research transaction still had unused request capacity.
+            maxTargetedSearchRequests: Math.max(8, Math.min(56, researchQueue.length * 4)),
           },
         },
       };
       const providers = researchPlan.providerOrder.map((providerId) => providerDescriptors[providerId]).filter(Boolean);
       let attempted = 0;
-      const allResearchTargets = researchQueue.map(({ lesson }) => lessonTopic(lesson)).filter(Boolean);
-      const researchLessons = new Map(researchQueue.map(({ lesson }) => [lessonTopic(lesson), lesson]));
+      const allResearchTargets = researchQueue.map(({ lesson }) => researchTopicForLesson(lesson)).filter(Boolean);
+      const researchLessons = new Map(researchQueue.map(({ lesson }) => [researchTopicForLesson(lesson), lesson]));
       const cached = readAlgiResearchCache({
         courseName: courseContext,
         topics: allResearchTargets,
@@ -2252,41 +3071,57 @@ export async function composeAlgiLessonKernels({
         progress: 0.16,
       });
       const cachedPositions = new Set();
-      for (const { lesson, position, offset } of researchQueue) {
-        const topic = lessonTopic(lesson);
+      for (const { lesson, position, offset, authorityRevision } of researchQueue) {
+        const topic = researchTopicForLesson(lesson);
         const cachedEntry = cached.byTopic.get(topic);
         if (!cachedEntry?.kernels?.length) continue;
-        const payload = composeLessonFromCandidateKernels(
-          lesson,
-          expandResearchKernelsForComposition(cachedEntry.kernels, topic),
-          {
+        const payload =
+          composeLessonFromCandidateKernels(lesson, expandResearchKernelsForComposition(cachedEntry.kernels, topic), {
             factCount,
             claimed,
             offset,
             usedOut: used,
             sourceReferences,
-          },
-        );
+          }) ||
+          composeResearchLedgerOnlyPayload(lesson, cachedEntry.kernels, {
+            factCount,
+            offset,
+            sourceReferences,
+          });
         if (!payload) continue;
         payload.conceptProvenance = {
           ...(payload.conceptProvenance || {}),
           algiEvidence: cachedEntry.evidence || null,
-          algiResearchRoute: 'verified-local-cache',
+          algiResearchRoute:
+            payload.projectionKind === 'verified-source-ledger-only'
+              ? 'verified-local-cache-ledger-only'
+              : 'verified-local-cache',
         };
-        if (!shouldAcceptEvidenceRevision(composed[position], payload)) continue;
-        composed[position] = payload;
+        const current = composed[position];
+        if (shouldAcceptEvidenceRevision(current, payload, { authorityRevision })) {
+          composed[position] = payload;
+        } else if (exactSourceClaimCount(current) <= 0) {
+          continue;
+        }
+        // The cache is a source-admitted completion signal even when the
+        // in-memory payload already carries a strictly richer exact ledger.
+        // Previously we failed to mark that lesson complete, re-researched it,
+        // and spent the bounded request budget on four already-supported
+        // lessons before the one genuine evidence gap received its useful
+        // query variants.
         cachedPositions.add(position);
         cachedResearch += 1;
       }
       const researchItems = researchQueue.filter(({ position }) => !cachedPositions.has(position));
-      const researchTargets = researchItems.map(({ lesson }) => lessonTopic(lesson)).filter(Boolean);
+      const researchTargets = researchItems.map(({ lesson }) => researchTopicForLesson(lesson)).filter(Boolean);
       const researchMinimumClaims = new Map(
         (researchPlan.lessons || []).map((lesson) => [lesson.title, Number(lesson.minimumClaims) || 5]),
       );
-      const researchReadiness = (topic, kernels) =>
-        scionResearchTopicReady(topic, kernels, {
+      const researchReadiness = (topic, kernels) => {
+        const semanticallyAdmittedKernels = kernels.map(semanticAdmissionSafeResearchKernel).filter(Boolean);
+        return scionResearchTopicReady(topic, semanticallyAdmittedKernels, {
           minimumClaims: researchMinimumClaims.get(topic) || 5,
-          claimCount: countAlgiEvidenceClaims(kernels),
+          claimCount: countAlgiEvidenceClaims(semanticallyAdmittedKernels),
           validateEvidence: (candidateTopic, candidateKernels) => {
             const planLesson = (researchPlan.lessons || []).find((lesson) => lesson.title === candidateTopic);
             if (!planLesson) return false;
@@ -2304,10 +3139,11 @@ export async function composeAlgiLessonKernels({
               want: KEY_TERMS_REQUIRED + 2,
             }).admitted;
           },
-          canCompose: (candidateTopic, candidateKernels) =>
-            Boolean(
+          canCompose: (candidateTopic, candidateKernels) => {
+            const lesson = researchLessons.get(candidateTopic);
+            return Boolean(
               composeLessonFromCandidateKernels(
-                researchLessons.get(candidateTopic),
+                lesson,
                 expandResearchKernelsForComposition(candidateKernels, candidateTopic),
                 {
                   factCount,
@@ -2315,9 +3151,16 @@ export async function composeAlgiLessonKernels({
                   offset: 0,
                   sourceReferences,
                 },
-              ),
-            ),
+              ) ||
+              composeResearchLedgerOnlyPayload(lesson, candidateKernels, {
+                factCount,
+                offset: 0,
+                sourceReferences,
+              }),
+            );
+          },
         });
+      };
       const providerProgress = (event = {}) => {
         const providerIndex = Math.max(0, researchPlan.providerOrder.indexOf(event.providerId));
         const providerSpan = researchPlan.providerOrder.length > 0 ? 0.48 / researchPlan.providerOrder.length : 0.48;
@@ -2368,6 +3211,152 @@ export async function composeAlgiLessonKernels({
                 onProgress: providerProgress,
                 signal,
               });
+
+      // STUDENT QUESTION LOOP: a broad course transaction is efficient, but a
+      // late or compound lesson can be crowded out by shared result sets and
+      // provider burst limits even when its exact source exists. Re-ask only
+      // the still-unready lesson as a one-topic question. This is bounded,
+      // source-admitted, and provider-agnostic at the course level: no course
+      // title or hand-authored answer enters the repair path.
+      const isolatedRevisionReceipts = [];
+      if (!directProvider && researchTargets.length > 0) {
+        const isolatedProvider = providerDescriptors.wikipedia?.provider;
+        const residualTopics = researchTargets.filter((topic) => {
+          const admitted = (researchBatch.byTopic.get(topic) || [])
+            .map(semanticAdmissionSafeResearchKernel)
+            .filter(Boolean);
+          return countAlgiEvidenceClaims(admitted) < (researchMinimumClaims.get(topic) || 3);
+        });
+        for (const [repairIndex, topic] of residualTopics.slice(0, 8).entries()) {
+          if (!isolatedProvider) break;
+          if (signal?.aborted)
+            throw signal.reason || Object.assign(new Error('Algi research stopped'), { name: 'AbortError' });
+          // A lesson label is useful for breadth but is not always a question
+          // a catalog can answer. Ask each authored concept clause separately,
+          // then merge only kernels admitted by the existing lesson-level
+          // relevance and exact-source gates. This remains bounded and generic:
+          // no course-specific source title or answer enters the repair path.
+          const repairLesson = researchLessons.get(topic) || {};
+          const questions = [
+            ...researchQuestionVariantsForLesson(topic, repairLesson, { courseContext }),
+            ...researchSourceTitleFollowups(researchBatch.byTopic.get(topic) || [], topic),
+          ].filter((question, index, entries) => entries.indexOf(question) === index);
+          if (questions.length === 0) questions.push(topic);
+          for (const [questionIndex, question] of questions.entries()) {
+            publishResearchProgress({
+              phase: 'isolated-revision',
+              providerId: 'wikipedia',
+              label: 'Asking a narrower source question',
+              detail: `${question} (${questionIndex + 1}/${questions.length})`,
+              progress:
+                0.69 +
+                ((repairIndex + questionIndex / Math.max(1, questions.length)) / Math.max(1, residualTopics.length)) *
+                  0.04,
+            });
+            const repairPlan = planAlgiCourseResearch({
+              courseName: courseContext,
+              lessons: [
+                {
+                  lessonId: repairLesson.lessonId || '',
+                  instructionalInstanceId: repairLesson.instructionalInstanceId || '',
+                  planBodySha256:
+                    repairLesson?.instructionalInstance?.planBodySha256 || repairLesson.planBodySha256 || '',
+                  title: question,
+                  topics: repairLesson.topics,
+                  objectives: repairLesson.objectives,
+                  evidenceIntent: repairLesson.evidenceIntent,
+                },
+              ],
+              now,
+            });
+            const repairBatch = await researchLessonKernelSets([question], {
+              provider: isolatedProvider,
+              providerId: 'wikipedia',
+              embed: researchEmbed,
+              courseContext,
+              want: KEY_TERMS_REQUIRED + 4,
+              minimum: 3,
+              groupSize: 1,
+              candidatesPerGroup: 24,
+              maxTargetedFallbacks: 1,
+              maxTargetedSearchRequests: 4,
+              researchPlan: repairPlan,
+              signal,
+            });
+            const prior = researchBatch.byTopic.get(topic) || [];
+            const scopedQuestionKernels = (repairBatch.byTopic.get(question) || []).map((kernel) => ({
+              ...kernel,
+              provenance: {
+                ...(kernel?.provenance || {}),
+                research: {
+                  ...(kernel?.provenance?.research || {}),
+                  retrievalQuestion: question,
+                  lessonScopeTopic: topic,
+                  questionBasis: 'bounded-lesson-question-v1',
+                },
+              },
+            }));
+            const merged = mergeResearchKernelSets(prior, scopedQuestionKernels, Infinity, topic);
+            // A broad question can reveal the canonical name of a promising
+            // source while yielding too few admissible passages. Ask that
+            // newly learned title next, before spending the rest of the budget
+            // on other broad variants. This is the learner's inspect-deepen
+            // loop: source-derived and bounded, never a hand-authored answer.
+            let insertionOffset = 1;
+            // A search-result title is a question, not evidence. It may be
+            // useful even when the shallow extract was too sparse to admit a
+            // kernel; the subsequent deep read still has to pass every normal
+            // source and semantic gate before it can contribute.
+            const newlyDiscoveredKernels = scopedQuestionKernels;
+            for (const followup of researchSourceTitleFollowups(newlyDiscoveredKernels, topic)) {
+              if (questions.length >= 8 || questions.includes(followup)) continue;
+              questions.splice(questionIndex + insertionOffset, 0, followup);
+              insertionOffset += 1;
+            }
+            isolatedRevisionReceipts.push({
+              topic,
+              question,
+              priorClaims: countAlgiEvidenceClaims(prior.map(semanticAdmissionSafeResearchKernel).filter(Boolean)),
+              revisedClaims: countAlgiEvidenceClaims(merged.map(semanticAdmissionSafeResearchKernel).filter(Boolean)),
+              addedKernels: Math.max(0, merged.length - prior.length),
+              sourceWarnings: [...(repairBatch.errors || [])],
+            });
+            researchBatch.byTopic.set(topic, merged);
+            researchBatch.errors.push(...(repairBatch.errors || []).map((error) => `wikipedia-isolated:${error}`));
+            researchBatch.searchGroups += Number(repairBatch.searchGroups) || 0;
+            researchBatch.targetedSearches += Number(repairBatch.targetedSearches) || 0;
+            researchBatch.articleCandidates += Number(repairBatch.articleCandidates) || 0;
+            researchBatch.targetedBudgetExhausted.push(
+              ...stampTargetedBudgetProvider(repairBatch.targetedBudgetExhausted || [], 'wikipedia-isolated'),
+            );
+            let providerStat = researchBatch.providerStats.find((entry) => entry.providerId === 'wikipedia');
+            if (!providerStat) {
+              providerStat = {
+                providerId: 'wikipedia',
+                attemptedTopics: 0,
+                contributedTopics: 0,
+                contributedKernels: 0,
+                searchGroups: 0,
+                targetedSearches: 0,
+                targetedBudgetExhausted: [],
+              };
+              researchBatch.providerStats.push(providerStat);
+            }
+            providerStat.attemptedTopics += 1;
+            providerStat.isolatedRevisionTopics = (Number(providerStat.isolatedRevisionTopics) || 0) + 1;
+            providerStat.isolatedRevisionQuestions = (Number(providerStat.isolatedRevisionQuestions) || 0) + 1;
+            providerStat.searchGroups += Number(repairBatch.searchGroups) || 0;
+            providerStat.targetedSearches += Number(repairBatch.targetedSearches) || 0;
+            const addedKernels = Math.max(0, merged.length - prior.length);
+            providerStat.contributedKernels += addedKernels;
+            if (addedKernels > 0) providerStat.contributedTopics += 1;
+            if (addedKernels > 0 && !researchBatch.providersUsed.includes('wikipedia')) {
+              researchBatch.providersUsed.push('wikipedia');
+            }
+            if (researchReadiness(topic, merged)) break;
+          }
+        }
+      }
       const targetedBudgetExhausted = (researchBatch.targetedBudgetExhausted || []).map((entry) =>
         entry?.providerId || !directProvider
           ? entry
@@ -2377,10 +3366,11 @@ export async function composeAlgiLessonKernels({
         allResearchTargets.map((topic) => {
           const merged = [];
           const seen = new Set();
-          for (const kernel of [
+          for (const rawKernel of [
             ...(cached.byTopic.get(topic)?.kernels || []),
             ...(researchBatch.byTopic.get(topic) || []),
           ]) {
+            const kernel = semanticAdmissionSafeResearchKernel(rawKernel);
             if (!kernel?.id || seen.has(kernel.id)) continue;
             seen.add(kernel.id);
             merged.push(kernel);
@@ -2418,10 +3408,10 @@ export async function composeAlgiLessonKernels({
         storage: researchStorage,
         now,
       });
-      for (const { lesson, position, offset } of researchItems) {
+      for (const { lesson, position, offset, authorityRevision } of researchItems) {
         if (signal?.aborted)
           throw signal.reason || Object.assign(new Error('Algi research stopped'), { name: 'AbortError' });
-        const topic = lessonTopic(lesson);
+        const topic = researchTopicForLesson(lesson);
         if (!topic) continue;
         attempted += 1;
         const rawKernels = kernelsByTopic.get(topic) || [];
@@ -2447,7 +3437,7 @@ export async function composeAlgiLessonKernels({
           MAX_COMPOSITION_CANDIDATES,
           {
             topic,
-            courseContext: [courseContext, ...(lesson?.topics || []), ...(lesson?.objectives || [])]
+            courseContext: [courseContext, ...lessonTopicValues(lesson), ...lessonObjectiveValues(lesson)]
               .filter(Boolean)
               .join(' '),
           },
@@ -2464,7 +3454,7 @@ export async function composeAlgiLessonKernels({
           // biofilm" belongs in this microbiology course, but not in the
           // Waterborne pathogens lesson. Require overlap with the actual
           // lesson topic before allowing a sibling source to top it up.
-          .filter((kernel) => kernelSupportsTopic(kernel, topic))
+          .filter((kernel) => kernelStronglySupportsTopic(kernel, topic))
           .sort((left, right) => {
             const topicTokens = lessonSupportTokens(topic);
             const score = (kernel) => {
@@ -2519,13 +3509,21 @@ export async function composeAlgiLessonKernels({
             diagnostics: composeDiagnostics,
           },
         );
-        if (payload && shouldAcceptEvidenceRevision(composed[position], payload)) {
-          payload.conceptProvenance = {
-            ...(payload.conceptProvenance || {}),
+        const ledgerDiagnostics = {};
+        const ledgerOnlyPayload = composeResearchLedgerOnlyPayload(lesson, rawKernels, {
+          factCount,
+          offset,
+          sourceReferences,
+          diagnostics: ledgerDiagnostics,
+        });
+        const admittedPayload = selectResearchAuthorityPayload(payload, ledgerOnlyPayload);
+        if (shouldAcceptEvidenceRevision(composed[position], admittedPayload, { authorityRevision })) {
+          admittedPayload.conceptProvenance = {
+            ...(admittedPayload.conceptProvenance || {}),
             algiEvidence: consolidated.lesson,
-            algiResearchRoute: 'live-research',
+            algiResearchRoute: payload ? 'live-research' : 'live-research-ledger-only',
           };
-          composed[position] = payload;
+          composed[position] = admittedPayload;
           researched += 1;
         } else if (!composed[position]) {
           composeFailures += 1;
@@ -2534,6 +3532,7 @@ export async function composeAlgiLessonKernels({
             topic,
             admittedKernels: kernels.length,
             ...composeDiagnostics,
+            ledgerFallback: ledgerDiagnostics,
           });
         }
       }
@@ -2577,6 +3576,8 @@ export async function composeAlgiLessonKernels({
         },
         providers: researchBatch.providerStats || [],
         providersUsed: researchBatch.providersUsed || [],
+        isolatedRevisions: isolatedRevisionReceipts,
+        sourceWarnings: researchBatch.errors || [],
         targetedBudgetExhausted,
         sourceRequests: Number(diagnostics?.requestCount) || 0,
         compositionDeclines: composeFailureDiagnostics,

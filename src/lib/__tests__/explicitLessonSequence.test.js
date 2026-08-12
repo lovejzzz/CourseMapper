@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { extractExplicitLessonSequence } from '../explicitLessonSequence.js';
+import { extractExplicitLessonSequence, extractOrderedLessonContract } from '../explicitLessonSequence.js';
 
 describe('extractExplicitLessonSequence', () => {
   it('recognizes an exact counted in-order lesson contract with semicolon boundaries', () => {
@@ -24,6 +24,54 @@ describe('extractExplicitLessonSequence', () => {
 
   it('does not turn an ordinary unordered topic list into a lesson sequence', () => {
     expect(extractExplicitLessonSequence('Cover sources, cleaning, charts, uncertainty, and revision.')).toEqual([]);
+    expect(extractOrderedLessonContract('Cover sources, cleaning, charts, uncertainty, and revision.')).toBeNull();
+  });
+
+  it('admits an exact count-matched compact brief as an auditable ordered contract', () => {
+    expect(
+      extractOrderedLessonContract(
+        'Create a five-lesson undergraduate course. Students learn composition, visual hierarchy, color and contrast, perspective and framing, and ethical contextual interpretation.',
+        { expectedCount: 5 },
+      ),
+    ).toEqual({
+      mode: 'count-matched-coverage-list',
+      declaredCount: 5,
+      topics: [
+        'composition',
+        'visual hierarchy',
+        'color and contrast',
+        'perspective and framing',
+        'ethical contextual interpretation',
+      ],
+    });
+  });
+
+  it('admits an explicitly ordered, count-matched natural-language lesson list', () => {
+    expect(
+      extractOrderedLessonContract(
+        'Create exactly five lessons for Visual Evidence and Image Analysis. In order, the lessons teach composition, visual hierarchy, color and contrast, perspective and framing, and ethical contextual interpretation.',
+        { expectedCount: 5 },
+      ),
+    ).toEqual({
+      mode: 'count-matched-coverage-list',
+      declaredCount: 5,
+      topics: [
+        'composition',
+        'visual hierarchy',
+        'color and contrast',
+        'perspective and framing',
+        'ethical contextual interpretation',
+      ],
+    });
+  });
+
+  it('does not promote a count-mismatched coverage list into a schedule', () => {
+    expect(
+      extractOrderedLessonContract(
+        'Create a six-lesson course. Students learn composition, hierarchy, contrast, framing, and interpretation.',
+        { expectedCount: 6 },
+      ),
+    ).toBeNull();
   });
 
   it('recognizes an exact hyphenated counted sequence from the production audit brief', () => {

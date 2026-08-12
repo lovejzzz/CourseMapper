@@ -398,10 +398,9 @@ test.describe('Landing Page', () => {
 
     await page.getByTestId('workspace-more-menu-trigger').click();
     await page.getByTestId('workspace-menu-new-project').click();
-    await expect(page.getByText('Start a new project?')).toBeVisible();
-    await page.getByRole('button', { name: 'Start New Project', exact: true }).click();
 
     await expect(page.locator('h1')).toHaveText('Turn a syllabus into a teachable course.');
+    await expect(page.getByTestId('new-project-confirmation')).toHaveCount(0);
     expect(await page.evaluate(() => localStorage.getItem('coursemapper-project'))).toBeNull();
   });
 

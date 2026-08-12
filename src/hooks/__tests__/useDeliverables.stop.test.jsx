@@ -24,6 +24,51 @@ vi.mock('../../lib/courseBlueprintCompiler', async (importOriginal) => {
   };
 });
 
+// Cancellation semantics are the subject of this suite. Supply a real,
+// fully anchored evidence contract so the production draft-authorization
+// gate is satisfied before the mocked long-running compiler begins.
+vi.mock('../../lib/scionEvidenceLayer', async (importOriginal) => {
+  const actual = await importOriginal();
+  const kernel = (lessonNumber) => {
+    const lessonConcept = lessonNumber === 1 ? 'foundation case analysis' : 'application case comparison';
+    return {
+      facts: [
+        `The ${lessonConcept} identifies the evidence used to support its conclusion.`,
+        `The ${lessonConcept} preserves the declared limitation when interpreting the case.`,
+        `The ${lessonConcept} supports the planned learner operation without adding outside claims.`,
+      ],
+      sourceConcepts: [
+        {
+          term: lessonNumber === 1 ? 'Foundation' : 'Application',
+          definition: `The central concept used in the lesson ${lessonConcept}.`,
+        },
+      ],
+      conceptProvenance: {
+        source: 'genome-linked',
+        fullyAnchored: true,
+        citations: [
+          {
+            id: `cancel-source-${lessonNumber}`,
+            displayTitle: `Cancellation fixture source ${lessonNumber}`,
+            sourceUrl: `https://example.edu/cancel-${lessonNumber}`,
+          },
+        ],
+      },
+    };
+  };
+  return {
+    ...actual,
+    createScionEvidenceAuthorityContract: (options = {}) =>
+      actual.createScionEvidenceAuthorityContract({
+        ...options,
+        genomeLessonContent: {
+          'lesson-1': kernel(1),
+          'lesson-2': kernel(2),
+        },
+      }),
+  };
+});
+
 vi.mock('../useStreamReader', () => ({
   default: () => ({
     streamProvider: async (...args) => {

@@ -259,16 +259,20 @@ export function lessonPlanWarmupFacilitation({ lesson, lens, teachingMoves, arti
 }
 
 export function lessonPlanCollaborativeNotes({ lesson, concept, artifactCheck, artifact }) {
+  const bareConcept = String(concept || 'lesson claim')
+    .normalize('NFKC')
+    .replace(/^[^\p{L}\p{N}]*/u, '')
+    .replace(/^(?:(?:the|a|an)\s+)+/i, '');
   return selectComposedLessonVariant(
     lesson,
     'lessonPlans.outline.collaborative.instructorNotes',
     [
-      `Require each group to identify the source detail behind its ${concept} claim`,
+      `Require each group to identify which source detail supports the claim about ${bareConcept}`,
       `Ask teams to underline the evidence that changes their ${artifact} choice`,
       'Before the share-out, have each group name its claim and strongest source detail',
-      `Press every team to separate observed ${concept} evidence from assumptions`,
+      `Press every team to separate observed ${bareConcept} evidence from assumptions`,
       `Use the report-out to trace one source detail into a visible ${artifact} move`,
-      `Have listeners challenge the weakest evidence link in each ${concept} recommendation`,
+      `Have listeners challenge the weakest evidence link in each ${bareConcept} recommendation`,
     ],
     [
       'the group must also name one limitation before the recommendation is accepted.',

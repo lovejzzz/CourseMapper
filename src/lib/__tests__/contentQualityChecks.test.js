@@ -165,6 +165,14 @@ describe('auditDeliverableContentQuality', () => {
     },
   );
 
+  it('does not treat hyphenated morphemes or equals-bound clitics as English articles', () => {
+    const { findings } = auditDeliverableContentQuality('assignments', {
+      assignments: [{ instructions: 'Preserve the Boumaa Fijian record soli-a a=niu exactly during analysis.' }],
+    });
+
+    expect(findings.some((finding) => finding.code === 'article-collision')).toBe(false);
+  });
+
   it('flags run-together criteria sentences like "Strong work Names the relevant"', () => {
     const { findings } = auditDeliverableContentQuality('syllabus', {
       syllabus: { description: 'Strong work Names the relevant Climate concept accurately.' },
@@ -382,6 +390,17 @@ describe('findWorstPhraseRepetition', () => {
     expect(result.count).toBeGreaterThanOrEqual(result.limit);
   });
 
+  it('treats repeated CC rights tuples as bibliography structure while retaining unique source titles', () => {
+    const paragraphs = Array.from(
+      { length: 19 },
+      (_, index) =>
+        `Distinct source ${index + 1} (CC BY-SA 4.0 — https://example.org/source-${index + 1}) — ` +
+        `Wikipedia contributors, “Distinct source ${index + 1}”`,
+    );
+    const result = findWorstPhraseRepetition(paragraphs);
+    expect(result.count, `flagged "${result.shingle}"`).toBeLessThan(result.limit);
+  });
+
   it('strips only the scaffold prefix, preserving question and explanation content', () => {
     expect(stripStructuralMetadata('Q3 (Multiple choice, 2 pts, ~2 min):  Which statement is accurate?')).toBe(
       'Which statement is accurate?',
@@ -473,6 +492,31 @@ describe('auditOfficeBlobRepetition — quiz structural metadata exemption (v0.1
     expect(finding.code).toBe('phrase-repetition');
     expect(finding.count).toBeGreaterThanOrEqual(13);
   });
+
+  it('consolidates repeated source rights while preserving every cited title and URL', async () => {
+    const entries = Array.from({ length: 16 }, (_, index) => ({
+      citation: `Language article ${index + 1} (open encyclopedia) — https://example.org/article-${index + 1}`,
+      license: 'CC BY-SA 4.0',
+      attribution: `Wikipedia contributors, “Language article ${index + 1}”`,
+      url: `https://example.org/article-${index + 1}`,
+    }));
+    const blob = await buildDeliverableDocxBlob(
+      'syllabus',
+      {
+        syllabus: {
+          courseDescription: 'A source-auditable language course.',
+          sourcesAndLicenses: {
+            title: 'Sources & Licenses',
+            groups: [{ origin: 'other', label: 'Open references', entries }],
+          },
+        },
+      },
+      'Language Structure',
+    );
+
+    const finding = await auditOfficeBlobRepetition(blob, 'docx');
+    expect(finding).toBeNull();
+  });
 });
 
 describe('compiledLanguageFinalizer', () => {
@@ -507,6 +551,20 @@ describe('compiledLanguageFinalizer', () => {
     const titles = data.slideDecks[0].slides.map((slide) => slide.title.toLowerCase());
     expect(new Set(titles).size).toBe(titles.length);
     expect(titles).toEqual(['watershed evidence check', 'evidence synthesis', 'evidence transfer check']);
+  });
+
+  it('repairs a possessive/determiner collision on learner-facing surfaces', () => {
+    const data = {
+      studyGuides: [
+        {
+          lessonNumber: 5,
+          overview: 'Defend your the visual interpretation with one visible detail.',
+        },
+      ],
+    };
+
+    finalizeCompiledDeliverableLanguage('studyGuides', data, { lessons: [] });
+    expect(data.studyGuides[0].overview).toBe('Defend your visual interpretation with one visible detail.');
   });
 
   it('shortens repeated artifact titles after the first mentions', () => {
@@ -597,6 +655,98 @@ describe('compiledLanguageFinalizer', () => {
     expect(data.assignments[0].note).toContain('an Energy decision');
     expect(data.assignments[0].note).not.toContain('..');
     expect(data.assignments[0].note).not.toContain('Define project management: Define project management');
+  });
+
+  it('preserves fingerprinted repeated tokens and morpheme boundaries during prose cleanup', () => {
+    const form = 'Au aa soli-a a=niu vei ira.';
+    const data = {
+      quizBank: [
+        {
+          question: `Evidence case: Boumaa Fijian fusion example: “${form}” [1SG PST give-TR ART=coconut to 3PL].`,
+          explanation: `Evidence basis: Boumaa Fijian fusion example: “${form}”.`,
+        },
+      ],
+    };
+    const evidenceBlueprint = {
+      lessons: [
+        {
+          lessonNumber: 1,
+          title: 'Lesson 1: Morphological Evidence',
+          authenticDataTaskPlan: {
+            protocol: 'coursemapper-authentic-evidence-task-binding-v1',
+            examples: [
+              {
+                id: 'fijian-fusion',
+                language: 'Boumaa Fijian',
+                form,
+                gloss: '1SG PST give-TR ART=coconut to 3PL',
+                translation: 'I gave the coconut to them.',
+                analysisFocus: 'Morphological identification of the cited formative.',
+                sourceLocator: 'example 1',
+                communityContext: 'Do not generalize one clause to all Fijian morphology.',
+              },
+            ],
+          },
+        },
+      ],
+    };
+
+    finalizeCompiledDeliverableLanguage('quizBank', data, evidenceBlueprint);
+
+    const rendered = JSON.stringify(data);
+    expect(rendered).toContain(form);
+    expect(rendered).not.toContain('soli-a=niu');
+  });
+
+  it('still repairs genuine adjacent English articles without touching a following morpheme boundary', () => {
+    const data = {
+      assignments: [
+        {
+          note: 'Review the the Week 2 brief and a the policy example, then preserve soli-a a=niu exactly.',
+        },
+      ],
+    };
+
+    finalizeCompiledDeliverableLanguage('assignments', data, { lessons: [] });
+
+    expect(data.assignments[0].note).toBe(
+      'Review the Week 2 brief and a policy example, then preserve soli-a a=niu exactly.',
+    );
+  });
+
+  it('preserves hashed functional-visual identifiers during prose cleanup', () => {
+    const visualBlueprint = {
+      lessons: [
+        {
+          lessonNumber: 1,
+          instructionalIntent: {
+            taskContract: {
+              protocol: 'coursemapper-functional-visual-task-contract-v1',
+              observables: [{ id: 'observable:image-a', entityId: 'image-a', renderedSelector: 'cmEntity_image-a' }],
+              predicates: [{ id: 'same-subject', left: 'image-a', right: 'image-b' }],
+              counterexample: { stateId: 'withheld-context-state', mutation: { entityId: 'image-a' } },
+              inference: { id: 'inference:context-boundary-comparison', predicateIds: ['same-subject'] },
+            },
+          },
+        },
+      ],
+    };
+    const data = {
+      quizBank: [
+        {
+          auditCopy: 'Inspect image-a, observable:image-a, cmEntity_image-a, same-subject, and withheld-context-state.',
+        },
+      ],
+    };
+
+    finalizeCompiledDeliverableLanguage('quizBank', data, visualBlueprint);
+
+    expect(data.quizBank[0].auditCopy).toContain('image-a');
+    expect(data.quizBank[0].auditCopy).toContain('observable:image-a');
+    expect(data.quizBank[0].auditCopy).toContain('cmEntity_image-a');
+    expect(data.quizBank[0].auditCopy).toContain('same-subject');
+    expect(data.quizBank[0].auditCopy).toContain('withheld-context-state');
+    expect(data.quizBank[0].auditCopy).not.toContain('image-an');
   });
 
   it('collapses identical week labels created where schedule and artifact references meet', () => {
@@ -759,6 +909,12 @@ describe('compiledLanguageFinalizer', () => {
     expect(shortArtifactReference('Introductory discussion post and short diagnostic quiz', 1)).toBe(
       'the Week 1 discussion and quiz',
     );
+    expect(shortArtifactReference('Evidence explanation: trace the visual claim', 1)).toBe(
+      'the Week 1 evidence explanation',
+    );
+    expect(shortArtifactReference('Worked example: compare two distributions', 2)).toBe('the Week 2 worked example');
+    expect(shortArtifactReference('Weekly homework: calculate the interval', 3)).toBe('the Week 3 homework');
+    expect(shortArtifactReference('Course synthesis: defend the interpretation', 14)).toBe('the Week 14 synthesis');
   });
 
   it('does not turn abstract lesson language into a week artifact name', () => {

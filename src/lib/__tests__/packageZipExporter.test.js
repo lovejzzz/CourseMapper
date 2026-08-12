@@ -3,6 +3,7 @@ import JSZip from 'jszip';
 import {
   buildEvidenceArtifactBinding,
   buildCourseMaterialsZip,
+  buildOperationQualifiedEvidenceReceipt,
   buildPackageReadinessBinding,
   buildPackageReadinessReceipt,
   downloadCourseMaterialsZip,
@@ -49,6 +50,150 @@ it('preserves exporter warning evidence without turning an otherwise verified do
     contentReadiness: { status: 'review', reviewFindingCount: 2 },
     exportVerification: { status: 'warnings', checked: 38, failed: 0, warningCount: 2 },
     downloadSafety: { status: 'verified', blockerCount: 0 },
+  });
+});
+
+it('keeps encoded conformance separate from deterministic evidence readiness', () => {
+  const receipt = buildPackageReadinessReceipt({
+    readiness: { status: 'ready', blockers: [], warnings: [] },
+    quality: {
+      status: 'graded',
+      score: 99,
+      grade: 'A',
+      findingCounts: { p0: 0, p1: 0, p2: 0 },
+      readiness: {
+        evidenceClass: 'deterministic',
+        score: 59,
+        maxScore: 100,
+        points: { potential: 100, earned: 59, lost: 1, unobserved: 40 },
+      },
+    },
+    exportVerification: { status: 'passed', checked: 38, failed: 0, warningCount: 0 },
+  });
+
+  expect(receipt).toMatchObject({
+    encodedConformance: { status: 'clear', score: 99, maxScore: 100 },
+    deterministicEvidenceReadiness: {
+      status: 'review',
+      score: 59,
+      maxScore: 100,
+      unobservedPoints: 40,
+    },
+    contentReadiness: { status: 'review', deprecated: true },
+  });
+  expect(receipt.encodedConformance).not.toHaveProperty('grade');
+});
+
+it('surfaces incomplete authentic-language coverage as a non-autofixable P1 promotion warning', () => {
+  const receipt = buildPackageReadinessReceipt({
+    readiness: { status: 'ready', blockers: [], warnings: [] },
+    quality: { status: 'graded', score: 93, grade: 'A', findingCounts: { p0: 0, p1: 0, p2: 0 } },
+    exportVerification: { status: 'passed', checked: 10, failed: 0, warningCount: 0 },
+    authenticLanguageDataCoverage: {
+      protocol: 'coursemapper-authentic-language-data-coverage-v1',
+      requiredLessonCount: 3,
+      admittedLessonCount: 2,
+      coverage: 2 / 3,
+      lessons: [
+        { lessonNumber: 1, admitted: true },
+        { lessonNumber: 2, admitted: false },
+        { lessonNumber: 3, admitted: true },
+      ],
+    },
+  });
+
+  expect(receipt).toMatchObject({
+    readiness: {
+      status: 'warnings',
+      warningCount: 1,
+      issues: [
+        expect.objectContaining({
+          source: 'authenticLanguageDataCoverage',
+          promotionSeverity: 'P1',
+          autoFixable: false,
+          message: expect.stringMatching(/2\/3.*Lessons? 2/i),
+        }),
+      ],
+    },
+    contentReadiness: { status: 'review', reviewFindingCount: 1 },
+    promotionReadiness: { status: 'blocked', p1Count: 1 },
+    downloadSafety: { status: 'verified', blockerCount: 0 },
+  });
+});
+
+it('surfaces incomplete operation-qualified evidence as a non-autofixable P1 promotion warning', () => {
+  const receipt = buildPackageReadinessReceipt({
+    readiness: { status: 'ready', blockers: [], warnings: [] },
+    quality: { status: 'graded', score: 93, grade: 'A', findingCounts: { p0: 0, p1: 0, p2: 0 } },
+    exportVerification: { status: 'passed', checked: 10, failed: 0, warningCount: 0 },
+    operationQualifiedEvidence: {
+      protocol: 'coursemapper-operation-qualified-evidence-receipt-v1',
+      summary: { demandedLessonCount: 5, completeLessonCount: 4, status: 'failed' },
+      missingLessonNumbers: [7],
+    },
+  });
+
+  expect(receipt).toMatchObject({
+    readiness: {
+      status: 'warnings',
+      warningCount: 1,
+      issues: [
+        expect.objectContaining({
+          source: 'operationQualifiedEvidence',
+          promotionSeverity: 'P1',
+          autoFixable: false,
+          message: expect.stringMatching(/4\/5.*Lessons? 7/i),
+        }),
+      ],
+    },
+    contentReadiness: { status: 'review', reviewFindingCount: 1 },
+    promotionReadiness: { status: 'blocked', p1Count: 1 },
+    downloadSafety: { status: 'verified', blockerCount: 0 },
+  });
+});
+
+it('requires the projected operation to match the exact action-bearing objective', () => {
+  const specimen = {
+    protocol: 'coursemapper-operation-qualified-evidence-v1',
+    authority: 'compiler-verified-calculation',
+    operation: 'calculate-and-interpret-confidence-interval',
+    inputs: ['n = 100', 'p-hat = 0.58'],
+    steps: ['Compute a standard error.', 'Compute both endpoints.'],
+    result: '[0.48, 0.68]',
+    interpretation: 'This interval comes from a repeated-sampling procedure.',
+    boundary: 'The synthetic example depends on its assumptions.',
+    transferTask: 'Repeat with a different sample proportion.',
+    verification: { checked: true },
+  };
+  const project = (featureId) => ({
+    status: 'done',
+    data: [{ lessonNumber: 2, [featureId]: specimen, workedExample: specimen }],
+  });
+  const receipt = buildOperationQualifiedEvidenceReceipt({
+    lessons: [
+      {
+        lessonNumber: 2,
+        title: 'Lesson 2: Inference Decision',
+        objectives: ['Calculate and interpret a p-value for a one-proportion test.'],
+      },
+    ],
+    deliverables: {
+      assignments: project('assignment'),
+      lessonPlans: project('plan'),
+      slideDecks: project('deck'),
+      studyGuides: project('guide'),
+    },
+  });
+
+  expect(receipt).toMatchObject({
+    demandedOperations: [{ lessonNumber: 2, operation: 'calculate-and-interpret-one-proportion-test' }],
+    missingLessonNumbers: [2],
+    summary: { demandedLessonCount: 1, completeLessonCount: 0, status: 'failed' },
+  });
+  expect(receipt.items[0]).toMatchObject({
+    operation: 'calculate-and-interpret-confidence-interval',
+    demandedOperation: 'calculate-and-interpret-one-proportion-test',
+    complete: false,
   });
 });
 
@@ -140,6 +285,38 @@ async function makeTimestampedOfficeBuffer(path, xml, timestamp) {
 }
 
 describe('packageZipExporter', () => {
+  it('keeps one work in separate ledger rows when its construct bindings differ', () => {
+    const merged = mergeSourceLedgerBundles({
+      rows: [
+        {
+          id: 'openstax:statistics#7--sampling-distribution',
+          provider: 'openstax',
+          title: 'Introductory Statistics 2e',
+          url: 'https://openstax.org/books/introductory-statistics-2e/pages/7-introduction',
+          license: 'CC BY 4.0',
+          sessionRefs: ['s5'],
+          conceptLinks: [{ id: 'sampling-distribution', label: 'Sampling distributions' }],
+        },
+        {
+          id: 'openstax:statistics#7--sampling-design-review',
+          provider: 'openstax',
+          title: 'Introductory Statistics 2e',
+          url: 'https://openstax.org/books/introductory-statistics-2e/pages/7-introduction',
+          license: 'CC BY 4.0',
+          sessionRefs: ['s7'],
+          conceptLinks: [{ id: 'sampling-design', label: 'Probability sampling design' }],
+        },
+      ],
+    });
+
+    expect(merged.rows).toHaveLength(2);
+    expect(merged.rows[0].sessionRefs).toEqual(['s5']);
+    expect(merged.rows[1].sessionRefs).toEqual(['s7']);
+    expect(merged.rows[0].conceptLinks).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: 'sampling-design' })]),
+    );
+  });
+
   it('drops a fallback syllabus review row once trusted research covers the same concept', () => {
     const merged = mergeSourceLedgerBundles(
       {
@@ -267,18 +444,12 @@ describe('packageZipExporter', () => {
       {
         lessonNumber: 1,
         title: 'Lesson 1: Export Reliability',
-        objectives: [
-          'Apply Export Reliability in one practical example and justify one evidence-based revision.',
-          'Verify exports.',
-        ],
+        objectives: ['Verify exports.'],
       },
       {
         lessonNumber: 2,
         title: 'Lesson 2: Portable Course Materials',
-        objectives: [
-          'Apply Portable Course Materials in one practical example and justify one evidence-based revision.',
-          'Package files.',
-        ],
+        objectives: ['Package files.'],
       },
     ]);
   });
@@ -328,7 +499,15 @@ describe('packageZipExporter', () => {
           adapter: { status: 'base-only', qualified: false },
         },
       },
-      exportVerification: { status: 'passed', checked: 38, failed: 0, warnings: 0 },
+      exportVerification: {
+        status: 'passed',
+        scope: 'aggregate-selected-feature-export-probes',
+        checked: 38,
+        failed: 0,
+        warnings: 0,
+        archivedOfficeMembersInspected: 0,
+        claimBoundary: expect.stringMatching(/does not enumerate.*every archived Office member/i),
+      },
       handoffTrust: {
         finishStatus: 'ready',
         trustState: 'review',
@@ -612,12 +791,59 @@ describe('packageZipExporter', () => {
       { featureId: 'lessonPlans', label: 'Lesson Plans' },
       { featureId: 'slideDecks', label: 'Slide Decks' },
     ]);
-    expect(manifest.lessons[0].objectives).toContain(
-      'Apply Export Reliability in one practical example and justify one evidence-based revision.',
-    );
+    expect(manifest.lessons[0].objectives).toEqual(['Verify exports.']);
     expect(buildXlsxBuffer).toHaveBeenCalledOnce();
     expect(buildDeliverableDocxBlob).toHaveBeenCalledTimes(2);
     expect(buildSlideDeckPptxBlob).toHaveBeenCalledTimes(2);
+  });
+
+  it('publishes the compiled assignment objective on its manifest assessment declaration', async () => {
+    const result = await buildCourseMaterialsZip({
+      courseMap: {
+        courseName: 'Objective Contract Course',
+        lessons: [
+          {
+            title: 'Lesson 1: Conditional Branching',
+            sections: [{ learningObjectives: 'Summarize an older course-map objective.' }],
+          },
+        ],
+      },
+      deliverables: {
+        assignments: {
+          status: 'done',
+          data: {
+            assignments: [
+              {
+                assessmentId: 'A1.1',
+                lessonNumber: 1,
+                title: 'Conditional Branching application check',
+                objectives: ['Trace a conditional branch and justify one boundary decision.'],
+              },
+            ],
+          },
+        },
+      },
+      featureIds: ['courseMap', 'assignments'],
+      courseGraph: {
+        sessions: [{ id: 's1', number: 1, title: 'Lesson 1: Conditional Branching' }],
+        resources: [],
+        readings: [],
+        assessments: [
+          {
+            id: 'A1.1',
+            title: 'Conditional Branching application check',
+            kind: 'graded-artifact',
+            dueSession: 1,
+          },
+        ],
+      },
+      quality: false,
+    });
+
+    expect(result.manifest.lessons[0].objectives).toEqual(['Summarize an older course-map objective.']);
+    expect(result.manifest.assessments[0].objectives).toEqual([
+      'Trace a conditional branch and justify one boundary decision.',
+    ]);
   });
 
   it('carries the canonical activity packet into the Assignment Briefs ZIP export', async () => {
@@ -774,9 +1000,9 @@ describe('packageZipExporter', () => {
     });
 
     const rubricCalls = buildDeliverableDocxBlob.mock.calls.filter(([featureId]) => featureId === 'rubrics');
-    expect(rubricCalls).toHaveLength(5);
-    expect(rubricCalls[2][1].rubrics).toEqual([]);
-    expect(rubricCalls[4][1].rubrics).toEqual([
+    expect(rubricCalls).toHaveLength(3);
+    expect(rubricCalls.some(([, data]) => data.rubrics.length === 0)).toBe(false);
+    expect(rubricCalls[2][1].rubrics).toEqual([
       expect.objectContaining({ lessonTitle: 'Lesson 5: Current and Resistance' }),
     ]);
   });
@@ -976,10 +1202,98 @@ describe('packageZipExporter', () => {
       assembleOnly: true,
     });
 
-    expect(result.manifest.generationConstraints).toMatchObject({ explicitLessonSequence: lessonTitles });
+    expect(result.manifest.generationConstraints).toMatchObject({
+      explicitLessonSequence: lessonTitles,
+      orderedLessonContract: {
+        mode: 'explicit-lesson-sequence',
+        declaredCount: 5,
+        topics: lessonTitles,
+      },
+    });
     expect(result.quality.readiness.components.curriculumFidelity).toMatchObject({
       status: 'evaluated',
       points: { max: 25, earned: 25, lost: 0, unobserved: 0 },
+    });
+  });
+
+  it('exports a source-verified ordered lesson contract retained by the course graph', async () => {
+    const topics = ['Picturing Distributions', 'Describing Distributions'];
+    const courseMap = {
+      courseName: 'Introduction to Statistics',
+      lessons: topics.map((title, index) => ({
+        title: `Lesson ${index + 1}: ${title}`,
+        sections: [{ learningObjectives: `Apply ${title}.` }],
+      })),
+    };
+    const orderedLessonContract = {
+      protocol: 'coursemapper-governing-source-course-contract-v1',
+      mode: 'governing-source-ordered-subset',
+      topics,
+      matches: topics.map((topic, index) => ({ lessonNumber: index + 1, topic, coverage: 1 })),
+      sourceTokenCount: 12,
+      claimBoundary: 'Curriculum identity only.',
+    };
+
+    const result = await buildCourseMaterialsZip({
+      courseMap,
+      courseGraph: {
+        course: { name: courseMap.courseName, meta: { orderedLessonContract } },
+        sessions: [],
+        resources: [],
+        readings: [],
+      },
+      deliverables: {},
+      featureIds: ['courseMap'],
+      quality: { timeoutMs: 5000, coursePrompt: 'Create a two-lesson statistics course.' },
+      assembleOnly: true,
+    });
+
+    expect(result.manifest.generationConstraints.orderedLessonContract).toEqual(orderedLessonContract);
+    expect(result.quality.readiness.components.curriculumFidelity).toMatchObject({
+      status: 'evaluated',
+      points: { max: 25, earned: 25, lost: 0, unobserved: 0 },
+    });
+  });
+
+  it('exports the explicit all-lessons functional-visual contract with a byte-bound source brief', async () => {
+    const courseMap = {
+      courseName: 'Visual Evidence Studio',
+      lessons: Array.from({ length: 3 }, (_, index) => ({
+        title: `Lesson ${index + 1}: Visual evidence ${index + 1}`,
+        sections: [{ learningObjectives: `Analyze visual evidence ${index + 1}.` }],
+      })),
+    };
+    const coursePrompt =
+      'Create a three-lesson studio. Every lesson must require students to analyze a concrete visual and produce an evidence-based annotation or comparison. Use only open-licensed or public-domain visuals and preserve attribution and license boundaries.';
+
+    const result = await buildCourseMaterialsZip({
+      courseMap,
+      deliverables: {},
+      featureIds: ['courseMap'],
+      quality: { timeoutMs: 5000, coursePrompt },
+      assembleOnly: true,
+    });
+
+    expect(result.manifest.generationConstraints.briefQualityContract).toMatchObject({
+      protocol: 'coursemapper-brief-quality-contract-v1',
+      scope: 'all-lessons',
+      requiredLessonNumbers: [1, 2, 3],
+      functionalVisual: {
+        required: true,
+        processAction: 'analyze',
+        productActions: ['annotate', 'compare'],
+      },
+      rightsBoundary: {
+        mode: 'open-or-public-domain',
+        externalAssetAllowedOnlyWithInspectableRights: true,
+        originalNativeAllowed: false,
+      },
+    });
+    expect(result.manifest.generationConstraints.sourceBriefBinding).toMatchObject({
+      protocol: 'coursemapper-source-brief-binding-v1',
+      text: coursePrompt,
+      utf8Bytes: new TextEncoder().encode(coursePrompt).byteLength,
+      sha256: expect.stringMatching(/^[a-f0-9]{64}$/),
     });
   });
 
@@ -3411,6 +3725,114 @@ describe('packageZipExporter', () => {
       }),
     );
     expect(manifestText).not.toContain('custom_weeklyReflection');
+  });
+
+  it('resolves an original native visual source only from its complete typed contract', async () => {
+    const artifact = 'Annotated composition comparison';
+    const typedSpecimen = {
+      protocol: 'coursemapper-typed-evidence-specimen-v1',
+      lessonNumber: 1,
+      conceptBinding: 'composition',
+      specimenKind: 'spatial-composition',
+      taskContract: {
+        protocol: 'coursemapper-functional-visual-task-contract-v1',
+        contractId: 'VTC-L01',
+        upstreamRequirementSha256: 'a'.repeat(64),
+        constructFamily: 'spatial-composition',
+        predicates: [{ id: 'primary-directs-attention' }],
+        counterexample: { stateId: 'reversed-direction' },
+      },
+      taskContractSha256: 'b'.repeat(64),
+      entities: [
+        { id: 'primary', geometry: { x: 5, y: 15, w: 40, h: 25 } },
+        { id: 'secondary', geometry: { x: 8, y: 58, w: 24, h: 15 } },
+        { id: 'anchor', geometry: { x: 75, y: 18, w: 14, h: 24 } },
+      ],
+      relations: [
+        {
+          id: 'eye-path',
+          from: 'primary',
+          to: 'anchor',
+          visibleStatement: 'The primary mass directs attention to the anchor.',
+        },
+      ],
+      sourceBinding: {
+        id: 'CM-SRC-L01',
+        label: 'Original CourseMapper-native composition specimen',
+        resolution: 'native-evidence-specimen',
+        verificationRule: 'Inspect the typed entities and relation before interpretation.',
+      },
+      learnerProduct: { id: 'CM-PROD-L01', artifact },
+      rightsBinding: {
+        mode: 'open-or-public-domain-or-original-native',
+        assetRightsClass: 'original-native-owner-controlled',
+        disclosure: 'Original CourseMapper-native vector; no external image asset.',
+      },
+      visibleTask: {
+        protocol: 'coursemapper-visible-functional-task-v1',
+        cardTextSha256: 'c'.repeat(64),
+        authoredSummarySha256: 'd'.repeat(64),
+        authoredBulletsSha256: 'e'.repeat(64),
+        sourceBindingId: 'CM-SRC-L01',
+        learnerProductId: 'CM-PROD-L01',
+        artifact,
+        successCriterion: 'Name the visible relationship.',
+        rightsDisclosure: 'Original CourseMapper-native vector; no external image asset.',
+      },
+    };
+    const result = await buildCourseMaterialsZip({
+      courseMap: makeCourseMap('Native Visual Trust'),
+      deliverables: {
+        slideDecks: {
+          status: 'done',
+          data: {
+            decks: [
+              {
+                lessonNumber: 1,
+                lessonTitle: 'Lesson 1: Composition',
+                slides: [
+                  {
+                    type: 'keyTerm',
+                    title: 'Inspect composition',
+                    bullets: ['Analyze the visible relationship and annotate its evidence.'],
+                    visual: { kind: 'evidence specimen', typedSpecimen },
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      },
+      featureIds: ['courseMap', 'slideDecks'],
+      courseGraph: {
+        sessions: [{ id: 's1', number: 1, title: 'Lesson 1: Composition' }],
+        resources: [],
+        readings: [],
+        assessments: [{ id: 'A1.1', title: artifact, kind: 'graded-artifact', dueSession: 1 }],
+      },
+      quality: false,
+    });
+
+    const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+    expect(manifest.functionalVisualBindings).toContainEqual(
+      expect.objectContaining({
+        lessonNumber: 1,
+        visibleTask: expect.objectContaining({
+          protocol: 'coursemapper-visible-functional-task-v1',
+          hashBound: true,
+          cardTextSha256: 'c'.repeat(64),
+          authoredSummarySha256: 'd'.repeat(64),
+          authoredBulletsSha256: 'e'.repeat(64),
+          successCriterion: 'Name the visible relationship.',
+        }),
+        source: expect.objectContaining({
+          bindingId: 'CM-SRC-L01',
+          resolution: 'native-evidence-specimen',
+          resolved: true,
+        }),
+      }),
+    );
   });
 
   it('adds a required lab-assets marker when notebook and dataset assets are referenced', async () => {

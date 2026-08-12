@@ -1,5 +1,6 @@
 // Algi V0 composes the Pass A skeleton from the uploaded source instead of
 // sampling it. These tests pin the contract the pipeline admits downstream.
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
   composeAlgiAdvisoryResponse,
@@ -21,6 +22,8 @@ import { publicScionProviderModelOptions } from '../publicScionIdentity.js';
 import {
   composeLessonFromCandidateKernels,
   composeLessonFromKernels,
+  composeLessonKernelFromGenome,
+  composeResearchLedgerOnlyPayload,
   compositionCandidatesFromEvidence,
   constrainConceptIdsToDisciplines,
   diagnoseKeyTermCandidate,
@@ -29,11 +32,16 @@ import {
   fitSourceFacts,
   fitSourceSentence,
   integrativeKernels,
+  kernelStronglySupportsTopic,
   isIntegrativeLesson,
   kernelTopicOverlapScore,
   needsAuthoritativeSourceResearch,
+  semanticAdmissionSafeResearchKernel,
+  sourceClaimSemanticAdmission,
+  sourceReferenceForKernel,
 } from '../algiKernelComposer.js';
 import { parseLessonKernelResponse } from '../blueprintEnrichmentPass.js';
+import { buildConceptIndex } from '../genome/conceptResolver.js';
 
 const SYLLABUS = `Course: Introduction to Environmental Policy
 
@@ -134,6 +142,22 @@ describe('Algi V0 prompt reading', () => {
     ).toBe('Applied Civic Data Analysis');
   });
 
+  it('recovers an official OCR syllabus title instead of the instructor-notes marker', () => {
+    expect(
+      extractCourseName(
+        '=== Instructor Notes ===\nBuild eight lessons.\n=== File: syllabus.pdf ===\nSTATISTICS: 1450 .01 (19952) INTRODUCTION TO T HE PRACTICE OF STATISTICS SPRING 2026 Course Overview',
+      ),
+    ).toBe('Introduction to the Practice of Statistics');
+  });
+
+  it('reads the typed course identity in the exact V18 language brief', () => {
+    expect(
+      extractCourseName(
+        'Create a fourteen-lesson undergraduate Introduction to Language Structure course for students with no prior linguistics.',
+      ),
+    ).toBe('Introduction to Language Structure');
+  });
+
   it('separates a concise course title from an inline quick-start brief', () => {
     expect(
       extractCourseName(
@@ -208,6 +232,34 @@ describe('Algi V0 skeleton composition', () => {
     expect(topics[0].toLowerCase()).toContain('environmental problems');
     expect(topics[1].toLowerCase()).toContain('common-pool');
     expect(new Set(topics.map((t) => t.toLowerCase())).size).toBe(6);
+  });
+
+  it('does not turn per-lesson output requirements into syllabus topics', () => {
+    const source = `=== Instructor Notes ===
+Using the attached official syllabus, create exactly eight lessons from the first eight instructional topic units.
+Each lesson must include a defensible worked procedure, an inspectable calculation record, an interpretation task, and an answer key.
+
+=== File: statistics-syllabus.pdf ===
+Course: Introduction to the Practice of Statistics
+Week 1: Data and experimental design
+Week 2: Describing distributions
+Week 3: Normal models
+Week 4: Relationships between variables
+Week 5: Probability fundamentals
+Week 6: Random variables
+Week 7: Sampling distributions
+Week 8: Confidence intervals`;
+
+    expect(planSessionTopics(source, 8)).toEqual([
+      'Data and experimental design',
+      'Describing distributions',
+      'Normal models',
+      'Relationships between variables',
+      'Probability fundamentals',
+      'Random variables',
+      'Sampling distributions',
+      'Confidence intervals',
+    ]);
   });
 
   it('transcribes an explicit Session N outline from the quick-start brief', () => {
@@ -512,6 +564,11 @@ describe('Algi V0 source sentence compaction', () => {
         'If observers and their measuring apparatus are themselves described by a deterministic wave function, why can we not predict precise outcomes from every observation?',
       ),
     ).toBe('');
+    expect(
+      fitSourceFact(
+        "Perspective (from Latin perspicere 'to see through') is the representation of objects on the basis of how they may appear in real life.",
+      ),
+    ).toBe("Perspective (from Latin perspicere 'to see through') is the representation of objects.");
   });
 
   it('rejects detached pronouns and uses the longest self-contained source clause', () => {
@@ -542,6 +599,14 @@ describe('Algi V0 source sentence compaction', () => {
     ).toEqual([
       'However, adherence to this principle is not always guaranteed.',
       'There are instances where individuals may be adversely affected by algorithmic decisions.',
+    ]);
+    expect(
+      fitSourceFacts(
+        "The most characteristic features of linear perspective are that objects appear smaller as their distance from the observer increases, and that they are subject to foreshortening, meaning that an object's dimensions parallel to the line of sight appear shorter than its dimensions perpendicular to the line of sight.",
+      ),
+    ).toEqual([
+      'The most characteristic features of linear perspective are that objects appear smaller as their distance from the observer increases.',
+      "An object's dimensions parallel to the line of sight appear shorter than its dimensions perpendicular to the line of sight.",
     ]);
     expect(
       fitSourceFact(
@@ -681,6 +746,7 @@ describe('Algi V0 source receipts', () => {
         ? {
             origin: 'algi-research',
             title,
+            research: { directTitleMatch: true },
             sourceUrl: `https://en.wikipedia.org/wiki/Concept_${index}`,
             revisionId: 1000 + index,
           }
@@ -720,6 +786,142 @@ describe('Algi V0 source receipts', () => {
     }
     return result;
   };
+
+  it('keeps a missing corrective distinct from the admitted definition', () => {
+    const sourceKernel = kernel(1, false);
+    sourceKernel.misconceptions[0] = {
+      text: 'Students confuse the sampled estimate with the complete population value.',
+      corrective: '',
+    };
+
+    const diagnostic = diagnoseKeyTermCandidate(sourceKernel);
+    expect(diagnostic.missing).toEqual([]);
+    expect(diagnostic.correction).toContain('reject that belief');
+    expect(diagnostic.correction).not.toBe(diagnostic.definition);
+  });
+
+  it('replays a shipped foundry snapshot from manifest metadata', () => {
+    const shipped = kernel(1, false);
+    const entries = [shipped.definition, ...shipped.facts];
+    let normalizedSnapshotText = '';
+    const claims = entries.map((entry) => {
+      const quoteByteStart = new TextEncoder().encode(normalizedSnapshotText).byteLength;
+      normalizedSnapshotText += `${entry.text} `;
+      return {
+        sourceId: entry.anchor.src,
+        locator: entry.anchor.loc,
+        quote: entry.anchor.quote,
+        retrievedSnapshotSha256: 'a'.repeat(64),
+        retrievedSnapshotBytes: 0,
+        quoteByteStart,
+        quoteByteEnd: quoteByteStart + new TextEncoder().encode(entry.anchor.quote).byteLength,
+        quoteSha256: 'b'.repeat(64),
+      };
+    });
+    normalizedSnapshotText = normalizedSnapshotText.trim();
+    const retrievedSnapshotBytes = new TextEncoder().encode(normalizedSnapshotText).byteLength;
+    claims.forEach((claim) => {
+      claim.retrievedSnapshotBytes = retrievedSnapshotBytes;
+    });
+    const citation = sourceReferenceForKernel(shipped, {
+      'openstax:test#1': {
+        displayTitle: 'OpenStax test source',
+        sourceUrl: 'https://openstax.org/test',
+        sourceSnapshot: {
+          protocol: 'retrieved-source-snapshot-sha256-v2',
+          sources: [
+            {
+              sourceId: 'openstax:test#1',
+              normalizedSnapshotText,
+              retrievedSnapshotSha256: 'a'.repeat(64),
+              retrievedSnapshotBytes,
+            },
+          ],
+          claims,
+        },
+      },
+    });
+
+    expect(citation).toMatchObject({
+      sourceUrl: 'https://openstax.org/test',
+      provider: 'openstax',
+      supportReceipt: {
+        sourceIdentityVerified: true,
+        semanticAdmissionVerified: true,
+        checkedClaims: 3,
+      },
+    });
+  });
+
+  it('keeps current shipped statistics kernels bound to hash-pinned source snapshots', () => {
+    const manifest = JSON.parse(readFileSync(new URL('../../../public/genome/manifest.json', import.meta.url), 'utf8'));
+    const shard = JSON.parse(readFileSync(new URL('../../../public/genome/stats-intro.json', import.meta.url), 'utf8'));
+    for (const id of [
+      'stats/data-provenance',
+      'stats/sampling-distribution',
+      'stats/data-visualization',
+      'stats/standard-normal-distribution',
+      'stats/least-squares-regression',
+    ]) {
+      const citation = sourceReferenceForKernel(
+        shard.kernels.find((candidate) => candidate.id === id),
+        manifest.references,
+      );
+      expect(citation.supportReceipt, id).toMatchObject({
+        status: 'passed',
+        sourceIdentityVerified: true,
+        semanticAdmissionVerified: true,
+        semanticSupport: true,
+      });
+      expect(citation.supportReceipt.checks.length, id).toBeGreaterThanOrEqual(2);
+    }
+  });
+
+  it('resolves the checkpoint statistics lessons from admitted offline evidence', () => {
+    const manifest = JSON.parse(readFileSync(new URL('../../../public/genome/manifest.json', import.meta.url), 'utf8'));
+    const shard = JSON.parse(readFileSync(new URL('../../../public/genome/stats-intro.json', import.meta.url), 'utf8'));
+    const index = buildConceptIndex(shard.kernels);
+
+    for (const title of ['Picturing Distributions with Graphs', 'The Normal Distribution', 'Regression']) {
+      const payload = composeLessonKernelFromGenome(
+        {
+          lessonId: `lesson-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+          title,
+          topics: [title],
+          objectives: [`Apply ${title.toLowerCase()} to a statistical question.`],
+        },
+        index,
+        {
+          sourceReferences: manifest.references,
+          allowedDisciplines: ['stats'],
+        },
+      );
+
+      expect(payload, title).not.toBeNull();
+      expect(payload?.facts?.length, title).toBeGreaterThanOrEqual(3);
+      expect(needsAuthoritativeSourceResearch(payload), title).toBe(false);
+    }
+  });
+
+  it('researches a sampling lesson instead of padding it with generic data neighbors', () => {
+    const manifest = JSON.parse(readFileSync(new URL('../../../public/genome/manifest.json', import.meta.url), 'utf8'));
+    const shard = JSON.parse(readFileSync(new URL('../../../public/genome/stats-intro.json', import.meta.url), 'utf8'));
+    const payload = composeLessonKernelFromGenome(
+      {
+        lessonId: 'lesson-7',
+        title: 'Producing Data: Sampling',
+        topics: ['Sampling Distributions'],
+        objectives: ['Explain how sampling decisions affect statistical inference.'],
+      },
+      buildConceptIndex(shard.kernels),
+      {
+        sourceReferences: manifest.references,
+        allowedDisciplines: ['stats'],
+      },
+    );
+
+    expect(payload).toBeNull();
+  });
 
   it('carries researched attribution through the compact parser into the lesson overlay', () => {
     const payload = composeLessonFromKernels(
@@ -766,6 +968,215 @@ describe('Algi V0 source receipts', () => {
       },
     });
     expect(parsed.lessons['lesson-1'].keyTerms).toHaveLength(3);
+  });
+
+  it('retains a verified source ledger when research cannot supply three glossary terms', () => {
+    const payload = composeResearchLedgerOnlyPayload(
+      { lessonId: 'lesson-1', title: 'Concepts in practice' },
+      [kernel(1, true), kernel(2, true)],
+      { factCount: 5 },
+    );
+
+    expect(payload).toMatchObject({
+      lessonId: 'lesson-1',
+      enrichmentSource: 'algi-researched',
+      projectionKind: 'verified-source-ledger-only',
+      keyTerms: [],
+    });
+    expect(payload.facts).toHaveLength(5);
+    expect(payload.conceptProvenance.citations).toHaveLength(2);
+    expect(payload.conceptProvenance.citations.flatMap((citation) => citation.supportReceipt.checks)).toHaveLength(6);
+  });
+
+  it('quarantines exact research sentences that fail semantic admission before composition', () => {
+    const researched = kernel(1, true);
+    const rejected = 'Natural languages are spoken, signed, or both; however.';
+    researched.facts[1].text = rejected;
+
+    const safe = semanticAdmissionSafeResearchKernel(researched);
+    expect(safe.facts.map((fact) => fact.text)).not.toContain(rejected);
+    expect(safe.facts).toHaveLength(1);
+  });
+
+  it('keeps self-contained claims from a directly retrieved canonical concept family', () => {
+    const researched = kernel(1, true);
+    researched.term = 'Summary statistics';
+    researched.provenance.title = 'Summary statistics';
+    researched.provenance.topic = 'Describing Distributions with Numbers (2.4) · Describing Distributions with Numbers';
+    researched.provenance.research = { directTitleMatch: true };
+    researched.definition.text =
+      'Summary statistics are used to summarize observations and communicate information as simply as possible.';
+    researched.facts[0].text =
+      'A common collection of order statistics used as summary statistics is the five-number summary.';
+    researched.facts[1].text = 'Entries in an analysis of variance table can also be regarded as summary statistics.';
+
+    const safe = semanticAdmissionSafeResearchKernel(researched);
+    expect(safe).not.toBeNull();
+    expect(safe.facts.map((fact) => fact.text)).toEqual(researched.facts.map((fact) => fact.text));
+  });
+
+  it('accepts a byte-exact definition with a bounded disciplinary appositive', () => {
+    const researched = kernel(1, true);
+    researched.term = 'Visual hierarchy';
+    researched.provenance.title = 'Visual hierarchy';
+    researched.provenance.topic = 'Visual hierarchy';
+    researched.provenance.research = { directTitleMatch: true };
+    researched.definition.text =
+      'Visual hierarchy, in Gestalt psychology, describes how particular elements in a visual field stand out more than others.';
+
+    expect(sourceClaimSemanticAdmission(researched, researched.definition.text)).toMatchObject({
+      admitted: true,
+      directCanonicalMatch: true,
+      issues: [],
+    });
+  });
+
+  it('keeps self-contained follow-on facts from an exact canonical source transaction', () => {
+    const researched = kernel(1, true);
+    researched.term = 'Visual hierarchy';
+    researched.provenance.title = 'Visual hierarchy';
+    researched.provenance.topic = 'Visual hierarchy';
+    researched.provenance.research = { directTitleMatch: true };
+
+    expect(
+      sourceClaimSemanticAdmission(
+        researched,
+        'Objects with highest contrast to their surroundings are recognized first by the human mind.',
+      ),
+    ).toMatchObject({
+      admitted: true,
+      directCanonicalSourceMatch: true,
+      issues: [],
+    });
+  });
+
+  it('rejects neighboring sources that share only an overloaded lesson descriptor', () => {
+    expect(
+      sourceClaimSemanticAdmission(
+        {
+          term: 'Graph theory',
+          provenance: {
+            title: 'Graph theory',
+            topic: 'Graphs and Data Visualization · Picturing Distributions',
+            research: { directTitleMatch: true },
+          },
+        },
+        'Graph theory is the study of mathematical structures used to model pairwise relations between objects.',
+      ),
+    ).toMatchObject({ admitted: false, issues: ['lesson-topic-mismatch'] });
+
+    expect(
+      sourceClaimSemanticAdmission(
+        {
+          term: 'Linguistic prescription',
+          provenance: {
+            title: 'Linguistic prescription',
+            topic: 'Defining Linguistic Evidence · Linguistic Evidence Basis',
+            research: { directTitleMatch: true },
+          },
+        },
+        'Linguistic prescription is the establishment of rules defining preferred language usage.',
+      ),
+    ).toMatchObject({ admitted: false, issues: ['lesson-topic-mismatch'] });
+  });
+
+  it('rejects probability-distribution prose from a descriptive-statistics lesson when describe is the only overlap', () => {
+    expect(
+      sourceClaimSemanticAdmission(
+        {
+          term: 'Probability distribution',
+          provenance: {
+            title: 'Probability distribution',
+            topic: 'Describing Distributions Numerically · Describing Distributions with Numbers',
+            research: { directTitleMatch: true },
+          },
+        },
+        'A probability distribution is a mathematical function that describes probabilities of possible outcomes.',
+      ),
+    ).toMatchObject({ admitted: false, issues: ['lesson-topic-mismatch'] });
+  });
+
+  it('rejects a computing-source identity before overloaded language tokens can admit it', () => {
+    expect(
+      sourceClaimSemanticAdmission(
+        {
+          term: 'Imperative programming',
+          provenance: {
+            title: 'Imperative programming',
+            sourceUrl: 'https://en.wikipedia.org/wiki/Imperative_programming',
+            topic: 'Waunana imperative language',
+            research: { directTitleMatch: false },
+          },
+        },
+        'In computer science, imperative programming is a software programming paradigm that provides specific instructions for how computations should take place.',
+      ),
+    ).toMatchObject({
+      admitted: false,
+      policy: 'lesson-topic-source-integrity-v4',
+      issues: ['human-language-computing-source-identity', 'lesson-topic-mismatch'],
+    });
+  });
+
+  it('rejects an exact-title source when the passage uses the term for a geological entity', () => {
+    expect(
+      sourceClaimSemanticAdmission(
+        {
+          term: 'Word Formation',
+          provenance: {
+            title: 'Word Formation',
+            topic: 'Morphology · Word Formation · Derivational Processes',
+            research: { directTitleMatch: true },
+          },
+        },
+        'The Word Formation is a geologic formation in Texas with Permian strata.',
+      ),
+    ).toMatchObject({
+      admitted: false,
+      directCanonicalSourceMatch: true,
+      issues: ['human-language-geology-source-meaning', 'lesson-topic-mismatch'],
+    });
+  });
+
+  it('admits a canonical source when its exact claim satisfies two frozen evidence-intent terms', () => {
+    const result = sourceClaimSemanticAdmission(
+      {
+        term: 'Contingency table',
+        provenance: {
+          title: 'Contingency table',
+          topic: 'Two-Way Tables Analysis · Two-Way Tables',
+          research: {
+            directTitleMatch: true,
+            plannedEvidenceContext:
+              'conditional proportions for two categorical variables with a declared conditioning direction',
+          },
+        },
+      },
+      'A contingency table displays the joint frequency distribution of two categorical variables in rows and columns.',
+    );
+
+    expect(result).toMatchObject({
+      admitted: true,
+      plannedEvidenceMatches: expect.arrayContaining(['categorical', 'variabl']),
+      issues: [],
+    });
+  });
+
+  it('treats ethical, ethics, and ethically as one distinguishing lesson identity', () => {
+    const kernel = {
+      term: 'Visual ethics',
+      provenance: {
+        title: 'Visual ethics',
+        topic: 'Ethical contextual interpretation',
+        research: { directTitleMatch: true },
+      },
+    };
+
+    expect(
+      sourceClaimSemanticAdmission(
+        kernel,
+        'Visual ethics is an interdisciplinary field that examines how people relate to others ethically through visual perception.',
+      ),
+    ).toMatchObject({ admitted: true, topicMatches: ['ethic'] });
   });
 
   it('never invents a distinction between an acronym and its expanded name', () => {
@@ -1065,12 +1476,46 @@ describe('Algi V0 source receipts', () => {
     expect(synthesis.keyTerms.map((entry) => entry.tr)).toEqual(['Concept 1', 'Concept 3', 'Concept 4']);
   });
 
+  it('does not treat one generic course word as permission to borrow unrelated sibling research', () => {
+    const sensoryStudy = {
+      term: 'Cross-modal sensory transformations',
+      aliases: ['visual and proprioceptive sensory modalities'],
+      tags: ['eye-hand coordination', 'gravity'],
+      definition: {
+        text: 'A sensory transformation maps information between visual and proprioceptive reference frames.',
+      },
+    };
+    const rhetoricStudy = {
+      term: 'Source attribution',
+      aliases: ['visual source attribution practices'],
+      tags: ['provenance', 'citation'],
+      definition: {
+        text: 'Source attribution identifies the provenance of evidence used in an interpretation.',
+      },
+    };
+
+    expect(
+      kernelStronglySupportsTopic(
+        sensoryStudy,
+        'Source Attribution Practices · Bias in Visual Representation · Ethical Contextual Interpretation',
+      ),
+    ).toBe(false);
+    expect(
+      kernelStronglySupportsTopic(
+        rhetoricStudy,
+        'Source Attribution Practices · Bias in Visual Representation · Ethical Contextual Interpretation',
+      ),
+    ).toBe(true);
+  });
+
   it('recognizes a bounded recommendations lesson as course synthesis', () => {
     expect(isIntegrativeLesson({ title: 'Accountable case recommendations' })).toBe(true);
     expect(isIntegrativeLesson({ title: 'Evidence-based policy recommendations' })).toBe(true);
     expect(isIntegrativeLesson({ title: 'Current Technology Policy course synthesis' })).toBe(true);
     expect(isIntegrativeLesson({ title: 'Affinity synthesis and insight quality' })).toBe(true);
     expect(isIntegrativeLesson({ title: 'Evidence synthesis and implementation barriers' })).toBe(true);
+    expect(isIntegrativeLesson({ title: 'Final Data Analysis Project' })).toBe(true);
+    expect(isIntegrativeLesson({ title: 'Project Proposal Defense' })).toBe(true);
     expect(isIntegrativeLesson({ title: 'Evidence-based design recommendations' })).toBe(false);
     expect(isIntegrativeLesson({ title: 'Platform governance' })).toBe(false);
   });
@@ -1144,6 +1589,42 @@ describe('Algi V0 source receipts', () => {
     expect(JSON.stringify(payload)).not.toContain('unsupported factual claim');
   });
 
+  it('recovers an anchored represented object when one visual source carries the lesson', () => {
+    const source = kernel(1, true);
+    source.term = 'Perspective';
+    source.provenance.topic = 'Linear Perspective Systems · Perspective and Framing';
+    source.definition.text =
+      'Perspective is the representation of objects on the basis of how they may appear in real life.';
+    source.facts = [
+      'Perspective is an approximate representation of an object as it is seen by the eye.',
+      'Perspective is useful for representing a three-dimensional scene in a two-dimensional medium.',
+      'Linear perspective makes distant objects appear smaller to an observer.',
+      'Foreshortening makes dimensions parallel to the line of sight appear shorter.',
+      'Artists incorporated linear perspective into their artworks.',
+    ].map((text, index) => ({
+      text,
+      anchor: { ...source.definition.anchor, quote: text, loc: `Claim ${index + 1}` },
+      tier: 2,
+    }));
+
+    const expanded = expandResearchKernelsForComposition(
+      [source],
+      'Linear Perspective Systems · Perspective and Framing',
+    );
+    expect(expanded.map((entry) => entry.term)).toContain('Three-dimensional scene');
+    expect(
+      composeLessonFromCandidateKernels(
+        {
+          lessonId: 'lesson-4',
+          title: 'Perspective and Framing',
+          topics: ['Linear Perspective Systems'],
+        },
+        expanded,
+        { factCount: 5 },
+      ),
+    ).not.toBeNull();
+  });
+
   it('rejects quantified subjects and clipped propositions as research key terms', () => {
     const source = kernel(1, true);
     source.term = 'Web accessibility';
@@ -1155,6 +1636,7 @@ describe('Algi V0 source receipts', () => {
       'Since they often require non-standard devices and browsers, accessible websites support more user agents.',
       'Conformance to this level is defined by satisfying the applicable success criteria.',
       'Accessible forms include labels that identify the purpose of each control.',
+      'Speech articulations but also are affected by the surrounding production context.',
       ...source.facts.slice(0, 2).map((fact) => fact.text),
     ].map((text, index) => ({
       text,
@@ -1167,6 +1649,47 @@ describe('Algi V0 source receipts', () => {
     expect(terms).not.toContain('Some jurisdictions');
     expect(terms).not.toContain('Conformance to this level');
     expect(terms.join(' ')).not.toMatch(/Often require|Since they/i);
+    expect(terms).not.toContain('Speech articulations but also');
+    source.facts.push({
+      text: 'An author may formally require attribution through a documented license.',
+      anchor: {
+        ...source.definition.anchor,
+        quote: 'An author may formally require attribution through a documented license.',
+        loc: 'Claim 7',
+      },
+      tier: 2,
+    });
+    expect(expandResearchKernelsForComposition([source], 'Accessible forms').map((entry) => entry.term)).not.toContain(
+      'author may formally',
+    );
+    source.facts.push(
+      {
+        text: 'The example above is the simplest form of a two-way table.',
+        anchor: {
+          ...source.definition.anchor,
+          quote: 'The example above is the simplest form of a two-way table.',
+          loc: 'Claim 8',
+        },
+        tier: 2,
+      },
+      {
+        text: 'Visually, the table displays a relationship between categories.',
+        anchor: {
+          ...source.definition.anchor,
+          quote: 'Visually, the table displays a relationship between categories.',
+          loc: 'Claim 9',
+        },
+        tier: 2,
+      },
+      {
+        text: 'This is called a 2 × 2 contingency table.',
+        anchor: { ...source.definition.anchor, quote: 'This is called a 2 × 2 contingency table.', loc: 'Claim 10' },
+        tier: 2,
+      },
+    );
+    const deicticTerms = expandResearchKernelsForComposition([source], 'Two-Way Tables').map((entry) => entry.term);
+    expect(deicticTerms).not.toEqual(expect.arrayContaining(['example above', 'Visually']));
+    expect(deicticTerms).toContain('2×2 contingency table');
   });
 
   it('recovers explicitly named WCAG concepts from an anchored source sentence', () => {

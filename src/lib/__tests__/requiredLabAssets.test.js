@@ -64,6 +64,132 @@ describe('collectRequiredLabAssets', () => {
     expect(bundled.map((asset) => asset.path).join(' ')).not.toMatch(/policy|outcomes_sample/i);
   });
 
+  it('keeps a language-data linguistics project out of the data-science asset genre', () => {
+    const requirements = collectRequiredLabAssets({
+      courseMap: {
+        courseName: 'Introduction to Language Structure',
+        description:
+          'An introductory linguistics course spanning phonetics, phonology, morphology, syntax, semantics, pragmatics, variation, audio waveform analysis, and a final language-data analysis.',
+        lessons: [
+          { title: 'Lesson 1: Linguistic Evidence' },
+          {
+            title: 'Lesson 14: Final Language-Data Analysis Project',
+            sections: [{ technologyNeeded: 'Course dataset (.csv)' }],
+          },
+        ],
+      },
+    });
+
+    expect(requirements.map((item) => item.id)).toEqual(
+      expect.arrayContaining(['language-data-packet', 'ipa-reference', 'audio-analysis-access']),
+    );
+    expect(JSON.stringify(requirements)).not.toMatch(/\.parquet|model card|\.ipynb/i);
+  });
+
+  it('does not infer an audio dependency from recording a written correction', () => {
+    const requirements = collectRequiredLabAssets({
+      courseMap: {
+        courseName: 'Introduction to Language Structure',
+        lessons: [
+          { title: 'Lesson 1: Phonetics', sections: [{ learningObjectives: 'Transcribe supplied written forms.' }] },
+          { title: 'Lesson 2: Variation', sections: [{ asyncActivities: 'Audit a claim and record a correction.' }] },
+        ],
+      },
+    });
+
+    expect(requirements.map((item) => item.id)).not.toContain('audio-analysis-access');
+  });
+
+  it('does not infer an audio dependency from a textual acoustic-phonetics source', () => {
+    const requirements = collectRequiredLabAssets({
+      courseMap: {
+        courseName: 'Introduction to Language Structure',
+        lessons: [
+          {
+            title: 'Lesson 1: Phonetics',
+            sections: [
+              {
+                learningObjectives: 'Compare articulatory and acoustic phonetics explanations in written sources.',
+                supportingResources: 'Acoustic phonetics — https://example.edu/acoustic-phonetics',
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    expect(requirements.map((item) => item.id)).not.toContain('audio-analysis-access');
+  });
+
+  it('bundles a reusable multilingual packet only from validated structured examples and source records', () => {
+    const requirements = [
+      { id: 'language-data-packet', label: 'Documented language-data packet' },
+      { id: 'ipa-reference', label: 'IPA reference' },
+    ];
+    const courseGraph = {
+      authenticLanguageData: {
+        protocol: 'coursemapper-authentic-language-data-v1',
+        sources: [
+          {
+            id: 'lgr',
+            title: 'Leipzig Glossing Rules',
+            url: 'https://www.eva.mpg.de/lingua/resources/glossing-rules.php',
+            license: 'CC BY-NC-SA 4.0',
+            attribution: 'Max Planck Institute for Evolutionary Anthropology and University of Leipzig',
+          },
+          {
+            id: 'wals-jpn',
+            title: 'WALS Japanese word-order example',
+            url: 'https://wals.info/valuesets/81A-jpn',
+            license: 'CC BY 4.0',
+            attribution: 'WALS Online, Dryer and Haspelmath, editors',
+          },
+        ],
+        examples: [
+          {
+            id: 'turkish-1',
+            language: 'Turkish',
+            form: 'çık-mak',
+            gloss: 'come.out-INF',
+            translation: 'to come out',
+            analysisFocus: 'one-to-many gloss correspondence',
+            sourceId: 'lgr',
+            sourceLocator: 'Rule 4, example 6',
+          },
+          {
+            id: 'japanese-1',
+            language: 'Japanese',
+            form: 'John ga tegami o yon-da.',
+            gloss: 'John SUBJ letter OBJ read-PST',
+            translation: 'John read the letter.',
+            analysisFocus: 'SOV constituent order',
+            sourceId: 'wals-jpn',
+            sourceLocator: 'Feature 81A, Japanese example igt-2990',
+          },
+        ],
+      },
+    };
+
+    const bundled = buildBundledRequiredLabAssets(requirements, {
+      courseName: 'Introduction to Language Structure',
+      courseGraph,
+    });
+    const paths = bundled.map((asset) => asset.path);
+    expect(paths).toEqual(
+      expect.arrayContaining([
+        'Required Assets/AUTHENTIC_LANGUAGE_DATA.csv',
+        'Required Assets/AUTHENTIC_LANGUAGE_DATA_GUIDE.md',
+        'Required Assets/IPA_REFERENCE_AND_INPUT_GUIDE.md',
+      ]),
+    );
+    expect(bundled.find((asset) => asset.path.endsWith('.csv')).content).toMatch(/Turkish.*Japanese/s);
+    const guide = bundled.find((asset) => asset.path.endsWith('GUIDE.md')).content;
+    expect(guide).toContain('across 2 languages');
+    expect(guide).toContain('NonCommercial condition');
+    expect(guide).toContain('ShareAlike condition');
+    expect(guide).toContain('does not relicense');
+  });
+
   it('requires datasets and notebooks for a Python/pandas policy-analysis course', () => {
     const requirements = collectRequiredLabAssets({
       courseMap: {
@@ -122,6 +248,28 @@ describe('collectRequiredLabAssets', () => {
                 learningObjectives: 'Compute the dimension of a subspace from a basis.',
                 weeklyAssessments: 'Computational lab in Python: bases and dimension',
                 supportingResources: 'Instructor notes and worked matrix examples.',
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    expect(requirements).toEqual([]);
+  });
+
+  it('does not treat a visual specimen as a physical laboratory specimen', () => {
+    const requirements = collectRequiredLabAssets({
+      courseMap: {
+        courseName: 'Visual Evidence and Image Analysis',
+        lessons: [
+          {
+            title: 'Lesson 1: Composition',
+            sections: [
+              {
+                learningObjectives: 'Analyze one concrete visual and distinguish observation from inference.',
+                supportingResources:
+                  'Lesson-specific visual specimen and attribution record for Composition; asset admission required before drafting; open photographic example.',
               },
             ],
           },

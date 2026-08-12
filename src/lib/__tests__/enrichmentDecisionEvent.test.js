@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildEnrichmentDecisionEvent } from '../enrichmentDecisionEvent';
+import { buildEnrichmentDecisionEvent, reconcileEnrichmentOutcomeWithEvidenceReplay } from '../enrichmentDecisionEvent';
 
 describe('enrichment decision telemetry', () => {
   const enrichment = {
@@ -31,5 +31,57 @@ describe('enrichment decision telemetry', () => {
 
     expect(result.outcome.route).toBe('model-enrichment');
     expect(result.event.detail).toBe('ran (2 lessons enriched) (linker: ran)');
+  });
+
+  it('reconciles stale partial coverage only from a valid evidence-replay receipt', () => {
+    const initial = {
+      modelStage: 'ran',
+      requestedLessons: 8,
+      enrichedLessons: 7,
+      missingLessons: [1],
+    };
+    const reconciled = reconcileEnrichmentOutcomeWithEvidenceReplay(initial, {
+      requestedLessons: 8,
+      enrichedLessons: 8,
+      missingLessons: [],
+      evidenceReplayRecovery: {
+        protocol: 'coursemapper-evidence-authority-coverage-recovery-v1',
+        status: 'complete',
+        recoveredLessonNumbers: [1, 2, 3, 4, 5, 6, 7, 8],
+        recoveredLessonCount: 8,
+      },
+    });
+
+    expect(reconciled).toMatchObject({
+      modelStage: 'ran',
+      requestedLessons: 8,
+      enrichedLessons: 8,
+      missingLessons: [],
+      evidenceReplayRecovery: { status: 'complete' },
+    });
+  });
+
+  it('does not trust a payload-only or inconsistent replay coverage claim', () => {
+    const initial = { modelStage: 'ran', requestedLessons: 8, enrichedLessons: 7, missingLessons: [1] };
+    expect(
+      reconcileEnrichmentOutcomeWithEvidenceReplay(initial, {
+        requestedLessons: 8,
+        enrichedLessons: 8,
+        missingLessons: [],
+      }),
+    ).toBe(initial);
+    expect(
+      reconcileEnrichmentOutcomeWithEvidenceReplay(initial, {
+        requestedLessons: 8,
+        enrichedLessons: 8,
+        missingLessons: [],
+        evidenceReplayRecovery: {
+          protocol: 'coursemapper-evidence-authority-coverage-recovery-v1',
+          status: 'complete',
+          recoveredLessonNumbers: [1],
+          recoveredLessonCount: 8,
+        },
+      }),
+    ).toBe(initial);
   });
 });

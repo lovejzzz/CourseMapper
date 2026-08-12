@@ -1974,6 +1974,44 @@ describe('source-ledger quality checks', () => {
     ).toBe(false);
   });
 
+  it('accepts a citation that exactly matches its trusted source-ledger concept binding', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Introduction to Language Structure',
+          lessonScope: 'all',
+          requestedFeatures: ['syllabus'],
+          sourceLedger: [
+            {
+              id: 'evidence-source-9-2',
+              title: 'Universal grammar',
+              url: 'https://en.wikipedia.org/wiki/Universal_grammar',
+              status: 'source-provided',
+              accessStatus: 'reference-present',
+              trustLevel: 'licensed-background-source',
+              conceptLinks: [{ id: 'c9', label: 'Universal Grammar Models' }],
+            },
+          ],
+          files: [{ path: 'Syllabus/Introduction to Language Structure - Syllabus.txt', feature: 'syllabus' }],
+        }),
+        'Syllabus/Introduction to Language Structure - Syllabus.txt': [
+          'INTRODUCTION TO LANGUAGE STRUCTURE — SYLLABUS',
+          'WEEKLY READINGS',
+          'Wikipedia contributors. Universal grammar. (CC BY-SA 4.0) — https://en.wikipedia.org/wiki/Universal_grammar',
+        ].join('\n'),
+      }),
+      course: { title: 'Introduction to Language Structure', featureIds: ['syllabus'] },
+    });
+
+    expect(
+      result.findings.some(
+        (finding) =>
+          finding.dimension === 'citations' &&
+          finding.detail === 'citation shares zero vocabulary with the course discipline (possible off-topic reading)',
+      ),
+    ).toBe(false);
+  });
+
   it('recognizes Languages of China as on-discipline for a Mandarin Chinese course', async () => {
     const result = await grade({
       fileProvider: createMemoryFileProvider({

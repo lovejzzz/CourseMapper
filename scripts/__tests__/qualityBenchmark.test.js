@@ -84,6 +84,46 @@ describe('quality benchmark rubric and scoring', () => {
     expect(result).toMatchObject({ valid: true, weightTotal: 100, criterionCount: 26, deliverableCount: 23 });
   });
 
+  it('publishes the exact weighted coverage denominator and not-applicable rule', () => {
+    const first = makeReview({ id: 'faculty-a' });
+    const second = makeReview({ id: 'faculty-b' });
+    first.ratings.IA1 = {
+      state: 'not-applicable',
+      score: null,
+      confidence: 'high',
+      evidence: [],
+      rationale: 'This criterion does not apply to the bounded artifact represented by the fixture.',
+    };
+    second.ratings.IA1 = { ...first.ratings.IA1 };
+    first.ratings.AF1 = {
+      state: 'not-evaluated',
+      score: null,
+      confidence: 'low',
+      evidence: [],
+      rationale: 'The assessment evidence was deliberately not inspected in this bounded test review.',
+    };
+    second.ratings.AF1 = { ...first.ratings.AF1 };
+
+    const report = aggregateQualityReviews([first, second], rubric);
+
+    expect(report.scores.coveragePolicy).toMatchObject({
+      protocol: 'nested-dimension-weighted-applicable-coverage-v1',
+      notApplicableRule: 'exclude only when every selected reviewer marks not-applicable',
+      missingRatingRule: 'not-evaluated, insufficient-evidence, and missing remain applicable and unscored',
+    });
+    const coveredDimensions = report.dimensions.filter((dimension) => Number.isFinite(dimension.coverage));
+    const expectedCoverage =
+      coveredDimensions.reduce((sum, dimension) => sum + dimension.coverage * dimension.weight, 0) /
+      coveredDimensions.reduce((sum, dimension) => sum + dimension.weight, 0);
+    expect(report.scores.coverage).toBeCloseTo(expectedCoverage, 3);
+    expect(report.dimensions.find((dimension) => dimension.id === 'instructional-alignment').criteria).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: 'IA1' })]),
+    );
+    expect(report.dimensions.find((dimension) => dimension.id === 'assessment-feedback').criteria).toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: 'AF1', state: 'not-evaluated' })]),
+    );
+  });
+
   it('requires explicit evidence states and evaluator provenance', () => {
     const review = makeReview();
     delete review.ratings.IA1;

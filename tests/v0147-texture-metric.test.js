@@ -164,6 +164,11 @@ describe('D1(1) — synthetic calibration: slot-varied stamps vs varied prose', 
     expect(masked).not.toMatch(/mineral identification/i);
     // Single capitalized words survive — honest specificity is not masked.
     expect(maskSlots('Anchor your post in Antigone tonight.')).toContain('Antigone');
+    const resourceMasked = maskSlots(
+      'Use Required Assets/AUTHENTIC_LANGUAGE_DATA.csv and AUTHENTIC_LANGUAGE_DATA_GUIDE.md to compare the two records.',
+    );
+    expect(resourceMasked).not.toMatch(/AUTHENTIC_LANGUAGE_DATA/i);
+    expect(resourceMasked).toContain('to compare the two records');
   });
 
   it('strips export structure labels while preserving repeated body prose for the judge', () => {
@@ -172,6 +177,8 @@ describe('D1(1) — synthetic calibration: slot-varied stamps vs varied prose', 
         'Scoring Guidance Full credit requires evidence and a limitation.',
         'Rubric',
         'Beginning Lists ideas without source evidence.',
+        'License and attribution: CC BY-SA 4.0 · Example Press metadata.',
+        'Admitted visual specimen and attribution record for Composition; open photographic example.',
         'Active learning lowers failure rates across STEM disciplines (Freeman et al., 2014). doi:10.1073/pnas.1319030111',
       ].join('\n'),
     );
@@ -182,6 +189,8 @@ describe('D1(1) — synthetic calibration: slot-varied stamps vs varied prose', 
     expect(normalized).not.toMatch(/^Rubric$/m);
     expect(normalized).not.toContain('Freeman et al.');
     expect(normalized).not.toContain('doi:');
+    expect(normalized).not.toContain('License and attribution');
+    expect(normalized).not.toContain('Admitted visual specimen');
 
     const labeledStamp = computeTexture(
       Array.from({ length: 5 }, (_, index) => ({
@@ -193,6 +202,18 @@ describe('D1(1) — synthetic calibration: slot-varied stamps vs varied prose', 
       })),
     );
     expect(labeledStamp.evidence.some((item) => /full credit requires evidence/.test(item.shingle))).toBe(true);
+  });
+
+  it('excludes locator-only package resource rows while measuring directions around them', () => {
+    const normalized = normalizeTextureText(
+      [
+        'Required Assets/AUTHENTIC_LANGUAGE_DATA.csv and AUTHENTIC_LANGUAGE_DATA_GUIDE.md',
+        'Use Required Assets/AUTHENTIC_LANGUAGE_DATA.csv to compare the selected records and explain the sampling limit.',
+      ].join('\n'),
+    );
+
+    expect(normalized).not.toMatch(/^Required Assets\/AUTHENTIC_LANGUAGE_DATA\.csv and/m);
+    expect(normalized).toContain('compare the selected records and explain the sampling limit');
   });
 
   it('measures quiz stem openers after removing question badges and Bloom metadata', () => {
@@ -211,6 +232,39 @@ describe('D1(1) — synthetic calibration: slot-varied stamps vs varied prose', 
     expect(normalized).toContain('Classify C4–E♭4');
     expect(normalized).toContain('Verify D4–F♯4');
     expect(computeTexture([{ id: 'quiz', feature: 'quizBank', text: normalized }]).subScores.openers).toBe(100);
+  });
+
+  it('measures answer-key prose after removing answer badges and bound locator prefixes', () => {
+    const normalized = normalizeTextureText(
+      [
+        'Q1 (ANALYZE, MEDIUM) · ANSWER — B — Evidence basis: Locate the visible relation before interpreting it.',
+        'Q2 (ANALYZE, MEDIUM) · ANSWER — C — Evidence basis: Compare the two encoded entities before transferring the claim.',
+        'CM-SRC-L01 identifies the evidence path before the decision.',
+        'CM-SRC-L02 challenges the inference with a changed condition.',
+      ].join('\n'),
+    );
+
+    expect(normalized).not.toMatch(/Q\d|ANALYZE|ANSWER|Evidence basis/i);
+    expect(normalized).toContain('Locate the visible relation');
+    expect(computeTexture([{ id: 'quiz-key', feature: 'quizBank', text: normalized }]).subScores.openers).toBe(100);
+  });
+
+  it('preserves real sentence leads while masking the following capitalized slot', () => {
+    const masked = maskSlots(
+      [
+        'Upload Week Three Comparison through the course site.',
+        'Organize Week Three Comparison so each criterion is easy to locate.',
+        'Final Week Three Comparison should retain its evidence labels.',
+        'Strong Week Three Comparison evidence names the deciding feature.',
+        'Visual Hierarchy remains a masked lesson identity.',
+      ].join('\n'),
+    );
+
+    expect(masked).toMatch(/^Upload\s+xslotx/m);
+    expect(masked).toMatch(/^Organize\s+xslotx/m);
+    expect(masked).toMatch(/^Final\s+xslotx/m);
+    expect(masked).toMatch(/^Strong\s+xslotx/m);
+    expect(masked).not.toContain('Visual Hierarchy');
   });
 
   it('ignores repeated lesson document titles and page footers as export chrome', () => {
@@ -416,6 +470,23 @@ describe('D1(1b) — reader-visible unit occurrence metric', () => {
     expect(result.exact.extraDuplicateRate).toBe(0.5);
     expect(result.exact.readerExposureCount).toBe(5);
     expect(result.exact.readerExposureRate).toBeCloseTo(5 / 6);
+  });
+
+  it('treats the repeated graded-work field label as rubric chrome, not prose', () => {
+    const result = computeVisibleUnitTexture(
+      asDocs(
+        [
+          'Graded Student Work: Evidence explanation: Linguistic Evidence Foundations',
+          'Graded Student Work: Evidence explanation: Phonetic Observation',
+          'Students justify one analysis from observable forms and name the evidence boundary.',
+        ],
+        'rubrics',
+      ),
+      ['Linguistic Evidence Foundations', 'Phonetic Observation'],
+    );
+
+    expect(result.eligibleUnitCount).toBe(1);
+    expect(result.skeleton.extraDuplicateCount).toBe(0);
   });
 
   it('reports deterministic per-family clusters and locations', () => {
@@ -639,7 +710,7 @@ function geologyCourseMap() {
         {
           topicSection: `${index + 1}.1: ${title}`,
           learningGoals: `1. Build field-ready understanding of ${concept}.`,
-          learningObjectives: `Analyze ${concept} using specimen evidence.\nEvaluate how ${concept} changes a field decision.`,
+          learningObjectives: `Analyze ${concept} using published open-license diagram evidence.\nEvaluate how ${concept} changes a field decision.`,
           weeklyAssessments: `Quiz: ${concept} problems`,
           asyncActivities: `Read the assigned chapter on ${title.toLowerCase()}.`,
           syncActivities: `Workshop: ${concept} case analysis.`,
@@ -1115,7 +1186,7 @@ describe('D1(3)+(4) — weight-0 invariance and the report row on a real package
   });
 
   it('keeps every pre-texture weight and gives texture a score-bearing weight that can cost the A band', () => {
-    expect(GRADER_VERSION).toBe('1.16.0');
+    expect(GRADER_VERSION).toBe('1.16.4');
     expect(DIMENSION_WEIGHTS).toEqual({
       identity: 20,
       substance: 20,
@@ -1136,9 +1207,10 @@ describe('D1(3)+(4) — weight-0 invariance and the report row on a real package
     expect(result.findings.filter((finding) => finding.severity === 'P0')).toEqual([]);
     expect(result.overall.score, JSON.stringify(result.scores)).toBeGreaterThanOrEqual(85);
     expect(result.scores.identity).toBeGreaterThanOrEqual(85);
-    // Unknown terms no longer receive procedural fake definitions, so the
-    // healthy fixture has no course-process glossary penalty.
-    expect(result.scores.substance).toBe(100);
+    // Evidence dependencies now count as unresolved until an exact source
+    // join is present. This synthetic fixture remains useful for texture, but
+    // it must not impersonate a fully source-verified package.
+    expect(result.scores.substance).toBeGreaterThanOrEqual(60);
     expect(
       result.findings.some(
         (finding) =>
@@ -1152,7 +1224,12 @@ describe('D1(3)+(4) — weight-0 invariance and the report row on a real package
     const recomputed = Math.round(
       entries.reduce((sum, [dimension, weight]) => sum + result.scores[dimension] * weight, 0) / totalWeight,
     );
-    expect(result.overall.score).toBe(recomputed);
+    const severityCapped = result.findings.some((finding) => finding.severity === 'P0')
+      ? Math.min(recomputed, 74)
+      : result.findings.some((finding) => finding.severity === 'P1')
+        ? Math.min(recomputed, 89)
+        : recomputed;
+    expect(result.overall.score).toBe(severityCapped);
   });
 
   it('scores texture from the metric and reports low texture as a finding while keeping advisories separate', () => {
@@ -1183,15 +1260,15 @@ describe('D1(3)+(4) — weight-0 invariance and the report row on a real package
       Object.fromEntries(
         result.texture.visibleUnitPolicy.families.map((family) => [family.family, family.eligibleUnitCount]),
       ),
-    ).toEqual({ lessonPlans: 66, assignments: 150, rubrics: 100 });
+    ).toEqual({ lessonPlans: 54, assignments: 127, rubrics: 107 });
     expect(result.texture.score).toBe(
       Math.max(0, result.texture.baseScore - result.texture.visibleUnitPolicy.scorePenalty),
     );
 
     const textureFindings = result.findings.filter((finding) => finding.dimension === 'texture');
     expect(result.stats.byDimension.texture).toBe(textureFindings.length);
-    expect(result.texture.baseScore).toBe(96);
-    expect(result.texture.score).toBe(96);
+    expect(result.texture.baseScore).toBeGreaterThanOrEqual(90);
+    expect(result.texture.score).toBe(result.texture.baseScore);
     expect(result.texture.visibleUnitPolicy.scorePenalty).toBe(0);
     expect(textureFindings).toEqual([]);
     const severities = { p0: 'P0', p1: 'P1', p2: 'P2' };

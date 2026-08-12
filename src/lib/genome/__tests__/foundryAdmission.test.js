@@ -125,6 +125,31 @@ describe('genesis shard build output', () => {
     expect(admitted.every((kernel) => kernel.definition.anchor)).toBe(true);
   });
 
+  it('keeps confidence-level teaching atoms tied to repeated-sampling coverage', () => {
+    const stats = JSON.parse(readFileSync(join(process.cwd(), 'scripts/foundry/sources/stats-openstax.json'), 'utf8'));
+    const confidenceInterval = stats.kernels.find((kernel) => kernel.id === 'stats/confidence-interval');
+    expect(confidenceInterval).toBeDefined();
+
+    const teachingSurface = JSON.stringify({
+      facts: confidenceInterval.facts,
+      misconceptions: confidenceInterval.misconceptions,
+      examples: confidenceInterval.examples,
+      mcBank: confidenceInterval.mcBank,
+    });
+    expect(teachingSurface).toMatch(/repeated-sampling procedure/i);
+    expect(teachingSurface).toMatch(/90 out of 100 samples/i);
+    expect(teachingSurface).not.toMatch(
+      /confidence level is the percent expression for the probability that the interval contains/i,
+    );
+
+    const result = admitKernel(confidenceInterval, {
+      sources: stats.sourceSnapshots,
+      requireAnchors: true,
+    });
+    expect(result.admitted).toBe(true);
+    expect(result.rejections).toEqual([]);
+  });
+
   it('ships a manifest and shards consistent with the sources', () => {
     const manifest = JSON.parse(readFileSync(join(process.cwd(), 'public/genome/manifest.json'), 'utf8'));
     expect(manifest.shards.length).toBeGreaterThanOrEqual(3);

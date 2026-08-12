@@ -180,22 +180,8 @@ test.describe('Generated workspace mobile layout', () => {
     expect(projectMenuBox.x).toBeGreaterThanOrEqual(8);
     expect(projectMenuBox.x + projectMenuBox.width).toBeLessThanOrEqual(page.viewportSize().width - 8);
     await projectMenu.getByRole('button', { name: 'New Project' }).click();
-
-    const newProjectConfirmation = page.getByTestId('new-project-confirmation');
-    await expect(newProjectConfirmation).toBeVisible();
-    const backupButton = newProjectConfirmation.getByRole('button', { name: 'Download backup' });
-    const cancelButton = newProjectConfirmation.getByRole('button', { name: 'Cancel' });
-    const startButton = newProjectConfirmation.getByRole('button', { name: 'Start New Project' });
-    const [backupBox, cancelBox, startBox] = await Promise.all([
-      backupButton.boundingBox(),
-      cancelButton.boundingBox(),
-      startButton.boundingBox(),
-    ]);
-    expect(backupBox.width).toBeGreaterThan(cancelBox.width + startBox.width);
-    expect(cancelBox.y).toBeGreaterThan(backupBox.y);
-    expect(startBox.y).toBeGreaterThan(backupBox.y);
-    await cancelButton.click();
-    await expect(newProjectConfirmation).toBeHidden();
+    await expect(page.getByRole('heading', { name: 'Turn a syllabus into a teachable course.' })).toBeVisible();
+    await expect(page.getByTestId('new-project-confirmation')).toHaveCount(0);
 
     await expectNoHorizontalOverflow(page);
   });
