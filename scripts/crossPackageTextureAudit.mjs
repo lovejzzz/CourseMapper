@@ -372,7 +372,7 @@ async function main() {
           (await readCompressedCanonical(path.join(options.output, `baseline-v1-${options.profile}.json.gz`))).result,
           (
             await readCompressedCanonical(
-              path.join(options.output, `snapshot-post-repair-v9-${options.profile}.json.gz`),
+              path.join(options.output, `snapshot-post-repair-v10-${options.profile}.json.gz`),
             )
           ).result,
         )
