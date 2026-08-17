@@ -30,6 +30,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import BuildRibbon, { TabReadyTick } from '../src/components/BuildRibbon.jsx';
+import CourseMapGenerationStatus from '../src/components/CourseMapGenerationStatus.jsx';
 import {
   buildBuildRibbonModel,
   buildLivingCompilerArtifacts,
@@ -64,6 +65,16 @@ it('shows an interrupted map build as paused rather than generating', () => {
   });
 
   expect(model).toMatchObject({ running: false, stage: 'map', stageLabel: 'Build paused' });
+});
+
+it('keeps the stopped map action recoverable and the error detail honest', () => {
+  const markup = renderToStaticMarkup(
+    <CourseMapGenerationStatus error="Provider disconnected." paused onContinue={() => {}} />,
+  );
+
+  expect(markup).toContain('Provider disconnected.');
+  expect(markup).toContain('Build paused');
+  expect(markup).toContain('Continue build');
 });
 
 function applyEvents(budget, events) {

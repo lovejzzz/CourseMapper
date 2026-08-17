@@ -2,12 +2,7 @@ import React, { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspens
 import { createPortal } from 'react-dom';
 import FocusTrap from 'focus-trap-react';
 import ErrorBoundary from './components/ErrorBoundary';
-import LoadingScreen, {
-  ConfigSkeleton,
-  WorkspaceSkeleton,
-  CourseMapSkeleton,
-  CourseMapPausedState,
-} from './components/LoadingScreen';
+import LoadingScreen, { ConfigSkeleton, WorkspaceSkeleton, CourseMapSkeleton } from './components/LoadingScreen';
 import Landing from './screens/Landing';
 import AppLogo from './components/AppLogo';
 import DarkModeToggle from './components/DarkModeToggle';
@@ -26,6 +21,7 @@ import {
 const Config = lazy(() => import('./screens/Config'));
 const FeatureSelect = lazy(() => import('./screens/FeatureSelect'));
 const CourseMapPreview = lazy(() => import('./components/CourseMapPreview'));
+const CourseMapGenerationStatus = lazy(() => import('./components/CourseMapGenerationStatus'));
 const InstructionalBlueprintGate = lazy(() => import('./components/InstructionalBlueprintGate'));
 const ChatPanel = lazy(() => import('./components/chat/ChatPanel'));
 const AgentQualityControl = lazy(() => import('./components/chat/AgentQualityControl'));
@@ -4052,22 +4048,14 @@ export default function AppFlow({
               {/* Course Map tab */}
               {activeTab === 'courseMap' && (
                 <>
-                  {gen.error && (
-                    <div className="glass rounded-squircle-sm p-5 animate-spring-in">
-                      <div className="flex items-start gap-3 text-red-600 text-sm">
-                        <div className="w-8 h-8 rounded-squircle-xs bg-red-100 flex items-center justify-center flex-shrink-0">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                            />
-                          </svg>
-                        </div>
-                        <p className="pt-1 whitespace-pre-line leading-relaxed">{gen.error}</p>
-                      </div>
-                    </div>
+                  {(gen.error || (!courseMap && !gen.isStreaming && gen.isStopped)) && (
+                    <Suspense fallback={null}>
+                      <CourseMapGenerationStatus
+                        error={gen.error}
+                        paused={!courseMap && !gen.isStreaming && gen.isStopped}
+                        onContinue={onResume}
+                      />
+                    </Suspense>
                   )}
                   {instructionalBlueprintReview?.status === 'awaiting-approval' && (
                     <InstructionalBlueprintGate
@@ -4120,9 +4108,7 @@ export default function AppFlow({
                         />
                       </ErrorBoundary>
                     </div>
-                  ) : gen.isStopped ? (
-                    <CourseMapPausedState onContinue={onResume} />
-                  ) : (
+                  ) : gen.isStopped ? null : (
                     !gen.error && gen.progressStep !== 'idle' && gen.progressStep !== 'done' && <CourseMapSkeleton />
                   )}
                 </>
