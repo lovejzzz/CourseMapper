@@ -94,6 +94,7 @@ describe('ChatInput agent execution mode', () => {
     const textarea = container.querySelector('textarea');
     expect(toggle).toBeNull();
     expect(textarea.getAttribute('placeholder')).toContain('Tell the agent what to change');
+    expect(textarea.getAttribute('aria-label')).toContain('Message Scion');
     expect(container.textContent).not.toContain('No edits');
     expect(container.textContent).not.toContain('Finish package');
     expect(onSend).not.toHaveBeenCalled();

@@ -1,0 +1,95 @@
+{
+  "version": "0.18.1",
+  "date": "August 17, 2026",
+  "title": "Publication-Safe Course Build",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test",
+      "npm run lint",
+      "npm run format:check",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:pipeline",
+      "npm run audit:release-history",
+      "npx playwright test tests/workspace-mobile.spec.js --project=chromium"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Remote exact-commit verification begins after this locally verified candidate is pushed."
+    },
+    "ciDeep": {
+      "status": "pending",
+      "note": "Broader course and independent-instructor evaluation remains separate research evidence."
+    },
+    "deploy": {
+      "status": "pending",
+      "note": "Production deployment and exact-version re-audit are downstream of push and remote verification."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The browser acceptance workflow uses the shipped local Scion route; no deployed-build claim is made yet."
+    },
+    "manualHuman": {
+      "status": "pending",
+      "note": "No instructor evaluation, accessibility certification, or classroom validation is claimed."
+    }
+  },
+  "claims": [
+    {
+      "id": "v0181-1",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "highlightSha256": "cc8ad6b230bd718c733a777f2a988bd7c80671ecc92c67973aa304ceeaf4d759",
+      "summary": "Setup recovery remains available across early lazy-chunk failure until a durable build boundary.",
+      "anchors": ["src/AppFlow.jsx", "src/hooks/useInstructionalBlueprintWorkflow.js", "src/lib/setupRecovery.js"],
+      "proofCommands": ["npm test", "npm run build"],
+      "proofScopes": ["unit", "static-audit", "build"]
+    },
+    {
+      "id": "v0181-2",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "highlightSha256": "a731b069325d80a67ca985eb67a85fd9f88c00a5586bd9c03c0d43f124e1df2f",
+      "summary": "Approved builds retain original authority while recording the exact internally enriched execution map.",
+      "anchors": [
+        "src/lib/instructionalBlueprintApproval.js",
+        "src/hooks/useInstructionalBlueprintWorkflow.js",
+        "src/lib/__tests__/instructionalBlueprintApproval.test.js"
+      ],
+      "proofCommands": ["npm test", "npm run audit:pipeline"],
+      "proofScopes": ["unit", "static-audit", "course-graph"]
+    },
+    {
+      "id": "v0181-3",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "highlightSha256": "663c0c292a75484dead7b1cb1a1451caafe0f11768a7f5bbac2bc5939a8a57f6",
+      "summary": "Weekly quiz coverage is strict without applying weekly identity and count rules to cumulative exams.",
+      "anchors": ["src/lib/deliverablePostProcess.js", "src/lib/__tests__/deliverablePostProcess.test.js"],
+      "proofCommands": ["npm test", "npm run build"],
+      "proofScopes": ["unit", "compiled-output", "build"]
+    },
+    {
+      "id": "v0181-4",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "highlightSha256": "b8524c76487792e967288298003e038bd27b5702212a4c2302d94cb5e2c2c731",
+      "summary": "Blueprint review and Project actions remain inside the supported phone viewport.",
+      "anchors": [
+        "src/components/InstructionalBlueprintGate.jsx",
+        "src/AppFlow.jsx",
+        "tests/workspace-mobile.spec.js",
+        "evaluation/release-proofs/v0.18.1-browser-acceptance.json"
+      ],
+      "proofCommands": ["npx playwright test tests/workspace-mobile.spec.js --project=chromium", "npm run build"],
+      "proofScopes": ["browser-smoke", "static-audit", "build"]
+    }
+  ],
+  "boundaries": [
+    "This contract records a locally verified predeploy candidate; remote CI, production deployment, and live re-audit are downstream facts.",
+    "The execution-map receipt authorizes only the exact map produced by the approved build; later edits require a fresh blueprint review.",
+    "The browser record proves the tested workflow and viewport geometry, not every browser, storage condition, or device.",
+    "Automated conformance and immutable receipts do not substitute for instructor review, factual certification, accessibility certification, or classroom validation."
+  ]
+}

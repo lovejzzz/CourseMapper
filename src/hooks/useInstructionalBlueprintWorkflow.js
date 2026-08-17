@@ -1,5 +1,6 @@
 import { useCallback, useEffect } from 'react';
 import { analyzeSourceBriefConstraints } from '../lib/sourceBriefConstraints.js';
+import { clearSetupRecovery } from '../lib/setupRecovery.js';
 
 export default function useInstructionalBlueprintWorkflow({
   courseMap,
@@ -68,11 +69,18 @@ export default function useInstructionalBlueprintWorkflow({
   );
 
   useEffect(() => {
-    if (!courseMap || !review?.courseMapSha256) return undefined;
+    if (!courseMap || !review?.courseMapSha256 || approvalBusy || packageGenerationInFlightRef.current) {
+      return undefined;
+    }
     let cancelled = false;
     let refreshTimer = null;
     void import('../lib/sha256Sync.js').then(({ sha256HexSync }) => {
-      if (cancelled || sha256HexSync(JSON.stringify(courseMap)) === review.courseMapSha256) return;
+      const currentCourseMapSha256 = sha256HexSync(JSON.stringify(courseMap));
+      const expectedCourseMapSha256 =
+        review.status === 'executed' && review.executionCourseMapSha256
+          ? review.executionCourseMapSha256
+          : review.courseMapSha256;
+      if (cancelled || currentCourseMapSha256 === expectedCourseMapSha256) return;
       setApproval(null);
       setReview((current) =>
         current?.canApprove === false ? current : { ...current, status: 'awaiting-approval', canApprove: false },
@@ -97,7 +105,19 @@ export default function useInstructionalBlueprintWorkflow({
       cancelled = true;
       if (refreshTimer !== null) window.clearTimeout(refreshTimer);
     };
-  }, [courseMap, prepareReview, review?.courseMapSha256, setApproval, setError, setPackageQualityPass, setReview]);
+  }, [
+    approvalBusy,
+    courseMap,
+    packageGenerationInFlightRef,
+    prepareReview,
+    review?.courseMapSha256,
+    review?.executionCourseMapSha256,
+    review?.status,
+    setApproval,
+    setError,
+    setPackageQualityPass,
+    setReview,
+  ]);
 
   const approveAndBuild = useCallback(async () => {
     if (approvalBusy || packageGenerationInFlightRef.current || review?.status !== 'awaiting-approval') return;
@@ -105,8 +125,11 @@ export default function useInstructionalBlueprintWorkflow({
     setError('');
     let workflowEpoch = null;
     try {
-      const { approveInstructionalBlueprintReview, instructionalBlueprintApprovalMatches } =
-        await import('../lib/instructionalBlueprintApproval.js');
+      const {
+        approveInstructionalBlueprintReview,
+        instructionalBlueprintApprovalMatches,
+        markInstructionalBlueprintReviewExecuted,
+      } = await import('../lib/instructionalBlueprintApproval.js');
       const currentCourseMap = courseMapRef.current;
       const approval = approveInstructionalBlueprintReview(review);
       if (!instructionalBlueprintApprovalMatches(review, approval, currentCourseMap)) {
@@ -116,6 +139,7 @@ export default function useInstructionalBlueprintWorkflow({
         setError('The Course Map changed after this review. Scion refreshed the blueprint; approve it when ready.');
         return;
       }
+      clearSetupRecovery();
       setApproval(approval);
       setReview((current) => (current ? { ...current, status: 'approved' } : current));
       workflowEpoch = beginPackageWorkflow();
@@ -138,12 +162,34 @@ export default function useInstructionalBlueprintWorkflow({
         instructionalBlueprintApproval: approval,
       });
       if (stopped() || result?.status === 'aborted') return;
+      // CourseGraph assembly may enrich the map before deterministic
+      // finalization asks generation to repair an individual artifact. Commit
+      // that exact execution map first so those bounded retries inherit the
+      // approved authority instead of misclassifying build-owned enrichment as
+      // a teacher edit. Yield one frame so useDeliverables receives the new
+      // review through its always-fresh prop ref before finalization begins.
+      const executionReview = markInstructionalBlueprintReviewExecuted(
+        review,
+        courseMapRef.current || currentCourseMap,
+      );
+      setReview(executionReview);
+      await new Promise((resolve) => {
+        if (typeof window.requestAnimationFrame === 'function') {
+          window.requestAnimationFrame(() => resolve());
+        } else {
+          window.setTimeout(resolve, 0);
+        }
+      });
+      if (stopped()) return;
       await finalizeGeneratedPackage(
         currentCourseMap,
         result?.deliverables || {},
         orderedFeatures,
         scopeIndices,
         workflowEpoch,
+      );
+      setReview((current) =>
+        markInstructionalBlueprintReviewExecuted(current || review, courseMapRef.current || currentCourseMap),
       );
     } catch (error) {
       if (error?.name !== 'AbortError') {

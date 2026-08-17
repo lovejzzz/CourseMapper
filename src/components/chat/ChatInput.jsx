@@ -432,6 +432,7 @@ export default function ChatInput({
               aria-activedescendant={
                 selectedSlashCommand ? `agent-slash-command-option-${selectedSlashCommand.id}` : undefined
               }
+              aria-label={delivLabel ? `Message Scion about ${delivLabel}` : 'Message Scion'}
               placeholder={placeholder}
               rows={2}
               className="input-glass min-h-[74px] w-full resize-none rounded-xl px-3 pb-8 pr-11 pt-2.5 text-[13px] leading-relaxed text-slate-700 focus:outline-none"

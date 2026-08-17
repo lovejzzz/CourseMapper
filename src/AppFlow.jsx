@@ -2761,7 +2761,6 @@ export default function AppFlow({
     if (packageGenerationInFlightRef.current) return;
     const workflowEpoch = beginPackageWorkflow();
     const stopped = () => packageWorkflowEpochRef.current !== workflowEpoch;
-    clearSetupRecovery();
     packageGenerationInFlightRef.current = workflowEpoch;
     setPackageGenerationBusy(true);
     try {
@@ -2812,6 +2811,7 @@ export default function AppFlow({
         scopeIndices,
         workflowEpoch,
       );
+      clearSetupRecovery();
     } catch (err) {
       if (err?.name === 'AbortError' || stopped()) return;
       setPackageQualityPass({
@@ -3375,7 +3375,7 @@ export default function AppFlow({
                   </summary>
                   <div
                     data-testid="workspace-more-menu"
-                    className="absolute left-0 z-30 mt-2 w-56 overflow-hidden rounded-lg border border-slate-200 bg-white p-1.5 shadow-xl shadow-slate-950/10 sm:left-auto sm:right-0"
+                    className="fixed left-2 right-2 top-16 z-30 mt-2 w-auto overflow-hidden rounded-lg border border-slate-200 bg-white p-1.5 shadow-xl shadow-slate-950/10 sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:w-56"
                   >
                     {/* Project-level actions only. Package export, material
                         creation, and edit history stay with their owning

@@ -52,4 +52,23 @@ describe('v0.18 instructional blueprint gate architecture', () => {
     );
     expect(appFlowSource).toContain('instructionalBlueprintReview,\n    instructionalBlueprintApproval,');
   });
+
+  it('preserves setup recovery until approval and records the exact build-produced map', () => {
+    const generationStart = appFlowSource.indexOf('async function onGenerate()');
+    const blueprintGate = appFlowSource.indexOf(
+      'await prepareInstructionalBlueprintReview(finalCourseMap)',
+      generationStart,
+    );
+    const recoveryClearBeforeGate = appFlowSource.indexOf('clearSetupRecovery()', generationStart);
+
+    expect(recoveryClearBeforeGate === -1 || recoveryClearBeforeGate > blueprintGate).toBe(true);
+    expect(workflowSource).toContain('clearSetupRecovery();');
+    expect(workflowSource).toContain('markInstructionalBlueprintReviewExecuted');
+    expect(workflowSource).toContain('courseMapRef.current || currentCourseMap');
+    expect(workflowSource).toContain('packageGenerationInFlightRef.current');
+    expect(workflowSource.indexOf('const executionReview = markInstructionalBlueprintReviewExecuted')).toBeLessThan(
+      workflowSource.indexOf('await finalizeGeneratedPackage('),
+    );
+    expect(workflowSource).toContain('window.requestAnimationFrame');
+  });
 });

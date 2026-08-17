@@ -160,8 +160,36 @@ export function instructionalBlueprintApprovalMatches(review, approval, courseMa
   if (approval.planReceiptSha256 !== review.planReceiptSha256 || approval.courseMapSha256 !== review.courseMapSha256) {
     return false;
   }
-  if (courseMap && sha256HexSync(JSON.stringify(courseMap)) !== review.courseMapSha256) return false;
+  if (courseMap) {
+    const currentCourseMapSha256 = sha256HexSync(JSON.stringify(courseMap));
+    const executionCourseMapMatches =
+      review.status === 'executed' &&
+      Boolean(review.executionCourseMapSha256) &&
+      currentCourseMapSha256 === review.executionCourseMapSha256;
+    if (currentCourseMapSha256 !== review.courseMapSha256 && !executionCourseMapMatches) return false;
+  }
   return true;
+}
+
+export function markInstructionalBlueprintReviewExecuted(
+  review,
+  courseMap,
+  { executedAt = new Date().toISOString() } = {},
+) {
+  if (
+    review?.protocol !== INSTRUCTIONAL_BLUEPRINT_REVIEW_PROTOCOL ||
+    !review?.planReceiptSha256 ||
+    !review?.courseMapSha256 ||
+    !courseMap
+  ) {
+    throw new Error('The executed instructional blueprint requires its original review and final Course Map.');
+  }
+  return {
+    ...review,
+    status: 'executed',
+    executionCourseMapSha256: sha256HexSync(JSON.stringify(courseMap)),
+    executedAt,
+  };
 }
 
 export function assertInstructionalBlueprintApproval({ review, approval, courseMap } = {}) {

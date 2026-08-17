@@ -2,7 +2,7 @@ function EvidenceBadge({ status }) {
   const admitted = status === 'admitted';
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+      className={`inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${
         admitted
           ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
           : 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-200'
@@ -17,7 +17,7 @@ function LessonIntentRow({ lesson }) {
   return (
     <details
       data-testid={`blueprint-lesson-${lesson.lessonNumber}`}
-      className="group rounded-lg border border-slate-200/80 bg-white/70 dark:border-slate-700/80 dark:bg-slate-900/55"
+      className="group min-w-0 max-w-full rounded-lg border border-slate-200/80 bg-white/70 dark:border-slate-700/80 dark:bg-slate-900/55"
     >
       <summary className="flex cursor-pointer list-none items-center gap-3 px-3 py-2.5 [&::-webkit-details-marker]:hidden">
         <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[11px] font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
@@ -37,27 +37,27 @@ function LessonIntentRow({ lesson }) {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m6 9 6 6 6-6" />
         </svg>
       </summary>
-      <div className="grid gap-3 border-t border-slate-100 px-3 py-3 text-xs leading-5 text-slate-600 sm:grid-cols-2 dark:border-slate-800 dark:text-slate-300">
-        <div>
+      <div className="grid min-w-0 gap-3 border-t border-slate-100 px-3 py-3 text-xs leading-5 text-slate-600 sm:grid-cols-2 dark:border-slate-800 dark:text-slate-300">
+        <div className="min-w-0 break-words">
           <p className="font-semibold text-slate-800 dark:text-slate-100">Learners will</p>
           <p>{lesson.learnerAction}</p>
         </div>
-        <div>
+        <div className="min-w-0 break-words">
           <p className="font-semibold text-slate-800 dark:text-slate-100">Evidence of learning</p>
           <p>{lesson.expectedEvidence.artifact || lesson.expectedEvidence.evidenceRequirement}</p>
         </div>
         {lesson.focusConcepts.length > 0 && (
-          <div>
+          <div className="min-w-0 break-words">
             <p className="font-semibold text-slate-800 dark:text-slate-100">Focus</p>
             <p>{lesson.focusConcepts.join(' · ')}</p>
           </div>
         )}
-        <div>
+        <div className="min-w-0 break-words">
           <p className="font-semibold text-slate-800 dark:text-slate-100">Evidence boundary</p>
           <p>{lesson.evidence.publicationBoundary || 'Evidence will be admitted before factual drafting.'}</p>
         </div>
         {lesson.expectedEvidence.successCriteria.length > 0 && (
-          <div className="sm:col-span-2">
+          <div className="min-w-0 break-words sm:col-span-2">
             <p className="font-semibold text-slate-800 dark:text-slate-100">Success looks like</p>
             <p>{lesson.expectedEvidence.successCriteria.join(' · ')}</p>
           </div>
@@ -77,7 +77,7 @@ export default function InstructionalBlueprintGate({ review, busy = false, error
     <section
       data-testid="instructional-blueprint-gate"
       aria-labelledby="instructional-blueprint-title"
-      className="rounded-xl border border-indigo-200/80 bg-gradient-to-b from-indigo-50/80 to-white p-4 shadow-sm sm:p-5 dark:border-indigo-800/70 dark:from-indigo-950/30 dark:to-slate-900"
+      className="min-w-0 max-w-full overflow-hidden rounded-xl border border-indigo-200/80 bg-gradient-to-b from-indigo-50/80 to-white p-4 shadow-sm sm:p-5 dark:border-indigo-800/70 dark:from-indigo-950/30 dark:to-slate-900"
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
@@ -134,7 +134,7 @@ export default function InstructionalBlueprintGate({ review, busy = false, error
         </div>
       )}
 
-      <div className="mt-4 grid gap-2">
+      <div className="mt-4 grid min-w-0 max-w-full gap-2">
         {review.lessonIntents.map((lesson) => (
           <LessonIntentRow key={lesson.id || lesson.lessonNumber} lesson={lesson} />
         ))}

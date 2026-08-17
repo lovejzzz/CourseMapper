@@ -4,6 +4,7 @@ import {
   assertInstructionalBlueprintApproval,
   createInstructionalBlueprintReview,
   instructionalBlueprintApprovalMatches,
+  markInstructionalBlueprintReviewExecuted,
 } from '../instructionalBlueprintApproval.js';
 
 function courseMap() {
@@ -106,5 +107,30 @@ describe('instructional blueprint approval', () => {
         authorizedCourseMap,
       ),
     ).toBe(false);
+  });
+
+  it('accepts the exact build-enriched Course Map without authorizing later edits', () => {
+    const { review, courseMap: authorizedCourseMap } = createInstructionalBlueprintReview({ courseMap: courseMap() });
+    const approval = approveInstructionalBlueprintReview(review, {
+      approvedAt: '2026-08-17T12:00:00.000Z',
+    });
+    const enrichedMap = structuredClone(authorizedCourseMap);
+    enrichedMap.courseGraphReceipt = { status: 'compiled', nodes: 12 };
+    const executedReview = markInstructionalBlueprintReviewExecuted(review, enrichedMap, {
+      executedAt: '2026-08-17T12:05:00.000Z',
+    });
+
+    expect(executedReview).toMatchObject({
+      status: 'executed',
+      planReceiptSha256: review.planReceiptSha256,
+      courseMapSha256: review.courseMapSha256,
+      executedAt: '2026-08-17T12:05:00.000Z',
+    });
+    expect(executedReview.executionCourseMapSha256).toMatch(/^[a-f0-9]{64}$/);
+    expect(instructionalBlueprintApprovalMatches(executedReview, approval, enrichedMap)).toBe(true);
+
+    const editedMap = structuredClone(enrichedMap);
+    editedMap.lessons[1].title = 'Lesson 2: Instructor-edited distributions';
+    expect(instructionalBlueprintApprovalMatches(executedReview, approval, editedMap)).toBe(false);
   });
 });

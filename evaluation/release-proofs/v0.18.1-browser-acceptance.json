@@ -1,0 +1,45 @@
+{
+  "protocol": "coursemapper-browser-acceptance-v1",
+  "version": "0.18.1",
+  "capturedAt": "2026-08-17T09:44:00.000Z",
+  "status": "predeploy-candidate",
+  "origin": "http://127.0.0.1:4174/",
+  "checks": [
+    {
+      "id": "phone-blueprint-containment",
+      "status": "pass",
+      "evidence": "At the 390 px override, the 385 px document contained a 353 px blueprint gate and six 319 px lesson rows; every right edge remained at or below 369 px and document-level horizontal overflow was absent."
+    },
+    {
+      "id": "project-menu-containment",
+      "status": "pass",
+      "evidence": "The phone Project menu occupied x=8 through x=377 within the 385 px document. At the desktop override it occupied x=1010 through x=1234 within 1275 px. Neither state widened the document."
+    },
+    {
+      "id": "approved-build-continuity",
+      "status": "pass",
+      "evidence": "A fresh two-lesson Introductory Astronomy run reached the blueprint gate, accepted explicit approval, retained the exact build-enriched execution map, and completed without reopening the blueprint or reporting a stale-plan failure."
+    },
+    {
+      "id": "complete-material-package",
+      "status": "pass",
+      "evidence": "The current run completed all nine generated material families with zero failed features. Finalization reported ready with zero blockers, export verification passed, and the UI showed 10/10 package parts ready with Download ZIP available."
+    },
+    {
+      "id": "quiz-validation",
+      "status": "pass",
+      "evidence": "Quiz & Exam Bank rendered two lesson-scoped six-question quizzes without an error, retry control, duplicate-lesson rejection, or exact-count rejection. Separate unit coverage proves cumulative exams retain their independent count while point math remains strict."
+    },
+    {
+      "id": "calm-export-and-agent",
+      "status": "pass",
+      "evidence": "The phone export panel had no visible red warning or alert and remained inside the viewport. The Agent textarea exposed the explicit accessible name Message Scion about Quiz & Exam Bank."
+    },
+    {
+      "id": "console-and-static-routes",
+      "status": "pass",
+      "evidence": "The exact successful local run emitted zero application-console errors and zero warnings. Privacy, Terms, Contact, and Changelog rendered after direct reload with no document overflow."
+    }
+  ],
+  "boundary": "This is a local predeploy browser acceptance record. It is not production deployment evidence, an instructor evaluation, an accessibility certification, or proof of classroom outcomes."
+}

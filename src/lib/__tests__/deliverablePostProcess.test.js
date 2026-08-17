@@ -1243,6 +1243,69 @@ describe('Deliverable generation validation', () => {
     expect(result.valid).toBe(false);
     expect(result.blockers.join(' ')).toContain('questions sum to 6');
   });
+
+  it('validates weekly quiz coverage separately from a cumulative exam', () => {
+    const weeklyQuestion = (lessonNumber, questionNumber) => ({
+      type: 'short_answer',
+      points: 4,
+      question: `Lesson ${lessonNumber} evidence question ${questionNumber}: explain the deciding evidence and one limitation.`,
+      answer:
+        'A publishable response identifies the relevant evidence, explains how it supports the conclusion, and states a bounded limitation.',
+    });
+    const weeklyQuiz = (lessonNumber) => ({
+      kind: 'quiz',
+      lessonNumber,
+      lessonTitle: `Lesson ${lessonNumber}: Evidence practice`,
+      totalPoints: 12,
+      questions: [weeklyQuestion(lessonNumber, 1), weeklyQuestion(lessonNumber, 2), weeklyQuestion(lessonNumber, 3)],
+    });
+    const examQuestions = Array.from({ length: 4 }, (_, index) => weeklyQuestion(2, index + 1));
+    const data = {
+      quizzes: [
+        weeklyQuiz(1),
+        weeklyQuiz(2),
+        {
+          kind: 'exam',
+          lessonNumber: 2,
+          lessonTitle: 'Cumulative evidence exam',
+          totalPoints: 16,
+          questions: examQuestions,
+        },
+      ],
+    };
+
+    expect(normalizeQuizBankQuestionCounts(data, 3).mismatchedIndices).toEqual([]);
+    const result = validateDeliverableGeneration('quizBank', data, {
+      expectedLessonCount: 2,
+      expectedLessonNumbers: [1, 2],
+      config: { questionsPerLesson: 3 },
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.blockers).toEqual([]);
+  });
+
+  it('still rejects duplicate ordinary weekly quiz coverage', () => {
+    const question = {
+      type: 'short_answer',
+      points: 4,
+      question: 'Explain the deciding evidence, connect it to the conclusion, and state one limitation of the claim.',
+      answer: 'The response must identify evidence, justify the inference, and bound the conclusion with a limitation.',
+    };
+    const result = validateDeliverableGeneration(
+      'quizBank',
+      {
+        quizzes: [
+          { kind: 'quiz', lessonNumber: 1, totalPoints: 4, questions: [question] },
+          { kind: 'quiz', lessonNumber: 1, totalPoints: 4, questions: [question] },
+        ],
+      },
+      { expectedLessonCount: 1, expectedLessonNumbers: [1], config: { questionsPerLesson: 1 } },
+    );
+
+    expect(result.valid).toBe(false);
+    expect(result.blockers).toContain('Duplicate lesson coverage for lesson(s): 1.');
+  });
 });
 
 describe('Syllabus post-processing', () => {

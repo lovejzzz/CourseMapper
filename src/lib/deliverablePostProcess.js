@@ -992,10 +992,11 @@ export function normalizeQuizBankQuestionCounts(data, minimumQuestions = 8) {
     };
   }
 
-  const counts = quizzes.map((quiz, index) => {
+  const counts = quizzes.flatMap((quiz, index) => {
+    if (quiz?.kind === 'exam') return [];
     const questionKey = Array.isArray(quiz?.questions) ? 'questions' : Array.isArray(quiz?.qs) ? 'qs' : null;
     const questions = questionKey ? quiz[questionKey] : [];
-    return { index, count: questions.length };
+    return [{ index, count: questions.length }];
   });
   const underfilledIndices = counts
     .map(({ index, count }) => (count < target ? index : null))
@@ -1166,7 +1167,8 @@ export function validateDeliverableGeneration(featureId, data, options = {}) {
     const unidentified = [];
     const conflicting = [];
     const outOfScope = [];
-    items.forEach((item, index) => {
+    const lessonScopedItems = featureId === 'quizBank' ? items.filter((item) => item?.kind !== 'exam') : items;
+    lessonScopedItems.forEach((item, index) => {
       const candidates = getDeliverableLessonNumberCandidates(item) || [];
       if (candidates.length > 1) {
         conflicting.push({ index, candidates });
@@ -1243,9 +1245,10 @@ export function validateDeliverableGeneration(featureId, data, options = {}) {
     items.forEach((quiz, index) => {
       const questionKey = getQuestionKey(quiz);
       const questions = questionKey ? quiz[questionKey] : [];
-      if (questions.length !== target) {
+      const lessonLabel = Number(quiz?.lessonNumber) || index + 1;
+      if (quiz?.kind !== 'exam' && questions.length !== target) {
         blockers.push(
-          `Quiz lesson ${index + 1} has ${questions.length}/${target} evidence-bound question(s); the count must be exact.`,
+          `Quiz lesson ${lessonLabel} has ${questions.length}/${target} evidence-bound question(s); the count must be exact.`,
         );
         retryableLessonIndices.push(index);
       }
@@ -1254,10 +1257,10 @@ export function validateDeliverableGeneration(featureId, data, options = {}) {
       const pointSum = points.reduce((sum, point) => sum + Number(point || 0), 0);
       const total = getQuizTotalPoints(quiz);
       if (hasMissingPoints) {
-        blockers.push(`Quiz lesson ${index + 1} has question(s) without valid point values.`);
+        blockers.push(`Quiz lesson ${lessonLabel} has question(s) without valid point values.`);
         retryableLessonIndices.push(index);
       } else if (total !== null && pointSum > 0 && total !== pointSum) {
-        blockers.push(`Quiz lesson ${index + 1} point total is ${total}, but questions sum to ${pointSum}.`);
+        blockers.push(`Quiz lesson ${lessonLabel} point total is ${total}, but questions sum to ${pointSum}.`);
         retryableLessonIndices.push(index);
       }
     });

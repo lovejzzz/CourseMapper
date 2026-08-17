@@ -3,6 +3,18 @@ import { CURRENT_RELEASE } from './currentRelease.js';
 
 export { CURRENT_RELEASE };
 
+const V0180_RELEASE = {
+  version: '0.18.0',
+  date: 'August 17, 2026',
+  title: 'Teacher-Controlled Course Design Studio',
+  highlights: [
+    'Full-package drafting now pauses at a compact Blueprint Review Gate. The teacher sees each lesson purpose, learner action, evidence artifact, success criteria, assumptions, questions, and source boundary before authorizing the build.',
+    'Approval is a tamper-evident execution receipt bound to both the exact instructional-plan hash and current Course Map hash. Editing the map invalidates stale authority, and every deliverable entry point enforces the same gate.',
+    'Meaning-changing Agent proposals now carry a bounded action envelope with scope, targets, before/after preview, approval mode, executor confirmation, verification boundary, and undo availability.',
+    'Stopping a build now cancels an active browser-local model transfer, presents one honest paused state, preserves resumable model cache data, and restarts the same course request when no partial draft exists.',
+  ],
+};
+
 const V01718_RELEASE = {
   version: '0.17.18',
   date: 'August 11, 2026',
@@ -1355,33 +1367,52 @@ export const CURRENT_RELEASE_CHANGELOG = {
   highlights: CURRENT_RELEASE.highlights,
   sections: [
     {
+      label: 'Preserve the teacher’s work through recovery',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'The staged brief survives an early lazy-chunk reload until an approved build or map-only finish establishes a durable project.',
+        'An approved build records the exact internally enriched Course Map while retaining its original plan and approval receipts.',
+        'A later teacher edit still invalidates stale authority and refreshes the blueprint.',
+      ],
+    },
+    {
+      label: 'Validate the assessment structure teachers intended',
+      icon: 'AI',
+      color: 'blue',
+      items: [
+        'Weekly quizzes retain exact lesson identity and exact configured question counts.',
+        'A cumulative exam no longer masquerades as duplicate weekly coverage or inherit the weekly item-count rule.',
+        'Question points and assessment totals remain strict for both weekly and cumulative assessments.',
+      ],
+    },
+    {
+      label: 'Keep the review usable on the smallest supported screen',
+      icon: 'PROOF',
+      color: 'violet',
+      items: [
+        'Blueprint cards constrain long instructional evidence and wrap prose inside the phone viewport.',
+        'The Project menu aligns to the visible edge at phone and desktop widths.',
+        'The release proves bounded recovery, validation, and viewport behavior; it does not claim instructor approval, accessibility certification, factual certification, or classroom outcomes.',
+      ],
+    },
+  ],
+};
+
+const V0180_RELEASE_CHANGELOG = {
+  version: V0180_RELEASE.version,
+  date: V0180_RELEASE.date,
+  title: V0180_RELEASE.title,
+  highlights: V0180_RELEASE.highlights,
+  sections: [
+    {
       label: 'Put the teacher at the plan boundary',
       icon: 'CHECK',
       color: 'emerald',
       items: [
         'The Course Map is projected into a compact, lesson-specific instructional blueprint before package drafting.',
-        'Approval binds the exact plan and Course Map; stale or tampered receipts cannot authorize generation.',
-        'The living build sequence now names Plan between Map and Enrich.',
-      ],
-    },
-    {
-      label: 'Make Agent work bounded and reversible',
-      icon: 'AI',
-      color: 'blue',
-      items: [
-        'Meaning-changing proposals show exact targets and before/after scope before execution.',
-        'Applied changes report executor confirmation, the semantic verification boundary, and undo availability.',
-        'Existing proposal and Smart Sync paths share one action-envelope contract instead of creating another dashboard.',
-      ],
-    },
-    {
-      label: 'Keep local execution under user control',
-      icon: 'PROOF',
-      color: 'violet',
-      items: [
-        'Stop reaches the active Scion model transfer instead of waiting for model activation.',
-        'Paused and resumed states are consistent across the ribbon, Agent panel, and Course Map surface.',
-        'The release proves workflow governance and engineering behavior; it does not claim instructor approval, factual certification, accessibility certification, or classroom outcomes.',
+        'Approval binds the exact plan and Course Map, and every drafting entry point checks the same receipt.',
+        'Agent changes use bounded preview, verification, and undo metadata.',
       ],
     },
   ],
@@ -2315,6 +2346,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V0180_RELEASE_CHANGELOG,
   V01718_RELEASE_CHANGELOG,
   V01712_RELEASE_CHANGELOG,
   V01704_RELEASE_CHANGELOG,
