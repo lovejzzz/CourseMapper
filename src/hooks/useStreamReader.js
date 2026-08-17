@@ -368,6 +368,16 @@ export default function useStreamReader({ scionResearchEnabledOverride = null } 
         }
       }
       const { runScionLocalCompletion } = await import('../lib/scionLocalProvider');
+      // Scion returns before the remote-provider loop creates its controller,
+      // so it must own an equivalent controller here. Without this bridge the
+      // global Stop button had nothing to abort while the multi-gigabyte local
+      // model was downloading.
+      const scionController = new AbortController();
+      abortControllerRef.current = scionController;
+      const forwardExternalAbort = () => scionController.abort(externalSignal?.reason);
+      if (externalSignal?.aborted) forwardExternalAbort();
+      else externalSignal?.addEventListener?.('abort', forwardExternalAbort, { once: true });
+      const scionSignal = scionController.signal;
       let lastProgressKey = '';
       try {
         const result = await runScionLocalCompletion({
@@ -379,7 +389,7 @@ export default function useStreamReader({ scionResearchEnabledOverride = null } 
           maxOutputTokens,
           maxRetries,
           temperature: temperatureOverride ?? generationPlan?.temperature ?? 0,
-          signal: externalSignal,
+          signal: scionSignal,
           onProgress: (runtimeStatus) => {
             const progress = Math.max(0, Math.min(1, Number(runtimeStatus?.progress) || 0));
             const bucket = Math.floor(progress * 10);
@@ -545,7 +555,7 @@ export default function useStreamReader({ scionResearchEnabledOverride = null } 
         };
       } catch (rawError) {
         if (rawError?.name === 'AbortError') throw rawError;
-        if (shouldUseScionEvidenceFallback(rawError, externalSignal)) {
+        if (shouldUseScionEvidenceFallback(rawError, scionSignal)) {
           const routeReason = errorCodes(rawError)[0] || 'SCION_WLLAMA_UNAVAILABLE';
           recordApiCallEvent({
             type: 'scionAdaptiveRoute',
@@ -641,7 +651,7 @@ export default function useStreamReader({ scionResearchEnabledOverride = null } 
                 // is no longer a public choice, while Scion's research boundary
                 // remains visible and user-controlled.
                 researchEnabled: scionResearchEnabledOverrideRef.current === true ? true : readScionResearchEnabled(),
-                signal: externalSignal,
+                signal: scionSignal,
                 onResearchProgress: (researchProgress = {}) => {
                   recordApiCallEvent({
                     type: 'algiResearchProgress',
@@ -664,7 +674,7 @@ export default function useStreamReader({ scionResearchEnabledOverride = null } 
               coverage = composed?.coverage || null;
             }
           } catch (error) {
-            if (error?.name === 'AbortError' || externalSignal?.aborted) throw error;
+            if (error?.name === 'AbortError' || scionSignal.aborted) throw error;
             composeError = error;
           }
 
@@ -733,6 +743,9 @@ export default function useStreamReader({ scionResearchEnabledOverride = null } 
         });
         error.apiCallBudgetRecorded = true;
         throw error;
+      } finally {
+        externalSignal?.removeEventListener?.('abort', forwardExternalAbort);
+        if (abortControllerRef.current === scionController) abortControllerRef.current = null;
       }
     }
 

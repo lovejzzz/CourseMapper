@@ -154,6 +154,24 @@ export function CourseMapSkeleton() {
   );
 }
 
+export function CourseMapPausedState({ onContinue }) {
+  return (
+    <div className="glass rounded-squircle-sm px-6 py-10 text-center">
+      <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Build paused</p>
+      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+        The model transfer and course generation are stopped. Continue when you are ready.
+      </p>
+      <button
+        type="button"
+        onClick={onContinue}
+        className="tactile mt-4 rounded-squircle-xs bg-slate-900 px-5 py-2 text-xs font-semibold text-white shadow-btn transition hover:bg-slate-800 dark:bg-white dark:text-slate-900"
+      >
+        Continue build
+      </button>
+    </div>
+  );
+}
+
 /**
  * Skeleton for static pages (Changelog, Privacy, Terms).
  */

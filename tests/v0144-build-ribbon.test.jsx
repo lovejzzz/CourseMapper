@@ -50,6 +50,22 @@ const IDLE_GENERATION = { progressStep: 'idle', isStreaming: false, streamDetail
 const DONE_GENERATION = { progressStep: 'done', isStreaming: false, streamDetail: '' };
 const NO_DELIVERABLES = { isGenerating: false, doneCount: 0, totalCount: 0 };
 
+it('shows an interrupted map build as paused rather than generating', () => {
+  const budget = applyEvents(createApiCallBudget(), MAP_EVENTS);
+  const model = buildBuildRibbonModel({
+    budget,
+    generation: {
+      progressStep: 'generating',
+      isStreaming: false,
+      isStopped: true,
+      streamDetail: '',
+    },
+    deliverables: NO_DELIVERABLES,
+  });
+
+  expect(model).toMatchObject({ running: false, stage: 'map', stageLabel: 'Build paused' });
+});
+
 function applyEvents(budget, events) {
   return events.reduce((current, event) => applyApiCallBudgetEvent(current, event), budget);
 }
@@ -209,10 +225,43 @@ describe('B1 — buildRibbonModel selector', () => {
     expect(model.stage).toBe('map');
     expect(model.running).toBe(true);
     expect(model.stageLabel).toBe('Streaming lesson 4 of 13');
-    expect(model.steps.map((step) => step.status)).toEqual(['active', 'pending', 'pending', 'pending', 'pending']);
+    expect(model.steps.map((step) => step.status)).toEqual([
+      'active',
+      'pending',
+      'pending',
+      'pending',
+      'pending',
+      'pending',
+    ]);
     expect(model.spendDisplay).toBe('$0.13');
     expect(model.pipelineChips).toEqual([]);
     expect(model.progressPct).toBe(23);
+  });
+
+  it('plan stage: mapped work pauses honestly for blueprint approval', () => {
+    const model = buildBuildRibbonModel({
+      budget: applyEvents(createApiCallBudget(), [{ type: 'reset', runId: 'run-blueprint-review' }, ...MAP_EVENTS]),
+      generation: DONE_GENERATION,
+      deliverables: NO_DELIVERABLES,
+      packageQualityPass: {
+        status: 'awaiting-approval',
+        phase: 'plan',
+        message: 'Review the instructional blueprint before package drafting.',
+      },
+    });
+
+    expect(model.stage).toBe('plan');
+    expect(model.running).toBe(false);
+    expect(model.stageLabel).toBe('Review the instructional blueprint before package drafting.');
+    expect(model.progressPct).toBe(30);
+    expect(model.steps.map((step) => [step.id, step.status])).toEqual([
+      ['map', 'settled'],
+      ['plan', 'active'],
+      ['enrich', 'pending'],
+      ['compile', 'pending'],
+      ['verify', 'pending'],
+      ['grade', 'pending'],
+    ]);
   });
 
   it('continues one observable progress scale from model setup through ready', () => {
@@ -243,6 +292,7 @@ describe('B1 — buildRibbonModel selector', () => {
     expect(preparing.steps.map((step) => [step.id, step.status])).toEqual([
       ['model', 'active'],
       ['map', 'pending'],
+      ['plan', 'pending'],
       ['enrich', 'pending'],
       ['compile', 'pending'],
       ['verify', 'pending'],
@@ -851,6 +901,7 @@ describe('B1 — buildRibbonModel selector', () => {
     expect(model.progressPct).toBe(95);
     expect(model.steps.map((step) => [step.id, step.status])).toEqual([
       ['map', 'settled'],
+      ['plan', 'settled'],
       ['enrich', 'settled'],
       ['compile', 'settled'],
       ['verify', 'settled'],
@@ -874,7 +925,14 @@ describe('B1 — buildRibbonModel selector', () => {
       },
     });
     expect(model.stage).toBe('map');
-    expect(model.steps.map((step) => step.status)).toEqual(['active', 'pending', 'pending', 'pending', 'pending']);
+    expect(model.steps.map((step) => step.status)).toEqual([
+      'active',
+      'pending',
+      'pending',
+      'pending',
+      'pending',
+      'pending',
+    ]);
   });
 
   it('generation umbrella while deliverables compile: Compile is active, not pre-checked', () => {
@@ -892,7 +950,14 @@ describe('B1 — buildRibbonModel selector', () => {
       packageQualityPass: { status: 'running', phase: 'generation', message: 'Generating 9 deliverables...' },
     });
     expect(model.stage).toBe('compile');
-    expect(model.steps.map((step) => step.status)).toEqual(['settled', 'settled', 'active', 'pending', 'pending']);
+    expect(model.steps.map((step) => step.status)).toEqual([
+      'settled',
+      'settled',
+      'settled',
+      'active',
+      'pending',
+      'pending',
+    ]);
     expect(model.done.compile).toBe(false);
     expect(model.done.verify).toBe(false);
   });
@@ -918,7 +983,14 @@ describe('B1 — buildRibbonModel selector', () => {
       value: 'Enriching lessons 9–12 · 6/13 source-linked',
       status: 'active',
     });
-    expect(model.steps.map((step) => step.status)).toEqual(['settled', 'active', 'pending', 'pending', 'pending']);
+    expect(model.steps.map((step) => step.status)).toEqual([
+      'settled',
+      'settled',
+      'active',
+      'pending',
+      'pending',
+      'pending',
+    ]);
   });
 
   it('names bounded public-source lookup instead of leaving a long quiet compiler plateau', () => {
@@ -1102,7 +1174,14 @@ describe('B1 — buildRibbonModel selector', () => {
     expect(model.stage).toBe('compile');
     expect(model.stageLabel).toBe('Compiling deliverables · 3/9 ready');
     expect(model.done.enrich).toBe(true); // enrichmentOutcome landed
-    expect(model.steps.map((step) => step.status)).toEqual(['settled', 'settled', 'active', 'pending', 'pending']);
+    expect(model.steps.map((step) => step.status)).toEqual([
+      'settled',
+      'settled',
+      'settled',
+      'active',
+      'pending',
+      'pending',
+    ]);
   });
 
   it('names the material and lesson range while a model chunk or repair is active', () => {
@@ -1234,7 +1313,14 @@ describe('B1 — buildRibbonModel selector', () => {
     });
     expect(model.stage).toBe('verify');
     expect(model.stageLabel).toBe('Finishing package: checking, repairing, and preparing export...');
-    expect(model.steps.map((step) => step.status)).toEqual(['settled', 'settled', 'settled', 'active', 'pending']);
+    expect(model.steps.map((step) => step.status)).toEqual([
+      'settled',
+      'settled',
+      'settled',
+      'settled',
+      'active',
+      'pending',
+    ]);
   });
 
   it('narrates the bounded compile-to-verify handoff instead of leaving the 75% frame blank', () => {
@@ -1253,8 +1339,8 @@ describe('B1 — buildRibbonModel selector', () => {
     expect(model.stage).toBe('verify');
     expect(model.running).toBe(false);
     // The UI's monotonic high-water mark preserves the prior 75% compiler
-    // frame; the selector itself truthfully reports the three settled stages.
-    expect(model.progressPct).toBe(66);
+    // frame; the selector itself truthfully reports the five settled stages.
+    expect(model.progressPct).toBe(83);
     expect(model.stageLabel).toBe('Preparing package checks');
   });
 
@@ -1540,8 +1626,8 @@ describe('B1 — BuildRibbon render', () => {
     expect(html).toContain('Knowledge 13/13');
     expect(html).toMatch(/Ready in \d+s/);
     expect(html).not.toContain('animate-pulse');
-    // Five stage checks plus four confirmed artifact checks.
-    expect(html.match(/M5 13l4 4L19 7/g)?.length).toBe(9);
+    // Six stage checks plus four confirmed artifact checks.
+    expect(html.match(/M5 13l4 4L19 7/g)?.length).toBe(10);
     expect(html).toContain('data-testid="ribbon-chip-genome"');
     expect(html.split('data-testid="ribbon-chip-genome"')[1].split('>')[0]).toContain('ribbon-chip-emphasis');
   });

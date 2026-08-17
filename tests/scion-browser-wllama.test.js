@@ -129,7 +129,9 @@ describe('Scion WebGPU GGUF runtime', () => {
       suppressNativeLog: false,
       logger: expect.objectContaining({ warn: expect.any(Function), error: expect.any(Function) }),
     });
-    expect(FakeWllama.last.options.signal).toBe(controller.signal);
+    expect(FakeWllama.last.options.signal).toBeInstanceOf(AbortSignal);
+    expect(FakeWllama.last.options.signal).not.toBe(controller.signal);
+    expect(FakeWllama.last.options.signal.aborted).toBe(false);
     expect(FakeWllama.last.options.n_threads).toBe(1);
     expect(FakeWllama.last.prompts.at(-1)).toBe('<|turn>user\nExplain formative assessment.<turn|>\n<|turn>model\n');
     expect(getScionBrowserWllamaStatus()).toMatchObject({
@@ -150,6 +152,55 @@ describe('Scion WebGPU GGUF runtime', () => {
     expect(published.some((entry) => entry.phase === 'loading-model' && entry.progress === 0.5)).toBe(true);
     expect(published.at(-1).phase).toBe('ready');
     unsubscribe();
+  });
+
+  it('stops an active model transfer, returns to idle, and can retry without clearing the partial cache', async () => {
+    let instances = 0;
+    let removals = 0;
+    class CancellableWllama extends FakeWllama {
+      constructor(paths, config) {
+        super(paths, config);
+        instances += 1;
+        this.instance = instances;
+        this.modelManager = {
+          getModels: vi.fn(async () => []),
+          clear: vi.fn(async () => {
+            removals += 1;
+          }),
+        };
+      }
+
+      async loadModelFromUrl(url, options) {
+        if (this.instance > 1) return super.loadModelFromUrl(url, options);
+        options.progressCallback({ loaded: 25, total: 100 });
+        return new Promise((_resolve, reject) => {
+          options.signal.addEventListener(
+            'abort',
+            () => reject(new DOMException('The transfer was aborted', 'AbortError')),
+            { once: true },
+          );
+        });
+      }
+    }
+    const controller = new AbortController();
+    const runtimeLoader = vi.fn(async () => ({ Wllama: CancellableWllama }));
+    const firstLoad = loadScionBrowserWllama({ ...browser, runtimeLoader, signal: controller.signal });
+    await vi.waitFor(() => expect(getScionBrowserWllamaStatus().progress).toBe(0.25));
+
+    controller.abort('user-stop');
+
+    await expect(firstLoad).rejects.toMatchObject({ name: 'AbortError' });
+    expect(getScionBrowserWllamaStatus()).toMatchObject({
+      phase: 'idle',
+      progress: 0,
+      error: null,
+    });
+    expect(removals).toBe(0);
+
+    await expect(loadScionBrowserWllama({ ...browser, runtimeLoader })).resolves.toMatchObject({
+      status: { phase: 'ready' },
+    });
+    expect(instances).toBe(2);
   });
 
   it('serializes concurrent browser completions against the single local model instance', async () => {

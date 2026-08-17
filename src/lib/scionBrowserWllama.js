@@ -19,6 +19,7 @@ let runtimeModule = null;
 let runtime = null;
 let loadingRuntime = null;
 let loadPromise = null;
+let loadAbortController = null;
 let activeAdapter = null;
 let pendingProbe = null;
 let completionTail = Promise.resolve();
@@ -115,6 +116,18 @@ function diagnosticMessage(error) {
     current = current.cause;
   }
   return messages.join(' → ');
+}
+
+function abortError() {
+  return new DOMException('Aborted', 'AbortError');
+}
+
+function forwardAbort(sourceSignal, targetController) {
+  if (!sourceSignal || !targetController) return () => {};
+  const abortTarget = () => targetController.abort(sourceSignal.reason);
+  if (sourceSignal.aborted) abortTarget();
+  else sourceSignal.addEventListener?.('abort', abortTarget, { once: true });
+  return () => sourceSignal.removeEventListener?.('abort', abortTarget);
 }
 
 export function classifyScionBrowserModelLoadError(error) {
@@ -321,6 +334,7 @@ export async function loadScionBrowserWllama({
   modelUrl = SCION_BROWSER_GEMMA4_GGUF_URL,
   contextSize = 8192,
 } = {}) {
+  if (signal?.aborted) throw abortError();
   runtimeLoadOptions = { runtimeLoader, navigatorLike, globalLike, locationLike, modelUrl, contextSize };
   if (status.phase === 'recovery-required') {
     throw runtimeError(
@@ -329,10 +343,19 @@ export async function loadScionBrowserWllama({
     );
   }
   if (isScionBrowserWllamaReady()) return { runtime, status: cloneStatus() };
-  if (loadPromise) return loadPromise;
+  if (loadPromise) {
+    const stopForwarding = forwardAbort(signal, loadAbortController);
+    return loadPromise.finally(stopForwarding);
+  }
   await requireScionLocalModelCapability({ navigatorLike, globalLike });
 
+  const controller = new AbortController();
+  loadAbortController = controller;
+  const stopForwarding = forwardAbort(signal, controller);
+  const loadSignal = controller.signal;
+
   loadPromise = (async () => {
+    if (loadSignal.aborted) throw abortError();
     publish(
       { phase: 'loading-runtime', progress: 0, message: 'Loading the pinned Scion WebGPU runtime…', error: null },
       onProgress,
@@ -374,7 +397,7 @@ export async function loadScionBrowserWllama({
           n_ctx: contextSize,
           n_threads: 1,
           seed: 424242,
-          signal,
+          signal: loadSignal,
           progressCallback: ({ loaded, total }) => {
             const progress = total > 0 ? Math.min(1, Math.max(0, loaded / total)) : status.progress;
             publish(
@@ -396,10 +419,14 @@ export async function loadScionBrowserWllama({
         });
         break;
       } catch (error) {
+        if (loadSignal.aborted) {
+          await exitRuntime(candidate);
+          if (loadingRuntime === candidate) loadingRuntime = null;
+          throw abortError();
+        }
         const classified = classifyScionBrowserModelLoadError(error);
-        const canRepair = classified.kind === 'cache-incomplete' && cachedModel && !repairedCache && !signal?.aborted;
-        const canRestartActivation =
-          classified.kind === 'activation-transient' && !restartedActivation && !signal?.aborted;
+        const canRepair = classified.kind === 'cache-incomplete' && cachedModel && !repairedCache;
+        const canRestartActivation = classified.kind === 'activation-transient' && !restartedActivation;
         if (!canRepair && !canRestartActivation) {
           await exitRuntime(candidate);
           if (classified.clearCache) await removeCandidateModelCache(candidate, modelUrl);
@@ -473,6 +500,18 @@ export async function loadScionBrowserWllama({
       runtime = null;
       activeAdapter = null;
       pendingProbe = null;
+      if (loadSignal.aborted || error?.name === 'AbortError') {
+        publish(
+          {
+            phase: 'idle',
+            progress: 0,
+            message: 'Scion model download stopped. Start the build to resume it.',
+            error: null,
+          },
+          onProgress,
+        );
+        throw abortError();
+      }
       const diagnostic = diagnosticMessage(error);
       if (diagnostic) {
         console.error('[Scion runtime] Local model activation failed', {
@@ -493,6 +532,8 @@ export async function loadScionBrowserWllama({
       throw error;
     })
     .finally(() => {
+      stopForwarding();
+      if (loadAbortController === controller) loadAbortController = null;
       loadPromise = null;
     });
   return loadPromise;
@@ -826,12 +867,14 @@ export async function rollbackScionBrowserWllamaAdapter() {
 }
 
 export async function unloadScionBrowserWllama() {
+  loadAbortController?.abort('scion-runtime-unload');
   await exitRuntime(loadingRuntime);
   if (runtime !== loadingRuntime) await exitRuntime(runtime);
   loadingRuntime = null;
   runtime = null;
   runtimeModule = null;
   loadPromise = null;
+  loadAbortController = null;
   activeAdapter = null;
   pendingProbe = null;
   runtimeLoadOptions = null;

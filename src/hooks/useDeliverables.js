@@ -418,6 +418,8 @@ export default function useDeliverables({
   examChanges,
   columns,
   sourceBrief = '',
+  instructionalBlueprintReview = null,
+  instructionalBlueprintApproval = null,
   onApiCallEvent,
   onCourseMapRepair,
   courseGraph,
@@ -460,6 +462,13 @@ export default function useDeliverables({
   // matter. Reload-survival comes from the fingerprint-keyed kernel cache;
   // this ref covers the common same-session edit path for free.
   const lastEnrichmentOverlayRef = useRef(null);
+  // These refs make the approval boundary apply to every generation entry
+  // point (retry, custom deliverable, Agent action, or the primary workflow),
+  // without rebuilding generateAll whenever React commits the receipt.
+  const instructionalBlueprintReviewRef = useRef(instructionalBlueprintReview);
+  instructionalBlueprintReviewRef.current = instructionalBlueprintReview;
+  const instructionalBlueprintApprovalRef = useRef(instructionalBlueprintApproval);
+  instructionalBlueprintApprovalRef.current = instructionalBlueprintApproval;
 
   const syncGenerationActivity = useCallback(() => {
     setIsGenerating(activeGenerationOperationsRef.current.size > 0);
@@ -584,6 +593,21 @@ export default function useDeliverables({
         maxProviderCalls === null ? requested : Math.max(0, Math.min(requested, getRemainingProviderCalls()));
       let requestedFeatures = features.filter((f) => f && f !== 'courseMap');
       if (requestedFeatures.length === 0 || !courseMap) return;
+      const currentBlueprintReview =
+        generationOptions.instructionalBlueprintReview ?? instructionalBlueprintReviewRef.current;
+      const currentBlueprintApproval =
+        generationOptions.instructionalBlueprintApproval ?? instructionalBlueprintApprovalRef.current;
+      const approvalRequired =
+        generationOptions.requireInstructionalBlueprintApproval === true ||
+        currentBlueprintReview?.protocol === 'coursemapper-instructional-blueprint-review-v1';
+      if (approvalRequired) {
+        const { assertInstructionalBlueprintApproval } = await import('../lib/instructionalBlueprintApproval');
+        assertInstructionalBlueprintApproval({
+          review: currentBlueprintReview,
+          approval: currentBlueprintApproval,
+          courseMap,
+        });
+      }
       const generationEpoch = beginGenerationEpoch(generationEpochRef);
       const featureGenerationEpochs = new Map(
         requestedFeatures.map((featureId) => [

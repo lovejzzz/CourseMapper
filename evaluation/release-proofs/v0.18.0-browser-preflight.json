@@ -1,0 +1,35 @@
+{
+  "protocol": "coursemapper-browser-preflight-v1",
+  "version": "0.18.0",
+  "capturedAt": "2026-08-17T08:44:00.000Z",
+  "status": "predeploy-candidate",
+  "origin": "http://127.0.0.1:5174/",
+  "checks": [
+    {
+      "id": "blueprint-gate-before-drafting",
+      "status": "pass",
+      "evidence": "A fresh two-lesson package run stopped after Course Map creation, displayed lesson intent and evidence rows, withheld Export, and began lesson-knowledge work only after explicit blueprint approval."
+    },
+    {
+      "id": "active-model-transfer-cancellation",
+      "status": "pass",
+      "evidence": "Stop was pressed during the public Gemma 4 transfer. The observed 15% transfer label disappeared, did not advance during the bounded wait, and the workspace changed to Build paused."
+    },
+    {
+      "id": "paused-state-consistency",
+      "status": "pass",
+      "evidence": "The build ribbon, Agent progress state, and empty Course Map surface all reported a paused build; no surface continued to claim active generation."
+    },
+    {
+      "id": "retry-before-first-token",
+      "status": "pass",
+      "evidence": "Continue build restarted the same immutable two-lesson course request when cancellation occurred before any partial course-map JSON existed. A second Stop returned to the same stable paused state."
+    },
+    {
+      "id": "clean-origin-autosave-observation",
+      "status": "pass",
+      "evidence": "The clean-origin acceptance run did not reproduce the repeated autosave failure previously observed after restoring a very large historical development project."
+    }
+  ],
+  "boundary": "This is a local predeploy browser workflow record. It is not production deployment evidence, an instructor evaluation, an accessibility certification, or proof of classroom outcomes."
+}

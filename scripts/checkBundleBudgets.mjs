@@ -29,9 +29,9 @@ const budgets = {
 // caught an unaccounted increase, and the fix is to re-freeze at the released
 // state, not to widen the allowance. Every future release must do the same.
 const repositoryBudgets = {
-  // V0.17.18 advances the frozen ledger through V0.17.17. Its own contract
+  // V0.18.0 advances the frozen ledger through V0.17.18. Its own contract
   // consumes the single declared-release allowance.
-  baselineVersion: '0.17.17',
+  baselineVersion: '0.17.18',
   // v0.16.82 adds 29 net lines of reusable compiler control logic for
   // policy-domain separation and concept-owned evidence binding. Source-
   // statement copy and prerequisite selection moved to a cacheable leaf; the
@@ -134,9 +134,9 @@ const repositoryBudgets = {
   // internal render, functional-visual, and evidence tools remain direct Node
   // entry points instead of multiplying package-script aliases.
   npmScripts: 402,
-  // V0.17.17 closes with 303 tracked ledger files; V0.17.18 may add exactly
+  // V0.17.18 closes with 304 tracked ledger files; V0.18.0 may add exactly
   // its one current-release contract.
-  releaseContractFiles: 303,
+  releaseContractFiles: 304,
   trackedWeightFiles: 62,
   trackedWeightBytes: 1_053_339_981,
   largeBinaryBytes: 1024 * 1024,

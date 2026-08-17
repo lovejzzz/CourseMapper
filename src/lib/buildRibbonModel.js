@@ -585,6 +585,7 @@ export function deriveRibbonProgress({ pipeline, budget = {}, generation = {}, d
     const fraction = total > 0 ? Math.min(1, done / total) : 0.1;
     return Math.round(50 + fraction * 25);
   }
+  if (state === 'planning') return 30;
   if (state === 'verifying') return 85;
   if (state === 'grading') return 95;
   if (state === 'lull') {
@@ -643,6 +644,10 @@ export function buildBuildRibbonModel({
       stage = 'map';
       stageLabel = String(generation.streamDetail || '').trim() || 'Generating the course map';
       break;
+    case 'planning':
+      stage = 'plan';
+      stageLabel = String(packageQualityPass?.message || '').trim() || 'Review the instructional blueprint';
+      break;
     case 'enriching':
       stage = 'enrich';
       stageLabel = latestKnowledgeActivity(budget?.recentEvents);
@@ -687,7 +692,7 @@ export function buildBuildRibbonModel({
       // far without a pulse; the machine names the next pending step.
       stage = pipeline.nextStep || 'map';
       running = false;
-      stageLabel = preparingRibbonStageLabel(stage);
+      stageLabel = generation.isStopped ? 'Build paused' : preparingRibbonStageLabel(stage);
   }
 
   const done = pipeline.done;

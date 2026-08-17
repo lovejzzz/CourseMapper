@@ -118,6 +118,7 @@ export default function BuildRibbon({ model, onStop = null }) {
   const compactStepLabels = {
     model: 'AI',
     map: 'Map',
+    plan: 'Plan',
     enrich: 'Enrich',
     compile: 'Build',
     verify: 'Check',

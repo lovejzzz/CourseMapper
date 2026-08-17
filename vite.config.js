@@ -170,6 +170,10 @@ export default defineConfig({
                   return 'sourceLedgerCitationSupport';
                 if (/src\/lib\/quality\/deepQualityTrustAdmission\.js$/.test(id)) return 'deepQualityTrustAdmission';
                 if (/src\/lib\/agentConfirmationPolicy\.js$/.test(id)) return 'agentConfirmationPolicy';
+                if (/src\/hooks\/useInstructionalBlueprintWorkflow\.js$/.test(id)) {
+                  return 'instructionalBlueprintWorkflow';
+                }
+                if (/src\/hooks\/useAgentFeatureGeneration\.js$/.test(id)) return 'agentFeatureGeneration';
                 return null;
               },
             },

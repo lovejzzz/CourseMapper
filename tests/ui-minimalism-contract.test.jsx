@@ -162,13 +162,16 @@ describe('minimal workspace status contract', () => {
 
   it('keeps Stop authoritative through generation, retries, verification, and grading', () => {
     const appSource = read('src/AppFlow.jsx');
+    const blueprintWorkflowSource = read('src/hooks/useInstructionalBlueprintWorkflow.js');
+    const agentFeatureGenerationSource = read('src/hooks/useAgentFeatureGeneration.js');
+    const packageWorkflowSource = `${appSource}\n${blueprintWorkflowSource}\n${agentFeatureGenerationSource}`;
     const smartSyncSource = read('src/hooks/useSmartSync.js');
     expect(appSource).toContain('const packageWorkflowEpochRef = useRef(1)');
     expect(appSource).not.toContain('const packageWorkflowEpochRef = useRef(0)');
     expect(appSource).toContain("throw new DOMException('Stopped', 'AbortError')");
-    expect(appSource).toContain("deliverableResult?.status === 'aborted'");
-    expect(appSource.match(/await finalizeGeneratedPackage\(/g)).toHaveLength(2);
-    expect(appSource.match(/scopeIndices,\n\s+workflowEpoch,/g)).toHaveLength(3);
+    expect(packageWorkflowSource).toContain("result?.status === 'aborted'");
+    expect(packageWorkflowSource.match(/await finalizeGeneratedPackage\(/g)).toHaveLength(3);
+    expect(packageWorkflowSource.match(/scopeIndices,\n\s+workflowEpoch,/g)).toHaveLength(4);
     const retryRunner = appSource.slice(
       appSource.indexOf('const runRetryAction = async'),
       appSource.indexOf('const runLocalCompilerRetryBatch'),
@@ -193,7 +196,7 @@ describe('minimal workspace status contract', () => {
     expect(appSource).toContain('workflowEpoch: syncRegradeEpoch');
     expect(appSource).toContain('if (!syncRegradeEpoch) return');
     expect(appSource).not.toContain('syncRegradeEpoch === null');
-    expect(appSource.match(/const workflowEpoch = beginPackageWorkflow\(\);/g)).toHaveLength(3);
+    expect(packageWorkflowSource.match(/const workflowEpoch = beginPackageWorkflow\(\);/g)).toHaveLength(3);
     expect(appSource).toContain('deliv.stopGenerating();');
     expect(appSource).toContain('onBeforeNewProject: onStop');
     expect(read('src/hooks/useProjectPersistence.js')).toContain('onBeforeNewProject?.();');

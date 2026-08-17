@@ -3,6 +3,18 @@ import { CURRENT_RELEASE } from './currentRelease.js';
 
 export { CURRENT_RELEASE };
 
+const V01718_RELEASE = {
+  version: '0.17.18',
+  date: 'August 11, 2026',
+  title: 'Plan-First Coherent Draft',
+  highlights: [
+    'Scion now builds and validates a lesson-specific instructional intent graph before package drafting, then binds each objective, evidence task, assessment, visual-analysis need, source claim, and artifact family to that plan.',
+    'Governing syllabus facts survive the full authoring path: required course materials, late-work rules, workload, grading weights, and source authority are recovered once and projected without being displaced by generic supplemental resources.',
+    'Assessment and source receipts distinguish semantic claims from compiler structure, verify tuple integrity, and reject neighboring-domain evidence, dangling prose, machine-facing identifiers, and unsupported source assertions before they can look complete.',
+    'A fresh five-lesson visual-analysis export produced every requested course-material family, passed all 38 package export checks, rendered 42 Office artifacts across 141 pages, slides, and sheets, and recorded 99/100 deterministic conformance with zero encoded findings.',
+  ],
+};
+
 const V01712_RELEASE = {
   version: '0.17.12',
   date: 'August 3, 2026',
@@ -1343,33 +1355,52 @@ export const CURRENT_RELEASE_CHANGELOG = {
   highlights: CURRENT_RELEASE.highlights,
   sections: [
     {
-      label: 'Make learning admission earned',
+      label: 'Put the teacher at the plan boundary',
       icon: 'CHECK',
       color: 'emerald',
       items: [
-        'Same-model repairs remain diagnostic and cannot authorize browser flywheel rows.',
-        'Bounded student questions reveal only the failed dimension and authorized evidence.',
-        'Strict selection keeps a passing control, accepts a teacher rescue, and quarantines uncertainty.',
+        'The Course Map is projected into a compact, lesson-specific instructional blueprint before package drafting.',
+        'Approval binds the exact plan and Course Map; stale or tampered receipts cannot authorize generation.',
+        'The living build sequence now names Plan between Map and Enrich.',
       ],
     },
     {
-      label: 'Bind independent review to evidence',
+      label: 'Make Agent work bounded and reversible',
       icon: 'AI',
       color: 'blue',
       items: [
-        'Every seed carries a bounded captured source excerpt plus exact project, prompt, source, and input hashes.',
-        'Sealed Roundtable verdict blocks are signed by a bridge key frozen before review.',
-        'Receipt fields are derived from the signed body, and reviewer, message, raw-review, and source reuse fail closed.',
+        'Meaning-changing proposals show exact targets and before/after scope before execution.',
+        'Applied changes report executor confirmation, the semantic verification boundary, and undo availability.',
+        'Existing proposal and Smart Sync paths share one action-envelope contract instead of creating another dashboard.',
       ],
     },
     {
-      label: 'Keep the quality claim honest',
+      label: 'Keep local execution under user control',
       icon: 'PROOF',
       color: 'violet',
       items: [
-        'The six-seed pilot tests the gate across three domains without running or scoring Scion.',
-        'The invalid first holdout remains negative evidence instead of being repaired into a win.',
-        'The full holdout stays blocked; no learned weights, factual certification, instructor approval, or classroom result is claimed.',
+        'Stop reaches the active Scion model transfer instead of waiting for model activation.',
+        'Paused and resumed states are consistent across the ribbon, Agent panel, and Course Map surface.',
+        'The release proves workflow governance and engineering behavior; it does not claim instructor approval, factual certification, accessibility certification, or classroom outcomes.',
+      ],
+    },
+  ],
+};
+
+const V01718_RELEASE_CHANGELOG = {
+  version: V01718_RELEASE.version,
+  date: V01718_RELEASE.date,
+  title: V01718_RELEASE.title,
+  highlights: V01718_RELEASE.highlights,
+  sections: [
+    {
+      label: 'Plan before drafting',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'Lesson intent and evidence obligations are prepared before package compilation.',
+        'Governing syllabus facts and semantic receipts remain distinct from compiler structure.',
+        'Representative export evidence stays bounded to automated engineering proof.',
       ],
     },
   ],
@@ -2284,6 +2315,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V01718_RELEASE_CHANGELOG,
   V01712_RELEASE_CHANGELOG,
   V01704_RELEASE_CHANGELOG,
   V01703_RELEASE_CHANGELOG,

@@ -2,6 +2,7 @@ export function preparingRibbonStageLabel(stage) {
   return (
     {
       map: 'Preparing the course map',
+      plan: 'Waiting for blueprint approval',
       enrich: 'Preparing lesson knowledge',
       compile: 'Preparing teaching materials',
       verify: 'Preparing package checks',

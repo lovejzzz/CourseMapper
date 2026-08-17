@@ -18,6 +18,7 @@ import {
 import { getArrayKey } from '../../lib/syncDependencies';
 import { recordEditPattern } from '../../lib/agentMemory';
 import { isRenderedDeliverableCollectionFeature } from '../../lib/renderedDeliverableCollection.js';
+import { createAgentActionEnvelope, resolveAgentActionEnvelope } from '../../lib/agentActionEnvelope.js';
 
 export function resolveProposalArrayKey(featureId, data) {
   const key = getArrayKey(featureId, data);
@@ -56,6 +57,7 @@ export function resolveProposalRemovedItem(featureId, data, lessonIndex, itemInd
 /**
  * @param {Object} params
  * @param {Object}   params.courseMap
+ * @param {Object}   params.courseGraph
  * @param {React.MutableRefObject} params.delivRef
  * @param {React.MutableRefObject} params.executeActionRef
  * @param {Function} params.setMessages
@@ -65,6 +67,7 @@ export function resolveProposalRemovedItem(featureId, data, lessonIndex, itemInd
  */
 export default function useProposalHandler({
   courseMap,
+  courseGraph,
   delivRef,
   executeActionRef,
   setMessages,
@@ -73,6 +76,17 @@ export default function useProposalHandler({
   maybeRunValidation,
 }) {
   const proposalLockRef = useRef(false);
+
+  function resolveProposalEnvelope(diff, resolution) {
+    const envelope =
+      diff?.envelope ||
+      createAgentActionEnvelope({
+        actions: diff?.actions || diff?.action,
+        previews: diff?.previews || [diff?.preview || {}],
+        title: diff?.optionTitle,
+      });
+    return resolveAgentActionEnvelope(envelope, resolution);
+  }
 
   // ── Generate diff preview for an action (before applying) ─────────────────
   function generateDiffPreview(action) {
@@ -187,6 +201,16 @@ export default function useProposalHandler({
     // Generate diff previews BEFORE applying (one per action)
     const previews = actionList.map((entryAction) => generateDiffPreview(entryAction));
     const preview = previews[0] || {};
+    const planReceiptSha256 =
+      courseGraph?.evidenceGroundedInstructionalPlan?.receipt?.exactInputSha256 ||
+      courseGraph?.preDraftInstructionalPlan?.receipt?.exactInputSha256 ||
+      null;
+    const envelope = createAgentActionEnvelope({
+      actions: actionList,
+      previews,
+      title: option.title,
+      planReceiptSha256,
+    });
 
     // Mark proposal as "reviewing" and push a diffReview message
     setMessages((prev) => {
@@ -210,6 +234,7 @@ export default function useProposalHandler({
           preview,
           previews,
           optionTitle: option.title,
+          envelope,
         },
         status: 'pending',
         _proposalIndex: messageIndex,
@@ -262,7 +287,18 @@ export default function useProposalHandler({
       setMessages((prev) => {
         const updated = [...prev];
         // Mark diff as accepted
-        updated[diffMessageIndex] = { ...updated[diffMessageIndex], status: 'accepted' };
+        updated[diffMessageIndex] = {
+          ...updated[diffMessageIndex],
+          status: 'accepted',
+          diff: {
+            ...updated[diffMessageIndex].diff,
+            envelope: resolveProposalEnvelope(updated[diffMessageIndex].diff, {
+              status: 'applied',
+              message: result.message,
+              appliedCount,
+            }),
+          },
+        };
         // Mark parent proposal as selected
         if (proposalIndex != null && updated[proposalIndex]?.role === 'proposal') {
           updated[proposalIndex] = {
@@ -299,7 +335,18 @@ export default function useProposalHandler({
       const isCourseMapAction = ['editCell', 'editTitle', 'addLesson', 'deleteLesson'].includes(action?.type);
       setMessages((prev) => {
         const updated = [...prev];
-        updated[diffMessageIndex] = { ...updated[diffMessageIndex], status: 'rejected' };
+        updated[diffMessageIndex] = {
+          ...updated[diffMessageIndex],
+          status: 'rejected',
+          diff: {
+            ...updated[diffMessageIndex].diff,
+            envelope: resolveProposalEnvelope(updated[diffMessageIndex].diff, {
+              status: 'failed',
+              message: errorDetail,
+              appliedCount,
+            }),
+          },
+        };
         // Mark proposal as failed (not dismissed) — other options remain clickable
         if (proposalIndex != null && updated[proposalIndex]?.role === 'proposal') {
           updated[proposalIndex] = {
@@ -346,7 +393,14 @@ export default function useProposalHandler({
 
     setMessages((prev) => {
       const updated = [...prev];
-      updated[diffMessageIndex] = { ...updated[diffMessageIndex], status: 'rejected' };
+      updated[diffMessageIndex] = {
+        ...updated[diffMessageIndex],
+        status: 'rejected',
+        diff: {
+          ...updated[diffMessageIndex].diff,
+          envelope: resolveProposalEnvelope(updated[diffMessageIndex].diff, { status: 'rejected' }),
+        },
+      };
       // Restore parent proposal to pending so user can pick another option
       if (proposalIndex != null && updated[proposalIndex]?.role === 'proposal') {
         updated[proposalIndex] = {

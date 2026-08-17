@@ -160,6 +160,7 @@ export default function DiffReviewCard({ diff, status, onAccept, onReject }) {
   if (!diff) return null;
 
   const { action, preview, optionTitle } = diff;
+  const envelope = diff.envelope;
   const isPending = status === 'pending';
   const isAccepted = status === 'accepted';
   const isRejected = status === 'rejected';
@@ -214,6 +215,21 @@ export default function DiffReviewCard({ diff, status, onAccept, onReject }) {
 
       {/* Diff content */}
       <div className="ml-8 space-y-2">
+        {envelope && (
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] font-medium text-slate-500">
+            <span>{envelope.safetyMode === 'needs-approval' ? 'Approval required' : 'Read only'}</span>
+            <span aria-hidden="true">·</span>
+            <span>
+              {envelope.targets.length} target{envelope.targets.length === 1 ? '' : 's'}
+            </span>
+            {envelope.undo?.available && (
+              <>
+                <span aria-hidden="true">·</span>
+                <span>Undo available</span>
+              </>
+            )}
+          </div>
+        )}
         {/* Add item: show what will be added */}
         {type === 'addItem' && action.item && (
           <div className="rounded-lg border border-emerald-200/40 bg-emerald-50/40 px-3 py-2">
@@ -365,11 +381,16 @@ export default function DiffReviewCard({ diff, status, onAccept, onReject }) {
 
       {/* Status indicator */}
       {isAccepted && (
-        <div className="ml-8 mt-2 text-[11px] text-emerald-600 font-medium flex items-center gap-1.5">
-          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-          Change applied
+        <div className="ml-8 mt-2 text-[11px] text-emerald-600 font-medium space-y-0.5">
+          <div className="flex items-center gap-1.5">
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            Change applied · execution confirmed
+          </div>
+          {envelope?.verification?.semanticPackageCheck === 'recommended' && (
+            <p className="text-slate-500 font-normal">Run Check package to verify instructional alignment.</p>
+          )}
         </div>
       )}
       {isRejected && (

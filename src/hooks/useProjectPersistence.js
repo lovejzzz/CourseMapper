@@ -69,6 +69,10 @@ export default function useProjectPersistence({
   courseGraph,
   setCourseGraph,
   adoptCourseGraph,
+  instructionalBlueprintReview,
+  setInstructionalBlueprintReview,
+  instructionalBlueprintApproval,
+  setInstructionalBlueprintApproval,
   setOldCourseMap,
   columns,
   setColumns,
@@ -150,6 +154,25 @@ export default function useProjectPersistence({
     },
     [setLastRunDigest, setPackageQualityPass],
   );
+  const restoreInstructionalBlueprintGovernance = useCallback(
+    (snapshot = {}) => {
+      const review = snapshot?.instructionalBlueprintReview;
+      const approval = snapshot?.instructionalBlueprintApproval;
+      setInstructionalBlueprintReview?.(review && typeof review === 'object' ? review : null);
+      setInstructionalBlueprintApproval?.(approval && typeof approval === 'object' ? approval : null);
+      if (review?.status === 'awaiting-approval') {
+        setPackageQualityPass({
+          status: 'awaiting-approval',
+          phase: 'plan',
+          message: 'Review the restored instructional blueprint before package drafting.',
+          repairsApplied: 0,
+          warnings: 0,
+          blockers: 0,
+        });
+      }
+    },
+    [setInstructionalBlueprintApproval, setInstructionalBlueprintReview, setPackageQualityPass],
+  );
 
   useEffect(() => {
     try {
@@ -180,6 +203,9 @@ export default function useProjectPersistence({
                 enrichmentOverlay: courseGraph.enrichmentOverlay || deliv.enrichmentOverlay,
               },
             }
+          : {}),
+        ...(instructionalBlueprintReview
+          ? { instructionalBlueprintReview, instructionalBlueprintApproval: instructionalBlueprintApproval || null }
           : {}),
         columns,
         hasGenerated: true,
@@ -212,6 +238,8 @@ export default function useProjectPersistence({
     [
       courseMap,
       courseGraph,
+      instructionalBlueprintReview,
+      instructionalBlueprintApproval,
       columns,
       provider,
       modelId,
@@ -333,6 +361,7 @@ export default function useProjectPersistence({
       restoreProjectAIConfig(restored);
       restoreApiCallBudgetReceipt?.(restored.apiCallBudgetReceipt);
       restorePackageEvidence(restored);
+      restoreInstructionalBlueprintGovernance(restored);
       deliv.restoreDeliverables(
         restored.deliverables && typeof restored.deliverables === 'object' ? restored.deliverables : {},
       );
@@ -359,6 +388,7 @@ export default function useProjectPersistence({
       restoreProjectAIConfig,
       restoreApiCallBudgetReceipt,
       restorePackageEvidence,
+      restoreInstructionalBlueprintGovernance,
       setScreen,
       setSelectedFeatures,
       setSlideTheme,
@@ -689,6 +719,7 @@ export default function useProjectPersistence({
       restoreProjectAIConfig(saved, { providerFallback: 'openai' });
       restoreApiCallBudgetReceipt?.(saved.apiCallBudgetReceipt);
       restorePackageEvidence(saved);
+      restoreInstructionalBlueprintGovernance(saved);
       setUserEdits(saved.userEdits || []);
       if (saved.fileNames?.length > 0) {
         setFiles(saved.fileNames.map((name) => ({ name, size: 0, _restored: true })));
@@ -736,6 +767,7 @@ export default function useProjectPersistence({
         restoreProjectAIConfig(saved);
         restoreApiCallBudgetReceipt?.(saved.apiCallBudgetReceipt);
         restorePackageEvidence(saved);
+        restoreInstructionalBlueprintGovernance(saved);
         setCourseMap(saved.courseMap);
         adoptCourseGraph(saved);
         setOldCourseMap(null);
@@ -775,6 +807,7 @@ export default function useProjectPersistence({
       setUserEdits([]);
       version.pushVersion(imported, `Opened ${file.name}`);
       restorePackageEvidence({});
+      restoreInstructionalBlueprintGovernance({});
       setHasGenerated(true);
       setHasSavedSession(false);
       setScreen('workspace');
@@ -824,6 +857,7 @@ export default function useProjectPersistence({
       restoreProjectAIConfig(saved, { providerFallback: 'openai' });
       restoreApiCallBudgetReceipt?.(saved.apiCallBudgetReceipt);
       restorePackageEvidence(saved);
+      restoreInstructionalBlueprintGovernance(saved);
       setUserEdits(saved.userEdits || []);
       if (saved.fileNames?.length > 0) {
         setFiles(saved.fileNames.map((name) => ({ name, size: 0, _restored: true })));
@@ -934,6 +968,7 @@ export default function useProjectPersistence({
     setNewProjectCloudSaveFailed(false);
     restoreApiCallBudgetReceipt?.(null);
     restorePackageEvidence({});
+    restoreInstructionalBlueprintGovernance({});
     setScreen('landing');
     onReturnToLanding?.();
   }

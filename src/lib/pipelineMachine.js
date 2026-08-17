@@ -14,6 +14,7 @@
  *   idle       no run activity this session
  *   syncing    an approved sync plan is executing (v0.14.7 WS-G3)
  *   mapping    the course map is streaming
+ *   planning   the mapped instructional blueprint is awaiting instructor approval
  *   enriching  deliverables generating, latest activity = kernel enrichment
  *   compiling  deliverables generating, compiler/chunk activity
  *   verifying  the finish pass runs (checks, repairs, export verification)
@@ -34,6 +35,7 @@ export const MAP_RUNNING_STEPS = new Set(['parsing', 'sending', 'generating', 'e
 
 export const STEP_ORDER = [
   { id: 'map', label: 'Map' },
+  { id: 'plan', label: 'Plan' },
   { id: 'enrich', label: 'Enrich' },
   { id: 'compile', label: 'Compile' },
   { id: 'verify', label: 'Verify' },
@@ -81,10 +83,10 @@ function isEnrichmentActivity(event) {
  * the ONE pipeline truth every surface renders.
  *
  * @returns {{
- *   state: 'idle'|'syncing'|'mapping'|'enriching'|'compiling'|'verifying'|'grading'|'ready'|'blocked'|'error'|'lull',
+ *   state: 'idle'|'syncing'|'mapping'|'planning'|'enriching'|'compiling'|'verifying'|'grading'|'ready'|'blocked'|'error'|'lull',
  *   running: boolean,
  *   nextStep: string|null,          // lull only: the first not-done step id
- *   done: { map, enrich, compile, verify, grade },
+ *   done: { map, plan, enrich, compile, verify, grade },
  *   blockedReason: string|null,     // blocked only: blocker count narrative
  *   activity: object|null,          // enriching/compiling: the driving event
  * }}
@@ -103,9 +105,11 @@ export function derivePipelineState({
     generation.progressStep === 'error' &&
     (expectedLessonCount > mappedLessonCount ||
       /stopped at\s+\d+\s+of\s+\d+\s+lessons/i.test(String(generation.error || '')));
-  const mapRunning = Boolean(generation.isStreaming) || MAP_RUNNING_STEPS.has(generation.progressStep);
+  const mapRunning =
+    !generation.isStopped && (Boolean(generation.isStreaming) || MAP_RUNNING_STEPS.has(generation.progressStep));
   const delivRunning = Boolean(deliverables.isGenerating);
   const syncRunning = Boolean(sync?.isSyncing);
+  const awaitingPlanApproval = finishStatus === 'awaiting-approval';
   // v0.14.6 phase split + belts: the generation umbrella is never the
   // finish pass, and the finish pass never runs while map/deliverables do.
   const finishRunning = isFinishPassRunning(packageQualityPass) && !mapRunning && !delivRunning;
@@ -116,6 +120,10 @@ export function derivePipelineState({
   const grading = finishRunning && packageQualityPass?.phase === 'grade';
   const done = {
     map: !generationFailed && (generation.progressStep === 'done' || delivRunning || finishRunning || finishComplete),
+    plan:
+      !generationFailed &&
+      !awaitingPlanApproval &&
+      (generation.progressStep === 'done' || delivRunning || finishRunning || finishComplete),
     compile:
       !generationFailed &&
       (finishComplete || finishRunning || (totalCount > 0 && doneCount >= totalCount && !delivRunning)),
@@ -148,6 +156,9 @@ export function derivePipelineState({
   if (generationFailed) {
     return { ...base, state: 'error', running: false, blockedReason: 'course map incomplete' };
   }
+  if (awaitingPlanApproval) {
+    return { ...base, state: 'planning', running: false, nextStep: 'plan' };
+  }
   if (finishComplete) {
     if (finishStatus === 'blocked') {
       const blockers = Number(packageQualityPass?.blockers) || 0;
@@ -163,7 +174,7 @@ export function derivePipelineState({
 
   // Idle vs lull: with no activity recorded this session the pipeline has
   // simply never run; with prior activity we are between phases.
-  const hasAnyProgress = done.map || done.enrich || done.compile || (budget.recentEvents?.length || 0) > 0;
+  const hasAnyProgress = done.map || done.plan || done.enrich || done.compile || (budget.recentEvents?.length || 0) > 0;
   if (!hasAnyProgress && finishStatus === 'idle') {
     return { ...base, state: 'idle', running: false };
   }
@@ -176,6 +187,7 @@ export function derivePipelineState({
 export function deriveStepStatuses(pipeline) {
   const stageToStep = {
     mapping: 'map',
+    planning: 'plan',
     enriching: 'enrich',
     compiling: 'compile',
     verifying: 'verify',
@@ -187,7 +199,7 @@ export function deriveStepStatuses(pipeline) {
     idle: null,
     lull: null,
   };
-  const activeStepId = pipeline.running ? stageToStep[pipeline.state] : null;
+  const activeStepId = pipeline.state === 'planning' ? 'plan' : pipeline.running ? stageToStep[pipeline.state] : null;
   const activeIndex = activeStepId ? STEP_ORDER.findIndex((step) => step.id === activeStepId) : -1;
   // Green checks are reserved for terminal clean/readied work. During
   // generation, earlier phases are only "settled": they passed control to the

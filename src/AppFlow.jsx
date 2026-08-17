@@ -2,7 +2,12 @@ import React, { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspens
 import { createPortal } from 'react-dom';
 import FocusTrap from 'focus-trap-react';
 import ErrorBoundary from './components/ErrorBoundary';
-import LoadingScreen, { ConfigSkeleton, WorkspaceSkeleton, CourseMapSkeleton } from './components/LoadingScreen';
+import LoadingScreen, {
+  ConfigSkeleton,
+  WorkspaceSkeleton,
+  CourseMapSkeleton,
+  CourseMapPausedState,
+} from './components/LoadingScreen';
 import Landing from './screens/Landing';
 import AppLogo from './components/AppLogo';
 import DarkModeToggle from './components/DarkModeToggle';
@@ -21,6 +26,7 @@ import {
 const Config = lazy(() => import('./screens/Config'));
 const FeatureSelect = lazy(() => import('./screens/FeatureSelect'));
 const CourseMapPreview = lazy(() => import('./components/CourseMapPreview'));
+const InstructionalBlueprintGate = lazy(() => import('./components/InstructionalBlueprintGate'));
 const ChatPanel = lazy(() => import('./components/chat/ChatPanel'));
 const AgentQualityControl = lazy(() => import('./components/chat/AgentQualityControl'));
 const ResizeHandle = lazy(() => import('./components/chat/ResizeHandle'));
@@ -104,6 +110,8 @@ import { clearSetupRecovery } from './lib/setupRecovery';
 import useReviewQueueOwner from './hooks/useReviewQueueOwner';
 import useTabDrag from './hooks/useTabDrag';
 import useProjectPersistence, { STORAGE_KEY } from './hooks/useProjectPersistence';
+import useInstructionalBlueprintWorkflow from './hooks/useInstructionalBlueprintWorkflow';
+import useAgentFeatureGeneration from './hooks/useAgentFeatureGeneration';
 import useWorkspaceRepairs from './hooks/useWorkspaceRepairs';
 import { downloadContribution, readExtractedKernels } from './lib/genome/contributeKernels';
 import { APP_VERSION } from './lib/appVersion';
@@ -488,6 +496,11 @@ export default function AppFlow({
   useEffect(() => {
     courseGraphRef.current = courseGraph;
   }, [courseGraph]);
+  const [instructionalBlueprintReview, setInstructionalBlueprintReview] = useState(null);
+  const [instructionalBlueprintApproval, setInstructionalBlueprintApproval] = useState(null);
+  const [instructionalBlueprintBusy, setInstructionalBlueprintBusy] = useState(false);
+  const [instructionalBlueprintError, setInstructionalBlueprintError] = useState('');
+  const courseMapPreviewRef = useRef(null);
 
   // ── Model & File Config (from AIConfigContext) ──
   const {
@@ -903,9 +916,11 @@ export default function AppFlow({
         repairedCourseMap,
         meta.source === 'blueprintCompiler'
           ? 'Cleaned course map before compiling deliverables'
-          : meta.source === 'knowledgeBackbone'
-            ? 'Attached cited readings and open resources'
-            : 'Cleaned course map readiness fields',
+          : meta.source === 'instructionalBlueprint'
+            ? 'Prepared the instructional blueprint for review'
+            : meta.source === 'knowledgeBackbone'
+              ? 'Attached cited readings and open resources'
+              : 'Cleaned course map readiness fields',
       );
     },
     [setCourseMap, version.pushVersion],
@@ -1063,6 +1078,8 @@ export default function AppFlow({
     examChanges: gen.examChanges,
     columns,
     sourceBrief: promptText,
+    instructionalBlueprintReview,
+    instructionalBlueprintApproval,
     courseGraph,
     scionResearchEnabledOverride,
     onApiCallEvent: recordApiCallEvent,
@@ -2450,6 +2467,10 @@ export default function AppFlow({
     courseGraph,
     setCourseGraph,
     adoptCourseGraph,
+    instructionalBlueprintReview,
+    setInstructionalBlueprintReview,
+    instructionalBlueprintApproval,
+    setInstructionalBlueprintApproval,
     setOldCourseMap,
     columns,
     setColumns,
@@ -2558,113 +2579,21 @@ export default function AppFlow({
     });
   }
 
-  const handleAgentGenerateFeatures = useCallback(
-    async ({ featureIds = [], lessonFilter = null, source = 'agent-plan' } = {}) => {
-      const requestedFeatures = [
-        ...new Set((Array.isArray(featureIds) ? featureIds : [featureIds]).filter(Boolean)),
-      ].filter((featureId) => featureId !== 'courseMap');
-      if (requestedFeatures.length === 0) {
-        return {
-          status: 'skipped',
-          completedFeatureIds: [],
-          failedFeatureIds: [],
-          message: 'No deliverables selected.',
-        };
-      }
-      const currentCourseMap = courseMapRef.current;
-      if (!currentCourseMap?.lessons?.length) {
-        throw new Error('Generate the course map before generating deliverables.');
-      }
-      if (packageGenerationInFlightRef.current) {
-        return {
-          status: 'busy',
-          completedFeatureIds: [],
-          failedFeatureIds: requestedFeatures,
-          message: 'Package generation is already running.',
-        };
-      }
-
-      const workflowEpoch = beginPackageWorkflow();
-      const stopped = () => packageWorkflowEpochRef.current !== workflowEpoch;
-      const aborted = () => ({ status: 'aborted', completedFeatureIds: [], failedFeatureIds: requestedFeatures });
-      packageGenerationInFlightRef.current = workflowEpoch;
-      setPackageGenerationBusy(true);
-      try {
-        setHasGenerated(true);
-        setDownloadedFile('');
-        setPackageQualityPass({
-          status: 'running',
-          phase: 'generation',
-          message: `Building ${requestedFeatures.length} deliverable${requestedFeatures.length === 1 ? '' : 's'}...`,
-          repairsApplied: 0,
-          warnings: 0,
-          blockers: 0,
-        });
-        const scopeIndices =
-          Array.isArray(lessonFilter) || lessonFilter === null
-            ? lessonFilter
-            : lessonScope.type === 'specific'
-              ? lessonScope.indices
-              : null;
-        const result = await deliv.generateAll(currentCourseMap, requestedFeatures, scopeIndices);
-        if (stopped() || result?.status === 'aborted') return aborted();
-        const completedFeatureIds = Array.isArray(result?.completedFeatureIds) ? result.completedFeatureIds : [];
-        const failedFeatureIds = Array.isArray(result?.failedFeatureIds) ? result.failedFeatureIds : [];
-        const generatedDeliverables = result?.deliverables || {};
-        if (completedFeatureIds.length > 0) {
-          await handleDeterministicPackageFinalization({
-            selectedFeatureIds: ['courseMap', ...completedFeatureIds],
-            lessonFilter: scopeIndices,
-            retry: true,
-            maxRetryActions: 6,
-            maxRetryCallBudget: 6,
-            maxRetryPasses: 2,
-            courseMapOverride: currentCourseMap,
-            deliverablesOverride: generatedDeliverables,
-            source,
-            workflowEpoch,
-          });
-        } else {
-          setPackageQualityPass({
-            status: 'blocked',
-            message: 'Generation did not complete. Try again.',
-            repairsApplied: 0,
-            warnings: 0,
-            blockers: 1,
-          });
-        }
-        return {
-          status: failedFeatureIds.length > 0 ? 'partial' : 'generated',
-          completedFeatureIds,
-          failedFeatureIds,
-          deliverables: generatedDeliverables,
-        };
-      } catch (err) {
-        if (err?.name === 'AbortError' || stopped()) return aborted();
-        setPackageQualityPass({
-          status: 'blocked',
-          message: err?.message || 'Agent build failed.',
-          repairsApplied: 0,
-          warnings: 0,
-          blockers: 1,
-        });
-        throw err;
-      } finally {
-        if (packageGenerationInFlightRef.current === workflowEpoch) {
-          packageGenerationInFlightRef.current = false;
-          setPackageGenerationBusy(false);
-        }
-      }
-    },
-    [
-      beginPackageWorkflow,
-      deliv,
-      handleDeterministicPackageFinalization,
-      lessonScope.indices,
-      lessonScope.type,
-      setDownloadedFile,
-    ],
-  );
+  const handleAgentGenerateFeatures = useAgentFeatureGeneration({
+    courseMapRef,
+    lessonScope,
+    blueprintReview: instructionalBlueprintReview,
+    blueprintApproval: instructionalBlueprintApproval,
+    packageGenerationInFlightRef,
+    packageWorkflowEpochRef,
+    beginPackageWorkflow,
+    setPackageGenerationBusy,
+    setHasGenerated,
+    setDownloadedFile,
+    setPackageQualityPass,
+    generateAll: deliv.generateAll,
+    finalizePackage: handleDeterministicPackageFinalization,
+  });
 
   const handleAgentAuditPackage = useCallback(
     async ({ selectedFeatureIds = selectedFeatures, lessonFilter = null } = {}) => {
@@ -2808,6 +2737,30 @@ export default function AppFlow({
     ],
   );
 
+  const { prepareReview: prepareInstructionalBlueprintReview, approveAndBuild: handleApproveInstructionalBlueprint } =
+    useInstructionalBlueprintWorkflow({
+      courseMap,
+      courseMapRef,
+      sourceBrief: promptText,
+      lessonScope,
+      expectedSessionMinutes,
+      review: instructionalBlueprintReview,
+      approvalBusy: instructionalBlueprintBusy,
+      setReview: setInstructionalBlueprintReview,
+      setApproval: setInstructionalBlueprintApproval,
+      setBusy: setInstructionalBlueprintBusy,
+      setError: setInstructionalBlueprintError,
+      setPackageQualityPass,
+      onCourseMapRepair: handleGeneratedCourseMapRepair,
+      beginPackageWorkflow,
+      packageWorkflowEpochRef,
+      packageGenerationInFlightRef,
+      setPackageGenerationBusy,
+      getOrderedSelectedDeliverables,
+      generateAll: deliv.generateAll,
+      finalizeGeneratedPackage,
+    });
+
   async function onGenerate() {
     if (packageGenerationInFlightRef.current) return;
     const workflowEpoch = beginPackageWorkflow();
@@ -2816,6 +2769,9 @@ export default function AppFlow({
     packageGenerationInFlightRef.current = workflowEpoch;
     setPackageGenerationBusy(true);
     try {
+      setInstructionalBlueprintReview(null);
+      setInstructionalBlueprintApproval(null);
+      setInstructionalBlueprintError('');
       setHasGenerated(true);
       setPackageQualityPass({
         status: 'running',
@@ -2846,12 +2802,11 @@ export default function AppFlow({
 
       const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
       const orderedFeatures = getOrderedSelectedDeliverables();
-      let generatedDeliverables = {};
       if (orderedFeatures.length > 0) {
-        const deliverableResult = await deliv.generateAll(finalCourseMap, orderedFeatures, scopeIndices);
-        if (stopped() || deliverableResult?.status === 'aborted') return;
-        generatedDeliverables = deliverableResult?.deliverables || {};
+        await prepareInstructionalBlueprintReview(finalCourseMap);
+        return;
       }
+      const generatedDeliverables = {};
 
       if (stopped()) return;
       await finalizeGeneratedPackage(
@@ -2913,6 +2868,9 @@ export default function AppFlow({
     packageGenerationInFlightRef.current = workflowEpoch;
     setPackageGenerationBusy(true);
     try {
+      setInstructionalBlueprintReview(null);
+      setInstructionalBlueprintApproval(null);
+      setInstructionalBlueprintError('');
       setPackageQualityPass({
         status: 'running',
         phase: 'generation',
@@ -2935,12 +2893,13 @@ export default function AppFlow({
       }
       const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
       const orderedFeatures = getOrderedSelectedDeliverables();
-      let generatedDeliverables = {};
       if (orderedFeatures.length > 0) {
-        const deliverableResult = await deliv.generateAll(finalCourseMap, orderedFeatures, scopeIndices);
-        if (stopped() || deliverableResult?.status === 'aborted') return;
-        generatedDeliverables = deliverableResult?.deliverables || {};
+        await prepareInstructionalBlueprintReview(finalCourseMap, {
+          message: 'Review the resumed instructional blueprint before package drafting.',
+        });
+        return;
       }
+      const generatedDeliverables = {};
       if (stopped()) return;
       await finalizeGeneratedPackage(
         finalCourseMap,
@@ -3203,7 +3162,9 @@ export default function AppFlow({
     // ALSO labeled "Course Map" stacked two identical labels on screen.
     { id: 'content', label: 'Content' },
     { id: 'agent', label: 'Agent' },
-    ...(courseMap && gen.progressStep === 'done' ? [{ id: 'export', label: 'Export' }] : []),
+    ...(courseMap && gen.progressStep === 'done' && instructionalBlueprintReview?.status !== 'awaiting-approval'
+      ? [{ id: 'export', label: 'Export' }]
+      : []),
   ];
 
   // Pointer-based tab drag: smoother than native HTML5 DnD and avoids clipped overlays.
@@ -3228,6 +3189,7 @@ export default function AppFlow({
     generation: {
       progressStep: gen.progressStep,
       isStreaming: gen.isStreaming,
+      isStopped: gen.isStopped,
       streamDetail: gen.streamDetail,
       streamProgress: gen.streamProgress,
       error: gen.error,
@@ -4107,8 +4069,22 @@ export default function AppFlow({
                       </div>
                     </div>
                   )}
+                  {instructionalBlueprintReview?.status === 'awaiting-approval' && (
+                    <InstructionalBlueprintGate
+                      review={instructionalBlueprintReview}
+                      busy={instructionalBlueprintBusy}
+                      error={instructionalBlueprintError}
+                      onApprove={handleApproveInstructionalBlueprint}
+                      onEditMap={() =>
+                        courseMapPreviewRef.current?.scrollIntoView({
+                          behavior: preferredScrollBehavior(),
+                          block: 'start',
+                        })
+                      }
+                    />
+                  )}
                   {courseMap || gen.isStreaming ? (
-                    <div className="w-full animate-spring-up">
+                    <div ref={courseMapPreviewRef} className="w-full animate-spring-up scroll-mt-28">
                       <ErrorBoundary>
                         <CourseMapPreview
                           courseMap={courseMap}
@@ -4144,6 +4120,8 @@ export default function AppFlow({
                         />
                       </ErrorBoundary>
                     </div>
+                  ) : gen.isStopped ? (
+                    <CourseMapPausedState onContinue={onResume} />
                   ) : (
                     !gen.error && gen.progressStep !== 'idle' && gen.progressStep !== 'done' && <CourseMapSkeleton />
                   )}
@@ -4277,59 +4255,61 @@ export default function AppFlow({
             </div>
 
             {/* ── Export side panel (right) — shown once course map is ready ── */}
-            {courseMap && gen.progressStep === 'done' && (
-              <div
-                data-testid="workspace-export-panel"
-                className={`${mobileWorkspaceView === 'export' ? 'block' : 'hidden'} ${
-                  isPackageGenerationRunning ? 'xl:hidden' : 'xl:block xl:flex-shrink-0'
-                } min-w-0`}
-              >
-                <ExportSidePanel
-                  activeTab={activeTab}
-                  activeTabLabel={workspaceTabs.find((f) => f.id === activeTab)?.label || activeTab}
-                  deliverables={deliv.deliverables}
-                  readinessDeliverableConfig={effectiveDeliverableConfig}
-                  onCourseMapExport={handleDownload}
-                  onSaveProject={handleSaveProject}
-                  onReadinessIssueClick={focusCourseMapTarget}
-                  onAutoRepairReadiness={applyPackageReadinessRepairs}
-                  onFinishPackage={handleFinishPackageFromExport}
-                  canFinishPackage={canRunPackageFinalizer}
-                  packageQualityPass={packageQualityPass}
-                  onPackageQualityPassUpdate={setPackageQualityPass}
-                  courseGraph={courseGraph}
-                  qualityModalOpen={qualityReportOpen}
-                  onQualityModalOpenChange={setQualityReportOpen}
-                  isPackageGenerationRunning={isPackageGenerationRunning}
-                  preferPackageScope={
-                    hasGenerated && selectedFeatures.length > 1 && packageQualityPass?.status !== 'idle'
-                  }
-                  getPipelineState={getManifestPipelineState}
-                  getQualityContext={() => ({
-                    budget: apiCallBudgetRef.current || {},
-                    // A restored anonymous project hydrates the persisted
-                    // digest into state. The ref is populated only by a finish
-                    // run in this mounted session, so fall back to state or the
-                    // resumed ZIP silently loses its passed export receipt.
-                    digest: lastRunDigestRef.current || lastRunDigest,
-                    // The finalizer and ZIP exporter must grade the same
-                    // instructor-authored sequence. Omitting the brief here
-                    // made the downloaded score ledger lose curriculum
-                    // evidence that the workspace had already verified.
-                    coursePrompt: promptText,
-                    expectedSessionMinutes,
-                  })}
-                  reviewQueue={reviewQueue}
-                  reviewProgress={reviewProgress}
-                  onReviewMark={handleReviewMark}
-                  onReviewMarkAll={handleReviewMarkAll}
-                  reviewQueueOpen={Boolean(reviewQueueRequest)}
-                  reviewQueueFocusId={reviewQueueRequest?.focusId || null}
-                  onExecuteSync={handleExecuteSyncFromQueue}
-                  onReviewQueueOpenChange={handleReviewQueueOpenChange}
-                />
-              </div>
-            )}
+            {courseMap &&
+              gen.progressStep === 'done' &&
+              instructionalBlueprintReview?.status !== 'awaiting-approval' && (
+                <div
+                  data-testid="workspace-export-panel"
+                  className={`${mobileWorkspaceView === 'export' ? 'block' : 'hidden'} ${
+                    isPackageGenerationRunning ? 'xl:hidden' : 'xl:block xl:flex-shrink-0'
+                  } min-w-0`}
+                >
+                  <ExportSidePanel
+                    activeTab={activeTab}
+                    activeTabLabel={workspaceTabs.find((f) => f.id === activeTab)?.label || activeTab}
+                    deliverables={deliv.deliverables}
+                    readinessDeliverableConfig={effectiveDeliverableConfig}
+                    onCourseMapExport={handleDownload}
+                    onSaveProject={handleSaveProject}
+                    onReadinessIssueClick={focusCourseMapTarget}
+                    onAutoRepairReadiness={applyPackageReadinessRepairs}
+                    onFinishPackage={handleFinishPackageFromExport}
+                    canFinishPackage={canRunPackageFinalizer}
+                    packageQualityPass={packageQualityPass}
+                    onPackageQualityPassUpdate={setPackageQualityPass}
+                    courseGraph={courseGraph}
+                    qualityModalOpen={qualityReportOpen}
+                    onQualityModalOpenChange={setQualityReportOpen}
+                    isPackageGenerationRunning={isPackageGenerationRunning}
+                    preferPackageScope={
+                      hasGenerated && selectedFeatures.length > 1 && packageQualityPass?.status !== 'idle'
+                    }
+                    getPipelineState={getManifestPipelineState}
+                    getQualityContext={() => ({
+                      budget: apiCallBudgetRef.current || {},
+                      // A restored anonymous project hydrates the persisted
+                      // digest into state. The ref is populated only by a finish
+                      // run in this mounted session, so fall back to state or the
+                      // resumed ZIP silently loses its passed export receipt.
+                      digest: lastRunDigestRef.current || lastRunDigest,
+                      // The finalizer and ZIP exporter must grade the same
+                      // instructor-authored sequence. Omitting the brief here
+                      // made the downloaded score ledger lose curriculum
+                      // evidence that the workspace had already verified.
+                      coursePrompt: promptText,
+                      expectedSessionMinutes,
+                    })}
+                    reviewQueue={reviewQueue}
+                    reviewProgress={reviewProgress}
+                    onReviewMark={handleReviewMark}
+                    onReviewMarkAll={handleReviewMarkAll}
+                    reviewQueueOpen={Boolean(reviewQueueRequest)}
+                    reviewQueueFocusId={reviewQueueRequest?.focusId || null}
+                    onExecuteSync={handleExecuteSyncFromQueue}
+                    onReviewQueueOpenChange={handleReviewQueueOpenChange}
+                  />
+                </div>
+              )}
           </div>
         </main>
 

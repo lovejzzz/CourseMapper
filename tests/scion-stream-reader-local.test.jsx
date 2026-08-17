@@ -66,6 +66,45 @@ afterEach(async () => {
 });
 
 describe('useStreamReader Scion boundary', () => {
+  it('connects the global Stop action to an in-progress Scion model load and permits a clean retry', async () => {
+    let firstSignal;
+    mocks.runScionLocalCompletion
+      .mockImplementationOnce(
+        (options) =>
+          new Promise((_resolve, reject) => {
+            firstSignal = options.signal;
+            options.signal.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), {
+              once: true,
+            });
+          }),
+      )
+      .mockResolvedValueOnce({
+        fullText: '{"ok":true}',
+        messages: [],
+        attempt: 1,
+        retryCount: 0,
+        maxRetries: 0,
+        tokenCount: 1,
+        repairs: [],
+      });
+
+    const stoppedRun = reader.streamProvider('public', '', 'scion-public', 'System', 'Build a course.', {
+      task: 'course-map',
+    });
+    await vi.waitFor(() => expect(firstSignal).toBeInstanceOf(AbortSignal));
+
+    reader.abort();
+
+    await expect(stoppedRun).rejects.toMatchObject({ name: 'AbortError' });
+    expect(firstSignal.aborted).toBe(true);
+
+    await expect(
+      reader.streamProvider('public', '', 'scion-public', 'System', 'Try again.', { task: 'course-map' }),
+    ).resolves.toMatchObject({ fullText: '{"ok":true}' });
+    expect(mocks.runScionLocalCompletion.mock.calls[1][0].signal).not.toBe(firstSignal);
+    expect(mocks.runScionLocalCompletion.mock.calls[1][0].signal.aborted).toBe(false);
+  });
+
   it('routes Scion through browser-local inference without constructing or fetching a prompt request', async () => {
     const messages = [
       { role: 'system', content: 'Scion local system' },

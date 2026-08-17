@@ -599,6 +599,7 @@ export default function useChatRouter({
   // ── Proposal / diff review (delegated to useProposalHandler) ─────────────
   const { handleSelectProposal, handleAcceptDiff, handleRejectDiff } = useProposalHandler({
     courseMap,
+    courseGraph,
     delivRef,
     executeActionRef,
     setMessages,

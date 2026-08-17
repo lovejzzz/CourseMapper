@@ -832,6 +832,7 @@ export default function useGeneration({
         return null;
       }
       generateInFlightRef.current = true;
+      setIsStopped(false);
       recordApiCallEvent({ type: 'reset', label: 'New course package generation' });
 
       try {
@@ -1385,15 +1386,18 @@ export default function useGeneration({
     if (import.meta.env.DEV)
       console.log('[Resume] stoppedText length:', savedText?.length || 0, 'provider:', provider, 'modelId:', modelId);
     if (!savedText) {
-      setError('Nothing to resume — no saved generation data found.');
-      return null;
+      // A stop during runtime/model preparation happens before the first JSON
+      // token exists. In that case “Continue” means retry the same immutable
+      // course brief, not fail because there is no partial response to merge.
+      return handleGenerate();
     }
 
     const resumeProvider = provider;
     const resumeKey = apiKey;
     const resumeModel = modelId;
 
-    if (!resumeKey) {
+    const resumeProviderIsKeyless = resumeProvider === 'local' || resumeProvider === PUBLIC_SCION_PROVIDER_ID;
+    if (!resumeProviderIsKeyless && !resumeKey) {
       setError('No API key provided — please enter your API key and try again.');
       return null;
     }
@@ -1608,9 +1612,18 @@ export default function useGeneration({
     streamProvider,
     parsePartialJSON,
     recordApiCallEvent,
+    handleGenerate,
   ]);
 
   const handleStop = useCallback(() => {
+    // Reflect the user's decision immediately. The provider rejection can
+    // arrive a frame (or a worker turn) later, but no surface should continue
+    // claiming that a stopped build is still generating during that gap.
+    setIsStopped(true);
+    setIsStreaming(false);
+    setStatus('stopped');
+    setStreamDetail('');
+    setRetryInfo(null);
     abort();
   }, [abort]);
 
