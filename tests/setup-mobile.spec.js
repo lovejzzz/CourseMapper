@@ -18,11 +18,11 @@ test('keeps the setup journey readable at the 320px minimum width', async ({ pag
   await expect(page.getByRole('heading', { name: 'Choose materials' })).toBeVisible();
 
   const progressLabels = page.getByTestId('setup-progress').locator('li > span > span:last-child');
-  await expect(progressLabels).toHaveText(['Brief', 'Materials', 'Generate']);
+  await expect(progressLabels).toHaveText(['Brief', 'Materials', 'Review', 'Generate']);
 
   const continuation = page.getByTestId('feature-select-continue');
   await expect(continuation).toBeVisible();
-  await expect(continuation.getByText('Review generation', { exact: true })).toBeVisible();
+  await expect(continuation.getByText('Configure materials', { exact: true })).toBeVisible();
   await expect(continuation).toContainText('Course Map only');
   const continuationBox = await continuation.boundingBox();
   expect(continuationBox.x).toBeGreaterThanOrEqual(8);
@@ -36,12 +36,12 @@ test('keeps the setup journey readable at the 320px minimum width', async ({ pag
 
   await page.getByRole('button', { name: 'Recommended set' }).click();
   await continuation.click();
-  await expect(page.getByRole('heading', { name: 'Configure generation' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Configure materials' })).toBeVisible();
   const generationBoundary = page.getByTestId('scion-generation-boundary');
   await expect(generationBoundary.getByText('Private local generation · Details')).toBeVisible();
   await generationBoundary.locator('summary').click();
   await expect(generationBoundary.getByText(/Scion runs locally in this browser and needs no API key/)).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Generate workspace' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Prepare course plan' })).toBeVisible();
   await expect(page.getByText('Generation settings', { exact: true })).toBeVisible();
   await expect(page.getByText('Course Map + 5 materials selected.', { exact: true })).toBeVisible();
   await expect(page.getByTestId('config-sticky-action')).toHaveCSS('position', 'static');
@@ -50,7 +50,8 @@ test('keeps the setup journey readable at the 320px minimum width', async ({ pag
   const setupHelp = page.getByTestId('setup-help-dialog');
   await expect(setupHelp).toBeVisible();
   await expect(setupHelp.getByRole('heading', { name: 'From brief to teachable package' })).toBeVisible();
-  await expect(setupHelp.getByText('Generate, watch, and review')).toBeVisible();
+  await expect(setupHelp.getByText('Review the course plan')).toBeVisible();
+  await expect(setupHelp.getByText('Approve and generate')).toBeVisible();
   const setupHelpBox = await setupHelp.boundingBox();
   expect(setupHelpBox.x).toBeGreaterThanOrEqual(8);
   expect(setupHelpBox.x + setupHelpBox.width).toBeLessThanOrEqual(page.viewportSize().width - 8);

@@ -25,7 +25,7 @@ export default function useInstructionalBlueprintWorkflow({
   finalizeGeneratedPackage,
 }) {
   const prepareReview = useCallback(
-    async (sourceCourseMap, { message = 'Review the instructional blueprint before package drafting.' } = {}) => {
+    async (sourceCourseMap, { message = 'Review the course plan before Scion generates the package.' } = {}) => {
       const { createInstructionalBlueprintReview } = await import('../lib/instructionalBlueprintApproval.js');
       const sourceConstraints = analyzeSourceBriefConstraints(sourceBrief);
       const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
@@ -95,7 +95,7 @@ export default function useInstructionalBlueprintWorkflow({
       });
       refreshTimer = window.setTimeout(() => {
         prepareReview(courseMap, {
-          message: 'The Course Map changed. Review the refreshed blueprint before drafting.',
+          message: 'The Course Map changed. Review the refreshed course plan before generation.',
         }).catch((error) => {
           if (!cancelled) setError(error?.message || 'The instructional blueprint could not be refreshed.');
         });
@@ -134,7 +134,7 @@ export default function useInstructionalBlueprintWorkflow({
       const approval = approveInstructionalBlueprintReview(review);
       if (!instructionalBlueprintApprovalMatches(review, approval, currentCourseMap)) {
         await prepareReview(currentCourseMap, {
-          message: 'The Course Map changed. Review the refreshed blueprint before drafting.',
+          message: 'The Course Map changed. Review the refreshed course plan before generation.',
         });
         setError('The Course Map changed after this review. Scion refreshed the blueprint; approve it when ready.');
         return;

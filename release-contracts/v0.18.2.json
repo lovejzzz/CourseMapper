@@ -1,0 +1,104 @@
+{
+  "version": "0.18.2",
+  "date": "August 17, 2026",
+  "title": "Teacher-Focused Course Plan Review",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test",
+      "npm run lint",
+      "npm run format:check",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:pipeline",
+      "npm run audit:release-history",
+      "npx playwright test tests/setup-mobile.spec.js --project=chromium"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Remote exact-commit verification begins after this locally verified candidate is pushed."
+    },
+    "ciDeep": {
+      "status": "pending",
+      "note": "Broader course and independent-instructor evaluation remains separate research evidence."
+    },
+    "deploy": {
+      "status": "pending",
+      "note": "Production deployment and exact-version re-audit are downstream of push and remote verification."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The browser acceptance workflow uses the shipped local Scion route; no deployed-build claim is made yet."
+    },
+    "manualHuman": {
+      "status": "pending",
+      "note": "No instructor evaluation, accessibility certification, or classroom validation is claimed."
+    }
+  },
+  "claims": [
+    {
+      "id": "v0182-1",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "highlightSha256": "ecb2e60fd9abb1a714c94c92da52c49dd0490e8abdb24f9991d87d50aa204369",
+      "summary": "Review is a named stage between Materials and Generate and appears before selected material drafting.",
+      "anchors": [
+        "src/components/SetupProgress.jsx",
+        "src/components/InstructionalBlueprintGate.jsx",
+        "src/hooks/useInstructionalBlueprintWorkflow.js",
+        "src/hooks/__tests__/instructionalBlueprintGateArchitecture.test.js"
+      ],
+      "proofCommands": ["npm test", "npm run build"],
+      "proofScopes": ["unit", "static-audit", "build"]
+    },
+    {
+      "id": "v0182-2",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "highlightSha256": "aeba373031b2ee21b9f4dc24722d24a39a033b91630d5944df4a41ccd39867de",
+      "summary": "Pending review owns a focused workspace surface with progressive lesson disclosure.",
+      "anchors": [
+        "src/AppFlow.jsx",
+        "src/components/InstructionalBlueprintGate.jsx",
+        "evaluation/release-proofs/v0.18.2-browser-acceptance.json"
+      ],
+      "proofCommands": ["npm test", "npm run build"],
+      "proofScopes": ["browser-smoke", "unit", "build"]
+    },
+    {
+      "id": "v0182-3",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "highlightSha256": "d328c23a295ca0ab949c5f4acb995cf1a9bb60e99fe48d779b4b83e57be52d99",
+      "summary": "Attention items group repeated assumptions by lesson and expose text review states.",
+      "anchors": [
+        "src/components/InstructionalBlueprintGate.jsx",
+        "src/components/__tests__/InstructionalBlueprintGate.test.jsx",
+        "evaluation/v0.18.2-course-plan-review-benchmark.json"
+      ],
+      "proofCommands": ["npm test", "npm run lint"],
+      "proofScopes": ["unit", "browser-smoke", "static-audit"]
+    },
+    {
+      "id": "v0182-4",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "highlightSha256": "73f8fdfb1bdd462975e7f39d37d7d1e4f3d28f58c695e597364aa10a16b3102e",
+      "summary": "Approval copy, canonical Course Map editing, return navigation, and phone action containment are explicit and verified.",
+      "anchors": [
+        "src/AppFlow.jsx",
+        "src/components/InstructionalBlueprintGate.jsx",
+        "tests/setup-mobile.spec.js",
+        "evaluation/release-proofs/v0.18.2-browser-acceptance.json"
+      ],
+      "proofCommands": ["npx playwright test tests/setup-mobile.spec.js --project=chromium", "npm run build"],
+      "proofScopes": ["browser-smoke", "static-audit", "build"]
+    }
+  ],
+  "boundaries": [
+    "This contract records a locally verified predeploy candidate; remote CI, production deployment, and live re-audit are downstream facts.",
+    "Review presentation changes do not alter receipt-bound plan authority, evidence admission, compiler semantics, exporters, grader policy, or model weights.",
+    "The browser record proves the tested workflow and viewport geometry, not every browser, storage condition, assistive technology, or device.",
+    "Automated contracts and browser evidence do not substitute for instructor review, factual certification, accessibility certification, or classroom validation."
+  ]
+}

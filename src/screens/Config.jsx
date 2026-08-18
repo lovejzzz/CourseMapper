@@ -2043,7 +2043,7 @@ export default function Config({
         }`}
       >
         <span className="flex items-center justify-center gap-2.5">
-          Generate workspace
+          Prepare course plan
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
@@ -2087,15 +2087,16 @@ export default function Config({
         {/* Main */}
         <main className="flex flex-1 flex-col items-center px-5 py-6 pb-0 sm:px-8">
           <div className="w-full max-w-3xl animate-fade-up space-y-5">
-            <SetupProgress current="generate" />
+            <SetupProgress current="materials" />
 
             {/* Step badge + title */}
             <div className="mb-2 text-center">
               <h1 className="mt-5 text-2xl font-semibold tracking-tight text-slate-950 dark:text-white sm:text-3xl">
-                Configure generation
+                Configure materials
               </h1>
               <p className="mx-auto mt-2 max-w-xl text-sm text-slate-500 dark:text-slate-400">
-                Set the lesson scope. Tune only what needs to be different.
+                Set the lesson scope and optional material preferences. You will review the course plan before Scion
+                generates the package.
               </p>
             </div>
 

@@ -13,8 +13,13 @@ const STEPS = [
   },
   {
     number: '3',
-    title: 'Generate, watch, and review',
-    detail: 'Keep this tab open. The live compiler shows local progress and flags choices it cannot safely make.',
+    title: 'Review the course plan',
+    detail: 'Check learner actions, evidence, assumptions, and any decisions that need your judgment.',
+  },
+  {
+    number: '4',
+    title: 'Approve and generate',
+    detail: 'Keep this tab open while Scion creates and verifies the selected course materials from the approved plan.',
   },
 ];
 

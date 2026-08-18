@@ -661,7 +661,7 @@ export default function FeatureSelect({
         }`}
       >
         <span className="flex flex-col items-center justify-center gap-0.5 min-[360px]:flex-row min-[360px]:gap-2 sm:gap-2.5">
-          <span className="whitespace-nowrap">Review generation</span>
+          <span className="whitespace-nowrap">Configure materials</span>
           <span className="flex items-center gap-2 whitespace-nowrap text-white/70">
             <span aria-hidden="true" className="hidden min-[360px]:inline">
               ·

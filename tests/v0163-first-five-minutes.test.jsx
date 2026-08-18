@@ -71,7 +71,7 @@ describe('v0.16.3 first-five-minutes UX contract', () => {
     expect(landing).toContain('Connected');
     expect(landing).not.toContain('Zero-download');
     expect(landing).toContain('<details');
-    expect(landing).toContain('Generate full course');
+    expect(landing).toContain('Prepare full course plan');
     expect(landing).toContain('Customize package');
     expect(landing).toContain('data-testid="landing-requirement"');
   });
@@ -84,7 +84,7 @@ describe('v0.16.3 first-five-minutes UX contract', () => {
     expect(config).toContain('sm:sticky sm:top-3');
     expect(features).toContain('data-testid="feature-select-recommended"');
     expect(features).toContain('line-clamp-2');
-    expect(features).toContain('Review generation');
+    expect(features).toContain('Configure materials');
   });
 
   it('prefetches the flow and keeps the mobile workspace readable by default', () => {

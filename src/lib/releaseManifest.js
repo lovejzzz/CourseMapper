@@ -3,6 +3,18 @@ import { CURRENT_RELEASE } from './currentRelease.js';
 
 export { CURRENT_RELEASE };
 
+const V0181_RELEASE = {
+  version: '0.18.1',
+  date: 'August 17, 2026',
+  title: 'Publication-Safe Course Build',
+  highlights: [
+    'A transient workspace-chunk failure no longer discards the staged course brief. Recovery remains available until the teacher approves the exact blueprint or a Course Map-only package finishes.',
+    'Blueprint approval now distinguishes the teacher-authorized map from the exact build-enriched map. Internal CourseGraph enrichment can finish the approved package without falsely invalidating its own plan, while any later teacher edit still requires a fresh review.',
+    'Quiz validation treats cumulative exams as whole-course assessments rather than duplicate weekly quizzes. Weekly coverage and exact question counts remain strict, and exam scoring math remains independently checked.',
+    'The blueprint review and Project menu stay inside phone viewports. Long lesson evidence wraps within its card, and the Project menu aligns to the visible edge without creating page-level horizontal scrolling.',
+  ],
+};
+
 const V0180_RELEASE = {
   version: '0.18.0',
   date: 'August 17, 2026',
@@ -1367,6 +1379,45 @@ export const CURRENT_RELEASE_CHANGELOG = {
   highlights: CURRENT_RELEASE.highlights,
   sections: [
     {
+      label: 'Make review a truthful workflow stage',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'Brief, Materials, Review, and Generate appear as four explicit stages across setup and the plan checkpoint.',
+        'The selected materials do not begin drafting until the teacher reaches and approves the dedicated review surface.',
+        'Setup help and primary action copy describe the same plan-first sequence.',
+      ],
+    },
+    {
+      label: 'Spend teacher attention where judgment matters',
+      icon: 'AI',
+      color: 'blue',
+      items: [
+        'Course structure, throughline, and culminating evidence orient the teacher before lesson detail.',
+        'Source decisions and assumptions appear first, with repeated assumption records grouped by lesson.',
+        'Lesson rows remain collapsed until the teacher asks for purpose, learner action, evidence, criteria, and source boundary.',
+      ],
+    },
+    {
+      label: 'Keep review focused and reversible',
+      icon: 'PROOF',
+      color: 'violet',
+      items: [
+        'Agent, tabs, build ribbon, workspace switcher, and Export yield the surface while review is pending.',
+        'Edit Course Map exposes the canonical editor, and Return to review restores the same checkpoint.',
+        'Desktop and phone browser passes prove the tested hierarchy and containment; they do not claim instructor approval, accessibility certification, factual certification, or classroom outcomes.',
+      ],
+    },
+  ],
+};
+
+const V0181_RELEASE_CHANGELOG = {
+  version: V0181_RELEASE.version,
+  date: V0181_RELEASE.date,
+  title: V0181_RELEASE.title,
+  highlights: V0181_RELEASE.highlights,
+  sections: [
+    {
       label: 'Preserve the teacher’s work through recovery',
       icon: 'CHECK',
       color: 'emerald',
@@ -2346,6 +2397,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V0181_RELEASE_CHANGELOG,
   V0180_RELEASE_CHANGELOG,
   V01718_RELEASE_CHANGELOG,
   V01712_RELEASE_CHANGELOG,

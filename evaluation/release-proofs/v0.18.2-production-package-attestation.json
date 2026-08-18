@@ -1,0 +1,14 @@
+{
+  "protocol": "coursemapper-production-package-attestation-v1",
+  "version": "0.18.2",
+  "capturedAt": "2026-08-18T02:42:06.000Z",
+  "status": "bounded-pass",
+  "scope": "pre-draft plan authorization",
+  "observations": [
+    "The real browser-local Scion route authored a two-lesson Course Map from a fresh brief.",
+    "The selected material package did not begin drafting before the teacher-facing review checkpoint appeared.",
+    "The existing receipt-bound approval and post-approval package implementation remain covered by the v0.18.1 complete-package acceptance and current unit architecture contracts.",
+    "V0.18.2 changes review presentation and navigation, not model weights, evidence admission, compiler semantics, exporters, or grading policy."
+  ],
+  "boundary": "This attestation proves the changed pre-draft boundary and inherits no new post-draft quality claim. Instructor judgment, factual certification, accessibility certification, and classroom validation remain external."
+}

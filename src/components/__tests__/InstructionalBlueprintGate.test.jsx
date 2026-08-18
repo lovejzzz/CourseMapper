@@ -12,7 +12,12 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 const review = {
   status: 'awaiting-approval',
   canApprove: true,
-  course: { title: 'Data Decisions', lessonCount: 2 },
+  course: {
+    title: 'Data Decisions',
+    lessonCount: 2,
+    throughlineConcepts: ['evidence', 'interpretation'],
+    culminatingEvidence: 'A defensible data memo',
+  },
   researchRequiredCount: 1,
   questions: [
     {
@@ -57,13 +62,19 @@ describe('InstructionalBlueprintGate', () => {
   it('renders a compact plan, evidence status, and honest claim boundary', () => {
     const html = renderToStaticMarkup(<InstructionalBlueprintGate review={review} />);
 
-    expect(html).toContain('Review the instructional blueprint');
-    expect(html).toContain('Drafting paused');
+    expect(html).toContain('Review the course plan');
+    expect(html).toContain('Course plan ready');
+    expect(html).toContain('Needs your attention');
+    expect(html).toContain('Brief');
+    expect(html).toContain('Materials');
+    expect(html).toContain('Review');
+    expect(html).toContain('Generate');
     expect(html).toContain('2 lessons');
-    expect(html).toContain('1 need research');
+    expect(html).toContain('1 lesson will receive source research');
     expect(html).toContain('Describing distributions');
-    expect(html).toContain('Evidence admitted');
-    expect(html).toContain('Research after approval');
+    expect(html).toContain('Confirmed');
+    expect(html).toContain('Inferred');
+    expect(html).toContain('A defensible data memo');
     expect(html).toContain('instructional direction only');
   });
 
@@ -78,8 +89,8 @@ describe('InstructionalBlueprintGate', () => {
     });
 
     const buttons = [...container.querySelectorAll('button')];
-    const editButton = buttons.find((button) => button.textContent === 'Edit map');
-    const approveButton = buttons.find((button) => button.textContent === 'Approve & build package');
+    const editButton = buttons.find((button) => button.textContent === 'Edit Course Map');
+    const approveButton = buttons.find((button) => button.textContent === 'Approve plan and generate');
     expect(editButton).toBeTruthy();
     expect(approveButton).toBeTruthy();
 
@@ -95,7 +106,7 @@ describe('InstructionalBlueprintGate', () => {
 
   it('disables approval while the next stage is starting', () => {
     const html = renderToStaticMarkup(<InstructionalBlueprintGate review={review} busy />);
-    expect(html).toContain('Starting build…');
+    expect(html).toContain('Starting generation…');
     expect(html).toMatch(/disabled=""/);
   });
 });

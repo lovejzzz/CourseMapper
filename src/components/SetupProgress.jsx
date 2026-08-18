@@ -1,6 +1,7 @@
 const STEPS = [
   { id: 'brief', label: 'Brief' },
   { id: 'materials', label: 'Materials' },
+  { id: 'review', label: 'Review' },
   { id: 'generate', label: 'Generate' },
 ];
 
@@ -11,14 +12,14 @@ export default function SetupProgress({ current }) {
   );
 
   return (
-    <nav aria-label="Course setup progress" className="mx-auto w-full max-w-sm">
-      <ol className="grid grid-cols-3 gap-2" data-testid="setup-progress">
+    <nav aria-label="Course setup progress" className="mx-auto w-full max-w-lg">
+      <ol className="grid grid-cols-4 gap-1 sm:gap-2" data-testid="setup-progress">
         {STEPS.map((step, index) => {
           const complete = index < currentIndex;
           const active = index === currentIndex;
           return (
             <li key={step.id} className="min-w-0" aria-current={active ? 'step' : undefined}>
-              <span className="flex min-w-0 items-center justify-center gap-1.5">
+              <span className="flex min-w-0 items-center justify-center gap-1 sm:gap-1.5">
                 <span
                   className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-label font-bold ${
                     complete
@@ -31,7 +32,7 @@ export default function SetupProgress({ current }) {
                 >
                   {complete ? '✓' : index + 1}
                 </span>
-                <span className={`text-label font-semibold ${active ? 'text-ink' : 'text-ink-muted'}`}>
+                <span className={`text-[11px] font-semibold sm:text-label ${active ? 'text-ink' : 'text-ink-muted'}`}>
                   {step.label}
                 </span>
               </span>

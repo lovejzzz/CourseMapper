@@ -646,7 +646,7 @@ export function buildBuildRibbonModel({
       break;
     case 'planning':
       stage = 'plan';
-      stageLabel = String(packageQualityPass?.message || '').trim() || 'Review the instructional blueprint';
+      stageLabel = String(packageQualityPass?.message || '').trim() || 'Review the course plan';
       break;
     case 'enriching':
       stage = 'enrich';

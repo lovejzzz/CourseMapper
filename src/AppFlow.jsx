@@ -496,7 +496,13 @@ export default function AppFlow({
   const [instructionalBlueprintApproval, setInstructionalBlueprintApproval] = useState(null);
   const [instructionalBlueprintBusy, setInstructionalBlueprintBusy] = useState(false);
   const [instructionalBlueprintError, setInstructionalBlueprintError] = useState('');
+  const [blueprintMapEditorOpen, setBlueprintMapEditorOpen] = useState(false);
+  const instructionalBlueprintGateRef = useRef(null);
   const courseMapPreviewRef = useRef(null);
+
+  useEffect(() => {
+    setBlueprintMapEditorOpen(false);
+  }, [instructionalBlueprintReview?.planReceiptSha256]);
 
   // ── Model & File Config (from AIConfigContext) ──
   const {
@@ -2891,7 +2897,7 @@ export default function AppFlow({
       const orderedFeatures = getOrderedSelectedDeliverables();
       if (orderedFeatures.length > 0) {
         await prepareInstructionalBlueprintReview(finalCourseMap, {
-          message: 'Review the resumed instructional blueprint before package drafting.',
+          message: 'Review the resumed course plan before Scion generates the package.',
         });
         return;
       }
@@ -3162,6 +3168,7 @@ export default function AppFlow({
       ? [{ id: 'export', label: 'Export' }]
       : []),
   ];
+  const blueprintReviewActive = instructionalBlueprintReview?.status === 'awaiting-approval';
 
   // Pointer-based tab drag: smoother than native HTML5 DnD and avoids clipped overlays.
   const draggedTab = tabDrag ? workspaceTabs.find((f) => f.id === tabDrag.id) : null;
@@ -3422,10 +3429,12 @@ export default function AppFlow({
 
           {/* v0.14.4 WS-B1: the build ribbon — the single status spine.
               Hidden entirely on a fresh/empty workspace (model is null). */}
-          <BuildRibbon
-            model={buildRibbonModel}
-            onStop={isPackageGenerationRunning || isFinishPassRunning(packageQualityPass) ? onStop : null}
-          />
+          {!blueprintReviewActive && (
+            <BuildRibbon
+              model={buildRibbonModel}
+              onStop={isPackageGenerationRunning || isFinishPassRunning(packageQualityPass) ? onStop : null}
+            />
+          )}
 
           {/* ── Deliverable tabs ──
               v0.14.9 B3: the old standalone utility row (dependency-map button
@@ -3433,7 +3442,7 @@ export default function AppFlow({
               dependency-map control folds into the bar's right edge and the
               drag-trash zone floats as a fixed pill during a drag, returning
               a full row of vertical rhythm. */}
-          {workspaceTabs.length > 0 && (
+          {!blueprintReviewActive && workspaceTabs.length > 0 && (
             <div className="relative min-w-0">
               <div
                 ref={workspaceTabsContainerRef}
@@ -3900,7 +3909,7 @@ export default function AppFlow({
           )}
 
           {/* ── Custom Deliverable Builder (from workspace + Add) ── */}
-          {showCustomBuilder && (
+          {!blueprintReviewActive && showCustomBuilder && (
             <Suspense fallback={null}>
               <CustomDeliverableBuilder
                 isOpen={showCustomBuilder}
@@ -3919,131 +3928,143 @@ export default function AppFlow({
           )}
 
           {/* Mobile workspace mode switcher */}
-          <div
-            data-testid="mobile-workspace-switcher"
-            className="xl:hidden sticky top-3 z-20 flex gap-1 rounded-2xl border border-slate-200/60 bg-white/85 p-1 shadow-glass backdrop-blur-xl"
-          >
-            {mobileWorkspaceViews.map((view) => (
-              <button
-                key={view.id}
-                type="button"
-                onClick={() => setMobileWorkspaceView(view.id)}
-                aria-pressed={mobileWorkspaceView === view.id}
-                className={`min-h-11 flex-1 rounded-xl px-3 text-label font-bold transition-[transform,box-shadow] duration-150 active:scale-[0.98] ${
-                  mobileWorkspaceView === view.id
-                    ? 'bg-slate-900 text-white shadow-sm'
-                    : 'text-slate-500 hover:bg-slate-100/80 hover:text-slate-700'
-                }`}
-              >
-                {view.label}
-              </button>
-            ))}
-          </div>
+          {!blueprintReviewActive && (
+            <div
+              data-testid="mobile-workspace-switcher"
+              className="xl:hidden sticky top-3 z-20 flex gap-1 rounded-2xl border border-slate-200/60 bg-white/85 p-1 shadow-glass backdrop-blur-xl"
+            >
+              {mobileWorkspaceViews.map((view) => (
+                <button
+                  key={view.id}
+                  type="button"
+                  onClick={() => setMobileWorkspaceView(view.id)}
+                  aria-pressed={mobileWorkspaceView === view.id}
+                  className={`min-h-11 flex-1 rounded-xl px-3 text-label font-bold transition-[transform,box-shadow] duration-150 active:scale-[0.98] ${
+                    mobileWorkspaceView === view.id
+                      ? 'bg-slate-900 text-white shadow-sm'
+                      : 'text-slate-500 hover:bg-slate-100/80 hover:text-slate-700'
+                  }`}
+                >
+                  {view.label}
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* ── Tab content + Chat panel + Export panel ── */}
           <div
             data-testid="workspace-shell"
-            className="workspace-shell flex flex-col gap-3 items-stretch xl:flex-row xl:gap-0"
+            className={`workspace-shell flex flex-col items-stretch ${
+              blueprintReviewActive ? 'mx-auto w-full max-w-5xl gap-0' : 'gap-3 xl:flex-row xl:gap-0'
+            }`}
             style={{ minHeight: 'calc(100vh - 220px)' }}
           >
             {/* ── Left: Resizable Chat Panel ── */}
-            <div
-              data-testid="workspace-agent-panel"
-              className={`workspace-chat-panel min-w-0 ${mobileWorkspaceView === 'agent' ? 'block' : 'hidden'} xl:block xl:flex-shrink-0 xl:sticky xl:top-4`}
-              style={{ '--workspace-chat-width': `${chatWidth}px` }}
-            >
-              <AgentQualityControl
-                quality={packageQualityPass?.quality}
-                trustStatus={packageTrustStatus}
-                onOpen={setQualityReportOpen}
-              />
-              <ErrorBoundary>
-                <ChatPanel
-                  viewportRef={viewportRef}
-                  currentStep={gen.progressStep}
-                  modelName={workspaceModelName}
-                  error={gen.error || null}
-                  streamDetail={gen.streamDetail}
-                  streamProgress={gen.streamProgress}
-                  completenessInfo={gen.completenessInfo}
-                  isStopped={gen.isStopped}
-                  retryInfo={gen.retryInfo}
-                  generationLog={gen.generationLog}
-                  onStop={gen.isStreaming ? onStop : null}
-                  onResume={onResume}
-                  onClearAll={gen.handleClearAll}
-                  onRetryExamine={gen.handleRetryExamine}
-                  deliverables={deliv.deliverables}
-                  selectedFeatures={selectedFeatures}
-                  columns={columns}
-                  deliverableConfig={effectiveDeliverableConfig}
-                  lessonScope={lessonScope}
-                  onLessonScopeChange={setLessonScope}
-                  delivProgress={deliv.progress}
-                  currentDelivFeatures={deliv.currentFeatures}
-                  isDelivGenerating={deliv.isGenerating}
-                  delivTimings={deliv.delivTimings}
-                  packageQualityPass={packageQualityPass}
-                  onStopDeliverables={deliv.isGenerating ? onStop : null}
-                  onPackageQualityPassUpdate={setPackageQualityPass}
-                  onAutoRepairReadiness={applyPackageReadinessRepairs}
-                  onFinalizePackage={handleDeterministicPackageFinalization}
-                  onGenerateFeatures={handleAgentGenerateFeatures}
-                  onAuditPackage={handleAgentAuditPackage}
-                  isSyncing={smartSync.isSyncing}
-                  pendingSyncCount={smartSync.pendingSyncCount}
-                  syncingFeatures={smartSync.syncingFeatures}
-                  pendingSyncSuggestion={smartSync.pendingSyncSuggestion}
-                  clearPendingSyncSuggestion={smartSync.clearPendingSyncSuggestion}
-                  executeSyncPlan={smartSync.executeSyncPlan}
-                  clearSyncStalePlan={deliv.clearSyncStalePlan}
-                  onRevision={rev.handleRevision}
-                  onDeliverableRevision={(msg, history) => {
-                    // For deliverable revisions, regenerate the active deliverable
-                    if (activeTab && activeTab !== 'courseMap') {
-                      const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
-                      deliv.generateAll(courseMap, [activeTab], scopeIndices);
-                    }
-                  }}
-                  isRevising={rev.isRevising}
-                  activeTab={activeTab}
-                  courseMap={courseMap}
-                  courseGraph={courseGraph}
-                  slideTheme={slideTheme}
-                  chatHistory={chatHistory}
-                  onChatHistoryChange={setChatHistory}
-                  pendingExamPatches={gen.pendingExamPatches}
-                  examChanges={gen.examChanges}
-                  onAcceptPatches={gen.onAcceptPatches}
-                  onRejectPatch={gen.onRejectPatch}
-                  onFocusExamPatch={focusExamPatch}
-                  editor={editor}
-                  optimisticUpdate={deliv.optimisticUpdate}
-                  regenerateLesson={deliv.regenerateLesson}
-                  delivUndoSnapshot={delivUndo.snapshot}
-                  delivUndoFn={() => delivUndo.undo(deliv.setDeliverables)}
-                  delivCanUndo={delivUndo.canUndo}
-                  onAgentHighlight={triggerAgentHighlight}
-                  notifyEdit={smartSync.notifyEdit}
-                  chatSendRef={chatSendRef}
-                  uid={user?.uid || null}
-                  onApiCallEvent={recordApiCallEvent}
-                  onOpenReviewQueue={handleOpenReviewQueueFromObservation}
-                  compactReadyMode={packageReady}
-                  ribbonModel={buildRibbonModel}
+            {!blueprintReviewActive && (
+              <div
+                data-testid="workspace-agent-panel"
+                className={`workspace-chat-panel min-w-0 ${mobileWorkspaceView === 'agent' ? 'block' : 'hidden'} xl:block xl:flex-shrink-0 xl:sticky xl:top-4`}
+                style={{ '--workspace-chat-width': `${chatWidth}px` }}
+              >
+                <AgentQualityControl
+                  quality={packageQualityPass?.quality}
+                  trustStatus={packageTrustStatus}
+                  onOpen={setQualityReportOpen}
                 />
-              </ErrorBoundary>
-            </div>
+                <ErrorBoundary>
+                  <ChatPanel
+                    viewportRef={viewportRef}
+                    currentStep={gen.progressStep}
+                    modelName={workspaceModelName}
+                    error={gen.error || null}
+                    streamDetail={gen.streamDetail}
+                    streamProgress={gen.streamProgress}
+                    completenessInfo={gen.completenessInfo}
+                    isStopped={gen.isStopped}
+                    retryInfo={gen.retryInfo}
+                    generationLog={gen.generationLog}
+                    onStop={gen.isStreaming ? onStop : null}
+                    onResume={onResume}
+                    onClearAll={gen.handleClearAll}
+                    onRetryExamine={gen.handleRetryExamine}
+                    deliverables={deliv.deliverables}
+                    selectedFeatures={selectedFeatures}
+                    columns={columns}
+                    deliverableConfig={effectiveDeliverableConfig}
+                    lessonScope={lessonScope}
+                    onLessonScopeChange={setLessonScope}
+                    delivProgress={deliv.progress}
+                    currentDelivFeatures={deliv.currentFeatures}
+                    isDelivGenerating={deliv.isGenerating}
+                    delivTimings={deliv.delivTimings}
+                    packageQualityPass={packageQualityPass}
+                    onStopDeliverables={deliv.isGenerating ? onStop : null}
+                    onPackageQualityPassUpdate={setPackageQualityPass}
+                    onAutoRepairReadiness={applyPackageReadinessRepairs}
+                    onFinalizePackage={handleDeterministicPackageFinalization}
+                    onGenerateFeatures={handleAgentGenerateFeatures}
+                    onAuditPackage={handleAgentAuditPackage}
+                    isSyncing={smartSync.isSyncing}
+                    pendingSyncCount={smartSync.pendingSyncCount}
+                    syncingFeatures={smartSync.syncingFeatures}
+                    pendingSyncSuggestion={smartSync.pendingSyncSuggestion}
+                    clearPendingSyncSuggestion={smartSync.clearPendingSyncSuggestion}
+                    executeSyncPlan={smartSync.executeSyncPlan}
+                    clearSyncStalePlan={deliv.clearSyncStalePlan}
+                    onRevision={rev.handleRevision}
+                    onDeliverableRevision={(msg, history) => {
+                      // For deliverable revisions, regenerate the active deliverable
+                      if (activeTab && activeTab !== 'courseMap') {
+                        const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
+                        deliv.generateAll(courseMap, [activeTab], scopeIndices);
+                      }
+                    }}
+                    isRevising={rev.isRevising}
+                    activeTab={activeTab}
+                    courseMap={courseMap}
+                    courseGraph={courseGraph}
+                    slideTheme={slideTheme}
+                    chatHistory={chatHistory}
+                    onChatHistoryChange={setChatHistory}
+                    pendingExamPatches={gen.pendingExamPatches}
+                    examChanges={gen.examChanges}
+                    onAcceptPatches={gen.onAcceptPatches}
+                    onRejectPatch={gen.onRejectPatch}
+                    onFocusExamPatch={focusExamPatch}
+                    editor={editor}
+                    optimisticUpdate={deliv.optimisticUpdate}
+                    regenerateLesson={deliv.regenerateLesson}
+                    delivUndoSnapshot={delivUndo.snapshot}
+                    delivUndoFn={() => delivUndo.undo(deliv.setDeliverables)}
+                    delivCanUndo={delivUndo.canUndo}
+                    onAgentHighlight={triggerAgentHighlight}
+                    notifyEdit={smartSync.notifyEdit}
+                    chatSendRef={chatSendRef}
+                    uid={user?.uid || null}
+                    onApiCallEvent={recordApiCallEvent}
+                    onOpenReviewQueue={handleOpenReviewQueueFromObservation}
+                    compactReadyMode={packageReady}
+                    ribbonModel={buildRibbonModel}
+                  />
+                </ErrorBoundary>
+              </div>
+            )}
 
             {/* ── Resize Handle ── */}
-            <div className="hidden xl:block self-stretch">
-              <ResizeHandle width={chatWidth} onWidthChange={setChatWidth} />
-            </div>
+            {!blueprintReviewActive && (
+              <div className="hidden self-stretch xl:block">
+                <ResizeHandle width={chatWidth} onWidthChange={setChatWidth} />
+              </div>
+            )}
 
             {/* ── Main content area ── */}
             <div
               data-testid="workspace-content-panel"
-              className={`${mobileWorkspaceView === 'content' ? 'block' : 'hidden'} xl:block flex-1 min-w-0 space-y-4 px-0 xl:px-4`}
+              className={`min-w-0 flex-1 space-y-4 px-0 ${
+                blueprintReviewActive
+                  ? 'block w-full'
+                  : `${mobileWorkspaceView === 'content' ? 'block' : 'hidden'} xl:block xl:px-4`
+              }`}
             >
               {/* Course Map tab */}
               {activeTab === 'courseMap' && (
@@ -4058,21 +4079,56 @@ export default function AppFlow({
                     </Suspense>
                   )}
                   {instructionalBlueprintReview?.status === 'awaiting-approval' && (
-                    <InstructionalBlueprintGate
-                      review={instructionalBlueprintReview}
-                      busy={instructionalBlueprintBusy}
-                      error={instructionalBlueprintError}
-                      onApprove={handleApproveInstructionalBlueprint}
-                      onEditMap={() =>
-                        courseMapPreviewRef.current?.scrollIntoView({
-                          behavior: preferredScrollBehavior(),
-                          block: 'start',
-                        })
-                      }
-                    />
+                    <div ref={instructionalBlueprintGateRef} className="scroll-mt-4">
+                      <InstructionalBlueprintGate
+                        review={instructionalBlueprintReview}
+                        busy={instructionalBlueprintBusy}
+                        error={instructionalBlueprintError}
+                        onApprove={handleApproveInstructionalBlueprint}
+                        onEditMap={() => {
+                          setBlueprintMapEditorOpen(true);
+                          window.requestAnimationFrame(() =>
+                            courseMapPreviewRef.current?.scrollIntoView({
+                              behavior: preferredScrollBehavior(),
+                              block: 'start',
+                            }),
+                          );
+                        }}
+                      />
+                    </div>
+                  )}
+                  {blueprintReviewActive && blueprintMapEditorOpen && (
+                    <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 rounded-xl border border-slate-200/80 bg-white px-3 py-2.5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-slate-900 dark:text-white">Editing the Course Map</p>
+                        <p className="truncate text-[11px] text-slate-500 dark:text-slate-400">
+                          Meaningful changes will refresh the plan before generation.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setBlueprintMapEditorOpen(false);
+                          window.requestAnimationFrame(() =>
+                            instructionalBlueprintGateRef.current?.scrollIntoView({
+                              behavior: preferredScrollBehavior(),
+                              block: 'start',
+                            }),
+                          );
+                        }}
+                        className="tactile min-h-10 shrink-0 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 hover:border-indigo-200 hover:text-indigo-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+                      >
+                        Return to review
+                      </button>
+                    </div>
                   )}
                   {courseMap || gen.isStreaming ? (
-                    <div ref={courseMapPreviewRef} className="w-full animate-spring-up scroll-mt-28">
+                    <div
+                      ref={courseMapPreviewRef}
+                      className={`w-full animate-spring-up scroll-mt-28 ${
+                        blueprintReviewActive && !blueprintMapEditorOpen ? 'hidden' : ''
+                      }`}
+                    >
                       <ErrorBoundary>
                         <CourseMapPreview
                           courseMap={courseMap}

@@ -21,6 +21,23 @@ describe('v0.18 instructional blueprint gate architecture', () => {
     expect(legacyDraftCall === -1 || blueprintGate < legacyDraftCall).toBe(true);
   });
 
+  it('presents review as a focused first-class workflow stage', () => {
+    const progressSource = readFileSync('src/components/SetupProgress.jsx', 'utf8');
+    const gateSource = readFileSync('src/components/InstructionalBlueprintGate.jsx', 'utf8');
+
+    expect(progressSource).toContain("{ id: 'review', label: 'Review' }");
+    expect(progressSource).toContain('grid-cols-4');
+    expect(gateSource).toContain('Review the course plan');
+    expect(gateSource).toContain('Needs your attention');
+    expect(gateSource).toContain('Approve plan and generate');
+    expect(appFlowSource).toContain(
+      "const blueprintReviewActive = instructionalBlueprintReview?.status === 'awaiting-approval'",
+    );
+    expect(appFlowSource).toContain('!blueprintReviewActive && workspaceTabs.length > 0');
+    expect(appFlowSource).toContain('!blueprintReviewActive && (');
+    expect(appFlowSource).toContain('blueprintMapEditorOpen');
+  });
+
   it('requires a receipt-bound approval before the approved build invokes deliverable generation', () => {
     const approvalHandler = workflowSource.indexOf('const approveAndBuild = useCallback');
     const approvalMatch = workflowSource.indexOf('instructionalBlueprintApprovalMatches(', approvalHandler);
