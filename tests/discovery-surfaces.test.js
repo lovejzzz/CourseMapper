@@ -19,6 +19,7 @@ describe('CourseMapper discovery surfaces', () => {
 
   it('ships canonical search and social metadata for the live offer', () => {
     const html = read('index.html');
+    const sample = read('public/pilot-sample.html');
 
     expect(html).toContain('<link rel="canonical" href="https://edutool.dev/" />');
     expect(html).toContain('name="description"');
@@ -27,6 +28,9 @@ describe('CourseMapper discovery surfaces', () => {
     expect(html).toContain('name="twitter:card" content="summary_large_image"');
     expect(html).not.toContain('xingpicture@gmail.com');
     expect(fs.statSync('public/og.png').size).toBeGreaterThan(100_000);
+    expect(sample).toContain('<link rel="canonical" href="https://edutool.dev/pilot-sample.html" />');
+    expect(sample).toContain('name="description"');
+    expect(sample).not.toContain('xingpicture@gmail.com');
   });
 
   it('allows indexing and publishes a canonical sitemap', () => {
@@ -36,6 +40,8 @@ describe('CourseMapper discovery surfaces', () => {
     expect(robots).toContain('Allow: /');
     expect(robots).toContain('Sitemap: https://edutool.dev/sitemap.xml');
     expect(sitemap).toContain('<loc>https://edutool.dev/</loc>');
+    expect(sitemap).toContain('<loc>https://edutool.dev/pilot-sample.html</loc>');
+    expect(sitemap.match(/<url>/g)).toHaveLength(2);
     expect(sitemap).toContain('<lastmod>2026-08-19</lastmod>');
   });
 });
