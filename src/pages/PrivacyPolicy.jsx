@@ -1,7 +1,7 @@
 import React from 'react';
 import Header from '../components/Header';
 
-const LAST_UPDATED = 'July 18, 2026';
+const LAST_UPDATED = 'August 19, 2026';
 
 export default function PrivacyPolicy() {
   return (
@@ -196,11 +196,16 @@ export default function PrivacyPolicy() {
 
           <Section title="Contact">
             <p>
-              Course Mapper is built by Tian Xing. For privacy questions or concerns, contact{' '}
-              <a href="mailto:xingpicture@gmail.com" className="text-indigo-500 hover:text-indigo-700 underline">
-                xingpicture@gmail.com
+              Course Mapper is built by Tian Xing. For non-confidential privacy questions, use the{' '}
+              <a
+                href="https://github.com/lovejzzz/CourseMapper/issues/new/choose"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-indigo-500 hover:text-indigo-700 underline"
+              >
+                Course Mapper support channel
               </a>
-              .
+              . Do not include personal or confidential information in a public issue.
             </p>
           </Section>
         </div>

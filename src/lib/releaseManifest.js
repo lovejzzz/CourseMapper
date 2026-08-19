@@ -3,6 +3,18 @@ import { CURRENT_RELEASE } from './currentRelease.js';
 
 export { CURRENT_RELEASE };
 
+const V0183_RELEASE = {
+  version: '0.18.3',
+  date: 'August 19, 2026',
+  title: 'Seamless Best-Available Generation',
+  highlights: [
+    'Setup is now Brief, Materials, and Generate. Scion continues directly from the configured package into generation instead of asking the teacher to approve Scion’s own course plan.',
+    'The instructional blueprint remains a required internal quality contract: Scion binds it to the exact Course Map, validates it, signs the approval receipt, and passes that authority into every selected material compiler.',
+    'A plan that cannot earn internal authorization stops as a Scion quality failure. The product no longer transfers responsibility for a weak plan to the teacher through a confirmation screen.',
+    'Projects saved at the retired v0.18.2 checkpoint resume automatically, while setup help, mobile progress, primary actions, and workspace layout all describe the same uninterrupted package workflow.',
+  ],
+};
+
 const V0182_RELEASE = {
   version: '0.18.2',
   date: 'August 17, 2026',
@@ -1391,12 +1403,51 @@ export const CURRENT_RELEASE_CHANGELOG = {
   highlights: CURRENT_RELEASE.highlights,
   sections: [
     {
+      label: 'Remove the paid product path completely',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'The paid pilot banner and both pilot actions are absent from the landing page.',
+        'The public sample, inquiry template, sitemap entry, and pilot-specific legal copy are removed.',
+        'Contact keeps one general support path without a sales or payment action.',
+      ],
+    },
+    {
+      label: 'Make the free promise discoverable',
+      icon: 'AI',
+      color: 'blue',
+      items: [
+        'The README says EDUTOOL is free and will stay free, with no paid tier, subscription, or concierge upsell.',
+        'Search and social metadata describe the free local-first product rather than a paid service.',
+        'Structured WebApplication data continues to publish an explicit zero-dollar offer.',
+      ],
+    },
+    {
+      label: 'Keep the product boundary honest',
+      icon: 'PROOF',
+      color: 'violet',
+      items: [
+        'Optional external AI providers may charge users through their own accounts; EDUTOOL itself has no paid tier.',
+        'The v0.18.3 seamless-generation flow and internal plan authorization remain unchanged.',
+        'The patch changes presentation, discovery, support, and legal copy—not model or course-output quality.',
+      ],
+    },
+  ],
+};
+
+const V0183_RELEASE_CHANGELOG = {
+  version: V0183_RELEASE.version,
+  date: V0183_RELEASE.date,
+  title: V0183_RELEASE.title,
+  highlights: V0183_RELEASE.highlights,
+  sections: [
+    {
       label: 'Give the teacher the finished workflow',
       icon: 'CHECK',
       color: 'emerald',
       items: [
         'Brief, Materials, and Generate are the complete setup journey.',
-        'The primary actions now promise a generated package instead of an intermediate plan.',
+        'The primary actions promise a generated package instead of an intermediate plan.',
         'Agent, content, progress, and export surfaces remain available while Scion continues the build.',
       ],
     },
@@ -2448,6 +2499,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V0183_RELEASE_CHANGELOG,
   V0182_RELEASE_CHANGELOG,
   V0181_RELEASE_CHANGELOG,
   V0180_RELEASE_CHANGELOG,

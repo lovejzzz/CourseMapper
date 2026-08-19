@@ -1,7 +1,7 @@
 import React from 'react';
 import Header from '../components/Header';
 
-const LAST_UPDATED = 'July 18, 2026';
+const LAST_UPDATED = 'August 19, 2026';
 
 export default function TermsOfService() {
   return (
@@ -158,9 +158,14 @@ export default function TermsOfService() {
 
           <Section title="Contact">
             <p>
-              For questions about these terms, contact Tian Xing at{' '}
-              <a href="mailto:xingpicture@gmail.com" className="text-indigo-500 hover:text-indigo-700 underline">
-                xingpicture@gmail.com
+              For non-confidential questions about these terms, use the{' '}
+              <a
+                href="https://github.com/lovejzzz/CourseMapper/issues/new/choose"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-indigo-500 hover:text-indigo-700 underline"
+              >
+                Course Mapper support channel
               </a>
               .
             </p>
