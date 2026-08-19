@@ -11,6 +11,7 @@ describe('CourseMapper discovery surfaces', () => {
     expect(readme).toContain('one course map;');
     expect(readme).toContain('one lesson plan;');
     expect(readme).toContain('one consolidated revision;');
+    expect(readme).toContain('https://edutool.dev/pilot-sample.html');
     expect(readme).toContain('issues/new?template=coursemapper-pilot.yml');
     expect(readme).toContain('never post a syllabus, student records, or confidential material');
     expect(readme).not.toContain('xingpicture@gmail.com');

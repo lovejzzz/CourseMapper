@@ -16,7 +16,7 @@ For educators who want a small, reviewable starting point instead of running the
 - one consolidated revision; and
 - delivery within 48 hours after scope, payment, and usable source material are confirmed.
 
-The work is AI-assisted, and you keep final academic judgment. [Ask about the pilot through the public GitHub inquiry form](https://github.com/lovejzzz/CourseMapper/issues/new?template=coursemapper-pilot.yml). Share only high-level course information there—never post a syllabus, student records, or confidential material in a public issue.
+The work is AI-assisted, and you keep final academic judgment. [Review a clearly labeled synthetic sample of the exact deliverable types](https://edutool.dev/pilot-sample.html), then [ask about the pilot through the public GitHub inquiry form](https://github.com/lovejzzz/CourseMapper/issues/new?template=coursemapper-pilot.yml). Share only high-level course information there—never post a syllabus, student records, or confidential material in a public issue.
 
 ---
 

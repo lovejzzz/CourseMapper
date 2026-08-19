@@ -1041,15 +1041,26 @@ export default function Landing({
                 revision within 48 hours. AI-assisted; you keep final academic judgment.
               </p>
             </div>
-            <a
-              data-testid="concierge-pilot-request"
-              href="https://github.com/lovejzzz/CourseMapper/issues/new?template=coursemapper-pilot.yml"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="tactile inline-flex min-h-11 flex-shrink-0 items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:bg-blue-500 dark:hover:bg-blue-400 dark:focus:ring-blue-500/50"
-            >
-              Ask about the pilot
-            </a>
+            <div className="flex flex-shrink-0 flex-wrap items-center gap-2">
+              <a
+                data-testid="concierge-pilot-sample"
+                href="/pilot-sample.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="tactile inline-flex min-h-11 items-center justify-center rounded-lg border border-blue-300 bg-white px-4 py-2 text-xs font-semibold text-blue-800 shadow-sm transition-all hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:border-blue-400/40 dark:bg-transparent dark:text-blue-100 dark:hover:bg-blue-400/15 dark:focus:ring-blue-500/50"
+              >
+                View sample
+              </a>
+              <a
+                data-testid="concierge-pilot-request"
+                href="https://github.com/lovejzzz/CourseMapper/issues/new?template=coursemapper-pilot.yml"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="tactile inline-flex min-h-11 items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:bg-blue-500 dark:hover:bg-blue-400 dark:focus:ring-blue-500/50"
+              >
+                Ask about the pilot
+              </a>
+            </div>
           </aside>
         </div>
       </main>
