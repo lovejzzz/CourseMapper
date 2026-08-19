@@ -1,7 +1,7 @@
 import React from 'react';
 import Header from '../components/Header';
 
-const LAST_UPDATED = 'July 18, 2026';
+const LAST_UPDATED = 'August 19, 2026';
 
 export default function PrivacyPolicy() {
   return (
@@ -57,6 +57,20 @@ export default function PrivacyPolicy() {
                 policy text are stored in your browser and may sync to Firebase if you sign in.
               </li>
             </ul>
+          </Section>
+
+          <Section title="Concierge Pilot Inquiries">
+            <p>
+              The optional $10 concierge pilot uses a public GitHub issue form for initial, non-confidential inquiries.
+              Do not post a syllabus, student information, or other private material in that form. The inquiry asks only
+              for high-level course scope, learner level, preferred output format, and timing. GitHub processes that
+              information under its own privacy terms.
+            </p>
+            <p className="mt-2">
+              If a private follow-up is needed after scope confirmation, any material you deliberately provide is used
+              only to evaluate or fulfill that request. The free browser tool remains separate from this optional
+              human-assisted service.
+            </p>
           </Section>
 
           <Section title="AI Processing and Third-Party Providers">
@@ -196,11 +210,16 @@ export default function PrivacyPolicy() {
 
           <Section title="Contact">
             <p>
-              Course Mapper is built by Tian Xing. For privacy questions or concerns, contact{' '}
-              <a href="mailto:xingpicture@gmail.com" className="text-indigo-500 hover:text-indigo-700 underline">
-                xingpicture@gmail.com
+              Course Mapper is built by Tian Xing. For non-confidential privacy questions, use the{' '}
+              <a
+                href="https://github.com/lovejzzz/CourseMapper/issues/new/choose"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-indigo-500 hover:text-indigo-700 underline"
+              >
+                Course Mapper support channel
               </a>
-              .
+              . Do not include personal or confidential information in a public issue.
             </p>
           </Section>
         </div>

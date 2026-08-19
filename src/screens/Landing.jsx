@@ -1027,6 +1027,30 @@ export default function Landing({
               )}
             </section>
           </div>
+
+          <aside
+            data-testid="concierge-pilot-offer"
+            className="mt-4 flex flex-col gap-3 rounded-2xl border border-blue-200/80 bg-blue-50/70 px-4 py-3 text-left sm:flex-row sm:items-center sm:justify-between dark:border-blue-400/25 dark:bg-blue-400/10"
+          >
+            <div>
+              <p className="text-xs font-semibold text-blue-950 dark:text-blue-100">
+                Prefer a finished draft? Try the $10 pilot.
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-blue-800 dark:text-blue-200">
+                Send one syllabus and receive one course map, one lesson plan, and one revision within 48 hours.
+                AI-assisted; you keep final academic judgment.
+              </p>
+            </div>
+            <a
+              data-testid="concierge-pilot-request"
+              href="https://github.com/lovejzzz/CourseMapper/issues/new?template=coursemapper-pilot.yml"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="tactile inline-flex min-h-11 flex-shrink-0 items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:bg-blue-500 dark:hover:bg-blue-400 dark:focus:ring-blue-500/50"
+            >
+              Ask about the pilot
+            </a>
+          </aside>
         </div>
       </main>
 

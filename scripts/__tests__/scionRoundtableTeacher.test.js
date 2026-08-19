@@ -178,7 +178,7 @@ describe('Scion Roundtable teacher protocol', () => {
   it('scans panel metadata, attestations, and claim boundaries for leakage while keeping panel identity external', () => {
     const question = buildQuestion();
     const candidate = teacherCandidate(question);
-    candidate.claimBoundary = 'Escalate BIO 101 to xingpicture@gmail.com.';
+    candidate.claimBoundary = 'Escalate BIO 101 to reviewer@example.invalid.';
     candidate.identity.sha256 = scionLessonKernelSha256(withoutIdentity(candidate));
     expect(validateScionRoundtableTeachingCandidate(candidate, question).issues).toContain(
       'leakage-value:$.claimBoundary',
@@ -189,7 +189,7 @@ describe('Scion Roundtable teacher protocol', () => {
     embedded.identity.sha256 = scionLessonKernelSha256(withoutIdentity(embedded));
     expect(validateScionRoundtableTeachingCandidate(embedded, question).issues).toContain('embedded-teacher-panel');
 
-    for (const leakedRef of ['BIO 101', 'xingpicture@gmail.com', '/Users/example/panel', 'codex-claude-panel']) {
+    for (const leakedRef of ['BIO 101', 'reviewer@example.invalid', '/Users/example/panel', 'codex-claude-panel']) {
       const invalidRef = teacherCandidate(question);
       invalidRef.teacherPanelRef = leakedRef;
       invalidRef.identity.sha256 = scionLessonKernelSha256(withoutIdentity(invalidRef));

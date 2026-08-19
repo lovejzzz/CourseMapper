@@ -1,7 +1,7 @@
 import React from 'react';
 import Header from '../components/Header';
 
-const LAST_UPDATED = 'July 18, 2026';
+const LAST_UPDATED = 'August 19, 2026';
 
 export default function TermsOfService() {
   return (
@@ -30,6 +30,24 @@ export default function TermsOfService() {
               course brief or syllabus into an aligned workspace with a course map, instructor materials, and student
               resources. The core tool is a static browser app with no Course Mapper-operated application backend.
             </p>
+          </Section>
+
+          <Section title="Optional $10 Concierge Pilot">
+            <p>
+              Course Mapper may offer a limited done-for-you pilot alongside the free browser tool. The pilot price is
+              $10 USD and includes one course map, one lesson plan, and one consolidated revision for one syllabus or
+              course brief. The 48-hour delivery window begins after the scope is confirmed, payment is received, and
+              usable source material is provided.
+            </p>
+            <ul className="list-disc list-inside space-y-1.5 ml-1 mt-2">
+              <li>Submitting an inquiry does not create a contract or payment obligation.</li>
+              <li>A payment request is sent only after both parties confirm the scope.</li>
+              <li>Do not post syllabus files, student records, or confidential material in a public GitHub issue.</li>
+              <li>
+                Pilot drafts remain subject to the AI-content limitations below and require qualified instructor review
+                before classroom use.
+              </li>
+            </ul>
           </Section>
 
           <Section title="API Keys">
@@ -158,9 +176,14 @@ export default function TermsOfService() {
 
           <Section title="Contact">
             <p>
-              For questions about these terms, contact Tian Xing at{' '}
-              <a href="mailto:xingpicture@gmail.com" className="text-indigo-500 hover:text-indigo-700 underline">
-                xingpicture@gmail.com
+              For non-confidential questions about these terms, use the{' '}
+              <a
+                href="https://github.com/lovejzzz/CourseMapper/issues/new/choose"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-indigo-500 hover:text-indigo-700 underline"
+              >
+                Course Mapper support channel
               </a>
               .
             </p>

@@ -1,0 +1,72 @@
+name: CourseMapper $10 pilot inquiry
+description: Ask about one course map, one lesson plan, and one revision for $10 USD.
+title: '[Pilot] '
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for your interest in the CourseMapper $10 pilot.
+
+        This GitHub issue will be public. Share only high-level course information. Do not attach or paste a syllabus, student records, or confidential material here. An inquiry does not create a contract or payment obligation.
+
+  - type: input
+    id: course
+    attributes:
+      label: Course title or topic
+      placeholder: Introduction to Environmental Science
+    validations:
+      required: true
+
+  - type: input
+    id: learners
+    attributes:
+      label: Learner level
+      placeholder: First-year undergraduate
+    validations:
+      required: true
+
+  - type: dropdown
+    id: format
+    attributes:
+      label: Preferred output format
+      options:
+        - DOCX
+        - PDF
+        - XLSX
+        - No preference
+    validations:
+      required: true
+
+  - type: input
+    id: timing
+    attributes:
+      label: Desired delivery date
+      description: The pilot's 48-hour window begins only after scope, payment, and source material are confirmed.
+      placeholder: YYYY-MM-DD
+    validations:
+      required: true
+
+  - type: textarea
+    id: outcome
+    attributes:
+      label: What should the course map and lesson plan help you accomplish?
+      description: Keep this high-level and non-confidential.
+      placeholder: Align weekly activities and assessments to four program outcomes.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Public-inquiry confirmation
+      options:
+        - label: I will not post syllabus files, student records, or confidential material in this public issue.
+          required: true
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Pilot scope
+      options:
+        - label: I understand the $10 pilot includes one course map, one lesson plan, and one consolidated revision.
+          required: true

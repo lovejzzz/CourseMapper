@@ -115,12 +115,13 @@ test.describe('Landing Page', () => {
     await expect(page.locator('a[href="#/contact"]')).toHaveText('Contact');
   });
 
-  test('contact route shows Tian Xing email', async ({ page }) => {
+  test('contact route shows privacy-preserving project channels', async ({ page }) => {
     await page.getByRole('link', { name: 'Contact' }).click();
 
     await expect(page.locator('h1:has-text("Contact")')).toBeVisible();
-    await expect(page.getByText('xingpicture@gmail.com')).toBeVisible();
-    await expect(page.locator('a[href="mailto:xingpicture@gmail.com"]')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Ask about the $10 pilot' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'General support' })).toBeVisible();
+    await expect(page.locator('a[href^="mailto:"]')).toHaveCount(0);
   });
 
   test('dark mode toggle exists and works', async ({ page }) => {
@@ -925,7 +926,7 @@ test.describe('Hash Routing', () => {
   test('#/contact renders the contact page', async ({ page }) => {
     await page.goto('/#/contact');
     await expect(page.locator('h1:has-text("Contact")')).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText('xingpicture@gmail.com')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Ask about the $10 pilot' })).toBeVisible();
   });
 
   test('#/faq redirects to #/', async ({ page }) => {
