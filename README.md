@@ -7,6 +7,19 @@ AI-powered instructional design platform running on **CurriculumOS** — a deter
 
 ---
 
+## Prefer a finished draft? $10 concierge pilot
+
+For educators who want a small, reviewable starting point instead of running the tool themselves, CourseMapper offers a bounded **$10 USD pilot**:
+
+- one course map;
+- one lesson plan;
+- one consolidated revision; and
+- delivery within 48 hours after scope, payment, and usable source material are confirmed.
+
+The work is AI-assisted, and you keep final academic judgment. [Ask about the pilot through the public GitHub inquiry form](https://github.com/lovejzzz/CourseMapper/issues/new?template=coursemapper-pilot.yml). Share only high-level course information there—never post a syllabus, student records, or confidential material in a public issue.
+
+---
+
 ## Why Course Mapper vs. ChatGPT / Claude / Gemini?
 
 Course Mapper is a **purpose-built instructional design tool**, not a general chatbot. The difference is like using Excel for a budget vs. asking ChatGPT to "make me a budget" — one gives you a functional, editable, exportable artifact; the other gives you text you have to manually restructure.
