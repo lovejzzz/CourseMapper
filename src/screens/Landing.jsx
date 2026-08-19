@@ -1030,15 +1030,15 @@ export default function Landing({
 
           <aside
             data-testid="concierge-pilot-offer"
-            className="mt-4 flex flex-col gap-3 rounded-2xl border border-blue-200/80 bg-blue-50/70 px-4 py-3 text-left sm:flex-row sm:items-center sm:justify-between dark:border-blue-400/25 dark:bg-blue-400/10"
+            className="mt-4 flex flex-col gap-3 rounded-xl border border-blue-200/80 bg-blue-50/70 px-4 py-3 text-left sm:flex-row sm:items-center sm:justify-between dark:border-blue-400/25 dark:bg-blue-400/10"
           >
             <div>
               <p className="text-xs font-semibold text-blue-950 dark:text-blue-100">
                 Prefer a finished draft? Try the $10 pilot.
               </p>
               <p className="mt-1 text-xs leading-relaxed text-blue-800 dark:text-blue-200">
-                Send one syllabus and receive one course map, one lesson plan, and one revision within 48 hours.
-                AI-assisted; you keep final academic judgment.
+                After scope confirmation, provide one syllabus and receive one course map, one lesson plan, and one
+                revision within 48 hours. AI-assisted; you keep final academic judgment.
               </p>
             </div>
             <a

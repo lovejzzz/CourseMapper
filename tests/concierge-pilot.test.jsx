@@ -6,10 +6,11 @@ const read = (path) => fs.readFileSync(path, 'utf8');
 describe('CourseMapper concierge pilot offer', () => {
   it('states the exact paid scope and uses a non-submitting project inquiry handoff', () => {
     const landing = read('src/screens/Landing.jsx');
+    const normalizedLanding = landing.replace(/\s+/g, ' ');
 
     expect(landing).toContain('data-testid="concierge-pilot-offer"');
     expect(landing).toContain('Prefer a finished draft? Try the $10 pilot.');
-    expect(landing).toContain('one course map, one lesson plan, and one revision within 48 hours');
+    expect(normalizedLanding).toContain('one course map, one lesson plan, and one revision within 48 hours');
     expect(landing).toContain('AI-assisted; you keep final academic judgment.');
     expect(landing).toContain('issues/new?template=coursemapper-pilot.yml');
     expect(landing).toContain('rel="noopener noreferrer"');
