@@ -597,7 +597,8 @@ export default function Landing({
               Turn a syllabus into a teachable course.
             </h1>
             <p className="mx-auto mt-3 max-w-2xl text-body-lg text-ink-muted sm:text-sm">
-              Build the course map, instructor materials, and student resources as one aligned workspace.
+              Build the course map, instructor materials, and student resources in one free, local-first browser
+              workspace.
             </p>
           </section>
 

@@ -33,6 +33,37 @@ describe('CourseMapper discovery surfaces', () => {
     expect(sample).not.toContain('xingpicture@gmail.com');
   });
 
+  it('publishes truthful site-name and free web-app structured data', () => {
+    const html = read('index.html');
+    const landing = read('src/screens/Landing.jsx');
+    const jsonLdMatch = html.match(/<script type="application\/ld\+json">\s*([\s\S]*?)\s*<\/script>/);
+
+    expect(jsonLdMatch).not.toBeNull();
+    const structuredData = JSON.parse(jsonLdMatch[1]);
+    const website = structuredData['@graph'].find((entry) => entry['@type'] === 'WebSite');
+    const application = structuredData['@graph'].find((entry) => entry['@type'] === 'WebApplication');
+
+    expect(website).toMatchObject({
+      url: 'https://edutool.dev/',
+      name: 'Course Mapper',
+      alternateName: ['CourseMapper', 'edutool.dev'],
+    });
+    expect(application).toMatchObject({
+      url: 'https://edutool.dev/',
+      name: 'Course Mapper',
+      applicationCategory: 'EducationalApplication',
+      operatingSystem: 'Any',
+      offers: {
+        '@type': 'Offer',
+        url: 'https://edutool.dev/',
+        price: 0,
+        priceCurrency: 'USD',
+      },
+    });
+    expect(landing.replace(/\s+/g, ' ')).toContain('one free, local-first browser workspace');
+    expect(JSON.stringify(structuredData)).not.toContain('xingpicture@gmail.com');
+  });
+
   it('allows indexing and publishes a canonical sitemap', () => {
     const robots = read('public/robots.txt');
     const sitemap = read('public/sitemap.xml');
