@@ -164,8 +164,8 @@ describe('F1/F2 — source wiring (the header has ONE verb; the paths exist)', (
 
   it('Landing carries the quick-start affordance, gated on prompt + stored API key', () => {
     const landing = read('src/screens/Landing.jsx');
-    expect(landing).toContain('Prepare full course plan');
-    expect(landing).toContain('Use sources & prepare plan');
+    expect(landing).toContain('Generate full course package');
+    expect(landing).toContain('Use sources & generate package');
     expect(landing).toContain('data-testid="landing-setup-button"');
     expect(landing).toContain('data-testid="landing-quick-start"');
     expect(landing).toContain(

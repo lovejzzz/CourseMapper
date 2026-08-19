@@ -3,6 +3,18 @@ import { CURRENT_RELEASE } from './currentRelease.js';
 
 export { CURRENT_RELEASE };
 
+const V0182_RELEASE = {
+  version: '0.18.2',
+  date: 'August 17, 2026',
+  title: 'Teacher-Focused Course Plan Review',
+  highlights: [
+    'Review is now an explicit third stage between Materials and Generate. The teacher reaches a dedicated course-plan checkpoint before any selected material family begins drafting.',
+    'The pending review owns the main workspace surface instead of competing with the Agent, deliverable tabs, build ribbon, mobile workspace switcher, or Export. Course structure appears before progressively disclosed lesson detail.',
+    'Needs your attention groups source decisions and repeated assumptions by lesson, while every lesson carries a text status: Confirmed, Inferred, or Needs review.',
+    'Approve plan and generate names the exact consequence. Edit Course Map opens the canonical editor and Return to review restores the checkpoint; phone actions remain bounded and reachable.',
+  ],
+};
+
 const V0181_RELEASE = {
   version: '0.18.1',
   date: 'August 17, 2026',
@@ -1379,6 +1391,45 @@ export const CURRENT_RELEASE_CHANGELOG = {
   highlights: CURRENT_RELEASE.highlights,
   sections: [
     {
+      label: 'Give the teacher the finished workflow',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'Brief, Materials, and Generate are the complete setup journey.',
+        'The primary actions now promise a generated package instead of an intermediate plan.',
+        'Agent, content, progress, and export surfaces remain available while Scion continues the build.',
+      ],
+    },
+    {
+      label: 'Keep plan-first quality inside Scion',
+      icon: 'AI',
+      color: 'blue',
+      items: [
+        'The exact Course Map still produces a hash-bound instructional blueprint before deliverable drafting.',
+        'Scion validates and signs the internal plan receipt before every selected material compiler runs.',
+        'A plan that cannot earn authorization blocks as a system quality failure rather than becoming a teacher confirmation.',
+      ],
+    },
+    {
+      label: 'Retire the checkpoint without losing work',
+      icon: 'PROOF',
+      color: 'violet',
+      items: [
+        'Projects saved on the v0.18.2 approval screen automatically continue when restored.',
+        'Course Map edits silently refresh and re-authorize the internal plan for later bounded generation.',
+        'The patch changes orchestration and presentation, not model weights, evidence admission, compiler schemas, exporters, or grading policy.',
+      ],
+    },
+  ],
+};
+
+const V0182_RELEASE_CHANGELOG = {
+  version: V0182_RELEASE.version,
+  date: V0182_RELEASE.date,
+  title: V0182_RELEASE.title,
+  highlights: V0182_RELEASE.highlights,
+  sections: [
+    {
       label: 'Make review a truthful workflow stage',
       icon: 'CHECK',
       color: 'emerald',
@@ -2397,6 +2448,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V0182_RELEASE_CHANGELOG,
   V0181_RELEASE_CHANGELOG,
   V0180_RELEASE_CHANGELOG,
   V01718_RELEASE_CHANGELOG,

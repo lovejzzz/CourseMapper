@@ -982,7 +982,9 @@ export default function Landing({
                     className="tactile btn-glow mt-5 w-full rounded-lg bg-slate-950 px-8 py-4 text-sm font-semibold tracking-wide text-white shadow-lg shadow-slate-950/15 transition-all duration-300 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-slate-950 dark:shadow-white/10"
                   >
                     <span className="flex items-center justify-center gap-2.5">
-                      {quickStartNeedsCurrentSources ? 'Use sources & prepare plan' : 'Prepare full course plan'}
+                      {quickStartNeedsCurrentSources
+                        ? 'Use sources & generate package'
+                        : 'Generate full course package'}
                       <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path
                           strokeLinecap="round"

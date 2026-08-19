@@ -4,49 +4,46 @@ import { describe, expect, it } from 'vitest';
 const appFlowSource = readFileSync('src/AppFlow.jsx', 'utf8');
 const deliverableSource = readFileSync('src/hooks/useDeliverables.js', 'utf8');
 const workflowSource = readFileSync('src/hooks/useInstructionalBlueprintWorkflow.js', 'utf8');
+const progressSource = readFileSync('src/components/SetupProgress.jsx', 'utf8');
+const helpSource = readFileSync('src/components/SetupHelpDialog.jsx', 'utf8');
 
-describe('v0.18 instructional blueprint gate architecture', () => {
-  it('pauses the primary generation path after mapping and before deliverable drafting', () => {
+describe('v0.18.3 internal instructional blueprint architecture', () => {
+  it('continues from course-map generation into the internally checked package build', () => {
     const generationStart = appFlowSource.indexOf('async function onGenerate()');
     const courseMapGeneration = appFlowSource.indexOf('await gen.handleGenerate()', generationStart);
-    const blueprintGate = appFlowSource.indexOf(
-      'await prepareInstructionalBlueprintReview(finalCourseMap)',
+    const internalBuild = appFlowSource.indexOf(
+      'await buildFromInternalInstructionalPlan(finalCourseMap, { workflowEpoch })',
       generationStart,
     );
-    const legacyDraftCall = appFlowSource.indexOf('deliv.generateAll(finalCourseMap', generationStart);
 
     expect(generationStart).toBeGreaterThan(0);
     expect(courseMapGeneration).toBeGreaterThan(generationStart);
-    expect(blueprintGate).toBeGreaterThan(courseMapGeneration);
-    expect(legacyDraftCall === -1 || blueprintGate < legacyDraftCall).toBe(true);
+    expect(internalBuild).toBeGreaterThan(courseMapGeneration);
   });
 
-  it('presents review as a focused first-class workflow stage', () => {
-    const progressSource = readFileSync('src/components/SetupProgress.jsx', 'utf8');
-    const gateSource = readFileSync('src/components/InstructionalBlueprintGate.jsx', 'utf8');
-
-    expect(progressSource).toContain("{ id: 'review', label: 'Review' }");
-    expect(progressSource).toContain('grid-cols-4');
-    expect(gateSource).toContain('Review the course plan');
-    expect(gateSource).toContain('Needs your attention');
-    expect(gateSource).toContain('Approve plan and generate');
-    expect(appFlowSource).toContain(
-      "const blueprintReviewActive = instructionalBlueprintReview?.status === 'awaiting-approval'",
-    );
-    expect(appFlowSource).toContain('!blueprintReviewActive && workspaceTabs.length > 0');
-    expect(appFlowSource).toContain('!blueprintReviewActive && (');
-    expect(appFlowSource).toContain('blueprintMapEditorOpen');
+  it('keeps setup to Brief, Materials, and Generate with no approval screen', () => {
+    expect(progressSource).toContain("{ id: 'brief', label: 'Brief' }");
+    expect(progressSource).toContain("{ id: 'materials', label: 'Materials' }");
+    expect(progressSource).toContain("{ id: 'generate', label: 'Generate' }");
+    expect(progressSource).not.toContain("{ id: 'review', label: 'Review' }");
+    expect(progressSource).toContain('grid-cols-3');
+    expect(helpSource).toContain('Generate the complete package');
+    expect(helpSource).not.toContain('Review the course plan');
+    expect(appFlowSource).not.toContain('InstructionalBlueprintGate');
+    expect(appFlowSource).not.toContain('Approve plan and generate');
   });
 
-  it('requires a receipt-bound approval before the approved build invokes deliverable generation', () => {
-    const approvalHandler = workflowSource.indexOf('const approveAndBuild = useCallback');
-    const approvalMatch = workflowSource.indexOf('instructionalBlueprintApprovalMatches(', approvalHandler);
-    const deliverableBuild = workflowSource.indexOf('await generateAll(', approvalHandler);
+  it('creates a receipt-bound internal approval before deliverable generation', () => {
+    const planPreparation = workflowSource.indexOf('const prepareInternalPlan = useCallback');
+    const approval = workflowSource.indexOf('approveInstructionalBlueprintReview(result.review)', planPreparation);
+    const approvedState = workflowSource.indexOf("status: 'approved'", approval);
+    const deliverableBuild = workflowSource.indexOf('await generateAll(', approvedState);
 
-    expect(approvalHandler).toBeGreaterThan(0);
-    expect(approvalMatch).toBeGreaterThan(approvalHandler);
-    expect(deliverableBuild).toBeGreaterThan(approvalMatch);
-    expect(workflowSource.slice(deliverableBuild, deliverableBuild + 500)).toContain(
+    expect(planPreparation).toBeGreaterThan(0);
+    expect(approval).toBeGreaterThan(planPreparation);
+    expect(approvedState).toBeGreaterThan(approval);
+    expect(deliverableBuild).toBeGreaterThan(approvedState);
+    expect(workflowSource.slice(deliverableBuild, deliverableBuild + 600)).toContain(
       'requireInstructionalBlueprintApproval: true',
     );
   });
@@ -70,22 +67,14 @@ describe('v0.18 instructional blueprint gate architecture', () => {
     expect(appFlowSource).toContain('instructionalBlueprintReview,\n    instructionalBlueprintApproval,');
   });
 
-  it('preserves setup recovery until approval and records the exact build-produced map', () => {
-    const generationStart = appFlowSource.indexOf('async function onGenerate()');
-    const blueprintGate = appFlowSource.indexOf(
-      'await prepareInstructionalBlueprintReview(finalCourseMap)',
-      generationStart,
-    );
-    const recoveryClearBeforeGate = appFlowSource.indexOf('clearSetupRecovery()', generationStart);
-
-    expect(recoveryClearBeforeGate === -1 || recoveryClearBeforeGate > blueprintGate).toBe(true);
+  it('preserves recovery through the internal plan and records the exact execution map', () => {
     expect(workflowSource).toContain('clearSetupRecovery();');
     expect(workflowSource).toContain('markInstructionalBlueprintReviewExecuted');
     expect(workflowSource).toContain('courseMapRef.current || currentCourseMap');
-    expect(workflowSource).toContain('packageGenerationInFlightRef.current');
     expect(workflowSource.indexOf('const executionReview = markInstructionalBlueprintReviewExecuted')).toBeLessThan(
       workflowSource.indexOf('await finalizeGeneratedPackage('),
     );
     expect(workflowSource).toContain('window.requestAnimationFrame');
+    expect(appFlowSource).toContain('v0.18.2 projects may have been saved while waiting on the retired plan');
   });
 });

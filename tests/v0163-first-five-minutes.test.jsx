@@ -71,7 +71,7 @@ describe('v0.16.3 first-five-minutes UX contract', () => {
     expect(landing).toContain('Connected');
     expect(landing).not.toContain('Zero-download');
     expect(landing).toContain('<details');
-    expect(landing).toContain('Prepare full course plan');
+    expect(landing).toContain('Generate full course package');
     expect(landing).toContain('Customize package');
     expect(landing).toContain('data-testid="landing-requirement"');
   });

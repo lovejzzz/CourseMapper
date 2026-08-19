@@ -1,0 +1,15 @@
+{
+  "protocol": "coursemapper-production-package-attestation-v1",
+  "version": "0.18.3",
+  "capturedAt": "2026-08-19T06:06:30.000Z",
+  "status": "bounded-pass",
+  "scope": "predeploy seamless generation boundary",
+  "observations": [
+    "A real browser-local Scion run authored and completed a two-lesson Introductory Astronomy package from a fresh brief.",
+    "The run entered generation immediately after the Generate package action and never presented the retired teacher-facing plan checkpoint.",
+    "The exact Course Map-bound instructional plan and signed approval receipt remain required internal inputs to selected material generation.",
+    "The completed browser workspace exposed the Course Map and five selected material families with no application error recorded in the tested path.",
+    "V0.18.3 changes orchestration, recovery, and presentation; it does not change model weights, evidence admission, compiler schemas, exporters, or grading policy."
+  ],
+  "boundary": "This predeploy attestation proves the changed orchestration boundary and one complete local run. It is not a production deployment attestation, package-render audit, factual certification, accessibility certification, instructor evaluation, or classroom validation."
+}

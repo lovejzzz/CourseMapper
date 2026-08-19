@@ -162,9 +162,9 @@ export default function useProjectPersistence({
       setInstructionalBlueprintApproval?.(approval && typeof approval === 'object' ? approval : null);
       if (review?.status === 'awaiting-approval') {
         setPackageQualityPass({
-          status: 'awaiting-approval',
+          status: 'running',
           phase: 'plan',
-          message: 'Review the restored instructional blueprint before package drafting.',
+          message: 'Continuing the restored package from its checked instructional plan...',
           repairsApplied: 0,
           warnings: 0,
           blockers: 0,

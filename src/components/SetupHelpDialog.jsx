@@ -13,13 +13,8 @@ const STEPS = [
   },
   {
     number: '3',
-    title: 'Review the course plan',
-    detail: 'Check learner actions, evidence, assumptions, and any decisions that need your judgment.',
-  },
-  {
-    number: '4',
-    title: 'Approve and generate',
-    detail: 'Keep this tab open while Scion creates and verifies the selected course materials from the approved plan.',
+    title: 'Generate the complete package',
+    detail: 'Keep this tab open while Scion plans, creates, checks, and refines the selected course materials.',
   },
 ];
 

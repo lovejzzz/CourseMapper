@@ -196,7 +196,7 @@ describe('minimal workspace status contract', () => {
     expect(appSource).toContain('workflowEpoch: syncRegradeEpoch');
     expect(appSource).toContain('if (!syncRegradeEpoch) return');
     expect(appSource).not.toContain('syncRegradeEpoch === null');
-    expect(packageWorkflowSource.match(/const workflowEpoch = beginPackageWorkflow\(\);/g)).toHaveLength(3);
+    expect(packageWorkflowSource.match(/const workflowEpoch = beginPackageWorkflow\(\);/g)).toHaveLength(4);
     expect(appSource).toContain('deliv.stopGenerating();');
     expect(appSource).toContain('onBeforeNewProject: onStop');
     expect(read('src/hooks/useProjectPersistence.js')).toContain('onBeforeNewProject?.();');

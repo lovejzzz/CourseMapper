@@ -2,6 +2,14 @@ import { useCallback, useEffect } from 'react';
 import { analyzeSourceBriefConstraints } from '../lib/sourceBriefConstraints.js';
 import { clearSetupRecovery } from '../lib/setupRecovery.js';
 
+/**
+ * Keep the instructional blueprint as an internal quality contract.
+ *
+ * Scion still binds the plan to the exact Course Map, validates that the plan
+ * is eligible to run, and passes a signed approval receipt into downstream
+ * compilation. Teachers should not have to approve Scion's own work before
+ * Scion can finish the package.
+ */
 export default function useInstructionalBlueprintWorkflow({
   courseMap,
   courseMapRef,
@@ -9,24 +17,19 @@ export default function useInstructionalBlueprintWorkflow({
   lessonScope,
   expectedSessionMinutes,
   review,
-  approvalBusy,
   setReview,
   setApproval,
-  setBusy,
-  setError,
   setPackageQualityPass,
   onCourseMapRepair,
-  beginPackageWorkflow,
   packageWorkflowEpochRef,
-  packageGenerationInFlightRef,
-  setPackageGenerationBusy,
   getOrderedSelectedDeliverables,
   generateAll,
   finalizeGeneratedPackage,
 }) {
-  const prepareReview = useCallback(
-    async (sourceCourseMap, { message = 'Review the course plan before Scion generates the package.' } = {}) => {
-      const { createInstructionalBlueprintReview } = await import('../lib/instructionalBlueprintApproval.js');
+  const prepareInternalPlan = useCallback(
+    async (sourceCourseMap, { updatePackageStatus = true } = {}) => {
+      const { approveInstructionalBlueprintReview, createInstructionalBlueprintReview } =
+        await import('../lib/instructionalBlueprintApproval.js');
       const sourceConstraints = analyzeSourceBriefConstraints(sourceBrief);
       const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
       const result = createInstructionalBlueprintReview({
@@ -36,23 +39,31 @@ export default function useInstructionalBlueprintWorkflow({
         sessionMinutes: expectedSessionMinutes,
         instructorProvidedFacts: sourceConstraints.instructorProvidedFacts,
       });
+      if (!result.review?.canApprove) {
+        throw new Error('Scion could not validate a strong instructional plan for this course.');
+      }
+
       if (JSON.stringify(result.courseMap) !== JSON.stringify(sourceCourseMap)) {
         onCourseMapRepair(result.courseMap, { source: 'instructionalBlueprint' });
       } else {
         courseMapRef.current = result.courseMap;
       }
-      setReview(result.review);
-      setApproval(null);
-      setError('');
-      setPackageQualityPass({
-        status: 'awaiting-approval',
-        phase: 'plan',
-        message,
-        repairsApplied: 0,
-        warnings: 0,
-        blockers: 0,
-      });
-      return result;
+
+      const approval = approveInstructionalBlueprintReview(result.review);
+      const approvedReview = { ...result.review, status: 'approved' };
+      setReview(approvedReview);
+      setApproval(approval);
+      if (updatePackageStatus) {
+        setPackageQualityPass({
+          status: 'running',
+          phase: 'plan',
+          message: 'Instructional plan checked. Building the best available package...',
+          repairsApplied: 0,
+          warnings: 0,
+          blockers: 0,
+        });
+      }
+      return { ...result, review: approvedReview, approval };
     },
     [
       courseMapRef,
@@ -61,17 +72,17 @@ export default function useInstructionalBlueprintWorkflow({
       lessonScope.type,
       onCourseMapRepair,
       setApproval,
-      setError,
       setPackageQualityPass,
       setReview,
       sourceBrief,
     ],
   );
 
+  // Meaningful Course Map edits invalidate the exact-input receipt. Refresh
+  // and re-authorize the internal plan silently so later agent generation can
+  // continue without resurrecting a user-facing approval checkpoint.
   useEffect(() => {
-    if (!courseMap || !review?.courseMapSha256 || approvalBusy || packageGenerationInFlightRef.current) {
-      return undefined;
-    }
+    if (!courseMap || !review?.courseMapSha256) return undefined;
     let cancelled = false;
     let refreshTimer = null;
     void import('../lib/sha256Sync.js').then(({ sha256HexSync }) => {
@@ -81,23 +92,17 @@ export default function useInstructionalBlueprintWorkflow({
           ? review.executionCourseMapSha256
           : review.courseMapSha256;
       if (cancelled || currentCourseMapSha256 === expectedCourseMapSha256) return;
-      setApproval(null);
-      setReview((current) =>
-        current?.canApprove === false ? current : { ...current, status: 'awaiting-approval', canApprove: false },
-      );
-      setPackageQualityPass({
-        status: 'awaiting-approval',
-        phase: 'plan',
-        message: 'Refreshing the instructional blueprint after your Course Map edit...',
-        repairsApplied: 0,
-        warnings: 0,
-        blockers: 0,
-      });
       refreshTimer = window.setTimeout(() => {
-        prepareReview(courseMap, {
-          message: 'The Course Map changed. Review the refreshed course plan before generation.',
-        }).catch((error) => {
-          if (!cancelled) setError(error?.message || 'The instructional blueprint could not be refreshed.');
+        prepareInternalPlan(courseMap, { updatePackageStatus: false }).catch((error) => {
+          if (cancelled) return;
+          setPackageQualityPass({
+            status: 'blocked',
+            phase: 'plan',
+            message: error?.message || 'Scion could not refresh the instructional plan.',
+            repairsApplied: 0,
+            warnings: 0,
+            blockers: 1,
+          });
         });
       }, 180);
     });
@@ -105,71 +110,30 @@ export default function useInstructionalBlueprintWorkflow({
       cancelled = true;
       if (refreshTimer !== null) window.clearTimeout(refreshTimer);
     };
-  }, [
-    approvalBusy,
-    courseMap,
-    packageGenerationInFlightRef,
-    prepareReview,
-    review?.courseMapSha256,
-    review?.executionCourseMapSha256,
-    review?.status,
-    setApproval,
-    setError,
-    setPackageQualityPass,
-    setReview,
-  ]);
+  }, [courseMap, prepareInternalPlan, review?.courseMapSha256, review?.status, setPackageQualityPass]);
 
-  const approveAndBuild = useCallback(async () => {
-    if (approvalBusy || packageGenerationInFlightRef.current || review?.status !== 'awaiting-approval') return;
-    setBusy(true);
-    setError('');
-    let workflowEpoch = null;
-    try {
-      const {
-        approveInstructionalBlueprintReview,
-        instructionalBlueprintApprovalMatches,
-        markInstructionalBlueprintReviewExecuted,
-      } = await import('../lib/instructionalBlueprintApproval.js');
-      const currentCourseMap = courseMapRef.current;
-      const approval = approveInstructionalBlueprintReview(review);
-      if (!instructionalBlueprintApprovalMatches(review, approval, currentCourseMap)) {
-        await prepareReview(currentCourseMap, {
-          message: 'The Course Map changed. Review the refreshed course plan before generation.',
-        });
-        setError('The Course Map changed after this review. Scion refreshed the blueprint; approve it when ready.');
-        return;
-      }
-      clearSetupRecovery();
-      setApproval(approval);
-      setReview((current) => (current ? { ...current, status: 'approved' } : current));
-      workflowEpoch = beginPackageWorkflow();
-      const stopped = () => packageWorkflowEpochRef.current !== workflowEpoch;
-      packageGenerationInFlightRef.current = workflowEpoch;
-      setPackageGenerationBusy(true);
-      setPackageQualityPass({
-        status: 'running',
-        phase: 'generation',
-        message: 'Building the approved instructional blueprint...',
-        repairsApplied: 0,
-        warnings: 0,
-        blockers: 0,
-      });
+  const prepareAndBuild = useCallback(
+    async (sourceCourseMap, { workflowEpoch } = {}) => {
+      const { markInstructionalBlueprintReviewExecuted } = await import('../lib/instructionalBlueprintApproval.js');
+      const prepared = await prepareInternalPlan(sourceCourseMap);
+      const stopped = () => workflowEpoch !== undefined && packageWorkflowEpochRef.current !== workflowEpoch;
+      if (stopped()) return { status: 'aborted' };
+
       const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
       const orderedFeatures = getOrderedSelectedDeliverables();
+      const currentCourseMap = courseMapRef.current || prepared.courseMap || sourceCourseMap;
       const result = await generateAll(currentCourseMap, orderedFeatures, scopeIndices, {
         requireInstructionalBlueprintApproval: true,
-        instructionalBlueprintReview: review,
-        instructionalBlueprintApproval: approval,
+        instructionalBlueprintReview: prepared.review,
+        instructionalBlueprintApproval: prepared.approval,
       });
-      if (stopped() || result?.status === 'aborted') return;
+      if (stopped() || result?.status === 'aborted') return { status: 'aborted' };
+
       // CourseGraph assembly may enrich the map before deterministic
-      // finalization asks generation to repair an individual artifact. Commit
-      // that exact execution map first so those bounded retries inherit the
-      // approved authority instead of misclassifying build-owned enrichment as
-      // a teacher edit. Yield one frame so useDeliverables receives the new
-      // review through its always-fresh prop ref before finalization begins.
+      // finalization. Commit the exact execution map so bounded repair passes
+      // inherit the same internally approved authority.
       const executionReview = markInstructionalBlueprintReviewExecuted(
-        review,
+        prepared.review,
         courseMapRef.current || currentCourseMap,
       );
       setReview(executionReview);
@@ -180,8 +144,9 @@ export default function useInstructionalBlueprintWorkflow({
           window.setTimeout(resolve, 0);
         }
       });
-      if (stopped()) return;
-      await finalizeGeneratedPackage(
+      if (stopped()) return { status: 'aborted' };
+
+      const finalResult = await finalizeGeneratedPackage(
         currentCourseMap,
         result?.deliverables || {},
         orderedFeatures,
@@ -189,46 +154,23 @@ export default function useInstructionalBlueprintWorkflow({
         workflowEpoch,
       );
       setReview((current) =>
-        markInstructionalBlueprintReviewExecuted(current || review, courseMapRef.current || currentCourseMap),
+        markInstructionalBlueprintReviewExecuted(current || executionReview, courseMapRef.current || currentCourseMap),
       );
-    } catch (error) {
-      if (error?.name !== 'AbortError') {
-        setError(error?.message || 'The approved package build could not start.');
-        setPackageQualityPass({
-          status: 'blocked',
-          message: error?.message || 'Approved package build failed.',
-          repairsApplied: 0,
-          warnings: 0,
-          blockers: 1,
-        });
-      }
-    } finally {
-      if (workflowEpoch !== null && packageGenerationInFlightRef.current === workflowEpoch) {
-        packageGenerationInFlightRef.current = false;
-        setPackageGenerationBusy(false);
-      }
-      setBusy(false);
-    }
-  }, [
-    approvalBusy,
-    beginPackageWorkflow,
-    courseMapRef,
-    finalizeGeneratedPackage,
-    generateAll,
-    getOrderedSelectedDeliverables,
-    lessonScope.indices,
-    lessonScope.type,
-    packageGenerationInFlightRef,
-    packageWorkflowEpochRef,
-    prepareReview,
-    review,
-    setApproval,
-    setBusy,
-    setError,
-    setPackageGenerationBusy,
-    setPackageQualityPass,
-    setReview,
-  ]);
+      clearSetupRecovery();
+      return finalResult;
+    },
+    [
+      courseMapRef,
+      finalizeGeneratedPackage,
+      generateAll,
+      getOrderedSelectedDeliverables,
+      lessonScope.indices,
+      lessonScope.type,
+      packageWorkflowEpochRef,
+      prepareInternalPlan,
+      setReview,
+    ],
+  );
 
-  return { prepareReview, approveAndBuild };
+  return { prepareAndBuild };
 }

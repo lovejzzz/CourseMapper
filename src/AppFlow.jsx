@@ -22,7 +22,6 @@ const Config = lazy(() => import('./screens/Config'));
 const FeatureSelect = lazy(() => import('./screens/FeatureSelect'));
 const CourseMapPreview = lazy(() => import('./components/CourseMapPreview'));
 const CourseMapGenerationStatus = lazy(() => import('./components/CourseMapGenerationStatus'));
-const InstructionalBlueprintGate = lazy(() => import('./components/InstructionalBlueprintGate'));
 const ChatPanel = lazy(() => import('./components/chat/ChatPanel'));
 const AgentQualityControl = lazy(() => import('./components/chat/AgentQualityControl'));
 const ResizeHandle = lazy(() => import('./components/chat/ResizeHandle'));
@@ -494,15 +493,7 @@ export default function AppFlow({
   }, [courseGraph]);
   const [instructionalBlueprintReview, setInstructionalBlueprintReview] = useState(null);
   const [instructionalBlueprintApproval, setInstructionalBlueprintApproval] = useState(null);
-  const [instructionalBlueprintBusy, setInstructionalBlueprintBusy] = useState(false);
-  const [instructionalBlueprintError, setInstructionalBlueprintError] = useState('');
-  const [blueprintMapEditorOpen, setBlueprintMapEditorOpen] = useState(false);
-  const instructionalBlueprintGateRef = useRef(null);
   const courseMapPreviewRef = useRef(null);
-
-  useEffect(() => {
-    setBlueprintMapEditorOpen(false);
-  }, [instructionalBlueprintReview?.planReceiptSha256]);
 
   // ── Model & File Config (from AIConfigContext) ──
   const {
@@ -2739,29 +2730,63 @@ export default function AppFlow({
     ],
   );
 
-  const { prepareReview: prepareInstructionalBlueprintReview, approveAndBuild: handleApproveInstructionalBlueprint } =
-    useInstructionalBlueprintWorkflow({
-      courseMap,
-      courseMapRef,
-      sourceBrief: promptText,
-      lessonScope,
-      expectedSessionMinutes,
-      review: instructionalBlueprintReview,
-      approvalBusy: instructionalBlueprintBusy,
-      setReview: setInstructionalBlueprintReview,
-      setApproval: setInstructionalBlueprintApproval,
-      setBusy: setInstructionalBlueprintBusy,
-      setError: setInstructionalBlueprintError,
-      setPackageQualityPass,
-      onCourseMapRepair: handleGeneratedCourseMapRepair,
-      beginPackageWorkflow,
-      packageWorkflowEpochRef,
-      packageGenerationInFlightRef,
-      setPackageGenerationBusy,
-      getOrderedSelectedDeliverables,
-      generateAll: deliv.generateAll,
-      finalizeGeneratedPackage,
-    });
+  const { prepareAndBuild: buildFromInternalInstructionalPlan } = useInstructionalBlueprintWorkflow({
+    courseMap,
+    courseMapRef,
+    sourceBrief: promptText,
+    lessonScope,
+    expectedSessionMinutes,
+    review: instructionalBlueprintReview,
+    setReview: setInstructionalBlueprintReview,
+    setApproval: setInstructionalBlueprintApproval,
+    setPackageQualityPass,
+    onCourseMapRepair: handleGeneratedCourseMapRepair,
+    packageWorkflowEpochRef,
+    getOrderedSelectedDeliverables,
+    generateAll: deliv.generateAll,
+    finalizeGeneratedPackage,
+  });
+
+  // v0.18.2 projects may have been saved while waiting on the retired plan
+  // approval screen. Resume those projects automatically instead of reviving
+  // the checkpoint in v0.18.3.
+  useEffect(() => {
+    if (
+      instructionalBlueprintReview?.status !== 'awaiting-approval' ||
+      !courseMapRef.current?.lessons?.length ||
+      packageGenerationInFlightRef.current
+    ) {
+      return undefined;
+    }
+    const workflowEpoch = beginPackageWorkflow();
+    packageGenerationInFlightRef.current = workflowEpoch;
+    setPackageGenerationBusy(true);
+    void buildFromInternalInstructionalPlan(courseMapRef.current, { workflowEpoch })
+      .catch((error) => {
+        setPackageQualityPass({
+          status: 'blocked',
+          phase: 'plan',
+          message: error?.message || 'Scion could not continue the restored package.',
+          repairsApplied: 0,
+          warnings: 0,
+          blockers: 1,
+        });
+      })
+      .finally(() => {
+        if (packageGenerationInFlightRef.current === workflowEpoch) {
+          packageGenerationInFlightRef.current = false;
+          setPackageGenerationBusy(false);
+        }
+      });
+    return undefined;
+  }, [
+    beginPackageWorkflow,
+    buildFromInternalInstructionalPlan,
+    instructionalBlueprintReview?.planReceiptSha256,
+    instructionalBlueprintReview?.status,
+    setPackageGenerationBusy,
+    setPackageQualityPass,
+  ]);
 
   async function onGenerate() {
     if (packageGenerationInFlightRef.current) return;
@@ -2772,7 +2797,6 @@ export default function AppFlow({
     try {
       setInstructionalBlueprintReview(null);
       setInstructionalBlueprintApproval(null);
-      setInstructionalBlueprintError('');
       setHasGenerated(true);
       setPackageQualityPass({
         status: 'running',
@@ -2804,7 +2828,7 @@ export default function AppFlow({
       const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
       const orderedFeatures = getOrderedSelectedDeliverables();
       if (orderedFeatures.length > 0) {
-        await prepareInstructionalBlueprintReview(finalCourseMap);
+        await buildFromInternalInstructionalPlan(finalCourseMap, { workflowEpoch });
         return;
       }
       const generatedDeliverables = {};
@@ -2872,7 +2896,6 @@ export default function AppFlow({
     try {
       setInstructionalBlueprintReview(null);
       setInstructionalBlueprintApproval(null);
-      setInstructionalBlueprintError('');
       setPackageQualityPass({
         status: 'running',
         phase: 'generation',
@@ -2896,9 +2919,7 @@ export default function AppFlow({
       const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
       const orderedFeatures = getOrderedSelectedDeliverables();
       if (orderedFeatures.length > 0) {
-        await prepareInstructionalBlueprintReview(finalCourseMap, {
-          message: 'Review the resumed course plan before Scion generates the package.',
-        });
+        await buildFromInternalInstructionalPlan(finalCourseMap, { workflowEpoch });
         return;
       }
       const generatedDeliverables = {};
@@ -3164,11 +3185,8 @@ export default function AppFlow({
     // ALSO labeled "Course Map" stacked two identical labels on screen.
     { id: 'content', label: 'Content' },
     { id: 'agent', label: 'Agent' },
-    ...(courseMap && gen.progressStep === 'done' && instructionalBlueprintReview?.status !== 'awaiting-approval'
-      ? [{ id: 'export', label: 'Export' }]
-      : []),
+    ...(courseMap && gen.progressStep === 'done' ? [{ id: 'export', label: 'Export' }] : []),
   ];
-  const blueprintReviewActive = instructionalBlueprintReview?.status === 'awaiting-approval';
 
   // Pointer-based tab drag: smoother than native HTML5 DnD and avoids clipped overlays.
   const draggedTab = tabDrag ? workspaceTabs.find((f) => f.id === tabDrag.id) : null;
@@ -3429,12 +3447,10 @@ export default function AppFlow({
 
           {/* v0.14.4 WS-B1: the build ribbon — the single status spine.
               Hidden entirely on a fresh/empty workspace (model is null). */}
-          {!blueprintReviewActive && (
-            <BuildRibbon
-              model={buildRibbonModel}
-              onStop={isPackageGenerationRunning || isFinishPassRunning(packageQualityPass) ? onStop : null}
-            />
-          )}
+          <BuildRibbon
+            model={buildRibbonModel}
+            onStop={isPackageGenerationRunning || isFinishPassRunning(packageQualityPass) ? onStop : null}
+          />
 
           {/* ── Deliverable tabs ──
               v0.14.9 B3: the old standalone utility row (dependency-map button
@@ -3442,7 +3458,7 @@ export default function AppFlow({
               dependency-map control folds into the bar's right edge and the
               drag-trash zone floats as a fixed pill during a drag, returning
               a full row of vertical rhythm. */}
-          {!blueprintReviewActive && workspaceTabs.length > 0 && (
+          {workspaceTabs.length > 0 && (
             <div className="relative min-w-0">
               <div
                 ref={workspaceTabsContainerRef}
@@ -3909,7 +3925,7 @@ export default function AppFlow({
           )}
 
           {/* ── Custom Deliverable Builder (from workspace + Add) ── */}
-          {!blueprintReviewActive && showCustomBuilder && (
+          {showCustomBuilder && (
             <Suspense fallback={null}>
               <CustomDeliverableBuilder
                 isOpen={showCustomBuilder}
@@ -3928,143 +3944,133 @@ export default function AppFlow({
           )}
 
           {/* Mobile workspace mode switcher */}
-          {!blueprintReviewActive && (
-            <div
-              data-testid="mobile-workspace-switcher"
-              className="xl:hidden sticky top-3 z-20 flex gap-1 rounded-2xl border border-slate-200/60 bg-white/85 p-1 shadow-glass backdrop-blur-xl"
-            >
-              {mobileWorkspaceViews.map((view) => (
-                <button
-                  key={view.id}
-                  type="button"
-                  onClick={() => setMobileWorkspaceView(view.id)}
-                  aria-pressed={mobileWorkspaceView === view.id}
-                  className={`min-h-11 flex-1 rounded-xl px-3 text-label font-bold transition-[transform,box-shadow] duration-150 active:scale-[0.98] ${
-                    mobileWorkspaceView === view.id
-                      ? 'bg-slate-900 text-white shadow-sm'
-                      : 'text-slate-500 hover:bg-slate-100/80 hover:text-slate-700'
-                  }`}
-                >
-                  {view.label}
-                </button>
-              ))}
-            </div>
-          )}
+          <div
+            data-testid="mobile-workspace-switcher"
+            className="xl:hidden sticky top-3 z-20 flex gap-1 rounded-2xl border border-slate-200/60 bg-white/85 p-1 shadow-glass backdrop-blur-xl"
+          >
+            {mobileWorkspaceViews.map((view) => (
+              <button
+                key={view.id}
+                type="button"
+                onClick={() => setMobileWorkspaceView(view.id)}
+                aria-pressed={mobileWorkspaceView === view.id}
+                className={`min-h-11 flex-1 rounded-xl px-3 text-label font-bold transition-[transform,box-shadow] duration-150 active:scale-[0.98] ${
+                  mobileWorkspaceView === view.id
+                    ? 'bg-slate-900 text-white shadow-sm'
+                    : 'text-slate-500 hover:bg-slate-100/80 hover:text-slate-700'
+                }`}
+              >
+                {view.label}
+              </button>
+            ))}
+          </div>
 
           {/* ── Tab content + Chat panel + Export panel ── */}
           <div
             data-testid="workspace-shell"
-            className={`workspace-shell flex flex-col items-stretch ${
-              blueprintReviewActive ? 'mx-auto w-full max-w-5xl gap-0' : 'gap-3 xl:flex-row xl:gap-0'
-            }`}
+            className="workspace-shell flex flex-col items-stretch gap-3 xl:flex-row xl:gap-0"
             style={{ minHeight: 'calc(100vh - 220px)' }}
           >
             {/* ── Left: Resizable Chat Panel ── */}
-            {!blueprintReviewActive && (
-              <div
-                data-testid="workspace-agent-panel"
-                className={`workspace-chat-panel min-w-0 ${mobileWorkspaceView === 'agent' ? 'block' : 'hidden'} xl:block xl:flex-shrink-0 xl:sticky xl:top-4`}
-                style={{ '--workspace-chat-width': `${chatWidth}px` }}
-              >
-                <AgentQualityControl
-                  quality={packageQualityPass?.quality}
-                  trustStatus={packageTrustStatus}
-                  onOpen={setQualityReportOpen}
+            <div
+              data-testid="workspace-agent-panel"
+              className={`workspace-chat-panel min-w-0 ${mobileWorkspaceView === 'agent' ? 'block' : 'hidden'} xl:block xl:flex-shrink-0 xl:sticky xl:top-4`}
+              style={{ '--workspace-chat-width': `${chatWidth}px` }}
+            >
+              <AgentQualityControl
+                quality={packageQualityPass?.quality}
+                trustStatus={packageTrustStatus}
+                onOpen={setQualityReportOpen}
+              />
+              <ErrorBoundary>
+                <ChatPanel
+                  viewportRef={viewportRef}
+                  currentStep={gen.progressStep}
+                  modelName={workspaceModelName}
+                  error={gen.error || null}
+                  streamDetail={gen.streamDetail}
+                  streamProgress={gen.streamProgress}
+                  completenessInfo={gen.completenessInfo}
+                  isStopped={gen.isStopped}
+                  retryInfo={gen.retryInfo}
+                  generationLog={gen.generationLog}
+                  onStop={gen.isStreaming ? onStop : null}
+                  onResume={onResume}
+                  onClearAll={gen.handleClearAll}
+                  onRetryExamine={gen.handleRetryExamine}
+                  deliverables={deliv.deliverables}
+                  selectedFeatures={selectedFeatures}
+                  columns={columns}
+                  deliverableConfig={effectiveDeliverableConfig}
+                  lessonScope={lessonScope}
+                  onLessonScopeChange={setLessonScope}
+                  delivProgress={deliv.progress}
+                  currentDelivFeatures={deliv.currentFeatures}
+                  isDelivGenerating={deliv.isGenerating}
+                  delivTimings={deliv.delivTimings}
+                  packageQualityPass={packageQualityPass}
+                  onStopDeliverables={deliv.isGenerating ? onStop : null}
+                  onPackageQualityPassUpdate={setPackageQualityPass}
+                  onAutoRepairReadiness={applyPackageReadinessRepairs}
+                  onFinalizePackage={handleDeterministicPackageFinalization}
+                  onGenerateFeatures={handleAgentGenerateFeatures}
+                  onAuditPackage={handleAgentAuditPackage}
+                  isSyncing={smartSync.isSyncing}
+                  pendingSyncCount={smartSync.pendingSyncCount}
+                  syncingFeatures={smartSync.syncingFeatures}
+                  pendingSyncSuggestion={smartSync.pendingSyncSuggestion}
+                  clearPendingSyncSuggestion={smartSync.clearPendingSyncSuggestion}
+                  executeSyncPlan={smartSync.executeSyncPlan}
+                  clearSyncStalePlan={deliv.clearSyncStalePlan}
+                  onRevision={rev.handleRevision}
+                  onDeliverableRevision={(msg, history) => {
+                    // For deliverable revisions, regenerate the active deliverable
+                    if (activeTab && activeTab !== 'courseMap') {
+                      const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
+                      deliv.generateAll(courseMap, [activeTab], scopeIndices);
+                    }
+                  }}
+                  isRevising={rev.isRevising}
+                  activeTab={activeTab}
+                  courseMap={courseMap}
+                  courseGraph={courseGraph}
+                  slideTheme={slideTheme}
+                  chatHistory={chatHistory}
+                  onChatHistoryChange={setChatHistory}
+                  pendingExamPatches={gen.pendingExamPatches}
+                  examChanges={gen.examChanges}
+                  onAcceptPatches={gen.onAcceptPatches}
+                  onRejectPatch={gen.onRejectPatch}
+                  onFocusExamPatch={focusExamPatch}
+                  editor={editor}
+                  optimisticUpdate={deliv.optimisticUpdate}
+                  regenerateLesson={deliv.regenerateLesson}
+                  delivUndoSnapshot={delivUndo.snapshot}
+                  delivUndoFn={() => delivUndo.undo(deliv.setDeliverables)}
+                  delivCanUndo={delivUndo.canUndo}
+                  onAgentHighlight={triggerAgentHighlight}
+                  notifyEdit={smartSync.notifyEdit}
+                  chatSendRef={chatSendRef}
+                  uid={user?.uid || null}
+                  onApiCallEvent={recordApiCallEvent}
+                  onOpenReviewQueue={handleOpenReviewQueueFromObservation}
+                  compactReadyMode={packageReady}
+                  ribbonModel={buildRibbonModel}
                 />
-                <ErrorBoundary>
-                  <ChatPanel
-                    viewportRef={viewportRef}
-                    currentStep={gen.progressStep}
-                    modelName={workspaceModelName}
-                    error={gen.error || null}
-                    streamDetail={gen.streamDetail}
-                    streamProgress={gen.streamProgress}
-                    completenessInfo={gen.completenessInfo}
-                    isStopped={gen.isStopped}
-                    retryInfo={gen.retryInfo}
-                    generationLog={gen.generationLog}
-                    onStop={gen.isStreaming ? onStop : null}
-                    onResume={onResume}
-                    onClearAll={gen.handleClearAll}
-                    onRetryExamine={gen.handleRetryExamine}
-                    deliverables={deliv.deliverables}
-                    selectedFeatures={selectedFeatures}
-                    columns={columns}
-                    deliverableConfig={effectiveDeliverableConfig}
-                    lessonScope={lessonScope}
-                    onLessonScopeChange={setLessonScope}
-                    delivProgress={deliv.progress}
-                    currentDelivFeatures={deliv.currentFeatures}
-                    isDelivGenerating={deliv.isGenerating}
-                    delivTimings={deliv.delivTimings}
-                    packageQualityPass={packageQualityPass}
-                    onStopDeliverables={deliv.isGenerating ? onStop : null}
-                    onPackageQualityPassUpdate={setPackageQualityPass}
-                    onAutoRepairReadiness={applyPackageReadinessRepairs}
-                    onFinalizePackage={handleDeterministicPackageFinalization}
-                    onGenerateFeatures={handleAgentGenerateFeatures}
-                    onAuditPackage={handleAgentAuditPackage}
-                    isSyncing={smartSync.isSyncing}
-                    pendingSyncCount={smartSync.pendingSyncCount}
-                    syncingFeatures={smartSync.syncingFeatures}
-                    pendingSyncSuggestion={smartSync.pendingSyncSuggestion}
-                    clearPendingSyncSuggestion={smartSync.clearPendingSyncSuggestion}
-                    executeSyncPlan={smartSync.executeSyncPlan}
-                    clearSyncStalePlan={deliv.clearSyncStalePlan}
-                    onRevision={rev.handleRevision}
-                    onDeliverableRevision={(msg, history) => {
-                      // For deliverable revisions, regenerate the active deliverable
-                      if (activeTab && activeTab !== 'courseMap') {
-                        const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
-                        deliv.generateAll(courseMap, [activeTab], scopeIndices);
-                      }
-                    }}
-                    isRevising={rev.isRevising}
-                    activeTab={activeTab}
-                    courseMap={courseMap}
-                    courseGraph={courseGraph}
-                    slideTheme={slideTheme}
-                    chatHistory={chatHistory}
-                    onChatHistoryChange={setChatHistory}
-                    pendingExamPatches={gen.pendingExamPatches}
-                    examChanges={gen.examChanges}
-                    onAcceptPatches={gen.onAcceptPatches}
-                    onRejectPatch={gen.onRejectPatch}
-                    onFocusExamPatch={focusExamPatch}
-                    editor={editor}
-                    optimisticUpdate={deliv.optimisticUpdate}
-                    regenerateLesson={deliv.regenerateLesson}
-                    delivUndoSnapshot={delivUndo.snapshot}
-                    delivUndoFn={() => delivUndo.undo(deliv.setDeliverables)}
-                    delivCanUndo={delivUndo.canUndo}
-                    onAgentHighlight={triggerAgentHighlight}
-                    notifyEdit={smartSync.notifyEdit}
-                    chatSendRef={chatSendRef}
-                    uid={user?.uid || null}
-                    onApiCallEvent={recordApiCallEvent}
-                    onOpenReviewQueue={handleOpenReviewQueueFromObservation}
-                    compactReadyMode={packageReady}
-                    ribbonModel={buildRibbonModel}
-                  />
-                </ErrorBoundary>
-              </div>
-            )}
+              </ErrorBoundary>
+            </div>
 
             {/* ── Resize Handle ── */}
-            {!blueprintReviewActive && (
-              <div className="hidden self-stretch xl:block">
-                <ResizeHandle width={chatWidth} onWidthChange={setChatWidth} />
-              </div>
-            )}
+            <div className="hidden self-stretch xl:block">
+              <ResizeHandle width={chatWidth} onWidthChange={setChatWidth} />
+            </div>
 
             {/* ── Main content area ── */}
             <div
               data-testid="workspace-content-panel"
               className={`min-w-0 flex-1 space-y-4 px-0 ${
-                blueprintReviewActive
-                  ? 'block w-full'
-                  : `${mobileWorkspaceView === 'content' ? 'block' : 'hidden'} xl:block xl:px-4`
-              }`}
+                mobileWorkspaceView === 'content' ? 'block' : 'hidden'
+              } xl:block xl:px-4`}
             >
               {/* Course Map tab */}
               {activeTab === 'courseMap' && (
@@ -4078,57 +4084,8 @@ export default function AppFlow({
                       />
                     </Suspense>
                   )}
-                  {instructionalBlueprintReview?.status === 'awaiting-approval' && (
-                    <div ref={instructionalBlueprintGateRef} className="scroll-mt-4">
-                      <InstructionalBlueprintGate
-                        review={instructionalBlueprintReview}
-                        busy={instructionalBlueprintBusy}
-                        error={instructionalBlueprintError}
-                        onApprove={handleApproveInstructionalBlueprint}
-                        onEditMap={() => {
-                          setBlueprintMapEditorOpen(true);
-                          window.requestAnimationFrame(() =>
-                            courseMapPreviewRef.current?.scrollIntoView({
-                              behavior: preferredScrollBehavior(),
-                              block: 'start',
-                            }),
-                          );
-                        }}
-                      />
-                    </div>
-                  )}
-                  {blueprintReviewActive && blueprintMapEditorOpen && (
-                    <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 rounded-xl border border-slate-200/80 bg-white px-3 py-2.5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold text-slate-900 dark:text-white">Editing the Course Map</p>
-                        <p className="truncate text-[11px] text-slate-500 dark:text-slate-400">
-                          Meaningful changes will refresh the plan before generation.
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setBlueprintMapEditorOpen(false);
-                          window.requestAnimationFrame(() =>
-                            instructionalBlueprintGateRef.current?.scrollIntoView({
-                              behavior: preferredScrollBehavior(),
-                              block: 'start',
-                            }),
-                          );
-                        }}
-                        className="tactile min-h-10 shrink-0 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 hover:border-indigo-200 hover:text-indigo-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
-                      >
-                        Return to review
-                      </button>
-                    </div>
-                  )}
                   {courseMap || gen.isStreaming ? (
-                    <div
-                      ref={courseMapPreviewRef}
-                      className={`w-full animate-spring-up scroll-mt-28 ${
-                        blueprintReviewActive && !blueprintMapEditorOpen ? 'hidden' : ''
-                      }`}
-                    >
+                    <div ref={courseMapPreviewRef} className="w-full animate-spring-up scroll-mt-28">
                       <ErrorBoundary>
                         <CourseMapPreview
                           courseMap={courseMap}
@@ -4297,61 +4254,59 @@ export default function AppFlow({
             </div>
 
             {/* ── Export side panel (right) — shown once course map is ready ── */}
-            {courseMap &&
-              gen.progressStep === 'done' &&
-              instructionalBlueprintReview?.status !== 'awaiting-approval' && (
-                <div
-                  data-testid="workspace-export-panel"
-                  className={`${mobileWorkspaceView === 'export' ? 'block' : 'hidden'} ${
-                    isPackageGenerationRunning ? 'xl:hidden' : 'xl:block xl:flex-shrink-0'
-                  } min-w-0`}
-                >
-                  <ExportSidePanel
-                    activeTab={activeTab}
-                    activeTabLabel={workspaceTabs.find((f) => f.id === activeTab)?.label || activeTab}
-                    deliverables={deliv.deliverables}
-                    readinessDeliverableConfig={effectiveDeliverableConfig}
-                    onCourseMapExport={handleDownload}
-                    onSaveProject={handleSaveProject}
-                    onReadinessIssueClick={focusCourseMapTarget}
-                    onAutoRepairReadiness={applyPackageReadinessRepairs}
-                    onFinishPackage={handleFinishPackageFromExport}
-                    canFinishPackage={canRunPackageFinalizer}
-                    packageQualityPass={packageQualityPass}
-                    onPackageQualityPassUpdate={setPackageQualityPass}
-                    courseGraph={courseGraph}
-                    qualityModalOpen={qualityReportOpen}
-                    onQualityModalOpenChange={setQualityReportOpen}
-                    isPackageGenerationRunning={isPackageGenerationRunning}
-                    preferPackageScope={
-                      hasGenerated && selectedFeatures.length > 1 && packageQualityPass?.status !== 'idle'
-                    }
-                    getPipelineState={getManifestPipelineState}
-                    getQualityContext={() => ({
-                      budget: apiCallBudgetRef.current || {},
-                      // A restored anonymous project hydrates the persisted
-                      // digest into state. The ref is populated only by a finish
-                      // run in this mounted session, so fall back to state or the
-                      // resumed ZIP silently loses its passed export receipt.
-                      digest: lastRunDigestRef.current || lastRunDigest,
-                      // The finalizer and ZIP exporter must grade the same
-                      // instructor-authored sequence. Omitting the brief here
-                      // made the downloaded score ledger lose curriculum
-                      // evidence that the workspace had already verified.
-                      coursePrompt: promptText,
-                      expectedSessionMinutes,
-                    })}
-                    reviewQueue={reviewQueue}
-                    reviewProgress={reviewProgress}
-                    onReviewMark={handleReviewMark}
-                    onReviewMarkAll={handleReviewMarkAll}
-                    reviewQueueOpen={Boolean(reviewQueueRequest)}
-                    reviewQueueFocusId={reviewQueueRequest?.focusId || null}
-                    onExecuteSync={handleExecuteSyncFromQueue}
-                    onReviewQueueOpenChange={handleReviewQueueOpenChange}
-                  />
-                </div>
-              )}
+            {courseMap && gen.progressStep === 'done' && (
+              <div
+                data-testid="workspace-export-panel"
+                className={`${mobileWorkspaceView === 'export' ? 'block' : 'hidden'} ${
+                  isPackageGenerationRunning ? 'xl:hidden' : 'xl:block xl:flex-shrink-0'
+                } min-w-0`}
+              >
+                <ExportSidePanel
+                  activeTab={activeTab}
+                  activeTabLabel={workspaceTabs.find((f) => f.id === activeTab)?.label || activeTab}
+                  deliverables={deliv.deliverables}
+                  readinessDeliverableConfig={effectiveDeliverableConfig}
+                  onCourseMapExport={handleDownload}
+                  onSaveProject={handleSaveProject}
+                  onReadinessIssueClick={focusCourseMapTarget}
+                  onAutoRepairReadiness={applyPackageReadinessRepairs}
+                  onFinishPackage={handleFinishPackageFromExport}
+                  canFinishPackage={canRunPackageFinalizer}
+                  packageQualityPass={packageQualityPass}
+                  onPackageQualityPassUpdate={setPackageQualityPass}
+                  courseGraph={courseGraph}
+                  qualityModalOpen={qualityReportOpen}
+                  onQualityModalOpenChange={setQualityReportOpen}
+                  isPackageGenerationRunning={isPackageGenerationRunning}
+                  preferPackageScope={
+                    hasGenerated && selectedFeatures.length > 1 && packageQualityPass?.status !== 'idle'
+                  }
+                  getPipelineState={getManifestPipelineState}
+                  getQualityContext={() => ({
+                    budget: apiCallBudgetRef.current || {},
+                    // A restored anonymous project hydrates the persisted
+                    // digest into state. The ref is populated only by a finish
+                    // run in this mounted session, so fall back to state or the
+                    // resumed ZIP silently loses its passed export receipt.
+                    digest: lastRunDigestRef.current || lastRunDigest,
+                    // The finalizer and ZIP exporter must grade the same
+                    // instructor-authored sequence. Omitting the brief here
+                    // made the downloaded score ledger lose curriculum
+                    // evidence that the workspace had already verified.
+                    coursePrompt: promptText,
+                    expectedSessionMinutes,
+                  })}
+                  reviewQueue={reviewQueue}
+                  reviewProgress={reviewProgress}
+                  onReviewMark={handleReviewMark}
+                  onReviewMarkAll={handleReviewMarkAll}
+                  reviewQueueOpen={Boolean(reviewQueueRequest)}
+                  reviewQueueFocusId={reviewQueueRequest?.focusId || null}
+                  onExecuteSync={handleExecuteSyncFromQueue}
+                  onReviewQueueOpenChange={handleReviewQueueOpenChange}
+                />
+              </div>
+            )}
           </div>
         </main>
 

@@ -2043,7 +2043,7 @@ export default function Config({
         }`}
       >
         <span className="flex items-center justify-center gap-2.5">
-          Prepare course plan
+          Generate package
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
@@ -2095,8 +2095,8 @@ export default function Config({
                 Configure materials
               </h1>
               <p className="mx-auto mt-2 max-w-xl text-sm text-slate-500 dark:text-slate-400">
-                Set the lesson scope and optional material preferences. You will review the course plan before Scion
-                generates the package.
+                Set the lesson scope and optional material preferences. Scion will plan, generate, check, and refine the
+                package.
               </p>
             </div>
 
