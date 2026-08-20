@@ -24030,7 +24030,9 @@ function slideVisual(lesson, slide) {
   const visualKind = sentenceCase(selected.kind);
   const visualDescription = lessonVariant(lesson, [
     `${visualEvidence}.`,
-    `Use a ${selected.kind} to ${lowercaseClauseLead(visualEvidence)}.`,
+    type === 'keyTerm' && artifactGenre.genre === 'problem-set'
+      ? `Build a ${selected.kind} that shows which ${concept} evidence students use in ${artifact}.`
+      : `Use a ${selected.kind} to ${lowercaseClauseLead(visualEvidence)}.`,
     `${visualKind} highlights how students use the evidence for ${artifact}.`,
     `Visual plan: ${visualEvidence}.`,
   ]);
@@ -25710,7 +25712,9 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
             `Practice with ${concept}: ${teachingMoves.practiceMove}`,
             `Debrief against this criterion: ${successCriterion}`,
             next
-              ? `Carry forward to ${primarySlideConcept(next)}.`
+              ? artifactGenre.genre === 'problem-set'
+                ? `Next problem set builds on this method with ${primarySlideConcept(next)}.`
+                : `Carry forward to ${primarySlideConcept(next)}.`
               : textureCopy.slideFinalCarryForward({ lesson, concept, artifact }),
           ],
           minutes: 2,
