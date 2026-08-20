@@ -1,0 +1,17 @@
+{
+  "protocol": "coursemapper-production-package-attestation-v1",
+  "version": "0.18.6",
+  "capturedAt": "2026-08-20T07:48:24Z",
+  "status": "bounded-pass",
+  "scope": "predeploy warning-free recovery boundary",
+  "observations": [
+    "Evidence-only instructional blockers are authorized inside a new signed graph before strict blueprint compilation.",
+    "All nine standard material families compile from the recovered graph without publishing model-provisional subject matter.",
+    "DOCX compact lists and bibliography rows avoid literal bullet glyphs while native Word list structure remains intact.",
+    "Focused public-policy, data-science, engineering-design, and messy-clinical ZIP exports finish with zero blockers and zero warnings.",
+    "The final 34-course matrix spans 29 modalities and 8-14 lessons, passes 34/34 packages with zero blockers and zero warnings, and inspects 2,660 exported files.",
+    "Known runtime informational notices are filtered by exact patterns; unknown warnings and errors remain observable.",
+    "A fresh five-lesson production-browser run finishes Ready to export with 10/10 materials checked, zero encoded findings, zero new console warning/error entries, and a verified 58-file ZIP."
+  ],
+  "boundary": "This predeploy attestation verifies local code paths and candidate package behavior. It is not a production deployment attestation, factual certification, accessibility certification, instructor evaluation, or classroom validation."
+}

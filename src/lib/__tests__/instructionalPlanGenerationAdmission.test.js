@@ -54,7 +54,7 @@ describe('instructional-plan generation admission', () => {
     expect(blueprint.enrichment.coverage.missingLessons).toEqual([1]);
     expect(blueprint.instructionalPlanLineage.status).toBe('evidence-recovery-authorized');
     expect(courseGraph.instructionalPlanLineage.status).toBe('evidence-recovery-authorized');
-    expect(appendLog).toHaveBeenCalledWith(expect.stringMatching(/source gap.*provisional subject matter/i), 'warn');
+    expect(appendLog).toHaveBeenCalledWith(expect.stringMatching(/source gap.*provisional subject matter/i), 'done');
     expect(recordEvent).toHaveBeenCalledWith(expect.objectContaining({ status: 'evidence-recovery-authorized' }));
   });
 

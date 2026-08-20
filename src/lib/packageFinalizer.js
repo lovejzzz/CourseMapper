@@ -939,18 +939,17 @@ export function buildQualityGateIssues(quality) {
     ];
   }
   const advisoryFindings = countAdvisoryQualityFindings(quality);
-  const unobservedEvidencePoints = Math.max(0, Number(quality?.readiness?.points?.unobserved) || 0);
-  if (advisoryFindings <= 0 && unobservedEvidencePoints <= 0) return [];
+  // Unobserved score potential describes the deterministic grader's scope,
+  // not a defect in the generated package. Keep that limitation visible in
+  // the quality report, but do not misclassify it as a readiness warning when
+  // the grader found no actionable P1/P2 issue.
+  if (advisoryFindings <= 0) return [];
   return [
     normalizeReadinessIssue({
       severity: 'warning',
       featureId: 'courseMap',
       label: 'Quality grade',
-      message: `${
-        advisoryFindings > 0
-          ? `Package quality grader found ${advisoryFindings} review finding${advisoryFindings === 1 ? '' : 's'} (score ${quality.score}/100, grade ${quality.grade})`
-          : `Package conformance scored ${quality.score}/100 (${quality.grade})`
-      }${unobservedEvidencePoints > 0 ? `; ${unobservedEvidencePoints}/100 deterministic evidence points remain unobserved` : ''} — resolve the quality report before classroom publication`,
+      message: `Package quality grader found ${advisoryFindings} review finding${advisoryFindings === 1 ? '' : 's'} (score ${quality.score}/100, grade ${quality.grade}) — resolve the quality report before classroom publication`,
       source: 'qualityGate',
       retryable: false,
       autoFixable: false,

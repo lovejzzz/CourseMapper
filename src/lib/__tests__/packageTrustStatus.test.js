@@ -45,6 +45,20 @@ describe('package trust quality notes', () => {
     ]);
   });
 
+  it('does not present unobserved grader scope as a package warning', () => {
+    expect(
+      buildQualityReviewIssues({
+        status: 'graded',
+        score: 39,
+        grade: 'F',
+        findingCount: 0,
+        findingCounts: { p0: 0, p1: 0, p2: 0 },
+        findings: [],
+        readiness: { points: { potential: 100, earned: 39, lost: 21, unobserved: 40 } },
+      }),
+    ).toEqual([]);
+  });
+
   it('canonicalizes ordinary receipts and returns an invalid sentinel for unsupported structures', () => {
     expect(packageReceiptKey({ b: 2, a: { value: null } })).toBe(packageReceiptKey({ a: { value: null }, b: 2 }));
     expect(packageReceiptKey({ value: null })).not.toBe(packageReceiptKey({ value: Number.NaN }));

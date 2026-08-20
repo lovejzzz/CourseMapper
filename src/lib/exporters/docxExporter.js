@@ -550,7 +550,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
       spacing: { line, before: 10, after: references ? 10 : 20 },
       children: normalizedPairs.flatMap(([label, value], index) => [
         new TextRun({
-          text: `${index > 0 ? '  •  ' : ''}${String(label || '').replace(/[:\s]+$/, '')}: `,
+          text: `${index > 0 ? ' — ' : ''}${String(label || '').replace(/[:\s]+$/, '')}: `,
           bold: true,
           size,
           font: FONT,
@@ -2341,7 +2341,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
                 spacing: { line: bibliographyLine, before: 0, after: 10 },
                 children: renderedEntries.flatMap(({ citation, licenseTail }, index) => [
                   new TextRun({
-                    text: `${index > 0 ? '  •  ' : '• '}${citation}${licenseTail ? ` — ${licenseTail}` : ''}`,
+                    text: `${index > 0 ? ' — ' : ''}${citation}${licenseTail ? ` — ${licenseTail}` : ''}`,
                     size: bibliographySize,
                     font: FONT,
                     color: '333333',

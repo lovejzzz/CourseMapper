@@ -1681,6 +1681,24 @@ describe('packageFinalizer', () => {
     expect(result.readiness.warnings[0].message).toMatch(/3 review findings.*before classroom publication/i);
   });
 
+  it('keeps unobserved deterministic score potential informational when there are no findings', () => {
+    const baseResult = {
+      readiness: { status: 'ready', isBlocked: false, blockers: [], warnings: [], issues: [] },
+    };
+    const result = applyQualityToFinalizerResult(baseResult, {
+      status: 'graded',
+      score: 39,
+      grade: 'F',
+      findingCount: 0,
+      findingCounts: { p0: 0, p1: 0, p2: 0 },
+      findings: [],
+      readiness: { points: { potential: 100, earned: 39, lost: 21, unobserved: 40 } },
+    });
+
+    expect(result.readiness.status).toBe('ready');
+    expect(result.readiness.warnings).toEqual([]);
+  });
+
   it('returns exact retry actions for localized weak sections', () => {
     const result = runDeterministicPackageFinalizer({
       courseMap: makeCourseMap(2),

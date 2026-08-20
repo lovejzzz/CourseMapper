@@ -279,10 +279,10 @@ describe('instructional-plan compiler admission', () => {
     expect(prepared.instructionalPlan.admission.blockers).not.toContain('lesson-1:generic-objective');
     expect(prepared.instructionalPlan.lessonIntents[0]).toMatchObject({
       targetObjectives: [
-        'Evaluate one Feedback Loops claim by distinguishing admitted evidence, warranted inference, and one unresolved limitation in Causal reasoning memo.',
+        'Evaluate one Feedback Loops claim in Causal reasoning memo. Distinguish admitted evidence for Feedback Loops from its inference and bound the Causal reasoning memo conclusion.',
       ],
       learnerAction:
-        'Evaluate one Feedback Loops claim by distinguishing admitted evidence, warranted inference, and one unresolved limitation in Causal reasoning memo.',
+        'Evaluate one Feedback Loops claim in Causal reasoning memo. Distinguish admitted evidence for Feedback Loops from its inference and bound the Causal reasoning memo conclusion.',
     });
   });
 
@@ -571,5 +571,38 @@ describe('instructional-plan compiler admission', () => {
         },
       },
     });
+
+    expect(() =>
+      buildCourseBlueprint(courseMap(), {
+        instructionalPlan: recovery.instructionalPlan,
+      }),
+    ).toThrow(/blocked drafting/i);
+
+    const recoveredBlueprint = buildCourseBlueprint(courseMap(), {
+      instructionalPlan: recovery.instructionalPlan,
+      allowEvidenceRecovery: true,
+      enrichment: {
+        coverage: { requestedLessons: 2, enrichedLessons: 0, missingLessons: [1, 2] },
+      },
+    });
+    expect(recoveredBlueprint.instructionalIntentGraph).toMatchObject({
+      admission: { status: 'approved', blockerCount: 0 },
+      evidenceRecoveryAuthorization: {
+        protocol: 'coursemapper-instructional-plan-evidence-recovery-v1',
+        status: 'authorized',
+        lessonNumbers: [1, 2],
+      },
+    });
+    expect(instructionalIntentGraphReceiptMatches(recoveredBlueprint.instructionalIntentGraph)).toBe(true);
+
+    const compiled = compileBlueprintDeliverables(recoveredBlueprint, FEATURE_IDS);
+    expect(FEATURE_IDS.filter((featureId) => compiled[featureId])).toEqual(FEATURE_IDS);
+    const learnerFacingCompiledContent = JSON.stringify(compiled, (key, value) =>
+      key === 'recoveryConstraint' ? undefined : value,
+    );
+    expect(learnerFacingCompiledContent).not.toMatch(/provisional subject|unadmitted claim/i);
+    const recoveryQuizContent = JSON.stringify(compiled.quizBank);
+    expect(recoveryQuizContent).not.toMatch(/the assigned source "course-created|source-bound recovery/i);
+    expect(recoveryQuizContent).toMatch(/compiler-created practice record/i);
   });
 });

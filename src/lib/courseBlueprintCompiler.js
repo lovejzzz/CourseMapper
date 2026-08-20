@@ -258,6 +258,7 @@ import { sourceBoundStudyWorkedExample } from './sourceBoundStudyWorkedExample.j
 import {
   applyInstructionalIntentGraph,
   assertInstructionalIntentGraph,
+  authorizeInstructionalIntentGraphEvidenceRecovery,
   buildInstructionalIntentGraph,
 } from './instructionalIntentGraph.js';
 import { validateBlueprintSemanticContractBase } from './blueprintSemanticContract.js';
@@ -3108,7 +3109,7 @@ function successCriteriaForLesson(title, concepts) {
     `Grounds each claim in inspectable ${concept} evidence.`,
   ];
   const decisionVariants = [
-    `Explains a ${concept} decision, implication, or next step instead of only summarizing.`,
+    `Explains a ${relevantConcept} decision, implication, or next step instead of only summarizing.`,
     `Connects ${concept} evidence to a decision or next step rather than summary alone.`,
     `Justifies one ${concept} choice with evidence instead of restating the material.`,
   ];
@@ -13360,7 +13361,7 @@ function compactAssignmentInstructionSet(instructions = [], maxInstructions = 7)
   addMatching(/\bmark the exact (?:segment|form|feature|relationship)|\bseparate transcription from inference\b/i, 2);
   addMatching(/\bevidence boundary\b|\bdo not generalize beyond\b/i, 1);
   addMatching(/\boperation-qualified worked example\b|\bconcrete visual evidence panel\b|\bmatched specimen\b/i, 2);
-  addMatching(/^Meet these submission requirements\b/i, 1);
+  addMatching(/^Meet (?:these|the .+?) submission requirements\b/i, 1);
   addMatching(
     /^(?:use this objective|make this objective|organize .+ around this objective|in .+ demonstrate this objective|show how .+ fulfills this objective|build one traceable evidence-to-decision move)/i,
     1,
@@ -16027,7 +16028,11 @@ export function buildCourseBlueprint(courseMap, options = {}) {
   // it before assessments and the authoritative intent graph are built so a
   // task that repairs a generic objective also changes the admission receipt.
   baseLessons = bindAuthenticEvidenceTasksToLessons(baseLessons, options.authenticLanguageDataCoverage);
-  const authoritativeInstructionalPlan = options.instructionalPlan || null;
+  const suppliedInstructionalPlan = options.instructionalPlan || null;
+  const authoritativeInstructionalPlan =
+    suppliedInstructionalPlan && options.allowEvidenceRecovery === true
+      ? authorizeInstructionalIntentGraphEvidenceRecovery(suppliedInstructionalPlan)
+      : suppliedInstructionalPlan;
   if (authoritativeInstructionalPlan) {
     assertInstructionalIntentGraph(authoritativeInstructionalPlan);
     // The admitted plan is a compiler input, not an audit annotation. Project
@@ -17974,7 +17979,7 @@ function compileAssignments(blueprint) {
             ...functionalVisualAssignmentInstructions(blueprint, lesson, assessment),
             ...(assignmentParameters.length > 0
               ? [
-                  `Meet these submission requirements. ${assignmentParameters
+                  `Meet the ${assessmentArtifact} submission requirements. ${assignmentParameters
                     .map((parameter) => `${sentenceCase(stripTerminalPunctuation(parameter))}.`)
                     .join(' ')}`,
                 ]
@@ -20447,11 +20452,19 @@ function buildSourceBoundRecoveryQuizAtoms({ lesson, blueprint, quizPlan, concep
     lesson.evidencePlan?.sourceCue,
     safeLessonEvidenceCue(lesson, blueprintLens(blueprint)),
   );
+  const compilerPracticeRecovery =
+    !sourceFactsOnly &&
+    /^course-created\b.*\bpractice record$/i.test(evidenceCue) &&
+    blueprint?.instructionalIntentGraph?.evidenceRecoveryAuthorization?.status === 'authorized' &&
+    Array.isArray(blueprint.instructionalIntentGraph.evidenceRecoveryAuthorization.lessonNumbers) &&
+    blueprint.instructionalIntentGraph.evidenceRecoveryAuthorization.lessonNumbers.includes(lesson.lessonNumber);
   const sourceLabel = sourceFactsOnly
     ? 'the instructor-provided fact list'
-    : /^(?:the|assigned)\b/i.test(evidenceCue)
-      ? evidenceCue
-      : `the assigned source "${evidenceCue}"`;
+    : compilerPracticeRecovery
+      ? `the compiler-created practice record "${evidenceCue}"`
+      : /^(?:the|assigned)\b/i.test(evidenceCue)
+        ? evidenceCue
+        : `the assigned source "${evidenceCue}"`;
   const compositeConcept = /\b(?:and|versus|vs\.?)\b/i.test(concept);
   const conceptLensCue = compositeConcept ? `${concept} as contrasting lenses` : concept;
   const prompts = sourceFactsOnly
@@ -20547,12 +20560,16 @@ function buildSourceBoundRecoveryQuizAtoms({ lesson, blueprint, quizPlan, concep
     const alignedPlan = {
       ...plan,
       bloom: promptPlan.bloom,
-      role: `source-bound-${promptPlan.bloom.toLowerCase()}`,
-      bloomSource: 'source-bound recovery task demand',
+      role: `${compilerPracticeRecovery ? 'compiler-practice' : 'source-bound'}-${promptPlan.bloom.toLowerCase()}`,
+      bloomSource: compilerPracticeRecovery
+        ? 'compiler-created practice recovery task demand'
+        : 'source-bound recovery task demand',
     };
     const scoringGuidance = sourceFactsOnly
       ? `Award full credit only when the response quotes or identifies a supplied statement accurately, explains its relationship, and keeps the conclusion within that wording. Verify every factual claim against the instructor-provided fact list.`
-      : `Award full credit only when the response uses ${concept} accurately, names or creates a specific example, points to an observable feature, and keeps the conclusion within that evidence. Verify factual claims against ${evidenceCue}.`;
+      : compilerPracticeRecovery
+        ? `Award full credit only when the response uses ${concept} accurately, names or creates a specific example, points to an observable feature, and keeps the conclusion within that evidence. Verify the reasoning against ${evidenceCue}.`
+        : `Award full credit only when the response uses ${concept} accurately, names or creates a specific example, points to an observable feature, and keeps the conclusion within that evidence. Verify factual claims against ${evidenceCue}.`;
     return withQuizPlan(
       {
         id: quizQuestionId(lesson, index),
@@ -20562,7 +20579,9 @@ function buildSourceBoundRecoveryQuizAtoms({ lesson, blueprint, quizPlan, concep
         estimatedMinutes: type === 'essay' ? 12 : 5,
         points: type === 'essay' ? 8 : 4,
         objectiveAligned: plan.objective,
-        intendedUse: `Instructor-scored source application for ${lesson.title}; factual claims require confirmation against ${evidenceCue}.`,
+        intendedUse: compilerPracticeRecovery
+          ? `Instructor-scored application for ${lesson.title}; reasoning is checked against ${evidenceCue}.`
+          : `Instructor-scored source application for ${lesson.title}; factual claims require confirmation against ${evidenceCue}.`,
         question: humanizeQuizText(promptPlan.make(objective)),
         answer: sourceFactsOnly
           ? 'A valid response identifies an exact supplied statement, explains the relationship it supports, and names a conclusion that the wording does not establish.'
@@ -20572,17 +20591,27 @@ function buildSourceBoundRecoveryQuizAtoms({ lesson, blueprint, quizPlan, concep
           : 'Responses vary by example; the response must name the evidence, explain how the observable feature supports the claim, and state a defensible boundary.',
         explanation: sourceFactsOnly
           ? 'This item assesses application of an admitted source ledger; success depends on accurate evidence use and a bounded conclusion.'
-          : 'This recovery item assesses source use without fabricating a disciplinary answer key after the local knowledge kernel failed admission.',
+          : compilerPracticeRecovery
+            ? 'This item assesses a compiler-created practice record without fabricating a disciplinary answer key or publishing unsupported disciplinary claims.'
+            : 'This recovery item assesses source use without fabricating a disciplinary answer key after the local knowledge kernel failed admission.',
         scoringGuidance,
         ...(type === 'essay' ? { rubricHints: [scoringGuidance] } : {}),
         tags: quizTags(
           lesson,
           type,
           promptPlan.bloom,
-          sourceFactsOnly ? 'exact source-ledger application' : 'source-bound recovery',
+          sourceFactsOnly
+            ? 'exact source-ledger application'
+            : compilerPracticeRecovery
+              ? 'compiler-created practice recovery'
+              : 'source-bound recovery',
         ),
-        enrichmentSource: sourceFactsOnly ? 'compiler-exact-source-ledger' : 'source-bound-recovery',
-        sourceReviewRequired: !sourceFactsOnly,
+        enrichmentSource: sourceFactsOnly
+          ? 'compiler-exact-source-ledger'
+          : compilerPracticeRecovery
+            ? 'compiler-created-practice-recovery'
+            : 'source-bound-recovery',
+        sourceReviewRequired: !sourceFactsOnly && !compilerPracticeRecovery,
       },
       alignedPlan,
     );
@@ -27627,7 +27656,7 @@ function compileLessonPlans(blueprint, options = {}) {
           ? {
               experientialActivityStatus: {
                 status: 'standard-lesson-fallback',
-                note: 'A course-specific activity was requested, but no validated activity blueprint was admitted. This plan uses the standard lesson structure and does not claim to include a complete simulation, lab, critique, case exercise, field exercise, debate, or role-play packet.',
+                note: `${stripLessonPrefix(lesson.title)} requested a course-specific activity, but no validated activity blueprint was admitted. This plan uses the standard lesson structure and does not claim to include a complete simulation, lab, critique, case exercise, field exercise, debate, or role-play packet.`,
               },
             }
           : {}),

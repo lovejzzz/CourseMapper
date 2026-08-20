@@ -256,7 +256,7 @@ describe('plan-before-draft instructional intent graph', () => {
     expect(graph.admission.blockers).not.toContain('lesson-1:generic-objective');
     expect(graph.admission.blockers).not.toContain('lesson-1:unobservable-learner-action');
     expect(graph.lessonIntents[0].targetObjectives[0]).toMatch(
-      /distinguishing admitted evidence, warranted inference, and one unresolved limitation/i,
+      /Distinguish admitted evidence for linguistic evidence from its inference and bound the Source-bounded evidence analysis conclusion/i,
     );
     expect(graph.lessonIntents[0].learnerAction).toBe(graph.lessonIntents[0].targetObjectives[0]);
   });

@@ -186,6 +186,11 @@ export default defineConfig({
     port: 5173,
   },
   test: {
+    // Node 25 exposes experimental localStorage/sessionStorage accessors that
+    // warn every time browser-only code probes them without a backing file.
+    // The setup removes only Node's internal lazy getter, including in a
+    // browser-like worker whose environment did not replace that global yet.
+    setupFiles: ['./tests/setup/unitEnvironment.js'],
     // The suite contains several hash-bound replay and zero-token compiler
     // integrations. Running hundreds of files with Vitest's CPU-count worker
     // default starves those I/O-heavy proofs and creates false 15-second

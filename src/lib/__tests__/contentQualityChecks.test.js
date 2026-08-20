@@ -138,6 +138,14 @@ describe('auditDeliverableContentQuality', () => {
     expect(findings.some((finding) => finding.code === 'dangling-clause')).toBe(false);
   });
 
+  it('does not flag a complete assignment check-in label', () => {
+    const { findings } = auditDeliverableContentQuality('assignments', {
+      assignments: [{ instructions: ['Before submission, revise one evidence link in the Week 2 check-in.'] }],
+    });
+
+    expect(findings.some((finding) => finding.code === 'dangling-clause')).toBe(false);
+  });
+
   it('flags article disagreement like "a Energy decision"', () => {
     const { findings } = auditDeliverableContentQuality('syllabus', {
       syllabus: { description: 'Explains a Energy decision, implication, or next step.' },

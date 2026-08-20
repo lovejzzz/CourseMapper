@@ -3,6 +3,17 @@ import { CURRENT_RELEASE } from './currentRelease.js';
 
 export { CURRENT_RELEASE };
 
+const V0185_RELEASE = {
+  version: '0.18.5',
+  date: 'August 20, 2026',
+  title: 'Resilient, Discipline-Safe Generation',
+  highlights: [
+    'A lesson that still needs source evidence enters the compiler’s quarantined source-review recovery path instead of failing every selected material family; unrelated planning defects still stop the build.',
+    'Linear-algebra least squares and orthogonal projection no longer trigger the statistical regression specimen or replace course objectives with slope, intercept, fitted-value, and residual language.',
+    'When persistent browser storage is full, sanitized compact conversation history falls back to the current tab session instead of emitting repeated quota warnings or deleting course data.',
+  ],
+};
+
 const V0184_RELEASE = {
   version: '0.18.4',
   date: 'August 19, 2026',
@@ -1415,6 +1426,45 @@ export const CURRENT_RELEASE_CHANGELOG = {
   highlights: CURRENT_RELEASE.highlights,
   sections: [
     {
+      label: 'Recover before the compiler can fan out failure',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'The signed intent graph converts evidence-only blockers into a bounded compiler recovery authorization before strict blueprint admission.',
+        'Only affected lessons receive course-created practice records; model-provisional subject matter remains quarantined.',
+        'Mixed, stale, or non-evidence blockers still fail closed instead of entering recovery.',
+      ],
+    },
+    {
+      label: 'Ship clean Office output across course types',
+      icon: 'AI',
+      color: 'blue',
+      items: [
+        'DOCX exports use native Word bullets and replace inline bullet glyph separators with readable em dashes.',
+        'Assignment, activity-readiness, and success-criteria copy remains lesson-specific and determiner-safe.',
+        'The 34-course, 2,600-plus-file export matrix must finish with zero blockers and zero warnings.',
+      ],
+    },
+    {
+      label: 'Keep diagnostics useful',
+      icon: 'PROOF',
+      color: 'violet',
+      items: [
+        'Only five pinned, informational llama.cpp startup messages are demoted from the browser console.',
+        'Unknown model, device, storage, and application warnings or errors remain visible.',
+        'Unit and export-audit harnesses remove only Node 25’s unconfigured Web Storage accessors before dependencies probe them.',
+      ],
+    },
+  ],
+};
+
+const V0185_RELEASE_CHANGELOG = {
+  version: V0185_RELEASE.version,
+  date: V0185_RELEASE.date,
+  title: V0185_RELEASE.title,
+  highlights: V0185_RELEASE.highlights,
+  sections: [
+    {
       label: 'Recover without publishing unsupported knowledge',
       icon: 'CHECK',
       color: 'emerald',
@@ -2519,6 +2569,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V0185_RELEASE_CHANGELOG,
   V0184_RELEASE_CHANGELOG,
   V0183_RELEASE_CHANGELOG,
   V0182_RELEASE_CHANGELOG,

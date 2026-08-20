@@ -1,12 +1,18 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  appliedObjectiveCue,
   nonRedundantObjectiveDeclarations,
   objectiveConstructApplicationInstruction,
 } from '../objectiveConstructInstruction.js';
 import { objectiveTaskMapping } from '../quality/assessmentCoherence.js';
 
 describe('objective construct application instruction', () => {
+  it('turns inspect objectives into complete grammatical action cues', () => {
+    expect(appliedObjectiveCue('Inspect dataset provenance and clean missing values before making a claim.')).toBe(
+      'inspection of dataset provenance and clean missing values before making a claim',
+    );
+  });
   it('preserves coordinated noun phrases and normalizes comma edges before joining sequenced clauses', () => {
     const instruction = objectiveConstructApplicationInstruction(
       'Summarize center, spread, and any outliers, then interpret what the values show.',

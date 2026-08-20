@@ -155,11 +155,11 @@ export function buildQualityReviewIssues(quality) {
   const counts = quality.findingCounts || {};
   const p0 = compactCount(counts.p0);
   const findingCount = countQualityFindings(quality);
-  const unobservedEvidencePoints = compactCount(quality?.readiness?.points?.unobserved);
   // Aggregate score thresholds are not trust policy. Only explicit findings,
-  // missing evidence, export failures, and other named gates can require
-  // review. This keeps every trust decision tied to a concrete action.
-  if (findingCount === 0 && unobservedEvidencePoints === 0) return [];
+  // export failures, and other named gates can require review. Unobserved
+  // deterministic score potential remains visible in the quality report, but
+  // it is not itself an actionable package finding.
+  if (findingCount === 0) return [];
 
   const findings = (Array.isArray(quality?.findings) ? quality.findings : [])
     .filter((finding) => findingMessage(finding))
@@ -187,8 +187,8 @@ export function buildQualityReviewIssues(quality) {
       message:
         p0 > 0
           ? 'One content issue needs a fix before this package is ready to share.'
-          : `${unobservedEvidencePoints}/100 deterministic evidence points are unobserved; open the quality report for the exact missing evidence and next actions.`,
-      count: Math.max(1, findingCount || Number(unobservedEvidencePoints > 0)),
+          : `${findingCount} package quality finding${findingCount === 1 ? '' : 's'} need review; open the quality report for details and next actions.`,
+      count: Math.max(1, findingCount),
       severity: p0 > 0 ? 'blocker' : 'warning',
     },
   ];

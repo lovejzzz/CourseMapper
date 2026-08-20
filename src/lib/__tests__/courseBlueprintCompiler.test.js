@@ -10831,11 +10831,11 @@ describe('courseBlueprintCompiler', () => {
     const courseMap = makeCourseMap(1);
     courseMap.lessons[0].sections[0].topicSection = 'The key ideas in microbial ecology';
     const blueprint = buildCourseBlueprint(courseMap);
-    const rendered = JSON.stringify(
-      compileBlueprintDeliverables(blueprint, ['studyGuides']).studyGuides.studyGuides[0],
-    );
+    const compiled = compileBlueprintDeliverables(blueprint, ['studyGuides', 'lessonPlans']);
+    const rendered = JSON.stringify([compiled.studyGuides.studyGuides[0], compiled.lessonPlans.lessonPlans[0]]);
 
     expect(rendered).not.toMatch(/the relevant (?:a|an|the) /i);
+    expect(rendered).not.toMatch(/\bexplains a (?:a|an|the) /i);
     expect(rendered).not.toMatch(/\bexplanation draft\b/i);
   });
 

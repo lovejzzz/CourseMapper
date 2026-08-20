@@ -111,6 +111,15 @@ const INTERNAL_REPETITION_SCAN_KEYS = new Set([
 let runtimePromise = null;
 
 function installHeadlessDomShim() {
+  // Node 25 exposes Web Storage through warning-emitting accessors unless a
+  // backing file is configured. The sweep supplies happy-dom's browser-owned
+  // storage instead, so remove only those unconfigured Node accessors before
+  // DOCX's browser bundle probes the runtime.
+  for (const name of ['localStorage', 'sessionStorage']) {
+    const descriptor = Object.getOwnPropertyDescriptor(globalThis, name);
+    if (typeof descriptor?.get === 'function') delete globalThis[name];
+  }
+
   if (!globalThis.window || !globalThis.document) {
     const window = new Window();
     Object.defineProperty(globalThis, 'window', { value: window, configurable: true, writable: true });
@@ -207,21 +216,26 @@ async function loadRuntime() {
     });
     await server.pluginContainer.buildStart({});
     try {
-      const [compiler, finalizer, zipExporter, requiredAssets, exportQualityAudit] = await Promise.all([
-        server.ssrLoadModule('/src/lib/courseBlueprintCompiler.js'),
-        server.ssrLoadModule('/src/lib/packageFinalizer.js'),
-        server.ssrLoadModule('/src/lib/packageZipExporter.js'),
-        server.ssrLoadModule('/src/lib/requiredLabAssets.js'),
-        server.ssrLoadModule('/tests/lib/exportQualityAudit.js'),
-      ]);
+      const [compiler, finalizer, zipExporter, requiredAssets, exportQualityAudit, readiness, contentQuality] =
+        await Promise.all([
+          server.ssrLoadModule('/src/lib/courseBlueprintCompiler.js'),
+          server.ssrLoadModule('/src/lib/packageFinalizer.js'),
+          server.ssrLoadModule('/src/lib/packageZipExporter.js'),
+          server.ssrLoadModule('/src/lib/requiredLabAssets.js'),
+          server.ssrLoadModule('/tests/lib/exportQualityAudit.js'),
+          server.ssrLoadModule('/src/lib/deliverableReadiness.js'),
+          server.ssrLoadModule('/src/lib/contentQualityChecks.js'),
+        ]);
       return {
         server,
         buildCourseBlueprint: compiler.buildCourseBlueprint,
         compileBlueprintDeliverables: compiler.compileBlueprintDeliverables,
+        repairCourseMapReadiness: readiness.repairCourseMapReadiness,
         runDeterministicPackageFinalizer: finalizer.runDeterministicPackageFinalizer,
         buildCourseMaterialsZip: zipExporter.buildCourseMaterialsZip,
         collectRequiredLabAssets: requiredAssets.collectRequiredLabAssets,
         auditCourseMaterialsZip: exportQualityAudit.auditCourseMaterialsZip,
+        auditDeliverableContentQuality: contentQuality.auditDeliverableContentQuality,
         close: () => server.close(),
       };
     } catch (err) {
@@ -681,10 +695,20 @@ function collectPackageBlockers({
 
 async function auditSample({ sample, runtime, outputDir, keepZips }) {
   const sourceCourseMap = cloneJson(sample.project.courseMap);
-  const courseMap = {
+  const normalizedSourceCourseMap = {
     ...sourceCourseMap,
     lessons: Array.isArray(sourceCourseMap.lessons) ? sourceCourseMap.lessons : [],
   };
+  // Match the real generation path before blueprint construction. Imported
+  // maps can contain blank/TBD lesson identities and sparse section fields;
+  // compiling those raw rows while finalizing against a different repaired
+  // identity creates false cross-artifact mismatch blockers and fails to test
+  // the package instructors actually receive.
+  const courseMapRepair = runtime.repairCourseMapReadiness({
+    courseMap: normalizedSourceCourseMap,
+    columns: DEFAULT_COLUMNS,
+  });
+  const courseMap = courseMapRepair.courseMap || normalizedSourceCourseMap;
   const blueprint = runtime.buildCourseBlueprint(courseMap, { enrichment: sample.enrichment || {} });
   const compiled = runtime.compileBlueprintDeliverables(blueprint, FEATURES, {
     configMap: {
@@ -702,6 +726,7 @@ async function auditSample({ sample, runtime, outputDir, keepZips }) {
     includePedagogicalValidation: true,
     blockOnValidationWarnings: false,
     retryWarnings: false,
+    blueprint,
     deliverableConfig: {
       courseFaq: { questionsPerLesson: 5 },
     },
@@ -748,6 +773,14 @@ async function auditSample({ sample, runtime, outputDir, keepZips }) {
     zipStructureIssues,
     zipCopyWarnings,
   });
+  const contentQualityFindings = FEATURES.flatMap((featureId) => {
+    const entry = finalizer.deliverables?.[featureId];
+    if (entry?.status !== 'done' || !entry.data) return [];
+    return runtime.auditDeliverableContentQuality(featureId, entry.data).findings.map((finding) => ({
+      featureId,
+      ...finding,
+    }));
+  });
   quality.blockers.unshift(...zipExportBlockers);
   return {
     sampleId: sample.id,
@@ -763,6 +796,7 @@ async function auditSample({ sample, runtime, outputDir, keepZips }) {
     repairsApplied: finalizer.repairsApplied,
     readinessStatus: finalizer.readiness?.status || 'unknown',
     readinessWarnings: finalizer.readiness?.warnings?.length || 0,
+    contentQualityFindings,
     healthErrors: finalizer.healthReport?.errorCount || 0,
     healthWarnings: finalizer.healthReport?.warningCount || 0,
     requiredAssetCount: requiredAssets.length,

@@ -22,8 +22,8 @@ export function buildGeneralEvidenceReasoningIntent({ focusConcept, artifact, va
   const concept = cleanInlineLabel(focusConcept, 'the lesson focus');
   const variants = [
     {
-      objective: `Evaluate one ${concept} claim by distinguishing admitted evidence, warranted inference, and one unresolved limitation in ${learnerArtifact}.`,
-      evidenceRequirement: `The ${learnerArtifact} must identify the admitted evidence, show the inference it warrants, and state one limitation that the evidence does not resolve.`,
+      objective: `Evaluate one ${concept} claim in ${learnerArtifact}. Distinguish admitted evidence for ${concept} from its inference and bound the ${learnerArtifact} conclusion.`,
+      evidenceRequirement: `In ${learnerArtifact}, identify admitted evidence for ${concept}. State the ${concept} inference. Mark one unresolved ${learnerArtifact} limit.`,
     },
     {
       objective: `Test one ${concept} claim in ${learnerArtifact} by separating source-backed observation from inference and naming what remains unresolved.`,

@@ -807,6 +807,83 @@ export function instructionalIntentGraphReceiptMatches(graph = {}) {
   return sha256HexSync(canonicalJson(graphWithoutReceipt)) === graph.receipt.exactInputSha256;
 }
 
+/**
+ * Convert an exact evidence-only planning hold into a signed compiler recovery
+ * authorization. The curriculum intent stays immutable; only the permission
+ * to render source-bounded, compiler-owned recovery surfaces changes. Any
+ * other blocker, stale receipt, or mixed blocker set remains fail-closed.
+ */
+export function authorizeInstructionalIntentGraphEvidenceRecovery(graph = {}) {
+  if (!instructionalIntentGraphReceiptMatches(graph)) return graph;
+  const admission = validateInstructionalIntentGraph(graph);
+  const blockers = admission.blockers || [];
+  if (
+    admission.status !== 'needs-evidence' ||
+    blockers.length === 0 ||
+    !blockers.every((blocker) => /^lesson-\d+:evidence-acquisition-required$/.test(blocker))
+  ) {
+    return graph;
+  }
+
+  const lessonNumbers = blockers
+    .map((blocker) => Number(/^lesson-(\d+):/.exec(blocker)?.[1]))
+    .filter((lessonNumber) => Number.isInteger(lessonNumber) && lessonNumber > 0);
+  const recoveryLessons = new Set(lessonNumbers);
+  const { admission: _priorAdmission, receipt: _priorReceipt, ...priorGraph } = graph;
+  const graphWithoutReceipt = {
+    ...structuredClone(priorGraph),
+    lessonIntents: items(graph.lessonIntents).map((intent) =>
+      recoveryLessons.has(Number(intent?.lessonNumber))
+        ? (() => {
+            const recoverySource = `course-created ${cleanText(intent.title, `Lesson ${intent.lessonNumber}`)} practice record`;
+            return {
+              ...structuredClone(intent),
+              clarificationQuestions: items(intent.clarificationQuestions).map((question) =>
+                question?.priority === 'essential' && ['source-claims', 'governing-source'].includes(question?.decision)
+                  ? {
+                      ...structuredClone(question),
+                      priority: 'deferred-by-compiler-recovery',
+                      resolution:
+                        'The compiler will publish no external factual claim for this lesson until exact source claims are admitted.',
+                    }
+                  : structuredClone(question),
+              ),
+              evidenceBoundary: {
+                ...structuredClone(intent.evidenceBoundary || {}),
+                approvedSources: [recoverySource],
+                citationExpectation: `Cite ${recoverySource} at the point where its evidence is used.`,
+                draftAuthorization: 'compiler-source-review-recovery',
+                recoveryConstraint:
+                  'Render only curriculum-owned objectives, source labels, and compiler-created practice; publish no provisional subject-matter claims.',
+              },
+            };
+          })()
+        : structuredClone(intent),
+    ),
+    evidenceRecoveryAuthorization: {
+      protocol: 'coursemapper-instructional-plan-evidence-recovery-v1',
+      status: 'authorized',
+      lessonNumbers,
+      predecessorReceiptSha256: graph.receipt.exactInputSha256,
+      claimBoundary:
+        'Only exact evidence-acquisition holds may enter compiler-owned source-review recovery; all other planning defects remain blocked.',
+    },
+  };
+  const recoveredAdmission = validateInstructionalIntentGraph(graphWithoutReceipt);
+  if (recoveredAdmission.status !== 'approved') return graph;
+  return {
+    ...graphWithoutReceipt,
+    admission: recoveredAdmission,
+    receipt: {
+      version: 1,
+      algorithm: 'sha256',
+      exactInputSha256: sha256HexSync(canonicalJson(graphWithoutReceipt)),
+      lessonCount: graphWithoutReceipt.lessonIntents.length,
+      status: recoveredAdmission.status,
+    },
+  };
+}
+
 export function applyInstructionalIntentGraph(lessons = [], graph = {}) {
   const byId = new Map(items(graph.lessonIntents).map((intent) => [intent?.id, intent]));
   const synchronizeEvidenceBoundary = Boolean(graph?.planningAuthority);

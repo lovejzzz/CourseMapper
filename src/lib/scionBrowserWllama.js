@@ -25,8 +25,8 @@ let pendingProbe = null;
 let completionTail = Promise.resolve();
 let runtimeLoadOptions = null;
 const statusListeners = new Set();
-const EXPECTED_WEBGPU_RUNTIME_WARNING_RE =
-  /(?:multi-threads are not supported|missing paths to multi-thread build|falling back single-thread|disabling multi-threading when using webgpu backend)/i;
+const EXPECTED_SCION_RUNTIME_WARNING_RE =
+  /(?:multi-threads are not supported|missing paths to multi-thread build|falling back single-thread|disabling multi-threading when using webgpu backend|control-looking token:.+was not control-type.+type will be overridden|special_eog_ids contains .+ removing .+ token from eog list|n_ctx_seq \(\d+\) < n_ctx_train \(\d+\).+full capacity of the model will not be utilized|llama_kv_cache_iswa: using full-size swa cache)/i;
 const SCION_MODEL_STORAGE_HEADROOM_BYTES = 512 * 1024 * 1024;
 const SCION_MODEL_STORAGE_ERROR_RE =
   /(?:browser storage is full|quotaexceeded|not enough space|no space|4294967288|wrote -8 of)/i;
@@ -35,16 +35,22 @@ const SCION_MODEL_CACHE_ERROR_RE =
 const SCION_MODEL_TRANSIENT_ACTIVATION_ERROR_RE =
   /(?:ggml_webgpu[^\n]*queue wait timed out|queue wait timed out after \d+\s*ms|webgpu[^\n]*(?:device lost|internal error))/i;
 
-// wllama emits CPU-thread fallback warnings before it applies its WebGPU
-// backend choice. Scion deliberately ships only the JSPI single-thread WASM
-// because WebGPU disables CPU multithreading anyway. Filter those expected,
-// non-actionable messages while preserving every other runtime warning/error.
+// wllama/llama.cpp emits a small, pinned set of informational messages at
+// activation: WebGPU selects single-thread execution, Gemma token metadata is
+// normalized, the app's bounded context is smaller than training capacity,
+// and the runtime announces its SWA cache strategy. None signals degraded
+// output or a failed capability. Keep those known messages out of the warning
+// channel while preserving every unknown warning and every error.
+export function isExpectedScionRuntimeWarning(...args) {
+  return EXPECTED_SCION_RUNTIME_WARNING_RE.test(args.map(String).join(' '));
+}
+
 const scionRuntimeLogger = {
   debug: () => {},
   log: (...args) => console.log(...args),
   info: (...args) => console.info(...args),
   warn: (...args) => {
-    if (EXPECTED_WEBGPU_RUNTIME_WARNING_RE.test(args.map(String).join(' '))) return;
+    if (isExpectedScionRuntimeWarning(...args)) return;
     console.warn(...args);
   },
   error: (...args) => console.error(...args),

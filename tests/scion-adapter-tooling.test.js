@@ -593,8 +593,11 @@ describe('Scion adapter tooling', () => {
     const priorGraderBenchmarkV96 = JSON.parse(
       await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v96.json', 'utf8'),
     );
-    const currentGraderBenchmark = JSON.parse(
+    const priorGraderBenchmarkV142 = JSON.parse(
       await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v142.json', 'utf8'),
+    );
+    const currentGraderBenchmark = JSON.parse(
+      await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v143.json', 'utf8'),
     );
     expect(validateScionHeldoutBenchmark(benchmark)).toMatchObject({
       valid: true,
@@ -614,6 +617,7 @@ describe('Scion adapter tooling', () => {
     expect(validateScionHeldoutBenchmark(priorGraderBenchmarkV94)).toMatchObject({ valid: true, issues: [] });
     expect(validateScionHeldoutBenchmark(priorGraderBenchmarkV95)).toMatchObject({ valid: true, issues: [] });
     expect(validateScionHeldoutBenchmark(priorGraderBenchmarkV96)).toMatchObject({ valid: true, issues: [] });
+    expect(validateScionHeldoutBenchmark(priorGraderBenchmarkV142)).toMatchObject({ valid: true, issues: [] });
     expect(validateScionHeldoutBenchmark(currentGraderBenchmark)).toMatchObject({ valid: true, issues: [] });
     const currentGraderReceipt = await captureModuleImplementationReceipt({
       root: process.cwd(),

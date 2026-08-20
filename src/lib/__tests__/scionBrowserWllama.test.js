@@ -1,8 +1,27 @@
 import { describe, expect, it, vi } from 'vitest';
-import { classifyScionBrowserModelLoadError, estimateScionBrowserModelStorage } from '../scionBrowserWllama';
+import {
+  classifyScionBrowserModelLoadError,
+  estimateScionBrowserModelStorage,
+  isExpectedScionRuntimeWarning,
+} from '../scionBrowserWllama';
 import { SCION_BROWSER_GEMMA4_GGUF } from '../scionBrowserConstants';
 
 describe('Scion browser model storage recovery', () => {
+  it.each([
+    "load: control-looking token: 212 '</s>' was not control-type; this is probably a bug in the model. its type will be overridden",
+    "load: special_eog_ids contains '<|tool_response>', removing '</s>' token from EOG list",
+    'llama_context: n_ctx_seq (8192) < n_ctx_train (131072) -- the full capacity of the model will not be utilized',
+    'llama_kv_cache_iswa: using full-size SWA cache',
+    'Disabling multi-threading when using WebGPU backend',
+  ])('classifies pinned native initialization diagnostics as informational: %s', (message) => {
+    expect(isExpectedScionRuntimeWarning(message)).toBe(true);
+  });
+
+  it('preserves unknown model-runtime warnings for diagnosis', () => {
+    expect(isExpectedScionRuntimeWarning('WebGPU device lost while generating token 42')).toBe(false);
+    expect(isExpectedScionRuntimeWarning('Model file not found')).toBe(false);
+  });
+
   it('recognizes Chromium no-space results returned as an unsigned integer', () => {
     expect(
       classifyScionBrowserModelLoadError(new Error('OPFS Worker: wrote 4294967288 of 933462 requested bytes')),

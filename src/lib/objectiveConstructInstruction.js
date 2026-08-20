@@ -62,7 +62,7 @@ export function appliedObjectiveCue(objective) {
     return `First, ${lowerLead(clauses[0])}; then ${clauses.slice(1).map(lowerLead).join(', then ')}`;
   }
   const imperative = source.match(
-    /^(analy[sz]e|assess|audit|build|cite|compare|construct|create|design|develop|differentiate|distinguish|evaluate|explain|identify|interpret|produce|reference|revise|state|use|apply)\s+(.+)$/i,
+    /^(analy[sz]e|assess|audit|build|cite|compare|construct|create|design|develop|differentiate|distinguish|evaluate|explain|identify|inspect|interpret|produce|reference|revise|state|use|apply)\s+(.+)$/i,
   );
   if (imperative) {
     const verb = imperative[1].toLowerCase();
@@ -86,6 +86,7 @@ export function appliedObjectiveCue(objective) {
       evaluate: 'evaluation of',
       explain: 'explanation of',
       identify: 'identification of',
+      inspect: 'inspection of',
       interpret: 'interpretation of',
       produce: 'production of',
       reference: 'reference to',

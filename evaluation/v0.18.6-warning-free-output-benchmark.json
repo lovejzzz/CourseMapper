@@ -1,0 +1,29 @@
+{
+  "protocol": "coursemapper-warning-free-output-benchmark-v1",
+  "version": "0.18.6",
+  "capturedAt": "2026-08-20T07:54:03Z",
+  "status": "bounded-pass",
+  "checks": [
+    {
+      "id": "signed-evidence-recovery",
+      "status": "pass",
+      "evidence": "A receipt-valid all-evidence-blocker instructional graph authorizes only the affected lessons before blueprint admission; the nine standard material compilers complete and mixed or stale blockers remain fail-closed."
+    },
+    {
+      "id": "focused-warning-regressions",
+      "status": "pass",
+      "evidence": "Public policy, data science, engineering design, and messy clinical fixtures exported 334 files with zero blockers and zero warnings after DOCX, repetition, dangling-clause, and article handling repairs."
+    },
+    {
+      "id": "full-export-torture-matrix",
+      "status": "pass",
+      "evidence": "The final version-bound matrix passed 34/34 courses across 29 modalities and 8-14 lessons with zero blockers, zero warnings, and 2,660 inspected export files after blueprint compilation, deterministic finalization, ZIP construction, and Office-structure inspection."
+    },
+    {
+      "id": "diagnostic-signal",
+      "status": "pass",
+      "evidence": "Known llama.cpp informational startup messages are classified narrowly; unknown device/model warnings remain warnings, and Node 25 test/audit processes emit no experimental Web Storage warning."
+    }
+  ],
+  "boundary": "This benchmark verifies deterministic compiler, export, and diagnostic behavior. It is not factual certification, accessibility certification, instructor approval, classroom validation, or production deployment evidence."
+}

@@ -1,3 +1,5 @@
+import { instructionalIntentGraphReceiptMatches } from './instructionalIntentGraph.js';
+
 function essentialQuestionsForPlan(instructionalPlan) {
   return (instructionalPlan?.lessonIntents || []).flatMap((intent) =>
     (intent?.clarificationQuestions || [])
@@ -29,14 +31,25 @@ function blockedPlanDetail(instructionalPlan) {
 
 function isEvidenceRecoveryPlan(instructionalPlan) {
   const blockers = instructionalPlan?.admission?.blockers || [];
-  return (
+  const pendingEvidenceRecovery =
     instructionalPlan?.admission?.status === 'needs-evidence' &&
     blockers.length > 0 &&
-    blockers.every((blocker) => /:evidence-acquisition-required$/.test(blocker))
-  );
+    blockers.every((blocker) => /:evidence-acquisition-required$/.test(blocker));
+  const signedCompilerRecovery =
+    instructionalPlan?.admission?.status === 'approved' &&
+    instructionalPlan?.evidenceRecoveryAuthorization?.protocol ===
+      'coursemapper-instructional-plan-evidence-recovery-v1' &&
+    instructionalPlan?.evidenceRecoveryAuthorization?.status === 'authorized' &&
+    instructionalIntentGraphReceiptMatches(instructionalPlan);
+  return pendingEvidenceRecovery || signedCompilerRecovery;
 }
 
 function evidenceRecoveryLessonNumbers(instructionalPlan) {
+  if (Array.isArray(instructionalPlan?.evidenceRecoveryAuthorization?.lessonNumbers)) {
+    return instructionalPlan.evidenceRecoveryAuthorization.lessonNumbers
+      .map(Number)
+      .filter((lessonNumber) => Number.isInteger(lessonNumber) && lessonNumber > 0);
+  }
   return (instructionalPlan?.admission?.blockers || [])
     .map((blocker) => /^lesson-(\d+):evidence-acquisition-required$/.exec(blocker)?.[1])
     .map(Number)
@@ -59,16 +72,16 @@ export function admitInstructionalPlanForGeneration({
   const instructionalPlan = blueprint.instructionalIntentGraph;
   const essentialQuestions = essentialQuestionsForPlan(instructionalPlan);
   const evidenceRecoveryAuthorized = isEvidenceRecoveryPlan(instructionalPlan);
+  const evidenceRecoveryCount = evidenceRecoveryLessonNumbers(instructionalPlan).length;
   recordEvent({
     type: 'instructionalPlanAdmission',
     stage: 'instructional-planning',
     label: 'Instructional plan',
-    detail:
-      instructionalPlan?.admission?.status === 'approved'
+    detail: evidenceRecoveryAuthorized
+      ? `${evidenceRecoveryCount} lesson source gap${evidenceRecoveryCount === 1 ? '' : 's'} isolated to compiler-owned source-review recovery`
+      : instructionalPlan?.admission?.status === 'approved'
         ? `${instructionalPlan.lessonIntents.length}/${instructionalPlan.lessonIntents.length} lesson intents approved before drafting`
-        : evidenceRecoveryAuthorized
-          ? `${instructionalPlan.admission.blockerCount} lesson source gap${instructionalPlan.admission.blockerCount === 1 ? '' : 's'} isolated to compiler-owned source-review recovery`
-          : `${instructionalPlan?.admission?.blockerCount || 0} planning blocker${instructionalPlan?.admission?.blockerCount === 1 ? '' : 's'} · ${essentialQuestions.length} instructor decision${essentialQuestions.length === 1 ? '' : 's'} needed`,
+        : `${instructionalPlan?.admission?.blockerCount || 0} planning blocker${instructionalPlan?.admission?.blockerCount === 1 ? '' : 's'} · ${essentialQuestions.length} instructor decision${essentialQuestions.length === 1 ? '' : 's'} needed`,
     lessonCount: instructionalPlan?.lessonIntents?.length || 0,
     status: evidenceRecoveryAuthorized
       ? 'evidence-recovery-authorized'
@@ -151,9 +164,9 @@ export function admitInstructionalPlanForGeneration({
   commitKernelCache();
   appendLog(
     evidenceRecoveryAuthorized
-      ? `⚠ ${instructionalPlan.admission.blockerCount} lesson source gap${instructionalPlan.admission.blockerCount === 1 ? '' : 's'} kept in source-review recovery; provisional subject matter was not published`
+      ? `✓ ${evidenceRecoveryLessonNumbers(instructionalPlan).length} lesson source gap${evidenceRecoveryLessonNumbers(instructionalPlan).length === 1 ? '' : 's'} recovered locally; provisional subject matter was not published`
       : `✓ Instructional plan approved before drafting (${instructionalPlan.lessonIntents.length} lessons)`,
-    evidenceRecoveryAuthorized ? 'warn' : 'done',
+    'done',
   );
   return instructionalPlan;
 }

@@ -3073,6 +3073,10 @@ export default function useDeliverables({
         if (shouldStopBlueprintCompiler()) return;
         const blueprint = compactBlueprintForStorage(
           courseGraphLib.buildBlueprintFromGraph(courseGraph, {
+            // Exact evidence-acquisition holds are recovered by the local
+            // compiler without publishing provisional model facts. Every
+            // mixed, stale, or non-evidence planning defect stays blocked.
+            allowEvidenceRecovery: true,
             scopeIndices,
             sourceBrief,
             localization: professorProfile.getProfile(),

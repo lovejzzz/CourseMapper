@@ -121,6 +121,8 @@ describe('buildDeliverableDocxBlob', () => {
     );
     expect(closingParagraph).toContain('w:line="184"');
     expect(closingParagraph).toContain('w:sz w:val="18"');
+    expect(closingParagraph).not.toContain('•');
+    expect(closingParagraph).toContain(' — ');
   });
 
   it('ends a study guide on content and gives its term table a semantic header row', async () => {
@@ -673,6 +675,34 @@ describe('buildDeliverableDocxBlob', () => {
     expect(xml).toContain('<w:numPr>');
     expect(xml).toContain('Review the generated DOCX.');
     expect(xml).not.toContain('• Review the generated DOCX.');
+  });
+
+  it('keeps lesson-plan handoff labels compact without fake bullet characters', async () => {
+    const blob = await buildDeliverableDocxBlob(
+      'lessonPlans',
+      {
+        lessonPlans: [
+          {
+            lessonTitle: 'Lesson 1: Clean Export',
+            formativeCheck: {
+              type: 'Exit ticket',
+              prompt: 'Name the deciding evidence.',
+            },
+            homework: {
+              title: 'Evidence note',
+              description: 'Revise one claim from the lesson.',
+            },
+          },
+        ],
+      },
+      'Export Cleanliness',
+    );
+
+    const xml = await docxDocumentXml(blob);
+    expect(xml).toContain('Formative Assessment');
+    expect(xml).toContain('Homework');
+    expect(xml).toContain(' — ');
+    expect(xml).not.toContain('•');
   });
 
   it('renders brief constraints separately from the scored rubric with readable weight geometry', async () => {

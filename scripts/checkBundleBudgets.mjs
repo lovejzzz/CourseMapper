@@ -29,9 +29,9 @@ const budgets = {
 // caught an unaccounted increase, and the fix is to re-freeze at the released
 // state, not to widen the allowance. Every future release must do the same.
 const repositoryBudgets = {
-  // V0.18.5 advances the frozen ledger through V0.18.4. Its own contract
+  // V0.18.6 advances the frozen ledger through V0.18.5. Its own contract
   // consumes the single declared-release allowance.
-  baselineVersion: '0.18.4',
+  baselineVersion: '0.18.5',
   // v0.16.82 adds 29 net lines of reusable compiler control logic for
   // policy-domain separation and concept-owned evidence binding. Source-
   // statement copy and prerequisite selection moved to a cacheable leaf; the
@@ -74,7 +74,11 @@ const repositoryBudgets = {
   // contract audit and the three-discipline replay; freeze the exact state.
   // Final V0.17.18 review adds 11 measured lines for nonredundant objective
   // projection and lesson-specific discussion evidence criteria.
-  compilerLines: 28_496,
+  // V0.18.6 adds 28 net controller lines for receipt-bound evidence-only
+  // recovery, compiler-practice classification, article-safe criteria,
+  // lesson-specific export copy, and the compact-instruction matcher that
+  // preserves code-lab requirements. Freeze the exact verified candidate.
+  compilerLines: 28_524,
   // V0.16.97 moved compiler logic into cacheable courseCompiler*.js leaves.
   // Freeze the whole ownership family so extracting modules cannot make the
   // monolith-only counter report a false reduction. The 69-line post-release
@@ -110,7 +114,9 @@ const repositoryBudgets = {
   // and no new courseCompiler leaf, so the ownership-family delta is exact.
   // The same publish-readiness controls add 147 net family lines after
   // extraction accounting. No fixed course corpus moved into a leaf.
-  compilerFamilyLines: 31_656,
+  // V0.18.6 changes only the controller monolith in this ownership family;
+  // the 24-line final recovery-classification correction is included above.
+  compilerFamilyLines: 31_684,
   // v0.16.81 adds one executable Algi→Scion hybrid benchmark audit. It freezes
   // evidence, route, quality, call, latency, and export promotion rules; this
   // is a release gate rather than product-side script sprawl.
@@ -134,9 +140,9 @@ const repositoryBudgets = {
   // internal render, functional-visual, and evidence tools remain direct Node
   // entry points instead of multiplying package-script aliases.
   npmScripts: 402,
-  // V0.18.4 closes with 309 tracked ledger files; V0.18.5 may add exactly
+  // V0.18.5 closes with 310 tracked ledger files; V0.18.6 may add exactly
   // its one current-release contract.
-  releaseContractFiles: 309,
+  releaseContractFiles: 310,
   trackedWeightFiles: 62,
   trackedWeightBytes: 1_053_339_981,
   largeBinaryBytes: 1024 * 1024,
@@ -438,7 +444,10 @@ const lazyChunkBudgets = [
   // activity variants and measures 246,526 gzip bytes on locked Node 22. The
   // raw chunk shrank; freeze the exact gzip result with the existing 64-byte
   // platform-variance allowance instead of granting speculative headroom.
-  { prefix: 'courseBlueprintCompiler-', rawKiB: 850.11, gzipKiB: 241.09, gzipSlackBytes: 64 },
+  // V0.18.6's signed recovery branch and copy guards add 0.20 KiB measured
+  // gzip to the compiler chunk; freeze the exact candidate with the existing
+  // 64-byte cross-platform compressor tolerance.
+  { prefix: 'courseBlueprintCompiler-', rawKiB: 850.11, gzipKiB: 241.41, gzipSlackBytes: 64 },
   // Verified Coherent Draft policy is independently cacheable from compiler
   // orchestration. These narrow ceilings freeze the measured course-agnostic
   // semantic-admission, evidence-operation, and specimen contract layer.
