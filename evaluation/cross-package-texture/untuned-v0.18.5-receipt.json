@@ -1,0 +1,15 @@
+{
+  "schema": "coursemapper.cross-package-texture.release-receipt.v1",
+  "appVersion": "0.18.5",
+  "profile": "untuned",
+  "panelVersion": "1.0.0",
+  "canonicalSha256": "fc125fcdac0dbfc2897ed021b1f8651235bca72707c3a709a4a421e45b305870",
+  "packageCount": 12,
+  "clusterCount": 414,
+  "supportBurdenRate": 0.054017,
+  "readerExposureRate": 0.083991,
+  "crossPackageExcessRate": 0.056737,
+  "lensDefaultHits": 30,
+  "packagesWithLensDefault": 10,
+  "unclassifiedPathCount": 0
+}

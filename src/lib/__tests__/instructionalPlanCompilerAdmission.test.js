@@ -540,4 +540,36 @@ describe('instructional-plan compiler admission', () => {
       /receipt chain is missing or stale/i,
     );
   });
+
+  it('allows an explicit fail-closed recovery plan when source acquisition remains incomplete', () => {
+    const planned = prepareInstructionalPlan({ courseMap: courseMap() });
+    const governingSourceContract = createScionEvidenceAuthorityContract({
+      lessonIndices: [0, 1],
+      instructionalPlan: planned.instructionalPlan,
+    });
+
+    expect(governingSourceContract.status).toBe('needs-evidence');
+    expect(() =>
+      prepareInstructionalPlan({
+        courseMap: courseMap(),
+        governingSourceContract,
+      }),
+    ).toThrow(/blocked drafting/i);
+
+    const recovery = prepareInstructionalPlan({
+      courseMap: courseMap(),
+      governingSourceContract,
+      allowEvidenceRecovery: true,
+    });
+
+    expect(recovery).toMatchObject({
+      phase: 'evidence-needs-planned',
+      instructionalPlan: {
+        admission: { status: 'needs-evidence' },
+        planningAuthority: {
+          governingSourceContractSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
+        },
+      },
+    });
+  });
 });

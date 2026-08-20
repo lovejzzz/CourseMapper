@@ -1371,6 +1371,11 @@ export default function useDeliverables({
               governingSourceContract,
               ...authenticLanguageDataTransaction,
               authorityKind: nativeSkeleton ? 'native-skeleton-render' : 'repaired-course-map',
+              // A source miss must not fan out into nine identical feature
+              // failures. The downstream compiler already has a fail-closed
+              // source-review recovery path that quarantines provisional
+              // subject matter while keeping the package inspectable.
+              allowEvidenceRecovery: true,
             }).instructionalPlan;
           } catch (evidencePlanError) {
             const evidenceAdmissionFailures = Object.entries(governingSourceContract?.byLessonId || {})
@@ -1405,11 +1410,17 @@ export default function useDeliverables({
           type: 'instructionalPlanAdmission',
           stage: 'evidence-grounded-planning',
           label: 'Evidence-grounded instructional plan',
-          status: 'approved',
+          status:
+            evidenceGroundedInstructionalPlan.admission.status === 'approved'
+              ? 'approved'
+              : 'evidence-recovery-authorized',
           lessonCount: evidenceGroundedInstructionalPlan.lessonIntents.length,
           receiptSha256: evidenceGroundedInstructionalPlan.receipt.exactInputSha256,
           governingSourceReceiptSha256: governingSourceContract?.receiptSha256 || null,
-          detail: `${evidenceGroundedInstructionalPlan.lessonIntents.length}/${evidenceGroundedInstructionalPlan.lessonIntents.length} lessons earned claim-bound drafting authority`,
+          detail:
+            evidenceGroundedInstructionalPlan.admission.status === 'approved'
+              ? `${evidenceGroundedInstructionalPlan.lessonIntents.length}/${evidenceGroundedInstructionalPlan.lessonIntents.length} lessons earned claim-bound drafting authority`
+              : `${evidenceGroundedInstructionalPlan.admission.blockerCount} lesson source gap${evidenceGroundedInstructionalPlan.admission.blockerCount === 1 ? '' : 's'} routed to compiler-owned source-review recovery`,
         });
 
         const genomeOnlyEnrichment = () => {

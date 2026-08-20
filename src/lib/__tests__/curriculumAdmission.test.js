@@ -232,6 +232,27 @@ describe('compiled-operation curriculum admission', () => {
     });
   });
 
+  it('does not reinterpret linear-algebra least squares as statistical regression', () => {
+    const lesson = {
+      lessonNumber: 13,
+      title: 'Lesson 13: Orthogonal Projections',
+      outcomes: ['Use projection onto subspaces to solve and explain a linear-algebra problem.'],
+      keyConcepts: ['Orthogonal projections'],
+      sections: [
+        { topicSection: 'Projection onto Subspaces' },
+        { topicSection: 'Least Squares Approximation' },
+        { topicSection: 'Least Squares Error Analysis' },
+      ],
+    };
+
+    const example = operationQualifiedWorkedExampleForLesson(lesson);
+    expect(example).toMatchObject({
+      problem: expect.stringMatching(/project v/i),
+      result: expect.stringMatching(/projection/i),
+    });
+    expect(JSON.stringify(example)).not.toMatch(/regression|slope|intercept|residual/i);
+  });
+
   it('turns a verified authentic-language binding into applied quiz items and a study worked example', () => {
     const blueprint = buildCourseBlueprint({
       courseName: 'Language Evidence',

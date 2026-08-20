@@ -25,6 +25,7 @@ export function prepareInstructionalPlan({
   authenticLanguageDataPacket: suppliedAuthenticLanguageDataPacket = null,
   authenticLanguageDataCoverage: suppliedAuthenticLanguageDataCoverage = null,
   authorityKind = 'repaired-course-map',
+  allowEvidenceRecovery = false,
   _curriculumSyncPass = 0,
   _instructionalPlanContractReceipt = null,
 } = {}) {
@@ -97,6 +98,7 @@ export function prepareInstructionalPlan({
       authenticLanguageDataPacket,
       authenticLanguageDataCoverage,
       authorityKind,
+      allowEvidenceRecovery,
       _curriculumSyncPass: _curriculumSyncPass + 1,
       _instructionalPlanContractReceipt: planContract.receipt,
     });
@@ -133,7 +135,11 @@ export function prepareInstructionalPlan({
   // the same assertion becomes strict and semantic drafting remains blocked
   // until every lesson has admitted claim authority.
   assertInstructionalIntentGraph(blueprint.instructionalIntentGraph, {
-    allowEvidenceNeeds: !governingSourceContract,
+    // The compiler owns a conservative source-review recovery path that
+    // quarantines model-provisional knowledge and emits instructor-facing
+    // source placeholders. Generation may enter that path only when the
+    // caller opts in; every non-evidence planning blocker remains fatal.
+    allowEvidenceNeeds: !governingSourceContract || allowEvidenceRecovery,
   });
   return {
     protocol: 'coursemapper-prepare-instructional-plan-v1',

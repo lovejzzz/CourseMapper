@@ -27,6 +27,22 @@ function blockedPlanDetail(instructionalPlan) {
     .join('; ');
 }
 
+function isEvidenceRecoveryPlan(instructionalPlan) {
+  const blockers = instructionalPlan?.admission?.blockers || [];
+  return (
+    instructionalPlan?.admission?.status === 'needs-evidence' &&
+    blockers.length > 0 &&
+    blockers.every((blocker) => /:evidence-acquisition-required$/.test(blocker))
+  );
+}
+
+function evidenceRecoveryLessonNumbers(instructionalPlan) {
+  return (instructionalPlan?.admission?.blockers || [])
+    .map((blocker) => /^lesson-(\d+):evidence-acquisition-required$/.exec(blocker)?.[1])
+    .map(Number)
+    .filter((lessonNumber) => Number.isInteger(lessonNumber) && lessonNumber > 0);
+}
+
 export function admitInstructionalPlanForGeneration({
   appendLog,
   blueprint,
@@ -42,6 +58,7 @@ export function admitInstructionalPlanForGeneration({
 }) {
   const instructionalPlan = blueprint.instructionalIntentGraph;
   const essentialQuestions = essentialQuestionsForPlan(instructionalPlan);
+  const evidenceRecoveryAuthorized = isEvidenceRecoveryPlan(instructionalPlan);
   recordEvent({
     type: 'instructionalPlanAdmission',
     stage: 'instructional-planning',
@@ -49,29 +66,47 @@ export function admitInstructionalPlanForGeneration({
     detail:
       instructionalPlan?.admission?.status === 'approved'
         ? `${instructionalPlan.lessonIntents.length}/${instructionalPlan.lessonIntents.length} lesson intents approved before drafting`
-        : `${instructionalPlan?.admission?.blockerCount || 0} planning blocker${instructionalPlan?.admission?.blockerCount === 1 ? '' : 's'} · ${essentialQuestions.length} instructor decision${essentialQuestions.length === 1 ? '' : 's'} needed`,
+        : evidenceRecoveryAuthorized
+          ? `${instructionalPlan.admission.blockerCount} lesson source gap${instructionalPlan.admission.blockerCount === 1 ? '' : 's'} isolated to compiler-owned source-review recovery`
+          : `${instructionalPlan?.admission?.blockerCount || 0} planning blocker${instructionalPlan?.admission?.blockerCount === 1 ? '' : 's'} · ${essentialQuestions.length} instructor decision${essentialQuestions.length === 1 ? '' : 's'} needed`,
     lessonCount: instructionalPlan?.lessonIntents?.length || 0,
-    status: instructionalPlan?.admission?.status || 'missing',
+    status: evidenceRecoveryAuthorized
+      ? 'evidence-recovery-authorized'
+      : instructionalPlan?.admission?.status || 'missing',
     receiptSha256: instructionalPlan?.receipt?.exactInputSha256 || null,
     essentialQuestions,
   });
 
   if (instructionalPlan?.admission?.status !== 'approved') {
-    const question = essentialQuestions[0]?.prompt;
-    appendLog(
-      question
-        ? `Scion needs an instructor decision before drafting: ${question}`
-        : 'Scion could not approve the instructional plan before drafting.',
-      'warn',
-    );
-    const claimDetail = blockedPlanDetail(instructionalPlan);
-    throw new Error(
-      question
-        ? `Instructional planning needs input before drafting: ${question}`
-        : `Instructional planning blocked drafting: ${(instructionalPlan?.admission?.blockers || [])
-            .slice(0, 3)
-            .join(', ')}${claimDetail ? `; ${claimDetail}` : ''}`,
-    );
+    if (!evidenceRecoveryAuthorized) {
+      const question = essentialQuestions[0]?.prompt;
+      appendLog(
+        question
+          ? `Scion needs an instructor decision before drafting: ${question}`
+          : 'Scion could not approve the instructional plan before drafting.',
+        'warn',
+      );
+      const claimDetail = blockedPlanDetail(instructionalPlan);
+      throw new Error(
+        question
+          ? `Instructional planning needs input before drafting: ${question}`
+          : `Instructional planning blocked drafting: ${(instructionalPlan?.admission?.blockers || [])
+              .slice(0, 3)
+              .join(', ')}${claimDetail ? `; ${claimDetail}` : ''}`,
+      );
+    }
+  }
+
+  if (evidenceRecoveryAuthorized) {
+    const recoveryLessons = evidenceRecoveryLessonNumbers(instructionalPlan);
+    const priorMissingLessons = blueprint?.enrichment?.coverage?.missingLessons || [];
+    blueprint.enrichment = {
+      ...(blueprint.enrichment || {}),
+      coverage: {
+        ...(blueprint.enrichment?.coverage || {}),
+        missingLessons: [...new Set([...priorMissingLessons, ...recoveryLessons])].sort((left, right) => left - right),
+      },
+    };
   }
 
   if (preDraftInstructionalPlan) {
@@ -89,7 +124,7 @@ export function admitInstructionalPlanForGeneration({
     }
     blueprint.instructionalPlanLineage = {
       protocol: 'coursemapper-linked-instructional-plan-receipts-v3',
-      status: 'draft-authorized',
+      status: evidenceRecoveryAuthorized ? 'evidence-recovery-authorized' : 'draft-authorized',
       promotionEligible: false,
       // This receipt chain was created before any learner-visible drafting.
       // Promotion still requires the independent post-draft integrity receipt.
@@ -115,8 +150,10 @@ export function admitInstructionalPlanForGeneration({
 
   commitKernelCache();
   appendLog(
-    `✓ Instructional plan approved before drafting (${instructionalPlan.lessonIntents.length} lessons)`,
-    'done',
+    evidenceRecoveryAuthorized
+      ? `⚠ ${instructionalPlan.admission.blockerCount} lesson source gap${instructionalPlan.admission.blockerCount === 1 ? '' : 's'} kept in source-review recovery; provisional subject matter was not published`
+      : `✓ Instructional plan approved before drafting (${instructionalPlan.lessonIntents.length} lessons)`,
+    evidenceRecoveryAuthorized ? 'warn' : 'done',
   );
   return instructionalPlan;
 }

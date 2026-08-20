@@ -93,17 +93,52 @@ function writeConversationStorage(conversations, id, messages) {
   localStorage.setItem(`${STORAGE_KEY}:${id}`, JSON.stringify(messages));
 }
 
+function readConversationIndex(storage) {
+  try {
+    const parsed = JSON.parse(storage?.getItem?.(STORAGE_KEY) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveConversationToSession(entry, messages) {
+  if (typeof sessionStorage === 'undefined') return false;
+  try {
+    const conversations = readConversationIndex(sessionStorage).filter((conversation) => conversation.id !== entry.id);
+    conversations.unshift(entry);
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(conversations.slice(0, MAX_CONVERSATIONS)));
+    sessionStorage.setItem(
+      `${STORAGE_KEY}:${entry.id}`,
+      JSON.stringify(
+        compactMessagesForStorage(messages, {
+          limit: MINIMAL_COMPACT_MESSAGE_LIMIT,
+          maxChars: MINIMAL_COMPACT_TEXT_CHARS,
+        }),
+      ),
+    );
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Get all saved conversations, sorted by most recent.
  * @returns {Array<{id: string, title: string, createdAt: string, updatedAt: string, messageCount: number, preview: string}>}
  */
 export function listConversations() {
-  try {
-    const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    return data.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
-  } catch {
-    return [];
+  const merged = new Map();
+  for (const conversation of readConversationIndex(localStorage)) merged.set(conversation.id, conversation);
+  if (typeof sessionStorage !== 'undefined') {
+    for (const conversation of readConversationIndex(sessionStorage)) {
+      const current = merged.get(conversation.id);
+      if (!current || new Date(conversation.updatedAt) > new Date(current.updatedAt)) {
+        merged.set(conversation.id, conversation);
+      }
+    }
   }
+  return [...merged.values()].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
 }
 
 /**
@@ -113,9 +148,12 @@ export function listConversations() {
  * @param {string} [title] - Optional title (auto-generated from first user message if omitted)
  */
 export function saveConversation(id, messages, title) {
+  let fallbackEntry = null;
+  let fallbackMessages = [];
   try {
     const conversations = listConversations();
     const safeMessages = sanitizeMessagesForPersistence(messages);
+    fallbackMessages = safeMessages;
     const visibleMessages = safeMessages.filter((m) => m.role === 'user' || m.role === 'assistant');
 
     // Auto-generate title from first user message
@@ -133,6 +171,7 @@ export function saveConversation(id, messages, title) {
       messageCount: visibleMessages.length,
       preview,
     };
+    fallbackEntry = entry;
 
     if (existing >= 0) {
       conversations[existing] = entry;
@@ -185,6 +224,9 @@ export function saveConversation(id, messages, title) {
 
     return entry;
   } catch (err) {
+    if (isQuotaError(err) && fallbackEntry && saveConversationToSession(fallbackEntry, fallbackMessages)) {
+      return fallbackEntry;
+    }
     console.warn('Failed to save conversation:', err);
     return null;
   }
@@ -196,18 +238,22 @@ export function saveConversation(id, messages, title) {
  * @returns {Array|null}
  */
 export function loadConversation(id) {
-  try {
-    const data = localStorage.getItem(`${STORAGE_KEY}:${id}`);
-    if (!data) return null;
-    const parsed = JSON.parse(data);
-    const safeMessages = sanitizeMessagesForPersistence(parsed);
-    if (JSON.stringify(safeMessages) !== JSON.stringify(parsed)) {
-      localStorage.setItem(`${STORAGE_KEY}:${id}`, JSON.stringify(safeMessages));
+  const storages = [localStorage, ...(typeof sessionStorage !== 'undefined' ? [sessionStorage] : [])];
+  for (const storage of storages) {
+    try {
+      const data = storage.getItem(`${STORAGE_KEY}:${id}`);
+      if (!data) continue;
+      const parsed = JSON.parse(data);
+      const safeMessages = sanitizeMessagesForPersistence(parsed);
+      if (JSON.stringify(safeMessages) !== JSON.stringify(parsed)) {
+        storage.setItem(`${STORAGE_KEY}:${id}`, JSON.stringify(safeMessages));
+      }
+      return safeMessages;
+    } catch {
+      // Try the tab-session fallback if persistent storage is unavailable.
     }
-    return safeMessages;
-  } catch {
-    return null;
   }
+  return null;
 }
 
 /**
@@ -221,6 +267,15 @@ export function deleteConversation(id) {
     localStorage.removeItem(`${STORAGE_KEY}:${id}`);
   } catch {
     /* ignore */
+  }
+  if (typeof sessionStorage !== 'undefined') {
+    try {
+      const conversations = readConversationIndex(sessionStorage).filter((conversation) => conversation.id !== id);
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(conversations));
+      sessionStorage.removeItem(`${STORAGE_KEY}:${id}`);
+    } catch {
+      /* ignore */
+    }
   }
 }
 
@@ -242,7 +297,7 @@ export function searchConversations(query) {
 
     // Check full messages for deeper search
     try {
-      const messages = JSON.parse(localStorage.getItem(`${STORAGE_KEY}:${conv.id}`) || '[]');
+      const messages = loadConversation(conv.id) || [];
       for (const m of messages) {
         const text = (m.text || m.content || '').toLowerCase();
         if (text.includes(lower)) matches++;

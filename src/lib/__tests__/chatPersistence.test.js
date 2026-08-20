@@ -25,6 +25,23 @@ const localStorageMock = (() => {
 })();
 Object.defineProperty(globalThis, 'localStorage', { value: localStorageMock });
 
+const sessionStorageMock = (() => {
+  let store = {};
+  return {
+    getItem: vi.fn((key) => store[key] || null),
+    setItem: vi.fn((key, value) => {
+      store[key] = String(value);
+    }),
+    removeItem: vi.fn((key) => {
+      delete store[key];
+    }),
+    clear: vi.fn(() => {
+      store = {};
+    }),
+  };
+})();
+Object.defineProperty(globalThis, 'sessionStorage', { value: sessionStorageMock });
+
 import {
   listConversations,
   saveConversation,
@@ -36,6 +53,7 @@ import {
 
 beforeEach(() => {
   localStorageMock.clear();
+  sessionStorageMock.clear();
   vi.clearAllMocks();
 });
 
@@ -256,6 +274,38 @@ describe('saveConversation + loadConversation', () => {
       expect(listConversations()).toEqual([expect.objectContaining({ id: 'active', title: 'Active' })]);
       expect(localStorage.getItem('coursemapper-conversations:active')).toBeNull();
       expect(loadConversation('active')).toBeNull();
+    } finally {
+      localStorage.setItem.mockImplementation(defaultSetItem);
+      warnSpy.mockRestore();
+    }
+  });
+
+  it('falls back to tab-session storage when even the persistent index is over quota', () => {
+    const defaultSetItem = localStorage.setItem.getMockImplementation();
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    localStorage.setItem.mockImplementation(() => {
+      const error = new Error('quota exceeded');
+      error.name = 'QuotaExceededError';
+      throw error;
+    });
+
+    try {
+      const entry = saveConversation(
+        'active',
+        [
+          { role: 'user', text: `Large course request ${'x'.repeat(4000)}` },
+          { role: 'assistant', text: `Large workspace response ${'y'.repeat(4000)}` },
+        ],
+        'Active',
+      );
+
+      expect(entry).toMatchObject({ id: 'active', title: 'Active' });
+      expect(warnSpy).not.toHaveBeenCalled();
+      expect(listConversations()).toEqual([expect.objectContaining({ id: 'active' })]);
+      expect(loadConversation('active')).toEqual([
+        { role: 'user', text: expect.stringContaining('[truncated]') },
+        { role: 'assistant', text: expect.stringContaining('[truncated]') },
+      ]);
     } finally {
       localStorage.setItem.mockImplementation(defaultSetItem);
       warnSpy.mockRestore();

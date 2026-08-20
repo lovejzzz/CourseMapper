@@ -29,7 +29,13 @@ const OPERATION_DEFINITIONS = Object.freeze([
   },
   {
     operation: 'fit-and-interpret-simple-linear-regression',
-    pattern: /\b(?:regression|linear models?|least squares|slopes?)\b/i,
+    // Bare “least squares” is also a core linear-algebra operation (normal
+    // equations, orthogonal projection, and approximation). Treating that
+    // phrase as regression replaced an Orthogonal Projections objective with
+    // slope/intercept/residual copy. Require an explicit statistical model or
+    // regression identity before selecting the regression specimen.
+    pattern:
+      /\b(?:regression|linear regression models?|regression models?|least[- ]squares? regression|least[- ]squares? lines?|regression slopes?)\b/i,
   },
   {
     operation: 'calculate-and-interpret-correlation',

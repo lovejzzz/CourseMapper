@@ -3,6 +3,18 @@ import { CURRENT_RELEASE } from './currentRelease.js';
 
 export { CURRENT_RELEASE };
 
+const V0184_RELEASE = {
+  version: '0.18.4',
+  date: 'August 19, 2026',
+  title: 'The Free Product Promise',
+  highlights: [
+    'The paid concierge pilot is gone from the landing page, contact path, privacy policy, terms, README, public sample, inquiry template, sitemap, and discovery metadata.',
+    'Course Mapper now states the product promise plainly: it is free and will stay free, with no paid tier, subscription, or concierge upsell.',
+    'Search, social, and structured discovery data describe the free local-first browser workspace and publish a zero-dollar application offer without a paid-promotion asset.',
+    'General support remains available, and users may still choose external providers with their own keys; those provider charges are not an EDUTOOL fee or paid product tier.',
+  ],
+};
+
 const V0183_RELEASE = {
   version: '0.18.3',
   date: 'August 19, 2026',
@@ -1403,36 +1415,44 @@ export const CURRENT_RELEASE_CHANGELOG = {
   highlights: CURRENT_RELEASE.highlights,
   sections: [
     {
-      label: 'Remove the paid product path completely',
+      label: 'Recover without publishing unsupported knowledge',
       icon: 'CHECK',
       color: 'emerald',
       items: [
-        'The paid pilot banner and both pilot actions are absent from the landing page.',
-        'The public sample, inquiry template, sitemap entry, and pilot-specific legal copy are removed.',
-        'Contact keeps one general support path without a sales or payment action.',
+        'Evidence-only blockers are isolated to the affected lessons and marked as source-review recovery.',
+        'Model-provisional subject matter remains quarantined, and source gaps stay visible to the instructor.',
+        'Missing evidence no longer fans out into nine identical feature failures.',
       ],
     },
     {
-      label: 'Make the free promise discoverable',
+      label: 'Keep quantitative operations inside their discipline',
       icon: 'AI',
       color: 'blue',
       items: [
-        'The README says EDUTOOL is free and will stay free, with no paid tier, subscription, or concierge upsell.',
-        'Search and social metadata describe the free local-first product rather than a paid service.',
-        'Structured WebApplication data continues to publish an explicit zero-dollar offer.',
+        'Bare least squares remains a Linear Algebra identity rather than a regression trigger.',
+        'Orthogonal projection keeps its compiler-owned vector projection example.',
+        'Explicit regression lessons still receive the checked slope-and-intercept specimen.',
       ],
     },
     {
-      label: 'Keep the product boundary honest',
+      label: 'Degrade conversation persistence quietly and safely',
       icon: 'PROOF',
       color: 'violet',
       items: [
-        'Optional external AI providers may charge users through their own accounts; EDUTOOL itself has no paid tier.',
-        'The v0.18.3 seamless-generation flow and internal plan authorization remain unchanged.',
-        'The patch changes presentation, discovery, support, and legal copy—not model or course-output quality.',
+        'Persistent-storage quota exhaustion falls back to compact sanitized tab-session history.',
+        'Course project data is never deleted to make room for optional conversation history.',
+        'Non-quota persistence failures remain visible as genuine application warnings.',
       ],
     },
   ],
+};
+
+const V0184_RELEASE_CHANGELOG = {
+  version: V0184_RELEASE.version,
+  date: V0184_RELEASE.date,
+  title: V0184_RELEASE.title,
+  highlights: V0184_RELEASE.highlights,
+  sections: [],
 };
 
 const V0183_RELEASE_CHANGELOG = {
@@ -2499,6 +2519,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V0184_RELEASE_CHANGELOG,
   V0183_RELEASE_CHANGELOG,
   V0182_RELEASE_CHANGELOG,
   V0181_RELEASE_CHANGELOG,

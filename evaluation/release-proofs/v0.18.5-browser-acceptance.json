@@ -1,0 +1,25 @@
+{
+  "protocol": "coursemapper-browser-acceptance-v1",
+  "version": "0.18.5",
+  "capturedAt": "2026-08-20T05:41:05Z",
+  "status": "predeploy-candidate",
+  "origin": "http://127.0.0.1:4173/",
+  "checks": [
+    {
+      "id": "workspace-load",
+      "status": "pass",
+      "evidence": "The production build loaded at 127.0.0.1:4173, rendered the three-stage setup, reported Scion V0.18.5 connected, and exposed the enabled example-course interaction."
+    },
+    {
+      "id": "setup-and-release-navigation",
+      "status": "pass",
+      "evidence": "Selecting American Government populated the brief and exposed the Generate full course package action. The v0.18.5 footer link loaded the Resilient, Discipline-Safe Generation changelog entry and all three release highlights."
+    },
+    {
+      "id": "runtime-console",
+      "status": "pass",
+      "evidence": "The tested landing, example-selection, and changelog route emitted zero browser warnings or errors. The changelog document width equaled its viewport width at 1723 px, with no page-level horizontal overflow."
+    }
+  ],
+  "boundary": "This is a local predeploy browser acceptance record. It does not certify production deployment, every browser, source-grounded package promotion, factual quality, accessibility, instructor approval, or classroom outcomes."
+}

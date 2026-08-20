@@ -1,0 +1,79 @@
+{
+  "version": "0.18.5",
+  "date": "August 20, 2026",
+  "title": "Resilient, Discipline-Safe Generation",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm run format:check",
+      "npm run lint",
+      "npm test",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history",
+      "local browser smoke and console audit"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Remote exact-commit verification begins after this locally verified candidate is pushed."
+    },
+    "ciDeep": {
+      "status": "pending",
+      "note": "The release changes source-recovery output routing; no new deep-quality or provider claim is made before remote evidence exists."
+    },
+    "deploy": {
+      "status": "pending",
+      "note": "Production deployment and exact-version re-audit are downstream of push and remote verification."
+    },
+    "liveProvider": {
+      "status": "not-current",
+      "note": "The supplied retained production run diagnosed the defect; this predeploy candidate does not claim a fresh live-provider package."
+    },
+    "manualHuman": {
+      "status": "pending",
+      "note": "No instructor evaluation, accessibility certification, or classroom validation is claimed."
+    }
+  },
+  "claims": [
+    {
+      "id": "v0185-1",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "highlightSha256": "d717878012b1b025823e42baa4445adb80d9b30661c1007cfb227a2ada340a04",
+      "summary": "Evidence-only source gaps route to a quarantined compiler recovery instead of failing every material family.",
+      "anchors": [
+        "src/lib/prepareInstructionalPlan.js",
+        "src/lib/instructionalPlanGenerationAdmission.js",
+        "src/hooks/useDeliverables.js",
+        "src/lib/__tests__/instructionalPlanGenerationAdmission.test.js"
+      ],
+      "proofCommands": ["npm test", "npm run lint", "npm run build"],
+      "proofScopes": ["unit", "compiled-output", "build"]
+    },
+    {
+      "id": "v0185-2",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "highlightSha256": "30a88e356123f82e3eefb6d4757190c678441540132651d935e04f1746ed81ce",
+      "summary": "Linear-algebra least squares no longer receives a statistical regression objective or specimen.",
+      "anchors": ["src/lib/operationEvidenceContract.js", "src/lib/__tests__/curriculumAdmission.test.js"],
+      "proofCommands": ["npm test", "npm run format:check"],
+      "proofScopes": ["unit", "static-audit", "format"]
+    },
+    {
+      "id": "v0185-3",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "highlightSha256": "bc42a16b6db49a0f511f28f76680e02605526dc39e09874bd8388d371a85cd1f",
+      "summary": "Conversation persistence recovers from exhausted persistent storage through a compact sanitized tab-session copy.",
+      "anchors": ["src/lib/chatPersistence.js", "src/lib/__tests__/chatPersistence.test.js"],
+      "proofCommands": ["npm test", "npm run lint"],
+      "proofScopes": ["unit", "lint"]
+    }
+  ],
+  "boundaries": [
+    "This contract records a locally verified predeploy candidate; remote CI, production deployment, and live re-audit are downstream facts.",
+    "Evidence-recovery output remains review-bound and cannot claim source-grounded or promotion-ready status.",
+    "The patch changes admission routing, operation classification, and optional conversation persistence; it changes no model weights or adapter promotion state."
+  ]
+}
