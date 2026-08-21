@@ -29,9 +29,9 @@ const budgets = {
 // caught an unaccounted increase, and the fix is to re-freeze at the released
 // state, not to widen the allowance. Every future release must do the same.
 const repositoryBudgets = {
-  // V0.18.6 advances the frozen ledger through V0.18.5. Its own contract
+  // V0.18.7 advances the frozen ledger through V0.18.6. Its own contract
   // consumes the single declared-release allowance.
-  baselineVersion: '0.18.5',
+  baselineVersion: '0.18.6',
   // v0.16.82 adds 29 net lines of reusable compiler control logic for
   // policy-domain separation and concept-owned evidence binding. Source-
   // statement copy and prerequisite selection moved to a cacheable leaf; the
@@ -78,7 +78,14 @@ const repositoryBudgets = {
   // recovery, compiler-practice classification, article-safe criteria,
   // lesson-specific export copy, and the compact-instruction matcher that
   // preserves code-lab requirements. Freeze the exact verified candidate.
-  compilerLines: 28_524,
+  // V0.18.7 adds the durable source-brief assessment-component seam, a
+  // packaged recovery-quiz case, and component-aware assignment/rubric
+  // projection. These are output-contract controls covered by the exact
+  // Community Health browser regression; freeze the measured implementation.
+  // The final V0.18.7 output audit adds one controller line for the shared
+  // short-answer-depth transform; its course-neutral prompt operations live
+  // in the existing exam-copy leaf below. Freeze the measured candidate.
+  compilerLines: 28_664,
   // V0.16.97 moved compiler logic into cacheable courseCompiler*.js leaves.
   // Freeze the whole ownership family so extracting modules cannot make the
   // monolith-only counter report a false reduction. The 69-line post-release
@@ -116,7 +123,11 @@ const repositoryBudgets = {
   // extraction accounting. No fixed course corpus moved into a leaf.
   // V0.18.6 changes only the controller monolith in this ownership family;
   // the 24-line final recovery-classification correction is included above.
-  compilerFamilyLines: 31_684,
+  // V0.18.7 adds 89 measured family lines for evidence-bearing constructed
+  // responses and six complete recovery answer/sample/explanation variants.
+  // Regression coverage binds every surface to generated quiz output while
+  // the controller stays at its previously frozen line ceiling.
+  compilerFamilyLines: 31_912,
   // v0.16.81 adds one executable Algi→Scion hybrid benchmark audit. It freezes
   // evidence, route, quality, call, latency, and export promotion rules; this
   // is a release gate rather than product-side script sprawl.
@@ -142,7 +153,7 @@ const repositoryBudgets = {
   npmScripts: 402,
   // V0.18.5 closes with 310 tracked ledger files; V0.18.6 may add exactly
   // its one current-release contract.
-  releaseContractFiles: 310,
+  releaseContractFiles: 311,
   trackedWeightFiles: 62,
   trackedWeightBytes: 1_053_339_981,
   largeBinaryBytes: 1024 * 1024,
@@ -447,7 +458,10 @@ const lazyChunkBudgets = [
   // V0.18.6's signed recovery branch and copy guards add 0.20 KiB measured
   // gzip to the compiler chunk; freeze the exact candidate with the existing
   // 64-byte cross-platform compressor tolerance.
-  { prefix: 'courseBlueprintCompiler-', rawKiB: 850.11, gzipKiB: 241.41, gzipSlackBytes: 64 },
+  // V0.18.7 preserves requested assessment components and packages the exact
+  // evidence record used by recovery quiz questions. The measured increase is
+  // compile-only and remains off the landing route.
+  { prefix: 'courseBlueprintCompiler-', rawKiB: 850.11, gzipKiB: 242.9, gzipSlackBytes: 64 },
   // Verified Coherent Draft policy is independently cacheable from compiler
   // orchestration. These narrow ceilings freeze the measured course-agnostic
   // semantic-admission, evidence-operation, and specimen contract layer.
@@ -469,7 +483,9 @@ const lazyChunkBudgets = [
   // of requiring a fictional duplicate chunk.
   // V0.17.17 adds a course-neutral articulatory evidence composite. The
   // measured leaf is 5.87/2.36 KiB and remains compile-only.
-  { prefix: 'authenticEvidenceStudyPractice-', rawKiB: 6, gzipKiB: 2.5 },
+  // V0.18.7 prints the bounded four-record recovery case that quiz prompts and
+  // answer keys reference, replacing a phantom external record.
+  { prefix: 'authenticEvidenceStudyPractice-', rawKiB: 6.83, gzipKiB: 2.65 },
   // V0.17.17 keeps the source-claim comparison rehearsal in its own
   // compile-only boundary. This prevents a general fallback from expanding
   // the compiler, semantic-contract, or authentic-data ratchets; freeze the
@@ -548,7 +564,9 @@ const lazyChunkBudgets = [
   // V0.16.76 moves the unchanged exam-answer and distractor rotations into a
   // pure compile-only leaf. This gives the broader copy chunk deterministic
   // headroom across Node/zlib platforms without raising its existing budget.
-  { prefix: 'compilerExamCopy-', rawKiB: 4, gzipKiB: 2 },
+  // V0.18.7 adds six bounded recovery answer/sample/explanation records so a
+  // six-lesson quiz package does not repeat one compiler sentence 24 times.
+  { prefix: 'compilerExamCopy-', rawKiB: 5, gzipKiB: 2 },
   // v0.16.72: lesson-rotated assessment, prerequisite, close-reading, and
   // FAQ language is data rather than compiler control flow. Keep it in a
   // compile-only leaf so deeper examples do not inflate the core compiler.

@@ -603,6 +603,13 @@ describe('instructional-plan compiler admission', () => {
     expect(learnerFacingCompiledContent).not.toMatch(/provisional subject|unadmitted claim/i);
     const recoveryQuizContent = JSON.stringify(compiled.quizBank);
     expect(recoveryQuizContent).not.toMatch(/the assigned source "course-created|source-bound recovery/i);
-    expect(recoveryQuizContent).toMatch(/compiler-created practice record/i);
+    expect(recoveryQuizContent).not.toMatch(/compiler-created practice record|responses vary\. accept only/i);
+    expect(recoveryQuizContent).toMatch(/course-created practice case/i);
+    expect(compiled.quizBank.quizzes.every((quiz) => quiz.practiceRecord?.records?.length === 4)).toBe(true);
+    expect(
+      compiled.quizBank.quizzes.every((quiz) =>
+        quiz.questions.every((question) => /\brecord\b/i.test(question.answer)),
+      ),
+    ).toBe(true);
   });
 });

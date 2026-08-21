@@ -47,6 +47,21 @@ describe('artifact display references', () => {
     });
   });
 
+  it('removes a compact artifact prefix repeated inside expected-structure and publication-form frames', () => {
+    const longTitle =
+      'Week 3 implementation fidelity misconception repair evidence correction response and analysis log';
+    const replacement = 'Week 3 repair';
+    const value = {
+      expectedFormat: `Expected structure for ${longTitle}: ${longTitle}: analysis log with correction evidence`,
+      publicationFormat: `Publication form for ${longTitle}: ${longTitle}: annotated response`,
+    };
+
+    expect(compactLongArtifactMentionsInValue(value, longTitle, replacement)).toEqual({
+      expectedFormat: 'Expected structure for Week 3 repair: analysis log with correction evidence',
+      publicationFormat: 'Publication form for Week 3 repair: annotated response',
+    });
+  });
+
   it('uses the bounded final product phrase when a long title has no registered artifact-kind word', () => {
     expect(
       compactLongArtifactTitle(

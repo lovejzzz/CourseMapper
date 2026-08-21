@@ -1,5 +1,6 @@
 import { extractBriefQualityContract } from './briefQualityContract.js';
 import { extractOrderedLessonContract } from './explicitLessonSequence.js';
+import { assessmentContractForLesson, extractSourceBriefAssessmentContract } from './sourceBriefAssessmentContract.js';
 import { extractChapterScheduleTopics, planSessionTopics } from './algiComposer.js';
 import { operationEvidenceDemandForLesson } from './operationEvidenceContract.js';
 import {
@@ -182,7 +183,7 @@ function visualEvidenceObjectives(topic, lessonNumber) {
   return objectiveSets[(Math.max(1, Number(lessonNumber) || 1) - 1) % objectiveSets.length];
 }
 
-function exactPlanSection(topic, lessonNumber, briefQualityContract) {
+function basePlanSection(topic, lessonNumber, briefQualityContract) {
   const visual = briefQualityContract?.functionalVisual?.required === true;
   if (visual) {
     return {
@@ -289,6 +290,101 @@ function exactPlanSection(topic, lessonNumber, briefQualityContract) {
   };
 }
 
+function exactPlanSection(topic, lessonNumber, briefQualityContract, assessmentContract = null) {
+  const section = basePlanSection(topic, lessonNumber, briefQualityContract);
+  const requestedAssessment = assessmentContractForLesson(assessmentContract, lessonNumber);
+  if (!requestedAssessment) return section;
+  const components = requestedAssessment.requiredComponents || [];
+  const componentRequirement = components.length
+    ? ` Check that the submission contains these labeled components: ${components.join(', ')}.`
+    : '';
+  return {
+    ...section,
+    weeklyAssessments: requestedAssessment.displayTitle,
+    requestedAssessmentTitle: requestedAssessment.title,
+    requiredAssessmentComponents: components,
+    evaluateDesign: `${section.evaluateDesign}${componentRequirement} Score the explicitly requested artifact, not a substitute exercise.`,
+  };
+}
+
+const ASSESSMENT_SECTION_STOP_WORDS = new Set([
+  'assessment',
+  'course',
+  'evaluation',
+  'final',
+  'lesson',
+  'program',
+  'required',
+  'week',
+]);
+
+function assessmentSectionTerms(value = '') {
+  return (
+    cleanText(value, 600)
+      .toLowerCase()
+      .match(/[a-z][a-z-]{2,}/g) || []
+  )
+    .map((term) => (term.length > 4 && term.endsWith('s') && !term.endsWith('ss') ? term.slice(0, -1) : term))
+    .filter((term) => !ASSESSMENT_SECTION_STOP_WORDS.has(term));
+}
+
+function assessmentTargetSectionIndex(sections = [], assessment = {}) {
+  const requestedTitle = cleanText(assessment.title, 240).toLowerCase();
+  const existingIndex = sections.findIndex((section) => {
+    const assessmentText = cleanText(section?.weeklyAssessments, 600).toLowerCase();
+    return requestedTitle && (assessmentText === requestedTitle || assessmentText.startsWith(`${requestedTitle} -`));
+  });
+  if (existingIndex >= 0) return existingIndex;
+  const assessmentTerms = new Set(assessmentSectionTerms(assessment.title));
+  return sections
+    .map((section, index) => {
+      const sectionTerms = new Set(
+        assessmentSectionTerms(
+          [section?.topicSection, section?.learningGoals, section?.learningObjectives, section?.weeklyAssessments]
+            .filter(Boolean)
+            .join(' '),
+        ),
+      );
+      const overlap = [...assessmentTerms].filter((term) => sectionTerms.has(term)).length;
+      const hasAssessment = cleanText(section?.weeklyAssessments, 600) ? 0.25 : 0;
+      return { index, score: overlap + hasAssessment };
+    })
+    .sort((left, right) => right.score - left.score || left.index - right.index)[0]?.index;
+}
+
+function applyAssessmentContractToApprovedLessons(lessons = [], assessmentContract = null) {
+  if (!assessmentContract?.assessments?.length) return lessons;
+  return lessons.map((lesson, index) => {
+    const requestedAssessment = assessmentContractForLesson(assessmentContract, index + 1);
+    const sections = Array.isArray(lesson?.sections) ? lesson.sections : [];
+    if (!requestedAssessment || sections.length === 0) return lesson;
+    const targetIndex = assessmentTargetSectionIndex(sections, requestedAssessment);
+    const components = requestedAssessment.requiredComponents || [];
+    const componentRequirement = components.length
+      ? ` Check that the submission contains these labeled components: ${components.join(', ')}.`
+      : '';
+    const assessmentRequirement = `${componentRequirement} Score the explicitly requested artifact, not a substitute exercise.`;
+    return {
+      ...lesson,
+      sections: sections.map((section, sectionIndex) =>
+        sectionIndex === targetIndex
+          ? {
+              ...section,
+              weeklyAssessments: requestedAssessment.displayTitle,
+              requestedAssessmentTitle: requestedAssessment.title,
+              requiredAssessmentComponents: components,
+              evaluateDesign: /Score the explicitly requested artifact, not a substitute exercise\./i.test(
+                section?.evaluateDesign || '',
+              )
+                ? section.evaluateDesign
+                : `${cleanText(section?.evaluateDesign, 600) || `Verify that the assessment measures the lesson's stated objective.`}${assessmentRequirement}`,
+            }
+          : section,
+      ),
+    };
+  });
+}
+
 /**
  * Turn an exact user-authored lesson sequence into the instructional plan that
  * research and drafting consume. The former pipeline extracted this contract
@@ -305,21 +401,55 @@ export function enforceInstructionalPlanContract(courseMap = {}, sourceBrief = '
   if (!orderedLessonContract || orderedLessonContract.topics.length !== lessons.length) {
     const semanticIdentity = assessInstructionalPlanIdentity(courseMap);
     if (semanticIdentity.status === 'approved') {
+      const assessmentContract = extractSourceBriefAssessmentContract(sourceBrief, lessons);
+      if (!assessmentContract) {
+        return {
+          courseMap,
+          changed: false,
+          receipt: null,
+        };
+      }
+      const contractedLessons = applyAssessmentContractToApprovedLessons(lessons, assessmentContract);
+      const receipt = {
+        protocol: 'coursemapper-instructional-plan-contract-v2',
+        status: 'plan-authorized',
+        appliedBeforeEvidenceAcquisition: true,
+        appliedBeforeDeliverableDrafting: true,
+        source: 'source-brief-assessment-augmentation',
+        lessonCount: contractedLessons.length,
+        authorizedSemanticIdentity: semanticIdentity,
+        assessmentContract,
+        claimBoundary:
+          'This receipt proves that explicitly requested assessment artifacts were attached to the approved model-authored lesson plan before research; source relevance and artifact quality remain independently auditable.',
+      };
+      const nextCourseMap = {
+        ...courseMap,
+        sourceBriefAssessmentContract: assessmentContract,
+        instructionalPlanContract: receipt,
+        lessons: contractedLessons,
+      };
       return {
-        courseMap,
-        changed: false,
-        receipt: null,
+        courseMap: nextCourseMap,
+        changed: JSON.stringify(courseMap) !== JSON.stringify(nextCourseMap),
+        receipt,
       };
     }
 
     const recoveredTopics = planSessionTopics(sourceBrief, lessons.length);
     const briefQualityContract = extractBriefQualityContract(sourceBrief, { lessonCount: lessons.length });
+    const assessmentContract = extractSourceBriefAssessmentContract(
+      sourceBrief,
+      recoveredTopics.map((topic, index) => ({
+        title: `Lesson ${index + 1}: ${displayTopic(topic)}`,
+        sections: [{ topicSection: displayTopic(topic) }],
+      })),
+    );
     const recoveredLessons = recoveredTopics.map((rawTopic, index) => {
       const topic = displayTopic(rawTopic);
       return {
         ...(lessons[index] || {}),
         title: `Lesson ${index + 1}: ${topic}`,
-        sections: [exactPlanSection(topic, index + 1, briefQualityContract)],
+        sections: [exactPlanSection(topic, index + 1, briefQualityContract, assessmentContract)],
       };
     });
     const recoveredIdentity = assessInstructionalPlanIdentity({ lessons: recoveredLessons });
@@ -357,11 +487,13 @@ export function enforceInstructionalPlanContract(courseMap = {}, sourceBrief = '
       authorizedSemanticIdentity: recoveredIdentity,
       recoveredTopics,
       ...(briefQualityContract ? { briefQualityContract } : {}),
+      ...(assessmentContract ? { assessmentContract } : {}),
       claimBoundary:
         'This receipt proves that generic lesson identities were replaced from source-bounded coverage or schedule evidence before research; source relevance and artifact quality remain independently auditable.',
     };
     const nextCourseMap = {
       ...courseMap,
+      ...(assessmentContract ? { sourceBriefAssessmentContract: assessmentContract } : {}),
       instructionalPlanContract: receipt,
       lessons: recoveredLessons,
     };
@@ -373,12 +505,17 @@ export function enforceInstructionalPlanContract(courseMap = {}, sourceBrief = '
   }
 
   const briefQualityContract = extractBriefQualityContract(sourceBrief, { lessonCount: lessons.length });
+  const contractLessons = orderedLessonContract.topics.map((topic, index) => ({
+    title: `Lesson ${index + 1}: ${displayTopic(topic)}`,
+    sections: [{ topicSection: displayTopic(topic) }],
+  }));
+  const assessmentContract = extractSourceBriefAssessmentContract(sourceBrief, contractLessons);
   const contractedLessons = orderedLessonContract.topics.map((rawTopic, index) => {
     const topic = displayTopic(rawTopic);
     return {
       ...(lessons[index] || {}),
       title: `Lesson ${index + 1}: ${topic}`,
-      sections: [exactPlanSection(topic, index + 1, briefQualityContract)],
+      sections: [exactPlanSection(topic, index + 1, briefQualityContract, assessmentContract)],
     };
   });
   const receipt = {
@@ -392,6 +529,7 @@ export function enforceInstructionalPlanContract(courseMap = {}, sourceBrief = '
         : 'user-authored-ordered-lesson-contract',
     orderedLessonContract,
     ...(briefQualityContract ? { briefQualityContract } : {}),
+    ...(assessmentContract ? { assessmentContract } : {}),
     lessonCount: contractedLessons.length,
     claimBoundary:
       orderedLessonContract.mode === 'governing-source-schedule-prefix'
@@ -401,6 +539,7 @@ export function enforceInstructionalPlanContract(courseMap = {}, sourceBrief = '
   const nextCourseMap = {
     ...courseMap,
     orderedLessonContract,
+    ...(assessmentContract ? { sourceBriefAssessmentContract: assessmentContract } : {}),
     instructionalPlanContract: receipt,
     lessons: contractedLessons,
   };

@@ -295,6 +295,48 @@ describe('instructional-plan lineage restore validation', () => {
     expect(curriculumIntent.instructionalInstanceId).toBe(draftIntent.instructionalInstanceId);
   });
 
+  it('accepts an objective whose named artifact expands inside the same authorized reasoning task', () => {
+    const graph = validGraph();
+    graph.instructionalIntentGraph = structuredClone(graph.instructionalIntentGraph);
+    graph.instructionalIntentGraph.lessonIntents[0].targetObjectives = [
+      'Construct a defensible observation judgment in portfolio, justify the evidence, and state its boundary.',
+    ];
+    graph.instructionalIntentGraph = rehashInstructionalIntentGraph(graph.instructionalIntentGraph);
+    graph.instructionalPlanLineage.postEnrichmentReceiptSha256 =
+      graph.instructionalIntentGraph.receipt.exactInputSha256;
+    const intent = graph.instructionalIntentGraph.lessonIntents[0];
+    const renderedArtifacts = completeRenderedArtifacts(graph);
+    const expandedTitle = 'portfolio - required components: source note and revision decision';
+    renderedArtifacts.forEach((artifact) => {
+      artifact.text = artifact.text.replaceAll('portfolio', expandedTitle);
+    });
+
+    const admission = buildPostDraftAdmissionReceipt({
+      courseGraph: graph,
+      semanticClaimInventory: {
+        protocol: 'coursemapper-semantic-claim-inventory-v1',
+        items: [
+          {
+            id: 'claim-1',
+            lessonNumber: 1,
+            instructionalInstanceId: intent.instructionalInstanceId,
+            status: 'verified',
+            requiresSourcePassage: false,
+            provenanceVerified: true,
+            artifactVisibilityVerified: true,
+            semanticEntailmentVerified: true,
+          },
+        ],
+      },
+      renderedArtifacts,
+    });
+
+    expect(admission.instructionalRequirementCompleteness.instances[0]).toMatchObject({
+      status: 'fulfilled',
+      missingRequiredRoles: [],
+    });
+  });
+
   it('recognizes a structured, assessment-bound rubric when criteria are rendered as faithful paraphrases', () => {
     const graph = validGraph();
     const renderedArtifacts = completeRenderedArtifacts(graph);

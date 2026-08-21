@@ -24,6 +24,7 @@ import {
 } from './compilerText';
 import { lessonContractObjectives, stableLessonContractObjective } from './lessonAssessmentContract';
 import { extractBriefQualityContract, lessonRequiresFunctionalVisual } from './briefQualityContract';
+import { requiredAssessmentComponents } from './sourceBriefAssessmentContract';
 import { buildFunctionalVisualTaskContract, functionalVisualConstructFamily } from './functionalVisualTaskContract';
 import {
   conceptWorkQuestion,
@@ -118,7 +119,7 @@ import {
   titleSlideOpening,
   titleSlideExpectation,
 } from './courseCompilerCopyVariants';
-import { examUnderstandCorrectText } from './courseCompilerExamCopy';
+import * as examCopy from './courseCompilerExamCopy';
 import {
   dedupeCompilerMaterials,
   assessmentRevisionCriterion,
@@ -1989,11 +1990,11 @@ function inferDisciplineLens(courseName, concepts = []) {
     (/\b(health|community)\b/.test(text) && /\b(evaluation|program|implementation|stakeholder)\b/.test(text))
   ) {
     return disciplineLens(
-      'community health evaluation',
-      'community evidence',
-      'program decision',
-      'evaluation practitioner',
-      'community implementation case',
+      'public-health program evaluation',
+      'logic-model, indicator, fidelity, stakeholder, and mixed-method evidence',
+      'evaluation design or improvement recommendation',
+      'public-health evaluator',
+      'community program evaluation case',
     );
   }
   if (
@@ -12872,6 +12873,7 @@ const LESSON_STORAGE_KEYS = new Set([
   'activityPattern',
   'assessmentLink',
   'assessmentDetails',
+  'requiredAssessmentComponents',
   'hasAssessment',
   'assessmentSource',
   'studentArtifact',
@@ -12891,6 +12893,7 @@ const ASSESSMENT_ANCHOR_STORAGE_KEYS = new Set([
   'id',
   'title',
   'artifact',
+  'requiredComponents',
   'lessonNumbers',
   'relatedLessons',
   'source',
@@ -13347,6 +13350,7 @@ function compactAssignmentInstructionSet(instructions = [], maxInstructions = 7)
   };
 
   add(candidates[0]);
+  addMatching(/^Include every requested component\b/i, 1);
   // A code-lab brief is not executable if compaction keeps setup but drops
   // the task or its verification milestone. Reserve all three seats before
   // selecting generic evidence/revision guidance.
@@ -13892,6 +13896,15 @@ function extractLessonBlueprint(
   const [hasActivities, hasResources] = [activities.length > 0, resources.length > 0];
   const weeklyAssessmentText = extractColumn(lesson, 'weeklyAssessments');
   const evaluationDesignText = extractColumn(lesson, 'evaluateDesign');
+  const requestedAssessmentTitle = cleanText(
+    (lesson?.sections || []).find((section) => cleanText(section?.requestedAssessmentTitle))?.requestedAssessmentTitle,
+  );
+  const sourceRequiredAssessmentComponents = unique(
+    (lesson?.sections || []).flatMap((section) =>
+      Array.isArray(section?.requiredAssessmentComponents) ? section.requiredAssessmentComponents : [],
+    ),
+    8,
+  );
   // Normalize identity echoes at the Course Map boundary too. The registry
   // path already cleans its title, but assessmentLink and every derived
   // teaching field also consume the visible cell; leaving "X.: X." here
@@ -13973,6 +13986,7 @@ function extractLessonBlueprint(
   // no-registry compiles only.
   const registryArtifactTitle = registryStudentArtifactTitle(assessmentRegistry, lessonNumber);
   const rawStudentArtifact =
+    requestedAssessmentTitle ||
     registryArtifactTitle ||
     (hasAssessment ? buildStudentArtifactLabel(assessmentText, title, synthesizedArtifact) : synthesizedArtifact);
   const studentArtifact = isUnsafeLessonArtifactPhrase(rawStudentArtifact) ? synthesizedArtifact : rawStudentArtifact;
@@ -14155,6 +14169,9 @@ function extractLessonBlueprint(
     activityPattern,
     assessmentLink,
     assessmentDetails: assessmentText,
+    ...(sourceRequiredAssessmentComponents.length > 0
+      ? { requiredAssessmentComponents: sourceRequiredAssessmentComponents }
+      : {}),
     hasAssessment,
     assessmentSource: confidence.fields.assessment.source,
     studentArtifact,
@@ -15517,18 +15534,29 @@ function buildRegistryAssessmentAnchors(lessons, registry) {
           : lessonRoleDescriptors[lessonIndex];
     const isCodeLab = isCodeLabAssessment(normalizedEntry) || lesson?.artifactGenre?.genre === 'code-lab';
     const literatureCriteria = buildLiteratureAssessmentCriteria(normalizedEntry.title);
-    const criteria =
+    const baseCriteria =
       normalizedEntry.kind === 'oral'
         ? buildSpeakingAssessmentCriteria(lesson, normalizedEntry.title)
         : isCodeLab
           ? buildCodeLabAssessmentCriteria(lesson, normalizedEntry.title)
           : literatureCriteria || buildAssessmentCriteria(lesson);
+    const requiredComponents = requiredAssessmentComponents(normalizedEntry.title);
+    const criteria = requiredComponents.length
+      ? unique(
+          [
+            `Required component integration - ${requiredComponents.join(', ')} are complete, internally aligned, and easy to locate`,
+            ...baseCriteria,
+          ],
+          6,
+        )
+      : baseCriteria;
     const validityEvidence = buildAssessmentValidityEvidence(lesson);
     const criterionEvidenceMap = buildCriterionEvidenceMap(lesson, criteria, validityEvidence);
     const criterionWeightPlan = buildCriterionWeightPlan(lesson, criteria, criterionEvidenceMap, 100);
     const criterionObjectiveAlignment = buildCriterionObjectiveAlignment({
       lesson,
       criteria,
+      requiredComponents,
       criterionWeightPlan,
       criterionEvidenceMap,
     });
@@ -15607,15 +15635,29 @@ function buildAssessmentAnchors(lessons, registry = null) {
   const weights = weightPlan.weights.length > 0 ? weightPlan.weights : distributePercent(source.length || 1);
   return source.map((lesson, index) => {
     const validityEvidence = buildAssessmentValidityEvidence(lesson);
-    const criteria =
+    const baseCriteria =
       lesson?.artifactGenre?.genre === 'code-lab'
         ? buildCodeLabAssessmentCriteria(lesson, lesson.studentArtifact || lesson.title)
         : buildAssessmentCriteria(lesson);
+    const requiredComponents = unique(
+      [...(lesson.requiredAssessmentComponents || []), ...requiredAssessmentComponents(lesson.studentArtifact)],
+      8,
+    );
+    const criteria = requiredComponents.length
+      ? unique(
+          [
+            `Required component integration - ${requiredComponents.join(', ')} are complete, internally aligned, and easy to locate`,
+            ...baseCriteria,
+          ],
+          6,
+        )
+      : baseCriteria;
     const criterionEvidenceMap = buildCriterionEvidenceMap(lesson, criteria, validityEvidence);
     const criterionWeightPlan = buildCriterionWeightPlan(lesson, criteria, criterionEvidenceMap, 100);
     const criterionObjectiveAlignment = buildCriterionObjectiveAlignment({
       lesson,
       criteria,
+      requiredComponents,
       criterionWeightPlan,
       criterionEvidenceMap,
     });
@@ -15628,6 +15670,7 @@ function buildAssessmentAnchors(lessons, registry = null) {
         cleanText(lesson.studentArtifact, `${stripLessonPrefix(lesson.title)} applied assessment`),
       ),
       artifact: dedupeNumberedAssessmentEcho(cleanText(lesson.studentArtifact, 'Applied source-based artifact')),
+      ...(requiredComponents.length > 0 ? { requiredComponents } : {}),
       lessonNumbers: [lesson.lessonNumber],
       relatedLessons: [lesson.title],
       weight: `${weightPercent}%`,
@@ -17749,6 +17792,15 @@ function compileAssignments(blueprint) {
         const assessmentArtifact = stripTerminalPunctuation(
           assessment.artifact || submissionProfile.artifact || assessment.title,
         );
+        const requiredComponents = unique(
+          asArray(assessment.requiredComponents).length > 0
+            ? asArray(assessment.requiredComponents)
+            : requiredAssessmentComponents(assessment.title),
+          8,
+        );
+        const requiredComponentInstruction = requiredComponents.length
+          ? `Include every requested component as a labeled, substantive section: ${requiredComponents.join(', ')}. Show how the components connect instead of submitting unrelated pieces.`
+          : '';
         const assignmentParameters = genreAlignedAssignmentParameters({
           lesson,
           authored:
@@ -17959,6 +18011,7 @@ function compileAssignments(blueprint) {
           objectiveEvidenceChecklist: objectiveEvidenceChecklist(lesson.objectiveEvidencePlan),
           instructions: compactAssignmentInstructionSet([
             cleanText(lesson?.instructionalIntent?.learnerAction),
+            requiredComponentInstruction,
             lesson.prerequisitePlan?.studentReadinessCheck ||
               `Confirm you can connect prerequisite knowledge to ${assessmentTitle} before drafting.`,
             // v0.16.1: the lab brief's own scaffold — setup/environment, the
@@ -18034,12 +18087,20 @@ function compileAssignments(blueprint) {
               `A deadline change for ${assessmentTitle} requires the instructor's explicit confirmation; this generated brief does not grant one automatically.`,
             ]),
           },
-          deliverables: assignmentDeliverablesForLesson({
-            lesson,
-            assessment,
-            submissionProfile,
-            lens,
-          }),
+          deliverables: unique(
+            [
+              ...requiredComponents.map(
+                (component) => `${component} - a labeled, complete component integrated into ${assessmentTitle}`,
+              ),
+              ...assignmentDeliverablesForLesson({
+                lesson,
+                assessment,
+                submissionProfile,
+                lens,
+              }),
+            ],
+            12,
+          ),
           scaffoldingMilestones: [
             {
               milestone: lessonVariant(lesson, [
@@ -19955,8 +20016,9 @@ function buildQuizQuestionPlan({ lesson, assessment = {}, targetCount = 6 }) {
 }
 
 function withQuizPlan(question, plan) {
+  const strengthenedQuestion = examCopy.strengthenShortAnswerDepth(question, plan);
   return {
-    ...question,
+    ...strengthenedQuestion,
     quizPlan: {
       source: plan.source,
       role: plan.role,
@@ -20458,10 +20520,25 @@ function buildSourceBoundRecoveryQuizAtoms({ lesson, blueprint, quizPlan, concep
     blueprint?.instructionalIntentGraph?.evidenceRecoveryAuthorization?.status === 'authorized' &&
     Array.isArray(blueprint.instructionalIntentGraph.evidenceRecoveryAuthorization.lessonNumbers) &&
     blueprint.instructionalIntentGraph.evidenceRecoveryAuthorization.lessonNumbers.includes(lesson.lessonNumber);
+  const practiceRecord = compilerPracticeRecovery
+    ? {
+        protocol: 'coursemapper-packaged-practice-case-v1',
+        title: `Course-created practice case - ${stripLessonPrefix(lesson.title)}`,
+        context: `A ${blueprintLens(blueprint).learnerRole} is preparing ${safeLessonArtifact(lesson)} and must decide how ${concept} changes the work.`,
+        records: [
+          `Record A - Objective: ${stripTerminalPunctuation(cleanText(lesson.outcomes?.[0], concept))}.`,
+          `Record B - Evidence target: ${stripTerminalPunctuation(cleanText(lesson.evidencePlan?.evidenceRequirement, `identify observable evidence for ${concept}`))}.`,
+          `Record C - Decision boundary: ${stripTerminalPunctuation(cleanText(lesson.evidencePlan?.limitationCue, `state what the available ${concept} evidence cannot establish`))}.`,
+          `Record D - Required product: ${stripTerminalPunctuation(safeLessonArtifact(lesson))}.`,
+        ],
+        studentUse:
+          'Use only the labeled records for the questions below. You may create an example when asked, but label every assumption and do not present it as supplied evidence.',
+      }
+    : null;
   const sourceLabel = sourceFactsOnly
     ? 'the instructor-provided fact list'
     : compilerPracticeRecovery
-      ? `the compiler-created practice record "${evidenceCue}"`
+      ? 'the course-created practice case printed above'
       : /^(?:the|assigned)\b/i.test(evidenceCue)
         ? evidenceCue
         : `the assigned source "${evidenceCue}"`;
@@ -20510,48 +20587,107 @@ function buildSourceBoundRecoveryQuizAtoms({ lesson, blueprint, quizPlan, concep
             `Revise a claim about "${objective}" after a reviewer challenges its evidence. Use one exact statement from ${sourceLabel}, narrow the claim to what that statement supports, and specify the next fact needed before transferring it to a new case.`,
         },
       ]
-    : [
-        {
-          bloom: 'Apply',
-          make: (objective) =>
-            `Use ${sourceLabel} to complete the objective "${objective}." Identify the relevant concept, method, or rule independently; cite one exact source detail; apply it to one worked example; then state what the source does not establish.`,
-        },
-        {
-          bloom: 'Analyze',
-          make: (objective) =>
-            `Analyze two worked examples from ${sourceLabel} that address "${objective}." Compare them using ${conceptLensCue}; name one meaningful similarity, one difference, and the exact evidence for each.`,
-        },
-        {
-          bloom: 'Analyze',
-          make: (objective) =>
-            `Analyze one worked solution or explanation in ${sourceLabel} related to "${objective}." Identify the course principle you would use to test it. Cite one decisive source detail, then state one limitation or next piece of evidence.`,
-        },
-        {
-          bloom: 'Analyze',
-          make: (objective) =>
-            `Analyze one plausible error in a worked example from ${sourceLabel} related to "${objective}." Identify the course rule that exposes the error. Cite the contradictory source detail, explain the correction, and state one limitation or next piece of evidence.`,
-        },
-        {
-          bloom: 'Evaluate',
-          make: (objective) =>
-            `Evaluate two explanations or solution paths from ${sourceLabel} that bear on "${objective}." Choose the course framework that best distinguishes them. Cite the detail supporting the stronger path, then name one limitation or additional piece of evidence.`,
-        },
-        {
-          bloom: 'Create',
-          make: (objective) =>
-            `Create a new worked example for "${objective}" using only a relationship, rule, or method stated in ${sourceLabel}. Show the inputs, reasoning, and result; mark every assumption the source does not supply; then compare your example with one source example.`,
-        },
-        {
-          bloom: 'Evaluate',
-          make: (objective) =>
-            `Evaluate the strongest conclusion ${sourceLabel} supports about "${objective}." Cite the decisive worked step, reject one plausible overclaim, and identify the evidence boundary that controls the judgment.`,
-        },
-        {
-          bloom: 'Create',
-          make: (objective) =>
-            `Revise a solution or explanation for "${objective}" after receiving evidence-based feedback. Preserve the supported rule from ${sourceLabel}, correct one unsupported step, and describe the new evidence required before transferring the method to a different case.`,
-        },
-      ];
+    : compilerPracticeRecovery
+      ? [
+          {
+            bloom: 'Apply',
+            make: (objective) =>
+              `Use Records A-D to address "${objective}." Name the relevant ${concept} idea, cite the record that controls the decision, and state one conclusion Record C prevents.`,
+            answer:
+              'A complete response cites the controlling labeled record, connects it to the objective, and uses Record C to reject a broader unsupported conclusion.',
+          },
+          {
+            bloom: 'Analyze',
+            make: (objective) =>
+              `Compare Record A with Record B for "${objective}." Explain what evidence the objective requires, identify what is still missing, and show how the missing evidence affects Record D.`,
+            answer:
+              'The response must connect Record A to Record B, identify a concrete evidence gap, and explain the resulting change needed in Record D.',
+          },
+          {
+            bloom: 'Analyze',
+            make: (objective) =>
+              `Audit the reasoning path from Record B to Record D for "${objective}." Identify one valid step, one unsupported step, and the specific check needed before the product is defensible.`,
+            answer:
+              'Full credit identifies a supported Record B-to-D step, names an unsupported inference, and proposes a check that directly tests that inference.',
+          },
+          {
+            bloom: 'Analyze',
+            make: (objective) =>
+              `Write one overclaim that ignores Record C while addressing "${objective}," then revise it so the claim fits Records A-D. Label the removed assumption.`,
+            answer:
+              'The revision must narrow the overclaim to the labeled records and explicitly identify the assumption removed because Record C does not support it.',
+          },
+          {
+            bloom: 'Evaluate',
+            make: (objective) =>
+              `Evaluate whether Records A-D are sufficient to complete "${objective}." Give a yes, no, or conditional judgment; cite the decisive record; and name the next evidence needed.`,
+            answer:
+              'A valid judgment is conditional on the record cited, explains why that record is decisive, and names evidence that would resolve the remaining gap.',
+          },
+          {
+            bloom: 'Create',
+            make: (objective) =>
+              `Create a concise outline for Record D that addresses "${objective}." Include an evidence section tied to Record B, a bounded decision tied to Record C, and one labeled assumption requiring confirmation.`,
+            answer:
+              'The outline must visibly include the Record B evidence, the Record C boundary, the resulting decision in Record D, and a separately labeled assumption.',
+          },
+          {
+            bloom: 'Evaluate',
+            make: (objective) =>
+              `Choose the strongest conclusion Records A-D support about "${objective}." Cite the decisive line, reject one plausible overclaim, and explain where the evidence stops.`,
+            answer:
+              'The strongest answer selects a conclusion no broader than the cited record, rejects a specific overclaim, and locates the stopping point in Record C.',
+          },
+          {
+            bloom: 'Create',
+            make: (objective) =>
+              `Revise Record D after a reviewer challenges its evidence for "${objective}." Preserve the supported decision, repair one unsupported step, and specify the new record needed before transfer to another case.`,
+            answer:
+              'The revision must preserve a supported decision, identify and repair one unsupported step, and define the exact new evidence record needed for transfer.',
+          },
+        ]
+      : [
+          {
+            bloom: 'Apply',
+            make: (objective) =>
+              `Use ${sourceLabel} to complete the objective "${objective}." Identify the relevant concept, method, or rule independently; cite one exact source detail; apply it to one worked example; then state what the source does not establish.`,
+          },
+          {
+            bloom: 'Analyze',
+            make: (objective) =>
+              `Analyze two worked examples from ${sourceLabel} that address "${objective}." Compare them using ${conceptLensCue}; name one meaningful similarity, one difference, and the exact evidence for each.`,
+          },
+          {
+            bloom: 'Analyze',
+            make: (objective) =>
+              `Analyze one worked solution or explanation in ${sourceLabel} related to "${objective}." Identify the course principle you would use to test it. Cite one decisive source detail, then state one limitation or next piece of evidence.`,
+          },
+          {
+            bloom: 'Analyze',
+            make: (objective) =>
+              `Analyze one plausible error in a worked example from ${sourceLabel} related to "${objective}." Identify the course rule that exposes the error. Cite the contradictory source detail, explain the correction, and state one limitation or next piece of evidence.`,
+          },
+          {
+            bloom: 'Evaluate',
+            make: (objective) =>
+              `Evaluate two explanations or solution paths from ${sourceLabel} that bear on "${objective}." Choose the course framework that best distinguishes them. Cite the detail supporting the stronger path, then name one limitation or additional piece of evidence.`,
+          },
+          {
+            bloom: 'Create',
+            make: (objective) =>
+              `Create a new worked example for "${objective}" using only a relationship, rule, or method stated in ${sourceLabel}. Show the inputs, reasoning, and result; mark every assumption the source does not supply; then compare your example with one source example.`,
+          },
+          {
+            bloom: 'Evaluate',
+            make: (objective) =>
+              `Evaluate the strongest conclusion ${sourceLabel} supports about "${objective}." Cite the decisive worked step, reject one plausible overclaim, and identify the evidence boundary that controls the judgment.`,
+          },
+          {
+            bloom: 'Create',
+            make: (objective) =>
+              `Revise a solution or explanation for "${objective}" after receiving evidence-based feedback. Preserve the supported rule from ${sourceLabel}, correct one unsupported step, and describe the new evidence required before transferring the method to a different case.`,
+          },
+        ];
 
   return quizPlan.slice(0, Math.min(targetCount, prompts.length)).map((plan, index) => {
     const type = index === prompts.length - 1 ? 'essay' : 'short_answer';
@@ -20565,6 +20701,7 @@ function buildSourceBoundRecoveryQuizAtoms({ lesson, blueprint, quizPlan, concep
         ? 'compiler-created practice recovery task demand'
         : 'source-bound recovery task demand',
     };
+    const practiceRecoveryCopy = examCopy.compilerPracticeRecoveryCopy(lesson.lessonNumber);
     const scoringGuidance = sourceFactsOnly
       ? `Award full credit only when the response quotes or identifies a supplied statement accurately, explains its relationship, and keeps the conclusion within that wording. Verify every factual claim against the instructor-provided fact list.`
       : compilerPracticeRecovery
@@ -20585,14 +20722,14 @@ function buildSourceBoundRecoveryQuizAtoms({ lesson, blueprint, quizPlan, concep
         question: humanizeQuizText(promptPlan.make(objective)),
         answer: sourceFactsOnly
           ? 'A valid response identifies an exact supplied statement, explains the relationship it supports, and names a conclusion that the wording does not establish.'
-          : 'Responses vary. Accept only a response whose claim is supported by a named or created example and an inspectable feature.',
+          : promptPlan.answer || practiceRecoveryCopy.answer,
         sampleAnswer: sourceFactsOnly
           ? 'Quote or identify the decisive ledger statement, connect its subject and relationship to the objective, then mark the boundary between that support and any broader inference.'
-          : 'Responses vary by example; the response must name the evidence, explain how the observable feature supports the claim, and state a defensible boundary.',
+          : practiceRecoveryCopy.sampleAnswer,
         explanation: sourceFactsOnly
           ? 'This item assesses application of an admitted source ledger; success depends on accurate evidence use and a bounded conclusion.'
           : compilerPracticeRecovery
-            ? 'This item assesses a compiler-created practice record without fabricating a disciplinary answer key or publishing unsupported disciplinary claims.'
+            ? practiceRecoveryCopy.explanation
             : 'This recovery item assesses source use without fabricating a disciplinary answer key after the local knowledge kernel failed admission.',
         scoringGuidance,
         ...(type === 'essay' ? { rubricHints: [scoringGuidance] } : {}),
@@ -20612,6 +20749,7 @@ function buildSourceBoundRecoveryQuizAtoms({ lesson, blueprint, quizPlan, concep
             ? 'compiler-created-practice-recovery'
             : 'source-bound-recovery',
         sourceReviewRequired: !sourceFactsOnly && !compilerPracticeRecovery,
+        ...(practiceRecord ? { practiceRecord } : {}),
       },
       alignedPlan,
     );
@@ -22562,7 +22700,7 @@ function buildRegistryExamEntry(blueprint, assessment, examOrdinal) {
           concept,
           use: 'summative exam evidence',
           prompt: `Which statement most accurately connects ${concept} to the work in ${frameFocus}?`,
-          correct: examUnderstandCorrectText({
+          correct: examCopy.examUnderstandCorrectText({
             concept,
             lessonFocus: frameFocus,
             variant: coveredIndex + examOrdinal,
@@ -23437,6 +23575,7 @@ function compileQuizBank(blueprint, config = {}) {
     const artifact = safeLessonArtifact(lesson);
     const transferTask =
       lesson.learningTransferPlan?.transferTask || `Students transfer quiz evidence into ${artifact}.`;
+    const practiceRecord = questions.find((question) => question?.practiceRecord)?.practiceRecord || null;
     // v0.16 A2 (Prof catch): an "autograded" quiz must STATE its machine
     // scoring rule — the panel's top objection was "no plausible autograding
     // scheme". When every item is multiple-choice, the spec is printable
@@ -23461,6 +23600,7 @@ function compileQuizBank(blueprint, config = {}) {
       assignedReadings: assignedReadingTitlesForLesson(blueprint, lesson),
       totalQuestions: questions.length,
       totalPoints,
+      ...(practiceRecord ? { practiceRecord } : {}),
       ...(gradingSpec ? { gradingSpec } : {}),
       blueprintGrounding: lessonSourceGrounding(lesson, {
         difficultyProfile: lesson.difficultyProfile,

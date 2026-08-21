@@ -177,8 +177,10 @@ function requirementEvidenceForInstance(instance, intent, renderedArtifacts = []
             ...(requirement?.payload?.targetObjectives || []),
             ...(intent?.targetObjectives || []),
           ];
-          passed = objectiveEvidence.some(contains);
-          evidencePaths = lessonArtifacts.filter((artifact) => containsInArtifact(artifact, objectiveEvidence));
+          evidencePaths = lessonArtifacts.filter((artifact) =>
+            containsObjectiveInArtifact(artifact, objectiveEvidence),
+          );
+          passed = evidencePaths.length > 0;
           break;
         }
         case 'modeled-example':
@@ -242,11 +244,17 @@ function requirementEvidenceForInstance(instance, intent, renderedArtifacts = []
   return results;
 }
 
-function containsInArtifact(artifact = {}, values = []) {
+function containsObjectiveInArtifact(artifact = {}, objectives = []) {
   const surface = normalizedSurface(artifact?.text);
-  return (Array.isArray(values) ? values : [values]).some((value) => {
-    const target = normalizedSurface(value);
-    return Boolean(target && surface.includes(target));
+  return (Array.isArray(objectives) ? objectives : [objectives]).some((objective) => {
+    const target = normalizedSurface(objective);
+    if (!target) return false;
+    if (surface.includes(target)) return true;
+    const objectiveTokens = [...new Set(requirementToken(objective))];
+    if (objectiveTokens.length < 5) return false;
+    const surfaceTokens = new Set(requirementToken(artifact?.text));
+    const covered = objectiveTokens.filter((token) => surfaceTokens.has(token)).length;
+    return covered / objectiveTokens.length >= 0.8;
   });
 }
 

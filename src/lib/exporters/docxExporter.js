@@ -1227,6 +1227,13 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         // v0.16 A2: the machine-scoring statement, printed where a reviewer
         // decides whether "autograded" is honest.
         if (quiz.gradingSpec) children.push(makeBold('Grading', quiz.gradingSpec));
+        if (quiz.practiceRecord) {
+          children.push(
+            makeBold(quiz.practiceRecord.title || 'Course-created practice case', quiz.practiceRecord.context || ''),
+          );
+          (quiz.practiceRecord.records || []).forEach((record) => children.push(makeBullet(record)));
+          if (quiz.practiceRecord.studentUse) children.push(makeItalic(quiz.practiceRecord.studentUse));
+        }
         if (quiz.bloomsCoverage?.length) children.push(makeBold("Bloom's Coverage", quiz.bloomsCoverage.join(', ')));
         const questions = quiz.questions || [];
 

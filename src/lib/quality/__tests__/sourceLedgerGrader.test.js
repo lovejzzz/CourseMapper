@@ -3,6 +3,35 @@ import { grade, honestyFromDigest } from '../deepQualityGrader.js';
 import { createMemoryFileProvider } from '../fileProviders.js';
 
 describe('source-ledger quality checks', () => {
+  it('does not grade shared bibliography rights metadata as an off-topic reading', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Community Health Program Evaluation',
+          lessonScope: 'all',
+          requestedFeatures: ['syllabus'],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: 6 },
+          files: [{ path: 'Syllabus/Community Health Program Evaluation - Syllabus.txt', feature: 'syllabus' }],
+        }),
+        'Syllabus/Community Health Program Evaluation - Syllabus.txt': [
+          'COMMUNITY HEALTH PROGRAM EVALUATION',
+          'Sources & Licenses',
+          'Shared rights statement for 5 cited entries: CC BY-SA 4.0 · Wikipedia contributors. Article titles and URLs appear in the citations below.',
+        ].join('\n'),
+      }),
+      course: { title: 'Community Health Program Evaluation', featureIds: ['syllabus'] },
+    });
+
+    expect(
+      result.findings.some(
+        (finding) =>
+          finding.detail ===
+            'citation shares zero vocabulary with the course discipline (possible off-topic reading)' &&
+          /Shared rights statement/i.test(finding.evidence || ''),
+      ),
+    ).toBe(false);
+  });
+
   it('counts concept-linked W3C WAI rows as trusted accessibility sources', async () => {
     const w3cRows = [
       {

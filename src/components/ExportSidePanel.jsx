@@ -1736,7 +1736,9 @@ export default function ExportSidePanel({
         : zipCanFinishPackage
           ? 'Prepare package'
           : zipCanDownloadPackage
-            ? 'Download ZIP'
+            ? terminalPackageTrust.clean
+              ? 'Download ZIP'
+              : 'Download review ZIP'
             : 'Prepare package';
   // The export panel is the single ZIP owner.
   const zipDownloadDisabled =

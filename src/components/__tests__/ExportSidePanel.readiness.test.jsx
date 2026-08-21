@@ -1616,7 +1616,7 @@ describe('ExportSidePanel readiness repair timing', () => {
     expect(onAutoRepairReadiness).not.toHaveBeenCalled();
 
     const zipButton = container.querySelector('[data-testid="export-download-zip"]');
-    expect(zipButton?.textContent).toContain('Download ZIP');
+    expect(zipButton?.textContent).toContain('Download review ZIP');
     expect(zipButton?.disabled).toBe(false);
 
     await act(async () => {
@@ -1667,7 +1667,7 @@ describe('ExportSidePanel readiness repair timing', () => {
     expect(onAutoRepairReadiness).not.toHaveBeenCalled();
 
     const zipButton = container.querySelector('[data-testid="export-download-zip"]');
-    expect(zipButton?.textContent).toContain('Download ZIP');
+    expect(zipButton?.textContent).toContain('Download review ZIP');
     expect(zipButton?.disabled).toBe(false);
 
     await act(async () => {
@@ -1820,7 +1820,7 @@ describe('ExportSidePanel readiness repair timing', () => {
 
     const zipButton = container.querySelector('[data-testid="export-download-zip"]');
     expect(container.querySelector('[data-testid="readiness-panel"]')?.textContent).toContain('Ready to download');
-    expect(zipButton?.textContent).toContain('Download ZIP');
+    expect(zipButton?.textContent).toContain('Download review ZIP');
     expect(container.textContent).not.toMatch(/draft zip/i);
     expect(zipButton?.disabled).toBe(false);
 
@@ -1902,7 +1902,7 @@ describe('ExportSidePanel readiness repair timing', () => {
     });
 
     const zipButton = container.querySelector('[data-testid="export-download-zip"]');
-    expect(zipButton?.textContent).toContain('Download ZIP');
+    expect(zipButton?.textContent).toContain('Download review ZIP');
     expect(zipButton?.disabled).toBe(false);
 
     await act(async () => {

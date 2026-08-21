@@ -86,6 +86,19 @@ export function compactLongArtifactMentionsInValue(value, canonicalValue, replac
       /\bFormat profile for ([^:.!?\n]{3,100}):\s*\1(?=[.!?;:,]?\s|[.!?;:,]?$)/gi,
       'Format profile for $1: evidence, decision logic, limitation, and revision trace',
     );
+    // The same late compaction seam applies to the other generated format
+    // frames. A nested genre label can leave a prefix echo such as
+    // "Expected structure for Week 3 repair: Week 3 repair: analysis log".
+    // Remove only the duplicated compact identity and preserve the actual
+    // disciplinary format that follows it.
+    text = text.replace(
+      /\b((?:Expected structure|Publication form|Format profile) for) ([^:.!?\n]{3,100}):\s*\2:\s*/gi,
+      '$1 $2: ',
+    );
+    text = text.replace(
+      /\b((?:Expected structure|Publication form) for) ([^:.!?\n]{3,100}):\s*\2(?=[.!?;:,]?\s|[.!?;:,]?$)/gi,
+      '$1 $2: evidence, decision logic, limitation, and revision trace',
+    );
     return text;
   }
   if (Array.isArray(value)) {

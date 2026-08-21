@@ -596,8 +596,11 @@ describe('Scion adapter tooling', () => {
     const priorGraderBenchmarkV142 = JSON.parse(
       await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v142.json', 'utf8'),
     );
-    const currentGraderBenchmark = JSON.parse(
+    const priorGraderBenchmarkV143 = JSON.parse(
       await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v143.json', 'utf8'),
+    );
+    const currentGraderBenchmark = JSON.parse(
+      await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v144.json', 'utf8'),
     );
     expect(validateScionHeldoutBenchmark(benchmark)).toMatchObject({
       valid: true,
@@ -618,6 +621,7 @@ describe('Scion adapter tooling', () => {
     expect(validateScionHeldoutBenchmark(priorGraderBenchmarkV95)).toMatchObject({ valid: true, issues: [] });
     expect(validateScionHeldoutBenchmark(priorGraderBenchmarkV96)).toMatchObject({ valid: true, issues: [] });
     expect(validateScionHeldoutBenchmark(priorGraderBenchmarkV142)).toMatchObject({ valid: true, issues: [] });
+    expect(validateScionHeldoutBenchmark(priorGraderBenchmarkV143)).toMatchObject({ valid: true, issues: [] });
     expect(validateScionHeldoutBenchmark(currentGraderBenchmark)).toMatchObject({ valid: true, issues: [] });
     const currentGraderReceipt = await captureModuleImplementationReceipt({
       root: process.cwd(),
@@ -776,7 +780,7 @@ describe('Scion adapter tooling', () => {
 
   it('derives promotion evidence from two hash-bound Crucible rounds', async () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-paired-evidence-'));
-    const benchmarkPath = path.resolve('evaluation/scion-adapters/held-out-course-benchmark-v141.json');
+    const benchmarkPath = path.resolve('evaluation/scion-adapters/held-out-course-benchmark-v144.json');
     const benchmark = JSON.parse(await fs.readFile(benchmarkPath, 'utf8'));
     const benchmarkSha256 = await sha256File(benchmarkPath);
     const datasetDir = path.join(root, 'dataset');

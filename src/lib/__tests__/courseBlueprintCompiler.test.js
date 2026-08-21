@@ -8680,10 +8680,10 @@ describe('courseBlueprintCompiler', () => {
       ],
     });
 
-    expect(blueprint.enrichment.lens.domain).toBe('community health evaluation');
-    expect(blueprint.enrichment.lens.exampleNoun).toBe('community implementation case');
+    expect(blueprint.enrichment.lens.domain).toBe('public-health program evaluation');
+    expect(blueprint.enrichment.lens.exampleNoun).toBe('community program evaluation case');
     expect(blueprint.enrichment.lens.exampleNoun).not.toMatch(/AI-supported/i);
-    expect(blueprint.learnerContextProfile.learnerRole).toBe('evaluation practitioner');
+    expect(blueprint.learnerContextProfile.learnerRole).toBe('public-health evaluator');
   });
 
   it('honors configured Course FAQ question targets for compiled output', () => {

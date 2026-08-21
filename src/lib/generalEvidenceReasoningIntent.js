@@ -33,6 +33,18 @@ export function buildGeneralEvidenceReasoningIntent({ focusConcept, artifact, va
       objective: `Audit one ${concept} claim for ${learnerArtifact}: point to admitted evidence, state what it warrants, and bound the conclusion with one unresolved limitation.`,
       evidenceRequirement: `Make the ${learnerArtifact} trace one admitted evidence item to its warranted inference, then mark the limit beyond that support.`,
     },
+    {
+      objective: `Use ${concept} to examine one decision in ${learnerArtifact}. Identify the controlling evidence, explain the decision it supports, and flag the question that remains open.`,
+      evidenceRequirement: `Show where ${learnerArtifact} uses ${concept}: label the evidence, the resulting decision, and the unresolved question that prevents a broader claim.`,
+    },
+    {
+      objective: `Critique one ${concept} interpretation in ${learnerArtifact}. Trace it to a course record, test the reasoning step, and revise any claim that reaches beyond the record.`,
+      evidenceRequirement: `Connect the ${learnerArtifact} interpretation to a named course record, explain the reasoning link, and rewrite one unsupported extension.`,
+    },
+    {
+      objective: `Construct a defensible ${concept} judgment in ${learnerArtifact}. Select relevant course evidence, justify the judgment, and specify the condition under which it should change.`,
+      evidenceRequirement: `In ${learnerArtifact}, cite the course evidence used for the ${concept} judgment and name the new condition or evidence that would require revision.`,
+    },
   ];
   const selected = variants[Math.abs(Number(variationKey) || 0) % variants.length];
   const objective = selected.objective;

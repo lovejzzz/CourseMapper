@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
+import { buildCourseBlueprint, compileBlueprintDeliverables } from '../courseBlueprintCompiler.js';
+import { deriveCourseGraphFromCourseMap } from '../courseGraph/deriveFromCourseMap.js';
 import { assessInstructionalPlanIdentity, enforceInstructionalPlanContract } from '../instructionalPlanContract.js';
 import { prepareInstructionalPlan } from '../prepareInstructionalPlan.js';
+import { createScionEvidenceAuthorityContract } from '../scionEvidenceLayer.js';
 
 function modelLesson(number, title, topic) {
   return {
@@ -115,6 +118,125 @@ describe('instructional plan contract', () => {
       'Lesson 2: Comparing distributions',
     ]);
     expect(prepared.instructionalPlanContract.status).toBe('plan-authorized');
+  });
+
+  it('preserves the exact requested program-evaluation artifacts while authorizing the ordered lesson plan', () => {
+    const sourceBrief =
+      'Community Health Program Evaluation, a 6-week graduate seminar for public health students. Week 1: logic models and evaluation questions. Week 2: stakeholder mapping and ethical evaluation practice. Week 3: process indicators and implementation fidelity. Week 4: outcome indicators, measurement validity, and survey design. Week 5: mixed-method analysis and triangulation. Week 6: communicating findings and improvement recommendations. Include a lesson-specific applied exercise every week, short evidence-based readings or course-created practice where appropriate, a stakeholder memo, an indicator matrix, and a final evaluation portfolio with an executive brief, logic model, analysis plan, and recommendations. Ensure each assessment has explicit requirements and a usable rubric.';
+    const courseMap = {
+      courseName: 'Community Health Program Evaluation',
+      lessons: genericLessons(6),
+    };
+
+    const result = enforceInstructionalPlanContract(courseMap, sourceBrief);
+    const assessments = result.courseMap.lessons.map((lesson) => lesson.sections[0].weeklyAssessments);
+
+    expect(result.receipt.assessmentContract).toMatchObject({
+      protocol: 'coursemapper-source-brief-assessment-contract-v1',
+      coveredLessonNumbers: [2, 3, 6],
+    });
+    expect(assessments[1]).toBe('Stakeholder memo');
+    expect(assessments[2]).toBe('Indicator matrix');
+    expect(assessments[5]).toMatch(/Final evaluation portfolio - required components:/);
+    expect(assessments[5]).toMatch(/executive brief, logic model, analysis plan, and recommendations/i);
+    expect(result.courseMap.lessons[5].sections[0].evaluateDesign).toMatch(
+      /contains these labeled components: Executive brief, Logic model, Analysis plan, Recommendations/i,
+    );
+
+    const blueprint = buildCourseBlueprint(result.courseMap, { sourceBrief });
+    const compiled = compileBlueprintDeliverables(blueprint, ['assignments', 'rubrics']);
+    const finalBrief = compiled.assignments.assignments.find((assignment) =>
+      /final evaluation portfolio/i.test(assignment.title),
+    );
+    const finalRubric = compiled.rubrics.rubrics.find((rubric) => /final evaluation portfolio/i.test(rubric.title));
+    expect(finalBrief.instructions.join(' ')).toMatch(/Include every requested component/i);
+    expect(finalBrief.deliverables.join(' ')).toMatch(/Executive brief/i);
+    expect(finalBrief.deliverables.join(' ')).toMatch(/Logic model/i);
+    expect(finalBrief.deliverables.join(' ')).toMatch(/Analysis plan/i);
+    expect(finalBrief.deliverables.join(' ')).toMatch(/Recommendations/i);
+    expect(JSON.stringify(finalRubric)).toMatch(/Required component integration/i);
+  });
+
+  it('augments an approved multi-section model plan with requested artifacts without collapsing its structure', () => {
+    const sourceBrief =
+      'Community Health Program Evaluation, a 6-week graduate seminar for public health students. Week 1: logic models and evaluation questions. Week 2: stakeholder mapping and ethical evaluation practice. Week 3: process indicators and implementation fidelity. Week 4: outcome indicators, measurement validity, and survey design. Week 5: mixed-method analysis and triangulation. Week 6: communicating findings and improvement recommendations. Include a lesson-specific applied exercise every week, short evidence-based readings or course-created practice where appropriate, a stakeholder memo, an indicator matrix, and a final evaluation portfolio with an executive brief, logic model, analysis plan, and recommendations. Ensure each assessment has explicit requirements and a usable rubric.';
+    const topics = [
+      ['Logic Models and Questions', 'Logic model construction', 'Evaluation question alignment'],
+      ['Stakeholder Mapping', 'Stakeholder identification', 'Ethical evaluation practice'],
+      ['Process Indicators', 'Implementation fidelity', 'Indicator matrix design'],
+      ['Outcome Indicators', 'Measurement validity', 'Survey design'],
+      ['Mixed-Method Analysis', 'Quantitative analysis', 'Triangulation'],
+      ['Communicating Findings', 'Final evaluation portfolio', 'Improvement recommendations'],
+    ];
+    const courseMap = {
+      courseName: 'Community Health Program Evaluation',
+      lessons: topics.map(([title, first, second], index) => ({
+        id: `model-${index + 1}`,
+        title: `Lesson ${index + 1}: ${title}`,
+        sections: [
+          {
+            topicSection: `${index + 1}.1: ${first}`,
+            learningGoals: `Apply ${first} in public health program evaluation.`,
+            learningObjectives: `Analyze ${first} using observable evidence.`,
+            ...(index === 2 ? { weeklyAssessments: 'Indicator matrix' } : {}),
+            ...(index === 5 ? { weeklyAssessments: 'Final evaluation portfolio with an executive brief' } : {}),
+          },
+          {
+            topicSection: `${index + 1}.2: ${second}`,
+            learningGoals: `Apply ${second} in public health program evaluation.`,
+            learningObjectives: `Evaluate ${second} using observable evidence.`,
+          },
+        ],
+      })),
+    };
+
+    const result = enforceInstructionalPlanContract(courseMap, sourceBrief);
+
+    expect(result.receipt).toMatchObject({
+      status: 'plan-authorized',
+      source: 'source-brief-assessment-augmentation',
+      lessonCount: 6,
+    });
+    expect(result.courseMap.lessons.every((lesson) => lesson.sections.length === 2)).toBe(true);
+    expect(result.courseMap.lessons[1].sections[0].weeklyAssessments).toBe('Stakeholder memo');
+    expect(result.courseMap.lessons[2].sections[0].weeklyAssessments).toBe('Indicator matrix');
+    expect(result.courseMap.lessons[2].sections[1].weeklyAssessments).toBeUndefined();
+    expect(result.courseMap.lessons[5].sections[0]).toMatchObject({
+      requestedAssessmentTitle: 'Final evaluation portfolio',
+      requiredAssessmentComponents: ['Executive brief', 'Logic model', 'Analysis plan', 'Recommendations'],
+    });
+
+    const prepared = prepareInstructionalPlan({ courseMap, sourceBrief });
+    expect(prepared.courseMap.lessons.every((lesson) => lesson.sections.length === 2)).toBe(true);
+    expect(prepared.courseMap.lessons[1].sections[0].weeklyAssessments).toBe('Stakeholder memo');
+    expect(prepared.courseMap.lessons[2].sections[0].weeklyAssessments).toBe('Indicator matrix');
+    expect(prepared.courseMap.lessons[2].sections[1].weeklyAssessments).toBeUndefined();
+    expect(prepared.courseMap.lessons[5].sections[0].requiredAssessmentComponents).toEqual([
+      'Executive brief',
+      'Logic model',
+      'Analysis plan',
+      'Recommendations',
+    ]);
+    const preparedGraph = deriveCourseGraphFromCourseMap(prepared.courseMap);
+    expect(
+      preparedGraph.assessments.filter(
+        (assessment) => assessment.dueSession === 3 && assessment.title === 'Indicator matrix',
+      ),
+    ).toHaveLength(1);
+
+    const governingSourceContract = createScionEvidenceAuthorityContract({
+      lessonIndices: [0, 1, 2, 3, 4, 5],
+      instructionalPlan: prepared.instructionalPlan,
+    });
+    expect(() =>
+      prepareInstructionalPlan({
+        courseMap: prepared.courseMap,
+        sourceBrief,
+        governingSourceContract,
+        ...prepared.authenticLanguageDataTransaction,
+        allowEvidenceRecovery: true,
+      }),
+    ).not.toThrow();
   });
 
   it('replaces the exact V18 language placeholder plan from its named progression before research', () => {

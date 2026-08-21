@@ -2362,6 +2362,9 @@ function extractCitationStrings(file) {
   for (const line of file.paragraphs || []) {
     const trimmed = String(line).trim();
     if (trimmed.length < 16) continue;
+    // Bibliography metadata describes licensing for the real citations that
+    // follow. It is not itself a reading, so exclude it from subject scoring.
+    if (/^(?:shared rights statement|license and attribution|rights and attribution)\b/i.test(trimmed)) continue;
     if (!isScholarlyCitationLine(trimmed)) continue;
     if (seen.has(trimmed)) continue;
     seen.add(trimmed);

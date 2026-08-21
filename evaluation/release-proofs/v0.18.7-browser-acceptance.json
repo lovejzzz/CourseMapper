@@ -1,0 +1,41 @@
+{
+  "protocol": "coursemapper-browser-acceptance-v1",
+  "version": "0.18.7",
+  "capturedAt": "2026-08-21T04:10:39Z",
+  "status": "predeploy-candidate",
+  "origin": "http://127.0.0.1:4174/",
+  "prompt": "Community Health Program Evaluation, a 6-week graduate seminar for public health students, with an applied exercise every week, a stakeholder memo, an indicator matrix, and a final evaluation portfolio containing an executive brief, logic model, analysis plan, and recommendations.",
+  "checks": [
+    {
+      "id": "workspace-generation",
+      "status": "pass",
+      "evidence": "A clean production-build browser session generated all six requested lessons and all ten material families, then finished Ready to export with 10/10 materials checked."
+    },
+    {
+      "id": "honest-quality-report",
+      "status": "pass",
+      "evidence": "The final output reported deterministic package evidence 67/100, automated conformance 99/100, texture 95/100, and zero encoded findings: 0 P0, 0 P1, and 0 P2. The 67-point score remains explicitly bounded as partial positive evidence, not a readiness probability."
+    },
+    {
+      "id": "requested-assessment-contract",
+      "status": "pass",
+      "evidence": "Assignment Briefs and Rubrics each contain exactly one Indicator matrix heading and exactly one Final evaluation portfolio heading. The final assignment names the executive brief, logic model, analysis plan, and recommendations; its expanded rubric includes a 25-point Required component integration criterion naming all four components."
+    },
+    {
+      "id": "assessment-registry",
+      "status": "pass",
+      "evidence": "The downloaded manifest contains one A3.1 Indicator matrix registry entity, one A2.1 Stakeholder memo, one A6.1 final portfolio, and caps the inferred final portfolio weight at 45%."
+    },
+    {
+      "id": "runtime-console",
+      "status": "pass",
+      "evidence": "The final in-app browser run produced zero warning or error console entries through generation, deterministic grading, assignment/rubric inspection, and ZIP download."
+    },
+    {
+      "id": "package-download",
+      "status": "pass",
+      "evidence": "The final 2,005,570-byte ZIP downloaded successfully, expanded to 51 files, and contains QUALITY_FINDINGS.json with findingCount 0 plus QUALITY_REPORT.md with 99/100 conformance and no P0/P1/P2 findings."
+    }
+  ],
+  "boundary": "This is a local predeploy browser acceptance record. It does not certify production deployment, factual accuracy, accessibility, instructor approval, or classroom outcomes."
+}

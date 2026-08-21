@@ -3,6 +3,17 @@ import { CURRENT_RELEASE } from './currentRelease.js';
 
 export { CURRENT_RELEASE };
 
+const V0186_RELEASE = {
+  version: '0.18.6',
+  date: 'August 20, 2026',
+  title: 'Warning-Free, Recovery-Safe Output',
+  highlights: [
+    'Evidence-only lesson gaps are authorized inside the signed instructional graph before blueprint compilation, so one missing source can no longer fail all nine material families.',
+    'DOCX lists use native Word structure, repeated export boilerplate is lesson-specific, and the 34-course torture matrix finishes with zero package blockers and zero quality warnings.',
+    'Known informational llama.cpp notices stay out of the browser console while unknown runtime warnings and errors remain visible, and Node 25 verification runs no longer emit experimental Web Storage warnings.',
+  ],
+};
+
 const V0185_RELEASE = {
   version: '0.18.5',
   date: 'August 20, 2026',
@@ -1426,6 +1437,45 @@ export const CURRENT_RELEASE_CHANGELOG = {
   highlights: CURRENT_RELEASE.highlights,
   sections: [
     {
+      label: 'Preserve the authored assessment contract',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'Named artifacts bind against the brief’s explicit Week N topics before any model or fallback plan can shift them.',
+        'A final portfolio keeps its executive brief, logic model, analysis plan, and recommendations as durable compiler fields.',
+        'Assignment briefs and rubrics expose every required component as a labeled, scoreable requirement.',
+      ],
+    },
+    {
+      label: 'Make generated work internally usable',
+      icon: 'AI',
+      color: 'blue',
+      items: [
+        'Compiler-distributed capstone weight is capped at 45 percent and excess is redistributed across weekly evidence.',
+        'Recovery quizzes print the complete course-created case before asking students to analyze its records.',
+        'Six evidence-reasoning variants replace a three-item loop that repeated across longer courses.',
+      ],
+    },
+    {
+      label: 'Make review signals honest',
+      icon: 'PROOF',
+      color: 'violet',
+      items: [
+        'Public-health program-evaluation retrieval requires domain anchors and rejects a generic Question page.',
+        'Expected-structure and publication-form labels no longer echo the artifact title twice.',
+        'A verified archive with findings says Download review ZIP; only a clean archive says Download ZIP.',
+      ],
+    },
+  ],
+};
+
+const V0186_RELEASE_CHANGELOG = {
+  version: V0186_RELEASE.version,
+  date: V0186_RELEASE.date,
+  title: V0186_RELEASE.title,
+  highlights: V0186_RELEASE.highlights,
+  sections: [
+    {
       label: 'Recover before the compiler can fan out failure',
       icon: 'CHECK',
       color: 'emerald',
@@ -1442,7 +1492,7 @@ export const CURRENT_RELEASE_CHANGELOG = {
       items: [
         'DOCX exports use native Word bullets and replace inline bullet glyph separators with readable em dashes.',
         'Assignment, activity-readiness, and success-criteria copy remains lesson-specific and determiner-safe.',
-        'The 34-course, 2,600-plus-file export matrix must finish with zero blockers and zero warnings.',
+        'The 34-course, 2,600-plus-file export matrix must finish with zero package blockers and zero quality warnings.',
       ],
     },
     {
@@ -2569,6 +2619,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V0186_RELEASE_CHANGELOG,
   V0185_RELEASE_CHANGELOG,
   V0184_RELEASE_CHANGELOG,
   V0183_RELEASE_CHANGELOG,

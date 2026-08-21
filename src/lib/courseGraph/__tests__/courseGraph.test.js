@@ -73,6 +73,57 @@ describe('courseGraph (v0.13 P0)', () => {
     expect(graph.sessions[1].sections[0].extras.customColumn).toBe('Custom value survives the round trip.');
   });
 
+  it('caps an inferred final portfolio weight instead of letting it dominate a multi-assessment course', () => {
+    const graph = deriveCourseGraphFromCourseMap({
+      courseName: 'Community Health Program Evaluation',
+      lessons: Array.from({ length: 6 }, (_, index) => ({
+        title: `Lesson ${index + 1}: Evaluation topic ${index + 1}`,
+        sections: [
+          {
+            topicSection: `Evaluation topic ${index + 1}`,
+            learningObjectives: `Analyze evaluation topic ${index + 1}.`,
+            weeklyAssessments: index === 5 ? 'Final evaluation portfolio' : `Evaluation practice artifact ${index + 1}`,
+          },
+        ],
+      })),
+    });
+
+    const graded = graph.assessments.filter((assessment) => assessment.kind !== 'in-class');
+    expect(graded.reduce((sum, assessment) => sum + assessment.weightPct, 0)).toBe(100);
+    expect(
+      graded.find((assessment) => /final evaluation portfolio/i.test(assessment.title)).weightPct,
+    ).toBeLessThanOrEqual(45);
+    expect(Math.max(...graded.map((assessment) => assessment.weightPct))).toBeLessThanOrEqual(45);
+  });
+
+  it('keeps one registry artifact when two lesson sections name the same submission', () => {
+    const graph = deriveCourseGraphFromCourseMap({
+      courseName: 'Program Evaluation',
+      lessons: [
+        {
+          title: 'Lesson 1: Process indicators',
+          sections: [
+            {
+              topicSection: 'Implementation fidelity',
+              learningObjectives: 'Analyze implementation fidelity evidence.',
+              weeklyAssessments: 'Indicator matrix',
+            },
+            {
+              topicSection: 'Indicator selection',
+              learningObjectives: 'Justify an indicator selection.',
+              weeklyAssessments: 'Indicator matrix',
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(graph.assessments).toHaveLength(1);
+    expect(graph.assessments[0]).toMatchObject({ id: 'A1.1', title: 'Indicator matrix' });
+    expect(graph.sessions[0].sections.map((section) => section.assessmentRefs)).toEqual([['A1.1'], ['A1.1']]);
+    expect(graph.edges.assesses.filter((edge) => edge.from === 'A1.1')).toHaveLength(2);
+  });
+
   it('round-trips derive → render preserving every readiness-relevant cell', () => {
     const original = fixtureMap();
     const rendered = renderCourseMapFromGraph(deriveCourseGraphFromCourseMap(original));

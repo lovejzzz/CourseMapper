@@ -104,6 +104,45 @@ describe('source finder mini-shard', () => {
     expect(titles).not.toContain('Imperative programming');
   });
 
+  it('rejects a generic Question page from public-health program evaluation retrieval', async () => {
+    const graph = createEmptyCourseGraph({ courseName: 'Community Health Program Evaluation' });
+    graph.sessions = [
+      {
+        id: 's1',
+        number: 1,
+        title: 'Lesson 1: Logic Models and Evaluation Questions',
+        sections: [{ topic: '1.1: Logic models and evaluation questions' }],
+      },
+    ];
+    const candidates = [
+      source('wikipedia', 'Question', {
+        abstract:
+          'A question is an utterance which normally functions as a request for information and may use interrogative grammar or punctuation.',
+      }),
+      source('wikipedia', 'Logic model', {
+        abstract:
+          'A logic model is used in program evaluation to connect program inputs, activities, outputs, and outcomes. Public health evaluators use it to frame evaluation questions.',
+      }),
+    ];
+    const miniShard = await findCourseSources(graph, {
+      storage: memoryStorage(),
+      maxTopics: 1,
+      minUsefulSources: 1,
+      limitPerTopic: 3,
+      providers: {
+        crossref: vi.fn(async () => candidates),
+        wikipedia: vi.fn(async () => candidates),
+        openlibrary: vi.fn(async () => []),
+        loc: vi.fn(async () => []),
+        internetarchive: vi.fn(async () => []),
+      },
+    });
+
+    const titles = miniShard.topics[0].sources.map((entry) => entry.title);
+    expect(titles).toContain('Logic model');
+    expect(titles).not.toContain('Question');
+  });
+
   it('releases the course pipeline when a complementary provider ignores abort signals', async () => {
     const never = vi.fn(() => new Promise(() => {}));
     const startedAt = Date.now();
@@ -184,7 +223,7 @@ describe('source finder mini-shard', () => {
     });
 
     expect(first.temporary).toBe(true);
-    expect(first.id).toContain('source-finder-v12');
+    expect(first.id).toContain('source-finder-v13');
     expect(first.stats).toMatchObject({ topics: 2, topicsWithSources: 2, sources: 4, cacheHits: 0 });
     expect(second.stats.cacheHits).toBe(2);
     expect(providers.searchScholarlyReadings).toHaveBeenCalledTimes(2);

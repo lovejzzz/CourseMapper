@@ -8,7 +8,7 @@ import {
   agendaSlideNote,
   titleSlideNote,
 } from '../courseCompilerCopyVariants';
-import { examAtomPaddingOptions } from '../courseCompilerExamCopy';
+import { compilerPracticeRecoveryCopy, examAtomPaddingOptions } from '../courseCompilerExamCopy';
 import { assessmentRevisionCriterion, examFactCopy, slideDecisionMove } from '../courseCompilerPolish';
 import { finalizeCompiledDeliverableLanguage } from '../compiledLanguageFinalizer';
 import { ARTIFACT_PATTERNS } from '../quality/artifactDefectPatterns';
@@ -16,6 +16,14 @@ import { isAppliedQuizStem } from '../quality/quizItemDepth';
 import { lessonPlanCollaborativeNotes } from '../courseCompilerTextureCopy';
 
 describe('course compiler copy variants', () => {
+  it('varies every recovery answer surface across a six-lesson package', () => {
+    const copies = Array.from({ length: 6 }, (_, index) => compilerPracticeRecoveryCopy(index + 1));
+
+    expect(new Set(copies.map((copy) => copy.answer)).size).toBe(6);
+    expect(new Set(copies.map((copy) => copy.sampleAnswer)).size).toBe(6);
+    expect(new Set(copies.map((copy) => copy.explanation)).size).toBe(6);
+  });
+
   it('keeps collaborative evidence prompts grammatical when a concept already has a determiner', () => {
     const note = lessonPlanCollaborativeNotes({
       lesson: { lessonNumber: 2 },

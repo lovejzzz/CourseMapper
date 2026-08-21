@@ -268,6 +268,29 @@ function allocateRegistryWeights(assessments) {
       if (explicit[index]) assessment.weightPct = explicit[index];
     });
   }
+  // A source-free provisional plan must not turn one final artifact into most
+  // of the course grade. The old 11:1 culminating multiplier produced the
+  // audited 73% final portfolio in a six-week seminar. Keep explicit source
+  // percentages untouched; for five or more inferred graded artifacts, cap
+  // the single heaviest item at 45% and return the excess to the other work.
+  if (!useExplicit && graded.length >= 5) {
+    const heaviest = graded.reduce((best, assessment) =>
+      (assessment.weightPct || 0) > (best.weightPct || 0) ? assessment : best,
+    );
+    const cap = 45;
+    const excess = Math.max(0, Number(heaviest.weightPct || 0) - cap);
+    if (excess > 0) {
+      heaviest.weightPct = cap;
+      const recipients = graded.filter((assessment) => assessment !== heaviest);
+      const additions = distributeIntegerWeights(
+        excess,
+        recipients.map((assessment) => Math.max(1, assessmentWeightUnits(assessment))),
+      );
+      recipients.forEach((assessment, index) => {
+        assessment.weightPct = Number(assessment.weightPct || 0) + additions[index];
+      });
+    }
+  }
   // Defensive: rounding or explicit-only registries must still total 100.
   const total = graded.reduce((acc, assessment) => acc + (assessment.weightPct || 0), 0);
   if (total !== 100 && graded.length > 0) {
@@ -368,6 +391,12 @@ export function deriveCourseGraphFromCourseMap(courseMap, options = {}) {
     // "A7.2" = lesson 7, second assessment atom (counted across the
     // lesson's sections in cell order).
     let lessonAssessmentOrdinal = 0;
+    // The same named artifact can be visible in more than one section when a
+    // model plan already included it before the source-brief contract tagged
+    // its best-aligned section. It is still one submitted artifact, not two
+    // briefs and two rubrics. Reuse the first registry identity while binding
+    // it to every section outcome that references it.
+    const lessonAssessmentByTitle = new Map();
     // v0.14.5 (A1): same id discipline for readings — "R8.1" = lesson 8,
     // first reading atom. Render→derive keeps ids stable for unchanged
     // titles because the render writes the readings array back in order.
@@ -431,6 +460,17 @@ export function deriveCourseGraphFromCourseMap(courseMap, options = {}) {
         // birth — the registry title is the identity every downstream
         // surface (compiler anchors, export manifest, grader) must share.
         const assessmentTitle = dedupeNumberedAssessmentEcho(sanitizeGenericAssessmentTitle(text, section, session));
+        const assessmentKey = assessmentTitle.toLowerCase();
+        const existingAssessment = lessonAssessmentByTitle.get(assessmentKey);
+        if (existingAssessment) {
+          for (const outcomeId of section.objectiveRefs) {
+            if (!graph.edges.assesses.some((edge) => edge.from === existingAssessment.id && edge.to === outcomeId)) {
+              graph.edges.assesses.push({ from: existingAssessment.id, to: outcomeId });
+            }
+          }
+          section.assessmentRefs.push(existingAssessment.id);
+          continue;
+        }
         lessonAssessmentOrdinal += 1;
         const assessment = {
           // v0.14.1 (3.1): stable registry identity — "A<lesson>.<ordinal>".
@@ -445,6 +485,7 @@ export function deriveCourseGraphFromCourseMap(courseMap, options = {}) {
           sourceText: text,
         };
         graph.assessments.push(assessment);
+        lessonAssessmentByTitle.set(assessmentKey, assessment);
         // Alignment assumption at derive time: a section's assessments
         // assess that section's outcomes. Authored graphs refine this.
         for (const outcomeId of section.objectiveRefs) {

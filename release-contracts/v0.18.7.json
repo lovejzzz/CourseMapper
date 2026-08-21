@@ -1,0 +1,90 @@
+{
+  "version": "0.18.7",
+  "date": "August 20, 2026",
+  "title": "Source-Faithful, Output-First Quality",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm run format:check",
+      "npm run lint",
+      "npm test",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:gold:smoke",
+      "npm run audit:texture:cross-package:untuned",
+      "fresh local browser generation and output audit"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Remote exact-commit verification begins after this locally verified candidate is pushed."
+    },
+    "ciDeep": {
+      "status": "pending",
+      "note": "No new model-quality, adapter, or external-provider comparison claim is made before remote evidence exists."
+    },
+    "deploy": {
+      "status": "pending",
+      "note": "Production deployment and exact-version re-audit are downstream of push and remote verification."
+    },
+    "liveProvider": {
+      "status": "not-current",
+      "note": "The browser proof uses the shipped browser-local Scion runtime; it does not claim a fresh external-provider package."
+    },
+    "manualHuman": {
+      "status": "pending",
+      "note": "No instructor evaluation, accessibility certification, or classroom validation is claimed."
+    }
+  },
+  "claims": [
+    {
+      "id": "v0187-1",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "highlightSha256": "cee04751bb7f76109b249ae8eea31d5d1e831ac073ee2bef4a6bfeef0e3cf725",
+      "summary": "Named assessment artifacts and final-project components persist from the authored week contract into assignments and rubrics.",
+      "anchors": [
+        "src/lib/sourceBriefAssessmentContract.js",
+        "src/lib/instructionalPlanContract.js",
+        "src/lib/courseBlueprintCompiler.js",
+        "src/lib/__tests__/instructionalPlanContract.test.js"
+      ],
+      "proofCommands": ["npm test", "npm run build"],
+      "proofScopes": ["unit", "compiled-output", "browser-live"]
+    },
+    {
+      "id": "v0187-2",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "highlightSha256": "dca9c0cf6b5e94191ea9037c227b5c0437edf11dab8ee7b8fac206a7f86c0812",
+      "summary": "Compiler-inferred assessment weight is bounded and recovery quizzes include the exact practice case their questions use.",
+      "anchors": [
+        "src/lib/courseGraph/deriveFromCourseMap.js",
+        "src/lib/courseBlueprintCompiler.js",
+        "src/lib/exporters/docxExporter.js",
+        "src/lib/__tests__/instructionalPlanCompilerAdmission.test.js"
+      ],
+      "proofCommands": ["npm test", "npm run audit:gold:smoke"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v0187-3",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "highlightSha256": "d9ffdda9d17101ad6dc09a9504af50f09e53dbeef545e1a58cc3cca46dd87910",
+      "summary": "Public-health source admission, repetition repair, artifact-label repair, and review-ZIP labeling make output findings visible and actionable.",
+      "anchors": [
+        "src/lib/knowledge/sourceFinder.js",
+        "src/lib/generalEvidenceReasoningIntent.js",
+        "src/lib/artifactDisplayReference.js",
+        "src/components/ExportSidePanel.jsx"
+      ],
+      "proofCommands": ["npm test", "npm run audit:texture:cross-package:untuned"],
+      "proofScopes": ["unit", "stress-fixture", "browser-live"]
+    }
+  ],
+  "boundaries": [
+    "This contract records a locally verified predeploy candidate; remote CI, production deployment, and live re-audit are downstream facts.",
+    "Course-created recovery practice remains labeled practice evidence and does not become an external factual source.",
+    "The patch changes deterministic source-contract, compiler, export, and review behavior; it changes no model weights or adapter promotion state."
+  ]
+}

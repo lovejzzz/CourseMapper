@@ -51,7 +51,10 @@ export const SOURCE_FINDER_ORIGIN = 'source-finder';
 // v12 makes the course discipline authoritative when an overloaded lesson
 // word names a different field. A film-editing lesson about rhythm must not
 // activate the music-theory gate and admit Metre (music) or Metre (poetry).
-const SOURCE_FINDER_VERSION = 'source-finder-v12';
+// v13 adds a public-health program-evaluation boundary after a live six-week
+// run admitted the generic Wikipedia page "Question" for evaluation
+// questions. Cached v12 shards have already passed the weaker homonym gate.
+const SOURCE_FINDER_VERSION = 'source-finder-v13';
 const CACHE_PREFIX = 'cm-source-finder:';
 const SNIPPET_LIMIT = 320;
 const DEFAULT_MAX_TOPICS = 8;
@@ -308,6 +311,12 @@ const DISCIPLINE_ANCHOR_GATES = [
     source:
       /\b(?:international relations|foreign policy|security|conflict|war|peace|interstate|states?|crisis bargaining|negotiat(?:e|ion|ions)|diploma(?:cy|tic)|deterrence|escalation|de-?escalation|geopolitic(?:s|al)?)\b/i,
   },
+  {
+    applies:
+      /\b(?:public health|community health|population health|health equity|program evaluation|community evaluation|health program)\b/i,
+    source:
+      /\b(?:public health|community health|population health|health equity|program evaluation|evaluation questions?|logic models?|theory of change|process indicators?|outcome indicators?|implementation fidelity|stakeholder (?:mapping|analysis|engagement)|measurement validity|survey design|mixed[- ]methods?|triangulation|evaluation findings?|evaluation recommendations?)\b/i,
+  },
 ];
 
 function topicContext(topic) {
@@ -388,6 +397,27 @@ const COURSE_SUBJECT_LEXICON = [
   {
     signal: /\b(?:user experience|ux|interaction design|design studio|usability)\b/i,
     terms: ['design', 'usability', 'prototype', 'prototyping', 'interface', 'wireframe', 'critique'],
+  },
+  {
+    signal:
+      /\b(?:public health|community health|population health|health equity|program evaluation|community evaluation|health program)\b/i,
+    terms: [
+      'public',
+      'health',
+      'community',
+      'evaluation',
+      'program',
+      'logic',
+      'indicator',
+      'implementation',
+      'fidelity',
+      'stakeholder',
+      'validity',
+      'survey',
+      'triangulation',
+      'outcome',
+      'process',
+    ],
   },
   {
     // International-relations lesson labels such as "monitoring",

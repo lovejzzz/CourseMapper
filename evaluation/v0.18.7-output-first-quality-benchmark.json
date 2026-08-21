@@ -1,0 +1,29 @@
+{
+  "protocol": "coursemapper-output-first-quality-benchmark-v1",
+  "version": "0.18.7",
+  "capturedAt": "2026-08-21T03:10:00Z",
+  "status": "release-candidate",
+  "checks": [
+    {
+      "id": "exact-source-brief-contract",
+      "status": "pass",
+      "evidence": "The exact six-week Community Health brief binds the stakeholder memo to Week 2, indicator matrix to Week 3, and four-component final evaluation portfolio to Week 6; focused regressions pass 149/149."
+    },
+    {
+      "id": "balanced-assessment-architecture",
+      "status": "pass",
+      "evidence": "Compiler-inferred grading caps a dominant final assessment at 45 percent; the exact six-week regression produces a 30 percent final portfolio rather than the observed 73 percent."
+    },
+    {
+      "id": "self-contained-recovery-quiz",
+      "status": "pass",
+      "evidence": "The recovery quiz includes four bounded records before its questions, and every answer key names the record used instead of referring to a phantom compiler-created practice record."
+    },
+    {
+      "id": "cross-package-texture",
+      "status": "pass",
+      "evidence": "The 12-package untuned texture audit remains at 414 clusters, 5.40 percent support burden, 8.40 percent reader exposure, and zero unclassified paths."
+    }
+  ],
+  "boundary": "This benchmark verifies deterministic source-contract, compiler, export, and texture behavior. It is not factual certification, accessibility certification, instructor approval, classroom validation, or production deployment evidence."
+}

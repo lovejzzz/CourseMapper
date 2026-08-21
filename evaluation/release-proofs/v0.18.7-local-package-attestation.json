@@ -1,0 +1,32 @@
+{
+  "protocol": "coursemapper-production-package-attestation-v1",
+  "version": "0.18.7",
+  "capturedAt": "2026-08-21T04:10:39Z",
+  "status": "bounded-pass",
+  "scope": "predeploy source-faithful output-quality boundary",
+  "package": {
+    "fileName": "Community Health Program Evaluation - Course Materials (2).zip",
+    "bytes": 2005570,
+    "sha256": "683acb84d001d4f96a042e9d72b0ec69aa15fadad5f958e863cac6611e15d617",
+    "exportedFileCount": 51
+  },
+  "quality": {
+    "deterministicEvidenceEarned": 67,
+    "automatedConformance": 99,
+    "texture": 95,
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "encodedFindingCount": 0
+  },
+  "observations": [
+    "The authored six-week order survives from the prompt through the final package.",
+    "Stakeholder memo, Indicator matrix, and Final evaluation portfolio remain first-class assessment identities rather than being replaced by generic weekly exercises.",
+    "Two Course Map sections may reference the Indicator matrix, but the package registry emits one A3.1 artifact, one assignment brief, and one rubric.",
+    "The final portfolio assignment and rubric explicitly require Executive brief, Logic model, Analysis plan, and Recommendations.",
+    "The inferred final portfolio weight is capped at 45%, with the remaining graded work distributed across the seminar.",
+    "Recovery quiz questions carry evidence-bearing constructed-response prompts plus lesson-varying answer, sample-answer, and explanation copy.",
+    "QUALITY_FINDINGS.json declares zero findings, QUALITY_REPORT.md declares 0 P0, 0 P1, and 0 P2, and the final browser console contains zero warnings or errors."
+  ],
+  "boundary": "This local package attestation verifies the named candidate ZIP and deterministic output checks. It is not a production deployment attestation, factual certification, accessibility certification, instructor evaluation, or classroom validation."
+}
