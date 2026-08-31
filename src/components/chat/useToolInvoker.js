@@ -39,15 +39,6 @@ import { stripInternalAgentMarkers } from './agentResponseText';
 import { getScionAgentFailureMessage } from '../../lib/scionUserFacingError';
 import { findDuplicateLessonTitleGroups } from '../../lib/lessonTitleIdentity';
 import { renderedDeliverableCollectionKey } from '../../lib/renderedDeliverableCollection.js';
-import {
-  createAgentRunLedger,
-  finalizeAgentRunLedger,
-  findAgentNoProgressLoop,
-  findRecoverableAgentRun,
-  recordAgentProviderCall,
-  recordAgentToolBatch,
-  saveAgentRunCheckpoint,
-} from '../../lib/agentRunLedger.js';
 
 export { stripInternalAgentMarkers } from './agentResponseText';
 
@@ -1702,13 +1693,6 @@ export function buildModelAgentReceiptFromProgress(
     stateDiffCount: stateDiffs.length,
     ...(providerCallCount > 0 ? { providerCallCount } : {}),
     ...(maxProviderCallCount > 0 ? { maxProviderCallCount } : {}),
-    ...(progress?.runMeta?.checkpointRevision
-      ? { checkpointRevision: Number(progress.runMeta.checkpointRevision) }
-      : {}),
-    ...(progress?.runMeta?.progressRevision ? { progressRevision: Number(progress.runMeta.progressRevision) } : {}),
-    ...(progress?.runMeta?.recoveredFromRunId
-      ? { recoveredFromRunId: String(progress.runMeta.recoveredFromRunId) }
-      : {}),
     ...(progress?.runMeta?.routedModel ? { routedModel: progress.runMeta.routedModel } : {}),
     ...(progress?.runMeta?.modelEscalated
       ? { modelEscalated: true, modelRoutingReason: progress.runMeta.modelRoutingReason }
@@ -1790,6 +1774,7 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
   const runId = `agent-run-${Date.now()}-${Math.random().toString(16).slice(2)}`;
   let agentQualityExpectations = {};
   let runLedger = null;
+  let runLedgerApi = null;
 
   // Helper: update the progress card
   const updateProgress = (updater) => {
@@ -1833,28 +1818,14 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
     });
   };
 
-  const syncRunLedgerMeta = () => {
-    if (!runLedger || silent) return;
-    updateProgress((card) => ({
-      ...card,
-      runMeta: {
-        ...(card.runMeta || {}),
-        checkpointRevision: runLedger.revision,
-        progressRevision: runLedger.progressRevision,
-        ...(runLedger.recoveredFromRunId ? { recoveredFromRunId: runLedger.recoveredFromRunId } : {}),
-      },
-    }));
-  };
-
   const checkpointRunLedger = () => {
-    if (!runLedger) return;
-    saveAgentRunCheckpoint(runLedger);
-    syncRunLedgerMeta();
+    if (!runLedger || !runLedgerApi) return;
+    runLedgerApi.saveAgentRunCheckpoint(runLedger);
   };
 
   const finishRunLedger = (status, stopReason) => {
-    if (!runLedger || runLedger.status !== 'running') return;
-    runLedger = finalizeAgentRunLedger(runLedger, { status, stopReason });
+    if (!runLedger || !runLedgerApi || runLedger.status !== 'running') return;
+    runLedger = runLedgerApi.finalizeAgentRunLedger(runLedger, { status, stopReason });
     checkpointRunLedger();
   };
 
@@ -2101,8 +2072,11 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
     const toolExecutionHistory = [];
     const toolResultHistory = [];
 
-    const interruptedRun = findRecoverableAgentRun(fullMessage);
-    runLedger = createAgentRunLedger({
+    // Keep checkpoint machinery out of the initial workspace bundle. It is
+    // needed only after a real model-driven Agent run begins.
+    runLedgerApi = await import('../../lib/agentRunLedger.js');
+    const interruptedRun = runLedgerApi.findRecoverableAgentRun(fullMessage);
+    runLedger = runLedgerApi.createAgentRunLedger({
       runId,
       request: fullMessage,
       executionMode,
@@ -2114,8 +2088,7 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
     if (interruptedRun) {
       loopMessages.push({
         role: 'user',
-        content:
-          '[SYSTEM] A previous run for this same request was interrupted. Re-inspect the current workspace before editing; do not assume an unfinished tool call either succeeded or failed.',
+        content: runLedgerApi.AGENT_RUN_RECOVERY_HINT,
       });
     }
 
@@ -2139,7 +2112,7 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
 
     // ── AGENTIC LOOP (native tool calling) ───────────────────────────────
     for (let iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
-      runLedger = recordAgentProviderCall(runLedger, { iteration });
+      runLedger = runLedgerApi.recordAgentProviderCall(runLedger, { iteration });
       checkpointRunLedger();
       updateProgress((card) => ({
         ...card,
@@ -2617,7 +2590,7 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
           }),
         );
         toolResultHistory.push(...toolResults);
-        runLedger = recordAgentToolBatch(runLedger, {
+        runLedger = runLedgerApi.recordAgentToolBatch(runLedger, {
           toolCalls: nonRespondCalls,
           toolResults,
           iteration,
@@ -2639,7 +2612,7 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
         // A repeated call is only a loop when its observed outcome also stops
         // changing. This preserves legitimate polling and retry progress while
         // still bounding a genuinely stuck agent.
-        const noProgressLoop = findAgentNoProgressLoop(runLedger);
+        const noProgressLoop = runLedgerApi.findAgentNoProgressLoop(runLedger);
         if (noProgressLoop) {
           const fallbackText = buildToolResultFallbackChatReply(toolResultHistory, { userMessage: fullMessage });
           completeProgressWithReceipt({
