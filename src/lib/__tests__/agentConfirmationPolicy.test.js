@@ -160,6 +160,23 @@ describe('agent confirmation policy', () => {
     expectAllowed(
       evaluateAgentMutationConfirmation(
         'edit_deliverables',
+        {
+          actions: [
+            {
+              type: 'editItem',
+              featureId: 'assignments',
+              path: 'assignments.0.title',
+              value: 'Evidence-backed recovery memo',
+            },
+          ],
+        },
+        baseCtx(),
+      ),
+    );
+
+    expectAllowed(
+      evaluateAgentMutationConfirmation(
+        'edit_deliverables',
         { actions: [{ type: 'addItem', featureId: 'assignments', item: { t: 'Recovery memo' } }] },
         baseCtx(),
       ),
@@ -175,6 +192,19 @@ describe('agent confirmation policy', () => {
 
     expectAsk(decision);
     expect(decision.issues[0]).toContain('lessonIndex');
+  });
+
+  it('asks instead of throwing when an edit path is missing', () => {
+    const decision = evaluateAgentMutationConfirmation(
+      'edit_deliverables',
+      {
+        actions: [{ type: 'editItem', featureId: 'assignments', value: 'Missing target' }],
+      },
+      baseCtx(),
+    );
+
+    expectAsk(decision);
+    expect(decision.issues[0]).toContain('path');
   });
 
   it('asks before deliverable removal, regeneration, and root overwrites', () => {

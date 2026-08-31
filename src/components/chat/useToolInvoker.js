@@ -39,6 +39,15 @@ import { stripInternalAgentMarkers } from './agentResponseText';
 import { getScionAgentFailureMessage } from '../../lib/scionUserFacingError';
 import { findDuplicateLessonTitleGroups } from '../../lib/lessonTitleIdentity';
 import { renderedDeliverableCollectionKey } from '../../lib/renderedDeliverableCollection.js';
+import {
+  createAgentRunLedger,
+  finalizeAgentRunLedger,
+  findAgentNoProgressLoop,
+  findRecoverableAgentRun,
+  recordAgentProviderCall,
+  recordAgentToolBatch,
+  saveAgentRunCheckpoint,
+} from '../../lib/agentRunLedger.js';
 
 export { stripInternalAgentMarkers } from './agentResponseText';
 
@@ -1693,6 +1702,13 @@ export function buildModelAgentReceiptFromProgress(
     stateDiffCount: stateDiffs.length,
     ...(providerCallCount > 0 ? { providerCallCount } : {}),
     ...(maxProviderCallCount > 0 ? { maxProviderCallCount } : {}),
+    ...(progress?.runMeta?.checkpointRevision
+      ? { checkpointRevision: Number(progress.runMeta.checkpointRevision) }
+      : {}),
+    ...(progress?.runMeta?.progressRevision ? { progressRevision: Number(progress.runMeta.progressRevision) } : {}),
+    ...(progress?.runMeta?.recoveredFromRunId
+      ? { recoveredFromRunId: String(progress.runMeta.recoveredFromRunId) }
+      : {}),
     ...(progress?.runMeta?.routedModel ? { routedModel: progress.runMeta.routedModel } : {}),
     ...(progress?.runMeta?.modelEscalated
       ? { modelEscalated: true, modelRoutingReason: progress.runMeta.modelRoutingReason }
@@ -1773,6 +1789,7 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
   const routedModelId = turnRouting.modelId || modelId;
   const runId = `agent-run-${Date.now()}-${Math.random().toString(16).slice(2)}`;
   let agentQualityExpectations = {};
+  let runLedger = null;
 
   // Helper: update the progress card
   const updateProgress = (updater) => {
@@ -1816,7 +1833,33 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
     });
   };
 
+  const syncRunLedgerMeta = () => {
+    if (!runLedger || silent) return;
+    updateProgress((card) => ({
+      ...card,
+      runMeta: {
+        ...(card.runMeta || {}),
+        checkpointRevision: runLedger.revision,
+        progressRevision: runLedger.progressRevision,
+        ...(runLedger.recoveredFromRunId ? { recoveredFromRunId: runLedger.recoveredFromRunId } : {}),
+      },
+    }));
+  };
+
+  const checkpointRunLedger = () => {
+    if (!runLedger) return;
+    saveAgentRunCheckpoint(runLedger);
+    syncRunLedgerMeta();
+  };
+
+  const finishRunLedger = (status, stopReason) => {
+    if (!runLedger || runLedger.status !== 'running') return;
+    runLedger = finalizeAgentRunLedger(runLedger, { status, stopReason });
+    checkpointRunLedger();
+  };
+
   const completeProgressWithReceipt = ({ status = 'complete', stopReason = '', finalResponse = null } = {}) => {
+    finishRunLedger(status === 'error' ? 'failed' : 'completed', stopReason);
     if (silent) return;
     setMessages((prev) => {
       const updated = [...prev];
@@ -2058,22 +2101,29 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
     const toolExecutionHistory = [];
     const toolResultHistory = [];
 
+    const interruptedRun = findRecoverableAgentRun(fullMessage);
+    runLedger = createAgentRunLedger({
+      runId,
+      request: fullMessage,
+      executionMode,
+      modelId: routedModelId,
+      maxIterations: MAX_ITERATIONS,
+      recoveredFromRunId: interruptedRun?.runId || null,
+    });
+    checkpointRunLedger();
+    if (interruptedRun) {
+      loopMessages.push({
+        role: 'user',
+        content:
+          '[SYSTEM] A previous run for this same request was interrupted. Re-inspect the current workspace before editing; do not assume an unfinished tool call either succeeded or failed.',
+      });
+    }
+
     // ── Adaptive temperature: deterministic for simple edits, creative for complex tasks ──
     const agentTemperature = complexity === 'simple' ? 0.2 : complexity === 'complex' ? 0.5 : 0.4;
 
-    // ── Loop detection: track tool call signatures to prevent infinite loops ──
-    const toolCallLog = [];
     let unresolvedMutationRetryPromptSent = false;
     let directApplyProposalRetryPromptSent = false;
-    function detectLoop(toolCalls) {
-      for (const tc of toolCalls) {
-        const sig = tc.name + ':' + JSON.stringify(tc.args || {});
-        toolCallLog.push(sig);
-        const count = toolCallLog.filter((s) => s === sig).length;
-        if (count >= 3) return tc.name;
-      }
-      return null;
-    }
 
     // ── Skill-creation nudge (Hermes-style agent-initiated macros) ─────────
     // When this turn has chained several successful workflow tool calls,
@@ -2089,6 +2139,8 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
 
     // ── AGENTIC LOOP (native tool calling) ───────────────────────────────
     for (let iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
+      runLedger = recordAgentProviderCall(runLedger, { iteration });
+      checkpointRunLedger();
       updateProgress((card) => ({
         ...card,
         runMeta: {
@@ -2147,6 +2199,7 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
             continue;
           }
           const finalResponse = ensureFinalResponseHasChatReply(respondCall.args, toolResultHistory);
+          finishRunLedger('completed', 'respond');
           if (silent) {
             setMessages((prev) => {
               const updated = [...prev];
@@ -2177,6 +2230,7 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
           chooseAgentFallbackText(textContent, toolResultHistory, undefined, {
             userMessage: fullMessage,
           });
+        finishRunLedger('completed', 'text_fallback');
         if (silent) {
           setMessages((prev) => {
             const updated = [...prev];
@@ -2202,25 +2256,6 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
       // ── TOOL CALLS (parallel execution) ─────────────────────────────
       const nonRespondCalls = toolCalls.filter((tc) => tc.name !== 'respond');
       if (nonRespondCalls.length > 0) {
-        const loopedTool = detectLoop(nonRespondCalls);
-        if (loopedTool) {
-          const fallbackText = buildToolResultFallbackChatReply(toolResultHistory, { userMessage: fullMessage });
-          completeProgressWithReceipt({
-            status: fallbackText ? 'complete' : 'error',
-            stopReason: 'loop_detected',
-            finalResponse: fallbackText ? { chatReply: fallbackText } : null,
-          });
-          setMessages((prev) => [
-            ...prev,
-            {
-              role: 'assistant',
-              text: fallbackText || `I stopped because ${loopedTool} was repeating without progress.`,
-            },
-          ]);
-          terminalResponseHandled = true;
-          break;
-        }
-
         usedTools = true;
 
         let stepStartIndex = 0;
@@ -2582,6 +2617,12 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
           }),
         );
         toolResultHistory.push(...toolResults);
+        runLedger = recordAgentToolBatch(runLedger, {
+          toolCalls: nonRespondCalls,
+          toolResults,
+          iteration,
+        });
+        checkpointRunLedger();
 
         // Add assistant tool-call turn + all tool results to loop messages
         loopMessages.push(formatAssistantToolCalls(provider, nonRespondCalls, assistantMessage));
@@ -2594,6 +2635,28 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
             status: r.result?.error ? 'error' : 'done',
           })),
         );
+
+        // A repeated call is only a loop when its observed outcome also stops
+        // changing. This preserves legitimate polling and retry progress while
+        // still bounding a genuinely stuck agent.
+        const noProgressLoop = findAgentNoProgressLoop(runLedger);
+        if (noProgressLoop) {
+          const fallbackText = buildToolResultFallbackChatReply(toolResultHistory, { userMessage: fullMessage });
+          completeProgressWithReceipt({
+            status: fallbackText ? 'complete' : 'error',
+            stopReason: 'no_progress_loop',
+            finalResponse: fallbackText ? { chatReply: fallbackText } : null,
+          });
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: 'assistant',
+              text: fallbackText || `I stopped because ${noProgressLoop.tool} repeated without producing new evidence.`,
+            },
+          ]);
+          terminalResponseHandled = true;
+          break;
+        }
 
         // ── Self-correction: inject recovery hints for failed tool calls ──
         const failedResults = collectFailedToolResultSummaries(toolResults);
@@ -2658,6 +2721,9 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
     }
 
     // Post-loop cleanup
+    if (!terminalResponseHandled) {
+      finishRunLedger(usedTools ? 'completed' : 'failed', usedTools ? 'max_iterations' : 'no_tool_result');
+    }
     if (terminalResponseHandled) {
       // The terminal branch already removed or completed the progress card and
       // appended any needed receipt before the final assistant response.
@@ -2707,6 +2773,7 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
     }
   } catch (err) {
     if (err.name === 'AbortError') {
+      finishRunLedger('aborted', 'user_abort');
       if (silent) {
         setMessages((prev) => {
           const updated = [...prev];
@@ -2721,6 +2788,7 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
     }
     const isNoKey = err.message === 'NO_API_KEY';
     const isNoModel = err.message === 'NO_MODEL_SELECTED';
+    finishRunLedger('failed', isNoKey ? 'missing_api_key' : isNoModel ? 'missing_model' : 'provider_error');
     console.error('[CM Agent] Error:', err.message, err);
     if (silent) {
       setMessages((prev) => {

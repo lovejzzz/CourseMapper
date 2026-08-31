@@ -116,7 +116,7 @@ function isGeneratedDeliverable(entry) {
 
 function normalizePath(path) {
   if (Array.isArray(path)) return path;
-  if (typeof path !== 'string') return path.split('.').filter(Boolean);
+  if (typeof path === 'string') return path.split('.').filter(Boolean);
   return [];
 }
 
