@@ -182,7 +182,7 @@ describe('buildDeliverableDocxBlob', () => {
     );
     const xml = await docxDocumentXml(blob);
     expect(xml.match(/Exam Preparation/g)?.length || 0).toBe(1);
-    expect(xml).not.toContain('Common errors: Do not confuse repetition with independent support.');
+    expect(xml).toContain('Common errors: Do not confuse repetition with independent support.');
     expect(xml).toContain(
       'Review strategy: For Lesson 1: Evidence, compare the two source claims; record what they support, what remains unproven, and the revision required.',
     );
@@ -191,6 +191,37 @@ describe('buildDeliverableDocxBlob', () => {
     expect(xml).toContain('w:sz w:val="19"');
     expect(xml).toContain('<w:keepLines/>');
     expect(xml).toContain('w:before="60"');
+  });
+
+  it('does not repeat an exam error already rendered as a misconception', async () => {
+    const blob = await buildDeliverableDocxBlob(
+      'studyGuides',
+      {
+        studyGuides: [
+          {
+            lessonTitle: 'Lesson 1: Evidence',
+            commonMisconceptions: [
+              {
+                misconception: 'Repeated claims are independent evidence.',
+                correction: 'Trace each claim to its source.',
+              },
+            ],
+            examPrep: {
+              commonErrors: [
+                'Repeated claims are independent evidence.',
+                'Check source independence before concluding.',
+              ],
+            },
+          },
+        ],
+      },
+      'Evidence Methods',
+    );
+    const xml = await docxDocumentXml(blob);
+    expect(xml).not.toContain(
+      'Common errors: Repeated claims are independent evidence.; Check source independence before concluding.',
+    );
+    expect(xml).toContain('Common errors: Check source independence before concluding.');
   });
 
   it('keeps each study-guide review question with its hint during pagination', async () => {

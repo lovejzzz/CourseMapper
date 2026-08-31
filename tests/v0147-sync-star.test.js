@@ -535,6 +535,18 @@ describe('G2 — recompile-and-diff blast radius', () => {
     expect(planFeatures).toContain('quizBank');
   });
 
+  it('a topic edit survives deterministic compilation into downstream deliverable data', () => {
+    const marker = 'with field classification practice';
+    const edited = geologyMap();
+    edited.lessons[1].sections[0].topicSection += ` ${marker}`;
+    const blueprint = compactBlueprintForStorage(buildCourseBlueprint(edited, {}));
+    const compiled = compileBlueprintDeliverables(blueprint, FEATURES, { configMap: {} });
+    const markerBearingFeatures = FEATURES.filter((featureId) => JSON.stringify(compiled[featureId]).includes(marker));
+
+    expect(markerBearingFeatures).toEqual(expect.arrayContaining(['syllabus', 'assignments']));
+    expect(markerBearingFeatures.length).toBeGreaterThanOrEqual(2);
+  });
+
   it('a no-op "edit" asks for NO approval (zero diffs, empty plan)', () => {
     const deliverables = compiledStateFor(geologyMap());
     const radius = computeSyncBlastRadius({

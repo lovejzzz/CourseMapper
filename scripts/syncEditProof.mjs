@@ -14,6 +14,7 @@
 import { chromium, expect } from '@playwright/test';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import JSZip from 'jszip';
 import { loadApiKey, startAppServer, redactSecrets, repoRoot } from './lib/crucibleBrowser.mjs';
 
 const outDir = path.join(repoRoot, 'verification-output', 'sync-proof');
@@ -24,6 +25,32 @@ const EDIT_MARKER = 'with market bargaining practice';
 const consoleLines = [];
 function log(message) {
   console.log(`[sync-proof] ${message}`);
+}
+
+async function filesContainingMarker(zipPath, marker) {
+  const packageZip = await JSZip.loadAsync(await fs.readFile(zipPath));
+  const hits = [];
+  for (const [fileName, entry] of Object.entries(packageZip.files)) {
+    if (entry.dir) continue;
+    const bytes = await entry.async('nodebuffer');
+    const lowerName = fileName.toLowerCase();
+    if (/\.(?:docx|xlsx|pptx)$/.test(lowerName)) {
+      const officeZip = await JSZip.loadAsync(bytes).catch(() => null);
+      if (!officeZip) continue;
+      for (const [partName, part] of Object.entries(officeZip.files)) {
+        if (part.dir || !/\.(?:xml|rels|txt)$/.test(partName.toLowerCase())) continue;
+        if ((await part.async('string')).includes(marker)) {
+          hits.push(`${fileName}#${partName}`);
+          break;
+        }
+      }
+      continue;
+    }
+    if (/\.(?:md|txt|csv|json|html|xml)$/.test(lowerName) && bytes.toString('utf8').includes(marker)) {
+      hits.push(fileName);
+    }
+  }
+  return hits;
 }
 
 async function main() {
@@ -152,7 +179,7 @@ async function main() {
       };
     }, EDIT_MARKER);
     log(`state probe: ${JSON.stringify(stateProbe)}`);
-    const stateOk = stateProbe.cellDomHasMarker && stateProbe.deliverablesWithMarker.length >= 0;
+    const stateOk = stateProbe.cellDomHasMarker && stateProbe.deliverablesWithMarker.length > 0;
     if (!stateProbe.cellDomHasMarker) {
       log('WARNING: the DOM cell lost the marker after sync — collecting the zip anyway for evidence');
     }
@@ -166,7 +193,15 @@ async function main() {
     const stat = await fs.stat(zipPath);
     log(`zip downloaded: ${stat.size} bytes → ${zipPath}`);
 
-    status = stateOk && stateProbe.cellDomHasMarker ? 'passed' : 'failed';
+    const zipMarkerHits = await filesContainingMarker(zipPath, EDIT_MARKER);
+    log(`zip marker hits: ${JSON.stringify(zipMarkerHits)}`);
+    if (zipMarkerHits.length < 2) {
+      throw new Error(
+        `downloaded ZIP did not carry the edit across the source map and a downstream deliverable (found ${zipMarkerHits.length} marker-bearing files)`,
+      );
+    }
+
+    status = stateOk ? 'passed' : 'failed';
   } catch (error) {
     log(`FAILED during ${phase}: ${redactSecrets(error.stack || String(error))}`);
     // Diagnostics: which half is broken — suggestion production or queue?

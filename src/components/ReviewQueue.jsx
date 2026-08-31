@@ -238,6 +238,17 @@ export default function ReviewQueue({
                       Confirm all
                     </button>
                   )}
+                  {classKey === 'sync' && openCount > 0 && typeof onExecuteSync === 'function' && (
+                    <button
+                      type="button"
+                      data-testid="review-queue-sync-now"
+                      onClick={() => onExecuteSync(classItems[0])}
+                      title="Apply the complete approved sync plan"
+                      className="ml-auto rounded-md bg-indigo-600 px-2 py-0.5 text-xs font-bold text-white transition-colors hover:bg-indigo-700"
+                    >
+                      Sync all {openCount}
+                    </button>
+                  )}
                 </div>
                 <ul className="space-y-1.5">
                   {classItems.map((item) => {
@@ -271,16 +282,6 @@ export default function ReviewQueue({
                           {item.detail && <p className="mt-0.5 text-xs leading-snug text-slate-400">{item.detail}</p>}
                         </button>
                         <div className="mt-1.5 flex items-center gap-1.5">
-                          {item.classKey === 'sync' && typeof onExecuteSync === 'function' && (
-                            <button
-                              type="button"
-                              data-testid="review-queue-sync-now"
-                              onClick={() => onExecuteSync(item)}
-                              className="rounded-md bg-indigo-600 px-2 py-0.5 text-xs font-bold text-white transition-colors hover:bg-indigo-700"
-                            >
-                              Sync now
-                            </button>
-                          )}
                           {item.target ? (
                             <button
                               type="button"

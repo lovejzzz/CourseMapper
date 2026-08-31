@@ -600,7 +600,7 @@ describe('Scion adapter tooling', () => {
       await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v143.json', 'utf8'),
     );
     const currentGraderBenchmark = JSON.parse(
-      await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v144.json', 'utf8'),
+      await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v145.json', 'utf8'),
     );
     expect(validateScionHeldoutBenchmark(benchmark)).toMatchObject({
       valid: true,

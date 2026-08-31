@@ -106,7 +106,14 @@ function hasLinguisticsCourseSignal(identityText) {
 // broad: computational labs, language labs, and notebook labs are normal in
 // non-wet-lab courses and must not ship goggles/specimen kits.
 const WET_LAB_SIGNAL =
-  /\b(wet lab|lab safety|bench lab|bench experiment\w*|laboratory methods?|titration|spectroscop\w+|chromatograph\w+|microscop\w+|chemical synthesis|organic synthesis|reagent|(?:rock|mineral|biological|chemical|anatomical|laboratory|physical)\s+specimens?|dissect\w+|assay|recrystalliz\w+|pipette|beaker|streak plate|hand lens|field notebook|(?:rock|mineral|biological|chemical)\s+samples?|sample kit)\b/i;
+  /\b(wet lab|lab safety|bench lab|bench experiment\w*|laboratory methods?|titration|chromatograph\w+|microscop\w+|chemical synthesis|organic synthesis|reagent|(?:rock|mineral|biological|chemical|anatomical|laboratory|physical)\s+specimens?|dissect\w+|assay|recrystalliz\w+|pipette|beaker|streak plate|hand lens|field notebook|(?:rock|mineral|biological|chemical)\s+samples?|sample kit)\b/i;
+
+// Spectroscopy is a technique in both physical laboratories and observational
+// disciplines. A bare mention of stellar/astronomical spectroscopy must not
+// manufacture goggles, specimen kits, and hand lenses for an astronomy course.
+// Require spectroscopy to co-occur with an explicit physical-lab cue.
+const PHYSICAL_SPECTROSCOPY_SIGNAL =
+  /(?=.*\bspectroscop\w*\b)(?=.*\b(?:wet lab|bench|laborator\w*|reagent|sample preparation|sample handling|cuvette|pipette|chemical|instrument calibration)\b)/i;
 
 const ANATOMY_PHYSIOLOGY_IDENTITY_SIGNAL = /\b(?:anatomy|physiology|a&p|histology)\b/i;
 const ANATOMY_PHYSIOLOGY_LAB_SIGNAL =
@@ -135,7 +142,7 @@ export function classifyCourseAssetGenre({ courseMap }) {
   if (ANATOMY_PHYSIOLOGY_IDENTITY_SIGNAL.test(identityText) || ANATOMY_PHYSIOLOGY_LAB_SIGNAL.test(text)) {
     return 'anatomy-physiology';
   }
-  if (WET_LAB_SIGNAL.test(text)) return 'wet-lab';
+  if (WET_LAB_SIGNAL.test(text) || PHYSICAL_SPECTROSCOPY_SIGNAL.test(text)) return 'wet-lab';
   return 'general';
 }
 

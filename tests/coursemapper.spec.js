@@ -37,7 +37,7 @@ test.describe('Landing Page', () => {
   test('renders logo and tagline', async ({ page }) => {
     await expect(page.locator('img[alt="EduTool.dev"]')).toBeVisible();
     await expect(page.locator('h1')).toHaveText('Turn a syllabus into a teachable course.');
-    await expect(page.getByText('Start a course workspace')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Turn a syllabus into a teachable course.' })).toBeVisible();
     await expect(page.getByText('Start with what you have.')).toHaveCount(0);
     await expect(page.getByText('From source to package')).toHaveCount(0);
   });
@@ -689,7 +689,7 @@ test.describe('Configure Generation', () => {
     await expect(page.getByTestId('feature-select-continue')).toBeVisible();
     await page.getByTestId('feature-select-continue').click();
 
-    await expect(page.locator('h1:has-text("Configure generation")')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'Configure materials' })).toBeVisible({ timeout: 10000 });
     await expect(page.getByTestId('config-sticky-action')).toBeVisible();
     await expect(page.getByTestId('config-generate-button')).toBeVisible();
     const courseMapSettings = page.getByRole('button', { name: 'Expand Course Map settings' });
@@ -762,7 +762,7 @@ test.describe('Configure Generation', () => {
     await page.getByRole('button', { name: /Course FAQ/ }).click();
     await page.getByTestId('feature-select-continue').click();
 
-    await expect(page.locator('h1:has-text("Configure generation")')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'Configure materials' })).toBeVisible({ timeout: 10000 });
     await page.getByRole('button', { name: 'Expand Course FAQ settings' }).click();
 
     await expect(page.getByText('Questions per lesson')).toBeVisible();
@@ -831,7 +831,7 @@ test.describe('Configure Generation', () => {
     await page.getByRole('button', { name: /Slide Decks/ }).click();
     await page.getByTestId('feature-select-continue').click();
 
-    await expect(page.locator('h1:has-text("Configure generation")')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'Configure materials' })).toBeVisible({ timeout: 10000 });
     await page.getByTestId('config-top-advanced-toggle').click();
     await expect(page.getByText('Model-tuned defaults')).toBeVisible();
     await expect(page.getByText(/uses detailed defaults\./)).toBeVisible();
@@ -880,7 +880,7 @@ test.describe('Configure Generation', () => {
     await page.getByRole('button', { name: /Course FAQ/ }).click();
     await page.getByTestId('feature-select-continue').click();
 
-    await expect(page.locator('h1:has-text("Configure generation")')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'Configure materials' })).toBeVisible({ timeout: 10000 });
     await page.getByTestId('config-top-advanced-toggle').click();
     await expect(page.getByTestId('institution-profile-card')).toBeVisible();
     await page.getByRole('button', { name: /Institution profile/ }).click();
@@ -1198,7 +1198,7 @@ test.describe('Accessibility', () => {
 
   test('page has a title', async ({ page }) => {
     await loadApp(page);
-    expect(await page.title()).toBe('Course Mapper');
+    await expect(page).toHaveTitle('Course Mapper — Free course maps and teaching materials');
   });
 
   test('images have alt text', async ({ page }) => {

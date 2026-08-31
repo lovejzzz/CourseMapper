@@ -258,6 +258,52 @@ describe('collectRequiredLabAssets', () => {
     expect(requirements).toEqual([]);
   });
 
+  it('does not treat astronomical spectroscopy as physical wet-lab work', () => {
+    const requirements = collectRequiredLabAssets({
+      courseMap: {
+        courseName: 'Introduction to Astronomy',
+        description: 'Observational astronomy using night-sky observations and stellar spectra.',
+        lessons: [
+          {
+            title: 'Lesson 2: Stellar Spectra and HR Diagram',
+            sections: [
+              {
+                topicSection: 'Stellar Spectrum Analysis',
+                learningObjectives: 'Use astronomical spectroscopy evidence to classify stars.',
+                weeklyAssessments: 'Evidence-based interpretation of a supplied stellar spectrum.',
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    expect(requirements).toEqual([]);
+  });
+
+  it('keeps spectroscopy assets when the course explicitly requires physical laboratory work', () => {
+    const requirements = collectRequiredLabAssets({
+      courseMap: {
+        courseName: 'Analytical Chemistry Laboratory',
+        lessons: [
+          {
+            title: 'Lesson 4: UV-visible spectroscopy',
+            sections: [
+              {
+                topicSection: 'Spectroscopy instrument calibration and cuvette sample preparation',
+                learningObjectives: 'Calibrate the laboratory instrument and analyze a chemical sample.',
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    expect(requirements.map((item) => item.id)).toEqual(
+      expect.arrayContaining(['specimen-kit', 'experiment-list', 'lab-safety']),
+    );
+  });
+
   it('does not treat a visual specimen as a physical laboratory specimen', () => {
     const requirements = collectRequiredLabAssets({
       courseMap: {

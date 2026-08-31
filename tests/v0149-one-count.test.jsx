@@ -193,6 +193,27 @@ describe('B1 — both surfaces render from the one queue object', () => {
     // Only the two still-open spot-checks — the already-reviewed one is excluded.
     expect(items.map((item) => item.id)).toEqual(queue.classes.spotChecks.slice(1).map((item) => item.id));
   });
+
+  it('the sync class exposes one clearly batch-scoped action', () => {
+    const queue = buildFixtureQueue();
+    const onExecuteSync = vi.fn();
+    const drawer = mount(
+      <ReviewQueue
+        open
+        queue={queue}
+        progress={{ reviewed: [], dismissed: [] }}
+        onClose={() => {}}
+        onMark={() => {}}
+        onExecuteSync={onExecuteSync}
+      />,
+    );
+
+    const actions = drawer.container.querySelectorAll('[data-testid="review-queue-sync-now"]');
+    expect(actions).toHaveLength(1);
+    expect(actions[0].textContent).toBe(`Sync all ${queue.classes.sync.length}`);
+    act(() => actions[0].click());
+    expect(onExecuteSync).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('B1 — surface contracts (source scans)', () => {

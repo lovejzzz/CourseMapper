@@ -1913,11 +1913,27 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
               reviewTarget ? ` in the ${reviewTarget}` : ''
             }.`;
             const listText = (value) => (Array.isArray(value) ? value.join('; ') : String(value || '').trim());
+            const normalizeExamText = (value) =>
+              String(value || '')
+                .trim()
+                .toLowerCase()
+                .replace(/\s+/g, ' ')
+                .replace(/[.!?]+$/g, '');
+            const renderedMisconceptionText = new Set(
+              (g.commonMisconceptions || [])
+                .flatMap((entry) => (typeof entry === 'string' ? [entry] : [entry?.misconception, entry?.correction]))
+                .map(normalizeExamText)
+                .filter(Boolean),
+            );
+            const uniqueCommonErrors = (
+              Array.isArray(g.examPrep.commonErrors) ? g.examPrep.commonErrors : [g.examPrep.commonErrors]
+            ).filter((entry) => {
+              const normalized = normalizeExamText(entry);
+              return normalized && !renderedMisconceptionText.has(normalized);
+            });
             const compactParts = [
               newExamTopics.length ? `Key topics: ${newExamTopics.join('; ')}.` : '',
-              g.commonMisconceptions?.length || !listText(g.examPrep.commonErrors)
-                ? ''
-                : `Common errors: ${listText(g.examPrep.commonErrors)}`,
+              uniqueCommonErrors.length ? `Common errors: ${listText(uniqueCommonErrors)}` : '',
               g.examPrep.reviewStrategy
                 ? `Review strategy: ${newExamTopics.length === 0 ? compactReview : listText(g.examPrep.reviewStrategy)}`
                 : '',

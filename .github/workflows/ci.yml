@@ -212,6 +212,38 @@ jobs:
       - name: Run unit shard
         run: npm test -- --shard=${{ matrix.shard }}/2
 
+  browser-e2e:
+    name: Browser end-to-end
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run browser tests
+        run: npm run test:e2e
+
+      - name: Upload browser failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: fast-browser-e2e-report
+          path: |
+            test-results/**
+            verification-output/e2e-report/**
+          if-no-files-found: ignore
+
   contract-evaluation:
     name: Contract evaluation
     runs-on: ubuntu-latest
@@ -261,6 +293,7 @@ jobs:
       - texture-quality
       - package-smoke
       - unit
+      - browser-e2e
       - contract-evaluation
 
     steps:
@@ -275,4 +308,5 @@ jobs:
           [[ "${{ needs.texture-quality.result }}" == "success" ]]
           [[ "${{ needs.package-smoke.result }}" == "success" ]]
           [[ "${{ needs.unit.result }}" == "success" ]]
+          [[ "${{ needs.browser-e2e.result }}" == "success" ]]
           [[ "${{ needs.contract-evaluation.result }}" == "success" ]]

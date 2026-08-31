@@ -190,7 +190,7 @@ test.describe('Agent auto-review', () => {
     await page.getByRole('button', { name: /Study Guides/ }).click();
     await page.getByTestId('feature-select-continue').click();
 
-    await expect(page.getByRole('heading', { name: 'Configure generation' })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'Configure materials' })).toBeVisible({ timeout: 10000 });
     await page.getByTestId('config-generate-button').click();
 
     await expect(page.getByTestId('workspace-shell')).toBeVisible({ timeout: 10000 });

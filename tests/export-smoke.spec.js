@@ -459,7 +459,7 @@ async function preparePackageForDownload(page) {
   await expect(button).toBeEnabled();
   await button.click();
   await expect(status).toContainText('Ready to download', { timeout: 30000 });
-  await expect(button).toContainText('Download ZIP');
+  await expect(button).toContainText('Download review ZIP');
 }
 
 async function switchWorkspaceTab(page, label) {
@@ -1351,56 +1351,6 @@ test.describe('Export smoke', () => {
                     question: 'Why keep a project backup?',
                     answer: 'It preserves the editable workspace outside the browser.',
                     category: 'Assignment Clarification',
-                  },
-                ],
-              },
-              {
-                lessonTitle: 'Lesson 2: Portable Course Materials',
-                questions: [
-                  {
-                    question: 'When should I use CSV?',
-                    answer: 'Use CSV for simple spreadsheet review and imports.',
-                    category: 'Technical Help',
-                  },
-                  {
-                    question: 'When should I use PDF?',
-                    answer: 'Use PDF for read-only review and sharing.',
-                    category: 'Course Logistics',
-                  },
-                  {
-                    question: 'Why export slide decks separately?',
-                    answer: 'Slides need their own presentation-specific format.',
-                    category: 'Assessment Prep',
-                  },
-                  {
-                    question: 'What should I archive after release?',
-                    answer: 'Archive both the exported files and the project backup.',
-                    category: 'Course Logistics',
-                  },
-                ],
-              },
-              {
-                lessonTitle: 'Lesson 2: Portable Course Materials',
-                questions: [
-                  {
-                    question: 'When should I use CSV?',
-                    answer: 'Use CSV for simple spreadsheet review and imports.',
-                    category: 'Technical Help',
-                  },
-                  {
-                    question: 'When should I use PDF?',
-                    answer: 'Use PDF for read-only review and sharing.',
-                    category: 'Course Logistics',
-                  },
-                  {
-                    question: 'Why export slide decks separately?',
-                    answer: 'Slides need their own presentation-specific format.',
-                    category: 'Assessment Prep',
-                  },
-                  {
-                    question: 'What should I archive after release?',
-                    answer: 'Archive both the exported files and the project backup.',
-                    category: 'Course Logistics',
                   },
                 ],
               },

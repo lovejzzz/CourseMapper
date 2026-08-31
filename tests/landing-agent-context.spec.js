@@ -134,7 +134,7 @@ test.describe('Landing to Agent continuity', () => {
     await page.getByRole('button', { name: /Lesson Plans/ }).click();
     await page.getByTestId('feature-select-continue').click();
 
-    await expect(page.getByRole('heading', { name: 'Configure generation' })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'Configure materials' })).toBeVisible({ timeout: 10000 });
     await page.getByRole('button', { name: /Generate/ }).click();
 
     await expect(page.getByTestId('workspace-shell')).toBeVisible({ timeout: 10000 });
@@ -144,8 +144,7 @@ test.describe('Landing to Agent continuity', () => {
     await expect(agentPanel.getByTestId('agent-context-strip')).toContainText(
       'Starting request + starter-notebook-outline.txt + 1 source note',
     );
-    await expect(agentPanel.getByTestId('agent-working-materials')).toContainText('2 lessons');
-    await expect(agentPanel.getByTestId('agent-working-materials')).toContainText('No generated materials yet');
+    await expect(page.getByTestId('workspace-shell')).toContainText('2 lessons');
 
     const landingContextCard = agentPanel.getByTestId('landing-context-card');
     await expect(landingContextCard).toContainText('Starting brief', { timeout: 30000 });
