@@ -1572,7 +1572,9 @@ test.describe('Export smoke', () => {
     await expect(page.getByTestId('readiness-panel')).not.toContainText('Course FAQ failed to generate');
   });
 
-  test('keeps a structurally flawed quiz package calm in Export and specific in Agent', async ({ page }) => {
+  test('keeps a structurally flawed quiz package specific in Export without dumping issues in Agent', async ({
+    page,
+  }) => {
     await restoreExportWorkspace(page, (snapshot) => {
       snapshot.selectedFeatures = ['courseMap', 'quizBank'];
       snapshot.deliverables = {
@@ -1633,8 +1635,9 @@ test.describe('Export smoke', () => {
     await expect(page.getByTestId('export-side-panel')).not.toContainText(/evidence \d+\/100|score \d+/i);
     const agentPanel = page.getByTestId('workspace-agent-panel');
     await expect(agentPanel).toContainText('Evidence 31/100', { timeout: 30000 });
-    await expect(agentPanel).toContainText('Lesson 2 quiz keys every multiple-choice answer');
-    await expect(agentPanel).toContainText('sourceRef coverage is too thin');
+    await expect(agentPanel.getByTestId('package-summary-card')).toHaveCount(0);
+    await expect(agentPanel).not.toContainText('Lesson 2 quiz keys every multiple-choice answer');
+    await expect(agentPanel).not.toContainText('sourceRef coverage is too thin');
     await expect(page.getByTestId('readiness-confirm')).toBeHidden();
   });
 
