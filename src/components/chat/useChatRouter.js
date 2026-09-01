@@ -117,6 +117,7 @@ export default function useChatRouter({
   viewportRef = null,
 }) {
   const { apiKey, provider, modelId, apiStatus } = useAIConfig();
+  const isPublicScion = provider === 'public' || modelId === 'scion-public';
   const [messages, setMessages] = useState(savedMessages || []);
   const messagesRef = useRef(messages);
   messagesRef.current = messages;
@@ -366,7 +367,7 @@ export default function useChatRouter({
     // Evidence-only lesson audits are safe while other materials are still
     // generating. Answer from the visible course-map fields immediately
     // instead of making the user watch a model/tool progress loop.
-    if (provider === 'public' && !preparedSend.silent && !agentPromptOverride && attachedFiles.length === 0) {
+    if (isPublicScion && !preparedSend.silent && !agentPromptOverride && attachedFiles.length === 0) {
       const { groundLessonAlignment } = await import('../../lib/agentGrounding');
       const groundedAlignment = groundLessonAlignment(trimmed, courseMapRef.current);
       if (groundedAlignment) {
@@ -381,7 +382,7 @@ export default function useChatRouter({
 
     if (chatRoute === 'agent') {
       let courseAnswer = null;
-      if (provider === 'public' && !preparedSend.silent && !agentPromptOverride && attachedFiles.length === 0) {
+      if (isPublicScion && !preparedSend.silent && !agentPromptOverride && attachedFiles.length === 0) {
         const { buildScionLocalAgentAnswer } = await import('../../lib/scionLocalAgentAnswer');
         courseAnswer = await buildScionLocalAgentAnswer({
           question: trimmed,
@@ -515,7 +516,7 @@ export default function useChatRouter({
             ? 'To use the help chat, please configure your AI provider and API key first.'
             : isNoModel
               ? 'No AI model selected. Please select a model on the landing page first.'
-              : provider === 'public'
+              : isPublicScion
                 ? "Scion couldn't answer locally. Check the Scion runtime message and try again."
                 : "Sorry, I couldn't process that. Please check your API key and try again.",
         };
@@ -653,7 +654,7 @@ export default function useChatRouter({
       const assistantReply = result?.chatReply || 'Updated! Review the changes in the workspace.';
       setMessages((prev) => [...prev, { role: 'assistant', text: assistantReply }]);
     } catch (err) {
-      const message = provider === 'public' ? getScionAgentFailureMessage(err) : `Failed: ${err.message}`;
+      const message = isPublicScion ? getScionAgentFailureMessage(err) : `Failed: ${err.message}`;
       setMessages((prev) => [...prev, { role: 'error', text: message }]);
     }
   }
