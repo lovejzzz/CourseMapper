@@ -249,7 +249,7 @@ test.describe('Agent no-key behavior', () => {
     await expect(agentPanel.getByText('Provider/key required')).toHaveCount(0);
     await expect(composer).toBeEnabled();
     await expect(composer).not.toHaveAttribute('placeholder', 'Configure AI to chat with the agent…');
-    await expect(agentPanel.getByTestId('workspace-model-config-trigger')).toContainText('Scion V');
+    await expect(agentPanel.getByTestId('workspace-model-config-trigger')).toHaveText('AI settings');
 
     await expect(page.getByRole('button', { name: 'Download ZIP' })).toHaveCount(0);
     await page.getByTestId('export-scope-all').click();

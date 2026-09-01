@@ -3,7 +3,7 @@ import fs from 'node:fs';
 
 const read = (path) => fs.readFileSync(path, 'utf8');
 
-describe('CourseMapper discovery surfaces', () => {
+describe('EduTool discovery surfaces', () => {
   it('states the permanent free-product promise without an upsell', () => {
     const readme = read('README.md');
 
@@ -19,7 +19,7 @@ describe('CourseMapper discovery surfaces', () => {
 
     expect(html).toContain('<link rel="canonical" href="https://edutool.dev/" />');
     expect(html).toContain('name="description"');
-    expect(html).toContain('property="og:title" content="Course Mapper — Free course maps and teaching materials"');
+    expect(html).toContain('property="og:title" content="EduTool — Free course maps and teaching materials"');
     expect(html).toContain('name="twitter:card" content="summary"');
     expect(html).toContain('one free, local-first browser workspace');
     expect(html).not.toContain('$10');
@@ -39,12 +39,12 @@ describe('CourseMapper discovery surfaces', () => {
 
     expect(website).toMatchObject({
       url: 'https://edutool.dev/',
-      name: 'Course Mapper',
-      alternateName: ['CourseMapper', 'edutool.dev'],
+      name: 'EduTool',
+      alternateName: ['Course Mapper', 'CourseMapper', 'edutool.dev'],
     });
     expect(application).toMatchObject({
       url: 'https://edutool.dev/',
-      name: 'Course Mapper',
+      name: 'EduTool',
       applicationCategory: 'EducationalApplication',
       operatingSystem: 'Any',
       offers: {

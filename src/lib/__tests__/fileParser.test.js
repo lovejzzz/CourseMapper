@@ -92,6 +92,17 @@ describe('parseFile routing', () => {
     await expect(parseFile(mockFile)).rejects.toThrow('Unsupported file type: .xyz');
   });
 
+  it('rejects files larger than the input limit before parsing', async () => {
+    const { MAX_INPUT_FILE_BYTES, parseFile } = await import('../fileParser');
+    const mockFile = {
+      name: 'oversized.txt',
+      size: MAX_INPUT_FILE_BYTES + 1,
+      text: async () => 'not read',
+    };
+
+    await expect(parseFile(mockFile)).rejects.toThrow('File is larger than 64 MB');
+  });
+
   it('txt files are parsed without error', async () => {
     const { parseFile } = await import('../fileParser');
     const mockFile = new File(['Hello text content'], 'test.txt', { type: 'text/plain' });
@@ -136,6 +147,32 @@ describe('parseFile routing', () => {
     expect(result).toContain('--- Sheet: Schedule ---');
     expect(result).toContain('Week,Topic');
     expect(result).toContain('Week 1,Data Ethics Foundations');
+  });
+});
+
+describe('archive safety limits', () => {
+  it('rejects archives with too many entries', async () => {
+    const { MAX_ARCHIVE_ENTRIES, assertSafeZipArchive } = await import('../fileParser');
+    const files = Object.fromEntries(
+      Array.from({ length: MAX_ARCHIVE_ENTRIES + 1 }, (_, index) => [
+        `file-${index}.txt`,
+        { dir: false, _data: { uncompressedSize: 1 } },
+      ]),
+    );
+
+    expect(() => assertSafeZipArchive({ files }, 'upload.zip')).toThrow('contains too many files');
+  });
+
+  it('rejects archives whose expanded content exceeds the total limit', async () => {
+    const { MAX_ARCHIVE_TOTAL_BYTES, assertSafeZipArchive } = await import('../fileParser');
+    const files = Object.fromEntries(
+      Array.from({ length: 6 }, (_, index) => [
+        `file-${index}.txt`,
+        { dir: false, _data: { uncompressedSize: MAX_ARCHIVE_TOTAL_BYTES / 5 } },
+      ]),
+    );
+
+    expect(() => assertSafeZipArchive({ files }, 'upload.zip')).toThrow('expands beyond 128 MB');
   });
 });
 

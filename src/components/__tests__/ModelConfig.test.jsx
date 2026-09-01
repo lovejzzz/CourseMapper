@@ -17,6 +17,7 @@ import {
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 const originalLocalStorage = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
+const originalSessionStorage = Object.getOwnPropertyDescriptor(globalThis, 'sessionStorage');
 
 function createStorageMock() {
   const store = new Map();
@@ -36,6 +37,10 @@ describe('checkCredits', () => {
       configurable: true,
       value: createStorageMock(),
     });
+    Object.defineProperty(globalThis, 'sessionStorage', {
+      configurable: true,
+      value: createStorageMock(),
+    });
   });
 
   afterEach(() => {
@@ -43,6 +48,8 @@ describe('checkCredits', () => {
     vi.restoreAllMocks();
     if (originalLocalStorage) Object.defineProperty(globalThis, 'localStorage', originalLocalStorage);
     else delete globalThis.localStorage;
+    if (originalSessionStorage) Object.defineProperty(globalThis, 'sessionStorage', originalSessionStorage);
+    else delete globalThis.sessionStorage;
   });
 
   it('validates OpenAI GPT-5-class models with the Responses API', async () => {
@@ -478,7 +485,8 @@ describe('checkCredits', () => {
     expect(latestApiStatus).toBe('connected');
     expect(localStorage.getItem('coursemapper-modelid')).toBe('gpt-4o-mini');
     expect(getSavedApiKeyForProvider('openai')).toBe('sk-proj-last-model-choice');
-    expect(localStorage.getItem(getProviderApiKeyStorageKey('openai'))).toMatch(/^obf:/);
+    expect(sessionStorage.getItem(getProviderApiKeyStorageKey('openai'))).toBe('sk-proj-last-model-choice');
+    expect(localStorage.getItem(getProviderApiKeyStorageKey('openai'))).toBeNull();
 
     act(() => {
       root.unmount();
@@ -507,7 +515,7 @@ describe('checkCredits', () => {
     expect(apiKeyInput).not.toBeNull();
     expect(apiKeyInput.type).toBe('password');
     expect(apiKeyInput.value).toBe('');
-    expect(apiKeyInput.placeholder).toContain('Saved API key');
+    expect(apiKeyInput.placeholder).toContain('Available in this tab');
     expect(container.textContent).not.toContain(savedApiKey);
 
     act(() => {

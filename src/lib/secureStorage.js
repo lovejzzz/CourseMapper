@@ -1,62 +1,72 @@
-// src/lib/secureStorage.js — obfuscated localStorage wrapper for sensitive values
-// NOT real encryption — just prevents casual plaintext exposure in DevTools.
+// API credentials are intentionally scoped to the current browser tab.
+// sessionStorage survives a reload but is discarded when the tab closes.
 
 const OBFUSCATION_PREFIX = 'obf:';
+const LEGACY_XOR_KEY = 'CM$ecur3';
+const memoryFallback = new Map();
 
-// Simple XOR cipher with a fixed key, then base64-encode the result.
-const XOR_KEY = 'CM$ecur3';
-
-function xorCipher(input) {
-  const keyLen = XOR_KEY.length;
-  let out = '';
-  for (let i = 0; i < input.length; i++) {
-    out += String.fromCharCode(input.charCodeAt(i) ^ XOR_KEY.charCodeAt(i % keyLen));
+function decodeLegacy(stored) {
+  if (!stored?.startsWith(OBFUSCATION_PREFIX)) return stored;
+  try {
+    const encoded = atob(stored.slice(OBFUSCATION_PREFIX.length));
+    let decoded = '';
+    for (let i = 0; i < encoded.length; i += 1) {
+      decoded += String.fromCharCode(encoded.charCodeAt(i) ^ LEGACY_XOR_KEY.charCodeAt(i % LEGACY_XOR_KEY.length));
+    }
+    return decoded;
+  } catch {
+    return '';
   }
-  return out;
 }
 
-function encode(value) {
-  const xored = xorCipher(value);
-  return OBFUSCATION_PREFIX + btoa(xored);
+function readSession(key) {
+  try {
+    return sessionStorage.getItem(key);
+  } catch {
+    return memoryFallback.get(key) ?? null;
+  }
 }
 
-function decode(stored) {
-  const b64 = stored.slice(OBFUSCATION_PREFIX.length);
-  const xored = atob(b64);
-  return xorCipher(xored); // XOR is its own inverse
-}
-
-/**
- * Store a value in localStorage with obfuscation.
- */
+/** Store a credential for this browser tab only. */
 export function setSecure(key, value) {
-  localStorage.setItem(key, encode(value));
+  const normalized = String(value ?? '');
+  try {
+    sessionStorage.setItem(key, normalized);
+  } catch {
+    memoryFallback.set(key, normalized);
+  }
+  try {
+    localStorage.removeItem(key);
+  } catch {}
 }
 
 /**
- * Retrieve a value from localStorage, de-obfuscating if needed.
- * Falls back gracefully for old plaintext values (backwards compat).
+ * Retrieve a tab-scoped credential. Existing localStorage credentials are
+ * migrated once into sessionStorage and then removed from persistent storage.
  */
 export function getSecure(key) {
-  const raw = localStorage.getItem(key);
-  if (raw == null) return raw;
+  const current = readSession(key);
+  if (current != null) return current;
 
-  if (raw.startsWith(OBFUSCATION_PREFIX)) {
-    try {
-      return decode(raw);
-    } catch {
-      // Corrupted — return empty string rather than crash
-      return '';
-    }
+  try {
+    const legacy = localStorage.getItem(key);
+    if (legacy == null) return null;
+    const migrated = decodeLegacy(legacy);
+    localStorage.removeItem(key);
+    if (migrated) setSecure(key, migrated);
+    return migrated;
+  } catch {
+    return null;
   }
-
-  // Old plaintext value — return as-is (will be re-stored obfuscated on next save)
-  return raw;
 }
 
-/**
- * Remove a value from localStorage.
- */
+/** Remove both current-session and obsolete persistent copies. */
 export function removeSecure(key) {
-  localStorage.removeItem(key);
+  memoryFallback.delete(key);
+  try {
+    sessionStorage.removeItem(key);
+  } catch {}
+  try {
+    localStorage.removeItem(key);
+  } catch {}
 }

@@ -826,7 +826,9 @@ export default function CourseMapPreview({
                 <th
                   key="row-actions"
                   className="px-2 py-2.5 bg-slate-50 dark:bg-slate-800 shadow-[inset_0_-1px_0_0_#e2e8f0] dark:shadow-[inset_0_-1px_0_0_#334155] w-[60px]"
-                />
+                >
+                  <span className="sr-only">Row actions</span>
+                </th>
               )}
             </tr>
           </thead>

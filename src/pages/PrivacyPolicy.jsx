@@ -42,9 +42,9 @@ export default function PrivacyPolicy() {
                 processing.
               </li>
               <li>
-                <strong>API keys</strong> — if you use a paid AI provider, your API key is stored in your browser's
-                local storage and sent directly to the provider's API. Course Mapper never sees, transmits, or stores
-                your key on any server.
+                <strong>API keys</strong> — if you use a paid AI provider, your API key is kept only in this browser tab
+                and sent directly to the provider's API. It survives a reload but is cleared when the tab closes.
+                EduTool never receives or stores your key on its own servers.
               </li>
               <li>
                 <strong>Course workspace data</strong> — the course map, generated materials, and workspace history are
@@ -181,7 +181,9 @@ export default function PrivacyPolicy() {
             </p>
             <ul className="list-disc list-inside space-y-1.5 ml-1 mt-2">
               <li>Using a modern, up-to-date browser.</li>
-              <li>Not sharing your device with untrusted users if you have API keys stored in local storage.</li>
+              <li>
+                Closing the EduTool tab when you finish using a paid provider so its session-only API key is cleared.
+              </li>
               <li>Using your own API key only with providers you trust for sensitive course materials.</li>
               <li>Exporting your finished course map and clearing local storage when done.</li>
             </ul>

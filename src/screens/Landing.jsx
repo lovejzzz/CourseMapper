@@ -1,5 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
-import ModelConfig from '../components/ModelConfig';
+import React, { lazy, Suspense, useState, useCallback, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useAIConfig } from '../contexts/AIConfigContext';
 import { useCourse } from '../contexts/CourseContext';
@@ -8,15 +7,30 @@ import DarkModeToggle from '../components/DarkModeToggle';
 import AppLogo from '../components/AppLogo';
 import SetupProgress from '../components/SetupProgress';
 import { LATEST_RELEASE } from '../lib/latestRelease';
-import { formatCoverageTopicLabel } from '../lib/algiCoverageForecast';
 import { shouldOfferCurrentSourceResearch } from '../lib/scionEvidenceForecastAction';
-import { PUBLIC_SCION_MODEL_NAME, PUBLIC_SCION_PROVIDER_ID } from '../lib/publicScionIdentity';
+import { PUBLIC_SCION_PROVIDER_ID } from '../lib/publicScionIdentity';
 import {
   SCION_RESEARCH_CHANGE_EVENT,
   readScionResearchEnabled,
   saveScionResearchEnabled,
 } from '../lib/scionResearchPolicy';
 import useScionDeviceCapability from '../hooks/useScionDeviceCapability';
+
+const ModelConfig = lazy(() => import('../components/ModelConfig'));
+
+const COURSE_TOPIC_ACRONYMS = new Map(
+  ['ai', 'api', 'css', 'dc', 'gis', 'html', 'lms', 'sql', 'ui', 'ux', 'wcag'].map((value) => [
+    value,
+    value.toUpperCase(),
+  ]),
+);
+
+function formatCoverageTopicLabel(value = '') {
+  return String(value || '').replace(
+    /\b[A-Za-z]{2,5}\b/g,
+    (word) => COURSE_TOPIC_ACRONYMS.get(word.toLowerCase()) || word,
+  );
+}
 
 const ACCEPTED_EXTENSIONS = [
   '.doc',
@@ -567,7 +581,7 @@ export default function Landing({
     if (provider === 'anthropic') return `Anthropic · ${modelName || modelId || 'Claude'}`;
     if (provider === 'google') return `Google · ${modelName || modelId || 'Gemini'}`;
     if (provider === 'deepseek') return `DeepSeek · ${modelName || modelId || 'V3'}`;
-    if (provider === PUBLIC_SCION_PROVIDER_ID) return modelName || PUBLIC_SCION_MODEL_NAME;
+    if (provider === PUBLIC_SCION_PROVIDER_ID) return 'Private local AI';
     if (provider === 'local') return `Scion Local · ${modelName || modelId || 'Scion-1'}`;
     return modelName || modelId || provider || 'AI Model';
   })();
@@ -839,7 +853,7 @@ export default function Landing({
                   >
                     <span className="flex min-w-0 items-center gap-1.5 font-medium text-ink-secondary">
                       <span className="inline-block h-2 w-2 shrink-0 rounded-full bg-emerald-400" />
-                      <span className="truncate">{configSummaryLabel} · Connected</span>
+                      <span className="truncate">{configSummaryLabel}</span>
                     </span>
                     <button
                       onClick={expandConfigForEditing}
@@ -870,7 +884,11 @@ export default function Landing({
                         </svg>
                       </button>
                     )}
-                    <ModelConfig reserveTrailingActionSpace />
+                    <Suspense
+                      fallback={<div className="h-28 animate-pulse rounded-xl bg-slate-100/70 dark:bg-slate-800/70" />}
+                    >
+                      <ModelConfig reserveTrailingActionSpace />
+                    </Suspense>
                   </div>
                 )}
               </div>

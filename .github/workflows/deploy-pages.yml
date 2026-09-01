@@ -1,4 +1,4 @@
-name: Emergency deploy to GitHub Pages
+name: Deploy edutool.dev
 
 on:
   workflow_run:

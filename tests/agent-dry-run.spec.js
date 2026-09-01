@@ -149,7 +149,7 @@ test.describe('Agent conversation-driven mode', () => {
     });
 
     await page.goto('/');
-    await expect(page.getByText('Connected')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId('ai-config-summary')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('button:has-text("Resume")')).toBeVisible({ timeout: 10000 });
     await page.locator('button:has-text("Resume")').click();
     await expect(page.getByTestId('workspace-shell')).toBeVisible({ timeout: 10000 });

@@ -6,6 +6,10 @@ async function readFirebaseConfig() {
   return JSON.parse(raw);
 }
 
+async function readRepoFile(path) {
+  return fs.readFile(new URL(`../../${path}`, import.meta.url), 'utf8');
+}
+
 function hostingHeaders(config) {
   const entries = config.hosting?.headers?.[0]?.headers || [];
   return new Map(entries.map((entry) => [entry.key, entry.value]));
@@ -39,6 +43,27 @@ describe('deployment security configuration', () => {
     expect(csp).toContain('https://openrouter.ai');
     expect(csp).toContain('https://cdn.jsdelivr.net');
     expect(csp).toContain('https://cdnjs.cloudflare.com');
+  });
+
+  it('enforces a CSP on GitHub Pages without loading blocked Google fonts', async () => {
+    const html = await readRepoFile('index.html');
+    const firebaseCsp = hostingHeaders(await readFirebaseConfig()).get('Content-Security-Policy') || '';
+
+    expect(html).toContain('http-equiv="Content-Security-Policy"');
+    expect(html).toContain('sha256-zojt58hOk26YGVGYiUWVtveB86wB9IEVJ2YUs6LR+Do=');
+    expect(firebaseCsp).toContain('sha256-zojt58hOk26YGVGYiUWVtveB86wB9IEVJ2YUs6LR+Do=');
+    expect(html).not.toContain('fonts.googleapis.com');
+    expect(html).not.toContain('fonts.gstatic.com');
+  });
+
+  it('keeps one automatic production deployment path', async () => {
+    const productionWorkflow = await readRepoFile('.github/workflows/deploy-pages.yml');
+    const firebaseWorkflow = await readRepoFile('.github/workflows/deploy.yml');
+
+    expect(productionWorkflow).toContain('name: Deploy edutool.dev');
+    expect(productionWorkflow).toContain('workflow_run:');
+    expect(firebaseWorkflow).toContain('name: Firebase preview (manual)');
+    expect(firebaseWorkflow).not.toContain('workflow_run:');
   });
 
   it('keeps the archived Express proxy out of the repo root and development-only', async () => {

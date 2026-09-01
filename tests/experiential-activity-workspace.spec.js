@@ -146,7 +146,7 @@ async function restoreActivityWorkspace(page) {
   await expect(page.getByRole('button', { name: 'Resume' })).toBeVisible({ timeout: 10000 });
   await page.getByRole('button', { name: 'Resume' }).click();
   await expect(page.getByTestId('workspace-shell')).toBeVisible({ timeout: 10000 });
-  await expect(page.getByTestId('workspace-shell')).toContainText(SCION_MODEL_LABEL);
+  await expect(page.getByTestId('workspace-model-config-trigger')).toHaveText('AI settings');
   await expect(page.getByTestId('workspace-agent-panel')).toContainText('Available');
   await expect(page.locator('[data-experiential-activity="true"]')).toBeVisible({ timeout: 10000 });
 }

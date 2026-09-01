@@ -68,7 +68,7 @@ describe('v0.16.3 first-five-minutes UX contract', () => {
     expect(landing).toContain('Turn a syllabus into a teachable course.');
     expect(landing).toContain('data-testid="ai-config-summary"');
     expect(landing).toContain('useState(isReady)');
-    expect(landing).toContain('Connected');
+    expect(landing).toContain('Private local AI');
     expect(landing).not.toContain('Zero-download');
     expect(landing).toContain('<details');
     expect(landing).toContain('Generate full course package');
@@ -87,12 +87,12 @@ describe('v0.16.3 first-five-minutes UX contract', () => {
     expect(features).toContain('Configure materials');
   });
 
-  it('prefetches the flow and keeps the mobile workspace readable by default', () => {
+  it('loads the flow on demand and keeps the mobile workspace readable by default', () => {
     const app = read('src/App.jsx');
     const preview = read('src/components/CourseMapPreview.jsx');
     const css = read('src/index.css');
-    expect(app).toContain('const loadAppFlow = () => import');
-    expect(app).toContain('requestIdleCallback');
+    expect(app).toContain("const AppFlow = lazy(() => import('./AppFlow'))");
+    expect(app).not.toContain('requestIdleCallback');
     expect(preview).toContain('Swipe the table to review every course-map field.');
     expect(preview).toContain('min-w-[1100px]');
     expect(preview).toContain('aria-label="Scrollable course map"');

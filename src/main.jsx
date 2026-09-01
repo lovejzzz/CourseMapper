@@ -2,7 +2,7 @@ import React, { useState, useEffect, Suspense, lazy } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 // FaqChatbot removed — merged into ChatPanel
-const Changelog = lazy(() => import('./pages/Changelog'));
+const Changelog = lazy(() => import('./pages/ChangelogSummary'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const TermsOfService = lazy(() => import('./pages/TermsOfService'));
 const Contact = lazy(() => import('./pages/Contact'));
@@ -22,7 +22,6 @@ import './index.css';
 // Always on — exposes the live function (not a snapshot) so reads see every
 // compile that ran before the read.
 window.__cmLegacyPathTelemetry = getLegacyPathTelemetry;
-armScionRuntimeCanary();
 
 function Router() {
   const getPage = () => {
@@ -48,18 +47,18 @@ function Router() {
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
 
+  useEffect(() => {
+    if (page === 'app') armScionRuntimeCanary();
+  }, [page]);
+
   return (
-    <>
-      <div style={{ display: page === 'app' ? 'block' : 'none' }}>
-        <App />
-      </div>
-      <Suspense fallback={<PageSkeleton />}>
-        {page === 'changelog' && <Changelog />}
-        {page === 'privacy' && <PrivacyPolicy />}
-        {page === 'terms' && <TermsOfService />}
-        {page === 'contact' && <Contact />}
-      </Suspense>
-    </>
+    <Suspense fallback={<PageSkeleton />}>
+      {page === 'app' && <App />}
+      {page === 'changelog' && <Changelog />}
+      {page === 'privacy' && <PrivacyPolicy />}
+      {page === 'terms' && <TermsOfService />}
+      {page === 'contact' && <Contact />}
+    </Suspense>
   );
 }
 

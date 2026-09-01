@@ -3270,7 +3270,6 @@ export default function AppFlow({
   const workspaceSaveTone = workspaceSavePresentation.tone;
   const workspaceSaveTextTone = workspaceSavePresentation.textTone;
   const workspaceModelName = gen.activeModelName || modelName;
-  const workspaceModelLabel = workspaceModelName;
   const workspaceSaveTitle = user
     ? 'Signed-in projects autosave locally and to My Projects.'
     : 'Anonymous projects save in this browser. Export .coursemapper for backup.';
@@ -3329,12 +3328,6 @@ export default function AppFlow({
                   </h1>
                   <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs font-semibold text-slate-500">
                     {workspaceLessonCount > 0 && <span>{workspaceLessonCountLabel}</span>}
-                    {workspaceModelLabel && (
-                      <>
-                        <span className="text-slate-300">·</span>
-                        <span className="truncate">{workspaceModelLabel}</span>
-                      </>
-                    )}
                     {courseMap && (
                       <>
                         <span className="text-slate-300 md:hidden">·</span>
@@ -4114,17 +4107,6 @@ export default function AppFlow({
                             setShowDiff(false);
                           }}
                           onAIContextMenu={handleAIContextMenu}
-                          onCellHover={(info) => {
-                            if (!info) {
-                              handleCascadeHover(null);
-                              return;
-                            }
-                            handleCascadeHover({
-                              featureId: null,
-                              fieldKey: info.fieldKey,
-                              position: info.position,
-                            });
-                          }}
                         />
                       </ErrorBoundary>
                     </div>

@@ -8,7 +8,11 @@ export default defineConfig({
   testMatch: '**/*.spec.js',
   timeout: 30000,
   retries: process.env.CI ? 1 : 0,
-  workers: process.env.CI ? 2 : undefined,
+  // The app's lazy workspace chunk is intentionally substantial. Eight local
+  // Chromium workers can starve that first load immediately after the CPU-heavy
+  // unit matrix, which made the pre-push gate fail nondeterministically while
+  // every isolated flow remained healthy. Bound local pressure; CI stays at 2.
+  workers: process.env.CI ? 2 : 4,
   // v0.8.6 failure-visibility refinements:
   // - line reporter keeps terminal output compact while running
   // - html + json reports land in gitignored verification-output/e2e-report,

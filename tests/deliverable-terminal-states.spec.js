@@ -121,7 +121,7 @@ test.describe('All-deliverables terminal states', () => {
     }, customFailureDeliverableFixture());
 
     await page.goto('/');
-    await expect(page.locator('text=Connected').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId('ai-config-summary')).toBeVisible({ timeout: 10000 });
     await page.locator('textarea').fill('Build a 4-week course about testing deliverable terminal states.');
     await landingSetupButton(page).click();
 

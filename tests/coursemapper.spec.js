@@ -167,6 +167,7 @@ test.describe('Landing Page', () => {
 
   test('provider picker offers public Scion and cloud providers', async ({ page }) => {
     await page.getByRole('button', { name: 'Edit' }).click();
+    await expect(page.getByLabel('Provider')).toBeVisible({ timeout: 5000 });
     const options = await page.getByLabel('Provider').locator('option').allTextContents();
 
     expect(options).toEqual(['Scion', 'OpenAI', 'Anthropic', 'Google', 'DeepSeek']);
@@ -305,8 +306,8 @@ test.describe('Landing Page', () => {
     await page.reload();
 
     await page.getByRole('button', { name: 'Resume' }).click();
-    await expect(page.getByTestId('workspace-header')).toContainText(SCION_MODEL_LABEL, { timeout: 10000 });
-    await expect(page.getByTestId('workspace-model-config-trigger')).toHaveText(SCION_MODEL_LABEL);
+    await expect(page.getByTestId('workspace-header')).not.toContainText(SCION_MODEL_LABEL, { timeout: 10000 });
+    await expect(page.getByTestId('workspace-model-config-trigger')).toHaveText('AI settings');
     await expect(page.getByTestId('workspace-shell')).not.toContainText('scion-public');
   });
 
@@ -599,7 +600,7 @@ test.describe('Landing Page', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 test.describe('Lazy Shell', () => {
-  test('prefetches AppFlow while the landing page stays interactive', async ({ page }) => {
+  test('defers AppFlow until the user leaves the landing page', async ({ page }) => {
     await page.route('https://api.openai.com/v1/models', (route) =>
       route.fulfill({
         status: 200,
@@ -634,13 +635,15 @@ test.describe('Lazy Shell', () => {
 
     await page.goto('/');
     await expect(page.locator('h1:has-text("Turn a syllabus")')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('text=Connected').first()).toBeVisible({ timeout: 10000 });
-    await expect.poll(() => appFlowRequests.length, { timeout: 5000 }).toBeGreaterThan(0);
+    await expect(page.getByTestId('ai-config-summary')).toBeVisible({ timeout: 10000 });
+    await page.waitForTimeout(1200);
+    expect(appFlowRequests).toHaveLength(0);
     await expect(page.getByTestId('landing-requirement')).toBeVisible();
 
     await page.getByTestId('course-example-chip').first().click();
     await landingSetupButton(page).click();
     await expect(page.getByRole('heading', { name: 'Choose materials' })).toBeVisible({ timeout: 10000 });
+    expect(appFlowRequests.length).toBeGreaterThan(0);
     await expect(page.getByText('Loading…')).toHaveCount(0);
   });
 });
@@ -680,7 +683,7 @@ test.describe('Configure Generation', () => {
     });
 
     await page.goto('/');
-    await expect(page.locator('text=Connected').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId('ai-config-summary')).toBeVisible({ timeout: 10000 });
     await page.locator('textarea').fill('Build an 8-lesson Spanish for Healthcare Professionals course.');
     await landingSetupButton(page).click();
 
@@ -716,8 +719,10 @@ test.describe('Configure Generation', () => {
     const previewDialogBox = await previewDialog.boundingBox();
     expect(previewDialogBox.x).toBeLessThanOrEqual(2);
     expect(previewDialogBox.y).toBeLessThanOrEqual(2);
-    expect(previewDialogBox.width).toBeGreaterThanOrEqual(389);
-    expect(previewDialogBox.height).toBeGreaterThanOrEqual(843);
+    // Chromium can report a full-viewport fixed box a few fractional pixels
+    // short after device-scale rounding. Require >99.5% viewport coverage.
+    expect(previewDialogBox.width).toBeGreaterThanOrEqual(387);
+    expect(previewDialogBox.height).toBeGreaterThanOrEqual(840);
     const dialogOwnsViewportTop = await page.evaluate(() =>
       Boolean(document.elementFromPoint(window.innerWidth / 2, 24)?.closest('[role="dialog"]')),
     );
@@ -760,7 +765,7 @@ test.describe('Configure Generation', () => {
     });
 
     await page.goto('/');
-    await expect(page.locator('text=Connected').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId('ai-config-summary')).toBeVisible({ timeout: 10000 });
     await page.locator('textarea').fill('Build a 12-lesson course with a student FAQ.');
     await landingSetupButton(page).click();
 
@@ -829,7 +834,7 @@ test.describe('Configure Generation', () => {
     });
 
     await page.goto('/');
-    await expect(page.locator('text=Connected').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId('ai-config-summary')).toBeVisible({ timeout: 10000 });
     await page.locator('textarea').fill('Build a 12-lesson course with slide decks.');
     await landingSetupButton(page).click();
 
@@ -1157,15 +1162,18 @@ test.describe('Responsiveness', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 test.describe('State Persistence', () => {
-  test('API key persists across reloads', async ({ page }) => {
+  test('API key survives reloads only in the current tab', async ({ page }) => {
     await loadApp(page);
-    await page.evaluate(() => localStorage.setItem('coursemapper-apikey', 'sk-test-key-12345'));
+    await page.evaluate(() => {
+      localStorage.setItem('coursemapper-provider', 'openai');
+      localStorage.setItem('coursemapper-modelid', 'gpt-4o-mini');
+      localStorage.setItem('coursemapper-apikey', 'sk-test-key-12345');
+    });
     await page.reload();
     await expect(page.locator('h1')).toBeVisible({ timeout: 10000 });
-    // Key may be obfuscated after reload (secureStorage), so just verify it's still stored
-    const stored = await page.evaluate(() => localStorage.getItem('coursemapper-apikey'));
-    expect(stored).toBeTruthy();
-    expect(stored.length).toBeGreaterThan(0);
+    const stored = await page.evaluate(() => sessionStorage.getItem('coursemapper-apikey'));
+    expect(stored).toBe('sk-test-key-12345');
+    expect(await page.evaluate(() => localStorage.getItem('coursemapper-apikey'))).toBeNull();
   });
 
   test('provider selection persists across reloads', async ({ page }) => {
@@ -1204,7 +1212,7 @@ test.describe('Accessibility', () => {
 
   test('page has a title', async ({ page }) => {
     await loadApp(page);
-    await expect(page).toHaveTitle('Course Mapper — Free course maps and teaching materials');
+    await expect(page).toHaveTitle('EduTool — Free course maps and teaching materials');
   });
 
   test('images have alt text', async ({ page }) => {
@@ -1376,7 +1384,7 @@ test.describe('Model Configuration', () => {
     });
 
     await page.goto('/');
-    await expect(page.getByText('Connected')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId('ai-config-summary')).toBeVisible({ timeout: 10000 });
     await page.getByRole('button', { name: /^Edit$/ }).click();
 
     const modelSelect = page.locator('#ai-model-select');
@@ -1435,25 +1443,25 @@ test.describe('Model Configuration', () => {
     );
 
     await page.goto('/');
-    await expect(page.getByText('Connected')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId('ai-config-summary')).toBeVisible({ timeout: 10000 });
     await page.getByRole('button', { name: /^Edit$/ }).click();
 
     const providerSelect = page.locator('#ai-provider-select');
     const apiKeyInput = page.locator('#ai-api-key-input');
     await expect(apiKeyInput).toHaveValue('');
-    await expect(apiKeyInput).toHaveAttribute('placeholder', /Saved API key/);
+    await expect(apiKeyInput).toHaveAttribute('placeholder', /Available in this tab/);
 
     await providerSelect.selectOption('google');
     await expect(apiKeyInput).toHaveValue('');
-    await expect(apiKeyInput).toHaveAttribute('placeholder', /Saved API key/);
+    await expect(apiKeyInput).toHaveAttribute('placeholder', /Available in this tab/);
 
     await providerSelect.selectOption('anthropic');
     await expect(apiKeyInput).toHaveValue('');
-    await expect(apiKeyInput).not.toHaveAttribute('placeholder', /Saved API key/);
+    await expect(apiKeyInput).not.toHaveAttribute('placeholder', /Available in this tab/);
 
     await providerSelect.selectOption('openai');
     await expect(apiKeyInput).toHaveValue('');
-    await expect(apiKeyInput).toHaveAttribute('placeholder', /Saved API key/);
+    await expect(apiKeyInput).toHaveAttribute('placeholder', /Available in this tab/);
   });
 });
 
@@ -1464,19 +1472,15 @@ test.describe('Model Configuration', () => {
 test.describe('Static Pages', () => {
   test('changelog page has version entries', async ({ page }) => {
     await page.goto('/#/changelog');
-    // The changelog is a large, lazy route. Wait for its semantic ready
-    // boundary instead of sampling body text after an arbitrary second; a
-    // busy CI runner can still be showing the landing/suspense shell then.
+    // Wait for the lazy route's semantic ready boundary instead of sampling
+    // body text after an arbitrary delay on a busy CI runner.
     await expect(page.locator('h1:has-text("Changelog")')).toBeVisible({ timeout: 15000 });
     const body = await page.locator('body').textContent();
-    expect(body).toContain('0.16.24');
-    expect(body).toContain('Eight Small Readings');
-    expect(body).toContain('0.15.12');
-    expect(body).toContain('0.15.7');
-    expect(body).toContain('0.15.6');
-    expect(body).toContain('0.15.5');
-    expect(body).toContain('0.15.4');
-    expect(body).toContain('0.5');
+    expect(body).toContain(`Version ${APP_VERSION}`);
+    expect(body).toContain('Recent improvements');
+    expect(body).toContain('A calmer workspace');
+    expect(body).toContain('Editing that stays in sync');
+    expect(body).toContain('Safer package export');
     expect(body.length).toBeGreaterThan(200);
   });
 

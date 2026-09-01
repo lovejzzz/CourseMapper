@@ -21,7 +21,7 @@ export default function Header({
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-400/40 to-transparent" />
 
         <div className="flex items-center justify-between w-full">
-          <a href="#/" className="flex items-center" aria-label="Course Mapper home">
+          <a href="#/" className="flex items-center" aria-label="EduTool home">
             <AppLogo className={`${compact ? 'h-10 sm:h-12' : 'h-14 sm:h-16 md:h-20'} w-auto object-contain`} />
           </a>
 

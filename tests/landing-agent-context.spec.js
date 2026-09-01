@@ -118,7 +118,7 @@ test.describe('Landing to Agent continuity', () => {
     });
 
     await page.goto('/');
-    await expect(page.getByText('Connected').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId('ai-config-summary')).toBeVisible({ timeout: 10000 });
 
     const landingPrompt = 'Build a 2-week applied machine learning lab using weekly notebooks and a final model card.';
     await page.locator('textarea').fill(landingPrompt);

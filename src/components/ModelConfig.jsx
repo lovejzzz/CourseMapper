@@ -871,7 +871,7 @@ export default function ModelConfig({ reserveTrailingActionSpace = false }) {
                   }}
                   placeholder={
                     apiKey && !apiKeyDraft
-                      ? 'Saved API key — type to replace…'
+                      ? 'Available in this tab — type to replace…'
                       : PLACEHOLDER[provider] || 'Enter API key...'
                   }
                   className={`input-glass w-full rounded-squircle-xs px-3.5 py-2.5 text-sm focus:outline-none pr-10 ${
@@ -911,6 +911,9 @@ export default function ModelConfig({ reserveTrailingActionSpace = false }) {
                   </div>
                 )}
               </div>
+              <p className="mt-1.5 text-xs leading-5 text-slate-500 dark:text-slate-400">
+                Kept only in this browser tab and cleared when the tab closes.
+              </p>
             </>
           )}
         </div>

@@ -3,6 +3,11 @@ import { readXlsxSheets } from './lightweightXlsx.js';
 // Lazy-loaded heavy dependencies — only fetched when first needed
 let _mammoth, _pdfjsLib, _JSZip;
 
+export const MAX_INPUT_FILE_BYTES = 64 * 1024 * 1024;
+export const MAX_ARCHIVE_ENTRIES = 300;
+export const MAX_ARCHIVE_ENTRY_BYTES = 32 * 1024 * 1024;
+export const MAX_ARCHIVE_TOTAL_BYTES = 128 * 1024 * 1024;
+
 async function getMammoth() {
   if (!_mammoth) _mammoth = (await import('mammoth')).default;
   return _mammoth;
@@ -19,10 +24,39 @@ async function getJSZip() {
   return _JSZip;
 }
 
+export function assertSafeZipArchive(zip, label = 'archive') {
+  const entries = Object.values(zip?.files || {}).filter((entry) => !entry.dir);
+  if (entries.length > MAX_ARCHIVE_ENTRIES) {
+    throw new Error(`${label} contains too many files (${entries.length}; maximum ${MAX_ARCHIVE_ENTRIES}).`);
+  }
+
+  let totalBytes = 0;
+  for (const entry of entries) {
+    const entryBytes = Number(entry?._data?.uncompressedSize || 0);
+    if (entryBytes > MAX_ARCHIVE_ENTRY_BYTES) {
+      throw new Error(`${label} contains a file larger than ${MAX_ARCHIVE_ENTRY_BYTES / 1024 / 1024} MB.`);
+    }
+    totalBytes += entryBytes;
+    if (totalBytes > MAX_ARCHIVE_TOTAL_BYTES) {
+      throw new Error(`${label} expands beyond ${MAX_ARCHIVE_TOTAL_BYTES / 1024 / 1024} MB.`);
+    }
+  }
+  return zip;
+}
+
+async function loadCheckedZip(arrayBuffer, label) {
+  const JSZip = await getJSZip();
+  const zip = await JSZip.loadAsync(arrayBuffer);
+  return assertSafeZipArchive(zip, label);
+}
+
 /**
  * Parse a single file and return its text content.
  */
 export async function parseFile(file) {
+  if (Number(file?.size || 0) > MAX_INPUT_FILE_BYTES) {
+    throw new Error(`File is larger than ${MAX_INPUT_FILE_BYTES / 1024 / 1024} MB.`);
+  }
   const ext = file.name.split('.').pop().toLowerCase();
 
   switch (ext) {
@@ -379,8 +413,7 @@ function csvEscape(value) {
 // ── PowerPoint (.pptx) — ZIP of XML slides ──
 async function parsePptx(file) {
   const arrayBuffer = await file.arrayBuffer();
-  const JSZip = await getJSZip();
-  const zip = await JSZip.loadAsync(arrayBuffer);
+  const zip = await loadCheckedZip(arrayBuffer, file.name);
   const texts = [];
 
   // Slides are in ppt/slides/slide1.xml, slide2.xml, etc.
@@ -451,8 +484,7 @@ async function parsePptLegacy(file) {
 // ── OpenDocument Text (.odt) ──
 async function parseOdt(file) {
   const arrayBuffer = await file.arrayBuffer();
-  const JSZip = await getJSZip();
-  const zip = await JSZip.loadAsync(arrayBuffer);
+  const zip = await loadCheckedZip(arrayBuffer, file.name);
   const contentXml = await zip.files['content.xml']?.async('text');
   if (!contentXml) throw new Error('Invalid ODT file: no content.xml found.');
   return stripXmlTags(contentXml);
@@ -461,8 +493,7 @@ async function parseOdt(file) {
 // ── OpenDocument Presentation (.odp) ──
 async function parseOdp(file) {
   const arrayBuffer = await file.arrayBuffer();
-  const JSZip = await getJSZip();
-  const zip = await JSZip.loadAsync(arrayBuffer);
+  const zip = await loadCheckedZip(arrayBuffer, file.name);
   const contentXml = await zip.files['content.xml']?.async('text');
   if (!contentXml) throw new Error('Invalid ODP file: no content.xml found.');
   return stripXmlTags(contentXml);
@@ -471,8 +502,7 @@ async function parseOdp(file) {
 // ── OpenDocument Spreadsheet (.ods) ──
 async function parseOds(file) {
   const arrayBuffer = await file.arrayBuffer();
-  const JSZip = await getJSZip();
-  const zip = await JSZip.loadAsync(arrayBuffer);
+  const zip = await loadCheckedZip(arrayBuffer, file.name);
   const contentXml = await zip.files['content.xml']?.async('text');
   if (!contentXml) throw new Error('Invalid ODS file: no content.xml found.');
   const rows = [];
@@ -498,8 +528,7 @@ async function parseOds(file) {
 // ── EPUB ──
 async function parseEpub(file) {
   const arrayBuffer = await file.arrayBuffer();
-  const JSZip = await getJSZip();
-  const zip = await JSZip.loadAsync(arrayBuffer);
+  const zip = await loadCheckedZip(arrayBuffer, file.name);
   const texts = [];
 
   // Find XHTML/HTML content files
@@ -521,8 +550,7 @@ async function parseEpub(file) {
 async function parseKeynote(file) {
   const arrayBuffer = await file.arrayBuffer();
   try {
-    const JSZip = await getJSZip();
-    const zip = await JSZip.loadAsync(arrayBuffer);
+    const zip = await loadCheckedZip(arrayBuffer, file.name);
     const texts = [];
     for (const [name, entry] of Object.entries(zip.files)) {
       if (/\.xml$/i.test(name) || /\.txt$/i.test(name)) {
@@ -542,8 +570,7 @@ async function parseKeynote(file) {
 async function parsePages(file) {
   const arrayBuffer = await file.arrayBuffer();
   try {
-    const JSZip = await getJSZip();
-    const zip = await JSZip.loadAsync(arrayBuffer);
+    const zip = await loadCheckedZip(arrayBuffer, file.name);
     const texts = [];
     for (const [name, entry] of Object.entries(zip.files)) {
       if (/\.xml$/i.test(name) || /\.txt$/i.test(name)) {
@@ -569,8 +596,7 @@ async function parseZip(file) {
 
 async function parseZipToResults(file) {
   const arrayBuffer = await file.arrayBuffer();
-  const JSZip = await getJSZip();
-  const zip = await JSZip.loadAsync(arrayBuffer);
+  const zip = await loadCheckedZip(arrayBuffer, file.name);
   const results = [];
 
   for (const [path, entry] of Object.entries(zip.files)) {

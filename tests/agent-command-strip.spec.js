@@ -118,7 +118,7 @@ function openAiToolCallStream(calls) {
 
 test.describe('Agent command entry points', () => {
   test('keeps generic suggestions out of the panel while typed and starter commands still work', async ({ page }) => {
-    test.setTimeout(60000);
+    test.slow();
     const agentRequests = [];
     const consoleErrors = [];
 
@@ -222,10 +222,10 @@ test.describe('Agent command entry points', () => {
     });
 
     await page.goto('/');
-    await expect(page.getByText('Connected')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId('ai-config-summary')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('button:has-text("Resume")')).toBeVisible({ timeout: 10000 });
     await page.locator('button:has-text("Resume")').click();
-    await expect(page.getByTestId('workspace-shell')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId('workspace-shell')).toBeVisible({ timeout: 20000 });
 
     const agentPanel = page.getByTestId('workspace-agent-panel');
     await expect(agentPanel.getByRole('heading', { name: 'Agent' })).toBeVisible();
@@ -263,7 +263,7 @@ test.describe('Agent command entry points', () => {
           hasText: /Package is ready|Package notes saved|Decision needed|Review notes|Package pass complete/,
         })
         .last(),
-    ).toBeVisible({ timeout: 10000 });
+    ).toBeVisible({ timeout: 20000 });
     expect(agentRequests.length).toBe(0);
 
     await agentPanel.locator('input[type="file"]').setInputFiles({

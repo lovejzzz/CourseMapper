@@ -15,7 +15,6 @@ import { finishStatusOf, isFinishPassActive, isPackageReady } from '../../lib/pi
 import { summarizeLandingAgentContext } from '../../lib/landingAgentContext';
 import { admitPackageReceipt, getPackageTrustStatus } from '../../lib/packageTrustStatus';
 import { useAIConfig } from '../../contexts/AIConfigContext';
-import { PUBLIC_SCION_MODEL_NAME } from '../../lib/publicScionIdentity';
 
 const ProgressHeader = lazy(() => import('./ProgressHeader'));
 
@@ -1062,12 +1061,13 @@ const PROVIDER_LABELS = {
   webllm: 'Local AI',
 };
 
-function getWorkspaceModelLabel({ modelName, modelId, isReady }) {
+function getWorkspaceModelLabel({ provider, modelName, modelId, isReady }) {
+  if (provider === 'public' || provider === 'local') return 'AI settings';
   const savedModel = String(modelName || '').trim();
-  if (savedModel === 'scion-public') return PUBLIC_SCION_MODEL_NAME;
+  if (savedModel === 'scion-public') return 'AI settings';
   if (savedModel) return savedModel;
   const savedModelId = String(modelId || '').trim();
-  if (savedModelId === 'scion-public') return PUBLIC_SCION_MODEL_NAME;
+  if (savedModelId === 'scion-public') return 'AI settings';
   if (savedModelId && isReady) return savedModelId;
   return isReady ? 'Choose model' : 'Configure model';
 }
@@ -1083,7 +1083,7 @@ export function getWorkspaceModelStatus({
   const providerLabel = PROVIDER_LABELS[provider] || 'AI provider';
   const hasKey = Boolean(String(apiKey || '').trim());
   const hasModel = Boolean(String(modelId || modelName || '').trim());
-  const savedModelLabel = hasModel ? getWorkspaceModelLabel({ modelName, modelId, isReady: true }) : '';
+  const savedModelLabel = hasModel ? getWorkspaceModelLabel({ provider, modelName, modelId, isReady: true }) : '';
 
   if (apiStatus === 'validating') {
     return {
@@ -1148,7 +1148,7 @@ export function getWorkspaceModelStatus({
   }
 
   return {
-    label: getWorkspaceModelLabel({ modelName, modelId, isReady }),
+    label: getWorkspaceModelLabel({ provider, modelName, modelId, isReady }),
     tone: isReady ? 'connected' : 'idle',
     title: 'Change provider, API key, or model',
     heading: '',

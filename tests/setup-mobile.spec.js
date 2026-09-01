@@ -189,7 +189,7 @@ test('keeps the running build cancelable at 375px', async ({ page }) => {
   });
 
   await page.goto('/');
-  await expect(page.getByText('Connected').first()).toBeVisible({ timeout: 10000 });
+  await expect(page.getByTestId('ai-config-summary')).toBeVisible({ timeout: 10000 });
   await page.getByRole('textbox', { name: 'Describe your course' }).fill('Build a two-lesson design course.');
   await page.getByRole('button', { name: 'Customize package' }).click();
   await page.getByTestId('feature-select-continue').click();
