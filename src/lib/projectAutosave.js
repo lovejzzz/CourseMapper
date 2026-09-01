@@ -2,6 +2,22 @@ export const LOCAL_FULL_AUTOSAVE_MAX_CHARS = 4_000_000;
 export const INDEXED_DB_AUTOSAVE_MODE = 'indexeddb-autosave';
 
 /**
+ * Preserve the authored package while removing reconstructible histories that
+ * can duplicate a large workspace many times over. This is safe for both the
+ * localStorage middle tier and the exact-package IndexedDB tier.
+ */
+export function buildHistoryPrunedAutosaveSnapshot(fullSnapshot = {}) {
+  const { chatHistory, versionHistory, userEdits, ...lean } = fullSnapshot || {};
+  return {
+    ...lean,
+    chatHistory: [],
+    versionHistory: [],
+    userEdits: [],
+    localSaveMode: 'pruned-history-autosave',
+  };
+}
+
+/**
  * v0.15 (sync-test finding): the old two-tier fallback jumped straight from
  * "full" to the COMPACT cloud snapshot — which carries NO deliverables — so
  * one oversized save silently degraded the local project to a
@@ -19,14 +35,7 @@ export function buildLocalAutosavePayload({
     return { mode: 'full', payload: fullPayload };
   }
 
-  const { chatHistory, versionHistory, userEdits, ...lean } = fullSnapshot || {};
-  const prunedPayload = JSON.stringify({
-    ...lean,
-    chatHistory: [],
-    versionHistory: [],
-    userEdits: [],
-    localSaveMode: 'pruned-history-autosave',
-  });
+  const prunedPayload = JSON.stringify(buildHistoryPrunedAutosaveSnapshot(fullSnapshot));
   if (prunedPayload.length <= maxFullChars) {
     return { mode: 'pruned', payload: prunedPayload };
   }

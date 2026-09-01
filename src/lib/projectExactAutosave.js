@@ -1,4 +1,8 @@
-import { buildCourseMapRecoveryAutosavePayload, buildIndexedDbAutosaveMarker } from './projectAutosave';
+import {
+  buildCourseMapRecoveryAutosavePayload,
+  buildHistoryPrunedAutosaveSnapshot,
+  buildIndexedDbAutosaveMarker,
+} from './projectAutosave';
 import { saveProjectIndexedDbAutosave } from './projectIndexedDbAutosave';
 
 /**
@@ -12,7 +16,12 @@ export async function persistOversizedProjectSnapshot({
   storage = globalThis.localStorage,
 } = {}) {
   try {
-    await saveProjectIndexedDbAutosave(JSON.stringify(fullSnapshot));
+    // Version/chat/edit histories can duplicate a large generated package many
+    // times and exhaust IndexedDB even though the current package itself fits.
+    // Keep the current authored artifacts and graph exact; omit only those
+    // reconstructible histories before writing the oversized-project belt.
+    const packageSnapshot = buildHistoryPrunedAutosaveSnapshot(fullSnapshot);
+    await saveProjectIndexedDbAutosave(JSON.stringify(packageSnapshot));
     storage.removeItem('coursemapper-project');
     storage.setItem('coursemapper-project', buildIndexedDbAutosaveMarker(fullSnapshot));
     return 'indexeddb';

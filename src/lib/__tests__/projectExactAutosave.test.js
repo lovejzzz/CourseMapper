@@ -39,6 +39,9 @@ const fullSnapshot = {
   deliverables: {
     lessonPlans: { status: 'done', data: { lessons: [{ title: 'Lesson 1' }] } },
   },
+  chatHistory: [{ role: 'assistant', text: 'large chat '.repeat(100) }],
+  versionHistory: [{ courseMap: { duplicate: 'version '.repeat(100) } }],
+  userEdits: [{ path: ['lessons', 0, 'title'], value: 'Lesson 1' }],
 };
 
 const compactSnapshot = {
@@ -54,7 +57,7 @@ describe('persistOversizedProjectSnapshot', () => {
     saveIndexedDb.mockReset();
   });
 
-  it('stores the exact graded package in IndexedDB and leaves a tiny resume marker', async () => {
+  it('stores the exact graded package without reconstructible histories and leaves a tiny resume marker', async () => {
     const storage = storageStub();
     saveIndexedDb.mockResolvedValue();
 
@@ -66,7 +69,13 @@ describe('persistOversizedProjectSnapshot', () => {
     });
 
     expect(mode).toBe('indexeddb');
-    expect(saveIndexedDb).toHaveBeenCalledWith(JSON.stringify(fullSnapshot));
+    const indexedDbSnapshot = JSON.parse(saveIndexedDb.mock.calls[0][0]);
+    expect(indexedDbSnapshot.deliverables).toEqual(fullSnapshot.deliverables);
+    expect(indexedDbSnapshot.packageQualityPass).toEqual(fullSnapshot.packageQualityPass);
+    expect(indexedDbSnapshot.chatHistory).toEqual([]);
+    expect(indexedDbSnapshot.versionHistory).toEqual([]);
+    expect(indexedDbSnapshot.userEdits).toEqual([]);
+    expect(indexedDbSnapshot.localSaveMode).toBe('pruned-history-autosave');
     const marker = JSON.parse(storage.getItem('coursemapper-project'));
     expect(marker.indexedDbAutosave).toBe(true);
     expect(marker.lessonCount).toBe(1);

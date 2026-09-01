@@ -1,9 +1,28 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildCourseMapRecoveryAutosavePayload,
+  buildHistoryPrunedAutosaveSnapshot,
   buildIndexedDbAutosaveMarker,
   buildLocalAutosavePayload,
 } from '../projectAutosave';
+
+describe('buildHistoryPrunedAutosaveSnapshot', () => {
+  it('keeps the current package and graph while dropping duplicate histories', () => {
+    const snapshot = buildHistoryPrunedAutosaveSnapshot({
+      courseGraph: { nodes: [{ id: 'lesson-1' }] },
+      deliverables: { rubrics: { status: 'done', data: { body: 'current package' } } },
+      chatHistory: [{ text: 'old chat' }],
+      versionHistory: [{ duplicate: 'old package' }],
+      userEdits: [{ path: ['title'] }],
+    });
+
+    expect(snapshot.courseGraph.nodes).toEqual([{ id: 'lesson-1' }]);
+    expect(snapshot.deliverables.rubrics.data.body).toBe('current package');
+    expect(snapshot.chatHistory).toEqual([]);
+    expect(snapshot.versionHistory).toEqual([]);
+    expect(snapshot.userEdits).toEqual([]);
+  });
+});
 
 describe('buildLocalAutosavePayload', () => {
   it('v0.15: prunes history but KEEPS deliverables before ever falling to compact', () => {
