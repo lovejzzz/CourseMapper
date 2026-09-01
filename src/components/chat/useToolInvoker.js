@@ -394,7 +394,13 @@ const DIRECT_LESSON_WORD_INDEX = {
 };
 
 function inferDirectLessonIndex(message = '') {
-  const match = String(message || '').match(
+  const text = String(message || '');
+  const chineseMatch = text.match(/第\s*(\d+)\s*(?:课|节|周)/);
+  if (chineseMatch) {
+    const chineseIndex = Number(chineseMatch[1]) - 1;
+    return Number.isInteger(chineseIndex) && chineseIndex >= 0 ? chineseIndex : null;
+  }
+  const match = text.match(
     /\blesson\s*(\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen)\b/i,
   );
   if (!match) return null;
@@ -1910,10 +1916,15 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
       return;
     }
 
-    const localReadOnlyReply = buildLocalReadOnlyFallback(fullMessage, {
-      courseMap,
-      deliverables: delivRef.current,
-    });
+    // Grounding policy and deterministic lesson evidence are only needed for
+    // Agent turns, so keep them outside the initial ChatPanel bundle.
+    runLedgerApi = await import('../../lib/agentRunLedger.js');
+    const localReadOnlyReply =
+      runLedgerApi.groundLessonAlignment(fullMessage, courseMap) ||
+      buildLocalReadOnlyFallback(fullMessage, {
+        courseMap,
+        deliverables: delivRef.current,
+      });
     if (localReadOnlyReply) {
       const finalResponse = { chatReply: localReadOnlyReply };
       setMessages((prev) => {
@@ -2074,7 +2085,6 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
 
     // Keep checkpoint machinery out of the initial workspace bundle. It is
     // needed only after a real model-driven Agent run begins.
-    runLedgerApi = await import('../../lib/agentRunLedger.js');
     const interruptedRun = runLedgerApi.findRecoverableAgentRun(fullMessage);
     runLedger = runLedgerApi.createAgentRunLedger({
       runId,

@@ -3,10 +3,56 @@ import {
   assertExpectedLessonCount,
   buildIncompleteCourseMapErrorMessage,
   constrainHighConfidenceLessonCount,
+  estimateCourseMapStreamProgress,
   getCourseMapExamineScan,
   getCourseMapContinuationPolicy,
   getLessonCount,
 } from '../useGeneration';
+
+describe('course-map streaming progress', () => {
+  const columns = [
+    { key: 'topicSection', enabled: true },
+    { key: 'learningObjectives', enabled: true },
+    { key: 'weeklyAssessments', enabled: true },
+  ];
+
+  it('advances within a lesson as real fields arrive instead of waiting for the next lesson', () => {
+    const oneField = {
+      lessons: [{ title: 'Lesson 1', sections: [{ topicSection: 'Arrays' }] }],
+    };
+    const threeFields = {
+      lessons: [
+        {
+          title: 'Lesson 1',
+          sections: [
+            {
+              topicSection: 'Arrays',
+              learningObjectives: 'Analyze array access.',
+              weeklyAssessments: 'Trace an index operation.',
+            },
+          ],
+        },
+      ],
+    };
+
+    expect(estimateCourseMapStreamProgress(oneField, columns, 3)).toBeGreaterThan(0);
+    expect(estimateCourseMapStreamProgress(threeFields, columns, 3)).toBeGreaterThan(
+      estimateCourseMapStreamProgress(oneField, columns, 3),
+    );
+  });
+
+  it('uses the expected lesson count and never claims the map phase is complete', () => {
+    const map = {
+      lessons: [
+        { title: 'Lesson 1', sections: [{ topicSection: 'A', learningObjectives: 'B', weeklyAssessments: 'C' }] },
+        { title: 'Lesson 2', sections: [{ topicSection: 'D', learningObjectives: 'E', weeklyAssessments: 'F' }] },
+      ],
+    };
+
+    expect(estimateCourseMapStreamProgress(map, columns, 4)).toBeLessThan(50);
+    expect(estimateCourseMapStreamProgress(map, columns, null)).toBe(0);
+  });
+});
 
 describe('useGeneration completion guards', () => {
   it('lets browser-local Scion finish while progress continues without unbounded retries', () => {

@@ -3,6 +3,8 @@ export const AGENT_RUN_CHECKPOINT_KEY = 'coursemapper-agent-run-checkpoint-v1';
 export const AGENT_RUN_RECOVERY_HINT =
   '[SYSTEM] A previous run for this same request was interrupted. Re-inspect the current workspace before editing; do not assume an unfinished tool call either succeeded or failed.';
 
+export { groundLessonAlignment, hasAgentGroundingEvidence, requiresAgentGrounding } from './agentGrounding.js';
+
 const MAX_LEDGER_EVENTS = 80;
 const RECOVERY_WINDOW_MS = 24 * 60 * 60 * 1000;
 

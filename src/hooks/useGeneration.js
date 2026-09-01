@@ -53,6 +53,25 @@ function getEnabledColumnKeys(columns = []) {
     .map((column) => column.key);
 }
 
+export function estimateCourseMapStreamProgress(courseMap, columns, expectedLessons) {
+  const lessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons : [];
+  const expected = Number(expectedLessons);
+  if (!Number.isInteger(expected) || expected < 1 || lessons.length === 0) return 0;
+  const currentLesson = lessons[lessons.length - 1] || {};
+  const sections = Array.isArray(currentLesson.sections) ? currentLesson.sections : [];
+  const enabledKeys = getEnabledColumnKeys(columns);
+  const fieldSlots = Math.max(1, sections.length * Math.max(1, enabledKeys.length));
+  const completedFieldSlots = sections.reduce(
+    (total, section) => total + enabledKeys.filter((key) => hasMeaningfulCellValue(section?.[key])).length,
+    0,
+  );
+  const currentLessonFraction = Math.min(0.95, Math.max(0.08, completedFieldSlots / fieldSlots));
+  return Math.min(
+    90,
+    Math.round(((Math.min(Math.max(0, lessons.length - 1), expected) + currentLessonFraction) / expected) * 90),
+  );
+}
+
 export function getCourseMapExamineScan({ courseMap, columns, validationWarnings = [], expectedInfo = null } = {}) {
   const triggers = [];
   const lessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons : [];
@@ -286,12 +305,20 @@ export default function useGeneration({
         const sections = lastLesson.sections || [];
         const lastSection = sections[sections.length - 1];
         const lessonNum = lessons.length;
-        const expected = Number(expectedLessonsRef.current);
+        const expected = Number(expectedLessonsRef.current?.expected);
         const observedProgress =
           Number.isInteger(expected) && expected > 0
-            ? Math.round((Math.min(lessons.length, expected) / expected) * 90)
+            ? estimateCourseMapStreamProgress(partial, columns, expected)
             : Math.min(Math.round((fullText.length / Math.max(fullText.length * 1.3, 8000)) * 90), 90);
         setStreamProgress(observedProgress);
+        if (Number.isInteger(expected) && expected > 0) {
+          setCompletenessInfo({
+            expected,
+            actual: Math.min(lessons.length, expected),
+            confidence: expectedLessonsRef.current?.confidence,
+            status: 'generating',
+          });
+        }
         if (lastSection) {
           const filledKeys = Object.keys(lastSection).filter((k) => lastSection[k]);
           const lastKey = filledKeys[filledKeys.length - 1];
@@ -301,9 +328,13 @@ export default function useGeneration({
                 .replace(/^./, (s) => s.toUpperCase())
                 .trim()
             : '';
-          setStreamDetail(`Mapping Lesson ${lessonNum} · ${keyLabel}…`);
+          setStreamDetail(
+            `Writing Lesson ${lessonNum}${Number.isInteger(expected) && expected > 0 ? ` of ${expected}` : ''}${keyLabel ? ` · ${keyLabel}` : ''}…`,
+          );
         } else {
-          setStreamDetail(`Starting Lesson ${lessonNum}…`);
+          setStreamDetail(
+            `Starting Lesson ${lessonNum}${Number.isInteger(expected) && expected > 0 ? ` of ${expected}` : ''}…`,
+          );
         }
       }
     }

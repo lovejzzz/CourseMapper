@@ -47,6 +47,37 @@ function courseMapCellKey({ lessonIndex, sectionIndex, field }) {
   return `${lessonIndex ?? ''}:${sectionIndex ?? 'lesson'}:${field || ''}`;
 }
 
+function CourseMapLiveProgress({ detail = '', progress = 0, lessonCount = 0, className = '' }) {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      data-testid="course-map-live-progress"
+      className={`rounded-xl border border-indigo-100/80 bg-indigo-50/55 px-3 py-2.5 dark:border-indigo-900/70 dark:bg-indigo-950/35 ${className}`}
+    >
+      <div className="flex items-center gap-2 text-[12px]">
+        <span className="relative flex h-2.5 w-2.5 flex-shrink-0">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-indigo-400 opacity-45" />
+          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-indigo-500" />
+        </span>
+        <span className="min-w-0 flex-1 truncate font-medium text-indigo-700 dark:text-indigo-200">
+          {detail || (lessonCount > 0 ? `Writing Lesson ${lessonCount}…` : 'Reading your brief…')}
+        </span>
+        <span className="flex-shrink-0 tabular-nums text-indigo-500 dark:text-indigo-300">
+          {progress > 0 ? `${Math.min(99, Math.round(progress))}%` : 'Starting'}
+        </span>
+      </div>
+      <div className="relative mt-2 h-1 overflow-hidden rounded-full bg-indigo-100 dark:bg-indigo-900/70">
+        <div
+          className="h-full rounded-full bg-indigo-500 transition-[width] duration-300 ease-out"
+          style={{ width: `${Math.max(2, Math.min(99, Number(progress) || 0))}%` }}
+        />
+        <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-transparent via-white/55 to-transparent motion-reduce:hidden" />
+      </div>
+    </div>
+  );
+}
+
 // ── v0.14.4 WS-A: presentation helpers ──────────────────────────────────────
 
 // View preferences (density, per-course lesson collapse) live OUTSIDE the
@@ -332,6 +363,8 @@ export default function CourseMapPreview({
   courseMap,
   columns,
   isStreaming,
+  streamDetail = '',
+  streamProgress = 0,
   oldCourseMap,
   onCellEdit,
   onTitleEdit,
@@ -358,6 +391,23 @@ export default function CourseMapPreview({
   const autoScrollPausedRef = useRef(false);
   const revisionScrolledRef = useRef(false);
   const [focusedCellKey, setFocusedCellKey] = useState(null);
+  const [revealSettling, setRevealSettling] = useState(false);
+  const previousStreamingRef = useRef(isStreaming);
+
+  // Keep the streaming text components mounted briefly after the provider
+  // finishes. Without this handoff the final parse swaps every animated cell
+  // for its editable version in one frame, recreating the same wall-of-text
+  // jump the progressive renderer is meant to remove.
+  const justFinishedStreaming = !isStreaming && previousStreamingRef.current;
+  const showStreamingText = isStreaming || revealSettling || justFinishedStreaming;
+  useEffect(() => {
+    const wasStreaming = previousStreamingRef.current;
+    previousStreamingRef.current = isStreaming;
+    if (!wasStreaming || isStreaming) return undefined;
+    setRevealSettling(true);
+    const timer = window.setTimeout(() => setRevealSettling(false), 2400);
+    return () => window.clearTimeout(timer);
+  }, [isStreaming]);
 
   // ── Column resizing ──
   const [colWidths, setColWidths] = useState({});
@@ -587,13 +637,11 @@ export default function CourseMapPreview({
     if (isStreaming) {
       return (
         <div className="glass rounded-squircle shadow-glass p-7">
-          <div className="flex items-center gap-3 text-indigo-500">
-            <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-            </svg>
-            <span className="text-sm font-medium">Waiting for AI response...</span>
-          </div>
+          <h2 className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-200">Building your course map</h2>
+          <CourseMapLiveProgress detail={streamDetail} progress={streamProgress} />
+          <p className="mt-3 text-[12px] text-slate-500 dark:text-slate-400">
+            Lessons and fields will appear here as soon as each one is ready.
+          </p>
         </div>
       );
     }
@@ -699,7 +747,16 @@ export default function CourseMapPreview({
       <p id="course-map-scroll-help" className="mb-3 text-body text-ink-muted sm:hidden">
         Swipe the table to review every course-map field.
       </p>
-      <div className="mb-3 sm:mb-5" />
+      {isStreaming ? (
+        <CourseMapLiveProgress
+          detail={streamDetail}
+          progress={streamProgress}
+          lessonCount={courseMap.lessons.length}
+          className="mb-3 sm:mb-5"
+        />
+      ) : (
+        <div className="mb-3 sm:mb-5" />
+      )}
 
       <div
         ref={tableRef}
@@ -899,7 +956,11 @@ export default function CourseMapPreview({
                           data-field-key={key}
                           tabIndex={-1}
                         >
-                          <EvaluateDesignCell text={toStr(section[key])} />
+                          {showStreamingText ? (
+                            <StreamingCellText text={toStr(section[key])} />
+                          ) : (
+                            <EvaluateDesignCell text={toStr(section[key])} />
+                          )}
                         </td>
                       );
                     }
@@ -944,7 +1005,7 @@ export default function CourseMapPreview({
                     }
 
                     // During initial generation streaming (no oldCourseMap)
-                    if (isStreaming) {
+                    if (showStreamingText) {
                       return (
                         <td
                           key={key}
@@ -957,7 +1018,7 @@ export default function CourseMapPreview({
                           data-field-key={key}
                           tabIndex={-1}
                         >
-                          <DiffCell text={newText} oldText={null} isStreaming={isStreaming} />
+                          <DiffCell text={newText} oldText={null} isStreaming={showStreamingText} />
                         </td>
                       );
                     }
@@ -1139,14 +1200,18 @@ export default function CourseMapPreview({
                             {titleText ? ' — ' : ''}
                           </span>
                         )}
-                        <EditableCell
-                          text={lesson.title || ''}
-                          isStreaming={isStreaming}
-                          onSave={!isLocked && onTitleEdit ? (val) => onTitleEdit(li, val) : null}
-                          onAIContextMenu={onAIContextMenu}
-                          cellContext={{ lessonIndex: li, columnKey: 'title' }}
-                          plain
-                        />
+                        {showStreamingText ? (
+                          <StreamingCellText text={lesson.title || ''} plain />
+                        ) : (
+                          <EditableCell
+                            text={lesson.title || ''}
+                            isStreaming={isStreaming}
+                            onSave={!isLocked && onTitleEdit ? (val) => onTitleEdit(li, val) : null}
+                            onAIContextMenu={onAIContextMenu}
+                            cellContext={{ lessonIndex: li, columnKey: 'title' }}
+                            plain
+                          />
+                        )}
                       </span>
                       {!isStreaming && (
                         <div className="opacity-0 group-hover/band:opacity-100 flex items-center gap-1 transition-opacity duration-150 flex-shrink-0">
@@ -1371,6 +1436,64 @@ function EditableCell({
   );
 }
 
+function StreamingCellText({ text = '', plain = false }) {
+  const target = String(text || '');
+  const [visibleLength, setVisibleLength] = useState(() => (target ? 1 : 0));
+  const targetRef = useRef(target);
+
+  useEffect(() => {
+    const previousTarget = targetRef.current;
+    targetRef.current = target;
+    const reduceMotion =
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) {
+      setVisibleLength(target.length);
+      return undefined;
+    }
+
+    setVisibleLength((current) => {
+      if (target.startsWith(previousTarget)) return Math.min(current, target.length);
+      let commonPrefix = 0;
+      while (
+        commonPrefix < previousTarget.length &&
+        commonPrefix < target.length &&
+        previousTarget[commonPrefix] === target[commonPrefix]
+      ) {
+        commonPrefix += 1;
+      }
+      return Math.min(current, Math.max(1, commonPrefix));
+    });
+    return undefined;
+  }, [target]);
+
+  useEffect(() => {
+    if (visibleLength >= target.length) return undefined;
+    const timer = window.setTimeout(() => {
+      setVisibleLength((current) => {
+        const remaining = target.length - current;
+        return Math.min(target.length, current + Math.max(1, Math.ceil(remaining / 24)));
+      });
+    }, 34);
+    return () => window.clearTimeout(timer);
+  }, [target, visibleLength]);
+
+  const visibleText = target.slice(0, visibleLength);
+  const isTyping = visibleLength < target.length;
+  return (
+    <span data-streaming-cell-text="true" className="inline">
+      {plain ? visibleText : <FormattedText text={visibleText} />}
+      {isTyping && (
+        <span
+          aria-hidden="true"
+          className="ml-0.5 inline-block h-[1em] w-px translate-y-[0.12em] animate-pulse bg-indigo-400 motion-reduce:hidden"
+        />
+      )}
+    </span>
+  );
+}
+
 function DiffCell({ text, oldText, isStreaming }) {
   const [phase, setPhase] = useState('idle'); // idle | strikethrough | highlight | done
   const prevTextRef = useRef('');
@@ -1425,10 +1548,7 @@ function DiffCell({ text, oldText, isStreaming }) {
     );
   }
 
-  // Streaming: render formatted text directly (AI chunks provide natural typing feel)
-  return (
-    <span className="inline">
-      <FormattedText text={text || ''} />
-    </span>
-  );
+  // The JSON parser often releases several complete fields at once. Reveal
+  // their text progressively so each provider burst still feels continuous.
+  return <StreamingCellText text={text || ''} />;
 }

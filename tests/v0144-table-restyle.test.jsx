@@ -175,6 +175,35 @@ const sectionLabels = () =>
 // ── A1 — sticky light header, sentence case, width hierarchy ────────────────
 
 describe('A1 — header', () => {
+  it('shows continuous, accessible build activity and progressively reveals streamed cells', () => {
+    renderPreview(fixtureCourseMap(), {
+      isStreaming: true,
+      streamDetail: 'Writing Lesson 2 of 8 · Learning objectives…',
+      streamProgress: 27,
+    });
+
+    const status = container.querySelector('[data-testid="course-map-live-progress"]');
+    expect(status).not.toBeNull();
+    expect(status.getAttribute('role')).toBe('status');
+    expect(status.getAttribute('aria-live')).toBe('polite');
+    expect(status.textContent).toContain('Writing Lesson 2 of 8');
+    expect(status.textContent).toContain('27%');
+    expect(container.querySelectorAll('[data-streaming-cell-text="true"]').length).toBeGreaterThan(0);
+  });
+
+  it('shows the real live status before the first lesson is parseable', () => {
+    renderPreview(null, {
+      isStreaming: true,
+      streamDetail: 'Scion is reading your brief and planning 8 lessons on this device…',
+      streamProgress: 0,
+    });
+
+    expect(container.textContent).toContain('Building your course map');
+    expect(container.textContent).toContain('Scion is reading your brief');
+    expect(container.textContent).toContain('Starting');
+    expect(container.textContent).toContain('Lessons and fields will appear here');
+  });
+
   it('makes the overflowing course map a named keyboard-scroll region', () => {
     renderPreview(fixtureCourseMap());
 

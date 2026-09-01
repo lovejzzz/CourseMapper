@@ -4091,6 +4091,8 @@ export default function AppFlow({
                           courseMap={courseMap}
                           columns={columns}
                           isStreaming={gen.isStreaming}
+                          streamDetail={gen.streamDetail}
+                          streamProgress={gen.streamProgress}
                           oldCourseMap={oldCourseMap}
                           onCellEdit={editor.handleCellEdit}
                           onTitleEdit={editor.handleTitleEdit}

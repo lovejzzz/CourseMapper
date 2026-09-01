@@ -20,6 +20,31 @@ import {
   projectAgentDeliverableActionToCanonicalPatch,
   runAgentLoop,
 } from '../useToolInvoker';
+import { groundLessonAlignment, hasAgentGroundingEvidence, requiresAgentGrounding } from '../../../lib/agentGrounding';
+
+describe('Agent grounding guard', () => {
+  it('requires current workspace evidence for content audits but not metadata facts', () => {
+    expect(
+      requiresAgentGrounding(
+        'Inspect Lesson 2 and report one alignment gap between its objective and assessment with exact fields.',
+      ),
+    ).toBe(true);
+    expect(requiresAgentGrounding('How many lessons are generated?')).toBe(false);
+    expect(requiresAgentGrounding('List the lesson titles.')).toBe(false);
+    expect(requiresAgentGrounding('检查第2课的目标和评估是否对齐，并给出证据。')).toBe(true);
+    expect(requiresAgentGrounding('列出课程标题和状态。')).toBe(false);
+  });
+
+  it('accepts only successful read or check results as grounding evidence', () => {
+    expect(
+      hasAgentGroundingEvidence([
+        { toolName: 'read_lesson', result: { title: 'Lesson 2', sections: [{ learningObjectives: 'Analyze.' }] } },
+      ]),
+    ).toBe(true);
+    expect(hasAgentGroundingEvidence([{ toolName: 'respond', result: { chatReply: 'Looks aligned.' } }])).toBe(false);
+    expect(hasAgentGroundingEvidence([{ toolName: 'read_lesson', result: { error: 'Missing lesson.' } }])).toBe(false);
+  });
+});
 
 describe('buildToolResultFallbackChatReply', () => {
   it('summarizes successful mutations from tool results when the model omits a final response', () => {
@@ -427,6 +452,44 @@ describe('buildLocalReadOnlyFallback — verified course facts', () => {
     });
     expect(conflictReply).toContain('Lessons 1 and 2');
     expect(conflictReply).toContain('1 duplicate or renamed topic conflict');
+  });
+
+  it('grounds a lesson alignment audit in the exact objective and assessment fields', () => {
+    const reply = groundLessonAlignment(
+      'Read-only audit: inspect Lesson 2 and report one alignment gap between its objective and assessment, citing the exact fields.',
+      {
+        lessons: [
+          { title: 'Lesson 1', sections: [] },
+          {
+            title: 'Lesson 2: Arrays',
+            sections: [
+              {
+                learningObjectives: 'Trace array indexing and explain its constant-time access.',
+                weeklyAssessments: '',
+              },
+            ],
+          },
+        ],
+      },
+    );
+
+    expect(reply).toContain('Lesson 2, section 1');
+    expect(reply).toContain('Learning objectives');
+    expect(reply).toContain('Trace array indexing');
+    expect(reply).toContain('Weekly assessments');
+    expect(reply).toContain('is empty');
+
+    const chineseReply = groundLessonAlignment('检查第2课的目标和评估对齐差距，要引用具体字段。', {
+      lessons: [
+        { title: '第一课', sections: [] },
+        {
+          title: '第二课：数组',
+          sections: [{ learningObjectives: '分析数组索引。', weeklyAssessments: '' }],
+        },
+      ],
+    });
+    expect(chineseReply).toContain('第 2 课，第 1 节');
+    expect(chineseReply).toContain('分析数组索引');
   });
 
   it('answers the music-interval inversion rule from the compiler-owned frame', () => {
@@ -1543,5 +1606,66 @@ describe('projectAgentDeliverableActionToCanonicalPatch', () => {
         text: 'There are 4 quiz questions ready across the course, with 2 questions in each lesson.',
       },
     ]);
+  });
+
+  it('answers a scoped alignment audit from exact course-map fields without an ungrounded provider call', async () => {
+    const originalFetch = globalThis.fetch;
+    const fetchSpy = vi.fn(() => {
+      throw new Error('provider should not be called for a deterministic lesson-field audit');
+    });
+    globalThis.fetch = fetchSpy;
+    let messages = [{ role: 'agentProgress', status: 'running' }];
+    const setMessages = (updater) => {
+      messages = typeof updater === 'function' ? updater(messages) : updater;
+    };
+
+    try {
+      await runAgentLoop(
+        'Inspect Lesson 2 and report one alignment gap between its objective and assessment, citing exact fields.',
+        {},
+        {
+          messages: [],
+          setMessages,
+          setStreaming: vi.fn(),
+          abortRef: { current: null },
+          apiKey: 'sk-test',
+          provider: 'openai',
+          modelId: 'gpt-test',
+          courseMap: {
+            courseName: 'Data Structures',
+            lessons: [
+              { title: 'Lesson 1', sections: [] },
+              {
+                title: 'Lesson 2: Arrays',
+                sections: [{ learningObjectives: 'Analyze array access.', weeklyAssessments: '' }],
+              },
+            ],
+          },
+          activeTab: 'courseMap',
+          selectedFeatures: ['courseMap'],
+          columns: [],
+          deliverableConfig: {},
+          lessonFilter: null,
+          delivRef: { current: {} },
+          executeActionRef: { current: vi.fn() },
+          optimisticUpdateRef: { current: null },
+          snapshotRef: { current: null },
+          undoFnRef: { current: null },
+          notifyEditRef: { current: null },
+          uid: null,
+          customToolRegistryRef: null,
+          maybeRunValidation: vi.fn(),
+          handleAgentFinalResponse: (response) => {
+            messages = [...messages, { role: 'assistant', text: response?.chatReply || '' }];
+          },
+        },
+      );
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(messages.at(-1)?.text).toContain('Lesson 2, section 1');
+    expect(messages.at(-1)?.text).toContain('Weekly assessments');
   });
 });
