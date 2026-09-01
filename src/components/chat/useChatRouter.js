@@ -363,6 +363,22 @@ export default function useChatRouter({
       hasExecutor: Boolean(executeActionRef.current),
     });
 
+    // Evidence-only lesson audits are safe while other materials are still
+    // generating. Answer from the visible course-map fields immediately
+    // instead of making the user watch a model/tool progress loop.
+    if (provider === 'public' && !preparedSend.silent && !agentPromptOverride && attachedFiles.length === 0) {
+      const { groundLessonAlignment } = await import('../../lib/agentGrounding');
+      const groundedAlignment = groundLessonAlignment(trimmed, courseMapRef.current);
+      if (groundedAlignment) {
+        setMessages((prev) => [
+          ...prev,
+          { role: 'user', text: displayTextOverride || trimmed },
+          { role: 'assistant', text: groundedAlignment, source: 'course-map-evidence' },
+        ]);
+        return;
+      }
+    }
+
     if (chatRoute === 'agent') {
       let courseAnswer = null;
       if (provider === 'public' && !preparedSend.silent && !agentPromptOverride && attachedFiles.length === 0) {
