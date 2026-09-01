@@ -22,13 +22,6 @@ const TONES = {
     badge: 'border-sky-200 bg-sky-100/80 text-sky-800 dark:border-sky-700 dark:bg-sky-900/70 dark:text-sky-100',
     body: 'text-sky-800 dark:text-sky-200',
   },
-  blocked: {
-    wrapper: 'border-red-200/70 bg-red-50/70',
-    icon: 'bg-red-100 text-red-600',
-    title: 'text-red-800',
-    badge: 'border-red-200 bg-red-100/80 text-red-700',
-    body: 'text-red-700',
-  },
 };
 
 function PackageIcon({ ready, notes = false }) {
@@ -65,16 +58,17 @@ function PackageIcon({ ready, notes = false }) {
 
 export default function PackageSummaryCard({ summary, embedded = false }) {
   const [expanded, setExpanded] = React.useState(false);
-  if (!summary) return null;
+  // Blocked package diagnostics already live in Review, Evidence, and the
+  // export panel. Repeating the full issue ledger in chat turns the Agent into
+  // a warning dashboard instead of a direct, Codex-like collaborator.
+  if (!summary || (!summary.ready && !summary.downloadable)) return null;
 
   const hasNonBlockingNotes = summary.downloadable && !summary.ready;
   const tone = hasNonBlockingNotes ? TONES.notes : TONES[summary.tone] || TONES.assumptions;
   const outcomeTitle = summary.ready
     ? 'Ready to download'
-    : summary.downloadable
-      ? 'Package notes'
-      : 'Package refinement';
-  const badgeText = summary.ready ? 'Done' : summary.tone === 'blocked' ? 'Refine' : 'Notes saved';
+    : 'Package notes';
+  const badgeText = summary.ready ? 'Done' : 'Notes saved';
   const repairText =
     summary.repairsApplied > 0
       ? `${summary.repairsApplied} safe repair pass${summary.repairsApplied === 1 ? '' : 'es'} applied`
@@ -111,9 +105,7 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
     : [];
   const statusText = summary.ready
     ? `${summary.checkedSections || 'All selected'} materials checked — download anytime.`
-    : summary.downloadable
-      ? 'Review notes are saved here and in the package report before publishing.'
-      : summary.nextAction || 'Review the items below before export.';
+    : 'Review notes are saved in the package report before publishing.';
   const reviewText = summary.ready
     ? 'Before class, confirm dates, policies, and official readings.'
     : reviewRecommendation;
@@ -138,8 +130,6 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
     Boolean(reviewText) ||
     reviewActions.length > 0 ||
     summary.topIssues?.length > 0;
-  const showTopIssues = summary.tone === 'blocked' || expanded;
-
   return (
     <div
       data-testid="package-summary-card"
@@ -206,29 +196,6 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
           </div>
         </div>
 
-        {showTopIssues && summary.topIssues?.length > 0 && (
-          <div className="mt-2 border-t border-white/70 pt-2">
-            <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500">
-              {summary.tone === 'blocked' ? 'Items to refine' : 'Saved notes'}
-            </p>
-            <div className="space-y-1">
-              {summary.topIssues.map((issue, index) => (
-                <div key={`${issue.label}-${index}`} className="flex gap-2 text-[11px] leading-snug text-slate-600">
-                  <span
-                    className={`mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full ${
-                      issue.severity === 'error' ? 'bg-red-500' : 'bg-amber-500'
-                    }`}
-                    aria-hidden="true"
-                  />
-                  <span>
-                    <span className="font-semibold text-slate-700">{issue.label}: </span>
-                    {issue.message}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

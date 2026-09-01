@@ -1919,12 +1919,10 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
     // Grounding policy and deterministic lesson evidence are only needed for
     // Agent turns, so keep them outside the initial ChatPanel bundle.
     runLedgerApi = await import('../../lib/agentRunLedger.js');
-    const localReadOnlyReply =
-      runLedgerApi.groundLessonAlignment(fullMessage, courseMap) ||
-      buildLocalReadOnlyFallback(fullMessage, {
-        courseMap,
-        deliverables: delivRef.current,
-      });
+    const localReadOnlyReply = buildLocalReadOnlyFallback(fullMessage, {
+      courseMap,
+      deliverables: delivRef.current,
+    });
     if (localReadOnlyReply) {
       const finalResponse = { chatReply: localReadOnlyReply };
       setMessages((prev) => {

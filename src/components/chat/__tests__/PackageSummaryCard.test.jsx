@@ -83,7 +83,7 @@ describe('PackageSummaryCard', () => {
     expect(html).not.toMatch(/\bscore\b/i);
   });
 
-  it('shows issues to fix when the package is not ready', () => {
+  it('keeps blocked package diagnostics out of the Agent conversation', () => {
     const html = renderToStaticMarkup(
       <PackageSummaryCard
         summary={{
@@ -109,13 +109,7 @@ describe('PackageSummaryCard', () => {
       />,
     );
 
-    expect(html).toContain('Package refinement');
-    expect(html).toContain('Refine');
-    expect(html).toContain('1 issue to fix');
-    expect(html).toContain('Items to refine');
-    expect(html).toContain('Quiz Bank');
-    expect(html).not.toContain('Assessment weights');
-    expect(html).not.toContain('Confirm the official grading weight.');
+    expect(html).toBe('');
   });
 
   it('shows caveated downloadable packages as agent-owned package notes', () => {
@@ -147,7 +141,7 @@ describe('PackageSummaryCard', () => {
     expect(html).not.toContain('border-amber-200');
     expect(html).toContain('3 review notes');
     expect(html).toContain('1 export note');
-    expect(html).toContain('Review notes are saved here and in the package report');
+    expect(html).toContain('Review notes are saved in the package report');
     expect(html).not.toContain('Download is ready');
     expect(html).not.toContain('Ready to download');
     expect(html).not.toContain('Done');

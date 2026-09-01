@@ -2,6 +2,35 @@ import { describe, expect, it } from 'vitest';
 import { buildScionLocalAgentAnswer } from '../scionLocalAgentAnswer';
 
 describe('buildScionLocalAgentAnswer', () => {
+  it('answers a production-routed lesson alignment audit from exact course-map fields', async () => {
+    const result = await buildScionLocalAgentAnswer({
+      question:
+        'Read-only audit: inspect Lesson 2 and report one alignment gap between its objective and assessment, citing the exact fields.',
+      courseMap: {
+        lessons: [
+          { title: 'Lesson 1', sections: [] },
+          {
+            title: 'Lesson 2: Arrays',
+            sections: [
+              {
+                learningObjectives: 'Trace array indexing and explain its constant-time access.',
+                weeklyAssessments: '',
+              },
+            ],
+          },
+        ],
+      },
+      deliverables: {},
+    });
+
+    expect(result).toMatchObject({ kind: 'course-map-evidence' });
+    expect(result.text).toContain('Lesson 2, section 1');
+    expect(result.text).toContain('Learning objectives');
+    expect(result.text).toContain('Trace array indexing');
+    expect(result.text).toContain('Weekly assessments');
+    expect(result.text).toContain('is empty');
+  });
+
   it('loads only the source-answer capability for an assigned-source question', async () => {
     const result = await buildScionLocalAgentAnswer({
       question: 'Which assigned sources support semantic HTML, and what can each source establish?',

@@ -364,7 +364,7 @@ test.describe('Agent no-key behavior', () => {
     await planningReceipt.getByTestId('agent-receipt-action-audit-quality').click();
     await expect(agentPanel.getByText('Checking the package.').last()).toBeVisible({ timeout: 10000 });
     await expect(agentPanel.getByText('Check complete.', { exact: false })).toHaveCount(1, { timeout: 10000 });
-    await expect(agentPanel.getByTestId('package-summary-card').last()).toBeVisible({ timeout: 10000 });
+    await expect(agentPanel.getByTestId('package-summary-card')).toHaveCount(0);
     expect(aiRequests).toEqual([]);
 
     await agentPanel.getByTestId('agent-starter-local-audit').click();

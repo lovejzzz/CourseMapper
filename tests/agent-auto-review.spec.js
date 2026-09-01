@@ -195,18 +195,13 @@ test.describe('Agent auto-review', () => {
 
     await expect(page.getByTestId('workspace-shell')).toBeVisible({ timeout: 10000 });
     const agentPanel = page.getByTestId('workspace-agent-panel');
-    const packageSummary = agentPanel.getByTestId('package-summary-card').last();
-    await expect(
-      packageSummary.getByText(/Ready to download|Package notes|Needs your decision|Package refinement/),
-    ).toBeVisible({
-      timeout: 30000,
-    });
-    await expect(packageSummary.getByText(/^(Done|Refine|Notes saved)$/)).toBeVisible();
 
     // The final pass now runs through deterministic finalization, not through
-    // a hidden user-authored chat turn or agent tool-call request.
+    // a hidden user-authored chat turn or agent tool-call request. Blocked
+    // diagnostics stay in Review instead of becoming a large chat card.
     await page.waitForTimeout(3500);
     expect(agentRequests).toHaveLength(0);
+    await expect(agentPanel.getByTestId('package-summary-card')).toHaveCount(0);
     await expect(agentPanel.getByTestId('chat-message-user').filter({ hasText: 'Review my course' })).toHaveCount(0);
     await expect(agentPanel.getByText('[AUTO-REVIEW]')).toHaveCount(0);
   });

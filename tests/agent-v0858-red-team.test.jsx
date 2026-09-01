@@ -169,7 +169,7 @@ describe('v0.8.58 agent safety invariants', () => {
     expect(html).not.toContain('Review only');
   });
 
-  it('keeps blocked package receipts instructor-facing instead of log-like', () => {
+  it('keeps blocked package receipts in Review instead of the conversation', () => {
     const html = renderToStaticMarkup(
       <PackageSummaryCard
         summary={{
@@ -186,12 +186,7 @@ describe('v0.8.58 agent safety invariants', () => {
       />,
     );
 
-    expect(html).toContain('Package refinement');
-    expect(html).toContain('Refine');
-    expect(html).toContain('Rubrics');
-    expect(html).not.toContain('retryActionCount');
-    expect(html).not.toContain('toolName');
-    expect(html).not.toContain('Package needs review');
+    expect(html).toBe('');
   });
 
   it('presents downloadable review notes as neutral information', () => {
