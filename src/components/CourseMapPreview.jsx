@@ -71,7 +71,7 @@ function CourseMapLiveProgress({ detail = '', progress = 0, lessonCount = 0, onS
             type="button"
             aria-label="Stop build"
             onClick={onStop}
-            className="flex-shrink-0 rounded-md border border-indigo-200/80 bg-white/80 px-2 py-1 text-[11px] font-semibold text-indigo-700 transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 dark:border-indigo-800 dark:bg-indigo-950/70 dark:text-indigo-200"
+            className="flex-shrink-0 rounded-md border border-indigo-200/80 bg-white/80 px-2 py-1 text-xs font-semibold text-indigo-700 transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 dark:border-indigo-800 dark:bg-indigo-950/70 dark:text-indigo-200"
           >
             Stop
           </button>
