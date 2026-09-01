@@ -176,10 +176,12 @@ const sectionLabels = () =>
 
 describe('A1 — header', () => {
   it('shows continuous, accessible build activity and progressively reveals streamed cells', () => {
+    const onStop = vi.fn();
     renderPreview(fixtureCourseMap(), {
       isStreaming: true,
       streamDetail: 'Writing Lesson 2 of 8 · Learning objectives…',
       streamProgress: 27,
+      onStop,
     });
 
     const status = container.querySelector('[data-testid="course-map-live-progress"]');
@@ -189,6 +191,10 @@ describe('A1 — header', () => {
     expect(status.textContent).toContain('Writing Lesson 2 of 8');
     expect(status.textContent).toContain('27%');
     expect(container.querySelectorAll('[data-streaming-cell-text="true"]').length).toBeGreaterThan(0);
+    const stop = container.querySelector('button[aria-label="Stop build"]');
+    expect(stop).not.toBeNull();
+    act(() => stop.click());
+    expect(onStop).toHaveBeenCalledTimes(1);
   });
 
   it('shows the real live status before the first lesson is parseable', () => {

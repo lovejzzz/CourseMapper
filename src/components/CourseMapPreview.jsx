@@ -47,7 +47,7 @@ function courseMapCellKey({ lessonIndex, sectionIndex, field }) {
   return `${lessonIndex ?? ''}:${sectionIndex ?? 'lesson'}:${field || ''}`;
 }
 
-function CourseMapLiveProgress({ detail = '', progress = 0, lessonCount = 0, className = '' }) {
+function CourseMapLiveProgress({ detail = '', progress = 0, lessonCount = 0, onStop = null, className = '' }) {
   return (
     <div
       role="status"
@@ -66,6 +66,16 @@ function CourseMapLiveProgress({ detail = '', progress = 0, lessonCount = 0, cla
         <span className="flex-shrink-0 tabular-nums text-indigo-500 dark:text-indigo-300">
           {progress > 0 ? `${Math.min(99, Math.round(progress))}%` : 'Starting'}
         </span>
+        {onStop && (
+          <button
+            type="button"
+            aria-label="Stop build"
+            onClick={onStop}
+            className="flex-shrink-0 rounded-md border border-indigo-200/80 bg-white/80 px-2 py-1 text-[11px] font-semibold text-indigo-700 transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 dark:border-indigo-800 dark:bg-indigo-950/70 dark:text-indigo-200"
+          >
+            Stop
+          </button>
+        )}
       </div>
       <div className="relative mt-2 h-1 overflow-hidden rounded-full bg-indigo-100 dark:bg-indigo-900/70">
         <div
@@ -365,6 +375,7 @@ export default function CourseMapPreview({
   isStreaming,
   streamDetail = '',
   streamProgress = 0,
+  onStop = null,
   oldCourseMap,
   onCellEdit,
   onTitleEdit,
@@ -638,7 +649,7 @@ export default function CourseMapPreview({
       return (
         <div className="glass rounded-squircle shadow-glass p-7">
           <h2 className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-200">Building your course map</h2>
-          <CourseMapLiveProgress detail={streamDetail} progress={streamProgress} />
+          <CourseMapLiveProgress detail={streamDetail} progress={streamProgress} onStop={onStop} />
           <p className="mt-3 text-[12px] text-slate-500 dark:text-slate-400">
             Lessons and fields will appear here as soon as each one is ready.
           </p>
@@ -752,6 +763,7 @@ export default function CourseMapPreview({
           detail={streamDetail}
           progress={streamProgress}
           lessonCount={courseMap.lessons.length}
+          onStop={onStop}
           className="mb-3 sm:mb-5"
         />
       ) : (
