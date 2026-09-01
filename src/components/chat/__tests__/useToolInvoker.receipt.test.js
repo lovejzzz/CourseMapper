@@ -1607,5 +1607,4 @@ describe('projectAgentDeliverableActionToCanonicalPatch', () => {
       },
     ]);
   });
-
 });

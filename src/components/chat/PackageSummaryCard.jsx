@@ -65,9 +65,7 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
 
   const hasNonBlockingNotes = summary.downloadable && !summary.ready;
   const tone = hasNonBlockingNotes ? TONES.notes : TONES[summary.tone] || TONES.assumptions;
-  const outcomeTitle = summary.ready
-    ? 'Ready to download'
-    : 'Package notes';
+  const outcomeTitle = summary.ready ? 'Ready to download' : 'Package notes';
   const badgeText = summary.ready ? 'Done' : 'Notes saved';
   const repairText =
     summary.repairsApplied > 0
@@ -195,7 +193,6 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
             )}
           </div>
         </div>
-
       </div>
     </div>
   );
