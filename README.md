@@ -1544,7 +1544,7 @@ npm run capture:scion:browser-device -- --reset-profile # run the isolated real 
 npm run audit:scion:browser-device-evidence # verify the retained v0.16.25 Apple run and exact 1/4 boundary
 ```
 
-Normal pushes to `main` are guarded by **Fast verification** in `.github/workflows/ci.yml`: format, lint, release-history audit, unit/closed-loop tests, blueprint fast quality, deliverable audit, pipeline audit, gold smoke, build, and bundle budgets.
+Normal pushes to `main` are guarded by **Fast verification** in `.github/workflows/ci.yml`: format, lint, release-history audit, unit/closed-loop tests, blueprint fast quality, deliverable audit, pipeline audit, gold smoke, build, and bundle budgets. Run `git config core.hooksPath .githooks` once after cloning. The tracked pre-push hook then runs the same fast lanes before `main` can move, requires the checkout to remain clean, and caches a successful result for the exact commit and gate definition. Feature-branch pushes remain fast and are not blocked. To run the gate manually, use `node scripts/prePushGate.mjs --force-head`.
 
 `audit:deep-quality` runs the educational-quality battery used by **Deep proof**: blueprint quality matrix, deliverable quality audit, full gold audit, internal expert-style audit, and proof-packet build. In `.github/workflows/deep-proof.yml`, Deep proof runs on `release/**`, manual dispatch, and nightly schedule. Release/manual quality is strict; nightly educational quality is advisory unless app/runtime gates fail.
 

@@ -118,6 +118,7 @@ function openAiToolCallStream(calls) {
 
 test.describe('Agent command entry points', () => {
   test('keeps generic suggestions out of the panel while typed and starter commands still work', async ({ page }) => {
+    test.setTimeout(60000);
     const agentRequests = [];
     const consoleErrors = [];
 

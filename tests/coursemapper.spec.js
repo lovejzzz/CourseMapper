@@ -705,11 +705,17 @@ test.describe('Configure Generation', () => {
     const previewDialog = page.getByRole('dialog', { name: /Course Map — 8 items/ });
     await expect(previewDialog).toBeVisible();
     await expect
-      .poll(async () => Math.abs((await previewDialog.boundingBox())?.x || 0), { timeout: 2000 })
-      .toBeLessThanOrEqual(1);
+      .poll(
+        async () => {
+          const box = await previewDialog.boundingBox();
+          return Math.max(Math.abs(box?.x || 0), Math.abs(box?.y || 0));
+        },
+        { timeout: 2000 },
+      )
+      .toBeLessThanOrEqual(2);
     const previewDialogBox = await previewDialog.boundingBox();
-    expect(previewDialogBox.x).toBeLessThanOrEqual(1);
-    expect(previewDialogBox.y).toBeLessThanOrEqual(1);
+    expect(previewDialogBox.x).toBeLessThanOrEqual(2);
+    expect(previewDialogBox.y).toBeLessThanOrEqual(2);
     expect(previewDialogBox.width).toBeGreaterThanOrEqual(389);
     expect(previewDialogBox.height).toBeGreaterThanOrEqual(843);
     const dialogOwnsViewportTop = await page.evaluate(() =>

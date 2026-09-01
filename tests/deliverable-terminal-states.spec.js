@@ -93,7 +93,7 @@ async function installMockOpenAI(page) {
     if (/quality assurance review/i.test(system)) {
       content = JSON.stringify({ patches: [] });
     } else if (/terminal failure pack/i.test(system)) {
-      await new Promise((resolve) => setTimeout(resolve, 2500));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
       content = 'intentionally invalid terminal failure pack response with no JSON object';
     }
 
@@ -141,7 +141,10 @@ test.describe('All-deliverables terminal states', () => {
     await page.getByTestId('signed-out-advanced-menu').click();
     const ideButton = page.getByRole('button', { name: /Open Developer IDE/i });
     await expect(ideButton).toBeDisabled({ timeout: 5000 });
-    await expect(ideButton).toHaveAttribute('title', /Deliverables are still generating/i);
+    await expect(ideButton).toHaveAttribute(
+      'title',
+      /Course map generation is still running|Deliverables are still generating/i,
+    );
     await ideButton.click({ force: true });
     await expect(page.getByTestId('developer-mode-panel')).toHaveCount(0);
 
