@@ -41,6 +41,17 @@ function stableKey(msg, fallback) {
   return key;
 }
 
+function isSyncReceiptMessage(message) {
+  return message?.role === 'agentReceipt' && /sync/i.test(message?.receipt?.title || '');
+}
+
+function isRedundantSyncStatusBubble(message) {
+  return (
+    message?.role === 'assistant' &&
+    /^(Blueprint sync|Sync request|Sync needs review|Sync stopped)\b/i.test(message.text || message.content || '')
+  );
+}
+
 /**
  * MessageList — scrollable message area with auto-scroll.
  * Renders user/assistant bubbles, proposals, diff reviews, and content cards.
@@ -109,6 +120,13 @@ export default function MessageList({
     for (let i = messages.length - 1; i >= 0; i--) {
       const message = messages[i];
       if (message?.role === 'digest' && Array.isArray(message.digest?.observations)) return i;
+    }
+    return -1;
+  }, [messages]);
+  const latestCompletedSyncIndex = React.useMemo(() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const message = messages[i];
+      if (message?.role === 'syncSuggestion' && message.status === 'done') return i;
     }
     return -1;
   }, [messages]);
@@ -275,6 +293,10 @@ export default function MessageList({
             return <AgentHelpCard key={key} help={msg.help} />;
           }
           if (msg.role === 'agentReceipt') {
+            // The sync card is the one authoritative status surface. Keep the
+            // durable receipt in history for diagnostics, but do not render a
+            // second card saying the same thing beside it.
+            if (isSyncReceiptMessage(msg)) return null;
             return (
               <AgentReceiptCard
                 key={key}
@@ -396,6 +418,11 @@ export default function MessageList({
             return <LandingContextCard key={key} message={msg} />;
           }
           if (msg.role === 'syncSuggestion') {
+            // Completed sync receipts are durable history, but stacking every
+            // receipt makes one edit look as though it ran more than once.
+            // Keep pending/failed choices visible and show only the latest
+            // successful receipt in the calm, current-state UI.
+            if (msg.status === 'done' && i !== latestCompletedSyncIndex) return null;
             return (
               <SyncSuggestionCard
                 key={key}
@@ -416,6 +443,7 @@ export default function MessageList({
               <ImageSearchCard key={key} imageSearch={msg.imageSearch} status={msg.status} provider={msg.provider} />
             );
           }
+          if (isRedundantSyncStatusBubble(msg)) return null;
           return (
             <MessageBubble
               key={key}

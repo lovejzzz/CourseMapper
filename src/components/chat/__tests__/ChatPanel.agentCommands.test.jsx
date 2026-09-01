@@ -1455,17 +1455,51 @@ describe('ChatPanel agent command strip', () => {
       assistantText: 'Syncing Quiz & Exam Bank from the workspace plan.',
       progressTool: 'edit_deliverables',
     });
-    expect(chatRouterMock.addLocalMessages).toHaveBeenCalledWith([
+    expect(chatRouterMock.addLocalMessages).toHaveBeenCalledWith(
       expect.objectContaining({
         role: 'agentReceipt',
         receipt: expect.objectContaining({ title: 'Sync receipt', status: 'done', target: 'Quiz & Exam Bank' }),
       }),
-      {
-        role: 'assistant',
-        text: 'Sync request finished for Quiz & Exam Bank. Check the sync card for the final status.',
-      },
-    ]);
+    );
     expect(chatRouterMock.send).not.toHaveBeenCalled();
+  });
+
+  it('reports a partial sync as review-needed instead of claiming it synced', async () => {
+    const syllabusPlan = { featureId: 'syllabus', lessonIndices: null };
+    const rubricsPlan = { featureId: 'rubrics', lessonIndices: [0] };
+    chatRouterMock.messages = [
+      {
+        role: 'syncSuggestion',
+        id: 'sync-partial',
+        status: 'pending',
+        plan: [syllabusPlan, rubricsPlan],
+        changedFieldsSummary: 'topic/section',
+      },
+    ];
+    chatRouterMock.handleApproveSyncSuggestion.mockResolvedValue({
+      status: 'partialFail',
+      selectedPlan: [syllabusPlan, rubricsPlan],
+      completedFeatureIds: ['syllabus'],
+      failedItems: [rubricsPlan],
+      syncSummary: { completedFeatureIds: ['syllabus'] },
+    });
+    root = renderChatPanel(container);
+
+    await act(async () => {
+      await messageListMock.props.onApproveSyncSuggestion('sync-partial', [syllabusPlan, rubricsPlan]);
+    });
+
+    expect(chatRouterMock.addLocalMessages).toHaveBeenCalledWith(
+      expect.objectContaining({
+        role: 'agentReceipt',
+        receipt: expect.objectContaining({
+          title: 'Sync needs review',
+          status: 'review',
+          badge: 'Review',
+          changed: ['Sync incomplete'],
+        }),
+      }),
+    );
   });
 
   it('posts a canonical blueprint receipt after approving a canonical sync plan', async () => {
@@ -1517,7 +1551,7 @@ describe('ChatPanel agent command strip', () => {
 
     expect(handled).toBe(true);
     expect(chatRouterMock.handleApproveSyncSuggestion).toHaveBeenCalledWith('sync-blueprint-1', [lessonPlanSync]);
-    expect(chatRouterMock.addLocalMessages).toHaveBeenCalledWith([
+    expect(chatRouterMock.addLocalMessages).toHaveBeenCalledWith(
       expect.objectContaining({
         role: 'agentReceipt',
         receipt: expect.objectContaining({
@@ -1529,11 +1563,7 @@ describe('ChatPanel agent command strip', () => {
           runStats: { providerCallCount: 0 },
         }),
       }),
-      {
-        role: 'assistant',
-        text: 'Blueprint sync finished for Lesson Plans. Check the sync card for the final status.',
-      },
-    ]);
+    );
     expect(chatRouterMock.send).not.toHaveBeenCalled();
   });
 
@@ -1617,7 +1647,7 @@ describe('ChatPanel agent command strip', () => {
       promptIncludes: 'Sync 2 stale deliverables',
       progressTool: 'edit_deliverables',
     });
-    expect(chatRouterMock.addLocalMessages).toHaveBeenCalledWith([
+    expect(chatRouterMock.addLocalMessages).toHaveBeenCalledWith(
       expect.objectContaining({
         role: 'agentReceipt',
         receipt: expect.objectContaining({
@@ -1626,11 +1656,7 @@ describe('ChatPanel agent command strip', () => {
           target: 'Quiz & Exam Bank and Rubrics',
         }),
       }),
-      {
-        role: 'assistant',
-        text: 'Sync request finished for Quiz & Exam Bank and Rubrics. Check the sync card for the final status.',
-      },
-    ]);
+    );
     expect(chatRouterMock.send).not.toHaveBeenCalled();
   });
 

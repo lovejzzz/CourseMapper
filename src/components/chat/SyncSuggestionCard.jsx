@@ -210,7 +210,10 @@ export default function SyncSuggestionCard({ suggestion, onApprove, onSkip }) {
               const lessonDesc = entry.lessonIndices
                 ? `Lesson${entry.lessonIndices.length > 1 ? 's' : ''} ${entry.lessonIndices.map((n) => n + 1).join(', ')}`
                 : 'full regeneration';
-              const isFailed = failedItems?.some((f) => f.featureId === entry.featureId);
+              // A completed retry wins over any persisted failure metadata from
+              // the earlier attempt. Older saved workspaces can still contain
+              // failedItems after the status has advanced to done.
+              const isFailed = !isDone && failedItems?.some((f) => f.featureId === entry.featureId);
               const completedBeforeStop = isStopped && completedFeatureIds.includes(entry.featureId);
 
               return (

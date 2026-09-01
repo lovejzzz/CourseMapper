@@ -35,6 +35,66 @@ describe('useSmartSync canonical patch requests', () => {
     document.body.appendChild(container);
   });
 
+  it('serializes public Scion sync work against its single browser model', async () => {
+    const courseMapRef = {
+      current: { lessons: [{ title: 'One', sections: [{ topicSection: 'One' }] }] },
+    };
+    let active = 0;
+    let peak = 0;
+    const deliv = {
+      isGenerating: false,
+      deliverables: {
+        lessonPlans: { status: 'done', data: { lessonPlans: [] } },
+        assignments: { status: 'done', data: { assignments: [] } },
+        rubrics: { status: 'done', data: { rubrics: [] } },
+      },
+      generateAll: vi.fn(),
+      markFeatureStale: vi.fn(),
+      regenerateLesson: vi.fn(async (featureId) => {
+        active += 1;
+        peak = Math.max(peak, active);
+        await new Promise((resolve) => setTimeout(resolve, 5));
+        active -= 1;
+        return { status: 'done', featureId, syncSource: 'blueprint-compiler', providerCallCount: 0 };
+      }),
+    };
+    let hook;
+
+    root = createRoot(container);
+    await act(async () => {
+      root.render(
+        <Harness
+          onHook={(value) => {
+            hook = value;
+          }}
+          props={{
+            deliv,
+            gen: { isStreaming: false },
+            courseMapRef,
+            provider: 'public',
+            selectedFeatures: ['courseMap', 'lessonPlans', 'assignments', 'rubrics'],
+            onSyncComplete: vi.fn(),
+            onRequestProposal: vi.fn(),
+          }}
+        />,
+      );
+    });
+
+    await act(async () => {
+      await hook.executeSyncPlan(
+        [
+          { featureId: 'lessonPlans', lessonIndices: [0] },
+          { featureId: 'assignments', lessonIndices: [0] },
+          { featureId: 'rubrics', lessonIndices: [0] },
+        ],
+        'topic/section',
+      );
+    });
+
+    expect(deliv.regenerateLesson).toHaveBeenCalledTimes(3);
+    expect(peak).toBe(1);
+  });
+
   afterEach(() => {
     vi.useRealTimers();
     if (root) {

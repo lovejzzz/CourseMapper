@@ -130,6 +130,54 @@ describe('MessageList workspace plan actions', () => {
     expect(container.querySelectorAll('[data-testid="digest-open-in-queue"]')).toHaveLength(1);
   });
 
+  it('renders only the latest completed sync receipt so restored history does not look duplicated', () => {
+    root = renderMessageList(container, {
+      messages: [
+        {
+          id: 'sync-old',
+          role: 'syncSuggestion',
+          status: 'done',
+          editSource: 'courseMap',
+          editSummary: { fields: ['topic/section'], lessonIndices: [1] },
+          plan: [{ featureId: 'syllabus' }],
+          changesPreview: [{ summary: 'Old syllabus schedule update' }],
+        },
+        { role: 'assistant', text: 'The edit is saved.' },
+        {
+          id: 'sync-current',
+          role: 'syncSuggestion',
+          status: 'done',
+          editSource: 'courseMap',
+          editSummary: { fields: ['topic/section'], lessonIndices: [1] },
+          plan: [{ featureId: 'syllabus' }],
+          changesPreview: [{ summary: 'Current syllabus schedule update' }],
+        },
+      ],
+    });
+
+    expect(container.textContent.match(/Sync Complete/g)).toHaveLength(1);
+    expect(container.textContent).not.toContain('Old syllabus schedule update');
+    expect(container.textContent).toContain('Current syllabus schedule update');
+  });
+
+  it('keeps sync receipts in history without rendering redundant status cards or bubbles', () => {
+    root = renderMessageList(container, {
+      messages: [
+        { role: 'agentReceipt', receipt: { title: 'Sync receipt', status: 'done', changed: ['Old sync'] } },
+        {
+          role: 'agentReceipt',
+          receipt: { title: 'Sync needs review', status: 'review', issues: ['Rubrics did not finish syncing.'] },
+        },
+        { role: 'assistant', text: 'Sync request finished for Syllabus and Rubrics.' },
+        { role: 'assistant', text: 'Sync needs review for Rubrics. Retry the failed items in the sync card.' },
+      ],
+    });
+
+    expect(container.textContent).not.toContain('Old sync');
+    expect(container.textContent).not.toContain('Sync needs review');
+    expect(container.textContent).not.toContain('Sync request finished');
+  });
+
   it('lets the parent handle a plan action directly before falling back to the Agent', async () => {
     const onSuggestionClick = vi.fn();
     const onWorkspacePlanAction = vi.fn(() => Promise.resolve(true));

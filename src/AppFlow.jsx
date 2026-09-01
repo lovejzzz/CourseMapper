@@ -1066,7 +1066,9 @@ export default function AppFlow({
     modelCapabilities,
     generationPlan,
     deliverableConfig,
-    lockedLessons: lessonScope.type === 'specific' ? lessonScope.indices : null,
+    // A focused generation scope identifies the lessons to build; it does not
+    // lock those lessons against later edit-sync regeneration.
+    lockedLessons: null,
     pedagogicalMode: 'lecture',
     examChanges: gen.examChanges,
     columns,

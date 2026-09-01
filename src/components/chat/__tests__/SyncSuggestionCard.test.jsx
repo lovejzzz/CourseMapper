@@ -140,4 +140,26 @@ describe('SyncSuggestionCard', () => {
     expect(container.textContent).not.toContain('Failed');
     expect(buttonByText(container, 'Retry Failed (1)')).toBeUndefined();
   });
+
+  it('does not show stale failure marks after a retry completes', () => {
+    root = renderCard(container, {
+      suggestion: {
+        id: 'sync-retried',
+        status: 'done',
+        editSource: 'courseMap',
+        editSummary: { fields: ['topic'], lessonIndices: [0] },
+        plan: [
+          { featureId: 'lessonPlans', lessonIndices: [0] },
+          { featureId: 'slideDecks', lessonIndices: [0] },
+        ],
+        failedItems: [{ featureId: 'lessonPlans', lessonIndices: [0] }],
+      },
+      onApprove: vi.fn(),
+      onSkip: vi.fn(),
+    });
+
+    expect(container.textContent).toContain('Sync Complete');
+    expect(container.textContent).not.toContain('✗');
+    expect(buttonByText(container, 'Retry Failed (1)')).toBeUndefined();
+  });
 });

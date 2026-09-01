@@ -80,4 +80,10 @@ describe('host wiring (source scans)', () => {
     expect(appFlow).toContain('if (smartSync.pendingSyncSuggestion || pendingSyncFromChat)');
     expect(appFlow).toContain('handleExecuteSyncFromQueue();');
   });
+
+  it('does not mistake a focused generation scope for locked lessons during edit-sync', () => {
+    const appFlow = read('src/AppFlow.jsx');
+    expect(appFlow).toContain('lockedLessons: null');
+    expect(appFlow).not.toContain("lockedLessons: lessonScope.type === 'specific' ? lessonScope.indices : null");
+  });
 });

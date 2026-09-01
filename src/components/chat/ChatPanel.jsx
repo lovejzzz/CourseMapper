@@ -791,6 +791,7 @@ function buildSyncReceipt(featureSummary, mode = 'Sync', syncResult = null) {
       next: 'Sync when ready.',
     });
   }
+  const needsReview = syncResult?.status === 'failed' || syncResult?.status === 'partialFail';
   const canonicalPatches = collectSyncCanonicalPatches(syncResult);
   if (canonicalPatches.length > 0) {
     const providerCallText = getSyncReceiptProviderCallText(syncResult, true);
@@ -834,14 +835,14 @@ function buildSyncReceipt(featureSummary, mode = 'Sync', syncResult = null) {
     });
   }
   return buildAgentReceiptMessage({
-    title: 'Sync receipt',
-    status: 'done',
-    badge: 'Synced',
+    title: needsReview ? 'Sync needs review' : 'Sync receipt',
+    status: needsReview ? 'review' : 'done',
+    badge: needsReview ? 'Review' : 'Synced',
     mode,
     target: featureSummary,
-    changed: `Synced ${featureSummary}`,
+    changed: needsReview ? 'Sync incomplete' : `Synced ${featureSummary}`,
     checked: 'Approved sync plan',
-    next: 'Check the sync card for the final status.',
+    next: needsReview ? 'Retry the failed items in the sync card.' : 'Check the sync card for the final status.',
   });
 }
 
@@ -1987,16 +1988,7 @@ export default function ChatPanel({
             ? syncResult.suggestion.plan
             : [];
       const featureSummary = summarizeSyncPlanFeatures(planForSummary);
-      const hasCanonicalPatches = collectSyncCanonicalPatches(syncResult).length > 0;
-      chat.addLocalMessages([
-        buildSyncReceipt(featureSummary, 'Sync', syncResult),
-        {
-          role: 'assistant',
-          text: hasCanonicalPatches
-            ? `Blueprint sync finished for ${featureSummary}.`
-            : `Sync request finished for ${featureSummary}.`,
-        },
-      ]);
+      chat.addLocalMessages(buildSyncReceipt(featureSummary, 'Sync', syncResult));
       return syncResult;
     },
     [chat],
@@ -2194,16 +2186,7 @@ export default function ChatPanel({
               ],
             }),
           );
-          chat.addLocalMessages([
-            buildSyncReceipt(featureSummary, 'Sync', syncResult),
-            {
-              role: 'assistant',
-              text:
-                collectSyncCanonicalPatches(syncResult).length > 0
-                  ? `Blueprint sync finished for ${featureSummary}. Check the sync card for the final status.`
-                  : `Sync request finished for ${featureSummary}. Check the sync card for the final status.`,
-            },
-          ]);
+          chat.addLocalMessages(buildSyncReceipt(featureSummary, 'Sync', syncResult));
         } catch (err) {
           commitDirectAgentProgress(
             chat,

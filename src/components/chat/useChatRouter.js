@@ -67,6 +67,22 @@ export function buildRetryFailedPrompt(failedItems, toolName) {
   );
 }
 
+export function mergeSyncSuggestionResult(message, update = {}) {
+  const completedFeatureIds = Array.from(
+    new Set([
+      ...(Array.isArray(message?.completedFeatureIds) ? message.completedFeatureIds : []),
+      ...(Array.isArray(update?.completedFeatureIds) ? update.completedFeatureIds : []),
+    ]),
+  );
+  return {
+    ...message,
+    ...update,
+    completedFeatureIds,
+    // A successful retry must clear failure markers from the previous run.
+    failedItems: update.status === 'done' ? [] : (update.failedItems ?? message?.failedItems ?? []),
+  };
+}
+
 export function formatAttachedFileContents(files) {
   return (Array.isArray(files) ? files : [])
     .filter((file) => file?.text)
@@ -768,30 +784,40 @@ export default function useChatRouter({
 
       if (syncStopped) {
         setMessages((prev) =>
-          prev.map((m) => (m.id === suggestionId ? { ...m, status: 'stopped', completedFeatureIds } : m)),
+          prev.map((m) =>
+            m.id === suggestionId ? mergeSyncSuggestionResult(m, { status: 'stopped', completedFeatureIds }) : m,
+          ),
         );
       } else if (failed.length > 0 && completedFeatureIds.length > 0) {
         // Partial failure — some succeeded, some didn't
         setMessages((prev) =>
           prev.map((m) =>
-            m.id === suggestionId ? { ...m, status: 'partialFail', failedItems: failed, completedFeatureIds } : m,
+            m.id === suggestionId
+              ? mergeSyncSuggestionResult(m, { status: 'partialFail', failedItems: failed, completedFeatureIds })
+              : m,
           ),
         );
       } else if (failed.length > 0) {
         // All failed
         setMessages((prev) =>
-          prev.map((m) => (m.id === suggestionId ? { ...m, status: 'partialFail', failedItems: failed } : m)),
+          prev.map((m) =>
+            m.id === suggestionId ? mergeSyncSuggestionResult(m, { status: 'partialFail', failedItems: failed }) : m,
+          ),
         );
       } else {
         setMessages((prev) =>
-          prev.map((m) => (m.id === suggestionId ? { ...m, status: 'done', completedFeatureIds } : m)),
+          prev.map((m) =>
+            m.id === suggestionId ? mergeSyncSuggestionResult(m, { status: 'done', completedFeatureIds }) : m,
+          ),
         );
       }
       return result;
     } catch {
       const failedPlan = Array.isArray(effectivePlan) ? effectivePlan : [];
       setMessages((prev) =>
-        prev.map((m) => (m.id === suggestionId ? { ...m, status: 'partialFail', failedItems: failedPlan } : m)),
+        prev.map((m) =>
+          m.id === suggestionId ? mergeSyncSuggestionResult(m, { status: 'partialFail', failedItems: failedPlan }) : m,
+        ),
       );
       return {
         status: 'failed',

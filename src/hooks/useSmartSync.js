@@ -21,6 +21,14 @@ function pLimit(concurrency) {
       next();
     });
 }
+
+export function getSmartSyncConcurrency(provider) {
+  // Browser-local Scion is one model instance. Running multiple lesson-kernel
+  // refreshes at once creates competing generations and turns a recoverable
+  // edit into a partial sync failure. Cloud providers can keep the existing
+  // bounded fan-out.
+  return provider === 'local' || provider === 'public' ? 1 : 3;
+}
 import { buildSyncPlan, getOutboundTargets, computeStaleConfidence } from '../lib/syncDependencies';
 import { dedupeCanonicalPatches, getCanonicalPatchFieldLabel } from '../lib/artifactBlueprintProjection';
 
@@ -255,7 +263,7 @@ export default function useSmartSync({
         );
       }
 
-      const limit = pLimit(3);
+      const limit = pLimit(getSmartSyncConcurrency(provider));
       const tasks = plan.map((entry) =>
         limit(async () => {
           const { featureId, lessonIndices } = entry;
@@ -391,7 +399,7 @@ export default function useSmartSync({
       completedFeatureIds.syncSummary = syncSummary;
       return completedFeatureIds;
     },
-    [appendSyncLog, courseMapRef, workflowEpochRef],
+    [appendSyncLog, courseMapRef, provider, workflowEpochRef],
   );
 
   /**

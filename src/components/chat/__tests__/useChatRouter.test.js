@@ -3,6 +3,7 @@ import {
   buildAttachedFileDisplayText,
   buildAttachedFilePrompt,
   buildRetryFailedPrompt,
+  mergeSyncSuggestionResult,
   prepareAutoReviewSend,
   prepareEditAndResendMessages,
   resolveChatRoute,
@@ -142,5 +143,28 @@ describe('buildRetryFailedPrompt', () => {
 
     expect(prompt).toContain('editCell on course map');
     expect(prompt).toContain('edit_course_map');
+  });
+});
+
+describe('mergeSyncSuggestionResult', () => {
+  it('clears old failed items and preserves prior completions after a successful retry', () => {
+    const previous = {
+      id: 'sync-1',
+      role: 'syncSuggestion',
+      status: 'partialFail',
+      completedFeatureIds: ['syllabus'],
+      failedItems: [{ featureId: 'lessonPlans' }, { featureId: 'rubrics' }],
+    };
+
+    expect(
+      mergeSyncSuggestionResult(previous, {
+        status: 'done',
+        completedFeatureIds: ['lessonPlans', 'rubrics'],
+      }),
+    ).toMatchObject({
+      status: 'done',
+      completedFeatureIds: ['syllabus', 'lessonPlans', 'rubrics'],
+      failedItems: [],
+    });
   });
 });
