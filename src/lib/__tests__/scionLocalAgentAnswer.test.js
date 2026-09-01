@@ -5,7 +5,7 @@ describe('buildScionLocalAgentAnswer', () => {
   it('answers a production-routed lesson alignment audit from exact course-map fields', async () => {
     const result = await buildScionLocalAgentAnswer({
       question:
-        'Read-only audit: inspect Lesson 2 and report one alignment gap between its objective and assessment, citing the exact fields.',
+        'Read-only audit: do not change any deliverable. Inspect Lesson 2 and report one alignment gap between its objective and assessment, citing the exact fields.',
       courseMap: {
         lessons: [
           { title: 'Lesson 1', sections: [] },

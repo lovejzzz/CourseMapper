@@ -75,12 +75,18 @@ export function hasAgentGroundingEvidence(toolResults = []) {
 
 export function groundLessonAlignment(message = '', courseMap = null) {
   const text = String(message || '');
+  const mutationText = text
+    .replace(
+      /\b(?:do\s+not|don't|without)\s+(?:change|changing|edit|editing|update|updating|rewrite|rewriting|fix|fixing|remove|removing|delete|deleting)\b/gi,
+      '',
+    )
+    .replace(/(?:不要|不得|不需要|无需)(?:修改|编辑|更改|更新|重写|修复|删除)/g, '');
   const lessonIndex = lessonIndexFromMessage(text);
   const asksForAlignment =
     Number.isInteger(lessonIndex) &&
     (/\b(alignment|aligned|gap|evidence|match(?:es|ing)?)\b/i.test(text) || /(?:对齐|差距|证据|匹配)/.test(text)) &&
     (/\b(objectives?|assessments?|fields?)\b/i.test(text) || /(?:目标|评估|考核|字段)/.test(text)) &&
-    !/\b(add|create|make|generate|remove|delete|change|edit|update|rewrite|fix|improve)\b/i.test(text);
+    !/\b(add|create|make|generate|remove|delete|change|edit|update|rewrite|fix|improve)\b/i.test(mutationText);
   const lesson = asksForAlignment ? courseMap?.lessons?.[lessonIndex] : null;
   if (!lesson) return '';
 
