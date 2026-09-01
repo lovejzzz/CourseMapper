@@ -3445,12 +3445,16 @@ export default function AppFlow({
             </div>
           </div>
 
-          {/* v0.14.4 WS-B1: the build ribbon — the single status spine.
-              Hidden entirely on a fresh/empty workspace (model is null). */}
-          <BuildRibbon
-            model={buildRibbonModel}
-            onStop={isPackageGenerationRunning || isFinishPassRunning(packageQualityPass) ? onStop : null}
-          />
+          {/* Course Map already owns an in-context live progress surface while
+              its first structure is being written. Hiding the workspace ribbon
+              during that phase avoids narrating the same action twice; the
+              ribbon returns for package-wide generation, checks, and repairs. */}
+          {!workspaceMappingInProgress && (
+            <BuildRibbon
+              model={buildRibbonModel}
+              onStop={isPackageGenerationRunning || isFinishPassRunning(packageQualityPass) ? onStop : null}
+            />
+          )}
 
           {/* ── Deliverable tabs ──
               v0.14.9 B3: the old standalone utility row (dependency-map button

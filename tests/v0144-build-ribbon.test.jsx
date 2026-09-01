@@ -1757,6 +1757,7 @@ describe('B3 — per-tab ready ticks replace the rainbow dots', () => {
     expect(source).toContain('<TabReadyTick');
     expect(source).toContain('<BuildRibbon');
     expect(source).toContain('model={buildRibbonModel}');
+    expect(source).toContain('{!workspaceMappingInProgress && (');
     expect(source).toContain("buildRibbonModel?.stage === 'ready'");
     expect(source).toContain("chip?.id === 'coverage' && chip?.warn");
     expect(source).toContain('packageReady');

@@ -268,6 +268,14 @@ describe('WS-D — deliverable views at registry scale', () => {
     });
   }
 
+  it('shows one live-writing banner before and after the first deliverable payload arrives', () => {
+    renderDeliverable('rubrics', null, { status: 'streaming' });
+    expect(container.textContent.match(/Writing content live/g)).toHaveLength(1);
+
+    renderDeliverable('rubrics', { rubrics: [] }, { status: 'streaming' });
+    expect(container.textContent.match(/Writing content live/g)).toHaveLength(1);
+  });
+
   it('uses the same array-valid authority as export when the canonical lesson-plan root is malformed', () => {
     renderDeliverable('lessonPlans', {
       lessonPlans: { malformed: true },

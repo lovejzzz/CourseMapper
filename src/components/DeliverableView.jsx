@@ -427,7 +427,10 @@ export default function DeliverableView({
           )}
         </div>
       )}
-      {isStreaming && !isSlides && <StreamingBanner />}
+      {/* Before the first payload arrives, each concrete view owns this empty
+          streaming state. Once data exists, this shared banner stays visible
+          above the progressively rendered content. Never render both. */}
+      {isStreaming && !isSlides && data && <StreamingBanner />}
       {/* Coverage gap banner — shown for rubrics/assignments when specific lessons are missing */}
       {status === 'done' &&
         !isStreaming &&
