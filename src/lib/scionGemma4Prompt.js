@@ -1,4 +1,5 @@
 const GEMMA4_RESERVED_MARKERS = Object.freeze([
+  '<|think|>',
   '<|turn>',
   '<turn|>',
   '<|channel>',

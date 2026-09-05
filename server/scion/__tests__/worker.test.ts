@@ -75,32 +75,40 @@ describe('shared free allowance', () => {
       },
     } as unknown as DurableObjectState;
     const quota = new ScionQuota(state, env);
-    const admit = (visitor: string) =>
-      quota.fetch(new Request('https://quota.internal/admit', { method: 'POST', body: visitor }));
+    const admit = (visitor: string, tokens = 100) =>
+      quota.fetch(
+        new Request('https://quota.internal/reserve', { method: 'POST', body: JSON.stringify({ visitor, tokens }) }),
+      );
+    const check = () =>
+      quota.fetch(
+        new Request('https://quota.internal/check', { method: 'POST', body: JSON.stringify({ visitor: 'one' }) }),
+      );
+    expect((await check()).status).toBe(200);
+    expect(records.size).toBe(0);
     expect((await admit('one')).status).toBe(200);
     expect((await admit('one')).status).toBe(200);
-    expect((await admit('one')).status).toBe(429);
-    const concurrent = await Promise.all(['two', 'three', 'four', 'five', 'six'].map(admit));
+    const visitorDenied = await admit('one');
+    expect(visitorDenied.status).toBe(429);
+    expect(await visitorDenied.json()).toMatchObject({ scope: 'visitor-day' });
+    const concurrent = await Promise.all(['two', 'three', 'four', 'five', 'six'].map((visitor) => admit(visitor)));
     expect(concurrent.filter((r) => r.status === 200)).toHaveLength(4);
     expect(concurrent.filter((r) => r.status === 429)).toHaveLength(1);
-    const tokens = (count: number) =>
-      quota.fetch(
-        new Request('https://quota.internal/tokens', {
-          method: 'POST',
-          body: JSON.stringify({ tokens: count }),
-        }),
-      );
-    vi.setSystemTime(new Date('2026-09-05T12:00:59Z'));
+    const tokens = (count: number) => admit('token-visitor-' + Math.random(), count);
+    vi.setSystemTime(new Date('2026-09-05T12:01:59Z'));
     expect((await tokens(9000)).status).toBe(200);
-    vi.setSystemTime(new Date('2026-09-05T12:01:01Z'));
+    vi.setSystemTime(new Date('2026-09-05T12:02:01Z'));
+    const beforeDenial = JSON.stringify([...records]);
     const overflow = await tokens(6000);
     expect(overflow.status).toBe(429);
-    expect(await overflow.json()).toEqual({ retryAfter: 63 });
+    expect(await overflow.json()).toEqual({ scope: 'input-minute', retryAfter: 63 });
+    expect(JSON.stringify([...records])).toBe(beforeDenial);
     const tokenRace = await Promise.all([tokens(3000), tokens(3000)]);
     expect(tokenRace.filter((r) => r.ok)).toHaveLength(1);
+    expect(records.get('day')).toMatchObject({ count: 8 });
     expect((await tokens(14000)).status).toBe(413);
     expect((await tokens(-1)).status).toBe(413);
-    vi.setSystemTime(new Date('2026-09-05T12:02:04Z'));
+    expect(records.get('day')).toMatchObject({ count: 8 });
+    vi.setSystemTime(new Date('2026-09-05T12:03:04Z'));
     expect((await tokens(9000)).status).toBe(200);
     expect(records.get('tokens')).toMatchObject({ count: 12128 });
     vi.setSystemTime(new Date('2026-09-06T00:00:01Z'));

@@ -180,6 +180,15 @@ function inferApiControls(provider, modelId) {
     return { ...base, activeTextApi: 'local-chat', preferredTextApi: 'local-chat', endpointFamily: 'webllm' };
   }
   if (provider === 'public') {
+    if (modelId === 'scion-hosted')
+      return {
+        ...base,
+        activeTextApi: 'scion-hosted-free',
+        preferredTextApi: 'scion-hosted-free',
+        endpointFamily: 'scion-hosted-free',
+        streamingProtocol: 'callback',
+        supportsStreaming: true,
+      };
     return {
       ...base,
       activeTextApi: 'browser-local-gguf',

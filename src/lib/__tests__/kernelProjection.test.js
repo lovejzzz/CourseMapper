@@ -114,12 +114,26 @@ const KERNEL = {
 };
 
 describe('matchDistractorRationales', () => {
-  it('matches every wrong option to a term misconception by content overlap', () => {
-    const rationales = matchDistractorRationales(MC_ITEM, TERMS);
-    expect(rationales).toHaveLength(3);
-    expect(rationales[0]).toContain('reflection of incoming sunlight');
-    expect(rationales[1]).toContain('chemical reactions');
-    expect(rationales[2]).toContain('ozone');
+  it('keeps a long source claim in a usable slide rather than discarding the slide', () => {
+    const fact =
+      'In a fictional town of 100 residents, a daytime survey reaches 20 day-shift workers; 16 support a route change.';
+    const slides = buildSlideContentFromKernel({
+      ...KERNEL,
+      facts: [...KERNEL.facts.slice(0, 3), fact, 'No night-shift workers are included in the daytime survey.'],
+    });
+    expect(slides[1].title).toBe('Apply the source evidence');
+    expect(slides[1].notes).toContain(fact);
+    expect(lintEnrichedSlideContent(slides[1])).toEqual([]);
+  });
+  it('does not turn overlapping misconceptions into explanations for different distractors', () => {
+    expect(matchDistractorRationales(MC_ITEM, TERMS)).toEqual([]);
+  });
+
+  it('reuses the actual correction when all wrong propositions have an exact misconception match', () => {
+    const terms = MC_ITEM.options
+      .slice(1)
+      .map((misconception, index) => ({ misconception, correction: TERM_CORRECTIONS[index] }));
+    expect(matchDistractorRationales(MC_ITEM, terms)).toEqual(TERM_CORRECTIONS);
   });
 
   it('returns no rationales rather than a misaligned partial set', () => {
@@ -295,7 +309,7 @@ describe('projectKernelToSurfaces', () => {
     const byIndex = Object.fromEntries(payload.quizItems.map((item) => [item.index, item]));
 
     expect(byIndex[0].type).toBe('multiple_choice');
-    expect(byIndex[0].distractorRationales).toHaveLength(3);
+    expect(byIndex[0].distractorRationales).toEqual([]);
 
     const shortAnswer = byIndex[3];
     expect(shortAnswer.type).toBe('short_answer');

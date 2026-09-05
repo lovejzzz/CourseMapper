@@ -1,5 +1,39 @@
 import { expect, test } from '@playwright/test';
 
+test('online Scion preserves its selection but requires explicit data permission before continuing', async ({
+  page,
+}) => {
+  const requests: string[] = [];
+  page.on('request', (request) => {
+    if (/\.gguf(?:\?|$)|\/api\/scion\/complete/.test(request.url())) requests.push(request.url());
+  });
+  await page.goto('/');
+  await page.getByRole('textbox', { name: 'Describe your course' }).fill('A short course on evaluating evidence.');
+  await page.getByTestId('ai-config-summary').getByRole('button', { name: 'Edit', exact: true }).click();
+  await page.getByRole('combobox', { name: 'Model', exact: true }).selectOption('scion-hosted');
+  const notice = page.getByTestId('scion-model-boundary');
+  await expect(notice).toContainText('human review');
+  await expect(notice).toContainText('Source research off');
+  const permission = notice.getByRole('checkbox');
+  await expect(permission).not.toBeChecked();
+  await expect(page.getByTestId('landing-setup-button')).toBeDisabled();
+  await expect(
+    page.getByText('Open AI settings and review the online Scion data notice, or choose local Scion.', { exact: true }),
+  ).toBeVisible();
+  await permission.check();
+  await expect(page.getByTestId('landing-setup-button')).toBeEnabled();
+  await page.reload();
+  await page.getByRole('textbox', { name: 'Describe your course' }).fill('A short course on evaluating evidence.');
+  await expect(page.getByTestId('ai-config-summary')).toContainText('Online Scion');
+  await page.getByTestId('ai-config-summary').getByRole('button', { name: 'Edit', exact: true }).click();
+  await expect(page.getByRole('combobox', { name: 'Model', exact: true })).toHaveValue('scion-hosted');
+  await page.getByTestId('scion-model-boundary').getByRole('checkbox').uncheck();
+  await expect(page.getByTestId('landing-setup-button')).toBeDisabled();
+  await page.getByRole('combobox', { name: 'Model', exact: true }).selectOption('scion-public');
+  await expect(page.getByTestId('landing-setup-button')).toBeEnabled();
+  expect(requests).toEqual([]);
+});
+
 test('the original homepage retains attachments, all original material choices and the custom builder', async ({
   page,
 }) => {

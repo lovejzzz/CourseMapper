@@ -38,21 +38,26 @@ npm run test:e2e
 npm run format:check
 ```
 
-The compatibility suite exercises the restored material views, editing/sync contracts and exports. Browser tests run with **one Chromium worker** to keep machine load bounded. Synthetic test courses verify software behavior, not educational effectiveness.
+The compatibility suite exercises the restored material views, editing/sync contracts and exports. Browser tests run with **one Chromium worker** to keep machine load bounded. Synthetic test courses verify software behavior, not educational effectiveness. `npm run test:scion` separately covers the production runtime, cancellation queue, contract validation, evidence preservation and explicit hosted-mode boundary.
 
 ## Scion and current limits
 
-The restored 0.18.7 application retains its original browser-local Scion/compiler integration. Browser inference depends on device capability and requires a substantial model download. This restoration does not yet connect the new hosted inference route to the original UI, and does not prove that an adapter improves educational quality.
+The original AI settings now offer two Scion modes:
 
-The separate Cloudflare Worker in `server/scion/` and the experimental engine in `src/studio/` preserve the recent free-tier generation research. That Worker uses an allowlist of Gemma models, shared request/token limits and a server-side credential. It has no paid fallback. Free provider availability, regional terms and capacity limits still apply; it cannot promise unlimited access for every visitor.
+- **Local Scion (default):** pinned Gemma 4 E2B weights run on compatible devices. The first use downloads approximately 3.35 GB. Some source-ledger operations use the deterministic evidence compiler with zero model calls; this is recorded separately from inference.
+- **Online Scion:** optional Google Gemma 4 31B through a Cloudflare Worker, with no personal API key or model download. Review and enable the data-sharing notice first. It is restricted to professional educators/instructional designers aged 18 or older in eligible regions. Google’s free service may use inputs/outputs for product improvement and human review. Do not submit confidential information or student personal data. Permission can be withdrawn in AI settings.
 
-Recent real-course audits found substantive weaknesses including unsupported source inferences, repeated practice and solved examples that reveal later answers. Generated material requires instructor review. Do not treat automatic checks or a model's self-review as independent expert validation.
+Both modes retain the 0.18.7 materials, editors and exports. Online Scion authors concrete assignment tasks, study explanations and warranted quantitative worked examples in addition to the shared lesson knowledge core. The existing parser and compiler still determine which content reaches the materials; structural acceptance is not a factual or pedagogical guarantee. No new adapter has been trained or promoted, and hosted Scion reports base-model execution without an adapter.
+
+The Cloudflare Worker in `server/scion/` uses an allowlist of Gemma models, shared request/token limits and a server-side credential. Request, visitor and input-token reservations are atomic: a denied token reservation does not consume daily request allowance. It has no paid fallback. Free provider availability, regional terms and capacity limits still apply; it cannot promise unlimited access for every visitor.
+
+The [September 5 production-pipeline audit](docs/scion-quality-2026-09-05.zh-CN.md) records live model calls, exported samples, fixes and remaining limits. Recent real-course audits found substantive weaknesses including unsupported source inferences, repeated practice and solved examples that reveal later answers. Generated material requires instructor review. Do not treat automatic checks or a model's self-review as independent expert validation.
 
 ## Development and deployment
 
 - `src/screens/`, `src/components/`, `src/hooks/`, `src/model/`, `src/lib/`: restored application and its existing course pipeline.
 - `src/studio/`: isolated experimental authoring and export research.
-- `server/scion/`: free hosted inference gateway research.
+- `server/scion/`: production shared free inference gateway and its tests.
 - `research/scion/`: adapter training/conversion experiments, outside the website runtime.
 - `tests/workspace-mobile.spec.js`, `tests/export-smoke.spec.js`: original browser regression coverage.
 - `docs/interface-restoration.zh-CN.md`: restoration scope, source baseline and verification notes.

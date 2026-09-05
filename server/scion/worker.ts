@@ -36,51 +36,48 @@ export class ScionQuota {
     private env: Env,
   ) {}
   async fetch(request: Request): Promise<Response> {
-    if (new URL(request.url).pathname === '/tokens') {
-      const { tokens } = (await request.json()) as { tokens: number };
-      const limit = Number(this.env.INPUT_TOKENS_PER_MINUTE || 14000);
-      // Small tokenizer/generation accounting differences are covered in each
-      // reservation; the project has additional headroom below its 16K limit.
-      const count = tokens + 64;
-      if (!Number.isSafeInteger(tokens) || tokens < 1 || count > limit)
-        return Response.json(
-          { error: 'This course step exceeds the shared input allowance. Use fewer or shorter source files.' },
-          { status: 413 },
-        );
-      const now = Date.now();
-      return this.state.storage.transaction(async (tx) => {
-        const saved = await tx.get<TokenWindow>('tokens');
-        const events = (saved?.events ?? []).filter((event) => event.reset > now);
-        let used = events.reduce((sum, event) => sum + event.count, 0);
-        if (used + count > limit) {
-          for (const event of events) {
-            used -= event.count;
-            if (used + count <= limit)
-              return Response.json({ retryAfter: Math.max(1, Math.ceil((event.reset - now) / 1000)) }, { status: 429 });
-          }
-        }
-        // A rolling window avoids a burst across fixed minute boundaries. Five
-        // seconds also cover normal transit between admission and Google.
-        const reset = now + 65000;
-        events.push({ count, reset });
-        await tx.put('tokens', { count: used + count, reset, events } satisfies TokenWindow);
-        if (!(await tx.getAlarm())) await tx.setAlarm((Math.floor(now / 86400000) + 1) * 86400000);
-        return Response.json({ allowed: true });
-      });
-    }
-    const ip = await request.text();
+    const path = new URL(request.url).pathname;
+    if (request.method !== 'POST' || !['/check', '/reserve'].includes(path))
+      return Response.json({ error: 'Not found.' }, { status: 404 });
+    const { visitor, tokens } = (await request.json()) as { visitor: string; tokens?: number };
+    if (typeof visitor !== 'string' || !visitor || visitor.length > 128)
+      return Response.json({ error: 'Invalid visitor.' }, { status: 400 });
+    const reserve = path === '/reserve';
+    const tokenLimit = Number(this.env.INPUT_TOKENS_PER_MINUTE || 14000);
+    const tokenCount = (tokens ?? 0) + 64;
+    if (reserve && (!Number.isSafeInteger(tokens) || tokens! < 1 || tokenCount > tokenLimit))
+      return Response.json(
+        {
+          error: 'This course step exceeds the shared input allowance. Use fewer or shorter source files.',
+          scope: 'input-request',
+        },
+        { status: 413 },
+      );
     const now = Date.now();
     const day = Math.floor(now / 86400000);
     const minute = Math.floor(now / 60000);
     return this.state.storage.transaction(async (tx) => {
       const limits = [
-        { key: 'day', bucket: day, limit: Number(this.env.DAILY_REQUESTS || 500), duration: 86400000 },
-        { key: 'minute', bucket: minute, limit: Number(this.env.MINUTE_REQUESTS || 6), duration: 60000 },
         {
-          key: `visitor:${ip}`,
+          key: 'day',
+          scope: 'shared-day',
+          bucket: day,
+          limit: Number(this.env.DAILY_REQUESTS || 500),
+          duration: 86400000,
+        },
+        {
+          key: `visitor:${visitor}`,
+          scope: 'visitor-day',
           bucket: day,
           limit: Number(this.env.VISITOR_DAILY_REQUESTS || 100),
           duration: 86400000,
+        },
+        {
+          key: 'minute',
+          scope: 'requests-minute',
+          bucket: minute,
+          limit: Number(this.env.MINUTE_REQUESTS || 6),
+          duration: 60000,
         },
       ];
       const counters: { key: string; value: Window }[] = [];
@@ -88,11 +85,35 @@ export class ScionQuota {
         const saved = await tx.get<Window>(limit.key);
         const value = saved && saved.reset > now ? saved : { count: 0, reset: (limit.bucket + 1) * limit.duration };
         if (value.count >= limit.limit)
-          return Response.json({ retryAfter: Math.ceil((value.reset - now) / 1000) }, { status: 429 });
+          return Response.json(
+            { scope: limit.scope, retryAfter: Math.max(1, Math.ceil((value.reset - now) / 1000)) },
+            { status: 429 },
+          );
         counters.push({ key: limit.key, value: { ...value, count: value.count + 1 } });
       }
+      // A read-only preflight avoids contacting Google once daily allowance is
+      // exhausted. Recheck every limit atomically when reserving the real count.
+      if (!reserve) return Response.json({ allowed: true });
+      const saved = await tx.get<TokenWindow>('tokens');
+      const events = (saved?.events ?? []).filter((event) => event.reset > now);
+      const used = events.reduce((sum, event) => sum + event.count, 0);
+      if (used + tokenCount > tokenLimit) {
+        let remaining = used;
+        for (const event of events) {
+          remaining -= event.count;
+          if (remaining + tokenCount <= tokenLimit)
+            return Response.json(
+              { scope: 'input-minute', retryAfter: Math.max(1, Math.ceil((event.reset - now) / 1000)) },
+              { status: 429 },
+            );
+        }
+      }
+      // Denied token reservations never consume daily, visitor or request
+      // counters. Five seconds of headroom cover transit to the provider.
+      const reset = now + 65000;
+      events.push({ count: tokenCount, reset });
+      await tx.put('tokens', { count: used + tokenCount, reset, events } satisfies TokenWindow);
       for (const counter of counters) await tx.put(counter.key, counter.value);
-      // Reset visitor keys daily so the public limiter cannot grow indefinitely.
       if (!(await tx.getAlarm())) await tx.setAlarm((day + 1) * 86400000);
       return Response.json({ allowed: true });
     });
@@ -228,11 +249,19 @@ export default {
       );
       const visitor = Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('');
       const quota = env.SCION_QUOTA.get(env.SCION_QUOTA.idFromName('shared-allowance'));
-      const admission = await quota.fetch('https://quota.internal/admit', { method: 'POST', body: visitor });
+      const admission = await quota.fetch('https://quota.internal/check', {
+        method: 'POST',
+        body: JSON.stringify({ visitor }),
+      });
       if (!admission.ok) {
-        const body = (await admission.json()) as { retryAfter: number };
+        const body = (await admission.json()) as { retryAfter: number; scope: string };
         return reply(
-          { error: 'The shared free allowance is busy. Your course is saved; resume later.' },
+          {
+            error: body.scope.endsWith('-day')
+              ? 'The daily free allowance has been used. Your course is saved; resume after the daily reset or use local Scion.'
+              : 'The shared free allowance is busy. Your course is saved; resume shortly.',
+            scope: body.scope,
+          },
           429,
           origin,
           body.retryAfter,
@@ -240,14 +269,21 @@ export default {
       }
       const signal = AbortSignal.any([request.signal, AbortSignal.timeout(240000)]);
       const tokens = await countGoogleTokens(parsed.data, env.GOOGLE_AI_KEY, model, signal);
-      const tokenAdmission = await quota.fetch('https://quota.internal/tokens', {
+      const tokenAdmission = await quota.fetch('https://quota.internal/reserve', {
         method: 'POST',
-        body: JSON.stringify({ tokens }),
+        body: JSON.stringify({ visitor, tokens }),
       });
       if (!tokenAdmission.ok) {
-        const body = (await tokenAdmission.json()) as { error?: string; retryAfter?: number };
+        const body = (await tokenAdmission.json()) as { error?: string; retryAfter?: number; scope?: string };
         return reply(
-          { error: body.error ?? 'The shared free input allowance is busy. Your course is saved; resume shortly.' },
+          {
+            error:
+              body.error ??
+              (body.scope?.endsWith('-day')
+                ? 'The daily free allowance has been used. Your course is saved; resume after the daily reset or use local Scion.'
+                : 'The shared free input allowance is busy. Your course is saved; resume shortly.'),
+            scope: body.scope,
+          },
           tokenAdmission.status,
           origin,
           body.retryAfter,
@@ -257,7 +293,7 @@ export default {
       return reply(result, 200, origin);
     } catch (error) {
       if (error instanceof HostedScionError)
-        return reply({ error: error.message }, error.status, origin, error.retryAfter);
+        return reply({ error: error.message, scope: 'provider' }, error.status, origin, error.retryAfter);
       if (
         error instanceof SyntaxError ||
         (error as Error).message === 'Request exceeds 150 KB.' ||

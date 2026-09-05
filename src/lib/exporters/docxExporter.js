@@ -727,8 +727,9 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
     });
   // Tinted callout strip with a tracked-uppercase label — used for answer
   // keys, misconception corrections, and other "stop and look" content.
-  const makeCallout = (label, text, { inline = false } = {}) =>
+  const makeCallout = (label, text, { inline = false, keepLines = false } = {}) =>
     new Paragraph({
+      keepLines,
       spacing: { line: bodyLine, before: denseArtifact ? 40 : 80, after: denseArtifact ? 60 : 120 },
       shading: { type: ShadingType.CLEAR, fill: theme.calloutFill || theme.accentSoft },
       border: { left: { style: BorderStyle.SINGLE, size: 24, color: theme.accent, space: 8 } },
@@ -1839,8 +1840,8 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
               return;
             }
             if (m.correction) {
-              children.push(makeBold('Misconception', m.misconception || ''));
-              children.push(makeCallout('Correction', m.correction));
+              children.push(makeBold('Misconception', m.misconception || '', { keepNext: true, keepLines: true }));
+              children.push(makeCallout('Correction', m.correction, { keepLines: true }));
             } else {
               children.push(makeBold('Misconception', m.misconception || ''));
             }

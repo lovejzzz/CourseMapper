@@ -638,21 +638,17 @@ function joinCriteriaSentence(criteria = []) {
   return parts.map((criterion) => `${criterion}.`).join(' ');
 }
 
-// Preserve the authored misconception/correction while keeping compiler
-// surfaces readable. Long model clauses are shortened only at a sentence or
-// clause boundary; the complete source atom remains in the genome and graph.
+// Preserve admitted instructional claims in every material. A display budget
+// must not remove a negation, denominator, or the replacement half of a
+// misconception correction. Layout belongs to the individual renderer.
 function readableMisconception(value) {
   const text = stripTerminalPunctuation(cleanText(value));
-  return conciseClause(text, text || 'the common misunderstanding', 150);
+  return text || 'the common misunderstanding';
 }
 
 function readableCorrection(value) {
   const text = stripTerminalPunctuation(cleanText(value).replace(/^in fact[,:]?\s*/i, ''));
-  // Preserve a complete, still-readable correction when it fits on a slide.
-  // The former 140-character ceiling clipped coordinated comparisons such as
-  // "intake equals, falls short of, or exceeds expenditure" after "falls
-  // short", turning accurate source content into an incomplete claim.
-  return conciseClause(text, text || 'use the documented correction', 190);
+  return text || 'use the documented correction';
 }
 
 function readableSentences(value) {
@@ -19383,7 +19379,14 @@ function compileStudyGuides(blueprint) {
       const assessment = assessmentForBlueprintLesson(blueprint, lesson, index);
       const defaultSpecificity = lessonSpecificityAnchor(lesson);
       const studyArtifact = lessonDisplayArtifact(assessment?.artifact || lesson.studentArtifact, lesson);
-      const sourceEvidenceBrief = buildLessonEvidenceBrief(lesson, { claimLimit: 4, sourceLimit: 4 });
+      // Keep the complete admitted compact ledger. Later facts often state
+      // the limitation students need to interpret the earlier measurement.
+      const admittedFactCount =
+        lesson.enrichment?.kernel?.canonicalFacts?.length || lesson.enrichment?.kernel?.facts?.length || 0;
+      const sourceEvidenceBrief = buildLessonEvidenceBrief(lesson, {
+        claimLimit: Math.min(8, Math.max(4, admittedFactCount)),
+        sourceLimit: 4,
+      });
       const evidenceWorkedExample =
         operationWorkedExample ||
         functionalVisualStudyWorkedExample(blueprint, lesson, studyArtifact) ||

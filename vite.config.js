@@ -5,6 +5,18 @@ import { applicationRelease } from './scripts/applicationRelease.mjs';
 export default defineConfig({
   plugins: [react(), applicationRelease()],
   base: '/',
+  server: {
+    port: 5173,
+    proxy: {
+      '/api/scion': {
+        target: 'https://edutool-scion.xingpicture.workers.dev',
+        changeOrigin: true,
+        configure(proxy) {
+          proxy.on('proxyReq', (request) => request.setHeader('Origin', 'https://edutool.dev'));
+        },
+      },
+    },
+  },
   build: {
     manifest: true,
     // The generic 500 KiB warning is redundant with bundle:check, which owns
@@ -183,9 +195,6 @@ export default defineConfig({
         },
       },
     },
-  },
-  server: {
-    port: 5173,
   },
   test: {
     // Node 25 exposes experimental localStorage/sessionStorage accessors that

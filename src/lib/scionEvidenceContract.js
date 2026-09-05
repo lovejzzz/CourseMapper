@@ -1,6 +1,6 @@
 const DEFAULT_FACT_COUNT = 5;
 const MIN_LEDGER_FACTS = 3;
-const MAX_LEDGER_FACTS = 5;
+export const SCION_MAX_SOURCE_LEDGER_FACTS = 8;
 
 function clean(value) {
   return String(value ?? '')
@@ -23,14 +23,14 @@ export function extractScionNumberedSourceClaims(lesson = {}) {
   const directClaims = (Array.isArray(lesson?.sourceFacts) ? lesson.sourceFacts : []).map(clean).filter(Boolean);
   if (
     directClaims.length >= MIN_LEDGER_FACTS &&
-    directClaims.length <= MAX_LEDGER_FACTS &&
+    directClaims.length <= SCION_MAX_SOURCE_LEDGER_FACTS &&
     directClaims.every(validLedgerClaim)
   ) {
     return directClaims;
   }
   const topics = clean(lesson?.topics);
   const markers = [...topics.matchAll(/\bClaim\s+(\d+)\s*:\s*/gi)];
-  if (markers.length < MIN_LEDGER_FACTS || markers.length > MAX_LEDGER_FACTS) return [];
+  if (markers.length < MIN_LEDGER_FACTS || markers.length > SCION_MAX_SOURCE_LEDGER_FACTS) return [];
   const indexes = markers.map((match) => Number(match[1]));
   if (indexes.some((value, index) => value !== index)) return [];
   const claims = markers.map((match, index) =>

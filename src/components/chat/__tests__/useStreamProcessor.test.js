@@ -6,7 +6,7 @@ vi.mock('../../../lib/scionLocalProvider', () => ({
   runScionLocalCompletion: vi.fn(async ({ onToken, task }) => {
     const fullText = task === 'agent' ? 'Scion agent advice.' : 'Scion chat answer.';
     onToken?.(fullText);
-    return { fullText };
+    return { fullText, finishReason: 'stop' };
   }),
 }));
 

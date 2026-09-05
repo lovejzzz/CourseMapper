@@ -105,7 +105,7 @@ export function AIConfigProvider({ children }) {
       if (storedProvider === PUBLIC_SCION_PROVIDER_ID) {
         // Scion is the sole public identity. Legacy Algi selections migrate
         // here instead of leaving a hidden model choice in restored projects.
-        return PUBLIC_SCION_MODEL_ID;
+        return publicScionModelOptionById(localStorage.getItem('coursemapper-modelid')).id;
       }
       return localStorage.getItem('coursemapper-modelid') || '';
     } catch {

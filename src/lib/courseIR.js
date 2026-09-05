@@ -200,8 +200,8 @@ function normalizeConcept(rawConcept, index) {
       term: cleanText(term?.term || term?.label, 90),
       definition: cleanText(term?.definition || term?.df, 240),
       example: cleanText(term?.example || term?.eg, 220),
-      misconception: cleanText(term?.misconception || term?.mi || misconceptions[0]?.claim, 220),
-      correction: cleanText(term?.correction || term?.cx || misconceptions[0]?.correction, 220),
+      misconception: cleanText(term?.misconception || term?.mi || misconceptions[0]?.claim, 300),
+      correction: cleanText(term?.correction || term?.cx || misconceptions[0]?.correction, 300),
       ...(cleanText(term?.romanization, 120) ? { romanization: cleanText(term.romanization, 120) } : {}),
     }))
     .filter((term) => term.term);

@@ -3,10 +3,41 @@ import {
   classifyScionBrowserModelLoadError,
   estimateScionBrowserModelStorage,
   isExpectedScionRuntimeWarning,
+  loadScionBrowserWllama,
+  unloadScionBrowserWllama,
 } from '../scionBrowserWllama';
 import { SCION_BROWSER_GEMMA4_GGUF } from '../scionBrowserConstants';
 
 describe('Scion browser model storage recovery', () => {
+  it('shares one model activation across concurrent callers waiting for device capability', async () => {
+    const activate = vi.fn(async () => {});
+    const construct = vi.fn();
+    class Candidate {
+      constructor() {
+        construct();
+      }
+      loadModelFromUrl = activate;
+      isModelLoaded = () => true;
+      usingWebGPU = () => true;
+      getModelMetadata = () => ({ meta: { 'general.architecture': 'gemma4', 'general.type': 'model' } });
+      getLoraAdapterStatus = async () => ({ active: false });
+      exit = async () => {};
+    }
+    const options = {
+      runtimeLoader: async () => ({ Wllama: Candidate }),
+      navigatorLike: { gpu: { requestAdapter: async () => ({}) } },
+      globalLike: { WebAssembly: { Suspending: class {} } },
+      locationLike: { href: 'http://localhost/' },
+    };
+    try {
+      await Promise.all([loadScionBrowserWllama(options), loadScionBrowserWllama(options)]);
+      expect(construct).toHaveBeenCalledTimes(1);
+      expect(activate).toHaveBeenCalledTimes(1);
+    } finally {
+      await unloadScionBrowserWllama();
+    }
+  });
+
   it.each([
     "load: control-looking token: 212 '</s>' was not control-type; this is probably a bug in the model. its type will be overridden",
     "load: special_eog_ids contains '<|tool_response>', removing '</s>' token from EOG list",

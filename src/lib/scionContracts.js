@@ -1,3 +1,4 @@
+import { SCION_MAX_SOURCE_LEDGER_FACTS } from './scionEvidenceContract';
 // src/lib/scionContracts.js — the Scion-native compiler profile (V2.1
 // Workstream D). Scion is the house model: we know exactly what it
 // guarantees (grammar-enforced decoding — whatever contract we declare is
@@ -127,7 +128,7 @@ export function compactLessonKernelSchemaProfile({
 } = {}) {
   const lessonIds = expectedLessonIds.filter(Boolean);
   const activityIds = activityLessonIds.filter((lessonId) => lessonIds.includes(lessonId));
-  const requiredFactCount = Math.max(3, Math.min(5, Number(factCount) || 5));
+  const requiredFactCount = Math.max(3, Math.min(SCION_MAX_SOURCE_LEDGER_FACTS, Number(factCount) || 5));
   const schema = {
     type: 'object',
     properties: {
@@ -201,7 +202,7 @@ export function compactLessonKernelSchemaProfile({
  */
 export function compactFactLedgerSchemaProfile({ expectedLessonIds = [], factCount = 5 } = {}) {
   const lessonIds = expectedLessonIds.filter(Boolean);
-  const requiredFactCount = Math.max(3, Math.min(5, Number(factCount) || 5));
+  const requiredFactCount = Math.max(3, Math.min(SCION_MAX_SOURCE_LEDGER_FACTS, Number(factCount) || 5));
   const schema = {
     type: 'object',
     properties: {

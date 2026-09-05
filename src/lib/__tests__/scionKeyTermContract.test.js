@@ -14,6 +14,25 @@ function completeTerm(overrides = {}) {
 }
 
 describe('Scion key-term composite integrity', () => {
+  it('distinguishes quoting a rejected belief from repeating it as the correction', () => {
+    const misconception = 'The population is the observed subset of a group';
+    const term = completeTerm({
+      tr: 'Population',
+      df: 'A population is the entire group that a research question concerns.',
+      eg: 'The 100 residents of the fictional town.',
+      mi: misconception + '.',
+      cx: `The claim “${misconception}” is incorrect. Use “A sample is the observed subset of a population” instead.`,
+    });
+    expect(assessScionKeyTermContract(term, { semanticProfile: 'strict-v6' }).issues).not.toContain(
+      'correction-repeats-misconception',
+    );
+    expect(
+      assessScionKeyTermContract(
+        { ...term, cx: `The claim “${misconception}” is incorrect. Use “${misconception}” instead.` },
+        { semanticProfile: 'strict-v6' },
+      ).issues,
+    ).toContain('correction-repeats-misconception');
+  });
   it('admits a complete seven-word concept that exceeds the former 60-character limit', () => {
     const assessment = assessScionKeyTermContract(
       completeTerm({

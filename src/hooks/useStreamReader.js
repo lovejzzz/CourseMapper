@@ -11,6 +11,7 @@ import {
   publicScionProviderModelOptions,
 } from '../lib/publicScionIdentity';
 import { isAlgiModel } from '../lib/algiIdentity';
+import { isHostedScionModel } from '../lib/scionHostedPolicy';
 import {
   buildApiUsageEvent,
   extractUsageFromProviderChunk,
@@ -346,10 +347,11 @@ export default function useStreamReader({ scionResearchEnabledOverride = null } 
       recordApiCallEvent(routeEvent);
     };
 
-    // Scion: pinned Gemma 4 GGUF inference in this browser. This branch must
-    // remain before buildProviderTextRequest so a saved `public` provider can
-    // never fall through to a remote prompt endpoint.
+    // Public Scion has an on-device default and an explicitly selected free
+    // hosted transport. Both return before key-based provider routing.
     if (provider === PUBLIC_SCION_PROVIDER_ID) {
+      const hosted = isHostedScionModel(modelId);
+      const scionExecution = hosted ? 'hosted-free' : 'browser-local';
       // Kimi-derived capability routing: an instructor-pinned lesson sequence
       // is already a complete typed structure contract. Compile that contract
       // before importing Wllama; ambiguous briefs still continue to Gemma.
@@ -367,7 +369,9 @@ export default function useStreamReader({ scionResearchEnabledOverride = null } 
           return { ...preflight.response, adapterRoutes: observedAdapterRoutes };
         }
       }
-      const { runScionLocalCompletion } = await import('../lib/scionLocalProvider');
+      const runScionCompletion = hosted
+        ? (await import('../lib/scionHostedProvider')).runScionHostedCompletion
+        : (await import('../lib/scionLocalProvider')).runScionLocalCompletion;
       // Scion returns before the remote-provider loop creates its controller,
       // so it must own an equivalent controller here. Without this bridge the
       // global Stop button had nothing to abort while the multi-gigabyte local
@@ -380,7 +384,7 @@ export default function useStreamReader({ scionResearchEnabledOverride = null } 
       const scionSignal = scionController.signal;
       let lastProgressKey = '';
       try {
-        const result = await runScionLocalCompletion({
+        const result = await runScionCompletion({
           systemPrompt,
           userPrompt,
           task,
@@ -398,9 +402,9 @@ export default function useStreamReader({ scionResearchEnabledOverride = null } 
             lastProgressKey = key;
             recordApiCallEvent({
               type: 'localModelProgress',
-              label: runtimeStatus?.message || 'Preparing Scion on this device',
+              label: runtimeStatus?.message || (hosted ? 'Preparing online Scion' : 'Preparing Scion on this device'),
               detail: `${Math.floor(progress * 100)}%`,
-              stage: 'local-model',
+              stage: hosted ? 'hosted-model' : 'local-model',
               ...buildProviderTraceBase(),
               progress,
               runtimePhase: runtimeStatus?.phase || '',
@@ -418,7 +422,7 @@ export default function useStreamReader({ scionResearchEnabledOverride = null } 
               detail: exactSourceProjection
                 ? `${route?.taskFamily || 'lesson-kernel-synthesis'} · no model activation`
                 : `${route?.taskFamily || 'unclassified'} · ${route?.reason || 'unknown route'}`,
-              stage: exactSourceProjection ? 'local-compiler' : 'local-model-route',
+              stage: exactSourceProjection ? 'local-compiler' : hosted ? 'hosted-model-route' : 'local-model-route',
               ...buildProviderTraceBase(),
               routeProtocol: route?.protocol || '',
               routeMode: route?.mode || 'base-only',
@@ -431,7 +435,7 @@ export default function useStreamReader({ scionResearchEnabledOverride = null } 
               adapterScopeIdentitySha256: route?.scopeIdentitySha256 || null,
               nativeAdapterActive: route?.nativeAdapterActive === true,
               routeModelCalls: Number.isFinite(Number(route?.modelCalls)) ? Math.max(0, Number(route.modelCalls)) : 1,
-              execution: exactSourceProjection ? 'browser-compiler' : 'browser-local',
+              execution: exactSourceProjection ? 'browser-compiler' : scionExecution,
             };
             observedAdapterRoutes.push(routeEvent);
             recordApiCallEvent(routeEvent);
@@ -439,14 +443,14 @@ export default function useStreamReader({ scionResearchEnabledOverride = null } 
           onAttemptStart: ({ attempt, maxAttempts, temperature }) => {
             recordApiCallEvent({
               type: 'providerRequestStart',
-              label: 'Scion local generation start',
+              label: hosted ? 'Scion online generation start' : 'Scion local generation start',
               detail: `${task || featureId || 'generation'} attempt ${attempt}/${maxAttempts}`,
               stage: 'provider-request',
               ...buildProviderTraceBase(),
               attempt,
               maxRetries: Math.max(0, maxAttempts - 1),
               temperature,
-              execution: 'browser-local',
+              execution: scionExecution,
             });
           },
           onToken: (currentText, tokenCount) => {
@@ -456,8 +460,8 @@ export default function useStreamReader({ scionResearchEnabledOverride = null } 
             if (onRetry) onRetry(attempt, limit, delay);
             recordApiCallEvent({
               type: 'streamRetryCall',
-              label: 'Retry Scion local generation',
-              detail: error?.message || 'Incomplete local response',
+              label: hosted ? 'Retry Scion online generation' : 'Retry Scion local generation',
+              detail: error?.message || 'Incomplete Scion response',
               stage: 'stream-retry',
               ...buildProviderTraceBase(),
               attempt,
@@ -465,7 +469,7 @@ export default function useStreamReader({ scionResearchEnabledOverride = null } 
               delayMs: delay,
               admissionIssues: error?.admissionIssues || [],
               kernelShape: error?.kernelShape || [],
-              execution: 'browser-local',
+              execution: scionExecution,
             });
           },
         });
@@ -476,7 +480,7 @@ export default function useStreamReader({ scionResearchEnabledOverride = null } 
             (route) => route?.exactSourceLedger === true && Number(route?.routeModelCalls) === 0,
           ) &&
           !observedAdapterRoutes.some((route) => Number(route?.routeModelCalls) > 0);
-        const resultExecution = compilerOnlyResult ? 'browser-compiler' : 'browser-local';
+        const resultExecution = compilerOnlyResult ? 'browser-compiler' : scionExecution;
         if (onChunk) onChunk(fullText, result.tokenCount + 1);
         for (const repair of result.repairs || []) {
           const repairLabels = {
@@ -522,40 +526,49 @@ export default function useStreamReader({ scionResearchEnabledOverride = null } 
         }
         recordApiCallEvent({
           type: 'providerResponseDone',
-          label: compilerOnlyResult ? 'Scion evidence compiler response complete' : 'Scion local response complete',
+          label: compilerOnlyResult
+            ? 'Scion evidence compiler response complete'
+            : hosted
+              ? 'Scion online response complete'
+              : 'Scion local response complete',
           detail: compilerOnlyResult
             ? `${result.fullText.length} source-ledger chars projected on device`
-            : `${result.fullText.length} chars on device`,
+            : `${result.fullText.length} chars · ${hosted ? 'online Gemma 4 31B' : 'on device'}`,
           stage: compilerOnlyResult ? 'local-compiler' : 'provider-response',
           ...buildProviderTraceBase(),
           attempt: result.attempt,
           maxRetries: result.maxRetries,
           outputChars: result.fullText.length,
           streamChunkCount: result.tokenCount,
-          finishReason: 'stop',
+          finishReason: result.finishReason || 'unknown',
           execution: resultExecution,
         });
         if (!compilerOnlyResult) {
           const compactPrompt = result.messages.map((message) => message.content).join('\n');
           recordUsage(
             {
-              inputTokens: estimateCharsAsTokens(compactPrompt),
-              outputTokens: estimateCharsAsTokens(result.fullText),
-              source: 'local-estimate',
+              inputTokens: result.inputTokens ?? estimateCharsAsTokens(compactPrompt),
+              outputTokens: result.outputTokens ?? estimateCharsAsTokens(result.fullText),
+              source: hosted
+                ? 'hosted-provider'
+                : result.finishReason === 'unknown'
+                  ? 'local-estimate'
+                  : 'local-runtime',
             },
             result.fullText,
-            'Scion local usage',
+            hosted ? 'Scion online usage' : 'Scion local usage',
           );
         }
         return {
           fullText,
-          finishReason: 'stop',
+          finishReason: result.finishReason || 'unknown',
           adapterRoutes: observedAdapterRoutes,
+          modelRequests: result.modelRequests,
           ...(compilerOnlyResult ? { modelRequests: 0, adaptiveRoute: 'scion-exact-evidence-compiler' } : {}),
         };
       } catch (rawError) {
         if (rawError?.name === 'AbortError') throw rawError;
-        if (shouldUseScionEvidenceFallback(rawError, scionSignal)) {
+        if (!hosted && shouldUseScionEvidenceFallback(rawError, scionSignal)) {
           const routeReason = errorCodes(rawError)[0] || 'SCION_WLLAMA_UNAVAILABLE';
           recordApiCallEvent({
             type: 'scionAdaptiveRoute',

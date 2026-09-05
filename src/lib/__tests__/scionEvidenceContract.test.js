@@ -7,6 +7,7 @@ import {
   scionPromptUsesSourceLedger,
 } from '../scionEvidenceContract.js';
 import { compactLessonKernelSchemaProfile } from '../scionContracts.js';
+import { buildLessonKernelPrompt } from '../blueprintEnrichmentPass.js';
 
 const LEDGER_LESSON = {
   lessonId: 'lesson-3',
@@ -16,6 +17,38 @@ const LEDGER_LESSON = {
 };
 
 describe('Scion source fact ledger', () => {
+  it('preserves a short complete instructor ledger, including the missing group in a sampling case', () => {
+    const facts = [
+      'A sample is the observed subset of a population.',
+      'A population is the entire group that a research question concerns.',
+      'A sample proportion divides supporters by the total number sampled.',
+      'In a fictional town of 100 residents, 16 of 20 day-shift workers support a route change.',
+      'No night-shift workers are included in the daytime survey.',
+      'The 80 percent sample result does not establish support among all 100 residents.',
+    ];
+    const prompt = buildLessonKernelPrompt(
+      {
+        courseName: 'Sampling',
+        lessons: [
+          {
+            title: 'Sample proportions and selection bias',
+            sections: [{ learningObjectives: 'Calculate a sample proportion and identify selection bias.' }],
+          },
+        ],
+      },
+      [0],
+      { instructorProvidedFacts: facts },
+    );
+    expect(prompt.lessons[0].sourceFacts).toEqual(facts);
+    const contract = scionFactContractForLesson(prompt.lessons[0], { userPrompt: prompt.userPrompt });
+    expect(contract).toMatchObject({ factCount: 6, claims: facts });
+    const schema = compactLessonKernelSchemaProfile({
+      expectedLessonIds: ['lesson-1'],
+      factCount: contract.factCount,
+    }).schema;
+    expect(schema.properties.lessons.items.properties.facts).toMatchObject({ minItems: 6, maxItems: 6 });
+    expect(schema.properties.lessons.items.properties.mc.items.properties.fi.items.maximum).toBe(5);
+  });
   it('activates only with explicit compiler provenance and preserves source order', () => {
     expect(extractScionNumberedSourceClaims(LEDGER_LESSON)).toEqual([
       'Currents produce magnetic fields.',

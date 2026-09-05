@@ -1,7 +1,7 @@
 import React from 'react';
 import Header from '../components/Header';
 
-const LAST_UPDATED = 'August 19, 2026';
+const LAST_UPDATED = 'September 5, 2026';
 
 export default function PrivacyPolicy() {
   return (
@@ -27,19 +27,20 @@ export default function PrivacyPolicy() {
 
           <Section title="Static App and Optional Cloud Sync">
             <p>
-              Course Mapper is a static browser app with no Course Mapper-operated application backend. Core processing
-              runs in your browser. Your work is saved in browser storage by default, and if you sign in, selected
-              project and profile data can sync to Firebase services for your account. Google Drive exports upload
-              directly from your browser to your Google Drive.
+              Course Mapper is a static browser app with an optional Cloudflare relay for online Scion. Editing,
+              exports, and local Scion inference run in your browser. Your work is saved in browser storage by default,
+              and if you sign in, selected project and profile data can sync to Firebase services for your account.
+              Google Drive exports upload directly from your browser to your Google Drive.
             </p>
           </Section>
 
           <Section title="Data You Provide">
             <ul className="list-disc list-inside space-y-1.5 ml-1">
               <li>
-                <strong>Syllabus files</strong> — uploaded files are read locally in your browser and never sent to
-                Course Mapper servers (there are none). File contents are sent to your chosen AI provider for
-                processing.
+                <strong>Syllabus files</strong> — uploaded files are read locally in your browser. Local Scion keeps
+                inference on your device. Online Scion sends relevant extracted text through the EduTool Cloudflare
+                relay to Google after you enable that mode and its data-sharing permission. Other selected AI providers
+                receive relevant file contents directly from your browser.
               </li>
               <li>
                 <strong>API keys</strong> — if you use a paid AI provider, your API key is kept only in this browser tab
@@ -49,8 +50,8 @@ export default function PrivacyPolicy() {
               <li>
                 <strong>Course workspace data</strong> — the course map, generated materials, and workspace history are
                 stored in your browser's local storage for auto-save. If you sign in, project data and profile settings
-                may also sync to Firebase for your account. They are otherwise not transmitted except when you
-                explicitly export.
+                may also sync to Firebase for your account. Relevant workspace content is also sent to your chosen
+                online AI provider when you request generation, revision, or chat, and to export services you select.
               </li>
               <li>
                 <strong>Institution profile defaults</strong> — optional instructor, classroom logistics, and reusable
@@ -62,7 +63,7 @@ export default function PrivacyPolicy() {
           <Section title="AI Processing and Third-Party Providers">
             <p>
               Processing depends on the provider you select. Paid-provider requests are sent directly from your browser
-              to that provider. Scion runs its model in your browser instead.
+              to that provider. Scion offers local inference and an optional shared free online mode.
             </p>
             <ul className="list-disc list-inside space-y-1.5 ml-1 mt-2">
               <li>
@@ -90,7 +91,7 @@ export default function PrivacyPolicy() {
               <li>
                 <strong>Google (Gemini)</strong> — governed by{' '}
                 <a
-                  href="https://ai.google.dev/terms"
+                  href="https://ai.google.dev/gemini-api/terms"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-indigo-500 hover:text-indigo-700 underline"
@@ -110,15 +111,24 @@ export default function PrivacyPolicy() {
                 </a>
               </li>
               <li>
-                <strong>Scion</strong> — runs a pinned public Gemma 4 model locally in your browser. Your syllabus,
-                instructions, and generated text are not sent to a model API. On first use, your browser downloads the
-                model weights directly from Hugging Face and stores them in browser-managed local storage.
+                <strong>Local Scion</strong> — runs a pinned public Gemma 4 model locally in your browser. Your
+                syllabus, instructions, and generated text are not sent to a model API. On first use, your browser
+                downloads the model weights directly from Hugging Face and stores them in browser-managed local storage.
+              </li>
+              <li>
+                <strong>Online Scion</strong> — sends prompts, relevant course and conversation content, and extracted
+                source text through our Cloudflare Worker to Google's free Gemma 4 API. Under Google's free-service
+                terms, these inputs and outputs may be used to improve Google's products and may be reviewed by humans.
+                Do not submit confidential information, personal data, or student records. This mode is for educators
+                and instructional designers aged 18 or older using it professionally, subject to Google's regional
+                restrictions and shared free quotas. It requires explicit browser permission, which you can withdraw in
+                AI settings. Withdrawing permission stops further requests; it cannot recall data already sent.
               </li>
             </ul>
             <p className="mt-2">
               For key-based providers, you provide your own API key to connect directly to your chosen provider. Course
-              Mapper never sends that key to a Course Mapper-operated server. Scion requires no API key or Course Mapper
-              model backend.
+              Mapper never sends that key to a Course Mapper-operated server. Neither Scion mode requires your own API
+              key. The online relay uses a site credential stored as a Cloudflare secret.
             </p>
           </Section>
 
@@ -154,23 +164,27 @@ export default function PrivacyPolicy() {
             <p>
               Course Mapper uses your browser's local storage to save your work automatically. This includes your course
               workspace, generated materials, chat history, version history, configuration, institution profile
-              defaults, and selected AI provider. This data stays on your device unless you choose sign-in cloud sync or
-              export. You can clear local project data by starting a new project, or remove all locally stored data
-              through your browser settings.
+              defaults, selected AI provider, and online Scion permission. Relevant data leaves your device when you use
+              an online AI provider, sign-in cloud sync, or an online export. You can clear local project data by
+              starting a new project, or remove all locally stored data through your browser settings.
             </p>
           </Section>
 
           <Section title="Analytics & Tracking">
             <p>
-              Course Mapper does not use any analytics, tracking, or advertising services. No cookies are set. No user
-              behavior is monitored or recorded. There are no third-party scripts for tracking purposes.
+              Course Mapper does not include advertising or behavioral analytics scripts. The online Scion relay stores
+              request and token counters, including a daily hash derived from your IP address, to enforce free quotas.
+              Expired daily counters are removed automatically. The relay does not store prompts, source readings, or
+              generated answers in its quota database or application logs. Hosting and AI providers process connection
+              information under their own policies.
             </p>
           </Section>
 
           <Section title="Children's Privacy">
             <p>
-              Course Mapper is intended for use by educators and instructional designers. It is not directed at children
-              under the age of 13 and does not knowingly collect personal information from children.
+              Course Mapper is intended for professional educators and instructional designers. Online Scion is
+              restricted to adults aged 18 or older and is not offered for direct student use by minors. Do not provide
+              children's personal information to online AI services.
             </p>
           </Section>
 

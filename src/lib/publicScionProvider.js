@@ -424,17 +424,14 @@ function projectPublicScionCorrectionFields(parsed) {
       const field = Object.prototype.hasOwnProperty.call(term || {}, 'cx') ? 'cx' : 'correction';
       const structured = term?.[field];
       if (!structured || typeof structured !== 'object' || Array.isArray(structured)) return;
-      const termName = String(term?.tr ?? term?.term ?? '').trim();
-      const escapedTermName = termName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const rejected = String(structured.reject || '')
         .replace(/[.!?;:,]+$/g, '')
-        .replace(escapedTermName ? new RegExp(`^${escapedTermName}\\s+(?:is|means|refers\\s+to)\\s+`, 'i') : /$^/, '')
         .trim();
       const replacement = String(structured.replace || '')
         .replace(/[.!?;:,]+$/g, '')
         .trim();
       if (!rejected || !replacement) return;
-      term[field] = `It is incorrect that ${rejected}; instead, ${replacement}.`;
+      term[field] = `The claim “${rejected}” is incorrect. Use “${replacement}” instead.`;
       repairs.push({
         pass: 'projectMisconceptionCorrection',
         lessonId: lesson.lessonId || null,
@@ -1472,9 +1469,19 @@ export function mergePublicScionKernelAttempts(previousText, currentText, userPr
   }
 }
 
-export function buildPublicScionRetryFeedback(assessment = {}) {
+export function buildPublicScionRetryFeedback(
+  assessment = {},
+  { task = 'blueprintEnrichment', factLedgerOnly = false } = {},
+) {
   const allIssues = Array.isArray(assessment?.issues) ? assessment.issues : [];
   const issues = allIssues.slice(0, 12);
+  if (task !== 'blueprintEnrichment' || factLedgerOnly) {
+    return [
+      'The previous response did not satisfy this request.',
+      `Issues: ${issues.join('; ') || 'empty response'}.`,
+      'Return the complete requested response. Preserve the original task and fields; do not add unrelated lesson content.',
+    ].join('\n');
+  }
   const focusedRules = [
     ...(allIssues.some((issue) => issue.includes('-repeats-'))
       ? [
@@ -2157,7 +2164,7 @@ export function buildPublicScionExactSourceLedgerResponse(userPrompt = '') {
   return projected.some((lesson) => !lesson) ? '' : JSON.stringify({ lessons: projected });
 }
 
-function buildPublicScionKernelPrompt(userPrompt) {
+function buildPublicScionKernelPrompt(userPrompt, { classroomAuthoring = false } = {}) {
   const text = String(userPrompt || '');
   const lessons = extractPublicScionKernelLessons(text).slice(0, PUBLIC_SCION_KERNEL_LESSONS_PER_CALL);
   const course = text.match(/^Course:\s*(.+)$/im)?.[1]?.trim() || 'Untitled Course';
@@ -2239,6 +2246,23 @@ function buildPublicScionKernelPrompt(userPrompt) {
         su: 'A concrete two-sentence subject context with an actionable problem and one real constraint.',
         ma: 'REPLACE',
       },
+      ...(classroomAuthoring
+        ? {
+            assignmentCore: {
+              td: 'A concrete independent task specifying the supplied evidence to inspect and the actual product to submit.',
+              pa: ['scope', 'format', 'source evidence', 'length or time'],
+            },
+            studyGuide: {
+              sm: 'Two or three sentences explaining the subject, including the important boundary.',
+              rs: 'A specific self-check using these concepts and evidence.',
+            },
+            workedExample: {
+              wp: 'A quantitative problem using the supplied numbers, or omit this object when no quantitative operation is warranted.',
+              ws: ['First calculation with actual values and reasoning.', 'Next calculation or interpretation.'],
+              wr: 'The computed result with its units and a precise interpretation.',
+            },
+          }
+        : {}),
     };
   });
   const template = {
@@ -2279,7 +2303,7 @@ LESSONS TO AUTHOR:
 ${JSON.stringify(lessons)}
 
 TASK:
-Write the compact knowledge core for every listed lesson. Use the exact lessonId. Use only the listed title, topics, objectives, activityBrief, and readings; do not invent citations, URLs, page numbers, statistics, or named studies. The local compiler will derive discussion, assignment, slides, and study-guide surfaces after validating these atoms.
+Write the compact knowledge core for every listed lesson. Use the exact lessonId. Use only the listed title, topics, objectives, activityBrief, and readings; do not invent citations, URLs, page numbers, statistics, or named studies. ${classroomAuthoring ? 'Author the concrete task, study explanation, and warranted worked calculation as well as the knowledge atoms. The compiler will reuse them across the existing material formats.' : 'The local compiler will derive discussion, assignment, slides, and study-guide surfaces after validating these atoms.'}
 
 Rules:
 - Return ONLY valid JSON. No Markdown, commentary, or trailing text.
@@ -2293,7 +2317,7 @@ ${activityRules}${
     sourceLedgerContract?.mode === 'numbered-source-ledger-v1'
       ? `- SOURCE FACT LEDGER: the template facts array contains the ${sourceLedgerContract.factCount} supplied numbered claims in source order. Copy that facts array exactly, including every word and punctuation mark. Do not paraphrase, split, merge, omit, or add a fact. The compiler rejects any change.\n`
       : '- Write 5 facts per lesson. Each fact is 8-20 words, at least 20 characters, and states subject knowledge rather than course process.\n'
-  }- Write 3 keyTerms per lesson. Each tr is a distinct 1-4 word subject term that reuses specific words from that lesson's title, topics, or objectives AND appears verbatim in at least one of that lesson's facts; never copy the full lesson title. Every df is exactly one complete sentence of at least 40 characters and states a broader category or distinguishing property; a term-led definition is acceptable only when it adds a real distinction. eg is concrete and uses only names already present in the lesson input; mi is a genuinely false learner belief and never restates a lesson fact. cx is an object: reject names the exact false claim in mi without adding a label, and replace states the source-grounded relation that should replace it. The compiler joins them as an explicit contrast. Restating df alone is not a correction. Every field makes a different instructional move. Never invent a named place, person, study, product, organization, or event. Never embed field labels or internal claim numbers.
+  }- Write 3 keyTerms per lesson. Each tr is a distinct 1-4 word subject term that reuses specific words from that lesson's title, topics, or objectives AND appears verbatim in at least one of that lesson's facts; never copy the full lesson title. Every df is exactly one complete sentence of at least 40 characters and states a broader category or distinguishing property; a term-led definition is acceptable only when it adds a real distinction. eg is a complete, concrete example of at least 24 characters and four words, using only names already present in the lesson input; mi is a genuinely false learner belief and never restates a lesson fact. cx is an object: reject names the exact false claim in mi without adding a label, and replace states the source-grounded relation that should replace it. The compiler joins them as an explicit contrast. Restating df alone is not a correction. Every field makes a different instructional move. Never invent a named place, person, study, product, organization, or event. Never embed field labels or internal claim numbers.
 - Write one decision-ready scenario. Across su and ma, include a concrete context, an actionable subject problem, at least 2 inspectable details, and a real tension or constraint. su has exactly 2 specific sentences. ma names at least two comma-separated concrete records, observations, passages, notations, measurements, or designs students compare. Reuse their exact labels from the lesson input; do not append invented labels such as Entry A, Notice B, or Record C. Never return one generic structure and never call them "source detail one/two", "inspectable details", "evidence packet", "scenario evidence", or "course materials".
 - Write exactly 2 mc items: one concept distinction and one concrete case application.
 - Every mc item includes op as exactly four plausible propositions, ai as the zero-based index of the one correct proposition, and fi=sourceFactIndexes as [n] or [n,m]: one or two distinct zero-based integers from 0 through ${
@@ -2308,8 +2332,14 @@ ${activityRules}${
 - In keyTerms, df, eg, and cx may restate or instantiate only an explicit ledger relation. Do not add a purpose, effect, mechanism, or consequence merely to make the prose sound richer.
 - Never infer motive or cause from one ambiguous observation. Include enough context that exactly one option is supported.
 - Never write pure vocabulary recall, tool trivia, NOT/EXCEPT questions, always/never options, or all/none of the above.
-- Never mention artifacts, evidence moves, success criteria, rubrics, submissions, "the lesson", "this lesson", or "this course".
-- Return only lessonId, facts, keyTerms, scenario, and mc inside each lesson object. Do not add courseLevel, discussionPrompt, assignmentCore, studyGuide, or workedExample.${activityPlacementRule}
+${
+  classroomAuthoring
+    ? `- Add assignmentCore with td: a concrete two-sentence independent task and pa: exactly four distinct parameters (scope, output format, evidence, and time or length). Supply the actual task; do not refer to a missing scenario, exemplar, worksheet or evidence packet. Test a different question or decision from the worked example. Reusing supplied evidence is practice on the same case, not transfer to new evidence.
+- Add studyGuide with sm: a 60-600 character subject explanation and rs: a 30-400 character specific retrieval or practice strategy. Avoid generic advice to review the lesson.
+- Include workedExample only when supplied evidence supports a quantitative operation. Use wp, ws (2-4 concrete solution steps), and wr. Compute with actual supplied values, show the denominator and units, and distinguish the calculation from the conclusion the evidence permits. A list of instructions for a future answer is not a worked solution. Never invent numeric data.
+- Keep these teaching fields concise and free of internal compiler jargon. Do not add courseLevel or discussionPrompt.`
+    : '- Never mention artifacts, evidence moves, success criteria, rubrics, submissions, "the lesson", "this lesson", or "this course".\n- Return only lessonId, facts, keyTerms, scenario, and mc inside each lesson object. Do not add courseLevel, discussionPrompt, assignmentCore, studyGuide, or workedExample.'
+}${activityPlacementRule}
 - Preserve the exact nesting and abbreviated keys shown below.
 
 TEMPLATE TO FILL:
@@ -2412,9 +2442,10 @@ Rules:
 export function buildPublicScionMessages(
   systemPrompt,
   userPrompt,
-  { schema = null, task = 'generation', factLedgerOnly = false } = {},
+  { schema = null, task = 'generation', factLedgerOnly = false, classroomAuthoring = false } = {},
 ) {
   const kernelTask = task === 'blueprintEnrichment';
+  const responseSchema = schema?.schema || schema;
   const voiceTask = task === 'voicePass';
   const compilerRepairTask = task === 'scionPass';
   const nativeSkeletonTask = task === 'nativeSkeleton';
@@ -2422,8 +2453,8 @@ export function buildPublicScionMessages(
   if (conversationalTask) {
     const role =
       task === 'agent'
-        ? "You are Scion, CourseMapper's browser-local course workspace agent."
-        : "You are Scion, CourseMapper's browser-local pedagogical assistant.";
+        ? "You are Scion, CourseMapper's course workspace agent."
+        : "You are Scion, CourseMapper's pedagogical assistant.";
     return [
       {
         role: 'system',
@@ -2434,7 +2465,7 @@ export function buildPublicScionMessages(
           'Ground the answer in the supplied workspace context. Never invent sources, citations, or completed edits.',
           task === 'agent'
             ? [
-                'You are advisory in this local mode: explain what you recommend, but never claim that you changed the workspace.',
+                'You are advisory in this mode: explain what you recommend, but never claim that you changed the workspace.',
                 'For a summary or explanation, synthesize 3-6 concrete points from the workspace: describe how lessons, activities, or assessments connect instead of merely listing their titles.',
                 'Use complete sentences and clean Markdown. A list item begins with "- " on its own line; never mix asterisks with bullet markers.',
                 'Return only the reply text; never emit JSON, respond(...), function calls, tool_calls, or analysis.',
@@ -2454,10 +2485,10 @@ export function buildPublicScionMessages(
         role: 'system',
         content: [
           'Reasoning: low.',
-          'You are CourseMapper Scion, a precise browser-local semantic repair worker.',
+          'You are CourseMapper Scion, a precise semantic repair worker.',
           'Perform only the requested repair. Preserve source facts, immutable fields, indexes, and JSON keys exactly.',
           'Return only the requested valid JSON object with no Markdown, preamble, or trailing commentary.',
-          schema ? 'The response is constrained by the supplied schema; include every required field.' : '',
+          responseSchema ? `Output contract (JSON Schema): ${JSON.stringify(responseSchema)}` : '',
           clip(systemPrompt, 4800),
         ]
           .filter(Boolean)
@@ -2472,12 +2503,10 @@ export function buildPublicScionMessages(
         role: 'system',
         content: [
           'Reasoning: low.',
-          'You are CourseMapper Scion, a precise browser-local typed course-structure planner.',
+          'You are CourseMapper Scion, a precise typed course-structure planner.',
           'Separate teaching sessions from assessments, readings, and resources. Cover the requested session count with a coherent progression of distinct subject-matter topics.',
           'Return only one valid JSON object with no Markdown, preamble, or trailing commentary.',
-          schema
-            ? 'The response is constrained by the supplied skeleton schema; include every required field and exact array count.'
-            : '',
+          responseSchema ? `Output contract (JSON Schema): ${JSON.stringify(responseSchema)}` : '',
           clip(systemPrompt, 6200),
         ]
           .filter(Boolean)
@@ -2487,12 +2516,14 @@ export function buildPublicScionMessages(
     ];
   }
   const system = [
-    'Reasoning: low.',
+    classroomAuthoring
+      ? 'Check the evidence and calculations privately before writing the final response.'
+      : 'Reasoning: low.',
     kernelTask
-      ? 'You are CourseMapper Scion, a concise university subject-matter and assessment writer running locally.'
+      ? 'You are CourseMapper Scion, a concise university subject-matter and assessment writer.'
       : voiceTask
-        ? 'You are CourseMapper Scion, a precise university instructor and prose editor running locally.'
-        : 'You are CourseMapper Scion, a compact browser-local course-map planner.',
+        ? 'You are CourseMapper Scion, a precise university instructor and prose editor.'
+        : 'You are CourseMapper Scion, a compact course-map planner.',
     'Return the final JSON immediately. Do not deliberate in visible output.',
     kernelTask
       ? 'Write accurate lesson substance; the application validates each atom before compiling it into materials.'
@@ -2516,7 +2547,7 @@ export function buildPublicScionMessages(
       content: kernelTask
         ? factLedgerOnly
           ? buildPublicScionFactLedgerPrompt(userPrompt)
-          : buildPublicScionKernelPrompt(userPrompt)
+          : buildPublicScionKernelPrompt(userPrompt, { classroomAuthoring })
         : voiceTask
           ? buildPublicScionVoicePrompt(userPrompt)
           : buildCompactPublicScionPrompt(userPrompt),

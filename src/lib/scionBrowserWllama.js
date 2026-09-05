@@ -2,12 +2,11 @@ import {
   SCION_BROWSER_GEMMA4_GGUF,
   SCION_BROWSER_GEMMA4_DOWNLOAD_LABEL,
   SCION_BROWSER_GEMMA4_GGUF_URL,
-  SCION_BROWSER_MAX_NEW_TOKENS,
   SCION_BROWSER_WLLAMA_MODULE_PATH,
   SCION_BROWSER_WLLAMA_RUNTIME_ID,
   SCION_BROWSER_WLLAMA_WASM_PATH,
 } from './scionBrowserConstants';
-import { formatScionGemma4Messages } from './scionGemma4Prompt';
+import { createScionCompletionQueue, runScionBrowserCompletion } from './scionCompletionBoundary';
 import { sha256Hex } from './scionAdapterRegistry';
 import { normalizeScionAdapterTaskFamily, resolveScionAdapterTaskRoute } from './scionAdapterTaskScope';
 import { requireScionLocalModelCapability } from './scionDeviceCapability';
@@ -22,7 +21,7 @@ let loadPromise = null;
 let loadAbortController = null;
 let activeAdapter = null;
 let pendingProbe = null;
-let completionTail = Promise.resolve();
+const enqueueCompletion = createScionCompletionQueue();
 let runtimeLoadOptions = null;
 const statusListeners = new Set();
 const EXPECTED_SCION_RUNTIME_WARNING_RE =
@@ -243,23 +242,6 @@ function isFatalWllamaError(error, signal) {
   );
 }
 
-function enqueueCompletion(task, signal) {
-  const previous = completionTail.catch(() => {});
-  let release;
-  completionTail = new Promise((resolve) => {
-    release = resolve;
-  });
-  return (async () => {
-    await previous;
-    if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
-    try {
-      return await task();
-    } finally {
-      release();
-    }
-  })();
-}
-
 async function exitRuntime(candidate) {
   try {
     await candidate?.exit?.();
@@ -353,14 +335,15 @@ export async function loadScionBrowserWllama({
     const stopForwarding = forwardAbort(signal, loadAbortController);
     return loadPromise.finally(stopForwarding);
   }
-  await requireScionLocalModelCapability({ navigatorLike, globalLike });
-
   const controller = new AbortController();
   loadAbortController = controller;
   const stopForwarding = forwardAbort(signal, controller);
   const loadSignal = controller.signal;
 
   loadPromise = (async () => {
+    // Publish the shared promise before the first asynchronous capability
+    // check; simultaneous chat/build requests must load only one GPU model.
+    await requireScionLocalModelCapability({ navigatorLike, globalLike });
     if (loadSignal.aborted) throw abortError();
     publish(
       { phase: 'loading-runtime', progress: 0, message: 'Loading the pinned Scion WebGPU runtime…', error: null },
@@ -571,6 +554,7 @@ export async function completeScionBrowserWllama(
     taskFamily,
     promptProtocol,
     onAdapterRoute,
+    onCompletion,
   } = {},
 ) {
   const completeRouted = async () => {
@@ -582,7 +566,7 @@ export async function completeScionBrowserWllama(
         // Route telemetry cannot alter inference state.
       }
     }
-    return completeRaw(messages, { maxNewTokens, temperature, topK, topP, seed, signal, onToken });
+    return completeRaw(messages, { maxNewTokens, temperature, topK, topP, seed, signal, onToken, onCompletion });
   };
 
   return enqueueCompletion(async () => {
@@ -639,20 +623,8 @@ export async function completeScionBrowserWllama(
   }, signal);
 }
 
-async function completeRaw(
-  messages,
-  { maxNewTokens = 1024, temperature = 0, topK = 1, topP = 1, seed = 7, signal, onToken } = {},
-) {
-  const candidate = requireReady();
-  const nPredict = Math.min(SCION_BROWSER_MAX_NEW_TOKENS, Math.max(1, Math.floor(maxNewTokens)));
-  const prompt = formatScionGemma4Messages(messages);
-  const output = await candidate.createCompletion(prompt, {
-    nPredict,
-    abortSignal: signal,
-    onNewToken: typeof onToken === 'function' ? (_token, _piece, currentText) => onToken(currentText) : undefined,
-    sampling: { temp: temperature, top_k: topK, top_p: topP, seed },
-  });
-  return String(output || '').trim();
+async function completeRaw(messages, options = {}) {
+  return runScionBrowserCompletion(requireReady(), messages, options);
 }
 
 function ggufAdapterFile(manifest, files) {

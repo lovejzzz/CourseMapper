@@ -809,6 +809,18 @@ export function assessScionKeyTermContract(
     [normalized.example, normalized.correction, 'correction-repeats-example'],
     [normalized.misconception, normalized.correction, 'correction-repeats-misconception'],
   ]) {
+    if (issue === 'correction-repeats-misconception') {
+      // Our structured correction renderer quotes the rejected belief on
+      // purpose. Its presence is not endorsement or repetition of the answer.
+      // This exception affects repetition only; source/truth gates still run.
+      const quoted = normalized.correction.match(/^The claim “([^”]+)” is incorrect\. Use “([^”]+)” instead\.$/);
+      if (
+        quoted &&
+        comparableScionKeyTermText(quoted[1]) === comparableScionKeyTermText(normalized.misconception) &&
+        comparableScionKeyTermText(quoted[2]) !== comparableScionKeyTermText(quoted[1])
+      )
+        continue;
+    }
     if (
       relationalMisconceptionPrecision &&
       (issue.startsWith('misconception-repeats') || issue === 'correction-repeats-misconception') &&

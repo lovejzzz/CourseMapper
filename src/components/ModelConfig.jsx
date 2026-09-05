@@ -25,6 +25,8 @@ import { isLocalProviderOptInEnabled } from '../lib/localProvider';
 import useScionRuntimeStatus from '../hooks/useScionRuntimeStatus';
 import useScionDeviceCapability from '../hooks/useScionDeviceCapability';
 import { SCION_BROWSER_GEMMA4_DOWNLOAD_LABEL } from '../lib/scionBrowserConstants';
+import { isHostedScionModel, saveScionHostedConsent } from '../lib/scionHostedPolicy';
+import useScionHostedConsent from '../hooks/useScionHostedConsent';
 
 /**
  * Detect provider from API key prefix and auto-switch if mismatched.
@@ -220,9 +222,11 @@ export default function ModelConfig({ reserveTrailingActionSpace = false }) {
     generationPlan,
     setGenerationPlan,
   } = useAIConfig();
-  const selectedScionModelName = PUBLIC_SCION_MODEL_NAME;
-  const scionRuntimeStatus = useScionRuntimeStatus(provider === PUBLIC_SCION_PROVIDER_ID);
-  const scionDeviceCapability = useScionDeviceCapability(provider === PUBLIC_SCION_PROVIDER_ID);
+  const hostedScion = provider === PUBLIC_SCION_PROVIDER_ID && isHostedScionModel(modelId);
+  const hostedConsent = useScionHostedConsent();
+  const selectedScionModelName = hostedScion ? 'Scion · Online Gemma 4 31B' : PUBLIC_SCION_MODEL_NAME;
+  const scionRuntimeStatus = useScionRuntimeStatus(provider === PUBLIC_SCION_PROVIDER_ID && !hostedScion);
+  const scionDeviceCapability = useScionDeviceCapability(provider === PUBLIC_SCION_PROVIDER_ID && !hostedScion);
   const debounceRef = useRef(null);
   const prevProviderValueRef = useRef(provider);
   const prevApiKeyRef = useRef(apiKey);
@@ -993,16 +997,40 @@ export default function ModelConfig({ reserveTrailingActionSpace = false }) {
           className="mt-4 rounded-squircle-xs border border-indigo-100/80 bg-indigo-50/50 px-3.5 py-3 text-xs leading-relaxed text-slate-700 dark:border-indigo-400/20 dark:bg-indigo-400/10 dark:text-slate-200"
           data-testid="scion-model-boundary"
         >
-          <p>Scion is EduTool&apos;s customized course-building AI. It is fully free—and always will be.</p>
+          <p>Scion combines Gemma 4 with EduTool&apos;s course compiler to build editable teaching materials.</p>
           <p className="mt-1.5 text-slate-600 dark:text-slate-300">
-            {scionRuntimeStatus.phase === 'ready'
-              ? 'Scion is ready on this device. Prompts and generated text stay in this browser.'
-              : scionDeviceCapability.phase === 'checking'
-                ? 'Checking this device before choosing the safest Scion path…'
-                : scionDeviceCapability.evidenceCompiler
-                  ? 'This browser will use Scion’s zero-download evidence compiler. No model weights are downloaded, and private course work stays in this browser.'
-                  : `This browser can run Scion’s local model. First use downloads ${SCION_BROWSER_GEMMA4_DOWNLOAD_LABEL} of public weights and keeps them in browser storage.`}
+            {hostedScion
+              ? 'Online Scion uses the free Gemma 4 31B service. No model download or personal API key is needed. Availability depends on region and the shared daily allowance; there is no paid fallback.'
+              : scionRuntimeStatus.phase === 'ready'
+                ? 'Scion is ready on this device. Prompts and generated text stay in this browser.'
+                : scionDeviceCapability.phase === 'checking'
+                  ? 'Checking this device before choosing the safest Scion path…'
+                  : scionDeviceCapability.evidenceCompiler
+                    ? 'This browser will use Scion’s zero-download evidence compiler. No model weights are downloaded, and private course work stays in this browser.'
+                    : `This browser can run Scion’s local model. First use downloads ${SCION_BROWSER_GEMMA4_DOWNLOAD_LABEL} of public weights and keeps them in browser storage.`}
           </p>
+          {hostedScion && (
+            <div className="mt-3 rounded-squircle-xs border border-indigo-200/70 bg-white/65 p-2.5 dark:border-indigo-300/20 dark:bg-slate-950/30">
+              <p id="scion-online-notice">
+                Your prompt and relevant course, conversation, and uploaded-source excerpts are sent through
+                EduTool&apos;s Cloudflare relay to Google. Google&apos;s free service may use them for product
+                improvement and human review. Do not submit confidential or student personal data.
+              </p>
+              <label className="mt-2 flex items-start gap-2 font-medium">
+                <input
+                  type="checkbox"
+                  checked={hostedConsent}
+                  onChange={(event) => saveScionHostedConsent(event.target.checked)}
+                  aria-describedby="scion-online-notice"
+                />
+                I am an educator or instructional designer aged 18 or older, using this professionally, and allow this
+                browser to use online Scion with the data sharing described above.
+              </label>
+              <p className="mt-1 text-[11px]">
+                You can switch back to local Scion or remove this permission at any time.
+              </p>
+            </div>
+          )}
           <div
             className="mt-3 flex flex-col gap-2 rounded-squircle-xs border border-indigo-200/70 bg-white/65 p-2.5 dark:border-indigo-300/20 dark:bg-slate-950/30"
             data-testid="scion-research-mode"
@@ -1010,12 +1038,18 @@ export default function ModelConfig({ reserveTrailingActionSpace = false }) {
             <div className="flex items-start justify-between gap-3 sm:items-center">
               <div>
                 <p className="font-semibold text-slate-800 dark:text-slate-100">
-                  {scionResearchEnabled ? 'Current-source research on' : 'Private evidence mode'}
+                  {scionResearchEnabled
+                    ? 'Current-source research on'
+                    : hostedScion
+                      ? 'Source research off'
+                      : 'Private evidence mode'}
                 </p>
                 <p className="mt-0.5 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
                   {scionResearchEnabled
                     ? 'Only the course title and uncovered lesson topics are sent to open-source catalogs. Scion verifies source claims against original passages and saves compact evidence on this device.'
-                    : 'No course-topic research requests are sent. Scion uses your materials and EduTool’s source-anchored teaching library on this device.'}
+                    : hostedScion
+                      ? 'No course-topic research requests are sent to source catalogs. Online generation still sends relevant content to Google as described above.'
+                      : 'No course-topic research requests are sent. Scion uses your materials and EduTool’s source-anchored teaching library on this device.'}
                 </p>
               </div>
               <button
@@ -1046,16 +1080,17 @@ export default function ModelConfig({ reserveTrailingActionSpace = false }) {
               </button>
             </div>
           </div>
-          {['loading-runtime', 'loading-model', 'restarting-activation', 'repairing-cache'].includes(
-            scionRuntimeStatus.phase,
-          ) && (
-            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-indigo-100 dark:bg-indigo-950">
-              <div
-                className="h-full rounded-full bg-indigo-500 transition-[width] duration-300"
-                style={{ width: `${Math.max(2, (Number(scionRuntimeStatus.progress) || 0) * 100)}%` }}
-              />
-            </div>
-          )}
+          {!hostedScion &&
+            ['loading-runtime', 'loading-model', 'restarting-activation', 'repairing-cache'].includes(
+              scionRuntimeStatus.phase,
+            ) && (
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-indigo-100 dark:bg-indigo-950">
+                <div
+                  className="h-full rounded-full bg-indigo-500 transition-[width] duration-300"
+                  style={{ width: `${Math.max(2, (Number(scionRuntimeStatus.progress) || 0) * 100)}%` }}
+                />
+              </div>
+            )}
         </div>
       )}
       {hasSelectableModels && provider !== PUBLIC_SCION_PROVIDER_ID && (

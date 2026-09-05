@@ -29,6 +29,7 @@ import {
 } from '../../lib/agentSourceContext';
 import { resolveLabel } from './constants';
 import { runScionLocalCompletion } from '../../lib/scionLocalProvider';
+import { isHostedScionModel } from '../../lib/scionHostedPolicy';
 import { getLocalEndpoint } from '../../lib/localProvider';
 import { isAlgiModel } from '../../lib/algiIdentity';
 // webllm is dynamically imported only by legacy compatibility paths.
@@ -208,7 +209,11 @@ export async function streamChat(messages, systemPrompt, signal, apiKey, provide
             encoder.encode(`data: ${JSON.stringify({ choices: [{ delta: { content: delta } }] })}\n\n`),
           );
         };
-        runScionLocalCompletion({
+        const complete = async (options) =>
+          isHostedScionModel(modelId)
+            ? (await import('../../lib/scionHostedProvider')).runScionHostedCompletion(options)
+            : runScionLocalCompletion(options);
+        complete({
           systemPrompt,
           userPrompt: conversation,
           task: 'chat',
@@ -434,7 +439,10 @@ export async function fetchAgentResponseNative(
       .slice(-8)
       .map((message) => `${message.role === 'assistant' ? 'Assistant' : 'User'}: ${message.content || ''}`)
       .join('\n\n');
-    const result = await runScionLocalCompletion({
+    const complete = isHostedScionModel(modelId)
+      ? (await import('../../lib/scionHostedProvider')).runScionHostedCompletion
+      : runScionLocalCompletion;
+    const result = await complete({
       systemPrompt: advisorySystem,
       userPrompt: conversation,
       task: 'agent',
@@ -444,7 +452,7 @@ export async function fetchAgentResponseNative(
       signal,
       onToken: onThinkingText,
     });
-    return { toolCalls: null, textContent: result.fullText, stopReason: 'stop' };
+    return { toolCalls: null, textContent: result.fullText, stopReason: result.finishReason || 'unknown' };
   }
 
   // Streaming for OpenAI/DeepSeek — shows partial text while LLM is thinking

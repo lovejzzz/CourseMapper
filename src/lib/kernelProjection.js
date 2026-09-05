@@ -182,32 +182,27 @@ function bestShortAnswerTerm(kernel) {
   return best.index !== 0 && best.labelScore > 0 && best.score > first.score ? best.term : first.term;
 }
 
-/**
- * Match each wrong option to a term misconception by content-word overlap.
- * All wrong options must match — a partially matched rationale set reads as
- * sloppier than none, so we return [] rather than misaligned feedback.
+/** Reuse a correction only when its misconception names this exact option.
+ * Keyword overlap cannot establish that a rationale explains a distractor.
+ * Missing feedback is preferable to printing another false claim as a reason.
  */
 export function matchDistractorRationales(item, keyTerms = []) {
   const options = Array.isArray(item?.options) ? item.options : [];
-  const answerIndex = Number(item?.answerIndex) || 0;
+  const answerIndex = Number(item?.answerIndex);
+  if (!Number.isInteger(answerIndex) || answerIndex < 0 || answerIndex >= options.length) return [];
+  const identity = (text) =>
+    cleanText(text)
+      .toLowerCase()
+      .replace(/[.!?]+$/g, '');
   const wrongOptions = options.filter((_, index) => index !== answerIndex);
-  if (wrongOptions.length === 0 || keyTerms.length === 0) return [];
-  const used = new Set();
+  if (!wrongOptions.length) return [];
   const rationales = [];
   for (const option of wrongOptions) {
-    let best = null;
-    let bestScore = 0;
-    for (const term of keyTerms) {
-      if (!cleanText(term?.misconception)) continue;
-      const score = overlapScore(option, `${term.term} ${term.misconception}`) + (used.has(term.term) ? 0 : 0.5);
-      if (score > bestScore) {
-        best = term;
-        bestScore = score;
-      }
-    }
-    if (!best || bestScore < 1) return [];
-    used.add(best.term);
-    rationales.push(ensureSentence(best.misconception));
+    const term = keyTerms.find(
+      (entry) => identity(entry?.misconception) === identity(option) && cleanText(entry?.correction),
+    );
+    if (!term || identity(term.correction) === identity(term.misconception)) return [];
+    rationales.push(ensureSentence(term.correction));
   }
   return rationales;
 }
@@ -272,13 +267,24 @@ export function buildSlideContentFromKernel(kernel) {
             ? stripTerminalPeriod(facts[6])
             : `${termA.term} is commonly misread — the evidence says otherwise`,
         bullets,
-        notes: `Common misunderstanding: ${ensureSentence(termA.misconception)} Use ${
-          cleanText(termA.example) || 'the worked example'
-        } to correct it.`,
+        notes: `Common misunderstanding: ${ensureSentence(termA.misconception)} ${
+          cleanText(termA.correction)
+            ? `Correction: ${ensureSentence(termA.correction)}`
+            : `Discuss this example: ${ensureSentence(termA.example)}`
+        }`,
       });
     }
   }
-  return slides.slice(0, 3);
+  return slides.slice(0, 3).map((slide, index) => {
+    if (slide.title.length <= 88 && wordCount(slide.title) <= 14) return slide;
+    // Keep a long source claim in the slide body/notes instead of dropping
+    // the entire authored slide when a sentence is too long for a heading.
+    return {
+      ...slide,
+      title: ['Core ideas in context', 'Apply the source evidence', 'Check the misconception'][index],
+      bullets: pickBullets([slide.title, ...slide.bullets], 3),
+    };
+  });
 }
 
 function firstSentenceOf(text) {

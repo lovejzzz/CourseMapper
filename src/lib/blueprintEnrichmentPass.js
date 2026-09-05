@@ -24,7 +24,7 @@ import {
   repairScionMcItem,
 } from './scionAnswerKeyAlignment';
 import { assessScionKeyTermContract } from './scionKeyTermContract';
-import { scionFactContractForLesson } from './scionEvidenceContract';
+import { scionFactContractForLesson, SCION_MAX_SOURCE_LEDGER_FACTS } from './scionEvidenceContract';
 import { resolveScionTargetLanguageKnowledge } from './scionLanguageKnowledge';
 import { resolveScionLiteratureKnowledge } from './scionLiteratureKnowledge';
 import { META_SURFACE_RE } from './metaSurfaceAdmission';
@@ -836,7 +836,7 @@ function cumulativeReviewAnchors(courseMap, lessonIndex) {
   return anchors;
 }
 
-function selectInstructorFactsForLesson(instructorProvidedFacts, lesson) {
+function selectInstructorFactsForLesson(instructorProvidedFacts, lesson, maximumFacts = 5) {
   const facts = [
     ...new Set(
       asArray(instructorProvidedFacts)
@@ -845,7 +845,7 @@ function selectInstructorFactsForLesson(instructorProvidedFacts, lesson) {
     ),
   ];
   if (facts.length < 3) return [];
-  if (facts.length <= 5) return facts;
+  if (facts.length <= maximumFacts) return facts;
   const lessonTokens = new Set(
     [
       lesson?.title,
@@ -863,7 +863,7 @@ function selectInstructorFactsForLesson(instructorProvidedFacts, lesson) {
       score: (fact.toLowerCase().match(/[a-z0-9]{4,}/g) || []).filter((token) => lessonTokens.has(token)).length,
     }))
     .sort((left, right) => right.score - left.score || left.index - right.index)
-    .slice(0, 5)
+    .slice(0, maximumFacts)
     .sort((left, right) => left.index - right.index)
     .map(({ fact }) => fact);
 }
@@ -1023,7 +1023,11 @@ function summarizeLessonsForContent(
           .join('; '),
       });
       const reviewAnchors = cumulativeReviewAnchors(courseMap, lessonIndex);
-      const instructorFacts = selectInstructorFactsForLesson(instructorProvidedFacts, lesson);
+      const instructorFacts = selectInstructorFactsForLesson(
+        instructorProvidedFacts,
+        lesson,
+        courseMap?.lessons?.length === 1 ? SCION_MAX_SOURCE_LEDGER_FACTS : 5,
+      );
       const requiredReadings = [
         ...new Set(
           asArray(lesson.sections)

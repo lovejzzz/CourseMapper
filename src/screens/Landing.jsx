@@ -15,6 +15,8 @@ import {
   saveScionResearchEnabled,
 } from '../lib/scionResearchPolicy';
 import useScionDeviceCapability from '../hooks/useScionDeviceCapability';
+import useScionHostedConsent from '../hooks/useScionHostedConsent';
+import { isHostedScionModel } from '../lib/scionHostedPolicy';
 
 const ModelConfig = lazy(() => import('../components/ModelConfig'));
 
@@ -394,7 +396,10 @@ export default function Landing({
     (name) => !files.some((file) => file?.name === name),
   );
   const scionSelected = provider === PUBLIC_SCION_PROVIDER_ID;
-  const scionDeviceCapability = useScionDeviceCapability(scionSelected);
+  const hostedScion = scionSelected && isHostedScionModel(modelId);
+  const hostedConsent = useScionHostedConsent();
+  const scionPermissionReady = !hostedScion || hostedConsent;
+  const scionDeviceCapability = useScionDeviceCapability(scionSelected && !hostedScion);
 
   useEffect(() => {
     const handleResearchChange = (event) => {
@@ -537,6 +542,7 @@ export default function Landing({
   const providerIsKeyless = provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID;
   const hasCourseInput = files.length > 0 || promptText.trim().length > 0;
   const canQuickStart =
+    scionPermissionReady &&
     Boolean(onQuickStart) &&
     promptText.trim().length > 0 &&
     (providerIsKeyless ? apiStatus === 'connected' : Boolean(apiKey?.trim()));
@@ -562,17 +568,19 @@ export default function Landing({
     'selected provider';
   const landingRequirement = !hasCourseInput
     ? 'Describe a course or attach a syllabus to continue.'
-    : !providerIsKeyless && !apiKey?.trim()
-      ? `Add your ${providerLabel} API key to continue.`
-      : apiStatus === 'validating'
-        ? 'Checking the selected AI connection…'
-        : apiStatus === 'no_funds'
-          ? `Add ${providerLabel} credits or choose another provider to continue.`
-          : apiStatus === 'error'
-            ? 'Fix the AI connection above or choose another provider to continue.'
-            : !modelId
-              ? 'Select an AI model to continue.'
-              : 'Finish connecting the selected AI provider to continue.';
+    : !scionPermissionReady
+      ? 'Open AI settings and review the online Scion data notice, or choose local Scion.'
+      : !providerIsKeyless && !apiKey?.trim()
+        ? `Add your ${providerLabel} API key to continue.`
+        : apiStatus === 'validating'
+          ? 'Checking the selected AI connection…'
+          : apiStatus === 'no_funds'
+            ? `Add ${providerLabel} credits or choose another provider to continue.`
+            : apiStatus === 'error'
+              ? 'Fix the AI connection above or choose another provider to continue.'
+              : !modelId
+                ? 'Select an AI model to continue.'
+                : 'Finish connecting the selected AI provider to continue.';
 
   // Build a summary label for the collapsed AI config bar
   const configSummaryLabel = (() => {
@@ -581,7 +589,7 @@ export default function Landing({
     if (provider === 'anthropic') return `Anthropic · ${modelName || modelId || 'Claude'}`;
     if (provider === 'google') return `Google · ${modelName || modelId || 'Gemini'}`;
     if (provider === 'deepseek') return `DeepSeek · ${modelName || modelId || 'V3'}`;
-    if (provider === PUBLIC_SCION_PROVIDER_ID) return 'Private local AI';
+    if (provider === PUBLIC_SCION_PROVIDER_ID) return hostedScion ? 'Online Scion · shared free' : 'Private local AI';
     if (provider === 'local') return `Scion Local · ${modelName || modelId || 'Scion-1'}`;
     return modelName || modelId || provider || 'AI Model';
   })();
@@ -979,8 +987,8 @@ export default function Landing({
                   >
                     {scionCoverageForecast?.status === 'ready' && scionCoverageForecast.externalNeeded > 0 ? (
                       <>
-                        Generating sends only the course title and {scionCoverageForecast.externalNeeded} uncovered
-                        lesson topic{scionCoverageForecast.externalNeeded === 1 ? '' : 's'} to{' '}
+                        Source lookup sends the course title and {scionCoverageForecast.externalNeeded} uncovered lesson
+                        topic{scionCoverageForecast.externalNeeded === 1 ? '' : 's'} to{' '}
                         {formatResearchProviderOrder(scionCoverageForecast.researchPlan?.providerOrder)}.
                       </>
                     ) : (
@@ -1020,13 +1028,13 @@ export default function Landing({
               <button
                 data-testid="landing-setup-button"
                 onClick={onGenerate}
-                disabled={!canGenerate || isGenerating}
+                disabled={!canGenerate || !scionPermissionReady || isGenerating}
                 className={`tactile w-full rounded-lg px-8 py-3 text-sm font-semibold transition-all duration-200 ${
                   canQuickStart
                     ? 'mt-3 border border-line-strong bg-surface text-ink-tertiary hover:bg-surface-alt'
                     : 'mt-5'
                 } ${
-                  canGenerate && !isGenerating
+                  canGenerate && scionPermissionReady && !isGenerating
                     ? canQuickStart
                       ? ''
                       : 'bg-slate-950 text-white shadow-lg shadow-slate-950/15 hover:brightness-110 dark:bg-white dark:text-slate-950'
@@ -1041,7 +1049,7 @@ export default function Landing({
                 </span>
               </button>
 
-              {!canGenerate && !isGenerating && (
+              {(!canGenerate || !scionPermissionReady) && !isGenerating && (
                 <p data-testid="landing-requirement" className="mt-2 text-center text-body text-ink-muted">
                   {landingRequirement}
                 </p>

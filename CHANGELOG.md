@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.18.7 quality and Scion pipeline update — 2026-09-05
+
+This update keeps the complete 0.18.7 interface and ten material categories. It is not the final v0.19.0 release.
+
+- Fix a cancelled completion waiting in the local queue leaving every later request blocked. Share the model-load promise before asynchronous device checks, preventing duplicate model loads.
+- Reject aborted partial text and output truncated by the token limit. Count actual runtime tokens, check the native context window before inference, and retry truncation only with a larger bounded output budget.
+- Send and validate the actual short-task/skeleton JSON Schema, including `{ name, schema, strict }` profiles. Use a CSP-compatible interpreted validator; do not add `unsafe-eval`.
+- Keep short-answer repair feedback specific to the requested task. Reject prompt-builder objects and empty lesson requests before model loading. Respect requested local sampling temperatures.
+- Add an explicit online Gemma 4 31B option within the original AI settings. Keep local mode as the default. Require browser data-sharing permission; revocation cancels further online generation. Disclose free-provider data use, professional/adult eligibility and shared capacity.
+- Give online lesson generation a 4,096-token output ceiling and concrete assignment, study-guide and warranted worked-example fields. Reject missing required teaching fields instead of silently treating a facts-only draft as complete.
+- Keep hosted errors out of local evidence fallback. Report the real transport, model, base-only route, finish reason and available token usage.
+- Make all free quota reservations atomic, report their scope, and stop automatic retries on daily exhaustion. Accept the original UI's larger skeleton instructions while retaining request-byte and exact-token limits.
+- Preserve up to eight instructor facts for a single-lesson source ledger and align its schema/citation bounds. Previously a relevance sort silently reduced six supplied claims to five, dropping a sampling limitation.
+- Preserve structured correction subjects and render fragments as quotations. Avoid classifying an explicitly rejected quotation as an endorsed misconception.
+- Preserve complete admitted corrections through compiler and CourseIR normalization; do not shorten away the denominator or replacement claim. Keep the compact evidence ledger's later limitations in study guides. Keep each Word misconception/correction pair on the same page, verified by rendering the actual export.
+- Stop matching wrong-option explanations to unrelated misconceptions using keyword overlap. Reuse a correction only for an exact misconception match; retain missing feedback when no valid mapping exists.
+- Keep long source claims in slide content/notes rather than discarding the entire slide for an oversized title. Correct incomplete punctuation in misconception speaker notes.
+- Add production Scion tests to the normal verification gate, plus a browser regression for online selection, permission, reload and switching back to local mode. Keep browser tests at one worker.
+- Generate three real model workshop drafts and export their ten original materials through the production ZIP builder; run a richer statistics refinement and deterministic replay. Preserve the educational limitations in the linked audit. No claim of universal classroom readiness or unlimited free service is made.
+
 ## 0.18.7 interface restoration — 2026-09-05
 
 The product owner requested the complete 0.18.7 interface, including the homepage, after reviewing the experimental 0.19.0-rc.1 replacement.
