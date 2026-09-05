@@ -252,7 +252,7 @@ describe('evidence-to-decision scenario contract', () => {
     expect(analyzeDecisionScenario(scenario).ready).toBe(true);
   });
 
-  it('uses a data evidence packet instead of passage or claim-card boilerplate for data-story kernels', () => {
+  it('does not promise the underlying dataset or cleaning log when only claims about them were supplied', () => {
     const scenario = deriveDecisionScenario({
       facts: [
         'The public-transit dataset records scheduled and observed arrival times.',
@@ -272,12 +272,13 @@ describe('evidence-to-decision scenario contract', () => {
     });
 
     expect(scenario.setup).toMatch(/Claim A:|Claim B:/);
-    expect(scenario.materials).toMatch(/data records|transformation log|claim under review/i);
-    expect(scenario.materials).not.toMatch(/claim cards|cited passage/i);
+    expect(scenario.materials).toContain('claim cards');
+    expect(scenario.materials).toContain('Handling missing values');
+    expect(scenario.materials).not.toMatch(/transformation log|cited passage/i);
     expect(analyzeDecisionScenario(scenario).ready).toBe(true);
   });
 
-  it('treats relational algebra as database evidence instead of a math answer-check frame', () => {
+  it('preserves the relational algebra topic without inventing a schema or query artifact', () => {
     const scenario = deriveDecisionScenario({
       facts: [
         'Relational algebra selection filters tuples based on specified conditions within a relation.',
@@ -297,8 +298,9 @@ describe('evidence-to-decision scenario contract', () => {
       ],
     });
 
-    expect(scenario.materials).toMatch(/database claims|schema or query artifact|constraint evidence/i);
-    expect(scenario.materials).not.toMatch(/recorded quantities|answer check/i);
+    expect(scenario.materials).toContain('Relational Algebra Operations');
+    expect(scenario.materials).toContain('claim cards');
+    expect(scenario.materials).not.toMatch(/schema or query artifact|recorded quantities|answer check/i);
     expect(analyzeDecisionScenario(scenario).ready).toBe(true);
   });
 

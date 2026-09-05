@@ -93,11 +93,12 @@ export function compileTeachingProgram({
       ['Preserves the defining relationship.', 'Does not add a claim unsupported by the definition.'],
       [term.definition],
     );
-    if (clean(term.misconception) && clean(term.corrective)) {
+    const correction = clean(term.corrective) || clean(term.correction);
+    if (clean(term.misconception) && correction) {
       add(
         'error-analysis',
         `Evaluate this claim about ${term.term}: “${term.misconception}”`,
-        term.corrective,
+        correction,
         ['Identifies the incorrect claim.', 'Explains the correction using the supplied concept.'],
         [term.definition],
       );
@@ -123,7 +124,11 @@ export function compileTeachingProgram({
     protocol: 'coursemapper-teaching-program-v1',
     lessonId,
     purpose: 'guided-practice',
-    units: units.slice(0, 8),
+    // A full concept bank must not crowd out the source limitation.
+    units:
+      units.length > 8 && units.at(-1)?.kind === 'source-boundary'
+        ? [...units.slice(0, 7), units.at(-1)]
+        : units.slice(0, 8),
   };
 }
 

@@ -1,0 +1,166 @@
+{
+  "id": "historical-sources",
+  "split": "development",
+  "provenance": {
+    "kind": "previously-captured-model-kernel",
+    "capturedAt": "2026-09-05T11:46:07.854Z",
+    "note": "Replay of earlier hosted generation; no hosted API call in this benchmark."
+  },
+  "sourceBrief": "A 50-minute introductory undergraduate workshop. Use only these supplied facts. All examples are fictional.\n1. In a fictional museum record, a map margin is marked drawn in 1921.\n2. The accession register records that the museum received this map in 1978.\n3. A creation date and an acquisition date describe different events and need not be the same.\n4. The conservator records that repair ink differs from the original ink; no date for the repair is recorded.\n5. The inventory explicitly records old lettering visible beneath newer paint on the map case.\n6. An attributed observation from a record can be reported as documented without proving the full history or purpose of the object.",
+  "map": {
+    "courseName": "Reading an object record responsibly",
+    "semester": "Instructor review draft",
+    "lessons": [
+      {
+        "title": "Lesson 1: Creation dates, acquisition dates, and physical evidence",
+        "sections": [
+          {
+            "topicSection": "Creation dates, acquisition dates, and physical evidence",
+            "learningGoals": "Distinguish documented observations from unsupported historical inferences and explain whether two dates conflict.",
+            "learningObjectives": "Distinguish documented observations from unsupported historical inferences and explain whether two dates conflict.",
+            "weeklyAssessments": "An individual written explanation supported by the supplied facts.",
+            "syncActivities": "Compare claims and justify a conclusion using the supplied record.",
+            "asyncActivities": "Revisit the supplied facts and revise one unsupported claim."
+          }
+        ]
+      }
+    ]
+  },
+  "lessonContent": {
+    "lesson-1": {
+      "quizItems": [
+        {
+          "index": 0,
+          "type": "multiple_choice",
+          "question": "A museum record lists a map drawn in 1921 and received in 1978; how should these two dates be categorized?",
+          "options": [
+            "Two conflicting acquisition dates",
+            "Two conflicting creation dates",
+            "One documented date and one repair date",
+            "One creation date and one acquisition date"
+          ],
+          "answerIndex": 3,
+          "distractorRationales": [
+            "An acquisition date identifies when the object was originally drawn.",
+            "The creation date must match the date a museum receives an object.",
+            "The creation date must match the date a museum receives an object."
+          ],
+          "answer": "",
+          "explanation": "One creation date and one acquisition date is correct because the 1921 margin mark is the creation and 1978 register entry is the acquisition. They are different events. By contrast, “One documented date and one repair date” does not address the same evidence or decision criterion.",
+          "scoringGuidance": ""
+        },
+        {
+          "index": 1,
+          "type": "multiple_choice",
+          "question": "A conservator notes that repair ink differs from original ink but provides no date; what can be reported as documented?",
+          "options": [
+            "The repair ink differs from original ink",
+            "The purpose of the original ink",
+            "The full history of the map",
+            "The date the repair was performed"
+          ],
+          "answerIndex": 0,
+          "distractorRationales": [
+            "Documented observations prove the full history and purpose of an object.",
+            "Documented observations prove the full history and purpose of an object.",
+            "The creation date must match the date a museum receives an object."
+          ],
+          "answer": "",
+          "explanation": "The repair ink differs from original ink is an observation that can be reported as documented without proving full history. No repair date was recorded. By contrast, “The full history of the map” does not address the same evidence or decision criterion.",
+          "scoringGuidance": ""
+        },
+        {
+          "index": 3,
+          "type": "short_answer",
+          "question": "A researcher finds a map marked drawn in 1921 and a museum record stating it was received in 1978. They must decide if these dates indicate a clerical error. Choose the relevant concept or method without inferring hidden motives. Use at least two case details to justify the conclusion. Name one limitation.",
+          "options": [],
+          "answerIndex": 0,
+          "distractorRationales": [],
+          "answer": "creation date best fits the decision in this case. A date marking when an object was produced, which differs from when it was acquired. The decisive evidence comes from this case. A researcher finds a map marked drawn in 1921 and a museum record stating it was received in 1978. Course evidence adds that a creation date and an acquisition date describe different events and need not be the same. Map margin, accession register can support this limited recommendation. Those materials do not prove that the same explanation applies beyond the case.",
+          "explanation": "",
+          "scoringGuidance": "Look for creation date, a defensible conclusion, and explicit use of map margin, accession register. The response also needs one boundary or next evidence request. Missing any move keeps the answer incomplete."
+        },
+        {
+          "index": 5,
+          "type": "essay",
+          "question": "A common claim about creation date is: \"The creation date must match the date a museum receives an object.\" Evaluate this claim — what does the course evidence actually support? Take a position and defend it, drawing on creation date and evidence from map margin, accession register.",
+          "options": [],
+          "answerIndex": 0,
+          "distractorRationales": [],
+          "answer": "A defensible position: It is incorrect that must match the date a museum receives an object; instead, describes a different event than acquisition. In a scenario where a researcher finds a map marked drawn in 1921 and a museum record stating it was received in 1978, this is a case of creation date: a date marking when an object was produced, which differs from when it was acquired. The key supporting evidence: a creation date and an acquisition date describe different events and need not be the same. The opposing view matters — the creation date must match the date a museum receives an object — so the answer should explain why it does not overturn the main claim.",
+          "explanation": "",
+          "scoringGuidance": "High-scoring essays identify the strongest opposing view (for example: the creation date must match the date a museum receives an object), answer it with course evidence, and make the final judgment explicit."
+        }
+      ],
+      "keyTerms": [
+        {
+          "term": "creation date",
+          "definition": "A date marking when an object was produced, which differs from when it was acquired.",
+          "example": "A map margin marked drawn in 1921.",
+          "misconception": "The creation date must match the date a museum receives an object.",
+          "correction": "It is incorrect that must match the date a museum receives an object; instead, describes a different event than acquisition."
+        },
+        {
+          "term": "acquisition date",
+          "definition": "The date a museum receives an object, recorded in documents like an accession register.",
+          "example": "An accession register entry stating a map was received in 1978.",
+          "misconception": "An acquisition date identifies when the object was originally drawn.",
+          "correction": "It is incorrect that identifies when the object was originally drawn; instead, records that the museum received the map."
+        },
+        {
+          "term": "documented",
+          "definition": "A state where an attributed observation is reported from a record without proving full history.",
+          "example": "Reporting a map margin date as documented.",
+          "misconception": "Documented observations prove the full history and purpose of an object.",
+          "correction": "It is incorrect that prove the full history and purpose of an object; instead, can be reported without proving the full history."
+        }
+      ],
+      "slideContent": [
+        {
+          "title": "In a fictional museum record, a map margin is marked drawn in 1921",
+          "bullets": [
+            "The accession register records that the museum received this map in 1978",
+            "A creation date and an acquisition date describe different events and need not be the same",
+            "The conservator records that repair ink differs from the original ink; no date for the repair is recorded"
+          ],
+          "notes": "In a fictional museum record, a map margin is marked drawn in 1921. A date marking when an object was produced, which differs from when it was acquired."
+        },
+        {
+          "title": "creation date is commonly misread — the evidence says otherwise",
+          "bullets": [
+            "A map margin marked drawn in 1921",
+            "An accession register entry stating a map was received in 1978",
+            "An attributed observation from a record can be reported as documented without proving the full history or purpose of the object"
+          ],
+          "notes": "Common misunderstanding: The creation date must match the date a museum receives an object. Use A map margin marked drawn in 1921. to correct it."
+        }
+      ],
+      "kernel": {
+        "facts": [
+          "In a fictional museum record, a map margin is marked drawn in 1921.",
+          "The accession register records that the museum received this map in 1978.",
+          "A creation date and an acquisition date describe different events and need not be the same.",
+          "The conservator records that repair ink differs from the original ink; no date for the repair is recorded.",
+          "An attributed observation from a record can be reported as documented without proving the full history or purpose of the object."
+        ],
+        "scenario": {
+          "setup": "A researcher finds a map marked drawn in 1921 and a museum record stating it was received in 1978. They must decide if these dates indicate a clerical error.",
+          "materials": "map margin, accession register",
+          "source": "authored"
+        },
+        "provenance": {
+          "source": "compiler-owned-exact-source-ledger",
+          "authority": "instructor-supplied",
+          "copiedFactsVerbatim": true,
+          "factCount": 5
+        }
+      },
+      "enrichmentSource": "compiler-owned-exact-source-ledger"
+    }
+  },
+  "sessionMinutes": 50,
+  "expectations": {
+    "singleSession": true,
+    "selfContained": true
+  }
+}

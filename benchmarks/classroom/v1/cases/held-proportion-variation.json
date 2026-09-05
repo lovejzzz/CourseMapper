@@ -1,0 +1,53 @@
+{
+  "id": "held-proportion-variation",
+  "split": "held-out",
+  "provenance": {
+    "kind": "author-constructed-held-out",
+    "note": "Different fraction and lesson duration; exact-source input, not a new model run."
+  },
+  "sourceBrief": "A single 30-minute workshop for beginners. Source facts: Eight learners attended a fictional optional workshop; three completed the task.; The observed completion proportion is 3/8 = 0.375 = 37.5%.; Participation was voluntary.; The observation does not establish a completion rate for all learners.",
+  "sessionMinutes": 30,
+  "map": {
+    "courseName": "Interpreting an observed rate",
+    "lessons": [
+      {
+        "title": "Lesson 1: Proportions and the scope of a sample",
+        "sections": [
+          {
+            "topicSection": "Calculate and interpret an observed proportion",
+            "learningObjectives": "Calculate the observed percentage and explain why it cannot establish a population rate.",
+            "weeklyAssessments": "A short calculation and a bounded interpretation."
+          }
+        ]
+      }
+    ]
+  },
+  "lessonContent": {
+    "lesson-1": {
+      "keyTerms": [],
+      "kernel": {
+        "facts": [
+          "Eight learners attended a fictional optional workshop; three completed the task.",
+          "The observed completion proportion is 3/8 = 0.375 = 37.5%.",
+          "Participation was voluntary.",
+          "The observation does not establish a completion rate for all learners."
+        ],
+        "provenance": {
+          "source": "compiler-owned-exact-source-ledger",
+          "authority": "instructor-supplied",
+          "copiedFactsVerbatim": true,
+          "factCount": 4
+        }
+      }
+    }
+  },
+  "expectations": {
+    "singleSession": true,
+    "arithmetic": {
+      "fraction": "3/8",
+      "decimal": "0.375",
+      "percent": "37.5"
+    },
+    "selfContained": true
+  }
+}

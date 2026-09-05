@@ -1,0 +1,146 @@
+{
+  "id": "experimental-design",
+  "split": "development",
+  "provenance": {
+    "kind": "previously-captured-model-kernel",
+    "capturedAt": "2026-09-05T11:49:00.963Z",
+    "note": "Replay of earlier hosted generation; no hosted API call in this benchmark."
+  },
+  "sourceBrief": "A 50-minute introductory undergraduate workshop. Use only these supplied facts. All examples are fictional.\n1. An independent variable is the condition deliberately changed by an experimenter.\n2. A dependent variable is the measured outcome of an experiment.\n3. A controlled variable is a condition kept the same across comparison groups.\n4. A confounding variable differs systematically between groups and offers an alternative explanation for an observed outcome.\n5. In a fictional plant experiment, Group A receives fertilizer and eight hours of light daily while Group B receives no fertilizer and four hours of light daily; both use the same seed type and water volume.\n6. Plant height after two weeks is the outcome; because fertilizer and light both differ, this comparison cannot isolate the effect of fertilizer.\n7. Random assignment allocates experimental units by chance to conditions; keeping light equal while changing fertilizer removes the stated light difference from the comparison.",
+  "map": {
+    "courseName": "Designing a fair comparison",
+    "semester": "Instructor review draft",
+    "lessons": [
+      {
+        "title": "Lesson 1: Variables, random assignment, and causal limits",
+        "sections": [
+          {
+            "topicSection": "Variables, random assignment, and causal limits",
+            "learningGoals": "Identify a confounded comparison and propose a design that isolates the variable being tested.",
+            "learningObjectives": "Identify a confounded comparison and propose a design that isolates the variable being tested.",
+            "weeklyAssessments": "An individual written explanation supported by the supplied facts.",
+            "syncActivities": "Compare claims and justify a conclusion using the supplied record.",
+            "asyncActivities": "Revisit the supplied facts and revise one unsupported claim."
+          }
+        ]
+      }
+    ]
+  },
+  "lessonContent": {
+    "lesson-1": {
+      "quizItems": [
+        {
+          "index": 0,
+          "type": "multiple_choice",
+          "question": "A researcher changes the amount of water given to plants and then measures the total growth of the leaves. Which terms describe the water amount and the growth measurement respectively?",
+          "options": [
+            "Independent and dependent variables",
+            "Controlled and dependent variables",
+            "Dependent and independent variables",
+            "Confounding and controlled variables"
+          ],
+          "answerIndex": 0,
+          "distractorRationales": [
+            "The dependent variable is the condition the researcher controls.",
+            "The independent variable is the result of the experiment.",
+            "A confounding variable is kept the same across all groups."
+          ],
+          "answer": "",
+          "explanation": "Independent and dependent variables because the water is deliberately changed and growth is the measured outcome, whereas controlled variables remain the same.",
+          "scoringGuidance": ""
+        },
+        {
+          "index": 3,
+          "type": "short_answer",
+          "question": "A team must interpret this case: Changing the amount of fertilizer given to plants. The evidence must distinguish Independent variable from this misconception: The independent variable is the result of the experiment. The record also states: An independent variable is the condition deliberately changed by an experimenter. The team must choose the defensible interpretation and name the boundary of the supplied evidence. Identify the course method that best explains the evidence. State a case-bounded conclusion. Reference at least two case details. Name one alternative or limitation.",
+          "options": [],
+          "answerIndex": 0,
+          "distractorRationales": [],
+          "answer": "The evidence points first to Independent variable. A specific experimental condition that an experimenter deliberately changes to observe its effect. This context defines the decision. A team must interpret this case: Changing the amount of fertilizer given to plants. The relevant course claim is that an independent variable is the condition deliberately changed by an experimenter. Ground the recommendation in the recorded Independent variable evidence, competing Independent variable readings, and one unresolved Independent variable limit. Name the remaining limitation before extending the claim.",
+          "explanation": "",
+          "scoringGuidance": "A complete response identifies Independent variable and ties its conclusion to the recorded Independent variable evidence, competing Independent variable readings, and one unresolved Independent variable limit. It limits the claim and names what evidence would change the decision."
+        },
+        {
+          "index": 5,
+          "type": "essay",
+          "question": "A common claim about Independent variable is: \"The independent variable is the result of the experiment.\" Evaluate this claim — what does the course evidence actually support? Take a position and defend it, drawing on Independent variable and evidence from the recorded Independent variable evidence, competing Independent variable readings, and one unresolved Independent variable limit.",
+          "options": [],
+          "answerIndex": 0,
+          "distractorRationales": [],
+          "answer": "A defensible position: It is incorrect that the result of the experiment; instead, the condition deliberately changed by an experimenter. In a scenario where a team must interpret this case: Changing the amount of fertilizer given to plants, this is a case of Independent variable: a specific experimental condition that an experimenter deliberately changes to observe its effect. The key supporting evidence: an independent variable is the condition deliberately changed by an experimenter. A well-supported answer names the opposing view — the independent variable is the result of the experiment — and then shows why the evidence favors the main claim.",
+          "explanation": "",
+          "scoringGuidance": "Score the essay by tracing claim, counterclaim, evidence, and conclusion; unsupported position statements should not receive full credit."
+        }
+      ],
+      "keyTerms": [
+        {
+          "term": "Independent variable",
+          "definition": "A specific experimental condition that an experimenter deliberately changes to observe its effect.",
+          "example": "Changing the amount of fertilizer given to plants.",
+          "misconception": "The independent variable is the result of the experiment.",
+          "correction": "It is incorrect that the result of the experiment; instead, the condition deliberately changed by an experimenter."
+        },
+        {
+          "term": "Dependent variable",
+          "definition": "The specific measurement or outcome that an experimenter observes to assess the effect of a change.",
+          "example": "Measuring the height of plants.",
+          "misconception": "The dependent variable is the condition the researcher controls.",
+          "correction": "It is incorrect that the condition the researcher controls; instead, the measured outcome of an experiment."
+        },
+        {
+          "term": "Confounding variable",
+          "definition": "A factor that differs systematically between groups and provides an alternative explanation for a result.",
+          "example": "Differing light levels between groups.",
+          "misconception": "A confounding variable is kept the same across all groups.",
+          "correction": "It is incorrect that is kept the same across all groups; instead, differs systematically between groups."
+        }
+      ],
+      "slideContent": [
+        {
+          "title": "An independent variable is the condition deliberately changed by an experimenter",
+          "bullets": [
+            "A dependent variable is the measured outcome of an experiment",
+            "A controlled variable is a condition kept the same across comparison groups",
+            "A confounding variable differs systematically between groups and offers an alternative explanation for an observed outcome"
+          ],
+          "notes": "An independent variable is the condition deliberately changed by an experimenter. A specific experimental condition that an experimenter deliberately changes to observe its effect."
+        },
+        {
+          "title": "Independent variable is commonly misread — the evidence says otherwise",
+          "bullets": [
+            "Changing the amount of fertilizer given to plants",
+            "Measuring the height of plants",
+            "Random assignment allocates experimental units by chance to conditions; keeping light equal while changing fertilizer removes the stated light difference from the comparison"
+          ],
+          "notes": "Common misunderstanding: The independent variable is the result of the experiment. Use Changing the amount of fertilizer given to plants. to correct it."
+        }
+      ],
+      "kernel": {
+        "facts": [
+          "An independent variable is the condition deliberately changed by an experimenter.",
+          "A dependent variable is the measured outcome of an experiment.",
+          "A controlled variable is a condition kept the same across comparison groups.",
+          "A confounding variable differs systematically between groups and offers an alternative explanation for an observed outcome.",
+          "Random assignment allocates experimental units by chance to conditions; keeping light equal while changing fertilizer removes the stated light difference from the comparison."
+        ],
+        "scenario": {
+          "setup": "A team must interpret this case: Changing the amount of fertilizer given to plants. The evidence must distinguish Independent variable from this misconception: The independent variable is the result of the experiment. The record also states: An independent variable is the condition deliberately changed by an experimenter. The team must choose the defensible interpretation and name the boundary of the supplied evidence.",
+          "materials": "the recorded Independent variable evidence, competing Independent variable readings, and one unresolved Independent variable limit",
+          "source": "derived-kernel-fallback"
+        },
+        "provenance": {
+          "source": "compiler-owned-exact-source-ledger",
+          "authority": "instructor-supplied",
+          "copiedFactsVerbatim": true,
+          "factCount": 5
+        }
+      },
+      "enrichmentSource": "compiler-owned-exact-source-ledger"
+    }
+  },
+  "sessionMinutes": 50,
+  "expectations": {
+    "singleSession": true,
+    "selfContained": true
+  }
+}

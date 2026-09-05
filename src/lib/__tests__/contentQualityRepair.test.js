@@ -6,6 +6,24 @@ import { knownOffenderFitsScope } from '../quality/knownOffenderScope';
 import { normalizeQuarantinedEvidenceText } from '../sourceEvidenceAdmission';
 
 describe('contentQualityRepair (v0.12.1 P2)', () => {
+  it('preserves complete reference answers and teacher feedback despite repeated evidence', () => {
+    const fact = 'Night-shift workers could not attend the daytime workshop.';
+    const answer = `The sample excludes these workers. ${fact}`;
+    const data = {
+      lessonPlans: [
+        {
+          sourceEvidenceBrief: { claims: [fact] },
+          summary: fact,
+          outline: Array.from({ length: 3 }, () => ({ instructorNotes: `Expected response: ${answer}` })),
+          formativeCheck: { expectedAnswer: answer, scoringGuidance: `Check this limitation: ${fact}` },
+        },
+      ],
+    };
+    const repaired = repairDeliverableContentQuality('lessonPlans', data, { sourceFacts: [fact] }).data.lessonPlans[0];
+    expect(repaired.formativeCheck.expectedAnswer).toBe(answer);
+    expect(repaired.formativeCheck.scoringGuidance).toContain(fact);
+    expect(repaired.outline.every((r) => r.instructorNotes === `Expected response: ${answer}`)).toBe(true);
+  });
   it('never compacts a shorter ledger fact inside a semantic answer field', () => {
     const shortFact = 'Evidence triangulation compares independent records before a researcher extends a claim';
     const richerDefinition = `${shortFact} and requires the researcher to explain any conflict.`;
@@ -984,7 +1002,7 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     expect(result.repeatedPhraseCount).toBe(0);
   });
 
-  it('caps every explicit long source fact per exported artifact instead of chasing one sentence at a time', () => {
+  it('compacts repeated explanatory prose while preserving the ledger, reference answer and teacher check', () => {
     const branchingFact =
       'Conditional branching logic allows programs to execute different blocks of code based on specified conditions.';
     const iterationFact =
@@ -1024,10 +1042,13 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     expect(result.repairedStrings).toBeGreaterThan(0);
     expect(
       visible.match(/conditional branching logic allows programs to execute different blocks of code/g),
-    ).toHaveLength(1);
+    ).toHaveLength(3);
     expect(
       visible.match(/iterative structures enable the systematic processing of sequential data elements/g),
-    ).toHaveLength(1);
+    ).toHaveLength(3);
+    expect(result.data.lessonPlans[0].formativeCheck.answer).toBe(data.lessonPlans[0].formativeCheck.answer);
+    expect(result.data.lessonPlans[0].outline[0].instructorNotes).toContain(branchingFact);
+    expect(result.data.lessonPlans[0].outline[0].instructorNotes).toContain(iterationFact);
     expect(visible).toContain('the source statement about conditional branching logic');
     expect(visible).not.toContain('the cited source claim');
     expect(result.data.lessonPlans[0].evidencePlan.sourceCue).toContain(branchingFact);

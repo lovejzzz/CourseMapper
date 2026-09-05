@@ -1,5 +1,7 @@
 // Subject-matter slide depth is isolated from the core compiler so it is
 // independently cacheable and cannot silently expand the monolithic path.
+import { SOURCE_ARITHMETIC_PROTOCOL } from './sourceArithmeticStudyPractice.js';
+
 export function createCompilerSlideDepth({
   asArray,
   authenticDataStudyWorkedExample,
@@ -166,6 +168,21 @@ export function createCompilerSlideDepth({
     );
     if (!target) return;
     const result = cleanText(workedExample.result);
+    if (workedExample.protocol === SOURCE_ARITHMETIC_PROTOCOL) {
+      const { numerator, denominator, decimal, percent } = workedExample.verification;
+      target.title = `From ${numerator}/${denominator} to a percentage`;
+      target.bullets = [
+        `Identify the whole: denominator ${denominator}; counted part: numerator ${numerator}.`,
+        `Divide: ${numerator} ÷ ${denominator} = ${decimal}.`,
+        `Convert: ${decimal} × 100 = ${percent}%.`,
+        `Reverse check: ${decimal} × ${denominator} = ${numerator}.`,
+        'Interpret only the observations described in the source. Correct arithmetic alone does not justify a population claim.',
+      ];
+      target.notes = `${problem} ${steps.join(' ')} ${result} ${workedExample.boundary} Ask learners to cover the steps and recover the numerator from the percentage and denominator.`;
+      target.enrichmentSource = 'deterministic-worked-example';
+      target.workedExample = workedExample;
+      return;
+    }
     const isAuthenticEvidence = workedExample?.protocol === 'coursemapper-authentic-evidence-study-practice-v1';
     if (isAuthenticEvidence) {
       const task = lesson?.authenticDataTaskPlan || {};

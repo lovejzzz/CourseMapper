@@ -299,7 +299,15 @@ function collectSourceFactOccurrences(
   order = { value: 0 },
 ) {
   if (typeof node === 'string') {
-    const whole = protectedFacts.has(normalizedSourceFact(node)) || /^(?:definition|definitions)$/i.test(parentKey);
+    const whole =
+      protectedFacts.has(normalizedSourceFact(node)) ||
+      /^(?:definition|definitions|answer|sampleAnswer|expectedAnswer|scoringGuidance|instructorNotes)$/i.test(
+        parentKey,
+      );
+    // Reference answers and teacher checks must remain complete even when
+    // learners saw the same fact earlier. Replacing their evidence with
+    // "recheck the source" destroys the answer. Authority quarantine still
+    // runs before this stylistic repetition pass.
     const localUnit = sourceFactLocalUnit(path);
     sourceFactMatches(node, fact).forEach((match, occurrenceIndex) => {
       const openingQuote = /[“"‘']\s*$/.exec(node.slice(0, match.start))?.[0]?.trim();

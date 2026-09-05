@@ -64,6 +64,19 @@ describe('compiler teaching programs', () => {
     ]);
     expect(p.units.find((unit) => unit.kind === 'calculation').sourceClaims).toEqual([claims[0]]);
   });
+  it('reads the admitted correction field and keeps source limits when practice reaches its cap', () => {
+    const keyTerms = ['Proportion', 'Sample', 'Population'].map((term) => ({
+      term,
+      definition: `The supplied definition of ${term}.`,
+      misconception: `A misleading claim about ${term}.`,
+      correction: `The supplied correction for ${term}.`,
+    }));
+    const p = compileTeachingProgram({ admitted: true, sourceEvidenceBrief: { claims }, keyTerms });
+    expect(p.units).toHaveLength(8);
+    expect(p.units.some((u) => u.answer === keyTerms[0].correction)).toBe(true);
+    expect(p.units.at(-1).kind).toBe('source-boundary');
+    expect(p.units.at(-1).answer).toContain('do not establish a population rate');
+  });
   it('compiles the same complete practice unit into student and teacher materials', () => {
     const map = {
       courseName: 'Sample proportions',

@@ -173,6 +173,12 @@ function scenarioSeed(parts) {
 }
 
 function scenarioEvidencePacket(kernel, term, facts) {
+  if (term?.source === 'fact-ledger-projection') {
+    return {
+      compact: `the supplied claim cards labeled Claim A and Claim B about ${text(term.term)}, their recorded observations, and their stated limits`,
+      general: `the supplied fact record about ${text(term.term)}, its recorded observations, and its explicit evidence limits`,
+    };
+  }
   const context = [
     term?.term,
     term?.definition,

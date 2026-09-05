@@ -1,0 +1,582 @@
+{
+  "reviewer": "Codex",
+  "basis": "Direct review of generated classroom fields and the local-proportions exports; not an independent teacher study.",
+  "scale": "0–4 per README; null means unobserved. No overall numeric average. All ready=false because material-specific review work remains.",
+  "candidateOutputsSha256": {
+    "experimental-design": "596794f75065ae5f06d8bffc40b52822a8a349f80a86277ee181c2855c230e81",
+    "held-proportion-variation": "95319e39414936b7a9cebc3c3f292f286fed6146de48d82c71423e8d8dcd9ed3",
+    "held-two-session-design": "2c403386f55409ac5fe179e7cd35e76c83d9b93250db867dca4510c8851a5de4",
+    "historical-sources": "e88a14ef3856aab04617a7fa8ac087e4d6b9a3d6dd9db53d68d28c9a3e412652",
+    "local-proportions": "43e6f11b0a823abf48bbafd64336092371447e402d6a56077a5820f46068aacb"
+  },
+  "unscoredCases": ["held-proportion-variation", "held-two-session-design"],
+  "reviews": [
+    {
+      "caseId": "local-proportions",
+      "feature": "courseMap",
+      "scores": {
+        "correctness": 3,
+        "instructionalSubstance": 2,
+        "usability": null,
+        "alignment": 2
+      },
+      "classroomReady": false,
+      "evidence": {
+        "outputFile": "local-proportions/outputs.json",
+        "field": "courseMap.lessons.0.sections.0.learningObjectives",
+        "excerpt": "Calculate a sample proportion and distinguish a sample result from a population claim."
+      },
+      "judgmentZh": "目标可观察，但课程图把计算样例名当作概念，学习活动仍泛化。课程图作为冻结输入未改进。",
+      "rendered": null
+    },
+    {
+      "caseId": "local-proportions",
+      "feature": "syllabus",
+      "scores": {
+        "correctness": 2,
+        "instructionalSubstance": 2,
+        "usability": 2,
+        "alignment": 2
+      },
+      "classroomReady": false,
+      "evidence": {
+        "outputFile": "local-proportions/outputs.json",
+        "field": "syllabus.syllabus.deliveryMode",
+        "excerpt": "Weekly seminar, applied practice, discussion, and feedback checkpoint"
+      },
+      "judgmentZh": "单课描述和45分钟meeting已改善；delivery仍写Weekly，四页大纲中制度与教师介绍有大量待确认内容。",
+      "rendered": {
+        "file": "syllabus.docx",
+        "inspectedAllPages": true
+      }
+    },
+    {
+      "caseId": "local-proportions",
+      "feature": "lessonPlans",
+      "scores": {
+        "correctness": 3,
+        "instructionalSubstance": 3,
+        "usability": 2,
+        "alignment": 3
+      },
+      "classroomReady": false,
+      "evidence": {
+        "outputFile": "local-proportions/outputs.json",
+        "field": "lessonPlans.lessonPlans.0.formativeCheck.prompt",
+        "excerpt": "Within the same whole of 20, how much remains after the 16 counted in the numerator? Express the remainder as a count, a fraction, and a percentage."
+      },
+      "judgmentZh": "例题、四种练习、教师答案和45分钟时钟较实用；55分钟课后作业偏重，第二页有大块空白，教师说明仍很密。",
+      "rendered": {
+        "file": "lessonPlans.docx",
+        "inspectedAllPages": true
+      }
+    },
+    {
+      "caseId": "local-proportions",
+      "feature": "slideDecks",
+      "scores": {
+        "correctness": 3,
+        "instructionalSubstance": 2,
+        "usability": 2,
+        "alignment": 2
+      },
+      "classroomReady": false,
+      "evidence": {
+        "outputFile": "local-proportions/outputs.json",
+        "field": "slideDecks.decks.0.slides.7.bullets",
+        "excerpt": "[\"Practice: Test one Worked 16 and 20 choice, then revise\", \"Evidence: Cite one detail supporting the Worked 16 and 20 revision.\", \"Debrief: Name the feedback and Worked 16 and 20 revision to keep.\"]"
+      },
+      "judgmentZh": "第6页现在实际显示四步计算；第8页活动仍是泛化的证据修订，第5页概念图只有主题标签，第12页仍提portfolio synthesis。",
+      "rendered": {
+        "file": "slideDecks.pptx",
+        "inspectedAllPages": true
+      }
+    },
+    {
+      "caseId": "local-proportions",
+      "feature": "assignments",
+      "scores": {
+        "correctness": 3,
+        "instructionalSubstance": 2,
+        "usability": 2,
+        "alignment": 2
+      },
+      "classroomReady": false,
+      "evidence": {
+        "outputFile": "local-proportions/outputs.json",
+        "field": "assignments.assignments.0.title",
+        "excerpt": "Evidence explanation"
+      },
+      "judgmentZh": "提交量改为计算记录及2–4句解释；format仍要求3–5个section，工作量1.4小时。所谓strong/partial样例仍是对样例的描述。",
+      "rendered": {
+        "file": "assignments.docx",
+        "inspectedAllPages": true
+      }
+    },
+    {
+      "caseId": "local-proportions",
+      "feature": "rubrics",
+      "scores": {
+        "correctness": 2,
+        "instructionalSubstance": 1,
+        "usability": 2,
+        "alignment": 1
+      },
+      "classroomReady": false,
+      "evidence": {
+        "outputFile": "local-proportions/outputs.json",
+        "field": "rubrics.rubrics.0.criteria.0.exemplary",
+        "excerpt": "Uses precise research evidence about Worked calculation: 16/20 from Source packet for Worked calculation, uses that evidence to justify a visible choice in Evidence explanation, names a limitation, and avoids invented source detail."
+      },
+      "judgmentZh": "四等级与分值结构有效，但首项按research evidence/source traceability评分，没有直接区分分母颠倒、转换错误和无依据泛化。三页表格过长。",
+      "rendered": {
+        "file": "rubrics.docx",
+        "inspectedAllPages": true
+      }
+    },
+    {
+      "caseId": "local-proportions",
+      "feature": "discussions",
+      "scores": {
+        "correctness": 3,
+        "instructionalSubstance": 2,
+        "usability": 2,
+        "alignment": 2
+      },
+      "classroomReady": false,
+      "evidence": {
+        "outputFile": "local-proportions/outputs.json",
+        "field": "discussions.discussions.0.prompt",
+        "excerpt": "How should this observed proportion be reported to a reader? Use the supplied observations and their stated limits to propose accurate wording, then identify what additional evidence a wider claim would require."
+      },
+      "judgmentZh": "主问题已转为报告范围和所需新证据；部分follow-up仍强迫选择立场，25–30分钟独立讨论与教案活动映射不清。",
+      "rendered": {
+        "file": "discussions.docx",
+        "inspectedAllPages": true
+      }
+    },
+    {
+      "caseId": "local-proportions",
+      "feature": "quizBank",
+      "scores": {
+        "correctness": 2,
+        "instructionalSubstance": 2,
+        "usability": 2,
+        "alignment": 2
+      },
+      "classroomReady": false,
+      "evidence": {
+        "outputFile": "local-proportions/outputs.json",
+        "field": "quizBank.quizzes.0.questions.0.question",
+        "excerpt": "Using the source fraction 16/20, calculate the decimal and percentage. Show a reverse check."
+      },
+      "judgmentZh": "Q1现为真实计算并含完整答案，DOCX可见；其余多数题仍要求泛化的方法解释。Q4标题与答案跨页，试卷缺少书写空间。",
+      "rendered": {
+        "file": "quizBank.docx",
+        "inspectedAllPages": true
+      }
+    },
+    {
+      "caseId": "local-proportions",
+      "feature": "studyGuides",
+      "scores": {
+        "correctness": 3,
+        "instructionalSubstance": 3,
+        "usability": 3,
+        "alignment": 3
+      },
+      "classroomReady": false,
+      "evidence": {
+        "outputFile": "local-proportions/outputs.json",
+        "field": "studyGuides.studyGuides.0.workedExample.result",
+        "excerpt": "16/20 = 0.80 = 80%. This matches the supplied statement: “the sample completion proportion is 16/20 = 0.80 = 80%.”"
+      },
+      "judgmentZh": "有完整演算、四道练习及独立答案页、明确样本边界；同一解释重复多次，尚未提供真正陌生情境迁移测验。",
+      "rendered": {
+        "file": "studyGuides.docx",
+        "inspectedAllPages": true
+      }
+    },
+    {
+      "caseId": "local-proportions",
+      "feature": "courseFaq",
+      "scores": {
+        "correctness": 2,
+        "instructionalSubstance": 2,
+        "usability": 1,
+        "alignment": 2
+      },
+      "classroomReady": false,
+      "evidence": {
+        "outputFile": "local-proportions/outputs.json",
+        "field": "courseFaq.faqs.0.qs.0.an",
+        "excerpt": "Lesson 1: Sample Proportion Calculation feeds directly into the graded task. Calculate 16/20 as a decimal and a percentage, then state the limits of the source evidence. Show the division, percentage conversion and reverse check. Submit the calculation together with a short source-bounded interpretation. Use the Worked calculation: 16/20 success criteria to test your work before submitting."
+      },
+      "judgmentZh": "六问可导航，但强作品回答很长，最后一问把教师指令Ask students交给学生；概念名和任务名重复过多。",
+      "rendered": {
+        "file": "courseFaq.docx",
+        "inspectedAllPages": true
+      }
+    },
+    {
+      "caseId": "historical-sources",
+      "feature": "courseMap",
+      "scores": {
+        "correctness": 3,
+        "instructionalSubstance": 2,
+        "usability": null,
+        "alignment": 2
+      },
+      "classroomReady": false,
+      "evidence": {
+        "outputFile": "historical-sources/outputs.json",
+        "field": "courseMap.lessons.0.sections.0.learningObjectives",
+        "excerpt": "Distinguish documented observations from unsupported historical inferences and explain whether two dates conflict."
+      },
+      "judgmentZh": "课程目标清楚，creation/acquisition与观察推断有教学价值；活动仍只有compare claims层面的提示。",
+      "rendered": null
+    },
+    {
+      "caseId": "historical-sources",
+      "feature": "syllabus",
+      "scores": {
+        "correctness": 2,
+        "instructionalSubstance": 2,
+        "usability": null,
+        "alignment": 2
+      },
+      "classroomReady": false,
+      "evidence": {
+        "outputFile": "historical-sources/outputs.json",
+        "field": "syllabus.syllabus.deliveryMode",
+        "excerpt": "Weekly seminar, applied practice, discussion, and feedback checkpoint"
+      },
+      "judgmentZh": "课程描述已限制为一次workshop；其它周课制度与尚未确认的后勤信息仍需教师整理。",
+      "rendered": null
+    },
+    {
+      "caseId": "historical-sources",
+      "feature": "lessonPlans",
+      "scores": {
+        "correctness": 3,
+        "instructionalSubstance": 1,
+        "usability": null,
+        "alignment": 1
+      },
+      "classroomReady": false,
+      "evidence": {
+        "outputFile": "historical-sources/outputs.json",
+        "field": "lessonPlans.lessonPlans.0.formativeCheck.prompt",
+        "excerpt": "Explain acquisition date in your own words, then compare with the supplied definition."
+      },
+      "judgmentZh": "formative check考acquisition定义，没有要求解释1921/1978或辨别repair推断，和完整目标不等价。",
+      "rendered": null
+    },
+    {
+      "caseId": "historical-sources",
+      "feature": "slideDecks",
+      "scores": {
+        "correctness": 2,
+        "instructionalSubstance": 2,
+        "usability": null,
+        "alignment": 2
+      },
+      "classroomReady": false,
+      "evidence": {
+        "outputFile": "historical-sources/outputs.json",
+        "field": "slideDecks.decks.0.slides.7.bullets",
+        "excerpt": "[\"Tempting claim: The creation date must match the date a museum receives an object. Correction: It is incorrect that must match the date a museum receives an object, instead, describes a different event than acquisition.\", \"Common misconception: An acquisition date identifies when the object was originally drawn. Better reasoning: It is incorrect that identifies when the object was originally drawn, instead, records that the museum received the map.\", \"Students may assume documented observations prove the full history and purpose of an object. Corrective check: It is incorrect that prove the full history and purpose of an object, instead, ca"
+      },
+      "judgmentZh": "pitfalls页94字以上且纠错句缺主语；事实卡可以使用，但缺清楚的两种事件时间线与已知/未知分区。",
+      "rendered": null
+    },
+    {
+      "caseId": "historical-sources",
+      "feature": "assignments",
+      "scores": {
+        "correctness": 2,
+        "instructionalSubstance": 1,
+        "usability": null,
+        "alignment": 1
+      },
+      "classroomReady": false,
+      "evidence": {
+        "outputFile": "historical-sources/outputs.json",
+        "field": "assignments.assignments.0.title",
+        "excerpt": "An individual written explanation supported"
+      },
+      "judgmentZh": "标题被压成An individual written explanation supported，出现Week 1 supported，750–1250词不适合此小型记录比较。",
+      "rendered": null
+    },
+    {
+      "caseId": "historical-sources",
+      "feature": "rubrics",
+      "scores": {
+        "correctness": 2,
+        "instructionalSubstance": 1,
+        "usability": null,
+        "alignment": 1
+      },
+      "classroomReady": false,
+      "evidence": {
+        "outputFile": "historical-sources/outputs.json",
+        "field": "rubrics.rubrics.0.criteria.0.exemplary",
+        "excerpt": "Uses precise source evidence about creation date from physical evidence lesson materials, uses that evidence to justify a visible choice in the Week 1 supported, names a limitation, and avoids invented source detail."
+      },
+      "judgmentZh": "优秀档要求source evidence和visible choice，没有具体要求两日期对应事件、维修日期未知和观察/推断区别。",
+      "rendered": null
+    },
+    {
+      "caseId": "historical-sources",
+      "feature": "discussions",
+      "scores": {
+        "correctness": 2,
+        "instructionalSubstance": 2,
+        "usability": null,
+        "alignment": 1
+      },
+      "classroomReady": false,
+      "evidence": {
+        "outputFile": "historical-sources/outputs.json",
+        "field": "discussions.discussions.0.prompt",
+        "excerpt": "Which interpretation of creation date is best supported by map margin, accession register, and what detail could change that conclusion?"
+      },
+      "judgmentZh": "把creation date定义包装成interpretation对立；应直接讨论两条记录能同时成立及哪些历史结论不可推。",
+      "rendered": null
+    },
+    {
+      "caseId": "historical-sources",
+      "feature": "quizBank",
+      "scores": {
+        "correctness": 2,
+        "instructionalSubstance": 2,
+        "usability": null,
+        "alignment": 2
+      },
+      "classroomReady": false,
+      "evidence": {
+        "outputFile": "historical-sources/outputs.json",
+        "field": "quizBank.quizzes.0.questions.0.question",
+        "excerpt": "A museum record lists a map drawn in 1921 and received in 1978. How should these two dates be categorized?"
+      },
+      "judgmentZh": "首题日期分类与B答案正确，具备真实诊断价值；干扰项反馈串联错误陈述，部分高阶题仍是通用写作要求。",
+      "rendered": null
+    },
+    {
+      "caseId": "historical-sources",
+      "feature": "studyGuides",
+      "scores": {
+        "correctness": 2,
+        "instructionalSubstance": 1,
+        "usability": null,
+        "alignment": 1
+      },
+      "classroomReady": false,
+      "evidence": {
+        "outputFile": "historical-sources/outputs.json",
+        "field": "studyGuides.studyGuides.0.workedExample.result",
+        "excerpt": "A defensible response preserves Source Claims 1 and 2 as separate evidence, states whether the second reinforces, qualifies, or conflicts with the first, and limits the acquisition date conclusion to what their exact wording supports. The Week 1 supported does not claim a broader result until that relationship and the missing evidence are made explicit."
+      },
+      "judgmentZh": "worked result说应当判断reinforces/qualifies/conflicts，但没有给出实际判定。保留的三道source-comparison复习题无答案。",
+      "rendered": null
+    },
+    {
+      "caseId": "historical-sources",
+      "feature": "courseFaq",
+      "scores": {
+        "correctness": 2,
+        "instructionalSubstance": 1,
+        "usability": null,
+        "alignment": 2
+      },
+      "classroomReady": false,
+      "evidence": {
+        "outputFile": "historical-sources/outputs.json",
+        "field": "courseFaq.faqs.0.qs.0.an",
+        "excerpt": "It is incorrect that must match the date a museum receives an object; instead, describes a different event than acquisition. The source frames creation date through this source-backed statement: A date marking when an object was produced, which differs from when it was acquired. For example: A map margin marked drawn in 1921."
+      },
+      "judgmentZh": "首答It is incorrect that must match缺主语；有正确术语定义，但不能按有答案字段就认定学生能理解。",
+      "rendered": null
+    },
+    {
+      "caseId": "experimental-design",
+      "feature": "courseMap",
+      "scores": {
+        "correctness": 3,
+        "instructionalSubstance": 2,
+        "usability": null,
+        "alignment": 2
+      },
+      "classroomReady": false,
+      "evidence": {
+        "outputFile": "experimental-design/outputs.json",
+        "field": "courseMap.lessons.0.sections.0.learningObjectives",
+        "excerpt": "Identify a confounded comparison and propose a design that isolates the variable being tested."
+      },
+      "judgmentZh": "目标要求识别confound并提出设计修复，明确且可测；活动与评估任务尚未展开到真实分组差异。",
+      "rendered": null
+    },
+    {
+      "caseId": "experimental-design",
+      "feature": "syllabus",
+      "scores": {
+        "correctness": 2,
+        "instructionalSubstance": 2,
+        "usability": null,
+        "alignment": 2
+      },
+      "classroomReady": false,
+      "evidence": {
+        "outputFile": "experimental-design/outputs.json",
+        "field": "syllabus.syllabus.deliveryMode",
+        "excerpt": "Weekly seminar, applied practice, discussion, and feedback checkpoint"
+      },
+      "judgmentZh": "单次workshop描述改善，但大纲模板仍过长且有weekly内容，未渲染此案例。",
+      "rendered": null
+    },
+    {
+      "caseId": "experimental-design",
+      "feature": "lessonPlans",
+      "scores": {
+        "correctness": 3,
+        "instructionalSubstance": 1,
+        "usability": null,
+        "alignment": 1
+      },
+      "classroomReady": false,
+      "evidence": {
+        "outputFile": "experimental-design/outputs.json",
+        "field": "lessonPlans.lessonPlans.0.formativeCheck.prompt",
+        "excerpt": "Explain Dependent variable in your own words, then compare with the supplied definition."
+      },
+      "judgmentZh": "formative check只问dependent variable定义，不足以检验设计修复。需要让学生指出光照差异并修改分组。",
+      "rendered": null
+    },
+    {
+      "caseId": "experimental-design",
+      "feature": "slideDecks",
+      "scores": {
+        "correctness": 2,
+        "instructionalSubstance": 2,
+        "usability": null,
+        "alignment": 1
+      },
+      "classroomReady": false,
+      "evidence": {
+        "outputFile": "experimental-design/outputs.json",
+        "field": "slideDecks.decks.0.slides.7.bullets",
+        "excerpt": "[\"Tempting claim: A confounding variable is kept the same across all groups. Correction: It is incorrect that is kept the same across all groups, instead, differs systematically between groups.\", \"Common misconception: The independent variable is the result of the experiment. Better reasoning: It is incorrect that the result of the experiment, instead, the condition deliberately changed by an experimenter.\", \"Students may assume the dependent variable is the condition the researcher controls. Corrective check: It is incorrect that the condition the researcher controls, instead, the measured outcome of an experiment.\"]"
+      },
+      "judgmentZh": "pitfalls页面较密且纠错句残缺；缺少与给定肥料/光照组别对应的设计比较。",
+      "rendered": null
+    },
+    {
+      "caseId": "experimental-design",
+      "feature": "assignments",
+      "scores": {
+        "correctness": 2,
+        "instructionalSubstance": 1,
+        "usability": null,
+        "alignment": 1
+      },
+      "classroomReady": false,
+      "evidence": {
+        "outputFile": "experimental-design/outputs.json",
+        "field": "assignments.assignments.0.title",
+        "excerpt": "An individual written explanation supported"
+      },
+      "judgmentZh": "任务名断裂为Week 1 supported，指令用Independent variable替换主题；没有明确要求消除光照混淆。",
+      "rendered": null
+    },
+    {
+      "caseId": "experimental-design",
+      "feature": "rubrics",
+      "scores": {
+        "correctness": 2,
+        "instructionalSubstance": 1,
+        "usability": null,
+        "alignment": 1
+      },
+      "classroomReady": false,
+      "evidence": {
+        "outputFile": "experimental-design/outputs.json",
+        "field": "rubrics.rubrics.0.criteria.0.exemplary",
+        "excerpt": "Uses precise source evidence about Independent variable from causal limits lesson materials, uses that evidence to justify a visible choice in the Week 1 supported, names a limitation, and avoids invented source detail."
+      },
+      "judgmentZh": "rubric偏source traceability，不能区分增加样本但保留光照差异与真正控制光照的设计。",
+      "rendered": null
+    },
+    {
+      "caseId": "experimental-design",
+      "feature": "discussions",
+      "scores": {
+        "correctness": 2,
+        "instructionalSubstance": 1,
+        "usability": null,
+        "alignment": 1
+      },
+      "classroomReady": false,
+      "evidence": {
+        "outputFile": "experimental-design/outputs.json",
+        "field": "discussions.discussions.0.prompt",
+        "excerpt": "Which interpretation of Independent variable is best supported by the recorded Independent variable evidence, competing Independent variable readings, and one unresolved Independent variable limit, and what detail could change that conclusion?"
+      },
+      "judgmentZh": "讨论哪种Independent variable解释更好，偏离材料中真正可讨论的因果归因和设计选择。",
+      "rendered": null
+    },
+    {
+      "caseId": "experimental-design",
+      "feature": "quizBank",
+      "scores": {
+        "correctness": 2,
+        "instructionalSubstance": 2,
+        "usability": null,
+        "alignment": 1
+      },
+      "classroomReady": false,
+      "evidence": {
+        "outputFile": "experimental-design/outputs.json",
+        "field": "quizBank.quizzes.0.questions.0.question",
+        "excerpt": "A researcher changes the amount of water given to plants and then measures the total growth of the leaves. Which terms describe the water amount and the growth measurement respectively?"
+      },
+      "judgmentZh": "首题分类答案正确，但擅自换成水量/叶片生长情境，与only supplied facts约束不一致；回忆定义不代表设计能力。",
+      "rendered": null
+    },
+    {
+      "caseId": "experimental-design",
+      "feature": "studyGuides",
+      "scores": {
+        "correctness": 2,
+        "instructionalSubstance": 1,
+        "usability": null,
+        "alignment": 1
+      },
+      "classroomReady": false,
+      "evidence": {
+        "outputFile": "experimental-design/outputs.json",
+        "field": "studyGuides.studyGuides.0.workedExample.result",
+        "excerpt": "A defensible response preserves Source Claims 1 and 2 as separate evidence, states whether the second reinforces, qualifies, or conflicts with the first, and limits the Dependent variable conclusion to what their exact wording supports. The Week 1 supported does not claim a broader result until that relationship and the missing evidence are made explicit."
+      },
+      "judgmentZh": "比较前两条IV/DV定义的程序提示替代了具体植物实验的解答；三个复习问题无答案。",
+      "rendered": null
+    },
+    {
+      "caseId": "experimental-design",
+      "feature": "courseFaq",
+      "scores": {
+        "correctness": 2,
+        "instructionalSubstance": 1,
+        "usability": null,
+        "alignment": 1
+      },
+      "classroomReady": false,
+      "evidence": {
+        "outputFile": "experimental-design/outputs.json",
+        "field": "courseFaq.faqs.0.qs.0.an",
+        "excerpt": "It is incorrect that the result of the experiment; instead, the condition deliberately changed by an experimenter. The source frames Independent variable through this source-backed statement: A specific experimental condition that an experimenter deliberately changes to observe its effect. For example: Changing the amount of fertilizer given to plants."
+      },
+      "judgmentZh": "首答It is incorrect that the result of the experiment语法不完整，任务FAQ继续重复截断的作业名。",
+      "rendered": null
+    }
+  ]
+}

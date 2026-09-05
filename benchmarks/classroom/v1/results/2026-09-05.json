@@ -1,0 +1,1339 @@
+{
+  "comparisonRule": "Same frozen corpus and checker for both sides; counts are defect probes, not educational scores.",
+  "calibration": "Accept actual letter choice keys and short numeric answers. Do not award calculation coverage for the noun calculation in a topic label; require a calculation request. Corruption tests cover these distinctions. Both saved outputs were regraded after calibration.",
+  "baseline": {
+    "protocol": "edutool-classroom-output-benchmark-v1",
+    "createdAt": "2026-09-05T18:42:23.300Z",
+    "modelCalls": 0,
+    "mode": "regrade saved outputs without regeneration",
+    "compilerRevision": "379e5e62fe2b4639e0ba1029a0e5a7c839748530",
+    "compilerDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "referenceTasksSha256": "0f50bb0d3724eba3783e36f267db140edfaa220d3eb6529c88a667a87babc291",
+    "checkerSha256": "c1f9d8f15956b44a9eae6f85dfc024d98a395b872464d4fe26c016aa7005d8c9",
+    "corpusSha256": "04a52bdfc033162db427fcb409b60cac26a35979f515c04554ac0f8a91b91c4d",
+    "cases": [
+      {
+        "caseId": "experimental-design",
+        "split": "development",
+        "summary": [
+          {
+            "feature": "courseMap",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "syllabus",
+            "passed": 5,
+            "failed": 1,
+            "critical": 0
+          },
+          {
+            "feature": "lessonPlans",
+            "passed": 6,
+            "failed": 1,
+            "critical": 0
+          },
+          {
+            "feature": "slideDecks",
+            "passed": 5,
+            "failed": 1,
+            "critical": 0
+          },
+          {
+            "feature": "assignments",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "rubrics",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "discussions",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "quizBank",
+            "passed": 7,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "studyGuides",
+            "passed": 4,
+            "failed": 2,
+            "critical": 0
+          },
+          {
+            "feature": "courseFaq",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          }
+        ],
+        "educationalJudgment": "Required separately: source truth, objective coverage, scaffolding, rubric validity, pacing and rendered usability. These checks are defect probes, not an educational quality score.",
+        "elapsedMs": 934,
+        "outputsSha256": "f7d4ff4ad97770a063f1430ead9b13555d230bad58662e32e9178dc27683fb45",
+        "inputProvenance": {
+          "kind": "previously-captured-model-kernel",
+          "capturedAt": "2026-09-05T11:49:00.963Z",
+          "note": "Replay of earlier hosted generation; no hosted API call in this benchmark."
+        },
+        "failures": [
+          {
+            "feature": "syllabus",
+            "id": "single-session-scope",
+            "status": "fail",
+            "severity": "major",
+            "evidence": ["Weekly course sessions", "later course topics"]
+          },
+          {
+            "feature": "lessonPlans",
+            "id": "single-session-scope",
+            "status": "fail",
+            "severity": "major",
+            "evidence": ["final course synthesis"]
+          },
+          {
+            "feature": "studyGuides",
+            "id": "single-session-scope",
+            "status": "fail",
+            "severity": "major",
+            "evidence": ["final course synthesis"]
+          },
+          {
+            "feature": "slideDecks",
+            "id": "slide-density",
+            "status": "fail",
+            "severity": "major",
+            "evidence": [
+              {
+                "row": 0,
+                "detail": [
+                  {
+                    "slide": 8,
+                    "words": 94
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "feature": "studyGuides",
+            "id": "answerable-self-study",
+            "status": "fail",
+            "severity": "major",
+            "evidence": [
+              {
+                "row": 0,
+                "detail": "A review question has no self-check answer."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "caseId": "held-proportion-variation",
+        "split": "held-out",
+        "summary": [
+          {
+            "feature": "courseMap",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "syllabus",
+            "passed": 5,
+            "failed": 1,
+            "critical": 0
+          },
+          {
+            "feature": "lessonPlans",
+            "passed": 7,
+            "failed": 1,
+            "critical": 0
+          },
+          {
+            "feature": "slideDecks",
+            "passed": 5,
+            "failed": 1,
+            "critical": 0
+          },
+          {
+            "feature": "assignments",
+            "passed": 5,
+            "failed": 1,
+            "critical": 0
+          },
+          {
+            "feature": "rubrics",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "discussions",
+            "passed": 5,
+            "failed": 1,
+            "critical": 0
+          },
+          {
+            "feature": "quizBank",
+            "passed": 8,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "studyGuides",
+            "passed": 7,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "courseFaq",
+            "passed": 4,
+            "failed": 1,
+            "critical": 0
+          }
+        ],
+        "educationalJudgment": "Required separately: source truth, objective coverage, scaffolding, rubric validity, pacing and rendered usability. These checks are defect probes, not an educational quality score.",
+        "elapsedMs": 129,
+        "outputsSha256": "5fb6f884f8d610b4b5b1ebaa8723f1c7457a672769977f5e34a1c222839b22be",
+        "inputProvenance": {
+          "kind": "author-constructed-held-out",
+          "note": "Different fraction and lesson duration; exact-source input, not a new model run."
+        },
+        "failures": [
+          {
+            "feature": "syllabus",
+            "id": "single-session-scope",
+            "status": "fail",
+            "severity": "major",
+            "evidence": ["Weekly course sessions", "later course topics"]
+          },
+          {
+            "feature": "lessonPlans",
+            "id": "single-session-scope",
+            "status": "fail",
+            "severity": "major",
+            "evidence": ["final course synthesis"]
+          },
+          {
+            "feature": "slideDecks",
+            "id": "slide-density",
+            "status": "fail",
+            "severity": "major",
+            "evidence": [
+              {
+                "row": 0,
+                "detail": [
+                  {
+                    "slide": 6,
+                    "words": 111
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "feature": "assignments",
+            "id": "proportionate-task",
+            "status": "fail",
+            "severity": "major",
+            "evidence": [
+              {
+                "row": 0,
+                "detail": "A short calculation task inherits a 750–1,250-word essay option."
+              }
+            ]
+          },
+          {
+            "feature": "discussions",
+            "id": "no-false-arithmetic-debate",
+            "status": "fail",
+            "severity": "major",
+            "evidence": [
+              {
+                "row": 0,
+                "detail": "A verified calculation is framed as competing factual interpretations."
+              }
+            ]
+          },
+          {
+            "feature": "courseFaq",
+            "id": "direct-concise-answers",
+            "status": "fail",
+            "severity": "major",
+            "evidence": [
+              {
+                "row": 0,
+                "detail": [
+                  {
+                    "question": "What does strong work on Proportions and the scope of a sample look like?",
+                    "words": 134
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "caseId": "held-two-session-design",
+        "split": "held-out",
+        "summary": [
+          {
+            "feature": "courseMap",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "syllabus",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "lessonPlans",
+            "passed": 5,
+            "failed": 1,
+            "critical": 0
+          },
+          {
+            "feature": "slideDecks",
+            "passed": 4,
+            "failed": 1,
+            "critical": 0
+          },
+          {
+            "feature": "assignments",
+            "passed": 4,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "rubrics",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "discussions",
+            "passed": 4,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "quizBank",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "studyGuides",
+            "passed": 3,
+            "failed": 2,
+            "critical": 0
+          },
+          {
+            "feature": "courseFaq",
+            "passed": 3,
+            "failed": 1,
+            "critical": 0
+          }
+        ],
+        "educationalJudgment": "Required separately: source truth, objective coverage, scaffolding, rubric validity, pacing and rendered usability. These checks are defect probes, not an educational quality score.",
+        "elapsedMs": 267,
+        "outputsSha256": "2c403386f55409ac5fe179e7cd35e76c83d9b93250db867dca4510c8851a5de4",
+        "inputProvenance": {
+          "kind": "author-constructed-held-out",
+          "note": "Two different objectives with the same fictional source record; detects single-session special-casing."
+        },
+        "failures": [
+          {
+            "feature": "lessonPlans",
+            "id": "usable-feedback-answer",
+            "status": "fail",
+            "severity": "major",
+            "evidence": [
+              {
+                "row": 0,
+                "detail": "Collect one annotated Week 1 supported line or checkpoint response showing how Confounding variable evidence from the assigned course materials for Identify variables supports the decision."
+              },
+              {
+                "row": 1,
+                "detail": "Collect one annotated Week 2 supported line or checkpoint response showing how Repair the comparison evidence from Repair comparison and bound conclusion lesson supports the decision."
+              }
+            ]
+          },
+          {
+            "feature": "slideDecks",
+            "id": "slide-density",
+            "status": "fail",
+            "severity": "major",
+            "evidence": [
+              {
+                "row": 0,
+                "detail": [
+                  {
+                    "slide": 6,
+                    "words": 101
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "feature": "studyGuides",
+            "id": "answerable-self-study",
+            "status": "fail",
+            "severity": "major",
+            "evidence": [
+              {
+                "row": 0,
+                "detail": "A review question has no self-check answer."
+              },
+              {
+                "row": 1,
+                "detail": "A review question has no self-check answer."
+              }
+            ]
+          },
+          {
+            "feature": "studyGuides",
+            "id": "worked-example",
+            "status": "fail",
+            "severity": "major",
+            "evidence": [
+              {
+                "row": 1,
+                "detail": "Missing worked reasoning or result."
+              }
+            ]
+          },
+          {
+            "feature": "courseFaq",
+            "id": "direct-concise-answers",
+            "status": "fail",
+            "severity": "major",
+            "evidence": [
+              {
+                "row": 1,
+                "detail": [
+                  {
+                    "question": "What does strong work on Repair the comparison look like?",
+                    "words": 131
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "caseId": "historical-sources",
+        "split": "development",
+        "summary": [
+          {
+            "feature": "courseMap",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "syllabus",
+            "passed": 5,
+            "failed": 1,
+            "critical": 0
+          },
+          {
+            "feature": "lessonPlans",
+            "passed": 6,
+            "failed": 1,
+            "critical": 0
+          },
+          {
+            "feature": "slideDecks",
+            "passed": 5,
+            "failed": 1,
+            "critical": 0
+          },
+          {
+            "feature": "assignments",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "rubrics",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "discussions",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "quizBank",
+            "passed": 7,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "studyGuides",
+            "passed": 4,
+            "failed": 2,
+            "critical": 0
+          },
+          {
+            "feature": "courseFaq",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          }
+        ],
+        "educationalJudgment": "Required separately: source truth, objective coverage, scaffolding, rubric validity, pacing and rendered usability. These checks are defect probes, not an educational quality score.",
+        "elapsedMs": 147,
+        "outputsSha256": "ff1d038a7ce551d17d255fcf46198c3fa26687fe39451eba650ef11fbf8fa011",
+        "inputProvenance": {
+          "kind": "previously-captured-model-kernel",
+          "capturedAt": "2026-09-05T11:46:07.854Z",
+          "note": "Replay of earlier hosted generation; no hosted API call in this benchmark."
+        },
+        "failures": [
+          {
+            "feature": "syllabus",
+            "id": "single-session-scope",
+            "status": "fail",
+            "severity": "major",
+            "evidence": ["Weekly course sessions", "later course topics"]
+          },
+          {
+            "feature": "lessonPlans",
+            "id": "single-session-scope",
+            "status": "fail",
+            "severity": "major",
+            "evidence": ["final course synthesis"]
+          },
+          {
+            "feature": "studyGuides",
+            "id": "single-session-scope",
+            "status": "fail",
+            "severity": "major",
+            "evidence": ["final course synthesis"]
+          },
+          {
+            "feature": "slideDecks",
+            "id": "slide-density",
+            "status": "fail",
+            "severity": "major",
+            "evidence": [
+              {
+                "row": 0,
+                "detail": [
+                  {
+                    "slide": 8,
+                    "words": 111
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "feature": "studyGuides",
+            "id": "answerable-self-study",
+            "status": "fail",
+            "severity": "major",
+            "evidence": [
+              {
+                "row": 0,
+                "detail": "A review question has no self-check answer."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "caseId": "local-proportions",
+        "split": "development",
+        "summary": [
+          {
+            "feature": "courseMap",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "syllabus",
+            "passed": 5,
+            "failed": 1,
+            "critical": 0
+          },
+          {
+            "feature": "lessonPlans",
+            "passed": 6,
+            "failed": 2,
+            "critical": 1
+          },
+          {
+            "feature": "slideDecks",
+            "passed": 5,
+            "failed": 1,
+            "critical": 0
+          },
+          {
+            "feature": "assignments",
+            "passed": 4,
+            "failed": 2,
+            "critical": 1
+          },
+          {
+            "feature": "rubrics",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "discussions",
+            "passed": 4,
+            "failed": 2,
+            "critical": 1
+          },
+          {
+            "feature": "quizBank",
+            "passed": 6,
+            "failed": 2,
+            "critical": 1
+          },
+          {
+            "feature": "studyGuides",
+            "passed": 7,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "courseFaq",
+            "passed": 3,
+            "failed": 2,
+            "critical": 1
+          }
+        ],
+        "educationalJudgment": "Required separately: source truth, objective coverage, scaffolding, rubric validity, pacing and rendered usability. These checks are defect probes, not an educational quality score.",
+        "elapsedMs": 113,
+        "outputsSha256": "a5bfa0ff17c4a8fb9c99033242693ee698bb3ed08fa2ff6f02080c798e3d612f",
+        "inputProvenance": {
+          "kind": "captured-local-model",
+          "run": "run-1788630446354",
+          "commit": "379e5e62"
+        },
+        "failures": [
+          {
+            "feature": "syllabus",
+            "id": "single-session-scope",
+            "status": "fail",
+            "severity": "major",
+            "evidence": ["Weekly course sessions", "later course topics"]
+          },
+          {
+            "feature": "lessonPlans",
+            "id": "provided-materials-only",
+            "status": "fail",
+            "severity": "critical",
+            "evidence": ["two Worked calculation: 16/20 solution paths"]
+          },
+          {
+            "feature": "lessonPlans",
+            "id": "single-session-scope",
+            "status": "fail",
+            "severity": "major",
+            "evidence": ["final course synthesis"]
+          },
+          {
+            "feature": "assignments",
+            "id": "provided-materials-only",
+            "status": "fail",
+            "severity": "critical",
+            "evidence": ["two Worked calculation: 16/20 solution paths", "two Worked calculation: 16/20 solution paths"]
+          },
+          {
+            "feature": "discussions",
+            "id": "provided-materials-only",
+            "status": "fail",
+            "severity": "critical",
+            "evidence": ["two Worked calculation: 16/20 solution paths"]
+          },
+          {
+            "feature": "quizBank",
+            "id": "provided-materials-only",
+            "status": "fail",
+            "severity": "critical",
+            "evidence": ["two Worked calculation: 16/20 solution paths", "two Worked calculation: 16/20 solution paths"]
+          },
+          {
+            "feature": "courseFaq",
+            "id": "provided-materials-only",
+            "status": "fail",
+            "severity": "critical",
+            "evidence": ["two Worked calculation: 16/20 solution paths", "two Worked calculation: 16/20 solution paths"]
+          },
+          {
+            "feature": "slideDecks",
+            "id": "slide-density",
+            "status": "fail",
+            "severity": "major",
+            "evidence": [
+              {
+                "row": 0,
+                "detail": [
+                  {
+                    "slide": 6,
+                    "words": 109
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "feature": "assignments",
+            "id": "proportionate-task",
+            "status": "fail",
+            "severity": "major",
+            "evidence": [
+              {
+                "row": 0,
+                "detail": "A short calculation task inherits a 750–1,250-word essay option."
+              }
+            ]
+          },
+          {
+            "feature": "discussions",
+            "id": "no-false-arithmetic-debate",
+            "status": "fail",
+            "severity": "major",
+            "evidence": [
+              {
+                "row": 0,
+                "detail": "A verified calculation is framed as competing factual interpretations."
+              }
+            ]
+          },
+          {
+            "feature": "courseFaq",
+            "id": "direct-concise-answers",
+            "status": "fail",
+            "severity": "major",
+            "evidence": [
+              {
+                "row": 0,
+                "detail": [
+                  {
+                    "question": "What does strong work on Sample Proportion Calculation look like?",
+                    "words": 125
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "feature": "quizBank",
+            "id": "calculation-objective-tested",
+            "status": "fail",
+            "severity": "major",
+            "evidence": [
+              {
+                "row": 0,
+                "detail": "No directly answered calculation item for 16/20."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "candidate": {
+    "protocol": "edutool-classroom-output-benchmark-v1",
+    "createdAt": "2026-09-05T18:42:22.175Z",
+    "modelCalls": 0,
+    "mode": "regrade saved outputs without regeneration",
+    "compilerRevision": "379e5e62fe2b4639e0ba1029a0e5a7c839748530",
+    "compilerDiffSha256": "d27e3e05fd6423836ce5e588b320f6b1337ae69d919253184863e1a85b2c8df8",
+    "referenceTasksSha256": "0f50bb0d3724eba3783e36f267db140edfaa220d3eb6529c88a667a87babc291",
+    "checkerSha256": "c1f9d8f15956b44a9eae6f85dfc024d98a395b872464d4fe26c016aa7005d8c9",
+    "corpusSha256": "04a52bdfc033162db427fcb409b60cac26a35979f515c04554ac0f8a91b91c4d",
+    "cases": [
+      {
+        "caseId": "experimental-design",
+        "split": "development",
+        "summary": [
+          {
+            "feature": "courseMap",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "syllabus",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "lessonPlans",
+            "passed": 7,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "slideDecks",
+            "passed": 5,
+            "failed": 1,
+            "critical": 0
+          },
+          {
+            "feature": "assignments",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "rubrics",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "discussions",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "quizBank",
+            "passed": 7,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "studyGuides",
+            "passed": 4,
+            "failed": 2,
+            "critical": 0
+          },
+          {
+            "feature": "courseFaq",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          }
+        ],
+        "educationalJudgment": "Required separately: source truth, objective coverage, scaffolding, rubric validity, pacing and rendered usability. These checks are defect probes, not an educational quality score.",
+        "elapsedMs": 889,
+        "outputsSha256": "596794f75065ae5f06d8bffc40b52822a8a349f80a86277ee181c2855c230e81",
+        "inputProvenance": {
+          "kind": "previously-captured-model-kernel",
+          "capturedAt": "2026-09-05T11:49:00.963Z",
+          "note": "Replay of earlier hosted generation; no hosted API call in this benchmark."
+        },
+        "failures": [
+          {
+            "feature": "studyGuides",
+            "id": "single-session-scope",
+            "status": "fail",
+            "severity": "major",
+            "evidence": ["final course synthesis"]
+          },
+          {
+            "feature": "slideDecks",
+            "id": "slide-density",
+            "status": "fail",
+            "severity": "major",
+            "evidence": [
+              {
+                "row": 0,
+                "detail": [
+                  {
+                    "slide": 8,
+                    "words": 94
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "feature": "studyGuides",
+            "id": "answerable-self-study",
+            "status": "fail",
+            "severity": "major",
+            "evidence": [
+              {
+                "row": 0,
+                "detail": "A review question has no self-check answer."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "caseId": "held-proportion-variation",
+        "split": "held-out",
+        "summary": [
+          {
+            "feature": "courseMap",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "syllabus",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "lessonPlans",
+            "passed": 8,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "slideDecks",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "assignments",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "rubrics",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "discussions",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "quizBank",
+            "passed": 8,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "studyGuides",
+            "passed": 7,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "courseFaq",
+            "passed": 4,
+            "failed": 1,
+            "critical": 0
+          }
+        ],
+        "educationalJudgment": "Required separately: source truth, objective coverage, scaffolding, rubric validity, pacing and rendered usability. These checks are defect probes, not an educational quality score.",
+        "elapsedMs": 125,
+        "outputsSha256": "95319e39414936b7a9cebc3c3f292f286fed6146de48d82c71423e8d8dcd9ed3",
+        "inputProvenance": {
+          "kind": "author-constructed-held-out",
+          "note": "Different fraction and lesson duration; exact-source input, not a new model run."
+        },
+        "failures": [
+          {
+            "feature": "courseFaq",
+            "id": "direct-concise-answers",
+            "status": "fail",
+            "severity": "major",
+            "evidence": [
+              {
+                "row": 0,
+                "detail": [
+                  {
+                    "question": "What does strong work on Proportions and the scope of a sample look like?",
+                    "words": 137
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "caseId": "held-two-session-design",
+        "split": "held-out",
+        "summary": [
+          {
+            "feature": "courseMap",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "syllabus",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "lessonPlans",
+            "passed": 5,
+            "failed": 1,
+            "critical": 0
+          },
+          {
+            "feature": "slideDecks",
+            "passed": 4,
+            "failed": 1,
+            "critical": 0
+          },
+          {
+            "feature": "assignments",
+            "passed": 4,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "rubrics",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "discussions",
+            "passed": 4,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "quizBank",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "studyGuides",
+            "passed": 3,
+            "failed": 2,
+            "critical": 0
+          },
+          {
+            "feature": "courseFaq",
+            "passed": 3,
+            "failed": 1,
+            "critical": 0
+          }
+        ],
+        "educationalJudgment": "Required separately: source truth, objective coverage, scaffolding, rubric validity, pacing and rendered usability. These checks are defect probes, not an educational quality score.",
+        "elapsedMs": 263,
+        "outputsSha256": "2c403386f55409ac5fe179e7cd35e76c83d9b93250db867dca4510c8851a5de4",
+        "inputProvenance": {
+          "kind": "author-constructed-held-out",
+          "note": "Two different objectives with the same fictional source record; detects single-session special-casing."
+        },
+        "failures": [
+          {
+            "feature": "lessonPlans",
+            "id": "usable-feedback-answer",
+            "status": "fail",
+            "severity": "major",
+            "evidence": [
+              {
+                "row": 0,
+                "detail": "Collect one annotated Week 1 supported line or checkpoint response showing how Confounding variable evidence from the assigned course materials for Identify variables supports the decision."
+              },
+              {
+                "row": 1,
+                "detail": "Collect one annotated Week 2 supported line or checkpoint response showing how Repair the comparison evidence from Repair comparison and bound conclusion lesson supports the decision."
+              }
+            ]
+          },
+          {
+            "feature": "slideDecks",
+            "id": "slide-density",
+            "status": "fail",
+            "severity": "major",
+            "evidence": [
+              {
+                "row": 0,
+                "detail": [
+                  {
+                    "slide": 6,
+                    "words": 101
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "feature": "studyGuides",
+            "id": "answerable-self-study",
+            "status": "fail",
+            "severity": "major",
+            "evidence": [
+              {
+                "row": 0,
+                "detail": "A review question has no self-check answer."
+              },
+              {
+                "row": 1,
+                "detail": "A review question has no self-check answer."
+              }
+            ]
+          },
+          {
+            "feature": "studyGuides",
+            "id": "worked-example",
+            "status": "fail",
+            "severity": "major",
+            "evidence": [
+              {
+                "row": 1,
+                "detail": "Missing worked reasoning or result."
+              }
+            ]
+          },
+          {
+            "feature": "courseFaq",
+            "id": "direct-concise-answers",
+            "status": "fail",
+            "severity": "major",
+            "evidence": [
+              {
+                "row": 1,
+                "detail": [
+                  {
+                    "question": "What does strong work on Repair the comparison look like?",
+                    "words": 131
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "caseId": "historical-sources",
+        "split": "development",
+        "summary": [
+          {
+            "feature": "courseMap",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "syllabus",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "lessonPlans",
+            "passed": 7,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "slideDecks",
+            "passed": 5,
+            "failed": 1,
+            "critical": 0
+          },
+          {
+            "feature": "assignments",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "rubrics",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "discussions",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "quizBank",
+            "passed": 7,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "studyGuides",
+            "passed": 4,
+            "failed": 2,
+            "critical": 0
+          },
+          {
+            "feature": "courseFaq",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          }
+        ],
+        "educationalJudgment": "Required separately: source truth, objective coverage, scaffolding, rubric validity, pacing and rendered usability. These checks are defect probes, not an educational quality score.",
+        "elapsedMs": 146,
+        "outputsSha256": "e88a14ef3856aab04617a7fa8ac087e4d6b9a3d6dd9db53d68d28c9a3e412652",
+        "inputProvenance": {
+          "kind": "previously-captured-model-kernel",
+          "capturedAt": "2026-09-05T11:46:07.854Z",
+          "note": "Replay of earlier hosted generation; no hosted API call in this benchmark."
+        },
+        "failures": [
+          {
+            "feature": "studyGuides",
+            "id": "single-session-scope",
+            "status": "fail",
+            "severity": "major",
+            "evidence": ["final course synthesis"]
+          },
+          {
+            "feature": "slideDecks",
+            "id": "slide-density",
+            "status": "fail",
+            "severity": "major",
+            "evidence": [
+              {
+                "row": 0,
+                "detail": [
+                  {
+                    "slide": 8,
+                    "words": 111
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "feature": "studyGuides",
+            "id": "answerable-self-study",
+            "status": "fail",
+            "severity": "major",
+            "evidence": [
+              {
+                "row": 0,
+                "detail": "A review question has no self-check answer."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "caseId": "local-proportions",
+        "split": "development",
+        "summary": [
+          {
+            "feature": "courseMap",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "syllabus",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "lessonPlans",
+            "passed": 8,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "slideDecks",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "assignments",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "rubrics",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "discussions",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "quizBank",
+            "passed": 8,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "studyGuides",
+            "passed": 7,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "courseFaq",
+            "passed": 4,
+            "failed": 1,
+            "critical": 0
+          }
+        ],
+        "educationalJudgment": "Required separately: source truth, objective coverage, scaffolding, rubric validity, pacing and rendered usability. These checks are defect probes, not an educational quality score.",
+        "elapsedMs": 111,
+        "outputsSha256": "43e6f11b0a823abf48bbafd64336092371447e402d6a56077a5820f46068aacb",
+        "inputProvenance": {
+          "kind": "captured-local-model",
+          "run": "run-1788630446354",
+          "commit": "379e5e62"
+        },
+        "failures": [
+          {
+            "feature": "courseFaq",
+            "id": "direct-concise-answers",
+            "status": "fail",
+            "severity": "major",
+            "evidence": [
+              {
+                "row": 0,
+                "detail": [
+                  {
+                    "question": "What does strong work on Sample Proportion Calculation look like?",
+                    "words": 125
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

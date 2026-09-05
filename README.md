@@ -35,6 +35,8 @@ The compiler creates reusable guided-practice units that keep a question, refere
 
 ## Run locally
 
+The [classroom output benchmark](benchmarks/classroom/v1/README.md) evaluates all ten materials independently of the product grader. It replays five frozen inputs without model calls and includes source-derived reference answers, contrasting learner responses, corruption tests, and a [completed educational review](benchmarks/classroom/v1/REVIEW.zh-CN.md). Run `npm run benchmark:outputs` for saved artifacts and defect reports; `npm run benchmark:outputs:test` checks that the evaluator detects deliberate defects. Known educational weaknesses remain, so `--strict` currently fails. Passing software checks does not certify classroom readiness.
+
 Use Node.js 22 or later:
 
 ```sh

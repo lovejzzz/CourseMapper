@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.18.7 classroom benchmark and output corrections — 2026-09-05
+
+- Add an independent benchmark covering all ten materials across five frozen inputs, 295 defect probes, separate educational ratings, reference answers and contrasting learner responses. Preserve baseline output identities, regrade both sides with the same checker, and keep known failures visible. No new model calls, training or paid services are used by the benchmark.
+- Correct compiler-owned phantom scenario materials, proportionate arithmetic assignment scope, sample/population discussion framing, and single-session syllabus descriptions/meeting times. Preserve authored scenarios and stronger teaching tasks.
+- Keep complete reference answers, scoring guidance and teacher checks during repetition repair. Honor the admitted `correction` field and retain source-boundary practice when the practice bank reaches its cap.
+- Display all proportion calculation steps and bind the PowerPoint layout to the typed worked example rather than its title. Verify actual PPTX visible text; prevent unrelated evidence tables or incomparable number charts from replacing the example.
+- Replace a generic compiler quiz seat with a real calculation and matching answer for applicable source-ledger proportion lessons. Preserve authored questions, bank size and machine-scoring boundaries; verify actual Word output text.
+- Render and inspect eight Word artifacts and a twelve-slide deck from the replay. Record remaining template, workload, alignment and layout problems in the benchmark review. Detected failures fall from 33 to 13; this is not an educational effectiveness score. Keep the entire 0.18.7 UI and local-only model policy. Do not release v0.19.0.
+
 ## 0.18.7 Scion research and compiler upgrade — 2026-09-05
 
 - Replace the research HTTP/retry loop with a separate serial transaction transport: one shared deadline and request budget through discovery and recovery, immediate cancellation, in-flight deduplication, cached misses, provider circuit breakers, and inspectable request outcomes. Preserve provider Retry-After rather than truncating it to retry sooner.

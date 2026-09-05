@@ -1,0 +1,185 @@
+{
+  "id": "local-proportions",
+  "split": "development",
+  "provenance": {
+    "kind": "captured-local-model",
+    "run": "run-1788630446354",
+    "commit": "379e5e62"
+  },
+  "sourceBrief": "A single 45-minute introductory statistics lesson for adult beginners: calculate a sample proportion and distinguish a sample result from a population claim. Source facts: 20 volunteers joined a daytime workshop; 16 completed it; the sample completion proportion is 16/20 = 0.80 = 80%; night-shift workers could not attend; volunteering can introduce selection bias; these data alone do not establish the completion rate for all adult learners. Include a worked calculation, practice, an answer key, and clear limitations.",
+  "map": {
+    "courseName": "Introductory Statistics: Sample Proportions",
+    "courseDescription": "Normalized from existing CourseMapper course map.",
+    "semester": "FA26",
+    "learningOutcomes": [
+      "Calculate a sample proportion",
+      "Distinguish sample results from population claims",
+      "Identify selection bias in sampling"
+    ],
+    "lessons": [
+      {
+        "title": "Lesson 1: Sample Proportion Calculation",
+        "sections": [
+          {
+            "topicSection": "1.1: Worked calculation: 16/20",
+            "learningGoals": "Use source evidence about Worked calculation: 16/20 and sample completion proportion to justify one decision in Sample Proportion Calculation.",
+            "learningObjectives": "Calculate a sample proportion and distinguish a sample result from a population claim.",
+            "weeklyAssessments": "1. Evidence explanation: Sample Proportion Calculation → Assignment Briefs / Lesson 01",
+            "asyncActivities": "1. Annotate the available course evidence for one claim about Worked calculation: 16/20, its supporting detail, and one limitation.",
+            "syncActivities": "1. Audit one practical example from Sample Proportion Calculation in pairs, then revise one decision using evidence about sample completion proportion.",
+            "technologyNeeded": "Course site, lesson resource, and the response workspace used for the lesson activity.",
+            "presentationFormat": "Instructor framing, guided student work, and a short synthesis.",
+            "supportingResources": "Source packet for Worked calculation: 16 and 20: annotated excerpt plus activity prompt.",
+            "evaluateDesign": "Check that the Worked calculation: 16 and 20 resource, activity, and assessment all ask for one visible product."
+          }
+        ]
+      }
+    ]
+  },
+  "lessonContent": {
+    "lesson-1": {
+      "quizItems": [
+        {
+          "index": 3,
+          "type": "short_answer",
+          "enrichmentSource": "fact-ledger-projection",
+          "projectionKind": "fact-ledger-comparison-analysis",
+          "question": "A team must interpret this case: Compare the supplied claims: the sample completion proportion is 16/20 = 0.80 = 80%. volunteering can introduce selection bias. The evidence must distinguish Worked calculation: 16/20 from this misconception: For Sample Proportion Calculation, one claim is treated as conclusive before the others are compared. The team must choose the defensible interpretation and name the boundary of the supplied evidence. Identify the course method that best explains the evidence. State a case-bounded conclusion. Reference at least two case details. Name one alternative or limitation.",
+          "options": [],
+          "answerIndex": 0,
+          "distractorRationales": [],
+          "answer": "The best-supported concept is Worked calculation: 16/20. The sample completion proportion is 16/20 = 0.80 = 80%. The case establishes the relevant context. A team must interpret this case: Compare the supplied claims: the sample completion proportion is 16/20 = 0.80 = 80%. Test the claim with the Worked calculation: 16/20 problem record, two Worked calculation: 16/20 solution paths, intermediate evidence, and the documented check. Keep the boundary explicit. The evidence guides this decision. Broader generalization needs another source.",
+          "explanation": "",
+          "scoringGuidance": "A complete response identifies Worked calculation: 16/20 and ties its conclusion to the Worked calculation: 16/20 problem record, two Worked calculation: 16/20 solution paths, intermediate evidence, and the documented check. It limits the claim and names what evidence would change the decision."
+        },
+        {
+          "index": 5,
+          "type": "essay",
+          "question": "A common claim about Worked calculation: 16/20 is: \"For Sample Proportion Calculation, one claim is treated as conclusive before the others are compared.\" Evaluate this claim — what does the course evidence actually support? Take a position and defend it, drawing on Worked calculation: 16/20 and evidence from the Worked calculation: 16/20 problem record, two Worked calculation: 16/20 solution paths, intermediate evidence, and the documented check.",
+          "options": [],
+          "answerIndex": 0,
+          "distractorRationales": [],
+          "answer": "A defensible position: Compare every Sample Proportion Calculation claim, state the warranted conclusion, and name one unresolved question. In a scenario where a team must interpret this case: Compare the supplied claims: the sample completion proportion is 16/20 = 0.80 = 80%, this is a case of Worked calculation: 16/20: the sample completion proportion is 16/20 = 0.80 = 80%. A complete response names the opposing view — for Sample Proportion Calculation, one claim is treated as conclusive before the others are compared — then weighs it against the stronger evidence.",
+          "explanation": "",
+          "scoringGuidance": "Use the rubric to check position, counterposition, evidence quality, and conclusion; broad opinion without course evidence remains incomplete.",
+          "enrichmentSource": "fact-ledger-projection"
+        }
+      ],
+      "keyTerms": [
+        {
+          "term": "Worked calculation: 16/20",
+          "definition": "the sample completion proportion is 16/20 = 0.80 = 80%.",
+          "example": "Compare the supplied claims: the sample completion proportion is 16/20 = 0.80 = 80%. volunteering can introduce selection bias.",
+          "misconception": "For Sample Proportion Calculation, one claim is treated as conclusive before the others are compared.",
+          "correction": "Compare every Sample Proportion Calculation claim, state the warranted conclusion, and name one unresolved question.",
+          "source": "fact-ledger-projection",
+          "tier": 1
+        },
+        {
+          "term": "sample completion proportion",
+          "definition": "the sample completion proportion is 16/20 = 0.80 = 80%.",
+          "example": "Compare this sample completion proportion claim with the admitted statement: volunteering can introduce selection bias.",
+          "misconception": "sample completion proportion overreach: treating it as proof beyond volunteering.",
+          "correction": "Bound sample completion proportion by volunteering; flag broader inferences.",
+          "source": "fact-subject-projection",
+          "tier": 1,
+          "derivedFromFactIndex": 0
+        }
+      ],
+      "slideContent": [
+        {
+          "title": "20 volunteers joined a daytime workshop; 16 completed it",
+          "bullets": [
+            "the sample completion proportion is 16/20 = 0.80 = 80%",
+            "night-shift workers could not attend",
+            "volunteering can introduce selection bias"
+          ],
+          "notes": "20 volunteers joined a daytime workshop; 16 completed it."
+        }
+      ],
+      "kernel": {
+        "facts": [
+          "20 volunteers joined a daytime workshop; 16 completed it.",
+          "the sample completion proportion is 16/20 = 0.80 = 80%.",
+          "night-shift workers could not attend.",
+          "volunteering can introduce selection bias.",
+          "these data alone do not establish the completion rate for all adult learners."
+        ],
+        "scenario": {
+          "setup": "A team must interpret this case: Compare the supplied claims: the sample completion proportion is 16/20 = 0.80 = 80%. volunteering can introduce selection bias. The evidence must distinguish Worked calculation: 16/20 from this misconception: For Sample Proportion Calculation, one claim is treated as conclusive before the others are compared. The team must choose the defensible interpretation and name the boundary of the supplied evidence.",
+          "materials": "the Worked calculation: 16/20 problem record, two Worked calculation: 16/20 solution paths, intermediate evidence, and the documented check",
+          "source": "derived-kernel-fallback"
+        },
+        "provenance": {
+          "source": "compiler-owned-exact-source-ledger",
+          "authority": "instructor-supplied",
+          "copiedFactsVerbatim": true,
+          "factCount": 5
+        }
+      },
+      "enrichmentSource": "compiler-owned-exact-source-ledger",
+      "preDraftInstructionalPlanReceiptSha256": "07e33bd3990155365282a178bbdd9db22a2b5f2ea45c0fc3968677890cb61613",
+      "keyTermFallbacks": [
+        {
+          "type": "term",
+          "term": "Worked calculation: 16/20",
+          "source": "fact-ledger-projection"
+        },
+        {
+          "type": "term",
+          "term": "sample completion proportion",
+          "source": "fact-subject-projection",
+          "factIndex": 0
+        }
+      ],
+      "coreFallbacks": [
+        {
+          "field": "quizItems",
+          "source": "fact-ledger-projection"
+        },
+        {
+          "field": "scenario",
+          "source": "fact-ledger-projection"
+        },
+        {
+          "field": "quizItems",
+          "source": "fact-ledger-projection"
+        }
+      ],
+      "discussionPrompt": {
+        "prompt": "Which interpretation of Worked calculation: 16/20 is best supported by the Worked calculation: 16/20 problem record, two Worked calculation: 16/20 solution paths, intermediate evidence, and the documented check, and what detail could change that conclusion?",
+        "tension": "One reading gives the strongest observed Worked calculation: 16/20 pattern priority; another treats the unresolved detail as decisive.",
+        "positions": [
+          "Treat this source claim as the leading interpretation: the sample completion proportion is 16/20 = 0.80 = 80%.",
+          "Keep an alternative explanation open until the unresolved Worked calculation: 16/20 detail is checked.",
+          "State a conditional conclusion and identify the Worked calculation: 16/20 finding that would require revision."
+        ]
+      },
+      "assignmentCore": {
+        "taskDescription": "Analyze the Worked calculation: 16/20 problem record, two Worked calculation: 16/20 solution paths, intermediate evidence, and the documented check through Worked calculation: 16/20. Produce Evidence explanation: Sample Proportion Calculation that states the best-supported conclusion, cites the decisive detail, and names one limit.",
+        "parameters": [
+          "Scope: use the named Worked calculation: 16/20 case or example only.",
+          "Format: submit Evidence explanation: Sample Proportion Calculation as a PDF document, a slide file with speaker notes, or an MP4 recording; name the chosen format in the file title.",
+          "Required Evidence/Source: cite at least one detail from the Worked calculation: 16/20 problem record, two Worked calculation: 16/20 solution paths, intermediate evidence, and the documented check.",
+          "Week 1 scope for Evidence explanation: Sample Proportion Calculation: use 750–1,250 words, 6–10 slides, or a 5–8 minute recording, matching the chosen format. Check that the selected form leaves room for the evidence and its limitation."
+        ],
+        "canonicalAssessment": "Evidence explanation: Sample Proportion Calculation"
+      },
+      "studyGuide": {
+        "summary": "the sample completion proportion is 16/20 = 0.80 = 80%. Connect Worked calculation: 16/20 to the Worked calculation: 16/20 problem record, two Worked calculation: 16/20 solution paths, intermediate evidence, and the documented check and keep the conclusion within the evidence boundary.",
+        "reviewStrategy": "Rehearse Worked calculation: 16/20 by explaining why the sample completion proportion is 16/20 = 0.80 = 80%. Then test the explanation against the Worked calculation: 16/20 problem record, two Worked calculation: 16/20 solution paths, intermediate evidence, and the documented check."
+      },
+      "surfaceFallbacks": ["discussionPrompt", "assignmentCore", "studyGuide"]
+    }
+  },
+  "sessionMinutes": 45,
+  "expectations": {
+    "singleSession": true,
+    "arithmetic": {
+      "fraction": "16/20",
+      "decimal": "0.80",
+      "percent": "80"
+    },
+    "selfContained": true
+  }
+}

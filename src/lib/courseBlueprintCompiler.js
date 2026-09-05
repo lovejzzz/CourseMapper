@@ -261,7 +261,7 @@ import {
 } from './compilerAssessmentEvidenceCopy';
 import { createVerifiedDraftCompilerContracts } from './verifiedDraftCompilerContracts.js';
 import { sourceBoundStudyWorkedExample } from './sourceBoundStudyWorkedExample.js';
-import { sourceArithmeticGuidePractice } from './sourceArithmeticStudyPractice.js';
+import { SOURCE_ARITHMETIC_PROTOCOL, sourceArithmeticGuidePractice } from './sourceArithmeticStudyPractice.js';
 import {
   applyInstructionalIntentGraph,
   assertInstructionalIntentGraph,
@@ -17178,6 +17178,11 @@ function syllabusCoreIdeas(lesson) {
 }
 
 function syllabusCourseDescription(blueprint) {
+  if (blueprint.lessons.length === 1) {
+    const lesson = blueprint.lessons[0];
+    const objectives = unique(asArray(lesson.outcomes).map(stripTerminalPunctuation), 4).join('; ');
+    return `${blueprint.courseName} is a single teaching session on ${stripLessonPrefix(lesson.title)}. Learning targets: ${objectives}. Students examine the supplied lesson material, practice the target skills, and use feedback to revise their response. Evidence and conclusions remain within the scope of the supplied sources.`;
+  }
   if (isMusicIntervalBlueprint(blueprint)) {
     return `In ${blueprint.courseName}, students learn to classify written and heard intervals and explain how each label is verified. Across ${blueprint.totalLessons} connected lessons, they count letter names inclusively to determine interval number, check semitone distance to determine quality, reduce compound intervals, and apply inversion pairs whose numbers sum to nine. Notation, listening, and correction tasks require students to show the spelling, count, and verification behind every answer.`;
   }
@@ -17253,7 +17258,9 @@ function compileSyllabus(blueprint) {
       credits: blueprint.credits,
       meetingPattern:
         blueprint.localization?.meetingPattern ||
-        'Weekly course sessions with applied practice and feedback checkpoints',
+        (blueprint.lessons.length === 1
+          ? `One ${blueprint.lessons[0].classSessionPlan?.sessionMinutes || DEFAULT_CLASS_SESSION_MINUTES}-minute session with practice and feedback`
+          : 'Weekly course sessions with applied practice and feedback checkpoints'),
       location: blueprint.localization?.classLocation || 'Official course site and assigned class meeting space',
       deliveryMode: sentenceCase(
         blueprint.courseModalityProfile?.sessionPattern || 'Course format listed by the program',
@@ -21141,6 +21148,42 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
   const operationQualifiedSafe = applyOperationQualifiedQuizBinding(functionalVisualSafe, lesson, {
     machineScored,
   });
+  // A verified proportion lesson needs an actual calculation item. Preserve
+  // authored questions and the configured bank size; replace one generic
+  // compiler seat with the same answerable practice used by the study guide.
+  if (
+    !machineScored &&
+    hasAuthoritativeSourceLedgerProvenance(lesson.enrichment) &&
+    /\b(?:calculat(?:e|ion)|conver(?:t|sion))\b/i.test(asArray(lesson.outcomes).join(' '))
+  ) {
+    const program = compileTeachingProgram({
+      lessonId: lesson.id || `lesson-${lesson.lessonNumber}`,
+      admitted: true,
+      workedExample: operationQualifiedWorkedExampleForLesson(lesson),
+      sourceEvidenceBrief: buildLessonEvidenceBrief(lesson, { claimLimit: 8, sourceLimit: 4 }),
+    });
+    const calculation = program?.units.find((unit) => unit.kind === 'calculation');
+    const seat = operationQualifiedSafe.findIndex((atom) => !atom.enrichmentSource);
+    if (calculation && seat >= 0) {
+      const atom = operationQualifiedSafe[seat];
+      operationQualifiedSafe[seat] = {
+        ...atom,
+        type: 'short_answer',
+        question: calculation.question,
+        answer: calculation.answer,
+        sampleAnswer: calculation.answer,
+        options: [],
+        answerIndex: undefined,
+        distractorRationales: [],
+        distractorDiscrimination: undefined,
+        explanation: calculation.criteria.join(' '),
+        scoringGuidance: calculation.criteria.join(' '),
+        practiceId: calculation.id,
+        enrichmentSource: 'compiler-teaching-program',
+        intendedUse: 'Guided calculation practice using the supplied fraction; not independent transfer assessment.',
+      };
+    }
+  }
   const bloomAligned = operationQualifiedSafe.map((atom) => {
     if (atom.projectionKind === 'worked-example-retrieval') return atom;
     const stemLevel = bloomLevelFromStemVerb(atom.question);
@@ -24181,59 +24224,68 @@ function slideVisual(lesson, slide) {
         return spokes.length >= 2 ? { hub, spokes } : { kind: 'concept definition panel' };
       })(),
     },
-    content: /worked example/i.test(title)
-      ? {
-          // v0.14.1 (5.2c): the worked-example fallback slide must not
-          // re-suggest a table — its steps ARE the visual.
-          kind: 'worked example walkthrough',
-          purpose: `Model the ${concept} solution path step by step before students try ${artifact}.`,
-          evidenceUse: `Annotate each step so students can reuse the reasoning in ${artifact}.`,
-          // v0.14.5 (C2): plottable (label, number) pairs computed by the
-          // example's own lines ride the descriptor so the exporter can draw
-          // a native bar chart. ONLY the kernel worked-example slide — the
-          // mc-walkthrough shares the "Worked example:" title prefix but its
-          // content is a recast bank item, not lesson.enrichment.workedExample.
-          ...(() => {
-            if (!/worked-example/.test(slide.enrichmentSource || '')) return {};
-            const descriptor = workedExampleVisualDescriptor(slide.workedExample || lesson?.enrichment?.workedExample);
-            return descriptor ? { wePlot: descriptor } : {};
-          })(),
-        }
-      : /common pitfalls/i.test(title)
+    // The typed example determines the rendering contract, even when an
+    // instructor changes its title. Title matching alone can replace actual
+    // calculation steps with an unrelated evidence table at export time.
+    content:
+      slide.workedExample || /worked example/i.test(title)
         ? {
-            // The same admitted misconception/correction pairs that author
-            // the bullets also form a native two-column comparison. No
-            // content is inferred by the exporter.
-            kind: 'misconception comparison table',
-            columnLabels: ['MISCONCEPTION', 'CORRECTION'],
-            purpose: `Surface the tempting ${concept} misreadings before they reach ${artifact}.`,
-            evidenceUse: `Vote on each tempting claim, then test it against the corrective and ${source}.`,
-            tableLead: lessonVariant(lesson, [
-              'Vote first, then compare each tempting claim with its evidence-based correction.',
-              'Commit to a judgment before revealing why each misconception needs revision.',
-              'Use the comparison to separate a plausible error from the corrective supported by the lesson.',
-              'Test each tempting statement, then trace the evidence behind the stronger explanation.',
-            ]),
-            rows: lessonMisconceptionPairs(lesson)
-              .slice(0, 3)
-              .map((pair) => [
-                conciseClause(pair.misconception, pair.misconception, 160),
-                conciseClause(pair.corrective, pair.corrective, 180),
-              ]),
-          }
-        : {
-            kind: /limit|honest|gap/i.test(title) ? 'constraint map' : 'evidence table',
-            purpose: `Make the evidence standard for ${artifact} inspectable.`,
-            evidenceUse: `Compare ${concept}, ${secondary}, and the success criterion before students draft.`,
-            // v0.14.1 (5.2c): renderable claim/evidence rows ride the
-            // descriptor (the v0.13.3 hub/spokes pattern) so the exporter
-            // never has to fabricate pairs from display bullets.
+            // v0.14.1 (5.2c): the worked-example fallback slide must not
+            // re-suggest a table — its steps ARE the visual.
+            kind: 'worked example walkthrough',
+            purpose: `Model the ${concept} solution path step by step before students try ${artifact}.`,
+            evidenceUse: `Annotate each step so students can reuse the reasoning in ${artifact}.`,
+            // v0.14.5 (C2): plottable (label, number) pairs computed by the
+            // example's own lines ride the descriptor so the exporter can draw
+            // a native bar chart. ONLY the kernel worked-example slide — the
+            // mc-walkthrough shares the "Worked example:" title prefix but its
+            // content is a recast bank item, not lesson.enrichment.workedExample.
             ...(() => {
-              if (/limit|honest|gap/i.test(title)) return {};
-              const descriptor = enrichedEvidenceTableDescriptor(lesson);
-              return descriptor.rows.length >= 2 ? descriptor : {};
+              if (!/worked-example/.test(slide.enrichmentSource || '')) return {};
+              // Decimal, percentage and count are different representations,
+              // not comparable quantities for a bar chart.
+              if (slide.workedExample?.protocol === SOURCE_ARITHMETIC_PROTOCOL) return {};
+              const descriptor = workedExampleVisualDescriptor(
+                slide.workedExample || lesson?.enrichment?.workedExample,
+              );
+              return descriptor ? { wePlot: descriptor } : {};
             })(),
-          },
+          }
+        : /common pitfalls/i.test(title)
+          ? {
+              // The same admitted misconception/correction pairs that author
+              // the bullets also form a native two-column comparison. No
+              // content is inferred by the exporter.
+              kind: 'misconception comparison table',
+              columnLabels: ['MISCONCEPTION', 'CORRECTION'],
+              purpose: `Surface the tempting ${concept} misreadings before they reach ${artifact}.`,
+              evidenceUse: `Vote on each tempting claim, then test it against the corrective and ${source}.`,
+              tableLead: lessonVariant(lesson, [
+                'Vote first, then compare each tempting claim with its evidence-based correction.',
+                'Commit to a judgment before revealing why each misconception needs revision.',
+                'Use the comparison to separate a plausible error from the corrective supported by the lesson.',
+                'Test each tempting statement, then trace the evidence behind the stronger explanation.',
+              ]),
+              rows: lessonMisconceptionPairs(lesson)
+                .slice(0, 3)
+                .map((pair) => [
+                  conciseClause(pair.misconception, pair.misconception, 160),
+                  conciseClause(pair.corrective, pair.corrective, 180),
+                ]),
+            }
+          : {
+              kind: /limit|honest|gap/i.test(title) ? 'constraint map' : 'evidence table',
+              purpose: `Make the evidence standard for ${artifact} inspectable.`,
+              evidenceUse: `Compare ${concept}, ${secondary}, and the success criterion before students draft.`,
+              // v0.14.1 (5.2c): renderable claim/evidence rows ride the
+              // descriptor (the v0.13.3 hub/spokes pattern) so the exporter
+              // never has to fabricate pairs from display bullets.
+              ...(() => {
+                if (/limit|honest|gap/i.test(title)) return {};
+                const descriptor = enrichedEvidenceTableDescriptor(lesson);
+                return descriptor.rows.length >= 2 ? descriptor : {};
+              })(),
+            },
     example: {
       kind: 'annotated example',
       purpose: `Mark where a strong ${concept} example uses ${source} evidence to change the decision for ${artifact}.`,
@@ -28221,9 +28273,11 @@ function compileLessonPlans(blueprint, options = {}) {
                     : Math.min(30, Math.max(15, Number(lesson.workloadEstimate.afterClassMinutes) || 20))
                 } minutes`,
                 connectionToNext:
-                  lesson.learningTransferPlan?.transferTask ||
-                  lesson.feedbackCycle?.nextUse ||
-                  `Bring your submitted work forward so the next lesson can build on today’s ${concept} reasoning.`,
+                  blueprint.lessons.length === 1
+                    ? 'Use the feedback to revise this lesson’s response and record one question that remains unresolved.'
+                    : lesson.learningTransferPlan?.transferTask ||
+                      lesson.feedbackCycle?.nextUse ||
+                      `Bring your submitted work forward so the next lesson can build on today’s ${concept} reasoning.`,
                 ...(hasStandaloneAssessment && cleanText(lesson.enrichment?.assignmentCore?.taskDescription)
                   ? { enrichmentSource: 'lesson-content-enrichment' }
                   : {}),

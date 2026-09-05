@@ -1,0 +1,117 @@
+{
+  "purpose": "Reviewer-authored reference tasks derived from the supplied fictional/source packets. These are evaluation references, not compiler inputs, training targets, teacher-study results or claims that the outputs already satisfy them.",
+  "cases": [
+    {
+      "caseId": "local-proportions",
+      "source": "cases/local-proportions.json#sourceBrief",
+      "task": "Report the observed completion proportion, show the calculation and a reverse check, and explain whether it estimates the completion rate of all adult learners.",
+      "referenceAnswer": "Of the 20 volunteers in the daytime workshop, 16 completed it: 16/20 = 0.80 = 80%. Reverse check: 0.80 × 20 = 16. This describes those volunteers. Night-shift workers could not attend and volunteering can introduce selection bias, so these data alone do not establish the rate for all adult learners.",
+      "requiredEvidence": [
+        "Numerator 16 and whole 20",
+        "Division and percentage conversion",
+        "Reverse check",
+        "Observed group named",
+        "Stated exclusion and selection-bias limit"
+      ],
+      "scoringAnchors": [
+        {
+          "response": "16/20 = 0.80 = 80%; 0.80 × 20 = 16. This is the observed volunteer group, excluding night-shift workers; it is not evidence of a population-wide rate.",
+          "judgment": "Meets the core calculation, interpretation and limitation requirements."
+        },
+        {
+          "response": "16/20 = 80%, so 80% of all adult learners complete the workshop.",
+          "judgment": "Correct arithmetic, unsupported generalization. Must not receive the highest interpretation band."
+        },
+        {
+          "response": "20/16 = 125% completed.",
+          "judgment": "Part/whole reversed. Calculation criterion fails even if the prose is polished."
+        }
+      ],
+      "teacherFeedback": "For a reversed fraction, ask which count is the whole. For an overgeneralization, ask who could not enter this sample. Have the learner revise the specific error and check again."
+    },
+    {
+      "caseId": "historical-sources",
+      "source": "cases/historical-sources.json#sourceBrief",
+      "task": "Explain whether the 1921 and 1978 dates conflict; separate documented observations about the repair and lettering from historical inferences.",
+      "referenceAnswer": "The margin records that the map was drawn in 1921; the accession register records museum receipt in 1978. They describe creation and acquisition, so the dates need not conflict. The conservator documents different repair ink, but gives no repair date. The inventory documents older lettering beneath newer paint. Those observations do not by themselves establish the object's complete history, original purpose or a repair year.",
+      "requiredEvidence": [
+        "Both dates linked to their respective events and records",
+        "Explanation of why two dates need not conflict",
+        "Repair date explicitly unknown",
+        "Observation separated from an inference about purpose or complete history"
+      ],
+      "scoringAnchors": [
+        {
+          "response": "1921 is creation and 1978 is receipt, so both can be true. The record does not date the repair.",
+          "judgment": "Correct core comparison; expand with the lettering observation for the full requested response."
+        },
+        {
+          "response": "The repair happened in 1978 because that is when the museum received the map.",
+          "judgment": "Unsupported link. An acquisition date is not a repair date."
+        },
+        {
+          "response": "The two records have different dates, so one must be false.",
+          "judgment": "Conflates different events; comparison criterion fails."
+        }
+      ],
+      "teacherFeedback": "Have the learner label each date with an event and source. Ask which record explicitly dates the repair. Do not reward inventing a plausible chronology."
+    },
+    {
+      "caseId": "experimental-design",
+      "source": "cases/experimental-design.json#sourceBrief",
+      "task": "Identify the confound in the fertilizer comparison and propose a revised design that isolates the stated fertilizer contrast.",
+      "referenceAnswer": "The intended treatment contrast is fertilizer versus no fertilizer, but Group A also gets eight hours of light and Group B gets four. Light differs with fertilizer and is an alternative explanation for a height difference after two weeks. Seed type and water volume are already held constant. Randomly assign plants to fertilizer conditions, hold daily light equal, retain the seed and water controls, and measure height after the same two-week interval. This removes the stated light difference; it does not guarantee a particular result or eliminate every possible source of bias.",
+      "requiredEvidence": [
+        "Fertilizer treatment identified",
+        "Height after two weeks identified as outcome",
+        "8-hour versus 4-hour light difference identified as confound",
+        "Same light in revised groups",
+        "Random assignment and retained controls",
+        "No invented experimental result"
+      ],
+      "scoringAnchors": [
+        {
+          "response": "Randomly assign plants to fertilizer or no fertilizer; give both groups the same light, seed type and water, and measure height after two weeks.",
+          "judgment": "Concrete design repair. Full reasoning credit also requires explaining why the original light difference confounds the comparison."
+        },
+        {
+          "response": "Add more plants but keep eight hours of light for A and four for B.",
+          "judgment": "Larger sample does not remove this confound; design-repair criterion fails."
+        },
+        {
+          "response": "A dependent variable is an outcome.",
+          "judgment": "Correct definition, insufficient evidence of either confound diagnosis or design competence."
+        }
+      ],
+      "teacherFeedback": "Ask the learner to compare the two groups column by column. Any factor that still changes with fertilizer must be addressed or explicitly limited."
+    },
+    {
+      "caseId": "held-proportion-variation",
+      "source": "cases/held-proportion-variation.json#sourceBrief",
+      "task": "Apply the same calculation and interpretation requirements to the supplied 3-of-8 completion record.",
+      "referenceAnswer": "3/8 = 0.375 = 37.5%; 0.375 × 8 = 3. The numerical remainder is 5/8 = 0.625 = 62.5%. Report the observed participants and retain the stated limits; do not generalize automatically to a population.",
+      "requiredEvidence": [
+        "Changed fraction and percentage throughout",
+        "No stale 16, 20 or 80% answer from the development case",
+        "Source-bound interpretation",
+        "30-minute class clock"
+      ],
+      "scoringAnchors": [],
+      "teacherFeedback": "Check whether the method transfers to changed numbers without copying the old result."
+    },
+    {
+      "caseId": "held-two-session-design",
+      "source": "cases/held-two-session-design.json#sourceBrief",
+      "task": "Make the first session diagnose variables and the light confound; make the second session construct and justify a repair.",
+      "referenceAnswer": "Session 1 identifies fertilizer, height, the two different light durations and the stated controls. Session 2 proposes and justifies random assignment with equal light, unchanged seed/water controls and the same outcome interval. Repeating the variable definitions in both sessions does not demonstrate progression.",
+      "requiredEvidence": [
+        "Distinct assessment demand in each session",
+        "40-minute clock per session",
+        "A complete design example and reference response in the second session",
+        "No invented outcome or absent required dataset"
+      ],
+      "scoringAnchors": [],
+      "teacherFeedback": "Use the first session's diagnosed confound as the explicit input to the second session's design decision."
+    }
+  ]
+}

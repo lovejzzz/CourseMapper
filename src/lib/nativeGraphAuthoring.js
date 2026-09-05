@@ -59,6 +59,8 @@ import { extractExplicitCoverageTopics, extractExplicitLessonSequence } from './
 import { semanticIdentityTokens } from './lessonSemanticRelevance';
 import { operationEvidenceDemandForLesson } from './operationEvidenceContract.js';
 import { buildFactLedgerFeedback } from './factLedgerFeedback.js';
+import { sourceArithmeticWorkedExample } from './sourceArithmeticStudyPractice.js';
+import { deriveDecisionScenario } from './scenarioContract.js';
 import { buildGoverningSourceCourseContract } from './governingSourceCourseContract.js';
 import { hasAuthoritativeSourceLedgerProvenance, hasExactSourceLedgerProvenance } from './sourceLedgerProvenance.js';
 import {
@@ -431,6 +433,10 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
   const facts = asArray(payload?.kernel?.facts)
     .map((fact) => cleanTextAtBoundary(fact, 220))
     .filter(Boolean);
+  const arithmeticExample =
+    hasAuthoritativeSourceLedgerProvenance(payload) && !payload.workedExample && !payload.kernel?.workedExample
+      ? sourceArithmeticWorkedExample({ claims: facts })
+      : null;
   const researchCitations = asArray(payload?.conceptProvenance?.citations);
   const researchOrigin = cleanText(payload?.enrichmentSource, 80);
   const sourceBoundResearch =
@@ -478,7 +484,17 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
           source: 'assigned-reading-projection',
         }
       : null;
-  const authoredScenario = payload?.kernel?.scenario;
+  const originalScenario = payload?.kernel?.scenario;
+  // Older facts-only compiler projections invented domain-specific materials
+  // (for example, two solution paths) that were never in the supplied record.
+  // Refresh only this explicitly compiler-owned scenario; preserve authored
+  // scenarios and their actual materials.
+  const authoredScenario =
+    originalScenario?.source === 'derived-kernel-fallback' &&
+    hasAuthoritativeSourceLedgerProvenance(payload) &&
+    asArray(payload.keyTerms).some((term) => term?.source === 'fact-ledger-projection')
+      ? deriveDecisionScenario({ facts: projectionFacts, keyTerms: payload.keyTerms }) || originalScenario
+      : originalScenario;
   const legacyComparisonVariants = [
     `Use ${concept} to organize Claim A and Claim B; explain their relationship and bound the conclusion to what both claims establish`,
     `For ${concept}, compare Claim A with Claim B, name the connection or tension, and state the inference their evidence cannot support`,
@@ -819,46 +835,58 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
   const teachingMaterials = cleanTextAtBoundary(completed?.kernel?.scenario?.materials, 180) || materials;
 
   if (!completed.discussionPrompt) {
-    const discussionPrompt = interpretiveReadingLesson
+    const discussionPrompt = arithmeticExample
       ? {
-          prompt: `How does a locatable passage from ${assignedReading} complicate an interpretation centered on ${concept}? Identify one formal detail, defend the strongest reading, and test a credible counter-reading against the same passage or its immediate context.`,
-          tension: `The question is whether the selected formal detail reinforces the working account of ${concept} or exposes a limit that changes how the passage should be read.`,
+          prompt:
+            'How should this observed proportion be reported to a reader? Use the supplied observations and their stated limits to propose accurate wording, then identify what additional evidence a wider claim would require.',
+          tension:
+            'The calculation can be checked exactly; the discussion concerns how far the observations support a broader claim and what evidence is missing.',
           positions: [
-            `Read the formal detail as evidence that strengthens the working interpretation of ${concept}.`,
-            `Read the same detail as complicating or limiting that interpretation through a credible counter-reading.`,
-            `Use the passage's immediate context to qualify the claim when neither reading fully accounts for the evidence.`,
+            'Report the measured proportion with the observed group and conditions clearly named; show the calculation so the reader can check it.',
+            'Withhold a wider population estimate when the supplied observations do not establish that the observed group represents that population.',
+            'Recommend additional observations or a revised sampling plan, explaining which stated limitation the proposed evidence would address.',
           ],
         }
-      : {
-          prompt: `Which interpretation of ${concept} is best supported by ${teachingMaterials}, and what detail could change that conclusion?`,
-          tension: lessonVariant([
-            `One reading gives the strongest observed ${concept} pattern priority; another treats the unresolved detail as decisive.`,
-            `The debate is whether the available ${concept} evidence warrants a leading interpretation or only a provisional one.`,
-            `One side emphasizes what the ${concept} evidence already supports, while the other emphasizes what remains unknown.`,
-            `The central tension is how much confidence the present ${concept} evidence can bear before another detail is checked.`,
-            `Readers must decide whether the clearest ${concept} pattern outweighs the uncertainty still present in the materials.`,
-            `The competing views differ over whether the current ${concept} evidence is sufficient or should remain conditional.`,
-          ]),
-          positions: [
-            `Treat this source claim as the leading interpretation: ${anchorClause}.`,
-            lessonVariant([
-              `Keep an alternative explanation open until the unresolved ${concept} detail is checked.`,
-              `Treat the current reading as provisional because the missing ${concept} evidence could change it.`,
-              `Give the competing interpretation priority until the uncertain ${concept} claim has stronger support.`,
-              `Withhold a firm conclusion while the available ${concept} materials leave a plausible counter-reading.`,
-              `Challenge the leading account by asking whether another ${concept} explanation fits the same evidence.`,
-              `Retain the rival reading unless the decisive ${concept} detail rules it out.`,
+      : interpretiveReadingLesson
+        ? {
+            prompt: `How does a locatable passage from ${assignedReading} complicate an interpretation centered on ${concept}? Identify one formal detail, defend the strongest reading, and test a credible counter-reading against the same passage or its immediate context.`,
+            tension: `The question is whether the selected formal detail reinforces the working account of ${concept} or exposes a limit that changes how the passage should be read.`,
+            positions: [
+              `Read the formal detail as evidence that strengthens the working interpretation of ${concept}.`,
+              `Read the same detail as complicating or limiting that interpretation through a credible counter-reading.`,
+              `Use the passage's immediate context to qualify the claim when neither reading fully accounts for the evidence.`,
+            ],
+          }
+        : {
+            prompt: `Which interpretation of ${concept} is best supported by ${teachingMaterials}, and what detail could change that conclusion?`,
+            tension: lessonVariant([
+              `One reading gives the strongest observed ${concept} pattern priority; another treats the unresolved detail as decisive.`,
+              `The debate is whether the available ${concept} evidence warrants a leading interpretation or only a provisional one.`,
+              `One side emphasizes what the ${concept} evidence already supports, while the other emphasizes what remains unknown.`,
+              `The central tension is how much confidence the present ${concept} evidence can bear before another detail is checked.`,
+              `Readers must decide whether the clearest ${concept} pattern outweighs the uncertainty still present in the materials.`,
+              `The competing views differ over whether the current ${concept} evidence is sufficient or should remain conditional.`,
             ]),
-            lessonVariant([
-              `State a conditional conclusion and identify the ${concept} finding that would require revision.`,
-              `Name the present interpretation together with the missing ${concept} evidence that could overturn it.`,
-              `Frame the claim around what is supported now and how a new ${concept} detail would change it.`,
-              `Offer a bounded conclusion whose confidence depends on resolving the remaining ${concept} uncertainty.`,
-              `Separate the defensible ${concept} claim from the unanswered question that limits it.`,
-              `Use a qualified interpretation and specify which additional ${concept} observation would shift the judgment.`,
-            ]),
-          ],
-        };
+            positions: [
+              `Treat this source claim as the leading interpretation: ${anchorClause}.`,
+              lessonVariant([
+                `Keep an alternative explanation open until the unresolved ${concept} detail is checked.`,
+                `Treat the current reading as provisional because the missing ${concept} evidence could change it.`,
+                `Give the competing interpretation priority until the uncertain ${concept} claim has stronger support.`,
+                `Withhold a firm conclusion while the available ${concept} materials leave a plausible counter-reading.`,
+                `Challenge the leading account by asking whether another ${concept} explanation fits the same evidence.`,
+                `Retain the rival reading unless the decisive ${concept} detail rules it out.`,
+              ]),
+              lessonVariant([
+                `State a conditional conclusion and identify the ${concept} finding that would require revision.`,
+                `Name the present interpretation together with the missing ${concept} evidence that could overturn it.`,
+                `Frame the claim around what is supported now and how a new ${concept} detail would change it.`,
+                `Offer a bounded conclusion whose confidence depends on resolving the remaining ${concept} uncertainty.`,
+                `Separate the defensible ${concept} claim from the unanswered question that limits it.`,
+                `Use a qualified interpretation and specify which additional ${concept} observation would shift the judgment.`,
+              ]),
+            ],
+          };
     if (lintEnrichedDiscussionPrompt(discussionPrompt).length === 0) {
       completed.discussionPrompt = discussionPrompt;
       fallbackFields.push('discussionPrompt');
@@ -866,22 +894,25 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
   }
 
   if (!completed.assignmentCore) {
-    const nativeExtent =
-      operationDemand.demanded &&
-      /(?:calculat|comput|summar|standardiz|histogram|regress|correlat|proportion|interval|numeric|table)/i.test(
-        String(operationDemand.operation || ''),
-      )
+    const nativeExtent = arithmeticExample
+      ? 'submit one calculation record with the supplied numerator and denominator, division, percentage conversion, reverse check, and a 2–4-sentence interpretation that names one stated source limit.'
+      : operationDemand.demanded &&
+          /(?:calculat|comput|summar|standardiz|histogram|regress|correlat|proportion|interval|numeric|table)/i.test(
+            String(operationDemand.operation || ''),
+          )
         ? `submit one replayable calculation record showing the supplied inputs, each named operation step, the checked result, a 150–250-word interpretation, and one boundary or sensitivity check; do not turn the procedure into an essay. ${extentCycle}`
         : `use 750–1,250 words, 6–10 slides, or a 5–8 minute recording, matching the chosen format. ${extentCycle}`;
     const assignmentCore = {
-      taskDescription: lessonVariant([
-        `Analyze ${teachingMaterials} through ${concept}. Produce ${product} that states the best-supported conclusion, cites the decisive detail, and names one limit.`,
-        `Use ${concept} to interpret ${teachingMaterials}. In ${product}, defend the strongest conclusion, point to the evidence behind it, and qualify the claim.`,
-        `Examine ${teachingMaterials} with the ${concept} lens, then build ${product} around one supported interpretation, its key detail, and its boundary.`,
-        `Test a ${concept} claim against ${teachingMaterials}. Submit ${product} that explains the evidence, the resulting judgment, and what remains uncertain.`,
-        `Compare the plausible readings of ${teachingMaterials} through ${concept}. Use ${product} to defend one, cite the deciding evidence, and state where it may not hold.`,
-        `Develop ${product} from the ${concept} evidence in ${teachingMaterials}: identify the strongest conclusion, justify it with a specific detail, and avoid overclaiming.`,
-      ]),
+      taskDescription: arithmeticExample
+        ? `${arithmeticExample.studentTask} Show the division, percentage conversion and reverse check. Submit the calculation together with a short source-bounded interpretation.`
+        : lessonVariant([
+            `Analyze ${teachingMaterials} through ${concept}. Produce ${product} that states the best-supported conclusion, cites the decisive detail, and names one limit.`,
+            `Use ${concept} to interpret ${teachingMaterials}. In ${product}, defend the strongest conclusion, point to the evidence behind it, and qualify the claim.`,
+            `Examine ${teachingMaterials} with the ${concept} lens, then build ${product} around one supported interpretation, its key detail, and its boundary.`,
+            `Test a ${concept} claim against ${teachingMaterials}. Submit ${product} that explains the evidence, the resulting judgment, and what remains uncertain.`,
+            `Compare the plausible readings of ${teachingMaterials} through ${concept}. Use ${product} to defend one, cite the deciding evidence, and state where it may not hold.`,
+            `Develop ${product} from the ${concept} evidence in ${teachingMaterials}: identify the strongest conclusion, justify it with a specific detail, and avoid overclaiming.`,
+          ]),
       parameters: lessonVariant([
         [
           `Scope: use the named ${concept} case or example only.`,
