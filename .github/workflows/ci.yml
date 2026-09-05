@@ -2,16 +2,16 @@ name: Fast verification
 on:
   pull_request:
   push:
-    branches: [main, codex/course-studio-rebuild]
+    branches: [main, codex/course-studio-rebuild, codex/v0187-quality]
   workflow_dispatch:
 permissions:
   contents: read
 concurrency:
-  group: studio-verification-${{ github.ref }}
+  group: application-verification-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   studio:
-    name: Studio source, contracts and production build
+    name: Application source, compatibility and production build
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -39,10 +39,10 @@ jobs:
       - uses: actions/upload-artifact@v6
         if: always()
         with:
-          name: studio-browser-evidence
+          name: application-browser-evidence
           path: |
             test-results/**
-            verification-output/studio-browser/**
+            verification-output/compatibility-browser/**
           if-no-files-found: ignore
   adapter-mask:
     name: Experimental adapter training regression

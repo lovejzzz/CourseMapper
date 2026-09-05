@@ -15,6 +15,9 @@ export default defineConfig({
     react(),
     {
       name: 'release-identity',
+      transformIndexHtml(html) {
+        return html.replace('/src/main.jsx', '/src/studio/entry.jsx');
+      },
       generateBundle() {
         this.emitFile({
           type: 'asset',

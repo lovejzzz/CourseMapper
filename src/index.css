@@ -1,0 +1,1347 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ══════════════════════════════════════════════════════════════
+   CSS CUSTOM PROPERTIES — core palette
+   Switching these in .dark eliminates dozens of !important overrides.
+   ══════════════════════════════════════════════════════════════ */
+:root {
+  --color-body-bg: #f7f8fc;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f8fafc; /* slate-50  */
+  --color-surface-alt2: #f1f5f9; /* slate-100 */
+  --color-surface-dim: rgba(0, 0, 0, 0.04); /* slate-200 equiv */
+  --color-text: #0f172a; /* slate-900 */
+  --color-text-secondary: #1e293b; /* slate-800 */
+  --color-text-tertiary: #334155; /* slate-700 */
+  --color-text-muted: #64748b; /* slate-500 */
+  --color-text-faint: #6b7a8d; /* slate-400 accessible */
+  --color-border: rgba(0, 0, 0, 0.06); /* slate-100 equiv */
+  --color-border-strong: rgba(0, 0, 0, 0.08); /* slate-200 equiv */
+  --color-input-bg: rgba(255, 255, 255, 0.65);
+  --color-input-border: rgba(0, 0, 0, 0.05);
+  --color-table-header: #f8fafc;
+  --color-table-hover: rgba(99, 102, 241, 0.04);
+  --color-placeholder: #94a3b8;
+
+  /* ── Design system: accent + status (docs/DESIGN_SYSTEM.md) ──
+     The accent is the indigo family the brand already uses; status colors
+     are the emerald/amber/red/indigo/slate pairs previously hand-picked per
+     component. -soft variants are the chip/badge backgrounds; the base is
+     text/icon color guaranteed AA on the matching -soft. */
+  --color-accent: #6366f1; /* indigo-500 */
+  --color-accent-strong: #4f46e5; /* indigo-600 */
+  --color-accent-soft: #eef2ff; /* indigo-50 */
+  --color-accent-text: #4338ca; /* indigo-700 */
+  --color-success: #047857; /* emerald-700 */
+  --color-success-soft: #d1fae5; /* emerald-100 */
+  --color-warning: #b45309; /* amber-700 */
+  --color-warning-soft: #fef3c7; /* amber-100 */
+  --color-danger: #b91c1c; /* red-700 */
+  --color-danger-soft: #fee2e2; /* red-100 */
+  --color-info: #4338ca; /* indigo-700 */
+  --color-info-soft: #e0e7ff; /* indigo-100 */
+  --color-neutral: #475569; /* slate-600 */
+  --color-neutral-soft: #f1f5f9; /* slate-100 */
+}
+
+.dark {
+  --color-body-bg: #0f1117;
+  --color-surface: #1a1d27;
+  --color-surface-alt: #1e2130;
+  --color-surface-alt2: #252836;
+  --color-surface-dim: rgba(255, 255, 255, 0.08);
+  --color-text: #f1f5f9;
+  --color-text-secondary: #e2e8f0;
+  --color-text-tertiary: #cbd5e1;
+  --color-text-muted: #94a3b8;
+  --color-text-faint: #8898aa;
+  --color-border: rgba(255, 255, 255, 0.06);
+  --color-border-strong: rgba(255, 255, 255, 0.08);
+  --color-input-bg: rgba(30, 34, 50, 0.8);
+  --color-input-border: rgba(255, 255, 255, 0.1);
+  --color-table-header: rgba(20, 24, 38, 0.9);
+  --color-table-hover: rgba(99, 102, 241, 0.05);
+  --color-placeholder: #475569;
+
+  /* Design system: accent + status, dark remaps (lighter text on darker
+     translucent softs). */
+  --color-accent: #818cf8; /* indigo-400 */
+  --color-accent-strong: #6366f1; /* indigo-500 */
+  --color-accent-soft: rgba(99, 102, 241, 0.16);
+  --color-accent-text: #a5b4fc; /* indigo-300 */
+  --color-success: #6ee7b7; /* emerald-300 */
+  --color-success-soft: rgba(16, 185, 129, 0.16);
+  --color-warning: #fcd34d; /* amber-300 */
+  --color-warning-soft: rgba(245, 158, 11, 0.16);
+  --color-danger: #fca5a5; /* red-300 */
+  --color-danger-soft: rgba(239, 68, 68, 0.16);
+  --color-info: #a5b4fc; /* indigo-300 */
+  --color-info-soft: rgba(99, 102, 241, 0.16);
+  --color-neutral: #94a3b8; /* slate-400 */
+  --color-neutral-soft: rgba(148, 163, 184, 0.14);
+}
+
+/* ── Base ── */
+body {
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'SF Pro Display',
+    'Segoe UI',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.01em;
+  background-color: var(--color-body-bg);
+  color: var(--color-text-secondary);
+}
+
+/* ── Accessible text color overrides (light mode) ──
+   Tailwind's default slate-400 (#94a3b8) = 2.8:1 on white — FAILS WCAG AA.
+   Bump to accessible values while keeping the visual hierarchy. */
+.text-slate-400 {
+  color: #6b7a8d;
+} /* ~4.7:1 on white — passes AA */
+.text-slate-500 {
+  color: #5b6b7d;
+} /* ~5.7:1 on white — passes AA */
+
+/* ── Mesh gradient background ── */
+.mesh-bg {
+  background-color: #f7f8fc;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 5% 0%, rgba(199, 210, 254, 0.4) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 98% 0%, rgba(196, 181, 253, 0.25) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 35% at 50% 100%, rgba(165, 180, 252, 0.2) 0%, transparent 50%),
+    radial-gradient(ellipse 40% 30% at 70% 50%, rgba(224, 231, 255, 0.15) 0%, transparent 60%);
+}
+
+.landing-shell {
+  background-color: #f8fafc;
+  background-image:
+    linear-gradient(rgba(15, 23, 42, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 23, 42, 0.045) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(241, 245, 249, 0.78));
+  background-size:
+    44px 44px,
+    44px 44px,
+    100% 100%;
+}
+
+/* ── Glassmorphism utility classes ── */
+.glass {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(48px) saturate(180%);
+  -webkit-backdrop-filter: blur(48px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.02),
+    0 2px 4px rgba(0, 0, 0, 0.02),
+    0 12px 40px rgba(0, 0, 0, 0.03);
+}
+.glass-light {
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(32px) saturate(160%);
+  -webkit-backdrop-filter: blur(32px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+.glass-heavy {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(64px) saturate(200%);
+  -webkit-backdrop-filter: blur(64px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+.glass-dark {
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(48px) saturate(180%);
+  -webkit-backdrop-filter: blur(48px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ── Tactile press feedback ── */
+.tactile {
+  transition:
+    transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.25s ease;
+}
+.tactile:active:not(:disabled) {
+  transform: scale(0.965);
+}
+
+/* ── Button glow on hover ── */
+.btn-glow {
+  position: relative;
+  overflow: hidden;
+}
+.btn-glow::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(139, 92, 246, 0.3));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+  filter: blur(12px);
+}
+.btn-glow:hover::before {
+  opacity: 1;
+}
+
+/* ── Ambient glow behind panels ── */
+.panel-glow {
+  position: relative;
+}
+.panel-glow::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(139, 92, 246, 0.04), rgba(59, 130, 246, 0.05));
+  filter: blur(20px);
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.panel-glow:hover::before {
+  opacity: 1;
+}
+
+/* ── Custom scrollbar (thin, translucent) ── */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 100px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* ── Typing cursor blink ── */
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+.animate-blink {
+  animation: blink 0.8s step-end infinite;
+}
+
+/* ── Row fade-in (spring feel) ── */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.animate-fadeIn {
+  animation: fadeIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ── Input focus glow ── */
+.input-glass {
+  background: var(--color-input-bg);
+  border: 1px solid var(--color-input-border);
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.input-glass:focus {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(99, 102, 241, 0.4);
+  box-shadow:
+    0 0 0 3px rgba(99, 102, 241, 0.08),
+    0 0 20px rgba(99, 102, 241, 0.06);
+}
+
+/* ── Gradient text utility ── */
+.text-gradient {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Subtle noise overlay for depth ── */
+.noise-overlay::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.015;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  z-index: 9999;
+}
+
+/* ── Fade-in badge (used by save indicator badge) ── */
+@keyframes badgeFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.animate-fade-in {
+  animation: badgeFadeIn 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── Subtle pulse for streaming cards ── */
+@keyframes pulse-subtle {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+.animate-pulse-subtle {
+  animation: pulse-subtle 2s ease-in-out infinite;
+}
+
+/* ── Hide scrollbar utility ── */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ── Smooth focus ring for accessibility ── */
+*:focus-visible {
+  outline: 2px solid rgba(99, 102, 241, 0.5);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DARK MODE — Feature 5.4
+   Applied by adding 'dark' class to <html> element.
+   Overrides key backgrounds, text, and border colors globally.
+   ══════════════════════════════════════════════════════════════ */
+
+.dark {
+  color-scheme: dark;
+}
+
+/* Background layers — body now inherits from custom properties above */
+.dark .mesh-bg {
+  background-color: var(--color-body-bg);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 5% 0%, rgba(99, 102, 241, 0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 98% 0%, rgba(139, 92, 246, 0.08) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 35% at 50% 100%, rgba(99, 102, 241, 0.06) 0%, transparent 50%);
+}
+
+.dark .landing-shell {
+  background-color: #080b12;
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(8, 11, 18, 0.98), rgba(15, 17, 23, 0.94));
+}
+
+/* Glass panels → dark glass */
+.dark .glass {
+  background: rgba(30, 34, 50, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+.dark .glass-light {
+  background: rgba(30, 34, 50, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+.dark .glass-heavy {
+  background: rgba(20, 24, 38, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Large animated workspaces plus nested backdrop filters can produce black
+   compositor tiles on Chromium GPUs while tabs or compiler stages update.
+   Dark surfaces are already opaque enough to preserve their depth without a
+   live blur, so prefer stable paint and smoother local-model progress frames. */
+.dark .glass,
+.dark .glass-light,
+.dark .glass-heavy,
+.dark .glass-dark,
+.dark [class*='backdrop-blur'] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* The workspace can switch between hundreds of nested light and dark glass
+   surfaces at once. Re-enabling their live blur during a theme change makes
+   Chromium briefly paint black compositor tiles, even though the settled
+   colors are correct. Static translucency preserves the depth while keeping
+   every theme-transition frame coherent. Landing and policy pages retain
+   their smaller glass blur treatment. */
+.workspace-shell .glass,
+.workspace-shell .glass-light,
+.workspace-shell .glass-heavy,
+.workspace-shell .glass-dark,
+.workspace-shell [class*='backdrop-blur'] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* The fixed SVG turbulence layer is another GPU-composited full-viewport
+   surface. Chromium can briefly present one of its tiles as opaque black
+   while the workspace replaces large React subtrees during generation.
+   Dark mode already has visible depth from the mesh gradients, so the
+   imperceptible 1.5% noise is not worth a single corrupt progress frame. */
+.dark .noise-overlay::after {
+  display: none;
+  content: none;
+}
+
+/* Header — only apply dark background to sticky/bordered workspace headers */
+.dark header[class*='border-b'],
+.dark header[class*='sticky'] {
+  background: rgba(15, 17, 23, 0.85) !important; /* needs alpha transparency */
+  border-bottom-color: var(--color-border) !important;
+}
+
+/* Generic white/light backgrounds → use custom properties */
+.dark .bg-white,
+.dark [class^='bg-white/'],
+.dark [class*=' bg-white/'] {
+  background-color: var(--color-surface) !important;
+}
+.dark .bg-slate-50,
+.dark [class*='bg-slate-50'] {
+  background-color: var(--color-surface-alt) !important;
+}
+.dark .bg-slate-100,
+.dark [class*='bg-slate-100'] {
+  background-color: var(--color-surface-alt2) !important;
+}
+.dark .bg-slate-200,
+.dark [class*='bg-slate-200\/'] {
+  background-color: var(--color-surface-dim) !important;
+}
+
+/* Slide decks are fixed-design teaching artifacts, not dark-mode chrome.
+   Preserve the authored white cards while the surrounding workspace follows
+   the user's theme. The whole 16:9 artboard is scaled by SlideDecksView, so
+   this also keeps the browser preview faithful to the downloaded PPTX. */
+.dark .slide-preview-fixed-canvas .bg-white,
+.dark .slide-preview-fixed-canvas [class^='bg-white/'],
+.dark .slide-preview-fixed-canvas [class*=' bg-white/'] {
+  background-color: #ffffff !important;
+}
+
+/* Hardcoded Google brand colors → dark muted */
+.dark [class*='E8F0FE'],
+.dark [class*='D2E3FC'],
+.dark [class*='E6F4EA'],
+.dark [class*='CEEAD6'] {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+}
+.dark [class*='1967D2'] {
+  color: #8ab4f8 !important;
+}
+.dark [class*='188038'] {
+  color: #81c995 !important;
+}
+.dark [class*='F4B400'] {
+  color: #fcd34d !important;
+}
+.dark [class*='4285F4'] {
+  border-color: rgba(66, 133, 244, 0.25) !important;
+}
+.dark [class*='34A853'] {
+  border-color: rgba(52, 168, 83, 0.25) !important;
+}
+.dark [class*='FBBC04'] {
+  border-color: rgba(251, 188, 4, 0.25) !important;
+}
+.dark [class*='FFF8E1'],
+.dark [class*='FFF0B3'] {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Text colors — invert the full scale for dark mode
+   All values pass WCAG AA (4.5:1) against dark bg #0f1117.
+   The top-level slots use custom properties; remaining slots keep direct values. */
+.dark .text-slate-900 {
+  color: var(--color-text) !important;
+} /* ~18:1 */
+.dark .text-slate-800 {
+  color: var(--color-text-secondary) !important;
+} /* ~15:1 */
+.dark .text-slate-700 {
+  color: var(--color-text-tertiary) !important;
+} /* ~12:1 */
+.dark .text-slate-600 {
+  color: var(--color-text-muted) !important;
+} /* ~7.5:1 */
+.dark .text-slate-500 {
+  color: var(--color-text-muted) !important;
+} /* ~7.5:1 */
+.dark .text-slate-400 {
+  color: var(--color-text-faint) !important;
+} /* ~6.1:1 */
+.dark .text-slate-300 {
+  color: #7c8ca0 !important;
+} /* ~5.1:1 — meets AA minimum */
+/* Slate-300/70 used in footers — keep visible but subtle */
+.dark [class*='text-slate-300\/'] {
+  color: rgba(148, 163, 184, 0.6) !important;
+}
+
+/* Borders */
+.dark .border-slate-100 {
+  border-color: var(--color-border) !important;
+}
+.dark .border-slate-200 {
+  border-color: var(--color-border-strong) !important;
+}
+.dark [class*='border-slate-200\/'] {
+  border-color: var(--color-border) !important;
+}
+
+/* Table */
+.dark table {
+  color: var(--color-text-tertiary);
+}
+.dark thead {
+  background: var(--color-table-header) !important;
+}
+.dark th {
+  color: var(--color-text-muted) !important;
+  background: var(--color-table-header) !important;
+  border-color: var(--color-border) !important;
+}
+.dark td {
+  border-color: var(--color-border) !important;
+}
+.dark tbody tr:hover {
+  background: var(--color-table-hover) !important;
+}
+
+/* Inputs */
+.dark input,
+.dark textarea,
+.dark select {
+  background: var(--color-input-bg) !important;
+  color: var(--color-text-secondary) !important;
+  border-color: var(--color-input-border) !important;
+}
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: var(--color-placeholder) !important;
+}
+.dark .input-glass {
+  background: rgba(20, 24, 38, 0.7) !important;
+  border-color: var(--color-border-strong) !important;
+}
+.dark .input-glass:focus {
+  background: rgba(20, 24, 38, 0.95) !important;
+}
+
+/* Editable deliverable titles use a named interaction state instead of tint
+   utility substrings. The broad legacy dark-theme selectors below also match
+   `hover:bg-*` class names while the element is idle, which made these titles
+   look permanently focused in dark mode. */
+.deliverable-editable-title {
+  background-color: transparent;
+  border-color: transparent;
+}
+.deliverable-editable-title:hover {
+  background-color: rgba(238, 242, 255, 0.5);
+  border-color: rgba(224, 231, 255, 0.5);
+}
+.dark .deliverable-editable-title {
+  background-color: transparent !important;
+  border-color: transparent !important;
+}
+.dark .deliverable-editable-title:hover {
+  background-color: rgba(99, 102, 241, 0.08) !important;
+  border-color: rgba(99, 102, 241, 0.15) !important;
+}
+
+/* Scrollbar */
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Dropdowns and modals — opaque dark surface */
+.dark [class*='bg-white\/95'],
+.dark [class*='bg-white\/97'] {
+  background-color: rgba(26, 29, 39, 0.98) !important; /* needs alpha, can't use var */
+}
+
+/* ── Colored tint backgrounds → dark muted equivalents ── */
+
+/* Indigo tints */
+.dark .bg-indigo-50,
+.dark [class*='bg-indigo-50\/'] {
+  background-color: rgba(99, 102, 241, 0.08) !important;
+}
+.dark .bg-indigo-100,
+.dark [class*='bg-indigo-100\/'] {
+  background-color: rgba(99, 102, 241, 0.12) !important;
+}
+
+/* Violet tints */
+.dark .bg-violet-50,
+.dark [class*='bg-violet-50\/'] {
+  background-color: rgba(139, 92, 246, 0.08) !important;
+}
+.dark .bg-violet-100,
+.dark [class*='bg-violet-100\/'] {
+  background-color: rgba(139, 92, 246, 0.12) !important;
+}
+
+/* Emerald tints */
+.dark .bg-emerald-50,
+.dark [class*='bg-emerald-50\/'] {
+  background-color: rgba(52, 211, 153, 0.08) !important;
+}
+.dark .bg-emerald-100,
+.dark [class*='bg-emerald-100\/'] {
+  background-color: rgba(52, 211, 153, 0.12) !important;
+}
+
+/* Sky/blue tints */
+.dark .bg-sky-50,
+.dark [class*='bg-sky-50\/'] {
+  background-color: rgba(56, 189, 248, 0.08) !important;
+}
+.dark .bg-sky-100,
+.dark [class*='bg-sky-100\/'] {
+  background-color: rgba(56, 189, 248, 0.12) !important;
+}
+.dark .bg-blue-50,
+.dark [class*='bg-blue-50\/'] {
+  background-color: rgba(59, 130, 246, 0.08) !important;
+}
+.dark .bg-blue-100 {
+  background-color: rgba(59, 130, 246, 0.12) !important;
+}
+
+/* Rose/red tints */
+.dark .bg-rose-50,
+.dark [class*='bg-rose-50\/'] {
+  background-color: rgba(244, 63, 94, 0.08) !important;
+}
+.dark .bg-rose-100,
+.dark [class*='bg-rose-100\/'] {
+  background-color: rgba(244, 63, 94, 0.12) !important;
+}
+.dark .bg-red-50,
+.dark [class*='bg-red-50\/'] {
+  background-color: rgba(239, 68, 68, 0.08) !important;
+}
+.dark .bg-red-100 {
+  background-color: rgba(239, 68, 68, 0.12) !important;
+}
+
+/* Amber/yellow tints */
+.dark .bg-amber-50,
+.dark [class*='bg-amber-50\/'] {
+  background-color: rgba(245, 158, 11, 0.08) !important;
+}
+.dark .bg-amber-100 {
+  background-color: rgba(245, 158, 11, 0.12) !important;
+}
+.dark .bg-yellow-50,
+.dark [class*='bg-yellow-50\/'] {
+  background-color: rgba(234, 179, 8, 0.08) !important;
+}
+
+/* Purple tints */
+.dark .bg-purple-50,
+.dark [class*='bg-purple-50\/'] {
+  background-color: rgba(168, 85, 247, 0.08) !important;
+}
+.dark .bg-purple-100 {
+  background-color: rgba(168, 85, 247, 0.12) !important;
+}
+
+/* Green tints */
+.dark .bg-green-50,
+.dark [class*='bg-green-50\/'] {
+  background-color: rgba(34, 197, 94, 0.08) !important;
+}
+.dark .bg-green-100 {
+  background-color: rgba(34, 197, 94, 0.12) !important;
+}
+
+/* Orange tints */
+.dark .bg-orange-50,
+.dark [class*='bg-orange-50\/'] {
+  background-color: rgba(249, 115, 22, 0.08) !important;
+}
+.dark .bg-orange-100 {
+  background-color: rgba(249, 115, 22, 0.12) !important;
+}
+
+/* Cyan tints */
+.dark .bg-cyan-50,
+.dark [class*='bg-cyan-50\/'] {
+  background-color: rgba(34, 211, 238, 0.08) !important;
+}
+.dark .bg-cyan-100,
+.dark [class*='bg-cyan-100\/'] {
+  background-color: rgba(34, 211, 238, 0.12) !important;
+}
+
+/* Teal tints */
+.dark .bg-teal-50,
+.dark [class*='bg-teal-50\/'] {
+  background-color: rgba(45, 212, 191, 0.08) !important;
+}
+.dark .bg-teal-100,
+.dark [class*='bg-teal-100\/'] {
+  background-color: rgba(45, 212, 191, 0.12) !important;
+}
+
+/* ── Colored borders → muted dark equivalents ── */
+.dark [class*='border-indigo-100'],
+.dark [class*='border-indigo-200'] {
+  border-color: rgba(99, 102, 241, 0.15) !important;
+}
+.dark [class*='border-violet-100'],
+.dark [class*='border-violet-200'] {
+  border-color: rgba(139, 92, 246, 0.15) !important;
+}
+.dark [class*='border-emerald-100'],
+.dark [class*='border-emerald-200'] {
+  border-color: rgba(52, 211, 153, 0.15) !important;
+}
+.dark [class*='border-sky-100'],
+.dark [class*='border-sky-200'] {
+  border-color: rgba(56, 189, 248, 0.15) !important;
+}
+.dark [class*='border-rose-100'],
+.dark [class*='border-rose-200'] {
+  border-color: rgba(244, 63, 94, 0.15) !important;
+}
+.dark [class*='border-amber-100'],
+.dark [class*='border-amber-200'] {
+  border-color: rgba(245, 158, 11, 0.15) !important;
+}
+.dark [class*='border-red-100'],
+.dark [class*='border-red-200'] {
+  border-color: rgba(239, 68, 68, 0.15) !important;
+}
+.dark [class*='border-blue-100'],
+.dark [class*='border-blue-200'] {
+  border-color: rgba(59, 130, 246, 0.15) !important;
+}
+.dark [class*='border-purple-100'],
+.dark [class*='border-purple-200'] {
+  border-color: rgba(168, 85, 247, 0.15) !important;
+}
+.dark [class*='border-cyan-100'],
+.dark [class*='border-cyan-200'],
+.dark .border-cyan-400 {
+  border-color: rgba(34, 211, 238, 0.15) !important;
+}
+.dark [class*='border-teal-100'],
+.dark [class*='border-teal-200'],
+.dark .border-teal-400 {
+  border-color: rgba(45, 212, 191, 0.15) !important;
+}
+
+/* ── Colored text — keep readable on dark backgrounds ── */
+.dark .text-indigo-700 {
+  color: #a5b4fc !important;
+}
+.dark .text-indigo-600 {
+  color: #a5b4fc !important;
+}
+.dark .text-indigo-500 {
+  color: #818cf8 !important;
+}
+.dark .text-violet-700 {
+  color: #c4b5fd !important;
+}
+.dark .text-violet-600 {
+  color: #c4b5fd !important;
+}
+.dark .text-emerald-700 {
+  color: #6ee7b7 !important;
+}
+.dark .text-emerald-600 {
+  color: #6ee7b7 !important;
+}
+.dark .text-sky-700 {
+  color: #7dd3fc !important;
+}
+.dark .text-sky-600 {
+  color: #7dd3fc !important;
+}
+.dark .text-rose-700 {
+  color: #fda4af !important;
+}
+.dark .text-rose-600 {
+  color: #fda4af !important;
+}
+.dark .text-amber-700 {
+  color: #fcd34d !important;
+}
+.dark .text-amber-600 {
+  color: #fcd34d !important;
+}
+.dark .text-red-700 {
+  color: #fca5a5 !important;
+}
+.dark .text-red-600 {
+  color: #fca5a5 !important;
+}
+.dark .text-red-500 {
+  color: #f87171 !important;
+}
+.dark .text-blue-700 {
+  color: #93c5fd !important;
+}
+.dark .text-blue-600 {
+  color: #93c5fd !important;
+}
+.dark .text-purple-700 {
+  color: #d8b4fe !important;
+}
+.dark .text-purple-600 {
+  color: #d8b4fe !important;
+}
+.dark .text-green-700 {
+  color: #86efac !important;
+}
+.dark .text-green-600 {
+  color: #86efac !important;
+}
+.dark .text-orange-700 {
+  color: #fdba74 !important;
+}
+.dark .text-orange-600 {
+  color: #fdba74 !important;
+}
+.dark .text-cyan-700 {
+  color: #67e8f9 !important;
+}
+.dark .text-cyan-600 {
+  color: #67e8f9 !important;
+}
+.dark .text-cyan-500 {
+  color: #22d3ee !important;
+}
+.dark .text-teal-700 {
+  color: #5eead4 !important;
+}
+.dark .text-teal-600 {
+  color: #5eead4 !important;
+}
+.dark .text-teal-500 {
+  color: #2dd4bf !important;
+}
+
+/* ── Shadows → dark mode adjustments ── */
+.dark [class*='shadow-glass'] {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.04),
+    0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+.dark [class*='shadow-glow'] {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.04),
+    0 0 16px rgba(99, 102, 241, 0.1) !important;
+}
+.dark .shadow-sm {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+}
+.dark .shadow-md {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35) !important;
+}
+.dark .shadow-lg {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* ── Gradient backgrounds → dark equivalents ── */
+.dark [class*='from-slate-50'],
+.dark [class*='from-white'] {
+  --tw-gradient-from: var(--color-body-bg) !important;
+}
+.dark [class*='to-indigo-50'] {
+  --tw-gradient-to: rgba(99, 102, 241, 0.06) !important;
+}
+.dark [class*='to-violet-50'] {
+  --tw-gradient-to: rgba(139, 92, 246, 0.06) !important;
+}
+.dark [class*='via-white'] {
+  --tw-gradient-via: #13151d !important;
+}
+
+/* ── Rings → darker for dark mode ── */
+.dark [class*='ring-indigo'] {
+  --tw-ring-color: rgba(99, 102, 241, 0.3) !important;
+}
+.dark [class*='ring-violet'] {
+  --tw-ring-color: rgba(139, 92, 246, 0.3) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PRINT STYLES — clean, paper-optimised output
+   ══════════════════════════════════════════════════════════════ */
+@media print {
+  /* Reset layout — make everything flow as a single column */
+  *,
+  *::before,
+  *::after {
+    box-shadow: none !important;
+    text-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  html,
+  body {
+    width: 100%;
+    font-size: 11pt;
+    color: #000;
+    background: #fff !important;
+  }
+
+  /* Hide chrome — header, footer, sidebars, banners, buttons */
+  header,
+  footer,
+  [data-print='hide'],
+  .noise-overlay::after,
+  .tactile,
+  nav,
+  button:not(.print-keep),
+  .animate-ping,
+  .animate-spin,
+  [class*='backdrop-blur'] {
+    display: none !important;
+  }
+
+  /* Remove gradient backgrounds from body */
+  .mesh-bg {
+    background: #fff !important;
+    background-image: none !important;
+  }
+
+  /* Glass panels → plain white boxes */
+  .glass,
+  .glass-light,
+  .glass-heavy,
+  .glass-dark {
+    background: #fff !important;
+    border: 1px solid #ddd !important;
+  }
+
+  /* Tables — add borders for print readability */
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    page-break-inside: auto;
+  }
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+  th,
+  td {
+    border: 1px solid #ccc;
+    padding: 4pt 6pt;
+    text-align: left;
+    vertical-align: top;
+  }
+  thead {
+    display: table-header-group;
+  }
+
+  /* Page breaks — keep headings with content */
+  h1,
+  h2,
+  h3 {
+    page-break-after: avoid;
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* Course Map table — ensure columns visible */
+  .overflow-x-auto {
+    overflow: visible !important;
+  }
+
+  /* Deliverable cards — expand all collapsed sections */
+  [class*='CollapsibleCard'] > div:last-child,
+  details {
+    display: block !important;
+  }
+
+  /* Slide deck print: show all decks as stacked cards */
+  .slidedecks-print-wrapper {
+    display: block !important;
+  }
+
+  /* Indigo / violet colour → dark grey for print ink saving */
+  [class*='text-indigo'],
+  [class*='text-violet'],
+  [class*='text-emerald'],
+  [class*='text-sky'] {
+    color: #333 !important;
+  }
+  [class*='bg-indigo'],
+  [class*='bg-violet'] {
+    background-color: #f0f0f0 !important;
+  }
+
+  /* Links — show URL after link text */
+  a[href]:after {
+    content: ' (' attr(href) ')';
+    font-size: 8pt;
+    color: #666;
+  }
+  a[href^='#']:after,
+  a[href^='javascript:']:after {
+    content: '';
+  }
+
+  /* ── Dark mode neutralisation for print ──
+     When .dark is active, its !important overrides fight print styles.
+     Force light colours regardless of dark mode setting. */
+  .dark body {
+    background-color: #fff !important;
+    color: #000 !important;
+  }
+  .dark .mesh-bg {
+    background-color: #fff !important;
+    background-image: none !important;
+  }
+  .dark .glass,
+  .dark .glass-light,
+  .dark .glass-heavy,
+  .dark .glass-dark {
+    background: #fff !important;
+    border: 1px solid #ddd !important;
+  }
+  .dark .bg-white,
+  .dark [class*='bg-white\/'],
+  .dark .bg-slate-50,
+  .dark [class*='bg-slate-50'],
+  .dark .bg-slate-100,
+  .dark [class*='bg-slate-100'],
+  .dark .bg-slate-200,
+  .dark [class*='bg-slate-200\/'] {
+    background-color: #fff !important;
+  }
+  .dark .text-slate-900,
+  .dark .text-slate-800,
+  .dark .text-slate-700 {
+    color: #1e293b !important;
+  }
+  .dark .text-slate-600,
+  .dark .text-slate-500,
+  .dark .text-slate-400,
+  .dark .text-slate-300,
+  .dark [class*='text-slate-300\/'] {
+    color: #475569 !important;
+  }
+  .dark .border-slate-100,
+  .dark .border-slate-200,
+  .dark [class*='border-slate-200\/'] {
+    border-color: #e2e8f0 !important;
+  }
+  .dark input,
+  .dark textarea,
+  .dark select {
+    background: #fff !important;
+    color: #000 !important;
+    border-color: #ccc !important;
+  }
+  .dark table {
+    color: #000 !important;
+  }
+  .dark thead {
+    background: #f8fafc !important;
+  }
+  .dark th {
+    color: #334155 !important;
+    background: #f8fafc !important;
+    border-color: #ccc !important;
+  }
+  .dark td {
+    border-color: #ccc !important;
+  }
+  .dark tbody tr:hover {
+    background: transparent !important;
+  }
+  /* Dark mode coloured text → dark grey for print */
+  .dark [class*='text-indigo'],
+  .dark [class*='text-violet'],
+  .dark [class*='text-emerald'],
+  .dark [class*='text-sky'],
+  .dark [class*='text-rose'],
+  .dark [class*='text-amber'],
+  .dark [class*='text-red'],
+  .dark [class*='text-blue'],
+  .dark [class*='text-purple'],
+  .dark [class*='text-green'],
+  .dark [class*='text-orange'],
+  .dark [class*='text-cyan'],
+  .dark [class*='text-teal'] {
+    color: #333 !important;
+  }
+  /* Dark mode coloured backgrounds → light grey for print */
+  .dark [class*='bg-indigo'],
+  .dark [class*='bg-violet'],
+  .dark [class*='bg-emerald'],
+  .dark [class*='bg-sky'],
+  .dark [class*='bg-rose'],
+  .dark [class*='bg-amber'],
+  .dark [class*='bg-red'],
+  .dark [class*='bg-blue'],
+  .dark [class*='bg-purple'],
+  .dark [class*='bg-green'],
+  .dark [class*='bg-orange'],
+  .dark [class*='bg-cyan'],
+  .dark [class*='bg-teal'] {
+    background-color: #f0f0f0 !important;
+  }
+  /* Dark mode shadows already removed by the wildcard rule above */
+  .dark header[class*='border-b'],
+  .dark header[class*='sticky'] {
+    background: transparent !important;
+    border-bottom-color: transparent !important;
+  }
+
+  /* Page margins */
+  @page {
+    margin: 15mm 12mm;
+    size: A4 portrait;
+  }
+  @page :first {
+    margin-top: 20mm;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MOBILE RESPONSIVENESS — compact layouts for small screens
+   ══════════════════════════════════════════════════════════════ */
+
+/* Workspace header: wrap on small screens so buttons don't overflow */
+@media (max-width: 640px) {
+  /* Header row: stack title + actions */
+  .workspace-header-row {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  /* Course map table: ensure horizontal scroll is obvious */
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+  .overflow-x-auto::after {
+    content: '';
+    display: block;
+    position: sticky;
+    right: 0;
+    top: 0;
+    width: 24px;
+    height: 100%;
+    background: linear-gradient(to right, transparent, rgba(247, 248, 252, 0.7));
+    pointer-events: none;
+    float: right;
+    margin-right: -24px;
+  }
+
+  /* Modals: full-width on mobile */
+  .modal-panel {
+    max-width: 100% !important;
+    margin: 0 !important;
+    border-radius: 1rem 1rem 0 0 !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+  }
+
+  /* Export side panel: hide on very small screens (use export button instead) */
+  .export-side-panel-mobile-hide {
+    display: none !important;
+  }
+
+  /* Tab bar: smaller font + padding on mobile */
+  .tab-label-mobile {
+    font-size: 10px;
+  }
+}
+
+.workspace-chat-panel {
+  width: 100%;
+  height: min(72vh, calc(100vh - 180px));
+}
+
+.ribbon-chip {
+  border-radius: 9999px;
+  border-width: 1px;
+  padding: 0.125rem 0.5rem;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ribbon-chip-warning {
+  border-color: rgb(253 230 138);
+  background: rgb(255 251 235);
+  color: rgb(180 83 9);
+}
+
+.dark .ribbon-chip-warning {
+  border-color: rgb(251 191 36 / 0.5);
+  background: rgb(251 191 36 / 0.1);
+  color: rgb(253 230 138);
+}
+
+.ribbon-chip-muted {
+  border-color: rgb(226 232 240 / 0.7);
+  background: transparent;
+  color: rgb(148 163 184);
+}
+
+.ribbon-chip-emphasis {
+  border-color: rgb(199 210 254);
+  background: rgb(238 242 255);
+  color: rgb(67 56 202);
+}
+
+.ribbon-chip-neutral {
+  border-color: rgb(226 232 240);
+  background: rgb(248 250 252);
+  color: rgb(71 85 105);
+}
+
+.dark .ribbon-chip-muted {
+  border-color: rgb(51 65 85);
+  color: rgb(100 116 139);
+}
+
+.dark .ribbon-chip-emphasis {
+  border-color: rgb(99 102 241 / 0.4);
+  background: rgb(99 102 241 / 0.1);
+  color: rgb(165 180 252);
+}
+
+.dark .ribbon-chip-neutral {
+  border-color: rgb(71 85 105);
+  background: rgb(30 41 59);
+  color: rgb(203 213 225);
+}
+
+@media (max-width: 1279px) {
+  .workspace-shell {
+    min-height: auto !important;
+  }
+}
+
+@media (min-width: 1280px) {
+  .workspace-chat-panel {
+    width: var(--workspace-chat-width, 360px);
+    height: calc(100vh - 160px);
+  }
+}
+
+/* Compact workspace (641px – 1279px): Export is its own workspace mode, so give the
+   handoff card a readable centered measure instead of the old 200px rail
+   that belonged to the former side-by-side layout. This includes 1024px
+   laptop windows, where three simultaneous rails left the course content
+   unreadable even though the page technically did not overflow. */
+@media (min-width: 641px) and (max-width: 1279px) {
+  [data-testid='workspace-export-panel'] {
+    width: 100%;
+  }
+
+  .export-side-panel {
+    width: min(100%, 420px) !important;
+    margin-inline: auto;
+  }
+}
+
+/* Touch-friendly minimum tap target. v0.16.3 raises the first-use and
+   workspace controls to the platform-standard 44px floor. */
+@media (max-width: 768px) {
+  button,
+  a[role='button'],
+  summary[role='button'],
+  summary[aria-label] {
+    min-height: 44px;
+  }
+
+  button[aria-label],
+  summary[aria-label] {
+    min-width: 44px;
+  }
+
+  footer a {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+  }
+
+  /* The table disclosure owns a compact desktop utility class. Preserve the
+     platform touch floor on phones and tablets with a deliberately stronger
+     selector instead of letting that desktop class win the cascade. */
+  .workspace-shell button[data-lesson-toggle='true'] {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* A theme change is one palette decision, not a cascade of unrelated color
+   tweens. Freeze transitions for the two paints that apply the root .dark
+   class so text and surfaces never cross through a low-contrast gray frame. */
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after {
+  transition-property: none !important;
+}
+
+/* Respect the platform motion preference across the whole workspace. The
+   normal spring/fade language remains intact, while reduced-motion users get
+   a stable first frame and no looping cursor or progress decoration. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+textarea.developer-code-editor {
+  background: #020617 !important;
+  color: #e2e8f0 !important;
+  border-color: transparent !important;
+  caret-color: #a5b4fc;
+}

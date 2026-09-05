@@ -25,7 +25,7 @@ __pycache__/
 *.gguf
 *.onnx
 *.npz
-# Prior implementation/research is recoverable from Git; local weights remain intact.
+# Training environments remain local; the original public application assets are tracked.
 /trellis/
-/public/
 /runtime/
+/public/scion/runtime/v2/

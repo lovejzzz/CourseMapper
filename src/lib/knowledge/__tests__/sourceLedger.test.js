@@ -1,0 +1,4111 @@
+import { describe, expect, it } from 'vitest';
+import {
+  bindRenderedClaimSupport,
+  buildSourceLedgerFromCourseGraph,
+  buildSourceReportMarkdown,
+  isClaimBoundSourceLedgerRow,
+  isComputerScienceWeakSource,
+  isLicenseAmbiguous,
+  isTrustedSourceLedgerRow,
+  isVisualAnalysisWeakSource,
+  normalizeTrustedSource,
+  sourceLedgerFromOpenAlex,
+  sourceLedgerFromOpenLibrary,
+  sourceLedgerFromOpenStax,
+  verifySourceSnapshotReceipt,
+} from '../sourceLedger.js';
+import { buildInstructionalInstanceContract } from '../../instructionalInstanceContract.js';
+
+async function sha256Text(value) {
+  const digest = await globalThis.crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
+async function snapshotReceipt(sourceId, quote, overrides = {}) {
+  const normalizedSnapshotText = `0123456789${quote}0123456789`;
+  const quoteBytes = new TextEncoder().encode(quote).byteLength;
+  const snapshotSha256 = await sha256Text(normalizedSnapshotText);
+  return {
+    sourceSnapshot: {
+      protocol: 'retrieved-source-snapshot-sha256-v2',
+      sourceId,
+      retrievedSnapshotSha256: snapshotSha256,
+      retrievedSnapshotBytes: quoteBytes + 20,
+      normalizedSnapshotText,
+      contentVerified: false,
+      sourceIdentityVerified: true,
+      semanticAdmissionVerified: true,
+      artifactVisibilityVerified: false,
+    },
+    check: {
+      retrievedSnapshotSha256: snapshotSha256,
+      retrievedSnapshotBytes: quoteBytes + 20,
+      quoteByteStart: 10,
+      quoteByteEnd: 10 + quoteBytes,
+      sourceIdentityVerified: true,
+      semanticAdmissionVerified: true,
+      artifactVisibilityVerified: false,
+      ...overrides,
+    },
+  };
+}
+
+describe('trusted source ledger', () => {
+  it('replays NFKC-sensitive snapshot bytes exactly', async () => {
+    const quote = '/kʰáá/ contrasts with /káá/.';
+    const snapshot = await snapshotReceipt('wals:phonology', quote);
+    await expect(
+      verifySourceSnapshotReceipt(snapshot.sourceSnapshot, {
+        ...snapshot.check,
+        quote,
+        sourcePassageSha256: await sha256Text(quote),
+      }),
+    ).resolves.toBe(true);
+  });
+
+  it('binds a lesson-specific occurrence row to its underlying source-work receipt', async () => {
+    const claim = 'A sampling distribution describes a statistic across repeated samples.';
+    const snapshot = await snapshotReceipt('openstax:statistics#7', claim);
+    const row = {
+      ...normalizeTrustedSource({
+        id: 'openstax:statistics#7--lesson-7',
+        title: 'Sampling distributions',
+        provider: 'openstax',
+        url: 'https://openstax.org/books/introductory-statistics-2e/pages/7-1',
+        license: 'CC BY 4.0',
+        sessionRefs: ['s7'],
+        conceptLinks: [{ id: 'stats/sampling-distribution', label: 'Sampling distribution' }],
+        supportReceipt: {
+          status: 'passed',
+          checkedClaims: 1,
+          minimumScore: 1,
+          sourceIdentityVerified: true,
+          semanticAdmissionVerified: true,
+          artifactVisibilityVerified: false,
+          semanticSupport: true,
+          readinessEligible: false,
+          sourceSnapshot: { ...snapshot.sourceSnapshot, contentVerified: true },
+          checks: [
+            {
+              sourceId: 'openstax:statistics#7',
+              locator: '7.1',
+              quote: claim,
+              claim,
+              ...snapshot.check,
+              sourcePassageSha256: await sha256Text(claim),
+              quoteInSnapshot: true,
+              entailed: true,
+              semanticSupport: true,
+              score: 1,
+            },
+          ],
+        },
+      }),
+      sourceWorkId: 'openstax:statistics#7',
+    };
+
+    const [bound] = await bindRenderedClaimSupport(
+      [row],
+      [
+        {
+          path: 'Study Guides/Lesson 07 - Sampling - Study Guides.docx',
+          text: claim,
+          sha256: '7'.repeat(64),
+        },
+      ],
+    );
+
+    expect(bound.id).toBe('openstax:statistics#7--lesson-7');
+    expect(bound.sourceWorkId).toBe('openstax:statistics#7');
+    expect(isClaimBoundSourceLedgerRow(bound)).toBe(true);
+    expect(bound.supportReceipt.checks[0]).toMatchObject({
+      sourceId: 'openstax:statistics#7',
+      renderedLocation: 'Study Guides/Lesson 07 - Sampling - Study Guides.docx',
+    });
+  });
+
+  it('promotes exact learner-visible source claims only after Office artifact binding', async () => {
+    const claim = 'Conditional branching selects a code path by evaluating a condition.';
+    const snapshot = await snapshotReceipt('source-branching', claim);
+    const row = normalizeTrustedSource({
+      id: 'source-branching',
+      title: 'Conditional statement',
+      provider: 'wikipedia',
+      url: 'https://en.wikipedia.org/wiki/Conditional_(computer_programming)',
+      license: 'CC BY-SA 4.0',
+      sessionRefs: ['lesson-2'],
+      conceptLinks: [{ id: 'lesson-2', label: 'Conditional Branching' }],
+      supportReceipt: {
+        status: 'passed',
+        checkedClaims: 1,
+        minimumScore: 1,
+        sourceIdentityVerified: true,
+        semanticAdmissionVerified: true,
+        artifactVisibilityVerified: false,
+        semanticSupport: true,
+        readinessEligible: false,
+        sourceSnapshot: { ...snapshot.sourceSnapshot, contentVerified: true },
+        checks: [
+          {
+            sourceId: 'source-branching',
+            locator: 'lead paragraph',
+            quote: claim,
+            claim,
+            ...snapshot.check,
+            sourcePassageSha256: await sha256Text(claim),
+            quoteInSnapshot: true,
+            entailed: true,
+            semanticSupport: true,
+            score: 1,
+          },
+        ],
+      },
+    });
+
+    expect(isClaimBoundSourceLedgerRow(row)).toBe(false);
+    const [bound] = await bindRenderedClaimSupport(
+      [row],
+      [
+        {
+          path: 'Lesson Plans/Lesson 02 - Conditional Branching - Lesson Plans.docx',
+          text: `Source evidence: ${claim}`,
+          sha256: 'b'.repeat(64),
+        },
+        {
+          path: 'Study Guides/Lesson 02 - Conditional Branching - Study Guides.docx',
+          text: `Study note: ${claim}`,
+          sha256: 'c'.repeat(64),
+        },
+        {
+          path: 'Syllabus/Programming Foundations - Syllabus.docx',
+          text: `Week 2 core idea: ${claim}`,
+          sha256: 'd'.repeat(64),
+        },
+      ],
+    );
+
+    expect(isClaimBoundSourceLedgerRow(bound)).toBe(true);
+    expect(bound.supportReceipt).toMatchObject({
+      readinessEligible: true,
+      semanticSupport: true,
+      method: 'rendered-admitted-source-claim-v2',
+      checkedClaims: 3,
+    });
+    expect(bound.supportReceipt.checks).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          renderedLocation: 'Lesson Plans/Lesson 02 - Conditional Branching - Lesson Plans.docx',
+          renderedArtifactSha256: 'b'.repeat(64),
+          verifierVersion: 'rendered-admitted-source-claim-v2',
+        }),
+        expect.objectContaining({
+          renderedLocation: 'Study Guides/Lesson 02 - Conditional Branching - Study Guides.docx',
+          renderedArtifactSha256: 'c'.repeat(64),
+        }),
+        expect.objectContaining({
+          renderedLocation: 'Syllabus/Programming Foundations - Syllabus.docx',
+          renderedArtifactSha256: 'd'.repeat(64),
+        }),
+      ]),
+    );
+  });
+
+  it('rejects persisted visual-analysis false friends without blocking graphical perspective sources', () => {
+    const courseGraph = {
+      course: { name: 'Visual Evidence and Image Analysis' },
+      sessions: [{ title: 'Perspective and Framing' }],
+    };
+    const conceptLinks = [
+      { id: 'c4', label: 'Perspective and Framing' },
+      { id: 'c4-mechanism', label: 'Linear Perspective Systems' },
+    ];
+    expect(
+      isVisualAnalysisWeakSource(
+        {
+          title: 'Perceived Emotional and Social Effects of TikTok Among Youth: A Visual Communication Perspective',
+          evidence:
+            'Young people describe emotional and social effects of a platform where interface design contributes to user engagement.',
+          conceptLinks,
+        },
+        courseGraph,
+      ),
+    ).toBe(true);
+    expect(
+      isVisualAnalysisWeakSource(
+        {
+          title: 'Perspective (graphical)',
+          evidence:
+            'Linear perspective uses a horizon line and vanishing points to project spatial depth onto a picture plane.',
+          conceptLinks,
+        },
+        courseGraph,
+      ),
+    ).toBe(false);
+  });
+
+  it('replays and migrates a strict legacy exact-source receipt before rendered binding', async () => {
+    const sourceId = 'wikipedia:Language acquisition';
+    const claim = 'Language acquisition usually refers to first-language acquisition.';
+    const snapshot = await snapshotReceipt(sourceId, claim, {
+      sourceIdentityVerified: false,
+      semanticAdmissionVerified: false,
+    });
+    const row = normalizeTrustedSource({
+      id: sourceId,
+      title: 'Language acquisition',
+      provider: 'wikipedia',
+      url: 'https://en.wikipedia.org/wiki/Language_acquisition',
+      license: 'CC BY-SA 4.0',
+      sessionRefs: ['lesson-8'],
+      supportReceipt: {
+        status: 'passed',
+        checkedClaims: 1,
+        minimumScore: 1,
+        method: 'exact-source-claim-v1',
+        construct: 'source-extraction-integrity',
+        sourceIdentityVerified: false,
+        semanticAdmissionVerified: false,
+        artifactVisibilityVerified: false,
+        semanticSupport: true,
+        readinessEligible: false,
+        sourceSnapshot: {
+          ...snapshot.sourceSnapshot,
+          sourceIdentityVerified: false,
+          semanticAdmissionVerified: false,
+        },
+        checks: [
+          {
+            claimId: 'language-acquisition:claim-1',
+            sourceId,
+            locator: 'lead section',
+            quote: claim,
+            claim,
+            ...snapshot.check,
+            sourcePassageSha256: await sha256Text(claim),
+            quoteInSnapshot: true,
+            entailed: true,
+            semanticSupport: true,
+            method: 'exact-source-claim-v1',
+            construct: 'source-claim-identity',
+            reason: 'exact-source-claim-identity',
+            score: 1,
+          },
+        ],
+      },
+    });
+
+    const [bound] = await bindRenderedClaimSupport(
+      [row],
+      [
+        {
+          path: 'Study Guides/Lesson 08 - Language Acquisition - Study Guides.docx',
+          text: claim,
+          sha256: 'd'.repeat(64),
+        },
+      ],
+    );
+
+    expect(bound.supportReceipt).toMatchObject({
+      sourceIdentityVerified: true,
+      semanticAdmissionVerified: true,
+      artifactVisibilityVerified: true,
+      readinessEligible: true,
+      legacyExactClaimMigrationCount: 1,
+    });
+    expect(bound.supportReceipt.checks[0]).toMatchObject({
+      legacyExactClaimMigrated: true,
+      sourceIdentityVerified: true,
+      semanticAdmissionVerified: true,
+      artifactVisibilityVerified: true,
+    });
+    expect(isClaimBoundSourceLedgerRow(bound)).toBe(true);
+  });
+
+  it('binds a learner-visible curated paraphrase without pretending it is an exact quotation', async () => {
+    const quote = 'A confidence interval is an interval estimate for an unknown population parameter.';
+    const claim = 'A confidence interval gives a range of plausible values for an unknown population parameter.';
+    const snapshot = await snapshotReceipt('openstax:statistics#8', quote);
+    const row = normalizeTrustedSource({
+      id: 'openstax:statistics#8',
+      title: 'Introductory Statistics 2e',
+      provider: 'openstax',
+      url: 'https://openstax.org/books/introductory-statistics-2e/pages/8-introduction',
+      license: 'CC BY 4.0',
+      sessionRefs: ['lesson-8'],
+      conceptLinks: [{ id: 'lesson-8', label: 'Confidence intervals' }],
+      supportReceipt: {
+        status: 'passed',
+        checkedClaims: 1,
+        minimumScore: 1,
+        sourceIdentityVerified: true,
+        semanticAdmissionVerified: true,
+        artifactVisibilityVerified: false,
+        semanticSupport: true,
+        readinessEligible: false,
+        sourceSnapshot: snapshot.sourceSnapshot,
+        checks: [
+          {
+            sourceId: 'openstax:statistics#8',
+            locator: '8.1',
+            quote,
+            claim,
+            ...snapshot.check,
+            sourcePassageSha256: await sha256Text(quote),
+            quoteInSnapshot: true,
+            entailed: true,
+            semanticSupport: true,
+            semanticAdmission: {
+              admitted: true,
+              policy: 'shipped-source-curated-anchor-v1',
+              topic: 'Confidence interval',
+              topicMatches: [],
+              issues: [],
+            },
+          },
+        ],
+      },
+    });
+
+    const [bound] = await bindRenderedClaimSupport(
+      [row],
+      [{ path: 'Lesson Plans/Lesson 08 - Inference.docx', text: claim, sha256: 'e'.repeat(64) }],
+    );
+
+    expect(bound.supportReceipt).toMatchObject({
+      method: 'rendered-admitted-source-claim-v2',
+      readinessEligible: true,
+      semanticSupport: true,
+    });
+    expect(bound.supportReceipt.checks[0]).toMatchObject({
+      claim,
+      quote,
+      artifactVisibilityVerified: true,
+      semanticAdmission: { policy: 'shipped-source-curated-anchor-v1' },
+    });
+    expect(isClaimBoundSourceLedgerRow(bound)).toBe(true);
+  });
+
+  it('does not bind paraphrased, deleted, or wrong-lesson claims', async () => {
+    const claim = 'A data frame stores tabular data in labeled rows and columns.';
+    const snapshot = await snapshotReceipt('source-frame', claim);
+    const row = normalizeTrustedSource({
+      id: 'source-frame',
+      title: 'Data frame',
+      provider: 'wikipedia',
+      url: 'https://en.wikipedia.org/wiki/Data_frame',
+      license: 'CC BY-SA 4.0',
+      sessionRefs: ['lesson-4'],
+      conceptLinks: [{ id: 'lesson-4', label: 'Tabular Data' }],
+      supportReceipt: {
+        status: 'passed',
+        checkedClaims: 1,
+        minimumScore: 1,
+        semanticSupport: true,
+        readinessEligible: false,
+        sourceSnapshot: snapshot.sourceSnapshot,
+        checks: [
+          {
+            sourceId: 'source-frame',
+            locator: 'definition',
+            quote: claim,
+            claim,
+            ...snapshot.check,
+            sourcePassageSha256: await sha256Text(claim),
+            quoteInSnapshot: true,
+            entailed: true,
+            semanticSupport: true,
+            score: 1,
+          },
+        ],
+      },
+    });
+    const [unbound] = await bindRenderedClaimSupport(
+      [row],
+      [
+        {
+          path: 'Lesson Plans/Lesson 03 - Functions - Lesson Plans.docx',
+          text: 'A table-like object can organize labeled observations and variables.',
+          sha256: 'd'.repeat(64),
+        },
+      ],
+    );
+
+    expect(isClaimBoundSourceLedgerRow(unbound)).toBe(false);
+    expect(unbound.supportReceipt.readinessEligible).toBe(false);
+  });
+
+  it('never derives semantic entailment from source bytes plus artifact visibility', async () => {
+    const claim = 'A visible sentence can still lack an independent semantic admission decision.';
+    const snapshot = await snapshotReceipt('source-unadmitted', claim, {
+      entailed: false,
+      semanticAdmissionVerified: false,
+      semanticSupport: false,
+    });
+    const row = normalizeTrustedSource({
+      id: 'source-unadmitted',
+      title: 'Unadmitted visibility fixture',
+      provider: 'wikipedia',
+      url: 'https://example.test/source-unadmitted',
+      license: 'CC BY-SA 4.0',
+      sessionRefs: ['lesson-1'],
+      supportReceipt: {
+        status: 'passed',
+        checkedClaims: 1,
+        minimumScore: 1,
+        sourceIdentityVerified: true,
+        semanticAdmissionVerified: false,
+        artifactVisibilityVerified: false,
+        semanticSupport: false,
+        readinessEligible: false,
+        sourceSnapshot: { ...snapshot.sourceSnapshot, semanticAdmissionVerified: false },
+        checks: [
+          {
+            sourceId: 'source-unadmitted',
+            locator: 'lead paragraph',
+            quote: claim,
+            claim,
+            ...snapshot.check,
+            sourcePassageSha256: await sha256Text(claim),
+            quoteInSnapshot: true,
+          },
+        ],
+      },
+    });
+
+    const [bound] = await bindRenderedClaimSupport(
+      [row],
+      [{ path: 'Lesson Plans/Lesson 01 - Fixture.docx', text: claim, sha256: 'a'.repeat(64) }],
+    );
+
+    expect(bound.supportReceipt.readinessEligible).toBe(false);
+    expect(bound.supportReceipt.semanticSupport).toBe(false);
+    expect(isClaimBoundSourceLedgerRow(bound)).toBe(false);
+  });
+
+  it('requires a complete source-to-rendered-claim chain before declaring evidence resolved', async () => {
+    const base = {
+      id: 'source-1',
+      provider: 'doaj',
+      url: 'https://example.test/source-1',
+      license: 'CC BY 4.0',
+      provenanceMismatch: false,
+    };
+    const quote = 'The study distinguishes observed association from causal identification.';
+    const snapshot = await snapshotReceipt('source-1', quote);
+    const complete = normalizeTrustedSource({
+      ...base,
+      title: 'Evidence-based policy analysis',
+      supportReceipt: {
+        status: 'passed',
+        checkedClaims: 1,
+        minimumScore: 1,
+        sourceIdentityVerified: true,
+        semanticAdmissionVerified: true,
+        artifactVisibilityVerified: true,
+        semanticSupport: true,
+        readinessEligible: true,
+        sourceSnapshot: { ...snapshot.sourceSnapshot, artifactVisibilityVerified: true },
+        checks: [
+          {
+            sourceId: 'source-1',
+            locator: 'p. 4, paragraph 2',
+            quote,
+            claim: 'Observed association alone does not establish causation.',
+            renderedLocation: 'Lesson 6 study guide > Worked example',
+            ...snapshot.check,
+            sourcePassageSha256: await sha256Text(quote),
+            claimSha256: 'e'.repeat(64),
+            renderedArtifactSha256: 'f'.repeat(64),
+            quoteInSnapshot: true,
+            entailed: true,
+            artifactVisibilityVerified: true,
+            semanticSupport: true,
+            score: 1,
+          },
+        ],
+      },
+    });
+
+    expect(isClaimBoundSourceLedgerRow(complete)).toBe(true);
+    expect(
+      isClaimBoundSourceLedgerRow({
+        ...complete,
+        supportReceipt: {
+          ...complete.supportReceipt,
+          checks: [{ ...complete.supportReceipt.checks[0], renderedLocation: '' }],
+        },
+      }),
+    ).toBe(false);
+    expect(
+      isClaimBoundSourceLedgerRow({
+        ...complete,
+        supportReceipt: { ...complete.supportReceipt, semanticSupport: false },
+      }),
+    ).toBe(false);
+  });
+
+  it('rejects stale snapshot digests and invalid quote offsets', async () => {
+    const claim = 'A source-bound claim remains inspectable after export.';
+    const snapshot = await snapshotReceipt('source-stale', claim, { retrievedSnapshotSha256: '9'.repeat(64) });
+    const row = normalizeTrustedSource({
+      id: 'source-stale',
+      title: 'Inspectable evidence',
+      provider: 'wikipedia',
+      url: 'https://example.test/source-stale',
+      license: 'CC BY-SA 4.0',
+      supportReceipt: {
+        status: 'passed',
+        checkedClaims: 1,
+        minimumScore: 1,
+        semanticSupport: true,
+        readinessEligible: false,
+        sourceSnapshot: snapshot.sourceSnapshot,
+        checks: [
+          {
+            sourceId: 'source-stale',
+            locator: 'lead paragraph',
+            quote: claim,
+            claim,
+            ...snapshot.check,
+            sourcePassageSha256: await sha256Text(claim),
+            quoteInSnapshot: true,
+            entailed: true,
+            semanticSupport: true,
+          },
+        ],
+      },
+    });
+    const [bound] = await bindRenderedClaimSupport(
+      [row],
+      [{ path: 'Lesson Plans/Lesson 01 - Evidence.docx', text: claim, sha256: '1'.repeat(64) }],
+    );
+
+    expect(bound.supportReceipt.readinessEligible).toBe(false);
+    expect(isClaimBoundSourceLedgerRow(bound)).toBe(false);
+  });
+
+  it('rejects package snapshot bytes that do not reproduce the declared digest', async () => {
+    const claim = 'A replayable receipt includes the normalized source bytes.';
+    const snapshot = await snapshotReceipt('source-forged', claim);
+    const row = normalizeTrustedSource({
+      id: 'source-forged',
+      title: 'Replayable evidence',
+      provider: 'wikipedia',
+      url: 'https://example.test/source-forged',
+      license: 'CC BY-SA 4.0',
+      sessionRefs: ['lesson-1'],
+      supportReceipt: {
+        status: 'passed',
+        checkedClaims: 1,
+        minimumScore: 1,
+        semanticSupport: true,
+        readinessEligible: false,
+        sourceSnapshot: {
+          ...snapshot.sourceSnapshot,
+          normalizedSnapshotText: snapshot.sourceSnapshot.normalizedSnapshotText.replace(/^0/, '9'),
+        },
+        checks: [
+          {
+            sourceId: 'source-forged',
+            locator: 'lead paragraph',
+            quote: claim,
+            claim,
+            ...snapshot.check,
+            sourcePassageSha256: await sha256Text(claim),
+            quoteInSnapshot: true,
+            entailed: true,
+            semanticSupport: true,
+          },
+        ],
+      },
+    });
+    const [bound] = await bindRenderedClaimSupport(
+      [row],
+      [{ path: 'Lesson Plans/Lesson 01 - Evidence.docx', text: claim, sha256: '2'.repeat(64) }],
+    );
+
+    expect(bound.supportReceipt.readinessEligible).toBe(false);
+    expect(isClaimBoundSourceLedgerRow(bound)).toBe(false);
+  });
+
+  it('rejects broad Python-package bycatch while admitting exact lesson evidence', () => {
+    const courseGraph = {
+      course: { name: 'Python for Public Policy Analysis' },
+      sessions: [
+        { title: 'Python Data Types and Expressions' },
+        { title: 'Functions and pytest' },
+        { title: 'Pandas Data Cleaning' },
+        { title: 'Reproducible Analysis, Visualization, and Uncertainty' },
+        { title: 'Capstone Policy Memo: Correlation and Causation' },
+      ],
+    };
+    const source = (title, evidence, concept) => ({
+      title,
+      evidence,
+      provider: 'doaj',
+      conceptLinks: [{ label: concept }],
+    });
+
+    expect(
+      isComputerScienceWeakSource(
+        source(
+          'PyGMT: A Python interface for the Generic Mapping Tools',
+          'A geospatial plotting package built around GMT.',
+          'Python Data Types and Expressions',
+        ),
+        courseGraph,
+      ),
+    ).toBe(true);
+    expect(
+      isComputerScienceWeakSource(
+        {
+          title: 'Statistical hypothesis testing',
+          evidence:
+            'A statistical hypothesis test evaluates a null hypothesis and reports a p-value for statistical significance.',
+          conceptLinks: [{ label: 'Hypothesis tests and confidence intervals' }],
+        },
+        courseGraph,
+      ),
+    ).toBe(false);
+    expect(
+      isComputerScienceWeakSource(
+        {
+          title: 'Correlation and regression',
+          evidence:
+            'Correlation describes a statistical relationship between variables, while linear regression estimates their conditional relationship.',
+          conceptLinks: [{ label: 'Correlation and regression' }],
+        },
+        courseGraph,
+      ),
+    ).toBe(false);
+    expect(
+      isComputerScienceWeakSource(
+        {
+          title: 'Automated medical screening with statistical thresholds',
+          evidence:
+            'Clinical laboratory automation screens patient specimens and reports a p-value against a null hypothesis.',
+          conceptLinks: [
+            { label: 'Functions and automated tests' },
+            { label: 'Hypothesis tests and confidence intervals' },
+          ],
+        },
+        courseGraph,
+      ),
+    ).toBe(true);
+    expect(
+      isComputerScienceWeakSource(
+        source(
+          'Best practices and tools in R and Python for lipidomics and metabolomics data',
+          'A review of statistical processing and visualization in omics research.',
+          'Integer and Float Representation',
+        ),
+        courseGraph,
+      ),
+    ).toBe(true);
+    expect(
+      isComputerScienceWeakSource(
+        source(
+          'The Python programming language',
+          'An introduction to Python source code, control flow, and functions.',
+          'Python',
+        ),
+        courseGraph,
+      ),
+    ).toBe(false);
+    expect(
+      isComputerScienceWeakSource(
+        source(
+          'Data cleansing',
+          'Data cleansing identifies and corrects inaccurate, corrupt, or irrelevant records in a dataset.',
+          'Data cleansing',
+        ),
+        courseGraph,
+      ),
+    ).toBe(false);
+    expect(
+      isComputerScienceWeakSource(
+        source(
+          'XSO: a Python framework for computational plankton modelling',
+          'A scientific framework for marine ecosystem simulation.',
+          'Functions and pytest',
+        ),
+        courseGraph,
+      ),
+    ).toBe(true);
+    expect(
+      isComputerScienceWeakSource(
+        source(
+          'A molecule archive for Mars research',
+          'An archive of molecular spectra for planetary-science experiments.',
+          'Capstone Policy Memo: Correlation and Causation',
+        ),
+        courseGraph,
+      ),
+    ).toBe(true);
+
+    expect(
+      isComputerScienceWeakSource(
+        source(
+          'pandas user guide: Working with missing data',
+          'DataFrame cleaning identifies missing values and records data-quality decisions in Python.',
+          'Pandas Data Cleaning',
+        ),
+        courseGraph,
+      ),
+    ).toBe(false);
+    expect(
+      isComputerScienceWeakSource(
+        source(
+          'Matplotlib guide to visualizing uncertainty',
+          'Matplotlib error bars communicate confidence intervals and uncertainty.',
+          'Reproducible Analysis, Visualization, and Uncertainty',
+        ),
+        courseGraph,
+      ),
+    ).toBe(false);
+    expect(
+      isComputerScienceWeakSource(
+        source(
+          'Reproducibility',
+          'Reproducibility is the ability to obtain consistent results using the same data and analysis.',
+          'Reproducible Analysis, Visualization, and Uncertainty',
+        ),
+        courseGraph,
+      ),
+    ).toBe(false);
+    expect(
+      isComputerScienceWeakSource(
+        source(
+          'Data visualization',
+          'Data visualization communicates data through graphical representations and visual encodings.',
+          'Reproducible Analysis, Visualization, and Uncertainty',
+        ),
+        courseGraph,
+      ),
+    ).toBe(false);
+    expect(
+      isComputerScienceWeakSource(
+        source(
+          'Visualization (graphics)',
+          'Visualization is any technique for creating images, diagrams, or animations.',
+          'Reproducible Analysis, Visualization, and Uncertainty',
+        ),
+        courseGraph,
+      ),
+    ).toBe(true);
+  });
+
+  it('does not let a mixed coarse overlay expand trusted source coverage or export rejected research bycatch', () => {
+    const dataCleansing = {
+      displayTitle: 'Data cleansing',
+      sourceUrl: 'https://en.wikipedia.org/wiki/Data_cleansing',
+      provider: 'wikipedia',
+      license: 'CC BY-SA 4.0',
+      evidence: 'Data cleansing identifies and corrects inaccurate or irrelevant records in a dataset.',
+      conceptLinks: [{ label: 'Data cleansing' }],
+    };
+    const mars = {
+      displayTitle: 'Mars molecule archive for bioimages',
+      sourceUrl: 'https://example.test/mars-bioimages',
+      provider: 'doaj',
+      license: 'CC BY 4.0',
+      evidence: 'A molecular bioimage archive for single-molecule analysis.',
+      conceptLinks: [{ label: 'reproducible bioimage analysis' }],
+    };
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'Python for Public Policy Analysis' },
+        sessions: [
+          { id: 's1', number: 1, title: 'Data Cleaning' },
+          { id: 's2', number: 2, title: 'Capstone Policy Memo' },
+        ],
+        enrichmentOverlay: {
+          lessonContent: {
+            'lesson-1': { conceptProvenance: { citations: [dataCleansing] } },
+            'lesson-2': { conceptProvenance: { citations: [dataCleansing, mars] } },
+          },
+        },
+      },
+      { checkedAt: '2026-08-01T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows).toEqual(
+      expect.arrayContaining([expect.objectContaining({ title: 'Data cleansing', sessionRefs: ['s1'] })]),
+    );
+    expect(ledger.rows.flatMap((row) => row.sessionRefs || [])).not.toContain('s2');
+    expect(ledger.reviewRows || []).toEqual([]);
+    expect([...(ledger.rows || []), ...(ledger.reviewRows || [])]).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ title: 'Mars molecule archive for bioimages' })]),
+    );
+  });
+
+  it('omits a persisted social-platform false friend from visual-analysis source review surfaces', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'Visual Evidence and Image Analysis' },
+        sessions: [{ id: 's4', number: 4, title: 'Perspective and Framing' }],
+        enrichmentOverlay: {
+          lessonContent: {
+            'lesson-4': {
+              conceptProvenance: {
+                citations: [
+                  {
+                    id: 'doaj:tiktok',
+                    displayTitle:
+                      'Perceived Emotional and Social Effects of TikTok Among Youth: A Visual Communication Perspective',
+                    sourceUrl: 'https://example.test/tiktok-study',
+                    provider: 'doaj',
+                    license: 'CC0 1.0',
+                    evidence:
+                      'Young people report emotional and social effects of a visually intensive social platform.',
+                    conceptLinks: [{ id: 'c4', label: 'Perspective and Framing' }],
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+      { checkedAt: '2026-08-06T00:00:00.000Z' },
+    );
+
+    expect(ledger).toBeNull();
+    expect(buildSourceReportMarkdown({ sourceLedger: ledger })).not.toContain('TikTok');
+  });
+
+  it('omits a persisted algi-research false friend resource from visual-analysis source review surfaces', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'Visual Evidence and Image Analysis' },
+        concepts: [{ id: 'c4', term: 'Linear Perspective Systems' }],
+        sessions: [
+          {
+            id: 's4',
+            number: 4,
+            title: 'Perspective and Framing',
+            sections: [{ topic: 'Perspective and Framing', conceptRefs: ['c4'], resourceRefs: ['kr3'] }],
+          },
+        ],
+        resources: [
+          {
+            id: 'kr3',
+            title: 'Perceived Emotional and Social Effects of TikTok Among Youth: A Visual Communication Perspective',
+            topic: 'Perspective and Framing',
+            evidence: 'Young people report emotional and social effects of a visually intensive social platform.',
+            origin: 'algi-research',
+            provider: 'doaj',
+            url: 'https://example.test/tiktok-study',
+            license: 'CC0 1.0',
+            sessionRefs: ['s4'],
+            conceptLinks: [{ id: 'c4', label: 'Linear Perspective Systems' }],
+          },
+        ],
+      },
+      { checkedAt: '2026-08-06T00:00:00.000Z' },
+    );
+
+    expect(ledger).toBeNull();
+    expect(buildSourceReportMarkdown({ sourceLedger: ledger })).not.toContain('TikTok');
+  });
+
+  it('normalizes accidental sentence seams in scholarly source metadata', () => {
+    const source = normalizeTrustedSource({
+      id: 'kr1',
+      provider: 'europe-pmc',
+      title: 'A Review of Quantitative Microbial Risk Assessment.',
+      url: 'https://europepmc.org/article/PMC/13074090',
+      license: 'CC BY',
+      attribution: 'A. Researcher (2026). A Review of Quantitative Microbial Risk Assessment.. Europe PMC.',
+    });
+
+    expect(source.attribution).toBe(
+      'A. Researcher (2026). A Review of Quantitative Microbial Risk Assessment. Europe PMC',
+    );
+    expect(source.citation).not.toContain('..');
+    expect(buildSourceReportMarkdown({ sourceLedger: { rows: [source] } })).not.toContain('..');
+  });
+
+  it('recovers a clean bibliographic title from an Algi classroom source label', () => {
+    const source = normalizeTrustedSource({
+      id: 'kr1',
+      provider: 'doaj',
+      origin: 'algi-research',
+      sourceType: 'open scholarly article',
+      title:
+        'AI governance — Artificial Intelligence as a Socio-Economic Dilemma (open scholarly article, CC0 1.0 (DOAJ article metadata) — https://example.test/article)',
+      url: 'https://example.test/article',
+      doi: '10.1000/example',
+      license: 'CC0 1.0 (DOAJ article metadata)',
+      attribution: 'A. Researcher. DOAJ metadata.',
+      sessionRefs: ['s2', 2, 'lesson 2'],
+    });
+
+    expect(source.title).toBe('Artificial Intelligence as a Socio-Economic Dilemma');
+    expect(source.citation).toBe('Artificial Intelligence as a Socio-Economic Dilemma — doi:10.1000/example');
+    expect(source.sessionRefs).toEqual(['s2']);
+    expect(buildSourceReportMarkdown({ sourceLedger: { rows: [source] } })).not.toContain('— —');
+  });
+
+  it('normalizes academic and OER provider results into auditable source rows', () => {
+    const checkedAt = '2026-06-20T00:00:00.000Z';
+    const openAlex = sourceLedgerFromOpenAlex(
+      {
+        id: 'https://openalex.org/W1',
+        title: 'Limits and the Derivative',
+        authors: 'A. Author, B. Scholar',
+        doi: '10.1000/calculus',
+        license: 'cc-by',
+      },
+      { fallbackId: 'SL1', checkedAt, conceptLinks: [{ id: 'C1', label: 'Limit' }] },
+    );
+    const openLibrary = sourceLedgerFromOpenLibrary(
+      {
+        title: 'Calculus Volume 1',
+        authors: ['OpenStax'],
+        url: 'https://openlibrary.org/works/OL1',
+      },
+      { fallbackId: 'SL2', checkedAt },
+    );
+    const openStax = sourceLedgerFromOpenStax(
+      {
+        title: 'Calculus Volume 1',
+        url: 'https://openstax.org/books/calculus-volume-1',
+      },
+      { fallbackId: 'SL3', checkedAt },
+    );
+
+    expect(openAlex).toMatchObject({
+      provider: 'openalex',
+      doi: '10.1000/calculus',
+      license: 'CC BY',
+      accessStatus: 'reference-present',
+      trustLevel: 'academic-metadata',
+      licenseAmbiguous: false,
+      conceptLinks: [{ id: 'C1', label: 'Limit' }],
+    });
+    expect(openLibrary).toMatchObject({
+      provider: 'openlibrary',
+      trustLevel: 'bibliographic-metadata',
+      licenseAmbiguous: true,
+    });
+    expect(openStax).toMatchObject({
+      provider: 'openstax',
+      license: 'CC BY-NC-SA 4.0',
+      trustLevel: 'open-educational-resource',
+    });
+  });
+
+  it('recovers an OpenStax book URL from exact attribution when a genome row only names the section', () => {
+    const source = normalizeTrustedSource({
+      id: 'kr1',
+      provider: 'openstax',
+      title: '3.1',
+      attribution: 'OpenStax, Business Ethics, §3.1',
+      evidence: 'Stakeholders have an interest in how an organization operates.',
+      license: 'CC BY 4.0',
+    });
+
+    expect(source).toMatchObject({
+      url: 'https://openstax.org/books/business-ethics',
+      accessStatus: 'reference-present',
+      license: 'CC BY 4.0',
+    });
+    expect(isTrustedSourceLedgerRow(source)).toBe(true);
+  });
+
+  it('refuses a green trust state when publisher attribution and URL disagree', () => {
+    const source = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'Environmental Microbiology' },
+        concepts: [{ id: 'c1', term: 'Waterborne pathogens' }],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            title: 'Waterborne pathogens',
+            sections: [{ topic: 'Transmission', conceptRefs: ['c1'], resourceRefs: ['kr1'] }],
+          },
+        ],
+        resources: [
+          {
+            id: 'kr1',
+            provider: 'genome',
+            origin: 'genome',
+            title: 'OpenStax Microbiology §16.3',
+            attribution: 'OpenStax Microbiology, §16.3 Modes of Disease Transmission',
+            url: 'https://en.wikipedia.org/wiki/16.3',
+            license: 'CC BY 4.0',
+            sessionRefs: [1],
+          },
+        ],
+      },
+      { checkedAt: '2026-07-26T00:00:00.000Z' },
+    );
+
+    expect(source.rows).toHaveLength(0);
+    expect(source.reviewRows).toEqual([
+      expect.objectContaining({
+        id: 'kr1',
+        provenanceMismatch: true,
+      }),
+    ]);
+    expect(isTrustedSourceLedgerRow(source.reviewRows[0])).toBe(false);
+  });
+
+  it('quarantines music-interval false friends even when an abstract course title omits music', () => {
+    const graph = {
+      course: { name: 'Interval Evidence Studio' },
+      concepts: [{ id: 'c2', term: 'Compound Intervals' }],
+      sessions: [
+        {
+          id: 's2',
+          number: 2,
+          title: 'Simple and Compound Intervals and Inversion',
+          sections: [{ topic: 'Compound Intervals', conceptRefs: ['c2'], resourceRefs: ['bad', 'good'] }],
+        },
+      ],
+      edges: { teaches: [{ from: 's2', to: 'c2' }] },
+      resources: [
+        {
+          id: 'bad',
+          origin: 'source-finder',
+          provider: 'openalex',
+          title: 'Biochemistry Changes That Occur after Death: Post-Mortem Interval',
+          url: 'https://example.org/post-mortem-interval',
+          license: 'CC BY',
+          snippet: 'Forensic pathology and biochemistry markers for time since death.',
+          sessionRefs: ['s2'],
+        },
+        {
+          id: 'good',
+          origin: 'source-finder',
+          provider: 'wikipedia',
+          title: 'Interval (music)',
+          url: 'https://en.wikipedia.org/wiki/Interval_(music)',
+          license: 'CC BY-SA 4.0',
+          snippet: 'Music theory description of pitch distance, semitones, and interval quality.',
+          sessionRefs: ['s2'],
+        },
+      ],
+    };
+
+    const ledger = buildSourceLedgerFromCourseGraph(graph, { checkedAt: '2026-07-17T00:00:00.000Z' });
+    expect(ledger.rows.map((row) => row.title)).toEqual(['Interval (music)']);
+    expect(ledger.reviewRows || []).toHaveLength(0);
+  });
+
+  it('treats in-copyright rights statements as review-only license proof', () => {
+    const source = sourceLedgerFromOpenAlex(
+      {
+        id: 'https://openalex.org/W2',
+        title: 'Accessibility Evaluation in Design Studios',
+        authors: 'A. Researcher',
+        doi: '10.1000/accessibility-studio',
+        license: 'http://rightsstatements.org/vocab/InC/1.0/',
+      },
+      { fallbackId: 'SL1', conceptLinks: [{ id: 'C1', label: 'Accessibility review' }] },
+    );
+
+    expect(source).toMatchObject({
+      provider: 'openalex',
+      doi: '10.1000/accessibility-studio',
+      license: 'http://rightsstatements.org/vocab/InC/1.0/',
+      licenseAmbiguous: true,
+      conceptLinks: [{ id: 'C1', label: 'Accessibility review' }],
+    });
+    expect(isLicenseAmbiguous(source.license)).toBe(true);
+    expect(isTrustedSourceLedgerRow(source)).toBe(false);
+  });
+
+  it('treats Creative Commons no-derivatives licenses as review-only proof', () => {
+    const ccLabelSource = sourceLedgerFromOpenAlex(
+      {
+        id: 'https://openalex.org/W3',
+        title: 'UX Studio Case Methods',
+        authors: 'A. Researcher',
+        doi: '10.1000/ux-studio-case-methods',
+        license: 'CC BY-NC-ND 4.0',
+      },
+      { fallbackId: 'SL1', conceptLinks: [{ id: 'C1', label: 'UX critique' }] },
+    );
+    const ccUrlSource = sourceLedgerFromOpenAlex(
+      {
+        id: 'https://openalex.org/W4',
+        title: 'Programming Loop Pedagogy',
+        authors: 'B. Researcher',
+        doi: '10.1000/programming-loop-pedagogy',
+        license: 'https://creativecommons.org/licenses/by-nc-nd/4.0/',
+      },
+      { fallbackId: 'SL2', conceptLinks: [{ id: 'C2', label: 'loops' }] },
+    );
+
+    expect(ccLabelSource).toMatchObject({
+      license: 'CC BY-NC-ND 4.0',
+      licenseAmbiguous: true,
+    });
+    expect(ccUrlSource).toMatchObject({
+      license: 'https://creativecommons.org/licenses/by-nc-nd/4.0/',
+      licenseAmbiguous: true,
+    });
+    expect(isTrustedSourceLedgerRow(ccLabelSource)).toBe(false);
+    expect(isTrustedSourceLedgerRow(ccUrlSource)).toBe(false);
+  });
+
+  it('recovers source references embedded in rendered resource text', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        sessions: [{ id: 's1', number: 1, sections: [{ topic: 'Socialization', resourceRefs: ['r1'] }] }],
+        resources: [
+          {
+            id: 'r1',
+            origin: 'syllabus',
+            citation:
+              'OpenStax Introduction to Sociology 3e, Socialization, https://openstax.org/books/introduction-sociology-3e/pages/5-introduction-to-socialization, CC BY 4.0',
+            sessionRefs: [1],
+          },
+        ],
+      },
+      { checkedAt: '2026-06-20T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows[0]).toMatchObject({
+      id: 'r1',
+      provider: 'openstax',
+      url: 'https://openstax.org/books/introduction-sociology-3e/pages/5-introduction-to-socialization',
+      license: 'CC BY 4.0',
+      accessStatus: 'reference-present',
+      trustLevel: 'open-educational-resource',
+    });
+  });
+
+  it('hydrates concrete OpenStax section labels into licensed concept-linked source proof', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'Introduction to Computer Science with Python' },
+        concepts: [{ id: 'c1', term: 'Boolean logic' }],
+        sessions: [
+          {
+            id: 's3',
+            number: 3,
+            title: 'Boolean Logic and Conditional Control Flow',
+            sections: [
+              {
+                topic: 'Boolean logic',
+                conceptRefs: ['c1'],
+                resourceRefs: ['syllabus-src-3-3'],
+              },
+            ],
+          },
+        ],
+        resources: [
+          {
+            id: 'syllabus-src-3-3',
+            origin: 'syllabus',
+            citation: 'OpenStax introduction python programming §4.2 (open textbook)',
+            sessionRefs: [3],
+          },
+        ],
+      },
+      { checkedAt: '2026-06-30T00:00:00.000Z' },
+    );
+
+    expect(ledger.reviewRows || []).toHaveLength(0);
+    expect(ledger.rows).toEqual([
+      expect.objectContaining({
+        id: 'syllabus-src-3-3',
+        provider: 'openstax',
+        url: 'https://openstax.org/books/introduction-python-programming',
+        license: 'CC BY 4.0',
+        accessStatus: 'reference-present',
+        licenseAmbiguous: false,
+        conceptLinks: [{ id: 'c1', label: 'Boolean logic' }],
+      }),
+    ]);
+    expect(ledger.summary).toMatchObject({
+      sourceCount: 1,
+      trustedConceptLinkedCount: 1,
+    });
+    expect(ledger.summary).not.toHaveProperty('reviewRequiredCount');
+  });
+
+  it('keeps canonical OpenStax Python genome rows trusted for ambiguous CS concepts', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'Introduction to Computer Science with Python' },
+        concepts: [
+          { id: 'c6', term: 'Dictionaries' },
+          { id: 'c8', term: 'File input' },
+        ],
+        sessions: [
+          {
+            id: 's10',
+            number: 10,
+            title: 'Dictionaries and Files',
+            sections: [
+              {
+                topic: 'Dictionary and file input practice',
+                conceptRefs: ['c6', 'c8'],
+                resourceRefs: ['kr1'],
+              },
+            ],
+          },
+        ],
+        resources: [
+          {
+            id: 'kr1',
+            provider: 'genome',
+            origin: 'genome',
+            kind: 'textbook section',
+            title:
+              'OpenStax introduction python programming §10.1 (open textbook, CC BY 4.0 — https://openstax.org/books/introduction-python-programming)',
+            url: 'https://openstax.org/books/introduction-python-programming',
+            license: 'CC BY 4.0',
+            sessionRefs: [10],
+          },
+        ],
+      },
+      { checkedAt: '2026-06-30T00:00:00.000Z' },
+    );
+
+    expect(ledger.reviewRows || []).toHaveLength(0);
+    expect(ledger.rows).toEqual([
+      expect.objectContaining({
+        id: 'kr1',
+        provider: 'genome',
+        url: 'https://openstax.org/books/introduction-python-programming',
+        license: 'CC BY 4.0',
+        accessStatus: 'reference-present',
+        licenseAmbiguous: false,
+        conceptLinks: expect.arrayContaining([
+          { id: 'c6', label: 'Dictionaries' },
+          { id: 'c8', label: 'File input' },
+        ]),
+      }),
+    ]);
+  });
+
+  it('trusts source-anchored genome proof against its exact kernel concept, not only the broad lesson label', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'User Experience Design Studio' },
+        concepts: [{ id: 'c3', term: 'Usability Testing and Iteration' }],
+        sessions: [
+          {
+            id: 's3',
+            number: 3,
+            title: 'Usability Testing and Iteration',
+            sections: [{ topic: 'Usability Testing and Iteration', conceptRefs: ['c3'], resourceRefs: ['kr1', 'kr2'] }],
+          },
+        ],
+        resources: [
+          {
+            id: 'kr1',
+            provider: 'genome',
+            origin: 'genome',
+            kind: 'open resource',
+            title: 'Web Content Accessibility Guidelines (WCAG) 2.2',
+            url: 'https://www.w3.org/TR/WCAG22/',
+            license: 'W3C Document License and U.S. Government Work',
+            evidence: 'WCAG provides a shared standard for web content accessibility.',
+            sourceTier: 2,
+            conceptLinks: [
+              { id: 'ux/accessibility-usability-evaluation', label: 'Accessibility and usability evaluation' },
+            ],
+            sessionRefs: ['s3'],
+          },
+          {
+            id: 'kr2',
+            provider: 'genome',
+            origin: 'genome',
+            kind: 'open resource',
+            title: 'Plan a round of user research',
+            url: 'https://www.gov.uk/service-manual/user-research/plan-round-of-user-research',
+            license: 'Open Government Licence v3.0',
+            evidence: 'Each round of user research should have clear objectives.',
+            sourceTier: 2,
+            conceptLinks: [{ id: 'ux/research-planning', label: 'Research planning' }],
+            sessionRefs: ['s3'],
+          },
+        ],
+      },
+      { checkedAt: '2026-07-13T00:00:00.000Z' },
+    );
+
+    expect(ledger.reviewRows || []).toHaveLength(0);
+    expect(ledger.rows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'kr1',
+          sourceTier: 2,
+          conceptLinks: expect.arrayContaining([
+            { id: 'ux/accessibility-usability-evaluation', label: 'Accessibility and usability evaluation' },
+          ]),
+        }),
+        expect.objectContaining({
+          id: 'kr2',
+          sourceTier: 2,
+          conceptLinks: expect.arrayContaining([{ id: 'ux/research-planning', label: 'Research planning' }]),
+        }),
+      ]),
+    );
+    expect(ledger.summary).toMatchObject({ sourceCount: 2, trustedConceptLinkedCount: 2 });
+  });
+
+  it('normalizes hyphenated Creative Commons licenses recovered from source text', () => {
+    const ledger = buildSourceLedgerFromCourseGraph({
+      sessions: [{ id: 's1', number: 1, sections: [{ topic: 'Scope definition', resourceRefs: ['r1', 'r2'] }] }],
+      resources: [
+        {
+          id: 'r1',
+          origin: 'syllabus',
+          citation: 'OpenAlex - Scope Management, DOI: 10.1002/example (cc-by)',
+          sessionRefs: [1],
+        },
+        {
+          id: 'r2',
+          origin: 'syllabus',
+          citation: 'OpenStax Example, https://openstax.org/books/example, CC BY-NC-SA 4.0',
+          sessionRefs: [1],
+        },
+      ],
+    });
+
+    expect(ledger.rows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 'r1', license: 'CC BY', licenseAmbiguous: false }),
+        expect.objectContaining({ id: 'r2', license: 'CC BY-NC-SA 4.0', licenseAmbiguous: false }),
+      ]),
+    );
+  });
+
+  it('recovers Crossref DOI and publisher policy URLs without trusting them as reusable licenses', () => {
+    const ledger = buildSourceLedgerFromCourseGraph({
+      sessions: [{ id: 's1', number: 1, sections: [{ topic: 'Runway', resourceRefs: ['r1', 'r2'] }] }],
+      resources: [
+        {
+          id: 'r1',
+          origin: 'syllabus',
+          citation:
+            'Masanao Aoki (1987). No unit root conditions for bivariate series when a component univariate series has a unit root. Crossref: https://doi.org/10.1016/0165-1765(87)90086-3 (https://www.elsevier.com/tdm/userlicense/1.0/)',
+          sessionRefs: [1],
+        },
+        {
+          id: 'r2',
+          origin: 'syllabus',
+          citation:
+            'Test Plans. Crossref: https://doi.org/10.1002/9780470316795.ch6 (http://doi.wiley.com/10.1002/tdm_license_1.1)',
+          sessionRefs: [1],
+        },
+      ],
+    });
+
+    expect(ledger.rows).toHaveLength(0);
+    expect(ledger.reviewRows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'r1',
+          provider: 'crossref',
+          doi: '10.1016/0165-1765(87)90086-3',
+          url: 'https://doi.org/10.1016/0165-1765(87)90086-3',
+          license: 'https://www.elsevier.com/tdm/userlicense/1.0/',
+          licenseAmbiguous: true,
+          accessStatus: 'reference-present',
+        }),
+        expect.objectContaining({
+          id: 'r2',
+          provider: 'crossref',
+          doi: '10.1002/9780470316795.ch6',
+          url: 'https://doi.org/10.1002/9780470316795.ch6',
+          licenseAmbiguous: true,
+          accessStatus: 'reference-present',
+        }),
+      ]),
+    );
+    expect(isLicenseAmbiguous('http://doi.wiley.com/10.1002/tdm_license_1.1')).toBe(true);
+    expect(isLicenseAmbiguous('https://www.cambridge.org/core/terms')).toBe(true);
+    expect(isLicenseAmbiguous('http://onlinelibrary.wiley.com/termsAndConditions#vor')).toBe(true);
+  });
+
+  it('quarantines accessible source resources when license proof is missing', () => {
+    const ledger = buildSourceLedgerFromCourseGraph({
+      concepts: [{ id: 'c1', term: 'studio critique' }],
+      sessions: [
+        {
+          id: 's1',
+          number: 1,
+          sections: [{ topic: 'studio critique', conceptRefs: ['c1'], resourceRefs: ['r1'] }],
+        },
+      ],
+      resources: [
+        {
+          id: 'r1',
+          origin: 'syllabus',
+          title: 'Guiding Principles for the UX Practitioner',
+          url: 'https://example.edu/ux-practitioner',
+          citation: 'Guiding Principles for the UX Practitioner',
+          sessionRefs: [1],
+        },
+      ],
+    });
+
+    expect(ledger.rows).toHaveLength(0);
+    expect(ledger.reviewRows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'r1',
+          accessStatus: 'reference-present',
+          licenseAmbiguous: true,
+          conceptLinks: [{ id: 'c1', label: 'studio critique' }],
+        }),
+      ]),
+    );
+    expect(ledger.summary).toMatchObject({ sourceCount: 0, trustedCount: 0, reviewRequiredCount: 1 });
+  });
+
+  it('does not promote package labels or placeholder course-map resources into source rows', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            sections: [{ topic: 'Institutions', resourceRefs: ['r1', 'r2', 'r3', 'r4'] }],
+          },
+        ],
+        resources: [
+          { id: 'r1', origin: 'syllabus', citation: 'course map', sessionRefs: [1] },
+          { id: 'r2', origin: 'syllabus', citation: 'lesson plans', sessionRefs: [1] },
+          {
+            id: 'r3',
+            origin: 'syllabus',
+            citation: 'Worked examples, readings, or activity sheets aligned to institutions.',
+            sessionRefs: [1],
+          },
+          {
+            id: 'r4',
+            origin: 'syllabus',
+            citation:
+              'OpenStax Introduction to Sociology 3e, Social Institutions, https://openstax.org/books/introduction-sociology-3e/pages/4-introduction-to-society-and-social-interaction, CC BY 4.0',
+            sessionRefs: [1],
+          },
+        ],
+      },
+      { checkedAt: '2026-06-20T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows).toHaveLength(1);
+    expect(ledger.rows[0]).toMatchObject({
+      id: 'r4',
+      provider: 'openstax',
+      accessStatus: 'reference-present',
+    });
+  });
+
+  it('returns no source ledger when fallback resources are only non-source placeholders', () => {
+    const ledger = buildSourceLedgerFromCourseGraph({
+      sessions: [{ id: 's1', number: 1, sections: [{ topic: 'Inequality', resourceRefs: ['r1', 'r2'] }] }],
+      resources: [
+        { id: 'r1', origin: 'syllabus', citation: 'study guides', sessionRefs: [1] },
+        {
+          id: 'r2',
+          origin: 'syllabus',
+          citation: 'Course materials students need to prepare and show evidence about inequality.',
+          sessionRefs: [1],
+        },
+      ],
+    });
+
+    expect(ledger).toBeNull();
+  });
+
+  it('quarantines CourseIR assumption rows as review notes instead of bibliography', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        courseIR: {
+          sourceLedger: [
+            {
+              id: 'SL1',
+              scope: 'course',
+              status: 'source-provided',
+              evidence: 'Existing course map fields.',
+              provider: 'courseir',
+            },
+          ],
+        },
+      },
+      { checkedAt: '2026-06-20T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows).toHaveLength(0);
+    expect(ledger.reviewRows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'SL1',
+          provider: 'courseir',
+          accessStatus: 'no-url-or-doi',
+          licenseAmbiguous: true,
+        }),
+      ]),
+    );
+    expect(ledger.summary).toMatchObject({ sourceCount: 0, reviewRequiredCount: 1 });
+
+    const report = buildSourceReportMarkdown({ courseName: 'Sociology', sourceLedger: ledger });
+    expect(report).toContain('Source Review Notes');
+    expect(report).toContain('trustedBibliography=false');
+    expect(report).not.toContain('## Source Ledger');
+  });
+
+  it('builds a graph ledger and human source report from CourseGraph resources', () => {
+    const checkedAt = '2026-06-20T00:00:00.000Z';
+    const graph = {
+      concepts: [{ id: 'c1', term: 'Limits' }],
+      sessions: [
+        {
+          id: 's1',
+          number: 1,
+          sections: [{ id: 'sec1', topic: 'Limits', conceptRefs: ['c1'], resourceRefs: ['kr1'] }],
+        },
+      ],
+      resources: [
+        {
+          id: 'kr1',
+          citation: 'OpenStax Calculus Volume 1 §2.2',
+          origin: 'genome',
+          kind: 'textbook section',
+          url: 'https://openstax.org/books/calculus-volume-1/pages/2-2-the-limit-of-a-function',
+          license: 'CC BY-NC-SA 4.0',
+          attribution: 'OpenStax, Rice University',
+          revisionId: 'openstax-calculus-v1',
+          revisionTimestamp: '2026-06-19T00:00:00Z',
+          sessionRefs: ['s1'],
+        },
+      ],
+      readings: [],
+      courseIR: {
+        sourceLedger: [
+          {
+            id: 'SL1',
+            title: 'Instructor course brief',
+            scope: 'course',
+            status: 'source-provided',
+            evidence: 'Instructor requested a limits package.',
+            provider: 'instructor',
+            license: 'instructor review required',
+          },
+        ],
+      },
+    };
+
+    const ledger = buildSourceLedgerFromCourseGraph(graph, { checkedAt });
+    expect(ledger.summary).toMatchObject({
+      sourceCount: 1,
+      accessibleCount: 1,
+      licenseAmbiguousCount: 0,
+      reviewRequiredCount: 1,
+    });
+    expect(ledger.rows[0]).toMatchObject({
+      id: 'kr1',
+      provider: 'genome',
+      attribution: 'OpenStax, Rice University',
+      revisionId: 'openstax-calculus-v1',
+      conceptLinks: [{ id: 'c1', label: 'Limits' }],
+      checkedAt,
+    });
+    expect(ledger.reviewRows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'SL1',
+          provider: 'instructor',
+          licenseAmbiguous: true,
+        }),
+      ]),
+    );
+    const report = buildSourceReportMarkdown({
+      courseName: 'Calculus I',
+      sourceLedger: ledger,
+      sourceRefCoverage: {
+        categories: {
+          outcomes: { total: 1, withRefs: 1, missing: 0, danglingRefs: 0, missingIds: [] },
+        },
+        trusted: {
+          sourceLedgerRows: 1,
+          categories: {
+            outcomes: { total: 1, withRefs: 1, missing: 0, danglingRefs: 0, missingIds: [] },
+          },
+        },
+      },
+    });
+    expect(report).toContain('Source Ledger');
+    expect(report).toContain('Source Review Notes');
+    expect(report).toContain('## Rights and Attribution');
+    expect(report).toContain('only the portions quoted or adapted from that source');
+    expect(report).toContain('does not relicense independently authored package content');
+    expect(report).toContain('receives no reuse permission from CourseMapper');
+    expect(report).toContain('kr1');
+    expect(report).toContain('(source id: kr1)');
+    expect(report).not.toContain('- kr1:');
+    expect(report).toContain('attribution=OpenStax, Rice University');
+    expect(report).toContain('revisionId=openstax-calculus-v1');
+    expect(report).toContain('revisionTimestamp=2026-06-19T00:00:00Z');
+    expect(report).toContain('trustedBibliography=false');
+    expect(report).toContain('outcomes: 1/1 with sourceRefs');
+    expect(report).toContain('outcomes: 1/1 with trusted sourceRefs');
+  });
+
+  it('recovers concept-linked source rows from a source-finder mini-shard when resource cells are sparse', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        concepts: [{ id: 'c1', term: 'Gene expression' }],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            sections: [{ id: 'sec1', topic: 'Gene expression', conceptRefs: ['c1'], resourceRefs: [] }],
+          },
+        ],
+        resources: [],
+        sourceFinderMiniShard: {
+          topics: [
+            {
+              sessionId: 's1',
+              lessonNumber: 1,
+              topic: 'gene expression regulation',
+              sources: [
+                {
+                  provider: 'openalex',
+                  kind: 'peer-reviewed reading',
+                  title: 'Gene Expression Regulation in Society Courses',
+                  authors: 'A. Scholar',
+                  year: 2024,
+                  url: 'https://openalex.org/W999',
+                  license: 'cc-by',
+                  snippet: 'Connects gene expression regulation to introductory genetics instruction.',
+                },
+              ],
+            },
+          ],
+        },
+      },
+      { checkedAt: '2026-06-20T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'sf-1-1',
+          provider: 'openalex',
+          url: 'https://openalex.org/W999',
+          conceptLinks: [{ id: 'c1', label: 'Gene expression' }],
+          trustLevel: 'academic-metadata',
+        }),
+      ]),
+    );
+  });
+
+  it('prefers trustworthy source-finder candidates over first metadata-only rows', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        concepts: [{ id: 'c1', term: 'Earned value management' }],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            sections: [
+              {
+                id: 'sec1',
+                topic: 'Earned value management',
+                conceptRefs: ['c1'],
+                resourceRefs: [],
+              },
+            ],
+          },
+        ],
+        resources: [],
+        sourceFinderMiniShard: {
+          topics: [
+            {
+              sessionId: 's1',
+              lessonNumber: 1,
+              topic: 'earned value',
+              sources: [
+                {
+                  provider: 'openlibrary',
+                  kind: 'book metadata',
+                  title: 'Earned Value Project Management',
+                  url: 'https://openlibrary.org/works/OL3289640W',
+                  license: 'Open Library public metadata',
+                  snippet: 'Bibliographic metadata for an earned value book.',
+                },
+                {
+                  provider: 'openalex',
+                  kind: 'peer-reviewed reading',
+                  title: 'Earned Value Management in Project Controls',
+                  doi: '10.1000/evm-controls',
+                  url: 'https://doi.org/10.1000/evm-controls',
+                  license: 'cc-by',
+                  snippet: 'Connects earned value management to schedule and cost control decisions.',
+                },
+              ],
+            },
+          ],
+        },
+      },
+      { checkedAt: '2026-06-27T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows).toHaveLength(1);
+    expect(ledger.rows[0]).toMatchObject({
+      provider: 'openalex',
+      title: 'Earned Value Management in Project Controls',
+      trustLevel: 'academic-metadata',
+      licenseAmbiguous: false,
+      conceptLinks: [{ id: 'c1', label: 'Earned value management' }],
+    });
+    expect(ledger.summary).toMatchObject({
+      sourceCount: 1,
+      trustedCount: 1,
+      trustedConceptLinkedCount: 1,
+      licenseAmbiguousCount: 0,
+    });
+  });
+
+  it('bridges multiple trusted concept-linked source-finder rows from one topic', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        concepts: [{ id: 'c1', term: 'Critical path method' }],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            sections: [
+              {
+                id: 'sec1',
+                topic: 'Critical path method',
+                conceptRefs: ['c1'],
+                resourceRefs: [],
+              },
+            ],
+          },
+        ],
+        resources: [],
+        sourceFinderMiniShard: {
+          topics: [
+            {
+              sessionId: 's1',
+              lessonNumber: 1,
+              topic: 'critical path project scheduling',
+              sources: [
+                {
+                  provider: 'openlibrary',
+                  kind: 'book metadata',
+                  title: 'Critical Path Project Management',
+                  url: 'https://openlibrary.org/works/OL111W',
+                  license: 'Open Library public metadata',
+                  snippet: 'Bibliographic metadata for a critical path book.',
+                },
+                {
+                  provider: 'openalex',
+                  kind: 'peer-reviewed reading',
+                  title: 'Critical Path Scheduling in Project Controls',
+                  doi: '10.1000/critical-path-openalex',
+                  url: 'https://doi.org/10.1000/critical-path-openalex',
+                  license: 'CC BY 4.0',
+                  snippet: 'Critical path scheduling evidence for project control decisions.',
+                },
+                {
+                  provider: 'crossref',
+                  kind: 'scholarly work',
+                  title: 'Network Scheduling and Critical Path Method',
+                  doi: '10.1000/critical-path-crossref',
+                  url: 'https://doi.org/10.1000/critical-path-crossref',
+                  license: 'https://www.elsevier.com/tdm/userlicense/1.0/',
+                  snippet: 'Critical path network scheduling for project management.',
+                },
+                {
+                  provider: 'crossref',
+                  kind: 'scholarly work',
+                  title: 'Test Plans',
+                  doi: '10.1002/9780470316795.ch6',
+                  url: 'https://doi.org/10.1002/9780470316795.ch6',
+                  license: 'http://doi.wiley.com/10.1002/tdm_license_1.1',
+                  snippet: 'Critical path test planning and schedule verification.',
+                },
+              ],
+            },
+          ],
+        },
+      },
+      { checkedAt: '2026-06-27T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows).toHaveLength(1);
+    expect(ledger.rows.map((row) => row.provider)).toEqual(['openalex']);
+    expect(ledger.rows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          provider: 'openalex',
+          licenseAmbiguous: false,
+          conceptLinks: [{ id: 'c1', label: 'Critical path method' }],
+        }),
+      ]),
+    );
+    expect(ledger.summary).toMatchObject({
+      sourceCount: 1,
+      trustedCount: 1,
+      conceptLinkedCount: 1,
+      trustedConceptLinkedCount: 1,
+      licenseAmbiguousCount: 0,
+    });
+    expect(ledger.rows).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          title: 'Test Plans',
+          license: 'http://doi.wiley.com/10.1002/tdm_license_1.1',
+        }),
+      ]),
+    );
+  });
+
+  it('keeps one licensed background overview per topic for a foundational K-12 course', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'Middle School Earth Science' },
+        concepts: [{ id: 'c1', term: 'Climate factors' }],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            sections: [{ id: 'sec1', topic: 'Climate factors', conceptRefs: ['c1'], resourceRefs: [] }],
+          },
+        ],
+        resources: [],
+        sourceFinderMiniShard: {
+          topics: [
+            {
+              sessionId: 's1',
+              lessonNumber: 1,
+              topic: 'climate factors',
+              sources: [
+                {
+                  provider: 'crossref',
+                  kind: 'journal-article',
+                  title: 'Emerging Climate Signals in Oxygen Minimum Zones',
+                  doi: '10.1000/oxygen-minimum-zones',
+                  url: 'https://doi.org/10.1000/oxygen-minimum-zones',
+                  license: 'CC BY 4.0',
+                  snippet: 'A narrow research study of climate signals in ocean oxygen minimum zones.',
+                },
+                {
+                  provider: 'wikipedia',
+                  kind: 'encyclopedia background',
+                  title: 'Climate change',
+                  url: 'https://en.wikipedia.org/wiki/Climate_change',
+                  license: 'CC BY-SA 4.0',
+                  snippet: 'An overview of climate change, causes, evidence, and effects.',
+                },
+              ],
+            },
+          ],
+        },
+      },
+      { checkedAt: '2026-07-20T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows).toHaveLength(1);
+    expect(ledger.rows[0]).toMatchObject({ provider: 'wikipedia', title: 'Climate change' });
+  });
+
+  it('counts only accessible non-ambiguous source-finder rows as trusted bibliography', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        concepts: [{ id: 'c1', term: 'Project charter' }],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            sections: [{ id: 'sec1', topic: 'Project charter', conceptRefs: ['c1'], resourceRefs: [] }],
+          },
+        ],
+        resources: [],
+        sourceFinderMiniShard: {
+          topics: [
+            {
+              sessionId: 's1',
+              lessonNumber: 1,
+              topic: 'project charter',
+              sources: [
+                {
+                  provider: 'wikipedia',
+                  kind: 'encyclopedia background',
+                  title: 'Project charter',
+                  authors: 'Wikipedia contributors',
+                  url: 'https://en.wikipedia.org/wiki/Project_charter',
+                  license: 'CC BY-SA 4.0',
+                  snippet: 'A project charter formally authorizes project work.',
+                },
+              ],
+            },
+            {
+              sessionId: 's1',
+              lessonNumber: 1,
+              topic: 'project scheduling',
+              sources: [
+                {
+                  provider: 'crossref',
+                  kind: 'scholarly work',
+                  title: 'Project Scheduling with DOI Metadata',
+                  doi: '10.1000/project-schedule',
+                  url: 'https://doi.org/10.1000/project-schedule',
+                  license: 'Crossref public metadata',
+                  snippet: 'Bibliographic metadata for a project scheduling source.',
+                },
+              ],
+            },
+          ],
+        },
+      },
+      { checkedAt: '2026-06-26T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows).toHaveLength(1);
+    expect(ledger.reviewRows || []).toHaveLength(0);
+    expect(ledger.summary).toMatchObject({
+      sourceCount: 1,
+      trustedCount: 1,
+      conceptLinkedCount: 1,
+      trustedConceptLinkedCount: 1,
+      accessibleCount: 1,
+      licenseAmbiguousCount: 0,
+    });
+    expect(ledger.rows[0]).toMatchObject({
+      provider: 'wikipedia',
+      trustLevel: 'licensed-background-source',
+      licenseAmbiguous: false,
+      conceptLinks: [{ id: 'c1', label: 'Project charter' }],
+    });
+    expect(ledger.summary.reviewRequiredCount || 0).toBe(0);
+  });
+
+  it('keeps metadata-only source-finder fallbacks as review evidence when no trusted source exists', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        concepts: [{ id: 'c1', term: 'Project charter' }],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            sections: [{ id: 'sec1', topic: 'Project charter', conceptRefs: ['c1'], resourceRefs: [] }],
+          },
+        ],
+        resources: [],
+        sourceFinderMiniShard: {
+          topics: [
+            {
+              sessionId: 's1',
+              lessonNumber: 1,
+              topic: 'project charter',
+              sources: [
+                {
+                  provider: 'openlibrary',
+                  kind: 'book metadata',
+                  title: 'Project Management Metadata',
+                  url: 'https://openlibrary.org/works/OL3429343W',
+                  license: 'Open Library public metadata',
+                  snippet: 'Bibliographic metadata for a project management title.',
+                },
+              ],
+            },
+          ],
+        },
+      },
+      { checkedAt: '2026-06-27T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows).toHaveLength(0);
+    expect(ledger.reviewRows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          provider: 'openlibrary',
+          title: 'Project Management Metadata',
+          licenseAmbiguous: true,
+          status: 'review-required: metadata-only, license, access, or concept-link gap',
+          conceptLinks: [{ id: 'c1', label: 'Project charter' }],
+        }),
+      ]),
+    );
+    expect(ledger.summary).toMatchObject({ sourceCount: 0, reviewRequiredCount: 1 });
+    const report = buildSourceReportMarkdown({ courseName: 'Project Management', sourceLedger: ledger });
+    expect(report).toContain('Source Review Notes');
+    expect(report).toContain('Project Management Metadata');
+  });
+
+  it('drops unused UX source-finder false friends when trusted topic sources exist', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'User Experience Design Studio' },
+        concepts: [{ id: 'c1', term: 'project feedback' }],
+        sessions: [
+          {
+            id: 's1',
+            number: 2,
+            title: 'Critique session',
+            sections: [{ id: 'sec1', topic: 'project feedback', conceptRefs: ['c1'], resourceRefs: [] }],
+          },
+        ],
+        resources: [],
+        sourceFinderMiniShard: {
+          topics: [
+            {
+              sessionId: 's1',
+              lessonNumber: 2,
+              topic: 'project feedback',
+              sources: [
+                {
+                  provider: 'wikipedia',
+                  kind: 'background source',
+                  title: 'Positive feedback',
+                  url: 'https://en.wikipedia.org/wiki/Positive_feedback',
+                  license: 'CC BY-SA 4.0',
+                  snippet: 'Positive feedback is a system process that amplifies change.',
+                },
+                {
+                  provider: 'openalex',
+                  kind: 'journal article',
+                  title: 'The Green Studio Handbook: Environmental Strategies for Schematic Design',
+                  url: 'https://www.arcc-journal.org/index.php/arccjournal/article/download/47/46',
+                  doi: '10.17831/enq:arcc.v4i2.47',
+                  license: 'CC BY-NC-SA',
+                  snippet:
+                    'Environmental strategies for schematic design covers daylight, airflow, and green building decisions.',
+                },
+                {
+                  provider: 'wikipedia',
+                  kind: 'background source',
+                  title: 'National Design Studio',
+                  url: 'https://en.wikipedia.org/wiki/National_Design_Studio',
+                  license: 'CC BY-SA 4.0',
+                  snippet: 'The National Design Studio is an agency of the White House Office.',
+                },
+                {
+                  provider: 'wikipedia',
+                  kind: 'background source',
+                  title: 'Le Mans Prototype',
+                  url: 'https://en.wikipedia.org/wiki/Le_Mans_Prototype',
+                  license: 'CC BY-SA 4.0',
+                  snippet: 'A Le Mans Prototype is a sports prototype race car class.',
+                },
+                {
+                  provider: 'wikipedia',
+                  kind: 'background source',
+                  title: 'List of In Living Color sketches',
+                  url: 'https://en.wikipedia.org/wiki/List_of_In_Living_Color_sketches',
+                  license: 'CC BY-SA 4.0',
+                  snippet: 'This is a list of sketches on In Living Color.',
+                },
+                {
+                  provider: 'openalex',
+                  kind: 'journal article',
+                  title:
+                    'Collaborative learning in architectural education: Benefits of combining conventional studio, virtual design studio and live projects',
+                  url: 'https://pureadmin.qub.ac.uk/ws/files/164352510/BLIND_REVIEW_Collaborative_Distance_learning_in_Architecture_final_submission_.pdf',
+                  license: 'other-oa',
+                  snippet: 'Architectural education studio projects and distance learning in architecture.',
+                },
+                {
+                  provider: 'openalex',
+                  kind: 'journal article',
+                  title: 'Understanding Collaborative Practices and Tools of Professional UX Practitioners',
+                  url: 'https://dl.acm.org/doi/pdf/10.1145/3544548.3581273',
+                  doi: '10.1145/3544548.3581273',
+                  license: 'CC BY',
+                  snippet: 'Study of user experience practitioners, design handoff, critique, and collaboration.',
+                },
+              ],
+            },
+          ],
+        },
+      },
+      { checkedAt: '2026-06-27T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          provider: 'openalex',
+          title: expect.stringContaining('UX Practitioners'),
+          conceptLinks: [{ id: 'c1', label: 'project feedback' }],
+        }),
+      ]),
+    );
+    expect(ledger.rows.map((row) => row.title)).not.toContain('Positive feedback');
+    expect(ledger.rows.map((row) => row.title)).not.toContain(
+      'The Green Studio Handbook: Environmental Strategies for Schematic Design',
+    );
+    expect(ledger.rows.map((row) => row.title)).not.toContain('National Design Studio');
+    expect(ledger.rows.map((row) => row.title)).not.toContain('Le Mans Prototype');
+    expect(ledger.rows.map((row) => row.title)).not.toContain('List of In Living Color sketches');
+    expect(ledger.rows.map((row) => row.title)).not.toContain(
+      'Collaborative learning in architectural education: Benefits of combining conventional studio, virtual design studio and live projects',
+    );
+    expect(ledger.reviewRows || []).toHaveLength(0);
+    expect(ledger.summary).toMatchObject({ sourceCount: 1, trustedConceptLinkedCount: 1 });
+    expect(ledger.summary.reviewRequiredCount || 0).toBe(0);
+  });
+
+  it('drops bare refinement false friends from UX source proof', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'User Experience Design Studio' },
+        concepts: [
+          { id: 'c1', term: 'refinement' },
+          { id: 'c2', term: 'critique response' },
+          { id: 'c3', term: 'implementation' },
+        ],
+        sessions: [
+          {
+            id: 's8',
+            number: 8,
+            title: 'Design iteration',
+            sections: [{ id: 'sec8', topic: 'refinement', conceptRefs: ['c1', 'c2', 'c3'], resourceRefs: [] }],
+          },
+        ],
+        resources: [],
+        sourceFinderMiniShard: {
+          topics: [
+            {
+              sessionId: 's8',
+              lessonNumber: 8,
+              topic: 'refinement, critique response, implementation',
+              sources: [
+                {
+                  provider: 'crossref',
+                  kind: 'chapter',
+                  title: 'Relating Data Refinement and Failures-Divergences Refinement',
+                  url: 'https://doi.org/10.1007/978-3-319-92711-4_10',
+                  doi: '10.1007/978-3-319-92711-4_10',
+                  license: 'http://www.springer.com/tdm',
+                  snippet: 'Formal methods chapter about data refinement and failures-divergences refinement.',
+                },
+                {
+                  provider: 'crossref',
+                  kind: 'chapter',
+                  title: 'Vehicle refinement: purpose and targets',
+                  url: 'https://doi.org/10.1016/b978-075066129-4/50003-1',
+                  doi: '10.1016/b978-075066129-4/50003-1',
+                  license: 'https://www.elsevier.com/tdm/userlicense/1.0/',
+                  snippet: 'Automotive engineering chapter about vehicle refinement targets.',
+                },
+                {
+                  provider: 'wikipedia',
+                  kind: 'encyclopedia background',
+                  title: 'Iterative design',
+                  url: 'https://en.wikipedia.org/wiki/Iterative_design',
+                  license: 'CC BY-SA 4.0',
+                  snippet:
+                    'Iterative design is a design methodology based on prototyping, testing, analysis, and refinement.',
+                },
+              ],
+            },
+          ],
+        },
+      },
+      { checkedAt: '2026-06-28T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows.map((row) => row.title)).toEqual(['Iterative design']);
+    expect(ledger.rows.map((row) => row.title)).not.toContain(
+      'Relating Data Refinement and Failures-Divergences Refinement',
+    );
+    expect(ledger.rows.map((row) => row.title)).not.toContain('Vehicle refinement: purpose and targets');
+    expect(ledger.reviewRows || []).toHaveLength(0);
+    expect(ledger.summary).toMatchObject({ sourceCount: 1, trustedConceptLinkedCount: 1 });
+  });
+
+  it('drops health gamification reviews from UX critique source proof', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'User Experience Design Studio' },
+        concepts: [
+          { id: 'c7', term: 'concept review' },
+          { id: 'c8', term: 'peer feedback' },
+          { id: 'c9', term: 'iteration' },
+        ],
+        sessions: [
+          {
+            id: 's3',
+            number: 3,
+            title: 'Critique session',
+            sections: [
+              {
+                id: 'sec3',
+                topic: 'concept review',
+                conceptRefs: ['c7', 'c8', 'c9'],
+                resourceRefs: ['sf-health-gamification', 'sf-ux-collaboration'],
+              },
+            ],
+          },
+        ],
+        resources: [
+          {
+            id: 'sf-health-gamification',
+            origin: 'source-finder',
+            provider: 'openalex',
+            kind: 'journal article',
+            title: 'Gamification for health and wellbeing: A systematic review of the literature',
+            url: 'https://doi.org/10.1016/j.invent.2016.10.002',
+            doi: '10.1016/j.invent.2016.10.002',
+            license: 'CC BY',
+            snippet:
+              'Compared to traditional persuasive technology and health games, gamification is used for motivating behaviour change for health and wellbeing.',
+            sessionRefs: ['s3'],
+          },
+          {
+            id: 'sf-ux-collaboration',
+            origin: 'source-finder',
+            provider: 'openalex',
+            kind: 'journal article',
+            title: 'Understanding Collaborative Practices and Tools of Professional UX Practitioners',
+            url: 'https://dl.acm.org/doi/pdf/10.1145/3544548.3581273',
+            doi: '10.1145/3544548.3581273',
+            license: 'CC BY',
+            snippet: 'Study of user experience practitioners, design handoff, critique, and collaboration.',
+            sessionRefs: ['s3'],
+          },
+        ],
+      },
+      { checkedAt: '2026-06-28T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows.map((row) => row.title)).toContain(
+      'Understanding Collaborative Practices and Tools of Professional UX Practitioners',
+    );
+    expect(ledger.rows.map((row) => row.title)).not.toContain(
+      'Gamification for health and wellbeing: A systematic review of the literature',
+    );
+    expect(ledger.reviewRows || []).toHaveLength(0);
+  });
+
+  it('drops source-finder bycatch review rows from the v0.15.93 UX audit shape', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'User Experience Design Studio' },
+        concepts: [
+          { id: 'c1', term: 'studio process' },
+          { id: 'c2', term: 'critique sessions' },
+          { id: 'c3', term: 'design journals' },
+          { id: 'c4', term: 'test planning' },
+          { id: 'c5', term: 'task design' },
+          { id: 'c6', term: 'results' },
+        ],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            title: 'Course overview',
+            sections: [{ id: 'sec1', topic: 'studio process', conceptRefs: ['c1', 'c2', 'c3'], resourceRefs: [] }],
+          },
+          {
+            id: 's8',
+            number: 8,
+            title: 'Usability testing',
+            sections: [{ id: 'sec8', topic: 'test planning', conceptRefs: ['c4', 'c5', 'c6'], resourceRefs: [] }],
+          },
+        ],
+        resources: [
+          {
+            id: 'sf1',
+            origin: 'source-finder',
+            provider: 'wikipedia',
+            kind: 'encyclopedia background',
+            title: 'List of Studio Ghibli works',
+            url: 'https://en.wikipedia.org/wiki/List_of_Studio_Ghibli_works',
+            license: 'CC BY-SA 4.0',
+            snippet: 'This is a list of works by the Japanese animation studio Studio Ghibli.',
+            sessionRefs: ['s1'],
+          },
+          {
+            id: 'sf-prototype-programming',
+            origin: 'source-finder',
+            provider: 'wikipedia',
+            kind: 'encyclopedia background',
+            title: 'Prototype-based programming',
+            url: 'https://en.wikipedia.org/wiki/Prototype-based_programming',
+            license: 'CC BY-SA 4.0',
+            snippet:
+              'Prototype-based programming is a style of object-oriented programming in which behavior reuse uses existing objects as prototypes.',
+            sessionRefs: ['s8'],
+          },
+          {
+            id: 'sf-personas-metadata',
+            origin: 'source-finder',
+            provider: 'crossref',
+            kind: 'book-chapter',
+            title: 'Personas',
+            url: 'https://doi.org/10.2307/j.ctvm7bc5k.4',
+            doi: '10.2307/j.ctvm7bc5k.4',
+            license: 'Crossref public metadata',
+            snippet: 'Crossref public metadata for a persona chapter.',
+            sessionRefs: ['s1'],
+          },
+          {
+            id: 'sf-mercator',
+            origin: 'source-finder',
+            provider: 'wikipedia',
+            kind: 'encyclopedia background',
+            title: 'Mercator projection',
+            url: 'https://en.wikipedia.org/wiki/Mercator_projection',
+            license: 'CC BY-SA 4.0',
+            snippet:
+              'The Mercator projection is a conformal cylindrical map projection used for navigation and rhumb lines.',
+            sessionRefs: ['s1'],
+          },
+          {
+            id: 'sf-persona-4-revival',
+            origin: 'source-finder',
+            provider: 'wikipedia',
+            kind: 'encyclopedia background',
+            title: 'Persona 4 Revival',
+            url: 'https://en.wikipedia.org/wiki/Persona_4_Revival',
+            license: 'CC BY-SA 4.0',
+            snippet:
+              'Persona 4 Revival is an upcoming role-playing video game developed by P-Studio and published by Atlus.',
+            sessionRefs: ['s1'],
+          },
+          {
+            id: 'sf-revelations-persona',
+            origin: 'source-finder',
+            provider: 'wikipedia',
+            kind: 'encyclopedia background',
+            title: 'Revelations: Persona',
+            url: 'https://en.wikipedia.org/wiki/Revelations:_Persona',
+            license: 'CC BY-SA 4.0',
+            snippet: 'Revelations: Persona is a 1996 role-playing video game and part of the Megami Tensei franchise.',
+            sessionRefs: ['s1'],
+          },
+          {
+            id: 'sf-prototype-video-game',
+            origin: 'source-finder',
+            provider: 'wikipedia',
+            kind: 'encyclopedia background',
+            title: 'Prototype (video game)',
+            url: 'https://en.wikipedia.org/wiki/Prototype_(video_game)',
+            license: 'CC BY-SA 4.0',
+            snippet: 'Prototype is a 2009 action-adventure video game developed by Radical Entertainment.',
+            sessionRefs: ['s8'],
+          },
+          {
+            id: 'sf2',
+            origin: 'source-finder',
+            provider: 'wikipedia',
+            kind: 'encyclopedia background',
+            title: 'A/B testing',
+            url: 'https://en.wikipedia.org/wiki/A/B_testing',
+            license: 'CC BY-SA 4.0',
+            snippet: 'A/B testing is a user-experience research method for comparing interface variants.',
+            sessionRefs: ['s8'],
+          },
+        ],
+      },
+      { checkedAt: '2026-06-28T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows.map((row) => row.title)).toContain('A/B testing');
+    expect(ledger.rows.map((row) => row.title)).not.toContain('List of Studio Ghibli works');
+    expect(ledger.rows.map((row) => row.title)).not.toContain('Prototype-based programming');
+    expect(ledger.rows.map((row) => row.title)).not.toContain('Personas');
+    expect(ledger.rows.map((row) => row.title)).not.toContain('Mercator projection');
+    expect(ledger.rows.map((row) => row.title)).not.toContain('Persona 4 Revival');
+    expect(ledger.rows.map((row) => row.title)).not.toContain('Revelations: Persona');
+    expect(ledger.rows.map((row) => row.title)).not.toContain('Prototype (video game)');
+    expect(ledger.reviewRows || []).toHaveLength(0);
+    expect(ledger.summary).toMatchObject({ sourceCount: 1, trustedConceptLinkedCount: 1 });
+    expect(ledger.summary.reviewRequiredCount || 0).toBe(0);
+  });
+
+  it('promotes DOI-backed licensed syllabus readings instead of exporting them as review notes', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'User Experience Design Studio' },
+        concepts: [
+          { id: 'c1', term: 'UX design studio overview' },
+          { id: 'c2', term: 'project scope' },
+          { id: 'c3', term: 'critique culture' },
+        ],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            sections: [
+              {
+                id: 'sec1',
+                topic: 'UX design studio overview',
+                conceptRefs: ['c1', 'c2', 'c3'],
+                resourceRefs: ['syllabus-src-1-1'],
+              },
+            ],
+          },
+        ],
+        resources: [
+          {
+            id: 'syllabus-src-1-1',
+            origin: 'syllabus',
+            kind: 'weekly reading',
+            citation:
+              'Qian Yang, Aaron Steinfeld, Carolyn Penstein Rosé et al. (2020). Re-examining Whether, Why, and How Human-AI Interaction Is Uniquely Difficult to Design. Open-access via https://dl.acm.org/doi/pdf/10.1145/3313831.3376301 (cc-by)',
+            sessionRefs: [1],
+          },
+        ],
+      },
+      { checkedAt: '2026-06-28T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'syllabus-src-1-1',
+          provider: 'crossref',
+          doi: '10.1145/3313831.3376301',
+          license: 'CC BY',
+          licenseAmbiguous: false,
+          conceptLinks: expect.arrayContaining([{ id: 'c1', label: 'UX design studio overview' }]),
+        }),
+      ]),
+    );
+    expect(ledger.reviewRows || []).toHaveLength(0);
+    expect(ledger.summary).toMatchObject({
+      sourceCount: 1,
+      trustedCount: 1,
+      trustedConceptLinkedCount: 1,
+      licenseAmbiguousCount: 0,
+    });
+  });
+
+  it('drops generated syllabus public-metadata false friends from UX source review rows', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'User Experience Design Studio' },
+        concepts: [{ id: 'c1', term: 'Design journals' }],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            sections: [
+              { id: 'sec1', topic: 'Design journals', conceptRefs: ['c1'], resourceRefs: ['syllabus-src-1-1'] },
+            ],
+          },
+        ],
+        resources: [
+          {
+            id: 'syllabus-src-1-1',
+            origin: 'syllabus',
+            kind: 'weekly reading',
+            title:
+              'Crossref public metadata (2022). Journals of Mechatronics Machine Design and Manufacturing. Crossref: https://doi.org/10.46610/jmmdm (Crossref public metadata)',
+            url: 'https://doi.org/10.46610/jmmdm',
+            doi: '10.46610/jmmdm',
+            license: 'Crossref public metadata',
+            sessionRefs: [1],
+          },
+        ],
+      },
+      { checkedAt: '2026-06-28T00:00:00.000Z' },
+    );
+
+    expect(ledger).toBeNull();
+  });
+
+  it('drops generic iteration background pages from UX source-finder trusted proof', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'User Experience Design Studio' },
+        concepts: [
+          { id: 'c1', term: 'design iteration' },
+          { id: 'c2', term: 'peer critique' },
+          { id: 'c3', term: 'revision planning' },
+        ],
+        sessions: [
+          {
+            id: 's1',
+            number: 7,
+            title: 'Lesson 7: Design iteration',
+            sections: [{ id: 'sec1', topic: 'design iteration', conceptRefs: ['c1', 'c2', 'c3'] }],
+          },
+        ],
+        edges: {
+          teaches: [
+            { from: 's1', to: 'c1' },
+            { from: 's1', to: 'c2' },
+            { from: 's1', to: 'c3' },
+          ],
+        },
+        resources: [],
+        sourceFinderMiniShard: {
+          topics: [
+            {
+              sessionId: 's1',
+              lessonNumber: 7,
+              topic: 'design iteration',
+              sources: [
+                {
+                  provider: 'wikipedia',
+                  kind: 'encyclopedia background',
+                  title: 'Fixed-point iteration',
+                  url: 'https://en.wikipedia.org/wiki/Fixed-point_iteration',
+                  license: 'CC BY-SA 4.0',
+                  snippet: 'In mathematics, fixed-point iteration is a method of computing fixed points of functions.',
+                },
+                {
+                  provider: 'wikipedia',
+                  kind: 'encyclopedia background',
+                  title: 'Iteration',
+                  url: 'https://en.wikipedia.org/wiki/Iteration',
+                  license: 'CC BY-SA 4.0',
+                  snippet: 'Iteration is the repetition of a process in order to generate a sequence of outcomes.',
+                },
+                {
+                  provider: 'wikipedia',
+                  kind: 'encyclopedia background',
+                  title: 'Iterative design',
+                  url: 'https://en.wikipedia.org/wiki/Iterative_design',
+                  license: 'CC BY-SA 4.0',
+                  snippet:
+                    'Iterative design is a design methodology based on prototyping, testing, analysis, and refinement.',
+                },
+              ],
+            },
+          ],
+        },
+      },
+      { checkedAt: '2026-06-28T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows.map((row) => row.title)).toEqual(['Iterative design']);
+    expect(ledger.reviewRows || []).toHaveLength(0);
+    expect(ledger.summary).toMatchObject({ sourceCount: 1, trustedConceptLinkedCount: 1 });
+  });
+
+  it('drops covered weak UX knowledge bycatch instead of exporting it as instructor review debt', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'User Experience Design Studio' },
+        concepts: [
+          { id: 'c1', term: 'personas' },
+          { id: 'c2', term: 'journey maps' },
+          { id: 'c3', term: 'design questions' },
+        ],
+        sessions: [
+          {
+            id: 's1',
+            number: 3,
+            title: 'Research insights and problem framing',
+            sections: [
+              { id: 'sec1', topic: 'personas', conceptRefs: ['c1', 'c2', 'c3'], resourceRefs: ['bad', 'good'] },
+            ],
+          },
+        ],
+        resources: [
+          {
+            id: 'bad',
+            provider: 'openalex',
+            title:
+              'Metaverse beyond the hype: Multidisciplinary perspectives on emerging challenges, opportunities, and agenda for research, practice and policy',
+            doi: '10.1016/j.ijinfomgt.2022.102542',
+            license: 'CC BY-NC-ND',
+            url: 'https://doi.org/10.1016/j.ijinfomgt.2022.102542',
+          },
+          {
+            id: 'good',
+            provider: 'openalex',
+            title:
+              'Optimizing the digital customer journey with personas for individualized user interface adaptations',
+            doi: '10.1002/cb.1964',
+            license: 'CC BY',
+            url: 'https://onlinelibrary.wiley.com/doi/pdfdirect/10.1002/cb.1964',
+          },
+        ],
+        sourceFinderMiniShard: {
+          topics: [
+            {
+              sessionId: 's1',
+              lessonNumber: 3,
+              topic: 'personas',
+              sources: [
+                {
+                  provider: 'wikipedia',
+                  kind: 'background source',
+                  title: 'Persona (series)',
+                  url: 'https://en.wikipedia.org/wiki/Persona_(series)',
+                  license: 'CC BY-SA 4.0',
+                  snippet: 'Persona is a role-playing video game series.',
+                },
+              ],
+            },
+          ],
+        },
+      },
+      { checkedAt: '2026-06-27T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows.map((row) => row.title)).toEqual([
+      'Optimizing the digital customer journey with personas for individualized user interface adaptations',
+    ]);
+    expect(ledger.reviewRows || []).toHaveLength(0);
+    expect(ledger.summary).toMatchObject({ sourceCount: 1, trustedConceptLinkedCount: 1 });
+    expect(ledger.summary.reviewRequiredCount).toBeUndefined();
+  });
+
+  it('drops v0.15.113 UX licensed false friends while keeping discipline-matched source proof', () => {
+    const graph = {
+      course: { name: 'User Experience Design Studio' },
+      concepts: [
+        { id: 'c2', term: 'critique sessions' },
+        { id: 'c3', term: 'design journals' },
+        { id: 'c4', term: 'usability testing' },
+        { id: 'c5', term: 'design research' },
+        { id: 'c6', term: 'prototyping' },
+        { id: 'c7', term: 'accessibility review' },
+      ],
+      sessions: [
+        {
+          id: 's1',
+          number: 1,
+          title: 'Critique and accessibility review',
+          sections: [{ id: 'sec1', topic: 'critique sessions', conceptRefs: ['c2', 'c3', 'c7'] }],
+        },
+        {
+          id: 's2',
+          number: 2,
+          title: 'Research and prototyping',
+          sections: [{ id: 'sec2', topic: 'design research', conceptRefs: ['c4', 'c5', 'c6'] }],
+        },
+      ],
+      edges: {
+        teaches: [
+          { from: 's1', to: 'c2' },
+          { from: 's1', to: 'c3' },
+          { from: 's1', to: 'c7' },
+          { from: 's2', to: 'c4' },
+          { from: 's2', to: 'c5' },
+          { from: 's2', to: 'c6' },
+        ],
+      },
+      resources: [],
+      sourceFinderMiniShard: {
+        topics: [
+          {
+            sessionId: 's1',
+            lessonNumber: 1,
+            topic: 'critique sessions, design journals, accessibility review',
+            sources: [
+              {
+                provider: 'crossref',
+                kind: 'journal-article',
+                title: 'A Critique of Private Sessions in Family Mediation',
+                doi: '10.1177/2158244013478950',
+                url: 'https://doi.org/10.1177/2158244013478950',
+                license: 'https://journals.sagepub.com/page/policies/text-and-data-mining-license',
+                snippet:
+                  'A critical examination of private sessions and caucuses in family mediation with mediators and disputants.',
+              },
+              {
+                provider: 'crossref',
+                kind: 'journal-article',
+                title:
+                  'The efficacy of booster maintenance sessions in behavior therapy: Review and methodological critique',
+                doi: '10.1016/0272-7358(90)90055-f',
+                url: 'https://doi.org/10.1016/0272-7358(90)90055-f',
+                license: 'https://www.elsevier.com/tdm/userlicense/1.0/',
+                snippet: 'A behavior therapy review about booster maintenance sessions and methodological critique.',
+              },
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'Accessibility of the Metropolitan Transportation Authority',
+                url: 'https://en.wikipedia.org/wiki/Accessibility_of_the_Metropolitan_Transportation_Authority',
+                license: 'CC BY-SA 4.0',
+                snippet: 'Physical accessibility of the Metropolitan Transportation Authority public transit network.',
+              },
+              {
+                provider: 'openalex',
+                kind: 'conference paper',
+                title: 'Understanding Collaborative Practices and Tools of Professional UX Practitioners',
+                doi: '10.1145/3544548.3581273',
+                url: 'https://dl.acm.org/doi/pdf/10.1145/3544548.3581273',
+                license: 'CC BY',
+                snippet: 'Study of user experience practitioners, critique, design handoff, and collaboration.',
+              },
+            ],
+          },
+          {
+            sessionId: 's2',
+            lessonNumber: 2,
+            topic: 'design research, usability testing, prototyping',
+            sources: [
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'Design Research (store)',
+                url: 'https://en.wikipedia.org/wiki/Design_Research_(store)',
+                license: 'CC BY-SA 4.0',
+                snippet: 'Design Research was a retail lifestyle store founded in Cambridge, Massachusetts.',
+              },
+              {
+                provider: 'crossref',
+                kind: 'book-chapter',
+                title: 'International usability testing',
+                doi: '10.1016/b978-0-12-816942-1.00010-1',
+                url: 'https://doi.org/10.1016/b978-0-12-816942-1.00010-1',
+                license: 'https://www.elsevier.com/tdm/userlicense/1.0/',
+                snippet: 'International usability testing methods for user research and prototyping.',
+              },
+            ],
+          },
+        ],
+      },
+    };
+
+    const ledger = buildSourceLedgerFromCourseGraph(graph, { checkedAt: '2026-06-29T00:00:00.000Z' });
+    const titles = ledger.rows.map((row) => row.title);
+
+    expect(titles).toContain('Understanding Collaborative Practices and Tools of Professional UX Practitioners');
+    expect(titles).not.toContain('International usability testing');
+    expect(titles).not.toContain('A Critique of Private Sessions in Family Mediation');
+    expect(titles).not.toContain(
+      'The efficacy of booster maintenance sessions in behavior therapy: Review and methodological critique',
+    );
+    expect(titles).not.toContain('Accessibility of the Metropolitan Transportation Authority');
+    expect(titles).not.toContain('Design Research (store)');
+    expect(ledger.reviewRows || []).toHaveLength(0);
+    expect(ledger.summary).toMatchObject({ sourceCount: 1, trustedConceptLinkedCount: 1 });
+  });
+
+  it('drops v0.15.97 UX false-friend sources even when they are licensed and concept-linked', () => {
+    const graph = {
+      course: { name: 'User Experience Design Studio' },
+      concepts: [
+        { id: 'c1', term: 'critique' },
+        { id: 'c2', term: 'personas' },
+        { id: 'c3', term: 'sketches' },
+        { id: 'c4', term: 'prototypes' },
+      ],
+      sessions: [
+        { id: 's1', number: 1, title: 'Lesson 1: Critique', sections: [{ conceptRefs: ['c1'] }] },
+        { id: 's2', number: 2, title: 'Lesson 2: Personas', sections: [{ conceptRefs: ['c2'] }] },
+        { id: 's3', number: 3, title: 'Lesson 3: Sketches', sections: [{ conceptRefs: ['c3'] }] },
+        { id: 's4', number: 4, title: 'Lesson 4: Prototypes', sections: [{ conceptRefs: ['c4'] }] },
+      ],
+      edges: {
+        teaches: [
+          { from: 's1', to: 'c1' },
+          { from: 's2', to: 'c2' },
+          { from: 's3', to: 'c3' },
+          { from: 's4', to: 'c4' },
+        ],
+      },
+      resources: [],
+      sourceFinderMiniShard: {
+        topics: [
+          {
+            sessionId: 's1',
+            lessonNumber: 1,
+            topic: 'critique',
+            sources: [
+              {
+                provider: 'crossref',
+                kind: 'book-chapter',
+                title: 'Le poème, critique de la critique',
+                doi: '10.4000/books.pur.28695',
+                url: 'https://doi.org/10.4000/books.pur.28695',
+                license: 'https://www.openedition.org/12554',
+                snippet: 'critique',
+              },
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'Critique of Pure Reason',
+                url: 'https://en.wikipedia.org/wiki/Critique_of_Pure_Reason',
+                license: 'CC BY-SA 4.0',
+                snippet: 'A book by Immanuel Kant about metaphysics.',
+              },
+            ],
+          },
+          {
+            sessionId: 's2',
+            lessonNumber: 2,
+            topic: 'persona creation',
+            sources: [
+              {
+                provider: 'crossref',
+                kind: 'journal-article',
+                title: "A network of enterprise's study of Tim Minchin and the creation of a creative public persona",
+                doi: '10.21153/psj2026vol12no1art2272',
+                url: 'https://doi.org/10.21153/psj2026vol12no1art2272',
+                license: 'https://creativecommons.org/licenses/by-nc/4.0',
+                snippet: 'A celebrity public persona case study about Tim Minchin and creative work.',
+              },
+              {
+                provider: 'crossref',
+                kind: 'journal-article',
+                title: 'Why Are Personas the Way They Are?',
+                doi: '10.21153/psj2025vol11noart2002',
+                url: 'https://doi.org/10.21153/psj2025vol11noart2002',
+                license: 'https://creativecommons.org/licenses/by-nc/4.0',
+                snippet: 'User personas are well-established in user-centered design and persona creation.',
+              },
+            ],
+          },
+          {
+            sessionId: 's3',
+            lessonNumber: 3,
+            topic: 'sketches',
+            sources: [
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'Sketches of Spain',
+                url: 'https://en.wikipedia.org/wiki/Sketches_of_Spain',
+                license: 'CC BY-SA 4.0',
+                snippet: 'A studio album by jazz musician Miles Davis.',
+              },
+              {
+                provider: 'crossref',
+                kind: 'book-chapter',
+                title: 'Information Architecture and Wireframe Sketching',
+                doi: '10.1000/ux-sketching',
+                url: 'https://doi.org/10.1000/ux-sketching',
+                license: 'CC BY',
+                snippet: 'Wireframe sketching and information architecture for user interface design.',
+              },
+            ],
+          },
+          {
+            sessionId: 's4',
+            lessonNumber: 4,
+            topic: 'prototype',
+            sources: [
+              {
+                provider: 'crossref',
+                kind: 'journal-article',
+                title: 'One Prototype Three Prototype Five Prototype Seven Prototype',
+                doi: '10.1109/mdt.1986.295018',
+                url: 'https://doi.org/10.1109/mdt.1986.295018',
+                license: 'https://ieeexplore.ieee.org/Xplorehelp/downloads/license-information/IEEE.html',
+                snippet: '',
+              },
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'Prototype (Star Trek: Voyager)',
+                url: 'https://en.wikipedia.org/wiki/Prototype_(Star_Trek:_Voyager)',
+                license: 'CC BY-SA 4.0',
+                snippet: 'A science fiction television series episode.',
+              },
+              {
+                provider: 'crossref',
+                kind: 'book-chapter',
+                title: 'Functional Prototypes for Usability Testing',
+                doi: '10.1000/ux-prototypes',
+                url: 'https://doi.org/10.1000/ux-prototypes',
+                license: 'CC BY',
+                snippet: 'Clickable prototypes and usability testing for interaction design iteration.',
+              },
+            ],
+          },
+        ],
+      },
+    };
+
+    const ledger = buildSourceLedgerFromCourseGraph(graph, { checkedAt: '2026-06-28T00:00:00.000Z' });
+
+    expect(ledger.rows.map((row) => row.title)).toEqual([
+      'Why Are Personas the Way They Are?',
+      'Information Architecture and Wireframe Sketching',
+      'Functional Prototypes for Usability Testing',
+    ]);
+    expect(ledger.reviewRows || []).toHaveLength(0);
+  });
+
+  it('drops CS/Python short-token false friends while keeping programming source proof', () => {
+    const graph = {
+      course: { name: 'Introduction to Computer Science with Python' },
+      concepts: [
+        { id: 'c2', term: 'variables and types' },
+        { id: 'c4', term: 'functions' },
+        { id: 'c5', term: 'lists' },
+        { id: 'c6', term: 'conditionals' },
+        { id: 'c7', term: 'strings' },
+        { id: 'c8', term: 'loops' },
+        { id: 'c10', term: 'modules' },
+        { id: 'c11', term: 'exceptions' },
+      ],
+      sessions: [
+        {
+          id: 's2',
+          number: 2,
+          title: 'Lesson 2: variables and types',
+          sections: [{ id: 'sec2', topic: 'variables and types', conceptRefs: ['c2'], resourceRefs: [] }],
+        },
+        {
+          id: 's4',
+          number: 4,
+          title: 'Lesson 4: functions',
+          sections: [{ id: 'sec4', topic: 'functions', conceptRefs: ['c4'], resourceRefs: [] }],
+        },
+        {
+          id: 's5',
+          number: 5,
+          title: 'Lesson 5: lists',
+          sections: [{ id: 'sec5', topic: 'lists', conceptRefs: ['c5'], resourceRefs: [] }],
+        },
+        {
+          id: 's7',
+          number: 7,
+          title: 'Lesson 7: strings',
+          sections: [{ id: 'sec7', topic: 'strings', conceptRefs: ['c7'], resourceRefs: [] }],
+        },
+        {
+          id: 's8',
+          number: 8,
+          title: 'Lesson 8: conditionals',
+          sections: [{ id: 'sec8', topic: 'conditionals', conceptRefs: ['c6'], resourceRefs: [] }],
+        },
+        {
+          id: 's9',
+          number: 9,
+          title: 'Lesson 9: loops',
+          sections: [{ id: 'sec9', topic: 'loops', conceptRefs: ['c8'], resourceRefs: [] }],
+        },
+        {
+          id: 's10',
+          number: 10,
+          title: 'Lesson 10: modules',
+          sections: [{ id: 'sec10', topic: 'modules', conceptRefs: ['c10'], resourceRefs: [] }],
+        },
+        {
+          id: 's11',
+          number: 11,
+          title: 'Lesson 11: exceptions',
+          sections: [{ id: 'sec11', topic: 'exceptions', conceptRefs: ['c11'], resourceRefs: [] }],
+        },
+      ],
+      edges: { teaches: [] },
+      resources: [],
+      sourceFinderMiniShard: {
+        topics: [
+          {
+            sessionId: 's2',
+            lessonNumber: 2,
+            topic: 'variables and types',
+            sources: [
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'Correlation',
+                url: 'https://en.wikipedia.org/wiki/Correlation',
+                license: 'CC BY-SA 4.0',
+                snippet: 'A statistics page about correlation between variables.',
+              },
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'Continuous or discrete variable',
+                url: 'https://en.wikipedia.org/wiki/Continuous_or_discrete_variable',
+                license: 'CC BY-SA 4.0',
+                snippet: 'A statistics page about continuous and discrete variables.',
+              },
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'Data type',
+                url: 'https://en.wikipedia.org/wiki/Data_type',
+                license: 'CC BY-SA 4.0',
+                snippet: 'A computer science article about data types in programming languages.',
+              },
+            ],
+          },
+          {
+            sessionId: 's4',
+            lessonNumber: 4,
+            topic: 'functions',
+            sources: [
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'Function (mathematics)',
+                url: 'https://en.wikipedia.org/wiki/Function_(mathematics)',
+                license: 'CC BY-SA 4.0',
+                snippet: 'A mathematics page about mappings between sets.',
+              },
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'Subroutine',
+                url: 'https://en.wikipedia.org/wiki/Subroutine',
+                license: 'CC BY-SA 4.0',
+                snippet: 'A programming article about functions, procedures, and methods in code.',
+              },
+            ],
+          },
+          {
+            sessionId: 's5',
+            lessonNumber: 5,
+            topic: 'lists',
+            sources: [
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'Lists of American colleges and universities',
+                url: 'https://en.wikipedia.org/wiki/Lists_of_American_colleges_and_universities',
+                license: 'CC BY-SA 4.0',
+                snippet: 'Lists of institutions in the United States.',
+              },
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'List (abstract data type)',
+                url: 'https://en.wikipedia.org/wiki/List_(abstract_data_type)',
+                license: 'CC BY-SA 4.0',
+                snippet: 'A computer science article about list data structures and sequences.',
+              },
+            ],
+          },
+          {
+            sessionId: 's7',
+            lessonNumber: 7,
+            topic: 'strings',
+            sources: [
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'No Strings Attached (NSYNC album)',
+                url: 'https://en.wikipedia.org/wiki/No_Strings_Attached_(NSYNC_album)',
+                license: 'CC BY-SA 4.0',
+                snippet: 'A pop album by NSYNC.',
+              },
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'String (computer science)',
+                url: 'https://en.wikipedia.org/wiki/String_(computer_science)',
+                license: 'CC BY-SA 4.0',
+                snippet: 'A computer science article about strings as programming-language text data.',
+              },
+            ],
+          },
+          {
+            sessionId: 's8',
+            lessonNumber: 8,
+            topic: 'conditionals',
+            sources: [
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'English conditional sentences',
+                url: 'https://en.wikipedia.org/wiki/English_conditional_sentences',
+                license: 'CC BY-SA 4.0',
+                snippet: 'Prototypical conditional sentences in English are those of the form If X then Y.',
+              },
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'Conditional (computer programming)',
+                url: 'https://en.wikipedia.org/wiki/Conditional_(computer_programming)',
+                license: 'CC BY-SA 4.0',
+                snippet:
+                  'A computer programming article about conditional statements, if statements, and control flow.',
+              },
+            ],
+          },
+          {
+            sessionId: 's9',
+            lessonNumber: 9,
+            topic: 'loops',
+            sources: [
+              {
+                provider: 'crossref',
+                kind: 'journal-article',
+                title: 'Game loops, Game design loops, Game Terakoya loops and Ludic Language Pedagogy loops',
+                doi: '10.55853/llp_v4pg1',
+                license: 'https://creativecommons.org/licenses/by-nc-nd/4.0/',
+                snippet: 'An article about well-designed games and language pedagogy loops.',
+              },
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'For loop',
+                url: 'https://en.wikipedia.org/wiki/For_loop',
+                license: 'CC BY-SA 4.0',
+                snippet: 'A programming article about loop statements and iteration in programming languages.',
+              },
+            ],
+          },
+          {
+            sessionId: 's10',
+            lessonNumber: 10,
+            topic: 'modules',
+            sources: [
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'Module (mathematics)',
+                url: 'https://en.wikipedia.org/wiki/Module_(mathematics)',
+                license: 'CC BY-SA 4.0',
+                snippet: 'An abstract algebra article about modules over a ring.',
+              },
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'Modular programming',
+                url: 'https://en.wikipedia.org/wiki/Modular_programming',
+                license: 'CC BY-SA 4.0',
+                snippet: 'A programming article about software modules, module systems, and decomposing code.',
+              },
+            ],
+          },
+          {
+            sessionId: 's11',
+            lessonNumber: 11,
+            topic: 'exceptions',
+            sources: [
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'Exception (law)',
+                url: 'https://en.wikipedia.org/wiki/Exception_(law)',
+                license: 'CC BY-SA 4.0',
+                snippet: 'A legal article about exceptions to rules and statutory clauses.',
+              },
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'Exception handling',
+                url: 'https://en.wikipedia.org/wiki/Exception_handling',
+                license: 'CC BY-SA 4.0',
+                snippet: 'A programming article about exception handling, try-catch blocks, and runtime errors.',
+              },
+            ],
+          },
+        ],
+      },
+    };
+
+    const ledger = buildSourceLedgerFromCourseGraph(graph, { checkedAt: '2026-06-30T00:00:00.000Z' });
+
+    expect(ledger.rows.map((row) => row.title)).toEqual([
+      'Data type',
+      'Subroutine',
+      'List (abstract data type)',
+      'String (computer science)',
+      'Conditional (computer programming)',
+      'For loop',
+      'Modular programming',
+      'Exception handling',
+    ]);
+    expect(ledger.reviewRows || []).toHaveLength(0);
+  });
+
+  it('keeps canonical expression, loop-statement, and uncertainty evidence for a mixed civic-data sequence', () => {
+    const graph = {
+      course: { name: 'Applied Civic Data Analysis' },
+      sessions: [
+        { title: 'Lesson 1: Python data types and expressions' },
+        { title: 'Lesson 2: Conditional branching and loops' },
+        { title: 'Lesson 5: Reproducible visualization and uncertainty' },
+      ],
+    };
+
+    expect(
+      isComputerScienceWeakSource(
+        {
+          title: 'Expression (computer science)',
+          evidence:
+            'In computer science, an expression is a syntactic entity in a programming language that may be evaluated to determine its value.',
+          conceptLinks: [{ label: 'Python data types and expressions' }, { label: 'Expression' }],
+        },
+        graph,
+      ),
+    ).toBe(false);
+    expect(
+      isComputerScienceWeakSource(
+        {
+          title: 'Function (computer programming)',
+          evidence: 'A function in computer programming is a named sequence of program instructions.',
+          conceptLinks: [{ label: 'Functions and automated tests' }, { label: 'Function' }],
+        },
+        graph,
+      ),
+    ).toBe(false);
+    expect(
+      isComputerScienceWeakSource(
+        {
+          title: 'Test automation',
+          evidence:
+            'Test automation is the use of software (separate from the software being tested) for controlling the execution of tests and comparing actual outcome with predicted.',
+          conceptLinks: [{ label: 'Functions and automated tests' }, { label: 'Test automation' }],
+        },
+        graph,
+      ),
+    ).toBe(false);
+    for (const source of [
+      {
+        title: 'Automated vehicle test system',
+        evidence: 'Vehicle test automation repeats brake and engine measurements on a dynamometer.',
+      },
+      {
+        title: 'Automated laboratory testing',
+        evidence: 'Laboratory test automation moves clinical samples through diagnostic instruments.',
+      },
+      {
+        title: 'Automated medical screening',
+        evidence: 'Automated tests screen patient specimens for diagnostic markers.',
+      },
+      {
+        title: 'Automated medical coding validation',
+        evidence: 'Automated tests compare diagnostic codes and billing codes in clinical records.',
+      },
+      {
+        title: 'Industrial test automation',
+        evidence: 'Factory test automation repeats electrical measurements on assembled equipment.',
+      },
+    ]) {
+      expect(
+        isComputerScienceWeakSource(
+          {
+            ...source,
+            conceptLinks: [{ label: 'Functions and automated tests' }, { label: 'Automated tests' }],
+          },
+          graph,
+        ),
+      ).toBe(true);
+    }
+    expect(
+      isComputerScienceWeakSource(
+        {
+          title: 'Loop (statement)',
+          evidence: 'Loops are a feature of high-level programming languages.',
+          conceptLinks: [{ label: 'Conditional branching and loops' }, { label: 'Loop' }],
+        },
+        graph,
+      ),
+    ).toBe(false);
+    expect(
+      isComputerScienceWeakSource(
+        {
+          title: 'Uncertainty',
+          evidence: 'Uncertainty or incertitude refers to situations involving imperfect or unknown information.',
+          conceptLinks: [{ label: 'Reproducible visualization and uncertainty' }, { label: 'Uncertainty' }],
+        },
+        graph,
+      ),
+    ).toBe(false);
+  });
+
+  it('omits domain-rejected artifact-only source-finder rows from both proof and review exports', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'Introduction to Computer Science with Python' },
+        concepts: [{ id: 'c1', term: 'Quiz,Assignment' }],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            title: 'Lesson 1: Quiz,Assignment',
+            sections: [{ id: 'sec1', topic: 'Quiz,Assignment', conceptRefs: ['c1'] }],
+          },
+        ],
+        resources: [
+          {
+            id: 'syllabus-src-1-1',
+            origin: 'syllabus',
+            kind: 'weekly reading',
+            title:
+              'Wikipedia contributors. Session (software). Wikipedia: https://en.wikipedia.org/wiki/Session_(software) (CC BY-SA 4.0)',
+            url: 'https://en.wikipedia.org/wiki/Session_(software)',
+            license: 'CC BY-SA 4.0',
+            sessionRefs: [1],
+          },
+        ],
+        sourceFinderMiniShard: {
+          topics: [
+            {
+              sessionId: 's1',
+              lessonNumber: 1,
+              topic: 'Quiz,Assignment',
+              sources: [
+                {
+                  provider: 'wikipedia',
+                  kind: 'encyclopedia background',
+                  title: 'Session (software)',
+                  url: 'https://en.wikipedia.org/wiki/Session_(software)',
+                  license: 'CC BY-SA 4.0',
+                  snippet: 'Session is an encrypted messaging application developed by the Signal Foundation.',
+                },
+              ],
+            },
+          ],
+        },
+      },
+      { checkedAt: '2026-07-01T00:00:00.000Z' },
+    );
+
+    expect(ledger).toBeNull();
+  });
+
+  it('omits music-interval classification false friends from the exported source review queue', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'Interval Evidence Studio: Music Theory and Aural Skills' },
+        concepts: [{ id: 'c1', term: 'musical interval classification' }],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            title: 'Classifying written and heard musical intervals',
+            sections: [{ id: 'sec1', topic: 'interval quality and semitone evidence', conceptRefs: ['c1'] }],
+          },
+        ],
+        resources: [],
+        readings: [],
+        sourceFinderMiniShard: {
+          topics: [
+            {
+              sessionId: 's1',
+              lessonNumber: 1,
+              topic: 'musical interval classification',
+              sources: [
+                {
+                  provider: 'openalex',
+                  kind: 'journal article',
+                  title: 'Classification of Multivariate Objects Using Interval Quantile Classes',
+                  url: 'https://doi.org/10.0000/statistics-interval-classes',
+                  license: 'CC BY 4.0',
+                  snippet: 'A statistical method for multivariate objects and interval quantile classes.',
+                },
+                {
+                  provider: 'openlibrary',
+                  kind: 'book metadata',
+                  title:
+                    'Preliminary class specifications of positions in the field service. Field Survey Division, Personnel Classification Board',
+                  url: 'https://openlibrary.org/works/OL123W',
+                  license: 'Open Library public metadata',
+                  snippet: 'Personnel classification records for field-service positions.',
+                },
+              ],
+            },
+          ],
+        },
+      },
+      { checkedAt: '2026-07-17T00:00:00.000Z' },
+    );
+
+    expect(ledger).toBeNull();
+  });
+
+  it('omits literacy-instruction false friends from a World Literature source ledger', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'World Literature' },
+        concepts: [{ id: 'c1', term: 'comparative reading strategies' }],
+        sessions: [
+          {
+            id: 's8',
+            number: 8,
+            title: 'Comparative Reading Methods',
+            sections: [{ id: 'sec8', topic: 'comparative reading strategies', conceptRefs: ['c1'] }],
+          },
+        ],
+        resources: [],
+        readings: [],
+        sourceFinderMiniShard: {
+          topics: [
+            {
+              sessionId: 's8',
+              lessonNumber: 8,
+              topic: 'comparative reading strategies',
+              sources: [
+                {
+                  provider: 'wikipedia',
+                  kind: 'encyclopedia background',
+                  title: 'Phonics',
+                  url: 'https://en.wikipedia.org/wiki/Phonics',
+                  license: 'CC BY-SA 4.0',
+                  snippet: 'A method for teaching beginning reading through letters, sounds, and syllables.',
+                },
+                {
+                  provider: 'crossref',
+                  kind: 'journal article',
+                  title: 'World Reading Strategies: Border Reading',
+                  url: 'https://doi.org/10.1000/world-reading',
+                  doi: '10.1000/world-reading',
+                  license: 'CC BY 4.0',
+                  snippet: 'Comparative interpretation of world literatures, literary form, and historical context.',
+                },
+              ],
+            },
+          ],
+        },
+      },
+      { checkedAt: '2026-07-21T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows.map((row) => row.title)).toEqual(['World Reading Strategies: Border Reading']);
+    expect(ledger.reviewRows || []).toHaveLength(0);
+  });
+
+  it('omits a business-ethics homonym while retaining Dodd-Frank consumer-protection evidence', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'Business Ethics' },
+        concepts: [
+          { id: 'c7', term: 'Fair Employment Practices' },
+          { id: 'c8', term: 'Consumer Protection Laws' },
+        ],
+        sessions: [
+          {
+            id: 's7',
+            number: 7,
+            title: 'Fair Employment and Workplace Rights',
+            sections: [{ topic: 'Fair Employment Practices', conceptRefs: ['c7'] }],
+          },
+          {
+            id: 's8',
+            number: 8,
+            title: 'Consumer Protection and Product Safety',
+            sections: [{ topic: 'Consumer Protection Laws', conceptRefs: ['c8'] }],
+          },
+        ],
+        resources: [],
+        readings: [],
+        sourceFinderMiniShard: {
+          topics: [
+            {
+              sessionId: 's7',
+              lessonNumber: 7,
+              topic: 'Fair Employment Practices',
+              sources: [
+                {
+                  provider: 'wikipedia',
+                  title: 'Fair game (Scientology)',
+                  url: 'https://en.wikipedia.org/wiki/Fair_game_(Scientology)',
+                  license: 'CC BY-SA 4.0',
+                  snippet: 'Church of Scientology policies toward perceived enemies.',
+                },
+              ],
+            },
+            {
+              sessionId: 's8',
+              lessonNumber: 8,
+              topic: 'Consumer Protection Laws',
+              sources: [
+                {
+                  provider: 'wikipedia',
+                  title: 'Dodd–Frank Act',
+                  url: 'https://en.wikipedia.org/wiki/Dodd%E2%80%93Frank_Act',
+                  license: 'CC BY-SA 4.0',
+                  snippet:
+                    'The Dodd-Frank Wall Street Reform and Consumer Protection Act established federal consumer-financial protections.',
+                },
+              ],
+            },
+          ],
+        },
+      },
+      { checkedAt: '2026-07-21T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows.map((row) => row.title)).toEqual(['Dodd–Frank Act']);
+    expect(ledger.reviewRows || []).toHaveLength(0);
+  });
+
+  it('promotes entailed Algi research sources into the trusted ledger for a UX course', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'User Experience Research Studio' },
+        concepts: [
+          { id: 'c1', term: 'contextual inquiry and field notes' },
+          { id: 'c2', term: 'evidence-based design recommendations' },
+        ],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            sections: [{ topic: 'Contextual inquiry', conceptRefs: ['c1'], resourceRefs: ['kr1'] }],
+          },
+          {
+            id: 's2',
+            number: 2,
+            sections: [{ topic: 'Design rationale', conceptRefs: ['c2'], resourceRefs: ['kr2'] }],
+          },
+        ],
+        resources: [
+          {
+            id: 'kr1',
+            provider: 'wikipedia',
+            origin: 'algi-research',
+            sourceType: 'open encyclopedia',
+            title: 'Contextual inquiry',
+            url: 'https://en.wikipedia.org/wiki/Contextual_inquiry',
+            license: 'CC BY-SA 4.0',
+            attribution: 'Wikipedia contributors, “Contextual inquiry”',
+            evidence:
+              'Contextual inquiry is a user-centered design research method that observes and interviews people in context.',
+          },
+          {
+            id: 'kr2',
+            provider: 'doaj',
+            origin: 'algi-research',
+            sourceType: 'open scholarly article',
+            title: 'Design rationale grounded in user research',
+            url: 'https://doaj.org/article/example',
+            license: 'CC0 1.0 (DOAJ article metadata)',
+            attribution: 'Article authors. DOAJ metadata.',
+            evidence:
+              'The study connects user research findings to design rationale and evidence-based interface recommendations.',
+          },
+        ],
+      },
+      { checkedAt: '2026-07-26T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows.map((row) => row.provider)).toEqual(['wikipedia', 'doaj']);
+    expect(ledger.reviewRows || []).toHaveLength(0);
+    expect(ledger.summary).toMatchObject({
+      sourceCount: 2,
+      trustedCount: 2,
+      trustedConceptLinkedCount: 2,
+      providers: ['doaj', 'wikipedia'],
+    });
+  });
+
+  it('retains every lesson evidence receipt even when classroom resources are capped', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'Digital Accessibility for Product Teams' },
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            title: 'Evidence-based accessibility testing and remediation',
+            sections: [{ topic: 'Accessibility evaluation', conceptRefs: ['c1'], resourceRefs: ['kr1', 'kr2'] }],
+          },
+        ],
+        concepts: [{ id: 'c1', term: 'Accessibility evaluation' }],
+        enrichmentOverlay: {
+          lessonContent: {
+            'lesson-1': {
+              conceptProvenance: {
+                source: 'algi-researched',
+                citations: [
+                  {
+                    displayTitle: 'Evaluating web accessibility',
+                    sourceUrl: 'https://www.w3.org/WAI/test-evaluate/',
+                    provider: 'w3c-wai',
+                    kind: 'official accessibility standard and tutorial',
+                    license: 'W3C permissive license',
+                    attribution: 'W3C Web Accessibility Initiative',
+                    evidence: 'Evaluation combines appropriate tools with knowledgeable human review.',
+                    supportReceipt: {
+                      status: 'passed',
+                      checkedClaims: 4,
+                      minimumScore: 0.91,
+                      method: 'deterministic-lexical-v1',
+                      semanticSupport: false,
+                      readinessEligible: false,
+                    },
+                  },
+                  {
+                    displayTitle: 'Easy Checks',
+                    sourceUrl: 'https://www.w3.org/WAI/test-evaluate/preliminary/',
+                    provider: 'w3c-wai',
+                    kind: 'official accessibility standard and tutorial',
+                    license: 'W3C permissive license',
+                    attribution: 'W3C Web Accessibility Initiative',
+                    evidence: 'More robust assessment is needed to evaluate accessibility comprehensively.',
+                  },
+                  {
+                    displayTitle: 'WCAG-EM overview',
+                    sourceUrl: 'https://www.w3.org/WAI/test-evaluate/conformance/wcag-em/',
+                    provider: 'w3c-wai',
+                    kind: 'official accessibility standard and tutorial',
+                    license: 'W3C permissive license',
+                    attribution: 'W3C Web Accessibility Initiative',
+                    evidence: 'WCAG-EM provides an approach for evaluating how websites conform to WCAG.',
+                  },
+                ],
+              },
+            },
+          },
+        },
+        resources: [
+          {
+            id: 'kr1',
+            provider: 'w3c-wai',
+            title: 'Evaluating web accessibility',
+            url: 'https://www.w3.org/WAI/test-evaluate/',
+            license: 'W3C permissive license',
+            sessionRefs: ['s1'],
+            conceptLinks: [{ id: 'c1', label: 'Accessibility evaluation' }],
+          },
+          {
+            id: 'kr2',
+            provider: 'w3c-wai',
+            title: 'Easy Checks',
+            url: 'https://www.w3.org/WAI/test-evaluate/preliminary/',
+            license: 'W3C permissive license',
+            sessionRefs: ['s1'],
+            conceptLinks: [{ id: 'c1', label: 'Accessibility evaluation' }],
+          },
+        ],
+      },
+      { checkedAt: '2026-07-29T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows.map((row) => row.title)).toEqual([
+      'Evaluating web accessibility',
+      'Easy Checks',
+      'WCAG-EM overview',
+    ]);
+    expect(ledger.rows.every((row) => row.sessionRefs.includes('s1'))).toBe(true);
+    expect(ledger.rows[0].supportReceipt).toMatchObject({
+      status: 'passed',
+      checkedClaims: 4,
+      minimumScore: 0.91,
+      method: 'deterministic-lexical-v1',
+      construct: 'source-extraction-integrity',
+      semanticSupport: false,
+      readinessEligible: false,
+    });
+    expect(buildSourceReportMarkdown({ sourceLedger: ledger })).toContain(
+      'https://www.w3.org/WAI/test-evaluate/conformance/wcag-em/',
+    );
+  });
+
+  it('does not let a trusted source occurrence fan out across an unrelated construct binding', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'Introductory Statistics' },
+        sessions: [
+          { id: 's1', number: 1, title: 'Sampling', sections: [] },
+          { id: 's2', number: 2, title: 'Confidence intervals', sections: [] },
+        ],
+        enrichmentOverlay: {
+          lessonContent: {
+            'lesson-1': {
+              conceptProvenance: {
+                citations: [
+                  {
+                    id: 'openstax:statistics#8',
+                    displayTitle: 'Legacy statistics source',
+                    license: 'CC BY 4.0',
+                    conceptLinks: [{ id: 'sampling', label: 'Sampling' }],
+                  },
+                ],
+              },
+            },
+            'lesson-2': {
+              conceptProvenance: {
+                citations: [
+                  {
+                    id: 'openstax:statistics#8',
+                    displayTitle: 'Introductory Statistics 2e, section 8',
+                    sourceUrl: 'https://openstax.org/books/introductory-statistics-2e/pages/8-introduction',
+                    provider: 'openstax',
+                    license: 'CC BY 4.0',
+                    conceptLinks: [{ id: 'confidence-interval', label: 'Confidence interval' }],
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+      { checkedAt: '2026-08-05T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows).toHaveLength(1);
+    expect(ledger.reviewRows || []).toHaveLength(1);
+    expect(ledger.rows[0]).toMatchObject({
+      id: 'openstax:statistics#8',
+      provider: 'openstax',
+      accessStatus: 'reference-present',
+      sessionRefs: ['s2'],
+    });
+    expect(ledger.rows[0].conceptLinks).toEqual(
+      expect.arrayContaining([expect.objectContaining({ label: 'Confidence interval' })]),
+    );
+    expect(ledger.rows[0].conceptLinks).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ label: 'Sampling' })]),
+    );
+    expect(ledger.reviewRows[0]).toMatchObject({
+      sourceWorkId: 'openstax:statistics#8',
+      sessionRefs: ['s1'],
+      conceptLinks: expect.arrayContaining([expect.objectContaining({ label: 'Sampling' })]),
+    });
+  });
+
+  it('infers the publisher from a citation URL instead of treating an operational origin as the provider', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'Introductory Statistics' },
+        sessions: [{ id: 's1', number: 1, title: 'Sampling distributions', sections: [] }],
+        enrichmentOverlay: {
+          lessonContent: {
+            'lesson-1': {
+              sourceFactAuthority: 'shipped-source-library',
+              conceptProvenance: {
+                citations: [
+                  {
+                    id: 'openstax:statistics#7',
+                    displayTitle: 'Introductory Statistics, section 7',
+                    sourceUrl: 'https://openstax.org/books/introductory-statistics/pages/7-key-terms',
+                    license: 'CC BY 4.0',
+                    origin: 'scion-evidence-overlay',
+                    supportReceipt: {
+                      status: 'passed',
+                      checkedClaims: 1,
+                      minimumScore: 1,
+                      sourceIdentityVerified: true,
+                      semanticAdmissionVerified: true,
+                      artifactVisibilityVerified: false,
+                      semanticSupport: true,
+                      readinessEligible: false,
+                      checks: [
+                        {
+                          claimId: 'openstax:statistics#7:claim-1',
+                          claim: 'a sampling distribution is the probability distribution of a statistic',
+                          quote: 'a sampling distribution is the probability distribution of a statistic',
+                          sourceId: 'openstax:statistics#7',
+                        },
+                      ],
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+      { checkedAt: '2026-08-06T00:00:00.000Z' },
+    );
+
+    expect(ledger.reviewRows || []).toHaveLength(0);
+    expect(ledger.rows).toHaveLength(1);
+    expect(ledger.rows[0]).toMatchObject({
+      id: 'openstax:statistics#7',
+      provider: 'openstax',
+      origin: 'scion-evidence-overlay',
+      trustLevel: 'open-educational-resource',
+    });
+    expect(ledger.rows[0].supportReceipt).toMatchObject({
+      status: 'passed',
+      sourceIdentityVerified: true,
+      semanticAdmissionVerified: true,
+    });
+  });
+
+  it('admits authentic packet sources into the governing ledger and binds their curated claims to rendered artifacts', async () => {
+    const analysisFocus = 'Prosodic comparison: pitch distinguishes the cited lexical meanings.';
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'Language Structure Laboratory' },
+        sessions: [{ id: 's1', number: 1, title: 'Tone contrasts', sections: [] }],
+        authenticLanguageData: {
+          protocol: 'coursemapper-authentic-language-data-v1',
+          sources: [
+            {
+              id: 'wals-tone-13',
+              title: 'WALS Online — Tone',
+              url: 'https://wals.info/chapter/13',
+              license: 'CC BY 4.0',
+              attribution: 'Maddieson, Ian. 2013. Tone.',
+            },
+          ],
+          examples: [
+            {
+              id: 'wals-13-yoruba-tone',
+              language: 'Yoruba',
+              form: '/bí/ · /bī/ · /bì/',
+              gloss: 'high · mid · low tone',
+              translation: 'give birth · ask · vomit',
+              analysisFocus,
+              sourceId: 'wals-tone-13',
+              sourceLocator: 'Chapter 13, section 1',
+            },
+          ],
+        },
+        authenticLanguageDataCoverage: {
+          lessons: [
+            {
+              lessonNumber: 1,
+              sessionId: 's1',
+              evidenceSubtype: 'prosody',
+              operation: 'comparison',
+              taskBinding: { examples: [{ sourceId: 'wals-tone-13' }] },
+            },
+          ],
+        },
+      },
+      { checkedAt: '2026-08-06T00:00:00.000Z' },
+    );
+
+    expect(ledger.reviewRows || []).toHaveLength(0);
+    expect(ledger.rows).toHaveLength(1);
+    expect(ledger.rows[0]).toMatchObject({
+      id: 'wals-tone-13',
+      provider: 'wals',
+      license: 'CC BY 4.0',
+      sessionRefs: ['s1'],
+      supportReceipt: {
+        method: 'shipped-source-curated-anchor-v1',
+        sourceIdentityVerified: true,
+        semanticAdmissionVerified: true,
+      },
+    });
+    const [bound] = await bindRenderedClaimSupport(ledger.rows, [
+      {
+        path: 'Lesson Plans/Lesson 01 - Tone contrasts.docx',
+        text: `Evidence boundary. ${analysisFocus}`,
+        sha256: 'a'.repeat(64),
+      },
+    ]);
+    expect(isClaimBoundSourceLedgerRow(bound)).toBe(true);
+    expect(bound.supportReceipt.checks[0]).toMatchObject({
+      renderedLocation: 'Lesson Plans/Lesson 01 - Tone contrasts.docx',
+      artifactVisibilityVerified: true,
+      semanticSupport: true,
+    });
+  });
+
+  it('preserves the original source-work identity and upstream receipt on rebound graph resources', async () => {
+    const quote = 'Visual hierarchy creates a perceived order of importance.';
+    const snapshot = await snapshotReceipt('wikipedia-visual-hierarchy', quote);
+    const receipt = {
+      status: 'passed',
+      checkedClaims: 1,
+      minimumScore: 1,
+      sourceIdentityVerified: true,
+      semanticAdmissionVerified: true,
+      artifactVisibilityVerified: false,
+      semanticSupport: true,
+      readinessEligible: false,
+      sourceSnapshot: snapshot.sourceSnapshot,
+      checks: [
+        {
+          ...snapshot.check,
+          sourceId: 'wikipedia-visual-hierarchy',
+          claim: quote,
+          quote,
+          quoteInSnapshot: true,
+          entailed: true,
+          semanticSupport: true,
+        },
+      ],
+    };
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'Visual Evidence' },
+        sessions: [{ id: 's1', number: 1, title: 'Visual hierarchy', sections: [{ conceptRefs: ['c1'] }] }],
+        concepts: [{ id: 'c1', label: 'Visual hierarchy' }],
+        resources: [
+          {
+            id: 'evidence-source-1-1',
+            sourceWorkId: 'wikipedia-visual-hierarchy',
+            title: 'Visual hierarchy',
+            url: 'https://en.wikipedia.org/wiki/Visual_hierarchy',
+            license: 'CC BY-SA 4.0',
+            provider: 'wikipedia',
+            kind: 'open encyclopedia',
+            sessionRefs: ['s1', 1],
+            supportReceipt: receipt,
+            authorityKind: 'verified-open-research',
+            governingSourceReceiptSha256: 'a'.repeat(64),
+          },
+        ],
+      },
+      { checkedAt: '2026-08-10T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows[0]).toMatchObject({
+      id: 'evidence-source-1-1',
+      sourceWorkId: 'wikipedia-visual-hierarchy',
+      authorityKind: 'verified-open-research',
+      governingSourceReceiptSha256: 'a'.repeat(64),
+      supportReceipt: { status: 'passed', sourceSnapshot: { sourceId: 'wikipedia-visual-hierarchy' } },
+    });
+  });
+
+  it('binds only lesson-declared research roots before minting overlay scope and concept links', () => {
+    const citations = (titles) =>
+      titles.map((title, index) => ({
+        id: `wikipedia:${title}`,
+        displayTitle: title,
+        sourceUrl: `https://example.test/source-${index + 1}`,
+        provider: 'wikipedia',
+        license: 'CC BY-SA 4.0',
+      }));
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'Introductory Statistics' },
+        sessions: [
+          { id: 's1', number: 1, title: 'The Normal Distribution', sections: [] },
+          { id: 's2', number: 2, title: 'Regression', sections: [] },
+          { id: 's3', number: 3, title: 'Producing Data: Sampling', sections: [] },
+        ],
+        enrichmentOverlay: {
+          lessonContent: {
+            'lesson-1': {
+              conceptProvenance: {
+                citations: citations([
+                  'Normal distribution',
+                  'Truncated normal distribution',
+                  'Normal-gamma distribution',
+                  'Normal-Wishart distribution',
+                ]),
+              },
+            },
+            'lesson-2': {
+              conceptProvenance: {
+                citations: citations([
+                  'Regression analysis',
+                  'Poisson regression',
+                  'Robust regression',
+                  'Binomial regression',
+                  'Semiparametric regression',
+                ]),
+              },
+            },
+            'lesson-3': { conceptProvenance: { citations: citations(['Sampling (statistics)']) } },
+          },
+        },
+      },
+      { checkedAt: '2026-08-11T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows.map((row) => row.title)).toEqual([
+      'Normal distribution',
+      'Regression analysis',
+      'Sampling (statistics)',
+    ]);
+    expect(JSON.stringify(ledger)).not.toMatch(
+      /Truncated normal|Normal-gamma|Normal-Wishart|Poisson regression|Robust regression|Binomial regression|Semiparametric regression/,
+    );
+    expect(ledger.rows.map((row) => row.sessionRefs)).toEqual([['s1'], ['s2'], ['s3']]);
+  });
+
+  it('retains an exact admitted specialization when its claim survives in the lesson kernel', () => {
+    const rootClaim =
+      'Auditory phonetics is the branch of phonetics concerned with the hearing of speech sounds and speech perception.';
+    const specializedClaim =
+      'The speech motor system participates in both producing speech articulations and detecting them.';
+    const citation = (title, claim, index) => ({
+      id: `wikipedia:${title}`,
+      displayTitle: title,
+      sourceUrl: `https://example.test/phonetics-${index}`,
+      provider: 'wikipedia',
+      license: 'CC BY-SA 4.0',
+      supportReceipt: {
+        status: 'passed',
+        checkedClaims: 1,
+        minimumScore: 1,
+        sourceIdentityVerified: true,
+        semanticAdmissionVerified: true,
+        artifactVisibilityVerified: false,
+        semanticSupport: true,
+        readinessEligible: false,
+        checks: [
+          {
+            claimId: `claim-${index}`,
+            claim,
+            quote: claim,
+            sourceId: `wikipedia:${title}`,
+            entailed: true,
+            sourceIdentityVerified: true,
+            semanticAdmissionVerified: true,
+            artifactVisibilityVerified: false,
+            semanticSupport: true,
+          },
+        ],
+      },
+    });
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'Introduction to Language Structure' },
+        sessions: [{ id: 's1', number: 1, title: 'Phonetics and Articulation', sections: [] }],
+        enrichmentOverlay: {
+          lessonContent: {
+            'lesson-1': {
+              kernel: { facts: [rootClaim, specializedClaim] },
+              conceptProvenance: {
+                citations: [
+                  citation('Auditory phonetics', rootClaim, 1),
+                  citation('Motor theory of speech perception', specializedClaim, 2),
+                ],
+              },
+            },
+          },
+        },
+      },
+      { checkedAt: '2026-08-11T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows.map((row) => row.title)).toEqual(['Auditory phonetics', 'Motor theory of speech perception']);
+    expect(ledger.reviewRows || []).toHaveLength(0);
+  });
+
+  it('keeps a specialization explicitly authorized by the hash-bound pre-retrieval lesson plan', async () => {
+    const instructionalInstance = buildInstructionalInstanceContract({
+      course: { name: 'Introductory Statistics', lessonCount: 1 },
+      lessonIntents: [
+        {
+          id: 'lesson-1',
+          lessonNumber: 1,
+          title: 'Producing Data: Experiments',
+          focusConcepts: ['Producing Data: Experiments'],
+          targetObjectives: ['Design and audit a randomized experiment with a replayable assignment rule.'],
+          learnerAction: 'Execute and audit a randomized assignment rule.',
+          expectedEvidence: {
+            artifact: 'randomized-experiment design record',
+            evidenceRequirement: 'units, treatments, assignment trace, and validity boundary',
+            successCriteria: ['Replays the assignment rule.', 'Limits the causal claim to the design.'],
+          },
+          evidenceNeedKind: 'operation-specimen',
+        },
+      ],
+    }).instances[0];
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'Introductory Statistics' },
+        sessions: [{ id: 's1', number: 1, title: 'Producing Data: Experiments', sections: [] }],
+        enrichmentOverlay: {
+          lessonContent: {
+            'lesson-1': {
+              evidenceAuthorityReceipt: { instructionalInstance },
+              conceptProvenance: {
+                citations: [
+                  {
+                    id: 'wikipedia:Experiment',
+                    displayTitle: 'Experiment',
+                    provider: 'wikipedia',
+                    sourceUrl: 'https://example.test/experiment',
+                    license: 'CC BY-SA 4.0',
+                  },
+                  {
+                    id: 'wikipedia:Randomized experiment',
+                    displayTitle: 'Randomized experiment',
+                    provider: 'wikipedia',
+                    sourceUrl: 'https://example.test/randomized-experiment',
+                    license: 'CC BY-SA 4.0',
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+      { checkedAt: '2026-08-11T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows.map((row) => row.title)).toEqual(['Experiment', 'Randomized experiment']);
+    expect(ledger.rows.every((row) => row.sessionRefs[0] === 's1')).toBe(true);
+  });
+});

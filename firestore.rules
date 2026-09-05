@@ -1,0 +1,21 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    function hasReasonableFieldCount() {
+      return request.resource.data.keys().size() <= 80;
+    }
+
+    // Each user can only read/write their own data.
+    // Firestore enforces the 1 MiB document limit; this project-level guard
+    // keeps accidental wide documents out of user-owned subtrees.
+    match /users/{userId}/{document=**} {
+      allow read: if isOwner(userId);
+      allow create, update: if isOwner(userId) && hasReasonableFieldCount();
+      allow delete: if isOwner(userId);
+    }
+  }
+}

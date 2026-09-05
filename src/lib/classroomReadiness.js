@@ -1,0 +1,1087 @@
+import { READINESS_BLOCKER, READINESS_FEATURE_LABELS, READINESS_WARNING } from './deliverableReadiness';
+import { isDeliverableNotApplicable } from './deliverableApplicability';
+import { normalizeReadinessIssue, normalizeReadinessIssues } from './readinessIssueSchema';
+import { renderedDeliverableCollectionKey } from './renderedDeliverableCollection.js';
+
+const DEFAULT_FEATURES = [
+  'courseMap',
+  'syllabus',
+  'lessonPlans',
+  'slideDecks',
+  'assignments',
+  'rubrics',
+  'discussions',
+  'quizBank',
+  'studyGuides',
+  'courseFaq',
+];
+
+const PER_LESSON_FEATURES = new Set([
+  'lessonPlans',
+  'slideDecks',
+  'discussions',
+  'quizBank',
+  'studyGuides',
+  'courseFaq',
+]);
+
+const RETRYABLE_FEATURES = new Set([
+  'syllabus',
+  'assignments',
+  'quizBank',
+  'discussions',
+  'slideDecks',
+  'lessonPlans',
+  'rubrics',
+  'studyGuides',
+  'courseFaq',
+]);
+
+const AUTO_FIX_VALIDATION_CATEGORIES = new Set(['difficulty', 'grammar']);
+
+const QUALITY_CUE_RE =
+  /\b(success criteria|criteria|checklist|exemplar|model answer|sample answer|evidence|rubric|strong work|quality|feedback|revision|misconception|transfer|exit ticket)\b/i;
+const ACTIVITY_CUE_RE =
+  /\b(activity|discussion|practice|check for understanding|think-pair-share|exit ticket|poll|case|scenario|workshop|reflection|debrief|minute paper)\b/i;
+const MILESTONE_CUE_RE =
+  /\b(milestone|checkpoint|draft|proposal|submit|submission|due|deliverable|revision|peer review)\b/i;
+const PERFORMANCE_BAND_RE =
+  /\b(exemplary|proficient|developing|emerging|criterion|criteria|rubric|performance band|meets expectations|exceeds expectations)\b/i;
+const REVIEW_CUE_RE =
+  /\b(review question|self-check|practice question|key term|retrieval|concept check|study strategy)\b/i;
+
+function labelFor(featureId) {
+  return READINESS_FEATURE_LABELS[featureId] || (featureId?.startsWith('custom_') ? 'Custom Deliverable' : featureId);
+}
+
+function makeIssue(severity, featureId, message, classroomCriterion, details = {}) {
+  return normalizeReadinessIssue({
+    severity,
+    featureId,
+    label: labelFor(featureId),
+    message,
+    classroomCriterion,
+    ...details,
+  });
+}
+
+function asArray(value) {
+  return Array.isArray(value) ? value : [];
+}
+
+function collectStrings(value, output = []) {
+  if (value == null) return output;
+  if (typeof value === 'string' || typeof value === 'number') {
+    output.push(String(value));
+    return output;
+  }
+  if (Array.isArray(value)) {
+    value.forEach((item) => collectStrings(item, output));
+    return output;
+  }
+  if (typeof value === 'object') {
+    Object.values(value).forEach((item) => collectStrings(item, output));
+  }
+  return output;
+}
+
+function itemText(value) {
+  return collectStrings(value).join(' ').replace(/\s+/g, ' ').trim();
+}
+
+const BOILERPLATE_METADATA_KEYS = new Set([
+  // Machine-facing question metadata can form a long pseudo-sentence when
+  // flattened (for example, id + type + Bloom level + timing + points). It is
+  // not learner-facing prose and must not create a boilerplate warning.
+  'id',
+  'type',
+  'bloomsLevel',
+  'difficulty',
+  'estimatedMinutes',
+  'points',
+  'minutes',
+  'bloom',
+  'objective',
+  'activity',
+  'activityType',
+  'timer',
+  'objectiveLink',
+  'sourceGrounding',
+  'blueprintGrounding',
+  'sourceAnchors',
+  'sourceEvidenceTrace',
+  'sourceEvidenceCue',
+  'sourceRisk',
+  'sourceRiskRegister',
+  'sourceRiskLevel',
+  'assessmentArchitecture',
+  'gradingWeightProvenance',
+  'assessmentCadence',
+  'assessmentRole',
+  'assessmentStakes',
+  'criterionWeightPlan',
+  'criterionWeightGuidance',
+  'criterionWeightCue',
+  'weightedGradingCriteria',
+  'localReviewNeeded',
+  // A governing or compiler-estimated time budget is intentionally uniform
+  // across weekly artifacts. Repetition here is workload transparency, not
+  // generic instructional copy.
+  'workload',
+  'workloadEstimate',
+  'estimatedTime',
+  'studentFacingEstimate',
+  'classSessionPlan',
+  'classroomDryRun',
+  'classroomDryRunPlan',
+  'classroomEvidenceLoop',
+  'classroomEvidenceLoopPlan',
+  'instructorFeedbackLoad',
+  'instructorFeedbackLoadPlan',
+  'outlineTiming',
+  'slideDeckSequenceGuide',
+  'slideTimingFit',
+  'difficultyProfile',
+  'teachingIntent',
+  'prerequisitePlan',
+  'prerequisitePrompt',
+  'prerequisiteDiagnostic',
+  'prerequisiteReteach',
+  'prerequisiteAcceleration',
+  'prerequisiteLocalReview',
+  'anchorExampleSet',
+  'anchorExampleGuidance',
+  'anchorExamples',
+  'anchorExamplePrompt',
+  'anchorExampleStrong',
+  'anchorExamplePartial',
+  'anchorExampleRevision',
+  'objectiveEvidencePlan',
+  'objectiveEvidenceMap',
+  'objectiveEvidenceCue',
+  'objectiveEvidenceChecklist',
+  'objectiveEvidenceCheck',
+  'modalityCue',
+  'modalityDecode',
+  'courseModalityProfile',
+  'compilerDecision',
+  'compilerDecisionMatrix',
+  'modalityFit',
+  'modalityPractice',
+  'modalityEvidenceRoutine',
+  'modalityFeedbackRoutine',
+  'modalityInstructorMove',
+  'dryRunChecklist',
+  'dryRunOpeningCheck',
+  'dryRunEvidenceCheckpoint',
+  'dryRunFailureMode',
+  'dryRunAdjustmentTrigger',
+  'dryRunInstructorAdjustment',
+  'implementationEvidenceToCollect',
+  'implementationStudentWorkSampleCue',
+  'implementationAdjustmentDecision',
+  'implementationNextLessonFeedForward',
+  'implementationPreferenceLearningSignal',
+  'feedbackLoadEstimate',
+  'feedbackBatchingStrategy',
+  'feedbackCalibrationCue',
+  'feedbackHighestLeverageCriterion',
+  'feedbackNextInstructionCue',
+  'artifactGenre',
+  'artifactGenreFit',
+  'artifactGenreReviewProtocol',
+  'artifactGenreCommonFailure',
+  'genreReviewProtocol',
+  'genreCommonFailure',
+  'genreRevisionMove',
+  'academicIntegrityStatement',
+  'formatRequirements',
+  'quizPlan',
+  'quizBlueprint',
+  'tags',
+  'visualPlan',
+  // Typed visual contracts and predicates are embedded audit metadata. The
+  // learner-facing slide text is checked separately; counting this shared
+  // machine contract as classroom prose creates false boilerplate warnings.
+  'typedSpecimen',
+  'taskContract',
+  // Audit/provenance fields travel with operation-qualified worked examples
+  // so package receipts can verify them. They are not learner-facing prose
+  // and must not be counted as repeated instructional boilerplate.
+  'verification',
+  'truthProof',
+  'curriculumAdmission',
+]);
+
+function collectBoilerplateStrings(value, output = []) {
+  if (value == null) return output;
+  if (typeof value === 'string' || typeof value === 'number') {
+    output.push(String(value));
+    return output;
+  }
+  if (Array.isArray(value)) {
+    value.forEach((item) => collectBoilerplateStrings(item, output));
+    return output;
+  }
+  if (typeof value === 'object') {
+    Object.entries(value)
+      .filter(([key]) => !BOILERPLATE_METADATA_KEYS.has(key))
+      .forEach(([, item]) => collectBoilerplateStrings(item, output));
+  }
+  return output;
+}
+
+function itemBoilerplateText(value) {
+  return collectBoilerplateStrings(value).join(' ').replace(/\s+/g, ' ').trim();
+}
+
+function hasMeaningfulValue(value) {
+  const raw = itemText(value);
+  return raw.length >= 5 && !/^(tbd|todo|n\/a|\?|to be determined|none)$/i.test(raw);
+}
+
+function getFeatureArray(featureId, data) {
+  if (!data || typeof data !== 'object') return [];
+  const key = renderedDeliverableCollectionKey(featureId, data);
+  return key ? data[key] : [];
+}
+
+function getSelectedFeatureIds(selectedFeatures, deliverables = {}) {
+  if (Array.isArray(selectedFeatures) && selectedFeatures.length > 0) {
+    return [...new Set(selectedFeatures)];
+  }
+
+  const generated = Object.entries(deliverables)
+    .filter(([, entry]) => entry?.status === 'done')
+    .map(([featureId]) => featureId)
+    .filter((featureId) => DEFAULT_FEATURES.includes(featureId));
+  return [...new Set(['courseMap', ...generated])];
+}
+
+function getLessonIndices(courseMap, lessonFilter) {
+  const lessons = asArray(courseMap?.lessons);
+  if (Array.isArray(lessonFilter)) {
+    return lessonFilter.filter((index) => Number.isInteger(index) && index >= 0 && index < lessons.length);
+  }
+  return lessons.map((_, index) => index);
+}
+
+function getScopedPerLessonItems(items, courseMap, lessonIndices) {
+  const lessons = asArray(courseMap?.lessons);
+  if (!Array.isArray(items)) return [];
+  if (items.length >= lessons.length && lessonIndices.length > 0) {
+    return lessonIndices.map((index) => items[index]).filter(Boolean);
+  }
+  return items;
+}
+
+function normalizeForMatch(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function inferLessonIndicesFromText(courseMap, value) {
+  const indices = new Set();
+  const message = String(value || '');
+  const lessons = asArray(courseMap?.lessons);
+  const addLessonNumber = (number) => {
+    const index = Number(number) - 1;
+    if (Number.isInteger(index) && index >= 0 && index < lessons.length) indices.add(index);
+  };
+
+  for (const group of message.matchAll(/\blesson(?:s|\(s\))?\s*[:#-]?\s*((?:\d{1,2}|,|\band\b|&|\s)+)/gi)) {
+    for (const number of String(group[1] || '').matchAll(/\d{1,2}/g)) {
+      addLessonNumber(number[0]);
+    }
+  }
+
+  for (const match of message.matchAll(/\blesson\s+(\d+)\b/gi)) {
+    addLessonNumber(match[1]);
+  }
+
+  const normalizedMessage = normalizeForMatch(message);
+  lessons.forEach((lesson, index) => {
+    const title = normalizeForMatch(lesson?.title);
+    if (title && normalizedMessage.includes(title)) indices.add(index);
+  });
+
+  return [...indices];
+}
+
+function addRetryCandidate(candidates, deliverables, courseMap, { featureId, lessonIndex, source, message, label }) {
+  if (!featureId || !RETRYABLE_FEATURES.has(featureId)) return false;
+  const entry = deliverables?.[featureId];
+  const items = getFeatureArray(featureId, entry?.data);
+  const lessonCount = asArray(courseMap?.lessons).length;
+  if (entry?.status !== 'done' || !items.length) return false;
+  if (!Number.isInteger(lessonIndex) || lessonIndex < 0 || lessonIndex >= Math.max(items.length, lessonCount)) {
+    return false;
+  }
+
+  const key = `${featureId}:${lessonIndex}`;
+  if (!candidates.has(key)) {
+    candidates.set(key, {
+      featureId,
+      label: label || labelFor(featureId),
+      lessonIndex,
+      lessonNumber: lessonIndex + 1,
+      source,
+      message,
+    });
+  }
+  return true;
+}
+
+function addFeatureRetryCandidate(candidates, _deliverables, { featureId, source, message, label }) {
+  if (!featureId || !RETRYABLE_FEATURES.has(featureId)) return;
+
+  const key = `${featureId}:feature`;
+  if (!candidates.has(key)) {
+    candidates.set(key, {
+      featureId,
+      label: label || labelFor(featureId),
+      lessonIndex: null,
+      lessonNumber: null,
+      scope: 'feature',
+      source,
+      message,
+    });
+  }
+}
+
+function hasRetryCandidateForFeature(candidates, featureId) {
+  if (!featureId) return false;
+  return [...candidates.values()].some((candidate) => candidate.featureId === featureId);
+}
+
+function getQuestionArray(item) {
+  return asArray(item?.questions || item?.qs);
+}
+
+function getDiscussionArtifacts(item) {
+  return asArray(item?.sourceArtifacts || item?.artifacts || item?.af);
+}
+
+function getArtifactTitle(artifact) {
+  if (typeof artifact === 'string') return artifact;
+  return itemText([artifact?.title, artifact?.at, artifact?.name, artifact?.label, artifact?.t]);
+}
+
+function hasGenericArtifactTitle(artifact) {
+  const title = getArtifactTitle(artifact);
+  if (!title) return true;
+  return /^(?:week\s*\d+\s*)?(?:artifact|source|document|item|evidence|packet)\s*(?:[A-Z]|\d+)?$/i.test(title);
+}
+
+function getSlideArray(item) {
+  return asArray(item?.slides || item?.sl);
+}
+
+function getCriteriaArray(item) {
+  return asArray(item?.criteria || item?.cr || item?.rows || item?.performanceCriteria);
+}
+
+function getPercent(value) {
+  const number = Number(String(value ?? '').match(/\d+(?:\.\d+)?/)?.[0]);
+  return Number.isFinite(number) ? number : 0;
+}
+
+function getWeightTotal(items, keys = ['weight', 'wt', 'points', 'pt', 'percent', 'percentage']) {
+  return asArray(items).reduce((sum, item) => {
+    const key = keys.find((candidate) => item?.[candidate] != null);
+    return sum + (key ? getPercent(item[key]) : 0);
+  }, 0);
+}
+
+function splitSentences(text) {
+  return String(text || '')
+    .split(/[.!?]\s+/)
+    .map((sentence) => sentence.trim())
+    .filter((sentence) => sentence.split(/\s+/).filter(Boolean).length >= 8 && sentence.length >= 55);
+}
+
+function normalizeSentence(sentence) {
+  // Bare "Lesson 3" / "Week 3" labels are masked so guidance differing only
+  // by its label still counts as boilerplate. Article-anchored short
+  // references ("the Week 3 memo", "the Lesson 3 materials") keep their
+  // numbers: since v0.8.61 the compiler uses them as deliberate per-lesson
+  // references, which is exactly the lesson specificity this gate asks for.
+  return sentence
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\b(?<!\bthe\s(?:\w+\s){0,3})lesson\s+\d+\b/g, 'lesson #')
+    .replace(/\b(?<!\bthe\s(?:\w+\s){0,3})week\s+\d+\b/g, 'week #');
+}
+
+const RUBRIC_SHARED_SUPPORT_RE =
+  /\b(distribute this rubric|course grading policy|official weight|gradebook|calibrate by reviewing|sample submission|criterion and the next concrete improvement|academic integrity|accessibility|accommodation|udl)\b/i;
+
+function rubricBoilerplateText(rubric) {
+  const criteriaText = getCriteriaArray(rubric)
+    .map((criterion) =>
+      itemText([
+        criterion?.criterion,
+        criterion?.cn,
+        criterion?.objectiveAligned,
+        criterion?.oa,
+        criterion?.description,
+        criterion?.exemplary,
+        criterion?.ex,
+        criterion?.proficient,
+        criterion?.pr,
+        criterion?.developing,
+        criterion?.dv,
+        criterion?.beginning,
+        criterion?.bg,
+      ]),
+    )
+    .join(' ');
+
+  return itemText([
+    rubric?.title,
+    rubric?.t,
+    rubric?.lessonTitle,
+    rubric?.lt,
+    rubric?.assessmentTitle,
+    rubric?.assessmentType,
+    rubric?.at,
+    rubric?.taskDirections,
+    rubric?.td,
+    criteriaText,
+  ]);
+}
+
+function getBoilerplateSentences(featureId, item) {
+  const text = featureId === 'rubrics' ? rubricBoilerplateText(item) : itemBoilerplateText(item);
+  return splitSentences(text).filter(
+    (sentence) =>
+      (featureId !== 'rubrics' || !RUBRIC_SHARED_SUPPORT_RE.test(sentence)) &&
+      // This is a standardized honesty notice, not lesson content. Count the
+      // absent verified terms in the study-value check below, but do not also
+      // mislabel the disclosure itself as teaching boilerplate.
+      (featureId !== 'studyGuides' ||
+        !/(?:scion could not verify disciplinary definitions|confirm key terms against the named source before publishing)/i.test(
+          sentence,
+        )),
+  );
+}
+
+function addBoilerplateWarning(featureId, items, issues) {
+  if (!Array.isArray(items) || items.length < 4) return;
+
+  const counts = new Map();
+  for (const item of items) {
+    const seenInItem = new Set();
+    for (const sentence of getBoilerplateSentences(featureId, item)) {
+      const normalized = normalizeSentence(sentence);
+      if (!normalized || normalized.length < 45) continue;
+      seenInItem.add(normalized);
+    }
+    seenInItem.forEach((sentence) => counts.set(sentence, (counts.get(sentence) || 0) + 1));
+  }
+
+  const minimumRepeatCount =
+    featureId === 'rubrics' ? (items.length < 6 ? items.length : Math.max(6, Math.ceil(items.length * 0.7))) : 3;
+  // On short packages, three shared sentences can be the legitimate common
+  // course protocol rather than a dominant template. Require four of five
+  // items before warning; larger packages keep the more sensitive 40% gate.
+  const repeatRatio = featureId === 'rubrics' || items.length <= 5 ? 0.7 : 0.4;
+  const repeated = [...counts.entries()].find(
+    ([, count]) => count >= minimumRepeatCount && count >= Math.ceil(items.length * repeatRatio),
+  );
+  if (!repeated) return;
+
+  issues.push(
+    makeIssue(
+      READINESS_WARNING,
+      featureId,
+      `${labelFor(featureId)} repeats the same boilerplate across ${repeated[1]} items (e.g., "${repeated[0].slice(0, 110)}"); revise with lesson-specific guidance before classroom handoff.`,
+      'specificity',
+    ),
+  );
+}
+
+function addRatioWarning({ issues, featureId, missing, total, message, criterion, threshold = 0.4 }) {
+  if (total <= 0 || missing / total <= threshold) return;
+  issues.push(makeIssue(READINESS_WARNING, featureId, message(missing, total), criterion));
+}
+
+function checkCourseMap(courseMap, lessonIndices, issues) {
+  const lessons = asArray(courseMap?.lessons);
+  if (lessons.length === 0) {
+    issues.push(makeIssue(READINESS_BLOCKER, 'courseMap', 'Course Map has no lessons to teach from.', 'coverage'));
+    return;
+  }
+
+  let weakObjectiveCount = 0;
+  let weakAssessmentCount = 0;
+  lessonIndices.forEach((lessonIndex) => {
+    const lesson = lessons[lessonIndex];
+    const lessonText = itemText(lesson);
+    const objectiveText = asArray(lesson?.sections)
+      .map((section) => itemText(section?.learningObjectives || section?.learningGoals || section?.lo || section?.lg))
+      .join(' ');
+    const assessmentText = asArray(lesson?.sections)
+      .map((section) => itemText(section?.weeklyAssessments || section?.assessment || section?.as))
+      .join(' ');
+
+    if (!hasMeaningfulValue(objectiveText)) weakObjectiveCount += 1;
+    if (
+      !hasMeaningfulValue(assessmentText) &&
+      !/\b(quiz|assignment|project|reflection|discussion|exam)\b/i.test(lessonText)
+    ) {
+      weakAssessmentCount += 1;
+    }
+  });
+
+  addRatioWarning({
+    issues,
+    featureId: 'courseMap',
+    missing: weakObjectiveCount,
+    total: lessonIndices.length,
+    criterion: 'instructional alignment',
+    message: (missing, total) =>
+      `${missing}/${total} lessons have weak or missing learning objectives; strengthen objectives before classroom handoff.`,
+    threshold: 0.25,
+  });
+  addRatioWarning({
+    issues,
+    featureId: 'courseMap',
+    missing: weakAssessmentCount,
+    total: lessonIndices.length,
+    criterion: 'assessment alignment',
+    message: (missing, total) =>
+      `${missing}/${total} lessons have weak or missing assessment evidence; add checks for learning before classroom use.`,
+    threshold: 0.25,
+  });
+}
+
+function checkPerLessonCoverage(featureId, items, courseMap, lessonIndices, issues) {
+  const expectedCount = lessonIndices.length;
+  if (expectedCount === 0) return [];
+  const scopedItems = getScopedPerLessonItems(items, courseMap, lessonIndices);
+
+  if (scopedItems.length === 0) {
+    issues.push(
+      makeIssue(READINESS_BLOCKER, featureId, `${labelFor(featureId)} has no generated lesson items.`, 'coverage'),
+    );
+    return scopedItems;
+  }
+  if (scopedItems.length < expectedCount) {
+    issues.push(
+      makeIssue(
+        READINESS_WARNING,
+        featureId,
+        `${labelFor(featureId)} covers ${scopedItems.length}/${expectedCount} lessons; regenerate missing sections before classroom handoff.`,
+        'coverage',
+      ),
+    );
+  }
+
+  return scopedItems;
+}
+
+function checkLessonPlans(items, issues) {
+  addBoilerplateWarning('lessonPlans', items, issues);
+  const missingQualityCues = items.filter((item) => !QUALITY_CUE_RE.test(itemText(item))).length;
+  addRatioWarning({
+    issues,
+    featureId: 'lessonPlans',
+    missing: missingQualityCues,
+    total: items.length,
+    criterion: 'teaching usability',
+    message: (missing, total) =>
+      `${missing}/${total} lesson plans lack concrete quality criteria, evidence, or model-work guidance for instructors.`,
+  });
+}
+
+function checkSlideDecks(items, issues) {
+  addBoilerplateWarning('slideDecks', items, issues);
+  const noInteraction = items.filter((deck) => {
+    const slides = getSlideArray(deck);
+    return slides.length > 0 && !slides.some((slide) => ACTIVITY_CUE_RE.test(itemText(slide)));
+  }).length;
+  addRatioWarning({
+    issues,
+    featureId: 'slideDecks',
+    missing: noInteraction,
+    total: items.length,
+    criterion: 'active learning',
+    message: (missing, total) =>
+      `${missing}/${total} slide decks lack an activity, check for understanding, or debrief slide.`,
+  });
+}
+
+function checkDiscussions(items, issues) {
+  addBoilerplateWarning('discussions', items, issues);
+  const weakFacilitation = items.filter((item) => {
+    const probes = asArray(item?.followUpProbes || item?.fp);
+    const criteria = asArray(item?.evaluationCriteria || item?.ec);
+    return (
+      probes.length < 2 || criteria.length < 2 || !/\b(evidence|example|source|claim|reason)\b/i.test(itemText(item))
+    );
+  }).length;
+  const genericArtifacts = items.filter((item) => getDiscussionArtifacts(item).some(hasGenericArtifactTitle)).length;
+  addRatioWarning({
+    issues,
+    featureId: 'discussions',
+    missing: weakFacilitation,
+    total: items.length,
+    criterion: 'facilitation readiness',
+    message: (missing, total) =>
+      `${missing}/${total} discussion prompts need stronger facilitation probes, evidence requirements, or evaluation criteria.`,
+  });
+  if (genericArtifacts > 0) {
+    issues.push(
+      makeIssue(
+        READINESS_WARNING,
+        'discussions',
+        `${genericArtifacts}/${items.length} discussion prompts use generic source-artifact labels; replace them with concrete artifact titles before classroom handoff.`,
+        'specificity',
+      ),
+    );
+  }
+}
+
+function checkQuizBank(items, issues) {
+  addBoilerplateWarning('quizBank', items, issues);
+  const questions = items.flatMap(getQuestionArray);
+  if (questions.length === 0) {
+    issues.push(makeIssue(READINESS_BLOCKER, 'quizBank', 'Quiz & Exam Bank has no questions.', 'assessment coverage'));
+    return;
+  }
+
+  const missingPoints = questions.filter((question) => getPercent(question?.points ?? question?.pt) <= 0).length;
+  if (missingPoints > 0) {
+    issues.push(
+      makeIssue(
+        READINESS_WARNING,
+        'quizBank',
+        `${missingPoints}/${questions.length} quiz questions have missing or zero point values.`,
+        'scoring consistency',
+      ),
+    );
+  }
+
+  const weakAnswerGuidance = questions.filter((question) => {
+    const text = itemText([
+      question?.explanation,
+      question?.ex,
+      question?.rationale,
+      question?.sampleAnswer,
+      question?.sa,
+    ]);
+    return !hasMeaningfulValue(text);
+  }).length;
+  addRatioWarning({
+    issues,
+    featureId: 'quizBank',
+    missing: weakAnswerGuidance,
+    total: questions.length,
+    criterion: 'grading usability',
+    message: (missing, total) =>
+      `${missing}/${total} quiz questions lack answer explanations, rationales, or sample-answer guidance.`,
+  });
+}
+
+function checkStudyGuides(items, issues) {
+  addBoilerplateWarning('studyGuides', items, issues);
+  const weakRetrieval = items.filter((guide) => {
+    const reviewQuestions = asArray(guide?.reviewQuestions || guide?.rq || guide?.questions || guide?.qs);
+    const keyTerms = asArray(guide?.keyTerms || guide?.kt || guide?.terms);
+    const practiceActivities = asArray(guide?.practiceActivities || guide?.practice || guide?.activities);
+    const workedExample = guide?.workedExample;
+    const hasVerifiedOperationPractice =
+      workedExample?.protocol === 'coursemapper-operation-qualified-evidence-v1' &&
+      workedExample?.verification?.checked === true &&
+      asArray(workedExample?.steps).length >= 2 &&
+      hasMeaningfulValue(workedExample?.result) &&
+      hasMeaningfulValue(workedExample?.transferTask) &&
+      practiceActivities.length >= 2;
+    const hasVerifiedEvidencePractice =
+      [
+        'coursemapper-functional-visual-study-practice-v1',
+        'coursemapper-authentic-evidence-study-practice-v1',
+        'coursemapper-source-claim-comparison-study-practice-v1',
+      ].includes(workedExample?.protocol) &&
+      workedExample?.verification?.checked === true &&
+      asArray(workedExample?.steps).length >= 2 &&
+      hasMeaningfulValue(workedExample?.result) &&
+      hasMeaningfulValue(workedExample?.boundary) &&
+      hasMeaningfulValue(workedExample?.transferTask) &&
+      practiceActivities.length >= 2;
+    // Two source-backed terms plus three retrieval questions is stronger than
+    // inventing a third definition merely to satisfy a count. The compiler's
+    // source-strict admission pass may deliberately reject a weak term. A
+    // verified procedural specimen plus two practice activities is the
+    // quantitative equivalent of that glossary depth; do not pressure the
+    // compiler to fabricate definitions merely to satisfy a vocabulary count.
+    return (
+      reviewQuestions.length < 3 ||
+      (keyTerms.length < 2 && !hasVerifiedOperationPractice && !hasVerifiedEvidencePractice) ||
+      !REVIEW_CUE_RE.test(itemText(guide))
+    );
+  }).length;
+  addRatioWarning({
+    issues,
+    featureId: 'studyGuides',
+    missing: weakRetrieval,
+    total: items.length,
+    criterion: 'student study value',
+    message: (missing, total) =>
+      `${missing}/${total} study guides need stronger key terms, self-check questions, or retrieval practice.`,
+  });
+}
+
+function checkCourseFaq(items, issues) {
+  addBoilerplateWarning('courseFaq', items, issues);
+  const weakQuestionCount = items.filter((faq) => getQuestionArray(faq).length < 3).length;
+  addRatioWarning({
+    issues,
+    featureId: 'courseFaq',
+    missing: weakQuestionCount,
+    total: items.length,
+    criterion: 'student support',
+    message: (missing, total) => `${missing}/${total} FAQ sections have fewer than 3 student-facing questions.`,
+  });
+}
+
+function checkAssignments(data, issues) {
+  const assignments = getFeatureArray('assignments', data);
+  if (assignments.length === 0) {
+    issues.push(
+      makeIssue(
+        READINESS_BLOCKER,
+        'assignments',
+        'Assignment Briefs have no assignments to give students.',
+        'coverage',
+      ),
+    );
+    return;
+  }
+
+  addBoilerplateWarning('assignments', assignments, issues);
+
+  const gradeTotal = assignments.reduce(
+    (sum, assignment) => sum + getPercent(assignment?.percentOfGrade || assignment?.pg),
+    0,
+  );
+  // Registry-linked briefs are a projection: quizzes/exams own their weight
+  // in Quiz & Exam Bank, so the assignment-only subtotal need not be 100%.
+  const hasRegistryLinkedAssignments = assignments.some(
+    (assignment) => assignment?.assessmentId || assignment?.courseMapRef || assignment?.cmr,
+  );
+  if (!hasRegistryLinkedAssignments && gradeTotal > 0 && (gradeTotal < 95 || gradeTotal > 105)) {
+    issues.push(
+      makeIssue(
+        READINESS_WARNING,
+        'assignments',
+        `Assignment grade weights sum to ${Math.round(gradeTotal)}%, not about 100%.`,
+        'scoring consistency',
+      ),
+    );
+  }
+
+  const missingMilestones = assignments.filter((assignment) => {
+    const milestones = asArray(
+      assignment?.milestones || assignment?.ms || assignment?.timeline || assignment?.checkpoints,
+    );
+    return milestones.length === 0 && !MILESTONE_CUE_RE.test(itemText(assignment));
+  }).length;
+  const missingBands = assignments.filter((assignment) => {
+    const bands = asArray(
+      assignment?.performanceBands ||
+        assignment?.pb ||
+        assignment?.evaluationCriteria ||
+        assignment?.criteria ||
+        assignment?.cr,
+    );
+    return bands.length < 3 && !PERFORMANCE_BAND_RE.test(itemText(assignment));
+  }).length;
+
+  addRatioWarning({
+    issues,
+    featureId: 'assignments',
+    missing: missingMilestones,
+    total: assignments.length,
+    criterion: 'student execution',
+    message: (missing, total) =>
+      `${missing}/${total} assignment briefs need clearer milestones, submission steps, or checkpoints.`,
+    threshold: 0.25,
+  });
+  addRatioWarning({
+    issues,
+    featureId: 'assignments',
+    missing: missingBands,
+    total: assignments.length,
+    criterion: 'grading usability',
+    message: (missing, total) =>
+      `${missing}/${total} assignment briefs need performance bands or concrete grading criteria.`,
+    threshold: 0.25,
+  });
+}
+
+function checkRubrics(data, issues) {
+  const rubrics = getFeatureArray('rubrics', data);
+  if (rubrics.length === 0) {
+    issues.push(makeIssue(READINESS_BLOCKER, 'rubrics', 'Rubrics have no criteria for grading.', 'grading usability'));
+    return;
+  }
+
+  const scoredRubrics = rubrics.filter(
+    (rubric) =>
+      !asArray(rubric?.tags).includes('rubric-handoff') &&
+      !/scored by answer key/i.test(String(rubric?.assessmentType || '')),
+  );
+  if (scoredRubrics.length === 0) return;
+
+  addBoilerplateWarning('rubrics', scoredRubrics, issues);
+
+  const thinCriteria = scoredRubrics.filter((rubric) => getCriteriaArray(rubric).length < 3).length;
+  addRatioWarning({
+    issues,
+    featureId: 'rubrics',
+    missing: thinCriteria,
+    total: scoredRubrics.length,
+    criterion: 'grading usability',
+    message: (missing, total) => `${missing}/${total} rubrics have fewer than 3 criteria.`,
+    threshold: 0.25,
+  });
+
+  const badWeights = scoredRubrics.filter((rubric) => {
+    const criteria = getCriteriaArray(rubric);
+    const total = getWeightTotal(criteria);
+    return total > 0 && (total < 95 || total > 105);
+  }).length;
+  if (badWeights > 0) {
+    issues.push(
+      makeIssue(
+        READINESS_WARNING,
+        'rubrics',
+        `${badWeights}/${scoredRubrics.length} rubrics have criterion weights that do not total about 100%.`,
+        'scoring consistency',
+      ),
+    );
+  }
+}
+
+function checkSyllabus(data, issues) {
+  if (!data || typeof data !== 'object') {
+    issues.push(makeIssue(READINESS_BLOCKER, 'syllabus', 'Syllabus has no generated content.', 'coverage'));
+    return;
+  }
+
+  const raw = itemText(data);
+  const missingSchedule = !/\b(week|lesson|module|schedule|calendar)\b/i.test(raw);
+  const missingPolicy = !/\b(policy|attendance|late|ai|accessibility|accommodation|integrity)\b/i.test(raw);
+  const missingGrading = !/\b(grade|grading|points|percent|rubric|assessment)\b/i.test(raw);
+
+  if (missingSchedule || missingPolicy || missingGrading) {
+    issues.push(
+      makeIssue(
+        READINESS_WARNING,
+        'syllabus',
+        'Syllabus needs schedule, grading, and policy language before it is classroom-ready.',
+        'student support',
+      ),
+    );
+  }
+}
+
+function runFeatureSpecificChecks(featureId, data, courseMap, lessonIndices, issues) {
+  if (PER_LESSON_FEATURES.has(featureId)) {
+    const items = checkPerLessonCoverage(featureId, getFeatureArray(featureId, data), courseMap, lessonIndices, issues);
+    if (items.length === 0) return;
+
+    if (featureId === 'lessonPlans') checkLessonPlans(items, issues);
+    if (featureId === 'slideDecks') checkSlideDecks(items, issues);
+    if (featureId === 'discussions') checkDiscussions(items, issues);
+    if (featureId === 'quizBank') checkQuizBank(items, issues);
+    if (featureId === 'studyGuides') checkStudyGuides(items, issues);
+    if (featureId === 'courseFaq') checkCourseFaq(items, issues);
+    return;
+  }
+
+  if (featureId === 'assignments') checkAssignments(data, issues);
+  if (featureId === 'rubrics') checkRubrics(data, issues);
+  if (featureId === 'syllabus') checkSyllabus(data, issues);
+}
+
+export function evaluateClassroomReadiness({
+  courseMap,
+  deliverables = {},
+  selectedFeatures = null,
+  lessonFilter = null,
+} = {}) {
+  const issues = [];
+  const featureIds = getSelectedFeatureIds(selectedFeatures, deliverables);
+  const lessonIndices = getLessonIndices(courseMap, lessonFilter);
+  const checkedFeatures = [];
+
+  if (Array.isArray(lessonFilter) && lessonIndices.length === 0) {
+    issues.push(
+      makeIssue(READINESS_BLOCKER, 'courseMap', 'Select at least one lesson before classroom handoff.', 'coverage'),
+    );
+  }
+
+  if (featureIds.includes('courseMap')) {
+    checkCourseMap(courseMap, lessonIndices, issues);
+    checkedFeatures.push({ featureId: 'courseMap', label: labelFor('courseMap') });
+  }
+
+  for (const featureId of featureIds) {
+    if (featureId === 'courseMap') continue;
+    const entry = deliverables?.[featureId];
+
+    if (!entry) {
+      issues.push(
+        makeIssue(READINESS_BLOCKER, featureId, `${labelFor(featureId)} has not been generated.`, 'coverage'),
+      );
+      continue;
+    }
+    if (entry.status === 'error') {
+      issues.push(makeIssue(READINESS_BLOCKER, featureId, `${labelFor(featureId)} failed to generate.`, 'coverage'));
+      continue;
+    }
+    if (entry.status !== 'done') {
+      issues.push(
+        makeIssue(
+          READINESS_BLOCKER,
+          featureId,
+          `${labelFor(featureId)} is still ${entry.status || 'pending'}.`,
+          'coverage',
+        ),
+      );
+      continue;
+    }
+    if (!entry.data) {
+      issues.push(makeIssue(READINESS_BLOCKER, featureId, `${labelFor(featureId)} has no generated data.`, 'coverage'));
+      continue;
+    }
+
+    checkedFeatures.push({ featureId, label: labelFor(featureId) });
+    if (isDeliverableNotApplicable(featureId, entry.data)) {
+      continue;
+    }
+    runFeatureSpecificChecks(featureId, entry.data, courseMap, lessonIndices, issues);
+  }
+
+  const normalizedIssues = normalizeReadinessIssues(issues);
+  const blockers = normalizedIssues.filter((issue) => issue.severity === READINESS_BLOCKER);
+  const warnings = normalizedIssues.filter((issue) => issue.severity === READINESS_WARNING);
+
+  return {
+    status: blockers.length > 0 ? 'blocked' : warnings.length > 0 ? 'warnings' : 'ready',
+    isBlocked: blockers.length > 0,
+    blockers,
+    warnings,
+    issues: normalizedIssues,
+    lessonCount: lessonIndices.length,
+    checkedFeatures,
+    checkedFeatureCount: checkedFeatures.length,
+    featureCount: featureIds.length,
+  };
+}
+
+export function buildPackageRepairQueue({
+  courseMap,
+  deliverables = {},
+  selectedFeatures = null,
+  readiness,
+  classroomReadiness,
+  healthReport,
+  maxActions = 6,
+} = {}) {
+  const candidates = new Map();
+  const packageIssues = [
+    ...(readiness?.blockers || []),
+    ...(readiness?.warnings || []),
+    ...(classroomReadiness?.blockers || []),
+    ...(classroomReadiness?.warnings || []),
+  ];
+
+  packageIssues.forEach((issue) => {
+    const lessonIndices = inferLessonIndicesFromText(courseMap, issue?.message);
+    let coveredByLessonRetry = false;
+    lessonIndices.forEach((lessonIndex) => {
+      const covered = addRetryCandidate(candidates, deliverables, courseMap, {
+        featureId: issue.featureId,
+        lessonIndex,
+        label: issue.label,
+        message: issue.message,
+        source: 'readiness',
+      });
+      coveredByLessonRetry = coveredByLessonRetry || covered;
+    });
+    if (!coveredByLessonRetry && !hasRetryCandidateForFeature(candidates, issue.featureId)) {
+      addFeatureRetryCandidate(candidates, deliverables, {
+        featureId: issue.featureId,
+        label: issue.label,
+        message: issue.message,
+        source: 'readiness',
+      });
+    }
+  });
+
+  asArray(healthReport?.findings).forEach((finding) => {
+    if (finding?.severity !== 'error') return;
+    const lessonIndices =
+      Number.isInteger(finding.lessonIndex) && finding.lessonIndex >= 0
+        ? [finding.lessonIndex]
+        : inferLessonIndicesFromText(courseMap, finding.message);
+    if (lessonIndices.length === 0 && AUTO_FIX_VALIDATION_CATEGORIES.has(finding.category)) {
+      addFeatureRetryCandidate(candidates, deliverables, {
+        featureId: finding.featureId,
+        message: finding.message,
+        source: 'validation',
+      });
+      return;
+    }
+    lessonIndices.forEach((lessonIndex) => {
+      addRetryCandidate(candidates, deliverables, courseMap, {
+        featureId: finding.featureId,
+        lessonIndex,
+        message: finding.message,
+        source: 'validation',
+      });
+    });
+  });
+
+  const limit = Math.max(1, Math.min(8, Number(maxActions) || 6));
+  const retryActions = [...candidates.values()].slice(0, limit);
+  const issueCount = (readiness?.issues?.length || 0) + (classroomReadiness?.issues?.length || 0);
+  const broadIssueCount = Math.max(0, issueCount - retryActions.length);
+  const issueFeatureIds = new Set(packageIssues.map((issue) => issue?.featureId).filter(Boolean));
+  const protectedFeatureIds = getSelectedFeatureIds(selectedFeatures, deliverables).filter((featureId) => {
+    if (featureId === 'courseMap' || issueFeatureIds.has(featureId)) return false;
+    return deliverables?.[featureId]?.status === 'done';
+  });
+
+  return {
+    actionCount: retryActions.length,
+    retryActionCount: retryActions.length,
+    broadIssueCount,
+    protectedFeatureIds,
+    nextTool: retryActions.length > 0 ? 'retry_package_weak_spots' : null,
+    nextAction:
+      retryActions.length > 0
+        ? `Regenerate ${retryActions.length} localized weak section${retryActions.length === 1 ? '' : 's'}, then finalize again.`
+        : broadIssueCount > 0
+          ? 'Resolve broad package issues with direct edits or instructor-facing assumptions, then finalize again.'
+          : (healthReport?.errorCount || 0) + (healthReport?.warningCount || 0) > 0
+            ? 'Fix validation findings, then finalize again.'
+            : 'No concrete auto-repair target remains.',
+    retryActions,
+  };
+}
+
+export function summarizeClassroomReadiness(classroomReadiness) {
+  if (!classroomReadiness) return 'Classroom readiness unavailable.';
+  if (classroomReadiness.blockers?.length > 0) return classroomReadiness.blockers[0].message;
+  if (classroomReadiness.warnings?.length > 0) return classroomReadiness.warnings[0].message;
+  return 'Materials are ready for classroom handoff.';
+}

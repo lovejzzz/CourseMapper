@@ -1,0 +1,424 @@
+{
+  "id": "ux-scion-v01647",
+  "discipline": "ux",
+  "level": "intro",
+  "conceptCount": 4,
+  "kernels": [
+    {
+      "id": "ux/service-blueprinting",
+      "rev": 1,
+      "term": "Service blueprinting",
+      "aliases": [
+        "service blueprint",
+        "frontstage and backstage map"
+      ],
+      "discipline": "ux",
+      "tags": [
+        "service design",
+        "systems",
+        "operations"
+      ],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "A service blueprint maps how a service works across user actions, visible interactions, backstage activities, and supporting operations.",
+        "anchor": {
+          "src": "digitalgov:journeys",
+          "loc": "Service blueprints — What",
+          "quote": "works across systems and operations"
+        },
+        "tier": 2,
+        "verifiedBy": 0
+      },
+      "facts": [
+        {
+          "text": "A service blueprint clarifies relationships among systems and processes and can expose improvement opportunities.",
+          "anchor": {
+            "src": "digitalgov:journeys",
+            "loc": "Service blueprints — Why",
+            "quote": "clarify relationships between systems and processes"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Unlike a journey map, a service blueprint includes operational layers beyond the user perspective.",
+          "anchor": {
+            "src": "digitalgov:journeys",
+            "loc": "Understand the differences",
+            "quote": "created from the perspective of the user"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "The diagram separates user steps, frontstage actions, backstage actions, and support processes.",
+          "anchor": {
+            "src": "digitalgov:journeys",
+            "loc": "Service blueprints — How",
+            "quote": "Create a diagram with four rows"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Blueprint evidence can come from desk research and interviews with users, staff, and stakeholders.",
+          "anchor": {
+            "src": "digitalgov:journeys",
+            "loc": "Service blueprints — How",
+            "quote": "desk research and user, staff, and stakeholder interviews"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students may redraw a customer journey and label it a service blueprint.",
+          "corrective": "Add the operational system: distinguish what users do and see from backstage work and support processes that enable the service.",
+          "anchor": null,
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "A benefits-application blueprint aligns the applicant form steps with call-center actions, eligibility systems, and document-review operations.",
+          "domain": "ux",
+          "anchor": null
+        }
+      ],
+      "workedExamples": [],
+      "mcBank": [],
+      "edges": {},
+      "variants": [],
+      "freshness": {
+        "sourceEdition": "accessed 2026-07-16",
+        "reviewBy": "2027-07-16",
+        "volatility": "low"
+      },
+      "license": "U.S. Government Work",
+      "attribution": [
+        "Digital.gov, U.S. General Services Administration"
+      ],
+      "standards": []
+    },
+    {
+      "id": "ux/user-scenarios",
+      "rev": 1,
+      "term": "User scenarios",
+      "aliases": [
+        "scenario-based design",
+        "persona scenario"
+      ],
+      "discipline": "ux",
+      "tags": [
+        "context",
+        "user goals",
+        "accessibility"
+      ],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "A user scenario is a narrative that situates a user type, motivation, context, goal, and tasks in a specific interaction.",
+        "anchor": {
+          "src": "digitalgov:user-interaction",
+          "loc": "User scenarios — What",
+          "quote": "tells a story about how users interact"
+        },
+        "tier": 2,
+        "verifiedBy": 0
+      },
+      "facts": [
+        {
+          "text": "Scenarios communicate a design idea through a specific interaction for a specific user.",
+          "anchor": {
+            "src": "digitalgov:user-interaction",
+            "loc": "User scenarios — Why",
+            "quote": "specific interaction for a specific user"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "A scenario should state who the user is, why and where they act, what goal they have, and how they pursue it.",
+          "anchor": {
+            "src": "digitalgov:user-interaction",
+            "loc": "User scenarios — How",
+            "quote": "Who they are"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Scenario work can reveal how needs vary with context and across diverse users.",
+          "anchor": {
+            "src": "digitalgov:user-interaction",
+            "loc": "User scenarios — Why",
+            "quote": "needs might vary depending on their context"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Teams should validate and refine scenarios with the represented user group and collaborators.",
+          "anchor": {
+            "src": "digitalgov:user-interaction",
+            "loc": "User scenarios — How",
+            "quote": "validation, feedback, and refinement"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students may write a feature walkthrough with no user motivation or environmental context.",
+          "corrective": "Anchor the narrative in a user type, motivation, setting, goal, and realistic tasks; otherwise it is a product script rather than a user scenario.",
+          "anchor": null,
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "A commuter with limited connectivity must upload an eligibility document before a deadline while using a phone on a moving bus.",
+          "domain": "ux",
+          "anchor": null
+        }
+      ],
+      "workedExamples": [],
+      "mcBank": [],
+      "edges": {},
+      "variants": [],
+      "freshness": {
+        "sourceEdition": "accessed 2026-07-16",
+        "reviewBy": "2027-07-16",
+        "volatility": "low"
+      },
+      "license": "U.S. Government Work",
+      "attribution": [
+        "Digital.gov, U.S. General Services Administration"
+      ],
+      "standards": []
+    },
+    {
+      "id": "ux/usability-testing",
+      "rev": 1,
+      "term": "Usability testing",
+      "aliases": [
+        "usability test",
+        "think-aloud test"
+      ],
+      "discipline": "ux",
+      "tags": [
+        "evaluation",
+        "observation",
+        "research"
+      ],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "A usability test observes representative users attempting realistic tasks with a product or service, often while thinking aloud.",
+        "anchor": {
+          "src": "digitalgov:usability-testing",
+          "loc": "What",
+          "quote": "observes users as they attempt to use"
+        },
+        "tier": 2,
+        "verifiedBy": 0
+      },
+      "facts": [
+        {
+          "text": "A usability test can examine a sketch, prototype, competitor product, or other artifact relevant to a user goal.",
+          "anchor": {
+            "src": "digitalgov:usability-testing",
+            "loc": "How to do it",
+            "quote": "Choose what you will test"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "The plan should align the team on scenarios, participants, recruitment, moderation, and observation roles.",
+          "anchor": {
+            "src": "digitalgov:usability-testing",
+            "loc": "How to do it",
+            "quote": "Plan the test"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "A test script gives the session a repeatable structure without turning the moderator into a teacher.",
+          "anchor": {
+            "src": "digitalgov:usability-testing",
+            "loc": "How to do it",
+            "quote": "Prepare a usability test script"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Recruitment should identify appropriate users and obtain their consent before the session.",
+          "anchor": {
+            "src": "digitalgov:usability-testing",
+            "loc": "How to do it",
+            "quote": "Recruit users and get their consent"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students may treat a usability test as a demonstration in which the moderator explains the correct path.",
+          "corrective": "Observe participants attempting realistic tasks with minimal coaching so the evidence reflects the design rather than the moderator instruction.",
+          "anchor": null,
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "A moderator asks participants to find and submit a form, watches where they hesitate, and records task success without showing the route.",
+          "domain": "ux",
+          "anchor": null
+        }
+      ],
+      "workedExamples": [],
+      "mcBank": [],
+      "edges": {},
+      "variants": [],
+      "freshness": {
+        "sourceEdition": "accessed 2026-07-16",
+        "reviewBy": "2027-07-16",
+        "volatility": "low"
+      },
+      "license": "U.S. Government Work",
+      "attribution": [
+        "Digital.gov, U.S. General Services Administration"
+      ],
+      "standards": []
+    },
+    {
+      "id": "ux/process-and-progress-indicators",
+      "rev": 1,
+      "term": "Process and progress indicators",
+      "aliases": [
+        "step indicator",
+        "process list",
+        "progress steps"
+      ],
+      "discipline": "ux",
+      "tags": [
+        "status",
+        "workflow",
+        "accessibility"
+      ],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "Process lists explain sequential instructions, while step indicators show a user’s current position in a linear multi-page flow.",
+        "anchor": {
+          "src": "uswds:step-indicator",
+          "loc": "Overview",
+          "quote": "updates users on their progress"
+        },
+        "tier": 2,
+        "verifiedBy": 0
+      },
+      "facts": [
+        {
+          "text": "A step indicator suits a linear process with at least three high-level steps across multiple screens.",
+          "anchor": {
+            "src": "uswds:step-indicator",
+            "loc": "When to use",
+            "quote": "three or more high-level steps"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "The indicator complements back and next controls; it is not navigation by itself.",
+          "anchor": {
+            "src": "uswds:step-indicator",
+            "loc": "When to use",
+            "quote": "not to be navigation of its own"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Completion and current-step meaning must not rely on color alone.",
+          "anchor": {
+            "src": "uswds:step-indicator",
+            "loc": "Accessibility guidance",
+            "quote": "make the completion status of each step explicit"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "The current labeled step should be exposed programmatically with aria-current.",
+          "anchor": {
+            "src": "uswds:step-indicator",
+            "loc": "Accessibility guidance",
+            "quote": "use aria-current=\"true\""
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students may use one indeterminate bar for every state and assume color alone explains what is happening.",
+          "corrective": "Expose named stages, distinguish complete, current, and pending states in text and semantics, and reserve a step indicator for a genuinely linear flow.",
+          "anchor": null,
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "A course build names Map, Enrich, Compile, Verify, and Grade, announces the current stage, and marks completed stages independently of color.",
+          "domain": "ux",
+          "anchor": null
+        }
+      ],
+      "workedExamples": [],
+      "mcBank": [],
+      "edges": {},
+      "variants": [],
+      "freshness": {
+        "sourceEdition": "accessed 2026-07-16",
+        "reviewBy": "2027-07-16",
+        "volatility": "low"
+      },
+      "license": "U.S. Government Work",
+      "attribution": [
+        "U.S. Web Design System, U.S. General Services Administration"
+      ],
+      "standards": []
+    }
+  ],
+  "index": {
+    "postings": {}
+  }
+}

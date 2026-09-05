@@ -1,0 +1,514 @@
+import { finishStatusOf } from './pipelineMachine';
+import {
+  countAdvisoryQualityFindings,
+  countBlockingQualityFindings,
+  isBlockingQualityFinding,
+} from './qualityFindingPolicy';
+import { countSourceAdvisoryFindings, countSourceQualityAdvisoryFindings } from './quality/sourceEvidence';
+
+// One migration boundary for both receipt production and Export consumption.
+// A one-sided revision bump would otherwise classify every fresh receipt as
+// stale or let obsolete packages bypass the current deterministic finalizer.
+export const CURRENT_FINALIZER_REVISION = 6;
+const MAX_PACKAGE_RECEIPT_ARRAY_LENGTH = 10_000;
+
+function stablePackageReceiptValueKey(value, ancestors) {
+  if (value === null) return 'L';
+  if (value === undefined) return 'U';
+  if (typeof value === 'number') return `N:${Object.is(value, -0) ? '-0' : value}`;
+  if (value instanceof Date) {
+    if (Object.getPrototypeOf(value) !== Date.prototype || Reflect.ownKeys(value).length > 0) {
+      throw new TypeError('Package receipts must contain only plain dates.');
+    }
+    if (!Number.isFinite(value.getTime())) throw new TypeError('Package receipts must contain valid dates.');
+    return `D:${value.toJSON()}`;
+  }
+  if (typeof value === 'string' || typeof value === 'boolean') return `${typeof value}:${JSON.stringify(value)}`;
+  if (typeof value !== 'object') throw new TypeError('Package receipts must contain serializable values.');
+  if (ancestors.has(value)) throw new TypeError('Package receipts must not contain circular references.');
+  ancestors.add(value);
+  try {
+    if (Array.isArray(value)) {
+      const lengthDescriptor = Object.getOwnPropertyDescriptor(value, 'length');
+      const length = lengthDescriptor?.value;
+      if (!Number.isSafeInteger(length) || length < 0 || length > MAX_PACKAGE_RECEIPT_ARRAY_LENGTH) {
+        throw new TypeError('Package receipt arrays exceed the supported length.');
+      }
+      const itemKeys = Reflect.ownKeys(value).filter((key) => key !== 'length');
+      if (itemKeys.length !== length) {
+        throw new TypeError('Package receipt arrays must be dense and contain no custom properties.');
+      }
+      const itemKeysAreCanonical = itemKeys.every(
+        (key) => typeof key === 'string' && /^(0|[1-9]\d*)$/.test(key) && Number(key) < length,
+      );
+      if (!itemKeysAreCanonical) {
+        throw new TypeError('Package receipt arrays must contain only canonical indices.');
+      }
+      const itemValues = Array.from({ length }, (_, index) => {
+        const descriptor = Object.getOwnPropertyDescriptor(value, String(index));
+        if (!descriptor || !descriptor.enumerable || !Object.prototype.hasOwnProperty.call(descriptor, 'value')) {
+          throw new TypeError('Package receipt arrays must contain only enumerable data properties.');
+        }
+        return descriptor.value;
+      });
+      return `A:[${itemValues.map((item) => stablePackageReceiptValueKey(item, ancestors)).join(',')}]`;
+    }
+    const prototype = Object.getPrototypeOf(value);
+    if (prototype !== Object.prototype && prototype !== null) {
+      throw new TypeError('Package receipts must contain only plain records.');
+    }
+    const keys = Reflect.ownKeys(value);
+    if (keys.some((key) => typeof key !== 'string')) throw new TypeError('Package receipts must not contain symbols.');
+    const entries = keys.map((key) => {
+      const descriptor = Object.getOwnPropertyDescriptor(value, key);
+      if (!descriptor?.enumerable || !Object.prototype.hasOwnProperty.call(descriptor, 'value')) {
+        throw new TypeError('Package receipt records must contain only enumerable data properties.');
+      }
+      return [key, descriptor.value];
+    });
+    return `O:{${entries
+      .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
+      .map(([key, item]) => `${JSON.stringify(key)}:${stablePackageReceiptValueKey(item, ancestors)}`)
+      .join(',')}}`;
+  } finally {
+    ancestors.delete(value);
+  }
+}
+
+export function admitPackageReceipt(receipt) {
+  if (receipt === null || receipt === undefined) return { valid: true, key: '', receipt: null };
+  if (typeof receipt !== 'object') return { valid: false, key: null, receipt: null };
+  try {
+    // Validate descriptors before cloning so accessors fail without execution.
+    // Re-keying the clone makes cloneability and authorization one boundary;
+    // transparent Proxies and clone-normalization drift cannot pass one surface
+    // while failing another.
+    const key = stablePackageReceiptValueKey(receipt, new WeakSet());
+    const clonedReceipt = structuredClone(receipt);
+    const clonedKey = stablePackageReceiptValueKey(clonedReceipt, new WeakSet());
+    if (clonedKey !== key) return { valid: false, key: null, receipt: null };
+    return { valid: true, key, receipt: clonedReceipt };
+  } catch {
+    return { valid: false, key: null, receipt: null };
+  }
+}
+
+// '' means no receipt; null means a present but invalid receipt. Consumers
+// must tombstone null so unsupported structures can never authorize bytes.
+export function packageReceiptKey(receipt) {
+  return admitPackageReceipt(receipt).key;
+}
+
+function compactCount(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? Math.max(0, number) : 0;
+}
+
+function plural(count, singular, pluralValue = `${singular}s`) {
+  return `${count} ${count === 1 ? singular : pluralValue}`;
+}
+
+export function countQualityFindings(quality) {
+  const counts = quality?.findingCounts || {};
+  const summaryCount = compactCount(counts.p0) + compactCount(counts.p1) + compactCount(counts.p2);
+  const detailCount = Array.isArray(quality?.findings) ? quality.findings.length : 0;
+  return Math.max(
+    summaryCount,
+    detailCount,
+    Number.isFinite(quality?.findingCount) ? compactCount(quality.findingCount) : 0,
+  );
+}
+
+export function buildQualityReviewIssue(quality) {
+  return buildQualityReviewIssues(quality)[0] || null;
+}
+
+function findingLabel(finding = {}) {
+  const dimension = String(finding?.dimension || '')
+    .replace(/[-_]+/g, ' ')
+    .trim();
+  if (!dimension) return 'Package note';
+  return `${dimension.charAt(0).toUpperCase()}${dimension.slice(1)}`;
+}
+
+function findingMessage(finding = {}) {
+  return String(finding?.detail || finding?.message || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function qualityFindingRank(quality, finding) {
+  if (isBlockingQualityFinding(quality, finding)) return 0;
+  if (finding?.severity === 'P0') return 1;
+  if (finding?.severity === 'P1') return 2;
+  if (finding?.severity === 'P2') return 3;
+  return 4;
+}
+
+/**
+ * Preserve the grader's actionable findings in the Agent instead of replacing
+ * them with a generic "review generated content" sentence. The compact quality
+ * badge still reports one aggregate count; this list owns the exact human task.
+ */
+export function buildQualityReviewIssues(quality) {
+  if (quality?.status !== 'graded') return [];
+  const counts = quality.findingCounts || {};
+  const p0 = compactCount(counts.p0);
+  const findingCount = countQualityFindings(quality);
+  // Aggregate score thresholds are not trust policy. Only explicit findings,
+  // export failures, and other named gates can require review. Unobserved
+  // deterministic score potential remains visible in the quality report, but
+  // it is not itself an actionable package finding.
+  if (findingCount === 0) return [];
+
+  const findings = (Array.isArray(quality?.findings) ? quality.findings : [])
+    .filter((finding) => findingMessage(finding))
+    .map((finding, index) => ({ finding, index }))
+    .sort(
+      (left, right) =>
+        qualityFindingRank(quality, left.finding) - qualityFindingRank(quality, right.finding) ||
+        left.index - right.index,
+    )
+    .map(({ finding }) => finding)
+    .slice(0, 5);
+  if (findings.length > 0) {
+    return findings.map((finding, index) => ({
+      label: findingLabel(finding),
+      message: findingMessage(finding),
+      detail: [finding?.file, finding?.evidence].filter(Boolean).join(' · '),
+      count: index === 0 ? Math.max(1, findingCount) : 1,
+      severity: isBlockingQualityFinding(quality, finding) ? 'blocker' : 'warning',
+    }));
+  }
+
+  return [
+    {
+      label: 'Package notes',
+      message:
+        p0 > 0
+          ? 'One content issue needs a fix before this package is ready to share.'
+          : `${findingCount} package quality finding${findingCount === 1 ? '' : 's'} need review; open the quality report for details and next actions.`,
+      count: Math.max(1, findingCount),
+      severity: p0 > 0 ? 'blocker' : 'warning',
+    },
+  ];
+}
+
+export function buildExportWarningIssues(packageReceipt, featureLabels = {}) {
+  if (packageReceipt?.exportWarning) {
+    return [
+      {
+        label: 'Export check',
+        message: 'One exported file needs a quick visual scan before publishing.',
+        detail: packageReceipt.exportWarning,
+        count: 1,
+        severity: 'warning',
+      },
+    ];
+  }
+  const warnings = Array.isArray(packageReceipt?.exportWarnings) ? packageReceipt.exportWarnings : [];
+  if (warnings.length > 0) {
+    return warnings.slice(0, 3).map((warning) => ({
+      label: warning.label || featureLabels[warning.featureId] || 'Export check',
+      message: 'One exported file needs a quick visual scan before publishing.',
+      detail: warning.message || '',
+      count: 1,
+      severity: 'warning',
+    }));
+  }
+  const warningCount = compactCount(packageReceipt?.exportWarningCount);
+  if (warningCount <= 0) return [];
+  return [
+    {
+      label: 'Export check',
+      message: `${plural(warningCount, 'export note')} saved for review before publishing.`,
+      count: warningCount,
+      severity: 'warning',
+    },
+  ];
+}
+
+export function buildExportFailureIssue(packageReceipt, featureLabels = {}) {
+  const failedCount = compactCount(packageReceipt?.exportFailed);
+  const exportStatus = String(packageReceipt?.exportStatus || '').toLowerCase();
+  if (failedCount <= 0 && exportStatus !== 'failed') return null;
+  const failures = Array.isArray(packageReceipt?.exportFailures) ? packageReceipt.exportFailures : [];
+  const firstFailure = failures.find((failure) => failure?.message || failure?.featureId) || null;
+  return {
+    label: firstFailure?.label || featureLabels[firstFailure?.featureId] || 'Export check',
+    message: `${plural(Math.max(1, failedCount), 'export issue')} must be fixed before the ZIP is available.`,
+    detail: firstFailure?.message || packageReceipt?.exportFailure || '',
+    count: Math.max(1, failedCount),
+    severity: 'blocker',
+  };
+}
+
+function sourceFindingIssues(sourceEvidence) {
+  const findings = Array.isArray(sourceEvidence?.findings) ? sourceEvidence.findings : [];
+  return findings
+    .filter((finding) => findingMessage(finding))
+    .map((finding, index) => ({ finding, index }))
+    .sort(
+      (left, right) =>
+        (left.finding?.severity === 'P0' ? 0 : left.finding?.severity === 'P1' ? 1 : 2) -
+          (right.finding?.severity === 'P0' ? 0 : right.finding?.severity === 'P1' ? 1 : 2) || left.index - right.index,
+    )
+    .map(({ finding }) => finding)
+    .slice(0, 5)
+    .map((finding) => ({
+      label: findingLabel(finding),
+      message: findingMessage(finding),
+      detail: [finding?.file, finding?.evidence].filter(Boolean).join(' · '),
+      count: 1,
+      severity: finding?.severity === 'P0' ? 'blocker' : 'warning',
+      domain: 'source',
+    }));
+}
+
+function buildSourceLedgerIssues(packageReceipt, sourceEvidence = null) {
+  const evidenceIssues = sourceFindingIssues(sourceEvidence);
+  const issues = [...evidenceIssues];
+  const reviewRequiredCount = compactCount(sourceEvidence?.reviewRequiredCount);
+  if (reviewRequiredCount > 0) {
+    issues.push({
+      label: 'Source review',
+      message: `${plural(reviewRequiredCount, 'source row')} saved for instructor confirmation.`,
+      detail: sourceEvidence?.reportPath || '',
+      count: reviewRequiredCount,
+      severity: 'warning',
+      domain: 'source',
+    });
+  }
+  const missingRefCount = compactCount(sourceEvidence?.refCoverage?.missing);
+  if (missingRefCount > 0) {
+    issues.push({
+      label: 'Source coverage',
+      message: `${plural(missingRefCount, 'content item')} still needs a source reference.`,
+      count: missingRefCount,
+      severity: 'warning',
+      domain: 'source',
+    });
+  }
+  const danglingRefCount = compactCount(sourceEvidence?.refCoverage?.danglingRefs);
+  if (danglingRefCount > 0) {
+    issues.push({
+      label: 'Source coverage',
+      message: `${plural(danglingRefCount, 'source reference')} does not resolve to the source ledger.`,
+      count: danglingRefCount,
+      severity: 'warning',
+      domain: 'source',
+    });
+  }
+  if (issues.length > 0) return dedupeReviewIssues(issues);
+
+  // Legacy receipts used several experimental names. Keep reading them for
+  // saved courses, but new finishes use packageQuality.sourceEvidence.
+  const fields = [
+    ['sourceLedgerWarningCount', 'Source ledger'],
+    ['sourceWarningCount', 'Source ledger'],
+    ['genomeWarningCount', 'Genome bridge'],
+    ['sourceGenomeCaveatCount', 'Source/genome bridge'],
+    ['digestCaveatCount', 'Digest caveat'],
+  ];
+  fields.forEach(([key, label]) => {
+    const count = compactCount(packageReceipt?.[key]);
+    if (count > 0) {
+      issues.push({
+        label,
+        message: `${plural(count, 'source note')} saved for instructor confirmation.`,
+        count,
+        severity: 'warning',
+      });
+    }
+  });
+  const caveats = Array.isArray(packageReceipt?.digestCaveats) ? packageReceipt.digestCaveats : [];
+  caveats.slice(0, 3).forEach((caveat) => {
+    const label = caveat?.label || caveat?.type || 'Digest caveat';
+    const message = caveat?.message || caveat?.detail || '';
+    issues.push({
+      label,
+      message: 'A package note was saved for instructor confirmation.',
+      detail: message,
+      count: 1,
+      severity: 'warning',
+    });
+  });
+  return issues;
+}
+
+function buildReceiptReadinessIssues(packageReceipt) {
+  const issues = packageReceipt?.packageReadinessReceipt?.readiness?.issues;
+  if (!Array.isArray(issues)) return [];
+  return issues
+    .filter((issue) => issue?.source !== 'qualityGate' && findingMessage(issue))
+    .slice(0, 5)
+    .map((issue) => ({
+      label: issue.label || findingLabel(issue),
+      message: findingMessage(issue),
+      detail: [issue.featureId, issue.target?.type].filter(Boolean).join(' · '),
+      count: 1,
+      severity: issue.severity === 'blocker' || issue.severity === 'error' ? 'blocker' : 'warning',
+      domain: 'readiness',
+    }));
+}
+
+function dedupeReviewIssues(issues) {
+  const seen = new Set();
+  return issues.filter((issue) => {
+    if (!issue) return false;
+    const key = [issue.severity, issue.message, issue.detail].join('\u0000');
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function canonicalWarningCount(warningDomains) {
+  if (compactCount(warningDomains?.schemaVersion) !== 1) return null;
+  return ['readiness', 'retry', 'export', 'quality', 'source'].reduce(
+    (total, domain) => total + compactCount(warningDomains?.[domain]),
+    0,
+  );
+}
+
+function canonicalBlockerCount(blockerDomains) {
+  if (compactCount(blockerDomains?.schemaVersion) !== 1) return null;
+  return ['readiness', 'quality', 'export'].reduce(
+    (total, domain) => total + compactCount(blockerDomains?.[domain]),
+    0,
+  );
+}
+
+export function summarizePackageReviewMeta({ qualityIssue = null, exportIssues = [], sourceIssues = [] } = {}) {
+  const parts = [];
+  if (qualityIssue) parts.push(plural(qualityIssue.count, 'content note'));
+  if (exportIssues.length > 0) parts.push(plural(exportIssues.length, 'export note'));
+  if (sourceIssues.length > 0) parts.push(plural(sourceIssues.length, 'source note'));
+  return parts.join(' · ');
+}
+
+function buildQualityProofIssue(packageQuality, finishStatus) {
+  if (finishStatus !== 'ready') return null;
+  if (packageQuality?.status === 'graded') return null;
+  return {
+    label: 'Package check',
+    message: 'A final quality check is still pending; review the package before publishing.',
+    count: 1,
+    severity: 'warning',
+  };
+}
+
+export function getPackageTrustStatus({
+  packageQualityPass = null,
+  quality = null,
+  receipt = null,
+  readiness = null,
+  featureLabels = {},
+} = {}) {
+  const finishStatus = finishStatusOf(packageQualityPass);
+  const packageReceiptSource = receipt ?? packageQualityPass?.receipt ?? null;
+  const packageReceiptAdmission = admitPackageReceipt(packageReceiptSource);
+  const packageReceipt = packageReceiptAdmission.valid ? packageReceiptAdmission.receipt : null;
+  const invalidReceiptIssue =
+    packageReceiptSource !== null && packageReceiptSource !== undefined && !packageReceiptAdmission.valid
+      ? {
+          label: 'Package receipt',
+          message: 'The package verification receipt is invalid. Prepare the package again before downloading.',
+          count: 1,
+          severity: 'blocker',
+        }
+      : null;
+  const packageQuality = quality || packageQualityPass?.quality || null;
+  const sourceEvidence = packageQualityPass?.sourceEvidence || packageQuality?.sourceEvidence || null;
+  const qualityIssues = buildQualityReviewIssues(packageQuality);
+  const receiptReadinessIssues = buildReceiptReadinessIssues(packageReceipt);
+  const exportFailureIssue = buildExportFailureIssue(packageReceipt, featureLabels);
+  const exportIssues = buildExportWarningIssues(packageReceipt, featureLabels);
+  const sourceIssues = buildSourceLedgerIssues(packageReceipt, sourceEvidence);
+  const sourceIssueMessages = new Set(sourceIssues.map((issue) => issue.message));
+  const qualityIssue =
+    qualityIssues.find((issue) => !sourceIssueMessages.has(issue.message)) ||
+    (sourceIssues.length === 0 ? qualityIssues[0] || null : null);
+  const qualityProofIssue = qualityIssue ? null : buildQualityProofIssue(packageQuality, finishStatus);
+  const readinessBlockers = Array.isArray(readiness?.blockers) ? readiness.blockers : [];
+  const readinessWarnings = Array.isArray(readiness?.warnings) ? readiness.warnings : [];
+  const packageBlockerCount = compactCount(packageQualityPass?.blockers);
+  const packageWarningCount = compactCount(packageQualityPass?.warnings);
+  const exportFailedCount = exportFailureIssue ? exportFailureIssue.count : compactCount(packageReceipt?.exportFailed);
+  const qualityBlockerCount = countBlockingQualityFindings(packageQuality);
+  const unavailableQualityProofCount = packageQuality && packageQuality.status !== 'graded' ? 1 : 0;
+  const qualityWarningCount = qualityProofIssue
+    ? 1
+    : qualityIssues.some((issue) => issue.severity !== 'blocker')
+      ? Math.max(1, countAdvisoryQualityFindings(packageQuality))
+      : 0;
+  const warningDomainCount = canonicalWarningCount(packageQualityPass?.warningDomains);
+  const blockerDomainCount = canonicalBlockerCount(packageQualityPass?.blockerDomains);
+  // Legacy AppFlow scalars already included readiness plus export failures.
+  // Treat that scalar as an inclusive floor, while still reconstructing the
+  // independent content and export domains when a restored record omitted it.
+  // New records use the versioned, non-overlapping blockerDomains ledger.
+  const inferredLegacyBlockerCount =
+    Math.max(readinessBlockers.length, qualityBlockerCount + unavailableQualityProofCount) + exportFailedCount;
+  const baseBlockerCount =
+    blockerDomainCount === null ? Math.max(packageBlockerCount, inferredLegacyBlockerCount) : blockerDomainCount;
+  const blockerCount = baseBlockerCount + (invalidReceiptIssue ? 1 : 0);
+  const operationalWarningCount = Math.max(
+    packageWarningCount,
+    readinessWarnings.length + exportIssues.reduce((total, issue) => total + compactCount(issue?.count || 1), 0),
+  );
+  const sourceQualityWarningCount = countSourceQualityAdvisoryFindings(sourceEvidence);
+  const sourceWarningCount = sourceEvidence
+    ? countSourceAdvisoryFindings(sourceEvidence)
+    : sourceIssues.reduce((total, issue) => total + compactCount(issue?.count || 1), 0);
+  const legacyWarningCount =
+    operationalWarningCount + Math.max(0, qualityWarningCount - sourceQualityWarningCount) + sourceWarningCount;
+  const warningCount = warningDomainCount === null ? legacyWarningCount : warningDomainCount;
+  const hasNotGradedQuality = Boolean(qualityProofIssue || (packageQuality && packageQuality.status !== 'graded'));
+  const isRunning = finishStatus === 'running';
+  const isGenerationRunning = isRunning && packageQualityPass?.phase === 'generation';
+  const canDownload = finishStatus === 'ready' && blockerCount === 0;
+
+  let state = finishStatus || 'idle';
+  if (isGenerationRunning) state = 'building';
+  else if (isRunning) state = 'running';
+  else if (blockerCount > 0 || finishStatus === 'blocked') state = 'blocked';
+  else if (hasNotGradedQuality && finishStatus === 'ready') state = 'not-graded';
+  else if (warningCount > 0) state = 'review';
+  else if (finishStatus === 'ready') state = 'clean';
+  else if (!finishStatus || finishStatus === 'idle') state = 'idle';
+
+  const clean = state === 'clean';
+  const review = state === 'review' || state === 'not-graded';
+  const blocked = state === 'blocked';
+
+  return {
+    state,
+    finishStatus,
+    clean,
+    review,
+    blocked,
+    canDownload,
+    qualityIssue,
+    qualityProofIssue,
+    exportFailureIssue,
+    exportIssues,
+    sourceIssues,
+    reviewIssues: dedupeReviewIssues([
+      invalidReceiptIssue,
+      ...receiptReadinessIssues,
+      ...(qualityIssues.length > 0 ? qualityIssues : qualityProofIssue ? [qualityProofIssue] : []),
+      exportFailureIssue,
+      ...exportIssues,
+      ...sourceIssues,
+    ]),
+    blockerCount,
+    warningCount,
+    reviewMeta: summarizePackageReviewMeta({
+      qualityIssue: qualityIssue || qualityProofIssue,
+      exportIssues,
+      sourceIssues,
+    }),
+    toneKey: clean ? 'excellent' : blocked ? 'blocked' : review ? 'assumptions' : 'neutral',
+  };
+}

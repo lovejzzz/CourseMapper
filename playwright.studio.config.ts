@@ -12,7 +12,7 @@ export default defineConfig({
     screenshot: 'only-on-failure',
   },
   webServer: {
-    command: 'npm run dev -- --host 127.0.0.1 --port 5194 --strictPort',
+    command: 'npm run studio:dev -- --host 127.0.0.1 --port 5194 --strictPort',
     url: 'http://127.0.0.1:5194',
     reuseExistingServer: false,
   },

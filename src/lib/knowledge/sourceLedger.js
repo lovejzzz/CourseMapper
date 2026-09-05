@@ -1,0 +1,2188 @@
+import { isMusicIntervalWeakSource } from './musicSourceRelevance.js';
+import { sha256HexSync } from '../sha256Sync.js';
+import { isLessonResearchSurfaceBound } from '../lessonSemanticRelevance.js';
+import { instructionalInstanceReceiptMatches } from '../instructionalInstanceContract.js';
+
+const TRUSTED_PROVIDERS = new Set([
+  'courseir',
+  'genome',
+  'genome-prerequisite',
+  'openalex',
+  'openlibrary',
+  'openstax',
+  'open-music-theory',
+  'gutenberg',
+  'eric',
+  'instructor',
+  'instructor-provided',
+  'source-finder',
+  'w3c',
+  'w3c-wai',
+  'wals',
+  'mit-ocw',
+]);
+
+const ACADEMIC_PROVIDERS = new Set(['openalex', 'eric', 'crossref', 'doaj', 'europe-pmc']);
+const OER_PROVIDERS = new Set([
+  'openstax',
+  'open-music-theory',
+  'gutenberg',
+  'genome',
+  'genome-prerequisite',
+  'w3c',
+  'w3c-wai',
+  'wals',
+  'mit-ocw',
+]);
+const METADATA_ONLY_PROVIDERS = new Set(['openlibrary']);
+const LICENSED_BACKGROUND_PROVIDERS = new Set(['wikipedia']);
+const REVIEW_ONLY_PROVIDERS = new Set(['courseir', 'instructor', 'instructor-provided', 'openlibrary']);
+const TRUST_ELIGIBLE_PROVIDERS = new Set([
+  ...TRUSTED_PROVIDERS,
+  ...ACADEMIC_PROVIDERS,
+  ...OER_PROVIDERS,
+  ...LICENSED_BACKGROUND_PROVIDERS,
+]);
+const GENERIC_RESOURCE_PROVIDERS = new Set(['', 'course-resource', 'course-map', 'resource', 'syllabus']);
+const AMBIGUOUS_LICENSE_RE =
+  /^(?:|unknown|open access|open license|other[-\s]?oa|(?:[\w.-]+\s+)*public metadata|instructor review required|review required|varies|mixed|metadata only|in copyright|all rights reserved)$/i;
+const RESTRICTED_RIGHTS_STATEMENT_RE = /rightsstatements\.org\/vocab\/inc(?:[-/]|$)/i;
+const PUBLISHER_POLICY_LICENSE_RE =
+  /(?:\/tdm(?:[_/-]|$)|\btdm(?:[_-]?license)?\b|text[-\s]?and[-\s]?data[-\s]?mining|policy-029|springernature\.com\/gp\/researchers\/text-and-data-mining|elsevier\.com\/tdm|sagepub\.com\/page\/policies\/text-and-data-mining-license|doi\.wiley\.com\/10\.1002\/tdm_license|cambridge\.org\/core\/terms|onlinelibrary\.wiley\.com\/termsandconditions)/i;
+const NO_DERIVATIVES_LICENSE_RE =
+  /(?:\bCC[-_\s]+BY(?:[-_\s]+(?:NC|SA|ND))*[-_\s]+ND(?:[-_\s]+(?:NC|SA|ND))*\b|creativecommons\.org\/licenses\/by(?:-[a-z]+)*-nd(?:\/|$))/i;
+const SOURCE_SIGNAL_RE =
+  /\b(?:openstax|openalex|open library|openlibrary|eric|doi|creative commons|cc\s+by|open access|textbook|chapter|article|journal|book|reader|press|publication|volume|vol\.|edition|ed\.|et al\.?|isbn|issn)\b|https?:\/\//i;
+const NON_SOURCE_RESOURCE_RE =
+  /^(?:course\s*map|syllabus|lesson\s*plans?|slide\s*decks?|assignment\s*briefs?|rubrics?|discussion\s*prompts?|quiz\s*(?:and|&)\s*exam\s*bank|study\s*guides?|course\s*faq)$/i;
+const PLACEHOLDER_RESOURCE_RE =
+  /\b(?:course materials students need|worked examples,\s*readings,\s*or activity sheets|instructor-approved readings,\s*examples,\s*or lab materials|assigned materials|class notes and assigned materials|lms access|shared files|discipline-specific tools|required for this lesson|document,\s*slide,\s*lab,\s*or analysis tool|local examples need instructor confirmation|local source list pending)\b/i;
+const USER_EXPERIENCE_COURSE_RE =
+  /\b(?:user\s+experience|ux\b|human[-\s]?centered\s+design|interaction\s+design|interface\s+design|usability|design\s+studio)\b/i;
+const WORLD_LITERATURE_COURSE_RE =
+  /\b(?:world\s+literature|comparative\s+literature|literary\s+studies|literature\s+seminar)\b/i;
+const WORLD_LITERATURE_SOURCE_ANCHOR_RE =
+  /\b(?:literature|literatures|literary|poetry|poems?|epics?|drama(?:tic)?|novels?|fiction|narrative|story|stories|authors?|writers?|genre|close\s+reading|interpret(?:ation|ive)|comparative\s+literature)\b/i;
+const BUSINESS_ETHICS_COURSE_RE = /\b(?:business\s+ethics|corporate\s+ethics)\b/i;
+const BUSINESS_ETHICS_SOURCE_ANCHOR_RE =
+  /\b(?:business|corporat(?:e|ion)|ethic(?:al|s)?|moral(?:ity)?|utilitarian(?:ism)?|deontolog(?:y|ical)|virtue\s+ethics|stakeholders?|whistleblow(?:ing|er)|conflicts?\s+of\s+interest|employment|workplace|labor|civil\s+rights|discrimination|harassment|consumer\s+protection|consumer\s+rights|product\s+safety|dodd[–—-]frank|financial\s+reform|fiduciary|governance|compliance|sustainab(?:ility|le)|environmental\s+responsibility|marketing\s+ethics|advertising\s+ethics)\b/i;
+const FILM_COURSE_RE = /\b(?:film|cinema|cinematic|motion pictures?|screen studies|filmmaking)\b/i;
+const FILM_EDITING_TOPIC_RE =
+  /\b(?:editing|montage|cutting|continuity|match cuts?|cross[-\s]?cutting|rhythm and meter)\b/i;
+const FILM_SOURCE_ANCHOR_RE =
+  /\b(?:film|films|cinema|cinematic|motion pictures?|screen|filmmaking|director|directing|shot|shots|editing|editor|montage|mise[-\s]en[-\s]sc[eè]ne|cinematograph|camera|soundtrack)\b/i;
+const FILM_EDITING_METRE_FALSE_FRIEND_RE =
+  /\b(?:Metre \((?:music|poetry)\)|tala|taal|prosody|triple metre|additive rhythm|divisive rhythm|hypermetre|regular recurring pattern of strong and weak beats)\b/i;
+const VISUAL_ANALYSIS_COURSE_RE =
+  /\b(?:art history|composition|color theory|colour theory|graphic design|image analysis|perspective and framing|visual analysis|visual arts?|visual communication|visual evidence|visual hierarchy)\b/i;
+const VISUAL_PERSPECTIVE_TOPIC_RE =
+  /\b(?:linear perspective|perspective and framing|perspective systems?|vanishing points?|picture plane|camera framing|shot framing)\b/i;
+const VISUAL_SOCIAL_PLATFORM_FALSE_FRIEND_RE =
+  /\b(?:social media|social network|tiktok|instagram|facebook|young people|youth|emotional effects?|social effects?|user engagement|platform engagement)\b/i;
+const VISUAL_PERSPECTIVE_SOURCE_ANCHOR_RE =
+  /\b(?:(?:linear|aerial|one[-\s]?point|two[-\s]?point|three[-\s]?point) perspective|vanishing points?|horizon line|picture plane|foreshortening|camera (?:angle|framing|position)|shot (?:composition|framing)|field of view|perspective projection|graphical perspective)\b/i;
+const VISUAL_COMPUTATIONAL_FALSE_FRIEND_RE =
+  /\b(?:attention mechanisms?|change detection|cnn|convolutional neural|deep learning|encoder|eye[-\s]?hand|fMRI|frequency[-\s]?domain|multiscale|neural networks?|neuroimaging|proprioceptive|remote sensing|sensorimotor|siamese|transformers?|visuo[-\s]?proprioceptive)\b/i;
+const VISUAL_COMPUTATIONAL_TOPIC_RE =
+  /\b(?:cognitive neuroscience|computer vision|computational imaging|deep learning|image processing|machine learning|neural networks?|neuroimaging|remote sensing|sensorimotor)\b/i;
+const USER_EXPERIENCE_SOURCE_ANCHOR_RE =
+  /\b(?:user[-\s]+experience|ux\b|human[-\s]?centered\s+design|user[-\s]?centered\s+design|human[-\s]?computer\s+interaction|human[-\s]?ai\s+interaction|hci\b|hai\b|user\s+interfaces?|interface\s+design|usability|design\s+research|user\s+research|contextual\s+inquiry|field\s*notes?|fieldnotes?|field\s+research|personas?\b(?!\s*5)|journey\s+maps?|customer\s+journey|information\s+architecture|wirefram|prototype|prototyping|iterative\s+design|interaction\s+design|accessibility|inclusive\s+design|design\s+rationale|design\s+handoff|design\s+studio|co[-\s]?design|service\s+design|material\s+experience|design\s+patterns?|screen\s+flows?|navigation|portfolio\s+case\s+study|critique\s+session|a\/b\s+test(?:ing)?)\b/i;
+const USER_EXPERIENCE_FALSE_FRIEND_RE =
+  /(?:\bstudio\s+ghibli\b|\bspiritual\s+practice\b|\bstrategic\s+planning\b|\bchuck\s+swindoll\b|\bpre[-\s]?service\s+teachers?\b|\bteacher\s+education\b|\bprototype\s+\(video\s+game\)|\bprototype\s+\(star\s+trek:\s*voyager\)|\bstar\s+trek:\s*voyager\b|\bscience\s+fiction\s+television\s+series\b|\baction[-\s]?adventure\s+video\s+game\b|\bradical\s+entertainment\b|\bactivision\b|\bplaystation\b|\bxbox\b|\bone\s+prototype\s+three\s+prototype\s+five\s+prototype\s+seven\s+prototype\b|\bprototype[-\s]?based\s+programming\b|\bprototype[-\s]?oriented\s+programming\b|\bprototypal\s+inheritance\b|\bclassless\s+programming\b|\bobject[-\s]?oriented\s+programming\b|\bmercator\s+projection\b|\bmap\s+projection\b|\bcylindrical\s+map\s+projection\b|\brhumb\s+lines?\b|\bmechatronics\b|\bmachine\s+design\b|\bmanufacturing\b|\bdata\s+refinement\b|\bfailures[-\s]?divergences\s+refinement\b|\bvehicle\s+refinement\b|\bautomotive\s+engineering\b|\bpositive\s+feedback\b|\bnegative\s+feedback\b|\bclimate\s+change\s+feedbacks?\b|\bpersona\s+\d+(?:\s+(?:golden|revival))?\b|\bpersona\s+\(series\)|\brevelations:\s*persona\b|\bmegami\s+tensei\b|\batlus\b|\bp[-\s]?studio\b|\brole[-\s]?playing\s+video\s+game\b|\btim\s+minchin\b|\bpublic\s+persona\b|\bcelebrity\b|\bnetwork\s+of\s+enterprises?\b|\bbrief\s+interviews\s+with\s+hideous\s+men\b|\bsketches\s+of\s+spain\b|\bmiles\s+davis\b|\bstudio\s+album\b|\bjazz\s+musician\b|\bconcierto\s+de\s+aranjuez\b|\ble\s+po[eè]me\b|\bpo[eè]me\b|\bpoetry\b|\bmarxisms?\b|\bcritique\s+&\s+struggle\b|\bcritique\s+of\s+pure\s+reason\b|\bimmanuel\s+kant\b|\bmetaphysics\b|\bfamily\s+mediation\b|\bprivate\s+sessions?\s+in\s+family\s+mediation\b|\bmediators?\b|\bdisputants?\b|\bbehavior\s+therapy\b|\bbooster\s+maintenance\s+sessions?\b|\bmetropolitan\s+transportation\s+authority\b|\bdesign\s+research\s+\(store\)|\blifestyle\s+store\b|\baircraft\s+design\s+process\b|\bprocess\s+design\s+and\s+process\s+control\b|\bifac\s+workshop\b|\bshoe\s+production\s+facilities\b|\bblocplan\b|\bsystematic\s+layout\s+planning\b|\blayout\s+of\s+shoe\s+production\b|\blayout\s+editor\s+configuration\b|\bmetaverse\s+beyond\s+the\s+hype\b|\bpatterns\s+2\.0\b|\blead[-\s]?user\s+theory\b|\bcommercially\s+attractive\s+user\s+innovations\b|\bweb\s+gis\s+in\s+practice\b|\bmicrosoft\s+kinect\b|\bintralogistics\s+processes\b|\bgreen\s+studio\s+handbook\b|\benvironmental\s+strategies\s+for\s+schematic\s+design\b|\bnational\s+design\s+studio\b|\ble\s+mans\s+prototype\b|\bin\s+living\s+color\s+sketches\b|\bsketch\s+comedy\b|\bcomedy\s+sketch(?:es)?\b|\btelevision\s+sketch(?:es)?\b|\barchitectural\s+education\b|\bcollaborative\s+learning\s+in\s+architectur(?:e|al)\b)/i;
+const USER_EXPERIENCE_TOPIC_ANCHORS = [
+  {
+    concept: /\b(?:design\s+process|critique\s+sessions?|design\s+journals?|studio\s+workflow)\b/i,
+    source:
+      /\b(?:material\s+driven\s+design|design\s+process|design\s+studio|critique|design\s+journals?|studio\s+workflow|service\s+design|co[-\s]?design)\b/i,
+  },
+  {
+    concept:
+      /\b(?:interviews?|observations?|synthesis|contextual\s+inquiry|field\s*notes?|fieldnotes?|field\s+research)\b/i,
+    source:
+      /\b(?:user\s+research|user\s+interviews?|research\s+interviews?|qualitative\s+interviews?|contextual\s+inquiry|field\s*notes?|fieldnotes?|field\s+research|observational\s+research|affinity\s+mapping|thematic\s+synthesis)\b/i,
+  },
+  {
+    concept: /\b(?:research\s+planning|research\s+objectives?|practice\s+sessions?|study\s+setup)\b/i,
+    source:
+      /\b(?:user\s+research|research\s+plans?|research\s+objectives?|practice\s+sessions?|study\s+setup|test\s+tasks?|participant\s+research)\b/i,
+  },
+  {
+    concept: /\b(?:personas?|journey\s+maps?|design\s+questions?)\b/i,
+    source:
+      /\b(?:personas?\b(?!\s*(?:series|5))|journey\s+maps?|customer\s+journey|user\s+needs?|design\s+questions?)\b/i,
+  },
+  {
+    concept: /\b(?:information\s+architecture|sketches|low[-\s]?fidelity\s+layouts?)\b/i,
+    source: /\b(?:information\s+architecture|wirefram|low[-\s]?fidelity|sketch(?:es|ing)?|sitemap|content\s+model)\b/i,
+  },
+  {
+    concept: /\b(?:navigation|components?|screen\s+flow)\b/i,
+    source:
+      /\b(?:navigation|screen\s+flow|user\s+interface|interaction\s+design|mobile\s+screens?|interface\s+adaptation|design\s+patterns?)\b/i,
+  },
+  {
+    concept: /\b(?:clickable\s+prototypes?|tool\s+workflows?|iteration)\b/i,
+    source:
+      /\b(?:clickable\s+prototypes?|functional\s+prototypes?|prototyp|tool\s+workflow|usability\s+testing|(?:design|prototype|usability|critique|feedback|studio|ux|user[-\s]?experience|interface|interaction)[-\s]+iterat(?:ion|ive)|iterat(?:ion|ive)[-\s]+(?:design|prototype|usability|critique|feedback|studio|ux|user[-\s]?experience|interface|interaction))\b/i,
+  },
+  {
+    concept: /\b(?:test\s+plans?|task\s+scenarios?|findings)\b/i,
+    source:
+      /\b(?:usability\s+test(?:ing)?|a\/b\s+test(?:ing)?|split\s+test(?:ing)?|test\s+plans?|task\s+scenarios?|research\s+findings?)\b/i,
+  },
+  {
+    concept: /\b(?:evidence[-\s]+based\s+design\s+recommendations?|design\s+recommendations?)\b/i,
+    source:
+      /\b(?:user[-\s]?centered\s+design|human[-\s]?centered\s+design|user\s+research|design\s+research|research\s+findings?|usability\s+test(?:ing)?|design\s+rationale)\b/i,
+  },
+  {
+    concept: /\b(?:inclusive\s+design|evaluation|remediation|accessibility)\b/i,
+    source: /\b(?:inclusive\s+design|accessibility|evaluation|remediation|transformative\s+services?)\b/i,
+  },
+  {
+    concept: /\b(?:process\s+narrative|visuals|case\s+study\s+structure|studio\s+work|refinement|review)\b/i,
+    source:
+      /\b(?:design\s+studio|studio\s+practice|portfolio\s+case\s+stud(?:y|ies)|case\s+study\s+structure|visuals?|design\s+review|work[-\s]?in[-\s]?progress\s+review|portfolio\s+review|professional\s+ux\s+practitioners?|user[-\s]+experience\s+practitioners?|peer\s+feedback|(?:design|prototype|studio|ux|user[-\s]?experience|interface|interaction|portfolio)[-\s]+(?:critique|refinement)|(?:critique|refinement)[-\s]+(?:design|prototype|studio|ux|user[-\s]?experience|interface|interaction|portfolio)|iterative\s+design|prototyping)\b/i,
+  },
+];
+const COMPUTER_SCIENCE_COURSE_RE =
+  /\b(?:computer\s+science|python\b|programming|coding|software\s+development|software\s+engineering|intro(?:duction)?\s+to\s+cs|cs\s*(?:1|101)\b)\b/i;
+const COMPUTER_SCIENCE_SOURCE_ANCHOR_RE =
+  /\b(?:computer\s+science|computing|programming|software|python\b|code\b|coding|algorithm|data\s+structures?|control\s+flow|branching|iteration|conditional\s+(?:statement|expression|operator|construct|computer|programming)|if\s+statements?|if[-\s]then(?:[-\s]else)?|loops?\s+(?:in\s+python|in\s+programming|programming|statement|construct)|for\s+loops?|while\s+loops?|variables?\s+(?:in\s+python|in\s+programming)|data\s+types?|strings?\s+(?:in\s+python|in\s+programming|type|object|processing|computer\s+science)|lists?\s+(?:in\s+python|in\s+programming|data\s+structure|abstract\s+data\s+type|array|sequence)|dictionar(?:y|ies)\s+(?:in\s+python|data\s+structure|mapping|hash\s+table)|functions?\s+(?:in\s+python|in\s+programming|programming)|subroutine|procedure|method|modules?\s+(?:in\s+python|programming|software)|exceptions?\s+(?:in\s+python|programming|handling)|debugg(?:ing|er)|unit\s+tests?|software\s+testing|file\s+(?:i\/o|input|output|handling)|input\/output|openstax\s+introduction\s+python\s+programming|python\s+\(programming\s+language\)|computer\s+program|programming\s+language)\b/i;
+const COMPUTER_SCIENCE_FALSE_FRIEND_RE =
+  /\b(?:correlation|statistical\s+variables?|dependent\s+variables?|independent\s+variables?|random\s+variables?|lists?\s+of\s+(?:american\s+colleges|box\s+office|universities|films|songs|albums|people)|list\s+of\s+dictionaries\s+by\s+number\s+of\s+words|session\s+\(software\)|signal\s+foundation|encrypted\s+messag(?:e|ing)|no\s+strings\s+attached|n'?sync|string\s+theory|trigonometric\s+functions?|function\s+\(mathematics\)|continuous\s+or\s+discrete\s+variable|frontiers\s+of\s+flow\s+control|file\s+explorer|file\s+manager|environment\s+variable|conditional\s+sentences?|english\s+conditional\s+sentences?|natural\s+language|subordinate\s+clause|protasis|apodosis|game\s+loops?|game\s+design\s+loops?|game\s+terakoya|ludic\s+language\s+pedagogy|module\s+\(mathematics\)|module\s+theory|modules?\s+over\s+(?:a\s+)?rings?|abstract\s+algebra|exception\s+\(law\)|legal\s+exceptions?|exception\s+clauses?|exceptions?\s+to\s+(?:rules?|laws?))\b/i;
+const COMPUTER_SCIENCE_AMBIGUOUS_CONCEPT_RE =
+  /\b(?:variables?|types?|data\s+types?|integer(?:s)?|floats?|floating[-\s]?point|numeric\s+types?|number\s+representation|control\s+flow|conditionals?|loops?|functions?|lists?|dictionar(?:y|ies)|strings?|file\s+(?:input|output|i\/o)|files?|modules?|exceptions?|testing|debugging|algorithms?)\b/i;
+const COMPUTER_SCIENCE_BROAD_LANGUAGE_CONCEPT_RE =
+  /^(?:python(?:\s+programming(?:\s+language)?)?|programming|coding)$/i;
+const COMPUTER_SCIENCE_BROAD_LANGUAGE_SOURCE_PROOF_RE =
+  /(?:docs\.python\.org|python\.org\/doc)|\b(?:python\s+programming|python\s+language|programming\s+language|software\s+development|computer\s+program|source\s+code|coding|algorithm|data\s+structures?|control\s+flow|unit\s+tests?|pytest|debugging)\b/i;
+const STATISTICAL_CONCEPT_RE =
+  /\b(?:confidence intervals?|correlations?|hypothesis tests?|linear regressions?|normal distributions?|p[-\s]?values?|probability distributions?|random samples?|regressions?|sampling distributions?|significance tests?|standard deviations?|statistical tests?|variances?)\b/i;
+const STATISTICAL_SOURCE_RE =
+  /\b(?:alternative hypothesis|confidence intervals?|correlations?|hypothesis tests?|linear regressions?|normal distributions?|null hypothesis|p[-\s]?values?|probability distributions?|random samples?|regressions?|sampling distributions?|statistical hypothesis testing|statistical significance|standard deviations?|variances?)\b/i;
+const NON_STATISTICAL_COMPUTING_TEST_CONCEPT_RE =
+  /\b(?:automat\w*|code|computer\s+program\w*|functions?|program\w*|python|software|unit\s+tests?)\b/i;
+const COMPUTER_SCIENCE_AUTOMATION_CONCEPT_RE =
+  /\b(?:automated\s+tests?|programming\s+tests?|software\s+testing|test\s+automation|unit\s+tests?|pytest|unittest)\b/i;
+const COMPUTER_SCIENCE_AUTOMATION_PHYSICAL_FALSE_FRIEND_RE =
+  /\b(?:assembled\s+equipment|billing\s+codes?|brake\s+(?:and\s+)?engine|clinical|diagnostic\s+codes?|dynamometer|factory|highway\s+codes?|patients?|product\s+codes?|specimens?)\b/i;
+const DATABASE_COURSE_RE =
+  /\b(?:database systems?|database management|relational databases?|\bsql\b|data management systems?)\b/i;
+const DATABASE_TRANSACTION_TOPIC_RE =
+  /\b(?:database transactions?|transaction management|transaction processing|concurrency control)\b/i;
+const DATABASE_TRANSACTION_FALSE_FRIEND_RE =
+  /\b(?:business transaction management|\bbtm\b|application performance management|business activity monitoring)\b/i;
+const DATABASE_TRANSACTION_SOURCE_ANCHOR_RE =
+  /\b(?:databases?|database management systems?|\bdbms\b|transaction processing|\bacid\b|atomicity|consistency|isolation|durability|concurrency control|serializ(?:able|ability|ation)|locking|commit|rollback)\b/i;
+const DATABASE_SECURITY_TOPIC_RE =
+  /\b(?:database security|data integrity|access control|authorization|database auditing)\b/i;
+const DATABASE_SECURITY_SOURCE_ANCHOR_RE =
+  /\b(?:databases?|data integrity|data security|information security|computer security|access control|authorization|permissions?|privileges?|role[-\s]?based access|least privilege|database activity monitoring|database auditing|confidentiality|availability)\b/i;
+const ORAL_HISTORY_COURSE_RE =
+  /\b(?:oral history|oral histories|oral historian|community memory|narrator interviews?)\b/i;
+const ORAL_HISTORY_SOURCE_ANCHOR_RE =
+  /\b(?:oral history|oral histories|oral tradition|public history|archives?|archival|interviews?|interviewing|open[-\s]?ended questions?|questionnaires?|narrators?|recordings?|sound recording|audio|transcripts?|transcription|qualitative research|thematic analysis|content analysis|coding|storytelling|visual narratives?|visual communication|presentations?|research proposals?|research design|informed consent|release forms?|digital preservation|metadata)\b/i;
+const COMPUTER_SCIENCE_TOPIC_ANCHORS = [
+  {
+    concept: /\bexpressions?\b/i,
+    source:
+      /\b(?:expression\s*\(\s*computer\s+science\s*\)|expressions?\s+(?:in\s+)?(?:computer\s+science|programming|programming\s+languages?)|syntactic\s+entit(?:y|ies)\b[^.!?]{0,120}\bprogramming\s+language)\b/i,
+  },
+  {
+    concept:
+      /\b(?:variables?|types?|data\s+types?|integer(?:s)?|floats?|floating[-\s]?point|numeric\s+types?|number\s+representation)\b/i,
+    source:
+      /\b(?:data\s+types?|built[-\s]?in\s+types?|integer(?:s)?\s+(?:in\s+python|type|representation)|floats?\s+(?:in\s+python|type|representation)|floating[-\s]?point|numeric\s+types?|number\s+representation|variables?\s+(?:in\s+python|in\s+programming)|type\s+systems?|docs\.python\.org\/(?:3\/)?library\/stdtypes)\b/i,
+  },
+  {
+    concept: /\b(?:control\s+flow|conditionals?|loops?)\b/i,
+    source:
+      /\b(?:control\s+flow|branching|iteration|conditional(?:\s*\(\s*computer\s+programming\s*\)|\s+(?:statement|expression|operator|construct|computer|programming))|if\s+statements?|if[-\s]then(?:[-\s]else)?|loops?\s*\(\s*statement\s*\)|loops?\s+(?:in\s+python|in\s+programming|programming|statement|construct)|loops?\b[^.!?]{0,80}\bhigh[-\s]+level\s+programming\s+languages?|for\s+loops?|while\s+loops?)(?=\W|$)/i,
+  },
+  {
+    concept: /\bfunctions?\b/i,
+    source:
+      /\b(?:functions?\s*\(\s*computer\s+programming\s*\)|functions?\s+(?:in\s+python|in\s+programming|programming)|function\s+definitions?|def\s+statements?|subroutine|procedure|callable\s+objects?)(?=\W|$)/i,
+  },
+  {
+    concept: /\blists?\b/i,
+    source:
+      /(?:\b(?:lists?\s+(?:in\s+python|in\s+programming|data\s+structure|abstract\s+data\s+type|array|sequence)|python\s+lists?|list\s+comprehensions?)\b|\blist\s+\(abstract\s+data\s+type\))/i,
+  },
+  {
+    concept: /\bdictionar(?:y|ies)\b/i,
+    source:
+      /\b(?:dictionar(?:y|ies)\s+(?:in\s+python|data\s+structure|mapping)|hash\s+table|associative\s+array|python\s+dictionar(?:y|ies))\b/i,
+  },
+  {
+    concept: /\bstrings?\b/i,
+    source:
+      /(?:\b(?:strings?\s+(?:in\s+python|in\s+programming|computer\s+science|processing|type|object)|text\s+processing|python\s+strings?)\b|\bstring\s+\(computer\s+science\))/i,
+  },
+  {
+    concept: /\bfile\s+(?:input|output)|file\s+i\/o|files?\b/i,
+    source:
+      /\b(?:file\s+(?:input|output|i\/o|handling)|input\/output|read(?:ing)?\s+files?|writ(?:ing|e)\s+files?|python\s+files?)\b/i,
+  },
+  {
+    concept: /\bmodules?\b/i,
+    source:
+      /\b(?:modules?\s+(?:in\s+python|in\s+programming|programming|software)|python\s+modules?|import\s+statements?|package\s+modules?|module\s+systems?|modular\s+programming)\b/i,
+  },
+  {
+    concept: /\bexceptions?\b/i,
+    source:
+      /\b(?:exceptions?\s+(?:in\s+python|in\s+programming|handling)|exception\s+handling|try\s*\/?\s*except|try[-\s]catch|python\s+exceptions?)\b/i,
+  },
+  {
+    concept: COMPUTER_SCIENCE_AUTOMATION_CONCEPT_RE,
+    source:
+      /(?:\b(?:unit\s+tests?|software\s+testing|programming\s+tests?|test[-\s]driven|pytest|unittest)\b|(?=.*\b(?:automated\s+tests?|test\s+automation)\b)(?=.*\b(?:application\s+under\s+test|computer\s+programs?|continuous\s+integration|software\s+(?:being\s+tested|development|testing)|system\s+under\s+test)\b))/i,
+  },
+  {
+    concept: /\bdebugging\b/i,
+    source: /\b(?:debugg(?:ing|er)|software\s+debugging|programming\s+debugging|breakpoints?|stack\s+traces?)\b/i,
+  },
+  {
+    concept: /\balgorithms?\b/i,
+    source:
+      /\b(?:algorithms?\s+(?:in\s+computer\s+science|in\s+programming|design|analysis)|computer\s+science|programming|software|pseudocode|complexity|data\s+structures?)\b/i,
+  },
+  {
+    concept: /\b(?:pandas|data\s*frames?)\b/i,
+    source:
+      /(?=.*\b(?:pandas|data\s*frames?|data\s+clean(?:ing|sing)|missing\s+values?|data\s+quality)\b)(?=.*\b(?:pandas|python|data\s*frames?)\b)/i,
+  },
+  {
+    concept: /\b(?:data\s+clean(?:ing|sing)|missing\s+values?|data\s+quality|audit\s+logs?)\b/i,
+    source: /\b(?:data\s+clean(?:ing|sing)|missing\s+values?|data\s+quality|invalid\s+records?)\b/i,
+  },
+  {
+    concept: /\b(?:reproducib(?:le|ility)|visuali[sz](?:e|ation|ing)|matplotlib)\b/i,
+    source:
+      /\b(?:reproducib(?:le|ility)|reproducible\s+research|data\s+visuali[sz]ation|information\s+visuali[sz]ation|scientific\s+visuali[sz]ation|uncertainty\s+quantification|confidence\s+intervals?|error\s+bars?|matplotlib|seaborn)\b/i,
+  },
+  {
+    concept: /\buncertaint(?:y|ies)\b/i,
+    source:
+      /\b(?:uncertaint(?:y|ies)|incertitude|imperfect\s+(?:or\s+)?unknown\s+information|unknown\s+information|confidence\s+intervals?|error\s+bars?|measurement\s+error)\b/i,
+  },
+  {
+    concept: /\b(?:correlation|causation|causal\s+inference|policy\s+memo|policy\s+analysis|capstone)\b/i,
+    source:
+      /\b(?:correlation\s+(?:and|versus|vs\.?)\s+causation|causal\s+inference|policy\s+analysis|policy\s+memorand(?:um|a)|policy\s+memo|evidence[-\s]+based\s+policy)\b/i,
+  },
+];
+const SOURCE_FINDER_TRUSTED_ROWS_PER_TOPIC = 2;
+const OPENSTAX_SLUG_ALIASES = {
+  'microeconomics-3e': 'principles-microeconomics-3e',
+  'macroeconomics-2e': 'principles-macroeconomics-2e',
+  statistics: 'introductory-statistics-2e',
+};
+
+function cleanText(value, maxLength = 500) {
+  const text = String(value ?? '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!text) return '';
+  return text.length > maxLength
+    ? text
+        .slice(0, maxLength)
+        .replace(/\s+\S*$/, '')
+        .trim()
+    : text;
+}
+
+function exactSnapshotText(value, maxLength = 500000) {
+  const text = String(value ?? '');
+  // A snapshot receipt binds byte offsets and hashes to the exact carried
+  // string. Collapsing whitespace or applying Unicode compatibility
+  // normalization after hashing makes legitimate source bytes unreplayable.
+  return text.length <= maxLength ? text : '';
+}
+
+function normalizeSessionRef(value) {
+  const ref = cleanText(value, 120);
+  const numbered = /^(?:s|session|lesson|week)?[-_\s]*(\d{1,3})$/i.exec(ref);
+  return numbered ? `s${Number(numbered[1])}` : ref;
+}
+
+function trimUrlPunctuation(value) {
+  const text = cleanText(value, 600);
+  if (!text) return '';
+  let url = text.replace(/[.,;:]+$/g, '');
+  while (url.endsWith(')')) {
+    const opens = (url.match(/\(/g) || []).length;
+    const closes = (url.match(/\)/g) || []).length;
+    if (closes <= opens) break;
+    url = url.slice(0, -1);
+  }
+  return url;
+}
+
+function cleanUrl(value) {
+  const url = trimUrlPunctuation(value);
+  if (/^https?:\/\//i.test(url)) return url;
+  return '';
+}
+
+function extractUrl(value) {
+  const text = cleanText(value, 1000);
+  const match = text.match(/https?:\/\/[^\s,;\]]+/i);
+  return match ? trimUrlPunctuation(match[0]) : '';
+}
+
+function extractLicenseUrl(value) {
+  const text = cleanText(value, 1000);
+  const matches = [...text.matchAll(/https?:\/\/[^\s),;\]]+/gi)]
+    .map((match) => match[0].replace(/[.,;:]+$/g, ''))
+    .filter(Boolean);
+  return (
+    matches.find(
+      (url) =>
+        !/doi\.org\//i.test(url) &&
+        /\b(?:license|licence|terms|rights|copyright|creative-commons|creativecommons|tdm)\b/i.test(url),
+    ) || ''
+  );
+}
+
+function extractDoi(value) {
+  const text = cleanText(value, 1000);
+  const match = text.match(/(?:doi:\s*|doi\.org\/)?(10\.\d{4,9}\/[-._;()/:A-Z0-9]+)/i);
+  return match ? match[1] : '';
+}
+
+function normalizeLicense(value, { preserveUnknown = false } = {}) {
+  const text = cleanText(value, 1000);
+  const cc = text.match(/\bCC[-_\s]+BY(?:[-_\s]+(?:NC|ND|SA))*(?:[-_\s]+\d(?:\.\d)?)?\b/i);
+  if (cc) {
+    const raw = cc[0]
+      .replace(/_/g, '-')
+      .replace(/\s*-\s*/g, '-')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toUpperCase();
+    const flags = [...raw.matchAll(/\b(?:NC|ND|SA)\b/g)].map((match) => match[0]);
+    const version = raw.match(/\b\d(?:\.\d)?\b/)?.[0] || '';
+    return `CC BY${flags.length ? `-${flags.join('-')}` : ''}${version ? ` ${version}` : ''}`;
+  }
+  if (/\bpublic domain\b/i.test(text)) return 'public domain';
+  if (/\bopen access\b/i.test(text)) return 'open access';
+  return preserveUnknown ? cleanText(value, 180) : '';
+}
+
+function extractLicense(value) {
+  const normalized = normalizeLicense(value);
+  if (normalized && !isLicenseAmbiguous(normalized)) return normalized;
+  return extractLicenseUrl(value) || normalized;
+}
+
+function inferOpenStaxBookProof(value) {
+  const text = cleanText(value, 1000);
+  if (!/\bOpenStax\b/i.test(text)) return null;
+  if (!/(?:§\s*\d|\bopen\s+textbook\b)/i.test(text)) return null;
+  const match = text.match(/\bOpenStax\s*,?\s+(.+?)(?:\s*,?\s*§\s*[\d.]+|\s*\(\s*open\s+textbook\s*\)|,|$)/i);
+  const rawTitle = cleanText(match?.[1] || '', 180)
+    .replace(/\s*\(\s*open\s+textbook\s*\)\s*$/i, '')
+    .trim();
+  if (!rawTitle || /^(?:chapter|section|textbook|source|reading)$/i.test(rawTitle)) return null;
+  const slug = rawTitle
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  if (!slug || slug.length < 6) return null;
+  return {
+    url: `https://openstax.org/books/${OPENSTAX_SLUG_ALIASES[slug] || slug}`,
+    license: 'CC BY 4.0',
+  };
+}
+
+function normalizeDoi(value) {
+  const text = cleanText(value, 220)
+    .replace(/^https?:\/\/(?:dx\.)?doi\.org\//i, '')
+    .replace(/^doi:\s*/i, '')
+    .trim();
+  return text || '';
+}
+
+function normalizeAuthors(value) {
+  if (Array.isArray(value)) {
+    return value
+      .map((entry) => cleanText(entry, 140))
+      .filter(Boolean)
+      .slice(0, 8);
+  }
+  const text = cleanText(value, 320);
+  if (!text) return [];
+  return text
+    .split(/\s+(?:et al\.?)$/i)[0]
+    .split(/\s*;\s*|\s+\|\s+|\s+and\s+|,\s+(?=[A-Z][a-z]+(?:\s+[A-Z]\.)?(?:\s|$))/)
+    .map((entry) => cleanText(entry, 140))
+    .filter(Boolean)
+    .slice(0, 8);
+}
+
+function normalizeConceptLinks(value) {
+  const items = Array.isArray(value) ? value : value ? [value] : [];
+  const seen = new Set();
+  const links = [];
+  for (const item of items) {
+    const isObject = item && typeof item === 'object';
+    const id = cleanText(isObject ? item.id || item.conceptId || '' : item, 120);
+    const label = cleanText(isObject ? item.label || item.term || item.title || '' : '', 160);
+    const key = `${id}|${label}`.toLowerCase();
+    if ((!id && !label) || seen.has(key)) continue;
+    seen.add(key);
+    links.push({ ...(id ? { id } : {}), ...(label ? { label } : {}) });
+    if (links.length >= 16) break;
+  }
+  return links;
+}
+
+function sourceStatus(entry) {
+  const status = cleanText(entry?.status || entry?.sourceStatus, 80);
+  return status || 'source-provided';
+}
+
+function sourceProvider(entry, fallback = 'courseir') {
+  const explicit = cleanText(entry?.provider || entry?.sourceProvider || '', 80).toLowerCase();
+  const origin = cleanText(entry?.origin || '', 80).toLowerCase();
+  const direct = explicit || origin;
+  const sourceText = [entry?.url, entry?.sourceUrl, entry?.title, entry?.citation, entry?.evidence, entry?.scope]
+    .filter(Boolean)
+    .join(' ');
+  const inferred = inferProviderFromText(sourceText);
+  // `origin` describes how a citation entered the graph (for example,
+  // `scion-evidence-overlay` or `algi-research`); it is not necessarily the
+  // publisher/provider. When no provider was recorded, prefer an identity
+  // that can be recovered from the URL/title over that operational origin.
+  // Otherwise a fully verified OpenStax/W3C receipt is silently demoted to an
+  // unknown provider at export time.
+  if (!explicit && inferred) return inferred;
+  if (!direct || ['course-resource', 'course-map', 'resource', 'syllabus'].includes(direct)) {
+    return inferred || direct || fallback;
+  }
+  return direct;
+}
+
+function sourceType(entry) {
+  return cleanText(entry?.sourceType || entry?.kind || entry?.type || 'source', 120);
+}
+
+function sourceId(entry, fallbackId, index) {
+  return cleanText(entry?.id || entry?.sourceId || entry?.sourceRef || fallbackId || `SL${index + 1}`, 120);
+}
+
+export function isLicenseAmbiguous(license) {
+  const value = cleanText(license, 180).toLowerCase();
+  return (
+    AMBIGUOUS_LICENSE_RE.test(value) ||
+    RESTRICTED_RIGHTS_STATEMENT_RE.test(value) ||
+    PUBLISHER_POLICY_LICENSE_RE.test(value) ||
+    NO_DERIVATIVES_LICENSE_RE.test(value)
+  );
+}
+
+export function isSourceAccessible(source) {
+  return Boolean(cleanUrl(source?.url) || normalizeDoi(source?.doi));
+}
+
+export function providerTrustLevel(provider) {
+  const key = cleanText(provider, 80).toLowerCase();
+  if (ACADEMIC_PROVIDERS.has(key)) return 'academic-metadata';
+  if (OER_PROVIDERS.has(key)) return 'open-educational-resource';
+  if (LICENSED_BACKGROUND_PROVIDERS.has(key)) return 'licensed-background-source';
+  if (METADATA_ONLY_PROVIDERS.has(key)) return 'bibliographic-metadata';
+  if (TRUSTED_PROVIDERS.has(key)) return 'trusted-metadata';
+  return 'review-required';
+}
+
+function inferProviderFromText(value) {
+  const text = cleanText(value, 1000).toLowerCase();
+  if (!text) return '';
+  if (text.includes('openstax.org') || /\bopenstax\b/.test(text)) return 'openstax';
+  if (text.includes('openalex.org') || /\bopenalex\b/.test(text)) return 'openalex';
+  if (text.includes('openlibrary.org') || /\bopen library\b/.test(text)) return 'openlibrary';
+  if (text.includes('gutenberg.org') || /\bproject gutenberg\b/.test(text)) return 'gutenberg';
+  if (text.includes('eric.ed.gov') || /\beric\b/.test(text)) return 'eric';
+  if (text.includes('doaj.org') || /\bdoaj\b/.test(text)) return 'doaj';
+  if (text.includes('europepmc.org') || /\beurope\s+pmc\b/.test(text)) return 'europe-pmc';
+  if (text.includes('wikipedia.org') || /\bwikipedia\b/.test(text)) return 'wikipedia';
+  if (text.includes('crossref.org') || /\bcrossref\b/.test(text)) return 'crossref';
+  if (text.includes('dl.acm.org/doi') || extractDoi(text)) return 'crossref';
+  return '';
+}
+
+function sourcePublisherMismatch(entry, sourceUrl) {
+  const identityProviders = new Set(['gutenberg', 'openstax', 'wikipedia']);
+  const directProvider = cleanText(entry?.provider, 80).toLowerCase();
+  const declaredProvider = inferProviderFromText(
+    [entry?.attribution, entry?.credit, entry?.title, entry?.displayTitle, entry?.citation].filter(Boolean).join(' '),
+  );
+  const urlProvider = inferProviderFromText(sourceUrl);
+  if (identityProviders.has(directProvider) && identityProviders.has(urlProvider) && directProvider !== urlProvider) {
+    return true;
+  }
+  return Boolean(
+    identityProviders.has(declaredProvider) && identityProviders.has(urlProvider) && declaredProvider !== urlProvider,
+  );
+}
+
+function isGenericResourceProvider(provider) {
+  return GENERIC_RESOURCE_PROVIDERS.has(cleanText(provider, 80).toLowerCase());
+}
+
+function isSourceLikeResource(resource = {}, provider = '') {
+  if (!isGenericResourceProvider(provider)) return true;
+  const text = [resource.url, resource.sourceUrl, resource.doi, resource.title, resource.citation, resource.evidence]
+    .filter(Boolean)
+    .join(' ');
+  const cleaned = cleanText(text, 1000);
+  if (!cleaned) return false;
+  if (NON_SOURCE_RESOURCE_RE.test(cleaned)) return false;
+  if (PLACEHOLDER_RESOURCE_RE.test(cleaned)) return false;
+  return SOURCE_SIGNAL_RE.test(cleaned);
+}
+
+function collapseMetadataPunctuation(value = '') {
+  return String(value || '').replace(/(^|[^.])\.\.(?=[^.]|$)/g, '$1.');
+}
+
+function citationSegment(value = '') {
+  return collapseMetadataPunctuation(value).replace(/[.;:]+\s*$/g, '');
+}
+
+export function sourceCitationLabel(source = {}) {
+  const title = citationSegment(cleanText(source.title || source.citation || source.evidence || source.id, 220));
+  const authors = normalizeAuthors(source.authors).slice(0, 3).join(', ');
+  const year = cleanText(source.year, 20);
+  const ref = cleanText(source.doi ? `doi:${normalizeDoi(source.doi)}` : source.url, 240);
+  const lead = citationSegment([authors, year ? `(${year})` : ''].filter(Boolean).join(' '));
+  return [lead, title, ref].filter(Boolean).join(lead && title ? '. ' : ' — ');
+}
+
+export function normalizeTrustedSource(entry = {}, { fallbackId = '', checkedAt = '', conceptLinks = [] } = {}) {
+  const provider = sourceProvider(entry);
+  const normalizedSourceType = sourceType(entry);
+  const sourceText = [
+    entry.url,
+    entry.sourceUrl,
+    entry.doi,
+    entry.citation,
+    entry.attribution,
+    entry.evidence,
+    entry.title,
+  ]
+    .filter(Boolean)
+    .join(' ');
+  const openStaxProof = provider === 'openstax' ? inferOpenStaxBookProof(sourceText) : null;
+  const doi = normalizeDoi(entry.doi || extractDoi(sourceText));
+  const extractedUrl = cleanUrl(entry.url || entry.sourceUrl) || extractUrl(sourceText);
+  const url =
+    doi && /^https?:\/\/(?:dx\.)?doi\.org\//i.test(extractedUrl || '')
+      ? `https://doi.org/${doi}`
+      : extractedUrl || (doi ? `https://doi.org/${doi}` : '') || openStaxProof?.url || '';
+  let rawTitle = cleanText(entry.title || entry.displayTitle || entry.citation || entry.evidence || entry.scope, 260);
+  // Algi classroom resources are intentionally human-readable strings such
+  // as "AI governance — Article title (open scholarly article, CC0 — URL)".
+  // When that display label enters the formal source ledger, recover the
+  // bibliographic title instead of appending a second URL/DOI to the entire
+  // classroom string ("— — doi:…").
+  if (cleanText(entry.origin, 80).toLowerCase() === 'algi-research' && normalizedSourceType) {
+    const metadataAt = rawTitle.toLowerCase().indexOf(` (${normalizedSourceType.toLowerCase()}`);
+    if (metadataAt > 0) {
+      rawTitle = rawTitle.slice(0, metadataAt).trim();
+      const topicDivider = rawTitle.indexOf(' — ');
+      if (topicDivider > 0) rawTitle = rawTitle.slice(topicDivider + 3).trim();
+    }
+  }
+  const title = collapseMetadataPunctuation(rawTitle);
+  const explicitLicense = cleanText(entry.license || entry.rights || entry.licenseUrl, 180);
+  const license = explicitLicense
+    ? normalizeLicense(explicitLicense, { preserveUnknown: true })
+    : extractLicense(sourceText) || openStaxProof?.license || '';
+  const attribution =
+    citationSegment(cleanText(entry.attribution || entry.credit || '', 260)) ||
+    (provider === 'wikipedia' ? 'Wikipedia contributors' : '');
+  const sessionRefs = [
+    ...new Set((Array.isArray(entry.sessionRefs) ? entry.sessionRefs : []).map(normalizeSessionRef).filter(Boolean)),
+  ];
+  const rawSupportReceipt = entry?.supportReceipt;
+  const supportReceipt =
+    rawSupportReceipt?.status === 'passed' &&
+    Number.isFinite(Number(rawSupportReceipt.checkedClaims)) &&
+    Number(rawSupportReceipt.checkedClaims) > 0 &&
+    Number.isFinite(Number(rawSupportReceipt.minimumScore))
+      ? {
+          status: 'passed',
+          checkedClaims: Math.max(1, Math.floor(Number(rawSupportReceipt.checkedClaims))),
+          minimumScore: Math.max(0, Math.min(1, Number(rawSupportReceipt.minimumScore))),
+          method: cleanText(rawSupportReceipt.method || 'source-anchor', 80),
+          construct: cleanText(rawSupportReceipt.construct || 'source-extraction-integrity', 80),
+          sourceIdentityVerified: rawSupportReceipt.sourceIdentityVerified === true,
+          semanticAdmissionVerified: rawSupportReceipt.semanticAdmissionVerified === true,
+          artifactVisibilityVerified: rawSupportReceipt.artifactVisibilityVerified === true,
+          semanticSupport: rawSupportReceipt.semanticSupport === true,
+          readinessEligible: rawSupportReceipt.readinessEligible === true,
+          claimBoundary: cleanText(
+            rawSupportReceipt.claimBoundary ||
+              'This receipt proves source extraction integrity, not support for downstream teaching claims.',
+            240,
+          ),
+          ...(rawSupportReceipt?.sourceSnapshot
+            ? {
+                sourceSnapshot: {
+                  protocol: cleanText(rawSupportReceipt.sourceSnapshot.protocol, 120),
+                  sourceId: cleanText(rawSupportReceipt.sourceSnapshot.sourceId, 160),
+                  retrievedSnapshotSha256: cleanText(rawSupportReceipt.sourceSnapshot.retrievedSnapshotSha256, 80),
+                  retrievedSnapshotBytes: Math.max(
+                    0,
+                    Math.floor(Number(rawSupportReceipt.sourceSnapshot.retrievedSnapshotBytes) || 0),
+                  ),
+                  normalizedSnapshotText: isLicenseAmbiguous(license)
+                    ? ''
+                    : exactSnapshotText(rawSupportReceipt.sourceSnapshot.normalizedSnapshotText),
+                  contentVerified: rawSupportReceipt.sourceSnapshot.contentVerified === true,
+                  sourceIdentityVerified: rawSupportReceipt.sourceSnapshot.sourceIdentityVerified === true,
+                  semanticAdmissionVerified: rawSupportReceipt.sourceSnapshot.semanticAdmissionVerified === true,
+                  artifactVisibilityVerified: rawSupportReceipt.sourceSnapshot.artifactVisibilityVerified === true,
+                },
+              }
+            : {}),
+          checks: (Array.isArray(rawSupportReceipt.checks) ? rawSupportReceipt.checks : [])
+            .slice(0, 16)
+            .map((check) => ({
+              claimId: cleanText(check?.claimId, 200),
+              claim: cleanText(check?.claim, 400),
+              quote: cleanText(check?.quote, 500),
+              sourceId: cleanText(check?.sourceId, 160),
+              locator: cleanText(check?.locator, 200),
+              retrievedSnapshotSha256: cleanText(check?.retrievedSnapshotSha256, 80),
+              retrievedSnapshotBytes: Math.max(0, Math.floor(Number(check?.retrievedSnapshotBytes) || 0)),
+              quoteByteStart: Math.max(0, Math.floor(Number(check?.quoteByteStart) || 0)),
+              quoteByteEnd: Math.max(0, Math.floor(Number(check?.quoteByteEnd) || 0)),
+              renderedLocation: cleanText(check?.renderedLocation || check?.artifactLocation || check?.renderedAt, 240),
+              verifierVersion: cleanText(check?.verifierVersion, 80),
+              sourcePassageSha256: cleanText(check?.sourcePassageSha256, 80),
+              claimSha256: cleanText(check?.claimSha256, 80),
+              renderedArtifactSha256: cleanText(check?.renderedArtifactSha256, 80),
+              quoteInSnapshot: check?.quoteInSnapshot === true,
+              entailed: check?.entailed === true,
+              score: Math.max(0, Math.min(1, Number(check?.score) || 0)),
+              reason: cleanText(check?.reason, 80),
+              method: cleanText(check?.method, 80),
+              construct: cleanText(check?.construct || 'lexical-extraction-integrity', 80),
+              sourceIdentityVerified: check?.sourceIdentityVerified === true,
+              semanticAdmissionVerified: check?.semanticAdmissionVerified === true,
+              artifactVisibilityVerified: check?.artifactVisibilityVerified === true,
+              semanticSupport: check?.semanticSupport === true,
+              ...(check?.semanticAdmission
+                ? {
+                    semanticAdmission: {
+                      admitted: check.semanticAdmission.admitted === true,
+                      policy: cleanText(check.semanticAdmission.policy, 120),
+                      topic: cleanText(check.semanticAdmission.topic, 180),
+                      topicMatches: (Array.isArray(check.semanticAdmission.topicMatches)
+                        ? check.semanticAdmission.topicMatches
+                        : []
+                      )
+                        .map((value) => cleanText(value, 80))
+                        .filter(Boolean)
+                        .slice(0, 24),
+                      issues: (Array.isArray(check.semanticAdmission.issues) ? check.semanticAdmission.issues : [])
+                        .map((value) => cleanText(value, 120))
+                        .filter(Boolean)
+                        .slice(0, 24),
+                    },
+                  }
+                : {}),
+            })),
+        }
+      : null;
+  const normalizedSourceId = sourceId(entry, fallbackId, 0);
+  const sourceWorkId = cleanText(
+    entry.sourceWorkId || supportReceipt?.sourceSnapshot?.sourceId || normalizedSourceId,
+    160,
+  );
+  const source = {
+    id: normalizedSourceId,
+    ...(sourceWorkId && sourceWorkId !== normalizedSourceId ? { sourceWorkId } : {}),
+    title,
+    authors: normalizeAuthors(entry.authors || entry.author || entry.creators),
+    url,
+    doi,
+    license,
+    ...(attribution ? { attribution } : {}),
+    provider,
+    sourceType: normalizedSourceType,
+    scope: cleanText(entry.scope || entry.path || 'course', 140),
+    status: sourceStatus(entry),
+    origin: cleanText(entry.origin || entry.sourceOrigin || '', 80),
+    evidence: cleanText(entry.evidence || entry.note || entry.snippet || entry.abstract || '', 360),
+    ...(Number.isFinite(Number(entry.sourceTier)) ? { sourceTier: Number(entry.sourceTier) } : {}),
+    ...(entry.revisionId !== undefined && entry.revisionId !== null && cleanText(entry.revisionId, 80)
+      ? { revisionId: cleanText(entry.revisionId, 80) }
+      : {}),
+    ...(cleanText(entry.revisionTimestamp, 100) ? { revisionTimestamp: cleanText(entry.revisionTimestamp, 100) } : {}),
+    ...(sessionRefs.length > 0 ? { sessionRefs } : {}),
+    ...(supportReceipt ? { supportReceipt } : {}),
+    ...(cleanText(entry.authorityKind, 120) ? { authorityKind: cleanText(entry.authorityKind, 120) } : {}),
+    ...(cleanText(entry.governingSourceReceiptSha256, 80)
+      ? { governingSourceReceiptSha256: cleanText(entry.governingSourceReceiptSha256, 80) }
+      : {}),
+    conceptLinks: normalizeConceptLinks([...(conceptLinks || []), ...(entry.conceptLinks || [])]),
+    checkedAt: cleanText(entry.checkedAt || checkedAt, 80),
+    accessStatus: isSourceAccessible({ url, doi }) ? 'reference-present' : 'no-url-or-doi',
+    trustLevel: providerTrustLevel(provider),
+  };
+  source.citation = sourceCitationLabel(source);
+  source.licenseAmbiguous = isLicenseAmbiguous(source.license);
+  source.provenanceMismatch = sourcePublisherMismatch(entry, url);
+  return source;
+}
+
+export function isTrustedSourceLedgerRow(row = {}) {
+  const provider = cleanText(row?.provider, 80).toLowerCase();
+  if (!TRUST_ELIGIBLE_PROVIDERS.has(provider) || REVIEW_ONLY_PROVIDERS.has(provider)) return false;
+  return isSourceAccessible(row) && !isLicenseAmbiguous(row?.license) && !row?.provenanceMismatch;
+}
+
+/**
+ * A source URL and concept label are provenance metadata, not evidence that a
+ * rendered teaching claim is supported. Resolution requires one inspectable
+ * chain from source identity through locator and quotation to the authored
+ * claim and its learner-visible destination.
+ */
+export function isClaimBoundSourceLedgerRow(row = {}) {
+  if (!isTrustedSourceLedgerRow(row)) return false;
+  const receipt = row?.supportReceipt;
+  if (
+    receipt?.status !== 'passed' ||
+    receipt?.sourceIdentityVerified !== true ||
+    receipt?.semanticAdmissionVerified !== true ||
+    receipt?.artifactVisibilityVerified !== true ||
+    receipt?.semanticSupport !== true ||
+    receipt?.readinessEligible !== true
+  ) {
+    return false;
+  }
+  const snapshot = receipt?.sourceSnapshot;
+  const sourceIdentityId = cleanText(row?.sourceWorkId || row?.id, 160);
+  const snapshotText = exactSnapshotText(snapshot?.normalizedSnapshotText);
+  const snapshotBytes = new TextEncoder().encode(snapshotText);
+  if (
+    snapshot?.protocol !== 'retrieved-source-snapshot-sha256-v2' ||
+    cleanText(snapshot?.sourceId, 160) !== sourceIdentityId ||
+    !/^[a-f0-9]{64}$/i.test(cleanText(snapshot?.retrievedSnapshotSha256, 80)) ||
+    !Number.isInteger(Number(snapshot?.retrievedSnapshotBytes)) ||
+    Number(snapshot?.retrievedSnapshotBytes) <= 0 ||
+    snapshotBytes.byteLength !== Number(snapshot?.retrievedSnapshotBytes) ||
+    snapshot?.sourceIdentityVerified !== true ||
+    snapshot?.semanticAdmissionVerified !== true ||
+    snapshot?.artifactVisibilityVerified !== true
+  ) {
+    return false;
+  }
+  return (Array.isArray(receipt.checks) ? receipt.checks : []).some(
+    (check) =>
+      Boolean(cleanText(check?.sourceId, 160)) &&
+      cleanText(check?.sourceId, 160) === sourceIdentityId &&
+      Boolean(cleanText(check?.locator, 200)) &&
+      Boolean(cleanText(check?.quote, 500)) &&
+      Boolean(cleanText(check?.claim, 400)) &&
+      Boolean(cleanText(check?.renderedLocation, 240)) &&
+      /^[a-f0-9]{64}$/i.test(cleanText(check?.sourcePassageSha256, 80)) &&
+      /^[a-f0-9]{64}$/i.test(cleanText(check?.claimSha256, 80)) &&
+      /^[a-f0-9]{64}$/i.test(cleanText(check?.renderedArtifactSha256, 80)) &&
+      cleanText(check?.retrievedSnapshotSha256, 80) === cleanText(snapshot.retrievedSnapshotSha256, 80) &&
+      Number(check?.retrievedSnapshotBytes) === Number(snapshot.retrievedSnapshotBytes) &&
+      Number.isInteger(Number(check?.quoteByteStart)) &&
+      Number.isInteger(Number(check?.quoteByteEnd)) &&
+      Number(check?.quoteByteStart) >= 0 &&
+      Number(check?.quoteByteEnd) > Number(check?.quoteByteStart) &&
+      Number(check?.quoteByteEnd) <= Number(snapshot.retrievedSnapshotBytes) &&
+      new TextDecoder().decode(snapshotBytes.slice(Number(check?.quoteByteStart), Number(check?.quoteByteEnd))) ===
+        String(check?.quote ?? '') &&
+      check?.quoteInSnapshot === true &&
+      check?.entailed === true &&
+      check?.sourceIdentityVerified === true &&
+      check?.semanticAdmissionVerified === true &&
+      check?.artifactVisibilityVerified === true &&
+      check?.semanticSupport === true,
+  );
+}
+
+const RENDERED_CLAIM_VERIFIER_VERSION = 'rendered-admitted-source-claim-v2';
+
+function normalizedClaimText(value = '', maxLength = 2000) {
+  return cleanText(value, maxLength)
+    .normalize('NFKC')
+    .replace(/[.!?]+$/u, '')
+    .toLowerCase();
+}
+
+function lessonNumbersForClaimRow(row = {}) {
+  const numbers = new Set();
+  for (const value of [row?.scope, ...(row?.sessionRefs || []), ...(row?.conceptLinks || [])]) {
+    const text = typeof value === 'string' ? value : `${value?.id || ''} ${value?.label || ''}`;
+    const match = String(text).match(/(?:lesson|session|^s|^c)\s*[-:]?\s*(\d+)/i);
+    if (match) numbers.add(Number(match[1]));
+  }
+  return numbers;
+}
+
+function artifactLessonNumber(path = '') {
+  return Number(String(path).match(/(?:^|\/)Lesson\s+(\d+)/i)?.[1]) || 0;
+}
+
+async function sha256Text(value = '') {
+  const bytes = new TextEncoder().encode(String(value || ''));
+  const digest = await globalThis.crypto.subtle.digest('SHA-256', bytes);
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
+/** Replay a source receipt from the normalized bytes that travel in the package. */
+export async function verifySourceSnapshotReceipt(snapshot = {}, check = {}) {
+  const text = exactSnapshotText(snapshot?.normalizedSnapshotText);
+  const bytes = new TextEncoder().encode(text);
+  const byteStart = Number(check?.quoteByteStart);
+  const byteEnd = Number(check?.quoteByteEnd);
+  const quote = String(check?.quote ?? '');
+  if (
+    snapshot?.protocol !== 'retrieved-source-snapshot-sha256-v2' ||
+    !text ||
+    !Number.isInteger(byteStart) ||
+    !Number.isInteger(byteEnd) ||
+    byteStart < 0 ||
+    byteEnd <= byteStart ||
+    byteEnd > bytes.byteLength ||
+    Number(snapshot?.retrievedSnapshotBytes) !== bytes.byteLength ||
+    cleanText(check?.retrievedSnapshotSha256, 80) !== cleanText(snapshot?.retrievedSnapshotSha256, 80)
+  ) {
+    return false;
+  }
+  const slicedQuote = new TextDecoder().decode(bytes.slice(byteStart, byteEnd));
+  return (
+    slicedQuote === quote &&
+    (await sha256Text(text)) === cleanText(snapshot?.retrievedSnapshotSha256, 80) &&
+    (await sha256Text(slicedQuote)) === cleanText(check?.sourcePassageSha256, 80)
+  );
+}
+
+function isStrictLegacyExactSourceAdmission(receipt = {}, snapshotReceiptVerified = false, check = {}) {
+  return (
+    receipt?.status === 'passed' &&
+    receipt?.method === 'exact-source-claim-v1' &&
+    Number(receipt?.minimumScore) === 1 &&
+    receipt?.semanticSupport === true &&
+    snapshotReceiptVerified === true &&
+    check?.method === 'exact-source-claim-v1' &&
+    check?.construct === 'source-claim-identity' &&
+    check?.reason === 'exact-source-claim-identity' &&
+    Number(check?.score) === 1 &&
+    normalizedClaimText(check?.claim) === normalizedClaimText(check?.quote) &&
+    check?.quoteInSnapshot === true &&
+    check?.entailed === true &&
+    check?.semanticSupport === true
+  );
+}
+
+/**
+ * Complete the source-to-rendered-claim transaction after Office bytes exist.
+ * Only byte-identical atomic claims qualify. A lexical near-match, compiler
+ * assertion, source count, or citation alone remains ineligible.
+ */
+export async function bindRenderedClaimSupport(sourceRows = [], artifacts = []) {
+  const visibleArtifacts = (Array.isArray(artifacts) ? artifacts : [])
+    .map((artifact) => ({
+      path: cleanText(artifact?.path, 300),
+      text: cleanText(artifact?.text, 200000),
+      sha256: cleanText(artifact?.sha256, 80),
+      lessonNumber: artifactLessonNumber(artifact?.path),
+    }))
+    .filter((artifact) => artifact.path && artifact.text && artifact.sha256);
+
+  return Promise.all(
+    (Array.isArray(sourceRows) ? sourceRows : []).map(async (row) => {
+      const receipt = row?.supportReceipt;
+      const snapshot = receipt?.sourceSnapshot;
+      // A binding-specific row id distinguishes the same work when it is used
+      // for incompatible lesson/construct occurrences. The snapshot and its
+      // exact claim checks still identify the underlying work, so verify them
+      // against sourceWorkId while retaining row.id as the occurrence key.
+      const sourceIdentityId = cleanText(row?.sourceWorkId || row?.id, 160);
+      const lessons = lessonNumbersForClaimRow(row);
+      const candidates = visibleArtifacts.filter(
+        (artifact) =>
+          lessons.size === 0 ||
+          // Global artifacts such as the syllabus have no lesson number in
+          // their path. Exact admitted-claim identity is still sufficient to
+          // bind an occurrence there; excluding it left a real source claim
+          // visible but permanently unreviewable.
+          artifact.lessonNumber === 0 ||
+          lessons.has(artifact.lessonNumber),
+      );
+      const boundChecks = [];
+      for (const check of Array.isArray(receipt?.checks) ? receipt.checks : []) {
+        const claim = cleanText(check?.claim, 500);
+        const quote = cleanText(check?.quote, 600);
+        const normalizedClaim = normalizedClaimText(claim);
+        const quoteBytes = new TextEncoder().encode(quote).byteLength;
+        const quoteSha256 = quote ? await sha256Text(quote) : '';
+        const snapshotSha256 = cleanText(snapshot?.retrievedSnapshotSha256, 80);
+        const snapshotBytes = Number(snapshot?.retrievedSnapshotBytes);
+        const quoteByteStart = Number(check?.quoteByteStart);
+        const quoteByteEnd = Number(check?.quoteByteEnd);
+        const snapshotReceiptVerified = await verifySourceSnapshotReceipt(snapshot, check);
+        const exactClaimIdentity = normalizedClaim === normalizedClaimText(quote);
+        const curatedParaphraseAdmission =
+          check?.semanticAdmission?.admitted === true &&
+          check?.semanticAdmission?.policy === 'shipped-source-curated-anchor-v1';
+        const explicitUpstreamAdmission =
+          receipt?.sourceIdentityVerified === true &&
+          receipt?.semanticAdmissionVerified === true &&
+          snapshot?.sourceIdentityVerified === true &&
+          snapshot?.semanticAdmissionVerified === true &&
+          check?.sourceIdentityVerified === true &&
+          check?.semanticAdmissionVerified === true &&
+          check?.semanticSupport === true;
+        // Saved projects from before the three-axis receipt split have false
+        // defaults for identity/admission even though they carry a complete
+        // exact-source-claim-v1 transaction. Upgrade only after replaying the
+        // packaged snapshot bytes, byte range, passage hash, exact claim
+        // identity, provider row, and original score. This is evidence
+        // migration, not a boolean compatibility bypass.
+        const legacyExactAdmission = isStrictLegacyExactSourceAdmission(receipt, snapshotReceiptVerified, check);
+        const upstreamAdmissionVerified = explicitUpstreamAdmission || legacyExactAdmission;
+        if (
+          !normalizedClaim ||
+          (!exactClaimIdentity && !curatedParaphraseAdmission) ||
+          !cleanText(check?.sourceId, 160) ||
+          cleanText(check?.sourceId, 160) !== sourceIdentityId ||
+          !cleanText(check?.locator, 200) ||
+          cleanText(snapshot?.sourceId, 160) !== sourceIdentityId ||
+          cleanText(snapshot?.protocol, 120) !== 'retrieved-source-snapshot-sha256-v2' ||
+          !/^[a-f0-9]{64}$/i.test(snapshotSha256) ||
+          !Number.isInteger(snapshotBytes) ||
+          snapshotBytes <= 0 ||
+          cleanText(check?.retrievedSnapshotSha256, 80) !== snapshotSha256 ||
+          Number(check?.retrievedSnapshotBytes) !== snapshotBytes ||
+          !Number.isInteger(quoteByteStart) ||
+          !Number.isInteger(quoteByteEnd) ||
+          quoteByteStart < 0 ||
+          quoteByteEnd <= quoteByteStart ||
+          quoteByteEnd > snapshotBytes ||
+          quoteByteEnd - quoteByteStart !== quoteBytes ||
+          !/^[a-f0-9]{64}$/i.test(cleanText(check?.sourcePassageSha256, 80)) ||
+          cleanText(check?.sourcePassageSha256, 80) !== quoteSha256 ||
+          check?.quoteInSnapshot !== true ||
+          check?.entailed !== true ||
+          check?.semanticSupport !== true ||
+          !upstreamAdmissionVerified ||
+          snapshotReceiptVerified !== true
+        ) {
+          continue;
+        }
+        const matches = candidates.filter((entry) => normalizedClaimText(entry.text, 200000).includes(normalizedClaim));
+        for (const artifact of matches) {
+          boundChecks.push({
+            ...check,
+            claimId: cleanText(check?.claimId, 200) || `claim-${boundChecks.length + 1}`,
+            renderedLocation: artifact.path,
+            verifierVersion: RENDERED_CLAIM_VERIFIER_VERSION,
+            sourcePassageSha256: quoteSha256,
+            claimSha256: await sha256Text(claim),
+            renderedArtifactSha256: artifact.sha256,
+            // Source identity/semantic admission and artifact visibility are
+            // separate claims. This boundary may add only the latter; it must
+            // never manufacture entailment from byte identity and visibility.
+            entailed: check.entailed,
+            method: RENDERED_CLAIM_VERIFIER_VERSION,
+            construct: 'rendered-exact-source-claim-support',
+            sourceIdentityVerified: true,
+            semanticAdmissionVerified: true,
+            artifactVisibilityVerified: true,
+            semanticSupport: check.semanticSupport,
+            ...(legacyExactAdmission ? { legacyExactClaimMigrated: true } : {}),
+          });
+        }
+      }
+      if (boundChecks.length === 0 || !isTrustedSourceLedgerRow(row)) return row;
+      return {
+        ...row,
+        supportReceipt: {
+          status: 'passed',
+          checkedClaims: boundChecks.length,
+          minimumScore: 1,
+          method: RENDERED_CLAIM_VERIFIER_VERSION,
+          construct: 'rendered-exact-source-claim-support',
+          sourceIdentityVerified: true,
+          semanticAdmissionVerified: true,
+          artifactVisibilityVerified: true,
+          semanticSupport: receipt.semanticSupport,
+          readinessEligible: true,
+          legacyExactClaimMigrationCount: boundChecks.filter((check) => check.legacyExactClaimMigrated === true).length,
+          sourceSnapshot: {
+            ...snapshot,
+            contentVerified: true,
+            sourceIdentityVerified: true,
+            semanticAdmissionVerified: true,
+            artifactVisibilityVerified: true,
+          },
+          claimBoundary:
+            'This receipt binds specific learner-visible claims to admitted source passages in package-included normalized snapshots. Semantic admission is inherited from the upstream exact-identity or curated-source receipt; this step adds only rendered visibility and does not validate unsupported surrounding prose or classroom effectiveness.',
+          checks: boundChecks,
+        },
+      };
+    }),
+  );
+}
+
+export function isConceptLinkedSourceLedgerRow(row = {}) {
+  return normalizeConceptLinks(row?.conceptLinks || []).length > 0;
+}
+
+export function isTrustedConceptLinkedSourceLedgerRow(row = {}) {
+  return isTrustedSourceLedgerRow(row) && isConceptLinkedSourceLedgerRow(row);
+}
+
+export function summarizeSourceLedgerRows(rows = []) {
+  const ledgerRows = Array.isArray(rows) ? rows : [];
+  return {
+    sourceCount: ledgerRows.length,
+    trustedCount: ledgerRows.filter(isTrustedSourceLedgerRow).length,
+    conceptLinkedCount: ledgerRows.filter(isConceptLinkedSourceLedgerRow).length,
+    trustedConceptLinkedCount: ledgerRows.filter(isTrustedConceptLinkedSourceLedgerRow).length,
+    accessibleCount: ledgerRows.filter(isSourceAccessible).length,
+    licenseAmbiguousCount: ledgerRows.filter((row) => row.licenseAmbiguous).length,
+    providers: [...new Set(ledgerRows.map((row) => row.provider).filter(Boolean))].sort(),
+  };
+}
+
+export function sourceLedgerFromOpenAlex(result = {}, options = {}) {
+  return normalizeTrustedSource(
+    {
+      ...result,
+      provider: 'openalex',
+      sourceType: result.kind || 'scholarly work',
+      status: 'source-provided',
+      license: result.license || 'open access',
+    },
+    options,
+  );
+}
+
+export function sourceLedgerFromOpenLibrary(result = {}, options = {}) {
+  return normalizeTrustedSource(
+    {
+      ...result,
+      provider: 'openlibrary',
+      sourceType: result.kind || 'book metadata',
+      status: 'source-provided',
+      license: result.license || 'Open Library public metadata',
+    },
+    options,
+  );
+}
+
+export function sourceLedgerFromOpenStax(anchor = {}, options = {}) {
+  return normalizeTrustedSource(
+    {
+      ...anchor,
+      provider: anchor.provider || 'openstax',
+      sourceType: anchor.kind || 'open textbook',
+      status: 'source-provided',
+      license: anchor.license || 'CC BY-NC-SA 4.0',
+      attribution: anchor.attribution || 'OpenStax, Rice University',
+    },
+    options,
+  );
+}
+
+function conceptLinkForRef(conceptRef, section, conceptsById) {
+  const conceptId =
+    typeof conceptRef === 'string' ? conceptRef : cleanText(conceptRef?.id || conceptRef?.conceptId || '', 120);
+  const conceptLabel =
+    typeof conceptRef === 'string'
+      ? ''
+      : cleanText(conceptRef?.label || conceptRef?.term || conceptRef?.title || '', 160);
+  const concept = conceptsById.get(conceptId);
+  return { id: conceptId, label: concept?.term || conceptLabel || section?.topic || '' };
+}
+
+function conceptLinksForResource(graph, resourceId) {
+  const sessions = graph?.sessions || [];
+  const conceptsById = new Map((graph?.concepts || []).map((concept) => [concept.id, concept]));
+  const resource = (graph?.resources || []).find((item) => item?.id === resourceId);
+  const links = [];
+  for (const session of sessions) {
+    const linksBeforeSession = links.length;
+    const fallbackSectionLabels = [];
+    const sessionMatches = resource?.sessionRefs?.some((ref) => ref === session.id || ref === session.number);
+    let linkedToSession = Boolean(sessionMatches);
+    for (const section of session.sections || []) {
+      const sectionMatches = (section.resourceRefs || []).includes(resourceId);
+      linkedToSession = linkedToSession || sectionMatches;
+      if (!sessionMatches && !sectionMatches) continue;
+      if (
+        sectionMatches &&
+        (!Array.isArray(section.conceptRefs) || section.conceptRefs.length === 0) &&
+        section.topic
+      ) {
+        fallbackSectionLabels.push(section.topic);
+      }
+      for (const conceptRef of section.conceptRefs || []) {
+        links.push(conceptLinkForRef(conceptRef, section, conceptsById));
+      }
+    }
+    if (linkedToSession) {
+      for (const edge of graph?.edges?.teaches || []) {
+        if (edge?.from !== session.id && edge?.from !== session.number) continue;
+        const concept = conceptsById.get(edge.to);
+        links.push({ id: edge.to, label: concept?.term || '' });
+      }
+    }
+    if (linkedToSession && links.length === linksBeforeSession) {
+      for (const label of fallbackSectionLabels) links.push({ label });
+    }
+  }
+  return normalizeConceptLinks(links);
+}
+
+function conceptLinksForSourceFinderTopic(graph, topic = {}) {
+  const sessions = graph?.sessions || [];
+  const conceptsById = new Map((graph?.concepts || []).map((concept) => [concept.id, concept]));
+  const session = sessions.find(
+    (entry) =>
+      (topic.sessionId && entry.id === topic.sessionId) ||
+      (Number.isInteger(topic.lessonNumber) && entry.number === topic.lessonNumber),
+  );
+  if (!session) return normalizeConceptLinks(topic.topic ? [{ label: topic.topic }] : []);
+  const links = [];
+  for (const section of session.sections || []) {
+    for (const conceptRef of section.conceptRefs || []) {
+      const link = conceptLinkForRef(conceptRef, section, conceptsById);
+      links.push({ ...link, label: link.label || topic.topic || '' });
+    }
+  }
+  for (const edge of graph?.edges?.teaches || []) {
+    if (edge?.from !== session.id && edge?.from !== session.number) continue;
+    const concept = conceptsById.get(edge.to);
+    links.push({ id: edge.to, label: concept?.term || topic.topic || '' });
+  }
+  if (links.length === 0 && topic.topic) links.push({ label: topic.topic });
+  return normalizeConceptLinks(links);
+}
+
+function sourceIdentityKeys(source = {}) {
+  const title = normalizeSourceFingerprintText(source.title || source.citation || '', 260);
+  const authors = normalizeSourceFingerprintAuthors(source.authors || source.author || source.creators || '');
+  const evidence = normalizeSourceFingerprintText(source.evidence || source.snippet || source.abstract || '', 220);
+  const workKeys = [];
+  if (title && title.length >= 12 && !/^(?:source|article|reading|course resource|course materials?)$/.test(title)) {
+    if (authors) workKeys.push(`work:${title}|authors:${authors}`);
+    if (authors && evidence.length >= 24)
+      workKeys.push(`work-evidence:${title}|authors:${authors}|${evidence.slice(0, 140)}`);
+    else if (!authors && evidence.length >= 90) workKeys.push(`work-evidence:${title}|${evidence.slice(0, 140)}`);
+  }
+  const strongKeys = [
+    source.doi ? `doi:${source.doi}` : '',
+    source.url ? `url:${source.url}` : '',
+    source.id ? `id:${source.id}` : '',
+  ]
+    .filter(Boolean)
+    .map((value) => value.toLowerCase());
+  if (strongKeys.length > 0 || workKeys.length > 0) return [...strongKeys, ...workKeys];
+  return source.title ? [`title:${source.title}`.toLowerCase()] : [];
+}
+
+function normalizeSourceFingerprintText(value = '', maxLength = 600) {
+  let text = cleanText(value, maxLength);
+  for (let index = 0; index < 3; index += 1) {
+    text = text.replace(/&amp;/gi, '&').replace(/&nbsp;/gi, ' ');
+  }
+  return text
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/['"‘’“”`]/g, '')
+    .replace(/[^a-z0-9]+/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
+function normalizeSourceFingerprintAuthors(value = '') {
+  return normalizeAuthors(value)
+    .map((author) => normalizeSourceFingerprintText(author, 140))
+    .filter(Boolean)
+    .slice(0, 6)
+    .join(',');
+}
+
+function courseText(courseGraph = {}) {
+  return [
+    courseGraph?.course?.name,
+    courseGraph?.course?.title,
+    courseGraph?.courseName,
+    courseGraph?.title,
+    ...(courseGraph?.sessions || []).map((session) => session?.title || ''),
+  ]
+    .filter(Boolean)
+    .join(' ');
+}
+
+function sourceSearchText(source = {}) {
+  return [source?.title, source?.citation, source?.evidence, source?.abstract, source?.snippet, source?.sourceType]
+    .filter(Boolean)
+    .join(' ');
+}
+
+function sourceConceptText(source = {}) {
+  return (Array.isArray(source?.conceptLinks) ? source.conceptLinks : [])
+    .map((link) => (typeof link === 'string' ? link : link?.label || link?.id || ''))
+    .filter(Boolean)
+    .join(' ');
+}
+
+const ARTIFACT_ONLY_CONCEPT_RE =
+  /^(?:lesson\s+\d{1,3}\s*[:.]?\s*)?(?:quiz|exam|assignment|assignment\s+brief|lab|rubric|course\s+map|syllabus|lesson\s+plans?|slide\s+decks?|discussion\s+prompts?|study\s+guides?|course\s+faq)(?:\s*[,/&]\s*(?:quiz|exam|assignment|assignment\s+brief|lab|rubric|course\s+map|syllabus|lesson\s+plans?|slide\s+decks?|discussion\s+prompts?|study\s+guides?|course\s+faq))*$/i;
+
+function hasOnlyArtifactConceptLinks(source = {}) {
+  const links = Array.isArray(source?.conceptLinks) ? source.conceptLinks : [];
+  const labels = links
+    .map((link) => cleanText(typeof link === 'string' ? link : link?.label || link?.id || '', 160))
+    .filter(Boolean);
+  return labels.length > 0 && labels.every((label) => ARTIFACT_ONLY_CONCEPT_RE.test(label));
+}
+
+function hasOnlyStatisticalConceptLinks(source = {}) {
+  const labels = (Array.isArray(source?.conceptLinks) ? source.conceptLinks : [])
+    .map((link) => cleanText(typeof link === 'string' ? link : link?.label || link?.id || '', 160))
+    .filter(Boolean)
+    .filter((label) => !ARTIFACT_ONLY_CONCEPT_RE.test(label));
+  return (
+    labels.length > 0 &&
+    labels.every(
+      (label) => STATISTICAL_CONCEPT_RE.test(label) && !NON_STATISTICAL_COMPUTING_TEST_CONCEPT_RE.test(label),
+    )
+  );
+}
+
+function hasUserExperienceTopicAnchor(source = {}) {
+  const conceptText = sourceConceptText(source);
+  const text = sourceSearchText(source);
+  return USER_EXPERIENCE_TOPIC_ANCHORS.some(({ concept, source: sourcePattern }) => {
+    return concept.test(conceptText) && sourcePattern.test(text);
+  });
+}
+
+export function isUserExperienceWeakSource(source, courseGraph) {
+  if (!USER_EXPERIENCE_COURSE_RE.test(courseText(courseGraph))) return false;
+  const text = sourceSearchText(source);
+  if (USER_EXPERIENCE_FALSE_FRIEND_RE.test(text)) return true;
+  const conceptText = sourceConceptText(source);
+  const hasRecognizedLessonTopic = USER_EXPERIENCE_TOPIC_ANCHORS.some(({ concept }) => concept.test(conceptText));
+  const hasLessonTopicAnchor = hasUserExperienceTopicAnchor(source);
+  // A broad UX phrase such as "design studio" cannot rescue a work assigned
+  // to a specific lesson on interviews, affinity mapping, usability testing,
+  // or another recognized UX topic. Require the source to match that lesson's
+  // own concept family. Keep the broader course-level gate only for concepts
+  // the topic matrix does not yet recognize.
+  if (hasRecognizedLessonTopic) return !hasLessonTopicAnchor;
+  return !USER_EXPERIENCE_SOURCE_ANCHOR_RE.test(text);
+}
+
+function hasComputerScienceTopicAnchor(source = {}) {
+  const conceptText = sourceConceptText(source);
+  const text = sourceSearchText(source);
+  return COMPUTER_SCIENCE_TOPIC_ANCHORS.some(({ concept, source: sourcePattern }) => {
+    return concept.test(conceptText) && sourcePattern.test(text);
+  });
+}
+
+function isCanonicalComputerScienceOerSource(source = {}) {
+  const provider = cleanText(source?.provider || source?.origin || '', 80).toLowerCase();
+  if (!['openstax', 'genome', 'genome-prerequisite'].includes(provider)) return false;
+  const text = [source?.url, source?.title, source?.citation, source?.evidence, source?.sourceType]
+    .filter(Boolean)
+    .join(' ');
+  return (
+    /openstax\.org\/books\/introduction-python-programming\b/i.test(text) ||
+    /\bopenstax\s+introduction\s+python\s+programming\b/i.test(text)
+  );
+}
+
+export function isComputerScienceWeakSource(source, courseGraph) {
+  if (!COMPUTER_SCIENCE_COURSE_RE.test(courseText(courseGraph))) return false;
+  if (isCanonicalComputerScienceOerSource(source)) return false;
+  if (hasOnlyArtifactConceptLinks(source)) return true;
+  const text = sourceSearchText(source);
+  const conceptText = sourceConceptText(source);
+  if (
+    COMPUTER_SCIENCE_AUTOMATION_CONCEPT_RE.test(conceptText) &&
+    COMPUTER_SCIENCE_AUTOMATION_PHYSICAL_FALSE_FRIEND_RE.test(text)
+  ) {
+    return true;
+  }
+  if (hasOnlyStatisticalConceptLinks(source) && STATISTICAL_SOURCE_RE.test(text)) return false;
+  if (COMPUTER_SCIENCE_FALSE_FRIEND_RE.test(text)) return true;
+  const conceptLabels = (Array.isArray(source?.conceptLinks) ? source.conceptLinks : [])
+    .map((link) => cleanText(typeof link === 'string' ? link : link?.label || link?.id || '', 160))
+    .filter(Boolean);
+  // A bare “Python” concept link is not enough to turn an arbitrary
+  // scientific Python paper into programming-course evidence. Require the
+  // source itself to identify programming, code, the language, its official
+  // documentation, or another concrete CS construct. Lesson-specific links
+  // continue through the topic-anchor matrix below.
+  if (
+    conceptLabels.length > 0 &&
+    conceptLabels.every((label) => COMPUTER_SCIENCE_BROAD_LANGUAGE_CONCEPT_RE.test(label)) &&
+    !COMPUTER_SCIENCE_BROAD_LANGUAGE_SOURCE_PROOF_RE.test(text)
+  ) {
+    return true;
+  }
+  const hasRecognizedLessonTopic = COMPUTER_SCIENCE_TOPIC_ANCHORS.some(({ concept }) => concept.test(conceptText));
+  if (hasRecognizedLessonTopic || COMPUTER_SCIENCE_AMBIGUOUS_CONCEPT_RE.test(conceptText)) {
+    return !hasComputerScienceTopicAnchor(source);
+  }
+  return !COMPUTER_SCIENCE_SOURCE_ANCHOR_RE.test(text) && !hasComputerScienceTopicAnchor(source);
+}
+
+/**
+ * “Transaction management” has a high-ranking enterprise-monitoring false
+ * friend whose page is source-valid but teaches the wrong discipline. Keep the
+ * guard narrow: only database transaction lessons require a visible DBMS,
+ * ACID, concurrency, or transaction-processing anchor.
+ */
+export function isDatabaseWeakSource(source, courseGraph) {
+  if (!DATABASE_COURSE_RE.test(courseText(courseGraph))) return false;
+  const conceptText = sourceConceptText(source);
+  const text = sourceSearchText(source);
+  if (DATABASE_TRANSACTION_TOPIC_RE.test(conceptText)) {
+    return DATABASE_TRANSACTION_FALSE_FRIEND_RE.test(text) && !DATABASE_TRANSACTION_SOURCE_ANCHOR_RE.test(text);
+  }
+  // “Integrity” by itself most often resolves to a moral or philosophical
+  // definition. A database security lesson may retain it only when the source
+  // visibly discusses data, computing, access, or the security triad.
+  if (DATABASE_SECURITY_TOPIC_RE.test(conceptText)) {
+    return !DATABASE_SECURITY_SOURCE_ANCHOR_RE.test(text);
+  }
+  return false;
+}
+
+export function isOralHistoryWeakSource(source, courseGraph) {
+  if (!ORAL_HISTORY_COURSE_RE.test(courseText(courseGraph))) return false;
+  return !ORAL_HISTORY_SOURCE_ANCHOR_RE.test(sourceSearchText(source));
+}
+
+export function isMusicTheoryIntervalWeakSource(source, courseGraph) {
+  return isMusicIntervalWeakSource(sourceSearchText(source), courseText(courseGraph), sourceConceptText(source));
+}
+
+export function isWorldLiteratureWeakSource(source, courseGraph) {
+  if (!WORLD_LITERATURE_COURSE_RE.test(courseText(courseGraph))) return false;
+  return !WORLD_LITERATURE_SOURCE_ANCHOR_RE.test(sourceSearchText(source));
+}
+
+export function isBusinessEthicsWeakSource(source, courseGraph) {
+  if (!BUSINESS_ETHICS_COURSE_RE.test(courseText(courseGraph))) return false;
+  return !BUSINESS_ETHICS_SOURCE_ANCHOR_RE.test(sourceSearchText(source));
+}
+
+export function isFilmStudiesWeakSource(source, courseGraph) {
+  if (!FILM_COURSE_RE.test(courseText(courseGraph))) return false;
+  const conceptText = sourceConceptText(source);
+  if (!FILM_EDITING_TOPIC_RE.test(conceptText)) return false;
+  const text = sourceSearchText(source);
+  return FILM_EDITING_METRE_FALSE_FRIEND_RE.test(text) && !FILM_SOURCE_ANCHOR_RE.test(text);
+}
+
+/**
+ * Revalidate persisted visual-analysis research when a saved project is
+ * replayed. Retrieval-time admission cannot protect an older project whose
+ * source was accepted by a previous generator. Keep this boundary generic to
+ * visual-analysis topic families: social-platform studies cannot satisfy a
+ * perspective mechanism lesson, and computational-imaging papers require the
+ * course itself to declare that technical domain.
+ */
+export function isVisualAnalysisWeakSource(source, courseGraph) {
+  const course = courseText(courseGraph);
+  if (!VISUAL_ANALYSIS_COURSE_RE.test(course)) return false;
+  // Persisted research resources retain the authored lesson query as `topic`
+  // even when an older graph stored only the source's own concept link.
+  const concept = `${sourceConceptText(source)} ${cleanText(source?.topic || source?.scope || '', 240)}`;
+  const text = sourceSearchText(source);
+  const courseAndConcept = `${course} ${concept}`;
+  if (
+    VISUAL_PERSPECTIVE_TOPIC_RE.test(concept) &&
+    VISUAL_SOCIAL_PLATFORM_FALSE_FRIEND_RE.test(text) &&
+    !VISUAL_PERSPECTIVE_SOURCE_ANCHOR_RE.test(text)
+  ) {
+    return true;
+  }
+  return VISUAL_COMPUTATIONAL_FALSE_FRIEND_RE.test(text) && !VISUAL_COMPUTATIONAL_TOPIC_RE.test(courseAndConcept);
+}
+
+export function isCourseAwareWeakSource(source, courseGraph) {
+  return (
+    hasOnlyArtifactConceptLinks(source) ||
+    isUserExperienceWeakSource(source, courseGraph) ||
+    isOralHistoryWeakSource(source, courseGraph) ||
+    isDatabaseWeakSource(source, courseGraph) ||
+    isComputerScienceWeakSource(source, courseGraph) ||
+    isWorldLiteratureWeakSource(source, courseGraph) ||
+    isBusinessEthicsWeakSource(source, courseGraph) ||
+    isFilmStudiesWeakSource(source, courseGraph) ||
+    isVisualAnalysisWeakSource(source, courseGraph) ||
+    isMusicTheoryIntervalWeakSource(source, courseGraph)
+  );
+}
+
+function isSourceFinderCandidate(source = {}) {
+  return (
+    cleanText(source?.origin || source?.sourceOrigin, 80).toLowerCase() === 'source-finder' ||
+    /^sf(?:-|\d)/i.test(cleanText(source?.id, 80))
+  );
+}
+
+function isGeneratedSyllabusSource(source = {}) {
+  const origin = cleanText(source?.origin || source?.sourceOrigin, 80).toLowerCase();
+  return origin === 'syllabus' || /^syllabus-src-/i.test(cleanText(source?.id, 120));
+}
+
+function requiresSourceReview(source = {}) {
+  return !isTrustedConceptLinkedSourceLedgerRow(source);
+}
+
+function appendCourseAwareSource(rows, reviewRows, source, courseGraph) {
+  const weak = isCourseAwareWeakSource(source, courseGraph);
+  const machineResearchOrigin = cleanText(source?.origin || source?.sourceOrigin, 80).toLowerCase();
+  // A domain-rejected result produced by an automated retrieval path is not
+  // a citation the instructor needs to repair. It is search bycatch and must
+  // not leak back into a replayed package as either trusted proof or a review
+  // note. Preserve review rows for relevant sources with genuine metadata,
+  // access, license, or concept-link gaps.
+  if (
+    weak &&
+    ['algi-research', 'scion-research', 'scion-evidence-overlay', 'source-finder'].includes(machineResearchOrigin)
+  ) {
+    return;
+  }
+  if (isSourceFinderCandidate(source) && (requiresSourceReview(source) || weak)) {
+    return;
+  }
+  if (isGeneratedSyllabusSource(source) && weak) {
+    return;
+  }
+  if (requiresSourceReview(source)) {
+    appendUnique(reviewRows, source);
+    return;
+  }
+  if (isTrustedConceptLinkedSourceLedgerRow(source) && weak) {
+    appendUnique(reviewRows, source);
+    return;
+  }
+  appendUnique(rows, source);
+}
+
+function appendUnique(rows, source) {
+  if (!source?.id && !source?.title) return;
+  const keys = sourceIdentityKeys(source);
+  const existingIndex = rows.findIndex(
+    (entry) =>
+      sourceIdentityKeys(entry).some((key) => keys.includes(key)) && sourceConstructBindingsOverlap(entry, source),
+  );
+  if (existingIndex >= 0) {
+    rows[existingIndex] = mergeSourceLedgerConceptLinks(rows[existingIndex], source);
+    return;
+  }
+  rows.push(withUniqueSourceBindingId(rows, source));
+}
+
+function sourceLedgerMergeRichness(source = {}) {
+  const receipt = source?.supportReceipt;
+  let score = 0;
+  if (isTrustedSourceLedgerRow(source)) score += 40;
+  if (receipt?.sourceIdentityVerified === true) score += 20;
+  if (receipt?.semanticAdmissionVerified === true) score += 20;
+  if (receipt?.sourceSnapshot?.protocol === 'retrieved-source-snapshot-sha256-v2') score += 10;
+  if ((receipt?.checks || []).length > 0) score += 5;
+  if (isSourceAccessible(source)) score += 3;
+  if (!isLicenseAmbiguous(source?.license)) score += 2;
+  return score;
+}
+
+function conceptLinkKeys(source = {}) {
+  return (Array.isArray(source.conceptLinks) ? source.conceptLinks : [])
+    .flatMap((link) => {
+      if (typeof link === 'string') return [link];
+      return [link?.id, link?.label];
+    })
+    .map((value) => cleanText(value, 120).toLowerCase())
+    .filter(Boolean);
+}
+
+// Source identity and source support are different things. One textbook may
+// be cited in several lessons, but that does not make one section evidence for
+// every construct attached to the book. Keep occurrence-level session/concept
+// pairs intact so merging metadata cannot create a false support fan-out.
+function sourceConstructBindingKeys(source = {}) {
+  const sessionKeys = [...(Array.isArray(source?.sessionRefs) ? source.sessionRefs : []), source?.scope]
+    .map(normalizeSessionRef)
+    .filter((value) => value && value !== 'course');
+  const conceptKeys = conceptLinkKeys(source);
+  const sessions = [...new Set(sessionKeys.length > 0 ? sessionKeys : ['course'])];
+  const concepts = [...new Set(conceptKeys.length > 0 ? conceptKeys : ['unbound'])];
+  return sessions.flatMap((session) => concepts.map((concept) => `${session}|${concept}`));
+}
+
+function sourceConstructBindingsOverlap(left = {}, right = {}) {
+  const leftKeys = new Set(sourceConstructBindingKeys(left));
+  const rightKeys = sourceConstructBindingKeys(right);
+  return rightKeys.some((key) => leftKeys.has(key));
+}
+
+function withUniqueSourceBindingId(rows, source = {}) {
+  const id = cleanText(source?.id, 180);
+  if (!id || !rows.some((row) => cleanText(row?.id, 180) === id)) return source;
+  const suffix = sha256HexSync(sourceConstructBindingKeys(source).sort().join('|')).slice(0, 10);
+  return {
+    ...source,
+    id: `${id}--${suffix}`,
+    sourceWorkId: source?.sourceWorkId || id,
+  };
+}
+
+function reviewRowConceptsCoveredByTrustedRows(reviewRow, trustedRows) {
+  const reviewKeys = conceptLinkKeys(reviewRow);
+  if (reviewKeys.length === 0 || trustedRows.length === 0) return false;
+  const trustedKeys = new Set(trustedRows.flatMap((row) => conceptLinkKeys(row)));
+  return reviewKeys.every((key) => trustedKeys.has(key));
+}
+
+function isCoveredNonActionableReviewRow(row, trustedRows, courseGraph) {
+  if (!reviewRowConceptsCoveredByTrustedRows(row, trustedRows)) return false;
+  return isGeneratedSyllabusSource(row) || isSourceFinderCandidate(row) || isCourseAwareWeakSource(row, courseGraph);
+}
+
+function pruneCoveredNonActionableReviewRows(rows, reviewRows, courseGraph) {
+  if (!reviewRows.length) return reviewRows;
+  const trustedRows = rows.filter(isTrustedConceptLinkedSourceLedgerRow);
+  if (!trustedRows.length) return reviewRows;
+  return reviewRows.filter((row) => !isCoveredNonActionableReviewRow(row, trustedRows, courseGraph));
+}
+
+function mergeSourceLedgerConceptLinks(existing = {}, incoming = {}) {
+  const [preferred, supplement] =
+    sourceLedgerMergeRichness(incoming) > sourceLedgerMergeRichness(existing)
+      ? [incoming, existing]
+      : [existing, incoming];
+  const conceptLinks = normalizeConceptLinks([...(existing.conceptLinks || []), ...(incoming.conceptLinks || [])]);
+  const authors = normalizeAuthors([...(existing.authors || []), ...(incoming.authors || [])]);
+  const sessionRefs = [
+    ...new Set([...(existing.sessionRefs || []), ...(incoming.sessionRefs || [])].map(normalizeSessionRef)),
+  ].filter(Boolean);
+  return {
+    ...preferred,
+    ...(!preferred.attribution && supplement.attribution ? { attribution: supplement.attribution } : {}),
+    ...(!preferred.revisionId && supplement.revisionId ? { revisionId: supplement.revisionId } : {}),
+    ...(!preferred.revisionTimestamp && supplement.revisionTimestamp
+      ? { revisionTimestamp: supplement.revisionTimestamp }
+      : {}),
+    ...(!preferred.evidence && supplement.evidence ? { evidence: supplement.evidence } : {}),
+    ...(!preferred.supportReceipt && supplement.supportReceipt ? { supportReceipt: supplement.supportReceipt } : {}),
+    ...(authors.length > 0 ? { authors } : {}),
+    ...(sessionRefs.length > 0 ? { sessionRefs } : {}),
+    ...(conceptLinks.length > 0 ? { conceptLinks } : {}),
+  };
+}
+
+function reconcileTrustedAndReviewRows(rows, reviewRows) {
+  const remainingReviewRows = [];
+  for (const reviewRow of reviewRows) {
+    // A source-valid row can be in review because its lesson-level citation
+    // set was non-separable (one sibling source was off-discipline). Keep that
+    // quarantine intact; only reconcile a genuinely weaker metadata duplicate.
+    if (isTrustedConceptLinkedSourceLedgerRow(reviewRow)) {
+      remainingReviewRows.push(reviewRow);
+      continue;
+    }
+    const reviewKeys = sourceIdentityKeys(reviewRow);
+    const trustedIndex = rows.findIndex(
+      (row) =>
+        sourceIdentityKeys(row).some((key) => reviewKeys.includes(key)) &&
+        sourceConstructBindingsOverlap(row, reviewRow),
+    );
+    if (trustedIndex < 0) {
+      remainingReviewRows.push(withUniqueSourceBindingId([...rows, ...remainingReviewRows], reviewRow));
+      continue;
+    }
+    // One source identity is one ledger row. A later claim-bound occurrence
+    // upgrades the shared row and carries every lesson/concept link with it;
+    // the weaker duplicate must not remain as a contradictory review item.
+    rows[trustedIndex] = mergeSourceLedgerConceptLinks(rows[trustedIndex], reviewRow);
+  }
+  return remainingReviewRows;
+}
+
+function isCourseIRReviewOnlySource(source = {}) {
+  if (cleanText(source.provider, 80).toLowerCase() !== 'courseir') return false;
+  if (isSourceAccessible(source)) return false;
+  const status = cleanText(source.status, 80).toLowerCase();
+  const text = [source.title, source.evidence, source.scope].map((value) => cleanText(value, 240)).join(' ');
+  return (
+    source.licenseAmbiguous ||
+    status === 'assumption' ||
+    status === 'model-authored' ||
+    /\b(?:existing course map fields|no source ledger|instructor source review|repaired package requires review)\b/i.test(
+      text,
+    )
+  );
+}
+
+function isFoundationalCourseGraph(courseGraph = {}) {
+  const courseName = cleanText(courseGraph?.course?.name || courseGraph?.courseName || courseGraph?.title || '', 200);
+  return /\b(?:middle school|elementary school|grades?\s*[1-9](?:\s*[-–]\s*1?[0-2])?|k\s*[-–]\s*12)\b/i.test(
+    courseName,
+  );
+}
+
+function citationSupportsRetainedKernelFact(citation = {}, payload = {}) {
+  const receipt = citation?.supportReceipt;
+  if (
+    receipt?.status !== 'passed' ||
+    receipt?.sourceIdentityVerified !== true ||
+    receipt?.semanticAdmissionVerified !== true ||
+    receipt?.semanticSupport !== true
+  ) {
+    return false;
+  }
+  const retainedFacts = new Set(
+    (Array.isArray(payload?.kernel?.facts) ? payload.kernel.facts : [])
+      .map((fact) => normalizeSourceFingerprintText(fact, 1200))
+      .filter(Boolean),
+  );
+  if (retainedFacts.size === 0) return false;
+  return (Array.isArray(receipt.checks) ? receipt.checks : []).some(
+    (check) =>
+      check?.entailed === true &&
+      check?.sourceIdentityVerified === true &&
+      check?.semanticAdmissionVerified === true &&
+      check?.semanticSupport === true &&
+      retainedFacts.has(normalizeSourceFingerprintText(check?.claim, 1200)),
+  );
+}
+
+function sourceFinderLedgerCandidateScore(source = {}, courseGraph = {}) {
+  const provider = cleanText(source.provider || source.origin || '', 80).toLowerCase();
+  let score = 0;
+  if (isSourceAccessible(source)) score += 30;
+  if (source?.doi) score += 8;
+  if (!isLicenseAmbiguous(source?.license)) score += 30;
+  if (TRUST_ELIGIBLE_PROVIDERS.has(provider) && !REVIEW_ONLY_PROVIDERS.has(provider)) score += 30;
+  if (ACADEMIC_PROVIDERS.has(provider)) score += 12;
+  if (OER_PROVIDERS.has(provider)) score += 10;
+  if (LICENSED_BACKGROUND_PROVIDERS.has(provider)) score += 8;
+  if (isFoundationalCourseGraph(courseGraph) && LICENSED_BACKGROUND_PROVIDERS.has(provider)) score += 36;
+  if (METADATA_ONLY_PROVIDERS.has(provider) || REVIEW_ONLY_PROVIDERS.has(provider)) score -= 20;
+  return score;
+}
+
+function rankedSourceFinderTopicSources(topic = {}, courseGraph = {}) {
+  return (Array.isArray(topic.sources) ? topic.sources : [])
+    .filter((source) => source && typeof source === 'object')
+    .map((source, index) => ({ source, index, score: sourceFinderLedgerCandidateScore(source, courseGraph) }))
+    .sort((left, right) => right.score - left.score || left.index - right.index);
+}
+
+function normalizeSourceFinderTopicSource(courseGraph, topic, source, topicIndex, sourceIndex, checkedAt) {
+  return normalizeTrustedSource(
+    {
+      ...source,
+      id: source.sourceRefId || source.id || `sf-${topicIndex + 1}-${sourceIndex + 1}`,
+      origin: 'source-finder',
+      provider: source.provider || 'source-finder',
+      sourceType: source.kind || 'source-finder source',
+      status: 'source-provided',
+      scope: topic.sessionId || topic.lessonNumber ? `lesson-${topic.lessonNumber || topic.sessionId}` : 'course',
+      evidence: source.snippet || source.abstract || source.evidence || topic.topic,
+    },
+    {
+      fallbackId: `sf-${topicIndex + 1}-${sourceIndex + 1}`,
+      checkedAt,
+      conceptLinks: conceptLinksForSourceFinderTopic(courseGraph, topic),
+    },
+  );
+}
+
+function sourceFinderTopicLedgerSources(courseGraph, topic, topicIndex, checkedAt) {
+  const candidates = rankedSourceFinderTopicSources(topic, courseGraph).map(({ source }, sourceIndex) =>
+    normalizeSourceFinderTopicSource(courseGraph, topic, source, topicIndex, sourceIndex, checkedAt),
+  );
+  const trustedConceptLinked = [];
+  const reviewRequired = [];
+  for (const source of candidates) {
+    // A domain-rejected search result is not an unresolved citation. It is a
+    // false friend that the retrieval layer already knows not to use, so do
+    // not leak it into the exported review appendix. Keep only candidates
+    // that are relevant but still need metadata, license, access, or concept
+    // verification.
+    if (isCourseAwareWeakSource(source, courseGraph)) continue;
+    if (!isTrustedConceptLinkedSourceLedgerRow(source)) {
+      appendUnique(reviewRequired, {
+        ...source,
+        status: 'review-required: metadata-only, license, access, or concept-link gap',
+      });
+      continue;
+    }
+    appendUnique(trustedConceptLinked, source);
+  }
+  if (trustedConceptLinked.length > 0) {
+    const trustedLimit = isFoundationalCourseGraph(courseGraph) ? 1 : SOURCE_FINDER_TRUSTED_ROWS_PER_TOPIC;
+    return {
+      rows: trustedConceptLinked.slice(0, trustedLimit),
+      reviewRows: [],
+    };
+  }
+  return {
+    rows: [],
+    reviewRows: reviewRequired.slice(0, SOURCE_FINDER_TRUSTED_ROWS_PER_TOPIC),
+  };
+}
+
+function authenticLanguageSourceProvider(source = {}) {
+  const url = cleanText(source?.url, 400).toLowerCase();
+  if (/^https:\/\/(?:www\.)?wals\.info\//.test(url)) return 'wals';
+  if (/^https:\/\/ocw\.mit\.edu\//.test(url)) return 'mit-ocw';
+  return 'authentic-language-data';
+}
+
+function authenticLanguageSourceLedgerRows(courseGraph, checkedAt) {
+  const packet = courseGraph?.authenticLanguageData;
+  if (packet?.protocol !== 'coursemapper-authentic-language-data-v1') return [];
+  const examples = Array.isArray(packet?.examples) ? packet.examples : [];
+  const usageBySourceId = new Map();
+  for (const lesson of courseGraph?.authenticLanguageDataCoverage?.lessons || []) {
+    for (const example of lesson?.taskBinding?.examples || []) {
+      const sourceId = cleanText(example?.sourceId, 160);
+      if (!sourceId) continue;
+      const usage = usageBySourceId.get(sourceId) || { sessionRefs: new Set(), conceptLinks: [] };
+      usage.sessionRefs.add(cleanText(lesson?.sessionId || `s${lesson?.lessonNumber}`, 120));
+      const lessonNumber = Number(lesson?.lessonNumber);
+      usage.conceptLinks.push({
+        id: Number.isFinite(lessonNumber) ? `c${lessonNumber}` : 'authentic-language-data',
+        label: cleanText(`${lesson?.evidenceSubtype || 'language evidence'} ${lesson?.operation || 'analysis'}`, 160),
+      });
+      usageBySourceId.set(sourceId, usage);
+    }
+  }
+  return (Array.isArray(packet?.sources) ? packet.sources : []).map((source, sourceIndex) => {
+    const sourceId = cleanText(source?.id || `authentic-language-source-${sourceIndex + 1}`, 160);
+    const sourceExamples = examples.filter((example) => cleanText(example?.sourceId, 160) === sourceId);
+    const quotes = sourceExamples
+      .map((example) => cleanText(`${example.form} | ${example.gloss} | ${example.translation}`, 500))
+      .filter(Boolean);
+    const normalizedSnapshotText = quotes.join(' ');
+    const snapshotBytes = new TextEncoder().encode(normalizedSnapshotText);
+    const retrievedSnapshotSha256 = sha256HexSync(normalizedSnapshotText);
+    let byteCursor = 0;
+    const checks = sourceExamples.map((example, index) => {
+      const quote = quotes[index] || '';
+      const quoteBytes = new TextEncoder().encode(quote).byteLength;
+      const quoteByteStart = byteCursor;
+      const quoteByteEnd = quoteByteStart + quoteBytes;
+      byteCursor = quoteByteEnd + (index < sourceExamples.length - 1 ? 1 : 0);
+      const claim = cleanText(example?.analysisFocus, 400);
+      return {
+        claimId: `authentic-example-${cleanText(example?.id || index + 1, 160)}`,
+        claim,
+        quote,
+        sourceId,
+        locator: cleanText(example?.sourceLocator, 200),
+        retrievedSnapshotSha256,
+        retrievedSnapshotBytes: snapshotBytes.byteLength,
+        quoteByteStart,
+        quoteByteEnd,
+        sourcePassageSha256: sha256HexSync(quote),
+        claimSha256: sha256HexSync(claim),
+        quoteInSnapshot: true,
+        entailed: true,
+        score: 1,
+        reason: 'shipped-source-curated-anchor',
+        method: 'shipped-source-curated-anchor-v1',
+        construct: 'authentic-language-example-analysis',
+        sourceIdentityVerified: true,
+        semanticAdmissionVerified: true,
+        artifactVisibilityVerified: false,
+        semanticSupport: true,
+        semanticAdmission: {
+          admitted: true,
+          policy: 'shipped-source-curated-anchor-v1',
+          topic: cleanText(example?.analysisFocus, 180),
+          topicMatches: [cleanText(example?.id, 80)].filter(Boolean),
+          issues: [],
+        },
+      };
+    });
+    const usage = usageBySourceId.get(sourceId);
+    const conceptLinks = usage?.conceptLinks?.length
+      ? usage.conceptLinks
+      : [{ id: 'authentic-language-data', label: 'Documented language-data packet' }];
+    return normalizeTrustedSource(
+      {
+        ...source,
+        id: sourceId,
+        provider: authenticLanguageSourceProvider(source),
+        sourceType: 'curated authentic-language source',
+        origin: 'authentic-language-data',
+        scope: usage?.sessionRefs?.size ? [...usage.sessionRefs][0] : 'course',
+        sessionRefs: usage ? [...usage.sessionRefs].filter(Boolean) : [],
+        evidence: cleanText(
+          sourceExamples.map((example) => `${example.sourceLocator}: ${example.analysisFocus}`).join(' '),
+          360,
+        ),
+        supportReceipt: {
+          status: 'passed',
+          checkedClaims: checks.length,
+          minimumScore: 1,
+          method: 'shipped-source-curated-anchor-v1',
+          construct: 'authentic-language-example-analysis',
+          sourceIdentityVerified: true,
+          semanticAdmissionVerified: true,
+          artifactVisibilityVerified: false,
+          semanticSupport: true,
+          readinessEligible: false,
+          sourceSnapshot: {
+            protocol: 'retrieved-source-snapshot-sha256-v2',
+            sourceId,
+            retrievedSnapshotSha256,
+            retrievedSnapshotBytes: snapshotBytes.byteLength,
+            normalizedSnapshotText,
+            contentVerified: true,
+            sourceIdentityVerified: true,
+            semanticAdmissionVerified: true,
+            artifactVisibilityVerified: false,
+          },
+          checks,
+          claimBoundary:
+            'The curated packet binds the cited form, gloss, translation, locator, and bounded analysis. It does not establish transfer beyond the cited records.',
+        },
+      },
+      { fallbackId: sourceId, checkedAt, conceptLinks },
+    );
+  });
+}
+
+export function buildSourceLedgerFromCourseGraph(courseGraph, { checkedAt = '' } = {}) {
+  if (!courseGraph || typeof courseGraph !== 'object') return null;
+  const rows = [];
+  const reviewRows = [];
+  const sourceFinderReviewRows = [];
+  const courseIRRows = Array.isArray(courseGraph.courseIR?.sourceLedger) ? courseGraph.courseIR.sourceLedger : [];
+  courseIRRows.forEach((entry, index) => {
+    const normalized = normalizeTrustedSource(
+      {
+        provider: entry.provider || 'courseir',
+        sourceType: entry.sourceType || 'courseir-ledger-row',
+        ...entry,
+      },
+      { fallbackId: `SL${index + 1}`, checkedAt },
+    );
+    if (isCourseIRReviewOnlySource(normalized)) appendUnique(reviewRows, normalized);
+    else appendCourseAwareSource(rows, reviewRows, normalized, courseGraph);
+  });
+
+  for (const source of authenticLanguageSourceLedgerRows(courseGraph, checkedAt)) {
+    appendCourseAwareSource(rows, reviewRows, source, courseGraph);
+  }
+
+  // The enrichment overlay is the immutable lesson-evidence boundary. Graph
+  // readings intentionally cap classroom display resources, but that cap must
+  // never truncate provenance in the manifest or SOURCE_REPORT.md. Admit every
+  // retained overlay citation first; graph resources below can enrich or
+  // deduplicate the same URL without becoming the source of truth.
+  for (const [lessonId, payload] of Object.entries(courseGraph.enrichmentOverlay?.lessonContent || {})) {
+    const lessonNumber = Math.max(0, Number(String(lessonId).match(/(\d+)$/)?.[1]) || 0);
+    const session = lessonNumber > 0 ? courseGraph.sessions?.[lessonNumber - 1] : null;
+    const lessonTitle = cleanText(session?.title || `Lesson ${lessonNumber}`, 180);
+    const citations = Array.isArray(payload?.conceptProvenance?.citations) ? payload.conceptProvenance.citations : [];
+    const stableLesson = {
+      ...(session || {}),
+      title: lessonTitle,
+      sections: (session?.sections || []).map((section) => ({
+        ...section,
+        topicSection: section?.topicSection || section?.topic || section?.title || '',
+      })),
+    };
+    const researchCitation = (citation) =>
+      /^(?:wikipedia|doaj|openalex|crossref|pubmed|eric)$/i.test(cleanText(citation?.provider, 80));
+    const instructionalInstance = payload?.evidenceAuthorityReceipt?.instructionalInstance;
+    // Instructional-instance receipts use canonical JSON so object key order
+    // cannot change trust during save/replay. Recomputing them with plain
+    // JSON.stringify silently discarded otherwise valid authorized source
+    // specializations from the export ledger (for example, a verified
+    // randomized-experiment passage after project reload).
+    const verifiedInstructionalInstance = instructionalInstanceReceiptMatches(instructionalInstance);
+    // This plan is frozen before retrieval and hash-bound to the lesson. It is
+    // independent authorization for a narrower source title; the candidate
+    // citation's own concept labels are intentionally excluded.
+    const authorizedSpecializationSurfaces = verifiedInstructionalInstance
+      ? (instructionalInstance?.requirements || [])
+          .filter((requirement) => ['modeled-example', 'objective'].includes(requirement?.role))
+          .flatMap((requirement) => [
+            ...(requirement?.payload?.focusConcepts || []),
+            ...(requirement?.payload?.targetObjectives || []),
+          ])
+      : [];
+    const exactResearchRootPresent = citations.some(
+      (citation) =>
+        researchCitation(citation) &&
+        isLessonResearchSurfaceBound(citation?.displayTitle || citation?.title || citation?.key, stableLesson, {
+          rejectSurfaceSpecialization: true,
+          authorizedSpecializationSurfaces,
+        }),
+    );
+    const normalizedCitations = citations
+      .filter(
+        (citation) =>
+          !researchCitation(citation) ||
+          citationSupportsRetainedKernelFact(citation, payload) ||
+          isLessonResearchSurfaceBound(citation?.displayTitle || citation?.title || citation?.key, stableLesson, {
+            rejectSurfaceSpecialization: exactResearchRootPresent,
+            authorizedSpecializationSurfaces,
+          }),
+      )
+      .map((citation, citationIndex) =>
+        normalizeTrustedSource(
+          {
+            ...citation,
+            id: citation.id || citation.sourceRefId || `overlay-${lessonNumber || 'course'}-${citationIndex + 1}`,
+            title: citation.displayTitle || citation.title || citation.key,
+            url: citation.sourceUrl || citation.url,
+            provider: citation.provider || citation.providerId,
+            sourceType: citation.kind || citation.sourceKind || 'lesson evidence source',
+            status: 'source-provided',
+            origin: citation.origin || 'scion-evidence-overlay',
+            evidence: citation.evidence,
+            scope: lessonNumber > 0 ? `lesson-${lessonNumber}` : 'course',
+            sessionRefs: lessonNumber > 0 ? [session?.id || `s${lessonNumber}`] : [],
+          },
+          {
+            fallbackId: `overlay-${lessonNumber || 'course'}-${citationIndex + 1}`,
+            checkedAt,
+            conceptLinks: [
+              ...(lessonNumber > 0 ? [{ id: `c${lessonNumber}`, label: lessonTitle }] : []),
+              ...(Array.isArray(citation.conceptLinks) ? citation.conceptLinks : []),
+            ],
+          },
+        ),
+      );
+    // A legacy lesson overlay binds claims to the citation set, not to one
+    // citation per sentence. If any retained citation is off-discipline, that
+    // lesson's overlay is non-separable: none of its rows may expand trusted
+    // lesson coverage. Domain-rejected machine research is retrieval bycatch,
+    // not unresolved bibliography debt, so omit the rejected row from learner
+    // and instructor review surfaces. A relevant companion row remains visible
+    // for review and may still be trusted independently in another clean lesson.
+    const coarseOverlayRequiresReview = normalizedCitations.some((source) =>
+      isCourseAwareWeakSource(source, courseGraph),
+    );
+    for (const normalized of normalizedCitations) {
+      if (isCourseAwareWeakSource(normalized, courseGraph)) continue;
+      if (coarseOverlayRequiresReview) appendUnique(reviewRows, normalized);
+      else appendCourseAwareSource(rows, reviewRows, normalized, courseGraph);
+    }
+  }
+
+  for (const resource of courseGraph.resources || []) {
+    if (!resource || typeof resource !== 'object') continue;
+    const provider = resource.provider || resource.origin || 'course-resource';
+    if (!isSourceLikeResource(resource, provider)) continue;
+    appendCourseAwareSource(
+      rows,
+      reviewRows,
+      normalizeTrustedSource(
+        {
+          ...resource,
+          id: resource.sourceRefId || resource.id,
+          title: resource.title || resource.citation,
+          provider,
+          sourceType: resource.kind || 'course resource',
+          status: 'source-provided',
+        },
+        { fallbackId: resource.id, checkedAt, conceptLinks: conceptLinksForResource(courseGraph, resource.id) },
+      ),
+      courseGraph,
+    );
+  }
+
+  for (const reading of courseGraph.readings || []) {
+    if (!reading || typeof reading !== 'object') continue;
+    appendCourseAwareSource(
+      rows,
+      reviewRows,
+      normalizeTrustedSource(
+        {
+          ...reading,
+          provider: reading.instructorProvided ? 'instructor-provided' : 'instructor',
+          sourceType: reading.kind || 'reading',
+          status: 'source-provided',
+          license: reading.license || 'instructor review required',
+          evidence: reading.sourceText || reading.title,
+        },
+        { fallbackId: reading.id, checkedAt },
+      ),
+      courseGraph,
+    );
+  }
+
+  for (const [topicIndex, topic] of (courseGraph.sourceFinderMiniShard?.topics || []).entries()) {
+    if (!topic || typeof topic !== 'object') continue;
+    const topicSources = sourceFinderTopicLedgerSources(courseGraph, topic, topicIndex, checkedAt);
+    for (const source of topicSources.rows || []) {
+      appendUnique(rows, source);
+    }
+    for (const source of topicSources.reviewRows || []) {
+      appendUnique(sourceFinderReviewRows, source);
+    }
+  }
+
+  if (rows.length === 0 && reviewRows.length === 0 && sourceFinderReviewRows.length > 0) {
+    for (const source of sourceFinderReviewRows.slice(0, SOURCE_FINDER_TRUSTED_ROWS_PER_TOPIC)) {
+      appendUnique(reviewRows, source);
+    }
+  }
+
+  if (rows.length === 0 && reviewRows.length === 0) return null;
+  const reconciledReviewRows = reconcileTrustedAndReviewRows(rows, reviewRows);
+  const actionableReviewRows = pruneCoveredNonActionableReviewRows(rows, reconciledReviewRows, courseGraph);
+  return {
+    rows,
+    ...(actionableReviewRows.length > 0 ? { reviewRows: actionableReviewRows } : {}),
+    summary: {
+      ...summarizeSourceLedgerRows(rows),
+      ...(actionableReviewRows.length > 0 ? { reviewRequiredCount: actionableReviewRows.length } : {}),
+    },
+  };
+}
+
+export function buildSourceReportMarkdown({
+  courseName = 'Course',
+  sourceLedger = null,
+  sourceRefCoverage = null,
+} = {}) {
+  const rows = sourceLedger?.rows || [];
+  const reviewRows = sourceLedger?.reviewRows || [];
+  if (rows.length === 0 && reviewRows.length === 0 && !sourceRefCoverage) return '';
+  const lines = [`# Source Report — ${cleanText(courseName, 180) || 'Course'}`, ''];
+  lines.push('## Research Policy');
+  lines.push(
+    'CourseMapper compiles teaching materials from source ledger rows and atom sourceRefs. Missing URLs, DOI values, or licenses are marked for instructor review rather than invented during compilation.',
+  );
+  lines.push('');
+  if (rows.length > 0 || reviewRows.length > 0) {
+    lines.push('## Rights and Attribution');
+    lines.push(
+      'Each source remains governed by the license stated on its ledger row. Preserve its source id, title, attribution, URL or DOI, and license when reusing quoted or closely adapted source material.',
+    );
+    lines.push(
+      'When a ledger row states a Creative Commons ShareAlike license, only the portions quoted or adapted from that source are offered under the same stated license. This notice does not relicense independently authored package content.',
+    );
+    lines.push(
+      'When a ledger row states a NonCommercial condition, source-derived material may be reused or adapted only for noncommercial purposes unless the rights holder grants separate permission.',
+    );
+    lines.push(
+      'Review-required, instructor-provided, or missing-license material receives no reuse permission from CourseMapper; obtain permission or replace it before redistribution.',
+    );
+    lines.push('');
+  }
+  if (rows.length > 0) {
+    lines.push('## Source Ledger');
+    for (const row of rows) {
+      // Keep the stable machine identity visible without rendering an
+      // identifier/title pair as "X: X". Besides being easier to scan, this
+      // prevents source IDs such as "wikipedia:Data type" from looking like
+      // duplicated prose to deterministic format checks.
+      lines.push(`- ${row.citation || row.title} (source id: ${row.id})`);
+      const details = [
+        row.provider ? `provider=${row.provider}` : '',
+        row.license ? `license=${row.license}` : 'license=missing',
+        row.attribution ? `attribution=${row.attribution}` : '',
+        row.url ? `url=${row.url}` : row.doi ? `doi=${row.doi}` : 'access=missing-url-or-doi',
+        row.revisionId ? `revisionId=${row.revisionId}` : '',
+        row.revisionTimestamp ? `revisionTimestamp=${row.revisionTimestamp}` : '',
+        row.sessionRefs?.length ? `sessions=${row.sessionRefs.join(',')}` : '',
+        row.checkedAt ? `checkedAt=${row.checkedAt}` : '',
+        row.licenseAmbiguous ? 'licenseReview=required' : '',
+      ].filter(Boolean);
+      if (details.length > 0) lines.push(`  - ${details.join('; ')}`);
+      if (row.conceptLinks?.length > 0) {
+        lines.push(`  - concepts=${row.conceptLinks.map((link) => link.label || link.id).join(', ')}`);
+      }
+    }
+    lines.push('');
+  }
+  if (reviewRows.length > 0) {
+    lines.push('## Source Review Notes');
+    for (const row of reviewRows) {
+      lines.push(`- ${row.title || row.evidence || 'CourseIR source row requires review'} (source id: ${row.id})`);
+      const details = [
+        row.provider ? `provider=${row.provider}` : '',
+        row.status ? `status=${row.status}` : '',
+        row.license ? `license=${row.license}` : 'license=missing',
+        row.attribution ? `attribution=${row.attribution}` : '',
+        row.url ? `url=${row.url}` : row.doi ? `doi=${row.doi}` : 'access=missing-url-or-doi',
+        row.revisionId ? `revisionId=${row.revisionId}` : '',
+        row.revisionTimestamp ? `revisionTimestamp=${row.revisionTimestamp}` : '',
+        row.sessionRefs?.length ? `sessions=${row.sessionRefs.join(',')}` : '',
+        row.checkedAt ? `checkedAt=${row.checkedAt}` : '',
+        'trustedBibliography=false',
+      ].filter(Boolean);
+      if (details.length > 0) lines.push(`  - ${details.join('; ')}`);
+      if (row.evidence && row.evidence !== row.title) lines.push(`  - evidence=${row.evidence}`);
+    }
+    lines.push('');
+  }
+  if (sourceRefCoverage) {
+    lines.push('## SourceRef Coverage');
+    lines.push(
+      'These counts describe structural sourceRef wiring. Trusted grounding is reported separately and requires concept-linked bibliography rows.',
+    );
+    for (const [category, coverage] of Object.entries(sourceRefCoverage.categories || {})) {
+      lines.push(
+        `- ${category}: ${coverage.withRefs}/${coverage.total} with sourceRefs${
+          coverage.danglingRefs ? `; danglingRefs=${coverage.danglingRefs}` : ''
+        }`,
+      );
+      if (coverage.missingIds?.length > 0) lines.push(`  - missing=${coverage.missingIds.join(', ')}`);
+    }
+    lines.push('');
+    if (sourceRefCoverage.trusted) {
+      lines.push('## Trusted SourceRef Coverage');
+      for (const [category, coverage] of Object.entries(sourceRefCoverage.trusted.categories || {})) {
+        lines.push(
+          `- ${category}: ${coverage.withRefs}/${coverage.total} with trusted sourceRefs${
+            coverage.danglingRefs ? `; nonTrustedRefs=${coverage.danglingRefs}` : ''
+          }`,
+        );
+        if (coverage.missingIds?.length > 0) lines.push(`  - missing=${coverage.missingIds.join(', ')}`);
+      }
+    } else {
+      lines.push('## Trusted SourceRef Coverage');
+      const trustedConceptLinkedRows = rows.filter(isTrustedConceptLinkedSourceLedgerRow).length;
+      if (trustedConceptLinkedRows > 0) {
+        lines.push(
+          `- not established: ${trustedConceptLinkedRows} trusted, concept-linked source ledger row${
+            trustedConceptLinkedRows === 1 ? ' is' : 's are'
+          } included, but this package does not map individual CourseIR sourceRefs to those trusted rows`,
+        );
+      } else {
+        lines.push('- unavailable: no trusted, concept-linked bibliography rows are included for per-reference proof');
+      }
+    }
+    lines.push('');
+  }
+  return `${lines.join('\n').trim()}\n`;
+}

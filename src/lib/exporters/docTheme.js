@@ -1,0 +1,82 @@
+/**
+ * docTheme.js — designed DOCX themes (v0.9.1 Phase 3, retyped v0.12.0).
+ *
+ * Three restrained, professional palettes with a consistent type scale.
+ * Theme choice persists locally; exporters read the active theme so every
+ * document in a package shares one visual voice. Covers and TOC are added
+ * for multi-lesson documents by the exporters.
+ *
+ * v0.12.0: added the editorial font pairing and table tokens. Fonts are
+ * deliberately limited to faces installed on every Windows and macOS
+ * machine (Georgia, Calibri) so the downloaded file renders as designed
+ * instead of silently falling back.
+ */
+
+const STORAGE_KEY = 'coursemapper-doc-theme';
+
+// Editorial pairing: serif display for headings, clean sans for body.
+export const DOC_FONTS = {
+  heading: 'Georgia',
+  body: 'Calibri',
+};
+
+// v0.14.1 (1.13): run-level font OBJECTS for the docx library. Passing a
+// STRING font makes docx expand it into all four w:rFonts slots INCLUDING
+// w:eastAsia, which pins CJK runs to Calibri/Georgia and renders tofu in
+// LibreOffice, Google Docs, and PDF pipelines. The object form deliberately
+// omits eastAsia so renderers fall back to a real CJK face.
+export const BODY_FONT = { ascii: DOC_FONTS.body, hAnsi: DOC_FONTS.body, cs: DOC_FONTS.body };
+export const HEAD_FONT = { ascii: DOC_FONTS.heading, hAnsi: DOC_FONTS.heading, cs: DOC_FONTS.heading };
+
+export const DOC_THEMES = {
+  indigo: {
+    id: 'indigo',
+    label: 'Indigo (default)',
+    accent: '2B579A',
+    accentSoft: 'D6E4F0',
+    headingColor: '1F3864',
+    metaColor: '5E6B7F',
+    ruleColor: 'C9D6E8',
+    bandFill: 'F3F7FB',
+    calloutFill: 'EEF4FA',
+  },
+  graphite: {
+    id: 'graphite',
+    label: 'Graphite',
+    accent: '3D3D3D',
+    accentSoft: 'E6E6E6',
+    headingColor: '262626',
+    metaColor: '666666',
+    ruleColor: 'D4D4D4',
+    bandFill: 'F5F5F5',
+    calloutFill: 'F0F0F0',
+  },
+  forest: {
+    id: 'forest',
+    label: 'Forest',
+    accent: '1E6B52',
+    accentSoft: 'DCEDE5',
+    headingColor: '174E3D',
+    metaColor: '586E63',
+    ruleColor: 'C5DCD2',
+    bandFill: 'F1F8F4',
+    calloutFill: 'EAF4EF',
+  },
+};
+
+export function getDocTheme() {
+  try {
+    const id = localStorage.getItem(STORAGE_KEY);
+    return DOC_THEMES[id] || DOC_THEMES.indigo;
+  } catch {
+    return DOC_THEMES.indigo;
+  }
+}
+
+export function setDocTheme(id) {
+  try {
+    if (DOC_THEMES[id]) localStorage.setItem(STORAGE_KEY, id);
+  } catch {
+    /* preference is best-effort */
+  }
+}

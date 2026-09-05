@@ -1,0 +1,2977 @@
+import { describe, it, expect } from 'vitest';
+import {
+  sentencesFrom,
+  definitionSentence,
+  looksLikeEntity,
+  contrastSentences,
+  distractorsFromContrast,
+  explanatoryScore,
+  lexicalRelevance,
+  researchQueryForTopic,
+  contentTokens,
+  directResearchTitles,
+  directResearchTitleVariants,
+  attachKernelSourceSnapshotReceipt,
+  cosine,
+  buildKernelFromArticle,
+  buildDoajProvider,
+  buildEuropePmcProvider,
+  buildWikipediaProvider,
+  buildWaiProvider,
+  researchConcept,
+  researchCourse,
+  researchLessonKernels,
+  researchLessonKernelSets,
+  researchLessonKernelSetsCascade,
+  mergeResearchKernelSets,
+  stampTargetedBudgetProvider,
+  isResearchCandidateDomainAligned,
+  isWaiSourceFamilyAligned,
+  conciseDefinitionOption,
+  contrastTargetFromSentence,
+  extractWaiResearchText,
+  misconceptionFromContrast,
+  RESEARCH_ORIGIN,
+  RELEVANCE_FLOOR,
+} from '../algiResearch.js';
+import { planAlgiCourseResearch } from '../algiResearchPlan.js';
+
+const provider = {
+  license: 'CC BY-SA 4.0',
+  attributionFor: (title) => `Wikipedia, ${title}`,
+  sourceIdFor: (title) => `wikipedia:${title}`,
+  search: async () => [],
+  article: async () => '',
+};
+
+/** Stub provider: no network, fully deterministic. */
+function stubProvider(pages) {
+  return {
+    ...provider,
+    search: async (query) =>
+      Object.keys(pages).filter((title) =>
+        query
+          .toLowerCase()
+          .split(/\s+/)
+          .some((token) => pages[title].hits.includes(token)),
+      ),
+    article: async (title) => pages[title]?.text || '',
+  };
+}
+
+describe('sentence selection (gap 2)', () => {
+  it('does not fuse a section heading into the paragraph that follows it', () => {
+    // The real defect: "History User experience design is a conceptual design
+    // discipline..." was emitted as a single sentence and served as prose.
+    const extract =
+      'History\nUser experience design is a conceptual design discipline rooted in human factors and ergonomics research.';
+    const sentences = sentencesFrom(extract);
+    expect(sentences.some((sentence) => sentence.startsWith('History'))).toBe(false);
+    expect(sentences[0]).toMatch(/^User experience design is a conceptual/);
+  });
+
+  it('keeps a middle initial attached to the source sentence', () => {
+    const sentences = sentencesFrom(
+      'First normal form is a level of database normalization defined by English computer scientist Edgar F. Codd. It requires each table cell to contain one value.',
+    );
+    expect(sentences[0]).toContain('Edgar F. Codd.');
+    expect(sentences).not.toContain(
+      'First normal form is a level of database normalization defined by English computer scientist Edgar F.',
+    );
+  });
+
+  it('drops fragments that are too short or unterminated', () => {
+    expect(sentencesFrom('Too short.\nAlso short')).toEqual([]);
+  });
+
+  it('drops exact source sentences whose relation depends on a missing antecedent', () => {
+    const extract =
+      'Primary and secondary colors can be combined in several proportions. Combining one secondary color and a primary color in the same manner produces a tertiary color. A tertiary color is produced by mixing full saturation of one primary color with half saturation of another primary color.';
+
+    expect(sentencesFrom(extract)).not.toContain(
+      'Combining one secondary color and a primary color in the same manner produces a tertiary color.',
+    );
+    expect(sentencesFrom(extract)).toContain(
+      'A tertiary color is produced by mixing full saturation of one primary color with half saturation of another primary color.',
+    );
+  });
+
+  it('scores narration below explanation', () => {
+    const explain = 'Photosynthesis is a process that converts light energy into chemical energy for the organism.';
+    const narrate = 'The term was coined in 1893 and first used in a scientific journal of that century.';
+    expect(explanatoryScore(explain, 'photosynthesis')).toBeGreaterThan(explanatoryScore(narrate, 'photosynthesis'));
+  });
+
+  it('scores mechanisms above true but instructionally thin topic promotion', () => {
+    const mechanism =
+      'Quantum entanglement links subsystem states so the composite state cannot be described as independent parts.';
+    const promotion =
+      'The topic of quantum entanglement is at the heart of the disparity between classical physics and quantum physics.';
+    expect(explanatoryScore(mechanism, 'quantum entanglement')).toBeGreaterThan(
+      explanatoryScore(promotion, 'quantum entanglement'),
+    );
+  });
+
+  it('prefers the lead definition over a mid-article comparative', () => {
+    // Ranking by pattern alone served the comparative as the definition of
+    // "deontology"; position is what distinguishes them.
+    const sentences = [
+      'Deontology is the normative ethical theory that judges the morality of an action using rules.',
+      'One thing that clearly distinguishes Kantian deontologism from divine command deontology is that Kantianism maintains a rational basis.',
+    ];
+    expect(definitionSentence(sentences, 'Deontology')).toBe(sentences[0]);
+  });
+
+  it('requires the term to be the subject, not merely present', () => {
+    const sentences = [
+      'Some scholars argue that the wider literature on deontology is inconsistent across traditions.',
+    ];
+    expect(definitionSentence(sentences, 'Deontology')).toBeNull();
+  });
+
+  it('recognizes a qualified possessive-plural lead as the article subject', () => {
+    const sentence =
+      "In quantum information science, the Bell's states or EPR pairs are specific quantum states of two qubits.";
+    expect(definitionSentence([sentence], 'Bell state')).toBe(sentence);
+  });
+});
+
+describe('teaching-atom phrasing', () => {
+  it('names the other side of an explicit contrast instead of emitting a dangling placeholder', () => {
+    expect(contrastTargetFromSentence('Unlike many classical logic gates, quantum logic gates are reversible.')).toBe(
+      'many classical logic gates',
+    );
+    expect(
+      contrastTargetFromSentence(
+        'Density matrices for entangled systems differ from ensembles of pure states with the same measurement statistics.',
+      ),
+    ).toBe('ensembles of pure states with the same measurement statistics');
+  });
+
+  it('turns an infinitive contrast into a grammatical misconception', () => {
+    const misconception = misconceptionFromContrast(
+      'Semantic HTML reinforces the meaning of web content rather than merely to define its presentation or look.',
+      'Semantic HTML',
+    );
+    expect(misconception.text).toBe('Semantic HTML is mainly about defining its presentation or look.');
+    expect(misconception.corrective).toBe(
+      'The source distinguishes Semantic HTML from defining its presentation or look.',
+    );
+  });
+
+  it('removes a redundant comparison preposition from an ARIA contrast', () => {
+    const misconception = misconceptionFromContrast(
+      'WAI-ARIA treats web pages as applications rather than as static documents.',
+      'WAI-ARIA',
+    );
+    expect(misconception.text).toBe('WAI-ARIA is mainly about static documents.');
+    expect(misconception.corrective).toBe('The source distinguishes WAI-ARIA from static documents.');
+  });
+
+  it('turns a full definition into a complete compact quiz option', () => {
+    expect(
+      conciseDefinitionOption({
+        term: 'Qubit',
+        definition: {
+          text: 'In quantum computing, a qubit or quantum bit is a basic unit of quantum information, the quantum version of the classical binary bit.',
+        },
+      }),
+    ).toBe('A basic unit of quantum information.');
+  });
+});
+
+describe('official W3C/WAI research provider', () => {
+  it('extracts main instructional prose without navigation or scripts', () => {
+    const text = extractWaiResearchText(`
+      <nav>Navigation should not appear.</nav>
+      <main>
+        <h1>Accessible forms</h1>
+        <p>Accessible forms are easier to use for everyone, including people with disabilities.</p>
+        <script>window.bad = true;</script>
+        <p>Labels identify the purpose of each form control.</p>
+      </main>
+    `);
+
+    expect(text).toContain('Accessible forms are easier to use for everyone');
+    expect(text).toContain('Labels identify the purpose of each form control.');
+    expect(text).not.toContain('Navigation should not appear');
+    expect(text).not.toContain('window.bad');
+  });
+
+  it('selects and attributes live WAI source pages by lesson topic', async () => {
+    const requested = [];
+    const provider = buildWaiProvider(async (url) => {
+      requested.push(url);
+      return `
+        <main>
+          <p>Accessible forms are interfaces that let people submit information without accessibility barriers.</p>
+          <p>Accessible forms associate labels with controls so assistive technologies can identify each input.</p>
+          <p>Accessible forms provide instructions and error feedback that help users complete required fields.</p>
+        </main>
+      `;
+    });
+    const records = await provider.searchArticles('accessible forms labels and validation', 3);
+
+    expect(Object.keys(records)).toEqual(expect.arrayContaining(['Accessible forms', 'Labels']));
+    expect(requested.every((url) => url.startsWith('https://www.w3.org/'))).toBe(true);
+    expect(records['Accessible forms']).toMatchObject({
+      providerId: 'w3c-wai',
+      sourceKind: 'official accessibility standard and tutorial',
+      license: 'W3C permissive license',
+    });
+  });
+
+  it('keeps usable WAI pages when one catalog page rejects a browser fetch', async () => {
+    const provider = buildWaiProvider(async (url) => {
+      if (url.includes('/Understanding/conformance')) throw new TypeError('Failed to fetch');
+      return `
+        <main>
+          <p>Web Content Accessibility Guidelines organize requirements for making web content accessible.</p>
+          <p>WCAG conformance uses testable success criteria and defined levels.</p>
+        </main>
+      `;
+    });
+    const records = await provider.searchArticles('WCAG principles and conformance', 6);
+
+    expect(records['Web Content Accessibility Guidelines']).toBeDefined();
+    expect(records['Accessibility principles']).toBeDefined();
+    expect(records['Understanding Conformance']).toBeUndefined();
+  });
+
+  it('routes accessibility testing and remediation lessons to official WAI evaluation guidance', async () => {
+    const provider = buildWaiProvider(async () => '<main><p>Evaluation identifies accessibility problems.</p></main>');
+    const titles = await provider.search('evidence-based accessibility testing and remediation', 5);
+
+    expect(titles).toEqual(expect.arrayContaining(['Evaluating web accessibility', 'Easy Checks', 'WCAG-EM overview']));
+  });
+
+  it('keeps each official WAI source inside its lesson family', () => {
+    expect(isWaiSourceFamilyAligned('WCAG principles and conformance', 'Understanding Conformance')).toBe(true);
+    expect(isWaiSourceFamilyAligned('WCAG principles and conformance', 'Easy Checks')).toBe(false);
+    expect(isWaiSourceFamilyAligned('semantic HTML and keyboard accessibility', 'Page structure')).toBe(true);
+    expect(isWaiSourceFamilyAligned('semantic HTML and keyboard accessibility', 'Easy Checks')).toBe(false);
+    expect(isWaiSourceFamilyAligned('accessible forms', 'Input validation')).toBe(true);
+    expect(isWaiSourceFamilyAligned('accessible forms', 'Headings')).toBe(false);
+    expect(isWaiSourceFamilyAligned('evidence-based accessibility testing and remediation', 'WCAG-EM overview')).toBe(
+      true,
+    );
+    expect(
+      isWaiSourceFamilyAligned('evidence-based accessibility testing and remediation', 'Accessibility principles'),
+    ).toBe(false);
+  });
+
+  it('applies WAI lesson-family routing at the domain admission boundary', () => {
+    const base = {
+      courseContext: 'Digital Accessibility for Product Teams',
+      extract:
+        'Easy Checks supports accessibility evaluation with keyboard, headings, forms, and other preliminary checks.',
+      definition: 'Accessibility assessment is a preliminary review of selected accessibility checks.',
+      provider: 'w3c-wai',
+    };
+    expect(
+      isResearchCandidateDomainAligned({
+        ...base,
+        topic: 'semantic HTML and keyboard accessibility',
+        title: 'Easy Checks',
+      }),
+    ).toBe(false);
+    expect(
+      isResearchCandidateDomainAligned({
+        ...base,
+        topic: 'evidence-based accessibility testing and remediation',
+        title: 'Easy Checks',
+      }),
+    ).toBe(true);
+  });
+
+  it('composes distinct evaluation concepts from official WAI guidance', async () => {
+    const provider = buildWaiProvider(async (url) => {
+      if (url.includes('wcag-em')) {
+        return `<main>
+          <p>WCAG Evaluation Methodology is a structured approach for evaluating conformance to Web Content Accessibility Guidelines.</p>
+          <p>WCAG-EM defines the evaluation scope before a representative sample of pages is selected.</p>
+          <p>Evaluators audit each selected page against the applicable WCAG success criteria.</p>
+          <p>The methodology records findings so teams can prioritize remediation work.</p>
+          <p>Evaluation reports state the tested scope, results, and evidence.</p>
+        </main>`;
+      }
+      if (url.includes('preliminary')) {
+        return `<main>
+          <p>Accessibility assessment is a first review of selected accessibility checks.</p>
+          <p>Easy Checks examines page titles, headings, contrast, keyboard focus, form labels, and alternatives.</p>
+          <p>A page can pass preliminary checks and still contain significant accessibility barriers.</p>
+          <p>More robust assessment is required for a comprehensive accessibility evaluation.</p>
+          <p>Teams use the initial results to choose the next evaluation and remediation steps.</p>
+        </main>`;
+      }
+      return `<main>
+        <p>Accessibility evaluation is also called assessment, audit, and testing.</p>
+        <p>Teams evaluate accessibility early and throughout design and development.</p>
+        <p>No automated tool alone can determine whether a site meets accessibility standards.</p>
+        <p>Knowledgeable human evaluation is required to determine whether a site is accessible.</p>
+        <p>Evaluation findings help teams identify accessibility problems and plan repairs.</p>
+      </main>`;
+    });
+
+    const topic = 'evidence-based accessibility testing and remediation';
+    const result = await researchLessonKernelSets([topic], {
+      provider,
+      providerId: 'w3c-wai',
+      courseContext: 'Digital Accessibility for Product Teams',
+      want: 5,
+      candidatesPerGroup: 7,
+      maxTargetedFallbacks: 0,
+    });
+    const kernels = result.byTopic.get(topic) || [];
+
+    expect(kernels.map((kernel) => kernel.term)).toEqual(
+      expect.arrayContaining(['Accessibility evaluation', 'Accessibility assessment', 'WCAG Evaluation Methodology']),
+    );
+    expect(
+      kernels.every((kernel) => kernel.provenance.sourceUrl.startsWith('https://www.w3.org/WAI/test-evaluate')),
+    ).toBe(true);
+  });
+});
+
+describe('course-agnostic pedagogical title recovery', () => {
+  it('offers multi-word concept cores without elevating ambiguous fragments', () => {
+    expect(
+      directResearchTitles('Rule of Thirds Application · Foundational Composition Elements', 'Visual Evidence'),
+    ).toContain('Rule of Thirds');
+    expect(
+      directResearchTitles('Focal Point Identification · Visual Hierarchy Structure', 'Visual Evidence'),
+    ).toContain('Visual Hierarchy');
+    expect(
+      directResearchTitles('Color Theory Application · Color and Contrast Dynamics', 'Visual Evidence'),
+    ).not.toContain('Theory');
+  });
+
+  it('keeps broad and specific query variants while exposing the canonical concept core', () => {
+    const topic = 'Rule of Thirds Application · Foundational Composition Elements';
+    expect(researchQueryForTopic(topic, 'Visual Evidence and Image Analysis')).toContain(
+      '"Rule of Thirds Application"',
+    );
+    expect(directResearchTitles(topic, 'Visual Evidence and Image Analysis')).toEqual(
+      expect.arrayContaining(['Rule of Thirds']),
+    );
+  });
+
+  it('adds sentence-case variants for case-sensitive encyclopedia title lookup', () => {
+    expect(
+      directResearchTitleVariants(
+        'Focal Point Identification · Visual Hierarchy Structure',
+        'Visual Evidence and Image Analysis',
+      ),
+    ).toEqual(expect.arrayContaining(['Visual Hierarchy', 'Visual hierarchy']));
+  });
+
+  it('derives an ethics headword from the course domain instead of a course-specific page map', () => {
+    expect(directResearchTitles('Ethical contextual interpretation', 'Visual Evidence and Image Analysis')).toContain(
+      'Visual ethics',
+    );
+    expect(directResearchTitles('Ethical decision-making', 'Business Leadership')).toContain('Business ethics');
+    expect(directResearchTitles('Ethical patient communication', 'Medical Practice')).toContain('Medical ethics');
+  });
+
+  it('removes curricular section locators and expands statistical concept families', () => {
+    const descriptive = directResearchTitles(
+      'Describing Distributions with Numbers (2.4) · Describing Distributions with Numbers',
+      'Introduction to Statistics',
+    );
+    expect(descriptive).toEqual(
+      expect.arrayContaining(['Descriptive statistics', 'Central tendency', 'Statistical dispersion']),
+    );
+    expect(descriptive.join(' ')).not.toContain('(2.4)');
+
+    expect(
+      directResearchTitles(
+        'Analyzing Relationships via Scatterplots · Scatterplots and Correlation',
+        'Introduction to Statistics',
+      ),
+    ).toEqual(expect.arrayContaining(['Scatter plot', 'Correlation', 'Pearson correlation coefficient']));
+  });
+
+  it('rejects physics collisions from a visual-analysis transaction but keeps rights sources', () => {
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Linear Perspective Systems · Perspective and Framing',
+        courseContext: 'Visual Evidence and Image Analysis',
+        title: 'Frame of reference',
+        definition:
+          'In physics and astronomy, a frame of reference is an abstract coordinate system in physical space.',
+        extract: 'A reference frame specifies an origin and orientation in physical space.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(false);
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Source Attribution and License · Ethical Contextual Interpretation',
+        courseContext: 'Visual Evidence and Image Analysis',
+        title: 'Creative Commons license',
+        definition: 'A Creative Commons license is a public copyright license used to enable reuse of a work.',
+        extract: 'Attribution terms communicate the license and reuse rights.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(true);
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Source Attribution and License · Ethical Contextual Interpretation',
+        courseContext: 'Visual Evidence and Image Analysis',
+        title: 'Source attribution',
+        definition:
+          'In epidemiology, source attribution reconstructs transmission of an infectious disease from a pathogen source.',
+        extract: 'Molecular source attribution supports public health surveillance of transmission events.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(false);
+    expect(
+      directResearchTitles(
+        'Source Attribution and License · Ethical Contextual Interpretation',
+        'Visual Evidence and Image Analysis',
+      ),
+    ).toEqual(expect.arrayContaining(['Attribution (copyright)', 'Creative Commons license', 'Public domain']));
+  });
+
+  it('rejects computational-imaging false friends and broad-wrapper-only matches', () => {
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Linear Perspective Systems · Perspective and Framing',
+        courseContext: 'Visual Evidence and Image Analysis',
+        title: 'Rethinking Building Change Detection: Dual-Frequency Learnable Visual Encoder',
+        definition:
+          'A remote-sensing change-detection network uses a dual-frequency visual encoder with convolutional neural networks and attention mechanisms.',
+        extract:
+          'The image-processing method compares two remote-sensing signals with a Siamese deep-learning framework.',
+        provider: 'doaj',
+      }),
+    ).toBe(false);
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Linear Perspective Systems · Perspective and Framing',
+        courseContext: 'Visual Evidence and Image Analysis',
+        title: 'A Visual Communication Perspective on Social Media',
+        definition: 'The study examines visual communication and youth responses to social-media framing.',
+        extract: 'The article reports perceived emotional effects of short-form video.',
+        provider: 'doaj',
+      }),
+    ).toBe(false);
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Linear Perspective Systems · Perspective and Framing',
+        courseContext: 'Visual Evidence and Image Analysis',
+        title: 'Perspective (graphical)',
+        definition:
+          'Linear perspective represents three-dimensional scenes in two dimensions using converging lines and a vanishing point.',
+        extract: 'Artists use linear perspective to depict depth and spatial relationships.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(true);
+  });
+});
+
+describe('research evidence refinement', () => {
+  it('never erases an admitted kernel when a later search variant is empty or thinner', () => {
+    const strong = {
+      id: 'source-a',
+      facts: [{ text: 'a' }, { text: 'b' }],
+      provenance: { sourceSnapshot: { claims: [{}, {}, {}] } },
+    };
+    const thin = {
+      id: 'source-a',
+      facts: [],
+      provenance: { sourceSnapshot: { claims: [{}] } },
+    };
+
+    expect(mergeResearchKernelSets([strong], [], 5)).toEqual([strong]);
+    expect(mergeResearchKernelSets([strong], [thin], 5)).toEqual([strong]);
+  });
+});
+
+describe('entity filter (topic drift by page KIND)', () => {
+  it('rejects a political party whose lead has lowercase adjectives before the noun', () => {
+    // Admitted at 0.228 for "duties owed to workers" before this was fixed.
+    expect(
+      looksLikeEntity(
+        "Workers' Party (Singapore)",
+        "The Workers' Party (WP) is a major social democratic political party in Singapore and one of the oldest.",
+      ),
+    ).toBe(true);
+  });
+
+  it('rejects a dated parenthetical such as (2023 TV series)', () => {
+    expect(looksLikeEntity('Jury Duty (2023 TV series)', 'Jury Duty is an American mockumentary comedy.')).toBe(true);
+  });
+
+  it('rejects biographies, the most dangerous case', () => {
+    // A researcher's page is saturated with the topic's vocabulary, so it
+    // OUTSCORES real concepts: "Sharon Oviatt" beat every genuine article for
+    // "human-centered design foundations" and was admitted as a thing to teach.
+    expect(
+      looksLikeEntity(
+        'Sharon Oviatt',
+        'Sharon Oviatt is an American computer scientist known for multimodal interfaces.',
+      ),
+    ).toBe(true);
+    expect(
+      looksLikeEntity(
+        'Klaus Krippendorff',
+        'Klaus Krippendorff (born 1932) was a German-American communication scholar.',
+      ),
+    ).toBe(true);
+    expect(
+      looksLikeEntity(
+        'Laura Wegener Parfrey',
+        'Laura Wegener Parfrey is a Canadian bioscientist known for research on microbial diversity.',
+      ),
+    ).toBe(true);
+  });
+
+  it('rejects societies and institutes rather than teaching an organization as a concept', () => {
+    expect(
+      looksLikeEntity(
+        'International Society for Microbial Ecology',
+        'The International Society for Microbial Ecology is the principal scientific society for microbial ecologists.',
+      ),
+    ).toBe(true);
+    expect(
+      looksLikeEntity(
+        'Aquatic Microbial Ecology',
+        'Aquatic Microbial Ecology is a quarterly peer-reviewed scientific journal published for research communities.',
+      ),
+    ).toBe(true);
+    expect(
+      looksLikeEntity(
+        'Bureau of Cyberspace and Digital Policy',
+        'The Bureau of Cyberspace and Digital Policy is a bureau of the United States Department of State.',
+      ),
+    ).toBe(true);
+  });
+
+  it('does not mistake a concept for a person', () => {
+    expect(
+      looksLikeEntity('Interaction design', 'Interaction design is the practice of designing interactive products.'),
+    ).toBe(false);
+    expect(looksLikeEntity('Ergonomics', 'Ergonomics is the study of efficiency in a working environment.')).toBe(
+      false,
+    );
+  });
+
+  it('keeps genuine concept pages', () => {
+    expect(
+      looksLikeEntity(
+        'Whistleblowing',
+        'Whistleblowing is the activity of a person who reports wrongdoing to an authority.',
+      ),
+    ).toBe(false);
+    expect(
+      looksLikeEntity('Stakeholder theory', 'The stakeholder theory is a theory of organizational management.'),
+    ).toBe(false);
+  });
+});
+
+describe('course-domain research alignment', () => {
+  it('routes ambiguous database lessons to canonical DBMS source families', () => {
+    expect(directResearchTitles('Transaction Management and Concurrency Control', 'Database Systems')).toEqual(
+      expect.arrayContaining(['Database transaction', 'ACID', 'Concurrency control']),
+    );
+    expect(directResearchTitles('Transaction Management and Concurrency Control', 'Database Systems')).not.toContain(
+      'Business transaction management',
+    );
+    expect(directResearchTitles('Database Normalization Theory', 'Database Systems')).toEqual(
+      expect.arrayContaining(['Database normalization', 'Functional dependency', 'First normal form']),
+    );
+    const securityTitles = directResearchTitles('Database Security and Integrity', 'Database Systems');
+    expect(securityTitles).toEqual(
+      expect.arrayContaining([
+        'Data integrity',
+        'Database activity monitoring',
+        'Access-control list',
+        'Role-based access control',
+      ]),
+    );
+    expect(securityTitles).not.toContain('Integrity');
+  });
+
+  it('derives programming and data-analysis candidates generically from unseen noun phrases', () => {
+    const context =
+      'Applied Civic Data Analysis · Python data types · Conditional branching · Functions and automated tests · Pandas cleaning';
+    const programming = directResearchTitles('Binary trees and graph traversals', context);
+    const mathematics = directResearchTitles('Eigenvalues and vector spaces', 'Advanced Linear Algebra');
+    const policy = directResearchTitles(
+      'Environmental impact assessments and carbon pricing',
+      'Environmental Policy Studio',
+    );
+
+    expect(programming).toEqual(
+      expect.arrayContaining(['Binary tree', 'graph traversal', 'Binary tree (computer science)']),
+    );
+    expect(mathematics).toEqual(expect.arrayContaining(['Eigenvalue', 'vector space', 'Eigenvalue (mathematics)']));
+    expect(policy).toEqual(expect.arrayContaining(['Environmental impact assessment', 'carbon pricing']));
+    expect(directResearchTitles('Pandas tabular data cleaning', context)).not.toEqual(
+      expect.arrayContaining(['Data cleansing', 'Data frame', 'Pandas (software)']),
+    );
+  });
+
+  it('binds admitted quotes to a complete retrieved snapshot digest and byte offsets', async () => {
+    const quote = 'A binary tree is a tree data structure in which each node has at most two children.';
+    const sourceId = 'wikipedia:Binary tree';
+    const snapshotText = `Lead material. ${quote} Additional context.`;
+    const kernel = {
+      id: 'binary-tree',
+      term: 'Binary tree',
+      definition: { text: quote, anchor: { src: sourceId, loc: 'lead paragraph', quote } },
+      facts: [],
+      provenance: { origin: RESEARCH_ORIGIN },
+    };
+
+    const bound = await attachKernelSourceSnapshotReceipt(kernel, { [sourceId]: snapshotText });
+    const source = bound.provenance.sourceSnapshot.sources[0];
+    const claim = bound.provenance.sourceSnapshot.claims[0];
+
+    expect(bound.provenance.sourceSnapshot.protocol).toBe('retrieved-source-snapshot-sha256-v2');
+    expect(source.normalizedSnapshotText).toContain(claim.quote);
+    expect(source).toMatchObject({ sourceId, retrievedSnapshotBytes: new TextEncoder().encode(snapshotText).length });
+    expect(source.retrievedSnapshotSha256).toMatch(/^[a-f0-9]{64}$/);
+    expect(claim).toMatchObject({
+      sourceId,
+      locator: 'lead paragraph',
+      retrievedSnapshotSha256: source.retrievedSnapshotSha256,
+      retrievedSnapshotBytes: source.retrievedSnapshotBytes,
+    });
+    expect(claim.quoteByteEnd - claim.quoteByteStart).toBe(new TextEncoder().encode(quote).length);
+    expect(claim.quoteSha256).toMatch(/^[a-f0-9]{64}$/);
+  });
+
+  it('routes oral-history methods to interview, transcript, analysis, and public-history sources', () => {
+    expect(directResearchTitles('Developing Open-Ended Questions', 'Community Oral History Methods')).toEqual(
+      expect.arrayContaining(['Open-ended question', 'Interview (research)', 'Semi-structured interview']),
+    );
+    expect(directResearchTitles('Audio Recording Protocols', 'Community Oral History Methods')).toEqual(
+      expect.arrayContaining([
+        'Sound recording and reproduction',
+        'Transcription (linguistics)',
+        'Digital preservation',
+      ]),
+    );
+    expect(directResearchTitles('Thematic Coding of Transcripts', 'Community Oral History Methods')).toEqual(
+      expect.arrayContaining(['Thematic analysis', 'Coding (social sciences)', 'Content analysis']),
+    );
+    expect(directResearchTitles('Visual Storytelling in Presentation', 'Community Oral History Methods')).toEqual(
+      expect.arrayContaining(['Visual narrative', 'Visual communication', 'Digital storytelling', 'Presentation']),
+    );
+  });
+
+  it('rejects the architecture meaning of evidence-based design in a UX course', () => {
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'evidence-based design recommendations',
+        courseContext: 'User Experience Research Studio',
+        title: 'Evidence-based design',
+        extract:
+          'Evidence-based design is the process of constructing a building or physical environment based on scientific research.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(false);
+  });
+
+  it('accepts contextual inquiry and user-research evidence for the same UX course', () => {
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'contextual inquiry and field notes',
+        courseContext: 'User Experience Research Studio',
+        title: 'Contextual inquiry',
+        extract:
+          'Contextual inquiry is a user-centered design research method that observes and interviews people in context.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(true);
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'evidence-based design recommendations',
+        courseContext: 'User Experience Research Studio',
+        title: 'Design rationale',
+        extract:
+          'A design rationale records the reasons behind a design decision and connects the decision to user research evidence.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(true);
+  });
+
+  it('rejects an environmental false friend from a technology-policy course', () => {
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'AI governance',
+        courseContext: 'Current Technology Policy',
+        title: 'Strategies for emerging pollutant governance using artificial intelligence technology',
+        extract:
+          'Artificial intelligence is becoming a tool for pollutant screening, wastewater management, and environmental health risk assessment.',
+        provider: 'doaj',
+      }),
+    ).toBe(false);
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'AI governance',
+        courseContext: 'Current Technology Policy',
+        title: 'Governance of artificial intelligence',
+        extract:
+          'Governance of artificial intelligence develops rules and institutions for accountability, oversight, and regulation.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(true);
+  });
+
+  it('rejects clinical false friends from non-clinical programming lessons', () => {
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Functions and automated tests',
+        courseContext: 'Applied Civic Data Analysis with Python programming',
+        title: 'Cognitive functions and autoantibodies in patients with systemic lupus erythematosus',
+        extract:
+          'This clinical study measures cognitive functions and autoantibodies in patients with systemic disease.',
+        provider: 'doaj',
+      }),
+    ).toBe(false);
+  });
+
+  it('rejects broad uncertainty false friends from a data-visualization lesson', () => {
+    const courseContext = 'Applied Civic Data Analysis with Python and statistics';
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Reproducible visualization and uncertainty',
+        courseContext,
+        title: 'Fear, uncertainty, and doubt',
+        extract: 'Fear, uncertainty, and doubt is a rhetorical strategy used to influence perception.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(false);
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Reproducible visualization and uncertainty',
+        courseContext,
+        title: 'Measurement uncertainty',
+        extract: 'Measurement uncertainty characterizes dispersion in measured values and reported results.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(true);
+  });
+
+  it('does not apply the visual-humanities source gate to quantitative visual-evidence lessons', () => {
+    const courseContext = 'Visual Evidence for Public Decisions';
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Histogram Verification · Distribution Visualization',
+        courseContext,
+        title: 'Histogram',
+        extract:
+          'A histogram is a graphical representation of the distribution of numerical data. Each bin covers an interval and its rectangle shows the frequency of observations in that interval.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(true);
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Histogram Verification · Distribution Visualization',
+        courseContext,
+        title: 'Perspective (graphical)',
+        extract: 'Perspective is a drawing technique used in painting and visual art.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(false);
+  });
+
+  it('preserves environmental evidence in a mixed environmental data-analysis course', () => {
+    const mixedCourse = 'Environmental data analysis and public-health monitoring';
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Waterborne pathogens',
+        courseContext: mixedCourse,
+        title: 'Water pollution',
+        extract: 'Water pollution can spread waterborne disease when contaminated water carries pathogenic organisms.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(true);
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Functions and automated tests',
+        courseContext: mixedCourse,
+        title: 'Cognitive functions and autoantibodies in patients with systemic lupus erythematosus',
+        extract:
+          'This clinical study measures cognitive functions and autoantibodies in patients with systemic disease.',
+        provider: 'doaj',
+      }),
+    ).toBe(false);
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Functions',
+        courseContext: mixedCourse,
+        title: 'Cognitive functions and autoantibodies in patients with systemic lupus erythematosus',
+        extract:
+          'This clinical study measures cognitive functions and autoantibodies in patients with systemic disease.',
+        provider: 'doaj',
+      }),
+    ).toBe(false);
+    for (const [topic, extract] of [
+      ['Malaria', 'Malaria is a mosquito-borne infectious disease that affects humans and other animals.'],
+      ['Cholera', 'Cholera is an infection of the small intestine by some strains of bacteria.'],
+      ['Asthma', 'Asthma is a long-term inflammatory disease of the airways of the lungs.'],
+      ['Ozone', 'Ozone is an inorganic molecule with the chemical formula O3.'],
+    ]) {
+      expect(
+        isResearchCandidateDomainAligned({
+          topic,
+          courseContext: mixedCourse,
+          title: topic,
+          extract,
+          provider: 'wikipedia',
+        }),
+      ).toBe(true);
+    }
+    expect(() =>
+      isResearchCandidateDomainAligned({
+        topic: '*args',
+        courseContext: 'Python programming',
+        title: '*args',
+        extract: '*args collects positional arguments supplied to a Python function.',
+        provider: 'wikipedia',
+      }),
+    ).not.toThrow();
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Salmonella',
+        courseContext: mixedCourse,
+        title: 'Salmonella',
+        extract: 'Salmonella is a genus of bacteria that can cause foodborne illness in humans.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(true);
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Functions',
+        courseContext: mixedCourse,
+        title: 'Functions (physiology)',
+        extract: 'Physiological functions describe clinical processes observed in patients with disease.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(false);
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Reproducible visualization and uncertainty',
+        courseContext: mixedCourse,
+        title: 'Fear, uncertainty, and doubt',
+        extract: 'Fear, uncertainty, and doubt is a rhetorical strategy used to influence perception.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(false);
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Urban heat risk',
+        courseContext: 'Climate Risk and Urban Planning',
+        title: 'Wastewater and community health risk under extreme heat',
+        extract: 'Wastewater exposure can create a community health risk during climate-driven extreme heat.',
+        provider: 'doaj',
+      }),
+    ).toBe(true);
+  });
+
+  it('rejects enterprise BTM from a database transaction lesson', () => {
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Transaction Management and Concurrency Control',
+        courseContext: 'Database Systems',
+        title: 'Business transaction management',
+        extract:
+          'Business transaction management is a category of application performance management for monitoring business transactions across enterprise systems.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(false);
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Transaction Management and Concurrency Control',
+        courseContext: 'Database Systems',
+        title: 'Database transaction',
+        extract:
+          'A database transaction is a unit of work in a database management system that follows atomicity, consistency, isolation, and durability.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(true);
+  });
+
+  it('rejects moral integrity but retains data integrity for a database security lesson', () => {
+    const lesson = {
+      topic: 'Database Security and Integrity',
+      courseContext: 'Database Systems',
+      provider: 'wikipedia',
+    };
+    expect(
+      isResearchCandidateDomainAligned({
+        ...lesson,
+        title: 'Integrity',
+        extract: 'Integrity is the quality of being honest and adhering to strong moral and ethical principles.',
+        definition: 'Integrity is the quality of being honest and adhering to strong moral and ethical principles.',
+      }),
+    ).toBe(false);
+    expect(
+      isResearchCandidateDomainAligned({
+        ...lesson,
+        title: 'Data integrity',
+        extract:
+          'Data integrity is the maintenance and assurance of data accuracy and consistency over its life-cycle in systems that store, process, or retrieve data.',
+        definition:
+          'Data integrity is the maintenance and assurance of data accuracy and consistency over its life-cycle.',
+      }),
+    ).toBe(true);
+  });
+
+  it('rejects unrelated data-analysis papers from an oral-history lesson', () => {
+    const lesson = {
+      topic: 'Thematic Coding of Transcripts',
+      courseContext: 'Community Oral History Methods',
+      provider: 'doaj',
+    };
+    expect(
+      isResearchCandidateDomainAligned({
+        ...lesson,
+        title: 'Where Does Wastewater-Based Epidemiology Fall in Medical Student Education?',
+        extract: 'This article studies wastewater-based epidemiology and its place in medical student education.',
+      }),
+    ).toBe(false);
+    expect(
+      isResearchCandidateDomainAligned({
+        ...lesson,
+        title: 'Thematic analysis',
+        extract:
+          'Thematic analysis is a method of analysing qualitative data such as interview transcripts by identifying patterns of meaning.',
+      }),
+    ).toBe(true);
+  });
+
+  it('rejects computing meanings of overloaded language-study concepts', () => {
+    const courseContext = 'Introduction to Language Structure';
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Semantic Interpretation',
+        courseContext,
+        title: 'Semantics (computer science)',
+        extract:
+          'In programming language theory, semantics is the rigorous mathematical study of the meaning of programming languages.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(false);
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Pragmatic Context',
+        courseContext,
+        title: 'Dialog act recognition',
+        extract: 'Dialog act recognition uses AI inference models or statistical models to classify spoken utterances.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(false);
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Computational Semantics',
+        courseContext: 'Computational Linguistics',
+        title: 'Computational semantics',
+        extract: 'Computational semantics uses formal and algorithmic methods to represent natural-language meaning.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(true);
+  });
+
+  it('rejects wrong-domain biology from a digital-accessibility lesson', () => {
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'accessible forms',
+        courseContext: 'Digital Accessibility for Product Teams',
+        title: 'Cellular respiration',
+        extract:
+          'Cellular respiration is a set of metabolic reactions that convert biochemical energy into adenosine triphosphate.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(false);
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'accessible forms',
+        courseContext: 'Digital Accessibility for Product Teams',
+        title: 'Form (HTML)',
+        extract:
+          'An HTML form lets a web user enter data through labelled controls, and accessible forms expose those controls to assistive technology.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(true);
+  });
+});
+
+describe('teaching atoms from the source (gap 3)', () => {
+  const sentences = [
+    'Weather is the state of the atmosphere at a given time and place over short periods.',
+    'Weather is not to be confused with climate, which describes conditions averaged over decades.',
+    'Extreme weather events, for example hurricanes and blizzards, cause the greatest damage.',
+    'Weather is driven by differences in air pressure, temperature and moisture between one place and another.',
+    'Weather occurs primarily in the troposphere because that is where nearly all atmospheric water resides.',
+    'Forecasting requires measurements of the current state because the atmosphere is a chaotic system.',
+  ];
+
+  it("reads the source's own contrast as a misconception", () => {
+    expect(contrastSentences(sentences)).toHaveLength(1);
+  });
+
+  it('mines distractors from what the source says it is confused with', () => {
+    expect(distractorsFromContrast(contrastSentences(sentences), 'Weather')).toContain('climate');
+  });
+
+  it('carries a verbatim quote on every atom so admission can verify it', () => {
+    const built = buildKernelFromArticle({
+      topic: 'weather basics',
+      title: 'Weather',
+      extract: sentences.join('\n'),
+      provider,
+    });
+    expect(built).not.toBeNull();
+    const snapshot = built.snapshot['wikipedia:Weather'];
+    expect(snapshot).toContain(built.kernel.definition.anchor.quote);
+    for (const fact of built.kernel.facts) expect(snapshot).toContain(fact.anchor.quote);
+  });
+
+  it('uses a distinct source-boundary correction when the source states no misconception', () => {
+    const built = buildKernelFromArticle({
+      topic: 'accessible forms',
+      title: 'Web accessibility',
+      extract: [
+        'Web accessibility is the inclusive practice of removing barriers that prevent people with disabilities from using websites.',
+        'Accessible forms associate each visible label with the corresponding form control.',
+        'Form instructions help users understand the information each control requires.',
+      ].join('\n'),
+      provider,
+    });
+
+    expect(built.kernel.misconceptions[0]).toEqual({
+      text: expect.stringMatching(
+        /Web accessibility.*(?:source|evidence|support)|(?:source|evidence|support).*Web accessibility/i,
+      ),
+      corrective: expect.stringMatching(/^Web accessibility:/),
+    });
+    expect(built.kernel.misconceptions[0].corrective).not.toContain('Cite the specific definition or fact');
+    expect(built.kernel.misconceptions[0].corrective).not.toBe(built.kernel.definition.text);
+  });
+
+  it('rejects code-sample notes, publication road maps, and sweeping compliance predictions from accessibility facts', () => {
+    const built = buildKernelFromArticle({
+      topic: 'accessible forms',
+      title: 'Web accessibility',
+      extract: [
+        'Web accessibility is the inclusive practice of removing barriers that prevent people with disabilities from using websites.',
+        'Accessible forms associate each visible label with the corresponding form control.',
+        'Form instructions help users understand the information each control requires.',
+        'Note that interactive elements are still active when using this code.',
+        'A future update will provide a Quick Reference for this page.',
+        'The WCAG 2.2 Quick Reference will provide a way to group criteria.',
+        "W3C's Techniques for WCAG 2.0 lists techniques that help authors.",
+        'There are 12 guidelines and 65 testable success criteria.',
+        'All websites will need to adhere to these requirements.',
+      ].join('\n'),
+      provider,
+    });
+
+    const visibleKnowledge = [built.kernel.definition.text, ...built.kernel.facts.map((fact) => fact.text)].join(' ');
+    expect(visibleKnowledge).toContain(
+      'Form instructions help users understand the information each control requires.',
+    );
+    expect(visibleKnowledge).not.toMatch(
+      /Note that|Quick Reference|WCAG 2\.[01]|12 guidelines|All websites will need/i,
+    );
+  });
+
+  it('rejects historical and decontextualized facts from a current WCAG principles lesson', () => {
+    const built = buildKernelFromArticle({
+      topic: 'WCAG principles',
+      title: 'Web Content Accessibility Guidelines (WCAG) 2.2',
+      extract: [
+        'Web Content Accessibility Guidelines (WCAG) 2.2 covers a wide range of recommendations for making web content more accessible.',
+        'The guidelines are organized under four principles: perceivable, operable, understandable, and robust.',
+        'WCAG conformance is defined at levels A, AA, and AAA.',
+        'WCAG 2.1 is backwards-compatible with WCAG 2.0.',
+        'WCAG 2.0 consists of 12 guidelines.',
+        'This avoids the need to change the section number of success criteria from WCAG 2.',
+        'Then only the initial positions of user-movable content are considered for testing and conformance of this success criterion.',
+        'User agents - software that people use to access web content.',
+        'Authoring tools - software or services that people use to produce web content.',
+        'Web content - information and sensory experience communicated to the user.',
+        'satisfies all the Level A success criteria, or a conforming alternate version is provided.',
+        'A Level AAA conforming alternate version is provided.',
+        'Accessibility policies are listed in WAI Resources.',
+      ].join('\n'),
+      provider,
+    });
+
+    const visibleKnowledge = [built.kernel.definition.text, ...built.kernel.facts.map((fact) => fact.text)].join(' ');
+    expect(visibleKnowledge).toContain(
+      'The guidelines are organized under four principles: perceivable, operable, understandable, and robust.',
+    );
+    expect(visibleKnowledge).toContain('WCAG conformance is defined at levels A, AA, and AAA.');
+    expect(visibleKnowledge).not.toMatch(
+      /WCAG 2(?:\.[01])?|12 guidelines|initial positions|User agents|Authoring tools|Web content -|satisfies all|alternate version|Accessibility policies/i,
+    );
+  });
+
+  it('keeps robust-content facts focused on compatibility rather than neighboring principle sections', () => {
+    const built = buildKernelFromArticle({
+      topic: 'WCAG principles',
+      title: 'Accessibility principles',
+      extract: [
+        'Robust content is compatible with different browsers, assistive technologies, and other user agents.',
+        'Standards-based markup helps current and future user agents interpret the content reliably.',
+        'Meeting this requirement makes the content easier to use across a wide range of devices.',
+        'Flashing content is ideally avoided entirely or only used in a way that does not cause known risks.',
+        'People using assistive technologies may observe interference from prominent audio or visual content in the background.',
+      ].join('\n'),
+      provider,
+      sourceMeta: { suggestedTerm: 'Robust content' },
+    });
+
+    const visibleKnowledge = [built.kernel.definition.text, ...built.kernel.facts.map((fact) => fact.text)].join(' ');
+    expect(visibleKnowledge).toContain('Standards-based markup');
+    expect(visibleKnowledge).not.toMatch(/Flashing content|prominent audio or visual content/i);
+  });
+
+  it('keeps a concise source with one explanatory fact for course-level composition', () => {
+    const built = buildKernelFromArticle({
+      topic: 'waterborne pathogens',
+      title: 'Waterborne disease',
+      extract: [
+        'Waterborne diseases are conditions caused by pathogenic microorganisms transmitted in contaminated water.',
+        'Transmission can occur when people drink, prepare food with, or bathe in contaminated water supplies.',
+      ].join('\n'),
+      provider,
+    });
+    expect(built).not.toBeNull();
+    expect(built.kernel.facts).toHaveLength(1);
+  });
+
+  it('does not promote discourse markers or unresolved comparisons into source concepts', () => {
+    const built = buildKernelFromArticle({
+      topic: 'narrative visualization',
+      title: 'Data visualization',
+      extract: [
+        'Narrative visualization combines data displays with a structured explanatory sequence for an intended audience.',
+        'A clear narrative visualization connects each displayed relationship to the claim it is meant to support.',
+        'In addition, Narrative visualization is a method that uses visual elements to convey data or information.',
+        'The most common of these is a chart sequence that depends on context established in the previous section.',
+      ].join('\n'),
+      provider,
+      sourceMeta: { suggestedTerm: 'In addition, Narrative visualization' },
+    });
+
+    expect(built.kernel.term).toBe('Narrative visualization');
+    expect(JSON.stringify(built.kernel)).not.toMatch(/In addition,|most common of these/i);
+  });
+
+  it('does not promote an unrelated sentence from a long canonical article', () => {
+    const built = buildKernelFromArticle({
+      topic: 'semantic HTML and keyboard accessibility',
+      title: 'Semantic HTML',
+      extract: [
+        'Semantic HTML is the use of HTML markup to reinforce the meaning of information in web pages.',
+        'Semantic HTML helps user agents and assistive technologies interpret page structure.',
+        'HTML headings and landmarks expose navigable structure to keyboard and screen-reader users.',
+        'A means of marking-up any arbitrary section of HTML would require a mechanism independent of the markup structure itself, such as XPointer.',
+        'Mashups and price comparison websites may be coming close.',
+      ].join('\n'),
+      provider,
+    });
+    expect(built).not.toBeNull();
+    const facts = built.kernel.facts.map((fact) => fact.text).join(' ');
+    expect(facts).not.toContain('Mashups and price comparison websites');
+    expect(facts).not.toMatch(/XPointer|arbitrary section of HTML/i);
+  });
+
+  it('keeps standards-specific WCAG facts that use a conformance label instead of repeating the acronym', () => {
+    const built = buildKernelFromArticle({
+      topic: 'WCAG principles and conformance',
+      title: 'Web Content Accessibility Guidelines',
+      extract: [
+        'Web Content Accessibility Guidelines are recommendations for making web content more accessible.',
+        'The guidelines organize accessibility around perceivable, operable, understandable, and robust principles.',
+        'Level AA is the conformance target adopted by many organizations for web content.',
+        'Success criteria provide testable statements for evaluating a page.',
+        'A sports league changed its schedule after a rain delay.',
+      ].join('\n'),
+      provider,
+    });
+    expect(built).not.toBeNull();
+    const facts = built.kernel.facts.map((fact) => fact.text).join(' ');
+    expect(facts).toContain('Level AA');
+    expect(facts).toContain('Success criteria');
+    expect(facts).not.toContain('sports league');
+  });
+
+  it('ranks the standard’s teachable structure ahead of a long adoption history', () => {
+    const built = buildKernelFromArticle({
+      topic: 'WCAG principles and conformance',
+      title: 'Web Content Accessibility Guidelines',
+      extract: [
+        'Web Content Accessibility Guidelines are recommendations for making web content more accessible.',
+        'A ministry published regulations requiring websites to comply with the Web Content Accessibility Guidelines.',
+        'A government rule adopted the Web Content Accessibility Guidelines for public mobile applications.',
+        'A directive requires public bodies to use the Web Content Accessibility Guidelines.',
+        'Several jurisdictions built legislation around the Web Content Accessibility Guidelines.',
+        'An accessibility act requires organizations to use the Web Content Accessibility Guidelines.',
+        'The guidelines are organized under four principles: perceivable, operable, understandable, and robust.',
+        'Each guideline has testable success criteria for evaluating conformance.',
+        'WCAG uses three levels of conformance: Level A, Level AA, and Level AAA.',
+      ].join('\n'),
+      provider,
+      factCount: 5,
+    });
+
+    const facts = built.kernel.facts.map((fact) => fact.text).join(' ');
+    expect(facts).toContain('perceivable, operable, understandable, and robust');
+    expect(facts).toContain('testable success criteria');
+    expect(facts).toContain('three levels of conformance');
+  });
+
+  it('prefers an exact compact lesson phrase visibly anchored in a scholarly title', () => {
+    const built = buildKernelFromArticle({
+      topic: 'intervention design',
+      title: 'Applying behavior change theory to intervention design in primary care',
+      extract: [
+        'Intervention design applies behavior change theory to a clinic-based program in primary care.',
+        'Intervention design uses stakeholder interviews to identify knowledge gaps and missing implementation resources.',
+        'Intervention design includes team training and a structured implementation checklist.',
+        'Intervention design compares the implementation plan with observed clinic workflow constraints.',
+        'Intervention design evaluation records whether each component reaches its intended primary care team.',
+      ].join('\n'),
+      provider,
+      sourceMeta: {
+        suggestedTerm: 'Applying behavior change theory to intervention design in primary care',
+        definitionMode: 'scholarly-abstract',
+      },
+    });
+
+    expect(built.kernel.term).toBe('intervention design');
+  });
+
+  it('preserves a compact topic-relevant source concept instead of collapsing every article to the lesson title', () => {
+    const built = buildKernelFromArticle({
+      topic: 'phytoremediation approaches',
+      title: 'Phytoremediation approaches to bioremediation of contaminated water',
+      extract: [
+        'Phytoremediation is the use of plants and associated microorganisms to remove or contain environmental contaminants.',
+        'Phytoremediation can treat contaminated soil, sediment, and water at or near the affected site.',
+        'Plant selection depends on the contaminant, climate, root depth, and intended removal mechanism.',
+        'Field monitoring compares contaminant concentrations before and after the treatment period.',
+      ].join('\n'),
+      provider,
+      sourceMeta: {
+        suggestedTerm: 'Phytoremediation',
+        definitionMode: 'scholarly-abstract',
+      },
+    });
+
+    expect(built.kernel.term).toBe('Phytoremediation');
+  });
+
+  it('recognizes encompasses as a source-authored definitional verb', () => {
+    const built = buildKernelFromArticle({
+      topic: 'platform governance',
+      title: 'Platform economy',
+      extract: [
+        'The platform economy encompasses economic and social activities facilitated by digital platforms.',
+        'The platform economy has experienced rapid growth and disrupted established business models.',
+        'Platform businesses rely on network effects as more users join.',
+        'Regulators examine platform market concentration, worker protection, and tax obligations.',
+      ].join('\n'),
+      provider,
+      sourceMeta: {
+        suggestedTerm: 'Platform economy',
+      },
+    });
+
+    expect(built.kernel.term).toBe('Platform economy');
+    expect(built.kernel.definition.text).toContain('encompasses economic and social activities');
+  });
+});
+
+describe('relevance scoring', () => {
+  it('takes the weaker of title and definition so a right-definition/wrong-subject page loses', () => {
+    // "truth-telling in the marketplace" -> "Lie": the definition of lying is
+    // about truth-telling, so definition-only scoring could not see the drift.
+    expect(Math.min(0.2, 0.9)).toBeLessThan(RELEVANCE_FLOOR + 0.1);
+  });
+
+  it('cosine of a unit vector with itself is 1', () => {
+    expect(cosine([0, 1, 0], [0, 1, 0])).toBeCloseTo(1);
+  });
+
+  it('normalizes non-unit embeddings before applying semantic floors', () => {
+    expect(cosine([0, 2], [0, 5])).toBeCloseTo(1);
+    expect(cosine([2, 0], [0, 7])).toBeCloseTo(0);
+  });
+
+  it('lexical relevance ignores pedagogical filler words', () => {
+    expect(lexicalRelevance('introduction to photosynthesis', 'Photosynthesis')).toBeGreaterThan(0.5);
+  });
+
+  it('normalizes scientific morphology used by environmental microbiology sources', () => {
+    expect(lexicalRelevance('microbial risk', 'microbiological risk')).toBe(1);
+    expect(lexicalRelevance('bioremediation', 'phytoremediation')).toBe(0);
+    expect(lexicalRelevance('phytoremediation', 'phytoremediation methods')).toBe(1);
+    expect(lexicalRelevance('pathogens', 'pathogenic microorganisms')).toBeGreaterThan(0);
+  });
+
+  it('normalizes governance morphology across lesson titles and source prose', () => {
+    expect(lexicalRelevance('platform governance', 'Platforms are governed by shared rules')).toBe(1);
+  });
+
+  it('normalizes descriptive and describing as the same research concept', () => {
+    expect(lexicalRelevance('describing distributions', 'descriptive statistics for a distribution')).toBe(1);
+  });
+
+  it('tries canonical phrase windows for a three-word pedagogical topic', () => {
+    expect(directResearchTitles('Microbial risk assessment', 'Environmental Microbiology')).toEqual(
+      expect.arrayContaining(['Microbial risk assessment', 'Microbial risk', 'risk assessment']),
+    );
+    expect(directResearchTitles('Waterborne pathogens', 'Environmental Microbiology')).toEqual(
+      expect.arrayContaining(['Waterborne disease', 'Waterborne diseases', 'Pathogenic bacteria', 'Water pollution']),
+    );
+    expect(directResearchTitles('Biofilms', 'Environmental Microbiology')).toEqual(
+      expect.arrayContaining([
+        'Biofilm',
+        'Biofilm matrix',
+        'Microbial mat',
+        'Phototrophic biofilm',
+        'Extracellular polymeric substance',
+      ]),
+    );
+    expect(directResearchTitles('Bioremediation', 'Environmental Microbiology')).toEqual(
+      expect.arrayContaining(['Bioremediation', 'Biodegradation']),
+    );
+    expect(directResearchTitles('Bioremediation', 'Environmental Microbiology')).not.toEqual(
+      expect.arrayContaining(['Phytoremediation', 'Mycoremediation']),
+    );
+    expect(directResearchTitles('Contextual inquiry and field notes', 'User Experience Research Studio')).toEqual(
+      expect.arrayContaining(['Contextual inquiry', 'Fieldnotes', 'Field research']),
+    );
+    expect(directResearchTitles('AI governance: in practice', 'Current Technology Policy')).toEqual(
+      expect.arrayContaining([
+        'AI governance',
+        'Governance of artificial intelligence',
+        'Regulation of artificial intelligence',
+      ]),
+    );
+    expect(directResearchTitles('Privacy regulation', 'Current Technology Policy')).toEqual(
+      expect.arrayContaining(['Information privacy law', 'Privacy law', 'Data protection']),
+    );
+    expect(directResearchTitles('Algorithmic audits', 'Current Technology Policy')).toEqual(
+      expect.arrayContaining(['Algorithmic accountability', 'Algorithmic bias', 'Algorithmic transparency']),
+    );
+    expect(directResearchTitles('WCAG principles', 'Digital Accessibility for Product Teams')).toEqual(
+      expect.arrayContaining(['Web Content Accessibility Guidelines', 'Web accessibility']),
+    );
+    expect(directResearchTitles('semantic HTML', 'Digital Accessibility for Product Teams')).toEqual(
+      expect.arrayContaining(['Semantic HTML', 'HTML', 'WAI-ARIA']),
+    );
+    expect(directResearchTitles('accessible forms', 'Digital Accessibility for Product Teams')).toEqual(
+      expect.arrayContaining(['Form (HTML)', 'Web accessibility', 'Web Accessibility Initiative']),
+    );
+  });
+
+  it('expands the exact frozen comparison topics into canonical source concepts', () => {
+    expect(directResearchTitles('duties to workers', 'Business Ethics and Responsible Decision-Making')).toEqual(
+      expect.arrayContaining(["Workers' rights", 'Labour law', 'Occupational safety and health']),
+    );
+    expect(
+      directResearchTitles('accountable case recommendations', 'Business Ethics and Responsible Decision-Making'),
+    ).toEqual(expect.arrayContaining(['Business ethics', 'Stakeholder theory', 'Accountability']));
+    expect(directResearchTitles('intervention design', 'Public Health Program Planning')).toEqual(
+      expect.arrayContaining(['Logic model', 'Theory of change', 'Program evaluation']),
+    );
+    expect(directResearchTitles('implementation barriers', 'Public Health Program Planning')).toEqual(
+      expect.arrayContaining(['Implementation science', 'Policy implementation', 'Implementation research']),
+    );
+    expect(directResearchTitles('evaluation metrics', 'Public Health Program Planning')).toEqual(
+      expect.arrayContaining(['Program evaluation', 'Performance indicator', 'Outcome measure']),
+    );
+    expect(directResearchTitles('current artificial-intelligence regulation', 'Current Technology Policy')).toEqual(
+      expect.arrayContaining(['Governance of artificial intelligence', 'Regulation of artificial intelligence']),
+    );
+    expect(directResearchTitles('platform governance', 'Current Technology Policy')).toEqual(
+      expect.arrayContaining(['Internet governance', 'Platform economy', 'Content moderation']),
+    );
+    expect(directResearchTitles('privacy and data protection', 'Current Technology Policy')).toEqual(
+      expect.arrayContaining(['Information privacy law', 'Privacy law', 'Data protection']),
+    );
+    expect(directResearchTitles('algorithmic accountability standards', 'Current Technology Policy')).toEqual(
+      expect.arrayContaining(['Algorithmic accountability', 'Algorithmic bias', 'Algorithmic transparency']),
+    );
+    expect(directResearchTitles('evidence-based policy recommendations', 'Current Technology Policy')).toEqual(
+      expect.arrayContaining(['Public policy', 'Policy analysis', 'Regulatory impact analysis']),
+    );
+  });
+
+  it('searches both named sides of a compound topic in one request', () => {
+    expect(researchQueryForTopic('Qubits and quantum states')).toBe('"Qubits" OR "quantum states"');
+    expect(researchQueryForTopic('Superposition and measurement', 'Introduction to Quantum Computing')).toBe(
+      'quantum ("Superposition" OR "measurement")',
+    );
+    expect(researchQueryForTopic('Quantum algorithms')).toBe('Quantum algorithms');
+  });
+});
+
+describe('researchConcept', () => {
+  it('returns nothing rather than a wrong article when every candidate is an entity page', async () => {
+    // Thick enough to extract cleanly: the point is that it is rejected for
+    // being the wrong KIND of page, not for being unparseable.
+    const pages = {
+      'Jury Duty (2023 TV series)': {
+        hits: ['jury', 'deliberation'],
+        text: [
+          'Jury Duty is an American mockumentary comedy television series about a staged trial.',
+          'The series follows a jury in which every participant except one is a paid actor.',
+          'Jury Duty was released in 2023 and received praise for the sincerity of its lead.',
+          'The production required improvisation because the outcome depended on one unaware juror.',
+        ].join('\n'),
+      },
+    };
+    const result = await researchConcept('closing case deliberation', { provider: stubProvider(pages) });
+    expect(result.ok).toBe(false);
+    expect(result.reason).toBe('only-entity-pages');
+  });
+
+  it('admits a relevant concept page at source-anchored tier', async () => {
+    const text = [
+      'Whistleblowing is the activity of a person who reports wrongdoing by an organisation to an authority.',
+      'Whistleblowing is not to be confused with an internal grievance, which stays inside the organisation.',
+      'Whistleblowers are protected by statute in many jurisdictions because disclosure serves the public interest.',
+      'Retaliation against a whistleblower is unlawful when the disclosure concerns a legal violation.',
+    ].join('\n');
+    const result = await researchConcept('whistleblowing', {
+      provider: stubProvider({ Whistleblowing: { hits: ['whistleblowing'], text } }),
+    });
+    expect(result.ok).toBe(true);
+    expect(result.tier).toBeGreaterThanOrEqual(2);
+    expect(result.kernel.facts.length).toBeGreaterThanOrEqual(2);
+    expect(result.kernel.provenance).toMatchObject({
+      origin: 'algi-research',
+      title: 'Whistleblowing',
+    });
+  });
+});
+
+describe('the research flag is opt-in', () => {
+  it('stays offline unless explicitly enabled', async () => {
+    const { buildResearchProvider, ALGI_RESEARCH_FLAG } = await import('../../algiComposer.js');
+    const store = (value) => ({ getItem: (key) => (key === ALGI_RESEARCH_FLAG ? value : null) });
+    expect(buildResearchProvider({ storage: store(null) })).toBeNull();
+    expect(buildResearchProvider({ storage: store('off') })).toBeNull();
+    // Absent storage must not be read as consent.
+    expect(buildResearchProvider({ storage: undefined })).toBeNull();
+    expect(buildResearchProvider({ storage: store('on') })).not.toBeNull();
+  });
+
+  it('governs the shared reading backbone as well as Wikipedia research', async () => {
+    const { allowExternalKnowledgeLookups, ALGI_RESEARCH_FLAG } = await import('../../algiResearchPolicy.js');
+    const store = (value) => ({ getItem: (key) => (key === ALGI_RESEARCH_FLAG ? value : null) });
+    expect(allowExternalKnowledgeLookups({ algiRoute: true, storage: store(null) })).toBe(false);
+    expect(allowExternalKnowledgeLookups({ algiRoute: true, storage: store('on') })).toBe(true);
+    expect(allowExternalKnowledgeLookups({ algiRoute: false, storage: store(null) })).toBe(true);
+  });
+
+  it('deduplicates requests, enforces a course budget, and propagates cancellation', async () => {
+    const { buildResearchProvider, ALGI_RESEARCH_FLAG } = await import('../../algiComposer.js');
+    const storage = { getItem: (key) => (key === ALGI_RESEARCH_FLAG ? 'on' : null) };
+    const fetchImpl = async () => ({ ok: true, json: async () => ({ ok: true }) });
+    const bounded = buildResearchProvider({ storage, fetchImpl, gapMs: 0, maxRequests: 1 });
+    await expect(bounded.httpJson('https://example.test/a')).resolves.toEqual({ ok: true });
+    await expect(bounded.httpJson('https://example.test/a')).resolves.toEqual({ ok: true });
+    await expect(bounded.httpJson('https://example.test/b')).rejects.toThrow('algi-research-budget-exhausted:1');
+    expect(bounded.diagnostics()).toMatchObject({ requestCount: 1, cachedRequestCount: 1 });
+
+    const controller = new AbortController();
+    const stalled = buildResearchProvider({
+      storage,
+      signal: controller.signal,
+      gapMs: 0,
+      fetchImpl: (_url, options) =>
+        new Promise((_resolve, reject) => {
+          options.signal.addEventListener('abort', () => reject(options.signal.reason), { once: true });
+        }),
+    });
+    const request = stalled.httpJson('https://example.test/stalled');
+    controller.abort(Object.assign(new Error('stop-now'), { name: 'AbortError' }));
+    await expect(request).rejects.toThrow('stop-now');
+  });
+
+  it('recovers one temporary 429 inside the bounded request budget', async () => {
+    const { buildResearchProvider, ALGI_RESEARCH_FLAG } = await import('../../algiComposer.js');
+    const storage = { getItem: (key) => (key === ALGI_RESEARCH_FLAG ? 'on' : null) };
+    let calls = 0;
+    const recovered = buildResearchProvider({
+      storage,
+      gapMs: 0,
+      maxRequests: 2,
+      fetchImpl: async () => {
+        calls += 1;
+        if (calls === 1) {
+          return { ok: false, status: 429, headers: { get: () => '0' } };
+        }
+        return { ok: true, status: 200, headers: { get: () => null }, json: async () => ({ recovered: true }) };
+      },
+    });
+    await expect(recovered.httpJson('https://example.test/rate-limited')).resolves.toEqual({ recovered: true });
+    expect(recovered.diagnostics()).toMatchObject({ requestCount: 2, maxRequests: 2 });
+  });
+
+  it('recovers two consecutive 429 responses without starting a new course transaction', async () => {
+    const { buildResearchProvider, ALGI_RESEARCH_FLAG } = await import('../../algiComposer.js');
+    const storage = { getItem: (key) => (key === ALGI_RESEARCH_FLAG ? 'on' : null) };
+    let calls = 0;
+    const recovered = buildResearchProvider({
+      storage,
+      gapMs: 0,
+      maxRequests: 3,
+      fetchImpl: async () => {
+        calls += 1;
+        if (calls < 3) return { ok: false, status: 429, headers: { get: () => '0' } };
+        return { ok: true, status: 200, headers: { get: () => null }, json: async () => ({ recovered: true }) };
+      },
+    });
+
+    await expect(recovered.httpJson('https://example.test/repeated-rate-limit')).resolves.toEqual({ recovered: true });
+    expect(recovered.diagnostics()).toMatchObject({ requestCount: 3, maxRequests: 3 });
+  });
+
+  it('identifies browser-originated Wikimedia research requests', async () => {
+    const { buildResearchProvider, ALGI_RESEARCH_FLAG } = await import('../../algiComposer.js');
+    const storage = { getItem: (key) => (key === ALGI_RESEARCH_FLAG ? 'on' : null) };
+    let requestOptions;
+    const provider = buildResearchProvider({
+      storage,
+      gapMs: 0,
+      fetchImpl: async (_url, options) => {
+        requestOptions = options;
+        return { ok: true, status: 200, headers: { get: () => null }, json: async () => ({ ok: true }) };
+      },
+    });
+
+    await provider.httpJson('https://en.wikipedia.org/w/api.php?action=query');
+
+    expect(requestOptions.headers).toMatchObject({
+      Accept: 'application/json',
+      'Api-User-Agent': 'EduTool.dev/0.17 (+https://edutool.dev/#/contact)',
+    });
+  });
+});
+
+describe('Wikipedia request architecture', () => {
+  it('hydrates the extract continuation without widening the ranked search result set', async () => {
+    const requests = [];
+    const httpJson = async (url) => {
+      requests.push(url);
+      if (!url.includes('excontinue=')) {
+        return {
+          continue: { excontinue: 20, continue: '||info|revisions' },
+          query: {
+            pages: {
+              1: { title: 'Ranked page 1', extract: 'First ranked extract.', fullurl: 'https://example.test/1' },
+              21: { title: 'Ranked page 21', fullurl: 'https://example.test/21' },
+            },
+          },
+        };
+      }
+      return {
+        continue: { gsroffset: 24, continue: 'gsroffset||' },
+        query: {
+          pages: {
+            1: { title: 'Ranked page 1', fullurl: 'https://example.test/1' },
+            21: { title: 'Ranked page 21', extract: 'Continued ranked extract.', fullurl: 'https://example.test/21' },
+          },
+        },
+      };
+    };
+    const provider = buildWikipediaProvider(httpJson);
+
+    const records = await provider.searchArticles('bounded lesson query', 24);
+
+    expect(Object.keys(records)).toEqual(['Ranked page 1', 'Ranked page 21']);
+    expect(records['Ranked page 21'].extract).toBe('Continued ranked extract.');
+    expect(requests).toHaveLength(2);
+    expect(requests[1]).toContain('excontinue=20');
+    expect(requests[1]).toContain('continue=%7C%7Cinfo%7Crevisions');
+    expect(requests.every((request) => !request.includes('gsroffset='))).toBe(true);
+  });
+
+  it('retrieves all candidate articles in one attributed batch', async () => {
+    const httpJson = async (url) => {
+      expect(url).toContain('titles=Photosynthesis%7CCellular%20respiration');
+      expect(url).toContain('exlimit=max');
+      expect(url).toContain('exintro=1');
+      return {
+        query: {
+          pages: {
+            1: {
+              title: 'Photosynthesis',
+              extract: 'Photosynthesis is a source passage with enough explanatory detail for a lesson.',
+              fullurl: 'https://en.wikipedia.org/wiki/Photosynthesis',
+              revisions: [{ revid: 101, timestamp: '2026-07-01T00:00:00Z' }],
+            },
+            2: {
+              title: 'Cellular respiration',
+              extract: 'Cellular respiration is a source passage with enough explanatory detail for a lesson.',
+              fullurl: 'https://en.wikipedia.org/wiki/Cellular_respiration',
+              revisions: [{ revid: 202, timestamp: '2026-07-02T00:00:00Z' }],
+            },
+          },
+        },
+      };
+    };
+    const providerWithBatch = buildWikipediaProvider(httpJson);
+    const records = await providerWithBatch.articles(['Photosynthesis', 'Cellular respiration']);
+
+    expect(Object.keys(records)).toEqual(['Photosynthesis', 'Cellular respiration']);
+    expect(records.Photosynthesis).toMatchObject({
+      sourceUrl: 'https://en.wikipedia.org/wiki/Photosynthesis',
+      revisionId: 101,
+      revisionTimestamp: '2026-07-01T00:00:00Z',
+    });
+    expect(providerWithBatch.attributionFor('Photosynthesis')).toContain('Wikipedia contributors');
+  });
+
+  it('retrieves one selected page as a full extract after intro ranking', async () => {
+    const httpJson = async (url) => {
+      expect(url).toContain('titles=Semantic%20HTML');
+      expect(url).not.toContain('exintro=1');
+      expect(url).not.toContain('exlimit=max');
+      return {
+        query: {
+          pages: {
+            3: {
+              title: 'Semantic HTML',
+              extract: 'Semantic HTML is the use of markup to express meaning. '.repeat(20),
+              fullurl: 'https://en.wikipedia.org/wiki/Semantic_HTML',
+              revisions: [{ revid: 303, timestamp: '2026-07-03T00:00:00Z' }],
+            },
+          },
+        },
+      };
+    };
+    const providerWithFullExtract = buildWikipediaProvider(httpJson);
+    const record = await providerWithFullExtract.fullArticle('Semantic HTML');
+    expect(record).toMatchObject({
+      title: 'Semantic HTML',
+      revisionId: 303,
+      sourceUrl: 'https://en.wikipedia.org/wiki/Semantic_HTML',
+    });
+    expect(record.extract.length).toBeGreaterThan(500);
+  });
+});
+
+describe('open scholarly provider architecture', () => {
+  it('overrides an undefined upstream provider label with the cascade provider', () => {
+    expect(
+      stampTargetedBudgetProvider(
+        [{ topic: 'Sparse lesson', scheduled: 0, available: 2, providerId: undefined }],
+        'wikipedia',
+      ),
+    ).toEqual([
+      {
+        topic: 'Sparse lesson',
+        scheduled: 0,
+        available: 2,
+        providerId: 'wikipedia',
+      },
+    ]);
+  });
+
+  it('returns a stable empty research diagnostic shape', async () => {
+    const result = await researchLessonKernelSets([], {});
+
+    expect(result).toMatchObject({
+      searchGroups: 0,
+      targetedSearches: 0,
+      targetedBudgetExhausted: [],
+      articleCandidates: 0,
+    });
+  });
+
+  it('normalizes DOAJ CC0 article metadata into source-specific records', async () => {
+    const providerWithMetadata = buildDoajProvider(async (url) => {
+      expect(url).toContain('doaj.org/api/search/articles/');
+      return {
+        results: [
+          {
+            id: 'article-1',
+            last_updated: '2026-07-20T00:00:00Z',
+            bibjson: {
+              title: 'Biofilm removal in water systems',
+              abstract:
+                'Biofilm is a community of microorganisms attached to a surface. Biofilm removal requires evidence about attachment, flow, and treatment conditions. The study compares two removal methods under controlled water-system conditions.',
+              year: '2026',
+              keywords: ['biofilm', 'water systems'],
+              author: [{ name: 'A. Researcher' }],
+              identifier: [{ type: 'doi', id: '10.1000/example' }],
+              link: [{ type: 'fulltext', url: 'https://example.org/open-article' }],
+            },
+          },
+        ],
+      };
+    });
+
+    const records = await providerWithMetadata.searchArticles('biofilm', 5);
+    expect(records['Biofilm removal in water systems']).toMatchObject({
+      providerId: 'doaj',
+      sourceKind: 'open scholarly article',
+      sourceId: 'doaj:article-1',
+      sourceUrl: 'https://example.org/open-article',
+      license: 'CC0 1.0 (DOAJ article metadata)',
+      suggestedTerm: 'biofilm',
+      definitionMode: 'scholarly-abstract',
+    });
+    expect(records['Biofilm removal in water systems'].attribution).toContain('A. Researcher (2026)');
+  });
+
+  it('uses the HTTPS DOI resolver when DOAJ advertises only an HTTP full-text link', async () => {
+    const providerWithLegacyLink = buildDoajProvider(async () => ({
+      results: [
+        {
+          id: 'legacy-link',
+          bibjson: {
+            title: 'Visual hierarchy evidence',
+            abstract:
+              'Visual hierarchy organizes elements so viewers can distinguish relative importance. The study reports focal placement and contrast as observable signals in a controlled comparison.',
+            identifier: [{ type: 'doi', id: '10.1000/secure-record' }],
+            link: [{ type: 'fulltext', url: 'http://publisher.example/article' }],
+          },
+        },
+      ],
+    }));
+
+    const records = await providerWithLegacyLink.searchArticles('visual hierarchy', 5);
+    expect(records['Visual hierarchy evidence'].sourceUrl).toBe('https://doi.org/10.1000/secure-record');
+  });
+
+  it('admits only explicitly licensed open Europe PMC abstracts', async () => {
+    const providerWithMetadata = buildEuropePmcProvider(async (url) => {
+      expect(url).toContain('europepmc/webservices/rest/search');
+      expect(decodeURIComponent(url)).toContain('OPEN_ACCESS:Y');
+      return {
+        resultList: {
+          result: [
+            {
+              id: '41976490',
+              pmcid: 'PMC13074090',
+              title: 'A Review of Quantitative Microbial Risk Assessment.',
+              abstractText:
+                'Quantitative microbial risk assessment is a framework for evaluating microbial hazards. Exposure assessment measures contact with a hazard because dose shapes the probability of harm. Risk characterization combines evidence and uncertainty into one bounded estimate.',
+              license: 'cc by',
+              isOpenAccess: 'Y',
+              authorString: 'A. Researcher, B. Reviewer',
+              pubYear: '2026',
+              journalTitle: 'Open Microbiology',
+              keywordList: {
+                keyword: ['Quantitative Microbial Risk Assessment', 'Exposure assessment'],
+              },
+            },
+            {
+              id: 'closed-1',
+              title: 'Closed microbial evidence.',
+              abstractText: 'This record has an abstract but does not state an open article license.',
+              license: '',
+              isOpenAccess: 'N',
+            },
+          ],
+        },
+      };
+    });
+    const records = await providerWithMetadata.searchArticles('microbial risk assessment', 5);
+    expect(Object.keys(records)).toEqual(['A Review of Quantitative Microbial Risk Assessment.']);
+    expect(records['A Review of Quantitative Microbial Risk Assessment.']).toMatchObject({
+      providerId: 'europe-pmc',
+      sourceKind: 'open biomedical article',
+      sourceId: 'europe-pmc:PMC13074090',
+      sourceUrl: 'https://europepmc.org/article/PMC/13074090',
+      license: 'CC BY',
+      definitionMode: 'scholarly-abstract',
+    });
+  });
+
+  it('uses the scholarly lane before the encyclopedia lane and preserves both receipts', async () => {
+    const articleText = (term, detail) =>
+      [
+        `${term} is a source-defined concept used to explain ${detail} in this lesson.`,
+        `${term} requires evidence that connects the observed condition to the stated mechanism.`,
+        `${term} includes a comparison that distinguishes the mechanism from a neighbouring explanation.`,
+        `${term} allows investigators to evaluate one bounded claim against an observable result.`,
+        `${term} provides a worked example that can be checked against the cited source passage.`,
+      ].join('\n');
+    const makeProvider = (id, records) => ({
+      id,
+      sourceKind: id === 'doaj' ? 'open scholarly article' : 'open encyclopedia',
+      supportsDirectTitles: false,
+      searchArticles: async () => records,
+      search: async () => Object.keys(records),
+      articles: async (titles) =>
+        Object.fromEntries(titles.map((title) => [title, records[title]]).filter(([, value]) => value)),
+      article: async (title) => records[title] || null,
+      license: id === 'doaj' ? 'CC0 1.0 (DOAJ article metadata)' : 'CC BY-SA 4.0',
+      attributionFor: (title) => `${id}, ${title}`,
+      sourceIdFor: (title) => `${id}:${title}`,
+    });
+    const scholarly = makeProvider('doaj', {
+      'Biofilm evidence': {
+        title: 'Biofilm evidence',
+        extract: articleText('Biofilm', 'surface attachment'),
+        sourceId: 'doaj:biofilm-evidence',
+        providerId: 'doaj',
+        sourceKind: 'open scholarly article',
+        license: 'CC0 1.0 (DOAJ article metadata)',
+        attribution: 'Researcher (2026). Biofilm evidence. DOAJ metadata.',
+        sourceUrl: 'https://example.org/biofilm-evidence',
+        suggestedTerm: 'Biofilm',
+        definitionMode: 'scholarly-abstract',
+      },
+    });
+    const encyclopediaRecords = Object.fromEntries(
+      ['Biofilm matrix', 'Microbial mat', 'Surface adhesion'].map((title) => [
+        title,
+        {
+          title,
+          extract: articleText(title, 'biofilm structure'),
+          sourceUrl: `https://example.org/${title}`,
+          providerId: 'wikipedia',
+          sourceKind: 'open encyclopedia',
+        },
+      ]),
+    );
+    const encyclopedia = makeProvider('wikipedia', encyclopediaRecords);
+
+    const result = await researchLessonKernelSetsCascade(['Biofilm'], {
+      providers: [
+        { id: 'doaj', provider: scholarly, options: { maxTargetedFallbacks: 0 } },
+        { id: 'wikipedia', provider: encyclopedia, options: { maxTargetedFallbacks: 0 } },
+      ],
+      want: 4,
+      minimum: 3,
+      floor: 0.2,
+    });
+
+    expect(result.providerStats.map((entry) => entry.providerId)).toEqual(['doaj', 'wikipedia']);
+    expect(result.providersUsed).toContain('doaj');
+    expect(result.byTopic.get('Biofilm').some((kernel) => kernel.provenance.providerId === 'doaj')).toBe(true);
+    expect(result.byTopic.get('Biofilm').every((kernel) => kernel.provenance.entailment?.status === 'passed')).toBe(
+      true,
+    );
+  });
+
+  it('continues to the next provider when a raw kernel count is not schema-ready', async () => {
+    const recordsFor = (providerId, prefix) =>
+      Object.fromEntries(
+        [1, 2, 3].map((index) => {
+          const title = `Biofilm ${prefix} ${index}`;
+          const extract = [
+            `${title} is a source-defined biofilm concept with a distinct role in an environmental system.`,
+            `${title} requires evidence because its mechanism depends on observable attachment conditions.`,
+            `${title} allows investigators to compare one bounded result with a neighbouring explanation.`,
+          ].join('\n');
+          return [
+            title,
+            {
+              title,
+              extract,
+              sourceId: `${providerId}:${prefix}-${index}`,
+              providerId,
+              sourceKind: 'open source',
+              sourceUrl: `https://example.org/${providerId}/${index}`,
+            },
+          ];
+        }),
+      );
+    const providerFor = (id, records) => ({
+      id,
+      supportsDirectTitles: false,
+      searchArticles: async () => records,
+      search: async () => Object.keys(records),
+      articles: async (titles) =>
+        Object.fromEntries(titles.map((title) => [title, records[title]]).filter(([, value]) => value)),
+      article: async (title) => records[title] || null,
+      license: 'CC BY 4.0',
+      attributionFor: (title) => `${id}, ${title}`,
+      sourceIdFor: (title) => `${id}:${title}`,
+    });
+    const first = providerFor('doaj', recordsFor('doaj', 'study'));
+    const second = providerFor('wikipedia', recordsFor('wikipedia', 'concept'));
+
+    const result = await researchLessonKernelSetsCascade(['Biofilm'], {
+      providers: [
+        { id: 'doaj', provider: first, options: { maxTargetedFallbacks: 0 } },
+        { id: 'wikipedia', provider: second, options: { maxTargetedFallbacks: 0 } },
+      ],
+      want: 4,
+      minimum: 3,
+      floor: 0.2,
+      isTopicReady: (_topic, kernels) => kernels.some((kernel) => kernel.provenance?.providerId === 'wikipedia'),
+    });
+
+    expect(result.providerStats.map((entry) => entry.providerId)).toEqual(['doaj', 'wikipedia']);
+    expect(result.byTopic.get('Biofilm')).toHaveLength(6);
+    expect(result.providersUsed).toEqual(['doaj', 'wikipedia']);
+  });
+
+  it('uses the course research plan to skip irrelevant providers and issue a disambiguated lesson query', async () => {
+    const queries = [];
+    const noResultsProvider = (id) => ({
+      id,
+      supportsDirectTitles: false,
+      searchArticles: async (query) => {
+        queries.push([id, query]);
+        return {};
+      },
+      search: async () => [],
+      articles: async () => ({}),
+      article: async () => null,
+      license: 'CC BY 4.0',
+      attributionFor: (title) => `${id}, ${title}`,
+      sourceIdFor: (title) => `${id}:${title}`,
+    });
+    const researchPlan = planAlgiCourseResearch({
+      courseName: 'World Literature',
+      lessons: [{ lessonId: 'lesson-1', title: 'Postcolonial narrative voice' }],
+    });
+
+    const result = await researchLessonKernelSetsCascade(['Postcolonial narrative voice'], {
+      providers: [
+        { id: 'europe-pmc', provider: noResultsProvider('europe-pmc'), options: { maxTargetedFallbacks: 0 } },
+        { id: 'doaj', provider: noResultsProvider('doaj'), options: { maxTargetedFallbacks: 0 } },
+        { id: 'wikipedia', provider: noResultsProvider('wikipedia'), options: { maxTargetedFallbacks: 0 } },
+      ],
+      researchPlan,
+    });
+
+    expect(queries.some(([providerId]) => providerId === 'europe-pmc')).toBe(false);
+    expect(queries.find(([providerId]) => providerId === 'doaj')?.[1]).toContain('"Postcolonial narrative voice"');
+    expect(result.providerStats.map((entry) => entry.providerId)).toEqual(['doaj', 'wikipedia']);
+  });
+
+  it('propagates targeted budget exhaustion through provider statistics', async () => {
+    const topics = ['Alpha and beta', 'Gamma and delta', 'Epsilon and zeta'];
+    const provider = {
+      id: 'wikipedia',
+      supportsDirectTitles: false,
+      searchArticles: async () => ({}),
+      search: async () => [],
+      articles: async () => ({}),
+      article: async () => null,
+      license: 'CC BY-SA 4.0',
+      attributionFor: (title) => `Wikipedia, ${title}`,
+      sourceIdFor: (title) => `wikipedia:${title}`,
+    };
+    const researchPlan = planAlgiCourseResearch({
+      courseName: 'General methods',
+      lessons: topics.map((title, index) => ({ lessonId: `lesson-${index + 1}`, title })),
+    });
+
+    const result = await researchLessonKernelSetsCascade(topics, {
+      providers: [
+        {
+          id: 'wikipedia',
+          provider,
+          options: { maxTargetedFallbacks: 3, maxTargetedSearchRequests: 3 },
+        },
+      ],
+      researchPlan,
+    });
+
+    const expected = topics.map((topic) => ({
+      providerId: 'wikipedia',
+      topic,
+      scheduled: 1,
+      available: 4,
+      reason: 'query-budget',
+    }));
+    expect(result.targetedBudgetExhausted).toEqual(expected);
+    expect(result.providerStats[0].targetedBudgetExhausted).toEqual(expected);
+  });
+
+  it('reports lessons omitted by the targeted fallback slot cap', async () => {
+    const topics = ['Alpha and beta', 'Gamma and delta', 'Epsilon and zeta'];
+    const provider = {
+      id: 'wikipedia',
+      supportsDirectTitles: false,
+      searchArticles: async () => ({}),
+      search: async () => [],
+      articles: async () => ({}),
+      article: async () => null,
+      license: 'CC BY-SA 4.0',
+      attributionFor: (title) => `Wikipedia, ${title}`,
+      sourceIdFor: (title) => `wikipedia:${title}`,
+    };
+    const researchPlan = planAlgiCourseResearch({
+      courseName: 'General methods',
+      lessons: topics.map((title, index) => ({ lessonId: `lesson-${index + 1}`, title })),
+    });
+
+    const result = await researchLessonKernelSets(topics, {
+      provider,
+      providerId: 'wikipedia',
+      researchPlan,
+      maxTargetedFallbacks: 1,
+      maxTargetedSearchRequests: 1,
+    });
+
+    expect(result.targetedBudgetExhausted).toEqual([
+      { topic: 'Alpha and beta', scheduled: 1, available: 4, reason: 'query-budget' },
+      { topic: 'Gamma and delta', scheduled: 0, available: 4, reason: 'fallback-slots' },
+      { topic: 'Epsilon and zeta', scheduled: 0, available: 4, reason: 'fallback-slots' },
+    ]);
+  });
+});
+
+describe('lesson research admission', () => {
+  it('uses course context to search without diluting exact lesson relevance', async () => {
+    const pages = {
+      'Quantum error correction': {
+        hits: ['quantum', 'error', 'correction'],
+        text: [
+          'Quantum error correction is a set of techniques used to protect quantum information from errors caused by decoherence and other noise.',
+          'Quantum error correction stores information across multiple physical qubits because a single physical qubit is vulnerable to noise.',
+          'Quantum error correction detects error syndromes without directly measuring and destroying the encoded quantum information.',
+          'Quantum error correction requires fault-tolerant operations when a computation must remain reliable as circuit depth increases.',
+        ].join('\n'),
+      },
+    };
+    const kernels = await researchLessonKernels('quantum error correction', {
+      provider: stubProvider(pages),
+      courseContext: 'Introduction to Quantum Computing',
+      candidates: 4,
+      want: 4,
+    });
+    expect(kernels.map((kernel) => kernel.term)).toContain('Quantum error correction');
+  });
+
+  it('admits named sub-concepts when their definitions explicitly match the lesson', async () => {
+    const makeText = (term, definition) =>
+      [
+        definition,
+        `${term} requires a source-grounded procedure because the protected state cannot be inspected as an ordinary classical bit.`,
+        `${term} uses redundant structure to make errors detectable without replacing the encoded information with an unsupported estimate.`,
+        `${term} supports reliable computation when its assumptions about noise and recovery operations are satisfied.`,
+      ].join('\n');
+    const pages = {
+      'Quantum error correction': {
+        hits: ['quantum', 'error', 'correction'],
+        text: makeText(
+          'Quantum error correction',
+          'Quantum error correction is a set of techniques that protects quantum information from errors caused by noise.',
+        ),
+      },
+      'Shor code': {
+        hits: ['quantum', 'error', 'correction'],
+        text: makeText(
+          'Shor code',
+          'Shor code is a foundational code in quantum error correction that protects quantum information against single-qubit errors.',
+        ),
+      },
+      'Stabilizer code': {
+        hits: ['quantum', 'error', 'correction'],
+        text: makeText(
+          'Stabilizer code',
+          'Stabilizer code is a class of quantum error correction codes defined by a commuting set of quantum operators.',
+        ),
+      },
+    };
+    const kernels = await researchLessonKernels('quantum error correction', {
+      provider: stubProvider(pages),
+      want: 4,
+    });
+    expect(kernels.map((kernel) => kernel.term)).toEqual(['Quantum error correction', 'Shor code', 'Stabilizer code']);
+    expect(kernels.every((kernel) => kernel.mcBank.length === 1)).toBe(true);
+  });
+
+  it('keeps an exact topic phrase even when an earlier repeated word appears in the definition', async () => {
+    const pages = {
+      'Quantum entanglement': {
+        hits: ['quantum', 'entanglement'],
+        text: [
+          'Quantum entanglement is a phenomenon in which linked quantum systems cannot be described independently.',
+          'Quantum entanglement produces correlations because the composite state constrains measurements of its parts.',
+          'Quantum entanglement requires a joint description when the state cannot be factored into separate subsystem states.',
+        ].join('\n'),
+      },
+      'Entropy of entanglement': {
+        hits: ['quantum', 'entanglement'],
+        text: [
+          'The entropy of entanglement is a measure of the degree of quantum entanglement between two subsystems of a composite quantum system.',
+          'The entropy of entanglement quantifies correlations because a subsystem can have mixed-state entropy inside a pure composite state.',
+          'The entropy of entanglement requires a specified bipartition when a system contains more than two subsystems.',
+        ].join('\n'),
+      },
+      'Entanglement witness': {
+        hits: ['quantum', 'entanglement'],
+        text: [
+          'An entanglement witness is an observable used to distinguish a quantum entangled state from separable states.',
+          'An entanglement witness detects selected states because its expectation value crosses a defined bound.',
+          'An entanglement witness requires measurement evidence before a state can be classified by the chosen criterion.',
+        ].join('\n'),
+      },
+    };
+    const kernels = await researchLessonKernels('quantum entanglement', {
+      provider: stubProvider(pages),
+      want: 4,
+    });
+    expect(kernels.map((kernel) => kernel.term)).toContain('Entropy of entanglement');
+  });
+
+  it('composes a compound lesson from concepts that source-ground each named side', async () => {
+    const pages = {
+      'Quantum superposition': {
+        hits: ['superposition', 'measurement'],
+        text: [
+          'Quantum superposition is a principle in which a quantum state can be a linear combination of other states.',
+          'Quantum superposition allows interference because probability amplitudes combine before an observation is made.',
+          'Quantum superposition requires a basis when coefficients are used to describe a prepared state.',
+        ].join('\n'),
+      },
+      'Measurement problem': {
+        hits: ['superposition', 'measurement'],
+        text: [
+          'The measurement problem is the problem of definite outcomes when quantum systems have superpositions but measurements give one result.',
+          'The measurement problem distinguishes unitary evolution from the definite record produced by an observation.',
+          'The measurement problem requires an interpretation to explain how a single observed result relates to the prior state.',
+        ].join('\n'),
+      },
+      "Schrödinger's cat": {
+        hits: ['superposition', 'measurement'],
+        text: [
+          "Schrödinger's cat is a thought experiment concerning quantum superposition and observation.",
+          "Schrödinger's cat links a microscopic state to a macroscopic outcome because the imagined mechanism couples them.",
+          "Schrödinger's cat illustrates a boundary because a mathematical superposition is contrasted with the definite result an observer records.",
+        ].join('\n'),
+      },
+    };
+    const kernels = await researchLessonKernels('superposition and measurement', {
+      provider: stubProvider(pages),
+      courseContext: 'Introduction to Quantum Computing',
+      want: 4,
+    });
+    expect(kernels).toHaveLength(3);
+    expect(kernels.map((kernel) => kernel.term)).toEqual(
+      expect.arrayContaining(['Quantum superposition', 'Measurement problem', "Schrödinger's cat"]),
+    );
+    expect(kernels.every((kernel) => kernel.mcBank.length === 1)).toBe(true);
+  });
+
+  it('rejects same-domain pages that mention the topic words out of relation', async () => {
+    const pages = {
+      'Quantum algorithm': {
+        hits: ['quantum', 'algorithms'],
+        text: [
+          'Quantum algorithm is an algorithm that runs on a realistic model of quantum computation.',
+          'Quantum algorithms use quantum operations because their computational steps act on quantum states.',
+          'Quantum algorithms can exploit interference to change the probability of measured outcomes.',
+          'Quantum algorithms require an explicit measurement strategy before a classical result is returned.',
+        ].join('\n'),
+      },
+      'Post-quantum cryptography': {
+        hits: ['quantum', 'algorithms'],
+        text: [
+          'Post-quantum cryptography is the study of cryptographic algorithms thought to be secure against attack by a quantum computer.',
+          'Post-quantum cryptography uses classical algorithms because its goal is resistance to quantum attacks.',
+          'Post-quantum cryptography changes cryptographic assumptions when large quantum computers become practical.',
+          'Post-quantum cryptography remains a classical security discipline rather than a model of quantum computation.',
+        ].join('\n'),
+      },
+    };
+    const kernels = await researchLessonKernels('quantum algorithms', {
+      provider: stubProvider(pages),
+      want: 4,
+    });
+    expect(kernels.map((kernel) => kernel.term)).toContain('Quantum algorithm');
+    expect(kernels.map((kernel) => kernel.term)).not.toContain('Post-quantum cryptography');
+  });
+
+  it('rejects a one-token same-domain false friend from a long lesson scope', async () => {
+    const pages = {
+      'Probability distribution': {
+        hits: ['numerical', 'representation', 'data', 'describing', 'distributions'],
+        text: [
+          'In statistics, a probability distribution is a mathematical function that gives probabilities of occurrence for possible outcomes.',
+          'A probability distribution describes how values of a random variable are distributed.',
+          'A probability distribution can be discrete or continuous depending on the variable and sample space.',
+          'A probability distribution supports describing distributions by connecting possible values to their probabilities.',
+        ].join('\n'),
+      },
+      'Data assimilation': {
+        hits: ['numerical', 'representation', 'data', 'describing', 'distributions'],
+        text: [
+          'Data assimilation is a mathematical discipline that combines a numerical model with observations.',
+          'Data assimilation updates model states and trajectories when new observations become available.',
+          'Data assimilation supports forecasting by reconciling modeled and observed system behavior.',
+        ].join('\n'),
+      },
+    };
+    const kernels = await researchLessonKernels('Probability Distribution · Describing Distributions', {
+      provider: stubProvider(pages),
+      courseContext: 'Statistics',
+      want: 4,
+    });
+    expect(kernels.map((kernel) => kernel.term)).toContain('Probability distribution');
+    expect(kernels.map((kernel) => kernel.term)).not.toContain('Data assimilation');
+  });
+
+  it('admits separately sourced sides of a compound statistical lesson', async () => {
+    const pages = {
+      'Scatter plot': {
+        hits: ['statistics'],
+        text: [
+          'A scatter plot is a mathematical diagram that uses Cartesian coordinates to display paired values for two variables.',
+          'A scatter plot reveals the form, direction, and strength of a relationship because each case appears as one point.',
+          'A scatter plot can expose clusters and outliers that a numerical summary may conceal.',
+          'A scatter plot does not by itself establish that one variable causes the other.',
+        ].join('\n'),
+      },
+      Correlation: {
+        hits: ['statistics'],
+        text: [
+          'In statistics, correlation is a measure of the direction and strength of association between two variables.',
+          'Correlation is positive when larger values of one variable tend to accompany larger values of the other.',
+          'Correlation is negative when larger values of one variable tend to accompany smaller values of the other.',
+          'Correlation can be distorted by an outlier and does not establish causation.',
+        ].join('\n'),
+      },
+    };
+    const kernels = await researchLessonKernels(
+      'Analyzing Relationships via Scatterplots · Scatterplots and Correlation',
+      {
+        provider: stubProvider(pages),
+        courseContext: 'Introduction to Statistics',
+        want: 4,
+      },
+    );
+
+    expect(kernels.map((kernel) => kernel.term)).toEqual(expect.arrayContaining(['Scatter plot', 'Correlation']));
+  });
+
+  it('admits a canonical family concept when its definition explicitly supplies the lesson topic', async () => {
+    const pages = {
+      Biofilm: {
+        hits: ['biofilms'],
+        text: [
+          'A biofilm is a community of microorganisms in which cells adhere to one another and often to a surface.',
+          'A biofilm can protect resident cells because its extracellular matrix changes transport and exposure.',
+          'A biofilm develops through attachment, growth, and dispersal under environmental conditions.',
+        ].join('\n'),
+      },
+      'Microbial mat': {
+        hits: ['biofilms'],
+        text: [
+          'A microbial mat is a multilayered sheet or biofilm of microbial colonies at a material interface.',
+          'A microbial mat develops vertical chemical gradients because different populations use resources at different depths.',
+          'A microbial mat records community structure across layers that receive different light and oxygen conditions.',
+        ].join('\n'),
+      },
+      'Phototrophic biofilm': {
+        hits: ['biofilms'],
+        text: [
+          'Phototrophic biofilms are microbial communities that include organisms using light as an energy source.',
+          'Phototrophic biofilms form attached layers because cells remain within a shared matrix.',
+          'Phototrophic biofilms occur in aquatic and terrestrial environments where light reaches the surface.',
+        ].join('\n'),
+      },
+    };
+    const kernels = await researchLessonKernels('Biofilms', {
+      provider: stubProvider(pages),
+      courseContext: 'Environmental Microbiology',
+      want: 5,
+    });
+    expect(kernels.map((kernel) => kernel.term)).toEqual(
+      expect.arrayContaining(['Biofilm', 'Microbial mat', 'Phototrophic biofilm']),
+    );
+  });
+
+  it('hydrates canonical-family pages before ranking when the intro omits the exact lesson phrase', async () => {
+    const intro =
+      'The Web Accessibility Initiative is an effort by the World Wide Web Consortium to improve web access.';
+    const full = [
+      intro,
+      'The Web Accessibility Initiative develops the Web Content Accessibility Guidelines (WCAG) for accessible web content.',
+      'The Web Content Accessibility Guidelines define testable success criteria at multiple conformance levels.',
+      'Authoring Tool Accessibility Guidelines address software used to create web content.',
+      'User Agent Accessibility Guidelines address browsers and media players.',
+    ].join('\n');
+    let fullReads = 0;
+    const provider = {
+      id: 'wikipedia',
+      sourceKind: 'open encyclopedia',
+      license: 'CC BY-SA 4.0',
+      search: async () => ['Web Accessibility Initiative'],
+      articles: async () => ({
+        'Web Accessibility Initiative': {
+          title: 'Web Accessibility Initiative',
+          extract: intro,
+          sourceUrl: 'https://en.wikipedia.org/wiki/Web_Accessibility_Initiative',
+        },
+      }),
+      fullArticle: async () => {
+        fullReads += 1;
+        return {
+          title: 'Web Accessibility Initiative',
+          extract: full,
+          sourceUrl: 'https://en.wikipedia.org/wiki/Web_Accessibility_Initiative',
+        };
+      },
+      sourceIdFor: () => 'wikipedia:Web_Accessibility_Initiative',
+      attributionFor: () => 'Wikipedia contributors',
+    };
+    const kernels = await researchLessonKernels('WCAG principles', {
+      provider,
+      courseContext: 'Digital Accessibility for Product Teams',
+      floor: 0.15,
+    });
+    expect(fullReads).toBe(1);
+    expect(kernels.map((kernel) => kernel.term)).toContain('Web Accessibility Initiative');
+    expect(kernels[0].facts.map((fact) => fact.text).join(' ')).toContain('Web Content Accessibility Guidelines');
+  });
+
+  it('does not spend the only deep read on a missing synthetic title', async () => {
+    const topic = 'Focal Point Identification · Visual Hierarchy Structure';
+    const intro = [
+      'Visual hierarchy describes how elements in a visual field create a perceived order of importance.',
+      'Visual contrast makes some forms stand out from their surroundings.',
+    ].join('\n');
+    const full = [
+      intro,
+      'Graphic designers arrange elements so the most important information is recognized first.',
+      'Scale, color, alignment, and contrast can each influence the perceived visual order.',
+      'A focal element receives attention when it differs visibly from nearby forms.',
+    ].join('\n');
+    const reads = [];
+    const provider = {
+      id: 'wikipedia',
+      sourceKind: 'open encyclopedia',
+      supportsDirectTitles: true,
+      license: 'CC BY-SA 4.0',
+      search: async () => ['Focal Point Identification · Visual Hierarchy Structure', 'Visual Hierarchy'],
+      articles: async () => ({
+        'Visual Hierarchy': {
+          title: 'Visual Hierarchy',
+          extract: intro,
+          sourceUrl: 'https://en.wikipedia.org/wiki/Visual_hierarchy',
+        },
+      }),
+      fullArticle: async (title) => {
+        reads.push(title);
+        return title === 'Visual Hierarchy'
+          ? {
+              title,
+              extract: full,
+              sourceUrl: 'https://en.wikipedia.org/wiki/Visual_hierarchy',
+            }
+          : null;
+      },
+      sourceIdFor: (title) => `wikipedia:${title}`,
+      attributionFor: () => 'Wikipedia contributors',
+    };
+
+    const kernels = await researchLessonKernels(topic, {
+      provider,
+      courseContext: 'Visual Evidence and Image Analysis',
+      want: 5,
+    });
+
+    expect(reads).toEqual(['Visual Hierarchy']);
+    expect(kernels.map((kernel) => kernel.term)).toContain('Visual Hierarchy');
+    expect(kernels[0].provenance.sourceSnapshot.claims.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('deep-reads a canonical parenthetical page whose base is an exact requested title', async () => {
+    const intro = [
+      'Perspective is the representation of objects as they appear to an observer.',
+      'Perspective represents a three-dimensional scene in a two-dimensional medium.',
+    ].join('\n');
+    const full = [
+      intro,
+      'Linear perspective makes distant objects appear smaller to an observer.',
+      'Foreshortening makes dimensions parallel to the line of sight appear shorter.',
+      'Artists incorporated linear perspective into their artworks.',
+    ].join('\n');
+    const reads = [];
+    const provider = {
+      id: 'wikipedia',
+      sourceKind: 'open encyclopedia',
+      license: 'CC BY-SA 4.0',
+      search: async () => ['Perspective'],
+      articles: async () => ({
+        Perspective: {
+          title: 'Perspective (graphical)',
+          extract: intro,
+          sourceUrl: 'https://en.wikipedia.org/wiki/Perspective_(graphical)',
+        },
+      }),
+      fullArticle: async (title) => {
+        reads.push(title);
+        return {
+          title: 'Perspective (graphical)',
+          extract: full,
+          sourceUrl: 'https://en.wikipedia.org/wiki/Perspective_(graphical)',
+        };
+      },
+      sourceIdFor: () => 'wikipedia:Perspective_(graphical)',
+      attributionFor: () => 'Wikipedia contributors',
+    };
+
+    const kernels = await researchLessonKernels('Perspective', {
+      provider,
+      courseContext: 'Visual Evidence and Image Analysis',
+      want: 4,
+    });
+
+    expect(reads).toEqual(['Perspective (graphical)']);
+    expect(kernels[0].provenance.sourceSnapshot.claims.length).toBeGreaterThanOrEqual(4);
+  });
+
+  it('gives each lesson pass one deep read before spending more course research budget', async () => {
+    const pages = {
+      'Conditional branching and loops': [
+        'Conditional branching and loops are control-flow structures that select or repeat program operations.',
+        'Conditional branching selects a path when a tested condition changes the next operation.',
+        'Loops repeat a bounded operation while an iteration condition remains active.',
+      ].join('\n'),
+      'Conditional branching': [
+        'Conditional branching is a control-flow decision that selects one of multiple paths.',
+        'A branch tests a condition before choosing the next statement to execute.',
+        'Alternative branches make different operations visible under different conditions.',
+      ].join('\n'),
+      loops: [
+        'Loops are control-flow structures that repeat a sequence of statements.',
+        'A loop evaluates its continuation condition around repeated operations.',
+        'Iteration state changes so a bounded loop can eventually terminate.',
+      ].join('\n'),
+    };
+    let fullReads = 0;
+    const provider = {
+      id: 'wikipedia',
+      sourceKind: 'open encyclopedia',
+      license: 'CC BY-SA 4.0',
+      search: async () => Object.keys(pages),
+      articles: async (titles) =>
+        Object.fromEntries(
+          titles.map((title) => [
+            title,
+            {
+              title,
+              extract: pages[title],
+              sourceUrl: `https://en.wikipedia.org/wiki/${encodeURIComponent(title)}`,
+            },
+          ]),
+        ),
+      fullArticle: async (title) => {
+        fullReads += 1;
+        return {
+          title,
+          extract: `${pages[title]} ${pages[title]}`,
+          sourceUrl: `https://en.wikipedia.org/wiki/${encodeURIComponent(title)}`,
+        };
+      },
+      sourceIdFor: (title) => `wikipedia:${title}`,
+      attributionFor: () => 'Wikipedia contributors',
+    };
+
+    await researchLessonKernels('Conditional branching and loops', {
+      provider,
+      courseContext: 'Applied programming',
+      floor: 0.1,
+      want: 3,
+    });
+
+    expect(fullReads).toBe(1);
+  });
+
+  it('does not spend targeted deep reads on titles with no admitted introduction', async () => {
+    const topics = ['Alpha methods and beta checks', 'Gamma methods and delta checks'];
+    const attempts = [];
+    const missingIntroTitles = new Set(directResearchTitles(topics[1], 'General methods'));
+    const sparseIntroTitle = directResearchTitles(topics[0], 'General methods')[0];
+    const articleFor = (title) => ({
+      title,
+      extract: [
+        `${title} is a documented method for examining ${title} in a bounded system.`,
+        `${title} uses visible evidence because each decision must remain inspectable.`,
+        `${title} records one limitation so later reviewers can distinguish observation from inference.`,
+      ].join('\n'),
+      sourceUrl: `https://en.wikipedia.org/wiki/${encodeURIComponent(title)}`,
+    });
+    const provider = {
+      id: 'wikipedia',
+      sourceKind: 'open encyclopedia',
+      supportsDirectTitles: true,
+      license: 'CC BY-SA 4.0',
+      search: async () => [],
+      articles: async (titles) =>
+        Object.fromEntries(
+          titles
+            .filter((title) => !missingIntroTitles.has(title) && title === sparseIntroTitle)
+            .map((title) => [title, articleFor(title)]),
+        ),
+      fullArticle: async (title) => {
+        attempts.push(title);
+        return articleFor(title);
+      },
+      sourceIdFor: (title) => `wikipedia:${title}`,
+      attributionFor: () => 'Wikipedia contributors',
+    };
+
+    await researchLessonKernelSets(topics, {
+      provider,
+      courseContext: 'General methods',
+      minimum: 3,
+      want: 3,
+      maxTargetedFallbacks: 1,
+    });
+
+    expect(attempts).toEqual([]);
+  });
+
+  it('deepens a still-sparse intro only inside the targeted pass', async () => {
+    const topic = 'Sparse methods and bounded checks';
+    const introTitle = directResearchTitles(topic, 'General methods')[0];
+    let fullReads = 0;
+    const articleFor = (title) => ({
+      title,
+      extract: [
+        `${title} is a documented method for examining a bounded system.`,
+        `${title} records visible evidence and one limitation for later review.`,
+      ].join('\n'),
+      sourceUrl: `https://en.wikipedia.org/wiki/${encodeURIComponent(title)}`,
+    });
+    const provider = {
+      id: 'wikipedia',
+      sourceKind: 'open encyclopedia',
+      supportsDirectTitles: true,
+      license: 'CC BY-SA 4.0',
+      search: async () => [],
+      articles: async (titles) =>
+        Object.fromEntries(titles.filter((title) => title === introTitle).map((title) => [title, articleFor(title)])),
+      fullArticle: async (title) => {
+        fullReads += 1;
+        return articleFor(title);
+      },
+      sourceIdFor: (title) => `wikipedia:${title}`,
+      attributionFor: () => 'Wikipedia contributors',
+    };
+
+    await researchLessonKernelSets([topic], {
+      provider,
+      courseContext: 'General methods',
+      minimum: 3,
+      want: 3,
+      maxTargetedFallbacks: 1,
+    });
+
+    expect(fullReads).toBe(1);
+  });
+
+  it('revises compound lessons with one independent search per named concept', async () => {
+    const topic = 'Functions and automated tests';
+    const queries = [];
+    const pages = {
+      'Function (computer programming)': [
+        'A function in computer programming is a named sequence of program instructions that performs a specific task.',
+        'A function accepts parameters and can return a value to the calling program.',
+        'A function supports reuse because the same operation can be invoked from multiple program locations.',
+      ].join('\n'),
+      'Test automation': [
+        'Test automation is the use of software (separate from the software being tested) for controlling the execution of tests and comparing actual outcome with predicted.',
+        'Automated tests can repeat checks after a program change and expose a regression.',
+        'Test automation records a visible result so a failed expectation can guide revision.',
+      ].join('\n'),
+    };
+    const provider = {
+      id: 'wikipedia',
+      sourceKind: 'open encyclopedia',
+      supportsDirectTitles: true,
+      license: 'CC BY-SA 4.0',
+      searchArticles: async (query) => {
+        queries.push(query);
+        if (/^"?functions"? computer programming$/i.test(query)) {
+          return {
+            'Function (computer programming)': {
+              title: 'Function (computer programming)',
+              extract: pages['Function (computer programming)'],
+            },
+          };
+        }
+        if (/^"?automated tests"? computer programming$/i.test(query)) {
+          return { 'Test automation': { title: 'Test automation', extract: pages['Test automation'] } };
+        }
+        return {};
+      },
+      search: async () => [],
+      articles: async () => ({}),
+      article: async () => null,
+      sourceIdFor: (title) => `wikipedia:${title}`,
+      attributionFor: () => 'Wikipedia contributors',
+    };
+    const researchPlan = planAlgiCourseResearch({
+      courseName: 'Applied Programming and Statistics',
+      lessons: [{ lessonId: 'lesson-1', title: topic }],
+    });
+    const directProvider = {
+      ...provider,
+      search: async () => Object.keys(pages),
+      articles: async () =>
+        Object.fromEntries(Object.entries(pages).map(([title, extract]) => [title, { title, extract }])),
+    };
+    const builtFunction = buildKernelFromArticle({
+      topic,
+      title: 'Function (computer programming)',
+      extract: pages['Function (computer programming)'],
+      provider: directProvider,
+    });
+    expect(builtFunction).not.toBeNull();
+    expect(
+      isResearchCandidateDomainAligned({
+        topic,
+        courseContext: 'Applied Programming and Statistics',
+        title: 'Function (computer programming)',
+        extract: pages['Function (computer programming)'],
+        definition: builtFunction.kernel.definition.text,
+        provider: 'wikipedia',
+      }),
+    ).toBe(true);
+    const directKernels = await researchLessonKernels(topic, {
+      provider: directProvider,
+      courseContext: 'Applied Programming and Statistics',
+      want: 4,
+      minimum: 3,
+      floor: 0.15,
+    });
+    expect(directKernels.map((kernel) => kernel.term)).toEqual(expect.arrayContaining(['Function', 'Test automation']));
+
+    const result = await researchLessonKernelSets([topic], {
+      provider,
+      courseContext: 'Applied Programming and Statistics',
+      researchPlan,
+      providerId: 'wikipedia',
+      want: 4,
+      minimum: 3,
+      maxTargetedFallbacks: 1,
+      floor: 0.15,
+    });
+
+    expect(queries).toEqual(
+      expect.arrayContaining(['"functions" computer programming', '"automated tests" computer programming']),
+    );
+    expect(result.targetedSearches).toBe(4);
+    expect(result.byTopic.get(topic).map((kernel) => kernel.term)).toEqual(
+      expect.arrayContaining(['Function', 'Test automation']),
+    );
+  });
+
+  it('retains successful clause evidence when a sibling query fails', async () => {
+    const topic = 'Functions and automated tests';
+    const queries = [];
+    const functionExtract = [
+      'A function in computer programming is a named sequence of program instructions that performs a specific task.',
+      'A function accepts parameters and can return a value to the calling program.',
+      'A function supports reuse because the same operation can be invoked from multiple program locations.',
+    ].join('\n');
+    const provider = {
+      id: 'wikipedia',
+      sourceKind: 'open encyclopedia',
+      supportsDirectTitles: false,
+      license: 'CC BY-SA 4.0',
+      searchArticles: async (query) => {
+        queries.push(query);
+        if (/^"functions" computer programming$/i.test(query)) {
+          return {
+            'Function (computer programming)': {
+              title: 'Function (computer programming)',
+              extract: functionExtract,
+            },
+          };
+        }
+        if (/^"automated tests" computer programming$/i.test(query)) throw new Error('HTTP 429');
+        return {};
+      },
+      search: async () => [],
+      articles: async () => ({}),
+      article: async () => null,
+      sourceIdFor: (title) => `wikipedia:${title}`,
+      attributionFor: () => 'Wikipedia contributors',
+    };
+    const researchPlan = planAlgiCourseResearch({
+      courseName: 'Applied Programming and Statistics',
+      lessons: [{ lessonId: 'lesson-1', title: topic }],
+    });
+
+    const result = await researchLessonKernelSets([topic], {
+      provider,
+      courseContext: 'Applied Programming and Statistics',
+      researchPlan,
+      providerId: 'wikipedia',
+      want: 4,
+      minimum: 3,
+      maxTargetedFallbacks: 1,
+      maxTargetedSearchRequests: 3,
+      floor: 0.15,
+    });
+
+    expect(result.targetedSearches).toBe(3);
+    expect(result.errors).toEqual(expect.arrayContaining([expect.stringContaining('HTTP 429')]));
+    expect(result.byTopic.get(topic).map((kernel) => kernel.term)).toContain('Function');
+  });
+
+  it('caps targeted clause requests across the revision burst', async () => {
+    const topics = ['Alpha and beta', 'Gamma and delta'];
+    const queries = [];
+    const provider = {
+      id: 'wikipedia',
+      sourceKind: 'open encyclopedia',
+      supportsDirectTitles: false,
+      license: 'CC BY-SA 4.0',
+      searchArticles: async (query) => {
+        queries.push(query);
+        return {};
+      },
+      search: async () => [],
+      articles: async () => ({}),
+      article: async () => null,
+      sourceIdFor: (title) => `wikipedia:${title}`,
+      attributionFor: () => 'Wikipedia contributors',
+    };
+    const researchPlan = planAlgiCourseResearch({
+      courseName: 'General methods',
+      lessons: topics.map((title, index) => ({ lessonId: `lesson-${index + 1}`, title })),
+    });
+
+    const result = await researchLessonKernelSets(topics, {
+      provider,
+      courseContext: 'General methods',
+      researchPlan,
+      providerId: 'wikipedia',
+      maxTargetedFallbacks: 2,
+      maxTargetedSearchRequests: 1,
+    });
+
+    expect(result.targetedSearches).toBe(1);
+    expect(queries).toHaveLength(2);
+  });
+
+  it('allocates isolated retries fairly before spending budget on child clauses', async () => {
+    const topics = ['Alpha and beta', 'Gamma and delta', 'Epsilon and zeta'];
+    const queries = [];
+    const provider = {
+      id: 'wikipedia',
+      sourceKind: 'open encyclopedia',
+      supportsDirectTitles: false,
+      license: 'CC BY-SA 4.0',
+      searchArticles: async (query) => {
+        queries.push(query);
+        return {};
+      },
+      search: async () => [],
+      articles: async () => ({}),
+      article: async () => null,
+      sourceIdFor: (title) => `wikipedia:${title}`,
+      attributionFor: () => 'Wikipedia contributors',
+    };
+    const researchPlan = planAlgiCourseResearch({
+      courseName: 'General methods',
+      lessons: topics.map((title, index) => ({ lessonId: `lesson-${index + 1}`, title })),
+    });
+
+    const result = await researchLessonKernelSets(topics, {
+      provider,
+      courseContext: 'General methods',
+      researchPlan,
+      providerId: 'wikipedia',
+      maxTargetedFallbacks: 3,
+      maxTargetedSearchRequests: 3,
+    });
+
+    expect(result.targetedSearches).toBe(3);
+    expect(queries.slice(1)).toEqual(['(alpha OR beta)', '(gamma OR delta)', '(epsilon OR zeta)']);
+    expect(result.targetedBudgetExhausted).toEqual([
+      { topic: 'Alpha and beta', scheduled: 1, available: 4, reason: 'query-budget' },
+      { topic: 'Gamma and delta', scheduled: 1, available: 4, reason: 'query-budget' },
+      { topic: 'Epsilon and zeta', scheduled: 1, available: 4, reason: 'query-budget' },
+    ]);
+  });
+
+  it('keeps reproducibility distinct from biological reproduction', () => {
+    expect(contentTokens('reproducibility reproduction')).toEqual(['reproduc', 'reproduction']);
+    expect(contentTokens('reproduce reproduces reproduced reproducing')).toEqual([
+      'reproduce',
+      'reproduce',
+      'reproduce',
+      'reproduce',
+    ]);
+    expect(contentTokens('visualization visual narratives')).toEqual(['visualization', 'visual', 'narrativ']);
+    expect(contentTokens('automation automated automatic')).toEqual(['automat', 'automat', 'automatic']);
+    expect(contentTokens('ethical ethics context contextual interpretation interpretive')).toEqual([
+      'ethic',
+      'ethic',
+      'context',
+      'context',
+      'interpret',
+      'interpret',
+    ]);
+  });
+
+  it('recognizes source language that changes an abstract lesson label from adjective to noun', async () => {
+    const pages = {
+      'Visual literacy in education': {
+        hits: ['ethical'],
+        text: [
+          'Visual literacy in education is the ability to interpret, analyze, and create meaning from visual texts.',
+          'Visual literacy education emphasizes equitable access to technology and the ethical use of educational technology.',
+          'Learners use context to distinguish observable visual evidence from a later interpretation.',
+          'Ethical interpretation requires explaining which contextual detail supports a visual claim and which conclusion remains uncertain.',
+        ].join('\n'),
+      },
+    };
+
+    const kernels = await researchLessonKernels('Ethical contextual interpretation', {
+      provider: stubProvider(pages),
+      courseContext: 'Visual Evidence and Image Analysis',
+      plannedQuery: 'ethical contextual interpretation visual arts',
+      want: 4,
+    });
+
+    expect(kernels.map((kernel) => kernel.term)).toContain('Visual literacy in education');
+  });
+
+  it('composes waterborne pathogens from three admitted source concepts', async () => {
+    const pages = {
+      'Waterborne disease': {
+        hits: ['waterborne', 'pathogens'],
+        text: [
+          'Waterborne diseases are diseases caused by pathogenic microorganisms that are transmitted through contaminated water.',
+          'Waterborne diseases spread when contaminated water carries bacteria, viruses, protozoa, or parasitic worms.',
+          'Waterborne disease prevention depends on separating human waste from drinking-water supplies.',
+        ].join('\n'),
+      },
+      'Pathogenic bacteria': {
+        hits: ['pathogens'],
+        text: [
+          'Pathogenic bacteria are bacteria that can cause disease in humans or other organisms.',
+          'Pathogenic bacteria produce illness when their virulence mechanisms damage tissue or disrupt normal host functions.',
+          'Pathogenic bacteria differ from harmless bacteria because pathogenic species can establish infection.',
+        ].join('\n'),
+      },
+      'Water pollution': {
+        hits: ['waterborne'],
+        text: [
+          'Water pollution is the contamination of water bodies, which has a negative impact on how they can be used.',
+          'Water pollution results when contaminants mix with rivers, lakes, aquifers, reservoirs, or groundwater.',
+          'Water pollution can spread waterborne diseases when contaminated water exposes people to disease-causing organisms.',
+        ].join('\n'),
+      },
+    };
+    const kernels = await researchLessonKernels('Waterborne pathogens', {
+      provider: stubProvider(pages),
+      courseContext: 'Environmental Microbiology',
+      want: 5,
+    });
+    expect(kernels.map((kernel) => kernel.term)).toEqual(
+      expect.arrayContaining(['Waterborne disease', 'Pathogenic bacteria', 'Water pollution']),
+    );
+    expect(kernels.every((kernel) => kernel.provenance?.origin === RESEARCH_ORIGIN)).toBe(true);
+    expect(kernels.every((kernel) => kernel.provenance?.entailment?.status === 'passed')).toBe(true);
+  });
+
+  it('does not let weak related pages ride along below the relevance floor', async () => {
+    const pages = {
+      Photosynthesis: {
+        hits: ['photosynthesis'],
+        text: [
+          'Photosynthesis is a process that converts light energy into chemical energy in plants and algae.',
+          'Photosynthesis requires pigments because those molecules absorb wavelengths of incoming light.',
+          'Photosynthesis produces chemical energy that organisms can later release through cellular respiration.',
+          'Photosynthesis occurs in chloroplasts, where specialized membranes organize the light-dependent reactions.',
+        ].join('\n'),
+      },
+      Architecture: {
+        hits: ['photosynthesis'],
+        text: [
+          'Architecture is the process and product of planning, designing, and constructing buildings or structures.',
+          'Architecture requires technical knowledge because buildings must satisfy structural and environmental constraints.',
+          'Architecture uses drawings and models to communicate proposed spatial arrangements before construction begins.',
+          'Architecture affects communities through the placement, scale, and material character of built environments.',
+        ].join('\n'),
+      },
+    };
+    const kernels = await researchLessonKernels('photosynthesis', {
+      provider: stubProvider(pages),
+      candidates: 4,
+      want: 4,
+    });
+    expect(kernels.map((kernel) => kernel.term)).toContain('Photosynthesis');
+    expect(kernels.map((kernel) => kernel.term)).not.toContain('Architecture');
+  });
+});
+
+describe('course-level research batching', () => {
+  it('researches three lessons with one grouped search and two article batches', async () => {
+    const page = (title, topic) => ({
+      title,
+      extract: [
+        `${title} is a source anchored ${topic} concept with a distinct instructional purpose.`,
+        `${title} explains a concrete ${topic} relationship that learners can inspect in an applied case.`,
+        `${title} requires evidence before a learner draws a conclusion about the ${topic} case.`,
+      ].join('\n'),
+      sourceUrl: `https://example.test/${encodeURIComponent(title)}`,
+      revisionId: title.length,
+    });
+    const pages = Object.fromEntries(
+      ['Alpha', 'Beta', 'Gamma'].flatMap((topic) =>
+        [topic, `${topic} method`, `${topic} evidence`].map((title) => [title, page(title, topic.toLowerCase())]),
+      ),
+    );
+    let searchCalls = 0;
+    let articleCalls = 0;
+    const batchedProvider = {
+      ...provider,
+      search: async () => {
+        searchCalls += 1;
+        return Object.keys(pages);
+      },
+      articles: async (titles) => {
+        articleCalls += 1;
+        return Object.fromEntries(titles.filter((title) => pages[title]).map((title) => [title, pages[title]]));
+      },
+    };
+
+    const result = await researchLessonKernelSets(['Alpha', 'Beta', 'Gamma'], {
+      provider: batchedProvider,
+      want: 4,
+    });
+
+    expect(result.searchGroups).toBe(1);
+    expect(searchCalls).toBe(1);
+    expect(articleCalls).toBe(2);
+    expect([...result.byTopic.values()].map((kernels) => kernels.length)).toEqual([3, 3, 3]);
+  });
+});
+
+describe('researchCourse (course-level assessment)', () => {
+  it('backfills multiple-choice items using sibling definitions as distractors', async () => {
+    // No single article yields enough distractors; the course supplies them.
+    const mk = (term) =>
+      [
+        `${term} is a distinct concept in this field with its own defining characteristics and scope.`,
+        `${term} applies whenever practitioners need to reason about the situation it describes.`,
+        `${term} requires evidence before a conclusion can be drawn about any particular case.`,
+      ].join('\n');
+    const pages = Object.fromEntries(
+      ['Alpha', 'Beta', 'Gamma', 'Delta'].map((term) => [term, { hits: [term.toLowerCase()], text: mk(term) }]),
+    );
+    const result = await researchCourse(['alpha', 'beta', 'gamma', 'delta'], { provider: stubProvider(pages) });
+    expect(result.admitted.length).toBe(4);
+    for (const entry of result.admitted) {
+      expect(entry.kernel.mcBank).toHaveLength(1);
+      expect(entry.kernel.mcBank[0].options).toHaveLength(4);
+      // The key must be this concept's own definition, distractors real siblings.
+      expect(entry.kernel.mcBank[0].options[entry.kernel.mcBank[0].answerIndex]).toBe(entry.kernel.definition.text);
+      expect(new Set(entry.kernel.mcBank[0].options).size).toBe(4);
+    }
+  });
+});

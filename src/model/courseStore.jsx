@@ -1,0 +1,295 @@
+/**
+ * courseStore.jsx — Minimal React context for deliverables state.
+ * Keeps transient deliverable generation results so useDeliverables can
+ * read/write them without the full V1.5 refactor being complete.
+ *
+ * State shape:
+ *   deliverables: {
+ *     [featureId]: { status, data, error, stale, staleConfidence, staleEdits, regeneratingIndex }
+ *   }
+ */
+import React, { createContext, useReducer } from 'react';
+import { expandKeys } from '../lib/keyMaps';
+
+// ── Action creators ────────────────────────────────────────────────────────────
+
+export const actions = {
+  setDeliverableStreaming: (featureId) => ({
+    type: 'SET_DELIVERABLE_STREAMING',
+    featureId,
+  }),
+  setDeliverableDone: (featureId, data) => ({
+    type: 'SET_DELIVERABLE_DONE',
+    featureId,
+    data,
+  }),
+  setDeliverableError: (featureId, error) => ({
+    type: 'SET_DELIVERABLE_ERROR',
+    featureId,
+    error,
+  }),
+  restoreDeliverableSnapshot: (featureId, entry) => ({
+    type: 'RESTORE_DELIVERABLE_SNAPSHOT',
+    featureId,
+    entry,
+  }),
+  resetDeliverables: () => ({
+    type: 'RESET_DELIVERABLES',
+  }),
+  markAllStale: () => ({
+    type: 'MARK_ALL_STALE',
+  }),
+  markFeatureStale: (featureId, staleConfidence = null, staleEdits = null) => ({
+    type: 'MARK_FEATURE_STALE',
+    featureId,
+    staleConfidence,
+    staleEdits,
+  }),
+  clearFeatureStale: (featureId, staleEdits = null) => ({
+    type: 'CLEAR_FEATURE_STALE',
+    featureId,
+    staleEdits,
+  }),
+  setDeliverable: (featureId, status, data, error, stale) => ({
+    type: 'SET_DELIVERABLE',
+    featureId,
+    status,
+    data,
+    error,
+    stale,
+  }),
+  restoreDeliverables: (deliverables) => ({
+    type: 'RESTORE_DELIVERABLES',
+    deliverables,
+  }),
+  removeDeliverable: (featureId) => ({
+    type: 'REMOVE_DELIVERABLE',
+    featureId,
+  }),
+};
+
+// ── Reducer ────────────────────────────────────────────────────────────────────
+
+function normalizeLessonIndices(value) {
+  if (!Array.isArray(value)) return null;
+  return [...new Set(value.filter((index) => Number.isInteger(index)))].sort((a, b) => a - b);
+}
+
+function clearStaleState(existing, staleEdits) {
+  if (!existing?.stale) return existing;
+  const clearLessonIndices = normalizeLessonIndices(staleEdits?.lessonIndices);
+  const existingLessonIndices = normalizeLessonIndices(existing.staleEdits?.lessonIndices);
+
+  if (!clearLessonIndices || !existingLessonIndices || clearLessonIndices.length === 0) {
+    return { ...existing, stale: false, staleConfidence: null, staleEdits: null };
+  }
+
+  const clearSet = new Set(clearLessonIndices);
+  const remainingLessonIndices = existingLessonIndices.filter((index) => !clearSet.has(index));
+  if (remainingLessonIndices.length === existingLessonIndices.length) return existing;
+  if (remainingLessonIndices.length > 0) {
+    return {
+      ...existing,
+      stale: true,
+      staleEdits: {
+        ...existing.staleEdits,
+        lessonIndices: remainingLessonIndices,
+      },
+    };
+  }
+  return { ...existing, stale: false, staleConfidence: null, staleEdits: null };
+}
+
+export function normalizeRestoredDeliverables(deliverables) {
+  if (!deliverables || typeof deliverables !== 'object' || Array.isArray(deliverables)) return {};
+  return Object.fromEntries(
+    Object.entries(deliverables).map(([featureId, entry]) => {
+      const restored = entry && typeof entry === 'object' ? entry : {};
+      // Generation expands compact model keys before committing state, but
+      // older backups, compiler fixtures, and interrupted snapshots can still
+      // contain the compact contract. Normalize at the one reducer boundary
+      // shared by local, cloud, file, and developer restores so every view gets
+      // the same expanded data shape. expandKeys is idempotent for modern data.
+      const normalized = restored.data ? { ...restored, data: expandKeys(featureId, restored.data) } : restored;
+      const interrupted = restored.status === 'streaming' || restored.regeneratingIndex != null;
+      if (!interrupted) return [featureId, normalized];
+      return [
+        featureId,
+        {
+          ...normalized,
+          status: normalized.data ? 'done' : 'idle',
+          error: null,
+          regeneratingIndex: null,
+        },
+      ];
+    }),
+  );
+}
+
+export function reducer(state, action) {
+  switch (action.type) {
+    case 'SET_DELIVERABLE_STREAMING':
+      return {
+        ...state,
+        deliverables: {
+          ...state.deliverables,
+          [action.featureId]: { status: 'streaming', data: null, error: null, stale: false, staleConfidence: null },
+        },
+      };
+    case 'SET_DELIVERABLE_DONE':
+      return {
+        ...state,
+        deliverables: {
+          ...state.deliverables,
+          [action.featureId]: { status: 'done', data: action.data, error: null, stale: false, staleConfidence: null },
+        },
+      };
+    case 'SET_DELIVERABLE_ERROR':
+      return {
+        ...state,
+        deliverables: {
+          ...state.deliverables,
+          [action.featureId]: { status: 'error', data: null, error: action.error, stale: false, staleConfidence: null },
+        },
+      };
+    case 'RESTORE_DELIVERABLE_SNAPSHOT': {
+      const nextDeliverables = { ...state.deliverables };
+      if (action.entry == null) delete nextDeliverables[action.featureId];
+      else nextDeliverables[action.featureId] = action.entry;
+      return { ...state, deliverables: nextDeliverables };
+    }
+    case 'RESET_DELIVERABLES':
+      return { ...state, deliverables: {} };
+    case 'RESTORE_DELIVERABLES':
+      return { ...state, deliverables: normalizeRestoredDeliverables(action.deliverables) };
+    case 'REMOVE_DELIVERABLE': {
+      if (!state.deliverables[action.featureId]) return state;
+      const next = { ...state.deliverables };
+      delete next[action.featureId];
+      return { ...state, deliverables: next };
+    }
+    case 'MARK_ALL_STALE': {
+      const updated = {};
+      for (const [k, v] of Object.entries(state.deliverables)) {
+        updated[k] = {
+          ...v,
+          stale: true,
+          staleConfidence: v.staleConfidence || { level: 'high', maxWeight: 1.0, dominantField: '_structural' },
+        };
+      }
+      return { ...state, deliverables: updated };
+    }
+    case 'MARK_FEATURE_STALE': {
+      const existing = state.deliverables[action.featureId];
+      if (!existing) return state;
+      // Merge staleEdits: accumulate lesson indices from repeated edits
+      let mergedEdits = action.staleEdits || null;
+      if (existing.staleEdits && mergedEdits) {
+        const combined = new Set([...(existing.staleEdits.lessonIndices || []), ...(mergedEdits.lessonIndices || [])]);
+        mergedEdits = {
+          ...mergedEdits,
+          lessonIndices: [...combined].sort((a, b) => a - b),
+        };
+      }
+      return {
+        ...state,
+        deliverables: {
+          ...state.deliverables,
+          [action.featureId]: {
+            ...existing,
+            stale: true,
+            staleConfidence: action.staleConfidence || existing.staleConfidence || null,
+            staleEdits: mergedEdits || existing.staleEdits || null,
+          },
+        },
+      };
+    }
+    case 'CLEAR_FEATURE_STALE': {
+      const existing = state.deliverables[action.featureId];
+      if (!existing) return state;
+      const cleared = clearStaleState(existing, action.staleEdits || null);
+      if (cleared === existing) return state;
+      return {
+        ...state,
+        deliverables: {
+          ...state.deliverables,
+          [action.featureId]: cleared,
+        },
+      };
+    }
+    case 'SET_DELIVERABLE': {
+      return {
+        ...state,
+        deliverables: {
+          ...state.deliverables,
+          [action.featureId]: {
+            status: action.status,
+            data: action.data,
+            error: action.error,
+            stale: action.stale,
+            staleConfidence: action.staleConfidence ?? null,
+            regeneratingIndex: action.regeneratingIndex ?? null,
+          },
+        },
+      };
+    }
+    // Mark a specific lesson as regenerating WITHOUT clearing data or changing status.
+    // Prevents the snap-back bug where dispatching existing.data overwrites user edits.
+    case 'MARK_LESSON_REGENERATING': {
+      const cur = state.deliverables[action.featureId];
+      if (!cur) return state;
+      return {
+        ...state,
+        deliverables: {
+          ...state.deliverables,
+          [action.featureId]: {
+            ...cur,
+            status: 'streaming', // show streaming indicator immediately
+            stale: false,
+            staleConfidence: null,
+            error: null,
+            regeneratingIndex: action.lessonIndex,
+            // data is intentionally NOT changed — preserves user edits
+          },
+        },
+      };
+    }
+    // v0.14.1 round 2: end a lesson-regen WITHOUT replacing data — used when a
+    // regen result is rejected (the store's data is authoritative; the hook's
+    // closure snapshot may be stale or null).
+    case 'CLEAR_LESSON_REGENERATING': {
+      const cur = state.deliverables[action.featureId];
+      if (!cur) return state;
+      return {
+        ...state,
+        deliverables: {
+          ...state.deliverables,
+          [action.featureId]: {
+            ...cur,
+            status: cur.data ? 'done' : cur.status,
+            regeneratingIndex: null,
+            // data is intentionally NOT changed
+          },
+        },
+      };
+    }
+    default:
+      return state;
+  }
+}
+
+// ── Contexts ───────────────────────────────────────────────────────────────────
+
+export const CourseStateContext = createContext(null);
+export const CourseDispatchContext = createContext(null);
+
+// ── Provider ───────────────────────────────────────────────────────────────────
+
+export function CourseStoreProvider({ children, initialState = { deliverables: {} } }) {
+  const [state, dispatch] = useReducer(reducer, initialState);
+  return (
+    <CourseStateContext.Provider value={state}>
+      <CourseDispatchContext.Provider value={dispatch}>{children}</CourseDispatchContext.Provider>
+    </CourseStateContext.Provider>
+  );
+}

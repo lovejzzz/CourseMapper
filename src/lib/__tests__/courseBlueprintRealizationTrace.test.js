@@ -1,0 +1,151 @@
+import { describe, expect, it } from 'vitest';
+
+import {
+  BLUEPRINT_REALIZATION_TRACE,
+  buildCourseBlueprint,
+  compileBlueprintDeliverables,
+} from '../courseBlueprintCompiler.js';
+import {
+  beginBlueprintRealizationTrace,
+  lessonVariantPoolHash,
+  restoreBlueprintRealizationTrace,
+  selectComposedLessonVariant,
+} from '../courseCompilerRealization.js';
+
+function traceCourseMap() {
+  return {
+    courseName: 'Traceable Evidence Decisions',
+    lessons: [1, 2, 3].map((lessonNumber) => ({
+      title: `Lesson ${lessonNumber}: Evidence Decision ${lessonNumber}`,
+      sections: [
+        {
+          topicSection: `Evidence Decision ${lessonNumber}`,
+          learningObjectives: `Compare evidence for decision ${lessonNumber} and justify the stronger course action.`,
+          weeklyAssessments: `Decision memo ${lessonNumber}`,
+        },
+      ],
+    })),
+  };
+}
+
+describe('blueprint realization trace', () => {
+  it('keeps trace-off output behavior-identical and non-enumerable', () => {
+    const blueprint = buildCourseBlueprint(traceCourseMap());
+    const ordinary = compileBlueprintDeliverables(blueprint, ['lessonPlans'], { configMap: {} });
+    const traced = compileBlueprintDeliverables(blueprint, ['lessonPlans'], {
+      configMap: {},
+      traceRealization: true,
+    });
+
+    expect(JSON.stringify(traced)).toBe(JSON.stringify(ordinary));
+    expect(ordinary[BLUEPRINT_REALIZATION_TRACE]).toBeUndefined();
+    expect(Object.keys(traced)).toEqual(Object.keys(ordinary));
+    expect(traced[BLUEPRINT_REALIZATION_TRACE].length).toBeGreaterThan(0);
+  });
+
+  it('keeps the complete material package byte-identical when tracing is enabled', () => {
+    const featureIds = [
+      'syllabus',
+      'lessonPlans',
+      'slideDecks',
+      'assignments',
+      'rubrics',
+      'discussions',
+      'quizBank',
+      'studyGuides',
+      'courseFaq',
+    ];
+    const blueprint = buildCourseBlueprint(traceCourseMap());
+    const ordinary = compileBlueprintDeliverables(blueprint, featureIds, { configMap: {} });
+    const traced = compileBlueprintDeliverables(blueprint, featureIds, {
+      configMap: {},
+      traceRealization: true,
+    });
+
+    expect(JSON.stringify(traced)).toBe(JSON.stringify(ordinary));
+    expect(Object.keys(traced)).toEqual(Object.keys(ordinary));
+    expect(traced[BLUEPRINT_REALIZATION_TRACE].length).toBeGreaterThan(0);
+    expect(
+      traced[BLUEPRINT_REALIZATION_TRACE].some((event) => event.ownerId?.startsWith('compiled:lessonPlans:')),
+    ).toBe(true);
+  });
+
+  it('records the lesson-number-selected pool index and matched consumed slots', () => {
+    const blueprint = buildCourseBlueprint(traceCourseMap());
+    const traced = compileBlueprintDeliverables(blueprint, ['lessonPlans'], {
+      configMap: {},
+      traceRealization: true,
+    });
+    const events = traced[BLUEPRINT_REALIZATION_TRACE];
+    const legacyEvents = events.filter((event) => !event.ownerId);
+    const contextualEvents = events.filter((event) => event.ownerId);
+    expect(legacyEvents.every((event) => event.index === (Math.max(1, event.lessonNumber) - 1) % event.poolSize)).toBe(
+      true,
+    );
+    expect(contextualEvents.length).toBeGreaterThan(0);
+    expect(contextualEvents.every((event) => event.index >= 0 && event.index < event.poolSize)).toBe(true);
+    expect(events.every((event) => /^fnv1a32:[a-z0-9]+$/.test(event.poolHash))).toBe(true);
+    expect(events.some((event) => event.consumedSlots.length > 0)).toBe(true);
+    expect(legacyEvents.every((event) => /^pool-[a-z0-9]+$/.test(event.poolId))).toBe(true);
+    expect(contextualEvents.every((event) => event.poolId === event.ownerId)).toBe(true);
+    expect(contextualEvents.some((event) => event.ownerId === 'lesson-teaching-moves.practice')).toBe(true);
+  });
+
+  it('keeps contextual practice frames from becoming universal across course packages', () => {
+    const leads = ['practice lead A', 'practice lead B', 'practice lead C', 'practice lead D'];
+    const tails = ['tail 1.', 'tail 2.', 'tail 3.', 'tail 4.'];
+    const support = new Map();
+
+    for (let courseIndex = 0; courseIndex < 12; courseIndex += 1) {
+      const courseId = `course-${courseIndex + 1}`;
+      const state = beginBlueprintRealizationTrace(false, courseId);
+      try {
+        for (let lessonNumber = 1; lessonNumber <= 6; lessonNumber += 1) {
+          const selected = selectComposedLessonVariant(
+            { lessonNumber, title: `Lesson ${lessonNumber}: Topic ${courseIndex + 1}` },
+            'lesson-teaching-moves.practice',
+            leads,
+            tails,
+            ' ',
+          );
+          if (!support.has(selected)) support.set(selected, new Set());
+          support.get(selected).add(courseId);
+        }
+      } finally {
+        restoreBlueprintRealizationTrace(state);
+      }
+    }
+
+    expect(support.size).toBeGreaterThan(4);
+    expect([...support.keys()].every((selection) => !selection.includes(';'))).toBe(true);
+    expect([...support.values()].every((courseIds) => courseIds.size < 12)).toBe(true);
+  });
+
+  it('rotates both halves of composed teaching copy without repeating a pair', () => {
+    const leads = ['Lead A', 'Lead B', 'Lead C', 'Lead D'];
+    const tails = ['tail 1.', 'tail 2.', 'tail 3.', 'tail 4.'];
+    const selections = [1, 2, 3, 4].map((lessonNumber) =>
+      selectComposedLessonVariant({ lessonNumber }, 'test.composed-owner', leads, tails),
+    );
+
+    expect(new Set(selections).size).toBe(selections.length);
+    expect(new Set(selections.map((selection) => selection.split(';')[0])).size).toBeGreaterThan(1);
+  });
+
+  it('binds a composed trace index to the ordered leads, tails, and separator', () => {
+    const leads = ['Lead A', 'Lead B'];
+    const tails = ['tail 1.', 'tail 2.'];
+    const state = beginBlueprintRealizationTrace(true, 'ordered-pool-course');
+    try {
+      selectComposedLessonVariant({ lessonNumber: 2 }, 'test.ordered-pool', leads, tails, ' ');
+    } finally {
+      restoreBlueprintRealizationTrace(state);
+    }
+
+    expect(state.trace).toHaveLength(1);
+    expect(state.trace[0].poolHash).toBe(lessonVariantPoolHash({ kind: 'composed', leads, separator: ' ', tails }));
+    expect(state.trace[0].poolHash).not.toBe(
+      lessonVariantPoolHash({ kind: 'composed', leads, separator: ' ', tails: [...tails].reverse() }),
+    );
+  });
+});

@@ -1,0 +1,1910 @@
+const ALIGNMENT_STOP_WORDS = new Set(['and', 'are', 'because', 'for', 'from', 'that', 'the', 'this', 'with', 'while']);
+const FIRST_SENTENCE_ALIGNMENT_STOP_WORDS = new Set([
+  ...ALIGNMENT_STOP_WORDS,
+  'also',
+  'into',
+  'its',
+  'not',
+  'only',
+  'than',
+  'their',
+  'then',
+  'through',
+  'using',
+  'was',
+  'were',
+]);
+const TERMINAL_PUNCT_RE = /[.!?][\])}"']?$/;
+const SENTENCE_BOUNDARY_RE = /[.!?][\])}"']?(?=\s+[A-Z0-9"'“‘]|$)/g;
+const ABBREVIATION_BOUNDARY_RE = /(?:\b(?:e\.g|i\.e|u\.s|vs|dr|mr|mrs|ms|prof|fig|no)|\b[A-Z])\.$/i;
+const EXPLANATION_CONTRAST_RE =
+  /\b(?:misconception|common misconception|likely misconception|plausible misconception|tempting misconception|by contrast|in contrast|whereas|while|rather than|unlike)\b/i;
+const EXPLANATION_NEGATIVE_EVIDENCE_RE = /\b(?:distractor|incorrect|misconception|not|wrong)\b/i;
+const SOURCE_ALIGNMENT_NEGATIVE_STEM_RE = /\b(?:except|false|incorrect|least|never|not)\b/i;
+const SOURCE_ALIGNMENT_STOP_WORDS = new Set([
+  'and',
+  'are',
+  'because',
+  'can',
+  'did',
+  'does',
+  'for',
+  'from',
+  'has',
+  'have',
+  'how',
+  'into',
+  'may',
+  'should',
+  'that',
+  'the',
+  'their',
+  'then',
+  'this',
+  'was',
+  'were',
+  'what',
+  'when',
+  'where',
+  'which',
+  'while',
+  'will',
+  'with',
+]);
+const CITED_KEY_ALIGNMENT_STOP_WORDS = new Set([
+  ...SOURCE_ALIGNMENT_STOP_WORDS,
+  'answer',
+  'best',
+  'choice',
+  'decision',
+  'evidence',
+  'option',
+  'support',
+  'supports',
+]);
+const CITED_KEY_SCOPE_TOKENS = new Set([
+  'all',
+  'both',
+  'neither',
+  'never',
+  'none',
+  'only',
+  'unchang',
+  'unchanged',
+  'unmodifi',
+  'unmodified',
+  'without',
+]);
+const ABSENCE_SCOPE_RE = /\b(?:no|none|never|without|lacks?|cannot|can't)\b/i;
+const DIRECTION_TOKEN_RE = /^(?:higher|lower|more|less|increase|decrease|increases|decreases|increased|decreased)$/;
+
+function clean(value) {
+  return String(value ?? '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function alignmentTokens(value) {
+  return new Set(
+    clean(value)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, ' ')
+      .split(/\s+/)
+      .map((token) => {
+        if (/^(?:ask|asks|asked|asking|question|questions)$/.test(token)) return 'question';
+        return token.length > 4 && token.endsWith('s') && !token.endsWith('ss') ? token.slice(0, -1) : token;
+      })
+      .filter((token) => token.length >= 3 && !ALIGNMENT_STOP_WORDS.has(token)),
+  );
+}
+
+function morphologicalAlignmentTokens(value) {
+  return new Set(
+    clean(value)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, ' ')
+      .split(/\s+/)
+      .map((token) => {
+        let next = token;
+        if (next.length > 6 && next.endsWith('ing')) next = next.slice(0, -3);
+        else if (next.length > 5 && next.endsWith('ed')) next = next.slice(0, -2);
+        if (next.length > 4 && next.endsWith('s') && !next.endsWith('ss')) next = next.slice(0, -1);
+        return next;
+      })
+      .filter((token) => token.length >= 3 && !FIRST_SENTENCE_ALIGNMENT_STOP_WORDS.has(token)),
+  );
+}
+
+function sourceAlignmentTokens(value) {
+  return new Set(
+    clean(value)
+      .normalize('NFKC')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, ' ')
+      .split(/\s+/)
+      .map((token) => {
+        let next = token;
+        if (next.length > 3 && next.endsWith('ies')) next = `${next.slice(0, -3)}y`;
+        else if (next.length > 5 && next.endsWith('ing')) next = next.slice(0, -3);
+        else if (next.length > 4 && next.endsWith('ed')) next = next.slice(0, -2);
+        else if (next.length > 3 && next.endsWith('s') && !/(?:ss|ous|ius|is|us|ias)$/.test(next)) {
+          next = next.slice(0, -1);
+        }
+        return next;
+      })
+      .filter((token) => token.length >= 3 && !SOURCE_ALIGNMENT_STOP_WORDS.has(token)),
+  );
+}
+
+function tokenOverlap(left, right) {
+  return [...left].filter((token) => right.has(token)).length;
+}
+
+function directionalRelations(value) {
+  const tokens = clean(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9-]+/g, ' ')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  const relations = new Map();
+  tokens.forEach((token, index) => {
+    if (!DIRECTION_TOKEN_RE.test(token) || index === 0) return;
+    const predicate =
+      sourceAlignmentTokens(tokens[index - 1])
+        .values()
+        .next().value || tokens[index - 1];
+    const values = relations.get(predicate) || new Set();
+    values.add(token.replace(/(?:s|d)$/, ''));
+    relations.set(predicate, values);
+  });
+  return relations;
+}
+
+function hasConflictingDirectionalRelation(supportedOption, declaredOption, evidence) {
+  const supported = directionalRelations(supportedOption);
+  const declared = directionalRelations(declaredOption);
+  const observed = directionalRelations(evidence);
+  for (const [predicate, supportedDirections] of supported) {
+    const declaredDirections = declared.get(predicate);
+    const observedDirections = observed.get(predicate);
+    if (!declaredDirections || !observedDirections) continue;
+    if (
+      [...supportedDirections].some((direction) => observedDirections.has(direction)) &&
+      [...declaredDirections].some((direction) => !supportedDirections.has(direction))
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function normalizedRelationEntity(value) {
+  return clean(value)
+    .toLowerCase()
+    .replace(/[.!?]+$/g, '')
+    .replace(/^(?:a|an|the)\s+/, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function canonicalLinearEquation(value) {
+  const proportional = clean(stripOptionLabel(value)).match(/^(.+?)\s+(?:is|are)\s+proportional\s+to\s+(.+?)[.!?]?$/i);
+  if (proportional) {
+    const terms = [normalizedRelationEntity(proportional[1]), normalizedRelationEntity(proportional[2])].sort();
+    if (terms.every((term) => term && term.length <= 60) && terms[0] !== terms[1]) {
+      return `proportional|${terms.join('|')}`;
+    }
+  }
+  const match = clean(stripOptionLabel(value)).match(
+    /^(.+?)\s+(?:equals|=)\s+(.+?)\s+(plus|minus|\+|-)\s+(.+?)[.!?]?$/i,
+  );
+  if (!match) return '';
+  const terms = [
+    normalizedRelationEntity(match[1]),
+    normalizedRelationEntity(match[2]),
+    normalizedRelationEntity(match[4]),
+  ];
+  if (terms.some((term) => !term || term.length > 60)) return '';
+  const coefficients = new Map();
+  const add = (term, amount) => coefficients.set(term, (coefficients.get(term) || 0) + amount);
+  add(terms[0], 1);
+  add(terms[1], -1);
+  add(terms[2], /^(?:minus|-)$/i.test(match[3]) ? 1 : -1);
+  const entries = [...coefficients.entries()]
+    .filter(([, amount]) => amount !== 0)
+    .sort(([left], [right]) => left.localeCompare(right));
+  if (entries.length < 2) return '';
+  const direction = entries[0][1] < 0 ? -1 : 1;
+  return entries.map(([term, amount]) => `${term}:${amount * direction}`).join('|');
+}
+
+function canonicalComparativeRelation(value) {
+  const match = clean(stripOptionLabel(value)).match(
+    /^(.+?)\s+(?:is|are|was|were)\s+(older|younger|greater|larger|higher|more|less|smaller|lower|fewer|earlier|later|before|after)\s+(?:than\s+)?(.+?)[.!?]?$/i,
+  );
+  if (!match) return '';
+  const left = normalizedRelationEntity(match[1]);
+  const right = normalizedRelationEntity(match[3]);
+  if (!left || !right || left === right || left.length > 60 || right.length > 60) return '';
+  const relation = match[2].toLowerCase();
+  if (['older', 'greater', 'larger', 'higher', 'more'].includes(relation)) return `greater|${left}|${right}`;
+  if (['younger', 'less', 'smaller', 'lower', 'fewer'].includes(relation)) return `greater|${right}|${left}`;
+  if (['earlier', 'before'].includes(relation)) return `before|${left}|${right}`;
+  return `before|${right}|${left}`;
+}
+
+function firstDuplicateCanonicalPair(options, canonicalize) {
+  const seen = new Map();
+  for (let index = 0; index < options.length; index += 1) {
+    const canonical = canonicalize(options[index]);
+    if (!canonical) continue;
+    if (seen.has(canonical)) return { left: seen.get(canonical), right: index, canonical };
+    seen.set(canonical, index);
+  }
+  return null;
+}
+
+const SCION_SCOPE_MARKER_RE = /\b(?:always|never|all|none|only|unchanged|unmodified|no other|without)\b/gi;
+
+/**
+ * Find an option that adds an exclusivity or absence marker the source never
+ * states. This one-way check can reject an invented "only"; it never certifies
+ * the remaining option text as factually correct.
+ */
+export function findScionUnsupportedScopeOption(options = [], { sourceClaims = [] } = {}) {
+  const sourceText = (Array.isArray(sourceClaims) ? sourceClaims : []).map(sourceClaimText).join(' ').toLowerCase();
+  if (!sourceText) return null;
+  for (let index = 0; index < (Array.isArray(options) ? options : []).length; index += 1) {
+    const markers = [...new Set(clean(options[index]).toLowerCase().match(SCION_SCOPE_MARKER_RE) || [])];
+    const unsupported = markers.find((marker) => {
+      const escaped = marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+');
+      return !new RegExp(`\\b${escaped}\\b`, 'i').test(sourceText);
+    });
+    if (unsupported) return { index, marker: unsupported };
+  }
+  return null;
+}
+
+/** Detect algebraically equivalent additive equations presented as separate choices. */
+export function findScionEquivalentEquationOptionPair(options = []) {
+  return firstDuplicateCanonicalPair(Array.isArray(options) ? options : [], canonicalLinearEquation);
+}
+
+/** Detect the same comparison restated by swapping subjects and inverse adjectives. */
+export function findScionEquivalentComparisonOptionPair(options = []) {
+  return firstDuplicateCanonicalPair(Array.isArray(options) ? options : [], canonicalComparativeRelation);
+}
+
+function sourceClaimText(value) {
+  if (value && typeof value === 'object') return clean(value.text ?? value.claim ?? value.value);
+  return clean(value);
+}
+
+function citedKeyAlignmentTokens(value) {
+  return new Set(
+    clean(value)
+      .normalize('NFKC')
+      .toLowerCase()
+      .match(/[\p{L}\p{N}]+/gu)
+      ?.map((token) => {
+        let next = token;
+        if (/^[a-z0-9]+$/.test(next)) {
+          if (next.length > 5 && next.endsWith('ing')) next = next.slice(0, -3);
+          else if (next.length > 4 && next.endsWith('ed')) next = next.slice(0, -2);
+          else if (next.length > 3 && next.endsWith('s') && !/(?:ss|ous|ius|is|us)$/.test(next)) {
+            next = next.slice(0, -1);
+          }
+        }
+        return next;
+      })
+      .filter(
+        (token) => (token.length >= 3 || /[^a-z0-9]/i.test(token)) && !CITED_KEY_ALIGNMENT_STOP_WORDS.has(token),
+      ) || [],
+  );
+}
+
+function citedKeyAlignmentSequence(value) {
+  return (
+    clean(value)
+      .normalize('NFKC')
+      .toLowerCase()
+      .match(/[\p{L}\p{N}]+/gu)
+      ?.map((token) => {
+        let next = token;
+        if (/^[a-z0-9]+$/.test(next)) {
+          if (next.length > 5 && next.endsWith('ing')) next = next.slice(0, -3);
+          else if (next.length > 4 && next.endsWith('ed')) next = next.slice(0, -2);
+          else if (next.length > 3 && next.endsWith('s') && !/(?:ss|ous|ius|is|us)$/.test(next)) {
+            next = next.slice(0, -1);
+          }
+        }
+        return next;
+      })
+      .filter(
+        (token) => (token.length >= 3 || /[^a-z0-9]/i.test(token)) && !CITED_KEY_ALIGNMENT_STOP_WORDS.has(token),
+      ) || []
+  );
+}
+
+function citedKeyAlignmentBigrams(value) {
+  const sequence = citedKeyAlignmentSequence(value);
+  return new Set(sequence.slice(0, -1).map((token, index) => `${token} ${sequence[index + 1]}`));
+}
+
+function citedScopeTokens(value) {
+  const tokens = citedKeyAlignmentTokens(value);
+  if (
+    /\bboth\s+(?:observed\s+|supplied\s+)?(?:accounts?|changes?|claims?|details?|facts?|labels?|observations?|passages?|records?)\b/i.test(
+      clean(value),
+    )
+  ) {
+    tokens.delete('both');
+  }
+  return tokens;
+}
+
+/**
+ * Reject an explicit fact citation that has no semantic anchor in the keyed
+ * option or the explanation's affirmative lead sentence. This is narrower
+ * than general factuality: zero shared content is decisive evidence that the
+ * cited fact cannot be the support promised by `fi`. One-token paraphrases
+ * remain admissible rather than being guessed at or rewritten.
+ */
+export function findScionCitedSourceKeyMismatch(
+  item = {},
+  { sourceClaims = [], strict = false, matchingProfile = 'current' } = {},
+) {
+  const normalized = normalizeScionMcItem(item);
+  const claims = (Array.isArray(sourceClaims) ? sourceClaims : []).map(sourceClaimText).filter(Boolean);
+  if (
+    claims.length === 0 ||
+    normalized.options.length !== 4 ||
+    !Number.isInteger(normalized.answerIndex) ||
+    normalized.answerIndex < 0 ||
+    normalized.answerIndex >= normalized.options.length
+  ) {
+    return null;
+  }
+  const affirmativeLead =
+    clean(normalized.explanation)
+      .match(/^.*?[.!?](?=\s|$)/)?.[0]
+      ?.trim() || clean(normalized.explanation);
+  const claimSurface = claims.join(' ');
+  const claimOptionTokens = citedKeyAlignmentTokens(claimSurface);
+  const declaredOptionTokens = citedKeyAlignmentTokens(normalized.options[normalized.answerIndex]);
+  const declaredScopeTokens = citedScopeTokens(normalized.options[normalized.answerIndex]);
+  const unsupportedScopeTokens = [...declaredOptionTokens].filter(
+    (token) => declaredScopeTokens.has(token) && CITED_KEY_SCOPE_TOKENS.has(token) && !claimOptionTokens.has(token),
+  );
+  if (matchingProfile !== 'v0.16.58' && strict && unsupportedScopeTokens.length > 0) {
+    return {
+      declaredIndex: normalized.answerIndex,
+      unsupportedScopeTokens,
+      citedClaimCount: claims.length,
+      supportMethod: 'cited-fact-key-unsupported-scope',
+    };
+  }
+  const warrantTokens = citedScopeTokens(`${normalized.question} ${affirmativeLead}`);
+  const unsupportedWarrantScopeTokens = [...warrantTokens].filter(
+    (token) => CITED_KEY_SCOPE_TOKENS.has(token) && !claimOptionTokens.has(token),
+  );
+  const sourceUsesAbsence = ABSENCE_SCOPE_RE.test(claimSurface);
+  const warrantUsesNo = /\bno\b/i.test(`${normalized.question} ${affirmativeLead}`);
+  if (
+    matchingProfile !== 'v0.16.58' &&
+    strict &&
+    (unsupportedWarrantScopeTokens.length > 0 || (warrantUsesNo && !sourceUsesAbsence))
+  ) {
+    return {
+      declaredIndex: normalized.answerIndex,
+      unsupportedScopeTokens: [
+        ...unsupportedWarrantScopeTokens,
+        ...(warrantUsesNo && !sourceUsesAbsence ? ['no'] : []),
+      ],
+      citedClaimCount: claims.length,
+      supportMethod: 'cited-fact-context-unsupported-scope',
+    };
+  }
+  const claimPhraseTokens = claims.map(citedKeyAlignmentTokens);
+  const claimPhraseBigrams = claims.map(citedKeyAlignmentBigrams);
+  const optionPhraseScores = normalized.options.map((option, index) => {
+    const optionTokens = citedKeyAlignmentTokens(option);
+    const optionBigrams = citedKeyAlignmentBigrams(option);
+    const best = claims
+      .map((_, claimIndex) => {
+        const tokenScore = tokenOverlap(optionTokens, claimPhraseTokens[claimIndex]);
+        const bigramScore = tokenOverlap(optionBigrams, claimPhraseBigrams[claimIndex]);
+        const score = tokenScore + bigramScore * 2;
+        return {
+          score,
+          tokenScore,
+          bigramScore,
+          containment: Number((score / Math.max(1, optionTokens.size + optionBigrams.size * 2)).toFixed(6)),
+        };
+      })
+      .sort((left, right) => right.score - left.score || right.containment - left.containment)[0];
+    return {
+      index,
+      ...best,
+    };
+  });
+  const bestPhraseScore = Math.max(...optionPhraseScores.map(({ score }) => score));
+  const phraseWinners = optionPhraseScores.filter(({ score }) => score === bestPhraseScore);
+  const declaredPhrase = optionPhraseScores[normalized.answerIndex];
+  const phraseWinner = phraseWinners[0];
+  const affirmativeConflict = findScionAffirmativeOptionConflict(normalized);
+  if (
+    matchingProfile !== 'v0.16.58' &&
+    phraseWinners.length === 1 &&
+    phraseWinner.index !== normalized.answerIndex &&
+    affirmativeConflict?.supportedIndex === phraseWinner.index &&
+    Number(affirmativeConflict.scores?.[phraseWinner.index] || 0) >=
+      Number(affirmativeConflict.scores?.[normalized.answerIndex] || 0) + 2 &&
+    phraseWinner.score >= 6 &&
+    phraseWinner.bigramScore >= 1 &&
+    phraseWinner.containment >= 0.6 &&
+    phraseWinner.score >= declaredPhrase.score + 4
+  ) {
+    return {
+      declaredIndex: normalized.answerIndex,
+      supportedIndex: phraseWinner.index,
+      scores: optionPhraseScores.map(({ score }) => score),
+      bigramScores: optionPhraseScores.map(({ bigramScore }) => bigramScore),
+      containment: optionPhraseScores.map(({ containment }) => containment),
+      citedClaimCount: claims.length,
+      supportMethod: 'cited-fact-option-phrase-alignment',
+    };
+  }
+  const keyTokens = citedKeyAlignmentTokens(`${normalized.options[normalized.answerIndex]} ${affirmativeLead}`);
+  const claimTokens = new Set(claims.flatMap((claim) => [...citedKeyAlignmentTokens(claim)]));
+  if (keyTokens.size < 2 || claimTokens.size < 2) return null;
+  const sharedTokens = [...keyTokens].filter((token) => claimTokens.has(token));
+  return sharedTokens.length === 0
+    ? {
+        declaredIndex: normalized.answerIndex,
+        sharedTokens,
+        citedClaimCount: claims.length,
+        supportMethod: 'cited-fact-key-zero-overlap',
+      }
+    : null;
+}
+
+/**
+ * Find a uniquely source-supported answer when the declared key points elsewhere.
+ *
+ * This is intentionally lexical and fail-closed. The question must identify no
+ * more than two equally relevant supplied claims, a single alternative option
+ * must receive strong/contained support from those claims, and the declared
+ * option must receive almost none. Negative stems are excluded because source
+ * support would reverse their intended answer semantics.
+ */
+export function findScionSourceAnswerSupport(item = {}, { sourceClaims = [], strict = false } = {}) {
+  const normalized = normalizeScionMcItem(item);
+  const claims = (Array.isArray(sourceClaims) ? sourceClaims : []).map(sourceClaimText).filter(Boolean);
+  if (
+    claims.length === 0 ||
+    normalized.options.length !== 4 ||
+    !Number.isInteger(normalized.answerIndex) ||
+    normalized.answerIndex < 0 ||
+    normalized.answerIndex > 3 ||
+    !normalized.question ||
+    SOURCE_ALIGNMENT_NEGATIVE_STEM_RE.test(normalized.question)
+  ) {
+    return null;
+  }
+
+  const pairedRelationQuestion =
+    /\b(?:comparison|distinction|differentiate|match(?:es|ing)?|observations?)\b/i.test(normalized.question) &&
+    normalized.options.some((option) => pairedRelationSegments(option).length >= 2);
+  if (pairedRelationQuestion) {
+    const pairedScores = normalized.options.map((option) =>
+      pairedRelationAssignmentIsSupported(option, claims) ? 1 : 0,
+    );
+    const supported = pairedScores.map((score, index) => (score === 1 ? index : -1)).filter((index) => index >= 0);
+    if (supported.length === 1) {
+      return {
+        declaredIndex: normalized.answerIndex,
+        supportedIndex: supported[0],
+        scores: pairedScores,
+        containment: pairedScores,
+        supportMethod: 'source-paired-relation-alignment',
+        sourceAlignmentProfile: strict ? 'strict-cited-source' : 'default-source',
+        relevantSourceClaimIndexes: claims.map((_, index) => index),
+        questionClaimScore: null,
+        thresholds: { completePairedAssignmentsRequired: 2 },
+      };
+    }
+  }
+
+  const distinctionSupport = /\b(?:comparison|distinction|distinguish|match(?:es|ing)?)\b/i.test(normalized.question)
+    ? findDistinctionOptionSupport(normalized.options, claims)
+    : null;
+  if (distinctionSupport?.supported.length === 1) {
+    return {
+      declaredIndex: normalized.answerIndex,
+      supportedIndex: distinctionSupport.supported[0],
+      scores: distinctionSupport.scores,
+      containment: distinctionSupport.scores,
+      supportMethod: 'source-distinction-relation-alignment',
+      sourceAlignmentProfile: strict ? 'strict-cited-source' : 'default-source',
+      relevantSourceClaimIndexes: claims.map((_, index) => index),
+      questionClaimScore: null,
+      thresholds: { completeDistinctionRelationRequired: true },
+    };
+  }
+
+  const questionTokens = sourceAlignmentTokens(normalized.question);
+  const claimScores = claims.map((claim, index) => {
+    const tokens = sourceAlignmentTokens(claim);
+    return { index, score: tokenOverlap(questionTokens, tokens), tokens };
+  });
+  const bestClaimScore = Math.max(0, ...claimScores.map(({ score }) => score));
+  const relevantClaims = claimScores.filter(({ score }) => score === bestClaimScore);
+  if (bestClaimScore < (strict ? 2 : 3) || relevantClaims.length === 0 || relevantClaims.length > 2) return null;
+
+  const relevantTokens = new Set(relevantClaims.flatMap(({ tokens }) => [...tokens]));
+  const optionTokens = normalized.options.map(sourceAlignmentTokens);
+  const scores = optionTokens.map((tokens) => tokenOverlap(tokens, relevantTokens));
+  const containment = optionTokens.map((tokens, index) =>
+    tokens.size > 0 ? Number((scores[index] / tokens.size).toFixed(6)) : 0,
+  );
+  const bestScore = Math.max(...scores);
+  const bestIndices = scores.map((score, index) => (score === bestScore ? index : -1)).filter((index) => index >= 0);
+  const currentScore = scores[normalized.answerIndex] || 0;
+  const competingContainedOptions = scores
+    .map((score, index) => ({ score, index, containment: containment[index] }))
+    .filter(
+      ({ score, index, containment: optionContainment }) =>
+        !bestIndices.includes(index) && score >= (strict ? Math.max(2, bestScore - 1) : 2) && optionContainment >= 0.6,
+    );
+  if (
+    bestScore < 3 ||
+    bestIndices.length !== 1 ||
+    competingContainedOptions.length > 0 ||
+    containment[bestIndices[0]] < 0.6 ||
+    (bestIndices[0] !== normalized.answerIndex &&
+      (strict ? bestScore < currentScore + 3 : currentScore > 1 || bestScore < currentScore + 2))
+  ) {
+    return null;
+  }
+
+  return {
+    declaredIndex: normalized.answerIndex,
+    supportedIndex: bestIndices[0],
+    scores,
+    containment,
+    supportMethod: 'source-question-option-alignment',
+    sourceAlignmentProfile: strict ? 'strict-cited-source' : 'default-source',
+    relevantSourceClaimIndexes: relevantClaims.map(({ index }) => index),
+    questionClaimScore: bestClaimScore,
+    thresholds: {
+      minimumQuestionClaimScore: strict ? 2 : 3,
+      minimumOptionScore: 3,
+      minimumOptionContainment: 0.6,
+      minimumDeclaredOptionMargin: strict ? 3 : 2,
+      ...(strict ? {} : { maximumDeclaredOptionScore: 1 }),
+    },
+  };
+}
+
+export function findScionSourceAnswerConflict(item = {}, { sourceClaims = [], strict = false } = {}) {
+  const support = findScionSourceAnswerSupport(item, { sourceClaims, strict });
+  return support && support.supportedIndex !== support.declaredIndex ? support : null;
+}
+
+function findFirstSentenceLexicalCue(normalized) {
+  const firstSentence =
+    clean(normalized.explanation)
+      .match(/^.*?[.!?](?=\s|$)/)?.[0]
+      ?.trim() || clean(normalized.explanation);
+  if (!firstSentence) return null;
+  // A literal option label outranks lexical overlap, while a generic
+  // "correct choice" supplies no option identity. Negative/distractor prose
+  // is likewise not affirmative evidence and must never move the key.
+  if (
+    /\b(?:(?:option|choice|answer)\s*[A-D1-4]|(?:correct|best)\s+(?:choice|answer|option))\b/i.test(firstSentence) ||
+    /\b(?:incorrect|wrong|misconception|distractor|premature|not)\b/i.test(firstSentence)
+  ) {
+    return null;
+  }
+  const explanationTokens = morphologicalAlignmentTokens(firstSentence);
+  const scores = normalized.options.map((option) => {
+    const optionTokens = morphologicalAlignmentTokens(option);
+    return [...optionTokens].filter((token) => explanationTokens.has(token)).length;
+  });
+  const bestScore = Math.max(...scores);
+  const bestIndices = scores.map((score, index) => (score === bestScore ? index : -1)).filter((index) => index >= 0);
+  const currentScore = scores[normalized.answerIndex] || 0;
+  if (
+    bestScore >= 2 &&
+    bestIndices.length === 1 &&
+    bestIndices[0] !== normalized.answerIndex &&
+    bestScore >= currentScore + 1
+  ) {
+    return {
+      declaredIndex: normalized.answerIndex,
+      supportedIndex: bestIndices[0],
+      scores,
+      supportMethod: 'first-sentence-lexical-margin',
+      explicitCues: [],
+      evidenceSentence: firstSentence,
+    };
+  }
+  return null;
+}
+
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function stripOptionLabel(value, { stripTerminalPunctuation = true } = {}) {
+  const unlabeled = clean(value).replace(/^(?:(?:option|choice|answer)\s*)?(?:[a-d]|[1-4])\s*[).:\-]\s*/i, '');
+  return (stripTerminalPunctuation ? unlabeled.replace(/[.!?;:,]+$/g, '') : unlabeled).trim();
+}
+
+/** Canonical identity for detecting answer choices that differ only cosmetically. */
+export function normalizeScionOptionIdentity(value) {
+  const surface = stripOptionLabel(value);
+  // Brackets and braces carry meaning in code and mathematics: [1, 2] is a
+  // Python list while (1, 2) is a tuple. Preserve their delimiter signature
+  // so natural-language cleanup cannot collapse distinct executable forms.
+  const structuralDelimiters = (surface.match(/[\[\]{}()]/g) || []).join('');
+  const words = surface
+    .normalize('NFKC')
+    .toLowerCase()
+    .replace(/[‘’']/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+    .replace(/^(?:a|an|the)\s+/, '');
+  return `${structuralDelimiters}|${words}`;
+}
+
+const NEAR_DUPLICATE_OPTION_STOP_WORDS = new Set([
+  'a',
+  'an',
+  'and',
+  'are',
+  'because',
+  'by',
+  'for',
+  'from',
+  'in',
+  'is',
+  'of',
+  'on',
+  'the',
+  'to',
+  'with',
+]);
+const NEAR_DUPLICATE_OPTION_FILLER_TOKENS = new Set([
+  'additional',
+  'also',
+  'answer',
+  'choice',
+  'directly',
+  'exactly',
+  'just',
+  'merely',
+  'next',
+  'note',
+  'noted',
+  'option',
+  'same',
+  'simply',
+  'stated',
+]);
+const NEAR_DUPLICATE_POLARITY_GROUPS = [
+  ['not', 'never', 'no'],
+  ['major', 'minor'],
+  ['increase', 'decrease'],
+  ['before', 'after'],
+  ['same', 'different'],
+  ['true', 'false'],
+  ['always', 'never'],
+];
+
+function nearDuplicateOptionTokenSequence(value) {
+  const tokens = stripOptionLabel(value)
+    .normalize('NFKC')
+    .toLowerCase()
+    .replace(/[‘’']/g, '')
+    .replace(/[^a-z0-9♭♯#]+/g, ' ')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((token) => (token.length > 4 && token.endsWith('s') ? token.slice(0, -1) : token))
+    .filter((token) => !NEAR_DUPLICATE_OPTION_STOP_WORDS.has(token));
+  // Preserve repeated tokens: “modulation: key signature” after an earlier
+  // “normal sharps: key signature” is a second relation, not filler.
+  return tokens;
+}
+
+function isOrderedTokenSubsequence(smaller, larger) {
+  let smallerIndex = 0;
+  for (const token of larger) {
+    if (token === smaller[smallerIndex]) smallerIndex += 1;
+    if (smallerIndex === smaller.length) return true;
+  }
+  return false;
+}
+
+function hasCriticalOptionContrast(left, right) {
+  // "Only" is semantic polarity, not filler. In the seismic-wave item,
+  // "travels through solids, liquids, and gases" and "travels only through
+  // solids" share most of their surface tokens but make opposite claims.
+  if (left.has('only') !== right.has('only')) return true;
+  return NEAR_DUPLICATE_POLARITY_GROUPS.some((group) => {
+    const leftHits = group.filter((token) => left.has(token));
+    const rightHits = group.filter((token) => right.has(token));
+    return leftHits.length > 0 && rightHits.length > 0 && leftHits.some((token) => !rightHits.includes(token));
+  });
+}
+
+/**
+ * Find choices that express the same answer with extra filler words. Exact
+ * normalization catches punctuation/article variants; this conservative
+ * containment check catches the live "C, D, and E" versus "C, D, and the
+ * next note is E" duplicate without collapsing major/minor or other critical
+ * contrasts. Returns null when the choices remain meaningfully distinct.
+ */
+export function findScionNearDuplicateOptionPair(options = []) {
+  const clauseCanonicals = (Array.isArray(options) ? options : []).map((option) => {
+    const clauses = String(option || '')
+      .split(/\s*;\s*/)
+      .map((clause) => nearDuplicateOptionTokenSequence(clause).join(' '))
+      .filter(Boolean);
+    return clauses.length >= 2 ? clauses.sort().join(' || ') : '';
+  });
+  const seenClauseSets = new Map();
+  for (let index = 0; index < clauseCanonicals.length; index += 1) {
+    const canonical = clauseCanonicals[index];
+    if (!canonical) continue;
+    if (seenClauseSets.has(canonical)) {
+      return { leftIndex: seenClauseSets.get(canonical), rightIndex: index, clauseOrderEquivalent: true };
+    }
+    seenClauseSets.set(canonical, index);
+  }
+  const sequences = (Array.isArray(options) ? options : []).map(nearDuplicateOptionTokenSequence);
+  const rows = sequences.map((sequence) => new Set(sequence));
+  for (let leftIndex = 0; leftIndex < rows.length; leftIndex += 1) {
+    for (let rightIndex = leftIndex + 1; rightIndex < rows.length; rightIndex += 1) {
+      const left = rows[leftIndex];
+      const right = rows[rightIndex];
+      const smaller = Math.min(left.size, right.size);
+      // Equal-size token sets often encode deliberate minimal pairs or role
+      // swaps (positive/negative charge, junction/loop, supply/demand). The
+      // near-duplicate rule is for an answer repeated with extra filler, so
+      // require a strict superset instead of treating high overlap as enough.
+      if (smaller < 6 || left.size === right.size || hasCriticalOptionContrast(left, right)) continue;
+      const shared = [...left].filter((token) => right.has(token)).length;
+      const smallerSequence = left.size < right.size ? sequences[leftIndex] : sequences[rightIndex];
+      const largerSequence = left.size < right.size ? sequences[rightIndex] : sequences[leftIndex];
+      const smallerSet = left.size < right.size ? left : right;
+      const largerSet = left.size < right.size ? right : left;
+      const addedTokens = [...largerSet].filter((token) => !smallerSet.has(token));
+      // Token-set containment alone collapses relation swaps and partial
+      // contrasts. For example, “analysis surfaces obstacles; diagram may
+      // include decisions” is not the same answer as assigning those verbs to
+      // the opposite subject, and “modulation: accidentals” is not duplicated
+      // by “modulation: key signature.” A filler-expanded duplicate preserves
+      // the smaller option's semantic token order.
+      if (
+        shared === smaller &&
+        addedTokens.length > 0 &&
+        addedTokens.every((token) => NEAR_DUPLICATE_OPTION_FILLER_TOKENS.has(token)) &&
+        isOrderedTokenSubsequence(smallerSequence, largerSequence)
+      ) {
+        return { leftIndex, rightIndex, shared, smaller };
+      }
+    }
+  }
+  return null;
+}
+
+function optionLabelIndex(value) {
+  const normalized = clean(value).toUpperCase();
+  if (/^[A-D]$/.test(normalized)) return normalized.charCodeAt(0) - 65;
+  if (/^[1-4]$/.test(normalized)) return Number(normalized) - 1;
+  return null;
+}
+
+/**
+ * Read only explicit affirmative answer declarations from the explanation.
+ *
+ * This is intentionally narrower than semantic inference. It accepts an
+ * option label ("Option B is correct") or the exact displayed option text in
+ * a correctness construction, and stops before misconception/contrast prose.
+ * A conflicting or multi-option cue blocks lexical repair instead of guessing.
+ */
+function findExplicitExplanationAnswerCue(
+  normalized,
+  { allowAffirmativeLead = true, stripTerminalPunctuation = true } = {},
+) {
+  const affirmative = clean(normalized.explanation).split(EXPLANATION_CONTRAST_RE)[0];
+  if (!affirmative) return { status: 'none' };
+  const normalizeOption = (value) => stripOptionLabel(value, { stripTerminalPunctuation });
+  const cues = [];
+  const addCue = (supportedIndex, type, surface) => {
+    if (Number.isInteger(supportedIndex) && supportedIndex >= 0 && supportedIndex < normalized.options.length) {
+      cues.push({ supportedIndex, type, surface: clean(surface) });
+    }
+  };
+  const addPhraseCue = (phrase, type, surface) => {
+    const normalizedPhrase = normalizeOption(phrase)
+      .replace(/^(?:that\s+)?(?:the\s+)?/i, '')
+      .trim();
+    if (normalizedPhrase.length < 3) return;
+    const phraseComparable = normalizedPhrase
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim();
+    const optionComparables = normalized.options.map((option) =>
+      normalizeOption(option)
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim(),
+    );
+    const direct = optionComparables
+      .map((option, index) =>
+        option &&
+        phraseComparable &&
+        (option === phraseComparable || option.includes(phraseComparable) || phraseComparable.includes(option))
+          ? index
+          : -1,
+      )
+      .filter((index) => index >= 0);
+    if (direct.length === 1) {
+      addCue(direct[0], type, surface);
+      return;
+    }
+    const phraseTokens = alignmentTokens(normalizedPhrase);
+    const scores = normalized.options.map((option) => {
+      const optionTokens = alignmentTokens(normalizeOption(option));
+      return [...optionTokens].filter((token) => phraseTokens.has(token)).length;
+    });
+    const best = Math.max(...scores);
+    const bestIndices = scores.map((score, index) => (score === best ? index : -1)).filter((index) => index >= 0);
+    const nextBest = Math.max(0, ...scores.filter((_, index) => !bestIndices.includes(index)));
+    if (best >= 3 && bestIndices.length === 1 && best >= nextBest + 2) {
+      addCue(bestIndices[0], type, surface);
+    }
+  };
+
+  for (const pattern of [
+    /\b(?:option|choice|answer)\s*([A-D1-4])\s+(?:is|was)\s+(?:the\s+)?correct\b/gi,
+    /\b(?:the\s+)?correct\s+(?:option|choice|answer)\s+(?:is|was|:)\s*(?:option\s*)?([A-D1-4])\b/gi,
+  ]) {
+    for (const match of affirmative.matchAll(pattern)) {
+      addCue(optionLabelIndex(match[1]), 'explicit-option-label', match[0]);
+    }
+  }
+
+  const namedAnswer = affirmative.match(
+    /\b(?:the\s+)?correct\s+(?:option|choice|answer)\s*(?:is|was|:|,)\s*(.+?)(?=\s*(?:[.;]|\bbecause\b|\bwhich\b|\bsince\b|$))/i,
+  );
+  if (namedAnswer) addPhraseCue(namedAnswer[1], 'explicit-named-answer', namedAnswer[0]);
+
+  for (const correction of clean(normalized.explanation).matchAll(
+    /\bCorrect(?:ion)?\s*:\s*(.+?)(?=\s*(?:[.;]|\bbecause\b|\bwhich\b|\bsince\b|$))/gi,
+  )) {
+    addPhraseCue(correction[1], 'explicit-correction-label', correction[0]);
+  }
+
+  // Language-course explanations often cite the correct utterance as a
+  // quoted example instead of leading with "Option D is correct." Treat an
+  // exact, uniquely quoted displayed option in the affirmative segment as
+  // deterministic key evidence. The contrast segment has already been
+  // removed above, so a quoted distractor in "By contrast ..." cannot win.
+  const quotedOptionCues = normalized.options
+    .map((rawOption, index) => {
+      const option = normalizeOption(rawOption);
+      if (Array.from(option).length < 4) return null;
+      const match = affirmative.match(new RegExp(`["'“‘]${escapeRegExp(option)}[.!?]?["'”’]`, 'i'));
+      return match ? { index, surface: match[0] } : null;
+    })
+    .filter(Boolean);
+  if (quotedOptionCues.length === 1) {
+    addCue(quotedOptionCues[0].index, 'explicit-quoted-option-text', quotedOptionCues[0].surface);
+  }
+
+  normalized.options.forEach((rawOption, index) => {
+    const option = normalizeOption(rawOption);
+    if (option.length < 3) return;
+    const escaped = escapeRegExp(option);
+    const patterns = [
+      new RegExp(
+        `(?:^|[.!?]\\s+)(?:the\\s+)?${escaped}\\s+(?:is|are)\\s+(?:the\\s+)?correct(?:\\s+(?:choice|answer|option|result))?\\b`,
+        'i',
+      ),
+      new RegExp(
+        `\\b(?:the\\s+)?correct\\s+(?:choice|answer|option)\\s*(?:is|:|,)\\s*(?:the\\s+)?${escaped}(?=\\s*(?:[,.;]|\\bbecause\\b|\\bwhich\\b|\\bfor\\b|$))`,
+        'i',
+      ),
+      new RegExp(`(?:^|[.!?]\\s+)(?:the\\s+)?${escaped}\\s*[.!?]?\\s*\\(correct\\)`, 'i'),
+      new RegExp(`(?:^|[.!?]\\s+)(?:the\\s+)?${escaped}\\s+(?:fits|matches)\\s+because\\b`, 'i'),
+    ];
+    const match = patterns.map((pattern) => affirmative.match(pattern)).find(Boolean);
+    if (match) {
+      addCue(index, 'explicit-option-text', match[0]);
+      return;
+    }
+
+    // Some small-model answers start the affirmative explanation with the
+    // exact option as its grammatical subject ("Harmony is the concept..."),
+    // but omit the literal words "correct answer". This remains an explicit
+    // cue: it must start the affirmative lead, match one displayed option
+    // exactly, and avoid negative/distractor predicates. We deliberately do
+    // not infer support from a paraphrase here.
+    if (!allowAffirmativeLead) return;
+    const affirmativeLead = new RegExp(
+      `^\\s*(?:the\\s+)?${escaped}\\s+(?:is|are|means|refers\\s+to|describes|represents|provides|creates|returns|assigns|identifies|shows|serves)\\b(?!\\s+(?:(?:the|a|an)\\s+)?(?:incorrect|wrong|misconception|distractor|tempting|incomplete|not)\\b)`,
+      'i',
+    ).exec(clean(normalized.explanation));
+    if (affirmativeLead) addCue(index, 'explicit-affirmative-lead', affirmativeLead[0]);
+  });
+
+  const supported = [...new Set(cues.map((cue) => cue.supportedIndex))];
+  if (supported.length === 0) return { status: 'none' };
+  if (supported.length !== 1) return { status: 'ambiguous', cues };
+  return {
+    status: 'supported',
+    supportedIndex: supported[0],
+    cues: cues.filter((cue) => cue.supportedIndex === supported[0]),
+  };
+}
+
+export function normalizeScionMcItem(item = {}) {
+  const source = item && typeof item === 'object' ? item : {};
+  return {
+    question: clean(source.q ?? source.question),
+    options: Array.isArray(source.op ?? source.options) ? (source.op ?? source.options).map(clean) : [],
+    answerIndex: Number(source.ai ?? source.answerIndex),
+    explanation: clean(source.ex ?? source.explanation),
+  };
+}
+
+function semanticOptionTokens(value) {
+  const surface = stripOptionLabel(value).toLowerCase();
+  const tokens = new Set(
+    [...sourceAlignmentTokens(stripOptionLabel(value))].map((token) => {
+      if (['index', 'position'].includes(token)) return 'position';
+      if (['instance', 'object'].includes(token)) return token;
+      return token;
+    }),
+  );
+  for (const numeric of surface.match(/\b(?:\d+|n(?:\s*[-+]\s*\d+)?)\b/g) || []) {
+    tokens.add(`numeric:${numeric.replace(/\s+/g, '')}`);
+  }
+  return tokens;
+}
+
+function orderedSemanticTokenCoverage(optionTokens, clause) {
+  const expected = [...optionTokens];
+  if (expected.length === 0) return 0;
+  const observed = [...semanticOptionTokens(clause)];
+  let expectedIndex = 0;
+  for (const token of observed) {
+    if (token === expected[expectedIndex]) expectedIndex += 1;
+    if (expectedIndex === expected.length) break;
+  }
+  return expectedIndex / expected.length;
+}
+
+function relationDestinationTokens(value) {
+  const match = clean(value).match(
+    /\b(?:pull(?:s|ed|ing)?|move(?:s|d|ing)?|lead(?:s|ing)?|point(?:s|ed|ing)?|flow(?:s|ed|ing)?)\b[^.;]{0,24}?\b(?:toward|towards|to|into|above|below|through)\s+(?:the\s+|an?\s+)?([a-z][a-z-]*)/i,
+  );
+  return match ? sourceAlignmentTokens(match[1]) : new Set();
+}
+
+const PAIRED_RELATION_VERB_RE =
+  /\b(?:is|are|become|becomes|classify|classifies|contain|contains|describe|describes|include|includes|maintain|maintains|provide|provides|regulate|regulates|require|requires|supply|supplies|support|supports|use|uses)\b/i;
+
+function pairedRelationVerbGroup(value) {
+  const verb = clean(value).toLowerCase();
+  if (/^(?:provide|provides|supply|supplies)$/.test(verb)) return 'furnish';
+  if (/^(?:maintain|maintains|regulate|regulates|support|supports)$/.test(verb)) return 'sustain';
+  if (/^(?:is|are|become|becomes)$/.test(verb)) return 'copula';
+  return verb.replace(/(?:es|s)$/, '');
+}
+
+function pairedRelationSegments(value) {
+  const clauses = clean(stripOptionLabel(value))
+    .split(/\s*;\s*/)
+    .map(clean)
+    .filter(Boolean);
+  if (clauses.length < 2) return [];
+  return clauses
+    .map((clause) => {
+      const colon = clause.split(/\s*:\s*/, 2);
+      if (colon.length === 2 && colon.every(Boolean)) return { subject: colon[0], object: colon[1], relation: '' };
+      const verb = clause.match(PAIRED_RELATION_VERB_RE);
+      if (!verb || !Number.isInteger(verb.index) || verb.index < 1) return null;
+      const subject = clean(clause.slice(0, verb.index));
+      const object = clean(clause.slice(verb.index + verb[0].length));
+      return subject && object ? { subject, object, relation: pairedRelationVerbGroup(verb[0]) } : null;
+    })
+    .filter(Boolean);
+}
+
+/**
+ * Verify compact two-part assignments without losing who does what.
+ * Bag-of-words overlap cannot distinguish a correct relation from the same
+ * nouns and predicates swapped between subjects.
+ */
+function pairedRelationAssignmentIsSupported(option, claims = []) {
+  const segments = pairedRelationSegments(option);
+  if (segments.length < 2) return false;
+  const sourceClauses = claims
+    .flatMap((claim) => clean(claim).split(/\s*(?:[.;]|\b(?:whereas|while)\b)\s*/i))
+    .map((clause) => ({
+      tokens: sourceAlignmentTokens(clause),
+      relations: new Set(
+        [...clause.matchAll(new RegExp(PAIRED_RELATION_VERB_RE, 'gi'))].map((match) =>
+          pairedRelationVerbGroup(match[0]),
+        ),
+      ),
+    }))
+    .filter(({ tokens }) => tokens.size > 0);
+  return segments.every((segment) => {
+    const subjectTokens = sourceAlignmentTokens(segment.subject);
+    const objectTokens = sourceAlignmentTokens(segment.object);
+    if (subjectTokens.size === 0 || objectTokens.size === 0) return false;
+    return sourceClauses.some(({ tokens, relations }) => {
+      const objectOverlap = tokenOverlap(objectTokens, tokens);
+      const relationMatches = !segment.relation || relations.has(segment.relation);
+      return (
+        relationMatches &&
+        tokenOverlap(subjectTokens, tokens) >= 1 &&
+        objectOverlap / Math.max(1, objectTokens.size) >= 0.8
+      );
+    });
+  });
+}
+
+function findPairedRelationSupport(normalized, evidence = '') {
+  if (!clean(evidence) || !normalized.options.some((option) => pairedRelationSegments(option).length >= 2)) {
+    return null;
+  }
+  const scores = normalized.options.map((option) => (pairedRelationAssignmentIsSupported(option, [evidence]) ? 1 : 0));
+  const supported = scores.map((score, index) => (score === 1 ? index : -1)).filter((index) => index >= 0);
+  return supported.length === 1 ? { supportedIndex: supported[0], scores } : null;
+}
+
+function distinctionRelation(value) {
+  const surface = clean(stripOptionLabel(value));
+  const source = surface.match(
+    /\bdistinguish(?:es|ed|ing)?\s+between\s+(.+?)\s+and\s+(.+?)\s+based\s+on\s+(.+?)[.!?]?$/i,
+  );
+  if (source) return { left: source[1], right: source[2], basis: source[3] };
+  const passive = surface.match(
+    /^(.+?)\s+and\s+(.+?)\s+(?:are|were)\s+distinguished\s+(?:from\s+each\s+other\s+)?(?:by|based\s+on)\s+(.+?)[.!?]?$/i,
+  );
+  if (passive) return { left: passive[1], right: passive[2], basis: passive[3] };
+  const option = surface.match(/^(.+?)\s+distinguish(?:es)?\s+(.+?)\s+from\s+(.+?)[.!?]?$/i);
+  return option ? { basis: option[1], left: option[2], right: option[3] } : null;
+}
+
+function distinctionPartMatches(candidate, source) {
+  const candidateTokens = sourceAlignmentTokens(candidate);
+  const sourceTokens = sourceAlignmentTokens(source);
+  if (candidateTokens.size === 0 || sourceTokens.size === 0) return false;
+  const overlap = tokenOverlap(candidateTokens, sourceTokens);
+  return overlap >= 1 && overlap / candidateTokens.size >= 0.8;
+}
+
+function distinctionRelationMatches(candidate, source) {
+  if (!candidate || !source || !distinctionPartMatches(candidate.basis, source.basis)) return false;
+  const direct =
+    distinctionPartMatches(candidate.left, source.left) && distinctionPartMatches(candidate.right, source.right);
+  const reversed =
+    distinctionPartMatches(candidate.left, source.right) && distinctionPartMatches(candidate.right, source.left);
+  return direct || reversed;
+}
+
+function findDistinctionOptionSupport(options = [], claims = []) {
+  const sourceRelations = claims.map(distinctionRelation).filter(Boolean);
+  if (sourceRelations.length === 0) return null;
+  const scores = options.map((option) => {
+    const relation = distinctionRelation(option);
+    return relation && sourceRelations.some((source) => distinctionRelationMatches(relation, source)) ? 1 : 0;
+  });
+  const supported = scores.map((score, index) => (score === 1 ? index : -1)).filter((index) => index >= 0);
+  return supported.length > 0 ? { supported, scores } : null;
+}
+
+/**
+ * Detect when the affirmative first sentence clearly supports a different
+ * displayed option. This is deliberately narrower than open-ended semantic
+ * grading: negative/distractor prose is excluded, labels are removed, and a
+ * unique token-containment winner is required.
+ */
+export function findScionAffirmativeOptionConflict(item = {}) {
+  const normalized = normalizeScionMcItem(item);
+  if (
+    normalized.options.length !== 4 ||
+    !Number.isInteger(normalized.answerIndex) ||
+    normalized.answerIndex < 0 ||
+    normalized.answerIndex > 3 ||
+    !normalized.explanation
+  ) {
+    return null;
+  }
+  const firstSentence =
+    clean(normalized.explanation)
+      .match(/^.*?[.!?](?=\s|$)/)?.[0]
+      ?.trim() || clean(normalized.explanation);
+  if (!firstSentence || EXPLANATION_NEGATIVE_EVIDENCE_RE.test(firstSentence)) return null;
+  const pairedSupport = findPairedRelationSupport(normalized, firstSentence);
+  if (pairedSupport) {
+    if (pairedSupport.supportedIndex === normalized.answerIndex) return null;
+    return {
+      declaredIndex: normalized.answerIndex,
+      supportedIndex: pairedSupport.supportedIndex,
+      scores: pairedSupport.scores,
+      containment: pairedSupport.scores,
+      supportMethod: 'affirmative-paired-relation-conflict',
+      evidenceSentence: firstSentence,
+    };
+  }
+  const affirmative = firstSentence
+    .replace(/^\s*(?:the\s+)?(?:correct|best)\s+(?:option|choice|answer)\s*(?:is|was|:|,)\s*(?:that\s+)?/i, '')
+    .trim();
+  const evidenceTokens = semanticOptionTokens(affirmative);
+  const optionTokens = normalized.options.map(semanticOptionTokens);
+  const scores = optionTokens.map((tokens) => tokenOverlap(tokens, evidenceTokens));
+  const containment = optionTokens.map((tokens, index) => scores[index] / Math.max(1, tokens.size));
+  const bestScore = Math.max(...scores);
+  const bestIndices = scores.map((score, index) => (score === bestScore ? index : -1)).filter((index) => index >= 0);
+  if (bestIndices.length !== 1) return null;
+  const supportedIndex = bestIndices[0];
+  const shortExactSupport =
+    optionTokens[supportedIndex].size === 1 && bestScore === 1 && containment[supportedIndex] === 1;
+  if (
+    (!shortExactSupport && (bestScore < 2 || containment[supportedIndex] < 0.6)) ||
+    supportedIndex === normalized.answerIndex
+  ) {
+    return null;
+  }
+  return {
+    declaredIndex: normalized.answerIndex,
+    supportedIndex,
+    scores,
+    containment,
+    supportMethod: 'affirmative-first-sentence-containment',
+    evidenceSentence: firstSentence,
+  };
+}
+
+/** A keyed option explicitly called incorrect in the explanation is invalid. */
+export function findScionExplicitNegativeKeyConflict(item = {}) {
+  const normalized = normalizeScionMcItem(item);
+  if (
+    normalized.options.length !== 4 ||
+    !Number.isInteger(normalized.answerIndex) ||
+    normalized.answerIndex < 0 ||
+    normalized.answerIndex > 3
+  ) {
+    return null;
+  }
+  const conflicts = [];
+  for (const match of clean(normalized.explanation).matchAll(
+    /\b(?:option|choice|answer)\s*([A-D1-4])\s+(?:is|was)\s+(?:an?\s+)?(?:incorrect|wrong|distractor)\b/gi,
+  )) {
+    const index = optionLabelIndex(match[1]);
+    if (index === normalized.answerIndex) conflicts.push({ index, surface: match[0] });
+  }
+  return conflicts.length > 0
+    ? { declaredIndex: normalized.answerIndex, conflicts, supportMethod: 'explicit-negative-key-cue' }
+    : null;
+}
+
+/**
+ * Detect feedback that proves only that the three distractors are wrong.
+ *
+ * Eliminating every distractor can identify a key, but it does not teach why
+ * that key is correct. Keep this deliberately narrow: all three non-key
+ * options must be explicitly labelled incorrect/wrong/distractor, the keyed
+ * option must not be labelled negative, and no explicit affirmative cue may
+ * support the key. The compiler can then retry the whole item without
+ * inventing a rationale on the model's behalf.
+ */
+export function findScionMissingKeyExplanationSupport(item = {}) {
+  const normalized = normalizeScionMcItem(item);
+  if (
+    normalized.options.length !== 4 ||
+    !Number.isInteger(normalized.answerIndex) ||
+    normalized.answerIndex < 0 ||
+    normalized.answerIndex > 3 ||
+    !normalized.explanation
+  ) {
+    return null;
+  }
+
+  const negativelyLabeled = [];
+  for (const match of normalized.explanation.matchAll(
+    /\b(?:option|choice|answer)\s*([A-D1-4])\s+(?:is|was)\s+(?:an?\s+)?(?:incorrect|wrong|distractor)\b/gi,
+  )) {
+    const index = optionLabelIndex(match[1]);
+    if (Number.isInteger(index)) negativelyLabeled.push(index);
+  }
+  const distinctNegativeIndexes = [...new Set(negativelyLabeled)].sort((left, right) => left - right);
+  const distractorIndexes = normalized.options
+    .map((_, index) => index)
+    .filter((index) => index !== normalized.answerIndex);
+  if (
+    distinctNegativeIndexes.includes(normalized.answerIndex) ||
+    !distractorIndexes.every((index) => distinctNegativeIndexes.includes(index))
+  ) {
+    return null;
+  }
+
+  const affirmativeCue = findExplicitExplanationAnswerCue(normalized);
+  if (affirmativeCue.status === 'supported' && affirmativeCue.supportedIndex === normalized.answerIndex) {
+    return null;
+  }
+  return {
+    declaredIndex: normalized.answerIndex,
+    negativelyLabeledIndexes: distinctNegativeIndexes,
+    supportMethod: 'all-distractors-negative-without-key-rationale',
+  };
+}
+
+/**
+ * Find two or more options independently supported by supplied source claims.
+ * The check is fail-closed and lexical: each option needs either an exact
+ * phrase or at least three content-token matches with strong containment.
+ */
+export function findScionMultipleSourceSupportedOptions(
+  item = {},
+  { sourceClaims = [], allowBroadSourceContext = false, matchingProfile = 'current' } = {},
+) {
+  const normalized = normalizeScionMcItem(item);
+  const claims = (Array.isArray(sourceClaims) ? sourceClaims : []).map(sourceClaimText).filter(Boolean);
+  if (normalized.options.length !== 4 || claims.length === 0) return null;
+  const broadQuestionPattern =
+    matchingProfile === 'v0.16.58'
+      ? /\b(?:what (?:is|are)(?:\s+the\s+primary)?|how (?:is|are)[^?]{0,100}(?:defined|structured|referred|represented)|which (?:statement|description|characteristic|function|role)[^?]{0,100}(?:best|primary|describes|defines))\b/i
+      : /\b(?:what (?:is|are)(?:\s+the\s+primary)?|how (?:is|are)[^?]{0,100}(?:defined|structured|referred|represented)|which (?:statement|description|characteristic|function|role|label|entry|pairing|system|variant|artifact|example|choice|option|item)[^?]{0,100}(?:best|primary|describes|defines|fits|is|are|relevant|valid|eligible|appropriate|supported))\b/i;
+  const pairedDistinction =
+    /\b(?:distinction|comparison)\b/i.test(normalized.question) &&
+    normalized.options.some((option) => /:[^;]+;[^:]+:/.test(option));
+  const distinctionSupport = /\b(?:comparison|distinction|distinguish|match(?:es|ing)?)\b/i.test(normalized.question)
+    ? findDistinctionOptionSupport(normalized.options, claims)
+    : null;
+  if (distinctionSupport?.supported.length === 1) return null;
+  if (distinctionSupport?.supported.length > 1) {
+    return {
+      supported: distinctionSupport.supported.map((index) => ({
+        index,
+        score: 1,
+        containment: 1,
+        orderedCoverage: 1,
+        claimIndex: -1,
+        exactPhrase: false,
+        pairedAssignment: false,
+        eligible: true,
+      })),
+      relevantClaimIndexes: claims.map((_, index) => index),
+      supportMethod: 'question-relevant-source-distinction-support',
+    };
+  }
+  if (!broadQuestionPattern.test(normalized.question) && !pairedDistinction) {
+    return null;
+  }
+  const questionTokens = sourceAlignmentTokens(normalized.question);
+  const claimScores = claims.map((claim, index) => ({
+    index,
+    score: tokenOverlap(questionTokens, sourceAlignmentTokens(claim)),
+  }));
+  const bestQuestionScore = Math.max(0, ...claimScores.map(({ score }) => score));
+  const answerSurfaceTokens = sourceAlignmentTokens(`${normalized.options.join(' ')} ${normalized.explanation}`);
+  const uniqueAnchorClaimIndexes = new Set();
+  for (const token of questionTokens) {
+    // A unique token is a relation anchor only when the answer surface also
+    // uses it. Incidental stem context such as “Western notation” must not
+    // narrow a clef question to the generic staff-definition claim.
+    if (!answerSurfaceTokens.has(token)) continue;
+    const matchingClaims = claims
+      .map((claim, index) => (sourceAlignmentTokens(claim).has(token) ? index : -1))
+      .filter((index) => index >= 0);
+    if (matchingClaims.length === 1) uniqueAnchorClaimIndexes.add(matchingClaims[0]);
+  }
+  if (!allowBroadSourceContext) {
+    if (bestQuestionScore < 2) return null;
+    const relevantClaimIndexes =
+      matchingProfile !== 'v0.16.58' && uniqueAnchorClaimIndexes.size === 1
+        ? [...uniqueAnchorClaimIndexes]
+        : claimScores.filter(({ score }) => score >= Math.max(2, bestQuestionScore - 1)).map(({ index }) => index);
+    if (relevantClaimIndexes.length === 0 || relevantClaimIndexes.length > 3) return null;
+    return findSupportedOptions(relevantClaimIndexes);
+  }
+  let relevantClaimIndexes;
+  if (matchingProfile !== 'v0.16.58' && uniqueAnchorClaimIndexes.size === 1) {
+    relevantClaimIndexes = [...uniqueAnchorClaimIndexes];
+  } else if (bestQuestionScore >= 2) {
+    // Broad definition/function stems often name a source concept repeated in
+    // four or more claims. Limiting this set to three hid exactly the ambiguity
+    // the rule is meant to expose, so retain every near-best relevant claim.
+    relevantClaimIndexes = claimScores
+      .filter(({ score }) => score >= Math.max(2, bestQuestionScore - 1))
+      .map(({ index }) => index);
+  } else {
+    // A short subject anchor can still make a generic "how is X structured?"
+    // stem source-bound. Expand only when one question token recurs in at least
+    // two claims; otherwise lexical coincidence cannot open the whole packet.
+    const repeatedQuestionAnchors = [...questionTokens].filter(
+      (token) => claims.filter((claim) => sourceAlignmentTokens(claim).has(token)).length >= 2,
+    );
+    if (repeatedQuestionAnchors.length === 0) return null;
+    relevantClaimIndexes = claims.map((_, index) => index);
+  }
+  if (relevantClaimIndexes.length === 0) return null;
+  return findSupportedOptions(relevantClaimIndexes);
+
+  function findSupportedOptions(candidateClaimIndexes) {
+    const claimTokens = claims.map(sourceAlignmentTokens);
+    const pairedClaimClauses = candidateClaimIndexes.flatMap((claimIndex) =>
+      claims[claimIndex]
+        .split(/\s*(?:[.;]|\b(?:whereas|while)\b)\s*/i)
+        .filter((clause) => !/\bor\b/i.test(clause))
+        .map((clause) => sourceAlignmentTokens(clause))
+        .filter((tokens) => tokens.size > 0),
+    );
+    const pairedAssignmentIsSupported = (option) => {
+      const segments = clean(stripOptionLabel(option))
+        .split(/\s*;\s*/)
+        .map((segment) => segment.split(/\s*:\s*/, 2))
+        .filter((parts) => parts.length === 2 && parts.every(Boolean));
+      if (segments.length < 2) return false;
+      return segments.every(([subject, object]) => {
+        const subjectTokens = sourceAlignmentTokens(subject);
+        const objectTokens = sourceAlignmentTokens(object);
+        if (subjectTokens.size === 0 || objectTokens.size === 0) return false;
+        return pairedClaimClauses.some((tokens) => {
+          const objectOverlap = tokenOverlap(objectTokens, tokens);
+          return tokenOverlap(subjectTokens, tokens) >= 1 && objectOverlap / Math.max(1, objectTokens.size) >= 0.8;
+        });
+      });
+    };
+    const supported = normalized.options
+      .map((option, index) => {
+        const surface = stripOptionLabel(option).toLowerCase();
+        const tokens = semanticOptionTokens(option);
+        const optionDestinations = relationDestinationTokens(option);
+        let best = { score: 0, containment: 0, orderedCoverage: 0, claimIndex: -1, exactPhrase: false };
+        candidateClaimIndexes.forEach((claimIndex) => {
+          const claim = claims[claimIndex];
+          const claimSurface = claim.toLowerCase();
+          if (/\b(?:false|never|not|only)\b/i.test(surface) && !/\b(?:false|never|not|only)\b/i.test(claimSurface)) {
+            return;
+          }
+          const claimDestinations = relationDestinationTokens(claim);
+          if (
+            optionDestinations.size > 0 &&
+            claimDestinations.size > 0 &&
+            tokenOverlap(optionDestinations, claimDestinations) === 0
+          ) {
+            return;
+          }
+          const score = tokenOverlap(tokens, claimTokens[claimIndex]);
+          const containment = score / Math.max(1, tokens.size);
+          const orderedCoverage = orderedSemanticTokenCoverage(tokens, claim);
+          const exactPhrase = surface.length >= 8 && claimSurface.includes(surface);
+          if (
+            Number(exactPhrase) > Number(best.exactPhrase) ||
+            (exactPhrase === best.exactPhrase &&
+              (orderedCoverage > best.orderedCoverage ||
+                (orderedCoverage === best.orderedCoverage &&
+                  (containment > best.containment || (containment === best.containment && score > best.score)))))
+          ) {
+            best = { score, containment, orderedCoverage, claimIndex, exactPhrase };
+          }
+        });
+        const relationOrderRequired =
+          /\b(?:affect\w*|creat(?:e|es|ed|ing)|depend\w*|determin\w*|drive\w*|induc\w*|lead\w*|link\w*|measur\w*|move\w*|power\w*|produc(?:e|es|ed|ing)|pull\w*|rais\w*|relat(?:e|es|ed|ing)|resist\w*|stor(?:e|es|ed|ing))\b/i.test(
+            surface,
+          );
+        const orderIsSupported = !relationOrderRequired || best.orderedCoverage >= 0.8;
+        const compactSourcePhrase =
+          matchingProfile !== 'v0.16.58' &&
+          tokens.size <= 4 &&
+          best.score >= 2 &&
+          best.containment >= 0.6 &&
+          orderIsSupported;
+        const pairedAssignment = pairedAssignmentIsSupported(option);
+        const eligible = pairedDistinction
+          ? pairedAssignment
+          : best.exactPhrase ||
+            compactSourcePhrase ||
+            (best.score >= 3 && best.containment >= 0.72 && orderIsSupported);
+        return { index, ...best, pairedAssignment, eligible };
+      })
+      .filter((entry) => entry.eligible);
+
+    // A source-grounded partial statement can be a legitimate distractor
+    // when the stem explicitly requires the complete sequence and the
+    // explanation identifies what that partial statement omits. Do not call
+    // it a second defensible answer merely because its individual words occur
+    // in the source.
+    const completenessRequired =
+      /\b(?:complete|fully|full sequence|entire sequence|every observed|all observed)\b/i.test(normalized.question);
+    const incompleteClauses = completenessRequired
+      ? normalized.explanation
+          .split(/(?<=[.!?;])\s+/)
+          .filter((clause) => /\b(?:incomplete|omit\w*|leaves? out|stopping at|fails? to include)\b/i.test(clause))
+      : [];
+    const qualified = supported.filter((entry) => {
+      if (entry.index === normalized.answerIndex || incompleteClauses.length === 0) return true;
+      const optionTokens = semanticOptionTokens(normalized.options[entry.index]);
+      return !incompleteClauses.some((clause) => {
+        const overlap = tokenOverlap(optionTokens, semanticOptionTokens(clause));
+        return overlap >= 3 && overlap / Math.max(1, optionTokens.size) >= 0.6;
+      });
+    });
+    return qualified.length >= 2
+      ? {
+          supported: qualified,
+          relevantClaimIndexes: candidateClaimIndexes,
+          supportMethod: 'question-relevant-source-option-support',
+        }
+      : null;
+  }
+}
+
+/**
+ * Detect feedback that affirmatively restates two answer options.
+ *
+ * A pedagogical explanation may name a distractor while rejecting it, so the
+ * rule deliberately requires strong phrase/token containment and ignores a
+ * clause carrying an explicit negative cue. When two alternatives are both
+ * described as true, a single declared key cannot be trusted.
+ */
+export function findScionMultipleExplanationSupportedOptions(item = {}) {
+  const normalized = normalizeScionMcItem(item);
+  if (normalized.options.length !== 4 || !normalized.explanation) return null;
+  const explanation = clean(normalized.explanation);
+  const allOptionTokens = normalized.options.map(semanticOptionTokens);
+  const clauses = explanation
+    .split(/(?<=[.!?;])\s+|\s*,\s*(?=(?:while|whereas)\b)/i)
+    .map(clean)
+    .filter(Boolean);
+  const supported = normalized.options
+    .map((option, index) => {
+      const optionSurface = clean(stripOptionLabel(option))
+        .toLowerCase()
+        .replace(/[.!?]+$/, '');
+      const optionTokens = allOptionTokens[index];
+      const distinctTokens = [...optionTokens].filter((token) =>
+        allOptionTokens.every((otherTokens, otherIndex) => otherIndex === index || !otherTokens.has(token)),
+      );
+      let best = { score: 0, containment: 0, clause: '', exactPhrase: false };
+      for (const clause of clauses) {
+        if (
+          /\b(?:incorrect|wrong|distractor|does not|do not|cannot|can't|fails?|breaks?|revers(?:e|es|ed|ing)|swaps?|rather than)\b/i.test(
+            clause,
+          )
+        ) {
+          continue;
+        }
+        const clauseSurface = clause.toLowerCase();
+        const score = tokenOverlap(optionTokens, semanticOptionTokens(clause));
+        const containment = score / Math.max(1, optionTokens.size);
+        const exactPhrase = optionSurface.length >= 18 && clauseSurface.includes(optionSurface);
+        if (
+          Number(exactPhrase) > Number(best.exactPhrase) ||
+          (exactPhrase === best.exactPhrase &&
+            (containment > best.containment || (containment === best.containment && score > best.score)))
+        ) {
+          best = { score, containment, clause, exactPhrase };
+        }
+      }
+      const codeReturnAligned = alignedCodeReturnRelation(option, best.clause);
+      return {
+        index,
+        ...best,
+        eligible:
+          best.exactPhrase ||
+          (best.score >= 4 &&
+            best.containment >= 0.8 &&
+            (orderedSemanticTokenCoverage(optionTokens, best.clause) >= 0.8 || codeReturnAligned) &&
+            (codeReturnAligned || distinctTokens.some((token) => semanticOptionTokens(best.clause).has(token)))),
+      };
+    })
+    .filter((entry) => entry.eligible);
+  return supported.length >= 2 ? { supported, supportMethod: 'multiple-affirmative-explanation-options' } : null;
+}
+
+function alignedCodeReturnRelation(option, clause) {
+  const parse = (value) => {
+    const match = clean(stripOptionLabel(value)).match(
+      /^(?<subject>[a-z_][a-z0-9_.]*\(\))\s+[^.!?]*?\breturns?\s+(?<object>[^.!?]+)[.!?]?$/i,
+    );
+    if (!match?.groups?.subject || !match.groups.object) return null;
+    return {
+      subject: match.groups.subject.toLowerCase(),
+      objectTokens: semanticOptionTokens(match.groups.object),
+      contextTokens: semanticOptionTokens(value),
+    };
+  };
+  const expected = parse(option);
+  const observed = parse(clause);
+  if (!expected || !observed || expected.subject !== observed.subject) return false;
+  const overlap = tokenOverlap(expected.objectTokens, observed.contextTokens);
+  return overlap >= 2 && overlap / Math.max(1, expected.objectTokens.size) >= 0.7;
+}
+
+/**
+ * Recover only the complete prefix of an explanation that ends mid-sentence.
+ *
+ * This is deliberately narrower than adding punctuation. At least one real
+ * sentence boundary must already exist, the retained prefix must still clear
+ * the explanation-length floor, and common abbreviations are not accepted as
+ * boundaries. The unfinished suffix remains in the repair receipt so the
+ * compiler never hides what the model actually returned.
+ */
+export function findScionIncompleteExplanationTail(value = '') {
+  const explanation = clean(value);
+  if (!explanation || TERMINAL_PUNCT_RE.test(explanation)) return null;
+
+  let boundary = null;
+  for (const match of explanation.matchAll(SENTENCE_BOUNDARY_RE)) {
+    const end = Number(match.index) + match[0].length;
+    const prefix = explanation.slice(0, end).trim();
+    if (ABBREVIATION_BOUNDARY_RE.test(prefix)) continue;
+    boundary = { end, prefix };
+  }
+  if (!boundary || boundary.prefix.length < 20) return null;
+
+  const removedTail = explanation.slice(boundary.end).trim();
+  if (!removedTail) return null;
+  return {
+    explanation,
+    completePrefix: boundary.prefix,
+    removedTail,
+    retainedCharacters: boundary.prefix.length,
+    removedCharacters: removedTail.length,
+  };
+}
+
+export function buildScionExplanationTailRepair({ item, lessonId = '', itemIndex = 0, tail } = {}) {
+  const rejected = normalizeScionMcItem(item);
+  const detected = tail || findScionIncompleteExplanationTail(rejected.explanation);
+  if (!detected) return null;
+  return {
+    kind: 'mc-item',
+    pass: 'incompleteExplanationTail',
+    lessonId,
+    item: itemIndex,
+    action: 'trimmed-incomplete-tail',
+    prompt: 'Retain only complete model-authored sentences before an unfinished explanation tail.',
+    rejected,
+    chosen: { ...rejected, explanation: detected.completePrefix },
+    trainingEligible: false,
+    recoveryEvidence: {
+      kind: 'existing-sentence-boundary',
+      verified: true,
+      retainedCharacters: detected.retainedCharacters,
+      removedCharacters: detected.removedCharacters,
+      removedTail: detected.removedTail,
+    },
+  };
+}
+
+/** Find a conservative lexical contradiction between the declared key and explanation. */
+export function findScionExplanationKeyConflict(
+  item = {},
+  {
+    minimumBestScore = 3,
+    minimumMargin = 3,
+    allowExplicitCues = true,
+    allowAffirmativeLead = true,
+    stripTerminalPunctuation = true,
+    allowFirstSentenceLexicalCue = true,
+    rejectNegativeEvidence = true,
+    allowDirectionalRelationConflict = true,
+  } = {},
+) {
+  const normalized = normalizeScionMcItem(item);
+  if (
+    normalized.options.length !== 4 ||
+    !Number.isInteger(normalized.answerIndex) ||
+    normalized.answerIndex < 0 ||
+    normalized.answerIndex > 3 ||
+    !normalized.explanation
+  ) {
+    return null;
+  }
+  const firstSentence =
+    clean(normalized.explanation)
+      .match(/^.*?[.!?](?=\s|$)/)?.[0]
+      ?.trim() || clean(normalized.explanation);
+  const pairedSupport = findPairedRelationSupport(normalized, firstSentence);
+  if (pairedSupport) {
+    if (pairedSupport.supportedIndex === normalized.answerIndex) return null;
+    return {
+      declaredIndex: normalized.answerIndex,
+      supportedIndex: pairedSupport.supportedIndex,
+      scores: pairedSupport.scores,
+      supportMethod: 'affirmative-paired-relation-conflict',
+      explicitCues: [],
+      evidenceSentence: firstSentence,
+    };
+  }
+  if (allowExplicitCues) {
+    const explicitCue = findExplicitExplanationAnswerCue(normalized, {
+      allowAffirmativeLead,
+      stripTerminalPunctuation,
+    });
+    if (explicitCue.status === 'ambiguous') return null;
+    if (explicitCue.status === 'supported') {
+      if (explicitCue.supportedIndex === normalized.answerIndex) return null;
+      return {
+        declaredIndex: normalized.answerIndex,
+        supportedIndex: explicitCue.supportedIndex,
+        scores: normalized.options.map(() => 0),
+        supportMethod: 'explicit-explanation-cue',
+        explicitCues: explicitCue.cues,
+      };
+    }
+  }
+  // Scion explanations deliberately contrast the nearest distractor after
+  // explaining the key. Score only the affirmative lead; otherwise a quoted
+  // distractor in "By contrast, X does not..." looks lexically supported.
+  const affirmativeLead = normalized.explanation.split(EXPLANATION_CONTRAST_RE)[0];
+  // A mixed segment that explicitly marks something wrong is not a safe
+  // lexical voting pool. If its first sentence is independently affirmative,
+  // that narrower cue may still qualify; otherwise refuse the repair.
+  if (rejectNegativeEvidence && EXPLANATION_NEGATIVE_EVIDENCE_RE.test(affirmativeLead)) {
+    return allowFirstSentenceLexicalCue ? findFirstSentenceLexicalCue(normalized) : null;
+  }
+  if (allowDirectionalRelationConflict) {
+    const evidenceRelations = directionalRelations(affirmativeLead);
+    const relationScores = normalized.options.map((option) => {
+      let score = 0;
+      for (const [predicate, directions] of directionalRelations(option)) {
+        const observed = evidenceRelations.get(predicate);
+        if (!observed) continue;
+        score += [...directions].filter((direction) => observed.has(direction)).length;
+      }
+      return score;
+    });
+    const bestRelationScore = Math.max(...relationScores);
+    const bestRelationIndices = relationScores
+      .map((score, index) => (score === bestRelationScore ? index : -1))
+      .filter((index) => index >= 0);
+    if (
+      bestRelationScore > 0 &&
+      bestRelationIndices.length === 1 &&
+      bestRelationIndices[0] !== normalized.answerIndex &&
+      hasConflictingDirectionalRelation(
+        normalized.options[bestRelationIndices[0]],
+        normalized.options[normalized.answerIndex],
+        affirmativeLead,
+      )
+    ) {
+      return {
+        declaredIndex: normalized.answerIndex,
+        supportedIndex: bestRelationIndices[0],
+        scores: relationScores,
+        supportMethod: 'affirmative-directional-relation-conflict',
+        explicitCues: [],
+        evidenceSentence: affirmativeLead,
+      };
+    }
+  }
+  const explanationTokens = alignmentTokens(affirmativeLead);
+  const scores = normalized.options.map((option) => {
+    const optionTokens = alignmentTokens(option);
+    return [...optionTokens].filter((token) => explanationTokens.has(token)).length;
+  });
+  const bestScore = Math.max(...scores);
+  const bestIndices = scores.map((score, index) => (score === bestScore ? index : -1)).filter((index) => index >= 0);
+  const currentScore = scores[normalized.answerIndex] || 0;
+  if (
+    bestScore >= minimumBestScore &&
+    bestIndices.length === 1 &&
+    bestIndices[0] !== normalized.answerIndex &&
+    bestScore >= currentScore + minimumMargin
+  ) {
+    return {
+      declaredIndex: normalized.answerIndex,
+      supportedIndex: bestIndices[0],
+      scores,
+      supportMethod: 'lexical-margin',
+      explicitCues: [],
+    };
+  }
+  if (allowFirstSentenceLexicalCue) return findFirstSentenceLexicalCue(normalized);
+  return null;
+}
+
+export function buildScionAnswerKeyRepair({ item, lessonId = '', itemIndex = 0, conflict } = {}) {
+  const detected = conflict === undefined ? findScionExplanationKeyConflict(item) : conflict;
+  if (!detected) return null;
+  const rejected = normalizeScionMcItem(item);
+  const chosen = { ...rejected, answerIndex: detected.supportedIndex };
+  return {
+    kind: 'mc-item',
+    pass: 'explanationKeyAlignment',
+    lessonId,
+    item: itemIndex,
+    action: 'realigned',
+    prompt: 'Choose the answer index supported by the affirmative explanation for this multiple-choice item.',
+    rejected,
+    chosen,
+    trainingEligible: true,
+    preferenceEvidence: {
+      kind: 'deterministic-explanation-key-conflict',
+      verified: true,
+      declaredIndex: detected.declaredIndex,
+      supportedIndex: detected.supportedIndex,
+      scores: detected.scores,
+      supportMethod: detected.supportMethod || 'lexical-margin',
+      explicitCues: detected.explicitCues || [],
+      ...(detected.evidenceSentence ? { evidenceSentence: detected.evidenceSentence } : {}),
+      minimumBestScore: detected.supportMethod === 'first-sentence-lexical-margin' ? 2 : 3,
+      minimumMargin: detected.supportMethod === 'first-sentence-lexical-margin' ? 1 : 3,
+    },
+  };
+}
+
+export function buildScionSourceAnswerKeyRepair({ item, lessonId = '', itemIndex = 0, conflict } = {}) {
+  if (!conflict) return null;
+  const rejected = normalizeScionMcItem(item);
+  const thresholds = conflict.thresholds || {};
+  return {
+    kind: 'mc-item',
+    pass: 'sourceAnswerAlignment',
+    lessonId,
+    item: itemIndex,
+    action: 'realigned',
+    prompt: 'Choose the answer index uniquely supported by the source claim most relevant to the question.',
+    rejected,
+    chosen: { ...rejected, answerIndex: conflict.supportedIndex },
+    // A post-generation key move improves the shipped artifact, but is not a
+    // clean model preference: the chosen side was constructed by the
+    // compiler. Keep it out of adapter training even when the evidence is
+    // deterministic.
+    trainingEligible: false,
+    preferenceEvidence: {
+      kind: 'deterministic-source-answer-conflict',
+      verified: true,
+      declaredIndex: conflict.declaredIndex,
+      supportedIndex: conflict.supportedIndex,
+      scores: conflict.scores,
+      containment: conflict.containment,
+      supportMethod: conflict.supportMethod,
+      sourceAlignmentProfile: conflict.sourceAlignmentProfile || 'default-source',
+      relevantSourceClaimIndexes: conflict.relevantSourceClaimIndexes,
+      questionClaimScore: conflict.questionClaimScore,
+      minimumQuestionClaimScore: thresholds.minimumQuestionClaimScore ?? 3,
+      minimumOptionScore: thresholds.minimumOptionScore ?? 3,
+      minimumOptionContainment: thresholds.minimumOptionContainment ?? 0.6,
+      ...(Number.isFinite(thresholds.maximumDeclaredOptionScore)
+        ? { maximumDeclaredOptionScore: thresholds.maximumDeclaredOptionScore }
+        : {}),
+      minimumMargin: thresholds.minimumDeclaredOptionMargin ?? 2,
+    },
+  };
+}
+
+function replaceExplanation(item, value) {
+  const next = { ...item };
+  if (Object.prototype.hasOwnProperty.call(next, 'ex')) next.ex = value;
+  if (Object.prototype.hasOwnProperty.call(next, 'explanation')) next.explanation = value;
+  if (!Object.prototype.hasOwnProperty.call(next, 'ex') && !Object.prototype.hasOwnProperty.call(next, 'explanation')) {
+    next.explanation = value;
+  }
+  return next;
+}
+
+function replaceAnswerIndex(item, value) {
+  const next = { ...item };
+  if (Object.prototype.hasOwnProperty.call(next, 'ai')) next.ai = value;
+  if (Object.prototype.hasOwnProperty.call(next, 'answerIndex')) next.answerIndex = value;
+  if (!Object.prototype.hasOwnProperty.call(next, 'ai') && !Object.prototype.hasOwnProperty.call(next, 'answerIndex')) {
+    next.answerIndex = value;
+  }
+  return next;
+}
+
+/** Apply the two conservative MC repairs in a fixed, provenance-preserving order. */
+export function repairScionMcItem(
+  item = {},
+  {
+    lessonId = '',
+    itemIndex = 0,
+    recoverIncompleteExplanation = true,
+    realignAnswerKey = true,
+    sourceClaims = [],
+    strictSourceAlignment = false,
+    keyConflictOptions,
+    allowUnverifiedLexicalRepair = false,
+  } = {},
+) {
+  let next = item;
+  const repairs = [];
+
+  if (recoverIncompleteExplanation) {
+    const tailRepair = buildScionExplanationTailRepair({ item: next, lessonId, itemIndex });
+    if (tailRepair) {
+      next = replaceExplanation(next, tailRepair.chosen.explanation);
+      repairs.push(tailRepair);
+    }
+  }
+
+  if (realignAnswerKey) {
+    const sourceSupport = findScionSourceAnswerSupport(next, { sourceClaims, strict: strictSourceAlignment });
+    const sourceConflict =
+      sourceSupport && sourceSupport.supportedIndex !== sourceSupport.declaredIndex ? sourceSupport : null;
+    const sourceRepair = buildScionSourceAnswerKeyRepair({ item: next, lessonId, itemIndex, conflict: sourceConflict });
+    if (sourceRepair) {
+      next = replaceAnswerIndex(next, sourceRepair.chosen.answerIndex);
+      repairs.push(sourceRepair);
+    } else if (!sourceSupport) {
+      const conflict =
+        findScionExplanationKeyConflict(next, keyConflictOptions) ||
+        (strictSourceAlignment ? findScionAffirmativeOptionConflict(next) : null);
+      // Exact answer labels/text are deterministic evidence. Lexical overlap
+      // is only a useful defect detector: an explanation can repeat the words
+      // of a false distractor while refuting its direction (the live Hubble's
+      // law package did exactly that). Keep the historical switch solely for
+      // receipt replay; production sends such conflicts to semantic admission
+      // and regeneration instead of mutating the key.
+      const autoRepairableConflict =
+        conflict?.supportMethod === 'explicit-explanation-cue' || allowUnverifiedLexicalRepair ? conflict : null;
+      const keyRepair = buildScionAnswerKeyRepair({
+        item: next,
+        lessonId,
+        itemIndex,
+        conflict: autoRepairableConflict,
+      });
+      if (keyRepair) {
+        next = replaceAnswerIndex(next, keyRepair.chosen.answerIndex);
+        repairs.push(keyRepair);
+      }
+    }
+  }
+
+  return { item: next, repairs };
+}
+
+/** Re-check the persisted graph source so later normalization cannot resurrect a contradicted key. */
+export function repairScionEnrichmentAnswerKeys(enrichment = {}) {
+  const lessonContent =
+    enrichment?.lessonContent && typeof enrichment.lessonContent === 'object' ? enrichment.lessonContent : null;
+  if (!lessonContent) return { enrichment, repairs: [] };
+
+  let nextLessonContent = lessonContent;
+  const repairs = [];
+  for (const [lessonId, payload] of Object.entries(lessonContent)) {
+    const quizItems = Array.isArray(payload?.quizItems) ? payload.quizItems : null;
+    if (!quizItems) continue;
+    let nextQuizItems = quizItems;
+    quizItems.forEach((item, itemIndex) => {
+      if ((item?.type || 'multiple_choice') !== 'multiple_choice') return;
+      const repaired = repairScionMcItem(item, { lessonId, itemIndex });
+      if (repaired.repairs.length === 0) return;
+      if (nextQuizItems === quizItems) nextQuizItems = [...quizItems];
+      nextQuizItems[itemIndex] = repaired.item;
+      repairs.push(...repaired.repairs);
+    });
+    if (nextQuizItems !== quizItems) {
+      if (nextLessonContent === lessonContent) nextLessonContent = { ...lessonContent };
+      nextLessonContent[lessonId] = { ...payload, quizItems: nextQuizItems };
+    }
+  }
+
+  if (repairs.length === 0) return { enrichment, repairs };
+  const existingRepairs = Array.isArray(enrichment.semanticRepairs) ? enrichment.semanticRepairs : [];
+  return {
+    enrichment: {
+      ...enrichment,
+      lessonContent: nextLessonContent,
+      semanticRepairs: [...existingRepairs, ...repairs],
+    },
+    repairs,
+  };
+}

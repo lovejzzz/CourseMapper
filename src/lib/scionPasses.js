@@ -1,0 +1,1413 @@
+// src/lib/scionPasses.js — the Scion quality passes, promoted from the local
+// server into the compiler (V2.1 Workstream D3). These are the three passes
+// the V2 campaign measured moving the judge: blind-solve quiz-key
+// verification with regeneration (a 5:4 ratio keyed "Minor Third" shipped to
+// a ZIP before this existed), the lexical topic gate (fugue items inside an
+// intervals lesson cost every quiz seat), and the self-refine polish pass
+// (the pass that took study guides past the paid baseline).
+//
+// They run on the RAW Pass B batch JSON — the kernel contract shape — before
+// parsing, exactly where the server used to apply them invisibly. Every
+// mutation is returned as a telemetry event; D4 forwards accepted/regenerated
+// pairs to the local flywheel.
+//
+// Infrastructure failures are best-effort. An item independently confirmed
+// invalid twice is different: it is repaired or quarantined, never trusted.
+
+import { assessScionKeyTerm, assessScionMcItem } from './scionPreferenceGate.js';
+import { findScionSourceAnswerSupport } from './scionAnswerKeyAlignment.js';
+import { isAppliedQuizStem } from './quality/quizItemDepth.js';
+import { assessTargetLanguagePresence } from './languageIdentityGuard.js';
+import { resolveScionTargetLanguagePair } from './scionLanguageKnowledge.js';
+
+const APPLIED_MCQ_TARGET_PER_LESSON = 2;
+// A weak local draft can otherwise cascade through double-blind solving,
+// repair generation, re-solving, admission, topic, depth, key-term, and
+// polish calls. Five seats are enough to verify and replace one faulty MC
+// batch (two cold solves + one repair + two verification solves) while
+// placing a hard, user-visible ceiling on compensation for a bad draft.
+export const SCION_PASS_CALL_BUDGET_PER_LESSON = 5;
+const INVALID_MC_ANSWER = '__INVALID_OR_AMBIGUOUS__';
+const INVALID_MC_ANSWER_INDEX = -1;
+
+const TARGET_LANGUAGE_PAIR_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    hanzi: { type: 'string', minLength: 1, maxLength: 24 },
+    pinyin: { type: 'string', minLength: 2, maxLength: 48 },
+    english: { type: 'string', minLength: 2, maxLength: 80 },
+  },
+  required: ['hanzi', 'pinyin', 'english'],
+};
+
+const TOPIC_STOPWORDS = new Set([
+  'lesson',
+  'week',
+  'music',
+  'musical',
+  'theory',
+  'course',
+  'with',
+  'that',
+  'this',
+  'from',
+  'what',
+  'which',
+  'into',
+  'their',
+  'between',
+  'using',
+  'based',
+]);
+
+// These words can make a stem look evidence-based without carrying any of the
+// scenario's actual information. They cannot satisfy the grounding contract.
+const GENERIC_GROUNDING_WORDS = new Set([
+  ...TOPIC_STOPWORDS,
+  'above',
+  'and',
+  'below',
+  'claim',
+  'evidence',
+  'excerpt',
+  'given',
+  'must',
+  'lines',
+  'material',
+  'materials',
+  'notes',
+  'provided',
+  'question',
+  'scenario',
+  'short',
+  'shows',
+  'showing',
+  'staff',
+  'the',
+  'they',
+]);
+
+const MC_ITEM_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    q: { type: 'string', minLength: 25, maxLength: 300 },
+    // Leave enough grammar headroom for the model to finish a sentence. The
+    // stricter 95-character admission band still rejects verbosity, but the
+    // decoder must not be forced to close a string mid-word at that boundary.
+    op: { type: 'array', items: { type: 'string', minLength: 5, maxLength: 160 }, minItems: 4, maxItems: 4 },
+    ai: { type: 'integer', minimum: 0, maximum: 3 },
+    fi: {
+      type: 'array',
+      items: { type: 'integer', minimum: 0, maximum: 7 },
+      minItems: 1,
+      maxItems: 2,
+    },
+    ex: { type: 'string', minLength: 20, maxLength: 300 },
+  },
+  required: ['q', 'op', 'ai', 'fi', 'ex'],
+};
+
+function topicWords(promptLesson) {
+  const text = `${promptLesson?.title ?? ''} ${promptLesson?.topics ?? ''} ${
+    Array.isArray(promptLesson?.reviewAnchors) ? promptLesson.reviewAnchors.join(' ') : ''
+  } ${Array.isArray(promptLesson?.requiredReadings) ? promptLesson.requiredReadings.join(' ') : ''}`.toLowerCase();
+  return [...new Set(text.match(/[a-z]{4,}/g) ?? [])].filter((word) => !TOPIC_STOPWORDS.has(word));
+}
+
+function onTopic(item, words) {
+  const text = `${item.q} ${(item.op ?? []).join(' ')} ${item.ex ?? ''}`.toLowerCase();
+  return words.some((word) => text.includes(word));
+}
+
+function groundingWords(lesson = {}) {
+  const scenario = lesson?.scenario || {};
+  return [
+    ...new Set(`${scenario.su || ''} ${scenario.ma || ''}`.toLowerCase().match(/[a-z][a-z0-9]{2,}/g) || []),
+  ].filter((word) => !GENERIC_GROUNDING_WORDS.has(word));
+}
+
+function matchingGroundingWords(stem, words) {
+  const value = String(stem || '').toLowerCase();
+  return words.filter((word) => new RegExp(`\\b${word}\\b`, 'i').test(value));
+}
+
+function lessonSourceClaims(lesson = {}) {
+  return (Array.isArray(lesson?.facts) ? lesson.facts : [])
+    .map((fact) => (typeof fact === 'string' ? fact : fact?.text || fact?.tx || ''))
+    .filter(Boolean);
+}
+
+function assessLessonMcItem(item, { lesson, topicTokens = [], sourceClaims = lessonSourceClaims(lesson) } = {}) {
+  return assessScionMcItem(item, {
+    topicWords: topicTokens,
+    sourceClaims,
+    semanticProfile: 'source-strict-v6',
+  });
+}
+
+function normalizeRepairedStem(value) {
+  return String(value || '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/[.!](['’"])\?$/, '$1?');
+}
+
+function completeSentencePrefix(value) {
+  const text = String(value || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (/[.!?][\])}"']?$/.test(text)) return text;
+  const matches = [...text.matchAll(/[.!?](?=\s|$)/g)];
+  const end = matches.at(-1)?.index;
+  return Number.isInteger(end) && end >= 19 ? text.slice(0, end + 1) : text;
+}
+
+function normalizeOptionLabels(options) {
+  return Array.isArray(options)
+    ? options.map((option) =>
+        String(option || '')
+          .replace(/^\s*[A-D][.)]\s+/i, '')
+          .trim(),
+      )
+    : options;
+}
+
+function normalizeMcSurfaces(lesson, events = []) {
+  for (const item of Array.isArray(lesson?.mc) ? lesson.mc : []) {
+    if (!item || typeof item !== 'object') continue;
+    const originalQuestion = String(item.q || '');
+    const compactQuestion = originalQuestion.replace(/\s+/g, ' ').trim();
+    const withoutRedundantAnswerPrompt = compactQuestion.replace(
+      /(\?)\s+Which\s+(?:option|choice|answer)\s+is\s+supported\?\$?$/i,
+      '$1',
+    );
+    const normalizedQuestion = withoutRedundantAnswerPrompt
+      // Gemma occasionally emits a JSON-schema end marker as a literal final
+      // dollar sign ("Which statement is supported?$"). It has no subject
+      // meaning after terminal punctuation and must never reach learners.
+      .replace(/([.!?])\$$/, '$1');
+    if (normalizedQuestion !== originalQuestion) {
+      item.q = normalizedQuestion;
+      events.push({
+        pass: 'surfaceNormalization',
+        lessonId: lesson?.lessonId,
+        action: 'repaired',
+        reason:
+          withoutRedundantAnswerPrompt !== compactQuestion
+            ? 'redundant-answer-position-question'
+            : 'terminal-schema-marker',
+        trainingEligible: false,
+      });
+    }
+    if (!Array.isArray(item?.op)) continue;
+    item.op = normalizeOptionLabels(item.op);
+  }
+}
+
+async function blindSolve(items, generateJson) {
+  const schema = {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      answers: {
+        type: 'array',
+        prefixItems: items.map((item) => ({
+          type: 'string',
+          enum: [...normalizeOptionLabels(item.op), INVALID_MC_ANSWER],
+        })),
+        items: false,
+        minItems: items.length,
+        maxItems: items.length,
+      },
+    },
+    required: ['answers'],
+  };
+  const reply = await generateJson({
+    system: `You are validating a quiz cold, without seeing its answer key or explanation. For each question, copy the exact text of the ONE uniquely supported option. Return ${INVALID_MC_ANSWER} when the stem lacks necessary facts, no option is supported, multiple options are defensible, or the requested causal/inferential claim is not established. Do not choose a merely least-wrong option. Return no labels, indices, or explanations.`,
+    user: JSON.stringify(items.map((item) => ({ q: item.q, op: item.op }))),
+    schemaProfile: { name: 'blind_solve', schema, strict: true },
+    maxOutputTokens: 200,
+  });
+  const parsed = JSON.parse(reply)?.answers;
+  if (!Array.isArray(parsed) || parsed.length !== items.length) return null;
+  const normalized = parsed.map((answer, index) => {
+    // Numeric answers remain accepted for stored probes and older compatible
+    // endpoints, but the live schema constrains new solves to exact option
+    // text so weak models do not have to translate a proposition into an
+    // error-prone zero-based index.
+    if (answer === INVALID_MC_ANSWER) return INVALID_MC_ANSWER_INDEX;
+    if (Number.isInteger(answer) && answer >= 0 && answer <= 3) return answer;
+    const value = String(answer || '')
+      .normalize('NFKC')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim();
+    const optionIndex = normalizeOptionLabels(items[index]?.op).findIndex(
+      (option) =>
+        String(option || '')
+          .normalize('NFKC')
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, ' ')
+          .trim() === value,
+    );
+    return optionIndex >= 0 ? optionIndex : null;
+  });
+  return normalized.every(
+    (answer) => answer === INVALID_MC_ANSWER_INDEX || (Number.isInteger(answer) && answer >= 0 && answer <= 3),
+  )
+    ? normalized
+    : null;
+}
+
+async function generateVerifiedReplacementBatch({
+  targets,
+  promptLesson,
+  topicTokens = [],
+  sourceClaims = [],
+  generateJson,
+}) {
+  const accepted = new Map();
+  let pending = [...targets];
+  // One repair generation is the live compiler ceiling. Frozen browser
+  // evidence measured fourteen batch calls yielding only two verified
+  // repairs; a second speculative draft consumed three more verification
+  // seats without earning enough safe content. Unverified items remain
+  // quarantined and the outer kernel recovery owns the next model attempt.
+  for (let attempt = 1; attempt <= 1 && pending.length > 0; attempt += 1) {
+    const indices = pending.map(({ index }) => index);
+    const schema = {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        repairs: {
+          type: 'array',
+          minItems: pending.length,
+          maxItems: pending.length,
+          items: {
+            type: 'object',
+            additionalProperties: false,
+            properties: { index: { type: 'integer', enum: indices }, ...MC_ITEM_SCHEMA.properties },
+            required: ['index', ...MC_ITEM_SCHEMA.required],
+          },
+        },
+      },
+      required: ['repairs'],
+    };
+    const system =
+      'You write flawless quiz items. Replace every faulty multiple-choice item that two blind validators found invalid, ambiguous, or incorrectly keyed. Preserve each listed concept and difficulty; test ONLY the listed lesson topics. Supply every fact needed by the stem, make exactly one option defensible, ensure every answer key (ai) is verifiably correct, and set fi to one or two indexes of the supplied sourceClaims that the item tests. Return only JSON.';
+    const user = JSON.stringify({
+      lesson: promptLesson || null,
+      attempt,
+      sourceClaims,
+      faultyItems: pending.map(({ item, index }) => ({ index, item })),
+    });
+    try {
+      const reply = await generateJson({
+        system,
+        user,
+        schemaProfile: { name: 'mc_verify_repair_batch', schema, strict: true },
+        maxOutputTokens: Math.max(1800, pending.length * 650),
+        temperature: 0.7,
+      });
+      const repairs = JSON.parse(reply)?.repairs;
+      if (!Array.isArray(repairs)) continue;
+      const byIndex = new Map(repairs.map((repair) => [repair?.index, repair]));
+      const candidates = pending
+        .map((target) => {
+          const repair = byIndex.get(target.index);
+          if (!repair) return null;
+          const fresh = {
+            q: normalizeRepairedStem(repair.q),
+            op: normalizeOptionLabels(repair.op),
+            ai: repair.ai,
+            fi: repair.fi,
+            ex: completeSentencePrefix(repair.ex),
+          };
+          const admission = assessLessonMcItem(fresh, { topicTokens, sourceClaims });
+          return admission.eligible ? { ...target, fresh, admission } : null;
+        })
+        .filter(Boolean);
+      if (candidates.length === 0) continue;
+      const first = await blindSolve(
+        candidates.map(({ fresh }) => fresh),
+        generateJson,
+      ).catch(() => null);
+      const second = await blindSolve(
+        candidates.map(({ fresh }) => fresh),
+        generateJson,
+      ).catch(() => null);
+      if (!first || !second) continue;
+      candidates.forEach((candidate, candidateIndex) => {
+        const expected = Number(candidate.fresh.ai);
+        const answers = [first[candidateIndex], second[candidateIndex]];
+        if (!Number.isInteger(expected) || !answers.every((answer) => answer === expected)) return;
+        accepted.set(candidate.index, {
+          ...candidate,
+          prompt: `System: ${system}\nUser: ${user}`,
+          keyVerification: { verified: true, answers },
+          attempt,
+        });
+      });
+      pending = pending.filter(({ index }) => !accepted.has(index));
+    } catch {
+      /* retry only the still-unverified seats once */
+    }
+  }
+  return accepted;
+}
+
+/**
+ * Verify a lesson's mc answer keys by blind re-solving; regenerate an item
+ * only when TWO independent blind solves agree on the same non-key answer
+ * or both independently abstain because the item is invalid/ambiguous
+ * (single-solve regeneration measurably swapped good items for hastier ones).
+ */
+async function verifyMcAnswers(lesson, promptLesson, generateJson, events) {
+  const items = Array.isArray(lesson?.mc) ? lesson.mc : [];
+  if (items.length === 0) return;
+  const first = await blindSolve(items, generateJson).catch(() => null);
+  if (!first) return;
+  const disagreements = items.map((item, index) => first[index] !== undefined && first[index] !== item.ai);
+  if (!disagreements.some(Boolean)) return;
+  const second = await blindSolve(items, generateJson).catch(() => null);
+  if (!second) return;
+  const targets = items
+    .map((item, index) => ({ item, index }))
+    .filter(({ index }) => disagreements[index] && second[index] === first[index]);
+  if (targets.length === 0) return;
+  const replacements = await generateVerifiedReplacementBatch({
+    targets,
+    promptLesson,
+    sourceClaims: lessonSourceClaims(lesson),
+    generateJson,
+  });
+  for (const { item, index } of targets) {
+    const replacement = replacements.get(index);
+    if (!replacement) {
+      // A twice-confirmed bad item must not silently survive because repair
+      // generation failed. Quarantine the seat; the following admission gate
+      // gets one bounded chance to backfill it, and projection drops a null if
+      // even that independently verified repair cannot be earned.
+      items[index] = null;
+      events.push({
+        pass: 'mcVerify',
+        lessonId: lesson.lessonId,
+        item: index,
+        action: 'quarantined',
+        reason:
+          first[index] === INVALID_MC_ANSWER_INDEX
+            ? 'double-blind-invalid-or-ambiguous'
+            : 'double-blind-key-disagreement',
+        rejected: item,
+        trainingEligible: false,
+      });
+      continue;
+    }
+    const { fresh, prompt, keyVerification, attempt } = replacement;
+    events.push({
+      pass: 'mcVerify',
+      lessonId: lesson.lessonId,
+      item: index,
+      action: 'regenerated',
+      rejected: item,
+      chosen: fresh,
+      prompt,
+      trainingEligible: false,
+      preferenceEvidence: {
+        kind: first[index] === INVALID_MC_ANSWER_INDEX ? 'double-blind-validity-repair' : 'double-blind-key-repair',
+        verified: true,
+        rejectedAnswers: [first[index], second[index]],
+        chosenAnswers: keyVerification.answers,
+        attempt,
+      },
+    });
+    items[index] = fresh;
+  }
+}
+
+/** Regenerate items that share zero vocabulary with the lesson's own topics. */
+async function topicGate(lesson, promptLesson, generateJson, events) {
+  const items = Array.isArray(lesson?.mc) ? lesson.mc : [];
+  const words = topicWords(promptLesson);
+  if (items.length === 0 || words.length === 0) return;
+  const targets = items.map((item, index) => ({ item, index })).filter(({ item }) => item && !onTopic(item, words));
+  if (targets.length === 0) return;
+  const indices = targets.map(({ index }) => index);
+  const schema = {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      repairs: {
+        type: 'array',
+        minItems: targets.length,
+        maxItems: targets.length,
+        items: {
+          type: 'object',
+          additionalProperties: false,
+          properties: { index: { type: 'integer', enum: indices }, ...MC_ITEM_SCHEMA.properties },
+          required: ['index', ...MC_ITEM_SCHEMA.required],
+        },
+      },
+    },
+    required: ['repairs'],
+  };
+  const system =
+    'You repair multiple-choice items that remain off-topic after the main admission pass. Test ONLY the listed lesson topics at the same difficulty. Write a complete stem, exactly four parallel options without A/B/C/D labels, one uniquely correct answer, and a complete contrastive explanation. Set fi to one or two indexes of the supplied facts that the item tests. Avoid meta-language, unsupported inference, trailing fragments, and answer cues. Return only JSON.';
+  const user = JSON.stringify({
+    lesson: promptLesson || null,
+    topics: words,
+    facts: lesson.facts || [],
+    items: targets.map(({ item, index }) => ({ index, item })),
+  });
+  try {
+    const reply = await generateJson({
+      system,
+      user,
+      schemaProfile: { name: 'topic_repair_batch', schema, strict: true },
+      maxOutputTokens: Math.max(1800, targets.length * 650),
+      temperature: 0.5,
+    });
+    const repairs = JSON.parse(reply)?.repairs;
+    if (!Array.isArray(repairs)) return;
+    const byIndex = new Map(repairs.map((repair) => [repair?.index, repair]));
+    const candidates = targets
+      .map(({ item, index }) => {
+        const repair = byIndex.get(index);
+        if (!repair) {
+          events.push({
+            pass: 'topicGate',
+            lessonId: lesson.lessonId,
+            item: index,
+            action: 'rejected',
+            reason: 'missing-repair',
+          });
+          return null;
+        }
+        const fresh = {
+          q: normalizeRepairedStem(repair.q),
+          op: normalizeOptionLabels(repair.op),
+          ai: repair.ai,
+          fi: repair.fi,
+          ex: completeSentencePrefix(repair.ex),
+        };
+        const admission = assessLessonMcItem(fresh, { lesson, topicTokens: words });
+        if (!admission.eligible || !onTopic(fresh, words)) {
+          events.push({
+            pass: 'topicGate',
+            lessonId: lesson.lessonId,
+            item: index,
+            action: 'rejected',
+            reason: [...new Set([...admission.issues, ...(!onTopic(fresh, words) ? ['off-topic'] : [])])].join(','),
+            draft: fresh,
+          });
+          return null;
+        }
+        return { fresh, item, index };
+      })
+      .filter(Boolean);
+    if (candidates.length === 0) return;
+    const first = await blindSolve(
+      candidates.map(({ fresh }) => fresh),
+      generateJson,
+    ).catch(() => null);
+    const second = await blindSolve(
+      candidates.map(({ fresh }) => fresh),
+      generateJson,
+    ).catch(() => null);
+    if (!first || !second) return;
+    candidates.forEach(({ fresh, item, index }, candidateIndex) => {
+      const expected = Number(fresh.ai);
+      if (first[candidateIndex] !== expected || second[candidateIndex] !== expected) {
+        events.push({
+          pass: 'topicGate',
+          lessonId: lesson.lessonId,
+          item: index,
+          action: 'rejected',
+          reason: `key-verification:${first[candidateIndex]},${second[candidateIndex]}!=${expected}`,
+        });
+        return;
+      }
+      items[index] = fresh;
+      events.push({
+        pass: 'topicGate',
+        lessonId: lesson.lessonId,
+        item: index,
+        action: 'regenerated',
+        rejected: item,
+        chosen: fresh,
+        prompt: `System: ${system}\nUser: ${user}`,
+        // Two solves from the same model establish consistency, not an
+        // independent semantic win. Keep the telemetry, but never bank it as
+        // adapter-training preference evidence.
+        trainingEligible: false,
+        preferenceEvidence: {
+          kind: 'topic-and-key-repair',
+          verified: true,
+          chosenAnswers: [first[candidateIndex], second[candidateIndex]],
+          attempt: 1,
+        },
+      });
+    });
+  } catch {
+    events.push({ pass: 'topicGate', lessonId: lesson.lessonId, action: 'failed', reason: 'generation-or-parse' });
+  }
+}
+
+/**
+ * Replace atoms that the canonical admission boundary would otherwise drop.
+ * This is a coverage gate, not cosmetic polish: each accepted replacement is
+ * contract-clean before it can occupy a quiz seat. A genuinely independent
+ * verifier may confirm it twice and create preference evidence. The browser
+ * base model cannot verify itself, so its production path instead requires a
+ * uniquely supported cited-source answer and never creates training evidence.
+ */
+async function admissionGate(
+  lesson,
+  promptLesson,
+  generateJson,
+  events,
+  expectedMcCount = 0,
+  { maxRepairs = Number.POSITIVE_INFINITY, verifyRepairsWithSameModel = true } = {},
+) {
+  const items = Array.isArray(lesson?.mc) ? lesson.mc : [];
+  const topicTokens = topicWords(promptLesson);
+  const targets = items
+    .map((item, index) => ({
+      item,
+      index,
+      admission: item
+        ? assessLessonMcItem(item, { lesson, topicTokens })
+        : { eligible: false, issues: ['missing-item'], score: 0 },
+    }))
+    .filter(({ admission }) => !admission.eligible);
+  for (let index = items.length; index < expectedMcCount; index += 1) {
+    targets.push({ item: null, index, admission: { eligible: false, issues: ['missing-item'], score: 0 } });
+  }
+  if (targets.length === 0) return;
+  const boundedTargets = targets
+    .sort((left, right) => {
+      if (Boolean(left.item) !== Boolean(right.item)) return left.item ? 1 : -1;
+      return right.admission.issues.length - left.admission.issues.length || left.index - right.index;
+    })
+    .slice(0, Math.max(1, Math.floor(Number(maxRepairs) || 1)));
+  const indices = boundedTargets.map(({ index }) => index);
+  const schema = {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      repairs: {
+        type: 'array',
+        minItems: boundedTargets.length,
+        maxItems: boundedTargets.length,
+        items: {
+          type: 'object',
+          additionalProperties: false,
+          properties: {
+            index: { type: 'integer', enum: indices },
+            ...MC_ITEM_SCHEMA.properties,
+          },
+          required: ['index', ...MC_ITEM_SCHEMA.required],
+        },
+      },
+    },
+    required: ['repairs'],
+  };
+  const system =
+    'You repair or backfill multiple-choice seats that would otherwise be missing after a strict admission gate. Author each complete item from the listed lesson topics; when an original exists, test the same concept at the same cognitive level. Use exactly four parallel, plausible options. Every option must be one compact 4-10 word proposition of 5-80 characters, never an explanation; put all reasoning in ex. Make one answer uniquely correct. Write a complete stem of 50-180 characters and a complete one- or two-sentence explanation of 60-180 characters. Set fi to one or two indexes of the supplied facts that directly support the keyed option. Avoid answer cues, meta-language, unsupported inference, ellipses, and trailing fragments. Never end an option with a, an, and, as, by, for, from, in, of, on, or, the, to, with, or without. Return only JSON.';
+  const user = JSON.stringify({
+    lesson: promptLesson || null,
+    facts: lesson.facts || [],
+    repairs: boundedTargets.map(({ item, index, admission }) => ({
+      index,
+      issues: admission.issues,
+      ...(item
+        ? {
+            originalQuestion: item.q ?? item.question ?? '',
+            sourceFactIndexes: item.fi ?? item.sourceFactIndexes ?? [],
+          }
+        : {}),
+    })),
+  });
+  try {
+    const reply = await generateJson({
+      system,
+      user,
+      schemaProfile: { name: 'mc_admission_batch', schema, strict: true },
+      maxOutputTokens: Math.max(900, boundedTargets.length * 500),
+      temperature: 0.4,
+    });
+    const repairs = JSON.parse(reply)?.repairs;
+    if (!Array.isArray(repairs)) return;
+    const byIndex = new Map(repairs.map((repair) => [repair?.index, repair]));
+    const candidates = boundedTargets
+      .map(({ item, index, admission: rejectedAdmission }) => {
+        const repair = byIndex.get(index);
+        if (!repair) {
+          events.push({
+            pass: 'admissionGate',
+            lessonId: lesson.lessonId,
+            item: index,
+            action: 'rejected',
+            reason: 'missing-repair',
+          });
+          return null;
+        }
+        const fresh = {
+          q: normalizeRepairedStem(repair.q),
+          op: normalizeOptionLabels(repair.op),
+          ai: repair.ai,
+          fi: repair.fi,
+          ex: completeSentencePrefix(repair.ex),
+        };
+        const admission = assessLessonMcItem(fresh, { lesson, topicTokens });
+        if (!admission.eligible) {
+          events.push({
+            pass: 'admissionGate',
+            lessonId: lesson.lessonId,
+            item: index,
+            action: 'rejected',
+            reason: admission.issues.join(','),
+            draft: fresh,
+          });
+          return null;
+        }
+        const citedClaims = (Array.isArray(fresh.fi) ? fresh.fi : [])
+          .map((factIndex) => lessonSourceClaims(lesson)[factIndex])
+          .filter(Boolean);
+        const sourceSupport = findScionSourceAnswerSupport(fresh, {
+          sourceClaims: citedClaims,
+          strict: true,
+        });
+        if (!verifyRepairsWithSameModel && (!sourceSupport || sourceSupport.supportedIndex !== Number(fresh.ai))) {
+          events.push({
+            pass: 'admissionGate',
+            lessonId: lesson.lessonId,
+            item: index,
+            action: 'rejected',
+            reason: 'cited-source-does-not-uniquely-confirm-key',
+            draft: fresh,
+          });
+          return null;
+        }
+        return { fresh, item, index, rejectedAdmission, sourceSupport };
+      })
+      .filter(Boolean);
+    if (candidates.length === 0) return;
+    if (!verifyRepairsWithSameModel) {
+      candidates.forEach(({ fresh, item, index, rejectedAdmission, sourceSupport }) => {
+        items[index] = fresh;
+        events.push({
+          pass: 'admissionGate',
+          lessonId: lesson.lessonId,
+          item: index,
+          action: 'regenerated',
+          rejected: item,
+          chosen: fresh,
+          prompt: `System: ${system}\nUser: ${user}`,
+          trainingEligible: false,
+          verification: {
+            kind: 'deterministic-cited-source-admission',
+            rejectedIssues: rejectedAdmission.issues,
+            supportMethod: sourceSupport.supportMethod,
+            supportedIndex: sourceSupport.supportedIndex,
+            relevantSourceClaimIndexes: sourceSupport.relevantSourceClaimIndexes,
+          },
+        });
+      });
+      return;
+    }
+    const solveCandidates = candidates.map(({ fresh }) => fresh);
+    let first = null;
+    let second = null;
+    try {
+      first = await blindSolve(solveCandidates, generateJson);
+      second = await blindSolve(solveCandidates, generateJson);
+    } catch (error) {
+      // Preserve the budget discriminator for the outer event receipt. Other
+      // solver failures remain a non-fatal inability to verify the repair.
+      if (error?.code === 'SCION_PASS_CALL_BUDGET_EXHAUSTED') throw error;
+    }
+    if (!first || !second) return;
+    candidates.forEach(({ fresh, item, index, rejectedAdmission }, candidateIndex) => {
+      const expected = Number(fresh.ai);
+      if (first[candidateIndex] !== expected || second[candidateIndex] !== expected) {
+        events.push({
+          pass: 'admissionGate',
+          lessonId: lesson.lessonId,
+          item: index,
+          action: 'rejected',
+          reason: `key-verification:${first[candidateIndex]},${second[candidateIndex]}!=${expected}`,
+        });
+        return;
+      }
+      items[index] = fresh;
+      events.push({
+        pass: 'admissionGate',
+        lessonId: lesson.lessonId,
+        item: index,
+        action: 'regenerated',
+        rejected: item,
+        chosen: fresh,
+        prompt: `System: ${system}\nUser: ${user}`,
+        // Two solves by the same authoring model are a useful diagnostic,
+        // but they are not independent semantic verification. Keep the
+        // repaired item when it clears the compiler; never let this branch
+        // self-authorize a flywheel preference row.
+        trainingEligible: false,
+        ...(item
+          ? {
+              verification: {
+                kind: 'same-model-key-agreement',
+                verified: false,
+                rejectedIssues: rejectedAdmission.issues,
+                chosenAnswers: [first[candidateIndex], second[candidateIndex]],
+                claimBoundary: 'same-model diagnostic; not independent evidence or training authorization',
+              },
+            }
+          : {}),
+      });
+    });
+  } catch (error) {
+    const budgetExhausted = error?.code === 'SCION_PASS_CALL_BUDGET_EXHAUSTED';
+    events.push({
+      pass: 'admissionGate',
+      lessonId: lesson.lessonId,
+      action: budgetExhausted ? 'bounded' : 'failed',
+      reason: budgetExhausted ? 'call-budget-exhausted' : 'generation-or-parse',
+      terminalReason: budgetExhausted ? 'call-budget-exhausted' : 'generation-or-parse',
+      trainingEligible: false,
+    });
+  }
+}
+
+/**
+ * Preserve each named concept while repairing malformed definition/example/
+ * misconception/correction atoms before the parser can drop them. These
+ * structural repairs ship only; they are not preference data because there
+ * is no independent semantic verifier for an open-ended definition.
+ */
+async function keyTermAdmissionGate(lesson, promptLesson, generateJson, events, minimumKeyTermCount = 0) {
+  if (!Array.isArray(lesson?.keyTerms)) return;
+  const terms = lesson.keyTerms;
+  const knownFacts = (Array.isArray(lesson?.facts) ? lesson.facts : [])
+    .map((fact) => (typeof fact === 'string' ? fact : fact?.text || fact?.tx || ''))
+    .filter(Boolean);
+  const assessed = terms.map((term, index) => ({
+    term,
+    index,
+    result: assessScionKeyTerm(term, {
+      lessonTitle: promptLesson?.title,
+      knownFacts,
+      semanticProfile: 'source-strict-v6',
+    }),
+  }));
+  const targets = assessed.filter(({ result }) => !result.eligible);
+  for (let index = terms.length; index < minimumKeyTermCount; index += 1) {
+    targets.push({ term: null, index, result: { eligible: false, issues: ['missing-term'], score: 0 } });
+  }
+  if (targets.length === 0) return;
+  const indices = targets.map(({ index }) => index);
+  const schema = {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      repairs: {
+        type: 'array',
+        minItems: targets.length,
+        maxItems: targets.length,
+        items: {
+          type: 'object',
+          additionalProperties: false,
+          properties: {
+            index: { type: 'integer', enum: indices },
+            tr: { type: 'string', minLength: 3, maxLength: 80 },
+            df: { type: 'string', minLength: 45, maxLength: 380 },
+            eg: { type: 'string', minLength: 12, maxLength: 300 },
+            mi: { type: 'string', minLength: 12, maxLength: 300 },
+            cx: { type: 'string', minLength: 12, maxLength: 300 },
+          },
+          required: ['index', 'tr', 'df', 'eg', 'mi', 'cx'],
+        },
+      },
+    },
+    required: ['repairs'],
+  };
+  const system =
+    'You repair or backfill key-term atoms for the listed lesson. Preserve an existing source-grounded disciplinary concept name; when the term is missing, invalid, or absent from the supplied facts, replace it with a precise concept explicitly named by those facts. For each term, write a precise disciplinary definition, concrete example, plausible misconception, and correction that directly resolves that misconception. Do not repeat the term name in the first six words of its definition. Use complete concise sentences and return only JSON.';
+  const user = JSON.stringify({
+    lesson: promptLesson || null,
+    facts: lesson.facts || [],
+    terms: targets.map(({ term, index, result }) => ({ index, term, issues: result.issues })),
+  });
+  try {
+    const reply = await generateJson({
+      system,
+      user,
+      schemaProfile: { name: 'key_term_admission_batch', schema, strict: true },
+      maxOutputTokens: Math.max(1600, targets.length * 500),
+      temperature: 0.35,
+    });
+    const repairs = JSON.parse(reply)?.repairs;
+    if (!Array.isArray(repairs)) return;
+    const byIndex = new Map(repairs.map((repair) => [repair?.index, repair]));
+    const topicTokens = topicWords(promptLesson);
+    targets.forEach(({ term, index, result }) => {
+      const repair = byIndex.get(index);
+      if (!repair) {
+        events.push({
+          pass: 'keyTermAdmission',
+          lessonId: lesson.lessonId,
+          item: index,
+          action: 'rejected',
+          reason: 'missing-repair',
+        });
+        return;
+      }
+      const mayRename =
+        !term ||
+        result.issues.some((issue) =>
+          ['tr-length', 'term-is-lesson-title', 'term-not-source-anchored'].includes(issue),
+        );
+      const fresh = {
+        ...term,
+        tr: mayRename ? repair.tr : term.tr,
+        df: completeSentencePrefix(repair.df),
+        eg: completeSentencePrefix(repair.eg),
+        mi: completeSentencePrefix(repair.mi),
+        cx: completeSentencePrefix(repair.cx),
+      };
+      const admission = assessScionKeyTerm(fresh, {
+        lessonTitle: promptLesson?.title,
+        knownFacts,
+        semanticProfile: 'source-strict-v6',
+      });
+      const duplicate = terms.some(
+        (other, otherIndex) =>
+          otherIndex !== index &&
+          String(other?.tr || '')
+            .trim()
+            .toLowerCase() ===
+            String(fresh.tr || '')
+              .trim()
+              .toLowerCase(),
+      );
+      const combined = Object.values(fresh).join(' ').toLowerCase();
+      const onLessonTopic = topicTokens.length === 0 || topicTokens.some((token) => combined.includes(token));
+      if (!admission.eligible || duplicate || !onLessonTopic) {
+        events.push({
+          pass: 'keyTermAdmission',
+          lessonId: lesson.lessonId,
+          item: index,
+          action: 'rejected',
+          reason: [
+            ...admission.issues,
+            ...(duplicate ? ['duplicate-term'] : []),
+            ...(!onLessonTopic ? ['off-topic'] : []),
+          ].join(','),
+          draft: fresh,
+        });
+        return;
+      }
+      terms[index] = fresh;
+      events.push({
+        pass: 'keyTermAdmission',
+        lessonId: lesson.lessonId,
+        item: index,
+        action: 'regenerated',
+        rejected: term,
+        chosen: fresh,
+        trainingEligible: false,
+      });
+    });
+  } catch {
+    events.push({
+      pass: 'keyTermAdmission',
+      lessonId: lesson.lessonId,
+      action: 'failed',
+      reason: 'generation-or-parse',
+    });
+  }
+}
+
+/**
+ * Rewrite the non-Remember MC seats around the lesson's admitted scenario.
+ * Options, answer indices, and admitted explanations are immutable: the pass
+ * may improve the evidence students reason from, but it cannot silently swap
+ * the tested proposition or hallucinate a new rationale.
+ * Accepted repairs pass deterministic depth/topic/admission gates and two
+ * independent cold solves, making the pair eligible for the verified corpus.
+ */
+async function appliedDepthGate(lesson, promptLesson, generateJson, events) {
+  const items = Array.isArray(lesson?.mc) ? lesson.mc : [];
+  const topicTokens = topicWords(promptLesson);
+  const desiredAppliedCount = Math.min(APPLIED_MCQ_TARGET_PER_LESSON, items.length);
+  const existingAppliedCount = items.filter((item) => isAppliedQuizStem(item?.q)).length;
+  const neededRepairs = Math.max(0, desiredAppliedCount - existingAppliedCount);
+  const targets = items
+    .map((item, index) => ({ item, index }))
+    .filter(
+      ({ item, index }) =>
+        item && index > 0 && !isAppliedQuizStem(item?.q) && assessLessonMcItem(item, { lesson, topicTokens }).eligible,
+    )
+    .slice(0, neededRepairs);
+  const grounding = groundingWords(lesson);
+  if (targets.length === 0 || grounding.length === 0) return;
+  const indices = targets.map(({ index }) => index);
+  const schema = {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      repairs: {
+        type: 'array',
+        minItems: targets.length,
+        maxItems: targets.length,
+        items: {
+          type: 'object',
+          additionalProperties: false,
+          properties: {
+            index: { type: 'integer', enum: indices },
+            q: { type: 'string', minLength: 45, maxLength: 300 },
+          },
+          required: ['index', 'q'],
+        },
+      },
+    },
+    required: ['repairs'],
+  };
+  const system =
+    'You repair multiple-choice depth without changing what is correct. Rewrite ONLY each stem so students must inspect the supplied scenario evidence before choosing. Include at least TWO distinctive facts from the supplied scenario (such as its actor, instrument, named artifact, measured value, or observed detail); merely saying scenario, excerpt, evidence, staff, notes, or materials is not grounding. Every option, answer index, and explanation is immutable. Never repeat option text, answer labels, or the correct answer in the stem. Use an open reasoning frame such as "Based on these observations, which response..." or "What is the most likely outcome/risk/impact...?" The evidence must make the existing key uniquely defensible. Write ONE complete question of 80-190 characters per repair and end it with a question mark. Never turn the answer into a statement, trail off, use an ellipsis, or approach the schema length limit. Return only JSON.';
+  const user = JSON.stringify({
+    lesson: promptLesson || null,
+    scenario: lesson.scenario,
+    items: targets.map(({ item, index }) => ({ index, q: item.q, op: item.op, ai: item.ai, ex: item.ex })),
+  });
+  try {
+    const reply = await generateJson({
+      system,
+      user,
+      schemaProfile: { name: 'applied_mc_batch', schema, strict: true },
+      maxOutputTokens: 2200,
+      temperature: 0.4,
+    });
+    const repairs = JSON.parse(reply)?.repairs;
+    if (!Array.isArray(repairs)) return;
+    const byIndex = new Map(repairs.map((repair) => [repair?.index, repair]));
+    const candidates = targets
+      .map(({ item, index }) => {
+        const repair = byIndex.get(index);
+        if (!repair) {
+          events.push({
+            pass: 'appliedDepth',
+            lessonId: lesson.lessonId,
+            item: index,
+            action: 'rejected',
+            reason: 'missing-repair',
+          });
+          return null;
+        }
+        const fresh = { ...item, q: normalizeRepairedStem(repair.q) };
+        const admission = assessLessonMcItem(fresh, { lesson, topicTokens });
+        const matchedGrounding = matchingGroundingWords(fresh.q, grounding);
+        const reasons = [
+          ...admission.issues,
+          ...(!isAppliedQuizStem(fresh.q) ? ['not-applied'] : []),
+          ...(matchedGrounding.length < 2 ? ['not-distinctively-scenario-grounded'] : []),
+          ...(!onTopic(fresh, topicTokens) ? ['off-topic'] : []),
+        ];
+        if (reasons.length > 0) {
+          events.push({
+            pass: 'appliedDepth',
+            lessonId: lesson.lessonId,
+            item: index,
+            action: 'rejected',
+            reason: [...new Set(reasons)].join(','),
+            draft: fresh,
+          });
+          return null;
+        }
+        return { fresh, item, index, admission, matchedGrounding };
+      })
+      .filter(Boolean);
+    if (candidates.length === 0) return;
+    const first = await blindSolve(
+      candidates.map(({ fresh }) => fresh),
+      generateJson,
+    ).catch(() => null);
+    const second = await blindSolve(
+      candidates.map(({ fresh }) => fresh),
+      generateJson,
+    ).catch(() => null);
+    if (!first || !second) return;
+    candidates.forEach(({ fresh, item, index, admission, matchedGrounding }, candidateIndex) => {
+      const expected = Number(fresh.ai);
+      if (first[candidateIndex] !== expected || second[candidateIndex] !== expected) {
+        events.push({
+          pass: 'appliedDepth',
+          lessonId: lesson.lessonId,
+          item: index,
+          action: 'rejected',
+          reason: `key-verification:${first[candidateIndex]},${second[candidateIndex]}!=${expected}`,
+        });
+        return;
+      }
+      items[index] = fresh;
+      events.push({
+        pass: 'appliedDepth',
+        lessonId: lesson.lessonId,
+        item: index,
+        action: 'regenerated',
+        rejected: item,
+        chosen: fresh,
+        prompt: `System: ${system}\nUser: ${user}`,
+        trainingEligible: false,
+        preferenceEvidence: {
+          kind: 'applied-depth-and-key-repair',
+          verified: true,
+          rejectedApplied: false,
+          chosenApplied: true,
+          chosenAnswers: [first[candidateIndex], second[candidateIndex]],
+          groundingTokens: matchedGrounding.slice(0, 8),
+          admissionIssues: admission.issues,
+        },
+      });
+    });
+  } catch {
+    events.push({ pass: 'appliedDepth', lessonId: lesson.lessonId, action: 'failed', reason: 'generation-or-parse' });
+  }
+}
+
+const POLISH_FIELDS = ['scenario', 'discussionPrompt', 'assignmentCore', 'studyGuide'];
+const POLISH_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    scenario: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        su: { type: 'string', minLength: 45, maxLength: 500 },
+        ma: { type: 'string', minLength: 10, maxLength: 300 },
+      },
+      required: ['su', 'ma'],
+    },
+    discussionPrompt: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        pr: { type: 'string', minLength: 20, maxLength: 300 },
+        tn: { type: 'string', minLength: 12, maxLength: 300 },
+        po: { type: 'array', items: { type: 'string', minLength: 8, maxLength: 200 }, minItems: 3, maxItems: 3 },
+      },
+      required: ['pr', 'tn', 'po'],
+    },
+    assignmentCore: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        td: { type: 'string', minLength: 45, maxLength: 500 },
+        pa: { type: 'array', items: { type: 'string', minLength: 8, maxLength: 160 }, minItems: 4, maxItems: 4 },
+      },
+      required: ['td', 'pa'],
+    },
+    studyGuide: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        sm: { type: 'string', minLength: 70, maxLength: 550 },
+        rs: { type: 'string', minLength: 35, maxLength: 380 },
+      },
+      required: ['sm', 'rs'],
+    },
+  },
+  required: POLISH_FIELDS,
+};
+
+/** Self-refine the wordy prose atoms; content pinned by the length band. */
+async function polishProse(lesson, generateJson, events) {
+  if (!POLISH_FIELDS.every((field) => lesson?.[field])) return;
+  const fields = Object.fromEntries(POLISH_FIELDS.map((field) => [field, lesson[field]]));
+  try {
+    const reply = await generateJson({
+      system:
+        'You are a veteran professor polishing draft course text. Rewrite each value MINIMALLY so it reads as natural, confident teaching prose — one voice, plain sentences, no filler. NEVER change technical content, terms, numbers, or the meaning; never add new claims. Return ONLY the JSON object with the same shape.',
+      user: JSON.stringify(fields),
+      schemaProfile: { name: 'prose_polish', schema: POLISH_SCHEMA, strict: true },
+      maxOutputTokens: 4000,
+    });
+    const polished = JSON.parse(reply);
+    for (const field of POLISH_FIELDS) {
+      const before = JSON.stringify(fields[field] ?? '');
+      const after = JSON.stringify(polished[field] ?? '');
+      if (after.length >= before.length * 0.6 && after.length <= before.length * 1.4) {
+        lesson[field] = polished[field];
+      }
+    }
+    events.push({ pass: 'polish', lessonId: lesson.lessonId, action: 'done' });
+  } catch {
+    /* draft ships unchanged */
+  }
+}
+
+/**
+ * Admission rejects a whole Mandarin lesson when its draft never shows the
+ * learner Hanzi paired with tone-marked Pinyin. Repair that prerequisite
+ * before spending calls polishing quiz atoms that would otherwise be thrown
+ * away with the lesson.
+ */
+async function targetLanguageIdentityGate(lesson, promptLesson, courseName, generateJson, events) {
+  const sourceText = JSON.stringify(promptLesson || {});
+  const before = assessTargetLanguagePresence({
+    courseIdentity: courseName,
+    sourceText,
+    text: JSON.stringify(lesson),
+  });
+  const canonicalPair = lesson?.targetLanguagePair;
+  const canonicalEvidence = canonicalPair
+    ? `${String(canonicalPair.hanzi || '').trim()} (${String(canonicalPair.pinyin || '').trim()}) means ${String(
+        canonicalPair.english || '',
+      ).trim()}.`
+    : '';
+  const canonicalPresence = canonicalEvidence
+    ? assessTargetLanguagePresence({ courseIdentity: courseName, sourceText, text: canonicalEvidence })
+    : null;
+  const missingCanonicalPair =
+    before.required && !before.pinyinOnly && (!canonicalPresence?.complete || !canonicalPresence?.paired);
+  const missingVisiblePair = before.required && !before.pinyinOnly && before.complete && !before.paired;
+  if (!before.required || (before.complete && !missingVisiblePair && !missingCanonicalPair)) return;
+  const repairReason = missingVisiblePair
+    ? 'hanzi-pinyin-pair'
+    : before.complete && missingCanonicalPair
+      ? 'canonical-hanzi-pinyin-pair'
+      : before.missing.join(',');
+  if (before.pinyinOnly) {
+    events.push({
+      pass: 'languageIdentity',
+      lessonId: lesson.lessonId,
+      action: 'deferred',
+      reason: 'source-scoped-pinyin-missing',
+      trainingEligible: false,
+    });
+    return;
+  }
+  const compilerPair = resolveScionTargetLanguagePair({ courseName, lesson: promptLesson });
+  if (compilerPair) {
+    const evidence = `${compilerPair.hanzi} (${compilerPair.pinyin}) means ${compilerPair.english}.`;
+    const after = assessTargetLanguagePresence({ courseIdentity: courseName, sourceText, text: evidence });
+    if (after.complete && after.paired) {
+      lesson.targetLanguagePair = compilerPair;
+      events.push({
+        pass: 'languageIdentity',
+        lessonId: lesson.lessonId,
+        action: 'repaired',
+        reason: 'scion-local-language-kernel',
+        trainingEligible: false,
+      });
+      return;
+    }
+  }
+  try {
+    const reply = await generateJson({
+      system:
+        'You repair one beginner Mandarin lesson with one accurate target-language example. Return ONLY JSON containing Hanzi, its matching tone-marked Pinyin, and a short English meaning. Ground the pair in the supplied lesson topic. Never return another language and never omit tone marks.',
+      user: JSON.stringify({
+        lesson: {
+          title: promptLesson?.title || '',
+          topics: promptLesson?.topics || '',
+        },
+        existingFacts: lessonSourceClaims(lesson).slice(0, 8),
+      }),
+      schemaProfile: { name: 'target_language_pair_repair', schema: TARGET_LANGUAGE_PAIR_SCHEMA, strict: true },
+      maxOutputTokens: 160,
+    });
+    const pair = JSON.parse(reply);
+    const hanzi = String(pair?.hanzi || '').trim();
+    const pinyin = String(pair?.pinyin || '').trim();
+    const english = String(pair?.english || '').trim();
+    const evidence = `${hanzi} (${pinyin}) means ${english}.`;
+    const after = assessTargetLanguagePresence({ courseIdentity: courseName, sourceText, text: evidence });
+    if (!after.complete || !after.paired) throw new Error('repair did not contain a valid Hanzi/Pinyin pair');
+    // Facts are the immutable warrant for every cited teaching atom. Keep the
+    // repaired language example beside that ledger instead of appending a new
+    // uncited fact (which also turned a valid five-fact compact kernel into an
+    // invalid six-fact response). The parser and compiler carry this
+    // structured pair into learner-facing vocabulary without changing fi.
+    lesson.targetLanguagePair = { hanzi, pinyin, english };
+    events.push({
+      pass: 'languageIdentity',
+      lessonId: lesson.lessonId,
+      action: 'repaired',
+      reason: repairReason,
+      trainingEligible: false,
+    });
+  } catch {
+    events.push({
+      pass: 'languageIdentity',
+      lessonId: lesson.lessonId,
+      action: 'failed',
+      reason: repairReason,
+      trainingEligible: false,
+    });
+  }
+}
+
+/**
+ * Apply all Scion passes to a raw Pass B batch response.
+ * @param {string} rawText the model's batch JSON
+ * @param {object} options { promptLessons, generateJson, contentSourcedLessonIds, expectedMcCount, minimumKeyTermCount }
+ * @returns {{ text: string, events: Array }}
+ */
+export async function applyScionKernelPasses(
+  rawText,
+  {
+    promptLessons = [],
+    generateJson,
+    contentSourcedLessonIds = [],
+    expectedMcCount = 0,
+    minimumKeyTermCount = 0,
+    maxCallsPerLesson = SCION_PASS_CALL_BUDGET_PER_LESSON,
+    courseName = '',
+    verifyDraftMcWithSameModel = true,
+    verifyRepairMcWithSameModel = true,
+    maxAdmissionRepairsPerCall = Number.POSITIVE_INFINITY,
+    skipImprovementOnlyPasses = false,
+  } = {},
+) {
+  let parsed = null;
+  try {
+    parsed = JSON.parse(rawText);
+  } catch {
+    return { text: rawText, events: [] };
+  }
+  const lessons = Array.isArray(parsed?.lessons) ? parsed.lessons : [];
+  if (lessons.length === 0 || typeof generateJson !== 'function') return { text: rawText, events: [] };
+  const contentSourced = new Set(contentSourcedLessonIds);
+  const events = [];
+
+  // Scion Pass B is intentionally a one-lesson call. Small local models can
+  // still omit the identifier even though the schema pins it. Recover only
+  // when both sides are unambiguous; never guess across a batch.
+  if (
+    lessons.length === 1 &&
+    promptLessons.length === 1 &&
+    !lessons[0]?.lessonId &&
+    typeof promptLessons[0]?.lessonId === 'string' &&
+    promptLessons[0].lessonId.trim()
+  ) {
+    lessons[0].lessonId = promptLessons[0].lessonId;
+    events.push({
+      pass: 'identityRepair',
+      lessonId: lessons[0].lessonId,
+      action: 'inferred',
+      reason: 'single-lesson-call',
+      trainingEligible: false,
+    });
+  }
+
+  for (const lesson of lessons) {
+    if (contentSourced.has(lesson?.lessonId)) continue; // library content — never touched
+    normalizeMcSurfaces(lesson, events);
+    const promptLesson = promptLessons.find((entry) => entry?.lessonId === lesson?.lessonId) ?? null;
+    const requestedCallLimit = Number(maxCallsPerLesson);
+    const callLimit = Math.max(
+      0,
+      Math.floor(Number.isFinite(requestedCallLimit) ? requestedCallLimit : SCION_PASS_CALL_BUDGET_PER_LESSON),
+    );
+    let callsUsed = 0;
+    let budgetEventRecorded = false;
+    const budgetedGenerateJson = async (request) => {
+      if (callsUsed >= callLimit) {
+        const error = new Error(`Scion lesson-pass call budget exhausted (${callsUsed}/${callLimit}).`);
+        error.code = 'SCION_PASS_CALL_BUDGET_EXHAUSTED';
+        throw error;
+      }
+      callsUsed += 1;
+      return generateJson(request);
+    };
+    const runPass = async (passName, run) => {
+      if (callsUsed >= callLimit) {
+        if (!budgetEventRecorded) {
+          events.push({
+            pass: 'passBudget',
+            lessonId: lesson.lessonId,
+            action: 'bounded',
+            reason: `${callsUsed}/${callLimit}-calls-used-before-${passName}`,
+            trainingEligible: false,
+          });
+          budgetEventRecorded = true;
+        }
+        return;
+      }
+      await run();
+    };
+
+    // Safety order under pressure: preserve the lesson's language identity
+    // first (the downstream parser rejects the entire lesson without it),
+    // then answer correctness, admission, focus, and terminology. Applied
+    // depth and cosmetic polish use only capacity the higher-value checks did
+    // not need.
+    // The local language kernel is a deterministic compiler lookup, not a
+    // provider pass. Always let it run even when a bound fact ledger sets the
+    // model-call budget to zero; budgetedGenerateJson still prevents the
+    // fallback model repair from spending a call. Gating this whole step on
+    // callLimit=0 silently removed the compiler-owned Hanzi/Pinyin pair and
+    // caused canonical admission to reject every otherwise valid language
+    // ledger at the outer firewall.
+    await targetLanguageIdentityGate(lesson, promptLesson, courseName, budgetedGenerateJson, events);
+    const languageProjection = assessTargetLanguagePresence({
+      courseIdentity: courseName,
+      sourceText: JSON.stringify(promptLesson || {}),
+      text: JSON.stringify(lesson),
+    });
+    if (languageProjection.required && !languageProjection.pinyinOnly) {
+      events.push({
+        pass: 'languageCompilerBoundary',
+        lessonId: lesson.lessonId,
+        action: 'bounded',
+        reason: 'canonical-pair-only; unsupported-model-utterances-compile-out',
+        trainingEligible: false,
+      });
+      normalizeMcSurfaces(lesson, events);
+      continue;
+    }
+    if (verifyDraftMcWithSameModel) {
+      await runPass('mcVerify', () => verifyMcAnswers(lesson, promptLesson, budgetedGenerateJson, events));
+    } else {
+      events.push({
+        pass: 'mcVerify',
+        lessonId: lesson.lessonId,
+        action: 'skipped',
+        reason: 'same-model-solver-is-not-an-independent-verifier',
+        trainingEligible: false,
+      });
+    }
+    await runPass('admissionGate', () =>
+      admissionGate(lesson, promptLesson, budgetedGenerateJson, events, expectedMcCount, {
+        maxRepairs: maxAdmissionRepairsPerCall,
+        verifyRepairsWithSameModel: verifyRepairMcWithSameModel,
+      }),
+    );
+    await runPass('topicGate', () => topicGate(lesson, promptLesson, budgetedGenerateJson, events));
+    await runPass('keyTermAdmission', () =>
+      keyTermAdmissionGate(lesson, promptLesson, budgetedGenerateJson, events, minimumKeyTermCount),
+    );
+    if (!skipImprovementOnlyPasses) {
+      await runPass('appliedDepth', () => appliedDepthGate(lesson, promptLesson, budgetedGenerateJson, events));
+      await runPass('polish', () => polishProse(lesson, budgetedGenerateJson, events));
+    } else {
+      events.push({
+        pass: 'improvementPasses',
+        lessonId: lesson.lessonId,
+        action: 'skipped',
+        reason: `grounded-adapter-bounded-repair-policy:${callsUsed}/${callLimit}`,
+        trainingEligible: false,
+      });
+    }
+    // A bounded replacement can arrive after the initial normalization. Keep
+    // exporter-owned A/B/C/D labels out of the stored options regardless of
+    // which repair pass authored the final item.
+    normalizeMcSurfaces(lesson, events);
+  }
+  return { text: JSON.stringify(parsed), events };
+}

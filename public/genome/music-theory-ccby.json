@@ -1,0 +1,296 @@
+{
+  "id": "music-theory-ccby",
+  "discipline": "music",
+  "level": "intro",
+  "conceptCount": 6,
+  "kernels": [
+    {
+      "id": "music-ccby/key-signatures",
+      "rev": 1,
+      "term": "Key signatures",
+      "definition": {
+        "text": "A key signature records the sharps or flats that normally apply in a passage, reducing the need to repeat accidentals on individual notes.",
+        "anchor": {
+          "src": "https://open.lib.umn.edu/musiccomposition/chapter/key-signatures/",
+          "loc": "22 Key Signatures, paragraph 1",
+          "quote": "enable the composer to write without using excessive accidentals"
+        },
+        "tier": 2,
+        "verifiedBy": 0
+      },
+      "facts": [
+        {
+          "text": "Correct notation repeats the key signature on every staff and every system.",
+          "anchor": {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/key-signatures/",
+            "loc": "22 Key Signatures, paragraph 1",
+            "quote": "writing in the key signature on every staff and every system"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "A temporary modulation can be notated with accidentals rather than a new key signature.",
+          "anchor": {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/key-signatures/",
+            "loc": "22 Key Signatures, paragraph 1",
+            "quote": "temporary modulations to other key regions will simply add appropriate accidentals"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        }
+      ],
+      "license": "CC-BY-4.0",
+      "attribution": ["Justin Rubin, Music Composition & Theory (2024), chapter 22, University of Minnesota Libraries Publishing"],
+      "misconceptions": [],
+      "examples": [],
+      "workedExamples": [],
+      "mcBank": [],
+      "edges": {},
+      "variants": [],
+      "standards": []
+    },
+    {
+      "id": "music-ccby/major-natural-minor-scales",
+      "rev": 1,
+      "term": "Major and natural minor scales",
+      "definition": {
+        "text": "Major and natural minor scales are distinguished by their ordered patterns of whole steps and half steps between adjacent scale degrees.",
+        "anchor": {
+          "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+          "loc": "25 Common Practice Era Scales, Major",
+          "quote": "The distinguishing factors of any scale are dependent upon the intervals between each of its steps."
+        },
+        "tier": 2,
+        "verifiedBy": 0
+      },
+      "facts": [
+        {
+          "text": "The major-scale step pattern is whole, whole, half, whole, whole, whole, half.",
+          "anchor": {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+            "loc": "25 Common Practice Era Scales, Major",
+            "quote": "whole-step, whole-step, half-step, whole-step, whole-step, whole-step, half-step"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Natural minor has a whole step from its seventh degree to the tonic, so that degree is called the subtonic.",
+          "anchor": {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+            "loc": "25 Common Practice Era Scales, Key Systems and Terminology",
+            "quote": "it is called a subtonic (rather than leading tone)"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        }
+      ],
+      "license": "CC-BY-4.0",
+      "attribution": ["Justin Rubin, Music Composition & Theory (2024), chapter 25, University of Minnesota Libraries Publishing"],
+      "misconceptions": [],
+      "examples": [],
+      "workedExamples": [],
+      "mcBank": [],
+      "edges": {},
+      "variants": [],
+      "standards": []
+    },
+    {
+      "id": "music-ccby/minor-scale-variants",
+      "rev": 1,
+      "term": "Minor-scale variants",
+      "definition": {
+        "text": "The minor key system has natural, harmonic, and melodic variants that differ through alterations to the sixth and seventh scale degrees.",
+        "anchor": {
+          "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+          "loc": "25 Common Practice Era Scales, Minor",
+          "quote": "The minor key system has three variants: a) Natural, b) Harmonic, and c) Melodic."
+        },
+        "tier": 2,
+        "verifiedBy": 0
+      },
+      "facts": [
+        {
+          "text": "Harmonic minor raises the seventh scale degree so it can function as a leading tone.",
+          "anchor": {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+            "loc": "25 Common Practice Era Scales, Minor",
+            "quote": "The harmonic minor scale includes a raised seventh scale degree"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Melodic minor raises both the sixth and seventh scale degrees.",
+          "anchor": {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+            "loc": "25 Common Practice Era Scales, Minor",
+            "quote": "The melodic minor scale includes a raised sixth as well as seventh scale degree."
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        }
+      ],
+      "license": "CC-BY-4.0",
+      "attribution": ["Justin Rubin, Music Composition & Theory (2024), chapter 25, University of Minnesota Libraries Publishing"],
+      "misconceptions": [],
+      "examples": [],
+      "workedExamples": [],
+      "mcBank": [],
+      "edges": {},
+      "variants": [],
+      "standards": []
+    },
+    {
+      "id": "music-ccby/interval-number-quality",
+      "rev": 1,
+      "term": "Interval number and quality",
+      "definition": {
+        "text": "A written interval is identified by its diatonic span and semitone distance, which together determine labels such as major, minor, augmented, or diminished.",
+        "anchor": {
+          "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+          "loc": "25 Common Practice Era Scales, Intervals",
+          "quote": "Intervals were assigned labels based on the scale from which they arose."
+        },
+        "tier": 2,
+        "verifiedBy": 0
+      },
+      "facts": [
+        {
+          "text": "Four semitones form a major third, while three semitones form a minor third when each spans three scale steps.",
+          "anchor": {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+            "loc": "25 Common Practice Era Scales, Intervals",
+            "quote": "four diatonic half-steps is referred to as a major third, while that of three half-steps is a minor third"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "A tritone can be spelled as an augmented fourth or diminished fifth, and the spelling can imply different resolutions.",
+          "anchor": {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+            "loc": "25 Common Practice Era Scales, Other Interval Names",
+            "quote": "their specific spellings can indicate different contexts and possible resolutions"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        }
+      ],
+      "license": "CC-BY-4.0",
+      "attribution": ["Justin Rubin, Music Composition & Theory (2024), chapter 25, University of Minnesota Libraries Publishing"],
+      "misconceptions": [],
+      "examples": [],
+      "workedExamples": [],
+      "mcBank": [],
+      "edges": {},
+      "variants": [],
+      "standards": []
+    },
+    {
+      "id": "music-ccby/chord-functions",
+      "rev": 1,
+      "term": "Tonic, dominant, and pre-dominant functions",
+      "definition": {
+        "text": "Functional harmony classifies chords by the role they play in a progression, especially tonic, dominant, and pre-dominant functions.",
+        "anchor": {
+          "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+          "loc": "25 Common Practice Era Scales, Chord Functions",
+          "quote": "hierarchical tonal structures, known as functional harmony, evolved"
+        },
+        "tier": 2,
+        "verifiedBy": 0
+      },
+      "facts": [
+        {
+          "text": "The tonic is built on scale degree one, while pre-dominants are built on degrees two, three, four, and six.",
+          "anchor": {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+            "loc": "25 Common Practice Era Scales, Triads",
+            "quote": "The tonic is built from the first scale degree and the pre-dominants on the second, third, fourth, and sixth."
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "In minor, raising the third of the fifth-degree chord makes it major and strengthens its dominant function.",
+          "anchor": {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+            "loc": "25 Common Practice Era Scales, Triads",
+            "quote": "by raising the third of the chord"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        }
+      ],
+      "license": "CC-BY-4.0",
+      "attribution": ["Justin Rubin, Music Composition & Theory (2024), chapter 25, University of Minnesota Libraries Publishing"],
+      "misconceptions": [],
+      "examples": [],
+      "workedExamples": [],
+      "mcBank": [],
+      "edges": {},
+      "variants": [],
+      "standards": []
+    },
+    {
+      "id": "music-ccby/seventh-chord-functions",
+      "rev": 1,
+      "term": "Seventh-chord functions",
+      "definition": {
+        "text": "A seventh chord adds a seventh above a triad, and its function depends on its scale degree and its pull within a tonal progression.",
+        "anchor": {
+          "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+          "loc": "25 Common Practice Era Scales, Seventh Chords",
+          "quote": "any triad can have a seventh added"
+        },
+        "tier": 2,
+        "verifiedBy": 0
+      },
+      "facts": [
+        {
+          "text": "The supertonic seventh chord functions as a terminal pre-dominant with a strong pull toward the dominant.",
+          "anchor": {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+            "loc": "25 Common Practice Era Scales, Seventh Chords",
+            "quote": "the ii7 functions as a terminal pre-dominant chord"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Adding a seventh to the dominant increases the chord's pull toward the tonic.",
+          "anchor": {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+            "loc": "25 Common Practice Era Scales, Seventh Chords",
+            "quote": "increases the force of the chord towards the tonic"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        }
+      ],
+      "license": "CC-BY-4.0",
+      "attribution": ["Justin Rubin, Music Composition & Theory (2024), chapter 25, University of Minnesota Libraries Publishing"],
+      "misconceptions": [],
+      "examples": [],
+      "workedExamples": [],
+      "mcBank": [],
+      "edges": {},
+      "variants": [],
+      "standards": []
+    }
+  ]
+}

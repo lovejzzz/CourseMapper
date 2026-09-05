@@ -1,0 +1,423 @@
+// src/lib/scionContracts.js — the Scion-native compiler profile (V2.1
+// Workstream D). Scion is the house model: we know exactly what it
+// guarantees (grammar-enforced decoding — whatever contract we declare is
+// the only legal output) and exactly where it is weak (long batches, greedy
+// determinism on retries). This module is the single place the compiler
+// declares those contracts instead of the server reverse-engineering them
+// from prompt text.
+//
+// Contract provenance: the per-lesson kernel shape mirrors the app's own
+// prompt contract (buildLessonKernelPrompt + NATIVE_PASS_B_AUTHORING_ADDITION)
+// and lint floor (lintKernelFact ≥25ch, lintEnrichedKeyTerm df ≥45ch,
+// lintEnrichedQuizItem exactly-4 options). llguidance cannot compile an
+// intersection between min/maxLength and the old no-space-run pattern. Keep
+// both intentions in one bounded-token regex; the parser still owns exact
+// character admission after decoding.
+
+import { LOCAL_PROVIDER_ID } from './localProvider.js';
+import { compactActivityBlueprintJsonSchema } from './experientialActivityContract.js';
+
+export function isScionProvider(provider) {
+  return provider === LOCAL_PROVIDER_ID;
+}
+
+export const NO_SPACE_RUNS = '^\\S+( \\S+)*$';
+const str = (minLength, maxLength) => {
+  const minWords = Math.max(1, Math.ceil(minLength / 10));
+  const maxWords = Math.max(minWords, Math.ceil(maxLength / 5));
+  return {
+    type: 'string',
+    pattern: `^\\S{1,24}( \\S{1,24}){${minWords - 1},${maxWords - 1}}$`,
+  };
+};
+const words = (minWords, maxWords, maxWordLength = 24) => ({
+  type: 'string',
+  pattern: `^\\S{1,${maxWordLength}}( \\S{1,${maxWordLength}}){${Math.max(0, minWords - 1)},${Math.max(0, maxWords - 1)}}$`,
+});
+const arr = (items, minItems, maxItems) => ({ type: 'array', items, minItems, maxItems });
+
+function lockObjects(node) {
+  if (Array.isArray(node)) {
+    node.forEach(lockObjects);
+    return;
+  }
+  if (!node || typeof node !== 'object') return;
+  if (node.type === 'object' && node.properties && node.additionalProperties === undefined) {
+    node.additionalProperties = false;
+  }
+  for (const value of Object.values(node)) lockObjects(value);
+}
+
+// Session-authoring fields (NATIVE_PASS_B_AUTHORING_ADDITION).
+function sessionFieldSchemas() {
+  return {
+    goal: str(8, 120),
+    outcomes: arr(str(12, 160), 3, 5),
+    async: arr(str(8, 160), 2, 3),
+    sync: arr(str(8, 160), 2, 3),
+  };
+}
+
+// Kernel atom fields (buildLessonKernelPrompt contract, short keys).
+const TARGET_LANGUAGE_PAIR_SCHEMA = {
+  type: 'object',
+  properties: {
+    hanzi: str(1, 24),
+    pinyin: str(2, 48),
+    english: str(2, 80),
+  },
+  required: ['hanzi', 'pinyin', 'english'],
+};
+
+function kernelFieldSchemas({ mcCount = 4, keyTermCount = 4, requiresTargetLanguagePair = false } = {}) {
+  return {
+    facts: arr(str(25, 140), 5, 8),
+    keyTerms: arr(
+      {
+        type: 'object',
+        properties: { tr: str(3, 60), df: str(45, 380), eg: str(12, 300), mi: str(12, 300), cx: str(12, 300) },
+        required: ['tr', 'df', 'eg', 'mi', 'cx'],
+      },
+      Math.max(3, keyTermCount - 1),
+      6,
+    ),
+    scenario: { type: 'object', properties: { su: str(45, 500), ma: str(10, 300) }, required: ['su', 'ma'] },
+    discussionPrompt: {
+      type: 'object',
+      properties: { pr: str(20, 300), tn: str(12, 300), po: arr(str(8, 200), 2, 3) },
+      required: ['pr', 'tn', 'po'],
+    },
+    assignmentCore: {
+      type: 'object',
+      properties: { td: str(45, 500), pa: arr(str(8, 160), 2, 4) },
+      required: ['td', 'pa'],
+    },
+    mc: arr(
+      {
+        type: 'object',
+        properties: {
+          q: str(25, 300),
+          op: arr(str(5, 95), 4, 4),
+          ai: { type: 'integer', minimum: 0, maximum: 3 },
+          fi: arr({ type: 'integer', minimum: 0, maximum: 7 }, 1, 2),
+          ex: str(20, 300),
+        },
+        required: ['q', 'op', 'ai', 'fi', 'ex'],
+      },
+      mcCount,
+      mcCount,
+    ),
+    studyGuide: { type: 'object', properties: { sm: str(70, 550), rs: str(35, 380) }, required: ['sm', 'rs'] },
+    ...(requiresTargetLanguagePair ? { targetLanguagePair: TARGET_LANGUAGE_PAIR_SCHEMA } : {}),
+  };
+}
+
+/**
+ * Exact compact contract used by the production lesson-kernel preference
+ * corpus. The optional adapter is trained only on these knowledge atoms; the
+ * compiler projects the admitted atoms into discussion, assignment, slides,
+ * study-guide, and session surfaces. Keeping this profile separate from the
+ * richer paid-model Pass B schema prevents a family label from silently
+ * widening the task the adapter is asked to perform.
+ */
+export function compactLessonKernelSchemaProfile({
+  expectedLessonIds = [],
+  factCount = 5,
+  activityLessonIds = [],
+} = {}) {
+  const lessonIds = expectedLessonIds.filter(Boolean);
+  const activityIds = activityLessonIds.filter((lessonId) => lessonIds.includes(lessonId));
+  const requiredFactCount = Math.max(3, Math.min(5, Number(factCount) || 5));
+  const schema = {
+    type: 'object',
+    properties: {
+      ...(activityIds.length > 0 ? { activityBlueprints: compactActivityBlueprintJsonSchema(activityIds) } : {}),
+      lessons: arr(
+        {
+          type: 'object',
+          properties: {
+            lessonId: lessonIds.length > 0 ? { type: 'string', enum: lessonIds } : str(3, 32),
+            facts: arr(words(8, 20), requiredFactCount, requiredFactCount),
+            keyTerms: arr(
+              {
+                type: 'object',
+                properties: {
+                  tr: words(1, 4),
+                  df: words(7, 45),
+                  eg: words(5, 30),
+                  mi: words(6, 32),
+                  cx: {
+                    type: 'object',
+                    properties: {
+                      reject: words(3, 16),
+                      replace: words(5, 28),
+                    },
+                    required: ['reject', 'replace'],
+                  },
+                },
+                required: ['tr', 'df', 'eg', 'mi', 'cx'],
+              },
+              3,
+              3,
+            ),
+            scenario: {
+              type: 'object',
+              properties: { su: words(18, 70), ma: words(4, 32) },
+              required: ['su', 'ma'],
+            },
+            mc: arr(
+              {
+                type: 'object',
+                properties: {
+                  q: words(20, 45),
+                  op: arr(words(4, 10), 4, 4),
+                  ai: { type: 'integer', minimum: 0, maximum: 3 },
+                  fi: arr({ type: 'integer', minimum: 0, maximum: requiredFactCount - 1 }, 1, 2),
+                  ex: words(18, 55),
+                },
+                required: ['q', 'op', 'ai', 'fi', 'ex'],
+              },
+              2,
+              2,
+            ),
+          },
+          required: ['lessonId', 'facts', 'keyTerms', 'scenario', 'mc'],
+        },
+        lessonIds.length || 1,
+        lessonIds.length || 1,
+      ),
+    },
+    required: [...(activityIds.length > 0 ? ['activityBlueprints'] : []), 'lessons'],
+  };
+  lockObjects(schema);
+  return { name: 'scion_compact_lesson_kernel_v1', schema, strict: true };
+}
+
+/**
+ * Small first-pass contract used only when a verified source-grounded adapter
+ * is available for the second pass. The base model establishes the factual
+ * warrant; it does not spend tokens drafting teaching surfaces that the
+ * task-scoped adapter will immediately replace.
+ */
+export function compactFactLedgerSchemaProfile({ expectedLessonIds = [], factCount = 5 } = {}) {
+  const lessonIds = expectedLessonIds.filter(Boolean);
+  const requiredFactCount = Math.max(3, Math.min(5, Number(factCount) || 5));
+  const schema = {
+    type: 'object',
+    properties: {
+      lessons: arr(
+        {
+          type: 'object',
+          properties: {
+            lessonId: lessonIds.length > 0 ? { type: 'string', enum: lessonIds } : str(3, 32),
+            facts: arr(str(20, 260), requiredFactCount, requiredFactCount),
+          },
+          required: ['lessonId', 'facts'],
+        },
+        lessonIds.length || 1,
+        lessonIds.length || 1,
+      ),
+    },
+    required: ['lessons'],
+  };
+  lockObjects(schema);
+  return { name: 'scion_compact_fact_ledger_v1', schema, strict: true };
+}
+
+export const COURSE_LEVEL_SCHEMA = {
+  type: 'object',
+  properties: {
+    signatureTerms: arr(str(3, 60), 4, 10),
+    lens: {
+      type: 'object',
+      properties: {
+        domain: str(3, 80),
+        evidenceNoun: str(3, 80),
+        decisionNoun: str(3, 80),
+        learnerRole: str(3, 80),
+        exampleNoun: str(3, 80),
+      },
+      required: ['domain', 'evidenceNoun', 'decisionNoun', 'learnerRole', 'exampleNoun'],
+    },
+    styleNotes: arr(str(8, 200), 1, 4),
+    discussionProtocol: {
+      type: 'object',
+      properties: {
+        format: str(5, 120),
+        participationPattern: str(20, 300),
+        artifactUse: str(20, 300),
+        reviewFocus: str(10, 300),
+      },
+      required: ['format', 'participationPattern', 'artifactUse', 'reviewFocus'],
+    },
+  },
+  required: ['signatureTerms', 'lens', 'styleNotes', 'discussionProtocol'],
+};
+
+/**
+ * The Pass B batch contract as a response_format json_schema profile.
+ * CONTENT-SOURCED lessons author session fields only (their kernel content
+ * comes from the curriculum library and must not be displaced).
+ */
+export function kernelBatchSchemaProfile({
+  expectedLessonIds = [],
+  contentSourcedLessonIds = [],
+  includeCourseLevel = false,
+  mcCount = 4,
+  keyTermCount = 4,
+  requiresTargetLanguagePair = false,
+} = {}) {
+  const contentSourced = new Set(contentSourcedLessonIds);
+  const kernelIds = expectedLessonIds.filter((id) => !contentSourced.has(id));
+  const sessionIds = expectedLessonIds.filter((id) => contentSourced.has(id));
+  const lessonVariants = [];
+  if (kernelIds.length > 0) {
+    lessonVariants.push({
+      type: 'object',
+      properties: {
+        lessonId: { type: 'string', enum: kernelIds },
+        ...kernelFieldSchemas({ mcCount, keyTermCount, requiresTargetLanguagePair }),
+        ...sessionFieldSchemas(),
+      },
+      required: [
+        'lessonId',
+        'goal',
+        'outcomes',
+        'async',
+        'sync',
+        'facts',
+        'keyTerms',
+        'scenario',
+        'discussionPrompt',
+        'assignmentCore',
+        'mc',
+        'studyGuide',
+        ...(requiresTargetLanguagePair ? ['targetLanguagePair'] : []),
+      ],
+    });
+  }
+  if (sessionIds.length > 0) {
+    lessonVariants.push({
+      type: 'object',
+      properties: { lessonId: { type: 'string', enum: sessionIds }, ...sessionFieldSchemas() },
+      required: ['lessonId', 'goal', 'outcomes', 'async', 'sync'],
+    });
+  }
+  const schema = {
+    type: 'object',
+    properties: {
+      lessons: arr(
+        lessonVariants.length === 1 ? lessonVariants[0] : { anyOf: lessonVariants },
+        expectedLessonIds.length,
+        expectedLessonIds.length,
+      ),
+      ...(includeCourseLevel ? { courseLevel: COURSE_LEVEL_SCHEMA } : {}),
+    },
+    required: ['lessons', ...(includeCourseLevel ? ['courseLevel'] : [])],
+  };
+  lockObjects(schema);
+  return { name: 'kernel_lesson_batch', schema, strict: true };
+}
+
+/**
+ * The Pass A skeleton contract — sessions pinned to the requested count
+ * (V2 measured a 25-session greedy hallucination on a 7-lesson course when
+ * unpinned), assessments REQUIRED with at least one per session (their
+ * titles fill compiled template slots course-wide), readings/resources
+ * optional per the prompt's own omission rules.
+ */
+export function skeletonSchemaProfile({ sessionCount }) {
+  const count = Math.max(1, Number(sessionCount) || 1);
+  const schema = {
+    type: 'object',
+    properties: {
+      course: {
+        type: 'object',
+        properties: { name: str(3, 120), term: str(2, 24), goals: arr(str(8, 120), 3, 8) },
+        required: ['name', 'term', 'goals'],
+      },
+      sessions: arr(
+        {
+          type: 'object',
+          properties: {
+            id: str(2, 6),
+            order: { type: 'integer', minimum: 1, maximum: count },
+            title: str(5, 60),
+            sectionTitles: arr(str(3, 60), 2, 4),
+          },
+          required: ['id', 'order', 'title', 'sectionTitles'],
+        },
+        count,
+        count,
+      ),
+      assessments: arr(
+        {
+          type: 'object',
+          properties: {
+            id: str(2, 8),
+            title: str(5, 120),
+            kind: { type: 'string', enum: ['graded-artifact', 'in-class', 'exam', 'oral'] },
+            dueSession: { type: 'integer', minimum: 1, maximum: count },
+            weightPct: { type: 'integer', minimum: 0, maximum: 100 },
+          },
+          required: ['id', 'title', 'dueSession'],
+        },
+        count,
+        count * 3,
+      ),
+      readings: arr(
+        {
+          type: 'object',
+          properties: {
+            id: str(2, 8),
+            title: str(3, 160),
+            dueSession: { type: 'integer', minimum: 1, maximum: count },
+          },
+          required: ['id', 'title', 'dueSession'],
+        },
+        0,
+        count * 3,
+      ),
+      resources: arr(
+        {
+          type: 'object',
+          properties: {
+            id: str(2, 8),
+            title: str(3, 160),
+            dueSession: { type: 'integer', minimum: 1, maximum: count },
+          },
+          required: ['id', 'title', 'dueSession'],
+        },
+        0,
+        count * 3,
+      ),
+    },
+    required: ['course', 'sessions', 'assessments'],
+  };
+  lockObjects(schema);
+  return { name: 'course_skeleton', schema, strict: true };
+}
+
+// V2 measured the long-title cascade: syllabus-phrase session titles echo
+// into every compiled template slot. Scion gets an explicit concision rule
+// (the grammar backstop alone CLIPS mid-word — round 12).
+export const SCION_SKELETON_DIRECTIVE =
+  '\n\nSCION ADDITION: session titles are concise 2-4 word topic names that keep the discipline nouns (e.g. "Pitch Notation", "Triads and Sevenths") — never the full syllabus phrase. If the source gives an ordered lesson-topic list, map every listed topic exactly once in that order; do not replace later topics with repeated review or capstone sessions unless the source itself repeats them. Make sectionTitles a conceptual spine, not generic labels: name the concrete object, mechanism or formal device, consequential tension, and application or boundary. Never use "Themes in X", "Concepts of X", "Introduction to X", "Overview of X", "X exploration", or "X possibilities". For a named literary work, keep the work title once and use the remaining sections for distinct formal devices or interpretive tensions supported by the course brief.';
+
+// D3 pass gating: on by default for Scion; explicit opt-out only.
+export function scionPassesEnabled() {
+  try {
+    return localStorage.getItem('coursemapper-scion-passes') !== 'off';
+  } catch {
+    return true;
+  }
+}
+
+// D4 flywheel gating: on by default (local-only, nothing leaves the machine).
+export function scionFlywheelEnabled() {
+  try {
+    return localStorage.getItem('coursemapper-scion-flywheel') !== 'off';
+  } catch {
+    return true;
+  }
+}

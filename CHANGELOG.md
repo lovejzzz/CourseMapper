@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.18.7 interface restoration — 2026-09-05
+
+The product owner requested the complete 0.18.7 interface, including the homepage, after reviewing the experimental 0.19.0-rc.1 replacement.
+
+- Restored the original homepage, material selection, configuration, course-map workspace, chat, editable material views, revision controls and export sidebar from commit `27513a83`.
+- Restored all ten original material categories and the custom deliverable flow.
+- Kept the experimental Studio implementation and its quality research isolated from the production application. It is not the public interface.
+- Added a deployment identity with the actual commit and interface baseline; retained one-worker browser verification.
+- Re-ran original export and responsive workspace regression tests. This restoration does not establish classroom readiness or finish the educational audit.
+- No final v0.19.0 tag has been published.
+
 ## 0.19.0 — release candidate, not yet final
 
 ### Product and editing

@@ -1,0 +1,932 @@
+import { describe, expect, it } from 'vitest';
+import { auditDeliverableContentQuality, hasDanglingClauseSeam } from '../contentQualityChecks.js';
+import {
+  auditOfficeBlobRepetition,
+  findWorstPhraseRepetition,
+  stripStructuralMetadata,
+} from '../exportRenderedTextAudit.js';
+import { buildDeliverableDocxBlob } from '../exporters/bulkDocxExporter.js';
+import { finalizeCompiledDeliverableLanguage, shortArtifactReference } from '../compiledLanguageFinalizer.js';
+import { findPromptArtifactContamination } from '../quality/artifactDefectPatterns.js';
+
+// Defect fixtures lifted verbatim from the June 2026 four-course v0.8.6
+// export audit — these are the exact failure shapes the checks must catch.
+describe('auditDeliverableContentQuality', () => {
+  it('flags an exact compiler evidence-boundary directive used as a Course FAQ answer', () => {
+    const { findings } = auditDeliverableContentQuality('courseFaq', {
+      faqs: [
+        {
+          questions: [
+            {
+              question: 'How does Python actually work?',
+              answer: "Python: show the source basis and mark the inference's reach.",
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(findings).toEqual(expect.arrayContaining([expect.objectContaining({ code: 'faq-compiler-non-answer' })]));
+  });
+
+  it.each([
+    'Do not stop at a definition. Explain how Data cleaning works in the lesson context, then use one example or data point to show why the distinction matters.',
+    'Define the term briefly, connect it to Capstone Policy Memo, and name the decision or tradeoff that changes when the term is applied correctly.',
+  ])('flags an exact generic compiler instruction used in place of a Course FAQ answer', (answer) => {
+    const { findings } = auditDeliverableContentQuality('courseFaq', {
+      faqs: [{ questions: [{ question: 'What does this mean?', answer }] }],
+    });
+    expect(findings).toEqual(expect.arrayContaining([expect.objectContaining({ code: 'faq-compiler-non-answer' })]));
+  });
+
+  it('does not mistake substantive Course FAQ guidance for a compiler non-answer', () => {
+    const { findings } = auditDeliverableContentQuality('courseFaq', {
+      faqs: [
+        {
+          questions: [
+            {
+              question: 'How can I verify which branch runs?',
+              answer:
+                'Substitute one concrete input, mark each condition true or false, trace the selected branch, and compare the trace with the program output.',
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(findings.some((finding) => finding.code === 'faq-compiler-non-answer')).toBe(false);
+  });
+
+  it('flags encyclopedia navigation residue in learner prose', () => {
+    const { findings } = auditDeliverableContentQuality('lessonPlans', {
+      lessonPlans: [
+        {
+          notes: '(See also Accuracy and precision.) Accuracy is hard to establish in the general case.',
+        },
+      ],
+    });
+    expect(findings).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'encyclopedia-cross-reference' })]),
+    );
+  });
+
+  it('flags procedural glossary copy that does not define the subject term', () => {
+    const { findings } = auditDeliverableContentQuality('studyGuides', {
+      studyGuides: [
+        {
+          keyTerms: [
+            {
+              term: 'Conformance',
+              definition: 'Conformance names the evidence focus students use when deciding what counts as support.',
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(findings).toEqual(expect.arrayContaining([expect.objectContaining({ code: 'procedural-term-definition' })]));
+  });
+
+  it('flags leading-colon labels from unstripped section numbering', () => {
+    const { findings } = auditDeliverableContentQuality('studyGuides', {
+      studyGuides: [{ keyTerms: [{ term: ': Course Framing and Core Concepts', definition: 'x' }] }],
+    });
+    expect(findings.some((finding) => finding.code === 'leading-colon-label')).toBe(true);
+  });
+
+  it('flags an orphan closing quote at the start of a rendered prompt', () => {
+    const { findings } = auditDeliverableContentQuality('studyGuides', {
+      studyGuides: [{ reviewQuestions: [{ question: '” What decision follows from the evidence?' }] }],
+    });
+    expect(findings).toEqual(expect.arrayContaining([expect.objectContaining({ code: 'orphan-closing-quote' })]));
+  });
+
+  it('flags dangling clauses that end mid-thought', () => {
+    const { findings } = auditDeliverableContentQuality('assignments', {
+      assignments: [
+        { notes: 'Strong evidence connects the criterion to a specific decision, limitation, or revision in.' },
+      ],
+    });
+    expect(findings.some((finding) => finding.code === 'dangling-clause')).toBe(true);
+  });
+
+  it('does not flag valid phrasal verbs that end in a preposition', () => {
+    const { findings } = auditDeliverableContentQuality('slideDecks', {
+      notes: [
+        'Ask students which cue they should watch for.',
+        'Name the source they will work with.',
+        'The conclusion holds whatever foods the energy comes from.',
+      ],
+    });
+    expect(findings.some((finding) => finding.code === 'dangling-clause')).toBe(false);
+  });
+
+  it('does not flag a complete temporal phrase ending in before', () => {
+    const { findings } = auditDeliverableContentQuality('studyGuides', {
+      lessons: [
+        {
+          keyTerms: [
+            {
+              example:
+                'The supported answer to “Which step would most directly have caught this?” is Rehearsing every task the day before.',
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(findings.some((finding) => finding.code === 'dangling-clause')).toBe(false);
+  });
+
+  it('does not flag a complete assignment check-in label', () => {
+    const { findings } = auditDeliverableContentQuality('assignments', {
+      assignments: [{ instructions: ['Before submission, revise one evidence link in the Week 2 check-in.'] }],
+    });
+
+    expect(findings.some((finding) => finding.code === 'dangling-clause')).toBe(false);
+  });
+
+  it('flags article disagreement like "a Energy decision"', () => {
+    const { findings } = auditDeliverableContentQuality('syllabus', {
+      syllabus: { description: 'Explains a Energy decision, implication, or next step.' },
+    });
+    expect(findings.some((finding) => finding.code === 'article-agreement')).toBe(true);
+  });
+
+  it.each(['a the policy example', 'the a policy example', 'the an evidence brief', 'the the policy example'])(
+    'flags adjacent article collision "%s"',
+    (collision) => {
+      const { findings } = auditDeliverableContentQuality('assignments', {
+        assignments: [{ instructions: `Audit ${collision} before submission.` }],
+      });
+      expect(findings.some((finding) => finding.code === 'article-collision')).toBe(true);
+    },
+  );
+
+  it.each(['the a priori assumption', 'the a posteriori result', 'the a.m. session', 'the A/B test', 'an A grade'])(
+    'does not treat the fixed expression "%s" as an article collision',
+    (expression) => {
+      const { findings } = auditDeliverableContentQuality('assignments', {
+        assignments: [{ instructions: `Compare ${expression} before submission.` }],
+      });
+      expect(findings.some((finding) => finding.code === 'article-collision')).toBe(false);
+    },
+  );
+
+  it('does not treat hyphenated morphemes or equals-bound clitics as English articles', () => {
+    const { findings } = auditDeliverableContentQuality('assignments', {
+      assignments: [{ instructions: 'Preserve the Boumaa Fijian record soli-a a=niu exactly during analysis.' }],
+    });
+
+    expect(findings.some((finding) => finding.code === 'article-collision')).toBe(false);
+  });
+
+  it('flags run-together criteria sentences like "Strong work Names the relevant"', () => {
+    const { findings } = auditDeliverableContentQuality('syllabus', {
+      syllabus: { description: 'Strong work Names the relevant Climate concept accurately.' },
+    });
+    expect(findings.some((finding) => finding.code === 'run-together-criteria')).toBe(true);
+  });
+
+  it('flags instructor voice inside student-facing assignment instructions', () => {
+    const { findings } = auditDeliverableContentQuality('assignments', {
+      assignments: [
+        { instructions: ['Ask students to define Climate in their own words before new instruction begins.'] },
+      ],
+    });
+    expect(findings.some((finding) => finding.code === 'instructor-voice-in-student-surface')).toBe(true);
+  });
+
+  it('flags assignment logistics deferred to missing instructor configuration', () => {
+    const { findings } = auditDeliverableContentQuality('assignments', {
+      assignments: [
+        {
+          parameters: ['Submission format: organize the memo in the medium listed for the task.'],
+          formatRequirements: {
+            citationStyle: 'Apply the course citation format before uploading.',
+            submissionPlatform: 'Official course site',
+            latePolicy: 'Late work follows the local course policy.',
+          },
+        },
+      ],
+    });
+
+    expect(findings.filter((finding) => finding.code === 'instructor-configuration-deferral')).toHaveLength(2);
+  });
+
+  it('does not flag concrete assignment logistics', () => {
+    const { findings } = auditDeliverableContentQuality('assignments', {
+      assignments: [
+        {
+          parameters: ['Submit a 1,200-word PDF memo.'],
+          formatRequirements: {
+            citationStyle: 'APA 7',
+            submissionPlatform: 'Canvas assignment: Evidence memo',
+            latePolicy: 'A 48-hour grace period applies; request longer extensions by email before the deadline.',
+          },
+        },
+      ],
+    });
+
+    expect(findings.some((finding) => finding.code === 'instructor-configuration-deferral')).toBe(false);
+  });
+
+  it('flags testing lessons that do not require executable fail-pass evidence', () => {
+    const { findings } = auditDeliverableContentQuality('assignments', {
+      assignments: [
+        {
+          title: 'Comparison brief',
+          relatedLessons: ['Lesson 3: Functions and automated tests'],
+          instructions: ['Write a PDF reflection about automated tests.'],
+          formatRequirements: { format: 'PDF, PPTX, or MP4' },
+        },
+      ],
+    });
+
+    expect(findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'testing-lesson-without-executable-work' }),
+        expect.objectContaining({ code: 'testing-lesson-without-fail-pass-evidence' }),
+      ]),
+    );
+  });
+
+  it('flags policy memos that omit decision architecture and referenced support materials', () => {
+    const { findings } = auditDeliverableContentQuality('assignments', {
+      assignments: [
+        {
+          title: 'Integrative policy memo capstone',
+          relatedLessons: ['Lesson 6: Integrative policy memo capstone'],
+          instructions: [
+            'Summarize the data and make a recommendation. Review the strong and partial samples and use the assigned evidence packet.',
+          ],
+        },
+      ],
+    });
+
+    expect(findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'policy-memo-missing-decision-architecture' }),
+        expect.objectContaining({ code: 'assignment-references-missing-anchor-samples' }),
+        expect.objectContaining({ code: 'assignment-references-missing-evidence-packet' }),
+      ]),
+    );
+  });
+
+  it('flags a uniform multiple-choice answer key across lessons', () => {
+    const quiz = (lessonNumber) => ({
+      lessonNumber,
+      questions: [
+        { type: 'multiple_choice', answer: 'B' },
+        { type: 'multiple_choice', answer: 'C' },
+        { type: 'multiple_choice', answer: 'D' },
+      ],
+    });
+    const { findings } = auditDeliverableContentQuality('quizBank', {
+      quizzes: [quiz(1), quiz(2), quiz(3), quiz(4)],
+    });
+    expect(findings.some((finding) => finding.code === 'uniform-quiz-answer-key')).toBe(true);
+  });
+
+  it('audits only the canonical rendered root when stale aliases coexist', () => {
+    const quiz = (answers) => ({
+      questions: answers.map((answer) => ({ type: 'multiple_choice', answer })),
+    });
+    const { findings } = auditDeliverableContentQuality('quizBank', {
+      quizBank: [quiz(['A', 'B']), quiz(['B', 'C']), quiz(['C', 'D'])],
+      quizzes: [quiz(['B', 'C']), quiz(['B', 'C']), quiz(['B', 'C'])],
+    });
+
+    expect(findings.some((finding) => finding.code === 'uniform-quiz-answer-key')).toBe(false);
+  });
+
+  it('does not report defects found only in a stale lesson-plan alias', () => {
+    const { findings } = auditDeliverableContentQuality('lessonPlans', {
+      lessonPlans: [{ notes: 'Canonical content is a complete sentence.' }],
+      plans: [{ notes: 'Stale content ends in.' }],
+    });
+
+    expect(findings.some((finding) => finding.code === 'dangling-clause')).toBe(false);
+  });
+
+  it('ignores internal receipt metadata that exports never render', () => {
+    const { findings } = auditDeliverableContentQuality('lessonPlans', {
+      lessonPlans: [{ blueprintGrounding: { sourceAnchors: [{ anchor: ': Course Framing and Core Concepts' }] } }],
+    });
+    expect(findings).toHaveLength(0);
+  });
+
+  it('passes clean content', () => {
+    const { findings } = auditDeliverableContentQuality('assignments', {
+      assignments: [
+        {
+          instructions: ['Before drafting, define climate resilience in your own words.'],
+          notes: 'Strong evidence connects the criterion to a visible revision decision.',
+        },
+      ],
+    });
+    expect(findings).toHaveLength(0);
+  });
+});
+
+describe('findWorstPhraseRepetition', () => {
+  it('counts template-stamped 8-grams', () => {
+    const sentence = 'Introductory discussion post and short diagnostic quiz needs review now.';
+    const result = findWorstPhraseRepetition(Array.from({ length: 20 }, () => sentence));
+    expect(result.count).toBe(20);
+    expect(result.limit).toBeGreaterThan(0);
+  });
+
+  it('stays quiet for varied prose', () => {
+    const result = findWorstPhraseRepetition([
+      'Each lesson uses a different framing for its evidence.',
+      'Students compare sources before drafting the weekly memo.',
+    ]);
+    expect(result.count).toBeLessThan(2);
+  });
+
+  // ── v0.14.4 WS-C3a: structural quiz scaffolding is exempt from shingling ──
+  // The exact live flag: 'quizBank: Rendered text repeats the phrase
+  // "multiple choice 2 pts 2 min which statement" 13 times within one
+  // section' — item headers, not content.
+  const QUIZ_TOPICS = [
+    'minerals',
+    'basalt',
+    'granite',
+    'shale',
+    'gneiss',
+    'magma',
+    'faults',
+    'strata',
+    'erosion',
+    'plates',
+    'quartz',
+    'fossils',
+    'soils',
+  ];
+
+  it('never flags the quiz item-header pattern family alone (13 uniform headers, unique stems)', () => {
+    const paragraphs = QUIZ_TOPICS.map(
+      (topic, index) =>
+        `Q${index + 1} (Multiple choice, 2 pts, ~2 min):  Which statement about ${topic} is supported by the ${
+          QUIZ_TOPICS[(index + 5) % QUIZ_TOPICS.length]
+        } evidence collected in week ${index + 1}?`,
+    );
+    const result = findWorstPhraseRepetition(paragraphs);
+    expect(result.count, `flagged "${result.shingle}"`).toBeLessThan(result.limit);
+  });
+
+  it('never flags answer-key scaffold, Aligns to / Intended use, or pts/min meta lines alone', () => {
+    const paragraphs = [];
+    QUIZ_TOPICS.forEach((topic, index) => {
+      // makeCallout's uppercased label run + body-case explanation run.
+      paragraphs.push(`ANSWER — B Correct because the ${topic} specimen logged in lab ${index + 1} matches option B.`);
+      paragraphs.push('Aligns to: Analyze mineral identification using specimen evidence.');
+      paragraphs.push('Intended use: weekly retrieval check before the lab practical.');
+      paragraphs.push('2 pts · ~2 min');
+    });
+    const result = findWorstPhraseRepetition(paragraphs);
+    expect(result.count, `flagged "${result.shingle}"`).toBeLessThan(result.limit);
+  });
+
+  it('still flags a 13× repeated content sentence (the v0.14.2 license-style repetition)', () => {
+    const sentence =
+      'Open educational resources used in this course package, with their licenses and attribution. ' +
+      'Attribution must remain with redistributed materials for CC BY sources.';
+    const result = findWorstPhraseRepetition(Array.from({ length: 13 }, () => sentence));
+    expect(result.count).toBe(13);
+    expect(result.count).toBeGreaterThanOrEqual(result.limit);
+  });
+
+  it('treats repeated CC rights tuples as bibliography structure while retaining unique source titles', () => {
+    const paragraphs = Array.from(
+      { length: 19 },
+      (_, index) =>
+        `Distinct source ${index + 1} (CC BY-SA 4.0 — https://example.org/source-${index + 1}) — ` +
+        `Wikipedia contributors, “Distinct source ${index + 1}”`,
+    );
+    const result = findWorstPhraseRepetition(paragraphs);
+    expect(result.count, `flagged "${result.shingle}"`).toBeLessThan(result.limit);
+  });
+
+  it('strips only the scaffold prefix, preserving question and explanation content', () => {
+    expect(stripStructuralMetadata('Q3 (Multiple choice, 2 pts, ~2 min):  Which statement is accurate?')).toBe(
+      'Which statement is accurate?',
+    );
+    expect(stripStructuralMetadata('Q4 (True/False, 1 pt, ~1 min): Granite is intrusive.')).toBe(
+      'Granite is intrusive.',
+    );
+    expect(stripStructuralMetadata('Q5 (Essay, 10 pts): Explain the rock cycle.')).toBe('Explain the rock cycle.');
+    expect(stripStructuralMetadata('ANSWER — B The sample shows visible crystals.')).toBe(
+      'The sample shows visible crystals.',
+    );
+    // A content sentence that merely starts with "Answer" keeps its case-led words.
+    expect(stripStructuralMetadata('Answers vary by region and rock type.')).toBe(
+      'Answers vary by region and rock type.',
+    );
+    expect(stripStructuralMetadata('Aligns to: Analyze mineral identification.')).toBe('');
+    expect(stripStructuralMetadata('Intended use: retrieval check.')).toBe('');
+    expect(stripStructuralMetadata('2 pts · ~5 min')).toBe('');
+    // Non-scaffold lines pass through untouched.
+    expect(stripStructuralMetadata('Quiz 3 covers 2 pts of extra credit material.')).toBe(
+      'Quiz 3 covers 2 pts of extra credit material.',
+    );
+  });
+});
+
+// End-to-end through the REAL quiz DOCX renderer (the same builder the export
+// verifier audits): uniform per-item metadata never flags; a genuinely
+// repeated stem still does.
+describe('auditOfficeBlobRepetition — quiz structural metadata exemption (v0.14.4 C3a)', () => {
+  const topics = [
+    'minerals',
+    'basalt',
+    'granite',
+    'shale',
+    'gneiss',
+    'magma',
+    'faults',
+    'strata',
+    'erosion',
+    'plates',
+    'quartz',
+    'fossils',
+    'soils',
+  ];
+  const buildQuiz = (questionFor) => ({
+    quizzes: [
+      {
+        lessonTitle: 'Lesson 1: Minerals',
+        questions: topics.map((topic, index) => ({
+          type: 'multiple_choice',
+          points: 2,
+          estimatedMinutes: 2,
+          question: questionFor(topic, index),
+          options: ['A. first option', 'B. second option', 'C. third option', 'D. fourth option'],
+          answer: 'B',
+          explanation: `Option B matches the ${topic} evidence recorded in the field notebook.`,
+          objectiveAligned: 'Analyze mineral identification using specimen evidence.',
+          intendedUse: 'weekly retrieval check before the lab practical.',
+        })),
+      },
+    ],
+  });
+
+  it('13 uniform "(Multiple choice, 2 pts, ~2 min)" headers with unique stems stay clean', async () => {
+    const blob = await buildDeliverableDocxBlob(
+      'quizBank',
+      buildQuiz(
+        (topic, index) =>
+          `Which statement about ${topic} is supported by the ${
+            topics[(index + 5) % topics.length]
+          } evidence collected in week ${index + 1}?`,
+      ),
+      'Physical Geology',
+    );
+    const finding = await auditOfficeBlobRepetition(blob, 'docx');
+    expect(finding, finding && `flagged "${finding.sample}" ×${finding.count}`).toBeNull();
+  });
+
+  it('a 13× repeated question stem still flags through the same renderer', async () => {
+    const blob = await buildDeliverableDocxBlob(
+      'quizBank',
+      buildQuiz(
+        () => 'Which statement about the rock cycle is supported by the specimen evidence from this week of lab?',
+      ),
+      'Physical Geology',
+    );
+    const finding = await auditOfficeBlobRepetition(blob, 'docx');
+    expect(finding).not.toBeNull();
+    expect(finding.code).toBe('phrase-repetition');
+    expect(finding.count).toBeGreaterThanOrEqual(13);
+  });
+
+  it('consolidates repeated source rights while preserving every cited title and URL', async () => {
+    const entries = Array.from({ length: 16 }, (_, index) => ({
+      citation: `Language article ${index + 1} (open encyclopedia) — https://example.org/article-${index + 1}`,
+      license: 'CC BY-SA 4.0',
+      attribution: `Wikipedia contributors, “Language article ${index + 1}”`,
+      url: `https://example.org/article-${index + 1}`,
+    }));
+    const blob = await buildDeliverableDocxBlob(
+      'syllabus',
+      {
+        syllabus: {
+          courseDescription: 'A source-auditable language course.',
+          sourcesAndLicenses: {
+            title: 'Sources & Licenses',
+            groups: [{ origin: 'other', label: 'Open references', entries }],
+          },
+        },
+      },
+      'Language Structure',
+    );
+
+    const finding = await auditOfficeBlobRepetition(blob, 'docx');
+    expect(finding).toBeNull();
+  });
+});
+
+describe('compiledLanguageFinalizer', () => {
+  const blueprint = {
+    lessons: [
+      {
+        lessonNumber: 1,
+        title: 'Lesson 1: Climate Science, Justice Frameworks, and Community Resilience Basics',
+        studentArtifact: 'Introductory discussion post and short diagnostic quiz',
+        readings: [],
+      },
+    ],
+  };
+
+  it('keeps slide titles unique after final reference rewriting', () => {
+    const data = {
+      slideDecks: [
+        {
+          lessonNumber: 1,
+          lessonTitle: 'Lesson 1: Watershed Governance and Public Accountability',
+          slides: [
+            { type: 'content', title: 'Watershed evidence check', bullets: ['Inspect the source record.'] },
+            { type: 'summary', title: 'Watershed evidence check', bullets: ['Bound the conclusion.'] },
+            { type: 'closing', title: 'Watershed evidence check', bullets: ['Name the next test.'] },
+          ],
+        },
+      ],
+    };
+
+    finalizeCompiledDeliverableLanguage('slideDecks', data, { lessons: [] });
+
+    const titles = data.slideDecks[0].slides.map((slide) => slide.title.toLowerCase());
+    expect(new Set(titles).size).toBe(titles.length);
+    expect(titles).toEqual(['watershed evidence check', 'evidence synthesis', 'evidence transfer check']);
+  });
+
+  it('repairs a possessive/determiner collision on learner-facing surfaces', () => {
+    const data = {
+      studyGuides: [
+        {
+          lessonNumber: 5,
+          overview: 'Defend your the visual interpretation with one visible detail.',
+        },
+      ],
+    };
+
+    finalizeCompiledDeliverableLanguage('studyGuides', data, { lessons: [] });
+    expect(data.studyGuides[0].overview).toBe('Defend your visual interpretation with one visible detail.');
+  });
+
+  it('shortens repeated artifact titles after the first mentions', () => {
+    const data = {
+      assignments: [
+        {
+          overview:
+            'Introductory discussion post and short diagnostic quiz is due this week. Prepare Introductory discussion post and short diagnostic quiz early. Revise Introductory discussion post and short diagnostic quiz with feedback. Submit Introductory discussion post and short diagnostic quiz online.',
+        },
+      ],
+    };
+    finalizeCompiledDeliverableLanguage('assignments', data, blueprint);
+    const text = data.assignments[0].overview;
+    const fullMentions = text.match(/Introductory discussion post and short diagnostic quiz/g) || [];
+    expect(fullMentions.length).toBeLessThanOrEqual(2);
+    expect(text).toContain('Week 1');
+  });
+
+  it('does not amputate a coordinated lesson title after a stranded preposition', () => {
+    const philosophyBlueprint = {
+      lessons: [
+        {
+          lessonNumber: 7,
+          title: 'Lesson 7: Arguments for and against God',
+          studentArtifact: 'Theism exit note connecting the activity to one visible product',
+          readings: [],
+        },
+      ],
+    };
+    const data = {
+      assignments: [
+        {
+          lessonNumber: 7,
+          progressTracking:
+            'Review Lesson 7: Arguments for and against God once. Revisit Lesson 7: Arguments for and against God with feedback. Monitor readiness for Lesson 7: Arguments for and against God.',
+        },
+      ],
+    };
+
+    finalizeCompiledDeliverableLanguage('assignments', data, philosophyBlueprint);
+
+    expect(data.assignments[0].progressTracking).toContain('Arguments for and against God.');
+    expect(data.assignments[0].progressTracking).not.toContain('Arguments for.');
+    expect(hasDanglingClauseSeam(data.assignments[0].progressTracking)).toBe(false);
+  });
+
+  it('keeps the complement when a long lesson title reaches the five-word crop at a connector', () => {
+    const productionBlueprint = {
+      lessons: [
+        {
+          lessonNumber: 3,
+          title: 'Lesson 3: Data visualization with matplotlib for policy audiences',
+          studentArtifact: 'Policy-audience visualization critique',
+          readings: [],
+        },
+      ],
+    };
+    const data = {
+      assignments: [
+        {
+          lessonNumber: 3,
+          progressTracking:
+            'Review Lesson 3: Data visualization with matplotlib for policy audiences once. ' +
+            'Revisit Lesson 3: Data visualization with matplotlib for policy audiences with feedback. ' +
+            'Monitor Lesson 3: Data visualization with matplotlib for policy audiences before submission.',
+        },
+      ],
+    };
+
+    finalizeCompiledDeliverableLanguage('assignments', data, productionBlueprint);
+
+    expect(data.assignments[0].progressTracking).toContain('Data visualization with matplotlib for policy audiences');
+    expect(data.assignments[0].progressTracking).not.toContain('matplotlib for.');
+    expect(hasDanglingClauseSeam(data.assignments[0].progressTracking)).toBe(false);
+  });
+
+  it('repairs article agreement and double periods at template seams', () => {
+    const data = {
+      assignments: [
+        {
+          note:
+            'Explains a Energy decision about the work.. Next step follows. ' +
+            'Define project management: Define project management before selecting evidence.',
+        },
+      ],
+    };
+    finalizeCompiledDeliverableLanguage('assignments', data, { lessons: [] });
+    expect(data.assignments[0].note).toContain('an Energy decision');
+    expect(data.assignments[0].note).not.toContain('..');
+    expect(data.assignments[0].note).not.toContain('Define project management: Define project management');
+  });
+
+  it('preserves fingerprinted repeated tokens and morpheme boundaries during prose cleanup', () => {
+    const form = 'Au aa soli-a a=niu vei ira.';
+    const data = {
+      quizBank: [
+        {
+          question: `Evidence case: Boumaa Fijian fusion example: “${form}” [1SG PST give-TR ART=coconut to 3PL].`,
+          explanation: `Evidence basis: Boumaa Fijian fusion example: “${form}”.`,
+        },
+      ],
+    };
+    const evidenceBlueprint = {
+      lessons: [
+        {
+          lessonNumber: 1,
+          title: 'Lesson 1: Morphological Evidence',
+          authenticDataTaskPlan: {
+            protocol: 'coursemapper-authentic-evidence-task-binding-v1',
+            examples: [
+              {
+                id: 'fijian-fusion',
+                language: 'Boumaa Fijian',
+                form,
+                gloss: '1SG PST give-TR ART=coconut to 3PL',
+                translation: 'I gave the coconut to them.',
+                analysisFocus: 'Morphological identification of the cited formative.',
+                sourceLocator: 'example 1',
+                communityContext: 'Do not generalize one clause to all Fijian morphology.',
+              },
+            ],
+          },
+        },
+      ],
+    };
+
+    finalizeCompiledDeliverableLanguage('quizBank', data, evidenceBlueprint);
+
+    const rendered = JSON.stringify(data);
+    expect(rendered).toContain(form);
+    expect(rendered).not.toContain('soli-a=niu');
+  });
+
+  it('still repairs genuine adjacent English articles without touching a following morpheme boundary', () => {
+    const data = {
+      assignments: [
+        {
+          note: 'Review the the Week 2 brief and a the policy example, then preserve soli-a a=niu exactly.',
+        },
+      ],
+    };
+
+    finalizeCompiledDeliverableLanguage('assignments', data, { lessons: [] });
+
+    expect(data.assignments[0].note).toBe(
+      'Review the Week 2 brief and a policy example, then preserve soli-a a=niu exactly.',
+    );
+  });
+
+  it('preserves hashed functional-visual identifiers during prose cleanup', () => {
+    const visualBlueprint = {
+      lessons: [
+        {
+          lessonNumber: 1,
+          instructionalIntent: {
+            taskContract: {
+              protocol: 'coursemapper-functional-visual-task-contract-v1',
+              observables: [{ id: 'observable:image-a', entityId: 'image-a', renderedSelector: 'cmEntity_image-a' }],
+              predicates: [{ id: 'same-subject', left: 'image-a', right: 'image-b' }],
+              counterexample: { stateId: 'withheld-context-state', mutation: { entityId: 'image-a' } },
+              inference: { id: 'inference:context-boundary-comparison', predicateIds: ['same-subject'] },
+            },
+          },
+        },
+      ],
+    };
+    const data = {
+      quizBank: [
+        {
+          auditCopy: 'Inspect image-a, observable:image-a, cmEntity_image-a, same-subject, and withheld-context-state.',
+        },
+      ],
+    };
+
+    finalizeCompiledDeliverableLanguage('quizBank', data, visualBlueprint);
+
+    expect(data.quizBank[0].auditCopy).toContain('image-a');
+    expect(data.quizBank[0].auditCopy).toContain('observable:image-a');
+    expect(data.quizBank[0].auditCopy).toContain('cmEntity_image-a');
+    expect(data.quizBank[0].auditCopy).toContain('same-subject');
+    expect(data.quizBank[0].auditCopy).toContain('withheld-context-state');
+    expect(data.quizBank[0].auditCopy).not.toContain('image-an');
+  });
+
+  it('collapses identical week labels created where schedule and artifact references meet', () => {
+    const data = {
+      assignments: [
+        {
+          note: 'Submit the Week 2 Week 2 oral response, then revise the Week 2 the Week 2 evidence memo.',
+        },
+      ],
+    };
+    finalizeCompiledDeliverableLanguage('assignments', data, { lessons: [] });
+    expect(data.assignments[0].note).toBe('Submit the Week 2 oral response, then revise the Week 2 evidence memo.');
+  });
+
+  it('repairs assignment parameter scaffolds before prompt-artifact grading', () => {
+    const data = {
+      assignments: [
+        {
+          instructions: [
+            'Work within these parameters: Use brief written explanations; Include at least 2 misconceptions; Focus on concepts and application; Support answers with reasons.',
+          ],
+        },
+      ],
+    };
+
+    finalizeCompiledDeliverableLanguage('assignments', data, { lessons: [] });
+
+    const text = data.assignments[0].instructions.join(' ');
+    expect(text).toContain('Submission requirements:');
+    expect(text).toContain('write brief explanations');
+    expect(text).toContain('address at least 2 common misunderstandings');
+    expect(text).toContain('connect concepts and application to the submitted evidence');
+    expect(text).toContain('justify each answer with a reason');
+    expect(text).not.toMatch(/Work within these parameters|Focus on concepts|misconceptions/i);
+    expect(findPromptArtifactContamination(text)).toBeNull();
+  });
+
+  it('does not treat ordinary assignment-management prose as prompt-artifact leakage', () => {
+    const uxAnswer =
+      'A defensible position: Personas should focus on the most common patterns to stay usable. ' +
+      'In a scenario where a team has interviews with six students about managing assignments, deadlines, and notifications, ' +
+      'the persona should name the repeated scheduling pain points rather than every unique preference.';
+
+    expect(findPromptArtifactContamination(uxAnswer)).toBeNull();
+    expect(
+      findPromptArtifactContamination('This activity focuses on Assignment Briefs rather than the course concept.'),
+    ).toEqual(expect.objectContaining({ label: 'assignment briefs' }));
+  });
+
+  it('leaves multiple-choice answer letters alone', () => {
+    const data = { quizBank: [{ explanation: 'A is correct because it cites evidence.' }] };
+    finalizeCompiledDeliverableLanguage('quizBank', data, { lessons: [] });
+    expect(data.quizBank[0].explanation).toMatch(/^A is correct/);
+  });
+
+  it('repairs versioned WCAG subject-verb agreement on learner-facing surfaces', () => {
+    const data = {
+      quizBank: [{ question: 'WCAG 2.0 consist of twelve guidelines organized under four principles.' }],
+    };
+    finalizeCompiledDeliverableLanguage('quizBank', data, { lessons: [] });
+    expect(data.quizBank[0].question).toBe('WCAG 2.0 consists of twelve guidelines organized under four principles.');
+  });
+
+  it('preserves accessibility acronyms and bounds policy-specific web obligations', () => {
+    const data = {
+      courseFaq: [
+        {
+          question: 'How does Wcag connect Html semantics to a Ux artifact? How does Wcag principles actually work?',
+          answer:
+            "The W3C's Techniques for WCAG 2.0 is a list of techniques that help authors. " +
+            'All websites will need to adhere to the WCAG Principles. ' +
+            'For example: The regulations require compliance with WCAG 2.0.',
+        },
+      ],
+    };
+
+    finalizeCompiledDeliverableLanguage('courseFaq', data, { lessons: [] });
+
+    expect(data.courseFaq[0].question).toBe(
+      'How does WCAG connect HTML semantics to a UX artifact? How do WCAG principles actually work?',
+    );
+    expect(data.courseFaq[0].answer).toContain("W3C's Techniques for WCAG 2.0 lists techniques that help authors.");
+    expect(data.courseFaq[0].answer).toContain(
+      'In the cited policy context, covered websites are expected to follow the WCAG principles.',
+    );
+    expect(data.courseFaq[0].answer).toContain(
+      'For example, in that cited policy context, the regulations require compliance with WCAG 2.0.',
+    );
+    expect(data.courseFaq[0].answer).not.toMatch(/\bWcag\b|All websites will need|For example:/);
+  });
+
+  it('restores the article before assigned course materials in prepositional phrases', () => {
+    const data = {
+      courseFaq: [
+        {
+          answer:
+            'Ground the conclusion in assigned course materials, then cite evidence from assigned course materials.',
+        },
+      ],
+    };
+
+    finalizeCompiledDeliverableLanguage('courseFaq', data, { lessons: [] });
+
+    expect(data.courseFaq[0].answer).toBe(
+      'Ground the conclusion in the assigned course materials, then cite evidence from the assigned course materials.',
+    );
+  });
+
+  it('presents completed non-writing course materials without unfinished draft labels', () => {
+    const data = {
+      assignments: [
+        {
+          instruction:
+            'Draft the Week 1 explanation, point to a visible part of the draft, and show how the next draft responds to feedback.',
+        },
+      ],
+    };
+
+    finalizeCompiledDeliverableLanguage('assignments', data, {
+      courseName: 'Digital Accessibility for Product Teams',
+      lessons: [],
+    });
+
+    expect(data.assignments[0].instruction).toBe(
+      'Develop the Week 1 explanation, point to a visible part of the work, and show how the next revision responds to feedback.',
+    );
+    expect(data.assignments[0].instruction).not.toMatch(/\bdraft\b/i);
+  });
+
+  it('polishes a numbered assignment instruction that omits the article before Week', () => {
+    const data = {
+      assignments: [{ instruction: 'Draft Week 1 evidence explanation so each section addresses one criterion.' }],
+    };
+
+    finalizeCompiledDeliverableLanguage('assignments', data, {
+      courseName: 'Digital Accessibility for Product Teams',
+      lessons: [],
+    });
+
+    expect(data.assignments[0].instruction).toBe(
+      'Develop Week 1 evidence explanation so each section addresses one criterion.',
+    );
+  });
+
+  it('preserves drafting vocabulary when drafting is the course content', () => {
+    const data = { assignments: [{ instruction: 'Draft the poem, then revise the draft in workshop.' }] };
+
+    finalizeCompiledDeliverableLanguage('assignments', data, {
+      courseName: 'Poetry Writing Workshop',
+      lessons: [],
+    });
+
+    expect(data.assignments[0].instruction).toBe('Draft the poem, then revise the draft in workshop.');
+  });
+
+  it('builds week-anchored short references by artifact kind', () => {
+    expect(shortArtifactReference('Low-stakes check for understanding aligned to 2.1', 2)).toBe('the Week 2 check');
+    expect(shortArtifactReference('Weekly autograded quizzes', 4)).toBe('the Week 4 quiz');
+    expect(shortArtifactReference('Notebook check and discussion post', 1)).toBe('the Week 1 discussion post');
+    expect(shortArtifactReference('Introductory discussion post and short diagnostic quiz', 1)).toBe(
+      'the Week 1 discussion and quiz',
+    );
+    expect(shortArtifactReference('Evidence explanation: trace the visual claim', 1)).toBe(
+      'the Week 1 evidence explanation',
+    );
+    expect(shortArtifactReference('Worked example: compare two distributions', 2)).toBe('the Week 2 worked example');
+    expect(shortArtifactReference('Weekly homework: calculate the interval', 3)).toBe('the Week 3 homework');
+    expect(shortArtifactReference('Course synthesis: defend the interpretation', 14)).toBe('the Week 14 synthesis');
+  });
+
+  it('does not turn abstract lesson language into a week artifact name', () => {
+    expect(shortArtifactReference('Applying theoretical lenses', 11)).toBe('the revision task');
+    expect(shortArtifactReference('Core tenets of power politics limitation', 14)).toBe('the evidence task');
+  });
+});
