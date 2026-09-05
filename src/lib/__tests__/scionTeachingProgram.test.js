@@ -109,6 +109,9 @@ describe('compiler teaching programs', () => {
     expect(guide.reviewQuestions).toHaveLength(4);
     expect(guide.teachingProgram.units.some((unit) => unit.kind === 'concept-retrieval')).toBe(false);
     expect(guide.objectivePractice.join(' ')).not.toContain('two solution paths');
+    expect(guide.keyTerms).toEqual([]);
+    expect(guide.summary).toContain('0.80');
+    expect(guide.summary).toContain('same proportion');
     expect(teacher.duration).toBe('45 minutes');
   });
 });

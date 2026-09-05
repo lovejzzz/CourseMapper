@@ -5998,37 +5998,42 @@ function lessonTeachingKeyTerms(lesson = {}) {
   if (!hasAuthoritativeTeachingTerms(enrichment)) return [];
   const shippedGenomeTerms = enrichment?.conceptProvenance?.source === 'genome-linked';
   const titleTokens = new Set(semanticIdentityTokens(stripLessonPrefix(lesson?.title || '')));
-  return (enrichment?.keyTerms || [])
-    .filter(
-      (entry) =>
-        cleanText(entry?.term) &&
-        (learnerFacingAuthority || cleanText(entry?.source)) &&
-        ((shippedGenomeTerms && hasAuthoritativeSourceLedgerProvenance(enrichment)) ||
-          ((shippedGenomeTerms || Number(entry?.tier) >= 2) &&
-            cleanText(entry?.source) &&
-            !/fact-ledger-projection|model-authored/i.test(cleanText(entry.source))) ||
-          !isLessonTitleEchoConcept(entry.term, lesson)),
-    )
-    .map((entry, index) => {
-      const termTokens = [...new Set(semanticIdentityTokens(entry.term))];
-      const titleMatches = termTokens.filter((token) =>
-        [...titleTokens].some((titleToken) => semanticTokenEquivalent(token, titleToken)),
-      ).length;
-      return {
-        entry,
-        index,
-        titleMatches,
-        titleCoverage: termTokens.length > 0 ? titleMatches / termTokens.length : 0,
-      };
-    })
-    .sort(
-      (a, b) =>
-        b.titleMatches - a.titleMatches ||
-        b.titleCoverage - a.titleCoverage ||
-        Number(b.entry?.tier || 0) - Number(a.entry?.tier || 0) ||
-        a.index - b.index,
-    )
-    .map(({ entry }) => entry);
+  return (
+    (enrichment?.keyTerms || [])
+      // Fact projections name observations for the ledger; they do not carry
+      // independent definition authority on any teaching surface.
+      .filter((entry) => !/^fact-(?:ledger|subject)-projection$/i.test(cleanText(entry?.source)))
+      .filter(
+        (entry) =>
+          cleanText(entry?.term) &&
+          (learnerFacingAuthority || cleanText(entry?.source)) &&
+          ((shippedGenomeTerms && hasAuthoritativeSourceLedgerProvenance(enrichment)) ||
+            ((shippedGenomeTerms || Number(entry?.tier) >= 2) &&
+              cleanText(entry?.source) &&
+              !/fact-ledger-projection|model-authored/i.test(cleanText(entry.source))) ||
+            !isLessonTitleEchoConcept(entry.term, lesson)),
+      )
+      .map((entry, index) => {
+        const termTokens = [...new Set(semanticIdentityTokens(entry.term))];
+        const titleMatches = termTokens.filter((token) =>
+          [...titleTokens].some((titleToken) => semanticTokenEquivalent(token, titleToken)),
+        ).length;
+        return {
+          entry,
+          index,
+          titleMatches,
+          titleCoverage: termTokens.length > 0 ? titleMatches / termTokens.length : 0,
+        };
+      })
+      .sort(
+        (a, b) =>
+          b.titleMatches - a.titleMatches ||
+          b.titleCoverage - a.titleCoverage ||
+          Number(b.entry?.tier || 0) - Number(a.entry?.tier || 0) ||
+          a.index - b.index,
+      )
+      .map(({ entry }) => entry)
+  );
 }
 
 function lessonPrimaryTeachingKeyTerms(lesson = {}) {
@@ -19833,6 +19838,9 @@ function compileStudyGuides(blueprint) {
       if (arithmeticPractice) {
         Object.assign(guide, arithmeticPractice);
         if (authoredPractice) guide.objectivePractice = [authoredPractice];
+        if (lesson.enrichment?.surfaceFallbacks?.includes('studyGuide')) {
+          guide.summary = `${evidenceWorkedExample.verification.sourceClaim} ${evidenceWorkedExample.interpretation}`;
+        }
       }
       const teachingProgram = compileTeachingProgram({
         lessonId: lesson.id || `lesson-${lesson.lessonNumber}`,
