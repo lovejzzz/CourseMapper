@@ -130,6 +130,89 @@ describe('Scion material fidelity after compilation', () => {
     expect(guide.commonMisconceptions[0].correction).toContain('by the total number sampled');
   });
 
+  it('keeps complete authored questions and answers when a shorter quiz changes their slot numbers', () => {
+    const workedExample = {
+      problem: 'Calculate the sample proportion for 16 supporters among 20 surveyed workers.',
+      steps: ['Divide 16 by 20 to obtain 0.80.', 'Multiply by 100 to obtain 80 percent.'],
+      result: 'The sample proportion is 80 percent.',
+    };
+    const essay = {
+      index: 5,
+      type: 'essay',
+      question:
+        'Evaluate the claim that the sample is the whole population. Take a position using the survey evidence.',
+      answer:
+        'The claim is incorrect. The sample consists of the 20 observed workers; it does not include all 100 residents.',
+      scoringGuidance: 'Identify the sampled group and explain the evidence boundary.',
+    };
+    const enrichment = projectKernelToSurfaces(
+      {
+        facts,
+        keyTerms: [{ term: 'Sample', definition: facts[0] }],
+        workedExample,
+        mc: [
+          {
+            question: 'Which group is the observed sample?',
+            options: ['20 workers', '100 residents', 'All workers', 'No workers'],
+            answerIndex: 0,
+            explanation: 'The 20 workers are the observed subset.',
+          },
+          {
+            question:
+              'In a daytime survey that excluded night-shift workers, which limitation affects the population claim?',
+            options: ['Selection bias', 'Arithmetic error', 'No sample', 'All residents were surveyed'],
+            answerIndex: 0,
+            explanation: 'Excluding night-shift workers limits representation.',
+          },
+        ],
+      },
+      {
+        itemPlan: [
+          { index: 0, type: 'multiple_choice' },
+          { index: 1, type: 'multiple_choice' },
+          { index: 3, type: 'short_answer' },
+        ],
+      },
+    );
+    enrichment.quizItems.push(essay);
+    enrichment.kernel.provenance = {
+      source: 'compiler-owned-exact-source-ledger',
+      authority: 'instructor-supplied',
+      copiedFactsVerbatim: true,
+      factCount: facts.length,
+    };
+    const blueprint = buildCourseBlueprint(
+      {
+        courseName: 'Sample proportions',
+        lessons: [
+          {
+            title: 'Sample proportions and selection bias',
+            sections: [
+              {
+                topicSection: 'Sample proportions',
+                learningObjectives: 'Calculate a sample proportion and distinguish sample from population.',
+                weeklyAssessments: 'Survey analysis',
+              },
+            ],
+          },
+        ],
+      },
+      { instructorProvidedFacts: facts, enrichment: { lessonContent: { 'lesson-1': enrichment } } },
+    );
+    blueprint.lessons[0].enrichment = enrichment;
+    const quiz = compileBlueprintDeliverable('quizBank', blueprint, {
+      configMap: { quizBank: { questionsPerLesson: 4 } },
+      skipPrepareBlueprint: true,
+      skipCompilerContractCheck: true,
+    }).quizzes[0];
+    const practice = quiz.questions.find((q) => q.projectionKind === 'worked-example-retrieval');
+    expect(practice?.answer).toContain('Divide 16 by 20 to obtain 0.80');
+    expect(practice.explanation).toBe('');
+    expect(practice.bloomsLevel).toBe('Apply');
+    expect(quiz.questions.find((q) => q.question.includes('Evaluate the claim'))?.answer).toBe(essay.answer);
+    expect(new Set(quiz.questions.map((q) => q.question)).size).toBe(quiz.questions.length);
+  });
+
   it('preserves a complete admitted correction through CourseIR normalization', () => {
     const fullCorrection = `${correction} The denominator is the observed sample count.`;
     expect(fullCorrection.length).toBeGreaterThan(220);

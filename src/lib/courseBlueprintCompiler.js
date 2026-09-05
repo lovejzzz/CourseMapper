@@ -21079,6 +21079,7 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
     machineScored,
   });
   const bloomAligned = operationQualifiedSafe.map((atom) => {
+    if (atom.projectionKind === 'worked-example-retrieval') return atom;
     const stemLevel = bloomLevelFromStemVerb(atom.question);
     if (!stemLevel || stemLevel === atom.bloomsLevel) return atom;
     return {
@@ -21265,6 +21266,17 @@ function authoredMcFitsQuizFrame(item, atom) {
 function authoredConstructedResponseFitsLesson(item, lesson) {
   if (!hasLearnerFacingSemanticAuthority(lesson?.enrichment)) return false;
   const question = cleanText(item?.question);
+  const worked = lesson.enrichment?.workedExample;
+  if (
+    item?.projectionKind === 'worked-example-retrieval' &&
+    cleanText(worked?.problem) &&
+    cleanText(worked?.result) &&
+    worked?.steps?.length > 0 &&
+    question.startsWith(cleanText(worked.problem)) &&
+    cleanText(item.answer).includes(cleanText(worked.result)) &&
+    worked.steps.every((step) => cleanText(item.answer).includes(cleanText(step)))
+  )
+    return true;
   const exactLedgerRelationProjection =
     cleanText(item?.enrichmentSource) === 'fact-ledger-projection' &&
     ['fact-ledger-relation-analysis', 'fact-ledger-relation-synthesis'].includes(cleanText(item?.projectionKind)) &&
@@ -21285,9 +21297,14 @@ function authoredConstructedResponseFitsLesson(item, lesson) {
   // name it or quote its admitted definition; otherwise fall back to the
   // compiler's primary concept. Quoting the definition matters for natural
   // labels such as "Defining Philosophy", whose fact begins "Philosophy…".
-  const lessonSpecificTerm = lessonTeachingKeyTerms(lesson).find((entry) =>
+  const scopedTerms = lessonTeachingKeyTerms(lesson).filter((entry) =>
     /fact-ledger-projection|model-authored/i.test(cleanText(entry?.source)),
   );
+  const admissibleTerms = scopedTerms.length > 0 ? scopedTerms : lessonTeachingKeyTerms(lesson);
+  const lessonSpecificTerm =
+    admissibleTerms.find(
+      (entry) => cleanText(entry?.term) && question.toLowerCase().includes(cleanText(entry.term).toLowerCase()),
+    ) || scopedTerms[0];
   const lessonSpecificConcept = cleanText(lessonSpecificTerm?.term);
   const primaryConcept = lessonSpecificConcept || safeLessonPrimaryConcept(lesson);
   const conceptTokens = [...new Set(semanticIdentityTokens(primaryConcept))];
@@ -21348,58 +21365,72 @@ function overlayEnrichedQuizItems(framedAtoms, lesson, { itemFilter = () => true
       .filter((index) => index >= 0),
   );
   for (const index of reservedFrames) usedMC.add(byIndexMC.get(index));
-  const constructed = new Map(
-    admittedItems
-      .filter((item) => (item?.type || 'multiple_choice') !== 'multiple_choice' && cleanText(item?.question).length > 0)
-      .map((item) => [Number(item.index), item]),
+  const constructed = admittedItems.filter(
+    (item) =>
+      (item?.type || 'multiple_choice') !== 'multiple_choice' &&
+      cleanText(item?.question) &&
+      cleanText(item.answer) &&
+      (!OPINION_STEM_RE.test(cleanText(item.question)) ||
+        (item.type === 'essay' && /\b(?:evidence|source|passage|data)\b/i.test(item.question))) &&
+      authoredConstructedResponseFitsLesson(item, lesson),
   );
+  const usedConstructed = new Set();
   return framedAtoms.map((atom, index) => {
     if (atom.type === 'multiple_choice' || atom?.distractorDiscrimination?.fallback === 'constructed-response') {
       const enriched = reservedFrames.has(index)
         ? byIndexMC.get(index)
         : completeMC.find((item) => !usedMC.has(item) && authoredMcFitsQuizFrame(item, atom)) || null;
-      if (!enriched) return atom;
-      usedMC.add(enriched);
-      if (atom.type === 'multiple_choice') return overlayCompleteMCItem(atom, enriched);
-      const {
-        sampleAnswer: _discardedSampleAnswer,
-        scoringGuidance: _discardedScoringGuidance,
-        distractorDiscrimination: _discardedFallbackReceipt,
-        ...frame
-      } = atom;
-      return overlayCompleteMCItem(
-        {
-          ...frame,
-          type: 'multiple_choice',
-          bloomsLevel: bloomLevelFromStemVerb(enriched.question) || frame.bloomsLevel,
-          estimatedMinutes: 2,
-          points: 2,
-          answer: correctLetterForQuestion(lesson, index),
-          tags: quizTags(lesson, 'multiple_choice', frame.bloomsLevel, frame.quizPlan?.intendedUse),
-        },
-        enriched,
-      );
+      if (!enriched && atom.type === 'multiple_choice') return atom;
+      if (enriched) {
+        usedMC.add(enriched);
+        if (atom.type === 'multiple_choice') return overlayCompleteMCItem(atom, enriched);
+        const {
+          sampleAnswer: _discardedSampleAnswer,
+          scoringGuidance: _discardedScoringGuidance,
+          distractorDiscrimination: _discardedFallbackReceipt,
+          ...frame
+        } = atom;
+        return overlayCompleteMCItem(
+          {
+            ...frame,
+            type: 'multiple_choice',
+            bloomsLevel: bloomLevelFromStemVerb(enriched.question) || frame.bloomsLevel,
+            estimatedMinutes: 2,
+            points: 2,
+            answer: correctLetterForQuestion(lesson, index),
+            tags: quizTags(lesson, 'multiple_choice', frame.bloomsLevel, frame.quizPlan?.intendedUse),
+          },
+          enriched,
+        );
+      }
     }
     // Constructed-response frames (non-autograded quizzes, exams): overlay
     // question + answer unit only when the authored item carries an answer.
-    const enriched = constructed.get(index);
-    if (
-      !enriched ||
-      OPINION_STEM_RE.test(cleanText(enriched.question)) ||
-      !cleanText(enriched.answer) ||
-      !authoredConstructedResponseFitsLesson(enriched, lesson)
-    ) {
-      return atom;
-    }
+    // Changing the requested quiz length moves short-answer/essay slots.
+    // Match by type after the stable index, preserving each complete question
+    // and answer as a unit instead of silently replacing them with filler.
+    const candidates = constructed.filter((item) => !usedConstructed.has(item) && item.type === atom.type);
+    const enriched = candidates.find((item) => Number(item.index) === index) || candidates[0];
+    if (!enriched) return atom;
+    usedConstructed.add(enriched);
     const next = {
       ...atom,
       question: enriched.question,
       enrichmentSource: 'lesson-content-enrichment',
       ...(cleanText(enriched.projectionKind) ? { projectionKind: cleanText(enriched.projectionKind) } : {}),
+      ...(enriched.projectionKind === 'worked-example-retrieval'
+        ? {
+            bloomsLevel: 'Apply',
+            difficulty: 'Medium',
+            intendedUse: 'Rehearsal of the taught worked example; assess independent transfer with a separate task.',
+            tags: unique([...(atom.tags || []).filter((tag) => tag !== atom.bloomsLevel), 'Apply'], 10),
+          }
+        : {}),
     };
     next.answer = enriched.answer;
     next.sampleAnswer = enriched.answer;
-    if (enriched.explanation) next.explanation = enriched.explanation;
+    next.explanation = enriched.explanation || '';
+    delete next.distractorDiscrimination;
     if (enriched.scoringGuidance) next.scoringGuidance = enriched.scoringGuidance;
     return next;
   });
@@ -23511,16 +23542,33 @@ function ensureCompiledQuizEvidenceVariety(questions = [], lesson = {}) {
     .reverse()
     .find(({ question }) => question?.type === 'short_answer')?.index;
   if (!Number.isInteger(candidateIndex)) return questions;
+  const authoredEssay = (lesson.enrichment?.quizItems || []).find(
+    (item) => item.type === 'essay' && cleanText(item.answer) && authoredConstructedResponseFitsLesson(item, lesson),
+  );
   return questions.map((question, index) => {
     if (index !== candidateIndex) return question;
+    const evidenceQuestion = authoredEssay
+      ? {
+          ...question,
+          question: authoredEssay.question,
+          answer: authoredEssay.answer,
+          sampleAnswer: authoredEssay.answer,
+          explanation: authoredEssay.explanation || '',
+          scoringGuidance: authoredEssay.scoringGuidance || '',
+          enrichmentSource: 'lesson-content-enrichment',
+          bloomsLevel: bloomLevelFromStemVerb(authoredEssay.question) || 'Evaluate',
+        }
+      : question;
     const scoringGuidance = cleanText(
-      question.scoringGuidance ||
+      evidenceQuestion.scoringGuidance ||
         `Credit requires a complete evidence trace, a justified conclusion, and an explicit boundary for ${stripLessonPrefix(lesson?.title || 'the lesson')}.`,
     );
     return {
-      ...question,
+      ...evidenceQuestion,
       type: 'essay',
-      bloomsLevel: ['Analyze', 'Evaluate', 'Create'].includes(question.bloomsLevel) ? question.bloomsLevel : 'Create',
+      bloomsLevel: ['Analyze', 'Evaluate', 'Create'].includes(evidenceQuestion.bloomsLevel)
+        ? evidenceQuestion.bloomsLevel
+        : 'Create',
       difficulty: 'Hard',
       estimatedMinutes: Math.max(10, Number(question.estimatedMinutes || 0)),
       points: Math.max(8, Number(question.points || 0)),
@@ -23528,7 +23576,7 @@ function ensureCompiledQuizEvidenceVariety(questions = [], lesson = {}) {
         question.intendedUse,
         `Evidence synthesis and transfer for ${stripLessonPrefix(lesson?.title || 'the lesson')}.`,
       ),
-      sampleAnswer: cleanText(question.sampleAnswer || question.answer),
+      sampleAnswer: cleanText(evidenceQuestion.sampleAnswer || evidenceQuestion.answer),
       rubricHints: scoringGuidance,
       scoringGuidance,
       tags: unique([...(question.tags || []), 'essay', 'evidence synthesis'], 10),
