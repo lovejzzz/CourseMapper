@@ -19518,9 +19518,11 @@ function compileStudyGuides(blueprint) {
             (entry) => entry.dueSession === lesson.lessonNumber && entry.kind === 'in-class',
           )
         : [];
-      const authoredPractice = cleanText(lesson.enrichment?.studyGuide?.summary)
-        ? cleanText(lesson.enrichment?.assignmentCore?.taskDescription)
-        : '';
+      const authoredPractice =
+        cleanText(lesson.enrichment?.studyGuide?.summary) &&
+        !lesson.enrichment?.surfaceFallbacks?.includes('assignmentCore')
+          ? cleanText(lesson.enrichment?.assignmentCore?.taskDescription)
+          : '';
       const guide = {
         lessonNumber: lesson.lessonNumber,
         lessonTitle: lesson.title,
@@ -19836,7 +19838,7 @@ function compileStudyGuides(blueprint) {
         lessonId: lesson.id || `lesson-${lesson.lessonNumber}`,
         admitted: hasLearnerFacingSemanticAuthority(lesson.enrichment),
         workedExample: evidenceWorkedExample,
-        keyTerms: lesson.enrichment?.keyTerms || [],
+        keyTerms: lessonPrimaryTeachingKeyTerms(lesson),
         sourceEvidenceBrief,
       });
       if (teachingProgram && !musicReviewQuestions && !isDataScience) {
@@ -27888,7 +27890,7 @@ function compileLessonPlans(blueprint, options = {}) {
         lessonId: lesson.id || `lesson-${lesson.lessonNumber}`,
         admitted: hasLearnerFacingSemanticAuthority(lesson.enrichment),
         workedExample: evidenceWorkedExample,
-        keyTerms: lesson.enrichment?.keyTerms || [],
+        keyTerms: lessonPrimaryTeachingKeyTerms(lesson),
         sourceEvidenceBrief,
       });
       const formativeUnit =

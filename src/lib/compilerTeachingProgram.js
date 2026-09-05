@@ -81,7 +81,10 @@ export function compileTeachingProgram({
       (sourceEvidenceBrief?.claims || []).filter(clean),
     );
   }
-  for (const term of keyTerms.slice(0, 3)) {
+  // A projected observation can support evidence practice, but it is not a
+  // definition. Do not turn synthetic fact labels into vocabulary exercises.
+  const conceptualTerms = keyTerms.filter((term) => !/^fact-(?:ledger|subject)-projection$/i.test(clean(term?.source)));
+  for (const term of conceptualTerms.slice(0, 3)) {
     if (!clean(term?.term) || !clean(term?.definition)) continue;
     add(
       'concept-retrieval',

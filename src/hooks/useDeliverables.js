@@ -1313,17 +1313,18 @@ export default function useDeliverables({
 
         const sourcePlanCovered = shouldSkipCoveredScionResearch({
           sourceBrief,
+          usesExactInstructorLedger: scionSourceLedgerRequested,
           courseMap: blueprintCourseMap,
           instructionalPlan: preDraftInstructionalPlan,
           instructorProvidedFacts: sourceBriefConstraints.instructorProvidedFacts,
         });
         if (sourcePlanCovered) {
-          stageDecisions.scionEvidence = 'not needed: instructor evidence already satisfies the approved teaching plan';
+          stageDecisions.scionEvidence = 'not needed: using the frozen instructor ledger for this teaching plan';
           stageDecisions.scionEvidenceReadingSkip = {
             type: 'pipelineDecision',
             stage: 'knowledgeBackbone',
             label: 'Using the supplied lesson evidence',
-            detail: 'Approved teaching plan already covered; no duplicate reading search.',
+            detail: 'The approved or exact-source-only route uses supplied evidence; no duplicate reading search.',
           };
         }
         if (

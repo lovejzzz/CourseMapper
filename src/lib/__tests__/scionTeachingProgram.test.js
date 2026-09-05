@@ -49,6 +49,21 @@ describe('compiler teaching programs', () => {
     expect(p.units[0].answer).toBe('Checking an account against independent evidence.');
     expect(compileTeachingProgram({ admitted: true, keyTerms: [{ term: 'History' }] })).toBeNull();
   });
+  it('uses facts for evidence practice without treating projected fact labels as definitions', () => {
+    const p = compileTeachingProgram({
+      admitted: true,
+      sourceEvidenceBrief: { claims },
+      keyTerms: [
+        { term: 'Worked calculation: 16/20', definition: claims[0], source: 'fact-ledger-projection' },
+        { term: 'sample completion proportion', definition: claims[0], source: 'fact-subject-projection' },
+        { term: 'Proportion', definition: 'The ratio of a part to its whole.', source: 'instructor-supplied' },
+      ],
+    });
+    expect(p.units.filter((unit) => unit.kind === 'concept-retrieval').map((unit) => unit.answer)).toEqual([
+      'The ratio of a part to its whole.',
+    ]);
+    expect(p.units.find((unit) => unit.kind === 'calculation').sourceClaims).toEqual([claims[0]]);
+  });
   it('compiles the same complete practice unit into student and teacher materials', () => {
     const map = {
       courseName: 'Sample proportions',
@@ -63,7 +78,13 @@ describe('compiler teaching programs', () => {
     };
     const blueprint = buildCourseBlueprint(map, { sessionMinutes: 45, instructorProvidedFacts: claims });
     blueprint.lessons[0].enrichment = {
-      keyTerms: [],
+      studyGuide: { summary: claims[0] },
+      assignmentCore: { taskDescription: 'Compare two solution paths from the problem record.' },
+      surfaceFallbacks: ['assignmentCore', 'studyGuide'],
+      keyTerms: [
+        { term: 'Worked calculation: 16/20', definition: claims[0], source: 'fact-ledger-projection', tier: 1 },
+        { term: 'sample proportion', definition: claims[0], source: 'fact-subject-projection', tier: 1 },
+      ],
       kernel: {
         facts: claims,
         provenance: {
@@ -85,6 +106,9 @@ describe('compiler teaching programs', () => {
     expect(question.answer).toBe(teacher.formativeCheck.expectedAnswer);
     expect(question.question).toBe(teacher.formativeCheck.prompt);
     expect(guide.reviewQuestions.every((q) => q.answer && q.successCriteria.length)).toBe(true);
+    expect(guide.reviewQuestions).toHaveLength(4);
+    expect(guide.teachingProgram.units.some((unit) => unit.kind === 'concept-retrieval')).toBe(false);
+    expect(guide.objectivePractice.join(' ')).not.toContain('two solution paths');
     expect(teacher.duration).toBe('45 minutes');
   });
 });

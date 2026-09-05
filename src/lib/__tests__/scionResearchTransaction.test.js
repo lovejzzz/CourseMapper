@@ -3,6 +3,8 @@ import { createResearchTransport } from '../knowledge/researchTransport.js';
 import { assessResearchCurrency, shouldSkipCoveredScionResearch } from '../knowledge/researchFreshness.js';
 import { planAlgiCourseResearch } from '../knowledge/algiResearchPlan.js';
 import { buildAlgiEvidenceGraph, consolidateAlgiLessonEvidence } from '../knowledge/algiEvidenceGraph.js';
+import { prepareInstructionalPlan } from '../prepareInstructionalPlan.js';
+import { extractInstructorProvidedFacts } from '../sourceBriefConstraints.js';
 
 afterEach(() => vi.useRealTimers());
 
@@ -100,6 +102,44 @@ describe('Scion research transactions', () => {
     expect(consolidateAlgiLessonEvidence({ topic, kernels: [k], evidenceGraph: graph, minimum: 1 }).admitted).toBe(
       false,
     );
+  });
+  it('skips discarded research for a single-lesson exact instructor ledger without bypassing update requests', () => {
+    const sourceBrief =
+      'A single 45-minute introductory statistics lesson: calculate a sample proportion and distinguish a sample result from a population claim. Source facts: 20 volunteers joined a daytime workshop; 16 completed it; the sample completion proportion is 16/20 = 0.80 = 80%; night-shift workers could not attend; volunteering can introduce selection bias; these data alone do not establish the completion rate for all adult learners.';
+    const instructorProvidedFacts = extractInstructorProvidedFacts(sourceBrief);
+    const prepared = prepareInstructionalPlan({
+      sourceBrief,
+      instructorProvidedFacts,
+      sessionMinutes: 45,
+      authorityKind: 'native-skeleton-render',
+      courseMap: {
+        courseName: 'Introductory Statistics: Sample Proportions',
+        lessons: [
+          {
+            title: 'Sample Proportion Calculation',
+            sections: [
+              {
+                topicSection: 'Worked calculation: 16/20',
+                learningObjectives:
+                  'Calculate a sample proportion and distinguish a sample result from a population claim.',
+              },
+            ],
+          },
+        ],
+      },
+    });
+    expect(prepared.instructionalPlan.admission.status).toBe('needs-evidence');
+    const options = {
+      sourceBrief,
+      instructorProvidedFacts,
+      usesExactInstructorLedger: true,
+      courseMap: prepared.courseMap,
+      instructionalPlan: prepared.instructionalPlan,
+    };
+    expect(shouldSkipCoveredScionResearch(options)).toBe(true);
+    expect(shouldSkipCoveredScionResearch({ ...options, usesExactInstructorLedger: false })).toBe(false);
+    expect(shouldSkipCoveredScionResearch({ ...options, sourceBrief: 'Find current evidence.' })).toBe(false);
+    expect(shouldSkipCoveredScionResearch({ ...options, courseMap: { lessons: [{}, {}] } })).toBe(false);
   });
   it('skips only an approved, source-covered plan without an update request', () => {
     const options = {

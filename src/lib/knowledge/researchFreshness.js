@@ -33,8 +33,15 @@ export function shouldSkipCoveredScionResearch({
   courseMap,
   instructionalPlan,
   instructorProvidedFacts = [],
+  usesExactInstructorLedger = false,
 } = {}) {
-  if (instructorProvidedFacts.length < 3 || instructionalPlan?.admission?.status !== 'approved') return false;
+  const status = instructionalPlan?.admission?.status;
+  const exactSingleLesson =
+    usesExactInstructorLedger && courseMap?.lessons?.length === 1 && status === 'needs-evidence';
+  // A facts-only compiler response cannot consume an external substitute for
+  // its frozen instructor ledger. Research here was discarded later, while
+  // adding up to a full network budget to otherwise local generation.
+  if (instructorProvidedFacts.length < 3 || (status !== 'approved' && !exactSingleLesson)) return false;
   const context = [sourceBrief, courseMap?.courseName, ...(courseMap?.lessons || []).map((l) => l.title)].join(' ');
   return !requiresCurrentResearch(context);
 }
