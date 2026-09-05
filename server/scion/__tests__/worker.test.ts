@@ -8,6 +8,7 @@ const env = {
   DAILY_REQUESTS: '20',
   MINUTE_REQUESTS: '6',
   VISITOR_DAILY_REQUESTS: '2',
+  HOSTED_ENABLED: 'true',
 } as Env;
 const request = (method = 'POST', country = 'US', origin = 'https://edutool.dev', body = '{}') =>
   Object.assign(
@@ -24,6 +25,25 @@ afterEach(() => {
 });
 
 describe('public gateway admission', () => {
+  it.each(['false', undefined])(
+    'stops health and completion before any quota or Google call when hosted mode is %s',
+    async (enabled) => {
+      const upstream = vi.fn();
+      vi.stubGlobal('fetch', upstream);
+      const quota = vi.fn();
+      const pausedEnv = { ...env, HOSTED_ENABLED: enabled, SCION_QUOTA: { idFromName: quota } } as unknown as Env;
+      for (const req of [
+        request(),
+        new Request('https://worker.test/api/scion/health', { headers: { Origin: env.ALLOWED_ORIGIN } }),
+      ]) {
+        const result = await worker.fetch(req, pausedEnv);
+        expect(result.status).toBe(503);
+        expect(await result.json()).toMatchObject({ ready: false, code: 'SCION_HOSTED_PAUSED', scope: 'paused' });
+      }
+      expect(quota).not.toHaveBeenCalled();
+      expect(upstream).not.toHaveBeenCalled();
+    },
+  );
   it('health checks the same quota as completion without reserving a call or contacting Google when exhausted', async () => {
     const upstream = vi.fn();
     vi.stubGlobal('fetch', upstream);

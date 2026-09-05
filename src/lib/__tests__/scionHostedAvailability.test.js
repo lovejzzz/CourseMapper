@@ -2,6 +2,11 @@ import { describe, expect, it, vi } from 'vitest';
 import { checkHostedScionAvailability } from '../scionHostedAvailability';
 import { SCION_HOSTED_BACKING_MODEL } from '../scionHostedPolicy';
 
+vi.mock('../scionHostedPolicy', async (importOriginal) => ({
+  ...(await importOriginal()),
+  SCION_HOSTED_ENABLED: true,
+}));
+
 describe('online availability shown to the teacher', () => {
   it('shows a quota denial and a reset time instead of a connected badge', async () => {
     const fetchImpl = vi

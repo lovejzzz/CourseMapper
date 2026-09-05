@@ -4,7 +4,7 @@
 // provider name and model option.
 import { APP_VERSION } from './appVersion.js';
 import { SCION_BROWSER_GEMMA4_GGUF } from './scionBrowserConstants.js';
-import { SCION_HOSTED_MODEL_ID, isHostedScionModel } from './scionHostedPolicy.js';
+import { SCION_HOSTED_ENABLED, SCION_HOSTED_MODEL_ID, isHostedScionModel } from './scionHostedPolicy.js';
 
 export const PUBLIC_SCION_PROVIDER_ID = 'public';
 export const PUBLIC_SCION_MODEL_ID = 'scion-public';
@@ -14,6 +14,7 @@ export const PUBLIC_SCION_MAX_COMPLETION_TOKENS = 2400;
 
 /** Scion is the sole public model identity. Internal evidence engines are not choices. */
 export function publicScionProviderModelOptions() {
+  if (!SCION_HOSTED_ENABLED) return [publicScionModelOption()];
   return [
     publicScionModelOption(),
     {
@@ -28,7 +29,7 @@ export function publicScionProviderModelOptions() {
 
 /** Resolve every public or legacy stored model id to the current Scion release. */
 export function publicScionModelOptionById(modelId) {
-  return publicScionProviderModelOptions()[isHostedScionModel(modelId) ? 1 : 0];
+  return publicScionProviderModelOptions()[SCION_HOSTED_ENABLED && isHostedScionModel(modelId) ? 1 : 0];
 }
 
 export function publicScionModelOption() {

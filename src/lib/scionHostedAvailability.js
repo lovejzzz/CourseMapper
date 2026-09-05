@@ -1,10 +1,12 @@
-import { SCION_HOSTED_BACKING_MODEL } from './scionHostedPolicy';
+import { SCION_HOSTED_BACKING_MODEL, SCION_HOSTED_ENABLED, SCION_HOSTED_PAUSED_MESSAGE } from './scionHostedPolicy';
 
 export const SCION_HOSTED_ENDPOINT = import.meta.env?.PROD
   ? 'https://edutool-scion.xingpicture.workers.dev/api/scion'
   : '/api/scion';
 
 export async function checkHostedScionAvailability({ fetchImpl = globalThis.fetch } = {}) {
+  if (!SCION_HOSTED_ENABLED)
+    return { ready: false, message: SCION_HOSTED_PAUSED_MESSAGE, scope: 'paused', retryAt: null };
   try {
     const response = await fetchImpl(`${SCION_HOSTED_ENDPOINT}/health`, {
       signal: AbortSignal.timeout(12000),

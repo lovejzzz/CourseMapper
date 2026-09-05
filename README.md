@@ -38,20 +38,19 @@ npm run test:e2e
 npm run format:check
 ```
 
-The compatibility suite exercises the restored material views, editing/sync contracts and exports. Browser tests run with **one Chromium worker** to keep machine load bounded. Synthetic test courses verify software behavior, not educational effectiveness. `npm run test:scion` separately covers the production runtime, cancellation queue, contract validation, evidence preservation and explicit hosted-mode boundary.
+The compatibility suite exercises the restored material views, editing/sync contracts and exports. Browser tests run with **one Chromium worker** to keep machine load bounded. Synthetic test courses verify software behavior, not educational effectiveness. `npm run test:scion` separately covers the production runtime, cancellation queue, contract validation, evidence preservation and local-only policy and dormant hosted transport contracts.
 
 ## Scion and current limits
 
-The original AI settings now offer two Scion modes:
+**Scion currently runs locally. The shared free online API is temporarily paused because its allowance cannot reliably serve visitors.** The online option is removed, saved online selections migrate to local Scion, and the Cloudflare relay rejects new health/completion requests before touching quota storage or Google. No paid fallback is enabled.
 
-- **Local Scion (default):** pinned Gemma 4 E2B weights run on compatible devices. The first use downloads approximately 3.35 GB. Some source-ledger operations use the deterministic evidence compiler with zero model calls; this is recorded separately from inference.
-- **Online Scion:** optional Google Gemma 4 31B through a Cloudflare Worker, with no personal API key or model download. Review and enable the data-sharing notice first. It is restricted to professional educators/instructional designers aged 18 or older in eligible regions. Google’s free service may use inputs/outputs for product improvement and human review. Do not submit confidential information or student personal data. Permission can be withdrawn in AI settings.
+Local Scion uses pinned Gemma 4 E2B weights on compatible devices. First use downloads approximately 3.35 GB. Model downloads and optional source research still need a network connection. Some source-ledger operations use the deterministic evidence compiler with zero model calls; receipts distinguish those operations from inference. No new adapter has been trained or promoted.
 
-Both modes retain the 0.18.7 materials, editors and exports. Online Scion authors concrete assignment tasks, study explanations and warranted quantitative worked examples in addition to the shared lesson knowledge core. The existing parser and compiler still determine which content reaches the materials; structural acceptance is not a factual or pedagogical guarantee. No new adapter has been trained or promoted, and hosted Scion reports base-model execution without an adapter.
+The ten materials, editors, sync and exports retain the 0.18.7 interface. An automatic review after a single material regeneration performs deterministic checks without starting unrelated model retries. Explicit generation and Finish package actions retain their bounded repair paths.
 
-The Cloudflare Worker in `server/scion/` uses an allowlist of Gemma models, shared request/token limits and a server-side credential. Request, visitor and input-token reservations are atomic: a denied token reservation does not consume daily request allowance. It has no paid fallback. Free provider availability, regional terms and capacity limits still apply; it cannot promise unlimited access for every visitor.
+Explicit `Source facts:` are preserved, including decimals and later limitations. For a source that explicitly supplies a fraction = decimal = percentage equation, the compiler checks both equalities exactly before producing a worked calculation shared by study guides, teacher plans and other compatible teaching surfaces. This verifies that arithmetic only, not the underlying observations or the effectiveness of the lesson. Unsupported or rounded equalities are not promoted by this check.
 
-AI settings now check the current visitor's allowance before reporting online availability. A daily limit includes its retry time; checking availability does not reserve a generation request. Explicit `Source facts:` in a brief are preserved independently of the optional restriction on outside research, including decimal values and the limits stated after a numerical result.
+The dormant transport remains in `server/scion/` for a future explicit relaunch. `HOSTED_ENABLED` defaults closed and the deployed setting is `false`; the browser's `SCION_HOSTED_ENABLED` policy is also false. Existing limits, encrypted credentials and stored projects are retained.
 
 The [September 5 production-pipeline audit](docs/scion-quality-2026-09-05.zh-CN.md) records live model calls, exported samples, fixes and remaining limits. Recent real-course audits found substantive weaknesses including unsupported source inferences, repeated practice and solved examples that reveal later answers. Generated material requires instructor review. Do not treat automatic checks or a model's self-review as independent expert validation.
 
@@ -59,7 +58,7 @@ The [September 5 production-pipeline audit](docs/scion-quality-2026-09-05.zh-CN.
 
 - `src/screens/`, `src/components/`, `src/hooks/`, `src/model/`, `src/lib/`: restored application and its existing course pipeline.
 - `src/studio/`: isolated experimental authoring and export research.
-- `server/scion/`: production shared free inference gateway and its tests.
+- `server/scion/`: paused shared free inference gateway and its tests.
 - `research/scion/`: adapter training/conversion experiments, outside the website runtime.
 - `tests/workspace-mobile.spec.js`, `tests/export-smoke.spec.js`: original browser regression coverage.
 - `docs/interface-restoration.zh-CN.md`: restoration scope, source baseline and verification notes.

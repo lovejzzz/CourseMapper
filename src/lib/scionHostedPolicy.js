@@ -1,4 +1,9 @@
 export const SCION_HOSTED_MODEL_ID = 'scion-hosted';
+// Product pause: shared free API capacity cannot currently serve visitors.
+// Keep the transport for a future explicit relaunch; never silently enable it.
+export const SCION_HOSTED_ENABLED = false;
+export const SCION_HOSTED_PAUSED_MESSAGE =
+  'Online Scion is temporarily paused. Use local Scion on a compatible device.';
 export const SCION_HOSTED_BACKING_MODEL = 'google/gemma-4-31b-it';
 export const SCION_HOSTED_CONSENT_EVENT = 'coursemapper:scion-hosted-consent';
 const CONSENT_KEY = 'coursemapper-scion-hosted-consent';

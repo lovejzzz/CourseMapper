@@ -1,6 +1,8 @@
 import { sha256HexSync } from './sha256Sync.js';
 import { sourceClaimDefinesTerm } from './sourceClaimRoles.js';
 import { createResearchCitationAdmission } from './researchCitationAdmission.js';
+import { buildLessonEvidenceBrief } from './compilerEvidenceCopy.js';
+import { sourceArithmeticWorkedExample } from './sourceArithmeticStudyPractice.js';
 
 export { sourceClaimDefinesTerm } from './sourceClaimRoles.js';
 
@@ -2662,8 +2664,14 @@ export function createVerifiedDraftCompilerContracts(dependencies) {
     const authoredMatchesDemand =
       !demand.demanded ||
       (authored?.protocol === OPERATION_QUALIFIED_EVIDENCE_PROTOCOL && authored?.operation === demand.operation);
+    const sourceArithmetic =
+      !demand.demanded && hasLearnerFacingSemanticAuthority(lesson.enrichment)
+        ? sourceArithmeticWorkedExample(buildLessonEvidenceBrief(lesson, { claimLimit: 8 }))
+        : null;
     const example =
-      (authoredIsComplete && authoredMatchesDemand ? authored : deterministicWorkedExampleForLesson(lesson)) || null;
+      (authoredIsComplete && authoredMatchesDemand
+        ? authored
+        : sourceArithmetic || deterministicWorkedExampleForLesson(lesson)) || null;
     if (!example || example?.protocol !== OPERATION_QUALIFIED_EVIDENCE_PROTOCOL) return example;
     const governingOperation = demand.operation || inferred.operation;
     if (!governingOperation || example.operation !== governingOperation) return null;

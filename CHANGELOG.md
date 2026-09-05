@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.18.7 local Scion and follow-up fixes — 2026-09-05
+
+- Temporarily pause the shared free online API at the product owner's request. Remove the online model option, migrate saved online selections to local Scion, block dormant browser transport, and stop Cloudflare requests before quota or Google calls. Preserve credentials and limits for a future explicit relaunch; enable no paid fallback.
+- Keep the full 0.18.7 interface, ten material types, editing, sync and export choices.
+- Stop the completion observer from scheduling unrelated model repairs after a single material Regen. Automatic review still checks and repairs deterministically; explicit generation and Finish package retain their bounded retry paths.
+- Replace generic source-comparison practice with a real worked calculation when an admitted source explicitly supplies an exactly valid fraction/decimal/percentage equation. Verify both equalities using integer arithmetic, show division, conversion and a reverse check, and preserve the source wording and population boundary. Reuse the shared example in compatible study-guide, teacher-plan and other teaching surfaces.
+- Fix malformed “Practice First...” instructions and single-lesson study guides claiming to prepare for a week-long course. Preserve stronger authored practice and worked examples.
+- Add regression coverage for paused client/server requests, saved-setting migration, automatic review without model retries, valid and invalid equations, and actual compiled student/teacher materials. Educational effectiveness and universal classroom readiness remain unproven; v0.19.0 is not released.
+
 ## 0.18.7 production verification fixes — 2026-09-05
 
 Follow-up checks used the deployed homepage, a real local Gemma course build, project/ZIP downloads and an actual Course Map edit followed by Smart Sync. The interface and ten deliverables remain at 0.18.7.

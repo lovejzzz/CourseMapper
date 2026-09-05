@@ -1228,7 +1228,7 @@ export default function AppFlow({
     async ({
       selectedFeatureIds = selectedFeatures,
       lessonFilter = lessonScope.type === 'specific' ? lessonScope.indices : null,
-      retry = true,
+      retry = false,
       maxRetryActions = 4,
       maxRetryCallBudget = 4,
       maxRetryPasses = 2,
@@ -1364,7 +1364,7 @@ export default function AppFlow({
         // model; it must not gate deterministic blueprint compilation.
         const retryHandlersAvailable =
           typeof regenerateLessonRef.current === 'function' || typeof regenerateFeatureRef.current === 'function';
-        const canRetryWeakSpots = retry && retryHandlersAvailable;
+        const canRetryWeakSpots = retry && source !== 'auto' && retryHandlersAvailable;
 
         const finalizerCostPlan = buildApiCostPlan({
           source: `finalizer:${source}`,

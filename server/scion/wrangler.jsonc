@@ -8,6 +8,7 @@
   "vars": {
     "ALLOWED_ORIGIN": "https://edutool.dev",
     "HOSTED_MODEL": "gemma-4-31b-it",
+    "HOSTED_ENABLED": "false",
     "DAILY_REQUESTS": "500",
     "MINUTE_REQUESTS": "6",
     "VISITOR_DAILY_REQUESTS": "200",

@@ -1,6 +1,12 @@
 import { runScionLocalCompletion } from './scionLocalProvider';
 import { createScionCompletionQueue } from './scionCompletionBoundary';
-import { readScionHostedConsent, SCION_HOSTED_BACKING_MODEL, SCION_HOSTED_CONSENT_EVENT } from './scionHostedPolicy';
+import {
+  readScionHostedConsent,
+  SCION_HOSTED_BACKING_MODEL,
+  SCION_HOSTED_CONSENT_EVENT,
+  SCION_HOSTED_ENABLED,
+  SCION_HOSTED_PAUSED_MESSAGE,
+} from './scionHostedPolicy';
 
 import { SCION_HOSTED_ENDPOINT } from './scionHostedAvailability';
 export { SCION_HOSTED_ENDPOINT } from './scionHostedAvailability';
@@ -33,6 +39,7 @@ export async function requestHostedScion(
   request,
   { signal, onProgress, endpoint = SCION_HOSTED_ENDPOINT, fetchImpl = globalThis.fetch, sleep = retryWait } = {},
 ) {
+  if (!SCION_HOSTED_ENABLED) throw hostedError('PAUSED', SCION_HOSTED_PAUSED_MESSAGE);
   for (let attempt = 1; attempt <= 3; attempt += 1) {
     if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
     const timeout = AbortSignal.timeout(270000);
@@ -93,6 +100,7 @@ export async function requestHostedScion(
 
 /** Reuse the production authoring/admission pipeline with an explicit free transport. */
 export async function runScionHostedCompletion(options = {}) {
+  if (!SCION_HOSTED_ENABLED) throw hostedError('PAUSED', SCION_HOSTED_PAUSED_MESSAGE);
   if (!readScionHostedConsent())
     throw hostedError(
       'CONSENT',

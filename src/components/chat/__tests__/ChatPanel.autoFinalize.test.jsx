@@ -201,7 +201,8 @@ describe('ChatPanel package finalization after sync', () => {
     expect(onFinalizePackage).toHaveBeenCalledWith(
       expect.objectContaining({
         selectedFeatureIds: ['courseMap', 'lessonPlans', 'slideDecks'],
-        retry: true,
+        retry: false,
+        source: 'auto',
       }),
     );
   });

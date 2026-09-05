@@ -256,6 +256,7 @@ import {
 } from './compilerAssessmentEvidenceCopy';
 import { createVerifiedDraftCompilerContracts } from './verifiedDraftCompilerContracts.js';
 import { sourceBoundStudyWorkedExample } from './sourceBoundStudyWorkedExample.js';
+import { sourceArithmeticGuidePractice } from './sourceArithmeticStudyPractice.js';
 import {
   applyInstructionalIntentGraph,
   assertInstructionalIntentGraph,
@@ -19514,7 +19515,9 @@ function compileStudyGuides(blueprint) {
               // must operationalize each target without repeating the same
               // sentence as faux evidence of alignment.
               const target = appliedObjectiveCue(objective);
-              return `Practice ${target} by marking the source detail, recording the reasoning step, and revising the ${studyArtifact}.`;
+              return /^First,/i.test(target)
+                ? `${stripTerminalPunctuation(target)}. Show the source detail and reasoning for each step.`
+                : `Practice ${target} by marking the source detail, recording the reasoning step, and revising the ${studyArtifact}.`;
             }),
         assignedReadings: assignedReadingTitlesForLesson(blueprint, lesson),
         examScope: `Use this guide to prepare for Week ${lesson.lessonNumber} checks on ${phrase.context}. Reuse it for later assessments.${
@@ -19807,6 +19810,14 @@ function compileStudyGuides(blueprint) {
         ]),
         tags: unique(['study guide', lesson.title, ...safeConcepts], 10),
       };
+      const arithmeticPractice = sourceArithmeticGuidePractice(evidenceWorkedExample);
+      if (arithmeticPractice) {
+        Object.assign(guide, arithmeticPractice);
+        if (authoredPractice) guide.objectivePractice = [authoredPractice];
+      }
+      if (blueprint.lessons.length === 1) {
+        guide.examScope = 'Use this guide to prepare for the lesson checks and to review afterward.';
+      }
       return makeStudyGuideLearnerReadable(guide);
     }),
   };
@@ -25459,7 +25470,7 @@ function overlayEnrichedSlideContent(slides, lesson) {
 function ensureSentenceCompiler(value) {
   const text = cleanText(value);
   if (!text) return '';
-  return /[.!?…]$/.test(text) ? text : `${text}.`;
+  return /[.!?…]["'’”)\]]*$/.test(text) ? text : `${text}.`;
 }
 
 function compileDiscussions(blueprint) {

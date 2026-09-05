@@ -5,6 +5,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { requestHostedScion, runScionHostedCompletion } from '../scionHostedProvider';
 import { readScionHostedConsent, saveScionHostedConsent, SCION_HOSTED_BACKING_MODEL } from '../scionHostedPolicy';
 
+// Keep the dormant transport's contracts covered for an explicit relaunch.
+// scionLocalOnly.test.js exercises the actual paused production policy.
+vi.mock('../scionHostedPolicy', async (importOriginal) => ({
+  ...(await importOriginal()),
+  SCION_HOSTED_ENABLED: true,
+}));
+
 const receipt = (text = '{"answerIndex":2}') => ({
   text,
   model: SCION_HOSTED_BACKING_MODEL,

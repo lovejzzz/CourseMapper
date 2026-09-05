@@ -1434,7 +1434,7 @@ export default function ChatPanel({
           status: 'running',
           phase: 'finish',
           source: 'auto-review-pending',
-          message: 'Finishing package: checking, repairing, and preparing export...',
+          message: 'Checking package and preparing export...',
           repairsApplied: 0,
           warnings: 0,
           blockers: 0,
@@ -1488,7 +1488,11 @@ export default function ChatPanel({
               selectedFeatures,
               selectedFeatureIds: selectedFeatures,
               lessonFilter: lessonScope?.type === 'specific' ? lessonScope.indices : null,
-              retry: true,
+              // A single Regen also reaches this completion observer. The
+              // owning build/Finish action controls provider retries; this
+              // background review must not start unrelated model work.
+              retry: false,
+              source: 'auto',
             });
           } catch (err) {
             packageQualityPassUpdateRef.current?.({

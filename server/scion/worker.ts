@@ -19,6 +19,7 @@ interface Env {
   VISITOR_DAILY_REQUESTS?: string;
   INPUT_TOKENS_PER_MINUTE?: string;
   HOSTED_MODEL?: string;
+  HOSTED_ENABLED?: string;
 }
 interface Window {
   count: number;
@@ -213,6 +214,17 @@ export default {
           Vary: 'Origin',
         },
       });
+    if (env.HOSTED_ENABLED !== 'true' && ['/api/scion/health', '/api/scion/complete'].includes(path))
+      return reply(
+        {
+          ready: false,
+          code: 'SCION_HOSTED_PAUSED',
+          error: 'Online Scion is temporarily paused. Use local Scion on a compatible device.',
+          scope: 'paused',
+        },
+        503,
+        origin ?? undefined,
+      );
     if (path === '/api/scion/health' && request.method === 'GET') {
       if (!freeRegionAllowed((request as Request & { cf?: { country?: string } }).cf?.country))
         return reply(

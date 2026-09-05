@@ -27,7 +27,7 @@ export default function PrivacyPolicy() {
 
           <Section title="Static App and Optional Cloud Sync">
             <p>
-              Course Mapper is a static browser app with an optional Cloudflare relay for online Scion. Editing,
+              Course Mapper is a static browser app. The shared free online Scion relay is temporarily paused. Editing,
               exports, and local Scion inference run in your browser. Your work is saved in browser storage by default,
               and if you sign in, selected project and profile data can sync to Firebase services for your account.
               Google Drive exports upload directly from your browser to your Google Drive.
@@ -63,7 +63,7 @@ export default function PrivacyPolicy() {
           <Section title="AI Processing and Third-Party Providers">
             <p>
               Processing depends on the provider you select. Paid-provider requests are sent directly from your browser
-              to that provider. Scion offers local inference and an optional shared free online mode.
+              to that provider. Scion currently uses local inference; its shared free online mode is temporarily paused.
             </p>
             <ul className="list-disc list-inside space-y-1.5 ml-1 mt-2">
               <li>
@@ -116,19 +116,21 @@ export default function PrivacyPolicy() {
                 downloads the model weights directly from Hugging Face and stores them in browser-managed local storage.
               </li>
               <li>
-                <strong>Online Scion</strong> — sends prompts, relevant course and conversation content, and extracted
-                source text through our Cloudflare Worker to Google's free Gemma 4 API. Under Google's free-service
-                terms, these inputs and outputs may be used to improve Google's products and may be reviewed by humans.
-                Do not submit confidential information, personal data, or student records. This mode is for educators
-                and instructional designers aged 18 or older using it professionally, subject to Google's regional
-                restrictions and shared free quotas. It requires explicit browser permission, which you can withdraw in
-                AI settings. Withdrawing permission stops further requests; it cannot recall data already sent.
+                <strong>Online Scion (temporarily paused)</strong> — when previously enabled, sent prompts, relevant
+                course and conversation content, and extracted source text through our Cloudflare Worker to Google's
+                free Gemma 4 API. Under Google's free-service terms, these inputs and outputs may be used to improve
+                Google's products and may be reviewed by humans. Do not submit confidential information, personal data,
+                or student records. This mode is for educators and instructional designers aged 18 or older using it
+                professionally, subject to Google's regional restrictions and shared free quotas. It requires explicit
+                browser permission, which you can withdraw in AI settings. Withdrawing permission stops further
+                requests; it cannot recall data already sent.
               </li>
             </ul>
             <p className="mt-2">
               For key-based providers, you provide your own API key to connect directly to your chosen provider. Course
-              Mapper never sends that key to a Course Mapper-operated server. Neither Scion mode requires your own API
-              key. The online relay uses a site credential stored as a Cloudflare secret.
+              Mapper never sends that key to a Course Mapper-operated server. Local Scion requires no API key. The
+              paused online relay's site credential remains stored as a Cloudflare secret; new generation requests are
+              disabled.
             </p>
           </Section>
 
@@ -172,11 +174,11 @@ export default function PrivacyPolicy() {
 
           <Section title="Analytics & Tracking">
             <p>
-              Course Mapper does not include advertising or behavioral analytics scripts. The online Scion relay stores
-              request and token counters, including a daily hash derived from your IP address, to enforce free quotas.
-              Expired daily counters are removed automatically. The relay does not store prompts, source readings, or
-              generated answers in its quota database or application logs. Hosting and AI providers process connection
-              information under their own policies.
+              Course Mapper does not include advertising or behavioral analytics scripts. When active, the online Scion
+              relay stores request and token counters, including a daily hash derived from your IP address, to enforce
+              free quotas. Expired daily counters are removed automatically. The relay does not store prompts, source
+              readings, or generated answers in its quota database or application logs. Hosting and AI providers process
+              connection information under their own policies.
             </p>
           </Section>
 
