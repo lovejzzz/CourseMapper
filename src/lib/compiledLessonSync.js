@@ -10,6 +10,7 @@ import { attachEnrichmentToGraph, buildBlueprintFromGraph, deriveCourseGraphFrom
 import { applyLessonDepthToConfigMap } from './lessonDepth';
 import { sanitizeGenomeEnrichmentForLesson, sanitizeLessonTitleEchoEnrichment } from './lessonSemanticRelevance';
 import { assessScionKeyTermContract } from './scionKeyTermContract';
+import { resolveRequestedClassSessionMinutes } from './sourceBriefConstraints';
 
 function cleanText(value, fallback = '') {
   return String(value ?? fallback)
@@ -328,6 +329,8 @@ export function compileBlueprintLessonPatch({
   lessonIndex,
   config,
   instructorPreferences,
+  sourceBrief = '',
+  sessionMinutes = null,
   enrichmentOverlay = null,
   kernelCache = null,
   onTextTierMatch = null,
@@ -351,6 +354,16 @@ export function compileBlueprintLessonPatch({
   const enrichedLessonCount = enrichedLessonIds.length;
   const lessonEnriched = Boolean(lessonContent[`lesson-${lessonIndex + 1}`]);
 
+  const requestedMinutes = resolveRequestedClassSessionMinutes({
+    sourceBrief,
+    explicitSessionLength: sessionMinutes,
+    defaultSessionLength: featureId === 'lessonPlans' ? config?.sessionLength : null,
+  });
+  const compilerOptions = {
+    instructorPreferences,
+    sourceBrief,
+    ...(requestedMinutes ? { sessionMinutes: requestedMinutes } : {}),
+  };
   let blueprint;
   if (enrichedLessonCount > 0) {
     const graph = deriveCourseGraphFromCourseMap(courseMap);
@@ -358,9 +371,9 @@ export function compileBlueprintLessonPatch({
       ...(enrichmentOverlay && typeof enrichmentOverlay === 'object' ? enrichmentOverlay : {}),
       lessonContent,
     });
-    blueprint = compactBlueprintForStorage(buildBlueprintFromGraph(graph, { instructorPreferences }));
+    blueprint = compactBlueprintForStorage(buildBlueprintFromGraph(graph, compilerOptions));
   } else {
-    blueprint = compactBlueprintForStorage(buildCourseBlueprint(courseMap, { instructorPreferences }));
+    blueprint = compactBlueprintForStorage(buildCourseBlueprint(courseMap, compilerOptions));
   }
   // v0.15.3 D1: per-lesson recompiles carry the depth flag too — same
   // injection as full generation, sync radius, and compact restore.

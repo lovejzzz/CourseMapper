@@ -27469,7 +27469,7 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
       instructorNotes: kernelWorkedExample
         ? authenticWorkedExample
           ? authenticModelNotes
-          : `Solution path: ${kernelWorkedExample.steps.join(' → ')}. Result: ${kernelWorkedExample.result}. After students annotate the trace, assign this aligned variation: ${stripTerminalPunctuation(kernelWorkedExample.transferTask || 'change one input, recompute the result, and explain what changed')}.`
+          : `Solution path: ${ensureSentenceCompiler(kernelWorkedExample.steps.join(' → '))} Result: ${ensureSentenceCompiler(kernelWorkedExample.result)} After students annotate the trace, assign this aligned variation: ${stripTerminalPunctuation(kernelWorkedExample.transferTask || 'change one input, recompute the result, and explain what changed')}.`
         : kernelFacts.length > 0
           ? kernelFactInstructorNote({
               lessonNumber: lesson.lessonNumber,
@@ -28015,7 +28015,7 @@ function compileLessonPlans(blueprint, options = {}) {
         warmUp: activityProfile
           ? undefined
           : admittedLanguagePlan?.warmUp || {
-              duration: '10 minutes',
+              duration: outline.find((row) => /^warm[- ]?up$/i.test(cleanText(row.type)))?.time || '10 minutes',
               type: lessonVariant(lesson, [
                 'Retrieval and framing',
                 'Opening evidence check',

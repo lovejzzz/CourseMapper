@@ -5656,6 +5656,11 @@ export default function useDeliverables({
       const regenerationOptions =
         syncGenOrOptions && typeof syncGenOrOptions === 'object' ? syncGenOrOptions : { syncGenId: syncGenOrOptions };
       const sourceBriefConstraints = analyzeSourceBriefConstraints(sourceBrief);
+      const requestedSessionMinutes = resolveRequestedClassSessionMinutes({
+        sourceBrief,
+        explicitSessionLength: deliverableConfigRef.current?.lessonPlans?.sessionLength,
+        defaultSessionLength: getGenerationConfig('lessonPlans')?.sessionLength,
+      });
       const scionSourceLedgerRequested =
         (provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID) &&
         sourceBriefConstraints.instructorProvidedFacts.length >= 3;
@@ -5806,6 +5811,8 @@ export default function useDeliverables({
                 lessonIndex,
                 config: getGenerationConfig(featureId),
                 instructorPreferences: instructorPreferenceProfile,
+                sourceBrief,
+                sessionMinutes: requestedSessionMinutes,
                 enrichmentOverlay: lastEnrichmentOverlayRef.current,
                 kernelCache,
                 onTextTierMatch: (item) =>

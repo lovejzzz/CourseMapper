@@ -5,6 +5,7 @@ import {
   sourceArithmeticGuidePractice,
 } from '../sourceArithmeticStudyPractice';
 import { buildCourseBlueprint, compileBlueprintDeliverable } from '../courseBlueprintCompiler';
+import { compileBlueprintLessonPatch } from '../compiledLessonSync';
 
 describe('source proportion rehearsal', () => {
   it.each([
@@ -98,9 +99,66 @@ describe('source proportion rehearsal', () => {
       skipCompilerContractCheck: true,
     }).lessonPlans[0];
     expect(JSON.stringify(teacher)).toContain('16 ÷ 20 = 0.80');
+    expect(JSON.stringify(teacher)).not.toContain('.”.');
 
     blueprint.lessons[0].enrichment.kernel.provenance.authority = 'model-provisional';
     const unverified = compileBlueprintDeliverable('studyGuides', blueprint, options).studyGuides[0];
     expect(unverified.workedExample?.protocol).not.toBe(SOURCE_ARITHMETIC_PROTOCOL);
   });
+
+  it.each([
+    [false, null, 45],
+    [true, null, 45],
+    [true, 90, 90],
+  ])(
+    'keeps the classroom clock through a lesson patch (enriched=%s, explicit=%s)',
+    (enriched, sessionMinutes, expected) => {
+      const facts = [
+        '20 volunteers joined a daytime workshop; 16 completed it.',
+        'The sample completion proportion is 16/20 = 0.80 = 80%.',
+        'Night-shift workers could not attend.',
+      ];
+      const patch = compileBlueprintLessonPatch({
+        featureId: 'lessonPlans',
+        lessonIndex: 0,
+        courseMap: {
+          courseName: 'Sample proportions',
+          lessons: [
+            {
+              title: 'Sample proportion calculation',
+              sections: [
+                { topicSection: 'Sample proportions', learningObjectives: 'Calculate the observed sample proportion.' },
+              ],
+            },
+          ],
+        },
+        sourceBrief: 'A single 45-minute introductory statistics lesson for adults.',
+        sessionMinutes,
+        config: { sessionLength: '75 minutes' },
+        enrichmentOverlay: enriched
+          ? {
+              lessonContent: {
+                'lesson-1': {
+                  kernel: {
+                    facts,
+                    provenance: {
+                      source: 'compiler-owned-exact-source-ledger',
+                      authority: 'instructor-supplied',
+                      copiedFactsVerbatim: true,
+                      factCount: facts.length,
+                    },
+                  },
+                  keyTerms: [],
+                },
+              },
+            }
+          : null,
+      });
+      const plan = patch.data.lessonPlans[0];
+      expect(plan.duration).toBe(`${expected} minutes`);
+      expect(plan.outline.reduce((total, row) => total + parseInt(row.time, 10), 0)).toBe(expected);
+      expect(plan.outlineTiming.sessionMinutes).toBe(expected);
+      expect(plan.warmUp.duration).toBe(plan.outline.find((row) => row.type === 'Warm-up').time);
+    },
+  );
 });
