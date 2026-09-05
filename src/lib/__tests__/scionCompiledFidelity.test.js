@@ -13,6 +13,7 @@ import { runScionLocalCompletion } from '../scionLocalProvider';
 import { buildScionGroundedRefinementPrompt, scionCallOpts } from '../scionPassB';
 import { assessPublicScionKernelResponse } from '../publicScionProvider';
 import { bindScionEvidenceProvenance, selectScionEvidenceCandidate } from '../scionEvidenceLayer';
+import { repairDeliverableContentQuality } from '../contentQualityRepair';
 
 const facts = [
   'A sample is the observed subset of a population.',
@@ -26,6 +27,21 @@ const misconception = 'The sample proportion divides the observed number by the 
 const correction = `The claim “${misconception}” is incorrect. Use “A sample proportion divides the observed number supporting a choice by the total number sampled” instead.`;
 
 describe('Scion material fidelity after compilation', () => {
+  it('preserves quoted source calculations during repetition repair and never leaves a detached percent sign', () => {
+    const fact = 'The sample completion proportion is 16/20 = 0.80 = 80%.';
+    const problem = `Source Claim 2 states: “${fact}” Show which calculation supports it.`;
+    const guide = {
+      sourceEvidenceBrief: { claims: [fact] },
+      summary: `Review this source statement: ${fact}`,
+      practiceActivities: Array.from({ length: 6 }, () => `Consider this statement: ${fact}`),
+      workedExample: { problem },
+    };
+    const result = repairDeliverableContentQuality('studyGuides', { studyGuides: [guide] }, { sourceFacts: [fact] });
+    expect(result.data.studyGuides[0].workedExample.problem).toBe(problem);
+    expect(result.data.studyGuides[0].sourceEvidenceBrief.claims).toEqual([fact]);
+    expect(JSON.stringify(result.data)).not.toMatch(/proportion%/);
+    expect(JSON.stringify(result.data)).not.toContain('“the source statement about');
+  });
   it('admits lowercase instructor facts through the real exact-copy route without treating source casing as model truncation', async () => {
     const sourceText =
       'Source facts: 20 volunteers joined a daytime workshop; 16 completed it; the sample completion proportion is 16/20 = 0.80 = 80%; night-shift workers could not attend; volunteering can introduce selection bias; these data alone do not establish the completion rate for all adult learners. Include a worked calculation.';

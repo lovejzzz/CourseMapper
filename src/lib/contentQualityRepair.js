@@ -253,7 +253,7 @@ function sourceFactMatches(value, fact) {
   const offsets = normalizedOffsetMap(String(value || ''));
   const factCore = sourceFactCore(fact);
   const factOpening = /^[\s('"“‘\[]*/.exec(factCore)?.[0] || '';
-  const factClosing = /[\s)'"”’\],;:]*$/.exec(factCore)?.[0] || '';
+  const factClosing = /[\s)'"”’\],;:%‰°]*$/.exec(factCore)?.[0] || '';
   const matches = [];
   for (let index = 0; index + expected.length <= tokens.length; index += 1) {
     if (!expected.every((token, tokenIndex) => tokens[index + tokenIndex].token === token)) continue;
@@ -301,10 +301,16 @@ function collectSourceFactOccurrences(
   if (typeof node === 'string') {
     const whole = protectedFacts.has(normalizedSourceFact(node)) || /^(?:definition|definitions)$/i.test(parentKey);
     const localUnit = sourceFactLocalUnit(path);
-    sourceFactMatches(node, fact).forEach((_match, occurrenceIndex) => {
+    sourceFactMatches(node, fact).forEach((match, occurrenceIndex) => {
+      const openingQuote = /[“"‘']\s*$/.exec(node.slice(0, match.start))?.[0]?.trim();
+      const closingQuote = /^[.!?]?\s*([”"’'])/.exec(node.slice(match.end))?.[1];
+      const quoted = Boolean(openingQuote && { '“': '”', '"': '"', '‘': '’', "'": "'" }[openingQuote] === closingQuote);
       occurrences.push({
         id: `${sourceFactPathKey(path)}#${occurrenceIndex}`,
-        whole,
+        // A direct quotation is immutable teaching evidence even when the
+        // same fact appears elsewhere. Replacing it with a topic reference
+        // would attribute invented wording to the original source.
+        whole: whole || quoted,
         localUnit,
         priority: sourceFactFieldPriority(parentKey),
         order: order.value,
