@@ -12,6 +12,7 @@ import { buildLessonKernelPrompt, parseLessonKernelResponse } from '../blueprint
 import { runScionLocalCompletion } from '../scionLocalProvider';
 import { buildScionGroundedRefinementPrompt, scionCallOpts } from '../scionPassB';
 import { assessPublicScionKernelResponse } from '../publicScionProvider';
+import { bindScionEvidenceProvenance, selectScionEvidenceCandidate } from '../scionEvidenceLayer';
 
 const facts = [
   'A sample is the observed subset of a population.',
@@ -68,6 +69,26 @@ describe('Scion material fidelity after compilation', () => {
     expect(bound.lessons[0].topics).toContain('0.80 = 80%');
     const parsed = parseLessonKernelResponse(result.rawText, { prompt: bound, expectedLessonIds: ['lesson-1'] });
     expect(parsed.lessons['lesson-1'].kernel.facts).toEqual(facts);
+    const emptyResearch = { byLessonId: {} };
+    const rejectedResearch = { status: 'needs-evidence' };
+    const selected = selectScionEvidenceCandidate(
+      emptyResearch,
+      'lesson-1',
+      null,
+      parsed.lessons['lesson-1'],
+      undefined,
+      rejectedResearch,
+    );
+    parsed.lessons['lesson-1'] = bindScionEvidenceProvenance(emptyResearch, 'lesson-1', selected, rejectedResearch);
+    expect(parsed.lessons['lesson-1'].kernel.provenance).toMatchObject({
+      authority: 'instructor-supplied',
+      copiedFactsVerbatim: true,
+      factCount: facts.length,
+    });
+    const unsupported = { kernel: { facts, provenance: { authority: 'instructor-supplied' } } };
+    expect(
+      bindScionEvidenceProvenance(emptyResearch, 'lesson-1', unsupported, rejectedResearch).kernel.provenance.authority,
+    ).toBe('model-provisional');
     const blueprint = buildCourseBlueprint(map, {
       sourceBrief: sourceText,
       instructorProvidedFacts: facts,

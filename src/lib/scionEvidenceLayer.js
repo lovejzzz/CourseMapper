@@ -12,7 +12,12 @@ import {
   semanticIdentityTokens,
   sourceIdentityScopeMismatch,
 } from './lessonSemanticRelevance.js';
-import { EXACT_SOURCE_LEDGER_PROVENANCE } from './sourceLedgerProvenance.js';
+import {
+  EXACT_SOURCE_LEDGER_PROVENANCE,
+  hasExactSourceLedgerProvenance,
+  sourceLedgerAuthority,
+  SOURCE_LEDGER_AUTHORITIES,
+} from './sourceLedgerProvenance.js';
 import { bindAdmittedSourcesToTeachingSurfaces } from './admittedSourceBinding.js';
 import {
   buildInstructionalInstanceContract,
@@ -178,6 +183,7 @@ export function selectScionEvidenceCandidate(
   fallbackPick = (_previous, next) => next,
   evidenceAuthority = null,
 ) {
+  if (isExactInstructorLedger(candidate)) return candidate;
   const evidence = overlay?.byLessonId?.[lessonId];
   if (evidenceAuthorityExplicitlyRejected(evidenceAuthority)) {
     return markScionCandidateModelProvisional(fallbackPick(previous, candidate), evidenceAuthority);
@@ -605,8 +611,20 @@ function evidenceAuthorityExplicitlyRejected(authority = null) {
   return authority != null && !authorityReceiptIsFresh(authority);
 }
 
+function isExactInstructorLedger(payload) {
+  return (
+    hasExactSourceLedgerProvenance(payload) &&
+    sourceLedgerAuthority(payload) === SOURCE_LEDGER_AUTHORITIES.INSTRUCTOR_SUPPLIED
+  );
+}
+
 function markScionCandidateModelProvisional(payload = null, authority = null) {
   if (!payload || typeof payload !== 'object') return payload;
+  // A research miss concerns the retrieved material. It cannot revoke an
+  // independent instructor ledger that the canonical parser copied exactly.
+  // This preserves source identity; it does not certify factual correctness
+  // or grant the failed research any citation/teaching authority.
+  if (isExactInstructorLedger(payload)) return payload;
   const factCount = [
     ...(Array.isArray(payload?.facts) ? payload.facts : []),
     ...(Array.isArray(payload?.sourceFacts) ? payload.sourceFacts : []),
@@ -1510,6 +1528,7 @@ export function scionEvidenceLessonIds(overlay = null) {
 }
 
 export function bindScionEvidenceProvenance(overlay, lessonId, payload, evidenceAuthority = null) {
+  if (isExactInstructorLedger(payload)) return payload;
   const evidence = overlay?.byLessonId?.[lessonId];
   if (evidenceAuthorityExplicitlyRejected(evidenceAuthority)) {
     return markScionCandidateModelProvisional(payload, evidenceAuthority);
