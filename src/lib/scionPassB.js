@@ -120,8 +120,13 @@ function canonicalAdmissionPrompt(boundPrompt, sourcePrompt) {
   };
 }
 
-function buildGroundedAdapterLesson(lesson, facts) {
-  if (!Array.isArray(facts) || facts.length < 3 || facts.length > 5 || facts.some((fact) => typeof fact !== 'string')) {
+function buildGroundedAdapterLesson(lesson, facts, maximumFacts = 5) {
+  if (
+    !Array.isArray(facts) ||
+    facts.length < 3 ||
+    facts.length > maximumFacts ||
+    facts.some((fact) => typeof fact !== 'string')
+  ) {
     return null;
   }
   // Match the exact lesson serialization learned by every admitted training
@@ -191,7 +196,9 @@ export function buildScionGroundedRefinementPrompt({
     .filter((lesson) => expected.has(lesson?.lessonId))
     .map((lesson) => {
       const facts = returned.get(lesson.lessonId)?.facts;
-      return buildGroundedAdapterLesson(lesson, facts);
+      // The compiler's single-session source contract accepts eight facts.
+      // Keep the sampled adapter route at its learned five-fact boundary.
+      return buildGroundedAdapterLesson(lesson, facts, exactSourceProjection ? 8 : 5);
     });
   if (lessons.length !== expectedLessonIds.length || lessons.some((lesson) => !lesson)) return null;
   const course = String(prompt.courseName || '').trim() || 'Untitled Course';

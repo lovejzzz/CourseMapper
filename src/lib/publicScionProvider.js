@@ -953,7 +953,10 @@ export function assessPublicScionKernelResponse(
         }
         if (
           !/[.!?][\])}"']?$/.test(String(fact || '').trim()) ||
-          publicScionStartsWithLowercaseFragment(fact) ||
+          // Instructor-authored list items may start in lowercase. Exact
+          // source projection is checked against every immutable claim below;
+          // sentence casing cannot prove that the compiler truncated it.
+          (!compilerOwnedExactSourceProjection && publicScionStartsWithLowercaseFragment(fact)) ||
           publicScionLooksTruncatedClaim(fact)
         ) {
           issues.push(`${expected.lessonId}:fact-${index}:truncated-fact`);

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { buildCourseBlueprint, compileBlueprintDeliverable } from '../courseBlueprintCompiler';
 import { normalizeCourseIR } from '../courseIR';
 import {
@@ -8,7 +8,10 @@ import {
 } from '../nativeGraphAuthoring';
 import { projectKernelToSurfaces } from '../kernelProjection';
 import { extractInstructorProvidedFacts } from '../sourceBriefConstraints';
-import { buildLessonKernelPrompt } from '../blueprintEnrichmentPass';
+import { buildLessonKernelPrompt, parseLessonKernelResponse } from '../blueprintEnrichmentPass';
+import { runScionLocalCompletion } from '../scionLocalProvider';
+import { buildScionGroundedRefinementPrompt, scionCallOpts } from '../scionPassB';
+import { assessPublicScionKernelResponse } from '../publicScionProvider';
 
 const facts = [
   'A sample is the observed subset of a population.',
@@ -22,6 +25,114 @@ const misconception = 'The sample proportion divides the observed number by the 
 const correction = `The claim “${misconception}” is incorrect. Use “A sample proportion divides the observed number supporting a choice by the total number sampled” instead.`;
 
 describe('Scion material fidelity after compilation', () => {
+  it('admits lowercase instructor facts through the real exact-copy route without treating source casing as model truncation', async () => {
+    const sourceText =
+      'Source facts: 20 volunteers joined a daytime workshop; 16 completed it; the sample completion proportion is 16/20 = 0.80 = 80%; night-shift workers could not attend; volunteering can introduce selection bias; these data alone do not establish the completion rate for all adult learners. Include a worked calculation.';
+    const facts = extractInstructorProvidedFacts(sourceText);
+    const map = {
+      courseName: 'Sample proportions',
+      lessons: [
+        {
+          title: 'Sample proportions',
+          sections: [
+            {
+              topicSection: 'Sample proportion and selection bias',
+              learningObjectives:
+                'Calculate a sample proportion and distinguish a sample result from a population claim.',
+            },
+          ],
+        },
+      ],
+    };
+    const prompt = buildLessonKernelPrompt(map, [0], { sourceBrief: sourceText, instructorProvidedFacts: facts });
+    const runtimeLoader = vi.fn();
+    const result = await runScionLocalCompletion({
+      systemPrompt: prompt.systemPrompt,
+      userPrompt: prompt.userPrompt,
+      task: 'blueprintEnrichment',
+      ...scionCallOpts({ prompt, expectedLessonIds: ['lesson-1'] }),
+      runtimeLoader,
+    });
+    expect(runtimeLoader).not.toHaveBeenCalled();
+    expect(JSON.parse(result.rawText).lessons[0].facts).toEqual(facts);
+    const diagnostics = {};
+    const bound = buildScionGroundedRefinementPrompt({
+      rawText: result.rawText,
+      prompt,
+      expectedLessonIds: ['lesson-1'],
+      exactSourceProjection: true,
+      diagnostics,
+    });
+    expect(diagnostics.issues).toEqual([]);
+    expect(bound).not.toBeNull();
+    expect(bound.lessons[0].topics).toContain('0.80 = 80%');
+    const parsed = parseLessonKernelResponse(result.rawText, { prompt: bound, expectedLessonIds: ['lesson-1'] });
+    expect(parsed.lessons['lesson-1'].kernel.facts).toEqual(facts);
+    const blueprint = buildCourseBlueprint(map, {
+      sourceBrief: sourceText,
+      instructorProvidedFacts: facts,
+      enrichment: { lessonContent: parsed.lessons },
+    });
+    const guide = compileBlueprintDeliverable('studyGuides', blueprint).studyGuides[0];
+    expect(guide.sourceEvidenceBrief.claims.map((claim) => claim.toLowerCase())).toEqual(
+      facts.map((fact) => fact.toLowerCase()),
+    );
+
+    // The exception does not authorize altered claims or lower-case sampled
+    // model fragments; exact identity and ordinary generation gates still apply.
+    const changed = JSON.parse(result.rawText);
+    changed.lessons[0].facts[1] = changed.lessons[0].facts[1].replace('80%', '90%');
+    const rejected = {};
+    expect(
+      buildScionGroundedRefinementPrompt({
+        rawText: JSON.stringify(changed),
+        prompt,
+        expectedLessonIds: ['lesson-1'],
+        exactSourceProjection: true,
+        diagnostics: rejected,
+      }),
+    ).toBeNull();
+    expect(rejected.issues.some((issue) => issue.includes('source-fact-ledger-mismatch'))).toBe(true);
+    const sampled = assessPublicScionKernelResponse(result.rawText, prompt.userPrompt, 'blueprintEnrichment', {
+      applyCompilerRepairs: false,
+    });
+    expect(sampled.issues.some((issue) => issue.includes('truncated-fact'))).toBe(true);
+  });
+
+  it('binds all eight compiler-owned source facts without applying the five-fact adapter limit', () => {
+    const sourceFacts = [
+      ...facts,
+      'The survey records support for one proposed route change.',
+      'No household outside the town was surveyed in this example.',
+    ];
+    const map = {
+      courseName: 'Sample proportions',
+      lessons: [
+        {
+          title: 'Sample proportions',
+          sections: [
+            {
+              topicSection: 'Sample proportions',
+              learningObjectives: 'Calculate the observed proportion and explain the sampling limits.',
+            },
+          ],
+        },
+      ],
+    };
+    const prompt = buildLessonKernelPrompt(map, [0], { instructorProvidedFacts: sourceFacts });
+    const bound = buildScionGroundedRefinementPrompt({
+      rawText: JSON.stringify({ lessons: [{ lessonId: 'lesson-1', facts: sourceFacts }] }),
+      prompt,
+      expectedLessonIds: ['lesson-1'],
+      exactSourceProjection: true,
+    });
+    expect(bound).not.toBeNull();
+    const parsed = parseLessonKernelResponse(
+      JSON.stringify({ lessons: [{ lessonId: 'lesson-1', facts: sourceFacts }] }),
+      { prompt: bound, expectedLessonIds: ['lesson-1'] },
+    );
+    expect(parsed.lessons['lesson-1'].kernel.facts).toEqual(sourceFacts);
+  });
   it('carries a real single-lesson brief through skeleton parsing and the source ledger without losing the objective or decimals', () => {
     const objective = 'calculate a sample proportion and distinguish a sample result from a population claim.';
     const sourceText = `A single 45-minute introductory statistics lesson for adults: ${objective} Source facts: 20 volunteers joined a daytime workshop; 16 completed it; the sample proportion is 16/20 = 0.80 = 80%; night-shift workers could not attend; volunteering can introduce selection bias; these data alone do not establish the rate for all adult learners. Include a worked calculation.`;
