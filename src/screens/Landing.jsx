@@ -17,6 +17,7 @@ import {
 import useScionDeviceCapability from '../hooks/useScionDeviceCapability';
 import useScionHostedConsent from '../hooks/useScionHostedConsent';
 import { isHostedScionModel } from '../lib/scionHostedPolicy';
+import useScionHostedAvailability from '../hooks/useScionHostedAvailability';
 
 const ModelConfig = lazy(() => import('../components/ModelConfig'));
 
@@ -397,6 +398,7 @@ export default function Landing({
   );
   const scionSelected = provider === PUBLIC_SCION_PROVIDER_ID;
   const hostedScion = scionSelected && isHostedScionModel(modelId);
+  const { availability: hostedAvailability } = useScionHostedAvailability(hostedScion);
   const hostedConsent = useScionHostedConsent();
   const scionPermissionReady = !hostedScion || hostedConsent;
   const scionDeviceCapability = useScionDeviceCapability(scionSelected && !hostedScion);
@@ -999,13 +1001,20 @@ export default function Landing({
                   </p>
                 )}
 
+              {hostedScion && hostedAvailability?.ready === false && (
+                <p role="status" className="mt-2 text-center text-xs text-amber-700 dark:text-amber-300">
+                  {hostedAvailability.message}
+                  {hostedAvailability.retryAt &&
+                    ` Retry after ${new Date(hostedAvailability.retryAt).toLocaleString()}.`}
+                </p>
+              )}
               {canQuickStart && (
                 <>
                   <button
                     type="button"
                     data-testid="landing-quick-start"
                     onClick={handleQuickStartClick}
-                    disabled={isGenerating}
+                    disabled={isGenerating || (hostedScion && hostedAvailability?.ready !== true)}
                     className="tactile btn-glow mt-5 w-full rounded-lg bg-slate-950 px-8 py-4 text-sm font-semibold tracking-wide text-white shadow-lg shadow-slate-950/15 transition-all duration-300 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-slate-950 dark:shadow-white/10"
                   >
                     <span className="flex items-center justify-center gap-2.5">

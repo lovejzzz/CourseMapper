@@ -105,6 +105,55 @@ describe('useSmartSync canonical patch requests', () => {
     container.remove();
   });
 
+  it('uses the committed canonical map for later full-feature syncs after an earlier build normalizes it', async () => {
+    const before = { lessons: [{ title: 'Before normalization', sections: [] }] };
+    const after = { lessons: [{ title: 'Canonical course map', sections: [] }] };
+    const courseMapRef = { current: before };
+    const deliv = {
+      isGenerating: false,
+      deliverables: {},
+      markFeatureStale: vi.fn(),
+      regenerateLesson: vi.fn(async (_id, map) => {
+        expect(map).toBe(after);
+        return { status: 'done', syncSource: 'blueprint-compiler', providerCallCount: 0 };
+      }),
+      generateAll: vi.fn(async (map, [id]) => {
+        if (id === 'syllabus') courseMapRef.current = after;
+        else expect(map).toBe(after);
+        return { completedFeatureIds: [id], providerCallCount: 0 };
+      }),
+    };
+    let hook;
+    root = createRoot(container);
+    await act(async () =>
+      root.render(
+        <Harness
+          onHook={(value) => {
+            hook = value;
+          }}
+          props={{
+            deliv,
+            gen: { isStreaming: false },
+            courseMapRef,
+            provider: 'public',
+            selectedFeatures: ['syllabus', 'lessonPlans', 'discussions', 'courseFaq'],
+          }}
+        />,
+      ),
+    );
+    let completed;
+    await act(async () => {
+      completed = await hook.executeSyncPlan([
+        { featureId: 'syllabus', lessonIndices: null },
+        { featureId: 'lessonPlans', lessonIndices: [0] },
+        { featureId: 'discussions', lessonIndices: null },
+        { featureId: 'courseFaq', lessonIndices: null },
+      ]);
+    });
+    expect([...completed]).toEqual(['syllabus', 'lessonPlans', 'discussions', 'courseFaq']);
+    expect(completed.syncSummary.resultDetails?.some((x) => x.status === 'error') || false).toBe(false);
+  });
+
   it('resolves ambiguous artifact edits into blueprint patches before compiler sync', async () => {
     const courseMapRef = {
       current: {

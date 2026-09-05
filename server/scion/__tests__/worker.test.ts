@@ -24,6 +24,38 @@ afterEach(() => {
 });
 
 describe('public gateway admission', () => {
+  it('health checks the same quota as completion without reserving a call or contacting Google when exhausted', async () => {
+    const upstream = vi.fn();
+    vi.stubGlobal('fetch', upstream);
+    const quotaFetch = vi
+      .fn()
+      .mockImplementation(async () => Response.json({ scope: 'visitor-day', retryAfter: 3600 }, { status: 429 }));
+    const testEnv = {
+      ...env,
+      SCION_QUOTA: { idFromName: () => 'quota', get: () => ({ fetch: quotaFetch }) },
+    } as unknown as Env;
+    const health = Object.assign(
+      new Request('https://worker.test/api/scion/health', { headers: { Origin: 'https://edutool.dev' } }),
+      { cf: { country: 'US' } },
+    );
+    const status = await worker.fetch(health, testEnv);
+    expect(status.status).toBe(429);
+    expect(await status.json()).toMatchObject({ ready: false, scope: 'visitor-day' });
+    expect(status.headers.get('Retry-After')).toBe('3600');
+    const completion = await worker.fetch(
+      request(
+        'POST',
+        'US',
+        'https://edutool.dev',
+        JSON.stringify({ system: 'Return JSON', prompt: 'What is 16/20?', seed: 1, maxTokens: 64, thinking: false }),
+      ),
+      testEnv,
+    );
+    expect(completion.status).toBe(429);
+    expect(quotaFetch.mock.calls[0][1].body).toBe(quotaFetch.mock.calls[1][1].body);
+    expect(quotaFetch.mock.calls.every(([url]) => url.endsWith('/check'))).toBe(true);
+    expect(upstream).not.toHaveBeenCalled();
+  });
   it('rejects a different origin, unavailable region, malformed input and paid model configuration before contacting Google', async () => {
     const fetch = vi.fn();
     vi.stubGlobal('fetch', fetch);

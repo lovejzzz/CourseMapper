@@ -2,9 +2,8 @@ import { runScionLocalCompletion } from './scionLocalProvider';
 import { createScionCompletionQueue } from './scionCompletionBoundary';
 import { readScionHostedConsent, SCION_HOSTED_BACKING_MODEL, SCION_HOSTED_CONSENT_EVENT } from './scionHostedPolicy';
 
-export const SCION_HOSTED_ENDPOINT = import.meta.env?.PROD
-  ? 'https://edutool-scion.xingpicture.workers.dev/api/scion'
-  : '/api/scion';
+import { SCION_HOSTED_ENDPOINT } from './scionHostedAvailability';
+export { SCION_HOSTED_ENDPOINT } from './scionHostedAvailability';
 const enqueue = createScionCompletionQueue();
 
 function hostedError(code, message) {

@@ -36,7 +36,7 @@ export function detectRequestedClassSessionMinutes(sourceBrief = '') {
     .trim();
   if (!text) return null;
   const patterns = [
-    /\b(\d{2,3})\s*[-–—]?\s*minute\s+(?:lesson|class|session|workshop)\b/i,
+    /\b(\d{2,3})\s*[-–—]?\s*minute\s+(?:(?!minutes?\b)[\p{L}-]+\s+){0,4}(?:lesson|class|session|workshop)\b/iu,
     /\b(?:lesson|class|session|workshop)\s+(?:lasting|runs?\s+for|of)\s+(\d{2,3})\s+minutes?\b/i,
     /\b(?:lesson|class|session|workshop)\s+(?:is|should be|must be)\s+(\d{2,3})\s+minutes?\b/i,
   ];
@@ -92,27 +92,65 @@ const INSTRUCTION_SENTENCE_RE =
 /**
  * Recover only the facts the instructor explicitly labels as provided facts.
  * This is intentionally not a general summarizer: it preserves complete
- * source sentences verbatim, stops when task directions begin, and is used
- * only under the explicit source-only boundary.
+ * source wording, stops when task directions begin, and normalizes list
+ * punctuation. Providing facts and prohibiting outside research are separate
+ * choices: the former must not require the latter's special wording.
  */
 export function extractInstructorProvidedFacts(sourceBrief = '') {
-  if (!requiresInstructorSourcesOnly(sourceBrief)) return [];
   const text = String(sourceBrief || '')
-    .replace(/\s+/g, ' ')
+    .replace(/\r\n?/g, '\n')
     .trim();
-  const marker = text.match(/\b(?:instructor[- ]provided|following|these) facts?\s*:\s*/i);
+  const marker = text.match(/\b(?:source|instructor[- ]provided|provided|following|these) facts?\s*:\s*/i);
   if (!marker?.[0]) return [];
   const tail = text.slice((marker.index || 0) + marker[0].length);
-  const sentences = tail.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [];
+  // Sentence segmentation preserves decimals (0.80), initials and other
+  // internal periods. Explicit bullets and semicolons also delimit facts.
+  const segmenter = new Intl.Segmenter('en', { granularity: 'sentence' });
+  const sentences = tail.split(/\n+|;\s+/).flatMap((line) => [...segmenter.segment(line)].map((s) => s.segment));
   const facts = [];
   for (const sentence of sentences) {
-    const fact = sentence.trim();
-    if (!fact || INSTRUCTION_SENTENCE_RE.test(fact)) break;
-    if (fact.length < 12 || fact.length > 260) continue;
+    let fact = sentence
+      .replace(/^\s*(?:[-*•]|\d+[.)])\s+/, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (!fact) continue;
+    if (INSTRUCTION_SENTENCE_RE.test(fact) || /^(?:learning objectives?|assessment|task|instructions?)\s*:/i.test(fact))
+      break;
+    if (fact.length < 12 || fact.length > 400) continue;
+    if (!/[.!?]$/.test(fact)) fact += '.';
+    // A short continuation such as "16 completed it" needs its preceding
+    // subject. Keep the source clauses together, without inventing a referent.
+    if (fact.length < 20 && facts.length > 0 && facts.at(-1).length + fact.length < 398) {
+      facts[facts.length - 1] = `${facts.at(-1).replace(/[.!?]$/, '')}; ${fact}`;
+      continue;
+    }
     facts.push(fact);
     if (facts.length >= 8) break;
   }
   return facts;
+}
+
+/** A single-session brief can explicitly name its objective after a label
+ * or the introductory lesson colon. Never distribute that objective across
+ * an inferred multi-session sequence. */
+export function extractSingleLessonObjectives(sourceBrief = '') {
+  const text = String(sourceBrief || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const labeled = text.match(/\b(?:learning objectives?|learning outcomes?)\s*:\s*/i);
+  const firstSentence = [...new Intl.Segmenter('en', { granularity: 'sentence' }).segment(text)][0]?.segment || '';
+  const intro = firstSentence.match(/\b(?:lesson|class|session|workshop)\b[^:]*:\s*/i);
+  const marker = labeled || intro;
+  if (!marker) return [];
+  const tail = (labeled ? text : firstSentence).slice(marker.index + marker[0].length);
+  const objective = [...new Intl.Segmenter('en', { granularity: 'sentence' }).segment(tail)][0]?.segment.trim() || '';
+  if (
+    !/^(?:calculate|compute|compare|distinguish|explain|identify|analy[sz]e|evaluate|design|solve|interpret|demonstrate|apply|use|describe|write|create|measure|summarize)\b/i.test(
+      objective,
+    )
+  )
+    return [];
+  return objective.length >= 20 && objective.length <= 300 ? [objective] : [];
 }
 
 export function analyzeSourceBriefConstraints(sourceBrief = '') {

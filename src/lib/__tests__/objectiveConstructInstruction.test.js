@@ -8,6 +8,17 @@ import {
 import { objectiveTaskMapping } from '../quality/assessmentCoherence.js';
 
 describe('objective construct application instruction', () => {
+  it('keeps mathematical and unfamiliar objective wording instead of a comma-separated token list', () => {
+    expect(
+      appliedObjectiveCue(
+        'Calculate 16/20 = 0.80 and distinguish the sample result from an unsupported population claim.',
+      ),
+    ).toBe('calculation of 16/20 = 0.80 and distinguish the sample result from an unsupported population claim');
+    expect(appliedObjectiveCue('Sketch the circuit without shorting the battery.')).toBe(
+      'Sketch the circuit without shorting the battery',
+    );
+    expect(appliedObjectiveCue('解释样本与总体的区别。')).toContain('解释样本与总体的区别');
+  });
   it('turns inspect objectives into complete grammatical action cues', () => {
     expect(appliedObjectiveCue('Inspect dataset provenance and clean missing values before making a claim.')).toBe(
       'inspection of dataset provenance and clean missing values before making a claim',

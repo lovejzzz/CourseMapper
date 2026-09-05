@@ -59,6 +59,7 @@ export function ribbonNarrative(state) {
 
 export function ribbonProgressLabel(state, progress) {
   if (state === 'review') return 'Review required';
-  if (progress >= 100) return 'Build complete';
+  if (state === 'complete' && progress >= 100) return 'Build complete';
+  if (state === 'live') return `Build ${Math.min(99, progress)}%`;
   return state === 'error' ? `Stopped at ${progress}%` : `Build ${progress}%`;
 }

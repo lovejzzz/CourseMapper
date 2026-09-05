@@ -34,6 +34,7 @@
  * behavior.
  */
 
+import { extractSingleLessonObjectives } from './sourceBriefConstraints';
 import {
   assessProjectedKernelCoverage,
   buildLessonKernelPrompt,
@@ -2598,6 +2599,10 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
     }
   }
 
+  if (sessions.length === 1 && (!expectedLessons || expectedLessons === 1)) {
+    const sourceObjectives = extractSingleLessonObjectives(sourceText);
+    if (sourceObjectives.length) sessions[0].sourceObjectives = sourceObjectives;
+  }
   const titledSessions = sessions.filter((session) => !/^Lesson \d+$/.test(session.title)).length;
   if (titledSessions === 0) {
     throw new NativeAuthoringError('skeleton-untitled', 'Pass A skeleton has no titled sessions');
@@ -3039,7 +3044,10 @@ export function backfillNativeAuthoringFromLessonContent({
     const third = labels[2] || second || first;
     const lessonTitle =
       cleanText(session?.title, 120).replace(/^lesson\s+\d+\s*[:.-]\s*/i, '') || first || 'the lesson focus';
-    const outcomes = cleanAtomList(existing.outcomes, { maxItems: 8, maxChars: 180 });
+    const outcomes = cleanAtomList(session.sourceObjectives?.length ? session.sourceObjectives : existing.outcomes, {
+      maxItems: 8,
+      maxChars: 300,
+    });
     const asyncActivities = cleanAtomList(existing.asyncActivities, { maxItems: 4, maxChars: 160 });
     const syncActivities = cleanAtomList(existing.syncActivities, { maxItems: 4, maxChars: 160 });
     const lessonNumber = Number(session?.order || String(lessonId).match(/\d+/)?.[0] || 1);
@@ -3167,7 +3175,10 @@ export function buildNativeWireMap(skeleton, passBBySession = {}) {
   const lessons = skeleton.sessions.map((session) => {
     const authored = passBBySession[sessionLessonId(session)] || {};
     const sectionTitles = session.sectionTitles.length > 0 ? session.sectionTitles : [session.title];
-    const outcomeSlices = distributeAcross(authored.outcomes, sectionTitles.length);
+    const outcomeSlices = distributeAcross(
+      session.sourceObjectives?.length ? session.sourceObjectives : authored.outcomes,
+      sectionTitles.length,
+    );
     const asyncSlices = distributeAcross(authored.asyncActivities, sectionTitles.length);
     const syncSlices = distributeAcross(authored.syncActivities, sectionTitles.length);
     const sessionAssessments = skeleton.assessments.filter((entry) => entry.dueSession === session.order);

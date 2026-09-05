@@ -333,7 +333,7 @@ describe('checkCredits', () => {
 
     expect(latestApiStatus).toBe('connected');
     expect(latestModelId).toBe('scion-public');
-    expect(container.textContent).toContain('Connected');
+    expect(container.textContent).toContain('Configured');
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(900);

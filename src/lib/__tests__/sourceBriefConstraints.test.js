@@ -3,6 +3,7 @@ import {
   analyzeSourceBriefConstraints,
   detectRequestedClassSessionMinutes,
   extractInstructorProvidedFacts,
+  extractSingleLessonObjectives,
   parseClassSessionMinutes,
   requiresInstructorSourcesOnly,
   resolveRequestedClassSessionMinutes,
@@ -14,6 +15,40 @@ describe('source brief constraints', () => {
       'Mandarin has four main tones. Build a 50-minute lesson with guided listening and one evidence check.';
     expect(detectRequestedClassSessionMinutes(brief)).toBe(50);
     expect(detectRequestedClassSessionMinutes('Build 15 lessons about four main tones.')).toBeNull();
+    expect(
+      detectRequestedClassSessionMinutes('A single 45-minute introductory statistics lesson for adult beginners.'),
+    ).toBe(45);
+  });
+
+  it('keeps labeled facts without requiring a ban on research, and preserves decimal values and short continuations', () => {
+    const brief =
+      'Source facts: 20 volunteers joined a daytime workshop; 16 completed it; the sample proportion is 16/20 = 0.80 = 80%; night-shift workers could not attend; volunteering can introduce selection bias; these data alone do not establish the rate for all adult learners. Include a worked calculation.';
+    expect(requiresInstructorSourcesOnly(brief)).toBe(false);
+    expect(extractInstructorProvidedFacts(brief)).toEqual([
+      '20 volunteers joined a daytime workshop; 16 completed it.',
+      'the sample proportion is 16/20 = 0.80 = 80%.',
+      'night-shift workers could not attend.',
+      'volunteering can introduce selection bias.',
+      'these data alone do not establish the rate for all adult learners.',
+    ]);
+    expect(extractInstructorProvidedFacts('Teach statistics; include some facts and three examples.')).toEqual([]);
+    expect(
+      extractInstructorProvidedFacts(
+        'Source facts:\n- The rate was 0.80 in the observed sample.\n\n- Only daytime volunteers were included.\nInstructions: Write a quiz.',
+      ),
+    ).toHaveLength(2);
+  });
+
+  it('recovers the explicit objective of a single-session introduction without inventing one from a topic', () => {
+    expect(
+      extractSingleLessonObjectives(
+        'A single 45-minute introductory statistics lesson for adults: calculate a sample proportion and distinguish a sample result from a population claim. Source facts: 20 volunteers attended.',
+      ),
+    ).toEqual(['calculate a sample proportion and distinguish a sample result from a population claim.']);
+    expect(extractSingleLessonObjectives('A lesson on statistics with an answer key.')).toEqual([]);
+    expect(
+      extractSingleLessonObjectives('Learning objectives: Compare two source accounts and explain their limits.'),
+    ).toEqual(['Compare two source accounts and explain their limits.']);
   });
 
   it('parses the compact generation controls and preserves intent precedence', () => {

@@ -626,7 +626,6 @@ export default function useDeliverables({
       const sourceBriefConstraints = analyzeSourceBriefConstraints(sourceBrief);
       const scionSourceLedgerRequested =
         (provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID) &&
-        sourceBriefConstraints.instructorSourcesOnly &&
         sourceBriefConstraints.instructorProvidedFacts.length >= 3;
       const requestedSessionMinutes = resolveRequestedClassSessionMinutes({
         sourceBrief,
@@ -5659,7 +5658,6 @@ export default function useDeliverables({
       const sourceBriefConstraints = analyzeSourceBriefConstraints(sourceBrief);
       const scionSourceLedgerRequested =
         (provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID) &&
-        sourceBriefConstraints.instructorSourcesOnly &&
         sourceBriefConstraints.instructorProvidedFacts.length >= 3;
       const syncGenId = regenerationOptions.syncGenId ?? null;
       const deliverableItemIndex = Number.isInteger(regenerationOptions.deliverableItemIndex)

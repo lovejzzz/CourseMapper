@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.18.7 production verification fixes — 2026-09-05
+
+Follow-up checks used the deployed homepage, a real local Gemma course build, project/ZIP downloads and an actual Course Map edit followed by Smart Sync. The interface and ten deliverables remain at 0.18.7.
+
+- Make online health checks inspect the same visitor quota as generation. Show current availability and reset time in AI settings; disable quick generation when online Scion is unavailable. Rename the local configuration badge to “Configured” so selection is not mistaken for a verified API connection. No quota counters or limits were reset or increased.
+- Preserve explicitly labeled source facts without requiring the special instruction to prohibit all other sources. Keep decimal values, bullet lists, short source continuations and later limitations; stop before teaching instructions. Carry these facts into initial and regenerated lesson prompts.
+- Recognize class durations with intervening subject words, such as “45-minute introductory statistics lesson.” Preserve an explicit single-session learning objective through the native skeleton and canonical map instead of replacing it with a generic topic objective.
+- Keep mathematical and unfamiliar learning objectives as grammatical text instead of reducing them to comma-separated alignment tokens. Use the admitted authored assignment task as study-guide practice when available.
+- Use the complete admitted worked solution as the reference answer for a worked-example practice question. Explicitly distinguish rehearsal of the taught example from evidence of independent transfer.
+- Use the latest committed canonical map for later items in a Smart Sync run. A preceding full-feature normalization could otherwise leave subsequent full-feature drafts using a stale blueprint fingerprint. Retain error messages in the sync result.
+- Reset visible progress after a settled build and keep active work below 100%. Start the active timer for the current operation instead of including idle time since the original course generation.
+- Add regression coverage for real-brief parsing, source/objective preservation, numerical practice answers, quota-aware availability, mixed full/lesson synchronization and progress labels. Run the browser suite with one worker.
+
+Educational limits remain: the local base model's successful execution does not establish classroom quality, and the exhausted online allowance prevents a new successful public model completion from this visitor until reset. v0.19.0 is still not released.
+
 ## 0.18.7 quality and Scion pipeline update — 2026-09-05
 
 This update keeps the complete 0.18.7 interface and ten material categories. It is not the final v0.19.0 release.

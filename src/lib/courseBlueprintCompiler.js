@@ -19500,17 +19500,22 @@ function compileStudyGuides(blueprint) {
             (entry) => entry.dueSession === lesson.lessonNumber && entry.kind === 'in-class',
           )
         : [];
+      const authoredPractice = cleanText(lesson.enrichment?.studyGuide?.summary)
+        ? cleanText(lesson.enrichment?.assignmentCore?.taskDescription)
+        : '';
       const guide = {
         lessonNumber: lesson.lessonNumber,
         lessonTitle: lesson.title,
         learningObjectives: unique(asArray(lesson.outcomes).map(cleanText).filter(Boolean)),
-        objectivePractice: unique(asArray(lesson.outcomes).map(cleanText).filter(Boolean), 5).map((objective) => {
-          // Learning Objectives above are the declaration surface. Practice
-          // must operationalize each target without repeating the same
-          // sentence as faux evidence of alignment.
-          const target = appliedObjectiveCue(objective);
-          return `Practice ${target} by marking the source detail, recording the reasoning step, and revising the ${studyArtifact}.`;
-        }),
+        objectivePractice: authoredPractice
+          ? [authoredPractice]
+          : unique(asArray(lesson.outcomes).map(cleanText).filter(Boolean), 5).map((objective) => {
+              // Learning Objectives above are the declaration surface. Practice
+              // must operationalize each target without repeating the same
+              // sentence as faux evidence of alignment.
+              const target = appliedObjectiveCue(objective);
+              return `Practice ${target} by marking the source detail, recording the reasoning step, and revising the ${studyArtifact}.`;
+            }),
         assignedReadings: assignedReadingTitlesForLesson(blueprint, lesson),
         examScope: `Use this guide to prepare for Week ${lesson.lessonNumber} checks on ${phrase.context}. Reuse it for later assessments.${
           inClassChecks.length > 0

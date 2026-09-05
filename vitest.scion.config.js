@@ -9,9 +9,10 @@ export default defineConfig({
     testTimeout: 10000,
     include: [
       'src/lib/__tests__/scion*.test.js',
-      'src/lib/__tests__/{kernelProjection,blueprintEnrichmentPass,instructionalPlanGenerationAdmission,compilerSourceBoundaryCorrection,generationCancellation}.test.js',
+      'src/lib/__tests__/{kernelProjection,blueprintEnrichmentPass,instructionalPlanGenerationAdmission,compilerSourceBoundaryCorrection,generationCancellation,sourceBriefConstraints,objectiveConstructInstruction}.test.js',
       'src/components/chat/__tests__/useStreamProcessor.test.js',
-      'src/components/__tests__/ModelConfig.test.jsx',
+      'src/components/__tests__/{ModelConfig,BuildRibbon}.test.jsx',
+      'src/hooks/__tests__/useSmartSync.test.jsx',
     ],
   },
 });

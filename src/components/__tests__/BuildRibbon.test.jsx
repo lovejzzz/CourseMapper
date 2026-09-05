@@ -24,6 +24,14 @@ function makeModel(overrides = {}) {
 }
 
 describe('BuildRibbon', () => {
+  it('does not label a running sync complete when it inherits 100 percent from the finished package', () => {
+    const html = renderToStaticMarkup(
+      <BuildRibbon model={makeModel({ running: true, progressPct: 100, activeStartedAt: 1000 })} />,
+    );
+    expect(html).toContain('Build 99%');
+    expect(html).not.toContain('Build complete');
+    expect(html).toContain('Overall course build progress: 99%');
+  });
   it('keeps an honest narrative when a restored build has no current event label', () => {
     const html = renderToStaticMarkup(<BuildRibbon model={makeModel()} />);
 

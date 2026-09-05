@@ -51,6 +51,8 @@ Both modes retain the 0.18.7 materials, editors and exports. Online Scion author
 
 The Cloudflare Worker in `server/scion/` uses an allowlist of Gemma models, shared request/token limits and a server-side credential. Request, visitor and input-token reservations are atomic: a denied token reservation does not consume daily request allowance. It has no paid fallback. Free provider availability, regional terms and capacity limits still apply; it cannot promise unlimited access for every visitor.
 
+AI settings now check the current visitor's allowance before reporting online availability. A daily limit includes its retry time; checking availability does not reserve a generation request. Explicit `Source facts:` in a brief are preserved independently of the optional restriction on outside research, including decimal values and the limits stated after a numerical result.
+
 The [September 5 production-pipeline audit](docs/scion-quality-2026-09-05.zh-CN.md) records live model calls, exported samples, fixes and remaining limits. Recent real-course audits found substantive weaknesses including unsupported source inferences, repeated practice and solved examples that reveal later answers. Generated material requires instructor review. Do not treat automatic checks or a model's self-review as independent expert validation.
 
 ## Development and deployment

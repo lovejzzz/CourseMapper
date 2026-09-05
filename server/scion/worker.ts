@@ -170,6 +170,25 @@ async function readBody(request: Request): Promise<unknown> {
   return JSON.parse(new TextDecoder().decode(bytes));
 }
 
+async function visitorQuota(request: Request, env: Env) {
+  // CF-Connecting-IP is supplied by Cloudflare's trusted ingress. Both
+  // health and completion must inspect the same daily visitor bucket.
+  const address = request.headers.get('CF-Connecting-IP') ?? 'unknown';
+  const digest = await crypto.subtle.digest(
+    'SHA-256',
+    new TextEncoder().encode(`${Math.floor(Date.now() / 86400000)}:${address}`),
+  );
+  const visitor = Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('');
+  const quota = env.SCION_QUOTA.get(env.SCION_QUOTA.idFromName('shared-allowance'));
+  return { visitor, quota };
+}
+
+function allowanceMessage(scope?: string) {
+  return scope?.endsWith('-day')
+    ? 'The daily free allowance has been used. Resume after the daily reset or choose local Scion in AI settings.'
+    : 'The shared free allowance is busy. Try again shortly.';
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const path = new URL(request.url).pathname;
@@ -208,6 +227,27 @@ export default {
       if (!env.GOOGLE_AI_KEY)
         return reply({ ready: false, error: 'Hosted Scion is not configured.' }, 503, origin ?? undefined);
       try {
+        const { visitor, quota } = await visitorQuota(request, env);
+        const admission = await quota.fetch('https://quota.internal/check', {
+          method: 'POST',
+          body: JSON.stringify({ visitor }),
+        });
+        if (!admission.ok) {
+          const body = (await admission.json()) as { scope?: string; retryAfter?: number };
+          return reply(
+            {
+              ready: false,
+              model: `google/${model}`,
+              adapter: null,
+              allowance: 'shared-free',
+              error: allowanceMessage(body.scope),
+              scope: body.scope,
+            },
+            admission.status,
+            origin ?? undefined,
+            body.retryAfter,
+          );
+        }
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}`, {
           headers: { 'x-goog-api-key': env.GOOGLE_AI_KEY },
           signal: AbortSignal.timeout(8000),
@@ -240,15 +280,7 @@ export default {
     try {
       const parsed = RequestSchema.safeParse(await readBody(request));
       if (!parsed.success) return reply({ error: 'Invalid Scion request.' }, 400, origin);
-      // Cloudflare supplies this header at the trusted ingress. Hash before
-      // storing the daily counter; use one shared bucket if it is unavailable.
-      const address = request.headers.get('CF-Connecting-IP') ?? 'unknown';
-      const digest = await crypto.subtle.digest(
-        'SHA-256',
-        new TextEncoder().encode(`${Math.floor(Date.now() / 86400000)}:${address}`),
-      );
-      const visitor = Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('');
-      const quota = env.SCION_QUOTA.get(env.SCION_QUOTA.idFromName('shared-allowance'));
+      const { visitor, quota } = await visitorQuota(request, env);
       const admission = await quota.fetch('https://quota.internal/check', {
         method: 'POST',
         body: JSON.stringify({ visitor }),
@@ -257,9 +289,7 @@ export default {
         const body = (await admission.json()) as { retryAfter: number; scope: string };
         return reply(
           {
-            error: body.scope.endsWith('-day')
-              ? 'The daily free allowance has been used. Your course is saved; resume after the daily reset or use local Scion.'
-              : 'The shared free allowance is busy. Your course is saved; resume shortly.',
+            error: allowanceMessage(body.scope),
             scope: body.scope,
           },
           429,

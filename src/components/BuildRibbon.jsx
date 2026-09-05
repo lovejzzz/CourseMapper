@@ -48,15 +48,18 @@ function ArtifactStatusMark({ status }) {
 }
 
 function useActiveElapsed(startedAt) {
-  const [now, setNow] = useState(() => Date.now());
+  const [clock, setClock] = useState(() => ({ now: Date.now(), start: Date.now() }));
   useEffect(() => {
     if (!startedAt) return undefined;
-    setNow(Date.now());
-    const interval = globalThis.setInterval(() => setNow(Date.now()), 1000);
+    // A sync shares the course's cumulative API receipt. Its active timer
+    // must not include the teacher's idle time since the original build.
+    const start = Date.now();
+    setClock({ now: start, start });
+    const interval = globalThis.setInterval(() => setClock({ now: Date.now(), start }), 1000);
     return () => globalThis.clearInterval(interval);
   }, [startedAt]);
   if (!startedAt) return '';
-  const seconds = Math.max(0, Math.floor((now - startedAt) / 1000));
+  const seconds = Math.max(0, Math.floor((clock.now - clock.start) / 1000));
   return seconds >= 2 ? `${seconds}s` : '';
 }
 
@@ -67,11 +70,12 @@ function useVisibleProgress(model) {
     return 0;
   }
   const runStartedAt = Number(model.activeStartedAt) || 0;
-  const next = Math.max(0, Math.min(100, Number(model.progressPct) || 0));
-  if (runStartedAt > 0 && runStartedAt !== visible.current.runStartedAt) {
+  const ceiling = model.running || model.compilerState === 'live' ? 99 : 100;
+  const next = Math.max(0, Math.min(ceiling, Number(model.progressPct) || 0));
+  if (!runStartedAt || runStartedAt !== visible.current.runStartedAt) {
     visible.current = { runStartedAt, value: next };
   } else {
-    visible.current.value = Math.max(visible.current.value, next);
+    visible.current.value = Math.min(ceiling, Math.max(visible.current.value, next));
   }
   return visible.current.value;
 }

@@ -27,6 +27,7 @@ import useScionDeviceCapability from '../hooks/useScionDeviceCapability';
 import { SCION_BROWSER_GEMMA4_DOWNLOAD_LABEL } from '../lib/scionBrowserConstants';
 import { isHostedScionModel, saveScionHostedConsent } from '../lib/scionHostedPolicy';
 import useScionHostedConsent from '../hooks/useScionHostedConsent';
+import useScionHostedAvailability from '../hooks/useScionHostedAvailability';
 
 /**
  * Detect provider from API key prefix and auto-switch if mismatched.
@@ -224,6 +225,8 @@ export default function ModelConfig({ reserveTrailingActionSpace = false }) {
   } = useAIConfig();
   const hostedScion = provider === PUBLIC_SCION_PROVIDER_ID && isHostedScionModel(modelId);
   const hostedConsent = useScionHostedConsent();
+  const { availability: hostedAvailability, refresh: refreshHostedAvailability } =
+    useScionHostedAvailability(hostedScion);
   const selectedScionModelName = hostedScion ? 'Scion · Online Gemma 4 31B' : PUBLIC_SCION_MODEL_NAME;
   const scionRuntimeStatus = useScionRuntimeStatus(provider === PUBLIC_SCION_PROVIDER_ID && !hostedScion);
   const scionDeviceCapability = useScionDeviceCapability(provider === PUBLIC_SCION_PROVIDER_ID && !hostedScion);
@@ -623,7 +626,7 @@ export default function ModelConfig({ reserveTrailingActionSpace = false }) {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
-            Connected
+            {provider === PUBLIC_SCION_PROVIDER_ID ? 'Configured' : 'Connected'}
           </span>
         )}
         {apiStatus === 'validating' && (
@@ -1009,6 +1012,15 @@ export default function ModelConfig({ reserveTrailingActionSpace = false }) {
                     ? 'This browser will use Scion’s zero-download evidence compiler. No model weights are downloaded, and private course work stays in this browser.'
                     : `This browser can run Scion’s local model. First use downloads ${SCION_BROWSER_GEMMA4_DOWNLOAD_LABEL} of public weights and keeps them in browser storage.`}
           </p>
+          {hostedScion && (
+            <p className="mt-2" role="status" data-testid="scion-online-availability">
+              {hostedAvailability?.message || 'Checking online availability…'}
+              {hostedAvailability?.retryAt && ` Retry after ${new Date(hostedAvailability.retryAt).toLocaleString()}.`}
+              <button type="button" onClick={refreshHostedAvailability} className="ml-2 underline">
+                Check again
+              </button>
+            </p>
+          )}
           {hostedScion && (
             <div className="mt-3 rounded-squircle-xs border border-indigo-200/70 bg-white/65 p-2.5 dark:border-indigo-300/20 dark:bg-slate-950/30">
               <p id="scion-online-notice">

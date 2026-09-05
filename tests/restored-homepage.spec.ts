@@ -3,6 +3,9 @@ import { expect, test } from '@playwright/test';
 test('online Scion preserves its selection but requires explicit data permission before continuing', async ({
   page,
 }) => {
+  await page.route('**/api/scion/health', (route) =>
+    route.fulfill({ json: { ready: true, model: 'google/gemma-4-31b-it' } }),
+  );
   const requests: string[] = [];
   page.on('request', (request) => {
     if (/\.gguf(?:\?|$)|\/api\/scion\/complete/.test(request.url())) requests.push(request.url());
@@ -32,6 +35,27 @@ test('online Scion preserves its selection but requires explicit data permission
   await page.getByRole('combobox', { name: 'Model', exact: true }).selectOption('scion-public');
   await expect(page.getByTestId('landing-setup-button')).toBeEnabled();
   expect(requests).toEqual([]);
+});
+
+test('online quota exhaustion is visible before a course build without disabling local generation', async ({
+  page,
+}) => {
+  await page.route('**/api/scion/health', (route) =>
+    route.fulfill({
+      status: 429,
+      headers: { 'Retry-After': '3600' },
+      json: { ready: false, error: 'The daily free allowance has been used.', scope: 'visitor-day' },
+    }),
+  );
+  await page.goto('/');
+  await page.getByRole('textbox', { name: 'Describe your course' }).fill('A short course on evaluating evidence.');
+  await page.getByTestId('ai-config-summary').getByRole('button', { name: 'Edit', exact: true }).click();
+  await page.getByRole('combobox', { name: 'Model', exact: true }).selectOption('scion-hosted');
+  await expect(page.getByTestId('scion-online-availability')).toContainText('daily free allowance');
+  await expect(page.getByTestId('scion-online-availability')).toContainText('Retry after');
+  await expect(page.getByText('Configured', { exact: true })).toBeVisible();
+  await page.getByRole('combobox', { name: 'Model', exact: true }).selectOption('scion-public');
+  await expect(page.getByTestId('landing-setup-button')).toBeEnabled();
 });
 
 test('the original homepage retains attachments, all original material choices and the custom builder', async ({

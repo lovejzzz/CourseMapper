@@ -660,6 +660,22 @@ function composeEvidenceBoundedShortAnswer(
 }
 
 function buildShortAnswerItem(kernel, index, seed = 0, { compactFactLedgerAnswers = true } = {}) {
+  const worked = kernel?.workedExample;
+  if (cleanText(worked?.problem) && cleanText(worked?.result) && worked?.steps?.length > 0) {
+    return {
+      index,
+      type: 'short_answer',
+      projectionKind: 'worked-example-retrieval',
+      question: `${ensureSentence(worked.problem)} Show your working before comparing with the lesson's worked solution.`,
+      options: [],
+      answerIndex: 0,
+      distractorRationales: [],
+      answer: [...worked.steps.map((step) => ensureSentence(step)), ensureSentence(worked.result)].join(' '),
+      explanation: '',
+      scoringGuidance:
+        'Check the setup, each reasoning or calculation step, and the stated result against the worked solution. This rehearses the taught example; it is not evidence of independent transfer.',
+    };
+  }
   const term = bestShortAnswerTerm(kernel);
   if (!term || !cleanText(term.term)) return null;
   const relationItem = buildFactLedgerRelationShortAnswer(kernel, index);

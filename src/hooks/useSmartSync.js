@@ -267,6 +267,14 @@ export default function useSmartSync({
       const tasks = plan.map((entry) =>
         limit(async () => {
           const { featureId, lessonIndices } = entry;
+          if ((workflowEpochRef?.current ?? null) !== workflowEpoch) {
+            resultDetails.push({ status: 'aborted', featureId });
+            return;
+          }
+          // A preceding full-feature build can normalize the canonical map
+          // and refresh its blueprint receipt. The next feature must use that
+          // committed map, not the snapshot captured before the sync began.
+          currentCourseMap = courseMapRef?.current || currentCourseMap;
 
           setSyncingFeatures((prev) => new Set([...prev, featureId]));
 
@@ -349,7 +357,7 @@ export default function useSmartSync({
             completedFeatureIds.push(featureId);
           } catch (err) {
             appendSyncLog('error', featureId, err.message || 'Sync failed');
-            resultDetails.push({ status: 'error', featureId });
+            resultDetails.push({ status: 'error', featureId, message: err.message || 'Sync failed' });
           } finally {
             setSyncingFeatures((prev) => {
               const next = new Set(prev);

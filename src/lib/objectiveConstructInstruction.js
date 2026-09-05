@@ -62,7 +62,7 @@ export function appliedObjectiveCue(objective) {
     return `First, ${lowerLead(clauses[0])}; then ${clauses.slice(1).map(lowerLead).join(', then ')}`;
   }
   const imperative = source.match(
-    /^(analy[sz]e|assess|audit|build|cite|compare|construct|create|design|develop|differentiate|distinguish|evaluate|explain|identify|inspect|interpret|produce|reference|revise|state|use|apply)\s+(.+)$/i,
+    /^(analy[sz]e|assess|audit|build|calculate|cite|compare|compute|construct|create|design|develop|differentiate|distinguish|evaluate|explain|identify|inspect|interpret|measure|produce|reference|revise|solve|state|summarize|use|apply)\s+(.+)$/i,
   );
   if (imperative) {
     const verb = imperative[1].toLowerCase();
@@ -77,6 +77,11 @@ export function appliedObjectiveCue(objective) {
       assess: 'assessment of',
       audit: 'audit of',
       build: 'development of',
+      calculate: 'calculation of',
+      compute: 'computation of',
+      measure: 'measurement of',
+      solve: 'solving',
+      summarize: 'summary of',
       cite: 'source support for',
       compare: 'comparison of',
       construct: 'construction of',
@@ -97,8 +102,9 @@ export function appliedObjectiveCue(objective) {
     }[verb];
     if (actionNoun) return `${actionNoun} ${object}`;
   }
-  const constructs = alignmentTokens(source).slice(0, 7);
-  return constructs.length > 0 ? constructs.join(', ') : source;
+  // Tokens are useful for alignment scoring, never as replacement prose.
+  // Preserve unfamiliar verbs, formulas, negations and non-English objectives.
+  return source;
 }
 
 export function nonRedundantObjectiveDeclarations(objectives, limit = 5) {
