@@ -17,6 +17,20 @@ describe('compiler teaching programs', () => {
     expect(p.units.find((unit) => unit.kind === 'source-boundary').answer).toContain('Night-shift workers');
     expect(compileTeachingProgram({ admitted: false, sourceEvidenceBrief: { claims } })).toBeNull();
   });
+  it('keeps a stronger authored task when the evidence also contains an incidental proportion', () => {
+    const p = compileTeachingProgram({
+      admitted: true,
+      sourceEvidenceBrief: { claims },
+      workedExample: {
+        problem: 'Evaluate how volunteering affects the population claim.',
+        steps: ['Identify who chose to join.', 'Compare that group with the target population.'],
+        result: 'The observed rate alone does not establish the population rate.',
+      },
+    });
+    expect(p.units.some((unit) => unit.kind === 'derived-calculation')).toBe(false);
+    expect(p.units[0].question).toContain('Evaluate how volunteering');
+    expect(p.units[0].answer).toContain('does not establish the population rate');
+  });
   it('changes question identity and its answer together when source numbers change', () => {
     const a = compileTeachingProgram({ admitted: true, sourceEvidenceBrief: { claims } });
     const b = compileTeachingProgram({

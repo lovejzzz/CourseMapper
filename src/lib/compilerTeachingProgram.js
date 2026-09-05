@@ -1,5 +1,5 @@
 import { sha256HexSync } from './sha256Sync.js';
-import { sourceArithmeticWorkedExample } from './sourceArithmeticStudyPractice.js';
+import { SOURCE_ARITHMETIC_PROTOCOL, sourceArithmeticWorkedExample } from './sourceArithmeticStudyPractice.js';
 
 const clean = (value) => (typeof value === 'string' ? value.trim() : '');
 
@@ -22,7 +22,12 @@ export function compileTeachingProgram({
     const body = { kind, question, answer, criteria, sourceClaims };
     units.push({ id: `practice-${sha256HexSync(JSON.stringify({ lessonId, ...body })).slice(0, 16)}`, ...body });
   };
-  const arithmetic = sourceArithmeticWorkedExample(sourceEvidenceBrief);
+  // An incidental numeric fact must not replace a stronger authored or
+  // operation-specific example with a different learning task.
+  const arithmetic =
+    !workedExample || workedExample.protocol === SOURCE_ARITHMETIC_PROTOCOL
+      ? sourceArithmeticWorkedExample(sourceEvidenceBrief)
+      : null;
   if (arithmetic) {
     const { numerator: n, denominator: d, decimal, percent, sourceClaim } = arithmetic.verification;
     add(
