@@ -1,9 +1,0 @@
-{
-  "id": "cs-python-adoption",
-  "packageDir": "verification-output/crucible/round-2026-07-02T04-17-40-825Z/cs-python/extracted",
-  "courseBrief": "Introduction to Computer Science with Python, a 15-lesson introductory college course with weekly autograded quizzes and hands-on coding labs.",
-  "calibrationLane": "anchored",
-  "instructorCast": ["prof-hawk-stem", "prof-adjunct-cc", "prof-pedagogy-scholar", "prof-skeptic-veteran"],
-  "modelSeats": ["gpt-5.4", "gpt-5.4-mini"],
-  "modelSeatNote": "single-family (OpenAI) seats: no Anthropic/Google keys on this machine; cross-family judging (design 4d) pending keys \u2014 same-family correlation risk applies to all verdicts"
-}

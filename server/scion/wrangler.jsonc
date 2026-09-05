@@ -1,0 +1,18 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "edutool-scion",
+  "main": "worker.ts",
+  "compatibility_date": "2026-09-05",
+  "workers_dev": true,
+  "observability": { "enabled": false },
+  "vars": {
+    "ALLOWED_ORIGIN": "https://edutool.dev",
+    "HOSTED_MODEL": "gemma-4-31b-it",
+    "DAILY_REQUESTS": "500",
+    "MINUTE_REQUESTS": "6",
+    "VISITOR_DAILY_REQUESTS": "200",
+    "INPUT_TOKENS_PER_MINUTE": "14000",
+  },
+  "durable_objects": { "bindings": [{ "name": "SCION_QUOTA", "class_name": "ScionQuota" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["ScionQuota"] }],
+}

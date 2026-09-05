@@ -1,9 +1,0 @@
-{
-  "id": "cs-python-fixed",
-  "packageDir": "verification-output/crucible/round-2026-07-02T16-13-13-816Z/cs-python/extracted",
-  "courseBrief": "Introduction to Computer Science with Python, a 15-lesson introductory college course with weekly autograded quizzes and hands-on coding labs.",
-  "calibrationLane": "anchored",
-  "instructorCast": ["prof-hawk-stem", "prof-adjunct-cc", "prof-pedagogy-scholar", "prof-skeptic-veteran"],
-  "modelSeats": ["gpt-5.4", "gpt-5.4-mini"],
-  "modelSeatNote": "single-family OpenAI seats (no Anthropic/Google keys); same-family correlation risk applies \u2014 identical setup to the 3.43 baseline for a fair before/after."
-}

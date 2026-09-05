@@ -1,9 +1,0 @@
-{
-  "instructorCast": ["prof-hawk-stem", "prof-adjunct-cc", "prof-pedagogy-scholar", "prof-skeptic-veteran"],
-  "modelSeats": ["gpt-5.4", "gpt-5.4-mini"],
-  "calibrationLane": "anchored",
-  "courseBrief": "Introduction to Computer Science with Python, a 15-lesson introductory college course with weekly autograded quizzes and hands-on coding labs.",
-  "id": "calibration-known-bad",
-  "packageDir": "verification-output/prof/fixtures/known-bad-extracted.json",
-  "modelSeatNote": "single-family (OpenAI) seats: no Anthropic/Google keys on this machine; cross-family judging (design 4d) pending keys \u2014 same-family correlation risk applies to all verdicts"
-}

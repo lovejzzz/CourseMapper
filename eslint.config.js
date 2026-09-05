@@ -2,120 +2,40 @@ import js from '@eslint/js';
 import globals from 'globals';
 import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
-import reactRefresh from 'eslint-plugin-react-refresh';
+import tseslint from 'typescript-eslint';
 
 export default [
   {
     ignores: [
       'dist/**',
+      'dist-legacy/**',
       'node_modules/**',
-      'coverage/**',
-      'playwright-report/**',
-      'test-results/**',
+      '**/.wrangler/**',
+      '**/.audit-work/**',
       'verification-output/**',
-      // Local, ignored audit campaigns contain disposable probes and copied
-      // evidence scripts; production source and tracked evaluation tools lint
-      // independently of this scratch workspace.
-      '.audit-work/**',
-      // Sealed Roundtable bundles copy the exact production harness and
-      // machine-generated evidence. Lint the production source, not its
-      // immutable review copies.
-      '.roundtable-evidence-*/**',
-      '.firebase/**',
-      // Background-task worktrees are separate checkouts that lint themselves.
-      '.claude/**',
-      // Third-party / generated: Python venvs and the tutor's vendored WASM +
-      // minified runtime bundles are not our source — eslint scans the working
-      // tree regardless of .gitignore, so they must be excluded explicitly.
+      'test-results/**',
+      'trellis/**',
+      'public/**',
+      'runtime/**',
       '**/.venv*/**',
-      'trellis/tendril/tutor/bundle/**',
     ],
   },
   js.configs.recommended,
+  { languageOptions: { globals: { ...globals.browser, ...globals.node, ...globals.es2021 } } },
+  ...tseslint.configs.recommended.map((config) => ({ ...config, files: ['**/*.{ts,tsx}'] })),
   {
-    files: ['**/*.{js,jsx}'],
-    languageOptions: {
-      ecmaVersion: 'latest',
-      sourceType: 'module',
-      parserOptions: {
-        ecmaFeatures: { jsx: true },
-      },
-      globals: {
-        ...globals.browser,
-        ...globals.node,
-        ...globals.es2021,
-      },
-    },
-    plugins: {
-      react,
-      'react-hooks': reactHooks,
-      'react-refresh': reactRefresh,
-    },
-    settings: {
-      react: { version: 'detect' },
-    },
+    files: ['src/**/*.{jsx,tsx}'],
+    languageOptions: { parserOptions: { ecmaFeatures: { jsx: true } } },
+    plugins: { react, 'react-hooks': reactHooks },
+    settings: { react: { version: 'detect' } },
     rules: {
       ...react.configs.recommended.rules,
       ...react.configs['jsx-runtime'].rules,
       'react/prop-types': 'off',
       'react/no-unescaped-entities': 'off',
-      'no-unused-vars': [
-        'warn',
-        {
-          argsIgnorePattern: '^_',
-          varsIgnorePattern: '^_',
-          caughtErrorsIgnorePattern: '^_',
-        },
-      ],
-      'no-empty': ['warn', { allowEmptyCatch: true }],
-      'no-control-regex': 'warn',
-      'no-useless-escape': 'warn',
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
-      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
     },
   },
-  {
-    files: ['scripts/**/*.mjs', 'trellis/**/*.mjs'],
-    languageOptions: {
-      globals: {
-        ...globals.node,
-        ...globals.es2021,
-      },
-    },
-  },
-  {
-    files: ['**/*.{test,spec}.{js,jsx}', 'tests/**/*.js'],
-    languageOptions: {
-      globals: {
-        ...globals.vitest,
-        ...globals.browser,
-        ...globals.node,
-      },
-    },
-  },
-  // v0.15 S1: the CurriculumOS boundary wall — the brain's facade may never
-  // grow a React/browser dependency. The headless proof
-  // (npm run curriculumos:proof) is the runtime half of this guarantee.
-  {
-    files: ['src/curriculumos/**/*.js'],
-    rules: {
-      'no-restricted-imports': [
-        'error',
-        {
-          patterns: [
-            {
-              group: ['react', 'react-dom', 'react/*', 'react-dom/*'],
-              message: 'CurriculumOS is React-free by contract.',
-            },
-            {
-              group: ['*hooks/*', '*components/*', '*contexts/*', '*screens/*', '*pages/*'],
-              message: 'CurriculumOS may not depend on app UI layers.',
-            },
-          ],
-        },
-      ],
-      'no-restricted-globals': ['error', 'window', 'document', 'localStorage', 'sessionStorage'],
-    },
-  },
+  { rules: { 'no-control-regex': 'off', 'no-useless-escape': 'warn' } },
 ];
