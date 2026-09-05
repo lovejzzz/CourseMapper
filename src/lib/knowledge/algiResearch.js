@@ -1462,7 +1462,8 @@ function doajRecord(result, query = '') {
     // article license and is never copied wholesale.
     license: 'CC0 1.0 (DOAJ article metadata)',
     attribution: `${authorLabel}${bibjson.year ? ` (${bibjson.year})` : ''}. ${title}. DOAJ metadata.`,
-    revisionTimestamp: String(result?.last_updated || result?.created_date || ''),
+    publishedAt: /^\d{4}$/.test(String(bibjson.year)) ? String(bibjson.year) : '',
+    indexedAt: String(result?.last_updated || result?.created_date || ''),
     suggestedTerm: doajSuggestedTerm(bibjson, query),
     definitionMode: 'scholarly-abstract',
   };
@@ -1564,7 +1565,8 @@ function europePmcRecord(result, query = '') {
     attribution: `${cleanDoajText(result?.authorString) || 'Article authors'}${
       result?.pubYear ? ` (${result.pubYear})` : ''
     }. ${title}. ${cleanDoajText(result?.journalTitle) || 'Europe PMC'}.`,
-    revisionTimestamp: String(result?.firstIndexDate || result?.dateOfCreation || ''),
+    publishedAt: String(result?.firstPublicationDate || result?.pubYear || ''),
+    indexedAt: String(result?.firstIndexDate || result?.dateOfCreation || ''),
     suggestedTerm,
     definitionMode: 'scholarly-abstract',
   };
@@ -1656,6 +1658,8 @@ function normalizeArticleResult(article) {
     sourceUrl: String(article.sourceUrl || ''),
     revisionId: article.revisionId || null,
     revisionTimestamp: String(article.revisionTimestamp || ''),
+    publishedAt: String(article.publishedAt || ''),
+    indexedAt: String(article.indexedAt || ''),
     sourceId: String(article.sourceId || ''),
     providerId: String(article.providerId || ''),
     sourceKind: String(article.sourceKind || ''),
@@ -1943,6 +1947,9 @@ export function buildKernelFromArticle({ topic, title, extract, provider, factCo
             : ''),
         ...(sourceMeta.revisionId ? { revisionId: sourceMeta.revisionId } : {}),
         ...(sourceMeta.revisionTimestamp ? { revisionTimestamp: sourceMeta.revisionTimestamp } : {}),
+        ...(sourceMeta.publishedAt ? { publishedAt: sourceMeta.publishedAt } : {}),
+        ...(sourceMeta.indexedAt ? { indexedAt: sourceMeta.indexedAt } : {}),
+        retrievedAt: new Date().toISOString(),
         ...(sourceMeta.topicHints ? { topicHints: sourceMeta.topicHints } : {}),
       },
     },

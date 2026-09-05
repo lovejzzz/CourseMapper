@@ -994,9 +994,7 @@ export default function Landing({
                         {formatResearchProviderOrder(scionCoverageForecast.researchPlan?.providerOrder)}.
                       </>
                     ) : (
-                      <>
-                        Current-source research may send the course title and uncovered lesson topics to web providers.
-                      </>
+                      <>Scion web research may send course and lesson topic queries to public source catalogs.</>
                     )}
                   </p>
                 )}

@@ -118,7 +118,7 @@ describe('Scion canonical evidence propagation', () => {
     const rubric = compiled.rubrics.rubrics[0];
     const guide = compiled.studyGuides.studyGuides[0];
 
-    expect(plan.sourceEvidenceBrief.claims).toHaveLength(3);
+    expect(plan.sourceEvidenceBrief.claims).toEqual(guide.sourceEvidenceBrief.claims);
     expect(rubric.sourceEvidenceBrief.claims).toHaveLength(0);
     expect(guide.sourceEvidenceBrief.claims).toHaveLength(4);
     expect(plan.sourceEvidenceBrief.sources).toEqual(guide.sourceEvidenceBrief.sources);

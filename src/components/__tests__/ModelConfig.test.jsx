@@ -407,8 +407,8 @@ describe('checkCredits', () => {
       'translate-x-5',
     );
     expect(localStorage.getItem('coursemapper-scion-research')).toBe('on');
-    expect(container.textContent).toContain('Only the course title and uncovered lesson topics are sent');
-    expect(container.textContent).toContain('verifies source claims against original passages');
+    expect(container.textContent).toContain('Topic and concept queries leave your device');
+    expect(container.textContent).toContain('checks original passages and source dates');
 
     act(() => {
       root.unmount();

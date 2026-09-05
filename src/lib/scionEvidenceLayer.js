@@ -1480,6 +1480,7 @@ export async function prepareScionEvidenceLayer({
   researchEnabled = false,
   researchStorage,
   forceResearchLessonIds = [],
+  researchProvider: sharedResearchProvider,
   signal,
   onResearchProgress,
 } = {}) {
@@ -1488,16 +1489,16 @@ export async function prepareScionEvidenceLayer({
     import('./algiComposer'),
   ]);
   const requestedLessons = Array.isArray(structuredPrompt?.lessons) ? structuredPrompt.lessons.length : 0;
-  // The transaction includes grouped discovery, one bounded deep read per
-  // lesson, targeted clause repair, and (only for still-sparse topics) the
-  // second provider. Four requests per lesson covered discovery but silently
-  // cut off the repair phase on 14-session courses. Budget the complete
-  // evidence workflow while retaining a hard course-level ceiling.
-  const researchProvider = buildResearchProvider({
-    enabled: researchEnabled,
-    signal,
-    maxRequests: Math.max(32, Math.min(128, 12 + requestedLessons * 8)),
-  });
+  // Direct callers use the same bounded course budget as the public handoff.
+  // The handoff supplies a shared transport so repairs cannot reset it.
+  const researchProvider =
+    sharedResearchProvider ||
+    buildResearchProvider({
+      enabled: researchEnabled,
+      signal,
+      maxRequests: Math.min(96, 8 + requestedLessons * 6),
+      maxDurationMs: Math.min(60000, 16000 + requestedLessons * 4000),
+    });
   const composed = await composeAlgiLessonKernels({
     structuredPrompt,
     factCount: 5,
@@ -1612,7 +1613,9 @@ export async function prepareScionEvidenceForGeneration({
   genomePartialOverlays = {},
   instructionalPlan = null,
   researchEnabled = false,
+  currentResearchRequired = false,
   researchStorage,
+  researchProvider,
   signal,
   recordEvent,
   appendLog,
@@ -1645,13 +1648,17 @@ export async function prepareScionEvidenceForGeneration({
       const instructionalIntent = (instructionalPlan?.lessonIntents || []).find(
         (intent) => clean(intent?.id) === lessonId,
       );
-      return buildScionEvidenceLessonPrompt(courseMap, lessonIndex, instructionalIntent);
+      return {
+        ...buildScionEvidenceLessonPrompt(courseMap, lessonIndex, instructionalIntent),
+        currentResearchRequired,
+      };
     }),
   };
   const overlay = await prepareScionEvidenceLayer({
     structuredPrompt,
     researchEnabled,
     researchStorage,
+    researchProvider,
     forceResearchLessonIds: unresolvedLessonIndices
       .filter((lessonIndex) => authorityRequired.has(lessonIndex))
       .map((lessonIndex) => `lesson-${lessonIndex + 1}`),
@@ -1693,6 +1700,21 @@ export async function prepareScionEvidenceForGeneration({
 
 export async function prepareScionEvidenceGenerationHandoff(options = {}) {
   try {
+    // Discovery, provider fallback and targeted repair share ONE budget.
+    // Recovery cannot restart the clock or bypass a provider circuit breaker.
+    const { buildResearchProvider } = await import('./algiComposer');
+    const lessonCount = options.lessonIndices?.length || 0;
+    options = {
+      ...options,
+      researchProvider:
+        options.researchProvider ||
+        buildResearchProvider({
+          enabled: options.researchEnabled === true,
+          signal: options.signal,
+          maxRequests: Math.min(96, 8 + lessonCount * 6),
+          maxDurationMs: Math.min(60000, 16000 + lessonCount * 4000),
+        }),
+    };
     // Structural completeness is not source authority. Inspect the exact
     // contract first so a cached/model-shaped payload cannot suppress the
     // research pass merely because it happens to contain enough fields.
@@ -1719,11 +1741,17 @@ export async function prepareScionEvidenceGenerationHandoff(options = {}) {
     const rejectedLessonIndices = (options.lessonIndices || []).filter(
       (lessonIndex) => governingSourceContract.byLessonId?.[`lesson-${lessonIndex + 1}`]?.status !== 'admitted',
     );
-    // One bounded recovery attempt gives rejected lessons their own provider
+    // One targeted recovery attempt uses the remaining shared provider
     // budget and bypasses stale local research memory. It never loops and it
     // never changes the authority policy: revised evidence must independently
     // satisfy the same exact-source and semantic-admission checks.
-    if (options.researchEnabled && rejectedLessonIndices.length > 0) {
+    if (
+      options.researchEnabled &&
+      rejectedLessonIndices.length > 0 &&
+      (options.researchProvider?.diagnostics?.().remainingMs ?? 0) > 1000 &&
+      (options.researchProvider?.diagnostics?.().requestCount ?? 0) <
+        (options.researchProvider?.diagnostics?.().maxRequests ?? 0)
+    ) {
       options.recordEvent?.({
         type: 'pipelineDecision',
         stage: 'scionEvidenceRecovery',
@@ -1791,6 +1819,7 @@ export async function prepareScionEvidenceGenerationHandoff(options = {}) {
       stageDecision: `${admittedLessonCount}/${requestedLessonCount} lesson source authorit${admittedLessonCount === 1 ? 'y' : 'ies'} admitted for drafting · ${result.stageDecision}`,
       evidenceAcquisitionReceipt: result.overlay?.researchReceipt || null,
       evidenceAcquisitionSummary: result.summary || null,
+      researchTransaction: options.researchProvider?.diagnostics?.() || null,
       governingSourceContract,
       bindTeachingSurfaces: (courseMap, courseGraph) =>
         governingSourceContract.status === 'admitted'

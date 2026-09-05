@@ -32,7 +32,7 @@ describe('Algi bounded research provider', () => {
     expect(provider.diagnostics().requestCount).toBe(1);
   });
 
-  it('opens a per-origin circuit after repeated 429s instead of spending the course budget on every later query', async () => {
+  it('opens a per-origin circuit after the first 429 instead of spending the course budget on every later query', async () => {
     vi.useFakeTimers();
     const fetchImpl = vi.fn(async () => ({
       ok: false,
@@ -55,9 +55,9 @@ describe('Algi bounded research provider', () => {
     await expect(provider.httpJson('https://limited.example.test/second')).rejects.toMatchObject({
       code: 'RESEARCH_ORIGIN_RATE_LIMITED',
     });
-    expect(fetchImpl).toHaveBeenCalledTimes(3);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
     expect(provider.diagnostics()).toMatchObject({
-      requestCount: 3,
+      requestCount: 1,
       rateLimitedOrigins: [{ origin: 'https://limited.example.test' }],
     });
   });

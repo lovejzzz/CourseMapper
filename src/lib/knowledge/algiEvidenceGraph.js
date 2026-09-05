@@ -1,3 +1,4 @@
+import { assessResearchCurrency } from './researchFreshness.js';
 /**
  * Algi evidence graph — the model-free consolidation boundary between live
  * research and the shared course compiler.
@@ -93,15 +94,11 @@ function authorityScore(kernel = {}) {
 }
 
 function currencyScore(kernel = {}, now = Date.now()) {
-  const checked = clean(
-    kernel?.provenance?.revisionTimestamp || kernel?.freshness?.checked || kernel?.provenance?.retrievedAt,
-  );
-  const timestamp = Date.parse(checked);
-  if (!Number.isFinite(timestamp)) return 0.62;
-  const days = Math.max(0, (Number(now) - timestamp) / 86_400_000);
-  if (days <= 30) return 1;
-  if (days <= 365) return 0.9;
-  if (days <= 365 * 3) return 0.78;
+  const currency = assessResearchCurrency(kernel, { now });
+  if (currency.status === 'undated') return 0.4;
+  if (currency.ageDays <= 30) return 1;
+  if (currency.ageDays <= 365) return 0.9;
+  if (currency.ageDays <= 365 * 3) return 0.78;
   return 0.64;
 }
 
@@ -233,6 +230,7 @@ export function buildAlgiEvidenceGraph({
               : [clean(kernel?.attribution)].filter(Boolean),
             authorityScore: confidence.components.authority,
             currencyScore: confidence.components.currency,
+            currency: assessResearchCurrency(kernel, { now }),
           });
         }
         const claim = {
@@ -267,6 +265,7 @@ export function buildAlgiEvidenceGraph({
       sourceIds: [...lessonSourceIds],
       minimumClaims: Number(lesson.minimumClaims) || 5,
       minimumSources: Number(lesson.minimumSources) || 2,
+      timeSensitive: lesson.timeSensitive === true,
     });
   }
 
@@ -302,11 +301,13 @@ export function buildAlgiEvidenceGraph({
     const status =
       blockingConflicts.length > 0
         ? 'conflict'
-        : claimReady && sourceReady
-          ? 'ready'
-          : claimReady && lesson.sourceIds.length > 0
-            ? 'usable-single-source'
-            : 'insufficient';
+        : lesson.timeSensitive && !lesson.sourceIds.some((id) => sources.get(id)?.currency?.status === 'dated-recent')
+          ? 'needs-current-evidence'
+          : claimReady && sourceReady
+            ? 'ready'
+            : claimReady && lesson.sourceIds.length > 0
+              ? 'usable-single-source'
+              : 'insufficient';
     return {
       ...lesson,
       claimCount: lessonClaims.length,
@@ -357,10 +358,15 @@ export function consolidateAlgiLessonEvidence({
   const lesson = (Array.isArray(evidenceGraph?.lessons) ? evidenceGraph.lessons : []).find(
     (entry) => entry.title === topic,
   );
-  if (!lesson || lesson.status === 'conflict') {
+  if (!lesson || ['conflict', 'needs-current-evidence'].includes(lesson.status)) {
     return {
       admitted: false,
-      reason: lesson?.status === 'conflict' ? 'blocking-evidence-conflict' : 'no-evidence-graph-lesson',
+      reason:
+        lesson?.status === 'conflict'
+          ? 'blocking-evidence-conflict'
+          : lesson?.status === 'needs-current-evidence'
+            ? 'needs-dated-current-evidence'
+            : 'no-evidence-graph-lesson',
       kernels: [],
       lesson,
     };

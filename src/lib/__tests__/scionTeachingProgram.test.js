@@ -1,0 +1,76 @@
+import { describe, expect, it } from 'vitest';
+import { compileTeachingProgram } from '../compilerTeachingProgram.js';
+import { buildCourseBlueprint, compileBlueprintDeliverables } from '../courseBlueprintCompiler.js';
+
+describe('compiler teaching programs', () => {
+  const claims = [
+    'The sample proportion is 16/20 = 0.80 = 80%.',
+    'Night-shift workers could not attend.',
+    'These data alone do not establish a population rate.',
+  ];
+  it('generates exact complementary arithmetic without inventing another sample', () => {
+    const p = compileTeachingProgram({ admitted: true, sourceEvidenceBrief: { claims } });
+    const item = p.units.find((unit) => unit.kind === 'derived-calculation');
+    expect(item.answer).toContain('4/20 = 0.20 = 20%');
+    expect(item.answer).not.toContain('0.19999');
+    expect(item.sourceClaims).toEqual([claims[0]]);
+    expect(p.units.find((unit) => unit.kind === 'source-boundary').answer).toContain('Night-shift workers');
+    expect(compileTeachingProgram({ admitted: false, sourceEvidenceBrief: { claims } })).toBeNull();
+  });
+  it('changes question identity and its answer together when source numbers change', () => {
+    const a = compileTeachingProgram({ admitted: true, sourceEvidenceBrief: { claims } });
+    const b = compileTeachingProgram({
+      admitted: true,
+      sourceEvidenceBrief: { claims: ['The proportion is 3/8 = 0.375 = 37.5%.'] },
+    });
+    expect(a.units[0].id).not.toBe(b.units[0].id);
+    expect(b.units.find((unit) => unit.kind === 'derived-calculation').answer).toContain('5/8 = 0.625 = 62.5%');
+    expect(JSON.stringify(b)).not.toContain('16/20');
+  });
+  it('works with admitted conceptual knowledge outside arithmetic and refuses empty knowledge', () => {
+    const p = compileTeachingProgram({
+      admitted: true,
+      keyTerms: [{ term: 'Corroboration', definition: 'Checking an account against independent evidence.' }],
+    });
+    expect(p.units[0].answer).toBe('Checking an account against independent evidence.');
+    expect(compileTeachingProgram({ admitted: true, keyTerms: [{ term: 'History' }] })).toBeNull();
+  });
+  it('compiles the same complete practice unit into student and teacher materials', () => {
+    const map = {
+      courseName: 'Sample proportions',
+      lessons: [
+        {
+          title: 'Sample proportion calculation',
+          sections: [
+            { topicSection: 'Sample proportion', learningObjectives: 'Calculate the observed sample proportion.' },
+          ],
+        },
+      ],
+    };
+    const blueprint = buildCourseBlueprint(map, { sessionMinutes: 45, instructorProvidedFacts: claims });
+    blueprint.lessons[0].enrichment = {
+      keyTerms: [],
+      kernel: {
+        facts: claims,
+        provenance: {
+          source: 'compiler-owned-exact-source-ledger',
+          authority: 'instructor-supplied',
+          copiedFactsVerbatim: true,
+          factCount: claims.length,
+        },
+      },
+    };
+    const result = compileBlueprintDeliverables(blueprint, ['studyGuides', 'lessonPlans'], {
+      skipPrepareBlueprint: true,
+      skipCompilerContractCheck: true,
+    });
+    const guide = result.studyGuides.studyGuides[0];
+    const teacher = result.lessonPlans.lessonPlans[0];
+    const question = guide.reviewQuestions.find((q) => q.practiceId === teacher.formativeCheck.practiceId);
+    expect(question).toBeDefined();
+    expect(question.answer).toBe(teacher.formativeCheck.expectedAnswer);
+    expect(question.question).toBe(teacher.formativeCheck.prompt);
+    expect(guide.reviewQuestions.every((q) => q.answer && q.successCriteria.length)).toBe(true);
+    expect(teacher.duration).toBe('45 minutes');
+  });
+});

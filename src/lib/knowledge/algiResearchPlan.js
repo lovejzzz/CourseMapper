@@ -1,3 +1,4 @@
+import { requiresCurrentResearch } from './researchFreshness.js';
 /**
  * Algi research planning — turn a course outline into a bounded, inspectable
  * research transaction before any provider receives a query.
@@ -160,7 +161,11 @@ function queryForProvider({
   computingContext = false,
   disambiguatorOverride = '',
 }) {
-  const researchTitle = stripResearchCurricularLocator(title);
+  // Recency is a filter, not part of an exact concept title. Requiring an
+  // article to contain “recent … research” verbatim hid the relevant papers.
+  const researchTitle = stripResearchCurricularLocator(title)
+    .replace(/^(?:(?:current|latest|recent|updated|emerging)\s+)+/i, '')
+    .replace(/\s+(?:research|developments|updates)$/i, '');
   if (providerId === 'wikipedia') {
     // Encyclopedia search should look for the concepts an instructor named,
     // not the whole pedagogical wrapper as one exact page title. A compound
@@ -351,6 +356,7 @@ export function planAlgiCourseResearch({ courseName = '', lessons = [], now = Da
       instructionalInstanceId: clean(lesson?.instructionalInstanceId),
       planBodySha256: clean(lesson?.planBodySha256 || lesson?.instructionalInstance?.planBodySha256),
       title: clean(lesson?.title || lesson?.topic || lesson?.topicSection),
+      currentResearchRequired: lesson?.currentResearchRequired === true,
       evidenceContext: unique([
         ...(Array.isArray(lesson?.topics) ? lesson.topics : [lesson?.topics]),
         // The frozen evidence object and operation are often more specific
@@ -381,7 +387,10 @@ export function planAlgiCourseResearch({ courseName = '', lessons = [], now = Da
 
   const lessonPlans = normalizedLessons.map((lesson) => {
     const titleTerms = unique(tokens(lesson.title));
-    const timeSensitive = TIME_SENSITIVE.test(`${courseName} ${lesson.title}`);
+    const timeSensitive =
+      lesson.currentResearchRequired ||
+      TIME_SENSITIVE.test(`${courseName} ${lesson.title}`) ||
+      requiresCurrentResearch(lesson.evidenceContext);
     const applied = APPLICATION.test(lesson.title);
     const providerQueries = Object.fromEntries(
       providerOrder.map((providerId) => [
@@ -408,6 +417,19 @@ export function planAlgiCourseResearch({ courseName = '', lessons = [], now = Da
         }),
       ]),
     );
+    if (timeSensitive) {
+      const year = new Date(now).getUTCFullYear();
+      for (const providerId of providerOrder) {
+        const constrain = (query) =>
+          providerId === 'europe-pmc'
+            ? `(${query}) AND FIRST_PDATE:[${year - 2}-01-01 TO ${new Date(now).toISOString().slice(0, 10)}] sort_date:y`
+            : providerId === 'doaj'
+              ? `(${query}) AND bibjson.year:[${year - 2} TO ${year}]`
+              : query;
+        providerQueries[providerId] = constrain(providerQueries[providerId]);
+        providerQueryVariants[providerId] = providerQueryVariants[providerId].map(constrain);
+      }
+    }
     const providerQueryReceipts = Object.fromEntries(
       providerOrder.map((providerId) => [
         providerId,

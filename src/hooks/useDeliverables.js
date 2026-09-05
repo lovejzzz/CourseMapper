@@ -1,3 +1,4 @@
+import { requiresCurrentResearch, shouldSkipCoveredScionResearch } from '../lib/knowledge/researchFreshness.js';
 import { useState, useCallback, useMemo, useRef, useContext, useEffect } from 'react';
 import useStreamReader from './useStreamReader';
 import { getArrayKey } from '../lib/syncDependencies';
@@ -1310,7 +1311,26 @@ export default function useDeliverables({
           }
         }
 
-        if (provider === PUBLIC_SCION_PROVIDER_ID && !sourceBriefConstraints.instructorSourcesOnly) {
+        const sourcePlanCovered = shouldSkipCoveredScionResearch({
+          sourceBrief,
+          courseMap: blueprintCourseMap,
+          instructionalPlan: preDraftInstructionalPlan,
+          instructorProvidedFacts: sourceBriefConstraints.instructorProvidedFacts,
+        });
+        if (sourcePlanCovered) {
+          stageDecisions.scionEvidence = 'not needed: instructor evidence already satisfies the approved teaching plan';
+          stageDecisions.scionEvidenceReadingSkip = {
+            type: 'pipelineDecision',
+            stage: 'knowledgeBackbone',
+            label: 'Using the supplied lesson evidence',
+            detail: 'Approved teaching plan already covered; no duplicate reading search.',
+          };
+        }
+        if (
+          provider === PUBLIC_SCION_PROVIDER_ID &&
+          !sourceBriefConstraints.instructorSourcesOnly &&
+          !sourcePlanCovered
+        ) {
           const { prepareScionEvidenceGenerationHandoff } = await import('../lib/scionEvidenceLayer');
           scionEvidenceHandoff = await prepareScionEvidenceGenerationHandoff({
             courseMap: blueprintCourseMap,
@@ -1318,6 +1338,7 @@ export default function useDeliverables({
             genomeLessonContent: genomeLink?.lessonContent,
             genomePartialOverlays: genomeLink?.partialOverlays,
             researchEnabled: scionResearchEnabled,
+            currentResearchRequired: requiresCurrentResearch(sourceBrief),
             signal: controller.signal,
             recordEvent: recordGenerationApiCallEvent,
             appendLog,

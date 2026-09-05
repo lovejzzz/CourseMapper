@@ -1438,6 +1438,9 @@ export function sourceReferenceForKernel(kernel, sourceReferences = {}) {
       (link) => link.id || link.label,
     ),
     ...(kernel?.provenance?.revisionId ? { revisionId: String(kernel.provenance.revisionId) } : {}),
+    ...(kernel?.provenance?.publishedAt ? { publishedAt: kernel.provenance.publishedAt } : {}),
+    ...(kernel?.provenance?.indexedAt ? { indexedAt: kernel.provenance.indexedAt } : {}),
+    ...(kernel?.provenance?.retrievedAt ? { retrievedAt: kernel.provenance.retrievedAt } : {}),
     ...(kernel?.provenance?.revisionTimestamp
       ? { revisionTimestamp: String(kernel.provenance.revisionTimestamp) }
       : {}),
@@ -2983,6 +2986,7 @@ export async function composeAlgiLessonKernels({
           topics: lesson?.topics,
           objectives: lesson?.objectives,
           evidenceIntent: lesson?.evidenceIntent,
+          currentResearchRequired: lesson?.currentResearchRequired,
         })),
         now,
       });
@@ -3075,6 +3079,15 @@ export async function composeAlgiLessonKernels({
         const topic = researchTopicForLesson(lesson);
         const cachedEntry = cached.byTopic.get(topic);
         if (!cachedEntry?.kernels?.length) continue;
+        const cachedPlan = researchPlan.lessons.find((row) => row.title === topic);
+        if (cachedPlan?.timeSensitive) {
+          const cachedGraph = buildAlgiEvidenceGraph({
+            plan: { lessons: [cachedPlan] },
+            kernelsByTopic: new Map([[topic, cachedEntry.kernels]]),
+            now,
+          });
+          if (!['ready', 'usable-single-source'].includes(cachedGraph.lessons[0]?.status)) continue;
+        }
         const payload =
           composeLessonFromCandidateKernels(lesson, expandResearchKernelsForComposition(cachedEntry.kernels, topic), {
             factCount,
@@ -3394,7 +3407,7 @@ export async function composeAlgiLessonKernels({
       for (const lessonPlan of researchPlan.lessons) {
         const kernels = kernelsByTopic.get(lessonPlan.title) || [];
         const evidence = evidenceGraph.lessons.find((lesson) => lesson.lessonId === lessonPlan.lessonId);
-        if (!kernels.length || evidence?.status === 'conflict') continue;
+        if (!kernels.length || !['ready', 'usable-single-source'].includes(evidence?.status)) continue;
         cacheRecords.push({
           topic: lessonPlan.title,
           kernels,
@@ -3580,11 +3593,15 @@ export async function composeAlgiLessonKernels({
         sourceWarnings: researchBatch.errors || [],
         targetedBudgetExhausted,
         sourceRequests: Number(diagnostics?.requestCount) || 0,
+        transport: diagnostics,
         compositionDeclines: composeFailureDiagnostics,
       };
       publishResearchProgress({
         phase: 'complete',
-        label: 'Course evidence ready',
+        label:
+          researchReceipt.evidence.usableLessons === researchReceipt.evidence.lessonCount
+            ? 'Course evidence ready'
+            : 'Research finished with evidence gaps',
         detail: `${researchReceipt.evidence.usableLessons}/${researchReceipt.evidence.lessonCount} lessons supported · ${researchReceipt.evidence.sourceCount} sources`,
         progress: 1,
       });

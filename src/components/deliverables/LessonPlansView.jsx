@@ -395,6 +395,16 @@ export default function LessonPlansView({
                         "
                       </p>
                     )}
+                    {plan.formativeCheck.expectedAnswer && (
+                      <div className="mt-2 text-xs text-slate-700">
+                        <span className="font-semibold">Expected answer: </span>
+                        <E
+                          value={plan.formativeCheck.expectedAnswer}
+                          path={[key, i, 'formativeCheck', 'expectedAnswer']}
+                          onEdit={onEdit}
+                        />
+                      </div>
+                    )}
                     {plan.formativeCheck.objectiveAligned && (
                       <p className="text-xs text-slate-500 mt-1">
                         <span className="font-semibold">Aligns to:</span>{' '}

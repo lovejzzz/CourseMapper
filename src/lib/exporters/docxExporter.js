@@ -1012,6 +1012,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             ['Type', p.formativeCheck.type],
             ['Aligns to', p.formativeCheck.objectiveAligned],
             ['Prompt', p.formativeCheck.prompt],
+            ['Expected answer', p.formativeCheck.expectedAnswer],
             ['Instructor action', p.formativeCheck.instructorAction],
           ]
             .filter(([, value]) => value)
@@ -1870,6 +1871,14 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
                   keepNext: j === g.reviewQuestions.length - 2,
                 }),
               );
+          });
+        }
+        if (g.reviewQuestions?.some((q) => q?.answer)) {
+          children.push(makeSubHeading('Practice Answer Key'));
+          g.reviewQuestions.forEach((q, j) => {
+            if (!q?.answer) return;
+            children.push(makeNumbered(j + 1, q.answer, { keepNext: Boolean(q.successCriteria?.length) }));
+            (q.successCriteria || []).forEach((criterion) => children.push(makeBullet(criterion)));
           });
         }
         // Practice activities

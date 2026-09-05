@@ -725,6 +725,9 @@ export function normalizeTrustedSource(entry = {}, { fallbackId = '', checkedAt 
     ...(entry.revisionId !== undefined && entry.revisionId !== null && cleanText(entry.revisionId, 80)
       ? { revisionId: cleanText(entry.revisionId, 80) }
       : {}),
+    ...(cleanText(entry.publishedAt, 100) ? { publishedAt: cleanText(entry.publishedAt, 100) } : {}),
+    ...(cleanText(entry.indexedAt, 100) ? { indexedAt: cleanText(entry.indexedAt, 100) } : {}),
+    ...(cleanText(entry.retrievedAt, 100) ? { retrievedAt: cleanText(entry.retrievedAt, 100) } : {}),
     ...(cleanText(entry.revisionTimestamp, 100) ? { revisionTimestamp: cleanText(entry.revisionTimestamp, 100) } : {}),
     ...(sessionRefs.length > 0 ? { sessionRefs } : {}),
     ...(supportReceipt ? { supportReceipt } : {}),

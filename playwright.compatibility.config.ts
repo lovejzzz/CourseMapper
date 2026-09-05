@@ -1,7 +1,12 @@
 import { defineConfig } from '@playwright/test';
 export default defineConfig({
   testDir: './tests',
-  testMatch: ['workspace-mobile.spec.js', 'export-smoke.spec.js', 'restored-homepage.spec.ts'],
+  testMatch: [
+    'workspace-mobile.spec.js',
+    'export-smoke.spec.js',
+    'restored-homepage.spec.ts',
+    'scion-compiler-workspace.spec.js',
+  ],
   timeout: 60000,
   workers: 1,
   retries: 0,

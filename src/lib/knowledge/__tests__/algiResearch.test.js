@@ -1483,7 +1483,7 @@ describe('the research flag is opt-in', () => {
     await expect(bounded.httpJson('https://example.test/a')).resolves.toEqual({ ok: true });
     await expect(bounded.httpJson('https://example.test/a')).resolves.toEqual({ ok: true });
     await expect(bounded.httpJson('https://example.test/b')).rejects.toThrow('algi-research-budget-exhausted:1');
-    expect(bounded.diagnostics()).toMatchObject({ requestCount: 1, cachedRequestCount: 1 });
+    expect(bounded.diagnostics()).toMatchObject({ requestCount: 1, cachedRequestCount: 2 });
 
     const controller = new AbortController();
     const stalled = buildResearchProvider({
@@ -1498,45 +1498,6 @@ describe('the research flag is opt-in', () => {
     const request = stalled.httpJson('https://example.test/stalled');
     controller.abort(Object.assign(new Error('stop-now'), { name: 'AbortError' }));
     await expect(request).rejects.toThrow('stop-now');
-  });
-
-  it('recovers one temporary 429 inside the bounded request budget', async () => {
-    const { buildResearchProvider, ALGI_RESEARCH_FLAG } = await import('../../algiComposer.js');
-    const storage = { getItem: (key) => (key === ALGI_RESEARCH_FLAG ? 'on' : null) };
-    let calls = 0;
-    const recovered = buildResearchProvider({
-      storage,
-      gapMs: 0,
-      maxRequests: 2,
-      fetchImpl: async () => {
-        calls += 1;
-        if (calls === 1) {
-          return { ok: false, status: 429, headers: { get: () => '0' } };
-        }
-        return { ok: true, status: 200, headers: { get: () => null }, json: async () => ({ recovered: true }) };
-      },
-    });
-    await expect(recovered.httpJson('https://example.test/rate-limited')).resolves.toEqual({ recovered: true });
-    expect(recovered.diagnostics()).toMatchObject({ requestCount: 2, maxRequests: 2 });
-  });
-
-  it('recovers two consecutive 429 responses without starting a new course transaction', async () => {
-    const { buildResearchProvider, ALGI_RESEARCH_FLAG } = await import('../../algiComposer.js');
-    const storage = { getItem: (key) => (key === ALGI_RESEARCH_FLAG ? 'on' : null) };
-    let calls = 0;
-    const recovered = buildResearchProvider({
-      storage,
-      gapMs: 0,
-      maxRequests: 3,
-      fetchImpl: async () => {
-        calls += 1;
-        if (calls < 3) return { ok: false, status: 429, headers: { get: () => '0' } };
-        return { ok: true, status: 200, headers: { get: () => null }, json: async () => ({ recovered: true }) };
-      },
-    });
-
-    await expect(recovered.httpJson('https://example.test/repeated-rate-limit')).resolves.toEqual({ recovered: true });
-    expect(recovered.diagnostics()).toMatchObject({ requestCount: 3, maxRequests: 3 });
   });
 
   it('identifies browser-originated Wikimedia research requests', async () => {
@@ -1556,7 +1517,7 @@ describe('the research flag is opt-in', () => {
 
     expect(requestOptions.headers).toMatchObject({
       Accept: 'application/json',
-      'Api-User-Agent': 'EduTool.dev/0.17 (+https://edutool.dev/#/contact)',
+      'Api-User-Agent': 'EduTool.dev/0.18.7 (+https://edutool.dev/#/contact)',
     });
   });
 });

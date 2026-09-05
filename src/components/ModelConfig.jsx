@@ -1051,14 +1051,14 @@ export default function ModelConfig({ reserveTrailingActionSpace = false }) {
               <div>
                 <p className="font-semibold text-slate-800 dark:text-slate-100">
                   {scionResearchEnabled
-                    ? 'Current-source research on'
+                    ? 'Scion web research on'
                     : hostedScion
                       ? 'Source research off'
                       : 'Private evidence mode'}
                 </p>
                 <p className="mt-0.5 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
                   {scionResearchEnabled
-                    ? 'Only the course title and uncovered lesson topics are sent to open-source catalogs. Scion verifies source claims against original passages and saves compact evidence on this device.'
+                    ? 'Searches public source catalogs for lesson evidence gaps, checks original passages and source dates, and reuses verified evidence saved on this device. Topic and concept queries leave your device; model inference stays local.'
                     : hostedScion
                       ? 'No course-topic research requests are sent to source catalogs. Online generation still sends relevant content to Google as described above.'
                       : 'No course-topic research requests are sent. Scion uses your materials and EduTool’s source-anchored teaching library on this device.'}

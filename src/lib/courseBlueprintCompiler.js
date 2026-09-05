@@ -1,3 +1,8 @@
+import {
+  applyArithmeticProgramToOutline,
+  compileTeachingProgram,
+  teachingProgramReviewQuestions,
+} from './compilerTeachingProgram.js';
 import { COLUMN_EXTRACTORS } from './prompts/promptUtils';
 import {
   asArray,
@@ -19350,6 +19355,18 @@ function makeStudyGuideLearnerReadable(guide) {
   ];
   return readableFields.reduce((next, field) => {
     if (next[field] === undefined) return next;
+    if (field === 'reviewQuestions')
+      return {
+        ...next,
+        reviewQuestions: next.reviewQuestions.map((question) =>
+          guide.teachingProgram?.units?.some(
+            (unit) =>
+              unit.id === question.practiceId && unit.question === question.question && unit.answer === question.answer,
+          )
+            ? question
+            : mapReadableLearnerCopy(question),
+        ),
+      };
     return { ...next, [field]: mapReadableLearnerCopy(next[field]) };
   }, guide);
 }
@@ -19814,6 +19831,31 @@ function compileStudyGuides(blueprint) {
       if (arithmeticPractice) {
         Object.assign(guide, arithmeticPractice);
         if (authoredPractice) guide.objectivePractice = [authoredPractice];
+      }
+      const teachingProgram = compileTeachingProgram({
+        lessonId: lesson.id || `lesson-${lesson.lessonNumber}`,
+        admitted: hasLearnerFacingSemanticAuthority(lesson.enrichment),
+        workedExample: evidenceWorkedExample,
+        keyTerms: lesson.enrichment?.keyTerms || [],
+        sourceEvidenceBrief,
+      });
+      if (teachingProgram && !musicReviewQuestions && !isDataScience) {
+        guide.teachingProgram = teachingProgram;
+        const compiledQuestions = teachingProgramReviewQuestions(teachingProgram);
+        // Keep authored complete question/answer units; replace unanswerable
+        // generic filler with the compiler's checked guided practice.
+        const authoredQuestions = (
+          lesson.enrichment?.studyGuide?.reviewQuestions ||
+          guide.reviewQuestions ||
+          []
+        ).filter((q) => cleanText(q?.question) && cleanText(q?.answer));
+        const sourceComparisonQuestions =
+          evidenceWorkedExample?.protocol === 'coursemapper-source-claim-comparison-study-practice-v1'
+            ? guide.reviewQuestions
+            : [];
+        guide.reviewQuestions = [...authoredQuestions, ...sourceComparisonQuestions, ...compiledQuestions]
+          .filter((q, i, all) => all.findIndex((other) => other.question === q.question) === i)
+          .slice(0, 8);
       }
       if (blueprint.lessons.length === 1) {
         guide.examScope = 'Use this guide to prepare for the lesson checks and to review afterward.';
@@ -27832,7 +27874,29 @@ function compileLessonPlans(blueprint, options = {}) {
           .map((field) => cleanText(field.rawText)),
         5,
       );
-      const sourceEvidenceBrief = buildLessonEvidenceBrief(lesson, { claimLimit: 3, sourceLimit: 4 });
+      const sourceEvidenceBrief = buildLessonEvidenceBrief(lesson, {
+        claimLimit: Math.min(
+          8,
+          Math.max(
+            4,
+            lesson.enrichment?.kernel?.canonicalFacts?.length || lesson.enrichment?.kernel?.facts?.length || 0,
+          ),
+        ),
+        sourceLimit: 4,
+      });
+      const teachingProgram = compileTeachingProgram({
+        lessonId: lesson.id || `lesson-${lesson.lessonNumber}`,
+        admitted: hasLearnerFacingSemanticAuthority(lesson.enrichment),
+        workedExample: evidenceWorkedExample,
+        keyTerms: lesson.enrichment?.keyTerms || [],
+        sourceEvidenceBrief,
+      });
+      const formativeUnit =
+        teachingProgram?.units.find((unit) => unit.kind === 'derived-calculation') || teachingProgram?.units[0];
+      const programWarmup =
+        !activityProfile && !admittedLanguagePlan && !experientialActivityRequested
+          ? applyArithmeticProgramToOutline(outline, teachingProgram)
+          : null;
       const outlineMinutes = outline.reduce((sum, item) => sum + (Number.parseInt(item.time, 10) || 0), 0);
       const plannedMiniRubricCriteria = unique(
         lesson?.instructionalIntent?.expectedEvidence?.successCriteria || lesson.successCriteria || [],
@@ -28014,7 +28078,8 @@ function compileLessonPlans(blueprint, options = {}) {
         materials: admittedLanguageMaterials,
         warmUp: activityProfile
           ? undefined
-          : admittedLanguagePlan?.warmUp || {
+          : admittedLanguagePlan?.warmUp ||
+            programWarmup || {
               duration: outline.find((row) => /^warm[- ]?up$/i.test(cleanText(row.type)))?.time || '10 minutes',
               type: lessonVariant(lesson, [
                 'Retrieval and framing',
@@ -28074,7 +28139,17 @@ function compileLessonPlans(blueprint, options = {}) {
           return observationProtocol ? { observationProtocol } : {};
         })(),
         formativeCheck: activityProfile?.formativeCheck ||
-          admittedLanguagePlan?.formativeCheck || {
+          admittedLanguagePlan?.formativeCheck ||
+          (formativeUnit
+            ? {
+                type: 'Guided practice check',
+                practiceId: formativeUnit.id,
+                prompt: formativeUnit.question,
+                expectedAnswer: formativeUnit.answer,
+                objectiveAligned: appliedObjectiveCue(lesson.outcomes[0]),
+                instructorAction: `Check: ${formativeUnit.criteria.join(' ')} If a step is missing, return to that step in the worked example and have the learner retry.`,
+              }
+            : null) || {
             type: 'Formative closure check',
             // v0.15.188 grounding slice 1: the enrichment's own quiz question is
             // the honest formative check — a real content question ("What does a

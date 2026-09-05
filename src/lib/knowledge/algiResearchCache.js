@@ -13,8 +13,8 @@
 // change must fail closed instead of silently reusing an old wrong-domain hit.
 // Keeping the protocol in both the storage key and payload makes stale
 // evidence fail closed even if a caller migrates storage manually.
-export const ALGI_RESEARCH_CACHE_KEY = 'coursemapper-algi-research-cache-v27';
-export const ALGI_RESEARCH_CACHE_PROTOCOL = 'algi-local-research-cache-v27';
+export const ALGI_RESEARCH_CACHE_KEY = 'coursemapper-algi-research-cache-v28';
+export const ALGI_RESEARCH_CACHE_PROTOCOL = 'algi-local-research-cache-v28';
 const MAX_ENTRIES = 60;
 const MAX_SERIALIZED_CHARS = 1_800_000;
 
@@ -102,7 +102,7 @@ export function readAlgiResearchCache({
     const key = algiResearchCacheEntryKey(courseName, topic);
     const entry = store.entries[key];
     if (!entry) continue;
-    if (Number(entry.expiresAt) <= Number(now)) {
+    if (!Number.isFinite(Number(entry.expiresAt)) || Number(entry.expiresAt) <= Number(now)) {
       expired.push(key);
       continue;
     }

@@ -48,7 +48,12 @@ export function deliverableToCsvRows(featureId, data) {
       const rows = plans.map((p) => {
         const warmUp = p.warmUp ? [p.warmUp.type, p.warmUp.prompt, p.warmUp.purpose].filter(Boolean).join(' — ') : '';
         const formative = p.formativeCheck
-          ? [p.formativeCheck.type, p.formativeCheck.prompt, p.formativeCheck.objectiveAligned]
+          ? [
+              p.formativeCheck.type,
+              p.formativeCheck.prompt,
+              p.formativeCheck.expectedAnswer,
+              p.formativeCheck.objectiveAligned,
+            ]
               .filter(Boolean)
               .join(' — ')
           : '';
@@ -284,7 +289,19 @@ export function deliverableToCsvRows(featureId, data) {
         const misconceptions = (g.commonMisconceptions || [])
           .map((m) => (typeof m === 'string' ? m : `${m.misconception || ''} → ${m.correction || ''}`))
           .join('; ');
-        const reviewQs = (g.reviewQuestions || []).map((q) => (typeof q === 'string' ? q : q.question || q)).join('; ');
+        const reviewQs = (g.reviewQuestions || [])
+          .map((q) =>
+            typeof q === 'string'
+              ? q
+              : [
+                  q.question,
+                  q.answer && `Answer: ${q.answer}`,
+                  q.successCriteria?.length && `Check: ${q.successCriteria.join(' ')}`,
+                ]
+                  .filter(Boolean)
+                  .join(' — '),
+          )
+          .join('; ');
         const examPrep = g.examPrep
           ? [
               g.examPrep.keyTopicsToKnow?.length && `Topics: ${g.examPrep.keyTopicsToKnow.join(', ')}`,

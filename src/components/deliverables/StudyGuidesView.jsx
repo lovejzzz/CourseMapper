@@ -116,6 +116,38 @@ export default function StudyGuidesView({
                   </div>
                 )}
 
+                {g.objectivePractice?.length > 0 && (
+                  <div>
+                    <SectionHeading>Learning Practice</SectionHeading>
+                    {g.objectivePractice.map((practice, j) => (
+                      <p key={j} className="text-xs text-slate-700 leading-relaxed">
+                        <E value={practice} path={[key, i, 'objectivePractice', j]} onEdit={onEdit} />
+                      </p>
+                    ))}
+                  </div>
+                )}
+                {g.workedExample?.problem && (
+                  <div className="rounded-lg border border-teal-100 bg-teal-50/40 p-3 space-y-2 text-xs text-slate-700">
+                    <SectionHeading>Worked Example</SectionHeading>
+                    <E value={g.workedExample.problem} path={[key, i, 'workedExample', 'problem']} onEdit={onEdit} />
+                    <ol className="list-decimal pl-5 space-y-1.5">
+                      {(g.workedExample.steps || []).map((step, j) => (
+                        <li key={j}>
+                          <E value={step} path={[key, i, 'workedExample', 'steps', j]} onEdit={onEdit} />
+                        </li>
+                      ))}
+                    </ol>
+                    {['result', 'interpretation', 'boundary'].map(
+                      (field) =>
+                        g.workedExample[field] && (
+                          <p key={field}>
+                            <E value={g.workedExample[field]} path={[key, i, 'workedExample', field]} onEdit={onEdit} />
+                          </p>
+                        ),
+                    )}
+                  </div>
+                )}
+
                 {/* Key Terms */}
                 {g.keyTerms?.length > 0 && (
                   <div>
@@ -224,6 +256,33 @@ export default function StudyGuidesView({
                                       className="text-xs text-slate-400 italic"
                                     />
                                   </p>
+                                )}
+                                {isObj && q.answer && (
+                                  <details className="mt-2 rounded border border-teal-100 p-2">
+                                    <summary className="cursor-pointer font-medium text-teal-700">
+                                      Check your answer
+                                    </summary>
+                                    <div className="mt-2 whitespace-pre-line">
+                                      <E
+                                        value={q.answer}
+                                        path={[key, i, 'reviewQuestions', j, 'answer']}
+                                        onEdit={onEdit}
+                                      />
+                                    </div>
+                                    {q.successCriteria?.length > 0 && (
+                                      <ul className="mt-2 list-disc pl-4 space-y-1">
+                                        {q.successCriteria.map((criterion, k) => (
+                                          <li key={k}>
+                                            <E
+                                              value={criterion}
+                                              path={[key, i, 'reviewQuestions', j, 'successCriteria', k]}
+                                              onEdit={onEdit}
+                                            />
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    )}
+                                  </details>
                                 )}
                               </div>
                             </div>

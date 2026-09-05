@@ -23,6 +23,16 @@ Custom deliverables, `.coursemapper` project files, local session recovery, vers
 
 Exports retain the original material-dependent choices, including Word, PDF, CSV, PowerPoint, Google Docs/Sheets/Slides and course ZIP packages. Downloaded and Google Drive files are snapshots; edits to those copies do not automatically return to EduTool.
 
+## Scion research and the fast compiler
+
+Scion inference remains local. Optional **Scion web research** uses browser-readable public catalogs (Wikipedia, DOAJ, Europe PMC, and W3C/WAI for accessibility). It does not call the paused hosted model or require a rented inference server. Queries can include the course title, lesson topics and concepts; private research-off mode sends no such queries.
+
+The research transport now serializes requests, deduplicates successful and failed reads, shares one time/request budget across discovery and repair, and moves on after a provider rate limit. A single-lesson transaction has at most 14 requests and 20 seconds of network budget; larger courses are capped at 96 requests and 60 seconds. An approved teaching plan already covered by instructor facts skips redundant research unless current evidence is requested.
+
+Publication, content-revision, indexing and retrieval dates remain distinct. A new index entry or download does not make an old paper current. Time-sensitive scholarly queries include publication filters; undated or old evidence alone cannot pass the current-evidence gate. These are bounded catalog searches, **not unrestricted browsing of every website**. Recent source dates also do not prove present legal, clinical or scientific applicability. Misses, conflicts and incomplete evidence remain visible for review. API behavior follows [Europe PMC documentation](https://europepmc.org/RestfulWebService), [DOAJ publication metadata](https://doaj.github.io/doaj-docs/master/data_models/IncomingAPIArticle.html), and [MediaWiki request guidance](https://www.mediawiki.org/wiki/API:Etiquette).
+
+The compiler creates reusable guided-practice units that keep a question, reference answer and scoring conditions together. Admitted examples and definitions feed student review and teacher checks. Explicit proportion equations additionally support exact conversion, complementary-count and error-analysis exercises without another model call. Study guides show editable worked examples and expandable answers; Word exports include a practice answer key. This improves teaching content without presenting the compiler as a trained model or claiming independently validated learning outcomes.
+
 ## Run locally
 
 Use Node.js 22 or later:
