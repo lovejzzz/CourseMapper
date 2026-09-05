@@ -77,12 +77,15 @@ export default function ExportPanel({
       Array.from(
         dialog.current?.querySelectorAll<HTMLElement>('button:not(:disabled),select:not(:disabled),a[href]') ?? [],
       );
-    fields()[0]?.focus();
+    (fields()[0] ?? dialog.current)?.focus();
     const handler = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && !busy) onClose();
       if (event.key === 'Tab') {
         const items = fields();
-        if (event.shiftKey && document.activeElement === items[0]) {
+        if (!items.length) {
+          event.preventDefault();
+          dialog.current?.focus();
+        } else if (event.shiftKey && document.activeElement === items[0]) {
           event.preventDefault();
           items.at(-1)?.focus();
         } else if (!event.shiftKey && document.activeElement === items.at(-1)) {
@@ -138,6 +141,7 @@ export default function ExportPanel({
         role="dialog"
         aria-modal="true"
         aria-labelledby="export-heading"
+        tabIndex={-1}
       >
         <div className="section-heading">
           <h2 id="export-heading">Export materials</h2>
@@ -157,6 +161,7 @@ export default function ExportPanel({
               setFormat(next === 'slideDecks' ? 'pptx' : 'docx');
               setError('');
               setProgress('');
+              setFileLink('');
             }}
           >
             <option value="all">Complete course package (.zip)</option>
@@ -183,6 +188,8 @@ export default function ExportPanel({
                 onChange={(event) => {
                   setFormat(event.target.value as Format);
                   setError('');
+                  setProgress('');
+                  setFileLink('');
                 }}
               >
                 {formats.map((id) => (
@@ -198,7 +205,12 @@ export default function ExportPanel({
                 <select
                   value={view}
                   disabled={busy}
-                  onChange={(event) => setView(event.target.value as 'student' | 'teacher')}
+                  onChange={(event) => {
+                    setView(event.target.value as 'student' | 'teacher');
+                    setError('');
+                    setProgress('');
+                    setFileLink('');
+                  }}
                 >
                   <option value="student">Student — practice answers withheld</option>
                   <option value="teacher">Instructor — answers and feedback included</option>

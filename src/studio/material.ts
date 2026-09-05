@@ -30,8 +30,7 @@ export function materialLabel(
   return `${label}: ${references}`;
 }
 
-export function materialSelectionSchema(sources: Source[], allowFictional: boolean) {
-  const spans = sourceSpans(sources);
+export function materialSelectionSchema(sources: Source[], allowFictional: boolean, spans = sourceSpans(sources)) {
   const source = z.object({ kind: z.literal('source'), spans: evidenceSelectionSchema(spans).min(1) });
   const fictional = z.object({ kind: z.literal('fictional'), text: z.string().trim().min(1).max(12000) });
   if (!spans.length) return fictional;

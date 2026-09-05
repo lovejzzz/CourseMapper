@@ -111,7 +111,10 @@ describe('source span selection', () => {
     };
     const spans = sourceSpans([reading]);
     expect(spans[0].quote.endsWith('.')).toBe(true);
-    expect(spans[1].quote).toBe('The next record has details that must stay together until its final punctuation.');
+    expect(spans.every((span) => span.quote.endsWith('.'))).toBe(true);
+    expect(spans.at(-1)!.quote).toContain(
+      'The next record has details that must stay together until its final punctuation.',
+    );
   });
   it('binds source addresses to exact stored text in both languages, including leading spaces and repeated sentences', () => {
     const reading = { ...source, text: '  First fact. Second fact.\n\n第一条记录。第二条记录！\nFirst fact.' };

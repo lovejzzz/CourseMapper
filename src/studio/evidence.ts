@@ -10,10 +10,10 @@ export interface SourceSpan {
   quote: string;
 }
 
-// Addresses are derived from the source identity, version and exact offsets.
-// The model chooses an address; it never has to regenerate a quotation.
+// Short request-local aliases keep repeated JSON-schema enums small. Durable
+// evidence stores the full source identity, version and exact offsets below.
 export function sourceSpans(sources: Source[]): SourceSpan[] {
-  return sources.flatMap((source) => {
+  return sources.flatMap((source, sourceIndex) => {
     const spans: SourceSpan[] = [];
     // Explicit record labels remain independently selectable even when the
     // pasted packet uses a single paragraph. Do not rewrite the source text.
@@ -28,7 +28,7 @@ export function sourceSpans(sources: Source[]): SourceSpan[] {
     for (const line of lines) {
       let offset = 0;
       while (offset < line[0].length) {
-        let end = Math.min(offset + 600, line[0].length);
+        let end = Math.min(offset + 320, line[0].length);
         if (end < line[0].length) {
           const chunk = line[0].slice(offset, end);
           const sentences = [...chunk.matchAll(/[。！？][”’"']*|[.!?][”’"']*\s+/g)];
@@ -36,7 +36,7 @@ export function sourceSpans(sources: Source[]): SourceSpan[] {
           const sentence = sentences.at(-1);
           // Prefer a complete sentence, even when a later whitespace would
           // pack more characters. A clipped factual record changes the task.
-          const boundary = sentence && sentence.index! > 100 ? sentence : words.at(-1);
+          const boundary = sentence && sentence.index! > 60 ? sentence : words.at(-1);
           if (boundary) end = offset + boundary.index! + boundary[0].length;
           if (/[\uD800-\uDBFF]/.test(line[0][end - 1])) end--;
         }
@@ -47,7 +47,7 @@ export function sourceSpans(sources: Source[]): SourceSpan[] {
         const last = line.index! + end - trailing;
         if (last > first)
           spans.push({
-            spanId: `${source.id}@${source.version}:${first}-${last}`,
+            spanId: `s${sourceIndex}v${source.version}p${first}`,
             sourceId: source.id,
             version: source.version,
             start: first,

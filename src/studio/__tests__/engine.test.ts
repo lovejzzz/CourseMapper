@@ -84,6 +84,7 @@ const plan = {
     sourceIds: [],
     buildsOn: i ? [0] : [],
     practice: {
+      demonstration: 'Read an explicit closing time from a short notice.',
       guided: 'Use a sentence frame to identify an explicit rule.',
       independent: 'Identify missing information and justify the limit without a frame.',
       change: 'Move from extracting an explicit statement to identifying an unsupported inference.',

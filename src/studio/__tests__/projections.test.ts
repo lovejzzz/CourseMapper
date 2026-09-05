@@ -8,7 +8,7 @@ import { renderMaterialHtml } from '../export';
 import { renderMaterialDocx } from '../exportDocx';
 import { renderMaterialCsv, renderMaterialXlsx } from '../exportSheets';
 import { materialSlides, splitSlideText, slideLines, renderMaterialPptx } from '../exportSlides';
-import { verifyActivity } from '../verify';
+import { verifyActivity, verifyIndependentTask } from '../verify';
 
 it('allows an intentional student sentence frame but rejects missing stimulus or model answer', () => {
   const course = completeCourse();
@@ -27,6 +27,16 @@ it('rejects the observed failure where one activity contains both guided and ind
   const task = course.lessons[course.lessonOrder[0]].activities[1];
   task.prompt = '第一部分：指导练习。把原句改写。第二部分：独立任务。再完成全文。';
   expect(verifyActivity(task, course.sources, true).join(' ')).toContain('another named guided/independent phase');
+});
+
+it('rejects practice which merely selects a subset of already solved demonstration calculations', () => {
+  const course = completeCourse();
+  const lesson = course.lessons[course.lessonOrder[0]];
+  const task = structuredClone(lesson.activities[0]);
+  task.calculations = task.calculations.slice(0, 1);
+  expect(verifyIndependentTask(lesson.workedExample, task, true).join(' ')).toContain('already solved');
+  task.datasets[0].values = [2, 4, 6, 12];
+  expect(verifyIndependentTask(lesson.workedExample, task, true)).toEqual([]);
 });
 
 it('links canonical task edits across all applicable materials while withholding instructor answers', async () => {

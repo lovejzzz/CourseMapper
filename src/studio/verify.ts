@@ -100,27 +100,30 @@ export function sameTask(first: string, second: string): boolean {
   return normalized(first) === normalized(second);
 }
 
-export function verifyIndependentTask(previous: Activity, next: Activity, allowFictional: boolean): string[] {
+export function verifyIndependentTask(
+  previous: Pick<Activity, 'prompt' | 'datasets' | 'calculations'>,
+  next: Pick<Activity, 'prompt' | 'datasets' | 'calculations'>,
+  allowFictional: boolean,
+): string[] {
   if (sameTask(previous.prompt, next.prompt))
     return ['This repeats the earlier question. Create a different problem that requires independent application.'];
-  const values = (activity: Activity) =>
-    activity.datasets
-      .map((d) => JSON.stringify([d.kind, d.values]))
-      .sort()
-      .join('|');
-  const operations = (activity: Activity) =>
-    activity.calculations
-      .map((c) => c.operation)
-      .sort()
-      .join('|');
-  if (
-    allowFictional &&
-    next.calculations.length &&
-    values(previous) === values(next) &&
-    operations(previous) === operations(next)
-  )
+  const solved = next.calculations.every((calculation) => {
+    const dataset = next.datasets.find((data) => data.id === calculation.dataset);
+    return (
+      dataset &&
+      previous.calculations.some((earlier) => {
+        const data = previous.datasets.find((data) => data.id === earlier.dataset);
+        return (
+          earlier.operation === calculation.operation &&
+          data?.kind === dataset.kind &&
+          JSON.stringify(data.values) === JSON.stringify(dataset.values)
+        );
+      })
+    );
+  });
+  if (allowFictional && next.calculations.length && solved)
     return [
-      'The independent task repeats the earlier numerical input and operations. Use changed fictional data, solve it, and require a new interpretation; changing only the scenario name is insufficient.',
+      'This task only requests numerical results already solved in an earlier example or task. Use changed fictional data and a new interpretation; changing the title or selecting a subset of solved datasets is insufficient.',
     ];
   return [];
 }

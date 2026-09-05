@@ -114,6 +114,7 @@ export const LessonDraftSchema = z.object({
 });
 export const TeachingSchema = LessonDraftSchema.omit({ activities: true });
 export const PracticeDesignSchema = z.object({
+  demonstration: text.optional(),
   guided: text,
   independent: text,
   change: text,
