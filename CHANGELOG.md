@@ -2,6 +2,8 @@
 
 ## 0.18.7 shared teaching tasks — 2026-09-05
 
+- Isolate Pages concurrency by source branch so a skipped feature-branch workflow cannot cancel a successful main deployment.
+
 - Select a source-bound task before deliverable-specific fact rotation; share its inputs, reasoning, reference answer, errors, feedback, workload and four-level criteria across the existing materials. Keep stable task IDs and content revision hashes; regenerate matching answers and rubrics after source edits.
 - Add bounded operations for exact proportions, dated creation/acquisition records and explicitly sourced confounded comparisons. Preserve linked clauses in numbered instructor facts and match historical years to events rather than unrelated catalog numbers. Fail closed on missing or ambiguous inputs; preserve authored assignments, activities and stronger examples.
 - Replace eligible compiler-owned written quiz slots with task rehearsal, error analysis and scaffold questions. Preserve bank size, authored and choice questions, and machine-scoring boundaries. Include the supplied task record on the student question paper.
