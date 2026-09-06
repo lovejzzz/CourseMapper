@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test('source compiler keeps editable worked examples, answers, and the lesson clock through regeneration', async ({
+test('source compiler keeps worked examples, shared answers, and the lesson clock through regeneration', async ({
   page,
 }) => {
   const modelRequests = [];
@@ -88,15 +88,25 @@ test('source compiler keeps editable worked examples, answers, and the lesson cl
   await page.getByRole('button', { name: 'Study Guides', exact: true }).click();
   await expect(page.getByText('Worked Example', { exact: true })).toBeVisible();
   const checks = page.getByText('Check your answer', { exact: true });
-  await expect(checks).toHaveCount(4);
-  await checks.nth(1).click();
-  await expect(page.getByText(/^20 − 16 = 4; 4\/20 = 0.20 = 20%/)).toBeVisible();
+  await expect(checks).toHaveCount(6);
+  const conversionCheck = page
+    .locator('details')
+    .filter({ hasText: '0.80 is a decimal proportion; it converts to 80%.' });
+  await expect(conversionCheck).toHaveCount(1);
+  await conversionCheck.locator('summary').click();
+  await expect(
+    conversionCheck.getByText('0.80 is a decimal proportion; it converts to 80%.', { exact: true }),
+  ).toBeVisible();
   await page.getByRole('button', { name: 'Lesson Plans', exact: true }).click();
   await expect(page.getByText(/^45 minutes · Week 1$/).first()).toBeVisible();
-  await expect(page.getByText(/^20 − 16 = 4; 4\/20 = 0.20 = 20%/)).toBeVisible();
+  await expect(page.getByText(/^0.80 × 20 = 16\./).first()).toBeVisible();
+  await expect(
+    page.getByText(/Recover the numerator from 80% of 20, then state one source limitation\./).first(),
+  ).toBeVisible();
   await page.getByRole('button', { name: 'Regen', exact: true }).click();
   await expect.poll(() => logs.some((line) => line.includes('lesson_regen_compiled')), { timeout: 20000 }).toBe(true);
   await expect(page.getByRole('button', { name: 'Regen', exact: true })).toBeEnabled({ timeout: 20000 });
   await expect(page.getByText(/^45 minutes · Week 1$/).first()).toBeVisible();
+  await expect(page.getByText(/^0.80 × 20 = 16\./).first()).toBeVisible();
   expect(modelRequests).toEqual([]);
 });
