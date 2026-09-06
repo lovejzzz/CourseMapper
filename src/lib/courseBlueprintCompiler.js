@@ -3,6 +3,8 @@ import {
   compileTeachingProgram,
   teachingProgramReviewQuestions,
 } from './compilerTeachingProgram.js';
+import { buildSharedTeachingTask } from './compilerTeachingTask.js';
+import { projectSharedTeachingTasks, projectTeachingTasksIntoCourseMap } from './compilerTeachingTaskProjection.js';
 import { COLUMN_EXTRACTORS } from './prompts/promptUtils';
 import {
   asArray,
@@ -12757,6 +12759,33 @@ export function buildCompilerProofBundle(blueprint = {}, options = {}) {
 
 function prepareBlueprintForCompilation(blueprint = {}, options = {}) {
   const prepared = deriveBlueprintForCompiler(blueprint, options);
+  // Select a concrete task from canonical, lesson-owned evidence before any
+  // deliverable-specific fact rotation. Rebuild on every compile so edits to
+  // inputs or objectives cannot retain an obsolete answer or rubric revision.
+  prepared.lessons = prepared.lessons.map((lesson) => {
+    const ownedFacts = lesson.enrichment?.kernel?.canonicalFacts || lesson.enrichment?.kernel?.facts || [];
+    const instructorFacts = prepared.instructorSourceFactsByLesson?.[lesson.id] || [];
+    const authoredAssignment =
+      lesson.enrichment?.assignmentCore?.taskDescription &&
+      !lesson.enrichment.surfaceFallbacks?.includes('assignmentCore');
+    const teachingTask = buildSharedTeachingTask({
+      lessonId: lesson.id,
+      objective: asArray(lesson.outcomes).join(' '),
+      claims: instructorFacts.length ? instructorFacts : ownedFacts,
+      admitted: instructorFacts.length > 0 || hasLearnerFacingSemanticAuthority(lesson.enrichment),
+      workedExample: lesson.enrichment?.workedExample || lesson.enrichment?.kernel?.workedExample,
+      sessionMinutes: lesson.classSessionPlan?.sessionMinutes,
+      practiceMinutes: lesson.classSessionPlan?.segments?.find((s) => s.phase === 'collaborative application')?.minutes,
+    });
+    return {
+      ...lesson,
+      teachingTask,
+      teachingTaskScope:
+        teachingTask && !authoredAssignment && !lesson.authenticDataTaskPlan && !lesson.enrichment?.activityBlueprint
+          ? 'primary-task'
+          : 'guided-practice',
+    };
+  });
   const semanticContract = validateBlueprintSemanticContract(prepared);
   const compilerContract = validateCourseBlueprintContract(prepared);
   const compilerProofBundle = buildCompilerProofBundle(prepared, {
@@ -28521,7 +28550,7 @@ const {
   quarantineUnadmittedResearchClaims,
   quarantineUnverifiedSemanticEnrichment,
   quizConceptAlignedToPlan,
-  reconcileCourseMapWithBlueprintSemanticAdmission,
+  reconcileCourseMapWithBlueprintSemanticAdmission: reconcileSemanticCourseMap,
   reconcileLessonFieldsWithSemanticAdmission,
   removeCrossLessonFactLeakage,
   removeCrossLessonTermLeakage,
@@ -28689,9 +28718,14 @@ export {
   deterministicWorkedExampleForLesson,
   operationQualifiedWorkedExampleForLesson,
   quarantineUnadmittedResearchClaims,
-  reconcileCourseMapWithBlueprintSemanticAdmission,
   workedExampleVisualDescriptor,
 };
+
+export function reconcileCourseMapWithBlueprintSemanticAdmission(courseMap, blueprint) {
+  if (!blueprint?.lessons) return courseMap;
+  const prepared = prepareBlueprintForCompilation(blueprint);
+  return projectTeachingTasksIntoCourseMap(reconcileSemanticCourseMap(courseMap, prepared), prepared);
+}
 
 export function compileBlueprintDeliverable(featureId, blueprint, options = {}) {
   const compilerBlueprint = options.skipPrepareBlueprint
@@ -28701,7 +28735,12 @@ export function compileBlueprintDeliverable(featureId, blueprint, options = {}) 
     assertBlueprintCompilerContract(compilerBlueprint, options);
   }
   const featureBlueprint = rotateFactsForDeliverableFamily(compilerBlueprint, featureId);
-  const compiled = compileBlueprintDeliverableRaw(featureId, featureBlueprint, options);
+  const compiled = projectSharedTeachingTasks(
+    featureId,
+    compileBlueprintDeliverableRaw(featureId, featureBlueprint, options),
+    featureBlueprint,
+    options,
+  );
   if (!compiled || options.skipLanguageFinalizer) return compiled;
   const finalized = finalizeCompiledDeliverableLanguage(featureId, compiled, featureBlueprint);
   return featureId === 'lessonPlans' ? sanitizeCompiledLessonPlans(finalized, featureBlueprint) : finalized;

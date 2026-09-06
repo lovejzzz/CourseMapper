@@ -48,7 +48,9 @@ describe('classroom defects found in the frozen local Scion output', () => {
     expect(outputs.lessonPlans.lessonPlans[0].homework.connectionToNext).not.toContain('final course synthesis');
     expect(JSON.stringify(outputs.assignments)).not.toContain('750–1,250 words');
     expect(JSON.stringify(outputs.assignments)).toContain('2–4-sentence');
-    expect(outputs.discussions.discussions[0].prompt).toContain('additional evidence a wider claim would require');
+    expect(outputs.discussions.discussions[0].prompt).toMatch(
+      /source limitation|additional evidence a wider claim would require/,
+    );
   });
   it('shows every numerical reasoning step on the slide, with full source context in notes', () => {
     const slide = outputs.slideDecks.decks[0].slides.find((s) => s.workedExample?.verification?.numerator === '16');
@@ -72,13 +74,13 @@ describe('classroom defects found in the frozen local Scion output', () => {
   it('asks for calculation in the quiz and exports the complete matching answer', async () => {
     const questions = outputs.quizBank.quizzes[0].questions;
     expect(questions).toHaveLength(8);
-    const q = questions.find((q) => q.enrichmentSource === 'compiler-teaching-program');
-    expect(q.question).toContain('calculate the decimal and percentage');
+    const q = questions.find((q) => q.enrichmentSource === 'shared-teaching-task');
+    expect(q.question).toMatch(/Calculate 16\/20 as a decimal and percentage/i);
     expect(q.answer).toContain('0.80 × 20 = 16');
     const blob = await buildDeliverableDocxBlob('quizBank', outputs.quizBank, 'Sample proportions');
     const zip = await JSZip.loadAsync(await blob.arrayBuffer());
     const xml = await zip.file('word/document.xml').async('string');
-    expect(xml).toContain('calculate the decimal and percentage');
+    expect(xml).toContain('Calculate 16/20 as a decimal and percentage');
     expect(xml).toContain('0.80 × 100 = 80%');
   });
 });

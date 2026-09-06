@@ -10,6 +10,19 @@ import {
 } from '../sourceBriefConstraints';
 
 describe('source brief constraints', () => {
+  it('preserves a numbered supplied-facts packet and its linked experimental clauses', () => {
+    const brief =
+      'A workshop. Use only these supplied facts. All examples are fictional.\n1. Group A receives treatment and eight hours of light while Group B receives no treatment and four hours; both have equal water.\n2. Height is the outcome; because treatment and light both differ, this comparison cannot isolate the treatment effect.\n3. Random assignment allocates units by chance to conditions.\nTask: Explain the limitation.';
+    const facts = extractInstructorProvidedFacts(brief);
+    expect(facts).toHaveLength(3);
+    expect(facts[0]).toContain('four hours; both have equal water.');
+    expect(facts[1]).toContain('Height is the outcome; because treatment and light both differ');
+    expect(facts.join(' ')).not.toContain('All examples are fictional');
+    expect(facts.join(' ')).not.toContain('Task:');
+    expect(
+      extractInstructorProvidedFacts('Make a workshop.\n1. Include an experiment.\n2. Invent three facts.'),
+    ).toEqual([]);
+  });
   it('reads an explicit hyphenated class duration without confusing other counts', () => {
     const brief =
       'Mandarin has four main tones. Build a 50-minute lesson with guided listening and one evidence check.';

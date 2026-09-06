@@ -1,5 +1,6 @@
 import { sha256HexSync } from './sha256Sync.js';
 import { SOURCE_ARITHMETIC_PROTOCOL, sourceArithmeticWorkedExample } from './sourceArithmeticStudyPractice.js';
+import { teachingTaskPracticeUnits } from './compilerTeachingTask.js';
 
 const clean = (value) => (typeof value === 'string' ? value.trim() : '');
 
@@ -14,8 +15,18 @@ export function compileTeachingProgram({
   workedExample,
   keyTerms = [],
   sourceEvidenceBrief,
+  teachingTask,
 } = {}) {
   if (!admitted) return null;
+  if (teachingTask)
+    return {
+      protocol: 'coursemapper-teaching-program-v1',
+      lessonId,
+      purpose: 'guided-practice',
+      taskId: teachingTask.id,
+      taskRevision: teachingTask.revision,
+      units: teachingTaskPracticeUnits(teachingTask),
+    };
   const units = [];
   const add = (kind, question, answer, criteria, sourceClaims = []) => {
     if (!question || !answer || !criteria.length) return;
@@ -138,6 +149,7 @@ export function teachingProgramReviewQuestions(program) {
     question: unit.question,
     answer: unit.answer,
     successCriteria: unit.criteria,
+    ...(unit.taskId ? { taskId: unit.taskId, taskRevision: unit.taskRevision, hint: unit.feedback || '' } : {}),
     bloomsLevel:
       unit.kind === 'error-analysis' ? 'Analyze' : unit.kind === 'concept-retrieval' ? 'Understand' : 'Apply',
   }));

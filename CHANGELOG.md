@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.18.7 shared teaching tasks — 2026-09-05
+
+- Select a source-bound task before deliverable-specific fact rotation; share its inputs, reasoning, reference answer, errors, feedback, workload and four-level criteria across the existing materials. Keep stable task IDs and content revision hashes; regenerate matching answers and rubrics after source edits.
+- Add bounded operations for exact proportions, dated creation/acquisition records and explicitly sourced confounded comparisons. Preserve linked clauses in numbered instructor facts and match historical years to events rather than unrelated catalog numbers. Fail closed on missing or ambiguous inputs; preserve authored assignments, activities and stronger examples.
+- Replace eligible compiler-owned written quiz slots with task rehearsal, error analysis and scaffold questions. Preserve bank size, authored and choice questions, and machine-scoring boundaries. Include the supplied task record on the student question paper.
+- Align teacher checkpoints, closure questions, study-guide answers, assignment/rubric criteria, discussion duration, syllabus task references and concise FAQ answers. Remove stale homework estimates from the projected task. Show real strong/incorrect samples in Word exports.
+- Fix projection field types against all eight production Word exporters and put worked reasoning on explicit content slides, avoiding half-empty bridge layouts and overflowing takeaway banners. Retain the 0.18.7 interface and export styles.
+- Re-run the same five-input, 295-probe benchmark with zero model calls: detected defects decrease from 13 to 5, all remaining in the two-session case. Add a separate educational review and source/output receipts. No model weights, hosted service policy or version number changed; this is not the final v0.19.0 release.
+
 ## 0.18.7 classroom benchmark and output corrections — 2026-09-05
 
 - Add an independent benchmark covering all ten materials across five frozen inputs, 295 defect probes, separate educational ratings, reference answers and contrasting learner responses. Preserve baseline output identities, regrade both sides with the same checker, and keep known failures visible. No new model calls, training or paid services are used by the benchmark.

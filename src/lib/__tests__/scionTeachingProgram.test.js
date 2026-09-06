@@ -119,7 +119,7 @@ describe('compiler teaching programs', () => {
     expect(question.answer).toBe(teacher.formativeCheck.expectedAnswer);
     expect(question.question).toBe(teacher.formativeCheck.prompt);
     expect(guide.reviewQuestions.every((q) => q.answer && q.successCriteria.length)).toBe(true);
-    expect(guide.reviewQuestions).toHaveLength(4);
+    expect(guide.reviewQuestions).toHaveLength(6);
     expect(guide.teachingProgram.units.some((unit) => unit.kind === 'concept-retrieval')).toBe(false);
     expect(guide.objectivePractice.join(' ')).not.toContain('two solution paths');
     expect(guide.keyTerms).toEqual([]);

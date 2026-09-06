@@ -6,7 +6,7 @@ This benchmark asks whether a teacher and learner can use the **materials**, not
 
 Three development cases preserve real generation inputs and model kernels: a local Scion proportions lesson, a fictional museum-record workshop, and a fictional experiment-design workshop. Two constructed extension cases change the fraction/class duration and add a second session with a distinct objective. The latter were set aside from the initial three-course inspection; they are a regression holdout, not a permanently unseen evaluation set. All five are small English-language lessons/workshops, so this corpus does **not** establish quality across languages, ages, semester courses or all subjects.
 
-The runner freezes model kernels and regenerates only explicitly compiler-owned fallback surfaces and derivatives. It makes **zero model calls**. This isolates compiler changes from model sampling. Course Map is the captured input artifact; its score will not improve merely because derivatives improve. Full model generation, finalizer behavior, Smart Sync and rendered exports require separate captures. Reports record corpus SHA-256, provenance, checks and exact output files. Do not call a replay a new Scion generation.
+The runner freezes model kernels and regenerates only explicitly compiler-owned fallback surfaces and derivatives. It makes **zero model calls**. This isolates compiler changes from model sampling. The current runner reconciles Course Map from its captured input through the production compiler and records `courseMapMode`. The first review and its baseline retain the captured Course Map unchanged; do not confuse those evaluation modes. Full model generation, finalizer behavior, Smart Sync and rendered exports require separate captures. Reports record corpus SHA-256, compiler source SHA-256 (including new untracked modules), provenance, checks and exact output files. Do not call a replay a new Scion generation.
 
 ```sh
 npm run benchmark:outputs
@@ -55,3 +55,5 @@ The rubric is original to this benchmark. Its focus on alignment is informed by 
 ## Improvement order
 
 Fix the shared cause before polishing each export: (1) inputs and reference answers, (2) an objective-specific task and rubric, (3) a sequence of teaching/example/practice/feedback, (4) export and editing fidelity. Keep authored source content and explicit constraints intact. Never tune thresholds or suppress findings to favor a candidate. Checker bugs require a mutation regression, a recorded explanation and regrading **both** saved outputs with the same checker. Record remaining defects and compare the same frozen inputs before/after.
+
+The [shared-task follow-up review](SHARED-TASKS.zh-CN.md) preserves the original review and reports the next comparison, actual export defects, task-specific rubric calibration and the still-failing two-session case.

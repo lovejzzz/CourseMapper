@@ -3,7 +3,12 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { performance } from 'node:perf_hooks';
 import { execFileSync } from 'node:child_process';
-import { buildCourseBlueprint, compileBlueprintDeliverables } from '../../src/lib/courseBlueprintCompiler.js';
+import {
+  buildCourseBlueprint,
+  compileBlueprintDeliverables,
+  BLUEPRINT_COMPILE_CONTEXT,
+  reconcileCourseMapWithBlueprintSemanticAdmission,
+} from '../../src/lib/courseBlueprintCompiler.js';
 import { completeNativeKernelSurfaces } from '../../src/lib/nativeGraphAuthoring.js';
 import { extractInstructorProvidedFacts } from '../../src/lib/sourceBriefConstraints.js';
 import { FEATURES, classroomSurface, evaluateClassroomOutputs } from './classroomBenchmark.mjs';
@@ -18,6 +23,24 @@ const regrade = args.includes('--regrade');
 await fs.mkdir(outputDir, { recursive: true });
 const priorReport = regrade ? JSON.parse(await fs.readFile(path.join(outputDir, 'report.json'), 'utf8')) : null;
 const sha256 = (raw) => createHash('sha256').update(raw).digest('hex');
+// Hash file contents as well as the Git diff: new, untracked compiler modules
+// must be represented in an in-progress replay receipt.
+const compilerFiles = execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', '--', 'src/lib'], {
+  encoding: 'utf8',
+})
+  .trim()
+  .split('\n')
+  .filter(Boolean)
+  .sort();
+const compilerSource = createHash('sha256');
+if (!regrade)
+  for (const file of compilerFiles) {
+    compilerSource
+      .update(file)
+      .update('\0')
+      .update(await fs.readFile(file))
+      .update('\0');
+  }
 const report = {
   protocol: 'edutool-classroom-output-benchmark-v1',
   createdAt: new Date().toISOString(),
@@ -28,7 +51,11 @@ const report = {
     : execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
   compilerDiffSha256: regrade
     ? (priorReport?.compilerDiffSha256 ?? null)
-    : sha256(execFileSync('git', ['diff', '--', 'src/lib'])),
+    : sha256(execFileSync('git', ['diff', 'HEAD', '--', 'src/lib'])),
+  compilerSourceSha256: regrade ? (priorReport?.compilerSourceSha256 ?? null) : compilerSource.digest('hex'),
+  courseMapMode: regrade
+    ? (priorReport?.courseMapMode ?? 'captured input')
+    : 'reconciled from frozen input using the production compiler',
   referenceTasksSha256: sha256(await fs.readFile('benchmarks/classroom/v1/reference-tasks.json')),
   checkerSha256: sha256(await fs.readFile('scripts/benchmarks/classroomBenchmark.mjs')),
   cases: [],
@@ -58,14 +85,20 @@ for (const file of (await fs.readdir(casesDir)).filter((f) => f.endsWith('.json'
         instructorProvidedFacts: extractInstructorProvidedFacts(fixture.sourceBrief),
         enrichment: { lessonContent },
       });
+  const derivatives = regrade
+    ? null
+    : compileBlueprintDeliverables(
+        blueprint,
+        FEATURES.filter((f) => f !== 'courseMap'),
+      );
   const outputs = regrade
     ? JSON.parse(await fs.readFile(path.join(outputDir, fixture.id, 'outputs.json'), 'utf8'))
     : {
-        courseMap: fixture.map,
-        ...compileBlueprintDeliverables(
-          blueprint,
-          FEATURES.filter((f) => f !== 'courseMap'),
+        courseMap: reconcileCourseMapWithBlueprintSemanticAdmission(
+          fixture.map,
+          derivatives[BLUEPRINT_COMPILE_CONTEXT],
         ),
+        ...derivatives,
       };
   const result = {
     ...evaluateClassroomOutputs(fixture, outputs),

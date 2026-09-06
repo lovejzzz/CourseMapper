@@ -100,13 +100,23 @@ export function extractInstructorProvidedFacts(sourceBrief = '') {
   const text = String(sourceBrief || '')
     .replace(/\r\n?/g, '\n')
     .trim();
-  const marker = text.match(/\b(?:source|instructor[- ]provided|provided|following|these) facts?\s*:\s*/i);
+  const marker =
+    text.match(/\b(?:source|instructor[- ]provided|provided|following|these) facts?\s*:\s*/i) ||
+    text.match(/\buse only (?:these |the )?(?:supplied|provided) facts?[.:]\s*/i);
   if (!marker?.[0]) return [];
-  const tail = text.slice((marker.index || 0) + marker[0].length);
+  let tail = text.slice((marker.index || 0) + marker[0].length);
+  const numberedStart = tail.search(/^\s*1[.)]\s+/m);
+  const numbered = numberedStart >= 0;
+  if (numbered) tail = tail.slice(numberedStart);
   // Sentence segmentation preserves decimals (0.80), initials and other
   // internal periods. Explicit bullets and semicolons also delimit facts.
   const segmenter = new Intl.Segmenter('en', { granularity: 'sentence' });
-  const sentences = tail.split(/\n+|;\s+/).flatMap((line) => [...segmenter.segment(line)].map((s) => s.segment));
+  // A numbered source record can contain linked clauses (group conditions,
+  // measured outcome, causal limit). Do not sever those relationships at a
+  // semicolon or mistake the list number for a sentence.
+  const sentences = numbered
+    ? tail.split(/\n+/)
+    : tail.split(/\n+|;\s+/).flatMap((line) => [...segmenter.segment(line)].map((s) => s.segment));
   const facts = [];
   for (const sentence of sentences) {
     let fact = sentence
