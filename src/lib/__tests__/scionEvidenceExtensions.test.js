@@ -1,5 +1,6 @@
 import { additionalAnswerChecks } from '../exporters/answerKeyChecks.js';
 import { validateInstructionalIntentGraph } from '../instructionalIntentGraph.js';
+import { compileBlueprintLessonPatch } from '../compiledLessonSync.js';
 import { describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import { buildSharedTeachingTask } from '../compilerTeachingTask.js';
@@ -391,3 +392,39 @@ it.each(['h-e02-cache-order', 'h-e03-taste-blinding', 'h-e04-filter-time-zh'])(
     );
   },
 );
+
+it.each(cases)('%s recognizes a fully compiled source task without inventing a model kernel', (id) => {
+  const f = fixture(id);
+  const courseMap = {
+    courseName: f.request,
+    lessons: [{ title: f.request, sections: [{ learningObjectives: f.request }] }],
+  };
+  const patch = compileBlueprintLessonPatch({
+    featureId: 'studyGuides',
+    courseMap,
+    lessonIndex: 0,
+    sourceBrief: `${f.request}\nSource facts:\n${f.sources.map((s, i) => `${i + 1}. ${s}`).join('\n')}`,
+    sessionMinutes: f.sessionMinutes,
+  });
+  expect(patch.sourceTaskCompiled).toBe(true);
+  expect(patch.lessonEnriched).toBe(false);
+  expect(patch.enrichedLessonCount).toBe(0);
+});
+
+it('does not skip missing knowledge for an unsupported source operation', () => {
+  const f = fixture('h-s03-missing-axis');
+  const sourceBrief = `${f.request}\nSource facts:\n${f.sources.map((s) => s.replace('upward-sloping line', 'curve of unknown shape')).join('\n')}`;
+  const courseMap = {
+    courseName: f.request,
+    lessons: [{ title: f.request, sections: [{ learningObjectives: f.request }] }],
+  };
+  const patch = compileBlueprintLessonPatch({
+    featureId: 'studyGuides',
+    courseMap,
+    lessonIndex: 0,
+    sourceBrief,
+    sessionMinutes: f.sessionMinutes,
+  });
+  expect(patch.sourceTaskCompiled).toBe(false);
+  expect(patch.lessonEnriched).toBe(false);
+});

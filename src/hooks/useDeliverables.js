@@ -5864,7 +5864,12 @@ export default function useDeliverables({
               );
             }
             let kernelRefreshCalls = 0;
-            if (compileResult && !compileResult.lessonEnriched && hasProviderCallBudget()) {
+            if (
+              compileResult &&
+              !compileResult.lessonEnriched &&
+              !compileResult.sourceTaskCompiled &&
+              hasProviderCallBudget()
+            ) {
               // Kernel refresh: ONE low-cost enrichment call for this lesson,
               // cached by fingerprint so the next sync of it is free.
               try {
@@ -5942,7 +5947,7 @@ export default function useDeliverables({
                 appendLog(`⚠ Sync kernel refresh failed: ${refreshErr.message || 'model error'}`, 'warn');
               }
             }
-            if (compileResult && !compileResult.lessonEnriched) {
+            if (compileResult && !compileResult.lessonEnriched && !compileResult.sourceTaskCompiled) {
               // The G1 gate: an unenriched sync is allowed only LOUDLY.
               appendLog(
                 `⚠ ${label}: Lesson ${lessonIndex + 1} synced WITHOUT its knowledge kernel (template tier) — review before export`,

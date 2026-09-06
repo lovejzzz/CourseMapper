@@ -1,6 +1,7 @@
 import { getArrayKey } from './syncDependencies';
 import {
   buildCourseBlueprint,
+  BLUEPRINT_COMPILE_CONTEXT,
   compactBlueprintForStorage,
   compileBlueprintDeliverables,
   isBlueprintCompiledFeature,
@@ -385,5 +386,11 @@ export function compileBlueprintLessonPatch({
     onTextTierMatch,
   });
   if (!data) return null;
-  return { data, lessonEnriched, enrichedLessonCount, enrichedLessonIds, admissionRevalidation };
+  // The completed, admitted source task already supplies the question,
+  // solution and scoring. Its presence does not imply a model kernel exists.
+  const sourceTaskCompiled = Boolean(
+    compiled[BLUEPRINT_COMPILE_CONTEXT]?.lessons?.find((lesson) => lesson.id === `lesson-${lessonIndex + 1}`)
+      ?.teachingTask,
+  );
+  return { data, lessonEnriched, sourceTaskCompiled, enrichedLessonCount, enrichedLessonIds, admissionRevalidation };
 }

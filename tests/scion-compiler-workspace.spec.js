@@ -356,3 +356,78 @@ test('source edits update linked answers atomically, retain teacher edits and su
   await expect(page.getByText('10/20 = 0.5 = 50%.', { exact: true })).toBeVisible();
   expect(modelRequests).toEqual([]);
 });
+
+test('a Chinese task without a cached model kernel regenerates directly from its sources', async ({ page }) => {
+  const logs = [];
+  const requests = [];
+  page.on('console', (message) => logs.push(message.text()));
+  page.on('request', (request) => {
+    if (/generativelanguage|api\/scion|huggingface.co|\.gguf|scion\/models/.test(request.url()))
+      requests.push(request.url());
+  });
+  await page.goto('/');
+  await page.evaluate(async () => {
+    const { buildCourseBlueprint, compileBlueprintDeliverables } = await import('/src/lib/courseBlueprintCompiler.js');
+    const title = '公平比较过滤材料';
+    const objective = '设计公平比较两种滤材的方法，说明现有结果的局限。';
+    const facts = [
+      '虚构试验：甲滤材处理低浑浊度的水14分钟，乙滤材处理高浑浊度的水5分钟。',
+      '处理后甲组水看起来更清，但没有统一量表或仪器读数。',
+      '没有随机分配水样，也没有重复试验。',
+    ];
+    const courseMap = {
+      courseName: title,
+      lessons: [
+        {
+          title,
+          sections: [
+            { topicSection: title, learningObjectives: objective, weeklyAssessments: '根据所给记录提交推理和证据。' },
+          ],
+        },
+      ],
+    };
+    const promptText = `${objective}\n45 minutes.\nSource facts:\n${facts.map((s, i) => `${i + 1}. ${s}`).join('\n')}`;
+    const blueprint = buildCourseBlueprint(courseMap, {
+      sourceBrief: promptText,
+      instructorProvidedFacts: facts,
+      sessionMinutes: 45,
+    });
+    const compiled = compileBlueprintDeliverables(blueprint, ['studyGuides']);
+    localStorage.setItem(
+      'coursemapper-project',
+      JSON.stringify({
+        formatVersion: 1,
+        hasGenerated: true,
+        provider: 'public',
+        modelId: 'scion-public',
+        modelName: 'Scion',
+        courseMap,
+        promptText,
+        selectedFeatures: ['courseMap', 'studyGuides'],
+        activeTab: 'studyGuides',
+        columns: [{ key: 'topicSection', label: 'Topic', enabled: true }],
+        deliverables: { studyGuides: { data: compiled.studyGuides, status: 'done', stale: false, error: null } },
+        deliverableConfig: {},
+        lessonScope: { type: 'all' },
+        chatHistory: [],
+        userEdits: [],
+        fileNames: [],
+        versionHistory: [],
+        savedAt: Date.now(),
+      }),
+    );
+  });
+  await page.reload();
+  await page.getByRole('button', { name: 'Resume', exact: true }).click();
+  await page.getByRole('button', { name: 'Study Guides', exact: true }).click();
+  await page.getByRole('button', { name: 'Regen', exact: true }).click();
+  await expect.poll(() => logs.some((line) => line.includes('lesson_regen_compiled')), { timeout: 5000 }).toBe(true);
+  expect(logs.some((line) => line.includes('lesson_regen_sync_unenriched'))).toBe(false);
+  await expect(
+    page.getByText(
+      '预先确定两种滤材共同的处理时长，例如都使用14分钟；这个共同时间是拟议选择，并不是原试验两组已相同。保持滤材用量、装置、流量及其他非研究条件一致。',
+      { exact: true },
+    ),
+  ).toBeVisible();
+  expect(requests).toEqual([]);
+});

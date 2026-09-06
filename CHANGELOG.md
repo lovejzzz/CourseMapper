@@ -9,7 +9,8 @@
 - Localize compiler-owned Chinese instructions, slide text, practice, feedback and syllabus scaffolding. Recognize explicit Chinese measurable actions in the instructional plan; retain rejection of unobservable learning actions. Preserve source and teacher text.
 - Remove verbatim duplicate checks within linked Word/PDF answer-key entries while retaining editable criteria, distinct requirements and manually authored keys. Always start assignment teacher references on a new page, including short Chinese packets.
 - Preserve all 30 frozen source packets, reference judgments, the independent checker and previous failure reports. The 18 development and 12 exposed cases now have zero encoded benchmark defects. These are known regressions, not unseen validation or a claim of general source understanding.
-- Preserve the 0.18.7 interface, ten material types, local Scion and export choices. No model-weight change, adapter activation, new model call, shared API or paid server.
+- Preserve the 0.18.7 interface, ten material types, local Scion and export choices. No model-weight change, adapter activation, shared API or paid server; sample generation uses no model calls.
+- Skip redundant model-kernel refresh when a supported source task has already compiled during single-lesson regeneration. Keep kernel provenance honest and retain knowledge refresh for unsupported tasks; add an uncached Chinese-course browser regression.
 - Publish four complete workshop samples and an [educational export review](docs/v0.19.2-output-review.zh-CN.md), including actual Office/PDF inspection, tests, deployment verification and remaining limitations.
 
 ## 0.19.1 — 2026-09-06
