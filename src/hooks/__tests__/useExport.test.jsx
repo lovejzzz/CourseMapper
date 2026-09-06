@@ -7,10 +7,9 @@ import useExport from '../useExport.js';
 vi.mock('../../lib/exporters', () => ({ generatePdf: vi.fn().mockRejectedValue(new Error('PDF font unavailable')) }));
 
 it('propagates a PDF failure to the export sidebar instead of reporting a completed download', async () => {
-  const setError = vi.fn();
   let download;
   function Harness() {
-    download = useExport({ courseName: 'Export check', lessons: [] }, [], setError).handleDownload;
+    download = useExport({ courseName: 'Export check', lessons: [] }, []).handleDownload;
     return null;
   }
   const root = createRoot(document.createElement('div'));
@@ -19,7 +18,6 @@ it('propagates a PDF failure to the export sidebar instead of reporting a comple
     await act(async () => {
       await expect(download('pdf')).rejects.toThrow('PDF font unavailable');
     });
-    expect(setError).toHaveBeenCalledWith('Failed to export: PDF font unavailable');
   } finally {
     await act(async () => root.unmount());
   }

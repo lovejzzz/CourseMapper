@@ -1036,7 +1036,7 @@ export default function AppFlow({
     scionResearchEnabledOverride,
   });
 
-  const { handleDownload, resetExport } = useExport(courseMap, columns, gen.setError);
+  const { handleDownload, resetExport } = useExport(courseMap, columns);
 
   const rev = useRevision({
     provider,

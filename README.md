@@ -53,6 +53,7 @@ npm run dev
 ```sh
 npm run check
 npm run test:e2e
+npm run test:production # Uses dist from npm run check/build; verifies the deployed CSP and download recovery.
 npm run format:check
 ```
 

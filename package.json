@@ -17,6 +17,7 @@
     "test:unit": "npm test",
     "studio:test": "npm test",
     "test:e2e": "playwright test --config playwright.compatibility.config.ts",
+    "test:production": "playwright test --config playwright.production.config.ts",
     "lint": "eslint src server scripts tests *.ts *.js --quiet",
     "format": "prettier . --write",
     "format:check": "prettier . --check",

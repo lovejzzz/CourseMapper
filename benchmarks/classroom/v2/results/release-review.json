@@ -7,7 +7,8 @@
     "additionalRegressions": 206,
     "browserTests": 44,
     "releaseHomepageRerun": 6,
-    "experimentalTrainingMaskTests": 4
+    "experimentalTrainingMaskTests": 4,
+    "productionBrowserTests": 1
   },
   "compilerDevelopmentCases": 18,
   "compilerDevelopmentAutomatedDefects": 0,
@@ -331,5 +332,41 @@
       "Lesson Plan catch-up note still shortened a source sentence matching the lesson title.",
       "Production-only PDF symbol data URL violates unchanged connect-src CSP; swallowed export error falsely reported completion."
     ]
+  },
+  "productionFinalVerification": {
+    "commit": "aa898c6342459eb233d1839a022576c46737cd9f",
+    "ci": "https://github.com/lovejzzz/CourseMapper/actions/runs/34028656145",
+    "deployment": "https://github.com/lovejzzz/CourseMapper/actions/runs/34029017141",
+    "lessonPlanCatchUp": "Full source sentence retained in final downloaded project and Word export.",
+    "teacherText": "Retained after source propagation, undo/redo, reload, sync and package preparation.",
+    "pdf": "Real downloaded Course Map PDF rendered; arrows preserved.",
+    "officeFilesChecked": 9,
+    "downloads": {
+      "course.zip": {
+        "sha256": "7b01cc2dfce3c868ff206fec5bc796deaf3b5c2e9359382f1f9c8a196a851883",
+        "bytes": 457833
+      },
+      "course.coursemapper": {
+        "sha256": "f5eeaef593b64ea552d48454715dc0627f932ce16a7ee5abd4d794f081f69ee2",
+        "bytes": 1416543
+      },
+      "courseMap.pdf": {
+        "sha256": "fb12bb1a43594a7ce6f17faf91a110907791891b47bd94933fb9fd2ab68d03f9",
+        "bytes": 23913
+      }
+    },
+    "browserDownloadEventCaveat": "Automation event timed out although Chrome wrote the PDF; download verified from the actual new file."
+  },
+  "productionBuildRecovery": {
+    "browserCases": 1,
+    "modelRequests": 0,
+    "cspWeakened": false,
+    "checks": [
+      "failed font fetch is an export error",
+      "no false Done status",
+      "no generation error side effect",
+      "retry downloads a PDF with arrow and checkmark"
+    ],
+    "ciRequired": true
   }
 }

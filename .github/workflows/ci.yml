@@ -23,6 +23,14 @@ jobs:
       - run: npm ci
       - run: npm run format:check
       - run: npm run check
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:production
+      - uses: actions/upload-artifact@v6
+        if: failure()
+        with:
+          name: production-browser-evidence
+          path: test-results/**
+          if-no-files-found: ignore
   browser:
     name: Classroom editing and exports in Chromium
     runs-on: ubuntu-latest
