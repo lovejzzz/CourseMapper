@@ -14,7 +14,7 @@ export default defineConfig({
       'tests/v015-sync-durable.test.jsx',
       'tests/v0147-sync-star.test.js',
       'tests/v0157-finished-package-surface.test.jsx',
-      'src/hooks/__tests__/useDeliverableUndo.test.jsx',
+      'src/hooks/__tests__/{useDeliverableUndo,useBoundedAutosave}.test.jsx',
       'src/lib/__tests__/teachingTaskContent*.test.js',
     ],
   },

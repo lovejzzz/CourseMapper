@@ -16,6 +16,7 @@
  * battery and scripts/syncEditProof.mjs as the net.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
+import useBoundedAutosave from './useBoundedAutosave';
 
 import { DEFAULT_COLUMNS } from '../components/ColumnEditor';
 import {
@@ -131,7 +132,6 @@ export default function useProjectPersistence({
   const cloudSaveTimerRef = useRef(null);
   const cloudStatusTimerRef = useRef(null);
   const localStatusTimerRef = useRef(null);
-  const saveTimerRef = useRef(null);
   const indexedDbSaveQueueRef = useRef(Promise.resolve());
   const localSaveAttemptIdRef = useRef(0);
   const [isStartingNewProject, setIsStartingNewProject] = useState(false);
@@ -603,15 +603,20 @@ export default function useProjectPersistence({
     [buildCloudProjectSnapshot, buildProjectSnapshot, courseMap, hasGenerated],
   );
 
-  // ── Save to localStorage (debounced 3s) ──
-  useEffect(() => {
-    if (!hasGenerated || !courseMap) return;
-    clearTimeout(saveTimerRef.current);
-    saveTimerRef.current = setTimeout(() => {
-      saveLocalProjectSnapshot({ projectId: projectIdRef.current });
-    }, 3000);
-    return () => clearTimeout(saveTimerRef.current);
-  }, [hasGenerated, courseMap, buildProjectSnapshot, saveLocalProjectSnapshot]);
+  // Continuous edits/review updates must not keep postponing the save deadline.
+  const requestLocalAutosave = useCallback(
+    () => saveLocalProjectSnapshot({ projectId: projectIdRef.current }),
+    [saveLocalProjectSnapshot],
+  );
+  const markLocalSavePending = useCallback(() => {
+    clearTimeout(localStatusTimerRef.current);
+    setLocalSaveStatus('saving');
+  }, []);
+  const cancelLocalAutosave = useBoundedAutosave(
+    requestLocalAutosave,
+    hasGenerated && Boolean(courseMap),
+    markLocalSavePending,
+  );
 
   // Keep projectId ref in sync to avoid race conditions
   useEffect(() => {
@@ -925,7 +930,7 @@ export default function useProjectPersistence({
     gen.handleStop();
     deliv.stopGenerating();
     // 2. Clear pending save timers so old data isn't written after reset
-    clearTimeout(saveTimerRef.current);
+    cancelLocalAutosave();
     clearTimeout(cloudSaveTimerRef.current);
     clearTimeout(cloudStatusTimerRef.current);
     clearTimeout(localStatusTimerRef.current);
@@ -981,7 +986,7 @@ export default function useProjectPersistence({
     setNewProjectError('');
     setIsStartingNewProject(true);
     try {
-      clearTimeout(saveTimerRef.current);
+      cancelLocalAutosave();
       if (courseMap && hasGenerated) {
         saveLocalProjectSnapshot({ projectId: projectIdRef.current });
       }
@@ -1023,7 +1028,7 @@ export default function useProjectPersistence({
     if (isStartingNewProject) return;
     setIsStartingNewProject(true);
     try {
-      clearTimeout(saveTimerRef.current);
+      cancelLocalAutosave();
       clearTimeout(cloudSaveTimerRef.current);
       if (courseMap && hasGenerated) {
         saveLocalProjectSnapshot({ projectId: projectIdRef.current });

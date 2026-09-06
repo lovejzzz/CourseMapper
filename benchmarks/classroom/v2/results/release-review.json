@@ -2,7 +2,7 @@
   "version": "0.19.0",
   "date": "2026-09-06",
   "software": {
-    "requiredTests": 964,
+    "requiredTests": 966,
     "benchmarkCheckerTests": 14,
     "additionalRegressions": 206,
     "browserTests": 39,
@@ -233,5 +233,10 @@
     "No qualified adapter comparison available.",
     "No actual Google Docs/Sheets/Slides round-trip verification.",
     "Production deployment verification is recorded separately in the acceptance document."
-  ]
+  ],
+  "ciFirstAttempt": {
+    "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/34023711693",
+    "result": "failed on source edit autosave assertion; deployment skipped",
+    "fix": "bounded latest-snapshot autosave, with two scheduler regressions; existing browser assertion retained"
+  }
 }

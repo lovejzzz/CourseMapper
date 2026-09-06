@@ -13,7 +13,8 @@
 - Fix student-view quiz answer leakage, stale choice highlighting, missing generic-key review notices and the privacy copy shown when research is off. Add a source-specific final feedback/revision question instead of a generic filler prompt; preserve authored and machine-scored banks.
 - Render all three complete workshop packages. Correct legacy slide layout mismatches, balance reasoning chunks without increasing density, retain rounded reverse-check notation, use portrait task rubrics and start quiz answer keys on a new page. Give FAQ entries supported categories and remove experimental-design instructions from source-analysis tasks.
 - Correct a quality-check false positive that required multiple-choice distractors in a bank with zero multiple-choice questions; retain missing-tuple and teacher-review checks.
-- Verify 964 required software tests, 14 independent benchmark-checker tests and 206 additional grading/admission/export regressions. Browser and deployment evidence, classroom review details and explicit remaining limitations are recorded in [the acceptance record](docs/v0.19.0-acceptance.zh-CN.md).
+- Prevent continuous editing or review updates from indefinitely resetting the local autosave timer. Save the latest snapshot within one three-second interval and show pending saves accurately; cancel scheduled writes when leaving a project. This fixes a save/reload failure found by Linux CI.
+- Verify 966 required software tests, 14 independent benchmark-checker tests and 206 additional grading/admission/export regressions. Browser and deployment evidence, classroom review details and explicit remaining limitations are recorded in [the acceptance record](docs/v0.19.0-acceptance.zh-CN.md).
 
 ## 0.18.9 — 2026-09-06
 
