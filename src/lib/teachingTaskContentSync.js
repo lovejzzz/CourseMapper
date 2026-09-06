@@ -322,6 +322,17 @@ export function applyTeachingTaskSourceEdit({ featureId, oldData, newData, editP
   delete previousMap.teachingTaskSources;
   delete nextMap.teachingTaskSources;
   delete currentMap.teachingTaskSources;
+  // Older/prose-generated maps can lack compiler-owned lesson links. Their
+  // reconstruction is not a teacher edit. Keep actual outline prose in the
+  // three-way comparison, then restore links from the accepted projection.
+  const nextLinks = nextMap.lessons?.map((lesson) => lesson.teachingTaskLink);
+  for (const map of [previousMap, nextMap, currentMap]) {
+    map.lessons = map.lessons?.map((lesson) => {
+      const copy = { ...lesson };
+      delete copy.teachingTaskLink;
+      return copy;
+    });
+  }
   const mapConflicts = [];
   const nextCourseMap = mergeTaskProjection(previousMap, nextMap, currentMap, [], mapConflicts);
   if (mapConflicts.length) {
@@ -331,6 +342,10 @@ export function applyTeachingTaskSourceEdit({ featureId, oldData, newData, editP
       message: `A teacher-edited course outline field also depends on this record (${conflict.path.join(' / ')}). Review its current wording against the updated source before retrying this edit. No linked material has changed.`,
     };
   }
+  nextCourseMap.lessons = nextCourseMap.lessons?.map((lesson, index) => ({
+    ...lesson,
+    ...(nextLinks?.[index] ? { teachingTaskLink: nextLinks[index] } : {}),
+  }));
   nextCourseMap.teachingTaskSources = nextSources;
   conflicts.push(...mapConflicts.map((conflict) => ({ featureId: 'courseMap', ...conflict })));
   return {

@@ -244,6 +244,11 @@ test('source edits update linked answers atomically, retain teacher edits and su
     ];
     const compiled = compileBlueprintDeliverables(blueprint, features);
     const courseMap = reconcileCourseMapWithBlueprintSemanticAdmission(map, compiled[BLUEPRINT_COMPILE_CONTEXT]);
+    // A real local-model prose recovery can save a map without task links.
+    // Source editing must reconstruct this metadata without inventing a
+    // competing teacher edit; the actual outline remains protected.
+    delete courseMap.teachingTaskSources;
+    for (const lesson of courseMap.lessons) delete lesson.teachingTaskLink;
     localStorage.setItem(
       'coursemapper-project',
       JSON.stringify({

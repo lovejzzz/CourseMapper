@@ -16,7 +16,8 @@
 - Prevent continuous editing or review updates from indefinitely resetting the local autosave timer. Save the latest snapshot within one three-second interval and show pending saves accurately; cancel scheduled writes when leaving a project. This fixes a save/reload failure found by Linux CI.
 - Preserve complete source limitations in shared-task answers, feedback and scoring during final repetition repair. A production course exposed a lossy compaction that removed “other batches were not tested”; retain authority checks and add a regression that fails against the original repair.
 - Replace the legacy PDF spreadsheet layout with the same semantic content builder used for Word. Keep complete source ledgers, worked examples, teacher keys and separate answer pages. Embed mathematical/CJK fonts on demand, preserve overflowing slide bullets and full notes, reject malformed documents recoverably, and retire the external jsPDF/autotable loader. Add 27 real PDF checks and a Chinese/long-slide regression to the serial browser suite.
-- Verify 975 required software tests, 14 independent benchmark-checker tests and 206 additional grading/admission/export regressions. Browser and deployment evidence, classroom review details and explicit remaining limitations are recorded in [the acceptance record](docs/v0.19.0-acceptance.zh-CN.md).
+- Reconstruct missing compiler-owned lesson links when editing a course created through local-model prose recovery. Keep actual teacher outline text in conflict detection; missing bookkeeping no longer blocks the entire source transaction.
+- Verify 976 required software tests, 14 independent benchmark-checker tests and 206 additional grading/admission/export regressions. Browser and deployment evidence, classroom review details and explicit remaining limitations are recorded in [the acceptance record](docs/v0.19.0-acceptance.zh-CN.md).
 
 ## 0.18.9 — 2026-09-06
 

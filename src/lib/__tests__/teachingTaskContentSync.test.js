@@ -56,6 +56,25 @@ function packageFixture() {
 }
 
 describe('shared task source updates through production projections', () => {
+  it('accepts source updates from a prose-generated map without compiler-owned task links', () => {
+    const f = packageFixture();
+    delete f.map.teachingTaskSources;
+    for (const lesson of f.map.lessons) delete lesson.teachingTaskLink;
+    const result = applyTeachingTaskSourceEdit({
+      featureId: 'studyGuides',
+      oldData: f.oldData,
+      newData: f.newData,
+      editPath: f.editPath,
+      deliverables: f.entries,
+      courseMap: f.map,
+    });
+    expect(result.status, result.message).toBe('applied');
+    expect(result.changed.studyGuides.data.studyGuides[0].workedExample.result).toContain('3/12 = 0.25 = 25%');
+    expect(result.courseMap.lessons[0].teachingTaskLink.taskId).toBe(f.source.id);
+    expect(result.courseMap.teachingTaskSources).toHaveLength(1);
+    expect(f.map.lessons[0].teachingTaskLink).toBeUndefined();
+  });
+
   it('returns the actual review message as text and respects lesson scope', () => {
     const f = packageFixture();
     f.entries.studyGuides.data.taskSourceReview = 'The edited source must be reviewed before linked answers change.';

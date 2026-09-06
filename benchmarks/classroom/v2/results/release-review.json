@@ -2,7 +2,7 @@
   "version": "0.19.0",
   "date": "2026-09-06",
   "software": {
-    "requiredTests": 975,
+    "requiredTests": 976,
     "benchmarkCheckerTests": 14,
     "additionalRegressions": 206,
     "browserTests": 43,
@@ -232,7 +232,8 @@
     "No external teacher scoring or student learning study.",
     "No qualified adapter comparison available.",
     "No actual Google Docs/Sheets/Slides round-trip verification.",
-    "Production deployment verification is recorded separately in the acceptance document."
+    "Production deployment verification is recorded separately in the acceptance document.",
+    "Student-mode guards are component-tested; the preserved production authoring workspace has no student-mode toggle."
   ],
   "ciFirstAttempt": {
     "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/34023711693",
@@ -265,5 +266,12 @@
       "malformed export can reject and recover"
     ],
     "visualReview": "selected actual rendered pages, including proportion guide, rubric and question paper; not a claim of all-PDF visual inspection"
+  },
+  "productionFollowUp": {
+    "commit": "188ae647e83cfba00334b65b447792c2aae04b82",
+    "ci": "https://github.com/lovejzzz/CourseMapper/actions/runs/34025720605",
+    "deployment": "https://github.com/lovejzzz/CourseMapper/actions/runs/34026093040",
+    "guideRegeneration": "Complete source limitation restored in production.",
+    "sourceEditFinding": "Prose-generated course map lacked compiler-owned task links; reconstruction was misclassified as a teacher edit. Reproduced with the saved production project, repaired and covered by source-edit browser regression."
   }
 }
