@@ -18,7 +18,8 @@
 - Replace the legacy PDF spreadsheet layout with the same semantic content builder used for Word. Keep complete source ledgers, worked examples, teacher keys and separate answer pages. Embed mathematical/CJK fonts on demand, preserve overflowing slide bullets and full notes, reject malformed documents recoverably, and retire the external jsPDF/autotable loader. Add 27 real PDF checks and a Chinese/long-slide regression to the serial browser suite.
 - Reconstruct missing compiler-owned lesson links when editing a course created through local-model prose recovery. Keep actual teacher outline text in conflict detection; missing bookkeeping no longer blocks the entire source transaction.
 - Preserve canonical assignment source records, worked examples and criteria through the complete package finalizer; repeated lesson titles no longer shorten source facts. Include arrows and evaluation checkmarks in Course Map PDFs using a 3.4 KiB font subset; retain default fonts when exporting English after Chinese.
-- Verify 977 required software tests, 14 independent benchmark-checker tests and 206 additional grading/admission/export regressions. Browser and deployment evidence, classroom review details and explicit remaining limitations are recorded in [the acceptance record](docs/v0.19.0-acceptance.zh-CN.md).
+- Preserve source-shaped lesson titles in catch-up and discussion prose before task projection. Keep the PDF symbol subset as a same-origin asset under the existing CSP; surface course-map export failures instead of falsely reporting a completed download.
+- Verify 978 required software tests, 14 independent benchmark-checker tests and 206 additional grading/admission/export regressions. Browser and deployment evidence, classroom review details and explicit remaining limitations are recorded in [the acceptance record](docs/v0.19.0-acceptance.zh-CN.md).
 
 ## 0.18.9 — 2026-09-06
 

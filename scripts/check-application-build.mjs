@@ -29,4 +29,11 @@ const release = JSON.parse(await fs.readFile('dist/release.json', 'utf8'));
 const pkg = JSON.parse(await fs.readFile('package.json', 'utf8'));
 assert.equal(release.version, pkg.version);
 assert.equal(release.interfaceBaseline, '0.18.7');
+// The deployed CSP allows same-origin font fetches, not fetch(data:...).
+// Vite must emit the small PDF symbol subset instead of inlining its URL.
+const assets = await fs.readdir('dist/assets');
+assert(
+  assets.some((file) => /^NotoSansSC-Symbols-.*\.otf$/.test(file)),
+  'PDF symbols must be a same-origin asset',
+);
 console.log(JSON.stringify({ initialJsRawKiB: raw / 1024, initialJsGzipKiB: gzip / 1024, release }, null, 2));

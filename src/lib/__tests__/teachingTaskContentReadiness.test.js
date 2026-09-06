@@ -22,14 +22,16 @@ describe('specific answer readiness', () => {
       sourceBrief: fixture.request,
       sessionMinutes: fixture.sessionMinutes,
     });
-    const compiled = compileBlueprintDeliverables(blueprint, ['assignments']);
+    const compiled = compileBlueprintDeliverables(blueprint, ['assignments', 'lessonPlans', 'discussions']);
     const original = structuredClone(compiled.assignments.assignments[0]);
     const result = runDeterministicPackageFinalizer({
       courseMap: map,
       blueprint,
       sourceBrief: fixture.request,
-      selectedFeatures: ['assignments'],
-      deliverables: { assignments: { status: 'done', data: compiled.assignments } },
+      selectedFeatures: ['assignments', 'lessonPlans', 'discussions'],
+      deliverables: Object.fromEntries(
+        ['assignments', 'lessonPlans', 'discussions'].map((id) => [id, { status: 'done', data: compiled[id] }]),
+      ),
     });
     const assignment = result.deliverables.assignments.data.assignments[0];
     expect(assignment.supportResources).toEqual(original.supportResources);
@@ -39,6 +41,10 @@ describe('specific answer readiness', () => {
     expect(assignment.gradingCriteria).toEqual(original.gradingCriteria);
     expect(assignment.overview).toBe(original.overview);
     expect(JSON.stringify(compiled.assignments.assignments[0])).toBe(JSON.stringify(original));
+    const plan = result.deliverables.lessonPlans.data.lessonPlans[0];
+    const catchUp = plan.outline.map((step) => step.catchUpPlan || '').join(' ');
+    expect(catchUp).toContain(fixture.sources[0]);
+    expect(JSON.stringify(result.deliverables)).not.toContain('the Seven fictional test focus');
   });
 
   it('keeps complete source limitations through the production repetition-repair pass', () => {

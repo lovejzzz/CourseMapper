@@ -25448,7 +25448,17 @@ function mapDiscussionVisibleValue(value, transform) {
   );
 }
 
+function lessonTitleIsTaskEvidence(lesson) {
+  const focus = cleanText(stripLessonPrefix(lesson?.title)).toLowerCase();
+  return Boolean(
+    focus && lesson?.teachingTask?.inputs?.some((input) => cleanText(input.text).toLowerCase().includes(focus)),
+  );
+}
+
 function compactDiscussionBodyReferences(discussion, lesson) {
+  // This pass runs before task projection adds taskId. The lesson already
+  // identifies admitted task evidence; title-shaped source facts stay exact.
+  if (lessonTitleIsTaskEvidence(lesson)) return discussion;
   const focus = stripLessonPrefix(lesson?.title);
   if (!focus) return discussion;
   const canonicalArtifact = cleanText(lesson?.discussionCanonicalArtifact);
@@ -27385,6 +27395,9 @@ const LESSON_PLAN_VISIBLE_REPEAT_FIELDS = [
 ];
 
 function compactLessonPlanBodyReferences(plan, lesson) {
+  // Catch-up notes contain source facts as well as the main worked example.
+  // A source sentence that became the lesson title is still evidence here.
+  if (lessonTitleIsTaskEvidence(lesson)) return plan;
   const focus = stripLessonPrefix(lesson?.title);
   if (!focus) return plan;
   // Preserve the experiential compiler's controlled terminology and reveal sequence.

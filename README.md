@@ -6,6 +6,8 @@ Quality improvements continue within this interface. The experimental Course Stu
 
 v0.19.0 adds precise source-driven updates, teacher-edit conflict review, transaction undo/redo, independent practice and stronger export checks. Three complete workshop samples and their [educational export review](docs/v0.19.0-output-review.zh-CN.md) accompany the release. Its [acceptance record](docs/v0.19.0-acceptance.zh-CN.md), [30-case benchmark](benchmarks/classroom/v2/README.md) and [actual local-model investigation](research/scion/evaluation/v0.19.0/README.md) distinguish completed software verification from unresolved source-understanding and educational-quality work. The first held-out failures remain published; passing development cases is not a claim of general classroom readiness.
 
+The [v0.19.0 release](https://github.com/lovejzzz/CourseMapper/releases/tag/v0.19.0) includes three editable Office course packages, 27 PDF handouts, verification records and SHA-256 checksums. The examples cover proportions and rounding, conflicting historical records, and fair experimental comparisons. They are single-session workshops drawn from the development set.
+
 ## Materials and workflow
 
 Start with a course description or existing files, choose materials, configure the course, then review and edit the resulting package. The original material categories are:

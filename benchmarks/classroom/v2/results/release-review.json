@@ -2,10 +2,10 @@
   "version": "0.19.0",
   "date": "2026-09-06",
   "software": {
-    "requiredTests": 977,
+    "requiredTests": 978,
     "benchmarkCheckerTests": 14,
     "additionalRegressions": 206,
-    "browserTests": 43,
+    "browserTests": 44,
     "releaseHomepageRerun": 6,
     "experimentalTrainingMaskTests": 4
   },
@@ -22,7 +22,7 @@
       "case": "d-c04-recurring",
       "source": "development fixture, already exposed",
       "modelCalls": 0,
-      "zipSha256": "c8f73b3e1f58d4bd2792b6a1d8c4c5a3cdc5e2670b41e6056212829eac747feb",
+      "zipSha256": "350c5b1089bcd4d90c16103d8c72aa1b2c212dc6ec2bdccd4be2c3853d0645b4",
       "zipBytes": 325057,
       "zipIssues": [],
       "officeBodyMatchesReviewedRound9": [
@@ -88,7 +88,7 @@
       "case": "d-e03-order-effects",
       "source": "development fixture, already exposed",
       "modelCalls": 0,
-      "zipSha256": "e8e96fb915660c123e93f67aafab0ecabfa84491725c6f85e7a774edd7035790",
+      "zipSha256": "ca7f9e83bdd89fd56e147a0cdecb43f8ae0dc61d259684d85e4ca838f88b4c74",
       "zipBytes": 346293,
       "zipIssues": [],
       "officeBodyMatchesReviewedRound9": [
@@ -154,7 +154,7 @@
       "case": "d-s02-same-event-conflict",
       "source": "development fixture, already exposed",
       "modelCalls": 0,
-      "zipSha256": "5924dc43e5408662c44744898eb60773567f277de0ca966c5de951fd20235db0",
+      "zipSha256": "ae7454ec2c73d2a61ed2bfb8e84082cee38762ad7ece23de4d751dbba32368a4",
       "zipBytes": 333282,
       "zipIssues": [],
       "officeBodyMatchesReviewedRound9": [
@@ -254,7 +254,7 @@
   },
   "pdfVerification": {
     "workshopPdfs": 27,
-    "browserCases": 4,
+    "browserCases": 5,
     "checks": [
       "all text remains within page bounds",
       "no empty pages",
@@ -306,5 +306,30 @@
         "sha256": "d872a7b482cf15de0f0bf3e30ed05e4f271ae89d00dede0fe5be0aa010e48070"
       }
     }
+  },
+  "finalSampleReplay": {
+    "commit": "11a5d1ffadaf9017b2dededbee32c21fdbadb5db",
+    "modelCalls": 0,
+    "officeBodyMatchesPreviouslyReviewed": 27,
+    "pdfPageTextMatchesPreviouslyReviewed": 27,
+    "zipIssues": 0
+  },
+  "productionSyncVerification": {
+    "commit": "11a5d1ffadaf9017b2dededbee32c21fdbadb5db",
+    "ci": "https://github.com/lovejzzz/CourseMapper/actions/runs/34027435561",
+    "deployment": "https://github.com/lovejzzz/CourseMapper/actions/runs/34027844217",
+    "checks": [
+      "assignment source restored through Regen",
+      "teacher note retained across a source edit",
+      "source limit propagated to all nine material data objects",
+      "undo and redo verified in Assignment Briefs",
+      "reload and Resume retain source and teacher wording",
+      "Sync all stale completes without erasing teacher text",
+      "actual project and ZIP download"
+    ],
+    "remainingFindingsAtThisCommit": [
+      "Lesson Plan catch-up note still shortened a source sentence matching the lesson title.",
+      "Production-only PDF symbol data URL violates unchanged connect-src CSP; swallowed export error falsely reported completion."
+    ]
   }
 }

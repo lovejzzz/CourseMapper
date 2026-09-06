@@ -51,6 +51,9 @@ export default function useExport(courseMap, columns, setError) {
         setError('Failed to export: ' + err.message);
         clearTimeout(errorTimerRef.current);
         errorTimerRef.current = setTimeout(() => setError(''), 6000);
+        // The export sidebar owns its success/error status. A failed font
+        // or renderer load must not resolve as a successful download.
+        throw err;
       }
     },
     [courseMap, columns, setError],

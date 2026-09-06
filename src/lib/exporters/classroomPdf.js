@@ -167,7 +167,7 @@ async function loadSymbols(pdfMake) {
     symbolsPromise = (async () => {
       // 3.4 KiB subset of the already licensed Noto font; an English arrow
       // must not require downloading the full Chinese font family.
-      const { default: url } = await import('../../../studio-public/fonts/NotoSansSC-Symbols.otf?url');
+      const { default: url } = await import('../../../studio-public/fonts/NotoSansSC-Symbols.otf?url&no-inline');
       const response = await fetch(url);
       if (!response.ok) throw new Error('The PDF symbols could not be loaded. Please retry the export.');
       const bytes = new Uint8Array(await response.arrayBuffer());
