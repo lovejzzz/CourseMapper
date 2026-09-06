@@ -2,7 +2,7 @@
   "version": "0.19.0",
   "date": "2026-09-06",
   "software": {
-    "requiredTests": 976,
+    "requiredTests": 977,
     "benchmarkCheckerTests": 14,
     "additionalRegressions": 206,
     "browserTests": 43,
@@ -263,7 +263,9 @@
       "complete source limitations",
       "Chinese font embedding",
       "long slide final bullet and speaker note retention",
-      "malformed export can reject and recover"
+      "malformed export can reject and recover",
+      "Course Map linked-assessment arrows and evaluation checkmarks",
+      "English export after a Chinese export retains its default fonts"
     ],
     "visualReview": "selected actual rendered pages, including proportion guide, rubric and question paper; not a claim of all-PDF visual inspection"
   },
@@ -273,5 +275,36 @@
     "deployment": "https://github.com/lovejzzz/CourseMapper/actions/runs/34026093040",
     "guideRegeneration": "Complete source limitation restored in production.",
     "sourceEditFinding": "Prose-generated course map lacked compiler-owned task links; reconstruction was misclassified as a teacher edit. Reproduced with the saved production project, repaired and covered by source-edit browser regression."
+  },
+  "productionFreshRun": {
+    "deployedCommit": "188ae647e83cfba00334b65b447792c2aae04b82",
+    "runId": "run-1788689220959",
+    "elapsedMs": 50262,
+    "modelRequestStarts": 4,
+    "adapterActive": false,
+    "typedSkeleton": "incomplete; recovered through prose/compiler",
+    "findings": [
+      "Complete study-guide source limitation retained; two-page real downloaded PDF reviewed.",
+      "Assignment support source shortened by lesson-focus compaction; full-finalizer regression reproduces the corruption.",
+      "Course Map PDF loses arrow glyph; actual PDF regression reproduces missing arrow and checkmark."
+    ],
+    "files": {
+      "studyGuides.pdf": {
+        "bytes": 50457,
+        "sha256": "baf77c93d4b29261e09635be6e30da091cbcd45e87dbfae781a5964a9af50c05"
+      },
+      "course.coursemapper": {
+        "bytes": 1448058,
+        "sha256": "d82ff92d1719a75cdb068457e134fd26c699564983fa724e6ae9af824b0c45b0"
+      },
+      "before-assignment-repair.zip": {
+        "bytes": 437395,
+        "sha256": "ba459c8659ee1d464bea6bd0ade8a37a2fe54596543148f9d8531c9caa62be79"
+      },
+      "courseMap.pdf": {
+        "bytes": 22410,
+        "sha256": "d872a7b482cf15de0f0bf3e30ed05e4f271ae89d00dede0fe5be0aa010e48070"
+      }
+    }
   }
 }

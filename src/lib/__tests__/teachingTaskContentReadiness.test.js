@@ -3,9 +3,44 @@ import fixture from '../../../benchmarks/classroom/v2/cases/d-c04-recurring.json
 import { buildCourseBlueprint, compileBlueprintDeliverables } from '../courseBlueprintCompiler.js';
 import { repairDeliverableContentQuality } from '../contentQualityRepair.js';
 import { evaluateWorkspaceReadiness } from '../deliverableReadiness.js';
+import { runDeterministicPackageFinalizer } from '../packageFinalizer.js';
 import { addSemanticTrustAdmissionFindings } from '../quality/deepQualityTrustAdmission.js';
 
 describe('specific answer readiness', () => {
+  it('preserves canonical assignment sources and reasoning through the complete package finalizer', () => {
+    const map = {
+      courseName: 'Rounding',
+      lessons: [
+        {
+          title: 'Lesson 1: Seven of 12 fictional test strips changed color',
+          sections: [{ learningObjectives: fixture.request }],
+        },
+      ],
+    };
+    const blueprint = buildCourseBlueprint(map, {
+      instructorProvidedFacts: fixture.sources,
+      sourceBrief: fixture.request,
+      sessionMinutes: fixture.sessionMinutes,
+    });
+    const compiled = compileBlueprintDeliverables(blueprint, ['assignments']);
+    const original = structuredClone(compiled.assignments.assignments[0]);
+    const result = runDeterministicPackageFinalizer({
+      courseMap: map,
+      blueprint,
+      sourceBrief: fixture.request,
+      selectedFeatures: ['assignments'],
+      deliverables: { assignments: { status: 'done', data: compiled.assignments } },
+    });
+    const assignment = result.deliverables.assignments.data.assignments[0];
+    expect(assignment.supportResources).toEqual(original.supportResources);
+    for (const source of fixture.sources) expect(JSON.stringify(assignment.supportResources)).toContain(source);
+    expect(original.workedExample).toBeTruthy();
+    expect(assignment.workedExample).toEqual(original.workedExample);
+    expect(assignment.gradingCriteria).toEqual(original.gradingCriteria);
+    expect(assignment.overview).toBe(original.overview);
+    expect(JSON.stringify(compiled.assignments.assignments[0])).toBe(JSON.stringify(original));
+  });
+
   it('keeps complete source limitations through the production repetition-repair pass', () => {
     const map = {
       courseName: 'Rounding',

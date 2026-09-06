@@ -137,12 +137,74 @@ export function deliverablePdfDefinition(featureId, data, courseName) {
 
 let runtimePromise;
 let cjkPromise;
+let symbolsPromise;
+const fontFiles = {};
+function registerFontFiles(pdfMake, files) {
+  // In pdfmake 0.2 addVirtualFileSystem replaces the VFS, despite its name.
+  Object.assign(fontFiles, files);
+  pdfMake.addVirtualFileSystem(fontFiles);
+}
+const symbolPattern = /([←↑→↓↔↕↖↗↘↙↸↹⇄⇅⇆⇋⇌⇐⇒⇔⇦⇧⇨⇩⇵✓]+)/u;
+
+function withSymbolRuns(node) {
+  if (Array.isArray(node)) return node.map(withSymbolRuns);
+  if (!node || typeof node !== 'object') return node;
+  return Object.fromEntries(
+    Object.entries(node).map(([key, value]) => [
+      key,
+      key === 'text' && typeof value === 'string' && symbolPattern.test(value)
+        ? value
+            .split(symbolPattern)
+            .filter(Boolean)
+            .map((text) => ({ text, ...(symbolPattern.test(text) ? { font: 'CourseSymbols' } : {}) }))
+        : withSymbolRuns(value),
+    ]),
+  );
+}
+
+async function loadSymbols(pdfMake) {
+  if (!symbolsPromise)
+    symbolsPromise = (async () => {
+      // 3.4 KiB subset of the already licensed Noto font; an English arrow
+      // must not require downloading the full Chinese font family.
+      const { default: url } = await import('../../../studio-public/fonts/NotoSansSC-Symbols.otf?url');
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('The PDF symbols could not be loaded. Please retry the export.');
+      const bytes = new Uint8Array(await response.arrayBuffer());
+      const encoded = btoa(String.fromCharCode(...bytes));
+      registerFontFiles(pdfMake, { 'CourseSymbols.otf': encoded });
+      pdfMake.addFonts({
+        CourseSymbols: {
+          normal: 'CourseSymbols.otf',
+          bold: 'CourseSymbols.otf',
+          italics: 'CourseSymbols.otf',
+          bolditalics: 'CourseSymbols.otf',
+        },
+      });
+    })().catch((error) => {
+      symbolsPromise = undefined;
+      throw error;
+    });
+  await symbolsPromise;
+}
+
 async function loadRuntime(cjk) {
   if (!runtimePromise)
     runtimePromise = Promise.all([import('pdfmake/build/pdfmake'), import('pdfmake/build/vfs_fonts')])
       .then(([runtime, fonts]) => {
         const pdfMake = runtime.default;
-        pdfMake.addVirtualFileSystem(fonts.default);
+        registerFontFiles(pdfMake, fonts.default);
+        // Register the default explicitly: addFonts otherwise creates an
+        // explicit map containing only the later CJK/symbol font, disabling
+        // pdfmake's implicit Roboto fallback for subsequent English exports.
+        pdfMake.addFonts({
+          Roboto: {
+            normal: 'Roboto-Regular.ttf',
+            bold: 'Roboto-Medium.ttf',
+            italics: 'Roboto-Italic.ttf',
+            bolditalics: 'Roboto-MediumItalic.ttf',
+          },
+        });
         return pdfMake;
       })
       .catch((error) => {
@@ -168,7 +230,7 @@ async function loadRuntime(cjk) {
         for (let i = 0; i < bytes.length; i += 8192) binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
         vfs[name] = btoa(binary);
       }
-      pdfMake.addVirtualFileSystem(vfs);
+      registerFontFiles(pdfMake, vfs);
       pdfMake.addFonts({
         NotoSansSC: {
           normal: 'NotoSansSC-Regular.otf',
@@ -188,7 +250,13 @@ async function loadRuntime(cjk) {
 export async function buildClassroomPdfBlob(definition) {
   const cjk = /[\u2e80-\u9fff\uf900-\ufaff]/u.test(JSON.stringify(definition.content));
   const runtime = await loadRuntime(cjk);
-  const document = { ...definition, defaultStyle: { ...definition.defaultStyle, font: cjk ? 'NotoSansSC' : 'Roboto' } };
+  const needsSymbols = !cjk && symbolPattern.test(JSON.stringify(definition.content));
+  if (needsSymbols) await loadSymbols(runtime);
+  const document = {
+    ...definition,
+    content: needsSymbols ? withSymbolRuns(definition.content) : definition.content,
+    defaultStyle: { ...definition.defaultStyle, font: cjk ? 'NotoSansSC' : 'Roboto' },
+  };
   return new Promise((resolve, reject) => {
     try {
       // All fonts are already in the VFS; synchronous stream construction

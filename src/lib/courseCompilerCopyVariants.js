@@ -278,6 +278,10 @@ function compactArtifactHeadReference(value, lessonNumber = 0) {
 }
 
 export function compactAssignmentBriefBodyReferences({ brief = {}, lesson = {}, fullFocus, fallbackArtifact }) {
+  // Shared-task wording contains the actual source evidence, worked answer,
+  // and scoring criteria. A repeated lesson title can itself be a source
+  // fact; shortening it would change the evidence rather than the style.
+  if (typeof brief.taskId === 'string' && brief.taskId && brief.taskRevision) return brief;
   const compacted = { ...brief };
   const protectedReadingTitles = (Array.isArray(lesson?.instructorNamedReadings) ? lesson.instructorNamedReadings : [])
     .map((title) => cleanText(title))

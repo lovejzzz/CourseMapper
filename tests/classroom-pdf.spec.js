@@ -22,6 +22,29 @@ async function inspectPdf(bytes) {
   return pages;
 }
 
+test('course-map PDF retains linked-assessment arrows and evaluation checkmarks', async ({ page }, testInfo) => {
+  await page.goto('/');
+  const download = page.waitForEvent('download');
+  await page.evaluate(async () => {
+    const { generatePdf } = await import('/src/lib/exporters.js');
+    await generatePdf({
+      courseName: 'Course Map Symbol Check',
+      lessons: [
+        {
+          title: 'Lesson 1',
+          sections: [{ weeklyAssessments: 'Calculation → Assignment Briefs / Lesson 01', evaluateDesign: true }],
+        },
+      ],
+    });
+  });
+  const file = await download;
+  const path = testInfo.outputPath('course-map.pdf');
+  await file.saveAs(path);
+  const pages = await inspectPdf(await fs.readFile(path));
+  expect(pages.join(' ')).toContain('Calculation → Assignment Briefs / Lesson 01');
+  expect(pages.join(' ')).toContain('✓');
+});
+
 for (const caseId of ['d-c04-recurring', 'd-s02-same-event-conflict', 'd-e03-order-effects']) {
   test(`all nine ${caseId} PDFs retain content inside printable pages`, async ({ page }, testInfo) => {
     test.setTimeout(120000);
@@ -104,7 +127,7 @@ for (const caseId of ['d-c04-recurring', 'd-s02-same-event-conflict', 'd-e03-ord
 test('Chinese PDF embeds readable text, and slide handouts never discard long content', async ({ page }, testInfo) => {
   test.setTimeout(120000);
   await page.goto('/');
-  const base64 = await page.evaluate(async () => {
+  const files = await page.evaluate(async () => {
     const { buildClassroomPdfBlob } = await import('/src/lib/exporters/classroomPdf.js');
     const { slideDeckPdfDefinition } = await import('/src/lib/exporters/slideDeckPdfExporter.js');
     const bullets = Array.from(
@@ -127,12 +150,31 @@ test('Chinese PDF embeds readable text, and slide handouts never discard long co
     }
     if (!rejected) throw new Error('Malformed PDF must reject so the next export can recover.');
     const blob = await buildClassroomPdfBlob(slideDeckPdfDefinition(data, '中文课程'));
-    const bytes = new Uint8Array(await blob.arrayBuffer());
-    let binary = '';
-    for (let i = 0; i < bytes.length; i += 8192) binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
-    return btoa(binary);
+    const english = await buildClassroomPdfBlob(
+      slideDeckPdfDefinition(
+        {
+          slideDecks: [
+            {
+              lessonTitle: 'English after Chinese',
+              slides: [{ title: 'Retain default font', bullets: ['Calculation → Assignment ✓'] }],
+            },
+          ],
+        },
+        'English after Chinese',
+      ),
+    );
+    const files = [];
+    for (const file of [blob, english]) {
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      let binary = '';
+      for (let i = 0; i < bytes.length; i += 8192) binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
+      files.push(btoa(binary));
+    }
+    return files;
   });
-  const bytes = Buffer.from(base64, 'base64');
+  const englishPages = await inspectPdf(Buffer.from(files[1], 'base64'));
+  expect(englishPages.join(' ')).toContain('Calculation → Assignment ✓');
+  const bytes = Buffer.from(files[0], 'base64');
   await fs.writeFile(testInfo.outputPath('chinese-long-slide.pdf'), bytes);
   const pages = await inspectPdf(bytes);
   const text = pages.join(' ').replace(/\s+/g, '');
