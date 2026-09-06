@@ -124,7 +124,9 @@ test('the public changelog shows the actual current release and its quality limi
   await page.goto('/');
   await page.getByRole('link', { name: `v${APP_VERSION}`, exact: true }).click();
   await expect(page.getByRole('heading', { name: CURRENT_RELEASE.title, exact: true })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Reason about source quantities', exact: true })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Interpret evidence and design comparisons', exact: true }),
+  ).toBeVisible();
   await expect(
     page.getByText('broad source understanding and learning outcomes remain unverified', { exact: false }),
   ).toBeVisible();

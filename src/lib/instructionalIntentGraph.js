@@ -27,7 +27,7 @@ export const INSTRUCTIONAL_ARTIFACT_RESPONSIBILITIES = Object.freeze({
 });
 
 const MEASURABLE_VERB_RE =
-  /\b(?:adjust|analy[sz]e|annotate|apply|argue|ask|assess|audit|balance|build|calculate|calibrate|choose|classify|communicate|compare|compose|conduct|construct|contrast|converse|create|critique|defend|define|demonstrate|derive|describe|design|develop|diagnose|distinguish|elicit|evaluate|exchange|explain|gather|identify|improve|inspect|integrate|interpret|introduce|justify|label|mark|model|organize|perform|plan|point|predict|prepare|prioritize|produce|pronounce|propose|rank|read|recognize|record|rehearse|respond|revise|solve|speak|synthesize|test|trace|track|translate|use|verify|write)\b/i;
+  /\b(?:adjust|analy[sz]e|annotate|apply|argue|ask|assess|audit|balance|build|calculate|calibrate|choose|classify|communicate|compare|compose|conduct|construct|contrast|converse|create|critique|defend|define|demonstrate|derive|describe|design|develop|diagnose|distinguish|elicit|evaluate|exchange|explain|gather|identify|improve|inspect|integrate|interpret|introduce|justify|label|mark|model|organize|perform|plan|point|predict|prepare|prioritize|produce|pronounce|propose|rank|read|recognize|record|rehearse|respond|revise|solve|speak|synthesize|test|trace|track|translate|use|verify|write)\b|区分|分类|比较|计算|标注|解释|论证|设计|检验|修正|辨别|判断|记录|提出|分析|评估|绘制|推导|翻译/i;
 
 const COMPILER_GENERIC_INTENT_PATTERNS = Object.freeze([
   /^apply\s+the\s+main\s+concepts?\s+from\s+.+?\s+to\s+(?:a|one)\s+course\s+task\s+or\s+example\.?$/i,

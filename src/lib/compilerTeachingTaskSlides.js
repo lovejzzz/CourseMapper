@@ -1,3 +1,4 @@
+import { taskCopy, taskText } from './teachingTaskCopy.js';
 /** Stable slide roles make the same task projection replayable after edits.
  * Worked examples show reasoning; independent questions keep answers in notes.
  * Authored slides survive. Layout and slide editing stay in the existing view. */
@@ -49,46 +50,72 @@ export function projectTeachingTaskSlides(deck, task) {
     switch (kind) {
       case 'transfer-record':
         return {
-          title: `A new fictional case${transferRecords.length > 1 ? ` (${index + 1}/${transferRecords.length})` : ''}`,
+          title: taskText(
+            task,
+            `A new fictional case${transferRecords.length > 1 ? ` (${index + 1}/${transferRecords.length})` : ''}`,
+            `新的虚构案例${transferRecords.length > 1 ? `（${index + 1}/${transferRecords.length}）` : ''}`,
+          ),
           bullets: [transferRecords[index]],
-          notes:
+          notes: taskCopy(
+            task,
             'Keep the worked example covered. Give each learner time to select the relevant evidence before discussing the answer.',
+          ),
         };
       case 'title':
         return { title: task.title, bullets: [task.objective], notes: task.product };
       case 'agenda':
         return {
-          title: 'Read, reason, check, revise',
+          title: taskCopy(task, 'Read, reason, check, revise'),
           bullets: [
-            'Inspect the source record.',
-            'Work through an example.',
-            'Explain and correct an error.',
-            'Write and check your response.',
+            taskCopy(task, 'Inspect the source record.'),
+            taskCopy(task, 'Work through an example.'),
+            taskCopy(task, 'Explain and correct an error.'),
+            taskCopy(task, 'Write and check your response.'),
           ],
           notes: task.question,
         };
       case 'objectives':
         return {
-          title: 'What your response should show',
+          title: taskCopy(task, 'What your response should show'),
           bullets: task.criteria.map((criterion) => criterion.label),
           notes: task.criteria.map((criterion) => criterion.levels.exemplary).join('\n'),
         };
       case 'record':
         return {
-          title: `Read the source record${records.length > 1 ? ` (${index + 1}/${records.length})` : ''}`,
+          title: taskText(
+            task,
+            `Read the source record${records.length > 1 ? ` (${index + 1}/${records.length})` : ''}`,
+            `阅读原始材料${records.length > 1 ? `（${index + 1}/${records.length}）` : ''}`,
+          ),
           bullets: [records[index] || records[0]],
-          notes:
+          notes: taskCopy(
+            task,
             'Ask students to distinguish supplied observations from their own inferences. Do not add facts that are absent from this record.',
+          ),
         };
       case 'worked':
         return {
-          title: `Worked example: reasoning ${index + 1} of ${steps.length}`,
+          title: taskText(
+            task,
+            `Worked example: reasoning ${index + 1} of ${steps.length}`,
+            `推理示范：${index + 1}/${steps.length}`,
+          ),
           bullets: [steps[index] || steps[0]],
           notes: [
-            index === 0 ? `Source records: ${task.inputs.map((input) => input.text).join(' ')}` : '',
+            index === 0
+              ? taskText(
+                  task,
+                  `Source records: ${task.inputs.map((input) => input.text).join(' ')}`,
+                  `原始材料：${task.inputs.map((input) => input.text).join(' ')}`,
+                )
+              : '',
             index === steps.length - 1
-              ? `Complete reference response: ${task.answer}`
-              : `Ask learners to explain this step before revealing the next one. ${task.criteria[0].feedback}`,
+              ? taskText(task, `Complete reference response: ${task.answer}`, `完整参考答案：${task.answer}`)
+              : taskText(
+                  task,
+                  `Ask learners to explain this step before revealing the next one. ${task.criteria[0].feedback}`,
+                  `展示下一步之前，请学生解释这一步。${task.criteria[0].feedback}`,
+                ),
           ]
             .filter(Boolean)
             .join('\n'),
@@ -96,49 +123,64 @@ export function projectTeachingTaskSlides(deck, task) {
       case 'error': {
         const error = task.errors[index % task.errors.length];
         return {
-          title: 'Find the error and explain why',
+          title: taskCopy(task, 'Find the error and explain why'),
           bullets: [
-            `A learner writes: “${error.response}”`,
-            'Identify the incorrect step. Explain a correction using the source record.',
+            taskText(task, `A learner writes: “${error.response}”`, `一位学生写道：“${error.response}”`),
+            taskCopy(task, 'Identify the incorrect step. Explain a correction using the source record.'),
           ],
-          notes: `Correction: ${error.correction}\nFeedback: ${error.feedback}`,
+          notes: taskText(
+            task,
+            `Correction: ${error.correction}\nFeedback: ${error.feedback}`,
+            `修正：${error.correction}\n反馈：${error.feedback}`,
+          ),
         };
       }
       case 'scaffold': {
         const question = task.scaffoldQuestions?.[index % task.scaffoldQuestions.length] || task.checkpoint;
         return {
-          title: 'Explain one reasoning step',
+          title: taskCopy(task, 'Explain one reasoning step'),
           bullets: [question.question],
-          notes: `Expected response: ${question.answer}`,
+          notes: taskText(task, `Expected response: ${question.answer}`, `参考回答：${question.answer}`),
         };
       }
       case 'activity':
         return {
-          title: 'Write your response',
-          bullets: [transfer?.directions || task.question, 'Show your reasoning before checking the model answer.'],
+          title: taskCopy(task, 'Write your response'),
+          bullets: [
+            transfer?.directions || task.question,
+            taskCopy(task, 'Show your reasoning before checking the model answer.'),
+          ],
           notes: transfer
-            ? `Reference response: ${transfer.answer}\nScoring: ${transfer.criteria.join(' ')}\nFeedback: ${transfer.feedback}`
-            : `Reference response: ${task.answer}\nFeedback: ${task.criteria.map((criterion) => criterion.feedback).join(' ')}`,
+            ? taskText(
+                task,
+                `Reference response: ${transfer.answer}\nScoring: ${transfer.criteria.join(' ')}\nFeedback: ${transfer.feedback}`,
+                `参考回答：${transfer.answer}\n评分：${transfer.criteria.join(' ')}\n反馈：${transfer.feedback}`,
+              )
+            : taskText(
+                task,
+                `Reference response: ${task.answer}\nFeedback: ${task.criteria.map((criterion) => criterion.feedback).join(' ')}`,
+                `参考回答：${task.answer}\n反馈：${task.criteria.map((criterion) => criterion.feedback).join(' ')}`,
+              ),
         };
       case 'discussion':
         return {
-          title: 'Compare the reasoning',
+          title: taskCopy(task, 'Compare the reasoning'),
           bullets: [task.checkpoint.question],
-          notes: `Expected response: ${task.checkpoint.answer}`,
+          notes: taskText(task, `Expected response: ${task.checkpoint.answer}`, `参考回答：${task.checkpoint.answer}`),
         };
       case 'summary':
         return {
-          title: 'Check your work',
+          title: taskCopy(task, 'Check your work'),
           bullets: task.criteria.map((criterion) => criterion.label),
           notes: task.criteria.map((criterion) => `${criterion.label}: ${criterion.levels.exemplary}`).join('\n'),
         };
       default:
         return {
-          title: 'Revise and retain',
+          title: taskCopy(task, 'Revise and retain'),
           bullets: [
-            'Find the first incorrect or missing step.',
-            'Use the matching feedback and revise your response.',
-            'Record one remaining question.',
+            taskCopy(task, 'Find the first incorrect or missing step.'),
+            taskCopy(task, 'Use the matching feedback and revise your response.'),
+            taskCopy(task, 'Record one remaining question.'),
           ],
           notes: task.criteria.map((criterion) => criterion.feedback).join('\n'),
         };
@@ -198,7 +240,9 @@ export function projectTeachingTaskSlides(deck, task) {
       taskRevision: task.revision,
       objectiveLink: task.objective,
       enrichmentSource: 'shared-teaching-task',
-      timer: role.startsWith('transfer-record') ? 'Within the independent practice time' : 'Within the model time',
+      timer: role.startsWith('transfer-record')
+        ? taskCopy(task, 'Within the independent practice time')
+        : taskCopy(task, 'Within the model time'),
       visual: { kind: 'none', description: '', altText: '' },
       workedExample: role === 'worked:0' ? task.workedExample : undefined,
     });

@@ -1,3 +1,4 @@
+import { additionalAnswerChecks } from './answerKeyChecks.js';
 import { getDocx, getSaveAs, isInternalExportMetadataKey, resolveFeatureLabel } from './exporterUtils.js';
 import { expandKeys } from '../keyMaps.js';
 import { assertOfficeExportHasNoInternalText } from '../exportTextInspector.js';
@@ -1718,7 +1719,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           a.selfAssessmentRubric.forEach((item) => children.push(makeBullet(item)));
         }
         if (a.anchorExampleGuidance?.length) {
-          children.push(makeSubHeading('Anchor Samples and Revision Check'));
+          children.push(makeSubHeading('Anchor Samples and Revision Check', { pageBreakBefore: true }));
           a.anchorExampleGuidance.forEach((item) => children.push(makeBullet(item, { compact: true })));
         }
         if (a.feedbackLoop) children.push(makeBold('Feedback Loop', a.feedbackLoop));
@@ -1868,8 +1869,9 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           children.push(makeSubHeading('Practice Answer Key'));
           g.reviewQuestions.forEach((q, j) => {
             if (!q?.answer) return;
-            children.push(makeNumbered(j + 1, q.answer, { keepNext: Boolean(q.successCriteria?.length) }));
-            (q.successCriteria || []).forEach((criterion) => children.push(makeBullet(criterion)));
+            const checks = additionalAnswerChecks(q);
+            children.push(makeNumbered(j + 1, q.answer, { keepNext: Boolean(checks.length) }));
+            checks.forEach((criterion) => children.push(makeBullet(criterion)));
           });
         }
         // Practice activities

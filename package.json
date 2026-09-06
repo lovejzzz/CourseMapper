@@ -1,6 +1,6 @@
 {
   "name": "course-mapper",
-  "version": "0.19.1",
+  "version": "0.19.2",
   "type": "module",
   "description": "Editable, linked educational materials with source-grounded generation and classroom exports",
   "scripts": {

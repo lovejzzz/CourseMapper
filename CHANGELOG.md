@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.19.2 — 2026-09-06
+
+- Add eight explicit evidence operations: related event dates, effective record amendments, missing chart context, interview attribution, coupled training/nutrition/coaching, algorithm cache and run order, recipe labels and serving order, and filter starting conditions and duration.
+- Extract source-bound years, counts, labels and durations; keep unknowns visible. Reject negated, hypothetical, missing, contradictory and ambiguous patterns. Check prerequisite chronology rather than treating all dates for different events as compatible. Preserve ordinary arithmetic routing when objectives mention charts, printing or algorithms.
+- Generate operation-matched independent practice from separate fictional packets. Include concrete proposed measurement, allocation, controls and replication steps without presenting a proposed design as an observed result.
+- Require executable protocols for the highest experimental-design rubric bands. Give short error-diagnosis questions scoring conditions appropriate to their actual prompt, rather than requiring the full design procedure.
+- Localize compiler-owned Chinese instructions, slide text, practice, feedback and syllabus scaffolding. Recognize explicit Chinese measurable actions in the instructional plan; retain rejection of unobservable learning actions. Preserve source and teacher text.
+- Remove verbatim duplicate checks within linked Word/PDF answer-key entries while retaining editable criteria, distinct requirements and manually authored keys. Always start assignment teacher references on a new page, including short Chinese packets.
+- Preserve all 30 frozen source packets, reference judgments, the independent checker and previous failure reports. The 18 development and 12 exposed cases now have zero encoded benchmark defects. These are known regressions, not unseen validation or a claim of general source understanding.
+- Preserve the 0.18.7 interface, ten material types, local Scion and export choices. No model-weight change, adapter activation, new model call, shared API or paid server.
+- Publish four complete workshop samples and an [educational export review](docs/v0.19.2-output-review.zh-CN.md), including actual Office/PDF inspection, tests, deployment verification and remaining limitations.
+
 ## 0.19.1 — 2026-09-06
 
 - Add three bounded source-quantity operations: pooled group proportions, attainable set-union bounds with unknown overlap, and the distinction between a count share and a share of a measured quantity. Retain exact arithmetic, source spans and explicit unknowns; do not infer a missing numerator or average unequal group rates.

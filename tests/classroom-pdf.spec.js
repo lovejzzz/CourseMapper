@@ -52,6 +52,10 @@ for (const caseId of [
   'h-c01-pooled-rates',
   'h-c03-overlap',
   'h-c04-volume-vs-households',
+  'h-s02-amended-record',
+  'h-e02-cache-order',
+  'h-s04-interview-zh',
+  'h-e04-filter-time-zh',
 ]) {
   test(`all nine ${caseId} PDFs retain content inside printable pages`, async ({ page }, testInfo) => {
     test.setTimeout(120000);
@@ -116,6 +120,11 @@ for (const caseId of [
       const pages = await inspectPdf(bytes);
       await fs.writeFile(testInfo.outputPath(`${file.feature}.txt`), pages.join('\n\f\n'));
       expect(pages.join(' ')).not.toContain('the cited evidence on strips');
+      if (file.feature === 'assignments') {
+        const keyPage = pages.findIndex((text) => /ANCHOR SAMPLES AND REVISION CHECK/i.test(text));
+        expect(keyPage).toBeGreaterThan(0);
+        expect(pages[keyPage]).toMatch(/^ANCHOR SAMPLES AND REVISION CHECK/i);
+      }
       if (file.feature === 'assignments' && caseId.startsWith('h-c')) {
         const keyPage = pages.findIndex((text) => /ANCHOR SAMPLES AND REVISION CHECK/i.test(text));
         expect(keyPage).toBeGreaterThan(0);
@@ -130,6 +139,23 @@ for (const caseId of [
       }
       if (file.feature === 'studyGuides') {
         const text = pages.join(' ');
+        if (caseId === 'h-s02-amended-record') {
+          expect(text).toContain('90 seats');
+          expect(text).toContain('1 July');
+        }
+        if (caseId === 'h-e02-cache-order') {
+          expect(text).toContain('Re-establish the specified cache state');
+          expect(text).toContain('Algorithm Merge');
+        }
+        if (caseId === 'h-s04-interview-zh') {
+          expect(text.replace(/\s/g, '')).toContain('自称亲眼所见');
+          expect(text.replace(/\s/g, '')).toContain('仓库的灯亮着');
+        }
+        if (caseId === 'h-e04-filter-time-zh') {
+          expect(text.replace(/\s/g, '')).toContain('等体积独立水样');
+          expect(text.replace(/\s/g, '')).toContain('都使用12分钟');
+        }
+
         if (caseId === 'h-c01-pooled-rates') {
           expect(text).toContain('54%');
           expect(text).toContain('70%');

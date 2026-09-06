@@ -1,3 +1,8 @@
+import { explicitSourceRelationTask, sourceRelationIntent } from './teachingTaskSourceRelations.js';
+import {
+  explicitExperimentalExtensionTask,
+  experimentalExtensionIntent,
+} from './teachingTaskExperimentalExtensions.js';
 import { sourceQuantityTask, sourceQuantityIntent } from './teachingTaskQuantityOperations.js';
 import { sha256HexSync } from './sha256Sync.js';
 import { buildTeachingTaskPracticeSequence } from './teachingTaskPracticeSequence.js';
@@ -429,15 +434,19 @@ export function buildSharedTeachingTask({
     )
   )
     return null;
-  let body = sourceQuantityIntent(objective)
-    ? sourceQuantityTask(inputs, objective)
-    : compareSourceProportions(inputs, objective) ||
-      proportionTask(inputs, objective) ||
-      eventComparisonTask(inputs, objective) ||
-      controlledComparisonTask(inputs, objective) ||
-      inconsistentParticipantCountsTask(inputs, objective) ||
-      explicitExperimentalDesignTask(inputs, objective) ||
-      explicitEvidenceAnalysisTask(inputs, objective);
+  let body = sourceRelationIntent(objective)
+    ? explicitSourceRelationTask(inputs, objective)
+    : experimentalExtensionIntent(objective)
+      ? explicitExperimentalExtensionTask(inputs, objective)
+      : sourceQuantityIntent(objective)
+        ? sourceQuantityTask(inputs, objective)
+        : compareSourceProportions(inputs, objective) ||
+          proportionTask(inputs, objective) ||
+          eventComparisonTask(inputs, objective) ||
+          controlledComparisonTask(inputs, objective) ||
+          inconsistentParticipantCountsTask(inputs, objective) ||
+          explicitExperimentalDesignTask(inputs, objective) ||
+          explicitEvidenceAnalysisTask(inputs, objective);
   if (!body) return null;
   body = localizeProportionTask(body, inputs, objective);
   const task = {
@@ -488,7 +497,10 @@ export function teachingTaskWorkedExample(task) {
           inputs: task.inputs.map((x) => x.text),
           steps: task.reasoning,
           result: task.answer,
-          interpretation: 'Each step uses the supplied record; the conclusion addresses this specific task.',
+          interpretation:
+            task.language === 'zh'
+              ? '每一步使用所给材料，结论回应本任务的问题。'
+              : 'Each step uses the supplied record; the conclusion addresses this specific task.',
           boundary: task.reasoning.at(-1),
           transferTask: task.checkpoint.question,
         }
@@ -532,17 +544,24 @@ export function teachingTaskPracticeUnits(task) {
       ...shared,
       id: `${task.id}:error-${i}`,
       kind: 'error-analysis',
-      question: `Evaluate this response: “${error.response}” Correct the reasoning using the supplied record.`,
+      question:
+        task.language === 'zh'
+          ? `评价下面的回答：“${error.response}” 用所给材料纠正其推理。`
+          : `Evaluate this response: “${error.response}” Correct the reasoning using the supplied record.`,
       answer: error.correction,
       feedback: error.feedback,
-      criteria: [task.criteria.find((c) => c.id === error.criterionId).levels.exemplary],
+      criteria: [error.successCriterion || task.criteria.find((c) => c.id === error.criterionId).levels.exemplary],
     })),
     ...(task.scaffoldQuestions || []).map((q, i) => ({
       ...shared,
       ...q,
       id: `${task.id}:scaffold-${i}`,
       kind: 'task-scaffold',
-      criteria: ['Uses the supplied record and states the specific reasoning shown in the reference answer.'],
+      criteria: [
+        task.language === 'zh'
+          ? '使用所给材料，说明参考答案所要求的具体推理。'
+          : 'Uses the supplied record and states the specific reasoning shown in the reference answer.',
+      ],
     })),
     {
       ...shared,

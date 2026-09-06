@@ -1,3 +1,6 @@
+import { evidenceTransferPackets } from './teachingTaskEvidenceTransferPackets.js';
+import { explicitSourceRelationTask } from './teachingTaskSourceRelations.js';
+import { explicitExperimentalExtensionTask } from './teachingTaskExperimentalExtensions.js';
 import { sourceQuantityTask } from './teachingTaskQuantityOperations.js';
 import { explicitExperimentalDesignTask } from './teachingTaskEvidenceOperations.js';
 import { compareSourceProportions, inconsistentParticipantCountsTask } from './teachingTaskProportionOperations.js';
@@ -78,9 +81,16 @@ const quantityPackets = {
 };
 
 export function operationSpecificTransfer(task) {
-  if (task.language === 'zh') return null;
-  let packet = experiments[task.operation?.kind];
-  let body = packet && explicitExperimentalDesignTask(packet.sources, packet.objective);
+  let packet = evidenceTransferPackets[task.operation?.kind];
+  if (task.language === 'zh' && !packet) return null;
+  let body =
+    packet &&
+    (explicitSourceRelationTask(packet.sources, packet.objective) ||
+      explicitExperimentalExtensionTask(packet.sources, packet.objective));
+  if (!packet) {
+    packet = experiments[task.operation?.kind];
+    body = packet && explicitExperimentalDesignTask(packet.sources, packet.objective);
+  }
   if (quantityPackets[task.operation?.kind]) {
     packet = quantityPackets[task.operation.kind];
     body = sourceQuantityTask(packet.sources, packet.objective);

@@ -1475,6 +1475,35 @@ export const CURRENT_RELEASE_CHANGELOG = {
   highlights: CURRENT_RELEASE.highlights,
   sections: [
     {
+      label: 'Interpret evidence and design comparisons',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'Add eight bounded evidence operations, with operation-matched independent cases: dated stages, effective amendments, missing chart context, testimony attribution, co-interventions, cache/order, label/order and initial-condition/duration confounding.',
+        'Require executable design steps in top rubric bands. Keep proposed procedures separate from observed results, and reject negated, uncertain, missing or incompatible input relationships.',
+        'Localize compiler-authored Chinese directions across materials. Print linked answer-key checks only when they add wording absent from the answer; keep all editable data and authored keys intact.',
+        'Recognize explicit Chinese learner actions. Start assignment teacher references on a separate page, and score short error-diagnosis questions against the correction they actually request.',
+      ],
+    },
+    {
+      label: 'Keep verification limits visible',
+      icon: 'PROOF',
+      color: 'violet',
+      items: [
+        'The 18 development and 12 exposed packets now pass the original automatic checker. Preserve all frozen sources and prior failures; this is expanded regression coverage, not an unseen or independent educational evaluation.',
+        'Scion weights and the 0.18.7 interface are unchanged; the shared online API stays paused. These rules do not interpret arbitrary wording or establish student learning gains.',
+      ],
+    },
+  ],
+};
+
+const V0191_RELEASE_CHANGELOG = {
+  version: '0.19.1',
+  date: 'September 6, 2026',
+  title: 'Count, Combine, and Respect What Is Unknown',
+  highlights: ['Bounded quantity reasoning and assignment answer isolation.'],
+  sections: [
+    {
       label: 'Reason about source quantities',
       icon: 'CHECK',
       color: 'emerald',
@@ -2809,6 +2838,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V0191_RELEASE_CHANGELOG,
   V0190_RELEASE_CHANGELOG,
   V0189_RELEASE_CHANGELOG,
   V0188_RELEASE_CHANGELOG,
