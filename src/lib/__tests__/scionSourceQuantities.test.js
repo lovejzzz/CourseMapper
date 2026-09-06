@@ -235,6 +235,17 @@ describe('quantity operations through actual material projections and source edi
         }
     },
   );
+  it('answers a causal misconception with causal evidence feedback throughout the guide', () => {
+    const f = compilePacket('h-c01-pooled-rates');
+    const question = f.deliverables.studyGuides.data.studyGuides[0].reviewQuestions.find((q) =>
+      /caused the better outcome/i.test(q.question),
+    );
+    expect(question.hint).toMatch(/isolate a cause/);
+    expect(question.hint).not.toContain('denominators are equal');
+    const task = f.context.lessons[0].teachingTask;
+    expect(task.criteria.find((c) => c.id === 'boundary').feedback).toMatch(/isolate a cause/);
+    expect(task.errors[1].feedback).toMatch(/isolate a cause/);
+  });
   it('updates a pooled count through all nine materials and preserves teacher prose', () => {
     const f = compilePacket('h-c01-pooled-rates');
     const oldData = f.deliverables.studyGuides.data;

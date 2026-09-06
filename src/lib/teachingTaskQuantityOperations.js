@@ -90,6 +90,8 @@ function pooledCounts(claims, objective) {
     boundaryDeveloping:
       'Says the comparison is uncertain without distinguishing the descriptive calculation from an explanation of the group difference.',
     boundaryError: 'The higher observed group rate proves that belonging to that group caused the better outcome.',
+    boundaryFeedback:
+      'Name how the groups or their items differ in the supplied record. Explain what comparable observations or controlled allocation would be needed to isolate a cause; recalculating the average cannot establish causation.',
     nextCheck: 'When would an unweighted mean agree with the overall proportion?',
     nextAnswer:
       'For two groups it agrees when their denominators are equal or their rates are equal. Otherwise use denominator weights. Agreement in one example does not establish a general averaging rule.',
@@ -230,7 +232,7 @@ function unitCounts(claims, objective) {
     operationDeveloping: `Computes the count share but does not explain why it cannot determine the ${quantity} share.`,
     boundaryProficient: `Names the missing subgroup ${quantity} and avoids guessing, but does not require its measurement to match the total's scope and period.`,
     boundaryDeveloping: 'Asks for more data without identifying the subgroup measurement that is missing.',
-    boundaryError: `Every ${unit} must contribute the same ${quantity}, so the missing measurement can be inferred from the count.`,
+    boundaryError: `All ${unit} must contribute the same ${quantity}, so the missing measurement can be inferred from the count.`,
     nextCheck: `What would you need to calculate the ${quantity} share?`,
     nextAnswer: `Measure the subgroup's ${quantity} and its matching total for the same scope and period; then divide like units. Do not substitute the fraction ${part}/${whole} for that measurement.`,
   };
@@ -283,7 +285,7 @@ export function sourceQuantityTask(claims, objective) {
       plan.boundaryProficient,
       plan.boundaryDeveloping,
       plan.boundaryError,
-      plan.nextAnswer,
+      plan.boundaryFeedback || plan.nextAnswer,
     ),
   ];
   return {
@@ -304,7 +306,7 @@ export function sourceQuantityTask(claims, objective) {
         criterionId: 'boundary',
         response: plan.boundaryError,
         correction: plan.limit,
-        feedback: plan.nextAnswer,
+        feedback: plan.boundaryFeedback || plan.nextAnswer,
       },
     ],
     checkpoint: { question: plan.nextCheck, answer: plan.nextAnswer },
