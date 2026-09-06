@@ -1,10 +1,31 @@
 import { describe, expect, it } from 'vitest';
 import fixture from '../../../benchmarks/classroom/v2/cases/d-c04-recurring.json';
 import { buildCourseBlueprint, compileBlueprintDeliverables } from '../courseBlueprintCompiler.js';
+import { repairDeliverableContentQuality } from '../contentQualityRepair.js';
 import { evaluateWorkspaceReadiness } from '../deliverableReadiness.js';
 import { addSemanticTrustAdmissionFindings } from '../quality/deepQualityTrustAdmission.js';
 
 describe('specific answer readiness', () => {
+  it('keeps complete source limitations through the production repetition-repair pass', () => {
+    const map = {
+      courseName: 'Rounding',
+      lessons: [{ title: 'Rounding', sections: [{ learningObjectives: fixture.request }] }],
+    };
+    const blueprint = buildCourseBlueprint(map, {
+      instructorProvidedFacts: fixture.sources,
+      sourceBrief: fixture.request,
+      sessionMinutes: fixture.sessionMinutes,
+    });
+    const original = compileBlueprintDeliverables(blueprint, ['studyGuides']).studyGuides;
+    const fixed = repairDeliverableContentQuality('studyGuides', original, { sourceFacts: fixture.sources }).data;
+    const guide = fixed.studyGuides[0];
+    expect(guide.conceptConnections).toEqual(original.studyGuides[0].conceptConnections);
+    expect(guide.commonMisconceptions).toEqual(original.studyGuides[0].commonMisconceptions);
+    expect(JSON.stringify(guide.conceptConnections)).toContain('other batches were not tested');
+    expect(JSON.stringify(guide)).not.toContain('the cited evidence on strips');
+    expect(JSON.stringify(guide)).not.toContain('the source statement about strips');
+  });
+
   it('fills the final compiler-owned written question with a source-specific revision and matching key', () => {
     const map = {
       courseName: 'Rounding',

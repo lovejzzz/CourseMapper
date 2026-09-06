@@ -289,6 +289,10 @@ function sourceFactLocalUnit(path = []) {
   return '';
 }
 
+function isSharedTaskProjection(node) {
+  return node && typeof node === 'object' && typeof node.taskId === 'string' && node.taskId && node.taskRevision;
+}
+
 function collectSourceFactOccurrences(
   node,
   fact,
@@ -298,6 +302,10 @@ function collectSourceFactOccurrences(
   parentKey = '',
   order = { value: 0 },
 ) {
+  // Shared-task answers, feedback and scoring copies intentionally repeat
+  // complete evidence. A topic reference cannot replace a source limitation.
+  // Authority/quarantine checks still run outside this stylistic pass.
+  if (isSharedTaskProjection(node)) return;
   if (typeof node === 'string') {
     const whole =
       protectedFacts.has(normalizedSourceFact(node)) ||
@@ -442,6 +450,7 @@ function sourceFactReplacementEnd(value, matchEnd) {
 }
 
 function rewriteSourceFactOccurrences(node, fact, keep, stats, path = [], parentKey = '') {
+  if (isSharedTaskProjection(node)) return node;
   if (typeof node === 'string') {
     const matches = sourceFactMatches(node, fact);
     if (matches.length === 0) return node;

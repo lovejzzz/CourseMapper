@@ -2,7 +2,7 @@
   "version": "0.19.0",
   "date": "2026-09-06",
   "software": {
-    "requiredTests": 966,
+    "requiredTests": 967,
     "benchmarkCheckerTests": 14,
     "additionalRegressions": 206,
     "browserTests": 39,
@@ -238,5 +238,17 @@
     "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/34023711693",
     "result": "failed on source edit autosave assertion; deployment skipped",
     "fix": "bounded latest-snapshot autosave, with two scheduler regressions; existing browser assertion retained"
+  },
+  "productionFirstRun": {
+    "url": "https://edutool.dev",
+    "commit": "5210cfb0c5d8824815b697f266b2110d07f52aa5",
+    "runId": "run-1788686753907",
+    "finishRunId": "finish-mtplxtys-vf8sr",
+    "elapsedMs": 50074,
+    "modelRequestStarts": 4,
+    "adapterActive": false,
+    "typedSkeleton": "rejected as incomplete; recovered through prose/compiler",
+    "compilerProjectionElapsedMs": 156,
+    "finding": "Final repetition repair shortened an explicit source limitation in study-guide connections and feedback. Preserve full shared-task evidence through this pass; regression fails before the fix."
   }
 }
