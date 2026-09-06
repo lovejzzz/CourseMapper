@@ -10,12 +10,16 @@ async function inspectPdf(bytes) {
     const viewport = page.getViewport({ scale: 1 });
     const items = (await page.getTextContent()).items.filter((item) => item.str?.trim());
     expect(items.length, `page ${i} must not be empty`).toBeGreaterThan(1);
-    for (const item of items) {
-      expect(item.transform[4], item.str).toBeGreaterThanOrEqual(-1);
-      expect(item.transform[4] + item.width, item.str).toBeLessThanOrEqual(viewport.width + 1);
-      expect(item.transform[5], item.str).toBeGreaterThanOrEqual(0);
-      expect(item.transform[5], item.str).toBeLessThanOrEqual(viewport.height);
-    }
+    // Inspect every text item, but report once per page. Four traced assertions
+    // per CJK glyph otherwise produce tens of thousands of test steps per file.
+    const outOfBounds = items.filter((item) => {
+      const [x, y] = item.transform.slice(4);
+      return !(x >= -1 && x + item.width <= viewport.width + 1 && y >= 0 && y <= viewport.height);
+    });
+    expect(
+      outOfBounds.map((item) => ({ text: item.str, x: item.transform[4], y: item.transform[5], width: item.width })),
+      `page ${i} text must stay inside printable bounds`,
+    ).toEqual([]);
     pages.push(items.map((item) => item.str).join(' '));
   }
   await pdf.destroy();
@@ -144,7 +148,8 @@ for (const caseId of [
           expect(text).toContain('1 July');
         }
         if (caseId === 'h-e02-cache-order') {
-          expect(text).toContain('Re-establish the specified cache state');
+          // PDF.js may split a visible hyphenated word into separate text items.
+          expect(text).toMatch(/Re-\s*establish the specified cache state/);
           expect(text).toContain('Algorithm Merge');
         }
         if (caseId === 'h-s04-interview-zh') {
