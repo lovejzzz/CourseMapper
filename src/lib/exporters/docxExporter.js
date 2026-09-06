@@ -1,4 +1,4 @@
-import { loadPdfLibs, getDocx, getSaveAs, isInternalExportMetadataKey, resolveFeatureLabel } from './exporterUtils.js';
+import { getDocx, getSaveAs, isInternalExportMetadataKey, resolveFeatureLabel } from './exporterUtils.js';
 import { expandKeys } from '../keyMaps.js';
 import { assertOfficeExportHasNoInternalText } from '../exportTextInspector.js';
 import { renderedDeliverableCollection } from '../renderedDeliverableRoot.js';

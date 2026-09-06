@@ -1,5 +1,4 @@
 import { safeImport } from './safeImport.js';
-import { loadPdfRuntime } from './pdfRuntime.js';
 import {
   assertTableRowsHaveNoInternalExportLanguage,
   assertTextHasNoInternalExportLanguage,
@@ -8,9 +7,6 @@ import {
 
 // Lazy-loaded heavy dependencies
 let _saveAs;
-async function loadPdfLibs() {
-  return await loadPdfRuntime();
-}
 async function getSaveAs() {
   if (!_saveAs) _saveAs = (await safeImport(() => import('file-saver'))).saveAs;
   return _saveAs;
@@ -151,44 +147,28 @@ export async function generatePdf(courseMap, customColumns) {
   }
   assertTableRowsHaveNoInternalExportLanguage({ headers: colHeaders, rows: body }, 'Course Map', 'PDF');
 
-  const { jsPDF, autoTable } = await loadPdfLibs();
-  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a3' });
-
-  // Title
-  const title = `${courseMap.courseName || 'Course Map'} \u2014 ${courseMap.semester || ''}`;
-  doc.setFontSize(14);
-  doc.setFont('helvetica', 'bold');
-  doc.text(title, 14, 15);
-
-  autoTable(doc, {
-    head: [colHeaders],
-    body,
-    startY: 22,
-    styles: {
-      fontSize: 6.5,
-      cellPadding: 2,
-      overflow: 'linebreak',
-      lineWidth: 0.1,
-      lineColor: [180, 198, 231],
-      valign: 'top',
-    },
-    headStyles: {
-      fillColor: [68, 114, 196],
-      textColor: 255,
-      fontStyle: 'bold',
-      fontSize: 7,
-    },
-    columnStyles: {
-      0: { fontStyle: 'bold', cellWidth: 28, fillColor: [217, 226, 243] },
-    },
-    alternateRowStyles: {
-      fillColor: [245, 247, 252],
-    },
-    margin: { top: 22, left: 8, right: 8 },
-    tableWidth: 'auto',
+  const { classroomPdfDefinition, downloadClassroomPdf } = await import('./exporters/classroomPdf.js');
+  const content = [
+    { text: 'COURSE MAP', fontSize: 10, bold: true, color: '#2B579A', margin: [0, 0, 0, 5] },
+    { text: courseMap.courseName || 'Course', fontSize: 20, bold: true, margin: [0, 0, 0, 12] },
+  ];
+  body.forEach((row, index) => {
+    content.push({
+      text: row[0] || `Section ${index + 1}`,
+      fontSize: 14,
+      bold: true,
+      headlineLevel: 1,
+      margin: [0, 12, 0, 6],
+    });
+    row.slice(1).forEach((value, column) => {
+      if (value)
+        content.push({
+          text: [{ text: `${colHeaders[column + 1]}: `, bold: true }, { text: value }],
+          margin: [0, 0, 0, 7],
+        });
+    });
   });
-
   const fileName = `${courseMap.courseName || 'Course'} Course Map (${courseMap.semester || 'TBD'}).pdf`;
-  doc.save(fileName);
+  await downloadClassroomPdf(classroomPdfDefinition(content, courseMap.courseName, 'Course Map'), fileName);
   return fileName;
 }

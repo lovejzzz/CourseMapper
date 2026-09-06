@@ -4,6 +4,7 @@ export default defineConfig({
   testMatch: [
     'workspace-mobile.spec.js',
     'export-smoke.spec.js',
+    'classroom-pdf.spec.js',
     'restored-homepage.spec.ts',
     'scion-compiler-workspace.spec.js',
   ],

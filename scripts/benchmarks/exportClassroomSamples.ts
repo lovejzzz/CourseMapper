@@ -1,5 +1,7 @@
 import fs from 'node:fs/promises';
 import { buildDeliverableDocxBlob } from '../../src/lib/exporters/bulkDocxExporter.js';
+import { buildClassroomPdfBlob, deliverablePdfDefinition } from '../../src/lib/exporters/classroomPdf.js';
+import { slideDeckPdfDefinition } from '../../src/lib/exporters/slideDeckPdfExporter.js';
 import { buildSlideDeckPptxBlob } from '../../src/lib/exporters/pptxExporter.js';
 import { deliverableToCsvRows } from '../../src/lib/exporters/csvExporter.js';
 import { buildCourseMaterialsZip } from '../../src/lib/packageZipExporter.js';
@@ -74,6 +76,12 @@ for (const id of features) {
     const blob = await buildDeliverableDocxBlob(id, outputs[id], outputs.courseMap.courseName);
     await fs.writeFile(`${out}/${id}.docx`, Buffer.from(await blob.arrayBuffer()));
   }
+  const pdfDefinition =
+    id === 'slideDecks'
+      ? slideDeckPdfDefinition(outputs[id], outputs.courseMap.courseName)
+      : deliverablePdfDefinition(id, outputs[id], outputs.courseMap.courseName);
+  const pdf = await buildClassroomPdfBlob(pdfDefinition);
+  await fs.writeFile(`${out}/${id}.pdf`, Buffer.from(await pdf.arrayBuffer()));
   const table = deliverableToCsvRows(id, outputs[id]);
   const rows = [table.headers, ...table.rows];
   await fs.writeFile(

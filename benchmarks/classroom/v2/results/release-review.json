@@ -2,10 +2,10 @@
   "version": "0.19.0",
   "date": "2026-09-06",
   "software": {
-    "requiredTests": 967,
+    "requiredTests": 975,
     "benchmarkCheckerTests": 14,
     "additionalRegressions": 206,
-    "browserTests": 39,
+    "browserTests": 43,
     "releaseHomepageRerun": 6,
     "experimentalTrainingMaskTests": 4
   },
@@ -250,5 +250,20 @@
     "typedSkeleton": "rejected as incomplete; recovered through prose/compiler",
     "compilerProjectionElapsedMs": 156,
     "finding": "Final repetition repair shortened an explicit source limitation in study-guide connections and feedback. Preserve full shared-task evidence through this pass; regression fails before the fix."
+  },
+  "pdfVerification": {
+    "workshopPdfs": 27,
+    "browserCases": 4,
+    "checks": [
+      "all text remains within page bounds",
+      "no empty pages",
+      "separate quiz answer-key pages",
+      "exact approximate symbols",
+      "complete source limitations",
+      "Chinese font embedding",
+      "long slide final bullet and speaker note retention",
+      "malformed export can reject and recover"
+    ],
+    "visualReview": "selected actual rendered pages, including proportion guide, rubric and question paper; not a claim of all-PDF visual inspection"
   }
 }

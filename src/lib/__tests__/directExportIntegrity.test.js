@@ -5,16 +5,9 @@ import { generatePdf } from '../exporters';
 import { exportDeliverablePdf as exportModularDeliverablePdf } from '../exporters/pdfExporter';
 import { saveToGoogleDocsBlob, saveToGoogleSheets, saveToGoogleSlides } from '../googleDrive';
 
-vi.mock('../pdfRuntime', () => ({
-  loadPdfRuntime: vi.fn(async () => ({
-    jsPDF: class {
-      setFontSize() {}
-      setFont() {}
-      text() {}
-      save() {}
-    },
-    autoTable: vi.fn(),
-  })),
+vi.mock('../exporters/classroomPdf', async (importOriginal) => ({
+  ...(await importOriginal()),
+  downloadClassroomPdf: vi.fn(async (_definition, filename) => filename),
 }));
 
 async function makeOfficeXmlBlob(path, xml) {

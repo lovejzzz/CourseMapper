@@ -9,7 +9,7 @@ export default defineConfig({
     include: [
       'src/components/deliverables/__tests__/*.{test,spec}.{js,jsx}',
       'src/components/__tests__/{GenericDeliverableView,ExportSidePanel.readiness,Header}.test.jsx',
-      'src/lib/__tests__/{deliverableSchemas,exporterUtils,generationCancellation,scionCompilerRoute,keyMaps}.test.js',
+      'src/lib/__tests__/{deliverableSchemas,exporterUtils,generationCancellation,scionCompilerRoute,keyMaps,directExportIntegrity}.test.js',
       'tests/v01654-editable-object-fields.test.jsx',
       'tests/v015-sync-durable.test.jsx',
       'tests/v0147-sync-star.test.js',

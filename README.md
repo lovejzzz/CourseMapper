@@ -23,7 +23,7 @@ Start with a course description or existing files, choose materials, configure t
 
 Custom deliverables, `.coursemapper` project files, local session recovery, version history and the original material-specific editors remain available. Linked changes use the existing course model and sync/review workflow. Check affected materials after changing an objective, assessment or source; a synchronized field is not proof that every dependent answer is correct.
 
-Exports retain the original material-dependent choices, including Word, PDF, CSV, PowerPoint, Google Docs/Sheets/Slides and course ZIP packages. Downloaded and Google Drive files are snapshots; edits to those copies do not automatically return to EduTool.
+Exports retain the original material-dependent choices, including Word, PDF, CSV, PowerPoint, Google Docs/Sheets/Slides and course ZIP packages. PDF handouts share the Word content builder, preserve mathematical symbols and Chinese text, and keep quiz answers on a separate page. PDF rendering runs locally; the renderer and any needed Chinese fonts load on demand from the site. Downloaded and Google Drive files are snapshots; edits to those copies do not automatically return to EduTool.
 
 ## Scion research and the fast compiler
 

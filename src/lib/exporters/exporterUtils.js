@@ -1,13 +1,8 @@
 import { getCustomDeliverable } from '../customDeliverableLibrary.js';
 import { isInternalDeliverableMetadataKey } from '../internalDeliverableMetadata.js';
-import { loadPdfRuntime } from '../pdfRuntime.js';
 import { safeImport } from '../safeImport.js';
 
 let _docx, _saveAs;
-
-export async function loadPdfLibs() {
-  return await loadPdfRuntime();
-}
 
 export async function getDocx() {
   if (!_docx) {
