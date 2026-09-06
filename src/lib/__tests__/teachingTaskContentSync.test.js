@@ -58,6 +58,9 @@ function packageFixture() {
 describe('shared task source updates through production projections', () => {
   it('accepts source updates from a prose-generated map without compiler-owned task links', () => {
     const f = packageFixture();
+    f.map.lessons[0].sections[0].supportingResources = f.source.inputs
+      .map((input, index) => `Source record ${index + 1}: ${input.text}`)
+      .join(' ');
     delete f.map.teachingTaskSources;
     for (const lesson of f.map.lessons) delete lesson.teachingTaskLink;
     const result = applyTeachingTaskSourceEdit({
@@ -72,6 +75,8 @@ describe('shared task source updates through production projections', () => {
     expect(result.changed.studyGuides.data.studyGuides[0].workedExample.result).toContain('3/12 = 0.25 = 25%');
     expect(result.courseMap.lessons[0].teachingTaskLink.taskId).toBe(f.source.id);
     expect(result.courseMap.teachingTaskSources).toHaveLength(1);
+    expect(result.courseMap.lessons[0].sections[0].supportingResources).toContain('3/12 = 0.25 = 25%');
+    expect(result.courseMap.lessons[0].sections[0].supportingResources).not.toContain('3/8 = 0.375 = 37.5%');
     expect(f.map.lessons[0].teachingTaskLink).toBeUndefined();
   });
 

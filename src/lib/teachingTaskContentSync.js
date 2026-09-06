@@ -312,8 +312,11 @@ export function applyTeachingTaskSourceEdit({ featureId, oldData, newData, editP
     changed[id] = { ...entry, data, stale: Boolean((entry.stale && !ownsStale) || data.taskSyncConflicts.length) };
     conflicts.push(...data.taskSyncConflicts.map((conflict) => ({ featureId: id, ...conflict })));
   }
-  const previousMap = { ...projectTeachingTasksIntoCourseMap(courseMap, oldBlueprint) };
-  const nextMap = { ...projectTeachingTasksIntoCourseMap(courseMap, nextBlueprint) };
+  // Older saved maps may only carry the ledger on their materials. Use the
+  // validated pre-edit ledger for identifying resource copies in both projections.
+  const projectionMap = { ...courseMap, teachingTaskSources: oldSources };
+  const previousMap = { ...projectTeachingTasksIntoCourseMap(projectionMap, oldBlueprint) };
+  const nextMap = { ...projectTeachingTasksIntoCourseMap(projectionMap, nextBlueprint) };
   const currentMap = { ...courseMap };
   // This ledger is owned by the accepted source transaction, not by the
   // course-outline text editor. Reconstruction can normalize its metadata;
