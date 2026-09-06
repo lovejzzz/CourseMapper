@@ -94,6 +94,8 @@ export function sourceArithmeticWorkedExample(sourceEvidenceBrief) {
 export function sourceArithmeticGuidePractice(example) {
   if (example?.protocol !== SOURCE_ARITHMETIC_PROTOCOL) return null;
   const { numerator, denominator, decimal, percent } = example.verification;
+  const reverseCheck = example.verification.reverseCheck || `${decimal} × ${denominator} = ${numerator}`;
+  const relation = example.verification.exact === false ? '≈' : '=';
   return {
     objectivePractice: [example.studentTask],
     conceptConnections: [example.interpretation, example.boundary],
@@ -104,7 +106,7 @@ export function sourceArithmeticGuidePractice(example) {
         ? [
             {
               misconception: `The decimal ${decimal} can be written as ${decimal}% without conversion.`,
-              correction: `To convert a decimal to a percentage, multiply by 100: ${decimal} × 100 = ${percent}%.`,
+              correction: `To convert a decimal to a percentage, multiply by 100: ${decimal} × 100 ${relation} ${percent}%.`,
             },
           ]
         : []),
@@ -117,7 +119,7 @@ export function sourceArithmeticGuidePractice(example) {
       {
         question: `Recalculate ${numerator}/${denominator}. Give the decimal and percentage and show how you checked them.`,
         bloomsLevel: 'Apply',
-        hint: `Check: ${decimal} × ${denominator} = ${numerator}; ${decimal} × 100 = ${percent}%.`,
+        hint: `Check: ${reverseCheck}; ${decimal} × 100 ${relation} ${percent}%.`,
       },
       {
         question:

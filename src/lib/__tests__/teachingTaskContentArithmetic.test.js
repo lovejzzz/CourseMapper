@@ -1,8 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import { solveTeachingProportion } from '../teachingTaskArithmetic.js';
 import { buildSharedTeachingTask } from '../compilerTeachingTask.js';
+import { sourceArithmeticWorkedExample, sourceArithmeticGuidePractice } from '../sourceArithmeticStudyPractice.js';
 
 describe('compiler proportion operations', () => {
+  it('keeps rounding explicit in legacy study-guide hints as well as shared tasks', () => {
+    const practice = sourceArithmeticGuidePractice(
+      sourceArithmeticWorkedExample({ claims: ['The observed proportion is 7/12.'] }),
+    );
+    expect(practice.reviewQuestions[0].hint).toContain('(7/12) × 12 = 7');
+    expect(practice.reviewQuestions[0].hint).toContain('0.5833 × 12 ≈ 7');
+    expect(JSON.stringify(practice)).not.toContain('0.5833 × 12 = 7');
+  });
   it.each([
     [20, 50, '0.4', '40', true],
     [20, 80, '0.25', '25', true],

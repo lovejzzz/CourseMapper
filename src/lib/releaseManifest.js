@@ -1475,6 +1475,46 @@ export const CURRENT_RELEASE_CHANGELOG = {
   highlights: CURRENT_RELEASE.highlights,
   sections: [
     {
+      label: 'Keep edits connected',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'Store stable task and source identities. Recompile affected fields after a source edit, preserve teacher wording, and show specific conflicting replacements.',
+        'Undo and redo the whole linked transaction. Preserve source records and teacher edits after saving, restoring and regenerating materials.',
+        'Keep the 0.18.7 homepage, ten material editors and export choices. Local Scion remains enabled; the shared online API stays paused.',
+      ],
+    },
+    {
+      label: 'Improve classroom materials',
+      icon: 'CHECK',
+      color: 'blue',
+      items: [
+        'Share concrete tasks, source records, reasoning, answers, errors and scoring criteria across materials. Add independent practice and a feedback-driven revision question.',
+        'Use exact arithmetic with explicit rounding and source limits. Distinguish conflicting accounts from established dates and proposed experiments from observed results.',
+        'Provide editable teacher references; hide quiz answer controls and keys in student view. Separate Word question pages from the answer key, use readable rubric tables and preserve complete PowerPoint reasoning.',
+        'Flag generic answer keys for teacher review. Do not infer a course-grade weight from rubric points or require multiple-choice distractors in a written-response bank.',
+      ],
+    },
+    {
+      label: 'Publish evidence and limits',
+      icon: 'PROOF',
+      color: 'violet',
+      items: [
+        'Add 30 frozen cases. The 18 development cases pass the independent defect checks; the first 12 held-out cases exposed 11 unsupported tasks and 24 defects. Keep those failures visible.',
+        'Run 20 browser model probes, eight native comparisons and a real local course build. Thinking and sampling changes did not reliably solve structured task authoring; no adapter is active or proven superior.',
+        'Review complete exports from three workshops and test editing, synchronization, recovery, exports and mobile layouts. These checks do not establish learning gains, teacher scoring agreement or universal classroom readiness.',
+      ],
+    },
+  ],
+};
+
+const V0189_RELEASE_CHANGELOG = {
+  version: '0.18.9',
+  date: 'September 6, 2026',
+  title: 'Connected Lessons, Concrete Answers',
+  highlights: ['Keep linked lessons, concrete answers and the original interface.'],
+  sections: [
+    {
       label: 'Preserve the teaching sequence',
       icon: 'CHECK',
       color: 'emerald',
@@ -2740,6 +2780,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V0189_RELEASE_CHANGELOG,
   V0188_RELEASE_CHANGELOG,
   V0187_RELEASE_CHANGELOG,
   V0186_RELEASE_CHANGELOG,

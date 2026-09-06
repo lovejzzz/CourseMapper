@@ -1,0 +1,237 @@
+{
+  "version": "0.19.0",
+  "date": "2026-09-06",
+  "software": {
+    "requiredTests": 964,
+    "benchmarkCheckerTests": 14,
+    "additionalRegressions": 206,
+    "browserTests": 39,
+    "releaseHomepageRerun": 6,
+    "experimentalTrainingMaskTests": 4
+  },
+  "compilerDevelopmentCases": 18,
+  "compilerDevelopmentAutomatedDefects": 0,
+  "initialHeldOut": {
+    "cases": 12,
+    "unsupportedTasks": 11,
+    "automatedDefects": 24,
+    "subsequentlyExposed": true
+  },
+  "samples": [
+    {
+      "case": "d-c04-recurring",
+      "source": "development fixture, already exposed",
+      "modelCalls": 0,
+      "zipSha256": "c8f73b3e1f58d4bd2792b6a1d8c4c5a3cdc5e2670b41e6056212829eac747feb",
+      "zipBytes": 325057,
+      "zipIssues": [],
+      "officeBodyMatchesReviewedRound9": [
+        "quizBank.docx",
+        "lessonPlans.docx",
+        "assignments.docx",
+        "slideDecks.pptx",
+        "discussions.docx",
+        "rubrics.docx",
+        "studyGuides.docx",
+        "syllabus.docx",
+        "courseFaq.docx"
+      ],
+      "renderedPages": [
+        {
+          "file": "assignments.docx",
+          "exit": 0,
+          "pages": 2
+        },
+        {
+          "file": "courseFaq.docx",
+          "exit": 0,
+          "pages": 1
+        },
+        {
+          "file": "discussions.docx",
+          "exit": 0,
+          "pages": 1
+        },
+        {
+          "file": "lessonPlans.docx",
+          "exit": 0,
+          "pages": 3
+        },
+        {
+          "file": "quizBank.docx",
+          "exit": 0,
+          "pages": 2
+        },
+        {
+          "file": "rubrics.docx",
+          "exit": 0,
+          "pages": 2
+        },
+        {
+          "file": "studyGuides.docx",
+          "exit": 0,
+          "pages": 2
+        },
+        {
+          "file": "syllabus.docx",
+          "exit": 0,
+          "pages": 4
+        },
+        {
+          "file": "slideDecks.pptx",
+          "exit": 0,
+          "pages": 15
+        }
+      ]
+    },
+    {
+      "case": "d-e03-order-effects",
+      "source": "development fixture, already exposed",
+      "modelCalls": 0,
+      "zipSha256": "e8e96fb915660c123e93f67aafab0ecabfa84491725c6f85e7a774edd7035790",
+      "zipBytes": 346293,
+      "zipIssues": [],
+      "officeBodyMatchesReviewedRound9": [
+        "quizBank.docx",
+        "lessonPlans.docx",
+        "assignments.docx",
+        "slideDecks.pptx",
+        "discussions.docx",
+        "rubrics.docx",
+        "studyGuides.docx",
+        "syllabus.docx",
+        "courseFaq.docx"
+      ],
+      "renderedPages": [
+        {
+          "file": "assignments.docx",
+          "exit": 0,
+          "pages": 2
+        },
+        {
+          "file": "courseFaq.docx",
+          "exit": 0,
+          "pages": 1
+        },
+        {
+          "file": "discussions.docx",
+          "exit": 0,
+          "pages": 1
+        },
+        {
+          "file": "lessonPlans.docx",
+          "exit": 0,
+          "pages": 3
+        },
+        {
+          "file": "quizBank.docx",
+          "exit": 0,
+          "pages": 3
+        },
+        {
+          "file": "rubrics.docx",
+          "exit": 0,
+          "pages": 2
+        },
+        {
+          "file": "studyGuides.docx",
+          "exit": 0,
+          "pages": 3
+        },
+        {
+          "file": "syllabus.docx",
+          "exit": 0,
+          "pages": 5
+        },
+        {
+          "file": "slideDecks.pptx",
+          "exit": 0,
+          "pages": 17
+        }
+      ]
+    },
+    {
+      "case": "d-s02-same-event-conflict",
+      "source": "development fixture, already exposed",
+      "modelCalls": 0,
+      "zipSha256": "5924dc43e5408662c44744898eb60773567f277de0ca966c5de951fd20235db0",
+      "zipBytes": 333282,
+      "zipIssues": [],
+      "officeBodyMatchesReviewedRound9": [
+        "quizBank.docx",
+        "lessonPlans.docx",
+        "assignments.docx",
+        "slideDecks.pptx",
+        "discussions.docx",
+        "rubrics.docx",
+        "studyGuides.docx",
+        "syllabus.docx",
+        "courseFaq.docx"
+      ],
+      "renderedPages": [
+        {
+          "file": "assignments.docx",
+          "exit": 0,
+          "pages": 2
+        },
+        {
+          "file": "courseFaq.docx",
+          "exit": 0,
+          "pages": 1
+        },
+        {
+          "file": "discussions.docx",
+          "exit": 0,
+          "pages": 1
+        },
+        {
+          "file": "lessonPlans.docx",
+          "exit": 0,
+          "pages": 3
+        },
+        {
+          "file": "quizBank.docx",
+          "exit": 0,
+          "pages": 2
+        },
+        {
+          "file": "rubrics.docx",
+          "exit": 0,
+          "pages": 2
+        },
+        {
+          "file": "studyGuides.docx",
+          "exit": 0,
+          "pages": 3
+        },
+        {
+          "file": "syllabus.docx",
+          "exit": 0,
+          "pages": 4
+        },
+        {
+          "file": "slideDecks.pptx",
+          "exit": 0,
+          "pages": 16
+        }
+      ]
+    }
+  ],
+  "realBrowserCourse": {
+    "title": "Proportions and Rounding",
+    "runId": "run-1788684211416",
+    "model": "local Gemma 4 E2B",
+    "adapterActive": false,
+    "typedSkeleton": "rejected as incomplete; recovered through prose/compiler",
+    "downloadSha256": "d14eade261d84d0db6b235309b782e7b2cf1af20d80ef3d4f17215f6bf260855",
+    "versionAtGeneration": "0.18.9 with v0.19.0 working changes",
+    "quality": "exportable with review notes"
+  },
+  "limitations": [
+    "Development samples are not unseen tests.",
+    "No external teacher scoring or student learning study.",
+    "No qualified adapter comparison available.",
+    "No actual Google Docs/Sheets/Slides round-trip verification.",
+    "Production deployment verification is recorded separately in the acceptance document."
+  ]
+}

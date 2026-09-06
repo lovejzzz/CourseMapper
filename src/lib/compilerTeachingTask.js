@@ -12,7 +12,9 @@ export const TEACHING_TASK_PROTOCOL = 'coursemapper-shared-teaching-task-v1';
 const clean = (s) => (typeof s === 'string' ? s.trim() : '');
 const unique = (xs) => [...new Set(xs.map(clean).filter(Boolean))];
 const bounded = (s) =>
-  /\b(?:cannot|could not|do not|does not|no date|without proving|selection bias|excluded)\b/i.test(s);
+  /\b(?:cannot|could not|do not|does not|did not|was not|were not|not tested|not measured|no date|without proving|selection bias|excluded)\b/i.test(
+    s,
+  );
 
 function criterion(id, label, weight, complete, partial, error, feedback, proficient) {
   return {

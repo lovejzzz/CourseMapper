@@ -85,7 +85,7 @@ function build({
     ],
     'counterbalance-order-and-task': [
       'Practice order and condition effects',
-      'Identifies music versus silence, the first versus second position, the repeated puzzle, and measured completion time.',
+      'Identifies music versus silence, the first versus second position, the repeated task, and measured completion time.',
       'Uses comparable task versions and balances both version and condition order, with consistent timing rules and time/error measurements. The four reference sequences or an equivalent balanced design are acceptable.',
     ],
     'self-selection-and-baseline': [
@@ -141,6 +141,16 @@ function build({
       zh,
     ),
   ];
+  const design = kind === 'evidence-experiment';
+  if (!design)
+    Object.assign(criteria[1].levels, {
+      proficient: zh
+        ? '结论及主要推理正确，但没有完整解释材料之间的关键关系。'
+        : 'Gives the correct conclusion and main reasoning, but leaves part of the relationship between the records unexplained.',
+      developing: zh
+        ? '给出结论，却没有解释哪条材料及其关系支持这一结论。'
+        : 'States a conclusion without explaining which record and evidence relationship support it.',
+    });
   return {
     kind,
     family: kind === 'evidence-experiment' ? 'experiment' : 'source-analysis',
@@ -149,14 +159,18 @@ function build({
     directions: zh
       ? [
           '给每条陈述标明来源，区分观察与推断。',
-          '列出关键的证据关系或同时改变的条件。',
-          '写出结论及理由；设计任务还需给出可以复核的操作步骤。',
+          design ? '列出同时改变的条件，解释为什么无法单独归因。' : '列出材料之间的关键关系，判断陈述是否相容。',
+          design ? '写出结论及理由，并给出他人可以执行和复核的操作步骤。' : '写出有证据支持的结论，并解释理由。',
           '指出未知内容，以及可以取得怎样的新证据。',
         ]
       : [
           'Attribute each claim and separate observations from inferences.',
-          'Identify the decisive relationship or the conditions that change together.',
-          'Write your conclusion and reasoning; for a design task, specify a procedure someone else can check.',
+          design
+            ? 'Identify the conditions that change together and explain why the intended effect is not isolated.'
+            : 'Identify the decisive relationship between the records and whether their claims are compatible.',
+          design
+            ? 'Write your conclusion and reasoning, then specify a procedure someone else can carry out and check.'
+            : 'Write your evidence-supported conclusion and explain your reasoning.',
           'Identify what remains unknown and the evidence that could address it.',
         ],
     summary: conclusion,

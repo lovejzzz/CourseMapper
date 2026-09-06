@@ -19,3 +19,6 @@ package-lock.json
 # Hash-bound acceptance source packets retain their original recorded bytes.
 /benchmarks/classroom/v2/cases/
 /benchmarks/classroom/v2/manifest.json
+# Preserve the original recorded bytes of evaluation receipts and completions.
+/benchmarks/classroom/v2/results/*.json
+/research/scion/evaluation/v0.19.0/*.json

@@ -6,6 +6,7 @@ export function projectTeachingTaskSlides(deck, task) {
   const transfer = task.sequence?.find((unit) => unit.kind === 'independent-transfer');
   const chunks = (lines, wordLimit = 60) => {
     const result = [];
+    const units = [];
     const measure = (text) =>
       /\p{Script=Han}/u.test(text) ? [...text.replace(/\s/g, '')].length / 3 : text.trim().split(/\s+/).length;
     for (const line of lines) {
@@ -27,11 +28,15 @@ export function projectTeachingTaskSlides(deck, task) {
         if (part.trim()) parts.push(part.trim());
         return parts;
       });
-      for (const sentence of sentences) {
-        const previous = result.at(-1);
-        if (previous && measure(`${previous} ${sentence}`) <= wordLimit) result[result.length - 1] += ` ${sentence}`;
-        else result.push(sentence);
-      }
+      units.push(...sentences);
+    }
+    // Balance short final fragments without raising the text-density limit.
+    const total = units.reduce((sum, unit) => sum + measure(unit), 0);
+    const target = Math.min(wordLimit, Math.ceil(total / Math.max(1, Math.ceil(total / wordLimit))));
+    for (const sentence of units) {
+      const previous = result.at(-1);
+      if (previous && measure(`${previous} ${sentence}`) <= target) result[result.length - 1] += ` ${sentence}`;
+      else result.push(sentence);
     }
     return result;
   };
@@ -159,6 +164,9 @@ export function projectTeachingTaskSlides(deck, task) {
         ? slide.type
         : contentRoles[cursor++] || `scaffold:${cursor}`);
     Object.assign(slide, material(role), {
+      // Legacy recap/key-concept layouts consume different fields and can
+      // silently discard a task title or reserve an empty comparison column.
+      type: contentRoles.includes(role) || role.startsWith('transfer-record') ? 'content' : role,
       taskRole: role,
       taskId: task.id,
       taskRevision: task.revision,

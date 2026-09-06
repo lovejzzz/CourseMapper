@@ -980,24 +980,22 @@ export default function Landing({
                 </details>
               )}
 
-              {scionSelected &&
-                (scionResearchEnabled ||
-                  (scionCoverageForecast?.status === 'ready' && scionCoverageForecast.externalNeeded > 0)) && (
-                  <p
-                    data-testid="scion-external-source-notice"
-                    className="mt-2 text-center text-xs leading-relaxed text-slate-600 dark:text-slate-300"
-                  >
-                    {scionCoverageForecast?.status === 'ready' && scionCoverageForecast.externalNeeded > 0 ? (
-                      <>
-                        Source lookup sends the course title and {scionCoverageForecast.externalNeeded} uncovered lesson
-                        topic{scionCoverageForecast.externalNeeded === 1 ? '' : 's'} to{' '}
-                        {formatResearchProviderOrder(scionCoverageForecast.researchPlan?.providerOrder)}.
-                      </>
-                    ) : (
-                      <>Scion web research may send course and lesson topic queries to public source catalogs.</>
-                    )}
-                  </p>
-                )}
+              {scionSelected && scionResearchEnabled && (
+                <p
+                  data-testid="scion-external-source-notice"
+                  className="mt-2 text-center text-xs leading-relaxed text-slate-600 dark:text-slate-300"
+                >
+                  {scionCoverageForecast?.status === 'ready' && scionCoverageForecast.externalNeeded > 0 ? (
+                    <>
+                      Source lookup sends the course title and {scionCoverageForecast.externalNeeded} uncovered lesson
+                      topic{scionCoverageForecast.externalNeeded === 1 ? '' : 's'} to{' '}
+                      {formatResearchProviderOrder(scionCoverageForecast.researchPlan?.providerOrder)}.
+                    </>
+                  ) : (
+                    <>Scion web research may send course and lesson topic queries to public source catalogs.</>
+                  )}
+                </p>
+              )}
 
               {hostedScion && hostedAvailability?.ready === false && (
                 <p role="status" className="mt-2 text-center text-xs text-amber-700 dark:text-amber-300">

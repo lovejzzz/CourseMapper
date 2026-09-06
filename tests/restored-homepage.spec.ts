@@ -120,9 +120,13 @@ test('the original homepage retains attachments, all original material choices a
 
 test('the public changelog shows the actual current release and its quality limits', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('link', { name: 'v0.18.9', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Connected Lessons, Concrete Answers', exact: true })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Preserve the teaching sequence', exact: true })).toBeVisible();
-  await expect(page.getByText('not proof of learning outcomes', { exact: false })).toBeVisible();
-  await expect(page.getByText('No model weights or hosted service settings change', { exact: false })).toBeVisible();
+  await page.getByRole('link', { name: 'v0.19.0', exact: true }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Shared Teaching Tasks, Precise Updates', exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Keep edits connected', exact: true })).toBeVisible();
+  await expect(
+    page.getByText('broad source understanding and learning outcomes remain unverified', { exact: false }),
+  ).toBeVisible();
+  await expect(page.getByText('the shared online API stays paused', { exact: false })).toBeVisible();
 });

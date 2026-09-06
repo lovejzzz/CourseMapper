@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased — v0.19.0 quality work
+## 0.19.0 — 2026-09-06
 
 - Preserve the 0.18.7 homepage, workspace layout, ten materials and export choices. Local Scion remains the only enabled inference mode; the shared hosted API stays paused.
 - Store versioned task source inputs in the course graph and propagate accepted source edits through the compiler's material projections. Preserve unrelated teacher wording, show concrete conflicting replacements, retain removed text, and restore the whole linked edit with undo/redo.
@@ -10,7 +10,10 @@
 - Provide editable, collapsible teacher references for assignments and rubrics. Hide these references in student view. Use readable criterion-by-criterion Word rubric tables and explicit level scoring; keep teacher answer labels and complete slide reasoning.
 - Add 30 immutable source/scenario cases, independent output checks, corruption tests and first-run receipts. The 18 development cases pass the stronger automated checks; the first 12 held-out cases exposed 11 unsupported tasks and 24 defects. Those failures are retained, and exposed cases are no longer described as unseen.
 - Add a trusted native thinking option and suppress its reasoning channel from learner output. Twenty actual browser probes and eight native comparisons did not establish a reliable task-design improvement; thinking stays off by default, no adapter is active, and neither research task-design protocol is promoted.
-- Verification at this checkpoint: 958 required software tests, 14 benchmark-checker tests, 201 additional grading/admission/export regressions, and 39 browser checks passed. Final educational export review, broader semantic task coverage, release versioning and production deployment verification remain open. See [the acceptance record](docs/v0.19.0-acceptance.zh-CN.md).
+- Fix student-view quiz answer leakage, stale choice highlighting, missing generic-key review notices and the privacy copy shown when research is off. Add a source-specific final feedback/revision question instead of a generic filler prompt; preserve authored and machine-scored banks.
+- Render all three complete workshop packages. Correct legacy slide layout mismatches, balance reasoning chunks without increasing density, retain rounded reverse-check notation, use portrait task rubrics and start quiz answer keys on a new page. Give FAQ entries supported categories and remove experimental-design instructions from source-analysis tasks.
+- Correct a quality-check false positive that required multiple-choice distractors in a bank with zero multiple-choice questions; retain missing-tuple and teacher-review checks.
+- Verify 964 required software tests, 14 independent benchmark-checker tests and 206 additional grading/admission/export regressions. Browser and deployment evidence, classroom review details and explicit remaining limitations are recorded in [the acceptance record](docs/v0.19.0-acceptance.zh-CN.md).
 
 ## 0.18.9 — 2026-09-06
 

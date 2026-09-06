@@ -107,6 +107,13 @@ export function docxPageSize(landscape = false) {
   // rubric on a portrait page and can displace the wrapped masthead.
   return landscape ? { width: 12240, height: 15840, orientation: 'landscape' } : { width: 12240, height: 15840 };
 }
+
+export function rubricDocxNeedsLandscape(data) {
+  const rows = Array.isArray(data?.rubrics) ? data.rubrics : [];
+  // Task rubrics use one readable two-column table per criterion. Legacy
+  // matrices still need the landscape page shared by mixed documents.
+  return rows.length === 0 || rows.some((row) => !row.taskId);
+}
 // 12.3pt leading for 11pt body copy keeps dense instructor packets readable
 // while avoiding one- or two-paragraph trailing pages. The previous 12.6pt
 // rhythm repeatedly pushed a final integrity note or homework handoff onto an
@@ -1290,54 +1297,18 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             );
         }
 
-        // Part 2 — the instructor answer key. Keep it on a fresh page when
-        // the question paper is compact enough to end cleanly. A longer bank
-        // can spill only a few lines onto page 2; forcing another break there
-        // creates a mostly empty body page. In that case the strong Answer Key
-        // heading continues on the current page instead.
+        // Teachers must be able to print the question paper without the key.
+        // Start references on a new page regardless of answer length.
         const hasKeyContent = questions.some(
           (q) => q.answer || q.explanation || q.sampleAnswer || q.rubricHints || q.scoringGuidance,
         );
         if (hasKeyContent) {
-          const questionPaperCharacters = questions.reduce(
-            (total, question) =>
-              total +
-              String(question?.question || '').length +
-              (Array.isArray(question?.options)
-                ? question.options.reduce((optionTotal, option) => optionTotal + String(option || '').length, 0)
-                : 0),
-            0,
-          );
-          const answerKeyCharacters = questions.reduce(
-            (total, question) =>
-              total +
-              [
-                question?.answer,
-                question?.explanation,
-                question?.sampleAnswer,
-                question?.scoringGuidance,
-                question?.feedback,
-                question?.objectiveAligned,
-                question?.rubricHints,
-              ].reduce((sum, value) => sum + String(value || '').length, 0),
-            0,
-          );
-          // A bounded question paper can share a page with its own questions,
-          // but the instructor key should begin on a clean page. The old
-          // four-question limit let a normal eight-item bank consume the
-          // lower half of page 1 and strand only its last two answers on a
-          // sparse page 2. Character count is the course-agnostic signal that
-          // the question paper itself fits comfortably on one page at the
-          // compact quiz typography. Truly long papers continue naturally so
-          // a forced break cannot create an intermediate spill page.
-          const answerKeyStartsFreshPage =
-            questions.length <= 8 && questionPaperCharacters <= 3400 && answerKeyCharacters <= 6500;
           // Put the break ON the heading. A standalone page-break paragraph
           // can itself flow onto the next page when the question paper fills
           // page 1, producing a completely blank page before the key.
           children.push(
             makeHeading(`Answer Key — ${quiz.lessonTitle || 'Quiz'}`, {
-              pageBreakBefore: answerKeyStartsFreshPage,
+              pageBreakBefore: true,
             }),
           );
           let prevObjectiveAligned = '';
@@ -1378,6 +1349,12 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           }
           for (let j = 0; j < questions.length; j++) {
             const q = questions[j];
+            if (q.sourceReviewRequired === true)
+              children.push(
+                makeItalic(
+                  `Q${j + 1}: Teacher review required. Replace general guidance with a specific answer supported by the question's record before using this key.`,
+                ),
+              );
             const keyMeta = [q.bloomsLevel, q.difficulty].filter(Boolean);
             // The callout label is rendered in tracked uppercase — only
             // short keys (a letter / a phrase) belong there. Full-sentence
@@ -2553,7 +2530,11 @@ export async function exportDeliverableDocx(featureId, data, courseName) {
   // Build content using shared helper
   _buildDocxContentShared(featureId, data, children, { ...docx, THIN_BORDER, exportTitle: courseName });
 
-  const doc = buildDocxDocument(docx, children, { courseName, label, landscape: featureId === 'rubrics' });
+  const doc = buildDocxDocument(docx, children, {
+    courseName,
+    label,
+    landscape: featureId === 'rubrics' && rubricDocxNeedsLandscape(data),
+  });
 
   const blob = await Packer.toBlob(doc);
   await assertOfficeExportHasNoInternalText(blob, 'docx', label);

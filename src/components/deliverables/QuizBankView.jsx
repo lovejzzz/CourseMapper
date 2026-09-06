@@ -131,12 +131,13 @@ export default function QuizBankView({
                   qPath={[key, i, questionKey, j]}
                   onEdit={onEdit}
                   onSaveToBank={onSaveToBank}
+                  isStudentView={isStudentView}
                 />
               ))}
               {/* v0.14.4 (D2): the exam's answer key, visually separated from
                   the question list. Constructed-response rows show their
                   scoring guide in place of a letter. */}
-              {isExam && Array.isArray(quiz.answerKey) && quiz.answerKey.length > 0 && (
+              {!isStudentView && isExam && Array.isArray(quiz.answerKey) && quiz.answerKey.length > 0 && (
                 <div
                   data-exam-answer-key="true"
                   className="mt-4 rounded-lg border border-slate-200/70 dark:border-slate-700/60 overflow-hidden"
@@ -252,7 +253,7 @@ export default function QuizBankView({
   );
 }
 
-function QuestionCard({ question, number, qPath, onEdit, onSaveToBank }) {
+function QuestionCard({ question, number, qPath, onEdit, onSaveToBank, isStudentView }) {
   const [showAnswer, setShowAnswer] = useState(false);
   const [saved, setSaved] = useState(false);
   const q = question;
@@ -332,7 +333,7 @@ function QuestionCard({ question, number, qPath, onEdit, onSaveToBank }) {
       {options && (
         <div className="ml-8 space-y-1">
           {options.map((opt, k) => {
-            const isCorrect = showAnswer && opt.startsWith(answer);
+            const isCorrect = !isStudentView && showAnswer && Boolean(answer) && opt.startsWith(answer);
             return (
               <div
                 key={k}
@@ -344,13 +345,29 @@ function QuestionCard({ question, number, qPath, onEdit, onSaveToBank }) {
           })}
         </div>
       )}
-      <button
-        onClick={() => setShowAnswer(!showAnswer)}
-        className="text-xs font-semibold text-indigo-500 hover:text-indigo-700 ml-8 transition-colors"
-      >
-        {showAnswer ? 'Hide answer ↑' : 'Show answer + rationale ↓'}
-      </button>
-      {showAnswer && (
+      {!isStudentView && q.sourceReviewRequired === true && (
+        <p className="ml-8 text-xs text-amber-800 dark:text-amber-300">
+          Teacher review: replace general guidance with a specific answer supported by this question's record.
+          {onEdit && (
+            <button
+              type="button"
+              className="ml-2 underline"
+              onClick={() => onEdit([...qPath, 'sourceReviewRequired'], false)}
+            >
+              Mark answer reviewed
+            </button>
+          )}
+        </p>
+      )}
+      {!isStudentView && (
+        <button
+          onClick={() => setShowAnswer(!showAnswer)}
+          className="text-xs font-semibold text-indigo-500 hover:text-indigo-700 ml-8 transition-colors"
+        >
+          {showAnswer ? 'Hide answer ↑' : 'Show answer + rationale ↓'}
+        </button>
+      )}
+      {!isStudentView && showAnswer && (
         <div className="ml-8 text-xs bg-emerald-50/60 rounded-lg p-3 border border-emerald-100/50 space-y-2">
           {answer && (
             <p>

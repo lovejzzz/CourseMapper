@@ -4,16 +4,16 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'September 6, 2026',
-  title: 'Connected Lessons, Concrete Answers',
-  landingTitle: 'EDUTOOL V0.18.9: Make Each Lesson Build on the Last',
+  title: 'Shared Teaching Tasks, Precise Updates',
+  landingTitle: 'EDUTOOL V0.19.0: Better Materials That Stay Connected',
   highlights: [
-    'Keep distinct lesson objectives and connect a sourced diagnosis to the next design task, including after restore and single-lesson regeneration.',
-    'Align task names, answers and rubric criteria across materials; replace generic quiz answers and empty slide concepts with source-specific reasoning.',
-    'The unchanged five-input benchmark now passes 295 defect probes. This is a compiler replay, not proof of learning outcomes. Scion stays local and the 0.18.7 interface remains.',
+    'Update shared source inputs across materials while preserving teacher edits, reviewing conflicts, and undoing or restoring the complete change.',
+    'Teach concrete reasoning with worked examples, a separate practice case, matching answers, diagnostic feedback and four-level rubrics. Improve real Word and PowerPoint exports.',
+    'Keep local Scion, the original ten materials and the 0.18.7 interface. Publish the 30-case benchmark and actual model failures; broad source understanding and learning outcomes remain unverified.',
   ],
   landingHighlights: [
-    'Build the next task on the previous answer.',
-    'Keep syllabus, questions and scoring aligned.',
+    'Keep source edits and material answers connected.',
+    'Use specific tasks, feedback and scoring criteria.',
     'Retain local Scion and the familiar interface.',
   ],
 };

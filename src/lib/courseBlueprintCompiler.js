@@ -20846,7 +20846,9 @@ function buildSourceBoundRecoveryQuizAtoms({ lesson, blueprint, quizPlan, concep
           : compilerPracticeRecovery
             ? 'compiler-created-practice-recovery'
             : 'source-bound-recovery',
-        sourceReviewRequired: !sourceFactsOnly && !compilerPracticeRecovery,
+        // An exact source copy is not a solved task. This fallback supplies
+        // scoring guidance; it still needs an instructor's specific key.
+        sourceReviewRequired: !compilerPracticeRecovery,
         ...(practiceRecord ? { practiceRecord } : {}),
       },
       alignedPlan,

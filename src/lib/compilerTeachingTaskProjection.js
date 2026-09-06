@@ -413,6 +413,20 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
           ...ref(task),
         })),
       ];
+      const transfer = task.sequence?.find((unit) => unit.kind === 'independent-transfer');
+      const retry = task.sequence?.find((unit) => unit.kind === 'feedback-retry');
+      if (transfer && retry)
+        quizQuestions.push({
+          ...ref(task),
+          practiceId: retry.id,
+          practiceKind: retry.kind,
+          question:
+            task.language === 'zh'
+              ? `回到本题组的独立练习。反馈：${retry.feedback} ${retry.question}`
+              : `Return to the independent case in this question bank. Feedback: ${retry.feedback} ${retry.question}`,
+          answer: retry.answer,
+          successCriteria: transfer.criteria,
+        });
       quizQuestions.forEach((q, i) => {
         if (!seats[i]) return;
         Object.assign(seats[i], q, {
@@ -424,6 +438,7 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
           scoringGuidance: q.successCriteria.join(' '),
           explanation: q.answer,
           enrichmentSource: 'shared-teaching-task',
+          sourceReviewRequired: false,
           intendedUse:
             q.practiceKind === 'independent-transfer'
               ? 'Independent response to a new fictional case; use the record in this question.'
@@ -434,26 +449,30 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
     if (feature === 'courseFaq')
       Object.assign(row, ref(task), {
         qs: [
-          { q: 'What will I learn to do?', an: task.objective },
-          { q: 'What do I need to submit?', an: task.product },
+          { q: 'What will I learn to do?', an: task.objective, ca: 'Concept Explanation' },
+          { q: 'What do I need to submit?', an: task.product, ca: 'Assignment Clarification' },
           {
             q: 'Which materials do I need?',
+            ca: 'Course Logistics',
             an:
               task.preparation?.instruction ||
               'Use the source record reproduced in the lesson plan and study guide. Label your reasoning separately from statements directly supplied by the record.',
           },
           {
             q: 'How will my response be evaluated?',
+            ca: 'Assignment Clarification',
             an:
               task.criteria.map((c) => `${c.label}: ${c.weight}%`).join('; ') +
               '. Check the task rubric for the specific evidence at each level.',
           },
           {
             q: 'How can I check and improve my answer?',
+            ca: 'Assessment Prep',
             an: 'Attempt the task before opening the study-guide answer. Compare reasoning step by step. Use the feedback for the first incorrect or missing step, then revise your response.',
           },
           {
             q: 'How much time should I allow?',
+            ca: 'Course Logistics',
             an: `${task.minutes} minutes for the classroom response, followed by up to 5 minutes to correct it using feedback.`,
           },
         ],

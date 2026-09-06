@@ -1,6 +1,11 @@
 import { getDocx, resolveFeatureLabel } from './exporterUtils.js';
 import { renderedDeliverableCollection } from '../renderedDeliverableRoot.js';
-import { _buildDocxContentShared, buildDocxDocument, buildDocxTitleChildren } from './docxExporter.js';
+import {
+  _buildDocxContentShared,
+  buildDocxDocument,
+  buildDocxTitleChildren,
+  rubricDocxNeedsLandscape,
+} from './docxExporter.js';
 
 // Cover-meta noun per feature. v0.14.1 (1.11): assignments/rubrics/courseFaq
 // were missing from the old lesson-rooted set, so a 15-brief export said
@@ -48,9 +53,11 @@ export async function buildDeliverableDocxBlob(featureId, data, courseName) {
   // Build content using shared helper
   _buildDocxContentShared(featureId, data, children, { ...docx, THIN_BORDER, exportTitle: courseName });
 
-  // v0.12.1: rubrics render landscape so the 6-column matrix gets usable
-  // column widths (portrait crushed 280-char level cells into 1.1in columns).
-  const doc = buildDocxDocument(docx, children, { courseName, label, landscape: featureId === 'rubrics' });
+  const doc = buildDocxDocument(docx, children, {
+    courseName,
+    label,
+    landscape: featureId === 'rubrics' && rubricDocxNeedsLandscape(data),
+  });
 
   return await Packer.toBlob(doc);
 }

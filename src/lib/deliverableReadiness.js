@@ -2837,6 +2837,21 @@ export function evaluateWorkspaceReadiness({
 
     const scopedData = scopeDeliverableDataToLessons(featureId, entry.data, lessonIndices, courseMap);
 
+    if (featureId === 'quizBank') {
+      const key = renderedDeliverableCollectionKey(featureId, scopedData);
+      const unresolved = (scopedData?.[key] || [])
+        .flatMap((quiz) => quiz.questions || quiz.qs || [])
+        .filter((question) => question.sourceReviewRequired === true);
+      if (unresolved.length)
+        issues.push(
+          makeIssue(
+            READINESS_WARNING,
+            featureId,
+            `${unresolved.length} question${unresolved.length === 1 ? ' needs' : 's need'} a specific instructor-reviewed answer. Source statements and general scoring guidance do not establish a complete reference response.`,
+          ),
+        );
+    }
+
     checkPublishabilityPlaceholders(featureId, scopedData, issues);
 
     if (PER_LESSON_FEATURES.has(featureId)) {

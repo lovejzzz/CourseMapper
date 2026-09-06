@@ -294,7 +294,7 @@ describe('applied multiple-choice admission', () => {
       skipLanguageFinalizer: true,
     }).quizBank.quizzes[0].questions;
     expect(questions.every((question) => question.enrichmentSource === 'compiler-exact-source-ledger')).toBe(true);
-    expect(questions.every((question) => question.sourceReviewRequired === false)).toBe(true);
+    expect(questions.every((question) => question.sourceReviewRequired === true)).toBe(true);
     expect(JSON.stringify(questions)).not.toContain('This recovery item assesses');
   });
 });

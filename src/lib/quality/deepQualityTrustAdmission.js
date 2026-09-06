@@ -128,6 +128,18 @@ function addAssessmentTupleIntegrityFinding(findings, manifest) {
   const strictCheckpoint = isVerifiedCoherentDraftCheckpoint(manifest);
   if (!receipt && !strictCheckpoint) return;
   const rows = Array.isArray(receipt?.rows) ? receipt.rows : [];
+  // Ordinary constructed-response banks need no multiple-choice tuples.
+  // This is inapplicability, not positive evidence of answer correctness.
+  if (
+    !strictCheckpoint &&
+    receipt?.protocol === 'coursemapper-assessment-tuple-integrity-v1' &&
+    Array.isArray(receipt.rows) &&
+    rows.length === 0 &&
+    receipt.total === 0 &&
+    receipt.structurallyComplete === 0 &&
+    receipt.reviewRequired === 0
+  )
+    return;
   const complete = rows.filter(
     (row) =>
       row?.status === 'structurally-complete' &&

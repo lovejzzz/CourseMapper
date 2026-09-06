@@ -52,24 +52,34 @@ describe('classroom defects found in the frozen local Scion output', () => {
       /source limitation|additional evidence a wider claim would require/,
     );
   });
-  it('shows every numerical reasoning step on the slide, with full source context in notes', () => {
-    const slide = outputs.slideDecks.decks[0].slides.find((s) => s.workedExample?.verification?.numerator === '16');
-    expect(slide.bullets.join(' ')).toContain('16 ÷ 20 = 0.80');
-    expect(slide.bullets.join(' ')).toContain('0.80 × 100 = 80%');
-    expect(slide.bullets.join(' ')).toContain('0.80 × 20 = 16');
-    expect(slide.bullets.join(' ').split(/\s+/).length).toBeLessThan(85);
-    expect(slide.notes).toContain('sample completion proportion');
-  });
-  it('exports the visible steps instead of silently substituting a different evidence table', async () => {
+  it('shows numerical reasoning in order before independent work, with bounded slide density', () => {
     const deck = outputs.slideDecks.decks[0];
-    const slide = deck.slides.find((s) => s.workedExample?.verification?.numerator === '16');
-    const blob = await buildSlideDeckPptxBlob({ decks: [{ ...deck, slides: [slide] }] }, 'Sample proportions', 0);
+    const worked = deck.slides.filter((slide) => slide.taskRole?.startsWith('worked:'));
+    const visible = worked.flatMap((slide) => slide.bullets).join(' ');
+    const steps = ['16 ÷ 20 = 0.80', '0.80 × 100 = 80%', '0.80 × 20 = 16'];
+    for (const step of steps) expect(visible).toContain(step);
+    expect(visible.indexOf(steps[0])).toBeLessThan(visible.indexOf(steps[1]));
+    expect(visible.indexOf(steps[1])).toBeLessThan(visible.indexOf(steps[2]));
+    for (const slide of worked) {
+      expect(slide.type).toBe('content');
+      expect(slide.bullets.join(' ').split(/\s+/).length).toBeLessThanOrEqual(60);
+      expect(deck.slides.indexOf(slide)).toBeLessThan(deck.slides.findIndex((s) => s.taskRole === 'activity'));
+    }
+    expect(worked[0].notes).toContain('sample completion proportion');
+  });
+  it('exports all visible steps using content layouts without substituting an evidence table', async () => {
+    const deck = outputs.slideDecks.decks[0];
+    const slides = deck.slides.filter((slide) => slide.taskRole?.startsWith('worked:'));
+    const blob = await buildSlideDeckPptxBlob({ decks: [{ ...deck, slides }] }, 'Sample proportions', 0);
     const zip = await JSZip.loadAsync(await blob.arrayBuffer());
-    const visibleXml = await zip.file('ppt/slides/slide1.xml').async('string');
+    const visibleXml = (
+      await Promise.all(slides.map((_, i) => zip.file(`ppt/slides/slide${i + 1}.xml`).async('string')))
+    ).join(' ');
     expect(visibleXml).toContain('16 ÷ 20 = 0.80');
     expect(visibleXml).toContain('0.80 × 100 = 80%');
     expect(visibleXml).toContain('0.80 × 20 = 16');
     expect(visibleXml).not.toContain('SOURCE POINT');
+    expect(visibleXml).not.toContain('LAST TIME');
   });
   it('asks for calculation in the quiz and exports the complete matching answer', async () => {
     const questions = outputs.quizBank.quizzes[0].questions;
@@ -85,5 +95,6 @@ describe('classroom defects found in the frozen local Scion output', () => {
     expect(xml).toContain('Calculate 16/20 as a decimal and percentage');
     expect(xml).toContain('(16/20) × 100 = 80%');
     expect(xml).toContain('0.80 × 20 = 16');
+    expect(xml).toContain('<w:pageBreakBefore/>');
   });
 });
