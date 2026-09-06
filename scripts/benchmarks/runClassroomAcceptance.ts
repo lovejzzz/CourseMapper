@@ -16,12 +16,15 @@ type AcceptedTask = { question: string; answer: string; criteria: { label: strin
 const args = process.argv.slice(2);
 const value = (flag: string, fallback: string) => (args.includes(flag) ? args[args.indexOf(flag) + 1] : fallback);
 const split = value('--split', 'development');
-if (!['development', 'held-out'].includes(split)) throw new Error('Choose development or held-out explicitly.');
+if (!['development', 'held-out', 'exposed'].includes(split))
+  throw new Error('Choose development, held-out, or exposed explicitly.');
 const out = value('--out', `.audit-work/v019-2026-09-06/${split}-${Date.now()}`);
 const sha = (text: string | Buffer) => createHash('sha256').update(text).digest('hex');
 const directory = 'benchmarks/classroom/v2/cases';
 const manifest = JSON.parse(await fs.readFile('benchmarks/classroom/v2/manifest.json', 'utf8'));
-const cases = manifest.cases.filter((entry: { split: string }) => entry.split === split);
+const cases = manifest.cases.filter(
+  (entry: { split: string }) => entry.split === (split === 'exposed' ? 'held-out' : split),
+);
 await fs.mkdir(out, { recursive: true });
 const results = [];
 for (const entry of cases) {
@@ -117,6 +120,9 @@ const report = {
   modelCalls: 0,
   mode: 'source-packet compiler acceptance; not model inference or measured learning',
   head: execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
+  workingTreeDirty: Boolean(
+    execFileSync('git', ['status', '--porcelain', '--', 'src/lib', 'scripts/benchmarks'], { encoding: 'utf8' }).trim(),
+  ),
   compilerSourceSha256: sourceHash.digest('hex'),
   checkerSha256: sha(await fs.readFile('scripts/benchmarks/classroomAcceptance.mjs')),
   runnerSha256: sha(await fs.readFile('scripts/benchmarks/runClassroomAcceptance.ts')),

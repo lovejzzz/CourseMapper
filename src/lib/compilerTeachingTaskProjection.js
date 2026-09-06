@@ -139,7 +139,15 @@ function projectAssignment(row, task, blueprint) {
       uploadChecklist: [],
     })),
     instructorFeedbackPriority: task.criteria.map((c) => c.feedback).join(' '),
-    selfAssessmentRubric: task.criteria.map((c) => `${c.label}: ${c.levels.exemplary}`),
+    // The student sheet precedes the teacher reference page. Scoring bands
+    // contain solutions; use process checks here rather than publishing the key.
+    selfAssessmentRubric:
+      task.studentChecks ||
+      task.criteria.map((c) =>
+        task.language === 'zh'
+          ? `${c.label}：先独立作答，并标出自己答案中支持这一标准的证据或推理，再查看教师参考。`
+          : `${c.label}: Before consulting the teacher reference, identify the evidence or reasoning in your own response that meets this criterion.`,
+      ),
     misconceptionToWatch: {
       misconception: task.errors[0].response,
       correction: task.errors[0].correction,

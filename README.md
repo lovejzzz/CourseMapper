@@ -1,8 +1,10 @@
 # EduTool
 
-[EduTool.dev](https://edutool.dev) is an editable course-material workspace for educators. The current release is **0.19.0**, preserving the **0.18.7 interface**, including the original homepage, material selection, course map, chat, editors, revision controls and export sidebar.
+[EduTool.dev](https://edutool.dev) is an editable course-material workspace for educators. The current release is **0.19.1**, preserving the **0.18.7 interface**, including the original homepage, material selection, course map, chat, editors, revision controls and export sidebar.
 
 Quality improvements continue within this interface. The experimental Course Studio replacement is preserved for research; it is not the production application.
+
+v0.19.1 adds bounded source-quantity reasoning: combine counts across groups, bound unknown overlaps, and distinguish count shares from measured amounts. It also removes worked answers from assignment self-checks before the teacher-reference page. See the [follow-up output review](docs/v0.19.1-output-review.zh-CN.md). Three exposed arithmetic failures are repaired; eight other source operations remain unsupported. This improves the compiler, not the model weights.
 
 v0.19.0 adds precise source-driven updates, teacher-edit conflict review, transaction undo/redo, independent practice and stronger export checks. Three complete workshop samples and their [educational export review](docs/v0.19.0-output-review.zh-CN.md) accompany the release. Its [acceptance record](docs/v0.19.0-acceptance.zh-CN.md), [30-case benchmark](benchmarks/classroom/v2/README.md) and [actual local-model investigation](research/scion/evaluation/v0.19.0/README.md) distinguish completed software verification from unresolved source-understanding and educational-quality work. The first held-out failures remain published; passing development cases is not a claim of general classroom readiness.
 

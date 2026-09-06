@@ -1,0 +1,174 @@
+{
+  "protocol": "edutool-classroom-acceptance-v2",
+  "createdAt": "2026-09-06T14:17:15.893Z",
+  "split": "exposed",
+  "modelCalls": 0,
+  "mode": "source-packet compiler acceptance; not model inference or measured learning",
+  "head": "bb5cb17390f46862cf8ac1b3edcecd22e2721456",
+  "workingTreeDirty": true,
+  "compilerSourceSha256": "74eb712f746971e279ee0a0aa09508ca200e28a5b9658d364fbe493e44e1bc81",
+  "checkerSha256": "f7b800297ed2ccc123ddf04ea586ccb0d99ed6453f9c79c90ce95b1a05f3ebe8",
+  "runnerSha256": "7833806cafa1997f6ae0f04843026e59c86efeb82e50a850a5f5a33260d4a547",
+  "cases": [
+    {
+      "id": "h-c01-pooled-rates",
+      "family": "calculation",
+      "language": "en",
+      "elapsedMs": 885,
+      "inputSha256": "25a8bfec5b7a30381a147ac2aef133d98e54bfd7bd3687391f711a81a313c689",
+      "outputSha256": "e0acf9faf56ccdd346a892536b2a50c5e7d5af2a15f66b02432f904c966a68a9",
+      "failures": [],
+      "educationReview": "pending",
+      "taskCount": 1
+    },
+    {
+      "id": "h-c02-zero-events",
+      "family": "calculation",
+      "language": "zh",
+      "elapsedMs": 132,
+      "inputSha256": "a105190942d66504ccdc2b8f117a992eebb959b98ff35c8ffe98fce5e8fd755a",
+      "outputSha256": "f641b4977e881ede6dad0b10fda6228df939516e93ecc7b9146521c0c0582cba",
+      "failures": [],
+      "educationReview": "pending",
+      "taskCount": 1
+    },
+    {
+      "id": "h-c03-overlap",
+      "family": "calculation",
+      "language": "en",
+      "elapsedMs": 152,
+      "inputSha256": "aed5515864d10f1b5873aa087aa0d864aa20292f0d7f674079c7bd97cd400cc3",
+      "outputSha256": "e2660cfe2059330e7084b4d57ddaabc069582292409dd41b5528c935cc0def6a",
+      "failures": [],
+      "educationReview": "pending",
+      "taskCount": 1
+    },
+    {
+      "id": "h-c04-volume-vs-households",
+      "family": "calculation",
+      "language": "en",
+      "elapsedMs": 142,
+      "inputSha256": "1e2a71969a31c36e758a1d70d78f2ba6f2c242a0692ed904f59e8296e1b42bb9",
+      "outputSha256": "644fdf09d51e4f2a301a540b896e9bd286f1b9e3221db1bd99e2262cd670e2eb",
+      "failures": [],
+      "educationReview": "pending",
+      "taskCount": 1
+    },
+    {
+      "id": "h-s01-print-exposure",
+      "family": "source-analysis",
+      "language": "en",
+      "elapsedMs": 141,
+      "inputSha256": "667838ee7d29fb32e931d3eca1a3a79462e4b25738d9a2874911add6fd3f291f",
+      "outputSha256": "e66ddff3035bbc5c1d512af6831963bd046d09263876464f3573ad612629424f",
+      "failures": [
+        "courseMap/concrete-task: A source task must be admitted; absence is a coverage failure, not a quality pass.",
+        "slideDecks/reasoning-before-practice: All generated worked reasoning precedes independent work."
+      ],
+      "educationReview": "pending",
+      "taskCount": 0
+    },
+    {
+      "id": "h-s02-amended-record",
+      "family": "source-analysis",
+      "language": "en",
+      "elapsedMs": 136,
+      "inputSha256": "31cccb38809b9c927f89eb9450e2939efe8ba838aec47870f657ae18f3296a5a",
+      "outputSha256": "4da92be37baa1ea3c35310e1b03814a695a2a4230d86275c2cd8a1f255532573",
+      "failures": [
+        "courseMap/concrete-task: A source task must be admitted; absence is a coverage failure, not a quality pass.",
+        "slideDecks/reasoning-before-practice: All generated worked reasoning precedes independent work."
+      ],
+      "educationReview": "pending",
+      "taskCount": 0
+    },
+    {
+      "id": "h-s03-missing-axis",
+      "family": "source-analysis",
+      "language": "en",
+      "elapsedMs": 131,
+      "inputSha256": "4c13e3945e5356712accc251397f373d7d711bfc12056966b6129bc316f73dc7",
+      "outputSha256": "236c0cef438e3d42c6090469b77b24b62368d87a92e96487474ee3ba661963ed",
+      "failures": [
+        "courseMap/concrete-task: A source task must be admitted; absence is a coverage failure, not a quality pass.",
+        "slideDecks/reasoning-before-practice: All generated worked reasoning precedes independent work."
+      ],
+      "educationReview": "pending",
+      "taskCount": 0
+    },
+    {
+      "id": "h-s04-interview-zh",
+      "family": "source-analysis",
+      "language": "zh",
+      "elapsedMs": 84,
+      "inputSha256": "c980bee3cee5434a957698edb966de1d1e1a6fa9a222e1f6ee01f20bec737b87",
+      "outputSha256": "be0cb14764b8e379b0da0e1a79c7ca13d939d2d9175b88f67c2f7ef742c865dc",
+      "failures": [
+        "courseMap/concrete-task: A source task must be admitted; absence is a coverage failure, not a quality pass.",
+        "slideDecks/reasoning-before-practice: All generated worked reasoning precedes independent work.",
+        "slideDecks/visible-density: Visible content stays within a bounded slide text load. Rendering is checked separately."
+      ],
+      "educationReview": "pending",
+      "taskCount": 0
+    },
+    {
+      "id": "h-e01-coach-nutrition",
+      "family": "experiment",
+      "language": "en",
+      "elapsedMs": 125,
+      "inputSha256": "2aec735f40218d5082baeb172e5bdd560aaac46089c3ef04bd87cd1e29915b1b",
+      "outputSha256": "e5ae354472495004ad9502809c751d66ef87a434d8b9bc85cfed0f20f8993d6d",
+      "failures": [
+        "courseMap/concrete-task: A source task must be admitted; absence is a coverage failure, not a quality pass.",
+        "slideDecks/reasoning-before-practice: All generated worked reasoning precedes independent work."
+      ],
+      "educationReview": "pending",
+      "taskCount": 0
+    },
+    {
+      "id": "h-e02-cache-order",
+      "family": "experiment",
+      "language": "en",
+      "elapsedMs": 122,
+      "inputSha256": "2f2e5094bab2a83b4a63d41f304c629ae513b0051369f7575501fe653150119c",
+      "outputSha256": "8e6e8da6f872b69f2e8f9dcd14282605a28c9c51af6b1347297188d0bbf10df6",
+      "failures": [
+        "courseMap/concrete-task: A source task must be admitted; absence is a coverage failure, not a quality pass.",
+        "slideDecks/reasoning-before-practice: All generated worked reasoning precedes independent work."
+      ],
+      "educationReview": "pending",
+      "taskCount": 0
+    },
+    {
+      "id": "h-e03-taste-blinding",
+      "family": "experiment",
+      "language": "en",
+      "elapsedMs": 125,
+      "inputSha256": "a750906146cf886ac1ea8465b5ffee053a6f45333fe32088fa3e7d2467210edc",
+      "outputSha256": "bded98c682aec138a9ede2369a595ca065a19d15c58f3df008da8dac6ef42ad1",
+      "failures": [
+        "courseMap/concrete-task: A source task must be admitted; absence is a coverage failure, not a quality pass.",
+        "slideDecks/reasoning-before-practice: All generated worked reasoning precedes independent work."
+      ],
+      "educationReview": "pending",
+      "taskCount": 0
+    },
+    {
+      "id": "h-e04-filter-time-zh",
+      "family": "experiment",
+      "language": "zh",
+      "elapsedMs": 86,
+      "inputSha256": "de688d0dcba58554cc0cb4959ac2c903677aa34220b9cb6d0faba808d0582c78",
+      "outputSha256": "73fedd22edd87163fc704c58ada8db3136526821f16875467cfaf987f8ef86ec",
+      "failures": [
+        "courseMap/concrete-task: A source task must be admitted; absence is a coverage failure, not a quality pass.",
+        "slideDecks/reasoning-before-practice: All generated worked reasoning precedes independent work.",
+        "slideDecks/visible-density: Visible content stays within a bounded slide text load. Rendering is checked separately."
+      ],
+      "educationReview": "pending",
+      "taskCount": 0
+    }
+  ],
+  "independentHumanReview": false,
+  "automatedFailures": 18
+}

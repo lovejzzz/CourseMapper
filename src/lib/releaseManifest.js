@@ -1475,6 +1475,35 @@ export const CURRENT_RELEASE_CHANGELOG = {
   highlights: CURRENT_RELEASE.highlights,
   sections: [
     {
+      label: 'Reason about source quantities',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'Combine two groups by adding their outcome counts and denominators; explain why an unweighted average can give the wrong overall rate.',
+        'Use set-overlap constraints to give attainable bounds when an exact attendance fraction is unknown. Keep count shares separate from shares of volume, mass, energy or money.',
+        'Generate matching independent cases, answers, diagnostic feedback and rubrics; keep the same source operation across the original ten materials and source-edit transactions.',
+        'Record source spans for numerical operands and reject incompatible units, impossible counts, ambiguous extra groups and unrecorded duplicates.',
+      ],
+    },
+    {
+      label: 'Retain the evidence limits',
+      icon: 'PROOF',
+      color: 'violet',
+      items: [
+        'Recover three previously unsupported arithmetic cases. The exposed 12-case regression now has four admitted tasks and eight unsupported tasks; retain the original first-run failures.',
+        'This is an English, bounded source-grammar improvement, not general language understanding or a model-weight update. Local Scion and the 0.18.7 interface remain unchanged; the shared online API stays paused.',
+      ],
+    },
+  ],
+};
+
+const V0190_RELEASE_CHANGELOG = {
+  version: '0.19.0',
+  date: 'September 6, 2026',
+  title: 'Shared Teaching Tasks, Precise Updates',
+  highlights: ['Keep source edits and concrete teaching tasks connected across the original materials.'],
+  sections: [
+    {
       label: 'Keep edits connected',
       icon: 'CHECK',
       color: 'emerald',
@@ -2780,6 +2809,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V0190_RELEASE_CHANGELOG,
   V0189_RELEASE_CHANGELOG,
   V0188_RELEASE_CHANGELOG,
   V0187_RELEASE_CHANGELOG,

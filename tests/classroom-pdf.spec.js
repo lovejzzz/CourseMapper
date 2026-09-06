@@ -45,7 +45,14 @@ test('course-map PDF retains linked-assessment arrows and evaluation checkmarks'
   expect(pages.join(' ')).toContain('✓');
 });
 
-for (const caseId of ['d-c04-recurring', 'd-s02-same-event-conflict', 'd-e03-order-effects']) {
+for (const caseId of [
+  'd-c04-recurring',
+  'd-s02-same-event-conflict',
+  'd-e03-order-effects',
+  'h-c01-pooled-rates',
+  'h-c03-overlap',
+  'h-c04-volume-vs-households',
+]) {
   test(`all nine ${caseId} PDFs retain content inside printable pages`, async ({ page }, testInfo) => {
     test.setTimeout(120000);
     const fixture = JSON.parse(await fs.readFile(`benchmarks/classroom/v2/cases/${caseId}.json`, 'utf8'));
@@ -109,10 +116,33 @@ for (const caseId of ['d-c04-recurring', 'd-s02-same-event-conflict', 'd-e03-ord
       const pages = await inspectPdf(bytes);
       await fs.writeFile(testInfo.outputPath(`${file.feature}.txt`), pages.join('\n\f\n'));
       expect(pages.join(' ')).not.toContain('the cited evidence on strips');
+      if (file.feature === 'assignments' && caseId.startsWith('h-c')) {
+        const keyPage = pages.findIndex((text) => /ANCHOR SAMPLES AND REVISION CHECK/i.test(text));
+        expect(keyPage).toBeGreaterThan(0);
+        const studentPages = pages.slice(0, keyPage).join(' ');
+        expect(studentPages).not.toMatch(/54%|37.5%|40%/);
+        expect(pages.slice(keyPage).join(' ')).toMatch(/54%|37.5%|40%/);
+      }
       if (file.feature === 'quizBank') {
         const answerPage = pages.findIndex((text) => /ANSWER KEY/i.test(text));
         expect(answerPage).toBeGreaterThan(0);
         expect(pages[answerPage]).toMatch(/^ANSWER KEY/i);
+      }
+      if (file.feature === 'studyGuides') {
+        const text = pages.join(' ');
+        if (caseId === 'h-c01-pooled-rates') {
+          expect(text).toContain('54%');
+          expect(text).toContain('70%');
+        }
+        if (caseId === 'h-c03-overlap') {
+          expect(text).toContain('30/80');
+          expect(text).toContain('55/80');
+          expect(text).toContain('≤');
+        }
+        if (caseId === 'h-c04-volume-vs-households') {
+          expect(text).toContain('40%');
+          expect(text).toContain('water volume proportion remains unknown');
+        }
       }
       if (caseId === 'd-c04-recurring' && file.feature === 'studyGuides') {
         expect(pages.join(' ')).toContain('58.33%');

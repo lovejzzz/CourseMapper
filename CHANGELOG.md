@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.19.1 — 2026-09-06
+
+- Add three bounded source-quantity operations: pooled group proportions, attainable set-union bounds with unknown overlap, and the distinction between a count share and a share of a measured quantity. Retain exact arithmetic, source spans and explicit unknowns; do not infer a missing numerator or average unequal group rates.
+- Produce operation-matched independent practice, teacher answers, diagnostic feedback and four-level rubrics through the existing ten-material compiler. Source edits recalculate linked answers while retaining teacher wording.
+- Reject incompatible units, impossible or approximate counts, ambiguous extra groups, possible duplicate items and contradictory overlap records. An unsupported quantity operation cannot silently fall through to a different single-fraction lesson.
+- Repair an answer leak found in the actual assignment Word export: student self-assessment now contains process checks, with worked answers remaining on the following teacher-reference page. Add finalizer and actual PDF page-boundary regressions.
+- Recover three of the previously unsupported arithmetic packets. The exposed 12-case regression now admits four tasks, with eight unsupported tasks and 18 automated defects remaining. Preserve the original 11 unsupported tasks / 24 defects report and all 30 frozen packets. Add an explicit `--split exposed` benchmark mode.
+- Preserve the 0.18.7 interface, local Scion and original export choices. No model weights, adapter, paid inference service or shared hosted API are enabled. Keep v0.19.0 in the website's release history.
+- Record the reproducible checks, rendered workshop samples and remaining grammar/education limits in [the follow-up review](docs/v0.19.1-output-review.zh-CN.md).
+
 ## 0.19.0 — 2026-09-06
 
 - Preserve the 0.18.7 homepage, workspace layout, ten materials and export choices. Local Scion remains the only enabled inference mode; the shared hosted API stays paused.

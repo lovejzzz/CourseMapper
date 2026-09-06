@@ -1,3 +1,4 @@
+import { sourceQuantityTask, sourceQuantityIntent } from './teachingTaskQuantityOperations.js';
 import { sha256HexSync } from './sha256Sync.js';
 import { buildTeachingTaskPracticeSequence } from './teachingTaskPracticeSequence.js';
 import { explicitEvidenceAnalysisTask, explicitExperimentalDesignTask } from './teachingTaskEvidenceOperations.js';
@@ -428,14 +429,15 @@ export function buildSharedTeachingTask({
     )
   )
     return null;
-  let body =
-    compareSourceProportions(inputs, objective) ||
-    proportionTask(inputs, objective) ||
-    eventComparisonTask(inputs, objective) ||
-    controlledComparisonTask(inputs, objective) ||
-    inconsistentParticipantCountsTask(inputs, objective) ||
-    explicitExperimentalDesignTask(inputs, objective) ||
-    explicitEvidenceAnalysisTask(inputs, objective);
+  let body = sourceQuantityIntent(objective)
+    ? sourceQuantityTask(inputs, objective)
+    : compareSourceProportions(inputs, objective) ||
+      proportionTask(inputs, objective) ||
+      eventComparisonTask(inputs, objective) ||
+      controlledComparisonTask(inputs, objective) ||
+      inconsistentParticipantCountsTask(inputs, objective) ||
+      explicitExperimentalDesignTask(inputs, objective) ||
+      explicitEvidenceAnalysisTask(inputs, objective);
   if (!body) return null;
   body = localizeProportionTask(body, inputs, objective);
   const task = {

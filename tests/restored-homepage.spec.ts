@@ -1,3 +1,5 @@
+import { APP_VERSION } from '../src/lib/appVersion.js';
+import { CURRENT_RELEASE } from '../src/lib/currentRelease.js';
 import { expect, test } from '@playwright/test';
 
 for (const storageMode of ['local', 'indexed-db', 'indexed-db-pointer']) {
@@ -120,11 +122,9 @@ test('the original homepage retains attachments, all original material choices a
 
 test('the public changelog shows the actual current release and its quality limits', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('link', { name: 'v0.19.0', exact: true }).click();
-  await expect(
-    page.getByRole('heading', { name: 'Shared Teaching Tasks, Precise Updates', exact: true }),
-  ).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Keep edits connected', exact: true })).toBeVisible();
+  await page.getByRole('link', { name: `v${APP_VERSION}`, exact: true }).click();
+  await expect(page.getByRole('heading', { name: CURRENT_RELEASE.title, exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Reason about source quantities', exact: true })).toBeVisible();
   await expect(
     page.getByText('broad source understanding and learning outcomes remain unverified', { exact: false }),
   ).toBeVisible();

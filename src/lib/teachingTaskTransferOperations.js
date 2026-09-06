@@ -1,3 +1,4 @@
+import { sourceQuantityTask } from './teachingTaskQuantityOperations.js';
 import { explicitExperimentalDesignTask } from './teachingTaskEvidenceOperations.js';
 import { compareSourceProportions, inconsistentParticipantCountsTask } from './teachingTaskProportionOperations.js';
 
@@ -43,10 +44,47 @@ const experiments = {
   },
 };
 
+const quantityPackets = {
+  'pooled-proportion': {
+    objective: 'Calculate the combined resolution proportion across the two queues.',
+    sources: [
+      'Queue Cedar received 16 tickets and resolved 12; Queue Pine received 64 tickets and resolved 24.',
+      'Count all resolved tickets among all received tickets; the queues contain separate tickets.',
+      'Ticket complexity was not controlled, so the rates do not establish a causal queue advantage.',
+    ],
+    directions:
+      'Calculate the combined resolution proportion. Explain the effect of unequal queue sizes and whether averaging the queue percentages answers the same question.',
+  },
+  'union-bounds': {
+    objective: 'Find the fraction of members attending at least one activity.',
+    sources: [
+      'A fictional society has 50 members; 35 attended a rehearsal and 30 attended a performance.',
+      'Members may attend both events; the overlap is unknown.',
+      'Each count refers to distinct members within that event.',
+    ],
+    directions:
+      'Determine the possible range of the fraction attending at least one event. Explain why the sum cannot exceed the membership and identify the missing observation.',
+  },
+  'count-unit-boundary': {
+    objective: 'Distinguish a device proportion from an energy proportion.',
+    sources: [
+      'In a fictional workshop, 6 of 24 monitored devices have standby mode.',
+      'All devices used 960 kilowatt-hours of energy in the recorded period.',
+      'There is no energy breakdown between devices with standby mode and the remaining devices.',
+    ],
+    directions:
+      'Calculate the fraction of devices with standby mode. Decide whether the record determines their energy share, and state exactly which measurement is missing.',
+  },
+};
+
 export function operationSpecificTransfer(task) {
   if (task.language === 'zh') return null;
   let packet = experiments[task.operation?.kind];
   let body = packet && explicitExperimentalDesignTask(packet.sources, packet.objective);
+  if (quantityPackets[task.operation?.kind]) {
+    packet = quantityPackets[task.operation.kind];
+    body = sourceQuantityTask(packet.sources, packet.objective);
+  }
   if (task.kind === 'source-proportion-comparison') {
     packet = {
       objective: 'Compare recorded proportions and counts.',
