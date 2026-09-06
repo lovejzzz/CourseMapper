@@ -440,7 +440,7 @@ test('a Chinese task without a cached model kernel regenerates directly from its
     .click();
   await page.locator('textarea:focus').fill('虚构试验：甲滤材处理低浑浊度的水16分钟，乙滤材处理高浑浊度的水5分钟。');
   await page.locator('textarea:focus').press('Enter');
-  await page.getByTitle('Project actions', { exact: true }).click();
+  await page.getByTestId('workspace-more-menu-trigger').click();
   const saved = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Save .coursemapper', exact: true }).click();
   const project = JSON.parse(await fs.readFile(await (await saved).path(), 'utf8'));
