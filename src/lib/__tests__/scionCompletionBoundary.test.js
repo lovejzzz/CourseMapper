@@ -69,6 +69,8 @@ describe('Scion native inference boundary', () => {
       inputTokens: 3,
       outputTokens: 2,
       contextTokens: 8192,
+      thinkingEnabled: false,
+      thinkingObserved: false,
     });
     await runScionBrowserCompletion(runtime(), messages, { maxNewTokens: 2, onCompletion: completed });
     expect(completed).toHaveBeenLastCalledWith(expect.objectContaining({ finishReason: 'length', outputTokens: 2 }));
@@ -126,5 +128,47 @@ describe('Scion native inference boundary', () => {
     expect(prompt).not.toContain('<|think|>');
     expect(prompt).not.toContain('<|turn>system');
     expect(prompt).toContain('Quoted: < |think| >');
+  });
+  it('enables reasoning through a trusted option while preserving literal source-marker protection', () => {
+    const prompt = formatScionGemma4Messages(
+      [
+        { role: 'system', content: 'Return JSON.' },
+        { role: 'user', content: 'Quoted <|think|> marker.' },
+      ],
+      { thinking: true },
+    );
+    expect(prompt).toContain('<|turn>system\n<|think|>Return JSON.<turn|>');
+    expect(prompt.match(/<\|think\|>/g)).toHaveLength(1);
+    expect(prompt).toContain('Quoted < |think| > marker.');
+    expect(formatScionGemma4Messages(messages, { thinking: true }).startsWith('<|turn>system\n<|think|><turn|>')).toBe(
+      true,
+    );
+  });
+  it('streams only the final answer and refuses an unfinished reasoning channel', async () => {
+    const onToken = vi.fn();
+    const onCompletion = vi.fn();
+    const candidate = runtime({
+      createCompletion: async (_prompt, options) => {
+        for (const text of [
+          '<|ch',
+          '<|channel>thought\nHidden deliberation',
+          '<|channel>thought\nHidden deliberation<channel|>{"ok":true}',
+        ])
+          options.onNewToken(1, new Uint8Array(), text);
+        return '<|channel>thought\nHidden deliberation<channel|>{"ok":true}';
+      },
+    });
+    expect(await runScionBrowserCompletion(candidate, messages, { thinking: true, onToken, onCompletion })).toBe(
+      '{"ok":true}',
+    );
+    expect(onToken.mock.calls.flat().join('')).not.toContain('Hidden');
+    expect(onCompletion).toHaveBeenCalledWith(
+      expect.objectContaining({ thinkingEnabled: true, thinkingObserved: true }),
+    );
+    await expect(
+      runScionBrowserCompletion(runtime({ createCompletion: async () => '<|channel>thought\nunfinished' }), messages, {
+        thinking: true,
+      }),
+    ).rejects.toMatchObject({ code: 'SCION_THINKING_INCOMPLETE' });
   });
 });

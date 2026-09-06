@@ -1,0 +1,23 @@
+{
+  "id": "h-c01-pooled-rates",
+  "split": "held-out",
+  "family": "calculation",
+  "language": "en",
+  "sessionMinutes": 45,
+  "request": "Compute the combined return proportion across both fictional depots and explain why averaging rates is wrong.",
+  "sources": [
+    "Depot North received 10 items and returned 9; Depot South received 90 items and returned 45.",
+    "The requested overall proportion counts all returned items among all received items.",
+    "The depots handle different product types, and no cause of the difference is supplied."
+  ],
+  "provenance": {
+    "kind": "author-constructed-fictional-source-packet",
+    "independentHumanReview": false
+  },
+  "expected": {
+    "result": "54%",
+    "part": 54,
+    "whole": 100,
+    "diagnostic": "The unweighted average 70% treats unequal denominators equally."
+  }
+}

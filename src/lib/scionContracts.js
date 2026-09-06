@@ -1,19 +1,12 @@
 import { SCION_MAX_SOURCE_LEDGER_FACTS } from './scionEvidenceContract';
-// src/lib/scionContracts.js — the Scion-native compiler profile (V2.1
-// Workstream D). Scion is the house model: we know exactly what it
-// guarantees (grammar-enforced decoding — whatever contract we declare is
-// the only legal output) and exactly where it is weak (long batches, greedy
-// determinism on retries). This module is the single place the compiler
-// declares those contracts instead of the server reverse-engineering them
-// from prompt text.
+// Shared Scion response contracts. The current browser provider checks these
+// schemas after decoding; a declared schema is not proof of constrained
+// generation or factual correctness. Keep response admission separate from
+// the runtime's decoding capabilities.
 //
-// Contract provenance: the per-lesson kernel shape mirrors the app's own
-// prompt contract (buildLessonKernelPrompt + NATIVE_PASS_B_AUTHORING_ADDITION)
-// and lint floor (lintKernelFact ≥25ch, lintEnrichedKeyTerm df ≥45ch,
-// lintEnrichedQuizItem exactly-4 options). llguidance cannot compile an
-// intersection between min/maxLength and the old no-space-run pattern. Keep
-// both intentions in one bounded-token regex; the parser still owns exact
-// character admission after decoding.
+// Compact kernel shapes mirror the prompt contract and source-admission
+// rules. Bounded-word patterns support those downstream validators; they do
+// not establish source entailment or pedagogical quality.
 
 import { LOCAL_PROVIDER_ID } from './localProvider.js';
 import { compactActivityBlueprintJsonSchema } from './experientialActivityContract.js';
@@ -401,7 +394,7 @@ export function skeletonSchemaProfile({ sessionCount }) {
 
 // V2 measured the long-title cascade: syllabus-phrase session titles echo
 // into every compiled template slot. Scion gets an explicit concision rule
-// (the grammar backstop alone CLIPS mid-word — round 12).
+// Keep the response within its token budget before validating the fields.
 export const SCION_SKELETON_DIRECTIVE =
   '\n\nSCION ADDITION: session titles are concise 2-4 word topic names that keep the discipline nouns (e.g. "Pitch Notation", "Triads and Sevenths") — never the full syllabus phrase. If the source gives an ordered lesson-topic list, map every listed topic exactly once in that order; do not replace later topics with repeated review or capstone sessions unless the source itself repeats them. Make sectionTitles a conceptual spine, not generic labels: name the concrete object, mechanism or formal device, consequential tension, and application or boundary. Never use "Themes in X", "Concepts of X", "Introduction to X", "Overview of X", "X exploration", or "X possibilities". For a named literary work, keep the work title once and use the remaining sections for distinct formal devices or interpretive tensions supported by the course brief.';
 

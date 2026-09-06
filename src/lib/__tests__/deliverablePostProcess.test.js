@@ -2004,7 +2004,7 @@ describe('Rubric and assignment post-processing', () => {
     expect(result.data.assignments[1].relatedLessons).toBeUndefined();
   });
 
-  it('normalizes compact assignment grade weights to exactly 100%', () => {
+  it('preserves compact source weights without inventing the missing course policy', () => {
     const result = normalizeAssignmentGradeWeights({
       assignments: [
         { t: 'Proposal', pg: '20%' },
@@ -2013,13 +2013,13 @@ describe('Rubric and assignment post-processing', () => {
       ],
     });
 
-    expect(result.normalizedGradeWeights).toBe(true);
+    expect(result.normalizedGradeWeights).toBe(false);
     expect(Math.round(result.previousTotal)).toBe(67);
-    expect(result.newTotal).toBe(100);
-    expect(result.data.assignments.map((assignment) => assignment.pg)).toEqual(['30%', '33%', '37%']);
+    expect(result.newTotal).toBe(67);
+    expect(result.data.assignments.map((assignment) => assignment.pg)).toEqual(['20%', '22%', '25%']);
   });
 
-  it('normalizes verbose assignment weight fields to exactly 100%', () => {
+  it('preserves verbose source weights without scaling a partial selection', () => {
     const result = normalizeAssignmentGradeWeights({
       assignments: [
         { title: 'Proposal', weight: '2%' },
@@ -2028,9 +2028,9 @@ describe('Rubric and assignment post-processing', () => {
       ],
     });
 
-    expect(result.normalizedGradeWeights).toBe(true);
-    expect(result.newTotal).toBe(100);
-    expect(result.data.assignments.map((assignment) => assignment.weight)).toEqual(['29%', '28%', '43%']);
+    expect(result.normalizedGradeWeights).toBe(false);
+    expect(result.newTotal).toBe(7);
+    expect(result.data.assignments.map((assignment) => assignment.weight)).toEqual(['2%', '2%', '3%']);
   });
 });
 

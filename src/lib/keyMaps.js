@@ -16,6 +16,8 @@
  *  - Syllabus is excluded (single object, no array repetition → negligible savings).
  */
 
+import { isInternalDeliverableMetadataKey } from './internalDeliverableMetadata.js';
+
 // ── Per-feature short→full key maps ────────────────────────────────────────────
 
 const lessonPlans = {
@@ -339,6 +341,10 @@ function _expand(node, map) {
   if (node !== null && typeof node === 'object') {
     const result = {};
     for (const [key, value] of Object.entries(node)) {
+      if (isInternalDeliverableMetadataKey(key)) {
+        result[key] = structuredClone(value);
+        continue;
+      }
       const expandedKey = map[key] || key;
       result[expandedKey] = _expand(value, map);
     }
@@ -352,6 +358,10 @@ function _expandSlideDecks(node, inVisual = false) {
   if (node !== null && typeof node === 'object') {
     const result = {};
     for (const [key, value] of Object.entries(node)) {
+      if (isInternalDeliverableMetadataKey(key)) {
+        result[key] = structuredClone(value);
+        continue;
+      }
       const expandedKey = inVisual
         ? { k: 'kind', d: 'description', at: 'altText' }[key] || key
         : slideDecks[key] || key;
@@ -387,6 +397,10 @@ function _expandAssignments(node, context = 'root') {
   if (node !== null && typeof node === 'object') {
     const result = {};
     for (const [key, value] of Object.entries(node)) {
+      if (isInternalDeliverableMetadataKey(key)) {
+        result[key] = structuredClone(value);
+        continue;
+      }
       const contextMap =
         context === 'formatRequirements'
           ? ASSIGNMENT_FORMAT_MAP

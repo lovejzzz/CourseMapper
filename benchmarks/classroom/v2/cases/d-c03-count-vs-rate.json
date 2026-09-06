@@ -1,0 +1,25 @@
+{
+  "id": "d-c03-count-vs-rate",
+  "split": "development",
+  "family": "calculation",
+  "language": "en",
+  "sessionMinutes": 50,
+  "request": "Compare the completion proportions of two fictional groups, separating numbers completed from completion rates.",
+  "sources": [
+    "Group A: 18 completions out of 24 enrolled, an observed completion proportion of 18/24.",
+    "Group B: 24 completions out of 40 enrolled, an observed completion proportion of 24/40.",
+    "Group membership was voluntary; different starting skills may affect the results."
+  ],
+  "provenance": {
+    "kind": "author-constructed-fictional-source-packet",
+    "independentHumanReview": false
+  },
+  "expected": {
+    "results": [
+      "75%",
+      "60%"
+    ],
+    "comparison": "A has the higher rate; B has more completions.",
+    "limit": "voluntary groups"
+  }
+}

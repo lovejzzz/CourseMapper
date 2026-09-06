@@ -16,3 +16,6 @@ package-lock.json
 /trellis/
 /public/
 /runtime/
+# Hash-bound acceptance source packets retain their original recorded bytes.
+/benchmarks/classroom/v2/cases/
+/benchmarks/classroom/v2/manifest.json

@@ -1,4 +1,12 @@
 const INTERNAL_DELIVERABLE_METADATA_KEYS = new Set([
+  'teachingTaskSources',
+  'teachingTaskLink',
+  'teacherEdits',
+  'taskSyncConflicts',
+  'taskSyncArchive',
+  'taskSyncStaleOwned',
+  'taskSourceReview',
+  'taskSourceReviewLesson',
   'accessibilityPlan',
   'anchorExampleSet',
   'sourceGrounding',

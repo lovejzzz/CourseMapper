@@ -1,0 +1,88 @@
+[
+  {
+    "id": "h-c04-volume-vs-households",
+    "backend": "native-metal-llama-b10809",
+    "exit": 0,
+    "elapsedMs": 11721,
+    "final": "```json\n{\n  \"type\": \"object\",\n  \"operation\": \"proportion\",\n  \"groups\": [\n    {\n      \"label\": \"Households using rain barrels\",\n      \"part\": {\n        \"value\": 8,\n        \"evidence\": {\n          \"source\": 0,\n          \"quote\": \"8 of 20 metered households use rain barrels.\"\n        }\n      },\n      \"whole\": {\n        \"value\": 20,\n        \"evidence\": {\n          \"source\": 0,\n          \"quote\": \"8 of 20 metered households use rain barrels.\"\n        }\n      }\n    },\n    {\n      \"label\": \"Households not using rain barrels\",\n      \"part\": {\n        \"value\": 12,\n        \"evidence\": {\n          \"source\": 0,\n          \"quote\": \"8 of 20 metered households use rain barrels.\"\n        }\n      },\n      \"whole\": {\n        \"value\": 20,\n        \"evidence\": {\n          \"source\": 0,\n          \"quote\": \"8 of 20 metered households use rain barrels.\"\n        }\n      }\n    }\n  ],\n  \"requestedUnit\": \"household\",\n  \"operationReason\": \"The record provides the number of households using rain barrels (8 out of 20) but does not provide the water volume associated with those households, making a comparison of water volume proportions impossible.\",\n  \"unresolved\": \"The record gives no water volume split between barrel users and other households.\",\n  \"invalidApproach\": \"Attempting to calculate a proportion of water volume because the record gives no water volume split between barrel users and other households.\"\n}\n```",
+    "model": "Gemma 4 E2B Q4_0 (same split files as browser)",
+    "promptSha256": "c0affd16e65f3fca6450c4f52bcb09d08a0a93eb5c54e62f47e7ef2e9d2f4879",
+    "matchesBrowserFinal": true
+  },
+  {
+    "id": "h-e02-cache-order",
+    "backend": "native-metal-llama-b10809",
+    "exit": 0,
+    "elapsedMs": 8786,
+    "final": "{\"intendedComparison\":\"The intended comparison is the elapsed time performance of Algorithm A versus Algorithm B when subjected to systematic variations in cache state and execution order.\",\"measuredOutcome\":\"Algorithm B has a lower elapsed time in these trials.\",\"differingConditions\":[{\"name\":\"Algorithm A runs first on a cold cache\",\"evidence\":{\"source\":0,\"quote\":\"A fictional benchmark always runs Algorithm A first on a cold cache\"}},{\"name\":\"Algorithm B runs second on warmed data\",\"evidence\":{\"source\":0,\"quote\":\"Algorithm B second on warmed data\"}},{\"name\":\"Input data and hardware are shared, but cache state and order differ systematically\",\"evidence\":{\"source\":2,\"quote\":\"Input data and hardware are shared, but cache state and order differ systematically\"}}],\"alternativeExplanation\":\"The comparison is designed to investigate how the sequence of execution (run-order) and the state of the cache (cold vs. warmed) influence the execution time of Algorithm A and Algorithm B.\",\"repairedProcedure\":[\"Initialize hardware and input data. Set cache state to cold. Execute Algorithm A. Record elapsed time. Clear cache state and set cache state to warmed. Execute Algorithm B. Record elapsed time. Repeat the entire sequence for Algorithm B first on a cold cache. Record elapsed time. Repeat the entire sequence for Algorithm A second on a warmed cache. Record elapsed time. Compare the recorded elapsed times for Algorithm A and Algorithm B across these controlled conditions.\"],\"stillUnknown\":\"The underlying mechanism or mathematical relationship explaining precisely how cache state and run-order cause the observed timing differences is not specified. New measurements are needed to establish a causal model.\",\"invalidConclusion\":\"Any conclusion drawn about the relative efficiency of Algorithm A versus Algorithm B without strictly controlling for the cache state and run-order variables is invalid.\"}",
+    "model": "Gemma 4 E2B Q4_0 (same split files as browser)",
+    "promptSha256": "d472b26ee60b1cfd080aad3456978625cdcda4fa3567e5609cf18c4290d72876",
+    "matchesBrowserFinal": true
+  },
+  {
+    "id": "h-c04-volume-vs-households",
+    "backend": "native-metal-llama-b10809",
+    "exit": 0,
+    "elapsedMs": 17074,
+    "final": "```json\n{\n  \"operation\": \"proportion\",\n  \"groups\": [\n    {\n      \"label\": \"Households using rain barrels\",\n      \"part\": {\n        \"value\": 8,\n        \"evidence\": {\n          \"source\": 0,\n          \"quote\": \"In a fictional block, 8 of 20 metered households use rain barrels.\"\n        }\n      },\n      \"whole\": {\n        \"value\": 20,\n        \"evidence\": {\n          \"source\": 0,\n          \"quote\": \"In a fictional block, 8 of 20 metered households use rain barrels.\"\n        }\n      }\n    }\n  ],\n  \"requestedUnit\": \"Households\",\n  \"operationReason\": \"The proportion of households using rain barrels can be calculated directly from the provided data in source [0].\",\n  \"unresolved\": \"The proportion of water volume used by households using rain barrels cannot be determined because the record does not provide a split of the total water volume between barrel users and non-users, as stated in source [2].\",\n  \"invalidApproach\": \"Assuming that the proportion of households using rain barrels (8/20) is equivalent to the proportion of total water volume used by those households.\"\n}\n```",
+    "model": "Gemma 4 E4B Q4_0",
+    "promptSha256": "c0affd16e65f3fca6450c4f52bcb09d08a0a93eb5c54e62f47e7ef2e9d2f4879"
+  },
+  {
+    "id": "h-e02-cache-order",
+    "backend": "native-metal-llama-b10809",
+    "exit": 0,
+    "elapsedMs": 5056,
+    "final": "{\n\"intendedComparison\": \"The elapsed time of Algorithm A versus the elapsed time of Algorithm B when both are run under identical cache and run-order conditions.\",\n\"measuredOutcome\": \"Algorithm B has a lower elapsed time in the trials described.\",\n\"differingConditions\": [\n{\n\"name\": \"Cache State and Run Order\",\n\"evidence\": {\n\"source\": 0,\n\"quote\": \"A fictional benchmark always runs Algorithm A first on a cold cache and Algorithm B second on warmed data.\"\n}\n}\n],\n\"alternativeExplanation\": \"The observed difference in elapsed time between Algorithm A and Algorithm B may be due to the systematic difference in cache state and run order between the trials, rather than the inherent performance difference between the algorithms themselves.\",\n\"repairedProcedure\": [\n\"Ensure that the cache state is identical before running Algorithm A and Algorithm B.\",\n\"Ensure that the run order of Algorithm A and Algorithm B is identical in all trials.\",\n\"Run Algorithm A and Algorithm B multiple times under these controlled conditions and measure the elapsed time for each run.\",\n\"Compare the average elapsed time of Algorithm A to the average elapsed time of Algorithm B.\"\n],\n\"stillUnknown\": \"The inherent performance difference between Algorithm A and Algorithm B under identical cache and run-order conditions.\",\n\"invalidConclusion\": \"The conclusion that Algorithm B is inherently faster than Algorithm A based on the initial trials, because the trials systematically differ in cache state and run order.\"\n}",
+    "model": "Gemma 4 E4B Q4_0",
+    "promptSha256": "d472b26ee60b1cfd080aad3456978625cdcda4fa3567e5609cf18c4290d72876"
+  },
+  {
+    "id": "h-c04-volume-vs-households",
+    "thinking": false,
+    "backend": "native-metal-llama-b10809",
+    "exit": 0,
+    "elapsedMs": 2676,
+    "system": "You are a careful teacher. Answer the question using only the supplied observations. Clearly separate what is known, what is unknown, and what you propose. Give a concrete explanation rather than generic advice. Write at most 200 words.",
+    "user": "Distinguish a proportion of households from a proportion of water volume.\nSource observations:\nIn a fictional block, 8 of 20 metered households use rain barrels.\nThe 20 households used 500 cubic metres of mains water in total.\nThe record gives no water volume split between barrel users and other households.",
+    "final": "**What is known:**\n*   8 out of 20 households use rain barrels.\n*   The 20 households used 500 cubic metres of mains water in total.\n*   The water volume split between barrel users and other households is unknown.\n\n**What is unknown:**\n*   The proportion of households using rain barrels (8/20 or 0.4).\n*   The proportion of water volume used by barrel users versus other households.\n\n**What is proposed:**\nTo distinguish the two proportions, we need the water volume used by the 8 barrel-using households. If we assume the 500 cubic metres of mains water is distributed proportionally to the number of households, the barrel users would be expected to use $0.4 \\times 500 = 200$ cubic metres. However, the record explicitly states the water volume split is unknown, meaning we cannot definitively state the proportion of water volume used by barrel users based only on the provided data.",
+    "model": "Gemma 4 E2B Q4_0 (same split files as browser)",
+    "promptSha256": "f83f85d7472dc0dabb7a957758923f784a94008f219658b0d6e4c3563484cfb6"
+  },
+  {
+    "id": "h-e02-cache-order",
+    "thinking": false,
+    "backend": "native-metal-llama-b10809",
+    "exit": 0,
+    "elapsedMs": 2645,
+    "system": "You are a careful teacher. Answer the question using only the supplied observations. Clearly separate what is known, what is unknown, and what you propose. Give a concrete explanation rather than generic advice. Write at most 200 words.",
+    "user": "Design a timing comparison of two algorithms that controls the cache and run-order problem.\nSource observations:\nA fictional benchmark always runs Algorithm A first on a cold cache and Algorithm B second on warmed data.\nAlgorithm B has a lower elapsed time in these trials.\nInput data and hardware are shared, but cache state and order differ systematically.",
+    "final": "**What is known:**\n*   Algorithm A runs first on a cold cache.\n*   Algorithm B runs second on warmed data.\n*   Algorithm B has a lower elapsed time in these trials.\n*   Input data and hardware are shared, but cache state and run-order differ systematically.\n\n**What is unknown:**\n*   The specific mechanisms by which Algorithm A and B control the cache and run-order are unknown.\n*   The exact nature of the cache state differences between the trials is unknown.\n*   The precise relationship between the cache state, run-order, and the observed timing difference is unknown.\n\n**What is proposed:**\nTo design a timing comparison, one should systematically vary the initial cache state (cold vs. warm) and the execution order (A then B vs. B then A) while keeping the input data and hardware constant. The goal is to isolate the impact of cache control and run-order on the execution time. For instance, running A then B on a cold cache and B then A on a warm cache would allow for a direct comparison of how the algorithms handle these conditions.",
+    "model": "Gemma 4 E2B Q4_0 (same split files as browser)",
+    "promptSha256": "1f5168ccb818cea4e913a5822b07a215068ad0ffcb8ab5964497df25c0f09e4f"
+  },
+  {
+    "id": "h-c04-volume-vs-households",
+    "thinking": true,
+    "backend": "native-metal-llama-b10809",
+    "exit": 0,
+    "elapsedMs": 6106,
+    "system": "You are a careful teacher. Answer the question using only the supplied observations. Clearly separate what is known, what is unknown, and what you propose. Give a concrete explanation rather than generic advice. Write at most 200 words.",
+    "user": "Distinguish a proportion of households from a proportion of water volume.\nSource observations:\nIn a fictional block, 8 of 20 metered households use rain barrels.\nThe 20 households used 500 cubic metres of mains water in total.\nThe record gives no water volume split between barrel users and other households.",
+    "final": "**What is Known**\n*   The proportion of households using rain barrels is 8 out of 20 (40%).\n*   The total water volume used by all 20 households is 500 cubic metres.\n\n**What is Unknown**\n*   The specific water volume consumed by the 8 households using rain barrels.\n*   The specific water volume consumed by the remaining 12 households.\n*   The proportion of the total water volume that is used by barrel users.\n\n**What is Proposed**\nThe proportion of households (8/20) is a count of entities. The proportion of water volume is a measure of quantity. We cannot determine the water volume proportion because the record does not provide the volume split. For example, if the 8 barrel users used 300 $m^3$ and the other 12 used 200 $m^3$, the water volume proportion would be 60% (300/500), which is different from the household proportion of 40%. The known data only allows us to calculate the average household usage (25 $m^3$), but this does not confirm if the barrel users deviate from that average.",
+    "model": "Gemma 4 E2B Q4_0 (same split files as browser)",
+    "promptSha256": "ca12d5f1a465891381117f56eccf6526e3cd156ae1dce04bc39ae44b2fb27509"
+  },
+  {
+    "id": "h-e02-cache-order",
+    "thinking": true,
+    "backend": "native-metal-llama-b10809",
+    "exit": 0,
+    "elapsedMs": 6352,
+    "system": "You are a careful teacher. Answer the question using only the supplied observations. Clearly separate what is known, what is unknown, and what you propose. Give a concrete explanation rather than generic advice. Write at most 200 words.",
+    "user": "Design a timing comparison of two algorithms that controls the cache and run-order problem.\nSource observations:\nA fictional benchmark always runs Algorithm A first on a cold cache and Algorithm B second on warmed data.\nAlgorithm B has a lower elapsed time in these trials.\nInput data and hardware are shared, but cache state and order differ systematically.",
+    "final": "**What is Known**\n*   Algorithm A is executed first when the cache is cold.\n*   Algorithm B is executed second when the cache is warmed.\n*   Algorithm B consistently exhibits a lower elapsed time than Algorithm A in these trials.\n*   Input data and hardware are shared, but cache state and run-order are systematically controlled.\n\n**What is Unknown**\n*   The specific mechanism by which Algorithm B achieves its lower elapsed time (e.g., cache prefetching or better data locality).\n*   The precise definition or threshold for \"cold\" versus \"warmed\" cache states.\n*   The exact input data set used for the benchmark.\n\n**What is Proposed**\nDesign a controlled timing comparison by systematically varying the cache state while maintaining the run-order sequence. The comparison should involve running Algorithm A first on a cold cache, followed by Algorithm B on the same hardware. Simultaneously, run Algorithm B first on a warmed cache, followed by Algorithm A. The primary metric for comparison will be the elapsed time for each sequence to quantify the performance difference attributable to the cache state.",
+    "model": "Gemma 4 E2B Q4_0 (same split files as browser)",
+    "promptSha256": "aeed4f3014a944eb61551f0a870785d92c26a03cffed3da5f26c861a3831db12"
+  }
+]

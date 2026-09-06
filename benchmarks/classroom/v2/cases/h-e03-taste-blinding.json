@@ -1,0 +1,25 @@
+{
+  "id": "h-e03-taste-blinding",
+  "split": "held-out",
+  "family": "experiment",
+  "language": "en",
+  "sessionMinutes": 40,
+  "request": "Explain why a taste preference comparison cannot isolate the recipe and propose a blinded design.",
+  "sources": [
+    "In a fictional tasting, the new recipe is served in cups labeled premium and the original in cups labeled standard.",
+    "Participants know the labels and rate the premium cups higher.",
+    "Serving order is fixed and no blinded tasting is reported."
+  ],
+  "provenance": {
+    "kind": "author-constructed-fictional-source-packet",
+    "independentHumanReview": false
+  },
+  "expected": {
+    "confounds": [
+      "label expectations",
+      "order"
+    ],
+    "repair": "coded identical cups and balanced order",
+    "outcome": "same preference scale"
+  }
+}

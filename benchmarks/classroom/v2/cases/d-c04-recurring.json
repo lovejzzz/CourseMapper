@@ -1,0 +1,24 @@
+{
+  "id": "d-c04-recurring",
+  "split": "development",
+  "family": "calculation",
+  "language": "en",
+  "sessionMinutes": 30,
+  "request": "Calculate 7/12 as a percentage to two decimal places; distinguish approximation from equality.",
+  "sources": [
+    "Seven of 12 fictional test strips changed color. The observed color-change proportion is 7/12.",
+    "Report the percentage to two decimal places, retaining the exact fraction for checking.",
+    "The strips came from one batch; other batches were not tested."
+  ],
+  "provenance": {
+    "kind": "author-constructed-fictional-source-packet",
+    "independentHumanReview": false
+  },
+  "expected": {
+    "result": "58.33%",
+    "part": 7,
+    "whole": 12,
+    "approximate": true,
+    "diagnostic": "0.5833 times 12 is approximate, not exactly 7."
+  }
+}

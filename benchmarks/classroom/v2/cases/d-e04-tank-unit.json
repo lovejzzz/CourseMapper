@@ -1,0 +1,22 @@
+{
+  "id": "d-e04-tank-unit",
+  "split": "development",
+  "family": "experiment",
+  "language": "en",
+  "sessionMinutes": 55,
+  "request": "Identify the experimental unit and propose a design with independent treatment replication.",
+  "sources": [
+    "A fictional study has two fish tanks with 30 fish each; one whole tank receives a new feed and the other receives standard feed.",
+    "Tank temperature and water quality can affect growth, and each feed occurs in only one tank.",
+    "Fish share conditions within a tank; mean growth over four weeks is measured."
+  ],
+  "provenance": {
+    "kind": "author-constructed-fictional-source-packet",
+    "independentHumanReview": false
+  },
+  "expected": {
+    "unit": "tank",
+    "repair": "multiple independent tanks randomly assigned to each feed",
+    "mustNotClaim": "60 independently randomized treatment units"
+  }
+}

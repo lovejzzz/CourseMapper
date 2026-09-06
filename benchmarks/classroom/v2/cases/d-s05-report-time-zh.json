@@ -1,0 +1,22 @@
+{
+  "id": "d-s05-report-time-zh",
+  "split": "development",
+  "family": "source-analysis",
+  "language": "zh",
+  "sessionMinutes": 35,
+  "request": "区分新闻发布时间和事件发生时间，判断记录是否矛盾。",
+  "sources": [
+    "虚构报道甲于2024年6月3日发布，记载停电发生于6月2日晚上。",
+    "虚构维修记录乙记载6月2日晚上开始排查，6月3日凌晨恢复供电。",
+    "材料没有说明停电原因；发布日期不是停电发生时间。"
+  ],
+  "provenance": {
+    "kind": "author-constructed-fictional-source-packet",
+    "independentHumanReview": false
+  },
+  "expected": {
+    "conflict": false,
+    "unknown": "停电原因",
+    "outputLanguage": "zh"
+  }
+}

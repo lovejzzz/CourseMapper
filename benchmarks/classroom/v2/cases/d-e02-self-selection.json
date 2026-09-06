@@ -1,0 +1,23 @@
+{
+  "id": "d-e02-self-selection",
+  "split": "development",
+  "family": "experiment",
+  "language": "en",
+  "sessionMinutes": 45,
+  "request": "Design a fair comparison of two study methods and explain the self-selection problem.",
+  "sources": [
+    "In a fictional class, learners choose either retrieval practice or rereading.",
+    "The retrieval group starts with higher pretest scores and later scores higher on the same final test.",
+    "There is no random assignment; starting knowledge differs between groups."
+  ],
+  "provenance": {
+    "kind": "author-constructed-fictional-source-packet",
+    "independentHumanReview": false
+  },
+  "expected": {
+    "confound": "starting knowledge",
+    "repair": "random assignment, or a clearly qualified adjusted comparison",
+    "outcome": "same final test",
+    "alternativesAllowed": true
+  }
+}

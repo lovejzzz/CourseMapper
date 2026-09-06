@@ -1,4 +1,5 @@
 import { asArray, cleanText } from './compilerText';
+import { explicitSourceProportions } from './teachingTaskArithmetic.js';
 
 export const SOURCE_ARITHMETIC_PROTOCOL = 'coursemapper-source-proportion-rehearsal-v1';
 
@@ -14,6 +15,14 @@ function decimalFraction(text) {
  */
 export function sourceArithmeticWorkedExample(sourceEvidenceBrief) {
   const claims = asArray(sourceEvidenceBrief?.claims).map(cleanText).filter(Boolean);
+  const fractionPairs = claims
+    .filter((claim) => /(?:\b(?:proportion|percentage|percent|fraction)\b|比例|百分比|百分率)/i.test(claim))
+    .flatMap((claim) =>
+      [...claim.matchAll(/(?<![\w.+\-/=])(\d{1,9})\s*\/\s*(\d{1,9})(?![\d/])/g)].map(
+        (match) => `${match[1]}/${match[2]}`,
+      ),
+    );
+  if (new Set(fractionPairs).size > 1) return null;
   for (const claim of claims) {
     if (!/\b(?:proportion|percentage|percent)\b/i.test(claim)) continue;
     const equations = claim.matchAll(
@@ -56,7 +65,30 @@ export function sourceArithmeticWorkedExample(sourceEvidenceBrief) {
       };
     }
   }
-  return null;
+  const fractions = explicitSourceProportions(claims);
+  // More than one different fraction needs a comparison task, not arbitrary
+  // selection of the first available number.
+  if (new Set(fractions.map((value) => `${value.numerator}/${value.denominator}`)).size !== 1) return null;
+  const solved = fractions[0];
+  const { numerator: n, denominator: d, decimal, percent, exact, relation, reverseCheck } = solved;
+  return {
+    protocol: SOURCE_ARITHMETIC_PROTOCOL,
+    studentTask: `Calculate ${n}/${d} as a decimal and a percentage, and state what this fraction describes.`,
+    problem: `The supplied record specifies the fraction ${n}/${d}. Calculate its percentage${exact ? '' : ' to two decimal places'} and justify the denominator.`,
+    inputs: [...claims],
+    steps: [
+      `Set up the fraction: ${n}/${d}. Use the whole specified in this record.`,
+      `Divide: ${n} ÷ ${d} ${relation} ${decimal}.`,
+      `Convert: (${n}/${d}) × 100 ${relation} ${percent}%.${exact ? '' : ' The percentage is rounded to two decimal places.'}`,
+      `Reverse check: ${reverseCheck}.`,
+    ],
+    result: `${n}/${d} ${relation} ${decimal} ${relation} ${percent}%.${exact ? '' : ' These decimals are approximations; the fraction remains exact.'}`,
+    interpretation:
+      'The fraction describes the observations in the supplied record. Its arithmetic does not establish population representativeness.',
+    boundary: 'Keep the observed group and any exclusions explicit. Do not infer unobserved outcomes.',
+    transferTask: `Cover the worked steps and recover the numerator from the exact fraction ${n}/${d} of ${d}. This rehearses the same example; it is not a test of transfer to new data.`,
+    verification: { ...solved, checked: true, method: 'exact-rational-calculation', scope: 'arithmetic-only' },
+  };
 }
 
 export function sourceArithmeticGuidePractice(example) {

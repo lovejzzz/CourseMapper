@@ -155,9 +155,10 @@ describe('lesson-specific source tasks and progression', () => {
       expect(syllabus.assessmentCalendar[index].rubricCriteria).toEqual(task.criteria.map((c) => c.label));
       expect(syllabus.weeklySchedule[index].week).toBe(`Session ${index + 1}`);
       expect(syllabus.importantDates[index].event).toBe(task.title);
-      expect(syllabus.assessmentCalendar[index].gradingWeightProvenance.reviewRequired).toBe(true);
+      expect(syllabus.assessmentCalendar[index].gradingWeightProvenance.reviewRequired).toBe(false);
+      expect(syllabus.assessmentCalendar[index].pointsOrWeight).toMatch(/formative/i);
     });
-    expect(syllabus.courseRequirementWeightNote).toContain('proposed planning weights');
+    expect(syllabus.courseRequirementWeightNote).toContain('No course-grade percentages have been invented');
     const official = { ...d[BLUEPRINT_COMPILE_CONTEXT], courseGradingPolicy: { categories: [] } };
     const categories = [{ name: 'Department portfolio', weight: '100%', lessonNumbers: [1] }];
     syllabus.courseRequirements = structuredClone(categories);
@@ -197,6 +198,11 @@ describe('lesson-specific source tasks and progression', () => {
     expect(patch.data.studyGuides).toHaveLength(1);
     expect(patch.data.studyGuides[0].practiceActivities[0]).toContain('diagnosis from Lesson 1');
     expect(patch.data.studyGuides[0].workedExample.result).toContain('eight hours');
-    expect(patch.data.studyGuides[0].reviewQuestions).toHaveLength(6);
+    expect(
+      patch.data.studyGuides[0].reviewQuestions.filter((question) => question.practiceKind !== 'independent-transfer'),
+    ).toHaveLength(6);
+    expect(
+      patch.data.studyGuides[0].reviewQuestions.filter((question) => question.practiceKind === 'independent-transfer'),
+    ).toHaveLength(1);
   });
 });

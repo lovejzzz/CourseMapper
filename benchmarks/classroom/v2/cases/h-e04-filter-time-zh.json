@@ -1,0 +1,25 @@
+{
+  "id": "h-e04-filter-time-zh",
+  "split": "held-out",
+  "family": "experiment",
+  "language": "zh",
+  "sessionMinutes": 45,
+  "request": "设计公平比较两种滤材的方法，说明现有结果的局限。",
+  "sources": [
+    "虚构试验：甲滤材处理低浑浊度的水10分钟，乙滤材处理高浑浊度的水5分钟。",
+    "处理后甲组水看起来更清，但没有统一量表或仪器读数。",
+    "没有随机分配水样，也没有重复试验。"
+  ],
+  "provenance": {
+    "kind": "author-constructed-fictional-source-packet",
+    "independentHumanReview": false
+  },
+  "expected": {
+    "confounds": [
+      "初始浑浊度",
+      "处理时间"
+    ],
+    "repair": "同批水样、相同时间、统一测量并重复",
+    "outputLanguage": "zh"
+  }
+}

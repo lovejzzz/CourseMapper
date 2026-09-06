@@ -1,0 +1,22 @@
+{
+  "id": "h-s02-amended-record",
+  "split": "held-out",
+  "family": "source-analysis",
+  "language": "en",
+  "sessionMinutes": 50,
+  "request": "Explain how an amended record changes the interpretation of an earlier entry.",
+  "sources": [
+    "A fictional permit log initially records 120 seats for a hall.",
+    "A later entry explicitly amends the permitted capacity to 90 seats from 1 July.",
+    "An attendance photograph has no reliable date."
+  ],
+  "provenance": {
+    "kind": "author-constructed-fictional-source-packet",
+    "independentHumanReview": false
+  },
+  "expected": {
+    "required": "capacity depends on effective date",
+    "unknown": "capacity rule applicable to the undated photograph",
+    "mustNotClaim": "the earlier entry is simply false"
+  }
+}

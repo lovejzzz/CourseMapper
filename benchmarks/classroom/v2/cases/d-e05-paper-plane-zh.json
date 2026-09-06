@@ -1,0 +1,23 @@
+{
+  "id": "d-e05-paper-plane-zh",
+  "split": "development",
+  "family": "experiment",
+  "language": "zh",
+  "sessionMinutes": 40,
+  "request": "识别纸飞机试验的混杂变量，并设计只改变纸型的比较。",
+  "sources": [
+    "虚构试验：甲组使用厚纸和宽机翼，乙组使用薄纸和窄机翼。",
+    "结果指标为相同起点到落地点的距离；纸型和翼展同时改变，不能分离纸型的作用。",
+    "可保持翼展、折叠方法和投掷方式一致，随机决定投掷顺序；尚未提供改进设计的结果。"
+  ],
+  "provenance": {
+    "kind": "author-constructed-fictional-source-packet",
+    "independentHumanReview": false
+  },
+  "expected": {
+    "treatment": "纸型",
+    "confound": "翼展",
+    "limit": "没有新结果",
+    "outputLanguage": "zh"
+  }
+}

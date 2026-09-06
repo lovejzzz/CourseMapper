@@ -2851,69 +2851,16 @@ function getPercentValue(value) {
   return Number.isFinite(number) ? number : 0;
 }
 
-function distributePercentWeights(values) {
-  const total = values.reduce((sum, value) => sum + value, 0);
-  if (!Number.isFinite(total) || total <= 0) return values.map(() => 0);
-
-  const exact = values.map((value) => (value / total) * 100);
-  const floors = exact.map(Math.floor);
-  let remainder = 100 - floors.reduce((sum, value) => sum + value, 0);
-  const order = exact
-    .map((value, index) => ({ index, fraction: value - Math.floor(value) }))
-    .sort((a, b) => b.fraction - a.fraction || a.index - b.index);
-
-  const result = [...floors];
-  for (let i = 0; i < order.length && remainder > 0; i++) {
-    result[order[i].index] += 1;
-    remainder--;
-  }
-  return result;
-}
-
+/** Compatibility API: inspect totals, but never rewrite course grading policy. */
 export function normalizeAssignmentGradeWeights(data) {
   const arrayKey = getArrayKey('assignments', data);
-  const assignments = arrayKey ? data?.[arrayKey] : null;
-
-  if (!Array.isArray(assignments) || assignments.length === 0) {
-    return { data, arrayKey, normalizedGradeWeights: false, previousTotal: 0, newTotal: 0 };
-  }
-
-  // v0.16.1: registry-linked briefs (assessmentId / courseMapRef) carry the
-  // assessment registry row's weight — the single source the syllabus and
-  // the brief's "Course Map LN · AN.M · X%" stamp both render. Briefs
-  // intentionally sum to LESS than 100% (exams hold the rest in the quiz
-  // bank), so re-normalizing here stamped a second, contradictory percent
-  // ("100 PTS · 5% · … · 4%") into the header. Leave registry weights alone.
-  const registryLinked = assignments.some(
-    (assignment) => assignment?.assessmentId || assignment?.courseMapRef || assignment?.cmr,
-  );
-  if (registryLinked) {
-    return { data, arrayKey, normalizedGradeWeights: false, previousTotal: 0, newTotal: 0 };
-  }
-
+  const assignments = arrayKey && Array.isArray(data?.[arrayKey]) ? data[arrayKey] : [];
   const weightKeys = ['percentOfGrade', 'pg', 'weight', 'wt', 'percent', 'percentage'];
-  const values = assignments.map((assignment) => {
+  const total = assignments.reduce((sum, assignment) => {
     const key = weightKeys.find((candidate) => assignment?.[candidate] !== undefined);
-    return getPercentValue(key ? assignment[key] : null);
-  });
-  const previousTotal = values.reduce((sum, value) => sum + value, 0);
-  if (previousTotal <= 0 || Math.abs(previousTotal - 100) <= 2) {
-    return { data, arrayKey, normalizedGradeWeights: false, previousTotal, newTotal: previousTotal };
-  }
-
-  const normalized = distributePercentWeights(values);
-  const nextAssignments = assignments.map((assignment, index) => {
-    const weightKey = weightKeys.find((candidate) => assignment?.[candidate] !== undefined) || 'pg';
-    return { ...assignment, [weightKey]: `${normalized[index]}%` };
-  });
-
-  return {
-    data: { ...data, [arrayKey]: nextAssignments },
-    arrayKey,
-    normalizedGradeWeights: true,
-    previousTotal,
-    newTotal: normalized.reduce((sum, value) => sum + value, 0),
-  };
+    return sum + getPercentValue(key ? assignment[key] : null);
+  }, 0);
+  return { data, arrayKey, normalizedGradeWeights: false, previousTotal: total, newTotal: total };
 }
 
 export function normalizeAssignmentLessonAlignment(data, courseMap) {

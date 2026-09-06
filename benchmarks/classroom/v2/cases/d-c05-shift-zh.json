@@ -1,0 +1,24 @@
+{
+  "id": "d-c05-shift-zh",
+  "split": "development",
+  "family": "calculation",
+  "language": "zh",
+  "sessionMinutes": 40,
+  "request": "计算受访者中赞成提案的比例，并解释能否推断全体员工。",
+  "sources": [
+    "虚构调查：60名受访者中18人赞成提案；样本赞成比例为18/60。",
+    "问卷仅在白班发放，夜班员工没有收到。",
+    "没有全体员工的随机抽样结果。"
+  ],
+  "provenance": {
+    "kind": "author-constructed-fictional-source-packet",
+    "independentHumanReview": false
+  },
+  "expected": {
+    "result": "30%",
+    "part": 18,
+    "whole": 60,
+    "limit": "夜班",
+    "outputLanguage": "zh"
+  }
+}

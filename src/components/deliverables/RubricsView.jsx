@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import EditProposalPanel from '../EditProposalPanel';
+import TeachingTaskReference from './shared/TeachingTaskReference';
 import { exportRubricGradebook } from '../../lib/deliverableExporters';
 import {
   QualityBadge,
@@ -396,8 +397,16 @@ export default function RubricsView({
                 </div>
               )}
 
+              {!isStudentView && (
+                <TeachingTaskReference
+                  reference={rubric.anchorExampleSet}
+                  path={['rubrics', i, 'anchorExampleSet']}
+                  onEdit={onEdit}
+                />
+              )}
+
               {/* Teacher notes */}
-              {rubric.teacherNotes && (
+              {rubric.teacherNotes && !isStudentView && (
                 <div className="bg-amber-50/40 rounded-lg p-3 border border-amber-100/50">
                   <h4 className="text-xs font-semibold text-amber-700 mb-1">📋 Calibration &amp; Grader Notes</h4>
                   <p className="text-xs text-slate-600 leading-relaxed">

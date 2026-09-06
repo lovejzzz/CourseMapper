@@ -1,0 +1,22 @@
+{
+  "id": "h-c04-volume-vs-households",
+  "split": "held-out",
+  "family": "calculation",
+  "language": "en",
+  "sessionMinutes": 40,
+  "request": "Distinguish a proportion of households from a proportion of water volume.",
+  "sources": [
+    "In a fictional block, 8 of 20 metered households use rain barrels.",
+    "The 20 households used 500 cubic metres of mains water in total.",
+    "The record gives no water volume split between barrel users and other households."
+  ],
+  "provenance": {
+    "kind": "author-constructed-fictional-source-packet",
+    "independentHumanReview": false
+  },
+  "expected": {
+    "result": "40% of households",
+    "mustNotClaim": "40% of water volume",
+    "unknown": "water-volume proportion"
+  }
+}

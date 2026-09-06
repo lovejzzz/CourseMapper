@@ -2,6 +2,7 @@ import { requiresCurrentResearch, shouldSkipCoveredScionResearch } from '../lib/
 import { useState, useCallback, useMemo, useRef, useContext, useEffect } from 'react';
 import useStreamReader from './useStreamReader';
 import { getArrayKey } from '../lib/syncDependencies';
+import { preserveTeacherEdits } from '../lib/teachingTaskContentSync.js';
 import { isRenderedDeliverableCollectionFeature } from '../lib/renderedDeliverableCollection.js';
 import {
   PER_ASSESSMENT_REGEN_FEATURES,
@@ -433,6 +434,8 @@ export default function useDeliverables({
   const storeState = useContext(CourseStateContext);
   const dispatch = useContext(CourseDispatchContext);
   const deliverables = storeState?.deliverables || {};
+  const deliverablesRef = useRef(deliverables);
+  deliverablesRef.current = deliverables;
 
   // ── Transient / streaming-only state (not persisted) ──
   const [isGenerating, setIsGenerating] = useState(false);
@@ -872,6 +875,7 @@ export default function useDeliverables({
 
       const markFeatureDone = (featureId, data) => {
         if (isGenerationCancelled(featureId) || timedOutFeatures.has(featureId)) return;
+        data = preserveTeacherEdits(deliverablesRef.current[featureId]?.data, data);
         generatedDeliverables[featureId] = { status: 'done', data, error: null, stale: false };
         completedFeatureIds.add(featureId);
         failedFeatureIds.delete(featureId);
@@ -1678,8 +1682,8 @@ export default function useDeliverables({
                 task: 'blueprintEnrichment',
               });
               // Scion (V2.1 D1/D2): the house model gets its REAL contract as
-              // response_format json_schema (decode-time enforcement replaces
-              // server-side prompt sniffing), greedy first attempts, and a
+              // response_format json_schema as a declared contract, post-generation
+              // structural validation, greedy first attempts, and a
               // sampled temperature only on recovery retries. The orchestration
               // lives in a lazy chunk (scionPassB) so the Scion-only wiring
               // never inflates the main AppFlow bundle.
@@ -5807,7 +5811,7 @@ export default function useDeliverables({
         // providers keep their existing model-regeneration behavior unless a
         // smart-sync id explicitly opts them into the compiler path.
         const canCompileSyncLesson =
-          (syncGenId !== null || provider === PUBLIC_SCION_PROVIDER_ID) &&
+          (syncGenId !== null || provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID) &&
           regenerationOptions.mode !== 'finalizerRetry' &&
           regenerationOptions.useBlueprintCompiler !== false &&
           generationPlan?.blueprintCompiler !== false;
@@ -5967,6 +5971,7 @@ export default function useDeliverables({
                 });
                 nextData = { ...existingDataSnapshot, [existingKey]: merged };
               }
+              nextData = preserveTeacherEdits(existingDataSnapshot, nextData);
               dispatch(actions.setDeliverableDone(featureId, nextData));
               if (compileResult.enrichedLessonCount > 0) {
                 const requestedLessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons.length : 0;
@@ -6198,6 +6203,7 @@ export default function useDeliverables({
               deliverableItemIndex,
             });
             nextData = { ...existingDataSnapshot, [existingKey]: merged };
+            nextData = preserveTeacherEdits(deliverablesRef.current[featureId]?.data || existingDataSnapshot, nextData);
             dispatch(actions.setDeliverableDone(featureId, nextData));
           } else if (isUnsafeFullReplacement(featureId, finalParsed, courseMap)) {
             // v0.14.1 round 2: with no snapshot to merge into, a single-lesson
@@ -6221,7 +6227,11 @@ export default function useDeliverables({
             traceGeneration(regenerationRunId, 'lesson_regen_rejected', rejectedResult, 'warn');
             return rejectedResult;
           } else {
-            dispatch(actions.setDeliverableDone(featureId, finalParsed));
+            nextData = preserveTeacherEdits(
+              deliverablesRef.current[featureId]?.data || existingDataSnapshot,
+              finalParsed,
+            );
+            dispatch(actions.setDeliverableDone(featureId, nextData));
           }
           appendLog(`✓ Lesson ${lessonIndex + 1} in ${label} regenerated`, 'done');
           const doneResult = {
@@ -6373,7 +6383,8 @@ export default function useDeliverables({
   // setDeliverables shim for legacy call sites in App.jsx
   const setDeliverables = useCallback(
     (updaterOrObj) => {
-      const obj = typeof updaterOrObj === 'function' ? updaterOrObj(deliverables) : updaterOrObj;
+      const obj = typeof updaterOrObj === 'function' ? updaterOrObj(deliverablesRef.current) : updaterOrObj;
+      deliverablesRef.current = obj;
       for (const [featureId, entry] of Object.entries(obj)) {
         if (entry) {
           dispatch(
@@ -6388,7 +6399,7 @@ export default function useDeliverables({
         }
       }
     },
-    [deliverables, dispatch],
+    [dispatch],
   );
 
   // Backward compat: expose currentFeature as first active feature (for consumers that need a single string)
@@ -6452,7 +6463,13 @@ export default function useDeliverables({
         });
         const voicedFeatureIds = new Set(voiceResult.voiced.map((surfaceId) => String(surfaceId).split(':')[0]));
         for (const fid of voicedFeatureIds) {
-          if (voiceResult.deliverables[fid]) dispatch(actions.setDeliverableDone(fid, voiceResult.deliverables[fid]));
+          if (voiceResult.deliverables[fid])
+            dispatch(
+              actions.setDeliverableDone(
+                fid,
+                preserveTeacherEdits(deliverablesRef.current[fid]?.data, voiceResult.deliverables[fid]),
+              ),
+            );
         }
         // Same manifest disclosure the in-pipeline pass records — the voiced
         // twin's ZIP says exactly what the pass did.

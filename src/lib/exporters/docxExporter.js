@@ -596,7 +596,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
   // v0.12.1: borderless two-column layout table for label/value blocks
   // (study-guide key terms, lesson-plan assessment and homework, FAQ
   // see-also) — real structure instead of glued label paragraphs.
-  const makeKeyValueTable = (pairs, { headers, compact = false, includeHeader = true } = {}) => {
+  const makeKeyValueTable = (pairs, { headers, compact = false, includeHeader = true, keepTogether = false } = {}) => {
     if (!Array.isArray(headers) || headers.length !== 2 || headers.some((header) => !String(header || '').trim())) {
       throw new Error('Key/value tables require two explicit semantic headers.');
     }
@@ -615,6 +615,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             },
             children: [
               new Paragraph({
+                keepNext: keepTogether,
                 spacing: compact ? { line: 232, before: 0, after: 0 } : undefined,
                 children: [new TextRun({ text: String(header), bold: true, size: 20, font: FONT, color: 'FFFFFF' })],
               }),
@@ -625,7 +626,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
     const rows = pairs
       .filter(([k, v]) => k && v)
       .map(
-        ([k, v]) =>
+        ([k, v], index, visiblePairs) =>
           new TableRow({
             cantSplit: true,
             children: [
@@ -640,6 +641,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
                 },
                 children: [
                   new Paragraph({
+                    keepNext: keepTogether && index < visiblePairs.length - 1,
                     spacing: { line: compact ? Math.min(bodyLine, 228) : bodyLine, before: 0, after: 0 },
                     children: [
                       new TextRun({
@@ -663,6 +665,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
                 },
                 children: [
                   new Paragraph({
+                    keepNext: keepTogether && index < visiblePairs.length - 1,
                     spacing: { line: compact ? Math.min(bodyLine, 228) : bodyLine, before: 0, after: 0 },
                     children: [new TextRun({ text: String(v), size: bodySize, font: FONT, color: '333333' })],
                   }),
@@ -1137,24 +1140,31 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         if (r.instructorFacilitationNote)
           children.push(makeBold('Instructor Facilitation', r.instructorFacilitationNote));
         if (r.accessibilityAndUDL) children.push(makeBold('Accessibility & UDL', r.accessibilityAndUDL));
-        const renderedAnchorExamples = Array.isArray(r.anchorExamples)
-          ? r.anchorExamples
-          : r.anchorExamples && typeof r.anchorExamples === 'object'
-            ? [
-                r.anchorExamples.strongSample,
-                r.anchorExamples.partialSample,
-                r.anchorExamples.scoringRationale,
-                r.anchorExamples.revisionPrompt,
-              ].filter(Boolean)
-            : [];
-        if (renderedAnchorExamples.length > 0) {
-          children.push(makeSubHeading('Anchor Examples'));
-          renderedAnchorExamples.forEach((example, index) =>
-            children.push(makeBullet(example, { keepNext: index < renderedAnchorExamples.length - 1 })),
-          );
-        }
         const criteria = r.criteria || [];
-        if (criteria.length > 0) {
+        if (criteria.length > 0 && r.taskId) {
+          // Source tasks need enough width to compare actual reasoning. Four
+          // narrow performance columns turn complete descriptors into towers
+          // of text in a portrait handout; use one compact table per criterion.
+          criteria.forEach((criterion) => {
+            children.push(
+              makeSubHeading(
+                `${criterion.criterion || criterion.name} — ${criterion.points} points (${criterion.weight}%)`,
+              ),
+            );
+            children.push(
+              makeKeyValueTable(
+                [
+                  ['Excellent', criterion.excellent || criterion.exemplary || ''],
+                  ['Proficient', criterion.proficient || ''],
+                  ['Developing', criterion.developing || ''],
+                  ['Beginning', criterion.beginning || ''],
+                ],
+                { headers: ['Level', 'Observable response'], keepTogether: true },
+              ),
+            );
+            if (criterion.feedbackUse) children.push(makeBold('Feedback for revision', criterion.feedbackUse));
+          });
+        } else if (criteria.length > 0) {
           children.push(
             makeTableFn(
               COL_DXA,
@@ -1173,6 +1183,20 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
               { cantSplit: true, centeredColumns: [1] },
             ),
           );
+        }
+        const labeledAnchors =
+          r.anchorExamples && !Array.isArray(r.anchorExamples)
+            ? [
+                ['Strong response', r.anchorExamples.strongSample],
+                ['Partial response', r.anchorExamples.partialSample],
+                ['Why the score differs', r.anchorExamples.scoringRationale],
+                ['Revision prompt', r.anchorExamples.revisionPrompt],
+              ].filter(([, text]) => text)
+            : [];
+        if (labeledAnchors.length || r.anchorExamples?.length) {
+          children.push(makeSubHeading('Anchor Examples — Instructor Reference'));
+          if (labeledAnchors.length) labeledAnchors.forEach(([label, text]) => children.push(makeBold(label, text)));
+          else r.anchorExamples.forEach((text) => children.push(makeBullet(text)));
         }
         if (rubricIndex < rubrics.length - 1) {
           children.push(new Paragraph({ spacing: { before: 200, after: 100 }, children: [] }));
@@ -1647,16 +1671,6 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         if (renderedObjectives.length) {
           children.push(makeSubHeading('Learning Objectives'));
           renderedObjectives.forEach((o) => children.push(makeBullet(o)));
-          const objectiveApplicationFrames = [
-            'Application move: label the observation before making the assignment claim.',
-            'Application move: distinguish the visible record from the inference used in the submission.',
-            'Application move: connect the deciding feature to the conclusion and test an alternative.',
-            'Application move: qualify the interpretation for a changed view or condition.',
-            'Application move: carry the evidence boundary and attribution into the publication decision.',
-          ];
-          const objectiveApplicationIndex =
-            Math.max(0, Number(a.lessonNumber || assignmentIndex + 1) - 1) % objectiveApplicationFrames.length;
-          children.push(makeItalic(objectiveApplicationFrames[objectiveApplicationIndex]));
         }
         if (a.sourceEvidenceBrief?.claims?.length) {
           children.push(makeSubHeading('Assigned Evidence Packet'));

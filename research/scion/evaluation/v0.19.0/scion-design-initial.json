@@ -1,0 +1,252 @@
+{
+  "startedAt": "2026-09-06T06:13:54.970Z",
+  "results": [
+    {
+      "id": "d-c02-usable-survey",
+      "protocol": "scion-teaching-task-design-v1",
+      "input": {
+        "id": "d-c02-usable-survey",
+        "family": "calculation",
+        "request": "Calculate the yes proportion among usable responses; explain why 40 is not its denominator.",
+        "sources": [
+          "A fictional club received 40 survey forms; 30 contained an answer to the yes/no question, of which 12 answered yes.",
+          "The requested proportion is yes responses among usable answers: 12/30.",
+          "Ten forms have no answer to this question; their preferences are unknown."
+        ],
+        "language": "en"
+      },
+      "raw": "{\"canCalculate\":true,\"numerator\":{\"value\":12,\"evidence\":{\"source\":1,\"quote\":\"The requested proportion is yes responses among usable answers: 12/30.\"}},\"denominator\":{\"value\":30,\"evidence\":{\"source\":1,\"quote\":\"The requested proportion is yes responses among usable answers: 12/30.\"}},\"requestedGroup\":\"yes responses among usable answers\",\"unobservedGroup\":\"Ten forms have no answer to this question\",\"unknownOutcome\":\"The preferences of the ten forms with no answer to this question are unknown.\",\"unsupportedConclusion\":\"The proportion of yes responses among usable answers is 12/30, which is 2/5. This proportion is not the proportion of yes responses among all survey forms (12/40).\",\"denominatorReason\":\"40 is not the denominator because it represents the total number of survey forms, whereas the requested proportion is specifically among usable answers, which is 30.\"}",
+      "parsed": {
+        "canCalculate": true,
+        "numerator": {
+          "value": 12,
+          "evidence": {
+            "source": 1,
+            "quote": "The requested proportion is yes responses among usable answers: 12/30."
+          }
+        },
+        "denominator": {
+          "value": 30,
+          "evidence": {
+            "source": 1,
+            "quote": "The requested proportion is yes responses among usable answers: 12/30."
+          }
+        },
+        "requestedGroup": "yes responses among usable answers",
+        "unobservedGroup": "Ten forms have no answer to this question",
+        "unknownOutcome": "The preferences of the ten forms with no answer to this question are unknown.",
+        "unsupportedConclusion": "The proportion of yes responses among usable answers is 12/30, which is 2/5. This proportion is not the proportion of yes responses among all survey forms (12/40).",
+        "denominatorReason": "40 is not the denominator because it represents the total number of survey forms, whereas the requested proportion is specifically among usable answers, which is 30."
+      },
+      "completion": {
+        "finishReason": "stop",
+        "inputTokens": 608,
+        "outputTokens": 199,
+        "contextTokens": 8192
+      },
+      "route": {
+        "protocol": "scion-adapter-runtime-route-v1",
+        "mode": "base-only",
+        "taskFamily": "unclassified",
+        "reason": "no-adapter-installed",
+        "promptProtocol": null,
+        "expectedPromptProtocol": null,
+        "adapterId": null,
+        "manifestSha256": null,
+        "scopeIdentitySha256": null,
+        "nativeAdapterActive": false
+      },
+      "elapsedMs": 5752,
+      "structure": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "quotes": {
+        "valid": true,
+        "references": 2,
+        "issues": [],
+        "scope": "quotation integrity only; semantic interpretation requires separate evaluation"
+      }
+    },
+    {
+      "id": "d-s02-same-event-conflict",
+      "protocol": "scion-teaching-task-design-v1",
+      "input": {
+        "id": "d-s02-same-event-conflict",
+        "family": "source-analysis",
+        "request": "Determine whether the two accounts conflict and what can be concluded without another source.",
+        "sources": [
+          "Witness A wrote that the fictional mill opened to workers on 3 March 1908.",
+          "Witness B wrote that the same mill first opened to workers on 3 March 1909.",
+          "Both refer to the first opening, and neither account has been independently corroborated."
+        ],
+        "language": "en"
+      },
+      "raw": "{\"comparedClaims\": [{\"evidence\": {\"source\": 0, \"quote\": \"Witness A wrote that the fictional mill opened to workers on 3 March 1908.\"}, \"claimType\": \"reported-claim\", \"eventOrSubject\": \"mill opening date\"}, {\"evidence\": {\"source\": 1, \"quote\": \"Witness B wrote that the same mill first opened to workers on 3 March 1909.\"}, \"claimType\": \"reported-claim\", \"eventOrSubject\": \"mill opening date\"}], \"relationship\": \"conflicting-same-event\", \"conclusion\": \"The two accounts conflict regarding the exact date the mill first opened to workers, as Witness A states 3 March 1908 and Witness B states 3 March 1909.\", \"reasoning\": [\"Witness A claims the opening date was 3 March 1908.\", \"Witness B claims the opening date was 3 March 1909.\", \"The claims conflict because they specify different years for the same event (the first opening of the mill).\"], \"stillUnknown\": \"The exact date the mill first opened to workers remains unknown as neither account has been independently corroborated.\", \"unsupportedClaim\": \"The claim that the mill opened on 3 March 1908 or 3 March 1909 is unsupported by independent corroboration.\", \"usefulAdditionalEvidence\": \"Both refer to the first opening, and neither account has been independently corroborated.\"}",
+      "parsed": {
+        "comparedClaims": [
+          {
+            "evidence": {
+              "source": 0,
+              "quote": "Witness A wrote that the fictional mill opened to workers on 3 March 1908."
+            },
+            "claimType": "reported-claim",
+            "eventOrSubject": "mill opening date"
+          },
+          {
+            "evidence": {
+              "source": 1,
+              "quote": "Witness B wrote that the same mill first opened to workers on 3 March 1909."
+            },
+            "claimType": "reported-claim",
+            "eventOrSubject": "mill opening date"
+          }
+        ],
+        "relationship": "conflicting-same-event",
+        "conclusion": "The two accounts conflict regarding the exact date the mill first opened to workers, as Witness A states 3 March 1908 and Witness B states 3 March 1909.",
+        "reasoning": [
+          "Witness A claims the opening date was 3 March 1908.",
+          "Witness B claims the opening date was 3 March 1909.",
+          "The claims conflict because they specify different years for the same event (the first opening of the mill)."
+        ],
+        "stillUnknown": "The exact date the mill first opened to workers remains unknown as neither account has been independently corroborated.",
+        "unsupportedClaim": "The claim that the mill opened on 3 March 1908 or 3 March 1909 is unsupported by independent corroboration.",
+        "usefulAdditionalEvidence": "Both refer to the first opening, and neither account has been independently corroborated."
+      },
+      "completion": {
+        "finishReason": "stop",
+        "inputTokens": 563,
+        "outputTokens": 308,
+        "contextTokens": 8192
+      },
+      "route": {
+        "protocol": "scion-adapter-runtime-route-v1",
+        "mode": "base-only",
+        "taskFamily": "unclassified",
+        "reason": "no-adapter-installed",
+        "promptProtocol": null,
+        "expectedPromptProtocol": null,
+        "adapterId": null,
+        "manifestSha256": null,
+        "scopeIdentitySha256": null,
+        "nativeAdapterActive": false
+      },
+      "elapsedMs": 7957,
+      "structure": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "quotes": {
+        "valid": true,
+        "references": 2,
+        "issues": [],
+        "scope": "quotation integrity only; semantic interpretation requires separate evaluation"
+      }
+    },
+    {
+      "id": "d-e03-order-effects",
+      "protocol": "scion-teaching-task-design-v1",
+      "input": {
+        "id": "d-e03-order-effects",
+        "family": "experiment",
+        "request": "Explain why the second trial advantage is ambiguous and propose an order-aware comparison.",
+        "sources": [
+          "All fictional participants first complete a puzzle in silence and then repeat the same puzzle with music.",
+          "The second completion is faster for most participants.",
+          "Practice and music coincide in the second trial; no counterbalanced order was used."
+        ],
+        "language": "en"
+      },
+      "raw": "{\"intendedComparison\":\"To determine the effect of the order of puzzle completion (silence vs. music) on the speed of the second trial completion.\",\"measuredOutcome\":\"The second completion is faster for most participants.\",\"differingConditions\":[{\"name\":\"Order of completion (Silence then Music vs. Music then Silence)\",\"evidence\":{\"source\":2,\"quote\":\"Practice and music coincide in the second trial; no counterbalanced order was used.\"}}],\"alternativeExplanation\":\"The second trial advantage is ambiguous because the source indicates that 'Practice and music coincide in the second trial; no counterbalanced order was used.' This suggests that the observed speed difference might be due to the interaction between practice and music, rather than a simple effect of the order itself.\",\"repairedProcedure\":[\"Trial 1: Complete the puzzle in silence.\",\"Trial 2: Complete the same puzzle with music.\",\"Trial 3: Complete the same puzzle in music, followed by silence.\",\"Trial 4: Complete the same puzzle in silence, followed by music.\"],\"stillUnknown\":\"The specific mechanism by which 'Practice and music coincide in the second trial' leads to the observed speed difference is not specified. New measurements are needed to isolate the effect of order independent of this coincidence.\",\"invalidConclusion\":\"Concluding that the second trial advantage is solely due to the order of completion is invalid because the source explicitly states that 'no counterbalanced order was used,' implying that the order effect cannot be definitively separated from the practice/music interaction.\"}",
+      "parsed": {
+        "intendedComparison": "To determine the effect of the order of puzzle completion (silence vs. music) on the speed of the second trial completion.",
+        "measuredOutcome": "The second completion is faster for most participants.",
+        "differingConditions": [
+          {
+            "name": "Order of completion (Silence then Music vs. Music then Silence)",
+            "evidence": {
+              "source": 2,
+              "quote": "Practice and music coincide in the second trial; no counterbalanced order was used."
+            }
+          }
+        ],
+        "alternativeExplanation": "The second trial advantage is ambiguous because the source indicates that 'Practice and music coincide in the second trial; no counterbalanced order was used.' This suggests that the observed speed difference might be due to the interaction between practice and music, rather than a simple effect of the order itself.",
+        "repairedProcedure": [
+          "Trial 1: Complete the puzzle in silence.",
+          "Trial 2: Complete the same puzzle with music.",
+          "Trial 3: Complete the same puzzle in music, followed by silence.",
+          "Trial 4: Complete the same puzzle in silence, followed by music."
+        ],
+        "stillUnknown": "The specific mechanism by which 'Practice and music coincide in the second trial' leads to the observed speed difference is not specified. New measurements are needed to isolate the effect of order independent of this coincidence.",
+        "invalidConclusion": "Concluding that the second trial advantage is solely due to the order of completion is invalid because the source explicitly states that 'no counterbalanced order was used,' implying that the order effect cannot be definitively separated from the practice/music interaction."
+      },
+      "completion": {
+        "finishReason": "stop",
+        "inputTokens": 494,
+        "outputTokens": 303,
+        "contextTokens": 8192
+      },
+      "route": {
+        "protocol": "scion-adapter-runtime-route-v1",
+        "mode": "base-only",
+        "taskFamily": "unclassified",
+        "reason": "no-adapter-installed",
+        "promptProtocol": null,
+        "expectedPromptProtocol": null,
+        "adapterId": null,
+        "manifestSha256": null,
+        "scopeIdentitySha256": null,
+        "nativeAdapterActive": false
+      },
+      "elapsedMs": 7580,
+      "structure": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "quotes": {
+        "valid": true,
+        "references": 1,
+        "issues": [],
+        "scope": "quotation integrity only; semantic interpretation requires separate evaluation"
+      }
+    }
+  ],
+  "busy": false,
+  "status": {
+    "phase": "ready",
+    "runtime": {
+      "id": "scion-wllama-webgpu-jspi-v1",
+      "modulePath": "/scion/runtime/v2/wllama.js",
+      "moduleSha256": "4b43ed59785ae9aa89aae67ac504534d9bf7b65e6340969b7bd13550146a6433",
+      "wasmPath": "/scion/runtime/v1/jspi-single-thread/wllama.wasm",
+      "wasmSha256": "732bac4661d613461cee0b3132660beab159b926910c8431181ee01608e44229",
+      "upstreamRevision": "58903000dbea6acfc0eb9c738d8be50d1052cf23",
+      "llamaCppRevision": "5ec717d1256e34558a44dc09adf1e6e16f2e2682"
+    },
+    "trainingBase": {
+      "modelId": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+      "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+      "architecture": "gemma4"
+    },
+    "activeWeightIdentity": {
+      "modelId": "google/gemma-4-E2B-it-qat-q4_0-gguf",
+      "revision": "69536a21d70340464240401ba38223d805f6a709",
+      "file": "gemma-4-E2B_q4_0-it.gguf",
+      "bytes": 3349514112,
+      "sha256": "3646b4c147cd235a44d91df1546d3b7d8e29b547dbe4e1f80856419aa455e6fd",
+      "format": "gguf-q4_0-qat"
+    },
+    "baseIntegrity": {
+      "expectedSha256": "3646b4c147cd235a44d91df1546d3b7d8e29b547dbe4e1f80856419aa455e6fd",
+      "runtimeCheck": "metadata-and-pinned-url",
+      "fullDigestEvidence": "evaluation/scion-adapters/base-contracts/gemma-4-e2b.json"
+    },
+    "adapter": {
+      "mode": "base-only",
+      "active": false,
+      "id": null,
+      "manifestSha256": null
+    }
+  },
+  "loadMs": 1254
+}

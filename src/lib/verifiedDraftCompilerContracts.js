@@ -2652,6 +2652,10 @@ export function createVerifiedDraftCompilerContracts(dependencies) {
   }
 
   function operationQualifiedWorkedExampleForLesson(lesson = {}) {
+    // A concrete source task owns its operation. Topic-word fallbacks must not
+    // silently replace a tank replication lesson with an unrelated seedling trial.
+    if (lesson.teachingTask && lesson.teachingTaskScope === 'primary-task')
+      return lesson.teachingTask.workedExample || null;
     const demand = operationEvidenceDemandForLesson(lesson);
     const inferred = operationEvidenceDemandForLesson(lesson, { requireAction: false });
     const authored = lesson?.enrichment?.workedExample;

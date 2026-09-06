@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
+import { applyTeachingTaskSourceEdit, rememberTeacherEdit } from './lib/teachingTaskContentSync.js';
 import FocusTrap from 'focus-trap-react';
 import ErrorBoundary from './components/ErrorBoundary';
 import LoadingScreen, { ConfigSkeleton, WorkspaceSkeleton, CourseMapSkeleton } from './components/LoadingScreen';
@@ -1123,6 +1124,16 @@ export default function AppFlow({
 
   // ── Deliverable Undo/Redo ──
   const delivUndo = useDeliverableUndo();
+  const taskUndoContext = {
+    read: () => ({ courseMap: courseMapRef.current, courseGraph: courseGraphRef.current }),
+    restore: (saved) => {
+      courseMapRef.current = saved.courseMap;
+      setCourseMap(saved.courseMap);
+      courseGraphRef.current = saved.courseGraph;
+      setCourseGraph(saved.courseGraph);
+      setDownloadedFile('');
+    },
+  };
   const [packageQualityPass, setPackageQualityPass] = useState({
     status: 'idle',
     message: '',
@@ -3652,7 +3663,7 @@ export default function AppFlow({
                 {(delivUndo.canUndo || delivUndo.canRedo) && !gen.isStreaming && (
                   <div className="flex items-center gap-1 ml-2 flex-shrink-0">
                     <button
-                      onClick={() => delivUndo.undo(deliv.setDeliverables)}
+                      onClick={() => delivUndo.undo(deliv.setDeliverables, taskUndoContext)}
                       disabled={!delivUndo.canUndo}
                       className={`tactile p-1.5 rounded-full transition-all duration-200 ${delivUndo.canUndo ? 'text-slate-500 hover:bg-white/60 hover:text-indigo-500' : 'text-slate-300 cursor-not-allowed'}`}
                       title="Undo deliverable edit"
@@ -3667,7 +3678,7 @@ export default function AppFlow({
                       </svg>
                     </button>
                     <button
-                      onClick={() => delivUndo.redo(deliv.setDeliverables)}
+                      onClick={() => delivUndo.redo(deliv.setDeliverables, taskUndoContext)}
                       disabled={!delivUndo.canRedo}
                       className={`tactile p-1.5 rounded-full transition-all duration-200 ${delivUndo.canRedo ? 'text-slate-500 hover:bg-white/60 hover:text-indigo-500' : 'text-slate-300 cursor-not-allowed'}`}
                       title="Redo deliverable edit"
@@ -4045,7 +4056,7 @@ export default function AppFlow({
                   optimisticUpdate={deliv.optimisticUpdate}
                   regenerateLesson={deliv.regenerateLesson}
                   delivUndoSnapshot={delivUndo.snapshot}
-                  delivUndoFn={() => delivUndo.undo(deliv.setDeliverables)}
+                  delivUndoFn={() => delivUndo.undo(deliv.setDeliverables, taskUndoContext)}
                   delivCanUndo={delivUndo.canUndo}
                   onAgentHighlight={triggerAgentHighlight}
                   notifyEdit={smartSync.notifyEdit}
@@ -4142,17 +4153,69 @@ export default function AppFlow({
                     }}
                     onDataChange={(newData, editPath) => {
                       const oldData = deliv.deliverables[activeTab]?.data;
+                      const taskEdit = applyTeachingTaskSourceEdit({
+                        featureId: activeTab,
+                        oldData,
+                        newData,
+                        editPath,
+                        deliverables: deliv.deliverables,
+                        courseMap: courseMapRef.current,
+                      });
+                      if (taskEdit?.status === 'applied') {
+                        delivUndo.snapshotTransaction(taskEdit.before, taskUndoContext.read());
+                        deliv.setDeliverables((previous) => ({ ...previous, ...taskEdit.changed }));
+                        courseMapRef.current = taskEdit.courseMap;
+                        setCourseMap(taskEdit.courseMap);
+                        handleCourseGraph(
+                          attachEnrichmentToGraph(
+                            deriveCourseGraphFromCourseMap(taskEdit.courseMap),
+                            courseGraphRef.current?.enrichmentOverlay,
+                          ),
+                        );
+                        setUnseenChanges(
+                          (previous) =>
+                            new Set([...previous, ...Object.keys(taskEdit.changed).filter((id) => id !== activeTab)]),
+                        );
+                        setDownloadedFile('');
+                        return;
+                      }
+                      const editedData = rememberTeacherEdit(oldData, newData, editPath);
+                      if (taskEdit?.status === 'needs-review') {
+                        editedData.taskSourceReview = taskEdit.message;
+                        editedData.taskSourceReviewLesson = oldData?.[editPath[0]]?.[editPath[1]]?.lessonNumber;
+                        editedData.taskSyncStaleOwned = Boolean(
+                          oldData?.taskSyncStaleOwned || !deliv.deliverables[activeTab]?.stale,
+                        );
+                      }
                       // Snapshot for undo before applying the edit
-                      delivUndo.snapshot(activeTab, oldData);
+                      delivUndo.snapshotTransaction({
+                        [activeTab]: { data: oldData, stale: Boolean(deliv.deliverables[activeTab]?.stale) },
+                      });
                       deliv.setDeliverables((prev) => ({
                         ...prev,
-                        [activeTab]: { ...prev[activeTab], data: newData },
+                        [activeTab]: {
+                          ...prev[activeTab],
+                          data: editedData,
+                          ...(taskEdit
+                            ? { stale: true }
+                            : oldData?.taskSyncStaleOwned &&
+                                !editedData.taskSourceReview &&
+                                !editedData.taskSyncConflicts?.length
+                              ? { stale: false }
+                              : {}),
+                        },
                       }));
+                      if (taskEdit) return;
                       // Cascade sync: when user edits a deliverable's body text,
                       // notify the sync engine so other deliverables stay consistent.
                       // editPath shape: [arrayKey, lessonIdx, fieldName, ...]
                       if (editPath && Array.isArray(editPath) && editPath.length >= 2) {
-                        const lessonIdx = typeof editPath[1] === 'number' ? editPath[1] : null;
+                        const editedRow = oldData?.[editPath[0]]?.[editPath[1]];
+                        const lessonIdx = Number.isInteger(editedRow?.lessonNumber)
+                          ? editedRow.lessonNumber - 1
+                          : typeof editPath[1] === 'number'
+                            ? editPath[1]
+                            : null;
                         if (lessonIdx !== null) {
                           // Extract a human-readable change summary for the AI proposal
                           const ctx = extractEditContext(oldData, newData, editPath);

@@ -1,0 +1,25 @@
+{
+  "id": "h-s01-print-exposure",
+  "split": "held-out",
+  "family": "source-analysis",
+  "language": "en",
+  "sessionMinutes": 40,
+  "request": "Compare a photograph negative record with a print label without collapsing different events.",
+  "sources": [
+    "A fictional studio log dates the exposure of a negative to 1936.",
+    "A gallery label dates this particular print from that negative to 1984.",
+    "A print can be made after exposure; neither record identifies every intervening owner."
+  ],
+  "provenance": {
+    "kind": "author-constructed-fictional-source-packet",
+    "independentHumanReview": false
+  },
+  "expected": {
+    "conflict": false,
+    "events": [
+      "exposure 1936",
+      "print 1984"
+    ],
+    "unknown": "complete ownership history"
+  }
+}

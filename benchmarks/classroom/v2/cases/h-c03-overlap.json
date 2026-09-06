@@ -1,0 +1,22 @@
+{
+  "id": "h-c03-overlap",
+  "split": "held-out",
+  "family": "calculation",
+  "language": "en",
+  "sessionMinutes": 35,
+  "request": "Determine whether the fraction of members attending at least one activity can be calculated.",
+  "sources": [
+    "A fictional association has 80 members; 30 attended a lecture and 25 attended a workshop.",
+    "Members may attend both events; the overlap was not recorded.",
+    "Each attendance count refers to distinct members within that event."
+  ],
+  "provenance": {
+    "kind": "author-constructed-fictional-source-packet",
+    "independentHumanReview": false
+  },
+  "expected": {
+    "mustFlag": "overlap unknown",
+    "range": "30/80 to 55/80",
+    "mustNotClaim": "55/80 is the established proportion"
+  }
+}

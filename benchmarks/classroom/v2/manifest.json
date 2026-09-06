@@ -1,0 +1,216 @@
+{
+  "protocol": "edutool-classroom-acceptance-v2",
+  "baselineCommit": "24c0364413b2cc6b37cd10e0454055a5dc8b7022",
+  "cases": [
+    {
+      "id": "d-c01-library",
+      "split": "development",
+      "family": "calculation",
+      "language": "en",
+      "sha256": "4437957d6c434500fa2182ce6c060c51f6d9b9970f33d675b3a66abf162a98a5"
+    },
+    {
+      "id": "d-c02-usable-survey",
+      "split": "development",
+      "family": "calculation",
+      "language": "en",
+      "sha256": "9c9d8fbc62126bb2f8dd3eeccb1f1c94f83f14cf04dd2e59f4ce235f3600d16b"
+    },
+    {
+      "id": "d-c03-count-vs-rate",
+      "split": "development",
+      "family": "calculation",
+      "language": "en",
+      "sha256": "cfbfa9afc0b7b7a2c68d49435325b932f50db6bf0acad07e5f7f55aea5e4a879"
+    },
+    {
+      "id": "d-c04-recurring",
+      "split": "development",
+      "family": "calculation",
+      "language": "en",
+      "sha256": "984340c4f35ac57d30aa9d7a2d14ff8c26e40796be23d26728b50fa6b944eb60"
+    },
+    {
+      "id": "d-c05-shift-zh",
+      "split": "development",
+      "family": "calculation",
+      "language": "zh",
+      "sha256": "ce457be71a7674cf360743dd2bfcf663ba15e0b3581d62d481b3e629939fc06f"
+    },
+    {
+      "id": "d-c06-inconsistent-counts",
+      "split": "development",
+      "family": "calculation",
+      "language": "en",
+      "sha256": "d46bb167da42e14205f29d7e1f63a81b952f4767956392c3aed2e5b34925d67b"
+    },
+    {
+      "id": "d-s01-cast-accession",
+      "split": "development",
+      "family": "source-analysis",
+      "language": "en",
+      "sha256": "8adf5eef69703a2fd7a5040caf847cfd09dc31d32dc3d0dff214b6c5769c5d36"
+    },
+    {
+      "id": "d-s02-same-event-conflict",
+      "split": "development",
+      "family": "source-analysis",
+      "language": "en",
+      "sha256": "37f0f385a11eeec14b25e4dbd67414ce4f68d225a537a2428faf02378409d806"
+    },
+    {
+      "id": "d-s03-advertisement",
+      "split": "development",
+      "family": "source-analysis",
+      "language": "en",
+      "sha256": "357ef377fdadfacc2066c4e6a070627606659547515e68cb5d4967485cce0462"
+    },
+    {
+      "id": "d-s04-undated-diary",
+      "split": "development",
+      "family": "source-analysis",
+      "language": "en",
+      "sha256": "ee775abe3b7b2dfe83880feb6acfc4fe5504fed04cb47b0afb3b5120d1e098f8"
+    },
+    {
+      "id": "d-s05-report-time-zh",
+      "split": "development",
+      "family": "source-analysis",
+      "language": "zh",
+      "sha256": "4ebef8e678ced70608d96a6b43983017498df56577903f2673d91c7e5a8f5751"
+    },
+    {
+      "id": "d-s06-quoted-speaker",
+      "split": "development",
+      "family": "source-analysis",
+      "language": "en",
+      "sha256": "136df787e4cce7e8d5d5f1a0c5010279a9abfe6b2cc101f2158e12efda67082d"
+    },
+    {
+      "id": "d-e01-water-confound",
+      "split": "development",
+      "family": "experiment",
+      "language": "en",
+      "sha256": "6d80b9e57d06ad33f8d3e30e8809c414debaf5dc6be27ca407fa2cc8f8f3cb8d"
+    },
+    {
+      "id": "d-e02-self-selection",
+      "split": "development",
+      "family": "experiment",
+      "language": "en",
+      "sha256": "8078940a18f6254607b91145af701dc4bbf0d83c54bf1294747f279db403d925"
+    },
+    {
+      "id": "d-e03-order-effects",
+      "split": "development",
+      "family": "experiment",
+      "language": "en",
+      "sha256": "0594349a7e3374b61a4a3853f888bff70b0d49943b771ac72e14c3e86793fa9d"
+    },
+    {
+      "id": "d-e04-tank-unit",
+      "split": "development",
+      "family": "experiment",
+      "language": "en",
+      "sha256": "e2ac8bcfca5cb28b90125136687f7b714d2f64dfcf10dc9636b88dcac0ce891c"
+    },
+    {
+      "id": "d-e05-paper-plane-zh",
+      "split": "development",
+      "family": "experiment",
+      "language": "zh",
+      "sha256": "66575d4a4c636d2bcf6cbf10718ebf18b1328ce8d9c458d6a90c074149445032"
+    },
+    {
+      "id": "d-e06-missing-outcome",
+      "split": "development",
+      "family": "experiment",
+      "language": "en",
+      "sha256": "3a18feee85d3e36a450d5b6cb0362352339592e92a3cccf926f1379a4e2cf56d"
+    },
+    {
+      "id": "h-c01-pooled-rates",
+      "split": "held-out",
+      "family": "calculation",
+      "language": "en",
+      "sha256": "25a8bfec5b7a30381a147ac2aef133d98e54bfd7bd3687391f711a81a313c689"
+    },
+    {
+      "id": "h-c02-zero-events",
+      "split": "held-out",
+      "family": "calculation",
+      "language": "zh",
+      "sha256": "a105190942d66504ccdc2b8f117a992eebb959b98ff35c8ffe98fce5e8fd755a"
+    },
+    {
+      "id": "h-c03-overlap",
+      "split": "held-out",
+      "family": "calculation",
+      "language": "en",
+      "sha256": "aed5515864d10f1b5873aa087aa0d864aa20292f0d7f674079c7bd97cd400cc3"
+    },
+    {
+      "id": "h-c04-volume-vs-households",
+      "split": "held-out",
+      "family": "calculation",
+      "language": "en",
+      "sha256": "1e2a71969a31c36e758a1d70d78f2ba6f2c242a0692ed904f59e8296e1b42bb9"
+    },
+    {
+      "id": "h-s01-print-exposure",
+      "split": "held-out",
+      "family": "source-analysis",
+      "language": "en",
+      "sha256": "667838ee7d29fb32e931d3eca1a3a79462e4b25738d9a2874911add6fd3f291f"
+    },
+    {
+      "id": "h-s02-amended-record",
+      "split": "held-out",
+      "family": "source-analysis",
+      "language": "en",
+      "sha256": "31cccb38809b9c927f89eb9450e2939efe8ba838aec47870f657ae18f3296a5a"
+    },
+    {
+      "id": "h-s03-missing-axis",
+      "split": "held-out",
+      "family": "source-analysis",
+      "language": "en",
+      "sha256": "4c13e3945e5356712accc251397f373d7d711bfc12056966b6129bc316f73dc7"
+    },
+    {
+      "id": "h-s04-interview-zh",
+      "split": "held-out",
+      "family": "source-analysis",
+      "language": "zh",
+      "sha256": "c980bee3cee5434a957698edb966de1d1e1a6fa9a222e1f6ee01f20bec737b87"
+    },
+    {
+      "id": "h-e01-coach-nutrition",
+      "split": "held-out",
+      "family": "experiment",
+      "language": "en",
+      "sha256": "2aec735f40218d5082baeb172e5bdd560aaac46089c3ef04bd87cd1e29915b1b"
+    },
+    {
+      "id": "h-e02-cache-order",
+      "split": "held-out",
+      "family": "experiment",
+      "language": "en",
+      "sha256": "2f2e5094bab2a83b4a63d41f304c629ae513b0051369f7575501fe653150119c"
+    },
+    {
+      "id": "h-e03-taste-blinding",
+      "split": "held-out",
+      "family": "experiment",
+      "language": "en",
+      "sha256": "a750906146cf886ac1ea8465b5ffee053a6f45333fe32088fa3e7d2467210edc"
+    },
+    {
+      "id": "h-e04-filter-time-zh",
+      "split": "held-out",
+      "family": "experiment",
+      "language": "zh",
+      "sha256": "de688d0dcba58554cc0cb4959ac2c903677aa34220b9cb6d0faba808d0582c78"
+    }
+  ]
+}

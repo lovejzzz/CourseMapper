@@ -146,6 +146,8 @@ export function compileTeachingProgram({
 export function teachingProgramReviewQuestions(program) {
   return (program?.units || []).map((unit) => ({
     practiceId: unit.id,
+    practiceKind: unit.kind,
+    ...(unit.sourceTaskId ? { sourceTaskId: unit.sourceTaskId } : {}),
     question: unit.question,
     answer: unit.answer,
     successCriteria: unit.criteria,

@@ -1,0 +1,22 @@
+{
+  "id": "d-s06-quoted-speaker",
+  "split": "development",
+  "family": "source-analysis",
+  "language": "en",
+  "sessionMinutes": 45,
+  "request": "Distinguish a character statement from the narrator position, and support a bounded interpretation.",
+  "sources": [
+    "In a fictional story excerpt, a character says: Nobody in this town ever helps a stranger.",
+    "The next sentence reports another resident taking a lost traveler to the station.",
+    "The excerpt supplies no narrator statement endorsing the character generalization."
+  ],
+  "provenance": {
+    "kind": "author-constructed-fictional-source-packet",
+    "independentHumanReview": false
+  },
+  "expected": {
+    "required": "the described action challenges the universal claim",
+    "alternativesAllowed": true,
+    "mustNotClaim": "the quotation proves the author believes nobody helps"
+  }
+}

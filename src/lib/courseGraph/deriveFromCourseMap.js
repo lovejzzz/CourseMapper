@@ -1,3 +1,4 @@
+import { sourceCourseGradeWeight } from '../courseGradeWeight.js';
 /**
  * courseGraph/deriveFromCourseMap.js — v0.13 P0: build a CourseGraph FROM a
  * (repaired) course map.
@@ -99,7 +100,7 @@ export function classifyAssessmentKind(title) {
   if (EXAM_HEAD_RE.test(text)) return 'exam';
   if (isCompilerOwnedFormativeAssessmentIdentity(text)) return 'in-class';
   const bareMidtermOrFinal = BARE_MIDTERM_FINAL_RE.test(text);
-  const explicitPercent = parseExplicitPercent(text) !== null;
+  const explicitPercent = sourceCourseGradeWeight({ title: text }) !== null;
   for (const [kind, pattern] of ASSESSMENT_KIND_RULES) {
     if (pattern.test(text)) {
       return kind === 'in-class' && explicitPercent ? 'graded-artifact' : kind;
@@ -170,134 +171,11 @@ function readingAtoms(value) {
   return [];
 }
 
-// Relative grading mass per kind — exams heavier than orals, orals heavier
-// than weekly artifacts; in-class activities carry no grade weight.
-const KIND_WEIGHT_UNITS = { exam: 3, oral: 2, 'graded-artifact': 1, 'in-class': 0 };
-
-function assessmentWeightUnits(assessment = {}) {
-  if (assessment.kind === 'in-class') return 0;
-  const title = cleanText(assessment.title).toLowerCase();
-  // When the instructor names a culminating artifact but supplies no official
-  // percentages, equal splitting can make a final paper worth less than a
-  // weekly check. Preserve explicit percentages above; this hierarchy is only
-  // the compiler's provisional distribution for unweighted registry rows.
-  if (
-    /\b(?:final|capstone)(?:\s+\w+){0,2}\s+(?:paper|essay|project|portfolio|presentation|report|performance)\b|\bthesis\b/.test(
-      title,
-    )
-  ) {
-    return 11;
-  }
-  if (assessment.kind === 'exam' && /\b(?:final|comprehensive)\b/.test(title)) return 11;
-  if (/\bproposal\b/.test(title)) return 3;
-  if (/\b(?:comparative|weekly)\s+reading responses?\b|\breading responses\b/.test(title)) return 6;
-  return KIND_WEIGHT_UNITS[assessment.kind] || 1;
-}
-
-/** Largest-remainder integer split of `total` across `units` (0-unit → 0). */
-function distributeIntegerWeights(total, units) {
-  const sum = units.reduce((acc, unit) => acc + unit, 0);
-  if (sum <= 0 || total <= 0) return units.map(() => 0);
-  const exact = units.map((unit) => (unit / sum) * total);
-  const floored = exact.map((value) => Math.floor(value));
-  let remainder = total - floored.reduce((acc, value) => acc + value, 0);
-  const order = exact
-    .map((value, index) => ({ index, fraction: value - floored[index] }))
-    .sort((a, b) => b.fraction - a.fraction || a.index - b.index);
-  for (const { index } of order) {
-    if (remainder <= 0) break;
-    floored[index] += 1;
-    remainder -= 1;
-  }
-  return floored;
-}
-
-function parseExplicitPercent(title) {
-  const match = String(title || '').match(/\b(\d{1,3})\s*%/);
-  if (!match) return null;
-  const value = Number(match[1]);
-  return value > 0 && value <= 100 ? value : null;
-}
-
-/**
- * Distribute grading weight across the registry, preserving the sum-to-100
- * invariant the syllabus grading table and alignmentLint depend on:
- *  - in-class entries weigh 0 (they are session activities, not grades);
- *  - explicit "(20%)" percentages in atom text are honored when they fit;
- *  - the remainder splits lesson-first (each lesson's share is proportional
- *    to its summed kind units), then within the lesson by kind (exam-heavy).
- */
+/** Missing course policy stays missing. Never allocate or normalize grades. */
 function allocateRegistryWeights(assessments) {
   for (const assessment of assessments) {
-    if (assessment.kind === 'in-class') assessment.weightPct = 0;
-  }
-  const graded = assessments.filter((assessment) => assessment.kind !== 'in-class');
-  if (graded.length === 0) return;
-
-  const explicit = graded.map((assessment) => parseExplicitPercent(assessment.title));
-  const explicitTotal = explicit.reduce((acc, value) => acc + (value || 0), 0);
-  const useExplicit = explicitTotal > 0 && explicitTotal <= 100;
-  const flexible = graded.filter((_, index) => !(useExplicit && explicit[index]));
-  const remaining = useExplicit ? 100 - explicitTotal : 100;
-
-  if (flexible.length > 0) {
-    const byLesson = new Map();
-    for (const assessment of flexible) {
-      const key = assessment.dueSession;
-      if (!byLesson.has(key)) byLesson.set(key, []);
-      byLesson.get(key).push(assessment);
-    }
-    const lessonNumbers = [...byLesson.keys()].sort((a, b) => a - b);
-    const lessonUnits = lessonNumbers.map((number) =>
-      byLesson.get(number).reduce((acc, assessment) => acc + assessmentWeightUnits(assessment), 0),
-    );
-    const lessonShares = distributeIntegerWeights(remaining, lessonUnits);
-    lessonNumbers.forEach((number, lessonIndex) => {
-      const group = byLesson.get(number);
-      const weights = distributeIntegerWeights(
-        lessonShares[lessonIndex],
-        group.map((assessment) => assessmentWeightUnits(assessment)),
-      );
-      group.forEach((assessment, index) => {
-        assessment.weightPct = weights[index];
-      });
-    });
-  }
-  if (useExplicit) {
-    graded.forEach((assessment, index) => {
-      if (explicit[index]) assessment.weightPct = explicit[index];
-    });
-  }
-  // A source-free provisional plan must not turn one final artifact into most
-  // of the course grade. The old 11:1 culminating multiplier produced the
-  // audited 73% final portfolio in a six-week seminar. Keep explicit source
-  // percentages untouched; for five or more inferred graded artifacts, cap
-  // the single heaviest item at 45% and return the excess to the other work.
-  if (!useExplicit && graded.length >= 5) {
-    const heaviest = graded.reduce((best, assessment) =>
-      (assessment.weightPct || 0) > (best.weightPct || 0) ? assessment : best,
-    );
-    const cap = 45;
-    const excess = Math.max(0, Number(heaviest.weightPct || 0) - cap);
-    if (excess > 0) {
-      heaviest.weightPct = cap;
-      const recipients = graded.filter((assessment) => assessment !== heaviest);
-      const additions = distributeIntegerWeights(
-        excess,
-        recipients.map((assessment) => Math.max(1, assessmentWeightUnits(assessment))),
-      );
-      recipients.forEach((assessment, index) => {
-        assessment.weightPct = Number(assessment.weightPct || 0) + additions[index];
-      });
-    }
-  }
-  // Defensive: rounding or explicit-only registries must still total 100.
-  const total = graded.reduce((acc, assessment) => acc + (assessment.weightPct || 0), 0);
-  if (total !== 100 && graded.length > 0) {
-    const heaviest = graded.reduce((best, assessment) =>
-      (assessment.weightPct || 0) > (best.weightPct || 0) ? assessment : best,
-    );
-    heaviest.weightPct = Math.max(0, (heaviest.weightPct || 0) + (100 - total));
+    assessment.weightPct = assessment.kind === 'in-class' ? null : sourceCourseGradeWeight(assessment);
+    assessment.weightSource = Number.isFinite(assessment.weightPct) ? 'course-map-explicit' : 'unweighted-formative';
   }
 }
 
@@ -405,6 +283,7 @@ export function deriveCourseGraphFromCourseMap(courseMap, options = {}) {
       id: sessionId,
       number: sessionNumber,
       title: cleanText(lesson?.title) || `Lesson ${sessionNumber}`,
+      ...(lesson?.teachingTaskLink ? { teachingTaskLink: structuredClone(lesson.teachingTaskLink) } : {}),
       sections: [],
     };
 

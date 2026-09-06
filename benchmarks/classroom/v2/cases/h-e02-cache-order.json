@@ -1,0 +1,25 @@
+{
+  "id": "h-e02-cache-order",
+  "split": "held-out",
+  "family": "experiment",
+  "language": "en",
+  "sessionMinutes": 45,
+  "request": "Design a timing comparison of two algorithms that controls the cache and run-order problem.",
+  "sources": [
+    "A fictional benchmark always runs Algorithm A first on a cold cache and Algorithm B second on warmed data.",
+    "Algorithm B has a lower elapsed time in these trials.",
+    "Input data and hardware are shared, but cache state and order differ systematically."
+  ],
+  "provenance": {
+    "kind": "author-constructed-fictional-source-packet",
+    "independentHumanReview": false
+  },
+  "expected": {
+    "confounds": [
+      "cache",
+      "order"
+    ],
+    "repair": "balanced/randomized order and matched cache state, repeated trials",
+    "mustNotClaim": "B is intrinsically faster from this record"
+  }
+}

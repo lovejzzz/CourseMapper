@@ -1,0 +1,25 @@
+{
+  "id": "d-e06-missing-outcome",
+  "split": "development",
+  "family": "experiment",
+  "language": "en",
+  "sessionMinutes": 25,
+  "request": "Assess whether the supplied plan is ready to test a treatment claim.",
+  "sources": [
+    "A fictional team plans to compare two plant treatments.",
+    "The plan does not specify what outcome will be measured, when it will be measured, or how treatment will be assigned.",
+    "No observations or results are supplied."
+  ],
+  "provenance": {
+    "kind": "author-constructed-fictional-source-packet",
+    "independentHumanReview": false
+  },
+  "expected": {
+    "mustFlag": [
+      "outcome missing",
+      "measurement time missing",
+      "assignment missing"
+    ],
+    "mustNotInvent": "treatment effect"
+  }
+}

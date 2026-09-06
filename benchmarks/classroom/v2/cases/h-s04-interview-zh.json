@@ -1,0 +1,23 @@
+{
+  "id": "h-s04-interview-zh",
+  "split": "held-out",
+  "family": "source-analysis",
+  "language": "zh",
+  "sessionMinutes": 40,
+  "request": "区分访谈中的亲眼观察、转述和主观判断。",
+  "sources": [
+    "虚构访谈者说：我亲眼看到两辆车停在门口。",
+    "同一人接着说：邻居告诉我，他们在开会；我觉得他们可能要搬走。",
+    "材料没有会议记录，也没有搬迁通知。"
+  ],
+  "provenance": {
+    "kind": "author-constructed-fictional-source-packet",
+    "independentHumanReview": false
+  },
+  "expected": {
+    "observed": "两辆车停在门口",
+    "hearsay": "邻居说在开会",
+    "inference": "可能要搬走",
+    "outputLanguage": "zh"
+  }
+}

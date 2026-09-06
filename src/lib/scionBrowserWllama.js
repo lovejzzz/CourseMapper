@@ -67,7 +67,9 @@ function initialStatus() {
     baseIntegrity: {
       expectedSha256: SCION_BROWSER_GEMMA4_GGUF.runtimeArtifact.sha256,
       runtimeCheck: 'metadata-and-pinned-url',
-      fullDigestEvidence: 'evaluation/scion-adapters/base-contracts/gemma-4-e2b.json',
+      // A pinned expected hash is not evidence that this browser hashed the
+      // complete downloaded model. Do not point to an absent audit artifact.
+      fullDigestEvidence: null,
     },
     adapter: { mode: 'base-only', active: false, id: null, manifestSha256: null },
     storage: null,
@@ -549,6 +551,7 @@ export async function completeScionBrowserWllama(
     topK = 1,
     topP = 1,
     seed = 7,
+    thinking = false,
     signal,
     onToken,
     taskFamily,
@@ -566,7 +569,17 @@ export async function completeScionBrowserWllama(
         // Route telemetry cannot alter inference state.
       }
     }
-    return completeRaw(messages, { maxNewTokens, temperature, topK, topP, seed, signal, onToken, onCompletion });
+    return completeRaw(messages, {
+      maxNewTokens,
+      temperature,
+      topK,
+      topP,
+      seed,
+      thinking,
+      signal,
+      onToken,
+      onCompletion,
+    });
   };
 
   return enqueueCompletion(async () => {

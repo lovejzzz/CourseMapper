@@ -106,7 +106,7 @@ REQUIREMENTS:
 - Avoid institution-specific claims unless present in the course map or instructor profile. Do not invent LMS folder paths, office names, support links, tool licenses, or institutional policies.
 - deliverables must be a checklist (students can tick off each item before submitting)
 - academicIntegrityStatement must be specific to this assignment (not a generic paragraph)
-- formatRequirements.latePolicy must state explicit point deduction or policy
+- formatRequirements.latePolicy preserves a supplied late-work policy; if absent, ask learners to confirm the deadline with the instructor. Never invent a point deduction.
 - accessibilityAndUDL, selfAssessmentRubric, and feedbackLoop are required. They must be specific to the assignment type and course topic, not repeated boilerplate across briefs.
 - selfAssessmentRubric must contain 3-5 checklist items students can use before submission.
 - GRADING CRITERIA: Each assignment's gradingCriteria field must include 3-5 concise criteria that summarize how the work will be judged. It may also include a final sentence such as "See Rubric for [Assignment Title] for full grading criteria and point breakdown," but never make the rubric reference the only grading guidance.
@@ -115,6 +115,6 @@ REQUIREMENTS:
 - QM ALIGNMENT: Assignments must be sequenced and suited to the course level — earlier assignments should scaffold toward later, more complex ones (QM 3.4). Include opportunities for learners to track their progress via the progressTracking field: interim feedback points, self-assessment checkpoints, or peer review milestones (QM 3.5). The academicIntegrityStatement must provide specific guidance on how to uphold integrity for THIS assignment type (QM 3.6).
 - COGNITIVE LOAD: Instructions must be imperative, concise, and scannable. No instruction step longer than 25 words. Each step describes one action only.
 - HUMAN READABILITY: Each assignment should read as a unique document — vary the overview voice, instruction phrasing, and scaffolding descriptions. Avoid copy-paste language patterns across assignments.
-- GRADE WEIGHT (CRITICAL — enforced by post-processing): ${scope && cm?.lessons?.length ? `You are generating assignments for ${scope.length} of ${cm.lessons.length} total lessons. This chunk's "pg" (percentOfGrade) values MUST sum to approximately ${Math.round((scope.length / cm.lessons.length) * 100)}% (your chunk's proportional share of 100%).` : `The "pg" (percentOfGrade) values across ALL assignments must sum to exactly 100%.`} Distribute grade weight proportionally based on assignment complexity and learning impact. Post-processing WILL normalize deviations, so stay as close to the target as possible.
+- COURSE GRADE WEIGHT: Preserve only percentages explicitly assigned by the supplied course grading policy. When absent, write "Formative practice — no course-grade weight specified" in pg. Do not distribute or normalize a whole-course grade across generated tasks, lesson subsets or chunks. Rubric points describe performance within a task and are separate from the course grade.
 - Return ONLY the JSON object, no prose, no markdown`,
 };

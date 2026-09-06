@@ -1,3 +1,4 @@
+import { sourceCourseGradeWeight } from './courseGradeWeight.js';
 import {
   applyArithmeticProgramToOutline,
   compileTeachingProgram,
@@ -10,6 +11,7 @@ import {
   selectInstructorTaskSourceFacts,
 } from './compilerTeachingTaskSequence.js';
 import { projectSharedTeachingTasks, projectTeachingTasksIntoCourseMap } from './compilerTeachingTaskProjection.js';
+import { rebuildTeachingTaskSource } from './teachingTaskSource.js';
 import { COLUMN_EXTRACTORS } from './prompts/promptUtils';
 import {
   asArray,
@@ -9251,7 +9253,7 @@ function buildBlueprintAssumptionLedger({
       category: 'assessment-weight',
       lessonNumber: row.lessonNumber,
       lessonTitle: row.lessonTitle,
-      assumption: `${row.assessmentTitle || row.lessonTitle} uses ${row.weightPercent}% grading weight.`,
+      assumption: `${row.assessmentTitle || row.lessonTitle}: ${courseWeightLabel(row.weightPercent)}.`,
       evidence: row.sourceEvidence || row.rationale || assessmentArchitecture?.weightConfirmationPolicy,
       source: row.source || 'compiler-distributed-by-assessment-role',
       confidence: row.source === 'course-map-explicit' ? 'high' : 'needs-review',
@@ -9715,7 +9717,7 @@ function buildCourseAlignmentMatrix(lessons, assessments) {
       Boolean(lesson.teachingIntent?.teachingGoal) &&
       Boolean(lesson.teachingIntent?.feedbackDecision) &&
       Boolean(assessment.role) &&
-      Number.isFinite(assessment.weightPercent) &&
+      (assessment.weightPercent === null || Number.isFinite(assessment.weightPercent)) &&
       Boolean(assessment.cadence?.feedbackWindow) &&
       Boolean(assessment.revisionUse) &&
       Boolean(assessment.calibrationPlan?.biasCheck) &&
@@ -10513,7 +10515,7 @@ export function validateCourseBlueprintContract(blueprint = {}) {
     );
   }
   const assessmentArchitectureMissing =
-    blueprint.assessmentArchitecture?.totalWeightPercent !== 100 ||
+    !Number.isFinite(blueprint.assessmentArchitecture?.totalWeightPercent) ||
     !Array.isArray(blueprint.assessmentArchitecture?.lessonRows) ||
     blueprint.assessmentArchitecture.lessonRows.length !== lessons.length ||
     !Array.isArray(blueprint.assessmentArchitecture?.weightRows) ||
@@ -11008,7 +11010,7 @@ export function validateCourseBlueprintContract(blueprint = {}) {
       !matchedAssessment.role ||
       !matchedAssessment.roleLabel ||
       !matchedAssessment.stakes ||
-      !Number.isFinite(matchedAssessment.weightPercent) ||
+      (matchedAssessment.weightPercent !== null && !Number.isFinite(matchedAssessment.weightPercent)) ||
       !matchedAssessment.gradingMode ||
       !matchedAssessment.roleRationale ||
       !matchedAssessment.studentFacingPurpose ||
@@ -11636,7 +11638,7 @@ function anchorNeedsRebuild(assessment) {
     !assessment?.artifact ||
     !Array.isArray(assessment.criteria) ||
     assessment.criteria.length < 3 ||
-    !Number.isFinite(assessment.weightPercent) ||
+    (assessment.weightPercent !== null && !Number.isFinite(assessment.weightPercent)) ||
     !assessment.weightProvenance?.source
   );
 }
@@ -12777,15 +12779,21 @@ function prepareBlueprintForCompilation(blueprint = {}, options = {}) {
     const authoredAssignment =
       lesson.enrichment?.assignmentCore?.taskDescription &&
       !lesson.enrichment.surfaceFallbacks?.includes('assignmentCore');
-    const teachingTask = buildSharedTeachingTask({
-      lessonId: lesson.id,
-      objective: asArray(lesson.outcomes).join(' '),
-      claims: instructorFacts.length ? instructorFacts : ownedFacts,
-      admitted: instructorFacts.length > 0 || hasLearnerFacingSemanticAuthority(lesson.enrichment),
-      workedExample: lesson.enrichment?.workedExample || lesson.enrichment?.kernel?.workedExample,
-      sessionMinutes: lesson.classSessionPlan?.sessionMinutes,
-      practiceMinutes: lesson.classSessionPlan?.segments?.find((s) => s.phase === 'collaborative application')?.minutes,
-    });
+    const savedTaskSource = (Array.isArray(prepared.teachingTaskSources) ? prepared.teachingTaskSources : []).find(
+      (source) => (lesson.taskSourceId ? source.id === lesson.taskSourceId : source.lessonId === lesson.id),
+    );
+    const teachingTask =
+      (savedTaskSource && rebuildTeachingTaskSource(savedTaskSource, asArray(lesson.outcomes).join(' '))) ||
+      buildSharedTeachingTask({
+        lessonId: lesson.id,
+        objective: asArray(lesson.outcomes).join(' '),
+        claims: instructorFacts.length ? instructorFacts : ownedFacts,
+        admitted: instructorFacts.length > 0 || hasLearnerFacingSemanticAuthority(lesson.enrichment),
+        workedExample: lesson.enrichment?.workedExample || lesson.enrichment?.kernel?.workedExample,
+        sessionMinutes: lesson.classSessionPlan?.sessionMinutes,
+        practiceMinutes: lesson.classSessionPlan?.segments?.find((s) => s.phase === 'collaborative application')
+          ?.minutes,
+      });
     return {
       ...lesson,
       teachingTask,
@@ -12908,6 +12916,7 @@ const TOP_LEVEL_HYDRATED_BLUEPRINT_KEYS = [
 
 const LESSON_STORAGE_KEYS = new Set([
   'id',
+  'taskSourceId',
   'lessonIndex',
   'lessonNumber',
   'enrichment',
@@ -13030,6 +13039,7 @@ export function compactBlueprintForStorage(blueprint = {}) {
     version: blueprint.version || 1,
     source: blueprint.source || 'deterministic-course-map',
     courseName: blueprint.courseName,
+    teachingTaskSources: clonePlain(blueprint.teachingTaskSources || []),
     semester: blueprint.semester,
     credits: blueprint.credits,
     sessionMinutes: normalizeClassSessionMinutes(
@@ -14199,6 +14209,7 @@ function extractLessonBlueprint(
 
   return {
     id: `lesson-${lessonNumber}`,
+    taskSourceId: lesson?.teachingTaskLink?.taskId,
     lessonIndex: originalIndex,
     lessonNumber,
     title,
@@ -14286,18 +14297,6 @@ function distributeWeightedPercent(rawWeights = []) {
   return floored;
 }
 
-function extractPercentWeights(text = '') {
-  const source = cleanText(text);
-  if (!source) return [];
-  const matches = [...source.matchAll(/\b(\d{1,3})(?:\s*%(?=\s|$|[),.;:])|\s+percent\b)/gi)]
-    .map((match) => ({
-      value: Number(match[1]),
-      evidence: source.slice(Math.max(0, match.index - 50), Math.min(source.length, match.index + 80)),
-    }))
-    .filter((match) => Number.isFinite(match.value) && match.value > 0 && match.value <= 100);
-  return matches;
-}
-
 function sourceWeightEvidenceTextForLesson(lesson = {}) {
   const sourceFields = Array.isArray(lesson.sourceEvidenceTrace?.sourceFields)
     ? lesson.sourceEvidenceTrace.sourceFields
@@ -14316,111 +14315,59 @@ function sourceWeightEvidenceTextForLesson(lesson = {}) {
 
 function extractSourceWeightPercent(lesson = {}) {
   const evidenceText = sourceWeightEvidenceTextForLesson(lesson);
-  const matches = extractPercentWeights(evidenceText);
-  if (matches.length === 0) return null;
-  const selected =
-    matches.find((match) => /\b(weight|worth|grade|grading|percent|%)\b/i.test(match.evidence)) || matches[0];
-  return {
-    percent: selected.value,
-    evidence: selected.evidence,
-  };
+  const percent = sourceCourseGradeWeight({ sourceText: evidenceText });
+  return percent === null ? null : { percent, evidence: evidenceText };
 }
 
-function buildAssessmentWeightPlan(lessons = [], roleDescriptors = []) {
-  const explicitWeights = lessons.map(extractSourceWeightPercent);
-  const explicitCount = explicitWeights.filter(Boolean).length;
-  const roleWeights = distributeWeightedPercent(roleDescriptors.map((descriptor) => descriptor.rawWeight));
-  if (lessons.length === 0) {
-    return {
-      sourceStatus: 'missing',
-      weights: [],
-      rows: [],
-      explicitWeightCount: 0,
-      compilerDistributedWeightCount: 0,
-      reviewRequiredCount: 0,
-      sourceWeightTotal: 0,
-      policy: 'No assessment rows were available; local grading weights must be supplied before publication.',
-    };
-  }
+function courseWeightLabel(weight) {
+  return Number.isFinite(weight) ? `${weight}%` : 'Formative practice — no course-grade weight specified';
+}
 
-  const sourceWeightTotal = explicitWeights.reduce((sum, item) => sum + Number(item?.percent || 0), 0);
-  let sourceStatus = 'compiler-distributed-draft';
-  let weights = roleWeights.length > 0 ? roleWeights : distributePercent(lessons.length);
-  let reviewReason =
-    'No source grading percentages were detected, so the compiler distributed draft weights from assessment roles.';
-
-  if (explicitCount === lessons.length && sourceWeightTotal === 100) {
-    sourceStatus = 'source-explicit';
-    weights = explicitWeights.map((item) => item.percent);
-    reviewReason = 'Every assessment had source-map grading percentages totaling 100%.';
-  } else if (explicitCount > 0 && sourceWeightTotal < 100) {
-    sourceStatus = 'mixed-source-and-compiler-distributed';
-    const remaining = 100 - sourceWeightTotal;
-    const missingIndexes = explicitWeights
-      .map((item, index) => (item ? null : index))
-      .filter((index) => Number.isInteger(index));
-    const missingRawWeights = missingIndexes.map((index) => roleDescriptors[index]?.rawWeight || 1);
-    const missingDistributed = distributeWeightedPercent(missingRawWeights).map((weight) =>
-      Math.round((weight / 100) * remaining),
-    );
-    const distributedSum = missingDistributed.reduce((sum, value) => sum + value, 0);
-    if (missingDistributed.length > 0 && distributedSum !== remaining) {
-      missingDistributed[missingDistributed.length - 1] += remaining - distributedSum;
-    }
-    weights = lessons.map((_, index) => {
-      if (explicitWeights[index]) return explicitWeights[index].percent;
-      const missingPosition = missingIndexes.indexOf(index);
-      return missingDistributed[missingPosition] || 0;
-    });
-    reviewReason =
-      'Some assessments had source-map percentages; the compiler distributed the remaining weight across unweighted assessments.';
-  } else if (explicitCount > 0) {
-    sourceStatus = 'source-weight-conflict-normalized-draft';
-    weights = roleWeights.length > 0 ? roleWeights : distributePercent(lessons.length);
-    reviewReason =
-      'Source-map percentages were present but did not form a usable 100% plan, so the compiler kept a balanced draft and requires instructor confirmation.';
-  }
-
+function buildAssessmentWeightPlan(lessons = []) {
+  const explicit = lessons.map(extractSourceWeightPercent);
+  const explicitWeightCount = explicit.filter(Boolean).length;
+  const sourceWeightTotal = explicit.reduce((sum, item) => sum + (item?.percent || 0), 0);
+  const sourceStatus = !explicitWeightCount
+    ? 'unweighted-formative'
+    : explicitWeightCount === lessons.length && sourceWeightTotal === 100
+      ? 'source-explicit'
+      : 'source-partial-or-conflicting';
   const rows = lessons.map((lesson, index) => {
-    const explicit = explicitWeights[index];
-    const source =
-      sourceStatus === 'source-explicit' && explicit
-        ? 'course-map-explicit'
-        : explicit && sourceStatus === 'mixed-source-and-compiler-distributed'
-          ? 'course-map-explicit'
-          : 'compiler-distributed-by-assessment-role';
-    const reviewRequired = source !== 'course-map-explicit' || sourceStatus !== 'source-explicit';
+    const percent = explicit[index]?.percent ?? null;
     return {
       lessonNumber: lesson.lessonNumber,
       lessonTitle: lesson.title,
       assessmentTitle: lesson.studentArtifact,
-      weightPercent: weights[index] || 0,
-      sourceWeightPercent: explicit?.percent ?? null,
-      source,
+      weightPercent: percent,
+      sourceWeightPercent: percent,
+      source: percent === null ? 'unweighted-formative' : 'course-map-explicit',
       sourceStatus,
-      reviewRequired,
-      sourceEvidence: removeNumberedAssessmentEchoes(explicit?.evidence || ''),
+      reviewRequired: explicitWeightCount > 0 && sourceStatus !== 'source-explicit',
+      sourceEvidence: explicit[index]?.evidence || '',
       rationale:
-        source === 'course-map-explicit'
-          ? `Weight ${weights[index] || 0}% came from source assessment text.`
-          : `Weight ${weights[index] || 0}% is a compiler-distributed draft based on assessment role and course sequence.`,
-      reviewerAction: reviewRequired
-        ? `Confirm the official grading weight for ${lesson.title} before publishing.`
-        : `Spot-check that the ${weights[index] || 0}% weight still matches the official course source.`,
+        percent === null
+          ? 'Use the criteria for formative feedback; the source assigns no course-grade percentage.'
+          : `The source assigns ${percent}%. This value is preserved without normalization.`,
+      reviewerAction:
+        percent === null
+          ? 'Set an explicit course grading policy only if this work will count toward the course grade.'
+          : 'Check this source-stated weight against the complete official course policy.',
     };
   });
-
   return {
     sourceStatus,
-    weights,
+    weights: rows.map((row) => row.weightPercent),
     rows,
-    explicitWeightCount: explicitCount,
-    compilerDistributedWeightCount: rows.filter((row) => row.source !== 'course-map-explicit').length,
+    explicitWeightCount,
+    compilerDistributedWeightCount: 0,
     reviewRequiredCount: rows.filter((row) => row.reviewRequired).length,
     sourceWeightTotal,
-    reviewReason,
+    reviewReason:
+      sourceStatus === 'unweighted-formative'
+        ? 'No course grading policy was supplied. Tasks remain formative practice.'
+        : 'Preserve source-stated percentages; incomplete or conflicting policies need review.',
     policy:
-      'Assessment weights are publishable only after instructor confirmation; source-explicit weights are preserved, while compiler-distributed weights are draft planning weights.',
+      'Rubric points describe performance within a task. They do not assign a percentage of the course grade. Missing course weights are never invented.',
   };
 }
 
@@ -14434,6 +14381,26 @@ function assessmentMilestoneIndexes(count) {
 function buildAssessmentRoleDescriptor({ lesson, index, lessonCount }) {
   const concept = safeLessonPrimaryConcept(lesson);
   const artifact = safeLessonArtifact(lesson, 'weekly artifact');
+  // Position in a course is not evidence that a task carries high stakes.
+  // Preserve explicitly named summative work, but do not turn a one-session
+  // workshop response into a final assessment merely because it is last.
+  const assessmentEvidence = sourceWeightEvidenceTextForLesson(lesson);
+  const namedSummative = /\b(?:final exam|final assessment|summative|capstone|midterm)\b|期末考试|总结性评价/i.test(
+    assessmentEvidence,
+  );
+  if (!extractSourceWeightPercent(lesson) && !namedSummative) {
+    return {
+      role: 'formative-practice',
+      label: 'Formative practice',
+      stakes: 'low',
+      rawWeight: 0,
+      gradingMode: 'criterion feedback and revision',
+      roleRationale: 'The supplied task has no course-grade weight or explicit summative designation.',
+      studentFacingPurpose: `Use ${artifact} to show your reasoning and identify a specific next step.`,
+      feedbackWindow: 'Use the task criteria during review, before students revise their response.',
+      revisionUse: 'Retain the first response, identify the criterion it missed, and submit a corrected response.',
+    };
+  }
   const milestoneIndexes = assessmentMilestoneIndexes(lessonCount);
   if (lessonCount <= 1 || index === lessonCount - 1) {
     return {
@@ -14570,13 +14537,20 @@ function buildAssessmentArchitecture({ lessons, assessments }) {
     rationale: assessment.weightProvenance?.rationale || '',
   }));
   const explicitWeightCount = weightRows.filter((row) => row.source === 'course-map-explicit').length;
-  const compilerDistributedWeightCount = weightRows.filter((row) => row.source !== 'course-map-explicit').length;
+  const compilerDistributedWeightCount = 0;
   const weightReviewRequiredCount = weightRows.filter((row) => row.reviewRequired).length;
   const weightSourceStatus =
     assessments[0]?.weightProvenance?.planStatus ||
-    (explicitWeightCount === assessments.length ? 'source-explicit' : 'compiler-distributed-draft');
+    (!explicitWeightCount
+      ? 'unweighted-formative'
+      : explicitWeightCount === assessments.length && totalWeightPercent === 100
+        ? 'source-explicit'
+        : 'source-partial-or-conflicting');
   const architectureFindings = [];
-  if (totalWeightPercent !== 100) architectureFindings.push('Assessment weights must total 100%.');
+  if (explicitWeightCount > 0 && totalWeightPercent !== 100)
+    architectureFindings.push(
+      'The source-stated assessment weights do not total 100%; review the complete course policy. Values have not been normalized.',
+    );
   if (!assessments.some((assessment) => assessment.role === 'summative-synthesis')) {
     architectureFindings.push('Assessment plan needs a summative synthesis role.');
   }
@@ -14600,7 +14574,7 @@ function buildAssessmentArchitecture({ lessons, assessments }) {
     compilerDistributedWeightCount,
     weightReviewRequiredCount,
     weightConfirmationPolicy:
-      'Official grading weights must be confirmed by the instructor; compiler-distributed weights are draft planning weights, not institutional policy.',
+      'Only an explicit course policy assigns course-grade percentages. Unweighted tasks use rubric criteria for formative feedback.',
     weightRows,
     roleCounts,
     assessmentCount: assessments.length,
@@ -15158,9 +15132,9 @@ function normalizeAssessmentRegistry(registry) {
         title: normalizedTitle,
         kind,
         dueSession: entry.dueSession,
-        weightPct: Number.isFinite(entry.weightPct) ? entry.weightPct : null,
+        weightPct: sourceCourseGradeWeight(entry),
         sourceText: cleanText(entry.sourceText || entry.title),
-        weightSource: registryWeightIsSourceExplicit(entry) ? 'source-explicit' : 'compiler-draft',
+        weightSource: registryWeightIsSourceExplicit(entry) ? 'source-explicit' : 'unweighted-formative',
       };
     });
   const mergedEntries = mergeFinalRegistryEntries(entries);
@@ -15264,7 +15238,7 @@ function registryArtifactTeachingPriority(entry = {}) {
 }
 
 function registryWeightIsSourceExplicit(entry = {}) {
-  return /\b\d{1,3}\s*%/.test(cleanText(entry.sourceText || entry.title));
+  return sourceCourseGradeWeight(entry) !== null;
 }
 
 // v0.14.3 (C1 falsification fix): the lesson's central artifact name on the
@@ -15346,19 +15320,23 @@ function registryOralRoleDescriptor(lesson, entry) {
 }
 
 function registryWeightProvenance(entry, lesson) {
+  const explicit = Number.isFinite(entry.weightPct);
   return {
     version: 1,
-    planStatus: 'registry-distributed',
-    planPolicy:
-      'Weights come from the course-map assessment registry: distributed across each lesson’s assessments by kind (exams heavier), summing to 100%.',
-    planReviewReason: 'Registry weights are kind-aware drafts unless the course map stated explicit percentages.',
-    source: 'course-map-registry',
-    sourceStatus: 'registry-distributed',
-    sourceWeightPercent: null,
+    planStatus: explicit ? 'source-explicit' : 'unweighted-formative',
+    planPolicy: 'Preserve stated course percentages without redistribution. Unweighted work is formative practice.',
+    planReviewReason: 'Rubric points and course-grade percentages are separate.',
+    source: explicit ? 'course-map-explicit' : 'unweighted-formative',
+    sourceStatus: explicit ? 'source-explicit' : 'unweighted-formative',
+    sourceWeightPercent: entry.weightPct ?? null,
     sourceEvidence: entry.title,
-    reviewRequired: true,
-    rationale: `Weight ${entry.weightPct}% reflects "${entry.title}" (${entry.kind}) within the Lesson ${entry.dueSession} assessment set.`,
-    reviewerAction: `Confirm the official grading weight for ${entry.title} (${lesson.title}) before publishing.`,
+    reviewRequired: explicit,
+    rationale: explicit
+      ? `The source assigns ${entry.weightPct}% to “${entry.title}”.`
+      : 'The source specifies no course-grade weight; use the task criteria for formative feedback.',
+    reviewerAction: explicit
+      ? `Check the stated weight for ${entry.title} (${lesson.title}) against the complete course policy.`
+      : 'Supply a course grading policy only if this practice will count toward a course grade.',
   };
 }
 
@@ -15538,25 +15516,9 @@ function buildRegistryAssessmentAnchors(lessons, registry) {
     24,
   );
 
-  // Weight hygiene: registry weights sum to 100 at derive time; scoped
-  // compiles (lesson subsets) and null weights re-normalize here so the
-  // syllabus grading table always totals 100.
-  const known = graded.reduce((sum, entry) => sum + (Number.isFinite(entry.weightPct) ? entry.weightPct : 0), 0);
-  const unknown = graded.filter((entry) => !Number.isFinite(entry.weightPct));
-  let weights = graded.map((entry) => (Number.isFinite(entry.weightPct) ? entry.weightPct : 0));
-  if (unknown.length > 0 || known !== 100) {
-    weights = distributeWeightedPercent(
-      graded.map((entry) =>
-        Number.isFinite(entry.weightPct) && entry.weightPct > 0
-          ? entry.weightPct
-          : entry.kind === 'exam'
-            ? 3
-            : entry.kind === 'oral'
-              ? 2
-              : 1,
-      ),
-    );
-  }
+  // A selected lesson retains its original course percentage. Exporting a
+  // subset must never promote one 20% assignment to 100% of the course grade.
+  const weights = graded.map(sourceCourseGradeWeight);
 
   const lessonCount = lessons.length || 1;
   const lessonIndexByNumber = new Map(lessons.map((lesson, index) => [lesson.lessonNumber, index]));
@@ -15567,7 +15529,7 @@ function buildRegistryAssessmentAnchors(lessons, registry) {
   return graded.map((entry, position) => {
     const lesson = lessonByNumber.get(entry.dueSession);
     const lessonIndex = lessonIndexByNumber.get(entry.dueSession) || 0;
-    const weightPercent = weights[position] || 0;
+    const weightPercent = weights[position] ?? null;
     const normalizedEntry = {
       ...entry,
       title: dedupeNumberedAssessmentEcho(entry.title),
@@ -15620,7 +15582,7 @@ function buildRegistryAssessmentAnchors(lessons, registry) {
       lessonNumbers: [lesson.lessonNumber],
       dueSession: entry.dueSession,
       relatedLessons: [lesson.title],
-      weight: `${weightPercent}%`,
+      weight: courseWeightLabel(weightPercent),
       weightPercent,
       weightProvenance: registryWeightProvenance(normalizedEntry, lesson),
       points: 100,
@@ -15678,8 +15640,8 @@ function buildAssessmentAnchors(lessons, registry = null) {
       lessonCount: source.length || 1,
     }),
   );
-  const weightPlan = buildAssessmentWeightPlan(source, roleDescriptors);
-  const weights = weightPlan.weights.length > 0 ? weightPlan.weights : distributePercent(source.length || 1);
+  const weightPlan = buildAssessmentWeightPlan(source);
+  const weights = weightPlan.weights;
   return source.map((lesson, index) => {
     const validityEvidence = buildAssessmentValidityEvidence(lesson);
     const baseCriteria =
@@ -15709,7 +15671,7 @@ function buildAssessmentAnchors(lessons, registry = null) {
       criterionEvidenceMap,
     });
     const roleDescriptor = roleDescriptors[index] || buildAssessmentRoleDescriptor({ lesson, index, lessonCount: 1 });
-    const weightPercent = weights[index] || 0;
+    const weightPercent = weights[index] ?? null;
     const weightProvenanceRow = weightPlan.rows[index] || {};
     const assessment = {
       id: `assessment-${index + 1}`,
@@ -15720,7 +15682,7 @@ function buildAssessmentAnchors(lessons, registry = null) {
       ...(requiredComponents.length > 0 ? { requiredComponents } : {}),
       lessonNumbers: [lesson.lessonNumber],
       relatedLessons: [lesson.title],
-      weight: `${weightPercent}%`,
+      weight: courseWeightLabel(weightPercent),
       weightPercent,
       weightProvenance: {
         version: 1,
@@ -15902,7 +15864,7 @@ function assessmentCourseMapWeightLabel(assessment = {}) {
   const category = assessment.officialGradingCategory;
   return category
     ? `Part of ${category.title} · ${category.weightPct}% category total`
-    : `${assessment.weightPercent}%`;
+    : courseWeightLabel(assessment.weightPercent);
 }
 
 function authenticEvidenceTaskByLesson(coverage = null) {
@@ -16351,6 +16313,7 @@ export function buildCourseBlueprint(courseMap, options = {}) {
     version: 1,
     source: authoritativeInstructionalPlan ? 'authority-bound-course-map' : 'deterministic-course-map',
     courseName,
+    teachingTaskSources: clonePlain(courseMap?.teachingTaskSources || []),
     coursePromises,
     ...(coursePrerequisites ? { coursePrerequisites } : {}),
     ...(courseGradingPolicy ? { courseGradingPolicy } : {}),
@@ -17568,7 +17531,7 @@ function compileSyllabus(blueprint) {
       courseRequirements: requirements,
       courseRequirementWeightNote: blueprint.courseGradingPolicy
         ? ''
-        : 'The listed percentages are proposed planning weights. Confirm the official grading policy before publishing.',
+        : 'No course-grade percentages have been invented. Use unweighted tasks for formative feedback; retain any source-stated percentages pending review of the complete course policy.',
       assessmentCalendar: blueprint.assessments.map((assessment) => ({
         lessonNumbers: assessment.lessonNumbers,
         week: `Week ${assessment.lessonNumbers[0]}`,
@@ -18818,7 +18781,7 @@ function compileRubrics(blueprint) {
               `Provides general description with little ${assessment.title} evidence or criterion alignment.`,
           },
           scorerCalibrationUse: assessment.anchorExampleSet?.scorerCalibrationUse || '',
-          gradePolicyConnection: `${assessment.title} carries ${assessment.weight} of the course grade as a ${assessment.roleLabel || assessment.role}, with feedback due in this window: ${assessment.cadence?.feedbackWindow || 'local LMS feedback window'}.`,
+          gradePolicyConnection: `${assessment.title}: ${assessment.weight}. Rubric points describe performance within this task. Feedback window: ${assessment.cadence?.feedbackWindow || 'local LMS feedback window'}.`,
           assessmentCadence: assessment.cadence,
           revisionUse: assessment.revisionUse,
           teacherNotes: preference
@@ -28752,7 +28715,7 @@ export {
 export function reconcileCourseMapWithBlueprintSemanticAdmission(courseMap, blueprint) {
   if (!blueprint?.lessons) return courseMap;
   const prepared = prepareBlueprintForCompilation(blueprint);
-  return projectTeachingTasksIntoCourseMap(reconcileSemanticCourseMap(courseMap, prepared), prepared);
+  return projectTeachingTasksIntoCourseMap(reconcileSemanticCourseMap(courseMap, blueprint), prepared);
 }
 
 export function compileBlueprintDeliverable(featureId, blueprint, options = {}) {

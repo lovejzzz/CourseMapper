@@ -44,6 +44,21 @@ describe('KEY_MAPS', () => {
 });
 
 describe('expandKeys', () => {
+  it.each(Object.keys(KEY_MAPS))('keeps typed source and edit metadata lossless for %s', (feature) => {
+    const source = { id: 'task-1', inputs: [{ id: 'input-1', text: 'Given 12/20.' }] };
+    const input = {
+      teachingTaskSources: [source],
+      teacherEdits: [{ path: ['id'], generated: { id: 'source-1' } }],
+      rows: [{ taskSyncConflicts: [{ current: { id: 'teacher-1' }, proposed: { id: 'compiler-1' } }] }],
+    };
+    expect(expandKeys(feature, expandKeys(feature, input))).toEqual(input);
+  });
+  it('still expands the discussion facilitation alias next to a canonical ledger', () => {
+    const input = { teachingTaskSources: [{ id: 'task-1' }], discussions: [{ ft: { id: 'Invite another voice.' } }] };
+    const expanded = expandKeys('discussions', input);
+    expect(expanded.teachingTaskSources[0].id).toBe('task-1');
+    expect(expanded.discussions[0].facilitationTips.ifDominates).toBe('Invite another voice.');
+  });
   it('expands minified keys in a flat object', () => {
     const input = { lt: 'Lesson 1', wk: 1, dur: '50min' };
     const result = expandKeys('lessonPlans', input);

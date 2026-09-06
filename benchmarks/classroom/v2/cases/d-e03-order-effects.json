@@ -1,0 +1,25 @@
+{
+  "id": "d-e03-order-effects",
+  "split": "development",
+  "family": "experiment",
+  "language": "en",
+  "sessionMinutes": 45,
+  "request": "Explain why the second trial advantage is ambiguous and propose an order-aware comparison.",
+  "sources": [
+    "All fictional participants first complete a puzzle in silence and then repeat the same puzzle with music.",
+    "The second completion is faster for most participants.",
+    "Practice and music coincide in the second trial; no counterbalanced order was used."
+  ],
+  "provenance": {
+    "kind": "author-constructed-fictional-source-packet",
+    "independentHumanReview": false
+  },
+  "expected": {
+    "confounds": [
+      "practice",
+      "order"
+    ],
+    "repair": "counterbalance with comparable puzzle versions",
+    "mustNotClaim": "music caused the improvement"
+  }
+}

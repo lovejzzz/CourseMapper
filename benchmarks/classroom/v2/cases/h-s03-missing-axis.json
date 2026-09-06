@@ -1,0 +1,21 @@
+{
+  "id": "h-s03-missing-axis",
+  "split": "held-out",
+  "family": "source-analysis",
+  "language": "en",
+  "sessionMinutes": 30,
+  "request": "Assess the claim that a pictured line proves a large increase.",
+  "sources": [
+    "A fictional report screenshot shows an upward-sloping line.",
+    "The axis labels, units, numeric scale, and time interval are cropped out.",
+    "The caption claims a dramatic increase but supplies no underlying values."
+  ],
+  "provenance": {
+    "kind": "author-constructed-fictional-source-packet",
+    "independentHumanReview": false
+  },
+  "expected": {
+    "required": "visible upward direction does not establish size, variable, or rate",
+    "mustNotInvent": "numerical percentage change"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "id": "h-e01-coach-nutrition",
+  "split": "held-out",
+  "family": "experiment",
+  "language": "en",
+  "sessionMinutes": 50,
+  "request": "Propose a comparison that isolates a training schedule and explain remaining uncertainty.",
+  "sources": [
+    "In a fictional sports study, Team A uses a new training schedule with an extra nutrition program; Team B uses the old schedule without that program.",
+    "Different coaches train the teams, and sprint times are measured at the end of six weeks.",
+    "No baseline sprint times or random assignment are reported."
+  ],
+  "provenance": {
+    "kind": "author-constructed-fictional-source-packet",
+    "independentHumanReview": false
+  },
+  "expected": {
+    "confounds": [
+      "nutrition",
+      "coach",
+      "baseline differences"
+    ],
+    "repair": "equal co-interventions and comparable assignment/measurement",
+    "mustNotClaim": "new schedule caused faster times"
+  }
+}

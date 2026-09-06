@@ -2813,6 +2813,27 @@ export function evaluateWorkspaceReadiness({
     if (entry.stale) {
       issues.push(makeIssue(READINESS_WARNING, featureId, `${labelFor(featureId)} is out of sync after edits.`));
     }
+    const conflictsInScope = (entry.data.taskSyncConflicts || []).filter((conflict) => {
+      const row = entry.data?.[conflict.path?.[0]]?.[conflict.path?.[1]];
+      const lessonNumber =
+        conflict.anchors?.find((anchor) => anchor.field === 'lessonNumber')?.value ?? row?.lessonNumber;
+      return !Number.isInteger(lessonNumber) || lessonIndices.includes(lessonNumber - 1);
+    });
+    const sourceReviewInScope =
+      entry.data.taskSourceReview &&
+      (!Number.isInteger(entry.data.taskSourceReviewLesson) ||
+        lessonIndices.includes(entry.data.taskSourceReviewLesson - 1));
+    if (sourceReviewInScope || conflictsInScope.length) {
+      issues.push(
+        makeIssue(
+          READINESS_BLOCKER,
+          featureId,
+          sourceReviewInScope
+            ? entry.data.taskSourceReview
+            : `${labelFor(featureId)} has ${conflictsInScope.length} unresolved source updates. Review the preserved and proposed versions before sharing.`,
+        ),
+      );
+    }
 
     const scopedData = scopeDeliverableDataToLessons(featureId, entry.data, lessonIndices, courseMap);
 

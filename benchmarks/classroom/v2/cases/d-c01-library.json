@@ -1,0 +1,24 @@
+{
+  "id": "d-c01-library",
+  "split": "development",
+  "family": "calculation",
+  "language": "en",
+  "sessionMinutes": 35,
+  "request": "Calculate the proportion of inspected books with damaged covers and bound the conclusion.",
+  "sources": [
+    "In a fictional library inspection, 20 of the 50 inspected books have damaged covers. The observed damaged-cover proportion is 20/50.",
+    "The inspector selected books from one returns trolley, not randomly from the collection.",
+    "No information about uninspected books was recorded."
+  ],
+  "provenance": {
+    "kind": "author-constructed-fictional-source-packet",
+    "independentHumanReview": false
+  },
+  "expected": {
+    "result": "40%",
+    "part": 20,
+    "whole": 50,
+    "limit": "returns trolley",
+    "diagnostic": "Using 50/20 reverses the part and whole."
+  }
+}

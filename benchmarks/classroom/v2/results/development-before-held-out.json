@@ -1,0 +1,213 @@
+{
+  "protocol": "edutool-classroom-acceptance-v2",
+  "createdAt": "2026-09-06T07:31:35.334Z",
+  "split": "development",
+  "modelCalls": 0,
+  "mode": "source-packet compiler acceptance; not model inference or measured learning",
+  "head": "24c0364413b2cc6b37cd10e0454055a5dc8b7022",
+  "compilerSourceSha256": "5780341afb8276b14356c4ddcee43ddfb40062a1068bace5691df7c723e38862",
+  "checkerSha256": "f7b800297ed2ccc123ddf04ea586ccb0d99ed6453f9c79c90ce95b1a05f3ebe8",
+  "runnerSha256": "2003bc15d1e58fc0a92f207287df9b3e1195d7dce6ecbfab87789aec4e9df09f",
+  "cases": [
+    {
+      "id": "d-c01-library",
+      "family": "calculation",
+      "language": "en",
+      "elapsedMs": 913,
+      "inputSha256": "4437957d6c434500fa2182ce6c060c51f6d9b9970f33d675b3a66abf162a98a5",
+      "outputSha256": "11c651a9f2e066c9a1b4fa1eb4d2095540517d88878e33f1b17f2d3903811d4b",
+      "failures": [],
+      "educationReview": "pending",
+      "taskCount": 1
+    },
+    {
+      "id": "d-c02-usable-survey",
+      "family": "calculation",
+      "language": "en",
+      "elapsedMs": 158,
+      "inputSha256": "9c9d8fbc62126bb2f8dd3eeccb1f1c94f83f14cf04dd2e59f4ce235f3600d16b",
+      "outputSha256": "36f1fe3f0b480b0820c1f5fea8b23ea5e7d9b628529036bf148d6eb1a68716a4",
+      "failures": [],
+      "educationReview": "pending",
+      "taskCount": 1
+    },
+    {
+      "id": "d-c03-count-vs-rate",
+      "family": "calculation",
+      "language": "en",
+      "elapsedMs": 150,
+      "inputSha256": "cfbfa9afc0b7b7a2c68d49435325b932f50db6bf0acad07e5f7f55aea5e4a879",
+      "outputSha256": "311fd1ae5b65b1bb3dc5e687cf6ce507347257be8f8b5bda1afccf38bdb433e2",
+      "failures": [],
+      "educationReview": "pending",
+      "taskCount": 1
+    },
+    {
+      "id": "d-c04-recurring",
+      "family": "calculation",
+      "language": "en",
+      "elapsedMs": 140,
+      "inputSha256": "984340c4f35ac57d30aa9d7a2d14ff8c26e40796be23d26728b50fa6b944eb60",
+      "outputSha256": "fca7dcbc639fef9c8cf41f982e2d923373e16babd2c1d7ac8af99a97827ca928",
+      "failures": [],
+      "educationReview": "pending",
+      "taskCount": 1
+    },
+    {
+      "id": "d-c05-shift-zh",
+      "family": "calculation",
+      "language": "zh",
+      "elapsedMs": 133,
+      "inputSha256": "ce457be71a7674cf360743dd2bfcf663ba15e0b3581d62d481b3e629939fc06f",
+      "outputSha256": "6b6241e5bb08b6f79d08eb84a774b904d425e7de8de13d8c6fb704981670891f",
+      "failures": [],
+      "educationReview": "pending",
+      "taskCount": 1
+    },
+    {
+      "id": "d-c06-inconsistent-counts",
+      "family": "calculation",
+      "language": "en",
+      "elapsedMs": 147,
+      "inputSha256": "d46bb167da42e14205f29d7e1f63a81b952f4767956392c3aed2e5b34925d67b",
+      "outputSha256": "a3a95d9b3a454c3faa8ec5d067d42bcdf34c05174ecfd2e214fa3af776d32aac",
+      "failures": [],
+      "educationReview": "pending",
+      "taskCount": 1
+    },
+    {
+      "id": "d-s01-cast-accession",
+      "family": "source-analysis",
+      "language": "en",
+      "elapsedMs": 156,
+      "inputSha256": "8adf5eef69703a2fd7a5040caf847cfd09dc31d32dc3d0dff214b6c5769c5d36",
+      "outputSha256": "535391e9d412c81ac2dd004635aec6ea8b1d7b051607423977fc896d9ac37575",
+      "failures": [],
+      "educationReview": "pending",
+      "taskCount": 1
+    },
+    {
+      "id": "d-s02-same-event-conflict",
+      "family": "source-analysis",
+      "language": "en",
+      "elapsedMs": 147,
+      "inputSha256": "37f0f385a11eeec14b25e4dbd67414ce4f68d225a537a2428faf02378409d806",
+      "outputSha256": "09d1746c3f88ebaa3aca7787c12f3907759fd041632cb0750699116867482f39",
+      "failures": [],
+      "educationReview": "pending",
+      "taskCount": 1
+    },
+    {
+      "id": "d-s03-advertisement",
+      "family": "source-analysis",
+      "language": "en",
+      "elapsedMs": 144,
+      "inputSha256": "357ef377fdadfacc2066c4e6a070627606659547515e68cb5d4967485cce0462",
+      "outputSha256": "f08ac9b1acd4bc5bc40bd7fdadd1c0c4382cdb03005e48f701628b0456d4b680",
+      "failures": [],
+      "educationReview": "pending",
+      "taskCount": 1
+    },
+    {
+      "id": "d-s04-undated-diary",
+      "family": "source-analysis",
+      "language": "en",
+      "elapsedMs": 149,
+      "inputSha256": "ee775abe3b7b2dfe83880feb6acfc4fe5504fed04cb47b0afb3b5120d1e098f8",
+      "outputSha256": "134d75c694fb4fadac4cc89d6ac5f77857adfe58ae661a8f08160ecc8f7a81c3",
+      "failures": [],
+      "educationReview": "pending",
+      "taskCount": 1
+    },
+    {
+      "id": "d-s05-report-time-zh",
+      "family": "source-analysis",
+      "language": "zh",
+      "elapsedMs": 94,
+      "inputSha256": "4ebef8e678ced70608d96a6b43983017498df56577903f2673d91c7e5a8f5751",
+      "outputSha256": "010274356e1f65af13edabe4b7bd176641e9b7d949f62aaf4ce4fe27bd115443",
+      "failures": [],
+      "educationReview": "pending",
+      "taskCount": 1
+    },
+    {
+      "id": "d-s06-quoted-speaker",
+      "family": "source-analysis",
+      "language": "en",
+      "elapsedMs": 143,
+      "inputSha256": "136df787e4cce7e8d5d5f1a0c5010279a9abfe6b2cc101f2158e12efda67082d",
+      "outputSha256": "d330d25f422bb554a1c8a6d47fc5a43e4a2a0df6dae9b69c95f69e685fa4180a",
+      "failures": [],
+      "educationReview": "pending",
+      "taskCount": 1
+    },
+    {
+      "id": "d-e01-water-confound",
+      "family": "experiment",
+      "language": "en",
+      "elapsedMs": 154,
+      "inputSha256": "6d80b9e57d06ad33f8d3e30e8809c414debaf5dc6be27ca407fa2cc8f8f3cb8d",
+      "outputSha256": "27d82b8f6a9543627ca84afd96aa6ac6888b8ce85d6ddbe37b990221e5874d42",
+      "failures": [],
+      "educationReview": "pending",
+      "taskCount": 1
+    },
+    {
+      "id": "d-e02-self-selection",
+      "family": "experiment",
+      "language": "en",
+      "elapsedMs": 138,
+      "inputSha256": "8078940a18f6254607b91145af701dc4bbf0d83c54bf1294747f279db403d925",
+      "outputSha256": "90609154334cebf7cbf800444051015540a8662470a437277bdf6503346affb6",
+      "failures": [],
+      "educationReview": "pending",
+      "taskCount": 1
+    },
+    {
+      "id": "d-e03-order-effects",
+      "family": "experiment",
+      "language": "en",
+      "elapsedMs": 147,
+      "inputSha256": "0594349a7e3374b61a4a3853f888bff70b0d49943b771ac72e14c3e86793fa9d",
+      "outputSha256": "c2fda1606a52626a581c853abac0ceeb9dd4a8e2d74ea5c5f0be8a342c4f89d3",
+      "failures": [],
+      "educationReview": "pending",
+      "taskCount": 1
+    },
+    {
+      "id": "d-e04-tank-unit",
+      "family": "experiment",
+      "language": "en",
+      "elapsedMs": 142,
+      "inputSha256": "e2ac8bcfca5cb28b90125136687f7b714d2f64dfcf10dc9636b88dcac0ce891c",
+      "outputSha256": "d8ecf9ed6f6c7bb5564cbee35e1df8a9a69037ddb0e4d7997d48f246e6802990",
+      "failures": [],
+      "educationReview": "pending",
+      "taskCount": 1
+    },
+    {
+      "id": "d-e05-paper-plane-zh",
+      "family": "experiment",
+      "language": "zh",
+      "elapsedMs": 96,
+      "inputSha256": "66575d4a4c636d2bcf6cbf10718ebf18b1328ce8d9c458d6a90c074149445032",
+      "outputSha256": "0a19b880eb4c85fa0b7da55c1639db6825ef06df476a2da7d69da33762e12253",
+      "failures": [],
+      "educationReview": "pending",
+      "taskCount": 1
+    },
+    {
+      "id": "d-e06-missing-outcome",
+      "family": "experiment",
+      "language": "en",
+      "elapsedMs": 151,
+      "inputSha256": "3a18feee85d3e36a450d5b6cb0362352339592e92a3cccf926f1379a4e2cf56d",
+      "outputSha256": "7dc9261dc8cad9b6b88194c5d4c40379a0681f56f5984dad75dd48cbaa484a5c",
+      "failures": [],
+      "educationReview": "pending",
+      "taskCount": 1
+    }
+  ],
+  "independentHumanReview": false,
+  "automatedFailures": 0
+}

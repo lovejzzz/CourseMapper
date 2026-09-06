@@ -23,6 +23,7 @@ import { normalizeRubricCoverage, normalizeRubricSupport } from '../lib/delivera
 import { classifyAssessmentKind } from '../lib/courseGraph/deriveFromCourseMap';
 import { renderedDeliverableCollection } from '../lib/renderedDeliverableRoot.js';
 import { preferredScrollBehavior } from '../lib/motionPreference';
+import { resolveTaskSyncConflict } from '../lib/teachingTaskContentSync.js';
 
 // ── v0.14.1 (3.5): assessment focus helpers ─────────────────────────────────
 // "Lesson 7" / "Week 7" mentions on a deliverable item resolve its lesson
@@ -331,6 +332,76 @@ export default function DeliverableView({
 
   const deliverableContent = (
     <>
+      {data?.taskSourceReview && (
+        <p role="alert" className="mx-4 mt-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+          {data.taskSourceReview}
+        </p>
+      )}
+      {data?.taskSyncConflicts?.length > 0 && (
+        <details className="mx-4 mt-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+          <summary className="cursor-pointer font-medium">
+            Review {data.taskSyncConflicts.length} linked update{data.taskSyncConflicts.length === 1 ? '' : 's'} — your
+            edits were preserved
+          </summary>
+          {data.taskSyncConflicts.map((conflict, index) => (
+            <div key={JSON.stringify(conflict.path)} className="mt-3 border-t border-amber-200 pt-3">
+              <p className="font-medium">
+                {conflict.path
+                  .filter((part) => typeof part === 'string')
+                  .slice(-2)
+                  .join(' / ')}
+              </p>
+              <p className="mt-1 whitespace-pre-wrap">
+                <strong>Your version: </strong>
+                {typeof conflict.current === 'string' ? conflict.current : JSON.stringify(conflict.current)}
+              </p>
+              <p className="mt-1 whitespace-pre-wrap">
+                <strong>Updated source suggests: </strong>
+                {typeof conflict.proposed === 'string' ? conflict.proposed : JSON.stringify(conflict.proposed)}
+              </p>
+              {conflict.reason && <p className="mt-2">{conflict.reason}</p>}
+              {conflict.missingTarget ? (
+                <button
+                  className="mt-2 font-medium underline"
+                  onClick={() => onDataChange?.(resolveTaskSyncConflict(data, index, false), null)}
+                >
+                  Keep item removed and archive retained text
+                </button>
+              ) : (
+                <div className="mt-2 flex gap-4">
+                  <button
+                    className="font-medium underline"
+                    onClick={() => onDataChange?.(resolveTaskSyncConflict(data, index, false), null)}
+                  >
+                    Keep my version
+                  </button>
+                  <button
+                    className="font-medium underline"
+                    onClick={() => onDataChange?.(resolveTaskSyncConflict(data, index, true), null)}
+                  >
+                    Use updated version
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </details>
+      )}
+      {data?.taskSyncArchive?.length > 0 && (
+        <details className="mx-4 mt-2 rounded-lg border border-slate-200 p-3 text-sm text-slate-600">
+          <summary className="cursor-pointer">
+            Retained text from reviewed removals ({data.taskSyncArchive.length})
+          </summary>
+          {data.taskSyncArchive.map((entry, index) => (
+            <div key={index} className="mt-2 whitespace-pre-wrap border-t pt-2">
+              <p>{entry.path.filter((part) => typeof part === 'string').join(' / ')}</p>
+              <p>
+                {typeof entry.current === 'string' ? entry.current : JSON.stringify(entry.current ?? entry.proposed)}
+              </p>
+            </div>
+          ))}
+        </details>
+      )}
       {/* Feature 6.3 — Quality badge + fullscreen toggle */}
       {status === 'done' && (
         <div className="flex items-center justify-end gap-2 px-4 pt-2 pb-0">

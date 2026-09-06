@@ -1,0 +1,22 @@
+{
+  "id": "d-s02-same-event-conflict",
+  "split": "development",
+  "family": "source-analysis",
+  "language": "en",
+  "sessionMinutes": 40,
+  "request": "Determine whether the two accounts conflict and what can be concluded without another source.",
+  "sources": [
+    "Witness A wrote that the fictional mill opened to workers on 3 March 1908.",
+    "Witness B wrote that the same mill first opened to workers on 3 March 1909.",
+    "Both refer to the first opening, and neither account has been independently corroborated."
+  ],
+  "provenance": {
+    "kind": "author-constructed-fictional-source-packet",
+    "independentHumanReview": false
+  },
+  "expected": {
+    "conflict": true,
+    "mustNotInvent": "which witness is correct",
+    "required": "same event, incompatible years, unresolved"
+  }
+}

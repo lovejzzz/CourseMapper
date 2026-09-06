@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import EditProposalPanel from '../EditProposalPanel';
+import TeachingTaskReference from './shared/TeachingTaskReference';
 import {
   QualityBadge,
   updatePath,
@@ -414,6 +415,14 @@ export default function AssignmentsView({
                     </p>
                   )}
                 </div>
+              )}
+
+              {!isStudentView && (
+                <TeachingTaskReference
+                  reference={a.anchorExampleSet}
+                  path={['assignments', i, 'anchorExampleSet']}
+                  onEdit={onEdit}
+                />
               )}
 
               {/* Support resources */}

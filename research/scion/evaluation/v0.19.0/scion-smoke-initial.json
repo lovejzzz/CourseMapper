@@ -1,0 +1,83 @@
+{
+  "startedAt": "2026-09-06T05:59:12.626Z",
+  "results": [
+    {
+      "id": "source-ratio-selection",
+      "messages": [
+        {
+          "role": "system",
+          "content": "You design careful educational tasks. Use only the fictional source provided. Return one JSON object with numerator (integer), denominator (integer), denominator_reason (string), evidence_limit (string), wrong_denominator_feedback (string). Do not calculate a percentage; the compiler will do that. Do not include markdown."
+        },
+        {
+          "role": "user",
+          "content": "A fictional club receives 40 forms. Thirty answer a yes/no question, of which 12 answer yes. Ten forms leave the question blank. We need the yes proportion among usable answers. Select the requested numerator and denominator. Explain why 40 is not the denominator for this question and what the missing answers leave unknown."
+        }
+      ],
+      "raw": "{\n\"numerator\": 12,\n\"denominator\": 30,\n\"denominator_reason\": \"The question asks for the yes proportion among usable answers. The usable answers are those that answered the question, which is 30.\",\n\"evidence_limit\": \"The problem states that thirty forms answered the yes/no question.\",\n\"wrong_denominator_feedback\": \"40 is not the denominator because it represents the total number of forms received, not the number of forms that provided an answer to the question (the usable answers).\"\n}",
+      "parsed": {
+        "numerator": 12,
+        "denominator": 30,
+        "denominator_reason": "The question asks for the yes proportion among usable answers. The usable answers are those that answered the question, which is 30.",
+        "evidence_limit": "The problem states that thirty forms answered the yes/no question.",
+        "wrong_denominator_feedback": "40 is not the denominator because it represents the total number of forms received, not the number of forms that provided an answer to the question (the usable answers)."
+      },
+      "completion": {
+        "finishReason": "stop",
+        "inputTokens": 145,
+        "outputTokens": 115,
+        "contextTokens": 8192
+      },
+      "route": {
+        "protocol": "scion-adapter-runtime-route-v1",
+        "mode": "base-only",
+        "taskFamily": "unclassified",
+        "reason": "no-adapter-installed",
+        "promptProtocol": null,
+        "expectedPromptProtocol": null,
+        "adapterId": null,
+        "manifestSha256": null,
+        "scopeIdentitySha256": null,
+        "nativeAdapterActive": false
+      },
+      "elapsedMs": 4203
+    }
+  ],
+  "busy": false,
+  "status": {
+    "phase": "ready",
+    "runtime": {
+      "id": "scion-wllama-webgpu-jspi-v1",
+      "modulePath": "/scion/runtime/v2/wllama.js",
+      "moduleSha256": "4b43ed59785ae9aa89aae67ac504534d9bf7b65e6340969b7bd13550146a6433",
+      "wasmPath": "/scion/runtime/v1/jspi-single-thread/wllama.wasm",
+      "wasmSha256": "732bac4661d613461cee0b3132660beab159b926910c8431181ee01608e44229",
+      "upstreamRevision": "58903000dbea6acfc0eb9c738d8be50d1052cf23",
+      "llamaCppRevision": "5ec717d1256e34558a44dc09adf1e6e16f2e2682"
+    },
+    "trainingBase": {
+      "modelId": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+      "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+      "architecture": "gemma4"
+    },
+    "activeWeightIdentity": {
+      "modelId": "google/gemma-4-E2B-it-qat-q4_0-gguf",
+      "revision": "69536a21d70340464240401ba38223d805f6a709",
+      "file": "gemma-4-E2B_q4_0-it.gguf",
+      "bytes": 3349514112,
+      "sha256": "3646b4c147cd235a44d91df1546d3b7d8e29b547dbe4e1f80856419aa455e6fd",
+      "format": "gguf-q4_0-qat"
+    },
+    "baseIntegrity": {
+      "expectedSha256": "3646b4c147cd235a44d91df1546d3b7d8e29b547dbe4e1f80856419aa455e6fd",
+      "runtimeCheck": "metadata-and-pinned-url",
+      "fullDigestEvidence": "evaluation/scion-adapters/base-contracts/gemma-4-e2b.json"
+    },
+    "adapter": {
+      "mode": "base-only",
+      "active": false,
+      "id": null,
+      "manifestSha256": null
+    }
+  },
+  "loadMs": 4497
+}

@@ -1,0 +1,780 @@
+{
+  "sourceEvidenceSha256": "0fdebdf1a913ad17aaafad8014c2406cfa9e4acbeac773f15021b7b47fd3d770",
+  "startedAt": "2026-09-06T07:56:28.466Z",
+  "model": {
+    "modelId": "google/gemma-4-E2B-it-qat-q4_0-gguf",
+    "revision": "69536a21d70340464240401ba38223d805f6a709",
+    "file": "gemma-4-E2B_q4_0-it.gguf",
+    "bytes": 3349514112,
+    "sha256": "3646b4c147cd235a44d91df1546d3b7d8e29b547dbe4e1f80856419aa455e6fd",
+    "format": "gguf-q4_0-qat"
+  },
+  "runtime": {
+    "id": "scion-wllama-webgpu-jspi-v1",
+    "modulePath": "/scion/runtime/v2/wllama.js",
+    "moduleSha256": "4b43ed59785ae9aa89aae67ac504534d9bf7b65e6340969b7bd13550146a6433",
+    "wasmPath": "/scion/runtime/v1/jspi-single-thread/wllama.wasm",
+    "wasmSha256": "732bac4661d613461cee0b3132660beab159b926910c8431181ee01608e44229",
+    "upstreamRevision": "58903000dbea6acfc0eb9c738d8be50d1052cf23",
+    "llamaCppRevision": "5ec717d1256e34558a44dc09adf1e6e16f2e2682"
+  },
+  "adapter": {
+    "mode": "base-only",
+    "active": false,
+    "id": null,
+    "manifestSha256": null
+  },
+  "results": [
+    {
+      "id": "h-c01-pooled-rates",
+      "protocol": "scion-teaching-task-design-v2",
+      "input": {
+        "id": "h-c01-pooled-rates",
+        "request": "Compute the combined return proportion across both fictional depots and explain why averaging rates is wrong.",
+        "sources": [
+          "Depot North received 10 items and returned 9; Depot South received 90 items and returned 45.",
+          "The requested overall proportion counts all returned items among all received items.",
+          "The depots handle different product types, and no cause of the difference is supplied."
+        ],
+        "family": "calculation",
+        "language": "en"
+      },
+      "prompt": {
+        "protocol": "scion-teaching-task-design-v2",
+        "family": "calculation",
+        "schema": {
+          "name": "scion_teaching_task_design_v2",
+          "strict": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "type": "string",
+                "enum": [
+                  "proportion",
+                  "pooled-proportion",
+                  "unknown-overlap",
+                  "not-calculable"
+                ]
+              },
+              "groups": {
+                "type": "array",
+                "minItems": 0,
+                "maxItems": 6,
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "label": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 700
+                    },
+                    "part": {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 999999999
+                        },
+                        "evidence": {
+                          "type": "object",
+                          "properties": {
+                            "source": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 2
+                            },
+                            "quote": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 700
+                            }
+                          },
+                          "required": [
+                            "source",
+                            "quote"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "evidence"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "whole": {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 999999999
+                        },
+                        "evidence": {
+                          "type": "object",
+                          "properties": {
+                            "source": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 2
+                            },
+                            "quote": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 700
+                            }
+                          },
+                          "required": [
+                            "source",
+                            "quote"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "evidence"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "label",
+                    "part",
+                    "whole"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "requestedUnit": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 700
+              },
+              "operationReason": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 700
+              },
+              "unresolved": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 700
+              },
+              "invalidApproach": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 700
+              }
+            },
+            "required": [
+              "operation",
+              "groups",
+              "requestedUnit",
+              "operationReason",
+              "unresolved",
+              "invalidApproach"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "systemPrompt": "Extract a source-grounded calculation plan. Return only the requested JSON. Write explanations in English, and copy evidence quotations exactly. Do NOT calculate an answer, add observed counts, or write decimals or percentages: a deterministic compiler will perform arithmetic. Each part and whole value must be a count explicitly present in its quoted evidence. For one proportion, return one group. For an overall proportion across separate groups, use pooled-proportion and return each group's original part and whole; do not add counts yourself or average the rates. For attendance at either of two events with unrecorded overlap, use unknown-overlap with two event counts as parts and the same membership total as each whole. Choose not-calculable and empty groups if even these counts are unavailable. requestedUnit names what is counted; never equate a household count with water volume. unresolved names what the supplied record cannot establish. invalidApproach states a tempting specific reasoning error without endorsing it.",
+        "userPrompt": "Objective: Compute the combined return proportion across both fictional depots and explain why averaging rates is wrong.\nSources:\n[0] Depot North received 10 items and returned 9; Depot South received 90 items and returned 45.\n[1] The requested overall proportion counts all returned items among all received items.\n[2] The depots handle different product types, and no cause of the difference is supplied.\nRequired JSON shape:\n{\"type\":\"object\",\"properties\":{\"operation\":{\"type\":\"string\",\"enum\":[\"proportion\",\"pooled-proportion\",\"unknown-overlap\",\"not-calculable\"]},\"groups\":{\"type\":\"array\",\"minItems\":0,\"maxItems\":6,\"items\":{\"type\":\"object\",\"properties\":{\"label\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":700},\"part\":{\"type\":\"object\",\"properties\":{\"value\":{\"type\":\"integer\",\"minimum\":0,\"maximum\":999999999},\"evidence\":{\"type\":\"object\",\"properties\":{\"source\":{\"type\":\"integer\",\"minimum\":0,\"maximum\":2},\"quote\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":700}},\"required\":[\"source\",\"quote\"],\"additionalProperties\":false}},\"required\":[\"value\",\"evidence\"],\"additionalProperties\":false},\"whole\":{\"type\":\"object\",\"properties\":{\"value\":{\"type\":\"integer\",\"minimum\":0,\"maximum\":999999999},\"evidence\":{\"type\":\"object\",\"properties\":{\"source\":{\"type\":\"integer\",\"minimum\":0,\"maximum\":2},\"quote\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":700}},\"required\":[\"source\",\"quote\"],\"additionalProperties\":false}},\"required\":[\"value\",\"evidence\"],\"additionalProperties\":false}},\"required\":[\"label\",\"part\",\"whole\"],\"additionalProperties\":false}},\"requestedUnit\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":700},\"operationReason\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":700},\"unresolved\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":700},\"invalidApproach\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":700}},\"required\":[\"operation\",\"groups\",\"requestedUnit\",\"operationReason\",\"unresolved\",\"invalidApproach\"],\"additionalProperties\":false}"
+      },
+      "settings": {
+        "thinking": true,
+        "temperature": 1,
+        "topK": 64,
+        "topP": 0.95,
+        "seed": 7,
+        "maxNewTokens": 4096,
+        "compactShape": false
+      },
+      "raw": "```json\n{\n  \"type\": \"object\",\n  \"operation\": \"pooled-proportion\",\n  \"groups\": [\n    {\n      \"label\": \"Depot North\",\n      \"part\": {\n        \"value\": 9,\n        \"evidence\": {\n          \"source\": 0,\n          \"quote\": \"Depot North received 10 items and returned 9\"\n        }\n      },\n      \"whole\": {\n        \"value\": 10,\n        \"evidence\": {\n          \"source\": 0,\n          \"quote\": \"Depot North received 10 items and returned 9\"\n        }\n      }\n    },\n    {\n      \"label\": \"Depot South\",\n      \"part\": {\n        \"value\": 45,\n        \"evidence\": {\n          \"source\": 0,\n          \"quote\": \"Depot South received 90 items and returned 45\"\n        }\n      },\n      \"whole\": {\n        \"value\": 90,\n        \"evidence\": {\n          \"source\": 0,\n          \"quote\": \"Depot South received 90 items and returned 45\"\n        }\n      }\n    }\n  ],\n  \"requestedUnit\": \"items\",\n  \"operationReason\": \"The requested overall proportion counts all returned items among all received items, as stated in the source.\",\n  \"unresolved\": \"No unresolved names are supplied.\",\n  \"invalidApproach\": \"Averaging rates is incorrect because the depots handle different product types, and no cause of the difference is supplied, meaning the groups are not comparable.\",\n  \"operationReason\": \"The operation chosen is pooled-proportion because the requested overall proportion counts all returned items among all received items, as stated in the source.\"\n}\n```",
+      "parsed": null,
+      "completion": {
+        "finishReason": "stop",
+        "inputTokens": 660,
+        "outputTokens": 1182,
+        "contextTokens": 8192,
+        "thinkingEnabled": true,
+        "thinkingObserved": true
+      },
+      "route": {
+        "protocol": "scion-adapter-runtime-route-v1",
+        "mode": "base-only",
+        "taskFamily": "unclassified",
+        "reason": "no-adapter-installed",
+        "promptProtocol": null,
+        "expectedPromptProtocol": null,
+        "adapterId": null,
+        "manifestSha256": null,
+        "scopeIdentitySha256": null,
+        "nativeAdapterActive": false
+      },
+      "elapsedMs": 25316,
+      "structure": {
+        "needsRetry": true,
+        "issues": [
+          "response-contract:#:Property \"type\" does not match additional properties schema.",
+          "response-contract:#/type:False boolean schema."
+        ]
+      },
+      "quotes": null
+    },
+    {
+      "id": "h-c04-volume-vs-households",
+      "protocol": "scion-teaching-task-design-v2",
+      "input": {
+        "id": "h-c04-volume-vs-households",
+        "request": "Distinguish a proportion of households from a proportion of water volume.",
+        "sources": [
+          "In a fictional block, 8 of 20 metered households use rain barrels.",
+          "The 20 households used 500 cubic metres of mains water in total.",
+          "The record gives no water volume split between barrel users and other households."
+        ],
+        "family": "calculation",
+        "language": "en"
+      },
+      "prompt": {
+        "protocol": "scion-teaching-task-design-v2",
+        "family": "calculation",
+        "schema": {
+          "name": "scion_teaching_task_design_v2",
+          "strict": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "type": "string",
+                "enum": [
+                  "proportion",
+                  "pooled-proportion",
+                  "unknown-overlap",
+                  "not-calculable"
+                ]
+              },
+              "groups": {
+                "type": "array",
+                "minItems": 0,
+                "maxItems": 6,
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "label": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 700
+                    },
+                    "part": {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 999999999
+                        },
+                        "evidence": {
+                          "type": "object",
+                          "properties": {
+                            "source": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 2
+                            },
+                            "quote": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 700
+                            }
+                          },
+                          "required": [
+                            "source",
+                            "quote"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "evidence"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "whole": {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 999999999
+                        },
+                        "evidence": {
+                          "type": "object",
+                          "properties": {
+                            "source": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 2
+                            },
+                            "quote": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 700
+                            }
+                          },
+                          "required": [
+                            "source",
+                            "quote"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "evidence"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "label",
+                    "part",
+                    "whole"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "requestedUnit": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 700
+              },
+              "operationReason": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 700
+              },
+              "unresolved": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 700
+              },
+              "invalidApproach": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 700
+              }
+            },
+            "required": [
+              "operation",
+              "groups",
+              "requestedUnit",
+              "operationReason",
+              "unresolved",
+              "invalidApproach"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "systemPrompt": "Extract a source-grounded calculation plan. Return only the requested JSON. Write explanations in English, and copy evidence quotations exactly. Do NOT calculate an answer, add observed counts, or write decimals or percentages: a deterministic compiler will perform arithmetic. Each part and whole value must be a count explicitly present in its quoted evidence. For one proportion, return one group. For an overall proportion across separate groups, use pooled-proportion and return each group's original part and whole; do not add counts yourself or average the rates. For attendance at either of two events with unrecorded overlap, use unknown-overlap with two event counts as parts and the same membership total as each whole. Choose not-calculable and empty groups if even these counts are unavailable. requestedUnit names what is counted; never equate a household count with water volume. unresolved names what the supplied record cannot establish. invalidApproach states a tempting specific reasoning error without endorsing it.",
+        "userPrompt": "Objective: Distinguish a proportion of households from a proportion of water volume.\nSources:\n[0] In a fictional block, 8 of 20 metered households use rain barrels.\n[1] The 20 households used 500 cubic metres of mains water in total.\n[2] The record gives no water volume split between barrel users and other households.\nRequired JSON shape:\n{\"type\":\"object\",\"properties\":{\"operation\":{\"type\":\"string\",\"enum\":[\"proportion\",\"pooled-proportion\",\"unknown-overlap\",\"not-calculable\"]},\"groups\":{\"type\":\"array\",\"minItems\":0,\"maxItems\":6,\"items\":{\"type\":\"object\",\"properties\":{\"label\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":700},\"part\":{\"type\":\"object\",\"properties\":{\"value\":{\"type\":\"integer\",\"minimum\":0,\"maximum\":999999999},\"evidence\":{\"type\":\"object\",\"properties\":{\"source\":{\"type\":\"integer\",\"minimum\":0,\"maximum\":2},\"quote\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":700}},\"required\":[\"source\",\"quote\"],\"additionalProperties\":false}},\"required\":[\"value\",\"evidence\"],\"additionalProperties\":false},\"whole\":{\"type\":\"object\",\"properties\":{\"value\":{\"type\":\"integer\",\"minimum\":0,\"maximum\":999999999},\"evidence\":{\"type\":\"object\",\"properties\":{\"source\":{\"type\":\"integer\",\"minimum\":0,\"maximum\":2},\"quote\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":700}},\"required\":[\"source\",\"quote\"],\"additionalProperties\":false}},\"required\":[\"value\",\"evidence\"],\"additionalProperties\":false}},\"required\":[\"label\",\"part\",\"whole\"],\"additionalProperties\":false}},\"requestedUnit\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":700},\"operationReason\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":700},\"unresolved\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":700},\"invalidApproach\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":700}},\"required\":[\"operation\",\"groups\",\"requestedUnit\",\"operationReason\",\"unresolved\",\"invalidApproach\"],\"additionalProperties\":false}"
+      },
+      "settings": {
+        "thinking": true,
+        "temperature": 1,
+        "topK": 64,
+        "topP": 0.95,
+        "seed": 7,
+        "maxNewTokens": 4096,
+        "compactShape": false
+      },
+      "raw": "```json\n{\n  \"type\": \"object\",\n  \"operation\": \"proportion\",\n  \"groups\": [\n    {\n      \"label\": \"Households using rain barrels\",\n      \"part\": {\n        \"value\": 8,\n        \"evidence\": {\n          \"source\": 0,\n          \"quote\": \"In a fictional block, 8 of 20 metered households use rain barrels.\"\n        }\n      },\n      \"whole\": {\n        \"value\": 20,\n        \"evidence\": {\n          \"source\": 0,\n          \"quote\": \"In a fictional block, 8 of 20 metered households use rain barrels.\"\n        }\n      }\n    },\n    {\n      \"label\": \"Total water volume\",\n      \"part\": {\n        \"value\": 500,\n        \"evidence\": {\n          \"source\": 1,\n          \"quote\": \"The 20 households used 500 cubic metres of mains water in total.\"\n        }\n      },\n      \"whole\": {\n        \"value\": 20,\n        \"evidence\": {\n          \"source\": 1,\n          \"quote\": \"The 20 households used 500 cubic metres of mains water in total.\"\n        }\n      }\n    }\n  ],\n  \"requestedUnit\": \"Proportion (Households using rain barrels / Total households) vs. Volume (Cubic metres of water / Total households)\",\n  \"operationReason\": \"The operation is proportion because the objective is to distinguish a proportion of households (8 out of 20) from a proportion of water volume (500 cubic metres out of 20 households).\",\n  \"unresolved\": \"The record does not provide a single derived proportion comparing the proportion of households using barrels to the proportion of water volume used by those households.\",\n  \"invalidApproach\": \"The record is insufficient to calculate a direct proportion of households to water volume because the source data separates household usage data from total water usage data.\"\n}\n```",
+      "parsed": null,
+      "completion": {
+        "finishReason": "stop",
+        "inputTokens": 652,
+        "outputTokens": 1402,
+        "contextTokens": 8192,
+        "thinkingEnabled": true,
+        "thinkingObserved": true
+      },
+      "route": {
+        "protocol": "scion-adapter-runtime-route-v1",
+        "mode": "base-only",
+        "taskFamily": "unclassified",
+        "reason": "no-adapter-installed",
+        "promptProtocol": null,
+        "expectedPromptProtocol": null,
+        "adapterId": null,
+        "manifestSha256": null,
+        "scopeIdentitySha256": null,
+        "nativeAdapterActive": false
+      },
+      "elapsedMs": 29634,
+      "structure": {
+        "needsRetry": true,
+        "issues": [
+          "response-contract:#:Property \"type\" does not match additional properties schema.",
+          "response-contract:#/type:False boolean schema."
+        ]
+      },
+      "quotes": null
+    },
+    {
+      "id": "h-s02-amended-record",
+      "protocol": "scion-teaching-task-design-v2",
+      "input": {
+        "id": "h-s02-amended-record",
+        "request": "Explain how an amended record changes the interpretation of an earlier entry.",
+        "sources": [
+          "A fictional permit log initially records 120 seats for a hall.",
+          "A later entry explicitly amends the permitted capacity to 90 seats from 1 July.",
+          "An attendance photograph has no reliable date."
+        ],
+        "family": "source-analysis",
+        "language": "en"
+      },
+      "prompt": {
+        "protocol": "scion-teaching-task-design-v2",
+        "family": "source-analysis",
+        "schema": {
+          "name": "scion_teaching_task_design_v1",
+          "strict": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "comparedClaims": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "evidence": {
+                      "type": "object",
+                      "properties": {
+                        "source": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 2
+                        },
+                        "quote": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 1000
+                        }
+                      },
+                      "required": [
+                        "source",
+                        "quote"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "claimType": {
+                      "type": "string",
+                      "enum": [
+                        "observation",
+                        "reported-claim",
+                        "interpretation"
+                      ]
+                    },
+                    "eventOrSubject": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 1000
+                    }
+                  },
+                  "required": [
+                    "evidence",
+                    "claimType",
+                    "eventOrSubject"
+                  ],
+                  "additionalProperties": false
+                },
+                "minItems": 2,
+                "maxItems": 4
+              },
+              "relationship": {
+                "type": "string",
+                "enum": [
+                  "compatible-different-events",
+                  "conflicting-same-event",
+                  "claim-exceeds-evidence",
+                  "insufficient-evidence"
+                ]
+              },
+              "conclusion": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1000
+              },
+              "reasoning": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 1000
+                },
+                "minItems": 2,
+                "maxItems": 4
+              },
+              "stillUnknown": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1000
+              },
+              "unsupportedClaim": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1000
+              },
+              "usefulAdditionalEvidence": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1000
+              }
+            },
+            "required": [
+              "comparedClaims",
+              "relationship",
+              "conclusion",
+              "reasoning",
+              "stillUnknown",
+              "unsupportedClaim",
+              "usefulAdditionalEvidence"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "systemPrompt": "You design source-grounded educational tasks. Use only the supplied source packet. Return one JSON object with exactly the requested fields, no markdown. Write explanatory text in English; keep quotations verbatim. Copy exact source quotations. Compare what the statements claim, including whether dates describe the same event. A quotation of a speaker is not automatically the author position; an advertisement is not independent proof. Explain which claims are compatible or conflicting and why. If the packet cannot resolve a disagreement, leave it unresolved. stillUnknown must identify the specific missing knowledge, not repeat a known fact. usefulAdditionalEvidence is a proposal to seek, never a source you pretend to have read. Allow other defensible interpretations of an open question. Distinguish an amended rule with an effective date from two incompatible reports of one event. Classify separately what was personally observed, what another speaker reported, and what someone inferred. Additional evidence must name a concrete record to seek and what it would establish; repeating that evidence is missing is not a research proposal.",
+        "userPrompt": "Objective: Explain how an amended record changes the interpretation of an earlier entry.\nSources (zero-based indices):\n[0] A fictional permit log initially records 120 seats for a hall.\n[1] A later entry explicitly amends the permitted capacity to 90 seats from 1 July.\n[2] An attendance photograph has no reliable date.\nRequired JSON shape:\n{\"type\":\"object\",\"properties\":{\"comparedClaims\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"evidence\":{\"type\":\"object\",\"properties\":{\"source\":{\"type\":\"integer\",\"minimum\":0,\"maximum\":2},\"quote\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":1000}},\"required\":[\"source\",\"quote\"],\"additionalProperties\":false},\"claimType\":{\"type\":\"string\",\"enum\":[\"observation\",\"reported-claim\",\"interpretation\"]},\"eventOrSubject\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":1000}},\"required\":[\"evidence\",\"claimType\",\"eventOrSubject\"],\"additionalProperties\":false},\"minItems\":2,\"maxItems\":4},\"relationship\":{\"type\":\"string\",\"enum\":[\"compatible-different-events\",\"conflicting-same-event\",\"claim-exceeds-evidence\",\"insufficient-evidence\"]},\"conclusion\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":1000},\"reasoning\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":1000},\"minItems\":2,\"maxItems\":4},\"stillUnknown\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":1000},\"unsupportedClaim\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":1000},\"usefulAdditionalEvidence\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":1000}},\"required\":[\"comparedClaims\",\"relationship\",\"conclusion\",\"reasoning\",\"stillUnknown\",\"unsupportedClaim\",\"usefulAdditionalEvidence\"],\"additionalProperties\":false}"
+      },
+      "settings": {
+        "thinking": true,
+        "temperature": 1,
+        "topK": 64,
+        "topP": 0.95,
+        "seed": 7,
+        "maxNewTokens": 4096,
+        "compactShape": false
+      },
+      "raw": "{\"type\":\"object\",\"properties\":{\"comparedClaims\":[{\"evidence\":{\"source\":0,\"quote\":\"A fictional permit log initially records 120 seats for a hall.\"},\"claimType\":\"observation\",\"eventOrSubject\":\"Initial permitted capacity of the hall\"},{\"evidence\":{\"source\":1,\"quote\":\"A later entry explicitly amends the permitted capacity to 90 seats from 1 July.\"},\"claimType\":\"reported-claim\",\"eventOrSubject\":\"Amended permitted capacity of the hall\"}],\"relationship\":\"compatible-different-events\",\"conclusion\":\"The amendment explicitly changes the permissible capacity for the hall, meaning the initial record of 120 seats is superseded by the amended capacity of 90 seats, effective from 1 July. Therefore, an entry dated after this date must be interpreted using the amended capacity of 90 seats, rather than the initial capacity of 120 seats.\",\"reasoning\":[\"Source [0] establishes the initial capacity as 120 seats. Source [1] establishes an explicit amendment to the capacity, setting the capacity to 90 seats starting 1 July. This demonstrates that the later entry [1] provides a new, overriding rule for interpreting the capacity for events occurring after the amendment date.\"],\"stillUnknown\":\"The actual attendance figures corresponding to the initial 120-seat record versus the amended 90-seat record for the period after 1 July are unknown. Source [2] states that an attendance photograph has no reliable date, preventing a determination of attendance figures for comparison with the capacity changes.\",\"unsupportedClaim\":\"The attendance photograph [2] can be used to determine the capacity of the hall on any specific day. This claim is unsupported because Source [2] states that the photograph has no reliable date, rendering it useless for establishing a specific date or attendance figure for the comparison between the initial and amended capacities.\",\"usefulAdditionalEvidence\":\"To better understand the change in interpretation, one should seek the original permit log entry [0] for a record of any entries made prior to 1 July, and the later entry [1] for an entry dated after 1 July that references the capacity, allowing direct comparison of the two stated capacities for the same subject (the hall's capacity).\"}<tool_call|>",
+      "parsed": null,
+      "completion": {
+        "finishReason": "stop",
+        "inputTokens": 608,
+        "outputTokens": 1236,
+        "contextTokens": 8192,
+        "thinkingEnabled": true,
+        "thinkingObserved": true
+      },
+      "route": {
+        "protocol": "scion-adapter-runtime-route-v1",
+        "mode": "base-only",
+        "taskFamily": "unclassified",
+        "reason": "no-adapter-installed",
+        "promptProtocol": null,
+        "expectedPromptProtocol": null,
+        "adapterId": null,
+        "manifestSha256": null,
+        "scopeIdentitySha256": null,
+        "nativeAdapterActive": false
+      },
+      "elapsedMs": 26970,
+      "structure": {
+        "needsRetry": true,
+        "issues": [
+          "response-contract:invalid-json"
+        ]
+      },
+      "quotes": null
+    },
+    {
+      "id": "h-e02-cache-order",
+      "protocol": "scion-teaching-task-design-v2",
+      "input": {
+        "id": "h-e02-cache-order",
+        "request": "Design a timing comparison of two algorithms that controls the cache and run-order problem.",
+        "sources": [
+          "A fictional benchmark always runs Algorithm A first on a cold cache and Algorithm B second on warmed data.",
+          "Algorithm B has a lower elapsed time in these trials.",
+          "Input data and hardware are shared, but cache state and order differ systematically."
+        ],
+        "family": "experiment",
+        "language": "en"
+      },
+      "prompt": {
+        "protocol": "scion-teaching-task-design-v2",
+        "family": "experiment",
+        "schema": {
+          "name": "scion_teaching_task_design_v1",
+          "strict": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "intendedComparison": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1000
+              },
+              "measuredOutcome": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1000
+              },
+              "differingConditions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 1000
+                    },
+                    "evidence": {
+                      "type": "object",
+                      "properties": {
+                        "source": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 2
+                        },
+                        "quote": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 1000
+                        }
+                      },
+                      "required": [
+                        "source",
+                        "quote"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "evidence"
+                  ],
+                  "additionalProperties": false
+                },
+                "minItems": 1,
+                "maxItems": 6
+              },
+              "alternativeExplanation": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1000
+              },
+              "repairedProcedure": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 1000
+                },
+                "minItems": 3,
+                "maxItems": 6
+              },
+              "stillUnknown": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1000
+              },
+              "invalidConclusion": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1000
+              }
+            },
+            "required": [
+              "intendedComparison",
+              "measuredOutcome",
+              "differingConditions",
+              "alternativeExplanation",
+              "repairedProcedure",
+              "stillUnknown",
+              "invalidConclusion"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "systemPrompt": "You design source-grounded educational tasks. Use only the supplied source packet. Return one JSON object with exactly the requested fields, no markdown. Write explanatory text in English; keep quotations verbatim. Distinguish the intended treatment from other conditions that change with it. Quote the actual source for each differing condition. If a condition or measurement is unspecified, say so. Give an executable hypothetical repair with a comparable measurement, allocation/order and independent replication where appropriate. A proposed design is NOT an observed result: stillUnknown must say what treatment conclusion needs new measurements. Do not invent observed outcomes, sample sizes, or empirical effects. First identify the variable the QUESTION wants to compare. A factor that happens to change is not necessarily the intended treatment. For example, comparing ink types when paper texture also changes requires holding paper texture comparable, assigning or balancing ink order, repeating measurements, and using one defined measurement. Choose controls appropriate to THIS source; do not copy the example. Write each procedural step so someone can carry it out, and never claim the proposed repair already produced results.",
+        "userPrompt": "Objective: Design a timing comparison of two algorithms that controls the cache and run-order problem.\nSources (zero-based indices):\n[0] A fictional benchmark always runs Algorithm A first on a cold cache and Algorithm B second on warmed data.\n[1] Algorithm B has a lower elapsed time in these trials.\n[2] Input data and hardware are shared, but cache state and order differ systematically.\nRequired JSON shape:\n{\"type\":\"object\",\"properties\":{\"intendedComparison\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":1000},\"measuredOutcome\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":1000},\"differingConditions\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":1000},\"evidence\":{\"type\":\"object\",\"properties\":{\"source\":{\"type\":\"integer\",\"minimum\":0,\"maximum\":2},\"quote\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":1000}},\"required\":[\"source\",\"quote\"],\"additionalProperties\":false}},\"required\":[\"name\",\"evidence\"],\"additionalProperties\":false},\"minItems\":1,\"maxItems\":6},\"alternativeExplanation\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":1000},\"repairedProcedure\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":1000},\"minItems\":3,\"maxItems\":6},\"stillUnknown\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":1000},\"invalidConclusion\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":1000}},\"required\":[\"intendedComparison\",\"measuredOutcome\",\"differingConditions\",\"alternativeExplanation\",\"repairedProcedure\",\"stillUnknown\",\"invalidConclusion\"],\"additionalProperties\":false}"
+      },
+      "settings": {
+        "thinking": true,
+        "temperature": 1,
+        "topK": 64,
+        "topP": 0.95,
+        "seed": 7,
+        "maxNewTokens": 4096,
+        "compactShape": false
+      },
+      "raw": "{\"intendedComparison\":\"Timing comparison between Algorithm A and Algorithm B under the condition where Algorithm A runs first on a cold cache and Algorithm B runs second on a warmed cache.\",\"measuredOutcome\":\"Algorithm B has a lower elapsed time in these trials [1].\",\"differingConditions\":[{\"name\":\"Algorithm Execution Order and Cache State\",\"evidence\":{\"source\":0,\"quote\":\"A fictional benchmark always runs Algorithm A first on a cold cache and Algorithm B second on warmed data.\"}},{\"name\":\"Systematic Cache and Run-Order Differences\",\"evidence\":{\"source\":2,\"quote\":\"Input data and hardware are shared, but cache state and order differ systematically.\"}}],\"alternativeExplanation\":\"An alternative interpretation is that the performance difference observed is solely due to the inherent algorithmic efficiency of Algorithm B rather than the interaction between the cold/warm cache state and the execution order described in the benchmark setup.\",\"repairedProcedure\":[\"1. Initialize hardware with the input data set. 2. Establish the initial cache state as cold. 3. Execute Algorithm A first, measuring the elapsed time for A (Cold Cache). 4. Warm the cache to the warm state. 5. Execute Algorithm B second, measuring the elapsed time for B (Warm Cache). 6. Repeat steps 3-5 for a defined sample size. 7. Compare the average elapsed time for A (cold) vs. B (warm).\"],\"stillUnknown\":\"The specific empirical measurements quantifying the exact performance delta derived from the systematic differences in cache state and order described in source [2] are not provided. New measurements are required to statistically validate the relationship between cache state change and the observed timing difference between A and B.\",\"invalidConclusion\":\"Concluding that Algorithm B is universally faster without first measuring Algorithm A's performance under the same cold cache conditions as specified in source [0].\"}",
+      "parsed": {
+        "intendedComparison": "Timing comparison between Algorithm A and Algorithm B under the condition where Algorithm A runs first on a cold cache and Algorithm B runs second on a warmed cache.",
+        "measuredOutcome": "Algorithm B has a lower elapsed time in these trials [1].",
+        "differingConditions": [
+          {
+            "name": "Algorithm Execution Order and Cache State",
+            "evidence": {
+              "source": 0,
+              "quote": "A fictional benchmark always runs Algorithm A first on a cold cache and Algorithm B second on warmed data."
+            }
+          },
+          {
+            "name": "Systematic Cache and Run-Order Differences",
+            "evidence": {
+              "source": 2,
+              "quote": "Input data and hardware are shared, but cache state and order differ systematically."
+            }
+          }
+        ],
+        "alternativeExplanation": "An alternative interpretation is that the performance difference observed is solely due to the inherent algorithmic efficiency of Algorithm B rather than the interaction between the cold/warm cache state and the execution order described in the benchmark setup.",
+        "repairedProcedure": [
+          "1. Initialize hardware with the input data set. 2. Establish the initial cache state as cold. 3. Execute Algorithm A first, measuring the elapsed time for A (Cold Cache). 4. Warm the cache to the warm state. 5. Execute Algorithm B second, measuring the elapsed time for B (Warm Cache). 6. Repeat steps 3-5 for a defined sample size. 7. Compare the average elapsed time for A (cold) vs. B (warm)."
+        ],
+        "stillUnknown": "The specific empirical measurements quantifying the exact performance delta derived from the systematic differences in cache state and order described in source [2] are not provided. New measurements are required to statistically validate the relationship between cache state change and the observed timing difference between A and B.",
+        "invalidConclusion": "Concluding that Algorithm B is universally faster without first measuring Algorithm A's performance under the same cold cache conditions as specified in source [0]."
+      },
+      "completion": {
+        "finishReason": "stop",
+        "inputTokens": 588,
+        "outputTokens": 1350,
+        "contextTokens": 8192,
+        "thinkingEnabled": true,
+        "thinkingObserved": true
+      },
+      "route": {
+        "protocol": "scion-adapter-runtime-route-v1",
+        "mode": "base-only",
+        "taskFamily": "unclassified",
+        "reason": "no-adapter-installed",
+        "promptProtocol": null,
+        "expectedPromptProtocol": null,
+        "adapterId": null,
+        "manifestSha256": null,
+        "scopeIdentitySha256": null,
+        "nativeAdapterActive": false
+      },
+      "elapsedMs": 29196,
+      "structure": {
+        "needsRetry": true,
+        "issues": [
+          "response-contract:#:Property \"repairedProcedure\" does not match schema.",
+          "response-contract:#/repairedProcedure:Array has too few items (1 < 3).",
+          "response-contract:#:Property \"repairedProcedure\" does not match additional properties schema.",
+          "response-contract:#/repairedProcedure:False boolean schema."
+        ]
+      },
+      "quotes": {
+        "valid": true,
+        "issues": [],
+        "scope": "Exact source quotations, literal counts and operation shape only; semantic selection and source interpretation remain unverified."
+      }
+    }
+  ]
+}

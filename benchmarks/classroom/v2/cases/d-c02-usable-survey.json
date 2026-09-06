@@ -1,0 +1,24 @@
+{
+  "id": "d-c02-usable-survey",
+  "split": "development",
+  "family": "calculation",
+  "language": "en",
+  "sessionMinutes": 45,
+  "request": "Calculate the yes proportion among usable responses; explain why 40 is not its denominator.",
+  "sources": [
+    "A fictional club received 40 survey forms; 30 contained an answer to the yes/no question, of which 12 answered yes.",
+    "The requested proportion is yes responses among usable answers: 12/30.",
+    "Ten forms have no answer to this question; their preferences are unknown."
+  ],
+  "provenance": {
+    "kind": "author-constructed-fictional-source-packet",
+    "independentHumanReview": false
+  },
+  "expected": {
+    "result": "40%",
+    "part": 12,
+    "whole": 30,
+    "limit": "missing answers",
+    "diagnostic": "12/40 is the proportion of all forms containing a yes, a different estimand."
+  }
+}

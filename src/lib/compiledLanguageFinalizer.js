@@ -591,6 +591,19 @@ function protectedAuthenticEvidenceSpans(blueprint = {}) {
     const text = String(value || '').trim();
     if (text) spans.add(text);
   };
+  // Canonical source quotations and solved task responses must survive prose
+  // polishing byte-for-byte. Changing case inside a quote breaks attribution;
+  // rewriting an answer also makes a stored task revision misrepresent it.
+  for (const lesson of blueprint?.lessons || []) {
+    const task = lesson.teachingTask;
+    if (!task) continue;
+    task.inputs.forEach((input) => add(input.text));
+    [task.question, task.answer, ...(task.reasoning || [])].forEach(add);
+    for (const unit of task.sequence || []) {
+      (unit.sources || []).forEach(add);
+      [unit.question, unit.answer, ...(unit.reasoning || [])].forEach(add);
+    }
+  }
   for (const task of tasks) {
     for (const example of Array.isArray(task?.examples) ? task.examples : []) {
       const form = String(example?.form || '').trim();

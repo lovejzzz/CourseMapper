@@ -232,6 +232,7 @@ export function renderCourseMapFromGraph(graph, options = {}) {
     ...(graph.course?.meta && typeof graph.course.meta === 'object' ? graph.course.meta : {}),
     lessons: sessions.map((session) => ({
       title: renderSessionTitle(graph, session),
+      ...(session.teachingTaskLink ? { teachingTaskLink: structuredClone(session.teachingTaskLink) } : {}),
       sections: (session.sections || []).map((section) => renderSection(graph, session, section, options)),
     })),
   };

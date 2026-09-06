@@ -1,0 +1,21 @@
+{
+  "id": "d-s03-advertisement",
+  "split": "development",
+  "family": "source-analysis",
+  "language": "en",
+  "sessionMinutes": 50,
+  "request": "Distinguish a seller claim from measured evidence and identify the strongest supported conclusion.",
+  "sources": [
+    "A fictional advertisement claims that a filter removes all odors.",
+    "An independent report tested one odor compound at one concentration and found a reduction of that compound under the stated test conditions.",
+    "The report did not test other odor compounds or household conditions."
+  ],
+  "provenance": {
+    "kind": "author-constructed-fictional-source-packet",
+    "independentHumanReview": false
+  },
+  "expected": {
+    "required": "narrow measured reduction does not verify all odors",
+    "alternativesAllowed": true
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "id": "d-e01-water-confound",
+  "split": "development",
+  "family": "experiment",
+  "language": "en",
+  "sessionMinutes": 50,
+  "request": "Propose a repaired comparison that isolates fertilizer while keeping water equal.",
+  "sources": [
+    "In a fictional seed experiment, Group A receives fertilizer and 100 mL of water daily while Group B receives no fertilizer and 50 mL daily; both use the same seed type and light exposure.",
+    "Seedling height after 14 days is the outcome; because fertilizer and water both differ, this comparison cannot isolate the effect of fertilizer.",
+    "Random assignment allocates seedlings by chance; keeping water equal while changing fertilizer removes the stated water difference."
+  ],
+  "provenance": {
+    "kind": "author-constructed-fictional-source-packet",
+    "independentHumanReview": false
+  },
+  "expected": {
+    "treatment": "fertilizer",
+    "confound": "water",
+    "outcome": "height after 14 days",
+    "mustNotClaim": "the repair proves fertilizer works"
+  }
+}

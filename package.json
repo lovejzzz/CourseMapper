@@ -9,7 +9,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "start": "npm run preview",
-    "check": "npm run typecheck && npm run lint && npm test && npm run test:compatibility && npm run test:scion && npm run benchmark:outputs:test && npm run build && npm run bundle:check",
+    "check": "npm run typecheck && npm run lint && npm test && npm run test:compatibility && npm run test:scion && npm run benchmark:outputs:test && npm run benchmark:acceptance:test && npm run build && npm run bundle:check",
     "typecheck": "npm run studio:typecheck && npm run scion:typecheck",
     "studio:typecheck": "tsc -p tsconfig.studio.json",
     "scion:typecheck": "tsc -p tsconfig.scion.json",
@@ -30,7 +30,9 @@
     "test:compatibility": "vitest run --config vitest.compatibility.config.js",
     "test:scion": "vitest run --config vitest.scion.config.js",
     "benchmark:outputs": "vite-node scripts/benchmarks/runClassroomBenchmark.ts",
-    "benchmark:outputs:test": "node --test scripts/benchmarks/classroomBenchmark.test.mjs"
+    "benchmark:outputs:test": "node --test scripts/benchmarks/classroomBenchmark.test.mjs",
+    "benchmark:acceptance:test": "node --test scripts/benchmarks/classroomAcceptance.test.mjs",
+    "benchmark:acceptance": "vite-node scripts/benchmarks/runClassroomAcceptance.ts --split development --strict"
   },
   "dependencies": {
     "@cfworker/json-schema": "4.1.1",

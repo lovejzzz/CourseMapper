@@ -1,0 +1,25 @@
+{
+  "id": "d-s04-undated-diary",
+  "split": "development",
+  "family": "source-analysis",
+  "language": "en",
+  "sessionMinutes": 30,
+  "request": "Explain what the undated diary entry establishes and what remains unknown.",
+  "sources": [
+    "A fictional diary entry says: The bridge was closed when I reached the river.",
+    "The surviving page has no date, and the excerpt gives no reason for the closure.",
+    "A separate town map shows a bridge at that river but does not record closure dates."
+  ],
+  "provenance": {
+    "kind": "author-constructed-fictional-source-packet",
+    "independentHumanReview": false
+  },
+  "expected": {
+    "known": "writer reports finding the bridge closed",
+    "unknown": [
+      "date",
+      "cause"
+    ],
+    "mustNotInvent": "flood"
+  }
+}

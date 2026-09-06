@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased — v0.19.0 quality work
+
+- Preserve the 0.18.7 homepage, workspace layout, ten materials and export choices. Local Scion remains the only enabled inference mode; the shared hosted API stays paused.
+- Store versioned task source inputs in the course graph and propagate accepted source edits through the compiler's material projections. Preserve unrelated teacher wording, show concrete conflicting replacements, retain removed text, and restore the whole linked edit with undo/redo.
+- Keep source and edit metadata lossless through compact-key expansion and project recovery. Fix false conflicts caused by whitespace cleanup and source-ledger metadata; fix a source-review message that could crash the export panel.
+- Extend exact fraction and proportion operations, source comparisons and experimental-design practice. Add separate independent transfer records, matched answers, feedback and rubric criteria; keep source/question order consistent in slides. Preserve authored work and machine-scored question boundaries.
+- Preserve explicit course-grade percentages without redistribution. Missing percentages remain unweighted practice; rubric points do not invent a grading policy. Stop labeling an unweighted one-session response as a high-stakes final assessment.
+- Provide editable, collapsible teacher references for assignments and rubrics. Hide these references in student view. Use readable criterion-by-criterion Word rubric tables and explicit level scoring; keep teacher answer labels and complete slide reasoning.
+- Add 30 immutable source/scenario cases, independent output checks, corruption tests and first-run receipts. The 18 development cases pass the stronger automated checks; the first 12 held-out cases exposed 11 unsupported tasks and 24 defects. Those failures are retained, and exposed cases are no longer described as unseen.
+- Add a trusted native thinking option and suppress its reasoning channel from learner output. Twenty actual browser probes and eight native comparisons did not establish a reliable task-design improvement; thinking stays off by default, no adapter is active, and neither research task-design protocol is promoted.
+- Verification at this checkpoint: 958 required software tests, 14 benchmark-checker tests, 201 additional grading/admission/export regressions, and 39 browser checks passed. Final educational export review, broader semantic task coverage, release versioning and production deployment verification remain open. See [the acceptance record](docs/v0.19.0-acceptance.zh-CN.md).
+
 ## 0.18.9 — 2026-09-06
 
 - Preserve explicit lesson objectives before statistical-operation fallback selection. Route complete instructor-supplied comparison records using case-specific objective anchors; reject unrelated, incomplete and ambiguous mappings.
@@ -104,7 +116,9 @@ The product owner requested the complete 0.18.7 interface, including the homepag
 - Re-ran original export and responsive workspace regression tests. This restoration does not establish classroom readiness or finish the educational audit.
 - No final v0.19.0 tag has been published.
 
-## 0.19.0 — release candidate, not yet final
+## Historical Course Studio experiment — superseded release candidate
+
+This abandoned candidate is retained as development history. Its replacement UI and shared online service are not the current production release or the scope of the quality work above.
 
 ### Product and editing
 

@@ -60,14 +60,32 @@ export function normalizeScionGemma4Messages(input) {
   });
 }
 
-export function formatScionGemma4Messages(input, { addGenerationPrompt = true } = {}) {
+export function formatScionGemma4Messages(input, { addGenerationPrompt = true, thinking = false } = {}) {
   const messages = normalizeScionGemma4Messages(input);
+  // Only a trusted runtime option can insert control tokens. Source text and
+  // user messages still pass through reserved-marker protection above.
+  if (thinking === true) {
+    if (messages[0].role === 'system') messages[0] = { ...messages[0], content: `<|think|>${messages[0].content}` };
+    else messages.unshift({ role: 'system', content: '<|think|>' });
+  }
   const turns = messages.map(({ role, content }) => {
     const gemmaRole = role === 'assistant' ? 'model' : role;
     return `<|turn>${gemmaRole}\n${content}<turn|>\n`;
   });
   if (addGenerationPrompt) turns.push('<|turn>model\n');
   return turns.join('');
+}
+
+/** Keep native reasoning channels out of JSON admission and learner text. */
+export function scionVisibleCompletion(text) {
+  const value = String(text || '').trimStart();
+  const opener = '<|channel>thought';
+  if (value && opener.startsWith(value)) return { text: '', thinkingObserved: true, incomplete: true };
+  if (!value.startsWith(opener)) return { text: String(text || ''), thinkingObserved: false, incomplete: false };
+  const end = value.indexOf('<channel|>', opener.length);
+  return end < 0
+    ? { text: '', thinkingObserved: true, incomplete: true }
+    : { text: value.slice(end + '<channel|>'.length).trimStart(), thinkingObserved: true, incomplete: false };
 }
 
 export { GEMMA4_RESERVED_MARKERS };

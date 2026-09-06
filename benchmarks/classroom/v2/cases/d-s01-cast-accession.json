@@ -1,0 +1,26 @@
+{
+  "id": "d-s01-cast-accession",
+  "split": "development",
+  "family": "source-analysis",
+  "language": "en",
+  "sessionMinutes": 45,
+  "request": "Compare the dates in the supplied sculpture records and separate a physical observation from an inference.",
+  "sources": [
+    "The workshop register states that the sculpture was created in 1902.",
+    "The museum accession book records that the sculpture was acquired in 1978.",
+    "Creation and acquisition are different events; the dates need not be the same.",
+    "The condition report documents a seam at the wrist but gives no date for the repair."
+  ],
+  "provenance": {
+    "kind": "author-constructed-fictional-source-packet",
+    "independentHumanReview": false
+  },
+  "expected": {
+    "events": {
+      "creation": 1902,
+      "acquisition": 1978
+    },
+    "conflict": false,
+    "unknown": "repair date"
+  }
+}

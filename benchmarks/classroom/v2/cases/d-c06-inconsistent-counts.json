@@ -1,0 +1,22 @@
+{
+  "id": "d-c06-inconsistent-counts",
+  "split": "development",
+  "family": "calculation",
+  "language": "en",
+  "sessionMinutes": 25,
+  "request": "Check whether this record supports a completion proportion before calculating.",
+  "sources": [
+    "A fictional attendance log lists 24 distinct participants.",
+    "A completion summary reports 27 distinct participants completed the same session; each participant can complete at most once.",
+    "No reconciliation of the two counts is supplied."
+  ],
+  "provenance": {
+    "kind": "author-constructed-fictional-source-packet",
+    "independentHumanReview": false
+  },
+  "expected": {
+    "mustFlag": "inconsistent counts",
+    "mustNotClaim": "112.5% is a valid participant completion proportion",
+    "action": "clarify or correct the record"
+  }
+}

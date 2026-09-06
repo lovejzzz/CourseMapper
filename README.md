@@ -4,6 +4,8 @@
 
 Quality improvements continue within this interface. The experimental Course Studio replacement is preserved for research; it is not the production application. **v0.19.0 has not been released.**
 
+The current v0.19.0 work adds precise source-driven updates, teacher-edit conflict review, transaction undo/redo, independent practice and stronger export checks. Its [acceptance record](docs/v0.19.0-acceptance.zh-CN.md), [30-case benchmark](benchmarks/classroom/v2/README.md) and [actual local-model investigation](research/scion/evaluation/v0.19.0/README.md) distinguish completed software verification from unresolved source-understanding and educational-quality work. The first held-out failures remain published; passing development cases is not a claim of general classroom readiness.
+
 ## Materials and workflow
 
 Start with a course description or existing files, choose materials, configure the course, then review and edit the resulting package. The original material categories are:

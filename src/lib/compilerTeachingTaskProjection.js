@@ -1,6 +1,8 @@
 import { projectTeachingTaskSyllabus } from './compilerTeachingTaskSyllabus.js';
 import { teachingTaskRubric, teachingTaskWorkedExample } from './compilerTeachingTask.js';
 import { compileTeachingProgram, teachingProgramReviewQuestions } from './compilerTeachingProgram.js';
+import { teachingTaskSourceFromLesson } from './teachingTaskSource.js';
+import { projectTeachingTaskSlides } from './compilerTeachingTaskSlides.js';
 
 const ref = (task) => ({ taskId: task.id, taskRevision: task.revision });
 const evidence = (task, prior) => ({ ...prior, claims: task.inputs.map((x) => x.text) });
@@ -64,8 +66,8 @@ function projectAssignment(row, task, blueprint) {
     overview: task.question,
     instructions: [
       ...(task.preparation ? [task.preparation.instruction] : []),
-      task.question,
-      'Use the source record below; label source statements separately from your reasoning.',
+      ...(task.directions || [task.question]),
+      'Use the source record supplied here; label source statements separately from your reasoning.',
       task.product,
       'Check each criterion, then correct one error before submitting.',
     ],
@@ -78,10 +80,17 @@ function projectAssignment(row, task, blueprint) {
         'Identify the supplied source record and the statement used. Do not invent missing author, date or page information.',
       submissionPlatform:
         'Complete the classroom response and retain the corrected version. Use the submission method specified by the instructor.',
-      latePolicy: blueprint.policies?.lateWork || 'Confirm any deadline and late-work policy with the instructor.',
+      latePolicy:
+        blueprint.policies?.lateWork && !/^draft for local confirmation/i.test(blueprint.policies.lateWork)
+          ? blueprint.policies.lateWork
+          : 'Follow the deadline agreed with your instructor.',
       workloadFit: `${task.minutes} minutes for the classroom response, plus up to 5 minutes to revise after feedback.`,
       reviewProtocol: task.criteria.map((c) => c.feedback).join(' '),
     },
+    accessibilityAndUDL:
+      task.language === 'zh'
+        ? '可以使用带标签的文字、图表或口述表达；按相同的证据与推理标准评价。'
+        : 'An equivalent labeled written, diagrammatic or spoken response is acceptable. The same evidence and reasoning criteria apply.',
     estimatedTime: `${task.minutes} minutes in class; up to 5 minutes of revision`,
     expectedSubmissionFormat: task.product,
     submissionProfile: {
@@ -149,6 +158,12 @@ function projectRubric(row, task) {
     title: `${task.title} — Rubric`,
     gradedWork: task.title,
     taskDirections: task.question,
+    gradingScale: {
+      exemplary: '100% of criterion points',
+      proficient: '75% of criterion points',
+      developing: '50% of criterion points',
+      beginning: '0% of criterion points',
+    },
     criteria,
     criterionWeightPlan: criteria,
     highValueSuccessCriteria: task.criteria.map((c) => c.levels.exemplary),
@@ -160,7 +175,11 @@ function projectRubric(row, task) {
     anchorExamples: anchors(task),
     anchorExampleSet: anchors(task),
     instructorFacilitationNote:
-      'Calibrate by comparing the actual strong and partial responses below. Cite the criterion that changes the score; presentation quality cannot compensate for an incorrect conclusion.',
+      'For each criterion, select the descriptor best supported by the response: Excellent earns all criterion points; Proficient earns 75%; Developing earns 50%; Beginning or no assessable response earns 0. Sum criterion points without rounding intermediate scores. Cite the observed reasoning that determines each level; presentation quality cannot compensate for an incorrect conclusion.',
+    accessibilityAndUDL:
+      task.language === 'zh'
+        ? '使用同一标准评价不同表达形式，区分内容理解与表达形式。'
+        : 'Apply the same criteria across equivalent response formats; distinguish understanding from presentation format.',
     teacherNotes: task.criteria.map((c) => c.feedback).join(' '),
     scorerCalibrationUse: anchors(task).scoringRationale,
     sourceEvidenceBrief: evidence(task, row.sourceEvidenceBrief),
@@ -169,6 +188,7 @@ function projectRubric(row, task) {
 }
 
 function projectPlan(row, task) {
+  const transfer = task.sequence?.find((unit) => unit.kind === 'independent-transfer');
   Object.assign(row, ref(task), {
     studentFacingSummary: {
       beforeClass: task.preparation?.instruction || 'The task uses the source record supplied in class.',
@@ -207,7 +227,7 @@ function projectPlan(row, task) {
       'Underline the given observations. Mark any missing information.',
       'Check labels against the supplied record; separate observations from inferences.',
     ],
-    ['Model the reasoning', task.question, task.reasoning.join('\n')],
+    ['Model the reasoning', task.question, task.reasoning.join(' ')],
     [
       'Diagnose an error',
       `Evaluate: “${task.errors[0].response}”`,
@@ -219,6 +239,12 @@ function projectPlan(row, task) {
   ];
   if (task.preparation)
     phases[0] = ['Retrieve the earlier diagnosis', task.preparation.prompt, task.preparation.expectedAnswer];
+  if (transfer)
+    phases[4] = [
+      'Apply the reasoning to a new case',
+      transfer.question,
+      `${transfer.answer}\nScoring: ${transfer.criteria.join(' ')}\nFeedback: ${transfer.feedback}`,
+    ];
   if (row.outline?.length === phases.length)
     row.outline.forEach((block, i) => {
       Object.assign(block, ref(task), {
@@ -243,135 +269,11 @@ function projectPlan(row, task) {
     });
 }
 
-function projectSlides(deck, task) {
-  Object.assign(deck, ref(task));
-  const replace = (slide, title, bullets, notes) =>
-    Object.assign(slide, ref(task), {
-      title,
-      bullets,
-      notes,
-      visual: { kind: 'none', description: '', altText: '' },
-      content: undefined,
-      activity: null,
-      objectiveLink: task.objective,
-      enrichmentSource: 'shared-teaching-task',
-    });
-  for (const slide of deck.slides) {
-    if (slide.type === 'title') replace(slide, slide.title, [task.title, task.product], task.question);
-    if (slide.type === 'agenda')
-      replace(
-        slide,
-        'Read, reason, check, revise',
-        [
-          'Inspect the supplied record.',
-          'Work through a concrete example.',
-          'Diagnose an error and compare reasoning.',
-          'Write and check your response.',
-        ],
-        task.question,
-      );
-    if (slide.type === 'bridge')
-      replace(slide, task.title, [task.objective, task.product], task.inputs.map((x) => x.text).join('\n'));
-    if (slide.type === 'activity')
-      replace(
-        slide,
-        'Write your response',
-        [task.question, 'Use the supplied record. Show your reasoning before checking the model answer.'],
-        `Reference answer: ${task.answer}\nFeedback: ${task.criteria.map((c) => c.feedback).join(' ')}`,
-      );
-    if (slide.type === 'discussion')
-      replace(
-        slide,
-        'Compare the reasoning',
-        [task.checkpoint.question, 'Identify the exact step where the two responses agree or differ.'],
-        `Expected response: ${task.checkpoint.answer}`,
-      );
-    if (slide.type === 'summary' || slide.type === 'closing')
-      replace(
-        slide,
-        slide.type === 'summary' ? 'Check your work' : 'Revise and retain',
-        task.criteria.map((c) => c.label),
-        task.criteria.map((c) => `${c.label}: ${c.levels.exemplary} Feedback: ${c.feedback}`).join('\n'),
-      );
-  }
-  // A solved example carries the answer even when there are no unclaimed
-  // content slots. It replaces a compiler-generated example, not an authored
-  // worked example (those prevent recipe admission upstream).
-  if (task.kind !== 'source-proportion') {
-    const slots = deck.slides.filter(
-      (s) =>
-        s.type === 'bridge' ||
-        s.type === 'example' ||
-        (s.type === 'content' && s.enrichmentSource === 'kernel-subject-matter'),
-    );
-    const chunks = [];
-    const sentences = task.reasoning.flatMap((step) =>
-      [...new Intl.Segmenter('en', { granularity: 'sentence' }).segment(step)].map((x) => x.segment.trim()),
-    );
-    for (const sentence of sentences) {
-      const last = chunks.at(-1);
-      if (last && `${last.join(' ')} ${sentence}`.split(/\s+/).length <= 65) last.push(sentence);
-      else chunks.push([sentence]);
-    }
-    chunks.forEach((bullets, i) => {
-      let slide = slots[i];
-      if (!slide) {
-        slide = { type: 'content', timer: 'Use the lesson model time', objectiveLink: task.objective };
-        const prior = slots.at(-1);
-        deck.slides.splice(prior ? deck.slides.indexOf(prior) + 1 : 0, 0, slide);
-        slots.push(slide);
-      }
-      slide.type = 'content';
-      replace(
-        slide,
-        `Worked example: reasoning ${i + 1} of ${chunks.length}`,
-        // Keep a wrapped reasoning passage in one text flow. Separate bullet
-        // boxes can overlap when the first sentence spans several lines.
-        [bullets.join(' ')],
-        `Complete reference answer: ${task.answer}`,
-      );
-    });
-    // Error feedback belongs with the actual task, not a broken generic
-    // definition correction inherited from an earlier kernel fallback.
-    const pitfalls = deck.slides.find((s) => s.enrichmentSource === 'kernel-misconception-pitfalls');
-    if (pitfalls)
-      replace(
-        pitfalls,
-        'Find the error; explain the correction',
-        [task.errors[0].response, task.errors[0].correction],
-        task.errors[0].feedback,
-      );
-    // Untagged content and key-term seats are compiler fallbacks. Their old
-    // concept maps often contain only artifact labels, not disciplinary content.
-    // Preserve authored/enriched seats; use bounded questions in the leftovers.
-    const checks = [
-      ...(task.scaffoldQuestions || []).map((q) => ({ title: 'Read and explain the record', ...q })),
-      ...task.errors.map((e) => ({
-        title: 'Find the error and explain why',
-        question: `Evaluate this response: “${e.response}”`,
-        answer: `${e.correction} Feedback: ${e.feedback}`,
-      })),
-    ];
-    let checkIndex = 0;
-    for (const slide of deck.slides) {
-      if (slide.enrichmentSource || !['content', 'keyTerm'].includes(slide.type)) continue;
-      const check = checks[checkIndex++ % checks.length];
-      slide.type = 'content';
-      replace(
-        slide,
-        check.title,
-        [check.question, 'Point to the source statement that supports your reasoning.'],
-        check.answer,
-      );
-    }
-    deck.totalSlides = deck.slides.length;
-  }
-}
-
 /** The task is selected before fact rotation. Every visible question, answer,
  * feedback move and rubric band below is projected from that same revision. */
 export function projectSharedTeachingTasks(feature, data, blueprint, options = {}) {
   if (!data) return data;
+  data.teachingTaskSources = blueprint.lessons.map(teachingTaskSourceFromLesson).filter(Boolean);
   const keys = {
     lessonPlans: 'lessonPlans',
     slideDecks: 'decks',
@@ -406,7 +308,7 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
     if (feature === 'assignments') projectAssignment(row, task, blueprint);
     if (feature === 'rubrics' && Array.isArray(row.criteria)) projectRubric(row, task);
     if (feature === 'lessonPlans') projectPlan(row, task);
-    if (feature === 'slideDecks') projectSlides(row, task);
+    if (feature === 'slideDecks') projectTeachingTaskSlides(row, task);
     if (feature === 'studyGuides')
       Object.assign(row, ref(task), {
         summary: task.summary,
@@ -480,9 +382,12 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
             !q.machineScored &&
             ['short_answer', 'essay'].includes(q.type) &&
             (!q.enrichmentSource ||
-              ['compiler-teaching-program', 'compiler-exact-source-ledger', 'source-bound-recovery'].includes(
-                q.enrichmentSource,
-              )),
+              [
+                'compiler-teaching-program',
+                'compiler-exact-source-ledger',
+                'source-bound-recovery',
+                'shared-teaching-task',
+              ].includes(q.enrichmentSource)),
         ) || [];
       if (seats.length)
         row.practiceRecord = {
@@ -494,7 +399,12 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
             'Use this record for the related task questions. These rehearse the taught example; they do not establish independent transfer to a new context.',
         };
       const quizQuestions = [
-        ...questions(task),
+        ...questions(task).filter((question) => question.practiceKind === 'independent-transfer'),
+        ...questions(task).filter(
+          (question) =>
+            question.practiceKind !== 'independent-transfer' &&
+            (!task.assessmentExtensions?.length || question.practiceKind !== 'task-check'),
+        ),
         ...(task.assessmentExtensions || []).map((q, index) => ({
           question: q.question,
           answer: q.answer,
@@ -514,7 +424,10 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
           scoringGuidance: q.successCriteria.join(' '),
           explanation: q.answer,
           enrichmentSource: 'shared-teaching-task',
-          intendedUse: task.purpose,
+          intendedUse:
+            q.practiceKind === 'independent-transfer'
+              ? 'Independent response to a new fictional case; use the record in this question.'
+              : task.purpose,
         });
       });
     }
@@ -555,8 +468,10 @@ export function projectTeachingTasksIntoCourseMap(courseMap, blueprint) {
   const lessons = courseMap.lessons.map((sourceLesson, index) => {
     const lesson = blueprint.lessons.find((l) => l.lessonNumber === (sourceLesson.lessonNumber || index + 1));
     const task = lesson?.teachingTask;
-    if (!task || lesson.teachingTaskScope !== 'primary-task') return sourceLesson;
+    if (!task) return sourceLesson;
     changed = true;
+    if (lesson.teachingTaskScope !== 'primary-task')
+      return { ...sourceLesson, teachingTaskLink: { ...ref(task), question: task.question } };
     const generatedFields = {
       syncActivities: task.question,
       asyncActivities:
@@ -580,5 +495,11 @@ export function projectTeachingTasksIntoCourseMap(courseMap, blueprint) {
     // present when an instructor supplies an alternative activity formulation.
     return { ...sourceLesson, sections, teachingTaskLink: { ...ref(task), question: task.question, generatedFields } };
   });
-  return changed ? { ...courseMap, lessons } : courseMap;
+  return changed
+    ? {
+        ...courseMap,
+        lessons,
+        teachingTaskSources: blueprint.lessons.map(teachingTaskSourceFromLesson).filter(Boolean),
+      }
+    : courseMap;
 }

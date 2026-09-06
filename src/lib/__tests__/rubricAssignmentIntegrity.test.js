@@ -363,10 +363,11 @@ describe('Python topic identity is not enough to classify a policy assessment as
 // ── (4) one weight per brief, and the manifest agrees with the compile ──────
 
 describe('single weight source', () => {
-  it('every registry brief renders ONE weight: percentOfGrade equals the course-map stamp percent', () => {
+  it('every unweighted registry brief consistently displays formative practice', () => {
     for (const brief of compiled.assignments.assignments) {
-      expect(brief.courseMapRef).toContain(`· ${brief.weightPercent}%`);
-      expect(brief.percentOfGrade).toBe(`${brief.weightPercent}%`);
+      expect(brief.weightPercent).toBeNull();
+      expect(brief.courseMapRef).toContain('Formative practice');
+      expect(brief.percentOfGrade).toContain('Formative practice');
     }
   });
 
@@ -377,9 +378,8 @@ describe('single weight source', () => {
     expect(JSON.stringify(result.data)).toBe(before);
   });
 
-  it('graded blueprint weights sum to 100 across briefs and the exam', () => {
-    const total = blueprint.assessments.reduce((sum, assessment) => sum + assessment.weightPercent, 0);
-    expect(total).toBe(100);
+  it('briefs and the exam do not invent course weights absent a source policy', () => {
+    expect(blueprint.assessments.every((assessment) => assessment.weightPercent === null)).toBe(true);
   });
 });
 
@@ -404,15 +404,15 @@ describe('package manifest uses the bridged registry', () => {
     const manifest = result.manifest;
     expect(Array.isArray(manifest.assessments)).toBe(true);
 
-    // The bridged summary is the syllabus's story: graded rows sum to 100.
+    // The manifest and syllabus preserve the same absence of a course policy.
     expect(manifest.assessmentSummary).toBeTruthy();
     expect(manifest.assessmentSummary).toMatchObject({
-      weightSource: 'compiler-distributed-draft',
-      weightSourceStatus: 'compiler-distributed-draft',
-      weightReviewRequired: true,
-      weightConfirmationPolicy: expect.stringContaining('must be confirmed by the instructor'),
+      weightSource: 'unweighted-formative',
+      weightSourceStatus: 'unweighted-formative',
+      weightReviewRequired: false,
+      weightConfirmationPolicy: expect.stringContaining('Only a source policy'),
     });
-    expect(manifest.assessmentSummary.gradedWeightTotal).toBe(100);
+    expect(manifest.assessmentSummary.gradedWeightTotal).toBe(0);
     expect(manifest.assessmentSummary.graded).toBe(blueprint.assessments.length);
 
     // Row-level agreement: every graded manifest row carries the same weight
@@ -427,10 +427,10 @@ describe('package manifest uses the bridged registry', () => {
       const compiledWeight = briefById.get(row.id)?.weightPercent ?? blueprintById.get(row.id)?.weightPercent;
       expect(row.weightPct, `manifest weight disagrees with compile for ${row.id}`).toBe(compiledWeight);
       expect(row).toMatchObject({
-        weightSource: 'compiler-distributed-draft',
-        weightReviewRequired: true,
+        weightSource: 'unweighted-formative',
+        weightReviewRequired: false,
       });
     }
-    expect(manifestGradedTotal).toBe(100);
+    expect(manifestGradedTotal).toBe(0);
   }, 120000);
 });

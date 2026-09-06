@@ -1,3 +1,4 @@
+import { sourceCourseGradeWeight } from './courseGradeWeight.js';
 import { buildReadinessReport, scopeCourseMapToLessons, scopeDeliverableDataToLessons } from './deliverableReadiness';
 import { assertOfficeExportHasNoInternalText, sanitizeInternalExportLanguage } from './exportTextInspector';
 import { resolveFeatureLabel } from './exporters/exporterUtils.js';
@@ -1185,59 +1186,15 @@ function buildLessonEvidenceDependencies({
   };
 }
 
-// v0.16.1: the manifest's weights must MATCH the compile. The compiler's
-// registry bridge (buildRegistryAssessmentAnchors in courseBlueprintCompiler)
-// keeps graded entries whose lesson is in the compiled scope and
-// re-normalizes their weights to sum 100 whenever any weight is missing or
-// the raw total drifts. The manifest used to emit the RAW derived registry
-// (every row, raw exam weights) while the syllabus rendered the bridged one
-// — one registry, two contradicting stories (41 rows @ 7% exams vs 27 rows
-// @ 10%). This mirrors the bridge arithmetic exactly — keep in sync with
-// distributeWeightedPercent + buildRegistryAssessmentAnchors.
-function distributeManifestWeightedPercent(rawWeights = []) {
-  if (rawWeights.length === 0) return [];
-  const safeWeights = rawWeights.map((weight) => Math.max(1, Number(weight || 0)));
-  const total = safeWeights.reduce((sum, weight) => sum + weight, 0);
-  const exact = safeWeights.map((weight) => (weight / total) * 100);
-  const floored = exact.map((weight) => Math.floor(weight));
-  let remainder = 100 - floored.reduce((sum, weight) => sum + weight, 0);
-  const order = exact
-    .map((weight, index) => ({ index, fraction: weight - floored[index] }))
-    .sort((a, b) => b.fraction - a.fraction);
-  for (const item of order) {
-    if (remainder <= 0) break;
-    floored[item.index] += 1;
-    remainder -= 1;
-  }
-  return floored;
-}
-
+// Export the same source policy as the compiler. Scope never rescales grades.
 function bridgeManifestRegistryWeights(registry, lessonNumbers) {
   const lessonSet = new Set(Array.isArray(lessonNumbers) ? lessonNumbers : []);
   const graded = registry.filter((entry) => entry && entry.kind !== 'in-class' && lessonSet.has(entry.dueSession));
-  if (graded.length === 0) return { weightByEntry: new Map(), gradedCount: 0, gradedWeightTotal: 0 };
-  const known = graded.reduce((sum, entry) => sum + (Number.isFinite(entry.weightPct) ? entry.weightPct : 0), 0);
-  const unknown = graded.filter((entry) => !Number.isFinite(entry.weightPct));
-  let weights = graded.map((entry) => (Number.isFinite(entry.weightPct) ? entry.weightPct : 0));
-  if (unknown.length > 0 || known !== 100) {
-    weights = distributeManifestWeightedPercent(
-      graded.map((entry) =>
-        Number.isFinite(entry.weightPct) && entry.weightPct > 0
-          ? entry.weightPct
-          : entry.kind === 'exam'
-            ? 3
-            : entry.kind === 'oral'
-              ? 2
-              : 1,
-      ),
-    );
-  }
-  const weightByEntry = new Map();
-  graded.forEach((entry, index) => weightByEntry.set(entry, weights[index]));
+  const weights = graded.map(sourceCourseGradeWeight);
   return {
-    weightByEntry,
+    weightByEntry: new Map(graded.map((entry, index) => [entry, weights[index]])),
     gradedCount: graded.length,
-    gradedWeightTotal: weights.reduce((sum, weight) => sum + weight, 0),
+    gradedWeightTotal: weights.reduce((sum, weight) => sum + (weight ?? 0), 0),
   };
 }
 
@@ -1318,22 +1275,14 @@ function buildManifestAssessments({ registry, files, lessonNumbers = null, deliv
       title: assessment.title,
       kind,
       lesson: assessment.dueSession,
-      // v0.16.1: graded rows carry the BRIDGED weight (the number the
-      // syllabus grading table and the briefs' course-map stamps render);
-      // in-class and out-of-scope rows keep their raw registry value.
       weightPct:
         kind === 'in-class'
-          ? 0
-          : bridgedWeight !== null
+          ? null
+          : bridge.weightByEntry.has(assessment)
             ? bridgedWeight
-            : Number.isFinite(assessment.weightPct)
-              ? assessment.weightPct
-              : null,
-      weightSource:
-        assessment.weightSource === 'source-explicit' || assessment.weightSource === 'course-map-explicit'
-          ? 'source-explicit'
-          : 'compiler-distributed-draft',
-      weightReviewRequired: !['source-explicit', 'course-map-explicit'].includes(assessment.weightSource),
+            : sourceCourseGradeWeight(assessment),
+      weightSource: sourceCourseGradeWeight(assessment) === null ? 'unweighted-formative' : 'source-explicit',
+      weightReviewRequired: sourceCourseGradeWeight(assessment) !== null,
       artifact,
       ...(objectives.length > 0 ? { objectives } : {}),
       ...(kind === 'in-class' ? { note: 'in-class activity — listed in the lesson plan' } : {}),
@@ -1343,7 +1292,9 @@ function buildManifestAssessments({ registry, files, lessonNumbers = null, deliv
     (entry) => entry.kind === 'in-class' || entry.weightSource === 'source-explicit',
   )
     ? 'source-explicit'
-    : 'compiler-distributed-draft';
+    : entries.some((entry) => entry.weightSource === 'source-explicit')
+      ? 'source-partial-or-conflicting'
+      : 'unweighted-formative';
   return {
     entries,
     summary: {
@@ -1353,9 +1304,9 @@ function buildManifestAssessments({ registry, files, lessonNumbers = null, deliv
       gradedWeightTotal: bridge.gradedWeightTotal,
       weightSourceStatus,
       weightSource: weightSourceStatus,
-      weightReviewRequired: weightSourceStatus !== 'source-explicit',
+      weightReviewRequired: weightSourceStatus !== 'unweighted-formative',
       weightConfirmationPolicy:
-        'Official grading weights must be confirmed by the instructor; compiler-distributed weights are draft planning weights, not institutional policy.',
+        'Only a source policy assigns course-grade percentages. Unweighted tasks are formative practice; rubric points do not invent a course policy.',
     },
   };
 }

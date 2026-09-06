@@ -1,4 +1,11 @@
 import { sha256HexSync } from './sha256Sync.js';
+import { buildTeachingTaskPracticeSequence } from './teachingTaskPracticeSequence.js';
+import { explicitEvidenceAnalysisTask, explicitExperimentalDesignTask } from './teachingTaskEvidenceOperations.js';
+import {
+  compareSourceProportions,
+  inconsistentParticipantCountsTask,
+  localizeProportionTask,
+} from './teachingTaskProportionOperations.js';
 import { SOURCE_ARITHMETIC_PROTOCOL, sourceArithmeticWorkedExample } from './sourceArithmeticStudyPractice.js';
 
 export const TEACHING_TASK_PROTOCOL = 'coursemapper-shared-teaching-task-v1';
@@ -23,10 +30,13 @@ function criterion(id, label, weight, complete, partial, error, feedback, profic
 }
 
 function proportionTask(claims, objective) {
-  if (!/\b(?:proportion|percentage|percent|fraction)\b/i.test(objective)) return null;
+  if (!/(?:\b(?:proportion|percentage|percent|fraction)\b|比例|百分比|百分率)/i.test(objective)) return null;
   const example = sourceArithmeticWorkedExample({ claims });
   if (!example) return null;
   const { numerator: n, denominator: d, decimal, percent } = example.verification;
+  const exact = example.verification.exact !== false;
+  const relation = exact ? '=' : '≈';
+  const reverse = example.verification.reverseCheck || `${decimal} × ${d} = ${n}`;
   const limits = claims.filter(bounded);
   const interpretation = limits.length
     ? `The result describes the supplied observations. Retain these limits: ${limits.join(' ')}`
@@ -34,10 +44,10 @@ function proportionTask(claims, objective) {
   return {
     kind: 'source-proportion',
     title: 'Calculate and interpret the observed proportion',
-    summary: `${n}/${d} = ${decimal} = ${percent}%. The decimal and percentage express the same proportion. Checking the arithmetic and checking the scope of the observations are separate parts of the response.`,
+    summary: `${n}/${d} ${relation} ${decimal} ${relation} ${percent}%. ${exact ? 'The decimal and percentage express the same proportion.' : 'The percentage is rounded to two decimal places; the fraction remains exact.'} Checking the arithmetic and checking the scope of the observations are separate parts of the response.`,
     question: `Calculate ${n}/${d} as a decimal and percentage, show a reverse check, and explain which observations the result describes and what the source does not establish.`,
     reasoning: [...example.steps, interpretation],
-    answer: `${n} ÷ ${d} = ${decimal}; ${decimal} × 100 = ${percent}%; ${decimal} × ${d} = ${n}. The decimal and percentage express the same proportion. ${interpretation}`,
+    answer: `${n} ÷ ${d} ${relation} ${decimal}; (${n}/${d}) × 100 ${relation} ${percent}%; ${reverse}. ${exact ? 'The decimal and percentage express the same proportion.' : 'Rounded to two decimal places for the percentage; retain the exact fraction for checking.'} ${interpretation}`,
     criteria: [
       criterion(
         'part-whole',
@@ -53,11 +63,11 @@ function proportionTask(claims, objective) {
         'conversion',
         'Calculate and verify',
         40,
-        `Shows ${n} ÷ ${d} = ${decimal}, ${decimal} × 100 = ${percent}%, and ${decimal} × ${d} = ${n}.`,
+        `Shows ${n} ÷ ${d} ${relation} ${decimal}, (${n}/${d}) × 100 ${relation} ${percent}%, and ${reverse}.`,
         `Gives ${percent}% without showing the division or conversion.`,
         'Uses an incorrect conversion or cannot recover the original count.',
         'Separate division from multiplication by 100; reverse the calculation to check the numerator.',
-        `Shows ${n} ÷ ${d} = ${decimal} and ${decimal} × 100 = ${percent}%, but omits or does not complete the reverse check.`,
+        `Shows ${n} ÷ ${d} ${relation} ${decimal} and (${n}/${d}) × 100 ${relation} ${percent}%, but omits or does not complete the reverse check.`,
       ),
       criterion(
         'scope',
@@ -73,7 +83,10 @@ function proportionTask(claims, objective) {
     errors: [
       {
         criterionId: 'conversion',
-        response: `${n}/${d} = ${decimal}%.`,
+        response:
+          Number(decimal) === 0
+            ? `No observed events means the observed proportion is 100%.`
+            : `${n}/${d} = ${decimal}%.`,
         correction: `${decimal} is a decimal proportion; it converts to ${percent}%.`,
         feedback: `Multiply ${decimal} by 100, then check the numerator.`,
       },
@@ -87,7 +100,7 @@ function proportionTask(claims, objective) {
     ],
     checkpoint: {
       question: `Recover the numerator from ${percent}% of ${d}, then state one source limitation.`,
-      answer: `${decimal} × ${d} = ${n}. ${interpretation}`,
+      answer: `${reverse}. ${interpretation}`,
     },
     scaffoldQuestions: [
       {
@@ -413,26 +426,37 @@ export function buildSharedTeachingTask({
     )
   )
     return null;
-  const body =
+  let body =
+    compareSourceProportions(inputs, objective) ||
     proportionTask(inputs, objective) ||
     eventComparisonTask(inputs, objective) ||
-    controlledComparisonTask(inputs, objective);
+    controlledComparisonTask(inputs, objective) ||
+    inconsistentParticipantCountsTask(inputs, objective) ||
+    explicitExperimentalDesignTask(inputs, objective) ||
+    explicitEvidenceAnalysisTask(inputs, objective);
   if (!body) return null;
+  body = localizeProportionTask(body, inputs, objective);
   const task = {
     protocol: TEACHING_TASK_PROTOCOL,
+    identityKey: lessonId,
     id: `task-${sha256HexSync(`${lessonId}:${body.kind}`).slice(0, 16)}`,
     objective: clean(objective),
-    inputs: (body.sourceClaims || inputs).map((text) => ({ id: `source-${sha256HexSync(text).slice(0, 12)}`, text })),
+    inputs: (body.sourceClaims || inputs).map((text, index) => ({
+      id: `input-${sha256HexSync(`${lessonId}:${body.kind}:${index}`).slice(0, 16)}`,
+      text,
+    })),
     ...body,
     purpose: 'source-bound guided practice',
     product:
-      body.kind === 'source-proportion'
-        ? 'One calculation record showing division, percentage conversion and reverse check, with a 2–4-sentence interpretation of the observations and their limits.'
-        : body.kind === 'confound-diagnosis'
-          ? 'A comparison table labeling each group, its conditions, the measured outcome, and the stated controls, followed by 2–3 sentences explaining the confound. Equivalent labeled text is acceptable.'
-          : body.kind === 'controlled-comparison-repair'
-            ? 'A revised two-group protocol specifying the treatment, equal conditions, random assignment and outcome measurement, with 2–3 sentences explaining what the repair establishes and what still requires results.'
-            : 'One annotated response with the reasoning, conclusion, and evidence limit; prose, a labeled diagram, or an equivalent accessible response.',
+      body.language === 'zh'
+        ? '一份可核对的任务记录：列出材料证据、展示推理与结论，说明未知内容。可使用文字、带标签的图表或等效的无障碍表达形式。'
+        : body.kind === 'source-proportion'
+          ? 'One calculation record showing division, percentage conversion and reverse check, with a 2–4-sentence interpretation of the observations and their limits.'
+          : body.kind === 'confound-diagnosis'
+            ? 'A comparison table labeling each group, its conditions, the measured outcome, and the stated controls, followed by 2–3 sentences explaining the confound. Equivalent labeled text is acceptable.'
+            : body.kind === 'controlled-comparison-repair'
+              ? 'A revised two-group protocol specifying the treatment, equal conditions, random assignment and outcome measurement, with 2–3 sentences explaining what the repair establishes and what still requires results.'
+              : 'One annotated response with the reasoning, conclusion, and evidence limit; prose, a labeled diagram, or an equivalent accessible response.',
     minutes:
       Number(practiceMinutes) > 0
         ? Number(practiceMinutes)
@@ -442,6 +466,7 @@ export function buildSharedTeachingTask({
       scope: 'The stated source operation; not independent factual verification or measured learning gain.',
     },
   };
+  task.sequence = buildTeachingTaskPracticeSequence(task);
   task.revision = sha256HexSync(JSON.stringify(task));
   return task;
 }
@@ -522,5 +547,14 @@ export function teachingTaskPracticeUnits(task) {
       ...task.checkpoint,
       criteria: task.criteria.map((c) => c.label),
     },
+    ...(task.sequence || [])
+      .filter((unit) => unit.kind === 'independent-transfer')
+      .map((unit) => ({
+        ...shared,
+        ...unit,
+        taskId: unit.id,
+        sourceTaskId: task.id,
+        sourceClaims: unit.sources,
+      })),
   ];
 }
