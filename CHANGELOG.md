@@ -3,7 +3,7 @@
 ## 0.18.8 — 2026-09-05
 
 - Preserve the previous local course when entering a new setup or starting a build. Cancelling material selection keeps the exact saved course recoverable, including IndexedDB-only and compact-pointer snapshots. An explicit dismissal still clears it.
-- Update the application/package version, homepage release card and in-site changelog to 0.18.8. Preserve the 0.18.7 interface baseline and historical release entry.
+- Update the application/package version, homepage release card and in-site changelog to 0.18.8. Bind the routed changelog summary to the current release title, details and quality limitations instead of fixed historical copy. Preserve the 0.18.7 interface baseline and historical release entry.
 - Isolate Pages concurrency by source branch so a skipped feature-branch workflow cannot cancel a successful main deployment.
 
 - Select a source-bound task before deliverable-specific fact rotation; share its inputs, reasoning, reference answer, errors, feedback, workload and four-level criteria across the existing materials. Keep stable task IDs and content revision hashes; regenerate matching answers and rubrics after source edits.

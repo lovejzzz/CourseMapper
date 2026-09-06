@@ -117,3 +117,12 @@ test('the original homepage retains attachments, all original material choices a
   );
   expect(modelRequests).toEqual([]);
 });
+
+test('the public changelog shows the actual current release and its quality limits', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('link', { name: 'v0.18.8', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Shared Tasks, Specific Answers', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Share the actual teaching work', exact: true })).toBeVisible();
+  await expect(page.getByText('Two-session quality gaps remain', { exact: false })).toBeVisible();
+  await expect(page.getByText('Do not delete the previous local course', { exact: false })).toBeVisible();
+});
