@@ -1197,12 +1197,23 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             ? [
                 ['Strong response', r.anchorExamples.strongSample],
                 ['Partial response', r.anchorExamples.partialSample],
+                ['Typical misconception', r.anchorExamples.misconceptionSample],
+                ['Acceptable alternative', r.anchorExamples.alternativeSample],
                 ['Why the score differs', r.anchorExamples.scoringRationale],
                 ['Revision prompt', r.anchorExamples.revisionPrompt],
               ].filter(([, text]) => text)
             : [];
         if (labeledAnchors.length || r.anchorExamples?.length) {
-          children.push(makeSubHeading('Anchor Examples — Instructor Reference'));
+          children.push(
+            makeSubHeading('Anchor Examples — Instructor Reference', { pageBreakBefore: Boolean(r.taskId) }),
+          );
+          if (r.taskId && (r.lessonTitle || r.title)) children.push(makeMeta(r.lessonTitle || r.title));
+          if (r.anchorExamples?.sampleOrigin === 'synthetic-review-examples')
+            children.push(
+              makeText(
+                'Constructed rubric review examples, not student data. Scoring examples require teacher review.',
+              ),
+            );
           if (labeledAnchors.length) labeledAnchors.forEach(([label, text]) => children.push(makeBold(label, text)));
           else r.anchorExamples.forEach((text) => children.push(makeBullet(text)));
         }

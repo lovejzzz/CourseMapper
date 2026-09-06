@@ -12767,6 +12767,7 @@ export function buildCompilerProofBundle(blueprint = {}, options = {}) {
 
 function prepareBlueprintForCompilation(blueprint = {}, options = {}) {
   const prepared = deriveBlueprintForCompiler(blueprint, options);
+  const savedTaskSources = readTeachingTaskSources(prepared);
   // Select a concrete task from canonical, lesson-owned evidence before any
   // deliverable-specific fact rotation. Rebuild on every compile so edits to
   // inputs or objectives cannot retain an obsolete answer or rubric revision.
@@ -12780,11 +12781,20 @@ function prepareBlueprintForCompilation(blueprint = {}, options = {}) {
     const authoredAssignment =
       lesson.enrichment?.assignmentCore?.taskDescription &&
       !lesson.enrichment.surfaceFallbacks?.includes('assignmentCore');
-    const savedTaskSource = readTeachingTaskSources(prepared).find((source) =>
+    const savedTaskSource = savedTaskSources.find((source) =>
       lesson.taskSourceId ? source.id === lesson.taskSourceId : source.lessonId === lesson.id,
     );
+    const savedTask = savedTaskSource && rebuildTeachingTaskSource(savedTaskSource, asArray(lesson.outcomes).join(' '));
+    if (savedTaskSource?.operationPlan !== undefined && !savedTask) {
+      const error = new Error(
+        'Review the saved teaching operation and its source bindings before generating new answers. The compiler has not replaced it with a different task.',
+      );
+      error.code = 'TEACHING_OPERATION_REVIEW_REQUIRED';
+      error.taskId = savedTaskSource.id;
+      throw error;
+    }
     const teachingTask =
-      (savedTaskSource && rebuildTeachingTaskSource(savedTaskSource, asArray(lesson.outcomes).join(' '))) ||
+      savedTask ||
       buildSharedTeachingTask({
         lessonId: lesson.id,
         objective: asArray(lesson.outcomes).join(' '),

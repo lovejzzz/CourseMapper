@@ -26,10 +26,15 @@ export function teachingTaskSourceFromLesson(lesson) {
     inputs: task.inputs.map((input) => ({ ...input })),
     sessionMinutes: lesson.classSessionPlan?.sessionMinutes || 50,
     practiceMinutes: task.minutes,
+    ...(task.operationPlan ? { operationPlan: structuredClone(task.operationPlan) } : {}),
   };
 }
 
-export function rebuildTeachingTaskSource(source, objective = source?.objective) {
+export function rebuildTeachingTaskSource(
+  source,
+  objective = source?.objective,
+  { legacyOperationPresentation = false } = {},
+) {
   if (!validTeachingTaskSource(source)) return null;
   const task = buildSharedTeachingTask({
     lessonId: source.identityKey || source.lessonId,
@@ -38,6 +43,9 @@ export function rebuildTeachingTaskSource(source, objective = source?.objective)
     admitted: true,
     sessionMinutes: source.sessionMinutes,
     practiceMinutes: source.practiceMinutes,
+    sourceInputs: source.inputs,
+    ...(source.operationPlan !== undefined ? { operationPlan: source.operationPlan } : {}),
+    legacyOperationPresentation,
   });
   // An edit cannot silently turn a calculation into a different assessment.
   if (!task || task.kind !== source.kind || task.id !== source.id) return null;

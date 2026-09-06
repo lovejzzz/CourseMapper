@@ -48,16 +48,35 @@ function projectSourceCopies(row, task, previousSource) {
 }
 const program = (task) => compileTeachingProgram({ admitted: true, teachingTask: task });
 const questions = (task) => teachingProgramReviewQuestions(program(task));
-const anchors = (task) => ({
-  strongSample: task.answer,
-  partialSample: task.errors[0].response,
-  scoringRationale: taskText(
-    task,
-    `The partial response fails ${task.criteria.find((c) => c.id === task.errors[0].criterionId).label}: ${task.errors[0].correction}`,
-    `部分正确的回答未达到“${task.criteria.find((c) => c.id === task.errors[0].criterionId).label}”标准：${task.errors[0].correction}`,
-  ),
-  revisionPrompt: task.errors[0].feedback,
-});
+const anchors = (task) =>
+  task.contrastResponses?.length
+    ? {
+        language: task.language,
+        sampleOrigin: 'synthetic-review-examples',
+        strongSample: task.contrastResponses.find((example) => example.id === 'complete').response,
+        partialSample: task.contrastResponses.find((example) => example.id === 'conclusion-without-reasoning').response,
+        misconceptionSample: task.contrastResponses.find((example) => example.id === 'misconception').response,
+        alternativeSample: task.contrastResponses.find((example) => example.id === 'alternative-representation')
+          .response,
+        scoringRationale: task.contrastResponses
+          .find((example) => example.id === 'conclusion-without-reasoning')
+          .judgments.map(
+            (judgment) =>
+              `${task.criteria.find((criterion) => criterion.id === judgment.criterionId).label}: ${judgment.rationale}`,
+          )
+          .join(' '),
+        revisionPrompt: task.criteria.map((criterion) => criterion.feedback).join(' '),
+      }
+    : {
+        strongSample: task.answer,
+        partialSample: task.errors[0].response,
+        scoringRationale: taskText(
+          task,
+          `The partial response fails ${task.criteria.find((c) => c.id === task.errors[0].criterionId).label}: ${task.errors[0].correction}`,
+          `部分正确的回答未达到“${task.criteria.find((c) => c.id === task.errors[0].criterionId).label}”标准：${task.errors[0].correction}`,
+        ),
+        revisionPrompt: task.errors[0].feedback,
+      };
 
 function alignAssessmentCopies(row, task, criteria) {
   const weightGuidance = criteria

@@ -13,6 +13,8 @@ import {
   localizeProportionTask,
 } from './teachingTaskProportionOperations.js';
 import { SOURCE_ARITHMETIC_PROTOCOL, sourceArithmeticWorkedExample } from './sourceArithmeticStudyPractice.js';
+import { renderTeachingOperationTask, legacyAmendmentProjection } from './teachingOperationTask.js';
+import { remapTeachingOperationInputs } from './teachingOperationPlan.js';
 
 export const TEACHING_TASK_PROTOCOL = 'coursemapper-shared-teaching-task-v1';
 const clean = (s) => (typeof s === 'string' ? s.trim() : '');
@@ -424,6 +426,9 @@ export function buildSharedTeachingTask({
   workedExample,
   sessionMinutes = 50,
   practiceMinutes,
+  operationPlan,
+  sourceInputs,
+  legacyOperationPresentation = false,
 } = {}) {
   if (!admitted) return null;
   const inputs = unique(claims);
@@ -434,30 +439,36 @@ export function buildSharedTeachingTask({
     )
   )
     return null;
-  let body = sourceRelationIntent(objective)
-    ? explicitSourceRelationTask(inputs, objective)
-    : experimentalExtensionIntent(objective)
-      ? explicitExperimentalExtensionTask(inputs, objective)
-      : sourceQuantityIntent(objective)
-        ? sourceQuantityTask(inputs, objective)
-        : compareSourceProportions(inputs, objective) ||
-          proportionTask(inputs, objective) ||
-          eventComparisonTask(inputs, objective) ||
-          controlledComparisonTask(inputs, objective) ||
-          inconsistentParticipantCountsTask(inputs, objective) ||
-          explicitExperimentalDesignTask(inputs, objective) ||
-          explicitEvidenceAnalysisTask(inputs, objective);
+  let body =
+    operationPlan !== undefined
+      ? renderTeachingOperationTask(operationPlan, sourceInputs || [], objective)
+      : sourceRelationIntent(objective)
+        ? explicitSourceRelationTask(inputs, objective)
+        : experimentalExtensionIntent(objective)
+          ? explicitExperimentalExtensionTask(inputs, objective)
+          : sourceQuantityIntent(objective)
+            ? sourceQuantityTask(inputs, objective)
+            : compareSourceProportions(inputs, objective) ||
+              proportionTask(inputs, objective) ||
+              eventComparisonTask(inputs, objective) ||
+              controlledComparisonTask(inputs, objective) ||
+              inconsistentParticipantCountsTask(inputs, objective) ||
+              explicitExperimentalDesignTask(inputs, objective) ||
+              explicitEvidenceAnalysisTask(inputs, objective);
   if (!body) return null;
+  if (legacyOperationPresentation) body = legacyAmendmentProjection(body);
   body = localizeProportionTask(body, inputs, objective);
   const task = {
     protocol: TEACHING_TASK_PROTOCOL,
     identityKey: lessonId,
     id: `task-${sha256HexSync(`${lessonId}:${body.kind}`).slice(0, 16)}`,
     objective: clean(objective),
-    inputs: (body.sourceClaims || inputs).map((text, index) => ({
-      id: `input-${sha256HexSync(`${lessonId}:${body.kind}:${index}`).slice(0, 16)}`,
-      text,
-    })),
+    inputs:
+      (sourceInputs && structuredClone(sourceInputs)) ||
+      (body.sourceClaims || inputs).map((text, index) => ({
+        id: `input-${sha256HexSync(`${lessonId}:${body.kind}:${index}`).slice(0, 16)}`,
+        text,
+      })),
     ...body,
     purpose: 'source-bound guided practice',
     product:
@@ -479,6 +490,21 @@ export function buildSharedTeachingTask({
       scope: 'The stated source operation; not independent factual verification or measured learning gain.',
     },
   };
+  if (body.operationInputIds) {
+    task.operationPlan = remapTeachingOperationInputs(
+      body.operationPlan,
+      body.operationInputIds.map((id, index) => ({ id, text: task.inputs[index].text })),
+      task.inputs,
+    );
+    delete task.operationInputIds;
+  }
+  if (task.operationPlan)
+    task.validation = {
+      method: 'bound-teaching-operation',
+      admission: task.operationPlan.admission.kind,
+      scope:
+        'Exact source bindings and the declared operation; not independent verification of source truth or measured learning.',
+    };
   task.sequence = buildTeachingTaskPracticeSequence(task);
   task.revision = sha256HexSync(JSON.stringify(task));
   return task;

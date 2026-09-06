@@ -1,6 +1,7 @@
 import { sha256HexSync } from './sha256Sync.js';
 import { canonicalJson, sameJsonData } from './canonicalJson.js';
 import { validTeachingTaskSource, TEACHING_TASK_SOURCE_VERSION } from './teachingTaskSourceSchema.js';
+import { validateTeachingOperationPlan, TEACHING_OPERATION_SPECS } from './teachingOperationPlan.js';
 
 export const TEACHING_PROGRAM_VERSION = 1;
 
@@ -28,12 +29,12 @@ function taskSources(program) {
   const sources = new Map(program.sources.map((source) => [source.id, source]));
   return program.tasks.map((task) => {
     const { objectiveRef, inputs, ...properties } = task;
-    return {
+    return structuredClone({
       ...properties,
       version: TEACHING_TASK_SOURCE_VERSION,
       objective: objectives.get(objectiveRef)?.text,
       inputs: inputs.map(({ sourceRef, ...input }) => ({ ...input, text: sources.get(sourceRef)?.text })),
-    };
+    });
   });
 }
 
@@ -81,9 +82,16 @@ export function validateTeachingProgram(program) {
         push('teaching-program-source-ref', `Task ${task.id} references missing source ${input.sourceRef}.`);
   }
   if (!issues.length)
-    for (const source of taskSources(program))
+    for (const source of taskSources(program)) {
       if (!validTeachingTaskSource(source))
         push('teaching-program-task', `Task ${source.id} has invalid lesson, timing or input data.`);
+      if (source.operationPlan !== undefined) {
+        const validation = validateTeachingOperationPlan(source.operationPlan, source.inputs);
+        for (const entry of validation.issues) push(entry.code, `Task ${source.id}: ${entry.message}`);
+        if (validation.valid && source.kind !== TEACHING_OPERATION_SPECS[source.operationPlan.operation].taskKind)
+          push('teaching-program-operation-kind', `Task ${source.id} does not match its bound operation family.`);
+      }
+    }
   if (program.revision !== teachingProgramRevision(program))
     push('teaching-program-revision', 'The teaching structure changed without a matching revision.');
   return { valid: issues.length === 0, issues };

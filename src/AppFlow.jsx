@@ -3416,7 +3416,13 @@ export default function AppFlow({
                         <button
                           type="button"
                           data-testid="workspace-menu-save-project"
-                          onClick={handleSaveProject}
+                          onClick={(event) => {
+                            // The open menu can overlap history controls when
+                            // a sync warning widens the toolbar. Finish the
+                            // menu action before the next workspace click.
+                            event.currentTarget.closest('details')?.removeAttribute('open');
+                            handleSaveProject();
+                          }}
                           className={WORKSPACE_MENU_ITEM_CLASS}
                         >
                           Save .coursemapper

@@ -343,6 +343,9 @@ export default function DeliverableView({
             Review {data.taskSyncConflicts.length} linked update{data.taskSyncConflicts.length === 1 ? '' : 's'} — your
             edits were preserved
           </summary>
+          <p className="mt-2">
+            The updated source differs from text you edited. Compare the versions before exporting.
+          </p>
           {data.taskSyncConflicts.map((conflict, index) => (
             <div key={JSON.stringify(conflict.path)} className="mt-3 border-t border-amber-200 pt-3">
               <p className="font-medium">
@@ -438,7 +441,7 @@ export default function DeliverableView({
       )}
       {/* Stale banner — shown when this deliverable is out of sync with recent edits */}
       {/* Change #3: Confidence-aware banner coloring and messaging */}
-      {isStale && !isStreaming && (
+      {isStale && !isStreaming && !data?.taskSyncConflicts?.length && !data?.taskSourceReview && (
         <div
           className={`mx-4 mt-2 mb-1 flex items-center gap-2.5 px-4 py-2.5 rounded-squircle-xs backdrop-blur-sm ${
             staleConfidence?.level === 'high'

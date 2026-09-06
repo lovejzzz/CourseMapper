@@ -1,5 +1,7 @@
 import { assertedClause } from './teachingTaskEvidenceAssertions.js';
 import { buildEvidenceTask } from './teachingTaskEvidenceBuilder.js';
+import { createTeachingOperationPlan } from './teachingOperationPlan.js';
+import { renderTeachingOperationTask } from './teachingOperationTask.js';
 
 const q = (text) => `“${text}”`;
 const allMatches = (claims, pattern) =>
@@ -124,7 +126,12 @@ function amendedRecord(claims, objective) {
     !old[0].asserted ||
     !revised[0].asserted ||
     old[0].m[1] === revised[0].m[1] ||
+    !/^\d{1,9}$/.test(old[0].m[1]) ||
+    !/^\d{1,9}$/.test(revised[0].m[1]) ||
+    Number(old[0].m[1]) === Number(revised[0].m[1]) ||
     !/\d/.test(revised[0].m[3]) ||
+    revised[0].m[3].trim().length > 120 ||
+    /[\n\r]/.test(revised[0].m[3]) ||
     old[0].m[2].toLowerCase() !== revised[0].m[2].toLowerCase()
   )
     return null;
@@ -134,50 +141,37 @@ function amendedRecord(claims, objective) {
     )
   )
     return null;
-  const [prior, next, date, unit] = [old[0].m[1], revised[0].m[1], revised[0].m[3].trim(), old[0].m[2].toLowerCase()];
-  const conclusion = `The supplied log first records ${prior} ${unit}; the amendment sets ${next} ${unit} from ${date}. This is an effective-date change, not proof that the earlier entry was simply false.`;
-  const limit = `The applicable capacity for the undated observation is unresolved: ${unknown.join(' ')} Establish its event date and the rule version in force then. Do not assign either ${prior} or ${next} ${unit} merely from the photograph or assume a year the record does not supply.`;
-  return make(claims, objective, {
-    operator: 'effective-record-amendment',
-    sourceBindings: [
-      binding(old[0], 'prior-capacity', prior),
-      binding(revised[0], 'amended-capacity', next),
-      binding(revised[0], 'effective-date', date),
-    ],
-    question:
-      'Construct a version timeline with the initial entry, amendment and effective date. Explain whether amendment makes the earlier entry false, then decide what can be said about the rule applicable to the undated observation.',
-    conclusion,
-    reasoning: [
-      q(claims[old[0].inputIndex]),
-      q(claims[revised[0].inputIndex]),
-      `Separate the date an entry was written from the date the rule takes effect. The amendment explicitly supplies ${date} as its effective date; missing calendar context must remain missing.`,
-    ],
-    limit,
-    error: `The amendment proves that ${prior} ${unit} was always incorrect, so the undated image must be judged against ${next} ${unit}.`,
-    repair:
-      'Place each capacity on a timeline using its effective scope. Obtain the observation date before choosing a version; preserve the earlier entry as evidence of the recorded earlier rule.',
-    scoring: [
-      'A rule and its amendment',
-      `Quotes ${prior} ${unit}, ${next} ${unit} and the effective date ${date}, attributing the values to the initial and amended records.`,
-      conclusion,
-    ],
-    levelOverrides: {
-      evidence: {
-        proficient: `Identifies both capacities and ${date}, but omits attribution for one entry.`,
-        developing: 'Identifies the changed capacity but omits or mislabels its effective date.',
-      },
-      reasoning: {
-        proficient:
-          'Correctly distinguishes the earlier rule from the amendment, but does not explain why an undated observation cannot be assigned to a version.',
-        developing: 'Recognizes a change but treats the most recently written entry as applicable to every time.',
-      },
-      boundary: {
-        proficient:
-          'Keeps the applicable version unresolved until the observation is dated, but does not specify a dated corroborating record.',
-        developing: 'Says more context is needed without identifying the missing observation date.',
-      },
+  // Parsing only proposes the relationship. From here onward, projection and
+  // source edits execute explicit bindings rather than matching this sentence again.
+  if (unknown.length !== 1) return null;
+  const inputs = claims.map((text, index) => ({ id: `record-${index + 1}`, text }));
+  const whole = (index) => ({ inputId: inputs[index].id, start: 0, end: claims[index].length });
+  const part = (record, value, last = false) => {
+    const offset = last ? record.m[0].lastIndexOf(value) : record.m[0].indexOf(value);
+    return {
+      inputId: inputs[record.inputIndex].id,
+      start: record.m.index + offset,
+      end: record.m.index + offset + value.length,
+    };
+  };
+  const plan = createTeachingOperationPlan({
+    operation: 'record-amendment',
+    inputs,
+    admission: { kind: 'legacy-explicit-rule', rule: 'effective-record-amendment-v1' },
+    bindings: {
+      priorRecord: whole(old[0].inputIndex),
+      amendedRecord: whole(revised[0].inputIndex),
+      priorValue: part(old[0], old[0].m[1]),
+      amendedValue: part(revised[0], revised[0].m[1]),
+      priorUnit: part(old[0], old[0].m[2]),
+      amendedUnit: part(revised[0], revised[0].m[2]),
+      effectiveDate: part(revised[0], revised[0].m[3].trim(), true),
+      observationLimit: whole(claims.indexOf(unknown[0])),
     },
   });
+  const task = renderTeachingOperationTask(plan, inputs, objective);
+  if (task) task.operationInputIds = inputs.map((input) => input.id);
+  return task;
 }
 
 function chartContext(claims, objective) {

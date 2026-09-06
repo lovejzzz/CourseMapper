@@ -1,0 +1,1159 @@
+{
+  "provenance": {
+    "kind": "subset-of-actual-v0.19.2-release-export",
+    "originalSha256": "5446bccfccf8617662ab3db2521b8ca18be41621a83152f9e1dde7f567169e5b",
+    "retained": "courseMap and one Study Guides deliverable; account, UI history and unrelated materials omitted"
+  },
+  "courseMap": {
+    "courseName": "Records and Effective Dates",
+    "lessons": [
+      {
+        "title": "Records and Effective Dates",
+        "sections": [
+          {
+            "learningGoals": "Explain how an amended record changes the interpretation of an earlier entry.",
+            "topicSection": "Records and Effective Dates",
+            "learningObjectives": "Explain how an amended record changes the interpretation of an earlier entry.",
+            "weeklyAssessments": "A reasoned response using the supplied record.",
+            "asyncActivities": "After class, revise one reasoning step using the feedback.",
+            "syncActivities": "Read the supplied record, solve the guided task, compare reasoning, and attempt the independent case.",
+            "technologyNeeded": "Paper or an accessible text editor; optional calculator for arithmetic.",
+            "presentationFormat": "One classroom workshop with individual work and discussion.",
+            "supportingResources": "Source record 1: A fictional permit log initially records 120 seats for a hall. Source record 2: A later entry explicitly amends the permitted capacity to 90 seats from 1 July. Source record 3: An attendance photograph has no reliable date.",
+            "evaluateDesign": "Compare the independent response with its teacher reference and note which reasoning step needs further practice."
+          }
+        ],
+        "teachingTaskLink": {
+          "taskId": "task-c046c413f9494959",
+          "taskRevision": "b076a7da580c74e63e9752ff10e0e115b7171c8488c7efb06f03173d4806c1d9",
+          "question": "Construct a version timeline with the initial entry, amendment and effective date. Explain whether amendment makes the earlier entry false, then decide what can be said about the rule applicable to the undated observation.",
+          "generatedFields": {
+            "syncActivities": "Construct a version timeline with the initial entry, amendment and effective date. Explain whether amendment makes the earlier entry false, then decide what can be said about the rule applicable to the undated observation.",
+            "asyncActivities": "Revise the classroom response using the matching criterion feedback; identify the specific correction made."
+          }
+        }
+      }
+    ],
+    "teachingTaskSources": [
+      {
+        "version": 1,
+        "id": "task-c046c413f9494959",
+        "lessonId": "lesson-1",
+        "identityKey": "lesson-1",
+        "lessonNumber": 1,
+        "title": "Lesson 1: Records and Effective Dates",
+        "objective": "Explain how an amended record changes the interpretation of an earlier entry.",
+        "kind": "evidence-source-analysis",
+        "scope": "primary-task",
+        "inputs": [
+          {
+            "id": "input-8e845344535e3803",
+            "text": "A fictional permit log initially records 120 seats for a hall."
+          },
+          {
+            "id": "input-5a7c71d953817120",
+            "text": "A later entry explicitly amends the permitted capacity to 90 seats from 1 July."
+          },
+          {
+            "id": "input-b21c3e41ae647973",
+            "text": "An attendance photograph has no reliable date."
+          }
+        ],
+        "sessionMinutes": 50,
+        "practiceMinutes": 10
+      }
+    ]
+  },
+  "deliverables": {
+    "studyGuides": {
+      "data": {
+        "studyGuides": [
+          {
+            "lessonNumber": 1,
+            "lessonTitle": "Lesson 1: Records and Effective Dates",
+            "learningObjectives": ["Explain how an amended record changes the interpretation of an earlier entry."],
+            "objectivePractice": [
+              "Construct a version timeline with the initial entry, amendment and effective date. Explain whether amendment makes the earlier entry false, then decide what can be said about the rule applicable to the undated observation."
+            ],
+            "assignedReadings": [],
+            "examScope": "Use this guide to prepare for the lesson checks and to review afterward.",
+            "summary": "The supplied log first records 120 seats; the amendment sets 90 seats from 1 July. This is an effective-date change, not proof that the earlier entry was simply false.",
+            "sourceGrounding": {
+              "lessonNumber": 1,
+              "lessonTitle": "Lesson 1: Records and Effective Dates",
+              "confidence": "high",
+              "sourceAnchors": [
+                {
+                  "field": "title",
+                  "source": "course-map",
+                  "confidence": "high",
+                  "anchor": "Lesson 1: Records and Effective Dates"
+                },
+                {
+                  "field": "objectives",
+                  "source": "course-map",
+                  "confidence": "high",
+                  "anchor": "Explain how an amended record changes the interpretation of an earlier entry."
+                },
+                {
+                  "field": "topics",
+                  "source": "course-map",
+                  "confidence": "high",
+                  "anchor": "Records and Effective Dates"
+                },
+                {
+                  "field": "assessment",
+                  "source": "course-map",
+                  "confidence": "high",
+                  "anchor": "A reasoned response using the supplied record."
+                },
+                {
+                  "field": "resources",
+                  "source": "course-map",
+                  "confidence": "high",
+                  "anchor": "Source record 1: A fictional permit log initially records 120 seats for a hall. Source record 2: A later entry explicitly amends the permitted capacity to 90 seats from 1 July. Source record 3: An attendance photograph h"
+                },
+                {
+                  "field": "throughline case",
+                  "source": "course-created-case",
+                  "confidence": "medium",
+                  "anchor": "Records and Effective Dates evidence brief"
+                },
+                {
+                  "field": "throughline case",
+                  "source": "course-created-case",
+                  "confidence": "medium",
+                  "anchor": "Records and Effective Dates evidence brief"
+                }
+              ],
+              "sourceEvidenceTrace": {
+                "version": 1,
+                "sourceKind": "course-map-lesson-row",
+                "lessonNumber": 1,
+                "lessonTitle": "Lesson 1: Records and Effective Dates",
+                "sourceRowLabel": "Records and Effective Dates",
+                "sourceFields": [
+                  {
+                    "field": "lesson identity",
+                    "sourceColumn": "title",
+                    "source": "course-map",
+                    "confidence": "high",
+                    "rawText": "Records and Effective Dates",
+                    "compiledValue": "Lesson 1: Records and Effective Dates",
+                    "purpose": "Sets the lesson label used across all compiled artifacts."
+                  },
+                  {
+                    "field": "learning objectives",
+                    "sourceColumn": "learningObjectives",
+                    "source": "course-map",
+                    "confidence": "high",
+                    "rawText": "Explain how an amended record changes the interpretation of an earlier entry.",
+                    "compiledValue": "Explain how an amended record changes the interpretation of an earlier entry.",
+                    "purpose": "Drives outcomes, quiz targets, lesson-plan goals, and syllabus alignment."
+                  },
+                  {
+                    "field": "topic and concepts",
+                    "sourceColumn": "topicSection",
+                    "source": "course-map",
+                    "confidence": "high",
+                    "rawText": "Records and Effective Dates",
+                    "compiledValue": "Records and Effective Dates",
+                    "purpose": "Seeds key concepts, slide sequence, discussion prompts, and study guide terms."
+                  },
+                  {
+                    "field": "learning activities",
+                    "sourceColumn": "syncActivities/asyncActivities",
+                    "source": "course-map",
+                    "confidence": "high",
+                    "rawText": "Read the supplied record, solve the guided task, compare reasoning, and attempt the independent case.; After class, revise one reasoning step using the feedback.",
+                    "compiledValue": "Read the supplied record, solve the guided task, compare reasoning, and attempt the independent case.; After class, revise one reasoning step using the feedback.",
+                    "purpose": "Shapes teachable lesson flow, modality fit, discussion format, and slide practice."
+                  },
+                  {
+                    "field": "readings and resources",
+                    "sourceColumn": "supportingResources",
+                    "source": "course-map",
+                    "confidence": "high",
+                    "rawText": "Source record 1: A fictional permit log initially records 120 seats for a hall. Source record 2: A later entry explicitly amends the permitted capacity to 90 seats from 1 July. Source record 3: An attendance photograph has no reliable date.",
+                    "compiledValue": "Source record 1: A fictional permit log initially records 120 seats for a hall. Source record 2: A later entry explicitly amends the permitted capacity to 90 seats from 1 July. Source record 3: An attendance photograph has no reliable date.",
+                    "purpose": "Defines approved source cues, citation integrity guidance, and review flags."
+                  },
+                  {
+                    "field": "assessment artifact",
+                    "sourceColumn": "weeklyAssessments",
+                    "source": "course-map",
+                    "confidence": "high",
+                    "rawText": "A reasoned response using the supplied record.",
+                    "compiledValue": "A reasoned response using the supplied record.",
+                    "purpose": "Anchors assignments, rubrics, quiz synthesis, feedback cycles, and package coherence."
+                  }
+                ],
+                "directCourseMapFieldCount": 6,
+                "inferredOrDerivedFields": [],
+                "unsupportedInferencePolicy": "Compiler-inferred fields preserve structure but must not be treated as official facts; local review must confirm missing readings, assessments, dates, policies, and source details before publishing.",
+                "sourceSectionCount": 1,
+                "sectionCoverageStatus": "single-section",
+                "sectionCoverage": [
+                  {
+                    "sectionIndex": 0,
+                    "sectionNumber": 1,
+                    "sectionLabel": "Records and Effective Dates",
+                    "sourceColumns": [
+                      "topicSection",
+                      "learningObjectives",
+                      "learningGoals",
+                      "weeklyAssessments",
+                      "evaluateDesign",
+                      "asyncActivities",
+                      "syncActivities",
+                      "supportingResources"
+                    ],
+                    "fieldCount": 8,
+                    "rawText": "topic: Records and Effective Dates; objectives: Explain how an amended record changes the interpretation of an earlier entry.; goals: Explain how an amended record changes the interpretation of an earlier entry.; assessment: A reasoned response using the supplied record.; evaluation: Compare the independent response with its teacher reference and note which reasoning step needs further practice.; async: After class, revise one reasoning step using the feedback.; sync: Read the supplied record, solve the guided task, compare reasoning, and attempt the independent case.; resources: Source record 1: A fictional permit log initially records 120 seats for a hall. Source record 2: A later entry ex",
+                    "preservedSignals": [
+                      "Records",
+                      "Effective Dates",
+                      "After class",
+                      "one reasoning step using the feedback",
+                      "Read the supplied record",
+                      "the guided task",
+                      "reasoning",
+                      "attempt the independent case",
+                      "Source record 1"
+                    ],
+                    "coverageCue": "Section 1 contributes topic, objectives, goals, assessment, evaluation, async, sync, resources evidence to the compiled lesson."
+                  }
+                ],
+                "preservedSignals": [
+                  "Records",
+                  "Effective Dates",
+                  "Read the supplied record",
+                  "the guided task",
+                  "reasoning",
+                  "attempt the independent case",
+                  "After class",
+                  "Source record 1"
+                ],
+                "reviewerUse": "Compare each rawText value against the compiledValue to confirm the package preserves source intent without inventing unsupported details."
+              },
+              "sourceRisk": {
+                "lessonNumber": 1,
+                "lessonTitle": "Lesson 1: Records and Effective Dates",
+                "riskLevel": "none",
+                "sourceConfidence": "high",
+                "sourceFieldCount": 6,
+                "directCourseMapFieldCount": 6,
+                "inferredFieldCount": 0,
+                "sourceConflictStatus": "clear",
+                "sourceConflictFields": [],
+                "assessmentSource": "course-map",
+                "reviewRequired": false,
+                "reviewFocus": [
+                  "Spot-check official dates, policies, source permissions, and local examples for Lesson 1: Records and Effective Dates."
+                ]
+              },
+              "compilerDecision": {
+                "version": 1,
+                "source": "deterministic-compiler-decision",
+                "generationPath": "deterministic-compile",
+                "safePath": "compile-from-blueprint-with-spot-check",
+                "publishGate": "instructor-spot-check-before-publish",
+                "reviewRequired": false,
+                "localRepairUsed": false,
+                "modelUsePolicy": "Do not use a model to invent missing course facts; use model enrichment only for source-grounded phrasing after the blueprint contract passes.",
+                "repairPolicy": "Compiler repairs may normalize structure, derive conservative source-marked fields, and preserve review flags; official facts must come from the instructor or course source.",
+                "reason": "Compiled deterministically from high-confidence source fields; instructor spot-check still confirms local facts before publishing.",
+                "evidence": {
+                  "confidenceLevel": "high",
+                  "confidenceScore": 1,
+                  "sourceRiskLevel": "none",
+                  "assessmentSource": "course-map",
+                  "directCourseMapFieldCount": 6,
+                  "inferredFieldCount": 0,
+                  "missingSignalCount": 0
+                },
+                "reviewFocus": [
+                  "Spot-check official dates, policies, source permissions, and local examples for Lesson 1: Records and Effective Dates.",
+                  "Spot-check official dates, source permissions, institution policies, and local examples for Records and Effective Dates."
+                ]
+              },
+              "localReviewNeeded": [],
+              "evidencePlan": {
+                "sourceCue": "Records and Effective Dates evidence brief",
+                "evidenceRequirement": "Use a concrete detail from Records and Effective Dates evidence brief to explain Records and Effective Dates for the course audience.",
+                "limitationCue": "Name one limitation, assumption, or boundary condition before applying Records and Effective Dates.",
+                "artifactConnection": "A reasoned response using the supplied record should show how Records and Effective Dates Evidence Portfolio evidence changes the student's recommendation, design choice, or analysis."
+              },
+              "sourceUsePlan": {
+                "approvedSources": [
+                  "Records and Effective Dates evidence brief",
+                  "Source record 1: A fictional permit log initially records 120 seats for a hall. Source record 2: A later entry explicitly amends the permitted capacity to 90 seats from 1 July. Source record 3: An attendance photograph has no reliable date."
+                ],
+                "citationExpectation": "Use the assigned course materials for Records and Effective Dates. When source details are available, name the author, title, page, slide, case, dataset, or activity label used for the Week 1 record.",
+                "studentAttributionMove": "Before explaining Records and Effective Dates, cite the exact lesson materials packet item, assigned reading, class activity, or instructor note used for the Week 1 record.",
+                "noInventedSources": "Do not invent authors, URLs, or pages for Records and Effective Dates evidence brief; do not add unsupported studies, authority, or agency data for Records and Effective Dates. Treat this throughline case as classroom practice unless the instructor provides an official source.",
+                "sourceEvaluationPrompt": "Ask what Records and Effective Dates evidence brief can support for the course audience, what it cannot prove, and what local evidence would be needed before publication.",
+                "localReplacementCue": "Before publishing the Week 1 record, replace or supplement Records and Effective Dates evidence brief with the official local reading, case, dataset, policy document, or agency guidance required by the instructor.",
+                "copyrightReviewCue": "Verify that any copied reading, image, dataset, case, or media excerpt for Records and Effective Dates is licensed or institutionally approved before distribution."
+              },
+              "throughlineCase": {
+                "projectName": "Records and Effective Dates Evidence Portfolio",
+                "clientName": "the course audience",
+                "datasetName": "",
+                "evidencePacket": "Records and Effective Dates evidence brief",
+                "lessonCaseName": "Records and Effective Dates Evidence Portfolio Records and Effective Dates decision",
+                "stakeholderCue": "students, instructors, peer reviewers, and relevant course audiences",
+                "decisionPrompt": "Advise the course audience on the Records and Effective Dates decision using evidence from Records and Effective Dates evidence brief.",
+                "artifactConnection": "A reasoned response using the supplied record should show how Records and Effective Dates Evidence Portfolio evidence changes the student's recommendation, design choice, or analysis.",
+                "sourceBoundary": "Use instructor-provided readings, examples, cases, media, notes, or local materials. Do not invent source titles, datasets, authors, URLs, or official facts."
+              },
+              "classSessionPlan": {
+                "version": 1,
+                "deliveryMode": "live-or-blended-class-session",
+                "synchronousAssumption": "Live or blended facilitation can use the phases as a class-session sequence.",
+                "sessionMinutes": 50,
+                "plannedClassMinutes": 50,
+                "bufferMinutes": 0,
+                "overageMinutes": 0,
+                "feasibilityStatus": "fits-session",
+                "segmentCount": 6,
+                "segments": [
+                  {
+                    "phase": "readiness diagnostic",
+                    "minutes": 7,
+                    "purpose": "Check whether students can connect prior knowledge to Records and Effective Dates.",
+                    "evidenceOfLearning": "Students are ready when they can cite inspectable evidence, explain why it matters, and connect it to A reasoned response using the supplied record."
+                  },
+                  {
+                    "phase": "focused model",
+                    "minutes": 8,
+                    "purpose": "Model how Records and Effective Dates changes one visible choice in A reasoned response using the supplied record.",
+                    "evidenceOfLearning": "Which sentence makes the evidence for Records and Effective Dates inspectable, and what limitation keeps the claim honest?"
+                  },
+                  {
+                    "phase": "guided practice",
+                    "minutes": 9,
+                    "purpose": "Records and Effective Dates adapts the course pattern: move from guided seminar discussion into a short applied artifact checkpoint, focused on Records and Effective Dates.",
+                    "evidenceOfLearning": "Name the Records and Effective Dates reading or case detail used in A reasoned response using the supplied record, then show how that Records and Effective Dates evidence warrants the decision students defend during Records and Effective Dates. Students submit one visible Records and Effective Dates evidence check before moving on. Record it in A reasoned response using the supplied record."
+                  },
+                  {
+                    "phase": "collaborative application",
+                    "minutes": 10,
+                    "purpose": "Students compare evidence choices and improve A reasoned response using the supplied record with peers.",
+                    "evidenceOfLearning": "Collect one annotated A reasoned response using the supplied record line or checkpoint response showing how Records and Effective Dates evidence from Source record 1 fictional permit log supports the decision."
+                  },
+                  {
+                    "phase": "independent artifact sprint",
+                    "minutes": 9,
+                    "purpose": "Students draft, rehearse, or revise A reasoned response using the supplied record using the lesson success criteria.",
+                    "evidenceOfLearning": "A reasoned response using the supplied record."
+                  },
+                  {
+                    "phase": "debrief and transfer",
+                    "minutes": 7,
+                    "purpose": "Students name how today's Records and Effective Dates work carries into the next synthesis artifact.",
+                    "evidenceOfLearning": "Before moving on from Records and Effective Dates, students submit a brief note naming what feedback changed and what evidence still needs review."
+                  }
+                ],
+                "studentWorkloadFit": {
+                  "beforeClassMinutes": 28,
+                  "inClassMinutes": 50,
+                  "afterClassMinutes": 55,
+                  "outOfClassMinutes": 83,
+                  "status": "manageable",
+                  "reviewCue": "Confirm local expectations for preparation and post-class work before publishing A reasoned response using the supplied record."
+                },
+                "adjustmentPlan": [
+                  "Keep all six phases in the live session and use any local buffer for accessibility, questions, or reteaching."
+                ]
+              },
+              "misconceptionFocus": "Records and Effective Dates is only a definition to memorize.",
+              "modelContrast": {
+                "exemplarMove": "Strong A reasoned response using the supplied record work uses a specific detail from Source record 1 fictional permit log to explain Records and Effective Dates, names why the evidence matters, and states one limitation before making the decision.",
+                "nonExemplarMove": "Weak A reasoned response using the supplied record work summarizes Records and Effective Dates generally, cites no inspectable evidence, and makes the decision sound automatic.",
+                "contrastQuestion": "Which sentence makes the evidence for Records and Effective Dates inspectable, and what limitation keeps the claim honest?",
+                "transferPrompt": "In Records and Effective Dates, revise one A reasoned response using the supplied record sentence into evidence-backed Records and Effective Dates reasoning by making the Source record 1 fictional permit log support visible."
+              },
+              "readinessSupport": {
+                "diagnosticPrompt": "Before the main task, ask students to explain Records and Effective Dates using one concrete detail from Source record 1 fictional permit log.",
+                "readinessEvidence": "Students are ready when they can cite inspectable evidence, explain why it matters, and connect it to the Week 1 record.",
+                "supportMove": "In Records and Effective Dates, give students a worked sentence frame if they cannot cite evidence for Records and Effective Dates. Have them mark one detail from Source record 1 fictional permit log before developing the Week 1 record.",
+                "extensionMove": "If students are ready, ask them to compare two possible evidence choices and justify which one makes Week 1 record more defensible.",
+                "groupingCue": "Use the Records and Effective Dates warm-up evidence to decide who can begin the Week 1 record, who needs comparison examples, and who needs a support frame."
+              },
+              "prerequisitePlan": {
+                "assumedKnowledge": [
+                  "Baseline vocabulary or lived example for Records and Effective Dates",
+                  "Ability to locate assigned materials and submit work through the course site"
+                ],
+                "prerequisiteEvidence": "Students should be able to name one prior example, course goal, or baseline experience that makes Records and Effective Dates meaningful before working on A reasoned response using the supplied record.",
+                "diagnosticCheck": "Ask students to define Records and Effective Dates in their own words and connect it to one concrete example before new instruction begins.",
+                "studentReadinessCheck": "Before drafting, define Records and Effective Dates in your own words and connect it to one concrete example.",
+                "reteachMove": "If students cannot explain Records and Effective Dates, model one source-backed example and give a sentence frame before starting A reasoned response using the supplied record.",
+                "accelerationMove": "If students are ready, ask them to predict where Records and Effective Dates will become harder when evidence, audience, or context changes.",
+                "localAssumptionReview": "Before publishing Records and Effective Dates, confirm students have access to the prior materials, tools, vocabulary, and examples needed for this prerequisite check."
+              },
+              "conceptDependencyPlan": {
+                "node": {
+                  "lessonNumber": 1,
+                  "lessonTitle": "Lesson 1: Records and Effective Dates",
+                  "concept": "Records and Effective Dates",
+                  "supportingConcepts": ["Records and Effective Dates"],
+                  "stage": "launch",
+                  "bloomLevel": "Apply",
+                  "cognitiveDemand": "applied practice",
+                  "assessmentArtifact": "A reasoned response using the supplied record",
+                  "sourceConfidence": "high",
+                  "sourceRisk": "none"
+                },
+                "incomingEdges": [],
+                "outgoingEdges": [],
+                "dependencyCue": "Start Records and Effective Dates by checking readiness for Records and Effective Dates.",
+                "transferCue": "Use Records and Effective Dates in final course transfer."
+              },
+              "practiceProgressionPlan": {
+                "lessonNumber": 1,
+                "lessonTitle": "Lesson 1: Records and Effective Dates",
+                "stage": "launch",
+                "priorConcept": "course entry point",
+                "currentConcept": "Records and Effective Dates",
+                "nextConcept": "final course transfer",
+                "retrievalCue": "Start by asking students to retrieve a prior experience, course goal, or baseline example that makes Records and Effective Dates worth studying.",
+                "practiceFocus": "Records and Effective Dates adapts the course pattern: move from guided seminar discussion into a short applied artifact checkpoint, focused on Records and Effective Dates.",
+                "evidenceRoutine": "Name the Records and Effective Dates reading or case detail used in A reasoned response using the supplied record, then show how that Records and Effective Dates evidence warrants the decision students defend during Records and Effective Dates. Students submit one visible Records and Effective Dates evidence check before moving on. Record it in A reasoned response using the supplied record.",
+                "feedbackRoutine": "Use whole-class synthesis and an exit ticket to target the next revision during Records and Effective Dates. Check feedback against Records and Effective Dates, Records and Effective Dates, and A reasoned response using the supplied record.",
+                "assessmentArtifact": "A reasoned response using the supplied record",
+                "transferTask": "Students carry one Records and Effective Dates evidence move from A reasoned response using the supplied record into the final course synthesis.",
+                "metacognitivePrompt": "Ask students which Records and Effective Dates move they can reuse, which context would change it, and what evidence would make the transfer stronger.",
+                "reviewerCue": "Check whether Records and Effective Dates builds from course entry readiness and prepares final transfer through visible practice and feedback."
+              },
+              "objectiveEvidencePlan": {
+                "version": 1,
+                "status": "complete",
+                "policy": "Each objective must have visible practice evidence, an assessment artifact, rubric evidence, quiz/check evidence, feedback, and a revision use before the lesson is classroom-ready.",
+                "objectiveCount": 1,
+                "missingEvidenceCount": 0,
+                "objectiveRows": [
+                  {
+                    "objectiveIndex": 1,
+                    "objective": "Explain how an amended record changes the interpretation of an earlier entry.",
+                    "bloomLevel": "Apply",
+                    "sourceAnchor": "course-map",
+                    "sourceAnchorConfidence": "high",
+                    "practiceEvidence": "Students use Read the supplied record, solve the guided task, compare reasoning, and attempt the independent case.; After class, revise one reasoning step using the feedback. to test which Records and Effective Dates evidence makes A reasoned response using the supplied record more defensible.",
+                    "assessmentEvidence": "A reasoned response using the supplied record",
+                    "rubricCriteria": [
+                      "Records and Effective Dates accuracy and evidence selection for A reasoned response using the supplied record — emphasis on source traceability",
+                      "Analysis logic for Records and Effective Dates — check source traceability",
+                      "Professional communication organized around Records and Effective Dates — prioritize source traceability",
+                      "Documented feedback response that improves the Records and Effective Dates reasoning in reasoned response using the supplied record"
+                    ],
+                    "criterionObjectiveStrategies": [
+                      "source-evidence-objective-match",
+                      "primary-source-objective-fallback",
+                      "communication-format-objective-match",
+                      "analysis-decision-objective-match"
+                    ],
+                    "quizQuestionRoles": [
+                      "diagnostic-retrieval",
+                      "source-application",
+                      "artifact-analysis",
+                      "written-analysis",
+                      "quality-evaluation",
+                      "transfer-synthesis"
+                    ],
+                    "quizQuestionBlooms": ["Remember", "Apply", "Analyze", "Analyze", "Evaluate", "Create"],
+                    "feedbackEvidence": "Give criterion-level feedback on A reasoned response using the supplied record: name the strongest evidence move, identify the reasoning gap, and set one revision priority.",
+                    "revisionEvidence": "Students revise A reasoned response using the supplied record by replacing a general Records and Effective Dates claim with evidence-backed Records and Effective Dates reasoning, one limitation, and one next decision.",
+                    "reviewerQuestion": "Can a reviewer point to where students practice, submit, receive feedback on, and are checked on \"Explain how an amended record changes the interpretation of an earlier entry.\"?",
+                    "status": "complete"
+                  }
+                ]
+              },
+              "masteryEvidencePlan": {
+                "version": 1,
+                "concept": "Records and Effective Dates",
+                "artifact": "A reasoned response using the supplied record",
+                "diagnosticEvidence": "Students are ready when they can cite inspectable evidence, explain why it matters, and connect it to A reasoned response using the supplied record.",
+                "guidedPracticeEvidence": "Name the Records and Effective Dates reading or case detail used in A reasoned response using the supplied record, then show how that Records and Effective Dates evidence warrants the decision students defend during Records and Effective Dates. Students submit one visible Records and Effective Dates evidence check before moving on. Record it in A reasoned response using the supplied record.",
+                "independentPerformanceEvidence": "For A reasoned response using the supplied record, require source evidence, visible decision, success criteria, limitation, and feedback-informed revision about Records and Effective Dates.",
+                "feedbackRevisionEvidence": "Students revise A reasoned response using the supplied record by replacing a general Records and Effective Dates claim with evidence-backed Records and Effective Dates reasoning, one limitation, and one next decision.",
+                "transferEvidence": "Students carry one Records and Effective Dates evidence move from A reasoned response using the supplied record into the final course synthesis.",
+                "misconceptionRepairEvidence": "Ask students to point to the exact evidence that makes their Records and Effective Dates claim credible.",
+                "masteryThreshold": "Ready work cites inspectable Records and Effective Dates evidence, explains the decision, names a limitation, and shows a revision move in A reasoned response using the supplied record.",
+                "masteryDecision": "Treat A reasoned response using the supplied record as classroom-ready only when diagnostic, guided-practice, independent-performance, feedback-revision, transfer, and Records and Effective Dates-repair evidence all support Records and Effective Dates mastery.",
+                "evidencePortfolio": [
+                  {
+                    "stage": "diagnostic",
+                    "evidence": "Students are ready when they can cite inspectable evidence, explain why it matters, and connect it to A reasoned response using the supplied record.",
+                    "teacherDecision": "Use the Records and Effective Dates warm-up evidence to decide who can begin A reasoned response using the supplied record, who needs comparison examples, and who needs a support frame."
+                  },
+                  {
+                    "stage": "guided-practice",
+                    "evidence": "Name the Records and Effective Dates reading or case detail used in A reasoned response using the supplied record, then show how that Records and Effective Dates evidence warrants the decision students defend during Records and Effective Dates. Students submit one visible Records and Effective Dates evidence check before moving on. Record it in A reasoned response using the supplied record.",
+                    "teacherDecision": "Model the reasoning move, invite a contrasting interpretation, and anchor both in source evidence during Records and Effective Dates. Close by having students name the next Records and Effective Dates move in A reasoned response using the supplied record."
+                  },
+                  {
+                    "stage": "independent-performance",
+                    "evidence": "For A reasoned response using the supplied record, require source evidence, visible decision, success criteria, limitation, and feedback-informed revision about Records and Effective Dates.",
+                    "teacherDecision": "Score A reasoned response using the supplied record against the shared criteria and anchor examples."
+                  },
+                  {
+                    "stage": "feedback-revision",
+                    "evidence": "Students revise A reasoned response using the supplied record by replacing a general Records and Effective Dates claim with evidence-backed Records and Effective Dates reasoning, one limitation, and one next decision.",
+                    "teacherDecision": "Give criterion-level feedback on A reasoned response using the supplied record: name the strongest evidence move, identify the reasoning gap, and set one revision priority."
+                  },
+                  {
+                    "stage": "transfer",
+                    "evidence": "Students carry one Records and Effective Dates evidence move from A reasoned response using the supplied record into the final course synthesis.",
+                    "teacherDecision": "Ask students which Records and Effective Dates move they can reuse, which context would change it, and what evidence would make the transfer stronger."
+                  },
+                  {
+                    "stage": "Records and Effective Dates evidence brief-repair",
+                    "evidence": "Ask students to point to the exact evidence that makes their Records and Effective Dates claim credible.",
+                    "teacherDecision": "Students should use Records and Effective Dates to make, revise, or justify a choice in A reasoned response using the supplied record."
+                  }
+                ],
+                "reviewerCue": "Check whether A reasoned response using the supplied record gives enough evidence to judge Records and Effective Dates mastery before students move on."
+              },
+              "evidenceResponsePlan": {
+                "version": 1,
+                "concept": "Records and Effective Dates",
+                "artifact": "A reasoned response using the supplied record",
+                "readySignal": "Ready work cites inspectable Records and Effective Dates evidence, explains the decision, names a limitation, and shows a revision move in A reasoned response using the supplied record.",
+                "partialSignal": "Name the Records and Effective Dates reading or case detail used in A reasoned response using the supplied record, then show how that Records and Effective Dates evidence warrants the decision students defend during Records and Effective Dates. Students submit one visible Records and Effective Dates evidence check before moving on. Record it in A reasoned response using the supplied record.",
+                "supportSignal": "Students are ready when they can cite inspectable evidence, explain why it matters, and connect it to A reasoned response using the supplied record.",
+                "readyMove": "If students are ready, ask them to compare two possible evidence choices and justify which one makes A reasoned response using the supplied record more defensible.",
+                "partialMove": "Give criterion-level feedback on A reasoned response using the supplied record: name the strongest evidence move, identify the reasoning gap, and set one revision priority.",
+                "supportMove": "In Records and Effective Dates, give students a worked sentence frame if they cannot cite evidence for Records and Effective Dates. Have them mark one detail from Source record 1 fictional permit log before developing A reasoned response using the supplied record.",
+                "recheckCue": "Before moving on from Records and Effective Dates, students submit a brief note naming what feedback changed and what evidence still needs review.",
+                "escalationCue": "If the support signal persists after reteaching, pause publication or grading of A reasoned response using the supplied record and review the source materials, task directions, and support assumptions with the instructor.",
+                "decisionStates": [
+                  {
+                    "state": "ready",
+                    "evidenceSignal": "Ready work cites inspectable Records and Effective Dates evidence, explains the decision, names a limitation, and shows a revision move in A reasoned response using the supplied record.",
+                    "instructorMove": "If students are ready, ask them to compare two possible evidence choices and justify which one makes A reasoned response using the supplied record more defensible.",
+                    "studentMove": "Students carry one Records and Effective Dates evidence move from A reasoned response using the supplied record into the final course synthesis.",
+                    "nextStep": "Students carry one Records and Effective Dates evidence move from A reasoned response using the supplied record into the final course synthesis."
+                  },
+                  {
+                    "state": "partial",
+                    "evidenceSignal": "Name the Records and Effective Dates reading or case detail used in A reasoned response using the supplied record, then show how that Records and Effective Dates evidence warrants the decision students defend during Records and Effective Dates. Students submit one visible Records and Effective Dates evidence check before moving on. Record it in A reasoned response using the supplied record.",
+                    "instructorMove": "Give criterion-level feedback on A reasoned response using the supplied record: name the strongest evidence move, identify the reasoning gap, and set one revision priority.",
+                    "studentMove": "Students revise A reasoned response using the supplied record by replacing a general Records and Effective Dates claim with evidence-backed Records and Effective Dates reasoning, one limitation, and one next decision.",
+                    "nextStep": "Recheck the revised A reasoned response using the supplied record before moving to transfer."
+                  },
+                  {
+                    "state": "needs-support",
+                    "evidenceSignal": "Students are ready when they can cite inspectable evidence, explain why it matters, and connect it to A reasoned response using the supplied record.",
+                    "instructorMove": "In Records and Effective Dates, give students a worked sentence frame if they cannot cite evidence for Records and Effective Dates. Have them mark one detail from Source record 1 fictional permit log before developing A reasoned response using the supplied record.",
+                    "studentMove": "In Records and Effective Dates, revise one A reasoned response using the supplied record sentence into evidence-backed Records and Effective Dates reasoning by making the Source record 1 fictional permit log support visible.",
+                    "nextStep": "Return to guided practice before scoring A reasoned response using the supplied record."
+                  }
+                ],
+                "reviewerCue": "Check whether Records and Effective Dates gives the instructor distinct ready, partial, and needs-support responses instead of a single generic feedback note."
+              },
+              "instructionalRationale": {
+                "sequenceRationale": "Begin Records and Effective Dates with diagnostic evidence work before modeling so students connect Records and Effective Dates to Source record 1 fictional permit log before producing A reasoned response using the supplied record.",
+                "practiceRationale": "Guided and collaborative practice ask students to compare evidence choices because applied practice depends on explaining why Records and Effective Dates makes A reasoned response using the supplied record more defensible.",
+                "assessmentRationale": "A reasoned response using the supplied record is appropriate performance evidence because it makes students use Records and Effective Dates, cite inspectable source evidence, and make the decision visible for feedback.",
+                "supportRationale": "In Records and Effective Dates, give students a worked sentence frame if they cannot cite evidence for Records and Effective Dates. Have them mark one detail from Source record 1 fictional permit log before developing A reasoned response using the supplied record.",
+                "reviewCue": "Before publishing, confirm the local examples, evidence sources, and expectations for Records and Effective Dates match the instructor's actual materials."
+              },
+              "accessibilityPlan": {
+                "representation": "Present Records and Effective Dates through spoken explanation, a text cue, and one visual organizer tied to Source record 1 fictional permit log.",
+                "engagement": "Give students a quiet think-write entry point before discussion, then let them choose partner, small-group, or individual evidence rehearsal for A reasoned response using the supplied record.",
+                "expression": "Allow A reasoned response using the supplied record evidence to be submitted in an equivalent format when the same criteria are met, such as a short memo, marked outline, slide set, table, or recording.",
+                "participationProtocol": "Use wait time, written or spoken response options, and sentence frames so students can cite Records and Effective Dates evidence without being rushed.",
+                "supportBridge": "In Records and Effective Dates, give students a worked sentence frame if they cannot cite evidence for Records and Effective Dates. Have them mark one detail from Source record 1 fictional permit log before developing A reasoned response using the supplied record.",
+                "accommodationReviewCue": "Before publishing Records and Effective Dates, verify local accommodation needs, captions or alt text, readable document structure, and non-color-only cues for all required materials."
+              },
+              "feedbackCycle": {
+                "formativeEvidence": "Collect one annotated A reasoned response using the supplied record line or checkpoint response showing how Records and Effective Dates evidence from Source record 1 fictional permit log supports the decision.",
+                "feedbackMethod": "Give criterion-level feedback on A reasoned response using the supplied record: name the strongest evidence move, identify the reasoning gap, and set one revision priority.",
+                "studentRevisionAction": "Students revise A reasoned response using the supplied record by replacing a general Records and Effective Dates claim with evidence-backed Records and Effective Dates reasoning, one limitation, and one next decision.",
+                "nextUse": "Use the revised Records and Effective Dates evidence move when students begin the next artifact, discussion, or synthesis check.",
+                "closureCheck": "Before moving on from Records and Effective Dates, students submit a brief note naming what feedback changed and what evidence still needs review."
+              },
+              "learningTransferPlan": {
+                "retrievalCue": "Start by asking students to retrieve a prior experience, course goal, or baseline example that makes Records and Effective Dates worth studying.",
+                "spacedPracticeCue": "Revisit Records and Effective Dates after A reasoned response using the supplied record through one low-stakes quiz item, study-guide prompt, or discussion follow-up before the next major artifact.",
+                "transferTask": "Students carry one Records and Effective Dates evidence move from A reasoned response using the supplied record into the final course synthesis.",
+                "cumulativeConnection": "A reasoned response using the supplied record closes the course arc by helping students synthesize evidence, feedback, and revision into a final transfer explanation.",
+                "metacognitivePrompt": "Ask students which Records and Effective Dates move they can reuse, which context would change it, and what evidence would make the transfer stronger.",
+                "studentMetacognitivePrompt": "Which Records and Effective Dates move can you reuse, what context would change it, and what evidence would make the transfer stronger?"
+              },
+              "teachingIntent": {
+                "version": 1,
+                "teachingGoal": "Records and Effective Dates moves students from prior source evidence into evidence-backed Records and Effective Dates decisions for the Week 1 record.",
+                "diagnosticMove": "Before the main task, ask students to explain Records and Effective Dates using one concrete detail from Source record 1 fictional permit log.",
+                "modelingMove": "Strong Week 1 record work uses a specific detail from Source record 1 fictional permit log to explain Records and Effective Dates, names why the evidence matters, and states one limitation before making the decision.",
+                "guidedPracticeMove": "Students use Read the supplied record, solve the guided task, compare reasoning, and attempt the independent case.; After class, revise one reasoning step using the feedback. to test which Records and Effective Dates evidence makes the Week 1 record more defensible.",
+                "evidenceOfLearning": "Use a concrete detail from Records and Effective Dates evidence brief to explain Records and Effective Dates for the course audience.",
+                "feedbackDecision": "Give criterion-level feedback on the Week 1 record: name the strongest evidence move, identify the reasoning gap, and set one revision priority.",
+                "studentRevisionMove": "Students revise the Week 1 record by replacing a general Records and Effective Dates claim with evidence-backed Records and Effective Dates reasoning, one limitation, and one next decision.",
+                "transferMove": "Students carry one Records and Effective Dates evidence move from the Week 1 record into the final course synthesis.",
+                "localReviewQuestion": "Before publishing, confirm the local examples, evidence sources, and expectations for Records and Effective Dates match the instructor's actual materials."
+              },
+              "instructionalIntentReceiptSha256": "011fc4209d587adabe0aff4df51fe947e69a8ccba48794f6cdc7d261050c3daa",
+              "workloadEstimate": {
+                "beforeClassMinutes": 28,
+                "inClassMinutes": 50,
+                "afterClassMinutes": 55,
+                "outOfClassMinutes": 83,
+                "totalStudentMinutes": 133,
+                "estimatedHours": 2.2,
+                "studentFacingEstimate": "About 2.2 hours this week (50 min in class, 28 min preparing, 55 min after class including the assessment)"
+              },
+              "difficultyProfile": {
+                "stage": "foundation",
+                "bloomsLevel": "Apply",
+                "cognitiveDemand": "applied practice",
+                "difficulty": "moderate",
+                "riskToMonitor": "Students may use Records and Effective Dates as a label without evidence."
+              },
+              "artifactConnection": "A reasoned response using the supplied record",
+              "successCriteria": [
+                "Uses Records and Effective Dates terminology precisely and in context.",
+                "Grounds each claim in inspectable Records and Effective Dates evidence.",
+                "Explains a Records and Effective Dates decision, implication, or next step instead of only summarizing."
+              ],
+              "feedbackUse": "Use the revised Records and Effective Dates evidence move when students begin the next artifact, discussion, or synthesis check.",
+              "bloomInference": {
+                "level": "Apply",
+                "source": "learning objectives",
+                "matchedVerb": "explain",
+                "matchedSignal": "Explain how an amended record changes the interpretation of an earlier entry.",
+                "fallbackUsed": false
+              },
+              "learnerContextCue": "Records and Effective Dates treats students as course practitioners. They connect Records and Effective Dates source evidence to A reasoned response using the supplied record and make a professional decision. Support move: In Records and Effective Dates, give students a worked sentence frame if they cannot cite evidence for Records and Effective Dates. Have them mark.",
+              "modalityCue": "Records and Effective Dates should use guided discussion, peer exchange, instructor modeling, and independent artifact work so students produce A reasoned response using the supplied record evidence for Records and Effective Dates.",
+              "modalityDecode": {
+                "mode": "weekly-applied-seminar",
+                "signaturePractice": "Records and Effective Dates adapts the course pattern: move from guided seminar discussion into a short applied artifact checkpoint, focused on Records and Effective Dates.",
+                "evidenceRoutine": "Name the Records and Effective Dates reading or case detail used in A reasoned response using the supplied record, then show how that Records and Effective Dates evidence warrants the decision students defend during Records and Effective Dates. Students submit one visible Records and Effective Dates evidence check before moving on. Record it in A reasoned response using the supplied record.",
+                "feedbackRoutine": "Use whole-class synthesis and an exit ticket to target the next revision during Records and Effective Dates. Check feedback against Records and Effective Dates, Records and Effective Dates, and A reasoned response using the supplied record.",
+                "instructorMove": "Model the reasoning move, invite a contrasting interpretation, and anchor both in source evidence during Records and Effective Dates. Close by having students name the next Records and Effective Dates move in A reasoned response using the supplied record.",
+                "studentProduct": "A reasoned response using the supplied record with visible Records and Effective Dates evidence (seminar note, short response, presentation sketch, or written artifact checkpoint)",
+                "artifactCheck": "Confirm A reasoned response using the supplied record shows Records and Effective Dates through the way this course collects seminar and artifact evidence, not only topic recall.",
+                "localReviewQuestion": "Confirm the local setting supports this course practice pattern before publishing Records and Effective Dates."
+              },
+              "artifactGenre": {
+                "genre": "applied-artifact",
+                "label": "Applied artifact",
+                "outputFormat": "The Week 1 record: course-specific applied artifact with evidence and revision trace",
+                "evidenceRequirement": "For the Week 1 record, require source evidence, visible decision, success criteria, limitation, and feedback-informed revision about Records and Effective Dates.",
+                "evidenceStandard": "Strong Week 1 record work makes source evidence, visible decision, success criteria, limitation, and feedback-informed revision inspectable for Records and Effective Dates.",
+                "qualityFocus": "concept accuracy, evidence specificity, decision logic, and revision quality for the Week 1 record",
+                "reviewProtocol": "check the artifact against success criteria, identify one missing evidence link, and require revision for Records and Effective Dates.",
+                "commonFailure": "students complete the task format without making the evidence decision inspectable",
+                "revisionMove": "Revise the Week 1 record by strengthening one Records and Effective Dates evidence link. Name what feedback changed. Use this routine: Use whole-class synthesis and an exit ticket to target the next revision during Records and Effective Dates. Check feedback.",
+                "modalityFit": "This applied-artifact should be reviewed through the course practice pattern, not as a generic submission."
+              },
+              "reviewActionability": {
+                "version": 1,
+                "status": "spot-check-ready",
+                "reviewRequired": false,
+                "publishGate": "instructor-spot-check-before-publish",
+                "reviewerAction": "Spot-check official dates, policies, source permissions, and local examples for Lesson 1: Records and Effective Dates.",
+                "sourceRiskLevel": "none",
+                "assessmentSource": "course-map",
+                "localReviewNeeded": [],
+                "publishBoundary": "Publish Records and Effective Dates after instructor spot-check of official facts and source permissions."
+              },
+              "anchorExampleSet": {
+                "strongSample": "Strong A reasoned response using the supplied record anchor. It cites one detail from Records and Effective Dates evidence brief. It explains the Records and Effective Dates decision, names one limit, and shows the revision.",
+                "partialSample": "Partial A reasoned response using the supplied record anchor: summarizes Records and Effective Dates, mentions Records and Effective Dates evidence brief generally, but does not make the evidence link, limitation, or revision decision inspectable.",
+                "criterionFocus": "Records and Effective Dates accuracy and evidence selection for A reasoned response using the supplied record — emphasis on source traceability",
+                "strongSignal": "Strong evidence names the relevant Records and Effective Dates detail, explains why it matters, and connects it directly to A reasoned response using the supplied record.",
+                "partialSignal": "Partial evidence mentions Records and Effective Dates or A reasoned response using the supplied record but leaves the reasoning, limitation, or criterion connection implicit.",
+                "scoringRationale": "In Records and Effective Dates, score the strong A reasoned response using the supplied record anchor higher because its evidence is inspectable. It addresses Records and Effective Dates accuracy and evidence selection for A reasoned response using the supplied record — emphasis on source traceability. Target evidence: A reasoned response using the supplied record shows whether students can use Records and Effective Dates evidence to make a defensible course decision.",
+                "revisionPrompt": "Revise the partial A reasoned response using the supplied record anchor by making the Records and Effective Dates accuracy and evidence selection for A reasoned response using the supplied record evidence inspectable. Use Records and Effective Dates evidence brief. For Records and Effective Dates, name one limit and state what changed before submission.",
+                "scorerCalibrationUse": "Before grading, scorers compare the strong and partial A reasoned response using the supplied record anchors, point to the exact evidence difference, and reconcile disagreements before scoring student work.",
+                "studentFacingUse": "Review the strong and partial A reasoned response using the supplied record samples before you submit, then self-check your Records and Effective Dates evidence, reasoning, limitation, and revision quality.",
+                "instructorAnchorShare": "Share the strong/partial A reasoned response using the supplied record anchor contrast before students submit so they can self-check evidence, reasoning, limitation, and revision quality."
+              },
+              "learnerContextProfile": {
+                "source": "compiler-derived-from-course-map",
+                "domain": "applied course practice",
+                "evidenceNoun": "source evidence",
+                "decisionNoun": "professional decision",
+                "exampleNoun": "applied case",
+                "learnerRole": "course practitioner",
+                "expectedPriorKnowledge": [
+                  "Baseline familiarity with Records and Effective Dates vocabulary or examples",
+                  "Ability to access official course readings, activities, and submission tools",
+                  "Readiness to revise work after criterion-level feedback"
+                ],
+                "coursePerformanceRole": "Students work as course practitioners who use source evidence to make professional decisions across the course.",
+                "supportAssumptions": [
+                  "Model one Records and Effective Dates evidence decision before students work independently.",
+                  "Provide sentence frames, quiet think-write time, and explicit source cues before peer discussion or submission.",
+                  "Treat missing official readings, dates, policy language, and accommodations as instructor-review items, not compiler facts."
+                ],
+                "participationModes": [
+                  "individual think-write",
+                  "paired evidence rehearsal",
+                  "small-group critique",
+                  "written or spoken closure note"
+                ],
+                "localReviewNeeds": [
+                  "Confirm official dates, policies, source access, platform names, and accommodation details before publishing."
+                ],
+                "instructorUse": "Use this learner context to tune pacing, examples, support moves, and review flags before finalizing Records and Effective Dates."
+              },
+              "courseModalityProfile": {
+                "primaryMode": "weekly-applied-seminar",
+                "environment": "seminar or classroom-based applied course",
+                "interactionPattern": "guided discussion, peer exchange, instructor modeling, and independent artifact work",
+                "artifactEnvironment": "readings, course notes, discussion evidence, and written or presentation artifacts",
+                "source": "compiler-inferred-from-course-map",
+                "signaturePractice": "Records and Effective Dates adapts the course pattern: move from guided seminar discussion into a short applied artifact checkpoint, focused on Records and Effective Dates.",
+                "evidenceRoutine": "Name the Records and Effective Dates reading or case detail used in A reasoned response using the supplied record, then show how that Records and Effective Dates evidence warrants the decision students defend during Records and Effective Dates. Students submit one visible Records and Effective Dates evidence check before moving on. Record it in A reasoned response using the supplied record.",
+                "feedbackRoutine": "Use whole-class synthesis and an exit ticket to target the next revision during Records and Effective Dates. Check feedback against Records and Effective Dates, Records and Effective Dates, and A reasoned response using the supplied record."
+              }
+            },
+            "learnerContextCue": "Records and Effective Dates treats students as course practitioners. They connect Records and Effective Dates source evidence to A reasoned response using the supplied record and make a professional decision. Support move: In Records and Effective Dates, give students a worked sentence frame if they cannot cite evidence for Records and Effective Dates. Have them mark.",
+            "modalityCue": "Records and Effective Dates should use guided discussion, peer exchange, instructor modeling, and independent artifact work so students produce A reasoned response using the supplied record evidence for Records and Effective Dates.",
+            "modalityDecode": {
+              "mode": "weekly-applied-seminar",
+              "signaturePractice": "Records and Effective Dates adapts the course pattern: move from guided seminar discussion into a short applied artifact checkpoint, focused on Records and Effective Dates.",
+              "evidenceRoutine": "Name the Records and Effective Dates reading or case detail used in A reasoned response using the supplied record, then show how that Records and Effective Dates evidence warrants the decision students defend during Records and Effective Dates. Students submit one visible Records and Effective Dates evidence check before moving on. Record it in A reasoned response using the supplied record.",
+              "feedbackRoutine": "Use whole-class synthesis and an exit ticket to target the next revision during Records and Effective Dates. Check feedback against Records and Effective Dates, Records and Effective Dates, and A reasoned response using the supplied record.",
+              "instructorMove": "Model the reasoning move, invite a contrasting interpretation, and anchor both in source evidence during Records and Effective Dates. Close by having students name the next Records and Effective Dates move in A reasoned response using the supplied record.",
+              "studentProduct": "A reasoned response using the supplied record with visible Records and Effective Dates evidence (seminar note, short response, presentation sketch, or written artifact checkpoint)",
+              "artifactCheck": "Confirm A reasoned response using the supplied record shows Records and Effective Dates through the way this course collects seminar and artifact evidence, not only topic recall.",
+              "localReviewQuestion": "Confirm the local setting supports this course practice pattern before publishing Records and Effective Dates."
+            },
+            "artifactGenre": {
+              "genre": "applied-artifact",
+              "label": "Applied artifact",
+              "outputFormat": "The Week 1 record: course-specific applied artifact with evidence and revision trace",
+              "evidenceRequirement": "For the Week 1 record, require source evidence, visible decision, success criteria, limitation, and feedback-informed revision about Records and Effective Dates.",
+              "evidenceStandard": "Strong Week 1 record work makes source evidence, visible decision, success criteria, limitation, and feedback-informed revision inspectable for Records and Effective Dates.",
+              "qualityFocus": "concept accuracy, evidence specificity, decision logic, and revision quality for the Week 1 record",
+              "reviewProtocol": "check the artifact against success criteria, identify one missing evidence link, and require revision for Records and Effective Dates.",
+              "commonFailure": "students complete the task format without making the evidence decision inspectable",
+              "revisionMove": "Revise the Week 1 record by strengthening one Records and Effective Dates evidence link. Name what feedback changed. Use this routine: Use whole-class synthesis and an exit ticket to target the next revision during Records and Effective Dates. Check feedback.",
+              "modalityFit": "This applied-artifact should be reviewed through the course practice pattern, not as a generic submission."
+            },
+            "prerequisitePlan": {
+              "assumedKnowledge": [
+                "Baseline vocabulary or lived example for Records and Effective Dates",
+                "Ability to locate assigned materials and submit work through the course site"
+              ],
+              "prerequisiteEvidence": "Students should be able to name one prior example, course goal, or baseline experience that makes Records and Effective Dates meaningful before working on A reasoned response using the supplied record.",
+              "diagnosticCheck": "Ask students to define Records and Effective Dates in their own words and connect it to one concrete example before new instruction begins.",
+              "studentReadinessCheck": "Before drafting, define Records and Effective Dates in your own words and connect it to one concrete example.",
+              "reteachMove": "If students cannot explain Records and Effective Dates, model one source-backed example and give a sentence frame before starting A reasoned response using the supplied record.",
+              "accelerationMove": "If students are ready, ask them to predict where Records and Effective Dates will become harder when evidence, audience, or context changes.",
+              "localAssumptionReview": "Before publishing Records and Effective Dates, confirm students have access to the prior materials, tools, vocabulary, and examples needed for this prerequisite check."
+            },
+            "anchorExampleSet": {
+              "strongSample": "Strong A reasoned response using the supplied record anchor. It cites one detail from Records and Effective Dates evidence brief. It explains the Records and Effective Dates decision, names one limit, and shows the revision.",
+              "partialSample": "Partial A reasoned response using the supplied record anchor: summarizes Records and Effective Dates, mentions Records and Effective Dates evidence brief generally, but does not make the evidence link, limitation, or revision decision inspectable.",
+              "criterionFocus": "Records and Effective Dates accuracy and evidence selection for A reasoned response using the supplied record — emphasis on source traceability",
+              "strongSignal": "Strong evidence names the relevant Records and Effective Dates detail, explains why it matters, and connects it directly to A reasoned response using the supplied record.",
+              "partialSignal": "Partial evidence mentions Records and Effective Dates or A reasoned response using the supplied record but leaves the reasoning, limitation, or criterion connection implicit.",
+              "scoringRationale": "In Records and Effective Dates, score the strong A reasoned response using the supplied record anchor higher because its evidence is inspectable. It addresses Records and Effective Dates accuracy and evidence selection for A reasoned response using the supplied record — emphasis on source traceability. Target evidence: A reasoned response using the supplied record shows whether students can use Records and Effective Dates evidence to make a defensible course decision.",
+              "revisionPrompt": "Revise the partial A reasoned response using the supplied record anchor by making the Records and Effective Dates accuracy and evidence selection for A reasoned response using the supplied record evidence inspectable. Use Records and Effective Dates evidence brief. For Records and Effective Dates, name one limit and state what changed before submission.",
+              "scorerCalibrationUse": "Before grading, scorers compare the strong and partial A reasoned response using the supplied record anchors, point to the exact evidence difference, and reconcile disagreements before scoring student work.",
+              "studentFacingUse": "Review the strong and partial A reasoned response using the supplied record samples before you submit, then self-check your Records and Effective Dates evidence, reasoning, limitation, and revision quality.",
+              "instructorAnchorShare": "Share the strong/partial A reasoned response using the supplied record anchor contrast before students submit so they can self-check evidence, reasoning, limitation, and revision quality."
+            },
+            "learningTransferPlan": {
+              "retrievalCue": "Start by asking students to retrieve a prior experience, course goal, or baseline example that makes Records and Effective Dates worth studying.",
+              "spacedPracticeCue": "Revisit Records and Effective Dates after A reasoned response using the supplied record through one low-stakes quiz item, study-guide prompt, or discussion follow-up before the next major artifact.",
+              "transferTask": "Students carry one Records and Effective Dates evidence move from A reasoned response using the supplied record into the final course synthesis.",
+              "cumulativeConnection": "A reasoned response using the supplied record closes the course arc by helping students synthesize evidence, feedback, and revision into a final transfer explanation.",
+              "metacognitivePrompt": "Ask students which Records and Effective Dates move they can reuse, which context would change it, and what evidence would make the transfer stronger.",
+              "studentMetacognitivePrompt": "Which Records and Effective Dates move can you reuse, what context would change it, and what evidence would make the transfer stronger?"
+            },
+            "teachingIntent": {
+              "version": 1,
+              "teachingGoal": "Records and Effective Dates moves students from prior source evidence into evidence-backed Records and Effective Dates decisions for the Week 1 record.",
+              "diagnosticMove": "Before the main task, ask students to explain Records and Effective Dates using one concrete detail from Source record 1 fictional permit log.",
+              "modelingMove": "Strong Week 1 record work uses a specific detail from Source record 1 fictional permit log to explain Records and Effective Dates, names why the evidence matters, and states one limitation before making the decision.",
+              "guidedPracticeMove": "Students use Read the supplied record, solve the guided task, compare reasoning, and attempt the independent case.; After class, revise one reasoning step using the feedback. to test which Records and Effective Dates evidence makes the Week 1 record more defensible.",
+              "evidenceOfLearning": "Use a concrete detail from Records and Effective Dates evidence brief to explain Records and Effective Dates for the course audience.",
+              "feedbackDecision": "Give criterion-level feedback on the Week 1 record: name the strongest evidence move, identify the reasoning gap, and set one revision priority.",
+              "studentRevisionMove": "Students revise the Week 1 record by replacing a general Records and Effective Dates claim with evidence-backed Records and Effective Dates reasoning, one limitation, and one next decision.",
+              "transferMove": "Students carry one Records and Effective Dates evidence move from the Week 1 record into the final course synthesis.",
+              "localReviewQuestion": "Before publishing, confirm the local examples, evidence sources, and expectations for Records and Effective Dates match the instructor's actual materials."
+            },
+            "keyTerms": [],
+            "sourceReviewRequired": "Scion could not verify disciplinary definitions for this lesson. Confirm key terms against the named source before publishing. No definitions were invented.",
+            "conceptConnections": [
+              "Identify and attribute evidence: Quotes 120 seats, 90 seats and the effective date 1 July, attributing the values to the initial and amended records.",
+              "Explain the reasoning and complete the task: The supplied log first records 120 seats; the amendment sets 90 seats from 1 July. This is an effective-date change, not proof that the earlier entry was simply false.",
+              "State what the evidence leaves unresolved: The applicable capacity for the undated observation is unresolved: An attendance photograph has no reliable date. Establish its event date and the rule version in force then. Do not assign either 120 or 90 seats merely from the photograph or assume a year the record does not supply."
+            ],
+            "commonMisconceptions": [
+              {
+                "misconception": "The amendment proves that 120 seats was always incorrect, so the undated image must be judged against 90 seats.",
+                "correction": "The supplied log first records 120 seats; the amendment sets 90 seats from 1 July. This is an effective-date change, not proof that the earlier entry was simply false."
+              },
+              {
+                "misconception": "The packet does not disprove this claim, so it is proved.",
+                "correction": "The applicable capacity for the undated observation is unresolved: An attendance photograph has no reliable date. Establish its event date and the rule version in force then. Do not assign either 120 or 90 seats merely from the photograph or assume a year the record does not supply."
+              }
+            ],
+            "reviewQuestions": [
+              {
+                "practiceId": "task-c046c413f9494959:response",
+                "practiceKind": "task-rehearsal",
+                "question": "Construct a version timeline with the initial entry, amendment and effective date. Explain whether amendment makes the earlier entry false, then decide what can be said about the rule applicable to the undated observation.",
+                "answer": "The supplied log first records 120 seats; the amendment sets 90 seats from 1 July. This is an effective-date change, not proof that the earlier entry was simply false. “A fictional permit log initially records 120 seats for a hall.” “A later entry explicitly amends the permitted capacity to 90 seats from 1 July.” Separate the date an entry was written from the date the rule takes effect. The amendment explicitly supplies 1 July as its effective date; missing calendar context must remain missing. The applicable capacity for the undated observation is unresolved: An attendance photograph has no reliable date. Establish its event date and the rule version in force then. Do not assign either 120 or 90 seats merely from the photograph or assume a year the record does not supply.",
+                "successCriteria": [
+                  "Quotes 120 seats, 90 seats and the effective date 1 July, attributing the values to the initial and amended records.",
+                  "The supplied log first records 120 seats; the amendment sets 90 seats from 1 July. This is an effective-date change, not proof that the earlier entry was simply false.",
+                  "The applicable capacity for the undated observation is unresolved: An attendance photograph has no reliable date. Establish its event date and the rule version in force then. Do not assign either 120 or 90 seats merely from the photograph or assume a year the record does not supply."
+                ],
+                "taskId": "task-c046c413f9494959",
+                "taskRevision": "b076a7da580c74e63e9752ff10e0e115b7171c8488c7efb06f03173d4806c1d9",
+                "hint": "",
+                "bloomsLevel": "Apply"
+              },
+              {
+                "practiceId": "task-c046c413f9494959:error-0",
+                "practiceKind": "error-analysis",
+                "question": "Evaluate this response: “the amendment proves that 120 seats was always incorrect, so the undated image must be judged against 90 seats.” Correct the reasoning using the supplied record.",
+                "answer": "The supplied log first records 120 seats; the amendment sets 90 seats from 1 July. This is an effective-date change, not proof that the earlier entry was simply false.",
+                "successCriteria": [
+                  "The supplied log first records 120 seats; the amendment sets 90 seats from 1 July. This is an effective-date change, not proof that the earlier entry was simply false."
+                ],
+                "taskId": "task-c046c413f9494959",
+                "taskRevision": "b076a7da580c74e63e9752ff10e0e115b7171c8488c7efb06f03173d4806c1d9",
+                "hint": "Place each capacity on a timeline using its effective scope. Obtain the observation date before choosing a version; preserve the earlier entry as evidence of the recorded earlier rule.",
+                "bloomsLevel": "Analyze"
+              },
+              {
+                "practiceId": "task-c046c413f9494959:error-1",
+                "practiceKind": "error-analysis",
+                "question": "Evaluate this response: “the packet does not disprove this claim, so it is proved.” Correct the reasoning using the supplied record.",
+                "answer": "The applicable capacity for the undated observation is unresolved: An attendance photograph has no reliable date. Establish its event date and the rule version in force then. Do not assign either 120 or 90 seats merely from the photograph or assume a year the record does not supply.",
+                "successCriteria": [
+                  "The applicable capacity for the undated observation is unresolved: An attendance photograph has no reliable date. Establish its event date and the rule version in force then. Do not assign either 120 or 90 seats merely from the photograph or assume a year the record does not supply."
+                ],
+                "taskId": "task-c046c413f9494959",
+                "taskRevision": "b076a7da580c74e63e9752ff10e0e115b7171c8488c7efb06f03173d4806c1d9",
+                "hint": "Name the specific unknown and the new evidence that could change the conclusion.",
+                "bloomsLevel": "Analyze"
+              },
+              {
+                "practiceId": "task-c046c413f9494959:scaffold-0",
+                "practiceKind": "task-scaffold",
+                "question": "What does each record actually observe or report? Identify its source.",
+                "answer": "Record 1: “A fictional permit log initially records 120 seats for a hall.” Record 2: “A later entry explicitly amends the permitted capacity to 90 seats from 1 July.” Record 3: “An attendance photograph has no reliable date.”",
+                "successCriteria": [
+                  "Uses the supplied record and states the specific reasoning shown in the reference answer."
+                ],
+                "taskId": "task-c046c413f9494959",
+                "taskRevision": "b076a7da580c74e63e9752ff10e0e115b7171c8488c7efb06f03173d4806c1d9",
+                "hint": "",
+                "bloomsLevel": "Apply"
+              },
+              {
+                "practiceId": "task-c046c413f9494959:scaffold-1",
+                "practiceKind": "task-scaffold",
+                "question": "Which step would require additional evidence?",
+                "answer": "The applicable capacity for the undated observation is unresolved: An attendance photograph has no reliable date. Establish its event date and the rule version in force then. Do not assign either 120 or 90 seats merely from the photograph or assume a year the record does not supply.",
+                "successCriteria": [
+                  "Uses the supplied record and states the specific reasoning shown in the reference answer."
+                ],
+                "taskId": "task-c046c413f9494959",
+                "taskRevision": "b076a7da580c74e63e9752ff10e0e115b7171c8488c7efb06f03173d4806c1d9",
+                "hint": "",
+                "bloomsLevel": "Apply"
+              },
+              {
+                "practiceId": "task-c046c413f9494959:check",
+                "practiceKind": "task-check",
+                "question": "Correct this claim and identify one remaining unknown: The amendment proves that 120 seats was always incorrect, so the undated image must be judged against 90 seats.",
+                "answer": "“A fictional permit log initially records 120 seats for a hall.” “A later entry explicitly amends the permitted capacity to 90 seats from 1 July.” Separate the date an entry was written from the date the rule takes effect. The amendment explicitly supplies 1 July as its effective date; missing calendar context must remain missing. The applicable capacity for the undated observation is unresolved: An attendance photograph has no reliable date. Establish its event date and the rule version in force then. Do not assign either 120 or 90 seats merely from the photograph or assume a year the record does not supply.",
+                "successCriteria": [
+                  "Identify and attribute evidence",
+                  "Explain the reasoning and complete the task",
+                  "State what the evidence leaves unresolved"
+                ],
+                "taskId": "task-c046c413f9494959",
+                "taskRevision": "b076a7da580c74e63e9752ff10e0e115b7171c8488c7efb06f03173d4806c1d9",
+                "hint": "",
+                "bloomsLevel": "Apply"
+              },
+              {
+                "practiceId": "task-c046c413f9494959:transfer",
+                "practiceKind": "independent-transfer",
+                "sourceTaskId": "task-c046c413f9494959",
+                "question": "A fictional room register originally lists 24 places for a workshop. A later entry explicitly revises the permitted capacity to 36 places from 15 October. A workshop attendance image is undated. Explain the relationship between the entries, make an effective-date timeline, and state whether the image can be assigned to a capacity rule.",
+                "answer": "The supplied log first records 24 places; the amendment sets 36 places from 15 October. This is an effective-date change, not proof that the earlier entry was simply false. “A fictional room register originally lists 24 places for a workshop.” “A later entry explicitly revises the permitted capacity to 36 places from 15 October.” Separate the date an entry was written from the date the rule takes effect. The amendment explicitly supplies 15 October as its effective date; missing calendar context must remain missing. The applicable capacity for the undated observation is unresolved: A workshop attendance image is undated. Establish its event date and the rule version in force then. Do not assign either 24 or 36 places merely from the photograph or assume a year the record does not supply.",
+                "successCriteria": [
+                  "Quotes 24 places, 36 places and the effective date 15 October, attributing the values to the initial and amended records.",
+                  "The supplied log first records 24 places; the amendment sets 36 places from 15 October. This is an effective-date change, not proof that the earlier entry was simply false.",
+                  "The applicable capacity for the undated observation is unresolved: A workshop attendance image is undated. Establish its event date and the rule version in force then. Do not assign either 24 or 36 places merely from the photograph or assume a year the record does not supply."
+                ],
+                "taskId": "task-c046c413f9494959:transfer",
+                "taskRevision": "b076a7da580c74e63e9752ff10e0e115b7171c8488c7efb06f03173d4806c1d9",
+                "hint": "Label the source of each statement; distinguish observations, reported claims and your own inferences. Place each capacity on a timeline using its effective scope. Obtain the observation date before choosing a version; preserve the earlier entry as evidence of the recorded earlier rule. Name the specific unknown and the new evidence that could change the conclusion.",
+                "bloomsLevel": "Apply"
+              }
+            ],
+            "practiceActivities": [
+              "Construct a version timeline with the initial entry, amendment and effective date. Explain whether amendment makes the earlier entry false, then decide what can be said about the rule applicable to the undated observation.",
+              "Correct this claim and identify one remaining unknown: The amendment proves that 120 seats was always incorrect, so the undated image must be judged against 90 seats."
+            ],
+            "examPrep": {
+              "keyTopicsToKnow": [
+                "Identify and attribute evidence",
+                "Explain the reasoning and complete the task",
+                "State what the evidence leaves unresolved"
+              ],
+              "timeline": "Attempt the task independently after the lesson; use the answer and criterion feedback to revise. Revisit any reasoning step you could not explain.",
+              "commonErrors": "The amendment proves that 120 seats was always incorrect, so the undated image must be judged against 90 seats. The packet does not disprove this claim, so it is proved.",
+              "reviewStrategy": "Practice the supplied task without looking at its solution, then check each reasoning step. This is rehearsal of this record; a new context requires a separate assessment."
+            },
+            "studentResources": "Use Week 1 Lesson 1: Records and Effective Dates readings, instructor notes, peer discussion, and the rubric criteria for A reasoned response using the supplied record.",
+            "tags": ["study guide", "Lesson 1: Records and Effective Dates", "Records and Effective Dates"],
+            "taskId": "task-c046c413f9494959",
+            "taskRevision": "b076a7da580c74e63e9752ff10e0e115b7171c8488c7efb06f03173d4806c1d9",
+            "workedExample": {
+              "protocol": "coursemapper-shared-teaching-task-v1",
+              "taskId": "task-c046c413f9494959",
+              "taskRevision": "b076a7da580c74e63e9752ff10e0e115b7171c8488c7efb06f03173d4806c1d9",
+              "studentTask": "Construct a version timeline with the initial entry, amendment and effective date. Explain whether amendment makes the earlier entry false, then decide what can be said about the rule applicable to the undated observation.",
+              "problem": "Construct a version timeline with the initial entry, amendment and effective date. Explain whether amendment makes the earlier entry false, then decide what can be said about the rule applicable to the undated observation.",
+              "inputs": [
+                "A fictional permit log initially records 120 seats for a hall.",
+                "A later entry explicitly amends the permitted capacity to 90 seats from 1 July.",
+                "An attendance photograph has no reliable date."
+              ],
+              "steps": [
+                "“A fictional permit log initially records 120 seats for a hall.”",
+                "“A later entry explicitly amends the permitted capacity to 90 seats from 1 July.”",
+                "Separate the date an entry was written from the date the rule takes effect. The amendment explicitly supplies 1 July as its effective date; missing calendar context must remain missing.",
+                "The applicable capacity for the undated observation is unresolved: An attendance photograph has no reliable date. Establish its event date and the rule version in force then. Do not assign either 120 or 90 seats merely from the photograph or assume a year the record does not supply."
+              ],
+              "result": "The supplied log first records 120 seats; the amendment sets 90 seats from 1 July. This is an effective-date change, not proof that the earlier entry was simply false. “A fictional permit log initially records 120 seats for a hall.” “A later entry explicitly amends the permitted capacity to 90 seats from 1 July.” Separate the date an entry was written from the date the rule takes effect. The amendment explicitly supplies 1 July as its effective date; missing calendar context must remain missing. The applicable capacity for the undated observation is unresolved: An attendance photograph has no reliable date. Establish its event date and the rule version in force then. Do not assign either 120 or 90 seats merely from the photograph or assume a year the record does not supply.",
+              "interpretation": "Each step uses the supplied record; the conclusion addresses this specific task.",
+              "boundary": "The applicable capacity for the undated observation is unresolved: An attendance photograph has no reliable date. Establish its event date and the rule version in force then. Do not assign either 120 or 90 seats merely from the photograph or assume a year the record does not supply.",
+              "transferTask": "Correct this claim and identify one remaining unknown: The amendment proves that 120 seats was always incorrect, so the undated image must be judged against 90 seats."
+            },
+            "teachingProgram": {
+              "protocol": "coursemapper-teaching-program-v1",
+              "lessonId": "",
+              "purpose": "guided-practice",
+              "taskId": "task-c046c413f9494959",
+              "taskRevision": "b076a7da580c74e63e9752ff10e0e115b7171c8488c7efb06f03173d4806c1d9",
+              "units": [
+                {
+                  "taskId": "task-c046c413f9494959",
+                  "taskRevision": "b076a7da580c74e63e9752ff10e0e115b7171c8488c7efb06f03173d4806c1d9",
+                  "sourceClaims": [
+                    "A fictional permit log initially records 120 seats for a hall.",
+                    "A later entry explicitly amends the permitted capacity to 90 seats from 1 July.",
+                    "An attendance photograph has no reliable date."
+                  ],
+                  "id": "task-c046c413f9494959:response",
+                  "kind": "task-rehearsal",
+                  "question": "Construct a version timeline with the initial entry, amendment and effective date. Explain whether amendment makes the earlier entry false, then decide what can be said about the rule applicable to the undated observation.",
+                  "answer": "The supplied log first records 120 seats; the amendment sets 90 seats from 1 July. This is an effective-date change, not proof that the earlier entry was simply false. “A fictional permit log initially records 120 seats for a hall.” “A later entry explicitly amends the permitted capacity to 90 seats from 1 July.” Separate the date an entry was written from the date the rule takes effect. The amendment explicitly supplies 1 July as its effective date; missing calendar context must remain missing. The applicable capacity for the undated observation is unresolved: An attendance photograph has no reliable date. Establish its event date and the rule version in force then. Do not assign either 120 or 90 seats merely from the photograph or assume a year the record does not supply.",
+                  "criteria": [
+                    "Quotes 120 seats, 90 seats and the effective date 1 July, attributing the values to the initial and amended records.",
+                    "The supplied log first records 120 seats; the amendment sets 90 seats from 1 July. This is an effective-date change, not proof that the earlier entry was simply false.",
+                    "The applicable capacity for the undated observation is unresolved: An attendance photograph has no reliable date. Establish its event date and the rule version in force then. Do not assign either 120 or 90 seats merely from the photograph or assume a year the record does not supply."
+                  ]
+                },
+                {
+                  "taskId": "task-c046c413f9494959",
+                  "taskRevision": "b076a7da580c74e63e9752ff10e0e115b7171c8488c7efb06f03173d4806c1d9",
+                  "sourceClaims": [
+                    "A fictional permit log initially records 120 seats for a hall.",
+                    "A later entry explicitly amends the permitted capacity to 90 seats from 1 July.",
+                    "An attendance photograph has no reliable date."
+                  ],
+                  "id": "task-c046c413f9494959:error-0",
+                  "kind": "error-analysis",
+                  "question": "Evaluate this response: “the amendment proves that 120 seats was always incorrect, so the undated image must be judged against 90 seats.” Correct the reasoning using the supplied record.",
+                  "answer": "The supplied log first records 120 seats; the amendment sets 90 seats from 1 July. This is an effective-date change, not proof that the earlier entry was simply false.",
+                  "feedback": "Place each capacity on a timeline using its effective scope. Obtain the observation date before choosing a version; preserve the earlier entry as evidence of the recorded earlier rule.",
+                  "criteria": [
+                    "The supplied log first records 120 seats; the amendment sets 90 seats from 1 July. This is an effective-date change, not proof that the earlier entry was simply false."
+                  ]
+                },
+                {
+                  "taskId": "task-c046c413f9494959",
+                  "taskRevision": "b076a7da580c74e63e9752ff10e0e115b7171c8488c7efb06f03173d4806c1d9",
+                  "sourceClaims": [
+                    "A fictional permit log initially records 120 seats for a hall.",
+                    "A later entry explicitly amends the permitted capacity to 90 seats from 1 July.",
+                    "An attendance photograph has no reliable date."
+                  ],
+                  "id": "task-c046c413f9494959:error-1",
+                  "kind": "error-analysis",
+                  "question": "Evaluate this response: “the packet does not disprove this claim, so it is proved.” Correct the reasoning using the supplied record.",
+                  "answer": "The applicable capacity for the undated observation is unresolved: An attendance photograph has no reliable date. Establish its event date and the rule version in force then. Do not assign either 120 or 90 seats merely from the photograph or assume a year the record does not supply.",
+                  "feedback": "Name the specific unknown and the new evidence that could change the conclusion.",
+                  "criteria": [
+                    "The applicable capacity for the undated observation is unresolved: An attendance photograph has no reliable date. Establish its event date and the rule version in force then. Do not assign either 120 or 90 seats merely from the photograph or assume a year the record does not supply."
+                  ]
+                },
+                {
+                  "taskId": "task-c046c413f9494959",
+                  "taskRevision": "b076a7da580c74e63e9752ff10e0e115b7171c8488c7efb06f03173d4806c1d9",
+                  "sourceClaims": [
+                    "A fictional permit log initially records 120 seats for a hall.",
+                    "A later entry explicitly amends the permitted capacity to 90 seats from 1 July.",
+                    "An attendance photograph has no reliable date."
+                  ],
+                  "question": "What does each record actually observe or report? Identify its source.",
+                  "answer": "Record 1: “A fictional permit log initially records 120 seats for a hall.” Record 2: “A later entry explicitly amends the permitted capacity to 90 seats from 1 July.” Record 3: “An attendance photograph has no reliable date.”",
+                  "id": "task-c046c413f9494959:scaffold-0",
+                  "kind": "task-scaffold",
+                  "criteria": [
+                    "Uses the supplied record and states the specific reasoning shown in the reference answer."
+                  ]
+                },
+                {
+                  "taskId": "task-c046c413f9494959",
+                  "taskRevision": "b076a7da580c74e63e9752ff10e0e115b7171c8488c7efb06f03173d4806c1d9",
+                  "sourceClaims": [
+                    "A fictional permit log initially records 120 seats for a hall.",
+                    "A later entry explicitly amends the permitted capacity to 90 seats from 1 July.",
+                    "An attendance photograph has no reliable date."
+                  ],
+                  "question": "Which step would require additional evidence?",
+                  "answer": "The applicable capacity for the undated observation is unresolved: An attendance photograph has no reliable date. Establish its event date and the rule version in force then. Do not assign either 120 or 90 seats merely from the photograph or assume a year the record does not supply.",
+                  "id": "task-c046c413f9494959:scaffold-1",
+                  "kind": "task-scaffold",
+                  "criteria": [
+                    "Uses the supplied record and states the specific reasoning shown in the reference answer."
+                  ]
+                },
+                {
+                  "taskId": "task-c046c413f9494959",
+                  "taskRevision": "b076a7da580c74e63e9752ff10e0e115b7171c8488c7efb06f03173d4806c1d9",
+                  "sourceClaims": [
+                    "A fictional permit log initially records 120 seats for a hall.",
+                    "A later entry explicitly amends the permitted capacity to 90 seats from 1 July.",
+                    "An attendance photograph has no reliable date."
+                  ],
+                  "id": "task-c046c413f9494959:check",
+                  "kind": "task-check",
+                  "question": "Correct this claim and identify one remaining unknown: The amendment proves that 120 seats was always incorrect, so the undated image must be judged against 90 seats.",
+                  "answer": "“A fictional permit log initially records 120 seats for a hall.” “A later entry explicitly amends the permitted capacity to 90 seats from 1 July.” Separate the date an entry was written from the date the rule takes effect. The amendment explicitly supplies 1 July as its effective date; missing calendar context must remain missing. The applicable capacity for the undated observation is unresolved: An attendance photograph has no reliable date. Establish its event date and the rule version in force then. Do not assign either 120 or 90 seats merely from the photograph or assume a year the record does not supply.",
+                  "criteria": [
+                    "Identify and attribute evidence",
+                    "Explain the reasoning and complete the task",
+                    "State what the evidence leaves unresolved"
+                  ]
+                },
+                {
+                  "taskId": "task-c046c413f9494959:transfer",
+                  "taskRevision": "b076a7da580c74e63e9752ff10e0e115b7171c8488c7efb06f03173d4806c1d9",
+                  "sourceClaims": [
+                    "A fictional room register originally lists 24 places for a workshop.",
+                    "A later entry explicitly revises the permitted capacity to 36 places from 15 October.",
+                    "A workshop attendance image is undated."
+                  ],
+                  "id": "task-c046c413f9494959:transfer",
+                  "kind": "independent-transfer",
+                  "operationKind": "effective-record-amendment",
+                  "sources": [
+                    "A fictional room register originally lists 24 places for a workshop.",
+                    "A later entry explicitly revises the permitted capacity to 36 places from 15 October.",
+                    "A workshop attendance image is undated."
+                  ],
+                  "directions": "Explain the relationship between the entries, make an effective-date timeline, and state whether the image can be assigned to a capacity rule.",
+                  "question": "A fictional room register originally lists 24 places for a workshop. A later entry explicitly revises the permitted capacity to 36 places from 15 October. A workshop attendance image is undated. Explain the relationship between the entries, make an effective-date timeline, and state whether the image can be assigned to a capacity rule.",
+                  "answer": "The supplied log first records 24 places; the amendment sets 36 places from 15 October. This is an effective-date change, not proof that the earlier entry was simply false. “A fictional room register originally lists 24 places for a workshop.” “A later entry explicitly revises the permitted capacity to 36 places from 15 October.” Separate the date an entry was written from the date the rule takes effect. The amendment explicitly supplies 15 October as its effective date; missing calendar context must remain missing. The applicable capacity for the undated observation is unresolved: A workshop attendance image is undated. Establish its event date and the rule version in force then. Do not assign either 24 or 36 places merely from the photograph or assume a year the record does not supply.",
+                  "reasoning": [
+                    "“A fictional room register originally lists 24 places for a workshop.”",
+                    "“A later entry explicitly revises the permitted capacity to 36 places from 15 October.”",
+                    "Separate the date an entry was written from the date the rule takes effect. The amendment explicitly supplies 15 October as its effective date; missing calendar context must remain missing.",
+                    "The applicable capacity for the undated observation is unresolved: A workshop attendance image is undated. Establish its event date and the rule version in force then. Do not assign either 24 or 36 places merely from the photograph or assume a year the record does not supply."
+                  ],
+                  "rubric": [
+                    {
+                      "label": "Identify and attribute evidence",
+                      "exemplary": "Quotes 24 places, 36 places and the effective date 15 October, attributing the values to the initial and amended records.",
+                      "proficient": "Identifies both capacities and 15 October, but omits attribution for one entry.",
+                      "developing": "Identifies the changed capacity but omits or mislabels its effective date.",
+                      "beginning": "Invents an observation or attributes a claim to the wrong source.",
+                      "feedback": "Label the source of each statement; distinguish observations, reported claims and your own inferences."
+                    },
+                    {
+                      "label": "Explain the reasoning and complete the task",
+                      "exemplary": "The supplied log first records 24 places; the amendment sets 36 places from 15 October. This is an effective-date change, not proof that the earlier entry was simply false.",
+                      "proficient": "Correctly distinguishes the earlier rule from the amendment, but does not explain why an undated observation cannot be assigned to a version.",
+                      "developing": "Recognizes a change but treats the most recently written entry as applicable to every time.",
+                      "beginning": "The amendment proves that 24 places was always incorrect, so the undated image must be judged against 36 places.",
+                      "feedback": "Place each capacity on a timeline using its effective scope. Obtain the observation date before choosing a version; preserve the earlier entry as evidence of the recorded earlier rule."
+                    },
+                    {
+                      "label": "State what the evidence leaves unresolved",
+                      "exemplary": "The applicable capacity for the undated observation is unresolved: A workshop attendance image is undated. Establish its event date and the rule version in force then. Do not assign either 24 or 36 places merely from the photograph or assume a year the record does not supply.",
+                      "proficient": "Keeps the applicable version unresolved until the observation is dated, but does not specify a dated corroborating record.",
+                      "developing": "Says more context is needed without identifying the missing observation date.",
+                      "beginning": "Treats missing evidence or a proposed procedure as an established finding.",
+                      "feedback": "Name the specific unknown and the new evidence that could change the conclusion."
+                    }
+                  ],
+                  "feedback": "Label the source of each statement; distinguish observations, reported claims and your own inferences. Place each capacity on a timeline using its effective scope. Obtain the observation date before choosing a version; preserve the earlier entry as evidence of the recorded earlier rule. Name the specific unknown and the new evidence that could change the conclusion.",
+                  "provenance": {
+                    "kind": "explicitly-fictional-compiler-practice",
+                    "externalFactualClaim": false
+                  },
+                  "criteria": [
+                    "Quotes 24 places, 36 places and the effective date 15 October, attributing the values to the initial and amended records.",
+                    "The supplied log first records 24 places; the amendment sets 36 places from 15 October. This is an effective-date change, not proof that the earlier entry was simply false.",
+                    "The applicable capacity for the undated observation is unresolved: A workshop attendance image is undated. Establish its event date and the rule version in force then. Do not assign either 24 or 36 places merely from the photograph or assume a year the record does not supply."
+                  ],
+                  "sourceTaskId": "task-c046c413f9494959"
+                }
+              ]
+            },
+            "sourceEvidenceBrief": {
+              "claims": [
+                "A fictional permit log initially records 120 seats for a hall.",
+                "A later entry explicitly amends the permitted capacity to 90 seats from 1 July.",
+                "An attendance photograph has no reliable date."
+              ]
+            }
+          }
+        ],
+        "teachingTaskSources": [
+          {
+            "version": 1,
+            "id": "task-c046c413f9494959",
+            "lessonId": "lesson-1",
+            "identityKey": "lesson-1",
+            "lessonNumber": 1,
+            "title": "Lesson 1: Records and Effective Dates",
+            "objective": "Explain how an amended record changes the interpretation of an earlier entry.",
+            "kind": "evidence-source-analysis",
+            "scope": "primary-task",
+            "inputs": [
+              {
+                "id": "input-8e845344535e3803",
+                "text": "A fictional permit log initially records 120 seats for a hall."
+              },
+              {
+                "id": "input-5a7c71d953817120",
+                "text": "A later entry explicitly amends the permitted capacity to 90 seats from 1 July."
+              },
+              {
+                "id": "input-b21c3e41ae647973",
+                "text": "An attendance photograph has no reliable date."
+              }
+            ],
+            "sessionMinutes": 50,
+            "practiceMinutes": 10
+          }
+        ]
+      },
+      "status": "done",
+      "stale": false,
+      "error": null
+    }
+  }
+}

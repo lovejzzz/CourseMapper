@@ -4,6 +4,7 @@ import { rebuildTeachingTaskSource, validTeachingTaskSource } from './teachingTa
 import { linkTeachingTaskSequence } from './compilerTeachingTaskSequence.js';
 import { finalizeCompiledDeliverableLanguage } from './compiledLanguageFinalizer.js';
 import { sameJsonData as equal } from './canonicalJson.js';
+import { rebindTeachingOperationEdit } from './teachingOperationPlan.js';
 
 const valueAt = (value, path) => path.reduce((node, key) => node?.[key], value);
 const object = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -171,9 +172,11 @@ function retainedCountReferences(previous, next) {
   });
 }
 
-function blueprintFor(sources) {
+function blueprintFor(sources, { legacyOperationPresentation = false } = {}) {
   const lessons = sources.flatMap((source) => {
-    const teachingTask = rebuildTeachingTaskSource(source);
+    const teachingTask = rebuildTeachingTaskSource(source, source.objective, {
+      legacyOperationPresentation: legacyOperationPresentation && source.operationPlan === undefined,
+    });
     return teachingTask
       ? [
           {
@@ -211,6 +214,20 @@ export function applyTeachingTaskSourceEdit({ featureId, oldData, newData, editP
       const item = updatedSource.inputs.find((input) => input.id === other.inputId);
       if (item) item.text = binding.labeledInput ? String(value).replace(/^Source record \d+: /, '') : value;
     }
+  }
+  const sourcePlan =
+    binding.source.operationPlan !== undefined
+      ? binding.source.operationPlan
+      : rebuildTeachingTaskSource(binding.source)?.operationPlan;
+  if (sourcePlan !== undefined) {
+    const plan = rebindTeachingOperationEdit(sourcePlan, binding.source.inputs, updatedSource.inputs);
+    if (!plan)
+      return {
+        status: 'needs-review',
+        message:
+          'This edit changes the bound source relationship, units, or missing evidence. Review the teaching task before updating linked answers; your edited text is preserved.',
+      };
+    updatedSource.operationPlan = plan;
   }
   const retained = retainedCountReferences(binding.source, updatedSource);
   if (!rebuildTeachingTaskSource(updatedSource) || retained.length) {
@@ -262,7 +279,7 @@ export function applyTeachingTaskSourceEdit({ featureId, oldData, newData, editP
   const affectedIds = new Set(
     nextSources.filter((source, index) => !equal(source, oldSources[index])).map((source) => source.id),
   );
-  const oldBlueprint = blueprintFor(oldSources);
+  const oldBlueprint = blueprintFor(oldSources, { legacyOperationPresentation: true });
   const nextBlueprint = blueprintFor(nextSources);
   const changed = {};
   const before = {};
