@@ -46,6 +46,9 @@ function anchoredPath(data, edit) {
  * teacher edit is retained and returned with its concrete proposed replacement. */
 export function mergeTaskProjection(previous, next, current, path = [], conflicts = []) {
   if (equal(previous, next)) return current;
+  // A generated revision digest is not instructor prose. Reconstruction can
+  // normalize it without changing content; an accepted source edit owns its next value.
+  if (path.at(-1) === 'taskRevision' && /^[a-f0-9]{64}$/.test(next) && /^[a-f0-9]{64}$/.test(previous)) return next;
   if (equal(current, previous) || equal(current, next)) return structuredClone(next);
   if (Array.isArray(previous) && Array.isArray(next) && Array.isArray(current)) {
     const field = arrayIdentity([previous, next, current]);

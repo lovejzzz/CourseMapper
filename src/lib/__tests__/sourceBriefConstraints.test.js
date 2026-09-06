@@ -10,6 +10,21 @@ import {
 } from '../sourceBriefConstraints';
 
 describe('source brief constraints', () => {
+  it('preserves numbered Chinese source boundaries and punctuation, including short records', () => {
+    const sources = [
+      '虚构试验：甲滤材处理低浑浊度的水14分钟，乙滤材处理高浑浊度的水5分钟。',
+      '处理后甲组水看起来更清，但没有统一量表或仪器读数。',
+      '没有重复试验。',
+    ];
+    expect(
+      extractInstructorProvidedFacts(`Source facts:\n${sources.map((s, i) => `${i + 1}. ${s}`).join('\n')}`),
+    ).toEqual(sources);
+  });
+  it('does not merge a separately numbered short record into its predecessor', () => {
+    expect(
+      extractInstructorProvidedFacts('Source facts:\n1. A photograph depicts the hall.\n2. Date unknown.'),
+    ).toEqual(['A photograph depicts the hall.', 'Date unknown.']);
+  });
   it('preserves a numbered supplied-facts packet and its linked experimental clauses', () => {
     const brief =
       'A workshop. Use only these supplied facts. All examples are fictional.\n1. Group A receives treatment and eight hours of light while Group B receives no treatment and four hours; both have equal water.\n2. Height is the outcome; because treatment and light both differ, this comparison cannot isolate the treatment effect.\n3. Random assignment allocates units by chance to conditions.\nTask: Explain the limitation.';

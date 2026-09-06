@@ -10,11 +10,13 @@ const evidence = (task, prior) => ({ ...prior, claims: task.inputs.map((x) => x.
 const sourcePacket = (task) => task.inputs.map((input, index) => `Source record ${index + 1}: ${input.text}`).join(' ');
 const isCompilerSourcePacket = (value) => typeof value === 'string' && /^Source record 1: /.test(value);
 const copiesPacket = (value, packet) =>
-  isCompilerSourcePacket(value) && packet && (packet.startsWith(value) || value.startsWith(packet));
+  typeof value === 'string' &&
+  packet &&
+  (value.includes(packet) || (isCompilerSourcePacket(value) && packet.startsWith(value)));
 function updateSourceCopy(value, packet, previousPacket) {
   if (!copiesPacket(value, previousPacket) || packet.startsWith(value)) return value;
   // Preserve an excerpt's length or any appended instructor annotation.
-  return previousPacket.startsWith(value) ? packet.slice(0, value.length) : packet + value.slice(previousPacket.length);
+  return value.includes(previousPacket) ? value.split(previousPacket).join(packet) : packet.slice(0, value.length);
 }
 
 // These are live compiler copies, including the course-map resource packet
@@ -23,11 +25,21 @@ function projectSourceCopies(row, task, previousSource) {
   if (!previousSource) return;
   const packet = sourcePacket(task);
   const previousPacket = sourcePacket(previousSource);
-  function update(value) {
-    if (typeof value === 'string') return updateSourceCopy(value, packet, previousPacket);
-    if (Array.isArray(value)) return value.map(update);
+  function update(value, field) {
+    if (typeof value === 'string') {
+      const copy = updateSourceCopy(value, packet, previousPacket);
+      if (field !== 'preservedSignals') return copy;
+      // The evidence trace also stores individual source excerpts, sometimes
+      // followed by the next numbered-record label after sentence segmentation.
+      for (const [index, input] of previousSource.inputs.entries()) {
+        if (copy === input.text || copy.startsWith(`${input.text} Source record `))
+          return task.inputs[index].text + copy.slice(input.text.length);
+      }
+      return copy;
+    }
+    if (Array.isArray(value)) return value.map((item) => update(item, field));
     if (value && typeof value === 'object')
-      return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, update(item)]));
+      return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, update(item, key)]));
     return value;
   }
   for (const key of ['sourceGrounding', 'blueprintGrounding', 'sourceUsePlan', 'citationAndSourceUse'])

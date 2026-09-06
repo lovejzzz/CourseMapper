@@ -445,7 +445,11 @@ test('a Chinese task without a cached model kernel regenerates directly from its
   await page.getByRole('button', { name: 'Save .coursemapper', exact: true }).click();
   const project = JSON.parse(await fs.readFile(await (await saved).path(), 'utf8'));
   expect(project.courseMap.lessons[0].sections[0].supportingResources).toContain('水16分钟');
-  expect(JSON.stringify(project.deliverables.studyGuides.data)).not.toContain('水14分钟');
+  expect(project.deliverables.studyGuides.data.taskSyncConflicts).toEqual([]);
+  expect(
+    JSON.stringify(project.deliverables.studyGuides.data).includes('水14分钟'),
+    'saved source copies must update',
+  ).toBe(false);
   expect(JSON.stringify(project.deliverables.studyGuides.data)).toContain('水16分钟');
   expect(requests).toEqual([]);
 });

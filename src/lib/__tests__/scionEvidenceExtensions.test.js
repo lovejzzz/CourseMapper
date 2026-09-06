@@ -117,6 +117,10 @@ it('keeps unrelated resource packets, instructor prose and appended source annot
   const { result } = amendedSourceEdit((f) => {
     f.deliverables.lessonPlans.data.lessonPlans[0].sourceUsePlan.approvedSources.push(resource);
     f.deliverables.lessonPlans.data.lessonPlans[0].warmUp.facilitation = note;
+    f.deliverables.studyGuides.data.studyGuides[0].sourceGrounding.sourceEvidenceTrace.preservedSignals = [
+      `Resources: ${f.courseMap.lessons[0].sections[0].supportingResources}`,
+      `${f.fixture.sources[1]} Source record 3`,
+    ];
     f.courseMap.lessons[0].sections[0].supportingResources += ` ${note}`;
   });
   const plan = result.changed.lessonPlans.data.lessonPlans[0];
@@ -124,6 +128,12 @@ it('keeps unrelated resource packets, instructor prose and appended source annot
   expect(plan.warmUp.facilitation).toBe(note);
   expect(result.courseMap.lessons[0].sections[0].supportingResources).toContain('75 seats');
   expect(result.courseMap.lessons[0].sections[0].supportingResources).toContain(note);
+  const signals = result.changed.studyGuides.data.studyGuides[0].sourceGrounding.sourceEvidenceTrace.preservedSignals;
+  expect(signals[0]).toContain('75 seats');
+  expect(signals[0]).not.toContain('90 seats');
+  expect(signals[1]).toBe(
+    'A later entry explicitly amends the permitted capacity to 75 seats from 1 July. Source record 3',
+  );
 });
 
 describe('explicit evidence relationships from the exposed source packets', () => {

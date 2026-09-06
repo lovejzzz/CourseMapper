@@ -126,11 +126,11 @@ export function extractInstructorProvidedFacts(sourceBrief = '') {
     if (!fact) continue;
     if (INSTRUCTION_SENTENCE_RE.test(fact) || /^(?:learning objectives?|assessment|task|instructions?)\s*:/i.test(fact))
       break;
-    if (fact.length < 12 || fact.length > 400) continue;
-    if (!/[.!?]$/.test(fact)) fact += '.';
+    if (fact.length < (numbered ? 2 : 12) || fact.length > 400) continue;
+    if (!/[.!?。！？]$/.test(fact)) fact += '.';
     // A short continuation such as "16 completed it" needs its preceding
     // subject. Keep the source clauses together, without inventing a referent.
-    if (fact.length < 20 && facts.length > 0 && facts.at(-1).length + fact.length < 398) {
+    if (!numbered && fact.length < 20 && facts.length > 0 && facts.at(-1).length + fact.length < 398) {
       facts[facts.length - 1] = `${facts.at(-1).replace(/[.!?]$/, '')}; ${fact}`;
       continue;
     }

@@ -56,6 +56,18 @@ function packageFixture() {
 }
 
 describe('shared task source updates through production projections', () => {
+  it('refreshes generated revision digests while still reviewing a competing teacher answer', () => {
+    const conflicts = [];
+    const merged = mergeTaskProjection(
+      { taskRevision: 'a'.repeat(64), answer: 'Old answer' },
+      { taskRevision: 'b'.repeat(64), answer: 'New answer' },
+      { taskRevision: 'c'.repeat(64), answer: 'Teacher answer' },
+      [],
+      conflicts,
+    );
+    expect(merged).toEqual({ taskRevision: 'b'.repeat(64), answer: 'Teacher answer' });
+    expect(conflicts.map((conflict) => conflict.path)).toEqual([['answer']]);
+  });
   it('accepts source updates from a prose-generated map without compiler-owned task links', () => {
     const f = packageFixture();
     f.map.lessons[0].sections[0].supportingResources = f.source.inputs
