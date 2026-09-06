@@ -679,8 +679,11 @@ export default function useProjectPersistence({
         const raw = localStorage.getItem(STORAGE_KEY);
         if (raw) {
           const saved = prepareProjectSnapshotForRestore(JSON.parse(raw));
-          if (saved.courseMap && !cancelled) setHasSavedSession(true);
-          return;
+          if (saved.courseMap) {
+            if (!cancelled) setHasSavedSession(true);
+            return;
+          }
+          // A compact pointer is not the course; inspect its IndexedDB snapshot.
         }
         const indexedDbPayload = await loadProjectIndexedDbAutosave();
         if (!indexedDbPayload || cancelled) return;

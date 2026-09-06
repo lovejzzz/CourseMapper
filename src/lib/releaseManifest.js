@@ -3,6 +3,44 @@ import { CURRENT_RELEASE } from './currentRelease.js';
 
 export { CURRENT_RELEASE };
 
+const V0187_RELEASE = {
+  version: '0.18.7',
+  checkpointPhase: 'predeploy',
+  date: 'August 20, 2026',
+  title: 'Source-Faithful, Output-First Quality',
+  landingTitle: 'EDUTOOL V0.18.7 Preserves What You Asked For',
+  highlights: [
+    'Named assessment artifacts now bind to the exact authored week, survive Course Map repair, and carry every requested final-project component into assignment directions, deliverables, and rubric criteria.',
+    'Compiler-inferred grading no longer lets one capstone consume most of the course grade, and source-recovery quizzes include the complete practice case their questions and answer keys reference.',
+    'Public-health source admission rejects generic topic pages, repeated reasoning and artifact-label echoes are repaired, and any verified package with findings is labeled as a review ZIP instead of looking clean.',
+  ],
+  landingHighlights: [
+    'Keep requested artifacts and components intact.',
+    'Balance assessment weight and package quiz evidence.',
+    'Make source and review warnings visible in the output.',
+  ],
+  proof: {
+    contract: 'release-contracts/v0.18.7.json',
+    roadmap: 'docs/EDUTOOL_V0187_OUTPUT_FIRST_QUALITY.md',
+    benchmark: {
+      path: 'evaluation/v0.18.7-output-first-quality-benchmark.json',
+      sha256: '648c8383ed55cfc2186991915ffd5348124dabb418b67360a30d57bd565ce7ac',
+      bytes: 1542,
+    },
+    browser: {
+      path: 'evaluation/release-proofs/v0.18.7-browser-acceptance.json',
+      sha256: '464d662d9937ef84cfe634c1894c0133c12ed40c71d7645bd5256f159ecfca97',
+      bytes: 2578,
+    },
+    productionPackageAttestation: {
+      path: 'evaluation/release-proofs/v0.18.7-local-package-attestation.json',
+      sha256: 'c50c4d56ace1853475d51d8f5ed7400b3125c97f20baf1ba060bd2afb1ea0770',
+      bytes: 1904,
+    },
+    auditCommand: 'npm run audit:release-history',
+  },
+};
+
 const V0186_RELEASE = {
   version: '0.18.6',
   date: 'August 20, 2026',
@@ -1437,6 +1475,45 @@ export const CURRENT_RELEASE_CHANGELOG = {
   highlights: CURRENT_RELEASE.highlights,
   sections: [
     {
+      label: 'Share the actual teaching work',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'Compile a common task from admitted lesson sources before material-specific fact selection. Share inputs, reasoning, reference answers, errors, feedback, timing and four-level scoring criteria.',
+        'Support exact proportions, creation/acquisition record comparisons and explicitly sourced confounded experiments. Preserve authored work and reject missing or ambiguous inputs.',
+        'Update matching answers and rubrics when sources change, retaining task identity with a new content revision. Preserve all ten material types, existing editors and exports.',
+      ],
+    },
+    {
+      label: 'Check what students and teachers receive',
+      icon: 'PROOF',
+      color: 'violet',
+      items: [
+        'Keep quiz questions with their source records and complete answer keys. Align teacher checkpoints, study-guide practice, assignment requirements and rubric scoring anchors.',
+        'Correct Word field contracts and worked-example slide layouts. Export three full sample packages and inspect 31 rendered Word pages plus 38 slides.',
+        'Run 295 unchanged defect probes on five frozen inputs: 13 failures become 5, with all five remaining in the two-session case. This replay uses no new model calls and does not measure learning outcomes.',
+      ],
+    },
+    {
+      label: 'Keep the release and recovery reliable',
+      icon: 'CHECK',
+      color: 'blue',
+      items: [
+        'Do not delete the previous local course when entering new-course setup. Restore it after cancelling material selection, including IndexedDB-only and compact-pointer saves.',
+        'Prevent skipped branch deployment workflows from cancelling production deployments.',
+        'Keep Scion inference local and the shared free online mode paused. Version the application as 0.18.8 while retaining the 0.18.7 interface baseline.',
+      ],
+    },
+  ],
+};
+
+const V0187_RELEASE_CHANGELOG = {
+  version: V0187_RELEASE.version,
+  date: V0187_RELEASE.date,
+  title: V0187_RELEASE.title,
+  highlights: V0187_RELEASE.highlights,
+  sections: [
+    {
       label: 'Preserve the authored assessment contract',
       icon: 'CHECK',
       color: 'emerald',
@@ -2619,6 +2696,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V0187_RELEASE_CHANGELOG,
   V0186_RELEASE_CHANGELOG,
   V0185_RELEASE_CHANGELOG,
   V0184_RELEASE_CHANGELOG,

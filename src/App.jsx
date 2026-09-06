@@ -91,11 +91,8 @@ export default function App() {
 
   const handleContinue = useCallback(() => {
     stageSetupRecovery({ promptText, files, action: { type: 'continue' } });
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-    } catch {}
-    removeProjectIndexedDbAutosave().catch(() => {});
-    setHasSavedSession(false);
+    // Setup is still cancellable. Keep the last course until a generated
+    // replacement reaches the normal autosave path.
     resetGeneratedProjectState();
     startFlow({ type: 'continue' }, 'features');
   }, [files, promptText, resetGeneratedProjectState, startFlow]);
@@ -110,11 +107,7 @@ export default function App() {
         ...(options?.scionResearchEnabled === true ? { scionResearchEnabled: true } : {}),
       };
       stageSetupRecovery({ promptText, files, action });
-      try {
-        localStorage.removeItem(STORAGE_KEY);
-      } catch {}
-      removeProjectIndexedDbAutosave().catch(() => {});
-      setHasSavedSession(false);
+      // A failed or cancelled start must retain the previous recoverable course.
       resetGeneratedProjectState();
       startFlow(action);
     },

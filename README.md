@@ -1,6 +1,6 @@
 # EduTool
 
-[EduTool.dev](https://edutool.dev) is an editable course-material workspace for educators. The public interface has been restored to **0.18.7**, including the original homepage, material selection, course map, chat, editors, revision controls and export sidebar.
+[EduTool.dev](https://edutool.dev) is an editable course-material workspace for educators. The current release is **0.18.8**, preserving the **0.18.7 interface**, including the original homepage, material selection, course map, chat, editors, revision controls and export sidebar.
 
 Quality improvements continue within this interface. The experimental Course Studio replacement is preserved for research; it is not the production application. **v0.19.0 has not been released.**
 

@@ -1,7 +1,9 @@
 # Changelog
 
-## 0.18.7 shared teaching tasks — 2026-09-05
+## 0.18.8 — 2026-09-05
 
+- Preserve the previous local course when entering a new setup or starting a build. Cancelling material selection keeps the exact saved course recoverable, including IndexedDB-only and compact-pointer snapshots. An explicit dismissal still clears it.
+- Update the application/package version, homepage release card and in-site changelog to 0.18.8. Preserve the 0.18.7 interface baseline and historical release entry.
 - Isolate Pages concurrency by source branch so a skipped feature-branch workflow cannot cancel a successful main deployment.
 
 - Select a source-bound task before deliverable-specific fact rotation; share its inputs, reasoning, reference answer, errors, feedback, workload and four-level criteria across the existing materials. Keep stable task IDs and content revision hashes; regenerate matching answers and rubrics after source edits.
@@ -9,7 +11,7 @@
 - Replace eligible compiler-owned written quiz slots with task rehearsal, error analysis and scaffold questions. Preserve bank size, authored and choice questions, and machine-scoring boundaries. Include the supplied task record on the student question paper.
 - Align teacher checkpoints, closure questions, study-guide answers, assignment/rubric criteria, discussion duration, syllabus task references and concise FAQ answers. Remove stale homework estimates from the projected task. Show real strong/incorrect samples in Word exports.
 - Fix projection field types against all eight production Word exporters and put worked reasoning on explicit content slides, avoiding half-empty bridge layouts and overflowing takeaway banners. Retain the 0.18.7 interface and export styles.
-- Re-run the same five-input, 295-probe benchmark with zero model calls: detected defects decrease from 13 to 5, all remaining in the two-session case. Add a separate educational review and source/output receipts. No model weights, hosted service policy or version number changed; this is not the final v0.19.0 release.
+- Re-run the same five-input, 295-probe benchmark with zero model calls: detected defects decrease from 13 to 5, all remaining in the two-session case. Add a separate educational review and source/output receipts. No model weights or hosted service policy changed; this is not the final v0.19.0 release.
 
 ## 0.18.7 classroom benchmark and output corrections — 2026-09-05
 
