@@ -101,7 +101,10 @@ test('source compiler keeps worked examples, shared answers, and the lesson cloc
   await expect(page.getByText(/^45 minutes · Week 1$/).first()).toBeVisible();
   await expect(page.getByText(/^0.80 × 20 = 16\./).first()).toBeVisible();
   await expect(
-    page.getByText(/Recover the numerator from 80% of 20, then state one source limitation\./).first(),
+    page
+      .getByText(/Recover the numerator from 80% of 20, then state one source limitation\./)
+      .filter({ visible: true })
+      .first(),
   ).toBeVisible();
   await page.getByRole('button', { name: 'Regen', exact: true }).click();
   await expect.poll(() => logs.some((line) => line.includes('lesson_regen_compiled')), { timeout: 20000 }).toBe(true);
