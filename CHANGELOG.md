@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.18.9 — 2026-09-06
+
+- Preserve explicit lesson objectives before statistical-operation fallback selection. Route complete instructor-supplied comparison records using case-specific objective anchors; reject unrelated, incomplete and ambiguous mappings.
+- Split comparison diagnosis and experimental-design repair into distinct tasks, products and scoring bands. Link the second lesson to the first lesson's source-bound diagnostic answer and revision; rebuild links when the source changes.
+- Restore instructor facts in the actual single-lesson Regen and sync compiler path. A new browser regression caught the missing prerequisite after regeneration, which pure full-course compiler tests did not expose.
+- Replace eligible compiler recovery and exact-ledger quiz slots with concrete questions and full reference answers. Preserve eight-item banks, authored/choice questions and machine-scoring boundaries. Add checks for first-lesson generic fallback answers that the aggregate benchmark missed.
+- Bind syllabus requirements, outcome alignment, assessment calendars and task criteria by lesson identity instead of duplicated titles. Use session timing when no meeting pattern is supplied. Preserve official grading categories, and display existing draft-weight guidance in the web editor as well as exports.
+- Replace generic slide concept maps and artifact-label headings with bounded source questions and teacher notes. Align discussion directions and assignment source/submission instructions; remove repeated study-guide problem text in Word.
+- Re-run the unchanged five-input, 295-probe benchmark: five detected failures become zero. Inspect actual exported classroom materials and retain separate educational judgments and limitations. No model calls, model-weight changes, paid services or UI redesign; this is not the final v0.19.0 release.
+
 ## 0.18.8 — 2026-09-05
 
 - Preserve the previous local course when entering a new setup or starting a build. Cancelling material selection keeps the exact saved course recoverable, including IndexedDB-only and compact-pointer snapshots. An explicit dismissal still clears it.

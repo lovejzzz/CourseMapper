@@ -10,7 +10,7 @@ import { attachEnrichmentToGraph, buildBlueprintFromGraph, deriveCourseGraphFrom
 import { applyLessonDepthToConfigMap } from './lessonDepth';
 import { sanitizeGenomeEnrichmentForLesson, sanitizeLessonTitleEchoEnrichment } from './lessonSemanticRelevance';
 import { assessScionKeyTermContract } from './scionKeyTermContract';
-import { resolveRequestedClassSessionMinutes } from './sourceBriefConstraints';
+import { extractInstructorProvidedFacts, resolveRequestedClassSessionMinutes } from './sourceBriefConstraints';
 
 function cleanText(value, fallback = '') {
   return String(value ?? fallback)
@@ -362,6 +362,7 @@ export function compileBlueprintLessonPatch({
   const compilerOptions = {
     instructorPreferences,
     sourceBrief,
+    instructorProvidedFacts: extractInstructorProvidedFacts(sourceBrief),
     ...(requestedMinutes ? { sessionMinutes: requestedMinutes } : {}),
   };
   let blueprint;

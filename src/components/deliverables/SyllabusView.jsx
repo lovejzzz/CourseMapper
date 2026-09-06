@@ -351,6 +351,8 @@ export default function SyllabusView({ data, isStreaming, onEdit }) {
         </div>
       )}
 
+      {syl.courseRequirementWeightNote && <p className="text-xs text-slate-600">{syl.courseRequirementWeightNote}</p>}
+
       {/* ── Grading Scale ──────────────────────────────────────── */}
       {syl.gradingScale?.length > 0 && (
         <div>

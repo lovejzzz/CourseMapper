@@ -477,7 +477,13 @@ function buildLessonIntent({
   const artifact = cleanText(assessment?.artifact || lesson?.studentArtifact);
   const successCriteria = unique(values(lesson?.successCriteria), 6);
   const evidenceBoundary = evidenceBoundaryForLesson(lesson, evidenceAuthority, { requireClaimAuthority });
-  const operationIntent = statisticalInstructionalIntentForOperation(lesson);
+  // A topic can suggest a full procedure without authorizing that procedure
+  // in this lesson. Preserve a concrete declared objective (for example,
+  // diagnose a confound before a later lesson repairs the design).
+  const hasSpecificObjective = values(lesson?.outcomes).some(
+    (objective) => !isCompilerGenericInstructionalIntent(objective),
+  );
+  const operationIntent = hasSpecificObjective ? null : statisticalInstructionalIntentForOperation(lesson);
   const visualIntent = lessonRequiresFunctionalVisual(briefQualityContract, lesson.lessonNumber || index + 1)
     ? buildFunctionalVisualInstructionalIntent({
         lessonNumber: lesson.lessonNumber || index + 1,
@@ -553,7 +559,12 @@ function buildLessonIntent({
         'Compare the visible evidence with the success criteria and select one revision move.',
     },
     evidenceBoundary,
-    evidenceNeedKind: operationIntent ? 'operation-specimen' : visualIntent ? 'visual-specimen' : 'source-claims',
+    evidenceNeedKind:
+      operationIntent || evidenceBoundary.compilerOperationSpecimen
+        ? 'operation-specimen'
+        : visualIntent
+          ? 'visual-specimen'
+          : 'source-claims',
     sequence: {
       prerequisiteIntentId: priorLesson,
       transferIntentId: nextLesson,

@@ -1,3 +1,4 @@
+import { projectTeachingTaskSyllabus } from './compilerTeachingTaskSyllabus.js';
 import { teachingTaskRubric, teachingTaskWorkedExample } from './compilerTeachingTask.js';
 import { compileTeachingProgram, teachingProgramReviewQuestions } from './compilerTeachingProgram.js';
 
@@ -56,12 +57,13 @@ function alignAssessmentCopies(row, task, criteria) {
     });
 }
 
-function projectAssignment(row, task) {
+function projectAssignment(row, task, blueprint) {
   const rubric = teachingTaskRubric(task, row.totalPoints);
   Object.assign(row, ref(task), {
     title: task.title,
     overview: task.question,
     instructions: [
+      ...(task.preparation ? [task.preparation.instruction] : []),
       task.question,
       'Use the source record below; label source statements separately from your reasoning.',
       task.product,
@@ -72,6 +74,11 @@ function projectAssignment(row, task) {
       ...row.formatRequirements,
       length: task.product,
       format: 'An annotated response in the configured submission format.',
+      citationStyle:
+        'Identify the supplied source record and the statement used. Do not invent missing author, date or page information.',
+      submissionPlatform:
+        'Complete the classroom response and retain the corrected version. Use the submission method specified by the instructor.',
+      latePolicy: blueprint.policies?.lateWork || 'Confirm any deadline and late-work policy with the instructor.',
       workloadFit: `${task.minutes} minutes for the classroom response, plus up to 5 minutes to revise after feedback.`,
       reviewProtocol: task.criteria.map((c) => c.feedback).join(' '),
     },
@@ -164,7 +171,7 @@ function projectRubric(row, task) {
 function projectPlan(row, task) {
   Object.assign(row, ref(task), {
     studentFacingSummary: {
-      beforeClass: 'The task uses the source record supplied in class.',
+      beforeClass: task.preparation?.instruction || 'The task uses the source record supplied in class.',
       duringClass: task.question,
       afterClass: 'Revise the response using the matching criterion feedback.',
       submittedArtifact: task.product,
@@ -187,6 +194,7 @@ function projectPlan(row, task) {
     closingActivity: `Exit ticket: ${task.checkpoint.question}`,
     homework: {
       ...row.homework,
+      title: task.title,
       description:
         'Revise the classroom response using the criterion feedback. Identify the specific correction you made.',
       estimatedTime: 'Up to 5 minutes',
@@ -209,6 +217,8 @@ function projectPlan(row, task) {
     ['Write the task response', task.question, task.answer],
     ['Check the conclusion', task.checkpoint.question, task.checkpoint.answer],
   ];
+  if (task.preparation)
+    phases[0] = ['Retrieve the earlier diagnosis', task.preparation.prompt, task.preparation.expectedAnswer];
   if (row.outline?.length === phases.length)
     row.outline.forEach((block, i) => {
       Object.assign(block, ref(task), {
@@ -228,6 +238,7 @@ function projectPlan(row, task) {
       prompt: phases[0][1],
       purpose: phases[0][2],
       facilitation:
+        task.preparation?.instruction ||
         'Ask each learner to label the given observations and underline one claim that requires an inference. Compare their labels with the supplied record.',
     });
 }
@@ -314,7 +325,9 @@ function projectSlides(deck, task) {
       replace(
         slide,
         `Worked example: reasoning ${i + 1} of ${chunks.length}`,
-        bullets,
+        // Keep a wrapped reasoning passage in one text flow. Separate bullet
+        // boxes can overlap when the first sentence spans several lines.
+        [bullets.join(' ')],
         `Complete reference answer: ${task.answer}`,
       );
     });
@@ -328,6 +341,29 @@ function projectSlides(deck, task) {
         [task.errors[0].response, task.errors[0].correction],
         task.errors[0].feedback,
       );
+    // Untagged content and key-term seats are compiler fallbacks. Their old
+    // concept maps often contain only artifact labels, not disciplinary content.
+    // Preserve authored/enriched seats; use bounded questions in the leftovers.
+    const checks = [
+      ...(task.scaffoldQuestions || []).map((q) => ({ title: 'Read and explain the record', ...q })),
+      ...task.errors.map((e) => ({
+        title: 'Find the error and explain why',
+        question: `Evaluate this response: “${e.response}”`,
+        answer: `${e.correction} Feedback: ${e.feedback}`,
+      })),
+    ];
+    let checkIndex = 0;
+    for (const slide of deck.slides) {
+      if (slide.enrichmentSource || !['content', 'keyTerm'].includes(slide.type)) continue;
+      const check = checks[checkIndex++ % checks.length];
+      slide.type = 'content';
+      replace(
+        slide,
+        check.title,
+        [check.question, 'Point to the source statement that supports your reasoning.'],
+        check.answer,
+      );
+    }
     deck.totalSlides = deck.slides.length;
   }
 }
@@ -347,35 +383,7 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
     courseFaq: 'faqs',
   };
   if (feature === 'syllabus') {
-    const syllabus = data.syllabus;
-    blueprint.lessons.forEach((lesson, i) => {
-      const task = lesson.teachingTask;
-      if (!task || lesson.teachingTaskScope !== 'primary-task') return;
-      const schedule = syllabus.weeklySchedule?.[i];
-      if (schedule)
-        Object.assign(schedule, ref(task), {
-          assignments: `${task.question} ${task.minutes} minutes of classroom response plus up to 5 minutes of revision.`,
-          readings: 'The supplied source record, reproduced in the lesson materials.',
-        });
-      if (blueprint.lessons.length === 1) {
-        syllabus.deliveryMode = `One ${lesson.classSessionPlan.sessionMinutes}-minute workshop with practice and feedback`;
-        if (syllabus.courseRequirements?.length === 1) {
-          const priorTitle = syllabus.courseRequirements[0].name;
-          Object.assign(syllabus.courseRequirements[0], {
-            name: task.title,
-            description: `${task.question} Success criteria: ${task.criteria.map((c) => c.label).join('; ')}.`,
-          });
-          for (const row of syllabus.outcomeAlignmentMatrix || []) {
-            row.assessedBy = (row.assessedBy || []).map((name) => (name === priorTitle ? task.title : name));
-          }
-          for (const row of syllabus.lessonAlignmentMatrix || [])
-            if (row.assessmentArtifact === priorTitle) row.assessmentArtifact = task.title;
-          for (const row of syllabus.assessmentCalendar || [])
-            if (row.assessmentOrMilestone === priorTitle) row.assessmentOrMilestone = task.title;
-          for (const row of syllabus.importantDates || []) if (row.event === priorTitle) row.event = task.title;
-        }
-      }
-    });
+    projectTeachingTaskSyllabus(data.syllabus, blueprint);
     return data;
   }
   const rows = data[keys[feature]];
@@ -395,7 +403,7 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
           : null);
     const task = lesson?.teachingTask;
     if (!task || lesson.teachingTaskScope !== 'primary-task') return;
-    if (feature === 'assignments') projectAssignment(row, task);
+    if (feature === 'assignments') projectAssignment(row, task, blueprint);
     if (feature === 'rubrics' && Array.isArray(row.criteria)) projectRubric(row, task);
     if (feature === 'lessonPlans') projectPlan(row, task);
     if (feature === 'slideDecks') projectSlides(row, task);
@@ -407,7 +415,11 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
         workedExample: teachingTaskWorkedExample(task),
         reviewQuestions: questions(task),
         teachingProgram: program(task),
-        practiceActivities: [task.question, task.checkpoint.question],
+        practiceActivities: [
+          ...(task.preparation ? [task.preparation.instruction] : []),
+          task.question,
+          task.checkpoint.question,
+        ],
         sourceEvidenceBrief: evidence(task, row.sourceEvidenceBrief),
         commonMisconceptions: task.errors.map((e) => ({ misconception: e.response, correction: e.correction })),
         examPrep: {
@@ -424,6 +436,12 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
       Object.assign(row, ref(task), {
         context: task.inputs.map((x) => x.text).join('\n'),
         prompt: task.checkpoint.question,
+        evidenceRequirement:
+          'Identify the source statement that supports your conclusion and explain how it supports or limits the claim.',
+        guidelines:
+          'Draft an individual answer, compare it with a peer response, then revise one reasoning step using a specific source statement.',
+        equityConsiderations:
+          'Allow think-write time and equivalent spoken or written responses. Evaluate the reasoning and evidence using the same criteria.',
         positionMap: [],
         estimatedDuration: `${task.minutes} minutes`,
         discussionProtocol: {
@@ -433,10 +451,13 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
           reviewFocus: task.criteria.map((c) => c.label).join('; '),
           decisionMove: task.checkpoint.question,
         },
-        followUpProbes: task.errors.map(
-          (e) =>
-            `A learner responds: “${e.response}” Which part needs correction, and which source statement supports the correction?`,
-        ),
+        followUpProbes: [
+          ...task.errors.map(
+            (e) =>
+              `A learner responds: “${e.response}” Which part needs correction, and which source statement supports the correction?`,
+          ),
+          ...(task.scaffoldQuestions || []).map((q) => q.question),
+        ].slice(0, 3),
         facilitationTips: {
           opening: 'Allow a short individual response before students compare their reasoning.',
           ifStalls: task.errors.map((e) => `${e.correction} Feedback: ${e.feedback}`).join(' '),
@@ -458,7 +479,10 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
           (q) =>
             !q.machineScored &&
             ['short_answer', 'essay'].includes(q.type) &&
-            (!q.enrichmentSource || q.enrichmentSource === 'compiler-teaching-program'),
+            (!q.enrichmentSource ||
+              ['compiler-teaching-program', 'compiler-exact-source-ledger', 'source-bound-recovery'].includes(
+                q.enrichmentSource,
+              )),
         ) || [];
       if (seats.length)
         row.practiceRecord = {
@@ -469,7 +493,17 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
           studentUse:
             'Use this record for the related task questions. These rehearse the taught example; they do not establish independent transfer to a new context.',
         };
-      questions(task).forEach((q, i) => {
+      const quizQuestions = [
+        ...questions(task),
+        ...(task.assessmentExtensions || []).map((q, index) => ({
+          question: q.question,
+          answer: q.answer,
+          successCriteria: q.criteria,
+          practiceId: `${task.id}:assessment-extension-${index}`,
+          ...ref(task),
+        })),
+      ];
+      quizQuestions.forEach((q, i) => {
         if (!seats[i]) return;
         Object.assign(seats[i], q, {
           type: seats[i].type === 'essay' ? 'essay' : 'short_answer',
@@ -491,7 +525,9 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
           { q: 'What do I need to submit?', an: task.product },
           {
             q: 'Which materials do I need?',
-            an: 'Use the source record reproduced in the lesson plan and study guide. Label your reasoning separately from statements directly supplied by the record.',
+            an:
+              task.preparation?.instruction ||
+              'Use the source record reproduced in the lesson plan and study guide. Label your reasoning separately from statements directly supplied by the record.',
           },
           {
             q: 'How will my response be evaluated?',

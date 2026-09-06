@@ -57,3 +57,5 @@ The rubric is original to this benchmark. Its focus on alignment is informed by 
 Fix the shared cause before polishing each export: (1) inputs and reference answers, (2) an objective-specific task and rubric, (3) a sequence of teaching/example/practice/feedback, (4) export and editing fidelity. Keep authored source content and explicit constraints intact. Never tune thresholds or suppress findings to favor a candidate. Checker bugs require a mutation regression, a recorded explanation and regrading **both** saved outputs with the same checker. Record remaining defects and compare the same frozen inputs before/after.
 
 The [shared-task follow-up review](SHARED-TASKS.zh-CN.md) preserves the original review and reports the next comparison, actual export defects, task-specific rubric calibration and the still-failing two-session case.
+
+The [task-progression review](TASK-PROGRESSION.zh-CN.md) records the v0.18.9 follow-up: the unchanged corpus passes all 295 probes. Manual export and browser review still found additional defects, covered by product regressions. Passing this corpus does not establish unseen-domain generalization or learning effectiveness.

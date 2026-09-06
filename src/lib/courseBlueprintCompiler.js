@@ -4,6 +4,11 @@ import {
   teachingProgramReviewQuestions,
 } from './compilerTeachingProgram.js';
 import { buildSharedTeachingTask } from './compilerTeachingTask.js';
+import {
+  INSTRUCTOR_TASK_ROUTING,
+  linkTeachingTaskSequence,
+  selectInstructorTaskSourceFacts,
+} from './compilerTeachingTaskSequence.js';
 import { projectSharedTeachingTasks, projectTeachingTasksIntoCourseMap } from './compilerTeachingTaskProjection.js';
 import { COLUMN_EXTRACTORS } from './prompts/promptUtils';
 import {
@@ -12764,7 +12769,11 @@ function prepareBlueprintForCompilation(blueprint = {}, options = {}) {
   // inputs or objectives cannot retain an obsolete answer or rubric revision.
   prepared.lessons = prepared.lessons.map((lesson) => {
     const ownedFacts = lesson.enrichment?.kernel?.canonicalFacts || lesson.enrichment?.kernel?.facts || [];
-    const instructorFacts = prepared.instructorSourceFactsByLesson?.[lesson.id] || [];
+    const savedInstructorFacts = prepared.instructorSourceFactsByLesson?.[lesson.id] || [];
+    const instructorFacts =
+      prepared.instructorSourceRouting === INSTRUCTOR_TASK_ROUTING
+        ? selectInstructorTaskSourceFacts(lesson, savedInstructorFacts)
+        : savedInstructorFacts;
     const authoredAssignment =
       lesson.enrichment?.assignmentCore?.taskDescription &&
       !lesson.enrichment.surfaceFallbacks?.includes('assignmentCore');
@@ -12786,6 +12795,7 @@ function prepareBlueprintForCompilation(blueprint = {}, options = {}) {
           : 'guided-practice',
     };
   });
+  prepared.lessons = linkTeachingTaskSequence(prepared.lessons);
   const semanticContract = validateBlueprintSemanticContract(prepared);
   const compilerContract = validateCourseBlueprintContract(prepared);
   const compilerProofBundle = buildCompilerProofBundle(prepared, {
@@ -13052,6 +13062,7 @@ export function compactBlueprintForStorage(blueprint = {}) {
   };
   if (blueprint.instructorSourceFactsByLesson && typeof blueprint.instructorSourceFactsByLesson === 'object') {
     compact.instructorSourceFactsByLesson = clonePlain(blueprint.instructorSourceFactsByLesson);
+    if (blueprint.instructorSourceRouting) compact.instructorSourceRouting = blueprint.instructorSourceRouting;
   }
   if (blueprint.instructorPreferenceProfile) {
     compact.instructorPreferenceProfile = clonePlain(blueprint.instructorPreferenceProfile);
@@ -16020,16 +16031,25 @@ export function buildCourseBlueprint(courseMap, options = {}) {
   // A source-only one-lesson brief is an unusually strong provenance case:
   // preserve its explicitly labeled facts verbatim so the compiler can teach
   // every supplied example even if the small model compresses the kernel.
-  // Multi-lesson briefs stay model-routed because blindly copying a global
-  // fact list into every lesson would create cross-lesson contamination.
+  // Multi-lesson sources require a complete supported task and an explicit
+  // match between its case entities and this lesson's own objective.
   const instructorProvidedFacts = unique(
     (Array.isArray(options.instructorProvidedFacts) ? options.instructorProvidedFacts : []).map(cleanText),
     8,
   );
+  const singleSourceLesson = courseMap?.lessons?.length === 1;
+  const routedInstructorFacts = Object.fromEntries(
+    extractedLessons.flatMap((lesson) => {
+      const facts = selectInstructorTaskSourceFacts(lesson, instructorProvidedFacts);
+      return facts.length ? [[lesson.id, facts]] : [];
+    }),
+  );
   const instructorSourceFactsByLesson =
-    extractedLessons.length === 1 && instructorProvidedFacts.length > 0
+    singleSourceLesson && extractedLessons.length === 1 && instructorProvidedFacts.length > 0
       ? { [extractedLessons[0].id || 'lesson-1']: instructorProvidedFacts }
-      : null;
+      : Object.keys(routedInstructorFacts).length
+        ? routedInstructorFacts
+        : null;
   const sourceConflictReport = buildSourceConflictReport(extractedLessons);
   const conflictAwareLessons = attachSourceConflictSignals(extractedLessons, sourceConflictReport);
   const sequencedLessons = addCourseSequenceSemantics(conflictAwareLessons);
@@ -16418,6 +16438,9 @@ export function buildCourseBlueprint(courseMap, options = {}) {
       support: 'Name concrete success criteria and feedback use instead of generic encouragement.',
     },
     ...(instructorSourceFactsByLesson ? { instructorSourceFactsByLesson } : {}),
+    ...(!singleSourceLesson && instructorSourceFactsByLesson
+      ? { instructorSourceRouting: INSTRUCTOR_TASK_ROUTING }
+      : {}),
   };
   if (instructorPreferenceProfile) {
     blueprint.instructorPreferenceProfile = instructorPreferenceProfile;
@@ -17246,6 +17269,7 @@ function compileSyllabus(blueprint) {
       // v0.14.1 (3.2f): registry rows render "A7.1 — <title>" so every
       // grading-table line is distinguishable and traceable to its map cell.
       name: assessment.registryId ? `${assessment.registryId} — ${assessment.title}` : assessment.title,
+      lessonNumbers: assessment.lessonNumbers,
       weight: assessment.weight,
       description: `${assessment.artifact}. ${criteriaText}${feedbackText}`,
     };
@@ -17463,6 +17487,7 @@ function compileSyllabus(blueprint) {
         };
       }),
       lessonAlignmentMatrix: (blueprint.alignmentMatrix || []).map((row) => ({
+        lessonNumber: row.lessonNumber,
         week: `Week ${row.lessonNumber}`,
         lesson: stripLessonPrefix(row.lessonTitle),
         assessmentArtifact: row.assessmentArtifact,
@@ -17545,6 +17570,7 @@ function compileSyllabus(blueprint) {
         ? ''
         : 'The listed percentages are proposed planning weights. Confirm the official grading policy before publishing.',
       assessmentCalendar: blueprint.assessments.map((assessment) => ({
+        lessonNumbers: assessment.lessonNumbers,
         week: `Week ${assessment.lessonNumbers[0]}`,
         assessmentOrMilestone: assessment.title,
         pointsOrWeight: assessment.weight,
@@ -17606,6 +17632,7 @@ function compileSyllabus(blueprint) {
             })
           : null;
         return {
+          lessonNumber: lesson.lessonNumber,
           week: `Week ${lesson.lessonNumber}`,
           dates: `Week ${lesson.lessonNumber}`,
           topic: stripLessonPrefix(lesson.title),
@@ -17637,6 +17664,7 @@ function compileSyllabus(blueprint) {
       dataPrivacy:
         'Before publishing, verify every required course technology against local privacy policy. Do not place private student information in a tool or space unless the institution has approved that use.',
       importantDates: blueprint.assessments.map((assessment) => ({
+        lessonNumbers: assessment.lessonNumbers,
         date: `Week ${assessment.lessonNumbers[0]}`,
         event: assessment.title,
       })),

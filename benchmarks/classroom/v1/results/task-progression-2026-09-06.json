@@ -1,0 +1,805 @@
+{
+  "purpose": "Same-input, same-checker compiler defect comparison. Manual review and limitations: TASK-PROGRESSION.zh-CN.md.",
+  "baselineCommit": "0893b292c633334619f58720ddd843c027bf7f3d",
+  "modelCalls": 0,
+  "baseline": {
+    "protocol": "edutool-classroom-output-benchmark-v1",
+    "createdAt": "2026-09-06T03:57:55.750Z",
+    "modelCalls": 0,
+    "mode": "frozen-kernel compiler replay",
+    "compilerRevision": "0893b292c633334619f58720ddd843c027bf7f3d",
+    "compilerDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "compilerSourceSha256": "866ce2f7507ede767878d02b9a85e14463bd997b297dcd3a25fe146da63835ea",
+    "courseMapMode": "reconciled from frozen input using the production compiler",
+    "referenceTasksSha256": "0f50bb0d3724eba3783e36f267db140edfaa220d3eb6529c88a667a87babc291",
+    "checkerSha256": "c1f9d8f15956b44a9eae6f85dfc024d98a395b872464d4fe26c016aa7005d8c9",
+    "corpusSha256": "04a52bdfc033162db427fcb409b60cac26a35979f515c04554ac0f8a91b91c4d",
+    "cases": [
+      {
+        "caseId": "experimental-design",
+        "elapsedMs": 889,
+        "outputsSha256": "cac5d443f15c8d4f586422dfb6abfb57f69c7d7f9e5574c2d985e921640c92ca",
+        "checks": 59,
+        "summary": [
+          {
+            "feature": "courseMap",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "syllabus",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "lessonPlans",
+            "passed": 7,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "slideDecks",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "assignments",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "rubrics",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "discussions",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "quizBank",
+            "passed": 7,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "studyGuides",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "courseFaq",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          }
+        ],
+        "failures": []
+      },
+      {
+        "caseId": "held-proportion-variation",
+        "elapsedMs": 135,
+        "outputsSha256": "2fbf6dc92cd68e42835412431a694dbc6463c6e68847c3f28ebd401390376b76",
+        "checks": 64,
+        "summary": [
+          {
+            "feature": "courseMap",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "syllabus",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "lessonPlans",
+            "passed": 8,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "slideDecks",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "assignments",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "rubrics",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "discussions",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "quizBank",
+            "passed": 8,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "studyGuides",
+            "passed": 7,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "courseFaq",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          }
+        ],
+        "failures": []
+      },
+      {
+        "caseId": "held-two-session-design",
+        "elapsedMs": 320,
+        "outputsSha256": "b5a7032123b22533251c83a7b10a357743696efd5f525a52356c1dcfed4c98b3",
+        "checks": 49,
+        "summary": [
+          {
+            "feature": "courseMap",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "syllabus",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "lessonPlans",
+            "passed": 5,
+            "failed": 1,
+            "critical": 0
+          },
+          {
+            "feature": "slideDecks",
+            "passed": 4,
+            "failed": 1,
+            "critical": 0
+          },
+          {
+            "feature": "assignments",
+            "passed": 4,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "rubrics",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "discussions",
+            "passed": 4,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "quizBank",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "studyGuides",
+            "passed": 3,
+            "failed": 2,
+            "critical": 0
+          },
+          {
+            "feature": "courseFaq",
+            "passed": 3,
+            "failed": 1,
+            "critical": 0
+          }
+        ],
+        "failures": [
+          {
+            "feature": "lessonPlans",
+            "id": "usable-feedback-answer",
+            "status": "fail",
+            "severity": "major",
+            "evidence": [
+              {
+                "row": 0,
+                "detail": "Collect one annotated Week 1 supported line or checkpoint response showing how Confounding variable evidence from the assigned course materials for Identify variables supports the decision."
+              },
+              {
+                "row": 1,
+                "detail": "Collect one annotated Week 2 supported line or checkpoint response showing how Repair the comparison evidence from Repair comparison and bound conclusion lesson supports the decision."
+              }
+            ]
+          },
+          {
+            "feature": "slideDecks",
+            "id": "slide-density",
+            "status": "fail",
+            "severity": "major",
+            "evidence": [
+              {
+                "row": 0,
+                "detail": [
+                  {
+                    "slide": 6,
+                    "words": 101
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "feature": "studyGuides",
+            "id": "answerable-self-study",
+            "status": "fail",
+            "severity": "major",
+            "evidence": [
+              {
+                "row": 0,
+                "detail": "A review question has no self-check answer."
+              },
+              {
+                "row": 1,
+                "detail": "A review question has no self-check answer."
+              }
+            ]
+          },
+          {
+            "feature": "studyGuides",
+            "id": "worked-example",
+            "status": "fail",
+            "severity": "major",
+            "evidence": [
+              {
+                "row": 1,
+                "detail": "Missing worked reasoning or result."
+              }
+            ]
+          },
+          {
+            "feature": "courseFaq",
+            "id": "direct-concise-answers",
+            "status": "fail",
+            "severity": "major",
+            "evidence": [
+              {
+                "row": 1,
+                "detail": [
+                  {
+                    "question": "What does strong work on Repair the comparison look like?",
+                    "words": 131
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "caseId": "historical-sources",
+        "elapsedMs": 162,
+        "outputsSha256": "ec32bd79a1656cb5a14ac4caa722e0d651c0eb97d0b712db8cbc6bf23f7416cc",
+        "checks": 59,
+        "summary": [
+          {
+            "feature": "courseMap",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "syllabus",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "lessonPlans",
+            "passed": 7,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "slideDecks",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "assignments",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "rubrics",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "discussions",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "quizBank",
+            "passed": 7,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "studyGuides",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "courseFaq",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          }
+        ],
+        "failures": []
+      },
+      {
+        "caseId": "local-proportions",
+        "elapsedMs": 135,
+        "outputsSha256": "dfa0629fa32ed175070c5fcbec9873a1ddcc5b67147583b49102f51a3dbf7ca3",
+        "checks": 64,
+        "summary": [
+          {
+            "feature": "courseMap",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "syllabus",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "lessonPlans",
+            "passed": 8,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "slideDecks",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "assignments",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "rubrics",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "discussions",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "quizBank",
+            "passed": 8,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "studyGuides",
+            "passed": 7,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "courseFaq",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          }
+        ],
+        "failures": []
+      }
+    ]
+  },
+  "candidate": {
+    "protocol": "edutool-classroom-output-benchmark-v1",
+    "createdAt": "2026-09-06T04:39:50.561Z",
+    "modelCalls": 0,
+    "mode": "frozen-kernel compiler replay",
+    "compilerRevision": "0893b292c633334619f58720ddd843c027bf7f3d",
+    "compilerDiffSha256": "dfca50d6360844653231b48e9efc22f77596f69f5ca6cd1cf5a0098bde8740a7",
+    "compilerSourceSha256": "d76eab58806a027f471d3e8cbbb9275f44810ec964e43b1662da28886b6d766b",
+    "courseMapMode": "reconciled from frozen input using the production compiler",
+    "referenceTasksSha256": "0f50bb0d3724eba3783e36f267db140edfaa220d3eb6529c88a667a87babc291",
+    "checkerSha256": "c1f9d8f15956b44a9eae6f85dfc024d98a395b872464d4fe26c016aa7005d8c9",
+    "corpusSha256": "04a52bdfc033162db427fcb409b60cac26a35979f515c04554ac0f8a91b91c4d",
+    "cases": [
+      {
+        "caseId": "experimental-design",
+        "elapsedMs": 969,
+        "outputsSha256": "f857269357d583f2cca23b7b0d63a2f5303aafa8d8f84a83604130c273c7c884",
+        "checks": 59,
+        "summary": [
+          {
+            "feature": "courseMap",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "syllabus",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "lessonPlans",
+            "passed": 7,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "slideDecks",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "assignments",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "rubrics",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "discussions",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "quizBank",
+            "passed": 7,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "studyGuides",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "courseFaq",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          }
+        ],
+        "failures": []
+      },
+      {
+        "caseId": "held-proportion-variation",
+        "elapsedMs": 145,
+        "outputsSha256": "ad1540fd6691d02b463d86e8be15584f958f643338e76e10951bf62f7586d059",
+        "checks": 64,
+        "summary": [
+          {
+            "feature": "courseMap",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "syllabus",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "lessonPlans",
+            "passed": 8,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "slideDecks",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "assignments",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "rubrics",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "discussions",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "quizBank",
+            "passed": 8,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "studyGuides",
+            "passed": 7,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "courseFaq",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          }
+        ],
+        "failures": []
+      },
+      {
+        "caseId": "held-two-session-design",
+        "elapsedMs": 322,
+        "outputsSha256": "385e11485d4a86902b0edfcdb6b479b7c079fc186a0a9f3c75d4d7408f646cc4",
+        "checks": 49,
+        "summary": [
+          {
+            "feature": "courseMap",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "syllabus",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "lessonPlans",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "slideDecks",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "assignments",
+            "passed": 4,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "rubrics",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "discussions",
+            "passed": 4,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "quizBank",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "studyGuides",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "courseFaq",
+            "passed": 4,
+            "failed": 0,
+            "critical": 0
+          }
+        ],
+        "failures": []
+      },
+      {
+        "caseId": "historical-sources",
+        "elapsedMs": 171,
+        "outputsSha256": "dfa667517513c5c3bb33008576dcce33b509aef3e4025364656bb10930d91d01",
+        "checks": 59,
+        "summary": [
+          {
+            "feature": "courseMap",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "syllabus",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "lessonPlans",
+            "passed": 7,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "slideDecks",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "assignments",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "rubrics",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "discussions",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "quizBank",
+            "passed": 7,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "studyGuides",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "courseFaq",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          }
+        ],
+        "failures": []
+      },
+      {
+        "caseId": "local-proportions",
+        "elapsedMs": 132,
+        "outputsSha256": "4efadf81a702ce38a87e3f218a25365b06cb2a204488769d37428c898f2e14c2",
+        "checks": 64,
+        "summary": [
+          {
+            "feature": "courseMap",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "syllabus",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "lessonPlans",
+            "passed": 8,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "slideDecks",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "assignments",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "rubrics",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "discussions",
+            "passed": 6,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "quizBank",
+            "passed": 8,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "studyGuides",
+            "passed": 7,
+            "failed": 0,
+            "critical": 0
+          },
+          {
+            "feature": "courseFaq",
+            "passed": 5,
+            "failed": 0,
+            "critical": 0
+          }
+        ],
+        "failures": []
+      }
+    ]
+  },
+  "candidateIdentityNote": "Candidate replay performed before the release commit; compilerSourceSha256 includes tracked and untracked src/lib content. Historical baseline never regenerated."
+}

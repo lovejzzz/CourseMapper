@@ -539,6 +539,9 @@ function lessonShapeFromIntent(intent = null) {
 const GENERIC_INSTRUCTIONAL_SCOPE_TOKENS = new Set(
   [
     'analysis',
+    // "Source-bound" describes evidence handling, not a subject identity.
+    'bound',
+    'bounded',
     'concept',
     'context',
     'course',

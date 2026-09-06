@@ -1475,6 +1475,50 @@ export const CURRENT_RELEASE_CHANGELOG = {
   highlights: CURRENT_RELEASE.highlights,
   sections: [
     {
+      label: 'Preserve the teaching sequence',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'Keep concrete instructor objectives instead of replacing an identification lesson with a broader experimental-design template.',
+        'Route a complete instructor-supplied comparison record only to lessons with matching case anchors. Reject missing, unrelated and ambiguous records.',
+        'Give diagnosis and repair different products, answers and four-level criteria. Link the repair warm-up to the preceding diagnostic answer and revision.',
+        'Restore the original instructor facts in the single-lesson Regen and sync compiler path so lesson prerequisites survive recovery and regeneration.',
+      ],
+    },
+    {
+      label: 'Improve the actual material copies',
+      icon: 'CHECK',
+      color: 'blue',
+      items: [
+        'Bind syllabus assessment names, calendar entries and criteria by lesson identity, including duplicate original names. Preserve official grading categories and show draft-weight guidance in the editor.',
+        'Replace eligible compiler recovery quiz slots with complete source-specific answers; distinguish a proposed design from results and inability to isolate an effect from evidence of no effect.',
+        'Replace empty compiler slide concepts and overlong artifact-label headings with sourced questions and teacher notes. Remove duplicated study-guide problem text in Word.',
+        'Keep the original ten materials, editors, export styles and local-only Scion. No model weights or hosted service settings change.',
+      ],
+    },
+    {
+      label: 'State the evidence and its limits',
+      icon: 'PROOF',
+      color: 'violet',
+      items: [
+        'Replay the same five frozen inputs against the same 295 probes: five detected failures become zero, with no model calls or scoring-rule changes.',
+        'Manually inspect exported materials and add regressions for first-lesson generic quiz answers, duplicated syllabus names and lost regeneration prerequisites, which the probe totals missed.',
+        'This remains a bounded compiler improvement. Independent transfer, teacher scoring agreement, learning outcomes and unrestricted multi-domain authoring are not validated; v0.19.0 remains unreleased.',
+      ],
+    },
+  ],
+};
+
+const V0188_RELEASE_CHANGELOG = {
+  version: '0.18.8',
+  date: 'September 5, 2026',
+  title: 'Shared Tasks, Specific Answers',
+  highlights: [
+    'Share one task across materials while preserving the 0.18.7 interface.',
+    'The five-input benchmark improves from 13 to 5 detected defects; two-session gaps remain.',
+  ],
+  sections: [
+    {
       label: 'Share the actual teaching work',
       icon: 'CHECK',
       color: 'emerald',
@@ -2696,6 +2740,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V0188_RELEASE_CHANGELOG,
   V0187_RELEASE_CHANGELOG,
   V0186_RELEASE_CHANGELOG,
   V0185_RELEASE_CHANGELOG,

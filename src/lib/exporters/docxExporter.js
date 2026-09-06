@@ -1811,7 +1811,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         if (g.workedExample?.problem) {
           children.push(makeSubHeading('Worked Example'));
           if (g.workedExample.studentTask) children.push(makeBold('Practice task', g.workedExample.studentTask));
-          children.push(makeText(g.workedExample.problem));
+          if (g.workedExample.problem !== g.workedExample.studentTask) children.push(makeText(g.workedExample.problem));
           (g.workedExample.steps || []).forEach((step, si) => children.push(makeNumbered(si + 1, step)));
           if (g.workedExample.result) children.push(makeCallout('Result', g.workedExample.result));
           if (g.workedExample.interpretation) children.push(makeBold('Interpretation', g.workedExample.interpretation));

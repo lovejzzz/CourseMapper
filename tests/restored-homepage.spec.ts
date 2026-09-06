@@ -120,9 +120,9 @@ test('the original homepage retains attachments, all original material choices a
 
 test('the public changelog shows the actual current release and its quality limits', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('link', { name: 'v0.18.8', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Shared Tasks, Specific Answers', exact: true })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Share the actual teaching work', exact: true })).toBeVisible();
-  await expect(page.getByText('Two-session quality gaps remain', { exact: false })).toBeVisible();
-  await expect(page.getByText('Do not delete the previous local course', { exact: false })).toBeVisible();
+  await page.getByRole('link', { name: 'v0.18.9', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Connected Lessons, Concrete Answers', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Preserve the teaching sequence', exact: true })).toBeVisible();
+  await expect(page.getByText('not proof of learning outcomes', { exact: false })).toBeVisible();
+  await expect(page.getByText('No model weights or hosted service settings change', { exact: false })).toBeVisible();
 });

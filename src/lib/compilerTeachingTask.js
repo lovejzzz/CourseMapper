@@ -213,7 +213,8 @@ function eventComparisonTask(claims, objective) {
 }
 
 function controlledComparisonTask(claims, objective) {
-  if (!/\b(?:confound|variable|experiment|design|causal)/i.test(objective)) return null;
+  if (!/\b(?:confound|variable|experiment|design|causal|comparison)/i.test(objective)) return null;
+  const diagnosisOnly = !/\b(?:propose|design|repair|revise|construct|random assignment)\b/i.test(objective);
   const contrasts = claims.filter((s) => /\bgroup\s+\w+\b/i.test(s) && /\b(?:while|whereas)\b/i.test(s));
   if (contrasts.length !== 1) return null;
   const [contrast] = contrasts;
@@ -221,13 +222,28 @@ function controlledComparisonTask(claims, objective) {
   const repair = claims.find(
     (s) => /\brandom assignment\b/i.test(s) && /\b(?:equal|constant)\b/i.test(s) && /\bremoves?\b/i.test(s),
   );
-  if (!contrast || !limit || !repair) return null;
+  if (!contrast || !limit || (!diagnosisOnly && !repair)) return null;
   const treatment = limit.match(/\beffect of ([\p{L} -]+)[.!]?$/iu)?.[1]?.trim();
-  const otherCondition = repair.match(/\bkeeping (.+?) (?:equal|constant)\b/i)?.[1]?.trim();
+  const differingConditions = limit.match(/\bbecause (.+?) and (.+?) both differ\b/i)?.slice(1) || [];
+  const repairCondition = repair?.match(/\bkeeping (.+?) (?:equal|constant)\b/i)?.[1]?.trim();
+  const otherCondition =
+    differingConditions.find((condition) => condition.toLowerCase() !== treatment?.toLowerCase()) ||
+    (!diagnosisOnly ? repairCondition : null);
   const outcome = limit.match(/^(.+?) is the outcome\b/i)?.[1]?.trim();
   const controls = contrast.match(/\bboth (?:use|have|receive) (?:the )?same ([^.!]+)/i)?.[1]?.trim();
   if (!treatment || !otherCondition || !outcome || !controls) return null;
-  const diagnosisOnly = !/\b(?:propose|design|repair|revise|construct|random assignment)\b/i.test(objective);
+  // Source records can come from different cases even when only one contains
+  // explicit group labels. Do not splice an unrelated limit or repair into it.
+  const containsPhrase = (text, phrase) =>
+    ` ${text.toLowerCase().replace(/[^\p{L}]+/gu, ' ')} `.includes(
+      ` ${phrase.toLowerCase().replace(/[^\p{L}]+/gu, ' ')} `,
+    );
+  if (!containsPhrase(contrast, treatment) || !containsPhrase(contrast, otherCondition)) return null;
+  if (
+    !diagnosisOnly &&
+    (repairCondition?.toLowerCase() !== otherCondition.toLowerCase() || !containsPhrase(repair, treatment))
+  )
+    return null;
   const reasoning = [
     `Compare the conditions in the actual groups: ${contrast}`,
     `Identify the outcome and the competing explanation: ${limit}`,
@@ -249,12 +265,52 @@ function controlledComparisonTask(claims, objective) {
       },
     ],
     kind: diagnosisOnly ? 'confound-diagnosis' : 'controlled-comparison-repair',
+    sourceContextId: `comparison-${sha256HexSync(JSON.stringify([contrast, limit])).slice(0, 16)}`,
+    assessmentExtensions: diagnosisOnly
+      ? [
+          {
+            question:
+              'A learner says the outcome variable is the condition changed by the experimenter. Correct the labels using this record.',
+            answer: `The intended changed condition is ${treatment}. The outcome is ${outcome.toLowerCase()}; it is what is measured, not the treatment.`,
+            criteria: ['Identifies the actual changed condition and measured outcome without swapping their roles.'],
+          },
+          {
+            question:
+              'Does keeping the stated controls equal remove every alternative explanation in this comparison? Explain using the remaining difference.',
+            answer: `No. The same ${controls} are retained, but ${otherCondition} still differs with ${treatment}. That remaining difference prevents isolating the intended effect.`,
+            criteria: ['Distinguishes the stated controls from the remaining confound and explains the causal limit.'],
+          },
+          {
+            question:
+              'A learner concludes that a confounded design shows the treatment has no effect. Is that conclusion justified by the supplied record?',
+            answer: `No. Failing to isolate the effect of ${treatment} does not establish that its effect is zero. ${limit}`,
+            criteria: ['Distinguishes inability to attribute an effect from evidence of no effect.'],
+          },
+        ]
+      : [
+          {
+            question:
+              'A classmate says the repaired plan proves the treatment works. Distinguish the design proposal from a measured finding and correct the claim.',
+            answer: `The proposal removes the stated ${otherCondition} difference; it does not supply outcome data. ${outcome} is the planned measurement. Whether ${treatment} changes the outcome still requires results from the repaired comparison.`,
+            criteria: [
+              'Separates the proposed comparison from measured results; makes no unsupported treatment-effect claim.',
+            ],
+          },
+          {
+            question:
+              'Write an implementable pair of revised group protocols. State one common setting for the confounding condition, the allocation method, treatment contrast, retained controls and outcome measurement.',
+            answer: `Randomly allocate experimental units to the two ${treatment} conditions in the record. Keep ${controls} the same. Set ${otherCondition} in both groups to the first group’s stated setting, and measure ${outcome.toLowerCase()} in both groups. An alternative explicitly stated common setting is acceptable; a systematic difference between groups is not.`,
+            criteria: [
+              `Both groups share an explicit ${otherCondition} setting and ${controls}; assignment is random and ${outcome.toLowerCase()} is measured consistently.`,
+            ],
+          },
+        ],
     title: diagnosisOnly ? 'Diagnose the confounded comparison' : 'Repair the confounded comparison',
-    summary: `${otherCondition[0].toUpperCase() + otherCondition.slice(1)} changes with ${treatment}, so their effects cannot be separated by this comparison. ${outcome} is the measured outcome. A repair must remove the stated systematic difference.`,
+    summary: `${otherCondition[0].toUpperCase() + otherCondition.slice(1)} changes with ${treatment}, so their effects cannot be separated by this comparison. ${outcome} is the measured outcome.${diagnosisOnly ? '' : ' A repair must remove the stated systematic difference.'}`,
     sourceClaims: [contrast, limit, ...(diagnosisOnly ? [] : [repair])],
     question: `Identify what differs between the supplied groups, what is measured, and why the comparison cannot isolate the intended effect.${diagnosisOnly ? '' : ' Propose a repaired design: state what changes, what stays equal, how units are assigned, and how the outcome is measured.'} Do not invent an experimental result.`,
     reasoning,
-    answer: `${contrast} ${otherCondition[0].toUpperCase() + otherCondition.slice(1)} differs between the ${treatment} conditions, so it is an alternative explanation for the outcome. The outcome is ${outcome.toLowerCase()}.${diagnosisOnly ? '' : ` Randomly assign experimental units to the ${treatment} conditions, keeping ${otherCondition} equal and retaining the same ${controls}. Use the same outcome measurement.`} The original comparison cannot isolate the effect of ${treatment}.`,
+    answer: `${contrast} ${otherCondition[0].toUpperCase() + otherCondition.slice(1)} differs between the ${treatment} conditions, so it is an alternative explanation for the outcome. The outcome is ${outcome.toLowerCase()}.${diagnosisOnly ? '' : ` Randomly assign experimental units to the ${treatment} conditions, keeping ${otherCondition} equal and retaining the same ${controls}. Use the same outcome measurement. This is a proposed design, not an observed result; the repair alone does not show whether ${treatment} changes the outcome.`} The original comparison cannot isolate the effect of ${treatment}.`,
     criteria: [
       criterion(
         'conditions',
@@ -294,7 +350,7 @@ function controlledComparisonTask(claims, objective) {
               'repair',
               'Specify a design that removes the stated confound',
               40,
-              `Changes ${treatment}, keeps ${otherCondition} equal, assigns units by chance, and retains ${controls} and the same outcome measurement.`,
+              `Changes ${treatment}, keeps ${otherCondition} equal, assigns units by chance, and retains ${controls} and the same outcome measurement. Distinguishes the proposed design from evidence that the treatment works.`,
               'Proposes equal conditions but omits random assignment or a stated control requirement.',
               'Merely increases the sample or randomizes while retaining the systematic condition difference.',
               'Write both revised groups side by side. Remove the condition difference, retain controls, and specify assignment and measurement.',
@@ -372,7 +428,11 @@ export function buildSharedTeachingTask({
     product:
       body.kind === 'source-proportion'
         ? 'One calculation record showing division, percentage conversion and reverse check, with a 2–4-sentence interpretation of the observations and their limits.'
-        : 'One annotated response with the reasoning, conclusion, and evidence limit; prose, a labeled diagram, or an equivalent accessible response.',
+        : body.kind === 'confound-diagnosis'
+          ? 'A comparison table labeling each group, its conditions, the measured outcome, and the stated controls, followed by 2–3 sentences explaining the confound. Equivalent labeled text is acceptable.'
+          : body.kind === 'controlled-comparison-repair'
+            ? 'A revised two-group protocol specifying the treatment, equal conditions, random assignment and outcome measurement, with 2–3 sentences explaining what the repair establishes and what still requires results.'
+            : 'One annotated response with the reasoning, conclusion, and evidence limit; prose, a labeled diagram, or an equivalent accessible response.',
     minutes:
       Number(practiceMinutes) > 0
         ? Number(practiceMinutes)
