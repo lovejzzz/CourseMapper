@@ -16,6 +16,8 @@ export default defineConfig({
       'tests/v0157-finished-package-surface.test.jsx',
       'src/hooks/__tests__/{useDeliverableUndo,useBoundedAutosave,useExport}.test.jsx',
       'src/lib/__tests__/teachingTaskContent*.test.js',
+      'src/lib/__tests__/teachingProgram*.test.js',
+      'src/lib/courseGraph/__tests__/courseGraph.test.js',
     ],
   },
 });

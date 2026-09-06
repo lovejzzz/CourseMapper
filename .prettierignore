@@ -22,3 +22,4 @@ package-lock.json
 # Preserve the original recorded bytes of evaluation receipts and completions.
 /benchmarks/classroom/v2/results/*.json
 /research/scion/evaluation/v0.19.0/*.json
+/research/scion/evaluation/v0.20.0/*.json

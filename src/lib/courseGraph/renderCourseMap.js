@@ -13,6 +13,7 @@
  */
 
 import { expandLeanSectionField } from '../leanCourseMap.js';
+import { migrateGraphTeachingProgram, readTeachingTaskSources } from '../teachingProgram.js';
 
 function cleanText(value) {
   return String(value ?? '')
@@ -225,11 +226,15 @@ function renderSection(graph, session, section, options = {}) {
  */
 export function renderCourseMapFromGraph(graph, options = {}) {
   if (!graph || typeof graph !== 'object') return null;
+  graph = migrateGraphTeachingProgram(graph);
   const sessions = [...(graph.sessions || [])].sort((a, b) => (a.number || 0) - (b.number || 0));
   return {
     courseName: graph.course?.name || 'Untitled Course',
     ...(graph.course?.description ? { courseDescription: graph.course.description } : {}),
     ...(graph.course?.meta && typeof graph.course.meta === 'object' ? graph.course.meta : {}),
+    ...(graph.teachingProgram
+      ? { teachingProgram: structuredClone(graph.teachingProgram), teachingTaskSources: readTeachingTaskSources(graph) }
+      : {}),
     lessons: sessions.map((session) => ({
       title: renderSessionTitle(graph, session),
       ...(session.teachingTaskLink ? { teachingTaskLink: structuredClone(session.teachingTaskLink) } : {}),

@@ -1,15 +1,14 @@
 import { buildSharedTeachingTask } from './compilerTeachingTask.js';
-
-export const TEACHING_TASK_SOURCE_VERSION = 1;
+import { TEACHING_TASK_SOURCE_VERSION, validTeachingTaskSource } from './teachingTaskSourceSchema.js';
+export { TEACHING_TASK_SOURCE_VERSION, validTeachingTaskSource } from './teachingTaskSourceSchema.js';
 
 /** @typedef {{ id: string, text: string }} TaskInput
  * @typedef {{ version: 1, id: string, lessonId: string, lessonNumber: number,
  * title: string, objective: string, kind: string, scope: string,
  * inputs: TaskInput[], sessionMinutes: number, practiceMinutes: number }} TeachingTaskSource
  *
- * Stored in CourseGraph.course.meta.teachingTaskSources (the map's lossless
- * metadata channel). Material copies carry the same IDs for editing detached
- * exports/restored packages; the course map owns accepted source revisions.
+ * Legacy transport derived from CourseGraph.teachingProgram. Material copies
+ * carry bindings, never authority over an existing teaching program.
  */
 export function teachingTaskSourceFromLesson(lesson) {
   const task = lesson.teachingTask;
@@ -28,34 +27,6 @@ export function teachingTaskSourceFromLesson(lesson) {
     sessionMinutes: lesson.classSessionPlan?.sessionMinutes || 50,
     practiceMinutes: task.minutes,
   };
-}
-
-export function validTeachingTaskSource(source) {
-  return Boolean(
-    source?.version === TEACHING_TASK_SOURCE_VERSION &&
-    typeof source.id === 'string' &&
-    typeof source.lessonId === 'string' &&
-    Number.isInteger(source.lessonNumber) &&
-    source.lessonNumber > 0 &&
-    typeof source.title === 'string' &&
-    typeof source.objective === 'string' &&
-    source.objective.trim() &&
-    Array.isArray(source.inputs) &&
-    source.inputs.length > 0 &&
-    source.inputs.length <= 32 &&
-    source.inputs.every(
-      (input) =>
-        typeof input.id === 'string' &&
-        typeof input.text === 'string' &&
-        input.text.trim() &&
-        input.text.length <= 10000,
-    ) &&
-    new Set(source.inputs.map((input) => input.id)).size === source.inputs.length &&
-    Number.isFinite(source.sessionMinutes) &&
-    source.sessionMinutes > 0 &&
-    Number.isFinite(source.practiceMinutes) &&
-    source.practiceMinutes > 0,
-  );
 }
 
 export function rebuildTeachingTaskSource(source, objective = source?.objective) {

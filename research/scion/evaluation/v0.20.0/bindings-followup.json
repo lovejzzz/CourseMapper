@@ -1,0 +1,208 @@
+{
+  "protocol": "scion-teaching-bindings-m0-v2",
+  "evaluationKind": "same-development-inputs-after-initial-failures",
+  "startedAt": "2026-09-06T21:44:32.775Z",
+  "settings": {
+    "maxNewTokens": 1024,
+    "temperature": 0,
+    "topK": 1,
+    "topP": 1,
+    "seed": 7,
+    "thinking": false
+  },
+  "results": [
+    {
+      "id": "m0-source-dates-en",
+      "input": {
+        "id": "m0-source-dates-en",
+        "language": "en",
+        "objective": "Teach learners to distinguish dates attached to different events and identify what the records leave unresolved.",
+        "sources": [
+          {
+            "id": "r1",
+            "text": "An archive register says the photograph was taken in 1931."
+          },
+          {
+            "id": "r2",
+            "text": "The exhibition booklet containing a reproduction was published in 1986."
+          },
+          {
+            "id": "r3",
+            "text": "The supplied records do not describe the photograph’s custody between its creation and the exhibition."
+          }
+        ]
+      },
+      "raw": "{\n\"operation\": \"needs_review\",\n\"bindings\": [\n{\n\"sourceId\": \"r1\",\n\"role\": \"creation-event\",\n\"quote\": \"An archive register says the photograph was taken in 1931.\"\n},\n{\n\"sourceId\": \"r2\",\n\"role\": \"publication-event\",\n\"quote\": \"The exhibition booklet containing a reproduction was published in 1986.\"\n},\n{\n\"sourceId\": \"r3\",\n\"role\": \"missing-measurement\",\n\"quote\": \"The supplied records do not describe the photograph’s custody between its creation and the exhibition.\"\n}\n],\n\"unresolved\": [\n{\n\"sourceId\": \"r3\",\n\"quote\": \"The supplied records do not describe the photograph’s custody between its creation and the exhibition.\"\n}\n]\n}",
+      "parsed": {
+        "operation": "needs_review",
+        "bindings": [
+          {
+            "sourceId": "r1",
+            "role": "creation-event",
+            "quote": "An archive register says the photograph was taken in 1931."
+          },
+          {
+            "sourceId": "r2",
+            "role": "publication-event",
+            "quote": "The exhibition booklet containing a reproduction was published in 1986."
+          },
+          {
+            "sourceId": "r3",
+            "role": "missing-measurement",
+            "quote": "The supplied records do not describe the photograph’s custody between its creation and the exhibition."
+          }
+        ],
+        "unresolved": [
+          {
+            "sourceId": "r3",
+            "quote": "The supplied records do not describe the photograph’s custody between its creation and the exhibition."
+          }
+        ]
+      },
+      "transportNormalized": false,
+      "issues": [],
+      "elapsedMs": 7370,
+      "completion": {
+        "finishReason": "stop",
+        "inputTokens": 483,
+        "outputTokens": 192,
+        "contextTokens": 8192,
+        "thinkingEnabled": false,
+        "thinkingObserved": false
+      }
+    },
+    {
+      "id": "m0-proportion-en",
+      "input": {
+        "id": "m0-proportion-en",
+        "language": "en",
+        "objective": "Teach learners to calculate an observed proportion and explain the population to which the record applies.",
+        "sources": [
+          {
+            "id": "r1",
+            "text": "Of 40 voluntary respondents at a pilot workshop, 17 selected the afternoon session."
+          },
+          {
+            "id": "r2",
+            "text": "People who did not attend the pilot workshop were not surveyed."
+          }
+        ]
+      },
+      "raw": "{\n\"operation\": \"interpret_proportion\",\n\"bindings\": [\n{\n\"sourceId\": \"r1\",\n\"role\": \"observed-part\",\n\"quote\": \"Of 40 voluntary respondents at a pilot workshop, 17 selected the afternoon session.\"\n},\n{\n\"sourceId\": \"r1\",\n\"role\": \"observed-whole\",\n\"quote\": \"Of 40 voluntary respondents at a pilot workshop, 17 selected the afternoon session.\"\n}\n],\n\"unresolved\": [\n{\n\"sourceId\": \"r2\",\n\"quote\": \"People who did not attend the pilot workshop were not surveyed.\"\n}\n]\n}",
+      "parsed": {
+        "operation": "interpret_proportion",
+        "bindings": [
+          {
+            "sourceId": "r1",
+            "role": "observed-part",
+            "quote": "Of 40 voluntary respondents at a pilot workshop, 17 selected the afternoon session."
+          },
+          {
+            "sourceId": "r1",
+            "role": "observed-whole",
+            "quote": "Of 40 voluntary respondents at a pilot workshop, 17 selected the afternoon session."
+          }
+        ],
+        "unresolved": [
+          {
+            "sourceId": "r2",
+            "quote": "People who did not attend the pilot workshop were not surveyed."
+          }
+        ]
+      },
+      "transportNormalized": false,
+      "issues": [],
+      "elapsedMs": 5528,
+      "completion": {
+        "finishReason": "stop",
+        "inputTokens": 456,
+        "outputTokens": 149,
+        "contextTokens": 8192,
+        "thinkingEnabled": false,
+        "thinkingObserved": false
+      }
+    },
+    {
+      "id": "m0-experiment-zh",
+      "input": {
+        "id": "m0-experiment-zh",
+        "language": "zh",
+        "objective": "让学生设计一个可执行的比较方案，检验两种滤材对浑浊度的影响。",
+        "sources": [
+          {
+            "id": "r1",
+            "text": "甲杯最初的浑浊度为80单位，使用滤材A处理了6分钟。"
+          },
+          {
+            "id": "r2",
+            "text": "乙杯最初的浑浊度为30单位，使用滤材B处理了15分钟。"
+          },
+          {
+            "id": "r3",
+            "text": "观察者认为乙杯更清，但没有记录处理后的仪器读数，也没有重复实验。"
+          }
+        ]
+      },
+      "raw": "{\n  \"operation\": \"design_fair_comparison\",\n  \"bindings\": [\n    {\n      \"sourceId\": \"r1\",\n      \"role\": \"comparison-condition\",\n      \"quote\": \"甲杯最初的浑浊度为80单位，使用滤材A处理了6分钟。\"\n    },\n    {\n      \"sourceId\": \"r2\",\n      \"role\": \"comparison-condition\",\n      \"quote\": \"乙杯最初的浑浊度为30单位，使用滤材B处理了15分钟。\"\n    }\n  ],\n  \"unresolved\": [\n    {\n      \"sourceId\": \"r3\",\n      \"quote\": \"观察者认为乙杯更清，但没有记录处理后的仪器读数，也没有重复实验。\"\n    }\n  ]\n}",
+      "parsed": {
+        "operation": "design_fair_comparison",
+        "bindings": [
+          {
+            "sourceId": "r1",
+            "role": "comparison-condition",
+            "quote": "甲杯最初的浑浊度为80单位，使用滤材A处理了6分钟。"
+          },
+          {
+            "sourceId": "r2",
+            "role": "comparison-condition",
+            "quote": "乙杯最初的浑浊度为30单位，使用滤材B处理了15分钟。"
+          }
+        ],
+        "unresolved": [
+          {
+            "sourceId": "r3",
+            "quote": "观察者认为乙杯更清，但没有记录处理后的仪器读数，也没有重复实验。"
+          }
+        ]
+      },
+      "transportNormalized": false,
+      "issues": [],
+      "elapsedMs": 8518,
+      "completion": {
+        "finishReason": "stop",
+        "inputTokens": 500,
+        "outputTokens": 184,
+        "contextTokens": 8192,
+        "thinkingEnabled": false,
+        "thinkingObserved": false
+      }
+    }
+  ],
+  "runtime": {
+    "activeWeightIdentity": {
+      "modelId": "google/gemma-4-E2B-it-qat-q4_0-gguf",
+      "revision": "69536a21d70340464240401ba38223d805f6a709",
+      "file": "gemma-4-E2B_q4_0-it.gguf",
+      "bytes": 3349514112,
+      "sha256": "3646b4c147cd235a44d91df1546d3b7d8e29b547dbe4e1f80856419aa455e6fd",
+      "format": "gguf-q4_0-qat"
+    },
+    "adapter": {
+      "mode": "base-only",
+      "active": false,
+      "id": null,
+      "manifestSha256": null
+    },
+    "runtime": {
+      "id": "scion-wllama-webgpu-jspi-v1",
+      "modulePath": "/scion/runtime/v2/wllama.js",
+      "moduleSha256": "4b43ed59785ae9aa89aae67ac504534d9bf7b65e6340969b7bd13550146a6433",
+      "wasmPath": "/scion/runtime/v1/jspi-single-thread/wllama.wasm",
+      "wasmSha256": "732bac4661d613461cee0b3132660beab159b926910c8431181ee01608e44229",
+      "upstreamRevision": "58903000dbea6acfc0eb9c738d8be50d1052cf23",
+      "llamaCppRevision": "5ec717d1256e34558a44dc09adf1e6e16f2e2682"
+    }
+  },
+  "status": "completed-needs-semantic-review",
+  "finishedAt": "2026-09-06T21:44:54.192Z"
+}

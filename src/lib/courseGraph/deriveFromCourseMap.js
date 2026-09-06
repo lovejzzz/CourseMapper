@@ -1,4 +1,5 @@
 import { sourceCourseGradeWeight } from '../courseGradeWeight.js';
+import { migrateGraphTeachingProgram } from '../teachingProgram.js';
 /**
  * courseGraph/deriveFromCourseMap.js — v0.13 P0: build a CourseGraph FROM a
  * (repaired) course map.
@@ -438,5 +439,6 @@ export function deriveCourseGraphFromCourseMap(courseMap, options = {}) {
   if (options.enrichmentOverlay && typeof options.enrichmentOverlay === 'object') {
     graph.enrichmentOverlay = options.enrichmentOverlay;
   }
-  return graph;
+  if (courseMap?.teachingProgram !== undefined) graph.teachingProgram = courseMap.teachingProgram;
+  return migrateGraphTeachingProgram(graph);
 }

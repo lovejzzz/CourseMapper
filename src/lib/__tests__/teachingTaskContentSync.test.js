@@ -17,6 +17,8 @@ import {
 } from '../teachingTaskContentSync.js';
 import { deriveCourseGraphFromCourseMap, buildBlueprintFromGraph } from '../courseGraph/index.js';
 import { evaluateWorkspaceReadiness } from '../deliverableReadiness.js';
+import { withTeachingTaskSources } from '../teachingProgram.js';
+import { finalizeCompiledDeliverableLanguage } from '../compiledLanguageFinalizer.js';
 
 const features = [
   'lessonPlans',
@@ -56,6 +58,22 @@ function packageFixture() {
 }
 
 describe('shared task source updates through production projections', () => {
+  it('keeps the saved guided-practice question aligned with its visible question during language finalization', () => {
+    const question =
+      'Evaluate this response: “The amendment proves that the earlier rule was always incorrect.” Correct the reasoning using the supplied record.';
+    const data = {
+      studyGuides: [
+        {
+          reviewQuestions: [{ q: question }],
+          teachingProgram: { protocol: 'coursemapper-teaching-program-v1', units: [{ question }] },
+        },
+      ],
+    };
+    const finalized = finalizeCompiledDeliverableLanguage('studyGuides', data, { lessons: [] });
+    expect(finalized.studyGuides[0].teachingProgram.units[0].question).toBe(
+      finalized.studyGuides[0].reviewQuestions[0].q,
+    );
+  });
   it('refreshes generated revision digests while still reviewing a competing teacher answer', () => {
     const conflicts = [];
     const merged = mergeTaskProjection(
@@ -74,6 +92,7 @@ describe('shared task source updates through production projections', () => {
       .map((input, index) => `Source record ${index + 1}: ${input.text}`)
       .join(' ');
     delete f.map.teachingTaskSources;
+    delete f.map.teachingProgram;
     for (const lesson of f.map.lessons) delete lesson.teachingTaskLink;
     const result = applyTeachingTaskSourceEdit({
       featureId: 'studyGuides',
@@ -269,7 +288,11 @@ describe('shared task source updates through production projections', () => {
     map.lessons[0].title = 'Renamed observed rate';
     map.lessons.unshift(second);
     const restored = compileBlueprintDeliverables(
-      buildBlueprintFromGraph(deriveCourseGraphFromCourseMap(JSON.parse(JSON.stringify(map)))),
+      buildBlueprintFromGraph(
+        deriveCourseGraphFromCourseMap(
+          JSON.parse(JSON.stringify(withTeachingTaskSources(map, map.teachingTaskSources))),
+        ),
+      ),
       ['studyGuides'],
     );
     expect(restored.studyGuides.studyGuides[0].workedExample.result).toContain('37.5%');

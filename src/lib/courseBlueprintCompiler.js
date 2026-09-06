@@ -12,6 +12,7 @@ import {
 } from './compilerTeachingTaskSequence.js';
 import { projectSharedTeachingTasks, projectTeachingTasksIntoCourseMap } from './compilerTeachingTaskProjection.js';
 import { rebuildTeachingTaskSource } from './teachingTaskSource.js';
+import { readTeachingTaskSources } from './teachingProgram.js';
 import { COLUMN_EXTRACTORS } from './prompts/promptUtils';
 import {
   asArray,
@@ -12779,8 +12780,8 @@ function prepareBlueprintForCompilation(blueprint = {}, options = {}) {
     const authoredAssignment =
       lesson.enrichment?.assignmentCore?.taskDescription &&
       !lesson.enrichment.surfaceFallbacks?.includes('assignmentCore');
-    const savedTaskSource = (Array.isArray(prepared.teachingTaskSources) ? prepared.teachingTaskSources : []).find(
-      (source) => (lesson.taskSourceId ? source.id === lesson.taskSourceId : source.lessonId === lesson.id),
+    const savedTaskSource = readTeachingTaskSources(prepared).find((source) =>
+      lesson.taskSourceId ? source.id === lesson.taskSourceId : source.lessonId === lesson.id,
     );
     const teachingTask =
       (savedTaskSource && rebuildTeachingTaskSource(savedTaskSource, asArray(lesson.outcomes).join(' '))) ||
@@ -13039,7 +13040,7 @@ export function compactBlueprintForStorage(blueprint = {}) {
     version: blueprint.version || 1,
     source: blueprint.source || 'deterministic-course-map',
     courseName: blueprint.courseName,
-    teachingTaskSources: clonePlain(blueprint.teachingTaskSources || []),
+    teachingTaskSources: readTeachingTaskSources(blueprint),
     semester: blueprint.semester,
     credits: blueprint.credits,
     sessionMinutes: normalizeClassSessionMinutes(
@@ -16313,7 +16314,7 @@ export function buildCourseBlueprint(courseMap, options = {}) {
     version: 1,
     source: authoritativeInstructionalPlan ? 'authority-bound-course-map' : 'deterministic-course-map',
     courseName,
-    teachingTaskSources: clonePlain(courseMap?.teachingTaskSources || []),
+    teachingTaskSources: readTeachingTaskSources(courseMap),
     coursePromises,
     ...(coursePrerequisites ? { coursePrerequisites } : {}),
     ...(courseGradingPolicy ? { courseGradingPolicy } : {}),

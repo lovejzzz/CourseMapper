@@ -47,6 +47,7 @@ import {
 import { classifyAssessmentKind, deriveCourseGraphFromCourseMap } from './courseGraph/deriveFromCourseMap.js';
 import { renderCourseMapFromGraph } from './courseGraph/renderCourseMap.js';
 import { validateCourseGraph } from './courseGraph/schema.js';
+import { assertTeachingProgram, migrateGraphTeachingProgram } from './teachingProgram.js';
 import { attachEnrichmentToGraph } from './courseGraph/blueprintFromGraph.js';
 import { buildCourseIRFromCourseMap, courseIRToCourseGraph, validateCourseIR } from './courseIR.js';
 import { repairNativeFallbackWithCurriculumV1 } from './curriculumV1Repair.js';
@@ -3868,7 +3869,10 @@ export function repairCourseGraphResourceIds(inputGraph) {
 
 export function restoreCourseGraphForProject(saved = {}) {
   const restoredGraph = repairCourseGraphResourceIds(saved.courseGraph);
-  if (restoredGraph && validateCourseGraph(restoredGraph).valid) return restoredGraph;
+  // An invalid new program cannot be repaired by falling back to an older
+  // map ledger. Keep that disagreement visible to the restore caller.
+  if (restoredGraph?.teachingProgram !== undefined) assertTeachingProgram(restoredGraph.teachingProgram);
+  if (restoredGraph && validateCourseGraph(restoredGraph).valid) return migrateGraphTeachingProgram(restoredGraph);
   try {
     return saved?.courseMap?.lessons ? deriveCourseGraphFromCourseMap(saved.courseMap) : null;
   } catch {

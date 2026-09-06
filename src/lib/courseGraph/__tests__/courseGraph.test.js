@@ -73,7 +73,7 @@ describe('courseGraph (v0.13 P0)', () => {
     expect(graph.sessions[1].sections[0].extras.customColumn).toBe('Custom value survives the round trip.');
   });
 
-  it('caps an inferred final portfolio weight instead of letting it dominate a multi-assessment course', () => {
+  it('leaves course grade weights unspecified when an assessment has no source grading policy', () => {
     const graph = deriveCourseGraphFromCourseMap({
       courseName: 'Community Health Program Evaluation',
       lessons: Array.from({ length: 6 }, (_, index) => ({
@@ -89,11 +89,41 @@ describe('courseGraph (v0.13 P0)', () => {
     });
 
     const graded = graph.assessments.filter((assessment) => assessment.kind !== 'in-class');
-    expect(graded.reduce((sum, assessment) => sum + assessment.weightPct, 0)).toBe(100);
-    expect(
-      graded.find((assessment) => /final evaluation portfolio/i.test(assessment.title)).weightPct,
-    ).toBeLessThanOrEqual(45);
-    expect(Math.max(...graded.map((assessment) => assessment.weightPct))).toBeLessThanOrEqual(45);
+    expect(graded).toHaveLength(6);
+    expect(graded.every((assessment) => assessment.weightPct === null)).toBe(true);
+    expect(graded.every((assessment) => assessment.weightSource === 'unweighted-formative')).toBe(true);
+  });
+
+  it('preserves explicit course weights without inventing or normalizing the remaining policy', () => {
+    const graph = deriveCourseGraphFromCourseMap({
+      courseName: 'Evaluation workshop',
+      lessons: [
+        {
+          title: 'Evaluate a program',
+          sections: [
+            {
+              topicSection: 'Evaluation evidence',
+              learningObjectives: 'Analyze evidence for an evaluation.',
+              weeklyAssessments: 'Evaluation memo (20%)\nFinal evaluation portfolio (40%)\nPractice artifact',
+            },
+          ],
+        },
+      ],
+    });
+    const graded = graph.assessments.filter((assessment) => assessment.kind !== 'in-class');
+    expect(graded).toHaveLength(3);
+    expect(graded.find((assessment) => /evaluation memo/i.test(assessment.title))).toMatchObject({
+      weightPct: 20,
+      weightSource: 'course-map-explicit',
+    });
+    expect(graded.find((assessment) => /final evaluation portfolio/i.test(assessment.title))).toMatchObject({
+      weightPct: 40,
+      weightSource: 'course-map-explicit',
+    });
+    expect(graded.find((assessment) => /practice artifact/i.test(assessment.title))).toMatchObject({
+      weightPct: null,
+      weightSource: 'unweighted-formative',
+    });
   });
 
   it('keeps one registry artifact when two lesson sections name the same submission', () => {

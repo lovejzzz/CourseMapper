@@ -1,9 +1,10 @@
 import { projectSharedTeachingTasks, projectTeachingTasksIntoCourseMap } from './compilerTeachingTaskProjection.js';
+import { readTeachingTaskSources, withTeachingTaskSources } from './teachingProgram.js';
 import { rebuildTeachingTaskSource, validTeachingTaskSource } from './teachingTaskSource.js';
 import { linkTeachingTaskSequence } from './compilerTeachingTaskSequence.js';
 import { finalizeCompiledDeliverableLanguage } from './compiledLanguageFinalizer.js';
+import { sameJsonData as equal } from './canonicalJson.js';
 
-const equal = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const valueAt = (value, path) => path.reduce((node, key) => node?.[key], value);
 const object = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
 const IDENTITY_FIELDS = ['id', 'assessmentId', 'taskRole', 'practiceId', 'criterionId', 'lessonNumber', 'taskId'];
@@ -226,7 +227,7 @@ export function applyTeachingTaskSourceEdit({ featureId, oldData, newData, editP
       if (validTeachingTaskSource(source)) sourcesById.set(source.id, source);
   // The canonical map wins over saved material copies. A stale copy must not
   // silently replace a more recent source revision.
-  for (const source of Array.isArray(courseMap?.teachingTaskSources) ? courseMap.teachingTaskSources : [])
+  for (const source of readTeachingTaskSources(courseMap))
     if (validTeachingTaskSource(source)) sourcesById.set(source.id, source);
   if (sourcesById.has(binding.source.id) && !equal(sourcesById.get(binding.source.id), binding.source))
     return {
@@ -317,7 +318,7 @@ export function applyTeachingTaskSourceEdit({ featureId, oldData, newData, editP
   }
   // Older saved maps may only carry the ledger on their materials. Use the
   // validated pre-edit ledger for identifying resource copies in both projections.
-  const projectionMap = { ...courseMap, teachingTaskSources: oldSources };
+  const projectionMap = withTeachingTaskSources(courseMap, oldSources);
   const previousMap = { ...projectTeachingTasksIntoCourseMap(projectionMap, oldBlueprint) };
   const nextMap = { ...projectTeachingTasksIntoCourseMap(projectionMap, nextBlueprint) };
   const currentMap = { ...courseMap };
@@ -328,6 +329,9 @@ export function applyTeachingTaskSourceEdit({ featureId, oldData, newData, editP
   delete previousMap.teachingTaskSources;
   delete nextMap.teachingTaskSources;
   delete currentMap.teachingTaskSources;
+  delete previousMap.teachingProgram;
+  delete nextMap.teachingProgram;
+  delete currentMap.teachingProgram;
   // Older/prose-generated maps can lack compiler-owned lesson links. Their
   // reconstruction is not a teacher edit. Keep actual outline prose in the
   // three-way comparison, then restore links from the accepted projection.
@@ -352,13 +356,13 @@ export function applyTeachingTaskSourceEdit({ featureId, oldData, newData, editP
     ...lesson,
     ...(nextLinks?.[index] ? { teachingTaskLink: nextLinks[index] } : {}),
   }));
-  nextCourseMap.teachingTaskSources = nextSources;
+  const acceptedCourseMap = withTeachingTaskSources({ ...courseMap, ...nextCourseMap }, nextSources);
   conflicts.push(...mapConflicts.map((conflict) => ({ featureId: 'courseMap', ...conflict })));
   return {
     status: 'applied',
     changed,
     before,
-    courseMap: nextCourseMap,
+    courseMap: acceptedCourseMap,
     conflicts,
     taskId: updatedSource.id,
     inputId: binding.inputId,

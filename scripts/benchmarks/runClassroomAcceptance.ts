@@ -14,7 +14,9 @@ import { evaluateAcceptanceOutputs } from './classroomAcceptance.mjs';
 
 type AcceptedTask = { question: string; answer: string; criteria: { label: string }[]; sequence?: { kind: string }[] };
 const args = process.argv.slice(2);
-const value = (flag: string, fallback: string) => (args.includes(flag) ? args[args.indexOf(flag) + 1] : fallback);
+// npm's script supplies a default split; an explicit forwarded option must
+// override that default, otherwise an intended exposed run tests development.
+const value = (flag: string, fallback: string) => (args.includes(flag) ? args[args.lastIndexOf(flag) + 1] : fallback);
 const split = value('--split', 'development');
 if (!['development', 'held-out', 'exposed'].includes(split))
   throw new Error('Choose development, held-out, or exposed explicitly.');

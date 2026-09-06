@@ -18,6 +18,8 @@
  *    parsing render verbatim — never silently re-inferred).
  */
 
+import { validateTeachingProgram } from '../teachingProgram.js';
+
 export const COURSE_GRAPH_VERSION = 1;
 
 const ENTITY_COLLECTIONS = ['concepts', 'outcomes', 'assessments', 'sessions', 'resources'];
@@ -191,6 +193,7 @@ export function validateCourseGraph(graph) {
     }
   }
 
+  if (graph.teachingProgram !== undefined) issues.push(...validateTeachingProgram(graph.teachingProgram).issues);
   return { valid: issues.length === 0, issues };
 }
 

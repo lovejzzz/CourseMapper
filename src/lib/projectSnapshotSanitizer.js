@@ -3,6 +3,7 @@ import { setOwnEnumerableData } from './ownEnumerableData.js';
 import { renderedDeliverableCollection } from './renderedDeliverableRoot.js';
 import { selectPersistablePackageEvidence } from './packageQualityPersistence.js';
 import { quarantineInvalidInstructionalPlanLineage } from './instructionalPlanLineage.js';
+import { restoreSnapshotTeachingProgram } from './teachingProgram.js';
 
 const SECRET_FIELD_NAMES = new Set([
   'apikey',
@@ -303,8 +304,9 @@ export function prepareProjectSnapshotForRestore(snapshot) {
     if (restored.courseGraph && typeof restored.courseGraph === 'object') {
       quarantineInvalidInstructionalPlanLineage(restored.courseGraph);
     }
-    return restoreProjectGenerationConstraints(migrateRestoredDeliverables(restored));
-  } catch {
+    return restoreSnapshotTeachingProgram(restoreProjectGenerationConstraints(migrateRestoredDeliverables(restored)));
+  } catch (error) {
+    if (error?.code === 'TEACHING_PROGRAM_INVALID') throw error;
     return { formatVersion: 1 };
   }
 }

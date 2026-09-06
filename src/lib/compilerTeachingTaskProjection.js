@@ -4,6 +4,7 @@ import { teachingTaskRubric, teachingTaskWorkedExample } from './compilerTeachin
 import { compileTeachingProgram, teachingProgramReviewQuestions } from './compilerTeachingProgram.js';
 import { teachingTaskSourceFromLesson } from './teachingTaskSource.js';
 import { projectTeachingTaskSlides } from './compilerTeachingTaskSlides.js';
+import { readTeachingTaskSources, withTeachingTaskSources } from './teachingProgram.js';
 
 const ref = (task) => ({ taskId: task.id, taskRevision: task.revision });
 const evidence = (task, prior) => ({ ...prior, claims: task.inputs.map((x) => x.text) });
@@ -660,7 +661,7 @@ export function projectTeachingTasksIntoCourseMap(courseMap, blueprint) {
     changed = true;
     if (lesson.teachingTaskScope !== 'primary-task')
       return { ...sourceLesson, teachingTaskLink: { ...ref(task), question: task.question } };
-    const previousSource = courseMap.teachingTaskSources?.find((source) => source.id === task.id);
+    const previousSource = readTeachingTaskSources(courseMap).find((source) => source.id === task.id);
     const previousPacket = previousSource ? sourcePacket(previousSource) : sourcePacket(task);
     const generatedFields = {
       syncActivities: task.question,
@@ -690,10 +691,9 @@ export function projectTeachingTasksIntoCourseMap(courseMap, blueprint) {
     return { ...sourceLesson, sections, teachingTaskLink: { ...ref(task), question: task.question, generatedFields } };
   });
   return changed
-    ? {
-        ...courseMap,
-        lessons,
-        teachingTaskSources: blueprint.lessons.map(teachingTaskSourceFromLesson).filter(Boolean),
-      }
+    ? withTeachingTaskSources(
+        { ...courseMap, lessons },
+        blueprint.lessons.map(teachingTaskSourceFromLesson).filter(Boolean),
+      )
     : courseMap;
 }

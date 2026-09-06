@@ -1,0 +1,219 @@
+{
+  "protocol": "scion-teaching-structure-m0-v1",
+  "evaluationKind": "author-constructed-development",
+  "startedAt": "2026-09-06T21:37:26.928Z",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+  "settings": {
+    "contextSize": 8192,
+    "maxNewTokens": 1536,
+    "temperature": 0,
+    "topK": 1,
+    "topP": 1,
+    "seed": 7,
+    "thinking": false
+  },
+  "results": [
+    {
+      "id": "m0-source-dates-en",
+      "input": {
+        "id": "m0-source-dates-en",
+        "language": "en",
+        "objective": "Teach learners to distinguish dates attached to different events and identify what the records leave unresolved.",
+        "sources": [
+          {
+            "id": "r1",
+            "text": "An archive register says the photograph was taken in 1931."
+          },
+          {
+            "id": "r2",
+            "text": "The exhibition booklet containing a reproduction was published in 1986."
+          },
+          {
+            "id": "r3",
+            "text": "The supplied records do not describe the photograph’s custody between its creation and the exhibition."
+          }
+        ]
+      },
+      "raw": "```json\n{\n  \"objective\": \"Teach learners to distinguish dates attached to different events and identify what the records leave unresolved.\",\n  \"operation\": \"compare_event_dates\",\n  \"evidence\": [\n    {\n      \"sourceId\": \"r1\",\n      \"quote\": \"An archive register says the photograph was taken in 1931.\",\n      \"claim\": \"This record provides a specific date (1931) associated with the creation of the photograph.\"\n    },\n    {\n      \"sourceId\": \"r2\",\n      \"quote\": \"The exhibition booklet containing a reproduction was published in 1986.\",\n      \"claim\": \"This record provides a specific date (1986) associated with the publication of the exhibition booklet.\"\n    },\n    {\n      \"sourceId\": \"r3\",\n      \"quote\": \"The supplied records do not describe the photograph’s custody between its creation and the exhibition.\",\n      \"claim\": \"This record identifies an unresolved issue regarding the custody period between two events.\"\n    }\n  ],\n  \"task\": {\n    \"question\": \"What are the dates mentioned in the records, and what specific information is missing regarding the photograph's handling between the two dates?\",\n    \"studentWork\": [\n      \"List the dates found in the records (1931 and 1986).\",\n      \"Identify the missing information mentioned in record r3.\"\n    ],\n    \"successCriteria\": [\n      \"Student correctly identifies '1931' as the date of the photograph's creation.\",\n      \"Student correctly identifies '1986' as the date of the exhibition booklet's publication.\",\n      \"Student correctly states that the records do not describe the photograph’s custody between its creation and the exhibition.\"\n    ]\n  },\n  \"unknowns\": \"No concrete unresolved issue is explicitly stated beyond the missing custody information.\"\n}\n```",
+      "parsed": null,
+      "issues": [
+        "invalid-json"
+      ],
+      "elapsedMs": 16195,
+      "completion": {
+        "finishReason": "stop",
+        "inputTokens": 331,
+        "outputTokens": 425,
+        "contextTokens": 8192,
+        "thinkingEnabled": false,
+        "thinkingObserved": false
+      }
+    },
+    {
+      "id": "m0-proportion-en",
+      "input": {
+        "id": "m0-proportion-en",
+        "language": "en",
+        "objective": "Teach learners to calculate an observed proportion and explain the population to which the record applies.",
+        "sources": [
+          {
+            "id": "r1",
+            "text": "Of 40 voluntary respondents at a pilot workshop, 17 selected the afternoon session."
+          },
+          {
+            "id": "r2",
+            "text": "People who did not attend the pilot workshop were not surveyed."
+          }
+        ]
+      },
+      "raw": "```json\n{\n  \"objective\": \"Teach learners to calculate an observed proportion and explain the population to which the record applies.\",\n  \"operation\": \"interpret_proportion\",\n  \"evidence\": [\n    {\n      \"sourceId\": \"r1\",\n      \"quote\": \"Of 40 voluntary respondents at a pilot workshop, 17 selected the afternoon session.\",\n      \"claim\": \"This record provides the necessary data (sample size and number of successes) to calculate an observed proportion.\"\n    },\n    {\n      \"sourceId\": \"r2\",\n      \"quote\": \"People who did not attend the pilot workshop were not surveyed.\",\n      \"claim\": \"This record defines the population (people who did not attend the pilot workshop) relevant to the survey context.\"\n    },\n    {\n      \"sourceId\": \"r1\",\n      \"quote\": \"Of 40 voluntary respondents at a pilot workshop, 17 selected the afternoon session.\",\n      \"claim\": \"The record explicitly states the sample size (40) and the number of individuals who selected the afternoon session (17).\"\n    }\n  ],\n  \"task\": {\n    \"question\": \"Calculate the observed proportion of voluntary respondents who selected the afternoon session and explain the population this proportion applies to.\",\n    \"studentWork\": [\n      \"Calculate the proportion: 17 / 40 = 0.425 or 42.5%.\",\n      \"Explain the population: The proportion applies to the 40 voluntary respondents at the pilot workshop.\"\n    ],\n    \"successCriteria\": [\n      \"The student correctly calculates the proportion (17/40).\",\n      \"The student correctly identifies the population as the 40 voluntary respondents.\",\n      \"The student clearly states the calculated proportion as a percentage or decimal.\"\n    ]\n  },\n  \"unknowns\": \"The provided records do not contain a direct instruction or explicit definition of the term 'observed proportion' beyond the data points themselves; the teaching structure relies on the learner inferring the calculation from the context.\"\n}\n```",
+      "parsed": null,
+      "issues": [
+        "invalid-json"
+      ],
+      "elapsedMs": 16626,
+      "completion": {
+        "finishReason": "stop",
+        "inputTokens": 304,
+        "outputTokens": 454,
+        "contextTokens": 8192,
+        "thinkingEnabled": false,
+        "thinkingObserved": false
+      }
+    },
+    {
+      "id": "m0-experiment-zh",
+      "input": {
+        "id": "m0-experiment-zh",
+        "language": "zh",
+        "objective": "让学生设计一个可执行的比较方案，检验两种滤材对浑浊度的影响。",
+        "sources": [
+          {
+            "id": "r1",
+            "text": "甲杯最初的浑浊度为80单位，使用滤材A处理了6分钟。"
+          },
+          {
+            "id": "r2",
+            "text": "乙杯最初的浑浊度为30单位，使用滤材B处理了15分钟。"
+          },
+          {
+            "id": "r3",
+            "text": "观察者认为乙杯更清，但没有记录处理后的仪器读数，也没有重复实验。"
+          }
+        ]
+      },
+      "raw": "```json\n{\n  \"objective\": \"让学生设计一个可执行的比较方案，检验两种滤材对浑浊度的影响。\",\n  \"operation\": \"design_fair_comparison\",\n  \"evidence\": [\n    {\n      \"sourceId\": \"r1\",\n      \"quote\": \"甲杯最初的浑浊度为80单位，使用滤材A处理了6分钟。\",\n      \"claim\": \"提供了实验条件（初始浑浊度、滤材A的使用时间）的初始数据。\"\n    },\n    {\n      \"sourceId\": \"r2\",\n      \"quote\": \"乙杯最初的浑浊度为30单位，使用滤材B处理了15分钟。\",\n      \"claim\": \"提供了实验条件（初始浑浊度、滤材B的使用时间）的初始数据。\"\n    },\n    {\n      \"sourceId\": \"r3\",\n      \"quote\": \"观察者认为乙杯更清，但没有记录处理后的仪器读数，也没有重复实验。\",\n      \"claim\": \"指出了现有实验方案中缺乏关键的测量数据和实验重复的不足。\"\n    }\n  ],\n  \"task\": {\n    \"question\": \"基于现有信息，请设计一个可执行的比较方案，以检验滤材A和滤材B对浑浊度的影响。\",\n    \"studentWork\": \"设计一个包含至少两个实验组（分别使用滤材A和滤材B）的实验方案，明确需要测量哪些变量（如处理后的浑浊度）以及如何控制其他变量（如初始浑浊度、处理时间）。\",\n    \"successCriteria\": [\n      \"方案中明确指定了使用滤材A和滤材B的实验组。\",\n      \"方案中明确了需要测量处理后的浑浊度数据。\",\n      \"方案中明确了如何控制实验变量（如初始浑浊度或处理时间）以确保比较的公平性。\"\n    ]\n  },\n  \"unknowns\": \"实验方案中对‘浑浊度’的精确测量方法和标准（单位）未在现有记录中给出。\"\n}\n```",
+      "parsed": null,
+      "issues": [
+        "invalid-json"
+      ],
+      "elapsedMs": 17009,
+      "completion": {
+        "finishReason": "stop",
+        "inputTokens": 348,
+        "outputTokens": 465,
+        "contextTokens": 8192,
+        "thinkingEnabled": false,
+        "thinkingObserved": false
+      }
+    }
+  ],
+  "status": "completed-needs-semantic-review",
+  "loadMs": 69767,
+  "runtime": {
+    "phase": "ready",
+    "progress": 1,
+    "message": "Scion local Gemma 4 is ready.",
+    "error": null,
+    "runtime": {
+      "id": "scion-wllama-webgpu-jspi-v1",
+      "modulePath": "/scion/runtime/v2/wllama.js",
+      "moduleSha256": "4b43ed59785ae9aa89aae67ac504534d9bf7b65e6340969b7bd13550146a6433",
+      "wasmPath": "/scion/runtime/v1/jspi-single-thread/wllama.wasm",
+      "wasmSha256": "732bac4661d613461cee0b3132660beab159b926910c8431181ee01608e44229",
+      "upstreamRevision": "58903000dbea6acfc0eb9c738d8be50d1052cf23",
+      "llamaCppRevision": "5ec717d1256e34558a44dc09adf1e6e16f2e2682"
+    },
+    "trainingBase": {
+      "modelId": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+      "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+      "architecture": "gemma4"
+    },
+    "activeWeightIdentity": {
+      "modelId": "google/gemma-4-E2B-it-qat-q4_0-gguf",
+      "revision": "69536a21d70340464240401ba38223d805f6a709",
+      "file": "gemma-4-E2B_q4_0-it.gguf",
+      "bytes": 3349514112,
+      "sha256": "3646b4c147cd235a44d91df1546d3b7d8e29b547dbe4e1f80856419aa455e6fd",
+      "format": "gguf-q4_0-qat"
+    },
+    "baseIntegrity": {
+      "expectedSha256": "3646b4c147cd235a44d91df1546d3b7d8e29b547dbe4e1f80856419aa455e6fd",
+      "runtimeCheck": "metadata-and-pinned-url",
+      "fullDigestEvidence": null
+    },
+    "adapter": {
+      "mode": "base-only",
+      "active": false,
+      "id": null,
+      "manifestSha256": null
+    },
+    "storage": {
+      "quota": 10737423530,
+      "usage": 5290,
+      "available": 10737418240,
+      "required": 3886385600
+    },
+    "metadata": {
+      "hparams": {
+        "nVocab": 262144,
+        "nCtxTrain": 131072,
+        "nEmbd": 1536,
+        "nLayer": 35
+      },
+      "meta": {
+        "split.count": "5",
+        "tokenizer.ggml.add_bos_token": "true",
+        "general.quantization_version": "2",
+        "tokenizer.ggml.mask_token_id": "4",
+        "tokenizer.ggml.eos_token_id": "1",
+        "tokenizer.ggml.model": "gemma4",
+        "gemma4.rope.dimension_count_swa": "256",
+        "gemma4.rope.dimension_count": "512",
+        "gemma4.embedding_length_per_layer_input": "256",
+        "general.name": "2B_dequant_qat_it_hf",
+        "gemma4.attention.sliding_window": "512",
+        "general.sampling.temp": "1.000000",
+        "gemma4.attention.layer_norm_rms_epsilon": "0.000001",
+        "general.size_label": "4.6B",
+        "gemma4.attention.key_length": "512",
+        "gemma4.rope.freq_base_swa": "10000.000000",
+        "gemma4.attention.head_count_kv": "1",
+        "split.no": "0",
+        "gemma4.attention.head_count": "8",
+        "split.tensors.count": "541",
+        "tokenizer.chat_template": "{%- macro format_parameters(properties, required, filter_keys=false) -%}\n    {%- set standard_keys = ['description', 'type', 'properties', 'required', 'nullable'] -%}\n    {%- set ns = namespace(found_first=false) -%}\n    {%- for key, value in properties | dictsort -%}\n        {%- set add_comma = false -%}\n        {%- if not filter_keys or key not in standard_keys -%}\n            {%- if ns.found_first %},{% endif -%}\n            {%- set ns.found_first = true -%}\n            {{ key }}:{\n            {%- if value['description'] -%}\n                description:<|\"|>{{ value['description'] }}<|\"|>\n                {%- set add_comma = true -%}\n            {%- endif -%}\n            {%- if value['type'] | upper == 'STRING' -%}\n                {%- if value['enum'] -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    enum:{{ format_argument(value['enum']) }}\n                {%- endif -%}\n            {%- elif value['type'] | upper == 'ARRAY' -%}\n                {%- if value['items'] is mapping and value['items'] -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    items:{\n                    {%- set ns_items = namespace(found_first=false) -%}\n                    {%- for item_key, item_value in value['items'] | dictsort -%}\n                        {%- if item_value is not none -%}\n                            {%- if ns_items.found_first %},{% endif -%}\n                            {%- set ns_items.found_first = true -%}\n                            {%- if item_key == 'properties' -%}\n                                properties:{\n                                {%- if item_value is mapping -%}\n                                    {{- format_parameters(item_value, value['items']['required'] | default([])) -}}\n                                {%- endif -%}\n                                }\n                            {%- elif item_key == 'required' -%}\n                                required:[\n                                {%- for req_item in item_value -%}\n                                    <|\"|>{{- req_item -}}<|\"|>\n                                    {%- if not loop.last %},{% endif -%}\n                                {%- endfor -%}\n                                ]\n                            {%- elif item_key == 'type' -%}\n                                {%- if item_value is string -%}\n                                    type:{{ format_argument(item_value | upper) }}\n                                {%- else -%}\n                                    type:{{ format_argument(item_value | map('upper') | list) }}\n                                {%- endif -%}\n                            {%- else -%}\n                                {{ item_key }}:{{ format_argument(item_value) }}\n                            {%- endif -%}\n                        {%- endif -%}\n                    {%- endfor -%}\n                    }\n                {%- endif -%}\n            {%- endif -%}\n            {%- if value['nullable'] %}\n                {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                nullable:true\n            {%- endif -%}\n            {%- if value['type'] | upper == 'OBJECT' -%}\n                {%- if value['properties'] is defined and value['properties'] is mapping -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    properties:{\n                    {{- format_parameters(value['properties'], value['required'] | default([])) -}}\n                    }\n                {%- elif value is mapping -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    properties:{\n                    {{- format_parameters(value, value['required'] | default([]), filter_keys=true) -}}\n                    }\n                {%- endif -%}\n                {%- if value['required'] -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    required:[\n                    {%- for item in value['required'] | default([]) -%}\n                        <|\"|>{{- item -}}<|\"|>\n                        {%- if not loop.last %},{% endif -%}\n                    {%- endfor -%}\n                    ]\n                {%- endif -%}\n            {%- endif -%}\n            {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n            type:<|\"|>{{ value['type'] | upper }}<|\"|>}\n        {%- endif -%}\n    {%- endfor -%}\n{%- endmacro -%}\n{%- macro format_function_declaration(tool_data) -%}\n    declaration:{{- tool_data['function']['name'] -}}{description:<|\"|>{{- tool_data['function']['description'] -}}<|\"|>\n    {%- set params = tool_data['function']['parameters'] -%}\n    {%- if params -%}\n        ,parameters:{\n        {%- if params['properties'] -%}\n            properties:{ {{- format_parameters(params['properties'], params['required']) -}} },\n        {%- endif -%}\n        {%- if params['required'] -%}\n            required:[\n            {%- for item in params['required'] -%}\n                <|\"|>{{- item -}}<|\"|>\n                {{- ',' if not loop.last -}}\n            {%- endfor -%}\n            ],\n        {%- endif -%}\n        {%- if params['type'] -%}\n            type:<|\"|>{{- params['type'] | upper -}}<|\"|>}\n        {%- endif -%}\n    {%- endif -%}\n    {%- if 'response' in tool_data['function'] -%}\n        {%- set response_declaration = tool_data['function']['response'] -%}\n        ,response:{\n        {%- if response_declaration['description'] -%}\n            description:<|\"|>{{- response_declaration['description'] -}}<|\"|>,\n        {%- endif -%}\n        {%- if response_declaration['type'] | upper == 'OBJECT' -%}\n            type:<|\"|>{{- response_declaration['type'] | upper -}}<|\"|>}\n        {%- endif -%}\n    {%- endif -%}\n    }\n{%- endmacro -%}\n{%- macro format_argument(argument, escape_keys=True) -%}\n    {%- if argument is string -%}\n        {{- '<|\"|>' + argument + '<|\"|>' -}}\n    {%- elif argument is boolean -%}\n        {{- 'true' if argument else 'false' -}}\n    {%- elif argument is mapping -%}\n        {{- '{' -}}\n        {%- set ns = namespace(found_first=false) -%}\n        {%- for key, value in argument | dictsort -%}\n            {%- if ns.found_first %},{% endif -%}\n            {%- set ns.found_first = true -%}\n            {%- if escape_keys -%}\n                {{- '<|\"|>' + key + '<|\"|>' -}}\n            {%- else -%}\n                {{- key -}}\n            {%- endif -%}\n            :{{- format_argument(value, escape_keys=escape_keys) -}}\n        {%- endfor -%}\n        {{- '}' -}}\n    {%- elif argument is sequence -%}\n        {{- '[' -}}\n        {%- for item in argument -%}\n            {{- format_argument(item, escape_keys=escape_keys) -}}\n            {%- if not loop.last %},{% endif -%}\n        {%- endfor -%}\n        {{- ']' -}}\n    {%- else -%}\n        {{- argument -}}\n    {%- endif -%}\n{%- endmacro -%}\n{%- macro strip_thinking(text) -%}\n    {%- set ns = namespace(result='') -%}\n    {%- for part in text.split('<channel|>') -%}\n        {%- if '<|channel>' in part -%}\n            {%- set ns.result = ns.result + part.split('<|channel>')[0] -%}\n        {%- else -%}\n            {%- set ns.result = ns.result + part -%}\n        {%- endif -%}\n    {%- endfor -%}\n    {{- ns.result | trim -}}\n{%- endmacro -%}\n\n{%- macro format_tool_response_block(tool_name, response) -%}\n    {{- '<|tool_response>' -}}\n    {%- if response is mapping -%}\n        {{- 'response:' + tool_name + '{' -}}\n        {%- for key, value in response | dictsort -%}\n            {{- key -}}:{{- format_argument(value, escape_keys=False) -}}\n            {%- if not loop.last %},{% endif -%}\n        {%- endfor -%}\n        {{- '}' -}}\n    {%- else -%}\n        {{- 'response:' + tool_name + '{value:' + format_argument(response, escape_keys=False) + '}' -}}\n    {%- endif -%}\n    {{- '<tool_response|>' -}}\n{%- endmacro -%}\n\n{%- set ns = namespace(prev_message_type=None) -%}\n{%- set loop_messages = messages -%}\n{{- bos_token -}}\n{#- Handle System/Tool Definitions Block -#}\n{%- if (enable_thinking is defined and enable_thinking) or tools or messages[0]['role'] in ['system', 'developer'] -%}\n    {{- '<|turn>system\\n' -}}\n    {#- Inject Thinking token at the very top of the FIRST system turn -#}\n    {%- if enable_thinking is defined and enable_thinking -%}\n        {{- '<|think|>\\n' -}}\n        {%- set ns.prev_message_type = 'think' -%}\n    {%- endif -%}\n    {%- if messages[0]['role'] in ['system', 'developer'] -%}\n        {%- if messages[0]['content'] is string -%}\n            {{- messages[0]['content'] | trim -}}\n        {%- elif messages[0]['content'] is sequence -%}\n            {%- for item in messages[0]['content'] -%}\n                {{- item['text'] | trim + ' '-}}\n            {%- endfor -%}\n        {%- endif -%}\n        {%- set loop_messages = messages[1:] -%}\n    {%- endif -%}\n    {%- if tools -%}\n        {%- for tool in tools %}\n            {{- '<|tool>' -}}\n            {{- format_function_declaration(tool) | trim -}}\n            {{- '<tool|>' -}}\n        {%- endfor %}\n        {%- set ns.prev_message_type = 'tool' -%}\n    {%- endif -%}\n    {{- '<turn|>\\n' -}}\n{%- endif %}\n\n{#- Pre-scan: find last user message index for reasoning guard -#}\n{%- set ns_turn = namespace(last_user_idx=-1) -%}\n{%- for i in range(loop_messages | length) -%}\n    {%- if loop_messages[i]['role'] == 'user' -%}\n        {%- set ns_turn.last_user_idx = i -%}\n    {%- endif -%}\n{%- endfor -%}\n\n{#- Loop through messages -#}\n{%- for message in loop_messages -%}\n    {%- if message['role'] != 'tool' -%}\n    {%- set ns.prev_message_type = None -%}\n    {%- set role = 'model' if message['role'] == 'assistant' else message['role'] -%}\n    {#- Detect continuation: suppress duplicate <|turn>model when previous non-tool message was also assistant -#}\n    {%- set prev_nt = namespace(role=None, found=false) -%}\n    {%- if loop.index0 > 0 -%}\n        {%- for j in range(loop.index0 - 1, -1, -1) -%}\n            {%- if not prev_nt.found -%}\n                {%- if loop_messages[j]['role'] != 'tool' -%}\n                    {%- set prev_nt.role = loop_messages[j]['role'] -%}\n                    {%- set prev_nt.found = true -%}\n                {%- endif -%}\n            {%- endif -%}\n        {%- endfor -%}\n    {%- endif -%}\n    {%- set continue_same_model_turn = (role == 'model' and prev_nt.role == 'assistant') -%}\n    {%- if not continue_same_model_turn -%}\n        {{- '<|turn>' + role + '\\n' }}\n    {%- endif -%}\n\n    {#- Render reasoning/reasoning_content as thinking channel -#}\n    {%- set thinking_text = message.get('reasoning') or message.get('reasoning_content') -%}\n    {%- if thinking_text and loop.index0 > ns_turn.last_user_idx and message.get('tool_calls') -%}\n        {{- '<|channel>thought\\n' + thinking_text + '\\n<channel|>' -}}\n    {%- endif -%}\n\n            {%- if message['tool_calls'] -%}\n                {%- for tool_call in message['tool_calls'] -%}\n                    {%- set function = tool_call['function'] -%}\n                    {{- '<|tool_call>call:' + function['name'] + '{' -}}\n                    {%- if function['arguments'] is mapping -%}\n                        {%- set ns_args = namespace(found_first=false) -%}\n                        {%- for key, value in function['arguments'] | dictsort -%}\n                            {%- if ns_args.found_first %},{% endif -%}\n                            {%- set ns_args.found_first = true -%}\n                            {{- key -}}:{{- format_argument(value, escape_keys=False) -}}\n                        {%- endfor -%}\n                    {%- elif function['arguments'] is string -%}\n                        {{- function['arguments'] -}}\n                    {%- endif -%}\n                    {{- '}<tool_call|>' -}}\n                {%- endfor -%}\n                {%- set ns.prev_message_type = 'tool_call' -%}\n            {%- endif -%}\n\n            {%- set ns_tr_out = namespace(flag=false) -%}\n            {%- if message.get('tool_responses') -%}\n                {#- Legacy: tool_responses embedded on the assistant message (Google/Gemma native) -#}\n                {%- for tool_response in message['tool_responses'] -%}\n                    {{- format_tool_response_block(tool_response['name'] | default('unknown'), tool_response['response']) -}}\n                    {%- set ns_tr_out.flag = true -%}\n                    {%- set ns.prev_message_type = 'tool_response' -%}\n                {%- endfor -%}\n            {%- elif message.get('tool_calls') -%}\n                {#- OpenAI Chat Completions: forward-scan consecutive role:tool messages -#}\n                {%- set ns_tool_scan = namespace(stopped=false) -%}\n                {%- for k in range(loop.index0 + 1, loop_messages | length) -%}\n                    {%- if ns_tool_scan.stopped -%}\n                    {%- elif loop_messages[k]['role'] != 'tool' -%}\n                        {%- set ns_tool_scan.stopped = true -%}\n                    {%- else -%}\n                        {%- set follow = loop_messages[k] -%}\n                        {#- Resolve tool_call_id to function name -#}\n                        {%- set ns_tname = namespace(name=follow.get('name') | default('unknown')) -%}\n                        {%- for tc in message['tool_calls'] -%}\n                            {%- if tc.get('id') == follow.get('tool_call_id') -%}\n                                {%- set ns_tname.name = tc['function']['name'] -%}\n                            {%- endif -%}\n                        {%- endfor -%}\n                        {#- Handle content as string or content-parts array -#}\n                        {%- set tool_body = follow.get('content') -%}\n                        {%- if tool_body is string -%}\n                            {{- format_tool_response_block(ns_tname.name, tool_body) -}}\n                        {%- elif tool_body is sequence and tool_body is not string -%}\n                            {%- set ns_txt = namespace(s='') -%}\n                            {%- for part in tool_body -%}\n                                {%- if part.get('type') == 'text' -%}\n                                    {%- set ns_txt.s = ns_txt.s + (part.get('text') | default('')) -%}\n                                {%- endif -%}\n                            {%- endfor -%}\n                            {{- format_tool_response_block(ns_tname.name, ns_txt.s) -}}\n                        {%- else -%}\n                            {{- format_tool_response_block(ns_tname.name, tool_body) -}}\n                        {%- endif -%}\n                        {%- set ns_tr_out.flag = true -%}\n                        {%- set ns.prev_message_type = 'tool_response' -%}\n                    {%- endif -%}\n                {%- endfor -%}\n            {%- endif -%}\n\n            {%- set captured_content -%}\n            {%- if message['content'] is string -%}\n                {%- if role == 'model' -%}\n                    {{- strip_thinking(message['content']) -}}\n                {%- else -%}\n                    {{- message['content'] | trim -}}\n                {%- endif -%}\n            {%- elif message['content'] is sequence -%}\n                {%- for item in message['content'] -%}\n                    {%- if item['type'] == 'text' -%}\n                        {%- if role == 'model' -%}\n                            {{- strip_thinking(item['text']) -}}\n                        {%- else -%}\n                            {{- item['text'] | trim -}}\n                        {%- endif -%}\n                    {%- elif item['type'] == 'image' -%}\n                        {{- '<|image|>' -}}\n                        {%- set ns.prev_message_type = 'image' -%}\n                    {%- elif item['type'] == 'audio' -%}\n                        {{- '<|audio|>' -}}\n                        {%- set ns.prev_message_type = 'audio' -%}\n                    {%- elif item['type'] == 'video' -%}\n                        {{- '<|video|>' -}}\n                        {%- set ns.prev_message_type = 'video' -%}\n                    {%- endif -%}\n                {%- endfor -%}\n            {%- endif -%}\n            {%- endset -%}\n\n            {{- captured_content -}}\n            {%- set has_content = captured_content | trim | length > 0 -%}\n\n        {%- if ns.prev_message_type == 'tool_call' and not ns_tr_out.flag -%}\n            {{- '<|tool_response>' -}}\n        {%- elif not (ns_tr_out.flag and not has_content) -%}\n            {{- '<turn|>\\n' -}}\n        {%- endif -%}\n    {%- endif -%}\n{%- endfor -%}\n\n{%- if add_generation_prompt -%}\n    {%- if ns.prev_message_type != 'tool_response' and ns.prev_message_type != 'tool_call' -%}\n        {{- '<|turn>model\\n' -}}\n    {%- endif -%}\n{%- endif -%}",
+        "gemma4.attention.shared_kv_layers": "20",
+        "gemma4.final_logit_softcapping": "30.000000",
+        "gemma4.attention.key_length_swa": "256",
+        "gemma4.context_length": "131072",
+        "general.file_type": "2",
+        "general.finetune": "2B_dequant_qat_it_hf",
+        "gemma4.embedding_length": "1536",
+        "tokenizer.ggml.add_space_prefix": "false",
+        "general.architecture": "gemma4",
+        "tokenizer.ggml.padding_token_id": "0",
+        "general.sampling.top_k": "64",
+        "gemma4.block_count": "35",
+        "tokenizer.ggml.bos_token_id": "2",
+        "gemma4.attention.value_length_swa": "256",
+        "general.type": "model",
+        "tokenizer.ggml.unknown_token_id": "3",
+        "general.sampling.top_p": "0.950000",
+        "gemma4.attention.value_length": "512",
+        "gemma4.rope.freq_base": "1000000.000000"
+      }
+    }
+  },
+  "finishedAt": "2026-09-06T21:39:26.525Z"
+}
