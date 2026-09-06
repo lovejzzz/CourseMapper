@@ -1,0 +1,26 @@
+{
+  "origin": "Four visible questions preserved in an actual browser-restored v0.19.2-derived project. Captured from m1-review-first-conflict.coursemapper before resolving the 30/35/35 to 20/50/30 scoring change.",
+  "lessonTitle": "Lesson 1: Records and Effective Dates",
+  "questions": [
+    {
+      "question": "What will I learn to do?",
+      "answer": "Explain how an amended record changes the interpretation of an earlier entry.",
+      "category": "Concept Explanation"
+    },
+    {
+      "question": "What do I need to submit?",
+      "answer": "One annotated response with the reasoning, conclusion, and evidence limit; prose, a labeled diagram, or an equivalent accessible response.",
+      "category": "Assignment Clarification"
+    },
+    {
+      "question": "Which materials do I need?",
+      "category": "Course Logistics",
+      "answer": "Use the source record reproduced in the lesson plan and study guide. Label your reasoning separately from statements directly supplied by the record."
+    },
+    {
+      "question": "How will my response be evaluated?",
+      "category": "Assignment Clarification",
+      "answer": "Identify and attribute evidence: 30%; Explain the reasoning and complete the task: 35%; State what the evidence leaves unresolved: 35%. Check the task rubric for the specific evidence at each level."
+    }
+  ]
+}

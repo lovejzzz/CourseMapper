@@ -5,6 +5,7 @@ import { compileTeachingProgram, teachingProgramReviewQuestions } from './compil
 import { teachingTaskSourceFromLesson } from './teachingTaskSource.js';
 import { projectTeachingTaskSlides } from './compilerTeachingTaskSlides.js';
 import { readTeachingTaskSources, withTeachingTaskSources } from './teachingProgram.js';
+import { expandKeys } from './keyMaps.js';
 
 const ref = (task) => ({ taskId: task.id, taskRevision: task.revision });
 const evidence = (task, prior) => ({ ...prior, claims: task.inputs.map((x) => x.text) });
@@ -621,8 +622,8 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
         });
       });
     }
-    if (feature === 'courseFaq')
-      Object.assign(row, ref(task), {
+    if (feature === 'courseFaq') {
+      const projected = {
         qs: [
           { q: taskCopy(task, 'What will I learn to do?'), an: task.objective, ca: 'Concept Explanation' },
           { q: taskCopy(task, 'What do I need to submit?'), an: task.product, ca: 'Assignment Clarification' },
@@ -665,7 +666,12 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
             ),
           },
         ],
-      });
+      };
+      // Saved/UI-normalized projects use questions/question/answer; the
+      // compiler also accepts compact qs/q/an. Write the collection actually
+      // consumed by the editor so a sync cannot create an invisible second FAQ.
+      Object.assign(row, ref(task), Array.isArray(row.questions) ? expandKeys('courseFaq', projected) : projected);
+    }
   });
   return data;
 }

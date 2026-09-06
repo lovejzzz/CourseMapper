@@ -132,6 +132,43 @@ function sourceBinding(data, path) {
   return input ? { source, inputId: input.id, labeledInput, artifactInput } : null;
 }
 
+/** Recover a saved, explicitly edited source sentence for the review form.
+ * Multiple incompatible drafts stay a review issue instead of picking one. */
+export function readPendingTeachingSourceInputs(data, source) {
+  const saved = data?.teachingTaskSources?.find((entry) => entry?.id === source.id);
+  if (saved && !equal(saved, source))
+    return {
+      status: 'needs-review',
+      message:
+        'This material has an older source revision. Resolve its linked updates before reviewing the shared task.',
+    };
+  const candidates = new Map(source.inputs.map((input) => [input.id, new Set()]));
+  function visit(value, path = []) {
+    if (typeof value === 'string') {
+      const binding = sourceBinding(data, path);
+      if (binding?.source.id !== source.id) return;
+      const text = binding.labeledInput ? value.replace(/^Source record \d+: /, '') : value;
+      if (text !== source.inputs.find((input) => input.id === binding.inputId)?.text)
+        candidates.get(binding.inputId)?.add(text);
+    } else if (Array.isArray(value)) value.forEach((entry, index) => visit(entry, [...path, index]));
+    else if (object(value))
+      for (const [key, entry] of Object.entries(value)) {
+        if (!['teachingTaskSources', 'teacherEdits', 'taskSyncConflicts'].includes(key)) visit(entry, [...path, key]);
+      }
+  }
+  if (data?.taskSourceReview) visit(data);
+  if ([...candidates.values()].some((values) => values.size > 1))
+    return {
+      status: 'needs-review',
+      message:
+        'More than one edited wording exists for the same source. Reconcile those source rows before reviewing the task.',
+    };
+  return {
+    status: 'ready',
+    inputs: source.inputs.map((input) => ({ ...input, text: [...candidates.get(input.id)][0] ?? input.text })),
+  };
+}
+
 // A fraction edit is not permission to rewrite separately stated observations.
 // Catch unchanged references to a replaced count; teachers can correct the
 // source rows together, including a previously saved draft, before propagation.
@@ -238,6 +275,37 @@ export function applyTeachingTaskSourceEdit({ featureId, oldData, newData, editP
         : 'This source edit changes or removes information required to solve the task. The edited text is saved; linked answers have not been guessed.',
     };
   }
+  return projectTeachingTaskUpdate({
+    source: binding.source,
+    updatedSource,
+    deliverables,
+    courseMap,
+    materialEdit: { featureId, editPath, displayed, inputId: binding.inputId },
+  });
+}
+
+/** One projection/merge path for direct source edits and reviewed structural
+ * changes. This is pure: callers atomically apply the returned transaction. */
+export function projectTeachingTaskUpdate({
+  source: originalSource,
+  updatedSource,
+  deliverables,
+  courseMap,
+  materialEdit,
+}) {
+  if (
+    !validTeachingTaskSource(originalSource) ||
+    !validTeachingTaskSource(updatedSource) ||
+    originalSource.id !== updatedSource.id ||
+    originalSource.kind !== updatedSource.kind ||
+    originalSource.lessonId !== updatedSource.lessonId ||
+    !equal(
+      originalSource.inputs.map((input) => input.id),
+      updatedSource.inputs.map((input) => input.id),
+    ) ||
+    !rebuildTeachingTaskSource(updatedSource)
+  )
+    return { status: 'needs-review', message: 'The proposed teaching task is not valid. No material has changed.' };
   const sourcesById = new Map();
   for (const entry of Object.values(deliverables))
     for (const source of Array.isArray(entry?.data?.teachingTaskSources) ? entry.data.teachingTaskSources : [])
@@ -246,16 +314,39 @@ export function applyTeachingTaskSourceEdit({ featureId, oldData, newData, editP
   // silently replace a more recent source revision.
   for (const source of readTeachingTaskSources(courseMap))
     if (validTeachingTaskSource(source)) sourcesById.set(source.id, source);
-  if (sourcesById.has(binding.source.id) && !equal(sourcesById.get(binding.source.id), binding.source))
+  if (sourcesById.has(originalSource.id) && !equal(sourcesById.get(originalSource.id), originalSource))
     return {
       status: 'needs-review',
       message: 'This material uses an older source revision. Review its pending sync before editing the shared record.',
     };
-  sourcesById.set(binding.source.id, binding.source);
+  sourcesById.set(originalSource.id, originalSource);
+  // A structural review must not clear a different, still-unreviewed source
+  // edit in another material. It may consume that pending edit only when the
+  // accepted source includes the exact wording the teacher entered.
+  for (const entry of Object.values(deliverables)) {
+    if (
+      !entry?.data?.taskSourceReview ||
+      !entry.data.teachingTaskSources?.some((source) => source?.id === originalSource.id)
+    )
+      continue;
+    const pending = readPendingTeachingSourceInputs(entry.data, originalSource);
+    if (pending.status === 'needs-review') return pending;
+    if (
+      pending.inputs.some(
+        (input, index) =>
+          input.text !== originalSource.inputs[index].text && input.text !== updatedSource.inputs[index].text,
+      )
+    )
+      return {
+        status: 'needs-review',
+        message:
+          'Another material has an unreviewed source edit. Include its wording in this review before updating the shared task.',
+      };
+  }
   const oldSources = [...sourcesById.values()];
-  const sourceContext = rebuildTeachingTaskSource(binding.source)?.sourceContextId;
+  const sourceContext = rebuildTeachingTaskSource(originalSource)?.sourceContextId;
   const replacements = new Map(
-    binding.source.inputs.flatMap((input, index) =>
+    originalSource.inputs.flatMap((input, index) =>
       input.text !== updatedSource.inputs[index].text ? [[input.text, updatedSource.inputs[index].text]] : [],
     ),
   );
@@ -328,7 +419,7 @@ export function applyTeachingTaskSourceEdit({ featureId, oldData, newData, editP
     );
     delete data.taskSourceReview;
     delete data.taskSourceReviewLesson;
-    if (id === featureId) setAt(data, editPath, displayed);
+    if (id === materialEdit?.featureId) setAt(data, materialEdit.editPath, materialEdit.displayed);
     before[id] = { data: entry.data, stale: entry.stale || false };
     changed[id] = { ...entry, data, stale: Boolean((entry.stale && !ownsStale) || data.taskSyncConflicts.length) };
     conflicts.push(...data.taskSyncConflicts.map((conflict) => ({ featureId: id, ...conflict })));
@@ -382,7 +473,7 @@ export function applyTeachingTaskSourceEdit({ featureId, oldData, newData, editP
     courseMap: acceptedCourseMap,
     conflicts,
     taskId: updatedSource.id,
-    inputId: binding.inputId,
+    ...(materialEdit?.inputId ? { inputId: materialEdit.inputId } : {}),
     modelCalls: 0,
   };
 }

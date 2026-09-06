@@ -24,6 +24,8 @@ import { classifyAssessmentKind } from '../lib/courseGraph/deriveFromCourseMap';
 import { renderedDeliverableCollection } from '../lib/renderedDeliverableRoot.js';
 import { preferredScrollBehavior } from '../lib/motionPreference';
 import { resolveTaskSyncConflict } from '../lib/teachingTaskContentSync.js';
+import TeachingTaskReview from './deliverables/shared/TeachingTaskReview.jsx';
+import TaskSyncConflictValue from './deliverables/shared/TaskSyncConflictValue.jsx';
 
 // ── v0.14.1 (3.5): assessment focus helpers ─────────────────────────────────
 // "Lesson 7" / "Week 7" mentions on a deliverable item resolve its lesson
@@ -116,6 +118,8 @@ export default function DeliverableView({
   isDelivGenerating,
   currentDelivFeatures,
   onDataChange,
+  onPreviewTeachingTask,
+  onCommitTeachingTask,
   onRegenerateLesson,
   onRetry,
   onAddLessons,
@@ -332,20 +336,28 @@ export default function DeliverableView({
 
   const deliverableContent = (
     <>
+      {editable && !isStudentView && (
+        <TeachingTaskReview
+          key={featureId}
+          featureId={featureId}
+          courseMap={courseMap}
+          data={data}
+          onPreview={onPreviewTeachingTask}
+          onCommit={onCommitTeachingTask}
+        />
+      )}
       {data?.taskSourceReview && (
         <p role="alert" className="mx-4 mt-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
           {data.taskSourceReview}
         </p>
       )}
-      {data?.taskSyncConflicts?.length > 0 && (
+      {!isStudentView && data?.taskSyncConflicts?.length > 0 && (
         <details className="mx-4 mt-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
           <summary className="cursor-pointer font-medium">
             Review {data.taskSyncConflicts.length} linked update{data.taskSyncConflicts.length === 1 ? '' : 's'} — your
             edits were preserved
           </summary>
-          <p className="mt-2">
-            The updated source differs from text you edited. Compare the versions before exporting.
-          </p>
+          <p className="mt-2">The update differs from your current material. Compare the versions before exporting.</p>
           {data.taskSyncConflicts.map((conflict, index) => (
             <div key={JSON.stringify(conflict.path)} className="mt-3 border-t border-amber-200 pt-3">
               <p className="font-medium">
@@ -354,14 +366,14 @@ export default function DeliverableView({
                   .slice(-2)
                   .join(' / ')}
               </p>
-              <p className="mt-1 whitespace-pre-wrap">
+              <div className="mt-2">
                 <strong>Your version: </strong>
-                {typeof conflict.current === 'string' ? conflict.current : JSON.stringify(conflict.current)}
-              </p>
-              <p className="mt-1 whitespace-pre-wrap">
+                <TaskSyncConflictValue value={conflict.current} />
+              </div>
+              <div className="mt-2">
                 <strong>Updated source suggests: </strong>
-                {typeof conflict.proposed === 'string' ? conflict.proposed : JSON.stringify(conflict.proposed)}
-              </p>
+                <TaskSyncConflictValue value={conflict.proposed} />
+              </div>
               {conflict.reason && <p className="mt-2">{conflict.reason}</p>}
               {conflict.missingTarget ? (
                 <button
@@ -390,7 +402,7 @@ export default function DeliverableView({
           ))}
         </details>
       )}
-      {data?.taskSyncArchive?.length > 0 && (
+      {!isStudentView && data?.taskSyncArchive?.length > 0 && (
         <details className="mx-4 mt-2 rounded-lg border border-slate-200 p-3 text-sm text-slate-600">
           <summary className="cursor-pointer">
             Retained text from reviewed removals ({data.taskSyncArchive.length})

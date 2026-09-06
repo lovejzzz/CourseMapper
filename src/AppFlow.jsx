@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { applyTeachingTaskSourceEdit, rememberTeacherEdit } from './lib/teachingTaskContentSync.js';
+import { previewTeachingTaskReview, commitTeachingTaskReview } from './lib/teachingTaskReview.js';
 import FocusTrap from 'focus-trap-react';
 import ErrorBoundary from './components/ErrorBoundary';
 import LoadingScreen, { ConfigSkeleton, WorkspaceSkeleton, CourseMapSkeleton } from './components/LoadingScreen';
@@ -1134,6 +1135,22 @@ export default function AppFlow({
       setDownloadedFile('');
     },
   };
+  function applyTeachingTaskTransaction(transaction) {
+    delivUndo.snapshotTransaction(transaction.before, taskUndoContext.read());
+    deliv.setDeliverables((previous) => ({ ...previous, ...transaction.changed }));
+    courseMapRef.current = transaction.courseMap;
+    setCourseMap(transaction.courseMap);
+    handleCourseGraph(
+      attachEnrichmentToGraph(
+        deriveCourseGraphFromCourseMap(transaction.courseMap),
+        courseGraphRef.current?.enrichmentOverlay,
+      ),
+    );
+    setUnseenChanges(
+      (previous) => new Set([...previous, ...Object.keys(transaction.changed).filter((id) => id !== activeTab)]),
+    );
+    setDownloadedFile('');
+  }
   const [packageQualityPass, setPackageQualityPass] = useState({
     status: 'idle',
     message: '',
@@ -4141,6 +4158,23 @@ export default function AppFlow({
                   <DeliverableView
                     viewportRef={viewportRef}
                     featureId={activeTab}
+                    onPreviewTeachingTask={(draft) =>
+                      previewTeachingTaskReview({
+                        courseMap: courseMapRef.current,
+                        deliverables: deliv.deliverables,
+                        draft,
+                      })
+                    }
+                    onCommitTeachingTask={(preview, teacherConfirmed) => {
+                      const result = commitTeachingTaskReview({
+                        courseMap: courseMapRef.current,
+                        deliverables: deliv.deliverables,
+                        preview,
+                        teacherConfirmed,
+                      });
+                      if (result.status === 'applied') applyTeachingTaskTransaction(result);
+                      return result;
+                    }}
                     data={deliv.deliverables[activeTab]?.data ?? null}
                     status={deliv.deliverables[activeTab]?.status ?? 'idle'}
                     error={deliv.deliverables[activeTab]?.error ?? null}
@@ -4168,21 +4202,7 @@ export default function AppFlow({
                         courseMap: courseMapRef.current,
                       });
                       if (taskEdit?.status === 'applied') {
-                        delivUndo.snapshotTransaction(taskEdit.before, taskUndoContext.read());
-                        deliv.setDeliverables((previous) => ({ ...previous, ...taskEdit.changed }));
-                        courseMapRef.current = taskEdit.courseMap;
-                        setCourseMap(taskEdit.courseMap);
-                        handleCourseGraph(
-                          attachEnrichmentToGraph(
-                            deriveCourseGraphFromCourseMap(taskEdit.courseMap),
-                            courseGraphRef.current?.enrichmentOverlay,
-                          ),
-                        );
-                        setUnseenChanges(
-                          (previous) =>
-                            new Set([...previous, ...Object.keys(taskEdit.changed).filter((id) => id !== activeTab)]),
-                        );
-                        setDownloadedFile('');
+                        applyTeachingTaskTransaction(taskEdit);
                         return;
                       }
                       const editedData = rememberTeacherEdit(oldData, newData, editPath);

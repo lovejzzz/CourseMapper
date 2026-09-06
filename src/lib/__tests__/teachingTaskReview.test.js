@@ -1,0 +1,263 @@
+import { beforeAll, describe, expect, it } from 'vitest';
+import fs from 'node:fs';
+import {
+  createTeachingTaskReviewDraft,
+  previewTeachingTaskReview,
+  commitTeachingTaskReview,
+  resolveTeachingTaskReviewDraft,
+} from '../teachingTaskReview.js';
+import {
+  readTeachingTaskSources,
+  validateTeachingProgram,
+  restoreSnapshotTeachingProgram,
+} from '../teachingProgram.js';
+import { deriveCourseGraphFromCourseMap } from '../courseGraph/index.js';
+import {
+  buildCourseBlueprint,
+  compileBlueprintDeliverables,
+  BLUEPRINT_COMPILE_CONTEXT,
+  reconcileCourseMapWithBlueprintSemanticAdmission,
+} from '../courseBlueprintCompiler.js';
+import { rememberTeacherEdit, resolveTaskSyncConflict } from '../teachingTaskContentSync.js';
+import { deliverableToCsvRows } from '../exporters/csvExporter.js';
+
+const features = [
+  'syllabus',
+  'lessonPlans',
+  'slideDecks',
+  'assignments',
+  'rubrics',
+  'discussions',
+  'quizBank',
+  'studyGuides',
+  'courseFaq',
+];
+const facts = [
+  'A fictional permit log initially records 120 seats for a hall.',
+  'A later entry explicitly amends the permitted capacity to 90 seats from 1 July.',
+  'An attendance photograph has no reliable date.',
+];
+const objective = 'Explain how an amended record changes the interpretation of an earlier entry.';
+let baseline;
+beforeAll(() => {
+  const map = {
+    courseName: 'Record review',
+    lessons: [
+      {
+        title: 'Records',
+        sections: [
+          {
+            topicSection: 'Record revisions',
+            learningObjectives: objective,
+            weeklyAssessments: 'Analyze the rule and its amendment.',
+          },
+        ],
+      },
+    ],
+  };
+  const blueprint = buildCourseBlueprint(map, {
+    sourceBrief: `${objective}\nSource facts:\n${facts.map((text, i) => `${i + 1}. ${text}`).join('\n')}`,
+    sessionMinutes: 50,
+    instructorProvidedFacts: facts,
+  });
+  const generated = compileBlueprintDeliverables(blueprint, features);
+  baseline = {
+    courseMap: reconcileCourseMapWithBlueprintSemanticAdmission(map, generated[BLUEPRINT_COMPILE_CONTEXT]),
+    deliverables: Object.fromEntries(features.map((id) => [id, { status: 'done', stale: false, data: generated[id] }])),
+  };
+});
+function setup() {
+  const state = structuredClone(baseline);
+  const source = readTeachingTaskSources(state.courseMap)[0];
+  const draft = createTeachingTaskReviewDraft(source, state.deliverables.rubrics.data, 'rubrics');
+  return { ...state, source, draft };
+}
+function changeCount(draft, value = '104') {
+  draft.inputs[1].text = draft.inputs[1].text.replace('90 seats', `${value} seats`);
+  draft.bindings.amendedValue.quote = value;
+}
+
+describe('reviewed teaching task transactions', () => {
+  it('rejects a draft opened before a different source transaction, even before preview', () => {
+    const state = setup();
+    const oldDraft = structuredClone(state.draft);
+    changeCount(state.draft);
+    const preview = previewTeachingTaskReview(state);
+    const accepted = commitTeachingTaskReview({ ...state, preview, teacherConfirmed: true });
+    const latest = {
+      courseMap: accepted.courseMap,
+      deliverables: { ...state.deliverables, ...accepted.changed },
+      draft: oldDraft,
+    };
+    const before = structuredClone(latest);
+    expect(previewTeachingTaskReview(latest).status).toBe('needs-review');
+    expect(latest).toEqual(before);
+  });
+
+  it.each(['rubrics', 'studyGuides'])('does not erase a newer unreviewed source edit in %s', (featureId) => {
+    const state = setup();
+    const data = state.deliverables[featureId].data;
+    const collection = featureId === 'rubrics' ? data.rubrics : data.studyGuides;
+    data.taskSourceReview = 'Source relationship needs review.';
+    collection[0].sourceEvidenceBrief.claims[1] = 'Revised wording: 107 seats from 1 July.';
+    const before = structuredClone(state);
+    expect(previewTeachingTaskReview(state).status).toBe('needs-review');
+    expect(state).toEqual(before);
+  });
+
+  it('updates the expanded FAQ consumed by the editor/exporter and preserves the real older four-question version for review', () => {
+    const state = setup();
+    const fixture = JSON.parse(fs.readFileSync('tests/fixtures/teaching/v0192-amendment-faq.json', 'utf8'));
+    const row = state.deliverables.courseFaq.data.faqs[0];
+    delete row.qs;
+    row.questions = fixture.questions;
+    state.draft.requirements = [
+      { id: 'evidence', weight: 20 },
+      { id: 'reasoning', weight: 50 },
+      { id: 'boundary', weight: 30 },
+    ];
+    const preview = previewTeachingTaskReview(state);
+    expect(preview.status).toBe('preview');
+    const result = commitTeachingTaskReview({ ...state, preview, teacherConfirmed: true });
+    expect(result.status).toBe('applied');
+    const faq = result.changed.courseFaq.data;
+    expect(faq.taskSyncConflicts).toHaveLength(1);
+    expect(faq.taskSyncConflicts[0].path).toEqual(['faqs', 0, 'questions']);
+    expect(faq.taskSyncConflicts[0].current).toEqual(fixture.questions);
+    expect(faq.faqs[0].qs).toBeUndefined();
+    const resolved = resolveTaskSyncConflict(faq, 0, true);
+    expect(resolved.faqs[0].questions).toHaveLength(6);
+    const rows = deliverableToCsvRows('courseFaq', resolved).rows;
+    const evaluated = rows.find((row) => row[2] === 'How will my response be evaluated?');
+    expect(evaluated[3]).toContain('evidence: 20%');
+    expect(evaluated[3]).toContain('task: 50%');
+    expect(evaluated[3]).not.toContain('35%');
+    const kept = resolveTaskSyncConflict(faq, 0, false);
+    expect(kept.faqs[0].questions).toEqual(fixture.questions);
+    expect(kept.teacherEdits[0].path).toEqual(['faqs', 0, 'questions']);
+  });
+  it('previews without mutations, requires confirmation, then updates saved weights and all related snapshots', () => {
+    const state = setup();
+    const before = structuredClone(state);
+    state.draft.requirements = [
+      { id: 'evidence', weight: 20 },
+      { id: 'reasoning', weight: 50 },
+      { id: 'boundary', weight: 30 },
+    ];
+    const preview = previewTeachingTaskReview(state);
+    expect(preview.status).toBe('preview');
+    expect(state.courseMap).toEqual(before.courseMap);
+    expect(state.deliverables).toEqual(before.deliverables);
+    expect(preview.impacts.map((i) => i.featureId)).toEqual(features);
+    expect(commitTeachingTaskReview({ ...state, preview }).status).toBe('needs-review');
+    const result = commitTeachingTaskReview({ ...state, preview, teacherConfirmed: true });
+    expect(result.status).toBe('applied');
+    expect(result.modelCalls).toBe(0);
+    expect(validateTeachingProgram(result.courseMap.teachingProgram).valid).toBe(true);
+    expect(result.courseMap.teachingProgram.tasks[0].id).toBe(state.source.id);
+    expect(result.changed.rubrics.data.rubrics[0].criteria.map((c) => c.weight)).toEqual([20, 50, 30]);
+    for (const id of features)
+      expect(result.changed[id].data.teachingTaskSources[0].operationPlan.requirements).toEqual(
+        state.draft.requirements,
+      );
+    expect(result.conflicts).toEqual([]);
+    const snapshot = {
+      courseMap: result.courseMap,
+      courseGraph: deriveCourseGraphFromCourseMap(result.courseMap),
+      deliverables: result.changed,
+    };
+    expect(
+      restoreSnapshotTeachingProgram(JSON.parse(JSON.stringify(snapshot))).courseMap.teachingProgram.revision,
+    ).toBe(result.courseMap.teachingProgram.revision);
+  });
+
+  it('accepts reviewed source wording outside the old parser and preserves independent practice values', () => {
+    const state = setup();
+    state.draft.inputs[1].text = 'Replacement entry for this hall: effective 1 July, 104 seats.';
+    state.draft.bindings.amendedValue.quote = '104';
+    const preview = previewTeachingTaskReview(state);
+    expect(preview.status).toBe('preview');
+    expect(preview.task.answer).toContain('104 seats');
+    const result = commitTeachingTaskReview({ ...state, preview, teacherConfirmed: true });
+    expect(result.status).toBe('applied');
+    expect(result.conflicts).toEqual([]);
+    const guides = JSON.stringify(result.changed.studyGuides.data);
+    expect(guides).not.toContain('90 seats');
+    expect(guides).toContain('24 places');
+    expect(guides).toContain('36 places');
+  });
+
+  it.each(['teacher text', 'course revision'])(
+    'rejects a preview after a newer %s change without touching live data',
+    (kind) => {
+      const state = setup();
+      changeCount(state.draft);
+      const preview = previewTeachingTaskReview(state);
+      if (kind === 'teacher text') state.deliverables.rubrics.data.rubrics[0].title = 'Newer teacher title';
+      else state.courseMap.courseName = 'Newer course title';
+      const before = structuredClone(state);
+      const result = commitTeachingTaskReview({ ...state, preview, teacherConfirmed: true });
+      expect(result.status).toBe('needs-review');
+      expect(result.message).toContain('changed after this preview');
+      expect(state).toEqual(before);
+    },
+  );
+
+  it('rejects a draft changed after preview and never applies caller-supplied patches', () => {
+    const state = setup();
+    changeCount(state.draft);
+    const preview = previewTeachingTaskReview(state);
+    preview.draft.inputs[1].text = 'An altered source';
+    preview.changed = { rubrics: { data: 'overwrite' } };
+    expect(commitTeachingTaskReview({ ...state, preview, teacherConfirmed: true }).status).toBe('needs-review');
+    expect(state.deliverables.rubrics).toEqual(baseline.deliverables.rubrics);
+  });
+
+  it('retains a competing teacher answer with a concrete updated proposal', () => {
+    const state = setup();
+    const original = structuredClone(state.deliverables.rubrics.data);
+    const edited = structuredClone(original);
+    edited.rubrics[0].anchorExampleSet.partialSample += ' Teacher note: explain the date.';
+    state.deliverables.rubrics.data = rememberTeacherEdit(original, edited, [
+      'rubrics',
+      0,
+      'anchorExampleSet',
+      'partialSample',
+    ]);
+    changeCount(state.draft);
+    const preview = previewTeachingTaskReview(state);
+    expect(preview.impacts.find((i) => i.featureId === 'rubrics').conflicts).toHaveLength(1);
+    const result = commitTeachingTaskReview({ ...state, preview, teacherConfirmed: true });
+    expect(result.changed.rubrics.data.rubrics[0].anchorExampleSet.partialSample).toContain('90 seats');
+    expect(result.changed.rubrics.data.rubrics[0].anchorExampleSet.partialSample).toContain('Teacher note');
+    expect(result.changed.rubrics.data.taskSyncConflicts[0].proposed).toContain('104 seats');
+    expect(result.changed.rubrics.stale).toBe(true);
+  });
+
+  it('recovers an explicitly saved source draft into review without losing the changed sentence', () => {
+    const state = setup();
+    const data = state.deliverables.rubrics.data;
+    data.taskSourceReview = 'This relationship needs review.';
+    data.rubrics[0].sourceEvidenceBrief.claims[1] = 'Reworded rule: 104 seats from 1 July.';
+    const draft = createTeachingTaskReviewDraft(state.source, data);
+    expect(draft.inputs[1].text).toBe('Reworded rule: 104 seats from 1 July.');
+    expect(readTeachingTaskSources(state.courseMap)[0].inputs[1].text).toBe(facts[1]);
+  });
+
+  it('rejects invalid totals, source identities, and ambiguous text positions', () => {
+    const state = setup();
+    state.draft.requirements[0].weight = 99;
+    expect(previewTeachingTaskReview(state).message).toContain('total 100');
+    state.draft = createTeachingTaskReviewDraft(state.source);
+    state.draft.inputs[0].id = 'different-source';
+    expect(previewTeachingTaskReview(state).status).toBe('needs-review');
+    state.draft = createTeachingTaskReviewDraft(state.source);
+    state.draft.inputs[1].text += ' The stated date is 1 July.';
+    state.draft.bindings.effectiveDate.occurrence = null;
+    expect(resolveTeachingTaskReviewDraft(state.source, state.draft, '2026-09-06T00:00:00.000Z').message).toContain(
+      'occurrence',
+    );
+    state.draft.bindings.effectiveDate.occurrence = 0;
+    expect(resolveTeachingTaskReviewDraft(state.source, state.draft, '2026-09-06T00:00:00.000Z').status).toBe('valid');
+  });
+});

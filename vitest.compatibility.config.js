@@ -18,6 +18,7 @@ export default defineConfig({
       'src/lib/__tests__/teachingTaskContent*.test.js',
       'src/lib/__tests__/teachingProgram*.test.js',
       'src/lib/__tests__/teachingOperation*.test.js',
+      'src/lib/__tests__/teachingTaskReview.test.js',
       'src/lib/courseGraph/__tests__/courseGraph.test.js',
     ],
   },
