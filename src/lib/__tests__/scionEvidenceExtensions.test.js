@@ -66,6 +66,66 @@ function compilePacket(id) {
   return { fixture, blueprint, features, sourceBrief, context, courseMap, deliverables };
 }
 
+function amendedSourceEdit(customize = () => {}) {
+  const f = compilePacket('h-s02-amended-record');
+  // The restored UI carries the compiler's resource packet in the course map.
+  f.courseMap.lessons[0].sections[0].supportingResources = f.fixture.sources
+    .map((source, index) => `Source record ${index + 1}: ${source}`)
+    .join(' ');
+  customize(f);
+  const oldData = f.deliverables.studyGuides.data;
+  const newData = structuredClone(oldData);
+  newData.studyGuides[0].sourceEvidenceBrief.claims[1] = f.fixture.sources[1].replace('90 seats', '75 seats');
+  const result = applyTeachingTaskSourceEdit({
+    featureId: 'studyGuides',
+    oldData,
+    newData,
+    editPath: ['studyGuides', 0, 'sourceEvidenceBrief', 'claims', 1],
+    deliverables: f.deliverables,
+    courseMap: f.courseMap,
+  });
+  expect(result.status, result.message).toBe('applied');
+  return { f, result };
+}
+
+it('updates compiler source packets in all material grounding and the saved course map', () => {
+  const { result } = amendedSourceEdit();
+  for (const [feature, entry] of Object.entries(result.changed)) {
+    expect(JSON.stringify(entry.data), feature).toContain('75 seats');
+    expect(JSON.stringify(entry.data), feature).not.toContain('90 seats');
+  }
+  expect(result.courseMap.lessons[0].sections[0].supportingResources).toContain('75 seats');
+  expect(JSON.stringify(result.courseMap)).not.toContain('90 seats');
+});
+
+it('does not resurrect the old source packet when a saved course is regenerated', () => {
+  const { f, result } = amendedSourceEdit();
+  const patch = compileBlueprintLessonPatch({
+    featureId: 'studyGuides',
+    courseMap: JSON.parse(JSON.stringify(result.courseMap)),
+    lessonIndex: 0,
+    sourceBrief: f.sourceBrief,
+  });
+  expect(patch.sourceTaskCompiled).toBe(true);
+  expect(JSON.stringify(patch.data)).toContain('75 seats');
+  expect(JSON.stringify(patch.data)).not.toContain('90 seats');
+});
+
+it('keeps unrelated resource packets, instructor prose and appended source annotations', () => {
+  const resource = 'Source record 1: A separate archive lists 90 seats.';
+  const note = 'Teacher note: compare the old 90 seats example after the task.';
+  const { result } = amendedSourceEdit((f) => {
+    f.deliverables.lessonPlans.data.lessonPlans[0].sourceUsePlan.approvedSources.push(resource);
+    f.deliverables.lessonPlans.data.lessonPlans[0].warmUp.facilitation = note;
+    f.courseMap.lessons[0].sections[0].supportingResources += ` ${note}`;
+  });
+  const plan = result.changed.lessonPlans.data.lessonPlans[0];
+  expect(plan.sourceUsePlan.approvedSources).toContain(resource);
+  expect(plan.warmUp.facilitation).toBe(note);
+  expect(result.courseMap.lessons[0].sections[0].supportingResources).toContain('75 seats');
+  expect(result.courseMap.lessons[0].sections[0].supportingResources).toContain(note);
+});
+
 describe('explicit evidence relationships from the exposed source packets', () => {
   it.each(cases)('%s admits a task with matching independent work', (id, kind) => {
     const f = fixture(id);

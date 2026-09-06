@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import fs from 'node:fs/promises';
 import twoSessions from '../benchmarks/classroom/v1/cases/held-two-session-design.json' with { type: 'json' };
 
 test('source compiler keeps worked examples, shared answers, and the lesson clock through regeneration', async ({
@@ -381,7 +382,12 @@ test('a Chinese task without a cached model kernel regenerates directly from its
         {
           title,
           sections: [
-            { topicSection: title, learningObjectives: objective, weeklyAssessments: '根据所给记录提交推理和证据。' },
+            {
+              topicSection: title,
+              learningObjectives: objective,
+              weeklyAssessments: '根据所给记录提交推理和证据。',
+              supportingResources: facts.map((source, index) => `Source record ${index + 1}: ${source}`).join(' '),
+            },
           ],
         },
       ],
@@ -429,5 +435,17 @@ test('a Chinese task without a cached model kernel regenerates directly from its
       { exact: true },
     ),
   ).toBeVisible();
+  await page
+    .getByText('虚构试验：甲滤材处理低浑浊度的水14分钟，乙滤材处理高浑浊度的水5分钟。', { exact: true })
+    .click();
+  await page.locator('textarea:focus').fill('虚构试验：甲滤材处理低浑浊度的水16分钟，乙滤材处理高浑浊度的水5分钟。');
+  await page.locator('textarea:focus').press('Enter');
+  await page.getByTitle('Project actions', { exact: true }).click();
+  const saved = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Save .coursemapper', exact: true }).click();
+  const project = JSON.parse(await fs.readFile(await (await saved).path(), 'utf8'));
+  expect(project.courseMap.lessons[0].sections[0].supportingResources).toContain('水16分钟');
+  expect(JSON.stringify(project.deliverables.studyGuides.data)).not.toContain('水14分钟');
+  expect(JSON.stringify(project.deliverables.studyGuides.data)).toContain('水16分钟');
   expect(requests).toEqual([]);
 });

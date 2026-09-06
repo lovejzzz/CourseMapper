@@ -7,6 +7,32 @@ import { projectTeachingTaskSlides } from './compilerTeachingTaskSlides.js';
 
 const ref = (task) => ({ taskId: task.id, taskRevision: task.revision });
 const evidence = (task, prior) => ({ ...prior, claims: task.inputs.map((x) => x.text) });
+const sourcePacket = (task) => task.inputs.map((input, index) => `Source record ${index + 1}: ${input.text}`).join(' ');
+const isCompilerSourcePacket = (value) => typeof value === 'string' && /^Source record 1: /.test(value);
+const copiesPacket = (value, packet) =>
+  isCompilerSourcePacket(value) && packet && (packet.startsWith(value) || value.startsWith(packet));
+function updateSourceCopy(value, packet, previousPacket) {
+  if (!copiesPacket(value, previousPacket) || packet.startsWith(value)) return value;
+  // Preserve an excerpt's length or any appended instructor annotation.
+  return previousPacket.startsWith(value) ? packet.slice(0, value.length) : packet + value.slice(previousPacket.length);
+}
+
+// These are live compiler copies, including the course-map resource packet
+// used on regeneration. Keep authored resources and unrelated prose intact.
+function projectSourceCopies(row, task, previousSource) {
+  if (!previousSource) return;
+  const packet = sourcePacket(task);
+  const previousPacket = sourcePacket(previousSource);
+  function update(value) {
+    if (typeof value === 'string') return updateSourceCopy(value, packet, previousPacket);
+    if (Array.isArray(value)) return value.map(update);
+    if (value && typeof value === 'object')
+      return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, update(item)]));
+    return value;
+  }
+  for (const key of ['sourceGrounding', 'blueprintGrounding', 'sourceUsePlan', 'citationAndSourceUse'])
+    if (row[key]) row[key] = update(row[key]);
+}
 const program = (task) => compileTeachingProgram({ admitted: true, teachingTask: task });
 const questions = (task) => teachingProgramReviewQuestions(program(task));
 const anchors = (task) => ({
@@ -367,6 +393,7 @@ function projectPlan(row, task) {
  * feedback move and rubric band below is projected from that same revision. */
 export function projectSharedTeachingTasks(feature, data, blueprint, options = {}) {
   if (!data) return data;
+  const previousSources = data.teachingTaskSources || [];
   data.teachingTaskSources = blueprint.lessons.map(teachingTaskSourceFromLesson).filter(Boolean);
   const keys = {
     lessonPlans: 'lessonPlans',
@@ -399,6 +426,11 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
           : null);
     const task = lesson?.teachingTask;
     if (!task || lesson.teachingTaskScope !== 'primary-task') return;
+    projectSourceCopies(
+      row,
+      task,
+      previousSources.find((source) => source.id === task.id),
+    );
     if (feature === 'assignments') projectAssignment(row, task, blueprint);
     if (feature === 'rubrics' && Array.isArray(row.criteria)) projectRubric(row, task);
     if (feature === 'lessonPlans') projectPlan(row, task);
@@ -616,6 +648,8 @@ export function projectTeachingTasksIntoCourseMap(courseMap, blueprint) {
     changed = true;
     if (lesson.teachingTaskScope !== 'primary-task')
       return { ...sourceLesson, teachingTaskLink: { ...ref(task), question: task.question } };
+    const previousSource = courseMap.teachingTaskSources?.find((source) => source.id === task.id);
+    const previousPacket = previousSource ? sourcePacket(previousSource) : sourcePacket(task);
     const generatedFields = {
       syncActivities: task.question,
       asyncActivities: taskCopy(
@@ -635,6 +669,8 @@ export function projectTeachingTasksIntoCourseMap(courseMap, blueprint) {
           );
         if (!current || current === previous || compilerFallback) updated[field] = value;
       }
+      if (typeof section.supportingResources === 'string')
+        updated.supportingResources = updateSourceCopy(section.supportingResources, sourcePacket(task), previousPacket);
       return updated;
     });
     // Keep the objectives and authored activity edits intact. The link is also

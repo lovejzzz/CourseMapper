@@ -11,6 +11,7 @@
 - Preserve all 30 frozen source packets, reference judgments, the independent checker and previous failure reports. The 18 development and 12 exposed cases now have zero encoded benchmark defects. These are known regressions, not unseen validation or a claim of general source understanding.
 - Preserve the 0.18.7 interface, ten material types, local Scion and export choices. No model-weight change, adapter activation, shared API or paid server; sample generation uses no model calls.
 - Skip redundant model-kernel refresh when a supported source task has already compiled during single-lesson regeneration. Keep kernel provenance honest and retain knowledge refresh for unsupported tasks; add an uncached Chinese-course browser regression.
+- Fix a production-download sync gap: accepted source edits now update matching compiler resource packets in the course map, grounding and source-use metadata, as well as visible answers. Preserve unrelated resource packets and teacher annotations; verify saved projects and regeneration.
 - Keep PDF bounds validation exhaustive while aggregating failures per page, avoiding tens of thousands of traced assertions for Chinese glyphs. Accept PDF text-item splits inside the tested hyphenated word without removing its semantic content check.
 - Publish four complete workshop samples and an [educational export review](docs/v0.19.2-output-review.zh-CN.md), including actual Office/PDF inspection, tests, deployment verification and remaining limitations.
 
