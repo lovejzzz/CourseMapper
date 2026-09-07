@@ -1,5 +1,6 @@
 import { sha256HexSync } from './sha256Sync.js';
 import { solveTeachingProportion } from './teachingTaskArithmetic.js';
+import { validateComparisonBindings, evaluateComparison } from './teachingOperationComparison.js';
 import { validateTeachingGoalAlignment } from './teachingGoalAlignment.js';
 import {
   AUTHORED_REQUIREMENTS_PLAN_VERSION,
@@ -48,6 +49,29 @@ function sourceFractionIssue(text, numerator, denominator, values) {
 // These are executable input contracts, not topic names or free-form claims
 // of correctness. New operations must provide their own premise checks.
 export const TEACHING_OPERATION_SPECS = {
+  'paired-condition-confound': {
+    family: 'experiment',
+    taskKind: 'evidence-experiment',
+    defaultPracticeMinutes: 25,
+    bindings: {
+      firstRecord: 'record',
+      secondRecord: 'record',
+      designRecord: 'record',
+      firstTreatment: 'text',
+      secondTreatment: 'text',
+      firstOther: 'text',
+      secondOther: 'text',
+      factor: 'text',
+      otherFactor: 'text',
+      unit: 'text',
+      availableUnits: 'count',
+      controls: 'text',
+      measurement: 'text',
+      outcome: 'text',
+    },
+    requirements: ['evidence', 'reasoning', 'boundary'],
+    defaultWeights: [25, 40, 35],
+  },
   'observed-proportion': {
     family: 'quantity',
     taskKind: 'source-proportion',
@@ -189,6 +213,7 @@ export function validateTeachingOperationPlan(plan, inputs, objective) {
     );
   // The stored provenance is a workflow record, not authenticated proof that
   // a person reviewed an imported project or that its facts are true.
+  if (plan.operation === 'paired-condition-confound') issues.push(...validateComparisonBindings(plan, values));
   if (plan.operation === 'observed-proportion') {
     for (const [name, recordName] of [
       ['numerator', 'countRecord'],
@@ -295,6 +320,16 @@ export function evaluateTeachingOperationPlan(plan, inputs) {
         issue('plan-unconfirmed', 'Review the proposed source roles and relationship before compiling answers.'),
       ],
     };
+  if (plan.operation === 'paired-condition-confound') {
+    return {
+      status: 'ready',
+      operation: plan.operation,
+      values: validation.values,
+      ...evaluateComparison(validation.values),
+      scope:
+        'Checks source-role structure and proposed group counts; comparability, manipulability and measurement validity require teaching review. A proposed experiment has no observed effect.',
+    };
+  }
   if (plan.operation === 'observed-proportion') {
     const { numerator, denominator, observedGroup, countedOutcome, missingGroup, targetGroup } = validation.values;
     const calculation = solveTeachingProportion(numerator, denominator);

@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import { proportionPresentationFixture } from '../../tests/fixtures/teaching/proportionPresentation.js';
+import { comparisonDesignFixture } from '../../tests/fixtures/teaching/comparisonDesign.js';
 import {
   buildCourseBlueprint,
   compileBlueprintDeliverables,
@@ -24,6 +25,12 @@ import { buildClassroomPdfBlob, deliverablePdfDefinition } from '../../src/lib/e
 
 const root = process.argv[2];
 if (!root) throw new Error('Provide a new output directory; existing captures are never overwritten.');
+// Keep the original default for reproducing prior proportion captures.
+const operation = process.argv[3] || 'observed-proportion';
+if (!['observed-proportion', 'paired-condition-confound'].includes(operation))
+  throw new Error('Unsupported capture operation.');
+const experiment = operation === 'paired-condition-confound';
+const outputFeatures = experiment ? ['assignments', 'rubrics', 'studyGuides'] : ['rubrics', 'studyGuides'];
 await fs.mkdir(root, { recursive: false });
 const actualFetch = globalThis.fetch;
 // A CLI has no Vite asset server. Load only the same shipped font bytes that
@@ -47,8 +54,14 @@ const features = [
 const report = [];
 try {
   for (const zh of [false, true]) {
-    const f = proportionPresentationFixture(zh);
-    const name = zh ? '维修记录与观察范围' : 'Repair records and observation limits';
+    const f = (experiment ? comparisonDesignFixture : proportionPresentationFixture)(zh);
+    const name = experiment
+      ? zh
+        ? '保温套与温降的比较设计'
+        : 'Designing a comparison of ink drying'
+      : zh
+        ? '维修记录与观察范围'
+        : 'Repair records and observation limits';
     const map = {
       courseName: name,
       lessons: [
@@ -69,7 +82,7 @@ try {
     const deliverables = normalizeRestoredDeliverables(
       Object.fromEntries(features.map((id) => [id, { status: 'done', stale: false, data: compiled[id] }])),
     );
-    const draft = createNewTeachingTaskReviewDraft(courseMap, { lessonNumber: 1, operation: 'observed-proportion' });
+    const draft = createNewTeachingTaskReviewDraft(courseMap, { lessonNumber: 1, operation });
     assert(draft.creation, draft.message);
     draft.inputs = f.inputs;
     draft.objective = f.objective;
@@ -117,7 +130,7 @@ try {
         2,
       ),
     );
-    for (const feature of ['rubrics', 'studyGuides']) {
+    for (const feature of outputFeatures) {
       const data = current[feature].data;
       const docx = await buildDeliverableDocxBlob(feature, data, name);
       await fs.writeFile(path.join(dir, `${feature}.docx`), Buffer.from(await docx.arrayBuffer()));
@@ -142,8 +155,8 @@ try {
     JSON.stringify(
       {
         createdAt: new Date().toISOString(),
-        scope:
-          'Two development tasks and four actual DOCX/PDF export pairs. Not a full course or held-out/model evaluation.',
+        operation,
+        scope: `Two development tasks and ${2 * outputFeatures.length} actual DOCX/PDF export pairs. Not a full course or held-out/model evaluation.`,
         report,
       },
       null,

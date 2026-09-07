@@ -92,7 +92,10 @@ export function createNewTeachingTaskReviewDraft(courseMap, { lessonNumber, oper
       .filter(Boolean)
       .join('\n'),
     sessionMinutes: Number(courseMap.sessionMinutes) > 0 ? Number(courseMap.sessionMinutes) : 50,
-    practiceMinutes: 10,
+    practiceMinutes: Math.min(
+      spec.defaultPracticeMinutes || 10,
+      Number(courseMap.sessionMinutes) > 0 ? Number(courseMap.sessionMinutes) : 50,
+    ),
     inputs: [{ id: `input-${crypto.randomUUID()}`, text: '' }],
     bindings: Object.fromEntries(
       Object.keys(spec.bindings).map((name) => [name, { inputId: '', quote: '', occurrence: null }]),

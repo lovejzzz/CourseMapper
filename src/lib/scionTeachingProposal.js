@@ -12,6 +12,8 @@ export function teachingProposalInputRevision({ operation, objective, inputs }) 
 }
 
 const roles = {
+  'paired-condition-confound':
+    'firstRecord and secondRecord are the two observed-condition records; designRecord states resources and rules for a new test. firstTreatment/secondTreatment and firstOther/secondOther are the respective treatment and competing-condition settings, from their own observed record. factor, otherFactor, unit, availableUnits, controls, measurement and outcome come from designRecord. availableUnits is only its integer count of independently assignable new units, not original observations or repeat readings. Copy the actual measurement rule. Leave any role null if missing; do not invent resources, causal results, independent units or a procedure. A teacher must review whether these conditions are manipulable and comparable.',
   'observed-proportion':
     'countRecord is the record containing both observed counts. numerator is only the integer count meeting the outcome; denominator is only the integer whole count from that same group. observedGroup is the name of that observed group, and countedOutcome is the outcome being counted, from countRecord. scopeRecord explicitly describes missing outcomes and the wider target population; missingGroup and targetGroup must be exact phrases from scopeRecord. If the wider population is not explicitly named there, leave targetGroup null. Never treat the missing group as the entire target population.',
   'record-amendment':

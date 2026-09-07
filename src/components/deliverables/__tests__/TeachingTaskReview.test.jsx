@@ -322,13 +322,20 @@ describe('teacher structure review interaction', () => {
       }),
     });
     await click(button('Locate source phrases with local Scion'));
-    expect(container.textContent).toContain('did not return usable source bindings');
-    expect(container.textContent).toContain('existing source selections were kept');
+    expect(container.querySelector('[role="status"]').textContent).toBe(
+      'No new source selections. Your existing selections are kept.',
+    );
+    const diagnostics = [...container.querySelectorAll('details')].find(
+      (element) => element.querySelector('summary')?.textContent === 'Review details',
+    );
+    expect(diagnostics.open).toBe(false);
+    expect(diagnostics.textContent).toContain('Invalid JSON');
     await click(button('Preview linked changes'));
     const draft = onPreview.mock.calls[0][0];
     expect(draft.bindings.priorValue.quote).toBe('120');
     expect(draft.bindings.amendedValue.quote).toBe('90');
     expect(draft.proposal.adoption.filledRoles).toEqual([]);
+    expect(container.textContent).not.toContain('Invalid JSON');
     expect(onCommit).not.toHaveBeenCalled();
   });
 

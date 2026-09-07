@@ -605,7 +605,10 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
   // v0.12.1: borderless two-column layout table for label/value blocks
   // (study-guide key terms, lesson-plan assessment and homework, FAQ
   // see-also) — real structure instead of glued label paragraphs.
-  const makeKeyValueTable = (pairs, { headers, compact = false, includeHeader = true, keepTogether = false } = {}) => {
+  const makeKeyValueTable = (
+    pairs,
+    { headers, compact = false, includeHeader = true, keepTogether = false, keepWithNext = false } = {},
+  ) => {
     if (!Array.isArray(headers) || headers.length !== 2 || headers.some((header) => !String(header || '').trim())) {
       throw new Error('Key/value tables require two explicit semantic headers.');
     }
@@ -650,7 +653,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
                 },
                 children: [
                   new Paragraph({
-                    keepNext: keepTogether && index < visiblePairs.length - 1,
+                    keepNext: keepTogether && (index < visiblePairs.length - 1 || keepWithNext),
                     spacing: { line: compact ? Math.min(bodyLine, 228) : bodyLine, before: 0, after: 0 },
                     children: [
                       new TextRun({
@@ -674,7 +677,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
                 },
                 children: [
                   new Paragraph({
-                    keepNext: keepTogether && index < visiblePairs.length - 1,
+                    keepNext: keepTogether && (index < visiblePairs.length - 1 || keepWithNext),
                     spacing: { line: compact ? Math.min(bodyLine, 228) : bodyLine, before: 0, after: 0 },
                     children: [new TextRun({ text: String(v), size: bodySize, font: FONT, color: '333333' })],
                   }),
@@ -1168,10 +1171,15 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
                   ['Developing', criterion.developing || ''],
                   ['Beginning', criterion.beginning || ''],
                 ],
-                { headers: ['Level', 'Observable response'], keepTogether: true },
+                {
+                  headers: ['Level', 'Observable response'],
+                  keepTogether: true,
+                  keepWithNext: Boolean(criterion.feedbackUse),
+                },
               ),
             );
-            if (criterion.feedbackUse) children.push(makeBold('Feedback for revision', criterion.feedbackUse));
+            if (criterion.feedbackUse)
+              children.push(makeBold('Feedback for revision', criterion.feedbackUse, { keepLines: true }));
           });
         } else if (criteria.length > 0) {
           children.push(
@@ -1215,7 +1223,14 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
                 'Constructed rubric review examples, not student data. Scoring examples require teacher review.',
               ),
             );
-          if (labeledAnchors.length) labeledAnchors.forEach(([label, text]) => children.push(makeBold(label, text)));
+          if (labeledAnchors.length)
+            labeledAnchors.forEach(([label, text]) => {
+              // Preserve the reference's authored reasoning paragraphs. A
+              // single Word run flattens them into an unreadable text block.
+              const paragraphs = String(text).split(/\r?\n\s*\r?\n/);
+              children.push(makeBold(label, paragraphs[0], { keepLines: true }));
+              paragraphs.slice(1).forEach((paragraph) => children.push(makeText(paragraph)));
+            });
           else r.anchorExamples.forEach((text) => children.push(makeBullet(text)));
         }
         if (rubricIndex < rubrics.length - 1) {
@@ -1729,6 +1744,25 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         if (a.selfAssessmentRubric?.length) {
           children.push(makeSubHeading('Student Self-Assessment'));
           a.selfAssessmentRubric.forEach((item) => children.push(makeBullet(item)));
+        }
+        const comparisonSource = expanded.teachingTaskSources?.find(
+          (source) => source.id === a.taskId && source.operationPlan?.operation === 'paired-condition-confound',
+        );
+        if (comparisonSource) {
+          const zh = /\p{Script=Han}/u.test(comparisonSource.objective);
+          const responseSections = zh
+            ? ['原比较与归因边界', '建议方案：分配、条件与测量', '空白记录表、比较方法与结论边界']
+            : [
+                'Original comparison and causal limits',
+                'Proposed allocation, conditions and measurement',
+                'Blank record layout, comparison and conclusion limits',
+              ];
+          children.push(makeSubHeading(zh ? '作答区' : 'Your Response'));
+          for (const title of responseSections) {
+            children.push(makeBold(title, '', { keepNext: true }));
+            for (let line = 0; line < 4; line++)
+              children.push(makeText('________________________________________________________'));
+          }
         }
         if (a.anchorExampleGuidance?.length) {
           children.push(makeSubHeading('Anchor Samples and Revision Check', { pageBreakBefore: true }));

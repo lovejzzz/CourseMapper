@@ -38,6 +38,7 @@ export function projectTeachingStudyGuide(row, task) {
 
   const t = (en, zh) => taskText(task, en, zh);
   const proportion = task.operationPlan.operation === 'observed-proportion';
+  const experiment = task.operationPlan.operation === 'paired-condition-confound';
   const concepts = proportion
     ? [
         t(
@@ -53,20 +54,35 @@ export function projectTeachingStudyGuide(row, task) {
           '缺失与负面结果：没有记录的结果仍是未知。总体结论需要可比观察和覆盖依据，不能靠假定缺失个案的结果。',
         ),
       ]
-    : [
-        t(
-          'Record date and effective date answer different questions: when a statement was recorded, and when a rule applies. Preserve the date role stated in the source.',
-          '记录日期与生效日期回答不同问题：陈述何时记下，以及规则从何时适用。保留来源说明的日期角色。',
-        ),
-        t(
-          'Amendment and error are different: two values can be valid in different periods. Put the rule versions on a timeline before deciding whether the records conflict.',
-          '修订与错误不同：两个值可能分别适用于不同时段。先把规则版本放到时间线上，再判断记录是否矛盾。',
-        ),
-        t(
-          'An observation needs an event date before it can be matched to a rule version. Newer documentation alone does not date an undated observation.',
-          '将观察对应到规则版本前，需要观察的发生日期。文件更新本身不能为未注明日期的观察补上日期。',
-        ),
-      ];
+    : experiment
+      ? [
+          t(
+            'Treatment and competing conditions: a difference between two combined conditions cannot isolate one component. A new comparison must separate the intended contrast from the other systematic difference.',
+            '处理与其他条件：两个条件组合之间的差异不能单独归因于其中一个因素。新比较需要把研究的处理差异与另一系统性差异分开。',
+          ),
+          t(
+            'Experimental units and readings: replication comes from independently assigned units. Reading the same unit repeatedly can characterize it more carefully, but does not create new independent units.',
+            '实验单位与读数：独立重复来自独立分配的单位。反复读取同一个单位可以更细致地描述它，但不会产生新的独立单位。',
+          ),
+          t(
+            'Design and evidence: allocation, controls and a common measurement plan make a comparison interpretable. They do not supply the future results, prove significance or justify generalization to untested settings.',
+            '设计与证据：分配、控制和一致测量使比较能够解释，但不提供未来结果、不证明统计显著，也不支持直接推广到未测试条件。',
+          ),
+        ]
+      : [
+          t(
+            'Record date and effective date answer different questions: when a statement was recorded, and when a rule applies. Preserve the date role stated in the source.',
+            '记录日期与生效日期回答不同问题：陈述何时记下，以及规则从何时适用。保留来源说明的日期角色。',
+          ),
+          t(
+            'Amendment and error are different: two values can be valid in different periods. Put the rule versions on a timeline before deciding whether the records conflict.',
+            '修订与错误不同：两个值可能分别适用于不同时段。先把规则版本放到时间线上，再判断记录是否矛盾。',
+          ),
+          t(
+            'An observation needs an event date before it can be matched to a rule version. Newer documentation alone does not date an undated observation.',
+            '将观察对应到规则版本前，需要观察的发生日期。文件更新本身不能为未注明日期的观察补上日期。',
+          ),
+        ];
   // Error examples already have a dedicated diagnostic section. The complete
   // main response is demonstrated once; review checks target its components,
   // then use the separately identified independent case(s).
@@ -93,10 +109,15 @@ export function projectTeachingStudyGuide(row, task) {
           'A proportion is a claim about a specified group. This guide connects choosing that group, checking the calculation and deciding what the available records can support.',
           '比例描述的是特定群体。本指南把群体选择、计算核验与来源能够支持的结论联系起来。',
         )
-      : t(
-          'A revised record changes what applies under stated conditions. This guide connects version timelines, observation dates and the evidence needed before applying a rule.',
-          '修订记录改变的是特定条件下适用的内容。本指南把版本时间线、观察日期和判断规则适用性所需的证据联系起来。',
-        ),
+      : experiment
+        ? t(
+            'A useful comparison links source conditions to a testable procedure. This guide connects causal limits, independently assigned units, common measurement and the conclusions that still need results.',
+            '有用的比较需要把来源条件转化为可检验步骤。本指南联系归因边界、独立分配的单位、一致测量与仍需结果支持的结论。',
+          )
+        : t(
+            'A revised record changes what applies under stated conditions. This guide connects version timelines, observation dates and the evidence needed before applying a rule.',
+            '修订记录改变的是特定条件下适用的内容。本指南把版本时间线、观察日期和判断规则适用性所需的证据联系起来。',
+          ),
     objectivePractice: task.criteria.map((c) => c.label),
     conceptConnections: concepts,
     workedExample: worked,

@@ -1,4 +1,5 @@
 import { beforeAll, describe, expect, it } from 'vitest';
+import { comparisonDesignFixture } from '../../../tests/fixtures/teaching/comparisonDesign.js';
 import { buildCourseBlueprint, compileBlueprintDeliverables } from '../courseBlueprintCompiler.js';
 import {
   createNewTeachingTaskReviewDraft,
@@ -112,6 +113,83 @@ function accept(state) {
 }
 
 describe('creation through the shared teaching transaction', () => {
+  it.each([false, true])(
+    'creates and revises a comparison design across materials and persisted history (Chinese: %s)',
+    (zh) => {
+      const state = structuredClone(baseline);
+      const f = comparisonDesignFixture(zh);
+      const draft = createNewTeachingTaskReviewDraft(state.courseMap, {
+        lessonNumber: 2,
+        operation: 'paired-condition-confound',
+      });
+      draft.inputs = f.inputs;
+      draft.objective = f.objective;
+      draft.bindings = Object.fromEntries(
+        Object.entries(f.bindings).map(([role, span]) => [
+          role,
+          {
+            inputId: span.inputId,
+            quote: f.inputs.find((input) => input.id === span.inputId).text.slice(span.start, span.end),
+            occurrence: 0,
+          },
+        ]),
+      );
+      const { result, next } = accept({ ...state, draft });
+      expect(result.modelCalls).toBe(0);
+      expect(Object.keys(result.changed).sort()).toEqual([...features].sort());
+      const source = readTeachingTaskSources(next.courseMap)[0];
+      const task = rebuildTeachingTaskSource(source);
+      expect(task.operationPlan.operation).toBe('paired-condition-confound');
+      const transfer = task.sequence.find((unit) => unit.kind === 'independent-transfer');
+      expect(transfer).toBeTruthy();
+      for (const [feature, key] of Object.entries(keys)) {
+        expect(next.deliverables[feature].data[key][0], `${feature}: unrelated lesson`).toEqual(
+          state.deliverables[feature].data[key][0],
+        );
+        const row = next.deliverables[feature].data[key][1];
+        expect(feature === 'quizBank' ? row.practiceRecord.taskId : row.taskId, feature).toBe(source.id);
+      }
+      const oldGuide = next.deliverables.studyGuides.data;
+      const editedGuide = structuredClone(oldGuide);
+      const note = zh
+        ? '教师说明：课堂只讨论方案，现场不操作热水。'
+        : 'Teacher note: discuss the protocol; do not conduct the test in this room.';
+      editedGuide.studyGuides[1].summary = note;
+      next.deliverables.studyGuides.data = rememberTeacherEdit(oldGuide, editedGuide, ['studyGuides', 1, 'summary']);
+      const revisedDraft = createTeachingTaskReviewDraft(source);
+      revisedDraft.inputs[2].text = revisedDraft.inputs[2].text.replace(zh ? '24' : '32', zh ? '25' : '33');
+      revisedDraft.bindings.availableUnits.quote = zh ? '25' : '33';
+      const revised = accept({ ...next, draft: revisedDraft });
+      const newSource = readTeachingTaskSources(revised.next.courseMap)[0];
+      const newTask = rebuildTeachingTaskSource(newSource);
+      expect(newSource.id).toBe(source.id);
+      expect(newTask.derivation.find((step) => step.id === 'proposed-allocation').result).toMatchObject({
+        total: zh ? 25 : 33,
+        first: zh ? 12 : 16,
+        second: zh ? 13 : 17,
+      });
+      expect(newTask.sequence.find((unit) => unit.kind === 'independent-transfer').question).toBe(transfer.question);
+      expect(newTask.sequence.find((unit) => unit.kind === 'independent-transfer').answer).toBe(transfer.answer);
+      expect(revised.next.deliverables.studyGuides.data.studyGuides[1].summary).toBe(note);
+      for (const feature of features)
+        expect(revised.next.deliverables[feature].data.teachingTaskSources, feature).toEqual([newSource]);
+      const before = { ...next, courseGraph: deriveCourseGraphFromCourseMap(next.courseMap) };
+      const after = { ...revised.next, courseGraph: deriveCourseGraphFromCourseMap(revised.next.courseMap) };
+      const entry = JSON.parse(JSON.stringify(createEditTransaction(before, after)));
+      const restored = restoreSnapshotTeachingProgram(JSON.parse(JSON.stringify(after)));
+      expect(restored).toEqual(after);
+      const { history } = appendEditTransaction(emptyEditHistory(), entry);
+      expect(restoreEditHistory(JSON.parse(JSON.stringify(serializeEditHistory(history))), restored).status).toBe(
+        'ready',
+      );
+      expect(applyEditTransaction(restored, entry, 'undo').workspace).toEqual(before);
+      expect(applyEditTransaction(before, entry, 'redo').workspace).toEqual(after);
+      expect(
+        commitTeachingTaskReview({ ...revised.next, preview: revised.preview, teacherConfirmed: true }).status,
+      ).toBe('needs-review');
+    },
+  );
+
   it('previews and confirms a real new task into lesson two without changing lesson one', () => {
     const state = setup(),
       before = structuredClone(state);

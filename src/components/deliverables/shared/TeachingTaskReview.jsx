@@ -14,6 +14,20 @@ import {
 } from '../../../lib/teachingTaskReview.js';
 
 const fieldLabels = {
+  firstRecord: ['First condition record', '第一组条件记录'],
+  secondRecord: ['Second condition record', '第二组条件记录'],
+  designRecord: ['New-test resources and measurement', '新试验资源与测量记录'],
+  firstTreatment: ['First treatment setting', '第一组处理水平'],
+  secondTreatment: ['Second treatment setting', '第二组处理水平'],
+  firstOther: ['First competing-condition setting', '第一组另一条件设置'],
+  secondOther: ['Second competing-condition setting', '第二组另一条件设置'],
+  factor: ['Factor to investigate', '研究因素'],
+  otherFactor: ['Other varying factor', '同时变化的另一因素'],
+  unit: ['Independent assignable unit', '可独立分配的单位'],
+  availableUnits: ['Available new units', '可用的新单位数量'],
+  controls: ['Conditions to retain', '需要保留的控制条件'],
+  measurement: ['Common measurement rule', '统一测量规则'],
+  outcome: ['Outcome to measure', '结果指标'],
   priorRecord: ['Earlier rule record', '原规则记录'],
   amendedRecord: ['Amendment record', '修订记录'],
   priorValue: ['Earlier value', '原值'],
@@ -69,7 +83,8 @@ export default function TeachingTaskReview({
   const draftRef = useRef(draft);
   const [preview, setPreview] = useState(null);
   const [confirmed, setConfirmed] = useState(false);
-  const [message, setMessage] = useState('');
+  const [message, setMessageState] = useState('');
+  const [messageDetails, setMessageDetails] = useState([]);
   const [busy, setBusy] = useState(false);
   const [newLesson, setNewLesson] = useState('');
   const [newOperation, setNewOperation] = useState('observed-proportion');
@@ -96,6 +111,10 @@ export default function TeachingTaskReview({
         : options.sources[0]);
   const zh = /\p{Script=Han}/u.test(selected?.objective || '');
   const t = (en, cn) => (zh ? cn : en);
+  function setMessage(value, details = []) {
+    setMessageState(value);
+    setMessageDetails(details);
+  }
 
   if (
     !onPreview ||
@@ -128,7 +147,7 @@ export default function TeachingTaskReview({
     setPreview(null);
     setConfirmed(false);
     setLastProposalReceipt(null);
-    setMessage(t('Draft restored. Preview the changes again before confirming.', '已恢复草稿；确认前请重新预览修改。'));
+    setMessage(t('Draft restored. Preview to continue.', '草稿已恢复，请重新预览。'));
   }
   function discard() {
     if (!draft || busy) return;
@@ -137,7 +156,7 @@ export default function TeachingTaskReview({
     setPreview(null);
     setConfirmed(false);
     setLastProposalReceipt(null);
-    setMessage(t('Draft discarded. The confirmed course is unchanged.', '已放弃草稿，已确认的课程保持不变。'));
+    setMessage(t('Draft discarded.', '草稿已放弃。'));
   }
   function beginNew() {
     const next = createNewTeachingTaskReviewDraft(courseMap, {
@@ -198,27 +217,29 @@ export default function TeachingTaskReview({
           bindings,
           proposal: result.receipt ? { ...result.receipt, adoption } : undefined,
         }));
+        const missingRoles = Object.keys(bindings).filter(
+          (role) => !adoption.filledRoles.includes(role) && !adoption.preservedRoles.includes(role),
+        );
         setMessage(
+          missingRoles.length
+            ? t(
+                `Review the source selections and complete ${missingRoles.length} missing fields.`,
+                `请核对来源选择，并补齐 ${missingRoles.length} 处空缺。`,
+              )
+            : adoption.filledRoles.length
+              ? t('Review the proposed source selections.', '请核对建议的来源选择。')
+              : adoption.differingRoles.length
+                ? t(
+                    'Some suggestions differ from your selections. Review the details.',
+                    '部分建议与已有选择不同，请查看核对详情。',
+                  )
+                : t(
+                    'No new source selections. Your existing selections are kept.',
+                    '没有新的来源选择，已保留已有选择。',
+                  ),
           [
-            Object.values(result.bindings).some((binding) => binding.inputId)
-              ? t(
-                  'Scion located candidate source phrases. Review every role and any empty field before previewing the task.',
-                  'Scion 已提出来源片段；预览任务前，请核对各角色及空缺字段。',
-                )
-              : t(
-                  'Scion did not return usable source bindings. You can complete the fields yourself.',
-                  'Scion 未返回可用的来源绑定，可手动填写字段。',
-                ),
             ...(result.issues || []),
             ...(result.unknowns || []),
-            ...(adoption.preservedRoles.length
-              ? [
-                  t(
-                    `${adoption.preservedRoles.length} existing source selections were kept.`,
-                    `已保留 ${adoption.preservedRoles.length} 个已有来源选择。`,
-                  ),
-                ]
-              : []),
             ...(adoption.differingRoles.length
               ? [
                   t(
@@ -227,15 +248,15 @@ export default function TeachingTaskReview({
                   ),
                 ]
               : []),
-            ...(result.missing?.length
+            ...(missingRoles.length
               ? [
                   t(
-                    `${result.missing.length} source roles need your input.`,
-                    `${result.missing.length} 个来源角色需要补充。`,
+                    `Complete: ${missingRoles.map((role) => fieldLabels[role]?.[0] || role).join(', ')}.`,
+                    `请补充：${missingRoles.map((role) => fieldLabels[role]?.[1] || role).join('、')}。`,
                   ),
                 ]
               : []),
-          ].join(' '),
+          ],
         );
       } else
         setMessage(
@@ -279,12 +300,7 @@ export default function TeachingTaskReview({
         setDraft(null);
         setPreview(null);
         setConfirmed(false);
-        setMessage(
-          t(
-            'Updated the shared task. Any competing teacher edits are preserved for review. You can undo this update from the toolbar.',
-            '已更新共享任务。有冲突的教师编辑会保留供审阅；可通过工具栏撤销本次更新。',
-          ),
-        );
+        setMessage(t('Task updated. You can undo this change.', '任务已更新，可撤销。'));
       } else {
         setPreview(null);
         setConfirmed(false);
@@ -367,6 +383,9 @@ export default function TeachingTaskReview({
                   {t('Observed proportion and population limits', '观察比例与总体限制')}
                 </option>
                 <option value="record-amendment">{t('Changed rule and evidence limits', '规则修订与证据限制')}</option>
+                <option value="paired-condition-confound">
+                  {t('Confounded comparison and a testable design', '混杂比较与可检验设计')}
+                </option>
               </select>
             </label>
             <button type="button" className="font-medium underline" onClick={beginNew}>
@@ -469,12 +488,6 @@ export default function TeachingTaskReview({
               )}
               {onRemoveDraft && (
                 <div className="flex flex-wrap items-center gap-3">
-                  <p>
-                    {t(
-                      'Draft changes save with this project. Reopen and preview them before applying.',
-                      '草稿修改随工程保存；重新打开后，需再次预览才能应用。',
-                    )}
-                  </p>
                   <button type="button" disabled={busy} className="underline" onClick={discard}>
                     {t('Discard saved draft', '放弃已保存草稿')}
                   </button>
@@ -572,10 +585,15 @@ export default function TeachingTaskReview({
                         'Locate exact text in the records. Check that the numerator counts a subset of the observed group, using the same unit and observation period. Identify the unobserved group and the wider population; missing outcomes must actually be unknown. A repeated phrase needs its occurrence selected.',
                         '请选择记录中的原文。核对分子是已观察群体中的一部分，采用相同计数单位与观察时段；指出未观察群体和更大的目标群体，确认缺失结果确实未知。原文重复出现时请选择位置。',
                       )
-                    : t(
-                        'Locate exact text in the records. A repeated phrase needs its occurrence selected. Check that both rules concern the same setting and that the observation date is unknown.',
-                        '请选择记录中的原文；原文重复出现时请选择位置。请核对两版规则涉及同一情境，且观察日期确实未知。',
-                      )}
+                    : draft.operation === 'paired-condition-confound'
+                      ? t(
+                          'Check both condition combinations, independently assignable units, feasible controls and a shared measurement rule. Repeated readings belong to the same unit.',
+                          '核对两组条件、可独立分配的单位、可行的控制条件和一致测量规则；重复读数仍属于同一单位。',
+                        )
+                      : t(
+                          'Locate exact text in the records. A repeated phrase needs its occurrence selected. Check that both rules concern the same setting and that the observation date is unknown.',
+                          '请选择记录中的原文；原文重复出现时请选择位置。请核对两版规则涉及同一情境，且观察日期确实未知。',
+                        )}
                 </p>
                 {Object.entries(TEACHING_OPERATION_SPECS[draft.operation].bindings).map(([name, type]) => {
                   const binding = draft.bindings[name];
@@ -722,9 +740,19 @@ export default function TeachingTaskReview({
             </>
           )}
           {message && (
-            <p role="status" className="rounded-md border border-amber-200 bg-amber-50 p-3 text-amber-900">
-              {message}
-            </p>
+            <div className="space-y-2 text-slate-700">
+              <p role="status">{message}</p>
+              {messageDetails.length > 0 && (
+                <details>
+                  <summary className="cursor-pointer underline">{t('Review details', '查看核对详情')}</summary>
+                  <ul className="mt-2 list-disc space-y-1 pl-5">
+                    {messageDetails.map((detail, index) => (
+                      <li key={index}>{detail}</li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+            </div>
           )}
           {preview && (
             <section
@@ -782,10 +810,15 @@ export default function TeachingTaskReview({
                         'I have checked the part and whole refer to the same observed group, the unobserved outcomes are unknown, and the target population is wider. Apply these sources and scoring weights.',
                         '我已核对部分与整体属于同一已观察群体、未观察结果确实未知，且目标群体更广；同意应用这些来源与评分权重。',
                       )
-                    : t(
-                        'I have checked the source roles, the effective change for the same setting, and the unknown observation date. Apply these sources and scoring weights.',
-                        '我已核对来源角色、同一情境下规则的生效变更，以及观察日期未知的条件；同意应用这些来源与评分权重。',
-                      )}
+                    : draft.operation === 'paired-condition-confound'
+                      ? t(
+                          'I have reviewed the source conditions, proposed procedure, reference and scoring. Apply this task.',
+                          '我已核对来源条件、建议步骤、参考与评分，同意应用此任务。',
+                        )
+                      : t(
+                          'I have checked the source roles, the effective change for the same setting, and the unknown observation date. Apply these sources and scoring weights.',
+                          '我已核对来源角色、同一情境下规则的生效变更，以及观察日期未知的条件；同意应用这些来源与评分权重。',
+                        )}
               </label>
               {draft.goalAlignment && (
                 <p>

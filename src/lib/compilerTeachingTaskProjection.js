@@ -1,6 +1,6 @@
 import { taskCopy, taskText } from './teachingTaskCopy.js';
 import { projectTeachingTaskSyllabus } from './compilerTeachingTaskSyllabus.js';
-import { teachingTaskRubric } from './compilerTeachingTask.js';
+import { teachingTaskRubric, teachingTaskWorkedExample } from './compilerTeachingTask.js';
 import { projectTeachingStudyGuide } from './compilerTeachingStudyGuide.js';
 import { compileTeachingProgram, teachingProgramReviewQuestions } from './compilerTeachingProgram.js';
 import { teachingTaskSourceFromLesson } from './teachingTaskSource.js';
@@ -265,6 +265,14 @@ function projectAssignment(row, task, blueprint) {
       '根据评分标准的反馈修正回答，并保留修改稿。',
     ),
   });
+  if (task.operationPlan?.operation === 'paired-condition-confound')
+    row.anchorExampleGuidance = [
+      taskText(task, 'Reference proposal — compare after your own attempt.', '参考方案——完成自己的作答后再比较。'),
+      ...task.reasoning,
+      taskText(task, `Error example: ${task.errors[0].response}`, `错误示例：${task.errors[0].response}`),
+      anchors(task).scoringRationale,
+      anchors(task).revisionPrompt,
+    ];
   alignAssessmentCopies(row, task, rubric);
 }
 
@@ -469,6 +477,12 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
       task,
       previousSources.find((source) => source.id === task.id),
     );
+    if (task.operationPlan?.operation === 'paired-condition-confound') {
+      // The selected task owns the lesson's generated example. Keep the full
+      // demonstration in teacher material, not on the student assignment.
+      if (feature === 'lessonPlans') row.workedExample = teachingTaskWorkedExample(task);
+      if (feature === 'assignments') delete row.workedExample;
+    }
     if (feature === 'assignments') projectAssignment(row, task, blueprint);
     if (feature === 'rubrics' && Array.isArray(row.criteria)) projectRubric(row, task);
     if (feature === 'lessonPlans') projectPlan(row, task);
@@ -529,21 +543,29 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
         })),
       });
     if (feature === 'quizBank' && options.configMap?.quizBank?.machineScored !== true && !row.gradingSpec) {
+      // A newly reviewed comparison replaces the legacy generated specimen
+      // for this lesson. Otherwise its protected operation questions leave
+      // no seats and the new task silently receives no assessment at all.
+      // Authored questions and machine-scored specifications remain protected;
+      // the surrounding three-way merge preserves teacher changes.
+      const reviewedComparison = task.operationPlan?.operation === 'paired-condition-confound';
+      const reviewedBank = task.operationPlan?.version === 2 || reviewedComparison;
       const seats =
         row.questions?.filter(
           (q) =>
             !q.machineScored &&
-            (task.operationPlan?.version !== 2 || !q.taskId || q.taskId === task.id || q.sourceTaskId === task.id) &&
-            ['short_answer', 'essay'].includes(q.type) &&
-            (!q.enrichmentSource ||
-              [
-                'compiler-teaching-program',
-                'compiler-exact-source-ledger',
-                'source-bound-recovery',
-                'shared-teaching-task',
-              ].includes(q.enrichmentSource)),
+            (!reviewedBank || !q.taskId || q.taskId === task.id || q.sourceTaskId === task.id) &&
+            ((reviewedComparison && q.enrichmentSource === 'compiler-verified-operation-assessment') ||
+              (['short_answer', 'essay'].includes(q.type) &&
+                (!q.enrichmentSource ||
+                  [
+                    'compiler-teaching-program',
+                    'compiler-exact-source-ledger',
+                    'source-bound-recovery',
+                    'shared-teaching-task',
+                  ].includes(q.enrichmentSource)))),
         ) || [];
-      if (seats.length || task.operationPlan?.version === 2)
+      if (seats.length || reviewedBank)
         row.practiceRecord = {
           ...ref(task),
           title: taskCopy(task, 'Supplied task record — guided practice'),
@@ -583,7 +605,7 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
           answer: retry.answer,
           successCriteria: transfer.criteria,
         });
-      if (task.operationPlan?.version === 2) projectReviewedTeachingQuestionBank(row, task, quizQuestions, seats);
+      if (reviewedBank) projectReviewedTeachingQuestionBank(row, task, quizQuestions, seats);
       else
         quizQuestions.forEach((q, i) => {
           if (seats[i]) projectTeachingQuestion(seats[i], q, task);

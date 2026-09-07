@@ -2,6 +2,10 @@
 
 ## Unreleased — v0.20.0 development
 
+- Add a reviewed comparison-design operation that binds source conditions, independently assignable units, resource counts, controls and measurement. Compile proposed allocation, reference reasoning, distinct scoring levels and error feedback while keeping future effects unknown; semantic feasibility still requires review.
+- Carry reviewed comparison tasks through creation, linked materials, resource-count edits and reversible project history. Replace obsolete generated examples and quiz entries while retaining independent practice, machine-scored specifications and teacher-edit conflict handling.
+- Align design-task prompts and rubrics with proposed procedures rather than uncollected results. Add assignment response space, retain reference paragraphs, and keep Word rubric feedback with its criterion table. Bilingual export review still has documented localization, scoring and pagination issues.
+- Keep source-review feedback brief: show one result with expandable details, report actual remaining gaps after preserving valid selections, and remove repetitive draft notices and routine warning styling. Retain the original collapsed review entry and editors.
 - Organize newly reviewed study guides around one worked task, focused guided practice, an independent case and a concrete revision activity. Derive references and feedback from the shared task; preserve authored requirements and replay older guide versions for safe upgrades.
 - Localize reviewed Chinese guide headings and source numbering, add printable working space, separate answer keys onto a new page, and preserve the actual review strategy in Word/PDF exports. Keep the existing material layout and editors.
 - Fix guide term examples crashing after label localization, legacy collection aliases receiving the wrong export title, and generated practice removals incorrectly conflicting on revision metadata alone. Preserve actual teacher-answer conflicts.

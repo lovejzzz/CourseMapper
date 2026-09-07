@@ -5,6 +5,7 @@ import {
 } from './teachingPerformanceRequirements.js';
 import { buildEvidenceTask } from './teachingTaskEvidenceBuilder.js';
 import { renderObservedProportion } from './teachingOperationProportion.js';
+import { renderComparisonTask } from './teachingOperationComparisonTask.js';
 
 /** Material language is a projection of the same checked operation. Neither
  * model prose nor a material's saved answer is a second answer authority. */
@@ -30,6 +31,8 @@ export function renderTeachingOperationTask(plan, inputs, objective) {
   }
   if (plan.operation === 'observed-proportion')
     return project(renderObservedProportion(plan, inputs, objective, evaluated));
+  if (plan.operation === 'paired-condition-confound')
+    return project(renderComparisonTask(plan, inputs, objective, evaluated));
   const zh = /\p{Script=Han}/u.test(objective);
   const {
     priorValue: prior,
