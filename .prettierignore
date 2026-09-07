@@ -28,3 +28,6 @@ package-lock.json
 /research/scion/evaluation/v0.20.0/grammar/browser-canary.json
 
 /research/scion/evaluation/v0.20.0/grammar/constrained-proposals.json
+
+/research/scion/evaluation/v0.20.0/grammar/regions-proposals.json
+/research/scion/evaluation/v0.20.0/grammar/regions-candidate.patch

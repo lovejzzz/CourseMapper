@@ -1,0 +1,34 @@
+{
+  "status": "rejected-development-branch; shipping-source-restored",
+  "baseCommit": "a1701517",
+  "receiptSha256": "634cf49e1e1a35cee13b8cca38357266f2e30cd3047b9b07ff8fd9b3264be471",
+  "patchSha256": "88af3af559ec8cc290a8a388c1162349811c0460b88f9235b0285691b9d32b23",
+  "cases": [
+    {
+      "id": "experiment-dev-01",
+      "calls": 1,
+      "usableBindings": 1,
+      "elapsedMs": 7676,
+      "loadMs": 3193,
+      "fullProposalPass": false,
+      "rawOutputs": [
+        "{\"newTest\": {\"source\": \"r3\", \"factor\": null, \"otherFactor\": null, \"unit\": null, \"availableUnits\": null, \"controls\": null, \"measurement\": null, \"outcome\": null}, \"unknowns\": []}"
+      ]
+    },
+    {
+      "id": "experiment-dev-02",
+      "calls": 1,
+      "usableBindings": 2,
+      "elapsedMs": 6642,
+      "loadMs": 0,
+      "fullProposalPass": false,
+      "rawOutputs": [
+        "{\"newTest\":{\"source\":\"r3\",\"factor\":null,\"otherFactor\":null,\"unit\":null,\"availableUnits\":24,\"controls\":null,\"measurement\":null,\"outcome\":null},\"unknowns\":[\"source is its record alias\",\"factor is the investigated factor's name\",\"otherFactor is the competing factor's name, not their settings\",\"unit quotes the object noun together with its stated singular determiner or classifier\",\"availableUnits quotes only the integer count of new units; a JSON integer is also allowed if it matches a whole count in this source\",\"controls quotes conditions kept fixed\",\"measurement quotes the complete stated measurement procedure\",\"outcome quotes its metric\"]}"
+      ]
+    }
+  ],
+  "sourceTests": {
+    "passed": 45,
+    "meaning": "Software behavior only; real model proposals failed."
+  }
+}

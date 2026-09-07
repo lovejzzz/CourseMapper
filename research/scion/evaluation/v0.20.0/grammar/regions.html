@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><title>Scion source region trial</title>
+  <h1>Source region proposals · development</h1>
+  <button id="run">Run two proposals</button
+  ><button id="save" disabled>Save proposals</button>
+  <pre id="result">Idle</pre>
+  <script type="module">
+    import { proposeTeachingSourceBindings } from '/src/lib/scionTeachingProposal.js';
+    import { runScionBrowserCompletion } from '/src/lib/scionCompletionBoundary.js';
+    import { SCION_BROWSER_GEMMA4_GGUF_URL, SCION_BROWSER_GEMMA4_GGUF } from '/src/lib/scionBrowserConstants.js';
+    if (!['127.0.0.1', 'localhost'].includes(location.hostname)) throw Error('Local only');
+    const runtimeUrl = new URL('/scion/runtime/v3-candidate/wllama.js', location.href).href;
+    const { Wllama } = await import(/* @vite-ignore */ runtimeUrl);
+    const result = document.querySelector('#result'),
+      run = document.querySelector('#run'),
+      save = document.querySelector('#save');
+    let receipt;
+    const render = () => (result.textContent = JSON.stringify(receipt, null, 2));
+    run.onclick = async () => {
+      run.disabled = true;
+      save.disabled = true;
+      receipt = { startedAt: new Date().toISOString(), status: 'loading', cases: [], errors: [] };
+      render();
+      const runtime = new Wllama(
+        { 'jspi/single-thread/wllama.wasm': '/scion/runtime/v3-candidate/jspi-single-thread/wllama.wasm' },
+        { backend: 'webgpu', parallelDownloads: 1 },
+      );
+      try {
+        const hash = async (url) => {
+          const b = await (await fetch(url)).arrayBuffer();
+          return [...new Uint8Array(await crypto.subtle.digest('SHA-256', b))]
+            .map((n) => n.toString(16).padStart(2, '0'))
+            .join('');
+        };
+        receipt.runtime = {
+          grammar: 'gbnf-state-v1',
+          modulePath: runtimeUrl,
+          moduleSha256: await hash(runtimeUrl),
+          wasmSha256: await hash('/scion/runtime/v3-candidate/jspi-single-thread/wllama.wasm'),
+        };
+        let loaded = false;
+        const api = {
+          loadScionBrowserWllama: async () => {
+            if (!loaded) {
+              await runtime.loadModelFromUrl(SCION_BROWSER_GEMMA4_GGUF_URL, {
+                useCache: true,
+                n_ctx: 8192,
+                n_threads: 1,
+                seed: 424242,
+              });
+              loaded = true;
+            }
+          },
+          getScionBrowserWllamaStatus: () => ({
+            runtime: receipt.runtime,
+            activeWeightIdentity: SCION_BROWSER_GEMMA4_GGUF.runtimeArtifact,
+            adapter: { mode: 'base-only', active: false },
+            baseIntegrity: { runtimeCheck: 'metadata-and-pinned-url', fullDigestEvidence: null },
+          }),
+          completeScionBrowserWllama: (messages, options) => runScionBrowserCompletion(runtime, messages, options),
+        };
+        for (const id of ['experiment-dev-01', 'experiment-dev-02']) {
+          const input = await (await fetch('/benchmarks/classroom/v3/inputs/' + id + '.json')).json();
+          receipt.status = 'running ' + id;
+          render();
+          const output = await proposeTeachingSourceBindings(
+            { operation: 'paired-condition-confound', inputs: input.sources, objective: input.objective },
+            {
+              sourceAddressing: 'record-regions-v1',
+              runtimeLoader: async () => api,
+              onProgress: (state) => {
+                receipt.status = id + ': ' + state;
+                render();
+              },
+            },
+          );
+          receipt.cases.push({ id, output });
+          render();
+        }
+        receipt.status = 'completed-for-review';
+      } catch (error) {
+        receipt.errors.push(error.message);
+        receipt.status = 'failed';
+      } finally {
+        await runtime.exit().catch((error) => receipt.errors.push(error.message));
+        receipt.finishedAt = new Date().toISOString();
+        render();
+        run.disabled = false;
+        save.disabled = false;
+      }
+    };
+    save.onclick = () => {
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(new Blob([JSON.stringify(receipt, null, 2)], { type: 'application/json' }));
+      link.download = 'scion-source-region-proposals.json';
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+    };
+  </script>
+</html>

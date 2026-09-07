@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Reject and remove a tested source-region proposal experiment after bilingual model outputs regressed; preserve the candidate and failure evidence outside application code.
+
 - Add capability-gated, application-owned comparison JSON grammars and preserve exact-source validation. Four real local proposal calls returned complete JSON; unresolved citations still block full acceptance. Reject grammar requests on unsupported runtimes rather than silently ignoring them.
 
 - Identify the pinned native runtime failing to advance grammar state for generated tokens. Add a protocol-versioned candidate source patch and seven routing regressions; rebuild an isolated candidate with invalid-grammar rejection and pass eight real-browser mechanical checks. The application runtime remains unchanged pending schema integration and semantic/adapter validation.
