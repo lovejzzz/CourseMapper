@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><title>Scion grammar candidate canary</title>
+  <h1>Scion grammar candidate · local only</h1>
+  <button id="run">Run grammar canary</button
+  ><button id="save" disabled>Save receipt</button>
+  <pre id="result">Idle</pre>
+  <script type="module">
+    const runtimeUrl = new URL('/scion/runtime/v3-candidate/wllama.js', location.href).href;
+    const { Wllama } = await import(/* @vite-ignore */ runtimeUrl);
+    import { SCION_BROWSER_GEMMA4_GGUF_URL } from '/src/lib/scionBrowserConstants.js';
+    import { formatScionGemma4Messages } from '/src/lib/scionGemma4Prompt.js';
+    if (!['127.0.0.1', 'localhost'].includes(location.hostname)) throw Error('Local only');
+    const result = document.querySelector('#result'),
+      run = document.querySelector('#run'),
+      save = document.querySelector('#save');
+    let receipt;
+    const render = () => (result.textContent = JSON.stringify(receipt, null, 2));
+    run.onclick = async () => {
+      run.disabled = true;
+      save.disabled = true;
+      receipt = {
+        startedAt: new Date().toISOString(),
+        status: 'loading',
+        runtimePath: '/scion/runtime/v3-candidate/',
+        cases: [],
+        errors: [],
+      };
+      render();
+      const runtime = new Wllama(
+        { 'jspi/single-thread/wllama.wasm': '/scion/runtime/v3-candidate/jspi-single-thread/wllama.wasm' },
+        { backend: 'webgpu', parallelDownloads: 1 },
+      );
+      try {
+        const hash = async (url) => {
+          const b = await (await fetch(url)).arrayBuffer();
+          return [...new Uint8Array(await crypto.subtle.digest('SHA-256', b))]
+            .map((n) => n.toString(16).padStart(2, '0'))
+            .join('');
+        };
+        receipt.moduleSha256 = await hash('/scion/runtime/v3-candidate/wllama.js');
+        receipt.wasmSha256 = await hash('/scion/runtime/v3-candidate/jspi-single-thread/wllama.wasm');
+        let start = performance.now();
+        await runtime.loadModelFromUrl(SCION_BROWSER_GEMMA4_GGUF_URL, {
+          useCache: true,
+          n_ctx: 2048,
+          n_threads: 1,
+          seed: 7,
+        });
+        receipt.loadMs = Math.round(performance.now() - start);
+        receipt.status = 'running';
+        render();
+        const literal = (value) => 'root ::= ' + JSON.stringify(value);
+        for (const test of [
+          { id: 'literal-once', grammar: literal('OK'), expected: 'OK' },
+          { id: 'json-chinese', grammar: literal('{"answer":"杯子"}'), expected: '{"answer":"杯子"}' },
+          {
+            id: 'json-escape',
+            grammar: literal(JSON.stringify({ answer: 'A "quote"\nB' })),
+            expected: JSON.stringify({ answer: 'A "quote"\nB' }),
+          },
+          { id: 'invalid-grammar', grammar: 'root ::= [', reject: true },
+          { id: 'recovery-after-invalid', grammar: literal('OK'), expected: 'OK' },
+          { id: 'cancel', grammar: literal('OK'.repeat(100)), cancel: true },
+          { id: 'recovery-after-cancel', grammar: literal('OK'), expected: 'OK' },
+          { id: 'unconstrained', prompt: 'Reply with the word Hello only.' },
+        ]) {
+          const controller = new AbortController();
+          let tokens = 0;
+          start = performance.now();
+          const row = { id: test.id, grammar: test.grammar ?? null, maxNewTokens: 96 };
+          receipt.cases.push(row);
+          render();
+          try {
+            row.output = await runtime.createCompletion(
+              formatScionGemma4Messages([{ role: 'user', content: test.prompt ?? 'Return the requested result.' }], {
+                thinking: false,
+              }),
+              {
+                nPredict: 96,
+                abortSignal: controller.signal,
+                sampling: { temp: 0, top_k: 1, top_p: 1, seed: 7, ...(test.grammar ? { grammar: test.grammar } : {}) },
+                onNewToken: () => {
+                  tokens++;
+                  if (test.cancel && tokens === 2) controller.abort();
+                },
+              },
+            );
+            row.pass = test.reject
+              ? false
+              : test.cancel
+                ? controller.signal.aborted && tokens === 2
+                : test.expected !== undefined
+                  ? row.output === test.expected
+                  : row.output.trim().length > 0 && tokens < 96;
+            if (test.id.startsWith('json-')) row.parsed = JSON.parse(row.output);
+          } catch (error) {
+            row.error = error.message;
+            row.pass = test.reject === true && /initialize sampling/i.test(error.message);
+          }
+          row.outputTokens = tokens;
+          row.elapsedMs = Math.round(performance.now() - start);
+          render();
+        }
+        receipt.status = receipt.cases.every((x) => x.pass) ? 'pass-mechanical-only' : 'failed';
+      } catch (error) {
+        receipt.errors.push(error.message);
+        receipt.status = 'failed';
+      } finally {
+        await runtime.exit().catch((error) => receipt.errors.push(error.message));
+        receipt.finishedAt = new Date().toISOString();
+        render();
+        save.disabled = false;
+        run.disabled = false;
+      }
+    };
+    save.onclick = () => {
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(new Blob([JSON.stringify(receipt, null, 2)], { type: 'application/json' }));
+      link.download = 'scion-grammar-candidate-canary.json';
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+    };
+  </script>
+</html>

@@ -1,6 +1,6 @@
 # Native grammar acceptance investigation — 2026-09-07
 
-Status: a pinned-source defect is confirmed and a candidate patch passes source routing regressions. No rebuilt WASM, browser grammar canary, or teaching-quality pass is claimed.
+Status: the native candidate was rebuilt and all eight real-browser mechanical cases passed. Production paths remain unchanged. No source-proposal semantic or teaching-quality pass is claimed.
 
 ## Finding
 
@@ -29,3 +29,25 @@ Both protocol definitions advance from GLUE_VERSION 2 to 3. A new JS bundle must
 3. One browser/model: literal `OK` must terminate once; a small JSON grammar must parse, support Chinese strings and escaped characters, and terminate within budget. Test unconstrained generation, cancellation and a fresh subsequent request too.
 4. Only then expose application-owned schema constraints to the source-proposal pipeline. Do not let source documents supply executable grammar or use permissive JSON repair to hide failures.
 5. Rerun both exposed cases without selecting the best result, followed by fresh held-out tasks. Grammar proves structure only; role attribution, units, evidence and teaching value need separate review.
+
+## Rebuild and browser result
+
+The build used the pinned llama.cpp archive, Emscripten 4.0.20 (actual `emcc --version` revision `6913738ec5371a88c4af5a80db0ab42bad3de681`), Dawn v20260317.182325 and CMake 3.31.6. Emsdk's release-build hash is separately recorded: the Emscripten source revision is not an emsdk repository revision. Downloads, output hashes and the two-job compile limit are in `build-review.json`.
+
+The candidate additionally rejects a null grammar sampler before allocating the sampling chain. Its initialization action preserves the prior sampler on failure and returns `success: false`. Invalid syntax therefore cannot silently turn a constrained request into an unconstrained request.
+
+The generated worker contains only the rebuilt JSPI backend; unsupported Asyncify entries throw explicitly. The existing OPFS streaming, bounded-read, native-response and cancellation patches are applied to the new bundle with an explicit recorded input digest. The production v2 builder retains its original fixed digest and output. Candidate files are isolated under `/scion/runtime/v3-candidate/`; the application still selects v2.
+
+`canary.html` is a local-only, manually triggered developer fixture served by the existing development server. It loads one base model, records the fetched JS/WASM hashes, runs serially, and unloads the model in `finally`. The initial fixture import failed because Vite rejects static imports of public JS; using the same absolute dynamic import as the product fixed the fixture before any model inference. This was a fixture failure, not a model attempt.
+
+The exact downloaded `browser-canary.json` records:
+
+- `OK` once and then termination: 543 ms.
+- Chinese JSON: 1,594 ms; escaped quotes/newline JSON: 1,525 ms. Both parse to the exact required objects.
+- Invalid grammar: rejected before output in 4 ms; a subsequent valid request succeeds.
+- Cancellation after two emitted tokens: stops; a subsequent valid request succeeds.
+- Unconstrained request: emits `Hello` and terminates, 208 ms.
+
+Cached model loading took 4,310 ms. All eight cases passed, with no receipt-level errors. Literal grammars deliberately prescribe the output: **they test runtime enforcement, not model reasoning or schema-filling competence**. Neither schema choice nor token budgets were tuned after observing these results. The fixture and receipt retain the actual tested boundaries, including low-level cancellation returning partial text; the product completion boundary separately rejects cancelled text.
+
+Remaining: dynamic object schemas and source-proposal integration; executable protocol mismatch check; adapter apply/clear regression with the rebuilt binary; independent semantic and educational evaluation. The runtime candidate is not promoted by this receipt.

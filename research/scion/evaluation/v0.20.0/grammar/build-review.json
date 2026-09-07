@@ -1,0 +1,41 @@
+{
+  "upstreamRevision": "58903000dbea6acfc0eb9c738d8be50d1052cf23",
+  "llamaCppRevision": "5ec717d1256e34558a44dc09adf1e6e16f2e2682",
+  "emscriptenVersion": "4.0.20",
+  "emscriptenRevision": "6913738ec5371a88c4af5a80db0ab42bad3de681",
+  "emsdkReleaseBuild": "c387d7a7e9537d0041d2c3ae71b7538cc978104e",
+  "cmakeVersion": "3.31.6",
+  "dawnTag": "v20260317.182325",
+  "parallelBuildJobs": 2,
+  "status": "candidate-only; production-paths-unchanged",
+  "archives": {
+    "upstream.tar.gz": "8fef7483c335236c37684e63950c9503d145db800cc8cdaee400d26e502ef7f9",
+    "llama.tar.gz": "554f4db93fa0cc486167785b22c5fdb1e4c73c9c003645caa234465dc45f5a8b",
+    "emsdk.tar.gz": "7d4610037389c98dfbe00eb89017a31dfd67a0737a6d10d645993e4d9d9ae4ce",
+    "emdawn.zip": "8dcae86c630d76b6794b271c6572becba36f4237d132bee121a56638c3d76575"
+  },
+  "unpatchedBundleSha256": "621846e0fa4a8a5982d1c1a31bc1ca28df820f6874331a6558f182de64c1cfca",
+  "artifacts": [
+    {
+      "path": "public/scion/runtime/v3-candidate/wllama.js",
+      "bytes": 235735,
+      "sha256": "92afaea4ca9feefece8790fa32f3b96775d430f7341a8d89e550de368af40bdb"
+    },
+    {
+      "path": "public/scion/runtime/v3-candidate/jspi-single-thread/wllama.wasm",
+      "bytes": 4537918,
+      "sha256": "ccb4ffaada3561b60275f652f5067946ed019728d589eaa24604a67d7c207848"
+    }
+  ],
+  "nativePatchSha256": "3bd937757d3a12699cbc8a53848e3106f07e3c81452b7f1dcd21084096da1cdb",
+  "esbuildVersion": "0.28.1",
+  "nativeTarget": "wllama",
+  "cmakeArguments": [
+    "-DGGML_WEBGPU_JSPI=ON",
+    "-DLLAMA_WASM_MEM64=ON",
+    "-DLLAMA_BUILD_TESTS=OFF",
+    "-DLLAMA_BUILD_EXAMPLES=OFF",
+    "-DLLAMA_BUILD_TOOLS=OFF"
+  ],
+  "EMCC_CFLAGS": "--no-entry -O3 -msimd128 -DNDEBUG -flto=full -frtti -sEXPORT_ES6=0 -sMODULARIZE=0 -sINITIAL_MEMORY=128MB -sMAXIMUM_MEMORY=4096MB -sALLOW_MEMORY_GROWTH=1 -sFORCE_FILESYSTEM=1 -sEXPORTED_FUNCTIONS=_main,_wllama_malloc,_wllama_start,_wllama_action,_wllama_exit,_wllama_debug -sEXPORTED_RUNTIME_METHODS=ccall,cwrap,HEAPU8,MEMFS,FS,mmapAlloc -sNO_EXIT_RUNTIME=1 -Wno-unused-command-line-argument -sIMPORTED_MEMORY -fwasm-exceptions -sJSPI -sJSPI_EXPORTS=['wllama_start','wllama_action'] -sMEMORY64=1"
+}

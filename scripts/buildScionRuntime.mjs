@@ -292,7 +292,12 @@ function replaceExactlyOnce(source, { name, before, after }) {
   return `${source.slice(0, first)}${after}${source.slice(first + before.length)}`;
 }
 
-export function patchScionRuntime(source) {
+// Candidate rebuilds must provide their separately recorded input digest.
+// The production v2 builder below retains its fixed source identity.
+export function patchScionRuntimeCandidate(source, expectedSourceSha256) {
+  if (!/^[a-f0-9]{64}$/.test(String(expectedSourceSha256 || ''))) {
+    throw new Error('A recorded candidate source SHA-256 is required.');
+  }
   const sourceSha256 = sha256(source);
   if (sourceSha256 !== expectedSourceSha256) {
     throw new Error(
@@ -301,6 +306,10 @@ export function patchScionRuntime(source) {
     );
   }
   return patches.reduce(replaceExactlyOnce, source);
+}
+
+export function patchScionRuntime(source) {
+  return patchScionRuntimeCandidate(source, expectedSourceSha256);
 }
 
 export async function buildScionRuntime({ checkOnly = false } = {}) {

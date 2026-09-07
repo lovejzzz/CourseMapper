@@ -1,6 +1,28 @@
 --- a/cpp/actions.hpp
 +++ b/cpp/actions.hpp
-@@ -703,7 +703,7 @@
+@@ -519,12 +519,19 @@
+       sparams.logit_bias.push_back({tokens[i], bias[i]});
+     }
+   }
+-  // maybe free before creating a new one
++  // Keep the prior sampler intact if the requested grammar is invalid.
++  auto * next_sampling = wcommon_sampler_init(app.model, sparams);
++  if (next_sampling == nullptr)
++  {
++    glue_msg_sampling_init_res res;
++    res.success.value = false;
++    return res;
++  }
+   if (app.ctx_sampling != nullptr)
+   {
+     wcommon_sampler_free(app.ctx_sampling);
+   }
+-  app.ctx_sampling = wcommon_sampler_init(app.model, sparams);
++  app.ctx_sampling = next_sampling;
+   if (req.tokens.not_null())
+   {
+     for (auto id : req.tokens.arr)
+@@ -703,7 +710,7 @@
    llama_tokens tokens_list = std::move(req.tokens.arr);
    for (auto id : tokens_list)
    {
@@ -95,3 +117,17 @@
  }
 
  // struct glue_msg_sampling_accept_res
+--- a/cpp/helpers/wsampling.cpp
++++ b/cpp/helpers/wsampling.cpp
+@@ -172,6 +172,11 @@
+              :      llama_sampler_init_grammar(vocab, params.grammar.c_str(), "root");
+     }
+
++    // Invalid non-empty grammars must fail initialization, never run unconstrained.
++    if (grmr == nullptr) {
++        return nullptr;
++    }
++
+     auto * result = new wcommon_sampler {
+         /* .params = */ params,
+         /* .grmr   = */ grmr,

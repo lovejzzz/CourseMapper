@@ -1,0 +1,90 @@
+{
+  "startedAt": "2026-09-07T09:03:48.346Z",
+  "status": "pass-mechanical-only",
+  "runtimePath": "/scion/runtime/v3-candidate/",
+  "cases": [
+    {
+      "id": "literal-once",
+      "grammar": "root ::= \"OK\"",
+      "maxNewTokens": 96,
+      "output": "OK",
+      "pass": true,
+      "outputTokens": 2,
+      "elapsedMs": 543
+    },
+    {
+      "id": "json-chinese",
+      "grammar": "root ::= \"{\\\"answer\\\":\\\"杯子\\\"}\"",
+      "maxNewTokens": 96,
+      "output": "{\"answer\":\"杯子\"}",
+      "pass": true,
+      "parsed": {
+        "answer": "杯子"
+      },
+      "outputTokens": 13,
+      "elapsedMs": 1594
+    },
+    {
+      "id": "json-escape",
+      "grammar": "root ::= \"{\\\"answer\\\":\\\"A \\\\\\\"quote\\\\\\\"\\\\nB\\\"}\"",
+      "maxNewTokens": 96,
+      "output": "{\"answer\":\"A \\\"quote\\\"\\nB\"}",
+      "pass": true,
+      "parsed": {
+        "answer": "A \"quote\"\nB"
+      },
+      "outputTokens": 15,
+      "elapsedMs": 1525
+    },
+    {
+      "id": "invalid-grammar",
+      "grammar": "root ::= [",
+      "maxNewTokens": 96,
+      "error": "Failed to initialize sampling",
+      "pass": true,
+      "outputTokens": 0,
+      "elapsedMs": 4
+    },
+    {
+      "id": "recovery-after-invalid",
+      "grammar": "root ::= \"OK\"",
+      "maxNewTokens": 96,
+      "output": "OK",
+      "pass": true,
+      "outputTokens": 2,
+      "elapsedMs": 311
+    },
+    {
+      "id": "cancel",
+      "grammar": "root ::= \"OKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOKOK\"",
+      "maxNewTokens": 96,
+      "output": "OK",
+      "pass": true,
+      "outputTokens": 2,
+      "elapsedMs": 298
+    },
+    {
+      "id": "recovery-after-cancel",
+      "grammar": "root ::= \"OK\"",
+      "maxNewTokens": 96,
+      "output": "OK",
+      "pass": true,
+      "outputTokens": 2,
+      "elapsedMs": 350
+    },
+    {
+      "id": "unconstrained",
+      "grammar": null,
+      "maxNewTokens": 96,
+      "output": "Hello",
+      "pass": true,
+      "outputTokens": 1,
+      "elapsedMs": 208
+    }
+  ],
+  "errors": [],
+  "moduleSha256": "92afaea4ca9feefece8790fa32f3b96775d430f7341a8d89e550de368af40bdb",
+  "wasmSha256": "ccb4ffaada3561b60275f652f5067946ed019728d589eaa24604a67d7c207848",
+  "loadMs": 4310,
+  "finishedAt": "2026-09-07T09:03:57.729Z"
+}
