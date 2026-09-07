@@ -301,6 +301,21 @@ export function prepareProjectSnapshotForRestore(snapshot) {
       }
     }
     delete restored.courseGraphJson;
+    if (restored.teachingReviewDrafts === undefined && typeof restored.teachingReviewDraftsJson === 'string') {
+      try {
+        restored.teachingReviewDrafts = JSON.parse(restored.teachingReviewDraftsJson);
+      } catch {
+        // Preserve an unreadable sidecar for recovery without opening it as an
+        // editable draft or preventing the rest of the course from reopening.
+        restored.teachingReviewDrafts = {
+          version: 1,
+          entries: [],
+          activeTaskId: null,
+          unreadable: [restored.teachingReviewDraftsJson],
+        };
+      }
+    }
+    delete restored.teachingReviewDraftsJson;
     if (restored.courseGraph && typeof restored.courseGraph === 'object') {
       quarantineInvalidInstructionalPlanLineage(restored.courseGraph);
     }

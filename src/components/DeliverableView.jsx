@@ -120,6 +120,10 @@ export default function DeliverableView({
   onDataChange,
   onPreviewTeachingTask,
   onCommitTeachingTask,
+  teachingReviewDrafts,
+  teachingReviewSession,
+  onSaveTeachingReviewDraft,
+  onRemoveTeachingReviewDraft,
   onRegenerateLesson,
   onRetry,
   onAddLessons,
@@ -338,12 +342,15 @@ export default function DeliverableView({
     <>
       {editable && !isStudentView && (
         <TeachingTaskReview
-          key={featureId}
+          key={`${featureId}:${teachingReviewSession || 0}`}
           featureId={featureId}
           courseMap={courseMap}
           data={data}
           onPreview={onPreviewTeachingTask}
           onCommit={onCommitTeachingTask}
+          savedDrafts={teachingReviewDrafts}
+          onSaveDraft={onSaveTeachingReviewDraft}
+          onRemoveDraft={onRemoveTeachingReviewDraft}
         />
       )}
       {data?.taskSourceReview && (

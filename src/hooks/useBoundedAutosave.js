@@ -21,6 +21,25 @@ export default function useBoundedAutosave(save, enabled, onPending, delayMs = 3
       latest.current();
     }, delayMs);
   }, [save, enabled, onPending, delayMs, cancel]);
+  useEffect(() => {
+    // A normal refresh/tab hide may occur before the three-second deadline.
+    // Flush pending work, but never revive a cancelled or unchanged project.
+    // Large IndexedDB writes remain asynchronous; callers report completion.
+    const flush = () => {
+      if (timer.current === null) return;
+      cancel();
+      latest.current();
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') flush();
+    };
+    window.addEventListener('pagehide', flush);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      window.removeEventListener('pagehide', flush);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [cancel]);
   useEffect(() => cancel, [cancel]);
   return cancel;
 }

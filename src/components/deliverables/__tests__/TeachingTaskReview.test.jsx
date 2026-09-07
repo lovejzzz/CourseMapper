@@ -13,6 +13,7 @@ import { performanceRequirementsFixture } from '../../../../tests/fixtures/teach
 import { createTeachingOperationPlan } from '../../../lib/teachingOperationPlan.js';
 import { projectSharedTeachingTasks } from '../../../lib/compilerTeachingTaskProjection.js';
 import { previewTeachingTaskReview, commitTeachingTaskReview } from '../../../lib/teachingTaskReview.js';
+import useTeachingReviewDrafts from '../../../hooks/useTeachingReviewDrafts.js';
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 const task = buildSharedTeachingTask({
@@ -123,6 +124,115 @@ describe('teacher structure review interaction', () => {
       input.dispatchEvent(new Event('input', { bubbles: true }));
     });
   }
+
+  it('resumes project drafts after changing material tabs without restoring approval, and removes only an applied draft', async () => {
+    let owner;
+    const onPreview = vi.fn((draft) => ({
+      status: 'preview',
+      draft,
+      task,
+      impacts: [{ featureId: 'rubrics', conflicts: [] }],
+    }));
+    const onCommit = vi.fn(() => ({ status: 'applied' }));
+    function Workspace({ featureId }) {
+      owner = useTeachingReviewDrafts();
+      return (
+        <TeachingTaskReview
+          key={featureId}
+          featureId={featureId}
+          courseMap={courseMap}
+          onPreview={onPreview}
+          onCommit={onCommit}
+          savedDrafts={owner.book}
+          onSaveDraft={owner.save}
+          onRemoveDraft={owner.remove}
+        />
+      );
+    }
+    const open = async (featureId) => {
+      await act(async () => root.render(<Workspace featureId={featureId} />));
+      await act(async () => {
+        const details = container.querySelector('details');
+        details.open = true;
+        details.dispatchEvent(new Event('toggle'));
+      });
+    };
+    await open('rubrics');
+    await enter('Record 1', 'A teacher change awaiting source review');
+    await click(button('Preview linked changes'));
+    await click(container.querySelector('input[type="checkbox"]'));
+    expect(button('Apply reviewed changes').disabled).toBe(false);
+    const saved = structuredClone(owner.snapshot());
+    await open('lessonPlans');
+    expect(container.querySelector('[aria-label="Record 1"]').value).toBe('A teacher change awaiting source review');
+    expect(container.querySelector('input[type="checkbox"]')).toBeNull();
+    expect(onCommit).not.toHaveBeenCalled();
+    expect(owner.book).toEqual(saved);
+    await click(button('Preview linked changes'));
+    expect(button('Apply reviewed changes').disabled).toBe(true);
+    await click(container.querySelector('input[type="checkbox"]'));
+    await click(button('Apply reviewed changes'));
+    expect(owner.book.entries).toEqual([]);
+    expect(onCommit).toHaveBeenCalledOnce();
+  });
+
+  it('keeps separate incomplete new-task drafts through switching and discard, with stale-course checks on resume', async () => {
+    const emptyMap = {
+      courseName: 'New task drafts',
+      lessons: [{ title: 'First lesson' }, { title: 'Second lesson' }],
+    };
+    let owner;
+    let currentMap = emptyMap;
+    const onPreview = vi.fn((draft) => previewTeachingTaskReview({ courseMap: currentMap, deliverables: {}, draft }));
+    const onCommit = vi.fn();
+    function Workspace({ featureId }) {
+      owner = useTeachingReviewDrafts();
+      return (
+        <TeachingTaskReview
+          key={featureId}
+          featureId={featureId}
+          courseMap={currentMap}
+          onPreview={onPreview}
+          onCommit={onCommit}
+          savedDrafts={owner.book}
+          onSaveDraft={owner.save}
+          onRemoveDraft={owner.remove}
+        />
+      );
+    }
+    await act(async () => root.render(<Workspace featureId="rubrics" />));
+    await click(button('Start task draft'));
+    await enter('Record 1', 'First lesson unfinished source');
+    const firstId = owner.book.activeTaskId;
+    const lessonSelector = [...container.querySelectorAll('label')]
+      .find((label) => label.textContent.includes('Lesson for the new task'))
+      .querySelector('select');
+    await act(async () => {
+      lessonSelector.value = '2';
+      lessonSelector.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    await click(button('Start task draft'));
+    await enter('Record 1', 'Second lesson unfinished source');
+    expect(owner.book.entries).toHaveLength(2);
+    currentMap = { ...emptyMap, courseName: 'Changed course' };
+    await act(async () => root.render(<Workspace featureId="lessonPlans" />));
+    expect(container.querySelector('[aria-label="Record 1"]').value).toBe('Second lesson unfinished source');
+    await click(button('Preview linked changes'));
+    expect(onPreview.mock.results[0].value.status).toBe('needs-review');
+    expect(container.textContent).toContain('The course changed');
+    await click(button('Discard saved draft'));
+    expect(owner.book.entries.map((entry) => entry.draft.taskId)).toEqual([firstId]);
+    const draftsSelector = [...container.querySelectorAll('label')]
+      .find((label) => label.textContent.includes('Saved task drafts'))
+      .querySelector('select');
+    await act(async () => {
+      draftsSelector.value = firstId;
+      draftsSelector.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    expect(container.querySelector('[aria-label="Record 1"]').value).toBe('First lesson unfinished source');
+    expect(onCommit).not.toHaveBeenCalled();
+    expect(emptyMap.teachingProgram).toBeUndefined();
+  });
 
   it('creates a task from an empty lesson through local source suggestions and actual confirmation', async () => {
     const f = observedProportionFixture();

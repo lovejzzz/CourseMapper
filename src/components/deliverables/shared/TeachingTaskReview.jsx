@@ -40,9 +40,19 @@ const requirementLabels = {
 const fieldClass =
   'mt-1 w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 focus:border-indigo-500 focus:outline-none';
 
-/** Uses the existing material workspace. Drafts and previews are local UI
- * state; only the explicit confirmation delegates a canonical transaction. */
-export default function TeachingTaskReview({ featureId, courseMap, data, onPreview, onCommit, onProposeSources }) {
+/** Candidate work belongs to the project; previews and confirmations belong
+ * to this review session. Only confirmation delegates a course transaction. */
+export default function TeachingTaskReview({
+  featureId,
+  courseMap,
+  data,
+  onPreview,
+  onCommit,
+  onProposeSources,
+  savedDrafts,
+  onSaveDraft,
+  onRemoveDraft,
+}) {
   const options = useMemo(() => {
     try {
       return { sources: reviewableTeachingTaskSources(courseMap), lessons: availableTeachingTaskLessons(courseMap) };
@@ -50,8 +60,10 @@ export default function TeachingTaskReview({ featureId, courseMap, data, onPrevi
       return { sources: [], lessons: [], issue: error.message };
     }
   }, [courseMap]);
-  const [selectedId, setSelectedId] = useState('');
-  const [draft, setDraft] = useState(null);
+  const initialEntry = savedDrafts?.entries.find((entry) => entry.draft.taskId === savedDrafts.activeTaskId);
+  const [selectedId, setSelectedId] = useState(initialEntry?.draft.taskId || '');
+  const [draft, setDraftState] = useState(() => (initialEntry ? structuredClone(initialEntry.draft) : null));
+  const draftRef = useRef(draft);
   const [preview, setPreview] = useState(null);
   const [confirmed, setConfirmed] = useState(false);
   const [message, setMessage] = useState('');
@@ -66,13 +78,63 @@ export default function TeachingTaskReview({ featureId, courseMap, data, onPrevi
     ? {
         id: draft.taskId,
         objective: draft.objective,
-        title: options.lessons.find((row) => row.lessonNumber === draft.creation.lessonNumber)?.title,
+        title:
+          options.lessons.find((row) => row.lessonNumber === draft.creation.lessonNumber)?.title ||
+          savedDrafts?.entries.find((entry) => entry.draft.taskId === draft.taskId)?.title,
       }
-    : options.sources.find((source) => source.id === selectedId) || options.sources[0];
+    : options.sources.find((source) => source.id === (draft?.taskId || selectedId)) ||
+      (draft
+        ? {
+            id: draft.taskId,
+            title: savedDrafts?.entries.find((entry) => entry.draft.taskId === draft.taskId)?.title,
+            objective: '',
+          }
+        : options.sources[0]);
   const zh = /\p{Script=Han}/u.test(selected?.objective || '');
   const t = (en, cn) => (zh ? cn : en);
 
-  if (!onPreview || !onCommit || (!options.sources.length && !options.lessons.length && !options.issue)) return null;
+  if (
+    !onPreview ||
+    !onCommit ||
+    (!options.sources.length &&
+      !options.lessons.length &&
+      !options.issue &&
+      !savedDrafts?.entries.length &&
+      !savedDrafts?.unreadable.length)
+  )
+    return null;
+  function setDraft(update) {
+    const next = typeof update === 'function' ? update(draftRef.current) : update;
+    draftRef.current = next;
+    setDraftState(next);
+    if (next) {
+      const existing = savedDrafts?.entries.find((entry) => entry.draft.taskId === next.taskId);
+      const title =
+        options.sources.find((source) => source.id === next.taskId)?.title ||
+        options.lessons.find((lesson) => lesson.lessonNumber === next.creation?.lessonNumber)?.title ||
+        existing?.title ||
+        '';
+      onSaveDraft?.(next, { title, featureId: existing?.featureId || featureId });
+    }
+  }
+  function resume(entry) {
+    if (!entry || busy) return;
+    setSelectedId(entry.draft.taskId);
+    setDraft(structuredClone(entry.draft));
+    setPreview(null);
+    setConfirmed(false);
+    setLastProposalReceipt(null);
+    setMessage(t('Draft restored. Preview the changes again before confirming.', '已恢复草稿；确认前请重新预览修改。'));
+  }
+  function discard() {
+    if (!draft || busy) return;
+    onRemoveDraft?.(draft.taskId);
+    setDraft(null);
+    setPreview(null);
+    setConfirmed(false);
+    setLastProposalReceipt(null);
+    setMessage(t('Draft discarded. The confirmed course is unchanged.', '已放弃草稿，已确认的课程保持不变。'));
+  }
   function beginNew() {
     const next = createNewTeachingTaskReviewDraft(courseMap, {
       lessonNumber: Number(newLesson || options.lessons[0]?.lessonNumber),
@@ -84,8 +146,10 @@ export default function TeachingTaskReview({ featureId, courseMap, data, onPrevi
     setConfirmed(false);
     setLastProposalReceipt(null);
   }
-  function begin(source = selected) {
+  function begin(source = selected, reload = false) {
     if (!source) return;
+    const entry = savedDrafts?.entries.find((entry) => entry.draft.taskId === source.id);
+    if (entry && !reload) return resume(entry);
     const next = createTeachingTaskReviewDraft(source, data, featureId);
     setSelectedId(source.id);
     setDraft(next.status === 'needs-review' ? null : next);
@@ -201,6 +265,7 @@ export default function TeachingTaskReview({ featureId, courseMap, data, onPrevi
     try {
       const result = await onCommit(preview, confirmed);
       if (result.status === 'applied') {
+        onRemoveDraft?.(draft.taskId);
         setSelectedId(preview.draft?.taskId || selectedId);
         setDraft(null);
         setPreview(null);
@@ -236,6 +301,33 @@ export default function TeachingTaskReview({ featureId, courseMap, data, onPrevi
         <p role="alert" className="mt-3 text-amber-800">
           {options.issue}
         </p>
+      )}
+      {!!savedDrafts?.unreadable.length && (
+        <p role="alert" className="mt-3 text-amber-800">
+          {t(
+            'Some saved drafts cannot be opened by this editor. They remain in your project download for recovery.',
+            '部分已保存草稿无法在此编辑器中打开，其原始内容仍保留在工程下载中，供后续恢复。',
+          )}
+        </p>
+      )}
+      {!!savedDrafts?.entries.length && (
+        <label className="mt-3 block font-medium">
+          {t('Saved task drafts', '已保存的任务草稿')}
+          <select
+            className={fieldClass}
+            disabled={busy}
+            value={draft?.taskId || ''}
+            onChange={(event) => resume(savedDrafts.entries.find((entry) => entry.draft.taskId === event.target.value))}
+          >
+            <option value="">{t('Choose a draft to resume', '选择要继续编辑的草稿')}</option>
+            {savedDrafts.entries.map((entry, index) => (
+              <option key={entry.draft.taskId} value={entry.draft.taskId}>
+                {index + 1}. {entry.title || t('Untitled task', '未命名任务')}
+                {entry.draft.creation ? t(' (new task)', '（新任务）') : ''}
+              </option>
+            ))}
+          </select>
+        </label>
       )}
       {options.lessons.length > 0 && (
         <details className="mt-3 rounded border border-slate-200 p-3">
@@ -291,11 +383,14 @@ export default function TeachingTaskReview({ featureId, courseMap, data, onPrevi
                       {source.lessonNumber}. {source.title}
                     </option>
                   ))}
+                  {draft && !options.sources.some((source) => source.id === draft.taskId) && (
+                    <option value={draft.taskId}>{selected.title || t('Unavailable task', '任务已不可用')}</option>
+                  )}
                 </select>
               </label>
               <p>{selected.objective}</p>
-              {draft && (
-                <button disabled={busy} className="font-medium underline" onClick={() => begin()}>
+              {draft && options.sources.some((source) => source.id === draft.taskId) && (
+                <button disabled={busy} className="font-medium underline" onClick={() => begin(selected, true)}>
                   {t('Reload current task and discard draft', '重新载入当前任务并放弃草稿')}
                 </button>
               )}
@@ -349,6 +444,19 @@ export default function TeachingTaskReview({ featureId, courseMap, data, onPrevi
           )}
           {draft && (
             <>
+              {onRemoveDraft && (
+                <div className="flex flex-wrap items-center gap-3">
+                  <p>
+                    {t(
+                      'Draft changes save with this project. Reopen and preview them before applying.',
+                      '草稿修改随工程保存；重新打开后，需再次预览才能应用。',
+                    )}
+                  </p>
+                  <button type="button" disabled={busy} className="underline" onClick={discard}>
+                    {t('Discard saved draft', '放弃已保存草稿')}
+                  </button>
+                </div>
+              )}
               <fieldset disabled={busy} className="space-y-3">
                 <legend className="font-semibold">{t('Source records', '来源记录')}</legend>
                 {draft.inputs.map((input, index) => (

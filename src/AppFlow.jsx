@@ -2483,6 +2483,10 @@ export default function AppFlow({
     removeDeveloperTemplate,
     applyDeveloperTemplate,
     handleConfirmNewProject,
+    teachingReviewDrafts,
+    teachingReviewSession,
+    saveTeachingReviewDraft,
+    removeTeachingReviewDraft,
   } = useProjectPersistence({
     user,
     screen,
@@ -4171,6 +4175,10 @@ export default function AppFlow({
                   <DeliverableView
                     viewportRef={viewportRef}
                     featureId={activeTab}
+                    teachingReviewDrafts={teachingReviewDrafts}
+                    teachingReviewSession={teachingReviewSession}
+                    onSaveTeachingReviewDraft={saveTeachingReviewDraft}
+                    onRemoveTeachingReviewDraft={removeTeachingReviewDraft}
                     onPreviewTeachingTask={(draft) =>
                       previewTeachingTaskReview({
                         courseMap: courseMapRef.current,

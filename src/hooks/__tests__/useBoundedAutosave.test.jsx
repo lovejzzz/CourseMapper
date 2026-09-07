@@ -52,3 +52,26 @@ it('cancels pending writes when a project closes and starts a fresh deadline for
   await act(async () => vi.advanceTimersByTime(3000));
   expect(written).toEqual(['new']);
 });
+
+it('flushes pending latest edits before a normal page hide without duplicating or reviving cancelled saves', async () => {
+  vi.useFakeTimers();
+  const written = [];
+  let cancel;
+  function Harness({ name }) {
+    cancel = useBoundedAutosave(() => written.push(name), true);
+    return null;
+  }
+  root = createRoot(document.createElement('div'));
+  await act(async () => root.render(<Harness name="first" />));
+  await act(async () => vi.advanceTimersByTime(500));
+  await act(async () => root.render(<Harness name="latest" />));
+  await act(async () => window.dispatchEvent(new Event('pagehide')));
+  expect(written).toEqual(['latest']);
+  await act(async () => vi.advanceTimersByTime(5000));
+  await act(async () => window.dispatchEvent(new Event('pagehide')));
+  expect(written).toEqual(['latest']);
+  await act(async () => root.render(<Harness name="closed" />));
+  await act(async () => cancel());
+  await act(async () => window.dispatchEvent(new Event('pagehide')));
+  expect(written).toEqual(['latest']);
+});

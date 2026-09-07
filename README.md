@@ -1,5 +1,7 @@
 # EduTool
 
+The next major version is being developed on `codex/v0200-teaching-system`. The [v0.20.0 roadmap](docs/v0.20.0-roadmap.zh-CN.md) sets the scope and release gates; the [implementation record](docs/v0.20.0-implementation.zh-CN.md) separates completed checks from remaining work. This development branch includes reviewed task creation and project-scoped task drafts. Those drafts can survive material switches and project reopening, but require a fresh preview and confirmation before changing course materials. These capabilities are not yet a published v0.20.0 release.
+
 [EduTool.dev](https://edutool.dev) is an editable course-material workspace for educators. The current release is **0.19.2**, preserving the **0.18.7 interface**, including the original homepage, material selection, course map, chat, editors, revision controls and export sidebar.
 
 Quality improvements continue within this interface. The experimental Course Studio replacement is preserved for research; it is not the production application.

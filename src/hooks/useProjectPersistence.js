@@ -17,6 +17,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import useBoundedAutosave from './useBoundedAutosave';
+import useTeachingReviewDrafts from './useTeachingReviewDrafts.js';
 
 import { DEFAULT_COLUMNS } from '../components/ColumnEditor';
 import {
@@ -124,6 +125,7 @@ export default function useProjectPersistence({
   version,
   resetExport,
 }) {
+  const teachingDrafts = useTeachingReviewDrafts();
   const [hasSavedSession, setHasSavedSession] = useState(false);
   // Set on every restore path; intentionally write-only today (kept verbatim
   // from AppFlow so restore semantics stay byte-identical).
@@ -159,13 +161,14 @@ export default function useProjectPersistence({
   );
   const restoreProjectEdits = useCallback(
     (saved, deliverables = saved.deliverables) => {
+      teachingDrafts.restore(saved.teachingReviewDrafts);
       delivUndo?.restore(saved.editHistory, {
         courseMap: saved.courseMap,
         courseGraph: restoreCourseGraphForProject(saved),
         deliverables: normalizeRestoredDeliverables(deliverables),
       });
     },
-    [delivUndo?.restore],
+    [delivUndo?.restore, teachingDrafts.restore],
   );
   const restoreInstructionalBlueprintGovernance = useCallback(
     (snapshot = {}) => {
@@ -242,6 +245,7 @@ export default function useProjectPersistence({
         activeTab,
         deliverables: deliv.deliverables,
         editHistory: delivUndo?.history,
+        teachingReviewDrafts: teachingDrafts.snapshot(),
         slideTheme,
         apiCallBudgetReceipt: getApiCallBudgetReceipt?.(),
         ...packageEvidence,
@@ -272,6 +276,8 @@ export default function useProjectPersistence({
       activeTab,
       deliv.deliverables,
       delivUndo?.history,
+      teachingDrafts.book,
+      teachingDrafts.snapshot,
       slideTheme,
       getApiCallBudgetReceipt,
     ],
@@ -307,11 +313,13 @@ export default function useProjectPersistence({
         packageQualityPass: _packageQualityPass,
         lastRunDigest: _lastRunDigest,
         editHistory: _editHistory,
+        teachingReviewDrafts: snapshotTeachingDrafts,
         ...cloudSnapshot
       } = snapshot;
       return {
         ...cloudSnapshot,
         ...(snapshotCourseGraph ? { courseGraphJson: JSON.stringify(snapshotCourseGraph) } : {}),
+        teachingReviewDraftsJson: JSON.stringify(snapshotTeachingDrafts),
         cloudProjectFormat: CLOUD_PROJECT_FORMAT,
         deliverableSaveMode: 'recompile-on-open',
         deliverableFeatureIds,
@@ -834,6 +842,7 @@ export default function useProjectPersistence({
       const { importCourseMap } = await import('../lib/importCourseMap');
       const imported = await importCourseMap(file);
       delivUndo?.reset();
+      teachingDrafts.restore();
       setCourseMap(imported);
       setOldCourseMap(null);
       setUserEdits([]);
@@ -979,6 +988,7 @@ export default function useProjectPersistence({
     resetExport();
     deliv.resetDeliverables();
     delivUndo?.reset();
+    teachingDrafts.restore();
     setCourseMap(null);
     setCourseGraph(null);
     setOldCourseMap(null);
@@ -1070,6 +1080,10 @@ export default function useProjectPersistence({
   }
 
   return {
+    teachingReviewDrafts: teachingDrafts.book,
+    teachingReviewSession: teachingDrafts.session,
+    saveTeachingReviewDraft: teachingDrafts.save,
+    removeTeachingReviewDraft: teachingDrafts.remove,
     // state
     hasSavedSession,
     setHasSavedSession,
