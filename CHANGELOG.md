@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Identify the pinned native runtime failing to advance grammar state for generated tokens. Add a protocol-versioned candidate source patch and seven routing regressions; shipped binaries are unchanged pending rebuild and real-browser canary verification.
+
 - Fix source suggestions and draft review silently ignoring an explicit out-of-range occurrence for a unique quote. Reject overlapping treatment/competing-condition excerpts; retain exact-source checks and teacher confirmation.
 - Test actual bilingual local Scion proposals, preserve initial failures and a validator false positive, and reject a slower native-reasoning trial as the default. Develop two bounded extraction stages for new-test resources and observed factor settings, retaining completed suggestions when a later stage fails.
 - Keep failed-proposal feedback to one clear sentence with optional details; preserve teacher selections and the existing collapsed review/editor interface. These development comparisons do not replace fresh model or classroom acceptance.

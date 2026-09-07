@@ -1,0 +1,20 @@
+{
+  "status": "source-defect-confirmed; candidate-patch-not-shipped",
+  "upstreamRevision": "58903000dbea6acfc0eb9c738d8be50d1052cf23",
+  "sourceHashes": {
+    "actions.hpp": "5f66294870081956cc643ee007c5f97479d102b99e4590ee752e1771ec254831",
+    "wsampling.cpp": "55b3795ad91703da07bb290c4a45fe842045a3cf3bde54b3c18f8799139ce638",
+    "glue.hpp": "3d9e43dad2da552511a7fbd1b5f0e755490cf0843b37272793cd5143f337c5a8",
+    "wllama.ts": "45ecb9eb82aeccd6471d60198749a90daa60c27b49381b436bfa5602470a4fde"
+  },
+  "patchSha256": "2b9040d5bf5b1e82b70408353bbe19995733530881cf10a5b33b8c26fda6b0b5",
+  "checks": {
+    "sourceRoutingCases": 7,
+    "unpatchedControl": "fails: generated acceptance lacks accept_grammar flag",
+    "patchAppliesAfterLora": true,
+    "glueRegenerated": true,
+    "wasmRebuilt": false,
+    "realModelCanary": false,
+    "educationalQualityEstablished": false
+  }
+}

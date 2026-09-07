@@ -1,0 +1,97 @@
+--- a/cpp/actions.hpp
++++ b/cpp/actions.hpp
+@@ -703,7 +703,7 @@
+   llama_tokens tokens_list = std::move(req.tokens.arr);
+   for (auto id : tokens_list)
+   {
+-    wcommon_sampler_accept(app.ctx_sampling, id, false);
++    wcommon_sampler_accept(app.ctx_sampling, id, req.accept_grammar.value);
+   }
+
+   glue_msg_sampling_accept_res res;
+--- a/cpp/glue.hpp
++++ b/cpp/glue.hpp
+@@ -21,7 +21,7 @@
+ #include <functional>
+
+ // increase when messages change
+-#define GLUE_VERSION 2
++#define GLUE_VERSION 3
+
+ #define GLUE_MAGIC 0x45554c47 // "GLUE"
+ #define GLUE_PROTO_ID_LEN 8
+@@ -751,6 +751,7 @@
+ {
+   GLUE_HANDLER("sacc_req")
+   GLUE_FIELD(arr_int, tokens)
++  GLUE_FIELD(bool, accept_grammar)
+ };
+
+ struct glue_msg_sampling_accept_res
+--- a/src/wllama.ts
++++ b/src/wllama.ts
+@@ -868,7 +868,7 @@
+       await this.kvClear();
+     }
+     // decode/encode tokens
+-    await this.samplingAccept(tokens);
++    await this.samplingAccept(tokens, false);
+     if (this.isEncoderDecoderArchitecture()) {
+       await this.encode(tokens);
+       await this.decode([this.getDecoderStartToken()], {});
+@@ -899,7 +899,7 @@
+         break; // abort signal is set
+       }
+       // decode next token
+-      await this.samplingAccept([sampled.token]);
++      await this.samplingAccept([sampled.token], true);
+       await this.decode([sampled.token], {});
+     }
+     return bufToText(outBuf);
+@@ -1187,13 +1187,14 @@
+    * Accept and save a new token to ctx_sampling
+    * @param tokens
+    */
+-  async samplingAccept(tokens: number[]): Promise<void> {
++  async samplingAccept(tokens: number[], acceptGrammar = false): Promise<void> {
+     this.checkModelLoaded();
+     const result = await this.proxy.wllamaAction<GlueMsgSamplingAcceptRes>(
+       'sampling_accept',
+       {
+         _name: 'sacc_req',
+         tokens,
++        accept_grammar: acceptGrammar,
+       }
+     );
+     if (!result.success) {
+--- a/src/glue/messages.ts
++++ b/src/glue/messages.ts
+@@ -3,7 +3,7 @@
+
+ import type { GlueMessageProto } from './glue';
+
+-export const GLUE_VERSION = 2;
++export const GLUE_VERSION = 3;
+
+ export const GLUE_MESSAGE_PROTOTYPES: { [name: string]: GlueMessageProto } = {
+   "erro_evt": {
+@@ -744,6 +744,11 @@
+       {
+         "type": "arr_int",
+         "name": "tokens",
++        "isNullable": false
++      },
++      {
++        "type": "bool",
++        "name": "accept_grammar",
+         "isNullable": false
+       }
+     ]
+@@ -1429,6 +1434,7 @@
+ export interface GlueMsgSamplingAcceptReq {
+   _name: "sacc_req";
+   tokens: number[];
++  accept_grammar: boolean;
+ }
+
+ // struct glue_msg_sampling_accept_res
