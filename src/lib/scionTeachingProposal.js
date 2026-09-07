@@ -262,16 +262,22 @@ export async function proposeTeachingSourceBindings(
     await api.loadScionBrowserWllama({ signal });
     receipt.loadMs = Math.round(performance.now() - loadStarted);
     receipt.runtime = api.getScionBrowserWllamaStatus?.();
-    const invoke = async (messages, stage) => {
+    const invoke = async (messages, stage, grammar) => {
       if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
       if (receipt.modelCalls >= 2) throw new Error('The source proposal exhausted its two-call budget.');
-      const entry = { attempt: receipt.attempts.length + 1, messages, ...(stage ? { stage } : {}) };
+      const entry = {
+        attempt: receipt.attempts.length + 1,
+        messages,
+        ...(stage ? { stage } : {}),
+        ...(grammar ? { grammar } : {}),
+      };
       receipt.attempts.push(entry);
       const inferenceStarted = performance.now();
       receipt.modelCalls++;
       try {
         entry.raw = await api.completeScionBrowserWllama(entry.messages, {
           ...receipt.settings,
+          ...(grammar ? { grammar } : {}),
           signal,
           // No candidate adapter has been trained or validated for this new
           // protocol. An unrelated existing adapter cannot own these calls.
@@ -294,7 +300,15 @@ export async function proposeTeachingSourceBindings(
       return entry;
     };
     if (snapshot.operation === 'paired-condition-confound')
-      return await runComparisonSourceStages(snapshot, { invoke, assess: assessTeachingProposal, receipt, onProgress });
+      return await runComparisonSourceStages(snapshot, {
+        invoke,
+        assess: assessTeachingProposal,
+        receipt,
+        onProgress,
+        // Old runtime accepts a grammar argument but does not advance its state.
+        // Require the explicit capability of a verified runtime before using it.
+        constrained: receipt.runtime?.runtime?.grammar === 'gbnf-state-v1',
+      });
     let feedback;
     let assessment;
     let best;

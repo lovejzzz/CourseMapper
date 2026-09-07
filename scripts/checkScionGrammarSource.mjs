@@ -120,6 +120,42 @@ int main() {
   execFileSync('clang++', ['-std=c++17', cpp, '-o', exe]);
   execFileSync(exe);
   checks.push('actual native action forwards prompt/output flag');
+  const protocolCpp = path.join(dir, 'protocol.cpp');
+  const protocolExe = path.join(dir, 'protocol');
+  await fs.writeFile(
+    protocolCpp,
+    `
+#include <cassert>
+#include <cstring>
+#include <iostream>
+#include "glue.hpp"
+int main() {
+  for (bool grammar : {false, true}) {
+    glue_msg_sampling_accept_req request;
+    request.tokens.arr = {17};
+    request.accept_grammar.value = grammar;
+    glue_outbuf bytes;
+    request.handler.serialize(bytes);
+    glue_msg_sampling_accept_req decoded;
+    glue_inbuf input(bytes.data.data());
+    decoded.handler.deserialize(input);
+    assert(decoded.tokens.arr == std::vector<int32_t>{17});
+    assert(decoded.accept_grammar.value == grammar);
+    uint32_t old_version = 2;
+    std::memcpy(bytes.data.data() + 4, &old_version, sizeof(old_version));
+    glue_msg_sampling_accept_req invalid;
+    glue_inbuf old_input(bytes.data.data());
+    bool rejected = false;
+    try { invalid.handler.deserialize(old_input); }
+    catch (const std::runtime_error &error) { rejected = std::string(error.what()) == "Version mismatch"; }
+    assert(rejected);
+  }
+}
+`,
+  );
+  execFileSync('clang++', ['-std=c++17', '-I', path.join(checkout, 'cpp'), protocolCpp, '-o', protocolExe]);
+  execFileSync(protocolExe);
+  checks.push('native protocol roundtrip and old-version rejection');
 } finally {
   await fs.rm(dir, { recursive: true, force: true });
 }

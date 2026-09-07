@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   classifyScionBrowserModelLoadError,
+  completeScionBrowserWllama,
   estimateScionBrowserModelStorage,
   isExpectedScionRuntimeWarning,
   loadScionBrowserWllama,
@@ -121,4 +122,10 @@ describe('Scion browser model storage recovery', () => {
       }),
     ).resolves.toBeNull();
   });
+});
+
+it('rejects a requested grammar on the old runtime instead of silently dropping it', async () => {
+  await expect(
+    completeScionBrowserWllama([{ role: 'user', content: 'Test' }], { grammar: 'root ::= "OK"' }),
+  ).rejects.toMatchObject({ code: 'SCION_WLLAMA_GRAMMAR_UNAVAILABLE' });
 });

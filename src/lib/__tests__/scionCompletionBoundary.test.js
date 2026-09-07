@@ -172,3 +172,27 @@ describe('Scion native inference boundary', () => {
     ).rejects.toMatchObject({ code: 'SCION_THINKING_INCOMPLETE' });
   });
 });
+
+describe('application grammar transport', () => {
+  it('passes the exact grammar through the real completion boundary', async () => {
+    const candidate = runtime();
+    const grammar = 'root ::= "OK"';
+    await runScionBrowserCompletion(candidate, messages, { grammar });
+    expect(candidate.createCompletion.mock.calls[0][1].sampling.grammar).toBe(grammar);
+  });
+  it.each(['', ' '.repeat(3), null, {}, 'x'.repeat(65537)])(
+    'rejects invalid grammar before tokenization',
+    async (grammar) => {
+      const candidate = runtime();
+      await expect(runScionBrowserCompletion(candidate, messages, { grammar })).rejects.toThrow('grammar');
+      expect(candidate.tokenize).not.toHaveBeenCalled();
+    },
+  );
+  it('does not combine answer-only grammar with native thinking channels', async () => {
+    const candidate = runtime();
+    await expect(
+      runScionBrowserCompletion(candidate, messages, { grammar: 'root ::= "OK"', thinking: true }),
+    ).rejects.toThrow('thinking disabled');
+    expect(candidate.createCompletion).not.toHaveBeenCalled();
+  });
+});

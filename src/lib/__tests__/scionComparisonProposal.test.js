@@ -433,3 +433,66 @@ describe('grouped comparison source transport', () => {
     },
   );
 });
+
+describe('comparison grammar capability boundary', () => {
+  it.each([false, true])('uses stage grammar only for an explicitly capable runtime: %s', async (capable) => {
+    const { request, proposal } = fixture();
+    const replies = stageReplies(proposal);
+    const complete = vi.fn(async () => JSON.stringify(replies.shift()));
+    const output = await proposeTeachingSourceBindings(request, {
+      runtimeLoader: async () => ({
+        loadScionBrowserWllama: async () => {},
+        getScionBrowserWllamaStatus: () => ({ runtime: capable ? { grammar: 'gbnf-state-v1' } : {} }),
+        completeScionBrowserWllama: complete,
+      }),
+    });
+    expect(output.modelCalls).toBe(2);
+    expect(output.missing).toEqual([]);
+    for (const [index, [, options]] of complete.mock.calls.entries()) {
+      if (capable) {
+        expect(options.grammar).toContain('root ::=');
+        expect(output.receipt.attempts[index].grammar).toBe(options.grammar);
+      } else {
+        expect(options).not.toHaveProperty('grammar');
+        expect(output.receipt.attempts[index]).not.toHaveProperty('grammar');
+      }
+    }
+    if (capable) {
+      const sourceRule = complete.mock.calls[1][1].grammar.split('\n').find((line) => line.startsWith('source ::='));
+      expect(sourceRule).not.toContain('r3');
+      expect(sourceRule).toContain('r1');
+      expect(sourceRule).toContain('r2');
+    }
+  });
+});
+
+it('replays both actual constrained proposals without promoting unresolved source positions', async () => {
+  const captured = JSON.parse(
+    fs.readFileSync(
+      new URL('../../../research/scion/evaluation/v0.20.0/grammar/constrained-proposals.json', import.meta.url),
+      'utf8',
+    ),
+  );
+  for (const [index, item] of captured.cases.entries()) {
+    const { request } = fixture(index === 1);
+    let next = 0;
+    const output = await proposeTeachingSourceBindings(request, {
+      runtimeLoader: async () => ({
+        loadScionBrowserWllama: async () => {},
+        getScionBrowserWllamaStatus: () => item.output.receipt.runtime,
+        completeScionBrowserWllama: async (messages, options) => {
+          const attempt = item.output.receipt.attempts[next++];
+          expect(messages).toEqual(attempt.messages);
+          expect(options.grammar).toBe(attempt.grammar);
+          options.onCompletion(attempt.completion);
+          return attempt.raw;
+        },
+      }),
+    });
+    expect(output.receipt.inputRevision).toBe(item.output.receipt.inputRevision);
+    expect(output.bindings).toEqual(item.output.bindings);
+    expect(output.issues).toEqual(item.output.issues);
+    expect(Object.values(output.bindings).filter((binding) => binding.inputId)).toHaveLength(index === 0 ? 13 : 11);
+    expect(output.bindings.unit.inputId).toBe('');
+  }
+});

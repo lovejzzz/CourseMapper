@@ -1,0 +1,44 @@
+{
+  "status": "both-partial; no-full-proposal-pass",
+  "receiptSha256": "71700f02e1c9e37985f00e43e5399c1219b88869c30be268baada188906e63cf",
+  "cases": [
+    {
+      "id": "experiment-dev-01",
+      "inputRevision": "654d0afc0a73eb426e6212467f8f4fb48224636eb0d5e912d4f101c5fb67ac84",
+      "calls": 2,
+      "elapsedMs": 11050,
+      "loadMs": 3518,
+      "validBindings": 13,
+      "issues": ["Locate the exact phrase and its occurrence for unit. Found 4 matches; occurrence starts at 0."],
+      "allRawJsonParse": true,
+      "fullProposalPass": false
+    },
+    {
+      "id": "experiment-dev-02",
+      "inputRevision": "c971ceef38a6b25415f7e244c3c04cef0c4d9eacf6c03f615f11d6f8effc2b2d",
+      "calls": 2,
+      "elapsedMs": 7804,
+      "loadMs": 0,
+      "validBindings": 11,
+      "issues": [
+        "Locate the exact phrase and its occurrence for factor. Found 2 matches; occurrence starts at 0.",
+        "Locate the exact phrase and its occurrence for otherFactor. Found 2 matches; occurrence starts at 0.",
+        "Locate the exact phrase and its occurrence for unit. Found 2 matches; occurrence starts at 0."
+      ],
+      "allRawJsonParse": true,
+      "fullProposalPass": false
+    }
+  ],
+  "interpretation": "Actual same-input comparison: JSON format failures resolved, ambiguous citations remain. Not a held-out success rate or teaching-quality pass.",
+  "softwareChecks": {
+    "command": "npm run check",
+    "exitCode": 0,
+    "studio": 58,
+    "compatibility": 544,
+    "scion": 846,
+    "totalExecutions": 1448,
+    "initialJsGzipKiB": 89.974609375,
+    "log": ".audit-work/v0200-teaching-system/grammar/full-check.log"
+  },
+  "nativeProtocolCheck": "compiled actual glue.hpp: v3 flag roundtrip for both booleans and v2 version rejection"
+}

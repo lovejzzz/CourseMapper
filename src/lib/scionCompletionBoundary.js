@@ -32,12 +32,16 @@ export async function runScionBrowserCompletion(
     topP = 1,
     seed = 7,
     thinking = false,
+    grammar,
     signal,
     onToken,
     onCompletion,
   } = {},
 ) {
   if (signal?.aborted) throw aborted();
+  if (grammar !== undefined && (typeof grammar !== 'string' || !grammar.trim() || grammar.length > 65536 || thinking)) {
+    throw new Error('Scion grammar must be a nonempty bounded application grammar with thinking disabled.');
+  }
   const nPredict = Math.min(SCION_BROWSER_MAX_NEW_TOKENS, Math.max(1, Math.floor(Number(maxNewTokens) || 1024)));
   const prompt = formatScionGemma4Messages(messages, { thinking });
   const tokens = await candidate.tokenize(prompt, true);
@@ -65,7 +69,7 @@ export async function runScionBrowserCompletion(
       outputTokens += 1;
       if (!signal?.aborted) onToken?.(scionVisibleCompletion(currentText).text);
     },
-    sampling: { temp: temperature, top_k: topK, top_p: topP, seed },
+    sampling: { temp: temperature, top_k: topK, top_p: topP, seed, ...(grammar ? { grammar } : {}) },
   });
   // Wllama resolves with the partial text on abort; it does not reject. Do
   // not let that text enter JSON repair, material admission or the cache.

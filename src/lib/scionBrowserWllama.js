@@ -552,6 +552,7 @@ export async function completeScionBrowserWllama(
     topP = 1,
     seed = 7,
     thinking = false,
+    grammar,
     signal,
     onToken,
     taskFamily,
@@ -560,6 +561,12 @@ export async function completeScionBrowserWllama(
     onCompletion,
   } = {},
 ) {
+  if (grammar !== undefined && status.runtime?.grammar !== 'gbnf-state-v1') {
+    throw runtimeError(
+      'SCION_WLLAMA_GRAMMAR_UNAVAILABLE',
+      'This Scion runtime has not verified grammar-state support.',
+    );
+  }
   const completeRouted = async () => {
     const route = await prepareAdapterRoute(taskFamily, promptProtocol);
     if (typeof onAdapterRoute === 'function') {
@@ -576,6 +583,7 @@ export async function completeScionBrowserWllama(
       topP,
       seed,
       thinking,
+      ...(grammar !== undefined ? { grammar } : {}),
       signal,
       onToken,
       onCompletion,

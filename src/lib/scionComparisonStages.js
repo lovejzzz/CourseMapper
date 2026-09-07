@@ -1,3 +1,4 @@
+import { comparisonStageGrammar } from './scionComparisonGrammar.js';
 import { quoteOccurrences } from './teachingTaskReview.js';
 
 export const SCION_COMPARISON_STAGED_PROTOCOL = 'scion-comparison-stages-v3';
@@ -169,7 +170,7 @@ export function decodeComparisonStage(raw, stage, factorContext) {
 
 /** Two disjoint extraction stages, with no retry loop. Exact factor text may
  * frame the second request without admitting unresolved source positions. */
-export async function runComparisonSourceStages(request, { invoke, assess, receipt, onProgress }) {
+export async function runComparisonSourceStages(request, { invoke, assess, receipt, onProgress, constrained = false }) {
   receipt.strategy = 'resources-then-observed-settings';
   receipt.contributingAttempts = [];
   let collected = {
@@ -186,6 +187,7 @@ export async function runComparisonSourceStages(request, { invoke, assess, recei
       entry = await invoke(
         comparisonStageMessages(request, stage === 'observations' ? factorContext : undefined),
         stage,
+        constrained ? comparisonStageGrammar(request, stage, factorContext) : undefined,
       );
       if (entry.completion?.finishReason === 'length')
         throw new Error('This extraction reached its output limit. Its unfinished selections were not used.');
