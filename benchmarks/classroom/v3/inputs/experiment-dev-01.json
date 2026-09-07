@@ -1,0 +1,9 @@
+{
+  "request": "Create an editable lesson in English about interpreting this workshop comparison and designing a repeatable test of ink formula. Students must use the actual records, explain what they can conclude, specify their new procedure, and distinguish proposed choices from measured results.",
+  "objective": "Use the ink workshop records to explain competing explanations and design an executable comparison of ink formula with fair measurement and independent experimental units.",
+  "sources": [
+    {"id":"ink-a","text":"Fictional workshop record A: cards stamped with water-based ink were tested at 18 °C. The recorded median drying time was 90 seconds."},
+    {"id":"ink-b","text":"Workshop record B: cards stamped with gel ink were tested at 26 °C. The recorded median drying time was 60 seconds. The original run log does not report sample sizes or individual readings."},
+    {"id":"ink-design","text":"Planning brief for a new test, not collected results: investigate ink formula while controlling room temperature. There are 32 fresh cards; one card is an experimental unit and can receive either ink. Retain the same card stock, stamped area and ink volume. The outcome is drying time in seconds. Measurement rule: start timing at stamping, then press a fresh clean test strip lightly at five-second intervals until no ink transfers; record that elapsed time for each card. The available temperature settings are 18 °C and 26 °C."}
+  ]
+}
