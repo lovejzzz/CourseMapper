@@ -389,8 +389,11 @@ function projectPlan(row, task) {
       transfer.question,
       taskText(
         task,
-        `${transfer.answer}\nScoring: ${transfer.criteria.join(' ')}\nFeedback: ${transfer.feedback}`,
-        `${transfer.answer}\n评分：${transfer.criteria.join(' ')}\n反馈：${transfer.feedback}`,
+        // The initial lesson-plan compiler stores these fields as one prose
+        // paragraph. Use that same representation during source projection;
+        // do not mistake its normalized line breaks for a teacher edit.
+        `${transfer.answer} Scoring: ${transfer.criteria.join(' ')} Feedback: ${transfer.feedback}`,
+        `${transfer.answer} 评分：${transfer.criteria.join(' ')} 反馈：${transfer.feedback}`,
       ),
     ];
   if (row.outline?.length === phases.length)

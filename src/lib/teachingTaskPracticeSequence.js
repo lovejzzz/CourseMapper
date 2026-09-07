@@ -16,6 +16,7 @@ function proportionTransfer(task) {
       all: 48,
       population: 'all club members',
       result: 'yes answers among forms that answered the question',
+      evidenceRecord: 'responses to the same yes/no question',
     },
     {
       context:
@@ -25,6 +26,7 @@ function proportionTransfer(task) {
       all: 45,
       population: 'all logged devices',
       result: 'passes among tested devices',
+      evidenceRecord: 'pass/fail results using the same device test',
     },
     {
       context:
@@ -34,21 +36,28 @@ function proportionTransfer(task) {
       all: 60,
       population: 'all received seeds',
       result: 'germination among tested seeds',
+      evidenceRecord: 'germination records under the same test conditions',
     },
   ];
   const index = parseInt(task.id.slice(-2), 16) % cases.length;
   const source = cases[index];
   const solved = solveTeachingProportion(source.part, source.whole);
-  const answer = `The requested whole is ${source.whole}, giving ${source.part}/${source.whole} ${solved.relation} ${solved.percent}% ${source.result}. ${solved.reverseCheck}. Using ${source.all} as the denominator answers a different question. The unobserved outcomes are unknown, so this result does not establish the rate for ${source.population}.`;
+  const reviewed = task.operationPlan?.operation === 'observed-proportion';
+  const furtherEvidence = `Seek ${source.evidenceRecord} for the ${source.all - source.whole} unobserved cases and check how the records cover ${source.population}. If sampling, justify selection rather than assuming equal rates. These are proposed observations, not results already obtained.`;
+  const addedDirections = reviewed
+    ? ' Show a calculation and a reverse check. Propose specific further evidence for the missing outcomes and population claim.'
+    : '';
+  const answer = `The requested whole is ${source.whole}, giving ${source.part}/${source.whole} ${solved.relation} ${solved.percent}% ${source.result}. ${solved.reverseCheck}. Using ${source.all} as the denominator answers a different question. The unobserved outcomes are unknown, so this result does not establish the rate for ${source.population}.${reviewed ? ` ${furtherEvidence}` : ''}`;
   return {
     sources: [source.context],
-    directions: `Calculate the proportion of ${source.result}${solved.exact ? '' : ', to two decimal places'}. Justify the denominator. Explain whether it establishes the rate for ${source.population}.`,
-    question: `Try a new case. ${source.context} Calculate the proportion of ${source.result}${solved.exact ? '' : ', to two decimal places'}. Choose and justify the denominator without a worked setup. Explain whether your result establishes the rate for ${source.population}.`,
+    directions: `Calculate the proportion of ${source.result}${solved.exact ? '' : ', to two decimal places'}. Justify the denominator. Explain whether it establishes the rate for ${source.population}.${addedDirections}`,
+    question: `Try a new case. ${source.context} Calculate the proportion of ${source.result}${solved.exact ? '' : ', to two decimal places'}. Choose and justify the denominator without a worked setup. Explain whether your result establishes the rate for ${source.population}.${addedDirections}`,
     answer,
     reasoning: [
       `Identify ${source.part} as the observed part and ${source.whole} as the requested whole.`,
       `Calculate ${source.part}/${source.whole} ${solved.relation} ${solved.percent}%.`,
       'Keep unobserved outcomes separate from failures or no responses.',
+      ...(reviewed ? [furtherEvidence] : []),
     ],
     rubric: [
       band(
@@ -69,8 +78,10 @@ function proportionTransfer(task) {
       ),
       band(
         'Respect missing outcomes',
-        `Explicitly leaves the missing outcomes unknown and explains why the observed rate cannot establish the rate for ${source.population}.`,
-        'Names the missing outcomes and avoids a population claim, without explaining the effect on inference.',
+        `Explicitly leaves the missing outcomes unknown and explains why the observed rate cannot establish the rate for ${source.population}.${reviewed ? ` Proposes ${source.evidenceRecord} for the unobserved cases and checks population coverage, without inventing results.` : ''}`,
+        reviewed
+          ? 'Explains the missing outcomes and the limit on inference, but omits a specific comparable record or coverage check.'
+          : 'Names the missing outcomes and avoids a population claim, without explaining the effect on inference.',
         'Mentions uncertainty without identifying the missing group.',
         'Treats missing observations as failures/no answers, or generalizes the observed rate.',
         'Mark which outcomes were measured and which are unknown.',

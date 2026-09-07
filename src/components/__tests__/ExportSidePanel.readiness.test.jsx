@@ -397,6 +397,26 @@ describe('ExportSidePanel readiness repair timing', () => {
     });
   });
 
+  it('keeps bound teaching content unchanged while still reporting export blockers', async () => {
+    const onAutoRepairReadiness = vi.fn();
+    await renderPanel({
+      courseMapInput: { ...courseMapWithObjectiveStem, teachingProgram: { version: 1 } },
+      onAutoRepairReadiness,
+    });
+    await act(async () => {
+      vi.runAllTimers();
+    });
+    expect(onAutoRepairReadiness).not.toHaveBeenCalled();
+    await act(async () => {
+      container
+        .querySelector('[data-testid="export-format-docx"]')
+        ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await Promise.resolve();
+    });
+    expect(onAutoRepairReadiness).not.toHaveBeenCalled();
+    expect(container.querySelector('[data-testid="readiness-confirm"]')).not.toBeNull();
+  });
+
   it('passes configured question targets into rendered export readiness', async () => {
     const quizDeliverables = {
       quizBank: {

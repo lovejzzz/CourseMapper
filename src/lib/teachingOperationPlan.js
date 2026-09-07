@@ -1,10 +1,63 @@
 import { sha256HexSync } from './sha256Sync.js';
+import { solveTeachingProportion } from './teachingTaskArithmetic.js';
 
 export const TEACHING_OPERATION_PLAN_VERSION = 1;
+
+/** Check a supplied equality/rounded value beside a bound fraction. A
+ * reviewed population label cannot make contradictory arithmetic valid. */
+function sourceFractionIssue(text, numerator, denominator, values) {
+  const first = numerator.start < denominator.start ? numerator : denominator;
+  const second = first === numerator ? denominator : numerator;
+  const pair = /^\s*\/\s*$/.test(text.slice(first.end, second.start));
+  if (pair && first !== numerator) return 'The selected roles reverse the fraction stated in the source.';
+  const touchesSlash = (span) => /\/\s*$/.test(text.slice(0, span.start)) || /^\s*\//.test(text.slice(span.end));
+  if (
+    (!pair && [numerator, denominator].some(touchesSlash)) ||
+    (pair && (/\/\s*$/.test(text.slice(0, first.start)) || /^\s*\//.test(text.slice(second.end))))
+  )
+    return 'Bind a single part/whole fraction, not a fragment of a nested fraction.';
+  if (!pair || !/^\d{1,9}$/.test(values.numerator) || !/^\d{1,9}$/.test(values.denominator)) return null;
+  const n = BigInt(values.numerator),
+    d = BigInt(values.denominator);
+  if (d === 0n) return null; // Reported by the part/whole precondition.
+  let tail = text.slice(second.end);
+  while (/^\s*[=≈]/.test(tail)) {
+    const assertion = tail.match(/^\s*([=≈])\s*(\d{1,12}(?:\.\d{1,18})?)\s*(%)?(?![\d%])/);
+    if (!assertion) return 'The source equation needs review; its asserted value cannot be checked.';
+    const [, relation, number, percent] = assertion;
+    const fraction = number.split('.')[1] || '';
+    const scale = 10n ** BigInt(fraction.length);
+    const stated = BigInt(number.replace('.', ''));
+    const scaled = n * scale * (percent ? 100n : 1n);
+    const valid = relation === '=' ? scaled === d * stated : (2n * scaled + d) / (2n * d) === stated;
+    if (!valid)
+      return 'The source equation contradicts the bound counts or its stated rounding. Review the source before applying it.';
+    tail = tail.slice(assertion[0].length);
+    if (/^[\d\/%]|^\.[\d]|^[eE][+\-]?\d/.test(tail))
+      return 'The source equation contains an unsupported numeric expression.';
+  }
+  return null;
+}
 
 // These are executable input contracts, not topic names or free-form claims
 // of correctness. New operations must provide their own premise checks.
 export const TEACHING_OPERATION_SPECS = {
+  'observed-proportion': {
+    family: 'quantity',
+    taskKind: 'source-proportion',
+    bindings: {
+      countRecord: 'record',
+      numerator: 'ratio-count',
+      denominator: 'ratio-count',
+      observedGroup: 'text',
+      countedOutcome: 'text',
+      scopeRecord: 'record',
+      missingGroup: 'text',
+      targetGroup: 'text',
+    },
+    requirements: ['part-whole', 'conversion', 'scope'],
+    defaultWeights: [25, 40, 35],
+  },
   'record-amendment': {
     family: 'source-analysis',
     taskKind: 'evidence-source-analysis',
@@ -76,10 +129,11 @@ export function validateTeachingOperationPlan(plan, inputs) {
     if (!text.trim() || (type === 'record' && (span.start !== 0 || span.end !== input.text.length)))
       issues.push(issue('plan-record', `The ${name} must retain its complete source record.`, name));
     if (
-      type === 'count' &&
+      ['count', 'ratio-count'].includes(type) &&
       (!/^\d{1,9}$/.test(text) ||
-        /[\da-z.,+\-−/]/i.test(input.text[span.start - 1] || '') ||
-        /[\da-z.,%+\-−/]/i.test(input.text[span.end] || '') ||
+        (type === 'count' ? /[\da-z.,+\-−/]/i : /[\da-z.,+\-−]/i).test(input.text[span.start - 1] || '') ||
+        (type === 'count' ? /[\da-z.,%+\-−/]/i : /[\da-z%+\-−]/i).test(input.text[span.end] || '') ||
+        (type === 'ratio-count' && /^(?:[.,]\d|\s*%)/.test(input.text.slice(span.end))) ||
         /[+\-−]\s*$/.test(input.text.slice(0, span.start)))
     )
       issues.push(
@@ -104,6 +158,43 @@ export function validateTeachingOperationPlan(plan, inputs) {
     issues.push(issue('plan-admission', 'Record how the teaching relationship was proposed or confirmed.'));
   // The stored provenance is a workflow record, not authenticated proof that
   // a person reviewed an imported project or that its facts are true.
+  if (plan.operation === 'observed-proportion') {
+    for (const [name, recordName] of [
+      ['numerator', 'countRecord'],
+      ['denominator', 'countRecord'],
+      ['observedGroup', 'countRecord'],
+      ['countedOutcome', 'countRecord'],
+      ['missingGroup', 'scopeRecord'],
+      ['targetGroup', 'scopeRecord'],
+    ]) {
+      if (plan.bindings[name]?.inputId !== plan.bindings[recordName]?.inputId)
+        issues.push(issue('plan-record-ownership', `The ${name} must come from the ${recordName}.`, name));
+    }
+    const n = Number(values.numerator),
+      d = Number(values.denominator);
+    if (Number.isFinite(d) && d === 0)
+      issues.push(issue('plan-empty-whole', 'An empty observed group has no defined observed proportion.'));
+    if (Number.isFinite(n) && Number.isFinite(d) && n > d)
+      issues.push(
+        issue(
+          'plan-subset-count',
+          'The counted subset exceeds its observed whole. Reconcile the counts before calculating.',
+        ),
+      );
+    // A source fraction can be bound in either prose or n/d notation, but
+    // selecting its digits must not reverse the source's stated relationship.
+    const numerator = plan.bindings.numerator,
+      denominator = plan.bindings.denominator;
+    if (numerator?.inputId === denominator?.inputId && values.countRecord) {
+      const text = byId.get(numerator.inputId)?.text || '';
+      const problem = sourceFractionIssue(text, numerator, denominator, values);
+      if (problem) issues.push(issue('plan-source-fraction', problem));
+    }
+    if (plan.admission?.kind === 'legacy-explicit-rule')
+      issues.push(
+        issue('plan-scope-review', 'Observed and missing groups require source-role review before admission.'),
+      );
+  }
   if (plan.operation === 'record-amendment') {
     for (const [name, recordName] of [
       ['priorValue', 'priorRecord'],
@@ -125,6 +216,7 @@ export function validateTeachingOperationPlan(plan, inputs) {
 }
 
 export function createTeachingOperationPlan({ operation, inputs, bindings, admission, requirements }) {
+  const spec = Object.hasOwn(TEACHING_OPERATION_SPECS, operation) ? TEACHING_OPERATION_SPECS[operation] : null;
   const plan = {
     version: TEACHING_OPERATION_PLAN_VERSION,
     operation,
@@ -132,11 +224,8 @@ export function createTeachingOperationPlan({ operation, inputs, bindings, admis
     inputRevisions: Object.fromEntries(inputs.map((input) => [input.id, operationInputRevision(input)])),
     admission: structuredClone(admission || { kind: 'model-proposal' }),
     requirements: structuredClone(
-      requirements || [
-        { id: 'evidence', weight: 30 },
-        { id: 'reasoning', weight: 35 },
-        { id: 'boundary', weight: 35 },
-      ],
+      requirements ||
+        (spec?.requirements || []).map((id, index) => ({ id, weight: (spec.defaultWeights || [30, 35, 35])[index] })),
     ),
   };
   const result = validateTeachingOperationPlan(plan, inputs);
@@ -154,6 +243,49 @@ export function evaluateTeachingOperationPlan(plan, inputs) {
         issue('plan-unconfirmed', 'Review the proposed source roles and relationship before compiling answers.'),
       ],
     };
+  if (plan.operation === 'observed-proportion') {
+    const { numerator, denominator, observedGroup, countedOutcome, missingGroup, targetGroup } = validation.values;
+    const calculation = solveTeachingProportion(numerator, denominator);
+    if (!calculation)
+      return {
+        status: 'needs-review',
+        issues: [issue('plan-proportion', 'The bound counts cannot form a proportion.')],
+      };
+    return {
+      status: 'ready',
+      operation: plan.operation,
+      values: validation.values,
+      calculation,
+      steps: [
+        {
+          id: 'observed-whole',
+          uses: ['countRecord', 'denominator', 'observedGroup'],
+          result: { count: denominator, group: observedGroup },
+        },
+        {
+          id: 'observed-part',
+          uses: ['countRecord', 'numerator', 'countedOutcome'],
+          dependsOn: ['observed-whole'],
+          result: { count: numerator, outcome: countedOutcome, subsetOf: observedGroup },
+        },
+        { id: 'proportion', dependsOn: ['observed-part', 'observed-whole'], result: calculation },
+        {
+          id: 'population-boundary',
+          uses: ['scopeRecord', 'missingGroup', 'targetGroup'],
+          dependsOn: ['proportion'],
+          result: {
+            observedGroup,
+            missingGroup,
+            targetGroup,
+            populationRate: 'not-established',
+            missingOutcomes: 'unknown',
+          },
+        },
+      ],
+      scope:
+        'Exact arithmetic over reviewed part/whole bindings. Sampling validity and source truth require separate review.',
+    };
+  }
   const { priorValue, amendedValue, priorUnit, effectiveDate } = validation.values;
   return {
     status: 'ready',
@@ -224,7 +356,7 @@ export function rebindTeachingOperationEdit(plan, beforeInputs, nextInputs) {
     }
     const candidates = Object.entries(next.bindings).filter(
       ([name, span]) =>
-        ['count', 'date-text'].includes(TEACHING_OPERATION_SPECS[next.operation].bindings[name]) &&
+        ['count', 'ratio-count', 'date-text'].includes(TEACHING_OPERATION_SPECS[next.operation].bindings[name]) &&
         span.inputId === before.id &&
         start >= span.start &&
         oldEnd <= span.end,

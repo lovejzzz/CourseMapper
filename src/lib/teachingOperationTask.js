@@ -1,11 +1,13 @@
 import { evaluateTeachingOperationPlan } from './teachingOperationPlan.js';
 import { buildEvidenceTask } from './teachingTaskEvidenceBuilder.js';
+import { renderObservedProportion } from './teachingOperationProportion.js';
 
 /** Material language is a projection of the same checked operation. Neither
  * model prose nor a material's saved answer is a second answer authority. */
 export function renderTeachingOperationTask(plan, inputs, objective) {
   const evaluated = evaluateTeachingOperationPlan(plan, inputs);
   if (evaluated.status !== 'ready') return null;
+  if (plan.operation === 'observed-proportion') return renderObservedProportion(plan, inputs, objective, evaluated);
   const zh = /\p{Script=Han}/u.test(objective);
   const {
     priorValue: prior,

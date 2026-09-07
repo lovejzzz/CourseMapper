@@ -42,6 +42,17 @@ export function chineseIndependentTask(task) {
       ),
     ];
     feedback = '先核对分母，再检查舍入，最后确认没有把缺失回答改写成已知意愿。';
+    if (task.operationPlan?.operation === 'observed-proportion') {
+      directions += '展示计算和反向检验，并提出能补足缺失结果的具体证据方案。';
+      const further =
+        '可向未回答的12人提出相同问题并记录回答，核对是否覆盖全部48名交表者；如果仍有人未回答，继续保留其意愿未知。这是建议取证步骤，不是已经获得的新回答。';
+      answer += further;
+      reasoning.push(further);
+      rubric[2].exemplary =
+        '明确12人意愿未知，解释为何不能确定48人的比例；提出使用相同问题取得缺失回答并核对覆盖，区分建议与已有数据。';
+      rubric[2].proficient = '解释12人意愿未知及其对总体比例的限制，但没有提出具体的可比取证步骤或覆盖核查。';
+      feedback += '进一步说明向谁提出什么问题，以及如何处理仍然缺失的回答。';
+    }
   } else if (kind === 'experiment') {
     sources = [
       '新的虚构情境：纸张甲为10×10厘米，纸张乙为20×20厘米。两种纸都浸水10秒，测量浸水前后的质量增加。每种纸只有一次测量，尚未给出测量值。',

@@ -16,11 +16,22 @@ const fieldLabels = {
   amendedUnit: ['Amended unit', '修订单位'],
   effectiveDate: ['Effective date', '生效日期'],
   observationLimit: ['Record of the unknown observation date', '观察日期未知的记录'],
+  countRecord: ['Record of the observed counts', '已观察计数的记录'],
+  numerator: ['Count meeting the outcome', '符合结果的计数'],
+  denominator: ['Count of the observed group', '已观察群体的计数'],
+  observedGroup: ['Observed group', '已观察群体'],
+  countedOutcome: ['Counted outcome', '所计结果'],
+  scopeRecord: ['Record of the coverage limit', '覆盖范围限制的记录'],
+  missingGroup: ['Group with unknown outcomes', '结果未知的群体'],
+  targetGroup: ['Target population', '目标群体'],
 };
 const requirementLabels = {
   evidence: ['Evidence', '证据'],
   reasoning: ['Reasoning', '推理'],
   boundary: ['Evidence limits', '证据边界'],
+  'part-whole': ['Part and whole', '部分与整体'],
+  conversion: ['Calculation and checking', '计算与核验'],
+  scope: ['Scope and further evidence', '适用范围与进一步证据'],
 };
 const fieldClass =
   'mt-1 w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 focus:border-indigo-500 focus:outline-none';
@@ -170,10 +181,15 @@ export default function TeachingTaskReview({ featureId, courseMap, data, onPrevi
                   {t('Which record supports each part?', '每一部分由哪条记录支持？')}
                 </legend>
                 <p>
-                  {t(
-                    'Locate exact text in the records. A repeated phrase needs its occurrence selected. Check that both rules concern the same setting and that the observation date is unknown.',
-                    '请选择记录中的原文；原文重复出现时请选择位置。请核对两版规则涉及同一情境，且观察日期确实未知。',
-                  )}
+                  {draft.operation === 'observed-proportion'
+                    ? t(
+                        'Locate exact text in the records. Check that the numerator counts a subset of the observed group, using the same unit and observation period. Identify the unobserved group and the wider population; missing outcomes must actually be unknown. A repeated phrase needs its occurrence selected.',
+                        '请选择记录中的原文。核对分子是已观察群体中的一部分，采用相同计数单位与观察时段；指出未观察群体和更大的目标群体，确认缺失结果确实未知。原文重复出现时请选择位置。',
+                      )
+                    : t(
+                        'Locate exact text in the records. A repeated phrase needs its occurrence selected. Check that both rules concern the same setting and that the observation date is unknown.',
+                        '请选择记录中的原文；原文重复出现时请选择位置。请核对两版规则涉及同一情境，且观察日期确实未知。',
+                      )}
                 </p>
                 {Object.entries(TEACHING_OPERATION_SPECS[draft.operation].bindings).map(([name, type]) => {
                   const binding = draft.bindings[name];
@@ -195,6 +211,7 @@ export default function TeachingTaskReview({ featureId, courseMap, data, onPrevi
                             }));
                           }}
                         >
+                          <option value="">{t('Choose a source record', '选择来源记录')}</option>
                           {draft.inputs.map((input, index) => (
                             <option key={input.id} value={input.id}>
                               {t(`Record ${index + 1}`, `记录 ${index + 1}`)}
@@ -330,10 +347,15 @@ export default function TeachingTaskReview({ featureId, courseMap, data, onPrevi
                   checked={confirmed}
                   onChange={(event) => setConfirmed(event.target.checked)}
                 />
-                {t(
-                  'I have checked the source roles, the effective change for the same setting, and the unknown observation date. Apply these sources and scoring weights.',
-                  '我已核对来源角色、同一情境下规则的生效变更，以及观察日期未知的条件；同意应用这些来源与评分权重。',
-                )}
+                {draft.operation === 'observed-proportion'
+                  ? t(
+                      'I have checked the part and whole refer to the same observed group, the unobserved outcomes are unknown, and the target population is wider. Apply these sources and scoring weights.',
+                      '我已核对部分与整体属于同一已观察群体、未观察结果确实未知，且目标群体更广；同意应用这些来源与评分权重。',
+                    )
+                  : t(
+                      'I have checked the source roles, the effective change for the same setting, and the unknown observation date. Apply these sources and scoring weights.',
+                      '我已核对来源角色、同一情境下规则的生效变更，以及观察日期未知的条件；同意应用这些来源与评分权重。',
+                    )}
               </label>
               <div className="flex gap-3">
                 <button

@@ -30,7 +30,7 @@ const TITLE_LIKE_KEY_RE =
 // must keep its lesson-specific wording or readiness gates (rightly) flag it
 // as generic guidance.
 const REPLACEMENT_EXEMPT_KEY_RE =
-  /^(?:notes|speakerNotes|instructorNotes|localReviewAction|reviewerAction|reviewFocus|localConfirmationCue|localReviewNeeded|assignedReadings|supportResources|objectives|learningObjectives|estimatedTime|studentFacingEstimate)$/i;
+  /^(?:notes|speakerNotes|instructorNotes|localReviewAction|reviewerAction|reviewFocus|localConfirmationCue|localReviewNeeded|assignedReadings|supportResources|objective|objectiveAligned|objectives|learningObjectives|estimatedTime|studentFacingEstimate)$/i;
 
 // ── v0.14.5 WS-D (D1): registry-keyed reference nouns ───────────────────────
 // Targets that carry registry identity (assessmentId — the Phase 3a fields)

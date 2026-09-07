@@ -8,6 +8,7 @@ import DeliverableView from '../../DeliverableView.jsx';
 import { buildSharedTeachingTask } from '../../../lib/compilerTeachingTask.js';
 import { teachingTaskSourceFromLesson } from '../../../lib/teachingTaskSource.js';
 import { withTeachingTaskSources } from '../../../lib/teachingProgram.js';
+import { observedProportionFixture } from '../../../../tests/fixtures/teaching/observedProportion.js';
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 const task = buildSharedTeachingTask({
@@ -83,6 +84,37 @@ describe('teacher structure review interaction', () => {
     expect(container.querySelector('textarea')).toBeNull();
     expect(button('Open task review')).toBeTruthy();
   });
+
+  it.each([false, true])(
+    'opens an unbound proportion without guessing populations and uses its own confirmation (Chinese: %s)',
+    async (zh) => {
+      const fixture = observedProportionFixture({ zh });
+      const proportion = buildSharedTeachingTask({
+        lessonId: 'quantity-review',
+        objective: fixture.objective,
+        claims: fixture.inputs.map((i) => i.text),
+        admitted: true,
+      });
+      const source = teachingTaskSourceFromLesson({
+        id: 'quantity-review',
+        lessonNumber: 1,
+        title: zh ? '样本比例' : 'Sample proportions',
+        teachingTask: proportion,
+      });
+      const map = withTeachingTaskSources({ courseName: 'Review', lessons: [] }, [source]);
+      const { onPreview } = await renderReview({ courseMap: map });
+      expect([...container.querySelectorAll('select')].slice(1).map((s) => s.value)).toEqual(Array(8).fill(''));
+      expect(container.textContent).toContain(zh ? '相同计数单位与观察时段' : 'same unit and observation period');
+      expect(container.textContent).not.toContain(zh ? '两版规则' : 'both rules');
+      await click(button(zh ? '预览关联修改' : 'Preview linked changes'));
+      expect(Object.values(onPreview.mock.calls[0][0].bindings).every((b) => b.quote === '' && b.inputId === '')).toBe(
+        true,
+      );
+      expect(container.querySelector('input[type="checkbox"]').parentElement.textContent).toContain(
+        zh ? '目标群体更广' : 'target population is wider',
+      );
+    },
+  );
 
   it('invalidates the preview and confirmation when the draft changes', async () => {
     const { onCommit } = await renderReview();

@@ -20,13 +20,14 @@ export function quoteOccurrences(text, quote) {
 export function reviewableTeachingTaskSources(courseMap) {
   return readTeachingTaskSources(courseMap).filter((source) => {
     const operation = source.operationPlan?.operation || rebuildTeachingTaskSource(source)?.operationPlan?.operation;
-    return Object.hasOwn(TEACHING_OPERATION_SPECS, operation);
+    return Object.hasOwn(TEACHING_OPERATION_SPECS, operation) || source.kind === 'source-proportion';
   });
 }
 
 export function createTeachingTaskReviewDraft(source, materialData, featureId) {
   const plan = source.operationPlan || rebuildTeachingTaskSource(source)?.operationPlan;
-  if (!plan || !Object.hasOwn(TEACHING_OPERATION_SPECS, plan.operation))
+  const operation = plan?.operation || (source.kind === 'source-proportion' ? 'observed-proportion' : null);
+  if (!Object.hasOwn(TEACHING_OPERATION_SPECS, operation))
     return reviewIssue('This task does not yet have a supported teaching structure editor.');
   const pending = readPendingTeachingSourceInputs(materialData, source);
   if (pending.status === 'needs-review') return pending;
@@ -34,16 +35,25 @@ export function createTeachingTaskReviewDraft(source, materialData, featureId) {
     taskId: source.id,
     sourceRevision: revision(source),
     ...(featureId ? { material: { featureId, inputRevision: revision(pending.inputs) } } : {}),
-    operation: plan.operation,
+    operation,
     inputs: pending.inputs,
     bindings: Object.fromEntries(
-      Object.entries(plan.bindings).map(([name, span]) => {
+      Object.entries(plan?.bindings || TEACHING_OPERATION_SPECS[operation].bindings).map(([name, span]) => {
+        // An old fraction does not identify a population or prove that the
+        // counts concern the same group. Require an actual source review.
+        if (!plan) return [name, { inputId: '', quote: '', occurrence: null }];
         const text = source.inputs.find((input) => input.id === span.inputId)?.text || '';
         const quote = text.slice(span.start, span.end);
         return [name, { inputId: span.inputId, quote, occurrence: quoteOccurrences(text, quote).indexOf(span.start) }];
       }),
     ),
-    requirements: structuredClone(plan.requirements),
+    requirements: structuredClone(
+      plan?.requirements ||
+        TEACHING_OPERATION_SPECS[operation].requirements.map((id, index) => ({
+          id,
+          weight: TEACHING_OPERATION_SPECS[operation].defaultWeights[index],
+        })),
+    ),
   };
 }
 

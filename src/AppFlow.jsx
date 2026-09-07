@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspens
 import { createPortal } from 'react-dom';
 import { applyTeachingTaskSourceEdit, rememberTeacherEdit } from './lib/teachingTaskContentSync.js';
 import { previewTeachingTaskReview, commitTeachingTaskReview } from './lib/teachingTaskReview.js';
+import { quarantineInvalidInstructionalPlanLineage } from './lib/instructionalPlanLineage.js';
 import FocusTrap from 'focus-trap-react';
 import ErrorBoundary from './components/ErrorBoundary';
 import LoadingScreen, { ConfigSkeleton, WorkspaceSkeleton, CourseMapSkeleton } from './components/LoadingScreen';
@@ -1141,9 +1142,11 @@ export default function AppFlow({
     courseMapRef.current = transaction.courseMap;
     setCourseMap(transaction.courseMap);
     handleCourseGraph(
-      attachEnrichmentToGraph(
-        deriveCourseGraphFromCourseMap(transaction.courseMap),
-        courseGraphRef.current?.enrichmentOverlay,
+      quarantineInvalidInstructionalPlanLineage(
+        attachEnrichmentToGraph(
+          deriveCourseGraphFromCourseMap(transaction.courseMap),
+          courseGraphRef.current?.enrichmentOverlay,
+        ),
       ),
     );
     setUnseenChanges(

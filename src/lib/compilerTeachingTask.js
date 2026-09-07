@@ -457,7 +457,7 @@ export function buildSharedTeachingTask({
               explicitEvidenceAnalysisTask(inputs, objective);
   if (!body) return null;
   if (legacyOperationPresentation) body = legacyAmendmentProjection(body);
-  body = localizeProportionTask(body, inputs, objective);
+  if (!body.operationPlan) body = localizeProportionTask(body, inputs, objective);
   const task = {
     protocol: TEACHING_TASK_PROTOCOL,
     identityKey: lessonId,
@@ -472,7 +472,8 @@ export function buildSharedTeachingTask({
     ...body,
     purpose: 'source-bound guided practice',
     product:
-      body.language === 'zh'
+      body.product ||
+      (body.language === 'zh'
         ? '一份可核对的任务记录：列出材料证据、展示推理与结论，说明未知内容。可使用文字、带标签的图表或等效的无障碍表达形式。'
         : body.kind === 'source-proportion'
           ? 'One calculation record showing division, percentage conversion and reverse check, with a 2–4-sentence interpretation of the observations and their limits.'
@@ -480,7 +481,7 @@ export function buildSharedTeachingTask({
             ? 'A comparison table labeling each group, its conditions, the measured outcome, and the stated controls, followed by 2–3 sentences explaining the confound. Equivalent labeled text is acceptable.'
             : body.kind === 'controlled-comparison-repair'
               ? 'A revised two-group protocol specifying the treatment, equal conditions, random assignment and outcome measurement, with 2–3 sentences explaining what the repair establishes and what still requires results.'
-              : 'One annotated response with the reasoning, conclusion, and evidence limit; prose, a labeled diagram, or an equivalent accessible response.',
+              : 'One annotated response with the reasoning, conclusion, and evidence limit; prose, a labeled diagram, or an equivalent accessible response.'),
     minutes:
       Number(practiceMinutes) > 0
         ? Number(practiceMinutes)

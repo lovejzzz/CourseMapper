@@ -1109,6 +1109,11 @@ export default function ExportSidePanel({
   }, [activeReadiness, activeTab, effectiveLessonFilter, scope]);
   const canAutoRepairReadiness =
     typeof onAutoRepairReadiness === 'function' &&
+    // Bound teaching content changes through a reviewed transaction. Merely
+    // opening or downloading a material must not rewrite the course map and
+    // invalidate that transaction's saved history. Readiness still reports
+    // problems; an explicit preparation/review can resolve them.
+    !courseMap?.teachingProgram &&
     Boolean(readinessIssueSignature) &&
     !isPackageWorkflowRunning &&
     // A package whose files already passed export verification is immutable
@@ -1355,7 +1360,11 @@ export default function ExportSidePanel({
       } finally {
         setFinishPackageBusy(false);
       }
-    } else if (!verifiedPackageAvailableAtStart && typeof onAutoRepairReadiness === 'function') {
+    } else if (
+      !verifiedPackageAvailableAtStart &&
+      !exportCourseMap?.teachingProgram &&
+      typeof onAutoRepairReadiness === 'function'
+    ) {
       // A package that already earned a ready finish receipt and 38/38 export
       // verification is immutable at download time. Running another repair
       // here could make the ZIP differ from the state that was verified and
