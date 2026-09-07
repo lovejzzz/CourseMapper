@@ -1,3 +1,4 @@
+import { comparisonTaskBloom } from './teachingMaterialPresentation.js';
 import { taskCopy, taskText } from './teachingTaskCopy.js';
 import { projectTeachingTaskSyllabus } from './compilerTeachingTaskSyllabus.js';
 import { teachingTaskRubric, teachingTaskWorkedExample } from './compilerTeachingTask.js';
@@ -142,6 +143,8 @@ function alignAssessmentCopies(row, task, criteria) {
 }
 
 function projectAssignment(row, task, blueprint) {
+  row.language = task.language;
+  if (comparisonTaskBloom(task)) row.bloomsLevel = comparisonTaskBloom(task);
   const rubric = teachingTaskRubric(task, row.totalPoints);
   Object.assign(row, ref(task), {
     title: task.title,
@@ -277,16 +280,18 @@ function projectAssignment(row, task, blueprint) {
 }
 
 function projectRubric(row, task) {
+  row.language = task.language;
+  if (comparisonTaskBloom(task)) row.bloomsLevel = comparisonTaskBloom(task);
   const criteria = teachingTaskRubric(task, row.totalPoints);
   Object.assign(row, ref(task), {
-    title: `${task.title} — Rubric`,
+    title: taskText(task, `${task.title} — Rubric`, `${task.title}——评分标准`),
     gradedWork: task.title,
     taskDirections: task.question,
     gradingScale: {
-      exemplary: '100% of criterion points',
-      proficient: '75% of criterion points',
-      developing: '50% of criterion points',
-      beginning: '0% of criterion points',
+      exemplary: taskText(task, '100% of criterion points', '该项分值的100%'),
+      proficient: taskText(task, '75% of criterion points', '该项分值的75%'),
+      developing: taskText(task, '50% of criterion points', '该项分值的50%'),
+      beginning: taskText(task, '0% of criterion points', '该项分值的0%'),
     },
     criteria,
     criterionWeightPlan: criteria,
@@ -302,8 +307,11 @@ function projectRubric(row, task) {
       .join(' '),
     submissionRequirements: [task.product],
     submissionRequirementChecks: [],
-    submissionRequirementPolicy:
+    submissionRequirementPolicy: taskText(
+      task,
       'Check the response format separately. Score the displayed reasoning and answer using these task-specific criteria.',
+      '单独核对提交格式。按本任务的具体标准评价推理与回答。',
+    ),
     anchorExamples: anchors(task),
     anchorExampleSet: anchors(task),
     instructorFacilitationNote: taskCopy(

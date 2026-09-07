@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Derive the comparison-design assignment, rubric and main rehearsal cognitive level from the reviewed operation in both languages. Localize Chinese assignment/rubric Word and PDF labels, point units and generated lesson/week references; match rubric band names to scorer guidance while retaining source prose and the existing UI. Development export review still identifies repeated references, sparse final pages and unresolved quiz scoring.
+
 - Reject and remove a tested source-region proposal experiment after bilingual model outputs regressed; preserve the candidate and failure evidence outside application code.
 
 - Add capability-gated, application-owned comparison JSON grammars and preserve exact-source validation. Four real local proposal calls returned complete JSON; unresolved citations still block full acceptance. Reject grammar requests on unsupported runtimes rather than silently ignoring them.

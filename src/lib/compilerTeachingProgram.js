@@ -154,7 +154,8 @@ export function teachingProgramReviewQuestions(program) {
     successCriteria: unit.criteria,
     ...(unit.taskId ? { taskId: unit.taskId, taskRevision: unit.taskRevision, hint: unit.feedback || '' } : {}),
     bloomsLevel:
-      unit.kind === 'error-analysis' ? 'Analyze' : unit.kind === 'concept-retrieval' ? 'Understand' : 'Apply',
+      unit.bloomsLevel ||
+      (unit.kind === 'error-analysis' ? 'Analyze' : unit.kind === 'concept-retrieval' ? 'Understand' : 'Apply'),
   }));
 }
 

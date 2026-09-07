@@ -1,3 +1,4 @@
+import { comparisonTaskBloom } from './teachingMaterialPresentation.js';
 import { explicitSourceRelationTask, sourceRelationIntent } from './teachingTaskSourceRelations.js';
 import {
   explicitExperimentalExtensionTask,
@@ -579,6 +580,7 @@ export function teachingTaskPracticeUnits(task) {
       ...shared,
       id: `${task.id}:response`,
       kind: 'task-rehearsal',
+      ...(comparisonTaskBloom(task) ? { bloomsLevel: comparisonTaskBloom(task) } : {}),
       question: task.question,
       answer: task.answer,
       criteria: task.criteria.map((c) => c.levels.exemplary),

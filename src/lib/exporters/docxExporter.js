@@ -1,3 +1,9 @@
+import {
+  teachingMaterialIsChinese,
+  teachingMaterialLabel,
+  teachingMaterialLessonLabel,
+  teachingMaterialWeekLabel,
+} from '../teachingMaterialPresentation.js';
 import { isReviewedStudyGuide, studyGuideText, studyGuideExportLabel } from '../studyGuidePresentation.js';
 import { additionalAnswerChecks } from './answerKeyChecks.js';
 import { getDocx, getSaveAs, isInternalExportMetadataKey, resolveFeatureLabel } from './exporterUtils.js';
@@ -1107,51 +1113,53 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         break;
       }
       for (const [rubricIndex, r] of rubrics.entries()) {
+        const zh = teachingMaterialIsChinese(r, expanded);
+        const t = (label) => teachingMaterialLabel(label, zh);
         const gradedWork = r.gradedWork || r.assignmentTitle || r.title || '';
-        children.push(makeHeading(r.lessonTitle || r.title || 'Rubric'));
-        if (gradedWork) children.push(makeBold('Graded Student Work', gradedWork));
-        if (r.title && r.lessonTitle) children.push(makeBold('Rubric', r.title));
+        children.push(makeHeading(teachingMaterialLessonLabel(r.lessonTitle, zh) || r.title || t('Rubric')));
+        if (gradedWork) children.push(makeBold(t('Graded Student Work'), gradedWork));
+        if (r.title && r.lessonTitle) children.push(makeBold(t('Rubric'), r.title));
         const rMeta = [
-          r.totalPoints && `${r.totalPoints} points`,
-          r.assessmentType,
-          r.bloomsLevel,
+          r.totalPoints && `${r.totalPoints}${zh ? '分' : ' points'}`,
+          t(r.assessmentType),
+          t(r.bloomsLevel),
           r.courseMapRef || r.assessmentId,
         ].filter(Boolean);
         if (rMeta.length) children.push(makeMeta(rMeta.join('  ·  ')));
         // v0.16.1: exam answer-key handoff entries — the note IS the body.
         if (r.examHandoffNote) {
-          children.push(makeBold('Exam Handoff', r.examHandoffNote));
-          if (r.teacherNotes) children.push(makeBold('Teacher Notes', r.teacherNotes));
+          children.push(makeBold(t('Exam Handoff'), r.examHandoffNote));
+          if (r.teacherNotes) children.push(makeBold(t('Teacher Notes'), r.teacherNotes));
           if (rubricIndex < rubrics.length - 1) {
             children.push(new Paragraph({ spacing: { before: 200, after: 100 }, children: [] }));
           }
           continue;
         }
         if (r.answerKeyHandoffNote) {
-          children.push(makeBold('Answer-Key Handoff', r.answerKeyHandoffNote));
-          if (r.teacherNotes) children.push(makeBold('Teacher Notes', r.teacherNotes));
+          children.push(makeBold(t('Answer-Key Handoff'), r.answerKeyHandoffNote));
+          if (r.teacherNotes) children.push(makeBold(t('Teacher Notes'), r.teacherNotes));
           if (rubricIndex < rubrics.length - 1) {
             children.push(new Paragraph({ spacing: { before: 200, after: 100 }, children: [] }));
           }
           continue;
         }
-        if (r.taskDirections) children.push(makeBold('Task Directions', r.taskDirections));
+        if (r.taskDirections) children.push(makeBold(t('Task Directions'), r.taskDirections));
         if (r.sourceEvidenceBrief?.claims?.length) {
-          children.push(makeSubHeading('Content Evidence Used for Scoring'));
+          children.push(makeSubHeading(t('Content Evidence Used for Scoring')));
           r.sourceEvidenceBrief.claims.forEach((claim) => children.push(makeBullet(claim)));
         }
         if (r.sourceEvidenceBrief?.sources?.length) {
-          children.push(makeSubHeading('Evidence References for Scoring'));
+          children.push(makeSubHeading(t('Evidence References for Scoring')));
           r.sourceEvidenceBrief.sources.forEach((source) => children.push(makeBullet(formatEvidenceSource(source))));
         }
         if (Array.isArray(r.submissionRequirements) && r.submissionRequirements.length > 0) {
-          children.push(makeSubHeading('Submission Requirements (unweighted)'));
+          children.push(makeSubHeading(t('Submission Requirements (unweighted)')));
           if (r.submissionRequirementPolicy) children.push(makeItalic(r.submissionRequirementPolicy));
           r.submissionRequirements.forEach((requirement) => children.push(makeBullet(requirement)));
         }
         if (r.instructorFacilitationNote)
-          children.push(makeBold('Instructor Facilitation', r.instructorFacilitationNote));
-        if (r.accessibilityAndUDL) children.push(makeBold('Accessibility & UDL', r.accessibilityAndUDL));
+          children.push(makeBold(t('Instructor Facilitation'), r.instructorFacilitationNote));
+        if (r.accessibilityAndUDL) children.push(makeBold(t('Accessibility & UDL'), r.accessibilityAndUDL));
         const criteria = r.criteria || [];
         if (criteria.length > 0 && r.taskId) {
           // Source tasks need enough width to compare actual reasoning. Four
@@ -1160,32 +1168,32 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           criteria.forEach((criterion) => {
             children.push(
               makeSubHeading(
-                `${criterion.criterion || criterion.name} — ${criterion.points} points (${criterion.weight}%)`,
+                `${criterion.criterion || criterion.name} — ${criterion.points}${zh ? '分' : ' points'} (${criterion.weight}%)`,
               ),
             );
             children.push(
               makeKeyValueTable(
                 [
-                  ['Excellent', criterion.excellent || criterion.exemplary || ''],
-                  ['Proficient', criterion.proficient || ''],
-                  ['Developing', criterion.developing || ''],
-                  ['Beginning', criterion.beginning || ''],
+                  [t('Excellent'), criterion.excellent || criterion.exemplary || ''],
+                  [t('Proficient'), criterion.proficient || ''],
+                  [t('Developing'), criterion.developing || ''],
+                  [t('Beginning'), criterion.beginning || ''],
                 ],
                 {
-                  headers: ['Level', 'Observable response'],
+                  headers: [t('Level'), t('Observable response')],
                   keepTogether: true,
                   keepWithNext: Boolean(criterion.feedbackUse),
                 },
               ),
             );
             if (criterion.feedbackUse)
-              children.push(makeBold('Feedback for revision', criterion.feedbackUse, { keepLines: true }));
+              children.push(makeBold(t('Feedback for revision'), criterion.feedbackUse, { keepLines: true }));
           });
         } else if (criteria.length > 0) {
           children.push(
             makeTableFn(
               COL_DXA,
-              ['Criterion', 'Weight', 'Excellent', 'Proficient', 'Developing', 'Beginning'],
+              ['Criterion', 'Weight', 'Excellent', 'Proficient', 'Developing', 'Beginning'].map(t),
               criteria.map((c) => [
                 c.criterion || c.name || '',
                 // v0.12.1: a bare "30" reads as nothing — show the unit.
@@ -1214,13 +1222,14 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             : [];
         if (labeledAnchors.length || r.anchorExamples?.length) {
           children.push(
-            makeSubHeading('Anchor Examples — Instructor Reference', { pageBreakBefore: Boolean(r.taskId) }),
+            makeSubHeading(t('Anchor Examples — Instructor Reference'), { pageBreakBefore: Boolean(r.taskId) }),
           );
-          if (r.taskId && (r.lessonTitle || r.title)) children.push(makeMeta(r.lessonTitle || r.title));
+          if (r.taskId && (r.lessonTitle || r.title))
+            children.push(makeMeta(teachingMaterialLessonLabel(r.lessonTitle, zh) || r.title));
           if (r.anchorExamples?.sampleOrigin === 'synthetic-review-examples')
             children.push(
               makeText(
-                'Constructed rubric review examples, not student data. Scoring examples require teacher review.',
+                t('Constructed rubric review examples, not student data. Scoring examples require teacher review.'),
               ),
             );
           if (labeledAnchors.length)
@@ -1228,7 +1237,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
               // Preserve the reference's authored reasoning paragraphs. A
               // single Word run flattens them into an unreadable text block.
               const paragraphs = String(text).split(/\r?\n\s*\r?\n/);
-              children.push(makeBold(label, paragraphs[0], { keepLines: true }));
+              children.push(makeBold(t(label), paragraphs[0], { keepLines: true }));
               paragraphs.slice(1).forEach((paragraph) => children.push(makeText(paragraph)));
             });
           else r.anchorExamples.forEach((text) => children.push(makeBullet(text)));
@@ -1569,7 +1578,9 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         break;
       }
       for (const [assignmentIndex, a] of assignments.entries()) {
-        children.push(makeHeading(a.title || 'Assignment'));
+        const zh = teachingMaterialIsChinese(a, expanded);
+        const t = (label) => teachingMaterialLabel(label, zh);
+        children.push(makeHeading(a.title || t('Assignment')));
         const courseMapRef = a.courseMapRef ? String(a.courseMapRef).trim() : '';
         // v0.16.1: ONE weight per header. When the course-map stamp carries
         // any percent (the assessment registry row's weight), it is the
@@ -1578,56 +1589,64 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         // re-normalized brief weights. Never render two percents.
         const courseMapRefShowsPercent = /\d+(?:\.\d+)?\s*%/.test(courseMapRef);
         const aMeta = [
-          a.assignmentType,
-          a.bloomsLevel,
-          a.dueWeek || a.dueDate,
+          t(a.assignmentType),
+          t(a.bloomsLevel),
+          teachingMaterialWeekLabel(a.dueWeek, zh) || a.dueDate,
           a.estimatedTime,
-          a.totalPoints && `${a.totalPoints} pts`,
-          courseMapRefShowsPercent ? null : a.percentOfGrade,
+          a.totalPoints && `${a.totalPoints}${zh ? '分' : ' pts'}`,
+          courseMapRefShowsPercent ? null : t(a.percentOfGrade),
           // v0.14.1 (3.3b): the reverse stamp — "Course Map L8 · A8.1 · 5%"
           // ties the brief back to the map cell that promised it.
           a.courseMapRef,
         ].filter(Boolean);
         if (aMeta.length) children.push(makeMeta(aMeta.join('  ·  ')));
-        if (a.relatedLessons?.length) children.push(makeBold('Related Lessons', a.relatedLessons.join(', ')));
-        if (a.overview) children.push(makeBold('Overview', a.overview));
-        if (a.description) children.push(makeBold('Description', a.description));
+        if (a.relatedLessons?.length)
+          children.push(
+            makeBold(
+              t('Related Lessons'),
+              a.relatedLessons.map((lesson) => teachingMaterialLessonLabel(lesson, zh)).join(zh ? '，' : ', '),
+            ),
+          );
+        if (a.overview) children.push(makeBold(t('Overview'), a.overview));
+        if (a.description) children.push(makeBold(t('Description'), a.description));
         if (a.activityPacket) {
           const packet = a.activityPacket;
-          children.push(makeSubHeading('Activity Briefing'));
-          if (packet.activityType) children.push(makeBold('Activity Type', packet.activityType));
-          if (packet.scenario) children.push(makeBold('Situation', packet.scenario));
-          if (packet.safetyBoundary) children.push(makeCallout('Safety and evidence boundary', packet.safetyBoundary));
+          children.push(makeSubHeading(t('Activity Briefing')));
+          if (packet.activityType) children.push(makeBold(t('Activity Type'), packet.activityType));
+          if (packet.scenario) children.push(makeBold(t('Situation'), packet.scenario));
+          if (packet.safetyBoundary)
+            children.push(makeCallout(t('Safety and evidence boundary'), packet.safetyBoundary));
           if (packet.evidence?.length) {
-            children.push(makeSubHeading('Inspect Before Acting'));
+            children.push(makeSubHeading(t('Inspect Before Acting')));
             packet.evidence.forEach((item) => children.push(makeBullet(item)));
           }
           if (packet.roles?.length) {
-            children.push(makeSubHeading('Participant or Working Roles'));
+            children.push(makeSubHeading(t('Participant or Working Roles')));
             packet.roles.forEach((role) => {
               if (role.goal) children.push(makeBold(role.name || 'Activity role', role.goal, { keepNext: true }));
-              if (role.constraint) children.push(makeBold('Constraint', role.constraint, { keepNext: true }));
-              if (role.privateInformation) children.push(makeCallout('Role-only information', role.privateInformation));
+              if (role.constraint) children.push(makeBold(t('Constraint'), role.constraint, { keepNext: true }));
+              if (role.privateInformation)
+                children.push(makeCallout(t('Role-only information'), role.privateInformation));
             });
           }
           if (packet.phases?.length) {
-            children.push(makeSubHeading('Phases and Updates'));
+            children.push(makeSubHeading(t('Phases and Updates')));
             packet.phases.forEach((phase) => {
               if (phase.information)
                 children.push(makeBold(phase.title || 'Activity phase', phase.information, { keepNext: true }));
               if (phase.requiredDecision)
-                children.push(makeBold('Required decision or action', phase.requiredDecision));
+                children.push(makeBold(t('Required decision or action'), phase.requiredDecision));
             });
           }
           if (packet.timing?.length) {
-            children.push(makeSubHeading('Activity Clock'));
+            children.push(makeSubHeading(t('Activity Clock')));
             packet.timing.forEach((row, index) =>
               children.push(makeNumbered(index + 1, `${row.phase} — ${row.minutes} minutes`)),
             );
-            children.push(makeBold('Total time', `${packet.totalMinutes} minutes`));
+            children.push(makeBold(t('Total time'), `${packet.totalMinutes} minutes`));
           }
           if (packet.activityLogFields?.length) {
-            children.push(makeSubHeading('Activity Log'));
+            children.push(makeSubHeading(t('Activity Log')));
             children.push(
               makeText(
                 'Record one row whenever the evidence, constraint, decision, action, or interpretation changes.',
@@ -1636,20 +1655,20 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             packet.activityLogFields.forEach((field) => children.push(makeBullet(field)));
           }
           if (packet.artifact?.title) {
-            children.push(makeSubHeading('Student Artifact'));
-            children.push(makeBold('Artifact', packet.artifact.title));
+            children.push(makeSubHeading(t('Student Artifact')));
+            children.push(makeBold(t('Artifact'), packet.artifact.title));
             packet.artifact.requirements?.forEach((requirement, index) =>
               children.push(makeNumbered(index + 1, requirement)),
             );
           }
           if (packet.debriefPrompts?.length) {
-            children.push(makeSubHeading('Debrief'));
+            children.push(makeSubHeading(t('Debrief')));
             packet.debriefPrompts.forEach((prompt) => children.push(makeBullet(prompt)));
           }
         }
         // v0.14.1 (3.2c): oral prompt sheets carry their speaking tasks.
         if (Array.isArray(a.speakingPrompts) && a.speakingPrompts.length > 0) {
-          children.push(makeSubHeading('Speaking Prompts'));
+          children.push(makeSubHeading(t('Speaking Prompts')));
           a.speakingPrompts.forEach((prompt) => children.push(makeBullet(prompt)));
         }
         // Preserve the complete objective contract in structured data, but
@@ -1674,33 +1693,34 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           (objective) => !exactInstructionDeclarations.has(normalizedAssignmentIdentity(objective)),
         );
         if (renderedObjectives.length) {
-          children.push(makeSubHeading('Learning Objectives'));
+          children.push(makeSubHeading(t('Learning Objectives')));
           renderedObjectives.forEach((o) => children.push(makeBullet(o)));
         }
         if (a.sourceEvidenceBrief?.claims?.length) {
-          children.push(makeSubHeading('Assigned Evidence Packet'));
+          children.push(makeSubHeading(t('Assigned Evidence Packet')));
           a.sourceEvidenceBrief.claims.forEach((claim) => children.push(makeBullet(claim)));
           if (a.sourceEvidenceBrief.sources?.length) {
-            children.push(makeBold('Use these retained sources', ''));
+            children.push(makeBold(t('Use these retained sources'), ''));
             a.sourceEvidenceBrief.sources.forEach((source) => children.push(makeBullet(formatEvidenceSource(source))));
           }
         }
         if (a.workedExample?.problem) {
-          children.push(makeSubHeading('Operation-Qualified Worked Example'));
-          if (a.workedExample.studentTask) children.push(makeBold('Your task', a.workedExample.studentTask));
+          children.push(makeSubHeading(t('Operation-Qualified Worked Example')));
+          if (a.workedExample.studentTask) children.push(makeBold(t('Your task'), a.workedExample.studentTask));
           children.push(makeText(a.workedExample.problem));
           if (a.workedExample.inputs?.length) {
-            children.push(makeBold('Inputs', ''));
+            children.push(makeBold(t('Inputs'), ''));
             a.workedExample.inputs.forEach((input) => children.push(makeBullet(input)));
           }
           (a.workedExample.steps || []).forEach((step, index) => children.push(makeNumbered(index + 1, step)));
-          if (a.workedExample.result) children.push(makeCallout('Result', a.workedExample.result));
-          if (a.workedExample.interpretation) children.push(makeBold('Interpretation', a.workedExample.interpretation));
-          if (a.workedExample.boundary) children.push(makeCallout('Boundary', a.workedExample.boundary));
-          if (a.workedExample.transferTask) children.push(makeBold('Your variation', a.workedExample.transferTask));
+          if (a.workedExample.result) children.push(makeCallout(t('Result'), a.workedExample.result));
+          if (a.workedExample.interpretation)
+            children.push(makeBold(t('Interpretation'), a.workedExample.interpretation));
+          if (a.workedExample.boundary) children.push(makeCallout(t('Boundary'), a.workedExample.boundary));
+          if (a.workedExample.transferTask) children.push(makeBold(t('Your variation'), a.workedExample.transferTask));
         }
         if (a.instructions?.length) {
-          children.push(makeSubHeading('Instructions'));
+          children.push(makeSubHeading(t('Instructions')));
           a.instructions.forEach((inst, j) => {
             const raw = typeof inst === 'string' ? inst : inst.step || '';
             // Strip leading "1. " prefix that AI sometimes includes (prevents "1. 1." double-numbering)
@@ -1711,38 +1731,38 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         // Format requirements — v0.12.1: a two-column table instead of five
         // glued label paragraphs.
         if (a.formatRequirements) {
-          children.push(makeSubHeading('Format Requirements'));
+          children.push(makeSubHeading(t('Format Requirements')));
           const fr = a.formatRequirements;
           const frPairs = [
-            ['Length', fr.length],
-            ['Format', fr.format],
-            ['Citation Style', fr.citationStyle],
-            ['Submission', fr.submissionPlatform],
-            ['Late Policy', fr.latePolicy],
+            [t('Length'), fr.length],
+            [t('Format'), fr.format],
+            [t('Citation Style'), fr.citationStyle],
+            [t('Submission'), fr.submissionPlatform],
+            [t('Late Policy'), fr.latePolicy],
           ].filter(([, v]) => v);
           if (frPairs.length) {
-            children.push(makeKeyValueTable(frPairs, { headers: ['Requirement', 'Course expectation'] }));
+            children.push(makeKeyValueTable(frPairs, { headers: [t('Requirement'), t('Course expectation')] }));
           }
         }
         if (a.deliverables?.length) {
-          children.push(makeSubHeading('Deliverables'));
+          children.push(makeSubHeading(t('Deliverables')));
           a.deliverables.forEach((d) => children.push(makeBullet(typeof d === 'string' ? d : d.name || '')));
         }
-        if (a.submissionFormat) children.push(makeBold('Submission Format', a.submissionFormat));
+        if (a.submissionFormat) children.push(makeBold(t('Submission Format'), a.submissionFormat));
         // gradingCriteria is an array of criterion names; rendering it as a
         // bold label with no value left an empty "Grading Criteria:" line.
         if (Array.isArray(a.gradingCriteria) && a.gradingCriteria.length > 0) {
-          children.push(makeSubHeading('Grading Criteria'));
+          children.push(makeSubHeading(t('Grading Criteria')));
           a.gradingCriteria.forEach((criterion) =>
             children.push(makeBullet(typeof criterion === 'string' ? criterion : criterion?.criterion || '')),
           );
         } else if (a.gradingCriteria && typeof a.gradingCriteria === 'string') {
-          children.push(makeBold('Grading Criteria', a.gradingCriteria));
+          children.push(makeBold(t('Grading Criteria'), a.gradingCriteria));
         }
-        if (a.progressTracking) children.push(makeBold('Progress Tracking', a.progressTracking));
-        if (a.accessibilityAndUDL) children.push(makeBold('Accessibility & UDL', a.accessibilityAndUDL));
+        if (a.progressTracking) children.push(makeBold(t('Progress Tracking'), a.progressTracking));
+        if (a.accessibilityAndUDL) children.push(makeBold(t('Accessibility & UDL'), a.accessibilityAndUDL));
         if (a.selfAssessmentRubric?.length) {
-          children.push(makeSubHeading('Student Self-Assessment'));
+          children.push(makeSubHeading(t('Student Self-Assessment')));
           a.selfAssessmentRubric.forEach((item) => children.push(makeBullet(item)));
         }
         const comparisonSource = expanded.teachingTaskSources?.find(
@@ -1765,10 +1785,10 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           }
         }
         if (a.anchorExampleGuidance?.length) {
-          children.push(makeSubHeading('Anchor Samples and Revision Check', { pageBreakBefore: true }));
+          children.push(makeSubHeading(t('Anchor Samples and Revision Check'), { pageBreakBefore: true }));
           a.anchorExampleGuidance.forEach((item) => children.push(makeBullet(item, { compact: true })));
         }
-        if (a.feedbackLoop) children.push(makeBold('Feedback Loop', a.feedbackLoop));
+        if (a.feedbackLoop) children.push(makeBold(t('Feedback Loop'), a.feedbackLoop));
         // The lesson plan owns scaffolding milestones. Repeating them in each
         // assignment brief duplicates the workflow and can create a sparse
         // policy-only tail page after the actual student directions.

@@ -201,3 +201,33 @@ describe('reviewed paired-condition comparison design', () => {
     },
   );
 });
+
+it.each([false, true])(
+  'uses the design operation level for assignment, rubric and rehearsal in both languages: %s',
+  (zh) => {
+    const { task } = fixture(zh);
+    const blueprint = {
+      lessons: [{ id: 'design-unit', lessonNumber: 1, teachingTaskScope: 'primary-task', teachingTask: task }],
+    };
+    const assignment = projectSharedTeachingTasks(
+      'assignments',
+      { assignments: [{ lessonNumber: 1, title: 'Old', totalPoints: 100, bloomsLevel: 'Apply' }] },
+      blueprint,
+    ).assignments[0];
+    const rubric = projectSharedTeachingTasks(
+      'rubrics',
+      { rubrics: [{ lessonNumber: 1, title: 'Old', totalPoints: 100, bloomsLevel: 'Apply', criteria: [] }] },
+      blueprint,
+    ).rubrics[0];
+    const quiz = projectSharedTeachingTasks('quizBank', { quizzes: [{ lessonNumber: 1, questions: [] }] }, blueprint)
+      .quizzes[0];
+    expect(assignment.bloomsLevel).toBe('Create');
+    expect(rubric.bloomsLevel).toBe('Create');
+    expect(assignment.language).toBe(zh ? 'zh' : 'en');
+    expect(rubric.title).toBe(zh ? `${task.title}——评分标准` : `${task.title} — Rubric`);
+    expect(quiz.questions.find((question) => question.practiceKind === 'task-rehearsal').bloomsLevel).toBe('Create');
+    const errorQuestions = quiz.questions.filter((question) => question.practiceKind === 'error-analysis');
+    expect(errorQuestions.length).toBeGreaterThan(0);
+    expect(errorQuestions.every((question) => question.bloomsLevel === 'Analyze')).toBe(true);
+  },
+);

@@ -1,3 +1,4 @@
+import { teachingMaterialExportLabel } from './teachingMaterialPresentation.js';
 import { renderedDeliverableCollection, renderedDeliverableCollectionKey } from './renderedDeliverableRoot.js';
 
 const chinese = {
@@ -73,7 +74,7 @@ export function isStudyGuideExplanationEdit(feature, data, path) {
 }
 
 export function studyGuideExportLabel(feature, data, fallback) {
-  if (feature !== 'studyGuides') return fallback;
+  if (feature !== 'studyGuides') return teachingMaterialExportLabel(feature, data, fallback);
   const guides = renderedDeliverableCollection(feature, data);
   return guides.length && guides.every((guide) => isReviewedStudyGuide(guide) && guide.language === 'zh')
     ? chinese['Study Guides']
