@@ -233,10 +233,15 @@ export default function TeachingTaskReview({
                     'Some suggestions differ from your selections. Review the details.',
                     '部分建议与已有选择不同，请查看核对详情。',
                   )
-                : t(
-                    'No new source selections. Your existing selections are kept.',
-                    '没有新的来源选择，已保留已有选择。',
-                  ),
+                : result.issues?.length
+                  ? t(
+                      'The source proposal could not finish. Your existing selections are kept.',
+                      '来源提案未完成，已保留已有选择。',
+                    )
+                  : t(
+                      'No new source selections. Your existing selections are kept.',
+                      '没有新的来源选择，已保留已有选择。',
+                    ),
           [
             ...(result.issues || []),
             ...(result.unknowns || []),

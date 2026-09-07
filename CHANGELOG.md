@@ -2,6 +2,10 @@
 
 ## Unreleased — v0.20.0 development
 
+- Fix source suggestions and draft review silently ignoring an explicit out-of-range occurrence for a unique quote. Reject overlapping treatment/competing-condition excerpts; retain exact-source checks and teacher confirmation.
+- Test actual bilingual local Scion proposals, preserve initial failures and a validator false positive, and reject a slower native-reasoning trial as the default. Develop two bounded extraction stages for new-test resources and observed factor settings, retaining completed suggestions when a later stage fails.
+- Keep failed-proposal feedback to one clear sentence with optional details; preserve teacher selections and the existing collapsed review/editor interface. These development comparisons do not replace fresh model or classroom acceptance.
+
 - Add a reviewed comparison-design operation that binds source conditions, independently assignable units, resource counts, controls and measurement. Compile proposed allocation, reference reasoning, distinct scoring levels and error feedback while keeping future effects unknown; semantic feasibility still requires review.
 - Carry reviewed comparison tasks through creation, linked materials, resource-count edits and reversible project history. Replace obsolete generated examples and quiz entries while retaining independent practice, machine-scored specifications and teacher-edit conflict handling.
 - Align design-task prompts and rubrics with proposed procedures rather than uncollected results. Add assignment response space, retain reference paragraphs, and keep Word rubric feedback with its criterion table. Bilingual export review still has documented localization, scoring and pagination issues.

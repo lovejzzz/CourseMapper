@@ -323,7 +323,7 @@ describe('teacher structure review interaction', () => {
     });
     await click(button('Locate source phrases with local Scion'));
     expect(container.querySelector('[role="status"]').textContent).toBe(
-      'No new source selections. Your existing selections are kept.',
+      'The source proposal could not finish. Your existing selections are kept.',
     );
     const diagnostics = [...container.querySelectorAll('details')].find(
       (element) => element.querySelector('summary')?.textContent === 'Review details',

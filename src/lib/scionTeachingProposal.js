@@ -2,8 +2,22 @@ import { TEACHING_OPERATION_SPECS, createTeachingOperationPlan } from './teachin
 import { quoteOccurrences } from './teachingTaskReview.js';
 import { canonicalJson } from './canonicalJson.js';
 import { sha256HexSync } from './sha256Sync.js';
+import {
+  SCION_COMPARISON_PROPOSAL_PROTOCOL,
+  LEGACY_SCION_COMPARISON_PROPOSAL_PROTOCOL,
+  normalizeComparisonProposal,
+  comparisonProposalFieldPath,
+} from './scionComparisonProposal.js';
+import { comparisonConditionOverlapIssues } from './teachingOperationComparison.js';
+import {
+  SCION_COMPARISON_STAGED_PROTOCOL,
+  comparisonStageMessages,
+  runComparisonSourceStages,
+} from './scionComparisonStages.js';
 
 export const SCION_TEACHING_PROPOSAL_PROTOCOL = 'scion-teaching-source-bindings-v2';
+export const teachingProposalProtocol = (operation) =>
+  operation === 'paired-condition-confound' ? SCION_COMPARISON_STAGED_PROTOCOL : SCION_TEACHING_PROPOSAL_PROTOCOL;
 const record = (value) => value && typeof value === 'object' && !Array.isArray(value);
 let running = false;
 
@@ -12,8 +26,6 @@ export function teachingProposalInputRevision({ operation, objective, inputs }) 
 }
 
 const roles = {
-  'paired-condition-confound':
-    'firstRecord and secondRecord are the two observed-condition records; designRecord states resources and rules for a new test. firstTreatment/secondTreatment and firstOther/secondOther are the respective treatment and competing-condition settings, from their own observed record. factor, otherFactor, unit, availableUnits, controls, measurement and outcome come from designRecord. availableUnits is only its integer count of independently assignable new units, not original observations or repeat readings. Copy the actual measurement rule. Leave any role null if missing; do not invent resources, causal results, independent units or a procedure. A teacher must review whether these conditions are manipulable and comparable.',
   'observed-proportion':
     'countRecord is the record containing both observed counts. numerator is only the integer count meeting the outcome; denominator is only the integer whole count from that same group. observedGroup is the name of that observed group, and countedOutcome is the outcome being counted, from countRecord. scopeRecord explicitly describes missing outcomes and the wider target population; missingGroup and targetGroup must be exact phrases from scopeRecord. If the wider population is not explicitly named there, leave targetGroup null. Never treat the missing group as the entire target population.',
   'record-amendment':
@@ -21,6 +33,7 @@ const roles = {
 };
 
 export function teachingProposalMessages(request, feedback) {
+  if (request.operation === 'paired-condition-confound') return comparisonStageMessages(request);
   const spec = TEACHING_OPERATION_SPECS[request.operation];
   const shape = Object.fromEntries(
     Object.entries(spec.bindings).map(([name, type]) => [
@@ -55,7 +68,7 @@ export function teachingProposalMessages(request, feedback) {
 
 /** Exact phrases are suggestions, not proof of their semantic roles. Null and
  * ambiguous fields remain empty in the same source review editor. */
-export function assessTeachingProposal(raw, request) {
+export function assessTeachingProposal(raw, request, protocol = teachingProposalProtocol(request.operation)) {
   const spec = TEACHING_OPERATION_SPECS[request.operation];
   const bindings = Object.fromEntries(
     Object.keys(spec.bindings).map((name) => [name, { inputId: '', quote: '', occurrence: null }]),
@@ -77,6 +90,13 @@ export function assessTeachingProposal(raw, request) {
       unknowns: [],
       repairable: true,
     };
+  }
+  if ([SCION_COMPARISON_PROPOSAL_PROTOCOL, LEGACY_SCION_COMPARISON_PROPOSAL_PROTOCOL].includes(protocol)) {
+    try {
+      value = normalizeComparisonProposal(value, protocol);
+    } catch (error) {
+      return { bindings, issues: [error.message], missing, unknowns: [], repairable: true };
+    }
   }
   if (
     !record(value) ||
@@ -129,10 +149,21 @@ export function assessTeachingProposal(raw, request) {
       spans[name] = { inputId: input.id, start: 0, end: input.text.length };
       continue;
     }
+    if (
+      typeof selection.quote !== 'string' ||
+      (selection.occurrence !== undefined && (!Number.isInteger(selection.occurrence) || selection.occurrence < 0))
+    ) {
+      issues.push(
+        `For ${name}, quote must be an exact source string (even for a count), and occurrence must be a nonnegative integer.`,
+      );
+      continue;
+    }
     const positions = quoteOccurrences(input.text, selection.quote);
-    const occurrence = positions.length === 1 ? 0 : selection.occurrence;
+    const occurrence = selection.occurrence ?? (positions.length === 1 ? 0 : undefined);
     if (!Number.isInteger(occurrence) || !Number.isInteger(positions[occurrence])) {
-      issues.push(`Locate the exact phrase and its occurrence for ${name}.`);
+      issues.push(
+        `Locate the exact phrase and its occurrence for ${name}. Found ${positions.length} matches; occurrence starts at 0.`,
+      );
       continue;
     }
     bindings[name] = { inputId: input.id, quote: selection.quote, occurrence };
@@ -142,23 +173,40 @@ export function assessTeachingProposal(raw, request) {
       end: positions[occurrence] + selection.quote.length,
     };
   }
+  if (request.operation === 'paired-condition-confound')
+    issues.push(...comparisonConditionOverlapIssues(spans).map((issue) => issue.message));
   if (!issues.length && !missing.length) {
     try {
       createTeachingOperationPlan({
         operation: request.operation,
         inputs: request.inputs,
         bindings: spans,
-        admission: { kind: 'model-proposal', method: SCION_TEACHING_PROPOSAL_PROTOCOL },
+        admission: { kind: 'model-proposal', method: protocol },
       });
     } catch (error) {
       issues.push(error.message);
     }
   }
-  return { bindings, issues, missing, unknowns: value.unknowns, repairable: issues.length > 0 && missing.length === 0 };
+  const locatedIssues =
+    protocol === SCION_COMPARISON_PROPOSAL_PROTOCOL
+      ? issues.map((message) =>
+          message.replace(
+            /\b(?:firstRecord|secondRecord|designRecord|firstTreatment|firstOther|secondTreatment|secondOther|factor|otherFactor|unit|availableUnits|controls|measurement|outcome)\b/g,
+            comparisonProposalFieldPath,
+          ),
+        )
+      : issues;
+  return {
+    bindings,
+    issues: locatedIssues,
+    missing,
+    unknowns: value.unknowns,
+    repairable: issues.length > 0 && missing.length === 0,
+  };
 }
 
-/** One local proposal, at most one bounded repair. Uses the application's
- * existing serialized runtime; no hosted transport or background retry. */
+/** At most two serialized local calls. Comparisons use disjoint stages; other
+ * operations may repair once. No hosted transport or background retry. */
 export async function proposeTeachingSourceBindings(
   request,
   { signal, onProgress, runtimeLoader = () => import('./scionBrowserWllama.js') } = {},
@@ -193,10 +241,17 @@ export async function proposeTeachingSourceBindings(
   const snapshot = structuredClone(request);
   const started = performance.now();
   const receipt = {
-    protocol: SCION_TEACHING_PROPOSAL_PROTOCOL,
+    protocol: teachingProposalProtocol(snapshot.operation),
     inputRevision: teachingProposalInputRevision(snapshot),
     startedAt: new Date().toISOString(),
-    settings: { maxNewTokens: 1024, temperature: 0, topK: 1, topP: 1, seed: 7, thinking: false },
+    settings: {
+      maxNewTokens: 1024,
+      temperature: 0,
+      topK: 1,
+      topP: 1,
+      seed: 7,
+      thinking: false,
+    },
     attempts: [],
     modelCalls: 0,
   };
@@ -207,13 +262,10 @@ export async function proposeTeachingSourceBindings(
     await api.loadScionBrowserWllama({ signal });
     receipt.loadMs = Math.round(performance.now() - loadStarted);
     receipt.runtime = api.getScionBrowserWllamaStatus?.();
-    let feedback;
-    let assessment;
-    let best;
-    for (let attempt = 0; attempt < 2; attempt++) {
+    const invoke = async (messages, stage) => {
       if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
-      onProgress?.(attempt ? 'Checking a corrected source proposal…' : 'Locating source phrases…');
-      const entry = { attempt: attempt + 1, messages: teachingProposalMessages(snapshot, feedback) };
+      if (receipt.modelCalls >= 2) throw new Error('The source proposal exhausted its two-call budget.');
+      const entry = { attempt: receipt.attempts.length + 1, messages, ...(stage ? { stage } : {}) };
       receipt.attempts.push(entry);
       const inferenceStarted = performance.now();
       receipt.modelCalls++;
@@ -224,7 +276,7 @@ export async function proposeTeachingSourceBindings(
           // No candidate adapter has been trained or validated for this new
           // protocol. An unrelated existing adapter cannot own these calls.
           taskFamily: 'unclassified',
-          promptProtocol: SCION_TEACHING_PROPOSAL_PROTOCOL,
+          promptProtocol: receipt.protocol,
           onCompletion: (completion) => {
             entry.completion = completion;
           },
@@ -239,6 +291,16 @@ export async function proposeTeachingSourceBindings(
         entry.inferenceMs = Math.round(performance.now() - inferenceStarted);
       }
       if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
+      return entry;
+    };
+    if (snapshot.operation === 'paired-condition-confound')
+      return await runComparisonSourceStages(snapshot, { invoke, assess: assessTeachingProposal, receipt, onProgress });
+    let feedback;
+    let assessment;
+    let best;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      onProgress?.(attempt ? 'Checking a corrected source proposal…' : 'Locating source phrases…');
+      const entry = await invoke(teachingProposalMessages(snapshot, feedback));
       if (entry.completion?.finishReason === 'length') {
         entry.issues = ['The proposal reached its output limit. Partial bindings were not applied.'];
         return { status: 'needs-review', message: entry.issues[0], receipt, modelCalls: receipt.modelCalls };

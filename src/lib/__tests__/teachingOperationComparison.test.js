@@ -140,6 +140,10 @@ describe('reviewed paired-condition comparison design', () => {
     expect(validateTeachingOperationPlan(wrong, inputs).issues.some((i) => i.code === 'plan-comparison-role')).toBe(
       true,
     );
+    wrong.bindings.firstTreatment = { ...plan.bindings.firstTreatment, end: plan.bindings.firstOther.end };
+    expect(validateTeachingOperationPlan(wrong, inputs).issues.some((i) => i.code === 'plan-comparison-role')).toBe(
+      true,
+    );
   });
 
   it('requires actual distinct settings rather than assuming every comparison is confounded', () => {

@@ -1,0 +1,793 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-09-07T08:40:29.803Z",
+  "reviewer": "implementation agent; not an independent instructor study",
+  "scope": "Two previously exposed development inputs. Actual application proposals; existing teacher selections preserved. No classroom or fresh-case acceptance claim.",
+  "totalReceipts": 14,
+  "totalModelCalls": 24,
+  "latestProtocol": "scion-comparison-stages-v3",
+  "latest": {
+    "en": {
+      "receipt": "en-staged-v3.json",
+      "status": "partial; not passed",
+      "usableExactSelections": 13,
+      "unresolvedRoles": [
+        "unit"
+      ],
+      "semanticReview": "Both ink settings and room temperatures are correctly attributed. The repeated unit quote card has no occurrence; one card is the explicit complete source phrase. No correction-time study was performed."
+    },
+    "zh": {
+      "receipt": "zh-staged-v3.json",
+      "status": "rejected; not passed",
+      "usableExactSelections": 0,
+      "semanticReview": "Malformed unknowns array makes the first-stage JSON invalid. The embedded unit word improved to 杯子, but no partial object was rescued or admitted. Do not substitute the earlier v2 Chinese partial result."
+    }
+  },
+  "earlierChineseStagedV2": {
+    "receipt": "zh-staged-v2.json",
+    "status": "partial",
+    "usableExactSelections": 11,
+    "unresolvedRoles": [
+      "factor",
+      "otherFactor",
+      "unit"
+    ],
+    "semanticReview": "Observed factor settings appropriate. Unit 只 is an incomplete classifier; machine rejection is based on ambiguous occurrence, not semantic understanding."
+  },
+  "validation": {
+    "command": "npm run check",
+    "exitCode": 0,
+    "studioExecutions": 58,
+    "compatibilityExecutions": 544,
+    "scionExecutions": 831,
+    "totalSoftwareTestExecutions": 1433,
+    "historicalBenchmarkCheckerTests": 14,
+    "initialJsGzipKiB": 89.8173828125,
+    "log": ".audit-work/v0200-teaching-system/m2-comparison/proposals/full-check.log"
+  },
+  "sourceFiles": [
+    {
+      "path": "src/lib/scionTeachingProposal.js",
+      "sha256": "e9ebfd50552058333b5d9e19a7adb645bd7bd559a95957a6754d12d1a1375687"
+    },
+    {
+      "path": "src/lib/scionComparisonStages.js",
+      "sha256": "776de50896ac91322be13aab3dcb3c419f47f6400000d70324e02cb723b7e51a"
+    },
+    {
+      "path": "src/lib/scionComparisonProposal.js",
+      "sha256": "bf7d003486e460141cf834efdbdbeeefd76fcad7d82c1a4ba8e9681f927b83a4"
+    },
+    {
+      "path": "src/lib/teachingOperationComparison.js",
+      "sha256": "21ba457604a14f07e2add9be610b62e06178d08e699ebf5d1e794b0a395a5ef1"
+    },
+    {
+      "path": "src/lib/teachingTaskReview.js",
+      "sha256": "67a8357fb65776ec4b8e31f8a664dcd77bf752b7feb72515e52ce2a9b678b847"
+    },
+    {
+      "path": "src/components/deliverables/shared/TeachingTaskReview.jsx",
+      "sha256": "0c17388dbff71c2610d0bb4bc88c2eb8020a34e53da94236eadee9cb4216b26f"
+    }
+  ],
+  "receipts": [
+    {
+      "file": "en-grouped-v2.json",
+      "bytes": 27082,
+      "sha256": "43ae1ea2a63a4d36747d83f473895b23d60b07e8ef778367520d6a33ff883cea",
+      "protocol": "scion-comparison-source-groups-v2",
+      "inputRevision": "654d0afc0a73eb426e6212467f8f4fb48224636eb0d5e912d4f101c5fb67ac84",
+      "startedAt": "2026-09-07T07:53:46.858Z",
+      "elapsedMs": 13382,
+      "loadMs": 0,
+      "modelCalls": 1,
+      "settings": {
+        "maxNewTokens": 1024,
+        "temperature": 0,
+        "topK": 1,
+        "topP": 1,
+        "seed": 7,
+        "thinking": false
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "completion": {
+            "finishReason": "stop",
+            "inputTokens": 671,
+            "outputTokens": 434,
+            "contextTokens": 8192,
+            "thinkingEnabled": false,
+            "thinkingObserved": false
+          },
+          "inferenceMs": 13380,
+          "recordedIssues": [],
+          "recordedMissing": []
+        }
+      ]
+    },
+    {
+      "file": "en-grouped.json",
+      "bytes": 31472,
+      "sha256": "5495905adb91fa1ca51040a559776fe7348af443f29c291f56df69a931705ebe",
+      "protocol": "scion-comparison-source-groups-v1",
+      "inputRevision": "654d0afc0a73eb426e6212467f8f4fb48224636eb0d5e912d4f101c5fb67ac84",
+      "startedAt": "2026-09-07T07:48:16.757Z",
+      "elapsedMs": 15767,
+      "loadMs": 0,
+      "modelCalls": 2,
+      "settings": {
+        "maxNewTokens": 1024,
+        "temperature": 0,
+        "topK": 1,
+        "topP": 1,
+        "seed": 7,
+        "thinking": false
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "completion": {
+            "finishReason": "stop",
+            "inputTokens": 602,
+            "outputTokens": 238,
+            "contextTokens": 8192,
+            "thinkingEnabled": false,
+            "thinkingObserved": false
+          },
+          "inferenceMs": 7692,
+          "recordedIssues": [
+            "Return only two observations, newTest and unknowns, using the specified source and phrase fields."
+          ],
+          "recordedMissing": []
+        },
+        {
+          "attempt": 2,
+          "completion": {
+            "finishReason": "stop",
+            "inputTokens": 644,
+            "outputTokens": 260,
+            "contextTokens": 8192,
+            "thinkingEnabled": false,
+            "thinkingObserved": false
+          },
+          "inferenceMs": 8074,
+          "recordedIssues": [
+            "Return only two observations, newTest and unknowns, using the specified source and phrase fields."
+          ],
+          "recordedMissing": []
+        }
+      ]
+    },
+    {
+      "file": "en-initial.json",
+      "bytes": 35161,
+      "sha256": "009017832abdfd4d3d56b67ae0977fe1a732731aa0ea660e13c25d1a57acda75",
+      "protocol": "scion-teaching-source-bindings-v2",
+      "inputRevision": "654d0afc0a73eb426e6212467f8f4fb48224636eb0d5e912d4f101c5fb67ac84",
+      "startedAt": "2026-09-07T07:32:22.539Z",
+      "elapsedMs": 46571,
+      "loadMs": 4220,
+      "modelCalls": 2,
+      "settings": {
+        "maxNewTokens": 1024,
+        "temperature": 0,
+        "topK": 1,
+        "topP": 1,
+        "seed": 7,
+        "thinking": false
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "completion": {
+            "finishReason": "stop",
+            "inputTokens": 712,
+            "outputTokens": 495,
+            "contextTokens": 8192,
+            "thinkingEnabled": false,
+            "thinkingObserved": false
+          },
+          "inferenceMs": 20034,
+          "recordedIssues": [
+            "The response is not a complete JSON object."
+          ],
+          "recordedMissing": []
+        },
+        {
+          "attempt": 2,
+          "completion": {
+            "finishReason": "stop",
+            "inputTokens": 745,
+            "outputTokens": 565,
+            "contextTokens": 8192,
+            "thinkingEnabled": false,
+            "thinkingObserved": false
+          },
+          "inferenceMs": 22315,
+          "recordedIssues": [
+            "The response is not a complete JSON object."
+          ],
+          "recordedMissing": []
+        }
+      ]
+    },
+    {
+      "file": "en-reasoning.json",
+      "bytes": 35807,
+      "sha256": "e5eca4bd2336cdb4ca6f761a6fe77828d48541b8e16167b1d5c4e8f362190c8b",
+      "protocol": "scion-comparison-source-groups-v2",
+      "inputRevision": "654d0afc0a73eb426e6212467f8f4fb48224636eb0d5e912d4f101c5fb67ac84",
+      "startedAt": "2026-09-07T08:02:09.378Z",
+      "elapsedMs": 121130,
+      "loadMs": 0,
+      "modelCalls": 2,
+      "settings": {
+        "maxNewTokens": 2048,
+        "temperature": 0,
+        "topK": 1,
+        "topP": 1,
+        "seed": 7,
+        "thinking": true
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "completion": {
+            "finishReason": "stop",
+            "inputTokens": 672,
+            "outputTokens": 1488,
+            "contextTokens": 8192,
+            "thinkingEnabled": true,
+            "thinkingObserved": true
+          },
+          "inferenceMs": 58066,
+          "recordedIssues": [
+            "Locate the exact phrase and its occurrence for firstObservation.treatment. Found 1 matches; occurrence starts at 0.",
+            "Locate the exact phrase and its occurrence for secondObservation.treatment. Found 1 matches; occurrence starts at 0.",
+            "Locate the exact phrase and its occurrence for firstObservation.otherSetting. Found 1 matches; occurrence starts at 0.",
+            "Locate the exact phrase and its occurrence for secondObservation.otherSetting. Found 1 matches; occurrence starts at 0.",
+            "Locate the exact phrase and its occurrence for newTest.factor. Found 1 matches; occurrence starts at 0.",
+            "Locate the exact phrase and its occurrence for newTest.otherFactor. Found 1 matches; occurrence starts at 0.",
+            "Locate the exact phrase and its occurrence for newTest.unit. Found 1 matches; occurrence starts at 0.",
+            "Locate the exact phrase and its occurrence for newTest.availableUnits. Found 1 matches; occurrence starts at 0.",
+            "Locate the exact phrase and its occurrence for newTest.controls. Found 1 matches; occurrence starts at 0.",
+            "Locate the exact phrase and its occurrence for newTest.measurement. Found 1 matches; occurrence starts at 0.",
+            "Locate the exact phrase and its occurrence for newTest.outcome. Found 1 matches; occurrence starts at 0."
+          ],
+          "recordedMissing": []
+        },
+        {
+          "attempt": 2,
+          "completion": {
+            "finishReason": "stop",
+            "inputTokens": 985,
+            "outputTokens": 1774,
+            "contextTokens": 8192,
+            "thinkingEnabled": true,
+            "thinkingObserved": true
+          },
+          "inferenceMs": 63055,
+          "recordedIssues": [
+            "Return only firstObservation, secondObservation, newTest and unknowns, using the specified source and phrase fields."
+          ],
+          "recordedMissing": []
+        }
+      ]
+    },
+    {
+      "file": "en-staged-v2.json",
+      "bytes": 28767,
+      "sha256": "b36fb7e7a73ae5df2191d4898476c90053a248ad3bdc51a827c325452511d2c7",
+      "protocol": "scion-comparison-stages-v2",
+      "inputRevision": "654d0afc0a73eb426e6212467f8f4fb48224636eb0d5e912d4f101c5fb67ac84",
+      "startedAt": "2026-09-07T08:22:00.631Z",
+      "elapsedMs": 9004,
+      "loadMs": 0,
+      "modelCalls": 2,
+      "settings": {
+        "maxNewTokens": 1024,
+        "temperature": 0,
+        "topK": 1,
+        "topP": 1,
+        "seed": 7,
+        "thinking": false
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "stage": "resources",
+          "completion": {
+            "finishReason": "stop",
+            "inputTokens": 531,
+            "outputTokens": 138,
+            "contextTokens": 8192,
+            "thinkingEnabled": false,
+            "thinkingObserved": false
+          },
+          "inferenceMs": 5142,
+          "recordedIssues": [
+            "Locate the exact phrase and its occurrence for unit. Found 4 matches; occurrence starts at 0."
+          ],
+          "recordedMissing": []
+        },
+        {
+          "attempt": 2,
+          "stage": "observations",
+          "completion": {
+            "finishReason": "stop",
+            "inputTokens": 383,
+            "outputTokens": 93,
+            "contextTokens": 8192,
+            "thinkingEnabled": false,
+            "thinkingObserved": false
+          },
+          "inferenceMs": 3860,
+          "recordedIssues": [
+            "Locate the exact phrase and its occurrence for unit. Found 4 matches; occurrence starts at 0."
+          ],
+          "recordedMissing": [
+            "firstOther",
+            "secondOther"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "en-staged-v3.json",
+      "bytes": 28941,
+      "sha256": "ed1d005fb43a541276e00488f6ebe873e509d9245f555a022915b5401f9e5092",
+      "protocol": "scion-comparison-stages-v3",
+      "inputRevision": "654d0afc0a73eb426e6212467f8f4fb48224636eb0d5e912d4f101c5fb67ac84",
+      "startedAt": "2026-09-07T08:27:47.987Z",
+      "elapsedMs": 11186,
+      "loadMs": 0,
+      "modelCalls": 2,
+      "settings": {
+        "maxNewTokens": 1024,
+        "temperature": 0,
+        "topK": 1,
+        "topP": 1,
+        "seed": 7,
+        "thinking": false
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "stage": "resources",
+          "completion": {
+            "finishReason": "stop",
+            "inputTokens": 547,
+            "outputTokens": 138,
+            "contextTokens": 8192,
+            "thinkingEnabled": false,
+            "thinkingObserved": false
+          },
+          "inferenceMs": 6834,
+          "recordedIssues": [
+            "Locate the exact phrase and its occurrence for unit. Found 4 matches; occurrence starts at 0."
+          ],
+          "recordedMissing": []
+        },
+        {
+          "attempt": 2,
+          "stage": "observations",
+          "completion": {
+            "finishReason": "stop",
+            "inputTokens": 398,
+            "outputTokens": 110,
+            "contextTokens": 8192,
+            "thinkingEnabled": false,
+            "thinkingObserved": false
+          },
+          "inferenceMs": 4348,
+          "recordedIssues": [
+            "Locate the exact phrase and its occurrence for unit. Found 4 matches; occurrence starts at 0."
+          ],
+          "recordedMissing": []
+        }
+      ]
+    },
+    {
+      "file": "en-staged.json",
+      "bytes": 25154,
+      "sha256": "503031e8ee60aa5e00721b5f10491b811dc71564cb323724c1632c263972e66f",
+      "protocol": "scion-comparison-stages-v1",
+      "inputRevision": "654d0afc0a73eb426e6212467f8f4fb48224636eb0d5e912d4f101c5fb67ac84",
+      "startedAt": "2026-09-07T08:13:33.040Z",
+      "elapsedMs": 3471,
+      "loadMs": 0,
+      "modelCalls": 1,
+      "settings": {
+        "maxNewTokens": 1024,
+        "temperature": 0,
+        "topK": 1,
+        "topP": 1,
+        "seed": 7,
+        "thinking": false
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "stage": "resources",
+          "completion": {
+            "finishReason": "stop",
+            "inputTokens": 493,
+            "outputTokens": 96,
+            "contextTokens": 8192,
+            "thinkingEnabled": false,
+            "thinkingObserved": false
+          },
+          "inferenceMs": 3469,
+          "recordedIssues": [
+            "Return only newTest, unknowns with the specified source fields."
+          ]
+        }
+      ]
+    },
+    {
+      "file": "zh-grouped-v2.json",
+      "bytes": 33484,
+      "sha256": "729e8802d9bdef0dbff3c8cbedaa55524237ae7f1e0685d238e5ebe9f266042f",
+      "protocol": "scion-comparison-source-groups-v2",
+      "inputRevision": "c971ceef38a6b25415f7e244c3c04cef0c4d9eacf6c03f615f11d6f8effc2b2d",
+      "startedAt": "2026-09-07T07:55:59.404Z",
+      "elapsedMs": 27850,
+      "loadMs": 0,
+      "modelCalls": 2,
+      "settings": {
+        "maxNewTokens": 1024,
+        "temperature": 0,
+        "topK": 1,
+        "topP": 1,
+        "seed": 7,
+        "thinking": false
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "completion": {
+            "finishReason": "stop",
+            "inputTokens": 696,
+            "outputTokens": 496,
+            "contextTokens": 8192,
+            "thinkingEnabled": false,
+            "thinkingObserved": false
+          },
+          "inferenceMs": 14487,
+          "recordedIssues": [
+            "Locate the exact phrase and its occurrence for firstObservation.otherSetting.",
+            "Locate the exact phrase and its occurrence for secondObservation.otherSetting."
+          ],
+          "recordedMissing": []
+        },
+        {
+          "attempt": 2,
+          "completion": {
+            "finishReason": "stop",
+            "inputTokens": 751,
+            "outputTokens": 460,
+            "contextTokens": 8192,
+            "thinkingEnabled": false,
+            "thinkingObserved": false
+          },
+          "inferenceMs": 13361,
+          "recordedIssues": [
+            "Locate the exact phrase and its occurrence for firstObservation.otherSetting.",
+            "Locate the exact phrase and its occurrence for secondObservation.otherSetting."
+          ],
+          "recordedMissing": []
+        }
+      ]
+    },
+    {
+      "file": "zh-grouped.json",
+      "bytes": 31559,
+      "sha256": "d58ae1e7bf18a05ef0ba517c16a0a9437c43ac65e317db231fca11a1e50db4be",
+      "protocol": "scion-comparison-source-groups-v1",
+      "inputRevision": "c971ceef38a6b25415f7e244c3c04cef0c4d9eacf6c03f615f11d6f8effc2b2d",
+      "startedAt": "2026-09-07T07:46:13.484Z",
+      "elapsedMs": 23354,
+      "loadMs": 0,
+      "modelCalls": 2,
+      "settings": {
+        "maxNewTokens": 1024,
+        "temperature": 0,
+        "topK": 1,
+        "topP": 1,
+        "seed": 7,
+        "thinking": false
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "completion": {
+            "finishReason": "stop",
+            "inputTokens": 627,
+            "outputTokens": 362,
+            "contextTokens": 8192,
+            "thinkingEnabled": false,
+            "thinkingObserved": false
+          },
+          "inferenceMs": 13772,
+          "recordedIssues": [
+            "Return only two observations, newTest and unknowns, using the specified source and phrase fields."
+          ],
+          "recordedMissing": []
+        },
+        {
+          "attempt": 2,
+          "completion": {
+            "finishReason": "stop",
+            "inputTokens": 669,
+            "outputTokens": 269,
+            "contextTokens": 8192,
+            "thinkingEnabled": false,
+            "thinkingObserved": false
+          },
+          "inferenceMs": 9577,
+          "recordedIssues": [
+            "Return only two observations, newTest and unknowns, using the specified source and phrase fields."
+          ],
+          "recordedMissing": []
+        }
+      ]
+    },
+    {
+      "file": "zh-initial.json",
+      "bytes": 32897,
+      "sha256": "f4dbdc071f6f0a65df0e99d453e8eddb684966b7bbbb3e1f945572a266f39bbf",
+      "protocol": "scion-teaching-source-bindings-v2",
+      "inputRevision": "c971ceef38a6b25415f7e244c3c04cef0c4d9eacf6c03f615f11d6f8effc2b2d",
+      "startedAt": "2026-09-07T07:36:54.349Z",
+      "elapsedMs": 26630,
+      "loadMs": 0,
+      "modelCalls": 2,
+      "settings": {
+        "maxNewTokens": 1024,
+        "temperature": 0,
+        "topK": 1,
+        "topP": 1,
+        "seed": 7,
+        "thinking": false
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "completion": {
+            "finishReason": "stop",
+            "inputTokens": 737,
+            "outputTokens": 369,
+            "contextTokens": 8192,
+            "thinkingEnabled": false,
+            "thinkingObserved": false
+          },
+          "inferenceMs": 13831,
+          "recordedIssues": [
+            "The response is not a complete JSON object."
+          ],
+          "recordedMissing": []
+        },
+        {
+          "attempt": 2,
+          "completion": {
+            "finishReason": "stop",
+            "inputTokens": 770,
+            "outputTokens": 362,
+            "contextTokens": 8192,
+            "thinkingEnabled": false,
+            "thinkingObserved": false
+          },
+          "inferenceMs": 12796,
+          "recordedIssues": [
+            "The response is not a complete JSON object."
+          ],
+          "recordedMissing": []
+        }
+      ]
+    },
+    {
+      "file": "zh-reasoning.json",
+      "bytes": 36061,
+      "sha256": "6506ea15ea3f1de3018135826b91f574c694ae16c02c974a66dc74694af8b8f0",
+      "protocol": "scion-comparison-source-groups-v2",
+      "inputRevision": "c971ceef38a6b25415f7e244c3c04cef0c4d9eacf6c03f615f11d6f8effc2b2d",
+      "startedAt": "2026-09-07T07:59:00.164Z",
+      "elapsedMs": 103411,
+      "loadMs": 0,
+      "modelCalls": 2,
+      "settings": {
+        "maxNewTokens": 2048,
+        "temperature": 0,
+        "topK": 1,
+        "topP": 1,
+        "seed": 7,
+        "thinking": true
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "completion": {
+            "finishReason": "stop",
+            "inputTokens": 697,
+            "outputTokens": 1698,
+            "contextTokens": 8192,
+            "thinkingEnabled": true,
+            "thinkingObserved": true
+          },
+          "inferenceMs": 46917,
+          "recordedIssues": [
+            "Locate the exact phrase and its occurrence for firstObservation.treatment. Found 1 matches; occurrence starts at 0.",
+            "Locate the exact phrase and its occurrence for secondObservation.treatment. Found 1 matches; occurrence starts at 0.",
+            "Locate the exact phrase and its occurrence for firstObservation.otherSetting. Found 0 matches; occurrence starts at 0.",
+            "Locate the exact phrase and its occurrence for secondObservation.otherSetting. Found 0 matches; occurrence starts at 0.",
+            "Locate the exact phrase and its occurrence for newTest.factor. Found 1 matches; occurrence starts at 0.",
+            "Locate the exact phrase and its occurrence for newTest.otherFactor. Found 1 matches; occurrence starts at 0.",
+            "Locate the exact phrase and its occurrence for newTest.unit. Found 1 matches; occurrence starts at 0."
+          ],
+          "recordedMissing": []
+        },
+        {
+          "attempt": 2,
+          "completion": {
+            "finishReason": "stop",
+            "inputTokens": 905,
+            "outputTokens": 1538,
+            "contextTokens": 8192,
+            "thinkingEnabled": true,
+            "thinkingObserved": true
+          },
+          "inferenceMs": 56489,
+          "recordedIssues": [
+            "Locate the exact phrase and its occurrence for firstObservation.treatment. Found 1 matches; occurrence starts at 0.",
+            "Locate the exact phrase and its occurrence for secondObservation.treatment. Found 1 matches; occurrence starts at 0.",
+            "Locate the exact phrase and its occurrence for firstObservation.otherSetting. Found 1 matches; occurrence starts at 0.",
+            "Locate the exact phrase and its occurrence for secondObservation.otherSetting. Found 1 matches; occurrence starts at 0.",
+            "Locate the exact phrase and its occurrence for newTest.factor. Found 1 matches; occurrence starts at 0.",
+            "Locate the exact phrase and its occurrence for newTest.otherFactor. Found 1 matches; occurrence starts at 0.",
+            "Locate the exact phrase and its occurrence for newTest.unit. Found 1 matches; occurrence starts at 0.",
+            "Locate the exact phrase and its occurrence for newTest.availableUnits. Found 1 matches; occurrence starts at 0.",
+            "Locate the exact phrase and its occurrence for newTest.controls. Found 1 matches; occurrence starts at 0.",
+            "Locate the exact phrase and its occurrence for newTest.measurement. Found 1 matches; occurrence starts at 0.",
+            "Locate the exact phrase and its occurrence for newTest.outcome. Found 1 matches; occurrence starts at 0."
+          ],
+          "recordedMissing": []
+        }
+      ]
+    },
+    {
+      "file": "zh-staged-v2.json",
+      "bytes": 29126,
+      "sha256": "b02184532f4e49968ecddfe130ddc8c6c7433f40829eca21a467ced1b4edd67d",
+      "protocol": "scion-comparison-stages-v2",
+      "inputRevision": "c971ceef38a6b25415f7e244c3c04cef0c4d9eacf6c03f615f11d6f8effc2b2d",
+      "startedAt": "2026-09-07T08:20:08.299Z",
+      "elapsedMs": 10756,
+      "loadMs": 0,
+      "modelCalls": 2,
+      "settings": {
+        "maxNewTokens": 1024,
+        "temperature": 0,
+        "topK": 1,
+        "topP": 1,
+        "seed": 7,
+        "thinking": false
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "stage": "resources",
+          "completion": {
+            "finishReason": "stop",
+            "inputTokens": 556,
+            "outputTokens": 167,
+            "contextTokens": 8192,
+            "thinkingEnabled": false,
+            "thinkingObserved": false
+          },
+          "inferenceMs": 6354,
+          "recordedIssues": [
+            "Locate the exact phrase and its occurrence for factor. Found 2 matches; occurrence starts at 0.",
+            "Locate the exact phrase and its occurrence for otherFactor. Found 2 matches; occurrence starts at 0.",
+            "Locate the exact phrase and its occurrence for unit. Found 3 matches; occurrence starts at 0."
+          ],
+          "recordedMissing": []
+        },
+        {
+          "attempt": 2,
+          "stage": "observations",
+          "completion": {
+            "finishReason": "stop",
+            "inputTokens": 393,
+            "outputTokens": 118,
+            "contextTokens": 8192,
+            "thinkingEnabled": false,
+            "thinkingObserved": false
+          },
+          "inferenceMs": 4398,
+          "recordedIssues": [
+            "Locate the exact phrase and its occurrence for factor. Found 2 matches; occurrence starts at 0.",
+            "Locate the exact phrase and its occurrence for otherFactor. Found 2 matches; occurrence starts at 0.",
+            "Locate the exact phrase and its occurrence for unit. Found 3 matches; occurrence starts at 0."
+          ],
+          "recordedMissing": []
+        }
+      ]
+    },
+    {
+      "file": "zh-staged-v3.json",
+      "bytes": 25317,
+      "sha256": "961af3db1b2f0f37549669b80a51653fa21b3fbd6db10bb99f2370bbac3f1d85",
+      "protocol": "scion-comparison-stages-v3",
+      "inputRevision": "c971ceef38a6b25415f7e244c3c04cef0c4d9eacf6c03f615f11d6f8effc2b2d",
+      "startedAt": "2026-09-07T08:29:35.002Z",
+      "elapsedMs": 5944,
+      "loadMs": 0,
+      "modelCalls": 1,
+      "settings": {
+        "maxNewTokens": 1024,
+        "temperature": 0,
+        "topK": 1,
+        "topP": 1,
+        "seed": 7,
+        "thinking": false
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "stage": "resources",
+          "completion": {
+            "finishReason": "stop",
+            "inputTokens": 572,
+            "outputTokens": 160,
+            "contextTokens": 8192,
+            "thinkingEnabled": false,
+            "thinkingObserved": false
+          },
+          "inferenceMs": 5941,
+          "recordedIssues": [
+            "The response is not a complete JSON object."
+          ]
+        }
+      ]
+    },
+    {
+      "file": "zh-staged.json",
+      "bytes": 25015,
+      "sha256": "dc4afc79c4999e78141e164d710d6204878dd40f736bd063dde7db0b47775506",
+      "protocol": "scion-comparison-stages-v1",
+      "inputRevision": "c971ceef38a6b25415f7e244c3c04cef0c4d9eacf6c03f615f11d6f8effc2b2d",
+      "startedAt": "2026-09-07T08:16:34.095Z",
+      "elapsedMs": 5326,
+      "loadMs": 0,
+      "modelCalls": 1,
+      "settings": {
+        "maxNewTokens": 1024,
+        "temperature": 0,
+        "topK": 1,
+        "topP": 1,
+        "seed": 7,
+        "thinking": false
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "stage": "resources",
+          "completion": {
+            "finishReason": "stop",
+            "inputTokens": 518,
+            "outputTokens": 103,
+            "contextTokens": 8192,
+            "thinkingEnabled": false,
+            "thinkingObserved": false
+          },
+          "inferenceMs": 5325,
+          "recordedIssues": [
+            "Return only newTest, unknowns with the specified source fields."
+          ]
+        }
+      ]
+    }
+  ]
+}

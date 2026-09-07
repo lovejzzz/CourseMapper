@@ -31,10 +31,8 @@ export function mergeTeachingSourceSuggestions(draft, suggested = {}) {
       if (!input) return false;
       if (type === 'record') return true;
       const positions = quoteOccurrences(input.text, binding.quote);
-      return (
-        positions.length === 1 ||
-        (Number.isInteger(binding.occurrence) && Number.isInteger(positions[binding.occurrence]))
-      );
+      const occurrence = binding.occurrence ?? (positions.length === 1 ? 0 : undefined);
+      return Number.isInteger(occurrence) && Number.isInteger(positions[occurrence]);
     };
     const current = bindings[role],
       candidate = suggested[role];
@@ -224,7 +222,7 @@ export function resolveTeachingTaskReviewDraft(source, draft, reviewedAt) {
     if (type === 'record') bindings[name] = { inputId: input.id, start: 0, end: input.text.length };
     else {
       const positions = quoteOccurrences(input.text, selection.quote);
-      const occurrence = positions.length === 1 ? 0 : selection.occurrence;
+      const occurrence = selection.occurrence ?? (positions.length === 1 ? 0 : undefined);
       if (!Number.isInteger(occurrence) || !Number.isInteger(positions[occurrence]))
         return reviewIssue(`Locate the exact text for ${name}; if it appears more than once, choose its occurrence.`);
       const start = positions[occurrence];

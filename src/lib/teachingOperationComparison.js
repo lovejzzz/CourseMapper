@@ -4,6 +4,27 @@ const normalize = (value) =>
     .replace(/\s+/g, '')
     .toLowerCase();
 
+/** A treatment setting cannot include the selected competing setting. Also
+ * usable while other proposal fields are still missing or malformed. */
+export function comparisonConditionOverlapIssues(bindings) {
+  return ['first', 'second'].flatMap((prefix) => {
+    const treatment = bindings[`${prefix}Treatment`],
+      other = bindings[`${prefix}Other`];
+    return treatment &&
+      other &&
+      treatment.inputId === other.inputId &&
+      Math.max(treatment.start, other.start) < Math.min(treatment.end, other.end)
+      ? [
+          {
+            code: 'plan-comparison-role',
+            binding: `${prefix}Treatment`,
+            message: `The ${prefix}Treatment and ${prefix}Other excerpts overlap. Quote the treatment setting separately from the competing setting.`,
+          },
+        ]
+      : [];
+  });
+}
+
 /** Check roles and resource arithmetic only. A teacher must still establish
  * that the two records describe comparable units and manipulable conditions. */
 export function validateComparisonBindings(plan, values) {
@@ -33,15 +54,7 @@ export function validateComparisonBindings(plan, values) {
     if (values[a] && values[b] && normalize(values[a]) === normalize(values[b]))
       add('plan-comparison-contrast', `The ${a} and ${b} do not describe distinct conditions or factors.`, b);
   }
-  for (const [a, b] of [
-    ['firstTreatment', 'firstOther'],
-    ['secondTreatment', 'secondOther'],
-  ]) {
-    const first = plan.bindings[a],
-      second = plan.bindings[b];
-    if (first && second && first.inputId === second.inputId && first.start === second.start && first.end === second.end)
-      add('plan-comparison-role', 'The treatment and competing condition cannot reuse the same source occurrence.', b);
-  }
+  issues.push(...comparisonConditionOverlapIssues(plan.bindings));
   if (/^\d+$/.test(values.availableUnits || '') && Number(values.availableUnits) < 4)
     add(
       'plan-comparison-replication',

@@ -226,6 +226,19 @@ describe('reviewed teaching task transactions', () => {
     expect(merged.filledRoles).toEqual(['amendedValue']);
     expect(draft.bindings.amendedValue.quote).toBe('90');
   });
+  it('does not silently reset an explicit invalid occurrence when merging or applying a draft', () => {
+    const state = setup();
+    const original = structuredClone(state.draft.bindings.amendedValue);
+    state.draft.bindings.amendedValue.occurrence = 1;
+    const unchanged = mergeTeachingSourceSuggestions(state.draft, { amendedValue: { ...original, occurrence: 1 } });
+    expect(unchanged.preservedRoles).not.toContain('amendedValue');
+    expect(unchanged.filledRoles).not.toContain('amendedValue');
+    expect(previewTeachingTaskReview(state).status).toBe('needs-review');
+    const corrected = mergeTeachingSourceSuggestions(state.draft, { amendedValue: original });
+    expect(corrected.filledRoles).toContain('amendedValue');
+    state.draft.bindings = corrected.bindings;
+    expect(previewTeachingTaskReview(state).status).not.toBe('needs-review');
+  });
   it('rejects a draft opened before a different source transaction, even before preview', () => {
     const state = setup();
     const oldDraft = structuredClone(state.draft);
