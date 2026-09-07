@@ -54,6 +54,8 @@ import {
 import { prepareProjectSnapshotForRestore, sanitizeProjectSnapshot } from '../lib/projectSnapshotSanitizer';
 import { restorePersistedPackageEvidence, selectPersistablePackageEvidence } from '../lib/packageQualityPersistence';
 import { compileCompactProjectDeliverables } from '../lib/projectRestoreCompiler';
+import { restoreCourseGraphForProject } from '../lib/nativeGraphAuthoring.js';
+import { normalizeRestoredDeliverables } from '../model/courseStore.jsx';
 import { warn, error as logError } from '../lib/logger';
 
 export const STORAGE_KEY = 'coursemapper-project';
@@ -117,6 +119,7 @@ export default function useProjectPersistence({
   // sibling hooks
   gen,
   deliv,
+  delivUndo,
   rev,
   version,
   resetExport,
@@ -153,6 +156,16 @@ export default function useProjectPersistence({
       setLastRunDigest(restored.lastRunDigest);
     },
     [setLastRunDigest, setPackageQualityPass],
+  );
+  const restoreProjectEdits = useCallback(
+    (saved, deliverables = saved.deliverables) => {
+      delivUndo?.restore(saved.editHistory, {
+        courseMap: saved.courseMap,
+        courseGraph: restoreCourseGraphForProject(saved),
+        deliverables: normalizeRestoredDeliverables(deliverables),
+      });
+    },
+    [delivUndo?.restore],
   );
   const restoreInstructionalBlueprintGovernance = useCallback(
     (snapshot = {}) => {
@@ -228,6 +241,7 @@ export default function useProjectPersistence({
         },
         activeTab,
         deliverables: deliv.deliverables,
+        editHistory: delivUndo?.history,
         slideTheme,
         apiCallBudgetReceipt: getApiCallBudgetReceipt?.(),
         ...packageEvidence,
@@ -257,6 +271,7 @@ export default function useProjectPersistence({
       lastRunDigest,
       activeTab,
       deliv.deliverables,
+      delivUndo?.history,
       slideTheme,
       getApiCallBudgetReceipt,
     ],
@@ -291,6 +306,7 @@ export default function useProjectPersistence({
         courseGraph: snapshotCourseGraph,
         packageQualityPass: _packageQualityPass,
         lastRunDigest: _lastRunDigest,
+        editHistory: _editHistory,
         ...cloudSnapshot
       } = snapshot;
       return {
@@ -365,6 +381,7 @@ export default function useProjectPersistence({
       deliv.restoreDeliverables(
         restored.deliverables && typeof restored.deliverables === 'object' ? restored.deliverables : {},
       );
+      restoreProjectEdits(restored);
       if (!gen.restoreStoppedState()) {
         gen.setProgressStep('done');
         gen.setStatus('done');
@@ -376,6 +393,7 @@ export default function useProjectPersistence({
     [
       adoptCourseGraph,
       deliv,
+      restoreProjectEdits,
       gen,
       setActiveTab,
       setColumns,
@@ -753,6 +771,10 @@ export default function useProjectPersistence({
       } else if (saved.deliverables) {
         deliv.restoreDeliverables(saved.deliverables);
       }
+      restoreProjectEdits(
+        saved,
+        Object.keys(restoredDeliverables || {}).length ? restoredDeliverables : saved.deliverables,
+      );
       setRestoredSession(true);
       setHasSavedSession(false);
       if (!gen.restoreStoppedState()) {
@@ -799,7 +821,8 @@ export default function useProjectPersistence({
         // Restore deliverables if present
         if (saved.deliverables) {
           deliv.restoreDeliverables(saved.deliverables);
-        }
+        } else deliv.restoreDeliverables({});
+        restoreProjectEdits(saved);
         setHasGenerated(true);
         setHasSavedSession(false);
         gen.setProgressStep('done');
@@ -810,6 +833,7 @@ export default function useProjectPersistence({
       // Legacy: xlsx/csv course map import (lazy — rare path, v0.15.3 C1)
       const { importCourseMap } = await import('../lib/importCourseMap');
       const imported = await importCourseMap(file);
+      delivUndo?.reset();
       setCourseMap(imported);
       setOldCourseMap(null);
       setUserEdits([]);
@@ -887,6 +911,10 @@ export default function useProjectPersistence({
       } else if (saved.deliverables) {
         deliv.restoreDeliverables(saved.deliverables);
       }
+      restoreProjectEdits(
+        saved,
+        Object.keys(restoredDeliverables || {}).length ? restoredDeliverables : saved.deliverables,
+      );
       setProjectId(pid);
       projectIdRef.current = pid;
       setRestoredSession(true);
@@ -950,6 +978,7 @@ export default function useProjectPersistence({
     version.resetHistory();
     resetExport();
     deliv.resetDeliverables();
+    delivUndo?.reset();
     setCourseMap(null);
     setCourseGraph(null);
     setOldCourseMap(null);

@@ -1124,7 +1124,7 @@ export default function AppFlow({
   });
 
   // ── Deliverable Undo/Redo ──
-  const delivUndo = useDeliverableUndo();
+  const delivUndo = useDeliverableUndo(30, { deliverables: deliv.deliverables, courseMap, courseGraph });
   const taskUndoContext = {
     read: () => ({ courseMap: courseMapRef.current, courseGraph: courseGraphRef.current }),
     restore: (saved) => {
@@ -2535,6 +2535,7 @@ export default function AppFlow({
     restoreApiCallBudgetReceipt,
     gen,
     deliv,
+    delivUndo,
     rev,
     version,
     resetExport,
@@ -3686,7 +3687,7 @@ export default function AppFlow({
                 {(delivUndo.canUndo || delivUndo.canRedo) && !gen.isStreaming && (
                   <div className="flex items-center gap-1 ml-2 flex-shrink-0">
                     <button
-                      onClick={() => delivUndo.undo(deliv.setDeliverables, taskUndoContext)}
+                      onClick={() => delivUndo.undo(deliv.restoreDeliverableEdits, taskUndoContext)}
                       disabled={!delivUndo.canUndo}
                       className={`tactile p-1.5 rounded-full transition-all duration-200 ${delivUndo.canUndo ? 'text-slate-500 hover:bg-white/60 hover:text-indigo-500' : 'text-slate-300 cursor-not-allowed'}`}
                       title="Undo deliverable edit"
@@ -3701,7 +3702,7 @@ export default function AppFlow({
                       </svg>
                     </button>
                     <button
-                      onClick={() => delivUndo.redo(deliv.setDeliverables, taskUndoContext)}
+                      onClick={() => delivUndo.redo(deliv.restoreDeliverableEdits, taskUndoContext)}
                       disabled={!delivUndo.canRedo}
                       className={`tactile p-1.5 rounded-full transition-all duration-200 ${delivUndo.canRedo ? 'text-slate-500 hover:bg-white/60 hover:text-indigo-500' : 'text-slate-300 cursor-not-allowed'}`}
                       title="Redo deliverable edit"
@@ -3771,6 +3772,15 @@ export default function AppFlow({
                   </button>
                 </div>
               )}
+            </div>
+          )}
+
+          {delivUndo.message && (
+            <div role="status" className="px-3 py-2 text-xs text-amber-800 dark:text-amber-200">
+              {delivUndo.message}
+              <button onClick={delivUndo.dismissMessage} className="ml-2 underline">
+                Dismiss
+              </button>
             </div>
           )}
 
@@ -4079,7 +4089,7 @@ export default function AppFlow({
                   optimisticUpdate={deliv.optimisticUpdate}
                   regenerateLesson={deliv.regenerateLesson}
                   delivUndoSnapshot={delivUndo.snapshot}
-                  delivUndoFn={() => delivUndo.undo(deliv.setDeliverables, taskUndoContext)}
+                  delivUndoFn={() => delivUndo.undo(deliv.restoreDeliverableEdits, taskUndoContext)}
                   delivCanUndo={delivUndo.canUndo}
                   onAgentHighlight={triggerAgentHighlight}
                   notifyEdit={smartSync.notifyEdit}

@@ -481,6 +481,20 @@ describe('instructional-plan lineage restore validation', () => {
     });
   });
 
+  it('keeps missing-lineage diagnostics stable over repeated restores without trusting saved findings', () => {
+    const legacy = { enrichmentOverlay: { lessonContent: {} } };
+    quarantineInvalidInstructionalPlanLineage(legacy);
+    const first = structuredClone(legacy);
+    for (let i = 0; i < 3; i++) {
+      quarantineInvalidInstructionalPlanLineage(legacy);
+      expect(legacy).toEqual(first);
+    }
+    legacy.instructionalPlanLineage.quarantineFindings = ['injected-finding'];
+    quarantineInvalidInstructionalPlanLineage(legacy);
+    expect(legacy).toEqual(first);
+    expect(legacy.instructionalPlanLineageValidation.promotionEligible).toBe(false);
+  });
+
   it('quarantines a mutated evidence set and a legacy graph with leaf hashes only', () => {
     const tampered = JSON.parse(JSON.stringify(validGraph()));
     tampered.governingSourceContract.byLessonId['lesson-1'].claims[0].text =

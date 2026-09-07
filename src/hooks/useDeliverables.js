@@ -6407,6 +6407,19 @@ export default function useDeliverables({
     [dispatch],
   );
 
+  // History restores exact entries, including stale evidence and teacher
+  // conflict metadata that the legacy four-field setter does not own.
+  const restoreDeliverableEdits = useCallback(
+    (next) => {
+      const previous = deliverablesRef.current;
+      deliverablesRef.current = next;
+      for (const id of new Set([...Object.keys(previous), ...Object.keys(next)])) {
+        if (previous[id] !== next[id]) dispatch(actions.restoreDeliverableSnapshot(id, next[id]));
+      }
+    },
+    [dispatch],
+  );
+
   // Backward compat: expose currentFeature as first active feature (for consumers that need a single string)
   const currentFeature = currentFeatures.size > 0 ? currentFeatures.values().next().value : null;
 
@@ -6518,6 +6531,7 @@ export default function useDeliverables({
   return {
     deliverables,
     setDeliverables,
+    restoreDeliverableEdits,
     isGenerating,
     currentFeature, // backward compat: first active feature (string|null)
     currentFeatures, // new: all active features (Set<string>)

@@ -543,7 +543,14 @@ export function validateInstructionalPlanLineage(courseGraph = null) {
   const curriculumInstances = curriculumPlan?.instructionalInstanceContract;
   const groundedInstances = evidencePlan?.instructionalInstanceContract;
   const postDraftInstances = postDraftPlan?.instructionalInstanceContract;
-  if (!lineage || typeof lineage !== 'object') findings.push('missing-lineage');
+  // Quarantine may create a diagnostic shell for a missing lineage. That
+  // shell is not authored lineage evidence on the next restore. Recompute
+  // this from its fields, never trust previously stored finding strings.
+  const hasLineageEvidence =
+    lineage &&
+    typeof lineage === 'object' &&
+    Object.keys(lineage).some((key) => !['status', 'promotionEligible', 'quarantineFindings'].includes(key));
+  if (!hasLineageEvidence) findings.push('missing-lineage');
   if (!curriculumPlan || !instructionalIntentGraphReceiptMatches(curriculumPlan)) {
     findings.push('invalid-curriculum-plan-receipt');
   }
