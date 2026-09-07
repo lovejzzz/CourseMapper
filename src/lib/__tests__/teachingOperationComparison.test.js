@@ -1,3 +1,14 @@
+import { teachingTaskSourceFromLesson } from '../teachingTaskSource.js';
+import { withTeachingTaskSources, readTeachingTaskSources } from '../teachingProgram.js';
+import { projectTeachingTasksIntoCourseMap } from '../compilerTeachingTaskProjection.js';
+import {
+  createTeachingTaskReviewDraft,
+  previewTeachingTaskReview,
+  commitTeachingTaskReview,
+} from '../teachingTaskReview.js';
+import { deriveCourseGraphFromCourseMap } from '../courseGraph/index.js';
+import { createEditTransaction, applyEditTransaction } from '../deliverableEditHistory.js';
+import { prepareProjectSnapshotForRestore } from '../projectSnapshotSanitizer.js';
 import { deliverablePdfDefinition } from '../exporters/classroomPdf.js';
 import { alternativeReferenceParagraphs } from '../teachingMaterialPresentation.js';
 import { describe, expect, it } from 'vitest';
@@ -12,13 +23,14 @@ import { buildSharedTeachingTask } from '../compilerTeachingTask.js';
 import { projectSharedTeachingTasks } from '../compilerTeachingTaskProjection.js';
 import { finalizeCompiledDeliverableLanguage } from '../compiledLanguageFinalizer.js';
 
-function fixture(zh = false) {
+function fixture(zh = false, presentationVersion) {
   const f = comparisonDesignFixture(zh);
   const plan = createTeachingOperationPlan({
     ...f,
     operation: 'paired-condition-confound',
     admission: { kind: 'teacher-confirmed' },
   });
+  if (presentationVersion !== undefined) plan.presentationVersion = presentationVersion;
   const task = buildSharedTeachingTask({
     lessonId: 'design-unit',
     objective: f.objective,
@@ -63,7 +75,7 @@ describe('reviewed paired-condition comparison design', () => {
     expect(row.questions.some((q) => q.id === legacy.id)).toBe(false);
     const bound = row.questions.filter((q) => q.practiceId?.startsWith(`${task.id}:`));
     expect(bound.some((q) => q.practiceKind === 'independent-transfer')).toBe(true);
-    expect(bound.some((q) => q.practiceKind === 'task-scaffold')).toBe(true);
+    expect(bound.some((q) => q.practiceKind === 'task-scaffold')).toBe(false);
     expect(row.practiceRecord.records).toEqual(task.inputs.map((input) => input.text));
     expect(row.totalPoints).toBe(row.questions.reduce((sum, q) => sum + q.points, 0));
     const materialBlueprint = structuredClone(blueprint);
@@ -277,7 +289,7 @@ it.each([false, true])(
 );
 
 it.each([false, true])('scores full rehearsals from shared criteria while preserving saved point budgets: %s', (zh) => {
-  const { task } = fixture(zh);
+  const { task } = fixture(zh, 3);
   const blueprint = {
     lessons: [{ id: 'design-unit', lessonNumber: 1, teachingTaskScope: 'primary-task', teachingTask: task }],
   };
@@ -321,4 +333,133 @@ it.each([false, true])('scores full rehearsals from shared criteria while preser
     // The next projection receives the actual retained row.
     question = revised;
   }
+});
+
+it.each([
+  [false, '3786a14924443889af7e4be3fb55e91f5e29feadced86c2bc1bfe7bb0a9b80d9'],
+  [true, 'a8420ff8380a1e6998fb0b73bce63bddbcfb460f18ea75ffc1dacc831d417eae'],
+])('reconstructs the pre-upgrade comparison task for merge baselines: %s', (zh, revision) => {
+  expect(fixture(zh, 3).task.revision).toBe(revision);
+});
+
+it.each([false, true])('separates assessed performances from prompts and unscored retry: %s', (zh) => {
+  const { task } = fixture(zh);
+  expect(task.operationPlan.presentationVersion).toBe(4);
+  const data = projectSharedTeachingTasks(
+    'quizBank',
+    { quizzes: [{ lessonNumber: 1, questions: [] }] },
+    {
+      lessons: [{ id: 'design-unit', lessonNumber: 1, teachingTaskScope: 'primary-task', teachingTask: task }],
+    },
+  );
+  const row = data.quizzes[0];
+  expect(row.questions).toHaveLength(6);
+  expect(row.questions.map((q) => q.practiceKind)).toEqual([
+    'independent-transfer',
+    'task-rehearsal',
+    'error-analysis',
+    'error-analysis',
+    'error-analysis',
+    'feedback-retry',
+  ]);
+  expect(row.questions.map((q) => q.points)).toEqual([12, 20, 2, 2, 2, 0]);
+  expect(row.totalPoints).toBe(38);
+  const transfer = task.sequence.find((unit) => unit.kind === 'independent-transfer');
+  for (const criterion of transfer.rubric) {
+    expect(row.questions[0].scoringGuidance).toContain(criterion.label);
+    for (const level of ['exemplary', 'proficient', 'developing', 'beginning'])
+      expect(row.questions[0].scoringGuidance).toContain(criterion[level]);
+  }
+  task.errors.forEach((error, index) => {
+    const guidance = row.questions[index + 2].scoringGuidance;
+    expect(guidance).toContain(error.response);
+    expect(guidance).toContain(error.correction);
+  });
+  expect(row.questions.at(-1).scoringGuidance).toContain(zh ? '不重复计分' : 'Unscored revision');
+  expect(row.questions.at(-1).question).not.toContain(transfer.feedback);
+  expect(row.questions.at(-1).feedback).toBe(transfer.feedback);
+  expect(task.scaffoldQuestions).toHaveLength(3);
+});
+
+function oldComparisonWorkspace(zh) {
+  const { task } = fixture(zh, 3);
+  const lesson = {
+    id: 'design-unit',
+    lessonNumber: 1,
+    title: 'Comparison design',
+    teachingTaskScope: 'primary-task',
+    teachingTask: task,
+  };
+  const source = teachingTaskSourceFromLesson(lesson);
+  const blueprint = { lessons: [lesson] };
+  const courseMap = projectTeachingTasksIntoCourseMap(
+    withTeachingTaskSources(
+      {
+        courseName: 'Comparison workshop',
+        lessons: [{ title: lesson.title, sections: [{ learningObjectives: task.objective }] }],
+      },
+      [source],
+    ),
+    blueprint,
+  );
+  const data = projectSharedTeachingTasks(
+    'quizBank',
+    { quizzes: [{ lessonNumber: 1, lessonTitle: lesson.title, questions: [] }] },
+    blueprint,
+  );
+  return {
+    source,
+    courseMap,
+    deliverables: {
+      quizBank: {
+        status: 'done',
+        stale: false,
+        data: finalizeCompiledDeliverableLanguage('quizBank', data, blueprint),
+      },
+    },
+  };
+}
+
+it.each([false, true])('upgrades old practice through review and reversible history: %s', (zh) => {
+  const state = oldComparisonWorkspace(zh);
+  const before = {
+    courseMap: state.courseMap,
+    courseGraph: deriveCourseGraphFromCourseMap(state.courseMap),
+    deliverables: state.deliverables,
+  };
+  expect(state.deliverables.quizBank.data.quizzes[0].questions).toHaveLength(10);
+  const preview = previewTeachingTaskReview({ ...state, draft: createTeachingTaskReviewDraft(state.source) });
+  expect(preview.status, preview.message).toBe('preview');
+  const applied = commitTeachingTaskReview({ ...state, preview, teacherConfirmed: true });
+  expect(applied.status).toBe('applied');
+  expect(applied.conflicts).toEqual([]);
+  expect(readTeachingTaskSources(applied.courseMap)[0].operationPlan.presentationVersion).toBe(4);
+  expect(applied.changed.quizBank.data.quizzes[0].questions).toHaveLength(6);
+  const after = {
+    courseMap: applied.courseMap,
+    courseGraph: deriveCourseGraphFromCourseMap(applied.courseMap),
+    deliverables: { ...state.deliverables, ...applied.changed },
+  };
+  const transaction = JSON.parse(JSON.stringify(createEditTransaction(before, after)));
+  const restored = prepareProjectSnapshotForRestore(JSON.parse(JSON.stringify(after)));
+  const undo = applyEditTransaction(restored, transaction, 'undo');
+  expect(undo.status).toBe('applied');
+  expect(undo.workspace.deliverables).toEqual(before.deliverables);
+  const redo = applyEditTransaction(undo.workspace, transaction, 'redo');
+  expect(redo.workspace.deliverables).toEqual(after.deliverables);
+});
+
+it('retains an edited scaffold as a conflict rather than deleting teacher work', () => {
+  const state = oldComparisonWorkspace(false);
+  const question = state.deliverables.quizBank.data.quizzes[0].questions.find(
+    (q) => q.practiceKind === 'task-scaffold',
+  );
+  question.question = 'Teacher task: explain our laboratory allocation procedure.';
+  const preview = previewTeachingTaskReview({ ...state, draft: createTeachingTaskReviewDraft(state.source) });
+  const applied = commitTeachingTaskReview({ ...state, preview, teacherConfirmed: true });
+  expect(applied.status).toBe('applied');
+  const retained = applied.changed.quizBank.data.quizzes[0].questions.find((q) => q.practiceId === question.practiceId);
+  expect(retained.question).toBe(question.question);
+  expect(applied.conflicts.length).toBeGreaterThan(0);
+  expect(applied.changed.quizBank.stale).toBe(true);
 });

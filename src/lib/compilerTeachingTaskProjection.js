@@ -8,7 +8,11 @@ import { teachingTaskSourceFromLesson } from './teachingTaskSource.js';
 import { projectTeachingTaskSlides } from './compilerTeachingTaskSlides.js';
 import { readTeachingTaskSources, withTeachingTaskSources } from './teachingProgram.js';
 import { expandKeys } from './keyMaps.js';
-import { projectTeachingQuestion, projectReviewedTeachingQuestionBank } from './compilerTeachingTaskQuiz.js';
+import {
+  projectTeachingQuestion,
+  projectReviewedTeachingQuestionBank,
+  usesComparisonPracticeV4,
+} from './compilerTeachingTaskQuiz.js';
 
 const ref = (task) => ({ taskId: task.id, taskRevision: task.revision });
 const evidence = (task, prior) => ({ ...prior, claims: task.inputs.map((x) => x.text) });
@@ -589,6 +593,7 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
         ...questions(task).filter(
           (question) =>
             question.practiceKind !== 'independent-transfer' &&
+            (!usesComparisonPracticeV4(task) || !['task-scaffold', 'task-check'].includes(question.practiceKind)) &&
             (!task.assessmentExtensions?.length || question.practiceKind !== 'task-check'),
         ),
         ...(task.assessmentExtensions || []).map((q, index) => ({
@@ -606,10 +611,16 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
           ...ref(task),
           practiceId: retry.id,
           practiceKind: retry.kind,
-          question:
-            task.language === 'zh'
+          question: usesComparisonPracticeV4(task)
+            ? taskText(
+                task,
+                `After the first attempt has been reviewed, return to the independent case. ${retry.question}`,
+                `首次作答经审阅后，再回到独立案例。${retry.question}`,
+              )
+            : task.language === 'zh'
               ? `回到本题组的独立练习。反馈：${retry.feedback} ${retry.question}`
               : `Return to the independent case in this question bank. Feedback: ${retry.feedback} ${retry.question}`,
+          ...(usesComparisonPracticeV4(task) ? { feedback: retry.feedback } : {}),
           answer: retry.answer,
           successCriteria: transfer.criteria,
         });

@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Version reviewed comparison practice so new or confirmed-upgrade tasks separate assessed performances from scaffolding and checkpoint repetition. Add specific diagnostic checks, independent-case rubric bands and unscored retries, while preserving saved budgets. Reconstruct prior task versions for reversible upgrades and retain edited removed questions as conflicts.
+
 - Give new reviewed full-task rehearsal questions a 20-point budget and derive their scoring guidance from the shared rubric weights and all four performance bands. Preserve saved point budgets, including unscored questions, and keep quiz totals consistent. Print scoring criteria as separate paragraphs, honor PDF paragraph keep-together settings, keep answer headings with content, and omit guidance that exactly repeats the printed answer. Other practice-item scoring and question overlap remain under review.
 
 - Present reviewed comparison rubric alternatives as explicit changes to the printed reference when their opening and closing paragraphs match exactly. Preserve full editable responses and scoring evidence; retain teacher-authored and partially matching alternatives verbatim. Actual bilingual PDFs now fit three pages instead of four at the same type size.

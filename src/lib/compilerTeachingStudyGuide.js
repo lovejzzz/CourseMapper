@@ -34,7 +34,7 @@ export function projectTeachingStudyGuide(row, task) {
       ),
     },
   });
-  if (task.operationPlan?.presentationVersion !== 3) return row;
+  if (![3, 4].includes(task.operationPlan?.presentationVersion)) return row;
 
   const t = (en, zh) => taskText(task, en, zh);
   const proportion = task.operationPlan.operation === 'observed-proportion';
