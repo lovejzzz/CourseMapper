@@ -1,4 +1,5 @@
 import {
+  alternativeReferenceParagraphs,
   teachingMaterialIsChinese,
   teachingMaterialLabel,
   teachingMaterialLessonLabel,
@@ -1236,7 +1237,13 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             labeledAnchors.forEach(([label, text]) => {
               // Preserve the reference's authored reasoning paragraphs. A
               // single Word run flattens them into an unreadable text block.
-              const paragraphs = String(text).split(/\r?\n\s*\r?\n/);
+              const paragraphs =
+                label === 'Acceptable alternative' &&
+                expanded.teachingTaskSources?.some(
+                  (source) => source.id === r.taskId && source.operationPlan?.operation === 'paired-condition-confound',
+                )
+                  ? alternativeReferenceParagraphs(r.anchorExamples, zh)
+                  : String(text).split(/\r?\n\s*\r?\n/);
               children.push(makeBold(t(label), paragraphs[0], { keepLines: true }));
               paragraphs.slice(1).forEach((paragraph) => children.push(makeText(paragraph)));
             });

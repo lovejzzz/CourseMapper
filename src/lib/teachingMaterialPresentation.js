@@ -112,3 +112,29 @@ export function teachingMaterialExportLabel(feature, data, fallback) {
       : '评分标准'
     : fallback;
 }
+
+// Render a bounded difference only when both ends are exact shared paragraphs.
+// Full responses and their scoring evidence remain unchanged in the task/editor.
+export function alternativeReferenceParagraphs(anchors, chinese) {
+  const split = (value) => String(value || '').split(/\r?\n\s*\r?\n/);
+  const alternative = split(anchors?.alternativeSample);
+  if (anchors?.sampleOrigin !== 'synthetic-review-examples' || !anchors?.strongSample) return alternative;
+  const reference = split(anchors.strongSample);
+  let prefix = 0;
+  while (prefix < Math.min(reference.length, alternative.length) && reference[prefix] === alternative[prefix]) prefix++;
+  let suffix = 0;
+  while (
+    suffix < Math.min(reference.length, alternative.length) - prefix &&
+    reference[reference.length - 1 - suffix] === alternative[alternative.length - 1 - suffix]
+  )
+    suffix++;
+  // An unchanged answer, a wholly different answer, or a partial match on
+  // just one end must not be presented as a replacement proposal.
+  if (!prefix || !suffix || prefix + suffix >= Math.min(reference.length, alternative.length)) return alternative;
+  return [
+    chinese
+      ? '沿用上方充分作答样例的诊断、其余步骤与结论边界；仅将中间方案替换为以下内容：'
+      : 'Use the strong response above, retaining its diagnosis, remaining steps and conclusion limits. Replace only the middle proposal with the following:',
+    ...alternative.slice(prefix, alternative.length - suffix),
+  ];
+}

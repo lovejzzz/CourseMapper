@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Present reviewed comparison rubric alternatives as explicit changes to the printed reference when their opening and closing paragraphs match exactly. Preserve full editable responses and scoring evidence; retain teacher-authored and partially matching alternatives verbatim. Actual bilingual PDFs now fit three pages instead of four at the same type size.
+
 - Derive the comparison-design assignment, rubric and main rehearsal cognitive level from the reviewed operation in both languages. Localize Chinese assignment/rubric Word and PDF labels, point units and generated lesson/week references; match rubric band names to scorer guidance while retaining source prose and the existing UI. Development export review still identifies repeated references, sparse final pages and unresolved quiz scoring.
 
 - Reject and remove a tested source-region proposal experiment after bilingual model outputs regressed; preserve the candidate and failure evidence outside application code.

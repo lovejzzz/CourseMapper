@@ -1,3 +1,5 @@
+import { deliverablePdfDefinition } from '../exporters/classroomPdf.js';
+import { alternativeReferenceParagraphs } from '../teachingMaterialPresentation.js';
 import { describe, expect, it } from 'vitest';
 import { comparisonDesignFixture } from '../../../tests/fixtures/teaching/comparisonDesign.js';
 import {
@@ -229,5 +231,47 @@ it.each([false, true])(
     const errorQuestions = quiz.questions.filter((question) => question.practiceKind === 'error-analysis');
     expect(errorQuestions.length).toBeGreaterThan(0);
     expect(errorQuestions.every((question) => question.bloomsLevel === 'Analyze')).toBe(true);
+  },
+);
+
+it.each([false, true])(
+  'prints comparison alternatives as explicit changes without altering scoring evidence: %s',
+  (zh) => {
+    const { task } = fixture(zh);
+    const data = projectSharedTeachingTasks(
+      'rubrics',
+      { rubrics: [{ lessonNumber: 1, totalPoints: 100, criteria: [] }] },
+      {
+        lessons: [{ id: 'design-unit', lessonNumber: 1, teachingTaskScope: 'primary-task', teachingTask: task }],
+      },
+    );
+    const saved = structuredClone(data);
+    const anchors = data.rubrics[0].anchorExamples;
+    const paragraphs = alternativeReferenceParagraphs(anchors, zh);
+    expect(paragraphs.join(' ')).toContain(zh ? '30 °C' : '26 °C');
+    expect(paragraphs.join(' ')).toContain(zh ? '随机' : 'Randomize');
+    expect(paragraphs[0]).toContain(zh ? '上方' : 'above');
+    const definition = deliverablePdfDefinition('rubrics', data, 'Comparison design');
+    const strings = [];
+    const visit = (value) => {
+      if (Array.isArray(value)) value.forEach(visit);
+      else if (value && typeof value === 'object') Object.values(value).forEach(visit);
+      else if (typeof value === 'string') strings.push(value);
+    };
+    visit(definition.content);
+    const limit = anchors.strongSample.split(/\n\n/).at(-1);
+    expect(strings.filter((text) => text === limit)).toHaveLength(1);
+    expect(strings).toContain(paragraphs[0]);
+    expect(data).toEqual(saved);
+    expect(anchors.alternativeSample).toContain(limit);
+    for (const judgment of task.contrastResponses.at(-1).judgments)
+      for (const evidence of judgment.evidence)
+        expect(task.contrastResponses.at(-1).response.slice(evidence.start, evidence.end)).toBe(evidence.quote);
+    // Teacher-authored alternatives and partial matches remain verbatim.
+    expect(alternativeReferenceParagraphs({ ...anchors, sampleOrigin: 'teacher-authored' }, zh).join('\n\n')).toBe(
+      anchors.alternativeSample,
+    );
+    const changedEnding = { ...anchors, alternativeSample: anchors.alternativeSample + '\n\nTeacher qualification.' };
+    expect(alternativeReferenceParagraphs(changedEnding, zh).join('\n\n')).toBe(changedEnding.alternativeSample);
   },
 );
