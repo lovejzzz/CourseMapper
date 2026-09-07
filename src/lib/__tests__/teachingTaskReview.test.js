@@ -5,6 +5,7 @@ import {
   previewTeachingTaskReview,
   commitTeachingTaskReview,
   resolveTeachingTaskReviewDraft,
+  mergeTeachingSourceSuggestions,
 } from '../teachingTaskReview.js';
 import {
   readTeachingTaskSources,
@@ -78,6 +79,19 @@ function changeCount(draft, value = '104') {
 }
 
 describe('reviewed teaching task transactions', () => {
+  it('fills a stale excerpt from corrected source text without losing still-valid teacher choices', () => {
+    const { draft } = setup();
+    draft.inputs[1].text = draft.inputs[1].text.replace('90 seats', '104 seats');
+    const merged = mergeTeachingSourceSuggestions(draft, {
+      amendedValue: { inputId: draft.inputs[1].id, quote: '104', occurrence: 0 },
+      observationLimit: { inputId: 'missing-source', quote: 'invented', occurrence: 0 },
+    });
+    expect(merged.bindings.amendedValue.quote).toBe('104');
+    expect(merged.bindings.priorValue).toEqual(draft.bindings.priorValue);
+    expect(merged.bindings.observationLimit).toEqual(draft.bindings.observationLimit);
+    expect(merged.filledRoles).toEqual(['amendedValue']);
+    expect(draft.bindings.amendedValue.quote).toBe('90');
+  });
   it('rejects a draft opened before a different source transaction, even before preview', () => {
     const state = setup();
     const oldDraft = structuredClone(state.draft);

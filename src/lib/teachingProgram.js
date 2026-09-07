@@ -145,7 +145,7 @@ export function teachingProgramFromSources(sources, previous = null) {
         id: sourceRef,
         text,
         origin: priorSources.get(sourceRef)?.origin || {
-          kind: 'legacy-task-input',
+          kind: source.origin?.kind === 'teacher-authored-task' ? 'teacher-provided' : 'legacy-task-input',
           taskId: source.id,
           inputId: input.id,
         },

@@ -1,5 +1,6 @@
 import { canonicalJson, sameJsonData } from './canonicalJson.js';
 import { sha256HexSync } from './sha256Sync.js';
+import { stripLessonPrefix } from './compilerText.js';
 import { readTeachingTaskSources } from './teachingProgram.js';
 import { rebuildTeachingTaskSource } from './teachingTaskSource.js';
 import { createTeachingOperationPlan, TEACHING_OPERATION_SPECS } from './teachingOperationPlan.js';
@@ -15,6 +16,43 @@ export function quoteOccurrences(text, quote) {
   return positions;
 }
 
+/** A proposal fills gaps in a draft; it cannot erase usable teacher choices.
+ * Exact-source validity here is not confirmation of a phrase's teaching role. */
+export function mergeTeachingSourceSuggestions(draft, suggested = {}) {
+  const bindings = structuredClone(draft.bindings);
+  const filledRoles = [],
+    preservedRoles = [],
+    differingRoles = [];
+  for (const [role, type] of Object.entries(TEACHING_OPERATION_SPECS[draft.operation].bindings)) {
+    const valid = (binding) => {
+      const input = draft.inputs.find((entry) => entry.id === binding?.inputId);
+      if (!input) return false;
+      if (type === 'record') return true;
+      const positions = quoteOccurrences(input.text, binding.quote);
+      return (
+        positions.length === 1 ||
+        (Number.isInteger(binding.occurrence) && Number.isInteger(positions[binding.occurrence]))
+      );
+    };
+    const current = bindings[role],
+      candidate = suggested[role];
+    if (valid(current)) {
+      preservedRoles.push(role);
+      if (
+        valid(candidate) &&
+        (candidate.inputId !== current.inputId ||
+          (type !== 'record' &&
+            (candidate.quote !== current.quote || (candidate.occurrence ?? 0) !== (current.occurrence ?? 0))))
+      )
+        differingRoles.push(role);
+    } else if (valid(candidate)) {
+      bindings[role] = structuredClone(candidate);
+      filledRoles.push(role);
+    }
+  }
+  return { bindings, filledRoles, preservedRoles, differingRoles };
+}
+
 /** The task list comes from the canonical course, never from an arbitrary
  * material's saved plan. Old ledgers are admitted through the same reader. */
 export function reviewableTeachingTaskSources(courseMap) {
@@ -22,6 +60,90 @@ export function reviewableTeachingTaskSources(courseMap) {
     const operation = source.operationPlan?.operation || rebuildTeachingTaskSource(source)?.operationPlan?.operation;
     return Object.hasOwn(TEACHING_OPERATION_SPECS, operation) || source.kind === 'source-proportion';
   });
+}
+
+export function availableTeachingTaskLessons(courseMap) {
+  const sources = readTeachingTaskSources(courseMap);
+  return (courseMap?.lessons || []).flatMap((lesson, index) => {
+    const lessonNumber = lesson.lessonNumber || index + 1;
+    return sources.some((source) => source.lessonNumber === lessonNumber)
+      ? []
+      : [{ lessonNumber, title: lesson.title || `Lesson ${lessonNumber}` }];
+  });
+}
+
+/** A new task is a local draft until the same preview/confirmation transaction
+ * used for later edits accepts it. Its identity is independent of its wording. */
+export function createNewTeachingTaskReviewDraft(courseMap, { lessonNumber, operation } = {}) {
+  const lesson = courseMap?.lessons?.find((row, index) => (row.lessonNumber || index + 1) === lessonNumber);
+  const spec = Object.hasOwn(TEACHING_OPERATION_SPECS, operation) ? TEACHING_OPERATION_SPECS[operation] : null;
+  if (!lesson || !spec || !availableTeachingTaskLessons(courseMap).some((row) => row.lessonNumber === lessonNumber))
+    return reviewIssue('Choose a lesson without an existing shared task and a supported teaching operation.');
+  const identityKey = `authored-${crypto.randomUUID()}`;
+  return {
+    creation: { courseRevision: revision(courseMap), lessonNumber, identityKey },
+    taskId: `task-${sha256HexSync(`${identityKey}:${spec.taskKind}`).slice(0, 16)}`,
+    operation,
+    version: 1,
+    objective: (lesson.sections || [])
+      .map((row) => row.learningObjectives)
+      .filter(Boolean)
+      .join('\n'),
+    sessionMinutes: Number(courseMap.sessionMinutes) > 0 ? Number(courseMap.sessionMinutes) : 50,
+    practiceMinutes: 10,
+    inputs: [{ id: `input-${crypto.randomUUID()}`, text: '' }],
+    bindings: Object.fromEntries(
+      Object.keys(spec.bindings).map((name) => [name, { inputId: '', quote: '', occurrence: null }]),
+    ),
+    requirements: spec.requirements.map((id, index) => ({ id, weight: (spec.defaultWeights || [30, 35, 35])[index] })),
+  };
+}
+
+function sourceForCreation(courseMap, draft) {
+  if (draft.creation?.courseRevision !== revision(courseMap))
+    return reviewIssue(
+      'The course changed after this task draft was opened. Start a new draft using the current lesson.',
+    );
+  const { lessonNumber, identityKey } = draft.creation;
+  const lesson = courseMap?.lessons?.find((row, index) => (row.lessonNumber || index + 1) === lessonNumber);
+  const spec = Object.hasOwn(TEACHING_OPERATION_SPECS, draft.operation)
+    ? TEACHING_OPERATION_SPECS[draft.operation]
+    : null;
+  if (
+    !lesson ||
+    !spec ||
+    typeof identityKey !== 'string' ||
+    !identityKey.startsWith('authored-') ||
+    !availableTeachingTaskLessons(courseMap).some((row) => row.lessonNumber === lessonNumber)
+  )
+    return reviewIssue('This lesson is unavailable or already has a shared task. Review the current course.');
+  if (
+    typeof draft.objective !== 'string' ||
+    !draft.objective.trim() ||
+    draft.objective.length > 6000 ||
+    !Number.isFinite(draft.sessionMinutes) ||
+    draft.sessionMinutes <= 0 ||
+    draft.sessionMinutes > 480 ||
+    !Number.isFinite(draft.practiceMinutes) ||
+    draft.practiceMinutes <= 0 ||
+    draft.practiceMinutes > draft.sessionMinutes
+  )
+    return reviewIssue('Supply a teaching objective and a positive practice time within the class session.');
+  return {
+    version: 1,
+    id: `task-${sha256HexSync(`${identityKey}:${spec.taskKind}`).slice(0, 16)}`,
+    identityKey,
+    lessonId: `lesson-${lessonNumber}`,
+    lessonNumber,
+    title: `Lesson ${lessonNumber}: ${stripLessonPrefix(lesson.title || '') || `Topic ${lessonNumber}`}`,
+    objective: draft.objective.trim(),
+    kind: spec.taskKind,
+    scope: 'primary-task',
+    inputs: structuredClone(draft.inputs),
+    sessionMinutes: draft.sessionMinutes,
+    practiceMinutes: draft.practiceMinutes,
+    origin: { kind: 'teacher-authored-task' },
+  };
 }
 
 export function createTeachingTaskReviewDraft(source, materialData, featureId) {
@@ -37,6 +159,7 @@ export function createTeachingTaskReviewDraft(source, materialData, featureId) {
     ...(featureId ? { material: { featureId, inputRevision: revision(pending.inputs) } } : {}),
     operation,
     version: plan?.version || 1,
+    ...(plan?.admission?.proposal ? { proposal: structuredClone(plan.admission.proposal) } : {}),
     ...(plan?.practiceInputs ? { practiceInputs: structuredClone(plan.practiceInputs) } : {}),
     inputs: pending.inputs,
     bindings: Object.fromEntries(
@@ -53,7 +176,7 @@ export function createTeachingTaskReviewDraft(source, materialData, featureId) {
       plan?.requirements ||
         TEACHING_OPERATION_SPECS[operation].requirements.map((id, index) => ({
           id,
-          weight: TEACHING_OPERATION_SPECS[operation].defaultWeights[index],
+          weight: (TEACHING_OPERATION_SPECS[operation].defaultWeights || [30, 35, 35])[index],
         })),
     ),
   };
@@ -107,7 +230,15 @@ export function resolveTeachingTaskReviewDraft(source, draft, reviewedAt) {
       objective: source.objective,
       // This is the proposed post-confirmation state. A preview never writes
       // it, and commitTeachingTaskReview independently requires confirmation.
-      admission: { kind: 'teacher-confirmed', method: 'in-app-source-bindings', reviewedAt },
+      admission: {
+        kind: 'teacher-confirmed',
+        method: 'in-app-source-bindings',
+        reviewedAt,
+        ...(draft.proposal?.inputRevision ===
+        revision({ operation: draft.operation, objective: source.objective, inputs: draft.inputs })
+          ? { proposal: structuredClone(draft.proposal) }
+          : {}),
+      },
     });
     const updatedSource = { ...structuredClone(source), inputs: structuredClone(draft.inputs), operationPlan };
     if (!rebuildTeachingTaskSource(updatedSource)) return reviewIssue('The proposed task cannot be compiled.');
@@ -118,7 +249,10 @@ export function resolveTeachingTaskReviewDraft(source, draft, reviewedAt) {
 }
 
 function prepareReview({ courseMap, deliverables, draft, reviewedAt }) {
-  const source = readTeachingTaskSources(courseMap).find((item) => item.id === draft?.taskId);
+  const source = draft?.creation
+    ? sourceForCreation(courseMap, draft)
+    : readTeachingTaskSources(courseMap).find((item) => item.id === draft?.taskId);
+  if (source?.status === 'needs-review') return source;
   if (!source) return reviewIssue('This task is no longer in the course. Reopen the task review.');
   if (draft.material) {
     const data = deliverables[draft.material.featureId]?.data;
@@ -128,9 +262,18 @@ function prepareReview({ courseMap, deliverables, draft, reviewedAt }) {
     if (revision(pending.inputs) !== draft.material.inputRevision)
       return reviewIssue('The source draft in this material changed. Reopen the review before applying it.');
   }
-  const resolved = resolveTeachingTaskReviewDraft(source, draft, reviewedAt);
+  const resolved = resolveTeachingTaskReviewDraft(
+    source,
+    draft.creation ? { ...draft, sourceRevision: revision(source) } : draft,
+    reviewedAt,
+  );
   if (resolved.status !== 'valid') return resolved;
-  const transaction = projectTeachingTaskUpdate({ source, updatedSource: resolved.source, courseMap, deliverables });
+  const transaction = projectTeachingTaskUpdate({
+    source: draft.creation ? null : source,
+    updatedSource: resolved.source,
+    courseMap,
+    deliverables,
+  });
   return { ...transaction, task: rebuildTeachingTaskSource(resolved.source) };
 }
 

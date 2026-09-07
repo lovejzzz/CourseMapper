@@ -1,10 +1,13 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import TeachingPerformanceEditor from './TeachingPerformanceEditor.jsx';
 import { FEATURES_BASE } from '../../../lib/featureCatalog.js';
 import { TEACHING_OPERATION_SPECS } from '../../../lib/teachingOperationPlan.js';
 import {
   createTeachingTaskReviewDraft,
+  createNewTeachingTaskReviewDraft,
+  availableTeachingTaskLessons,
   quoteOccurrences,
+  mergeTeachingSourceSuggestions,
   reviewableTeachingTaskSources,
 } from '../../../lib/teachingTaskReview.js';
 
@@ -39,12 +42,12 @@ const fieldClass =
 
 /** Uses the existing material workspace. Drafts and previews are local UI
  * state; only the explicit confirmation delegates a canonical transaction. */
-export default function TeachingTaskReview({ featureId, courseMap, data, onPreview, onCommit }) {
+export default function TeachingTaskReview({ featureId, courseMap, data, onPreview, onCommit, onProposeSources }) {
   const options = useMemo(() => {
     try {
-      return { sources: reviewableTeachingTaskSources(courseMap) };
+      return { sources: reviewableTeachingTaskSources(courseMap), lessons: availableTeachingTaskLessons(courseMap) };
     } catch (error) {
-      return { sources: [], issue: error.message };
+      return { sources: [], lessons: [], issue: error.message };
     }
   }, [courseMap]);
   const [selectedId, setSelectedId] = useState('');
@@ -53,11 +56,34 @@ export default function TeachingTaskReview({ featureId, courseMap, data, onPrevi
   const [confirmed, setConfirmed] = useState(false);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
-  const selected = options.sources.find((source) => source.id === selectedId) || options.sources[0];
+  const [newLesson, setNewLesson] = useState('');
+  const [newOperation, setNewOperation] = useState('observed-proportion');
+  const [proposing, setProposing] = useState(false);
+  const [lastProposalReceipt, setLastProposalReceipt] = useState(null);
+  const proposalController = useRef(null);
+  useEffect(() => () => proposalController.current?.abort(), []);
+  const selected = draft?.creation
+    ? {
+        id: draft.taskId,
+        objective: draft.objective,
+        title: options.lessons.find((row) => row.lessonNumber === draft.creation.lessonNumber)?.title,
+      }
+    : options.sources.find((source) => source.id === selectedId) || options.sources[0];
   const zh = /\p{Script=Han}/u.test(selected?.objective || '');
   const t = (en, cn) => (zh ? cn : en);
 
-  if (!onPreview || !onCommit || (!options.sources.length && !options.issue)) return null;
+  if (!onPreview || !onCommit || (!options.sources.length && !options.lessons.length && !options.issue)) return null;
+  function beginNew() {
+    const next = createNewTeachingTaskReviewDraft(courseMap, {
+      lessonNumber: Number(newLesson || options.lessons[0]?.lessonNumber),
+      operation: newOperation,
+    });
+    setDraft(next.status === 'needs-review' ? null : next);
+    setMessage(next.message || '');
+    setPreview(null);
+    setConfirmed(false);
+    setLastProposalReceipt(null);
+  }
   function begin(source = selected) {
     if (!source) return;
     const next = createTeachingTaskReviewDraft(source, data, featureId);
@@ -66,12 +92,95 @@ export default function TeachingTaskReview({ featureId, courseMap, data, onPrevi
     setMessage(next.message || '');
     setPreview(null);
     setConfirmed(false);
+    setLastProposalReceipt(null);
   }
   function change(update) {
     setDraft((current) => update(current));
     setPreview(null);
     setConfirmed(false);
     setMessage('');
+  }
+  async function proposeSources() {
+    if (busy || !draft) return;
+    const controller = new AbortController();
+    proposalController.current = controller;
+    setBusy(true);
+    setProposing(true);
+    setPreview(null);
+    setConfirmed(false);
+    try {
+      const propose =
+        onProposeSources || (await import('../../../lib/scionTeachingProposal.js')).proposeTeachingSourceBindings;
+      const result = await propose(
+        { operation: draft.operation, objective: (draft.objective || selected.objective).trim(), inputs: draft.inputs },
+        { signal: controller.signal, onProgress: setMessage },
+      );
+      if (result.receipt) setLastProposalReceipt(result.receipt);
+      if (controller.signal.aborted || result.status === 'cancelled') {
+        setMessage(t('Source proposal cancelled. Your draft is unchanged.', '已取消来源提案，草稿保持不变。'));
+      } else if (result.status === 'review') {
+        const { bindings, ...adoption } = mergeTeachingSourceSuggestions(draft, result.bindings);
+        setDraft((current) => ({
+          ...current,
+          bindings,
+          proposal: result.receipt ? { ...result.receipt, adoption } : undefined,
+        }));
+        setMessage(
+          [
+            Object.values(result.bindings).some((binding) => binding.inputId)
+              ? t(
+                  'Scion located candidate source phrases. Review every role and any empty field before previewing the task.',
+                  'Scion 已提出来源片段；预览任务前，请核对各角色及空缺字段。',
+                )
+              : t(
+                  'Scion did not return usable source bindings. You can complete the fields yourself.',
+                  'Scion 未返回可用的来源绑定，可手动填写字段。',
+                ),
+            ...(result.issues || []),
+            ...(result.unknowns || []),
+            ...(adoption.preservedRoles.length
+              ? [
+                  t(
+                    `${adoption.preservedRoles.length} existing source selections were kept.`,
+                    `已保留 ${adoption.preservedRoles.length} 个已有来源选择。`,
+                  ),
+                ]
+              : []),
+            ...(adoption.differingRoles.length
+              ? [
+                  t(
+                    `Scion suggested a different phrase for: ${adoption.differingRoles.map((role) => fieldLabels[role][0]).join(', ')}. Your existing choices remain; review these roles if you want to change them.`,
+                    `Scion 对以下角色提出了不同片段：${adoption.differingRoles.map((role) => fieldLabels[role][1]).join('、')}。已有选择保持不变，可核对后手动修改。`,
+                  ),
+                ]
+              : []),
+            ...(result.missing?.length
+              ? [
+                  t(
+                    `${result.missing.length} source roles need your input.`,
+                    `${result.missing.length} 个来源角色需要补充。`,
+                  ),
+                ]
+              : []),
+          ].join(' '),
+        );
+      } else
+        setMessage(
+          result.message ||
+            t(
+              'The source proposal could not finish. You can complete the fields yourself.',
+              '来源提案未完成，可手动填写字段。',
+            ),
+        );
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      if (proposalController.current === controller) {
+        proposalController.current = null;
+        setBusy(false);
+        setProposing(false);
+      }
+    }
   }
   async function previewChanges() {
     setBusy(true);
@@ -92,6 +201,7 @@ export default function TeachingTaskReview({ featureId, courseMap, data, onPrevi
     try {
       const result = await onCommit(preview, confirmed);
       if (result.status === 'applied') {
+        setSelectedId(preview.draft?.taskId || selectedId);
         setDraft(null);
         setPreview(null);
         setConfirmed(false);
@@ -118,7 +228,7 @@ export default function TeachingTaskReview({ featureId, courseMap, data, onPrevi
     <details
       className="mx-4 mt-2 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700"
       onToggle={(event) => {
-        if (event.target === event.currentTarget && event.currentTarget.open && !draft) begin();
+        if (event.target === event.currentTarget && event.currentTarget.open && !draft && selected) begin();
       }}
     >
       <summary className="cursor-pointer font-medium">{t('Review sources and scoring', '审阅来源与评分')}</summary>
@@ -127,56 +237,200 @@ export default function TeachingTaskReview({ featureId, courseMap, data, onPrevi
           {options.issue}
         </p>
       )}
+      {options.lessons.length > 0 && (
+        <details className="mt-3 rounded border border-slate-200 p-3">
+          <summary className="cursor-pointer font-medium">{t('Create a teaching task', '创建教学任务')}</summary>
+          <fieldset disabled={busy} className="mt-3 space-y-3">
+            <label className="block">
+              {t('Lesson for the new task', '新任务所属课次')}
+              <select
+                className={fieldClass}
+                value={newLesson || options.lessons[0].lessonNumber}
+                onChange={(event) => setNewLesson(event.target.value)}
+              >
+                {options.lessons.map((lesson) => (
+                  <option key={lesson.lessonNumber} value={lesson.lessonNumber}>
+                    {lesson.lessonNumber}. {lesson.title}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block">
+              {t('Teaching focus', '教学重点')}
+              <select
+                className={fieldClass}
+                value={newOperation}
+                onChange={(event) => setNewOperation(event.target.value)}
+              >
+                <option value="observed-proportion">
+                  {t('Observed proportion and population limits', '观察比例与总体限制')}
+                </option>
+                <option value="record-amendment">{t('Changed rule and evidence limits', '规则修订与证据限制')}</option>
+              </select>
+            </label>
+            <button type="button" className="font-medium underline" onClick={beginNew}>
+              {t('Start task draft', '开始任务草稿')}
+            </button>
+          </fieldset>
+        </details>
+      )}
       {selected && (
         <div className="mt-3 space-y-4">
-          <label className="block font-medium">
-            {t('Teaching task', '教学任务')}
-            <select
-              className={fieldClass}
-              value={selected.id}
-              disabled={busy}
-              onChange={(event) => begin(options.sources.find((source) => source.id === event.target.value))}
-            >
-              {options.sources.map((source) => (
-                <option key={source.id} value={source.id}>
-                  {source.lessonNumber}. {source.title}
-                </option>
-              ))}
-            </select>
-          </label>
-          <p>{selected.objective}</p>
-          {draft && (
-            <button disabled={busy} className="font-medium underline" onClick={() => begin()}>
-              {t('Reload current task and discard draft', '重新载入当前任务并放弃草稿')}
-            </button>
-          )}
-          {!draft && (
-            <button className="font-medium underline" onClick={() => begin()}>
-              {t('Open task review', '打开任务审阅')}
-            </button>
+          {!draft?.creation ? (
+            <>
+              <label className="block font-medium">
+                {t('Teaching task', '教学任务')}
+                <select
+                  className={fieldClass}
+                  value={selected.id}
+                  disabled={busy}
+                  onChange={(event) => begin(options.sources.find((source) => source.id === event.target.value))}
+                >
+                  {options.sources.map((source) => (
+                    <option key={source.id} value={source.id}>
+                      {source.lessonNumber}. {source.title}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <p>{selected.objective}</p>
+              {draft && (
+                <button disabled={busy} className="font-medium underline" onClick={() => begin()}>
+                  {t('Reload current task and discard draft', '重新载入当前任务并放弃草稿')}
+                </button>
+              )}
+              {!draft && (
+                <button className="font-medium underline" onClick={() => begin()}>
+                  {t('Open task review', '打开任务审阅')}
+                </button>
+              )}
+            </>
+          ) : (
+            <fieldset disabled={busy} className="space-y-3">
+              <legend className="font-semibold">{selected.title}</legend>
+              <label className="block">
+                {t('Teaching objective', '教学目标')}
+                <textarea
+                  aria-label={t('Teaching objective', '教学目标')}
+                  className={fieldClass}
+                  rows={3}
+                  maxLength={6000}
+                  value={draft.objective}
+                  onChange={(event) => change((current) => ({ ...current, objective: event.target.value }))}
+                />
+              </label>
+              <label className="block">
+                {t('Class session (minutes)', '课堂时长（分钟）')}
+                <input
+                  className={fieldClass}
+                  type="number"
+                  min={1}
+                  max={480}
+                  value={draft.sessionMinutes}
+                  onChange={(event) =>
+                    change((current) => ({ ...current, sessionMinutes: Number(event.target.value) }))
+                  }
+                />
+              </label>
+              <label className="block">
+                {t('Task practice (minutes)', '任务练习时长（分钟）')}
+                <input
+                  className={fieldClass}
+                  type="number"
+                  min={1}
+                  max={draft.sessionMinutes}
+                  value={draft.practiceMinutes}
+                  onChange={(event) =>
+                    change((current) => ({ ...current, practiceMinutes: Number(event.target.value) }))
+                  }
+                />
+              </label>
+            </fieldset>
           )}
           {draft && (
             <>
               <fieldset disabled={busy} className="space-y-3">
                 <legend className="font-semibold">{t('Source records', '来源记录')}</legend>
                 {draft.inputs.map((input, index) => (
-                  <label key={input.id} className="block">
-                    {t(`Record ${index + 1}`, `记录 ${index + 1}`)}
-                    <textarea
-                      rows={3}
-                      className={fieldClass}
-                      value={input.text}
-                      onChange={(event) => {
-                        const text = event.target.value;
-                        change((current) => ({
-                          ...current,
-                          inputs: current.inputs.map((item) => (item.id === input.id ? { ...item, text } : item)),
-                        }));
-                      }}
-                    />
-                  </label>
+                  <div key={input.id}>
+                    <label className="block">
+                      {t(`Record ${index + 1}`, `记录 ${index + 1}`)}
+                      <textarea
+                        aria-label={t(`Record ${index + 1}`, `记录 ${index + 1}`)}
+                        rows={3}
+                        className={fieldClass}
+                        value={input.text}
+                        onChange={(event) => {
+                          const text = event.target.value;
+                          change((current) => ({
+                            ...current,
+                            inputs: current.inputs.map((item) => (item.id === input.id ? { ...item, text } : item)),
+                          }));
+                        }}
+                      />
+                    </label>
+                    {draft.creation && (
+                      <button
+                        type="button"
+                        className="mt-1 underline"
+                        onClick={() =>
+                          change((current) => ({
+                            ...current,
+                            inputs: current.inputs.filter((item) => item.id !== input.id),
+                          }))
+                        }
+                      >
+                        {t(`Remove record ${index + 1}`, `移除记录 ${index + 1}`)}
+                      </button>
+                    )}
+                  </div>
                 ))}
+                {draft.creation && (
+                  <button
+                    type="button"
+                    disabled={draft.inputs.length >= 8}
+                    className="font-medium underline"
+                    onClick={() =>
+                      change((current) => ({
+                        ...current,
+                        inputs: [...current.inputs, { id: `input-${crypto.randomUUID()}`, text: '' }],
+                      }))
+                    }
+                  >
+                    {t('Add source record', '新增来源记录')}
+                  </button>
+                )}
               </fieldset>
+              <div className="space-y-2">
+                <button type="button" disabled={busy} className="font-medium underline" onClick={proposeSources}>
+                  {t('Locate source phrases with local Scion', '让本地 Scion 定位来源片段')}
+                </button>
+                {proposing && (
+                  <button type="button" className="ml-3 underline" onClick={() => proposalController.current?.abort()}>
+                    {t('Cancel source proposal', '取消来源提案')}
+                  </button>
+                )}
+                {import.meta.env.DEV && (lastProposalReceipt || draft.proposal) && (
+                  <button
+                    type="button"
+                    className="ml-3 underline"
+                    onClick={() => {
+                      const url = URL.createObjectURL(
+                        new Blob([JSON.stringify(lastProposalReceipt || draft.proposal, null, 2)], {
+                          type: 'application/json',
+                        }),
+                      );
+                      const link = document.createElement('a');
+                      link.href = url;
+                      link.download = 'scion-source-proposal-development.json';
+                      link.click();
+                      URL.revokeObjectURL(url);
+                    }}
+                  >
+                    Save development proposal record
+                  </button>
+                )}
+              </div>
               <fieldset disabled={busy} className="space-y-3">
                 <legend className="font-semibold">
                   {t('Which record supports each part?', '每一部分由哪条记录支持？')}

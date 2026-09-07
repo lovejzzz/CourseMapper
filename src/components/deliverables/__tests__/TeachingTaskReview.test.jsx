@@ -124,6 +124,135 @@ describe('teacher structure review interaction', () => {
     });
   }
 
+  it('creates a task from an empty lesson through local source suggestions and actual confirmation', async () => {
+    const f = observedProportionFixture();
+    const emptyMap = {
+      courseName: 'New task',
+      lessons: [{ title: 'Observed groups', sections: [{ learningObjectives: f.objective }] }],
+    };
+    const data = { rubrics: [{ lessonNumber: 1, title: 'Prior rubric', totalPoints: 100, criteria: [] }] };
+    const state = { courseMap: emptyMap, deliverables: { rubrics: { status: 'done', data } } };
+    const onPreview = vi.fn((draft) => previewTeachingTaskReview({ ...state, draft }));
+    const onCommit = vi.fn((preview, teacherConfirmed) =>
+      commitTeachingTaskReview({ ...state, preview, teacherConfirmed }),
+    );
+    const onProposeSources = vi.fn(async (request) => ({
+      status: 'review',
+      issues: [],
+      unknowns: [],
+      missing: [],
+      bindings: Object.fromEntries(
+        Object.entries(f.bindings).map(([name, span]) => {
+          const index = f.inputs.findIndex((input) => input.id === span.inputId);
+          return [
+            name,
+            {
+              inputId: request.inputs[index].id,
+              quote: f.inputs[index].text.slice(span.start, span.end),
+              occurrence: 0,
+            },
+          ];
+        }),
+      ),
+    }));
+    await renderReview({ courseMap: emptyMap, data, onPreview, onCommit, onProposeSources });
+    expect(button('Start task draft')).toBeTruthy();
+    await click(button('Start task draft'));
+    for (const [index, input] of f.inputs.entries()) {
+      if (index) await click(button('Add source record'));
+      await enter(`Record ${index + 1}`, input.text);
+    }
+    await click(button('Locate source phrases with local Scion'));
+    expect(onProposeSources).toHaveBeenCalledOnce();
+    expect(onCommit).not.toHaveBeenCalled();
+    await click(button('Preview linked changes'));
+    expect(onPreview.mock.results[0].value.status).toBe('preview');
+    expect(button('Apply reviewed changes').disabled).toBe(true);
+    await click(container.querySelector('input[type="checkbox"]'));
+    await click(button('Apply reviewed changes'));
+    expect(onCommit.mock.results[0].value.status).toBe('applied');
+    expect(onCommit.mock.results[0].value.courseMap.teachingProgram.tasks).toHaveLength(1);
+    expect(emptyMap.teachingProgram).toBeUndefined();
+  });
+
+  it('cancels a source proposal without replacing the current source selections or applying a task', async () => {
+    let finish, signal;
+    const pending = new Promise((resolve) => {
+      finish = resolve;
+    });
+    const onProposeSources = vi.fn((_request, options) => {
+      signal = options.signal;
+      return pending;
+    });
+    const { onPreview, onCommit } = await renderReview({ onProposeSources });
+    let request;
+    await act(async () => {
+      request = button('Locate source phrases with local Scion').click();
+    });
+    expect(signal.aborted).toBe(false);
+    await click(button('Cancel source proposal'));
+    await act(async () => {
+      finish({ status: 'review', bindings: {} });
+      await request;
+    });
+    expect(signal.aborted).toBe(true);
+    expect(container.textContent).toContain('draft is unchanged');
+    await click(button('Preview linked changes'));
+    expect(onPreview.mock.calls[0][0].bindings.priorValue.quote).toBe('120');
+    expect(onCommit).not.toHaveBeenCalled();
+  });
+
+  it('keeps existing selections when a proposal returns no usable bindings and records that nothing was adopted', async () => {
+    const { onPreview, onCommit } = await renderReview({
+      onProposeSources: async () => ({
+        status: 'review',
+        bindings: {},
+        issues: ['Invalid JSON'],
+        receipt: { modelCalls: 2 },
+      }),
+    });
+    await click(button('Locate source phrases with local Scion'));
+    expect(container.textContent).toContain('did not return usable source bindings');
+    expect(container.textContent).toContain('existing source selections were kept');
+    await click(button('Preview linked changes'));
+    const draft = onPreview.mock.calls[0][0];
+    expect(draft.bindings.priorValue.quote).toBe('120');
+    expect(draft.bindings.amendedValue.quote).toBe('90');
+    expect(draft.proposal.adoption.filledRoles).toEqual([]);
+    expect(onCommit).not.toHaveBeenCalled();
+  });
+
+  it('does not silently overwrite a teacher selection with a different exact-source suggestion', async () => {
+    const { onPreview } = await renderReview({
+      onProposeSources: async (request) => ({
+        status: 'review',
+        bindings: { priorValue: { inputId: request.inputs[1].id, quote: '90', occurrence: 0 } },
+        receipt: { modelCalls: 1 },
+      }),
+    });
+    await click(button('Locate source phrases with local Scion'));
+    expect(container.textContent).toContain('different phrase for: Earlier value');
+    await click(button('Preview linked changes'));
+    const draft = onPreview.mock.calls[0][0];
+    expect(draft.bindings.priorValue.quote).toBe('120');
+    expect(draft.proposal.adoption.differingRoles).toEqual(['priorValue']);
+  });
+
+  it('keeps the failed inference record available without changing source choices', async () => {
+    const { onPreview } = await renderReview({
+      onProposeSources: async () => ({
+        status: 'needs-review',
+        message: 'Output limit reached.',
+        receipt: { modelCalls: 1, attempts: [{ raw: '{' }] },
+      }),
+    });
+    await click(button('Locate source phrases with local Scion'));
+    expect(container.textContent).toContain('Output limit reached.');
+    expect(button('Save development proposal record')).toBeTruthy();
+    await click(button('Preview linked changes'));
+    expect(onPreview.mock.calls[0][0].bindings.priorValue.quote).toBe('120');
+  });
+
   it('edits a performance and independent reference through the real review transaction', async () => {
     const { onPreview, onCommit } = await renderPerformanceReview();
     const action = 'Use an event roster to specify a follow-up route-choice collection and retain missing responses.';

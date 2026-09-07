@@ -226,7 +226,7 @@ function retainedCountReferences(previous, next) {
   });
 }
 
-function blueprintFor(sources, { legacyOperationPresentation = false } = {}) {
+function blueprintFor(sources, { legacyOperationPresentation = false, courseMap } = {}) {
   const lessons = sources.flatMap((source) => {
     const teachingTask = rebuildTeachingTaskSource(source, source.objective, {
       legacyOperationPresentation: legacyOperationPresentation && source.operationPlan === undefined,
@@ -245,7 +245,22 @@ function blueprintFor(sources, { legacyOperationPresentation = false } = {}) {
         ]
       : [];
   });
-  return { lessons: linkTeachingTaskSequence(lessons) };
+  // A sparse task ledger must retain the course's lesson positions on both
+  // creation and later edits. Otherwise a lesson-two task can claim lesson one.
+  const courseLessons = courseMap?.lessons?.length
+    ? courseMap.lessons.map((row, index) => {
+        const lessonNumber = row.lessonNumber || index + 1;
+        return (
+          lessons.find((lesson) => lesson.lessonNumber === lessonNumber) || {
+            id: `lesson-${lessonNumber}`,
+            lessonNumber,
+            title: row.title || `Lesson ${lessonNumber}`,
+            outcomes: (row.sections || []).map((section) => section.learningObjectives).filter(Boolean),
+          }
+        );
+      })
+    : null;
+  return { lessons: linkTeachingTaskSequence(courseLessons || lessons) };
 }
 
 export function applyTeachingTaskSourceEdit({ featureId, oldData, newData, editPath, deliverables, courseMap }) {
@@ -310,16 +325,18 @@ export function projectTeachingTaskUpdate({
   courseMap,
   materialEdit,
 }) {
+  const inserting = originalSource == null;
   if (
-    !validTeachingTaskSource(originalSource) ||
     !validTeachingTaskSource(updatedSource) ||
-    originalSource.id !== updatedSource.id ||
-    originalSource.kind !== updatedSource.kind ||
-    originalSource.lessonId !== updatedSource.lessonId ||
-    !equal(
-      originalSource.inputs.map((input) => input.id),
-      updatedSource.inputs.map((input) => input.id),
-    ) ||
+    (!inserting &&
+      (!validTeachingTaskSource(originalSource) ||
+        originalSource.id !== updatedSource.id ||
+        originalSource.kind !== updatedSource.kind ||
+        originalSource.lessonId !== updatedSource.lessonId ||
+        !equal(
+          originalSource.inputs.map((input) => input.id),
+          updatedSource.inputs.map((input) => input.id),
+        ))) ||
     !rebuildTeachingTaskSource(updatedSource)
   )
     return { status: 'needs-review', message: 'The proposed teaching task is not valid. No material has changed.' };
@@ -331,17 +348,29 @@ export function projectTeachingTaskUpdate({
   // silently replace a more recent source revision.
   for (const source of readTeachingTaskSources(courseMap))
     if (validTeachingTaskSource(source)) sourcesById.set(source.id, source);
-  if (sourcesById.has(originalSource.id) && !equal(sourcesById.get(originalSource.id), originalSource))
+  if (
+    inserting &&
+    [...sourcesById.values()].some(
+      (source) => source.id === updatedSource.id || source.lessonNumber === updatedSource.lessonNumber,
+    )
+  )
+    return {
+      status: 'needs-review',
+      message:
+        'This lesson already has a shared task in its course or saved materials. Review that task before creating another.',
+    };
+  if (!inserting && sourcesById.has(originalSource.id) && !equal(sourcesById.get(originalSource.id), originalSource))
     return {
       status: 'needs-review',
       message: 'This material uses an older source revision. Review its pending sync before editing the shared record.',
     };
-  sourcesById.set(originalSource.id, originalSource);
+  if (!inserting) sourcesById.set(originalSource.id, originalSource);
   // A structural review must not clear a different, still-unreviewed source
   // edit in another material. It may consume that pending edit only when the
   // accepted source includes the exact wording the teacher entered.
   for (const entry of Object.values(deliverables)) {
     if (
+      inserting ||
       !entry?.data?.taskSourceReview ||
       !entry.data.teachingTaskSources?.some((source) => source?.id === originalSource.id)
     )
@@ -363,7 +392,7 @@ export function projectTeachingTaskUpdate({
   const oldSources = [...sourcesById.values()];
   const sourceContext = rebuildTeachingTaskSource(originalSource)?.sourceContextId;
   const replacements = new Map(
-    originalSource.inputs.flatMap((input, index) =>
+    (originalSource?.inputs || []).flatMap((input, index) =>
       input.text !== updatedSource.inputs[index].text ? [[input.text, updatedSource.inputs[index].text]] : [],
     ),
   );
@@ -378,6 +407,7 @@ export function projectTeachingTaskUpdate({
       inputs: source.inputs.map((input) => ({ ...input, text: replacements.get(input.text) ?? input.text })),
     };
   });
+  if (inserting) nextSources.push(updatedSource);
   if (nextSources.some((source, index) => !equal(source, oldSources[index]) && !rebuildTeachingTaskSource(source)))
     return {
       status: 'needs-review',
@@ -387,16 +417,31 @@ export function projectTeachingTaskUpdate({
   const affectedIds = new Set(
     nextSources.filter((source, index) => !equal(source, oldSources[index])).map((source) => source.id),
   );
-  const oldBlueprint = blueprintFor(oldSources, { legacyOperationPresentation: true });
-  const nextBlueprint = blueprintFor(nextSources);
+  const oldBlueprint = blueprintFor(oldSources, {
+    legacyOperationPresentation: true,
+    courseMap,
+  });
+  const nextBlueprint = blueprintFor(nextSources, { courseMap });
   const changed = {};
   const before = {};
   const conflicts = [];
   for (const [id, entry] of Object.entries(deliverables)) {
     if (
       !entry?.data ||
-      !Array.isArray(entry.data.teachingTaskSources) ||
-      !entry.data.teachingTaskSources.some((source) => affectedIds.has(source.id))
+      (inserting
+        ? ![
+            'syllabus',
+            'lessonPlans',
+            'slideDecks',
+            'assignments',
+            'rubrics',
+            'discussions',
+            'quizBank',
+            'studyGuides',
+            'courseFaq',
+          ].includes(id)
+        : !Array.isArray(entry.data.teachingTaskSources) ||
+          !entry.data.teachingTaskSources.some((source) => affectedIds.has(source.id)))
     )
       continue;
     const previous = finalizeCompiledDeliverableLanguage(
@@ -414,7 +459,9 @@ export function projectTeachingTaskUpdate({
     delete next.teachingTaskSources;
     delete current.teachingTaskSources;
     const localConflicts = [];
-    const data = mergeTaskProjection(previous, next, current, [], localConflicts);
+    const merged = mergeTaskProjection(previous, next, current, [], localConflicts);
+    const data = inserting ? preserveTeacherEdits(entry.data, merged) : merged;
+    if (inserting) localConflicts.push(...(data.taskSyncConflicts || []));
     // A source edit is explicitly accepted, unlike a competing prose edit.
     data.teachingTaskSources = nextSources;
     const freshConflicts = localConflicts.map((conflict) => ({
