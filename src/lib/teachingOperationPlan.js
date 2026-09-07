@@ -102,7 +102,8 @@ export function validateTeachingOperationPlan(plan, inputs, objective) {
   if (!spec) return { valid: false, issues: [issue('plan-operation', 'This teaching operation is not supported.')] };
   if (
     plan.presentationVersion !== undefined &&
-    (plan.operation !== 'observed-proportion' || ![1, 2].includes(plan.presentationVersion))
+    (![1, 2, 3].includes(plan.presentationVersion) ||
+      (plan.operation !== 'observed-proportion' && plan.presentationVersion !== 3))
   )
     issues.push(issue('plan-presentation', 'This teaching presentation version is not supported.'));
   if (
@@ -260,9 +261,10 @@ export function createTeachingOperationPlan({
   const plan = {
     version,
     operation,
-    // Missing means the original development wording. Keep it reproducible
-    // for three-way merges; a fresh source/task review opts into the revision.
-    ...(operation === 'observed-proportion' ? { presentationVersion: 2 } : {}),
+    // Missing replays the original development wording. V2 improves proportion
+    // reasoning; V3 also separates study-guide roles. A fresh review opts in,
+    // while saved versions remain reproducible for three-way merges.
+    presentationVersion: 3,
     bindings: structuredClone(bindings),
     inputRevisions: Object.fromEntries(inputs.map((input) => [input.id, operationInputRevision(input)])),
     admission: structuredClone(admission || { kind: 'model-proposal' }),

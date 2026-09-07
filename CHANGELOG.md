@@ -2,6 +2,10 @@
 
 ## Unreleased — v0.20.0 development
 
+- Organize newly reviewed study guides around one worked task, focused guided practice, an independent case and a concrete revision activity. Derive references and feedback from the shared task; preserve authored requirements and replay older guide versions for safe upgrades.
+- Localize reviewed Chinese guide headings and source numbering, add printable working space, separate answer keys onto a new page, and preserve the actual review strategy in Word/PDF exports. Keep the existing material layout and editors.
+- Fix guide term examples crashing after label localization, legacy collection aliases receiving the wrong export title, and generated practice removals incorrectly conflicting on revision metadata alone. Preserve actual teacher-answer conflicts.
+- Keep reviewed guide summary and concept-explanation edits in their material instead of proposing that they replace the course topic. Preserve teacher explanations through source recalculation and local restore; source and goal edits retain their separate paths.
 - Improve reviewed proportion explanations, exact/rounded notation and alternative solutions. A numerical complement no longer invents opposite outcomes for unclassified records. Preserve original source excerpts and rubric example evidence through language cleanup.
 - Version proportion presentation so an explicit review can upgrade older tasks without losing their merge baseline. Avoid reformatting unrelated content during task projection; preserve teacher conflicts and reversible changes.
 - Capture bilingual development tasks through actual creation and DOCX/PDF exporters. Record remaining study-guide repetition and localization defects; these local checks do not constitute full-course or model acceptance.

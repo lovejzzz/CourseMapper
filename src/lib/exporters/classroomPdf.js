@@ -1,3 +1,4 @@
+import { studyGuideExportLabel } from '../studyGuidePresentation.js';
 import { _buildDocxContentShared, buildDocxTitleChildren } from './docxExporter.js';
 import { resolveFeatureLabel } from './exporterUtils.js';
 
@@ -126,7 +127,7 @@ export function classroomPdfDefinition(content, courseName, label, options = {})
 }
 
 export function deliverablePdfDefinition(featureId, data, courseName) {
-  const label = resolveFeatureLabel(featureId);
+  const label = studyGuideExportLabel(featureId, data, resolveFeatureLabel(featureId));
   const content = buildDocxTitleChildren(documentAdapter, courseName, label, { compact: true });
   _buildDocxContentShared(featureId, data, content, { ...documentAdapter, exportTitle: courseName });
   // Legacy six-column rubric matrices need a wider sheet; shared-task

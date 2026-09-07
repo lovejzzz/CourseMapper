@@ -1,4 +1,5 @@
 const INTERNAL_DELIVERABLE_METADATA_KEYS = new Set([
+  'teachingGuideVersion',
   'teachingTaskSources',
   'teachingTaskLink',
   'teacherEdits',

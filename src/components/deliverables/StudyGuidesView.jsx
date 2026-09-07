@@ -1,3 +1,4 @@
+import { isReviewedStudyGuide, studyGuideText } from '../../lib/studyGuidePresentation.js';
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import EditProposalPanel from '../EditProposalPanel';
 import { renderedDeliverableCollectionKey } from '../../lib/renderedDeliverableCollection.js';
@@ -46,6 +47,8 @@ export default function StudyGuidesView({
         const g =
           currentTier !== 'standard' && baseG.tiers?.[currentTier] ? { ...baseG, ...baseG.tiers[currentTier] } : baseG;
         const subtitle = g.examScope || '';
+        const t = (label) => studyGuideText(g, label);
+        const reviewed = isReviewedStudyGuide(g);
         return (
           <React.Fragment key={i}>
             {proposals?.[i] && (
@@ -73,7 +76,7 @@ export default function StudyGuidesView({
                 {/* Summary */}
                 {g.summary && (
                   <div>
-                    <SectionHeading>Concept Summary</SectionHeading>
+                    <SectionHeading>{t('Concept Summary')}</SectionHeading>
                     <p className="text-xs text-slate-700 leading-relaxed">
                       <E value={g.summary} path={[key, i, 'summary']} onEdit={onEdit} multiline />
                     </p>
@@ -82,18 +85,18 @@ export default function StudyGuidesView({
 
                 {g.sourceEvidenceBrief?.claims?.length > 0 && (
                   <div className="rounded-xl border border-teal-100 bg-teal-50/45 p-3">
-                    <SectionHeading>Evidence Ledger</SectionHeading>
+                    <SectionHeading>{t('Evidence Ledger')}</SectionHeading>
                     <ul className="mt-1.5 space-y-1.5">
                       {g.sourceEvidenceBrief.claims.map((claim, j) => (
                         <li key={j} className="flex gap-2 text-xs leading-relaxed text-slate-700">
-                          <span className="mt-0.5 shrink-0 text-teal-500">◆</span>
+                          <span className="mt-0.5 shrink-0 text-teal-500">{reviewed ? `${j + 1}.` : '◆'}</span>
                           <E value={claim} path={[key, i, 'sourceEvidenceBrief', 'claims', j]} onEdit={onEdit} />
                         </li>
                       ))}
                     </ul>
                     {g.sourceEvidenceBrief.sources?.length > 0 && (
                       <p className="mt-2 text-xs leading-relaxed text-slate-500">
-                        <span className="font-semibold text-slate-600">Study from:</span>{' '}
+                        <span className="font-semibold text-slate-600">{t('Study from')}:</span>{' '}
                         {g.sourceEvidenceBrief.sources.map((source, j) => (
                           <React.Fragment key={`${source.url || source.title}-${j}`}>
                             {j > 0 ? '; ' : ''}
@@ -118,7 +121,7 @@ export default function StudyGuidesView({
 
                 {g.objectivePractice?.length > 0 && (
                   <div>
-                    <SectionHeading>Learning Practice</SectionHeading>
+                    <SectionHeading>{t('Learning Practice')}</SectionHeading>
                     {g.objectivePractice.map((practice, j) => (
                       <p key={j} className="text-xs text-slate-700 leading-relaxed">
                         <E value={practice} path={[key, i, 'objectivePractice', j]} onEdit={onEdit} />
@@ -128,7 +131,7 @@ export default function StudyGuidesView({
                 )}
                 {g.workedExample?.problem && (
                   <div className="rounded-lg border border-teal-100 bg-teal-50/40 p-3 space-y-2 text-xs text-slate-700">
-                    <SectionHeading>Worked Example</SectionHeading>
+                    <SectionHeading>{t('Worked Example')}</SectionHeading>
                     <E value={g.workedExample.problem} path={[key, i, 'workedExample', 'problem']} onEdit={onEdit} />
                     <ol className="list-decimal pl-5 space-y-1.5">
                       {(g.workedExample.steps || []).map((step, j) => (
@@ -151,22 +154,23 @@ export default function StudyGuidesView({
                 {/* Key Terms */}
                 {g.keyTerms?.length > 0 && (
                   <div>
-                    <SectionHeading>Key Terms &amp; Definitions</SectionHeading>
+                    <SectionHeading>{t('Key Terms & Definitions')}</SectionHeading>
                     <div className="space-y-2">
-                      {g.keyTerms.map((t, j) => (
+                      {g.keyTerms.map((term, j) => (
                         <div key={j} className="bg-teal-50/40 rounded-lg px-3 py-2 border border-teal-100/50">
                           <div className="flex flex-wrap items-baseline gap-1">
                             <span className="text-xs font-bold text-teal-800">
-                              <E value={t.term} path={[key, i, 'keyTerms', j, 'term']} onEdit={onEdit} />
+                              <E value={term.term} path={[key, i, 'keyTerms', j, 'term']} onEdit={onEdit} />
                             </span>
                             <span className="text-xs text-slate-600">
-                              — <E value={t.definition} path={[key, i, 'keyTerms', j, 'definition']} onEdit={onEdit} />
+                              —{' '}
+                              <E value={term.definition} path={[key, i, 'keyTerms', j, 'definition']} onEdit={onEdit} />
                             </span>
                           </div>
-                          {t.example && (
+                          {term.example && (
                             <p className="text-xs text-teal-600 mt-0.5 italic">
-                              <span className="font-semibold not-italic">Ex:</span>{' '}
-                              <E value={t.example} path={[key, i, 'keyTerms', j, 'example']} onEdit={onEdit} />
+                              <span className="font-semibold not-italic">{reviewed ? t('Example') : 'Ex'}:</span>{' '}
+                              <E value={term.example} path={[key, i, 'keyTerms', j, 'example']} onEdit={onEdit} />
                             </p>
                           )}
                         </div>
@@ -178,7 +182,7 @@ export default function StudyGuidesView({
                 {/* Concept connections */}
                 {g.conceptConnections?.length > 0 && (
                   <div>
-                    <SectionHeading>Concept Connections</SectionHeading>
+                    <SectionHeading>{t('Concept Connections')}</SectionHeading>
                     <ul className="space-y-1.5">
                       {g.conceptConnections.map((c, j) => (
                         <li key={j} className="text-xs text-slate-700 flex gap-2 leading-relaxed">
@@ -193,7 +197,7 @@ export default function StudyGuidesView({
                 {/* Common misconceptions */}
                 {g.commonMisconceptions?.length > 0 && (
                   <div className="bg-red-50/30 rounded-lg p-3 border border-red-100/40">
-                    <SectionHeading>Common Misconceptions</SectionHeading>
+                    <SectionHeading>{t('Common Misconceptions')}</SectionHeading>
                     <div className="space-y-2.5">
                       {g.commonMisconceptions.map((m, j) => (
                         <div key={j}>
@@ -224,7 +228,7 @@ export default function StudyGuidesView({
                 {/* Review Questions */}
                 {g.reviewQuestions?.length > 0 && (
                   <div>
-                    <SectionHeading>Review Questions</SectionHeading>
+                    <SectionHeading>{t('Review Questions')}</SectionHeading>
                     <ol className="space-y-2">
                       {g.reviewQuestions.map((q, j) => {
                         const isObj = typeof q === 'object' && q !== null;
@@ -239,7 +243,17 @@ export default function StudyGuidesView({
                               </span>
                               <div className="flex-1">
                                 <div className="flex flex-wrap items-center gap-1.5 mb-0.5">
-                                  {bloomsLevel && <BloomsTag level={bloomsLevel} />}
+                                  {reviewed ? (
+                                    <span className="font-medium text-teal-700">
+                                      {t(
+                                        q.practiceKind === 'independent-transfer'
+                                          ? 'Independent practice'
+                                          : 'Guided practice',
+                                      )}
+                                    </span>
+                                  ) : (
+                                    bloomsLevel && <BloomsTag level={bloomsLevel} />
+                                  )}
                                 </div>
                                 <E
                                   value={qText}
@@ -260,7 +274,7 @@ export default function StudyGuidesView({
                                 {isObj && q.answer && (
                                   <details className="mt-2 rounded border border-teal-100 p-2">
                                     <summary className="cursor-pointer font-medium text-teal-700">
-                                      Check your answer
+                                      {t('Check your answer')}
                                     </summary>
                                     <div className="mt-2 whitespace-pre-line">
                                       <E
@@ -296,7 +310,7 @@ export default function StudyGuidesView({
                 {/* Practice Activities */}
                 {g.practiceActivities?.length > 0 && (
                   <div>
-                    <SectionHeading>Practice Activities</SectionHeading>
+                    <SectionHeading>{t('Practice Activities')}</SectionHeading>
                     <ul className="space-y-1.5">
                       {g.practiceActivities.map((a, j) => (
                         <li key={j} className="text-xs text-slate-700 flex gap-2 leading-relaxed">
@@ -311,10 +325,10 @@ export default function StudyGuidesView({
                 {/* Exam Prep */}
                 {g.examPrep && (
                   <div className="bg-amber-50/40 rounded-lg p-3 border border-amber-100/50 space-y-2">
-                    <h4 className="text-xs font-bold text-amber-700">📝 Exam Prep</h4>
+                    <h4 className="text-xs font-bold text-amber-700">📝 {t('Exam Prep')}</h4>
                     {g.examPrep.keyTopicsToKnow?.length > 0 && (
                       <div>
-                        <span className="text-xs font-semibold text-amber-700">High-Probability Topics</span>
+                        <span className="text-xs font-semibold text-amber-700">{t('High-Probability Topics')}</span>
                         <ul className="mt-1 space-y-0.5">
                           {g.examPrep.keyTopicsToKnow.map((t, j) => (
                             <li key={j} className="text-xs text-slate-700 flex gap-1.5">
@@ -327,7 +341,7 @@ export default function StudyGuidesView({
                     )}
                     {g.examPrep.commonErrors && (
                       <div>
-                        <span className="text-xs font-semibold text-red-600">Common Errors to Avoid</span>
+                        <span className="text-xs font-semibold text-red-600">{t('Common Errors to Avoid')}</span>
                         <p className="text-xs text-slate-700 mt-0.5 leading-relaxed">
                           <E
                             value={g.examPrep.commonErrors}
@@ -340,7 +354,7 @@ export default function StudyGuidesView({
                     )}
                     {g.examPrep.reviewStrategy && (
                       <div>
-                        <span className="text-xs font-semibold text-slate-500">Recommended Study Strategy</span>
+                        <span className="text-xs font-semibold text-slate-500">{t('Recommended Study Strategy')}</span>
                         <p className="text-xs text-slate-700 mt-0.5 leading-relaxed">
                           <E
                             value={g.examPrep.reviewStrategy}
@@ -353,7 +367,7 @@ export default function StudyGuidesView({
                     )}
                     {g.examPrep.timeManagement && (
                       <div>
-                        <span className="text-xs font-semibold text-slate-500">Time Management</span>
+                        <span className="text-xs font-semibold text-slate-500">{t('Time Management')}</span>
                         <p className="text-xs text-slate-700 mt-0.5 leading-relaxed">
                           <E
                             value={g.examPrep.timeManagement}

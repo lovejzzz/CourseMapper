@@ -341,9 +341,12 @@ describe('operation bindings in the actual material compiler and sync', () => {
     });
     expect(result.status).toBe('applied');
     expect(result.conflicts).toEqual([]);
-    expect(result.changed.studyGuides.data.studyGuides[0].reviewQuestions[0].question).toContain(
+    expect(result.changed.studyGuides.data.studyGuides[0].workedExample.problem).toContain(
       'propose one specific new record',
     );
+    expect(
+      result.changed.studyGuides.data.studyGuides[0].reviewQuestions.some((q) => q.practiceKind === 'task-rehearsal'),
+    ).toBe(false);
     expect(readTeachingTaskSources(result.courseMap)[0].operationPlan.operation).toBe('record-amendment');
   });
 

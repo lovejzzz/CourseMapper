@@ -45,6 +45,19 @@ function anchoredPath(data, edit) {
 
 function sameGeneratedProjection(a, b) {
   if (equal(a, b)) return true;
+  // A regenerated revision digest can differ on an otherwise identical
+  // identified practice item. Removing that generated item is safe; any
+  // difference in its question, answer or other teacher content still conflicts.
+  if (
+    object(a) &&
+    object(b) &&
+    typeof a.taskId === 'string' &&
+    a.taskId === b.taskId &&
+    /^[a-f0-9]{64}$/.test(a.taskRevision) &&
+    /^[a-f0-9]{64}$/.test(b.taskRevision) &&
+    equal({ ...a, taskRevision: b.taskRevision }, b)
+  )
+    return true;
   // Older inserted content slides omitted the unused activity slot, while
   // replay wrote null. They represent the same empty slot. Restrict this
   // compatibility rule to identified generated content slides; real teacher

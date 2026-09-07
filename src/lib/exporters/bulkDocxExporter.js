@@ -1,3 +1,4 @@
+import { studyGuideExportLabel } from '../studyGuidePresentation.js';
 import { getDocx, resolveFeatureLabel } from './exporterUtils.js';
 import { renderedDeliverableCollection } from '../renderedDeliverableRoot.js';
 import {
@@ -36,7 +37,7 @@ export async function buildDeliverableDocxBlob(featureId, data, courseName) {
   const docx = await getDocx();
   const { Packer, BorderStyle } = docx;
 
-  const label = resolveFeatureLabel(featureId);
+  const label = studyGuideExportLabel(featureId, data, resolveFeatureLabel(featureId));
   const THIN_BORDER = { style: BorderStyle.SINGLE, size: 4, color: 'D0D0D0' };
   // Cover page when the document bundles several top-level entries.
   // v0.10.1 fix: count the feature's ROOT array, not the largest nested

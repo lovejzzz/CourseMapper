@@ -83,7 +83,7 @@ describe('versioned proportion teaching presentation', () => {
     (zh) => {
       const { task, inputs } = compile(zh);
       const alternative = task.contrastResponses[3];
-      expect(task.operationPlan.presentationVersion).toBe(2);
+      expect(task.operationPlan.presentationVersion).toBe(3);
       expect(task.answer).toContain(zh ? '53.75%' : '61.29%');
       expect(task.answer).toContain(zh ? '43/80 = 0.5375 = 53.75%' : '19/31 ≈ 0.6129 ≈ 61.29%');
       expect(task.answer).not.toMatch(/× 100\s*[=≈]\s*[\d.]+%/);
@@ -148,7 +148,7 @@ describe('versioned proportion teaching presentation', () => {
       expect(applied.modelCalls).toBe(0);
       const source = readTeachingTaskSources(applied.courseMap)[0];
       expect(source.inputs).toEqual(state.source.inputs);
-      expect(source.operationPlan.presentationVersion).toBe(2);
+      expect(source.operationPlan.presentationVersion).toBe(3);
       expect(source.id).toBe(state.source.id);
       const after = {
         courseMap: applied.courseMap,

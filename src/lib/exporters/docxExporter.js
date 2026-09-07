@@ -1,3 +1,4 @@
+import { isReviewedStudyGuide, studyGuideText, studyGuideExportLabel } from '../studyGuidePresentation.js';
 import { additionalAnswerChecks } from './answerKeyChecks.js';
 import { getDocx, getSaveAs, isInternalExportMetadataKey, resolveFeatureLabel } from './exporterUtils.js';
 import { expandKeys } from '../keyMaps.js';
@@ -1757,54 +1758,61 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
       const expanded = expandKeys('studyGuides', data);
       const studyGuides = renderedDeliverableCollection('studyGuides', expanded);
       for (const [guideIndex, g] of studyGuides.entries()) {
-        children.push(makeHeading(g.lessonTitle || 'Study Guide'));
+        const t = (label) => studyGuideText(g, label);
+        const reviewed = isReviewedStudyGuide(g);
+        const title = g.lessonTitle || t('Study Guide');
+        children.push(
+          makeHeading(reviewed && g.language === 'zh' ? title.replace(/^Lesson (\d+):\s*/, '第 $1 课：') : title),
+        );
         if (g.examScope) children.push(makeText(g.examScope));
         if (g.learningObjectives?.length) {
-          children.push(makeSubHeading('Learning Objectives'));
+          children.push(makeSubHeading(t('Learning Objectives')));
           g.learningObjectives.forEach((objective) => children.push(makeBullet(objective)));
         }
         if (g.objectivePractice?.length) {
-          children.push(makeSubHeading('Practice the Objectives'));
+          children.push(makeSubHeading(t('Practice the Objectives')));
           g.objectivePractice.forEach((move) => children.push(makeBullet(move)));
         }
         if (g.assignedReadings?.length) {
-          children.push(makeSubHeading('Assigned Readings'));
+          children.push(makeSubHeading(t('Assigned Readings')));
           g.assignedReadings.forEach((reading) => children.push(makeBullet(reading)));
         }
         if (g.summary) {
-          children.push(makeSubHeading('Concept Summary'));
+          children.push(makeSubHeading(t('Concept Summary')));
           children.push(makeText(g.summary));
         }
         if (g.sourceEvidenceBrief?.claims?.length) {
-          children.push(makeSubHeading('Evidence Ledger'));
-          g.sourceEvidenceBrief.claims.forEach((claim) => children.push(makeBullet(claim)));
+          children.push(makeSubHeading(t('Evidence Ledger')));
+          g.sourceEvidenceBrief.claims.forEach((claim, index) =>
+            children.push(reviewed ? makeNumbered(index + 1, claim) : makeBullet(claim)),
+          );
           if (g.sourceEvidenceBrief.sources?.length) {
-            children.push(makeBold('Study from', ''));
+            children.push(makeBold(t('Study from'), ''));
             g.sourceEvidenceBrief.sources.forEach((source) => children.push(makeBullet(formatEvidenceSource(source))));
           }
         }
         if (g.keyTerms?.length) {
-          children.push(makeSubHeading('Key Terms'));
+          children.push(makeSubHeading(t('Key Terms')));
           // v0.12.1: a real two-column definition table instead of glued
           // label-value paragraphs.
           children.push(
             makeKeyValueTable(
-              g.keyTerms.map((t) => {
-                const parts = [t.definition || ''];
-                if (t.example) parts.push(`Example: ${t.example}`);
+              g.keyTerms.map((term) => {
+                const parts = [term.definition || ''];
+                if (term.example) parts.push(`${t('Example')}: ${term.example}`);
                 // CurriculumOS: genome-linked terms carry a source citation —
                 // render the receipt instructors trust ("Source: OpenStax …").
-                if (t.source) parts.push(`Source: ${t.source}`);
-                return [t.term || '', parts.join(' — ')];
+                if (term.source) parts.push(`${t('Source')}: ${term.source}`);
+                return [term.term || '', parts.join(' — ')];
               }),
-              { headers: ['Term', 'Definition'] },
+              { headers: [t('Term'), t('Definition')] },
             ),
           );
         }
         // v0.14.5 (F2): language-course dialogue practice, right after the
         // key terms it draws its vocabulary from.
         if (g.dialoguePractice?.turns?.length) {
-          children.push(makeSubHeading('Dialogue Practice'));
+          children.push(makeSubHeading(t('Dialogue Practice')));
           if (g.dialoguePractice.intro) children.push(makeText(g.dialoguePractice.intro));
           g.dialoguePractice.turns.forEach((turn) =>
             children.push(makeBullet(`${turn.speaker}: ${turn.line}${turn.rm ? ` (${turn.rm})` : ''}`)),
@@ -1812,23 +1820,25 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         }
         // v0.13.3: the worked example students study from.
         if (g.workedExample?.problem) {
-          children.push(makeSubHeading('Worked Example'));
-          if (g.workedExample.studentTask) children.push(makeBold('Practice task', g.workedExample.studentTask));
+          children.push(makeSubHeading(t('Worked Example')));
+          if (g.workedExample.studentTask) children.push(makeBold(t('Practice task'), g.workedExample.studentTask));
           if (g.workedExample.problem !== g.workedExample.studentTask) children.push(makeText(g.workedExample.problem));
           (g.workedExample.steps || []).forEach((step, si) => children.push(makeNumbered(si + 1, step)));
-          if (g.workedExample.result) children.push(makeCallout('Result', g.workedExample.result));
-          if (g.workedExample.interpretation) children.push(makeBold('Interpretation', g.workedExample.interpretation));
-          if (g.workedExample.boundary) children.push(makeCallout('Boundary', g.workedExample.boundary));
-          if (g.workedExample.transferTask) children.push(makeBold('Try the variation', g.workedExample.transferTask));
+          if (g.workedExample.result) children.push(makeCallout(t('Result'), g.workedExample.result));
+          if (g.workedExample.interpretation)
+            children.push(makeBold(t('Interpretation'), g.workedExample.interpretation));
+          if (g.workedExample.boundary) children.push(makeCallout(t('Boundary'), g.workedExample.boundary));
+          if (g.workedExample.transferTask)
+            children.push(makeBold(t('Try the variation'), g.workedExample.transferTask));
         }
         // How to reason about this structure (metacognitive scaffold)
         if (g.reasoningRoutine?.length) {
-          children.push(makeSubHeading('How to Reason About This'));
+          children.push(makeSubHeading(t('How to Reason About This')));
           g.reasoningRoutine.forEach((r) => children.push(makeBullet(r.howToReason || '')));
         }
         // Concept connections
         if (g.conceptConnections?.length) {
-          children.push(makeSubHeading('Concept Connections'));
+          children.push(makeSubHeading(t('Concept Connections')));
           g.conceptConnections.forEach((c) =>
             children.push(
               makeBullet(typeof c === 'string' ? c : `${c.from || ''} ↔ ${c.to || ''}: ${c.relationship || ''}`),
@@ -1837,47 +1847,62 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         }
         // Common misconceptions
         if (g.commonMisconceptions?.length) {
-          children.push(makeSubHeading('Common Misconceptions'));
+          children.push(makeSubHeading(t('Common Misconceptions')));
           g.commonMisconceptions.forEach((m) => {
             if (typeof m === 'string') {
               children.push(makeBullet(m));
               return;
             }
             if (m.correction) {
-              children.push(makeBold('Misconception', m.misconception || '', { keepNext: true, keepLines: true }));
-              children.push(makeCallout('Correction', m.correction, { keepLines: true }));
+              children.push(makeBold(t('Misconception'), m.misconception || '', { keepNext: true, keepLines: true }));
+              children.push(
+                makeCallout(t(reviewed ? 'Try this check' : 'Correction'), m.correction, { keepLines: true }),
+              );
             } else {
-              children.push(makeBold('Misconception', m.misconception || ''));
+              children.push(makeBold(t('Misconception'), m.misconception || ''));
             }
           });
         }
         // Review questions
         if (g.reviewQuestions?.length) {
-          children.push(makeSubHeading('Review Questions'));
+          children.push(makeSubHeading(t('Review Questions')));
           g.reviewQuestions.forEach((q, j) => {
             if (typeof q === 'string') {
               children.push(makeNumbered(j + 1, q));
               return;
             }
-            const bloomLabel = q.bloomsLevel ? ` (Bloom: ${q.bloomsLevel})` : '';
+            const bloomLabel = !reviewed && q.bloomsLevel ? ` (Bloom: ${q.bloomsLevel})` : '';
+            if (reviewed)
+              children.push(
+                makeBold(
+                  t(q.practiceKind === 'independent-transfer' ? 'Independent practice' : 'Guided practice'),
+                  '',
+                  { keepNext: true },
+                ),
+              );
             // A review question and its hint form one instructional unit.
             // Keeping the pair together prevents Word from stranding the hint
             // on a sparse continuation page while the question remains above.
             children.push(makeNumbered(j + 1, `${q.question || q}${bloomLabel}`, { keepNext: Boolean(q.hint) }));
             if (q.hint)
               children.push(
-                makeItalic(`Hint: ${q.hint}`, {
+                makeItalic(`${t('Hint')}: ${q.hint}`, {
                   keepLines: true,
                   // Keep the final two review prompts together. This moves one
                   // complete question unit to a continuation page when needed
                   // instead of leaving only the last prompt and recap there.
-                  keepNext: j === g.reviewQuestions.length - 2,
+                  keepNext: !reviewed && j === g.reviewQuestions.length - 2,
                 }),
               );
+            if (reviewed) {
+              children.push(makeItalic(`${t('Response')}:`));
+              for (let line = 0; line < (q.practiceKind === 'independent-transfer' ? 8 : 3); line++)
+                children.push(makeText('________________________________________________________'));
+            }
           });
         }
         if (g.reviewQuestions?.some((q) => q?.answer)) {
-          children.push(makeSubHeading('Practice Answer Key'));
+          children.push(makeSubHeading(t('Practice Answer Key'), { pageBreakBefore: reviewed }));
           g.reviewQuestions.forEach((q, j) => {
             if (!q?.answer) return;
             const checks = additionalAnswerChecks(q);
@@ -1887,7 +1912,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         }
         // Practice activities
         if (g.practiceActivities?.length) {
-          children.push(makeSubHeading('Practice Activities'));
+          children.push(makeSubHeading(t('Practice Activities')));
           g.practiceActivities.forEach((a) => children.push(makeBullet(typeof a === 'string' ? a : a.activity || '')));
         }
         // Exam prep
@@ -1920,7 +1945,18 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             isSimpleExamValue(g.examPrep.commonErrors) &&
             isSimpleExamValue(g.examPrep.reviewStrategy) &&
             isSimpleExamValue(g.examPrep.timeManagement);
-          if (compactExamPrep) {
+          if (reviewed && compactExamPrep) {
+            if (g.examPrep.reviewStrategy) children.push(makeBold(t('Review Strategy'), g.examPrep.reviewStrategy));
+            if (g.examPrep.timeManagement) children.push(makeBold(t('Time Management'), g.examPrep.timeManagement));
+            if (newExamTopics.length) children.push(makeBold(t('Key Topics'), newExamTopics.join('; ')));
+            if (g.examPrep.commonErrors)
+              children.push(
+                makeBold(
+                  t('Common Errors'),
+                  Array.isArray(g.examPrep.commonErrors) ? g.examPrep.commonErrors.join('; ') : g.examPrep.commonErrors,
+                ),
+              );
+          } else if (compactExamPrep) {
             const reviewTarget = /(?:in|for)\s+the\s+([^.!?]+)[.!?]?$/i.exec(g.examPrep.reviewStrategy || '')?.[1];
             const guideLabel = String(g.lessonTitle || g.title || `study guide ${guideIndex + 1}`).trim();
             const compactReview = `For ${guideLabel}, compare the two source claims; record what they support, what remains unproven, and the revision required${
@@ -1958,26 +1994,28 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
               // chapter. Preserve every non-duplicated field in one labeled
               // paragraph so Word cannot strand a short list and two labels
               // on an otherwise empty final page.
-              children.push(makeBold('Exam Preparation', compactParts.join(' '), { compact: true, keepLines: true }));
+              children.push(
+                makeBold(t('Exam Preparation'), compactParts.join(' '), { compact: true, keepLines: true }),
+              );
             }
           } else {
-            children.push(makeSubHeading('Exam Preparation'));
+            children.push(makeSubHeading(t('Exam Preparation')));
             if (newExamTopics.length) {
-              children.push(makeBold('Key Topics', ''));
+              children.push(makeBold(t('Key Topics'), ''));
               newExamTopics.forEach((t) => children.push(makeBullet(typeof t === 'string' ? t : JSON.stringify(t))));
             }
             if (Array.isArray(g.examPrep.commonErrors) && g.examPrep.commonErrors.length) {
-              children.push(makeBold('Common Errors', ''));
+              children.push(makeBold(t('Common Errors'), ''));
               g.examPrep.commonErrors.forEach((e) =>
                 children.push(makeBullet(typeof e === 'string' ? e : JSON.stringify(e))),
               );
             } else if (typeof g.examPrep.commonErrors === 'string') {
-              children.push(makeBold('Common Errors', g.examPrep.commonErrors));
+              children.push(makeBold(t('Common Errors'), g.examPrep.commonErrors));
             }
             if (g.examPrep.reviewStrategy)
               children.push(
                 makeBold(
-                  'Review Strategy',
+                  t('Review Strategy'),
                   typeof g.examPrep.reviewStrategy === 'string'
                     ? g.examPrep.reviewStrategy
                     : JSON.stringify(g.examPrep.reviewStrategy),
@@ -1986,7 +2024,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             if (g.examPrep.timeManagement)
               children.push(
                 makeBold(
-                  'Time Management',
+                  t('Time Management'),
                   typeof g.examPrep.timeManagement === 'string'
                     ? g.examPrep.timeManagement
                     : JSON.stringify(g.examPrep.timeManagement),
@@ -1995,9 +2033,9 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           }
         }
         // Legacy examTips
-        if (g.examTips && !g.examPrep) children.push(makeBold('Exam Tips', g.examTips));
+        if (g.examTips && !g.examPrep) children.push(makeBold(t('Exam Tips'), g.examTips));
         // Connection to next
-        if (g.connectionToNext) children.push(makeBold('Connection to Next Lesson', g.connectionToNext));
+        if (g.connectionToNext) children.push(makeBold(t('Connection to Next Lesson'), g.connectionToNext));
         // A final empty spacer can be pushed onto a new page when a guide
         // finishes near the boundary, producing an otherwise blank last page.
         if (guideIndex < studyGuides.length - 1) {
@@ -2536,7 +2574,7 @@ export async function exportDeliverableDocx(featureId, data, courseName) {
   const { Packer, BorderStyle } = docx;
   const saveAs = await getSaveAs();
 
-  const label = resolveFeatureLabel(featureId);
+  const label = studyGuideExportLabel(featureId, data, resolveFeatureLabel(featureId));
   const THIN_BORDER = { style: BorderStyle.SINGLE, size: 4, color: 'D0D0D0' };
   const children = buildDocxTitleChildren(docx, courseName, label, { compact: featureId === 'studyGuides' });
 

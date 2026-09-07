@@ -5,7 +5,7 @@ import { SOURCE_ARITHMETIC_PROTOCOL } from './sourceArithmeticStudyPractice.js';
 export function renderObservedProportion(plan, inputs, objective, evaluated) {
   const zh = /\p{Script=Han}/u.test(objective);
   const t = (en, cn) => (zh ? cn : en);
-  const current = plan.presentationVersion === 2;
+  const current = plan.presentationVersion >= 2;
   const quoted = (value) => (current && /[“”]/.test(value) ? `「${value}」` : `“${value}”`);
   const wording = (modern, original) => (current ? modern : original);
   const { observedGroup, countedOutcome, countRecord, scopeRecord, missingGroup, targetGroup } = evaluated.values;

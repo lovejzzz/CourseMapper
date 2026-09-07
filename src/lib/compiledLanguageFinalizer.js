@@ -602,7 +602,7 @@ function protectedAuthenticEvidenceSpans(blueprint = {}) {
     // Reviewed presentation v2 owns its sample responses and scoring wording.
     // Generic seam cleanup must not change their quotations or the text to
     // which the review evidence offsets refer. Preserve v1 replay for merges.
-    if (task.operationPlan?.presentationVersion === 2) {
+    if (task.operationPlan?.presentationVersion >= 2) {
       (task.contrastResponses || []).forEach((example) => add(example.response));
       for (const criterion of task.criteria || []) {
         [criterion.label, criterion.feedback, ...Object.values(criterion.levels || {})].forEach(add);

@@ -1,6 +1,7 @@
 import { taskCopy, taskText } from './teachingTaskCopy.js';
 import { projectTeachingTaskSyllabus } from './compilerTeachingTaskSyllabus.js';
-import { teachingTaskRubric, teachingTaskWorkedExample } from './compilerTeachingTask.js';
+import { teachingTaskRubric } from './compilerTeachingTask.js';
+import { projectTeachingStudyGuide } from './compilerTeachingStudyGuide.js';
 import { compileTeachingProgram, teachingProgramReviewQuestions } from './compilerTeachingProgram.js';
 import { teachingTaskSourceFromLesson } from './teachingTaskSource.js';
 import { projectTeachingTaskSlides } from './compilerTeachingTaskSlides.js';
@@ -472,33 +473,7 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
     if (feature === 'rubrics' && Array.isArray(row.criteria)) projectRubric(row, task);
     if (feature === 'lessonPlans') projectPlan(row, task);
     if (feature === 'slideDecks') projectTeachingTaskSlides(row, task);
-    if (feature === 'studyGuides')
-      Object.assign(row, ref(task), {
-        summary: task.summary,
-        objectivePractice: [task.question],
-        conceptConnections: task.criteria.map((c) => `${c.label}: ${c.levels.exemplary}`),
-        workedExample: teachingTaskWorkedExample(task),
-        reviewQuestions: questions(task),
-        teachingProgram: program(task),
-        practiceActivities: [
-          ...(task.preparation ? [task.preparation.instruction] : []),
-          task.question,
-          task.checkpoint.question,
-        ],
-        sourceEvidenceBrief: evidence(task, row.sourceEvidenceBrief),
-        commonMisconceptions: task.errors.map((e) => ({ misconception: e.response, correction: e.correction })),
-        examPrep: {
-          ...row.examPrep,
-          timeline:
-            'Attempt the task independently after the lesson; use the answer and criterion feedback to revise. Revisit any reasoning step you could not explain.',
-          keyTopicsToKnow: task.criteria.map((c) => c.label),
-          commonErrors: task.errors.map((e) => e.response).join(' '),
-          reviewStrategy: taskCopy(
-            task,
-            'Practice the supplied task without looking at its solution, then check each reasoning step. This is rehearsal of this record; a new context requires a separate assessment.',
-          ),
-        },
-      });
+    if (feature === 'studyGuides') projectTeachingStudyGuide(row, task);
     if (feature === 'discussions')
       Object.assign(row, ref(task), {
         context: task.inputs.map((x) => x.text).join('\n'),

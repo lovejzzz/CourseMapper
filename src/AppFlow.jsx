@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { applyTeachingTaskSourceEdit, rememberTeacherEdit } from './lib/teachingTaskContentSync.js';
+import { isStudyGuideExplanationEdit } from './lib/studyGuidePresentation.js';
 import { previewTeachingTaskReview, commitTeachingTaskReview } from './lib/teachingTaskReview.js';
 import { quarantineInvalidInstructionalPlanLineage } from './lib/instructionalPlanLineage.js';
 import FocusTrap from 'focus-trap-react';
@@ -4297,7 +4298,7 @@ export default function AppFlow({
                               : {}),
                         },
                       }));
-                      if (taskEdit) return;
+                      if (taskEdit || isStudyGuideExplanationEdit(activeTab, oldData, editPath)) return;
                       // Cascade sync: when user edits a deliverable's body text,
                       // notify the sync engine so other deliverables stay consistent.
                       // editPath shape: [arrayKey, lessonIdx, fieldName, ...]

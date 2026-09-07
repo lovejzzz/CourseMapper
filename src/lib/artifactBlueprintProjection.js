@@ -1,3 +1,5 @@
+import { isStudyGuideExplanationEdit } from './studyGuidePresentation.js';
+
 const FIELD_LABELS = {
   title: 'lesson title',
   learningObjectives: 'learning objectives',
@@ -398,6 +400,7 @@ export function projectArtifactEditToCourseMapPatch({
   editContext = null,
 }) {
   if (!featureId || !Array.isArray(editPath) || !Number.isInteger(lessonIndex) || lessonIndex < 0) return null;
+  if (isStudyGuideExplanationEdit(featureId, oldData, editPath)) return null;
   const field = inferCourseMapFieldFromArtifactPath(featureId, editPath);
   if (!field) return null;
 
@@ -441,6 +444,7 @@ export function createCanonicalPatchRequest({
   editContext = null,
 }) {
   if (!featureId || !Array.isArray(editPath) || !Number.isInteger(lessonIndex) || lessonIndex < 0) return null;
+  if (isStudyGuideExplanationEdit(featureId, oldData, editPath)) return null;
   if (isKnownPresentationOnlyEdit(featureId, editPath)) return null;
 
   const oldArtifactValue = getAtPath(oldData, editPath);
