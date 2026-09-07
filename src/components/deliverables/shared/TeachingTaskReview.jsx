@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import TeachingPerformanceEditor from './TeachingPerformanceEditor.jsx';
 import { FEATURES_BASE } from '../../../lib/featureCatalog.js';
 import { TEACHING_OPERATION_SPECS } from '../../../lib/teachingOperationPlan.js';
 import {
@@ -262,33 +263,60 @@ export default function TeachingTaskReview({ featureId, courseMap, data, onPrevi
                   );
                 })}
               </fieldset>
-              <fieldset disabled={busy} className="grid gap-3 sm:grid-cols-3">
-                <legend className="mb-2 font-semibold">
-                  {t('Scoring weights — total 100%', '评分权重 — 合计 100%')}
-                </legend>
-                {draft.requirements.map((requirement) => (
-                  <label key={requirement.id}>
-                    {requirementLabels[requirement.id]?.[zh ? 1 : 0] || requirement.id} (%)
-                    <input
-                      className={fieldClass}
-                      type="number"
-                      min="1"
-                      max="98"
-                      step="1"
-                      value={requirement.weight}
-                      onChange={(event) => {
-                        const weight = Number(event.target.value);
-                        change((current) => ({
-                          ...current,
-                          requirements: current.requirements.map((item) =>
-                            item.id === requirement.id ? { ...item, weight } : item,
-                          ),
-                        }));
-                      }}
-                    />
-                  </label>
-                ))}
-              </fieldset>
+              {draft.version === 2 ? (
+                <TeachingPerformanceEditor draft={draft} onChange={change} zh={zh} disabled={busy} />
+              ) : (
+                <>
+                  <fieldset disabled={busy} className="grid gap-3 sm:grid-cols-3">
+                    <legend className="mb-2 font-semibold">
+                      {t('Scoring weights — total 100%', '评分权重 — 合计 100%')}
+                    </legend>
+                    {draft.requirements.map((requirement) => (
+                      <label key={requirement.id}>
+                        {requirementLabels[requirement.id]?.[zh ? 1 : 0] || requirement.id} (%)
+                        <input
+                          className={fieldClass}
+                          type="number"
+                          min="1"
+                          max="98"
+                          step="1"
+                          value={requirement.weight}
+                          onChange={(event) => {
+                            const weight = Number(event.target.value);
+                            change((current) => ({
+                              ...current,
+                              requirements: current.requirements.map((item) =>
+                                item.id === requirement.id ? { ...item, weight } : item,
+                              ),
+                            }));
+                          }}
+                        />
+                      </label>
+                    ))}
+                  </fieldset>
+                  <details className="rounded border border-slate-200 p-2">
+                    <summary className="cursor-pointer font-medium">
+                      {t('Write a new requirement set', '编写新的教学要求')}
+                    </summary>
+                    <p className="my-2">
+                      {t(
+                        'Create replacement tasks, references, scoring and practice. The current materials remain available until you preview and confirm the complete set. Reload the current task to discard this draft.',
+                        '编写替代的任务、参考、评分与练习。预览并确认完整方案前，现有材料保持可用；可重新载入当前任务来放弃草稿。',
+                      )}
+                    </p>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      className="font-medium underline"
+                      onClick={() =>
+                        change((current) => ({ ...current, version: 2, requirements: [], practiceInputs: [] }))
+                      }
+                    >
+                      {t('Start a requirement draft', '开始编写要求草稿')}
+                    </button>
+                  </details>
+                </>
+              )}
               <button
                 disabled={busy}
                 className="rounded-md bg-indigo-600 px-3 py-2 font-semibold text-white disabled:opacity-50"
@@ -347,15 +375,20 @@ export default function TeachingTaskReview({ featureId, courseMap, data, onPrevi
                   checked={confirmed}
                   onChange={(event) => setConfirmed(event.target.checked)}
                 />
-                {draft.operation === 'observed-proportion'
+                {draft.version === 2
                   ? t(
-                      'I have checked the part and whole refer to the same observed group, the unobserved outcomes are unknown, and the target population is wider. Apply these sources and scoring weights.',
-                      '我已核对部分与整体属于同一已观察群体、未观察结果确实未知，且目标群体更广；同意应用这些来源与评分权重。',
+                      'I have reviewed the source conditions, student tasks, reference reasoning, scoring levels and independent practice together. Apply this complete teaching requirement set.',
+                      '我已一并审阅来源条件、学生任务、参考推理、评分档位与独立练习；同意应用这套完整教学要求。',
                     )
-                  : t(
-                      'I have checked the source roles, the effective change for the same setting, and the unknown observation date. Apply these sources and scoring weights.',
-                      '我已核对来源角色、同一情境下规则的生效变更，以及观察日期未知的条件；同意应用这些来源与评分权重。',
-                    )}
+                  : draft.operation === 'observed-proportion'
+                    ? t(
+                        'I have checked the part and whole refer to the same observed group, the unobserved outcomes are unknown, and the target population is wider. Apply these sources and scoring weights.',
+                        '我已核对部分与整体属于同一已观察群体、未观察结果确实未知，且目标群体更广；同意应用这些来源与评分权重。',
+                      )
+                    : t(
+                        'I have checked the source roles, the effective change for the same setting, and the unknown observation date. Apply these sources and scoring weights.',
+                        '我已核对来源角色、同一情境下规则的生效变更，以及观察日期未知的条件；同意应用这些来源与评分权重。',
+                      )}
               </label>
               <div className="flex gap-3">
                 <button

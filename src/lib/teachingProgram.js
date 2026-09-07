@@ -86,7 +86,7 @@ export function validateTeachingProgram(program) {
       if (!validTeachingTaskSource(source))
         push('teaching-program-task', `Task ${source.id} has invalid lesson, timing or input data.`);
       if (source.operationPlan !== undefined) {
-        const validation = validateTeachingOperationPlan(source.operationPlan, source.inputs);
+        const validation = validateTeachingOperationPlan(source.operationPlan, source.inputs, source.objective);
         for (const entry of validation.issues) push(entry.code, `Task ${source.id}: ${entry.message}`);
         if (validation.valid && source.kind !== TEACHING_OPERATION_SPECS[source.operationPlan.operation].taskKind)
           push('teaching-program-operation-kind', `Task ${source.id} does not match its bound operation family.`);

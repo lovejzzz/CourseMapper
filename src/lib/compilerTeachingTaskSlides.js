@@ -42,18 +42,25 @@ export function projectTeachingTaskSlides(deck, task) {
     return result;
   };
   const records = chunks(task.inputs.map((input) => input.text));
-  const steps = chunks(task.reasoning);
+  const authored = task.operationPlan?.version === 2;
+  const reasoningSlides = authored
+    ? task.operationPlan.requirements.flatMap((r) =>
+        chunks(r.reasoning).map((text, i) => ({ role: `worked:${r.id}:${i}`, text })),
+      )
+    : chunks(task.reasoning).map((text, i) => ({ role: `worked:${i}`, text }));
+  const steps = reasoningSlides.map((s) => s.text);
   const transferRecords = transfer ? chunks(transfer.sources) : [];
   const material = (role) => {
-    const [kind, indexText = '0'] = role.split(':');
-    const index = Number(indexText);
+    const kind = role.split(':')[0];
+    const reference = role.includes(':') ? role.slice(role.indexOf(':') + 1) : '0';
+    const index = authored && kind === 'worked' ? reasoningSlides.findIndex((s) => s.role === role) : Number(reference);
     switch (kind) {
       case 'transfer-record':
         return {
           title: taskText(
             task,
-            `A new fictional case${transferRecords.length > 1 ? ` (${index + 1}/${transferRecords.length})` : ''}`,
-            `新的虚构案例${transferRecords.length > 1 ? `（${index + 1}/${transferRecords.length}）` : ''}`,
+            `${authored && !task.operationPlan.practiceInputs.every((s) => s.kind === 'fictional') ? 'A new case' : 'A new fictional case'}${transferRecords.length > 1 ? ` (${index + 1}/${transferRecords.length})` : ''}`,
+            `${authored && !task.operationPlan.practiceInputs.every((s) => s.kind === 'fictional') ? '新的案例' : '新的虚构案例'}${transferRecords.length > 1 ? `（${index + 1}/${transferRecords.length}）` : ''}`,
           ),
           bullets: [transferRecords[index]],
           notes: taskCopy(
@@ -121,11 +128,16 @@ export function projectTeachingTaskSlides(deck, task) {
             .join('\n'),
         };
       case 'error': {
-        const error = task.errors[index % task.errors.length];
+        const error = authored
+          ? task.errors.find((e) => e.criterionId === reference)
+          : task.errors[index % task.errors.length];
+        if (!error) return {};
         return {
           title: taskCopy(task, 'Find the error and explain why'),
           bullets: [
-            taskText(task, `A learner writes: “${error.response}”`, `一位学生写道：“${error.response}”`),
+            authored
+              ? taskText(task, `Constructed response: “${error.response}”`, `构造的回答：“${error.response}”`)
+              : taskText(task, `A learner writes: “${error.response}”`, `一位学生写道：“${error.response}”`),
             taskCopy(task, 'Identify the incorrect step. Explain a correction using the source record.'),
           ],
           notes: taskText(
@@ -136,7 +148,10 @@ export function projectTeachingTaskSlides(deck, task) {
         };
       }
       case 'scaffold': {
-        const question = task.scaffoldQuestions?.[index % task.scaffoldQuestions.length] || task.checkpoint;
+        const question = authored
+          ? task.scaffoldQuestions.find((q) => q.criterionId === reference)
+          : task.scaffoldQuestions?.[index % task.scaffoldQuestions.length] || task.checkpoint;
+        if (!question) return {};
         return {
           title: taskCopy(task, 'Explain one reasoning step'),
           bullets: [question.question],
@@ -188,9 +203,9 @@ export function projectTeachingTaskSlides(deck, task) {
   };
   const contentRoles = [
     ...records.map((_, index) => `record:${index}`),
-    ...steps.map((_, index) => `worked:${index}`),
-    ...task.errors.map((_, index) => `error:${index}`),
-    ...(task.scaffoldQuestions || []).map((_, index) => `scaffold:${index}`),
+    ...reasoningSlides.map((s) => s.role),
+    ...task.errors.map((e, index) => `error:${authored ? e.criterionId : index}`),
+    ...(task.scaffoldQuestions || []).map((q, index) => `scaffold:${authored ? q.criterionId : index}`),
   ];
   let cursor = 0;
   const slides = (Array.isArray(deck.slides) ? deck.slides : []).filter((slide) => {
@@ -244,6 +259,7 @@ export function projectTeachingTaskSlides(deck, task) {
         ? taskCopy(task, 'Within the independent practice time')
         : taskCopy(task, 'Within the model time'),
       visual: { kind: 'none', description: '', altText: '' },
+      activity: null,
       workedExample: role === 'worked:0' ? task.workedExample : undefined,
     });
   }

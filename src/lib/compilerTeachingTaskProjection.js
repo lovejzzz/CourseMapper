@@ -6,6 +6,7 @@ import { teachingTaskSourceFromLesson } from './teachingTaskSource.js';
 import { projectTeachingTaskSlides } from './compilerTeachingTaskSlides.js';
 import { readTeachingTaskSources, withTeachingTaskSources } from './teachingProgram.js';
 import { expandKeys } from './keyMaps.js';
+import { projectTeachingQuestion, projectReviewedTeachingQuestionBank } from './compilerTeachingTaskQuiz.js';
 
 const ref = (task) => ({ taskId: task.id, taskRevision: task.revision });
 const evidence = (task, prior) => ({ ...prior, claims: task.inputs.map((x) => x.text) });
@@ -557,6 +558,7 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
         row.questions?.filter(
           (q) =>
             !q.machineScored &&
+            (task.operationPlan?.version !== 2 || !q.taskId || q.taskId === task.id || q.sourceTaskId === task.id) &&
             ['short_answer', 'essay'].includes(q.type) &&
             (!q.enrichmentSource ||
               [
@@ -566,7 +568,7 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
                 'shared-teaching-task',
               ].includes(q.enrichmentSource)),
         ) || [];
-      if (seats.length)
+      if (seats.length || task.operationPlan?.version === 2)
         row.practiceRecord = {
           ...ref(task),
           title: taskCopy(task, 'Supplied task record — guided practice'),
@@ -606,24 +608,11 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
           answer: retry.answer,
           successCriteria: transfer.criteria,
         });
-      quizQuestions.forEach((q, i) => {
-        if (!seats[i]) return;
-        Object.assign(seats[i], q, {
-          type: seats[i].type === 'essay' ? 'essay' : 'short_answer',
-          sampleAnswer: q.answer,
-          options: [],
-          answerIndex: undefined,
-          distractorRationales: [],
-          scoringGuidance: q.successCriteria.join(' '),
-          explanation: q.answer,
-          enrichmentSource: 'shared-teaching-task',
-          sourceReviewRequired: false,
-          intendedUse:
-            q.practiceKind === 'independent-transfer'
-              ? taskCopy(task, 'Independent response to a new fictional case; use the record in this question.')
-              : task.purpose,
+      if (task.operationPlan?.version === 2) projectReviewedTeachingQuestionBank(row, task, quizQuestions, seats);
+      else
+        quizQuestions.forEach((q, i) => {
+          if (seats[i]) projectTeachingQuestion(seats[i], q, task);
         });
-      });
     }
     if (feature === 'courseFaq') {
       const projected = {

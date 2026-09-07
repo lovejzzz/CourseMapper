@@ -43,6 +43,22 @@ function anchoredPath(data, edit) {
   return path;
 }
 
+function sameGeneratedProjection(a, b) {
+  if (equal(a, b)) return true;
+  // Older inserted content slides omitted the unused activity slot, while
+  // replay wrote null. They represent the same empty slot. Restrict this
+  // compatibility rule to identified generated content slides; real teacher
+  // activities, notes, or other changes must still conflict when removed.
+  const emptyActivitySlide = (slide) =>
+    object(slide) &&
+    slide.type === 'content' &&
+    slide.enrichmentSource === 'shared-teaching-task' &&
+    typeof slide.taskRole === 'string' &&
+    typeof slide.taskId === 'string' &&
+    (slide.activity === undefined || slide.activity === null);
+  return emptyActivitySlide(a) && emptyActivitySlide(b) && equal({ ...a, activity: null }, { ...b, activity: null });
+}
+
 /** Reconcile the previous and next generated projections against the teacher's
  * current document. Only changed generated leaves are candidates; a competing
  * teacher edit is retained and returned with its concrete proposed replacement. */
@@ -51,7 +67,8 @@ export function mergeTaskProjection(previous, next, current, path = [], conflict
   // A generated revision digest is not instructor prose. Reconstruction can
   // normalize it without changing content; an accepted source edit owns its next value.
   if (path.at(-1) === 'taskRevision' && /^[a-f0-9]{64}$/.test(next) && /^[a-f0-9]{64}$/.test(previous)) return next;
-  if (equal(current, previous) || equal(current, next)) return structuredClone(next);
+  if (sameGeneratedProjection(current, previous) || sameGeneratedProjection(current, next))
+    return structuredClone(next);
   if (Array.isArray(previous) && Array.isArray(next) && Array.isArray(current)) {
     const field = arrayIdentity([previous, next, current]);
     if (field) {
@@ -61,7 +78,7 @@ export function mergeTaskProjection(previous, next, current, path = [], conflict
       const merged = current.flatMap((item, index) => {
         const id = item[field];
         if (!before.has(id)) return [item]; // teacher insertion
-        if (!after.has(id) && equal(item, before.get(id))) return [];
+        if (!after.has(id) && sameGeneratedProjection(item, before.get(id))) return [];
         return [mergeTaskProjection(before.get(id), after.get(id), item, [...path, index], conflicts)];
       });
       for (let index = 0; index < next.length; index += 1) {

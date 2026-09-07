@@ -1,4 +1,8 @@
-import { evaluateTeachingOperationPlan } from './teachingOperationPlan.js';
+import { evaluateTeachingOperationPlan, TEACHING_OPERATION_SPECS } from './teachingOperationPlan.js';
+import {
+  AUTHORED_REQUIREMENTS_PLAN_VERSION,
+  renderPerformanceRequirements,
+} from './teachingPerformanceRequirements.js';
 import { buildEvidenceTask } from './teachingTaskEvidenceBuilder.js';
 import { renderObservedProportion } from './teachingOperationProportion.js';
 
@@ -7,7 +11,25 @@ import { renderObservedProportion } from './teachingOperationProportion.js';
 export function renderTeachingOperationTask(plan, inputs, objective) {
   const evaluated = evaluateTeachingOperationPlan(plan, inputs);
   if (evaluated.status !== 'ready') return null;
-  if (plan.operation === 'observed-proportion') return renderObservedProportion(plan, inputs, objective, evaluated);
+  const authoredPlan = plan;
+  const project = (body) =>
+    renderPerformanceRequirements(
+      { ...body, operationPlan: structuredClone(authoredPlan) },
+      authoredPlan,
+      inputs,
+      objective,
+    );
+  if (plan.version === AUTHORED_REQUIREMENTS_PLAN_VERSION) {
+    const spec = TEACHING_OPERATION_SPECS[plan.operation];
+    // Compute the operation's factual boundary independently of scoring.
+    // Its default teaching prose is then replaced by the reviewed contract.
+    plan = {
+      ...plan,
+      requirements: spec.requirements.map((id, i) => ({ id, weight: (spec.defaultWeights || [30, 35, 35])[i] })),
+    };
+  }
+  if (plan.operation === 'observed-proportion')
+    return project(renderObservedProportion(plan, inputs, objective, evaluated));
   const zh = /\p{Script=Han}/u.test(objective);
   const {
     priorValue: prior,
@@ -188,7 +210,7 @@ export function renderTeachingOperationTask(plan, inputs, objective) {
       };
     });
   }
-  return body;
+  return project(body);
 }
 
 /** Read-only v0.19.2 baseline for a three-way migration. It is never the new
@@ -206,6 +228,7 @@ function historicalObservationWording(value) {
 }
 
 export function legacyAmendmentProjection(body) {
+  if (body?.operationPlan?.version === AUTHORED_REQUIREMENTS_PLAN_VERSION) return body;
   if (body?.operationPlan?.operation !== 'record-amendment' || body.language !== 'en') return body;
   const previous = historicalObservationWording(body);
   const proposedEvidence = previous.reasoning.pop();

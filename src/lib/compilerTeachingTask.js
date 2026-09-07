@@ -537,9 +537,25 @@ export function teachingTaskWorkedExample(task) {
 
 export function teachingTaskRubric(task, totalPoints = 100) {
   const total = Math.max(0, Number(totalPoints) || 0);
+  let allocations;
+  if (task.operationPlan?.version === 2 && Number.isInteger(total)) {
+    // Arbitrary requirement counts cannot put all rounding error into the
+    // last row: six roughly equal criteria in a four-point rubric can make
+    // that row negative. Allocate whole points by largest remainders instead.
+    const rows = task.criteria.map((c, index) => {
+      const exact = (total * c.weight) / 100;
+      return { id: c.id, index, points: Math.floor(exact), remainder: exact - Math.floor(exact) };
+    });
+    const unassigned = total - rows.reduce((sum, row) => sum + row.points, 0);
+    const ordered = [...rows].sort((a, b) => b.remainder - a.remainder || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+    ordered.slice(0, unassigned).forEach((row) => row.points++);
+    allocations = rows.map((row) => row.points);
+  }
   let assigned = 0;
   return task.criteria.map((c, index) => {
-    const points = index === task.criteria.length - 1 ? total - assigned : Math.round((total * c.weight) / 100);
+    const points =
+      allocations?.[index] ??
+      (index === task.criteria.length - 1 ? total - assigned : Math.round((total * c.weight) / 100));
     assigned += points;
     return {
       criterionId: c.id,
@@ -569,7 +585,8 @@ export function teachingTaskPracticeUnits(task) {
     },
     ...task.errors.map((error, i) => ({
       ...shared,
-      id: `${task.id}:error-${i}`,
+      id: task.operationPlan?.version === 2 ? `${task.id}:error:${error.criterionId}` : `${task.id}:error-${i}`,
+      ...(task.operationPlan?.version === 2 ? { requirementId: error.criterionId } : {}),
       kind: 'error-analysis',
       question:
         task.language === 'zh'
@@ -582,7 +599,8 @@ export function teachingTaskPracticeUnits(task) {
     ...(task.scaffoldQuestions || []).map((q, i) => ({
       ...shared,
       ...q,
-      id: `${task.id}:scaffold-${i}`,
+      id: task.operationPlan?.version === 2 ? `${task.id}:scaffold:${q.criterionId}` : `${task.id}:scaffold-${i}`,
+      ...(task.operationPlan?.version === 2 ? { requirementId: q.criterionId } : {}),
       kind: 'task-scaffold',
       criteria: [
         task.language === 'zh'

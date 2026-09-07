@@ -1,6 +1,7 @@
 import { solveTeachingProportion } from './teachingTaskArithmetic.js';
 import { chineseIndependentTask } from './teachingTaskPracticeChinese.js';
 import { operationSpecificTransfer } from './teachingTaskTransferOperations.js';
+import { performancePracticeSequence } from './teachingPerformanceRequirements.js';
 
 function band(label, strong, proficient, developing, beginning, feedback) {
   return { label, exemplary: strong, proficient, developing, beginning, feedback };
@@ -194,6 +195,8 @@ function experimentTransfer() {
 }
 
 export function buildTeachingTaskPracticeSequence(task) {
+  const reviewed = performancePracticeSequence(task);
+  if (reviewed) return reviewed;
   const transfer =
     operationSpecificTransfer(task) ||
     (task.language === 'zh'

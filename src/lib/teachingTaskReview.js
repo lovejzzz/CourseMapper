@@ -36,6 +36,8 @@ export function createTeachingTaskReviewDraft(source, materialData, featureId) {
     sourceRevision: revision(source),
     ...(featureId ? { material: { featureId, inputRevision: revision(pending.inputs) } } : {}),
     operation,
+    version: plan?.version || 1,
+    ...(plan?.practiceInputs ? { practiceInputs: structuredClone(plan.practiceInputs) } : {}),
     inputs: pending.inputs,
     bindings: Object.fromEntries(
       Object.entries(plan?.bindings || TEACHING_OPERATION_SPECS[operation].bindings).map(([name, span]) => {
@@ -100,6 +102,9 @@ export function resolveTeachingTaskReviewDraft(source, draft, reviewedAt) {
       inputs: draft.inputs,
       bindings,
       requirements: draft.requirements,
+      version: draft.version || 1,
+      practiceInputs: draft.practiceInputs,
+      objective: source.objective,
       // This is the proposed post-confirmation state. A preview never writes
       // it, and commitTeachingTaskReview independently requires confirmation.
       admission: { kind: 'teacher-confirmed', method: 'in-app-source-bindings', reviewedAt },

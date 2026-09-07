@@ -1,5 +1,10 @@
 import { sha256HexSync } from './sha256Sync.js';
 import { solveTeachingProportion } from './teachingTaskArithmetic.js';
+import {
+  AUTHORED_REQUIREMENTS_PLAN_VERSION,
+  performanceSourceRevision,
+  validatePerformanceRequirements,
+} from './teachingPerformanceRequirements.js';
 
 export const TEACHING_OPERATION_PLAN_VERSION = 1;
 
@@ -86,9 +91,9 @@ const statedDate = (text) =>
 
 /** Offsets are UTF-16 string positions, matching the browser editor. A span
  * resolves against one exact input revision; a quote alone is not identity. */
-export function validateTeachingOperationPlan(plan, inputs) {
+export function validateTeachingOperationPlan(plan, inputs, objective) {
   const issues = [];
-  if (!object(plan) || plan.version !== TEACHING_OPERATION_PLAN_VERSION)
+  if (!object(plan) || ![TEACHING_OPERATION_PLAN_VERSION, AUTHORED_REQUIREMENTS_PLAN_VERSION].includes(plan.version))
     return { valid: false, issues: [issue('plan-version', 'The teaching operation version is not supported.')] };
   const spec = Object.hasOwn(TEACHING_OPERATION_SPECS, plan.operation)
     ? TEACHING_OPERATION_SPECS[plan.operation]
@@ -144,12 +149,23 @@ export function validateTeachingOperationPlan(plan, inputs) {
   }
   if (Object.keys(plan.bindings).some((name) => !Object.hasOwn(spec.bindings, name)))
     issues.push(issue('plan-extra-binding', 'This operation contains a binding it does not understand.'));
-  if (
+  if (plan.version === AUTHORED_REQUIREMENTS_PLAN_VERSION) {
+    issues.push(...validatePerformanceRequirements(plan, inputs, objective).issues);
+    if (plan.admission?.kind === 'legacy-explicit-rule')
+      issues.push(issue('performance-admission', 'Authored teaching requirements need their own review.'));
+  } else if (
+    plan.practiceInputs !== undefined ||
+    plan.contentReview !== undefined ||
     !Array.isArray(plan.requirements) ||
     plan.requirements.length !== spec.requirements.length ||
     new Set(plan.requirements.map((entry) => entry?.id)).size !== spec.requirements.length ||
     plan.requirements.some(
-      (entry) => !spec.requirements.includes(entry?.id) || !Number.isInteger(entry?.weight) || entry.weight <= 0,
+      (entry) =>
+        !spec.requirements.includes(entry?.id) ||
+        !Number.isInteger(entry?.weight) ||
+        entry.weight <= 0 ||
+        entry.action !== undefined ||
+        entry.transfer !== undefined,
     ) ||
     plan.requirements.reduce((sum, entry) => sum + (entry?.weight || 0), 0) !== 100
   )
@@ -215,10 +231,19 @@ export function validateTeachingOperationPlan(plan, inputs) {
   return { valid: !issues.length, issues, values };
 }
 
-export function createTeachingOperationPlan({ operation, inputs, bindings, admission, requirements }) {
+export function createTeachingOperationPlan({
+  operation,
+  inputs,
+  bindings,
+  admission,
+  requirements,
+  version = TEACHING_OPERATION_PLAN_VERSION,
+  practiceInputs,
+  objective,
+}) {
   const spec = Object.hasOwn(TEACHING_OPERATION_SPECS, operation) ? TEACHING_OPERATION_SPECS[operation] : null;
   const plan = {
-    version: TEACHING_OPERATION_PLAN_VERSION,
+    version,
     operation,
     bindings: structuredClone(bindings),
     inputRevisions: Object.fromEntries(inputs.map((input) => [input.id, operationInputRevision(input)])),
@@ -227,6 +252,12 @@ export function createTeachingOperationPlan({ operation, inputs, bindings, admis
       requirements ||
         (spec?.requirements || []).map((id, index) => ({ id, weight: (spec.defaultWeights || [30, 35, 35])[index] })),
     ),
+    ...(version === AUTHORED_REQUIREMENTS_PLAN_VERSION
+      ? {
+          practiceInputs: structuredClone(practiceInputs),
+          contentReview: { sourceRevision: performanceSourceRevision(inputs), objective },
+        }
+      : {}),
   };
   const result = validateTeachingOperationPlan(plan, inputs);
   if (!result.valid) throw new Error(result.issues.map((entry) => entry.message).join(' '));
@@ -332,6 +363,11 @@ export function remapTeachingOperationInputs(plan, beforeInputs, nextInputs) {
       Object.entries(plan.bindings).map(([name, span]) => [name, { ...span, inputId: ids.get(span.inputId) }]),
     ),
     inputRevisions: Object.fromEntries(nextInputs.map((input) => [input.id, operationInputRevision(input)])),
+    ...(plan.version === AUTHORED_REQUIREMENTS_PLAN_VERSION
+      ? {
+          contentReview: { ...plan.contentReview, sourceRevision: performanceSourceRevision(nextInputs) },
+        }
+      : {}),
   };
 }
 
@@ -341,6 +377,13 @@ export function remapTeachingOperationInputs(plan, beforeInputs, nextInputs) {
 export function rebindTeachingOperationEdit(plan, beforeInputs, nextInputs) {
   if (!validateTeachingOperationPlan(plan, beforeInputs).valid) return null;
   if (beforeInputs.length !== nextInputs.length) return null;
+  // A count edit can also invalidate an authored interpretation. Do not
+  // silently re-confirm teacher prose just because arithmetic can be solved.
+  if (
+    plan.version === AUTHORED_REQUIREMENTS_PLAN_VERSION &&
+    performanceSourceRevision(beforeInputs) !== performanceSourceRevision(nextInputs)
+  )
+    return null;
   let next = structuredClone(plan);
   for (const before of beforeInputs) {
     const after = nextInputs.find((input) => input.id === before.id);

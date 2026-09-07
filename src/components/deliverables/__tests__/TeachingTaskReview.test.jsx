@@ -9,6 +9,10 @@ import { buildSharedTeachingTask } from '../../../lib/compilerTeachingTask.js';
 import { teachingTaskSourceFromLesson } from '../../../lib/teachingTaskSource.js';
 import { withTeachingTaskSources } from '../../../lib/teachingProgram.js';
 import { observedProportionFixture } from '../../../../tests/fixtures/teaching/observedProportion.js';
+import { performanceRequirementsFixture } from '../../../../tests/fixtures/teaching/performanceRequirements.js';
+import { createTeachingOperationPlan } from '../../../lib/teachingOperationPlan.js';
+import { projectSharedTeachingTasks } from '../../../lib/compilerTeachingTaskProjection.js';
+import { previewTeachingTaskReview, commitTeachingTaskReview } from '../../../lib/teachingTaskReview.js';
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 const task = buildSharedTeachingTask({
@@ -67,6 +71,117 @@ describe('teacher structure review interaction', () => {
     });
     return { onPreview, onCommit };
   }
+
+  async function renderPerformanceReview() {
+    const f = observedProportionFixture();
+    const plan = createTeachingOperationPlan({
+      ...f,
+      ...performanceRequirementsFixture(),
+      version: 2,
+      operation: 'observed-proportion',
+      admission: { kind: 'teacher-confirmed' },
+    });
+    const task = buildSharedTeachingTask({
+      lessonId: 'performances-ui',
+      objective: f.objective,
+      sourceInputs: f.inputs,
+      operationPlan: plan,
+      admitted: true,
+    });
+    const lesson = { id: 'performances-ui', title: 'Observed scope', lessonNumber: 1, teachingTask: task };
+    const source = teachingTaskSourceFromLesson(lesson);
+    const courseMap = withTeachingTaskSources(
+      {
+        courseName: 'Reviewed requirements',
+        lessons: [{ title: lesson.title, sections: [{ learningObjectives: f.objective }] }],
+      },
+      [source],
+    );
+    const data = projectSharedTeachingTasks(
+      'rubrics',
+      { rubrics: [{ lessonNumber: 1, totalPoints: 100 }] },
+      { lessons: [lesson] },
+    );
+    const state = { courseMap, deliverables: { rubrics: { status: 'done', data } } };
+    const onPreview = vi.fn((draft) => previewTeachingTaskReview({ ...state, draft }));
+    const onCommit = vi.fn((preview, teacherConfirmed) =>
+      commitTeachingTaskReview({ ...state, preview, teacherConfirmed }),
+    );
+    await renderReview({ courseMap, data, onPreview, onCommit });
+    return { onPreview, onCommit };
+  }
+
+  async function enter(label, value) {
+    const input = [...container.querySelectorAll('textarea,input')].find(
+      (element) => element.getAttribute('aria-label') === label,
+    );
+    expect(input, label).toBeTruthy();
+    await act(async () => {
+      const prototype =
+        input.tagName === 'TEXTAREA' ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype;
+      Object.getOwnPropertyDescriptor(prototype, 'value').set.call(input, value);
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+  }
+
+  it('edits a performance and independent reference through the real review transaction', async () => {
+    const { onPreview, onCommit } = await renderPerformanceReview();
+    const action = 'Use an event roster to specify a follow-up route-choice collection and retain missing responses.';
+    const answer =
+      'Replace the missing batteries, repeat the same pass/fail test, retain device identities, and leave the full-set rate unknown until results are recorded.';
+    await enter('Requirement 2: Student task', action);
+    await enter('Requirement 2: Independent case: Reference response', answer);
+    await click(button('Preview linked changes'));
+    expect(onPreview.mock.results[0].value.status).toBe('preview');
+    expect(onPreview.mock.results[0].value.task.question).toContain(action);
+    expect(
+      onPreview.mock.results[0].value.task.sequence.find((s) => s.kind === 'independent-transfer').answer,
+    ).toContain(answer);
+    const confirmation = container.querySelector('input[type="checkbox"]');
+    expect(confirmation.parentElement.textContent).toContain(
+      'reference reasoning, scoring levels and independent practice',
+    );
+    await click(confirmation);
+    await click(button('Apply reviewed changes'));
+    expect(onCommit.mock.results[0].value.status).toBe('applied');
+    expect(onCommit.mock.results[0].value.courseMap.teachingProgram.tasks[0].operationPlan.requirements[1].action).toBe(
+      action,
+    );
+  });
+
+  it('removes a requirement with explicit weight changes and gives a new requirement a fresh identity', async () => {
+    const { onPreview } = await renderPerformanceReview();
+    await enter('Requirement 1: Weight (%)', '100');
+    await click(
+      [...container.querySelectorAll('button')].filter((b) => b.textContent === 'Remove this requirement')[1],
+    );
+    await click(button('Preview linked changes'));
+    const result = onPreview.mock.results[0].value;
+    expect(result.status).toBe('preview');
+    expect(result.task.criteria.map((r) => r.id)).toEqual(['estimate']);
+    expect(result.task.sequence.find((s) => s.kind === 'independent-transfer').answer).not.toContain(
+      'Fit the missing batteries',
+    );
+    await click(button('Add teaching requirement'));
+    expect(button('Apply reviewed changes')).toBeUndefined();
+    await click(button('Preview linked changes'));
+    expect(onPreview.mock.results.at(-1).value.status).toBe('needs-review');
+    expect(onPreview.mock.calls.at(-1)[0].requirements[1].id).not.toBe('next-evidence');
+  });
+
+  it('starts an empty replacement draft without inventing tasks or changing the saved course', async () => {
+    const { onPreview, onCommit } = await renderReview();
+    await click(button('Start a requirement draft'));
+    await click(button('Add teaching requirement'));
+    await click(button('Preview linked changes'));
+    expect(onPreview.mock.calls[0][0]).toMatchObject({
+      version: 2,
+      practiceInputs: [],
+      requirements: [expect.objectContaining({ action: '', answer: '', weight: 0 })],
+    });
+    expect(onCommit).not.toHaveBeenCalled();
+    expect(courseMap.teachingProgram.tasks[0].operationPlan?.version || 1).toBe(1);
+  });
 
   it('requires a preview and explicit confirmation, then discards the applied draft', async () => {
     const { onPreview, onCommit } = await renderReview();
