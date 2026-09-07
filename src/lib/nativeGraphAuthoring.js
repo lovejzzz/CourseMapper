@@ -48,6 +48,7 @@ import { classifyAssessmentKind, deriveCourseGraphFromCourseMap } from './course
 import { renderCourseMapFromGraph } from './courseGraph/renderCourseMap.js';
 import { validateCourseGraph } from './courseGraph/schema.js';
 import { assertTeachingProgram, migrateGraphTeachingProgram } from './teachingProgram.js';
+import { preserveTeachingOutcomeIds } from './teachingOutcomeIdentity.js';
 import { attachEnrichmentToGraph } from './courseGraph/blueprintFromGraph.js';
 import { buildCourseIRFromCourseMap, courseIRToCourseGraph, validateCourseIR } from './courseIR.js';
 import { repairNativeFallbackWithCurriculumV1 } from './curriculumV1Repair.js';
@@ -4014,6 +4015,7 @@ export function preserveSourceProof(oldGraph, newGraph) {
   const graph = JSON.parse(JSON.stringify(newGraph));
   preserveResourceMetadata(oldGraph, graph);
   preserveGraphEvidenceTransactions(oldGraph, graph);
+  preserveTeachingOutcomeIds(oldGraph, graph);
   return graph;
 }
 
@@ -4082,6 +4084,7 @@ export function matchEntityIds(oldGraph, newGraph) {
 
   preserveResourceMetadata(oldGraph, graph);
   preserveGraphEvidenceTransactions(oldGraph, graph);
+  preserveTeachingOutcomeIds(oldGraph, graph);
 
   if (oldGraph.authoredBy && !graph.authoredBy) graph.authoredBy = oldGraph.authoredBy;
   return graph;

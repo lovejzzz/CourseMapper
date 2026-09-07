@@ -21,6 +21,19 @@ import {
 } from '../courseBlueprintCompiler.js';
 import { rememberTeacherEdit, resolveTaskSyncConflict } from '../teachingTaskContentSync.js';
 import { deliverableToCsvRows } from '../exporters/csvExporter.js';
+import { teachingOutcomeChoices } from '../teachingGoalAlignment.js';
+import { reconcileTeachingGoalReview } from '../teachingGoalReview.js';
+import { evaluateWorkspaceReadiness } from '../deliverableReadiness.js';
+import { editLinkedTeachingGoal } from '../teachingGoalEdit.js';
+import {
+  createEditTransaction,
+  applyEditTransaction,
+  appendEditTransaction,
+  emptyEditHistory,
+  serializeEditHistory,
+  restoreEditHistory,
+} from '../deliverableEditHistory.js';
+import { prepareProjectSnapshotForRestore } from '../projectSnapshotSanitizer.js';
 
 const features = [
   'syllabus',
@@ -79,6 +92,127 @@ function changeCount(draft, value = '104') {
 }
 
 describe('reviewed teaching task transactions', () => {
+  it('edits a linked course target and restores its review state and teacher content as one saved transaction', () => {
+    const state = setup();
+    const target = teachingOutcomeChoices(deriveCourseGraphFromCourseMap(state.courseMap), 1)[0];
+    state.draft.goalAlignment = {
+      version: 1,
+      targets: [{ outcomeRef: target.id, revision: target.revision }],
+      requirementLinks: state.draft.requirements.map((r) => ({ requirementId: r.id, outcomeRefs: [target.id] })),
+    };
+    const accepted = commitTeachingTaskReview({
+      ...state,
+      preview: previewTeachingTaskReview(state),
+      teacherConfirmed: true,
+    });
+    expect(accepted.status).toBe('applied');
+    const workspace = {
+      courseMap: accepted.courseMap,
+      courseGraph: deriveCourseGraphFromCourseMap(accepted.courseMap),
+      deliverables: accepted.changed,
+    };
+    workspace.deliverables.rubrics.data.rubrics[0].title = 'Teacher wording must survive';
+    const before = structuredClone(workspace);
+    const result = editLinkedTeachingGoal({
+      ...workspace,
+      lessonIdx: 0,
+      sectionIdx: 0,
+      newValue: 'Design a source-checking procedure that resolves missing dates.',
+    });
+    expect(result.status).toBe('applied');
+    expect(workspace).toEqual(before);
+    expect(result.courseGraph.outcomes[0].id).toBe(target.id);
+    expect(result.courseMap.teachingProgram).toEqual(before.courseMap.teachingProgram);
+    for (const id of features) {
+      const { taskGoalReview, ...content } = result.changed[id].data;
+      expect(content).toEqual(before.deliverables[id].data);
+      expect(taskGoalReview[0].message).toContain('changed');
+    }
+    const after = {
+      courseMap: result.courseMap,
+      courseGraph: result.courseGraph,
+      deliverables: { ...workspace.deliverables, ...result.changed },
+    };
+    const transaction = createEditTransaction(before, after);
+    const saved = prepareProjectSnapshotForRestore(
+      JSON.parse(
+        JSON.stringify({
+          ...after,
+          editHistory: serializeEditHistory(appendEditTransaction(emptyEditHistory(), transaction).history),
+        }),
+      ),
+    );
+    expect(restoreEditHistory(saved.editHistory, saved).status).toBe('ready');
+    const undone = applyEditTransaction(saved, transaction, 'undo');
+    expect(undone.status).toBe('applied');
+    expect(undone.workspace.courseGraph).toEqual(before.courseGraph);
+    expect(undone.workspace.deliverables).toEqual(before.deliverables);
+    const redone = applyEditTransaction(undone.workspace, transaction, 'redo');
+    expect(redone.status).toBe('applied');
+    expect(redone.workspace.courseGraph).toEqual(after.courseGraph);
+    expect(redone.workspace.deliverables).toEqual(after.deliverables);
+
+    const added = editLinkedTeachingGoal({
+      ...workspace,
+      lessonIdx: 0,
+      sectionIdx: 0,
+      newValue: 'Identify the author of each entry.\n' + target.text,
+    });
+    expect(added.status).toBe('applied');
+    expect(added.courseGraph.outcomes.find((o) => o.text === target.text).id).toBe(target.id);
+    const removed = editLinkedTeachingGoal({ ...workspace, lessonIdx: 0, sectionIdx: 0, newValue: '' });
+    expect(removed.status).toBe('applied');
+    expect(removed.courseGraph.outcomes).toHaveLength(0);
+    expect(removed.changed.rubrics.data.taskGoalReview[0].message).toContain('no longer available');
+  });
+  it('changes a task objective only with reviewed requirement-to-target links and preserves the actual curriculum targets', () => {
+    const state = setup();
+    const graph = deriveCourseGraphFromCourseMap(state.courseMap);
+    const target = teachingOutcomeChoices(graph, 1)[0];
+    state.draft.objective =
+      'Explain which rule applies after the amendment and why an undated photograph is insufficient.';
+    expect(previewTeachingTaskReview(state).status).toBe('needs-review');
+    state.draft.goalAlignment = {
+      version: 1,
+      targets: [{ outcomeRef: target.id, revision: target.revision }],
+      requirementLinks: state.draft.requirements.map((r) => ({ requirementId: r.id, outcomeRefs: [target.id] })),
+    };
+    const before = structuredClone(state);
+    const preview = previewTeachingTaskReview({ ...state, courseGraph: graph });
+    expect(preview.status).toBe('preview');
+    expect(state).toEqual(before);
+    const accepted = commitTeachingTaskReview({ ...state, courseGraph: graph, preview, teacherConfirmed: true });
+    expect(accepted.status).toBe('applied');
+    expect(readTeachingTaskSources(accepted.courseMap)[0].objective).toBe(state.draft.objective);
+    expect(accepted.courseMap.lessons[0].sections[0].learningObjectives).toBe(
+      state.courseMap.lessons[0].sections[0].learningObjectives,
+    );
+    expect(accepted.courseMap.teachingProgram.tasks[0].objectiveRef).toBe(
+      state.courseMap.teachingProgram.tasks[0].objectiveRef,
+    );
+    for (const id of features)
+      expect(
+        accepted.changed[id].data.teachingTaskSources[0].operationPlan.goalAlignment.requirementLinks,
+      ).toHaveLength(3);
+    expect(accepted.changed.lessonPlans.data.lessonPlans[0].objectives).toEqual([state.draft.objective]);
+    const changedGraph = structuredClone(graph);
+    changedGraph.outcomes[0].text = 'Analyze a different task objective.';
+    expect(
+      commitTeachingTaskReview({ ...state, courseGraph: changedGraph, preview, teacherConfirmed: true }).status,
+    ).toBe('needs-review');
+    const pending = reconcileTeachingGoalReview(accepted.changed, accepted.courseMap, changedGraph);
+    for (const id of features) expect(pending[id].data.taskGoalReview[0].message).toContain('changed');
+    const readiness = evaluateWorkspaceReadiness({
+      courseMap: accepted.courseMap,
+      deliverables: pending,
+      selectedFeatures: ['lessonPlans'],
+    });
+    expect(
+      readiness.issues.some((issue) => issue.message.includes('learning target') && issue.severity === 'blocker'),
+    ).toBe(true);
+    const clear = reconcileTeachingGoalReview(pending, accepted.courseMap, graph);
+    for (const id of features) expect(clear[id].data.taskGoalReview).toBeUndefined();
+  });
   it('fills a stale excerpt from corrected source text without losing still-valid teacher choices', () => {
     const { draft } = setup();
     draft.inputs[1].text = draft.inputs[1].text.replace('90 seats', '104 seats');

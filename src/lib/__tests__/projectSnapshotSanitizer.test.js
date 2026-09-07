@@ -16,6 +16,25 @@ function forgeTimestampLike(prototype, seconds, nanoseconds) {
   return value;
 }
 
+describe('restored course-map edit journal', () => {
+  it.each([{}, null])('normalizes an empty journal before a subsequent map edit', (userEdits) => {
+    const saved = { courseMap: { courseName: 'Reopened course', lessons: [] }, userEdits };
+    const restored = prepareProjectSnapshotForRestore(saved);
+    expect([...restored.userEdits, { key: 'learningObjectives', newValue: 'Design a comparison.' }]).toHaveLength(1);
+    expect(saved.userEdits).toEqual(userEdits);
+    expect(restored.courseMap).toEqual(saved.courseMap);
+  });
+  it('preserves existing journal entries and rejects a nonempty unrecognized format', () => {
+    const userEdits = [{ key: 'title', oldValue: 'Before', newValue: 'After', teacherNote: 'Keep this' }];
+    expect(prepareProjectSnapshotForRestore({ userEdits }).userEdits).toEqual(userEdits);
+    for (const unsupported of [{ first: userEdits[0] }, 'saved edits', 42]) {
+      expect(() => prepareProjectSnapshotForRestore({ userEdits: unsupported })).toThrow(
+        'The saved edit journal has an unsupported format',
+      );
+    }
+  });
+});
+
 describe('restoreAuthoredOverlayForSnapshot', () => {
   it('reattaches the compiler-owned overlay when a re-derived graph lost it', () => {
     const graph = {

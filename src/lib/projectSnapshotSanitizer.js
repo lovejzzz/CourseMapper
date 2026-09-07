@@ -290,6 +290,22 @@ export function prepareProjectSnapshotForRestore(snapshot) {
     const restored = sanitizeProjectSnapshot(Object.create(Object.getPrototypeOf(sourceSnapshot), descriptors));
     if (!restored || typeof restored !== 'object' || Array.isArray(restored)) return { formatVersion: 1 };
     if (!restored.formatVersion) restored.formatVersion = 1;
+    // The map editor appends to this journal. Some old project files contain
+    // an empty object; admitting it as live state crashes the first cell edit.
+    // Only empty representations are interchangeable. Do not discard a
+    // nonempty journal whose format we cannot interpret.
+    if (restored.userEdits !== undefined && !Array.isArray(restored.userEdits)) {
+      if (
+        restored.userEdits === null ||
+        (typeof restored.userEdits === 'object' && Object.keys(restored.userEdits).length === 0)
+      ) {
+        restored.userEdits = [];
+      } else {
+        const error = new Error('The saved edit journal has an unsupported format. The project was not opened.');
+        error.code = 'PROJECT_EDIT_JOURNAL_INVALID';
+        throw error;
+      }
+    }
     // v0.13.1: cloud snapshots carry the course graph as a JSON string
     // (Firestore rejects nested arrays anywhere in a document, and the graph's
     // enrichment overlay can embed model-shaped payloads we don't control).
@@ -321,7 +337,7 @@ export function prepareProjectSnapshotForRestore(snapshot) {
     }
     return restoreSnapshotTeachingProgram(restoreProjectGenerationConstraints(migrateRestoredDeliverables(restored)));
   } catch (error) {
-    if (error?.code === 'TEACHING_PROGRAM_INVALID') throw error;
+    if (['TEACHING_PROGRAM_INVALID', 'PROJECT_EDIT_JOURNAL_INVALID'].includes(error?.code)) throw error;
     return { formatVersion: 1 };
   }
 }

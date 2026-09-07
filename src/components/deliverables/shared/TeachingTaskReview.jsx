@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import TeachingPerformanceEditor from './TeachingPerformanceEditor.jsx';
+import TeachingGoalAlignmentEditor from './TeachingGoalAlignmentEditor.jsx';
+import { reconcileTeachingGoalLinks } from '../../../lib/teachingGoalAlignment.js';
 import { FEATURES_BASE } from '../../../lib/featureCatalog.js';
 import { TEACHING_OPERATION_SPECS } from '../../../lib/teachingOperationPlan.js';
 import {
@@ -45,6 +47,7 @@ const fieldClass =
 export default function TeachingTaskReview({
   featureId,
   courseMap,
+  courseGraph,
   data,
   onPreview,
   onCommit,
@@ -77,6 +80,7 @@ export default function TeachingTaskReview({
   const selected = draft?.creation
     ? {
         id: draft.taskId,
+        lessonNumber: draft.creation.lessonNumber,
         objective: draft.objective,
         title:
           options.lessons.find((row) => row.lessonNumber === draft.creation.lessonNumber)?.title ||
@@ -159,7 +163,12 @@ export default function TeachingTaskReview({
     setLastProposalReceipt(null);
   }
   function change(update) {
-    setDraft((current) => update(current));
+    setDraft((current) => {
+      const next = update(current);
+      return next.goalAlignment
+        ? { ...next, goalAlignment: reconcileTeachingGoalLinks(next.goalAlignment, next.requirements) }
+        : next;
+    });
     setPreview(null);
     setConfirmed(false);
     setMessage('');
@@ -444,6 +453,20 @@ export default function TeachingTaskReview({
           )}
           {draft && (
             <>
+              {!draft.creation && (
+                <label className="block font-medium">
+                  {t('Task objective', '任务目标')}
+                  <textarea
+                    aria-label={t('Task objective', '任务目标')}
+                    className={fieldClass}
+                    rows={3}
+                    maxLength={6000}
+                    disabled={busy}
+                    value={draft.objective ?? selected.objective}
+                    onChange={(event) => change((current) => ({ ...current, objective: event.target.value }))}
+                  />
+                </label>
+              )}
               {onRemoveDraft && (
                 <div className="flex flex-wrap items-center gap-3">
                   <p>
@@ -679,6 +702,16 @@ export default function TeachingTaskReview({
                   </details>
                 </>
               )}
+              <TeachingGoalAlignmentEditor
+                draft={draft}
+                requirementLabels={requirementLabels}
+                onChange={change}
+                courseGraph={courseGraph}
+                courseMap={courseMap}
+                lessonNumber={selected.lessonNumber}
+                zh={zh}
+                disabled={busy}
+              />
               <button
                 disabled={busy}
                 className="rounded-md bg-indigo-600 px-3 py-2 font-semibold text-white disabled:opacity-50"
@@ -699,6 +732,7 @@ export default function TeachingTaskReview({
               className="space-y-3 border-t border-slate-300 pt-3"
             >
               <h4 className="font-semibold">{t('Proposed task', '建议任务')}</h4>
+              <p>{preview.task.objective}</p>
               <p>{preview.task.question}</p>
               <details>
                 <summary className="cursor-pointer font-medium">
@@ -734,6 +768,7 @@ export default function TeachingTaskReview({
                 <input
                   className="mt-1"
                   type="checkbox"
+                  data-testid="teaching-review-confirm"
                   checked={confirmed}
                   onChange={(event) => setConfirmed(event.target.checked)}
                 />
@@ -752,6 +787,14 @@ export default function TeachingTaskReview({
                         '我已核对来源角色、同一情境下规则的生效变更，以及观察日期未知的条件；同意应用这些来源与评分权重。',
                       )}
               </label>
+              {draft.goalAlignment && (
+                <p>
+                  {t(
+                    'Confirmation also records that you checked how each requirement, its reference and practice support the selected learning targets.',
+                    '确认同时记录您已核对各项要求、参考与练习如何支持所选学习目标。',
+                  )}
+                </p>
+              )}
               <div className="flex gap-3">
                 <button
                   className="rounded-md bg-indigo-600 px-3 py-2 font-semibold text-white disabled:opacity-50"

@@ -1,4 +1,5 @@
 import { classifyAssessmentKind } from './courseGraph/deriveFromCourseMap.js';
+import { readTeachingGoalReviews } from './teachingGoalReview.js';
 import { compactCompilerOwnedEvidenceCheckIdentity } from './compilerAssessmentIdentity.js';
 import { isDeliverableNotApplicable } from './deliverableApplicability';
 import { deriveEvaluateDesign } from './leanCourseMap.js';
@@ -2823,6 +2824,10 @@ export function evaluateWorkspaceReadiness({
       entry.data.taskSourceReview &&
       (!Number.isInteger(entry.data.taskSourceReviewLesson) ||
         lessonIndices.includes(entry.data.taskSourceReviewLesson - 1));
+    const goalReviewInScope = readTeachingGoalReviews(entry.data.taskGoalReview).filter(
+      (review) => !Number.isInteger(review.lessonNumber) || lessonIndices.includes(review.lessonNumber - 1),
+    );
+    for (const review of goalReviewInScope) issues.push(makeIssue(READINESS_BLOCKER, featureId, review.message));
     if (sourceReviewInScope || conflictsInScope.length) {
       issues.push(
         makeIssue(

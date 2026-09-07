@@ -103,6 +103,7 @@ export default function useCourseMapEditor({
   onEdit,
   deliverables,
   optimisticUpdate,
+  onCommitCell,
 }) {
   const handleCellEdit = useCallback(
     (lessonIdx, sectionIdx, key, newValue) => {
@@ -110,7 +111,9 @@ export default function useCourseMapEditor({
       const oldValue = courseMap.lessons[lessonIdx]?.sections?.[sectionIdx]?.[key] || '';
       if (oldValue === newValue) return;
       const updated = setAtPath(courseMap, ['lessons', lessonIdx, 'sections', sectionIdx, key], newValue);
-      setCourseMap(updated);
+      const handled = onCommitCell?.({ lessonIdx, sectionIdx, key, newValue });
+      if (handled === 'rejected') return;
+      if (!handled) setCourseMap(updated);
       setDownloadedFile('');
       setUserEdits((prev) => [
         ...prev,
@@ -124,11 +127,11 @@ export default function useCourseMapEditor({
         },
       ]);
       pushVersion(updated, `Edited ${key} in Lesson ${lessonIdx + 1}`);
-      onEdit?.(lessonIdx, key);
+      if (!handled) onEdit?.(lessonIdx, key);
       // Track edit pattern for agent learning (fire-and-forget)
       recordEditPattern({ featureId: 'courseMap', field: key, action: 'edited' });
     },
-    [courseMap, setCourseMap, setDownloadedFile, setUserEdits, pushVersion, onEdit],
+    [courseMap, setCourseMap, setDownloadedFile, setUserEdits, pushVersion, onEdit, onCommitCell],
   );
 
   const handleTitleEdit = useCallback(

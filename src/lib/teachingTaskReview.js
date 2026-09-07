@@ -5,6 +5,8 @@ import { readTeachingTaskSources } from './teachingProgram.js';
 import { rebuildTeachingTaskSource } from './teachingTaskSource.js';
 import { createTeachingOperationPlan, TEACHING_OPERATION_SPECS } from './teachingOperationPlan.js';
 import { projectTeachingTaskUpdate, readPendingTeachingSourceInputs } from './teachingTaskContentSync.js';
+import { prepareTeachingGoalAlignment } from './teachingGoalAlignment.js';
+import { deriveCourseGraphFromCourseMap } from './courseGraph/deriveFromCourseMap.js';
 
 const revision = (value) => sha256HexSync(canonicalJson(value));
 const reviewIssue = (message) => ({ status: 'needs-review', message });
@@ -155,10 +157,12 @@ export function createTeachingTaskReviewDraft(source, materialData, featureId) {
   if (pending.status === 'needs-review') return pending;
   return {
     taskId: source.id,
+    objective: source.objective,
     sourceRevision: revision(source),
     ...(featureId ? { material: { featureId, inputRevision: revision(pending.inputs) } } : {}),
     operation,
     version: plan?.version || 1,
+    ...(plan?.goalAlignment ? { goalAlignment: structuredClone(plan.goalAlignment) } : {}),
     ...(plan?.admission?.proposal ? { proposal: structuredClone(plan.admission.proposal) } : {}),
     ...(plan?.practiceInputs ? { practiceInputs: structuredClone(plan.practiceInputs) } : {}),
     inputs: pending.inputs,
@@ -204,6 +208,11 @@ export function resolveTeachingTaskReviewDraft(source, draft, reviewedAt) {
     : null;
   if (!spec || spec.taskKind !== source.kind)
     return reviewIssue('This operation does not match the task. Its requirements need a separate review.');
+  const objective = draft.objective === undefined ? source.objective : draft.objective;
+  if (typeof objective !== 'string' || !objective.trim() || objective.length > 6000)
+    return reviewIssue('Supply a specific task objective before previewing the linked changes.');
+  if ((objective !== source.objective || source.operationPlan?.goalAlignment) && !draft.goalAlignment)
+    return reviewIssue('Link the task requirements to the current lesson targets before changing its objective.');
   const bindings = {};
   for (const [name, type] of Object.entries(spec.bindings)) {
     const selection = draft.bindings?.[name];
@@ -227,20 +236,25 @@ export function resolveTeachingTaskReviewDraft(source, draft, reviewedAt) {
       requirements: draft.requirements,
       version: draft.version || 1,
       practiceInputs: draft.practiceInputs,
-      objective: source.objective,
+      objective,
+      goalAlignment: draft.goalAlignment,
       // This is the proposed post-confirmation state. A preview never writes
       // it, and commitTeachingTaskReview independently requires confirmation.
       admission: {
         kind: 'teacher-confirmed',
         method: 'in-app-source-bindings',
         reviewedAt,
-        ...(draft.proposal?.inputRevision ===
-        revision({ operation: draft.operation, objective: source.objective, inputs: draft.inputs })
+        ...(draft.proposal?.inputRevision === revision({ operation: draft.operation, objective, inputs: draft.inputs })
           ? { proposal: structuredClone(draft.proposal) }
           : {}),
       },
     });
-    const updatedSource = { ...structuredClone(source), inputs: structuredClone(draft.inputs), operationPlan };
+    const updatedSource = {
+      ...structuredClone(source),
+      objective,
+      inputs: structuredClone(draft.inputs),
+      operationPlan,
+    };
     if (!rebuildTeachingTaskSource(updatedSource)) return reviewIssue('The proposed task cannot be compiled.');
     return { status: 'valid', source: updatedSource };
   } catch (error) {
@@ -248,12 +262,24 @@ export function resolveTeachingTaskReviewDraft(source, draft, reviewedAt) {
   }
 }
 
-function prepareReview({ courseMap, deliverables, draft, reviewedAt }) {
+function prepareReview({ courseMap, courseGraph, deliverables, draft, reviewedAt }) {
   const source = draft?.creation
     ? sourceForCreation(courseMap, draft)
     : readTeachingTaskSources(courseMap).find((item) => item.id === draft?.taskId);
   if (source?.status === 'needs-review') return source;
   if (!source) return reviewIssue('This task is no longer in the course. Reopen the task review.');
+  if (draft.goalAlignment !== undefined) {
+    draft = {
+      ...draft,
+      goalAlignment: prepareTeachingGoalAlignment(
+        draft.goalAlignment,
+        draft.requirements,
+        draft.objective ?? source.objective,
+        courseGraph || deriveCourseGraphFromCourseMap(courseMap),
+        source.lessonNumber,
+      ),
+    };
+  }
   if (draft.material) {
     const data = deliverables[draft.material.featureId]?.data;
     if (!data) return reviewIssue('The material was removed. Reopen the task review.');
@@ -277,10 +303,10 @@ function prepareReview({ courseMap, deliverables, draft, reviewedAt }) {
   return { ...transaction, task: rebuildTeachingTaskSource(resolved.source) };
 }
 
-export function previewTeachingTaskReview({ courseMap, deliverables, draft }) {
+export function previewTeachingTaskReview({ courseMap, courseGraph, deliverables, draft }) {
   try {
     const reviewedAt = new Date().toISOString();
-    const transaction = prepareReview({ courseMap, deliverables, draft, reviewedAt });
+    const transaction = prepareReview({ courseMap, courseGraph, deliverables, draft, reviewedAt });
     if (transaction.status !== 'applied') return transaction;
     const featureIds = Object.keys(transaction.changed);
     const base = {
@@ -306,7 +332,7 @@ export function previewTeachingTaskReview({ courseMap, deliverables, draft }) {
 
 /** Recompute from the reviewed intent, not caller-supplied material patches.
  * Both the authority and affected teacher documents must still match. */
-export function commitTeachingTaskReview({ courseMap, deliverables, preview, teacherConfirmed = false }) {
+export function commitTeachingTaskReview({ courseMap, courseGraph, deliverables, preview, teacherConfirmed = false }) {
   if (!teacherConfirmed)
     return reviewIssue('Confirm the source roles and task conditions before applying this review.');
   if (preview?.status !== 'preview') return reviewIssue('Preview the linked changes first.');
@@ -322,7 +348,13 @@ export function commitTeachingTaskReview({ courseMap, deliverables, preview, tea
       return reviewIssue(
         'The course or a related material changed after this preview. Preview again to preserve the newer edits.',
       );
-    return prepareReview({ courseMap, deliverables, draft: preview.draft, reviewedAt: preview.reviewedAt });
+    return prepareReview({
+      courseMap,
+      courseGraph,
+      deliverables,
+      draft: preview.draft,
+      reviewedAt: preview.reviewedAt,
+    });
   } catch (error) {
     return reviewIssue(error.message);
   }

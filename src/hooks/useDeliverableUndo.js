@@ -23,10 +23,10 @@ export default function useDeliverableUndo(maxSize = 30, workspace) {
   const [message, setMessage] = useState('');
 
   const snapshotTransaction = useCallback((features, context) => {
-    if (!features || !Object.keys(features).length) return;
+    if ((!features || !Object.keys(features).length) && context === undefined) return;
     const pending = pendingRef.current || { features: {} };
     // Multiple repairs in one commit retain the earliest value of each field.
-    for (const [id, fields] of Object.entries(features))
+    for (const [id, fields] of Object.entries(features || {}))
       pending.features[id] = { ...structuredClone(fields), ...pending.features[id] };
     if (context !== undefined && pending.context === undefined) pending.context = structuredClone(context);
     pendingRef.current = pending;

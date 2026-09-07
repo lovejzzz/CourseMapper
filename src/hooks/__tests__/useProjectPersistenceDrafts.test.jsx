@@ -128,6 +128,7 @@ it('restores drafts through file, local and developer project paths; old files a
   const draft = createNewTeachingTaskReviewDraft(initialMap, { lessonNumber: 1, operation: 'observed-proportion' });
   await act(async () => api.saveTeachingReviewDraft(draft, { title: 'Observed groups', featureId: 'rubrics' }));
   const saved = api.buildProjectSnapshot();
+  saved.userEdits = {}; // Actual older project shape: editing after reopen must remain safe.
   const open = (snapshot) =>
     api.handleOpenProject({ name: 'test.coursemapper', text: async () => JSON.stringify(snapshot) });
   let session = api.teachingReviewSession;
@@ -144,6 +145,7 @@ it('restores drafts through file, local and developer project paths; old files a
   expect(api.teachingReviewDrafts).toEqual(emptyTeachingReviewDrafts());
   await act(async () => api.applyDeveloperSnapshot(saved));
   expect(api.teachingReviewDrafts).toEqual(saved.teachingReviewDrafts);
+  expect(context.setUserEdits.mock.calls.every(([edits]) => Array.isArray(edits))).toBe(true);
   await act(async () => api.handleNewProject());
   expect(api.teachingReviewDrafts).toEqual(emptyTeachingReviewDrafts());
   await act(async () => window.dispatchEvent(new Event('pagehide')));

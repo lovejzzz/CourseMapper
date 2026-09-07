@@ -140,6 +140,8 @@ import {
   validateCourseGraph,
 } from './lib/courseGraph';
 import { matchEntityIds, preserveSourceProof, restoreCourseGraphForProject } from './lib/nativeGraphAuthoring';
+import { readTeachingGoalReviews, reconcileTeachingGoalReview } from './lib/teachingGoalReview.js';
+import { editLinkedTeachingGoal } from './lib/teachingGoalEdit.js';
 import { knowledgeCoverage } from './lib/knowledge';
 import { normalizePipelineStateWithSourceBackedJudgment } from './lib/sourceBackedJudgment';
 
@@ -491,6 +493,7 @@ export default function AppFlow({
   // small; persisted in the project snapshot as formatVersion 2.
   const [courseGraph, setCourseGraph] = useState(null);
   const courseGraphRef = useRef(courseGraph);
+  const pairedCourseMapRef = useRef(null);
   useEffect(() => {
     courseGraphRef.current = courseGraph;
   }, [courseGraph]);
@@ -947,6 +950,9 @@ export default function AppFlow({
   // gets one derived here.
   useEffect(() => {
     if (!courseMap?.lessons) return;
+    // Explicit goal edits commit map, graph and material review state together.
+    // The legacy map parser must not immediately replace that committed graph.
+    if (pairedCourseMapRef.current === courseMap) return;
     try {
       if (!courseGraphRef.current) {
         setCourseGraph(deriveCourseGraphFromCourseMap(courseMap));
@@ -1129,6 +1135,7 @@ export default function AppFlow({
   const taskUndoContext = {
     read: () => ({ courseMap: courseMapRef.current, courseGraph: courseGraphRef.current }),
     restore: (saved) => {
+      pairedCourseMapRef.current = saved.courseMap;
       courseMapRef.current = saved.courseMap;
       setCourseMap(saved.courseMap);
       courseGraphRef.current = saved.courseGraph;
@@ -1143,9 +1150,12 @@ export default function AppFlow({
     setCourseMap(transaction.courseMap);
     handleCourseGraph(
       quarantineInvalidInstructionalPlanLineage(
-        attachEnrichmentToGraph(
-          deriveCourseGraphFromCourseMap(transaction.courseMap),
-          courseGraphRef.current?.enrichmentOverlay,
+        matchEntityIds(
+          courseGraphRef.current,
+          attachEnrichmentToGraph(
+            deriveCourseGraphFromCourseMap(transaction.courseMap),
+            courseGraphRef.current?.enrichmentOverlay,
+          ),
         ),
       ),
     );
@@ -1154,6 +1164,11 @@ export default function AppFlow({
     );
     setDownloadedFile('');
   }
+  useEffect(() => {
+    if (!courseMap || !courseGraph) return;
+    const next = reconcileTeachingGoalReview(deliv.deliverables, courseMap, courseGraph);
+    if (next !== deliv.deliverables) deliv.setDeliverables(next);
+  }, [courseMap, courseGraph, deliv.deliverables, deliv.setDeliverables]);
   const [packageQualityPass, setPackageQualityPass] = useState({
     status: 'idle',
     message: '',
@@ -2453,6 +2468,30 @@ export default function AppFlow({
     onEdit: smartSync.notifyEdit,
     deliverables: deliv.deliverables,
     optimisticUpdate: deliv.optimisticUpdate,
+    onCommitCell: ({ lessonIdx, sectionIdx, key, newValue }) => {
+      if (key !== 'learningObjectives') return false;
+      const result = editLinkedTeachingGoal({
+        courseMap: courseMapRef.current,
+        courseGraph: courseGraphRef.current,
+        deliverables: deliv.deliverables,
+        lessonIdx,
+        sectionIdx,
+        newValue,
+      });
+      if (!result) return false;
+      if (result.status !== 'applied') {
+        gen.setError(result.message);
+        return 'rejected';
+      }
+      delivUndo.snapshotTransaction(result.before, taskUndoContext.read());
+      pairedCourseMapRef.current = result.courseMap;
+      courseMapRef.current = result.courseMap;
+      setCourseMap(result.courseMap);
+      handleCourseGraph(result.courseGraph);
+      deliv.setDeliverables((previous) => ({ ...previous, ...result.changed }));
+      setUnseenChanges((previous) => new Set([...previous, ...Object.keys(result.changed)]));
+      return true;
+    },
   });
 
   // ── Persist API key, provider & model — handled by AIConfigContext ──
@@ -3510,7 +3549,8 @@ export default function AppFlow({
                 {workspaceTabs.map((feature, tabIdx) => {
                   const isActive = activeTab === feature.id;
                   const delivState = deliv.deliverables[feature.id];
-                  const isDone = delivState?.status === 'done';
+                  const needsGoalReview = readTeachingGoalReviews(delivState?.data?.taskGoalReview).length > 0;
+                  const isDone = delivState?.status === 'done' && !needsGoalReview;
                   const isError = delivState?.status === 'error';
                   const hasRepairNeededCoverage = buildRibbonModel?.pipelineChips?.some(
                     (chip) => chip?.id === 'coverage' && chip?.warn,
@@ -3608,13 +3648,15 @@ export default function AppFlow({
                           }
                         />
                         {feature.label}
-                        {isStaleTab && !isSyncingThis
-                          ? staleConf?.level === 'high'
-                            ? ' ⚠'
-                            : ' ~'
-                          : hasUnseen
-                            ? ' *'
-                            : ''}
+                        {needsGoalReview
+                          ? ' ⚠'
+                          : isStaleTab && !isSyncingThis
+                            ? staleConf?.level === 'high'
+                              ? ' ⚠'
+                              : ' ~'
+                            : hasUnseen
+                              ? ' *'
+                              : ''}
                       </button>
                       {isDropTarget && markerAfter && insertionMarker}
                     </React.Fragment>
@@ -4182,6 +4224,7 @@ export default function AppFlow({
                     onPreviewTeachingTask={(draft) =>
                       previewTeachingTaskReview({
                         courseMap: courseMapRef.current,
+                        courseGraph: courseGraphRef.current,
                         deliverables: deliv.deliverables,
                         draft,
                       })
@@ -4189,6 +4232,7 @@ export default function AppFlow({
                     onCommitTeachingTask={(preview, teacherConfirmed) => {
                       const result = commitTeachingTaskReview({
                         courseMap: courseMapRef.current,
+                        courseGraph: courseGraphRef.current,
                         deliverables: deliv.deliverables,
                         preview,
                         teacherConfirmed,
@@ -4202,6 +4246,7 @@ export default function AppFlow({
                     regeneratingIndex={deliv.deliverables[activeTab]?.regeneratingIndex ?? null}
                     courseMap={courseMap}
                     courseMapStatus={gen.progressStep}
+                    courseGraph={courseGraph}
                     isDelivGenerating={deliv.isGenerating}
                     currentDelivFeatures={deliv.currentFeatures}
                     lessonScope={lessonScope.type === 'specific' ? lessonScope.indices : null}

@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased — v0.20.0 development
+
+- Add reviewed teaching-task creation, explicit source bindings and editable performance requirements shared by tasks, references, scoring, feedback and practice. Keep proposals separate from confirmed course content.
+- Preserve project-scoped unfinished task drafts across material switches, local recovery and project files; reopening requires a fresh preview and confirmation. Save linked-edit history for undo/redo after reopening.
+- Link each reviewed requirement to existing course or lesson outcomes. Changing a task objective requires target review; changed, deleted or unavailable targets invalidate the prior review without silently rewriting teacher references.
+- Commit linked course-map target edits, their graph changes and material review state as one reversible transaction. Preserve unambiguous target identities; retain teacher content and require review for shared-target or prerequisite deletions that cannot be safely resolved by a cell edit.
+- Fix a restored-project crash when an empty edit journal was stored as an object. Normalize empty journals and reject nonempty unsupported formats before opening the project.
+- Show pending target reviews in material tabs and workspace status, remove misleading ready ticks, and improve warning contrast in dark mode. Malformed review metadata remains a review issue rather than crashing a material.
+- Preserve the 0.18.7 interface, local Scion, ten material types and export choices. This is development progress; three complete six-lesson courses, v3 acceptance, the local response-review workflow and final deployment gates remain open. See the [implementation record](docs/v0.20.0-implementation.zh-CN.md).
+
 ## 0.19.2 — 2026-09-06
 
 - Add eight explicit evidence operations: related event dates, effective record amendments, missing chart context, interview attribution, coupled training/nutrition/coaching, algorithm cache and run order, recipe labels and serving order, and filter starting conditions and duration.

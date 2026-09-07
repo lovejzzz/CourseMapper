@@ -160,17 +160,17 @@ describe('teacher structure review interaction', () => {
     await open('rubrics');
     await enter('Record 1', 'A teacher change awaiting source review');
     await click(button('Preview linked changes'));
-    await click(container.querySelector('input[type="checkbox"]'));
+    await click(container.querySelector('[data-testid="teaching-review-confirm"]'));
     expect(button('Apply reviewed changes').disabled).toBe(false);
     const saved = structuredClone(owner.snapshot());
     await open('lessonPlans');
     expect(container.querySelector('[aria-label="Record 1"]').value).toBe('A teacher change awaiting source review');
-    expect(container.querySelector('input[type="checkbox"]')).toBeNull();
+    expect(container.querySelector('[data-testid="teaching-review-confirm"]')).toBeNull();
     expect(onCommit).not.toHaveBeenCalled();
     expect(owner.book).toEqual(saved);
     await click(button('Preview linked changes'));
     expect(button('Apply reviewed changes').disabled).toBe(true);
-    await click(container.querySelector('input[type="checkbox"]'));
+    await click(container.querySelector('[data-testid="teaching-review-confirm"]'));
     await click(button('Apply reviewed changes'));
     expect(owner.book.entries).toEqual([]);
     expect(onCommit).toHaveBeenCalledOnce();
@@ -278,7 +278,7 @@ describe('teacher structure review interaction', () => {
     await click(button('Preview linked changes'));
     expect(onPreview.mock.results[0].value.status).toBe('preview');
     expect(button('Apply reviewed changes').disabled).toBe(true);
-    await click(container.querySelector('input[type="checkbox"]'));
+    await click(container.querySelector('[data-testid="teaching-review-confirm"]'));
     await click(button('Apply reviewed changes'));
     expect(onCommit.mock.results[0].value.status).toBe('applied');
     expect(onCommit.mock.results[0].value.courseMap.teachingProgram.tasks).toHaveLength(1);
@@ -376,7 +376,7 @@ describe('teacher structure review interaction', () => {
     expect(
       onPreview.mock.results[0].value.task.sequence.find((s) => s.kind === 'independent-transfer').answer,
     ).toContain(answer);
-    const confirmation = container.querySelector('input[type="checkbox"]');
+    const confirmation = container.querySelector('[data-testid="teaching-review-confirm"]');
     expect(confirmation.parentElement.textContent).toContain(
       'reference reasoning, scoring levels and independent practice',
     );
@@ -386,6 +386,29 @@ describe('teacher structure review interaction', () => {
     expect(onCommit.mock.results[0].value.courseMap.teachingProgram.tasks[0].operationPlan.requirements[1].action).toBe(
       action,
     );
+  });
+
+  it('requires explicit target links for a changed task objective before the real preview and confirmation', async () => {
+    const { onPreview, onCommit } = await renderPerformanceReview();
+    const objective = 'Calculate the observed proportion and specify comparable evidence for the missing group.';
+    await enter('Task objective', objective);
+    await click(button('Preview linked changes'));
+    expect(onPreview.mock.results[0].value.status).toBe('needs-review');
+    expect(container.textContent).toContain('Link the task requirements');
+    const choices = [...container.querySelectorAll('input[type="checkbox"]')].filter((input) =>
+      input.getAttribute('aria-label')?.includes(' target:'),
+    );
+    expect(choices).toHaveLength(2);
+    for (const choice of choices) await click(choice);
+    await click(button('Preview linked changes'));
+    expect(onPreview.mock.results[1].value.status).toBe('preview');
+    expect(onCommit).not.toHaveBeenCalled();
+    await click(container.querySelector('[data-testid="teaching-review-confirm"]'));
+    await click(button('Apply reviewed changes'));
+    const accepted = onCommit.mock.results[0].value;
+    expect(accepted.status).toBe('applied');
+    expect(accepted.courseMap.teachingProgram.objectives[0].text).toBe(objective);
+    expect(accepted.courseMap.teachingProgram.tasks[0].operationPlan.goalAlignment.requirementLinks).toHaveLength(2);
   });
 
   it('removes a requirement with explicit weight changes and gives a new requirement a fresh identity', async () => {
@@ -431,7 +454,7 @@ describe('teacher structure review interaction', () => {
     expect(apply.disabled).toBe(true);
     await click(apply);
     expect(onCommit).not.toHaveBeenCalled();
-    await click(container.querySelector('input[type="checkbox"]'));
+    await click(container.querySelector('[data-testid="teaching-review-confirm"]'));
     expect(apply.disabled).toBe(false);
     await click(apply);
     expect(onCommit).toHaveBeenCalledWith(expect.objectContaining({ status: 'preview' }), true);
@@ -464,7 +487,7 @@ describe('teacher structure review interaction', () => {
       expect(Object.values(onPreview.mock.calls[0][0].bindings).every((b) => b.quote === '' && b.inputId === '')).toBe(
         true,
       );
-      expect(container.querySelector('input[type="checkbox"]').parentElement.textContent).toContain(
+      expect(container.querySelector('[data-testid="teaching-review-confirm"]').parentElement.textContent).toContain(
         zh ? '目标群体更广' : 'target population is wider',
       );
     },
@@ -473,7 +496,7 @@ describe('teacher structure review interaction', () => {
   it('invalidates the preview and confirmation when the draft changes', async () => {
     const { onCommit } = await renderReview();
     await click(button('Preview linked changes'));
-    await click(container.querySelector('input[type="checkbox"]'));
+    await click(container.querySelector('[data-testid="teaching-review-confirm"]'));
     const input = container.querySelector('input[type="number"]');
     await act(async () => {
       Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set.call(input, '25');
@@ -482,7 +505,7 @@ describe('teacher structure review interaction', () => {
     expect(button('Apply reviewed changes')).toBeUndefined();
     expect(onCommit).not.toHaveBeenCalled();
     await click(button('Preview linked changes'));
-    expect(container.querySelector('input[type="checkbox"]').checked).toBe(false);
+    expect(container.querySelector('[data-testid="teaching-review-confirm"]').checked).toBe(false);
   });
 
   it('keeps an unsuccessful draft available and can reload current task data', async () => {
@@ -499,7 +522,7 @@ describe('teacher structure review interaction', () => {
     const onCommit = vi.fn(() => ({ status: 'needs-review', message: 'A newer edit changed the course.' }));
     await renderReview({ onCommit });
     await click(button('Preview linked changes'));
-    await click(container.querySelector('input[type="checkbox"]'));
+    await click(container.querySelector('[data-testid="teaching-review-confirm"]'));
     await click(button('Apply reviewed changes'));
     expect(button('Apply reviewed changes')).toBeUndefined();
     expect(container.querySelector('textarea')).not.toBeNull();

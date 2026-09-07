@@ -792,6 +792,7 @@ export default function useProjectPersistence({
       setScreen('workspace');
     } catch (e) {
       warn('Restore failed:', e);
+      gen.setError('Failed to restore project: ' + e.message);
     }
   }
 

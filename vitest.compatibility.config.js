@@ -8,6 +8,7 @@ export default defineConfig({
     testTimeout: 30000,
     include: [
       'src/components/deliverables/__tests__/*.{test,spec}.{js,jsx}',
+      'src/components/chat/__tests__/AgentWorkingSetPanel.test.jsx',
       'src/components/__tests__/{GenericDeliverableView,ExportSidePanel.readiness,Header}.test.jsx',
       'src/lib/__tests__/{deliverableSchemas,exporterUtils,generationCancellation,scionCompilerRoute,keyMaps,directExportIntegrity}.test.js',
       'tests/v01654-editable-object-fields.test.jsx',
@@ -22,6 +23,7 @@ export default defineConfig({
       'src/lib/__tests__/teachingPerformanceRequirements.test.js',
       'src/lib/__tests__/teachingTaskReview.test.js',
       'src/lib/__tests__/teachingTaskCreation.test.js',
+      'src/lib/__tests__/teachingGoalAlignment.test.js',
       'src/lib/__tests__/deliverableEditHistory.test.js',
       'src/lib/__tests__/instructionalPlanLineage.test.js',
       'src/lib/courseGraph/__tests__/courseGraph.test.js',

@@ -31,6 +31,35 @@ const workspacePlan = {
 };
 
 describe('AgentWorkingSetPanel', () => {
+  it('keeps generated materials with changed targets out of ready counts and export-ready language', () => {
+    const props = {
+      courseMap,
+      selectedFeatures: ['courseMap', 'rubrics'],
+      packageQualityPass: { status: 'ready', blockers: 0, warnings: 0 },
+      deliverables: {
+        rubrics: {
+          status: 'done',
+          data: {
+            rubrics: [],
+            taskGoalReview: [{ taskId: 'task-1', lessonNumber: 2, message: 'Target changed' }],
+          },
+        },
+      },
+    };
+    expect(buildAgentWorkingSetSummary(props)).toMatchObject({
+      readyFeatureCount: 0,
+      missingFeatureCount: 0,
+      goalReviewFeatureCount: 1,
+      packageStatus: { label: 'Review targets' },
+    });
+    const html = renderToStaticMarkup(<AgentWorkingSetPanel {...props} />);
+    expect(html).toContain('Learning targets need review');
+    expect(html).toContain('1 needs target review');
+    expect(html).not.toContain('Ready to export');
+    expect(html).not.toContain('Workspace ready');
+    const running = buildAgentWorkingSetSummary({ ...props, packageQualityPass: { status: 'running' } });
+    expect(running.packageStatus.label).toBe('Finishing');
+  });
   it('summarizes the Agent working set from current workspace state', () => {
     const summary = buildAgentWorkingSetSummary({
       courseMap,

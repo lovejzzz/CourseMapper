@@ -43,6 +43,20 @@ async function setup(maxSize = 30) {
 }
 
 describe('deliverable edit history', () => {
+  it('captures a course-only edit even when no material projection changes', async () => {
+    const h = await setup();
+    const materials = h.state();
+    await act(async () => {
+      h.hook().snapshotTransaction({}, h.owner.read());
+      h.owner.restore({ courseMap: { count: 80 }, courseGraph: null });
+    });
+    expect(h.hook().canUndo).toBe(true);
+    await act(async () => h.hook().undo(h.set, h.owner));
+    expect(h.owner.read().courseMap.count).toBe(50);
+    expect(h.state()).toEqual(materials);
+    await act(async () => h.hook().redo(h.set, h.owner));
+    expect(h.owner.read().courseMap.count).toBe(80);
+  });
   it('restores actual edited values on repeated undo/redo across two materials', async () => {
     const h = await setup();
     await h.edit('assignments', { text: 'B' });

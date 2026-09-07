@@ -26,6 +26,7 @@ import { preferredScrollBehavior } from '../lib/motionPreference';
 import { resolveTaskSyncConflict } from '../lib/teachingTaskContentSync.js';
 import TeachingTaskReview from './deliverables/shared/TeachingTaskReview.jsx';
 import TaskSyncConflictValue from './deliverables/shared/TaskSyncConflictValue.jsx';
+import { readTeachingGoalReviews } from '../lib/teachingGoalReview.js';
 
 // ── v0.14.1 (3.5): assessment focus helpers ─────────────────────────────────
 // "Lesson 7" / "Week 7" mentions on a deliverable item resolve its lesson
@@ -128,6 +129,7 @@ export default function DeliverableView({
   onRetry,
   onAddLessons,
   courseMap,
+  courseGraph,
   lessonScope,
   isStudentView,
   onSaveToBank,
@@ -345,6 +347,7 @@ export default function DeliverableView({
           key={`${featureId}:${teachingReviewSession || 0}`}
           featureId={featureId}
           courseMap={courseMap}
+          courseGraph={courseGraph}
           data={data}
           onPreview={onPreviewTeachingTask}
           onCommit={onCommitTeachingTask}
@@ -357,6 +360,16 @@ export default function DeliverableView({
         <p role="alert" className="mx-4 mt-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
           {data.taskSourceReview}
         </p>
+      )}
+      {!isStudentView && readTeachingGoalReviews(data?.taskGoalReview).length > 0 && (
+        <div
+          role="alert"
+          className="mx-4 mt-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200"
+        >
+          {readTeachingGoalReviews(data?.taskGoalReview).map((review) => (
+            <p key={review.taskId}>{review.message}</p>
+          ))}
+        </div>
       )}
       {!isStudentView && data?.taskSyncConflicts?.length > 0 && (
         <details className="mx-4 mt-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">

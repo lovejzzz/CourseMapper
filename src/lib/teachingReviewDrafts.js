@@ -1,4 +1,5 @@
 import { TEACHING_OPERATION_SPECS } from './teachingOperationPlan.js';
+import { editableTeachingGoalAlignment } from './teachingGoalAlignment.js';
 
 const object = (value) => value && typeof value === 'object' && !Array.isArray(value);
 const text = (value) => typeof value === 'string';
@@ -28,6 +29,8 @@ export function editableTeachingReviewDraft(draft) {
   )
     return false;
   if (draft.creation === undefined && !text(draft.sourceRevision)) return false;
+  if (draft.objective !== undefined && !text(draft.objective)) return false;
+  if (draft.goalAlignment !== undefined && !editableTeachingGoalAlignment(draft.goalAlignment)) return false;
   if (
     Object.keys(TEACHING_OPERATION_SPECS[draft.operation].bindings).some((key) => {
       const binding = draft.bindings[key];

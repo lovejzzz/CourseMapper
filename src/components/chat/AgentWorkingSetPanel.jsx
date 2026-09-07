@@ -5,6 +5,7 @@ import { getWorkspacePlanActionKey } from './WorkspacePlanCard';
 import { AGENT_SOURCE_CONTEXT_ROLE, getAgentSourceContextSummary } from '../../lib/agentSourceContext';
 import { summarizeLandingAgentContext } from '../../lib/landingAgentContext';
 import { getPackageTrustStatus } from '../../lib/packageTrustStatus';
+import { readTeachingGoalReviews } from '../../lib/teachingGoalReview.js';
 
 const MUTED_TONE = 'border-slate-200 bg-white/70 text-slate-600';
 const GOOD_TONE = 'border-emerald-200 bg-emerald-50 text-emerald-700';
@@ -245,10 +246,13 @@ export function buildAgentWorkingSetSummary({
   let staleFeatureCount = 0;
   let failedFeatureCount = 0;
   let generatingFeatureCount = 0;
+  let goalReviewFeatureCount = 0;
 
   allRelevantIds.forEach((featureId) => {
     const entry = deliverables?.[featureId];
-    if (isFeatureReady(entry)) readyFeatureCount += 1;
+    const needsGoalReview = readTeachingGoalReviews(entry?.data?.taskGoalReview).length > 0;
+    if (needsGoalReview) goalReviewFeatureCount += 1;
+    if (isFeatureReady(entry) && !needsGoalReview) readyFeatureCount += 1;
     if (isFeatureFailed(entry)) failedFeatureCount += 1;
     if (isFeatureGenerating(entry)) generatingFeatureCount += 1;
     if (entry?.stale || syncSet.has(featureId)) staleFeatureCount += 1;
@@ -263,6 +267,9 @@ export function buildAgentWorkingSetSummary({
   const packageStatus = generationError
     ? { label: 'Build stopped', tone: BAD_TONE }
     : buildPackageStatus(packageQualityPass);
+  if (goalReviewFeatureCount > 0 && !['Building', 'Finishing', 'Build stopped'].includes(packageStatus.label)) {
+    Object.assign(packageStatus, { label: 'Review targets', tone: WARN_TONE, readyWithNotes: false });
+  }
   const briefStatus = buildBriefStatus(messages);
   const planStatus = buildPlanStatus(messages);
   const activityStatus = buildRecentActivityStatus(messages);
@@ -286,6 +293,7 @@ export function buildAgentWorkingSetSummary({
     staleFeatureCount,
     failedFeatureCount,
     generatingFeatureCount,
+    goalReviewFeatureCount,
     packageStatus,
     hasCourseMap: lessonCount > 0,
     hasDeliverableContext: allRelevantIds.length > 0 || selectedSet.size > 0,
@@ -299,6 +307,9 @@ export default function AgentWorkingSetPanel(props) {
 
   const quietMaterialParts = [
     summary.readyFeatureCount ? `${summary.readyFeatureCount} ready` : null,
+    summary.goalReviewFeatureCount
+      ? `${summary.goalReviewFeatureCount} ${summary.goalReviewFeatureCount === 1 ? 'needs' : 'need'} target review`
+      : null,
     summary.generatingFeatureCount ? `${summary.generatingFeatureCount} running` : null,
     summary.failedFeatureCount ? `${summary.failedFeatureCount} failed` : null,
   ].filter(Boolean);
@@ -318,15 +329,17 @@ export default function AgentWorkingSetPanel(props) {
         ? 'Building package'
         : summary.packageStatus.label === 'Finishing'
           ? 'Finishing package'
-          : readyWithNotes
-            ? 'Exportable with review notes'
-            : needsAttention
-              ? 'Package refinement'
-              : summary.packageStatus.label === 'Ready'
-                ? 'Ready to export'
-                : localOnly
-                  ? 'Workspace open'
-                  : 'Workspace ready';
+          : summary.goalReviewFeatureCount > 0
+            ? 'Learning targets need review'
+            : readyWithNotes
+              ? 'Exportable with review notes'
+              : needsAttention
+                ? 'Package refinement'
+                : summary.packageStatus.label === 'Ready'
+                  ? 'Ready to export'
+                  : localOnly
+                    ? 'Workspace open'
+                    : 'Workspace ready';
   const supportLine = [
     summary.scopeLabel,
     quietMaterialParts.length > 0 ? quietMaterialParts.join(', ') : 'No generated materials yet',

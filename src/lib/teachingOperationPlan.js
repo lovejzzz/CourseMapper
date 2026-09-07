@@ -1,5 +1,6 @@
 import { sha256HexSync } from './sha256Sync.js';
 import { solveTeachingProportion } from './teachingTaskArithmetic.js';
+import { validateTeachingGoalAlignment } from './teachingGoalAlignment.js';
 import {
   AUTHORED_REQUIREMENTS_PLAN_VERSION,
   performanceSourceRevision,
@@ -172,6 +173,14 @@ export function validateTeachingOperationPlan(plan, inputs, objective) {
     issues.push(issue('plan-requirements', 'Each required performance needs one positive scoring weight; total 100.'));
   if (!['legacy-explicit-rule', 'teacher-confirmed', 'model-proposal'].includes(plan.admission?.kind))
     issues.push(issue('plan-admission', 'Record how the teaching relationship was proposed or confirmed.'));
+  if (plan.goalAlignment !== undefined)
+    issues.push(
+      ...validateTeachingGoalAlignment(
+        plan.goalAlignment,
+        plan.requirements,
+        objective ?? plan.goalAlignment?.objective,
+      ).issues,
+    );
   // The stored provenance is a workflow record, not authenticated proof that
   // a person reviewed an imported project or that its facts are true.
   if (plan.operation === 'observed-proportion') {
@@ -240,6 +249,7 @@ export function createTeachingOperationPlan({
   version = TEACHING_OPERATION_PLAN_VERSION,
   practiceInputs,
   objective,
+  goalAlignment,
 }) {
   const spec = Object.hasOwn(TEACHING_OPERATION_SPECS, operation) ? TEACHING_OPERATION_SPECS[operation] : null;
   const plan = {
@@ -248,6 +258,7 @@ export function createTeachingOperationPlan({
     bindings: structuredClone(bindings),
     inputRevisions: Object.fromEntries(inputs.map((input) => [input.id, operationInputRevision(input)])),
     admission: structuredClone(admission || { kind: 'model-proposal' }),
+    ...(goalAlignment !== undefined ? { goalAlignment: structuredClone(goalAlignment) } : {}),
     requirements: structuredClone(
       requirements ||
         (spec?.requirements || []).map((id, index) => ({ id, weight: (spec.defaultWeights || [30, 35, 35])[index] })),
