@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Give new reviewed full-task rehearsal questions a 20-point budget and derive their scoring guidance from the shared rubric weights and all four performance bands. Preserve saved point budgets, including unscored questions, and keep quiz totals consistent. Print scoring criteria as separate paragraphs, honor PDF paragraph keep-together settings, keep answer headings with content, and omit guidance that exactly repeats the printed answer. Other practice-item scoring and question overlap remain under review.
+
 - Present reviewed comparison rubric alternatives as explicit changes to the printed reference when their opening and closing paragraphs match exactly. Preserve full editable responses and scoring evidence; retain teacher-authored and partially matching alternatives verbatim. Actual bilingual PDFs now fit three pages instead of four at the same type size.
 
 - Derive the comparison-design assignment, rubric and main rehearsal cognitive level from the reviewed operation in both languages. Localize Chinese assignment/rubric Word and PDF labels, point units and generated lesson/week references; match rubric band names to scorer guidance while retaining source prose and the existing UI. Development export review still identifies repeated references, sparse final pages and unresolved quiz scoring.

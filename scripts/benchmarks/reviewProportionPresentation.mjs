@@ -30,7 +30,10 @@ const operation = process.argv[3] || 'observed-proportion';
 if (!['observed-proportion', 'paired-condition-confound'].includes(operation))
   throw new Error('Unsupported capture operation.');
 const experiment = operation === 'paired-condition-confound';
-const outputFeatures = experiment ? ['assignments', 'rubrics', 'studyGuides'] : ['rubrics', 'studyGuides'];
+const outputFeatures =
+  process.argv[4]?.split(',') || (experiment ? ['assignments', 'rubrics', 'studyGuides'] : ['rubrics', 'studyGuides']);
+if (outputFeatures.some((feature) => !['assignments', 'rubrics', 'studyGuides', 'quizBank'].includes(feature)))
+  throw new Error('Unsupported inspection feature.');
 await fs.mkdir(root, { recursive: false });
 const actualFetch = globalThis.fetch;
 // A CLI has no Vite asset server. Load only the same shipped font bytes that

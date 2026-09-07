@@ -34,6 +34,7 @@ class Paragraph {
       alignment: options.alignment,
       headlineLevel: options.heading ? 1 : undefined,
       _keepNext: options.keepNext === true,
+      unbreakable: options.keepLines === true,
       pageBreak: options.pageBreakBefore ? 'before' : undefined,
       margin: [options.bullet ? 12 : 0, (options.spacing?.before || 0) / 20, 0, (options.spacing?.after || 0) / 20],
     };

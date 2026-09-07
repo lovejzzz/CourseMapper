@@ -275,3 +275,50 @@ it.each([false, true])(
     expect(alternativeReferenceParagraphs(changedEnding, zh).join('\n\n')).toBe(changedEnding.alternativeSample);
   },
 );
+
+it.each([false, true])('scores full rehearsals from shared criteria while preserving saved point budgets: %s', (zh) => {
+  const { task } = fixture(zh);
+  const blueprint = {
+    lessons: [{ id: 'design-unit', lessonNumber: 1, teachingTaskScope: 'primary-task', teachingTask: task }],
+  };
+  const data = projectSharedTeachingTasks('quizBank', { quizzes: [{ lessonNumber: 1, questions: [] }] }, blueprint);
+  const row = data.quizzes[0];
+  let question = row.questions.find((q) => q.practiceKind === 'task-rehearsal');
+  expect(question.points).toBe(20);
+  for (const criterion of task.criteria) {
+    expect(question.scoringGuidance).toContain(criterion.label);
+    expect(question.scoringGuidance).toContain(`${criterion.weight}%`);
+    for (const band of ['exemplary', 'proficient', 'developing', 'beginning'])
+      expect(question.scoringGuidance).toContain(criterion.levels[band]);
+  }
+  const definition = deliverablePdfDefinition('quizBank', data, 'Comparison design');
+  const keptParagraphs = [];
+  const printedStrings = [];
+  const inspect = (node) => {
+    if (typeof node === 'string') printedStrings.push(node);
+    else if (Array.isArray(node)) node.forEach(inspect);
+    else if (node && typeof node === 'object') {
+      if (node.unbreakable === true && node.text) keptParagraphs.push(JSON.stringify(node.text));
+      Object.values(node).forEach(inspect);
+    }
+  };
+  inspect(definition.content);
+  const diagnostic = row.questions.find((q) => q.practiceKind === 'error-analysis');
+  expect(diagnostic.scoringGuidance).toBe(diagnostic.answer);
+  expect(printedStrings.some((text) => text.trim() === diagnostic.answer)).toBe(true);
+  expect(printedStrings.some((text) => text.includes(`Scoring Guidance: ${diagnostic.answer}`))).toBe(false);
+  for (const criterion of task.criteria)
+    expect(keptParagraphs.some((text) => text.includes(criterion.levels.exemplary))).toBe(true);
+  expect(row.totalPoints).toBe(row.questions.reduce((sum, q) => sum + q.points, 0));
+  for (const savedPoints of [0, 7.5, 30]) {
+    question.points = savedPoints;
+    projectSharedTeachingTasks('quizBank', data, blueprint);
+    const revised = row.questions.find((q) => q.practiceId === question.practiceId);
+    expect(revised.points).toBe(savedPoints);
+    expect(revised.scoringGuidance).toContain(zh ? `满分为${savedPoints}分` : `total is ${savedPoints} points`);
+    const entry = row.quizBlueprint.questionPlan.find((q) => q.practiceId === revised.practiceId);
+    expect(entry.points).toBe(savedPoints);
+    // The next projection receives the actual retained row.
+    question = revised;
+  }
+});

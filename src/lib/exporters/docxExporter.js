@@ -500,8 +500,9 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         }),
       ],
     });
-  const makeText = (text) =>
+  const makeText = (text, { keepLines = false } = {}) =>
     new Paragraph({
+      keepLines,
       spacing: { line: bodyLine, before: denseArtifact ? 10 : 20, after: denseArtifact ? 30 : 50 },
       children: [new TextRun({ text: text || '', size: bodySize, font: FONT, color: '333333' })],
     });
@@ -1422,6 +1423,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
                   // items created a sparse fourth page even when both fit in the
                   // remaining third-page space.
                   pageBreakBefore: false,
+                  keepNext: true,
                 }),
               );
             }
@@ -1486,8 +1488,19 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             // Scoring guidance is the stronger, decision-ready contract. Do
             // not repeat a second rubric-hint paragraph when it is present.
             if (q.rubricHints && !q.scoringGuidance) reviewNotes.push(`Rubric Hints: ${q.rubricHints}`);
-            if (q.scoringGuidance && !sharedScoringGuidance.has(String(q.scoringGuidance).trim().toLowerCase())) {
-              reviewNotes.push(`Scoring Guidance: ${q.scoringGuidance}`);
+            if (
+              q.scoringGuidance &&
+              !sharedScoringGuidance.has(String(q.scoringGuidance).trim().toLowerCase()) &&
+              String(q.scoringGuidance).trim() !== answerText
+            ) {
+              const scoringParagraphs = String(q.scoringGuidance).split(/\r?\n\s*\r?\n/);
+              if (scoringParagraphs.length === 1) reviewNotes.push(`Scoring Guidance: ${q.scoringGuidance}`);
+              else {
+                children.push(makeBold('Scoring Guidance', scoringParagraphs[0], { compact: true, keepNext: true }));
+                scoringParagraphs
+                  .slice(1)
+                  .forEach((paragraph) => children.push(makeText(paragraph, { keepLines: true })));
+              }
             }
             if (q.feedback) reviewNotes.push(`Feedback: ${q.feedback}`);
             if (reviewNotes.length) {
