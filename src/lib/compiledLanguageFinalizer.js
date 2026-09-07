@@ -599,6 +599,19 @@ function protectedAuthenticEvidenceSpans(blueprint = {}) {
     if (!task) continue;
     task.inputs.forEach((input) => add(input.text));
     [task.question, task.answer, ...(task.reasoning || [])].forEach(add);
+    // Reviewed presentation v2 owns its sample responses and scoring wording.
+    // Generic seam cleanup must not change their quotations or the text to
+    // which the review evidence offsets refer. Preserve v1 replay for merges.
+    if (task.operationPlan?.presentationVersion === 2) {
+      (task.contrastResponses || []).forEach((example) => add(example.response));
+      for (const criterion of task.criteria || []) {
+        [criterion.label, criterion.feedback, ...Object.values(criterion.levels || {})].forEach(add);
+      }
+      [task.summary, task.product, task.checkpoint?.question, task.checkpoint?.answer].forEach(add);
+      Object.values(task.workedExample || {})
+        .filter((value) => typeof value === 'string')
+        .forEach(add);
+    }
     for (const unit of task.sequence || []) {
       (unit.sources || []).forEach(add);
       [unit.question, unit.answer, ...(unit.reasoning || [])].forEach(add);

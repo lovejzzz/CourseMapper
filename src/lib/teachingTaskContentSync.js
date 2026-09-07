@@ -263,6 +263,36 @@ function blueprintFor(sources, { legacyOperationPresentation = false, courseMap 
   return { lessons: linkTeachingTaskSequence(courseLessons || lessons) };
 }
 
+// A task projection does not own prose it did not change. Re-running global
+// title compression on those leaves can manufacture a conflict or rewrite an
+// unrelated lesson merely because a new task was added elsewhere.
+function keepUnprojectedText(current, projected, finalized) {
+  // projected is already detached. Returning current would alias live state
+  // when the caller later removes transport metadata from this merge copy.
+  if (equal(current, projected)) return projected;
+  if (object(current) && object(projected) && object(finalized))
+    return Object.fromEntries(
+      Object.entries(finalized).map(([key, value]) => [key, keepUnprojectedText(current[key], projected[key], value)]),
+    );
+  if (Array.isArray(current) && Array.isArray(projected) && Array.isArray(finalized)) {
+    const field = arrayIdentity([current, projected, finalized]);
+    if (field) {
+      const live = new Map(current.map((item) => [item[field], item]));
+      const raw = new Map(projected.map((item) => [item[field], item]));
+      return finalized.map((item) => keepUnprojectedText(live.get(item[field]), raw.get(item[field]), item));
+    }
+    if (current.length === projected.length && projected.length === finalized.length)
+      return finalized.map((item, index) => keepUnprojectedText(current[index], projected[index], item));
+  }
+  return finalized;
+}
+
+function finalizeTaskProjection(feature, current, blueprint) {
+  const projected = projectSharedTeachingTasks(feature, structuredClone(current), blueprint);
+  const finalized = finalizeCompiledDeliverableLanguage(feature, structuredClone(projected), blueprint);
+  return keepUnprojectedText(current, projected, finalized);
+}
+
 export function applyTeachingTaskSourceEdit({ featureId, oldData, newData, editPath, deliverables, courseMap }) {
   const binding = sourceBinding(oldData, editPath);
   if (!binding) return null;
@@ -444,16 +474,8 @@ export function projectTeachingTaskUpdate({
           !entry.data.teachingTaskSources.some((source) => affectedIds.has(source.id)))
     )
       continue;
-    const previous = finalizeCompiledDeliverableLanguage(
-      id,
-      projectSharedTeachingTasks(id, structuredClone(entry.data), oldBlueprint),
-      oldBlueprint,
-    );
-    const next = finalizeCompiledDeliverableLanguage(
-      id,
-      projectSharedTeachingTasks(id, structuredClone(entry.data), nextBlueprint),
-      nextBlueprint,
-    );
+    const previous = finalizeTaskProjection(id, entry.data, oldBlueprint);
+    const next = finalizeTaskProjection(id, entry.data, nextBlueprint);
     const current = { ...entry.data };
     delete previous.teachingTaskSources;
     delete next.teachingTaskSources;

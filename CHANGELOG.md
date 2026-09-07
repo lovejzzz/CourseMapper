@@ -2,6 +2,9 @@
 
 ## Unreleased — v0.20.0 development
 
+- Improve reviewed proportion explanations, exact/rounded notation and alternative solutions. A numerical complement no longer invents opposite outcomes for unclassified records. Preserve original source excerpts and rubric example evidence through language cleanup.
+- Version proportion presentation so an explicit review can upgrade older tasks without losing their merge baseline. Avoid reformatting unrelated content during task projection; preserve teacher conflicts and reversible changes.
+- Capture bilingual development tasks through actual creation and DOCX/PDF exporters. Record remaining study-guide repetition and localization defects; these local checks do not constitute full-course or model acceptance.
 - Add reviewed teaching-task creation, explicit source bindings and editable performance requirements shared by tasks, references, scoring, feedback and practice. Keep proposals separate from confirmed course content.
 - Preserve project-scoped unfinished task drafts across material switches, local recovery and project files; reopening requires a fresh preview and confirmation. Save linked-edit history for undo/redo after reopening.
 - Link each reviewed requirement to existing course or lesson outcomes. Changing a task objective requires target review; changed, deleted or unavailable targets invalidate the prior review without silently rewriting teacher references.

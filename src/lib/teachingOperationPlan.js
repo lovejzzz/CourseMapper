@@ -101,6 +101,11 @@ export function validateTeachingOperationPlan(plan, inputs, objective) {
     : null;
   if (!spec) return { valid: false, issues: [issue('plan-operation', 'This teaching operation is not supported.')] };
   if (
+    plan.presentationVersion !== undefined &&
+    (plan.operation !== 'observed-proportion' || ![1, 2].includes(plan.presentationVersion))
+  )
+    issues.push(issue('plan-presentation', 'This teaching presentation version is not supported.'));
+  if (
     !Array.isArray(inputs) ||
     !inputs.length ||
     inputs.some((input) => !object(input) || !nonempty(input.id) || !nonempty(input.text)) ||
@@ -255,6 +260,9 @@ export function createTeachingOperationPlan({
   const plan = {
     version,
     operation,
+    // Missing means the original development wording. Keep it reproducible
+    // for three-way merges; a fresh source/task review opts into the revision.
+    ...(operation === 'observed-proportion' ? { presentationVersion: 2 } : {}),
     bindings: structuredClone(bindings),
     inputRevisions: Object.fromEntries(inputs.map((input) => [input.id, operationInputRevision(input)])),
     admission: structuredClone(admission || { kind: 'model-proposal' }),
