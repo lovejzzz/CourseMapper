@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Preserve earlier reviewed case context during scoped compilation. Rebuild earlier saved tasks only for exposure checks, without emitting unselected materials. Three six-lesson course replays now match full-course answers, case exposure and use labels for single-lesson and reordered selections.
+
 - Track exact case-record reuse across the compiled course, including a case already used in the taught material. Label returning cases as continued independent practice in quiz purposes, Word/PDF question labels, lesson phases, slides and study guides. Preserve records, answers and scoring. Three existing six-lesson courses correctly identify lessons 2–5 as reusing lesson 1’s case; the different final case remains separate.
 
 - Keep long quiz response areas in bounded four-line blocks with repeated question labels in Word/PDF. Review all 15 pages of an existing six-lesson Chinese quiz before and after the fix: continuation pages retain question identity without adding pages. Record the separate unresolved issue of repeated course cases being labeled new.

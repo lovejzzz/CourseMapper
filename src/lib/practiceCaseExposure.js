@@ -13,10 +13,12 @@ function caseKey(records) {
 
 // This records exact case reuse in the compiled course, not a claim about
 // what a particular learner has seen or about semantic novelty of paraphrases.
-export function annotatePracticeCaseExposure(lessons = []) {
+export function annotatePracticeCaseExposure(lessons = [], contextLessons = []) {
   const seen = new Map();
   const updated = new Map();
-  for (const lesson of [...lessons].sort((a, b) => a.lessonNumber - b.lessonNumber)) {
+  const selectedNumbers = new Set(lessons.map((lesson) => lesson.lessonNumber));
+  const courseLessons = [...contextLessons.filter((lesson) => !selectedNumbers.has(lesson.lessonNumber)), ...lessons];
+  for (const lesson of courseLessons.sort((a, b) => a.lessonNumber - b.lessonNumber)) {
     const task = lesson.teachingTask;
     if (!task) continue;
     const taughtKey = caseKey(task.inputs);

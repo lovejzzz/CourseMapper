@@ -43,3 +43,15 @@ it('handles Chinese repeats and a practice case already used as the current taug
   expect(u.question).toBe('继续使用以下案例，完成本课的新要求。\n原文');
   expect(u.caseExposure.firstLessonNumber).toBe(1);
 });
+
+it('uses earlier context without emitting its lessons or leaking future practice backwards', () => {
+  const first = lesson(1, ['Returning record']);
+  const second = lesson(2, ['Returning record']);
+  const future = lesson(3, ['Future record']);
+  const result = annotatePracticeCaseExposure([second], [first, future]);
+  expect(result).toHaveLength(1);
+  expect(result[0].lessonNumber).toBe(2);
+  expect(result[0].teachingTask.sequence[0].caseExposure.firstLessonNumber).toBe(1);
+  const unseen = annotatePracticeCaseExposure([lesson(1, ['Future record'])], [future]);
+  expect(unseen[0].teachingTask.sequence[0].caseExposure).toBeUndefined();
+});

@@ -1,0 +1,743 @@
+{
+  "baselineCommit": "78ebad37",
+  "scope": "Three existing authored six-lesson courses; full, lesson2, lesson6, and requested order[6,2] through production compiler",
+  "modelCalls": 0,
+  "before": {
+    "modelCalls": 0,
+    "results": [
+      {
+        "course": "quantity-zh-draft-02",
+        "rows": [
+          {
+            "scopeIndices": null,
+            "lessons": [
+              {
+                "lesson": 1,
+                "exposure": null,
+                "intendedUse": "独立完成新案例；使用本题提供的记录。",
+                "answer": "分母是第一盘32颗种子；19颗是其中第5天登记已发芽的子集。其余仍观察；第二盘总数与结果未知，不能加入当前分母。"
+              },
+              {
+                "lesson": 2,
+                "exposure": {
+                  "version": 1,
+                  "kind": "reused-in-course",
+                  "firstLessonNumber": 1,
+                  "fingerprint": "040fd3401a7001a41d10dc5156f0e119c5d91ecdbd917c46ff8996d53529cc16"
+                },
+                "intendedUse": "独立完成课程中已出现案例的新要求；这是延续练习，不能据此证明迁移到未见情境。",
+                "answer": "19/32=0.59375=59.375%；0.59375×32=19。它描述第一盘第5天登记已发芽的比例。"
+              },
+              {
+                "lesson": 3,
+                "exposure": {
+                  "version": 1,
+                  "kind": "reused-in-course",
+                  "firstLessonNumber": 1,
+                  "fingerprint": "040fd3401a7001a41d10dc5156f0e119c5d91ecdbd917c46ff8996d53529cc16"
+                },
+                "intendedUse": "独立完成课程中已出现案例的新要求；这是延续练习，不能据此证明迁移到未见情境。",
+                "answer": "32−19=13颗，占13/32=40.625%。材料说继续观察、未判死亡；40.625%不是死亡率。"
+              },
+              {
+                "lesson": 4,
+                "exposure": {
+                  "version": 1,
+                  "kind": "reused-in-course",
+                  "firstLessonNumber": 1,
+                  "fingerprint": "040fd3401a7001a41d10dc5156f0e119c5d91ecdbd917c46ff8996d53529cc16"
+                },
+                "intendedUse": "独立完成课程中已出现案例的新要求；这是延续练习，不能据此证明迁移到未见情境。",
+                "answer": "精确59.375%，一位小数59.4%，整数59%；原记录仍19/32。0.594×32=19.008，不能据此把原计数改成19.008颗。"
+              },
+              {
+                "lesson": 5,
+                "exposure": {
+                  "version": 1,
+                  "kind": "reused-in-course",
+                  "firstLessonNumber": 1,
+                  "fingerprint": "040fd3401a7001a41d10dc5156f0e119c5d91ecdbd917c46ff8996d53529cc16"
+                },
+                "intendedUse": "独立完成课程中已出现案例的新要求；这是延续练习，不能据此证明迁移到未见情境。",
+                "answer": "只能报告第一盘第5天19/32登记发芽，不能给两盘精确总率。需第二盘总数、同一观察时点/发芽标准的结果与去重记录；未知不能记零。"
+              },
+              {
+                "lesson": 6,
+                "exposure": null,
+                "intendedUse": "独立完成新案例；使用本题提供的记录。",
+                "answer": "当前分母为周二收到的24本，9本是其中登记有水渍的子集。15本等待详细检查；周三总数与结果未知，不能把周三加入当前比例。\n\n9/24=0.375=37.5%；0.375×24=9。它描述周二收到图书中登记有水渍的比例。\n\n24−9=15本，占15/24=62.5%。这15本等待详细检查，并未登记无损；62.5%不能称为无损率。\n\n精确值37.5%，一位小数仍37.5%，整数百分数为38%。0.38×24=9.12，不是新的书本数；原始计数保持9/24。\n\n只可报告周二24本中9本登记水渍。周三数量与结果未知，不能给两天精确总率；需周三总数、同一截止时间及水渍定义的结果、待查状态和书本ID去重记录。"
+              }
+            ]
+          },
+          {
+            "scopeIndices": [
+              1
+            ],
+            "lessons": [
+              {
+                "lesson": 2,
+                "exposure": null,
+                "intendedUse": "独立完成新案例；使用本题提供的记录。",
+                "answer": "19/32=0.59375=59.375%；0.59375×32=19。它描述第一盘第5天登记已发芽的比例。"
+              }
+            ]
+          },
+          {
+            "scopeIndices": [
+              5
+            ],
+            "lessons": [
+              {
+                "lesson": 6,
+                "exposure": null,
+                "intendedUse": "独立完成新案例；使用本题提供的记录。",
+                "answer": "当前分母为周二收到的24本，9本是其中登记有水渍的子集。15本等待详细检查；周三总数与结果未知，不能把周三加入当前比例。\n\n9/24=0.375=37.5%；0.375×24=9。它描述周二收到图书中登记有水渍的比例。\n\n24−9=15本，占15/24=62.5%。这15本等待详细检查，并未登记无损；62.5%不能称为无损率。\n\n精确值37.5%，一位小数仍37.5%，整数百分数为38%。0.38×24=9.12，不是新的书本数；原始计数保持9/24。\n\n只可报告周二24本中9本登记水渍。周三数量与结果未知，不能给两天精确总率；需周三总数、同一截止时间及水渍定义的结果、待查状态和书本ID去重记录。"
+              }
+            ]
+          },
+          {
+            "scopeIndices": [
+              5,
+              1
+            ],
+            "lessons": [
+              {
+                "lesson": 6,
+                "exposure": null,
+                "intendedUse": "独立完成新案例；使用本题提供的记录。",
+                "answer": "当前分母为周二收到的24本，9本是其中登记有水渍的子集。15本等待详细检查；周三总数与结果未知，不能把周三加入当前比例。\n\n9/24=0.375=37.5%；0.375×24=9。它描述周二收到图书中登记有水渍的比例。\n\n24−9=15本，占15/24=62.5%。这15本等待详细检查，并未登记无损；62.5%不能称为无损率。\n\n精确值37.5%，一位小数仍37.5%，整数百分数为38%。0.38×24=9.12，不是新的书本数；原始计数保持9/24。\n\n只可报告周二24本中9本登记水渍。周三数量与结果未知，不能给两天精确总率；需周三总数、同一截止时间及水渍定义的结果、待查状态和书本ID去重记录。"
+              },
+              {
+                "lesson": 2,
+                "exposure": null,
+                "intendedUse": "独立完成新案例；使用本题提供的记录。",
+                "answer": "19/32=0.59375=59.375%；0.59375×32=19。它描述第一盘第5天登记已发芽的比例。"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "course": "record-en-draft-02",
+        "rows": [
+          {
+            "scopeIndices": null,
+            "lessons": [
+              {
+                "lesson": 1,
+                "exposure": null,
+                "intendedUse": "Independent response to a new case; use the records in this question.",
+                "answer": "D allows 5 tools per borrower at once; E replaces this with 3 tools per borrower at once for the same tool desk. These are limits, not observed counts. F lacks verified borrowing date and item count; its 16 October copying date does not supply them."
+              },
+              {
+                "lesson": 2,
+                "exposure": {
+                  "version": 1,
+                  "kind": "reused-in-course",
+                  "firstLessonNumber": 1,
+                  "fingerprint": "6fb199d108511095ddd308377466bbdb21854fdbcd8081039c358f82b07439eb"
+                },
+                "intendedUse": "Work independently on a case used earlier in this course; this is continued practice, not evidence of transfer to an unseen case.",
+                "answer": "E is filed 8 October but effective 12 October. The 11 October limit remains 5 tools per borrower at once; from 12 October it is 3 tools per borrower at once. 16 October is a copying date, not a verified event date."
+              },
+              {
+                "lesson": 3,
+                "exposure": {
+                  "version": 1,
+                  "kind": "reused-in-course",
+                  "firstLessonNumber": 1,
+                  "fingerprint": "6fb199d108511095ddd308377466bbdb21854fdbcd8081039c358f82b07439eb"
+                },
+                "intendedUse": "Work independently on a case used earlier in this course; this is continued practice, not evidence of transfer to an unseen case.",
+                "answer": "E expressly replaces the same tool desk limit from 12 October, not earlier dates. D remains evidence of the earlier 5 limit. The difference does not prove D false, and no record gives the reason for the change."
+              },
+              {
+                "lesson": 4,
+                "exposure": {
+                  "version": 1,
+                  "kind": "reused-in-course",
+                  "firstLessonNumber": 1,
+                  "fingerprint": "6fb199d108511095ddd308377466bbdb21854fdbcd8081039c358f82b07439eb"
+                },
+                "intendedUse": "Work independently on a case used earlier in this course; this is continued practice, not evidence of transfer to an unseen case.",
+                "answer": "A violation is undetermined: F lacks borrowing date and item count. Verify those attributes using an original dated transaction or event record linked to the same observation and a verified count; check for intervening rules. Before 12 October, the supplied earlier limit is 5; from 12 October it is 3 tools per borrower at once. Copying on 16 October does not select the rule."
+              },
+              {
+                "lesson": 5,
+                "exposure": {
+                  "version": 1,
+                  "kind": "reused-in-course",
+                  "firstLessonNumber": 1,
+                  "fingerprint": "6fb199d108511095ddd308377466bbdb21854fdbcd8081039c358f82b07439eb"
+                },
+                "intendedUse": "Work independently on a case used earlier in this course; this is continued practice, not evidence of transfer to an unseen case.",
+                "answer": "D records the earlier 5 tools per borrower at once; E replaces it with 3 from 12 October without changing earlier dates. F does not establish a violation. Log 1: remove “D false” because E explicitly limits its temporal scope. Log 2: remove “F proves a violation” because verified borrowing date and item count is missing. The reason for the replacement is unknown."
+              },
+              {
+                "lesson": 6,
+                "exposure": null,
+                "intendedUse": "Independent response to a new case; use the records in this question.",
+                "answer": "G allows 40 visitors per slot; H replaces this with 25 visitors per slot for the same North Gallery. These are limits, not observed counts. I lacks verified visit date, slot identifier and attendance count; its 9 November copying date does not supply them.\n\nH is filed 4 November but effective 6 November. The 5 November limit remains 40 visitors per slot; from 6 November it is 25 visitors per slot. 9 November is a copying date, not a verified event date.\n\nH expressly replaces the same North Gallery limit from 6 November, not earlier dates. G remains evidence of the earlier 40 limit. The difference does not prove G false, and no record gives the reason for the change.\n\nA violation is undetermined: I lacks visit date, slot identifier and attendance count. Verify those attributes using an original dated transaction or event record linked to the same observation and a verified count; check for intervening rules. Before 6 November, the supplied earlier limit is 40; from 6 November it is 25 visitors per slot. Copying on 9 November does not select the rule.\n\nG records the earlier 40 visitors per slot; H replaces it with 25 from 6 November without changing earlier dates. I does not establish a violation. Log 1: remove “G false” because H explicitly limits its temporal scope. Log 2: remove “I proves a violation” because verified visit date, slot identifier and attendance count is missing. The reason for the replacement is unknown."
+              }
+            ]
+          },
+          {
+            "scopeIndices": [
+              1
+            ],
+            "lessons": [
+              {
+                "lesson": 2,
+                "exposure": null,
+                "intendedUse": "Independent response to a new case; use the records in this question.",
+                "answer": "E is filed 8 October but effective 12 October. The 11 October limit remains 5 tools per borrower at once; from 12 October it is 3 tools per borrower at once. 16 October is a copying date, not a verified event date."
+              }
+            ]
+          },
+          {
+            "scopeIndices": [
+              5
+            ],
+            "lessons": [
+              {
+                "lesson": 6,
+                "exposure": null,
+                "intendedUse": "Independent response to a new case; use the records in this question.",
+                "answer": "G allows 40 visitors per slot; H replaces this with 25 visitors per slot for the same North Gallery. These are limits, not observed counts. I lacks verified visit date, slot identifier and attendance count; its 9 November copying date does not supply them.\n\nH is filed 4 November but effective 6 November. The 5 November limit remains 40 visitors per slot; from 6 November it is 25 visitors per slot. 9 November is a copying date, not a verified event date.\n\nH expressly replaces the same North Gallery limit from 6 November, not earlier dates. G remains evidence of the earlier 40 limit. The difference does not prove G false, and no record gives the reason for the change.\n\nA violation is undetermined: I lacks visit date, slot identifier and attendance count. Verify those attributes using an original dated transaction or event record linked to the same observation and a verified count; check for intervening rules. Before 6 November, the supplied earlier limit is 40; from 6 November it is 25 visitors per slot. Copying on 9 November does not select the rule.\n\nG records the earlier 40 visitors per slot; H replaces it with 25 from 6 November without changing earlier dates. I does not establish a violation. Log 1: remove “G false” because H explicitly limits its temporal scope. Log 2: remove “I proves a violation” because verified visit date, slot identifier and attendance count is missing. The reason for the replacement is unknown."
+              }
+            ]
+          },
+          {
+            "scopeIndices": [
+              5,
+              1
+            ],
+            "lessons": [
+              {
+                "lesson": 6,
+                "exposure": null,
+                "intendedUse": "Independent response to a new case; use the records in this question.",
+                "answer": "G allows 40 visitors per slot; H replaces this with 25 visitors per slot for the same North Gallery. These are limits, not observed counts. I lacks verified visit date, slot identifier and attendance count; its 9 November copying date does not supply them.\n\nH is filed 4 November but effective 6 November. The 5 November limit remains 40 visitors per slot; from 6 November it is 25 visitors per slot. 9 November is a copying date, not a verified event date.\n\nH expressly replaces the same North Gallery limit from 6 November, not earlier dates. G remains evidence of the earlier 40 limit. The difference does not prove G false, and no record gives the reason for the change.\n\nA violation is undetermined: I lacks visit date, slot identifier and attendance count. Verify those attributes using an original dated transaction or event record linked to the same observation and a verified count; check for intervening rules. Before 6 November, the supplied earlier limit is 40; from 6 November it is 25 visitors per slot. Copying on 9 November does not select the rule.\n\nG records the earlier 40 visitors per slot; H replaces it with 25 from 6 November without changing earlier dates. I does not establish a violation. Log 1: remove “G false” because H explicitly limits its temporal scope. Log 2: remove “I proves a violation” because verified visit date, slot identifier and attendance count is missing. The reason for the replacement is unknown."
+              },
+              {
+                "lesson": 2,
+                "exposure": null,
+                "intendedUse": "Independent response to a new case; use the records in this question.",
+                "answer": "E is filed 8 October but effective 12 October. The 11 October limit remains 5 tools per borrower at once; from 12 October it is 3 tools per borrower at once. 16 October is a copying date, not a verified event date."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "course": "experiment-en-draft-05",
+        "rows": [
+          {
+            "scopeIndices": null,
+            "lessons": [
+              {
+                "lesson": 1,
+                "exposure": null,
+                "intendedUse": "Independent response to a new case; use the records in this question.",
+                "answer": "The shallow trays at 28 °C lost 18 g and the deep trays at 20 °C lost 9 g over 15 minutes: a recorded difference of 9 g between combinations. Tray shape and room temperature both differ. These group summaries do not isolate a shape effect or describe every tray."
+              },
+              {
+                "lesson": 2,
+                "exposure": {
+                  "version": 1,
+                  "kind": "reused-in-course",
+                  "firstLessonNumber": 1,
+                  "fingerprint": "e0fb550564cb911191af50ea6e560ced9ee80c00e091c4ba5dab9547de342636"
+                },
+                "intendedUse": "Work independently on a case used earlier in this course; this is continued practice, not evidence of transfer to an unseen case.",
+                "answer": "Number the 24 trays, shuffle their IDs, assign 12 to each shape, and save that allocation before filling. Each tray receives one shape condition and produces one 15-minute mass-loss result. Reweighing a tray does not create another independently assigned tray."
+              },
+              {
+                "lesson": 3,
+                "exposure": {
+                  "version": 1,
+                  "kind": "reused-in-course",
+                  "firstLessonNumber": 1,
+                  "fingerprint": "e0fb550564cb911191af50ea6e560ced9ee80c00e091c4ba5dab9547de342636"
+                },
+                "intendedUse": "Work independently on a case used earlier in this course; this is continued practice, not evidence of transfer to an unseen case.",
+                "answer": "Record tray ID and shape, weigh the filled tray at the start and at 15 minutes using the same balance, and subtract final mass from initial mass. Record actual timing and room temperature. For a spill or interruption, flag the run and explain why its mass change cannot be interpreted as evaporation; do not turn it into zero loss."
+              },
+              {
+                "lesson": 4,
+                "exposure": {
+                  "version": 1,
+                  "kind": "reused-in-course",
+                  "firstLessonNumber": 1,
+                  "fingerprint": "e0fb550564cb911191af50ea6e560ced9ee80c00e091c4ba5dab9547de342636"
+                },
+                "intendedUse": "Work independently on a case used earlier in this course; this is continued practice, not evidence of transfer to an unseen case.",
+                "answer": "Use 20 °C for both shapes, or 28 °C for both, with the specified common water mass and balance procedure. Randomize tray allocation and the order of starting trials; record individual start times and obtain each endpoint 15 minutes later. Do not run all trays of one shape in one time block and the other shape later."
+              },
+              {
+                "lesson": 5,
+                "exposure": {
+                  "version": 1,
+                  "kind": "reused-in-course",
+                  "firstLessonNumber": 1,
+                  "fingerprint": "e0fb550564cb911191af50ea6e560ced9ee80c00e091c4ba5dab9547de342636"
+                },
+                "intendedUse": "Work independently on a case used earlier in this course; this is continued practice, not evidence of transfer to an unseen case.",
+                "answer": "Compare one valid 15-minute mass loss per independently assigned tray by shape, report a stated summary with spread, and show usable and spilled/interrupted counts with reasons by shape. Investigate whether exclusions differ between shapes. The new losses are unknown; the 24 trays do not guarantee a detectable or statistically significant effect."
+              },
+              {
+                "lesson": 6,
+                "exposure": null,
+                "intendedUse": "Independent response to a new case; use the records in this question.",
+                "answer": "The 4 cm/2 m combination has median 1.4 s; the 2 cm/1 m combination has 0.9 s. Their recorded median difference is 0.5 s. Both blade length and release height differ. Without original counts and individual times, this does not establish a blade-length effect or a 0.5 s change for every helicopter.\n\nNumber the 30 templates, shuffle the IDs, assign the first 15 to 2 cm blades and the other 15 to 4 cm blades, then construct one helicopter per template. Save the allocation. A helicopter is the independently assigned unit. Repeated drops of that helicopter would be repeated observations of one unit, not additional independently assigned helicopters.\n\nFor each helicopter, record ID, blade length, release height, run order, elapsed seconds from release without a push to first floor contact, and any deviation. Use the same timer and rule. Flag wall/desk collisions or interruptions with reasons; do not treat those runs as unobstructed flight times or replace them with zero. Timer resolution and operator timing accuracy are unspecified, so do not claim hundredth-second precision.\n\nUse 1 m for both lengths or 2 m for both, with common paper stock, body width, folds and paper clip. Use the same no-push release and timing procedure in a clear drop area. After allocation, independently shuffle helicopter IDs to form run order, recording deviations. Do not release all short-blade helicopters first and all long-blade helicopters later. Randomization reduces systematic alignment; it does not guarantee identical objects or conditions.\n\nPlan one unobstructed flight-time result per independently assigned helicopter. Compare a declared summary such as median time by blade length with individual values or spread. Report usable, collided and interrupted counts with reasons for each length, and examine whether exclusions differ by length. No new trial values are known. Thirty templates is a resource limit, not a power calculation or a guarantee that longer blades improve flight time."
+              }
+            ]
+          },
+          {
+            "scopeIndices": [
+              1
+            ],
+            "lessons": [
+              {
+                "lesson": 2,
+                "exposure": null,
+                "intendedUse": "Independent response to a new case; use the records in this question.",
+                "answer": "Number the 24 trays, shuffle their IDs, assign 12 to each shape, and save that allocation before filling. Each tray receives one shape condition and produces one 15-minute mass-loss result. Reweighing a tray does not create another independently assigned tray."
+              }
+            ]
+          },
+          {
+            "scopeIndices": [
+              5
+            ],
+            "lessons": [
+              {
+                "lesson": 6,
+                "exposure": null,
+                "intendedUse": "Independent response to a new case; use the records in this question.",
+                "answer": "The 4 cm/2 m combination has median 1.4 s; the 2 cm/1 m combination has 0.9 s. Their recorded median difference is 0.5 s. Both blade length and release height differ. Without original counts and individual times, this does not establish a blade-length effect or a 0.5 s change for every helicopter.\n\nNumber the 30 templates, shuffle the IDs, assign the first 15 to 2 cm blades and the other 15 to 4 cm blades, then construct one helicopter per template. Save the allocation. A helicopter is the independently assigned unit. Repeated drops of that helicopter would be repeated observations of one unit, not additional independently assigned helicopters.\n\nFor each helicopter, record ID, blade length, release height, run order, elapsed seconds from release without a push to first floor contact, and any deviation. Use the same timer and rule. Flag wall/desk collisions or interruptions with reasons; do not treat those runs as unobstructed flight times or replace them with zero. Timer resolution and operator timing accuracy are unspecified, so do not claim hundredth-second precision.\n\nUse 1 m for both lengths or 2 m for both, with common paper stock, body width, folds and paper clip. Use the same no-push release and timing procedure in a clear drop area. After allocation, independently shuffle helicopter IDs to form run order, recording deviations. Do not release all short-blade helicopters first and all long-blade helicopters later. Randomization reduces systematic alignment; it does not guarantee identical objects or conditions.\n\nPlan one unobstructed flight-time result per independently assigned helicopter. Compare a declared summary such as median time by blade length with individual values or spread. Report usable, collided and interrupted counts with reasons for each length, and examine whether exclusions differ by length. No new trial values are known. Thirty templates is a resource limit, not a power calculation or a guarantee that longer blades improve flight time."
+              }
+            ]
+          },
+          {
+            "scopeIndices": [
+              5,
+              1
+            ],
+            "lessons": [
+              {
+                "lesson": 6,
+                "exposure": null,
+                "intendedUse": "Independent response to a new case; use the records in this question.",
+                "answer": "The 4 cm/2 m combination has median 1.4 s; the 2 cm/1 m combination has 0.9 s. Their recorded median difference is 0.5 s. Both blade length and release height differ. Without original counts and individual times, this does not establish a blade-length effect or a 0.5 s change for every helicopter.\n\nNumber the 30 templates, shuffle the IDs, assign the first 15 to 2 cm blades and the other 15 to 4 cm blades, then construct one helicopter per template. Save the allocation. A helicopter is the independently assigned unit. Repeated drops of that helicopter would be repeated observations of one unit, not additional independently assigned helicopters.\n\nFor each helicopter, record ID, blade length, release height, run order, elapsed seconds from release without a push to first floor contact, and any deviation. Use the same timer and rule. Flag wall/desk collisions or interruptions with reasons; do not treat those runs as unobstructed flight times or replace them with zero. Timer resolution and operator timing accuracy are unspecified, so do not claim hundredth-second precision.\n\nUse 1 m for both lengths or 2 m for both, with common paper stock, body width, folds and paper clip. Use the same no-push release and timing procedure in a clear drop area. After allocation, independently shuffle helicopter IDs to form run order, recording deviations. Do not release all short-blade helicopters first and all long-blade helicopters later. Randomization reduces systematic alignment; it does not guarantee identical objects or conditions.\n\nPlan one unobstructed flight-time result per independently assigned helicopter. Compare a declared summary such as median time by blade length with individual values or spread. Report usable, collided and interrupted counts with reasons for each length, and examine whether exclusions differ by length. No new trial values are known. Thirty templates is a resource limit, not a power calculation or a guarantee that longer blades improve flight time."
+              },
+              {
+                "lesson": 2,
+                "exposure": null,
+                "intendedUse": "Independent response to a new case; use the records in this question.",
+                "answer": "Number the 24 trays, shuffle their IDs, assign 12 to each shape, and save that allocation before filling. Each tray receives one shape condition and produces one 15-minute mass-loss result. Reweighing a tray does not create another independently assigned tray."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "after": {
+    "modelCalls": 0,
+    "results": [
+      {
+        "course": "quantity-zh-draft-02",
+        "rows": [
+          {
+            "scopeIndices": null,
+            "lessons": [
+              {
+                "lesson": 1,
+                "exposure": null,
+                "intendedUse": "独立完成新案例；使用本题提供的记录。",
+                "answer": "分母是第一盘32颗种子；19颗是其中第5天登记已发芽的子集。其余仍观察；第二盘总数与结果未知，不能加入当前分母。"
+              },
+              {
+                "lesson": 2,
+                "exposure": {
+                  "version": 1,
+                  "kind": "reused-in-course",
+                  "firstLessonNumber": 1,
+                  "fingerprint": "040fd3401a7001a41d10dc5156f0e119c5d91ecdbd917c46ff8996d53529cc16"
+                },
+                "intendedUse": "独立完成课程中已出现案例的新要求；这是延续练习，不能据此证明迁移到未见情境。",
+                "answer": "19/32=0.59375=59.375%；0.59375×32=19。它描述第一盘第5天登记已发芽的比例。"
+              },
+              {
+                "lesson": 3,
+                "exposure": {
+                  "version": 1,
+                  "kind": "reused-in-course",
+                  "firstLessonNumber": 1,
+                  "fingerprint": "040fd3401a7001a41d10dc5156f0e119c5d91ecdbd917c46ff8996d53529cc16"
+                },
+                "intendedUse": "独立完成课程中已出现案例的新要求；这是延续练习，不能据此证明迁移到未见情境。",
+                "answer": "32−19=13颗，占13/32=40.625%。材料说继续观察、未判死亡；40.625%不是死亡率。"
+              },
+              {
+                "lesson": 4,
+                "exposure": {
+                  "version": 1,
+                  "kind": "reused-in-course",
+                  "firstLessonNumber": 1,
+                  "fingerprint": "040fd3401a7001a41d10dc5156f0e119c5d91ecdbd917c46ff8996d53529cc16"
+                },
+                "intendedUse": "独立完成课程中已出现案例的新要求；这是延续练习，不能据此证明迁移到未见情境。",
+                "answer": "精确59.375%，一位小数59.4%，整数59%；原记录仍19/32。0.594×32=19.008，不能据此把原计数改成19.008颗。"
+              },
+              {
+                "lesson": 5,
+                "exposure": {
+                  "version": 1,
+                  "kind": "reused-in-course",
+                  "firstLessonNumber": 1,
+                  "fingerprint": "040fd3401a7001a41d10dc5156f0e119c5d91ecdbd917c46ff8996d53529cc16"
+                },
+                "intendedUse": "独立完成课程中已出现案例的新要求；这是延续练习，不能据此证明迁移到未见情境。",
+                "answer": "只能报告第一盘第5天19/32登记发芽，不能给两盘精确总率。需第二盘总数、同一观察时点/发芽标准的结果与去重记录；未知不能记零。"
+              },
+              {
+                "lesson": 6,
+                "exposure": null,
+                "intendedUse": "独立完成新案例；使用本题提供的记录。",
+                "answer": "当前分母为周二收到的24本，9本是其中登记有水渍的子集。15本等待详细检查；周三总数与结果未知，不能把周三加入当前比例。\n\n9/24=0.375=37.5%；0.375×24=9。它描述周二收到图书中登记有水渍的比例。\n\n24−9=15本，占15/24=62.5%。这15本等待详细检查，并未登记无损；62.5%不能称为无损率。\n\n精确值37.5%，一位小数仍37.5%，整数百分数为38%。0.38×24=9.12，不是新的书本数；原始计数保持9/24。\n\n只可报告周二24本中9本登记水渍。周三数量与结果未知，不能给两天精确总率；需周三总数、同一截止时间及水渍定义的结果、待查状态和书本ID去重记录。"
+              }
+            ]
+          },
+          {
+            "scopeIndices": [
+              1
+            ],
+            "lessons": [
+              {
+                "lesson": 2,
+                "exposure": {
+                  "version": 1,
+                  "kind": "reused-in-course",
+                  "firstLessonNumber": 1,
+                  "fingerprint": "040fd3401a7001a41d10dc5156f0e119c5d91ecdbd917c46ff8996d53529cc16"
+                },
+                "intendedUse": "独立完成课程中已出现案例的新要求；这是延续练习，不能据此证明迁移到未见情境。",
+                "answer": "19/32=0.59375=59.375%；0.59375×32=19。它描述第一盘第5天登记已发芽的比例。"
+              }
+            ]
+          },
+          {
+            "scopeIndices": [
+              5
+            ],
+            "lessons": [
+              {
+                "lesson": 6,
+                "exposure": null,
+                "intendedUse": "独立完成新案例；使用本题提供的记录。",
+                "answer": "当前分母为周二收到的24本，9本是其中登记有水渍的子集。15本等待详细检查；周三总数与结果未知，不能把周三加入当前比例。\n\n9/24=0.375=37.5%；0.375×24=9。它描述周二收到图书中登记有水渍的比例。\n\n24−9=15本，占15/24=62.5%。这15本等待详细检查，并未登记无损；62.5%不能称为无损率。\n\n精确值37.5%，一位小数仍37.5%，整数百分数为38%。0.38×24=9.12，不是新的书本数；原始计数保持9/24。\n\n只可报告周二24本中9本登记水渍。周三数量与结果未知，不能给两天精确总率；需周三总数、同一截止时间及水渍定义的结果、待查状态和书本ID去重记录。"
+              }
+            ]
+          },
+          {
+            "scopeIndices": [
+              5,
+              1
+            ],
+            "lessons": [
+              {
+                "lesson": 6,
+                "exposure": null,
+                "intendedUse": "独立完成新案例；使用本题提供的记录。",
+                "answer": "当前分母为周二收到的24本，9本是其中登记有水渍的子集。15本等待详细检查；周三总数与结果未知，不能把周三加入当前比例。\n\n9/24=0.375=37.5%；0.375×24=9。它描述周二收到图书中登记有水渍的比例。\n\n24−9=15本，占15/24=62.5%。这15本等待详细检查，并未登记无损；62.5%不能称为无损率。\n\n精确值37.5%，一位小数仍37.5%，整数百分数为38%。0.38×24=9.12，不是新的书本数；原始计数保持9/24。\n\n只可报告周二24本中9本登记水渍。周三数量与结果未知，不能给两天精确总率；需周三总数、同一截止时间及水渍定义的结果、待查状态和书本ID去重记录。"
+              },
+              {
+                "lesson": 2,
+                "exposure": {
+                  "version": 1,
+                  "kind": "reused-in-course",
+                  "firstLessonNumber": 1,
+                  "fingerprint": "040fd3401a7001a41d10dc5156f0e119c5d91ecdbd917c46ff8996d53529cc16"
+                },
+                "intendedUse": "独立完成课程中已出现案例的新要求；这是延续练习，不能据此证明迁移到未见情境。",
+                "answer": "19/32=0.59375=59.375%；0.59375×32=19。它描述第一盘第5天登记已发芽的比例。"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "course": "record-en-draft-02",
+        "rows": [
+          {
+            "scopeIndices": null,
+            "lessons": [
+              {
+                "lesson": 1,
+                "exposure": null,
+                "intendedUse": "Independent response to a new case; use the records in this question.",
+                "answer": "D allows 5 tools per borrower at once; E replaces this with 3 tools per borrower at once for the same tool desk. These are limits, not observed counts. F lacks verified borrowing date and item count; its 16 October copying date does not supply them."
+              },
+              {
+                "lesson": 2,
+                "exposure": {
+                  "version": 1,
+                  "kind": "reused-in-course",
+                  "firstLessonNumber": 1,
+                  "fingerprint": "6fb199d108511095ddd308377466bbdb21854fdbcd8081039c358f82b07439eb"
+                },
+                "intendedUse": "Work independently on a case used earlier in this course; this is continued practice, not evidence of transfer to an unseen case.",
+                "answer": "E is filed 8 October but effective 12 October. The 11 October limit remains 5 tools per borrower at once; from 12 October it is 3 tools per borrower at once. 16 October is a copying date, not a verified event date."
+              },
+              {
+                "lesson": 3,
+                "exposure": {
+                  "version": 1,
+                  "kind": "reused-in-course",
+                  "firstLessonNumber": 1,
+                  "fingerprint": "6fb199d108511095ddd308377466bbdb21854fdbcd8081039c358f82b07439eb"
+                },
+                "intendedUse": "Work independently on a case used earlier in this course; this is continued practice, not evidence of transfer to an unseen case.",
+                "answer": "E expressly replaces the same tool desk limit from 12 October, not earlier dates. D remains evidence of the earlier 5 limit. The difference does not prove D false, and no record gives the reason for the change."
+              },
+              {
+                "lesson": 4,
+                "exposure": {
+                  "version": 1,
+                  "kind": "reused-in-course",
+                  "firstLessonNumber": 1,
+                  "fingerprint": "6fb199d108511095ddd308377466bbdb21854fdbcd8081039c358f82b07439eb"
+                },
+                "intendedUse": "Work independently on a case used earlier in this course; this is continued practice, not evidence of transfer to an unseen case.",
+                "answer": "A violation is undetermined: F lacks borrowing date and item count. Verify those attributes using an original dated transaction or event record linked to the same observation and a verified count; check for intervening rules. Before 12 October, the supplied earlier limit is 5; from 12 October it is 3 tools per borrower at once. Copying on 16 October does not select the rule."
+              },
+              {
+                "lesson": 5,
+                "exposure": {
+                  "version": 1,
+                  "kind": "reused-in-course",
+                  "firstLessonNumber": 1,
+                  "fingerprint": "6fb199d108511095ddd308377466bbdb21854fdbcd8081039c358f82b07439eb"
+                },
+                "intendedUse": "Work independently on a case used earlier in this course; this is continued practice, not evidence of transfer to an unseen case.",
+                "answer": "D records the earlier 5 tools per borrower at once; E replaces it with 3 from 12 October without changing earlier dates. F does not establish a violation. Log 1: remove “D false” because E explicitly limits its temporal scope. Log 2: remove “F proves a violation” because verified borrowing date and item count is missing. The reason for the replacement is unknown."
+              },
+              {
+                "lesson": 6,
+                "exposure": null,
+                "intendedUse": "Independent response to a new case; use the records in this question.",
+                "answer": "G allows 40 visitors per slot; H replaces this with 25 visitors per slot for the same North Gallery. These are limits, not observed counts. I lacks verified visit date, slot identifier and attendance count; its 9 November copying date does not supply them.\n\nH is filed 4 November but effective 6 November. The 5 November limit remains 40 visitors per slot; from 6 November it is 25 visitors per slot. 9 November is a copying date, not a verified event date.\n\nH expressly replaces the same North Gallery limit from 6 November, not earlier dates. G remains evidence of the earlier 40 limit. The difference does not prove G false, and no record gives the reason for the change.\n\nA violation is undetermined: I lacks visit date, slot identifier and attendance count. Verify those attributes using an original dated transaction or event record linked to the same observation and a verified count; check for intervening rules. Before 6 November, the supplied earlier limit is 40; from 6 November it is 25 visitors per slot. Copying on 9 November does not select the rule.\n\nG records the earlier 40 visitors per slot; H replaces it with 25 from 6 November without changing earlier dates. I does not establish a violation. Log 1: remove “G false” because H explicitly limits its temporal scope. Log 2: remove “I proves a violation” because verified visit date, slot identifier and attendance count is missing. The reason for the replacement is unknown."
+              }
+            ]
+          },
+          {
+            "scopeIndices": [
+              1
+            ],
+            "lessons": [
+              {
+                "lesson": 2,
+                "exposure": {
+                  "version": 1,
+                  "kind": "reused-in-course",
+                  "firstLessonNumber": 1,
+                  "fingerprint": "6fb199d108511095ddd308377466bbdb21854fdbcd8081039c358f82b07439eb"
+                },
+                "intendedUse": "Work independently on a case used earlier in this course; this is continued practice, not evidence of transfer to an unseen case.",
+                "answer": "E is filed 8 October but effective 12 October. The 11 October limit remains 5 tools per borrower at once; from 12 October it is 3 tools per borrower at once. 16 October is a copying date, not a verified event date."
+              }
+            ]
+          },
+          {
+            "scopeIndices": [
+              5
+            ],
+            "lessons": [
+              {
+                "lesson": 6,
+                "exposure": null,
+                "intendedUse": "Independent response to a new case; use the records in this question.",
+                "answer": "G allows 40 visitors per slot; H replaces this with 25 visitors per slot for the same North Gallery. These are limits, not observed counts. I lacks verified visit date, slot identifier and attendance count; its 9 November copying date does not supply them.\n\nH is filed 4 November but effective 6 November. The 5 November limit remains 40 visitors per slot; from 6 November it is 25 visitors per slot. 9 November is a copying date, not a verified event date.\n\nH expressly replaces the same North Gallery limit from 6 November, not earlier dates. G remains evidence of the earlier 40 limit. The difference does not prove G false, and no record gives the reason for the change.\n\nA violation is undetermined: I lacks visit date, slot identifier and attendance count. Verify those attributes using an original dated transaction or event record linked to the same observation and a verified count; check for intervening rules. Before 6 November, the supplied earlier limit is 40; from 6 November it is 25 visitors per slot. Copying on 9 November does not select the rule.\n\nG records the earlier 40 visitors per slot; H replaces it with 25 from 6 November without changing earlier dates. I does not establish a violation. Log 1: remove “G false” because H explicitly limits its temporal scope. Log 2: remove “I proves a violation” because verified visit date, slot identifier and attendance count is missing. The reason for the replacement is unknown."
+              }
+            ]
+          },
+          {
+            "scopeIndices": [
+              5,
+              1
+            ],
+            "lessons": [
+              {
+                "lesson": 6,
+                "exposure": null,
+                "intendedUse": "Independent response to a new case; use the records in this question.",
+                "answer": "G allows 40 visitors per slot; H replaces this with 25 visitors per slot for the same North Gallery. These are limits, not observed counts. I lacks verified visit date, slot identifier and attendance count; its 9 November copying date does not supply them.\n\nH is filed 4 November but effective 6 November. The 5 November limit remains 40 visitors per slot; from 6 November it is 25 visitors per slot. 9 November is a copying date, not a verified event date.\n\nH expressly replaces the same North Gallery limit from 6 November, not earlier dates. G remains evidence of the earlier 40 limit. The difference does not prove G false, and no record gives the reason for the change.\n\nA violation is undetermined: I lacks visit date, slot identifier and attendance count. Verify those attributes using an original dated transaction or event record linked to the same observation and a verified count; check for intervening rules. Before 6 November, the supplied earlier limit is 40; from 6 November it is 25 visitors per slot. Copying on 9 November does not select the rule.\n\nG records the earlier 40 visitors per slot; H replaces it with 25 from 6 November without changing earlier dates. I does not establish a violation. Log 1: remove “G false” because H explicitly limits its temporal scope. Log 2: remove “I proves a violation” because verified visit date, slot identifier and attendance count is missing. The reason for the replacement is unknown."
+              },
+              {
+                "lesson": 2,
+                "exposure": {
+                  "version": 1,
+                  "kind": "reused-in-course",
+                  "firstLessonNumber": 1,
+                  "fingerprint": "6fb199d108511095ddd308377466bbdb21854fdbcd8081039c358f82b07439eb"
+                },
+                "intendedUse": "Work independently on a case used earlier in this course; this is continued practice, not evidence of transfer to an unseen case.",
+                "answer": "E is filed 8 October but effective 12 October. The 11 October limit remains 5 tools per borrower at once; from 12 October it is 3 tools per borrower at once. 16 October is a copying date, not a verified event date."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "course": "experiment-en-draft-05",
+        "rows": [
+          {
+            "scopeIndices": null,
+            "lessons": [
+              {
+                "lesson": 1,
+                "exposure": null,
+                "intendedUse": "Independent response to a new case; use the records in this question.",
+                "answer": "The shallow trays at 28 °C lost 18 g and the deep trays at 20 °C lost 9 g over 15 minutes: a recorded difference of 9 g between combinations. Tray shape and room temperature both differ. These group summaries do not isolate a shape effect or describe every tray."
+              },
+              {
+                "lesson": 2,
+                "exposure": {
+                  "version": 1,
+                  "kind": "reused-in-course",
+                  "firstLessonNumber": 1,
+                  "fingerprint": "e0fb550564cb911191af50ea6e560ced9ee80c00e091c4ba5dab9547de342636"
+                },
+                "intendedUse": "Work independently on a case used earlier in this course; this is continued practice, not evidence of transfer to an unseen case.",
+                "answer": "Number the 24 trays, shuffle their IDs, assign 12 to each shape, and save that allocation before filling. Each tray receives one shape condition and produces one 15-minute mass-loss result. Reweighing a tray does not create another independently assigned tray."
+              },
+              {
+                "lesson": 3,
+                "exposure": {
+                  "version": 1,
+                  "kind": "reused-in-course",
+                  "firstLessonNumber": 1,
+                  "fingerprint": "e0fb550564cb911191af50ea6e560ced9ee80c00e091c4ba5dab9547de342636"
+                },
+                "intendedUse": "Work independently on a case used earlier in this course; this is continued practice, not evidence of transfer to an unseen case.",
+                "answer": "Record tray ID and shape, weigh the filled tray at the start and at 15 minutes using the same balance, and subtract final mass from initial mass. Record actual timing and room temperature. For a spill or interruption, flag the run and explain why its mass change cannot be interpreted as evaporation; do not turn it into zero loss."
+              },
+              {
+                "lesson": 4,
+                "exposure": {
+                  "version": 1,
+                  "kind": "reused-in-course",
+                  "firstLessonNumber": 1,
+                  "fingerprint": "e0fb550564cb911191af50ea6e560ced9ee80c00e091c4ba5dab9547de342636"
+                },
+                "intendedUse": "Work independently on a case used earlier in this course; this is continued practice, not evidence of transfer to an unseen case.",
+                "answer": "Use 20 °C for both shapes, or 28 °C for both, with the specified common water mass and balance procedure. Randomize tray allocation and the order of starting trials; record individual start times and obtain each endpoint 15 minutes later. Do not run all trays of one shape in one time block and the other shape later."
+              },
+              {
+                "lesson": 5,
+                "exposure": {
+                  "version": 1,
+                  "kind": "reused-in-course",
+                  "firstLessonNumber": 1,
+                  "fingerprint": "e0fb550564cb911191af50ea6e560ced9ee80c00e091c4ba5dab9547de342636"
+                },
+                "intendedUse": "Work independently on a case used earlier in this course; this is continued practice, not evidence of transfer to an unseen case.",
+                "answer": "Compare one valid 15-minute mass loss per independently assigned tray by shape, report a stated summary with spread, and show usable and spilled/interrupted counts with reasons by shape. Investigate whether exclusions differ between shapes. The new losses are unknown; the 24 trays do not guarantee a detectable or statistically significant effect."
+              },
+              {
+                "lesson": 6,
+                "exposure": null,
+                "intendedUse": "Independent response to a new case; use the records in this question.",
+                "answer": "The 4 cm/2 m combination has median 1.4 s; the 2 cm/1 m combination has 0.9 s. Their recorded median difference is 0.5 s. Both blade length and release height differ. Without original counts and individual times, this does not establish a blade-length effect or a 0.5 s change for every helicopter.\n\nNumber the 30 templates, shuffle the IDs, assign the first 15 to 2 cm blades and the other 15 to 4 cm blades, then construct one helicopter per template. Save the allocation. A helicopter is the independently assigned unit. Repeated drops of that helicopter would be repeated observations of one unit, not additional independently assigned helicopters.\n\nFor each helicopter, record ID, blade length, release height, run order, elapsed seconds from release without a push to first floor contact, and any deviation. Use the same timer and rule. Flag wall/desk collisions or interruptions with reasons; do not treat those runs as unobstructed flight times or replace them with zero. Timer resolution and operator timing accuracy are unspecified, so do not claim hundredth-second precision.\n\nUse 1 m for both lengths or 2 m for both, with common paper stock, body width, folds and paper clip. Use the same no-push release and timing procedure in a clear drop area. After allocation, independently shuffle helicopter IDs to form run order, recording deviations. Do not release all short-blade helicopters first and all long-blade helicopters later. Randomization reduces systematic alignment; it does not guarantee identical objects or conditions.\n\nPlan one unobstructed flight-time result per independently assigned helicopter. Compare a declared summary such as median time by blade length with individual values or spread. Report usable, collided and interrupted counts with reasons for each length, and examine whether exclusions differ by length. No new trial values are known. Thirty templates is a resource limit, not a power calculation or a guarantee that longer blades improve flight time."
+              }
+            ]
+          },
+          {
+            "scopeIndices": [
+              1
+            ],
+            "lessons": [
+              {
+                "lesson": 2,
+                "exposure": {
+                  "version": 1,
+                  "kind": "reused-in-course",
+                  "firstLessonNumber": 1,
+                  "fingerprint": "e0fb550564cb911191af50ea6e560ced9ee80c00e091c4ba5dab9547de342636"
+                },
+                "intendedUse": "Work independently on a case used earlier in this course; this is continued practice, not evidence of transfer to an unseen case.",
+                "answer": "Number the 24 trays, shuffle their IDs, assign 12 to each shape, and save that allocation before filling. Each tray receives one shape condition and produces one 15-minute mass-loss result. Reweighing a tray does not create another independently assigned tray."
+              }
+            ]
+          },
+          {
+            "scopeIndices": [
+              5
+            ],
+            "lessons": [
+              {
+                "lesson": 6,
+                "exposure": null,
+                "intendedUse": "Independent response to a new case; use the records in this question.",
+                "answer": "The 4 cm/2 m combination has median 1.4 s; the 2 cm/1 m combination has 0.9 s. Their recorded median difference is 0.5 s. Both blade length and release height differ. Without original counts and individual times, this does not establish a blade-length effect or a 0.5 s change for every helicopter.\n\nNumber the 30 templates, shuffle the IDs, assign the first 15 to 2 cm blades and the other 15 to 4 cm blades, then construct one helicopter per template. Save the allocation. A helicopter is the independently assigned unit. Repeated drops of that helicopter would be repeated observations of one unit, not additional independently assigned helicopters.\n\nFor each helicopter, record ID, blade length, release height, run order, elapsed seconds from release without a push to first floor contact, and any deviation. Use the same timer and rule. Flag wall/desk collisions or interruptions with reasons; do not treat those runs as unobstructed flight times or replace them with zero. Timer resolution and operator timing accuracy are unspecified, so do not claim hundredth-second precision.\n\nUse 1 m for both lengths or 2 m for both, with common paper stock, body width, folds and paper clip. Use the same no-push release and timing procedure in a clear drop area. After allocation, independently shuffle helicopter IDs to form run order, recording deviations. Do not release all short-blade helicopters first and all long-blade helicopters later. Randomization reduces systematic alignment; it does not guarantee identical objects or conditions.\n\nPlan one unobstructed flight-time result per independently assigned helicopter. Compare a declared summary such as median time by blade length with individual values or spread. Report usable, collided and interrupted counts with reasons for each length, and examine whether exclusions differ by length. No new trial values are known. Thirty templates is a resource limit, not a power calculation or a guarantee that longer blades improve flight time."
+              }
+            ]
+          },
+          {
+            "scopeIndices": [
+              5,
+              1
+            ],
+            "lessons": [
+              {
+                "lesson": 6,
+                "exposure": null,
+                "intendedUse": "Independent response to a new case; use the records in this question.",
+                "answer": "The 4 cm/2 m combination has median 1.4 s; the 2 cm/1 m combination has 0.9 s. Their recorded median difference is 0.5 s. Both blade length and release height differ. Without original counts and individual times, this does not establish a blade-length effect or a 0.5 s change for every helicopter.\n\nNumber the 30 templates, shuffle the IDs, assign the first 15 to 2 cm blades and the other 15 to 4 cm blades, then construct one helicopter per template. Save the allocation. A helicopter is the independently assigned unit. Repeated drops of that helicopter would be repeated observations of one unit, not additional independently assigned helicopters.\n\nFor each helicopter, record ID, blade length, release height, run order, elapsed seconds from release without a push to first floor contact, and any deviation. Use the same timer and rule. Flag wall/desk collisions or interruptions with reasons; do not treat those runs as unobstructed flight times or replace them with zero. Timer resolution and operator timing accuracy are unspecified, so do not claim hundredth-second precision.\n\nUse 1 m for both lengths or 2 m for both, with common paper stock, body width, folds and paper clip. Use the same no-push release and timing procedure in a clear drop area. After allocation, independently shuffle helicopter IDs to form run order, recording deviations. Do not release all short-blade helicopters first and all long-blade helicopters later. Randomization reduces systematic alignment; it does not guarantee identical objects or conditions.\n\nPlan one unobstructed flight-time result per independently assigned helicopter. Compare a declared summary such as median time by blade length with individual values or spread. Report usable, collided and interrupted counts with reasons for each length, and examine whether exclusions differ by length. No new trial values are known. Thirty templates is a resource limit, not a power calculation or a guarantee that longer blades improve flight time."
+              },
+              {
+                "lesson": 2,
+                "exposure": {
+                  "version": 1,
+                  "kind": "reused-in-course",
+                  "firstLessonNumber": 1,
+                  "fingerprint": "e0fb550564cb911191af50ea6e560ced9ee80c00e091c4ba5dab9547de342636"
+                },
+                "intendedUse": "Work independently on a case used earlier in this course; this is continued practice, not evidence of transfer to an unseen case.",
+                "answer": "Number the 24 trays, shuffle their IDs, assign 12 to each shape, and save that allocation before filling. Each tray receives one shape condition and produces one 15-minute mass-loss result. Reweighing a tray does not create another independently assigned tray."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "checks": [
+    {
+      "course": "quantity-zh-draft-02",
+      "fullAndScopedAnswersExposureAndUseAgree": true,
+      "onlyRequestedLessonsInRequestedOrder": true
+    },
+    {
+      "course": "record-en-draft-02",
+      "fullAndScopedAnswersExposureAndUseAgree": true,
+      "onlyRequestedLessonsInRequestedOrder": true
+    },
+    {
+      "course": "experiment-en-draft-05",
+      "fullAndScopedAnswersExposureAndUseAgree": true,
+      "onlyRequestedLessonsInRequestedOrder": true
+    }
+  ],
+  "artifactHashes": {
+    "before.json": "ad8c59d958aa95a9456dac778aa544056464d7da7524ab6e81dce584b306ff28",
+    "after.json": "c5f4141462b31bd3d51a4bdcf5e912332b42cb8b02502a649ec41cf613609b76"
+  },
+  "limitations": [
+    "Compiler core replay, not a browser-generation or new-model run.",
+    "Historical context uses valid saved teaching tasks; it does not infer semantic equivalence, outside learner exposure, or unsaved tasks.",
+    "No PDF/Office visual acceptance or production deployment in this run."
+  ]
+}

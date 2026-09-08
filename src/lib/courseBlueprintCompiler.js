@@ -12822,7 +12822,20 @@ function prepareBlueprintForCompilation(blueprint = {}, options = {}) {
             : 'guided-practice',
     };
   });
-  prepared.lessons = annotatePracticeCaseExposure(linkTeachingTaskSequence(prepared.lessons));
+  const selectedTaskLessonNumbers = new Set(prepared.lessons.map((lesson) => lesson.lessonNumber));
+  const lastSelectedTaskLesson = Math.max(0, ...selectedTaskLessonNumbers);
+  // Scoped generation still needs earlier reviewed case records. Rebuild only
+  // their task context; do not compile or emit unselected lessons/materials.
+  const earlierTaskContext = savedTaskSources
+    .filter(
+      (source) =>
+        Number.isInteger(source.lessonNumber) &&
+        source.lessonNumber < lastSelectedTaskLesson &&
+        !selectedTaskLessonNumbers.has(source.lessonNumber),
+    )
+    .map((source) => ({ lessonNumber: source.lessonNumber, teachingTask: rebuildTeachingTaskSource(source) }))
+    .filter((lesson) => lesson.teachingTask);
+  prepared.lessons = annotatePracticeCaseExposure(linkTeachingTaskSequence(prepared.lessons), earlierTaskContext);
   const semanticContract = validateBlueprintSemanticContract(prepared);
   const compilerContract = validateCourseBlueprintContract(prepared);
   const compilerProofBundle = buildCompilerProofBundle(prepared, {
