@@ -198,6 +198,9 @@ describe('explicit singular lesson requests', () => {
     'Prepare a 45-minute lesson and editable materials.',
     'Please create an introductory source-analysis lesson.',
     'Build a lesson about records.',
+    'Create editable teaching materials for a 50-minute lesson in English.',
+    'Prepare classroom resources for an introductory session on comparing records.',
+    'Make worksheets for a lesson on fractions.',
     '制作一节45分钟的来源分析课。',
     '设计一课资料核对任务。',
   ])('recognizes %s', (text) => {
@@ -205,6 +208,8 @@ describe('explicit singular lesson requests', () => {
   });
   it('does not take an embedded example or plural duration as a one-lesson course', () => {
     expect(detectExpectedLessons('Create 45-minute lessons about records.').expected).toBeNull();
+    expect(detectExpectedLessons('Create materials for 50-minute lessons about records.').expected).toBeNull();
+    expect(detectExpectedLessons('Create materials for a six-lesson course.').expected).toBe(6);
     expect(
       detectExpectedLessons('Compare descriptions. The example says: create a lesson about records.').expected,
     ).toBeNull();

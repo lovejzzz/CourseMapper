@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Distinguish the learner’s subject from material-production instructions in native course planning. Recognize singular requests phrased as “materials for a 50-minute lesson,” preserving stronger explicit course counts. Real local reruns retain the first three-lesson failure and the corrected one-lesson result with the exact teacher objective; automatic shared-task formation remains incomplete.
+
 - Replace generated generic quiz leftovers for reviewed pooled/union tasks while retaining authored, machine-scored and unrelated questions, with edited removed text recoverable as conflicts. Align pooled causal-limit scoring with the assigned task. Actual quiz/rubric browser regeneration adds no model requests; separate compiler exports reviewed across 12 PDF pages.
 
 - Enable bounded local reasoning for the two pooled-group identity questions while retaining short grammar-constrained extraction elsewhere and the 12-call cap. Reject truncated, extra-field or commentary-wrapped answers. A real exposed English control identifies both groups correctly with reasoning; this is not a general accuracy claim.

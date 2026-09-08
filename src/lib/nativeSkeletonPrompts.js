@@ -28,6 +28,7 @@ Return ONLY one valid JSON object, no markdown and no commentary, in exactly thi
 }
 
 RULES:
+0. COURSE IDENTITY: preserve an explicitly supplied course title. Otherwise name the subject or reasoning that students will learn, using their stated objective and source content. Requests to create editable materials, choose an output language, or fit a lesson duration describe your production task; they are not the subject being taught. A teacher-training course may legitimately teach materials design, but infer that only from what its students are asked to learn. Do not invent an official catalog title.
 1. Sessions: one entry per week/lesson/session, ids "s1", "s2", ... in order. Cover the WHOLE course.
 1A. ASSESSMENTS ARE NOT FILLER SESSIONS: a problem set, quiz, midterm, exam, final, project, or other graded artifact belongs in "assessments" and MUST NOT become a session title merely to reach the requested session count. Create an assessment-only session only when the source explicitly schedules that assessment as a class meeting. Never place a final exam before later instruction and never create both a "Final Exam" session and a duplicate "Final Assessment" session from one named final.
 1B. COURSE-BRIEF EXPANSION: when the source is a compact course brief rather than a week-by-week schedule, expand its named subject areas, applications, and labs into a coherent subject-matter progression for the requested number of sessions. Every session needs a UNIQUE, concrete, teachable subject title. Deepen broad areas into their mechanisms, methods, interpretation, limitations, or applications. Keep grading instruments in "assessments". Do not use resource labels such as "Problem Sets" or "Model-organism lab" as generic filler; a lab session must name the disciplinary investigation or technique students practice. Never use "synthesis", "comprehensive", "review", "midterm", "exam", "final", or "evaluation" as a compact-brief session title.
@@ -68,6 +69,7 @@ export function buildNativeSkeletonUserPrompt(syllabusText, { expectedLessons = 
   return [
     'Extract the typed course skeleton from the following source materials.',
     countLine,
+    'Name the learning subject, not the request to produce materials. Preserve a supplied course title; otherwise use the stated student objective and source content for a concise descriptive title.',
     'Treat assessment names as assessment-registry entries, not automatic session titles. A final assessment belongs at the end of the plan; do not duplicate it as both a lesson and an assessment.',
     ...coveragePlan,
     'If the text contains "--- SEGMENT N ---" markers, each segment corresponds to one session.',

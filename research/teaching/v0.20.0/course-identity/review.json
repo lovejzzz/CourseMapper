@@ -1,0 +1,45 @@
+{
+  "status": "exposed development case, not release acceptance",
+  "runs": [
+    {
+      "capture": ".audit-work/v0200-teaching-system/course-identity/title-first.coursemapper",
+      "sha256": "0e44a6bfefaa9e50d39f7439c1e7679ccfc25f4c7ca3e78434a84a3f69f08cd9",
+      "inputSha256": "137b734d3ef5ec0742db8c20fe074b780a8093365008ba53db73bbc9a5280588",
+      "title": "Return Proportion Calculation and Data Interpretation",
+      "lessonCount": 3,
+      "modelRequestStarts": 1,
+      "buildElapsedMs": 21096,
+      "sharedTaskCount": 0
+    },
+    {
+      "capture": ".audit-work/v0200-teaching-system/course-identity/scope-fixed.coursemapper",
+      "sha256": "16d46a3358ff03323a9c1e7f211f4fdebd2ed27f723bd7f813991c6e95865dbf",
+      "inputSha256": "137b734d3ef5ec0742db8c20fe074b780a8093365008ba53db73bbc9a5280588",
+      "title": "Return Proportion Calculation",
+      "lessonCount": 1,
+      "modelRequestStarts": 1,
+      "buildElapsedMs": 13552,
+      "sharedTaskCount": 0
+    }
+  ],
+  "findings": [
+    "First title improvement names student subject but expands requested single lesson into three.",
+    "Existing singular count rule missed materials for a lesson. Bounded optional production phrase now admits it; explicit larger scope still wins.",
+    "Final actual browser run preserves one lesson and exact supplied learning objective.",
+    "Natural generation still has no reviewed shared task; output presence is not educational acceptance."
+  ],
+  "verification": {
+    "fullCheckExit": 0,
+    "studio": 58,
+    "compatibility": 929,
+    "scion": 978,
+    "scopeTests": 32,
+    "frozenCorpus": "unchanged"
+  },
+  "limits": [
+    "One previously exposed English input; not a new model unit or accuracy estimate.",
+    "No deterministic replacement of model subject title.",
+    "No full export, production or independent teacher acceptance this round.",
+    "Model released by browser refresh after saved capture."
+  ]
+}

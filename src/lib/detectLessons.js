@@ -217,7 +217,7 @@ export function detectExpectedLessons(text) {
   // so an example inside source prose cannot reduce a multi-lesson course.
   const singular =
     text.match(
-      /^\s*(?:please\s+)?(?:prepare|create|build|design|make|plan|generate)\s+(?:a|an)\s+(?:(?!lessons?\b|modules?\b|sessions?\b)[\p{L}\p{N}]+(?:[-–—][\p{L}\p{N}]+)?\s+){0,4}(?:lesson|module|session)\b/iu,
+      /^\s*(?:please\s+)?(?:prepare|create|build|design|make|plan|generate)\s+(?:(?:editable\s+)?(?:(?:teaching|classroom)\s+)?(?:materials|resources|worksheets|slides)\s+for\s+)?(?:a|an)\s+(?:(?!lessons?\b|modules?\b|sessions?\b)[\p{L}\p{N}]+(?:[-–—][\p{L}\p{N}]+)?\s+){0,4}(?:lesson|module|session)\b/iu,
     ) || text.match(/^\s*(?:请\s*)?(?:制作|生成|设计|准备|创建)\s*(?:一|1)\s*(?:节|堂|课)/u);
   if (singular) return { expected: 1, confidence: 'high', source: `"${singular[0].trim()}"` };
 
