@@ -83,6 +83,35 @@ export function validateResponseReview(record) {
   };
   check(record.judgments);
   record.history.forEach((entry) => check(entry.judgments));
+  const improvements = record.improvements || [];
+  if (
+    !Array.isArray(improvements) ||
+    improvements.length > 100 ||
+    new Set(improvements.map((entry) => entry.id)).size !== improvements.length
+  )
+    throw new Error('Invalid teaching revision history.');
+  for (const entry of improvements) {
+    if (
+      !/^[a-f0-9]{64}$/.test(entry.id) ||
+      !Number.isFinite(Date.parse(entry.appliedAt)) ||
+      entry.fromSourceRevision !== record.sourceRevision ||
+      entry.fromRubricRevision !== record.rubricRevision ||
+      entry.toSourceRevision !== hash(entry.updatedSource) ||
+      entry.toRubricRevision !== hash(entry.updatedCriteria) ||
+      entry.updatedSource?.id !== record.taskId
+    )
+      throw new Error('Invalid teaching revision receipt.');
+    check([entry.judgment]);
+    if (
+      entry.criterionId !== entry.judgment.criterionId ||
+      entry.previousFeedback !==
+        record.snapshot.source.operationPlan?.requirements?.find((r) => r.id === entry.criterionId)?.feedback ||
+      entry.feedback !==
+        entry.updatedSource.operationPlan?.requirements?.find((r) => r.id === entry.criterionId)?.feedback
+    )
+      throw new Error('The teaching revision does not match its requirement.');
+    requireText(entry.feedback, 6000, 'teaching feedback');
+  }
   return record;
 }
 

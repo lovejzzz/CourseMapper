@@ -25,3 +25,59 @@ export function prepareResponseFeedbackRevision({ record, source, criterionId, f
   requirement.feedback = feedback.trim();
   return draft;
 }
+
+export function createResponseRevisionReceipt(
+  record,
+  { previewRevision, updatedSource, criterionId, feedback },
+  appliedAt = new Date().toISOString(),
+) {
+  validateResponseReview(record);
+  const task = rebuildTeachingTaskSource(updatedSource);
+  const judgment = record.judgments.find((entry) => entry.criterionId === criterionId);
+  if (
+    !task ||
+    !judgment ||
+    updatedSource?.id !== record.taskId ||
+    updatedSource.operationPlan?.requirements?.find((r) => r.id === criterionId)?.feedback !== feedback.trim()
+  )
+    throw new Error('The applied task does not match the reviewed feedback revision.');
+  const receipt = {
+    id: previewRevision,
+    appliedAt,
+    criterionId,
+    fromSourceRevision: record.sourceRevision,
+    fromRubricRevision: record.rubricRevision,
+    toSourceRevision: responseReviewRevision(updatedSource),
+    toRubricRevision: responseReviewRevision(task.criteria),
+    updatedSource: structuredClone(updatedSource),
+    updatedCriteria: structuredClone(task.criteria),
+    previousFeedback: record.snapshot.source.operationPlan.requirements.find((r) => r.id === criterionId)?.feedback,
+    feedback: feedback.trim(),
+    judgment: structuredClone(judgment),
+  };
+  appendResponseRevisionReceipt(record, receipt);
+  return receipt;
+}
+
+export function appendResponseRevisionReceipt(record, receipt) {
+  validateResponseReview(record);
+  const existing = record.improvements?.find((entry) => entry.id === receipt.id);
+  if (existing && responseReviewRevision(existing) !== responseReviewRevision(receipt))
+    throw new Error('A different teaching revision already uses this receipt identity.');
+  return validateResponseReview({
+    ...structuredClone(record),
+    improvements: existing
+      ? structuredClone(record.improvements)
+      : [...(record.improvements || []), structuredClone(receipt)],
+  });
+}
+
+/** Read the latest notebook row so a delayed course commit cannot overwrite a
+ * newer teacher judgment. Deletion is respected; failed receipts can retry. */
+export async function saveResponseRevisionReceipt(store, recordId, receipt) {
+  const current = (await store.list()).records.find((entry) => entry.id === recordId);
+  if (!current) throw new Error('The local response is no longer available.');
+  const updated = appendResponseRevisionReceipt(current, receipt);
+  await store.save(updated, responseReviewRevision(current));
+  return updated;
+}

@@ -196,11 +196,27 @@ it('requires public feedback confirmation and clears it when switching requireme
   expect(button('Preview linked changes').disabled).toBe(true);
   await click(input('This text is suitable'));
   await click(button('Preview linked changes'));
-  expect(onPrepareFeedback).toHaveBeenCalledWith({
-    record: reviewed,
-    criterionId: reviewed.snapshot.criteria[0].id,
-    feedback: 'Name the observed group and show 17/40 before converting to percent.',
+  expect(onPrepareFeedback).toHaveBeenCalledWith(
+    {
+      record: reviewed,
+      criterionId: reviewed.snapshot.criteria[0].id,
+      feedback: 'Name the observed group and show 17/40 before converting to percent.',
+    },
+    expect.any(Function),
+  );
+  const updatedSource = structuredClone(authored);
+  updatedSource.operationPlan.requirements[0].feedback =
+    'Name the observed group and show 17/40 before converting to percent.';
+  const completed = onPrepareFeedback.mock.calls[0][1];
+  store.save.mockRejectedValueOnce(new Error('Receipt storage full'));
+  await act(async () => {
+    await expect(completed({ previewRevision: 'a'.repeat(64), updatedSource })).rejects.toThrow('Receipt storage full');
   });
+  expect(saved.get(reviewed.id).improvements).toBeUndefined();
+  await click(button('Retry saving revision record'));
+  expect(saved.get(reviewed.id).improvements).toHaveLength(1);
+  expect(container.textContent).toContain('Applied teaching revisions');
+  expect(button('Retry saving revision record')).toBeUndefined();
   await setValue(input('Criterion'), reviewed.snapshot.criteria[1].id);
   expect(input('New feedback for').value).toBe('');
   expect(input('This text is suitable').checked).toBe(false);

@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { saveAs } from 'file-saver';
 import TeachingResponseCsvImport from './TeachingResponseCsvImport.jsx';
+import { createResponseRevisionReceipt, saveResponseRevisionReceipt } from '../../../lib/teachingResponseRevision.js';
 import { createTeachingResponseStore } from '../../../lib/teachingResponseStore.js';
 import {
   createResponseReview,
@@ -39,6 +40,7 @@ export default function TeachingResponseReview({ source, zh, disabled, store: su
   const [confirmExport, setConfirmExport] = useState(false);
   const [feedbackDraft, setFeedbackDraft] = useState('');
   const [feedbackPublic, setFeedbackPublic] = useState(false);
+  const [pendingReceipt, setPendingReceipt] = useState(null);
   const t = (en, cn) => (zh ? cn : en);
   const summary = useMemo(
     () => (active ? summarizeResponseReviews(records, active.sourceRevision, active.rubricRevision) : null),
@@ -75,6 +77,12 @@ export default function TeachingResponseReview({ source, zh, disabled, store: su
   async function persist(record) {
     await store.save(record, active?.id === record.id ? responseReviewRevision(active) : null);
     select(record);
+    await refresh();
+  }
+  async function saveReceipt(pending) {
+    const updated = await saveResponseRevisionReceipt(store, pending.recordId, pending.receipt);
+    setActive((current) => (current?.id === updated.id ? updated : current));
+    setPendingReceipt(null);
     await refresh();
   }
   return (
@@ -315,11 +323,23 @@ export default function TeachingResponseReview({ source, zh, disabled, store: su
                     }
                     onClick={() =>
                       void run(async () => {
-                        await onPrepareFeedback({
-                          record: active,
-                          criterionId: judgment.criterionId,
-                          feedback: feedbackDraft,
-                        });
+                        await onPrepareFeedback(
+                          {
+                            record: active,
+                            criterionId: judgment.criterionId,
+                            feedback: feedbackDraft,
+                          },
+                          async (applied) => {
+                            const receipt = createResponseRevisionReceipt(active, {
+                              ...applied,
+                              criterionId: judgment.criterionId,
+                              feedback: feedbackDraft,
+                            });
+                            const pending = { recordId: active.id, receipt };
+                            setPendingReceipt(pending);
+                            await saveReceipt(pending);
+                          },
+                        );
                         setMessage(
                           t(
                             'Review the linked changes in the task editor before applying.',
@@ -331,6 +351,33 @@ export default function TeachingResponseReview({ source, zh, disabled, store: su
                   >
                     {t('Preview linked changes', '预览联动变化')}
                   </button>
+                </details>
+              )}
+              {!!active.improvements?.length && (
+                <details>
+                  <summary>
+                    {t('Applied teaching revisions', '已应用的教学修订')} ({active.improvements.length})
+                  </summary>
+                  <p>
+                    {t(
+                      'Historical applications; later edits or course undo do not erase this record.',
+                      '这是应用历史，后续编辑或课程撤销不会抹去此记录。',
+                    )}
+                  </p>
+                  {active.improvements.map((entry) => (
+                    <div key={entry.id} className="mt-2 space-y-1 border-t pt-2">
+                      <p>{new Date(entry.appliedAt).toLocaleString(zh ? 'zh-CN' : 'en-US')}</p>
+                      <p>
+                        {t('Review reason', '审阅理由')}: {entry.judgment.reason}
+                      </p>
+                      <p>
+                        {t('Previous feedback', '原反馈')}: {entry.previousFeedback}
+                      </p>
+                      <p>
+                        {t('Applied feedback', '已应用反馈')}: {entry.feedback}
+                      </p>
+                    </div>
+                  ))}
                 </details>
               )}
               <label className="block">
@@ -369,6 +416,15 @@ export default function TeachingResponseReview({ source, zh, disabled, store: su
                 {t('Delete review', '删除审阅记录')}
               </button>
             </>
+          )}
+          {pendingReceipt && (
+            <button
+              type="button"
+              className="rounded border border-slate-300 bg-white px-3 py-1.5"
+              onClick={() => void run(() => saveReceipt(pendingReceipt))}
+            >
+              {t('Retry saving revision record', '重试保存修订记录')}
+            </button>
           )}
           {message && <p role="alert">{message}</p>}
         </fieldset>

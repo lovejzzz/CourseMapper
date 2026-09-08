@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { observedProportionFixture } from '../../../tests/fixtures/teaching/observedProportion.js';
 import { createResponseReview, confirmResponseJudgment } from '../teachingResponseReview.js';
-import { prepareResponseFeedbackRevision } from '../teachingResponseRevision.js';
+import {
+  prepareResponseFeedbackRevision,
+  createResponseRevisionReceipt,
+  saveResponseRevisionReceipt,
+  appendResponseRevisionReceipt,
+} from '../teachingResponseRevision.js';
 import { performanceRequirementsFixture } from '../../../tests/fixtures/teaching/performanceRequirements.js';
 import {
   createTeachingOperationPlan,
@@ -444,7 +449,7 @@ describe('reviewed performance requirements', () => {
   });
 });
 
-it('routes response-led feedback through the confirmed course transaction without copying private review data', () => {
+it('routes response-led feedback through the confirmed course transaction without copying private review data', async () => {
   const s = state();
   const record = createResponseReview(s.source, 'PRIVATE RESPONSE: 42.5%.');
   const criterionId = record.snapshot.criteria[0].id;
@@ -469,6 +474,37 @@ it('routes response-led feedback through the confirmed course transaction withou
   expect(JSON.stringify(applied)).not.toContain('PRIVATE');
   expect(reviewed.snapshot.source).toEqual(s.source);
   expect(reviewed.snapshot.criteria).toEqual(record.snapshot.criteria);
+  const receipt = createResponseRevisionReceipt(reviewed, {
+    previewRevision: preview.revision,
+    updatedSource,
+    criterionId,
+    feedback,
+  });
+  let latest = confirmResponseJudgment(reviewed, {
+    criterionId,
+    level: 'insufficient',
+    reason: 'A newer private review from another tab.',
+  });
+  const store = {
+    list: async () => ({ records: [latest] }),
+    save: async (next) => {
+      latest = next;
+    },
+  };
+  const logged = await saveResponseRevisionReceipt(store, reviewed.id, receipt);
+  expect(logged.judgments[0].reason).toBe('A newer private review from another tab.');
+  expect(logged.improvements[0].judgment.reason).toBe('PRIVATE REVIEW: no denominator explanation.');
+  expect(logged.improvements[0].previousFeedback).toBe(s.source.operationPlan.requirements[0].feedback);
+  expect(logged.improvements[0].feedback).toBe(feedback);
+  expect(logged.snapshot).toEqual(reviewed.snapshot);
+  await saveResponseRevisionReceipt(store, reviewed.id, receipt);
+  expect(latest.improvements).toHaveLength(1);
+  expect(() => appendResponseRevisionReceipt(logged, { ...receipt, feedback: 'Wrong outcome' })).toThrow(
+    /different teaching revision/,
+  );
+  await expect(
+    saveResponseRevisionReceipt({ list: async () => ({ records: [] }) }, reviewed.id, receipt),
+  ).rejects.toThrow(/no longer available/);
   expect(() => prepareResponseFeedbackRevision({ ...request, record: reviewed, source: updatedSource })).toThrow(
     /task changed/,
   );

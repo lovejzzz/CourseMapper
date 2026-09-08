@@ -72,6 +72,7 @@ export default function TeachingTaskReview({
   savedDrafts,
   onSaveDraft,
   onRemoveDraft,
+  responseStore,
 }) {
   const options = useMemo(() => {
     try {
@@ -94,6 +95,7 @@ export default function TeachingTaskReview({
   const [proposing, setProposing] = useState(false);
   const [lastProposalReceipt, setLastProposalReceipt] = useState(null);
   const proposalController = useRef(null);
+  const responseCompletion = useRef(null);
   useEffect(() => () => proposalController.current?.abort(), []);
   const selected = draft?.creation
     ? {
@@ -309,6 +311,26 @@ export default function TeachingTaskReview({
         setPreview(null);
         setConfirmed(false);
         setMessage(t('Task updated. You can undo this change.', '任务已更新，可撤销。'));
+        const completion = responseCompletion.current;
+        responseCompletion.current = null;
+        if (completion?.revision === preview.revision && completion.complete) {
+          try {
+            await completion.complete({
+              previewRevision: preview.revision,
+              updatedSource: reviewableTeachingTaskSources(result.courseMap).find(
+                (row) => row.id === preview.draft.taskId,
+              ),
+            });
+          } catch (error) {
+            setMessage(
+              t(
+                'Task updated, but the local revision record was not saved. Retry in response review.',
+                '任务已更新，但本地修订记录未保存。请在作答审阅中重试。',
+              ),
+              [error.message],
+            );
+          }
+        }
       } else {
         setPreview(null);
         setConfirmed(false);
@@ -331,10 +353,11 @@ export default function TeachingTaskReview({
     >
       <summary className="cursor-pointer font-medium">{t('Review sources and scoring', '审阅来源与评分')}</summary>
       <TeachingResponseReview
+        store={responseStore}
         source={options.sources.find((row) => row.id === selected?.id)}
         zh={zh}
         disabled={busy}
-        onPrepareFeedback={async (request) => {
+        onPrepareFeedback={async (request, complete) => {
           const source = options.sources.find((row) => row.id === request.record.taskId);
           const base = source && createTeachingTaskReviewDraft(source, data, featureId);
           if (draftRef.current && !sameJsonData(draftRef.current, base))
@@ -348,6 +371,7 @@ export default function TeachingTaskReview({
             setDraft(next);
             setSelectedId(next.taskId);
             setPreview(result);
+            responseCompletion.current = { revision: result.revision, complete };
             setConfirmed(false);
             setMessage(
               t(

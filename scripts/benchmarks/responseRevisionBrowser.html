@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Response to teaching revision verification</title>
+  </head>
+  <body>
+    <h1>Response to teaching revision verification</h1>
+    <p>Synthetic teaching and response data. Separate local test database. No model calls.</p>
+    <div id="root"></div>
+    <script type="module">
+      import React, { useState } from 'react';
+      import { createRoot } from 'react-dom/client';
+      import '/src/index.css';
+      import TeachingTaskReview from '/src/components/deliverables/shared/TeachingTaskReview.jsx';
+      import { observedProportionFixture } from '/tests/fixtures/teaching/observedProportion.js';
+      import { performanceRequirementsFixture } from '/tests/fixtures/teaching/performanceRequirements.js';
+      import { createTeachingOperationPlan } from '/src/lib/teachingOperationPlan.js';
+      import { buildSharedTeachingTask } from '/src/lib/compilerTeachingTask.js';
+      import { teachingTaskSourceFromLesson } from '/src/lib/teachingTaskSource.js';
+      import { withTeachingTaskSources } from '/src/lib/teachingProgram.js';
+      import { projectSharedTeachingTasks } from '/src/lib/compilerTeachingTaskProjection.js';
+      import { previewTeachingTaskReview, commitTeachingTaskReview } from '/src/lib/teachingTaskReview.js';
+      import { createTeachingResponseStore } from '/src/lib/teachingResponseStore.js';
+      const f = observedProportionFixture();
+      const operationPlan = createTeachingOperationPlan({
+        ...f,
+        ...performanceRequirementsFixture(),
+        version: 2,
+        operation: 'observed-proportion',
+        admission: { kind: 'teacher-confirmed' },
+      });
+      const teachingTask = buildSharedTeachingTask({
+        lessonId: 'response-revision-browser',
+        objective: f.objective,
+        sourceInputs: f.inputs,
+        operationPlan,
+        admitted: true,
+      });
+      const lesson = {
+        id: 'response-revision-browser',
+        lessonNumber: 1,
+        title: 'Synthetic observed scope',
+        teachingTask,
+        teachingTaskScope: 'primary-task',
+      };
+      const source = teachingTaskSourceFromLesson(lesson);
+      const initialMap = withTeachingTaskSources(
+        {
+          courseName: 'Synthetic revision verification',
+          lessons: [{ title: lesson.title, sections: [{ learningObjectives: f.objective }] }],
+        },
+        [source],
+      );
+      const data = projectSharedTeachingTasks(
+        'rubrics',
+        { rubrics: [{ lessonNumber: 1, title: 'Task rubric', totalPoints: 100 }] },
+        { lessons: [lesson] },
+      );
+      const store = createTeachingResponseStore(indexedDB, 'coursemapper-synthetic-response-revision-v1');
+      function App() {
+        const [state, setState] = useState({
+          courseMap: initialMap,
+          deliverables: { rubrics: { status: 'done', data } },
+        });
+        const [status, setStatus] = useState('No course revision applied in this session');
+        return React.createElement(
+          React.Fragment,
+          null,
+          React.createElement('p', { role: 'status' }, status),
+          React.createElement(TeachingTaskReview, {
+            featureId: 'rubrics',
+            courseMap: state.courseMap,
+            data: state.deliverables.rubrics.data,
+            responseStore: store,
+            onPreview: (draft) => previewTeachingTaskReview({ ...state, draft }),
+            onCommit: (preview, teacherConfirmed) => {
+              const result = commitTeachingTaskReview({ ...state, preview, teacherConfirmed });
+              if (result.status === 'applied') {
+                setState({ courseMap: result.courseMap, deliverables: { ...state.deliverables, ...result.changed } });
+                setStatus(
+                  `Course revision applied; ${Object.keys(result.changed).join(', ')} updated; ${result.conflicts.length} conflicts`,
+                );
+              }
+              return result;
+            },
+          }),
+        );
+      }
+      createRoot(document.getElementById('root')).render(React.createElement(App));
+    </script>
+  </body>
+</html>
