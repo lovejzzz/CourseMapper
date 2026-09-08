@@ -284,7 +284,7 @@ export default function DeliverableView({
   );
 
   // ── Early returns (after all hooks) ──
-  if (status === 'error') return <ErrorState error={error} onRetry={onRetry} />;
+  if (status === 'error' && !data) return <ErrorState error={error} onRetry={onRetry} />;
 
   // Show waiting state when course map is still building or deliverables are generating
   if (!data && status !== 'streaming') {
@@ -297,7 +297,7 @@ export default function DeliverableView({
     return <EmptyState featureId={featureId} onGenerate={onRetry} />;
   }
 
-  const editable = status === 'done' && !!onDataChange;
+  const editable = (status === 'done' || (status === 'error' && !!data)) && !!onDataChange;
 
   function onEdit(path, value) {
     if (!onDataChange) return;
@@ -343,6 +343,16 @@ export default function DeliverableView({
 
   const deliverableContent = (
     <>
+      {status === 'error' && data && !isStudentView && (
+        <p role="status" className="mb-3 text-sm text-amber-800 dark:text-amber-200">
+          Update failed. Your previous material is preserved.{' '}
+          {onRetry && (
+            <button className="underline" onClick={onRetry}>
+              Retry
+            </button>
+          )}
+        </p>
+      )}
       {editable && !isStudentView && (
         <TeachingTaskReview
           key={`${featureId}:${teachingReviewSession || 0}`}

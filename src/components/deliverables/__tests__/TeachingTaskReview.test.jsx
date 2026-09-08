@@ -692,36 +692,71 @@ describe('teacher structure review interaction', () => {
     expect(container.textContent).not.toContain('"an":');
   });
 
-  it('does not expose teacher review, conflict answers or archived answers in the student view', () => {
-    const data = {
-      faqs: [
-        { lessonTitle: 'Records', questions: [{ question: 'Where is the task?', answer: 'In the assignment brief.' }] },
-      ],
-      taskSyncConflicts: [
-        {
-          path: ['faqs', 0, 'questions'],
-          current: 'Teacher-only retained answer',
-          proposed: 'Teacher-only new answer',
-        },
-      ],
-      taskSyncArchive: [{ current: 'Teacher-only archived answer' }],
-    };
+  it('renders retained material and a retry action after replacement fails', async () => {
+    const retry = vi.fn();
     act(() =>
       root.render(
         <DeliverableView
           featureId="courseFaq"
-          status="done"
-          isStudentView
-          data={data}
+          status="error"
+          error="Replacement failed"
+          data={{
+            faqs: [
+              {
+                lessonTitle: 'Records',
+                questions: [{ question: 'Where is the task?', answer: 'Teacher-preserved instructions.' }],
+              },
+            ],
+          }}
           courseMap={courseMap}
           onDataChange={vi.fn()}
-          onPreviewTeachingTask={vi.fn()}
-          onCommitTeachingTask={vi.fn()}
+          onRetry={retry}
         />,
       ),
     );
-    expect(container.textContent).toContain('In the assignment brief.');
-    expect(container.textContent).not.toContain('Teacher-only');
-    expect(container.textContent).not.toContain('Review sources and scoring');
+    expect(container.textContent).toContain('Teacher-preserved instructions.');
+    expect(container.textContent).toContain('Your previous material is preserved.');
+    await click(button('Retry'));
+    expect(retry).toHaveBeenCalledTimes(1);
   });
+
+  it.each(['done', 'error'])(
+    'does not expose teacher review, conflict answers or archived answers in the student view (%s)',
+    (status) => {
+      const data = {
+        faqs: [
+          {
+            lessonTitle: 'Records',
+            questions: [{ question: 'Where is the task?', answer: 'In the assignment brief.' }],
+          },
+        ],
+        taskSyncConflicts: [
+          {
+            path: ['faqs', 0, 'questions'],
+            current: 'Teacher-only retained answer',
+            proposed: 'Teacher-only new answer',
+          },
+        ],
+        taskSyncArchive: [{ current: 'Teacher-only archived answer' }],
+      };
+      act(() =>
+        root.render(
+          <DeliverableView
+            featureId="courseFaq"
+            status={status}
+            isStudentView
+            data={data}
+            courseMap={courseMap}
+            onDataChange={vi.fn()}
+            onPreviewTeachingTask={vi.fn()}
+            onCommitTeachingTask={vi.fn()}
+          />,
+        ),
+      );
+      expect(container.textContent).toContain('In the assignment brief.');
+      expect(container.textContent).not.toContain('Teacher-only');
+      expect(container.textContent).not.toContain('Review sources and scoring');
+      expect(container.textContent).not.toContain('Your previous material is preserved.');
+    },
+  );
 });

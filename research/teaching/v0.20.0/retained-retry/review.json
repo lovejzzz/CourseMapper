@@ -1,0 +1,43 @@
+{
+  "baseline": "4beb4d58",
+  "kind": "Actual Chrome restore, reviewed source revision, failed preparation, retained quiz view and project save",
+  "projectSha256": "224f38f00e7ab9bcca83b4bd3fb7c038f5afebf66bcbed7f65028a50ae7c5952",
+  "status": "error",
+  "stale": true,
+  "error": "Quiz lesson 1 has 5/6 evidence-bound question(s); the count must be exact.",
+  "questions": [
+    {
+      "id": "task-6ab937718544dc2e:transfer",
+      "kind": "independent-transfer",
+      "points": 12
+    },
+    {
+      "id": "task-6ab937718544dc2e:response",
+      "kind": "task-rehearsal",
+      "points": 20
+    },
+    {
+      "id": "task-6ab937718544dc2e:error-0",
+      "kind": "error-analysis",
+      "points": 2
+    },
+    {
+      "id": "task-6ab937718544dc2e:error-1",
+      "kind": "error-analysis",
+      "points": 2
+    },
+    {
+      "id": "task-6ab937718544dc2e:revision",
+      "kind": "feedback-retry",
+      "points": 4
+    }
+  ],
+  "sources": 1,
+  "qualityStatus": "blocked",
+  "retentionPassed": true,
+  "limitations": [
+    "Full preparation still fails on 5/6 count conflict.",
+    "Restored legacy project already had a four-point retry; retaining it does not retroactively correct that historical score."
+  ],
+  "classroomAcceptance": false
+}

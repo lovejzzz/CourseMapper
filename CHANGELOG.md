@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Keep the last saved material through failed generation and timeout, including returned pipeline state. Retained content stays viewable/editable with a concise retry notice, while error status continues blocking fresh export claims. Replace copied reducer tests with production-reducer tests; verify real failed preparation no longer clears the saved quiz bank.
+
 - Preserve explicit zero-point practice through point normalization and generation validation, including all-ungraded totals. Exclude answer-writing rules from repeated-prose findings and distinguish an evidence-gap description from a later required packet. Add the post-processing, ZIP and structure-grader suites to the default check. Real re-preparation still exposes a five-item reviewed sequence versus generic six-question target conflict; that acceptance remains open.
 
 - Invalidate prepared export receipts after shared-task changes, material edits and undo/redo. A real browser regression exposed an updated editor downloading obsolete quiz answers; re-preparation now exports the revised task and removes those old answers. Order attribution questions around the explicit inference before the broader assertion; the latest local proposal still required one manual quote-boundary correction.

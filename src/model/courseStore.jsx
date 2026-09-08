@@ -10,6 +10,7 @@
  */
 import React, { createContext, useReducer } from 'react';
 import { expandKeys } from '../lib/keyMaps';
+import { failedDeliverableState } from '../lib/failedDeliverableState.js';
 
 // ── Action creators ────────────────────────────────────────────────────────────
 
@@ -23,10 +24,11 @@ export const actions = {
     featureId,
     data,
   }),
-  setDeliverableError: (featureId, error) => ({
+  setDeliverableError: (featureId, error, retainedEntry) => ({
     type: 'SET_DELIVERABLE_ERROR',
     featureId,
     error,
+    retainedEntry,
   }),
   restoreDeliverableSnapshot: (featureId, entry) => ({
     type: 'RESTORE_DELIVERABLE_SNAPSHOT',
@@ -133,7 +135,14 @@ export function reducer(state, action) {
         ...state,
         deliverables: {
           ...state.deliverables,
-          [action.featureId]: { status: 'streaming', data: null, error: null, stale: false, staleConfidence: null },
+          [action.featureId]: {
+            ...state.deliverables[action.featureId],
+            status: 'streaming',
+            data: state.deliverables[action.featureId]?.data ?? null,
+            error: null,
+            stale: Boolean(state.deliverables[action.featureId]?.stale),
+            staleConfidence: state.deliverables[action.featureId]?.staleConfidence ?? null,
+          },
         },
       };
     case 'SET_DELIVERABLE_DONE':
@@ -149,7 +158,10 @@ export function reducer(state, action) {
         ...state,
         deliverables: {
           ...state.deliverables,
-          [action.featureId]: { status: 'error', data: null, error: action.error, stale: false, staleConfidence: null },
+          [action.featureId]: failedDeliverableState(
+            action.retainedEntry || state.deliverables[action.featureId],
+            action.error,
+          ),
         },
       };
     case 'RESTORE_DELIVERABLE_SNAPSHOT': {

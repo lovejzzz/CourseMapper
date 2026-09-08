@@ -1,138 +1,38 @@
-/**
- * Tests for courseStore reducer (extracted from JSX to test pure logic).
- * We import the actions creators and re-implement the reducer here since
- * the original file exports a React component. We test the reducer logic directly.
- */
+/** Tests run against the actual production reducer. */
 import { describe, it, expect } from 'vitest';
 
-import { normalizeRestoredDeliverables } from '../../model/courseStore.jsx';
-
-// ── Re-implement reducer (pure function, no React dependency) ──
-function reducer(state, action) {
-  switch (action.type) {
-    case 'SET_DELIVERABLE_STREAMING':
-      return {
-        ...state,
-        deliverables: {
-          ...state.deliverables,
-          [action.featureId]: { status: 'streaming', data: null, error: null, stale: false, staleConfidence: null },
-        },
-      };
-    case 'SET_DELIVERABLE_DONE':
-      return {
-        ...state,
-        deliverables: {
-          ...state.deliverables,
-          [action.featureId]: { status: 'done', data: action.data, error: null, stale: false, staleConfidence: null },
-        },
-      };
-    case 'SET_DELIVERABLE_ERROR':
-      return {
-        ...state,
-        deliverables: {
-          ...state.deliverables,
-          [action.featureId]: { status: 'error', data: null, error: action.error, stale: false, staleConfidence: null },
-        },
-      };
-    case 'RESET_DELIVERABLES':
-      return { ...state, deliverables: {} };
-    case 'RESTORE_DELIVERABLES':
-      return { ...state, deliverables: normalizeRestoredDeliverables(action.deliverables) };
-    case 'REMOVE_DELIVERABLE': {
-      if (!state.deliverables[action.featureId]) return state;
-      const next = { ...state.deliverables };
-      delete next[action.featureId];
-      return { ...state, deliverables: next };
-    }
-    case 'MARK_ALL_STALE': {
-      const updated = {};
-      for (const [k, v] of Object.entries(state.deliverables)) {
-        updated[k] = {
-          ...v,
-          stale: true,
-          staleConfidence: v.staleConfidence || { level: 'high', maxWeight: 1.0, dominantField: '_structural' },
-        };
-      }
-      return { ...state, deliverables: updated };
-    }
-    case 'MARK_FEATURE_STALE': {
-      const existing = state.deliverables[action.featureId];
-      if (!existing) return state;
-      let mergedEdits = action.staleEdits || null;
-      if (existing.staleEdits && mergedEdits) {
-        const combined = new Set([...(existing.staleEdits.lessonIndices || []), ...(mergedEdits.lessonIndices || [])]);
-        mergedEdits = { ...mergedEdits, lessonIndices: [...combined].sort((a, b) => a - b) };
-      }
-      return {
-        ...state,
-        deliverables: {
-          ...state.deliverables,
-          [action.featureId]: {
-            ...existing,
-            stale: true,
-            staleConfidence: action.staleConfidence || existing.staleConfidence || null,
-            staleEdits: mergedEdits || existing.staleEdits || null,
-          },
-        },
-      };
-    }
-    case 'CLEAR_FEATURE_STALE': {
-      const existing = state.deliverables[action.featureId];
-      if (!existing?.stale) return state;
-      const clearIndices = Array.isArray(action.staleEdits?.lessonIndices)
-        ? new Set(action.staleEdits.lessonIndices)
-        : null;
-      const existingIndices = Array.isArray(existing.staleEdits?.lessonIndices)
-        ? existing.staleEdits.lessonIndices
-        : null;
-      if (!clearIndices || !existingIndices || clearIndices.size === 0) {
-        return {
-          ...state,
-          deliverables: {
-            ...state.deliverables,
-            [action.featureId]: { ...existing, stale: false, staleConfidence: null, staleEdits: null },
-          },
-        };
-      }
-      const remaining = existingIndices.filter((index) => !clearIndices.has(index));
-      if (remaining.length === existingIndices.length) return state;
-      return {
-        ...state,
-        deliverables: {
-          ...state.deliverables,
-          [action.featureId]:
-            remaining.length > 0
-              ? { ...existing, stale: true, staleEdits: { ...existing.staleEdits, lessonIndices: remaining } }
-              : { ...existing, stale: false, staleConfidence: null, staleEdits: null },
-        },
-      };
-    }
-    case 'MARK_LESSON_REGENERATING': {
-      const cur = state.deliverables[action.featureId];
-      if (!cur) return state;
-      return {
-        ...state,
-        deliverables: {
-          ...state.deliverables,
-          [action.featureId]: {
-            ...cur,
-            status: 'streaming',
-            stale: false,
-            staleConfidence: null,
-            error: null,
-            regeneratingIndex: action.lessonIndex,
-          },
-        },
-      };
-    }
-    default:
-      return state;
-  }
-}
+import { normalizeRestoredDeliverables, reducer } from '../../model/courseStore.jsx';
 
 const initialState = () => ({ deliverables: {} });
 
 describe('courseStore reducer', () => {
+  it('retains teacher data and source metadata through a failed replacement and saved-project restoration', () => {
+    const data = {
+      quizzes: [{ questions: [{ question: 'Teacher version', points: 0 }] }],
+      teacherEdits: { marker: 'keep' },
+      teachingTaskSources: [{ id: 'task-original' }],
+    };
+    const original = { status: 'done', data, stale: false };
+    const streaming = reducer(
+      { deliverables: { quizBank: original } },
+      { type: 'SET_DELIVERABLE_STREAMING', featureId: 'quizBank' },
+    );
+    expect(streaming.deliverables.quizBank.data).toBe(data);
+    const failed = reducer(streaming, {
+      type: 'SET_DELIVERABLE_ERROR',
+      featureId: 'quizBank',
+      error: 'Question count mismatch',
+      retainedEntry: original,
+    });
+    expect(failed.deliverables.quizBank).toMatchObject({ status: 'error', stale: true, data });
+    const restored = normalizeRestoredDeliverables(JSON.parse(JSON.stringify(failed.deliverables)));
+    expect(restored.quizBank.data.teacherEdits).toEqual(data.teacherEdits);
+    expect(restored.quizBank.data.teachingTaskSources).toEqual(data.teachingTaskSources);
+    expect(restored.quizBank.status).toBe('error');
+    const replaced = reducer(failed, { type: 'SET_DELIVERABLE_DONE', featureId: 'quizBank', data: { quizzes: [] } });
+    expect(replaced.deliverables.quizBank.error).toBeNull();
+    expect(replaced.deliverables.quizBank.data).not.toBe(data);
+  });
   describe('SET_DELIVERABLE_STREAMING', () => {
     it('sets status to streaming', () => {
       const state = reducer(initialState(), { type: 'SET_DELIVERABLE_STREAMING', featureId: 'quizBank' });

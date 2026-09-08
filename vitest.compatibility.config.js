@@ -8,6 +8,7 @@ export default defineConfig({
     testTimeout: 30000,
     include: [
       'src/lib/__tests__/{deliverablePostProcess,packageZipExporter}.test.js',
+      'src/lib/__tests__/courseStore.test.js',
       'src/lib/quality/__tests__/deepQualityStructure.test.js',
       'src/components/deliverables/__tests__/*.{test,spec}.{js,jsx}',
       'src/components/chat/__tests__/AgentWorkingSetPanel.test.jsx',

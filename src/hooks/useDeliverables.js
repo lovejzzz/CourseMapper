@@ -3,6 +3,7 @@ import { useState, useCallback, useMemo, useRef, useContext, useEffect } from 'r
 import useStreamReader from './useStreamReader';
 import { getArrayKey } from '../lib/syncDependencies';
 import { preserveTeacherEdits } from '../lib/teachingTaskContentSync.js';
+import { failedDeliverableState } from '../lib/failedDeliverableState.js';
 import { isRenderedDeliverableCollectionFeature } from '../lib/renderedDeliverableCollection.js';
 import {
   PER_ASSESSMENT_REGEN_FEATURES,
@@ -820,6 +821,7 @@ export default function useDeliverables({
       setProgress({ done: 0, total: requestedFeatures.length, perFeature: perFeatureInit });
 
       // Mark all features as streaming
+      const retainedDeliverables = { ...deliverablesRef.current };
       for (const fid of requestedFeatures) {
         dispatch(actions.setDeliverableStreaming(fid));
       }
@@ -889,9 +891,9 @@ export default function useDeliverables({
 
       const markFeatureError = (featureId, message) => {
         if (isGenerationCancelled(featureId) || timedOutFeatures.has(featureId)) return;
-        generatedDeliverables[featureId] = { status: 'error', data: null, error: message, stale: false };
+        generatedDeliverables[featureId] = failedDeliverableState(retainedDeliverables[featureId], message);
         failedFeatureIds.add(featureId);
-        dispatch(actions.setDeliverableError(featureId, message));
+        dispatch(actions.setDeliverableError(featureId, message, retainedDeliverables[featureId]));
         traceGeneration(
           generationRunId,
           'feature_error',
@@ -995,9 +997,9 @@ export default function useDeliverables({
         const label = getFeatureLabel(featureId);
         const message = buildDeliverableTimeoutError(label, timeoutMs, timeoutType);
         abortDeliverableControllers(abortMapRef.current, featureId, generationRunId);
-        generatedDeliverables[featureId] = { status: 'error', data: null, error: message, stale: false };
+        generatedDeliverables[featureId] = failedDeliverableState(retainedDeliverables[featureId], message);
         failedFeatureIds.add(featureId);
-        dispatch(actions.setDeliverableError(featureId, message));
+        dispatch(actions.setDeliverableError(featureId, message, retainedDeliverables[featureId]));
         appendLog(`✗ ${message}`, 'error');
         traceGeneration(
           generationRunId,
