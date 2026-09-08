@@ -33,11 +33,13 @@ const COVER_NOUNS = {
  * Build a DOCX blob for a deliverable without triggering a browser download.
  * Used by zipExporter.js to bundle deliverables into a ZIP archive.
  */
-export async function buildDeliverableDocxBlob(featureId, data, courseName) {
+export async function buildDeliverableDocxBlob(featureId, data, courseName, options = {}) {
   const docx = await getDocx();
   const { Packer, BorderStyle } = docx;
 
-  const label = studyGuideExportLabel(featureId, data, resolveFeatureLabel(featureId));
+  const label =
+    studyGuideExportLabel(featureId, data, resolveFeatureLabel(featureId)) +
+    (options.audience === 'student' ? ' - Student' : '');
   const THIN_BORDER = { style: BorderStyle.SINGLE, size: 4, color: 'D0D0D0' };
   // Cover page when the document bundles several top-level entries.
   // v0.10.1 fix: count the feature's ROOT array, not the largest nested
@@ -52,7 +54,12 @@ export async function buildDeliverableDocxBlob(featureId, data, courseName) {
   });
 
   // Build content using shared helper
-  _buildDocxContentShared(featureId, data, children, { ...docx, THIN_BORDER, exportTitle: courseName });
+  _buildDocxContentShared(featureId, data, children, {
+    ...docx,
+    THIN_BORDER,
+    exportTitle: courseName,
+    audience: options.audience,
+  });
 
   const doc = buildDocxDocument(docx, children, {
     courseName,

@@ -1636,6 +1636,14 @@ export default function ExportSidePanel({
         } else {
           const exportDeliverable = exportDeliverables?.[activeTab] || currentDeliverable;
           if (!exportDeliverable?.data) throw new Error('No data yet');
+          if (format === 'student-pdf')
+            await exportDeliverablePdf(activeTab, exportDeliverable.data, exportCourseMap?.courseName || courseName, {
+              audience: 'student',
+            });
+          if (format === 'student-docx')
+            await exportDeliverableDocx(activeTab, exportDeliverable.data, exportCourseMap?.courseName || courseName, {
+              audience: 'student',
+            });
           if (format === 'csv')
             await exportDeliverableCsv(activeTab, exportDeliverable.data, exportCourseMap?.courseName || courseName);
           if (format === 'pdf')
@@ -2073,8 +2081,26 @@ export default function ExportSidePanel({
         {/* ────────────────────────────────────────────────────────────── */}
         {scope === 'current' && activeTab !== 'courseMap' && activeTab !== 'slideDecks' && (
           <>
+            {['assignments', 'quizBank'].includes(activeTab) && (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-slate-500">Student copy</p>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {DOWNLOAD_FORMATS.filter((fmt) => ['pdf', 'docx'].includes(fmt.id)).map((fmt) => (
+                    <FmtBtn
+                      key={fmt.id}
+                      fmt={fmt}
+                      disabled={isPackageQualityRunning || isDisabled(fmt.id)}
+                      busy={busy === `student-${fmt.id}`}
+                      onClick={() => doExport(`student-${fmt.id}`)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="space-y-2">
-              <p className="text-xs font-semibold text-slate-500">Download</p>
+              <p className="text-xs font-semibold text-slate-500">
+                {['assignments', 'quizBank'].includes(activeTab) ? 'Teacher copy' : 'Download'}
+              </p>
               <div className="grid grid-cols-2 gap-1.5">
                 {DOWNLOAD_FORMATS.filter((fmt) => !isDisabled(fmt.id)).map((fmt) => (
                   <FmtBtn

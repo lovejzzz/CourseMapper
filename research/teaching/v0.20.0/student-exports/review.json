@@ -1,0 +1,69 @@
+{
+  "date": "2026-09-08",
+  "baseline": "e4f57a00",
+  "modelCalls": 0,
+  "browser": {
+    "route": "Same Chrome local tab; imported existing quantity course, selected Assignment Briefs, clicked Student copy / PDF.",
+    "download": "从登记计数到有边界的数据结论 - Assignment Briefs - Student.pdf",
+    "sha256": "256197605ca23f48cb38d0311da018bed6d3850207fb819e2bf30a15572fb4f4",
+    "note": "Actual browser download preceded the student assignment page-start refinement."
+  },
+  "artifacts": {
+    "student/assignments.pdf": {
+      "sha256": "f0664955eaf26938da4c9f1bec5c61ed80b684da896049d44ec9d83d26be1137",
+      "bytes": 207995
+    },
+    "student/assignments.docx": {
+      "sha256": "8383459912bbdf62cc81c0162a934889d4fb9cfdc6935ba8e91a6b7f6d8ef198",
+      "bytes": 13845
+    },
+    "student/quizBank.pdf": {
+      "sha256": "636ac272264c838fb0b96a344adefe1149906a19569000232fe5bb6287c4820c",
+      "bytes": 196040
+    },
+    "student/quizBank.docx": {
+      "sha256": "6f0e3ff83df07fc8daf5b2b02255f646df7bd584eef9623d0bd74136f3366d02",
+      "bytes": 12913
+    },
+    "student-paginated/assignments.pdf": {
+      "sha256": "95a63b06a19401541aade454c145c96c05a51ea0ee632aa9efa8c832a66a2c8f",
+      "bytes": 208258
+    },
+    "student-paginated/assignments.docx": {
+      "sha256": "c1887352bd0aa7c85a85b0a45e102cdaab7337ff10ef7e51a940b15628676cf3",
+      "bytes": 13862
+    }
+  },
+  "visualReview": {
+    "studentAssignmentFinalPages": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "studentAssignmentBeforePages": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "studentQuizPages": []
+  },
+  "checks": [
+    "Actual DOCX XML and PDF-definition regression excludes teacher-only key, explanation, scoring, anchor and worked-solution sentinel strings while keeping questions and data immutable.",
+    "Teacher export retains sentinels; unsupported feature student exports rejected.",
+    "Activities with private role information cannot export a shared student copy until separate role sheets exist.",
+    "Final assignment seven pages inspected; six tasks keep directions, source records and response space, without teacher anchors.",
+    "Quiz eight pages exported and text inspected, but not yet all-page visually reviewed. Error-analysis prompts intentionally retain incorrect responses."
+  ],
+  "limitations": [
+    "ZIP and Google export still use full teacher copies; student copies currently available in current-tab Word/PDF only.",
+    "No semantic removal of answers that a teacher explicitly writes into question/source/instruction fields.",
+    "No separate per-role handouts yet.",
+    "No fresh model units or independent classroom acceptance.",
+    "Home link did not return this restored workspace to landing during browser test; reload gave the landing/resume screen, follow-up needed."
+  ]
+}

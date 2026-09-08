@@ -282,3 +282,80 @@ it('keeps assignment response lines with their criterion and separates the next 
     expect(textOf(space).split('\n')).toHaveLength(4);
   }
 });
+
+it('exports separate student papers without teacher fields in actual Word bytes or PDF content', async () => {
+  const { buildDeliverableDocxBlob } = await import('../exporters/bulkDocxExporter.js');
+  const { default: JSZip } = await import('jszip');
+  const fixtures = {
+    quizBank: {
+      quizzes: [
+        {
+          lessonTitle: 'Independent test',
+          questions: [
+            {
+              type: 'short_answer',
+              question: 'STUDENT_PROMPT: Explain the observation.',
+              points: 4,
+              answer: 'SECRET_KEY',
+              explanation: 'SECRET_EXPLANATION',
+              scoringGuidance: 'SECRET_SCORING',
+            },
+          ],
+        },
+      ],
+    },
+    assignments: {
+      assignments: [
+        {
+          title: 'STUDENT_PROMPT: Analyze the record',
+          instructions: ['Use SOURCE_RECORD to justify the claim.'],
+          anchorExampleGuidance: ['SECRET_ANCHOR'],
+          workedExample: { problem: 'Worked case', result: 'SECRET_RESULT', steps: ['SECRET_STEP'] },
+        },
+      ],
+    },
+  };
+  const collectText = (node) =>
+    typeof node === 'string'
+      ? node
+      : Array.isArray(node)
+        ? node.map(collectText).join(' ')
+        : node && typeof node === 'object'
+          ? Object.values(node).map(collectText).join(' ')
+          : '';
+  for (const [feature, data] of Object.entries(fixtures)) {
+    const original = structuredClone(data);
+    const teacher = collectText(deliverablePdfDefinition(feature, data, 'Course').content);
+    expect(teacher).toContain('SECRET_');
+    const student = collectText(deliverablePdfDefinition(feature, data, 'Course', { audience: 'student' }).content);
+    expect(student).toContain('STUDENT_PROMPT');
+    expect(student).not.toContain('SECRET_');
+    if (feature === 'quizBank') expect(student).toContain('________');
+    const blob = await buildDeliverableDocxBlob(feature, data, 'Course', { audience: 'student' });
+    const archive = await JSZip.loadAsync(await blob.arrayBuffer());
+    for (const name of Object.keys(archive.files).filter((name) => name.endsWith('.xml'))) {
+      expect(await archive.file(name).async('string')).not.toContain('SECRET_');
+    }
+    expect(await archive.file('word/document.xml').async('string')).toContain('STUDENT_PROMPT');
+    expect(data).toEqual(original);
+  }
+  expect(() => deliverablePdfDefinition('lessonPlans', {}, 'Course', { audience: 'student' })).toThrow(/supported/);
+});
+
+it('does not distribute all private role information in a common student paper', () => {
+  expect(() =>
+    deliverablePdfDefinition(
+      'assignments',
+      {
+        assignments: [
+          {
+            title: 'Negotiation',
+            activityPacket: { roles: [{ name: 'Buyer', privateInformation: 'SECRET_BUDGET' }] },
+          },
+        ],
+      },
+      'Course',
+      { audience: 'student' },
+    ),
+  ).toThrow(/separate role sheets/);
+});

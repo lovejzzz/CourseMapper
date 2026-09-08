@@ -7,10 +7,11 @@ import assert from 'node:assert/strict';
 import { buildDeliverableDocxBlob } from '../../src/lib/exporters/bulkDocxExporter.js';
 import { buildClassroomPdfBlob, deliverablePdfDefinition } from '../../src/lib/exporters/classroomPdf.js';
 
-const [input, output, selection = 'rubrics,studyGuides'] = process.argv.slice(2);
+const [input, output, selection = 'rubrics,studyGuides', audience = 'teacher'] = process.argv.slice(2);
 assert(input && output, 'Provide a project.coursemapper and a new export directory.');
 const bytes = await fs.readFile(input);
 const project = JSON.parse(bytes);
+assert(['teacher', 'student'].includes(audience), 'Choose teacher or student audience.');
 const features = selection.split(',');
 const allowed = new Set([
   'syllabus',
@@ -42,8 +43,10 @@ try {
     for (const format of ['docx', 'pdf']) {
       const blob =
         format === 'docx'
-          ? await buildDeliverableDocxBlob(feature, data, project.courseMap.courseName)
-          : await buildClassroomPdfBlob(deliverablePdfDefinition(feature, data, project.courseMap.courseName));
+          ? await buildDeliverableDocxBlob(feature, data, project.courseMap.courseName, { audience })
+          : await buildClassroomPdfBlob(
+              deliverablePdfDefinition(feature, data, project.courseMap.courseName, { audience }),
+            );
       const content = Buffer.from(await blob.arrayBuffer());
       const name = `${feature}.${format}`;
       await fs.writeFile(path.join(output, name), content, { flag: 'wx' });
@@ -61,6 +64,7 @@ await fs.writeFile(
       createdAt: new Date().toISOString(),
       status: 'exported; visual and educational review pending',
       modelCalls: 0,
+      audience,
       files,
     },
     null,

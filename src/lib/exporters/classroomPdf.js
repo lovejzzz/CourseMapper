@@ -136,10 +136,16 @@ export function classroomPdfDefinition(content, courseName, label, options = {})
   };
 }
 
-export function deliverablePdfDefinition(featureId, data, courseName) {
-  const label = studyGuideExportLabel(featureId, data, resolveFeatureLabel(featureId));
+export function deliverablePdfDefinition(featureId, data, courseName, options = {}) {
+  const label =
+    studyGuideExportLabel(featureId, data, resolveFeatureLabel(featureId)) +
+    (options.audience === 'student' ? ' - Student' : '');
   const content = buildDocxTitleChildren(documentAdapter, courseName, label, { compact: true });
-  _buildDocxContentShared(featureId, data, content, { ...documentAdapter, exportTitle: courseName });
+  _buildDocxContentShared(featureId, data, content, {
+    ...documentAdapter,
+    exportTitle: courseName,
+    audience: options.audience,
+  });
   // Legacy six-column rubric matrices need a wider sheet; shared-task
   // rubrics already use individual two-column criterion tables.
   const landscape = content.some((item) => item.table?.widths.length >= 6);

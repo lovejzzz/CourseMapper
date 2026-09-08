@@ -393,6 +393,10 @@ export function buildDocxDocument(docx, children, { courseName, label, landscape
 }
 
 export function _buildDocxContentShared(featureId, data, children, docx) {
+  if (docx.audience === 'student' && !['assignments', 'quizBank'].includes(featureId)) {
+    throw new Error('Student copies are supported for assignments and quiz banks only.');
+  }
+  const studentCopy = docx.audience === 'student';
   const {
     Paragraph,
     TextRun,
@@ -1416,7 +1420,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         const hasKeyContent = questions.some(
           (q) => q.answer || q.explanation || q.sampleAnswer || q.rubricHints || q.scoringGuidance,
         );
-        if (hasKeyContent) {
+        if (hasKeyContent && !studentCopy) {
           // Put the break ON the heading. A standalone page-break paragraph
           // can itself flow onto the next page when the question paper fills
           // page 1, producing a completely blank page before the key.
@@ -1686,12 +1690,16 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         break;
       }
       for (const [assignmentIndex, a] of assignments.entries()) {
+        if (studentCopy && a.activityPacket?.roles?.some((role) => role.privateInformation)) {
+          throw new Error('This activity needs separate role sheets before a student copy can be exported.');
+        }
         const zh = teachingMaterialIsChinese(a, expanded);
         const t = (label) => teachingMaterialLabel(label, zh);
         children.push(
           makeHeading(a.title || t('Assignment'), {
             pageBreakBefore:
-              assignmentIndex > 0 && Boolean(assignments[assignmentIndex - 1].anchorExampleGuidance?.length),
+              assignmentIndex > 0 &&
+              (studentCopy || Boolean(assignments[assignmentIndex - 1].anchorExampleGuidance?.length)),
           }),
         );
         const courseMapRef = a.courseMapRef ? String(a.courseMapRef).trim() : '';
@@ -1821,7 +1829,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             a.sourceEvidenceBrief.sources.forEach((source) => children.push(makeBullet(formatEvidenceSource(source))));
           }
         }
-        if (a.workedExample?.problem) {
+        if (a.workedExample?.problem && !studentCopy) {
           children.push(makeSubHeading(t('Operation-Qualified Worked Example')));
           if (a.workedExample.studentTask) children.push(makeBold(t('Your task'), a.workedExample.studentTask));
           children.push(makeText(a.workedExample.problem));
@@ -1920,7 +1928,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             );
           }
         }
-        if (a.anchorExampleGuidance?.length) {
+        if (a.anchorExampleGuidance?.length && !studentCopy) {
           children.push(makeSubHeading(t('Anchor Samples and Revision Check'), { pageBreakBefore: true }));
           const referenceIdentity = [
             a.title,
@@ -2782,17 +2790,24 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
   }
 }
 
-export async function exportDeliverableDocx(featureId, data, courseName) {
+export async function exportDeliverableDocx(featureId, data, courseName, options = {}) {
   const docx = await getDocx();
   const { Packer, BorderStyle } = docx;
   const saveAs = await getSaveAs();
 
-  const label = studyGuideExportLabel(featureId, data, resolveFeatureLabel(featureId));
+  const label =
+    studyGuideExportLabel(featureId, data, resolveFeatureLabel(featureId)) +
+    (options.audience === 'student' ? ' - Student' : '');
   const THIN_BORDER = { style: BorderStyle.SINGLE, size: 4, color: 'D0D0D0' };
   const children = buildDocxTitleChildren(docx, courseName, label, { compact: featureId === 'studyGuides' });
 
   // Build content using shared helper
-  _buildDocxContentShared(featureId, data, children, { ...docx, THIN_BORDER, exportTitle: courseName });
+  _buildDocxContentShared(featureId, data, children, {
+    ...docx,
+    THIN_BORDER,
+    exportTitle: courseName,
+    audience: options.audience,
+  });
 
   const doc = buildDocxDocument(docx, children, {
     courseName,
