@@ -1,0 +1,2424 @@
+{
+  "startedAt": "2026-09-08T08:33:10.991Z",
+  "status": "completed-for-review",
+  "cases": [
+    {
+      "id": "atomic-pool-en-01",
+      "result": {
+        "status": "review",
+        "bindings": {
+          "firstCountRecord": {
+            "inputId": "",
+            "quote": "",
+            "occurrence": null
+          },
+          "secondCountRecord": {
+            "inputId": "",
+            "quote": "",
+            "occurrence": null
+          },
+          "firstPart": {
+            "inputId": "",
+            "quote": "",
+            "occurrence": null
+          },
+          "firstWhole": {
+            "inputId": "",
+            "quote": "",
+            "occurrence": null
+          },
+          "firstGroup": {
+            "inputId": "",
+            "quote": "",
+            "occurrence": null
+          },
+          "secondPart": {
+            "inputId": "",
+            "quote": "",
+            "occurrence": null
+          },
+          "secondWhole": {
+            "inputId": "",
+            "quote": "",
+            "occurrence": null
+          },
+          "secondGroup": {
+            "inputId": "",
+            "quote": "",
+            "occurrence": null
+          },
+          "countingUnit": {
+            "inputId": "",
+            "quote": "",
+            "occurrence": null
+          },
+          "countedOutcome": {
+            "inputId": "",
+            "quote": "",
+            "occurrence": null
+          },
+          "commonDefinition": {
+            "inputId": "s2",
+            "quote": "For both depots, a return means the issued tool was checked back in by closing on the same reporting day.",
+            "occurrence": 0
+          },
+          "identityRecord": {
+            "inputId": "s2",
+            "quote": "For both depots, a return means the issued tool was checked back in by closing on the same reporting day. No issued tool belongs to both depot groups.",
+            "occurrence": 0
+          },
+          "distinctMembership": {
+            "inputId": "s2",
+            "quote": "No issued tool belongs to both depot groups.",
+            "occurrence": 0
+          },
+          "limitRecord": {
+            "inputId": "s3",
+            "quote": "The records contain counts only. They do not measure travel distance or loan duration, so they cannot explain the cause of the difference in return rates.",
+            "occurrence": 0
+          }
+        },
+        "issues": [],
+        "missing": [
+          "firstCountRecord",
+          "secondCountRecord",
+          "firstPart",
+          "firstWhole",
+          "firstGroup",
+          "secondPart",
+          "secondWhole",
+          "secondGroup",
+          "countingUnit",
+          "countedOutcome"
+        ],
+        "unknowns": [],
+        "repairable": false,
+        "receipt": {
+          "protocol": "scion-atomic-source-questions-v1",
+          "inputRevision": "f8beabdcba0cb6ab9304e2324f3ff8dd3dbf8e90656132d853e39c81c4330578",
+          "startedAt": "2026-09-08T08:33:11.001Z",
+          "callLimit": 12,
+          "maxNewTokens": 192,
+          "modelCalls": 7,
+          "attempts": [
+            {
+              "role": "firstGroup",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "Answer only from the record. Copy exact source text; copy the full sentence when requested. If the answer is not stated, answer UNKNOWN. Do not explain. Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "Teaching objective: Compare the combined return rate with the equally weighted group average, and explain why these records cannot identify a cause.\nRecords:\nThis fictional tool library report first describes Cedar depot. Cedar depot issued forty tools; sixteen tools were returned by closing. It next describes Willow depot. Willow depot issued sixty tools; thirty-six tools were returned by closing.\n\nFor both depots, a return means the issued tool was checked back in by closing on the same reporting day. No issued tool belongs to both depot groups.\n\nThe records contain counts only. They do not measure travel distance or loan duration, so they cannot explain the cause of the difference in return rates.\nQuestion: What is the name of the first group whose results are compared? Copy its name only."
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 215,
+                "outputTokens": 7,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\"answer\": \"Cedar depot\"}",
+              "inferenceMs": 827,
+              "answer": "Cedar depot",
+              "resolution": {
+                "status": "needs-review",
+                "reason": "The answer occurs more than once; provide a unique source excerpt."
+              }
+            },
+            {
+              "role": "secondGroup",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "Answer only from the record. Copy exact source text; copy the full sentence when requested. If the answer is not stated, answer UNKNOWN. Do not explain. Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "Teaching objective: Compare the combined return rate with the equally weighted group average, and explain why these records cannot identify a cause.\nRecords:\nThis fictional tool library report first describes Cedar depot. Cedar depot issued forty tools; sixteen tools were returned by closing. It next describes Willow depot. Willow depot issued sixty tools; thirty-six tools were returned by closing.\n\nFor both depots, a return means the issued tool was checked back in by closing on the same reporting day. No issued tool belongs to both depot groups.\n\nThe records contain counts only. They do not measure travel distance or loan duration, so they cannot explain the cause of the difference in return rates.\nQuestion: What is the name of the second group whose results are compared? Copy its name only."
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 215,
+                "outputTokens": 7,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\"answer\": \"Willow depot\"}",
+              "inferenceMs": 792,
+              "answer": "Willow depot",
+              "resolution": {
+                "status": "needs-review",
+                "reason": "The answer occurs more than once; provide a unique source excerpt."
+              }
+            },
+            {
+              "role": "commonDefinition",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "Answer only from the record. Copy exact source text; copy the full sentence when requested. If the answer is not stated, answer UNKNOWN. Do not explain. Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "Teaching objective: Compare the combined return rate with the equally weighted group average, and explain why these records cannot identify a cause.\nRecords:\nThis fictional tool library report first describes Cedar depot. Cedar depot issued forty tools; sixteen tools were returned by closing. It next describes Willow depot. Willow depot issued sixty tools; thirty-six tools were returned by closing.\n\nFor both depots, a return means the issued tool was checked back in by closing on the same reporting day. No issued tool belongs to both depot groups.\n\nThe records contain counts only. They do not measure travel distance or loan duration, so they cannot explain the cause of the difference in return rates.\nQuestion: Which complete sentence establishes the same outcome definition and observation deadline for both groups?"
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 212,
+                "outputTokens": 27,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\"answer\": \"For both depots, a return means the issued tool was checked back in by closing on the same reporting day.\"}",
+              "inferenceMs": 1520,
+              "answer": "For both depots, a return means the issued tool was checked back in by closing on the same reporting day.",
+              "resolution": {
+                "status": "located",
+                "binding": {
+                  "inputId": "s2",
+                  "quote": "For both depots, a return means the issued tool was checked back in by closing on the same reporting day.",
+                  "occurrence": 0
+                },
+                "witness": {
+                  "inputId": "s2",
+                  "quote": "For both depots, a return means the issued tool was checked back in by closing on the same reporting day.",
+                  "start": 0,
+                  "end": 105,
+                  "occurrence": 0
+                },
+                "semanticReviewRequired": true
+              }
+            },
+            {
+              "role": "distinctMembership",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "Answer only from the record. Copy exact source text; copy the full sentence when requested. If the answer is not stated, answer UNKNOWN. Do not explain. Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "Teaching objective: Compare the combined return rate with the equally weighted group average, and explain why these records cannot identify a cause.\nRecords:\nThis fictional tool library report first describes Cedar depot. Cedar depot issued forty tools; sixteen tools were returned by closing. It next describes Willow depot. Willow depot issued sixty tools; thirty-six tools were returned by closing.\n\nFor both depots, a return means the issued tool was checked back in by closing on the same reporting day. No issued tool belongs to both depot groups.\n\nThe records contain counts only. They do not measure travel distance or loan duration, so they cannot explain the cause of the difference in return rates.\nQuestion: Which complete sentence establishes that no counted unit belongs to both groups?"
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 210,
+                "outputTokens": 14,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\"answer\": \"No issued tool belongs to both depot groups.\"}",
+              "inferenceMs": 988,
+              "answer": "No issued tool belongs to both depot groups.",
+              "resolution": {
+                "status": "located",
+                "binding": {
+                  "inputId": "s2",
+                  "quote": "No issued tool belongs to both depot groups.",
+                  "occurrence": 0
+                },
+                "witness": {
+                  "inputId": "s2",
+                  "quote": "No issued tool belongs to both depot groups.",
+                  "start": 106,
+                  "end": 150,
+                  "occurrence": 0
+                },
+                "semanticReviewRequired": true
+              }
+            },
+            {
+              "role": "limitRecord",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "Answer only from the record. Copy exact source text; copy the full sentence when requested. If the answer is not stated, answer UNKNOWN. Do not explain. Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "Teaching objective: Compare the combined return rate with the equally weighted group average, and explain why these records cannot identify a cause.\nRecords:\nThis fictional tool library report first describes Cedar depot. Cedar depot issued forty tools; sixteen tools were returned by closing. It next describes Willow depot. Willow depot issued sixty tools; thirty-six tools were returned by closing.\n\nFor both depots, a return means the issued tool was checked back in by closing on the same reporting day. No issued tool belongs to both depot groups.\n\nThe records contain counts only. They do not measure travel distance or loan duration, so they cannot explain the cause of the difference in return rates.\nQuestion: Which source sentence says why these records cannot explain the cause of the difference between groups?"
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 214,
+                "outputTokens": 34,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\"answer\": \"The records contain counts only. They do not measure travel distance or loan duration, so they cannot explain the cause of the difference in return rates.\"}",
+              "inferenceMs": 1792,
+              "answer": "The records contain counts only. They do not measure travel distance or loan duration, so they cannot explain the cause of the difference in return rates.",
+              "resolution": {
+                "status": "located",
+                "binding": {
+                  "inputId": "s3",
+                  "quote": "The records contain counts only. They do not measure travel distance or loan duration, so they cannot explain the cause of the difference in return rates.",
+                  "occurrence": 0
+                },
+                "witness": {
+                  "inputId": "s3",
+                  "quote": "The records contain counts only. They do not measure travel distance or loan duration, so they cannot explain the cause of the difference in return rates.",
+                  "start": 0,
+                  "end": 154,
+                  "occurrence": 0
+                },
+                "semanticReviewRequired": true
+              }
+            },
+            {
+              "role": "firstGroup",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "Answer only from the record. Copy exact source text; copy the full sentence when requested. If the answer is not stated, answer UNKNOWN. Do not explain. Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "Teaching objective: Compare the combined return rate with the equally weighted group average, and explain why these records cannot identify a cause.\nRecords:\nThis fictional tool library report first describes Cedar depot. Cedar depot issued forty tools; sixteen tools were returned by closing. It next describes Willow depot. Willow depot issued sixty tools; thirty-six tools were returned by closing.\n\nFor both depots, a return means the issued tool was checked back in by closing on the same reporting day. No issued tool belongs to both depot groups.\n\nThe records contain counts only. They do not measure travel distance or loan duration, so they cannot explain the cause of the difference in return rates.\nQuestion: What is the name of the first group whose results are compared? Copy its name only.\nPrevious problem: Copy a longer unique source excerpt containing your previous answer: \"Cedar depot\"."
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 234,
+                "outputTokens": 7,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\"answer\": \"Cedar depot\"}",
+              "inferenceMs": 772,
+              "answer": "Cedar depot",
+              "clarifies": "Cedar depot",
+              "resolution": {
+                "status": "needs-review",
+                "reason": "The answer occurs more than once; provide a unique source excerpt."
+              }
+            },
+            {
+              "role": "secondGroup",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "Answer only from the record. Copy exact source text; copy the full sentence when requested. If the answer is not stated, answer UNKNOWN. Do not explain. Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "Teaching objective: Compare the combined return rate with the equally weighted group average, and explain why these records cannot identify a cause.\nRecords:\nThis fictional tool library report first describes Cedar depot. Cedar depot issued forty tools; sixteen tools were returned by closing. It next describes Willow depot. Willow depot issued sixty tools; thirty-six tools were returned by closing.\n\nFor both depots, a return means the issued tool was checked back in by closing on the same reporting day. No issued tool belongs to both depot groups.\n\nThe records contain counts only. They do not measure travel distance or loan duration, so they cannot explain the cause of the difference in return rates.\nQuestion: What is the name of the second group whose results are compared? Copy its name only.\nPrevious problem: Copy a longer unique source excerpt containing your previous answer: \"Willow depot\"."
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 234,
+                "outputTokens": 7,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\"answer\": \"Willow depot\"}",
+              "inferenceMs": 867,
+              "answer": "Willow depot",
+              "clarifies": "Willow depot",
+              "resolution": {
+                "status": "needs-review",
+                "reason": "The answer occurs more than once; provide a unique source excerpt."
+              }
+            }
+          ],
+          "loadMs": 3795,
+          "runtime": {
+            "phase": "ready",
+            "progress": 1,
+            "message": "Scion local Gemma 4 is ready.",
+            "error": null,
+            "runtime": {
+              "id": "scion-wllama-webgpu-jspi-v1",
+              "modulePath": "/scion/runtime/v3/wllama.js",
+              "moduleSha256": "92afaea4ca9feefece8790fa32f3b96775d430f7341a8d89e550de368af40bdb",
+              "wasmPath": "/scion/runtime/v3/jspi-single-thread/wllama.wasm",
+              "wasmSha256": "ccb4ffaada3561b60275f652f5067946ed019728d589eaa24604a67d7c207848",
+              "grammar": "gbnf-state-v1",
+              "upstreamRevision": "58903000dbea6acfc0eb9c738d8be50d1052cf23",
+              "llamaCppRevision": "5ec717d1256e34558a44dc09adf1e6e16f2e2682"
+            },
+            "trainingBase": {
+              "modelId": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+              "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+              "architecture": "gemma4"
+            },
+            "activeWeightIdentity": {
+              "modelId": "google/gemma-4-E2B-it-qat-q4_0-gguf",
+              "revision": "69536a21d70340464240401ba38223d805f6a709",
+              "file": "gemma-4-E2B_q4_0-it.gguf",
+              "bytes": 3349514112,
+              "sha256": "3646b4c147cd235a44d91df1546d3b7d8e29b547dbe4e1f80856419aa455e6fd",
+              "format": "gguf-q4_0-qat"
+            },
+            "baseIntegrity": {
+              "expectedSha256": "3646b4c147cd235a44d91df1546d3b7d8e29b547dbe4e1f80856419aa455e6fd",
+              "runtimeCheck": "metadata-and-pinned-url",
+              "fullDigestEvidence": null
+            },
+            "adapter": {
+              "mode": "base-only",
+              "active": false,
+              "id": null,
+              "manifestSha256": null
+            },
+            "storage": {
+              "quota": 14087145814,
+              "usage": 3349727574,
+              "available": 10737418240,
+              "required": 3886385600
+            },
+            "metadata": {
+              "hparams": {
+                "nVocab": 262144,
+                "nCtxTrain": 131072,
+                "nEmbd": 1536,
+                "nLayer": 35
+              },
+              "meta": {
+                "split.count": "5",
+                "tokenizer.ggml.add_bos_token": "true",
+                "general.quantization_version": "2",
+                "tokenizer.ggml.mask_token_id": "4",
+                "tokenizer.ggml.eos_token_id": "1",
+                "tokenizer.ggml.model": "gemma4",
+                "gemma4.rope.dimension_count_swa": "256",
+                "gemma4.rope.dimension_count": "512",
+                "gemma4.embedding_length_per_layer_input": "256",
+                "general.name": "2B_dequant_qat_it_hf",
+                "gemma4.attention.sliding_window": "512",
+                "general.sampling.temp": "1.000000",
+                "gemma4.attention.layer_norm_rms_epsilon": "0.000001",
+                "general.size_label": "4.6B",
+                "gemma4.attention.key_length": "512",
+                "gemma4.rope.freq_base_swa": "10000.000000",
+                "gemma4.attention.head_count_kv": "1",
+                "split.no": "0",
+                "gemma4.attention.head_count": "8",
+                "split.tensors.count": "541",
+                "tokenizer.chat_template": "{%- macro format_parameters(properties, required, filter_keys=false) -%}\n    {%- set standard_keys = ['description', 'type', 'properties', 'required', 'nullable'] -%}\n    {%- set ns = namespace(found_first=false) -%}\n    {%- for key, value in properties | dictsort -%}\n        {%- set add_comma = false -%}\n        {%- if not filter_keys or key not in standard_keys -%}\n            {%- if ns.found_first %},{% endif -%}\n            {%- set ns.found_first = true -%}\n            {{ key }}:{\n            {%- if value['description'] -%}\n                description:<|\"|>{{ value['description'] }}<|\"|>\n                {%- set add_comma = true -%}\n            {%- endif -%}\n            {%- if value['type'] | upper == 'STRING' -%}\n                {%- if value['enum'] -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    enum:{{ format_argument(value['enum']) }}\n                {%- endif -%}\n            {%- elif value['type'] | upper == 'ARRAY' -%}\n                {%- if value['items'] is mapping and value['items'] -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    items:{\n                    {%- set ns_items = namespace(found_first=false) -%}\n                    {%- for item_key, item_value in value['items'] | dictsort -%}\n                        {%- if item_value is not none -%}\n                            {%- if ns_items.found_first %},{% endif -%}\n                            {%- set ns_items.found_first = true -%}\n                            {%- if item_key == 'properties' -%}\n                                properties:{\n                                {%- if item_value is mapping -%}\n                                    {{- format_parameters(item_value, value['items']['required'] | default([])) -}}\n                                {%- endif -%}\n                                }\n                            {%- elif item_key == 'required' -%}\n                                required:[\n                                {%- for req_item in item_value -%}\n                                    <|\"|>{{- req_item -}}<|\"|>\n                                    {%- if not loop.last %},{% endif -%}\n                                {%- endfor -%}\n                                ]\n                            {%- elif item_key == 'type' -%}\n                                {%- if item_value is string -%}\n                                    type:{{ format_argument(item_value | upper) }}\n                                {%- else -%}\n                                    type:{{ format_argument(item_value | map('upper') | list) }}\n                                {%- endif -%}\n                            {%- else -%}\n                                {{ item_key }}:{{ format_argument(item_value) }}\n                            {%- endif -%}\n                        {%- endif -%}\n                    {%- endfor -%}\n                    }\n                {%- endif -%}\n            {%- endif -%}\n            {%- if value['nullable'] %}\n                {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                nullable:true\n            {%- endif -%}\n            {%- if value['type'] | upper == 'OBJECT' -%}\n                {%- if value['properties'] is defined and value['properties'] is mapping -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    properties:{\n                    {{- format_parameters(value['properties'], value['required'] | default([])) -}}\n                    }\n                {%- elif value is mapping -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    properties:{\n                    {{- format_parameters(value, value['required'] | default([]), filter_keys=true) -}}\n                    }\n                {%- endif -%}\n                {%- if value['required'] -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    required:[\n                    {%- for item in value['required'] | default([]) -%}\n                        <|\"|>{{- item -}}<|\"|>\n                        {%- if not loop.last %},{% endif -%}\n                    {%- endfor -%}\n                    ]\n                {%- endif -%}\n            {%- endif -%}\n            {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n            type:<|\"|>{{ value['type'] | upper }}<|\"|>}\n        {%- endif -%}\n    {%- endfor -%}\n{%- endmacro -%}\n{%- macro format_function_declaration(tool_data) -%}\n    declaration:{{- tool_data['function']['name'] -}}{description:<|\"|>{{- tool_data['function']['description'] -}}<|\"|>\n    {%- set params = tool_data['function']['parameters'] -%}\n    {%- if params -%}\n        ,parameters:{\n        {%- if params['properties'] -%}\n            properties:{ {{- format_parameters(params['properties'], params['required']) -}} },\n        {%- endif -%}\n        {%- if params['required'] -%}\n            required:[\n            {%- for item in params['required'] -%}\n                <|\"|>{{- item -}}<|\"|>\n                {{- ',' if not loop.last -}}\n            {%- endfor -%}\n            ],\n        {%- endif -%}\n        {%- if params['type'] -%}\n            type:<|\"|>{{- params['type'] | upper -}}<|\"|>}\n        {%- endif -%}\n    {%- endif -%}\n    {%- if 'response' in tool_data['function'] -%}\n        {%- set response_declaration = tool_data['function']['response'] -%}\n        ,response:{\n        {%- if response_declaration['description'] -%}\n            description:<|\"|>{{- response_declaration['description'] -}}<|\"|>,\n        {%- endif -%}\n        {%- if response_declaration['type'] | upper == 'OBJECT' -%}\n            type:<|\"|>{{- response_declaration['type'] | upper -}}<|\"|>}\n        {%- endif -%}\n    {%- endif -%}\n    }\n{%- endmacro -%}\n{%- macro format_argument(argument, escape_keys=True) -%}\n    {%- if argument is string -%}\n        {{- '<|\"|>' + argument + '<|\"|>' -}}\n    {%- elif argument is boolean -%}\n        {{- 'true' if argument else 'false' -}}\n    {%- elif argument is mapping -%}\n        {{- '{' -}}\n        {%- set ns = namespace(found_first=false) -%}\n        {%- for key, value in argument | dictsort -%}\n            {%- if ns.found_first %},{% endif -%}\n            {%- set ns.found_first = true -%}\n            {%- if escape_keys -%}\n                {{- '<|\"|>' + key + '<|\"|>' -}}\n            {%- else -%}\n                {{- key -}}\n            {%- endif -%}\n            :{{- format_argument(value, escape_keys=escape_keys) -}}\n        {%- endfor -%}\n        {{- '}' -}}\n    {%- elif argument is sequence -%}\n        {{- '[' -}}\n        {%- for item in argument -%}\n            {{- format_argument(item, escape_keys=escape_keys) -}}\n            {%- if not loop.last %},{% endif -%}\n        {%- endfor -%}\n        {{- ']' -}}\n    {%- else -%}\n        {{- argument -}}\n    {%- endif -%}\n{%- endmacro -%}\n{%- macro strip_thinking(text) -%}\n    {%- set ns = namespace(result='') -%}\n    {%- for part in text.split('<channel|>') -%}\n        {%- if '<|channel>' in part -%}\n            {%- set ns.result = ns.result + part.split('<|channel>')[0] -%}\n        {%- else -%}\n            {%- set ns.result = ns.result + part -%}\n        {%- endif -%}\n    {%- endfor -%}\n    {{- ns.result | trim -}}\n{%- endmacro -%}\n\n{%- macro format_tool_response_block(tool_name, response) -%}\n    {{- '<|tool_response>' -}}\n    {%- if response is mapping -%}\n        {{- 'response:' + tool_name + '{' -}}\n        {%- for key, value in response | dictsort -%}\n            {{- key -}}:{{- format_argument(value, escape_keys=False) -}}\n            {%- if not loop.last %},{% endif -%}\n        {%- endfor -%}\n        {{- '}' -}}\n    {%- else -%}\n        {{- 'response:' + tool_name + '{value:' + format_argument(response, escape_keys=False) + '}' -}}\n    {%- endif -%}\n    {{- '<tool_response|>' -}}\n{%- endmacro -%}\n\n{%- set ns = namespace(prev_message_type=None) -%}\n{%- set loop_messages = messages -%}\n{{- bos_token -}}\n{#- Handle System/Tool Definitions Block -#}\n{%- if (enable_thinking is defined and enable_thinking) or tools or messages[0]['role'] in ['system', 'developer'] -%}\n    {{- '<|turn>system\\n' -}}\n    {#- Inject Thinking token at the very top of the FIRST system turn -#}\n    {%- if enable_thinking is defined and enable_thinking -%}\n        {{- '<|think|>\\n' -}}\n        {%- set ns.prev_message_type = 'think' -%}\n    {%- endif -%}\n    {%- if messages[0]['role'] in ['system', 'developer'] -%}\n        {%- if messages[0]['content'] is string -%}\n            {{- messages[0]['content'] | trim -}}\n        {%- elif messages[0]['content'] is sequence -%}\n            {%- for item in messages[0]['content'] -%}\n                {{- item['text'] | trim + ' '-}}\n            {%- endfor -%}\n        {%- endif -%}\n        {%- set loop_messages = messages[1:] -%}\n    {%- endif -%}\n    {%- if tools -%}\n        {%- for tool in tools %}\n            {{- '<|tool>' -}}\n            {{- format_function_declaration(tool) | trim -}}\n            {{- '<tool|>' -}}\n        {%- endfor %}\n        {%- set ns.prev_message_type = 'tool' -%}\n    {%- endif -%}\n    {{- '<turn|>\\n' -}}\n{%- endif %}\n\n{#- Pre-scan: find last user message index for reasoning guard -#}\n{%- set ns_turn = namespace(last_user_idx=-1) -%}\n{%- for i in range(loop_messages | length) -%}\n    {%- if loop_messages[i]['role'] == 'user' -%}\n        {%- set ns_turn.last_user_idx = i -%}\n    {%- endif -%}\n{%- endfor -%}\n\n{#- Loop through messages -#}\n{%- for message in loop_messages -%}\n    {%- if message['role'] != 'tool' -%}\n    {%- set ns.prev_message_type = None -%}\n    {%- set role = 'model' if message['role'] == 'assistant' else message['role'] -%}\n    {#- Detect continuation: suppress duplicate <|turn>model when previous non-tool message was also assistant -#}\n    {%- set prev_nt = namespace(role=None, found=false) -%}\n    {%- if loop.index0 > 0 -%}\n        {%- for j in range(loop.index0 - 1, -1, -1) -%}\n            {%- if not prev_nt.found -%}\n                {%- if loop_messages[j]['role'] != 'tool' -%}\n                    {%- set prev_nt.role = loop_messages[j]['role'] -%}\n                    {%- set prev_nt.found = true -%}\n                {%- endif -%}\n            {%- endif -%}\n        {%- endfor -%}\n    {%- endif -%}\n    {%- set continue_same_model_turn = (role == 'model' and prev_nt.role == 'assistant') -%}\n    {%- if not continue_same_model_turn -%}\n        {{- '<|turn>' + role + '\\n' }}\n    {%- endif -%}\n\n    {#- Render reasoning/reasoning_content as thinking channel -#}\n    {%- set thinking_text = message.get('reasoning') or message.get('reasoning_content') -%}\n    {%- if thinking_text and loop.index0 > ns_turn.last_user_idx and message.get('tool_calls') -%}\n        {{- '<|channel>thought\\n' + thinking_text + '\\n<channel|>' -}}\n    {%- endif -%}\n\n            {%- if message['tool_calls'] -%}\n                {%- for tool_call in message['tool_calls'] -%}\n                    {%- set function = tool_call['function'] -%}\n                    {{- '<|tool_call>call:' + function['name'] + '{' -}}\n                    {%- if function['arguments'] is mapping -%}\n                        {%- set ns_args = namespace(found_first=false) -%}\n                        {%- for key, value in function['arguments'] | dictsort -%}\n                            {%- if ns_args.found_first %},{% endif -%}\n                            {%- set ns_args.found_first = true -%}\n                            {{- key -}}:{{- format_argument(value, escape_keys=False) -}}\n                        {%- endfor -%}\n                    {%- elif function['arguments'] is string -%}\n                        {{- function['arguments'] -}}\n                    {%- endif -%}\n                    {{- '}<tool_call|>' -}}\n                {%- endfor -%}\n                {%- set ns.prev_message_type = 'tool_call' -%}\n            {%- endif -%}\n\n            {%- set ns_tr_out = namespace(flag=false) -%}\n            {%- if message.get('tool_responses') -%}\n                {#- Legacy: tool_responses embedded on the assistant message (Google/Gemma native) -#}\n                {%- for tool_response in message['tool_responses'] -%}\n                    {{- format_tool_response_block(tool_response['name'] | default('unknown'), tool_response['response']) -}}\n                    {%- set ns_tr_out.flag = true -%}\n                    {%- set ns.prev_message_type = 'tool_response' -%}\n                {%- endfor -%}\n            {%- elif message.get('tool_calls') -%}\n                {#- OpenAI Chat Completions: forward-scan consecutive role:tool messages -#}\n                {%- set ns_tool_scan = namespace(stopped=false) -%}\n                {%- for k in range(loop.index0 + 1, loop_messages | length) -%}\n                    {%- if ns_tool_scan.stopped -%}\n                    {%- elif loop_messages[k]['role'] != 'tool' -%}\n                        {%- set ns_tool_scan.stopped = true -%}\n                    {%- else -%}\n                        {%- set follow = loop_messages[k] -%}\n                        {#- Resolve tool_call_id to function name -#}\n                        {%- set ns_tname = namespace(name=follow.get('name') | default('unknown')) -%}\n                        {%- for tc in message['tool_calls'] -%}\n                            {%- if tc.get('id') == follow.get('tool_call_id') -%}\n                                {%- set ns_tname.name = tc['function']['name'] -%}\n                            {%- endif -%}\n                        {%- endfor -%}\n                        {#- Handle content as string or content-parts array -#}\n                        {%- set tool_body = follow.get('content') -%}\n                        {%- if tool_body is string -%}\n                            {{- format_tool_response_block(ns_tname.name, tool_body) -}}\n                        {%- elif tool_body is sequence and tool_body is not string -%}\n                            {%- set ns_txt = namespace(s='') -%}\n                            {%- for part in tool_body -%}\n                                {%- if part.get('type') == 'text' -%}\n                                    {%- set ns_txt.s = ns_txt.s + (part.get('text') | default('')) -%}\n                                {%- endif -%}\n                            {%- endfor -%}\n                            {{- format_tool_response_block(ns_tname.name, ns_txt.s) -}}\n                        {%- else -%}\n                            {{- format_tool_response_block(ns_tname.name, tool_body) -}}\n                        {%- endif -%}\n                        {%- set ns_tr_out.flag = true -%}\n                        {%- set ns.prev_message_type = 'tool_response' -%}\n                    {%- endif -%}\n                {%- endfor -%}\n            {%- endif -%}\n\n            {%- set captured_content -%}\n            {%- if message['content'] is string -%}\n                {%- if role == 'model' -%}\n                    {{- strip_thinking(message['content']) -}}\n                {%- else -%}\n                    {{- message['content'] | trim -}}\n                {%- endif -%}\n            {%- elif message['content'] is sequence -%}\n                {%- for item in message['content'] -%}\n                    {%- if item['type'] == 'text' -%}\n                        {%- if role == 'model' -%}\n                            {{- strip_thinking(item['text']) -}}\n                        {%- else -%}\n                            {{- item['text'] | trim -}}\n                        {%- endif -%}\n                    {%- elif item['type'] == 'image' -%}\n                        {{- '<|image|>' -}}\n                        {%- set ns.prev_message_type = 'image' -%}\n                    {%- elif item['type'] == 'audio' -%}\n                        {{- '<|audio|>' -}}\n                        {%- set ns.prev_message_type = 'audio' -%}\n                    {%- elif item['type'] == 'video' -%}\n                        {{- '<|video|>' -}}\n                        {%- set ns.prev_message_type = 'video' -%}\n                    {%- endif -%}\n                {%- endfor -%}\n            {%- endif -%}\n            {%- endset -%}\n\n            {{- captured_content -}}\n            {%- set has_content = captured_content | trim | length > 0 -%}\n\n        {%- if ns.prev_message_type == 'tool_call' and not ns_tr_out.flag -%}\n            {{- '<|tool_response>' -}}\n        {%- elif not (ns_tr_out.flag and not has_content) -%}\n            {{- '<turn|>\\n' -}}\n        {%- endif -%}\n    {%- endif -%}\n{%- endfor -%}\n\n{%- if add_generation_prompt -%}\n    {%- if ns.prev_message_type != 'tool_response' and ns.prev_message_type != 'tool_call' -%}\n        {{- '<|turn>model\\n' -}}\n    {%- endif -%}\n{%- endif -%}",
+                "gemma4.attention.shared_kv_layers": "20",
+                "gemma4.final_logit_softcapping": "30.000000",
+                "gemma4.attention.key_length_swa": "256",
+                "gemma4.context_length": "131072",
+                "general.file_type": "2",
+                "general.finetune": "2B_dequant_qat_it_hf",
+                "gemma4.embedding_length": "1536",
+                "tokenizer.ggml.add_space_prefix": "false",
+                "general.architecture": "gemma4",
+                "tokenizer.ggml.padding_token_id": "0",
+                "general.sampling.top_k": "64",
+                "gemma4.block_count": "35",
+                "tokenizer.ggml.bos_token_id": "2",
+                "gemma4.attention.value_length_swa": "256",
+                "general.type": "model",
+                "tokenizer.ggml.unknown_token_id": "3",
+                "general.sampling.top_p": "0.950000",
+                "gemma4.attention.value_length": "512",
+                "gemma4.rope.freq_base": "1000000.000000"
+              }
+            }
+          },
+          "fieldIssues": {
+            "firstGroup": "The answer occurs more than once; provide a unique source excerpt.",
+            "secondGroup": "The answer occurs more than once; provide a unique source excerpt.",
+            "firstWhole": "Locate firstGroup before firstWhole.",
+            "firstPart": "Locate firstGroup before firstPart.",
+            "secondWhole": "Locate secondGroup before secondWhole.",
+            "secondPart": "Locate secondGroup before secondPart.",
+            "countingUnit": "Locate firstGroup before countingUnit.",
+            "countedOutcome": "Locate firstGroup before countedOutcome."
+          },
+          "elapsedMs": 11362
+        },
+        "modelCalls": 7
+      }
+    },
+    {
+      "id": "atomic-pool-zh-01",
+      "result": {
+        "status": "review",
+        "bindings": {
+          "firstCountRecord": {
+            "inputId": "",
+            "quote": "",
+            "occurrence": null
+          },
+          "secondCountRecord": {
+            "inputId": "",
+            "quote": "",
+            "occurrence": null
+          },
+          "firstPart": {
+            "inputId": "",
+            "quote": "",
+            "occurrence": null
+          },
+          "firstWhole": {
+            "inputId": "",
+            "quote": "",
+            "occurrence": null
+          },
+          "firstGroup": {
+            "inputId": "",
+            "quote": "",
+            "occurrence": null
+          },
+          "secondPart": {
+            "inputId": "",
+            "quote": "",
+            "occurrence": null
+          },
+          "secondWhole": {
+            "inputId": "",
+            "quote": "",
+            "occurrence": null
+          },
+          "secondGroup": {
+            "inputId": "",
+            "quote": "",
+            "occurrence": null
+          },
+          "countingUnit": {
+            "inputId": "",
+            "quote": "",
+            "occurrence": null
+          },
+          "countedOutcome": {
+            "inputId": "",
+            "quote": "",
+            "occurrence": null
+          },
+          "commonDefinition": {
+            "inputId": "s2",
+            "quote": "两站都将“归还”定义为同一报告日闭馆前完成归还登记。",
+            "occurrence": 0
+          },
+          "identityRecord": {
+            "inputId": "s2",
+            "quote": "两站都将“归还”定义为同一报告日闭馆前完成归还登记。每件借出的器材只属于一个站点，不存在跨站重复。",
+            "occurrence": 0
+          },
+          "distinctMembership": {
+            "inputId": "s2",
+            "quote": "每件借出的器材只属于一个站点，不存在跨站重复。",
+            "occurrence": 0
+          },
+          "limitRecord": {
+            "inputId": "s3",
+            "quote": "记录仅有数量，没有记录借用时长或借用者的出行距离，因此不能解释两站归还率差异的原因。",
+            "occurrence": 0
+          }
+        },
+        "issues": [],
+        "missing": [
+          "firstCountRecord",
+          "secondCountRecord",
+          "firstPart",
+          "firstWhole",
+          "firstGroup",
+          "secondPart",
+          "secondWhole",
+          "secondGroup",
+          "countingUnit",
+          "countedOutcome"
+        ],
+        "unknowns": [],
+        "repairable": false,
+        "receipt": {
+          "protocol": "scion-atomic-source-questions-v1",
+          "inputRevision": "b79c115b678be15500bdd65d56135cbb3d1a95b310f9cd4c7f7d7668ffea07a0",
+          "startedAt": "2026-09-08T08:33:22.362Z",
+          "callLimit": 12,
+          "maxNewTokens": 192,
+          "modelCalls": 7,
+          "attempts": [
+            {
+              "role": "firstGroup",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "只依据记录回答问题。复制确切原文；问题要求完整句子时复制完整句子。若记录没有提供答案，回答 UNKNOWN。不解释。 Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "教学目标：比较合并归还率与两个站点归还率的等权平均，并解释这些记录为什么不能支持因果结论。\n记录：\n这份虚构借用报告先介绍松林站。松林站借出二十件器材，其中十五件在闭馆前归还。随后介绍海湾站。海湾站借出四十件器材，其中十件在闭馆前归还。\n\n两站都将“归还”定义为同一报告日闭馆前完成归还登记。每件借出的器材只属于一个站点，不存在跨站重复。\n\n记录仅有数量，没有记录借用时长或借用者的出行距离，因此不能解释两站归还率差异的原因。\n问题： 先描述的被比较群体叫什么？只复制群体名称。"
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 232,
+                "outputTokens": 12,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\"answer\": \"松林站和海湾站\"}",
+              "inferenceMs": 1012,
+              "answer": "松林站和海湾站",
+              "resolution": {
+                "status": "needs-review",
+                "reason": "The answer is not an exact source excerpt."
+              }
+            },
+            {
+              "role": "secondGroup",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "只依据记录回答问题。复制确切原文；问题要求完整句子时复制完整句子。若记录没有提供答案，回答 UNKNOWN。不解释。 Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "教学目标：比较合并归还率与两个站点归还率的等权平均，并解释这些记录为什么不能支持因果结论。\n记录：\n这份虚构借用报告先介绍松林站。松林站借出二十件器材，其中十五件在闭馆前归还。随后介绍海湾站。海湾站借出四十件器材，其中十件在闭馆前归还。\n\n两站都将“归还”定义为同一报告日闭馆前完成归还登记。每件借出的器材只属于一个站点，不存在跨站重复。\n\n记录仅有数量，没有记录借用时长或借用者的出行距离，因此不能解释两站归还率差异的原因。\n问题： 第二个被比较群体叫什么？只复制群体名称。"
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 231,
+                "outputTokens": 7,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\"answer\": \"两个站点\"}",
+              "inferenceMs": 761,
+              "answer": "两个站点",
+              "resolution": {
+                "status": "needs-review",
+                "reason": "The answer is not an exact source excerpt."
+              }
+            },
+            {
+              "role": "commonDefinition",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "只依据记录回答问题。复制确切原文；问题要求完整句子时复制完整句子。若记录没有提供答案，回答 UNKNOWN。不解释。 Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "教学目标：比较合并归还率与两个站点归还率的等权平均，并解释这些记录为什么不能支持因果结论。\n记录：\n这份虚构借用报告先介绍松林站。松林站借出二十件器材，其中十五件在闭馆前归还。随后介绍海湾站。海湾站借出四十件器材，其中十件在闭馆前归还。\n\n两站都将“归还”定义为同一报告日闭馆前完成归还登记。每件借出的器材只属于一个站点，不存在跨站重复。\n\n记录仅有数量，没有记录借用时长或借用者的出行距离，因此不能解释两站归还率差异的原因。\n问题： 哪个完整句子说明两个群体使用相同的结果定义和观察截止时间？"
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 234,
+                "outputTokens": 26,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\"answer\": \"两站都将“归还”定义为同一报告日闭馆前完成归还登记。\"}",
+              "inferenceMs": 1438,
+              "answer": "两站都将“归还”定义为同一报告日闭馆前完成归还登记。",
+              "resolution": {
+                "status": "located",
+                "binding": {
+                  "inputId": "s2",
+                  "quote": "两站都将“归还”定义为同一报告日闭馆前完成归还登记。",
+                  "occurrence": 0
+                },
+                "witness": {
+                  "inputId": "s2",
+                  "quote": "两站都将“归还”定义为同一报告日闭馆前完成归还登记。",
+                  "start": 0,
+                  "end": 26,
+                  "occurrence": 0
+                },
+                "semanticReviewRequired": true
+              }
+            },
+            {
+              "role": "distinctMembership",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "只依据记录回答问题。复制确切原文；问题要求完整句子时复制完整句子。若记录没有提供答案，回答 UNKNOWN。不解释。 Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "教学目标：比较合并归还率与两个站点归还率的等权平均，并解释这些记录为什么不能支持因果结论。\n记录：\n这份虚构借用报告先介绍松林站。松林站借出二十件器材，其中十五件在闭馆前归还。随后介绍海湾站。海湾站借出四十件器材，其中十件在闭馆前归还。\n\n两站都将“归还”定义为同一报告日闭馆前完成归还登记。每件借出的器材只属于一个站点，不存在跨站重复。\n\n记录仅有数量，没有记录借用时长或借用者的出行距离，因此不能解释两站归还率差异的原因。\n问题： 哪个完整句子说明没有计数对象同时属于两个群体？"
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 231,
+                "outputTokens": 20,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\"answer\": \"每件借出的器材只属于一个站点，不存在跨站重复。\"}",
+              "inferenceMs": 1301,
+              "answer": "每件借出的器材只属于一个站点，不存在跨站重复。",
+              "resolution": {
+                "status": "located",
+                "binding": {
+                  "inputId": "s2",
+                  "quote": "每件借出的器材只属于一个站点，不存在跨站重复。",
+                  "occurrence": 0
+                },
+                "witness": {
+                  "inputId": "s2",
+                  "quote": "每件借出的器材只属于一个站点，不存在跨站重复。",
+                  "start": 26,
+                  "end": 49,
+                  "occurrence": 0
+                },
+                "semanticReviewRequired": true
+              }
+            },
+            {
+              "role": "limitRecord",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "只依据记录回答问题。复制确切原文；问题要求完整句子时复制完整句子。若记录没有提供答案，回答 UNKNOWN。不解释。 Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "教学目标：比较合并归还率与两个站点归还率的等权平均，并解释这些记录为什么不能支持因果结论。\n记录：\n这份虚构借用报告先介绍松林站。松林站借出二十件器材，其中十五件在闭馆前归还。随后介绍海湾站。海湾站借出四十件器材，其中十件在闭馆前归还。\n\n两站都将“归还”定义为同一报告日闭馆前完成归还登记。每件借出的器材只属于一个站点，不存在跨站重复。\n\n记录仅有数量，没有记录借用时长或借用者的出行距离，因此不能解释两站归还率差异的原因。\n问题： 哪个来源句子说明这些记录为什么不能解释群体差异的原因？"
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 232,
+                "outputTokens": 33,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\"answer\": \"记录仅有数量，没有记录借用时长或借用者的出行距离，因此不能解释两站归还率差异的原因。\"}",
+              "inferenceMs": 1714,
+              "answer": "记录仅有数量，没有记录借用时长或借用者的出行距离，因此不能解释两站归还率差异的原因。",
+              "resolution": {
+                "status": "located",
+                "binding": {
+                  "inputId": "s3",
+                  "quote": "记录仅有数量，没有记录借用时长或借用者的出行距离，因此不能解释两站归还率差异的原因。",
+                  "occurrence": 0
+                },
+                "witness": {
+                  "inputId": "s3",
+                  "quote": "记录仅有数量，没有记录借用时长或借用者的出行距离，因此不能解释两站归还率差异的原因。",
+                  "start": 0,
+                  "end": 42,
+                  "occurrence": 0
+                },
+                "semanticReviewRequired": true
+              }
+            },
+            {
+              "role": "firstGroup",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "只依据记录回答问题。复制确切原文；问题要求完整句子时复制完整句子。若记录没有提供答案，回答 UNKNOWN。不解释。 Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "教学目标：比较合并归还率与两个站点归还率的等权平均，并解释这些记录为什么不能支持因果结论。\n记录：\n这份虚构借用报告先介绍松林站。松林站借出二十件器材，其中十五件在闭馆前归还。随后介绍海湾站。海湾站借出四十件器材，其中十件在闭馆前归还。\n\n两站都将“归还”定义为同一报告日闭馆前完成归还登记。每件借出的器材只属于一个站点，不存在跨站重复。\n\n记录仅有数量，没有记录借用时长或借用者的出行距离，因此不能解释两站归还率差异的原因。\n问题： 先描述的被比较群体叫什么？只复制群体名称。\n上次问题：The answer is not an exact source excerpt."
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 245,
+                "outputTokens": 12,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\n\"answer\": \"松林站\"\n}",
+              "inferenceMs": 950,
+              "answer": "松林站",
+              "resolution": {
+                "status": "needs-review",
+                "reason": "The answer occurs more than once; provide a unique source excerpt."
+              }
+            },
+            {
+              "role": "secondGroup",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "只依据记录回答问题。复制确切原文；问题要求完整句子时复制完整句子。若记录没有提供答案，回答 UNKNOWN。不解释。 Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "教学目标：比较合并归还率与两个站点归还率的等权平均，并解释这些记录为什么不能支持因果结论。\n记录：\n这份虚构借用报告先介绍松林站。松林站借出二十件器材，其中十五件在闭馆前归还。随后介绍海湾站。海湾站借出四十件器材，其中十件在闭馆前归还。\n\n两站都将“归还”定义为同一报告日闭馆前完成归还登记。每件借出的器材只属于一个站点，不存在跨站重复。\n\n记录仅有数量，没有记录借用时长或借用者的出行距离，因此不能解释两站归还率差异的原因。\n问题： 第二个被比较群体叫什么？只复制群体名称。\n上次问题：The answer is not an exact source excerpt."
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 244,
+                "outputTokens": 7,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\"answer\": \"两个站点\"}",
+              "inferenceMs": 781,
+              "answer": "两个站点",
+              "resolution": {
+                "status": "needs-review",
+                "reason": "The answer is not an exact source excerpt."
+              }
+            }
+          ],
+          "loadMs": 0,
+          "runtime": {
+            "phase": "ready",
+            "progress": 1,
+            "message": "Scion local Gemma 4 is ready.",
+            "error": null,
+            "runtime": {
+              "id": "scion-wllama-webgpu-jspi-v1",
+              "modulePath": "/scion/runtime/v3/wllama.js",
+              "moduleSha256": "92afaea4ca9feefece8790fa32f3b96775d430f7341a8d89e550de368af40bdb",
+              "wasmPath": "/scion/runtime/v3/jspi-single-thread/wllama.wasm",
+              "wasmSha256": "ccb4ffaada3561b60275f652f5067946ed019728d589eaa24604a67d7c207848",
+              "grammar": "gbnf-state-v1",
+              "upstreamRevision": "58903000dbea6acfc0eb9c738d8be50d1052cf23",
+              "llamaCppRevision": "5ec717d1256e34558a44dc09adf1e6e16f2e2682"
+            },
+            "trainingBase": {
+              "modelId": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+              "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+              "architecture": "gemma4"
+            },
+            "activeWeightIdentity": {
+              "modelId": "google/gemma-4-E2B-it-qat-q4_0-gguf",
+              "revision": "69536a21d70340464240401ba38223d805f6a709",
+              "file": "gemma-4-E2B_q4_0-it.gguf",
+              "bytes": 3349514112,
+              "sha256": "3646b4c147cd235a44d91df1546d3b7d8e29b547dbe4e1f80856419aa455e6fd",
+              "format": "gguf-q4_0-qat"
+            },
+            "baseIntegrity": {
+              "expectedSha256": "3646b4c147cd235a44d91df1546d3b7d8e29b547dbe4e1f80856419aa455e6fd",
+              "runtimeCheck": "metadata-and-pinned-url",
+              "fullDigestEvidence": null
+            },
+            "adapter": {
+              "mode": "base-only",
+              "active": false,
+              "id": null,
+              "manifestSha256": null
+            },
+            "storage": {
+              "quota": 14087145814,
+              "usage": 3349727574,
+              "available": 10737418240,
+              "required": 3886385600
+            },
+            "metadata": {
+              "hparams": {
+                "nVocab": 262144,
+                "nCtxTrain": 131072,
+                "nEmbd": 1536,
+                "nLayer": 35
+              },
+              "meta": {
+                "split.count": "5",
+                "tokenizer.ggml.add_bos_token": "true",
+                "general.quantization_version": "2",
+                "tokenizer.ggml.mask_token_id": "4",
+                "tokenizer.ggml.eos_token_id": "1",
+                "tokenizer.ggml.model": "gemma4",
+                "gemma4.rope.dimension_count_swa": "256",
+                "gemma4.rope.dimension_count": "512",
+                "gemma4.embedding_length_per_layer_input": "256",
+                "general.name": "2B_dequant_qat_it_hf",
+                "gemma4.attention.sliding_window": "512",
+                "general.sampling.temp": "1.000000",
+                "gemma4.attention.layer_norm_rms_epsilon": "0.000001",
+                "general.size_label": "4.6B",
+                "gemma4.attention.key_length": "512",
+                "gemma4.rope.freq_base_swa": "10000.000000",
+                "gemma4.attention.head_count_kv": "1",
+                "split.no": "0",
+                "gemma4.attention.head_count": "8",
+                "split.tensors.count": "541",
+                "tokenizer.chat_template": "{%- macro format_parameters(properties, required, filter_keys=false) -%}\n    {%- set standard_keys = ['description', 'type', 'properties', 'required', 'nullable'] -%}\n    {%- set ns = namespace(found_first=false) -%}\n    {%- for key, value in properties | dictsort -%}\n        {%- set add_comma = false -%}\n        {%- if not filter_keys or key not in standard_keys -%}\n            {%- if ns.found_first %},{% endif -%}\n            {%- set ns.found_first = true -%}\n            {{ key }}:{\n            {%- if value['description'] -%}\n                description:<|\"|>{{ value['description'] }}<|\"|>\n                {%- set add_comma = true -%}\n            {%- endif -%}\n            {%- if value['type'] | upper == 'STRING' -%}\n                {%- if value['enum'] -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    enum:{{ format_argument(value['enum']) }}\n                {%- endif -%}\n            {%- elif value['type'] | upper == 'ARRAY' -%}\n                {%- if value['items'] is mapping and value['items'] -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    items:{\n                    {%- set ns_items = namespace(found_first=false) -%}\n                    {%- for item_key, item_value in value['items'] | dictsort -%}\n                        {%- if item_value is not none -%}\n                            {%- if ns_items.found_first %},{% endif -%}\n                            {%- set ns_items.found_first = true -%}\n                            {%- if item_key == 'properties' -%}\n                                properties:{\n                                {%- if item_value is mapping -%}\n                                    {{- format_parameters(item_value, value['items']['required'] | default([])) -}}\n                                {%- endif -%}\n                                }\n                            {%- elif item_key == 'required' -%}\n                                required:[\n                                {%- for req_item in item_value -%}\n                                    <|\"|>{{- req_item -}}<|\"|>\n                                    {%- if not loop.last %},{% endif -%}\n                                {%- endfor -%}\n                                ]\n                            {%- elif item_key == 'type' -%}\n                                {%- if item_value is string -%}\n                                    type:{{ format_argument(item_value | upper) }}\n                                {%- else -%}\n                                    type:{{ format_argument(item_value | map('upper') | list) }}\n                                {%- endif -%}\n                            {%- else -%}\n                                {{ item_key }}:{{ format_argument(item_value) }}\n                            {%- endif -%}\n                        {%- endif -%}\n                    {%- endfor -%}\n                    }\n                {%- endif -%}\n            {%- endif -%}\n            {%- if value['nullable'] %}\n                {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                nullable:true\n            {%- endif -%}\n            {%- if value['type'] | upper == 'OBJECT' -%}\n                {%- if value['properties'] is defined and value['properties'] is mapping -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    properties:{\n                    {{- format_parameters(value['properties'], value['required'] | default([])) -}}\n                    }\n                {%- elif value is mapping -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    properties:{\n                    {{- format_parameters(value, value['required'] | default([]), filter_keys=true) -}}\n                    }\n                {%- endif -%}\n                {%- if value['required'] -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    required:[\n                    {%- for item in value['required'] | default([]) -%}\n                        <|\"|>{{- item -}}<|\"|>\n                        {%- if not loop.last %},{% endif -%}\n                    {%- endfor -%}\n                    ]\n                {%- endif -%}\n            {%- endif -%}\n            {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n            type:<|\"|>{{ value['type'] | upper }}<|\"|>}\n        {%- endif -%}\n    {%- endfor -%}\n{%- endmacro -%}\n{%- macro format_function_declaration(tool_data) -%}\n    declaration:{{- tool_data['function']['name'] -}}{description:<|\"|>{{- tool_data['function']['description'] -}}<|\"|>\n    {%- set params = tool_data['function']['parameters'] -%}\n    {%- if params -%}\n        ,parameters:{\n        {%- if params['properties'] -%}\n            properties:{ {{- format_parameters(params['properties'], params['required']) -}} },\n        {%- endif -%}\n        {%- if params['required'] -%}\n            required:[\n            {%- for item in params['required'] -%}\n                <|\"|>{{- item -}}<|\"|>\n                {{- ',' if not loop.last -}}\n            {%- endfor -%}\n            ],\n        {%- endif -%}\n        {%- if params['type'] -%}\n            type:<|\"|>{{- params['type'] | upper -}}<|\"|>}\n        {%- endif -%}\n    {%- endif -%}\n    {%- if 'response' in tool_data['function'] -%}\n        {%- set response_declaration = tool_data['function']['response'] -%}\n        ,response:{\n        {%- if response_declaration['description'] -%}\n            description:<|\"|>{{- response_declaration['description'] -}}<|\"|>,\n        {%- endif -%}\n        {%- if response_declaration['type'] | upper == 'OBJECT' -%}\n            type:<|\"|>{{- response_declaration['type'] | upper -}}<|\"|>}\n        {%- endif -%}\n    {%- endif -%}\n    }\n{%- endmacro -%}\n{%- macro format_argument(argument, escape_keys=True) -%}\n    {%- if argument is string -%}\n        {{- '<|\"|>' + argument + '<|\"|>' -}}\n    {%- elif argument is boolean -%}\n        {{- 'true' if argument else 'false' -}}\n    {%- elif argument is mapping -%}\n        {{- '{' -}}\n        {%- set ns = namespace(found_first=false) -%}\n        {%- for key, value in argument | dictsort -%}\n            {%- if ns.found_first %},{% endif -%}\n            {%- set ns.found_first = true -%}\n            {%- if escape_keys -%}\n                {{- '<|\"|>' + key + '<|\"|>' -}}\n            {%- else -%}\n                {{- key -}}\n            {%- endif -%}\n            :{{- format_argument(value, escape_keys=escape_keys) -}}\n        {%- endfor -%}\n        {{- '}' -}}\n    {%- elif argument is sequence -%}\n        {{- '[' -}}\n        {%- for item in argument -%}\n            {{- format_argument(item, escape_keys=escape_keys) -}}\n            {%- if not loop.last %},{% endif -%}\n        {%- endfor -%}\n        {{- ']' -}}\n    {%- else -%}\n        {{- argument -}}\n    {%- endif -%}\n{%- endmacro -%}\n{%- macro strip_thinking(text) -%}\n    {%- set ns = namespace(result='') -%}\n    {%- for part in text.split('<channel|>') -%}\n        {%- if '<|channel>' in part -%}\n            {%- set ns.result = ns.result + part.split('<|channel>')[0] -%}\n        {%- else -%}\n            {%- set ns.result = ns.result + part -%}\n        {%- endif -%}\n    {%- endfor -%}\n    {{- ns.result | trim -}}\n{%- endmacro -%}\n\n{%- macro format_tool_response_block(tool_name, response) -%}\n    {{- '<|tool_response>' -}}\n    {%- if response is mapping -%}\n        {{- 'response:' + tool_name + '{' -}}\n        {%- for key, value in response | dictsort -%}\n            {{- key -}}:{{- format_argument(value, escape_keys=False) -}}\n            {%- if not loop.last %},{% endif -%}\n        {%- endfor -%}\n        {{- '}' -}}\n    {%- else -%}\n        {{- 'response:' + tool_name + '{value:' + format_argument(response, escape_keys=False) + '}' -}}\n    {%- endif -%}\n    {{- '<tool_response|>' -}}\n{%- endmacro -%}\n\n{%- set ns = namespace(prev_message_type=None) -%}\n{%- set loop_messages = messages -%}\n{{- bos_token -}}\n{#- Handle System/Tool Definitions Block -#}\n{%- if (enable_thinking is defined and enable_thinking) or tools or messages[0]['role'] in ['system', 'developer'] -%}\n    {{- '<|turn>system\\n' -}}\n    {#- Inject Thinking token at the very top of the FIRST system turn -#}\n    {%- if enable_thinking is defined and enable_thinking -%}\n        {{- '<|think|>\\n' -}}\n        {%- set ns.prev_message_type = 'think' -%}\n    {%- endif -%}\n    {%- if messages[0]['role'] in ['system', 'developer'] -%}\n        {%- if messages[0]['content'] is string -%}\n            {{- messages[0]['content'] | trim -}}\n        {%- elif messages[0]['content'] is sequence -%}\n            {%- for item in messages[0]['content'] -%}\n                {{- item['text'] | trim + ' '-}}\n            {%- endfor -%}\n        {%- endif -%}\n        {%- set loop_messages = messages[1:] -%}\n    {%- endif -%}\n    {%- if tools -%}\n        {%- for tool in tools %}\n            {{- '<|tool>' -}}\n            {{- format_function_declaration(tool) | trim -}}\n            {{- '<tool|>' -}}\n        {%- endfor %}\n        {%- set ns.prev_message_type = 'tool' -%}\n    {%- endif -%}\n    {{- '<turn|>\\n' -}}\n{%- endif %}\n\n{#- Pre-scan: find last user message index for reasoning guard -#}\n{%- set ns_turn = namespace(last_user_idx=-1) -%}\n{%- for i in range(loop_messages | length) -%}\n    {%- if loop_messages[i]['role'] == 'user' -%}\n        {%- set ns_turn.last_user_idx = i -%}\n    {%- endif -%}\n{%- endfor -%}\n\n{#- Loop through messages -#}\n{%- for message in loop_messages -%}\n    {%- if message['role'] != 'tool' -%}\n    {%- set ns.prev_message_type = None -%}\n    {%- set role = 'model' if message['role'] == 'assistant' else message['role'] -%}\n    {#- Detect continuation: suppress duplicate <|turn>model when previous non-tool message was also assistant -#}\n    {%- set prev_nt = namespace(role=None, found=false) -%}\n    {%- if loop.index0 > 0 -%}\n        {%- for j in range(loop.index0 - 1, -1, -1) -%}\n            {%- if not prev_nt.found -%}\n                {%- if loop_messages[j]['role'] != 'tool' -%}\n                    {%- set prev_nt.role = loop_messages[j]['role'] -%}\n                    {%- set prev_nt.found = true -%}\n                {%- endif -%}\n            {%- endif -%}\n        {%- endfor -%}\n    {%- endif -%}\n    {%- set continue_same_model_turn = (role == 'model' and prev_nt.role == 'assistant') -%}\n    {%- if not continue_same_model_turn -%}\n        {{- '<|turn>' + role + '\\n' }}\n    {%- endif -%}\n\n    {#- Render reasoning/reasoning_content as thinking channel -#}\n    {%- set thinking_text = message.get('reasoning') or message.get('reasoning_content') -%}\n    {%- if thinking_text and loop.index0 > ns_turn.last_user_idx and message.get('tool_calls') -%}\n        {{- '<|channel>thought\\n' + thinking_text + '\\n<channel|>' -}}\n    {%- endif -%}\n\n            {%- if message['tool_calls'] -%}\n                {%- for tool_call in message['tool_calls'] -%}\n                    {%- set function = tool_call['function'] -%}\n                    {{- '<|tool_call>call:' + function['name'] + '{' -}}\n                    {%- if function['arguments'] is mapping -%}\n                        {%- set ns_args = namespace(found_first=false) -%}\n                        {%- for key, value in function['arguments'] | dictsort -%}\n                            {%- if ns_args.found_first %},{% endif -%}\n                            {%- set ns_args.found_first = true -%}\n                            {{- key -}}:{{- format_argument(value, escape_keys=False) -}}\n                        {%- endfor -%}\n                    {%- elif function['arguments'] is string -%}\n                        {{- function['arguments'] -}}\n                    {%- endif -%}\n                    {{- '}<tool_call|>' -}}\n                {%- endfor -%}\n                {%- set ns.prev_message_type = 'tool_call' -%}\n            {%- endif -%}\n\n            {%- set ns_tr_out = namespace(flag=false) -%}\n            {%- if message.get('tool_responses') -%}\n                {#- Legacy: tool_responses embedded on the assistant message (Google/Gemma native) -#}\n                {%- for tool_response in message['tool_responses'] -%}\n                    {{- format_tool_response_block(tool_response['name'] | default('unknown'), tool_response['response']) -}}\n                    {%- set ns_tr_out.flag = true -%}\n                    {%- set ns.prev_message_type = 'tool_response' -%}\n                {%- endfor -%}\n            {%- elif message.get('tool_calls') -%}\n                {#- OpenAI Chat Completions: forward-scan consecutive role:tool messages -#}\n                {%- set ns_tool_scan = namespace(stopped=false) -%}\n                {%- for k in range(loop.index0 + 1, loop_messages | length) -%}\n                    {%- if ns_tool_scan.stopped -%}\n                    {%- elif loop_messages[k]['role'] != 'tool' -%}\n                        {%- set ns_tool_scan.stopped = true -%}\n                    {%- else -%}\n                        {%- set follow = loop_messages[k] -%}\n                        {#- Resolve tool_call_id to function name -#}\n                        {%- set ns_tname = namespace(name=follow.get('name') | default('unknown')) -%}\n                        {%- for tc in message['tool_calls'] -%}\n                            {%- if tc.get('id') == follow.get('tool_call_id') -%}\n                                {%- set ns_tname.name = tc['function']['name'] -%}\n                            {%- endif -%}\n                        {%- endfor -%}\n                        {#- Handle content as string or content-parts array -#}\n                        {%- set tool_body = follow.get('content') -%}\n                        {%- if tool_body is string -%}\n                            {{- format_tool_response_block(ns_tname.name, tool_body) -}}\n                        {%- elif tool_body is sequence and tool_body is not string -%}\n                            {%- set ns_txt = namespace(s='') -%}\n                            {%- for part in tool_body -%}\n                                {%- if part.get('type') == 'text' -%}\n                                    {%- set ns_txt.s = ns_txt.s + (part.get('text') | default('')) -%}\n                                {%- endif -%}\n                            {%- endfor -%}\n                            {{- format_tool_response_block(ns_tname.name, ns_txt.s) -}}\n                        {%- else -%}\n                            {{- format_tool_response_block(ns_tname.name, tool_body) -}}\n                        {%- endif -%}\n                        {%- set ns_tr_out.flag = true -%}\n                        {%- set ns.prev_message_type = 'tool_response' -%}\n                    {%- endif -%}\n                {%- endfor -%}\n            {%- endif -%}\n\n            {%- set captured_content -%}\n            {%- if message['content'] is string -%}\n                {%- if role == 'model' -%}\n                    {{- strip_thinking(message['content']) -}}\n                {%- else -%}\n                    {{- message['content'] | trim -}}\n                {%- endif -%}\n            {%- elif message['content'] is sequence -%}\n                {%- for item in message['content'] -%}\n                    {%- if item['type'] == 'text' -%}\n                        {%- if role == 'model' -%}\n                            {{- strip_thinking(item['text']) -}}\n                        {%- else -%}\n                            {{- item['text'] | trim -}}\n                        {%- endif -%}\n                    {%- elif item['type'] == 'image' -%}\n                        {{- '<|image|>' -}}\n                        {%- set ns.prev_message_type = 'image' -%}\n                    {%- elif item['type'] == 'audio' -%}\n                        {{- '<|audio|>' -}}\n                        {%- set ns.prev_message_type = 'audio' -%}\n                    {%- elif item['type'] == 'video' -%}\n                        {{- '<|video|>' -}}\n                        {%- set ns.prev_message_type = 'video' -%}\n                    {%- endif -%}\n                {%- endfor -%}\n            {%- endif -%}\n            {%- endset -%}\n\n            {{- captured_content -}}\n            {%- set has_content = captured_content | trim | length > 0 -%}\n\n        {%- if ns.prev_message_type == 'tool_call' and not ns_tr_out.flag -%}\n            {{- '<|tool_response>' -}}\n        {%- elif not (ns_tr_out.flag and not has_content) -%}\n            {{- '<turn|>\\n' -}}\n        {%- endif -%}\n    {%- endif -%}\n{%- endfor -%}\n\n{%- if add_generation_prompt -%}\n    {%- if ns.prev_message_type != 'tool_response' and ns.prev_message_type != 'tool_call' -%}\n        {{- '<|turn>model\\n' -}}\n    {%- endif -%}\n{%- endif -%}",
+                "gemma4.attention.shared_kv_layers": "20",
+                "gemma4.final_logit_softcapping": "30.000000",
+                "gemma4.attention.key_length_swa": "256",
+                "gemma4.context_length": "131072",
+                "general.file_type": "2",
+                "general.finetune": "2B_dequant_qat_it_hf",
+                "gemma4.embedding_length": "1536",
+                "tokenizer.ggml.add_space_prefix": "false",
+                "general.architecture": "gemma4",
+                "tokenizer.ggml.padding_token_id": "0",
+                "general.sampling.top_k": "64",
+                "gemma4.block_count": "35",
+                "tokenizer.ggml.bos_token_id": "2",
+                "gemma4.attention.value_length_swa": "256",
+                "general.type": "model",
+                "tokenizer.ggml.unknown_token_id": "3",
+                "general.sampling.top_p": "0.950000",
+                "gemma4.attention.value_length": "512",
+                "gemma4.rope.freq_base": "1000000.000000"
+              }
+            }
+          },
+          "fieldIssues": {
+            "firstGroup": "The answer occurs more than once; provide a unique source excerpt.",
+            "secondGroup": "The answer is not an exact source excerpt.",
+            "firstWhole": "Locate firstGroup before firstWhole.",
+            "firstPart": "Locate firstGroup before firstPart.",
+            "secondWhole": "Locate secondGroup before secondWhole.",
+            "secondPart": "Locate secondGroup before secondPart.",
+            "countingUnit": "Locate firstGroup before countingUnit.",
+            "countedOutcome": "Locate firstGroup before countedOutcome."
+          },
+          "elapsedMs": 7958
+        },
+        "modelCalls": 7
+      }
+    },
+    {
+      "id": "atomic-union-en-01",
+      "result": {
+        "status": "review",
+        "bindings": {
+          "rosterRecord": {
+            "inputId": "s1",
+            "quote": "The fictional Meadow History Society has seventy registered members. The membership list stayed unchanged, and both events used this same registered population.",
+            "occurrence": 0
+          },
+          "populationCount": {
+            "inputId": "s1",
+            "quote": "seventy",
+            "occurrence": 0
+          },
+          "populationName": {
+            "inputId": "s1",
+            "quote": "Meadow History Society",
+            "occurrence": 0
+          },
+          "stablePopulation": {
+            "inputId": "s1",
+            "quote": "The membership list stayed unchanged, and both events used this same registered population.",
+            "occurrence": 0
+          },
+          "attendanceRecord": {
+            "inputId": "s2",
+            "quote": "The first event was archive mapping, attended by forty-four distinct members. The second event was oral history practice, attended by thirty-eight distinct members. Within each attendance list, every person is counted once.",
+            "occurrence": 0
+          },
+          "firstCount": {
+            "inputId": "s2",
+            "quote": "forty-four",
+            "occurrence": 0
+          },
+          "secondCount": {
+            "inputId": "s2",
+            "quote": "thirty-eight",
+            "occurrence": 0
+          },
+          "firstEvent": {
+            "inputId": "s2",
+            "quote": "archive mapping",
+            "occurrence": 0
+          },
+          "secondEvent": {
+            "inputId": "s2",
+            "quote": "oral history practice",
+            "occurrence": 0
+          },
+          "withinGroupDistinct": {
+            "inputId": "s2",
+            "quote": "Within each attendance list, every person is counted once.",
+            "occurrence": 0
+          },
+          "limitRecord": {
+            "inputId": "s3",
+            "quote": "The number of members attending both events was not recorded, and the two attendance lists have not been matched.",
+            "occurrence": 0
+          },
+          "missingOverlap": {
+            "inputId": "s3",
+            "quote": "The number of members attending both events was not recorded, and the two attendance lists have not been matched.",
+            "occurrence": 0
+          }
+        },
+        "issues": [],
+        "missing": [],
+        "unknowns": [],
+        "repairable": false,
+        "receipt": {
+          "protocol": "scion-atomic-source-questions-v1",
+          "inputRevision": "dc590b088a6a8e2ad9802e3322561f4836cd11234cfb0c01a769524782730249",
+          "startedAt": "2026-09-08T08:33:30.320Z",
+          "callLimit": 12,
+          "maxNewTokens": 192,
+          "modelCalls": 9,
+          "attempts": [
+            {
+              "role": "populationCount",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "Answer only from the record. Copy exact source text; copy the full sentence when requested. If the answer is not stated, answer UNKNOWN. Do not explain. Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "Teaching objective: Determine the possible fraction of registered members who attended at least one event; construct both extreme cases and explain why adding attendance counts may overcount.\nRecords:\nThe fictional Meadow History Society has seventy registered members. The membership list stayed unchanged, and both events used this same registered population.\n\nThe first event was archive mapping, attended by forty-four distinct members. The second event was oral history practice, attended by thirty-eight distinct members. Within each attendance list, every person is counted once.\n\nThe number of members attending both events was not recorded, and the two attendance lists have not been matched.\nQuestion: How many members belong to the common registered population? Copy the relevant count phrase."
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 203,
+                "outputTokens": 9,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\"answer\": \"seventy registered members\"}",
+              "inferenceMs": 816,
+              "answer": "seventy registered members",
+              "resolution": {
+                "status": "located",
+                "binding": {
+                  "inputId": "s1",
+                  "quote": "seventy",
+                  "occurrence": 0
+                },
+                "witness": {
+                  "inputId": "s1",
+                  "quote": "seventy registered members",
+                  "start": 41,
+                  "end": 67,
+                  "occurrence": 0
+                },
+                "semanticReviewRequired": true
+              }
+            },
+            {
+              "role": "populationName",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "Answer only from the record. Copy exact source text; copy the full sentence when requested. If the answer is not stated, answer UNKNOWN. Do not explain. Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "Teaching objective: Determine the possible fraction of registered members who attended at least one event; construct both extreme cases and explain why adding attendance counts may overcount.\nRecords:\nThe fictional Meadow History Society has seventy registered members. The membership list stayed unchanged, and both events used this same registered population.\nQuestion: What is the name of the organization or group? Copy its name only."
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "requiredInputId": "s1",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 137,
+                "outputTokens": 9,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\"answer\": \"Meadow History Society\"}",
+              "inferenceMs": 793,
+              "answer": "Meadow History Society",
+              "resolution": {
+                "status": "located",
+                "binding": {
+                  "inputId": "s1",
+                  "quote": "Meadow History Society",
+                  "occurrence": 0
+                },
+                "witness": {
+                  "inputId": "s1",
+                  "quote": "Meadow History Society",
+                  "start": 14,
+                  "end": 36,
+                  "occurrence": 0
+                },
+                "semanticReviewRequired": true
+              }
+            },
+            {
+              "role": "stablePopulation",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "Answer only from the record. Copy exact source text; copy the full sentence when requested. If the answer is not stated, answer UNKNOWN. Do not explain. Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "Teaching objective: Determine the possible fraction of registered members who attended at least one event; construct both extreme cases and explain why adding attendance counts may overcount.\nRecords:\nThe fictional Meadow History Society has seventy registered members. The membership list stayed unchanged, and both events used this same registered population.\nQuestion: Which complete sentence states that the membership list was unchanged and both events used that population?"
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "requiredInputId": "s1",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 139,
+                "outputTokens": 20,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\"answer\": \"The membership list stayed unchanged, and both events used this same registered population.\"}",
+              "inferenceMs": 1115,
+              "answer": "The membership list stayed unchanged, and both events used this same registered population.",
+              "resolution": {
+                "status": "located",
+                "binding": {
+                  "inputId": "s1",
+                  "quote": "The membership list stayed unchanged, and both events used this same registered population.",
+                  "occurrence": 0
+                },
+                "witness": {
+                  "inputId": "s1",
+                  "quote": "The membership list stayed unchanged, and both events used this same registered population.",
+                  "start": 69,
+                  "end": 160,
+                  "occurrence": 0
+                },
+                "semanticReviewRequired": true
+              }
+            },
+            {
+              "role": "firstEvent",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "Answer only from the record. Copy exact source text; copy the full sentence when requested. If the answer is not stated, answer UNKNOWN. Do not explain. Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "Teaching objective: Determine the possible fraction of registered members who attended at least one event; construct both extreme cases and explain why adding attendance counts may overcount.\nRecords:\nThe fictional Meadow History Society has seventy registered members. The membership list stayed unchanged, and both events used this same registered population.\n\nThe first event was archive mapping, attended by forty-four distinct members. The second event was oral history practice, attended by thirty-eight distinct members. Within each attendance list, every person is counted once.\n\nThe number of members attending both events was not recorded, and the two attendance lists have not been matched.\nQuestion: What is the name of the first event described? Copy its name only."
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 202,
+                "outputTokens": 7,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\"answer\": \"archive mapping\"}",
+              "inferenceMs": 725,
+              "answer": "archive mapping",
+              "resolution": {
+                "status": "located",
+                "binding": {
+                  "inputId": "s2",
+                  "quote": "archive mapping",
+                  "occurrence": 0
+                },
+                "witness": {
+                  "inputId": "s2",
+                  "quote": "archive mapping",
+                  "start": 20,
+                  "end": 35,
+                  "occurrence": 0
+                },
+                "semanticReviewRequired": true
+              }
+            },
+            {
+              "role": "secondEvent",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "Answer only from the record. Copy exact source text; copy the full sentence when requested. If the answer is not stated, answer UNKNOWN. Do not explain. Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "Teaching objective: Determine the possible fraction of registered members who attended at least one event; construct both extreme cases and explain why adding attendance counts may overcount.\nRecords:\nThe first event was archive mapping, attended by forty-four distinct members. The second event was oral history practice, attended by thirty-eight distinct members. Within each attendance list, every person is counted once.\nQuestion: What is the name of the second event described? Copy its name only."
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "requiredInputId": "s2",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 154,
+                "outputTokens": 8,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\"answer\": \"oral history practice\"}",
+              "inferenceMs": 766,
+              "answer": "oral history practice",
+              "resolution": {
+                "status": "located",
+                "binding": {
+                  "inputId": "s2",
+                  "quote": "oral history practice",
+                  "occurrence": 0
+                },
+                "witness": {
+                  "inputId": "s2",
+                  "quote": "oral history practice",
+                  "start": 99,
+                  "end": 120,
+                  "occurrence": 0
+                },
+                "semanticReviewRequired": true
+              }
+            },
+            {
+              "role": "firstCount",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "Answer only from the record. Copy exact source text; copy the full sentence when requested. If the answer is not stated, answer UNKNOWN. Do not explain. Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "Teaching objective: Determine the possible fraction of registered members who attended at least one event; construct both extreme cases and explain why adding attendance counts may overcount.\nRecords:\nThe first event was archive mapping, attended by forty-four distinct members. The second event was oral history practice, attended by thirty-eight distinct members. Within each attendance list, every person is counted once.\nQuestion: How many distinct members attended “archive mapping”? Copy the count phrase."
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "requiredInputId": "s2",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 153,
+                "outputTokens": 11,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\"answer\": \"forty-four distinct members\"}",
+              "inferenceMs": 812,
+              "answer": "forty-four distinct members",
+              "resolution": {
+                "status": "located",
+                "binding": {
+                  "inputId": "s2",
+                  "quote": "forty-four",
+                  "occurrence": 0
+                },
+                "witness": {
+                  "inputId": "s2",
+                  "quote": "forty-four distinct members",
+                  "start": 49,
+                  "end": 76,
+                  "occurrence": 0
+                },
+                "semanticReviewRequired": true
+              }
+            },
+            {
+              "role": "secondCount",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "Answer only from the record. Copy exact source text; copy the full sentence when requested. If the answer is not stated, answer UNKNOWN. Do not explain. Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "Teaching objective: Determine the possible fraction of registered members who attended at least one event; construct both extreme cases and explain why adding attendance counts may overcount.\nRecords:\nThe first event was archive mapping, attended by forty-four distinct members. The second event was oral history practice, attended by thirty-eight distinct members. Within each attendance list, every person is counted once.\nQuestion: How many distinct members attended “oral history practice”? Copy the count phrase."
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "requiredInputId": "s2",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 154,
+                "outputTokens": 10,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\"answer\": \"thirty-eight distinct members\"}",
+              "inferenceMs": 787,
+              "answer": "thirty-eight distinct members",
+              "resolution": {
+                "status": "located",
+                "binding": {
+                  "inputId": "s2",
+                  "quote": "thirty-eight",
+                  "occurrence": 0
+                },
+                "witness": {
+                  "inputId": "s2",
+                  "quote": "thirty-eight distinct members",
+                  "start": 134,
+                  "end": 163,
+                  "occurrence": 0
+                },
+                "semanticReviewRequired": true
+              }
+            },
+            {
+              "role": "withinGroupDistinct",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "Answer only from the record. Copy exact source text; copy the full sentence when requested. If the answer is not stated, answer UNKNOWN. Do not explain. Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "Teaching objective: Determine the possible fraction of registered members who attended at least one event; construct both extreme cases and explain why adding attendance counts may overcount.\nRecords:\nThe first event was archive mapping, attended by forty-four distinct members. The second event was oral history practice, attended by thirty-eight distinct members. Within each attendance list, every person is counted once.\nQuestion: Which sentence states that each attendance list counts each person once?"
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "requiredInputId": "s2",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 151,
+                "outputTokens": 16,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\"answer\": \"Within each attendance list, every person is counted once.\"}",
+              "inferenceMs": 950,
+              "answer": "Within each attendance list, every person is counted once.",
+              "resolution": {
+                "status": "located",
+                "binding": {
+                  "inputId": "s2",
+                  "quote": "Within each attendance list, every person is counted once.",
+                  "occurrence": 0
+                },
+                "witness": {
+                  "inputId": "s2",
+                  "quote": "Within each attendance list, every person is counted once.",
+                  "start": 165,
+                  "end": 223,
+                  "occurrence": 0
+                },
+                "semanticReviewRequired": true
+              }
+            },
+            {
+              "role": "missingOverlap",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "Answer only from the record. Copy exact source text; copy the full sentence when requested. If the answer is not stated, answer UNKNOWN. Do not explain. Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "Teaching objective: Determine the possible fraction of registered members who attended at least one event; construct both extreme cases and explain why adding attendance counts may overcount.\nRecords:\nThe fictional Meadow History Society has seventy registered members. The membership list stayed unchanged, and both events used this same registered population.\n\nThe first event was archive mapping, attended by forty-four distinct members. The second event was oral history practice, attended by thirty-eight distinct members. Within each attendance list, every person is counted once.\n\nThe number of members attending both events was not recorded, and the two attendance lists have not been matched.\nQuestion: Which sentence states that membership overlap across the two events was not recorded or matched?"
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 203,
+                "outputTokens": 26,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\"answer\": \"The number of members attending both events was not recorded, and the two attendance lists have not been matched.\"}",
+              "inferenceMs": 2703,
+              "answer": "The number of members attending both events was not recorded, and the two attendance lists have not been matched.",
+              "resolution": {
+                "status": "located",
+                "binding": {
+                  "inputId": "s3",
+                  "quote": "The number of members attending both events was not recorded, and the two attendance lists have not been matched.",
+                  "occurrence": 0
+                },
+                "witness": {
+                  "inputId": "s3",
+                  "quote": "The number of members attending both events was not recorded, and the two attendance lists have not been matched.",
+                  "start": 0,
+                  "end": 113,
+                  "occurrence": 0
+                },
+                "semanticReviewRequired": true
+              }
+            }
+          ],
+          "loadMs": 0,
+          "runtime": {
+            "phase": "ready",
+            "progress": 1,
+            "message": "Scion local Gemma 4 is ready.",
+            "error": null,
+            "runtime": {
+              "id": "scion-wllama-webgpu-jspi-v1",
+              "modulePath": "/scion/runtime/v3/wllama.js",
+              "moduleSha256": "92afaea4ca9feefece8790fa32f3b96775d430f7341a8d89e550de368af40bdb",
+              "wasmPath": "/scion/runtime/v3/jspi-single-thread/wllama.wasm",
+              "wasmSha256": "ccb4ffaada3561b60275f652f5067946ed019728d589eaa24604a67d7c207848",
+              "grammar": "gbnf-state-v1",
+              "upstreamRevision": "58903000dbea6acfc0eb9c738d8be50d1052cf23",
+              "llamaCppRevision": "5ec717d1256e34558a44dc09adf1e6e16f2e2682"
+            },
+            "trainingBase": {
+              "modelId": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+              "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+              "architecture": "gemma4"
+            },
+            "activeWeightIdentity": {
+              "modelId": "google/gemma-4-E2B-it-qat-q4_0-gguf",
+              "revision": "69536a21d70340464240401ba38223d805f6a709",
+              "file": "gemma-4-E2B_q4_0-it.gguf",
+              "bytes": 3349514112,
+              "sha256": "3646b4c147cd235a44d91df1546d3b7d8e29b547dbe4e1f80856419aa455e6fd",
+              "format": "gguf-q4_0-qat"
+            },
+            "baseIntegrity": {
+              "expectedSha256": "3646b4c147cd235a44d91df1546d3b7d8e29b547dbe4e1f80856419aa455e6fd",
+              "runtimeCheck": "metadata-and-pinned-url",
+              "fullDigestEvidence": null
+            },
+            "adapter": {
+              "mode": "base-only",
+              "active": false,
+              "id": null,
+              "manifestSha256": null
+            },
+            "storage": {
+              "quota": 14087145814,
+              "usage": 3349727574,
+              "available": 10737418240,
+              "required": 3886385600
+            },
+            "metadata": {
+              "hparams": {
+                "nVocab": 262144,
+                "nCtxTrain": 131072,
+                "nEmbd": 1536,
+                "nLayer": 35
+              },
+              "meta": {
+                "split.count": "5",
+                "tokenizer.ggml.add_bos_token": "true",
+                "general.quantization_version": "2",
+                "tokenizer.ggml.mask_token_id": "4",
+                "tokenizer.ggml.eos_token_id": "1",
+                "tokenizer.ggml.model": "gemma4",
+                "gemma4.rope.dimension_count_swa": "256",
+                "gemma4.rope.dimension_count": "512",
+                "gemma4.embedding_length_per_layer_input": "256",
+                "general.name": "2B_dequant_qat_it_hf",
+                "gemma4.attention.sliding_window": "512",
+                "general.sampling.temp": "1.000000",
+                "gemma4.attention.layer_norm_rms_epsilon": "0.000001",
+                "general.size_label": "4.6B",
+                "gemma4.attention.key_length": "512",
+                "gemma4.rope.freq_base_swa": "10000.000000",
+                "gemma4.attention.head_count_kv": "1",
+                "split.no": "0",
+                "gemma4.attention.head_count": "8",
+                "split.tensors.count": "541",
+                "tokenizer.chat_template": "{%- macro format_parameters(properties, required, filter_keys=false) -%}\n    {%- set standard_keys = ['description', 'type', 'properties', 'required', 'nullable'] -%}\n    {%- set ns = namespace(found_first=false) -%}\n    {%- for key, value in properties | dictsort -%}\n        {%- set add_comma = false -%}\n        {%- if not filter_keys or key not in standard_keys -%}\n            {%- if ns.found_first %},{% endif -%}\n            {%- set ns.found_first = true -%}\n            {{ key }}:{\n            {%- if value['description'] -%}\n                description:<|\"|>{{ value['description'] }}<|\"|>\n                {%- set add_comma = true -%}\n            {%- endif -%}\n            {%- if value['type'] | upper == 'STRING' -%}\n                {%- if value['enum'] -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    enum:{{ format_argument(value['enum']) }}\n                {%- endif -%}\n            {%- elif value['type'] | upper == 'ARRAY' -%}\n                {%- if value['items'] is mapping and value['items'] -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    items:{\n                    {%- set ns_items = namespace(found_first=false) -%}\n                    {%- for item_key, item_value in value['items'] | dictsort -%}\n                        {%- if item_value is not none -%}\n                            {%- if ns_items.found_first %},{% endif -%}\n                            {%- set ns_items.found_first = true -%}\n                            {%- if item_key == 'properties' -%}\n                                properties:{\n                                {%- if item_value is mapping -%}\n                                    {{- format_parameters(item_value, value['items']['required'] | default([])) -}}\n                                {%- endif -%}\n                                }\n                            {%- elif item_key == 'required' -%}\n                                required:[\n                                {%- for req_item in item_value -%}\n                                    <|\"|>{{- req_item -}}<|\"|>\n                                    {%- if not loop.last %},{% endif -%}\n                                {%- endfor -%}\n                                ]\n                            {%- elif item_key == 'type' -%}\n                                {%- if item_value is string -%}\n                                    type:{{ format_argument(item_value | upper) }}\n                                {%- else -%}\n                                    type:{{ format_argument(item_value | map('upper') | list) }}\n                                {%- endif -%}\n                            {%- else -%}\n                                {{ item_key }}:{{ format_argument(item_value) }}\n                            {%- endif -%}\n                        {%- endif -%}\n                    {%- endfor -%}\n                    }\n                {%- endif -%}\n            {%- endif -%}\n            {%- if value['nullable'] %}\n                {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                nullable:true\n            {%- endif -%}\n            {%- if value['type'] | upper == 'OBJECT' -%}\n                {%- if value['properties'] is defined and value['properties'] is mapping -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    properties:{\n                    {{- format_parameters(value['properties'], value['required'] | default([])) -}}\n                    }\n                {%- elif value is mapping -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    properties:{\n                    {{- format_parameters(value, value['required'] | default([]), filter_keys=true) -}}\n                    }\n                {%- endif -%}\n                {%- if value['required'] -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    required:[\n                    {%- for item in value['required'] | default([]) -%}\n                        <|\"|>{{- item -}}<|\"|>\n                        {%- if not loop.last %},{% endif -%}\n                    {%- endfor -%}\n                    ]\n                {%- endif -%}\n            {%- endif -%}\n            {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n            type:<|\"|>{{ value['type'] | upper }}<|\"|>}\n        {%- endif -%}\n    {%- endfor -%}\n{%- endmacro -%}\n{%- macro format_function_declaration(tool_data) -%}\n    declaration:{{- tool_data['function']['name'] -}}{description:<|\"|>{{- tool_data['function']['description'] -}}<|\"|>\n    {%- set params = tool_data['function']['parameters'] -%}\n    {%- if params -%}\n        ,parameters:{\n        {%- if params['properties'] -%}\n            properties:{ {{- format_parameters(params['properties'], params['required']) -}} },\n        {%- endif -%}\n        {%- if params['required'] -%}\n            required:[\n            {%- for item in params['required'] -%}\n                <|\"|>{{- item -}}<|\"|>\n                {{- ',' if not loop.last -}}\n            {%- endfor -%}\n            ],\n        {%- endif -%}\n        {%- if params['type'] -%}\n            type:<|\"|>{{- params['type'] | upper -}}<|\"|>}\n        {%- endif -%}\n    {%- endif -%}\n    {%- if 'response' in tool_data['function'] -%}\n        {%- set response_declaration = tool_data['function']['response'] -%}\n        ,response:{\n        {%- if response_declaration['description'] -%}\n            description:<|\"|>{{- response_declaration['description'] -}}<|\"|>,\n        {%- endif -%}\n        {%- if response_declaration['type'] | upper == 'OBJECT' -%}\n            type:<|\"|>{{- response_declaration['type'] | upper -}}<|\"|>}\n        {%- endif -%}\n    {%- endif -%}\n    }\n{%- endmacro -%}\n{%- macro format_argument(argument, escape_keys=True) -%}\n    {%- if argument is string -%}\n        {{- '<|\"|>' + argument + '<|\"|>' -}}\n    {%- elif argument is boolean -%}\n        {{- 'true' if argument else 'false' -}}\n    {%- elif argument is mapping -%}\n        {{- '{' -}}\n        {%- set ns = namespace(found_first=false) -%}\n        {%- for key, value in argument | dictsort -%}\n            {%- if ns.found_first %},{% endif -%}\n            {%- set ns.found_first = true -%}\n            {%- if escape_keys -%}\n                {{- '<|\"|>' + key + '<|\"|>' -}}\n            {%- else -%}\n                {{- key -}}\n            {%- endif -%}\n            :{{- format_argument(value, escape_keys=escape_keys) -}}\n        {%- endfor -%}\n        {{- '}' -}}\n    {%- elif argument is sequence -%}\n        {{- '[' -}}\n        {%- for item in argument -%}\n            {{- format_argument(item, escape_keys=escape_keys) -}}\n            {%- if not loop.last %},{% endif -%}\n        {%- endfor -%}\n        {{- ']' -}}\n    {%- else -%}\n        {{- argument -}}\n    {%- endif -%}\n{%- endmacro -%}\n{%- macro strip_thinking(text) -%}\n    {%- set ns = namespace(result='') -%}\n    {%- for part in text.split('<channel|>') -%}\n        {%- if '<|channel>' in part -%}\n            {%- set ns.result = ns.result + part.split('<|channel>')[0] -%}\n        {%- else -%}\n            {%- set ns.result = ns.result + part -%}\n        {%- endif -%}\n    {%- endfor -%}\n    {{- ns.result | trim -}}\n{%- endmacro -%}\n\n{%- macro format_tool_response_block(tool_name, response) -%}\n    {{- '<|tool_response>' -}}\n    {%- if response is mapping -%}\n        {{- 'response:' + tool_name + '{' -}}\n        {%- for key, value in response | dictsort -%}\n            {{- key -}}:{{- format_argument(value, escape_keys=False) -}}\n            {%- if not loop.last %},{% endif -%}\n        {%- endfor -%}\n        {{- '}' -}}\n    {%- else -%}\n        {{- 'response:' + tool_name + '{value:' + format_argument(response, escape_keys=False) + '}' -}}\n    {%- endif -%}\n    {{- '<tool_response|>' -}}\n{%- endmacro -%}\n\n{%- set ns = namespace(prev_message_type=None) -%}\n{%- set loop_messages = messages -%}\n{{- bos_token -}}\n{#- Handle System/Tool Definitions Block -#}\n{%- if (enable_thinking is defined and enable_thinking) or tools or messages[0]['role'] in ['system', 'developer'] -%}\n    {{- '<|turn>system\\n' -}}\n    {#- Inject Thinking token at the very top of the FIRST system turn -#}\n    {%- if enable_thinking is defined and enable_thinking -%}\n        {{- '<|think|>\\n' -}}\n        {%- set ns.prev_message_type = 'think' -%}\n    {%- endif -%}\n    {%- if messages[0]['role'] in ['system', 'developer'] -%}\n        {%- if messages[0]['content'] is string -%}\n            {{- messages[0]['content'] | trim -}}\n        {%- elif messages[0]['content'] is sequence -%}\n            {%- for item in messages[0]['content'] -%}\n                {{- item['text'] | trim + ' '-}}\n            {%- endfor -%}\n        {%- endif -%}\n        {%- set loop_messages = messages[1:] -%}\n    {%- endif -%}\n    {%- if tools -%}\n        {%- for tool in tools %}\n            {{- '<|tool>' -}}\n            {{- format_function_declaration(tool) | trim -}}\n            {{- '<tool|>' -}}\n        {%- endfor %}\n        {%- set ns.prev_message_type = 'tool' -%}\n    {%- endif -%}\n    {{- '<turn|>\\n' -}}\n{%- endif %}\n\n{#- Pre-scan: find last user message index for reasoning guard -#}\n{%- set ns_turn = namespace(last_user_idx=-1) -%}\n{%- for i in range(loop_messages | length) -%}\n    {%- if loop_messages[i]['role'] == 'user' -%}\n        {%- set ns_turn.last_user_idx = i -%}\n    {%- endif -%}\n{%- endfor -%}\n\n{#- Loop through messages -#}\n{%- for message in loop_messages -%}\n    {%- if message['role'] != 'tool' -%}\n    {%- set ns.prev_message_type = None -%}\n    {%- set role = 'model' if message['role'] == 'assistant' else message['role'] -%}\n    {#- Detect continuation: suppress duplicate <|turn>model when previous non-tool message was also assistant -#}\n    {%- set prev_nt = namespace(role=None, found=false) -%}\n    {%- if loop.index0 > 0 -%}\n        {%- for j in range(loop.index0 - 1, -1, -1) -%}\n            {%- if not prev_nt.found -%}\n                {%- if loop_messages[j]['role'] != 'tool' -%}\n                    {%- set prev_nt.role = loop_messages[j]['role'] -%}\n                    {%- set prev_nt.found = true -%}\n                {%- endif -%}\n            {%- endif -%}\n        {%- endfor -%}\n    {%- endif -%}\n    {%- set continue_same_model_turn = (role == 'model' and prev_nt.role == 'assistant') -%}\n    {%- if not continue_same_model_turn -%}\n        {{- '<|turn>' + role + '\\n' }}\n    {%- endif -%}\n\n    {#- Render reasoning/reasoning_content as thinking channel -#}\n    {%- set thinking_text = message.get('reasoning') or message.get('reasoning_content') -%}\n    {%- if thinking_text and loop.index0 > ns_turn.last_user_idx and message.get('tool_calls') -%}\n        {{- '<|channel>thought\\n' + thinking_text + '\\n<channel|>' -}}\n    {%- endif -%}\n\n            {%- if message['tool_calls'] -%}\n                {%- for tool_call in message['tool_calls'] -%}\n                    {%- set function = tool_call['function'] -%}\n                    {{- '<|tool_call>call:' + function['name'] + '{' -}}\n                    {%- if function['arguments'] is mapping -%}\n                        {%- set ns_args = namespace(found_first=false) -%}\n                        {%- for key, value in function['arguments'] | dictsort -%}\n                            {%- if ns_args.found_first %},{% endif -%}\n                            {%- set ns_args.found_first = true -%}\n                            {{- key -}}:{{- format_argument(value, escape_keys=False) -}}\n                        {%- endfor -%}\n                    {%- elif function['arguments'] is string -%}\n                        {{- function['arguments'] -}}\n                    {%- endif -%}\n                    {{- '}<tool_call|>' -}}\n                {%- endfor -%}\n                {%- set ns.prev_message_type = 'tool_call' -%}\n            {%- endif -%}\n\n            {%- set ns_tr_out = namespace(flag=false) -%}\n            {%- if message.get('tool_responses') -%}\n                {#- Legacy: tool_responses embedded on the assistant message (Google/Gemma native) -#}\n                {%- for tool_response in message['tool_responses'] -%}\n                    {{- format_tool_response_block(tool_response['name'] | default('unknown'), tool_response['response']) -}}\n                    {%- set ns_tr_out.flag = true -%}\n                    {%- set ns.prev_message_type = 'tool_response' -%}\n                {%- endfor -%}\n            {%- elif message.get('tool_calls') -%}\n                {#- OpenAI Chat Completions: forward-scan consecutive role:tool messages -#}\n                {%- set ns_tool_scan = namespace(stopped=false) -%}\n                {%- for k in range(loop.index0 + 1, loop_messages | length) -%}\n                    {%- if ns_tool_scan.stopped -%}\n                    {%- elif loop_messages[k]['role'] != 'tool' -%}\n                        {%- set ns_tool_scan.stopped = true -%}\n                    {%- else -%}\n                        {%- set follow = loop_messages[k] -%}\n                        {#- Resolve tool_call_id to function name -#}\n                        {%- set ns_tname = namespace(name=follow.get('name') | default('unknown')) -%}\n                        {%- for tc in message['tool_calls'] -%}\n                            {%- if tc.get('id') == follow.get('tool_call_id') -%}\n                                {%- set ns_tname.name = tc['function']['name'] -%}\n                            {%- endif -%}\n                        {%- endfor -%}\n                        {#- Handle content as string or content-parts array -#}\n                        {%- set tool_body = follow.get('content') -%}\n                        {%- if tool_body is string -%}\n                            {{- format_tool_response_block(ns_tname.name, tool_body) -}}\n                        {%- elif tool_body is sequence and tool_body is not string -%}\n                            {%- set ns_txt = namespace(s='') -%}\n                            {%- for part in tool_body -%}\n                                {%- if part.get('type') == 'text' -%}\n                                    {%- set ns_txt.s = ns_txt.s + (part.get('text') | default('')) -%}\n                                {%- endif -%}\n                            {%- endfor -%}\n                            {{- format_tool_response_block(ns_tname.name, ns_txt.s) -}}\n                        {%- else -%}\n                            {{- format_tool_response_block(ns_tname.name, tool_body) -}}\n                        {%- endif -%}\n                        {%- set ns_tr_out.flag = true -%}\n                        {%- set ns.prev_message_type = 'tool_response' -%}\n                    {%- endif -%}\n                {%- endfor -%}\n            {%- endif -%}\n\n            {%- set captured_content -%}\n            {%- if message['content'] is string -%}\n                {%- if role == 'model' -%}\n                    {{- strip_thinking(message['content']) -}}\n                {%- else -%}\n                    {{- message['content'] | trim -}}\n                {%- endif -%}\n            {%- elif message['content'] is sequence -%}\n                {%- for item in message['content'] -%}\n                    {%- if item['type'] == 'text' -%}\n                        {%- if role == 'model' -%}\n                            {{- strip_thinking(item['text']) -}}\n                        {%- else -%}\n                            {{- item['text'] | trim -}}\n                        {%- endif -%}\n                    {%- elif item['type'] == 'image' -%}\n                        {{- '<|image|>' -}}\n                        {%- set ns.prev_message_type = 'image' -%}\n                    {%- elif item['type'] == 'audio' -%}\n                        {{- '<|audio|>' -}}\n                        {%- set ns.prev_message_type = 'audio' -%}\n                    {%- elif item['type'] == 'video' -%}\n                        {{- '<|video|>' -}}\n                        {%- set ns.prev_message_type = 'video' -%}\n                    {%- endif -%}\n                {%- endfor -%}\n            {%- endif -%}\n            {%- endset -%}\n\n            {{- captured_content -}}\n            {%- set has_content = captured_content | trim | length > 0 -%}\n\n        {%- if ns.prev_message_type == 'tool_call' and not ns_tr_out.flag -%}\n            {{- '<|tool_response>' -}}\n        {%- elif not (ns_tr_out.flag and not has_content) -%}\n            {{- '<turn|>\\n' -}}\n        {%- endif -%}\n    {%- endif -%}\n{%- endfor -%}\n\n{%- if add_generation_prompt -%}\n    {%- if ns.prev_message_type != 'tool_response' and ns.prev_message_type != 'tool_call' -%}\n        {{- '<|turn>model\\n' -}}\n    {%- endif -%}\n{%- endif -%}",
+                "gemma4.attention.shared_kv_layers": "20",
+                "gemma4.final_logit_softcapping": "30.000000",
+                "gemma4.attention.key_length_swa": "256",
+                "gemma4.context_length": "131072",
+                "general.file_type": "2",
+                "general.finetune": "2B_dequant_qat_it_hf",
+                "gemma4.embedding_length": "1536",
+                "tokenizer.ggml.add_space_prefix": "false",
+                "general.architecture": "gemma4",
+                "tokenizer.ggml.padding_token_id": "0",
+                "general.sampling.top_k": "64",
+                "gemma4.block_count": "35",
+                "tokenizer.ggml.bos_token_id": "2",
+                "gemma4.attention.value_length_swa": "256",
+                "general.type": "model",
+                "tokenizer.ggml.unknown_token_id": "3",
+                "general.sampling.top_p": "0.950000",
+                "gemma4.attention.value_length": "512",
+                "gemma4.rope.freq_base": "1000000.000000"
+              }
+            }
+          },
+          "fieldIssues": {},
+          "elapsedMs": 9495
+        },
+        "modelCalls": 9
+      }
+    },
+    {
+      "id": "atomic-union-zh-01",
+      "result": {
+        "status": "review",
+        "bindings": {
+          "rosterRecord": {
+            "inputId": "s1",
+            "quote": "虚构青岚自然社共有六十名登记成员。成员名册在两次活动期间保持不变，两次活动均使用这一登记总体。",
+            "occurrence": 0
+          },
+          "populationCount": {
+            "inputId": "s1",
+            "quote": "六十",
+            "occurrence": 0
+          },
+          "populationName": {
+            "inputId": "s1",
+            "quote": "虚构青岚自然社",
+            "occurrence": 0
+          },
+          "stablePopulation": {
+            "inputId": "s1",
+            "quote": "成员名册在两次活动期间保持不变，两次活动均使用这一登记总体。",
+            "occurrence": 0
+          },
+          "attendanceRecord": {
+            "inputId": "s2",
+            "quote": "先举行的活动是河岸观察，有二十八名不同成员参加。第二次活动是树叶分类，有二十五名不同成员参加。每份签到表内部每个人只计一次。",
+            "occurrence": 0
+          },
+          "firstCount": {
+            "inputId": "s2",
+            "quote": "二十八",
+            "occurrence": 0
+          },
+          "secondCount": {
+            "inputId": "s2",
+            "quote": "二十五",
+            "occurrence": 0
+          },
+          "firstEvent": {
+            "inputId": "s2",
+            "quote": "河岸观察",
+            "occurrence": 0
+          },
+          "secondEvent": {
+            "inputId": "s2",
+            "quote": "树叶分类",
+            "occurrence": 0
+          },
+          "withinGroupDistinct": {
+            "inputId": "s2",
+            "quote": "每份签到表内部每个人只计一次。",
+            "occurrence": 0
+          },
+          "limitRecord": {
+            "inputId": "s3",
+            "quote": "两次活动之间的重复成员人数未记录，两份签到表尚未核对。",
+            "occurrence": 0
+          },
+          "missingOverlap": {
+            "inputId": "s3",
+            "quote": "两次活动之间的重复成员人数未记录，两份签到表尚未核对。",
+            "occurrence": 0
+          }
+        },
+        "issues": [],
+        "missing": [],
+        "unknowns": [],
+        "repairable": false,
+        "receipt": {
+          "protocol": "scion-atomic-source-questions-v1",
+          "inputRevision": "9f6d394fabd7376a19b5dd06b031170d385163a19e6cd0104870093bb5e8d323",
+          "startedAt": "2026-09-08T08:33:39.816Z",
+          "callLimit": 12,
+          "maxNewTokens": 192,
+          "modelCalls": 9,
+          "attempts": [
+            {
+              "role": "populationCount",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "只依据记录回答问题。复制确切原文；问题要求完整句子时复制完整句子。若记录没有提供答案，回答 UNKNOWN。不解释。 Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "教学目标：求至少参加一次活动的登记成员比例的可能范围，构造上下界，并说明直接相加为什么可能重复计数。\n记录：\n虚构青岚自然社共有六十名登记成员。成员名册在两次活动期间保持不变，两次活动均使用这一登记总体。\n\n先举行的活动是河岸观察，有二十八名不同成员参加。第二次活动是树叶分类，有二十五名不同成员参加。每份签到表内部每个人只计一次。\n\n两次活动之间的重复成员人数未记录，两份签到表尚未核对。\n问题： 共同登记总体有多少名成员？复制相应计数短语。"
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 203,
+                "outputTokens": 14,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\n\"answer\": \"六十名登记成员\"\n}",
+              "inferenceMs": 1126,
+              "answer": "六十名登记成员",
+              "resolution": {
+                "status": "located",
+                "binding": {
+                  "inputId": "s1",
+                  "quote": "六十",
+                  "occurrence": 0
+                },
+                "witness": {
+                  "inputId": "s1",
+                  "quote": "六十名登记成员",
+                  "start": 9,
+                  "end": 16,
+                  "occurrence": 0
+                },
+                "semanticReviewRequired": true
+              }
+            },
+            {
+              "role": "populationName",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "只依据记录回答问题。复制确切原文；问题要求完整句子时复制完整句子。若记录没有提供答案，回答 UNKNOWN。不解释。 Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "教学目标：求至少参加一次活动的登记成员比例的可能范围，构造上下界，并说明直接相加为什么可能重复计数。\n记录：\n虚构青岚自然社共有六十名登记成员。成员名册在两次活动期间保持不变，两次活动均使用这一登记总体。\n问题： 组织或群体的名称是什么？只复制名称。"
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "requiredInputId": "s1",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 138,
+                "outputTokens": 11,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\"answer\": \"虚构青岚自然社\"}",
+              "inferenceMs": 1240,
+              "answer": "虚构青岚自然社",
+              "resolution": {
+                "status": "located",
+                "binding": {
+                  "inputId": "s1",
+                  "quote": "虚构青岚自然社",
+                  "occurrence": 0
+                },
+                "witness": {
+                  "inputId": "s1",
+                  "quote": "虚构青岚自然社",
+                  "start": 0,
+                  "end": 7,
+                  "occurrence": 0
+                },
+                "semanticReviewRequired": true
+              }
+            },
+            {
+              "role": "stablePopulation",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "只依据记录回答问题。复制确切原文；问题要求完整句子时复制完整句子。若记录没有提供答案，回答 UNKNOWN。不解释。 Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "教学目标：求至少参加一次活动的登记成员比例的可能范围，构造上下界，并说明直接相加为什么可能重复计数。\n记录：\n虚构青岚自然社共有六十名登记成员。成员名册在两次活动期间保持不变，两次活动均使用这一登记总体。\n问题： 哪个完整句子说明成员名册没有变化，且两次活动均使用这一总体？"
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "requiredInputId": "s1",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 145,
+                "outputTokens": 23,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\"answer\": \"成员名册在两次活动期间保持不变，两次活动均使用这一登记总体。\"}",
+              "inferenceMs": 1340,
+              "answer": "成员名册在两次活动期间保持不变，两次活动均使用这一登记总体。",
+              "resolution": {
+                "status": "located",
+                "binding": {
+                  "inputId": "s1",
+                  "quote": "成员名册在两次活动期间保持不变，两次活动均使用这一登记总体。",
+                  "occurrence": 0
+                },
+                "witness": {
+                  "inputId": "s1",
+                  "quote": "成员名册在两次活动期间保持不变，两次活动均使用这一登记总体。",
+                  "start": 17,
+                  "end": 47,
+                  "occurrence": 0
+                },
+                "semanticReviewRequired": true
+              }
+            },
+            {
+              "role": "firstEvent",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "只依据记录回答问题。复制确切原文；问题要求完整句子时复制完整句子。若记录没有提供答案，回答 UNKNOWN。不解释。 Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "教学目标：求至少参加一次活动的登记成员比例的可能范围，构造上下界，并说明直接相加为什么可能重复计数。\n记录：\n虚构青岚自然社共有六十名登记成员。成员名册在两次活动期间保持不变，两次活动均使用这一登记总体。\n\n先举行的活动是河岸观察，有二十八名不同成员参加。第二次活动是树叶分类，有二十五名不同成员参加。每份签到表内部每个人只计一次。\n\n两次活动之间的重复成员人数未记录，两份签到表尚未核对。\n问题： 材料中先描述的活动叫什么？只复制活动名称。"
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 203,
+                "outputTokens": 12,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\n\"answer\": \"河岸观察\"\n}",
+              "inferenceMs": 907,
+              "answer": "河岸观察",
+              "resolution": {
+                "status": "located",
+                "binding": {
+                  "inputId": "s2",
+                  "quote": "河岸观察",
+                  "occurrence": 0
+                },
+                "witness": {
+                  "inputId": "s2",
+                  "quote": "河岸观察",
+                  "start": 7,
+                  "end": 11,
+                  "occurrence": 0
+                },
+                "semanticReviewRequired": true
+              }
+            },
+            {
+              "role": "secondEvent",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "只依据记录回答问题。复制确切原文；问题要求完整句子时复制完整句子。若记录没有提供答案，回答 UNKNOWN。不解释。 Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "教学目标：求至少参加一次活动的登记成员比例的可能范围，构造上下界，并说明直接相加为什么可能重复计数。\n记录：\n先举行的活动是河岸观察，有二十八名不同成员参加。第二次活动是树叶分类，有二十五名不同成员参加。每份签到表内部每个人只计一次。\n问题： 材料中第二个活动叫什么？只复制活动名称。"
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "requiredInputId": "s2",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 150,
+                "outputTokens": 8,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\"answer\": \"树叶分类\"}",
+              "inferenceMs": 684,
+              "answer": "树叶分类",
+              "resolution": {
+                "status": "located",
+                "binding": {
+                  "inputId": "s2",
+                  "quote": "树叶分类",
+                  "occurrence": 0
+                },
+                "witness": {
+                  "inputId": "s2",
+                  "quote": "树叶分类",
+                  "start": 30,
+                  "end": 34,
+                  "occurrence": 0
+                },
+                "semanticReviewRequired": true
+              }
+            },
+            {
+              "role": "firstCount",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "只依据记录回答问题。复制确切原文；问题要求完整句子时复制完整句子。若记录没有提供答案，回答 UNKNOWN。不解释。 Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "教学目标：求至少参加一次活动的登记成员比例的可能范围，构造上下界，并说明直接相加为什么可能重复计数。\n记录：\n先举行的活动是河岸观察，有二十八名不同成员参加。第二次活动是树叶分类，有二十五名不同成员参加。每份签到表内部每个人只计一次。\n问题： 有多少名不同成员参加“河岸观察”？复制计数短语。"
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "requiredInputId": "s2",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 155,
+                "outputTokens": 11,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\"answer\": \"二十八名不同成员参加\"}",
+              "inferenceMs": 797,
+              "answer": "二十八名不同成员参加",
+              "resolution": {
+                "status": "located",
+                "binding": {
+                  "inputId": "s2",
+                  "quote": "二十八",
+                  "occurrence": 0
+                },
+                "witness": {
+                  "inputId": "s2",
+                  "quote": "二十八名不同成员参加",
+                  "start": 13,
+                  "end": 23,
+                  "occurrence": 0
+                },
+                "semanticReviewRequired": true
+              }
+            },
+            {
+              "role": "secondCount",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "只依据记录回答问题。复制确切原文；问题要求完整句子时复制完整句子。若记录没有提供答案，回答 UNKNOWN。不解释。 Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "教学目标：求至少参加一次活动的登记成员比例的可能范围，构造上下界，并说明直接相加为什么可能重复计数。\n记录：\n先举行的活动是河岸观察，有二十八名不同成员参加。第二次活动是树叶分类，有二十五名不同成员参加。每份签到表内部每个人只计一次。\n问题： 有多少名不同成员参加“树叶分类”？复制计数短语。"
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "requiredInputId": "s2",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 155,
+                "outputTokens": 11,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\"answer\": \"二十五名不同成员参加\"}",
+              "inferenceMs": 821,
+              "answer": "二十五名不同成员参加",
+              "resolution": {
+                "status": "located",
+                "binding": {
+                  "inputId": "s2",
+                  "quote": "二十五",
+                  "occurrence": 0
+                },
+                "witness": {
+                  "inputId": "s2",
+                  "quote": "二十五名不同成员参加",
+                  "start": 36,
+                  "end": 46,
+                  "occurrence": 0
+                },
+                "semanticReviewRequired": true
+              }
+            },
+            {
+              "role": "withinGroupDistinct",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "只依据记录回答问题。复制确切原文；问题要求完整句子时复制完整句子。若记录没有提供答案，回答 UNKNOWN。不解释。 Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "教学目标：求至少参加一次活动的登记成员比例的可能范围，构造上下界，并说明直接相加为什么可能重复计数。\n记录：\n先举行的活动是河岸观察，有二十八名不同成员参加。第二次活动是树叶分类，有二十五名不同成员参加。每份签到表内部每个人只计一次。\n问题： 哪个句子说明每份签到表内部每个人只计一次？"
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "requiredInputId": "s2",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 153,
+                "outputTokens": 16,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\"answer\": \"每份签到表内部每个人只计一次。\"}",
+              "inferenceMs": 1002,
+              "answer": "每份签到表内部每个人只计一次。",
+              "resolution": {
+                "status": "located",
+                "binding": {
+                  "inputId": "s2",
+                  "quote": "每份签到表内部每个人只计一次。",
+                  "occurrence": 0
+                },
+                "witness": {
+                  "inputId": "s2",
+                  "quote": "每份签到表内部每个人只计一次。",
+                  "start": 47,
+                  "end": 62,
+                  "occurrence": 0
+                },
+                "semanticReviewRequired": true
+              }
+            },
+            {
+              "role": "missingOverlap",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "只依据记录回答问题。复制确切原文；问题要求完整句子时复制完整句子。若记录没有提供答案，回答 UNKNOWN。不解释。 Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "教学目标：求至少参加一次活动的登记成员比例的可能范围，构造上下界，并说明直接相加为什么可能重复计数。\n记录：\n虚构青岚自然社共有六十名登记成员。成员名册在两次活动期间保持不变，两次活动均使用这一登记总体。\n\n先举行的活动是河岸观察，有二十八名不同成员参加。第二次活动是树叶分类，有二十五名不同成员参加。每份签到表内部每个人只计一次。\n\n两次活动之间的重复成员人数未记录，两份签到表尚未核对。\n问题： 哪个句子说明两次活动之间的重复成员尚未记录或核对？"
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 204,
+                "outputTokens": 23,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\"answer\": \"两次活动之间的重复成员人数未记录，两份签到表尚未核对。\"}",
+              "inferenceMs": 1303,
+              "answer": "两次活动之间的重复成员人数未记录，两份签到表尚未核对。",
+              "resolution": {
+                "status": "located",
+                "binding": {
+                  "inputId": "s3",
+                  "quote": "两次活动之间的重复成员人数未记录，两份签到表尚未核对。",
+                  "occurrence": 0
+                },
+                "witness": {
+                  "inputId": "s3",
+                  "quote": "两次活动之间的重复成员人数未记录，两份签到表尚未核对。",
+                  "start": 0,
+                  "end": 27,
+                  "occurrence": 0
+                },
+                "semanticReviewRequired": true
+              }
+            }
+          ],
+          "loadMs": 0,
+          "runtime": {
+            "phase": "ready",
+            "progress": 1,
+            "message": "Scion local Gemma 4 is ready.",
+            "error": null,
+            "runtime": {
+              "id": "scion-wllama-webgpu-jspi-v1",
+              "modulePath": "/scion/runtime/v3/wllama.js",
+              "moduleSha256": "92afaea4ca9feefece8790fa32f3b96775d430f7341a8d89e550de368af40bdb",
+              "wasmPath": "/scion/runtime/v3/jspi-single-thread/wllama.wasm",
+              "wasmSha256": "ccb4ffaada3561b60275f652f5067946ed019728d589eaa24604a67d7c207848",
+              "grammar": "gbnf-state-v1",
+              "upstreamRevision": "58903000dbea6acfc0eb9c738d8be50d1052cf23",
+              "llamaCppRevision": "5ec717d1256e34558a44dc09adf1e6e16f2e2682"
+            },
+            "trainingBase": {
+              "modelId": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+              "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+              "architecture": "gemma4"
+            },
+            "activeWeightIdentity": {
+              "modelId": "google/gemma-4-E2B-it-qat-q4_0-gguf",
+              "revision": "69536a21d70340464240401ba38223d805f6a709",
+              "file": "gemma-4-E2B_q4_0-it.gguf",
+              "bytes": 3349514112,
+              "sha256": "3646b4c147cd235a44d91df1546d3b7d8e29b547dbe4e1f80856419aa455e6fd",
+              "format": "gguf-q4_0-qat"
+            },
+            "baseIntegrity": {
+              "expectedSha256": "3646b4c147cd235a44d91df1546d3b7d8e29b547dbe4e1f80856419aa455e6fd",
+              "runtimeCheck": "metadata-and-pinned-url",
+              "fullDigestEvidence": null
+            },
+            "adapter": {
+              "mode": "base-only",
+              "active": false,
+              "id": null,
+              "manifestSha256": null
+            },
+            "storage": {
+              "quota": 14087145814,
+              "usage": 3349727574,
+              "available": 10737418240,
+              "required": 3886385600
+            },
+            "metadata": {
+              "hparams": {
+                "nVocab": 262144,
+                "nCtxTrain": 131072,
+                "nEmbd": 1536,
+                "nLayer": 35
+              },
+              "meta": {
+                "split.count": "5",
+                "tokenizer.ggml.add_bos_token": "true",
+                "general.quantization_version": "2",
+                "tokenizer.ggml.mask_token_id": "4",
+                "tokenizer.ggml.eos_token_id": "1",
+                "tokenizer.ggml.model": "gemma4",
+                "gemma4.rope.dimension_count_swa": "256",
+                "gemma4.rope.dimension_count": "512",
+                "gemma4.embedding_length_per_layer_input": "256",
+                "general.name": "2B_dequant_qat_it_hf",
+                "gemma4.attention.sliding_window": "512",
+                "general.sampling.temp": "1.000000",
+                "gemma4.attention.layer_norm_rms_epsilon": "0.000001",
+                "general.size_label": "4.6B",
+                "gemma4.attention.key_length": "512",
+                "gemma4.rope.freq_base_swa": "10000.000000",
+                "gemma4.attention.head_count_kv": "1",
+                "split.no": "0",
+                "gemma4.attention.head_count": "8",
+                "split.tensors.count": "541",
+                "tokenizer.chat_template": "{%- macro format_parameters(properties, required, filter_keys=false) -%}\n    {%- set standard_keys = ['description', 'type', 'properties', 'required', 'nullable'] -%}\n    {%- set ns = namespace(found_first=false) -%}\n    {%- for key, value in properties | dictsort -%}\n        {%- set add_comma = false -%}\n        {%- if not filter_keys or key not in standard_keys -%}\n            {%- if ns.found_first %},{% endif -%}\n            {%- set ns.found_first = true -%}\n            {{ key }}:{\n            {%- if value['description'] -%}\n                description:<|\"|>{{ value['description'] }}<|\"|>\n                {%- set add_comma = true -%}\n            {%- endif -%}\n            {%- if value['type'] | upper == 'STRING' -%}\n                {%- if value['enum'] -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    enum:{{ format_argument(value['enum']) }}\n                {%- endif -%}\n            {%- elif value['type'] | upper == 'ARRAY' -%}\n                {%- if value['items'] is mapping and value['items'] -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    items:{\n                    {%- set ns_items = namespace(found_first=false) -%}\n                    {%- for item_key, item_value in value['items'] | dictsort -%}\n                        {%- if item_value is not none -%}\n                            {%- if ns_items.found_first %},{% endif -%}\n                            {%- set ns_items.found_first = true -%}\n                            {%- if item_key == 'properties' -%}\n                                properties:{\n                                {%- if item_value is mapping -%}\n                                    {{- format_parameters(item_value, value['items']['required'] | default([])) -}}\n                                {%- endif -%}\n                                }\n                            {%- elif item_key == 'required' -%}\n                                required:[\n                                {%- for req_item in item_value -%}\n                                    <|\"|>{{- req_item -}}<|\"|>\n                                    {%- if not loop.last %},{% endif -%}\n                                {%- endfor -%}\n                                ]\n                            {%- elif item_key == 'type' -%}\n                                {%- if item_value is string -%}\n                                    type:{{ format_argument(item_value | upper) }}\n                                {%- else -%}\n                                    type:{{ format_argument(item_value | map('upper') | list) }}\n                                {%- endif -%}\n                            {%- else -%}\n                                {{ item_key }}:{{ format_argument(item_value) }}\n                            {%- endif -%}\n                        {%- endif -%}\n                    {%- endfor -%}\n                    }\n                {%- endif -%}\n            {%- endif -%}\n            {%- if value['nullable'] %}\n                {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                nullable:true\n            {%- endif -%}\n            {%- if value['type'] | upper == 'OBJECT' -%}\n                {%- if value['properties'] is defined and value['properties'] is mapping -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    properties:{\n                    {{- format_parameters(value['properties'], value['required'] | default([])) -}}\n                    }\n                {%- elif value is mapping -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    properties:{\n                    {{- format_parameters(value, value['required'] | default([]), filter_keys=true) -}}\n                    }\n                {%- endif -%}\n                {%- if value['required'] -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    required:[\n                    {%- for item in value['required'] | default([]) -%}\n                        <|\"|>{{- item -}}<|\"|>\n                        {%- if not loop.last %},{% endif -%}\n                    {%- endfor -%}\n                    ]\n                {%- endif -%}\n            {%- endif -%}\n            {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n            type:<|\"|>{{ value['type'] | upper }}<|\"|>}\n        {%- endif -%}\n    {%- endfor -%}\n{%- endmacro -%}\n{%- macro format_function_declaration(tool_data) -%}\n    declaration:{{- tool_data['function']['name'] -}}{description:<|\"|>{{- tool_data['function']['description'] -}}<|\"|>\n    {%- set params = tool_data['function']['parameters'] -%}\n    {%- if params -%}\n        ,parameters:{\n        {%- if params['properties'] -%}\n            properties:{ {{- format_parameters(params['properties'], params['required']) -}} },\n        {%- endif -%}\n        {%- if params['required'] -%}\n            required:[\n            {%- for item in params['required'] -%}\n                <|\"|>{{- item -}}<|\"|>\n                {{- ',' if not loop.last -}}\n            {%- endfor -%}\n            ],\n        {%- endif -%}\n        {%- if params['type'] -%}\n            type:<|\"|>{{- params['type'] | upper -}}<|\"|>}\n        {%- endif -%}\n    {%- endif -%}\n    {%- if 'response' in tool_data['function'] -%}\n        {%- set response_declaration = tool_data['function']['response'] -%}\n        ,response:{\n        {%- if response_declaration['description'] -%}\n            description:<|\"|>{{- response_declaration['description'] -}}<|\"|>,\n        {%- endif -%}\n        {%- if response_declaration['type'] | upper == 'OBJECT' -%}\n            type:<|\"|>{{- response_declaration['type'] | upper -}}<|\"|>}\n        {%- endif -%}\n    {%- endif -%}\n    }\n{%- endmacro -%}\n{%- macro format_argument(argument, escape_keys=True) -%}\n    {%- if argument is string -%}\n        {{- '<|\"|>' + argument + '<|\"|>' -}}\n    {%- elif argument is boolean -%}\n        {{- 'true' if argument else 'false' -}}\n    {%- elif argument is mapping -%}\n        {{- '{' -}}\n        {%- set ns = namespace(found_first=false) -%}\n        {%- for key, value in argument | dictsort -%}\n            {%- if ns.found_first %},{% endif -%}\n            {%- set ns.found_first = true -%}\n            {%- if escape_keys -%}\n                {{- '<|\"|>' + key + '<|\"|>' -}}\n            {%- else -%}\n                {{- key -}}\n            {%- endif -%}\n            :{{- format_argument(value, escape_keys=escape_keys) -}}\n        {%- endfor -%}\n        {{- '}' -}}\n    {%- elif argument is sequence -%}\n        {{- '[' -}}\n        {%- for item in argument -%}\n            {{- format_argument(item, escape_keys=escape_keys) -}}\n            {%- if not loop.last %},{% endif -%}\n        {%- endfor -%}\n        {{- ']' -}}\n    {%- else -%}\n        {{- argument -}}\n    {%- endif -%}\n{%- endmacro -%}\n{%- macro strip_thinking(text) -%}\n    {%- set ns = namespace(result='') -%}\n    {%- for part in text.split('<channel|>') -%}\n        {%- if '<|channel>' in part -%}\n            {%- set ns.result = ns.result + part.split('<|channel>')[0] -%}\n        {%- else -%}\n            {%- set ns.result = ns.result + part -%}\n        {%- endif -%}\n    {%- endfor -%}\n    {{- ns.result | trim -}}\n{%- endmacro -%}\n\n{%- macro format_tool_response_block(tool_name, response) -%}\n    {{- '<|tool_response>' -}}\n    {%- if response is mapping -%}\n        {{- 'response:' + tool_name + '{' -}}\n        {%- for key, value in response | dictsort -%}\n            {{- key -}}:{{- format_argument(value, escape_keys=False) -}}\n            {%- if not loop.last %},{% endif -%}\n        {%- endfor -%}\n        {{- '}' -}}\n    {%- else -%}\n        {{- 'response:' + tool_name + '{value:' + format_argument(response, escape_keys=False) + '}' -}}\n    {%- endif -%}\n    {{- '<tool_response|>' -}}\n{%- endmacro -%}\n\n{%- set ns = namespace(prev_message_type=None) -%}\n{%- set loop_messages = messages -%}\n{{- bos_token -}}\n{#- Handle System/Tool Definitions Block -#}\n{%- if (enable_thinking is defined and enable_thinking) or tools or messages[0]['role'] in ['system', 'developer'] -%}\n    {{- '<|turn>system\\n' -}}\n    {#- Inject Thinking token at the very top of the FIRST system turn -#}\n    {%- if enable_thinking is defined and enable_thinking -%}\n        {{- '<|think|>\\n' -}}\n        {%- set ns.prev_message_type = 'think' -%}\n    {%- endif -%}\n    {%- if messages[0]['role'] in ['system', 'developer'] -%}\n        {%- if messages[0]['content'] is string -%}\n            {{- messages[0]['content'] | trim -}}\n        {%- elif messages[0]['content'] is sequence -%}\n            {%- for item in messages[0]['content'] -%}\n                {{- item['text'] | trim + ' '-}}\n            {%- endfor -%}\n        {%- endif -%}\n        {%- set loop_messages = messages[1:] -%}\n    {%- endif -%}\n    {%- if tools -%}\n        {%- for tool in tools %}\n            {{- '<|tool>' -}}\n            {{- format_function_declaration(tool) | trim -}}\n            {{- '<tool|>' -}}\n        {%- endfor %}\n        {%- set ns.prev_message_type = 'tool' -%}\n    {%- endif -%}\n    {{- '<turn|>\\n' -}}\n{%- endif %}\n\n{#- Pre-scan: find last user message index for reasoning guard -#}\n{%- set ns_turn = namespace(last_user_idx=-1) -%}\n{%- for i in range(loop_messages | length) -%}\n    {%- if loop_messages[i]['role'] == 'user' -%}\n        {%- set ns_turn.last_user_idx = i -%}\n    {%- endif -%}\n{%- endfor -%}\n\n{#- Loop through messages -#}\n{%- for message in loop_messages -%}\n    {%- if message['role'] != 'tool' -%}\n    {%- set ns.prev_message_type = None -%}\n    {%- set role = 'model' if message['role'] == 'assistant' else message['role'] -%}\n    {#- Detect continuation: suppress duplicate <|turn>model when previous non-tool message was also assistant -#}\n    {%- set prev_nt = namespace(role=None, found=false) -%}\n    {%- if loop.index0 > 0 -%}\n        {%- for j in range(loop.index0 - 1, -1, -1) -%}\n            {%- if not prev_nt.found -%}\n                {%- if loop_messages[j]['role'] != 'tool' -%}\n                    {%- set prev_nt.role = loop_messages[j]['role'] -%}\n                    {%- set prev_nt.found = true -%}\n                {%- endif -%}\n            {%- endif -%}\n        {%- endfor -%}\n    {%- endif -%}\n    {%- set continue_same_model_turn = (role == 'model' and prev_nt.role == 'assistant') -%}\n    {%- if not continue_same_model_turn -%}\n        {{- '<|turn>' + role + '\\n' }}\n    {%- endif -%}\n\n    {#- Render reasoning/reasoning_content as thinking channel -#}\n    {%- set thinking_text = message.get('reasoning') or message.get('reasoning_content') -%}\n    {%- if thinking_text and loop.index0 > ns_turn.last_user_idx and message.get('tool_calls') -%}\n        {{- '<|channel>thought\\n' + thinking_text + '\\n<channel|>' -}}\n    {%- endif -%}\n\n            {%- if message['tool_calls'] -%}\n                {%- for tool_call in message['tool_calls'] -%}\n                    {%- set function = tool_call['function'] -%}\n                    {{- '<|tool_call>call:' + function['name'] + '{' -}}\n                    {%- if function['arguments'] is mapping -%}\n                        {%- set ns_args = namespace(found_first=false) -%}\n                        {%- for key, value in function['arguments'] | dictsort -%}\n                            {%- if ns_args.found_first %},{% endif -%}\n                            {%- set ns_args.found_first = true -%}\n                            {{- key -}}:{{- format_argument(value, escape_keys=False) -}}\n                        {%- endfor -%}\n                    {%- elif function['arguments'] is string -%}\n                        {{- function['arguments'] -}}\n                    {%- endif -%}\n                    {{- '}<tool_call|>' -}}\n                {%- endfor -%}\n                {%- set ns.prev_message_type = 'tool_call' -%}\n            {%- endif -%}\n\n            {%- set ns_tr_out = namespace(flag=false) -%}\n            {%- if message.get('tool_responses') -%}\n                {#- Legacy: tool_responses embedded on the assistant message (Google/Gemma native) -#}\n                {%- for tool_response in message['tool_responses'] -%}\n                    {{- format_tool_response_block(tool_response['name'] | default('unknown'), tool_response['response']) -}}\n                    {%- set ns_tr_out.flag = true -%}\n                    {%- set ns.prev_message_type = 'tool_response' -%}\n                {%- endfor -%}\n            {%- elif message.get('tool_calls') -%}\n                {#- OpenAI Chat Completions: forward-scan consecutive role:tool messages -#}\n                {%- set ns_tool_scan = namespace(stopped=false) -%}\n                {%- for k in range(loop.index0 + 1, loop_messages | length) -%}\n                    {%- if ns_tool_scan.stopped -%}\n                    {%- elif loop_messages[k]['role'] != 'tool' -%}\n                        {%- set ns_tool_scan.stopped = true -%}\n                    {%- else -%}\n                        {%- set follow = loop_messages[k] -%}\n                        {#- Resolve tool_call_id to function name -#}\n                        {%- set ns_tname = namespace(name=follow.get('name') | default('unknown')) -%}\n                        {%- for tc in message['tool_calls'] -%}\n                            {%- if tc.get('id') == follow.get('tool_call_id') -%}\n                                {%- set ns_tname.name = tc['function']['name'] -%}\n                            {%- endif -%}\n                        {%- endfor -%}\n                        {#- Handle content as string or content-parts array -#}\n                        {%- set tool_body = follow.get('content') -%}\n                        {%- if tool_body is string -%}\n                            {{- format_tool_response_block(ns_tname.name, tool_body) -}}\n                        {%- elif tool_body is sequence and tool_body is not string -%}\n                            {%- set ns_txt = namespace(s='') -%}\n                            {%- for part in tool_body -%}\n                                {%- if part.get('type') == 'text' -%}\n                                    {%- set ns_txt.s = ns_txt.s + (part.get('text') | default('')) -%}\n                                {%- endif -%}\n                            {%- endfor -%}\n                            {{- format_tool_response_block(ns_tname.name, ns_txt.s) -}}\n                        {%- else -%}\n                            {{- format_tool_response_block(ns_tname.name, tool_body) -}}\n                        {%- endif -%}\n                        {%- set ns_tr_out.flag = true -%}\n                        {%- set ns.prev_message_type = 'tool_response' -%}\n                    {%- endif -%}\n                {%- endfor -%}\n            {%- endif -%}\n\n            {%- set captured_content -%}\n            {%- if message['content'] is string -%}\n                {%- if role == 'model' -%}\n                    {{- strip_thinking(message['content']) -}}\n                {%- else -%}\n                    {{- message['content'] | trim -}}\n                {%- endif -%}\n            {%- elif message['content'] is sequence -%}\n                {%- for item in message['content'] -%}\n                    {%- if item['type'] == 'text' -%}\n                        {%- if role == 'model' -%}\n                            {{- strip_thinking(item['text']) -}}\n                        {%- else -%}\n                            {{- item['text'] | trim -}}\n                        {%- endif -%}\n                    {%- elif item['type'] == 'image' -%}\n                        {{- '<|image|>' -}}\n                        {%- set ns.prev_message_type = 'image' -%}\n                    {%- elif item['type'] == 'audio' -%}\n                        {{- '<|audio|>' -}}\n                        {%- set ns.prev_message_type = 'audio' -%}\n                    {%- elif item['type'] == 'video' -%}\n                        {{- '<|video|>' -}}\n                        {%- set ns.prev_message_type = 'video' -%}\n                    {%- endif -%}\n                {%- endfor -%}\n            {%- endif -%}\n            {%- endset -%}\n\n            {{- captured_content -}}\n            {%- set has_content = captured_content | trim | length > 0 -%}\n\n        {%- if ns.prev_message_type == 'tool_call' and not ns_tr_out.flag -%}\n            {{- '<|tool_response>' -}}\n        {%- elif not (ns_tr_out.flag and not has_content) -%}\n            {{- '<turn|>\\n' -}}\n        {%- endif -%}\n    {%- endif -%}\n{%- endfor -%}\n\n{%- if add_generation_prompt -%}\n    {%- if ns.prev_message_type != 'tool_response' and ns.prev_message_type != 'tool_call' -%}\n        {{- '<|turn>model\\n' -}}\n    {%- endif -%}\n{%- endif -%}",
+                "gemma4.attention.shared_kv_layers": "20",
+                "gemma4.final_logit_softcapping": "30.000000",
+                "gemma4.attention.key_length_swa": "256",
+                "gemma4.context_length": "131072",
+                "general.file_type": "2",
+                "general.finetune": "2B_dequant_qat_it_hf",
+                "gemma4.embedding_length": "1536",
+                "tokenizer.ggml.add_space_prefix": "false",
+                "general.architecture": "gemma4",
+                "tokenizer.ggml.padding_token_id": "0",
+                "general.sampling.top_k": "64",
+                "gemma4.block_count": "35",
+                "tokenizer.ggml.bos_token_id": "2",
+                "gemma4.attention.value_length_swa": "256",
+                "general.type": "model",
+                "tokenizer.ggml.unknown_token_id": "3",
+                "general.sampling.top_p": "0.950000",
+                "gemma4.attention.value_length": "512",
+                "gemma4.rope.freq_base": "1000000.000000"
+              }
+            }
+          },
+          "fieldIssues": {},
+          "elapsedMs": 9237
+        },
+        "modelCalls": 9
+      }
+    }
+  ],
+  "plan": {
+    "createdAt": "2026-09-08T08:32:31.650737+00:00",
+    "purpose": "One fixed pass of complete source bundles through bounded atomic proposal runner; research only.",
+    "maxCallsPerCase": 12,
+    "maxTotalCalls": 48,
+    "repairs": "Only preimplemented bounded contextual clarification; no human edits during run.",
+    "acceptance": "Review every semantic binding, missing roles, diagnostics and whole-case time; structural validity alone is not success.",
+    "hashes": {
+      "src/lib/scionAtomicProposal.js": "6e49e9b11b7829bf5dadbc0abf211182fa62df148175467b1d216158263b317e",
+      "src/lib/scionAtomicSourceAnswer.js": "4ae5e5c80febe0113f8fce77c52e73855cf89413c405c2e36249b44754bce86a",
+      "src/lib/scionQuantitySelection.js": "824010b50d50cd63b5b786215a155d39bf0fb91c7e93a2d5f266fd7b6b88043e",
+      "research/scion/evaluation/v0.20.0/atomic-proposals/inputs.json": "e5b73a003f7bc3abc765530953329d0242f37f37c149e4ad72f236e8bb27c264"
+    }
+  },
+  "progress": "核对来源 9/12…",
+  "finishedAt": "2026-09-08T08:33:49.194Z"
+}

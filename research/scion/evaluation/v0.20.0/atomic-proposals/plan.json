@@ -1,0 +1,14 @@
+{
+  "createdAt": "2026-09-08T08:32:31.650737+00:00",
+  "purpose": "One fixed pass of complete source bundles through bounded atomic proposal runner; research only.",
+  "maxCallsPerCase": 12,
+  "maxTotalCalls": 48,
+  "repairs": "Only preimplemented bounded contextual clarification; no human edits during run.",
+  "acceptance": "Review every semantic binding, missing roles, diagnostics and whole-case time; structural validity alone is not success.",
+  "hashes": {
+    "src/lib/scionAtomicProposal.js": "6e49e9b11b7829bf5dadbc0abf211182fa62df148175467b1d216158263b317e",
+    "src/lib/scionAtomicSourceAnswer.js": "4ae5e5c80febe0113f8fce77c52e73855cf89413c405c2e36249b44754bce86a",
+    "src/lib/scionQuantitySelection.js": "824010b50d50cd63b5b786215a155d39bf0fb91c7e93a2d5f266fd7b6b88043e",
+    "research/scion/evaluation/v0.20.0/atomic-proposals/inputs.json": "e5b73a003f7bc3abc765530953329d0242f37f37c149e4ad72f236e8bb27c264"
+  }
+}

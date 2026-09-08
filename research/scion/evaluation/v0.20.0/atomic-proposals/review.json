@@ -1,0 +1,62 @@
+{
+  "reviewer": "implementer",
+  "independentTeacherReview": false,
+  "fullReleaseAcceptance": false,
+  "sourceReceiptSha256": "2e11a6cc45e1e0755c89ecee8869c1453e634c45edf7b7b9e70f393caee68504",
+  "cases": [
+    {
+      "id": "atomic-pool-en-01",
+      "acceptedForImplementerOutputReview": false,
+      "semanticCorrections": 0,
+      "complete": false,
+      "modelCalls": 7,
+      "elapsedMs": 11362,
+      "loadMs": 3795,
+      "findings": [
+        "No complete proposal. Group labels remain ambiguous or not exact; dependent quantity roles cannot be asked.",
+        "Premise and limitation excerpts are correct but insufficient to compile this operation.",
+        "Failure retained; pooling atomic route is not promoted."
+      ]
+    },
+    {
+      "id": "atomic-pool-zh-01",
+      "acceptedForImplementerOutputReview": false,
+      "semanticCorrections": 0,
+      "complete": false,
+      "modelCalls": 7,
+      "elapsedMs": 7958,
+      "loadMs": 0,
+      "findings": [
+        "No complete proposal. Group labels remain ambiguous or not exact; dependent quantity roles cannot be asked.",
+        "Premise and limitation excerpts are correct but insufficient to compile this operation.",
+        "Failure retained; pooling atomic route is not promoted."
+      ]
+    },
+    {
+      "id": "atomic-union-en-01",
+      "acceptedForImplementerOutputReview": true,
+      "semanticCorrections": 0,
+      "complete": true,
+      "modelCalls": 9,
+      "elapsedMs": 9495,
+      "loadMs": 0,
+      "findings": [
+        "All nine queried roles match supplied source meaning; three parent records derive from their witnesses.",
+        "Chinese population label includes fictional qualifier, which is source-accurate."
+      ]
+    },
+    {
+      "id": "atomic-union-zh-01",
+      "acceptedForImplementerOutputReview": true,
+      "semanticCorrections": 0,
+      "complete": true,
+      "modelCalls": 9,
+      "elapsedMs": 9237,
+      "loadMs": 0,
+      "findings": [
+        "All nine queried roles match supplied source meaning; three parent records derive from their witnesses.",
+        "Chinese population label includes fictional qualifier, which is source-accurate."
+      ]
+    }
+  ]
+}

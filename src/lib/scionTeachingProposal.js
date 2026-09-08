@@ -316,6 +316,21 @@ export async function proposeTeachingSourceBindings(
     await api.loadScionBrowserWllama({ signal });
     receipt.loadMs = Math.round(performance.now() - loadStarted);
     receipt.runtime = api.getScionBrowserWllamaStatus?.();
+    if (snapshot.operation === 'union-bounds' && receipt.runtime?.runtime?.grammar === 'gbnf-state-v1') {
+      const { proposeAtomicSourceBindings } = await import('./scionAtomicProposal.js');
+      const result = await proposeAtomicSourceBindings(snapshot, {
+        signal,
+        onProgress,
+        runtimeLoader: async () => api,
+      });
+      if (result.receipt) {
+        result.receipt.sourceQuestionMs = result.receipt.elapsedMs;
+        result.receipt.loadMs += receipt.loadMs;
+        result.receipt.startedAt = receipt.startedAt;
+        result.receipt.elapsedMs = Math.round(performance.now() - started);
+      }
+      return result;
+    }
     const constrainedChronology =
       snapshot.operation === 'record-relative-day' && receipt.runtime?.runtime?.grammar === 'gbnf-state-v1';
     if (snapshot.operation === 'record-relative-day' && !constrainedChronology)

@@ -230,7 +230,15 @@ function projectAssignment(row, task, blueprint) {
         `首次作答后再比较示范答案：${task.answer}`,
       ),
       taskText(task, `Error example: ${task.errors[0].response}`, `错误示例：${task.errors[0].response}`),
-      anchors(task).scoringRationale,
+      task.operationPlan?.operation === 'union-bounds' && task.operationPlan.presentationVersion >= 5
+        ? task.contrastResponses
+            .find((example) => example.response === task.errors[0].response)
+            ?.judgments.map(
+              (judgment) =>
+                `${task.criteria.find((criterion) => criterion.id === judgment.criterionId).label}: ${judgment.rationale}`,
+            )
+            .join(' ') || task.errors[0].feedback
+        : anchors(task).scoringRationale,
       anchors(task).revisionPrompt,
     ],
     modelContrast: {

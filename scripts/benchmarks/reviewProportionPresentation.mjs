@@ -39,6 +39,15 @@ const outputFeatures =
   process.argv[4]?.split(',') || (experiment ? ['assignments', 'rubrics', 'studyGuides'] : ['rubrics', 'studyGuides']);
 if (outputFeatures.some((feature) => !['assignments', 'rubrics', 'studyGuides', 'quizBank'].includes(feature)))
   throw new Error('Unsupported inspection feature.');
+// Optional actual model receipt; require a separately recorded semantic review.
+const proposalDir = process.argv[5];
+const proposalInputs = proposalDir ? JSON.parse(await fs.readFile(path.join(proposalDir, 'inputs.json'), 'utf8')) : [];
+const proposalRuns = proposalDir
+  ? JSON.parse(await fs.readFile(path.join(proposalDir, 'first-run-raw.json'), 'utf8')).cases
+  : [];
+const proposalReviews = proposalDir
+  ? JSON.parse(await fs.readFile(path.join(proposalDir, 'review.json'), 'utf8')).cases
+  : [];
 await fs.mkdir(root, { recursive: false });
 const actualFetch = globalThis.fetch;
 // A CLI has no Vite asset server. Load only the same shipped font bytes that
@@ -62,7 +71,7 @@ const features = [
 const report = [];
 try {
   for (const zh of [false, true]) {
-    const f = (
+    let f = (
       union
         ? unionCountsFixture
         : pooling
@@ -71,6 +80,24 @@ try {
             ? comparisonDesignFixture
             : proportionPresentationFixture
     )(zh);
+    let proposal;
+    if (proposalDir) {
+      const candidates = proposalInputs.filter(
+        (i) => i.operation === operation && /\p{Script=Han}/u.test(i.objective) === zh,
+      );
+      assert.equal(candidates.length, 1, 'Exactly one reviewed case per language is required.');
+      const input = candidates[0];
+      const review = proposalReviews.find((c) => c.id === input.id);
+      assert(
+        review?.acceptedForImplementerOutputReview && review.semanticCorrections === 0,
+        'Unreviewed or corrected model result cannot be silently captured.',
+      );
+      proposal = proposalRuns.find((c) => c.id === input.id)?.result;
+      assert.equal(proposal?.status, 'review');
+      assert.deepEqual(proposal.missing, []);
+      assert.deepEqual(proposal.issues, []);
+      f = input;
+    }
     const name = union
       ? zh
         ? '活动参与范围'
@@ -110,19 +137,22 @@ try {
     assert(draft.creation, draft.message);
     draft.inputs = f.inputs;
     draft.objective = f.objective;
-    draft.bindings = Object.fromEntries(
-      Object.entries(f.bindings).map(([role, span]) => [
-        role,
-        {
-          inputId: span.inputId,
-          quote: f.inputs.find((input) => input.id === span.inputId).text.slice(span.start, span.end),
-          occurrence: quoteOccurrences(
-            f.inputs.find((input) => input.id === span.inputId).text,
-            f.inputs.find((input) => input.id === span.inputId).text.slice(span.start, span.end),
-          ).indexOf(span.start),
-        },
-      ]),
-    );
+    draft.bindings = proposal
+      ? structuredClone(proposal.bindings)
+      : Object.fromEntries(
+          Object.entries(f.bindings).map(([role, span]) => [
+            role,
+            {
+              inputId: span.inputId,
+              quote: f.inputs.find((input) => input.id === span.inputId).text.slice(span.start, span.end),
+              occurrence: quoteOccurrences(
+                f.inputs.find((input) => input.id === span.inputId).text,
+                f.inputs.find((input) => input.id === span.inputId).text.slice(span.start, span.end),
+              ).indexOf(span.start),
+            },
+          ]),
+        );
+    if (proposal) draft.proposal = structuredClone(proposal.receipt);
     const preview = previewTeachingTaskReview({ courseMap, deliverables, draft });
     assert.equal(preview.status, 'preview', preview.message);
     // Explicit structure fixture reviewed by its implementer, not independent
@@ -169,10 +199,13 @@ try {
       path: dir,
       taskId: task.id,
       taskRevision: task.revision,
-      modelCalls: 0,
+      modelCalls: proposal?.modelCalls || 0,
+      sourceCaseId: proposal ? f.id : undefined,
       changedMaterials: Object.keys(applied.changed),
       input: f.inputs,
-      reviewBasis: 'implementer-constructed explicit structure',
+      reviewBasis: proposal
+        ? 'actual Scion source proposal; explicit implementer semantic review, zero corrected fields'
+        : 'implementer-constructed explicit structure',
       answer: task.answer,
       alternative: task.contrastResponses[3].response,
     });
@@ -183,7 +216,7 @@ try {
       {
         createdAt: new Date().toISOString(),
         operation,
-        scope: `Two development tasks and ${2 * outputFeatures.length} actual DOCX/PDF export pairs. Not a full course or held-out/model evaluation.`,
+        scope: `Two ${proposalDir ? 'actual Scion-proposed, implementer-reviewed' : 'authored development'} tasks and ${2 * outputFeatures.length} actual DOCX/PDF export pairs. Not a full course or independent classroom evaluation.`,
         report,
       },
       null,

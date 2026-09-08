@@ -52,3 +52,17 @@ it('derives a complete record only from uniquely located evidence and honors an 
     resolveAtomicSourceAnswer('The list stayed unchanged.', inputs, { type: 'record', inputId: 'gone' }).status,
   ).toBe('needs-review');
 });
+
+it('uses verified clarification context without guessing among globally repeated counts', () => {
+  const inputs = [{ id: 's', text: 'North issued twelve tools. At South, twelve of forty-eight tools returned.' }];
+  const context = resolveAtomicSourceAnswer('At South, twelve of forty-eight tools returned.', inputs).witness;
+  const result = resolveAtomicSourceAnswer('twelve', inputs, { type: 'count', context });
+  expect(result.status).toBe('located');
+  expect(result.binding.occurrence).toBe(1);
+  expect(resolveAtomicSourceAnswer('twelve', inputs, { type: 'count', context: { ...context, start: 0 } }).status).toBe(
+    'needs-review',
+  );
+  const multi = resolveAtomicSourceAnswer(context.quote, inputs, { type: 'count' });
+  expect(multi.status).toBe('needs-review');
+  expect(multi.witness).toEqual(context);
+});

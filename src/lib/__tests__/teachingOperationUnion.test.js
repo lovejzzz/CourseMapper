@@ -117,6 +117,9 @@ describe('reviewed union material contract', () => {
       const draft = createNewTeachingTaskReviewDraft(courseMap, { lessonNumber: 1, operation: 'union-bounds' });
       Object.assign(draft, { inputs: f.inputs, bindings: f.selections, objective: f.objective });
       const initial = apply({ courseMap, deliverables, draft });
+      const guidance = initial.deliverables.assignments.data.assignments[0].anchorExampleGuidance;
+      expect(guidance[2]).toContain(zh ? '注意到缺失重叠' : 'Notices missing overlap');
+      expect(guidance[2]).not.toContain(zh ? '界限正确' : 'Correct bounds');
       const source = readTeachingTaskSources(initial.courseMap)[0];
       const transfer = rebuildTeachingTaskSource(source).sequence.find((u) => u.kind === 'independent-transfer');
       expect(transfer.answer).toContain('18/40 = 45%');

@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Use bounded local source questions for reviewed union bounds on the verified runtime. Preserve exact evidence, cancellation and existing teacher selections; retain failed pooling proposals as research. Audit two actual Scion-derived tasks and 24 PDF pages, verify linked count edits/reopen, and fix an assignment error explanation that referred to a different response.
+
 - Record a fixed 24-call atomic source-reading diagnostic and add a source-answer resolver that retains exact provenance, extracts only a unique contained count, and refuses rewritten or ambiguous evidence. The resolver remains outside production proposal routing pending complete-task validation.
 
 - Reject bare counts used as union population names or evidence premises; retain separate validation failures so repair selection favors actual improvements. Preserve the four-input count-selection experiment as research only after semantic review rejects its apparent structural passes.

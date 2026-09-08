@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><title>Complete source proposal trial</title>
+  <h1>Complete sources · fixed atomic proposal trial</h1>
+  <button id="run">Run trial</button
+  ><button id="cancel" disabled>Cancel</button
+  ><button id="save" disabled>Save raw receipt</button>
+  <pre id="result">Idle</pre>
+  <script type="module">
+    import { proposeAtomicSourceBindings } from '/src/lib/scionAtomicProposal.js';
+    import { unloadScionBrowserWllama } from '/src/lib/scionBrowserWllama.js';
+    if (!['localhost', '127.0.0.1'].includes(location.hostname)) throw Error('Local only');
+    const run = document.querySelector('#run'),
+      cancel = document.querySelector('#cancel'),
+      save = document.querySelector('#save'),
+      view = document.querySelector('#result');
+    let receipt, controller;
+    const render = () =>
+      (view.textContent = JSON.stringify(
+        {
+          status: receipt.status,
+          completed: receipt.cases.length,
+          total: 4,
+          progress: receipt.progress,
+          error: receipt.error,
+        },
+        null,
+        2,
+      ));
+    run.onclick = async () => {
+      run.disabled = true;
+      cancel.disabled = false;
+      controller = new AbortController();
+      receipt = { startedAt: new Date().toISOString(), status: 'loading', cases: [] };
+      render();
+      try {
+        const inputs = await (await fetch('./inputs.json')).json();
+        receipt.plan = await (await fetch('./plan.json')).json();
+        for (const input of inputs) {
+          if (controller.signal.aborted) break;
+          receipt.status = input.id;
+          render();
+          const result = await proposeAtomicSourceBindings(input, {
+            signal: controller.signal,
+            onProgress: (text) => {
+              receipt.progress = text;
+              render();
+            },
+          });
+          receipt.cases.push({ id: input.id, result });
+          render();
+        }
+        receipt.status = controller.signal.aborted ? 'cancelled' : 'completed-for-review';
+      } catch (e) {
+        receipt.error = e.message;
+        receipt.status = 'failed';
+      } finally {
+        await unloadScionBrowserWllama();
+        receipt.finishedAt = new Date().toISOString();
+        cancel.disabled = true;
+        save.disabled = false;
+        render();
+      }
+    };
+    cancel.onclick = () => controller.abort();
+    save.onclick = () => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([JSON.stringify(receipt, null, 2)], { type: 'application/json' }));
+      a.download = 'scion-atomic-proposals.json';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    };
+  </script>
+</html>

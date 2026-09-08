@@ -1,0 +1,78 @@
+[
+  {
+    "id": "atomic-pool-en-01",
+    "operation": "pooled-proportion",
+    "objective": "Compare the combined return rate with the equally weighted group average, and explain why these records cannot identify a cause.",
+    "inputs": [
+      {
+        "id": "s1",
+        "text": "This fictional tool library report first describes Cedar depot. Cedar depot issued forty tools; sixteen tools were returned by closing. It next describes Willow depot. Willow depot issued sixty tools; thirty-six tools were returned by closing."
+      },
+      {
+        "id": "s2",
+        "text": "For both depots, a return means the issued tool was checked back in by closing on the same reporting day. No issued tool belongs to both depot groups."
+      },
+      {
+        "id": "s3",
+        "text": "The records contain counts only. They do not measure travel distance or loan duration, so they cannot explain the cause of the difference in return rates."
+      }
+    ]
+  },
+  {
+    "id": "atomic-pool-zh-01",
+    "operation": "pooled-proportion",
+    "objective": "比较合并归还率与两个站点归还率的等权平均，并解释这些记录为什么不能支持因果结论。",
+    "inputs": [
+      {
+        "id": "s1",
+        "text": "这份虚构借用报告先介绍松林站。松林站借出二十件器材，其中十五件在闭馆前归还。随后介绍海湾站。海湾站借出四十件器材，其中十件在闭馆前归还。"
+      },
+      {
+        "id": "s2",
+        "text": "两站都将“归还”定义为同一报告日闭馆前完成归还登记。每件借出的器材只属于一个站点，不存在跨站重复。"
+      },
+      {
+        "id": "s3",
+        "text": "记录仅有数量，没有记录借用时长或借用者的出行距离，因此不能解释两站归还率差异的原因。"
+      }
+    ]
+  },
+  {
+    "id": "atomic-union-en-01",
+    "operation": "union-bounds",
+    "objective": "Determine the possible fraction of registered members who attended at least one event; construct both extreme cases and explain why adding attendance counts may overcount.",
+    "inputs": [
+      {
+        "id": "s1",
+        "text": "The fictional Meadow History Society has seventy registered members. The membership list stayed unchanged, and both events used this same registered population."
+      },
+      {
+        "id": "s2",
+        "text": "The first event was archive mapping, attended by forty-four distinct members. The second event was oral history practice, attended by thirty-eight distinct members. Within each attendance list, every person is counted once."
+      },
+      {
+        "id": "s3",
+        "text": "The number of members attending both events was not recorded, and the two attendance lists have not been matched."
+      }
+    ]
+  },
+  {
+    "id": "atomic-union-zh-01",
+    "operation": "union-bounds",
+    "objective": "求至少参加一次活动的登记成员比例的可能范围，构造上下界，并说明直接相加为什么可能重复计数。",
+    "inputs": [
+      {
+        "id": "s1",
+        "text": "虚构青岚自然社共有六十名登记成员。成员名册在两次活动期间保持不变，两次活动均使用这一登记总体。"
+      },
+      {
+        "id": "s2",
+        "text": "先举行的活动是河岸观察，有二十八名不同成员参加。第二次活动是树叶分类，有二十五名不同成员参加。每份签到表内部每个人只计一次。"
+      },
+      {
+        "id": "s3",
+        "text": "两次活动之间的重复成员人数未记录，两份签到表尚未核对。"
+      }
+    ]
+  }
+]

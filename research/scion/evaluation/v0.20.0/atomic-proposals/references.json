@@ -1,0 +1,55 @@
+{
+  "notSentToModel": true,
+  "cases": {
+    "atomic-pool-en-01": {
+      "counts": [
+        16,
+        40,
+        36,
+        60
+      ],
+      "pooled": "52%",
+      "equal": "50%"
+    },
+    "atomic-pool-zh-01": {
+      "counts": [
+        15,
+        20,
+        10,
+        40
+      ],
+      "pooled": "125/3%",
+      "equal": "50%"
+    },
+    "atomic-union-en-01": {
+      "counts": [
+        70,
+        44,
+        38
+      ],
+      "overlap": [
+        12,
+        38
+      ],
+      "union": [
+        44,
+        70
+      ]
+    },
+    "atomic-union-zh-01": {
+      "counts": [
+        60,
+        28,
+        25
+      ],
+      "overlap": [
+        0,
+        25
+      ],
+      "union": [
+        28,
+        53
+      ]
+    }
+  }
+}
