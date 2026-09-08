@@ -1,0 +1,38 @@
+{
+  "baseline": "708fff32479020536c941b6770c579815c136244",
+  "kind": "transaction-and-component-fault-injection",
+  "change": "Journal confirmed feedback applications privately before course commit; recover interrupted receipts only against the exact target source.",
+  "checks": {
+    "targetedTests": 53,
+    "studioTests": 58,
+    "compatibilityTests": 682,
+    "scionTests": 898,
+    "fullCheck": "passed",
+    "touchedCodeFormat": "passed",
+    "frozenCorpus": "unchanged"
+  },
+  "covered": [
+    "serialized draft reload",
+    "receipt storage failure after real course commit",
+    "component unmount and project reopen",
+    "private receipt recovery on opening response review",
+    "failed write retry",
+    "unapplied preview not recovered",
+    "original or later source not recovered",
+    "newer judgment preserved",
+    "motivating judgment preserved",
+    "repeat recovery adds no duplicate",
+    "deleted response not recreated",
+    "private response excluded from transaction"
+  ],
+  "limits": [
+    "No browser process crash was induced.",
+    "No new model calls, reserved product runs, full-course exports or independent teacher review.",
+    "Later differing task versions remain pending rather than inferring a historical commit.",
+    "Recovered appliedAt records receipt completion time, not the exact earlier course commit time."
+  ],
+  "release": {
+    "version": "0.19.2",
+    "v0200Complete": false
+  }
+}

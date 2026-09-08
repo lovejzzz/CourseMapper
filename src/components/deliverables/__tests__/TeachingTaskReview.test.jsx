@@ -400,7 +400,7 @@ describe('teacher structure review interaction', () => {
     expect(onPreview.mock.calls[0][0].bindings.priorValue.quote).toBe('120');
   });
 
-  it('associates an applied restored feedback draft with its private response without an in-memory callback', async () => {
+  it('recovers an interrupted receipt after applying a restored feedback draft and reopening the project', async () => {
     const state = await renderPerformanceReview();
     const record = createResponseReview(state.source, 'PRIVATE restored response.');
     const criterionId = record.snapshot.criteria[0].id;
@@ -417,9 +417,11 @@ describe('teacher structure review interaction', () => {
       materialData: state.data,
       featureId: 'rubrics',
     });
+    let failReceipt = true;
     const responseStore = {
       list: async () => ({ records: [structuredClone(latest)], unreadable: [] }),
       save: async (next) => {
+        if (failReceipt && next.improvements?.length) throw new Error('Storage temporarily unavailable');
         latest = structuredClone(next);
       },
     };
@@ -438,6 +440,22 @@ describe('teacher structure review interaction', () => {
     await click(container.querySelector('[data-testid="teaching-review-confirm"]'));
     await click(button('Apply reviewed changes'));
     expect(state.onCommit).toHaveBeenCalledTimes(1);
+    expect(latest.improvements || []).toHaveLength(0);
+    expect(latest.pendingFeedbackRevision.application).toBeDefined();
+    expect(container.textContent).toContain('Task updated; check the local revision record');
+    const applied = state.onCommit.mock.results[0].value;
+    await act(async () => root.unmount());
+    root = createRoot(container);
+    failReceipt = false;
+    await renderReview({ ...state, courseMap: JSON.parse(JSON.stringify(applied.courseMap)), responseStore });
+    await act(async () => {
+      const summary = [...container.querySelectorAll('summary')].find(
+        (element) => element.textContent === 'Review student responses',
+      );
+      const panel = summary.parentElement;
+      panel.open = true;
+      panel.dispatchEvent(new Event('toggle'));
+    });
     expect(latest.improvements).toHaveLength(1);
     expect(latest.improvements[0].judgment.reason).toBe('PRIVATE missing group.');
     expect(latest.pendingFeedbackRevision).toBeUndefined();

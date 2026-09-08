@@ -95,6 +95,12 @@ export function validateResponseReview(record) {
       throw new Error('Invalid pending feedback revision.');
     check([pending.judgment]);
     requireText(pending.feedback, 6000, 'pending teaching feedback');
+    if (
+      pending.application &&
+      (!/^[a-f0-9]{64}$/.test(pending.application.previewRevision) ||
+        !/^[a-f0-9]{64}$/.test(pending.application.sourceRevision))
+    )
+      throw new Error('Invalid pending feedback application.');
   }
   const improvements = record.improvements || [];
   if (

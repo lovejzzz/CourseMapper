@@ -1,7 +1,11 @@
 import React, { useMemo, useState } from 'react';
 import { saveAs } from 'file-saver';
 import TeachingResponseCsvImport from './TeachingResponseCsvImport.jsx';
-import { createResponseRevisionReceipt, saveResponseRevisionReceipt } from '../../../lib/teachingResponseRevision.js';
+import {
+  createResponseRevisionReceipt,
+  saveResponseRevisionReceipt,
+  recoverPendingResponseFeedback,
+} from '../../../lib/teachingResponseRevision.js';
 import { createTeachingResponseStore } from '../../../lib/teachingResponseStore.js';
 import {
   createResponseReview,
@@ -59,6 +63,7 @@ export default function TeachingResponseReview({ source, zh, disabled, store: su
     }
   }
   async function refresh() {
+    await recoverPendingResponseFeedback(store, source);
     const result = await store.list();
     setRecords(result.records);
     setActive((current) => (current ? result.records.find((entry) => entry.id === current.id) || null : null));

@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Recover interrupted private feedback receipts when response review reopens against the exact committed task. Journal the confirmed revision before changing course materials; preserve newer judgments, respect deletion and leave unapplied or subsequently changed tasks pending.
+
 - Upgrade reviewed membership tasks to presentation v6: explicitly assess intersection and union ranges, paired counts and feasibility of every intermediate integer. Add concrete scoring distinctions, paragraph references and response paper; keep PDF table headers with their first body row. Preserve v3–v5 task renderings byte-for-byte in English/Chinese. Audit six English PDF pages from a saved real-model task.
 
 - Add one-action local task drafting in the existing source review editor: preserve the chosen lesson/focus, copy supplied records, request source bindings and open a validated reference/scoring preview. Incomplete or cancelled proposals remain saved drafts; application still requires confirmation. Manual drafting remains available.

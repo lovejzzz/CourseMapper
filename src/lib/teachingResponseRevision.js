@@ -1,4 +1,4 @@
-import { createTeachingTaskReviewDraft } from './teachingTaskReview.js';
+import { createTeachingTaskReviewDraft, resolveTeachingTaskReviewDraft } from './teachingTaskReview.js';
 import { rebuildTeachingTaskSource } from './teachingTaskSource.js';
 import { responseReviewRevision, validateResponseReview } from './teachingResponseReview.js';
 
@@ -119,6 +119,45 @@ export async function pendingResponseFeedbackForDraft(store, draft) {
   return records.filter(
     (record) => record.taskId === draft.taskId && record.pendingFeedbackRevision?.draftRevision === revision,
   );
+}
+
+/** Write ahead of the confirmed course transaction. A proposal alone cannot
+ * complete this journal: recovery also requires the exact committed source. */
+export async function stagePendingResponseFeedback(store, records, preview) {
+  for (const record of records) {
+    const current = (await store.list()).records.find((row) => row.id === record.id);
+    if (!current) throw new Error('The local response is no longer available.');
+    const pending = current.pendingFeedbackRevision;
+    if (!pending || pending.draftRevision !== responseReviewRevision(preview.draft))
+      throw new Error('The pending feedback changed. Reopen the review before applying it.');
+    const resolved = resolveTeachingTaskReviewDraft(current.snapshot.source, preview.draft, preview.reviewedAt);
+    if (resolved.status !== 'valid') throw new Error(resolved.message);
+    const next = structuredClone(current);
+    next.pendingFeedbackRevision.application = {
+      previewRevision: preview.revision,
+      sourceRevision: responseReviewRevision(resolved.source),
+    };
+    await store.save(validateResponseReview(next), responseReviewRevision(current));
+  }
+}
+
+/** Reopening the private notebook can finish a receipt interrupted by reload.
+ * Unapplied, undone, differently edited and unrelated tasks never match. */
+export async function recoverPendingResponseFeedback(store, source) {
+  if (!source) return 0;
+  const revision = responseReviewRevision(source);
+  const { records } = await store.list();
+  let recovered = 0;
+  for (const record of records) {
+    const application = record.pendingFeedbackRevision?.application;
+    if (record.taskId !== source.id || application?.sourceRevision !== revision) continue;
+    await completePendingResponseFeedback(store, [record], {
+      previewRevision: application.previewRevision,
+      updatedSource: source,
+    });
+    recovered++;
+  }
+  return recovered;
 }
 
 export async function completePendingResponseFeedback(store, records, applied) {

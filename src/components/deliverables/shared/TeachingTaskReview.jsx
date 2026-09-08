@@ -7,6 +7,7 @@ import {
   savePendingResponseFeedback,
   pendingResponseFeedbackForDraft,
   completePendingResponseFeedback,
+  stagePendingResponseFeedback,
 } from '../../../lib/teachingResponseRevision.js';
 import { createTeachingResponseStore } from '../../../lib/teachingResponseStore.js';
 import { sameJsonData } from '../../../lib/canonicalJson.js';
@@ -372,6 +373,7 @@ export default function TeachingTaskReview({
             requirement.feedback,
         );
       const pendingResponses = changesFeedback ? await pendingResponseFeedbackForDraft(notebook, preview.draft) : [];
+      if (pendingResponses.length) await stagePendingResponseFeedback(notebook, pendingResponses, preview);
       const result = await onCommit(preview, confirmed);
       if (result.status === 'applied') {
         onRemoveDraft?.(draft.taskId);

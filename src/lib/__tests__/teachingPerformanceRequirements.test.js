@@ -9,6 +9,8 @@ import {
   savePendingResponseFeedback,
   pendingResponseFeedbackForDraft,
   completePendingResponseFeedback,
+  stagePendingResponseFeedback,
+  recoverPendingResponseFeedback,
 } from '../teachingResponseRevision.js';
 import { performanceRequirementsFixture } from '../../../tests/fixtures/teaching/performanceRequirements.js';
 import { proportionCourseDraft } from '../../../tests/fixtures/teaching/courses/proportionCourse.js';
@@ -702,4 +704,65 @@ it('does not persist a mismatched draft or hide a failed private association wri
   );
   await expect(savePendingResponseFeedback(store, reviewed, draft, request)).rejects.toThrow('Storage full');
   expect(reviewed.pendingFeedbackRevision).toBeUndefined();
+});
+
+it('recovers a receipt only after the exact confirmed task survives a reload', async () => {
+  const s = state();
+  const record = createResponseReview(s.source, 'PRIVATE RESPONSE: 42.5%.');
+  const criterionId = record.snapshot.criteria[0].id;
+  const reviewed = confirmResponseJudgment(record, {
+    criterionId,
+    level: 'insufficient',
+    reason: 'Original private judgment.',
+  });
+  const request = {
+    record: reviewed,
+    source: s.source,
+    criterionId,
+    feedback: 'Identify the 40 observed volunteers before interpreting 17 out of 40.',
+  };
+  const draft = prepareResponseFeedbackRevision(request);
+  let latest = reviewed;
+  let failWrites = false;
+  const store = {
+    list: async () => ({ records: latest ? [structuredClone(latest)] : [] }),
+    save: async (next) => {
+      if (failWrites) throw new Error('Storage full');
+      latest = structuredClone(next);
+    },
+  };
+  await savePendingResponseFeedback(store, reviewed, draft, request);
+  const preview = previewTeachingTaskReview({ ...s, draft });
+  const applied = commitTeachingTaskReview({ ...s, preview, teacherConfirmed: true });
+  expect(applied.status).toBe('applied');
+  const target = readTeachingTaskSources(applied.courseMap)[0];
+  // Previewing and persisting an ordinary draft do not journal confirmation.
+  expect(await recoverPendingResponseFeedback(store, target)).toBe(0);
+  failWrites = true;
+  await expect(stagePendingResponseFeedback(store, [latest], preview)).rejects.toThrow('Storage full');
+  expect(latest.pendingFeedbackRevision.application).toBeUndefined();
+  failWrites = false;
+  await stagePendingResponseFeedback(store, [latest], preview);
+  latest = JSON.parse(JSON.stringify(latest));
+  expect(await recoverPendingResponseFeedback(store, s.source)).toBe(0);
+  expect(await recoverPendingResponseFeedback(store, { ...target, objective: 'Later edit' })).toBe(0);
+  latest = confirmResponseJudgment(latest, {
+    criterionId,
+    level: 'insufficient',
+    reason: 'Newer private judgment.',
+  });
+  failWrites = true;
+  await expect(recoverPendingResponseFeedback(store, target)).rejects.toThrow('Storage full');
+  expect(latest.pendingFeedbackRevision.application).toBeDefined();
+  failWrites = false;
+  expect(await recoverPendingResponseFeedback(store, JSON.parse(JSON.stringify(target)))).toBe(1);
+  expect(latest.improvements).toHaveLength(1);
+  expect(latest.improvements[0].id).toBe(preview.revision);
+  expect(latest.improvements[0].judgment.reason).toBe('Original private judgment.');
+  expect(latest.judgments[0].reason).toBe('Newer private judgment.');
+  expect(latest.pendingFeedbackRevision).toBeUndefined();
+  expect(await recoverPendingResponseFeedback(store, target)).toBe(0);
+  expect(JSON.stringify(applied)).not.toContain('PRIVATE');
+  latest = null;
+  expect(await recoverPendingResponseFeedback(store, target)).toBe(0);
 });
