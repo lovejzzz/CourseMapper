@@ -97,6 +97,7 @@ export function labeledSourceRecords(text) {
   if (!header) return null;
   const records = [];
   const labels = new Set();
+  const indices = new Set();
   const lines = text.slice(header.index + header[0].length).split('\n');
   for (const line of lines) {
     if (!line.trim()) continue;
@@ -106,13 +107,17 @@ export function labeledSourceRecords(text) {
       )
     )
       break;
+    const numbered = /^\s*(\d{1,3})[.)]\s+(?:\[([\p{L}\p{N}][\p{L}\p{N} _-]{0,49})\]\s+)?(\S.*)$/u.exec(line);
     const row = /^\s*(?:[-*•]\s+)?([\p{L}\p{N}][\p{L}\p{N} _-]{0,49})\s*[:：]\s*(\S.*)$/u.exec(line);
-    if (!row || /^(?:https?|ftp)$/i.test(row[1])) break;
-    const label = row[1].trim();
-    // Ambiguous repeated labels cannot silently overwrite an earlier record.
-    if (labels.has(label)) return [];
+    if (!numbered && (!row || /^(?:https?|ftp)$/i.test(row[1]))) break;
+    const label = numbered ? numbered[2] || numbered[1] : row[1].trim();
+    const body = numbered ? numbered[3] : row[2];
+    if (/^(?:https?|ftp):\/\/\S+$/i.test(body)) return [];
+    // Neither repeated IDs nor repeated numbered slots may hide a record.
+    if (labels.has(label) || (numbered && indices.has(Number(numbered[1])))) return [];
     labels.add(label);
-    records.push(`${label}: ${row[2]}`);
+    if (numbered) indices.add(Number(numbered[1]));
+    records.push(`${label}: ${body}`);
   }
   return records;
 }

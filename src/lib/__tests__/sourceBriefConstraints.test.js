@@ -164,3 +164,19 @@ it('does not treat a quoted legacy marker inside a source as outer brief syntax'
   ];
   expect(extractInstructorProvidedFacts(`Sources:\n${records.join('\n')}`)).toEqual(records);
 });
+
+it('preserves numbered labeled source packets from the actual homepage flow', () => {
+  const brief =
+    'Prepare a 45-minute lesson.\nSources:\n1. [record-1] Register: twenty-eight members; unchanged in April.\n2. [record-2] Nineteen attended sowing. Seventeen attended storage.\n3. [record-3] The lists were not matched.\nTask: Find bounds.';
+  expect(extractInstructorProvidedFacts(brief)).toEqual([
+    'record-1: Register: twenty-eight members; unchanged in April.',
+    'record-2: Nineteen attended sowing. Seventeen attended storage.',
+    'record-3: The lists were not matched.',
+  ]);
+  expect(extractInstructorProvidedFacts('来源：\n1. 甲活动有十八人。\n2) 乙活动有十六人。\n任务：比较记录。')).toEqual([
+    '1: 甲活动有十八人。',
+    '2: 乙活动有十六人。',
+  ]);
+  expect(extractInstructorProvidedFacts('Sources:\n1. [a] First record.\n2. [a] Reused identity.')).toEqual([]);
+  expect(extractInstructorProvidedFacts('Sources:\n1. [a] First record.\n1. [b] Reused list index.')).toEqual([]);
+});

@@ -1,0 +1,18 @@
+{
+  "method": "Deterministic replay of the unchanged first-run homepage prompt; not a model rerun",
+  "lessonCount": {
+    "expected": 1,
+    "confidence": "high",
+    "source": "\"Prepare a 45-minute lesson\""
+  },
+  "sessionMinutes": 45,
+  "instructorSourcesOnly": false,
+  "instructorProvidedFacts": [
+    "record-1: Fictional seed-club register: Cedar Exchange had twenty-eight registered members throughout April. The register did not change, and both April workshops admitted only these registered members.",
+    "record-2: The sowing workshop recorded nineteen distinct members. The storage workshop recorded seventeen distinct members. Each attendance list counted a member once, regardless of how long they stayed.",
+    "record-3: The two attendance lists have not been matched to identify members attending both. Visiting members of other clubs were not admitted to either workshop."
+  ],
+  "objectives": [
+    "Use a fixed population and two deduplicated attendance counts to justify feasible attendance bounds with concrete allocations."
+  ]
+}

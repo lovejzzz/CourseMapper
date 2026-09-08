@@ -1,0 +1,159 @@
+{
+  "digestVersion": 1,
+  "appVersion": "0.19.2",
+  "runId": "run-1788862685496",
+  "finishRunId": "finish-mtsipg1d-x1t0a",
+  "at": "2026-09-08T10:20:14.064Z",
+  "elapsedMs": 128568,
+  "run": {
+    "provider": "public",
+    "models": ["scion-public"],
+    "lessonCount": 4,
+    "features": [
+      "courseMap",
+      "syllabus",
+      "lessonPlans",
+      "slideDecks",
+      "assignments",
+      "rubrics",
+      "discussions",
+      "quizBank",
+      "studyGuides",
+      "courseFaq"
+    ],
+    "providerCalls": 5,
+    "pipelineCalls": 5
+  },
+  "pipeline": {
+    "courseIRAuthoring": "public Scion · one typed skeleton call before lesson-kernel authoring",
+    "courseMap": "Scion V0.19.2 · typed skeleton (sessions, assessments, readings, resources)",
+    "scionExecution": "browser-local Gemma 4 · public weights · local inference",
+    "examine": "skipped: native authoring — Pass B authors lesson content next",
+    "genomeLinker": "0 genome + 0 cached (0 genome-backed) of 4 lessons (0 concepts, 0 citations, 0 bridges)",
+    "judgment": "not evaluated (0 genome-linked lessons)",
+    "scionEvidence": "0/4 unresolved lesson ledgers structurally complete before lesson-intent admission · 0 researched · 0 reused from local research memory",
+    "scionEvidenceRecovery": "4 lessons receiving one cache-bypassed recovery pass",
+    "scionEvidenceAdmission": "0/4 lessons authorized to draft · lesson-1 (fewer-than-three-valid-facts, missing-citations, missing-inspectable-source-identity, claims-not-fully-anchored, unrecognized-source-authority, lesson-intent-semantic-mismatch); lesson-2 (fewer-than-three-valid-facts, missing-citations, missing-inspectable-source-identity, claims-not-fully-anchored, unrecognized-source-authority, lesson-intent-semantic-mismatch); lesson-3 (fewer-than-three-valid-facts, missing-citations, missing-inspectable-source-identity, claims-not-fully-anchored, unrecognized-source-authority, lesson-intent-semantic-mismatch); lesson-4 (fewer-than-three-valid-facts, missing-citations, missing-inspectable-source-identity, claims-not-fully-anchored, unrecognized-source-authority, lesson-intent-semantic-mismatch)",
+    "local-compiler": "7 unresolved contract issues forwarded to per-atom admission",
+    "scionFactLedgerStage": "bound · model facts frozen before deterministic compiler projection",
+    "stage": "mcVerify:lesson-4 skipped [same-model-solver-is-not-an-independent-verifier] · passBudget:lesson-4 bounded [0/0-calls-used-before-admissionGate] · improvementPasses:lesson-4 skipped [grounded-adapter-bounded-repair-policy:0/0]",
+    "canonicalKernelAdmission": "all lesson ids present · lesson-4:lesson:source-ledger-facts-only · lesson-4:authoring:no-authoring-fields",
+    "enrichmentModelStage": "ran (4 lessons enriched) (linker: ran)",
+    "nativeAuthoring": "assembled 4 sessions onto Pass A entity ids · outcomes/activities 0/4 · knowledge kernels admitted 4/4 · 0 registry readings · CurriculumV1 repaired 4 lessons / 4 assessments",
+    "courseGraph": "4/4/4 sessions/concepts/outcomes",
+    "groundingMetrics": "overall 8.6% · syllabus 0% · lessonPlans 0% · slideDecks 2% · assignments 0% · rubrics 0% · discussions 0% · quizBank 60% · studyGuides 0% · courseFaq 0%",
+    "voicePass": "voiced 0 surface(s), 0 fallback(s) (rewrite cost $0.000) — voice-surface texture 97 already meets target; skipped 3 rewrite(s)",
+    "enrichment": "ran (4 lessons enriched)"
+  },
+  "compilerSavings": {
+    "featureIds": [
+      "syllabus",
+      "lessonPlans",
+      "slideDecks",
+      "assignments",
+      "rubrics",
+      "discussions",
+      "quizBank",
+      "studyGuides",
+      "courseFaq"
+    ],
+    "source": "enriched-blueprint",
+    "compiledFeatureCount": 9,
+    "savedProviderCalls": 14,
+    "lastAt": 1788862763006
+  },
+  "cost": {
+    "totalUsd": 0,
+    "totalDisplay": "$0.00",
+    "inputTokens": 5303,
+    "outputTokens": 947,
+    "reasoningOutputTokens": 0,
+    "cachedInputTokens": 0,
+    "accuracy": "tokens provider-reported; cost from published per-token rates",
+    "byTask": [
+      {
+        "task": "nativeSkeleton",
+        "calls": 1,
+        "inputTokens": 1823,
+        "outputTokens": 580,
+        "reasoningOutputTokens": 0,
+        "cachedInputTokens": 0,
+        "costUsd": 0,
+        "costKnown": true
+      },
+      {
+        "task": "blueprintEnrichment",
+        "calls": 4,
+        "inputTokens": 3480,
+        "outputTokens": 367,
+        "reasoningOutputTokens": 0,
+        "cachedInputTokens": 0,
+        "costUsd": 0,
+        "costKnown": true
+      }
+    ]
+  },
+  "gates": {
+    "finalStatus": "ready",
+    "trustState": "review",
+    "blockers": 0,
+    "warnings": 68,
+    "warningDomains": {
+      "schemaVersion": 1,
+      "readiness": 2,
+      "retry": 0,
+      "export": 0,
+      "quality": 1,
+      "source": 65,
+      "total": 68
+    },
+    "blockerDomains": {
+      "schemaVersion": 1,
+      "readiness": 0,
+      "quality": 0,
+      "export": 0,
+      "total": 0
+    },
+    "repairsApplied": 7,
+    "retryCallCount": 0,
+    "repairRetryCallCount": 0,
+    "finishRetryCallCount": 0,
+    "exportStatus": "passed",
+    "exportContentDisposition": "publishable",
+    "exportChecked": 38,
+    "exportFailed": 0,
+    "exportWarnings": 0,
+    "qualityStatus": "graded",
+    "qualityScore": 89,
+    "qualityGrade": "B",
+    "automatedReadinessScore": 52,
+    "automatedReadinessMax": 100,
+    "automatedReadinessCeiling": 75,
+    "automatedReadinessBand": "partial-positive-deterministic-evidence",
+    "deterministicEvidenceProtocol": "coursemapper-deterministic-package-evidence-v2",
+    "deterministicEvidenceLost": 23,
+    "deterministicEvidenceUnobserved": 25,
+    "qualityP0": 0,
+    "qualityP1": 4,
+    "qualityP2": 1,
+    "compiledWithoutEnrichment": false,
+    "enrichmentCoverage": 1,
+    "flaggedChecks": [
+      {
+        "featureId": "quality",
+        "status": "warning",
+        "message": "package conformance 89/100 (B) — 0 P0, 4 P1, 1 P2; source review row SL1 is not trusted bibliography proof"
+      },
+      {
+        "featureId": "quizBank",
+        "status": "warning",
+        "message": "24 questions need a specific instructor-reviewed answer. Source statements and general scoring guidance do not establish a complete reference response."
+      },
+      {
+        "featureId": "courseMap",
+        "status": "warning",
+        "message": "Package quality grader found 5 review findings (score 89/100, grade B) — resolve the quality report before classroom publication"
+      }
+    ]
+  }
+}

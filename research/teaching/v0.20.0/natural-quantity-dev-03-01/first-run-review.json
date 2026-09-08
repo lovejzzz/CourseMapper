@@ -1,0 +1,116 @@
+{
+  "case": "quantity-dev-03",
+  "split": "development",
+  "attempt": 1,
+  "outcome": "failed-requested-teaching-task",
+  "manualSemanticEdits": false,
+  "artifacts": {
+    "first-run.coursemapper": {
+      "path": ".audit-work/v0200-teaching-system/natural-quantity-dev-03-01/first-run.coursemapper",
+      "sha256": "ff4e0e03d2a95755316617f78bdf7019e9b389e52dda735c1d948605b110fa26",
+      "bytes": 5430678
+    },
+    "first-run.zip": {
+      "path": ".audit-work/v0200-teaching-system/natural-quantity-dev-03-01/first-run.zip",
+      "sha256": "c61921b559d758d629a9141380863b730d9cad5549d6b64dc271217e509a8a2e",
+      "bytes": 1142875
+    }
+  },
+  "consoleLogCaptured": false,
+  "requestedLessons": 1,
+  "actualLessons": 4,
+  "sharedTasks": 0,
+  "buildElapsedMs": 85534,
+  "modelRequestStarts": 5,
+  "modelExecution": "browser-local Gemma 4; public:scion-public is an internal provider ID, not an online service",
+  "nativeSkeletonCalls": 1,
+  "blueprintEnrichmentCalls": 4,
+  "failedCalls": 0,
+  "retriedCalls": 0,
+  "gates": {
+    "finalStatus": "ready",
+    "trustState": "review",
+    "blockers": 0,
+    "warnings": 68,
+    "warningDomains": {
+      "schemaVersion": 1,
+      "readiness": 2,
+      "retry": 0,
+      "export": 0,
+      "quality": 1,
+      "source": 65,
+      "total": 68
+    },
+    "blockerDomains": {
+      "schemaVersion": 1,
+      "readiness": 0,
+      "quality": 0,
+      "export": 0,
+      "total": 0
+    },
+    "repairsApplied": 7,
+    "retryCallCount": 0,
+    "repairRetryCallCount": 0,
+    "finishRetryCallCount": 0,
+    "exportStatus": "passed",
+    "exportContentDisposition": "publishable",
+    "exportChecked": 38,
+    "exportFailed": 0,
+    "exportWarnings": 0,
+    "qualityStatus": "graded",
+    "qualityScore": 89,
+    "qualityGrade": "B",
+    "automatedReadinessScore": 52,
+    "automatedReadinessMax": 100,
+    "automatedReadinessCeiling": 75,
+    "automatedReadinessBand": "partial-positive-deterministic-evidence",
+    "deterministicEvidenceProtocol": "coursemapper-deterministic-package-evidence-v2",
+    "deterministicEvidenceLost": 23,
+    "deterministicEvidenceUnobserved": 25,
+    "qualityP0": 0,
+    "qualityP1": 4,
+    "qualityP2": 1,
+    "compiledWithoutEnrichment": false,
+    "enrichmentCoverage": 1,
+    "flaggedChecks": [
+      {
+        "featureId": "quality",
+        "status": "warning",
+        "message": "package conformance 89/100 (B) — 0 P0, 4 P1, 1 P2; source review row SL1 is not trusted bibliography proof"
+      },
+      {
+        "featureId": "quizBank",
+        "status": "warning",
+        "message": "24 questions need a specific instructor-reviewed answer. Source statements and general scoring guidance do not establish a complete reference response."
+      },
+      {
+        "featureId": "courseMap",
+        "status": "warning",
+        "message": "Package quality grader found 5 review findings (score 89/100, grade B) — resolve the quality report before classroom publication"
+      }
+    ]
+  },
+  "postDraftAdmissionStatus": "quarantined",
+  "promotionEligible": false,
+  "educationalReview": {
+    "reviewer": "implementer",
+    "independentTeacherReview": false,
+    "finding": "Four generic evidence-explanation assignments replace the requested union/intersection bounds, concrete endpoint allocations and explanation of unknown overlap. No authoritative shared teaching task was saved.",
+    "formatVisualReview": false
+  },
+  "inputDiagnosis": [
+    "Singular 45-minute lesson request was not recognized, so the homepage had no specific-lesson count.",
+    "Sources header with numbered bracketed IDs was parsed as an empty source list."
+  ],
+  "repairVerification": {
+    "unchangedPromptReplay": "input-repair-replay.json",
+    "fullCheck": "58 studio, 677 compatibility, 898 Scion tests plus checker tests, typecheck, lint, build and bundle checks passed",
+    "formatCheck": "40 existing historical documentation/research files reported; frozen byte-bound evidence excluded rather than rewritten",
+    "browserAfterRepair": "Not verified: connection timed out, then Debugger unattached. No second model attempt started."
+  },
+  "limitations": [
+    "One exposed development run, not reserved acceptance.",
+    "Input repair does not prove natural task construction or output quality.",
+    "Review-export eligibility and quarantined content semantics require follow-up."
+  ]
+}

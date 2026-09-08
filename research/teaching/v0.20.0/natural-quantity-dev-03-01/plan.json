@@ -1,0 +1,19 @@
+{
+  "case": "quantity-dev-03",
+  "path": "natural-language actual homepage flow",
+  "split": "development",
+  "baselineCommit": "0aafa6aac9d6a6697dc98441c6eb1f01770c7af2",
+  "manifestSha256": "f84e51998f42ca29dd778e60d43bf48c74f0382038c99d368aa0a9b31f23335c",
+  "inputSha256": "571af31ca265df85abb78d47862f117b255684e85c0221df3f09d158d7722e1d",
+  "promptSha256": "670f66b92de39d003fe6c553dfdcf6dcc0bf2f10d0eac641c6067104f474772e",
+  "createdAt": "2026-09-08T10:16:34.370843+00:00",
+  "sourceSerialization": "Only request, objective and numbered source records; no references, scope labels or expected operation.",
+  "attemptLimit": 1,
+  "wallLimitMinutes": 12,
+  "model": "Existing local Scion base; one browser tab, serial inference",
+  "manualSemanticEditsAllowed": false,
+  "requestedLessons": 1,
+  "requestedMaterials": "All ten existing deliverables",
+  "capture": "Preserve project, available package and generation records; interruption is not success.",
+  "limitation": "Exposed development input; not one of the final twelve fresh Scion units or reserved acceptance."
+}

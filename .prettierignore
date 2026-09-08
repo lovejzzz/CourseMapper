@@ -31,3 +31,10 @@ package-lock.json
 
 /research/scion/evaluation/v0.20.0/grammar/regions-proposals.json
 /research/scion/evaluation/v0.20.0/grammar/regions-candidate.patch
+
+# Frozen v3 packets and review evidence are byte-bound by their manifest.
+/benchmarks/classroom/v3/inputs/
+/benchmarks/classroom/v3/references/
+/benchmarks/classroom/v3/manifest.json
+/research/teaching/v0.20.0/corpus-development-36/*.json
+/research/teaching/v0.20.0/corpus-reserved-prefreeze/*.json

@@ -212,6 +212,15 @@ export function detectExpectedLessons(text) {
 
   if (maxWeek >= 4) return { expected: maxWeek, confidence: 'medium', source };
 
+  // A singular creation request is itself an explicit count. Inspect only
+  // the beginning of the request, after stronger course/schedule counts,
+  // so an example inside source prose cannot reduce a multi-lesson course.
+  const singular =
+    text.match(
+      /^\s*(?:please\s+)?(?:prepare|create|build|design|make|plan|generate)\s+(?:a|an)\s+(?:(?!lessons?\b|modules?\b|sessions?\b)[\p{L}\p{N}]+(?:[-–—][\p{L}\p{N}]+)?\s+){0,4}(?:lesson|module|session)\b/iu,
+    ) || text.match(/^\s*(?:请\s*)?(?:制作|生成|设计|准备|创建)\s*(?:一|1)\s*(?:节|堂|课)/u);
+  if (singular) return { expected: 1, confidence: 'high', source: `"${singular[0].trim()}"` };
+
   return { expected: null, confidence: 'low', source: 'Could not detect lesson count' };
 }
 

@@ -192,3 +192,22 @@ Module 5: Review
     expect(result.confidence).toBe('low');
   });
 });
+
+describe('explicit singular lesson requests', () => {
+  it.each([
+    'Prepare a 45-minute lesson and editable materials.',
+    'Please create an introductory source-analysis lesson.',
+    'Build a lesson about records.',
+    '制作一节45分钟的来源分析课。',
+    '设计一课资料核对任务。',
+  ])('recognizes %s', (text) => {
+    expect(detectExpectedLessons(text)).toMatchObject({ expected: 1, confidence: 'high' });
+  });
+  it('does not take an embedded example or plural duration as a one-lesson course', () => {
+    expect(detectExpectedLessons('Create 45-minute lessons about records.').expected).toBeNull();
+    expect(
+      detectExpectedLessons('Compare descriptions. The example says: create a lesson about records.').expected,
+    ).toBeNull();
+    expect(detectExpectedLessons('Create a lesson as an example in a six-lesson course.').expected).toBe(6);
+  });
+});
