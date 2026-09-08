@@ -203,5 +203,33 @@ export function renderAttributionTask(plan, inputs, objective, { values: v }) {
       body.criteria[2].levels.exemplary,
     ),
   ];
+  if (plan.presentationVersion >= 5) {
+    // The worked solution remains complete. Discussion and closure elicit
+    // narrower evidence of understanding rather than repeating that solution.
+    body.errors[0].correction = t(
+      `Recording a statement does not independently verify it. ${v.reporter}'s basis is limited by “${v.reportingBasis}”; “${v.inferredClaim}” remains unverified.`,
+      `记录一句话不等于独立核实它。${v.reporter}的知情依据受“${v.reportingBasis}”限制；“${v.inferredClaim}”仍未被证实。`,
+    );
+    body.revisionActivity = {
+      question: t(
+        `Compare two responses. A: “${error}” B: “The records attribute the assertion to ${v.reporter}, but do not independently establish the explanation.” Which response preserves the evidence boundary? Quote the qualification in the report, then rewrite A so it states only what the records support.`,
+        `比较两个回答。甲：“${error}”乙：“记录将陈述归于${v.reporter}，但没有独立证实解释。”哪一个保留了证据边界？引用陈述中的限定，再改写甲，使其只表达材料支持的内容。`,
+      ),
+      answer: t(
+        `B preserves the boundary. The deciding qualification is “${v.reportingBasis}”. A defensible revision is: ${v.reporter} states “${v.reportedClaim}”; this records the assertion but does not establish “${v.inferredClaim}”. Other wording is acceptable if it retains attribution and does not invent verification.`,
+        `乙保留了边界。关键限定是“${v.reportingBasis}”。可改为：${v.reporter}陈述“${v.reportedClaim}”；这记录了陈述，却没有证实“${v.inferredClaim}”。其他措辞也可接受，但须保留归属，不补写核实过程。`,
+      ),
+    };
+    body.checkpoint = {
+      question: t(
+        `A classmate says: “The explanation lacks evidence, so its opposite must be true.” Is that justified? Quote one stated evidence gap and explain the difference between unverified and disproved.`,
+        `同学说：“解释缺少证据，所以它的反面一定成立。”这个判断合理吗？引用一项原文的证据缺口，说明“未被证实”与“已被否定”的区别。`,
+      ),
+      answer: t(
+        `No. “${v.inferenceLimit}” identifies missing evidence. It leaves “${v.inferredClaim}” unverified; it does not supply evidence establishing the opposite. Disproving the explanation would require relevant contrary evidence, not merely this gap.`,
+        `不合理。“${v.inferenceLimit}”指出证据缺失，使“${v.inferredClaim}”尚未被证实；它没有提供反面成立的证据。否定解释需要相关的反证，不能仅靠这项缺口。`,
+      ),
+    };
+  }
   return body;
 }

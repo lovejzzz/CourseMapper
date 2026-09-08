@@ -180,6 +180,10 @@ describe('reviewed claim attribution contract', () => {
     const recompiled = compileBlueprintDeliverables(buildCourseBlueprint(first.courseMap), features, {
       configMap: { lessonPlans: { sessionLength: 75 } },
     });
+    const outline = recompiled.lessonPlans.lessonPlans[0].outline;
+    expect(outline[3].description).not.toBe(outline[5].description);
+    expect(outline[5].instructorNotes).toContain('contrary evidence');
+    expect(outline[3].instructorNotes).toContain(f.selections.reportingBasis.quote);
     for (const feature of features) expect(recompiled[feature].teachingTaskSources[0]).toEqual(canonicalSource);
     const staleMetadata = {
       ...recompiled.quizBank,
@@ -316,3 +320,27 @@ it('preserves a real assessment identity through repeated task-title projection'
   projectTeachingTaskSyllabus(official, { ...blueprint, courseGradingPolicy: { categories: [] } });
   expect(official.courseRequirements[0]).toEqual({ name: 'Official coursework', lessonNumbers: [1], weight: '50%' });
 });
+
+it.each([false, true])(
+  'separates the worked response, revision and exit diagnosis while preserving v4 (Chinese: %s)',
+  (zh) => {
+    const f = fixture(zh);
+    const plan = createTeachingOperationPlan({
+      ...f,
+      operation: 'claim-attribution',
+      admission: { kind: 'teacher-confirmed' },
+    });
+    expect(plan.presentationVersion).toBe(5);
+    const current = renderTeachingOperationTask(plan, f.inputs, f.objective);
+    const legacy = renderTeachingOperationTask({ ...plan, presentationVersion: 4 }, f.inputs, f.objective);
+    expect(current.answer).toBe(legacy.answer);
+    expect(legacy.revisionActivity).toBeUndefined();
+    expect(legacy.checkpoint.answer).toBe(legacy.reasoning.join(' '));
+    expect(current.checkpoint.answer.length).toBeLessThan(legacy.checkpoint.answer.length);
+    expect(current.checkpoint.answer).toContain(f.selections.inferenceLimit.quote);
+    expect(current.checkpoint.answer).toContain(zh ? '反证' : 'contrary evidence');
+    expect(current.revisionActivity.answer).toContain(f.selections.reportingBasis.quote);
+    expect(current.revisionActivity.answer).toContain(f.selections.reportedClaim.quote);
+    expect(current.revisionActivity.question).not.toBe(current.checkpoint.question);
+  },
+);

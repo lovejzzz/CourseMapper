@@ -430,7 +430,11 @@ function projectPlan(row, task) {
         `${task.errors[0].correction} 反馈：${task.errors[0].feedback}`,
       ),
     ],
-    [taskCopy(task, 'Compare and revise responses'), task.checkpoint.question, task.checkpoint.answer],
+    [
+      taskCopy(task, 'Compare and revise responses'),
+      task.revisionActivity?.question || task.checkpoint.question,
+      task.revisionActivity?.answer || task.checkpoint.answer,
+    ],
     [taskCopy(task, 'Write the task response'), task.question, task.answer],
     [taskCopy(task, 'Check the conclusion'), task.checkpoint.question, task.checkpoint.answer],
   ];

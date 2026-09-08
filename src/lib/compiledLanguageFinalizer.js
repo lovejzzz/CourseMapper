@@ -608,6 +608,10 @@ function protectedAuthenticEvidenceSpans(blueprint = {}) {
         [criterion.label, criterion.feedback, ...Object.values(criterion.levels || {})].forEach(add);
       }
       [task.summary, task.product, task.checkpoint?.question, task.checkpoint?.answer].forEach(add);
+      if (task.revisionActivity) {
+        [task.revisionActivity.question, task.revisionActivity.answer].forEach(add);
+        for (const error of task.errors || []) [error.response, error.correction, error.feedback].forEach(add);
+      }
       Object.values(task.workedExample || {})
         .filter((value) => typeof value === 'string')
         .forEach(add);

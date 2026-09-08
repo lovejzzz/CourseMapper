@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Add attribution presentation v5: retain the full worked solution, use a quotation-backed comparison/revision activity, and make the exit ticket diagnose the distinct mistake that missing evidence proves the opposite. Preserve v4 replay. Protect the new activities and corrections from generic rewriting of quotations. A saved-course replay has six distinct phase prompts and less repeated answer text; no independent teaching-effectiveness claim.
+
 - Build single-lesson recompiles and synchronization previews from the course graph whether or not a model enrichment overlay exists. Preserve assessment/readings registries across both paths. Verify identity in a model-free lesson patch and no-change preview; a real browser regeneration retains the assessment/task IDs, source records and model-call count.
 
 - Render known question-type tags as readable labels in Word answer keys. Preserve explicit assessment identities when shared tasks replace syllabus requirement titles, including repeated edits; leave official grading categories and multi-lesson assessments unchanged. Actual saved-course Word exports verify the labels and registry link when the saved registry is supplied; map-only synchronization paths still need registry continuity work.
