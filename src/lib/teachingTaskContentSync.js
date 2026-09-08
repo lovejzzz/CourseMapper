@@ -300,10 +300,68 @@ function keepUnprojectedText(current, projected, finalized) {
   return finalized;
 }
 
-function finalizeTaskProjection(feature, current, blueprint) {
-  const projected = projectSharedTeachingTasks(feature, structuredClone(current), blueprint);
+function finalizeTaskProjection(feature, current, blueprint, options) {
+  const projected = projectSharedTeachingTasks(feature, structuredClone(current), blueprint, options);
   const finalized = finalizeCompiledDeliverableLanguage(feature, structuredClone(projected), blueprint);
   return keepUnprojectedText(current, projected, finalized);
+}
+
+/** Recompile existing reviewed task projections as one staged change. This
+ * does not change sources or approve new bindings. Only the requested task's
+ * rows are projected; the full blueprint retains course sequence context. */
+export function refreshTeachingTaskCompilation({ courseMap, deliverables, taskIds, featureId, regeneratedData }) {
+  const reviewIssue = (message) => ({ status: 'needs-review', message });
+  const sources = readTeachingTaskSources(courseMap);
+  const selectedIds = new Set(taskIds || []);
+  if (
+    !selectedIds.size ||
+    [...selectedIds].some((id) => !sources.some((s) => s.id === id && rebuildTeachingTaskSource(s)))
+  )
+    return reviewIssue('Review the shared task before rebuilding its materials.');
+  const supported = [
+    'syllabus',
+    'lessonPlans',
+    'slideDecks',
+    'assignments',
+    'rubrics',
+    'discussions',
+    'quizBank',
+    'studyGuides',
+    'courseFaq',
+  ];
+  const affected = Object.entries(deliverables).filter(
+    ([id, entry]) => supported.includes(id) && entry?.data?.teachingTaskSources?.some((s) => selectedIds.has(s.id)),
+  );
+  for (const [, entry] of affected) {
+    if (
+      entry.data.taskSourceReview ||
+      entry.data.teachingTaskSources.some((s) => selectedIds.has(s.id) && !sources.some((current) => equal(current, s)))
+    )
+      return reviewIssue(
+        'A related material has an unreviewed source change. Review it before rebuilding the shared task.',
+      );
+  }
+  const blueprint = blueprintFor(sources, { courseMap });
+  const changed = {},
+    expected = {};
+  for (const [id, entry] of affected) {
+    const base = id === featureId ? regeneratedData : entry.data;
+    if (!base) return reviewIssue('The regenerated material is missing. No related material has changed.');
+    const projected = finalizeTaskProjection(id, base, blueprint, { taskIds: [...selectedIds] });
+    const data = preserveTeacherEdits(entry.data, projected);
+    // Projection metadata must not reconstruct or broaden the stored ledger.
+    data.teachingTaskSources = structuredClone(entry.data.teachingTaskSources);
+    const retained = (entry.data.taskSyncConflicts || []).filter(
+      (c) => !data.taskSyncConflicts?.some((n) => equal(n.path, c.path)),
+    );
+    data.taskSyncConflicts = [...retained, ...(data.taskSyncConflicts || [])];
+    const stale = Boolean((entry.stale && !entry.data.taskSyncStaleOwned) || data.taskSyncConflicts.length);
+    data.taskSyncStaleOwned = Boolean(data.taskSyncConflicts.length && (entry.data.taskSyncStaleOwned || !entry.stale));
+    expected[id] = entry;
+    changed[id] = { ...entry, data, status: 'done', error: null, stale };
+  }
+  if (!changed[featureId]) return reviewIssue('The regenerated material does not carry the reviewed task.');
+  return { status: 'ready', changed, expected, modelCalls: 0 };
 }
 
 export function applyTeachingTaskSourceEdit({ featureId, oldData, newData, editPath, deliverables, courseMap }) {

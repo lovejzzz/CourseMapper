@@ -321,3 +321,45 @@ describe('courseStore reducer', () => {
     });
   });
 });
+
+describe('atomic reviewed compiler updates', () => {
+  it('commits related materials together and retains unrelated state', () => {
+    const a = { data: { answer: 'old' }, status: 'done' };
+    const b = { data: { rubric: 'old' }, status: 'done' };
+    const custom = { data: { note: 'keep' } };
+    const changed = { assignments: { data: { answer: 'new' } }, rubrics: { data: { rubric: 'new' } } };
+    const result = reducer(
+      { deliverables: { assignments: a, rubrics: b, custom } },
+      {
+        type: 'SET_REVIEWED_COMPILATION',
+        featureId: 'assignments',
+        expected: { assignments: a, rubrics: b },
+        changed,
+      },
+    );
+    expect(result.deliverables.assignments).toBe(changed.assignments);
+    expect(result.deliverables.rubrics).toBe(changed.rubrics);
+    expect(result.deliverables.custom).toBe(custom);
+  });
+  it('rejects all replacements after a sibling edit or invalidation, preserving current content', () => {
+    const a = { data: { answer: 'old' }, status: 'done' };
+    const b = { data: { rubric: 'old' }, status: 'done' };
+    for (const current of [
+      { ...b, data: { rubric: 'teacher changed' } },
+      { ...b, stale: true },
+    ]) {
+      const result = reducer(
+        { deliverables: { assignments: a, rubrics: current } },
+        {
+          type: 'SET_REVIEWED_COMPILATION',
+          featureId: 'assignments',
+          expected: { assignments: a, rubrics: b },
+          changed: { assignments: { data: { answer: 'new' } }, rubrics: { data: { rubric: 'new' } } },
+        },
+      );
+      expect(result.deliverables.assignments.data).toBe(a.data);
+      expect(result.deliverables.assignments.status).toBe('error');
+      expect(result.deliverables.rubrics).toBe(current);
+    }
+  });
+});

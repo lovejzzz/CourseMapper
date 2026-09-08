@@ -24,6 +24,12 @@ export const actions = {
     featureId,
     data,
   }),
+  setReviewedCompilation: (featureId, changed, expected) => ({
+    type: 'SET_REVIEWED_COMPILATION',
+    featureId,
+    changed,
+    expected,
+  }),
   setDeliverableError: (featureId, error, retainedEntry) => ({
     type: 'SET_DELIVERABLE_ERROR',
     featureId,
@@ -130,6 +136,22 @@ export function normalizeRestoredDeliverables(deliverables) {
 
 export function reducer(state, action) {
   switch (action.type) {
+    case 'SET_REVIEWED_COMPILATION': {
+      const stale = Object.entries(action.expected).some(([id, entry]) => state.deliverables[id] !== entry);
+      if (stale)
+        return {
+          ...state,
+          deliverables: {
+            ...state.deliverables,
+            [action.featureId]: {
+              ...state.deliverables[action.featureId],
+              status: 'error',
+              error: 'Materials changed during regeneration. Retry using the current version.',
+            },
+          },
+        };
+      return { ...state, deliverables: { ...state.deliverables, ...action.changed } };
+    }
     case 'SET_DELIVERABLE_STREAMING':
       return {
         ...state,

@@ -2,7 +2,8 @@ import { requiresCurrentResearch, shouldSkipCoveredScionResearch } from '../lib/
 import { useState, useCallback, useMemo, useRef, useContext, useEffect } from 'react';
 import useStreamReader from './useStreamReader';
 import { getArrayKey } from '../lib/syncDependencies';
-import { preserveTeacherEdits } from '../lib/teachingTaskContentSync.js';
+import { preserveTeacherEdits, refreshTeachingTaskCompilation } from '../lib/teachingTaskContentSync.js';
+import { sameJsonData } from '../lib/canonicalJson.js';
 import { failedDeliverableState } from '../lib/failedDeliverableState.js';
 import { isRenderedDeliverableCollectionFeature } from '../lib/renderedDeliverableCollection.js';
 import {
@@ -437,6 +438,8 @@ export default function useDeliverables({
   const deliverables = storeState?.deliverables || {};
   const deliverablesRef = useRef(deliverables);
   deliverablesRef.current = deliverables;
+  const currentCourseGraphRef = useRef(courseGraph);
+  currentCourseGraphRef.current = courseGraph;
 
   // ── Transient / streaming-only state (not persisted) ──
   const [isGenerating, setIsGenerating] = useState(false);
@@ -5687,6 +5690,7 @@ export default function useDeliverables({
   // for package-finalizer retries.
   const regenerateLesson = useCallback(
     async (featureId, courseMap, lessonIndex, syncGenOrOptions = null) => {
+      const regenerationGraphSnapshot = currentCourseGraphRef.current;
       const regenerationOptions =
         syncGenOrOptions && typeof syncGenOrOptions === 'object' ? syncGenOrOptions : { syncGenId: syncGenOrOptions };
       const sourceBriefConstraints = analyzeSourceBriefConstraints(sourceBrief);
@@ -5992,7 +5996,37 @@ export default function useDeliverables({
                 const [lessonNumber] = resolveExpectedDeliverableLessonNumbers(courseMap, [lessonIndex]);
                 nextData = mergeCompiledLessonTaskSources(nextData, finalParsed, courseMap, lessonNumber);
               }
-              dispatch(actions.setDeliverableDone(featureId, nextData));
+              if (compileResult.sourceTaskCompiled && syncGenId === null && !lessonMergeRejected) {
+                const current = deliverablesRef.current;
+                const refresh =
+                  sameJsonData(current[featureId]?.data, existingDataSnapshot) &&
+                  sameJsonData(currentCourseGraphRef.current, regenerationGraphSnapshot)
+                    ? refreshTeachingTaskCompilation({
+                        courseMap,
+                        deliverables: current,
+                        taskIds: (finalParsed.teachingTaskSources || [])
+                          .filter((source) => source.lessonNumber === lessonIndex + 1)
+                          .map((source) => source.id),
+                        featureId,
+                        regeneratedData: nextData,
+                      })
+                    : {
+                        status: 'needs-review',
+                        message: 'This material changed during regeneration. Retry using the current version.',
+                      };
+                if (refresh.status !== 'ready') {
+                  dispatch(actions.setDeliverableError(featureId, refresh.message, current[featureId]));
+                  return {
+                    status: 'error',
+                    featureId,
+                    lessonIndex,
+                    error: refresh.message,
+                    providerCallCount: kernelRefreshCalls,
+                  };
+                }
+                nextData = refresh.changed[featureId].data;
+                dispatch(actions.setReviewedCompilation(featureId, refresh.changed, refresh.expected));
+              } else dispatch(actions.setDeliverableDone(featureId, nextData));
               if (compileResult.enrichedLessonCount > 0) {
                 const requestedLessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons.length : 0;
                 const enrichedIdSet = new Set(compileResult.enrichedLessonIds || []);

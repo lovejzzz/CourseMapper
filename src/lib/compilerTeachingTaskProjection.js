@@ -505,7 +505,7 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
     courseFaq: 'faqs',
   };
   if (feature === 'syllabus') {
-    projectTeachingTaskSyllabus(data.syllabus, blueprint);
+    projectTeachingTaskSyllabus(data.syllabus, blueprint, options);
     return data;
   }
   const rows = data[keys[feature]];
@@ -525,6 +525,7 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
           : null);
     const task = lesson?.teachingTask;
     if (!task || lesson.teachingTaskScope !== 'primary-task') return;
+    if (options.taskIds && !options.taskIds.includes(task.id)) return;
     projectSourceCopies(
       row,
       task,

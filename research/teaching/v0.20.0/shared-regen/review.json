@@ -1,0 +1,66 @@
+{
+  "status": "verified manual Regen shared-projection update; not full release acceptance",
+  "changes": [
+    "One direct reviewed-task Regen stages related task projections across existing nine material types.",
+    "Teacher overrides remain; conflicting generated replacements stay available for review.",
+    "Unreviewed source changes block the staged refresh. Reducer commits the group only if every captured entry is still current.",
+    "Other task rows and custom materials are retained; full course context remains available for sequence and syllabus summaries."
+  ],
+  "browser": {
+    "input": ".audit-work/v0200-teaching-system/pooled-output-refinement/browser-rebuilt.coursemapper",
+    "action": "Import project, one Rubrics Regen, Save, Refresh, Resume, Save",
+    "courseMapUnchanged": true,
+    "changedMaterialData": [
+      "syllabus",
+      "lessonPlans",
+      "slideDecks",
+      "assignments",
+      "discussions",
+      "quizBank",
+      "studyGuides",
+      "courseFaq"
+    ],
+    "targetRubricAlreadyCurrent": true,
+    "modelRequestStartsBefore": 1,
+    "modelRequestStartsAfter": 1,
+    "allNineRestoredDataEqual": true
+  },
+  "files": [
+    {
+      "path": ".audit-work/v0200-teaching-system/shared-regen/browser.coursemapper",
+      "sha256": "f883b4cbccb6587fb4873c0b1e199fd31a5a3746d2d0c9d6584cabe338ecb797"
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/shared-regen/restored.coursemapper",
+      "sha256": "6fb246b309e98003476b56a300d72a172a9e606a4067eafd97ae77b0ade76bce"
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/shared-regen/replay.coursemapper",
+      "sha256": "8d2d7e9457e00e81965ae81fd1e71ea5cd17fd64a5dd5dbbf87c783ec24638a9"
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/shared-regen/replay-check.json",
+      "sha256": "0118d0bde7a255dd051848a6f5c8a033025d2bd3ca017c125a60a455c9fc7908"
+    }
+  ],
+  "independentCheck": {
+    "report": ".audit-work/v0200-teaching-system/shared-regen/browser-check/report.json",
+    "sha256": "309ee4451c7b4293507cba35351d023544eb36475dc20033437b17d1aeb761fc",
+    "assertions": 354,
+    "failures": [],
+    "educationalAcceptance": "pending"
+  },
+  "tests": {
+    "targeted": 45,
+    "studio": 58,
+    "compatibility": 934,
+    "scion": 978,
+    "fullCheckExit": 0
+  },
+  "limits": [
+    "The new group refresh applies to direct per-lesson Regen of an already reviewed task. Existing Smart Sync retains its own group orchestration.",
+    "Teacher conflict and stale-commit cases tested automatically; this browser run contains no teacher override.",
+    "No additional PDF/Office exports, new Scion units, universal performance or production deployment claim.",
+    "The larger v3 runner, natural-task capability, complete course/format and release gates remain open."
+  ]
+}

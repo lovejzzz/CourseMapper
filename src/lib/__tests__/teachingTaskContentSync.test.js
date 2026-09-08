@@ -13,6 +13,7 @@ import {
   mergeTaskProjection,
   rememberTeacherEdit,
   preserveTeacherEdits,
+  refreshTeachingTaskCompilation,
   resolveTaskSyncConflict,
 } from '../teachingTaskContentSync.js';
 import { deriveCourseGraphFromCourseMap, buildBlueprintFromGraph } from '../courseGraph/index.js';
@@ -56,6 +57,79 @@ function packageFixture() {
   observations[observationIndex] = observations[observationIndex].replace('Eight learners', 'Twelve learners');
   return { entries, map, source, oldData, newData, editPath };
 }
+
+describe('reviewed task compiler refresh', () => {
+  it('stages all nine projections without mutating sources, unrelated rows or custom materials', () => {
+    const { entries, map, source } = packageFixture();
+    map.lessons.push({ title: 'Unrelated lesson', sections: [] });
+    const unrelated = {
+      lessonNumber: 2,
+      taskId: 'unrelated',
+      taskRevision: 'old-unrelated',
+      overview: 'Unrelated teacher prose',
+    };
+    entries.assignments.data.assignments.push(unrelated);
+    entries.custom = { status: 'error', data: { teachingTaskSources: [source], note: 'Custom content' } };
+    function age(value) {
+      if (!value || typeof value !== 'object') return;
+      if (value.taskId === source.id && value.taskRevision) value.taskRevision = 'old-generated-revision';
+      Object.values(value).forEach(age);
+    }
+    Object.values(entries).forEach((e) => age(e.data));
+    const before = structuredClone({ entries, map });
+    const result = refreshTeachingTaskCompilation({
+      courseMap: map,
+      deliverables: entries,
+      taskIds: [source.id],
+      featureId: 'rubrics',
+      regeneratedData: entries.rubrics.data,
+    });
+    expect(result.status).toBe('ready');
+    expect(Object.keys(result.changed).sort()).toEqual([...features].sort());
+    expect(result.modelCalls).toBe(0);
+    expect(JSON.stringify(result.changed.rubrics)).not.toContain('old-generated-revision');
+    expect(result.changed.assignments.data.assignments.at(-1)).toEqual(unrelated);
+    expect({ entries, map }).toEqual(before);
+    expect(result.expected.assignments).toBe(entries.assignments);
+  });
+  it('retains teacher overrides and a concrete replacement conflict', () => {
+    const { entries, map, source } = packageFixture();
+    entries.assignments.data.assignments[0].overview = 'Old generated overview';
+    const edited = structuredClone(entries.assignments.data);
+    edited.assignments[0].overview = 'Keep my teaching note';
+    entries.assignments.data = rememberTeacherEdit(entries.assignments.data, edited, ['assignments', 0, 'overview']);
+    const result = refreshTeachingTaskCompilation({
+      courseMap: map,
+      deliverables: entries,
+      taskIds: [source.id],
+      featureId: 'rubrics',
+      regeneratedData: entries.rubrics.data,
+    });
+    expect(result.status).toBe('ready');
+    expect(result.changed.assignments.data.assignments[0].overview).toBe('Keep my teaching note');
+    expect(result.changed.assignments.stale).toBe(true);
+    expect(
+      result.changed.assignments.data.taskSyncConflicts.some(
+        (c) => c.current === 'Keep my teaching note' && c.proposed !== c.current,
+      ),
+    ).toBe(true);
+  });
+  it('refuses the whole staged update when a sibling has an unreviewed source edit', () => {
+    const { entries, map, source } = packageFixture();
+    entries.studyGuides.data.taskSourceReview = true;
+    const before = structuredClone(entries);
+    const result = refreshTeachingTaskCompilation({
+      courseMap: map,
+      deliverables: entries,
+      taskIds: [source.id],
+      featureId: 'rubrics',
+      regeneratedData: entries.rubrics.data,
+    });
+    expect(result.status).toBe('needs-review');
+    expect(result.changed).toBeUndefined();
+    expect(entries).toEqual(before);
+  });
+});
 
 describe('shared task source updates through production projections', () => {
   it('keeps the saved guided-practice question aligned with its visible question during language finalization', () => {

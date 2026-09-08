@@ -3,7 +3,7 @@ import { teachingTaskRubric } from './compilerTeachingTask.js';
 
 /** Bind syllabus copies by lesson identity, never by a possibly duplicated title.
  * Official course grading categories and multi-lesson assessments stay intact. */
-export function projectTeachingTaskSyllabus(syllabus, blueprint) {
+export function projectTeachingTaskSyllabus(syllabus, blueprint, { taskIds } = {}) {
   if (!syllabus) return;
   const primary = blueprint.lessons.filter((l) => l.teachingTaskScope === 'primary-task' && l.teachingTask);
   const sessionLabels = primary.length === blueprint.lessons.length && !blueprint.localization?.meetingPattern;
@@ -18,6 +18,7 @@ export function projectTeachingTaskSyllabus(syllabus, blueprint) {
 
   for (const lesson of primary) {
     const task = lesson.teachingTask;
+    if (taskIds && !taskIds.includes(task.id)) continue;
     const reference = { taskId: task.id, taskRevision: task.revision };
     const criteria = teachingTaskRubric(task, 100);
     const schedule = syllabus.weeklySchedule?.find((row) => row.lessonNumber === lesson.lessonNumber);

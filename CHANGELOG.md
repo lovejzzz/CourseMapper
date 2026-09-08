@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Rebuild related reviewed-task materials together after a direct lesson Regen, preserving teacher overrides and blocking unreviewed source changes. Commit the staged group atomically against current entries. An actual single rubric Regen updates the eight older siblings, removes mixed primary/transfer revisions without more model requests, and survives refresh/Resume with all nine material data sets intact.
+
 - Add an independent saved-project evidence checker for original source/spans, reviewed attribution, scoring identities, answer equations and material revision consistency. Fault-injection tests cover corruption, stale edits and student-answer leakage; untested semantic/layout dimensions remain pending. A real partial-Regen project exposes mixed primary/transfer revisions, while the separate full compiler replay passes the annotated checks.
 
 - Record and reject a direct local operation-selector candidate after two fixed six-input development trials. Fixed labels improve parseability but still misroute a timeline task and exhaust the budget on a scoped-exception task. Preserve both raw runs; no automatic selector enabled and no unsupported-task completion claimed.
