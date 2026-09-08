@@ -1,0 +1,81 @@
+{
+  "date": "2026-09-08",
+  "sourceCourse": "quantity-zh-draft-02",
+  "modelCalls": 0,
+  "implementationBaseline": "cab035d6",
+  "reviews": {
+    "oldRubricPages": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "currentRubricPages": [
+      8
+    ],
+    "currentAssignmentPagesBeforeFix": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "refinedAssignmentPages": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13
+    ]
+  },
+  "pdfs": {
+    "current/assignments.pdf": {
+      "sha256": "8251a4de18696c13018c990f20709a0e762cbe4c901998cdfd971e1b7ea7604a",
+      "pages": 12,
+      "orphanLineOnlyPages": [
+        3,
+        5,
+        7,
+        9
+      ]
+    },
+    "current/rubrics.pdf": {
+      "sha256": "29b3332c1a0ac2516c2bfab75c90754d8c6bc922dab403217a6ad02c12781813"
+    },
+    "refined/assignments.pdf": {
+      "sha256": "1a0dd634d82dacaea58ba18b3685fdf0ef8d7dc7fd6cbb03ae5fe0190c2b8f90",
+      "pages": 13,
+      "orphanLineOnlyPages": []
+    }
+  },
+  "findings": [
+    "Old rubric render lacked some visible headings and header backgrounds; current re-export page 8 is intact. Text extraction has six reference headings and ten criterion table headers in both versions. No new rubric fix was needed.",
+    "Current assignment PDF page 3 contained only orphaned answer lines and a footer; page 2 mixed prior teacher answers and next student task.",
+    "Shared Word/PDF builder now keeps four response lines together with the criterion label; a task following teacher anchors starts on a new page.",
+    "Refined 13-page PDF visually checked in full: no orphan-line-only page, all five final task response groups retained; prior answers no longer share the next task page.",
+    "Scoring describes observable denominator, percent conversion, complement, rounding and missing-group reasoning. Checked 43/80=53.75%, 37/80=46.25%, and the 53.8% vs raw-count distinction."
+  ],
+  "remaining": [
+    "Reference pages need clearer lesson identity; some are sparse.",
+    "Combined document still includes teacher answers; not a student-only handout.",
+    "Final assignment learning goal mentions a new library case that appears in the course quiz, not this assignment itself; standalone scope wording needs review.",
+    "Repeated task overview, instructions and submission wording remain verbose.",
+    "Other courses and formats have not received this complete-page review. No independent teacher acceptance."
+  ],
+  "tooling": [
+    "Located the actual PDF skill marker script and executed successfully before first export command. Plain node failed to resolve extensionless app imports; vite-node then completed the actual exporter."
+  ]
+}

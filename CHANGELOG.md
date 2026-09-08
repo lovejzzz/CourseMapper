@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Keep four-line assignment response blocks with their criterion labels in Word/PDF, and start a new student brief on a fresh page after teacher anchor answers. Actual Chinese six-lesson PDF review removes orphan answer-line pages and answer/next-task page mixing; all 13 revised pages reviewed.
+
 - Restore absent project options to defaults across file, local and cloud openings; clear prior attachments, conversation, materials and course history. Detach a file from the previous cloud save destination and accept uppercase project extensions. Hide historical build progress for a completed course map with no material job. Verified actual Chrome import, save, refresh and Resume.
 
 - Preserve earlier reviewed case context during scoped compilation. Rebuild earlier saved tasks only for exposure checks, without emitting unselected materials. Three six-lesson course replays now match full-course answers, case exposure and use labels for single-lesson and reordered selections.

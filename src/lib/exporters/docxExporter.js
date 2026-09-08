@@ -1688,7 +1688,12 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
       for (const [assignmentIndex, a] of assignments.entries()) {
         const zh = teachingMaterialIsChinese(a, expanded);
         const t = (label) => teachingMaterialLabel(label, zh);
-        children.push(makeHeading(a.title || t('Assignment')));
+        children.push(
+          makeHeading(a.title || t('Assignment'), {
+            pageBreakBefore:
+              assignmentIndex > 0 && Boolean(assignments[assignmentIndex - 1].anchorExampleGuidance?.length),
+          }),
+        );
         const courseMapRef = a.courseMapRef ? String(a.courseMapRef).trim() : '';
         // v0.16.1: ONE weight per header. When the course-map stamp carries
         // any percent (the assessment registry row's weight), it is the
@@ -1904,8 +1909,11 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           children.push(makeSubHeading(zh ? '作答区' : 'Your Response'));
           for (const title of responseSections) {
             children.push(makeBold(title, '', { keepNext: true }));
-            for (let line = 0; line < 4; line++)
-              children.push(makeText('________________________________________________________'));
+            children.push(
+              makeText(Array(4).fill('________________________________________________________').join('\n'), {
+                keepLines: true,
+              }),
+            );
           }
         }
         if (a.anchorExampleGuidance?.length) {

@@ -82,9 +82,9 @@ it('exports response space for the actual lesson requirements and the five-part 
         else if (value && typeof value === 'object') Object.values(value).forEach(visit);
       };
       visit(definition.content);
-      const lines = strings.filter(
-        (text) => text === '________________________________________________________',
-      ).length;
+      const lines = strings
+        .flatMap((text) => text.split('\n'))
+        .filter((text) => text === '________________________________________________________').length;
       if (feature === 'assignments') {
         expect(lines).toBe(4 * f.requirements.length);
         expect(strings).not.toContain('Proposed allocation, conditions and measurement');

@@ -243,3 +243,32 @@ it('labels a reused course case without claiming an unseen transfer', () => {
   expect(content).toContain('Independent response: returning case');
   expect(content).not.toContain('Independent response: new case');
 });
+
+it('keeps assignment response lines with their criterion and separates the next brief from prior answers', () => {
+  const data = {
+    assignments: [
+      { title: 'First task', taskId: 'task-a', anchorExampleGuidance: ['Teacher answer for task one'] },
+      { title: 'Second task', taskId: 'task-b' },
+    ],
+    teachingTaskSources: ['task-a', 'task-b'].map((id) => ({
+      id,
+      objective: 'Explain the denominator',
+      operationPlan: { version: 2, requirements: [{ label: 'Population and subset' }] },
+    })),
+  };
+  const nodes = deliverablePdfDefinition('assignments', data, 'Course').content;
+  const second = nodes.find((node) => textOf(node).startsWith('Second task'));
+  expect(second.pageBreak).toBe('before');
+  const collect = (node) =>
+    Array.isArray(node)
+      ? node.flatMap(collect)
+      : node && typeof node === 'object'
+        ? [node, ...collect(node.stack || [])]
+        : [];
+  const spaces = collect(nodes).filter((node) => node.text && textOf(node).startsWith('_____'));
+  expect(spaces).toHaveLength(2);
+  for (const space of spaces) {
+    expect(space.unbreakable).toBe(true);
+    expect(textOf(space).split('\n')).toHaveLength(4);
+  }
+});
