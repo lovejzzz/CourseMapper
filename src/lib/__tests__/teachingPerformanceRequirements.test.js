@@ -6,6 +6,9 @@ import {
   createResponseRevisionReceipt,
   saveResponseRevisionReceipt,
   appendResponseRevisionReceipt,
+  savePendingResponseFeedback,
+  pendingResponseFeedbackForDraft,
+  completePendingResponseFeedback,
 } from '../teachingResponseRevision.js';
 import { performanceRequirementsFixture } from '../../../tests/fixtures/teaching/performanceRequirements.js';
 import { proportionCourseDraft } from '../../../tests/fixtures/teaching/courses/proportionCourse.js';
@@ -627,4 +630,76 @@ it('routes response-led feedback through the confirmed course transaction withou
   expect(() => prepareResponseFeedbackRevision({ ...request, record: reviewed, source: updatedSource })).toThrow(
     /task changed/,
   );
+});
+
+it('restores a private feedback association after serialization and preserves the motivating judgment', async () => {
+  const s = state();
+  const record = createResponseReview(s.source, 'PRIVATE RESPONSE: 42.5%.');
+  const criterionId = record.snapshot.criteria[0].id;
+  const reviewed = confirmResponseJudgment(record, {
+    criterionId,
+    level: 'insufficient',
+    reason: 'PRIVATE original reason.',
+  });
+  const request = {
+    record: reviewed,
+    source: s.source,
+    criterionId,
+    feedback: 'Show 17 out of the 40 observed volunteers before converting to percent.',
+  };
+  const draft = prepareResponseFeedbackRevision(request);
+  let latest = reviewed;
+  const store = {
+    list: async () => ({ records: [structuredClone(latest)] }),
+    save: async (next) => {
+      latest = structuredClone(next);
+    },
+  };
+  await savePendingResponseFeedback(store, reviewed, draft, request);
+  latest = JSON.parse(JSON.stringify(latest));
+  const restoredDraft = JSON.parse(JSON.stringify(draft));
+  expect(await pendingResponseFeedbackForDraft(store, { ...restoredDraft, objective: 'A different revision' })).toEqual(
+    [],
+  );
+  const matches = await pendingResponseFeedbackForDraft(store, restoredDraft);
+  expect(matches).toHaveLength(1);
+  latest = confirmResponseJudgment(latest, { criterionId, level: 'insufficient', reason: 'Newer private judgment.' });
+  const preview = previewTeachingTaskReview({ ...s, draft: restoredDraft });
+  const applied = commitTeachingTaskReview({ ...s, preview, teacherConfirmed: true });
+  expect(applied.status).toBe('applied');
+  expect(JSON.stringify(applied)).not.toContain('PRIVATE');
+  expect(JSON.stringify(draft)).not.toContain('pendingFeedbackRevision');
+  await completePendingResponseFeedback(store, matches, {
+    previewRevision: preview.revision,
+    updatedSource: readTeachingTaskSources(applied.courseMap)[0],
+  });
+  expect(latest.pendingFeedbackRevision).toBeUndefined();
+  expect(latest.improvements).toHaveLength(1);
+  expect(latest.improvements[0].judgment.reason).toBe('PRIVATE original reason.');
+  expect(latest.judgments[0].reason).toBe('Newer private judgment.');
+  expect(await pendingResponseFeedbackForDraft(store, restoredDraft)).toEqual([]);
+});
+
+it('does not persist a mismatched draft or hide a failed private association write', async () => {
+  const s = state();
+  const record = createResponseReview(s.source, '42.5%.');
+  const criterionId = record.snapshot.criteria[0].id;
+  const reviewed = confirmResponseJudgment(record, { criterionId, level: 'insufficient', reason: 'No group stated.' });
+  const request = {
+    record: reviewed,
+    source: s.source,
+    criterionId,
+    feedback: 'Name the observed group before interpreting its proportion.',
+  };
+  const draft = prepareResponseFeedbackRevision(request);
+  const store = {
+    save: async () => {
+      throw new Error('Storage full');
+    },
+  };
+  await expect(savePendingResponseFeedback(store, reviewed, { ...draft, taskId: 'wrong' }, request)).rejects.toThrow(
+    /does not match/,
+  );
+  await expect(savePendingResponseFeedback(store, reviewed, draft, request)).rejects.toThrow('Storage full');
+  expect(reviewed.pendingFeedbackRevision).toBeUndefined();
 });

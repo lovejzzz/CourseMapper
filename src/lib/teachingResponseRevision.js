@@ -28,7 +28,7 @@ export function prepareResponseFeedbackRevision({ record, source, criterionId, f
 
 export function createResponseRevisionReceipt(
   record,
-  { previewRevision, updatedSource, criterionId, feedback },
+  { previewRevision, updatedSource, criterionId, feedback, pendingDraftRevision },
   appliedAt = new Date().toISOString(),
 ) {
   validateResponseReview(record);
@@ -43,6 +43,7 @@ export function createResponseRevisionReceipt(
     throw new Error('The applied task does not match the reviewed feedback revision.');
   const receipt = {
     id: previewRevision,
+    ...(pendingDraftRevision ? { pendingDraftRevision } : {}),
     appliedAt,
     criterionId,
     fromSourceRevision: record.sourceRevision,
@@ -64,8 +65,10 @@ export function appendResponseRevisionReceipt(record, receipt) {
   const existing = record.improvements?.find((entry) => entry.id === receipt.id);
   if (existing && responseReviewRevision(existing) !== responseReviewRevision(receipt))
     throw new Error('A different teaching revision already uses this receipt identity.');
+  const next = structuredClone(record);
+  if (next.pendingFeedbackRevision?.draftRevision === receipt.pendingDraftRevision) delete next.pendingFeedbackRevision;
   return validateResponseReview({
-    ...structuredClone(record),
+    ...next,
     improvements: existing
       ? structuredClone(record.improvements)
       : [...(record.improvements || []), structuredClone(receipt)],
@@ -80,4 +83,56 @@ export async function saveResponseRevisionReceipt(store, recordId, receipt) {
   const updated = appendResponseRevisionReceipt(current, receipt);
   await store.save(updated, responseReviewRevision(current));
   return updated;
+}
+
+/** Persist only in the private notebook. A hash ties this intention to the
+ * exact public draft without copying response text into the project. */
+export async function savePendingResponseFeedback(store, record, draft, { criterionId, feedback }) {
+  validateResponseReview(record);
+  const judgment = record.judgments.find((entry) => entry.criterionId === criterionId);
+  if (
+    !judgment ||
+    draft.taskId !== record.taskId ||
+    draft.sourceRevision !== record.sourceRevision ||
+    draft.requirements?.find((entry) => entry.id === criterionId)?.feedback !== feedback.trim()
+  )
+    throw new Error('The feedback draft does not match the reviewed response.');
+  const updated = validateResponseReview({
+    ...structuredClone(record),
+    pendingFeedbackRevision: {
+      draftRevision: responseReviewRevision(draft),
+      sourceRevision: record.sourceRevision,
+      rubricRevision: record.rubricRevision,
+      criterionId,
+      feedback: feedback.trim(),
+      judgment: structuredClone(judgment),
+      preparedAt: new Date().toISOString(),
+    },
+  });
+  await store.save(updated, responseReviewRevision(record));
+  return updated;
+}
+
+export async function pendingResponseFeedbackForDraft(store, draft) {
+  const revision = responseReviewRevision(draft);
+  const { records } = await store.list();
+  return records.filter(
+    (record) => record.taskId === draft.taskId && record.pendingFeedbackRevision?.draftRevision === revision,
+  );
+}
+
+export async function completePendingResponseFeedback(store, records, applied) {
+  for (const record of records) {
+    const pending = record.pendingFeedbackRevision;
+    // The judgment that motivated the revision remains historical even if a
+    // teacher subsequently changes the current judgment in another tab.
+    const snapshot = { ...structuredClone(record), judgments: [structuredClone(pending.judgment)] };
+    const receipt = createResponseRevisionReceipt(snapshot, {
+      ...applied,
+      criterionId: pending.criterionId,
+      feedback: pending.feedback,
+      pendingDraftRevision: pending.draftRevision,
+    });
+    await saveResponseRevisionReceipt(store, record.id, receipt);
+  }
 }

@@ -13,6 +13,8 @@ import { performanceRequirementsFixture } from '../../../../tests/fixtures/teach
 import { createTeachingOperationPlan } from '../../../lib/teachingOperationPlan.js';
 import { projectSharedTeachingTasks } from '../../../lib/compilerTeachingTaskProjection.js';
 import { previewTeachingTaskReview, commitTeachingTaskReview } from '../../../lib/teachingTaskReview.js';
+import { createResponseReview, confirmResponseJudgment } from '../../../lib/teachingResponseReview.js';
+import { prepareResponseFeedbackRevision, savePendingResponseFeedback } from '../../../lib/teachingResponseRevision.js';
 import useTeachingReviewDrafts from '../../../hooks/useTeachingReviewDrafts.js';
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -109,7 +111,7 @@ describe('teacher structure review interaction', () => {
       commitTeachingTaskReview({ ...state, preview, teacherConfirmed }),
     );
     await renderReview({ courseMap, data, onPreview, onCommit });
-    return { onPreview, onCommit };
+    return { onPreview, onCommit, source, courseMap, data };
   }
 
   async function enter(label, value) {
@@ -370,6 +372,50 @@ describe('teacher structure review interaction', () => {
     expect(button('Save development proposal record')).toBeTruthy();
     await click(button('Preview linked changes'));
     expect(onPreview.mock.calls[0][0].bindings.priorValue.quote).toBe('120');
+  });
+
+  it('associates an applied restored feedback draft with its private response without an in-memory callback', async () => {
+    const state = await renderPerformanceReview();
+    const record = createResponseReview(state.source, 'PRIVATE restored response.');
+    const criterionId = record.snapshot.criteria[0].id;
+    let latest = confirmResponseJudgment(record, {
+      criterionId,
+      level: 'insufficient',
+      reason: 'PRIVATE missing group.',
+    });
+    const request = { criterionId, feedback: 'Name the observed volunteers before explaining the 17/40 result.' };
+    const draft = prepareResponseFeedbackRevision({
+      ...request,
+      record: latest,
+      source: state.source,
+      materialData: state.data,
+      featureId: 'rubrics',
+    });
+    const responseStore = {
+      list: async () => ({ records: [structuredClone(latest)], unreadable: [] }),
+      save: async (next) => {
+        latest = structuredClone(next);
+      },
+    };
+    await savePendingResponseFeedback(responseStore, latest, draft, request);
+    await act(async () => root.unmount());
+    root = createRoot(container);
+    const savedDrafts = JSON.parse(
+      JSON.stringify({
+        activeTaskId: draft.taskId,
+        entries: [{ draft, title: 'Restored', featureId: 'rubrics' }],
+        unreadable: [],
+      }),
+    );
+    await renderReview({ ...state, responseStore, savedDrafts });
+    await click(button('Preview linked changes'));
+    await click(container.querySelector('[data-testid="teaching-review-confirm"]'));
+    await click(button('Apply reviewed changes'));
+    expect(state.onCommit).toHaveBeenCalledTimes(1);
+    expect(latest.improvements).toHaveLength(1);
+    expect(latest.improvements[0].judgment.reason).toBe('PRIVATE missing group.');
+    expect(latest.pendingFeedbackRevision).toBeUndefined();
+    expect(JSON.stringify(state.onCommit.mock.results[0].value)).not.toContain('PRIVATE');
   });
 
   it('edits a performance and independent reference through the real review transaction', async () => {

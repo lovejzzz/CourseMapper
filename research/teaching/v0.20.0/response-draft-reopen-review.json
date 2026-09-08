@@ -1,0 +1,34 @@
+{
+  "scenario": "Prepare reviewed feedback, reload, Resume, preview afresh, confirm and apply, inspect original response history",
+  "environment": "Actual existing Chrome tab, localhost:17148; no model loaded",
+  "input": ".audit-work/v0200-teaching-system/m3-performance-current-before.coursemapper",
+  "reviewer": "implementer",
+  "classroomEvidence": false,
+  "observed": {
+    "draftRestored": true,
+    "freshConfirmationRequired": true,
+    "appliedStatus": "Task updated. You can undo this change.",
+    "originalResponseHistory": "Applied teaching revisions (1)",
+    "originalTaskAndRubricRetained": true
+  },
+  "privateReview": {
+    "recordId": "e3806187-66c2-4dd2-af17-75bcf64a5ec8",
+    "improvements": 1,
+    "pendingRemoved": true
+  },
+  "projectContainsAnonymousResponse": false,
+  "outputs": [
+    {
+      "path": ".audit-work/v0200-teaching-system/response-draft-reopen/after-apply.coursemapper",
+      "sha256": "6573e30bff9f259d483eb512e6397de6f7f03d2b50f678593120100a5eedc950"
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/response-draft-reopen/anonymous-development-review.json",
+      "sha256": "8c75489fb4248809ae2f745d45ca89894c04c6e4a2eb685dffcac82be075548b"
+    }
+  ],
+  "limitations": [
+    "This run proves reload before commit. Crash after course commit but before a successful private receipt write remains a separate recovery case.",
+    "Synthetic anonymous development response; not an independent teacher or classroom trial."
+  ]
+}

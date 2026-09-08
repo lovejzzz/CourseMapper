@@ -221,4 +221,7 @@ it('requires public feedback confirmation and clears it when switching requireme
   expect(input('New feedback for').value).toBe('');
   expect(input('This text is suitable').checked).toBe(false);
   expect(button('Preview linked changes').disabled).toBe(true);
+  await setValue(input('Reason and next teaching action'), 'No follow-up collection is proposed.');
+  await click(button('Confirm judgment'));
+  expect(input('Criterion').value).toBe(reviewed.snapshot.criteria[1].id);
 });

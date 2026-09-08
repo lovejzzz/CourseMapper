@@ -83,6 +83,19 @@ export function validateResponseReview(record) {
   };
   check(record.judgments);
   record.history.forEach((entry) => check(entry.judgments));
+  const pending = record.pendingFeedbackRevision;
+  if (pending) {
+    if (
+      !/^[a-f0-9]{64}$/.test(pending.draftRevision) ||
+      pending.sourceRevision !== record.sourceRevision ||
+      pending.rubricRevision !== record.rubricRevision ||
+      !Number.isFinite(Date.parse(pending.preparedAt)) ||
+      pending.criterionId !== pending.judgment?.criterionId
+    )
+      throw new Error('Invalid pending feedback revision.');
+    check([pending.judgment]);
+    requireText(pending.feedback, 6000, 'pending teaching feedback');
+  }
   const improvements = record.improvements || [];
   if (
     !Array.isArray(improvements) ||
@@ -93,6 +106,7 @@ export function validateResponseReview(record) {
   for (const entry of improvements) {
     if (
       !/^[a-f0-9]{64}$/.test(entry.id) ||
+      (entry.pendingDraftRevision !== undefined && !/^[a-f0-9]{64}$/.test(entry.pendingDraftRevision)) ||
       !Number.isFinite(Date.parse(entry.appliedAt)) ||
       entry.fromSourceRevision !== record.sourceRevision ||
       entry.fromRubricRevision !== record.rubricRevision ||

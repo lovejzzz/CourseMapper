@@ -2,7 +2,13 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import TeachingPerformanceEditor from './TeachingPerformanceEditor.jsx';
 import TeachingGoalAlignmentEditor from './TeachingGoalAlignmentEditor.jsx';
 import TeachingResponseReview from './TeachingResponseReview.jsx';
-import { prepareResponseFeedbackRevision } from '../../../lib/teachingResponseRevision.js';
+import {
+  prepareResponseFeedbackRevision,
+  savePendingResponseFeedback,
+  pendingResponseFeedbackForDraft,
+  completePendingResponseFeedback,
+} from '../../../lib/teachingResponseRevision.js';
+import { createTeachingResponseStore } from '../../../lib/teachingResponseStore.js';
 import { sameJsonData } from '../../../lib/canonicalJson.js';
 import { reconcileTeachingGoalLinks } from '../../../lib/teachingGoalAlignment.js';
 import { FEATURES_BASE } from '../../../lib/featureCatalog.js';
@@ -131,6 +137,7 @@ export default function TeachingTaskReview({
   const [lastProposalReceipt, setLastProposalReceipt] = useState(null);
   const proposalController = useRef(null);
   const responseCompletion = useRef(null);
+  const notebook = useMemo(() => responseStore || createTeachingResponseStore(), [responseStore]);
   useEffect(() => () => proposalController.current?.abort(), []);
   const selected = draft?.creation
     ? {
@@ -339,6 +346,15 @@ export default function TeachingTaskReview({
     if (!confirmed || !preview) return;
     setBusy(true);
     try {
+      const changesFeedback =
+        selected?.operationPlan?.version === 2 &&
+        (responseStore || globalThis.indexedDB) &&
+        preview.draft?.requirements?.some(
+          (requirement) =>
+            selected?.operationPlan?.requirements?.find((entry) => entry.id === requirement.id)?.feedback !==
+            requirement.feedback,
+        );
+      const pendingResponses = changesFeedback ? await pendingResponseFeedbackForDraft(notebook, preview.draft) : [];
       const result = await onCommit(preview, confirmed);
       if (result.status === 'applied') {
         onRemoveDraft?.(draft.taskId);
@@ -347,21 +363,33 @@ export default function TeachingTaskReview({
         setPreview(null);
         setConfirmed(false);
         setMessage(t('Task updated. You can undo this change.', '任务已更新，可撤销。'));
-        const completion = responseCompletion.current;
-        responseCompletion.current = null;
-        if (completion?.revision === preview.revision && completion.complete) {
+        if (pendingResponses.length) {
           try {
-            await completion.complete({
+            await completePendingResponseFeedback(notebook, pendingResponses, {
               previewRevision: preview.revision,
               updatedSource: reviewableTeachingTaskSources(result.courseMap).find(
                 (row) => row.id === preview.draft.taskId,
               ),
             });
           } catch (error) {
+            const completion = responseCompletion.current;
+            if (completion?.revision === preview.revision) {
+              try {
+                await completion.complete({
+                  previewRevision: preview.revision,
+                  pendingDraftRevision: pendingResponses[0].pendingFeedbackRevision.draftRevision,
+                  updatedSource: reviewableTeachingTaskSources(result.courseMap).find(
+                    (row) => row.id === preview.draft.taskId,
+                  ),
+                });
+              } catch {
+                /* The response panel retains its retry receipt. */
+              }
+            }
             setMessage(
               t(
-                'Task updated, but the local revision record was not saved. Retry in response review.',
-                '任务已更新，但本地修订记录未保存。请在作答审阅中重试。',
+                'Task updated; check the local revision record in response review.',
+                '任务已更新，请在作答审阅中核对本地修订记录。',
               ),
               [error.message],
             );
@@ -389,7 +417,7 @@ export default function TeachingTaskReview({
     >
       <summary className="cursor-pointer font-medium">{t('Review sources and scoring', '审阅来源与评分')}</summary>
       <TeachingResponseReview
-        store={responseStore}
+        store={notebook}
         source={options.sources.find((row) => row.id === selected?.id)}
         zh={zh}
         disabled={busy}
@@ -404,10 +432,11 @@ export default function TeachingTaskReview({
             const result = await onPreview(next);
             if (result.status !== 'preview')
               throw new Error(result.message || t('The change needs review.', '修改需要进一步审阅。'));
+            await savePendingResponseFeedback(notebook, request.record, next, request);
+            responseCompletion.current = { revision: result.revision, complete };
             setDraft(next);
             setSelectedId(next.taskId);
             setPreview(result);
-            responseCompletion.current = { revision: result.revision, complete };
             setConfirmed(false);
             setMessage(
               t(

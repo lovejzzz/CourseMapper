@@ -61,22 +61,25 @@ export default function TeachingResponseReview({ source, zh, disabled, store: su
   async function refresh() {
     const result = await store.list();
     setRecords(result.records);
+    setActive((current) => (current ? result.records.find((entry) => entry.id === current.id) || null : null));
     if (result.unreadable.length)
       setMessage(
         t('Some local reviews cannot be read. They have been retained.', '部分本地记录无法读取，原数据已保留。'),
       );
   }
-  function select(record) {
+  function select(record, criterionId) {
     setFeedbackDraft('');
     setFeedbackPublic(false);
     setActive(record);
     setConfirmExport(false);
     setConfirmDelete(false);
-    setJudgment(judgmentFor(record, record?.snapshot.criteria[0]?.id || ''));
+    const selectedCriterion =
+      record?.snapshot.criteria.find((entry) => entry.id === criterionId)?.id || record?.snapshot.criteria[0]?.id || '';
+    setJudgment(judgmentFor(record, selectedCriterion));
   }
   async function persist(record) {
     await store.save(record, active?.id === record.id ? responseReviewRevision(active) : null);
-    select(record);
+    select(record, judgment.criterionId);
     await refresh();
   }
   async function saveReceipt(pending) {
@@ -340,6 +343,7 @@ export default function TeachingResponseReview({ source, zh, disabled, store: su
                             await saveReceipt(pending);
                           },
                         );
+                        await refresh();
                         setMessage(
                           t(
                             'Review the linked changes in the task editor before applying.',
