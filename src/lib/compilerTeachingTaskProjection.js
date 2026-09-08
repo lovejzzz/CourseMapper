@@ -446,7 +446,9 @@ function projectPlan(row, task) {
     ];
   if (transfer)
     phases[4] = [
-      taskCopy(task, 'Apply the reasoning to a new case'),
+      transfer.caseExposure?.kind === 'reused-in-course'
+        ? taskText(task, 'Extend the reasoning on the returning case', '在延续案例上运用本课推理')
+        : taskCopy(task, 'Apply the reasoning to a new case'),
       transfer.question,
       taskText(
         task,

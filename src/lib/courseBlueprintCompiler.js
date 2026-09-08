@@ -1,3 +1,4 @@
+import { annotatePracticeCaseExposure } from './practiceCaseExposure.js';
 import { sourceCourseGradeWeight } from './courseGradeWeight.js';
 import {
   applyArithmeticProgramToOutline,
@@ -12821,7 +12822,7 @@ function prepareBlueprintForCompilation(blueprint = {}, options = {}) {
             : 'guided-practice',
     };
   });
-  prepared.lessons = linkTeachingTaskSequence(prepared.lessons);
+  prepared.lessons = annotatePracticeCaseExposure(linkTeachingTaskSequence(prepared.lessons));
   const semanticContract = validateBlueprintSemanticContract(prepared);
   const compilerContract = validateCourseBlueprintContract(prepared);
   const compilerProofBundle = buildCompilerProofBundle(prepared, {

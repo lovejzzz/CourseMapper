@@ -147,6 +147,7 @@ export function teachingProgramReviewQuestions(program) {
   return (program?.units || []).map((unit) => ({
     practiceId: unit.id,
     practiceKind: unit.kind,
+    ...(unit.caseExposure ? { caseExposure: unit.caseExposure } : {}),
     ...(unit.requirementId ? { requirementId: unit.requirementId } : {}),
     ...(unit.sourceTaskId ? { sourceTaskId: unit.sourceTaskId } : {}),
     question: unit.question,

@@ -1358,7 +1358,12 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           ].filter(Boolean);
           const options = Array.isArray(q.options) ? q.options : [];
           const openResponse = !options.length && ['short_answer', 'short-answer', 'essay'].includes(q.type);
-          const practiceLabel = practiceLabels[q.practiceKind];
+          const practiceLabel =
+            q.caseExposure?.kind === 'reused-in-course' && q.practiceKind === 'independent-transfer'
+              ? zh
+                ? '独立作答：延续案例'
+                : 'Independent response: returning case'
+              : practiceLabels[q.practiceKind];
           if (practiceLabel) children.push(makeItalic(practiceLabel, { keepNext: true }));
           children.push(
             makeBold(`Q${j + 1}` + (qMeta.length ? ` (${qMeta.join(', ')})` : ''), q.question || '', {

@@ -1,3 +1,4 @@
+import { reusedPracticeCase } from './practiceCaseExposure.js';
 import { compileTeachingProgram, teachingProgramReviewQuestions } from './compilerTeachingProgram.js';
 import { teachingTaskWorkedExample } from './compilerTeachingTask.js';
 import { taskCopy, taskText } from './teachingTaskCopy.js';
@@ -151,10 +152,15 @@ export function projectTeachingStudyGuide(row, task) {
     teachingGuideVersion: 1,
     language: task.language,
     ...(chronology || pooling || union ? { learningObjectives: [task.objective] } : {}),
-    examScope: t(
-      'Study the example, explain its reasoning, then attempt the new case before opening the answer key. Use the final activity to revise a specific step.',
-      '先阅读示范并解释其推理，再独立完成新案例，之后才查看答案。最后针对一个具体步骤重做。',
-    ),
+    examScope: reusedPracticeCase(task)
+      ? t(
+          'Use the returning case to practice this lesson’s reasoning before opening the key. A familiar case is not evidence of transfer to an unseen situation.',
+          '先用延续案例练习本课推理，再查看答案。熟悉案例不能作为迁移到未见情境的证据。',
+        )
+      : t(
+          'Study the example, explain its reasoning, then attempt the new case before opening the answer key. Use the final activity to revise a specific step.',
+          '先阅读示范并解释其推理，再独立完成新案例，之后才查看答案。最后针对一个具体步骤重做。',
+        ),
     summary: union
       ? t(
           'Use a common roster, overlap constraints and feasible endpoint partitions to distinguish a possible range from an observed value.',
@@ -202,10 +208,15 @@ export function projectTeachingStudyGuide(row, task) {
       keyTopicsToKnow: [],
       commonErrors: '',
       timeline: t('Return to the guide after the lesson.', '课后再次使用本指南。'),
-      reviewStrategy: t(
-        'On your next review, cover the example and key. Explain one concept connection and redo the new case. Compare the reasoning, not just the final result; ask for help on the first step you still cannot justify.',
-        '下次复习时遮住示范和答案，解释一条概念关系并重做新案例。比较推理而不只比较结果；针对仍无法说明依据的第一步寻求帮助。',
-      ),
+      reviewStrategy: reusedPracticeCase(task)
+        ? t(
+            'Cover the worked example and key. Revisit the familiar case using this lesson’s requirements, then compare your reasoning with your earlier response.',
+            '遮住示范和答案，用本课要求重新处理熟悉案例，再将推理与先前的回答比较。',
+          )
+        : t(
+            'On your next review, cover the example and key. Explain one concept connection and redo the new case. Compare the reasoning, not just the final result; ask for help on the first step you still cannot justify.',
+            '下次复习时遮住示范和答案，解释一条概念关系并重做新案例。比较推理而不只比较结果；针对仍无法说明依据的第一步寻求帮助。',
+          ),
     },
   });
   return row;

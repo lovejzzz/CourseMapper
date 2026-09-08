@@ -62,13 +62,19 @@ export function projectTeachingQuestion(slot, question, task) {
     sourceReviewRequired: false,
     intendedUse:
       question.practiceKind === 'independent-transfer'
-        ? task.operationPlan?.version === 2
+        ? question.caseExposure?.kind === 'reused-in-course'
           ? taskText(
               task,
-              'Independent response to a new case; use the records in this question.',
-              '独立完成新案例；使用本题提供的记录。',
+              'Work independently on a case used earlier in this course; this is continued practice, not evidence of transfer to an unseen case.',
+              '独立完成课程中已出现案例的新要求；这是延续练习，不能据此证明迁移到未见情境。',
             )
-          : taskCopy(task, 'Independent response to a new fictional case; use the record in this question.')
+          : task.operationPlan?.version === 2
+            ? taskText(
+                task,
+                'Independent response to a new case; use the records in this question.',
+                '独立完成新案例；使用本题提供的记录。',
+              )
+            : taskCopy(task, 'Independent response to a new fictional case; use the record in this question.')
         : task.purpose,
   });
 }

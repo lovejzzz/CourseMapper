@@ -1,0 +1,204 @@
+{
+  "kind": "Three existing authored six-lesson course recompiles, zero model calls",
+  "courses": [
+    {
+      "course": "quantity-zh-draft-02",
+      "lessons": [
+        {
+          "lessonNumber": 1,
+          "caseExposure": null,
+          "question": "将这些要求应用到以下新案例。\n1. 虚构育苗观察：第一盘有32颗种子，第5天登记已发芽19颗，其余继续观察，未判定为死亡。\n2. 第二盘种子尚未检查，数量未记录；关注的目标是两盘全部种子。同一颗种子不能重复计数。\n1. 为第一盘记录列出群体、时点、总数、结果及未知信息，解释分母。",
+          "intendedUse": "独立完成新案例；使用本题提供的记录。"
+        },
+        {
+          "lessonNumber": 2,
+          "caseExposure": {
+            "version": 1,
+            "kind": "reused-in-course",
+            "firstLessonNumber": 1,
+            "fingerprint": "040fd3401a7001a41d10dc5156f0e119c5d91ecdbd917c46ff8996d53529cc16"
+          },
+          "question": "继续使用以下案例，完成本课的新要求。\n1. 虚构育苗观察：第一盘有32颗种子，第5天登记已发芽19颗，其余继续观察，未判定为死亡。\n2. 第二盘种子尚未检查，数量未记录；关注的目标是两盘全部种子。同一颗种子不能重复计数。\n1. 把19/32写成小数、百分数，并反向核验。",
+          "intendedUse": "独立完成课程中已出现案例的新要求；这是延续练习，不能据此证明迁移到未见情境。"
+        },
+        {
+          "lessonNumber": 3,
+          "caseExposure": {
+            "version": 1,
+            "kind": "reused-in-course",
+            "firstLessonNumber": 1,
+            "fingerprint": "040fd3401a7001a41d10dc5156f0e119c5d91ecdbd917c46ff8996d53529cc16"
+          },
+          "question": "继续使用以下案例，完成本课的新要求。\n1. 虚构育苗观察：第一盘有32颗种子，第5天登记已发芽19颗，其余继续观察，未判定为死亡。\n2. 第二盘种子尚未检查，数量未记录；关注的目标是两盘全部种子。同一颗种子不能重复计数。\n1. 计算第一盘未登记发芽的数量和比例，说明能否称为死亡率。",
+          "intendedUse": "独立完成课程中已出现案例的新要求；这是延续练习，不能据此证明迁移到未见情境。"
+        },
+        {
+          "lessonNumber": 4,
+          "caseExposure": {
+            "version": 1,
+            "kind": "reused-in-course",
+            "firstLessonNumber": 1,
+            "fingerprint": "040fd3401a7001a41d10dc5156f0e119c5d91ecdbd917c46ff8996d53529cc16"
+          },
+          "question": "继续使用以下案例，完成本课的新要求。\n1. 虚构育苗观察：第一盘有32颗种子，第5天登记已发芽19颗，其余继续观察，未判定为死亡。\n2. 第二盘种子尚未检查，数量未记录；关注的目标是两盘全部种子。同一颗种子不能重复计数。\n1. 分别报告精确、一位小数和整数百分数，并解释舍入与计数的区别。",
+          "intendedUse": "独立完成课程中已出现案例的新要求；这是延续练习，不能据此证明迁移到未见情境。"
+        },
+        {
+          "lessonNumber": 5,
+          "caseExposure": {
+            "version": 1,
+            "kind": "reused-in-course",
+            "firstLessonNumber": 1,
+            "fingerprint": "040fd3401a7001a41d10dc5156f0e119c5d91ecdbd917c46ff8996d53529cc16"
+          },
+          "question": "继续使用以下案例，完成本课的新要求。\n1. 虚构育苗观察：第一盘有32颗种子，第5天登记已发芽19颗，其余继续观察，未判定为死亡。\n2. 第二盘种子尚未检查，数量未记录；关注的目标是两盘全部种子。同一颗种子不能重复计数。\n1. 审查“两盘总发芽率为59.375%”，写出可支持结论和补充记录需求。",
+          "intendedUse": "独立完成课程中已出现案例的新要求；这是延续练习，不能据此证明迁移到未见情境。"
+        },
+        {
+          "lessonNumber": 6,
+          "caseExposure": null,
+          "question": "将这些要求应用到以下新案例。\n1. 虚构图书回收登记：周二收到24本书，其中9本登记有水渍，其余15本等待详细检查，并未登记为无损。\n2. 周三收到的书尚未检查且没有给出总数。目标是这两天收到的全部图书；需用书本ID避免重复计数。\n1. 为周二图书记录做群体与计数表，解释分母和周三未知信息。\n2. 计算周二登记水渍比例的三个表示并反向核验。\n3. 计算未登记水渍的数量和比例，判断它是否就是无损率。\n4. 报告精确、一位小数和整数百分数，并说明能否从取整值改写原计数。\n5. 审查“两天回收图书的水渍率为37.5%”，写出结论边界与补充记录需求。",
+          "intendedUse": "独立完成新案例；使用本题提供的记录。"
+        }
+      ],
+      "exported": {
+        "path": ".audit-work/v0200-teaching-system/course-exposure/quantity-quiz.docx",
+        "sha256": "05f40b88f41077d576c2288e4c0d2fd690920f18c897c7cf7bc2e2cadf853afd",
+        "returningLabels": 4,
+        "newLabels": 2
+      }
+    },
+    {
+      "course": "record-en-draft-02",
+      "lessons": [
+        {
+          "lessonNumber": 1,
+          "caseExposure": null,
+          "question": "Apply the requirements to this new case.\n1. Fictional tool desk record D, filed 3 October: a borrower may hold at most 5 tools at once. This is a loan limit, not a count of actual loans.\n2. Fictional replacement E, filed 8 October: from 12 October the same desk permits at most 3 tools per borrower at once. Earlier dates are not revised.\n3. Receipt F has no verified borrowing date or item count. It was scanned on 16 October; the scan date is not established as the borrowing date.\n1. Build a source ledger with values, units, rule versus observation, and missing evidence.",
+          "intendedUse": "Independent response to a new case; use the records in this question."
+        },
+        {
+          "lessonNumber": 2,
+          "caseExposure": {
+            "version": 1,
+            "kind": "reused-in-course",
+            "firstLessonNumber": 1,
+            "fingerprint": "6fb199d108511095ddd308377466bbdb21854fdbcd8081039c358f82b07439eb"
+          },
+          "question": "Continue with this case and apply this lesson’s requirements.\n1. Fictional tool desk record D, filed 3 October: a borrower may hold at most 5 tools at once. This is a loan limit, not a count of actual loans.\n2. Fictional replacement E, filed 8 October: from 12 October the same desk permits at most 3 tools per borrower at once. Earlier dates are not revised.\n3. Receipt F has no verified borrowing date or item count. It was scanned on 16 October; the scan date is not established as the borrowing date.\n1. Distinguish filing, effect and copying dates; state the limit on 11 October and 12 October.",
+          "intendedUse": "Work independently on a case used earlier in this course; this is continued practice, not evidence of transfer to an unseen case."
+        },
+        {
+          "lessonNumber": 3,
+          "caseExposure": {
+            "version": 1,
+            "kind": "reused-in-course",
+            "firstLessonNumber": 1,
+            "fingerprint": "6fb199d108511095ddd308377466bbdb21854fdbcd8081039c358f82b07439eb"
+          },
+          "question": "Continue with this case and apply this lesson’s requirements.\n1. Fictional tool desk record D, filed 3 October: a borrower may hold at most 5 tools at once. This is a loan limit, not a count of actual loans.\n2. Fictional replacement E, filed 8 October: from 12 October the same desk permits at most 3 tools per borrower at once. Earlier dates are not revised.\n3. Receipt F has no verified borrowing date or item count. It was scanned on 16 October; the scan date is not established as the borrowing date.\n1. Explain how E relates to D and what cannot be inferred about the reason for change.",
+          "intendedUse": "Work independently on a case used earlier in this course; this is continued practice, not evidence of transfer to an unseen case."
+        },
+        {
+          "lessonNumber": 4,
+          "caseExposure": {
+            "version": 1,
+            "kind": "reused-in-course",
+            "firstLessonNumber": 1,
+            "fingerprint": "6fb199d108511095ddd308377466bbdb21854fdbcd8081039c358f82b07439eb"
+          },
+          "question": "Continue with this case and apply this lesson’s requirements.\n1. Fictional tool desk record D, filed 3 October: a borrower may hold at most 5 tools at once. This is a loan limit, not a count of actual loans.\n2. Fictional replacement E, filed 8 October: from 12 October the same desk permits at most 3 tools per borrower at once. Earlier dates are not revised.\n3. Receipt F has no verified borrowing date or item count. It was scanned on 16 October; the scan date is not established as the borrowing date.\n1. Evaluate whether F proves a limit violation and request the evidence needed.",
+          "intendedUse": "Work independently on a case used earlier in this course; this is continued practice, not evidence of transfer to an unseen case."
+        },
+        {
+          "lessonNumber": 5,
+          "caseExposure": {
+            "version": 1,
+            "kind": "reused-in-course",
+            "firstLessonNumber": 1,
+            "fingerprint": "6fb199d108511095ddd308377466bbdb21854fdbcd8081039c358f82b07439eb"
+          },
+          "question": "Continue with this case and apply this lesson’s requirements.\n1. Fictional tool desk record D, filed 3 October: a borrower may hold at most 5 tools at once. This is a loan limit, not a count of actual loans.\n2. Fictional replacement E, filed 8 October: from 12 October the same desk permits at most 3 tools per borrower at once. Earlier dates are not revised.\n3. Receipt F has no verified borrowing date or item count. It was scanned on 16 October; the scan date is not established as the borrowing date.\n1. Revise “E proves D false and F proves a violation.” Include two traceable change-log entries.",
+          "intendedUse": "Work independently on a case used earlier in this course; this is continued practice, not evidence of transfer to an unseen case."
+        },
+        {
+          "lessonNumber": 6,
+          "caseExposure": null,
+          "question": "Apply the requirements to this new case.\n1. Fictional exhibit record G, filed 1 November: the North Gallery timed-entry limit is 40 visitors per slot, not a record of actual attendance.\n2. Fictional replacement H, filed 4 November: from 6 November the same gallery limit is 25 visitors per slot. Earlier slots are not revised.\n3. Ticket bundle I has no verified visit date, slot identifier or attendance count. It was digitized on 9 November; digitization does not establish the visit date.\n1. Build a source ledger with values, units, rule versus observation, and missing evidence.\n2. Distinguish filing, effect and copying dates; state the limit on 5 November and 6 November.\n3. Explain how H relates to G and what cannot be inferred about the reason for change.\n4. Evaluate whether I proves a limit violation and request the evidence needed.\n5. Revise “H proves G false and I proves a violation.” Include two traceable change-log entries.",
+          "intendedUse": "Independent response to a new case; use the records in this question."
+        }
+      ],
+      "exported": null
+    },
+    {
+      "course": "experiment-en-draft-05",
+      "lessons": [
+        {
+          "lessonNumber": 1,
+          "caseExposure": null,
+          "question": "Apply the requirements to this new case.\n1. Fictional prior tray study: shallow trays at 28 °C had a recorded group mass loss of 18 g over 15 minutes; deep trays at 20 °C had 9 g. Individual results and original sample sizes are unavailable.\n2. New-test resources, not results: 24 fresh trays can each be assigned a shallow or deep shape condition. Use the same initial water mass, water source, 15-minute duration and balance. Room settings of 20 °C and 28 °C are available. Investigate tray shape while keeping temperature common. Spills can occur and must be recorded.\n1. Compare the two tray records. Give the recorded mass-loss difference, identify the confound, and state the causal limit.",
+          "intendedUse": "Independent response to a new case; use the records in this question."
+        },
+        {
+          "lessonNumber": 2,
+          "caseExposure": {
+            "version": 1,
+            "kind": "reused-in-course",
+            "firstLessonNumber": 1,
+            "fingerprint": "e0fb550564cb911191af50ea6e560ced9ee80c00e091c4ba5dab9547de342636"
+          },
+          "question": "Continue with this case and apply this lesson’s requirements.\n1. Fictional prior tray study: shallow trays at 28 °C had a recorded group mass loss of 18 g over 15 minutes; deep trays at 20 °C had 9 g. Individual results and original sample sizes are unavailable.\n2. New-test resources, not results: 24 fresh trays can each be assigned a shallow or deep shape condition. Use the same initial water mass, water source, 15-minute duration and balance. Room settings of 20 °C and 28 °C are available. Investigate tray shape while keeping temperature common. Spills can occur and must be recorded.\n1. Plan a randomized allocation of the 24 fresh trays to two shapes. Identify the unit and distinguish repeated balance readings from independent units.",
+          "intendedUse": "Work independently on a case used earlier in this course; this is continued practice, not evidence of transfer to an unseen case."
+        },
+        {
+          "lessonNumber": 3,
+          "caseExposure": {
+            "version": 1,
+            "kind": "reused-in-course",
+            "firstLessonNumber": 1,
+            "fingerprint": "e0fb550564cb911191af50ea6e560ced9ee80c00e091c4ba5dab9547de342636"
+          },
+          "question": "Continue with this case and apply this lesson’s requirements.\n1. Fictional prior tray study: shallow trays at 28 °C had a recorded group mass loss of 18 g over 15 minutes; deep trays at 20 °C had 9 g. Individual results and original sample sizes are unavailable.\n2. New-test resources, not results: 24 fresh trays can each be assigned a shallow or deep shape condition. Use the same initial water mass, water source, 15-minute duration and balance. Room settings of 20 °C and 28 °C are available. Investigate tray shape while keeping temperature common. Spills can occur and must be recorded.\n1. Define one reproducible mass-loss measurement for every tray and a record for a spilled or interrupted trial.",
+          "intendedUse": "Work independently on a case used earlier in this course; this is continued practice, not evidence of transfer to an unseen case."
+        },
+        {
+          "lessonNumber": 4,
+          "caseExposure": {
+            "version": 1,
+            "kind": "reused-in-course",
+            "firstLessonNumber": 1,
+            "fingerprint": "e0fb550564cb911191af50ea6e560ced9ee80c00e091c4ba5dab9547de342636"
+          },
+          "question": "Continue with this case and apply this lesson’s requirements.\n1. Fictional prior tray study: shallow trays at 28 °C had a recorded group mass loss of 18 g over 15 minutes; deep trays at 20 °C had 9 g. Individual results and original sample sizes are unavailable.\n2. New-test resources, not results: 24 fresh trays can each be assigned a shallow or deep shape condition. Use the same initial water mass, water source, 15-minute duration and balance. Room settings of 20 °C and 28 °C are available. Investigate tray shape while keeping temperature common. Spills can occur and must be recorded.\n1. Remove the temperature confound in the tray study and specify how filling/weighing order will be handled consistently across shapes.",
+          "intendedUse": "Work independently on a case used earlier in this course; this is continued practice, not evidence of transfer to an unseen case."
+        },
+        {
+          "lessonNumber": 5,
+          "caseExposure": {
+            "version": 1,
+            "kind": "reused-in-course",
+            "firstLessonNumber": 1,
+            "fingerprint": "e0fb550564cb911191af50ea6e560ced9ee80c00e091c4ba5dab9547de342636"
+          },
+          "question": "Continue with this case and apply this lesson’s requirements.\n1. Fictional prior tray study: shallow trays at 28 °C had a recorded group mass loss of 18 g over 15 minutes; deep trays at 20 °C had 9 g. Individual results and original sample sizes are unavailable.\n2. New-test resources, not results: 24 fresh trays can each be assigned a shallow or deep shape condition. Use the same initial water mass, water source, 15-minute duration and balance. Room settings of 20 °C and 28 °C are available. Investigate tray shape while keeping temperature common. Spills can occur and must be recorded.\n1. Plan a comparison of future tray-level mass losses, including spread, unusable trials and an honest statement about results not yet collected.",
+          "intendedUse": "Work independently on a case used earlier in this course; this is continued practice, not evidence of transfer to an unseen case."
+        },
+        {
+          "lessonNumber": 6,
+          "caseExposure": null,
+          "question": "Apply the requirements to this new case.\n1. Fictional earlier paper-helicopter trials: 4 cm blades released from 2 m had a median flight time of 1.4 s; 2 cm blades released from 1 m had 0.9 s. Original sample counts and individual times were not retained.\n2. New trial resources, not results: 30 fresh paper templates can each make one helicopter with either 2 cm or 4 cm blades. A helicopter is the independently assigned unit. Keep paper stock, body width, folds and the attached paper clip common. Release heights of 1 m and 2 m are available. Investigate blade length at one common height. Release without a push and time from release until first floor contact using the same timer and endpoint rule. Record desk/wall collisions and interruptions separately. Timer resolution and timing accuracy have not been supplied.\n1. Make an evidence table for the earlier helicopter trials. Calculate the difference in recorded medians and state why it cannot be attributed to blade length alone.\n2. Allocate all 30 templates to blade lengths before construction. Describe executable random assignment and explain what repeated drops would count as.\n3. Define the timing endpoint, recording columns and handling of collisions or interruptions. Identify what the source does not establish about timing precision.\n4. Choose common conditions for the new helicopter comparison and specify release order separately from blade-length allocation.\n5. Plan how future helicopter-level times will be compared, how unusable runs will be reported, and which results remain unknown.",
+          "intendedUse": "Independent response to a new case; use the records in this question."
+        }
+      ],
+      "exported": null
+    }
+  ],
+  "baselineCommit": "0a0410d5",
+  "scope": "Exact source-record reuse across existing authored six-lesson courses; not semantic paraphrase detection or measured learner exposure",
+  "limitations": [
+    "No fresh Scion inference or hidden benchmark in these authored-course replays.",
+    "Matching is based on complete record sets, ignoring order and whitespace; paraphrased or partially overlapping cases are not classified.",
+    "The internal practiceKind remains independent-transfer for scoring compatibility; caseExposure and intendedUse explicitly distinguish continued practice from evidence of unseen transfer.",
+    "Actual Word XML labels verified; this new export was not visually paginated in this run. Previous PDF page review is separate."
+  ]
+}

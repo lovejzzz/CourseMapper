@@ -221,3 +221,25 @@ it('renders readable question-type tags in the actual Word key without changing 
   expect(xml).not.toContain('short_answer');
   expect(xml).not.toContain('multiple_choice');
 });
+
+it('labels a reused course case without claiming an unseen transfer', () => {
+  const content = paper({
+    quizzes: [
+      {
+        lessonTitle: 'Returning to records',
+        questions: [
+          {
+            type: 'short_answer',
+            practiceKind: 'independent-transfer',
+            caseExposure: { kind: 'reused-in-course', firstLessonNumber: 1 },
+            question: 'Continue with this record.',
+            answer: 'Reference',
+            points: 4,
+          },
+        ],
+      },
+    ],
+  }).join('\n');
+  expect(content).toContain('Independent response: returning case');
+  expect(content).not.toContain('Independent response: new case');
+});

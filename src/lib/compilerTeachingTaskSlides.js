@@ -1,3 +1,4 @@
+import { reusedPracticeCase } from './practiceCaseExposure.js';
 import { taskCopy, taskText } from './teachingTaskCopy.js';
 /** Stable slide roles make the same task projection replayable after edits.
  * Worked examples show reasoning; independent questions keep answers in notes.
@@ -59,8 +60,8 @@ export function projectTeachingTaskSlides(deck, task) {
         return {
           title: taskText(
             task,
-            `${authored && !task.operationPlan.practiceInputs.every((s) => s.kind === 'fictional') ? 'A new case' : 'A new fictional case'}${transferRecords.length > 1 ? ` (${index + 1}/${transferRecords.length})` : ''}`,
-            `${authored && !task.operationPlan.practiceInputs.every((s) => s.kind === 'fictional') ? '新的案例' : '新的虚构案例'}${transferRecords.length > 1 ? `（${index + 1}/${transferRecords.length}）` : ''}`,
+            `${reusedPracticeCase(task) ? 'Returning to the case' : authored && !task.operationPlan.practiceInputs.every((s) => s.kind === 'fictional') ? 'A new case' : 'A new fictional case'}${transferRecords.length > 1 ? ` (${index + 1}/${transferRecords.length})` : ''}`,
+            `${reusedPracticeCase(task) ? '回到之前的案例' : authored && !task.operationPlan.practiceInputs.every((s) => s.kind === 'fictional') ? '新的案例' : '新的虚构案例'}${transferRecords.length > 1 ? `（${index + 1}/${transferRecords.length}）` : ''}`,
           ),
           bullets: [transferRecords[index]],
           notes: taskCopy(
