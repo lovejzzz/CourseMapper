@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import { comparisonCourseDraft } from '../../tests/fixtures/teaching/courses/comparisonCourse.js';
+import { proportionCourseDraft } from '../../tests/fixtures/teaching/courses/proportionCourse.js';
 import {
   buildCourseBlueprint,
   compileBlueprintDeliverables,
@@ -21,8 +22,10 @@ import { rebuildTeachingTaskSource } from '../../src/lib/teachingTaskSource.js';
 import { deriveCourseGraphFromCourseMap } from '../../src/lib/courseGraph/index.js';
 const root = process.argv[2];
 assert(root, 'Provide a new output directory.');
+const courseSelector = process.argv[3] || 'experiment-en';
+assert(['experiment-en', 'quantity-zh'].includes(courseSelector), 'Choose experiment-en or quantity-zh.');
 await fs.mkdir(root, { recursive: false });
-const course = comparisonCourseDraft();
+const course = courseSelector === 'quantity-zh' ? proportionCourseDraft() : comparisonCourseDraft();
 const features = [
   'syllabus',
   'lessonPlans',
@@ -55,7 +58,7 @@ const receipts = [];
 for (const [index, lesson] of course.lessons.entries()) {
   const draft = createNewTeachingTaskReviewDraft(courseMap, {
     lessonNumber: index + 1,
-    operation: 'paired-condition-confound',
+    operation: course.operation || 'paired-condition-confound',
   });
   assert(draft.creation, draft.message);
   Object.assign(draft, {

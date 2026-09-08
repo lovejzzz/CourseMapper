@@ -1,6 +1,25 @@
 import { renderedDeliverableCollection } from './renderedDeliverableRoot.js';
 // Compiler/exporter-owned labels only. Never translate teacher or source prose.
 const zhLabels = {
+  Quiz: '测验',
+  'Exam Scope': '考试范围',
+  'Assigned Reading': '指定阅读',
+  Grading: '评分方式',
+  "Bloom's Coverage": '认知层次',
+  'Short answer': '简答',
+  Essay: '论述',
+  'Multiple choice': '选择题',
+  'True/False': '判断题',
+  Answer: '答案',
+  'Answer Key': '参考答案',
+  Explanation: '解释',
+  'Scoring Guidance': '评分指导',
+  'Shared Scoring Guidance': '共同评分指导',
+  'Review Notes': '审阅说明',
+  'Sample Answer': '参考作答',
+  'Rubric Hints': '评分提示',
+  'Instructor use': '教师用途',
+  Feedback: '修改反馈',
   'Strong response': '充分作答样例',
   'Partial response': '部分作答样例',
   'Typical misconception': '典型误解样例',
@@ -92,7 +111,8 @@ const zhLabels = {
 };
 export function teachingMaterialIsChinese(row, data) {
   if (row?.language) return row.language === 'zh';
-  const source = data?.teachingTaskSources?.find((source) => source.id === row?.taskId);
+  const taskId = row?.taskId || row?.practiceRecord?.taskId;
+  const source = data?.teachingTaskSources?.find((source) => source.id === taskId);
   return Boolean(source && /\p{Script=Han}/u.test(source.objective || ''));
 }
 export const teachingMaterialLabel = (label, chinese) => (chinese ? zhLabels[label] || label : label);
@@ -104,12 +124,14 @@ export const comparisonTaskBloom = (task) =>
   task?.operationPlan?.operation === 'paired-condition-confound' ? 'Create' : undefined;
 
 export function teachingMaterialExportLabel(feature, data, fallback) {
-  if (!['assignments', 'rubrics'].includes(feature)) return fallback;
+  if (!['assignments', 'rubrics', 'quizBank'].includes(feature)) return fallback;
   const rows = renderedDeliverableCollection(feature, data);
   return rows.length && rows.every((row) => teachingMaterialIsChinese(row, data))
     ? feature === 'assignments'
       ? '作业'
-      : '评分标准'
+      : feature === 'quizBank'
+        ? '测验与考试题库'
+        : '评分标准'
     : fallback;
 }
 

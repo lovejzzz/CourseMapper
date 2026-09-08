@@ -130,18 +130,11 @@ export function rubricDocxNeedsLandscape(data) {
 // otherwise empty fifth/sixth page in real package renders.
 const SINGLE_SP = 246;
 
-function substantiallyRepeatsText(left, right) {
-  const tokens = (value) =>
-    String(value || '')
-      .toLowerCase()
-      .match(/[\p{L}\p{N}]+/gu) || [];
-  const leftTokens = new Set(tokens(left));
-  const rightTokens = new Set(tokens(right));
-  if (leftTokens.size < 8 || rightTokens.size < 8) return false;
-  const intersection = [...leftTokens].filter((token) => rightTokens.has(token)).length;
-  const union = new Set([...leftTokens, ...rightTokens]).size;
-  const lengthRatio = Math.min(leftTokens.size, rightTokens.size) / Math.max(leftTokens.size, rightTokens.size);
-  return intersection / Math.max(1, union) >= 0.58 && lengthRatio >= 0.55;
+function repeatsTextExactly(left, right) {
+  const first = String(left ?? '');
+  // Token overlap can erase a different explanation (including a negation).
+  // Keep even whitespace differences: they may matter in quoted text/code.
+  return Boolean(first.trim()) && first === String(right ?? '');
 }
 
 function formatSourceArtifact(artifact) {
@@ -1317,16 +1310,20 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           .trim();
       const quizzes = renderedDeliverableCollection('quizBank', expanded);
       for (const [quizIndex, quiz] of quizzes.entries()) {
-        children.push(makeHeading(quiz.lessonTitle || 'Quiz'));
+        const zh = teachingMaterialIsChinese(quiz, expanded);
+        const t = (label) => teachingMaterialLabel(label, zh);
+        const lessonTitle = teachingMaterialLessonLabel(quiz.lessonTitle, zh) || t('Quiz');
+        // Keep the next student paper off the preceding teacher answer key.
+        children.push(makeHeading(lessonTitle, { pageBreakBefore: quizIndex > 0 }));
         // v0.14.1 round 2 (bug 1): registry exam entries carry an examScope
         // ("Covers Lessons 1–7: …") — print it so the exam document states
         // its covered range; the field never rendered before.
-        if (quiz.examScope) children.push(makeBold('Exam Scope', quiz.examScope));
+        if (quiz.examScope) children.push(makeBold(t('Exam Scope'), quiz.examScope));
         if (quiz.assignedReadings?.length)
-          children.push(makeBold('Assigned Reading', quiz.assignedReadings.join('; ')));
+          children.push(makeBold(t('Assigned Reading'), quiz.assignedReadings.join('; ')));
         // v0.16 A2: the machine-scoring statement, printed where a reviewer
         // decides whether "autograded" is honest.
-        if (quiz.gradingSpec) children.push(makeBold('Grading', quiz.gradingSpec));
+        if (quiz.gradingSpec) children.push(makeBold(t('Grading'), quiz.gradingSpec));
         if (quiz.practiceRecord) {
           children.push(
             makeBold(quiz.practiceRecord.title || 'Course-created practice case', quiz.practiceRecord.context || ''),
@@ -1334,15 +1331,16 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           (quiz.practiceRecord.records || []).forEach((record) => children.push(makeBullet(record)));
           if (quiz.practiceRecord.studentUse) children.push(makeItalic(quiz.practiceRecord.studentUse));
         }
-        if (quiz.bloomsCoverage?.length) children.push(makeBold("Bloom's Coverage", quiz.bloomsCoverage.join(', ')));
+        if (quiz.bloomsCoverage?.length)
+          children.push(makeBold(t("Bloom's Coverage"), quiz.bloomsCoverage.map(t).join(', ')));
         const questions = quiz.questions || [];
 
         // Part 1 — the student-facing question paper.
         for (let j = 0; j < questions.length; j++) {
           const q = questions[j];
           const qMeta = [
-            humanizeQuestionType(q.type),
-            q.points && `${q.points} pts`,
+            t(humanizeQuestionType(q.type)),
+            (q.points || q.points === 0) && `${q.points}${zh ? '分' : ' pts'}`,
             q.estimatedMinutes && `~${q.estimatedMinutes} min`,
           ].filter(Boolean);
           const options = Array.isArray(q.options) ? q.options : [];
@@ -1374,7 +1372,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           // can itself flow onto the next page when the question paper fills
           // page 1, producing a completely blank page before the key.
           children.push(
-            makeHeading(`Answer Key — ${quiz.lessonTitle || 'Quiz'}`, {
+            makeHeading(`${t('Answer Key')} — ${lessonTitle}`, {
               pageBreakBefore: true,
             }),
           );
@@ -1383,13 +1381,14 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             questions.flatMap((question) => (question?.tags || []).map(normalizeTagLabel).filter(Boolean)),
           );
           const instructorUse = questions.map((question) => String(question?.intendedUse || '').trim()).find(Boolean);
-          if (instructorUse) children.push(makeItalic(`Instructor use: ${instructorUse}`));
-          if (allTags.size > 0) children.push(makeItalic(`Tags: ${[...allTags].slice(0, 8).join(', ')}`));
+          if (instructorUse) children.push(makeItalic(`${t('Instructor use')}: ${instructorUse}`));
+          if (allTags.size > 0)
+            children.push(makeItalic(`${zh ? '标签' : 'Tags'}: ${[...allTags].slice(0, 8).join(', ')}`));
           const scoringGuidanceGroups = new Map();
           questions.forEach((question, index) => {
             const guidance = String(question?.scoringGuidance || '').trim();
             if (!guidance) return;
-            const key = guidance.toLowerCase();
+            const key = guidance;
             const group = scoringGuidanceGroups.get(key) || { guidance, questionNumbers: [] };
             group.questionNumbers.push(index + 1);
             scoringGuidanceGroups.set(key, group);
@@ -1402,14 +1401,17 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             (numbers) => `Apply this boundary while reviewing ${numbers}.`,
             (numbers) => `This specimen-based rule covers ${numbers}.`,
           ];
-          const sharedScopeFrame =
-            sharedScopeFrames[Math.max(0, Number(quiz?.lessonNumber || quizIndex + 1) - 1) % sharedScopeFrames.length];
+          const sharedScopeFrame = zh
+            ? (numbers) => `本评分指导适用于 ${numbers}。`
+            : sharedScopeFrames[
+                Math.max(0, Number(quiz?.lessonNumber || quizIndex + 1) - 1) % sharedScopeFrames.length
+              ];
           for (const [key, group] of scoringGuidanceGroups) {
             if (group.questionNumbers.length < 2) continue;
             sharedScoringGuidance.add(key);
             children.push(
               makeBold(
-                'Shared Scoring Guidance',
+                t('Shared Scoring Guidance'),
                 `${group.guidance} ${sharedScopeFrame(group.questionNumbers.map((number) => `Q${number}`).join(', '))}`,
               ),
             );
@@ -1422,7 +1424,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
                   `Q${j + 1}: Teacher review required. Replace general guidance with a specific answer supported by the question's record before using this key.`,
                 ),
               );
-            const keyMeta = [q.bloomsLevel, q.difficulty].filter(Boolean);
+            const keyMeta = [q.bloomsLevel, q.difficulty].filter(Boolean).map(t);
             // The callout label is rendered in tracked uppercase — only
             // short keys (a letter / a phrase) belong there. Full-sentence
             // answers (short-answer keys) must stay in body case.
@@ -1434,8 +1436,8 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             // "Evidence basis" prefix. Rendering both wastes a full line or
             // paragraph per item and has produced one-line final pages in
             // real quiz banks. Preserve the answer and the distinct scoring
-            // contract; omit only a semantically repeated explanation.
-            const renderedExplanation = substantiallyRepeatsText(answerText, rawExplanation) ? '' : rawExplanation;
+            // contract; omit only an exactly repeated explanation.
+            const renderedExplanation = repeatsTextExactly(answerText, rawExplanation) ? '' : rawExplanation;
             const compactKeyEntry = answerText.length > 0 && answerText.length <= 40;
             if (!compactKeyEntry) {
               children.push(
@@ -1462,27 +1464,27 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
                   .trim();
                 children.push(
                   makeCallout(
-                    `Q${j + 1}${keyMeta.length ? ` (${keyMeta.join(', ')})` : ''} · Answer — ${answerText}`,
+                    `Q${j + 1}${keyMeta.length ? ` (${keyMeta.join(', ')})` : ''} · ${t('Answer')} — ${answerText}`,
                     explanationText || renderedExplanation,
                     { inline: true },
                   ),
                 );
               } else {
-                children.push(makeCallout('Answer', answerText));
-                children.push(makeBold('Explanation', renderedExplanation));
+                children.push(makeCallout(t('Answer'), answerText));
+                children.push(makeBold(t('Explanation'), renderedExplanation));
               }
             } else if (answerText) {
               children.push(
                 answerText.length <= 40
                   ? makeCallout(
-                      `Q${j + 1}${keyMeta.length ? ` (${keyMeta.join(', ')})` : ''} · Answer — ${answerText}`,
+                      `Q${j + 1}${keyMeta.length ? ` (${keyMeta.join(', ')})` : ''} · ${t('Answer')} — ${answerText}`,
                       '',
                       { inline: true },
                     )
-                  : makeCallout('Answer', answerText),
+                  : makeCallout(t('Answer'), answerText),
               );
             } else if (renderedExplanation) {
-              children.push(makeBold('Explanation', renderedExplanation));
+              children.push(makeBold(t('Explanation'), renderedExplanation));
             }
             const reviewNotes = [];
             // Single-objective lessons would otherwise repeat the same
@@ -1504,29 +1506,30 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
               prevObjectiveAligned = q.objectiveAligned;
             }
             const sampleRepeatsRenderedAnswer = [q.answer, q.explanation].some((candidate) =>
-              substantiallyRepeatsText(q.sampleAnswer, candidate),
+              repeatsTextExactly(q.sampleAnswer, candidate),
             );
-            if (q.sampleAnswer && !sampleRepeatsRenderedAnswer) reviewNotes.push(`Sample Answer: ${q.sampleAnswer}`);
+            if (q.sampleAnswer && !sampleRepeatsRenderedAnswer)
+              reviewNotes.push(`${t('Sample Answer')}: ${q.sampleAnswer}`);
             // Scoring guidance is the stronger, decision-ready contract. Do
             // not repeat a second rubric-hint paragraph when it is present.
-            if (q.rubricHints && !q.scoringGuidance) reviewNotes.push(`Rubric Hints: ${q.rubricHints}`);
+            if (q.rubricHints && !q.scoringGuidance) reviewNotes.push(`${t('Rubric Hints')}: ${q.rubricHints}`);
             if (
               q.scoringGuidance &&
-              !sharedScoringGuidance.has(String(q.scoringGuidance).trim().toLowerCase()) &&
+              !sharedScoringGuidance.has(String(q.scoringGuidance).trim()) &&
               String(q.scoringGuidance).trim() !== answerText
             ) {
               const scoringParagraphs = String(q.scoringGuidance).split(/\r?\n\s*\r?\n/);
-              if (scoringParagraphs.length === 1) reviewNotes.push(`Scoring Guidance: ${q.scoringGuidance}`);
+              if (scoringParagraphs.length === 1) reviewNotes.push(`${t('Scoring Guidance')}: ${q.scoringGuidance}`);
               else {
-                children.push(makeBold('Scoring Guidance', scoringParagraphs[0], { compact: true, keepNext: true }));
+                children.push(makeBold(t('Scoring Guidance'), scoringParagraphs[0], { compact: true, keepNext: true }));
                 scoringParagraphs
                   .slice(1)
                   .forEach((paragraph) => children.push(makeText(paragraph, { keepLines: true })));
               }
             }
-            if (q.feedback) reviewNotes.push(`Feedback: ${q.feedback}`);
+            if (q.feedback) reviewNotes.push(`${t('Feedback')}: ${q.feedback}`);
             if (reviewNotes.length) {
-              children.push(makeBold('Review Notes', reviewNotes.join(' '), { compact: true, keepLines: false }));
+              children.push(makeBold(t('Review Notes'), reviewNotes.join(' '), { compact: true, keepLines: false }));
             }
           }
         }
@@ -1807,13 +1810,15 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           children.push(makeSubHeading(t('Student Self-Assessment')));
           a.selfAssessmentRubric.forEach((item) => children.push(makeBullet(item)));
         }
-        const comparisonSource = expanded.teachingTaskSources?.find(
-          (source) => source.id === a.taskId && source.operationPlan?.operation === 'paired-condition-confound',
+        const responseSource = expanded.teachingTaskSources?.find(
+          (source) =>
+            source.id === a.taskId &&
+            (source.operationPlan?.version === 2 || source.operationPlan?.operation === 'paired-condition-confound'),
         );
-        if (comparisonSource) {
-          const zh = /\p{Script=Han}/u.test(comparisonSource.objective);
+        if (responseSource) {
+          const zh = /\p{Script=Han}/u.test(responseSource.objective);
           const reviewedRequirements =
-            comparisonSource.operationPlan.version === 2 ? comparisonSource.operationPlan.requirements : null;
+            responseSource.operationPlan.version === 2 ? responseSource.operationPlan.requirements : null;
           const responseSections = reviewedRequirements?.length
             ? reviewedRequirements.map((requirement) => requirement.label)
             : zh

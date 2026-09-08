@@ -1,0 +1,215 @@
+{
+  "status": "authored development course and exporter regression; not release or model acceptance",
+  "course": "从登记计数到有边界的数据结论",
+  "lessons": 6,
+  "materials": 10,
+  "modelCalls": 0,
+  "captureDirectory": ".audit-work/v0200-teaching-system/courses/quantity-zh-draft-02",
+  "projectSha256": "3151db8bb07d25c774e52fe4450d017a99de3db254bfeff6ae7d6b26219e1b7e",
+  "arithmetic": [
+    {
+      "fraction": "43/80",
+      "exactFraction": "43/80",
+      "percentage": "53.75",
+      "oneDecimal": "53.8",
+      "whole": "54"
+    },
+    {
+      "fraction": "37/80",
+      "exactFraction": "37/80",
+      "percentage": "46.25",
+      "oneDecimal": "46.3",
+      "whole": "46"
+    },
+    {
+      "fraction": "19/32",
+      "exactFraction": "19/32",
+      "percentage": "59.375",
+      "oneDecimal": "59.4",
+      "whole": "59"
+    },
+    {
+      "fraction": "13/32",
+      "exactFraction": "13/32",
+      "percentage": "40.625",
+      "oneDecimal": "40.6",
+      "whole": "41"
+    },
+    {
+      "fraction": "9/24",
+      "exactFraction": "3/8",
+      "percentage": "37.5",
+      "oneDecimal": "37.5",
+      "whole": "38"
+    },
+    {
+      "fraction": "15/24",
+      "exactFraction": "5/8",
+      "percentage": "62.5",
+      "oneDecimal": "62.5",
+      "whole": "63"
+    }
+  ],
+  "scoring": {
+    "before": {
+      "items": 14,
+      "totalPoints": 33,
+      "independentPoints": 1
+    },
+    "after": {
+      "items": 8,
+      "totalPoints": 50,
+      "independentPoints": 20,
+      "rehearsalPoints": 20,
+      "diagnostics": {
+        "count": 5,
+        "pointsEach": 2
+      },
+      "retryPoints": 0
+    },
+    "savedBudgetsPreserved": true,
+    "legacyV3TasksReconstructedUnchanged": 6
+  },
+  "exports": {
+    "allNineDerivedMaterials": {
+      "projectSha256": "3151db8bb07d25c774e52fe4450d017a99de3db254bfeff6ae7d6b26219e1b7e",
+      "createdAt": "2026-09-08T03:36:47.244Z",
+      "status": "exported; visual and educational review pending",
+      "modelCalls": 0,
+      "files": [
+        {
+          "name": "syllabus.docx",
+          "bytes": 16385,
+          "sha256": "0252299b292a5f4a2b640d0a877cd3102d4d54b5473d66a6ae81770e7b56c8d3"
+        },
+        {
+          "name": "syllabus.pdf",
+          "bytes": 178026,
+          "sha256": "b824469df264ffe9c8b7b22607167d8042626ab9628f902ab75951bf92e4cbd1"
+        },
+        {
+          "name": "lessonPlans.docx",
+          "bytes": 23042,
+          "sha256": "0b19414ef46a722cc951716cf24da69856f02242f06b1861be4de2eda348fdba"
+        },
+        {
+          "name": "lessonPlans.pdf",
+          "bytes": 317821,
+          "sha256": "581e3810af82662006d9d0aed31e7d52f540246aa0c24e570bce0eff8e8985c4"
+        },
+        {
+          "name": "slideDecks.docx",
+          "bytes": 19868,
+          "sha256": "c093252a94b6cd5cfd335baa5ec3696fb1d35bbcc20c43cf44621cd22049fe7f"
+        },
+        {
+          "name": "slideDecks.pdf",
+          "bytes": 283673,
+          "sha256": "8525aa5289262d3f8e5bad0fc0be6c543febdab1719fbee31d226b6b8442d9a0"
+        },
+        {
+          "name": "assignments.docx",
+          "bytes": 16530,
+          "sha256": "75fe4f5e25846a7b8197f34e01d4708ca61bdcca4f72269ed17b1ca23ce74305"
+        },
+        {
+          "name": "assignments.pdf",
+          "bytes": 239042,
+          "sha256": "3b4c89ab1468bfcd872aea33c3642fb410d23f3ff6f18b4c50c5e15ba2951b2a"
+        },
+        {
+          "name": "rubrics.docx",
+          "bytes": 19446,
+          "sha256": "dec172ade3896e58ef17a23cb1cbe27159c3d3a749aca6f3ed633ac9257d6396"
+        },
+        {
+          "name": "rubrics.pdf",
+          "bytes": 255151,
+          "sha256": "f9dfbed279594b54217a79ac4cefa79204c6931824d40c67b6e38828cd908897"
+        },
+        {
+          "name": "discussions.docx",
+          "bytes": 14177,
+          "sha256": "969b1214148f4c73c99e08214a1cbcea17321eaa10c26e278d3d8287a7a8ac51"
+        },
+        {
+          "name": "discussions.pdf",
+          "bytes": 211163,
+          "sha256": "4cd078cc1845559309ac23a4bf25c452000dd68033982233abff966d7ab814a3"
+        },
+        {
+          "name": "quizBank.docx",
+          "bytes": 18203,
+          "sha256": "22d2af4b288bfd45428f8962209da9ad91a010ac11f637fe6dc32b5b31f42368"
+        },
+        {
+          "name": "quizBank.pdf",
+          "bytes": 264486,
+          "sha256": "7417ad1f7ae9921ce76b6c1270e4b73b1883a6749d5f28df511495fbcb2c2487"
+        },
+        {
+          "name": "studyGuides.docx",
+          "bytes": 19821,
+          "sha256": "0152290831e976753107af8eea0a9e147a1d243621eeefa367fc12f9d718a137"
+        },
+        {
+          "name": "studyGuides.pdf",
+          "bytes": 263845,
+          "sha256": "f95f16ab1639aa7c859edf050c3cbf25d9fe6bbe17755f3a2c3380e775594122"
+        },
+        {
+          "name": "courseFaq.docx",
+          "bytes": 11000,
+          "sha256": "34337c62b7aa64d943b9f14ac750ff030d330c2bc9819625c05ff1ef7456030e"
+        },
+        {
+          "name": "courseFaq.pdf",
+          "bytes": 170228,
+          "sha256": "d42cd40143f0b20e1b681b80f95eb2f2f5c87223e50c45ae72f5d856d4ac33ed"
+        }
+      ]
+    },
+    "currentQuiz": {
+      "projectSha256": "3151db8bb07d25c774e52fe4450d017a99de3db254bfeff6ae7d6b26219e1b7e",
+      "createdAt": "2026-09-08T03:49:47.171Z",
+      "status": "exported; visual and educational review pending",
+      "modelCalls": 0,
+      "files": [
+        {
+          "name": "quizBank.docx",
+          "bytes": 17930,
+          "sha256": "534ff1b6c71955514b4c7364eb741a0e0141a407e15b21703a47b59d4b1285d3"
+        },
+        {
+          "name": "quizBank.pdf",
+          "bytes": 263913,
+          "sha256": "b3ae84a8f886115129935f78a1ff84631035432953f5f49c522d7b557fb8e1a3"
+        }
+      ]
+    },
+    "quizPages": 13,
+    "visuallyInspectedCurrentPages": [2, 3, 11, 12, 13]
+  },
+  "findingsFixed": [
+    "New authored v2 quantity practice uses versioned structured scoring; scaffolds/checkpoints excluded from graded bank.",
+    "Only exact duplicate answer/explanation text is omitted; distinct negations preserved.",
+    "Quiz language resolves through practiceRecord task ID; Chinese owned headings and zero points print.",
+    "Each subsequent quiz student paper starts on a new page, separate from preceding answer key.",
+    "Authored v2 assignments receive response sections for their reviewed requirements."
+  ],
+  "remaining": [
+    "Quiz response space and mixed independent/rehearsal teacher-use scope need refinement.",
+    "Transfer reasoning still includes generic instructions.",
+    "All-page/all-format visual review and Chinese browser edit/conflict/restore checks pending.",
+    "No fresh Scion or hidden benchmark evidence from this authored course."
+  ],
+  "verification": {
+    "compatibility": "595 existing tests passed with one new test initially failing because it inspected a PDF stack as a direct heading; corrected test and all 23 tests in its file pass.",
+    "logs": [
+      "/tmp/edutool-quantity-release-compat.log",
+      "/tmp/edutool-quantity-paginated-compat.log",
+      "/tmp/edutool-quantity-pages-fixed.log",
+      "/tmp/edutool-quantity-legacy.log"
+    ]
+  }
+}

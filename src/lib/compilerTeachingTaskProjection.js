@@ -11,7 +11,7 @@ import { expandKeys } from './keyMaps.js';
 import {
   projectTeachingQuestion,
   projectReviewedTeachingQuestionBank,
-  usesComparisonPracticeV4,
+  usesStructuredPracticeScoring,
 } from './compilerTeachingTaskQuiz.js';
 
 const ref = (task) => ({ taskId: task.id, taskRevision: task.revision });
@@ -593,7 +593,8 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
         ...questions(task).filter(
           (question) =>
             question.practiceKind !== 'independent-transfer' &&
-            (!usesComparisonPracticeV4(task) || !['task-scaffold', 'task-check'].includes(question.practiceKind)) &&
+            (!usesStructuredPracticeScoring(task) ||
+              !['task-scaffold', 'task-check'].includes(question.practiceKind)) &&
             (!task.assessmentExtensions?.length || question.practiceKind !== 'task-check'),
         ),
         ...(task.assessmentExtensions || []).map((q, index) => ({
@@ -611,7 +612,7 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
           ...ref(task),
           practiceId: retry.id,
           practiceKind: retry.kind,
-          question: usesComparisonPracticeV4(task)
+          question: usesStructuredPracticeScoring(task)
             ? taskText(
                 task,
                 `After the first attempt has been reviewed, return to the independent case. ${retry.question}`,
@@ -620,7 +621,7 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
             : task.language === 'zh'
               ? `回到本题组的独立练习。反馈：${retry.feedback} ${retry.question}`
               : `Return to the independent case in this question bank. Feedback: ${retry.feedback} ${retry.question}`,
-          ...(usesComparisonPracticeV4(task) ? { feedback: retry.feedback } : {}),
+          ...(usesStructuredPracticeScoring(task) ? { feedback: retry.feedback } : {}),
           answer: retry.answer,
           successCriteria: transfer.criteria,
         });

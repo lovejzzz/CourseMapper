@@ -1,7 +1,8 @@
 import { taskCopy, taskText } from './teachingTaskCopy.js';
 
-export const usesComparisonPracticeV4 = (task) =>
-  task.operationPlan?.operation === 'paired-condition-confound' && task.operationPlan.presentationVersion >= 4;
+export const usesStructuredPracticeScoring = (task) =>
+  (task.operationPlan?.operation === 'paired-condition-confound' || task.operationPlan?.version === 2) &&
+  task.operationPlan.presentationVersion >= 4;
 
 // A complete task rehearsal uses the same criteria and bands as its rubric.
 // Preserve a saved question's point budget, including deliberately unscored work.
@@ -9,16 +10,16 @@ function practiceScoringGuidance(question, task, points) {
   const budget = Number(points);
   if (!Number.isFinite(budget) || budget < 0) return question.successCriteria.join(' ');
   const transfer =
-    usesComparisonPracticeV4(task) &&
+    usesStructuredPracticeScoring(task) &&
     ['independent-transfer', 'feedback-retry'].includes(question.practiceKind) &&
     task.sequence?.find((unit) => unit.kind === 'independent-transfer');
-  if (usesComparisonPracticeV4(task) && question.practiceKind === 'feedback-retry' && budget === 0)
+  if (usesStructuredPracticeScoring(task) && question.practiceKind === 'feedback-retry' && budget === 0)
     return taskText(
       task,
       'Unscored revision: identify the first changed reasoning step, explain the correction and retain both attempts. Use the independent-case criteria to check the revised response.',
       '修改练习不重复计分：指出首先修改的推理步骤，解释修正理由，并保留两次作答。按独立案例的标准检查修改稿。',
     );
-  if (usesComparisonPracticeV4(task) && question.practiceKind === 'error-analysis') {
+  if (usesStructuredPracticeScoring(task) && question.practiceKind === 'error-analysis') {
     const error = task.errors.find((entry, index) => question.practiceId === `${task.id}:error-${index}`);
     if (error)
       return taskText(
@@ -71,7 +72,7 @@ export function projectTeachingQuestion(slot, question, task) {
 
 function defaultPracticePoints(question, task) {
   if (question.practiceKind === 'task-rehearsal') return 20;
-  if (usesComparisonPracticeV4(task)) {
+  if (usesStructuredPracticeScoring(task)) {
     if (question.practiceKind === 'feedback-retry') return 0;
     if (question.practiceKind === 'error-analysis') return 2;
     if (question.practiceKind === 'independent-transfer')
@@ -109,7 +110,7 @@ export function projectReviewedTeachingQuestionBank(row, task, questions, seats)
   row.questions = retained;
   row.totalQuestions = retained.length;
   row.totalPoints = retained.reduce((total, q) => total + Math.max(0, Number(q.points) || 0), 0);
-  row.pointPlan = usesComparisonPracticeV4(task)
+  row.pointPlan = usesStructuredPracticeScoring(task)
     ? taskText(
         task,
         `${row.totalQuestions} items; ${row.totalPoints} points. New full tasks use 20 points; diagnostic items use two checks, transfer criteria use four points each, and feedback retries are unscored. Saved point budgets are retained. Practice points do not specify a course-grade weight.`,

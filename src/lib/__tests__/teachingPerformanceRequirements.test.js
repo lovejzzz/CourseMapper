@@ -8,6 +8,7 @@ import {
   appendResponseRevisionReceipt,
 } from '../teachingResponseRevision.js';
 import { performanceRequirementsFixture } from '../../../tests/fixtures/teaching/performanceRequirements.js';
+import { proportionCourseDraft } from '../../../tests/fixtures/teaching/courses/proportionCourse.js';
 import {
   createTeachingOperationPlan,
   validateTeachingOperationPlan,
@@ -37,6 +38,63 @@ import { prepareProjectSnapshotForRestore } from '../projectSnapshotSanitizer.js
 import { createEditTransaction, applyEditTransaction } from '../deliverableEditHistory.js';
 import { mergeTaskProjection } from '../teachingTaskContentSync.js';
 import { projectReviewedTeachingQuestionBank } from '../compilerTeachingTaskQuiz.js';
+import { deliverablePdfDefinition } from '../exporters/classroomPdf.js';
+
+it('deduplicates exact Chinese answer copies while preserving a distinct explanation with overlapping words', () => {
+  const collect = (question) => {
+    const definition = deliverablePdfDefinition(
+      'quizBank',
+      { quizzes: [{ lessonTitle: '文字与结论', questions: [question] }] },
+      '导出检查',
+    );
+    const strings = [];
+    const walk = (value) => {
+      if (typeof value === 'string') strings.push(value);
+      else if (Array.isArray(value)) value.forEach(walk);
+      else if (value && typeof value === 'object') Object.values(value).forEach(walk);
+    };
+    walk(definition.content);
+    return strings;
+  };
+  const answer = '当前只能描述第一盘种子的登记结果，不能代表两盘全部种子。';
+  expect(
+    collect({
+      type: 'short_answer',
+      question: '说明结论边界。',
+      answer,
+      explanation: answer,
+      sampleAnswer: answer,
+    }).filter((text) => text.includes(answer)),
+  ).toHaveLength(1);
+  const explanation = 'The recorded sample does not establish the outcome for every member of the larger group.';
+  expect(
+    collect({
+      type: 'short_answer',
+      question: 'Evaluate the claim.',
+      answer: 'The recorded sample does establish the outcome for every member of the larger group.',
+      explanation,
+    }),
+  ).toContain(explanation);
+});
+
+it('starts each subsequent quiz paper on a separate page from the previous answer key', () => {
+  const definition = deliverablePdfDefinition(
+    'quizBank',
+    {
+      quizzes: ['First paper', 'Second paper'].map((lessonTitle) => ({
+        lessonTitle,
+        questions: [{ type: 'short_answer', question: 'Explain the evidence.', answer: 'A supported conclusion.' }],
+      })),
+    },
+    'Two lessons',
+  );
+  const heading = definition.content.find((node) => {
+    const heading = node.stack?.[0] || node;
+    return heading.headlineLevel && heading.text?.map((run) => run.text).join('') === 'Second paper';
+  });
+  expect(heading).toBeDefined();
+  expect(heading.pageBreak).toBe('before');
+});
 
 function fixture() {
   const f = observedProportionFixture();
@@ -50,6 +108,67 @@ function fixture() {
   });
   return { ...f, plan };
 }
+
+it('gives a five-part Chinese transfer a full rubric and preserves saved question budgets across upgrades', () => {
+  const f = proportionCourseDraft().lessons[5];
+  const compileVersion = (version) => {
+    const plan = createTeachingOperationPlan({
+      ...f,
+      operation: 'observed-proportion',
+      version: 2,
+      admission: { kind: 'teacher-confirmed' },
+    });
+    if (version) plan.presentationVersion = version;
+    return buildSharedTeachingTask({
+      lessonId: 'quantity-capstone',
+      objective: f.objective,
+      sourceInputs: f.inputs,
+      operationPlan: plan,
+      admitted: true,
+    });
+  };
+  const project = (data, task) =>
+    projectSharedTeachingTasks('quizBank', data, {
+      lessons: [
+        {
+          id: 'quantity-capstone',
+          lessonNumber: 6,
+          title: '综合任务',
+          teachingTask: task,
+          teachingTaskScope: 'primary-task',
+        },
+      ],
+    });
+  const current = compileVersion();
+  expect(current.operationPlan.presentationVersion).toBe(4);
+  const data = project({ quizzes: [{ lessonNumber: 6, questions: [] }] }, current);
+  const row = data.quizzes[0];
+  expect(row.questions).toHaveLength(8);
+  expect(row.totalPoints).toBe(50);
+  expect(row.questions.some((q) => ['task-scaffold', 'task-check'].includes(q.practiceKind))).toBe(false);
+  const transfer = row.questions.find((q) => q.practiceKind === 'independent-transfer');
+  expect(transfer.points).toBe(20);
+  expect(transfer.answer).toContain('37.5%');
+  for (const requirement of f.requirements) {
+    expect(transfer.scoringGuidance).toContain(requirement.transfer.levels.developing);
+    expect(transfer.scoringGuidance).toContain(requirement.transfer.levels.beginning);
+  }
+  const retry = row.questions.find((q) => q.practiceKind === 'feedback-retry');
+  expect(retry.points).toBe(0);
+  expect(retry.scoringGuidance).toContain('不重复计分');
+  const printed = JSON.stringify(deliverablePdfDefinition('quizBank', data, '中文综合课').content);
+  expect(printed).toContain('测验与考试题库');
+  expect(printed).toContain('简答, 0分');
+  expect(printed).toContain('评分指导');
+  expect(printed).not.toContain('Scoring Guidance');
+  const legacy = project({ quizzes: [{ lessonNumber: 6, questions: [] }] }, compileVersion(3));
+  expect(legacy.quizzes[0].questions).toHaveLength(14);
+  const savedTransfer = legacy.quizzes[0].questions.find((q) => q.practiceKind === 'independent-transfer');
+  expect(savedTransfer.points).toBe(1);
+  savedTransfer.points = 7.5;
+  project(legacy, current);
+  expect(legacy.quizzes[0].questions.find((q) => q.practiceKind === 'independent-transfer').points).toBe(7.5);
+});
 function compile(f) {
   return buildSharedTeachingTask({
     lessonId: 'authored-requirements',
