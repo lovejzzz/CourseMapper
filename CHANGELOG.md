@@ -2,6 +2,9 @@
 
 ## Unreleased — v0.20.0 development
 
+- Add a reproducible six-session experiment-course development capture and real DOCX/PDF export inspection. Replace repeated reference anchors with distinct acceptable responses, make transfer rubric bands task-specific, and assess all five protocol components in the capstone. These authored drafts are not model or classroom acceptance results.
+- Generate comparison assignment response sections from reviewed requirements and give multi-part independent study-guide tasks more writing space. Version conditional design explanations separately so saved comparison presentations reconstruct unchanged for teacher-edit merges.
+
 - Interpret exact English and Chinese count words from zero to ninety-nine in reviewed source bindings while preserving their original quotations and offsets. Reject partial compound numbers, ordinal/negative/approximate/range/percentage readings, and guide Scion proposals to quote written counts unchanged rather than invent digit quotations.
 
 - Require explicit distinct-group evidence before automatically pooling item counts. Decline ambiguous or repeated-member records instead of asserting an unsupported overall proportion, and retain the membership source in worked reasoning. Preserve frozen benchmark inputs; label membership-clarified regression variants separately.

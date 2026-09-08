@@ -1790,13 +1790,17 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         );
         if (comparisonSource) {
           const zh = /\p{Script=Han}/u.test(comparisonSource.objective);
-          const responseSections = zh
-            ? ['原比较与归因边界', '建议方案：分配、条件与测量', '空白记录表、比较方法与结论边界']
-            : [
-                'Original comparison and causal limits',
-                'Proposed allocation, conditions and measurement',
-                'Blank record layout, comparison and conclusion limits',
-              ];
+          const reviewedRequirements =
+            comparisonSource.operationPlan.version === 2 ? comparisonSource.operationPlan.requirements : null;
+          const responseSections = reviewedRequirements?.length
+            ? reviewedRequirements.map((requirement) => requirement.label)
+            : zh
+              ? ['原比较与归因边界', '建议方案：分配、条件与测量', '空白记录表、比较方法与结论边界']
+              : [
+                  'Original comparison and causal limits',
+                  'Proposed allocation, conditions and measurement',
+                  'Blank record layout, comparison and conclusion limits',
+                ];
           children.push(makeSubHeading(zh ? '作答区' : 'Your Response'));
           for (const title of responseSections) {
             children.push(makeBold(title, '', { keepNext: true }));
@@ -1970,7 +1974,11 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
               );
             if (reviewed) {
               children.push(makeItalic(`${t('Response')}:`));
-              for (let line = 0; line < (q.practiceKind === 'independent-transfer' ? 8 : 3); line++)
+              const lines =
+                q.practiceKind === 'independent-transfer'
+                  ? Math.max(8, Math.min(48, 4 * (Array.isArray(q.successCriteria) ? q.successCriteria.length : 0)))
+                  : 3;
+              for (let line = 0; line < lines; line++)
                 children.push(makeText('________________________________________________________'));
             }
           });

@@ -131,7 +131,7 @@ export function validateTeachingOperationPlan(plan, inputs, objective) {
       plan.operation === 'observed-proportion'
         ? [1, 2, 3]
         : plan.operation === 'paired-condition-confound'
-          ? [3, 4]
+          ? [3, 4, 5]
           : [3]
     ).includes(plan.presentationVersion)
   )
@@ -298,7 +298,7 @@ export function createTeachingOperationPlan({
     // Missing replays the original development wording. V2 improves proportion
     // reasoning; V3 also separates study-guide roles. A fresh review opts in,
     // while saved versions remain reproducible for three-way merges.
-    presentationVersion: operation === 'paired-condition-confound' ? 4 : 3,
+    presentationVersion: operation === 'paired-condition-confound' ? 5 : 3,
     bindings: structuredClone(bindings),
     inputRevisions: Object.fromEntries(inputs.map((input) => [input.id, operationInputRevision(input)])),
     admission: structuredClone(admission || { kind: 'model-proposal' }),

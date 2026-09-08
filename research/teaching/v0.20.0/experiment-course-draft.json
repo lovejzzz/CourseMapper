@@ -1,0 +1,172 @@
+{
+  "status": "development draft; full classroom acceptance pending",
+  "modelCalls": 0,
+  "courseId": "experiment-course-en-draft",
+  "lessons": 6,
+  "materialCount": 10,
+  "capturePath": ".audit-work/v0200-teaching-system/courses/experiment-en-draft-04",
+  "projectSha256": "2a31c921b655663c3b4a38acec0f68c81617deb4062b94e792c88a99ef95674f",
+  "preferredOverrides": [
+    "exports-refined/assignments.docx",
+    "exports-refined/assignments.pdf",
+    "exports-refined/studyGuides.docx",
+    "exports-refined/studyGuides.pdf"
+  ],
+  "files": [
+    {
+      "name": "syllabus.docx",
+      "bytes": 16111,
+      "sha256": "81ca628ccf3292b58fc88bc60b9697de3321c1bbb9ee65400801799bb8d6fd59",
+      "captureDirectory": "exports"
+    },
+    {
+      "name": "syllabus.pdf",
+      "bytes": 70395,
+      "sha256": "85fe16469b76937333507d67a99c6e3e1401f99f611bbed17ba7ad94e6da8e3e",
+      "captureDirectory": "exports",
+      "pages": 8
+    },
+    {
+      "name": "lessonPlans.docx",
+      "bytes": 35959,
+      "sha256": "0cb9b14cdb2fae0f6059c47b54ead8dc0e45185c9829da94cc139b7dd5cbd4c7",
+      "captureDirectory": "exports"
+    },
+    {
+      "name": "lessonPlans.pdf",
+      "bytes": 269854,
+      "sha256": "76d57c12eb6750f112a430f66935f9f23631b79c79a5d1bee5c5ad0c5c3d929f",
+      "captureDirectory": "exports",
+      "pages": 22
+    },
+    {
+      "name": "slideDecks.docx",
+      "bytes": 26225,
+      "sha256": "19430241b83619130d56ad336301bdec8e28eb70dd2a14dd53dd444e9d02cc95",
+      "captureDirectory": "exports"
+    },
+    {
+      "name": "slideDecks.pdf",
+      "bytes": 212783,
+      "sha256": "c4493fbebcd02525536a930a79affc4177beabd81d9bdd1e21b9035552cbd4e1",
+      "captureDirectory": "exports",
+      "pages": 18
+    },
+    {
+      "name": "assignments.docx",
+      "bytes": 17860,
+      "sha256": "0ef777ab062de379d0df18a1a6fe7d85d94437a67a6f925796ca5dab0cb02000",
+      "captureDirectory": "exports"
+    },
+    {
+      "name": "assignments.pdf",
+      "bytes": 111676,
+      "sha256": "22c6fa7e924483f9c6492dfbd85ca94b6440f7fa11f513c917cbd5f8a804e1b7",
+      "captureDirectory": "exports",
+      "pages": 13
+    },
+    {
+      "name": "rubrics.docx",
+      "bytes": 20900,
+      "sha256": "e6e394730fabb4cdbb7c2c3077c7ae6cd5905b1db498d615d10c61c4b13bae5e",
+      "captureDirectory": "exports"
+    },
+    {
+      "name": "rubrics.pdf",
+      "bytes": 129980,
+      "sha256": "d74895ac31439c969691660cf24995cbdae23c4d5a615ddf926bb4f8bf82b7ca",
+      "captureDirectory": "exports",
+      "pages": 14
+    },
+    {
+      "name": "discussions.docx",
+      "bytes": 15067,
+      "sha256": "0eeb01ba9f3e94f53afad48e19f4da335f76598d634dcc4d63a58b701ef7c7a3",
+      "captureDirectory": "exports"
+    },
+    {
+      "name": "discussions.pdf",
+      "bytes": 108062,
+      "sha256": "44873b0a14e13afcf4305e8f13e7c4b062121a4fdacc742e22ac17e38621c9a6",
+      "captureDirectory": "exports",
+      "pages": 7
+    },
+    {
+      "name": "quizBank.docx",
+      "bytes": 20320,
+      "sha256": "8321e184c41ff1c0724acd304c0e0e77d8d4c22409a86c7cb50b91b8e9413e03",
+      "captureDirectory": "exports"
+    },
+    {
+      "name": "quizBank.pdf",
+      "bytes": 162677,
+      "sha256": "d6801372eaf406ef4bb5a8fd010dffc20d1c067cbfc6fe301c1f4ce7ac7a9b7b",
+      "captureDirectory": "exports",
+      "pages": 14
+    },
+    {
+      "name": "studyGuides.docx",
+      "bytes": 21766,
+      "sha256": "192f42037a76b6e79b409f5b5e32023cb4537e52439e83295df613e0e7da447e",
+      "captureDirectory": "exports"
+    },
+    {
+      "name": "studyGuides.pdf",
+      "bytes": 144225,
+      "sha256": "a1c12d19cb56012a63542546725e359b1da8ee354bb8713aa9969df4da7252ee",
+      "captureDirectory": "exports",
+      "pages": 15
+    },
+    {
+      "name": "courseFaq.docx",
+      "bytes": 10829,
+      "sha256": "75a36fc3df88ca8f0197934b8ee9ab70cd2edc1a60108b2d3026fb36806cb570",
+      "captureDirectory": "exports"
+    },
+    {
+      "name": "courseFaq.pdf",
+      "bytes": 36741,
+      "sha256": "0c17ae9efe6d81e81403ee173425465c0b0897ea04b30fbbba3c8cd7c20e2030",
+      "captureDirectory": "exports",
+      "pages": 3
+    },
+    {
+      "name": "assignments.docx",
+      "bytes": 17203,
+      "sha256": "a876f5e714d7f4eef3dfa54a60d5d29dbb23d3c3ab2b4260a6889db7eb70bc98",
+      "captureDirectory": "exports-refined"
+    },
+    {
+      "name": "assignments.pdf",
+      "bytes": 111046,
+      "sha256": "8f3492df262145ae58d0b4f2b100b219d9f60604b554ec447a2e15b70cfb7b15",
+      "captureDirectory": "exports-refined",
+      "pages": 14
+    },
+    {
+      "name": "studyGuides.docx",
+      "bytes": 21892,
+      "sha256": "758d7ef2fe5732cdf8184f375d967beb841a29c1aa1f8c8e8d95268e1d484b5a",
+      "captureDirectory": "exports-refined"
+    },
+    {
+      "name": "studyGuides.pdf",
+      "bytes": 144370,
+      "sha256": "9766c7ebf6f87dee6028524f4c7cb77b013d350c21c98f81b2be8c94f7d88e27",
+      "captureDirectory": "exports-refined",
+      "pages": 15
+    }
+  ],
+  "legacyReconstruction": {
+    "presentationVersion": 4,
+    "tasks": 6,
+    "entireObjectsUnchanged": true
+  },
+  "limitations": [
+    "Implementer-authored exposed source structure, not Scion generation",
+    "Not an unseen final transfer assessment",
+    "No actual app save/reimport acceptance",
+    "No complete visual or all-format acceptance",
+    "No independent teacher or learner evidence"
+  ]
+}

@@ -13,6 +13,7 @@ import { deliverablePdfDefinition } from '../exporters/classroomPdf.js';
 import { alternativeReferenceParagraphs } from '../teachingMaterialPresentation.js';
 import { describe, expect, it } from 'vitest';
 import { comparisonDesignFixture } from '../../../tests/fixtures/teaching/comparisonDesign.js';
+import { comparisonCourseDraft } from '../../../tests/fixtures/teaching/courses/comparisonCourse.js';
 import {
   createTeachingOperationPlan,
   validateTeachingOperationPlan,
@@ -40,6 +41,57 @@ function fixture(zh = false, presentationVersion) {
   });
   return { ...f, plan, task };
 }
+
+it('exports response space for the actual lesson requirements and the five-part capstone', () => {
+  const course = comparisonCourseDraft();
+  for (const index of [0, 5]) {
+    const f = course.lessons[index];
+    const plan = createTeachingOperationPlan({
+      ...f,
+      operation: 'paired-condition-confound',
+      version: 2,
+      admission: { kind: 'teacher-confirmed' },
+    });
+    const task = buildSharedTeachingTask({
+      lessonId: 'course-export',
+      objective: f.objective,
+      sourceInputs: f.inputs,
+      operationPlan: plan,
+      admitted: true,
+    });
+    expect(task).toBeTruthy();
+    const lesson = {
+      id: 'course-export',
+      lessonNumber: 1,
+      title: f.title,
+      teachingTaskScope: 'primary-task',
+      teachingTask: task,
+    };
+    for (const feature of ['assignments', 'studyGuides']) {
+      const data = projectSharedTeachingTasks(feature, { [feature]: [{ lessonNumber: 1 }] }, { lessons: [lesson] });
+      const saved = structuredClone(data);
+      const definition = deliverablePdfDefinition(feature, data, course.title);
+      const strings = [];
+      const visit = (value) => {
+        if (typeof value === 'string') strings.push(value);
+        else if (Array.isArray(value)) value.forEach(visit);
+        else if (value && typeof value === 'object') Object.values(value).forEach(visit);
+      };
+      visit(definition.content);
+      const lines = strings.filter(
+        (text) => text === '________________________________________________________',
+      ).length;
+      if (feature === 'assignments') {
+        expect(lines).toBe(4 * f.requirements.length);
+        expect(strings).not.toContain('Proposed allocation, conditions and measurement');
+        for (const requirement of f.requirements) expect(strings).toContain(requirement.label);
+      } else {
+        expect(lines).toBe(index === 0 ? 11 : 35);
+      }
+      expect(data).toEqual(saved);
+    }
+  }
+});
 
 describe('reviewed paired-condition comparison design', () => {
   it('replaces the old generated experiment bank while retaining authored and separately bound questions', () => {
@@ -344,7 +396,7 @@ it.each([
 
 it.each([false, true])('separates assessed performances from prompts and unscored retry: %s', (zh) => {
   const { task } = fixture(zh);
-  expect(task.operationPlan.presentationVersion).toBe(4);
+  expect(task.operationPlan.presentationVersion).toBe(5);
   const data = projectSharedTeachingTasks(
     'quizBank',
     { quizzes: [{ lessonNumber: 1, questions: [] }] },
@@ -379,6 +431,17 @@ it.each([false, true])('separates assessed performances from prompts and unscore
   expect(row.questions.at(-1).question).not.toContain(transfer.feedback);
   expect(row.questions.at(-1).feedback).toBe(transfer.feedback);
   expect(task.scaffoldQuestions).toHaveLength(3);
+});
+
+it.each([false, true])('qualifies design claims without rewriting saved comparison presentations: %s', (zh) => {
+  const previous = fixture(zh, 4).task;
+  const current = fixture(zh).task;
+  expect(previous.workedExample.boundary).toContain(zh ? '改进消除了' : 'The repair removes');
+  expect(current.workedExample.boundary).toContain(zh ? '有效改进必须消除' : 'A valid repair must remove');
+  expect(current.workedExample.interpretation).toContain(zh ? '需要新的观测' : 'needs new observations');
+  expect(current.revision).not.toBe(previous.revision);
+  expect(current.criteria).toEqual(previous.criteria);
+  expect(current.operationPlan.bindings).toEqual(previous.operationPlan.bindings);
 });
 
 function oldComparisonWorkspace(zh) {
@@ -433,7 +496,7 @@ it.each([false, true])('upgrades old practice through review and reversible hist
   const applied = commitTeachingTaskReview({ ...state, preview, teacherConfirmed: true });
   expect(applied.status).toBe('applied');
   expect(applied.conflicts).toEqual([]);
-  expect(readTeachingTaskSources(applied.courseMap)[0].operationPlan.presentationVersion).toBe(4);
+  expect(readTeachingTaskSources(applied.courseMap)[0].operationPlan.presentationVersion).toBe(5);
   expect(applied.changed.quizBank.data.quizzes[0].questions).toHaveLength(6);
   const after = {
     courseMap: applied.courseMap,

@@ -6,6 +6,8 @@ export function renderComparisonTask(plan, inputs, objective, evaluated) {
   const zh = /\p{Script=Han}/u.test(objective);
   const t = (en, cn) => (zh ? cn : en);
   const q = (text) => (zh ? `「${text}」` : `“${text}”`);
+  // Saved presentations remain byte-stable for three-way teacher-edit merges.
+  const conditionalBoundary = plan.presentationVersion >= 5;
   const v = evaluated.values;
   const { total, first, second } = evaluated.allocation;
   const source = (role) =>
@@ -39,8 +41,8 @@ export function renderComparisonTask(plan, inputs, objective, evaluated) {
     `取得数据后，选择并说明汇总方法，比较两组逐单位的${q(v.outcome)}，同时展示个体值或离散程度。记录并解释缺失或失败测量，不能默默删除。可用${total}个单位是资源条件，不是统计功效计算，也不保证能够检出效应。`,
   );
   const limit = t(
-    `The new test has not supplied results. The repair removes the stated systematic pairing; randomization does not guarantee identical groups, and other uncontrolled influences can remain. A later conclusion applies to the tested units, common setting and measurement conditions. Existing combined-condition results do not establish the repaired comparison's outcome.`,
-    `新试验尚无结果。改进消除了材料中明确的系统性条件绑定；随机分配不保证两组完全相同，其他未控制影响仍可能存在。后续结论限于测试单位、所选共同设置和测量条件；原来同时改变多个条件的结果不能充当改进后比较的结果。`,
+    `The new test has not supplied results. ${conditionalBoundary ? 'A valid repair must remove' : 'The repair removes'} the stated systematic pairing; randomization does not guarantee identical groups, and other uncontrolled influences can remain. A later conclusion applies to the tested units, common setting and measurement conditions. Existing combined-condition results do not establish the repaired comparison's outcome.`,
+    `新试验尚无结果。${conditionalBoundary ? '有效改进必须消除' : '改进消除了'}材料中明确的系统性条件绑定；随机分配不保证两组完全相同，其他未控制影响仍可能存在。后续结论限于测试单位、所选共同设置和测量条件；原来同时改变多个条件的结果不能充当改进后比较的结果。`,
   );
   const design = [allocation, common(v.firstOther)];
   const measurementAndLimit = [measurement, comparison, limit];
@@ -149,8 +151,12 @@ export function renderComparisonTask(plan, inputs, objective, evaluated) {
     steps: [evidence, ...design, measurement, layout, comparison],
     result: conclusion,
     interpretation: t(
-      'The procedure is a proposed repair to the comparison. It does not supply a new observed effect.',
-      '这些步骤是对比较方案的建议改进，并未提供新观测效应。',
+      conditionalBoundary
+        ? 'The records describe combined conditions. Any proposed change still needs new observations before its outcome is known.'
+        : 'The procedure is a proposed repair to the comparison. It does not supply a new observed effect.',
+      conditionalBoundary
+        ? '现有记录描述的是多个条件共同作用下的结果。任何建议改进都需要新的观测，才能知道改进后的结果。'
+        : '这些步骤是对比较方案的建议改进，并未提供新观测效应。',
     ),
     boundary: limit,
   };
