@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><title>Candidate adapter regression</title>
+  <h1>Candidate adapter regression · untrained smoke only</h1>
+  <button id="run">Run adapter regression</button
+  ><button id="save" disabled>Save adapter receipt</button>
+  <pre id="result">Idle</pre>
+  <script type="module">
+    import { SCION_BROWSER_GEMMA4_GGUF_URL, SCION_BROWSER_GEMMA4_GGUF } from '/src/lib/scionBrowserConstants.js';
+    import { formatScionGemma4Messages } from '/src/lib/scionGemma4Prompt.js';
+    if (!['localhost', '127.0.0.1'].includes(location.hostname)) throw Error('Local only');
+    const base = '/scion/runtime/v3-candidate/';
+    const { Wllama } = await import(/* @vite-ignore */ new URL(base + 'wllama.js', location.href).href);
+    const run = document.querySelector('#run'),
+      save = document.querySelector('#save'),
+      view = document.querySelector('#result');
+    let receipt;
+    const render = () => (view.textContent = JSON.stringify(receipt, null, 2));
+    const digest = async (bytes) =>
+      [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))]
+        .map((n) => n.toString(16).padStart(2, '0'))
+        .join('');
+    run.onclick = async () => {
+      run.disabled = true;
+      save.disabled = true;
+      receipt = {
+        kind: 'candidate-runtime-untrained-adapter-regression',
+        promotionEligible: false,
+        startedAt: new Date().toISOString(),
+        status: 'loading',
+        cases: [],
+        errors: [],
+        base: SCION_BROWSER_GEMMA4_GGUF.runtimeArtifact,
+      };
+      render();
+      const runtime = new Wllama(
+        { 'jspi/single-thread/wllama.wasm': base + 'jspi-single-thread/wllama.wasm' },
+        { backend: 'webgpu', parallelDownloads: 1 },
+      );
+      const prompt = 'Write one sentence explaining what a fraction represents.';
+      const generate = async (grammar) =>
+        runtime.createCompletion(formatScionGemma4Messages([{ role: 'user', content: prompt }], { thinking: false }), {
+          nPredict: 64,
+          sampling: { temp: 0, top_k: 1, top_p: 1, seed: 7, ...(grammar ? { grammar } : {}) },
+        });
+      const record = (id, pass, details) => {
+        receipt.cases.push({ id, pass, ...details });
+        render();
+      };
+      try {
+        receipt.runtime = {
+          moduleSha256: await digest(await (await fetch(base + 'wllama.js')).arrayBuffer()),
+          wasmSha256: await digest(await (await fetch(base + 'jspi-single-thread/wllama.wasm')).arrayBuffer()),
+        };
+        const adapter = await (
+          await fetch('/.audit-work/v0200-teaching-system/adapter-canary/smoke.gguf')
+        ).arrayBuffer();
+        receipt.adapterSha256 = await digest(adapter);
+        if (receipt.adapterSha256 !== '579bf162f1f2eb54f42dabf7bd2fb8d4d48c649807d97d1e7bfc9f3eaaabdec0')
+          throw Error('Smoke adapter hash mismatch');
+        const start = performance.now();
+        await runtime.loadModelFromUrl(SCION_BROWSER_GEMMA4_GGUF_URL, {
+          useCache: true,
+          n_ctx: 2048,
+          n_threads: 1,
+          seed: 7,
+        });
+        receipt.loadMs = Math.round(performance.now() - start);
+        receipt.status = 'baseline';
+        render();
+        const before = await runtime.getLoraAdapterStatus();
+        const baseline = await generate();
+        record('base', before.active === false && baseline.trim().length > 0, {
+          native: before,
+          output: baseline,
+          prompt,
+        });
+        receipt.status = 'apply';
+        render();
+        const activated = await runtime.loadLoraAdapter(new Blob([adapter]), 1);
+        const native = await runtime.getLoraAdapterStatus();
+        record('native-apply', activated.active === true && native.active === true, { activated, native });
+        const changed = await generate();
+        record('adapter-changes-inference', changed !== baseline, { output: changed });
+        const constrained = await generate('root ::= "{\\\"ok\\\":true}"');
+        record('grammar-with-adapter', constrained === '{"ok":true}', { output: constrained });
+        receipt.status = 'clear';
+        render();
+        await runtime.clearLoraAdapter();
+        const cleared = await runtime.getLoraAdapterStatus();
+        const restored = await generate();
+        record('clear-restores-base', cleared.active === false && restored === baseline, {
+          native: cleared,
+          output: restored,
+        });
+        let rejected = false;
+        try {
+          await runtime.loadLoraAdapter(new Blob(['not a GGUF adapter']), 1);
+        } catch (error) {
+          rejected = true;
+          receipt.invalidAdapterError = error.message;
+        }
+        record('invalid-adapter-rejected', rejected, { native: await runtime.getLoraAdapterStatus() });
+        await runtime.clearLoraAdapter();
+        const recovered = await generate();
+        record('recovery-after-invalid', recovered === baseline, { output: recovered });
+        receipt.status = receipt.cases.every((x) => x.pass) ? 'pass-mechanical-only' : 'failed';
+      } catch (error) {
+        receipt.errors.push(error.message);
+        receipt.status = 'failed';
+      } finally {
+        await runtime.exit().catch((e) => receipt.errors.push(e.message));
+        receipt.finishedAt = new Date().toISOString();
+        render();
+        run.disabled = false;
+        save.disabled = false;
+      }
+    };
+    save.onclick = () => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([JSON.stringify(receipt, null, 2)], { type: 'application/json' }));
+      a.download = 'scion-candidate-adapter-regression.json';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    };
+  </script>
+</html>

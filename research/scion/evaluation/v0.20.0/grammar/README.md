@@ -53,3 +53,10 @@ Cached model loading took 4,310 ms. All eight cases passed, with no receipt-leve
 Remaining: dynamic object schemas and source-proposal integration; executable protocol mismatch check; adapter apply/clear regression with the rebuilt binary; independent semantic and educational evaluation. The runtime candidate is not promoted by this receipt.
 
 The subsequent constrained source-proposal trial is documented in `proposal-experiment.md` and `proposal-review.json`. It adds real variable JSON values (not prescribed literal answers): all four calls parse, but both proposals remain partial. The source-routing checker now also compiles the actual native glue header and verifies v3 flag roundtrips and v2 rejection, for eight source/protocol checks total. Adapter and held-out educational validation remain pending.
+
+
+## Runtime selection after adapter and protocol checks (2026-09-08)
+
+The historical pending items above describe the state of those receipts. `adapter/browser-receipt.json` now records seven real native adapter checks; `adapter/mismatch-receipt.json` records rejection of a deliberately incompatible pair. The tiny adapter is untrained, reproducible via `adapter/create_smoke.py`, and not shipped. These are mechanical compatibility checks, not quality evidence.
+
+The development branch now selects the identical verified JS/WASM hashes under `/scion/runtime/v3/`. Prebuild validates both hashes; old paths remain intact. `adapter/application-receipt.json` confirms that the actual application uses this pair and the compact source protocol: one call, all nine roles located, zero manual role corrections on the exposed chronology development case. Full held-out teaching and release validation remain incomplete.

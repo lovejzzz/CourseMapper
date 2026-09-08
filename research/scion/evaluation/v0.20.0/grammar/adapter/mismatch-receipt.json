@@ -1,0 +1,14 @@
+{
+  "startedAt": "2026-09-08T06:15:13.334Z",
+  "status": "pass-rejected-version-mismatch",
+  "module": "/scion/runtime/v3-candidate/wllama.js",
+  "wasm": "/scion/runtime/v1/jspi-single-thread/wllama.wasm",
+  "logs": [
+    {
+      "level": "error",
+      "text": "Version mismatch"
+    }
+  ],
+  "error": "Wllama action \"load\" failed before producing a valid response (pointer=0, length=1163217991). See the preceding native runtime error.",
+  "finishedAt": "2026-09-08T06:15:13.398Z"
+}

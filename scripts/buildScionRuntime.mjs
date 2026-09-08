@@ -4,6 +4,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { SCION_BROWSER_GEMMA4_GGUF } from '../src/lib/scionBrowserConstants.js';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, '..');
@@ -327,7 +328,17 @@ export async function buildScionRuntime({ checkOnly = false } = {}) {
     await fs.writeFile(outputPath, patched);
   }
 
+  // The public JS and WASM form one versioned protocol. Fail the build rather
+  // than ship a missing, modified or accidentally mixed production pair.
+  const selectedRuntime = SCION_BROWSER_GEMMA4_GGUF.runtime;
+  for (const kind of ['module', 'wasm']) {
+    const selectedPath = path.join(repoRoot, 'public', selectedRuntime[`${kind}Path`]);
+    const actual = sha256(await fs.readFile(selectedPath));
+    if (actual !== selectedRuntime[`${kind}Sha256`])
+      throw new Error(`Selected Scion ${kind} hash mismatch: ${selectedRuntime[`${kind}Path`]}`);
+  }
   return {
+    selectedRuntime,
     status: checkOnly ? 'verified' : 'generated',
     source: path.relative(repoRoot, sourcePath),
     sourceSha256: expectedSourceSha256,

@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><title>Runtime pair rejection</title>
+  <h1>Runtime pair rejection · local only</h1>
+  <button id="run">Test mismatched runtime</button
+  ><button id="save" disabled>Save mismatch receipt</button>
+  <pre id="result">Idle</pre>
+  <script type="module">
+    import { SCION_BROWSER_GEMMA4_GGUF_URL } from '/src/lib/scionBrowserConstants.js';
+    if (!['localhost', '127.0.0.1'].includes(location.hostname)) throw Error('Local only');
+    const { Wllama } = await import(
+      /* @vite-ignore */ new URL('/scion/runtime/v3-candidate/wllama.js', location.href).href
+    );
+    const run = document.querySelector('#run'),
+      save = document.querySelector('#save'),
+      view = document.querySelector('#result');
+    let receipt;
+    run.onclick = async () => {
+      run.disabled = true;
+      receipt = {
+        startedAt: new Date().toISOString(),
+        status: 'running',
+        module: '/scion/runtime/v3-candidate/wllama.js',
+        wasm: '/scion/runtime/v1/jspi-single-thread/wllama.wasm',
+        logs: [],
+      };
+      view.textContent = JSON.stringify(receipt);
+      const logger = Object.fromEntries(
+        ['debug', 'log', 'info', 'warn', 'error'].map((level) => [
+          level,
+          (...args) => {
+            const text = args.map((a) => (typeof a === 'string' ? a : JSON.stringify(a))).join(' ');
+            if (/version|mismatch|error|exception/i.test(text)) receipt.logs.push({ level, text: text.slice(0, 1200) });
+          },
+        ]),
+      );
+      const runtime = new Wllama(
+        { 'jspi/single-thread/wllama.wasm': receipt.wasm },
+        { backend: 'webgpu', parallelDownloads: 1, logger },
+      );
+      try {
+        await runtime.loadModelFromUrl(SCION_BROWSER_GEMMA4_GGUF_URL, { useCache: true, n_ctx: 512, n_threads: 1 });
+        receipt.status = 'FAILED-loaded-incompatible-pair';
+      } catch (e) {
+        receipt.error = e.message;
+        receipt.status = /version|mismatch/i.test(e.message + JSON.stringify(receipt.logs))
+          ? 'pass-rejected-version-mismatch'
+          : 'failed-other-error';
+      } finally {
+        await runtime.exit().catch((e) => (receipt.exitError = e.message));
+        receipt.finishedAt = new Date().toISOString();
+        view.textContent = JSON.stringify(receipt, null, 2);
+        run.disabled = false;
+        save.disabled = false;
+      }
+    };
+    save.onclick = () => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([JSON.stringify(receipt, null, 2)], { type: 'application/json' }));
+      a.download = 'scion-runtime-pair-mismatch.json';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    };
+  </script>
+</html>

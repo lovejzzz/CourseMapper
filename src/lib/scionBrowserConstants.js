@@ -1,8 +1,8 @@
 export const SCION_BROWSER_MAX_NEW_TOKENS = 4096;
 
 export const SCION_BROWSER_WLLAMA_RUNTIME_ID = 'scion-wllama-webgpu-jspi-v1';
-export const SCION_BROWSER_WLLAMA_MODULE_PATH = '/scion/runtime/v2/wllama.js';
-export const SCION_BROWSER_WLLAMA_WASM_PATH = '/scion/runtime/v1/jspi-single-thread/wllama.wasm';
+export const SCION_BROWSER_WLLAMA_MODULE_PATH = '/scion/runtime/v3/wllama.js';
+export const SCION_BROWSER_WLLAMA_WASM_PATH = '/scion/runtime/v3/jspi-single-thread/wllama.wasm';
 
 export const SCION_BROWSER_GEMMA4_GGUF = Object.freeze({
   trainingBase: Object.freeze({
@@ -56,9 +56,10 @@ export const SCION_BROWSER_GEMMA4_GGUF = Object.freeze({
   runtime: Object.freeze({
     id: SCION_BROWSER_WLLAMA_RUNTIME_ID,
     modulePath: SCION_BROWSER_WLLAMA_MODULE_PATH,
-    moduleSha256: '4b43ed59785ae9aa89aae67ac504534d9bf7b65e6340969b7bd13550146a6433',
+    moduleSha256: '92afaea4ca9feefece8790fa32f3b96775d430f7341a8d89e550de368af40bdb',
     wasmPath: SCION_BROWSER_WLLAMA_WASM_PATH,
-    wasmSha256: '732bac4661d613461cee0b3132660beab159b926910c8431181ee01608e44229',
+    wasmSha256: 'ccb4ffaada3561b60275f652f5067946ed019728d589eaa24604a67d7c207848',
+    grammar: 'gbnf-state-v1',
     upstreamRevision: '58903000dbea6acfc0eb9c738d8be50d1052cf23',
     llamaCppRevision: '5ec717d1256e34558a44dc09adf1e6e16f2e2682',
   }),

@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Select the verified v3 local runtime pair with grammar-state support after real adapter apply/clear/recovery and protocol-mismatch checks. Verify both selected file hashes during builds. In one exposed application case, source roles now complete in one call without manual corrections; preserve the earlier failure and keep fresh educational acceptance pending. Model weights are unchanged and the untrained mechanical-test adapter is not shipped.
+
 - Seed new teaching-review drafts from explicitly labeled original source records and single-lesson objectives, retaining saved drafts and refusing silent packet truncation. Independently reject invalid chronology date roles even when another role is incomplete. A real local proposal still required two manual corrections before applying a concrete shared task; preserve that failure and reviewed outcome.
 
 - Show settled package checks as awaiting review rather than still refining at 99%. Hide the review-state progress bar while preserving blockers and active-build progress.

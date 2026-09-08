@@ -124,8 +124,36 @@ describe('Scion browser model storage recovery', () => {
   });
 });
 
-it('rejects a requested grammar on the old runtime instead of silently dropping it', async () => {
-  await expect(
-    completeScionBrowserWllama([{ role: 'user', content: 'Test' }], { grammar: 'root ::= "OK"' }),
-  ).rejects.toMatchObject({ code: 'SCION_WLLAMA_GRAMMAR_UNAVAILABLE' });
+it('forwards application grammar through the selected verified runtime', async () => {
+  let options;
+  class Candidate {
+    loadModelFromUrl = async () => {};
+    isModelLoaded = () => true;
+    usingWebGPU = () => true;
+    getModelMetadata = () => ({ meta: { 'general.architecture': 'gemma4', 'general.type': 'model' } });
+    getLoraAdapterStatus = async () => ({ active: false });
+    tokenize = async () => [1];
+    getLoadedContextInfo = () => ({ n_ctx: 2048 });
+    createCompletion = async (_prompt, passed) => {
+      options = passed;
+      passed.onNewToken(2, 'OK', 'OK');
+      return 'OK';
+    };
+    exit = async () => {};
+  }
+  try {
+    await loadScionBrowserWllama({
+      runtimeLoader: async () => ({ Wllama: Candidate }),
+      navigatorLike: { gpu: { requestAdapter: async () => ({}) } },
+      globalLike: { WebAssembly: { Suspending: class {} } },
+      locationLike: { href: 'http://localhost/' },
+    });
+    expect(SCION_BROWSER_GEMMA4_GGUF.runtime.grammar).toBe('gbnf-state-v1');
+    expect(await completeScionBrowserWllama([{ role: 'user', content: 'Test' }], { grammar: 'root ::= "OK"' })).toBe(
+      'OK',
+    );
+    expect(options.sampling.grammar).toBe('root ::= "OK"');
+  } finally {
+    await unloadScionBrowserWllama();
+  }
 });

@@ -1,0 +1,10 @@
+{
+  "kind": "untrained-mechanical-smoke",
+  "promotionEligible": false,
+  "target": "blk.0.attn_q.weight",
+  "baseShape": [1536, 2048],
+  "rank": 1,
+  "seed": 7,
+  "bytes": 14720,
+  "sha256": "579bf162f1f2eb54f42dabf7bd2fb8d4d48c649807d97d1e7bfc9f3eaaabdec0"
+}

@@ -1,0 +1,101 @@
+{
+  "kind": "candidate-runtime-untrained-adapter-regression",
+  "promotionEligible": false,
+  "startedAt": "2026-09-08T06:13:15.381Z",
+  "status": "pass-mechanical-only",
+  "cases": [
+    {
+      "id": "base",
+      "pass": true,
+      "native": {
+        "active": false,
+        "path": "",
+        "scale": 0,
+        "metadata": {}
+      },
+      "output": "A fraction represents a part of a whole, showing how many equal pieces make up a specific quantity.",
+      "prompt": "Write one sentence explaining what a fraction represents."
+    },
+    {
+      "id": "native-apply",
+      "pass": true,
+      "activated": {
+        "active": true,
+        "path": "models/adapter-0.gguf",
+        "scale": 1,
+        "metadata": {
+          "adapter.type": "lora",
+          "adapter.lora.alpha": "1.000000",
+          "general.type": "adapter",
+          "general.name": "UNTRAINED mechanical smoke adapter",
+          "general.architecture": "gemma4"
+        }
+      },
+      "native": {
+        "active": true,
+        "path": "models/adapter-0.gguf",
+        "scale": 1,
+        "metadata": {
+          "adapter.type": "lora",
+          "adapter.lora.alpha": "1.000000",
+          "general.type": "adapter",
+          "general.name": "UNTRAINED mechanical smoke adapter",
+          "general.architecture": "gemma4"
+        }
+      }
+    },
+    {
+      "id": "adapter-changes-inference",
+      "pass": true,
+      "output": "A fraction represents a part of a whole, showing how many equal pieces make up a total amount."
+    },
+    {
+      "id": "grammar-with-adapter",
+      "pass": true,
+      "output": "{\"ok\":true}"
+    },
+    {
+      "id": "clear-restores-base",
+      "pass": true,
+      "native": {
+        "active": false,
+        "path": "",
+        "scale": 0,
+        "metadata": {}
+      },
+      "output": "A fraction represents a part of a whole, showing how many equal pieces make up a specific quantity."
+    },
+    {
+      "id": "invalid-adapter-rejected",
+      "pass": true,
+      "native": {
+        "active": false,
+        "path": "",
+        "scale": 0,
+        "metadata": {}
+      }
+    },
+    {
+      "id": "recovery-after-invalid",
+      "pass": true,
+      "output": "A fraction represents a part of a whole, showing how many equal pieces make up a specific quantity."
+    }
+  ],
+  "errors": [],
+  "base": {
+    "modelId": "google/gemma-4-E2B-it-qat-q4_0-gguf",
+    "revision": "69536a21d70340464240401ba38223d805f6a709",
+    "file": "gemma-4-E2B_q4_0-it.gguf",
+    "bytes": 3349514112,
+    "sha256": "3646b4c147cd235a44d91df1546d3b7d8e29b547dbe4e1f80856419aa455e6fd",
+    "format": "gguf-q4_0-qat"
+  },
+  "runtime": {
+    "moduleSha256": "92afaea4ca9feefece8790fa32f3b96775d430f7341a8d89e550de368af40bdb",
+    "wasmSha256": "ccb4ffaada3561b60275f652f5067946ed019728d589eaa24604a67d7c207848"
+  },
+  "adapterSha256": "579bf162f1f2eb54f42dabf7bd2fb8d4d48c649807d97d1e7bfc9f3eaaabdec0",
+  "loadMs": 3037,
+  "invalidAdapterError": "Wllama action \"lora_load\" failed before producing a valid response (pointer=0, length=1163217991). See the preceding native runtime error.",
+  "finishedAt": "2026-09-08T06:13:22.861Z"
+}
