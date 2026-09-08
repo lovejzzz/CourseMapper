@@ -394,6 +394,31 @@ describe('operation bindings in the actual material compiler and sync', () => {
     expect(readTeachingTaskSources(result.courseMap)[0].operationPlan.operation).toBe('record-amendment');
   });
 
+  it.each(['primary-task', 'guided-practice'])(
+    'preserves saved teaching task scope %s during recompilation',
+    (scope) => {
+      const { map } = packageFixture();
+      const sources = readTeachingTaskSources(map);
+      sources[0].scope = scope;
+      const saved = withTeachingTaskSources(map, sources);
+      const blueprint = buildCourseBlueprint(saved, { instructorProvidedFacts: legacyClaims, sessionMinutes: 50 });
+      const originalSource = structuredClone(sources[0]);
+      if (scope === 'primary-task')
+        blueprint.lessons[0].enrichment = {
+          ...blueprint.lessons[0].enrichment,
+          assignmentCore: { taskDescription: 'Legacy separate essay about the reading.' },
+          activityBlueprint: { steps: ['Legacy activity should not choose the saved task role.'] },
+        };
+      const compiled = compileBlueprintDeliverables(blueprint, features);
+      const lesson = compiled[BLUEPRINT_COMPILE_CONTEXT].lessons[0];
+      expect(lesson.teachingTaskScope).toBe(scope);
+      expect(lesson.teachingTask.id).toBe(originalSource.id);
+      if (scope === 'primary-task')
+        expect(compiled.assignments.assignments[0].overview).toBe(lesson.teachingTask.question);
+      expect(readTeachingTaskSources(saved)[0]).toEqual(originalSource);
+    },
+  );
+
   it('refuses an unconfirmed saved operation without falling back to an independently re-parsed answer', () => {
     const { map } = packageFixture();
     const sources = readTeachingTaskSources(map);

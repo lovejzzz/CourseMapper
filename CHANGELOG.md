@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Preserve the saved main-task or guided-practice role during full recompilation. Legacy assignment/activity enrichment can no longer demote an authoritative main task and leave the primary assignment on a competing content path. Verify both scope directions and nine outputs from a saved project.
+
 - Freeze all 60 v3 benchmark cases (36 development, 24 reserved) with isolated references, source-family review and file digests. Add snapshot verification and tampering regression checks; preserve replaced prefreeze drafts. This establishes evaluation inputs, not a model or classroom pass.
 
 - Complete the 36-case v3 development corpus across quantity, source reasoning and experiment design, including bilingual boundary cases, concrete contrasting answers and edit expectations. Preserve prior references before adding missing contrasts; independently check arithmetic and resource allocations. The 24 reserved cases, corpus freeze and full product runs remain pending.

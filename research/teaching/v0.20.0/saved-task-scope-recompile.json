@@ -1,0 +1,112 @@
+{
+  "input": ".audit-work/v0200-teaching-system/m3-performance-current-before.coursemapper",
+  "inputSha256": "a61e4b7b2b1188e6b615b0d73f52098547f852ab2d79ed263dc5b7de6dcaefb0",
+  "modelCalls": 0,
+  "mode": "Actual saved project recompiled with an injected legacy assignment/activity conflict; no browser mutation or natural-language generation claim.",
+  "savedScope": "primary-task",
+  "compiledScope": "primary-task",
+  "taskIdentityPreserved": true,
+  "assignmentUsesSharedQuestion": true,
+  "outputs": [
+    {
+      "featureId": "syllabus",
+      "path": ".audit-work/v0200-teaching-system/scope-recompile/syllabus.json",
+      "sha256": "2c0e340a37bac0f4c01e8f263d6eb95effb37844934f40c73b49d467926f3bf9",
+      "savedTaskScopes": [
+        {
+          "id": "task-f93bd58f15f8e61a",
+          "scope": "primary-task"
+        }
+      ]
+    },
+    {
+      "featureId": "lessonPlans",
+      "path": ".audit-work/v0200-teaching-system/scope-recompile/lessonPlans.json",
+      "sha256": "012e3a52622c7a2e9861efb2f6348dc8249df5175628862bcba9a448a11587bc",
+      "savedTaskScopes": [
+        {
+          "id": "task-f93bd58f15f8e61a",
+          "scope": "primary-task"
+        }
+      ]
+    },
+    {
+      "featureId": "slideDecks",
+      "path": ".audit-work/v0200-teaching-system/scope-recompile/slideDecks.json",
+      "sha256": "37944f7145389461896bf105127f6baebfd927fb0da81461b8f2ebbbf655f5a5",
+      "savedTaskScopes": [
+        {
+          "id": "task-f93bd58f15f8e61a",
+          "scope": "primary-task"
+        }
+      ]
+    },
+    {
+      "featureId": "assignments",
+      "path": ".audit-work/v0200-teaching-system/scope-recompile/assignments.json",
+      "sha256": "5b70e9610dc5578e87368a81af36e4aa4fe391524f3ab3e8e0f34c99559b4293",
+      "savedTaskScopes": [
+        {
+          "id": "task-f93bd58f15f8e61a",
+          "scope": "primary-task"
+        }
+      ]
+    },
+    {
+      "featureId": "rubrics",
+      "path": ".audit-work/v0200-teaching-system/scope-recompile/rubrics.json",
+      "sha256": "b68c91f395634a718bfc08e4fc9fcf6fcc021671403b4d0f51816dbf5bedae7c",
+      "savedTaskScopes": [
+        {
+          "id": "task-f93bd58f15f8e61a",
+          "scope": "primary-task"
+        }
+      ]
+    },
+    {
+      "featureId": "discussions",
+      "path": ".audit-work/v0200-teaching-system/scope-recompile/discussions.json",
+      "sha256": "d80772c7b003fcf7705793c1053f66c38b1ccb7536ad45f8619c40d485f5e596",
+      "savedTaskScopes": [
+        {
+          "id": "task-f93bd58f15f8e61a",
+          "scope": "primary-task"
+        }
+      ]
+    },
+    {
+      "featureId": "quizBank",
+      "path": ".audit-work/v0200-teaching-system/scope-recompile/quizBank.json",
+      "sha256": "2fc48a4fc2873a9b5b4ff3e8ac23f4bea434f833653255cb081a8004c865c86e",
+      "savedTaskScopes": [
+        {
+          "id": "task-f93bd58f15f8e61a",
+          "scope": "primary-task"
+        }
+      ]
+    },
+    {
+      "featureId": "studyGuides",
+      "path": ".audit-work/v0200-teaching-system/scope-recompile/studyGuides.json",
+      "sha256": "ab43676e61aa6778b1b4709fed911777af85480a4613cdc0916dd79d77115d3a",
+      "savedTaskScopes": [
+        {
+          "id": "task-f93bd58f15f8e61a",
+          "scope": "primary-task"
+        }
+      ]
+    },
+    {
+      "featureId": "courseFaq",
+      "path": ".audit-work/v0200-teaching-system/scope-recompile/courseFaq.json",
+      "sha256": "b580319ba555d71de30e83c9b3ef6a1bbc32788e3fdfadef0a8d162c5863f6a7",
+      "savedTaskScopes": [
+        {
+          "id": "task-f93bd58f15f8e61a",
+          "scope": "primary-task"
+        }
+      ]
+    }
+  ],
+  "limitation": "Checks compiler authority and nine generated data outputs, not new PDF/Office rendering or teacher-edit conflict transactions."
+}

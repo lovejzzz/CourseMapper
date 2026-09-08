@@ -12808,10 +12808,17 @@ function prepareBlueprintForCompilation(blueprint = {}, options = {}) {
     return {
       ...lesson,
       teachingTask,
+      // The saved program owns whether this is the main task or practice.
+      // Enrichment can supply other content, but cannot silently change that role.
       teachingTaskScope:
-        teachingTask && !authoredAssignment && !lesson.authenticDataTaskPlan && !lesson.enrichment?.activityBlueprint
-          ? 'primary-task'
-          : 'guided-practice',
+        savedTask && ['primary-task', 'guided-practice'].includes(savedTaskSource.scope)
+          ? savedTaskSource.scope
+          : teachingTask &&
+              !authoredAssignment &&
+              !lesson.authenticDataTaskPlan &&
+              !lesson.enrichment?.activityBlueprint
+            ? 'primary-task'
+            : 'guided-practice',
     };
   });
   prepared.lessons = linkTeachingTaskSequence(prepared.lessons);
