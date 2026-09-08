@@ -2,6 +2,17 @@ import { describe, expect, it } from 'vitest';
 import { extractExplicitLessonSequence, extractOrderedLessonContract } from '../explicitLessonSequence.js';
 
 describe('extractExplicitLessonSequence', () => {
+  it.each(['Sources', '来源记录'])('does not infer a schedule from numbered %s', (header) => {
+    const source = `Create an editable lesson on evidence.\n${header}:\n1. [log] The writer observed brown water.\n2. [interview] A resident reported a discharge.\n3. [editorial] The writer inferred intent.`;
+    expect(extractExplicitLessonSequence(source)).toEqual([]);
+    expect(extractOrderedLessonContract(source)).toBeNull();
+    expect(extractOrderedLessonContract(source, { expectedCount: 3 })).toBeNull();
+    expect(extractExplicitLessonSequence(`${source}\nLessons:\n1. Observation\n2. Attribution`)).toEqual([
+      'Observation',
+      'Attribution',
+    ]);
+  });
+
   it('recognizes an exact counted in-order lesson contract with semicolon boundaries', () => {
     const sequence = extractExplicitLessonSequence(
       'Use exactly these six lessons in order: 1) Framing a data question and stakeholder stakes; ' +

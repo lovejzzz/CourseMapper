@@ -1,0 +1,58 @@
+{
+  "baselineCommit": "6edd6048",
+  "workflow": "Same Chrome tab: regenerate discussion lesson, Prepare package, save actual project",
+  "artifact": {
+    "path": ".audit-work/v0200-teaching-system/source-boundaries/after.coursemapper",
+    "sha256": "140a03ee5c666bc0bfc155370e68a9ab2070b47d845f5fc096111d89b959738e"
+  },
+  "before": {
+    "status": "blocked",
+    "modelRequestStarts": 7
+  },
+  "after": {
+    "status": "ready",
+    "modelRequestStarts": 7,
+    "findings": [
+      {
+        "severity": "P1",
+        "detail": "syllabus grading table carries no registry ids (A<N>.<M>) although the manifest registry is populated"
+      },
+      {
+        "severity": "P2",
+        "detail": "source review row SL1 is not trusted bibliography proof"
+      },
+      {
+        "severity": "P1",
+        "detail": "sourceRef coverage is too thin: 16 atom(s) rely on 0 trusted concept-linked source row(s)"
+      },
+      {
+        "severity": "P1",
+        "detail": "raw enum id in print (roadmap v0.12.1)"
+      },
+      {
+        "severity": "P1",
+        "detail": "A 10-word instructional phrase repeats 47 times across exported artifacts"
+      },
+      {
+        "severity": "P2",
+        "detail": "enriched deck renders no native visual (concept-map shapes, worked-example chart, table, or matrix) despite carrying kernel-derived slides (roadmap WS-C C3)"
+      },
+      {
+        "severity": "P2",
+        "detail": "Texture score 74/100 indicates repeated prose patterns across deliverables"
+      }
+    ],
+    "orderedSequence": [
+      {
+        "status": "unobserved",
+        "reason": "No source-authored ordered lesson contract was available, so curriculum fidelity was not scored."
+      }
+    ]
+  },
+  "correction": "The prior handoff attributed the ordered-sequence error to saved generationConstraints. The actual saved constraints contain duration only. Current extractExplicitLessonSequence also parsed numbered Sources as a schedule. The separate P0 came from shifted/truncated evidence matching. Both are fixed, rather than migrating saved lesson counts.",
+  "limitations": [
+    "ready is structural handoff status, not independent classroom acceptance.",
+    "Remaining findings include raw question-type enum in Word tags, repeated content, grading registry links and source-claim coverage.",
+    "No new Scion inference, visual PDF/Office acceptance, reserved benchmark or production deployment."
+  ]
+}

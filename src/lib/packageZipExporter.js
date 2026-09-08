@@ -906,14 +906,14 @@ const EXTERNAL_EVIDENCE_REQUIREMENT_PATTERNS = [
   },
 ];
 
-function compactDependencyEvidence(text, matchIndex) {
+function compactDependencyEvidence(text, matchIndex, maxLength = 220) {
   const source = String(text || '')
     .replace(/\s+/g, ' ')
     .trim();
   const start = Math.max(0, source.lastIndexOf('.', Math.max(0, matchIndex - 1)) + 1);
   const nextPeriod = source.indexOf('.', matchIndex);
   const end = nextPeriod >= 0 ? nextPeriod + 1 : Math.min(source.length, matchIndex + 180);
-  return source.slice(start, end).trim().slice(0, 220);
+  return source.slice(start, end).trim().slice(0, maxLength);
 }
 
 function graphSessionForLesson(courseGraph, lessonNumber, lessonIndex) {
@@ -1051,7 +1051,9 @@ function buildLessonEvidenceDependencies({
           scopeDeliverableDataToLessons(featureId, entry.data, [lessonIndex], courseMap),
         ),
       )
-      .join(' ');
+      .join(' ')
+      .replace(/\s+/g, ' ')
+      .trim();
     const requirements = [];
 
     for (const asset of Array.isArray(requiredAssets) ? requiredAssets : []) {
@@ -1115,7 +1117,7 @@ function buildLessonEvidenceDependencies({
     for (const requirement of EXTERNAL_EVIDENCE_REQUIREMENT_PATTERNS) {
       const matches = [...scopedText.matchAll(new RegExp(requirement.pattern.source, 'gi'))];
       const match = matches.find((candidate) => {
-        const sentence = compactDependencyEvidence(scopedText, candidate.index);
+        const sentence = compactDependencyEvidence(scopedText, candidate.index, Infinity);
         // A quoted statement about absent evidence is not an instruction to
         // obtain another handout. Keep scanning so a later real requirement
         // cannot be hidden by an earlier description of the packet's limits.

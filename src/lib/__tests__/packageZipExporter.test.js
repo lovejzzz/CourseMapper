@@ -1448,7 +1448,11 @@ describe('packageZipExporter', () => {
                   lessonNumber: 1,
                   title: 'Compare claims',
                   instructions: [
-                    'There is no chemical analysis, discharge record or evidence of intent in the supplied packet.',
+                    // Multiline text before the match must not shift its offset; long
+                    // context must not truncate the negation before classification.
+                    'First compare the claims.\n\n' +
+                      'Keep the statement with its author and qualification; '.repeat(8) +
+                      'There is no chemical analysis, discharge record or evidence of intent in the supplied packet.',
                     ...(requirePacket ? ['Read the supplied packet before writing your response.'] : []),
                   ],
                 },

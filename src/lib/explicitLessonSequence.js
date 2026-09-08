@@ -5,6 +5,29 @@ function cleanText(value, max = 300) {
     .slice(0, max);
 }
 
+// Source records are evidence, not the instructor's schedule. Preserve later
+// outer instruction headings so a brief can still declare lessons after its packet.
+function withoutSourceSections(source) {
+  let inSources = false;
+  return String(source || '')
+    .split('\n')
+    .filter((line) => {
+      if (/^\s*(?:#{1,6}\s*)?(?:sources|source records|来源|来源记录|资料来源)\s*[:：]\s*$/i.test(line)) {
+        inSources = true;
+        return false;
+      }
+      if (
+        inSources &&
+        /^\s*(?:#{1,6}\s*)?(?:lessons?|lesson sequence|sessions?|modules?|task|instructions?|requests?|objectives?|learning objectives?|assessment|课程安排|课次|任务|要求|指令|学习目标|教学目标|评分)\s*[:：]/i.test(
+          line,
+        )
+      )
+        inSources = false;
+      return !inSources;
+    })
+    .join('\n');
+}
+
 const COUNT_WORD =
   '(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|\\d{1,2})';
 
@@ -145,7 +168,7 @@ function exactCountedCommaSequence(text, expectedCount) {
  * Ordinary prose lists never become a schedule.
  */
 export function extractExplicitLessonSequence(source = '', { expectedCount = null } = {}) {
-  const text = String(source || '');
+  const text = withoutSourceSections(source);
   const exactCounted = exactCountedCommaSequence(text, expectedCount);
   if (exactCounted.length > 0) return exactCounted;
   const header = LABELED_SEQUENCE_HEADER_RE.exec(text);
@@ -240,6 +263,7 @@ export function extractNamedProgressionTopics(source = '') {
  * while making an exact five-topic/five-lesson brief replayable and auditable.
  */
 export function extractOrderedLessonContract(source = '', { expectedCount = null } = {}) {
+  source = withoutSourceSections(source);
   const explicit = extractExplicitLessonSequence(source, { expectedCount });
   if (explicit.length >= 2) {
     return {

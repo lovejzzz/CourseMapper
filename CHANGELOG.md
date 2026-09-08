@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Exclude labeled source sections from ordered lesson contracts while retaining later explicit lesson headings. Keep evidence-match offsets consistent across whitespace normalization, and classify packet-limit statements before shortening displayed evidence. Actual browser preparation now removes the false missing-packet blocker and false three-lesson contract with no new model calls; other output-quality findings remain.
+
 - Compile explicit retries directly from complete teacher-reviewed tasks with a zero-model-call budget. Preserve canonical task source metadata across full and single-lesson recompilation, while updating lesson placement after reordering. Reject mismatched source patches and retain unrelated stale sources. Invalidate prepared exports on single-lesson regeneration. Actual saved output confirms nine matching source ledgers and unchanged model-call counters; full package acceptance remains blocked.
 
 - Bind reviewed practice banks to an explicit item roster and source/task version. Count normalization, generation validation and readiness now distinguish complete reviewed sequences from ordinary configured question counts. Reject missing/duplicate practice identities and changed source bindings. Real retry now accepts the five-item bank; unrelated source-version drift still blocks package acceptance.
