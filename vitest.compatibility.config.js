@@ -22,6 +22,7 @@ export default defineConfig({
       'src/lib/__tests__/teachingOperation*.test.js',
       'src/lib/__tests__/teachingPerformanceRequirements.test.js',
       'src/lib/__tests__/teachingTaskReview.test.js',
+      'src/lib/__tests__/teachingResponseReview.test.js',
       'src/lib/__tests__/teachingTaskCreation.test.js',
       'src/lib/__tests__/teachingGoalAlignment.test.js',
       'src/lib/__tests__/deliverableEditHistory.test.js',

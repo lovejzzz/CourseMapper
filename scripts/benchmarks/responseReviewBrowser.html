@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Local response review verification</title>
+  </head>
+  <body>
+    <h1>Local response review verification</h1>
+    <p>Synthetic developer responses. Separate test database; no model calls.</p>
+    <button id="verify">Verify native storage</button>
+    <pre id="result" role="status">Not run</pre>
+    <div id="root"></div>
+    <script type="module">
+      import React from 'react';
+      import { createRoot } from 'react-dom/client';
+      import '/src/index.css';
+      import TeachingResponseReview from '/src/components/deliverables/shared/TeachingResponseReview.jsx';
+      import { createTeachingResponseStore } from '/src/lib/teachingResponseStore.js';
+      import {
+        createResponseReview,
+        confirmResponseJudgment,
+        responseReviewRevision,
+      } from '/src/lib/teachingResponseReview.js';
+      import { buildSharedTeachingTask } from '/src/lib/compilerTeachingTask.js';
+      import { teachingTaskSourceFromLesson } from '/src/lib/teachingTaskSource.js';
+      const task = buildSharedTeachingTask({
+        lessonId: 'browser-response-review',
+        objective: 'Explain how an amended record changes the interpretation of an earlier entry.',
+        claims: [
+          'A fictional permit log initially records 120 seats for a hall.',
+          'A later entry explicitly amends the permitted capacity to 90 seats from 1 July.',
+          'An attendance photograph has no reliable date.',
+        ],
+        admitted: true,
+      });
+      const source = teachingTaskSourceFromLesson({
+        id: 'browser-response-review',
+        lessonNumber: 1,
+        title: 'Synthetic permit records',
+        teachingTask: task,
+        teachingTaskScope: 'primary-task',
+      });
+      const name = 'coursemapper-synthetic-response-verification-v1';
+      const store = createTeachingResponseStore(indexedDB, name);
+      createRoot(document.getElementById('root')).render(
+        React.createElement(TeachingResponseReview, { source, zh: false, store }),
+      );
+      document.getElementById('verify').onclick = async () => {
+        const output = document.getElementById('result');
+        output.textContent = 'Running';
+        try {
+          const first = createResponseReview(source, 'Synthetic response: 90 seats after 1 July.');
+          await store.save(first);
+          const reopened = createTeachingResponseStore(indexedDB, name);
+          if (!(await reopened.list()).records.some((r) => r.id === first.id)) throw new Error('Reopen lost record');
+          const updated = confirmResponseJudgment(first, {
+            criterionId: first.snapshot.criteria[0].id,
+            level: 'insufficient',
+            reason: 'Synthetic review: date application not explained.',
+          });
+          await reopened.save(updated, responseReviewRevision(first));
+          let rejected = false;
+          try {
+            await store.save(first, responseReviewRevision(first));
+          } catch {
+            rejected = true;
+          }
+          if (!rejected) throw new Error('Stale save accepted');
+          const restored = (await store.list()).records.find((r) => r.id === first.id);
+          if (restored.judgments.length !== 1) throw new Error('Conflict lost teacher judgment');
+          await store.remove(first.id);
+          if ((await reopened.list()).records.some((r) => r.id === first.id)) throw new Error('Delete failed');
+          output.textContent = JSON.stringify(
+            {
+              passed: [
+                'native save',
+                'new connection reopen',
+                'teacher judgment persistence',
+                'stale-write rejection',
+                'conflict preserves data',
+                'separate test record deletion',
+              ],
+              modelCalls: 0,
+              at: new Date().toISOString(),
+            },
+            null,
+            2,
+          );
+        } catch (error) {
+          output.textContent = `FAILED: ${error.message}`;
+        }
+      };
+    </script>
+  </body>
+</html>

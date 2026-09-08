@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import TeachingPerformanceEditor from './TeachingPerformanceEditor.jsx';
 import TeachingGoalAlignmentEditor from './TeachingGoalAlignmentEditor.jsx';
+import TeachingResponseReview from './TeachingResponseReview.jsx';
 import { reconcileTeachingGoalLinks } from '../../../lib/teachingGoalAlignment.js';
 import { FEATURES_BASE } from '../../../lib/featureCatalog.js';
 import { TEACHING_OPERATION_SPECS } from '../../../lib/teachingOperationPlan.js';
@@ -327,6 +328,7 @@ export default function TeachingTaskReview({
       }}
     >
       <summary className="cursor-pointer font-medium">{t('Review sources and scoring', '审阅来源与评分')}</summary>
+      <TeachingResponseReview source={options.sources.find((row) => row.id === selected?.id)} zh={zh} disabled={busy} />
       {options.issue && (
         <p role="alert" className="mt-3 text-amber-800">
           {options.issue}
