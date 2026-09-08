@@ -1,0 +1,135 @@
+{
+  "case": "quantity-dev-03",
+  "split": "development",
+  "attempt": 1,
+  "purpose": "Single input-repair regression; not fresh acceptance",
+  "outcome": "failed-requested-teaching-task",
+  "manualSemanticEdits": false,
+  "project": {
+    "path": ".audit-work/v0200-teaching-system/natural-quantity-dev-03-02/first-run.coursemapper",
+    "sha256": "3220864febab27a323de0f4978d51fd8ee19b42b4e8f9c68775e2041fe9c7932",
+    "bytes": 1468090
+  },
+  "zipCaptured": false,
+  "zipReason": "Prepare package was disabled; final readiness blocked. No bypass attempted.",
+  "consoleLogCaptured": false,
+  "lessons": 1,
+  "sharedTasks": 0,
+  "buildElapsedMs": 15646,
+  "modelRequestStarts": 1,
+  "pipeline": {
+    "courseIRAuthoring": "public Scion · one typed skeleton call before lesson-kernel authoring",
+    "courseMap": "Scion V0.19.2 · typed skeleton (sessions, assessments, readings, resources)",
+    "scionExecution": "browser-local Gemma 4 · public weights · local inference",
+    "examine": "skipped: native authoring — Pass B authors lesson content next",
+    "genomeLinker": "0 genome + 0 cached (0 genome-backed) of 1 lessons (0 concepts, 0 citations, 0 bridges)",
+    "judgment": "not evaluated (0 genome-linked lessons)",
+    "local-compiler": "3 unresolved contract issues forwarded to per-atom admission",
+    "scionFactLedgerStage": "bound · model facts frozen before deterministic compiler projection",
+    "stage": "mcVerify:lesson-1 skipped [same-model-solver-is-not-an-independent-verifier] · passBudget:lesson-1 bounded [0/0-calls-used-before-admissionGate] · improvementPasses:lesson-1 skipped [grounded-adapter-bounded-repair-policy:0/0]",
+    "canonicalKernelAdmission": "all lesson ids present · lesson-1:lesson:source-ledger-facts-only · lesson-1:authoring:no-authoring-fields",
+    "enrichmentModelStage": "ran (0/1 — lesson 1 fell back to template) (linker: ran)",
+    "nativeAuthoring": "assembled 1 sessions onto Pass A entity ids · outcomes/activities 1/1 · knowledge kernels admitted 0/1 · 0 registry readings · CurriculumV1 source 1 lessons",
+    "knowledgeBackbone": "The approved or exact-source-only route uses supplied evidence; no duplicate reading search.",
+    "courseGraph": "1/1/1 sessions/concepts/outcomes",
+    "groundingMetrics": "overall 42.6% · syllabus 3% · lessonPlans 8% · slideDecks 27% · assignments 99% · rubrics 24% · discussions 95% · quizBank 62% · studyGuides 5% · courseFaq 23%",
+    "enrichment": "ran (0/1 — lesson 1 fell back to template)"
+  },
+  "gates": {
+    "finalStatus": "blocked",
+    "trustState": "blocked",
+    "blockers": 1,
+    "warnings": 18,
+    "warningDomains": {
+      "schemaVersion": 1,
+      "readiness": 3,
+      "retry": 0,
+      "export": 1,
+      "quality": 3,
+      "source": 11,
+      "total": 18
+    },
+    "blockerDomains": {
+      "schemaVersion": 1,
+      "readiness": 1,
+      "quality": 0,
+      "export": 0,
+      "total": 1
+    },
+    "repairsApplied": 8,
+    "retryCallCount": 0,
+    "repairRetryCallCount": 0,
+    "finishRetryCallCount": 0,
+    "exportStatus": "passed",
+    "exportContentDisposition": "needs-review",
+    "exportChecked": 38,
+    "exportFailed": 0,
+    "exportWarnings": 1,
+    "qualityStatus": "graded",
+    "qualityScore": 89,
+    "qualityGrade": "B",
+    "automatedReadinessScore": 48,
+    "automatedReadinessMax": 100,
+    "automatedReadinessCeiling": 75,
+    "automatedReadinessBand": "partial-positive-deterministic-evidence",
+    "deterministicEvidenceProtocol": "coursemapper-deterministic-package-evidence-v2",
+    "deterministicEvidenceLost": 27,
+    "deterministicEvidenceUnobserved": 25,
+    "qualityP0": 0,
+    "qualityP1": 2,
+    "qualityP2": 2,
+    "compiledWithoutEnrichment": false,
+    "enrichmentCoverage": 0,
+    "flaggedChecks": [
+      {
+        "featureId": "quality",
+        "status": "warning",
+        "message": "package conformance 89/100 (B) — 0 P0, 2 P1, 2 P2; package readiness reports 1 blocker(s) (status \"blocked\")"
+      },
+      {
+        "featureId": "content",
+        "status": "failed",
+        "message": "partial enrichment (0/1) — lesson 1 fell back to template"
+      },
+      {
+        "featureId": "courseMap",
+        "status": "failed",
+        "message": "Enrichment covered 0/1 lessons; lesson 1 fell back to template. Retry or repair enrichment before exporting a clean package."
+      },
+      {
+        "featureId": "quizBank",
+        "status": "warning",
+        "message": "6 questions need a specific instructor-reviewed answer. Source statements and general scoring guidance do not establish a complete reference response."
+      },
+      {
+        "featureId": "studyGuides",
+        "status": "warning",
+        "message": "1 content quality finding(s): dangling-clause — e.g. \"Work directly with the supplied claim cards labeled Claim A and Claim B about Registered Member Count, their recorded observations, and thei\""
+      },
+      {
+        "featureId": "courseMap",
+        "status": "warning",
+        "message": "Package quality grader found 4 review findings (score 89/100, grade B) — resolve the quality report before classroom publication"
+      },
+      {
+        "featureId": "studyGuides",
+        "status": "warning",
+        "message": "1 content quality finding(s): dangling-clause."
+      }
+    ]
+  },
+  "educationalReview": {
+    "reviewer": "implementer",
+    "independentTeacherReview": false,
+    "finding": "One lesson and supplied ledger are preserved, but the assignment remains a generic evidence explanation. No shared union/intersection task or endpoint solution was established. Six quiz questions require specific reference answers; the study guide contains a dangling clause.",
+    "formatVisualReview": false
+  },
+  "browserEvidence": [
+    "Original unchanged prompt: homepage 0/1 lessons ready",
+    "Original ten material choices retained; configuration All (1 lesson)",
+    "Generated 1 lesson, 9 ready, Review required",
+    "Prepare package disabled; saved original project",
+    "Returned to homepage after capture to unload model session"
+  ],
+  "nextRequiredWork": "Connect natural source-ledger planning to an explicit source-bound teaching-task proposal and validation, preserving honest needs-input/refusal and teacher confirmation; do not treat a ledger alone as authored instruction."
+}

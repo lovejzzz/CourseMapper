@@ -106,7 +106,7 @@
     "unchangedPromptReplay": "input-repair-replay.json",
     "fullCheck": "58 studio, 677 compatibility, 898 Scion tests plus checker tests, typecheck, lint, build and bundle checks passed",
     "formatCheck": "40 existing historical documentation/research files reported; frozen byte-bound evidence excluded rather than rewritten",
-    "browserAfterRepair": "Not verified: connection timed out, then Debugger unattached. No second model attempt started."
+    "browserAfterRepair": "Native Chrome UI confirmed 0/1 lessons on homepage, all original material choices, and All (1 lesson) in configuration; no prompt semantic edits."
   },
   "limitations": [
     "One exposed development run, not reserved acceptance.",
