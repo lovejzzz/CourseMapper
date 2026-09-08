@@ -291,12 +291,16 @@ function projectAssignment(row, task, blueprint) {
       '根据评分标准的反馈修正回答，并保留修改稿。',
     ),
   });
-  if (task.operationPlan?.operation === 'paired-condition-confound')
+  const errorRationale = row.anchorExampleGuidance[2];
+  if (
+    task.operationPlan?.operation === 'paired-condition-confound' ||
+    (task.operationPlan?.operation === 'union-bounds' && task.operationPlan.presentationVersion >= 6)
+  )
     row.anchorExampleGuidance = [
       taskText(task, 'Reference proposal — compare after your own attempt.', '参考方案——完成自己的作答后再比较。'),
       ...task.reasoning,
       taskText(task, `Error example: ${task.errors[0].response}`, `错误示例：${task.errors[0].response}`),
-      anchors(task).scoringRationale,
+      errorRationale,
       anchors(task).revisionPrompt,
     ];
   alignAssessmentCopies(row, task, rubric);

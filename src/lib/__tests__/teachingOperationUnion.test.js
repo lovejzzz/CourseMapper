@@ -1,3 +1,4 @@
+import { sha256HexSync } from '../sha256Sync.js';
 import { describe, it, expect } from 'vitest';
 import { solveTeachingUnionBounds } from '../teachingSetArithmetic.js';
 
@@ -57,6 +58,50 @@ import { readTeachingTaskSources } from '../teachingProgram.js';
 import { rebuildTeachingTaskSource } from '../teachingTaskSource.js';
 
 describe('reviewed union material contract', () => {
+  it('preserves every legacy presentation byte while new tasks explicitly assess both sets', () => {
+    const hashes = {
+      'en-3': '75565fa1a0ebeb3fae3927c5790fcc23a403f413fb4a6cd3ea200c8018650808',
+      'en-4': '31024ed7f3d0a6c2cbfac5541cbd4ea5995f966e339510caec7e903d6ccf4030',
+      'en-5': 'e944d33e3df4ef7deea7e9ede56bbb92d461bda4af242030a94fe91c75a02685',
+      'zh-3': '5eafc747fdb5e962d598311042652998dad49945fa88591fa09ee69c2f0a3484',
+      'zh-4': 'bf1687d2deb514c518c2925d8f1c493b1e0c2ad0120c5b54c20b61e8ef48c02f',
+      'zh-5': '6862f777d8048bd2dc9f11e2cd73adc01c77163bec4445ffbfbed87fee11baed',
+    };
+    for (const zh of [false, true]) {
+      const f = unionCountsFixture(zh);
+      const plan = createTeachingOperationPlan({
+        operation: 'union-bounds',
+        inputs: f.inputs,
+        bindings: f.bindings,
+        admission: { kind: 'teacher-confirmed' },
+      });
+      expect(plan.presentationVersion).toBe(6);
+      const task = renderTeachingOperationTask(plan, f.inputs, f.objective);
+      expect(task.question).toContain(
+        zh ? '两次都参加的人数的全部可能整数' : 'every possible integer count attending both',
+      );
+      expect(task.answer).toContain(
+        zh ? '从 15 到 30 的每个整数 x 都可实现' : 'Every integer x from 15 through 30 is possible',
+      );
+      expect(task.answer).toContain(
+        zh ? '并集和交集不能各自独立任选' : 'the two counts cannot be chosen independently',
+      );
+      const criterion = task.criteria.find((row) => row.id === 'operation');
+      expect(criterion.levels.proficient).toContain('15');
+      expect(criterion.levels.proficient).toContain('30');
+      expect(criterion.levels.proficient).toContain('35');
+      const alternative = task.contrastResponses.find((row) => row.id === 'alternative-representation');
+      expect(alternative.judgments.find((row) => row.criterionId === 'operation').evidence[0].quote).toContain(
+        zh ? '每个整数 x' : 'Every integer x',
+      );
+      expect(task.contrastResponses.find((row) => row.id === 'misconception').judgments[0].level).toBe('beginning');
+      for (const presentationVersion of [3, 4, 5]) {
+        const old = renderTeachingOperationTask({ ...plan, presentationVersion }, f.inputs, f.objective);
+        expect(sha256HexSync(JSON.stringify(old))).toBe(hashes[`${zh ? 'zh' : 'en'}-${presentationVersion}`]);
+      }
+    }
+  });
+
   for (const zh of [false, true])
     it(`keeps shared reasoning current across nine projections and reopen (${zh ? 'zh' : 'en'})`, () => {
       const f = unionCountsFixture(zh);
@@ -118,8 +163,10 @@ describe('reviewed union material contract', () => {
       Object.assign(draft, { inputs: f.inputs, bindings: f.selections, objective: f.objective });
       const initial = apply({ courseMap, deliverables, draft });
       const guidance = initial.deliverables.assignments.data.assignments[0].anchorExampleGuidance;
-      expect(guidance[2]).toContain(zh ? '注意到缺失重叠' : 'Notices missing overlap');
-      expect(guidance[2]).not.toContain(zh ? '界限正确' : 'Correct bounds');
+      const errorIndex = guidance.findIndex((line) => line.startsWith(zh ? '错误示例：' : 'Error example:'));
+      expect(errorIndex).toBeGreaterThanOrEqual(0);
+      expect(guidance[errorIndex + 1]).toContain(zh ? '注意到缺失重叠' : 'Notices missing overlap');
+      expect(guidance[errorIndex + 1]).not.toContain(zh ? '界限正确' : 'Correct bounds');
       const source = readTeachingTaskSources(initial.courseMap)[0];
       const transfer = rebuildTeachingTaskSource(source).sequence.find((u) => u.kind === 'independent-transfer');
       expect(transfer.answer).toContain('18/40 = 45%');

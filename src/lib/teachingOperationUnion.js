@@ -52,6 +52,7 @@ export function validateUnionBindings(plan, values) {
 export function renderUnionTask(plan, inputs, objective, evaluated) {
   const zh = /\p{Script=Han}/u.test(objective),
     t = (en, cn) => (zh ? cn : en);
+  const bothRanges = plan.presentationVersion >= 6;
   const v = evaluated.values,
     r = evaluated.bounds;
   const n = r.total,
@@ -82,7 +83,7 @@ export function renderUnionTask(plan, inputs, objective, evaluated) {
     `Maximum union: ${r.maximum.union}, giving ${upper}. A feasible allocation is ${describePartition(r.maximum)}`,
     `并集上限为 ${r.maximum.union} 人，比例 ${upper}。可行分组：${describePartition(r.maximum)}`,
   );
-  const conclusion = r.exactUnion
+  const unionConclusion = r.exactUnion
     ? t(
         `Both endpoints coincide, so the records determine the exact union proportion: ${lower}. The overlap is also forced to ${r.overlapMinimum}, even though it was not recorded separately.`,
         `上下限重合，因此记录能确定精确的并集比例：${lower}。即使没有单独记录，两次都参加的人数也被约束为 ${r.overlapMinimum}。`,
@@ -91,12 +92,31 @@ export function renderUnionTask(plan, inputs, objective, evaluated) {
         `The attainable union ranges from ${r.minimum.union} to ${r.maximum.union} members: ${lower} to ${upper}. An exact value is not determined.`,
         `至少参加一次的人数可为 ${r.minimum.union} 至 ${r.maximum.union}，比例从 ${lower} 到 ${upper}；现有材料不能确定一个唯一值。`,
       );
+  const feasibleCounts = bothRanges
+    ? t(
+        `Every integer x from ${r.overlapMinimum} through ${r.overlapMaximum} is possible. For any such x, assign ${a} − x to only “${v.firstEvent}”, ${b} − x to only “${v.secondEvent}”, x to both, and ${n} − (${sum} − x) to neither. All four counts are nonnegative integers, sum to ${n}, and reproduce ${a} and ${b}. Thus the paired union count ${sum} − x takes every integer from ${r.minimum.union} through ${r.maximum.union}; the two counts cannot be chosen independently.`,
+        `从 ${r.overlapMinimum} 到 ${r.overlapMaximum} 的每个整数 x 都可实现：仅参加“${v.firstEvent}”为 ${a} − x 人，仅参加“${v.secondEvent}”为 ${b} − x 人，两次都参加为 x 人，两次均未参加为 ${n} − (${sum} − x) 人。四组都是非负整数，总和为 ${n}，且还原 ${a} 和 ${b} 两个活动计数。因此对应的并集 ${sum} − x 可取 ${r.minimum.union} 到 ${r.maximum.union} 的每个整数；并集和交集不能各自独立任选。`,
+      )
+    : '';
+  const conclusion = bothRanges
+    ? `${t(`The intersection ranges from ${r.overlapMinimum} to ${r.overlapMaximum} members, including every integer.`, `两次都参加的人数可取 ${r.overlapMinimum} 到 ${r.overlapMaximum} 的每个整数。`)} ${unionConclusion}`
+    : unionConclusion;
   const boundary = t(
     `The record states: “${v.missingOverlap}” Missing does not mean zero or independent attendance. Match the two membership lists to establish x; then use (${sum} − x)/${n}. These conclusions apply only to the stable named population, not visits or people outside it.`,
     `记录说明：“${v.missingOverlap}” 未记录不等于零重叠，也不代表独立参加。核对两张成员表以确定 x，再计算 (${sum} − x)/${n}。结论仅适用于共同且稳定的名册，不包括访问次数或名册外的人。`,
   );
-  const reasoning = [evidence, overlap, minimum, maximum, conclusion, boundary];
-  const calculationReference = [overlap, minimum, maximum, conclusion].join(' ');
+  const reasoning = [
+    evidence,
+    overlap,
+    minimum,
+    maximum,
+    ...(bothRanges ? [feasibleCounts] : []),
+    conclusion,
+    boundary,
+  ];
+  const calculationReference = [overlap, minimum, maximum, ...(bothRanges ? [feasibleCounts] : []), conclusion].join(
+    bothRanges ? '\n\n' : ' ',
+  );
   const criterion = (id, label, exemplary, proficient, developing, beginning, feedback) => ({
     id,
     label,
@@ -128,24 +148,51 @@ export function renderUnionTask(plan, inputs, objective, evaluated) {
     ),
     criterion(
       'operation',
-      t('Derive sharp bounds and construct both endpoints', '推导准确界限并构造两端分组'),
-      calculationReference,
-      t(
-        `Gives ${r.minimum.union}–${r.maximum.union} and the matching proportions, but does not construct both feasible endpoints.`,
-        `给出 ${r.minimum.union}—${r.maximum.union} 人及相应比例，但未构造两个可行端点。`,
-      ),
-      t(
-        'Recognizes double counting but derives only one bound or omits the population cap.',
-        '识别重复计数，但只推导一个界限或遗漏总体上限。',
-      ),
-      t(
-        'Adds event counts as unique members without checking overlap, or gives impossible bounds.',
-        '未核对重叠便把活动计数之和当独立人数，或给出不可行范围。',
-      ),
-      t(
-        'Use x for the overlap; make four nonnegative groups for each endpoint and check both event totals and the roster.',
-        '用 x 表示重叠；每个端点列出四个非负分组，核对两次活动总数与名册。',
-      ),
+      bothRanges
+        ? t('Justify every feasible intersection and union count', '论证交集和并集的全部可行人数')
+        : t('Derive sharp bounds and construct both endpoints', '推导准确界限并构造两端分组'),
+      bothRanges
+        ? t(
+            `States intersection ${r.overlapMinimum}–${r.overlapMaximum} and union ${r.minimum.union}–${r.maximum.union}, linked by union = ${sum} − intersection. At the union endpoints, gives (first only, second only, both, neither) = (${r.minimum.firstOnly}, ${r.minimum.secondOnly}, ${r.minimum.both}, ${r.minimum.neither}) and (${r.maximum.firstOnly}, ${r.maximum.secondOnly}, ${r.maximum.both}, ${r.maximum.neither}). Shows every intermediate integer x is feasible with (${a} − x, ${b} − x, x, ${n} − (${sum} − x)), checking nonnegativity and the original counts.`,
+            `给出交集 ${r.overlapMinimum}—${r.overlapMaximum} 人和并集 ${r.minimum.union}—${r.maximum.union} 人，并满足并集 = ${sum} − 交集。并集两端的（仅第一活动、仅第二活动、两次都参加、均未参加）分别为（${r.minimum.firstOnly}、${r.minimum.secondOnly}、${r.minimum.both}、${r.minimum.neither}）和（${r.maximum.firstOnly}、${r.maximum.secondOnly}、${r.maximum.both}、${r.maximum.neither}）。用（${a} − x、${b} − x、x、${n} − (${sum} − x)）证明每个中间整数 x 可行，并核对非负性与原计数。`,
+          )
+        : calculationReference,
+      bothRanges
+        ? t(
+            `Gives intersection ${r.overlapMinimum}–${r.overlapMaximum} and union ${r.minimum.union}–${r.maximum.union}, but omits an endpoint construction or the justification that all intermediate integers are feasible.`,
+            `给出交集 ${r.overlapMinimum}—${r.overlapMaximum} 人和并集 ${r.minimum.union}—${r.maximum.union} 人，但遗漏端点构造或全部中间整数可行的论证。`,
+          )
+        : t(
+            `Gives ${r.minimum.union}–${r.maximum.union} and the matching proportions, but does not construct both feasible endpoints.`,
+            `给出 ${r.minimum.union}—${r.maximum.union} 人及相应比例，但未构造两个可行端点。`,
+          ),
+      bothRanges
+        ? t(
+            'Finds bounds for only one set count, or states separate ranges without respecting their paired sum.',
+            '只给出一种集合人数的界限，或给出两个范围却未满足配对总和。',
+          )
+        : t(
+            'Recognizes double counting but derives only one bound or omits the population cap.',
+            '识别重复计数，但只推导一个界限或遗漏总体上限。',
+          ),
+      bothRanges
+        ? t(
+            'Adds event counts as unique members, gives impossible bounds, or claims nothing can be determined despite the population constraints.',
+            '把活动计数直接相加为独立人数、给出不可行界限，或忽略总体约束而声称什么都无法确定。',
+          )
+        : t(
+            'Adds event counts as unique members without checking overlap, or gives impossible bounds.',
+            '未核对重叠便把活动计数之和当独立人数，或给出不可行范围。',
+          ),
+      bothRanges
+        ? t(
+            'Set the intersection to x and the union to the sum of event counts minus x. Use four nonnegative integer groups to check both endpoints and every intermediate x.',
+            '令交集为 x，并集为两次活动计数之和减 x；用四个非负整数分组核对两端和全部中间 x。',
+          )
+        : t(
+            'Use x for the overlap; make four nonnegative groups for each endpoint and check both event totals and the roster.',
+            '用 x 表示重叠；每个端点列出四个非负分组，核对两次活动总数与名册。',
+          ),
     ),
     criterion(
       'boundary',
@@ -177,9 +224,19 @@ export function renderUnionTask(plan, inputs, objective, evaluated) {
     `There is no saved overlap count, so everyone in the two event counts must be different.`,
     '没有保存重叠人数，因此两次活动计数中的人一定都不同。',
   );
-  const answer = reasoning.join(' ');
+  const answer = reasoning.join(bothRanges ? '\n\n' : ' ');
   const partial = `${conclusion} ${t('The overlap has not been recorded.', '重叠人数尚未记录。')}`;
-  const alternate = `${evidence} ${minimum} ${maximum} ${t(`The union cannot be smaller than either event or larger than their sum or ${n}. These witnessed bounds are sharp.`, `并集不能小于任一活动，也不能超过两次人数之和或 ${n}；上述分组说明界限可实现。`)} ${conclusion} ${boundary}`;
+  const alternativeCalculation = [
+    minimum,
+    maximum,
+    t(
+      `The union cannot be smaller than either event or larger than their sum or ${n}. These witnessed bounds are sharp.`,
+      `并集不能小于任一活动，也不能超过两次人数之和或 ${n}；上述分组说明界限可实现。`,
+    ),
+    conclusion,
+    ...(bothRanges ? [feasibleCounts] : []),
+  ].join(bothRanges ? '\n\n' : ' ');
+  const alternate = [evidence, alternativeCalculation, boundary].join(bothRanges ? '\n\n' : ' ');
   const example = (id, response, entries) => ({
     id,
     kind: 'synthetic-review-example',
@@ -204,14 +261,27 @@ export function renderUnionTask(plan, inputs, objective, evaluated) {
       'One set diagram or four-group table, bounds with calculations, and a statement of missing evidence.',
       '一幅集合图或四组人数表、界限计算，以及缺失证据说明。',
     ),
-    question: t(
-      `For “${v.populationName}”, determine how many members attended “${v.firstEvent}” or “${v.secondEvent}” or both. Decide whether an exact proportion follows. Derive the tightest bounds, construct both endpoint allocations, and specify any further membership information needed.`,
-      `针对“${v.populationName}”，判断参加“${v.firstEvent}”或“${v.secondEvent}”至少一次的成员人数及比例是否能唯一确定。推导最紧的界限，构造两端分组，并说明还需什么成员信息。`,
-    ),
+    question: bothRanges
+      ? t(
+          `For “${v.populationName}”, give every possible integer count of members attending at least one of “${v.firstEvent}” and “${v.secondEvent}”, and every possible integer count attending both. Explain how the two counts are paired. Derive the sharp bounds, construct both endpoint allocations, justify all intermediate counts, and state whether the union proportion is exact and what further membership evidence would determine it.`,
+          `针对“${v.populationName}”，分别给出参加“${v.firstEvent}”和“${v.secondEvent}”至少一次的人数、两次都参加的人数的全部可能整数，并说明二者如何配对。推导最紧界限，构造两端分组，论证全部中间人数可行，再判断并集比例是否唯一以及还需什么成员证据。`,
+        )
+      : t(
+          `For “${v.populationName}”, determine how many members attended “${v.firstEvent}” or “${v.secondEvent}” or both. Decide whether an exact proportion follows. Derive the tightest bounds, construct both endpoint allocations, and specify any further membership information needed.`,
+          `针对“${v.populationName}”，判断参加“${v.firstEvent}”或“${v.secondEvent}”至少一次的成员人数及比例是否能唯一确定。推导最紧的界限，构造两端分组，并说明还需什么成员信息。`,
+        ),
     directions: [
       t('Label the roster and both event sets.', '标注名册及两个活动集合。'),
       t('Derive overlap and union constraints.', '推导重叠及并集约束。'),
       t('Construct and check both endpoint allocations.', '构造并核对两个端点分组。'),
+      ...(bothRanges
+        ? [
+            t(
+              'Show that every intermediate integer count has a feasible four-group allocation.',
+              '证明每个中间整数人数都有可行的四组分配。',
+            ),
+          ]
+        : []),
       t('Separate proven bounds from missing observations.', '区分已证明界限与缺失观察。'),
     ],
     studentChecks: [
@@ -270,7 +340,7 @@ export function renderUnionTask(plan, inputs, objective, evaluated) {
       example('misconception', error, [
         [
           'operation',
-          'developing',
+          bothRanges ? 'beginning' : 'developing',
           error,
           t(
             'Notices missing overlap but ignores what the other counts constrain.',
@@ -283,7 +353,7 @@ export function renderUnionTask(plan, inputs, objective, evaluated) {
         [
           'operation',
           'exemplary',
-          `${minimum} ${maximum}`,
+          bothRanges ? alternativeCalculation : `${minimum} ${maximum}`,
           t(
             'Direct set bounds and feasible partitions are an equivalent proof.',
             '直接集合界限与可行分组构成等价证明。',

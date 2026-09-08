@@ -58,6 +58,7 @@ class Table {
     return {
       table: {
         headerRows: rows[0]?.header ? 1 : 0,
+        keepWithHeaderRows: rows[0]?.header && rows.length > 1 ? 1 : 0,
         // Percentage widths fit both portrait pages and nested layouts.
         widths: columns.map((width) => `${(width / total) * 100}%`),
         body: rows.map((row) => row.cells),

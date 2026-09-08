@@ -1,0 +1,1261 @@
+{
+  "method": "Deterministic preview/commit from saved real model source; implementer confirmed",
+  "task": {
+    "protocol": "coursemapper-shared-teaching-task-v1",
+    "identityKey": "authored-96ef59ff-e4cc-4efc-806e-9bbda6ab72bd",
+    "id": "task-c08f99e67ef936d3",
+    "objective": "Use a fixed population and two deduplicated attendance counts to justify feasible attendance bounds with concrete allocations.",
+    "inputs": [
+      {
+        "id": "input-7b1b541f-e0cd-4114-bce7-e1603b8628f1",
+        "text": "record-1: Fictional seed-club register: Cedar Exchange had twenty-eight registered members throughout April. The register did not change, and both April workshops admitted only these registered members."
+      },
+      {
+        "id": "input-47038847-c8f5-4e65-a22d-6760c88631e5",
+        "text": "record-2: The sowing workshop recorded nineteen distinct members. The storage workshop recorded seventeen distinct members. Each attendance list counted a member once, regardless of how long they stayed."
+      },
+      {
+        "id": "input-b5565332-bafa-47ba-8411-502ae200dfe8",
+        "text": "record-3: The two attendance lists have not been matched to identify members attending both. Visiting members of other clubs were not admitted to either workshop."
+      }
+    ],
+    "kind": "source-union-bounds",
+    "family": "calculation",
+    "language": "en",
+    "operation": {
+      "kind": "union-bounds",
+      "result": {
+        "total": "28",
+        "first": "19",
+        "second": "17",
+        "overlapMinimum": "8",
+        "overlapMaximum": "17",
+        "minimum": {
+          "firstOnly": "2",
+          "secondOnly": "0",
+          "both": "17",
+          "neither": "9",
+          "union": "19"
+        },
+        "maximum": {
+          "firstOnly": "11",
+          "secondOnly": "9",
+          "both": "8",
+          "neither": "0",
+          "union": "28"
+        },
+        "lower": {
+          "numerator": "19",
+          "denominator": "28",
+          "decimal": "0.6786",
+          "percent": "67.86",
+          "exact": false,
+          "percentPlaces": 2,
+          "relation": "≈",
+          "reverseCheck": "(19/28) × 28 = 19; 0.6786 × 28 ≈ 19"
+        },
+        "upper": {
+          "numerator": "28",
+          "denominator": "28",
+          "decimal": "1",
+          "percent": "100",
+          "exact": true,
+          "percentPlaces": 2,
+          "relation": "=",
+          "reverseCheck": "1 × 28 = 28"
+        },
+        "exactUnion": false,
+        "exactOverlap": false
+      },
+      "sourceBindings": {
+        "rosterRecord": {
+          "inputId": "input-7b1b541f-e0cd-4114-bce7-e1603b8628f1",
+          "start": 0,
+          "end": 202
+        },
+        "populationCount": {
+          "inputId": "input-7b1b541f-e0cd-4114-bce7-e1603b8628f1",
+          "start": 59,
+          "end": 71
+        },
+        "populationName": {
+          "inputId": "input-7b1b541f-e0cd-4114-bce7-e1603b8628f1",
+          "start": 40,
+          "end": 54
+        },
+        "stablePopulation": {
+          "inputId": "input-7b1b541f-e0cd-4114-bce7-e1603b8628f1",
+          "start": 40,
+          "end": 202
+        },
+        "attendanceRecord": {
+          "inputId": "input-47038847-c8f5-4e65-a22d-6760c88631e5",
+          "start": 0,
+          "end": 203
+        },
+        "firstCount": {
+          "inputId": "input-47038847-c8f5-4e65-a22d-6760c88631e5",
+          "start": 39,
+          "end": 47
+        },
+        "secondCount": {
+          "inputId": "input-47038847-c8f5-4e65-a22d-6760c88631e5",
+          "start": 96,
+          "end": 105
+        },
+        "firstEvent": {
+          "inputId": "input-47038847-c8f5-4e65-a22d-6760c88631e5",
+          "start": 14,
+          "end": 29
+        },
+        "secondEvent": {
+          "inputId": "input-47038847-c8f5-4e65-a22d-6760c88631e5",
+          "start": 70,
+          "end": 86
+        },
+        "withinGroupDistinct": {
+          "inputId": "input-47038847-c8f5-4e65-a22d-6760c88631e5",
+          "start": 124,
+          "end": 203
+        },
+        "limitRecord": {
+          "inputId": "input-b5565332-bafa-47ba-8411-502ae200dfe8",
+          "start": 0,
+          "end": 162
+        },
+        "missingOverlap": {
+          "inputId": "input-b5565332-bafa-47ba-8411-502ae200dfe8",
+          "start": 10,
+          "end": 92
+        }
+      },
+      "scope": "reviewed-common-population"
+    },
+    "title": "Bound participation when memberships overlap",
+    "product": "One set diagram or four-group table, bounds with calculations, and a statement of missing evidence.",
+    "question": "For “Cedar Exchange”, give every possible integer count of members attending at least one of “sowing workshop” and “storage workshop”, and every possible integer count attending both. Explain how the two counts are paired. Derive the sharp bounds, construct both endpoint allocations, justify all intermediate counts, and state whether the union proportion is exact and what further membership evidence would determine it.",
+    "directions": [
+      "Label the roster and both event sets.",
+      "Derive overlap and union constraints.",
+      "Construct and check both endpoint allocations.",
+      "Show that every intermediate integer count has a feasible four-group allocation.",
+      "Separate proven bounds from missing observations."
+    ],
+    "studentChecks": [
+      "I distinguished people from attendances.",
+      "My four groups reproduce each count.",
+      "I did not assume independence or zero overlap."
+    ],
+    "summary": "The intersection ranges from 8 to 17 members, including every integer. The attainable union ranges from 19 to 28 members: 19/28 ≈ 67.86% to 28/28 = 100%. An exact value is not determined.",
+    "answer": "“Cedar Exchange”: 28 members; “sowing workshop”: 19; “storage workshop”: 17. Common population: “Cedar Exchange had twenty-eight registered members throughout April. The register did not change, and both April workshops admitted only these registered members.” Within-event counting: “Each attendance list counted a member once, regardless of how long they stayed.”\n\nLet x count members in both events. The union is 19 + 17 − x = 36 − x. Since x cannot exceed either event and the union cannot exceed 28, 8 ≤ x ≤ 17.\n\nMinimum union: 19, giving 19/28 ≈ 67.86%. A feasible allocation is only “sowing workshop”: 2; only “storage workshop”: 0; both: 17; neither: 9. These nonnegative groups sum to 28 and reproduce both event counts.\n\nMaximum union: 28, giving 28/28 = 100%. A feasible allocation is only “sowing workshop”: 11; only “storage workshop”: 9; both: 8; neither: 0. These nonnegative groups sum to 28 and reproduce both event counts.\n\nEvery integer x from 8 through 17 is possible. For any such x, assign 19 − x to only “sowing workshop”, 17 − x to only “storage workshop”, x to both, and 28 − (36 − x) to neither. All four counts are nonnegative integers, sum to 28, and reproduce 19 and 17. Thus the paired union count 36 − x takes every integer from 19 through 28; the two counts cannot be chosen independently.\n\nThe intersection ranges from 8 to 17 members, including every integer. The attainable union ranges from 19 to 28 members: 19/28 ≈ 67.86% to 28/28 = 100%. An exact value is not determined.\n\nThe record states: “The two attendance lists have not been matched to identify members attending both.” Missing does not mean zero or independent attendance. Match the two membership lists to establish x; then use (36 − x)/28. These conclusions apply only to the stable named population, not visits or people outside it.",
+    "reasoning": [
+      "“Cedar Exchange”: 28 members; “sowing workshop”: 19; “storage workshop”: 17. Common population: “Cedar Exchange had twenty-eight registered members throughout April. The register did not change, and both April workshops admitted only these registered members.” Within-event counting: “Each attendance list counted a member once, regardless of how long they stayed.”",
+      "Let x count members in both events. The union is 19 + 17 − x = 36 − x. Since x cannot exceed either event and the union cannot exceed 28, 8 ≤ x ≤ 17.",
+      "Minimum union: 19, giving 19/28 ≈ 67.86%. A feasible allocation is only “sowing workshop”: 2; only “storage workshop”: 0; both: 17; neither: 9. These nonnegative groups sum to 28 and reproduce both event counts.",
+      "Maximum union: 28, giving 28/28 = 100%. A feasible allocation is only “sowing workshop”: 11; only “storage workshop”: 9; both: 8; neither: 0. These nonnegative groups sum to 28 and reproduce both event counts.",
+      "Every integer x from 8 through 17 is possible. For any such x, assign 19 − x to only “sowing workshop”, 17 − x to only “storage workshop”, x to both, and 28 − (36 − x) to neither. All four counts are nonnegative integers, sum to 28, and reproduce 19 and 17. Thus the paired union count 36 − x takes every integer from 19 through 28; the two counts cannot be chosen independently.",
+      "The intersection ranges from 8 to 17 members, including every integer. The attainable union ranges from 19 to 28 members: 19/28 ≈ 67.86% to 28/28 = 100%. An exact value is not determined.",
+      "The record states: “The two attendance lists have not been matched to identify members attending both.” Missing does not mean zero or independent attendance. Match the two membership lists to establish x; then use (36 − x)/28. These conclusions apply only to the stable named population, not visits or people outside it."
+    ],
+    "criteria": [
+      {
+        "id": "quantities",
+        "label": "Identify the common population and counting unit",
+        "weight": 30,
+        "levels": {
+          "exemplary": "“Cedar Exchange”: 28 members; “sowing workshop”: 19; “storage workshop”: 17. Common population: “Cedar Exchange had twenty-eight registered members throughout April. The register did not change, and both April workshops admitted only these registered members.” Within-event counting: “Each attendance list counted a member once, regardless of how long they stayed.”",
+          "proficient": "Labels all counts correctly but leaves population stability or within-event deduplication unsupported.",
+          "developing": "Identifies one event count but does not establish the population or distinguish people from attendances.",
+          "beginning": "Mixes visits, memberships or changing populations, or invents a count."
+        },
+        "feedback": "Label each count and cite the common roster and within-event deduplication before forming sets."
+      },
+      {
+        "id": "operation",
+        "label": "Justify every feasible intersection and union count",
+        "weight": 40,
+        "levels": {
+          "exemplary": "States intersection 8–17 and union 19–28, linked by union = 36 − intersection. At the union endpoints, gives (first only, second only, both, neither) = (2, 0, 17, 9) and (11, 9, 8, 0). Shows every intermediate integer x is feasible with (19 − x, 17 − x, x, 28 − (36 − x)), checking nonnegativity and the original counts.",
+          "proficient": "Gives intersection 8–17 and union 19–28, but omits an endpoint construction or the justification that all intermediate integers are feasible.",
+          "developing": "Finds bounds for only one set count, or states separate ranges without respecting their paired sum.",
+          "beginning": "Adds event counts as unique members, gives impossible bounds, or claims nothing can be determined despite the population constraints."
+        },
+        "feedback": "Set the intersection to x and the union to the sum of event counts minus x. Use four nonnegative integer groups to check both endpoints and every intermediate x."
+      },
+      {
+        "id": "boundary",
+        "label": "Distinguish missing evidence from inferred constraints",
+        "weight": 30,
+        "levels": {
+          "exemplary": "The intersection ranges from 8 to 17 members, including every integer. The attainable union ranges from 19 to 28 members: 19/28 ≈ 67.86% to 28/28 = 100%. An exact value is not determined. The record states: “The two attendance lists have not been matched to identify members attending both.” Missing does not mean zero or independent attendance. Match the two membership lists to establish x; then use (36 − x)/28. These conclusions apply only to the stable named population, not visits or people outside it.",
+          "proficient": "Names the missing overlap and states whether the answer is exact, but does not explain how to establish membership.",
+          "developing": "Says information is missing without identifying what remains computable.",
+          "beginning": "Assumes zero overlap or independence, or presents a possible endpoint as an observed fact."
+        },
+        "feedback": "State what the bounds prove and what the lists would establish; do not turn an unknown into zero."
+      }
+    ],
+    "errors": [
+      {
+        "criterionId": "operation",
+        "response": "There is no saved overlap count, so no useful conclusion can be calculated.",
+        "correction": "Let x count members in both events. The union is 19 + 17 − x = 36 − x. Since x cannot exceed either event and the union cannot exceed 28, 8 ≤ x ≤ 17.\n\nMinimum union: 19, giving 19/28 ≈ 67.86%. A feasible allocation is only “sowing workshop”: 2; only “storage workshop”: 0; both: 17; neither: 9. These nonnegative groups sum to 28 and reproduce both event counts.\n\nMaximum union: 28, giving 28/28 = 100%. A feasible allocation is only “sowing workshop”: 11; only “storage workshop”: 9; both: 8; neither: 0. These nonnegative groups sum to 28 and reproduce both event counts.\n\nEvery integer x from 8 through 17 is possible. For any such x, assign 19 − x to only “sowing workshop”, 17 − x to only “storage workshop”, x to both, and 28 − (36 − x) to neither. All four counts are nonnegative integers, sum to 28, and reproduce 19 and 17. Thus the paired union count 36 − x takes every integer from 19 through 28; the two counts cannot be chosen independently.\n\nThe intersection ranges from 8 to 17 members, including every integer. The attainable union ranges from 19 to 28 members: 19/28 ≈ 67.86% to 28/28 = 100%. An exact value is not determined.",
+        "feedback": "Set the intersection to x and the union to the sum of event counts minus x. Use four nonnegative integer groups to check both endpoints and every intermediate x."
+      },
+      {
+        "criterionId": "boundary",
+        "response": "There is no saved overlap count, so everyone in the two event counts must be different.",
+        "correction": "Let x count members in both events. The union is 19 + 17 − x = 36 − x. Since x cannot exceed either event and the union cannot exceed 28, 8 ≤ x ≤ 17. The record states: “The two attendance lists have not been matched to identify members attending both.” Missing does not mean zero or independent attendance. Match the two membership lists to establish x; then use (36 − x)/28. These conclusions apply only to the stable named population, not visits or people outside it.",
+        "feedback": "State what the bounds prove and what the lists would establish; do not turn an unknown into zero."
+      }
+    ],
+    "checkpoint": {
+      "question": "Does missing overlap always prevent an exact union?",
+      "answer": "No. If one event includes the whole population or one event is empty, the two union bounds coincide. Otherwise inspect the actual constraints rather than assuming uncertainty."
+    },
+    "scaffoldQuestions": [
+      {
+        "question": "What is counted once within a list, and what might be counted twice across lists?",
+        "answer": "“Cedar Exchange”: 28 members; “sowing workshop”: 19; “storage workshop”: 17. Common population: “Cedar Exchange had twenty-eight registered members throughout April. The register did not change, and both April workshops admitted only these registered members.” Within-event counting: “Each attendance list counted a member once, regardless of how long they stayed.”"
+      }
+    ],
+    "contrastResponses": [
+      {
+        "id": "complete",
+        "kind": "synthetic-review-example",
+        "response": "“Cedar Exchange”: 28 members; “sowing workshop”: 19; “storage workshop”: 17. Common population: “Cedar Exchange had twenty-eight registered members throughout April. The register did not change, and both April workshops admitted only these registered members.” Within-event counting: “Each attendance list counted a member once, regardless of how long they stayed.”\n\nLet x count members in both events. The union is 19 + 17 − x = 36 − x. Since x cannot exceed either event and the union cannot exceed 28, 8 ≤ x ≤ 17.\n\nMinimum union: 19, giving 19/28 ≈ 67.86%. A feasible allocation is only “sowing workshop”: 2; only “storage workshop”: 0; both: 17; neither: 9. These nonnegative groups sum to 28 and reproduce both event counts.\n\nMaximum union: 28, giving 28/28 = 100%. A feasible allocation is only “sowing workshop”: 11; only “storage workshop”: 9; both: 8; neither: 0. These nonnegative groups sum to 28 and reproduce both event counts.\n\nEvery integer x from 8 through 17 is possible. For any such x, assign 19 − x to only “sowing workshop”, 17 − x to only “storage workshop”, x to both, and 28 − (36 − x) to neither. All four counts are nonnegative integers, sum to 28, and reproduce 19 and 17. Thus the paired union count 36 − x takes every integer from 19 through 28; the two counts cannot be chosen independently.\n\nThe intersection ranges from 8 to 17 members, including every integer. The attainable union ranges from 19 to 28 members: 19/28 ≈ 67.86% to 28/28 = 100%. An exact value is not determined.\n\nThe record states: “The two attendance lists have not been matched to identify members attending both.” Missing does not mean zero or independent attendance. Match the two membership lists to establish x; then use (36 − x)/28. These conclusions apply only to the stable named population, not visits or people outside it.",
+        "judgments": [
+          {
+            "criterionId": "quantities",
+            "level": "exemplary",
+            "rationale": "Label each count and cite the common roster and within-event deduplication before forming sets.",
+            "evidence": [
+              {
+                "start": 0,
+                "end": 365,
+                "quote": "“Cedar Exchange”: 28 members; “sowing workshop”: 19; “storage workshop”: 17. Common population: “Cedar Exchange had twenty-eight registered members throughout April. The register did not change, and both April workshops admitted only these registered members.” Within-event counting: “Each attendance list counted a member once, regardless of how long they stayed.”"
+              }
+            ]
+          },
+          {
+            "criterionId": "operation",
+            "level": "exemplary",
+            "rationale": "Set the intersection to x and the union to the sum of event counts minus x. Use four nonnegative integer groups to check both endpoints and every intermediate x.",
+            "evidence": [
+              {
+                "start": 367,
+                "end": 1510,
+                "quote": "Let x count members in both events. The union is 19 + 17 − x = 36 − x. Since x cannot exceed either event and the union cannot exceed 28, 8 ≤ x ≤ 17.\n\nMinimum union: 19, giving 19/28 ≈ 67.86%. A feasible allocation is only “sowing workshop”: 2; only “storage workshop”: 0; both: 17; neither: 9. These nonnegative groups sum to 28 and reproduce both event counts.\n\nMaximum union: 28, giving 28/28 = 100%. A feasible allocation is only “sowing workshop”: 11; only “storage workshop”: 9; both: 8; neither: 0. These nonnegative groups sum to 28 and reproduce both event counts.\n\nEvery integer x from 8 through 17 is possible. For any such x, assign 19 − x to only “sowing workshop”, 17 − x to only “storage workshop”, x to both, and 28 − (36 − x) to neither. All four counts are nonnegative integers, sum to 28, and reproduce 19 and 17. Thus the paired union count 36 − x takes every integer from 19 through 28; the two counts cannot be chosen independently.\n\nThe intersection ranges from 8 to 17 members, including every integer. The attainable union ranges from 19 to 28 members: 19/28 ≈ 67.86% to 28/28 = 100%. An exact value is not determined."
+              }
+            ]
+          },
+          {
+            "criterionId": "boundary",
+            "level": "exemplary",
+            "rationale": "State what the bounds prove and what the lists would establish; do not turn an unknown into zero.",
+            "evidence": [
+              {
+                "start": 1512,
+                "end": 1832,
+                "quote": "The record states: “The two attendance lists have not been matched to identify members attending both.” Missing does not mean zero or independent attendance. Match the two membership lists to establish x; then use (36 − x)/28. These conclusions apply only to the stable named population, not visits or people outside it."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "conclusion-without-reasoning",
+        "kind": "synthetic-review-example",
+        "response": "The intersection ranges from 8 to 17 members, including every integer. The attainable union ranges from 19 to 28 members: 19/28 ≈ 67.86% to 28/28 = 100%. An exact value is not determined. The overlap has not been recorded.",
+        "judgments": [
+          {
+            "criterionId": "operation",
+            "level": "proficient",
+            "rationale": "Correct bounds lack constructive endpoint evidence.",
+            "evidence": [
+              {
+                "start": 0,
+                "end": 187,
+                "quote": "The intersection ranges from 8 to 17 members, including every integer. The attainable union ranges from 19 to 28 members: 19/28 ≈ 67.86% to 28/28 = 100%. An exact value is not determined."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "misconception",
+        "kind": "synthetic-review-example",
+        "response": "There is no saved overlap count, so no useful conclusion can be calculated.",
+        "judgments": [
+          {
+            "criterionId": "operation",
+            "level": "beginning",
+            "rationale": "Notices missing overlap but ignores what the other counts constrain.",
+            "evidence": [
+              {
+                "start": 0,
+                "end": 75,
+                "quote": "There is no saved overlap count, so no useful conclusion can be calculated."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "alternative-representation",
+        "kind": "synthetic-review-example",
+        "response": "“Cedar Exchange”: 28 members; “sowing workshop”: 19; “storage workshop”: 17. Common population: “Cedar Exchange had twenty-eight registered members throughout April. The register did not change, and both April workshops admitted only these registered members.” Within-event counting: “Each attendance list counted a member once, regardless of how long they stayed.”\n\nMinimum union: 19, giving 19/28 ≈ 67.86%. A feasible allocation is only “sowing workshop”: 2; only “storage workshop”: 0; both: 17; neither: 9. These nonnegative groups sum to 28 and reproduce both event counts.\n\nMaximum union: 28, giving 28/28 = 100%. A feasible allocation is only “sowing workshop”: 11; only “storage workshop”: 9; both: 8; neither: 0. These nonnegative groups sum to 28 and reproduce both event counts.\n\nThe union cannot be smaller than either event or larger than their sum or 28. These witnessed bounds are sharp.\n\nThe intersection ranges from 8 to 17 members, including every integer. The attainable union ranges from 19 to 28 members: 19/28 ≈ 67.86% to 28/28 = 100%. An exact value is not determined.\n\nEvery integer x from 8 through 17 is possible. For any such x, assign 19 − x to only “sowing workshop”, 17 − x to only “storage workshop”, x to both, and 28 − (36 − x) to neither. All four counts are nonnegative integers, sum to 28, and reproduce 19 and 17. Thus the paired union count 36 − x takes every integer from 19 through 28; the two counts cannot be chosen independently.\n\nThe record states: “The two attendance lists have not been matched to identify members attending both.” Missing does not mean zero or independent attendance. Match the two membership lists to establish x; then use (36 − x)/28. These conclusions apply only to the stable named population, not visits or people outside it.",
+        "judgments": [
+          {
+            "criterionId": "quantities",
+            "level": "exemplary",
+            "rationale": "Label each count and cite the common roster and within-event deduplication before forming sets.",
+            "evidence": [
+              {
+                "start": 0,
+                "end": 365,
+                "quote": "“Cedar Exchange”: 28 members; “sowing workshop”: 19; “storage workshop”: 17. Common population: “Cedar Exchange had twenty-eight registered members throughout April. The register did not change, and both April workshops admitted only these registered members.” Within-event counting: “Each attendance list counted a member once, regardless of how long they stayed.”"
+              }
+            ]
+          },
+          {
+            "criterionId": "operation",
+            "level": "exemplary",
+            "rationale": "Direct set bounds and feasible partitions are an equivalent proof.",
+            "evidence": [
+              {
+                "start": 367,
+                "end": 1472,
+                "quote": "Minimum union: 19, giving 19/28 ≈ 67.86%. A feasible allocation is only “sowing workshop”: 2; only “storage workshop”: 0; both: 17; neither: 9. These nonnegative groups sum to 28 and reproduce both event counts.\n\nMaximum union: 28, giving 28/28 = 100%. A feasible allocation is only “sowing workshop”: 11; only “storage workshop”: 9; both: 8; neither: 0. These nonnegative groups sum to 28 and reproduce both event counts.\n\nThe union cannot be smaller than either event or larger than their sum or 28. These witnessed bounds are sharp.\n\nThe intersection ranges from 8 to 17 members, including every integer. The attainable union ranges from 19 to 28 members: 19/28 ≈ 67.86% to 28/28 = 100%. An exact value is not determined.\n\nEvery integer x from 8 through 17 is possible. For any such x, assign 19 − x to only “sowing workshop”, 17 − x to only “storage workshop”, x to both, and 28 − (36 − x) to neither. All four counts are nonnegative integers, sum to 28, and reproduce 19 and 17. Thus the paired union count 36 − x takes every integer from 19 through 28; the two counts cannot be chosen independently."
+              }
+            ]
+          },
+          {
+            "criterionId": "boundary",
+            "level": "exemplary",
+            "rationale": "State what the bounds prove and what the lists would establish; do not turn an unknown into zero.",
+            "evidence": [
+              {
+                "start": 1474,
+                "end": 1794,
+                "quote": "The record states: “The two attendance lists have not been matched to identify members attending both.” Missing does not mean zero or independent attendance. Match the two membership lists to establish x; then use (36 − x)/28. These conclusions apply only to the stable named population, not visits or people outside it."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "operationPlan": {
+      "version": 1,
+      "operation": "union-bounds",
+      "presentationVersion": 6,
+      "bindings": {
+        "rosterRecord": {
+          "inputId": "input-7b1b541f-e0cd-4114-bce7-e1603b8628f1",
+          "start": 0,
+          "end": 202
+        },
+        "populationCount": {
+          "inputId": "input-7b1b541f-e0cd-4114-bce7-e1603b8628f1",
+          "start": 59,
+          "end": 71
+        },
+        "populationName": {
+          "inputId": "input-7b1b541f-e0cd-4114-bce7-e1603b8628f1",
+          "start": 40,
+          "end": 54
+        },
+        "stablePopulation": {
+          "inputId": "input-7b1b541f-e0cd-4114-bce7-e1603b8628f1",
+          "start": 40,
+          "end": 202
+        },
+        "attendanceRecord": {
+          "inputId": "input-47038847-c8f5-4e65-a22d-6760c88631e5",
+          "start": 0,
+          "end": 203
+        },
+        "firstCount": {
+          "inputId": "input-47038847-c8f5-4e65-a22d-6760c88631e5",
+          "start": 39,
+          "end": 47
+        },
+        "secondCount": {
+          "inputId": "input-47038847-c8f5-4e65-a22d-6760c88631e5",
+          "start": 96,
+          "end": 105
+        },
+        "firstEvent": {
+          "inputId": "input-47038847-c8f5-4e65-a22d-6760c88631e5",
+          "start": 14,
+          "end": 29
+        },
+        "secondEvent": {
+          "inputId": "input-47038847-c8f5-4e65-a22d-6760c88631e5",
+          "start": 70,
+          "end": 86
+        },
+        "withinGroupDistinct": {
+          "inputId": "input-47038847-c8f5-4e65-a22d-6760c88631e5",
+          "start": 124,
+          "end": 203
+        },
+        "limitRecord": {
+          "inputId": "input-b5565332-bafa-47ba-8411-502ae200dfe8",
+          "start": 0,
+          "end": 162
+        },
+        "missingOverlap": {
+          "inputId": "input-b5565332-bafa-47ba-8411-502ae200dfe8",
+          "start": 10,
+          "end": 92
+        }
+      },
+      "inputRevisions": {
+        "input-7b1b541f-e0cd-4114-bce7-e1603b8628f1": "012a2cdf40b877cb59bd80d8ee1793dd33e7a915bd6cee71aa76bab5aaf23b7b",
+        "input-47038847-c8f5-4e65-a22d-6760c88631e5": "eec783fb6e9ad3d6f821f8130b6c37037532357604f968df4cb79a441e92c748",
+        "input-b5565332-bafa-47ba-8411-502ae200dfe8": "e906b91ebc4f889511ab54ac7da1f1aaad44b9850eb3cf70670553303cc5ab58"
+      },
+      "admission": {
+        "kind": "teacher-confirmed",
+        "method": "in-app-source-bindings",
+        "reviewedAt": "2026-09-08T11:07:55.200Z",
+        "proposal": {
+          "protocol": "scion-atomic-source-questions-v1",
+          "inputRevision": "c8d0f0a5881abab8e35e6420c255e869dd5fb179577fc7e8ad37a29a60baa568",
+          "startedAt": "2026-09-08T10:41:26.140Z",
+          "callLimit": 12,
+          "maxNewTokens": 192,
+          "modelCalls": 9,
+          "attempts": [
+            {
+              "role": "populationCount",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "Answer only from the record. Copy exact source text; copy the full sentence when requested. If the answer is not stated, answer UNKNOWN. Do not explain. Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "Teaching objective: Use a fixed population and two deduplicated attendance counts to justify feasible attendance bounds with concrete allocations.\nRecords:\nrecord-1: Fictional seed-club register: Cedar Exchange had twenty-eight registered members throughout April. The register did not change, and both April workshops admitted only these registered members.\n\nrecord-2: The sowing workshop recorded nineteen distinct members. The storage workshop recorded seventeen distinct members. Each attendance list counted a member once, regardless of how long they stayed.\n\nrecord-3: The two attendance lists have not been matched to identify members attending both. Visiting members of other clubs were not admitted to either workshop.\nQuestion: How many members belong to the common registered population? Copy the relevant count phrase."
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 210,
+                "outputTokens": 10,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\"answer\": \"twenty-eight registered members\"}",
+              "inferenceMs": 752,
+              "answer": "twenty-eight registered members",
+              "resolution": {
+                "status": "located",
+                "binding": {
+                  "inputId": "input-7b1b541f-e0cd-4114-bce7-e1603b8628f1",
+                  "quote": "twenty-eight",
+                  "occurrence": 0
+                },
+                "witness": {
+                  "inputId": "input-7b1b541f-e0cd-4114-bce7-e1603b8628f1",
+                  "quote": "twenty-eight registered members",
+                  "start": 59,
+                  "end": 90,
+                  "occurrence": 0
+                },
+                "semanticReviewRequired": true
+              }
+            },
+            {
+              "role": "populationName",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "Answer only from the record. Copy exact source text; copy the full sentence when requested. If the answer is not stated, answer UNKNOWN. Do not explain. Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "Teaching objective: Use a fixed population and two deduplicated attendance counts to justify feasible attendance bounds with concrete allocations.\nRecords:\nrecord-1: Fictional seed-club register: Cedar Exchange had twenty-eight registered members throughout April. The register did not change, and both April workshops admitted only these registered members.\nQuestion: What is the name of the organization or group? Copy its name only."
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "requiredInputId": "input-7b1b541f-e0cd-4114-bce7-e1603b8628f1",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 142,
+                "outputTokens": 7,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\"answer\": \"Cedar Exchange\"}",
+              "inferenceMs": 538,
+              "answer": "Cedar Exchange",
+              "resolution": {
+                "status": "located",
+                "binding": {
+                  "inputId": "input-7b1b541f-e0cd-4114-bce7-e1603b8628f1",
+                  "quote": "Cedar Exchange",
+                  "occurrence": 0
+                },
+                "witness": {
+                  "inputId": "input-7b1b541f-e0cd-4114-bce7-e1603b8628f1",
+                  "quote": "Cedar Exchange",
+                  "start": 40,
+                  "end": 54,
+                  "occurrence": 0
+                },
+                "semanticReviewRequired": true
+              }
+            },
+            {
+              "role": "stablePopulation",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "Answer only from the record. Copy exact source text; copy the full sentence when requested. If the answer is not stated, answer UNKNOWN. Do not explain. Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "Teaching objective: Use a fixed population and two deduplicated attendance counts to justify feasible attendance bounds with concrete allocations.\nRecords:\nrecord-1: Fictional seed-club register: Cedar Exchange had twenty-eight registered members throughout April. The register did not change, and both April workshops admitted only these registered members.\nQuestion: Which complete sentence states that the membership list was unchanged and both events used that population?"
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "requiredInputId": "input-7b1b541f-e0cd-4114-bce7-e1603b8628f1",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 144,
+                "outputTokens": 32,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\"answer\": \"Cedar Exchange had twenty-eight registered members throughout April. The register did not change, and both April workshops admitted only these registered members.\"}",
+              "inferenceMs": 1123,
+              "answer": "Cedar Exchange had twenty-eight registered members throughout April. The register did not change, and both April workshops admitted only these registered members.",
+              "resolution": {
+                "status": "located",
+                "binding": {
+                  "inputId": "input-7b1b541f-e0cd-4114-bce7-e1603b8628f1",
+                  "quote": "Cedar Exchange had twenty-eight registered members throughout April. The register did not change, and both April workshops admitted only these registered members.",
+                  "occurrence": 0
+                },
+                "witness": {
+                  "inputId": "input-7b1b541f-e0cd-4114-bce7-e1603b8628f1",
+                  "quote": "Cedar Exchange had twenty-eight registered members throughout April. The register did not change, and both April workshops admitted only these registered members.",
+                  "start": 40,
+                  "end": 202,
+                  "occurrence": 0
+                },
+                "semanticReviewRequired": true
+              }
+            },
+            {
+              "role": "firstEvent",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "Answer only from the record. Copy exact source text; copy the full sentence when requested. If the answer is not stated, answer UNKNOWN. Do not explain. Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "Teaching objective: Use a fixed population and two deduplicated attendance counts to justify feasible attendance bounds with concrete allocations.\nRecords:\nrecord-1: Fictional seed-club register: Cedar Exchange had twenty-eight registered members throughout April. The register did not change, and both April workshops admitted only these registered members.\n\nrecord-2: The sowing workshop recorded nineteen distinct members. The storage workshop recorded seventeen distinct members. Each attendance list counted a member once, regardless of how long they stayed.\n\nrecord-3: The two attendance lists have not been matched to identify members attending both. Visiting members of other clubs were not admitted to either workshop.\nQuestion: What is the name of the first event described? Copy its name only."
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 209,
+                "outputTokens": 8,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\"answer\": \"sowing workshop\"}",
+              "inferenceMs": 642,
+              "answer": "sowing workshop",
+              "resolution": {
+                "status": "located",
+                "binding": {
+                  "inputId": "input-47038847-c8f5-4e65-a22d-6760c88631e5",
+                  "quote": "sowing workshop",
+                  "occurrence": 0
+                },
+                "witness": {
+                  "inputId": "input-47038847-c8f5-4e65-a22d-6760c88631e5",
+                  "quote": "sowing workshop",
+                  "start": 14,
+                  "end": 29,
+                  "occurrence": 0
+                },
+                "semanticReviewRequired": true
+              }
+            },
+            {
+              "role": "secondEvent",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "Answer only from the record. Copy exact source text; copy the full sentence when requested. If the answer is not stated, answer UNKNOWN. Do not explain. Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "Teaching objective: Use a fixed population and two deduplicated attendance counts to justify feasible attendance bounds with concrete allocations.\nRecords:\nrecord-2: The sowing workshop recorded nineteen distinct members. The storage workshop recorded seventeen distinct members. Each attendance list counted a member once, regardless of how long they stayed.\nQuestion: What is the name of the second event described? Copy its name only."
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "requiredInputId": "input-47038847-c8f5-4e65-a22d-6760c88631e5",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 138,
+                "outputTokens": 7,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\"answer\": \"storage workshop\"}",
+              "inferenceMs": 533,
+              "answer": "storage workshop",
+              "resolution": {
+                "status": "located",
+                "binding": {
+                  "inputId": "input-47038847-c8f5-4e65-a22d-6760c88631e5",
+                  "quote": "storage workshop",
+                  "occurrence": 0
+                },
+                "witness": {
+                  "inputId": "input-47038847-c8f5-4e65-a22d-6760c88631e5",
+                  "quote": "storage workshop",
+                  "start": 70,
+                  "end": 86,
+                  "occurrence": 0
+                },
+                "semanticReviewRequired": true
+              }
+            },
+            {
+              "role": "firstCount",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "Answer only from the record. Copy exact source text; copy the full sentence when requested. If the answer is not stated, answer UNKNOWN. Do not explain. Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "Teaching objective: Use a fixed population and two deduplicated attendance counts to justify feasible attendance bounds with concrete allocations.\nRecords:\nrecord-2: The sowing workshop recorded nineteen distinct members. The storage workshop recorded seventeen distinct members. Each attendance list counted a member once, regardless of how long they stayed.\nQuestion: How many distinct members attended “sowing workshop”? Copy the count phrase."
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "requiredInputId": "input-47038847-c8f5-4e65-a22d-6760c88631e5",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 138,
+                "outputTokens": 9,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\"answer\": \"nineteen distinct members\"}",
+              "inferenceMs": 573,
+              "answer": "nineteen distinct members",
+              "resolution": {
+                "status": "located",
+                "binding": {
+                  "inputId": "input-47038847-c8f5-4e65-a22d-6760c88631e5",
+                  "quote": "nineteen",
+                  "occurrence": 0
+                },
+                "witness": {
+                  "inputId": "input-47038847-c8f5-4e65-a22d-6760c88631e5",
+                  "quote": "nineteen distinct members",
+                  "start": 39,
+                  "end": 64,
+                  "occurrence": 0
+                },
+                "semanticReviewRequired": true
+              }
+            },
+            {
+              "role": "secondCount",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "Answer only from the record. Copy exact source text; copy the full sentence when requested. If the answer is not stated, answer UNKNOWN. Do not explain. Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "Teaching objective: Use a fixed population and two deduplicated attendance counts to justify feasible attendance bounds with concrete allocations.\nRecords:\nrecord-2: The sowing workshop recorded nineteen distinct members. The storage workshop recorded seventeen distinct members. Each attendance list counted a member once, regardless of how long they stayed.\nQuestion: How many distinct members attended “storage workshop”? Copy the count phrase."
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "requiredInputId": "input-47038847-c8f5-4e65-a22d-6760c88631e5",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 137,
+                "outputTokens": 10,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\"answer\": \"seventeen distinct members\"}",
+              "inferenceMs": 597,
+              "answer": "seventeen distinct members",
+              "resolution": {
+                "status": "located",
+                "binding": {
+                  "inputId": "input-47038847-c8f5-4e65-a22d-6760c88631e5",
+                  "quote": "seventeen",
+                  "occurrence": 0
+                },
+                "witness": {
+                  "inputId": "input-47038847-c8f5-4e65-a22d-6760c88631e5",
+                  "quote": "seventeen distinct members",
+                  "start": 96,
+                  "end": 122,
+                  "occurrence": 0
+                },
+                "semanticReviewRequired": true
+              }
+            },
+            {
+              "role": "withinGroupDistinct",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "Answer only from the record. Copy exact source text; copy the full sentence when requested. If the answer is not stated, answer UNKNOWN. Do not explain. Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "Teaching objective: Use a fixed population and two deduplicated attendance counts to justify feasible attendance bounds with concrete allocations.\nRecords:\nrecord-2: The sowing workshop recorded nineteen distinct members. The storage workshop recorded seventeen distinct members. Each attendance list counted a member once, regardless of how long they stayed.\nQuestion: Which sentence states that each attendance list counts each person once?"
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "requiredInputId": "input-47038847-c8f5-4e65-a22d-6760c88631e5",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 135,
+                "outputTokens": 20,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\"answer\": \"Each attendance list counted a member once, regardless of how long they stayed.\"}",
+              "inferenceMs": 834,
+              "answer": "Each attendance list counted a member once, regardless of how long they stayed.",
+              "resolution": {
+                "status": "located",
+                "binding": {
+                  "inputId": "input-47038847-c8f5-4e65-a22d-6760c88631e5",
+                  "quote": "Each attendance list counted a member once, regardless of how long they stayed.",
+                  "occurrence": 0
+                },
+                "witness": {
+                  "inputId": "input-47038847-c8f5-4e65-a22d-6760c88631e5",
+                  "quote": "Each attendance list counted a member once, regardless of how long they stayed.",
+                  "start": 124,
+                  "end": 203,
+                  "occurrence": 0
+                },
+                "semanticReviewRequired": true
+              }
+            },
+            {
+              "role": "missingOverlap",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "Answer only from the record. Copy exact source text; copy the full sentence when requested. If the answer is not stated, answer UNKNOWN. Do not explain. Return only a JSON object with one string field: answer."
+                },
+                {
+                  "role": "user",
+                  "content": "Teaching objective: Use a fixed population and two deduplicated attendance counts to justify feasible attendance bounds with concrete allocations.\nRecords:\nrecord-1: Fictional seed-club register: Cedar Exchange had twenty-eight registered members throughout April. The register did not change, and both April workshops admitted only these registered members.\n\nrecord-2: The sowing workshop recorded nineteen distinct members. The storage workshop recorded seventeen distinct members. Each attendance list counted a member once, regardless of how long they stayed.\n\nrecord-3: The two attendance lists have not been matched to identify members attending both. Visiting members of other clubs were not admitted to either workshop.\nQuestion: Which sentence states that membership overlap across the two events was not recorded or matched?"
+                }
+              ],
+              "grammar": "root ::= \"{\" ws \"\\\"answer\\\"\" ws \":\" ws string ws \"}\"\nstring ::= \"\\\"\" character{1,1000} \"\\\"\"\ncharacter ::= [^\"\\\\\\x00-\\x1F] | \"\\\\\" ([\"\\\\/bfnrt] | \"u\" [0-9a-fA-F]{4})\nws ::= [ \\t\\n\\r]{0,4}",
+              "route": {
+                "protocol": "scion-adapter-runtime-route-v1",
+                "mode": "base-only",
+                "taskFamily": "unclassified",
+                "reason": "no-adapter-installed",
+                "promptProtocol": "scion-atomic-source-questions-v1",
+                "expectedPromptProtocol": null,
+                "adapterId": null,
+                "manifestSha256": null,
+                "scopeIdentitySha256": null,
+                "nativeAdapterActive": false
+              },
+              "completion": {
+                "finishReason": "stop",
+                "inputTokens": 210,
+                "outputTokens": 19,
+                "contextTokens": 8192,
+                "thinkingEnabled": false,
+                "thinkingObserved": false
+              },
+              "raw": "{\"answer\": \"The two attendance lists have not been matched to identify members attending both.\"}",
+              "inferenceMs": 899,
+              "answer": "The two attendance lists have not been matched to identify members attending both.",
+              "resolution": {
+                "status": "located",
+                "binding": {
+                  "inputId": "input-b5565332-bafa-47ba-8411-502ae200dfe8",
+                  "quote": "The two attendance lists have not been matched to identify members attending both.",
+                  "occurrence": 0
+                },
+                "witness": {
+                  "inputId": "input-b5565332-bafa-47ba-8411-502ae200dfe8",
+                  "quote": "The two attendance lists have not been matched to identify members attending both.",
+                  "start": 10,
+                  "end": 92,
+                  "occurrence": 0
+                },
+                "semanticReviewRequired": true
+              }
+            }
+          ],
+          "loadMs": 1291,
+          "runtime": {
+            "phase": "ready",
+            "progress": 1,
+            "message": "Scion local Gemma 4 is ready.",
+            "error": null,
+            "runtime": {
+              "id": "scion-wllama-webgpu-jspi-v1",
+              "modulePath": "/scion/runtime/v3/wllama.js",
+              "moduleSha256": "92afaea4ca9feefece8790fa32f3b96775d430f7341a8d89e550de368af40bdb",
+              "wasmPath": "/scion/runtime/v3/jspi-single-thread/wllama.wasm",
+              "wasmSha256": "ccb4ffaada3561b60275f652f5067946ed019728d589eaa24604a67d7c207848",
+              "grammar": "gbnf-state-v1",
+              "upstreamRevision": "58903000dbea6acfc0eb9c738d8be50d1052cf23",
+              "llamaCppRevision": "5ec717d1256e34558a44dc09adf1e6e16f2e2682"
+            },
+            "trainingBase": {
+              "modelId": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+              "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+              "architecture": "gemma4"
+            },
+            "activeWeightIdentity": {
+              "modelId": "google/gemma-4-E2B-it-qat-q4_0-gguf",
+              "revision": "69536a21d70340464240401ba38223d805f6a709",
+              "file": "gemma-4-E2B_q4_0-it.gguf",
+              "bytes": 3349514112,
+              "sha256": "3646b4c147cd235a44d91df1546d3b7d8e29b547dbe4e1f80856419aa455e6fd",
+              "format": "gguf-q4_0-qat"
+            },
+            "baseIntegrity": {
+              "expectedSha256": "3646b4c147cd235a44d91df1546d3b7d8e29b547dbe4e1f80856419aa455e6fd",
+              "runtimeCheck": "metadata-and-pinned-url",
+              "fullDigestEvidence": null
+            },
+            "adapter": {
+              "mode": "base-only",
+              "active": false,
+              "id": null,
+              "manifestSha256": null
+            },
+            "storage": {
+              "quota": 14089291653,
+              "usage": 3351873413,
+              "available": 10737418240,
+              "required": 3886385600
+            },
+            "metadata": {
+              "hparams": {
+                "nVocab": 262144,
+                "nCtxTrain": 131072,
+                "nEmbd": 1536,
+                "nLayer": 35
+              },
+              "meta": {
+                "split.count": "5",
+                "tokenizer.ggml.add_bos_token": "true",
+                "general.quantization_version": "2",
+                "tokenizer.ggml.mask_token_id": "4",
+                "tokenizer.ggml.eos_token_id": "1",
+                "tokenizer.ggml.model": "gemma4",
+                "gemma4.rope.dimension_count_swa": "256",
+                "gemma4.rope.dimension_count": "512",
+                "gemma4.embedding_length_per_layer_input": "256",
+                "general.name": "2B_dequant_qat_it_hf",
+                "gemma4.attention.sliding_window": "512",
+                "general.sampling.temp": "1.000000",
+                "gemma4.attention.layer_norm_rms_epsilon": "0.000001",
+                "general.size_label": "4.6B",
+                "gemma4.attention.key_length": "512",
+                "gemma4.rope.freq_base_swa": "10000.000000",
+                "gemma4.attention.head_count_kv": "1",
+                "split.no": "0",
+                "gemma4.attention.head_count": "8",
+                "split.tensors.count": "541",
+                "tokenizer.chat_template": "{%- macro format_parameters(properties, required, filter_keys=false) -%}\n    {%- set standard_keys = ['description', 'type', 'properties', 'required', 'nullable'] -%}\n    {%- set ns = namespace(found_first=false) -%}\n    {%- for key, value in properties | dictsort -%}\n        {%- set add_comma = false -%}\n        {%- if not filter_keys or key not in standard_keys -%}\n            {%- if ns.found_first %},{% endif -%}\n            {%- set ns.found_first = true -%}\n            {{ key }}:{\n            {%- if value['description'] -%}\n                description:<|\"|>{{ value['description'] }}<|\"|>\n                {%- set add_comma = true -%}\n            {%- endif -%}\n            {%- if value['type'] | upper == 'STRING' -%}\n                {%- if value['enum'] -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    enum:{{ format_argument(value['enum']) }}\n                {%- endif -%}\n            {%- elif value['type'] | upper == 'ARRAY' -%}\n                {%- if value['items'] is mapping and value['items'] -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    items:{\n                    {%- set ns_items = namespace(found_first=false) -%}\n                    {%- for item_key, item_value in value['items'] | dictsort -%}\n                        {%- if item_value is not none -%}\n                            {%- if ns_items.found_first %},{% endif -%}\n                            {%- set ns_items.found_first = true -%}\n                            {%- if item_key == 'properties' -%}\n                                properties:{\n                                {%- if item_value is mapping -%}\n                                    {{- format_parameters(item_value, value['items']['required'] | default([])) -}}\n                                {%- endif -%}\n                                }\n                            {%- elif item_key == 'required' -%}\n                                required:[\n                                {%- for req_item in item_value -%}\n                                    <|\"|>{{- req_item -}}<|\"|>\n                                    {%- if not loop.last %},{% endif -%}\n                                {%- endfor -%}\n                                ]\n                            {%- elif item_key == 'type' -%}\n                                {%- if item_value is string -%}\n                                    type:{{ format_argument(item_value | upper) }}\n                                {%- else -%}\n                                    type:{{ format_argument(item_value | map('upper') | list) }}\n                                {%- endif -%}\n                            {%- else -%}\n                                {{ item_key }}:{{ format_argument(item_value) }}\n                            {%- endif -%}\n                        {%- endif -%}\n                    {%- endfor -%}\n                    }\n                {%- endif -%}\n            {%- endif -%}\n            {%- if value['nullable'] %}\n                {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                nullable:true\n            {%- endif -%}\n            {%- if value['type'] | upper == 'OBJECT' -%}\n                {%- if value['properties'] is defined and value['properties'] is mapping -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    properties:{\n                    {{- format_parameters(value['properties'], value['required'] | default([])) -}}\n                    }\n                {%- elif value is mapping -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    properties:{\n                    {{- format_parameters(value, value['required'] | default([]), filter_keys=true) -}}\n                    }\n                {%- endif -%}\n                {%- if value['required'] -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    required:[\n                    {%- for item in value['required'] | default([]) -%}\n                        <|\"|>{{- item -}}<|\"|>\n                        {%- if not loop.last %},{% endif -%}\n                    {%- endfor -%}\n                    ]\n                {%- endif -%}\n            {%- endif -%}\n            {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n            type:<|\"|>{{ value['type'] | upper }}<|\"|>}\n        {%- endif -%}\n    {%- endfor -%}\n{%- endmacro -%}\n{%- macro format_function_declaration(tool_data) -%}\n    declaration:{{- tool_data['function']['name'] -}}{description:<|\"|>{{- tool_data['function']['description'] -}}<|\"|>\n    {%- set params = tool_data['function']['parameters'] -%}\n    {%- if params -%}\n        ,parameters:{\n        {%- if params['properties'] -%}\n            properties:{ {{- format_parameters(params['properties'], params['required']) -}} },\n        {%- endif -%}\n        {%- if params['required'] -%}\n            required:[\n            {%- for item in params['required'] -%}\n                <|\"|>{{- item -}}<|\"|>\n                {{- ',' if not loop.last -}}\n            {%- endfor -%}\n            ],\n        {%- endif -%}\n        {%- if params['type'] -%}\n            type:<|\"|>{{- params['type'] | upper -}}<|\"|>}\n        {%- endif -%}\n    {%- endif -%}\n    {%- if 'response' in tool_data['function'] -%}\n        {%- set response_declaration = tool_data['function']['response'] -%}\n        ,response:{\n        {%- if response_declaration['description'] -%}\n            description:<|\"|>{{- response_declaration['description'] -}}<|\"|>,\n        {%- endif -%}\n        {%- if response_declaration['type'] | upper == 'OBJECT' -%}\n            type:<|\"|>{{- response_declaration['type'] | upper -}}<|\"|>}\n        {%- endif -%}\n    {%- endif -%}\n    }\n{%- endmacro -%}\n{%- macro format_argument(argument, escape_keys=True) -%}\n    {%- if argument is string -%}\n        {{- '<|\"|>' + argument + '<|\"|>' -}}\n    {%- elif argument is boolean -%}\n        {{- 'true' if argument else 'false' -}}\n    {%- elif argument is mapping -%}\n        {{- '{' -}}\n        {%- set ns = namespace(found_first=false) -%}\n        {%- for key, value in argument | dictsort -%}\n            {%- if ns.found_first %},{% endif -%}\n            {%- set ns.found_first = true -%}\n            {%- if escape_keys -%}\n                {{- '<|\"|>' + key + '<|\"|>' -}}\n            {%- else -%}\n                {{- key -}}\n            {%- endif -%}\n            :{{- format_argument(value, escape_keys=escape_keys) -}}\n        {%- endfor -%}\n        {{- '}' -}}\n    {%- elif argument is sequence -%}\n        {{- '[' -}}\n        {%- for item in argument -%}\n            {{- format_argument(item, escape_keys=escape_keys) -}}\n            {%- if not loop.last %},{% endif -%}\n        {%- endfor -%}\n        {{- ']' -}}\n    {%- else -%}\n        {{- argument -}}\n    {%- endif -%}\n{%- endmacro -%}\n{%- macro strip_thinking(text) -%}\n    {%- set ns = namespace(result='') -%}\n    {%- for part in text.split('<channel|>') -%}\n        {%- if '<|channel>' in part -%}\n            {%- set ns.result = ns.result + part.split('<|channel>')[0] -%}\n        {%- else -%}\n            {%- set ns.result = ns.result + part -%}\n        {%- endif -%}\n    {%- endfor -%}\n    {{- ns.result | trim -}}\n{%- endmacro -%}\n\n{%- macro format_tool_response_block(tool_name, response) -%}\n    {{- '<|tool_response>' -}}\n    {%- if response is mapping -%}\n        {{- 'response:' + tool_name + '{' -}}\n        {%- for key, value in response | dictsort -%}\n            {{- key -}}:{{- format_argument(value, escape_keys=False) -}}\n            {%- if not loop.last %},{% endif -%}\n        {%- endfor -%}\n        {{- '}' -}}\n    {%- else -%}\n        {{- 'response:' + tool_name + '{value:' + format_argument(response, escape_keys=False) + '}' -}}\n    {%- endif -%}\n    {{- '<tool_response|>' -}}\n{%- endmacro -%}\n\n{%- set ns = namespace(prev_message_type=None) -%}\n{%- set loop_messages = messages -%}\n{{- bos_token -}}\n{#- Handle System/Tool Definitions Block -#}\n{%- if (enable_thinking is defined and enable_thinking) or tools or messages[0]['role'] in ['system', 'developer'] -%}\n    {{- '<|turn>system\\n' -}}\n    {#- Inject Thinking token at the very top of the FIRST system turn -#}\n    {%- if enable_thinking is defined and enable_thinking -%}\n        {{- '<|think|>\\n' -}}\n        {%- set ns.prev_message_type = 'think' -%}\n    {%- endif -%}\n    {%- if messages[0]['role'] in ['system', 'developer'] -%}\n        {%- if messages[0]['content'] is string -%}\n            {{- messages[0]['content'] | trim -}}\n        {%- elif messages[0]['content'] is sequence -%}\n            {%- for item in messages[0]['content'] -%}\n                {{- item['text'] | trim + ' '-}}\n            {%- endfor -%}\n        {%- endif -%}\n        {%- set loop_messages = messages[1:] -%}\n    {%- endif -%}\n    {%- if tools -%}\n        {%- for tool in tools %}\n            {{- '<|tool>' -}}\n            {{- format_function_declaration(tool) | trim -}}\n            {{- '<tool|>' -}}\n        {%- endfor %}\n        {%- set ns.prev_message_type = 'tool' -%}\n    {%- endif -%}\n    {{- '<turn|>\\n' -}}\n{%- endif %}\n\n{#- Pre-scan: find last user message index for reasoning guard -#}\n{%- set ns_turn = namespace(last_user_idx=-1) -%}\n{%- for i in range(loop_messages | length) -%}\n    {%- if loop_messages[i]['role'] == 'user' -%}\n        {%- set ns_turn.last_user_idx = i -%}\n    {%- endif -%}\n{%- endfor -%}\n\n{#- Loop through messages -#}\n{%- for message in loop_messages -%}\n    {%- if message['role'] != 'tool' -%}\n    {%- set ns.prev_message_type = None -%}\n    {%- set role = 'model' if message['role'] == 'assistant' else message['role'] -%}\n    {#- Detect continuation: suppress duplicate <|turn>model when previous non-tool message was also assistant -#}\n    {%- set prev_nt = namespace(role=None, found=false) -%}\n    {%- if loop.index0 > 0 -%}\n        {%- for j in range(loop.index0 - 1, -1, -1) -%}\n            {%- if not prev_nt.found -%}\n                {%- if loop_messages[j]['role'] != 'tool' -%}\n                    {%- set prev_nt.role = loop_messages[j]['role'] -%}\n                    {%- set prev_nt.found = true -%}\n                {%- endif -%}\n            {%- endif -%}\n        {%- endfor -%}\n    {%- endif -%}\n    {%- set continue_same_model_turn = (role == 'model' and prev_nt.role == 'assistant') -%}\n    {%- if not continue_same_model_turn -%}\n        {{- '<|turn>' + role + '\\n' }}\n    {%- endif -%}\n\n    {#- Render reasoning/reasoning_content as thinking channel -#}\n    {%- set thinking_text = message.get('reasoning') or message.get('reasoning_content') -%}\n    {%- if thinking_text and loop.index0 > ns_turn.last_user_idx and message.get('tool_calls') -%}\n        {{- '<|channel>thought\\n' + thinking_text + '\\n<channel|>' -}}\n    {%- endif -%}\n\n            {%- if message['tool_calls'] -%}\n                {%- for tool_call in message['tool_calls'] -%}\n                    {%- set function = tool_call['function'] -%}\n                    {{- '<|tool_call>call:' + function['name'] + '{' -}}\n                    {%- if function['arguments'] is mapping -%}\n                        {%- set ns_args = namespace(found_first=false) -%}\n                        {%- for key, value in function['arguments'] | dictsort -%}\n                            {%- if ns_args.found_first %},{% endif -%}\n                            {%- set ns_args.found_first = true -%}\n                            {{- key -}}:{{- format_argument(value, escape_keys=False) -}}\n                        {%- endfor -%}\n                    {%- elif function['arguments'] is string -%}\n                        {{- function['arguments'] -}}\n                    {%- endif -%}\n                    {{- '}<tool_call|>' -}}\n                {%- endfor -%}\n                {%- set ns.prev_message_type = 'tool_call' -%}\n            {%- endif -%}\n\n            {%- set ns_tr_out = namespace(flag=false) -%}\n            {%- if message.get('tool_responses') -%}\n                {#- Legacy: tool_responses embedded on the assistant message (Google/Gemma native) -#}\n                {%- for tool_response in message['tool_responses'] -%}\n                    {{- format_tool_response_block(tool_response['name'] | default('unknown'), tool_response['response']) -}}\n                    {%- set ns_tr_out.flag = true -%}\n                    {%- set ns.prev_message_type = 'tool_response' -%}\n                {%- endfor -%}\n            {%- elif message.get('tool_calls') -%}\n                {#- OpenAI Chat Completions: forward-scan consecutive role:tool messages -#}\n                {%- set ns_tool_scan = namespace(stopped=false) -%}\n                {%- for k in range(loop.index0 + 1, loop_messages | length) -%}\n                    {%- if ns_tool_scan.stopped -%}\n                    {%- elif loop_messages[k]['role'] != 'tool' -%}\n                        {%- set ns_tool_scan.stopped = true -%}\n                    {%- else -%}\n                        {%- set follow = loop_messages[k] -%}\n                        {#- Resolve tool_call_id to function name -#}\n                        {%- set ns_tname = namespace(name=follow.get('name') | default('unknown')) -%}\n                        {%- for tc in message['tool_calls'] -%}\n                            {%- if tc.get('id') == follow.get('tool_call_id') -%}\n                                {%- set ns_tname.name = tc['function']['name'] -%}\n                            {%- endif -%}\n                        {%- endfor -%}\n                        {#- Handle content as string or content-parts array -#}\n                        {%- set tool_body = follow.get('content') -%}\n                        {%- if tool_body is string -%}\n                            {{- format_tool_response_block(ns_tname.name, tool_body) -}}\n                        {%- elif tool_body is sequence and tool_body is not string -%}\n                            {%- set ns_txt = namespace(s='') -%}\n                            {%- for part in tool_body -%}\n                                {%- if part.get('type') == 'text' -%}\n                                    {%- set ns_txt.s = ns_txt.s + (part.get('text') | default('')) -%}\n                                {%- endif -%}\n                            {%- endfor -%}\n                            {{- format_tool_response_block(ns_tname.name, ns_txt.s) -}}\n                        {%- else -%}\n                            {{- format_tool_response_block(ns_tname.name, tool_body) -}}\n                        {%- endif -%}\n                        {%- set ns_tr_out.flag = true -%}\n                        {%- set ns.prev_message_type = 'tool_response' -%}\n                    {%- endif -%}\n                {%- endfor -%}\n            {%- endif -%}\n\n            {%- set captured_content -%}\n            {%- if message['content'] is string -%}\n                {%- if role == 'model' -%}\n                    {{- strip_thinking(message['content']) -}}\n                {%- else -%}\n                    {{- message['content'] | trim -}}\n                {%- endif -%}\n            {%- elif message['content'] is sequence -%}\n                {%- for item in message['content'] -%}\n                    {%- if item['type'] == 'text' -%}\n                        {%- if role == 'model' -%}\n                            {{- strip_thinking(item['text']) -}}\n                        {%- else -%}\n                            {{- item['text'] | trim -}}\n                        {%- endif -%}\n                    {%- elif item['type'] == 'image' -%}\n                        {{- '<|image|>' -}}\n                        {%- set ns.prev_message_type = 'image' -%}\n                    {%- elif item['type'] == 'audio' -%}\n                        {{- '<|audio|>' -}}\n                        {%- set ns.prev_message_type = 'audio' -%}\n                    {%- elif item['type'] == 'video' -%}\n                        {{- '<|video|>' -}}\n                        {%- set ns.prev_message_type = 'video' -%}\n                    {%- endif -%}\n                {%- endfor -%}\n            {%- endif -%}\n            {%- endset -%}\n\n            {{- captured_content -}}\n            {%- set has_content = captured_content | trim | length > 0 -%}\n\n        {%- if ns.prev_message_type == 'tool_call' and not ns_tr_out.flag -%}\n            {{- '<|tool_response>' -}}\n        {%- elif not (ns_tr_out.flag and not has_content) -%}\n            {{- '<turn|>\\n' -}}\n        {%- endif -%}\n    {%- endif -%}\n{%- endfor -%}\n\n{%- if add_generation_prompt -%}\n    {%- if ns.prev_message_type != 'tool_response' and ns.prev_message_type != 'tool_call' -%}\n        {{- '<|turn>model\\n' -}}\n    {%- endif -%}\n{%- endif -%}",
+                "gemma4.attention.shared_kv_layers": "20",
+                "gemma4.final_logit_softcapping": "30.000000",
+                "gemma4.attention.key_length_swa": "256",
+                "gemma4.context_length": "131072",
+                "general.file_type": "2",
+                "general.finetune": "2B_dequant_qat_it_hf",
+                "gemma4.embedding_length": "1536",
+                "tokenizer.ggml.add_space_prefix": "false",
+                "general.architecture": "gemma4",
+                "tokenizer.ggml.padding_token_id": "0",
+                "general.sampling.top_k": "64",
+                "gemma4.block_count": "35",
+                "tokenizer.ggml.bos_token_id": "2",
+                "gemma4.attention.value_length_swa": "256",
+                "general.type": "model",
+                "tokenizer.ggml.unknown_token_id": "3",
+                "general.sampling.top_p": "0.950000",
+                "gemma4.attention.value_length": "512",
+                "gemma4.rope.freq_base": "1000000.000000"
+              }
+            }
+          },
+          "fieldIssues": {},
+          "elapsedMs": 7821,
+          "sourceQuestionMs": 6513,
+          "adoption": {
+            "filledRoles": [
+              "rosterRecord",
+              "populationCount",
+              "populationName",
+              "stablePopulation",
+              "attendanceRecord",
+              "firstCount",
+              "secondCount",
+              "firstEvent",
+              "secondEvent",
+              "withinGroupDistinct",
+              "limitRecord",
+              "missingOverlap"
+            ],
+            "preservedRoles": [],
+            "differingRoles": []
+          }
+        }
+      },
+      "requirements": [
+        {
+          "id": "quantities",
+          "weight": 30
+        },
+        {
+          "id": "operation",
+          "weight": 40
+        },
+        {
+          "id": "boundary",
+          "weight": 30
+        }
+      ]
+    },
+    "purpose": "source-bound guided practice",
+    "minutes": 20,
+    "validation": {
+      "method": "bound-teaching-operation",
+      "admission": "teacher-confirmed",
+      "scope": "Exact source bindings and the declared operation; not independent verification of source truth or measured learning."
+    },
+    "sequence": [
+      {
+        "id": "task-c08f99e67ef936d3:worked",
+        "kind": "worked-example",
+        "question": "For “Cedar Exchange”, give every possible integer count of members attending at least one of “sowing workshop” and “storage workshop”, and every possible integer count attending both. Explain how the two counts are paired. Derive the sharp bounds, construct both endpoint allocations, justify all intermediate counts, and state whether the union proportion is exact and what further membership evidence would determine it.",
+        "sources": [
+          "record-1: Fictional seed-club register: Cedar Exchange had twenty-eight registered members throughout April. The register did not change, and both April workshops admitted only these registered members.",
+          "record-2: The sowing workshop recorded nineteen distinct members. The storage workshop recorded seventeen distinct members. Each attendance list counted a member once, regardless of how long they stayed.",
+          "record-3: The two attendance lists have not been matched to identify members attending both. Visiting members of other clubs were not admitted to either workshop."
+        ],
+        "answer": "“Cedar Exchange”: 28 members; “sowing workshop”: 19; “storage workshop”: 17. Common population: “Cedar Exchange had twenty-eight registered members throughout April. The register did not change, and both April workshops admitted only these registered members.” Within-event counting: “Each attendance list counted a member once, regardless of how long they stayed.”\n\nLet x count members in both events. The union is 19 + 17 − x = 36 − x. Since x cannot exceed either event and the union cannot exceed 28, 8 ≤ x ≤ 17.\n\nMinimum union: 19, giving 19/28 ≈ 67.86%. A feasible allocation is only “sowing workshop”: 2; only “storage workshop”: 0; both: 17; neither: 9. These nonnegative groups sum to 28 and reproduce both event counts.\n\nMaximum union: 28, giving 28/28 = 100%. A feasible allocation is only “sowing workshop”: 11; only “storage workshop”: 9; both: 8; neither: 0. These nonnegative groups sum to 28 and reproduce both event counts.\n\nEvery integer x from 8 through 17 is possible. For any such x, assign 19 − x to only “sowing workshop”, 17 − x to only “storage workshop”, x to both, and 28 − (36 − x) to neither. All four counts are nonnegative integers, sum to 28, and reproduce 19 and 17. Thus the paired union count 36 − x takes every integer from 19 through 28; the two counts cannot be chosen independently.\n\nThe intersection ranges from 8 to 17 members, including every integer. The attainable union ranges from 19 to 28 members: 19/28 ≈ 67.86% to 28/28 = 100%. An exact value is not determined.\n\nThe record states: “The two attendance lists have not been matched to identify members attending both.” Missing does not mean zero or independent attendance. Match the two membership lists to establish x; then use (36 − x)/28. These conclusions apply only to the stable named population, not visits or people outside it.",
+        "reasoning": [
+          "“Cedar Exchange”: 28 members; “sowing workshop”: 19; “storage workshop”: 17. Common population: “Cedar Exchange had twenty-eight registered members throughout April. The register did not change, and both April workshops admitted only these registered members.” Within-event counting: “Each attendance list counted a member once, regardless of how long they stayed.”",
+          "Let x count members in both events. The union is 19 + 17 − x = 36 − x. Since x cannot exceed either event and the union cannot exceed 28, 8 ≤ x ≤ 17.",
+          "Minimum union: 19, giving 19/28 ≈ 67.86%. A feasible allocation is only “sowing workshop”: 2; only “storage workshop”: 0; both: 17; neither: 9. These nonnegative groups sum to 28 and reproduce both event counts.",
+          "Maximum union: 28, giving 28/28 = 100%. A feasible allocation is only “sowing workshop”: 11; only “storage workshop”: 9; both: 8; neither: 0. These nonnegative groups sum to 28 and reproduce both event counts.",
+          "Every integer x from 8 through 17 is possible. For any such x, assign 19 − x to only “sowing workshop”, 17 − x to only “storage workshop”, x to both, and 28 − (36 − x) to neither. All four counts are nonnegative integers, sum to 28, and reproduce 19 and 17. Thus the paired union count 36 − x takes every integer from 19 through 28; the two counts cannot be chosen independently.",
+          "The intersection ranges from 8 to 17 members, including every integer. The attainable union ranges from 19 to 28 members: 19/28 ≈ 67.86% to 28/28 = 100%. An exact value is not determined.",
+          "The record states: “The two attendance lists have not been matched to identify members attending both.” Missing does not mean zero or independent attendance. Match the two membership lists to establish x; then use (36 − x)/28. These conclusions apply only to the stable named population, not visits or people outside it."
+        ]
+      },
+      {
+        "id": "task-c08f99e67ef936d3:guided",
+        "kind": "guided-practice",
+        "question": "What is counted once within a list, and what might be counted twice across lists?",
+        "answer": "“Cedar Exchange”: 28 members; “sowing workshop”: 19; “storage workshop”: 17. Common population: “Cedar Exchange had twenty-eight registered members throughout April. The register did not change, and both April workshops admitted only these registered members.” Within-event counting: “Each attendance list counted a member once, regardless of how long they stayed.”",
+        "sources": [
+          "record-1: Fictional seed-club register: Cedar Exchange had twenty-eight registered members throughout April. The register did not change, and both April workshops admitted only these registered members.",
+          "record-2: The sowing workshop recorded nineteen distinct members. The storage workshop recorded seventeen distinct members. Each attendance list counted a member once, regardless of how long they stayed.",
+          "record-3: The two attendance lists have not been matched to identify members attending both. Visiting members of other clubs were not admitted to either workshop."
+        ],
+        "feedback": "Label each count and cite the common roster and within-event deduplication before forming sets."
+      },
+      {
+        "id": "task-c08f99e67ef936d3:transfer",
+        "kind": "independent-transfer",
+        "operationKind": "union-bounds",
+        "sources": [
+          "A fictional team has 40 volunteers; the roster is unchanged across both days and training is open only to them.",
+          "Saturday lists 18 people and Sunday lists 12; each list counts each person only once.",
+          "The lists have not been matched across days; the number attending both is unrecorded."
+        ],
+        "directions": "For “volunteer team”, determine how many members attended “Saturday training” or “Sunday training” or both. Decide whether an exact proportion follows. Derive the tightest bounds, construct both endpoint allocations, and specify any further membership information needed.",
+        "question": "A fictional team has 40 volunteers; the roster is unchanged across both days and training is open only to them. Saturday lists 18 people and Sunday lists 12; each list counts each person only once. The lists have not been matched across days; the number attending both is unrecorded. For “volunteer team”, determine how many members attended “Saturday training” or “Sunday training” or both. Decide whether an exact proportion follows. Derive the tightest bounds, construct both endpoint allocations, and specify any further membership information needed.",
+        "answer": "“volunteer team”: 40 members; “Saturday training”: 18; “Sunday training”: 12. Common population: “A fictional team has 40 volunteers; the roster is unchanged across both days and training is open only to them.” Within-event counting: “Saturday lists 18 people and Sunday lists 12; each list counts each person only once.” Let x count members in both events. The union is 18 + 12 − x = 30 − x. Since x cannot exceed either event and the union cannot exceed 40, 0 ≤ x ≤ 12. Minimum union: 18, giving 18/40 = 45%. A feasible allocation is only “Saturday training”: 6; only “Sunday training”: 0; both: 12; neither: 22. These nonnegative groups sum to 40 and reproduce both event counts. Maximum union: 30, giving 30/40 = 75%. A feasible allocation is only “Saturday training”: 18; only “Sunday training”: 12; both: 0; neither: 10. These nonnegative groups sum to 40 and reproduce both event counts. The attainable union ranges from 18 to 30 members: 18/40 = 45% to 30/40 = 75%. An exact value is not determined. The record states: “The lists have not been matched across days; the number attending both is unrecorded.” Missing does not mean zero or independent attendance. Match the two membership lists to establish x; then use (30 − x)/40. These conclusions apply only to the stable named population, not visits or people outside it.",
+        "reasoning": [
+          "“volunteer team”: 40 members; “Saturday training”: 18; “Sunday training”: 12. Common population: “A fictional team has 40 volunteers; the roster is unchanged across both days and training is open only to them.” Within-event counting: “Saturday lists 18 people and Sunday lists 12; each list counts each person only once.”",
+          "Let x count members in both events. The union is 18 + 12 − x = 30 − x. Since x cannot exceed either event and the union cannot exceed 40, 0 ≤ x ≤ 12.",
+          "Minimum union: 18, giving 18/40 = 45%. A feasible allocation is only “Saturday training”: 6; only “Sunday training”: 0; both: 12; neither: 22. These nonnegative groups sum to 40 and reproduce both event counts.",
+          "Maximum union: 30, giving 30/40 = 75%. A feasible allocation is only “Saturday training”: 18; only “Sunday training”: 12; both: 0; neither: 10. These nonnegative groups sum to 40 and reproduce both event counts.",
+          "The attainable union ranges from 18 to 30 members: 18/40 = 45% to 30/40 = 75%. An exact value is not determined.",
+          "The record states: “The lists have not been matched across days; the number attending both is unrecorded.” Missing does not mean zero or independent attendance. Match the two membership lists to establish x; then use (30 − x)/40. These conclusions apply only to the stable named population, not visits or people outside it."
+        ],
+        "rubric": [
+          {
+            "label": "Identify the common population and counting unit",
+            "exemplary": "“volunteer team”: 40 members; “Saturday training”: 18; “Sunday training”: 12. Common population: “A fictional team has 40 volunteers; the roster is unchanged across both days and training is open only to them.” Within-event counting: “Saturday lists 18 people and Sunday lists 12; each list counts each person only once.”",
+            "proficient": "Labels all counts correctly but leaves population stability or within-event deduplication unsupported.",
+            "developing": "Identifies one event count but does not establish the population or distinguish people from attendances.",
+            "beginning": "Mixes visits, memberships or changing populations, or invents a count.",
+            "feedback": "Label each count and cite the common roster and within-event deduplication before forming sets."
+          },
+          {
+            "label": "Derive sharp bounds and construct both endpoints",
+            "exemplary": "Let x count members in both events. The union is 18 + 12 − x = 30 − x. Since x cannot exceed either event and the union cannot exceed 40, 0 ≤ x ≤ 12. Minimum union: 18, giving 18/40 = 45%. A feasible allocation is only “Saturday training”: 6; only “Sunday training”: 0; both: 12; neither: 22. These nonnegative groups sum to 40 and reproduce both event counts. Maximum union: 30, giving 30/40 = 75%. A feasible allocation is only “Saturday training”: 18; only “Sunday training”: 12; both: 0; neither: 10. These nonnegative groups sum to 40 and reproduce both event counts. The attainable union ranges from 18 to 30 members: 18/40 = 45% to 30/40 = 75%. An exact value is not determined.",
+            "proficient": "Gives 18–30 and the matching proportions, but does not construct both feasible endpoints.",
+            "developing": "Recognizes double counting but derives only one bound or omits the population cap.",
+            "beginning": "Adds event counts as unique members without checking overlap, or gives impossible bounds.",
+            "feedback": "Use x for the overlap; make four nonnegative groups for each endpoint and check both event totals and the roster."
+          },
+          {
+            "label": "Distinguish missing evidence from inferred constraints",
+            "exemplary": "The attainable union ranges from 18 to 30 members: 18/40 = 45% to 30/40 = 75%. An exact value is not determined. The record states: “The lists have not been matched across days; the number attending both is unrecorded.” Missing does not mean zero or independent attendance. Match the two membership lists to establish x; then use (30 − x)/40. These conclusions apply only to the stable named population, not visits or people outside it.",
+            "proficient": "Names the missing overlap and states whether the answer is exact, but does not explain how to establish membership.",
+            "developing": "Says information is missing without identifying what remains computable.",
+            "beginning": "Assumes zero overlap or independence, or presents a possible endpoint as an observed fact.",
+            "feedback": "State what the bounds prove and what the lists would establish; do not turn an unknown into zero."
+          }
+        ],
+        "feedback": "Use x for the overlap; make four nonnegative groups for each endpoint and check both event totals and the roster.",
+        "verification": {
+          "method": "same-reviewed-union-operation",
+          "scope": "Fictional independent practice; exact arithmetic, not observed learning outcomes."
+        },
+        "provenance": {
+          "kind": "explicitly-fictional-compiler-practice",
+          "externalFactualClaim": false
+        },
+        "criteria": [
+          "“volunteer team”: 40 members; “Saturday training”: 18; “Sunday training”: 12. Common population: “A fictional team has 40 volunteers; the roster is unchanged across both days and training is open only to them.” Within-event counting: “Saturday lists 18 people and Sunday lists 12; each list counts each person only once.”",
+          "Let x count members in both events. The union is 18 + 12 − x = 30 − x. Since x cannot exceed either event and the union cannot exceed 40, 0 ≤ x ≤ 12. Minimum union: 18, giving 18/40 = 45%. A feasible allocation is only “Saturday training”: 6; only “Sunday training”: 0; both: 12; neither: 22. These nonnegative groups sum to 40 and reproduce both event counts. Maximum union: 30, giving 30/40 = 75%. A feasible allocation is only “Saturday training”: 18; only “Sunday training”: 12; both: 0; neither: 10. These nonnegative groups sum to 40 and reproduce both event counts. The attainable union ranges from 18 to 30 members: 18/40 = 45% to 30/40 = 75%. An exact value is not determined.",
+          "The attainable union ranges from 18 to 30 members: 18/40 = 45% to 30/40 = 75%. An exact value is not determined. The record states: “The lists have not been matched across days; the number attending both is unrecorded.” Missing does not mean zero or independent attendance. Match the two membership lists to establish x; then use (30 − x)/40. These conclusions apply only to the stable named population, not visits or people outside it."
+        ]
+      },
+      {
+        "id": "task-c08f99e67ef936d3:revision",
+        "kind": "feedback-retry",
+        "question": "After feedback, identify the first incorrect or missing reasoning step. Correct that step, then write the complete revised response without copying the key.",
+        "answer": "“volunteer team”: 40 members; “Saturday training”: 18; “Sunday training”: 12. Common population: “A fictional team has 40 volunteers; the roster is unchanged across both days and training is open only to them.” Within-event counting: “Saturday lists 18 people and Sunday lists 12; each list counts each person only once.” Let x count members in both events. The union is 18 + 12 − x = 30 − x. Since x cannot exceed either event and the union cannot exceed 40, 0 ≤ x ≤ 12. Minimum union: 18, giving 18/40 = 45%. A feasible allocation is only “Saturday training”: 6; only “Sunday training”: 0; both: 12; neither: 22. These nonnegative groups sum to 40 and reproduce both event counts. Maximum union: 30, giving 30/40 = 75%. A feasible allocation is only “Saturday training”: 18; only “Sunday training”: 12; both: 0; neither: 10. These nonnegative groups sum to 40 and reproduce both event counts. The attainable union ranges from 18 to 30 members: 18/40 = 45% to 30/40 = 75%. An exact value is not determined. The record states: “The lists have not been matched across days; the number attending both is unrecorded.” Missing does not mean zero or independent attendance. Match the two membership lists to establish x; then use (30 − x)/40. These conclusions apply only to the stable named population, not visits or people outside it.",
+        "feedback": "Use x for the overlap; make four nonnegative groups for each endpoint and check both event totals and the roster."
+      }
+    ],
+    "revision": "4e26ee8ab5f17f9fa3d02a117e742e6feffd6c61743b41bfc077cd3c11b276be"
+  },
+  "materials": [
+    {
+      "feature": "syllabus",
+      "version": 6,
+      "conflicts": 0
+    },
+    {
+      "feature": "lessonPlans",
+      "version": 6,
+      "conflicts": 0
+    },
+    {
+      "feature": "slideDecks",
+      "version": 6,
+      "conflicts": 0
+    },
+    {
+      "feature": "assignments",
+      "version": 6,
+      "conflicts": 0
+    },
+    {
+      "feature": "rubrics",
+      "version": 6,
+      "conflicts": 0
+    },
+    {
+      "feature": "discussions",
+      "version": 6,
+      "conflicts": 0
+    },
+    {
+      "feature": "quizBank",
+      "version": 6,
+      "conflicts": 0
+    },
+    {
+      "feature": "studyGuides",
+      "version": 6,
+      "conflicts": 0
+    },
+    {
+      "feature": "courseFaq",
+      "version": 6,
+      "conflicts": 0
+    }
+  ],
+  "baselineCommit": "381dec85",
+  "legacyPresentationHashes": {
+    "en-3": "75565fa1a0ebeb3fae3927c5790fcc23a403f413fb4a6cd3ea200c8018650808",
+    "en-4": "31024ed7f3d0a6c2cbfac5541cbd4ea5995f966e339510caec7e903d6ccf4030",
+    "en-5": "e944d33e3df4ef7deea7e9ede56bbb92d461bda4af242030a94fe91c75a02685",
+    "zh-3": "5eafc747fdb5e962d598311042652998dad49945fa88591fa09ee69c2f0a3484",
+    "zh-4": "bf1687d2deb514c518c2925d8f1c493b1e0c2ad0120c5b54c20b61e8ef48c02f",
+    "zh-5": "6862f777d8048bd2dc9f11e2cd73adc01c77163bec4445ffbfbed87fee11baed"
+  },
+  "legacyBytesUnchanged": true,
+  "pdfAudit": {
+    "artifacts": {
+      "assignments": {
+        "path": ".audit-work/v0200-teaching-system/union-v6/assignments.pdf",
+        "sha256": "0e879bd685914551992b5217b93105510da415705b7e3ffe92c99828fe9ee13b",
+        "pages": 3,
+        "allPagesVisuallyReviewed": true,
+        "beforeSha256": "1345da8f1eeed08ec7807226691ea9cd8535d3afddd1504ab9939a28482b46fc"
+      },
+      "rubrics": {
+        "path": ".audit-work/v0200-teaching-system/union-v6/rubrics.pdf",
+        "sha256": "89de1fbacf70d4cbbfbfaef66b226fe9288a551529a1e93b27be45bbd83e97ab",
+        "pages": 3,
+        "allPagesVisuallyReviewed": true,
+        "beforeSha256": "732e965d287ec715924678e8dd5ebe06aa5c0dd4bef758ee2a2c47ed2b2f26f1"
+      }
+    },
+    "initialFindings": [
+      "Rubric operation header was isolated at the foot of page one.",
+      "Operation excellent descriptor repeated the full answer; references formed dense paragraphs.",
+      "Assignment had no designated response paper."
+    ],
+    "finalReview": "All six final pages inspected: distinct student response page and reference page, rubric header retained with first criterion row, no clipping observed. Teacher reference remains comparatively dense.",
+    "reviewer": "implementer",
+    "independentTeacherReview": false,
+    "language": "English real model source; Chinese contract and legacy replay tested, not visually audited in this revision."
+  },
+  "verification": {
+    "studio": 58,
+    "compatibility": 681,
+    "scion": 898,
+    "typecheck": "passed",
+    "lint": "passed",
+    "build": "passed",
+    "bundle": "passed",
+    "newModelCalls": 0,
+    "savedSourceUpgrade": "Nine materials, version 6, no conflicts; original task/source identities retained",
+    "limits": [
+      "Not a new natural generation run or fresh acceptance unit",
+      "No complete-course or Word/PPTX visual acceptance",
+      "Version 0.19.2 remains; v0.20.0 not released"
+    ]
+  }
+}

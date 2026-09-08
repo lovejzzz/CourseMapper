@@ -1862,7 +1862,9 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         const responseSource = expanded.teachingTaskSources?.find(
           (source) =>
             source.id === a.taskId &&
-            (source.operationPlan?.version === 2 || source.operationPlan?.operation === 'paired-condition-confound'),
+            (source.operationPlan?.version === 2 ||
+              source.operationPlan?.operation === 'paired-condition-confound' ||
+              (source.operationPlan?.operation === 'union-bounds' && source.operationPlan.presentationVersion >= 6)),
         );
         if (responseSource) {
           const zh = /\p{Script=Han}/u.test(responseSource.objective);
@@ -1870,13 +1872,21 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             responseSource.operationPlan.version === 2 ? responseSource.operationPlan.requirements : null;
           const responseSections = reviewedRequirements?.length
             ? reviewedRequirements.map((requirement) => requirement.label)
-            : zh
-              ? ['原比较与归因边界', '建议方案：分配、条件与测量', '空白记录表、比较方法与结论边界']
-              : [
-                  'Original comparison and causal limits',
-                  'Proposed allocation, conditions and measurement',
-                  'Blank record layout, comparison and conclusion limits',
-                ];
+            : responseSource.operationPlan.operation === 'union-bounds'
+              ? zh
+                ? ['交集、并集范围及配对关系', '两端分组与全部中间整数的可行性', '已知界限、未知成员关系与所需证据']
+                : [
+                    'Intersection and union ranges and their pairing',
+                    'Endpoint allocations and all intermediate integers',
+                    'Known bounds, unknown membership and further evidence',
+                  ]
+              : zh
+                ? ['原比较与归因边界', '建议方案：分配、条件与测量', '空白记录表、比较方法与结论边界']
+                : [
+                    'Original comparison and causal limits',
+                    'Proposed allocation, conditions and measurement',
+                    'Blank record layout, comparison and conclusion limits',
+                  ];
           children.push(makeSubHeading(zh ? '作答区' : 'Your Response'));
           for (const title of responseSections) {
             children.push(makeBold(title, '', { keepNext: true }));
