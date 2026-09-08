@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { saveAs } from 'file-saver';
 import TeachingResponseReview from '../shared/TeachingResponseReview.jsx';
+import TeachingResponseCsvImport from '../shared/TeachingResponseCsvImport.jsx';
 import { buildSharedTeachingTask } from '../../../lib/compilerTeachingTask.js';
 import { teachingTaskSourceFromLesson } from '../../../lib/teachingTaskSource.js';
 vi.mock('file-saver', () => ({ saveAs: vi.fn() }));
@@ -114,4 +115,33 @@ it('retains an unsaved response after storage failure and permits retry', async 
   await click(button('Save response locally'));
   expect(saved.size).toBe(1);
   expect(input('New response').value).toBe('');
+});
+
+it('previews CSV before atomic import and keeps the preview available after a failed save', async () => {
+  const onImported = vi.fn();
+  store.addBatch = vi.fn().mockRejectedValueOnce(new Error('Quota exceeded')).mockResolvedValueOnce(undefined);
+  await act(async () =>
+    root.render(<TeachingResponseCsvImport source={source} zh={false} store={store} onImported={onImported} />),
+  );
+  const file = new File(['response\n"Anonymous answer one"\n"Anonymous answer two"'], 'responses.csv', {
+    type: 'text/csv',
+  });
+  await act(async () => {
+    const picker = container.querySelector('input[type="file"]');
+    Object.defineProperty(picker, 'files', { configurable: true, value: [file] });
+    picker.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  expect(container.textContent).toContain('2 responses');
+  expect(container.textContent).toContain('Anonymous answer two');
+  expect(store.addBatch).not.toHaveBeenCalled();
+  expect(button('Import to this device').disabled).toBe(true);
+  await click(input('These anonymous responses'));
+  await click(button('Import to this device'));
+  expect(container.textContent).toContain('Quota exceeded');
+  expect(container.textContent).toContain('Anonymous answer two');
+  expect(onImported).not.toHaveBeenCalled();
+  await click(button('Import to this device'));
+  expect(onImported).toHaveBeenCalledOnce();
+  expect(onImported.mock.calls[0][0].map((r) => r.response)).toEqual(['Anonymous answer one', 'Anonymous answer two']);
+  expect(container.textContent).not.toContain('2 responses');
 });

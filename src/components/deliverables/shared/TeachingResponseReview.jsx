@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { saveAs } from 'file-saver';
+import TeachingResponseCsvImport from './TeachingResponseCsvImport.jsx';
 import { createTeachingResponseStore } from '../../../lib/teachingResponseStore.js';
 import {
   createResponseReview,
@@ -115,6 +116,15 @@ export default function TeachingResponseReview({ source, zh, disabled, store: su
               >
                 {t('Save response locally', '在本机保存作答')}
               </button>
+              <TeachingResponseCsvImport
+                source={source}
+                store={store}
+                zh={zh}
+                onImported={async (imported) => {
+                  select(imported[0]);
+                  await refresh();
+                }}
+              />
             </>
           )}
           <label className="block">

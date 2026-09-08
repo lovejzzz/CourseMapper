@@ -68,11 +68,27 @@
           if (!rejected) throw new Error('Stale save accepted');
           const restored = (await store.list()).records.find((r) => r.id === first.id);
           if (restored.judgments.length !== 1) throw new Error('Conflict lost teacher judgment');
+          const batchOne = createResponseReview(source, 'Synthetic batch response one.');
+          const batchTwo = createResponseReview(source, 'Synthetic batch response two.');
+          await store.addBatch([batchOne, batchTwo]);
+          const candidate = createResponseReview(source, 'Must roll back with duplicate batch.');
+          let batchRejected = false;
+          try {
+            await store.addBatch([candidate, batchOne]);
+          } catch {
+            batchRejected = true;
+          }
+          if (!batchRejected || (await store.list()).records.some((r) => r.id === candidate.id))
+            throw new Error('Batch rollback failed');
+          await store.remove(batchOne.id);
+          await store.remove(batchTwo.id);
           await store.remove(first.id);
           if ((await reopened.list()).records.some((r) => r.id === first.id)) throw new Error('Delete failed');
           output.textContent = JSON.stringify(
             {
               passed: [
+                'atomic batch insertion',
+                'duplicate batch rollback without partial import',
                 'native save',
                 'new connection reopen',
                 'teacher judgment persistence',

@@ -43,6 +43,26 @@ export function createTeachingResponseStore(
     });
   }
   return {
+    async addBatch(records) {
+      if (
+        !Array.isArray(records) ||
+        !records.length ||
+        records.length > 50 ||
+        new Set(records.map((r) => r.id)).size !== records.length
+      )
+        throw new Error('Import 1–50 distinct response records.');
+      records.forEach(validateResponseReview);
+      const db = await database();
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction('reviews', 'readwrite');
+        tx.oncomplete = () => resolve();
+        tx.onerror = tx.onabort = () =>
+          reject(tx.error || new Error('No responses were imported. Local storage failed.'));
+        const store = tx.objectStore('reviews');
+        // add, not put: a duplicate identity aborts the entire import.
+        records.forEach((record) => store.add(record));
+      });
+    },
     async list() {
       const rows = await transact('readonly', (store) => store.getAll());
       const valid = [],

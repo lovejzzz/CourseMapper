@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { buildSharedTeachingTask } from '../compilerTeachingTask.js';
 import { teachingTaskSourceFromLesson } from '../teachingTaskSource.js';
+import { parseResponseCsv, prepareResponseCsv } from '../teachingResponseCsv.js';
 import {
   createResponseReview,
   confirmResponseJudgment,
@@ -41,6 +42,33 @@ function judgment(record, overrides = {}) {
 }
 
 describe('separate local student-response reviews', () => {
+  it('imports quoted commas, newlines and escaped quotes without altering response text', () => {
+    expect(parseResponseCsv('\uFEFFresponse\r\n"First, second"\r\n"Two\nlines and ""quotes"""\r\n')).toEqual([
+      'First, second',
+      'Two\nlines and "quotes"',
+    ]);
+    expect(parseResponseCsv('作答\n这是匿名作答\n')).toEqual(['这是匿名作答']);
+  });
+  it('rejects identity columns, malformed quotes, blank records and oversized batches', () => {
+    for (const csv of [
+      'name,response\nAlex,Answer',
+      'response\n"unclosed',
+      'response\n"answer"junk',
+      'response\n\n',
+      'response\nanswer,extra',
+      'response\n' + Array(51).fill('Answer').join('\n'),
+      'response\n' + 'x'.repeat(20001),
+    ])
+      expect(() => parseResponseCsv(csv)).toThrow();
+  });
+  it('keeps distinct anonymous responses attached to the same source and rubric snapshot', () => {
+    const batch = prepareResponseCsv(source(), 'response\nAnswer one\nAnswer two');
+    expect(new Set(batch.map((r) => r.id)).size).toBe(2);
+    expect(batch[0].sourceRevision).toBe(batch[1].sourceRevision);
+    expect(batch[0].rubricRevision).toBe(batch[1].rubricRevision);
+    expect(batch.map((r) => r.response)).toEqual(['Answer one', 'Answer two']);
+    batch.forEach((r) => expect(validateResponseReview(r)).toBe(r));
+  });
   it('freezes the original task and rubric independently of later source edits', () => {
     const input = source();
     const record = createResponseReview(input, '90 seats');
