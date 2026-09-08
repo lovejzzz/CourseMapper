@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Complete the 36-case v3 development corpus across quantity, source reasoning and experiment design, including bilingual boundary cases, concrete contrasting answers and edit expectations. Preserve prior references before adding missing contrasts; independently check arithmetic and resource allocations. The 24 reserved cases, corpus freeze and full product runs remain pending.
+
 - Preserve response-led feedback associations in the private local notebook across draft reloads. Match the exact restored draft before attaching the applied revision, retain the original motivating judgment and newer teacher judgments, and keep the selected criterion after saving. Verify an actual Chrome reload/apply/history flow without copying anonymous responses into the course file.
 
 - Connect reviewed pooling to bounded local source questions on the verified runtime. Repair unresolved part/whole pairs before dependent questions, preserve unknown totals, and recover only unique sentence-initial capitalization differences. Retain failed first trials, verify actual Chinese browser adoption, and audit twelve model-derived PDF pages. Full-course and release acceptance remain pending.

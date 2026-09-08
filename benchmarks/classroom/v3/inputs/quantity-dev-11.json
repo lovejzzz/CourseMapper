@@ -1,0 +1,14 @@
+{
+  "request": "Prepare materials whose answer key states the exact proportion of all inspected crates meeting the bruise standard across the two teams. Give one exact percentage for the combined teams.",
+  "objective": "Calculate a combined crate-level inspection proportion from the two team records.",
+  "sources": [
+    {
+      "id": "record-1",
+      "text": "Fictional orchard quality log: Team North inspected forty crates and twelve met the bruise standard. Team South reports eighteen crates meeting the same standard but its total number inspected was not recorded."
+    },
+    {
+      "id": "record-2",
+      "text": "Both teams used the same standard on Tuesday. Crates had unique IDs and were allocated to one team only. No crate appeared in both reports. There is no additional record of Team South inspection totals."
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "id": "quantity-dev-05",
+  "split": "development",
+  "family": "quantity",
+  "language": "en",
+  "sourceFamily": "solar-lamp-bench-sample",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "The tested subset proportion is 27/45=3/5=60%. The fleet proportion is not determined. 27/90=30% is only a lower bound if tested successes are included in the same fleet; at most 72/90=80% could pass. Bounds are acceptable enrichment, not required by the request. A full report requires testing the remaining 45 by the same standard with lamp identities retained.",
+  "acceptableReasoning": [
+    "Identify 27 as tested successes and 45 as tested lamps, not fleet size.",
+    "The untested lamps are unknown, not failed.",
+    "The access-based subset gives no stated design supporting an unbiased fleet estimate.",
+    "Propose testing rear-storage IDs with the same ten-minute standard and retain failed, passed and still-missing statuses."
+  ],
+  "reject": [
+    "60% as a verified fleet rate",
+    "30% as the exact fleet rate",
+    "Assert all untested lamps failed",
+    "Claim random sampling or a confidence interval from an access sample"
+  ],
+  "requiredScoring": [
+    "Correct tested fraction and units",
+    "Distinguish observed scope from fleet scope",
+    "Specify the missing collection, standard and identity coverage"
+  ],
+  "contrastResponses": [
+    {
+      "response": "Twenty-seven of 45 tested lamps passed, so the observed proportion is 60%. The rear 45 are untested, so the fleet rate remains unknown. Test their unique IDs using the same ten-minute standard and retain unresolved outcomes.",
+      "judgment": "Complete: calculation, coverage and actionable follow-up are linked to these records."
+    },
+    {
+      "response": "The answer is 60%; more data would help.",
+      "judgment": "Partial: correct observed percentage but no explicit tested scope or defined follow-up."
+    },
+    {
+      "response": "Only 27 of the 90 worked, giving exactly 30%.",
+      "judgment": "Misconception: silently classifies untested lamps as failures; require a separate unknown category."
+    },
+    {
+      "response": "A table can list front rack: 27 pass, 18 fail; rear rack: 45 unknown. The first row gives 60%; do not fill in a fleet percentage until rear tests are recorded.",
+      "judgment": "Alternative tabular explanation earns equivalent credit; no particular wording or extra bounds are required."
+    }
+  ],
+  "editCheck": "Change observed successes to 36 of the same 45 tested lamps. Observed result becomes80%; the fleet result remains unknown. The optional fleet bounds become40%–90%. Do not transform a count edit into evidence that the rear rack was tested.",
+  "inputIsolation": "Only request, objective and sources enter the product. This evaluator reference is not supplied to Scion. These are exposed development cases, not independent classroom evidence."
+}

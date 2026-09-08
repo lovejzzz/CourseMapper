@@ -1,0 +1,640 @@
+{
+  "reviewer": "implementer",
+  "productRuns": 0,
+  "modelCalls": 0,
+  "inputNumbers": "Manually transcribed from source records; not inferred by the product.",
+  "quantity": [
+    {
+      "id": "quantity-dev-01",
+      "operation": "pooling",
+      "counts": [
+        9,
+        12,
+        12,
+        48
+      ],
+      "pooled": {
+        "exact": "7/20",
+        "percentage": 35.0
+      },
+      "equalGroups": {
+        "exact": "1/2",
+        "percentage": 50.0
+      },
+      "editedCounts": [
+        9,
+        12,
+        24,
+        48
+      ],
+      "editedPooled": {
+        "exact": "11/20",
+        "percentage": 55.0
+      },
+      "editedEqualGroups": {
+        "exact": "5/8",
+        "percentage": 62.5
+      }
+    },
+    {
+      "id": "quantity-dev-02",
+      "operation": "union",
+      "counts": [
+        50,
+        35,
+        30
+      ],
+      "before": {
+        "bounds": [
+          15,
+          30,
+          35,
+          50
+        ],
+        "feasibleIntegerAllocations": 16,
+        "endpointWitnesses": [
+          {
+            "overlap": 15,
+            "union": 50,
+            "cells": [
+              20,
+              15,
+              15,
+              0
+            ]
+          },
+          {
+            "overlap": 30,
+            "union": 35,
+            "cells": [
+              5,
+              0,
+              30,
+              15
+            ]
+          }
+        ]
+      },
+      "editedCounts": [
+        50,
+        35,
+        20
+      ],
+      "after": {
+        "bounds": [
+          5,
+          20,
+          35,
+          50
+        ],
+        "feasibleIntegerAllocations": 16,
+        "endpointWitnesses": [
+          {
+            "overlap": 5,
+            "union": 50,
+            "cells": [
+              30,
+              15,
+              5,
+              0
+            ]
+          },
+          {
+            "overlap": 20,
+            "union": 35,
+            "cells": [
+              15,
+              0,
+              20,
+              15
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "quantity-dev-03",
+      "operation": "union",
+      "counts": [
+        28,
+        19,
+        17
+      ],
+      "before": {
+        "bounds": [
+          8,
+          17,
+          19,
+          28
+        ],
+        "feasibleIntegerAllocations": 10,
+        "endpointWitnesses": [
+          {
+            "overlap": 8,
+            "union": 28,
+            "cells": [
+              11,
+              9,
+              8,
+              0
+            ]
+          },
+          {
+            "overlap": 17,
+            "union": 19,
+            "cells": [
+              2,
+              0,
+              17,
+              9
+            ]
+          }
+        ]
+      },
+      "editedCounts": [
+        28,
+        19,
+        21
+      ],
+      "after": {
+        "bounds": [
+          12,
+          19,
+          21,
+          28
+        ],
+        "feasibleIntegerAllocations": 8,
+        "endpointWitnesses": [
+          {
+            "overlap": 12,
+            "union": 28,
+            "cells": [
+              7,
+              9,
+              12,
+              0
+            ]
+          },
+          {
+            "overlap": 19,
+            "union": 21,
+            "cells": [
+              0,
+              2,
+              19,
+              7
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "quantity-dev-04",
+      "operation": "pooling",
+      "counts": [
+        18,
+        24,
+        20,
+        80
+      ],
+      "pooled": {
+        "exact": "19/52",
+        "percentage": 36.53846153846154
+      },
+      "equalGroups": {
+        "exact": "1/2",
+        "percentage": 50.0
+      },
+      "editedCounts": [
+        18,
+        24,
+        40,
+        80
+      ],
+      "editedPooled": {
+        "exact": "29/52",
+        "percentage": 55.76923076923077
+      },
+      "editedEqualGroups": {
+        "exact": "5/8",
+        "percentage": 62.5
+      }
+    },
+    {
+      "id": "quantity-dev-05",
+      "operation": "observed-subset",
+      "counts": [
+        27,
+        45,
+        90
+      ],
+      "observed": {
+        "exact": "3/5",
+        "percentage": 60.0
+      },
+      "populationExact": null,
+      "optionalPopulationBounds": [
+        {
+          "exact": "3/10",
+          "percentage": 30.0
+        },
+        {
+          "exact": "4/5",
+          "percentage": 80.0
+        }
+      ],
+      "editedObserved": {
+        "exact": "4/5",
+        "percentage": 80.0
+      },
+      "editedPopulationExact": null
+    },
+    {
+      "id": "quantity-dev-06",
+      "operation": "union",
+      "counts": [
+        34,
+        0,
+        13
+      ],
+      "before": {
+        "bounds": [
+          0,
+          0,
+          13,
+          13
+        ],
+        "feasibleIntegerAllocations": 1,
+        "endpointWitnesses": [
+          {
+            "overlap": 0,
+            "union": 13,
+            "cells": [
+              0,
+              13,
+              0,
+              21
+            ]
+          },
+          {
+            "overlap": 0,
+            "union": 13,
+            "cells": [
+              0,
+              13,
+              0,
+              21
+            ]
+          }
+        ]
+      },
+      "editedCounts": [
+        34,
+        8,
+        13
+      ],
+      "after": {
+        "bounds": [
+          0,
+          8,
+          13,
+          21
+        ],
+        "feasibleIntegerAllocations": 9,
+        "endpointWitnesses": [
+          {
+            "overlap": 0,
+            "union": 21,
+            "cells": [
+              8,
+              13,
+              0,
+              13
+            ]
+          },
+          {
+            "overlap": 8,
+            "union": 13,
+            "cells": [
+              0,
+              5,
+              8,
+              21
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "quantity-dev-07",
+      "operation": "pooling",
+      "counts": [
+        2,
+        8,
+        7,
+        28
+      ],
+      "pooled": {
+        "exact": "1/4",
+        "percentage": 25.0
+      },
+      "equalGroups": {
+        "exact": "1/4",
+        "percentage": 25.0
+      },
+      "editedCounts": [
+        2,
+        8,
+        14,
+        28
+      ],
+      "editedPooled": {
+        "exact": "4/9",
+        "percentage": 44.44444444444444
+      },
+      "editedEqualGroups": {
+        "exact": "3/8",
+        "percentage": 37.5
+      }
+    },
+    {
+      "id": "quantity-dev-08",
+      "operation": "observed-subset",
+      "counts": [
+        18,
+        30,
+        80
+      ],
+      "observed": {
+        "exact": "3/5",
+        "percentage": 60.0
+      },
+      "populationExact": null,
+      "optionalPopulationBounds": [
+        {
+          "exact": "9/40",
+          "percentage": 22.5
+        },
+        {
+          "exact": "17/20",
+          "percentage": 85.0
+        }
+      ],
+      "editedObserved": {
+        "exact": "2/5",
+        "percentage": 40.0
+      },
+      "editedPopulationExact": null
+    },
+    {
+      "id": "quantity-dev-09",
+      "operation": "union",
+      "counts": [
+        60,
+        60,
+        22
+      ],
+      "before": {
+        "bounds": [
+          22,
+          22,
+          60,
+          60
+        ],
+        "feasibleIntegerAllocations": 1,
+        "endpointWitnesses": [
+          {
+            "overlap": 22,
+            "union": 60,
+            "cells": [
+              38,
+              0,
+              22,
+              0
+            ]
+          },
+          {
+            "overlap": 22,
+            "union": 60,
+            "cells": [
+              38,
+              0,
+              22,
+              0
+            ]
+          }
+        ]
+      },
+      "editedCounts": [
+        60,
+        50,
+        22
+      ],
+      "after": {
+        "bounds": [
+          12,
+          22,
+          50,
+          60
+        ],
+        "feasibleIntegerAllocations": 11,
+        "endpointWitnesses": [
+          {
+            "overlap": 12,
+            "union": 60,
+            "cells": [
+              38,
+              10,
+              12,
+              0
+            ]
+          },
+          {
+            "overlap": 22,
+            "union": 50,
+            "cells": [
+              28,
+              0,
+              22,
+              10
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "quantity-dev-10",
+      "operation": "pooling",
+      "counts": [
+        0,
+        12,
+        9,
+        18
+      ],
+      "pooled": {
+        "exact": "3/10",
+        "percentage": 30.0
+      },
+      "equalGroups": {
+        "exact": "1/4",
+        "percentage": 25.0
+      },
+      "editedCounts": [
+        6,
+        12,
+        9,
+        18
+      ],
+      "editedPooled": {
+        "exact": "1/2",
+        "percentage": 50.0
+      },
+      "editedEqualGroups": {
+        "exact": "1/2",
+        "percentage": 50.0
+      }
+    }
+  ],
+  "experimentResources": [
+    {
+      "id": "experiment-dev-01",
+      "available": 32,
+      "primary": [
+        16,
+        16
+      ],
+      "alternative": [
+        8,
+        8,
+        8,
+        8
+      ]
+    },
+    {
+      "id": "experiment-dev-02",
+      "available": 24,
+      "primary": [
+        12,
+        12
+      ],
+      "alternative": [
+        6,
+        6,
+        6,
+        6
+      ]
+    },
+    {
+      "id": "experiment-dev-03",
+      "available": 21,
+      "primary": [
+        11,
+        10
+      ],
+      "alternative": [
+        10,
+        10,
+        1
+      ]
+    },
+    {
+      "id": "experiment-dev-04",
+      "available": 24,
+      "primary": [
+        12,
+        12
+      ],
+      "alternative": [
+        6,
+        6,
+        6,
+        6
+      ]
+    },
+    {
+      "id": "experiment-dev-05",
+      "available": 30,
+      "primary": [
+        15,
+        15
+      ],
+      "alternative": [
+        7,
+        7,
+        8,
+        8
+      ]
+    },
+    {
+      "id": "experiment-dev-06",
+      "available": 20,
+      "primary": [
+        10,
+        10
+      ],
+      "alternative": [
+        5,
+        5,
+        5,
+        5
+      ]
+    },
+    {
+      "id": "experiment-dev-07",
+      "available": 24,
+      "primary": [
+        12,
+        12
+      ],
+      "alternative": [
+        6,
+        6,
+        6,
+        6
+      ]
+    },
+    {
+      "id": "experiment-dev-08",
+      "available": 18,
+      "primary": [
+        9,
+        9
+      ],
+      "alternative": [
+        4,
+        4,
+        5,
+        5
+      ]
+    },
+    {
+      "id": "experiment-dev-09",
+      "available": 16,
+      "primary": [
+        8,
+        8
+      ],
+      "alternative": [
+        4,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "id": "experiment-dev-10",
+      "available": 20,
+      "primary": [
+        10,
+        10
+      ],
+      "alternative": [
+        5,
+        5,
+        5,
+        5
+      ]
+    }
+  ],
+  "limits": "Exact rational arithmetic and exhaustive integer witnesses only. No model, complete-course, export or independent classroom acceptance claim."
+}

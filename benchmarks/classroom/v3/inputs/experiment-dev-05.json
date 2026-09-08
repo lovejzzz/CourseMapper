@@ -1,0 +1,18 @@
+{
+  "request": "Make an editable lesson in which students diagnose the comparison and plan a new weave comparison with a recording table. Require a feasible method, not collected results.",
+  "objective": "Control immersion depth when comparing fabric weaves and distinguish independent strips from repeated ruler readings.",
+  "sources": [
+    {
+      "id": "record-1",
+      "text": "Fictional textile club note: plain-weave strips immersed2cm showed a mean wetting height of7cm after5minutes; twill strips immersed4cm showed a mean of10cm. The original strip count and individual readings are absent."
+    },
+    {
+      "id": "record-2",
+      "text": "There are thirty new strips, fifteen of each weave, of equal length, width and fibre composition. Each strip is used once. Identical containers can hold water at a common temperature, and either immersion depth can be used for both weaves. Keep liquid volume and five-minute timing identical."
+    },
+    {
+      "id": "record-3",
+      "text": "Assign strip IDs and randomly assign test order and container positions. Measure the wet front above the water surface at five minutes using the same ruler rule. Record strip ID, weave, depth, position, order and height; repeated ruler checks do not create new strips. No follow-up measurements are supplied."
+    }
+  ]
+}

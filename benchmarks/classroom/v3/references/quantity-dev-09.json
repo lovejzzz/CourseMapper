@@ -1,0 +1,47 @@
+{
+  "id": "quantity-dev-09",
+  "split": "development",
+  "family": "quantity",
+  "language": "en",
+  "sourceFamily": "association-full-attendance",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "The briefing includes all60 members. Every one of the22 workshop members therefore also attended the briefing. Intersection22, union60. Four-cell allocation: briefing-only38, workshop-only0, both22, neither0. Names are unnecessary for these counts; opinions remain unknown.",
+  "acceptableReasoning": [
+    "Establish that the briefing count equals the stable population and both lists use that population.",
+    "Use subset inclusion or22≤intersection≤22.",
+    "Show the complete allocation and distinguish attendance from opinions."
+  ],
+  "reject": [
+    "Union82 unique people",
+    "Intersection could be0",
+    "All60 attended the workshop",
+    "Infer popularity from attendance"
+  ],
+  "requiredScoring": [
+    "Correct scope and deduplication",
+    "Exact intersection/union with a logical witness",
+    "No unsupported opinion or participation claims"
+  ],
+  "contrastResponses": [
+    {
+      "response": "All60 registered members attended the briefing, so the22 workshop attendees must be among them. Both22, either60, briefing-only38 and neither0. Their opinions are not recorded.",
+      "judgment": "Complete: inclusion, allocation and interpretive boundary are clear."
+    },
+    {
+      "response": "Sixty attended something.",
+      "judgment": "Partial: union only, with no overlap or inclusion explanation."
+    },
+    {
+      "response": "There is no name matching, so overlap could be anywhere from0 to22.",
+      "judgment": "Misconception: ignores that one event covers the entire population; test a zero-overlap allocation against the60-member capacity."
+    },
+    {
+      "response": "The overlap bounds are max(0,60+22-60)=22 and min(60,22)=22. Both bounds coincide, so union=60.",
+      "judgment": "Valid alternative arithmetic derivation; require an allocation if the student task asks for one."
+    }
+  ],
+  "editCheck": "Change briefing count60 to50. Intersection12–22, union50–60; exact overlap22 is no longer justified. Allocations (38,10,12,0) and (28,0,22,10) witness the extremes.",
+  "inputIsolation": "Only request, objective and sources enter the product. This evaluator reference is not supplied to Scion. These are exposed development cases, not independent classroom evidence."
+}

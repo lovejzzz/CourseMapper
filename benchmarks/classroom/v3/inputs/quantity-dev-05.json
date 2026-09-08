@@ -1,0 +1,18 @@
+{
+  "request": "Create a 40-minute lesson. Students should report the working-lamp proportion that is supported by this test, explain its denominator, distinguish it from the fleet proportion, and propose a concrete record needed before reporting a fleet result.",
+  "objective": "Separate an observed subset proportion from an unobserved population result and specify the evidence needed to extend coverage.",
+  "sources": [
+    {
+      "id": "record-1",
+      "text": "Fictional maintenance log: the depot owns ninety solar lamps. The technician selected forty-five lamps from the accessible front rack for a bench test; twenty-seven of those lamps met the stated ten-minute illumination standard."
+    },
+    {
+      "id": "record-2",
+      "text": "The other forty-five lamps were in sealed rear storage and were not tested. No observations of their illumination were recorded. The front-rack selection was based on access, not random selection from the full fleet."
+    },
+    {
+      "id": "record-3",
+      "text": "All lamp IDs are unique. A fleet report must refer to these ninety lamps and the same illumination standard; this log contains no follow-up tests."
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "id": "quantity-dev-08",
+  "split": "development",
+  "family": "quantity",
+  "language": "zh",
+  "sourceFamily": "commuter-response-coverage",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "回应者中骑车比例18/30=60%。全班比例未知；18/80=22.5%仅是已知选择骑车者占全班的比例，不能称为完整全班骑车率。补齐50名未回答者对同一周、同一问题的答卷，保留未回应状态和身份去重。",
+  "acceptableReasoning": [
+    "用18骑车回应者和30有效回应者计算60%。",
+    "指出50人未知，不能按不骑车计算，也不能把自愿回应视为随机抽样。",
+    "具体定义后续对象、相同问题/时段和去重记录。",
+    "只在该班与本周解释结果。"
+  ],
+  "reject": [
+    "断言全班60%骑车",
+    "断言全班恰好22.5%骑车",
+    "把50未回应者归为步行",
+    "凭这些记录计算抽样置信区间"
+  ],
+  "requiredScoring": [
+    "分子分母与回应范围",
+    "缺失状态的正确解释",
+    "可执行且可核对的补充调查"
+  ],
+  "contrastResponses": [
+    {
+      "response": "18份骑车答卷除以30份有效答卷得到60%，仅代表回应者。其余50人的方式未知。对他们询问本周同一问题，按学生去重，并把继续未回应者单列。",
+      "judgment": "完整：计算、缺失边界和后续记录均明确。"
+    },
+    {
+      "response": "60%，以后再问一些人。",
+      "judgment": "部分：数值正确，但未解释范围或明确补充对象。"
+    },
+    {
+      "response": "未交答卷者不骑车，所以全班比例为22.5%。",
+      "judgment": "错误：将没有记录改写为否定结果；要求把未知与不骑车分开。"
+    },
+    {
+      "response": "可以画表：已回应30人中18骑车、12其他；未回应50人方式待定。只对第一行求比例，暂不填全班骑车率。",
+      "judgment": "合理替代：分类表足以支持同样判断；另需提出具体补充程序。"
+    }
+  ],
+  "editCheck": "若原30份有效答卷中骑车人数由18更正为12，回应者比例变40%，全班仍未知；不要把更正解释为新增50份答卷。",
+  "inputIsolation": "Only request, objective and sources enter the product. This evaluator reference is not supplied to Scion. These are exposed development cases, not independent classroom evidence."
+}

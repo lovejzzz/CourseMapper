@@ -1,0 +1,47 @@
+{
+  "id": "experiment-dev-11",
+  "split": "development",
+  "family": "experiment",
+  "language": "en",
+  "sourceFamily": "adhesive-sealed-fixture-resource-gap",
+  "scope": "needs-input",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "The requested ready-to-run randomized comparison cannot be specified with independently assignable units and a measurement from these resources. Adhesive, cabinet and fixture are inseparable, and destructive tests are prohibited. Identify missing manipulable fixtures and an allowable measurement; do not fabricate an allocation or silently count repeated views as independent trials.",
+  "acceptableProcedure": [
+    "Diagnose the adhesive/cabinet confound and two fixed units.",
+    "Explain that the available constraints prohibit the proposed randomization and test.",
+    "Request independent assignable fixtures, treatment resources and an allowed common outcome procedure; preserve the old descriptive comparison."
+  ],
+  "reject": [
+    "Randomly assign sealed fixtures to different adhesives",
+    "Repeat observations to create new independent units",
+    "Ignore the no-destructive-test constraint",
+    "Invent a measurement device or new specimens"
+  ],
+  "requiredScoring": [
+    "Diagnosis tied to the actual records and scope of the request",
+    "Executable allocation, independent units and controlled conditions, or a precise missing-condition explanation",
+    "Specified observations and interpretation without invented results"
+  ],
+  "contrastResponses": [
+    {
+      "response": "The sealed fixtures cannot change adhesive or cabinet and cannot be load-tested. A randomized adhesive comparison needs new assignable fixtures and a permitted common measurement. These records alone only describe two combined conditions.",
+      "judgment": "Correct limitation; not a completed experiment protocol."
+    },
+    {
+      "response": "We need more data.",
+      "judgment": "Partial: does not identify the design and resource constraints."
+    },
+    {
+      "response": "Use each sealed fixture ten times for ten randomized trials per adhesive.",
+      "judgment": "Critical error: invents random assignment and independent units and may violate the test restriction."
+    },
+    {
+      "response": "Even perfect repeated readings of these two fixed objects would leave adhesive confounded with cabinet and fixture identity.",
+      "judgment": "Valid explanation of why precision cannot repair identification; still specify the missing resources."
+    }
+  ],
+  "editCheck": "Changing the old Red median from12 to15 does not create assignable units or a legal measurement. The unsupported ready-to-run request must remain incomplete.",
+  "inputIsolation": "Only request, objective and sources enter the product. Evaluator-only reference; implementer-constructed exposed development evidence, not an independent teacher review."
+}

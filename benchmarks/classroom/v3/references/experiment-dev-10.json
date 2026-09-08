@@ -1,0 +1,48 @@
+{
+  "id": "experiment-dev-10",
+  "split": "development",
+  "family": "experiment",
+  "language": "zh",
+  "sourceFamily": "display-font-viewing-distance",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "字体与距离混杂。可随机分10/10卡片打印字体，在同一距离随机顺序拍摄并用固定逐位计分；两距离区组可每距离每字体5张。重复运行同一照片不会新增独立卡片，结论也不涉及人类阅读能力。",
+  "acceptableProcedure": [
+    "明确两个改变因素和丢失的旧原始记录。",
+    "独立单位为新卡片，控制字符串、字号和设备。",
+    "按逐位规则保留输出，区分零正确与无法读取。",
+    "比较卡片级分布，不预测具体新分数或诊断学生。"
+  ],
+  "reject": [
+    "A字体必使识别提高3个字符",
+    "同一照片识别20次当20张卡",
+    "无法读取填0以凑齐数据",
+    "把机器结果解释为学生视力"
+  ],
+  "requiredScoring": [
+    "Diagnosis tied to the actual records and scope of the request",
+    "Executable allocation, independent units and controlled conditions, or a precise missing-condition explanation",
+    "Specified observations and interpretation without invented results"
+  ],
+  "contrastResponses": [
+    {
+      "response": "随机给两字体各10张卡，同在40厘米拍摄，保持字符串字号设备一致，随机顺序。逐位计数并保留输出；不可读记缺失。旧差异也受距离影响，新结果未知。",
+      "judgment": "完整：资源、控制、测量和范围均一致。"
+    },
+    {
+      "response": "换更好的相机。",
+      "judgment": "部分且改变问题：没有说明如何公平比较字体。"
+    },
+    {
+      "response": "把A放40厘米、B放60厘米，再重复同样流程就能隔离字体影响。",
+      "judgment": "错误：重复原设计仍保留距离混杂。"
+    },
+    {
+      "response": "每距离每字体5张，区组内随机顺序并分别比较识别分布。",
+      "judgment": "合理替代：不将字体与距离固定绑定。"
+    }
+  ],
+  "editCheck": "把卡片20改为24：单距离12/12或两距离每字体6张。每卡20个字符不是20个独立卡片。",
+  "inputIsolation": "Only request, objective and sources enter the product. Evaluator-only reference; implementer-constructed exposed development evidence, not an independent teacher review."
+}

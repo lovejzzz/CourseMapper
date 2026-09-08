@@ -1,0 +1,18 @@
+{
+  "request": "Create a design lesson with an answer key and rubric for evaluating a coating comparison. Students must propose a new procedure and blank data table, not perform the heating experiment.",
+  "objective": "Distinguish coating and lamp-distance effects using independent tiles and a common temperature-change definition.",
+  "sources": [
+    {
+      "id": "record-1",
+      "text": "Fictional materials demo: matte-coated tiles20cm from a lamp rose by8 degrees after three minutes; gloss-coated tiles30cm away rose by5 degrees. Only these group summaries remain; tile counts and individual temperatures are missing."
+    },
+    {
+      "id": "record-2",
+      "text": "Twenty-four identical uncoated model tiles are available; either coating may be applied to each tile using the same measured volume and drying time. Each tile is tested once. Use one lamp, common starting temperature and exposure time, and either20cm or30cm as a common distance."
+    },
+    {
+      "id": "record-3",
+      "text": "Measure each tile at the marked centre just before exposure and at three minutes with the same probe. Record both temperatures and their difference, tile ID, coating, distance and order. Randomize run order and let the lamp return to the same starting condition between runs. No new results exist."
+    }
+  ]
+}

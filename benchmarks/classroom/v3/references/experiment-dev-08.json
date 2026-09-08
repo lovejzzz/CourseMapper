@@ -1,0 +1,48 @@
+{
+  "id": "experiment-dev-08",
+  "split": "development",
+  "family": "experiment",
+  "language": "zh",
+  "sourceFamily": "model-wheel-surface-ramp-angle",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "轮面与角度同时变动，旧均值差不隔离轮面影响。可随机9/9车配置轮面，在一个角度随机顺序测试。若分两个角度，每角度需同时含两种轮面且总数18，允许4/4与5/5分区组。",
+  "acceptableProcedure": [
+    "明确旧比较的角度差和缺少个体数据。",
+    "分配新独立车辆，控制质量与释放方式。",
+    "按统一起止点记录距离，异常处理事先说明。",
+    "比较车级距离分布，不把多次选择最佳值作为原计划观测。"
+  ],
+  "reject": [
+    "纹理必然使距离增加30厘米",
+    "两轮面仍绑定不同角度",
+    "选择每车最远一次而不说明修改规则",
+    "把同一辆车多次运行当独立车"
+  ],
+  "requiredScoring": [
+    "Diagnosis tied to the actual records and scope of the request",
+    "Executable allocation, independent units and controlled conditions, or a precise missing-condition explanation",
+    "Specified observations and interpretation without invented results"
+  ],
+  "contrastResponses": [
+    {
+      "response": "把18辆编号车随机分9和9安装轮面，同用10度斜坡，不手推，随机顺序。按坡底到停车车头测距，异常单列。旧比较还改了角度，无法确定轮面的单独影响。",
+      "judgment": "完整方案，控制与测量可执行。"
+    },
+    {
+      "response": "增加车辆数量。",
+      "judgment": "部分：没有移除角度混杂或定义程序。"
+    },
+    {
+      "response": "每辆跑三次，只记录最远的一次作为第一次结果。",
+      "judgment": "错误：结果选择与记录标签不一致；必须预先定义测量规则并保留实际记录。"
+    },
+    {
+      "response": "10度分4辆光滑4辆纹理，15度分5辆光滑5辆纹理，区组内随机与比较。",
+      "judgment": "合理替代：符合18辆资源并避免轮面与角度绑定。"
+    }
+  ],
+  "editCheck": "将车辆18改为14：固定角度7/7；两角度可3/3与4/4。更正资源不应影响其他课程或独立练习。",
+  "inputIsolation": "Only request, objective and sources enter the product. Evaluator-only reference; implementer-constructed exposed development evidence, not an independent teacher review."
+}

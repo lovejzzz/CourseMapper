@@ -34,14 +34,6 @@
     {
       "response": "The desk rates average to 50%, but 21 of 60 tablets returned, so 35% answers the tablet question. The larger desk accounts for four fifths of the tablets.",
       "judgment": "Demonstrates the weighting distinction; still check explicit source attribution and observational limits."
-    },
-    {
-      "response": "The desks had21 timely returns among60 issued tablets, or35%. Their rates75% and25% average to50%, but the tablet weights are1/5 and4/5. Unique IDs and a common deadline permit pooling. Borrower differences prevent a causal claim.",
-      "judgment": "Complete: source conditions, calculations, weighting and limits are explicit."
-    },
-    {
-      "response": "The two percentages average to50%, so half of all issued tablets returned.",
-      "judgment": "Misconception: confuses equal desk weights with tablet weights; require the two denominator counts and the21/60 calculation."
     }
   ],
   "editCheck": "Change the large desk timely returns from twelve to twenty-four. The updated combined result is 33/60 = 55%, while the equal-desk mean is 62.5%. Preserve the independent case and teacher notes. Removing the distinct-identity statement must not silently preserve an asserted unique-tablet proportion.",

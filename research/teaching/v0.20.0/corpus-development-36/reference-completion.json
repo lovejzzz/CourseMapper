@@ -1,0 +1,46 @@
+{
+  "manifestFrozen": false,
+  "productRuns": 0,
+  "changes": [
+    {
+      "id": "quantity-dev-01",
+      "inputChanged": false,
+      "existingJudgmentChanged": false,
+      "existingContrastsRetained": 2,
+      "addedContrasts": 2,
+      "beforeSha256": "a2da180f8a53156a4bb60c8a25cad37635a3afa56356144fdb0349ab79dde796",
+      "afterSha256": "f008c2eac06d31c29ce8f681152248b60b8f14cef2a51650d79725fcc95f0136",
+      "reason": "Complete the missing contrast evidence before corpus freeze; no existing expected answer changed."
+    },
+    {
+      "id": "quantity-dev-02",
+      "inputChanged": false,
+      "existingJudgmentChanged": false,
+      "existingContrastsRetained": 2,
+      "addedContrasts": 2,
+      "beforeSha256": "218fa4fc2aa26882964e0d315df868183e0135aeee850cb507c4d3424be135f1",
+      "afterSha256": "cfe912a56ddbeb51539013e518c421b7eaac7a1ea3b698ce2c51976aefc52bf4",
+      "reason": "Complete the missing contrast evidence before corpus freeze; no existing expected answer changed."
+    },
+    {
+      "id": "experiment-dev-01",
+      "inputChanged": false,
+      "existingJudgmentChanged": false,
+      "existingContrastsRetained": 0,
+      "addedContrasts": 4,
+      "beforeSha256": "97459f3419bedeccdf36dfe8e73f0d77593019b802f64dc242bc35eb08886592",
+      "afterSha256": "43ae53e1f3a7fb9b5e7ae1f8b9e743236724fec9e9378ed2093b35b9f12f5b1d",
+      "reason": "Complete the missing contrast evidence before corpus freeze; no existing expected answer changed."
+    },
+    {
+      "id": "experiment-dev-02",
+      "inputChanged": false,
+      "existingJudgmentChanged": false,
+      "existingContrastsRetained": 0,
+      "addedContrasts": 4,
+      "beforeSha256": "029ac29659646139eb079f886ce446a84afb841bc357c2a754811281879a5348",
+      "afterSha256": "9751736558d818fe8cfe2ebb8df83f2e7ec1ea4454e34e4f3fd008083f2effb0",
+      "reason": "Complete the missing contrast evidence before corpus freeze; no existing expected answer changed."
+    }
+  ]
+}

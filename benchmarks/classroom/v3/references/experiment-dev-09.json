@@ -1,0 +1,48 @@
+{
+  "id": "experiment-dev-09",
+  "split": "development",
+  "family": "experiment",
+  "language": "en",
+  "sourceFamily": "seed-tray-mulch-watering",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "Mulch and water both differ. Randomly assign8 trays per mulch at a common daily volume, randomize positions and count by the same definition. Unit is tray, not320 independently assigned seeds. A water-block design may use4 trays per mulch per water level and compare within level. There is no basis to promise significance or a future count.",
+  "acceptableProcedure": [
+    "Tie diagnosis to100/150ml and the two mulches.",
+    "Allocate at tray level and retain the16-tray resource constraint.",
+    "Use the same emergence rule and day, count zeros, retain tray IDs.",
+    "Compare tray counts and spread; distinguish within-tray seedlings from independent treatment replicates."
+  ],
+  "reject": [
+    "State fibre causes3 more seedlings",
+    "Claim320 independent treatment units",
+    "Water mulch groups differently in the repair",
+    "Invent expected day-seven results"
+  ],
+  "requiredScoring": [
+    "Diagnosis tied to the actual records and scope of the request",
+    "Executable allocation, independent units and controlled conditions, or a precise missing-condition explanation",
+    "Specified observations and interpretation without invented results"
+  ],
+  "contrastResponses": [
+    {
+      "response": "The old groups differ in water as well as mulch. Randomize8 trays to each mulch at100ml daily, randomize shelf positions, retain other conditions and count emergence at day seven. Compare16 tray records, not320 independent seeds; new results are unknown.",
+      "judgment": "Complete, with the correct assignment unit."
+    },
+    {
+      "response": "Use the same seed lot.",
+      "judgment": "Partial: helpful control but leaves the stated water confound."
+    },
+    {
+      "response": "There are320 seeds, so randomizing16 trays gives320 independent treatment replications.",
+      "judgment": "Error: treatment is assigned to trays; within-tray seeds share the treatment environment."
+    },
+    {
+      "response": "Use four trays of each mulch at each water level and compare mulches within the100ml and150ml blocks.",
+      "judgment": "Valid alternative; pooled interpretation requires stating the water weighting and cannot ignore block differences."
+    }
+  ],
+  "editCheck": "Change trays16 to12. Fixed-water6/6 or water-block3 per mulch per volume. Twenty seeds per tray remains unchanged; do not relabel240 seeds as240 independent treatment units.",
+  "inputIsolation": "Only request, objective and sources enter the product. Evaluator-only reference; implementer-constructed exposed development evidence, not an independent teacher review."
+}

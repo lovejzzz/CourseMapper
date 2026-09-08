@@ -1,0 +1,18 @@
+{
+  "request": "Provide a ready-to-run randomized comparison of adhesive types using only the supplied fixtures. Specify the allocation and exact measurement procedure without requesting additional resources.",
+  "objective": "Design a new comparison that isolates adhesive type on independently assignable fixtures.",
+  "sources": [
+    {
+      "id": "record-1",
+      "text": "Fictional workshop report: adhesive Red used in a warm cabinet held a median load of12 washers; adhesive Blue used in a cool cabinet held a median of9. Original fixture counts and measurements are not available."
+    },
+    {
+      "id": "record-2",
+      "text": "The only objects available are two sealed display fixtures, one permanently bonded with Red in the warm cabinet and one permanently bonded with Blue in the cool cabinet. They cannot be opened, rebonded, relocated or destructively tested. No unused fixtures or adhesive supplies are available."
+    },
+    {
+      "id": "record-3",
+      "text": "The report provides no permitted nondestructive measurement procedure or instrument. No additional experiment has occurred."
+    }
+  ]
+}

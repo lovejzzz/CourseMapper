@@ -1,0 +1,48 @@
+{
+  "id": "quantity-dev-07",
+  "split": "development",
+  "family": "quantity",
+  "language": "en",
+  "sourceFamily": "archive-box-condition-audit",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "Amber2/8=25%; Slate7/28=25%. Pooled9/36=25%, and the equal-batch mean is25%. They agree because both rates are equal, even though weights8/36 and28/36 differ from1/2. Agreement does not establish a generally valid unweighted pooling rule or a causal effect.",
+  "acceptableReasoning": [
+    "Retain box identities and common checklist before pooling.",
+    "Show both group rates and combined counts.",
+    "Explain equality of rates as the reason the two averages coincide here.",
+    "No claim about uninspected boxes or causes of dryness."
+  ],
+  "reject": [
+    "The batches are the same size",
+    "Equal averaging always gives an object-level proportion",
+    "Report9/28 as pooled",
+    "Infer packing caused the observed condition"
+  ],
+  "requiredScoring": [
+    "Evidence and distinct counted units",
+    "Calculations plus why equality occurs",
+    "Limits of the averaging rule and causal interpretation"
+  ],
+  "contrastResponses": [
+    {
+      "response": "Both rates are25%, so9 of36 boxes pass and the pooled rate is25%. Giving batches equal weight also gives25% only because their rates coincide; the batches have unequal sizes. Causes and other boxes remain outside the evidence.",
+      "judgment": "Complete: equality is explained without inventing equal denominators."
+    },
+    {
+      "response": "Both ways give25%.",
+      "judgment": "Partial: equality noticed, but its reason, count evidence and scope are absent."
+    },
+    {
+      "response": "The answers match, proving that averaging batch percentages always works.",
+      "judgment": "Misconception: generalizes a special case; alter one numerator and compare the two weights."
+    },
+    {
+      "response": "Any weighted average of two identical25% values is25%. The actual weights are2/9 and7/9, so this is consistent with9/36.",
+      "judgment": "Alternative algebraic reasoning is acceptable; check source and scope statements separately."
+    }
+  ],
+  "editCheck": "Change Slate passes from7 to14. Pooled16/36=4/9≈44.4444%; equal-batch mean37.5%. Preserve the original explanation as historical and revise the new task: equality no longer holds.",
+  "inputIsolation": "Only request, objective and sources enter the product. This evaluator reference is not supplied to Scion. These are exposed development cases, not independent classroom evidence."
+}

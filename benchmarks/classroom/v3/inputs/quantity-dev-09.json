@@ -1,0 +1,18 @@
+{
+  "request": "Create a 40-minute lesson on what can be determined without matching attendance lists. Ask for the number attending either event and both events, an explicit allocation, and a response to the claim that unmatched names always prevent exact answers.",
+  "objective": "Use full population coverage in one event to derive exact overlap and union despite missing cross-list matching.",
+  "sources": [
+    {
+      "id": "record-1",
+      "text": "Fictional residents association ledger: there were sixty registered members throughout the two-event weekend; the register did not change, and both events admitted only registered members."
+    },
+    {
+      "id": "record-2",
+      "text": "The annual briefing recorded sixty distinct members. The repair workshop recorded twenty-two distinct members. Each list counted each member at most once."
+    },
+    {
+      "id": "record-3",
+      "text": "The two lists have not been matched by identity. Attendance records do not record opinions about either event."
+    }
+  ]
+}

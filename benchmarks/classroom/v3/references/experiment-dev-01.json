@@ -1,22 +1,50 @@
 {
-  "id":"experiment-dev-01",
-  "split":"development",
-  "family":"experiment",
-  "language":"en",
-  "sourceFamily":"workshop-stamp-drying",
-  "scope":"supported",
-  "authorKind":"implementer-constructed",
-  "reviewerKind":"implementer",
-  "judgment":"The 90 s versus 60 s medians describe two different ink-temperature combinations. Their difference cannot isolate ink formula. Unknown original sample sizes and readings prevent a variability assessment. A new procedure can hold temperature at either stated setting and randomize fresh cards to inks; its results remain unknown.",
-  "acceptableProcedure":[
+  "id": "experiment-dev-01",
+  "split": "development",
+  "family": "experiment",
+  "language": "en",
+  "sourceFamily": "workshop-stamp-drying",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "The 90 s versus 60 s medians describe two different ink-temperature combinations. Their difference cannot isolate ink formula. Unknown original sample sizes and readings prevent a variability assessment. A new procedure can hold temperature at either stated setting and randomize fresh cards to inks; its results remain unknown.",
+  "acceptableProcedure": [
     "Use each of the 32 fresh cards once. Number cards and randomly assign 16 to each ink; randomize run order so order does not track formula.",
     "Use both formulas at 18 °C, or both at 26 °C. Retain stock, stamped area and ink volume. Verify the common setting before runs.",
     "Apply the provided five-second transfer-test rule to every card and save card ID, formula, temperature, order and drying-time reading. Multiple checks of one card are not independent cards.",
     "Compare card-level drying times, give a chosen summary and describe spread. Justify handling failed or missing readings. Thirty-two available cards are a resource constraint, not a power calculation or guarantee of significance.",
     "A design with both inks randomized within each of the two temperature blocks is also acceptable if comparisons are made within blocks and neither formula is tied to only one temperature. It addresses both temperatures; the common-temperature design addresses only its chosen setting."
   ],
-  "reject":["claim gel ink dries faster because 60 is below 90", "give one formula 18 °C and the other 26 °C in the proposed repair", "treat repeated strip checks on one card as independent replication", "claim randomization guarantees identical groups or statistically significant effects", "invent future drying times"],
-  "requiredScoring":["source-attributed diagnosis and causal limit", "executable allocation and condition design", "consistent measurement, independent replication and bounded conclusion"],
-  "editCheck":"Changing only a reported median changes the source description without establishing causality; changing temperature or measurement is a semantic edit requiring role review. Teacher notes and the independent practice context must survive review and undo/redo.",
-  "inputIsolation":"Reference judgments and procedure are never forwarded to natural-language product input. Explicit-structure runs must be labeled separately."
+  "reject": [
+    "claim gel ink dries faster because 60 is below 90",
+    "give one formula 18 °C and the other 26 °C in the proposed repair",
+    "treat repeated strip checks on one card as independent replication",
+    "claim randomization guarantees identical groups or statistically significant effects",
+    "invent future drying times"
+  ],
+  "requiredScoring": [
+    "source-attributed diagnosis and causal limit",
+    "executable allocation and condition design",
+    "consistent measurement, independent replication and bounded conclusion"
+  ],
+  "editCheck": "Changing only a reported median changes the source description without establishing causality; changing temperature or measurement is a semantic edit requiring role review. Teacher notes and the independent practice context must survive review and undo/redo.",
+  "inputIsolation": "Reference judgments and procedure are never forwarded to natural-language product input. Explicit-structure runs must be labeled separately.",
+  "contrastResponses": [
+    {
+      "response": "The old inks also used different temperatures. Randomize16 of32 fresh cards to each ink, use18°C for both, retain stock, area and ink volume, and randomize run order. Apply the five-second strip-transfer rule to every card, retain IDs and times, compare medians and spread, and mark failed readings rather than inventing a new effect.",
+      "judgment": "Complete procedure; uses independent cards, controls temperature and separates planned observations from known results."
+    },
+    {
+      "response": "Use the same temperature.",
+      "judgment": "Partial: removes one confound but omits independent allocation, measurement, records and interpretation."
+    },
+    {
+      "response": "Keep each ink at its old temperature and take more strip readings to prove the60-second ink is faster.",
+      "judgment": "Misconception: replication does not remove ink-temperature confounding, and checks within a card are not independent cards."
+    },
+    {
+      "response": "At each of18°C and26°C, randomly assign8 cards to each ink and randomize order. Keep the other conditions and transfer rule; compare inks within each temperature.",
+      "judgment": "Valid32-card blocked alternative; it addresses two settings and must not compare only opposite ink-temperature combinations."
+    }
+  ]
 }

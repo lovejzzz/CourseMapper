@@ -1,0 +1,494 @@
+{
+  "status": "incomplete",
+  "productRuns": 0,
+  "frozen": false,
+  "errors": [],
+  "missing": [
+    "quantity/reserved/en: need 3 supported + 1 limit, have 0 + 0",
+    "quantity/reserved/zh: need 3 supported + 1 limit, have 0 + 0",
+    "quantity/reserved: need exactly one needs-input",
+    "quantity/reserved: need exactly one out-of-scope",
+    "source/reserved/en: need 3 supported + 1 limit, have 0 + 0",
+    "source/reserved/zh: need 3 supported + 1 limit, have 0 + 0",
+    "source/reserved: need exactly one needs-input",
+    "source/reserved: need exactly one out-of-scope",
+    "experiment/reserved/en: need 3 supported + 1 limit, have 0 + 0",
+    "experiment/reserved/zh: need 3 supported + 1 limit, have 0 + 0",
+    "experiment/reserved: need exactly one needs-input",
+    "experiment/reserved: need exactly one out-of-scope",
+    "Need 60 base cases; found 36"
+  ],
+  "distribution": [
+    {
+      "family": "quantity",
+      "split": "development",
+      "language": "en",
+      "supported": 5,
+      "limits": 1,
+      "expectedSupported": 5,
+      "expectedLimits": 1
+    },
+    {
+      "family": "quantity",
+      "split": "development",
+      "language": "zh",
+      "supported": 5,
+      "limits": 1,
+      "expectedSupported": 5,
+      "expectedLimits": 1
+    },
+    {
+      "family": "quantity",
+      "split": "reserved",
+      "language": "en",
+      "supported": 0,
+      "limits": 0,
+      "expectedSupported": 3,
+      "expectedLimits": 1
+    },
+    {
+      "family": "quantity",
+      "split": "reserved",
+      "language": "zh",
+      "supported": 0,
+      "limits": 0,
+      "expectedSupported": 3,
+      "expectedLimits": 1
+    },
+    {
+      "family": "source",
+      "split": "development",
+      "language": "en",
+      "supported": 5,
+      "limits": 1,
+      "expectedSupported": 5,
+      "expectedLimits": 1
+    },
+    {
+      "family": "source",
+      "split": "development",
+      "language": "zh",
+      "supported": 5,
+      "limits": 1,
+      "expectedSupported": 5,
+      "expectedLimits": 1
+    },
+    {
+      "family": "source",
+      "split": "reserved",
+      "language": "en",
+      "supported": 0,
+      "limits": 0,
+      "expectedSupported": 3,
+      "expectedLimits": 1
+    },
+    {
+      "family": "source",
+      "split": "reserved",
+      "language": "zh",
+      "supported": 0,
+      "limits": 0,
+      "expectedSupported": 3,
+      "expectedLimits": 1
+    },
+    {
+      "family": "experiment",
+      "split": "development",
+      "language": "en",
+      "supported": 5,
+      "limits": 1,
+      "expectedSupported": 5,
+      "expectedLimits": 1
+    },
+    {
+      "family": "experiment",
+      "split": "development",
+      "language": "zh",
+      "supported": 5,
+      "limits": 1,
+      "expectedSupported": 5,
+      "expectedLimits": 1
+    },
+    {
+      "family": "experiment",
+      "split": "reserved",
+      "language": "en",
+      "supported": 0,
+      "limits": 0,
+      "expectedSupported": 3,
+      "expectedLimits": 1
+    },
+    {
+      "family": "experiment",
+      "split": "reserved",
+      "language": "zh",
+      "supported": 0,
+      "limits": 0,
+      "expectedSupported": 3,
+      "expectedLimits": 1
+    }
+  ],
+  "cases": [
+    {
+      "id": "experiment-dev-01",
+      "family": "experiment",
+      "split": "development",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "workshop-stamp-drying",
+      "inputSha256": "35deac8ca16e52dd0d6b225b41bf274a1ee20334dbe063dec0c2c52c08b9e6db",
+      "referenceSha256": "43ae53e1f3a7fb9b5e7ae1f8b9e743236724fec9e9378ed2093b35b9f12f5b1d"
+    },
+    {
+      "id": "experiment-dev-02",
+      "family": "experiment",
+      "split": "development",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "cup-sleeve-temperature-loss",
+      "inputSha256": "7a1875a115f51ec800220be60933e4df5ef05696a090f5ed1e6d00639cf6b365",
+      "referenceSha256": "9751736558d818fe8cfe2ebb8df83f2e7ec1ea4454e34e4f3fd008083f2effb0"
+    },
+    {
+      "id": "experiment-dev-03",
+      "family": "experiment",
+      "split": "development",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "paper-bridge-fold-stock",
+      "inputSha256": "25af8c7a3c42d58361003f9a769b0faa71e63a601f3237570a9e92e9a84d8ca2",
+      "referenceSha256": "4d1b064b0dd9edbe2c9a58d43c44ac76986b224cea5a68316924567ca78a5997"
+    },
+    {
+      "id": "experiment-dev-04",
+      "family": "experiment",
+      "split": "development",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "parcel-padding-drop-height",
+      "inputSha256": "87e738a5de69665e0d206caafb3c98d39c0ae35b8c605cee615d29bbb44c1e7f",
+      "referenceSha256": "00d628571cdd2886491ada22cef217feaed0ecab98ed94cedd9b07bc9edc63ea"
+    },
+    {
+      "id": "experiment-dev-05",
+      "family": "experiment",
+      "split": "development",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "fabric-strip-wicking-start-depth",
+      "inputSha256": "1693f2235c7a1f02f2a75dc2cd9d2b303be6a6b43500ab524aa8b1f6cdc1493f",
+      "referenceSha256": "b16c99e6297ba848b37d2ab0df0d9a3644b40b4fbcb97a858651d242db0d07d5"
+    },
+    {
+      "id": "experiment-dev-06",
+      "family": "experiment",
+      "split": "development",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "paper-rotor-fin-release-height",
+      "inputSha256": "76f43f1f04bc24d346f85fb03483664b1d8f1ed5ab7ffee6ed7873a2da5531cf",
+      "referenceSha256": "9b890a59de9b9d611728aa10265a98b7b728733e2245fe068773b897ee2cc696"
+    },
+    {
+      "id": "experiment-dev-07",
+      "family": "experiment",
+      "split": "development",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "tile-coating-lamp-distance",
+      "inputSha256": "9ab9afde425990453c9c4dfe3eed92c73f6e8616bd431bc7adf8bd49d7d04d7d",
+      "referenceSha256": "ece6c68625dcfc47afa51a9d15d873b82e8ba07b39873154475bdd6eccfa80b0"
+    },
+    {
+      "id": "experiment-dev-08",
+      "family": "experiment",
+      "split": "development",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "model-wheel-surface-ramp-angle",
+      "inputSha256": "67716c4b46f1bf918af44c03a3560b463c4a1c31a91a4590115a3acc2559af7b",
+      "referenceSha256": "5f0440dd6f4569ba56c91f9abaade34ede20be3e88bf4aef81c9b3f41702f6dd"
+    },
+    {
+      "id": "experiment-dev-09",
+      "family": "experiment",
+      "split": "development",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "seed-tray-mulch-watering",
+      "inputSha256": "061d65de7d85e3668305ff00160da76a2fffaeae6b49711b548642cd973b80fb",
+      "referenceSha256": "298796ce4ae575c113f3919db83890848763649adea460980ae81614c8a116cf"
+    },
+    {
+      "id": "experiment-dev-10",
+      "family": "experiment",
+      "split": "development",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "display-font-viewing-distance",
+      "inputSha256": "13e0385eb5bdc0d0aa5da54bb681563219ab5c691fdbe601614f32d827fa3702",
+      "referenceSha256": "7a9362ca8747d5ddba1e968806ca83399aa38096a2b0c816e7c515e95240aa75"
+    },
+    {
+      "id": "experiment-dev-11",
+      "family": "experiment",
+      "split": "development",
+      "language": "en",
+      "scope": "needs-input",
+      "sourceFamily": "adhesive-sealed-fixture-resource-gap",
+      "inputSha256": "4c4934800eed872f872c85a0a926a019fa0e52840d1be2a20eef2226ad413b7c",
+      "referenceSha256": "e4af8c2490cdcde88b17fc68b3d7c1073e99018b145257366cc12f65ef0facbe"
+    },
+    {
+      "id": "experiment-dev-12",
+      "family": "experiment",
+      "split": "development",
+      "language": "zh",
+      "scope": "out-of-scope",
+      "sourceFamily": "historical-storm-causal-reconstruction",
+      "inputSha256": "20ffc1200f734429f7237e39f19c7e5a86ccf65114942dd85c2943554529100e",
+      "referenceSha256": "aac2ca41b6f1de4a7dc8d29c6ef0f51cfd06e152e1d811d6c08a3973c7adc498"
+    },
+    {
+      "id": "quantity-dev-01",
+      "family": "quantity",
+      "split": "development",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "library-tablet-return-pooling",
+      "inputSha256": "23ba60d71c51b0d80eb78a9360855c2166f77fa06dfa65dc9484e6e998793623",
+      "referenceSha256": "f008c2eac06d31c29ce8f681152248b60b8f14cef2a51650d79725fcc95f0136"
+    },
+    {
+      "id": "quantity-dev-02",
+      "family": "quantity",
+      "split": "development",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "campus-observation-club-overlap",
+      "inputSha256": "5849a32ad7a33836261cd995f9575da1fec13c45521977d94a7b113dc86e67ce",
+      "referenceSha256": "cfe912a56ddbeb51539013e518c421b7eaac7a1ea3b698ce2c51976aefc52bf4"
+    },
+    {
+      "id": "quantity-dev-03",
+      "family": "quantity",
+      "split": "development",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "seed-club-two-workshops",
+      "inputSha256": "571af31ca265df85abb78d47862f117b255684e85c0221df3f09d158d7722e1d",
+      "referenceSha256": "108135c2eec9d0ca65b5f4bb8280a2973250f1b5ecff330daf02bd10632e5cdd"
+    },
+    {
+      "id": "quantity-dev-04",
+      "family": "quantity",
+      "split": "development",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "pottery-kiln-inspection",
+      "inputSha256": "42be2417269acb8746bdc0ef499cb5e48308e1bf6a291568f76f124b0294976e",
+      "referenceSha256": "2ec676d1d46555106dc0847c8d283a1bdd7bb6ce9f9e054c7d23064eed61a6ac"
+    },
+    {
+      "id": "quantity-dev-05",
+      "family": "quantity",
+      "split": "development",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "solar-lamp-bench-sample",
+      "inputSha256": "66de858bd141276a7bdfee0449d9ba535962b5ffe7961f657c89ab2a1c7e0490",
+      "referenceSha256": "754d38b694185c632afa661e8e4400a8f182dc5d521a8dde59c93c9edfa50cba"
+    },
+    {
+      "id": "quantity-dev-06",
+      "family": "quantity",
+      "split": "development",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "community-museum-zero-attendance",
+      "inputSha256": "8fd766bec89be9cca50e2dd46db3e65fab839b34b60648b0a60a88d349998497",
+      "referenceSha256": "758e771a8970f4bf43c50041b924c095d2ac5ef54e8faeadf764a75bd8f0b92e"
+    },
+    {
+      "id": "quantity-dev-07",
+      "family": "quantity",
+      "split": "development",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "archive-box-condition-audit",
+      "inputSha256": "355062f0e1d23aaaef98b9f445680b6e3bfe8b9613265e85c46a80201804b84f",
+      "referenceSha256": "c5feddfe0f4458f822bdf89fe294f7e0f4ce1826fb900321b6350987dae09c12"
+    },
+    {
+      "id": "quantity-dev-08",
+      "family": "quantity",
+      "split": "development",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "commuter-response-coverage",
+      "inputSha256": "56fd23c9bf9ef14c65d93fb7d75c519e6a37fa9f4193c48e4b0faab6596c36c0",
+      "referenceSha256": "2aa0770f0f5060fd1b1a53586dfcd96a018705e7c36215c0567288301247e102"
+    },
+    {
+      "id": "quantity-dev-09",
+      "family": "quantity",
+      "split": "development",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "association-full-attendance",
+      "inputSha256": "5908ac596d41436e66ee63bb63400055e507a077b850065eaddc047529688502",
+      "referenceSha256": "5c9d5f172e367ef6ce67a33b95ce6bcdf8d37f759b953508733da526ee7e0c69"
+    },
+    {
+      "id": "quantity-dev-10",
+      "family": "quantity",
+      "split": "development",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "sports-equipment-zero-pass",
+      "inputSha256": "22b49a676293d6a340c5918b8cd9c66cafc15a9737838b9eed4c961311f8686a",
+      "referenceSha256": "69f997ac25c5c7ced5f94a4292fe79da0841fffe55d9d610ec21e7597f3a7969"
+    },
+    {
+      "id": "quantity-dev-11",
+      "family": "quantity",
+      "split": "development",
+      "language": "en",
+      "scope": "needs-input",
+      "sourceFamily": "orchard-unknown-crate-total",
+      "inputSha256": "6f3e3123f7641d55a583226be6bd3849d7ec7c2ed5e1ff31c8b53392f46d53f3",
+      "referenceSha256": "5f91ebfbc7071bf99f69dc3d5bfdfa37658c83a553bb0fec63882f31af9fad15"
+    },
+    {
+      "id": "quantity-dev-12",
+      "family": "quantity",
+      "split": "development",
+      "language": "zh",
+      "scope": "out-of-scope",
+      "sourceFamily": "future-exam-exact-prediction",
+      "inputSha256": "a93e1331d853e3042e0efc0363eafa0fa1838a38a1f4cbd7e36fc15032b044c3",
+      "referenceSha256": "4f335e1cd02291f129e214106b10abecff93da812026d2d64ad12f922bcf593d"
+    },
+    {
+      "id": "source-dev-01",
+      "family": "source",
+      "split": "development",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "meeting-event-publication",
+      "inputSha256": "e942560aef394b7826ffe9f1b0ab460061a6e949d5606cc31e7a3a701e2ac352",
+      "referenceSha256": "2bdc9530d0a86fef2ab3269f0231776ffd62c2368911ae92baf158ef75230ebb"
+    },
+    {
+      "id": "source-dev-02",
+      "family": "source",
+      "split": "development",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "museum-holiday-exception",
+      "inputSha256": "ce99730e6155b7cd4e5694f0f911f666405be44e2da4e7372a31e8195429c25f",
+      "referenceSha256": "39dd04db12e6c741b18f7339104a5f9cc4359b9eacf698dc1a8d1fe75dc28ccc"
+    },
+    {
+      "id": "source-dev-03",
+      "family": "source",
+      "split": "development",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "river-observation-hearsay",
+      "inputSha256": "77f8751ecfe0c2550d8e1abee4f00cdf91f8c3959bca5f627adb5782ea465a60",
+      "referenceSha256": "057bb640751b32e5b31a906934388364b72b5611e29a0c77510757a11049864d"
+    },
+    {
+      "id": "source-dev-04",
+      "family": "source",
+      "split": "development",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "bus-count-conflicting-witnesses",
+      "inputSha256": "292792cab4927326ec8b3878c1269da1eef13cd8bac5eaf07c683929ad1fb364",
+      "referenceSha256": "f5e7f979ce3770d5a81189b2952371d232db2ff7cddd617cad139656a64c7bbb"
+    },
+    {
+      "id": "source-dev-05",
+      "family": "source",
+      "split": "development",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "library-retraction-scope",
+      "inputSha256": "f6fa092a96a57c77fc66401548621373d7d659ad035b00b38da58d76d1c7aba4",
+      "referenceSha256": "7443acc569e7d12db6867da9825482dd75d95ebf1870ba0dd29fe959bc5e0c45"
+    },
+    {
+      "id": "source-dev-06",
+      "family": "source",
+      "split": "development",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "diary-perspective-evaluation",
+      "inputSha256": "cb5e1877797a578076977c2983c5bfc1e3f11dd47b437a377123af8830783ad5",
+      "referenceSha256": "841babb881bcfe10e047848e8ac2d171fe8d0d57efa33cfe91a0eb6b85755056"
+    },
+    {
+      "id": "source-dev-07",
+      "family": "source",
+      "split": "development",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "oral-history-date-precision",
+      "inputSha256": "066e7c20cca987c75d81dca9addb726b4640ef9b722b7fbf5138d14852b9bdd9",
+      "referenceSha256": "65fbcbf707e122f5eaefe44a1c0e1092a91f67e34e2b48e80248c8fa8978b088"
+    },
+    {
+      "id": "source-dev-08",
+      "family": "source",
+      "split": "development",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "catalogue-object-identity",
+      "inputSha256": "68e794c2bfd00fbc913d1aed102dd0a5be2fa5bd1ac9078660d98a187cb6d229",
+      "referenceSha256": "7394d66cef15f8f9a3adf31093305b090c0f695044f34a9fbf816c01d69e808e"
+    },
+    {
+      "id": "source-dev-09",
+      "family": "source",
+      "split": "development",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "quotation-negation-context",
+      "inputSha256": "73660a1d4448a0396c73f11f75dac59d25460d9dcd5b09e49f1ba06ee171ecfa",
+      "referenceSha256": "b334855d758028439c1a4a6dbbe6997f9f10d5140282a0dd3647698182f8551f"
+    },
+    {
+      "id": "source-dev-10",
+      "family": "source",
+      "split": "development",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "map-plan-completion",
+      "inputSha256": "4cd8de15b45e7c5da0fe7d2e12f50509e5373c5915d6ea49cd25d6ca0abca608",
+      "referenceSha256": "55da6c9b556892210f1f1f96b2cd64f341b23d89e59d50ab9d975cc47dc516e5"
+    },
+    {
+      "id": "source-dev-11",
+      "family": "source",
+      "split": "development",
+      "language": "en",
+      "scope": "needs-input",
+      "sourceFamily": "missing-contract-addendum",
+      "inputSha256": "bc35e3e355378117cac1df9c79e6358eead486545ecdad776d3181a2fa234e1b",
+      "referenceSha256": "a06e2e769cd85f9175dfa587f39d7c7d59a58d722725dccaba3ea6c20063a389"
+    },
+    {
+      "id": "source-dev-12",
+      "family": "source",
+      "split": "development",
+      "language": "zh",
+      "scope": "out-of-scope",
+      "sourceFamily": "physical-ink-authentication",
+      "inputSha256": "3ce85d7c2e5baecface8a6f0d7496da43afbb2780efd978771ebf75ff9c03393",
+      "referenceSha256": "eeac8f955856384a20ddfe07adaff4d8a40e723d792de605c5891303978230aa"
+    }
+  ],
+  "limitation": "Human content/family review and an immutable manifest are still required. This is not a model or classroom pass."
+}

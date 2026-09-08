@@ -1,0 +1,18 @@
+{
+  "request": "Prepare a 45-minute lesson and editable student and teacher materials. Use these records to find every possible number of club members who attended at least one workshop and both workshops. Require endpoint examples and an explanation of why the exact overlap is not known.",
+  "objective": "Use a fixed population and two deduplicated attendance counts to justify feasible attendance bounds with concrete allocations.",
+  "sources": [
+    {
+      "id": "record-1",
+      "text": "Fictional seed-club register: Cedar Exchange had twenty-eight registered members throughout April. The register did not change, and both April workshops admitted only these registered members."
+    },
+    {
+      "id": "record-2",
+      "text": "The sowing workshop recorded nineteen distinct members. The storage workshop recorded seventeen distinct members. Each attendance list counted a member once, regardless of how long they stayed."
+    },
+    {
+      "id": "record-3",
+      "text": "The two attendance lists have not been matched to identify members attending both. Visiting members of other clubs were not admitted to either workshop."
+    }
+  ]
+}

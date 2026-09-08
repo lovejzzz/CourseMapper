@@ -1,0 +1,47 @@
+{
+  "id": "experiment-dev-12",
+  "split": "development",
+  "family": "experiment",
+  "language": "zh",
+  "sourceFamily": "historical-storm-causal-reconstruction",
+  "scope": "out-of-scope",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "这些历史汇总既没有可比较分母，也没有隔离屋顶与地点等因素，不能精确识别独立因果损坏数。要求排除所有其他因素并给确定数量超出当前证据与操作范围。可提出需要哪些历史证据或未来模型研究，但不得冒充原历史因果结论。",
+  "acceptableProcedure": [
+    "区分损坏总数与风险比例、地点与结构的共同变化。",
+    "说明补充背景并不自动实现全部因果识别。",
+    "保持历史事实与未来研究建议分开，拒绝伪造确定归因。"
+  ],
+  "reject": [
+    "把30-12=18说成甲屋顶造成的独立损坏",
+    "假定街区房屋数相等",
+    "虚构风速或匹配记录",
+    "以未来模型实验结果冒充已发生历史因果数量"
+  ],
+  "requiredScoring": [
+    "Diagnosis tied to the actual records and scope of the request",
+    "Executable allocation, independent units and controlled conditions, or a precise missing-condition explanation",
+    "Specified observations and interpretation without invented results"
+  ],
+  "contrastResponses": [
+    {
+      "response": "30与12是不同街区的损坏计数，缺分母和暴露条件。不能确定18栋差异由屋顶造成，也不能从这些记录排除所有其他因素。可另列所需档案，但原请求无法完成。",
+      "judgment": "正确的范围外说明，并保留可用描述。"
+    },
+    {
+      "response": "样本太少。",
+      "judgment": "部分且不准确：主要问题不是已知样本量，而是分母、暴露和因果识别信息缺失。"
+    },
+    {
+      "response": "甲屋顶独立造成18栋额外损坏。",
+      "judgment": "严重错误：将不同条件下计数差直接变成因果效应。"
+    },
+    {
+      "response": "许多不同的房屋规模和暴露差异都能产生同样30/12计数，因此资料不能唯一确定屋顶的贡献。",
+      "judgment": "合理替代的非识别解释，无需虚构具体历史参数。"
+    }
+  ],
+  "editCheck": "即使补充两个街区各100栋，得到30%和12%的描述性风险，地点与暴露混杂仍在，不能把18个百分点说成屋顶的独立因果效应。",
+  "inputIsolation": "Only request, objective and sources enter the product. Evaluator-only reference; implementer-constructed exposed development evidence, not an independent teacher review."
+}

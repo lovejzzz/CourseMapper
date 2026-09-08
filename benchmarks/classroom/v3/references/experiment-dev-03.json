@@ -1,0 +1,48 @@
+{
+  "id": "experiment-dev-03",
+  "split": "development",
+  "family": "experiment",
+  "language": "en",
+  "sourceFamily": "paper-bridge-fold-stock",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "The prior medians compare fold and stock jointly, so cannot isolate fold. A feasible new design randomly allocates 11 and10 of the21 sheets to patterns (either gets11), randomizes order, and uses the same120gsm stock and measurement. Equal allocation10/10 with one declared spare is acceptable if the reserve is assigned before observing results. Repeated washers are not independent bridges.",
+  "acceptableProcedure": [
+    "Identify both changed factors and unavailable replication detail.",
+    "Predeclare either11/10 or10/10 plus a genuine spare; record IDs and random allocation, not outcome-dependent exclusions.",
+    "Use the supplied collapse rule, distinguish zero from missing, and retain individual bridge records.",
+    "Compare group distributions and a named summary without predicting a winner or claiming21 sheets guarantee significance."
+  ],
+  "reject": [
+    "Treat14 versus22 as a causal fold effect",
+    "Propose11 bridges per pattern from21 sheets",
+    "Count washers as independent experimental units",
+    "Drop early collapses as missing"
+  ],
+  "requiredScoring": [
+    "Diagnosis tied to the actual records and scope of the request",
+    "Executable allocation, independent units and controlled conditions, or a precise missing-condition explanation",
+    "Specified observations and interpretation without invented results"
+  ],
+  "contrastResponses": [
+    {
+      "response": "The old comparison also changes stock. Randomly assign11 and10 numbered sheets to the two patterns, all120gsm, and randomize test order. Use the same span and washer rule, including zeros. Record each bridge result and compare medians and spread; no winner is yet known.",
+      "judgment": "Complete feasible plan; either group may receive the extra sheet."
+    },
+    {
+      "response": "Make both patterns from the same paper.",
+      "judgment": "Partial: fixes stock but gives no allocation, units, measurement or records."
+    },
+    {
+      "response": "Test each bridge with20 washers and count that as20 repeated bridges.",
+      "judgment": "Error: additions within one destructive test are observations on one unit, not replication."
+    },
+    {
+      "response": "Assign10 sheets to each pattern and label one spare before testing. Randomize pattern assignment and order; use the spare only under a predeclared equipment-failure rule.",
+      "judgment": "Acceptable resource-aware alternative if failed/retained trials are documented without choosing replacements by outcome."
+    }
+  ],
+  "editCheck": "Change available sheets21 to18: allocation becomes9/9, or a clearly justified smaller design within18. The old14/22 observations and missing replication information remain unchanged.",
+  "inputIsolation": "Only request, objective and sources enter the product. Evaluator-only reference; implementer-constructed exposed development evidence, not an independent teacher review."
+}

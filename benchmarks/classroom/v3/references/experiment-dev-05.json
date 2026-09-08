@@ -1,0 +1,48 @@
+{
+  "id": "experiment-dev-05",
+  "split": "development",
+  "family": "experiment",
+  "language": "en",
+  "sourceFamily": "fabric-strip-wicking-start-depth",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "Weave and depth both change in the prior comparison. Weave is already a strip property, so do not claim to randomize a strip into another weave. Use15 strips per weave at one depth, randomize positions/order and record consistent heights. A within-depth comparison can split each weave7/8 across the two depths with corresponding balanced counts.",
+  "acceptableProcedure": [
+    "Diagnose the depth confound and unspecified old replication.",
+    "Use existing weave counts while randomizing nuisance allocations, not immutable weave identity.",
+    "Measure height above the water surface; the supplied old means do not determine new readings.",
+    "Compare strip-level results and variability; avoid making container readings or repeated ruler readings the sample size."
+  ],
+  "reject": [
+    "Assign an existing twill strip to plain weave",
+    "Keep weave tied to different depths",
+    "Use old10cm as an expected new mean",
+    "Count repeated ruler checks as independent samples"
+  ],
+  "requiredScoring": [
+    "Diagnosis tied to the actual records and scope of the request",
+    "Executable allocation, independent units and controlled conditions, or a precise missing-condition explanation",
+    "Specified observations and interpretation without invented results"
+  ],
+  "contrastResponses": [
+    {
+      "response": "Depth changed as well as weave. Test the15 strips of each weave at2cm immersion, randomizing positions and order. Measure the front above water at five minutes and retain each strip record. Compare heights and spread without assuming a winner.",
+      "judgment": "Complete and respects fixed weave identities."
+    },
+    {
+      "response": "Keep the water temperature equal.",
+      "judgment": "Partial: a useful control but does not remove the stated immersion-depth difference."
+    },
+    {
+      "response": "Randomly make all thirty strips plain or twill after measuring them.",
+      "judgment": "Error: fabric weave is fixed and allocation after outcomes is invalid."
+    },
+    {
+      "response": "Split each weave into7 strips at2cm and8 at4cm, randomize position/order within depth, and compare weaves within each depth.",
+      "judgment": "Valid alternative with explicit counts and within-depth interpretation."
+    }
+  ],
+  "editCheck": "Reduce stock to12 strips of each weave. Fixed-depth design uses12/12; balanced two-depth design uses6 per weave per depth. The measurement reference point must remain above the water surface.",
+  "inputIsolation": "Only request, objective and sources enter the product. Evaluator-only reference; implementer-constructed exposed development evidence, not an independent teacher review."
+}

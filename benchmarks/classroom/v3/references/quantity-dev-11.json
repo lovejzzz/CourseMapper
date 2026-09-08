@@ -1,0 +1,47 @@
+{
+  "id": "quantity-dev-11",
+  "split": "development",
+  "family": "quantity",
+  "language": "en",
+  "sourceFamily": "orchard-unknown-crate-total",
+  "scope": "needs-input",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "The requested exact combined percentage is underdetermined. North12/40=30% is known, but the combined denominator40+n is unknown (n≥18). The expression30/(40+n) is valid, not a single reported percentage. Request South total inspections for the same period; do not generate an exact answer key.",
+  "acceptableReasoning": [
+    "Identify the specifically missing South denominator.",
+    "Keep18 as known South passes, not as all South inspections.",
+    "Preserve usable North calculation and source draft; ask for the missing count without pretending the original exact task is complete."
+  ],
+  "reject": [
+    "30/58 as the exact combined result",
+    "Assume both teams inspected40",
+    "Invent a South total",
+    "Return a generic complete lesson with a fabricated answer key"
+  ],
+  "requiredScoring": [
+    "Correctly identify missing denominator",
+    "Preserve known information without inventing a total",
+    "Explain why exact completion must wait"
+  ],
+  "contrastResponses": [
+    {
+      "response": "North has12/40=30%. South total n is missing, so combined30/(40+n) cannot yet be evaluated. Supply South total inspections on Tuesday.",
+      "judgment": "Correct limitation with useful partial work; this is not a completed exact-proportion task."
+    },
+    {
+      "response": "There is not enough information.",
+      "judgment": "Partial refusal: no missing field identified or usable information preserved."
+    },
+    {
+      "response": "Thirty of58 crates passed, or about51.72%.",
+      "judgment": "Critical error: turns South pass count18 into its inspection total."
+    },
+    {
+      "response": "Even if South inspected18 or60, both records could hold and yield different combined rates; therefore no unique result follows.",
+      "judgment": "Valid constructive proof of underdetermination; request the actual denominator."
+    }
+  ],
+  "editCheck": "Supply a new authenticated record that South inspected60 crates. A reviewed task may then use30/100=30%; equal-team average also30% because both team rates are30%. Existing unknown statements must be reviewed rather than silently ignored.",
+  "inputIsolation": "Only request, objective and sources enter the product. This evaluator reference is not supplied to Scion. These are exposed development cases, not independent classroom evidence."
+}

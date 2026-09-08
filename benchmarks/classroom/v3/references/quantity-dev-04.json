@@ -1,0 +1,48 @@
+{
+  "id": "quantity-dev-04",
+  "split": "development",
+  "family": "quantity",
+  "language": "zh",
+  "sourceFamily": "pottery-kiln-inspection",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "东窑18/24=75%，西窑20/80=25%；合并38/104=19/52，约36.5385%。等批次平均是50%。陶杯权重为24/104与80/104。结果只描述本周这些已检测陶杯，不能证明窑炉导致差异。",
+  "acceptableReasoning": [
+    "说明同一对象单位、相同检测定义和批次互斥，才能相加。",
+    "保留38/104或19/52的精确分数，注明百分比舍入。",
+    "50%回答的是两个批次等权平均的问题；不是所有陶杯通过率。",
+    "不能加入未检测旧陶杯，也不能推断原料、人员或窑炉的因果贡献。"
+  ],
+  "reject": [
+    "将50%当全部陶杯通过率",
+    "38/80作为合并分母",
+    "把未检测旧杯算作未通过",
+    "断言东窑使陶杯质量更好"
+  ],
+  "requiredScoring": [
+    "批次与计数、互斥前提的正确引用",
+    "正确计算及解释两种权重",
+    "明确检测与因果解释范围"
+  ],
+  "contrastResponses": [
+    {
+      "response": "共有38只通过、104只检测，所以38/104约36.54%。75%和25%的平均50%给批次等权，而西窑有更多陶杯。原料与人员未控制，不能归因于窑炉。",
+      "judgment": "完整：计数、权重和限制均有解释；36.54%是允许的注明舍入表达。"
+    },
+    {
+      "response": "答案约36.54%。",
+      "judgment": "部分：最终数值正确，但没有展示计数归属、权重或限制。"
+    },
+    {
+      "response": "两个批次平均为50%，因此一半陶杯通过。",
+      "judgment": "错误：用批次等权代替陶杯等权；要求列出每批检测数后重新相加。"
+    },
+    {
+      "response": "把75%乘以3/13，把25%乘以10/13再相加，得到19/52。",
+      "judgment": "合理替代：加权比例法与计数合并等价；仍需说明批次互斥和解释边界。"
+    }
+  ],
+  "editCheck": "把西窑通过数由20改为40，其余不变。合并58/104=29/52约55.7692%，等批次平均62.5%。不得改写独立练习中的数量。",
+  "inputIsolation": "Only request, objective and sources enter the product. This evaluator reference is not supplied to Scion. These are exposed development cases, not independent classroom evidence."
+}

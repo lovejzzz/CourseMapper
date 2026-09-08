@@ -1,0 +1,48 @@
+{
+  "id": "experiment-dev-04",
+  "split": "development",
+  "family": "experiment",
+  "language": "zh",
+  "sourceFamily": "parcel-padding-drop-height",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "旧比较同时改变厚度和高度，不能把2与4的差归于厚度。可随机分12/12包裹给两种泡棉，统一高度并随机顺序。也可在两种高度内分别随机分配两种泡棉，每个高度每种6个，按高度内比较。一次包裹损伤的多个格子不是独立包裹。",
+  "acceptableProcedure": [
+    "明确旧记录的两个因素及缺少样本量/原读数。",
+    "分配必须使用独立包裹且总数不超过24；选择固定高度或平衡的高度区组。",
+    "按同一网格记录包括零损伤的完整结果，并保留照片与编号。",
+    "比较各组格数分布及选定汇总，新结果未知，不预断厚泡棉更好。"
+  ],
+  "reject": [
+    "仍让厚泡棉只从更高处跌落",
+    "把裂纹格子当独立实验单位",
+    "用旧中位数预测新包裹结果",
+    "要求学生提交题目未要求实测的数据"
+  ],
+  "requiredScoring": [
+    "Diagnosis tied to the actual records and scope of the request",
+    "Executable allocation, independent units and controlled conditions, or a precise missing-condition explanation",
+    "Specified observations and interpretation without invented results"
+  ],
+  "contrastResponses": [
+    {
+      "response": "旧比较还改变高度。随机将24个编号包裹分为12和12个，统一1米高度，随机跌落顺序，保持其他条件。每次用网格记录损伤并比较分布；现在没有新结果。",
+      "judgment": "完整：可执行分配、控制、测量和推断范围。"
+    },
+    {
+      "response": "多做几次跌落会公平。",
+      "judgment": "部分且不充分：没有移除高度差，未说明独立对象和测量。"
+    },
+    {
+      "response": "同一个包裹跌落十二次，就相当于十二个独立包裹。",
+      "judgment": "错误：前次损伤会进入后续测试，重复跌落不能替代独立包裹。"
+    },
+    {
+      "response": "在1米与1.5米各放12个包裹，各高度内随机给6个薄泡棉和6个厚泡棉，分别比较。",
+      "judgment": "合理替代：高度区组内可比较厚度，不接受只跨高度直接相减。"
+    }
+  ],
+  "editCheck": "把资源24改为20：固定高度10/10，或两高度内每种5个。材料应更新分配，不把旧观察中位数改成新试验实测值。",
+  "inputIsolation": "Only request, objective and sources enter the product. Evaluator-only reference; implementer-constructed exposed development evidence, not an independent teacher review."
+}

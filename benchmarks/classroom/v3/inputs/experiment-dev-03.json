@@ -1,0 +1,18 @@
+{
+  "request": "Create a 50-minute design lesson. Students must assess the existing bridge comparison, propose a fair new comparison of fold patterns using the available sheets, and provide a blank recording table. Do not require students to conduct the trial during the lesson.",
+  "objective": "Separate a fold-pattern comparison from paper-stock differences and design a feasible trial with independent bridges.",
+  "sources": [
+    {
+      "id": "record-1",
+      "text": "Fictional makerspace log: accordion-fold bridges made from 80 gsm stock held a median of 14 washers; triangular-fold bridges made from 120 gsm stock held a median of 22 washers. The log does not preserve individual bridge results or the number of bridges."
+    },
+    {
+      "id": "record-2",
+      "text": "For a new trial, 21 unused sheets of 120 gsm stock are available. Each sheet can make one bridge, and each bridge is tested once. Both fold patterns can be made from this stock. Keep sheet dimensions, support spacing and washer type identical. No additional sheets may be obtained."
+    },
+    {
+      "id": "record-3",
+      "text": "Place one washer at the marked centre every five seconds until the bridge first touches the tray beneath it. Record the number held immediately before that washer, bridge ID, fold pattern and test order. A collapse before the first washer is a zero, not a missing result. No new trials have occurred."
+    }
+  ]
+}

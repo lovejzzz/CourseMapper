@@ -1,0 +1,48 @@
+{
+  "id": "quantity-dev-03",
+  "split": "development",
+  "family": "quantity",
+  "language": "en",
+  "sourceFamily": "seed-club-two-workshops",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "Let x be the overlap. 0 ≤ x ≤ 17 and 19 + 17 - x ≤ 28 give 8 ≤ x ≤ 17. At least-one attendance is 36-x, hence 19–28. Both endpoints are feasible; an exact count is not supplied.",
+  "acceptableReasoning": [
+    "At overlap 8, allocate 11 sowing-only, 9 storage-only, 8 both, 0 neither.",
+    "At overlap 17, allocate 2 sowing-only, 0 storage-only, 17 both, 9 neither.",
+    "Intermediate integer overlaps from 8 to 17 give valid nonnegative allocations; the two ranges vary together, not independently.",
+    "Attribute 28 to the stable club register and 19/17 to separate internally deduplicated lists."
+  ],
+  "reject": [
+    "36 unique attendees from adding counts",
+    "Zero overlap as feasible",
+    "Use an exact overlap without matching identities",
+    "Count outsiders in the club denominator"
+  ],
+  "requiredScoring": [
+    "Identify the stable membership and count roles",
+    "Derive both bounds and show feasible endpoint allocations",
+    "Explain what matching the lists would resolve"
+  ],
+  "contrastResponses": [
+    {
+      "response": "There were 19–28 unique attendees and 8–17 attended both. The endpoint allocations are (11,9,8,0) and (2,0,17,9) in sowing-only, storage-only, both, neither order. Matching names is needed to choose one value.",
+      "judgment": "Complete: both ranges, feasible endpoints and uncertainty are explicit; verify the cited register and lists."
+    },
+    {
+      "response": "At least 19 attended something.",
+      "judgment": "Partial: correct lower union bound, but missing upper bound, overlap range and witnesses."
+    },
+    {
+      "response": "Nineteen plus seventeen means 36 different members attended.",
+      "judgment": "Misconception: double counts possible overlap and exceeds the fixed 28-member population; revise using a four-cell allocation."
+    },
+    {
+      "response": "Put all 17 storage attendees inside the 19 sowing attendees for the smallest union; make the lists share only 8 for the largest union of 28.",
+      "judgment": "Alternative set-based reasoning is valid and must receive the same reasoning credit when its counts and scope are explained."
+    }
+  ],
+  "editCheck": "Change storage attendance from 17 to 21. Overlap becomes 12–19; union becomes 21–28. Endpoint allocations are (7,9,12,0) and (0,2,19,7). Preserve teacher notes and independent practice.",
+  "inputIsolation": "Only request, objective and sources enter the product. This evaluator reference is not supplied to Scion. These are exposed development cases, not independent classroom evidence."
+}

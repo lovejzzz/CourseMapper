@@ -1,0 +1,48 @@
+{
+  "id": "quantity-dev-10",
+  "split": "development",
+  "family": "quantity",
+  "language": "zh",
+  "sourceFamily": "sports-equipment-zero-pass",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "甲0/12=0%，乙9/18=50%。合并9/30=30%；等箱平均25%。已检测的零通过是真实零值，不是未知；其他未检测护具仍未知。合并要求唯一对象和一致检测定义，不能据此推断损坏原因。",
+  "acceptableReasoning": [
+    "解释甲箱明确完成检测且通过数为0，不能把已测零通过当作未知。",
+    "按护具数计算9/30；等箱权重与护具权重不同。",
+    "明确记录中的零结果和其他未检测对象的未知状态不同。",
+    "不推断使用年限或生产批次原因。"
+  ],
+  "reject": [
+    "忽略甲箱导致合并50%",
+    "把25%当护具合并率",
+    "把0通过改成UNKNOWN",
+    "将其他仓库护具算未通过"
+  ],
+  "requiredScoring": [
+    "正确识别零值、计数与对象",
+    "合并与等权计算及权重解释",
+    "区分零与缺失并限制因果结论"
+  ],
+  "contrastResponses": [
+    {
+      "response": "甲箱全部检测但0件通过，乙箱9件通过，所以共9/30=30%。等箱平均为25%，回答不同的权重问题。其他护具没有检测结果，损坏原因也未说明。",
+      "judgment": "完整：零值、权重和未知边界均明确。"
+    },
+    {
+      "response": "通过比例30%。",
+      "judgment": "部分：数值正确，未展示零值、分母与权重理由。"
+    },
+    {
+      "response": "甲箱没有通过结果，可以排除，只算乙箱50%。",
+      "judgment": "错误：把已测零通过当成缺失；要求保留甲箱12个已测对象。"
+    },
+    {
+      "response": "以12/30乘0%，加上18/30乘50%，得到30%；等权时才是25%。",
+      "judgment": "合理替代：加权方法有效；须说明已测零值与未知对象的区别。"
+    }
+  ],
+  "editCheck": "把甲箱通过数0改为6，其余不变，合并15/30=50%，等箱平均也为50%。两者相等源于两箱通过率相等，不是两箱规模相等。",
+  "inputIsolation": "Only request, objective and sources enter the product. This evaluator reference is not supplied to Scion. These are exposed development cases, not independent classroom evidence."
+}

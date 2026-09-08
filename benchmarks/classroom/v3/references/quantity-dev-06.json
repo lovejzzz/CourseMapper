@@ -1,0 +1,47 @@
+{
+  "id": "quantity-dev-06",
+  "split": "development",
+  "family": "quantity",
+  "language": "zh",
+  "sourceFamily": "community-museum-zero-attendance",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "设交集x，0≤x≤min(0,13)=0，所以交集为0，并集0+13-0=13。分配为清洁独有0、讲解独有13、两场0、都未签到21。未匹配身份不影响这些人数结论，但无法据此推算服务时长。",
+  "acceptableReasoning": [
+    "引用稳定34人总体、组内去重及0/13计数。",
+    "解释零人数活动没有任何成员可与另一场重叠。",
+    "给出四格分配并核对合计34。",
+    "不把签到次数或人数当服务小时。"
+  ],
+  "reject": [
+    "称交集仍可能大于0",
+    "将未匹配理解为所有计数均未知",
+    "将13人等同13小时服务"
+  ],
+  "requiredScoring": [
+    "正确引用计数和总体",
+    "以零集合解释确定交并人数",
+    "完整分配与结果范围"
+  ],
+  "contrastResponses": [
+    {
+      "response": "清洁0人，所以没有人可能同时参加；讲解的13人就是全部至少参加一次者。四格是0、13、0、21，合计34。不能推算时长。",
+      "judgment": "完整：零集合理由、分配和限制均明确。"
+    },
+    {
+      "response": "并集是13。",
+      "judgment": "部分：数值正确，缺少交集、分配与理由。"
+    },
+    {
+      "response": "没有核对姓名，交集可能是0至13。",
+      "judgment": "错误：忽略第一场为零；用“同时参加者必须属于两场”检查上界。"
+    },
+    {
+      "response": "两场的人数和为13，且第一场为空集，因此无需跨表匹配也没有重复计数。剩余21人没有在这两场签到。",
+      "judgment": "合理替代：空集论证有效，不强制使用公式符号。"
+    }
+  ],
+  "editCheck": "将清洁签到0改为8。交集范围0–8，并集13–21；原先确定13人的答案必须更新为范围。极端分配分别为8、13、0、13以及0、5、8、21。",
+  "inputIsolation": "Only request, objective and sources enter the product. This evaluator reference is not supplied to Scion. These are exposed development cases, not independent classroom evidence."
+}

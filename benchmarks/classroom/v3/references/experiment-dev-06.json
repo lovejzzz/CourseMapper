@@ -1,0 +1,48 @@
+{
+  "id": "experiment-dev-06",
+  "split": "development",
+  "family": "experiment",
+  "language": "zh",
+  "sourceFamily": "paper-rotor-fin-release-height",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "旧时间差混合叶片与高度影响。可随机分10/10张纸制作两种旋翼，在相同高度随机顺序释放并统一视频规则。两高度区组也可每高度每种5个。零秒不是缺失视频的代替值。",
+  "acceptableProcedure": [
+    "指出两个因素同时改变。",
+    "独立单位为新制作旋翼，最多20个且只计第一次。",
+    "用统一起止帧规则并保留缺失标记。",
+    "汇总并比较个体时间与变异，不推断旧差异全由叶片导致。"
+  ],
+  "reject": [
+    "长叶片必定多飞0.7秒",
+    "同一旋翼重复20次当20个独立对象",
+    "不同叶片继续使用不同高度",
+    "丢帧填零秒"
+  ],
+  "requiredScoring": [
+    "Diagnosis tied to the actual records and scope of the request",
+    "Executable allocation, independent units and controlled conditions, or a precise missing-condition explanation",
+    "Specified observations and interpretation without invented results"
+  ],
+  "contrastResponses": [
+    {
+      "response": "高度也变了。随机给两种叶片各10张纸，均从2米释放，随机顺序并统一其他条件。用相同视频起止帧测时，丢帧记缺失，比较两组个体时间分布。",
+      "judgment": "完整：分配和缺失处理具体。"
+    },
+    {
+      "response": "用同一个手机拍摄。",
+      "judgment": "部分：统一设备不能消除高度混杂。"
+    },
+    {
+      "response": "把丢帧视频记作0秒，这样没有空格。",
+      "judgment": "错误：用假数填充缺失会改变比较，必须保留缺失原因。"
+    },
+    {
+      "response": "把两种高度作为区组，每高度短长各5个，在高度内随机顺序比较。",
+      "judgment": "合理替代：两种叶片均出现在各高度，结果解释按高度分开。"
+    }
+  ],
+  "editCheck": "将可用纸张20改为16：固定高度8/8，或两高度每种4个。旧1.1/1.8秒仍只是原条件观察。",
+  "inputIsolation": "Only request, objective and sources enter the product. Evaluator-only reference; implementer-constructed exposed development evidence, not an independent teacher review."
+}

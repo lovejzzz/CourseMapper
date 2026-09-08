@@ -1,0 +1,18 @@
+{
+  "request": "Prepare a 45-minute lesson comparing an object-level condition proportion with an equal-batch mean. Students must show why the two happen to agree here and why that coincidence is not a general pooling rule.",
+  "objective": "Explain equal results under unequal group sizes without confusing equal rates with equal weights.",
+  "sources": [
+    {
+      "id": "record-1",
+      "text": "Fictional archive condition survey: batch Amber contained eight boxes, and two met the dry-storage checklist. Batch Slate contained twenty-eight boxes, and seven met the same checklist. Both batches were inspected on Monday using identical criteria."
+    },
+    {
+      "id": "record-2",
+      "text": "Every box has a unique inventory ID and belongs to exactly one batch. No box was counted in both. Packing materials and prior storage histories were not recorded."
+    },
+    {
+      "id": "record-3",
+      "text": "The archivist requests the proportion among all inspected boxes, while an assistant proposes the simple average of the two batch rates. No other archive boxes were inspected in this survey."
+    }
+  ]
+}

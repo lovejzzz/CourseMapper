@@ -1,0 +1,48 @@
+{
+  "id": "experiment-dev-07",
+  "split": "development",
+  "family": "experiment",
+  "language": "en",
+  "sourceFamily": "tile-coating-lamp-distance",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "Coating and distance are confounded. Randomly assign12/12 tiles to coatings at a common distance, using temperature change rather than final temperature alone. A two-distance design can use6 per coating at each distance, with within-distance comparisons. The old8 and5 do not determine future tile changes.",
+  "acceptableProcedure": [
+    "State the two simultaneous changes and limits of missing individual records.",
+    "Use independent tiles, randomized coating allocation and run order with common starting conditions.",
+    "Record initial and final readings per tile and compute change consistently.",
+    "Compare changes and spread; separate proposed measurements from observed results."
+  ],
+  "reject": [
+    "Claim matte coating causes3 degrees extra heating",
+    "Use final temperatures without common starts or changes",
+    "Treat two readings of a tile as two tiles",
+    "Predict exact new results"
+  ],
+  "requiredScoring": [
+    "Diagnosis tied to the actual records and scope of the request",
+    "Executable allocation, independent units and controlled conditions, or a precise missing-condition explanation",
+    "Specified observations and interpretation without invented results"
+  ],
+  "contrastResponses": [
+    {
+      "response": "Randomly assign12 tiles to each coating, all20cm from the lamp. Keep starts, coating volume and exposure equal; randomize order. For each tile record start and end and compare their differences and spread. The old comparison cannot isolate coating.",
+      "judgment": "Complete procedure and correct causal limitation."
+    },
+    {
+      "response": "Keep the lamp the same.",
+      "judgment": "Partial: leaves distance and potentially starting conditions unresolved."
+    },
+    {
+      "response": "Take both starting and ending readings for24 tiles, giving48 independent tiles.",
+      "judgment": "Error: two paired readings belong to one experimental unit."
+    },
+    {
+      "response": "Use6 of each coating at20cm and6 at30cm, randomizing allocation and comparing coatings within distance.",
+      "judgment": "Valid blocked alternative; cannot compare only opposite distance/coating combinations."
+    }
+  ],
+  "editCheck": "Change available tiles24 to28. Fixed-distance14/14 or two-distance7 per coating per distance. Do not change the observed8/5 summaries or manufacture new temperatures.",
+  "inputIsolation": "Only request, objective and sources enter the product. Evaluator-only reference; implementer-constructed exposed development evidence, not an independent teacher review."
+}

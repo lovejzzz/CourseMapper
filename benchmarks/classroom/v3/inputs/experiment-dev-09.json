@@ -1,0 +1,18 @@
+{
+  "request": "Prepare a planning lesson on comparing mulch types. Require a source-based critique, feasible allocation and a blank tray record. Students are not asked to grow plants or report future results.",
+  "objective": "Identify watering as a competing factor and design a tray-level comparison without treating seedlings within a tray as independently assigned units.",
+  "sources": [
+    {
+      "id": "record-1",
+      "text": "Fictional nursery note: trays with bark mulch given100ml water daily had a median of8 emerged seedlings at day seven; trays with fibre mulch given150ml had a median of11. Original tray counts and individual results were not preserved."
+    },
+    {
+      "id": "record-2",
+      "text": "Sixteen new identical trays are available, each containing twenty seeds from one seed lot. A mulch treatment and water volume are applied to a whole tray. Both mulches can use either daily volume. Keep tray dimensions, soil, light schedule, seed count and observation day the same; trays can be randomly placed on the same shelf."
+    },
+    {
+      "id": "record-3",
+      "text": "Count a seedling as emerged when its shoot is visibly above the soil at the day-seven observation. Record tray ID, mulch, daily water, shelf position and count, including zero. No new growth observations have been made."
+    }
+  ]
+}
