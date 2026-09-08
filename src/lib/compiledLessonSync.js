@@ -3,7 +3,6 @@ import { readTeachingTaskSources } from './teachingProgram.js';
 import { sameJsonData } from './canonicalJson.js';
 
 import {
-  buildCourseBlueprint,
   BLUEPRINT_COMPILE_CONTEXT,
   compactBlueprintForStorage,
   compileBlueprintDeliverables,
@@ -389,17 +388,16 @@ export function compileBlueprintLessonPatch({
     instructorProvidedFacts: extractInstructorProvidedFacts(sourceBrief),
     ...(requestedMinutes ? { sessionMinutes: requestedMinutes } : {}),
   };
-  let blueprint;
+  // Assessment and reading identity must not depend on whether a model
+  // enrichment overlay happens to be present for this recompilation.
+  const graph = deriveCourseGraphFromCourseMap(courseMap);
   if (enrichedLessonCount > 0) {
-    const graph = deriveCourseGraphFromCourseMap(courseMap);
     attachEnrichmentToGraph(graph, {
       ...(enrichmentOverlay && typeof enrichmentOverlay === 'object' ? enrichmentOverlay : {}),
       lessonContent,
     });
-    blueprint = compactBlueprintForStorage(buildBlueprintFromGraph(graph, compilerOptions));
-  } else {
-    blueprint = compactBlueprintForStorage(buildCourseBlueprint(courseMap, compilerOptions));
   }
+  const blueprint = compactBlueprintForStorage(buildBlueprintFromGraph(graph, compilerOptions));
   // v0.15.3 D1: per-lesson recompiles carry the depth flag too — same
   // injection as full generation, sync radius, and compact restore.
   const compiled = compileBlueprintDeliverables(blueprint, [featureId], {

@@ -1,3 +1,4 @@
+import { buildBlueprintFromGraph, deriveCourseGraphFromCourseMap } from '../src/lib/courseGraph/index.js';
 /**
  * v0.14.7 WS-G — sync as a star feature (the deterministic chain).
  *
@@ -513,7 +514,7 @@ describe('G1 — the sync compile keeps its subject matter', () => {
 describe('G2 — recompile-and-diff blast radius', () => {
   const FEATURES = ['syllabus', 'assignments', 'rubrics', 'quizBank', 'studyGuides'];
   function compiledStateFor(courseMap) {
-    const blueprint = compactBlueprintForStorage(buildCourseBlueprint(courseMap, {}));
+    const blueprint = compactBlueprintForStorage(buildBlueprintFromGraph(deriveCourseGraphFromCourseMap(courseMap)));
     const compiled = compileBlueprintDeliverables(blueprint, FEATURES, { configMap: {} });
     return Object.fromEntries(FEATURES.map((featureId) => [featureId, { status: 'done', data: compiled[featureId] }]));
   }
@@ -642,4 +643,16 @@ describe('G5 — identity-tier matching in the lesson patch builder', () => {
     expect(patch.assignments).toHaveLength(1);
     expect(onTextTierMatch).toHaveBeenCalledTimes(1);
   });
+});
+
+it('retains assessment identities in a model-free single-lesson patch', () => {
+  const map = geologyMap();
+  const graph = deriveCourseGraphFromCourseMap(map);
+  const expected = graph.assessments.filter((entry) => entry.dueSession === 2).map((entry) => entry.id);
+  expect(expected.length).toBeGreaterThan(0);
+  const patch = compileBlueprintLessonPatch({ featureId: 'assignments', courseMap: map, lessonIndex: 1, config: {} });
+  expect(patch.lessonEnriched).toBe(false);
+  const ids = patch.data.assignments.map((row) => row.assessmentId);
+  for (const id of expected) expect(ids).toContain(id);
+  expect(ids.some((id) => id?.startsWith('A1.'))).toBe(false);
 });

@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Build single-lesson recompiles and synchronization previews from the course graph whether or not a model enrichment overlay exists. Preserve assessment/readings registries across both paths. Verify identity in a model-free lesson patch and no-change preview; a real browser regeneration retains the assessment/task IDs, source records and model-call count.
+
 - Render known question-type tags as readable labels in Word answer keys. Preserve explicit assessment identities when shared tasks replace syllabus requirement titles, including repeated edits; leave official grading categories and multi-lesson assessments unchanged. Actual saved-course Word exports verify the labels and registry link when the saved registry is supplied; map-only synchronization paths still need registry continuity work.
 
 - Exclude labeled source sections from ordered lesson contracts while retaining later explicit lesson headings. Keep evidence-match offsets consistent across whitespace normalization, and classify packet-limit statements before shortening displayed evidence. Actual browser preparation now removes the false missing-packet blocker and false three-lesson contract with no new model calls; other output-quality findings remain.

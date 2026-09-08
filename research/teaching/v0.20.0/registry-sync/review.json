@@ -1,0 +1,26 @@
+{
+  "baselineCommit": "cdf48289",
+  "workflow": "Resume same Chrome tab, regenerate Assignment Briefs lesson, save project",
+  "artifact": {
+    "path": ".audit-work/v0200-teaching-system/registry-sync/after.coursemapper",
+    "sha256": "97d67f417a7742f9d485b83cdbce34c334965d94ade4f4c488497e2fcc446ce9"
+  },
+  "observed": {
+    "assessmentIds": [
+      "A1.1"
+    ],
+    "taskIds": [
+      "task-6ab937718544dc2e"
+    ],
+    "status": "done",
+    "stale": false,
+    "teachingProgramUnchanged": true,
+    "taskSourcesUnchanged": true,
+    "modelRequestStartsBefore": 7,
+    "modelRequestStartsAfter": 7
+  },
+  "limitations": [
+    "Real browser observation covers one reviewed attribution lesson; multi-lesson behavior additionally checked in regression tests.",
+    "No new inference, export visual review, reserved benchmark or deployment."
+  ]
+}

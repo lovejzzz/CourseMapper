@@ -20,7 +20,6 @@
  * useSmartSync keeps the legacy lookup-table plan (belt, never silent).
  */
 import {
-  buildCourseBlueprint,
   compactBlueprintForStorage,
   compileBlueprintDeliverables,
   isBlueprintCompiledFeature,
@@ -215,17 +214,16 @@ export function computeSyncBlastRadius({
       if (cached) lessonContent[lessonId] = cached;
     });
   }
-  let blueprint;
+  // Assessment and reading identity must not depend on whether a model
+  // enrichment overlay happens to be present for this recompilation.
+  const graph = deriveCourseGraphFromCourseMap(courseMap);
   if (Object.keys(lessonContent).length > 0) {
-    const graph = deriveCourseGraphFromCourseMap(courseMap);
     attachEnrichmentToGraph(graph, {
       ...(enrichmentOverlay && typeof enrichmentOverlay === 'object' ? enrichmentOverlay : {}),
       lessonContent,
     });
-    blueprint = compactBlueprintForStorage(buildBlueprintFromGraph(graph, { instructorPreferences }));
-  } else {
-    blueprint = compactBlueprintForStorage(buildCourseBlueprint(courseMap, { instructorPreferences }));
   }
+  const blueprint = compactBlueprintForStorage(buildBlueprintFromGraph(graph, { instructorPreferences }));
   const compiled = compileBlueprintDeliverables(blueprint, features, { configMap });
 
   const plan = [];
