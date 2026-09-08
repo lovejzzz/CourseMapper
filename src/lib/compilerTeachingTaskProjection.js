@@ -1,4 +1,5 @@
 import { comparisonTaskBloom } from './teachingMaterialPresentation.js';
+import { createReviewedPracticeCount } from './reviewedPracticeCount.js';
 import { taskCopy, taskText } from './teachingTaskCopy.js';
 import { projectTeachingTaskSyllabus } from './compilerTeachingTaskSyllabus.js';
 import { teachingTaskRubric, teachingTaskWorkedExample } from './compilerTeachingTask.js';
@@ -654,8 +655,14 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
           answer: retry.answer,
           successCriteria: transfer.criteria,
         });
-      if (reviewedBank) projectReviewedTeachingQuestionBank(row, task, quizQuestions, seats);
-      else
+      if (reviewedBank) {
+        projectReviewedTeachingQuestionBank(row, task, quizQuestions, seats);
+        row.reviewedPracticeCount = createReviewedPracticeCount(
+          data.teachingTaskSources.find((source) => source.id === task.id),
+          task,
+          quizQuestions,
+        );
+      } else
         quizQuestions.forEach((q, i) => {
           if (seats[i]) projectTeachingQuestion(seats[i], q, task);
         });

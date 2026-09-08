@@ -1,4 +1,5 @@
 import { renderedDeliverableCollectionKey as getArrayKey } from './renderedDeliverableCollection.js';
+import { checkReviewedPracticeCount } from './reviewedPracticeCount.js';
 import { findPublishabilityPlaceholders } from './publishabilityPlaceholders';
 import { getNotApplicableDisposition } from './deliverableApplicability';
 import { classifyAssessmentKind } from './courseGraph/deriveFromCourseMap';
@@ -996,6 +997,8 @@ export function normalizeQuizBankQuestionCounts(data, minimumQuestions = 8) {
 
   const counts = quizzes.flatMap((quiz, index) => {
     if (quiz?.kind === 'exam') return [];
+    const reviewed = checkReviewedPracticeCount(data, quiz);
+    if (reviewed?.valid) return [];
     const questionKey = Array.isArray(quiz?.questions) ? 'questions' : Array.isArray(quiz?.qs) ? 'qs' : null;
     const questions = questionKey ? quiz[questionKey] : [];
     return [{ index, count: questions.length }];
@@ -1250,7 +1253,11 @@ export function validateDeliverableGeneration(featureId, data, options = {}) {
       const questionKey = getQuestionKey(quiz);
       const questions = questionKey ? quiz[questionKey] : [];
       const lessonLabel = Number(quiz?.lessonNumber) || index + 1;
-      if (quiz?.kind !== 'exam' && questions.length !== target) {
+      const reviewed = checkReviewedPracticeCount(data, quiz);
+      if (reviewed && !reviewed.valid) {
+        blockers.push(`Quiz lesson ${lessonLabel}: ${reviewed.message}`);
+        retryableLessonIndices.push(index);
+      } else if (!reviewed && quiz?.kind !== 'exam' && questions.length !== target) {
         blockers.push(
           `Quiz lesson ${lessonLabel} has ${questions.length}/${target} evidence-bound question(s); the count must be exact.`,
         );

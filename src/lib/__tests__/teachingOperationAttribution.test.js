@@ -1,4 +1,6 @@
 import { describe, it, expect } from 'vitest';
+import { checkReviewedPracticeCount } from '../reviewedPracticeCount.js';
+import { normalizeQuizBankQuestionCounts, validateDeliverableGeneration } from '../deliverablePostProcess.js';
 import { createTeachingOperationPlan, validateTeachingOperationPlan } from '../teachingOperationPlan.js';
 import { renderTeachingOperationTask } from '../teachingOperationTask.js';
 import { buildCourseBlueprint, compileBlueprintDeliverables } from '../courseBlueprintCompiler.js';
@@ -177,6 +179,28 @@ describe('reviewed claim attribution contract', () => {
       (q) => q.practiceKind === 'feedback-retry',
     );
     expect(retry.points).toBe(0);
+    const bank = structuredClone(first.deliverables.quizBank.data);
+    const quiz = bank.quizzes[0];
+    expect(checkReviewedPracticeCount(bank, quiz)?.valid).toBe(true);
+    quiz.questions = quiz.questions.filter((q) => !q.machineScored);
+    quiz.totalPoints = quiz.questions.reduce((sum, q) => sum + q.points, 0);
+    expect(quiz.questions).toHaveLength(5);
+    expect(normalizeQuizBankQuestionCounts(bank, 6).mismatchedIndices).toEqual([]);
+    expect(validateDeliverableGeneration('quizBank', bank, { config: { questionsPerLesson: 6 } }).valid).toBe(true);
+    const ordinary = structuredClone(bank);
+    delete ordinary.quizzes[0].reviewedPracticeCount;
+    expect(validateDeliverableGeneration('quizBank', ordinary, { config: { questionsPerLesson: 6 } }).valid).toBe(
+      false,
+    );
+    const incomplete = structuredClone(bank);
+    incomplete.quizzes[0].questions.pop();
+    expect(checkReviewedPracticeCount(incomplete, incomplete.quizzes[0])?.valid).toBe(false);
+    const changedSource = structuredClone(bank);
+    changedSource.teachingTaskSources[0].inputs[0].text += ' Changed.';
+    expect(checkReviewedPracticeCount(changedSource, changedSource.quizzes[0])?.valid).toBe(false);
+    const duplicate = structuredClone(bank);
+    duplicate.quizzes[0].questions[4] = duplicate.quizzes[0].questions[3];
+    expect(checkReviewedPracticeCount(duplicate, duplicate.quizzes[0])?.valid).toBe(false);
     expect(first.deliverables.quizBank.data.quizzes[0].questions.some((q) => q.practiceKind === 'task-scaffold')).toBe(
       false,
     );
@@ -194,6 +218,9 @@ describe('reviewed claim attribution contract', () => {
     );
     edit.bindings.proposedEvidence.quote = 'voltage log';
     const second = apply({ ...first, draft: edit });
+    const revisedBank = JSON.parse(JSON.stringify(second.deliverables.quizBank.data));
+    expect(checkReviewedPracticeCount(revisedBank, revisedBank.quizzes[0])?.valid).toBe(true);
+    expect(revisedBank.quizzes[0].reviewedPracticeCount.sourceHash).not.toBe(quiz.reviewedPracticeCount.sourceHash);
     const restored = readTeachingTaskSources(JSON.parse(JSON.stringify(second.courseMap)))[0];
     const task = rebuildTeachingTaskSource(restored);
     expect(restored.id).toBe(source.id);

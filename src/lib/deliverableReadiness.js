@@ -1,3 +1,4 @@
+import { checkReviewedPracticeCount } from './reviewedPracticeCount.js';
 import { classifyAssessmentKind } from './courseGraph/deriveFromCourseMap.js';
 import { readTeachingGoalReviews } from './teachingGoalReview.js';
 import { compactCompilerOwnedEvidenceCheckIdentity } from './compilerAssessmentIdentity.js';
@@ -2581,7 +2582,10 @@ function checkPerLessonFeature(featureId, data, courseMap, lessonIndices, issues
     if (featureId === 'quizBank') {
       const questions = asArray(item.questions || item.qs);
       const target = resolveQuizQuestionTarget(config);
-      if (questions.length < target) {
+      const reviewed = checkReviewedPracticeCount(data, item);
+      if (reviewed && !reviewed.valid) {
+        issues.push(makeIssue(READINESS_WARNING, featureId, `${lessonTitle}: ${reviewed.message}`));
+      } else if (!reviewed && questions.length < target) {
         issues.push(
           makeIssue(READINESS_WARNING, featureId, `${lessonTitle} quiz bank has fewer than ${target} questions.`),
         );

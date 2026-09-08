@@ -1,0 +1,71 @@
+{
+  "baseline": "4099c013",
+  "kind": "Actual Chrome retry of retained failed quiz, followed by project save",
+  "projectSha256": "1e91a1767951176fdfad8df5e4b803425e4452b3f114bb1091c6b0bce56375df",
+  "quizStatus": "done",
+  "quizError": null,
+  "questions": [
+    {
+      "id": "task-6ab937718544dc2e:transfer",
+      "kind": "independent-transfer",
+      "points": 12
+    },
+    {
+      "id": "task-6ab937718544dc2e:response",
+      "kind": "task-rehearsal",
+      "points": 20
+    },
+    {
+      "id": "task-6ab937718544dc2e:error-0",
+      "kind": "error-analysis",
+      "points": 2
+    },
+    {
+      "id": "task-6ab937718544dc2e:error-1",
+      "kind": "error-analysis",
+      "points": 2
+    },
+    {
+      "id": "task-6ab937718544dc2e:revision",
+      "kind": "feedback-retry",
+      "points": 0
+    }
+  ],
+  "countContract": {
+    "valid": true,
+    "count": 5
+  },
+  "policy": {
+    "version": 1,
+    "taskId": "task-6ab937718544dc2e",
+    "taskRevision": "cd8eda08e4c1d9e3d926f49b547b83e18a23a8b6c4cf1a8bb933e5ad4676cde4",
+    "sourceHash": "7dea68b4b2c6d0372eedb349e9ef90593632dab92df8bdb80ea8593f4452b3d7",
+    "practiceIds": [
+      "task-6ab937718544dc2e:transfer",
+      "task-6ab937718544dc2e:response",
+      "task-6ab937718544dc2e:error-0",
+      "task-6ab937718544dc2e:error-1",
+      "task-6ab937718544dc2e:revision"
+    ]
+  },
+  "packageStatus": "blocked",
+  "remainingActions": [
+    {
+      "label": "Lesson Plans",
+      "action": "This saved material uses a different source revision. Review or regenerate it from the current teaching structure before sharing; your saved text has been preserved."
+    },
+    {
+      "label": "Discussion Prompts",
+      "action": "This saved material uses a different source revision. Review or regenerate it from the current teaching structure before sharing; your saved text has been preserved."
+    },
+    {
+      "label": "Quality grade",
+      "action": "Package quality grader found 1 blocking P0 finding (score 74/100, grade C) — review the quality report before downloading"
+    }
+  ],
+  "limitations": [
+    "Ordinary Retry unnecessarily ran blueprint enrichment before compilation.",
+    "Lesson Plans and Discussion Prompts remain source-revision stale; full package not accepted.",
+    "No new independent classroom or reserved-case acceptance."
+  ]
+}
