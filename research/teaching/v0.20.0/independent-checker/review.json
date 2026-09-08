@@ -1,0 +1,99 @@
+{
+  "status": "independent checker component; full v3 product protocol incomplete",
+  "runs": [
+    {
+      "name": "browser-first",
+      "capture": ".audit-work/v0200-teaching-system/independent-checker/browser-first/report.json",
+      "sha256": "25711bea899dce48cce775fc8cd0bf693d52dfedff126c48d1c48549802d5ee7",
+      "checks": 342,
+      "failures": [
+        {
+          "id": "material-revision-consistency",
+          "status": "fail",
+          "location": "task-e661f260c09c6273",
+          "detail": "Mixed task revisions need review; retained conflicts do not count as fully synchronized.",
+          "severity": "major"
+        },
+        {
+          "id": "material-revision-consistency",
+          "status": "fail",
+          "location": "task-e661f260c09c6273:transfer",
+          "detail": "Mixed task revisions need review; retained conflicts do not count as fully synchronized.",
+          "severity": "major"
+        }
+      ],
+      "checkerSha256": null,
+      "educationalAcceptance": "pending"
+    },
+    {
+      "name": "compiler-replay",
+      "capture": ".audit-work/v0200-teaching-system/independent-checker/compiler-replay/report.json",
+      "sha256": "b0f0b723c6cdba3c3645663c54219208c810e8a82ecc6fc5afa2db2d7bcfb1e0",
+      "checks": 342,
+      "failures": [],
+      "checkerSha256": null,
+      "educationalAcceptance": "pending"
+    },
+    {
+      "name": "compiler-display-check",
+      "capture": ".audit-work/v0200-teaching-system/independent-checker/compiler-display-check/report.json",
+      "sha256": "5e5b14067aa17b034ab0524b8b9408f70f3fd8169516bad3683355146db71358",
+      "checks": 354,
+      "failures": [],
+      "checkerSha256": null,
+      "educationalAcceptance": "pending"
+    },
+    {
+      "name": "browser-final",
+      "capture": ".audit-work/v0200-teaching-system/independent-checker/browser-final/report.json",
+      "sha256": "d85ef04b1d584f6ace9e192cfd1da834d0c46654c0e974241b7f3f8cd2ca0c0c",
+      "checks": 354,
+      "failures": [
+        {
+          "id": "material-revision-consistency",
+          "status": "fail",
+          "location": "task-e661f260c09c6273",
+          "detail": "Mixed task revisions need review; retained conflicts do not count as fully synchronized.",
+          "severity": "major"
+        },
+        {
+          "id": "material-revision-consistency",
+          "status": "fail",
+          "location": "task-e661f260c09c6273:transfer",
+          "detail": "Mixed task revisions need review; retained conflicts do not count as fully synchronized.",
+          "severity": "major"
+        }
+      ],
+      "checkerSha256": "bf3b6b373e4fe089b9cac294defc1fb00e2df290e0a344aa49c818ad1ad3f834",
+      "educationalAcceptance": "pending"
+    },
+    {
+      "name": "compiler-final",
+      "capture": ".audit-work/v0200-teaching-system/independent-checker/compiler-final/report.json",
+      "sha256": "d8056cd5f9c4b347ab6ef51f6d1fda47cf5826b93ec6cb7ebc54f0cc4fe158bf",
+      "checks": 354,
+      "failures": [],
+      "checkerSha256": "bf3b6b373e4fe089b9cac294defc1fb00e2df290e0a344aa49c818ad1ad3f834",
+      "educationalAcceptance": "pending"
+    }
+  ],
+  "actualEvidence": [
+    "The saved browser project after only quiz/rubric Regen contains mixed revisions for the primary and transfer tasks.",
+    "The separately labeled all-nine compiler replay has no detected defects under the annotated checks. It is not proof of browser-wide synchronization.",
+    "Main answer35% and independent case50% equations checked independently against counts9/12+12/48 and16/20+24/60."
+  ],
+  "coverageLimits": [
+    "One exposed English development case; no reserved or fresh-model acceptance.",
+    "Scoring identity checks cannot detect every unfair condition inside a descriptor.",
+    "Real snapshots/student exports were not supplied this round; those detectors have fault-injection evidence only.",
+    "All semantic and visual acceptance remains pending."
+  ],
+  "checks": {
+    "fullCheck": "exit0;58 studio/929 compatibility/978 Scion; followed by displayed-source check and final targeted checks",
+    "finalAcceptanceTests": 37,
+    "newCheckerTests": 16,
+    "lint": "passed",
+    "frozenCorpus": "verified unchanged"
+  },
+  "next": "Fix review visibility and handling of mixed task revisions after partial Regen; continue the original automatic task, full v3 runner, course, format and deployment gates."
+}

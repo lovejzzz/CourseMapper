@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Add an independent saved-project evidence checker for original source/spans, reviewed attribution, scoring identities, answer equations and material revision consistency. Fault-injection tests cover corruption, stale edits and student-answer leakage; untested semantic/layout dimensions remain pending. A real partial-Regen project exposes mixed primary/transfer revisions, while the separate full compiler replay passes the annotated checks.
+
 - Record and reject a direct local operation-selector candidate after two fixed six-input development trials. Fixed labels improve parseability but still misroute a timeline task and exhaust the budget on a scoped-exception task. Preserve both raw runs; no automatic selector enabled and no unsupported-task completion claimed.
 
 - Distinguish the learner’s subject from material-production instructions in native course planning. Recognize singular requests phrased as “materials for a 50-minute lesson,” preserving stronger explicit course counts. Real local reruns retain the first three-lesson failure and the corrected one-lesson result with the exact teacher objective; automatic shared-task formation remains incomplete.

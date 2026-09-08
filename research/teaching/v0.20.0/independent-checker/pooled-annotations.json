@@ -1,0 +1,77 @@
+{
+  "reviewKind": "implementer-annotated exposed development case; not injected into product",
+  "caseId": "quantity-dev-01",
+  "bindings": {
+    "task-e661f260c09c6273": {
+      "firstPart": {
+        "sourceId": "tablet-desks",
+        "quote": "nine",
+        "occurrence": 0
+      },
+      "firstWhole": {
+        "sourceId": "tablet-desks",
+        "quote": "twelve",
+        "occurrence": 0
+      },
+      "secondPart": {
+        "sourceId": "tablet-desks",
+        "quote": "twelve",
+        "occurrence": 1
+      },
+      "secondWhole": {
+        "sourceId": "tablet-desks",
+        "quote": "forty-eight",
+        "occurrence": 0
+      },
+      "firstGroup": {
+        "sourceId": "tablet-desks",
+        "quote": "small desk",
+        "occurrence": 0
+      },
+      "secondGroup": {
+        "sourceId": "tablet-desks",
+        "quote": "large desk",
+        "occurrence": 0
+      }
+    }
+  },
+  "scoring": [
+    {
+      "path": [
+        "rubrics",
+        "rubrics",
+        0
+      ],
+      "requirementIds": [
+        "quantities",
+        "operation",
+        "boundary"
+      ]
+    }
+  ],
+  "answers": [
+    {
+      "path": [
+        "assignments",
+        "assignments",
+        0,
+        "anchorExampleSet",
+        "strongSample"
+      ],
+      "equationPattern": "\\(9 \\+ 12\\)/\\(12 \\+ 48\\) = \\d+/\\d+ = [\\d.]+%",
+      "independentExpression": "(9+12)/(12+48)"
+    },
+    {
+      "path": [
+        "quizBank",
+        "quizzes",
+        0,
+        "questions",
+        0,
+        "explanation"
+      ],
+      "equationPattern": "\\(16 \\+ 24\\)/\\(20 \\+ 60\\) = \\d+/\\d+ = [\\d.]+%",
+      "independentExpression": "(16+24)/(20+60)"
+    }
+  ]
+}

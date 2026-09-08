@@ -1,0 +1,13 @@
+# Independent v3 evidence checks
+
+Run `node scripts/benchmarks/checkClassroomV3Project.mjs PROJECT INPUT ANNOTATIONS NEW_OUTPUT_DIRECTORY` from the repository root. `PROJECT` is an actual saved project or separately labeled compiler export input. `INPUT` is the original frozen product input. `ANNOTATIONS` contains evaluator-only role, scoring and answer observations; it is never passed to generation. The output directory must not exist. Exit 1 means a detected defect, not that every unchecked dimension has been evaluated.
+
+The checker imports no product code and ignores product quality scores. It checks canonical and displayed source records, span bounds, independently annotated source roles/occurrences, source copies and material revision consistency. Annotated criterion identities are checked for omission/addition. Answer checks evaluate a small arithmetic language without executing model text; all sides of a selected reference-answer equation must match an independent expression. Equations in quoted misconceptions must not be annotated as reference truth.
+
+The API also accepts actual transition snapshots with teacher-owned paths and preview/current revisions, and text extracted from actual student exports with independently identified teacher-only passages. These inputs are optional **coverage gaps**, not automatic passes. A fixture that injects loss or leakage verifies detector behavior; it is not a real browser/export acceptance run.
+
+`educationalAcceptance` always stays `pending`. Source text matching cannot prove semantic attribution without independent role review. Matching criterion IDs cannot establish fairness or detect every unassigned condition hidden inside a descriptor. Selected equations do not certify all prose, acceptable alternative answers, complete learning-objective coverage or layout. Student passage checks do not find arbitrary semantic paraphrases of an answer. An equation pattern must be reviewed again if a legitimate output uses a different representation.
+
+Fault injections cover wrong denominator/result, fabricated canonical/displayed evidence, wrong attribution and repeated-count occurrence, scoring omissions/additions, contrast-judgment mismatch, stale copies, transfer contamination, teacher-content loss, stale preview application and student answer leakage. The tests run in `benchmark:acceptance:test` and `npm run check`.
+
+This is a component of the v3 acceptance runner, not the complete 60-case protocol. First-run natural generation, explicit reviewed structure, actual edits/exports, fresh model units and educational review still have to be captured and assessed. Do not change the frozen corpus or remove supported cases from the denominator because current operations do not handle them.
