@@ -1,3 +1,5 @@
+import { validateUnionBindings } from './teachingOperationUnion.js';
+import { solveTeachingUnionBounds } from './teachingSetArithmetic.js';
 import { sha256HexSync } from './sha256Sync.js';
 import { solveTeachingProportion } from './teachingTaskArithmetic.js';
 import { parseSourceCount, countSpanCutsNumber } from './sourceCount.js';
@@ -53,6 +55,27 @@ function sourceFractionIssue(text, numerator, denominator, values) {
 // These are executable input contracts, not topic names or free-form claims
 // of correctness. New operations must provide their own premise checks.
 export const TEACHING_OPERATION_SPECS = {
+  'union-bounds': {
+    family: 'quantity',
+    taskKind: 'source-union-bounds',
+    defaultPracticeMinutes: 20,
+    bindings: {
+      rosterRecord: 'record',
+      populationCount: 'ratio-count',
+      populationName: 'text',
+      stablePopulation: 'text',
+      attendanceRecord: 'record',
+      firstCount: 'ratio-count',
+      secondCount: 'ratio-count',
+      firstEvent: 'text',
+      secondEvent: 'text',
+      withinGroupDistinct: 'text',
+      limitRecord: 'record',
+      missingOverlap: 'text',
+    },
+    requirements: ['quantities', 'operation', 'boundary'],
+    defaultWeights: [30, 40, 30],
+  },
   'pooled-proportion': {
     family: 'quantity',
     taskKind: 'source-pooled-proportion',
@@ -271,6 +294,7 @@ export function validateTeachingOperationPlan(plan, inputs, objective) {
   // a person reviewed an imported project or that its facts are true.
   if (plan.operation === 'paired-condition-confound') issues.push(...validateComparisonBindings(plan, values));
   if (plan.operation === 'record-relative-day') issues.push(...validateChronologyBindings(plan, values));
+  if (plan.operation === 'union-bounds') issues.push(...validateUnionBindings(plan, values));
   if (plan.operation === 'pooled-proportion') {
     issues.push(...validatePoolingBindings(plan, values));
     for (const side of ['first', 'second']) {
@@ -363,7 +387,7 @@ export function createTeachingOperationPlan({
     presentationVersion:
       operation === 'paired-condition-confound'
         ? 5
-        : ['record-relative-day', 'pooled-proportion'].includes(operation) ||
+        : ['record-relative-day', 'pooled-proportion', 'union-bounds'].includes(operation) ||
             version === AUTHORED_REQUIREMENTS_PLAN_VERSION
           ? 4
           : 3,
@@ -396,6 +420,17 @@ export function evaluateTeachingOperationPlan(plan, inputs, objective) {
       issues: [
         issue('plan-unconfirmed', 'Review the proposed source roles and relationship before compiling answers.'),
       ],
+    };
+  if (plan.operation === 'union-bounds')
+    return {
+      status: 'ready',
+      operation: plan.operation,
+      values: validation.values,
+      bounds: solveTeachingUnionBounds(
+        validation.values.populationCount,
+        validation.values.firstCount,
+        validation.values.secondCount,
+      ),
     };
   if (plan.operation === 'pooled-proportion')
     return {

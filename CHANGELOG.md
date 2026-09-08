@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Add reviewed overlapping-membership bounds with exact endpoint allocations, shared bilingual scoring and independent practice. Keep intermediate reasoning synchronized even when the final range is unchanged; correct false uncertainty for empty/full events. Verify Chinese browser edit/reopen and 24 final PDF pages; keep short quiz response blocks together. Fresh Scion and classroom acceptance remain pending.
+
 - Add reviewed pooling of two distinct counted groups: exact combined proportions, denominator weights, equal-group comparisons, bilingual answers and four scoring examples. Keep independent practice on its own records; propagate reviewed source changes into nine materials.
 - Give pooling tasks specific guide concepts, shared question scoring and sufficient response space; remove duplicate guide answers and sparse assignment pages. Audit 24 PDF pages across eight English/Chinese outputs. Fresh automatic proposal and independent classroom acceptance remain pending.
 

@@ -1,3 +1,4 @@
+import { unionCountsFixture } from '../../tests/fixtures/teaching/unionCounts.js';
 // Development output inspection, not the v3 benchmark or a model receipt.
 // Run with vite-node. Uses the app's actual creation transaction and exporters.
 import fs from 'node:fs/promises';
@@ -29,9 +30,10 @@ const root = process.argv[2];
 if (!root) throw new Error('Provide a new output directory; existing captures are never overwritten.');
 // Keep the original default for reproducing prior proportion captures.
 const operation = process.argv[3] || 'observed-proportion';
-if (!['observed-proportion', 'paired-condition-confound', 'pooled-proportion'].includes(operation))
+if (!['observed-proportion', 'paired-condition-confound', 'pooled-proportion', 'union-bounds'].includes(operation))
   throw new Error('Unsupported capture operation.');
 const experiment = operation === 'paired-condition-confound';
+const union = operation === 'union-bounds';
 const pooling = operation === 'pooled-proportion';
 const outputFeatures =
   process.argv[4]?.split(',') || (experiment ? ['assignments', 'rubrics', 'studyGuides'] : ['rubrics', 'studyGuides']);
@@ -60,20 +62,30 @@ const features = [
 const report = [];
 try {
   for (const zh of [false, true]) {
-    const f = (pooling ? pooledCountsFixture : experiment ? comparisonDesignFixture : proportionPresentationFixture)(
-      zh,
-    );
-    const name = pooling
+    const f = (
+      union
+        ? unionCountsFixture
+        : pooling
+          ? pooledCountsFixture
+          : experiment
+            ? comparisonDesignFixture
+            : proportionPresentationFixture
+    )(zh);
+    const name = union
       ? zh
-        ? '平板归还记录与群体权重'
-        : 'Tablet returns and group weights'
-      : experiment
+        ? '活动参与范围'
+        : 'Participation bounds'
+      : pooling
         ? zh
-          ? '保温套与温降的比较设计'
-          : 'Designing a comparison of ink drying'
-        : zh
-          ? '维修记录与观察范围'
-          : 'Repair records and observation limits';
+          ? '平板归还记录与群体权重'
+          : 'Tablet returns and group weights'
+        : experiment
+          ? zh
+            ? '保温套与温降的比较设计'
+            : 'Designing a comparison of ink drying'
+          : zh
+            ? '维修记录与观察范围'
+            : 'Repair records and observation limits';
     const map = {
       courseName: name,
       lessons: [

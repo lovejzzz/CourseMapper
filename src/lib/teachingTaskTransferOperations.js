@@ -1,3 +1,5 @@
+import { renderUnionTask } from './teachingOperationUnion.js';
+import { solveTeachingUnionBounds } from './teachingSetArithmetic.js';
 import { evidenceTransferPackets } from './teachingTaskEvidenceTransferPackets.js';
 import { explicitSourceRelationTask } from './teachingTaskSourceRelations.js';
 import { explicitExperimentalExtensionTask } from './teachingTaskExperimentalExtensions.js';
@@ -83,6 +85,55 @@ const quantityPackets = {
 };
 
 export function operationSpecificTransfer(task) {
+  if (task.operationPlan?.operation === 'union-bounds') {
+    const zh = task.language === 'zh';
+    const values = {
+      populationCount: '40',
+      firstCount: '18',
+      secondCount: '12',
+      populationName: zh ? '志愿者团队' : 'volunteer team',
+      firstEvent: zh ? '周六培训' : 'Saturday training',
+      secondEvent: zh ? '周日培训' : 'Sunday training',
+      stablePopulation: zh
+        ? '虚构志愿者团队共有40人，名单两天内不变，培训只对这些人开放。'
+        : 'A fictional team has 40 volunteers; the roster is unchanged across both days and training is open only to them.',
+      withinGroupDistinct: zh
+        ? '周六18人、周日12人，各名单内部每人只计一次。'
+        : 'Saturday lists 18 people and Sunday lists 12; each list counts each person only once.',
+      missingOverlap: zh
+        ? '尚未核对跨日重复名单，没有记录两天都参加的人数。'
+        : 'The lists have not been matched across days; the number attending both is unrecorded.',
+    };
+    const sources = [values.stablePopulation, values.withinGroupDistinct, values.missingOverlap];
+    const body = renderUnionTask(
+      {
+        bindings: {},
+        requirements: [
+          { id: 'quantities', weight: 30 },
+          { id: 'operation', weight: 40 },
+          { id: 'boundary', weight: 30 },
+        ],
+      },
+      [],
+      zh ? '推导培训参与范围。' : 'Derive training participation bounds.',
+      { values, bounds: solveTeachingUnionBounds('40', '18', '12') },
+    );
+    return {
+      operationKind: 'union-bounds',
+      sources,
+      directions: body.question,
+      question: sources.join(' ') + ' ' + body.question,
+      answer: body.answer,
+      reasoning: body.reasoning,
+      rubric: body.criteria.map((c) => ({ label: c.label, ...c.levels, feedback: c.feedback })),
+      feedback: body.criteria[1].feedback,
+      verification: {
+        method: 'same-reviewed-union-operation',
+        scope: 'Fictional independent practice; exact arithmetic, not observed learning outcomes.',
+      },
+    };
+  }
+
   if (task.operationPlan?.operation === 'pooled-proportion') {
     const zh = task.language === 'zh';
     const sources = zh

@@ -1379,14 +1379,21 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             const parts =
               wholeTask &&
               (questionSource?.operationPlan?.version === 2 ||
-                questionSource?.operationPlan?.operation === 'pooled-proportion')
+                ['pooled-proportion', 'union-bounds'].includes(questionSource?.operationPlan?.operation))
                 ? questionSource.operationPlan.requirements?.length || 1
                 : 1;
             const lines = Math.min(40, Math.max(q.type === 'essay' ? 10 : 4, parts * 4));
             children.push(makeItalic(`${zh ? '作答' : 'Response'}:`, { keepNext: true }));
-            for (let line = 0; line < lines; line++) {
-              children.push(makeText('________________________________________________________'));
-            }
+            if (lines <= 4) {
+              children.push(
+                makeText(Array(lines).fill('________________________________________________________').join('\n'), {
+                  keepLines: true,
+                }),
+              );
+            } else
+              for (let line = 0; line < lines; line++) {
+                children.push(makeText('________________________________________________________'));
+              }
           }
         }
 

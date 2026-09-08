@@ -1,3 +1,4 @@
+import { solveTeachingUnionBounds } from './teachingSetArithmetic.js';
 import { solveTeachingProportion } from './teachingTaskArithmetic.js';
 
 // A deliberately bounded grammar for explicit count relationships. It records
@@ -153,14 +154,16 @@ function unionCounts(claims, objective) {
     a = BigInt(first),
     b = BigInt(second);
   if (!solve(a, n) || !solve(b, n) || eventA === eventB) return null;
-  const minOverlap = a + b > n ? a + b - n : 0n,
-    maxOverlap = a < b ? a : b;
-  const low = a + b - maxOverlap,
-    high = a + b - minOverlap;
-  const lower = solve(low, n),
-    upper = solve(high, n);
-  if (!lower || !upper) return null;
-  const conclusion = `The overlap is unknown, so an exact union proportion is not determined. The attainable range is ${low}/${n} to ${high}/${n} (${lower.percent}% to ${upper.percent}%${lower.exact && upper.exact ? '' : ', rounded endpoints'}).`;
+  const bounds = solveTeachingUnionBounds(total, first, second);
+  if (!bounds) return null;
+  const { lower, upper, exactUnion } = bounds;
+  const minOverlap = bounds.overlapMinimum,
+    maxOverlap = bounds.overlapMaximum;
+  const low = bounds.minimum.union,
+    high = bounds.maximum.union;
+  const conclusion = exactUnion
+    ? `Both bounds coincide: the exact union is ${low}/${n} (${lower.percent}%${lower.exact ? '' : ', rounded'}). The counts force overlap ${minOverlap}, even without a separate overlap record.`
+    : `The overlap is unknown, so an exact union proportion is not determined. The attainable range is ${low}/${n} to ${high}/${n} (${lower.percent}% to ${upper.percent}%${lower.exact && upper.exact ? '' : ', rounded endpoints'}).`;
   return {
     kind: 'union-bounds',
     title: 'Bound a proportion when membership overlaps',
@@ -180,22 +183,30 @@ function unionCounts(claims, objective) {
       conclusion,
     ],
     conclusion,
-    limit:
-      'An exact fraction requires the cross-event overlap count or matching membership lists. Neither independence nor zero overlap follows from the supplied counts. These bounds describe the listed members, not a wider population.',
-    error: `Add ${first} and ${second} and report their sum over ${total} as an established exact proportion.`,
-    correction: `The sum counts any shared members twice. ${conclusion}`,
+    limit: exactUnion
+      ? 'The counts already fix the overlap and union. A missing overlap record does not imply an uncertain answer. These bounds describe the listed members, not a wider population.'
+      : 'An exact fraction requires the cross-event overlap count or matching membership lists. Neither independence nor zero overlap follows from the supplied counts. These bounds describe the listed members, not a wider population.',
+    error: exactUnion
+      ? 'The overlap is unrecorded, so no exact union can be determined.'
+      : `Add ${first} and ${second} and report their sum over ${total} as an established exact proportion.`,
+    correction: exactUnion ? conclusion : `The sum counts any shared members twice. ${conclusion}`,
     feedback:
       'Draw two overlapping groups. Check both extremes of the overlap and ensure neither union exceeds the population.',
     operationProficient: `Gives both correct bounds ${low}/${n} and ${high}/${n}, but does not demonstrate how each can be attained by an allowed overlap.`,
     operationDeveloping:
       'Recognizes that overlap matters but gives only one bound or leaves the population cap unchecked.',
-    boundaryProficient:
-      'Identifies the missing cross-event overlap and avoids an exact answer, but does not explain how matching the membership lists supplies it.',
+    boundaryProficient: exactUnion
+      ? 'Recognizes an exact union but does not explain why the supplied counts force the overlap.'
+      : 'Identifies the missing cross-event overlap and avoids an exact answer, but does not explain how matching the membership lists supplies it.',
     boundaryDeveloping:
       'Says there is insufficient information without naming the cross-event overlap as the missing count.',
-    boundaryError: 'Because overlap was not recorded, no members attended both events.',
-    nextCheck: 'What additional observation would make the answer exact?',
-    nextAnswer: `Obtain the number x of distinct members who attended both events, then compute (${first} + ${second} − x)/${total}. Matching the two membership lists would establish x; do not assume it is zero.`,
+    boundaryError: exactUnion
+      ? 'A missing overlap record always prevents an exact answer.'
+      : 'Because overlap was not recorded, no members attended both events.',
+    nextCheck: 'Is a further observation needed to determine the exact union?',
+    nextAnswer: exactUnion
+      ? `No. The supplied counts force x = ${minOverlap}, so the union is ${low}/${n}.`
+      : `Obtain the number x of distinct members who attended both events, then compute (${first} + ${second} − x)/${total}. Matching the two membership lists would establish x; do not assume it is zero.`,
   };
 }
 

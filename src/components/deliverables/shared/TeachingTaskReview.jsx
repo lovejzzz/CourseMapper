@@ -19,6 +19,17 @@ import {
 const fieldLabels = {
   firstCountRecord: ['First group count record', '第一组计数记录'],
   secondCountRecord: ['Second group count record', '第二组计数记录'],
+  rosterRecord: ['Common roster', '共同名册'],
+  populationCount: ['Population count', '总体人数'],
+  populationName: ['Population name', '总体名称'],
+  stablePopulation: ['Stable population evidence', '总体稳定依据'],
+  attendanceRecord: ['Event attendance record', '活动签到记录'],
+  firstCount: ['First event count', '第一次活动人数'],
+  secondCount: ['Second event count', '第二次活动人数'],
+  firstEvent: ['First event', '第一次活动'],
+  secondEvent: ['Second event', '第二次活动'],
+  withinGroupDistinct: ['Within-event deduplication', '活动内部去重'],
+  missingOverlap: ['Missing overlap evidence', '缺失重叠的依据'],
   firstPart: ['First group outcome count', '第一组结果计数'],
   firstWhole: ['First group total', '第一组总数'],
   firstGroup: ['First group', '第一组'],
@@ -470,6 +481,7 @@ export default function TeachingTaskReview({
                   {t('Observed proportion and population limits', '观察比例与总体限制')}
                 </option>
                 <option value="record-amendment">{t('Changed rule and evidence limits', '规则修订与证据限制')}</option>
+                <option value="union-bounds">{t('Overlapping membership and bounds', '重叠成员与范围')}</option>
                 <option value="pooled-proportion">
                   {t('Combined proportion and group weights', '合并比例与群体权重')}
                 </option>
@@ -676,25 +688,30 @@ export default function TeachingTaskReview({
                         'Locate exact text in the records. Check that the numerator counts a subset of the observed group, using the same unit and observation period. Identify the unobserved group and the wider population; missing outcomes must actually be unknown. A repeated phrase needs its occurrence selected.',
                         '请选择记录中的原文。核对分子是已观察群体中的一部分，采用相同计数单位与观察时段；指出未观察群体和更大的目标群体，确认缺失结果确实未知。原文重复出现时请选择位置。',
                       )
-                    : draft.operation === 'pooled-proportion'
+                    : draft.operation === 'union-bounds'
                       ? t(
-                          'Check four counts, distinct membership, and a common outcome and deadline. Different group names alone do not justify pooling.',
-                          '核对四个计数、互斥成员及一致的结果定义与截止时间。群体名称不同本身不能作为合并依据。',
+                          'Check the common stable roster, within-event deduplication, missing overlap and both endpoint allocations.',
+                          '核对共同稳定名册、活动内部去重、缺失重叠与两端分组。',
                         )
-                      : draft.operation === 'record-relative-day'
+                      : draft.operation === 'pooled-proportion'
                         ? t(
-                            'Check that the relative day refers to the selected Gregorian record date and that both records concern the same event. Keep missing years and verification limits explicit.',
-                            '核对相对时间指向所选公历记录日期，且两份记录涉及同一事件；保留未知年份及核实限制。',
+                            'Check four counts, distinct membership, and a common outcome and deadline. Different group names alone do not justify pooling.',
+                            '核对四个计数、互斥成员及一致的结果定义与截止时间。群体名称不同本身不能作为合并依据。',
                           )
-                        : draft.operation === 'paired-condition-confound'
+                        : draft.operation === 'record-relative-day'
                           ? t(
-                              'Check both condition combinations, independently assignable units, feasible controls and a shared measurement rule. Repeated readings belong to the same unit.',
-                              '核对两组条件、可独立分配的单位、可行的控制条件和一致测量规则；重复读数仍属于同一单位。',
+                              'Check that the relative day refers to the selected Gregorian record date and that both records concern the same event. Keep missing years and verification limits explicit.',
+                              '核对相对时间指向所选公历记录日期，且两份记录涉及同一事件；保留未知年份及核实限制。',
                             )
-                          : t(
-                              'Locate exact text in the records. A repeated phrase needs its occurrence selected. Check that both rules concern the same setting and that the observation date is unknown.',
-                              '请选择记录中的原文；原文重复出现时请选择位置。请核对两版规则涉及同一情境，且观察日期确实未知。',
-                            )}
+                          : draft.operation === 'paired-condition-confound'
+                            ? t(
+                                'Check both condition combinations, independently assignable units, feasible controls and a shared measurement rule. Repeated readings belong to the same unit.',
+                                '核对两组条件、可独立分配的单位、可行的控制条件和一致测量规则；重复读数仍属于同一单位。',
+                              )
+                            : t(
+                                'Locate exact text in the records. A repeated phrase needs its occurrence selected. Check that both rules concern the same setting and that the observation date is unknown.',
+                                '请选择记录中的原文；原文重复出现时请选择位置。请核对两版规则涉及同一情境，且观察日期确实未知。',
+                              )}
                 </p>
                 {Object.entries(TEACHING_OPERATION_SPECS[draft.operation].bindings).map(([name, type]) => {
                   const binding = draft.bindings[name];
@@ -911,25 +928,30 @@ export default function TeachingTaskReview({
                         'I have checked the part and whole refer to the same observed group, the unobserved outcomes are unknown, and the target population is wider. Apply these sources and scoring weights.',
                         '我已核对部分与整体属于同一已观察群体、未观察结果确实未知，且目标群体更广；同意应用这些来源与评分权重。',
                       )
-                    : draft.operation === 'pooled-proportion'
+                    : draft.operation === 'union-bounds'
                       ? t(
-                          'I have checked distinct membership, comparable counts, weights and the limits of this comparison. Apply this task.',
-                          '我已核对成员互斥、计数可比、权重及比较限制，同意应用此任务。',
+                          'I have checked the common roster, deduplication, missing overlap and both endpoints. Apply this task.',
+                          '我已核对共同名册、去重、缺失重叠与两端分组，同意应用此任务。',
                         )
-                      : draft.operation === 'record-relative-day'
+                      : draft.operation === 'pooled-proportion'
                         ? t(
-                            'I have checked the calendar, relative-date anchor and same-event evidence. Apply this task and scoring.',
-                            '我已核对历法、相对日期依据和同一事件证据，同意应用此任务与评分。',
+                            'I have checked distinct membership, comparable counts, weights and the limits of this comparison. Apply this task.',
+                            '我已核对成员互斥、计数可比、权重及比较限制，同意应用此任务。',
                           )
-                        : draft.operation === 'paired-condition-confound'
+                        : draft.operation === 'record-relative-day'
                           ? t(
-                              'I have reviewed the source conditions, proposed procedure, reference and scoring. Apply this task.',
-                              '我已核对来源条件、建议步骤、参考与评分，同意应用此任务。',
+                              'I have checked the calendar, relative-date anchor and same-event evidence. Apply this task and scoring.',
+                              '我已核对历法、相对日期依据和同一事件证据，同意应用此任务与评分。',
                             )
-                          : t(
-                              'I have checked the source roles, the effective change for the same setting, and the unknown observation date. Apply these sources and scoring weights.',
-                              '我已核对来源角色、同一情境下规则的生效变更，以及观察日期未知的条件；同意应用这些来源与评分权重。',
-                            )}
+                          : draft.operation === 'paired-condition-confound'
+                            ? t(
+                                'I have reviewed the source conditions, proposed procedure, reference and scoring. Apply this task.',
+                                '我已核对来源条件、建议步骤、参考与评分，同意应用此任务。',
+                              )
+                            : t(
+                                'I have checked the source roles, the effective change for the same setting, and the unknown observation date. Apply these sources and scoring weights.',
+                                '我已核对来源角色、同一情境下规则的生效变更，以及观察日期未知的条件；同意应用这些来源与评分权重。',
+                              )}
               </label>
               {draft.goalAlignment && (
                 <p>

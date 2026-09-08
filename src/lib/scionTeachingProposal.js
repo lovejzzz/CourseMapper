@@ -33,6 +33,8 @@ export function teachingProposalInputRevision({ operation, objective, inputs }) 
 }
 
 const roles = {
+  'union-bounds':
+    'rosterRecord gives populationCount, populationName and explicit stablePopulation evidence. attendanceRecord gives firstCount and secondCount, firstEvent and secondEvent, and explicit withinGroupDistinct deduplication. limitRecord contains missingOverlap evidence. Both event sets must be subsets of the same unchanged roster. Different event names do not establish these premises; leave unsupported roles null.',
   'pooled-proportion':
     'firstCountRecord and secondCountRecord contain the two groups; they may be the same source record if it reports both groups. firstPart/secondPart count the outcome; firstWhole/secondWhole count all units in their respective group; firstGroup/secondGroup name those groups. Quote each complete count at its own occurrence. countingUnit names the common counted object; countedOutcome names the shared outcome; commonDefinition quotes the explicit common deadline and outcome definition. identityRecord and distinctMembership must explicitly establish that these counted units are distinct across the groups. Different group labels alone do not prove disjoint membership. limitRecord states limits on explaining the difference. Never pool overlapping or unidentified members; leave unsupported roles null.',
   'record-relative-day':

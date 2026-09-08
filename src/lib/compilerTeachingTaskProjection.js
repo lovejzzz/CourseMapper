@@ -147,7 +147,7 @@ function alignAssessmentCopies(row, task, criteria) {
 }
 
 function projectAssignment(row, task, blueprint) {
-  const pooling = task.operationPlan?.operation === 'pooled-proportion';
+  const pooling = ['pooled-proportion', 'union-bounds'].includes(task.operationPlan?.operation);
   row.language = task.language;
   if (comparisonTaskBloom(task)) row.bloomsLevel = comparisonTaskBloom(task);
   const rubric = teachingTaskRubric(task, row.totalPoints);
@@ -574,7 +574,7 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
       const reviewedBank =
         task.operationPlan?.version === 2 ||
         reviewedComparison ||
-        task.operationPlan?.operation === 'pooled-proportion';
+        ['pooled-proportion', 'union-bounds'].includes(task.operationPlan?.operation);
       const seats =
         row.questions?.filter(
           (q) =>

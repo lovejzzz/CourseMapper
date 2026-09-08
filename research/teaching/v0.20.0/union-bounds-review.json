@@ -1,0 +1,175 @@
+{
+  "date": "2026-09-08",
+  "operation": "union-bounds",
+  "input": "Exposed quantity-dev-02 Chinese record, English implementation translation of the same family; authored source bindings.",
+  "modelCalls": 0,
+  "notAcceptance": [
+    "Not a fresh Scion generation",
+    "Not an independent teacher or classroom evaluation",
+    "Not a production deployment",
+    "DOCX generated but not visually reviewed in Office"
+  ],
+  "arithmetic": {
+    "population": 50,
+    "first": 35,
+    "secondBefore": 30,
+    "secondAfter": 20,
+    "unchangedUnion": [
+      35,
+      50
+    ],
+    "unchangedPercent": [
+      70,
+      100
+    ],
+    "overlapBefore": [
+      15,
+      30
+    ],
+    "overlapAfter": [
+      5,
+      20
+    ],
+    "independentPractice": {
+      "population": 40,
+      "first": 18,
+      "second": 12,
+      "percentBounds": [
+        45,
+        75
+      ]
+    }
+  },
+  "verification": [
+    "Exhaustive possible overlap enumeration for every pair of subset counts in populations 1 through 12",
+    "English and Chinese creation, nine-material update and JSON reopen tests",
+    "Exact zero/full-event union also verified in legacy explicit grammar",
+    "Four contrast responses have exact evidence offsets",
+    "Actual Chrome Chinese import, source edit, preview, apply, reload, Resume and project save; all four core saved materials include new overlap and omit old overlap"
+  ],
+  "browserProject": {
+    "path": ".audit-work/v0200-teaching-system/union-bounds-01/browser-after-apply.coursemapper",
+    "sha256": "1b144e98093c54f5970f7827d0f60e540c304f142500f80f76c3ea26a4809e13"
+  },
+  "visualReview": {
+    "finalPdfPages": 24,
+    "findings": [
+      "Initial Chinese quiz short response lines split across pages; fixed by keeping four-line response blocks together. Recaptured both four-page quizzes and inspected every page.",
+      "Answer keys start on separate pages; no clipped text, missing glyphs or blank orphan continuation page observed.",
+      "Teacher references remain dense and repeat reasoning in answers and criteria; not independently assessed for teaching burden."
+    ],
+    "finalFiles": [
+      {
+        "path": ".audit-work/v0200-teaching-system/union-bounds-01/en/assignments.pdf",
+        "sha256": "e60c45ef70faff7faa65f7ad38ac1632769f78d7348ede971db707270a11d151",
+        "pages": 2,
+        "visuallyReviewed": true
+      },
+      {
+        "path": ".audit-work/v0200-teaching-system/union-bounds-01/en/assignments.docx",
+        "sha256": "dad537174e9b93b8b44d2afb8b76f73aabcb04d4eea2334c5250ae826f67aaa1",
+        "pages": null,
+        "visuallyReviewed": false
+      },
+      {
+        "path": ".audit-work/v0200-teaching-system/union-bounds-01/en/rubrics.pdf",
+        "sha256": "e30a0e630dd73a84d76a69f65eef12a579807b9f0dff62142421cc89ae82838a",
+        "pages": 3,
+        "visuallyReviewed": true
+      },
+      {
+        "path": ".audit-work/v0200-teaching-system/union-bounds-01/en/rubrics.docx",
+        "sha256": "5e96d8aacccc6c9bc27de68907bd9a47c1d6cef72dfa2288605c8b80da8d3a24",
+        "pages": null,
+        "visuallyReviewed": false
+      },
+      {
+        "path": ".audit-work/v0200-teaching-system/union-bounds-01/en/studyGuides.pdf",
+        "sha256": "0370d01ea47d57347b8bf635d1df1bed8ecaad65e1e4696f194aac7e3770d713",
+        "pages": 3,
+        "visuallyReviewed": true
+      },
+      {
+        "path": ".audit-work/v0200-teaching-system/union-bounds-01/en/studyGuides.docx",
+        "sha256": "114d146ee4fb7fc1db9a013fcc8141a83a758ad2cf49d929d318c38611ed5dd2",
+        "pages": null,
+        "visuallyReviewed": false
+      },
+      {
+        "path": ".audit-work/v0200-teaching-system/union-bounds-02/en/quizBank.pdf",
+        "sha256": "da90edde53a0bbddd4ef069ce160ca2d1dbc06975067fe3c559b67c067ca8e8d",
+        "pages": 4,
+        "visuallyReviewed": true
+      },
+      {
+        "path": ".audit-work/v0200-teaching-system/union-bounds-02/en/quizBank.docx",
+        "sha256": "c302935f6db0aa0962dc4b90868949a7deace9f5a1a6c0dd5d065cec5486cf18",
+        "pages": null,
+        "visuallyReviewed": false
+      },
+      {
+        "path": ".audit-work/v0200-teaching-system/union-bounds-01/zh/assignments.pdf",
+        "sha256": "2d3844c38aac2f9787855c29272f03baabd7fc4e24fba10313267f623d7ecfd3",
+        "pages": 2,
+        "visuallyReviewed": true
+      },
+      {
+        "path": ".audit-work/v0200-teaching-system/union-bounds-01/zh/assignments.docx",
+        "sha256": "f4ababd0a55f99cc18048fcafdd782025103d32404e04f9e75660ba0c0442881",
+        "pages": null,
+        "visuallyReviewed": false
+      },
+      {
+        "path": ".audit-work/v0200-teaching-system/union-bounds-01/zh/rubrics.pdf",
+        "sha256": "59619b3a33053c9830738a78cd9b6ee0209be3965dbf97773e9515178f56fffe",
+        "pages": 3,
+        "visuallyReviewed": true
+      },
+      {
+        "path": ".audit-work/v0200-teaching-system/union-bounds-01/zh/rubrics.docx",
+        "sha256": "24825c65d5f4bb6eb66248e42b4bc1efb06fc7d4630a81dbe109fed57135fe35",
+        "pages": null,
+        "visuallyReviewed": false
+      },
+      {
+        "path": ".audit-work/v0200-teaching-system/union-bounds-01/zh/studyGuides.pdf",
+        "sha256": "08d249ad0ac18869c027d000cb0315b137260d7415445c01a199a67c8bc47f82",
+        "pages": 3,
+        "visuallyReviewed": true
+      },
+      {
+        "path": ".audit-work/v0200-teaching-system/union-bounds-01/zh/studyGuides.docx",
+        "sha256": "0ccfb7af688f622690429e177b04e5e48c221fe8584afa01c151a5c2f6d3f8a1",
+        "pages": null,
+        "visuallyReviewed": false
+      },
+      {
+        "path": ".audit-work/v0200-teaching-system/union-bounds-02/zh/quizBank.pdf",
+        "sha256": "8292dbfd09d1fa4cc7d157021ee1ebeca9061c440559c0098973b317fbc1da2c",
+        "pages": 4,
+        "visuallyReviewed": true
+      },
+      {
+        "path": ".audit-work/v0200-teaching-system/union-bounds-02/zh/quizBank.docx",
+        "sha256": "b84e8dd98c769eb614b4765b4efe4c40abd2cd96f62a29bd7a5cc38c23109ecd",
+        "pages": null,
+        "visuallyReviewed": false
+      }
+    ]
+  },
+  "engineeringCheck": {
+    "command": "npm run check",
+    "exitCode": 0,
+    "studioTests": 58,
+    "compatibilityTests": 642,
+    "scionTests": 869,
+    "log": "/tmp/edutool-union-final-check.log",
+    "includes": [
+      "types",
+      "lint",
+      "benchmark checkers",
+      "production build",
+      "bundle check"
+    ]
+  }
+}
