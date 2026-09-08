@@ -1,0 +1,177 @@
+{
+  "mode": "deterministic task builder under assumed admission only",
+  "productAdmissionExecuted": false,
+  "modelCalls": 0,
+  "referenceFilesRead": 0,
+  "completePipelineRuns": 0,
+  "explicitOperations": ["paired-condition-confound", "observed-proportion", "record-amendment"],
+  "rows": [
+    {
+      "id": "experiment-dev-01",
+      "inputSha256": "35deac8ca16e52dd0d6b225b41bf274a1ee20334dbe063dec0c2c52c08b9e6db",
+      "sourceIntent": false,
+      "producedTask": false,
+      "kind": null,
+      "durationMs": 1.9450829999999542,
+      "error": null,
+      "outputName": "experiment-dev-01.task.json"
+    },
+    {
+      "id": "experiment-dev-02",
+      "inputSha256": "7a1875a115f51ec800220be60933e4df5ef05696a090f5ed1e6d00639cf6b365",
+      "sourceIntent": false,
+      "producedTask": false,
+      "kind": null,
+      "durationMs": 1.938874999999996,
+      "error": null,
+      "outputName": "experiment-dev-02.task.json"
+    },
+    {
+      "id": "quantity-dev-01",
+      "inputSha256": "23ba60d71c51b0d80eb78a9360855c2166f77fa06dfa65dc9484e6e998793623",
+      "sourceIntent": false,
+      "producedTask": false,
+      "kind": null,
+      "durationMs": 0.8327920000000404,
+      "error": null,
+      "outputName": "quantity-dev-01.task.json"
+    },
+    {
+      "id": "quantity-dev-02",
+      "inputSha256": "5849a32ad7a33836261cd995f9575da1fec13c45521977d94a7b113dc86e67ce",
+      "sourceIntent": false,
+      "producedTask": false,
+      "kind": null,
+      "durationMs": 0.6594590000000267,
+      "error": null,
+      "outputName": "quantity-dev-02.task.json"
+    },
+    {
+      "id": "source-dev-01",
+      "inputSha256": "e942560aef394b7826ffe9f1b0ab460061a6e949d5606cc31e7a3a701e2ac352",
+      "sourceIntent": false,
+      "producedTask": false,
+      "kind": null,
+      "durationMs": 0.41595799999998917,
+      "error": null,
+      "outputName": "source-dev-01.task.json"
+    },
+    {
+      "id": "source-dev-02",
+      "inputSha256": "ce99730e6155b7cd4e5694f0f911f666405be44e2da4e7372a31e8195429c25f",
+      "sourceIntent": false,
+      "producedTask": false,
+      "kind": null,
+      "durationMs": 0.6146669999999972,
+      "error": null,
+      "outputName": "source-dev-02.task.json"
+    },
+    {
+      "id": "source-dev-03",
+      "inputSha256": "77f8751ecfe0c2550d8e1abee4f00cdf91f8c3959bca5f627adb5782ea465a60",
+      "sourceIntent": false,
+      "producedTask": false,
+      "kind": null,
+      "durationMs": 0.8424170000000117,
+      "error": null,
+      "outputName": "source-dev-03.task.json"
+    },
+    {
+      "id": "source-dev-04",
+      "inputSha256": "292792cab4927326ec8b3878c1269da1eef13cd8bac5eaf07c683929ad1fb364",
+      "sourceIntent": false,
+      "producedTask": false,
+      "kind": null,
+      "durationMs": 0.4556249999999977,
+      "error": null,
+      "outputName": "source-dev-04.task.json"
+    },
+    {
+      "id": "source-dev-05",
+      "inputSha256": "f6fa092a96a57c77fc66401548621373d7d659ad035b00b38da58d76d1c7aba4",
+      "sourceIntent": false,
+      "producedTask": false,
+      "kind": null,
+      "durationMs": 0.3883329999999887,
+      "error": null,
+      "outputName": "source-dev-05.task.json"
+    },
+    {
+      "id": "source-dev-06",
+      "inputSha256": "cb5e1877797a578076977c2983c5bfc1e3f11dd47b437a377123af8830783ad5",
+      "sourceIntent": false,
+      "producedTask": false,
+      "kind": null,
+      "durationMs": 0.23674999999997226,
+      "error": null,
+      "outputName": "source-dev-06.task.json"
+    },
+    {
+      "id": "source-dev-07",
+      "inputSha256": "066e7c20cca987c75d81dca9addb726b4640ef9b722b7fbf5138d14852b9bdd9",
+      "sourceIntent": false,
+      "producedTask": false,
+      "kind": null,
+      "durationMs": 0.2219580000000292,
+      "error": null,
+      "outputName": "source-dev-07.task.json"
+    },
+    {
+      "id": "source-dev-08",
+      "inputSha256": "68e794c2bfd00fbc913d1aed102dd0a5be2fa5bd1ac9078660d98a187cb6d229",
+      "sourceIntent": false,
+      "producedTask": false,
+      "kind": null,
+      "durationMs": 0.21825000000001182,
+      "error": null,
+      "outputName": "source-dev-08.task.json"
+    },
+    {
+      "id": "source-dev-09",
+      "inputSha256": "73660a1d4448a0396c73f11f75dac59d25460d9dcd5b09e49f1ba06ee171ecfa",
+      "sourceIntent": false,
+      "producedTask": false,
+      "kind": null,
+      "durationMs": 0.33687500000002046,
+      "error": null,
+      "outputName": "source-dev-09.task.json"
+    },
+    {
+      "id": "source-dev-10",
+      "inputSha256": "4cd8de15b45e7c5da0fe7d2e12f50509e5373c5915d6ea49cd25d6ca0abca608",
+      "sourceIntent": false,
+      "producedTask": false,
+      "kind": null,
+      "durationMs": 0.285583000000031,
+      "error": null,
+      "outputName": "source-dev-10.task.json"
+    },
+    {
+      "id": "source-dev-11",
+      "inputSha256": "bc35e3e355378117cac1df9c79e6358eead486545ecdad776d3181a2fa234e1b",
+      "sourceIntent": false,
+      "producedTask": false,
+      "kind": null,
+      "durationMs": 0.2879169999999931,
+      "error": null,
+      "outputName": "source-dev-11.task.json"
+    },
+    {
+      "id": "source-dev-12",
+      "inputSha256": "3ce85d7c2e5baecface8a6f0d7496da43afbb2780efd978771ebf75ff9c03393",
+      "sourceIntent": false,
+      "producedTask": false,
+      "kind": null,
+      "durationMs": 0.22283399999997755,
+      "error": null,
+      "outputName": "source-dev-12.task.json"
+    }
+  ],
+  "limitation": "A null task is a builder coverage observation, not an end-to-end failure or correct refusal. A produced task still requires correctness, alignment, all-material and actual model review.",
+  "codeInspection": {
+    "sharedTaskCompiler": "src/lib/courseBlueprintCompiler.js:12798",
+    "proposalCaller": "src/components/deliverables/shared/TeachingTaskReview.jsx:210",
+    "sourceOperation": "record-amendment requires prior/amended integer values and units, effective date, and unknown observation date",
+    "interpretation": "Builder nulls do not establish end-to-end failure. General source relations cannot be represented simply by forcing them into the narrow numeric amendment binding contract."
+  }
+}

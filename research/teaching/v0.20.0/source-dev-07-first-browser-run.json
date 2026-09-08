@@ -1,0 +1,398 @@
+{
+  "status": "first actual browser development run: fails classroom completion; not a frozen v3 score",
+  "caseId": "source-dev-07",
+  "codeBase": "d26414ba",
+  "browserTab": "2014664319",
+  "url": "http://127.0.0.1:17148/",
+  "inputSha256": "066e7c20cca987c75d81dca9addb726b4640ef9b722b7fbf5138d14852b9bdd9",
+  "projectSha256": "7de6dd339ce7556583efc599cac3684f2bbdf5029b6e9b5cb52dcdfd55a1b83e",
+  "projectPath": ".audit-work/v0200-teaching-system/v3-natural-source-dev-07-first/project.coursemapper",
+  "interaction": "New Project → original request/objective/sources in homepage brief → Use sources & generate package → Save .coursemapper. No reference answer, source-role bindings or manual teaching requirements supplied.",
+  "inputSourceTextRetained": true,
+  "ui": {
+    "readySeconds": 34,
+    "materialsReady": 9,
+    "readinessScore": 48,
+    "reviewNotes": 19,
+    "safeRepairPasses": 7
+  },
+  "budgetReceipt": {
+    "schemaVersion": 1,
+    "runId": "run-1788840985059",
+    "startedAt": 1788840985059,
+    "updatedAt": 1788841014179,
+    "buildUpdatedAt": 1788841014162,
+    "buildElapsedMs": 29103,
+    "modelDiscoveryCalls": 0,
+    "creditCheckCalls": 0,
+    "capabilityProbeCalls": 0,
+    "courseMapCalls": 0,
+    "courseIRCalls": 0,
+    "nativeSkeletonCalls": 1,
+    "deliverableChunkCalls": 0,
+    "blueprintEnrichmentCalls": 1,
+    "voicePassCalls": 0,
+    "repairRetryCalls": 0,
+    "streamRetryCalls": 0,
+    "providerFallbackCalls": 0,
+    "agentLoopCalls": 0,
+    "imageGenerationCalls": 0,
+    "modelRequestStarts": 2,
+    "genomeLinkEvents": 1,
+    "failedCalls": 0,
+    "retriedCalls": 0,
+    "skippedExamineCalls": 1,
+    "failureClasses": {},
+    "costPlan": {
+      "source": "finalizer:generation",
+      "featureIds": [
+        "syllabus",
+        "lessonPlans",
+        "slideDecks",
+        "assignments",
+        "rubrics",
+        "discussions",
+        "quizBank",
+        "studyGuides",
+        "courseFaq"
+      ],
+      "lessonCount": 1,
+      "initialCourseMapCalls": 0,
+      "deliverableChunkCalls": 0,
+      "blueprintEnrichmentCalls": 0,
+      "blueprintEnrichmentRecoveryReserve": 0,
+      "repairRetryReserve": 0,
+      "finalizerRetryReserve": 8,
+      "reservedCalls": 8,
+      "includeDeliverableChunks": false,
+      "includeRepairRetryReserve": false,
+      "plannedCalls": 10,
+      "softCallLimit": 13,
+      "hardCallLimit": 16,
+      "baseProviderCalls": 2,
+      "plannedNewCalls": 8,
+      "softNewCallLimit": 11,
+      "hardNewCallLimit": 14,
+      "cumulative": true
+    },
+    "tokenUsage": {
+      "inputTokens": 2689,
+      "outputTokens": 410,
+      "totalTokens": 3099,
+      "cachedInputTokens": 0,
+      "cacheWriteInputTokens": 0,
+      "reasoningOutputTokens": 0,
+      "costUsd": 0,
+      "costKnownCallCount": 2,
+      "costUnknownCallCount": 0,
+      "costEstimatedCallCount": 2,
+      "estimatedCallCount": 0,
+      "reportedCallCount": 2,
+      "byModel": {
+        "public:scion-public": {
+          "provider": "public",
+          "modelId": "scion-public",
+          "inputTokens": 2689,
+          "outputTokens": 410,
+          "totalTokens": 3099,
+          "costUsd": 0,
+          "costKnownCallCount": 2,
+          "costUnknownCallCount": 0,
+          "costEstimatedCallCount": 2,
+          "estimated": false
+        }
+      }
+    },
+    "featureUsage": {
+      "nativeSkeleton": {
+        "inputTokens": 1765,
+        "outputTokens": 319,
+        "totalTokens": 2084,
+        "cachedInputTokens": 0,
+        "cacheWriteInputTokens": 0,
+        "reasoningOutputTokens": 0,
+        "costUsd": 0,
+        "costKnownCallCount": 1,
+        "costUnknownCallCount": 0,
+        "costEstimatedCallCount": 1,
+        "estimatedCallCount": 0,
+        "reportedCallCount": 1,
+        "byModel": {
+          "public:scion-public": {
+            "provider": "public",
+            "modelId": "scion-public",
+            "inputTokens": 1765,
+            "outputTokens": 319,
+            "totalTokens": 2084,
+            "costUsd": 0,
+            "costKnownCallCount": 1,
+            "costUnknownCallCount": 0,
+            "costEstimatedCallCount": 1,
+            "estimated": false
+          }
+        }
+      },
+      "blueprintEnrichment": {
+        "inputTokens": 924,
+        "outputTokens": 91,
+        "totalTokens": 1015,
+        "cachedInputTokens": 0,
+        "cacheWriteInputTokens": 0,
+        "reasoningOutputTokens": 0,
+        "costUsd": 0,
+        "costKnownCallCount": 1,
+        "costUnknownCallCount": 0,
+        "costEstimatedCallCount": 1,
+        "estimatedCallCount": 0,
+        "reportedCallCount": 1,
+        "byModel": {
+          "public:scion-public": {
+            "provider": "public",
+            "modelId": "scion-public",
+            "inputTokens": 924,
+            "outputTokens": 91,
+            "totalTokens": 1015,
+            "costUsd": 0,
+            "costKnownCallCount": 1,
+            "costUnknownCallCount": 0,
+            "costEstimatedCallCount": 1,
+            "estimated": false
+          }
+        }
+      }
+    },
+    "compilerSavings": {
+      "featureIds": [
+        "syllabus",
+        "lessonPlans",
+        "slideDecks",
+        "assignments",
+        "rubrics",
+        "discussions",
+        "quizBank",
+        "studyGuides",
+        "courseFaq"
+      ],
+      "source": "enriched-blueprint",
+      "compiledFeatureCount": 9,
+      "savedProviderCalls": 9,
+      "lastAt": 1788841012487
+    },
+    "pipeline": {
+      "courseIRAuthoring": "public Scion · one typed skeleton call before lesson-kernel authoring",
+      "courseMap": "Scion V0.19.2 · typed skeleton (sessions, assessments, readings, resources)",
+      "scionExecution": "browser-local Gemma 4 · public weights · local inference",
+      "examine": "skipped: native authoring — Pass B authors lesson content next",
+      "genomeLinker": "0 genome + 0 cached (0 genome-backed) of 1 lessons (0 concepts, 0 citations, 0 bridges)",
+      "judgment": "not evaluated (0 genome-linked lessons)",
+      "scionEvidence": "0/1 unresolved lesson ledgers structurally complete before lesson-intent admission · 0 researched · 0 reused from local research memory",
+      "scionEvidenceRecovery": "1 lesson receiving one cache-bypassed recovery pass",
+      "scionEvidenceAdmission": "0/1 lessons authorized to draft · lesson-1 (fewer-than-three-valid-facts, missing-citations, missing-inspectable-source-identity, claims-not-fully-anchored, unrecognized-source-authority, lesson-intent-semantic-mismatch)",
+      "local-compiler": "8 unresolved contract issues forwarded to per-atom admission",
+      "scionFactLedgerStage": "rejected · fact-only response did not satisfy the immutable ledger contract · lesson-1:facts-count:4/5",
+      "stage": "mcVerify:lesson-1 skipped [same-model-solver-is-not-an-independent-verifier] · passBudget:lesson-1 bounded [0/0-calls-used-before-admissionGate] · improvementPasses:lesson-1 skipped [grounded-adapter-bounded-repair-policy:0/0]",
+      "canonicalKernelAdmission": "all lesson ids present · lesson-1:lesson:compiler-projected-from-admitted-facts · lesson-1:authoring:no-authoring-fields",
+      "enrichmentModelStage": "ran (1 lesson enriched) (linker: ran)",
+      "nativeAuthoring": "assembled 1 sessions onto Pass A entity ids · outcomes/activities 0/1 · knowledge kernels admitted 1/1 · 0 registry readings · CurriculumV1 repaired 1 lessons / 1 assessments",
+      "courseGraph": "1 sessions · 1 concepts · 1 outcomes · 1 assessments · 0 findings",
+      "groundingMetrics": "overall 8.4% · syllabus 0% · lessonPlans 0% · slideDecks 0% · assignments 0% · rubrics 0% · discussions 0% · quizBank 62% · studyGuides 0% · courseFaq 0%",
+      "voicePass": "voiced 0 surface(s), 0 fallback(s) (rewrite cost $0.000) — voice-surface texture 100 already meets target; skipped 2 rewrite(s)"
+    },
+    "enrichmentOutcome": {
+      "modelStage": "ran",
+      "required": false,
+      "route": "model-enrichment",
+      "enrichedLessons": 1,
+      "requestedLessons": 1,
+      "missingLessons": []
+    }
+  },
+  "lastRunDigest": {
+    "digestVersion": 1,
+    "appVersion": "0.19.2",
+    "runId": "run-1788840985059",
+    "finishRunId": "finish-mts5r4bk-qi1r2",
+    "at": "2026-09-08T04:17:01.359Z",
+    "elapsedMs": 36300,
+    "run": {
+      "provider": "public",
+      "models": ["scion-public"],
+      "lessonCount": 1,
+      "features": [
+        "courseMap",
+        "syllabus",
+        "lessonPlans",
+        "slideDecks",
+        "assignments",
+        "rubrics",
+        "discussions",
+        "quizBank",
+        "studyGuides",
+        "courseFaq"
+      ],
+      "providerCalls": 2,
+      "pipelineCalls": 2
+    },
+    "pipeline": {
+      "courseIRAuthoring": "public Scion · one typed skeleton call before lesson-kernel authoring",
+      "courseMap": "Scion V0.19.2 · typed skeleton (sessions, assessments, readings, resources)",
+      "scionExecution": "browser-local Gemma 4 · public weights · local inference",
+      "examine": "skipped: native authoring — Pass B authors lesson content next",
+      "genomeLinker": "0 genome + 0 cached (0 genome-backed) of 1 lessons (0 concepts, 0 citations, 0 bridges)",
+      "judgment": "not evaluated (0 genome-linked lessons)",
+      "scionEvidence": "0/1 unresolved lesson ledgers structurally complete before lesson-intent admission · 0 researched · 0 reused from local research memory",
+      "scionEvidenceRecovery": "1 lesson receiving one cache-bypassed recovery pass",
+      "scionEvidenceAdmission": "0/1 lessons authorized to draft · lesson-1 (fewer-than-three-valid-facts, missing-citations, missing-inspectable-source-identity, claims-not-fully-anchored, unrecognized-source-authority, lesson-intent-semantic-mismatch)",
+      "local-compiler": "8 unresolved contract issues forwarded to per-atom admission",
+      "scionFactLedgerStage": "rejected · fact-only response did not satisfy the immutable ledger contract · lesson-1:facts-count:4/5",
+      "stage": "mcVerify:lesson-1 skipped [same-model-solver-is-not-an-independent-verifier] · passBudget:lesson-1 bounded [0/0-calls-used-before-admissionGate] · improvementPasses:lesson-1 skipped [grounded-adapter-bounded-repair-policy:0/0]",
+      "canonicalKernelAdmission": "all lesson ids present · lesson-1:lesson:compiler-projected-from-admitted-facts · lesson-1:authoring:no-authoring-fields",
+      "enrichmentModelStage": "ran (1 lesson enriched) (linker: ran)",
+      "nativeAuthoring": "assembled 1 sessions onto Pass A entity ids · outcomes/activities 0/1 · knowledge kernels admitted 1/1 · 0 registry readings · CurriculumV1 repaired 1 lessons / 1 assessments",
+      "courseGraph": "1/1/1 sessions/concepts/outcomes",
+      "groundingMetrics": "overall 8.4% · syllabus 0% · lessonPlans 0% · slideDecks 0% · assignments 0% · rubrics 0% · discussions 0% · quizBank 62% · studyGuides 0% · courseFaq 0%",
+      "voicePass": "voiced 0 surface(s), 0 fallback(s) (rewrite cost $0.000) — voice-surface texture 100 already meets target; skipped 2 rewrite(s)",
+      "enrichment": "ran (1 lesson enriched)",
+      "nativeReconstruction": {
+        "status": "deterministic-reconstruction",
+        "readinessRepairedFieldCount": 26,
+        "claimBoundary": "Fallback; unverified."
+      }
+    },
+    "compilerSavings": {
+      "featureIds": [
+        "syllabus",
+        "lessonPlans",
+        "slideDecks",
+        "assignments",
+        "rubrics",
+        "discussions",
+        "quizBank",
+        "studyGuides",
+        "courseFaq"
+      ],
+      "source": "enriched-blueprint",
+      "compiledFeatureCount": 9,
+      "savedProviderCalls": 9,
+      "lastAt": 1788841012487
+    },
+    "cost": {
+      "totalUsd": 0,
+      "totalDisplay": "$0.00",
+      "inputTokens": 2689,
+      "outputTokens": 410,
+      "reasoningOutputTokens": 0,
+      "cachedInputTokens": 0,
+      "accuracy": "tokens provider-reported; cost from published per-token rates",
+      "byTask": [
+        {
+          "task": "nativeSkeleton",
+          "calls": 1,
+          "inputTokens": 1765,
+          "outputTokens": 319,
+          "reasoningOutputTokens": 0,
+          "cachedInputTokens": 0,
+          "costUsd": 0,
+          "costKnown": true
+        },
+        {
+          "task": "blueprintEnrichment",
+          "calls": 1,
+          "inputTokens": 924,
+          "outputTokens": 91,
+          "reasoningOutputTokens": 0,
+          "cachedInputTokens": 0,
+          "costUsd": 0,
+          "costKnown": true
+        }
+      ]
+    },
+    "gates": {
+      "finalStatus": "ready",
+      "trustState": "review",
+      "blockers": 0,
+      "warnings": 19,
+      "warningDomains": {
+        "schemaVersion": 1,
+        "readiness": 1,
+        "retry": 0,
+        "export": 0,
+        "quality": 1,
+        "source": 17,
+        "total": 19
+      },
+      "blockerDomains": {
+        "schemaVersion": 1,
+        "readiness": 0,
+        "quality": 0,
+        "export": 0,
+        "total": 0
+      },
+      "repairsApplied": 7,
+      "retryCallCount": 0,
+      "repairRetryCallCount": 0,
+      "finishRetryCallCount": 0,
+      "exportStatus": "passed",
+      "exportContentDisposition": "publishable",
+      "exportChecked": 38,
+      "exportFailed": 0,
+      "exportWarnings": 0,
+      "qualityStatus": "graded",
+      "qualityScore": 89,
+      "qualityGrade": "B",
+      "automatedReadinessScore": 48,
+      "automatedReadinessMax": 100,
+      "automatedReadinessCeiling": 50,
+      "automatedReadinessBand": "limited-positive-deterministic-evidence",
+      "deterministicEvidenceProtocol": "coursemapper-deterministic-package-evidence-v2",
+      "deterministicEvidenceLost": 2,
+      "deterministicEvidenceUnobserved": 50,
+      "qualityP0": 0,
+      "qualityP1": 1,
+      "qualityP2": 2,
+      "compiledWithoutEnrichment": false,
+      "enrichmentCoverage": 1,
+      "flaggedChecks": [
+        {
+          "featureId": "quality",
+          "status": "warning",
+          "message": "package conformance 89/100 (B) — 0 P0, 1 P1, 2 P2; source review row SL1 is not trusted bibliography proof"
+        },
+        {
+          "featureId": "courseMap",
+          "status": "warning",
+          "message": "Package quality grader found 3 review findings (score 89/100, grade B) — resolve the quality report before classroom publication"
+        }
+      ]
+    }
+  },
+  "findings": [
+    {
+      "severity": "major",
+      "location": "quizBank.questions",
+      "finding": "All six generated reference answers remain generic instructions rather than answering the supplied dated-source task. No 17 August inference or 18 August source date in the quiz data."
+    },
+    {
+      "severity": "major",
+      "location": "quizBank.questions.sourceReviewRequired",
+      "finding": "All six compiler-created-practice-recovery questions were marked false despite lacking a specific reference answer. This turn changes that new-generation flag to true; it does not retrospectively solve the saved output."
+    },
+    {
+      "severity": "major",
+      "location": "shared teaching task",
+      "finding": "No shared task source in the generated quiz bank; original prompt retains all three sources but result falls back to abstract A–D task records."
+    }
+  ],
+  "exampleQuestion": {
+    "question": "Use Records A-D to address \"Evaluate one Reconciling Differing Precision in Dated Sources claim in the Week 1 explanation. Distinguish admitted evidence for Reconciling Differing Precision in Dated Sources from its inference and bound the Week 1 explanation conclusion.\" Name the relevant Reconciling Differing Precision in Dated Sources idea, cite the record that controls the decision, and state one conclusion Record C prevents. Select one relevant course concept, cite one evidence detail, and state a limitation.",
+    "answer": "A complete response cites the controlling labeled record, connects it to the objective, and uses Record C to reject a broader unsupported conclusion.",
+    "sampleAnswer": "Name the relevant evidence, explain how its observable feature supports the claim, and mark one defensible limit.",
+    "enrichmentSource": "compiler-created-practice-recovery",
+    "sourceReviewRequired": false
+  },
+  "limitations": [
+    "Raw two-call model response strings and all intermediate states were not captured by the project export; not a complete frozen-protocol run.",
+    "This is an exposed development case, not one of the twelve fresh Scion units.",
+    "No main/production deployment or source-task coverage repair has been completed by changing the review flag."
+  ]
+}

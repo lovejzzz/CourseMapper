@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Keep compiler-created quiz recovery prompts under instructor review when they provide only general scoring guidance. A real local Scion development run exposed unsolved references incorrectly marked as not requiring review; preserve its failed output evidence and deterministic coverage diagnostics. This does not claim broader source-argument generation is fixed.
+
 - Add twelve varied bilingual source-argument development cases with isolated evaluator references, explicit limitation cases and four response contrasts per case. Add a corpus inventory checker that reports missing distribution/evidence, rejects input answer fields and duplicate base families, and never equates structural completeness with product acceptance. The v3 corpus remains incomplete and unfrozen.
 
 - Give printed open-response quiz items writing space, including unscored retries; scale reviewed multi-part responses by task requirements rather than points. Identify independent, rehearsed, diagnostic and retry items, and scope teacher-purpose notes to their actual question numbers instead of applying the first item’s purpose to a mixed bank.

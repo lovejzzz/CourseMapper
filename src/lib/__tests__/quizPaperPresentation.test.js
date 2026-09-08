@@ -1,4 +1,5 @@
 import { expect, it } from 'vitest';
+import { buildCourseBlueprint, buildQuizAtomsForLesson } from '../courseBlueprintCompiler.js';
 import { deliverablePdfDefinition } from '../exporters/classroomPdf.js';
 
 function textOf(node) {
@@ -104,4 +105,35 @@ it('gives a reviewed multipart response more space even when its saved budget is
   const lines = (content) => content.filter((text) => text.includes('________')).length;
   expect(lines(render(5))).toBeGreaterThan(lines(render(1)));
   expect(render(5).join('\n')).toContain('0 pts');
+});
+
+it('keeps fabricated practice scaffolds under review when no specific answer was authored', () => {
+  const blueprint = buildCourseBlueprint({
+    courseName: 'Chronology evidence',
+    lessons: [
+      {
+        title: 'Source dates',
+        sections: [
+          {
+            topicSection: 'Event and reporting dates',
+            learningObjectives: 'Distinguish an event date from a later report.',
+            supportingResources: 'The supplied letter and interview.',
+          },
+        ],
+      },
+    ],
+  });
+  const lesson = blueprint.lessons[0];
+  lesson.enrichment = {};
+  lesson.evidencePlan = { ...lesson.evidencePlan, sourceCue: 'Course-created chronology practice record' };
+  blueprint.enrichment = { coverage: { missingLessons: [lesson.lessonNumber] } };
+  blueprint.instructionalIntentGraph = {
+    evidenceRecoveryAuthorization: { status: 'authorized', lessonNumbers: [lesson.lessonNumber] },
+  };
+  const items = buildQuizAtomsForLesson(lesson, blueprint, { assessment: {} });
+  const recovery = items.filter((item) => item.enrichmentSource === 'compiler-created-practice-recovery');
+  expect(recovery.length).toBeGreaterThan(0);
+  expect(recovery.every((item) => item.sourceReviewRequired === true)).toBe(true);
+  const printed = paper({ quizzes: [{ lessonTitle: 'Unsolved practice', questions: recovery }] }).join('\n');
+  expect(printed).toContain('Teacher review required');
 });
