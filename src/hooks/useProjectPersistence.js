@@ -139,6 +139,7 @@ export default function useProjectPersistence({
   const localStatusTimerRef = useRef(null);
   const indexedDbSaveQueueRef = useRef(Promise.resolve());
   const localSaveAttemptIdRef = useRef(0);
+  const localSaveReceiptRef = useRef(null);
   const [isStartingNewProject, setIsStartingNewProject] = useState(false);
   const [newProjectError, setNewProjectError] = useState('');
   const [newProjectCloudSaveFailed, setNewProjectCloudSaveFailed] = useState(false);
@@ -516,9 +517,10 @@ export default function useProjectPersistence({
     (extra = {}) => {
       if (!hasGenerated || !courseMap) return false;
       const saveAttemptId = ++localSaveAttemptIdRef.current;
+      localSaveReceiptRef.current = { attemptId: saveAttemptId, exact: false };
       clearTimeout(localStatusTimerRef.current);
       setLocalSaveStatus('saving');
-      const settleLocalSaveAttempt = (status, idleDelay) => {
+      const settleLocalSaveAttempt = (status, idleDelay, exact = true) => {
         const settled = settleLatestAutosaveAttempt(
           saveAttemptId,
           localSaveAttemptIdRef.current,
@@ -526,6 +528,7 @@ export default function useProjectPersistence({
           setLocalSaveStatus,
         );
         if (!settled) return false;
+        localSaveReceiptRef.current = { attemptId: saveAttemptId, exact: status === 'saved' && exact };
         clearTimeout(localStatusTimerRef.current);
         localStatusTimerRef.current = setTimeout(() => {
           settleLatestAutosaveAttempt(saveAttemptId, localSaveAttemptIdRef.current, 'idle', setLocalSaveStatus);
@@ -618,7 +621,7 @@ export default function useProjectPersistence({
             try {
               localStorage.removeItem(STORAGE_KEY);
               localStorage.setItem(STORAGE_KEY, buildCourseMapRecoveryAutosavePayload(compactSnapshot));
-              settleLocalSaveAttempt('saved', 3000);
+              settleLocalSaveAttempt('saved', 3000, false);
             } catch (fallbackError) {
               deferLocalSaveFailure(new AggregateError([indexedDbError, fallbackError], 'Local autosave failed.'));
             }
@@ -628,6 +631,19 @@ export default function useProjectPersistence({
     },
     [buildCloudProjectSnapshot, buildProjectSnapshot, courseMap, hasGenerated],
   );
+
+  async function handleReturnHome() {
+    if (!saveLocalProjectSnapshot({ projectId: projectIdRef.current })) return false;
+    await indexedDbSaveQueueRef.current;
+    const receipt = localSaveReceiptRef.current;
+    if (!receipt?.exact || receipt.attemptId !== localSaveAttemptIdRef.current) {
+      gen.setError('The full project could not be saved. Save a project file before leaving this workspace.');
+      return false;
+    }
+    setScreen('landing');
+    onReturnToLanding?.();
+    return true;
+  }
 
   // Continuous edits/review updates must not keep postponing the save deadline.
   const requestLocalAutosave = useCallback(
@@ -1103,6 +1119,7 @@ export default function useProjectPersistence({
     buildProjectSnapshot,
     buildCloudProjectSnapshot,
     saveLocalProjectSnapshot,
+    handleReturnHome,
     handleSaveProject,
     handleSaveCurrentAsNew,
     // restores + opens

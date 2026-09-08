@@ -2514,6 +2514,7 @@ export default function AppFlow({
     developerTemplates,
     activeDeveloperTemplateId,
     buildProjectSnapshot,
+    handleReturnHome,
     handleSaveProject,
     handleSaveCurrentAsNew,
     doRestoreSession,
@@ -3397,7 +3398,16 @@ export default function AppFlow({
           >
             <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
               <div className="grid min-w-0 grid-cols-1 gap-3 sm:flex sm:items-center">
-                <a href="#/" className="hidden shrink-0 items-center sm:flex" aria-label="EduTool.dev home">
+                <a
+                  href="#/"
+                  className="hidden shrink-0 items-center sm:flex"
+                  aria-label="EduTool.dev home"
+                  aria-disabled={Boolean(workspaceWorkflowRunning)}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    if (!workspaceWorkflowRunning) void handleReturnHome();
+                  }}
+                >
                   <AppLogo className="h-9 w-auto object-contain" />
                 </a>
                 <div className="min-w-0">

@@ -1,0 +1,26 @@
+{
+  "date": "2026-09-08",
+  "baseline": "11157289",
+  "browser": "Existing Chrome local tab; click workspace logo, observe landing and Resume, resume and download project file. No model calls.",
+  "beforeSha256": "3151db8bb07d25c774e52fe4450d017a99de3db254bfeff6ae7d6b26219e1b7e",
+  "afterSha256": "a9df47d16483e961c97c2413ddc5b293381bbd93c886f90909a6c22f6c13d8e2",
+  "courseMapUnchanged": true,
+  "deliverableDataUnchanged": {
+    "syllabus": true,
+    "lessonPlans": true,
+    "slideDecks": true,
+    "assignments": true,
+    "rubrics": true,
+    "discussions": true,
+    "quizBank": true,
+    "studyGuides": true,
+    "courseFaq": true
+  },
+  "lessons": 6,
+  "activeTab": "assignments",
+  "limits": [
+    "Comparison is against the original imported development course; current tab/persistence metadata may differ.",
+    "Storage failure is a regression test, not a forced browser disk failure.",
+    "Does not certify all devices, ongoing model interruption, or production navigation."
+  ]
+}

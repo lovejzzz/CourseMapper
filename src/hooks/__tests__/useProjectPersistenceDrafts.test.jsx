@@ -3,6 +3,7 @@ import React, { act, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { Storage } from 'happy-dom';
+import { saveProjectIndexedDbAutosave } from '../../lib/projectIndexedDbAutosave';
 import useProjectPersistence, { STORAGE_KEY } from '../useProjectPersistence.js';
 import { createNewTeachingTaskReviewDraft } from '../../lib/teachingTaskReview.js';
 import { loadProject, loadProjectDeliverables } from '../../lib/cloudStorage';
@@ -31,6 +32,7 @@ beforeEach(() => {
   localStorage.clear();
   const setters = [
     'setScreen',
+    'onReturnToLanding',
     'adoptCourseGraph',
     'setOldCourseMap',
     'setColumns',
@@ -88,6 +90,7 @@ afterEach(async () => {
   vi.clearAllTimers();
   vi.useRealTimers();
   localStorage.clear();
+  vi.restoreAllMocks();
   vi.unstubAllGlobals();
 });
 async function mount() {
@@ -187,3 +190,38 @@ for (const restorePath of ['file', 'local', 'cloud']) {
     expect(api.projectIdRef.current).toBe(restorePath === 'cloud' ? 'new-cloud-course' : null);
   });
 }
+
+it('saves the exact current project before returning home without resetting its materials or history', async () => {
+  await mount();
+  const draft = createNewTeachingTaskReviewDraft(initialMap, { lessonNumber: 1, operation: 'observed-proportion' });
+  await act(async () => api.saveTeachingReviewDraft(draft, { title: 'Current draft' }));
+  let returned;
+  await act(async () => {
+    returned = await api.handleReturnHome();
+  });
+  expect(returned).toBe(true);
+  const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+  expect(saved.courseMap).toEqual(initialMap);
+  expect(saved.teachingReviewDrafts.entries[0].draft).toEqual(draft);
+  expect(context.onReturnToLanding).toHaveBeenCalledOnce();
+  expect(context.setScreen).toHaveBeenLastCalledWith('landing');
+  expect(context.deliv.resetDeliverables).not.toHaveBeenCalled();
+  expect(context.version.resetHistory).not.toHaveBeenCalled();
+});
+
+it('stays in the workspace when full local persistence and the recovery fallback both fail', async () => {
+  await mount();
+  vi.spyOn(localStorage, 'setItem').mockImplementation(() => {
+    throw new Error('Storage unavailable');
+  });
+  vi.mocked(saveProjectIndexedDbAutosave).mockRejectedValue(new Error('IndexedDB unavailable'));
+  let returned;
+  await act(async () => {
+    returned = await api.handleReturnHome();
+  });
+  expect(returned).toBe(false);
+  expect(context.onReturnToLanding).not.toHaveBeenCalled();
+  expect(context.setScreen).not.toHaveBeenCalledWith('landing');
+  expect(context.gen.setError).toHaveBeenCalledWith(expect.stringContaining('full project could not be saved'));
+  vi.mocked(saveProjectIndexedDbAutosave).mockReset();
+});
