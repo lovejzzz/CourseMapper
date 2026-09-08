@@ -1,0 +1,63 @@
+{
+  "kind": "implementer development diagnostic; not classroom benchmark or model evaluation",
+  "baselineCommit": "e8c5800b16b1a1549319ea78c1d7a424f1452847",
+  "modifiedCode": "src/lib/teachingTaskQuantityOperations.js",
+  "modifiedCodeSha256": "8924d44cdddbf382f19a678be93943edf7fd4b48a1ba52eac1a179c28df49517",
+  "modelCalls": 0,
+  "before": [
+    {
+      "name": "unspecified-membership",
+      "kind": "pooled-proportion",
+      "answer": "Count the outcomes and whole in the same unit (patients) for each group. Add outcomes: 9 + 45 = 54; add group sizes: 10 + 90 = 100. Combined proportion: (9 + 45)/(10 + 90) = 54/100 = 54%. 0.54 × 100 = 54. The unweighted mean of the group rates = 70%. It does not equal the combined item proportion. Weight each rate by its group size: (10/100) × (9/10) + (90/100) × (45/90) = 54/100. (9 + 45)/(10 + 90) = 54/100 = 54% of the recorded patients. This is an item-weighted descriptive proportion, not evidence of why the group rates differ. The clinics used the same screening rule."
+    },
+    {
+      "name": "possible-repeat-patients",
+      "kind": "pooled-proportion",
+      "answer": "Count the outcomes and whole in the same unit (patients) for each group. Add outcomes: 9 + 45 = 54; add group sizes: 10 + 90 = 100. Combined proportion: (9 + 45)/(10 + 90) = 54/100 = 54%. 0.54 × 100 = 54. The unweighted mean of the group rates = 70%. It does not equal the combined item proportion. Weight each rate by its group size: (10/100) × (9/10) + (90/100) × (45/90) = 54/100. (9 + 45)/(10 + 90) = 54/100 = 54% of the recorded patients. This is an item-weighted descriptive proportion, not evidence of why the group rates differ. Some patients appear in both clinic lists; their identities were not matched."
+    },
+    {
+      "name": "explicit-separate-batches",
+      "kind": "pooled-proportion",
+      "answer": "Count the outcomes and whole in the same unit (patients) for each group. Add outcomes: 9 + 45 = 54; add group sizes: 10 + 90 = 100. Combined proportion: (9 + 45)/(10 + 90) = 54/100 = 54%. 0.54 × 100 = 54. The unweighted mean of the group rates = 70%. It does not equal the combined item proportion. Weight each rate by its group size: (10/100) × (9/10) + (90/100) × (45/90) = 54/100. (9 + 45)/(10 + 90) = 54/100 = 54% of the recorded patients. This is an item-weighted descriptive proportion, not evidence of why the group rates differ. The two batches are separate."
+    }
+  ],
+  "after": [
+    {
+      "name": "unspecified-membership",
+      "kind": null,
+      "answer": null
+    },
+    {
+      "name": "possible-repeat-patients",
+      "kind": null,
+      "answer": null
+    },
+    {
+      "name": "explicit-separate-batches",
+      "kind": "pooled-proportion",
+      "answer": "Source record 2 explicitly permits distinct-group pooling: “The two batches are separate”. Count the outcomes and whole in the same unit (patients) for each group. Add outcomes: 9 + 45 = 54; add group sizes: 10 + 90 = 100. Combined proportion: (9 + 45)/(10 + 90) = 54/100 = 54%. 0.54 × 100 = 54. The unweighted mean of the group rates = 70%. It does not equal the combined item proportion. Weight each rate by its group size: (10/100) × (9/10) + (90/100) × (45/90) = 54/100. (9 + 45)/(10 + 90) = 54/100 = 54% of the recorded patients. This is an item-weighted descriptive proportion, not evidence of why the group rates differ. The two batches are separate."
+    }
+  ],
+  "newDevelopmentCases": [
+    {
+      "id": "quantity-dev-01",
+      "path": "direct deterministic task builder, no model or full generation",
+      "task": null,
+      "modelCalls": 0
+    },
+    {
+      "id": "quantity-dev-02",
+      "path": "direct deterministic task builder, no model or full generation",
+      "task": null,
+      "modelCalls": 0
+    }
+  ],
+  "referenceArithmetic": {
+    "pooled": "35",
+    "mean": "50",
+    "edited_pooled": "55",
+    "edited_mean": "125/2",
+    "union_30": [35, 50],
+    "union_20": [35, 50]
+  }
+}

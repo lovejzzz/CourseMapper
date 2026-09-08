@@ -6,6 +6,7 @@ const build = (objective, claims) =>
 const pool = [
   'Depot North received 10 items and returned 9; Depot South received 90 items and returned 45.',
   'The requested overall proportion counts all returned items among all received items.',
+  'The two batches are separate.',
   'The depots handle different product types, and no cause of the difference is supplied.',
 ];
 const overlap = [
@@ -20,6 +21,29 @@ const units = [
 ];
 
 describe('source quantity reasoning, without answer-containing input', () => {
+  it.each([
+    'The clinics used the same screening rule.',
+    'Some patients appear in both clinic lists; their identities were not matched.',
+    'It is unknown whether the two batches are separate.',
+    'A future experiment will ensure the two batches are separate.',
+    'The other groups are separate.',
+  ])('does not invent distinct membership from %s', (membership) => {
+    expect(
+      build('Compute the combined pass proportion.', [
+        'Clinic East tested 10 patients and passed 9; Clinic West tested 90 patients and passed 45.',
+        membership,
+      ]),
+    ).toBeNull();
+  });
+  it('rejects contradictory repeated-membership evidence even with a separate-batch assertion', () => {
+    expect(
+      build('Compute the combined pass proportion.', [
+        'Clinic East tested 10 patients and passed 9; Clinic West tested 90 patients and passed 45.',
+        'The two batches are separate.',
+        'Some patients appear in both clinic lists.',
+      ]),
+    ).toBeNull();
+  });
   it('combines counts rather than averaging unequal depot rates', () => {
     const t = build('Compute the combined return proportion and explain averaging rates.', pool);
     expect(t?.operation?.kind).toBe('pooled-proportion');
@@ -174,8 +198,13 @@ import { runDeterministicPackageFinalizer } from '../packageFinalizer.js';
 import { applyTeachingTaskSourceEdit } from '../teachingTaskContentSync.js';
 import { evaluateAcceptanceOutputs, ACCEPTANCE_FEATURES } from '../../../scripts/benchmarks/classroomAcceptance.mjs';
 
-function compilePacket(id) {
+function compilePacket(id, { reviewedDistinctMembership = false } = {}) {
   const fixture = JSON.parse(fs.readFileSync(`benchmarks/classroom/v2/cases/${id}.json`, 'utf8'));
+  if (reviewedDistinctMembership) {
+    fixture.id = `${id}-development-membership-variant`;
+    fixture.split = 'development';
+    fixture.sources.push('The two batches are disjoint.');
+  }
   const map = {
     courseName: fixture.request,
     lessons: [
@@ -208,10 +237,14 @@ function compilePacket(id) {
 }
 
 describe('quantity operations through actual material projections and source edits', () => {
+  it('retains the frozen pooled packet and declines its unproved distinct-member interpretation', () => {
+    const fixture = JSON.parse(fs.readFileSync('benchmarks/classroom/v2/cases/h-c01-pooled-rates.json', 'utf8'));
+    expect(build(fixture.request, fixture.sources)).toBeNull();
+  });
   it.each(['h-c01-pooled-rates', 'h-c03-overlap', 'h-c04-volume-vs-households'])(
-    '%s survives complete package finalization',
+    '%s survives package finalization with explicit membership review for pooling',
     (id) => {
-      const f = compilePacket(id);
+      const f = compilePacket(id, { reviewedDistinctMembership: id === 'h-c01-pooled-rates' });
       const final = runDeterministicPackageFinalizer({
         courseMap: f.courseMap,
         blueprint: f.blueprint,
@@ -236,7 +269,7 @@ describe('quantity operations through actual material projections and source edi
     },
   );
   it('answers a causal misconception with causal evidence feedback throughout the guide', () => {
-    const f = compilePacket('h-c01-pooled-rates');
+    const f = compilePacket('h-c01-pooled-rates', { reviewedDistinctMembership: true });
     const question = f.deliverables.studyGuides.data.studyGuides[0].reviewQuestions.find((q) =>
       /caused the better outcome/i.test(q.question),
     );
@@ -247,7 +280,7 @@ describe('quantity operations through actual material projections and source edi
     expect(task.errors[1].feedback).toMatch(/isolate a cause/);
   });
   it('updates a pooled count through all nine materials and preserves teacher prose', () => {
-    const f = compilePacket('h-c01-pooled-rates');
+    const f = compilePacket('h-c01-pooled-rates', { reviewedDistinctMembership: true });
     const oldData = f.deliverables.studyGuides.data;
     const newData = structuredClone(oldData);
     const index = newData.studyGuides[0].sourceEvidenceBrief.claims.findIndex((s) => s.includes('returned 45'));
@@ -278,7 +311,7 @@ describe('quantity operations through actual material projections and source edi
         b = (3 * i) % (m + 1);
       const t = build('Compute the overall completion proportion.', [
         `Room One enrolled ${n} learners and completed ${a}; Room Two enrolled ${m} learners and completed ${b}.`,
-        'Count all completed learners among all enrolled learners; the classes have separate learner lists.',
+        'Count all completed learners among all enrolled learners; the two groups are disjoint.',
       ]);
       expect(t?.operation.result.numerator).toBe(String(a + b));
       expect(t.operation.result.denominator).toBe(String(n + m));

@@ -10,6 +10,24 @@ const solve = (n, d) => solveTeachingProportion(String(n), String(d));
 const percent = (v) => `${v.relation} ${v.percent}%`;
 const span = (claims, index, text) => ({ inputIndex: index, start: claims[index].indexOf(text), text });
 
+function separateGroupEvidence(claims, unit) {
+  // Group labels and different observed rates do not prove distinct members.
+  // Accept an explicit statement about these groups, not a hypothetical or a
+  // reference to unrelated groups elsewhere in the source packet.
+  const escapedUnit = unit.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const pattern = new RegExp(
+    `^(?:the )?(?:two |both )?(?:groups|batches|queues|depots) (?:are (?:separate|disjoint)|contain separate ${escapedUnit})$`,
+    'i',
+  );
+  for (let index = 0; index < claims.length; index++) {
+    for (const part of claims[index].split(/[;.]/)) {
+      const text = part.trim();
+      if (pattern.test(text)) return span(claims, index, text);
+    }
+  }
+  return null;
+}
+
 function pooledCounts(claims, objective) {
   if (
     !/\b(?:combined|pooled|overall)\b/i.test(objective) ||
@@ -18,6 +36,14 @@ function pooledCounts(claims, objective) {
     return null;
   // Unrecorded overlap makes an item-level combined denominator unknowable.
   if (claims.some((c) => /\b(?:same items|overlap|duplicat\w*|transferred|shared items)\b/i.test(c))) return null;
+  if (
+    claims.some((c) =>
+      /\b(?:some|same)\s+(?:patients|participants|people|members|customers|devices|tickets)\b.*\b(?:both|each|groups?|lists?|clinics?|queues?)\b/i.test(
+        c,
+      ),
+    )
+  )
+    return null;
   const rows = [];
   let invalid = false;
   const pattern = new RegExp(
@@ -41,6 +67,8 @@ function pooledCounts(claims, objective) {
   });
   if (invalid || rows.length !== 2) return null;
   const [a, b] = rows;
+  const membershipEvidence = separateGroupEvidence(claims, a.unit);
+  if (!membershipEvidence) return null;
   if (
     a.label.toLowerCase() === b.label.toLowerCase() ||
     ['wholeEvent', 'partEvent', 'unit'].some((k) => a[k].toLowerCase() !== b[k].toLowerCase())
@@ -66,10 +94,12 @@ function pooledCounts(claims, objective) {
       'I separated the observed overall rate from an explanation of why the groups differ.',
     ],
     operands: rows.map((r) => ({ part: r.part, whole: r.whole, unit: r.unit, label: r.label, source: r.source })),
+    membershipEvidence,
     result,
     question: `Find the overall proportion of ${a.partEvent} ${a.unit} among all ${a.wholeEvent} ${a.unit}. Compare it with the unweighted mean of the two group rates; explain the role of the denominators and the limits of the comparison.`,
     evidence: rows.map((r) => `${r.label}: ${r.part}/${r.whole} ${percent(r.result)} of ${r.unit}.`).join(' '),
     reasoning: [
+      `Source record ${membershipEvidence.inputIndex + 1} explicitly permits distinct-group pooling: “${membershipEvidence.text}”.`,
       `Count the outcomes and whole in the same unit (${a.unit}) for each group.`,
       `Add outcomes: ${a.part} + ${b.part} = ${n}; add group sizes: ${a.whole} + ${b.whole} = ${d}.`,
       `Combined proportion: ${formula} ${percent(result)}. ${result.reverseCheck}.`,
@@ -292,7 +322,13 @@ export function sourceQuantityTask(claims, objective) {
     kind: `source-${plan.kind}`,
     family: 'calculation',
     language: 'en',
-    operation: { kind: plan.kind, operands: plan.operands, result: plan.result, scope: 'explicit-count-relationships' },
+    operation: {
+      kind: plan.kind,
+      operands: plan.operands,
+      result: plan.result,
+      scope: 'explicit-count-relationships',
+      ...(plan.membershipEvidence ? { membershipEvidence: plan.membershipEvidence } : {}),
+    },
     studentChecks: plan.studentChecks,
     title: plan.title,
     summary: plan.conclusion,

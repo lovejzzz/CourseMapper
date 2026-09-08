@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Require explicit distinct-group evidence before automatically pooling item counts. Decline ambiguous or repeated-member records instead of asserting an unsupported overall proportion, and retain the membership source in worked reasoning. Preserve frozen benchmark inputs; label membership-clarified regression variants separately.
+
 - Record applied response-led feedback revisions in the separate local notebook, preserving the judgment used, original feedback and resulting task/rubric snapshots. Retry failed receipt saves without reapplying the course change or overwriting newer judgments; display receipts as historical applications rather than current course state.
 
 - Prepare response-led revisions to reviewed teaching-requirement feedback through the existing linked-material preview and confirmation transaction. Reject stale task/rubric versions, preserve unfinished task drafts, and transfer only explicitly approved public feedback into course materials.

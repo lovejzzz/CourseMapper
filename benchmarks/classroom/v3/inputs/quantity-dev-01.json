@@ -1,0 +1,18 @@
+{
+  "request": "Create editable teaching materials for a 50-minute lesson in English. Students must use the tablet desk records to report the combined return proportion, assess a suggestion to average the two desk percentages, show their calculations, and explain the limits of the comparison.",
+  "objective": "Combine unequal group counts to calculate a return proportion, distinguish tablet weighting from desk weighting, and separate a descriptive result from an explanation of desk performance.",
+  "sources": [
+    {
+      "id": "tablet-desks",
+      "text": "Fictional library service note: the small desk issued twelve loaner tablets during the trial week; nine came back before closing. At the large desk, twelve of the forty-eight issued tablets came back before closing. Both desks used closing time on the same Friday as the return deadline."
+    },
+    {
+      "id": "tablet-identities",
+      "text": "The loan records identify individual tablets. Each tablet was issued once at exactly one desk during this week; there were no transfers between desks. The two desks served different borrower groups, and the note gives no reason for the difference in their return patterns."
+    },
+    {
+      "id": "tablet-request",
+      "text": "The service team wants the fraction of all tablets issued during the week that were returned by the common deadline. One colleague instead proposes giving the two desk percentages equal weight. The library also operated a staff equipment service, whose records are not included here."
+    }
+  ]
+}

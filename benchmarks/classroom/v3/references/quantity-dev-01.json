@@ -1,0 +1,41 @@
+{
+  "id": "quantity-dev-01",
+  "split": "development",
+  "family": "quantity",
+  "language": "en",
+  "sourceFamily": "library-tablet-return-pooling",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "The counted units are distinct issued tablets, so the source explicitly permits pooling. There are 9 + 12 = 21 timely returns out of 12 + 48 = 60 issued tablets: 21/60 = 35%. The small desk rate is 75% and the large desk rate is 25%; their unweighted mean is 50%, which gives equal weight to desks, not tablets. Weighting the two rates by 12/60 and 48/60 gives 35%.",
+  "acceptableReasoning": [
+    "Attribute both part and whole counts to the service note and establish distinct membership from the identity record before adding them.",
+    "Use 21 timely returns and 60 issued tablets with the common deadline; show an exact fraction and its percentage.",
+    "Explain that equal desk weighting overrepresents the smaller desk when answering a tablet-level question. A 50% mean is not inherently an invalid statistic, but answers a different question.",
+    "Do not infer that a desk caused better returns. The borrower groups differ. Limit the result to these loaners and this week; do not include the separate staff service."
+  ],
+  "reject": [
+    "50% as the fraction of all issued tablets returned",
+    "21/48 or 9/60 as the combined proportion",
+    "treat the two occurrences of twelve as the same role",
+    "include the staff equipment service in the denominator",
+    "claim the smaller desk caused timely returns"
+  ],
+  "requiredScoring": [
+    "Correct source roles, common unit and distinct membership",
+    "Correct combined and desk-level calculations with explicit weighting explanation",
+    "Scope limited to the listed tablets and deadline, without causal claims"
+  ],
+  "contrastResponses": [
+    {
+      "response": "35%.",
+      "judgment": "Correct final number alone does not demonstrate denominator selection or weighting; do not award the reasoning criteria."
+    },
+    {
+      "response": "The desk rates average to 50%, but 21 of 60 tablets returned, so 35% answers the tablet question. The larger desk accounts for four fifths of the tablets.",
+      "judgment": "Demonstrates the weighting distinction; still check explicit source attribution and observational limits."
+    }
+  ],
+  "editCheck": "Change the large desk timely returns from twelve to twenty-four. The updated combined result is 33/60 = 55%, while the equal-desk mean is 62.5%. Preserve the independent case and teacher notes. Removing the distinct-identity statement must not silently preserve an asserted unique-tablet proportion.",
+  "inputIsolation": "Only request, objective and sources enter the product; this reference is evaluator-only. Explicit structure runs are labeled separately."
+}
