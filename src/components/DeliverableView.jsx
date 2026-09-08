@@ -122,6 +122,7 @@ export default function DeliverableView({
   onPreviewTeachingTask,
   onCommitTeachingTask,
   teachingReviewDrafts,
+  teachingSourceBrief,
   teachingReviewSession,
   onSaveTeachingReviewDraft,
   onRemoveTeachingReviewDraft,
@@ -352,6 +353,7 @@ export default function DeliverableView({
           onPreview={onPreviewTeachingTask}
           onCommit={onCommitTeachingTask}
           savedDrafts={teachingReviewDrafts}
+          sourceBrief={teachingSourceBrief}
           onSaveDraft={onSaveTeachingReviewDraft}
           onRemoveDraft={onRemoveTeachingReviewDraft}
         />

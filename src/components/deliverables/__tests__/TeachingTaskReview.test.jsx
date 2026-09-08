@@ -265,12 +265,14 @@ describe('teacher structure review interaction', () => {
         }),
       ),
     }));
-    await renderReview({ courseMap: emptyMap, data, onPreview, onCommit, onProposeSources });
+    const sourceBrief = `Objective: ${f.objective}\nSources:\n${f.inputs.map((input, i) => `Record ${i + 1}: ${input.text}`).join('\n')}`;
+    await renderReview({ courseMap: emptyMap, data, onPreview, onCommit, onProposeSources, sourceBrief });
     expect(button('Start task draft')).toBeTruthy();
     await click(button('Start task draft'));
     for (const [index, input] of f.inputs.entries()) {
-      if (index) await click(button('Add source record'));
-      await enter(`Record ${index + 1}`, input.text);
+      expect(container.querySelector(`[aria-label="Record ${index + 1}"]`).value).toBe(
+        `Record ${index + 1}: ${input.text}`,
+      );
     }
     await click(button('Locate source phrases with local Scion'));
     expect(onProposeSources).toHaveBeenCalledOnce();

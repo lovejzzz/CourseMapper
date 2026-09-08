@@ -78,6 +78,7 @@ export default function TeachingTaskReview({
   onPreview,
   onCommit,
   onProposeSources,
+  sourceBrief,
   savedDrafts,
   onSaveDraft,
   onRemoveDraft,
@@ -176,6 +177,7 @@ export default function TeachingTaskReview({
     const next = createNewTeachingTaskReviewDraft(courseMap, {
       lessonNumber: Number(newLesson || options.lessons[0]?.lessonNumber),
       operation: newOperation,
+      sourceBrief,
     });
     setDraft(next.status === 'needs-review' ? null : next);
     setMessage(next.message || '');
@@ -237,7 +239,7 @@ export default function TeachingTaskReview({
         setMessage(
           missingRoles.length
             ? t(
-                `Review the source selections and complete ${missingRoles.length} missing fields.`,
+                `Review the source selections and complete ${missingRoles.length} missing field${missingRoles.length === 1 ? '' : 's'}.`,
                 `请核对来源选择，并补齐 ${missingRoles.length} 处空缺。`,
               )
             : adoption.filledRoles.length

@@ -1,3 +1,4 @@
+import { labeledSourceRecords } from './sourceBriefConstraints.js';
 import { canonicalJson, sameJsonData } from './canonicalJson.js';
 import { sha256HexSync } from './sha256Sync.js';
 import { stripLessonPrefix } from './compilerText.js';
@@ -74,27 +75,46 @@ export function availableTeachingTaskLessons(courseMap) {
 
 /** A new task is a local draft until the same preview/confirmation transaction
  * used for later edits accepts it. Its identity is independent of its wording. */
-export function createNewTeachingTaskReviewDraft(courseMap, { lessonNumber, operation } = {}) {
+export function createNewTeachingTaskReviewDraft(courseMap, { lessonNumber, operation, sourceBrief = '' } = {}) {
   const lesson = courseMap?.lessons?.find((row, index) => (row.lessonNumber || index + 1) === lessonNumber);
   const spec = Object.hasOwn(TEACHING_OPERATION_SPECS, operation) ? TEACHING_OPERATION_SPECS[operation] : null;
   if (!lesson || !spec || !availableTeachingTaskLessons(courseMap).some((row) => row.lessonNumber === lessonNumber))
     return reviewIssue('Choose a lesson without an existing shared task and a supported teaching operation.');
+  const records = labeledSourceRecords(String(sourceBrief).replace(/\r\n?/g, '\n')) || [];
+  // Copy explicit source records only. Compiled summaries and inferred claims
+  // are not authoritative substitutes for the teacher's original packet.
+  const suppliedInputs =
+    records.length <= 8 ? records.map((text) => ({ id: `input-${crypto.randomUUID()}`, text })) : [];
+  const explicitObjective =
+    courseMap.lessons.length === 1
+      ? /^\s*(?:learning objectives?|objectives?|学习目标|教学目标)\s*[:：]\s*(\S[^\n]*)$/im.exec(
+          String(sourceBrief),
+        )?.[1]
+      : null;
   const identityKey = `authored-${crypto.randomUUID()}`;
   return {
     creation: { courseRevision: revision(courseMap), lessonNumber, identityKey },
     taskId: `task-${sha256HexSync(`${identityKey}:${spec.taskKind}`).slice(0, 16)}`,
     operation,
     version: 1,
-    objective: (lesson.sections || [])
-      .map((row) => row.learningObjectives)
-      .filter(Boolean)
-      .join('\n'),
+    objective:
+      explicitObjective ||
+      (lesson.sections || [])
+        .map((row) => row.learningObjectives)
+        .filter(Boolean)
+        .join('\n'),
     sessionMinutes: Number(courseMap.sessionMinutes) > 0 ? Number(courseMap.sessionMinutes) : 50,
     practiceMinutes: Math.min(
       spec.defaultPracticeMinutes || 10,
       Number(courseMap.sessionMinutes) > 0 ? Number(courseMap.sessionMinutes) : 50,
     ),
-    inputs: [{ id: `input-${crypto.randomUUID()}`, text: '' }],
+    inputs: suppliedInputs.length ? suppliedInputs : [{ id: `input-${crypto.randomUUID()}`, text: '' }],
+    ...(records.length > 8
+      ? {
+          message:
+            'This packet has more than eight records. Select the records for this task before requesting a proposal.',
+        }
+      : {}),
     bindings: Object.fromEntries(
       Object.keys(spec.bindings).map((name) => [name, { inputId: '', quote: '', occurrence: null }]),
     ),

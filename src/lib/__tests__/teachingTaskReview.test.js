@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import {
   createTeachingTaskReviewDraft,
+  createNewTeachingTaskReviewDraft,
   previewTeachingTaskReview,
   commitTeachingTaskReview,
   resolveTeachingTaskReviewDraft,
@@ -420,5 +421,37 @@ describe('reviewed teaching task transactions', () => {
     );
     state.draft.bindings.effectiveDate.occurrence = 0;
     expect(resolveTeachingTaskReviewDraft(state.source, state.draft, '2026-09-06T00:00:00.000Z').status).toBe('valid');
+  });
+});
+
+describe('original brief to new teaching task draft', () => {
+  const course = { lessons: [{ title: 'Records', sections: [{ learningObjectives: 'Existing lesson objective' }] }] };
+  const draft = (sourceBrief, map = course) =>
+    createNewTeachingTaskReviewDraft(map, { lessonNumber: 1, operation: 'record-relative-day', sourceBrief });
+  it('preserves labeled source prose and an explicit single-lesson objective without applying a task', () => {
+    const value = draft(
+      '教学目标：区分记录日期与事件日期。\n来源：\n信件：信中写道：“昨天完成；不要猜测年份。”\n访谈：录音日期为10月4日。\n任务：解释日期关系',
+    );
+    expect(value.inputs.map((row) => row.text)).toEqual([
+      '信件: 信中写道：“昨天完成；不要猜测年份。”',
+      '访谈: 录音日期为10月4日。',
+    ]);
+    expect(value.objective).toBe('区分记录日期与事件日期。');
+    expect(Object.values(value.bindings).every((binding) => !binding.inputId)).toBe(true);
+    expect(course.teachingProgram).toBeUndefined();
+  });
+  it('does not silently truncate an oversized packet or substitute a generated summary', () => {
+    const value = draft('Sources:\n' + Array.from({ length: 9 }, (_, i) => `r${i}: Original record ${i}`).join('\n'));
+    expect(value.inputs.map((row) => row.text)).toEqual(['']);
+    expect(value.message).toContain('more than eight');
+    expect(draft('Generated summary: an event happened yesterday.').inputs[0].text).toBe('');
+    expect(draft('Sources:\na: First\na: Ambiguous duplicate').inputs[0].text).toBe('');
+  });
+  it('does not assign a course-level objective to each lesson or overwrite the existing map', () => {
+    const map = { lessons: [...course.lessons, { title: 'Second', sections: [] }] };
+    expect(draft('Objective: Whole course objective\nSources:\na: Original record', map).objective).toBe(
+      'Existing lesson objective',
+    );
+    expect(map.lessons[0].sections[0].learningObjectives).toBe('Existing lesson objective');
   });
 });

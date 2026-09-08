@@ -92,7 +92,7 @@ const INSTRUCTION_SENTENCE_RE =
 // A labeled source packet is data even when its quoted prose contains verbs
 // such as “ignore” or “write”. Only outer brief headings end this section.
 // Do not infer unlabeled prose, summaries or URL lists as supplied evidence.
-function labeledSourceRecords(text) {
+export function labeledSourceRecords(text) {
   const header = /^(?:#{1,6}\s*)?(?:sources|source records|来源|来源记录|资料来源)\s*[:：]\s*$/im.exec(text);
   if (!header) return null;
   const records = [];

@@ -259,6 +259,16 @@ describe('compact chronology source proposals', () => {
     fragment.bindings.eventClaim.quote = 'yesterday';
     expect(assessTeachingProposal(JSON.stringify(fragment), chronology).issues.join(' ')).toContain('event statement');
   });
+  it('rejects a relative word as a date even when another role is missing', () => {
+    const value = response();
+    value.bindings.recordDate.quote = 'yesterday';
+    value.bindings.sameEventEvidence = null;
+    const result = assessTeachingProposal(JSON.stringify(value), chronology);
+    expect(result.issues.join(' ')).toContain('recordDate quotation must be a supported calendar date');
+    expect(result.bindings.recordDate.inputId).toBe('');
+    expect(result.missing).toContain('sameEventEvidence');
+    expect(result.bindings.recordingDate.quote).toBe('4 October');
+  });
   it('keeps the legacy wire on ordinary runtimes and enables the compact wire only with verified grammar', async () => {
     for (const constrained of [false, true]) {
       const value = response();

@@ -4219,6 +4219,7 @@ export default function AppFlow({
                     viewportRef={viewportRef}
                     featureId={activeTab}
                     teachingReviewDrafts={teachingReviewDrafts}
+                    teachingSourceBrief={promptText}
                     teachingReviewSession={teachingReviewSession}
                     onSaveTeachingReviewDraft={saveTeachingReviewDraft}
                     onRemoveTeachingReviewDraft={removeTeachingReviewDraft}

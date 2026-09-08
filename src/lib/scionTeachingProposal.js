@@ -9,6 +9,7 @@ import {
   comparisonProposalFieldPath,
 } from './scionComparisonProposal.js';
 import { comparisonConditionOverlapIssues } from './teachingOperationComparison.js';
+import { parseSourceCalendarDate } from './sourceCalendar.js';
 import { chronologyBindingsGrammar } from './scionChronologyGrammar.js';
 import {
   SCION_COMPARISON_STAGED_PROTOCOL,
@@ -190,6 +191,16 @@ export function assessTeachingProposal(raw, request, protocol = teachingProposal
     if (!Number.isInteger(occurrence) || !Number.isInteger(positions[occurrence])) {
       issues.push(
         `Locate the exact phrase and its occurrence for ${name}. Found ${positions.length} matches; occurrence starts at 0.`,
+      );
+      continue;
+    }
+    if (
+      request.operation === 'record-relative-day' &&
+      ['recordDate', 'recordingDate'].includes(name) &&
+      !parseSourceCalendarDate(selection.quote)
+    ) {
+      issues.push(
+        `The ${name} quotation must be a supported calendar date from the source, not a relative word or an inferred date.`,
       );
       continue;
     }
