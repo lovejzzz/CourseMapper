@@ -134,6 +134,38 @@ describe('teacher structure review interaction', () => {
     });
   }
 
+  it('selects from a large source packet and sends only selected records to Scion', async () => {
+    const onProposeSources = vi.fn(async () => ({ status: 'needs-review', message: 'Review source roles.' }));
+    const onSaveDraft = vi.fn();
+    await renderReview({
+      featureId: 'assignments',
+      courseMap: { lessons: [{ title: 'Counts', sections: [{ learningObjectives: 'Compare supplied counts.' }] }] },
+      sourceBrief:
+        'Sources:\n' + Array.from({ length: 10 }, (_, i) => `r${i + 1}: Original record ${i + 1}`).join('\n'),
+      onProposeSources,
+      onSaveDraft,
+    });
+    await chooseFocus('observed-proportion');
+    await click(button('Draft with local Scion'));
+    expect(onProposeSources).not.toHaveBeenCalled();
+    expect(button('Locate source phrases with local Scion').disabled).toBe(true);
+    await click(container.querySelector('[aria-label="Use source record 9"]'));
+    await click(container.querySelector('[aria-label="Use source record 10"]'));
+    expect(container.querySelector('[aria-label="Use source record 1"]').closest('details').open).toBe(true);
+    expect(onSaveDraft.mock.calls.at(-1)[0].sourceChoices).toHaveLength(10);
+    await click(button('Locate source phrases with local Scion'));
+    expect(onProposeSources.mock.calls[0][0].inputs.map((input) => input.text)).toEqual([
+      'r9: Original record 9',
+      'r10: Original record 10',
+    ]);
+    expect(onProposeSources.mock.calls[0][0]).not.toHaveProperty('sourceChoices');
+    for (let i = 1; i <= 6; i++) await click(container.querySelector(`[aria-label="Use source record ${i}"]`));
+    expect(container.querySelector('[aria-label="Use source record 7"]').disabled).toBe(true);
+    await click(container.querySelector('[aria-label="Use source record 9"]'));
+    expect(container.querySelector('[aria-label="Use source record 7"]').disabled).toBe(false);
+    expect(onSaveDraft.mock.calls.at(-1)[0].inputs).toHaveLength(7);
+  });
+
   it('opens the existing task editor for sourced assignments without guessing a teaching focus', async () => {
     const onProposeSources = vi.fn();
     const onSaveDraft = vi.fn();

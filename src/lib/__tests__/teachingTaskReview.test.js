@@ -8,6 +8,7 @@ import {
   resolveTeachingTaskReviewDraft,
   mergeTeachingSourceSuggestions,
   needsInitialTeachingTaskReview,
+  selectTeachingSourceChoice,
 } from '../teachingTaskReview.js';
 import {
   readTeachingTaskSources,
@@ -443,10 +444,34 @@ describe('original brief to new teaching task draft', () => {
   });
   it('does not silently truncate an oversized packet or substitute a generated summary', () => {
     const value = draft('Sources:\n' + Array.from({ length: 9 }, (_, i) => `r${i}: Original record ${i}`).join('\n'));
-    expect(value.inputs.map((row) => row.text)).toEqual(['']);
-    expect(value.message).toContain('more than eight');
+    expect(value.inputs).toEqual([]);
+    expect(value.sourceChoices).toHaveLength(9);
+    expect(value.sourceChoices[8].text).toBe('r8: Original record 8');
     expect(draft('Generated summary: an event happened yesterday.').inputs[0].text).toBe('');
     expect(draft('Sources:\na: First\na: Ambiguous duplicate').inputs[0].text).toBe('');
+  });
+  it('selects any eight records and retains edited text while clearing removed source bindings', () => {
+    const original = draft(
+      'Sources:\n' + Array.from({ length: 10 }, (_, i) => `r${i}: Original record ${i}`).join('\n'),
+    );
+    let selected = original;
+    for (const choice of original.sourceChoices.slice(2))
+      selected = selectTeachingSourceChoice(selected, choice.id, true);
+    expect(selected.inputs).toHaveLength(8);
+    expect(selected.inputs[0].text).toBe('r2: Original record 2');
+    expect(selectTeachingSourceChoice(selected, original.sourceChoices[0].id, true)).toBe(selected);
+    expect(original.inputs).toEqual([]);
+    const id = selected.inputs[0].id;
+    selected = structuredClone(selected);
+    selected.inputs[0].text = 'Teacher corrected record';
+    const role = Object.keys(selected.bindings)[0];
+    selected.bindings[role] = { inputId: id, quote: 'Teacher', occurrence: 0 };
+    const removed = selectTeachingSourceChoice(selected, id, false);
+    expect(removed.bindings[role]).toEqual({ inputId: '', quote: '', occurrence: null });
+    const restored = selectTeachingSourceChoice(JSON.parse(JSON.stringify(removed)), id, true);
+    expect(restored.inputs.find((input) => input.id === id).text).toBe('Teacher corrected record');
+    expect(restored.sourceChoices).toHaveLength(10);
+    expect(selected.bindings[role].inputId).toBe(id);
   });
   it('does not assign a course-level objective to each lesson or overwrite the existing map', () => {
     const map = { lessons: [...course.lessons, { title: 'Second', sections: [] }] };

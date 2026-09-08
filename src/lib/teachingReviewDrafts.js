@@ -29,6 +29,14 @@ export function editableTeachingReviewDraft(draft) {
   )
     return false;
   if (draft.creation === undefined && !text(draft.sourceRevision)) return false;
+  if (
+    draft.sourceChoices !== undefined &&
+    (!draft.creation ||
+      !Array.isArray(draft.sourceChoices) ||
+      !draft.sourceChoices.every((input) => object(input) && text(input.id) && input.id && text(input.text)) ||
+      new Set(draft.sourceChoices.map((input) => input.id)).size !== draft.sourceChoices.length)
+  )
+    return false;
   if (draft.objective !== undefined && !text(draft.objective)) return false;
   if (draft.goalAlignment !== undefined && !editableTeachingGoalAlignment(draft.goalAlignment)) return false;
   if (

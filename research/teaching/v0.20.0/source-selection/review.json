@@ -1,0 +1,66 @@
+{
+  "date": "2026-09-08",
+  "scope": "Creation-time source selection for packets above the eight-record proposal limit; no automatic operation or new model-course claim.",
+  "fixture": "Prior course-identity/scope-fixed scaffold with seven explicit other-lesson records prefixed to its three original records. UI fixture, not a frozen benchmark case.",
+  "actualBrowser": {
+    "browser": "Existing Chrome test tab at 127.0.0.1:17148",
+    "steps": [
+      "Import fixture",
+      "Choose combined-proportion focus",
+      "Start draft",
+      "Select records 8/9/10",
+      "Save",
+      "Reload",
+      "Resume",
+      "Save again"
+    ],
+    "candidateCount": 10,
+    "selectedLabels": [
+      "R8",
+      "R9",
+      "R10"
+    ],
+    "draftBookEqualAfterRestore": true,
+    "courseMapUnchanged": true,
+    "allNineMaterialDataEqualAfterResume": true,
+    "importDifference": "FAQ short keys expanded to long keys; all nine material contents equal after existing key normalization.",
+    "newModelCalls": 0
+  },
+  "checks": {
+    "studio": 58,
+    "compatibility": 941,
+    "scion": 978,
+    "typecheck": "passed",
+    "lint": "passed",
+    "build": "passed",
+    "bundle": "passed",
+    "frozenCorpus": "unchanged"
+  },
+  "testCoverage": [
+    "Any eight candidates including records after index eight",
+    "Only selected inputs forwarded at mocked Scion boundary",
+    "No proposal before selecting records",
+    "Deselect clears bindings while keeping edited text for reselection",
+    "Source candidates and selected subset persist",
+    "Malformed or duplicate candidates rejected"
+  ],
+  "artifacts": [
+    {
+      "file": ".audit-work/v0200-teaching-system/source-selection/input.coursemapper",
+      "sha256": "0dffe0bd9c600819c3f987ffefc86d0d40945045c3c17778c58c932272bcb23f"
+    },
+    {
+      "file": ".audit-work/v0200-teaching-system/source-selection/selected.coursemapper",
+      "sha256": "17d2fa5b091287a3516111108381ff6482082ad33b90d5c270ec35b45f4535d1"
+    },
+    {
+      "file": ".audit-work/v0200-teaching-system/source-selection/restored.coursemapper",
+      "sha256": "3d51e73a8a0ffbb053c96cd10d7566f0a2057d80b2cc7ecc044faaeb2e2a5c59"
+    }
+  ],
+  "remaining": [
+    "Source reasoning and natural task formation",
+    "Full frozen v3 runs",
+    "Fresh model units, complete course and production acceptance"
+  ]
+}

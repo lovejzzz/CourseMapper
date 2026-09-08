@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createNewTeachingTaskReviewDraft } from '../teachingTaskReview.js';
+import { createNewTeachingTaskReviewDraft, selectTeachingSourceChoice } from '../teachingTaskReview.js';
 import {
   editableTeachingReviewDraft,
   emptyTeachingReviewDrafts,
@@ -17,6 +17,28 @@ const map = {
 const draft = () => createNewTeachingTaskReviewDraft(map, { lessonNumber: 1, operation: 'observed-proportion' });
 
 describe('unconfirmed teaching work in project snapshots', () => {
+  it('restores the complete source picker and selected subset without admitting a task', () => {
+    const initial = createNewTeachingTaskReviewDraft(map, {
+      lessonNumber: 1,
+      operation: 'observed-proportion',
+      sourceBrief: 'Sources:\n' + Array.from({ length: 10 }, (_, i) => `r${i}: Record ${i}`).join('\n'),
+    });
+    const selected = selectTeachingSourceChoice(initial, initial.sourceChoices[9].id, true);
+    const saved = saveTeachingReviewDraft(emptyTeachingReviewDrafts(), selected);
+    const restored = restoreTeachingReviewDrafts(JSON.parse(JSON.stringify(saved)));
+    expect(restored.entries[0].draft.inputs).toEqual(selected.inputs);
+    expect(restored.entries[0].draft.sourceChoices).toEqual(initial.sourceChoices);
+    for (const sourceChoices of [
+      'invalid',
+      [{ id: 'a', text: 3 }],
+      [
+        { id: 'a', text: 'one' },
+        { id: 'a', text: 'two' },
+      ],
+    ])
+      expect(editableTeachingReviewDraft({ ...selected, sourceChoices })).toBe(false);
+  });
+
   it('preserves incomplete edits and separate tasks without granting approval', () => {
     const first = draft(),
       second = draft();

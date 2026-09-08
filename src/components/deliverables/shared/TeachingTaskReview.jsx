@@ -17,6 +17,7 @@ import { TEACHING_OPERATION_SPECS } from '../../../lib/teachingOperationPlan.js'
 import {
   createTeachingTaskReviewDraft,
   createNewTeachingTaskReviewDraft,
+  selectTeachingSourceChoice,
   availableTeachingTaskLessons,
   quoteOccurrences,
   mergeTeachingSourceSuggestions,
@@ -236,7 +237,8 @@ export default function TeachingTaskReview({
     setPreview(null);
     setConfirmed(false);
     setLastProposalReceipt(null);
-    if (withScion && next.status !== 'needs-review') await proposeSources(next, { autoPreview: true });
+    if (withScion && next.status !== 'needs-review' && next.inputs.length)
+      await proposeSources(next, { autoPreview: true });
   }
   function begin(source = selected, reload = false) {
     if (!source) return;
@@ -694,6 +696,36 @@ export default function TeachingTaskReview({
               )}
               <fieldset disabled={busy} className="space-y-3">
                 <legend className="font-semibold">{t('Source records', '来源记录')}</legend>
+                {draft.creation && draft.sourceChoices?.length > 0 && (
+                  <details open className="rounded border p-2">
+                    <summary className="cursor-pointer">
+                      {t(
+                        `Choose records for this task (${draft.inputs.length}/8)`,
+                        `选择本任务的来源（${draft.inputs.length}/8）`,
+                      )}
+                    </summary>
+                    <div className="mt-2 max-h-64 space-y-2 overflow-y-auto">
+                      {draft.sourceChoices.map((choice, index) => {
+                        const selected = draft.inputs.some((input) => input.id === choice.id);
+                        return (
+                          <label key={choice.id} className="flex items-start gap-2">
+                            <input
+                              type="checkbox"
+                              checked={selected}
+                              aria-label={t(`Use source record ${index + 1}`, `使用来源记录 ${index + 1}`)}
+                              disabled={!selected && draft.inputs.length >= 8}
+                              onChange={(event) => {
+                                const checked = event.target.checked;
+                                change((current) => selectTeachingSourceChoice(current, choice.id, checked));
+                              }}
+                            />
+                            <span>{choice.text}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </details>
+                )}
                 {draft.inputs.map((input, index) => (
                   <div key={input.id}>
                     <label className="block">
@@ -717,10 +749,11 @@ export default function TeachingTaskReview({
                         type="button"
                         className="mt-1 underline"
                         onClick={() =>
-                          change((current) => ({
-                            ...current,
-                            inputs: current.inputs.filter((item) => item.id !== input.id),
-                          }))
+                          change((current) =>
+                            current.sourceChoices?.some((choice) => choice.id === input.id)
+                              ? selectTeachingSourceChoice(current, input.id, false)
+                              : { ...current, inputs: current.inputs.filter((item) => item.id !== input.id) },
+                          )
                         }
                       >
                         {t(`Remove record ${index + 1}`, `移除记录 ${index + 1}`)}
@@ -747,7 +780,7 @@ export default function TeachingTaskReview({
               <div className="space-y-2">
                 <button
                   type="button"
-                  disabled={busy}
+                  disabled={busy || !draft.inputs.length}
                   className="font-medium underline"
                   onClick={() => proposeSources()}
                 >

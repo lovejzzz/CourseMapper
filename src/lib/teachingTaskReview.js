@@ -122,17 +122,45 @@ export function createNewTeachingTaskReviewDraft(courseMap, { lessonNumber, oper
       spec.defaultPracticeMinutes || 10,
       Number(courseMap.sessionMinutes) > 0 ? Number(courseMap.sessionMinutes) : 50,
     ),
-    inputs: suppliedInputs.length ? suppliedInputs : [{ id: `input-${crypto.randomUUID()}`, text: '' }],
+    inputs:
+      records.length > 8
+        ? []
+        : suppliedInputs.length
+          ? suppliedInputs
+          : [{ id: `input-${crypto.randomUUID()}`, text: '' }],
     ...(records.length > 8
       ? {
-          message:
-            'This packet has more than eight records. Select the records for this task before requesting a proposal.',
+          sourceChoices: records.map((text) => ({ id: `input-${crypto.randomUUID()}`, text })),
         }
       : {}),
     bindings: Object.fromEntries(
       Object.keys(spec.bindings).map((name) => [name, { inputId: '', quote: '', occurrence: null }]),
     ),
     requirements: spec.requirements.map((id, index) => ({ id, weight: (spec.defaultWeights || [30, 35, 35])[index] })),
+  };
+}
+
+/** Select a bounded task packet without discarding the rest of the course's
+ * supplied records. Unselecting clears dependent bindings, while retaining
+ * the teacher's edited text for a later re-selection in this draft. */
+export function selectTeachingSourceChoice(draft, inputId, selected) {
+  if (!draft.creation || !draft.sourceChoices?.some((input) => input.id === inputId)) return draft;
+  const existing = draft.inputs.find((input) => input.id === inputId);
+  if (selected) {
+    if (existing || draft.inputs.length >= 8) return draft;
+    return { ...draft, inputs: [...draft.inputs, { ...draft.sourceChoices.find((input) => input.id === inputId) }] };
+  }
+  if (!existing) return draft;
+  return {
+    ...draft,
+    inputs: draft.inputs.filter((input) => input.id !== inputId),
+    sourceChoices: draft.sourceChoices.map((input) => (input.id === inputId ? { ...existing } : input)),
+    bindings: Object.fromEntries(
+      Object.entries(draft.bindings).map(([role, binding]) => [
+        role,
+        binding.inputId === inputId ? { inputId: '', quote: '', occurrence: null } : binding,
+      ]),
+    ),
   };
 }
 
