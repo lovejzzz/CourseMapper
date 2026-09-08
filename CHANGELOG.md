@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Identify each assignment reference-answer page with its task and related lesson. Label shared-task objectives as related lesson goals in Word/PDF, preserving the original goal text while distinguishing it from the brief’s specific directions. Six Chinese reference pages verified; pagination remains 13 pages.
+
 - Keep four-line assignment response blocks with their criterion labels in Word/PDF, and start a new student brief on a fresh page after teacher anchor answers. Actual Chinese six-lesson PDF review removes orphan answer-line pages and answer/next-task page mixing; all 13 revised pages reviewed.
 
 - Restore absent project options to defaults across file, local and cloud openings; clear prior attachments, conversation, materials and course history. Detach a file from the previous cloud save destination and accept uppercase project extensions. Hide historical build progress for a completed course map with no material job. Verified actual Chrome import, save, refresh and Resume.

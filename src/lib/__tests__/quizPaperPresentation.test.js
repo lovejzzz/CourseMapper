@@ -247,7 +247,13 @@ it('labels a reused course case without claiming an unseen transfer', () => {
 it('keeps assignment response lines with their criterion and separates the next brief from prior answers', () => {
   const data = {
     assignments: [
-      { title: 'First task', taskId: 'task-a', anchorExampleGuidance: ['Teacher answer for task one'] },
+      {
+        title: 'First task',
+        taskId: 'task-a',
+        objectives: ['Revise the source response and apply the reasoning to independent practice.'],
+        relatedLessons: ['Lesson 1: Denominators'],
+        anchorExampleGuidance: ['Teacher answer for task one'],
+      },
       { title: 'Second task', taskId: 'task-b' },
     ],
     teachingTaskSources: ['task-a', 'task-b'].map((id) => ({
@@ -259,6 +265,10 @@ it('keeps assignment response lines with their criterion and separates the next 
   const nodes = deliverablePdfDefinition('assignments', data, 'Course').content;
   const second = nodes.find((node) => textOf(node).startsWith('Second task'));
   expect(second.pageBreak).toBe('before');
+  expect(textOf(nodes)).toContain('RELATED LESSON GOAL');
+  expect(textOf(nodes)).toContain('Revise the source response and apply the reasoning to independent practice.');
+  const reference = nodes.find((node) => textOf(node).includes('ANCHOR SAMPLES AND REVISION CHECK'));
+  expect(textOf(reference)).toContain('FIRST TASK — LESSON 1: DENOMINATORS');
   const collect = (node) =>
     Array.isArray(node)
       ? node.flatMap(collect)

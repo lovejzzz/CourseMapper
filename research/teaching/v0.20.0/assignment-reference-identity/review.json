@@ -1,0 +1,50 @@
+{
+  "date": "2026-09-08",
+  "baseline": "2bc046e6",
+  "modelCalls": 0,
+  "pageCount": 13,
+  "visualPages": [
+    2,
+    4,
+    6,
+    8,
+    10,
+    11,
+    13
+  ],
+  "referenceIdentities": [
+    {
+      "page": 2,
+      "identity": "观察比例与缺失群体 — 第 1 课：先确定比例描述谁"
+    },
+    {
+      "page": 4,
+      "identity": "观察比例与缺失群体 — 第 2 课：计算并反向核验比例"
+    },
+    {
+      "page": 6,
+      "identity": "观察比例与缺失群体 — 第 3 课：区分未登记结果与否定结果"
+    },
+    {
+      "page": 8,
+      "identity": "观察比例与缺失群体 — 第 4 课：舍入但保留原始计数"
+    },
+    {
+      "page": 10,
+      "identity": "观察比例与缺失群体 — 第 5 课：限定总体结论并提出补充数据需求"
+    },
+    {
+      "page": 13,
+      "identity": "观察比例与缺失群体 — 第 6 课：修订完整说明卡并完成新情境判断"
+    }
+  ],
+  "hasRelatedLessonGoal": true,
+  "pdfSha256": "ed0e41b4eecf70bf34a09b5be34b5d5d3599f1694c1ad2da926d88ba482751d1",
+  "docxSha256": "49a70fcb8b71695fa2d8a33aa40403bc094c6af228f42ff6802c9a028f61e2e0",
+  "scope": "Shared Word/PDF export presentation only; objective text, task, scoring and lesson links retained. The lesson goal is broader than this assignment; the independent library case is in the course quiz.",
+  "limitations": [
+    "No new model run or teacher acceptance.",
+    "Does not automatically prove semantic goal coverage or guarantee the separate quiz is selected/exported.",
+    "Reference pages remain sparse; combined booklet contains teacher answers."
+  ]
+}

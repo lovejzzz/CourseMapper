@@ -1806,7 +1806,11 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           (objective) => !exactInstructionDeclarations.has(normalizedAssignmentIdentity(objective)),
         );
         if (renderedObjectives.length) {
-          children.push(makeSubHeading(t('Learning Objectives')));
+          // A shared task's objective belongs to the lesson sequence, which
+          // can include independent practice in a separate quiz artifact.
+          children.push(
+            makeSubHeading(a.taskId ? (zh ? '关联课次目标' : 'Related Lesson Goal') : t('Learning Objectives')),
+          );
           renderedObjectives.forEach((o) => children.push(makeBullet(o)));
         }
         if (a.sourceEvidenceBrief?.claims?.length) {
@@ -1918,6 +1922,11 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         }
         if (a.anchorExampleGuidance?.length) {
           children.push(makeSubHeading(t('Anchor Samples and Revision Check'), { pageBreakBefore: true }));
+          const referenceIdentity = [
+            a.title,
+            ...(a.relatedLessons || []).map((lesson) => teachingMaterialLessonLabel(lesson, zh)),
+          ].filter(Boolean);
+          if (referenceIdentity.length) children.push(makeMeta(referenceIdentity.join(' — ')));
           a.anchorExampleGuidance.forEach((item) => children.push(makeBullet(item, { compact: true })));
         }
         if (a.feedbackLoop) children.push(makeBold(t('Feedback Loop'), a.feedbackLoop));
