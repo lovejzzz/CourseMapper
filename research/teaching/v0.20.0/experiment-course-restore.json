@@ -1,0 +1,42 @@
+{
+  "checkedAt": "2026-09-08T03:05:11.792Z",
+  "projectSha256": "a9178bc4c9ac1b2761e0b18f1d7bce459d1cf6c9319b0edd65e4f09b9afb8423",
+  "scope": "core restore and confirmed feedback revision; no browser or model execution",
+  "lessons": 6,
+  "modelCalls": 0,
+  "unchangedOtherTasks": 5,
+  "checkedMaterialIds": [
+    "syllabus",
+    "lessonPlans",
+    "slideDecks",
+    "assignments",
+    "rubrics",
+    "discussions",
+    "quizBank",
+    "studyGuides",
+    "courseFaq"
+  ],
+  "changedMaterialIds": [
+    "syllabus",
+    "lessonPlans",
+    "slideDecks",
+    "assignments",
+    "rubrics",
+    "discussions",
+    "quizBank",
+    "studyGuides",
+    "courseFaq"
+  ],
+  "targetTaskId": "task-aa46bc142ddecd3c",
+  "unchangedLessonRows": {
+    "lessonPlans": 5,
+    "slideDecks": 5,
+    "rubrics": 5,
+    "quizBank": 5,
+    "studyGuides": 5
+  },
+  "previousFeedback": "Label both conditions beside each median. Replace the formula-only claim with a statement about the observed combinations.",
+  "newFeedback": "Label both conditions beside each median. Replace the formula-only claim with a statement about the observed combinations. Identify the specific source record beside each revised claim.",
+  "restoredOriginalMaterialsUnchanged": true,
+  "restoredRevisedMaterialsUnchanged": true
+}

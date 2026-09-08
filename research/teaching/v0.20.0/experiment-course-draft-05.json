@@ -87,7 +87,63 @@
     "Rubric final page remains sparse",
     "Only selected pages visually inspected",
     "DOCX not rendered in Word",
-    "Other five derived exports not regenerated for draft-05",
     "Actual application and production acceptance outstanding"
-  ]
+  ],
+  "followUpExports": {
+    "directory": "exports-remaining",
+    "files": [
+      {
+        "name": "syllabus.docx",
+        "bytes": 16131,
+        "sha256": "7a3d1b0292bb04cf3c4b4405cbce6a8d4fb4afefb058ce7f533c88f048432251"
+      },
+      {
+        "name": "syllabus.pdf",
+        "bytes": 70502,
+        "sha256": "b9420a3493692e0ab01993cdfc3a3c98a25043e72def8561233145bdc47dbe57"
+      },
+      {
+        "name": "lessonPlans.docx",
+        "bytes": 36123,
+        "sha256": "80b365e817857c0ca1a63149c143e4e1856f0bd62092e3b6c6039b3fac1db2fb"
+      },
+      {
+        "name": "lessonPlans.pdf",
+        "bytes": 270774,
+        "sha256": "97c52af68056962633c8054d8aa88c59a671fb1946ea833237ed2aa56d96e120"
+      },
+      {
+        "name": "slideDecks.docx",
+        "bytes": 26438,
+        "sha256": "d5333bd1c9b2ec00cd8a227a2feb5ebaedcd9dc8bae0a42236850b3bce1d4d8a"
+      },
+      {
+        "name": "slideDecks.pdf",
+        "bytes": 214199,
+        "sha256": "ecdfd1c9d7de7191306002aa930f6288026583df22a1edafdba16ddc38ae9371"
+      },
+      {
+        "name": "discussions.docx",
+        "bytes": 15066,
+        "sha256": "e9edf1d03287ed96a70986034150400b95c2381ef396ca081084ded616bb2731"
+      },
+      {
+        "name": "discussions.pdf",
+        "bytes": 108062,
+        "sha256": "7f51606c8cb1ce69fa4c64f5659e557d40b673b8061395dc8a6902fa9ac255fe"
+      },
+      {
+        "name": "courseFaq.docx",
+        "bytes": 10858,
+        "sha256": "b065f4766943381291154197580fbc4ac5837bf10548575cb765203d1bf6a1da"
+      },
+      {
+        "name": "courseFaq.pdf",
+        "bytes": 37119,
+        "sha256": "f4c0d7ca31a5f86fc06cb10eabc1c45ef31876415b5724a152b7e0d7e5050041"
+      }
+    ],
+    "scope": "Completes DOCX/PDF capture of all nine derived materials; not full visual acceptance"
+  },
+  "followUpBrowserReceipt": "experiment-course-browser.json"
 }

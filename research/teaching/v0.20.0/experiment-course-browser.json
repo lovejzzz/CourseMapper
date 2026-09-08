@@ -1,0 +1,46 @@
+{
+  "scope": "one local Chrome tab, actual six-lesson app import/edit/save/reload/reimport/undo/redo; not production acceptance",
+  "url": "http://127.0.0.1:17148/",
+  "appVersion": "0.19.2",
+  "codeCommit": "f94c77a1",
+  "capturedFiles": [
+    {
+      "name": "after-ui-feedback.coursemapper",
+      "bytes": 7604136,
+      "sha256": "e948672b892bc393c20f9d1f8a0575b9fe330028b8935fae8cb59a725f3ba4b0"
+    },
+    {
+      "name": "after-ui-redo.coursemapper",
+      "bytes": 7604136,
+      "sha256": "f47e69c313dc8654a4a439ad721fb3fb775a81ee6b92ca7430ae4ccb6db9dc9c"
+    },
+    {
+      "name": "after-ui-undo.coursemapper",
+      "bytes": 7600734,
+      "sha256": "b2abe61ec0a2eeeea0d735b4591b54f6e42c1624e83ee644194e2a8022ad15dd"
+    }
+  ],
+  "checks": {
+    "importedSixLessons": true,
+    "nineDerivedMaterialsReady": true,
+    "previewListedNineMaterials": true,
+    "feedbackConfirmedAndApplied": true,
+    "reloadedLocalAutosave": true,
+    "reopenedDownloadedFile": true,
+    "sixDownloadedTasksRebuild": true,
+    "otherFiveTasksUnchanged": true,
+    "undoSixSourcesAndNineMaterialDataMatchOriginal": true,
+    "redoSixSourcesAndNineMaterialDataMatchRevised": true
+  },
+  "runtimeNotes": [
+    "No model generation initiated in this browser workflow",
+    "Apply and file-reopen control calls timed out; subsequent DOM inspection confirmed successful completion, so actions were not repeated",
+    "Controller timings are not an application latency benchmark"
+  ],
+  "backupBeforeTest": "Previously saved Chinese comparison course downloaded before starting a new test project",
+  "remaining": [
+    "Source/requirement structural edits and teacher conflicts in this six-lesson browser project",
+    "All-format visual inspection",
+    "Other courses and production/model acceptance"
+  ]
+}

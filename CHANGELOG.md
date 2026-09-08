@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Add reproducible six-lesson restore/revision checks and serial compiler timing. Verify the development course through actual browser import, confirmed feedback sync, download, autosave recovery, file reopen, undo and redo; retain separate receipts rather than treating core checks as production acceptance.
+
 - Group unchanged reviewed multi-part rubric examples and independent answer keys by their teaching requirements, preserving teacher-edited text without inferred labels. Add a paper-helicopter capstone case that is not practised in the first five lessons of the experiment-course development draft.
 
 - Add a reproducible six-session experiment-course development capture and real DOCX/PDF export inspection. Replace repeated reference anchors with distinct acceptable responses, make transfer rubric bands task-specific, and assess all five protocol components in the capstone. These authored drafts are not model or classroom acceptance results.

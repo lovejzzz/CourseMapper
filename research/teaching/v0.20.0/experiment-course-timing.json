@@ -1,0 +1,219 @@
+{
+  "recordedAt": "2026-09-08T03:17:10.248Z",
+  "projectSha256": "a9178bc4c9ac1b2761e0b18f1d7bce459d1cf6c9319b0edd65e4f09b9afb8423",
+  "scope": "one explicit six-lesson development course; compiler only, not browser, exports or Scion inference",
+  "environment": {
+    "platform": "darwin",
+    "architecture": "arm64",
+    "node": "v26.5.0",
+    "cpu": "Apple M4 Max",
+    "cpuCount": 16,
+    "totalMemoryBytes": 51539607552
+  },
+  "lessons": 6,
+  "features": [
+    "syllabus",
+    "lessonPlans",
+    "slideDecks",
+    "assignments",
+    "rubrics",
+    "discussions",
+    "quizBank",
+    "studyGuides",
+    "courseFaq"
+  ],
+  "modelCalls": 0,
+  "concurrency": 1,
+  "cold": {
+    "blueprintMs": 177.36079199999995,
+    "projectionMs": 1706.4950000000001,
+    "totalMs": 1883.855792
+  },
+  "runs": [
+    {
+      "iteration": 1,
+      "blueprintMs": 88.19254200000023,
+      "projectionMs": 899.0952079999997,
+      "totalMs": 987.28775
+    },
+    {
+      "iteration": 2,
+      "blueprintMs": 94.80470799999966,
+      "projectionMs": 900.9850839999999,
+      "totalMs": 995.7897919999996
+    },
+    {
+      "iteration": 3,
+      "blueprintMs": 84.33899999999994,
+      "projectionMs": 883.9520419999999,
+      "totalMs": 968.2910419999998
+    },
+    {
+      "iteration": 4,
+      "blueprintMs": 87.97558300000037,
+      "projectionMs": 878.4536250000001,
+      "totalMs": 966.4292080000005
+    },
+    {
+      "iteration": 5,
+      "blueprintMs": 90.05937499999982,
+      "projectionMs": 889.5780000000004,
+      "totalMs": 979.6373750000002
+    },
+    {
+      "iteration": 6,
+      "blueprintMs": 85.64729100000022,
+      "projectionMs": 893.6898340000007,
+      "totalMs": 979.3371250000009
+    },
+    {
+      "iteration": 7,
+      "blueprintMs": 91.0010000000002,
+      "projectionMs": 878.9711669999997,
+      "totalMs": 969.9721669999999
+    },
+    {
+      "iteration": 8,
+      "blueprintMs": 86.99637500000063,
+      "projectionMs": 871.6163329999999,
+      "totalMs": 958.6127080000006
+    },
+    {
+      "iteration": 9,
+      "blueprintMs": 89.83533399999942,
+      "projectionMs": 886.7628750000003,
+      "totalMs": 976.5982089999998
+    },
+    {
+      "iteration": 10,
+      "blueprintMs": 88.34350000000086,
+      "projectionMs": 882.964582999999,
+      "totalMs": 971.3080829999999
+    },
+    {
+      "iteration": 11,
+      "blueprintMs": 83.6875,
+      "projectionMs": 878.9035000000003,
+      "totalMs": 962.5910000000003
+    },
+    {
+      "iteration": 12,
+      "blueprintMs": 91.87954200000058,
+      "projectionMs": 899.7822909999995,
+      "totalMs": 991.6618330000001
+    },
+    {
+      "iteration": 13,
+      "blueprintMs": 87.05095799999981,
+      "projectionMs": 885.2590830000008,
+      "totalMs": 972.3100410000006
+    },
+    {
+      "iteration": 14,
+      "blueprintMs": 83.78066600000056,
+      "projectionMs": 867.6338340000002,
+      "totalMs": 951.4145000000008
+    },
+    {
+      "iteration": 15,
+      "blueprintMs": 93.10479199999827,
+      "projectionMs": 877.5154169999987,
+      "totalMs": 970.620208999997
+    },
+    {
+      "iteration": 16,
+      "blueprintMs": 88.25849999999991,
+      "projectionMs": 895.0552500000013,
+      "totalMs": 983.3137500000012
+    },
+    {
+      "iteration": 17,
+      "blueprintMs": 89.37858300000153,
+      "projectionMs": 881.4175829999986,
+      "totalMs": 970.7961660000001
+    },
+    {
+      "iteration": 18,
+      "blueprintMs": 90.24929200000042,
+      "projectionMs": 874.4261659999975,
+      "totalMs": 964.6754579999979
+    },
+    {
+      "iteration": 19,
+      "blueprintMs": 82.65358399999968,
+      "projectionMs": 884.6410829999986,
+      "totalMs": 967.2946669999983
+    },
+    {
+      "iteration": 20,
+      "blueprintMs": 89.49787500000093,
+      "projectionMs": 889.2182920000014,
+      "totalMs": 978.7161670000023
+    },
+    {
+      "iteration": 21,
+      "blueprintMs": 86.56583300000057,
+      "projectionMs": 857.9509579999976,
+      "totalMs": 944.5167909999982
+    },
+    {
+      "iteration": 22,
+      "blueprintMs": 81.7442910000027,
+      "projectionMs": 863.5583749999969,
+      "totalMs": 945.3026659999996
+    },
+    {
+      "iteration": 23,
+      "blueprintMs": 80.59866700000202,
+      "projectionMs": 829.6377079999984,
+      "totalMs": 910.2363750000004
+    },
+    {
+      "iteration": 24,
+      "blueprintMs": 83.64129099999991,
+      "projectionMs": 856.0869999999995,
+      "totalMs": 939.7282909999994
+    },
+    {
+      "iteration": 25,
+      "blueprintMs": 90.0880419999994,
+      "projectionMs": 902.0258749999994,
+      "totalMs": 992.1139169999988
+    },
+    {
+      "iteration": 26,
+      "blueprintMs": 84.00470800000039,
+      "projectionMs": 880.9894999999997,
+      "totalMs": 964.9942080000001
+    },
+    {
+      "iteration": 27,
+      "blueprintMs": 94.23620799999844,
+      "projectionMs": 879.0581249999996,
+      "totalMs": 973.294332999998
+    },
+    {
+      "iteration": 28,
+      "blueprintMs": 87.27470800000083,
+      "projectionMs": 895.7679169999974,
+      "totalMs": 983.0426249999982
+    },
+    {
+      "iteration": 29,
+      "blueprintMs": 90.90362499999901,
+      "projectionMs": 882.3234999999986,
+      "totalMs": 973.2271249999976
+    },
+    {
+      "iteration": 30,
+      "blueprintMs": 92.47308300000077,
+      "projectionMs": 886.7466249999998,
+      "totalMs": 979.2197080000005
+    }
+  ],
+  "warmP95Ms": 992.1139169999988,
+  "warmMedianMs": 971.0521245,
+  "underFiveSecondP95": true,
+  "originalReportedLowerMedianMs": 970.7961660000001,
+  "medianMethod": "Mean of the two central samples; corrected from lower median using the same 30 recorded runs."
+}
