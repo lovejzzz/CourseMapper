@@ -1,0 +1,64 @@
+{
+  "baselineCommit": "ca4bfb12",
+  "scope": "All 15 pages of the saved authored six-lesson Chinese quantity quiz PDF, before and after response-block fix",
+  "files": {
+    "before": {
+      "path": ".audit-work/v0200-teaching-system/courses/quantity-zh-draft-02/exports-response-space/quizBank.pdf",
+      "sha256": "4a8d08d2d080b0a6da43e1b078af2bfdf634bedb967d9e98c751560d24bff5a2",
+      "pages": 15,
+      "visuallyInspectedPages": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ]
+    },
+    "after": {
+      "path": ".audit-work/v0200-teaching-system/courses/quantity-zh-draft-02/exports-labeled-response/quizBank.pdf",
+      "sha256": "6e059e236c53810e2c6ff4a8c31f605a95b857d8fba502126679496da2d7671c",
+      "pages": 15,
+      "visuallyInspectedPages": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ]
+    }
+  },
+  "verified": [
+    "No visible clipping or missing Chinese glyphs in the inspected pages.",
+    "Question pages and answer keys start separately; the combined booklet includes both and must not be handed to students wholesale.",
+    "Arithmetic inspected:43/80=53.75%,37/80=46.25%,19/32=59.375%,13/32=40.625%,9/24=37.5%.",
+    "Rounding explanations retain original integer counts; unknown statuses are not silently converted to negative outcomes.",
+    "Before: pages12/13 contain unlabelled continuation lines. After: bounded four-line blocks carry Q2/Q8 labels across page breaks; total remains15pages."
+  ],
+  "remaining": [
+    "Lessons2–5 reuse the same seeds case already presented in lesson1 while claiming a new case; independence/novelty labeling needs course-level exposure context.",
+    "Answer key remains dense on pages14–15; diagnostic answers repeat full responses.",
+    "Only this quiz PDF has all-page visual review here. Word, other material formats and the other courses are not covered.",
+    "Authored development course, zero model calls; not hidden benchmark, fresh Scion or independent classroom acceptance."
+  ],
+  "toolingNote": "The PDF skill operation marker command failed with MODULE_NOT_FOUND in this local repository. The subsequent exporter in that shell invocation still ran. This record does not claim a successful marker; no marker was fabricated retrospectively."
+}

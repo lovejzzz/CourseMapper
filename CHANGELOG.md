@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Keep long quiz response areas in bounded four-line blocks with repeated question labels in Word/PDF. Review all 15 pages of an existing six-lesson Chinese quiz before and after the fix: continuation pages retain question identity without adding pages. Record the separate unresolved issue of repeated course cases being labeled new.
+
 - Add attribution presentation v5: retain the full worked solution, use a quotation-backed comparison/revision activity, and make the exit ticket diagnose the distinct mistake that missing evidence proves the opposite. Preserve v4 replay. Protect the new activities and corrections from generic rewriting of quotations. A saved-course replay has six distinct phase prompts and less repeated answer text; no independent teaching-effectiveness claim.
 
 - Build single-lesson recompiles and synchronization previews from the course graph whether or not a model enrichment overlay exists. Preserve assessment/readings registries across both paths. Verify identity in a model-free lesson patch and no-change preview; a real browser regeneration retains the assessment/task IDs, source records and model-call count.

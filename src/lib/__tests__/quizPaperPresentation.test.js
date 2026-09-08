@@ -125,6 +125,9 @@ it('gives a reviewed multipart response more space even when its saved budget is
   const lines = (content) => content.filter((text) => text.includes('________')).length;
   expect(lines(render(5))).toBeGreaterThan(lines(render(1)));
   expect(render(5).join('\n')).toContain('0 pts');
+  const writingBlocks = render(5).filter((text) => text.includes('________'));
+  expect(writingBlocks.length).toBe(5);
+  for (const block of writingBlocks) expect(block).toContain('Q1 — Response:');
 });
 
 it('keeps fabricated practice scaffolds under review when no specific answer was authored', () => {

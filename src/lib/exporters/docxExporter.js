@@ -1387,17 +1387,22 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
                 ? questionSource.operationPlan.requirements?.length || 1
                 : 1;
             const lines = Math.min(40, Math.max(q.type === 'essay' ? 10 : 4, parts * 4));
-            children.push(makeItalic(`${zh ? '作答' : 'Response'}:`, { keepNext: true }));
-            if (lines <= 4) {
+            // Keep each bounded writing block with its question identifier.
+            // A long response can continue on another sheet without becoming
+            // an unlabeled page of lines; never keep the whole essay together.
+            for (let line = 0; line < lines; line += 4) {
+              children.push(makeItalic(`Q${j + 1} — ${zh ? '作答' : 'Response'}:`, { keepNext: true }));
               children.push(
-                makeText(Array(lines).fill('________________________________________________________').join('\n'), {
-                  keepLines: true,
-                }),
+                makeText(
+                  Array(Math.min(4, lines - line))
+                    .fill('________________________________________________________')
+                    .join('\n'),
+                  {
+                    keepLines: true,
+                  },
+                ),
               );
-            } else
-              for (let line = 0; line < lines; line++) {
-                children.push(makeText('________________________________________________________'));
-              }
+            }
           }
         }
 
