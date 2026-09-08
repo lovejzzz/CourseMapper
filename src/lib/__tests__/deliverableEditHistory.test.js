@@ -22,6 +22,22 @@ const applied = (current, entry, direction) => {
 };
 
 describe('persisted reversible edit transactions', () => {
+  it('compares sanitized JSON values without treating key order or JSON normalization as edits', () => {
+    const before = state({ optional: undefined, rows: [{ a: 1, b: 2 }, undefined, NaN, -0] });
+    const after = state({ rows: [{ b: 2, a: 1 }, null, null, 0] });
+    expect(createEditTransaction(before, after)).toBeNull();
+    after.deliverables.assignments.data.rows[0].a = 0;
+    const entry = createEditTransaction(before, after);
+    expect(entry.changes).toEqual([
+      {
+        path: ['deliverables', 'assignments', 'data', 'rows', 0, 'a'],
+        before: { present: true, value: 1 },
+        after: { present: true, value: 0 },
+      },
+    ]);
+    expect(entry.guards).toHaveLength(1);
+    expect(applied(after, entry, 'undo')).toEqual(JSON.parse(JSON.stringify(before)));
+  });
   it('retains only changed fields while preserving unrelated later teacher notes', () => {
     const before = state({ text: 'Before', longReading: 'Reading '.repeat(20000), teacherNote: 'Original' });
     const after = structuredClone(before);

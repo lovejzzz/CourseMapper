@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Reduce large-course undo capture work by comparing already-sanitized JSON trees directly instead of repeatedly encoding whole subtrees. Keep persisted history format, exact patches, array guards and replay validation unchanged; add a repeatable history profiler and six-lesson equivalence evidence.
+
 - Add reproducible six-lesson restore/revision checks and serial compiler timing. Verify the development course through actual browser import, confirmed feedback sync, download, autosave recovery, file reopen, undo and redo; retain separate receipts rather than treating core checks as production acceptance.
 
 - Group unchanged reviewed multi-part rubric examples and independent answer keys by their teaching requirements, preserving teacher-edited text without inferred labels. Add a paper-helicopter capstone case that is not practised in the first five lessons of the experiment-course development draft.

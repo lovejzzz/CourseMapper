@@ -1,0 +1,84 @@
+{
+  "scope": "three sequential local core measurements per implementation on the same saved six-lesson browser snapshots; not end-to-end browser latency",
+  "beforeCodeCommit": "af137761",
+  "afterFileSha256": "664f0d7dbc30efd4752a9d04a277c90b50afd18f0b8b9845fbc87bf7f0ccf7c2",
+  "before": [
+    {
+      "iteration": 1,
+      "restoreProjectMs": 93.369416,
+      "createTransactionMs": 661.2266670000001,
+      "appendMs": 0.5209999999999582,
+      "serializeMs": 3.2611669999998867,
+      "restoreHistoryMs": 171.6920419999999,
+      "undoMs": 163.74129199999993,
+      "changes": 187,
+      "guards": 61
+    },
+    {
+      "iteration": 2,
+      "restoreProjectMs": 81.88233300000002,
+      "createTransactionMs": 650.6481669999998,
+      "appendMs": 0.46070800000006784,
+      "serializeMs": 3.4843329999998787,
+      "restoreHistoryMs": 169.47949999999992,
+      "undoMs": 165.8672919999999,
+      "changes": 187,
+      "guards": 61
+    },
+    {
+      "iteration": 3,
+      "restoreProjectMs": 81.97299999999996,
+      "createTransactionMs": 637.5561250000001,
+      "appendMs": 0.5350000000003092,
+      "serializeMs": 3.2155840000000353,
+      "restoreHistoryMs": 167.80670800000007,
+      "undoMs": 173.35016599999972,
+      "changes": 187,
+      "guards": 61
+    }
+  ],
+  "after": [
+    {
+      "iteration": 1,
+      "restoreProjectMs": 87.242458,
+      "createTransactionMs": 431.67275,
+      "appendMs": 0.9613750000000891,
+      "serializeMs": 3.580874999999992,
+      "restoreHistoryMs": 169.01966700000003,
+      "undoMs": 163.28216700000007,
+      "changes": 187,
+      "guards": 61
+    },
+    {
+      "iteration": 2,
+      "restoreProjectMs": 78.31420899999989,
+      "createTransactionMs": 419.2237499999999,
+      "appendMs": 0.498833999999988,
+      "serializeMs": 3.7360839999998916,
+      "restoreHistoryMs": 163.98575000000005,
+      "undoMs": 157.15820899999994,
+      "changes": 187,
+      "guards": 61
+    },
+    {
+      "iteration": 3,
+      "restoreProjectMs": 74.7673749999999,
+      "createTransactionMs": 420.61745800000017,
+      "appendMs": 0.4774999999999636,
+      "serializeMs": 3.638915999999881,
+      "restoreHistoryMs": 167.67995900000005,
+      "undoMs": 161.8732500000001,
+      "changes": 187,
+      "guards": 61
+    }
+  ],
+  "medianCreateBeforeMs": 650.6481669999998,
+  "medianCreateAfterMs": 420.61745800000017,
+  "equivalence": {
+    "changes": 187,
+    "guards": 61,
+    "patchAndGuardEquivalence": true,
+    "undoAndRedoMatch": true
+  },
+  "remaining": "Browser apply/reopen performance still requires separate profiling; guard hashing and validation deliberately retained."
+}

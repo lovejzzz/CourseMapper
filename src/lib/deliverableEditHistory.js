@@ -13,6 +13,27 @@ const own = (value, key) => value != null && Object.hasOwn(value, key);
 const forbidden = new Set(['__proto__', 'prototype', 'constructor']);
 const problem = (message) => ({ status: 'needs-review', message });
 
+// Only for the sanitized, JSON-round-tripped trees inside createEditTransaction.
+// No undefined values, cycles, accessors or non-JSON numbers can reach this
+// comparison. Avoid repeatedly allocating canonical strings for whole courses.
+function samePersistedValue(left, right) {
+  if (left === right) return true;
+  if (!left || !right || typeof left !== 'object' || typeof right !== 'object') return false;
+  if (Array.isArray(left) || Array.isArray(right)) {
+    return (
+      Array.isArray(left) &&
+      Array.isArray(right) &&
+      left.length === right.length &&
+      left.every((value, index) => samePersistedValue(value, right[index]))
+    );
+  }
+  const keys = Object.keys(left);
+  return (
+    keys.length === Object.keys(right).length &&
+    keys.every((key) => Object.hasOwn(right, key) && samePersistedValue(left[key], right[key]))
+  );
+}
+
 function at(root, path) {
   let value = root;
   for (const key of path) {
@@ -47,7 +68,7 @@ export function createEditTransaction(before, after) {
   const changes = [],
     guards = [];
   function visit(left, right, path) {
-    if (sameJsonData(left, right)) return;
+    if (samePersistedValue(left, right)) return;
     const a = left.value,
       b = right.value;
     if (left.present && right.present && object(a) && object(b)) {
