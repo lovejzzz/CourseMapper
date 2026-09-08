@@ -863,7 +863,7 @@ describe('compiledLanguageFinalizer', () => {
     );
   });
 
-  it('presents completed non-writing course materials without unfinished draft labels', () => {
+  it('preserves a student drafting and revision activity in a non-writing course', () => {
     const data = {
       assignments: [
         {
@@ -879,12 +879,11 @@ describe('compiledLanguageFinalizer', () => {
     });
 
     expect(data.assignments[0].instruction).toBe(
-      'Develop the Week 1 explanation, point to a visible part of the work, and show how the next revision responds to feedback.',
+      'Draft the Week 1 explanation, point to a visible part of the draft, and show how the next draft responds to feedback.',
     );
-    expect(data.assignments[0].instruction).not.toMatch(/\bdraft\b/i);
   });
 
-  it('polishes a numbered assignment instruction that omits the article before Week', () => {
+  it('preserves the drafting action in a numbered assignment instruction', () => {
     const data = {
       assignments: [{ instruction: 'Draft Week 1 evidence explanation so each section addresses one criterion.' }],
     };
@@ -895,8 +894,19 @@ describe('compiledLanguageFinalizer', () => {
     });
 
     expect(data.assignments[0].instruction).toBe(
-      'Develop Week 1 evidence explanation so each section addresses one criterion.',
+      'Draft Week 1 evidence explanation so each section addresses one criterion.',
     );
+  });
+
+  it('preserves historical drafting dates, document status and quoted source language', () => {
+    const instruction = 'Compare the draft with the final draft. Explain why drafting and publication dates differ.';
+    const quote = 'The clerk wrote, “A draft existed before publication.”';
+    const data = { assignments: [{ title: 'Drafting and publication dates', instruction, description: quote }] };
+    finalizeCompiledDeliverableLanguage('assignments', data, {
+      courseName: 'Historical chronology',
+      lessons: [],
+    });
+    expect(data.assignments[0]).toEqual({ title: 'Drafting and publication dates', instruction, description: quote });
   });
 
   it('preserves drafting vocabulary when drafting is the course content', () => {

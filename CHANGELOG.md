@@ -2,6 +2,9 @@
 
 ## Unreleased — v0.20.0 development
 
+- Preserve drafting terminology, document states and student revision actions instead of globally rewriting them to make materials sound complete. A v3 development output exposed “drafting dates” being changed to “developing dates”; the language regression suite now runs in the standard Scion checks.
+- Add a serial v3 development compiler diagnostic with strict input/reference separation, immutable run directories, per-case captures, hashes and pending educational judgments. Preserve the first 36-case run; material presence does not certify a shared task or classroom readiness. No model calls or reserved-case product runs.
+
 - Make the workspace logo return to the landing screen after saving the complete project, rather than only changing the URL hash. Wait for queued local persistence and remain in the workspace if only partial recovery or a failed save is available. Do not navigate during active generation/sync. Chrome Home → Resume → saved-file comparison preserves the six-lesson map and all nine material data sets.
 
 - Add Google Docs to student assignment/quiz exports, forwarding the student audience to the shared Word builder and naming the uploaded copy distinctly. Actual Office-byte tests verify student/teacher separation at a mocked upload boundary; live Google conversion remains unverified. Inspect all eight pages of the existing student quiz PDF and record its remaining stale case-use labels.

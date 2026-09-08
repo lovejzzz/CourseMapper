@@ -700,42 +700,9 @@ function restoreAuthenticEvidenceSpans(content, bindings = []) {
   });
 }
 
-function preserveDraftingVocabulary(blueprint = {}) {
-  const identity = [
-    blueprint?.courseName,
-    blueprint?.description,
-    ...(Array.isArray(blueprint?.lessons) ? blueprint.lessons.map((lesson) => lesson?.title) : []),
-  ]
-    .filter(Boolean)
-    .join(' ');
-  return /\b(?:creative writing|fiction|poetry|screenwriting|playwriting|manuscript|writing workshop)\b/i.test(
-    identity,
-  );
-}
-
-function polishCompletionLanguage(value) {
-  let text = String(value || '');
-  // Outside courses where drafting is itself the discipline, present generated
-  // materials as complete course work. The editing cycle still exists, but
-  // learner-facing copy uses "work", "version", and "revision" rather than
-  // repeatedly labeling the package unfinished.
-  text = text
-    .replace(/\bnext draft\b/gi, 'next revision')
-    .replace(/\bfinal draft\b/gi, 'final submission')
-    .replace(/\bdraft planning weights?\b/gi, 'proposed planning weights')
-    .replace(/\bcompiler-distributed draft\b/gi, 'compiler-proposed')
-    .replace(/\bdraft feedback\b/gi, 'revision feedback')
-    .replace(/\bdraft detail\b/gi, 'artifact detail')
-    .replace(/\bdraft section\b/gi, 'work-in-progress section')
-    .replace(/\b(the Week \d+(?:\s+\w+)?) draft\b/gi, '$1 work')
-    .replace(/\bthe draft\b/gi, 'the work')
-    .replace(/\ba draft\b/gi, 'a working version')
-    .replace(/\bdrafting\b/gi, 'developing')
-    .replace(/\b(students|learners|teams|you) draft\b/gi, '$1 develop')
-    .replace(/\bDraft (?=(?:the|a|an|one|your|this|each|Week\s+\d+|Lesson\s+\d+)\b)/g, 'Develop ')
-    .replace(/\bdraft (?=(?:the|a|an|one|your|this|each|week\s+\d+|lesson\s+\d+)\b)/g, 'develop ');
-  return text;
-}
+// Draft, drafting, and revision can be disciplinary content or student actions.
+// Do not globally replace them to make a generated package sound finished.
+// Readiness belongs to validation; presentation must preserve their meaning.
 
 // v0.14.1 round-2 (fix 2): name/title fields render canonical identities —
 // the geology syllabus grading table shipped "A1.1 — the Week 1 quiz" because
@@ -1104,9 +1071,6 @@ export function finalizeCompiledDeliverableLanguage(featureId, data, blueprint =
     if (featureId === 'slideDecks') {
       for (const deck of renderedDeliverableCollection(featureId, data)) dedupeDeckSlideTitles(deck);
     }
-    if (!preserveDraftingVocabulary(blueprint)) {
-      walkAndRewrite(content, (value) => polishCompletionLanguage(value));
-    }
     capLessonTitleMentions(featureId, data, blueprint);
     restoreAuthenticEvidenceSpans(content, protectedEvidenceBindings);
     return data;
@@ -1121,9 +1085,6 @@ export function finalizeCompiledDeliverableLanguage(featureId, data, blueprint =
     rewriteScope(content, targets, 0);
   }
   capLessonTitleMentions(featureId, data, blueprint);
-  if (!preserveDraftingVocabulary(blueprint)) {
-    walkAndRewrite(content, (value) => polishCompletionLanguage(value));
-  }
   restoreAuthenticEvidenceSpans(content, protectedEvidenceBindings);
   return data;
 }

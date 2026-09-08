@@ -1,0 +1,4300 @@
+{
+  "mode": "source-only compiler diagnostic; not Scion, reviewed-structure, or complete natural-language acceptance",
+  "createdAt": "2026-09-08T14:44:41.553Z",
+  "head": "cfaf277fdaa89f5c36a89e80731ddde4641fe85b",
+  "workingTreeDirty": true,
+  "sourceSha256": "b496c869affe29ecf5075dcc9dbfb75167d23ddd5664c22dd57c018cd2301290",
+  "manifestSha256": "f84e51998f42ca29dd778e60d43bf48c74f0382038c99d368aa0a9b31f23335c",
+  "protocolSha256": "f4584c975cfeda7cde86ad3f0dc22106334e60acee8889c46f62080d27cab364",
+  "runnerSha256": "e77a49be8503e27f288ddf2362a2ab5db4cf043fba48a75b87cacacb8f06f5c0",
+  "checkerSha256": "270895909fcae0be00478d837ae90dd28da51554606e624b6d2afa42341a10a0",
+  "device": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpu": "Apple M4 Max",
+    "memoryBytes": 51539607552
+  },
+  "serial": true,
+  "modelCalls": 0,
+  "model": null,
+  "split": "development",
+  "inputPreparation": "One lesson, original objective and request; verbatim source texts and IDs. No reviewed bindings or reference answers.",
+  "independentHumanReview": false,
+  "educationalAcceptance": "pending",
+  "protocolCompletion": "not-measured",
+  "plannedBaseCases": 36,
+  "status": "captured",
+  "cases": [
+    {
+      "id": "experiment-dev-01",
+      "family": "experiment",
+      "language": "en",
+      "scope": "supported",
+      "inputSha256": "35deac8ca16e52dd0d6b225b41bf274a1ee20334dbe063dec0c2c52c08b9e6db",
+      "captureSha256": "e9be1590df3daef569c5177818916076da18b53abd35a787d2edb991372f52f6",
+      "compilerMs": 932.0765000000001,
+      "modelCalls": 0,
+      "taskCount": 0,
+      "sharedTaskStatus": "not-formed",
+      "failures": [],
+      "materials": {
+        "courseMap": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "syllabus": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "lessonPlans": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "slideDecks": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "assignments": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "rubrics": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "discussions": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "quizBank": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "studyGuides": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "courseFaq": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        }
+      },
+      "educationalAcceptance": "pending",
+      "protocolCompletion": "not-measured"
+    },
+    {
+      "id": "experiment-dev-02",
+      "family": "experiment",
+      "language": "zh",
+      "scope": "supported",
+      "inputSha256": "7a1875a115f51ec800220be60933e4df5ef05696a090f5ed1e6d00639cf6b365",
+      "captureSha256": "2aed1177a4e59aac018b5b3cc5a18e4b0dc6e30ba94e27e180c52e97e6d0834b",
+      "compilerMs": 147.777333,
+      "modelCalls": 0,
+      "taskCount": 0,
+      "sharedTaskStatus": "not-formed",
+      "failures": [],
+      "materials": {
+        "courseMap": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "syllabus": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "lessonPlans": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "slideDecks": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "assignments": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "rubrics": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "discussions": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "quizBank": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "studyGuides": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "courseFaq": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        }
+      },
+      "educationalAcceptance": "pending",
+      "protocolCompletion": "not-measured"
+    },
+    {
+      "id": "experiment-dev-03",
+      "family": "experiment",
+      "language": "en",
+      "scope": "supported",
+      "inputSha256": "25af8c7a3c42d58361003f9a769b0faa71e63a601f3237570a9e92e9a84d8ca2",
+      "captureSha256": "73124587ac5587e491a8d5b3f92d8b2926c0a4f5d770359404927d9031b04e64",
+      "compilerMs": 179.37837500000023,
+      "modelCalls": 0,
+      "taskCount": 0,
+      "sharedTaskStatus": "not-formed",
+      "failures": [],
+      "materials": {
+        "courseMap": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "syllabus": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "lessonPlans": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "slideDecks": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "assignments": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "rubrics": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "discussions": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "quizBank": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "studyGuides": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "courseFaq": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        }
+      },
+      "educationalAcceptance": "pending",
+      "protocolCompletion": "not-measured"
+    },
+    {
+      "id": "experiment-dev-04",
+      "family": "experiment",
+      "language": "zh",
+      "scope": "supported",
+      "inputSha256": "87e738a5de69665e0d206caafb3c98d39c0ae35b8c605cee615d29bbb44c1e7f",
+      "captureSha256": "24d78ce8cf4e26f080c29d9aff1d19f274dbd42d61d3842ebdbf763c1f4d19e7",
+      "compilerMs": 116.66025000000036,
+      "modelCalls": 0,
+      "taskCount": 0,
+      "sharedTaskStatus": "not-formed",
+      "failures": [],
+      "materials": {
+        "courseMap": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "syllabus": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "lessonPlans": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "slideDecks": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "assignments": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "rubrics": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "discussions": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "quizBank": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "studyGuides": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "courseFaq": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        }
+      },
+      "educationalAcceptance": "pending",
+      "protocolCompletion": "not-measured"
+    },
+    {
+      "id": "experiment-dev-05",
+      "family": "experiment",
+      "language": "en",
+      "scope": "supported",
+      "inputSha256": "1693f2235c7a1f02f2a75dc2cd9d2b303be6a6b43500ab524aa8b1f6cdc1493f",
+      "captureSha256": "97a9654505f1b46657ca5647bf90499ff1ba4a4c92897c655dc66ee645d41ae8",
+      "compilerMs": 161.17529100000002,
+      "modelCalls": 0,
+      "taskCount": 0,
+      "sharedTaskStatus": "not-formed",
+      "failures": [],
+      "materials": {
+        "courseMap": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "syllabus": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "lessonPlans": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "slideDecks": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "assignments": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "rubrics": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "discussions": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "quizBank": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "studyGuides": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "courseFaq": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        }
+      },
+      "educationalAcceptance": "pending",
+      "protocolCompletion": "not-measured"
+    },
+    {
+      "id": "experiment-dev-06",
+      "family": "experiment",
+      "language": "zh",
+      "scope": "supported",
+      "inputSha256": "76f43f1f04bc24d346f85fb03483664b1d8f1ed5ab7ffee6ed7873a2da5531cf",
+      "captureSha256": "a077c370a9dd0d10586a44bc3e47608996f1e3fe08e919d06e7f07271337154a",
+      "compilerMs": 112.08020799999986,
+      "modelCalls": 0,
+      "taskCount": 0,
+      "sharedTaskStatus": "not-formed",
+      "failures": [],
+      "materials": {
+        "courseMap": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "syllabus": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "lessonPlans": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "slideDecks": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "assignments": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "rubrics": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "discussions": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "quizBank": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "studyGuides": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "courseFaq": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        }
+      },
+      "educationalAcceptance": "pending",
+      "protocolCompletion": "not-measured"
+    },
+    {
+      "id": "experiment-dev-07",
+      "family": "experiment",
+      "language": "en",
+      "scope": "supported",
+      "inputSha256": "9ab9afde425990453c9c4dfe3eed92c73f6e8616bd431bc7adf8bd49d7d04d7d",
+      "captureSha256": "90767517d6d7b5324e82db85e8bf976e848542d32cdda8608d32838dc9421d90",
+      "compilerMs": 151.85062499999958,
+      "modelCalls": 0,
+      "taskCount": 0,
+      "sharedTaskStatus": "not-formed",
+      "failures": [],
+      "materials": {
+        "courseMap": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "syllabus": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "lessonPlans": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "slideDecks": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "assignments": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "rubrics": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "discussions": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "quizBank": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "studyGuides": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "courseFaq": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        }
+      },
+      "educationalAcceptance": "pending",
+      "protocolCompletion": "not-measured"
+    },
+    {
+      "id": "experiment-dev-08",
+      "family": "experiment",
+      "language": "zh",
+      "scope": "supported",
+      "inputSha256": "67716c4b46f1bf918af44c03a3560b463c4a1c31a91a4590115a3acc2559af7b",
+      "captureSha256": "c98494d02498765b66672902250561023939a2f564a990382c5a4a4602a3c840",
+      "compilerMs": 112.6505830000001,
+      "modelCalls": 0,
+      "taskCount": 0,
+      "sharedTaskStatus": "not-formed",
+      "failures": [],
+      "materials": {
+        "courseMap": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "syllabus": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "lessonPlans": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "slideDecks": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "assignments": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "rubrics": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "discussions": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "quizBank": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "studyGuides": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "courseFaq": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        }
+      },
+      "educationalAcceptance": "pending",
+      "protocolCompletion": "not-measured"
+    },
+    {
+      "id": "experiment-dev-09",
+      "family": "experiment",
+      "language": "en",
+      "scope": "supported",
+      "inputSha256": "061d65de7d85e3668305ff00160da76a2fffaeae6b49711b548642cd973b80fb",
+      "captureSha256": "8d1f694c0721f76b1f57be3a823498695bc2f63ce694e3491e5b0006eaee1bc4",
+      "compilerMs": 170.29037500000004,
+      "modelCalls": 0,
+      "taskCount": 0,
+      "sharedTaskStatus": "not-formed",
+      "failures": [],
+      "materials": {
+        "courseMap": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "syllabus": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "lessonPlans": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "slideDecks": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "assignments": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "rubrics": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "discussions": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "quizBank": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "studyGuides": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "courseFaq": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        }
+      },
+      "educationalAcceptance": "pending",
+      "protocolCompletion": "not-measured"
+    },
+    {
+      "id": "experiment-dev-10",
+      "family": "experiment",
+      "language": "zh",
+      "scope": "supported",
+      "inputSha256": "13e0385eb5bdc0d0aa5da54bb681563219ab5c691fdbe601614f32d827fa3702",
+      "captureSha256": "758763508c1a12278b04a5edf1facc3c09bc03abb24585b16e295d16f3cb856e",
+      "compilerMs": 96.31975000000011,
+      "modelCalls": 0,
+      "taskCount": 0,
+      "sharedTaskStatus": "not-formed",
+      "failures": [],
+      "materials": {
+        "courseMap": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "syllabus": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "lessonPlans": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "slideDecks": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "assignments": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "rubrics": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "discussions": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "quizBank": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "studyGuides": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "courseFaq": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        }
+      },
+      "educationalAcceptance": "pending",
+      "protocolCompletion": "not-measured"
+    },
+    {
+      "id": "experiment-dev-11",
+      "family": "experiment",
+      "language": "en",
+      "scope": "needs-input",
+      "inputSha256": "4c4934800eed872f872c85a0a926a019fa0e52840d1be2a20eef2226ad413b7c",
+      "captureSha256": "e29386eccbf39f0e32671b636623bb9c06c13bc9bba593d00d8a65b1d9cecb9c",
+      "compilerMs": 168.86016699999982,
+      "modelCalls": 0,
+      "taskCount": 0,
+      "sharedTaskStatus": "not-formed",
+      "failures": [],
+      "materials": {
+        "courseMap": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "syllabus": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "lessonPlans": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "slideDecks": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "assignments": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "rubrics": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "discussions": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "quizBank": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "studyGuides": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "courseFaq": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        }
+      },
+      "educationalAcceptance": "pending",
+      "protocolCompletion": "not-measured"
+    },
+    {
+      "id": "experiment-dev-12",
+      "family": "experiment",
+      "language": "zh",
+      "scope": "out-of-scope",
+      "inputSha256": "20ffc1200f734429f7237e39f19c7e5a86ccf65114942dd85c2943554529100e",
+      "captureSha256": "af18b2913bb3b2fa1f33851b8ea1500c77c6c3bf3a2ec8e53e62e7f46d8374a9",
+      "compilerMs": 95.27991699999984,
+      "modelCalls": 0,
+      "taskCount": 0,
+      "sharedTaskStatus": "not-formed",
+      "failures": [],
+      "materials": {
+        "courseMap": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "syllabus": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "lessonPlans": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "slideDecks": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "assignments": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "rubrics": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "discussions": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "quizBank": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "studyGuides": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "courseFaq": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        }
+      },
+      "educationalAcceptance": "pending",
+      "protocolCompletion": "not-measured"
+    },
+    {
+      "id": "quantity-dev-01",
+      "family": "quantity",
+      "language": "en",
+      "scope": "supported",
+      "inputSha256": "23ba60d71c51b0d80eb78a9360855c2166f77fa06dfa65dc9484e6e998793623",
+      "captureSha256": "25df7d4c6978a9a3a75cdc82f5d93a72f6178c50b1895e50479a20455b1db35e",
+      "compilerMs": 173.77812500000027,
+      "modelCalls": 0,
+      "taskCount": 0,
+      "sharedTaskStatus": "not-formed",
+      "failures": [],
+      "materials": {
+        "courseMap": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "syllabus": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "lessonPlans": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "slideDecks": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "assignments": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "rubrics": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "discussions": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "quizBank": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "studyGuides": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "courseFaq": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        }
+      },
+      "educationalAcceptance": "pending",
+      "protocolCompletion": "not-measured"
+    },
+    {
+      "id": "quantity-dev-02",
+      "family": "quantity",
+      "language": "zh",
+      "scope": "supported",
+      "inputSha256": "5849a32ad7a33836261cd995f9575da1fec13c45521977d94a7b113dc86e67ce",
+      "captureSha256": "fad7bbbe4397dad64d2e55b8dc6566746b7b809470302aea3af3034ba38cab7d",
+      "compilerMs": 117.16145799999958,
+      "modelCalls": 0,
+      "taskCount": 0,
+      "sharedTaskStatus": "not-formed",
+      "failures": [],
+      "materials": {
+        "courseMap": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "syllabus": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "lessonPlans": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "slideDecks": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "assignments": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "rubrics": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "discussions": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "quizBank": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "studyGuides": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "courseFaq": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        }
+      },
+      "educationalAcceptance": "pending",
+      "protocolCompletion": "not-measured"
+    },
+    {
+      "id": "quantity-dev-03",
+      "family": "quantity",
+      "language": "en",
+      "scope": "supported",
+      "inputSha256": "571af31ca265df85abb78d47862f117b255684e85c0221df3f09d158d7722e1d",
+      "captureSha256": "0bfdce4e9092a73bc51f1e83a2bdef6e0784fe0b67b631460b38925ecd9e0f4f",
+      "compilerMs": 201.20237499999985,
+      "modelCalls": 0,
+      "taskCount": 0,
+      "sharedTaskStatus": "not-formed",
+      "failures": [],
+      "materials": {
+        "courseMap": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "syllabus": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "lessonPlans": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "slideDecks": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "assignments": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "rubrics": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "discussions": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "quizBank": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "studyGuides": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "courseFaq": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        }
+      },
+      "educationalAcceptance": "pending",
+      "protocolCompletion": "not-measured"
+    },
+    {
+      "id": "quantity-dev-04",
+      "family": "quantity",
+      "language": "zh",
+      "scope": "supported",
+      "inputSha256": "42be2417269acb8746bdc0ef499cb5e48308e1bf6a291568f76f124b0294976e",
+      "captureSha256": "133fdc27e33518b90f1eb6a1d16bc3fe193fb55c999d31c1d4d702dcd793edfc",
+      "compilerMs": 116.40399999999954,
+      "modelCalls": 0,
+      "taskCount": 0,
+      "sharedTaskStatus": "not-formed",
+      "failures": [],
+      "materials": {
+        "courseMap": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "syllabus": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "lessonPlans": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "slideDecks": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "assignments": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "rubrics": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "discussions": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "quizBank": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "studyGuides": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "courseFaq": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        }
+      },
+      "educationalAcceptance": "pending",
+      "protocolCompletion": "not-measured"
+    },
+    {
+      "id": "quantity-dev-05",
+      "family": "quantity",
+      "language": "en",
+      "scope": "supported",
+      "inputSha256": "66de858bd141276a7bdfee0449d9ba535962b5ffe7961f657c89ab2a1c7e0490",
+      "captureSha256": "29e1da931ce4233b8b43e4bf73cdfad3878f55f09c42c94ddd85cf992d87c78f",
+      "compilerMs": 166.5734999999995,
+      "modelCalls": 0,
+      "taskCount": 0,
+      "sharedTaskStatus": "not-formed",
+      "failures": [],
+      "materials": {
+        "courseMap": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "syllabus": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "lessonPlans": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "slideDecks": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "assignments": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "rubrics": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "discussions": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "quizBank": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "studyGuides": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "courseFaq": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        }
+      },
+      "educationalAcceptance": "pending",
+      "protocolCompletion": "not-measured"
+    },
+    {
+      "id": "quantity-dev-06",
+      "family": "quantity",
+      "language": "zh",
+      "scope": "supported",
+      "inputSha256": "8fd766bec89be9cca50e2dd46db3e65fab839b34b60648b0a60a88d349998497",
+      "captureSha256": "c823f5b71ae5f97b8acbfea8a6ad0e221793715924cb8b2a7d450ee88d9644b5",
+      "compilerMs": 114.37529200000063,
+      "modelCalls": 0,
+      "taskCount": 0,
+      "sharedTaskStatus": "not-formed",
+      "failures": [],
+      "materials": {
+        "courseMap": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "syllabus": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "lessonPlans": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "slideDecks": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "assignments": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "rubrics": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "discussions": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "quizBank": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "studyGuides": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "courseFaq": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        }
+      },
+      "educationalAcceptance": "pending",
+      "protocolCompletion": "not-measured"
+    },
+    {
+      "id": "quantity-dev-07",
+      "family": "quantity",
+      "language": "en",
+      "scope": "supported",
+      "inputSha256": "355062f0e1d23aaaef98b9f445680b6e3bfe8b9613265e85c46a80201804b84f",
+      "captureSha256": "4eca97c7cfec873430cd7fd7273183795c93b9ff8d30baeb04003531cca81eb0",
+      "compilerMs": 176.37816699999985,
+      "modelCalls": 0,
+      "taskCount": 0,
+      "sharedTaskStatus": "not-formed",
+      "failures": [],
+      "materials": {
+        "courseMap": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "syllabus": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "lessonPlans": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "slideDecks": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "assignments": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "rubrics": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "discussions": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "quizBank": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "studyGuides": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "courseFaq": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        }
+      },
+      "educationalAcceptance": "pending",
+      "protocolCompletion": "not-measured"
+    },
+    {
+      "id": "quantity-dev-08",
+      "family": "quantity",
+      "language": "zh",
+      "scope": "supported",
+      "inputSha256": "56fd23c9bf9ef14c65d93fb7d75c519e6a37fa9f4193c48e4b0faab6596c36c0",
+      "captureSha256": "a82ed4c74125d0dc6a91e827e9fb564284300492c8d31aa05c98ae582355d065",
+      "compilerMs": 112.91162500000064,
+      "modelCalls": 0,
+      "taskCount": 0,
+      "sharedTaskStatus": "not-formed",
+      "failures": [],
+      "materials": {
+        "courseMap": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "syllabus": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "lessonPlans": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "slideDecks": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "assignments": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "rubrics": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "discussions": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "quizBank": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "studyGuides": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "courseFaq": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        }
+      },
+      "educationalAcceptance": "pending",
+      "protocolCompletion": "not-measured"
+    },
+    {
+      "id": "quantity-dev-09",
+      "family": "quantity",
+      "language": "en",
+      "scope": "supported",
+      "inputSha256": "5908ac596d41436e66ee63bb63400055e507a077b850065eaddc047529688502",
+      "captureSha256": "71459b48101e1e935d5ee95696bf0e026bcf4365462625d2903b5236d5b65007",
+      "compilerMs": 164.17833300000075,
+      "modelCalls": 0,
+      "taskCount": 0,
+      "sharedTaskStatus": "not-formed",
+      "failures": [],
+      "materials": {
+        "courseMap": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "syllabus": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "lessonPlans": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "slideDecks": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "assignments": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "rubrics": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "discussions": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "quizBank": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "studyGuides": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "courseFaq": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        }
+      },
+      "educationalAcceptance": "pending",
+      "protocolCompletion": "not-measured"
+    },
+    {
+      "id": "quantity-dev-10",
+      "family": "quantity",
+      "language": "zh",
+      "scope": "supported",
+      "inputSha256": "22b49a676293d6a340c5918b8cd9c66cafc15a9737838b9eed4c961311f8686a",
+      "captureSha256": "c6f2b848272846508d7ac9b674902f6029b2d0b59db65e532ad28d095090fbfe",
+      "compilerMs": 110.91908299999977,
+      "modelCalls": 0,
+      "taskCount": 0,
+      "sharedTaskStatus": "not-formed",
+      "failures": [],
+      "materials": {
+        "courseMap": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "syllabus": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "lessonPlans": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "slideDecks": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "assignments": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "rubrics": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "discussions": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "quizBank": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "studyGuides": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "courseFaq": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        }
+      },
+      "educationalAcceptance": "pending",
+      "protocolCompletion": "not-measured"
+    },
+    {
+      "id": "quantity-dev-11",
+      "family": "quantity",
+      "language": "en",
+      "scope": "needs-input",
+      "inputSha256": "6f3e3123f7641d55a583226be6bd3849d7ec7c2ed5e1ff31c8b53392f46d53f3",
+      "captureSha256": "3630ade3e371627f3c186774a82b8cf80c3575ccae57bbe237c56584d84265f0",
+      "compilerMs": 189.64762500000052,
+      "modelCalls": 0,
+      "taskCount": 0,
+      "sharedTaskStatus": "not-formed",
+      "failures": [],
+      "materials": {
+        "courseMap": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "syllabus": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "lessonPlans": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "slideDecks": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "assignments": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "rubrics": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "discussions": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "quizBank": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "studyGuides": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "courseFaq": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        }
+      },
+      "educationalAcceptance": "pending",
+      "protocolCompletion": "not-measured"
+    },
+    {
+      "id": "quantity-dev-12",
+      "family": "quantity",
+      "language": "zh",
+      "scope": "out-of-scope",
+      "inputSha256": "a93e1331d853e3042e0efc0363eafa0fa1838a38a1f4cbd7e36fc15032b044c3",
+      "captureSha256": "020e747b276f97ff5c97ba20ae2b18c86ba2872f755640af853b8e75d032881d",
+      "compilerMs": 95.22620800000004,
+      "modelCalls": 0,
+      "taskCount": 0,
+      "sharedTaskStatus": "not-formed",
+      "failures": [],
+      "materials": {
+        "courseMap": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "syllabus": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "lessonPlans": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "slideDecks": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "assignments": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "rubrics": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "discussions": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "quizBank": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "studyGuides": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "courseFaq": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        }
+      },
+      "educationalAcceptance": "pending",
+      "protocolCompletion": "not-measured"
+    },
+    {
+      "id": "source-dev-01",
+      "family": "source",
+      "language": "en",
+      "scope": "supported",
+      "inputSha256": "e942560aef394b7826ffe9f1b0ab460061a6e949d5606cc31e7a3a701e2ac352",
+      "captureSha256": "dfec427f9a8e2646d411b55486e373136560f8a46d49abc7da7471dadf1b7773",
+      "compilerMs": 151.7294579999998,
+      "modelCalls": 0,
+      "taskCount": 0,
+      "sharedTaskStatus": "not-formed",
+      "failures": [],
+      "materials": {
+        "courseMap": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "syllabus": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "lessonPlans": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "slideDecks": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "assignments": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "rubrics": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "discussions": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "quizBank": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "studyGuides": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "courseFaq": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        }
+      },
+      "educationalAcceptance": "pending",
+      "protocolCompletion": "not-measured"
+    },
+    {
+      "id": "source-dev-02",
+      "family": "source",
+      "language": "zh",
+      "scope": "supported",
+      "inputSha256": "ce99730e6155b7cd4e5694f0f911f666405be44e2da4e7372a31e8195429c25f",
+      "captureSha256": "2eb359b34330aeb811f1da63cafd39861cd85637398ba0fb0b5ec7e3b2d956cf",
+      "compilerMs": 114.56433300000026,
+      "modelCalls": 0,
+      "taskCount": 0,
+      "sharedTaskStatus": "not-formed",
+      "failures": [],
+      "materials": {
+        "courseMap": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "syllabus": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "lessonPlans": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "slideDecks": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "assignments": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "rubrics": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "discussions": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "quizBank": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "studyGuides": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "courseFaq": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        }
+      },
+      "educationalAcceptance": "pending",
+      "protocolCompletion": "not-measured"
+    },
+    {
+      "id": "source-dev-03",
+      "family": "source",
+      "language": "en",
+      "scope": "supported",
+      "inputSha256": "77f8751ecfe0c2550d8e1abee4f00cdf91f8c3959bca5f627adb5782ea465a60",
+      "captureSha256": "4912fe7986aa129d263964f3bf69444f829b1e70ca7e87060f0258014c768e07",
+      "compilerMs": 161.4583330000005,
+      "modelCalls": 0,
+      "taskCount": 0,
+      "sharedTaskStatus": "not-formed",
+      "failures": [],
+      "materials": {
+        "courseMap": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "syllabus": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "lessonPlans": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "slideDecks": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "assignments": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "rubrics": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "discussions": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "quizBank": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "studyGuides": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "courseFaq": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        }
+      },
+      "educationalAcceptance": "pending",
+      "protocolCompletion": "not-measured"
+    },
+    {
+      "id": "source-dev-04",
+      "family": "source",
+      "language": "zh",
+      "scope": "supported",
+      "inputSha256": "292792cab4927326ec8b3878c1269da1eef13cd8bac5eaf07c683929ad1fb364",
+      "captureSha256": "67dd1920d746a377e6e9408924b45a8e05e5b26074d90d75ab2addeaf493a150",
+      "compilerMs": 96.74524999999994,
+      "modelCalls": 0,
+      "taskCount": 0,
+      "sharedTaskStatus": "not-formed",
+      "failures": [],
+      "materials": {
+        "courseMap": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "syllabus": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "lessonPlans": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "slideDecks": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "assignments": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "rubrics": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "discussions": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "quizBank": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "studyGuides": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "courseFaq": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        }
+      },
+      "educationalAcceptance": "pending",
+      "protocolCompletion": "not-measured"
+    },
+    {
+      "id": "source-dev-05",
+      "family": "source",
+      "language": "en",
+      "scope": "supported",
+      "inputSha256": "f6fa092a96a57c77fc66401548621373d7d659ad035b00b38da58d76d1c7aba4",
+      "captureSha256": "000cb0054f2bbd2d52c07b6301580971fe278087f6ce59ea85af564525c7deae",
+      "compilerMs": 144.37237499999992,
+      "modelCalls": 0,
+      "taskCount": 0,
+      "sharedTaskStatus": "not-formed",
+      "failures": [],
+      "materials": {
+        "courseMap": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "syllabus": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "lessonPlans": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "slideDecks": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "assignments": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "rubrics": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "discussions": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "quizBank": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "studyGuides": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "courseFaq": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        }
+      },
+      "educationalAcceptance": "pending",
+      "protocolCompletion": "not-measured"
+    },
+    {
+      "id": "source-dev-06",
+      "family": "source",
+      "language": "zh",
+      "scope": "supported",
+      "inputSha256": "cb5e1877797a578076977c2983c5bfc1e3f11dd47b437a377123af8830783ad5",
+      "captureSha256": "50d412e21f3df9b9d5bfba375dfba689d17b96661290d41c4e906a1c65f67137",
+      "compilerMs": 95.17391599999974,
+      "modelCalls": 0,
+      "taskCount": 0,
+      "sharedTaskStatus": "not-formed",
+      "failures": [],
+      "materials": {
+        "courseMap": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "syllabus": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "lessonPlans": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "slideDecks": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "assignments": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "rubrics": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "discussions": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "quizBank": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "studyGuides": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "courseFaq": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        }
+      },
+      "educationalAcceptance": "pending",
+      "protocolCompletion": "not-measured"
+    },
+    {
+      "id": "source-dev-07",
+      "family": "source",
+      "language": "en",
+      "scope": "supported",
+      "inputSha256": "066e7c20cca987c75d81dca9addb726b4640ef9b722b7fbf5138d14852b9bdd9",
+      "captureSha256": "d5431f3e8fce53cbbd79d0027c3f21905faa4fc31bde9958e3f07ca6e045e9b2",
+      "compilerMs": 161.31324999999924,
+      "modelCalls": 0,
+      "taskCount": 0,
+      "sharedTaskStatus": "not-formed",
+      "failures": [],
+      "materials": {
+        "courseMap": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "syllabus": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "lessonPlans": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "slideDecks": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "assignments": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "rubrics": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "discussions": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "quizBank": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "studyGuides": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "courseFaq": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        }
+      },
+      "educationalAcceptance": "pending",
+      "protocolCompletion": "not-measured"
+    },
+    {
+      "id": "source-dev-08",
+      "family": "source",
+      "language": "zh",
+      "scope": "supported",
+      "inputSha256": "68e794c2bfd00fbc913d1aed102dd0a5be2fa5bd1ac9078660d98a187cb6d229",
+      "captureSha256": "a453d822d06a5601de6abc7bd4ed1377795c4a22f42fc5e9fbde0cfa695f645f",
+      "compilerMs": 94.92208300000038,
+      "modelCalls": 0,
+      "taskCount": 0,
+      "sharedTaskStatus": "not-formed",
+      "failures": [],
+      "materials": {
+        "courseMap": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "syllabus": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "lessonPlans": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "slideDecks": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "assignments": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "rubrics": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "discussions": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "quizBank": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "studyGuides": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "courseFaq": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        }
+      },
+      "educationalAcceptance": "pending",
+      "protocolCompletion": "not-measured"
+    },
+    {
+      "id": "source-dev-09",
+      "family": "source",
+      "language": "en",
+      "scope": "supported",
+      "inputSha256": "73660a1d4448a0396c73f11f75dac59d25460d9dcd5b09e49f1ba06ee171ecfa",
+      "captureSha256": "521305132233897e9008b195b8d62f5fe0347dfce5bedcf896b8bccaafde17a2",
+      "compilerMs": 160.21200000000044,
+      "modelCalls": 0,
+      "taskCount": 0,
+      "sharedTaskStatus": "not-formed",
+      "failures": [],
+      "materials": {
+        "courseMap": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "syllabus": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "lessonPlans": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "slideDecks": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "assignments": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "rubrics": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "discussions": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "quizBank": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "studyGuides": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "courseFaq": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        }
+      },
+      "educationalAcceptance": "pending",
+      "protocolCompletion": "not-measured"
+    },
+    {
+      "id": "source-dev-10",
+      "family": "source",
+      "language": "zh",
+      "scope": "supported",
+      "inputSha256": "4cd8de15b45e7c5da0fe7d2e12f50509e5373c5915d6ea49cd25d6ca0abca608",
+      "captureSha256": "c4b021f8e3a26c3d149a0e24d7d89c7b426c644bdf445b95d0e73c5a2822570d",
+      "compilerMs": 93.05241599999954,
+      "modelCalls": 0,
+      "taskCount": 0,
+      "sharedTaskStatus": "not-formed",
+      "failures": [],
+      "materials": {
+        "courseMap": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "syllabus": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "lessonPlans": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "slideDecks": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "assignments": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "rubrics": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "discussions": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "quizBank": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "studyGuides": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "courseFaq": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        }
+      },
+      "educationalAcceptance": "pending",
+      "protocolCompletion": "not-measured"
+    },
+    {
+      "id": "source-dev-11",
+      "family": "source",
+      "language": "en",
+      "scope": "needs-input",
+      "inputSha256": "bc35e3e355378117cac1df9c79e6358eead486545ecdad776d3181a2fa234e1b",
+      "captureSha256": "d22702c19ca1a9b96bbb72ae0013dd9bc7c546fd7d23cf7f8844969f32ead118",
+      "compilerMs": 173.89999999999964,
+      "modelCalls": 0,
+      "taskCount": 0,
+      "sharedTaskStatus": "not-formed",
+      "failures": [],
+      "materials": {
+        "courseMap": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "syllabus": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "lessonPlans": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "slideDecks": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "assignments": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "rubrics": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "discussions": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "quizBank": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "studyGuides": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "courseFaq": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        }
+      },
+      "educationalAcceptance": "pending",
+      "protocolCompletion": "not-measured"
+    },
+    {
+      "id": "source-dev-12",
+      "family": "source",
+      "language": "zh",
+      "scope": "out-of-scope",
+      "inputSha256": "3ce85d7c2e5baecface8a6f0d7496da43afbb2780efd978771ebf75ff9c03393",
+      "captureSha256": "4db151c504b5c4293fd893a78c6e7a7a7315626c15be6a2cba2c281544d7bd34",
+      "compilerMs": 92.53470800000014,
+      "modelCalls": 0,
+      "taskCount": 0,
+      "sharedTaskStatus": "not-formed",
+      "failures": [],
+      "materials": {
+        "courseMap": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "syllabus": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "lessonPlans": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "slideDecks": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "assignments": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "rubrics": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "discussions": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "quizBank": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "studyGuides": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        },
+        "courseFaq": {
+          "surfacePresent": true,
+          "evidenceAndAnswers": "pending",
+          "taskExecutability": "pending",
+          "teachingAlignment": "pending",
+          "scoringAndFeedback": "pending",
+          "expressionBurden": "pending",
+          "layout": "pending",
+          "editability": "pending"
+        }
+      },
+      "educationalAcceptance": "pending",
+      "protocolCompletion": "not-measured"
+    }
+  ],
+  "summary": {
+    "quantity": {
+      "captured": 12,
+      "supportedDenominator": 10,
+      "sharedTasksFormed": 0,
+      "supportedWithoutSharedTask": [
+        "quantity-dev-01",
+        "quantity-dev-02",
+        "quantity-dev-03",
+        "quantity-dev-04",
+        "quantity-dev-05",
+        "quantity-dev-06",
+        "quantity-dev-07",
+        "quantity-dev-08",
+        "quantity-dev-09",
+        "quantity-dev-10"
+      ],
+      "structuralFailures": 0,
+      "acceptance": "pending"
+    },
+    "source": {
+      "captured": 12,
+      "supportedDenominator": 10,
+      "sharedTasksFormed": 0,
+      "supportedWithoutSharedTask": [
+        "source-dev-01",
+        "source-dev-02",
+        "source-dev-03",
+        "source-dev-04",
+        "source-dev-05",
+        "source-dev-06",
+        "source-dev-07",
+        "source-dev-08",
+        "source-dev-09",
+        "source-dev-10"
+      ],
+      "structuralFailures": 0,
+      "acceptance": "pending"
+    },
+    "experiment": {
+      "captured": 12,
+      "supportedDenominator": 10,
+      "sharedTasksFormed": 0,
+      "supportedWithoutSharedTask": [
+        "experiment-dev-01",
+        "experiment-dev-02",
+        "experiment-dev-03",
+        "experiment-dev-04",
+        "experiment-dev-05",
+        "experiment-dev-06",
+        "experiment-dev-07",
+        "experiment-dev-08",
+        "experiment-dev-09",
+        "experiment-dev-10"
+      ],
+      "structuralFailures": 0,
+      "acceptance": "pending"
+    }
+  }
+}

@@ -53,6 +53,8 @@ The compiler now selects a shared teaching task before material-specific source 
 
 The [classroom output benchmark](benchmarks/classroom/v1/README.md) evaluates all ten materials independently of the product grader. It replays five frozen inputs without model calls and includes source-derived reference answers, contrasting learner responses, corruption tests, and a [completed educational review](benchmarks/classroom/v1/REVIEW.zh-CN.md). Run `npm run benchmark:outputs` for saved artifacts and defect reports; `npm run benchmark:outputs:test` checks that the evaluator detects deliberate defects. `--strict` currently passes the five-case corpus; educational weaknesses and untested domains remain. Passing software checks does not certify classroom readiness.
 
+The frozen v3 corpus has 36 development and 24 reserved inputs. Run `npm run benchmark:v3:probe -- --out NEW_DIRECTORY` to capture the development inputs serially through the production compiler. This diagnostic supplies original requests and source records without Scion or reviewed bindings; it is not the complete natural-language acceptance path. It preserves each output and hashes, reports missing shared tasks, and leaves educational and export judgments pending. The first run formed no shared task in any of the 36 inputs, despite material text being present. Reserved cases remain unused for product diagnosis.
+
 Use Node.js 22 or later:
 
 ```sh

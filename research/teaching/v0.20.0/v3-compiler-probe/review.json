@@ -1,0 +1,36 @@
+{
+  "date": "2026-09-08",
+  "baseline": "cfaf277f",
+  "mode": "Development source-only compiler probe; not complete Scion or reviewed-input acceptance",
+  "runs": 2,
+  "baseCasesPerRun": 36,
+  "modelCalls": 0,
+  "reservedProductRuns": 0,
+  "finding": "All 36 inputs produce material text, but no shared teaching task forms in this isolated source-only path. Supported denominator remains 30; no classroom success rate is measured.",
+  "vocabularyRegression": [
+    {
+      "stage": "before",
+      "assignmentTitle": "developing and publication dates practice",
+      "quizLessonTitle": "Lesson 1: Build a 50-minute lesson in which students distinguish event, developing and publication dates, cite the relevant records and correct a misleading timeline. Include editable tasks, answer references and scoring."
+    },
+    {
+      "stage": "after",
+      "assignmentTitle": "Drafting and publication dates practice",
+      "quizLessonTitle": "Lesson 1: Build a 50-minute lesson in which students distinguish event, drafting and publication dates, cite the relevant records and correct a misleading timeline. Include editable tasks, answer references and scoring."
+    }
+  ],
+  "validation": {
+    "studio": 58,
+    "compatibility": 922,
+    "scion": 968,
+    "probeContractTests": 6,
+    "fullCheckExit": 0,
+    "freezeVerified": true
+  },
+  "limits": [
+    "No new model inference, browser, actual exports or independent teacher review.",
+    "No reference-answer correctness score; every material review dimension remains pending.",
+    "The complete v3 runner, semantic fault injection and the three protocol paths remain incomplete.",
+    "Full raw captures are retained locally under .audit-work; committed reports contain capture hashes."
+  ]
+}
