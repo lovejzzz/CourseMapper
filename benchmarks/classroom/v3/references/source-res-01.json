@@ -1,0 +1,48 @@
+{
+  "id": "source-res-01",
+  "split": "reserved",
+  "family": "source",
+  "language": "en",
+  "sourceFamily": "theatre-cue-observation-dates",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "The notebook locates the event on13 May2025 during an evening rehearsal. The interview locates the same event only in May; these statements are compatible.2 June is interview time and16 May is invoicing time, neither a replacement event date. An exact clock time is not supplied.",
+  "acceptableReasoning": [
+    "Anchor yesterday to the dated14 May entry.",
+    "Use B-17 and balcony cue light as same-event evidence.",
+    "Treat broad May recollection as compatible but less precise, and separate repair documentation.",
+    "No clock time or causal claim about the connector is established."
+  ],
+  "reject": [
+    "Date failure2 June",
+    "Call May and13 May a contradiction",
+    "Infer failure occurred when invoiced",
+    "Invent a precise evening time"
+  ],
+  "requiredScoring": [
+    "Correct attribution and interpretation of the supplied evidence",
+    "Explicit reasoning or executable procedure answering the actual request",
+    "Clear limits, justified alternatives and no invented observations"
+  ],
+  "contrastResponses": [
+    {
+      "response": "B-17 failed on13 May according to the14 May notebook. The June interview recalls May and is compatible. The16 May invoice records repair paperwork, not the failure time; no exact hour is known.",
+      "judgment": "Complete source-attributed temporal reasoning."
+    },
+    {
+      "response": "The failure was in May.",
+      "judgment": "Partial: correct but discards the notebook’s supported day and documentation distinctions."
+    },
+    {
+      "response": "The accounts conflict because one is dated14 May and the other2 June.",
+      "judgment": "Error: compares record dates rather than the event statements."
+    },
+    {
+      "response": "A timeline can separate event13 May, notebook14 May, invoice16 May and interview2 June; the interview contributes a month-wide interval containing13 May.",
+      "judgment": "Valid interval/table alternative; no required wording."
+    }
+  ],
+  "editCheck": "Move only the notebook entry date to1 June2025 while retaining yesterday. The derived event becomes31 May, still within the interview month; the invoice now predates that event, so its identity/chronology needs review rather than silently changing the invoice date.",
+  "inputIsolation": "Product receives only request, objective and sources. Author-created reserved case, not author-unseen or external blind evidence. Reference audit is separate from product diagnosis; no product runs before freeze."
+}

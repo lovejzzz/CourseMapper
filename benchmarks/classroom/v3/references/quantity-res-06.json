@@ -1,0 +1,47 @@
+{
+  "id": "quantity-res-06",
+  "split": "reserved",
+  "family": "quantity",
+  "language": "zh",
+  "sourceFamily": "emergency-radio-zero-results",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "已测0/22=0%，该零值有测试依据。库存通过比例未知，39台未测不能记失败，也不能假定会通过。应对剩余编号按同一标准测试并保留未完成状态。",
+  "acceptableReasoning": [
+    "保留22台已测分母与0通过。",
+    "将已测失败和39台未知分开。",
+    "具体说明剩余对象、统一收发标准与记录方式。"
+  ],
+  "reject": [
+    "全库存0%通过",
+    "0/61当完整库存实测率",
+    "将0通过当来源缺失",
+    "预估39台全部合格"
+  ],
+  "requiredScoring": [
+    "Correct attribution and interpretation of the supplied evidence",
+    "Explicit reasoning or executable procedure answering the actual request",
+    "Clear limits, justified alternatives and no invented observations"
+  ],
+  "contrastResponses": [
+    {
+      "response": "已测22台中0台通过，所以局部通过率0%。另39台未知，不能填写全库存通过率；按编号对它们用同一收发标准测试并保留未测项。",
+      "judgment": "完整：零值、范围和行动明确。"
+    },
+    {
+      "response": "0%。",
+      "judgment": "部分：没有说明已测范围或库存未知。"
+    },
+    {
+      "response": "库存61台都没有通过。",
+      "judgment": "错误：把没有测试的39台当成失败。"
+    },
+    {
+      "response": "列表分为已测失败22、已测通过0、尚未测试39，只对前两类求0/22。",
+      "judgment": "有效分类方法；补充具体后续测试要求。"
+    }
+  ],
+  "editCheck": "更正已测通过数为5，已测率5/22约22.7273%，库存仍未知。此更正不自动补齐备用库记录。",
+  "inputIsolation": "Product receives only request, objective and sources. Author-created reserved case, not author-unseen or external blind evidence. Reference audit is separate from product diagnosis; no product runs before freeze."
+}

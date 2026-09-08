@@ -1,0 +1,18 @@
+{
+  "request": "Prepare a design lesson testing display theme and battery runtime. Students should critique the old records and specify allocation, controls, measurement and a blank results table without predicting an effect.",
+  "objective": "Control brightness while comparing display themes using independent devices and a common runtime endpoint.",
+  "sources": [
+    {
+      "id": "document-1",
+      "text": "Fictional device-lab log: dark-theme devices at20% brightness ran a median of10 hours; light-theme devices at60% brightness ran6 hours. Device counts and individual runtimes were not retained."
+    },
+    {
+      "id": "document-2",
+      "text": "Thirty unused identical model devices are available; each receives either theme and is tested once with a new identical battery. Both themes support either brightness setting. Charge every battery using the same specified full-charge rule; keep screen hardware, network-off state, video loop and room conditions identical."
+    },
+    {
+      "id": "document-3",
+      "text": "Record elapsed time from starting the fixed video loop until automatic shutdown, saving device ID, theme, brightness, start/end times and test order. Randomize allocation and run order; an interrupted test is missing, not a zero-hour shutdown. No new trials have been run."
+    }
+  ]
+}

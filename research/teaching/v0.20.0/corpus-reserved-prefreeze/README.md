@@ -1,0 +1,3 @@
+# Prefreeze source-family review
+
+Before any product run, author review found two reserved drafts too close to development themes: physical chemical identification and surface-finish ramp travel. Their original input/reference bytes are retained here but are not additional corpus cases. Replace them with a firsthand site-visit capability boundary and a display-theme/brightness runtime design. No model outcomes informed these replacements. Stable reserved IDs retain their slots; the corpus manifest had not yet been frozen. All material is implementer-constructed, not external or author-unseen evidence.

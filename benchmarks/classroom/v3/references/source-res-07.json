@@ -1,0 +1,47 @@
+{
+  "id": "source-res-07",
+  "split": "reserved",
+  "family": "source",
+  "language": "en",
+  "sourceFamily": "festival-missing-transcript-page",
+  "scope": "needs-input",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "Exact page-seven wording is unavailable. The index establishes a listed topic, not the chair’s words or decision. Request the missing page and retain the page-two quote; do not supply a fabricated comparison or count a generic lesson as completing the exact quotation request.",
+  "acceptableReasoning": [
+    "Identify the absent target page specifically.",
+    "Quote only the supplied page-two sentence if useful.",
+    "Distinguish index metadata from transcript content."
+  ],
+  "reject": [
+    "Invent page-seven quotation",
+    "Treat index title as chair speech",
+    "Claim final route was approved or rejected",
+    "Mark exact comparison complete without page"
+  ],
+  "requiredScoring": [
+    "Correct attribution and interpretation of the supplied evidence",
+    "Explicit reasoning or executable procedure answering the actual request",
+    "Clear limits, justified alternatives and no invented observations"
+  ],
+  "contrastResponses": [
+    {
+      "response": "Page seven is missing, so its exact explanation cannot be quoted. Page two says the route will be reviewed after the walk. Please provide page seven for the wording comparison.",
+      "judgment": "Correct limitation with preserved usable evidence."
+    },
+    {
+      "response": "The document is incomplete.",
+      "judgment": "Partial: fails to name the missing requested passage or preserve page two."
+    },
+    {
+      "response": "On page seven the chair said, “We approved the accessible route.”",
+      "judgment": "Critical fabricated quotation."
+    },
+    {
+      "response": "The index tells us what page seven is about, not what was said; leave that side of the comparison unfilled until the page is supplied.",
+      "judgment": "Valid explanation of the evidence boundary."
+    }
+  ],
+  "editCheck": "Changing the index title to “Chair rejects the route” still does not supply an exact quotation. A new actual transcript page would require a new reviewed source version.",
+  "inputIsolation": "Product receives only request, objective and sources. Author-created reserved case, not author-unseen or external blind evidence. Reference audit is separate from product diagnosis; no product runs before freeze."
+}

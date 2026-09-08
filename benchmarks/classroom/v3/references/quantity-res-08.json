@@ -1,0 +1,47 @@
+{
+  "id": "quantity-res-08",
+  "split": "reserved",
+  "family": "quantity",
+  "language": "zh",
+  "sourceFamily": "shared-volunteer-register-denominator",
+  "scope": "needs-input",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "两次内部去重不等于跨次互斥，无法确定唯一报名人数，也无法确定去重通过人数及其比例。50和30是报名/通过出现次数的和，不是已证明的独立人数。可报告各次60%，但原唯一人数和比例请求仍需身份与结果匹配。",
+  "acceptableReasoning": [
+    "指出必须核对跨次报名身份和重复者审核结果。",
+    "保留20/12与30/18的各次统计，不把两次内部去重当互斥。",
+    "不能因两次都60%就断言唯一人员审核率60%。"
+  ],
+  "reject": [
+    "50唯一报名、30唯一通过",
+    "直接声称去重比例60%",
+    "只匹配报名分母而不匹配通过身份",
+    "虚构共同名册容量"
+  ],
+  "requiredScoring": [
+    "Correct attribution and interpretation of the supplied evidence",
+    "Explicit reasoning or executable procedure answering the actual request",
+    "Clear limits, justified alternatives and no invented observations"
+  ],
+  "contrastResponses": [
+    {
+      "response": "各次通过率均60%，但有人可重复报名。没有跨次身份及审核结果匹配，无法给唯一报名人数或唯一通过率；需补这两类匹配记录。",
+      "judgment": "正确的具体缺失说明。"
+    },
+    {
+      "response": "人数有重复。",
+      "judgment": "部分：未说明通过结果也需匹配或保留已有统计。"
+    },
+    {
+      "response": "两个60%相同，所以去重后也必定60%。",
+      "judgment": "错误：重复者的通过状态影响去重分子与分母，相同边际比例不能确定联合身份。"
+    },
+    {
+      "response": "如果两次人员全不同就是50人和30通过；若20人都再次报名，去重人数可为30，且通过身份重叠还会改变分子，所以原汇总没有唯一答案。",
+      "judgment": "有效反例方向；需遵守具体身份和结果约束，不把可能情形说成已知。"
+    }
+  ],
+  "editCheck": "补充明确证明两次人员完全不同的身份记录后，才可按50人、30通过得60%，并保留该新前提的审阅；不能只删除原先允许重复的提醒来伪装证据补齐。",
+  "inputIsolation": "Product receives only request, objective and sources. Author-created reserved case, not author-unseen or external blind evidence. Reference audit is separate from product diagnosis; no product runs before freeze."
+}

@@ -1,0 +1,47 @@
+{
+  "id": "experiment-res-07",
+  "split": "reserved",
+  "family": "experiment",
+  "language": "en",
+  "sourceFamily": "grip-pad-undefined-outcome",
+  "scope": "needs-input",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "Allocation can be proposed, but the required exact original measurement is missing. The label grip score and7/9 values do not define a reproducible procedure. Request the manual; do not invent force units or a formula and call it replication. The pad/surface confound also remains in the old record.",
+  "acceptableReasoning": [
+    "Distinguish available independent units from absent outcome definition.",
+    "Identify pad/surface confounding without pretending the old scores have known units.",
+    "Preserve a tentative allocation only as incomplete work pending the manual."
+  ],
+  "reject": [
+    "Invent newtons or coefficient units",
+    "Guess a scoring formula",
+    "Claim the exact procedure is complete",
+    "Treat9 versus7 as established pad effect"
+  ],
+  "requiredScoring": [
+    "Correct attribution and interpretation of the supplied evidence",
+    "Explicit reasoning or executable procedure answering the actual request",
+    "Clear limits, justified alternatives and no invented observations"
+  ],
+  "contrastResponses": [
+    {
+      "response": "The24 assemblies permit an allocation, but the exact grip-score measurement is undefined and its manual is absent. We cannot reproduce that outcome yet; supply the manual and use a common surface for the new pad comparison.",
+      "judgment": "Correct specific limitation with useful design work retained."
+    },
+    {
+      "response": "More information is needed.",
+      "judgment": "Partial: does not identify the missing measurement contract."
+    },
+    {
+      "response": "Grip score is force in newtons, so measure with a spring scale.",
+      "judgment": "Critical invented measurement, not replication of the requested original method."
+    },
+    {
+      "response": "Several incompatible scoring systems could yield7 and9, so those values do not identify the procedure.",
+      "judgment": "Valid explanation of underdetermination; do not present a substitute measure as exact replication."
+    }
+  ],
+  "editCheck": "Changing resources24 to40 still does not define grip score. Only the actual measurement definition can resolve this request; more replicates do not supply a missing method.",
+  "inputIsolation": "Product receives only request, objective and sources. Author-created reserved case, not author-unseen or external blind evidence. Reference audit is separate from product diagnosis; no product runs before freeze."
+}

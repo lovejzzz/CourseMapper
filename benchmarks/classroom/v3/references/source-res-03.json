@@ -1,0 +1,47 @@
+{
+  "id": "source-res-03",
+  "split": "reserved",
+  "family": "source",
+  "language": "en",
+  "sourceFamily": "radio-transcript-negation-attribution",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "The producer explicitly denies having promised all episodes live. This is not equivalent to a promise that none will be live or proof that a particular episode is prerecorded. The assistant’s attribution conflicts with the provided transcript, while the first-episode label is consistent with some live programming.",
+  "acceptableReasoning": [
+    "Quote the producer, not the host’s question, as evidence about a promise.",
+    "Preserve “did not promise” and “every”; distinguish denial of universal commitment from a universal negative.",
+    "Limit the production sheet to episode one and flag the publicity attribution."
+  ],
+  "reject": [
+    "Producer promised all live",
+    "Producer said none live",
+    "Host question becomes producer statement",
+    "First episode format generalized to whole series"
+  ],
+  "requiredScoring": [
+    "Correct attribution and interpretation of the supplied evidence",
+    "Explicit reasoning or executable procedure answering the actual request",
+    "Clear limits, justified alternatives and no invented observations"
+  ],
+  "contrastResponses": [
+    {
+      "response": "The producer says “I did not promise that every episode would be live.” That undermines the draft’s attribution, without implying none are live. Episode one is labeled live; other formats are unspecified.",
+      "judgment": "Complete: exact quote, speaker and logical scope."
+    },
+    {
+      "response": "Some interviews may be recorded.",
+      "judgment": "Partial: relevant clause but omits the promised-all claim and attribution comparison."
+    },
+    {
+      "response": "The producer promised that every episode would not be live.",
+      "judgment": "Error: moves negation and changes the claim; return to the exact sentence."
+    },
+    {
+      "response": "The transcript concerns a commitment; the schedule concerns one episode. They answer different questions, and neither supports the assistant’s universal promise.",
+      "judgment": "Valid alternative reasoning, with the requested exact quote still required."
+    }
+  ],
+  "editCheck": "Change only the production sheet to label episodes1–3 live. The producer still did not promise all episodes live; do not erase the transcript’s negation or assume the series has only three episodes.",
+  "inputIsolation": "Product receives only request, objective and sources. Author-created reserved case, not author-unseen or external blind evidence. Reference audit is separate from product diagnosis; no product runs before freeze."
+}

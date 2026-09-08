@@ -1,0 +1,18 @@
+{
+  "request": "Create a lesson designing a fair comparison of two maze solvers from the logs and resources. Require executable allocation or pairing, a blank operations table and limits on any performance claim.",
+  "objective": "Separate solver and map-difficulty differences and distinguish independent maps from repeat deterministic runs.",
+  "sources": [
+    {
+      "id": "document-1",
+      "text": "Fictional coding-club log: solver A used a median of120 operations on easy maps; solver B used80 on medium maps. The old maps, map counts and individual logs were not retained."
+    },
+    {
+      "id": "document-2",
+      "text": "Twenty new fixed maze files are available, ten labeled easy and ten medium. Both solvers can run on every file. Files are immutable; use the same machine, compiler options and fixed solver seeds. A solver can be run on a file without altering it."
+    },
+    {
+      "id": "document-3",
+      "text": "Count calls to the supplied step function until the target is reached; save map ID, difficulty, solver, seed, run order, operation count and success/failure status. Stop at10000 operations and mark unreached targets as censored failures, not solved in zero operations. No new runs have occurred."
+    }
+  ]
+}

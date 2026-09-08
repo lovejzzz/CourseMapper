@@ -1,0 +1,47 @@
+{
+  "id": "source-res-06",
+  "split": "reserved",
+  "family": "source",
+  "language": "zh",
+  "sourceFamily": "library-room-count-perception",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "12名读者与20座位支持该时点有8个座位未被读者占用（若每名读者占一座位，此条件未直接记录）；不能无条件把8空位当已清点事实。两种感受不同，但不直接否定12人计数；噪声体验可能不同，现有资料不能判谁说谎或推整小时占用。",
+  "acceptableReasoning": [
+    "分别引用人数、座位数与个人感觉。",
+    "指出座位占用推断需要每人一座且无物品占位等额外条件；题目没有要求硬算空位。",
+    "不能从主观评价判断计数错误或整小时状态。"
+  ],
+  "reject": [
+    "认定甲说谎因为只有12人",
+    "断言管理员清点8个可用空座",
+    "把乙感受当全室分贝测量",
+    "推出整小时始终12人"
+  ],
+  "requiredScoring": [
+    "Correct attribution and interpretation of the supplied evidence",
+    "Explicit reasoning or executable procedure answering the actual request",
+    "Clear limits, justified alternatives and no invented observations"
+  ],
+  "contrastResponses": [
+    {
+      "response": "12人是14:00清点，拥挤和安静是各人的感受，不能直接相互推翻。20座位不等于已核验8个可用空座，未记录占位方式。还缺座位位置和同时段噪声资料。",
+      "judgment": "完整：事实、感觉和隐含条件分开。"
+    },
+    {
+      "response": "两个人看法不同。",
+      "judgment": "部分：未说明和计数的关系或观察范围。"
+    },
+    {
+      "response": "只有12人，所以说拥挤的读者一定说谎。",
+      "judgment": "错误：把主观体验当简单人数命题并作无依据动机判断。"
+    },
+    {
+      "response": "用三栏列“直接记录”“有条件推断”“感受”：12人在直接记录，8空座在有条件推断，两条留言在感受。",
+      "judgment": "有效分类替代；保留时间范围和推断条件。"
+    }
+  ],
+  "editCheck": "补充座位盘点：14:00有6个可立即使用空座，另2座放维修器材。应更新座位状态而非更改12名读者，且仍不能因此判定谁的噪声体验不真实。",
+  "inputIsolation": "Product receives only request, objective and sources. Author-created reserved case, not author-unseen or external blind evidence. Reference audit is separate from product diagnosis; no product runs before freeze."
+}

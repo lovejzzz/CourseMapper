@@ -1,0 +1,322 @@
+{
+  "reviewer": "implementer",
+  "independentReview": false,
+  "reviewType": "Prefreeze authored content, answer and source-family audit",
+  "casesReviewed": 60,
+  "reservedCases": 24,
+  "productRuns": 0,
+  "findings": [
+    "Input files contain only request, objective and sources. Evaluator answers and scope labels are isolated in references.",
+    "All sixty references include four or more contrasting responses, concrete reasoning, rejected claims and an edit expectation.",
+    "Development and reserved cases use distinct underlying fictional records. Shared operation categories are intentional; no reserved case is a paraphrase or condition edit of a development source packet.",
+    "Two overly similar reserved drafts were replaced before any product run; original drafts are retained, not counted as additional base cases.",
+    "Review preserves fixed material identity, paired map/image designs, nonnegative endpoint allocations, zero versus missing and denominator/causal limits. Current product support has not been inferred from this reference review.",
+    "Historical development references gained missing contrasts before freeze; original judgments and input bytes were retained, and prior reference files were archived."
+  ],
+  "limitations": [
+    "Implementer is both author and reviewer; no independent teacher validation or author-unseen claim.",
+    "No natural-language full-flow score, model reliability score or release completion follows from this corpus."
+  ],
+  "sourceFamilies": [
+    {
+      "id": "experiment-dev-01",
+      "split": "development",
+      "sourceFamily": "workshop-stamp-drying"
+    },
+    {
+      "id": "experiment-dev-02",
+      "split": "development",
+      "sourceFamily": "cup-sleeve-temperature-loss"
+    },
+    {
+      "id": "experiment-dev-03",
+      "split": "development",
+      "sourceFamily": "paper-bridge-fold-stock"
+    },
+    {
+      "id": "experiment-dev-04",
+      "split": "development",
+      "sourceFamily": "parcel-padding-drop-height"
+    },
+    {
+      "id": "experiment-dev-05",
+      "split": "development",
+      "sourceFamily": "fabric-strip-wicking-start-depth"
+    },
+    {
+      "id": "experiment-dev-06",
+      "split": "development",
+      "sourceFamily": "paper-rotor-fin-release-height"
+    },
+    {
+      "id": "experiment-dev-07",
+      "split": "development",
+      "sourceFamily": "tile-coating-lamp-distance"
+    },
+    {
+      "id": "experiment-dev-08",
+      "split": "development",
+      "sourceFamily": "model-wheel-surface-ramp-angle"
+    },
+    {
+      "id": "experiment-dev-09",
+      "split": "development",
+      "sourceFamily": "seed-tray-mulch-watering"
+    },
+    {
+      "id": "experiment-dev-10",
+      "split": "development",
+      "sourceFamily": "display-font-viewing-distance"
+    },
+    {
+      "id": "experiment-dev-11",
+      "split": "development",
+      "sourceFamily": "adhesive-sealed-fixture-resource-gap"
+    },
+    {
+      "id": "experiment-dev-12",
+      "split": "development",
+      "sourceFamily": "historical-storm-causal-reconstruction"
+    },
+    {
+      "id": "experiment-res-01",
+      "split": "reserved",
+      "sourceFamily": "straw-joint-glue-cure-time"
+    },
+    {
+      "id": "experiment-res-02",
+      "split": "reserved",
+      "sourceFamily": "ink-removal-wipe-pressure"
+    },
+    {
+      "id": "experiment-res-03",
+      "split": "reserved",
+      "sourceFamily": "maze-solver-map-difficulty"
+    },
+    {
+      "id": "experiment-res-04",
+      "split": "reserved",
+      "sourceFamily": "sound-panel-microphone-distance"
+    },
+    {
+      "id": "experiment-res-05",
+      "split": "reserved",
+      "sourceFamily": "display-theme-brightness-runtime"
+    },
+    {
+      "id": "experiment-res-06",
+      "split": "reserved",
+      "sourceFamily": "image-codec-resolution-comparison"
+    },
+    {
+      "id": "experiment-res-07",
+      "split": "reserved",
+      "sourceFamily": "grip-pad-undefined-outcome"
+    },
+    {
+      "id": "experiment-res-08",
+      "split": "reserved",
+      "sourceFamily": "platform-feed-hidden-algorithm-causality"
+    },
+    {
+      "id": "quantity-dev-01",
+      "split": "development",
+      "sourceFamily": "library-tablet-return-pooling"
+    },
+    {
+      "id": "quantity-dev-02",
+      "split": "development",
+      "sourceFamily": "campus-observation-club-overlap"
+    },
+    {
+      "id": "quantity-dev-03",
+      "split": "development",
+      "sourceFamily": "seed-club-two-workshops"
+    },
+    {
+      "id": "quantity-dev-04",
+      "split": "development",
+      "sourceFamily": "pottery-kiln-inspection"
+    },
+    {
+      "id": "quantity-dev-05",
+      "split": "development",
+      "sourceFamily": "solar-lamp-bench-sample"
+    },
+    {
+      "id": "quantity-dev-06",
+      "split": "development",
+      "sourceFamily": "community-museum-zero-attendance"
+    },
+    {
+      "id": "quantity-dev-07",
+      "split": "development",
+      "sourceFamily": "archive-box-condition-audit"
+    },
+    {
+      "id": "quantity-dev-08",
+      "split": "development",
+      "sourceFamily": "commuter-response-coverage"
+    },
+    {
+      "id": "quantity-dev-09",
+      "split": "development",
+      "sourceFamily": "association-full-attendance"
+    },
+    {
+      "id": "quantity-dev-10",
+      "split": "development",
+      "sourceFamily": "sports-equipment-zero-pass"
+    },
+    {
+      "id": "quantity-dev-11",
+      "split": "development",
+      "sourceFamily": "orchard-unknown-crate-total"
+    },
+    {
+      "id": "quantity-dev-12",
+      "split": "development",
+      "sourceFamily": "future-exam-exact-prediction"
+    },
+    {
+      "id": "quantity-res-01",
+      "split": "reserved",
+      "sourceFamily": "cooperative-two-ballot-turnouts"
+    },
+    {
+      "id": "quantity-res-02",
+      "split": "reserved",
+      "sourceFamily": "nursery-tagged-seedling-batches"
+    },
+    {
+      "id": "quantity-res-03",
+      "split": "reserved",
+      "sourceFamily": "water-meter-access-test"
+    },
+    {
+      "id": "quantity-res-04",
+      "split": "reserved",
+      "sourceFamily": "maker-members-two-open-sessions"
+    },
+    {
+      "id": "quantity-res-05",
+      "split": "reserved",
+      "sourceFamily": "recycling-bin-item-audit"
+    },
+    {
+      "id": "quantity-res-06",
+      "split": "reserved",
+      "sourceFamily": "emergency-radio-zero-results"
+    },
+    {
+      "id": "quantity-res-07",
+      "split": "reserved",
+      "sourceFamily": "future-seed-packet-exact-count"
+    },
+    {
+      "id": "quantity-res-08",
+      "split": "reserved",
+      "sourceFamily": "shared-volunteer-register-denominator"
+    },
+    {
+      "id": "source-dev-01",
+      "split": "development",
+      "sourceFamily": "meeting-event-publication"
+    },
+    {
+      "id": "source-dev-02",
+      "split": "development",
+      "sourceFamily": "museum-holiday-exception"
+    },
+    {
+      "id": "source-dev-03",
+      "split": "development",
+      "sourceFamily": "river-observation-hearsay"
+    },
+    {
+      "id": "source-dev-04",
+      "split": "development",
+      "sourceFamily": "bus-count-conflicting-witnesses"
+    },
+    {
+      "id": "source-dev-05",
+      "split": "development",
+      "sourceFamily": "library-retraction-scope"
+    },
+    {
+      "id": "source-dev-06",
+      "split": "development",
+      "sourceFamily": "diary-perspective-evaluation"
+    },
+    {
+      "id": "source-dev-07",
+      "split": "development",
+      "sourceFamily": "oral-history-date-precision"
+    },
+    {
+      "id": "source-dev-08",
+      "split": "development",
+      "sourceFamily": "catalogue-object-identity"
+    },
+    {
+      "id": "source-dev-09",
+      "split": "development",
+      "sourceFamily": "quotation-negation-context"
+    },
+    {
+      "id": "source-dev-10",
+      "split": "development",
+      "sourceFamily": "map-plan-completion"
+    },
+    {
+      "id": "source-dev-11",
+      "split": "development",
+      "sourceFamily": "missing-contract-addendum"
+    },
+    {
+      "id": "source-dev-12",
+      "split": "development",
+      "sourceFamily": "physical-ink-authentication"
+    },
+    {
+      "id": "source-res-01",
+      "split": "reserved",
+      "sourceFamily": "theatre-cue-observation-dates"
+    },
+    {
+      "id": "source-res-02",
+      "split": "reserved",
+      "sourceFamily": "school-garden-plan-delivery"
+    },
+    {
+      "id": "source-res-03",
+      "split": "reserved",
+      "sourceFamily": "radio-transcript-negation-attribution"
+    },
+    {
+      "id": "source-res-04",
+      "split": "reserved",
+      "sourceFamily": "exhibit-object-code-identity"
+    },
+    {
+      "id": "source-res-05",
+      "split": "reserved",
+      "sourceFamily": "aquarium-notebook-local-correction"
+    },
+    {
+      "id": "source-res-06",
+      "split": "reserved",
+      "sourceFamily": "library-room-count-perception"
+    },
+    {
+      "id": "source-res-07",
+      "split": "reserved",
+      "sourceFamily": "festival-missing-transcript-page"
+    },
+    {
+      "id": "source-res-08",
+      "split": "reserved",
+      "sourceFamily": "abandoned-station-firsthand-visit"
+    }
+  ]
+}

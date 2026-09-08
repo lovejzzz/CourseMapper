@@ -1,0 +1,47 @@
+{
+  "id": "source-res-04",
+  "split": "reserved",
+  "family": "source",
+  "language": "zh",
+  "sourceFamily": "exhibit-object-code-identity",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "同系列标签不足以证明同一对象，材质和库存号明确不同。可分别报告两次移动，不能拼成一件展品从东库到布展间再到修复室和西库的路线。若主张同一身份需有更正/换号记录，当前未提供。",
+  "acceptableReasoning": [
+    "优先使用单件库存号而非系列标签识别对象。",
+    "保留各自日期、材质和起止地点。",
+    "没有换号资料不允许补造中间搬运。"
+  ],
+  "reject": [
+    "用共同青鸟标签认定同物",
+    "发明6月7日从布展间到修复室",
+    "将两个库存号平均或合并",
+    "省略材质差异"
+  ],
+  "requiredScoring": [
+    "Correct attribution and interpretation of the supplied evidence",
+    "Explicit reasoning or executable procedure answering the actual request",
+    "Clear limits, justified alternatives and no invented observations"
+  ],
+  "contrastResponses": [
+    {
+      "response": "W-204木模型与M-077金属模型是不同库存对象，“青鸟”只是系列。两次移动可各自成立，不能连接成同一件的完整路线；需额外身份更正记录才可改判。",
+      "judgment": "完整：身份、路线和补证边界明确。"
+    },
+    {
+      "response": "两个日期不一样。",
+      "judgment": "部分且无关关键：不同日期本身不排除同一对象，必须检查身份。"
+    },
+    {
+      "response": "6月7日青鸟一定被送去修复，所以6月8日去了西库。",
+      "judgment": "错误：凭共享标签补造中间事件。"
+    },
+    {
+      "response": "按库存号做两行时间表，而不是按系列名合并；未提供的地点转换保持空白。",
+      "judgment": "有效表格方案，清楚保留两件对象。"
+    }
+  ],
+  "editCheck": "若记录B库存号更正为W-204但仍写金属模型，出现新的身份冲突，须核对更正适用范围及材质记录；不能只因号码相同就自动完成合并。",
+  "inputIsolation": "Product receives only request, objective and sources. Author-created reserved case, not author-unseen or external blind evidence. Reference audit is separate from product diagnosis; no product runs before freeze."
+}

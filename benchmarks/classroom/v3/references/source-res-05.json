@@ -1,0 +1,47 @@
+{
+  "id": "source-res-05",
+  "split": "reserved",
+  "family": "source",
+  "language": "en",
+  "sourceFamily": "aquarium-notebook-local-correction",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "The corrected3 March entry is four pellets at09:00 and21°C. The4 March correction date is not a new feeding time; the separate22°C observation belongs to4 March. Preserve the original six as a superseded count, not as an additional feeding.",
+  "acceptableReasoning": [
+    "Identify the explicit replacement target and unchanged-detail clause.",
+    "Keep event, correction and separate-observation dates distinct.",
+    "Do not add old and corrected counts or transplant22°C into3 March."
+  ],
+  "reject": [
+    "Ten pellets by adding6+4",
+    "Replace21°C with22°C on3 March",
+    "Feed correction occurs4 March",
+    "Erase original record without version trace"
+  ],
+  "requiredScoring": [
+    "Correct attribution and interpretation of the supplied evidence",
+    "Explicit reasoning or executable procedure answering the actual request",
+    "Clear limits, justified alternatives and no invented observations"
+  ],
+  "contrastResponses": [
+    {
+      "response": "For3 March, use four pellets at09:00 and retain21°C. Six is the superseded transcription.22°C is a separate4 March reading, not part of the correction.",
+      "judgment": "Complete local correction and date interpretation."
+    },
+    {
+      "response": "Four pellets.",
+      "judgment": "Partial: correct replacement without explaining scope or temperature."
+    },
+    {
+      "response": "The updated entry says four pellets and22°C on3 March.",
+      "judgment": "Error: merges an unrelated next-day observation into a narrow correction."
+    },
+    {
+      "response": "A before/after table changes only the pellet cell; date, time and21°C remain. Keep a linked correction dated4 March and a separate4 March observation row.",
+      "judgment": "Valid versioned-table alternative."
+    }
+  ],
+  "editCheck": "Amend the correction to explicitly replace21°C with20°C as well. Now both identified fields change in3 March, but the separate4 March22°C remains unchanged.",
+  "inputIsolation": "Product receives only request, objective and sources. Author-created reserved case, not author-unseen or external blind evidence. Reference audit is separate from product diagnosis; no product runs before freeze."
+}

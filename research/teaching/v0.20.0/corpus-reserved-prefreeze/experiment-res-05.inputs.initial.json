@@ -1,0 +1,18 @@
+{
+  "request": "Prepare a fair-test planning lesson for ball surface finish. Students should critique the old records and specify allocation, controls, measurement and a blank results table without predicting an effect.",
+  "objective": "Control release position while comparing surface finishes with independent balls and a defined stopping-distance measure.",
+  "sources": [
+    {
+      "id": "document-1",
+      "text": "Fictional tabletop track log: polished balls released at mark H travelled a median of95cm along the level section; rough-finish balls released at mark L travelled65cm. H andL are different starting heights. The number of balls and individual distances are missing."
+    },
+    {
+      "id": "document-2",
+      "text": "Thirty identical unfinished model balls are available. Either surface finish can be applied to each while retaining the stated target mass and diameter; each ball is used for its first roll only. Both finishes can be released at either mark. Keep track, level surface and release gate identical."
+    },
+    {
+      "id": "document-3",
+      "text": "Measure from the ramp exit line to the front edge of the ball when it first remains still for two seconds. Record ball ID, finish, mark, order and distance. If a ball leaves the track, record the event rather than selecting a better second run. No new trials have been run."
+    }
+  ]
+}

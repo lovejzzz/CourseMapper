@@ -1,0 +1,47 @@
+{
+  "id": "quantity-res-04",
+  "split": "reserved",
+  "family": "quantity",
+  "language": "zh",
+  "sourceFamily": "maker-members-two-open-sessions",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "交集0–16，并集18–34。交集0时四格18、16、0、11；交集16时2、0、16、27。零交集可行但未证实，45人的总名册不意味着45人都出席。",
+  "acceptableReasoning": [
+    "用min(18,16)约束交集上界，总体45允许零交集。",
+    "展示两端非负分配与并集范围。",
+    "区分可能性和实际人数，不推断作品结果。"
+  ],
+  "reject": [
+    "直接报告34唯一参与者",
+    "把上界设45而不考虑计数和",
+    "断言没人重复",
+    "将签到当获奖记录"
+  ],
+  "requiredScoring": [
+    "Correct attribution and interpretation of the supplied evidence",
+    "Explicit reasoning or executable procedure answering the actual request",
+    "Clear limits, justified alternatives and no invented observations"
+  ],
+  "contrastResponses": [
+    {
+      "response": "同时0至16人，至少一次18至34人。分配18、16、0、11或2、0、16、27都符合名册，所以0重复只是可能而非已知。",
+      "judgment": "完整：范围、分配和不确定性。"
+    },
+    {
+      "response": "最多34人。",
+      "judgment": "部分：没有其余边界与证明。"
+    },
+    {
+      "response": "人数和没超过45，所以一定没有重复。",
+      "judgment": "错误：容量允许零重复不等于排除重复。"
+    },
+    {
+      "response": "把16人全放在18人内得到最小并集18；把两组分开得到最大34，剩余名册人数分别27与11。",
+      "judgment": "有效集合构造；还需明确交集范围。"
+    }
+  ],
+  "editCheck": "把作品交流16改为30。交集至少3至18，并集30至45；此时0重叠不再可行，必须同步解释这一条件变化。",
+  "inputIsolation": "Product receives only request, objective and sources. Author-created reserved case, not author-unseen or external blind evidence. Reference audit is separate from product diagnosis; no product runs before freeze."
+}

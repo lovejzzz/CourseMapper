@@ -1,0 +1,47 @@
+{
+  "id": "experiment-res-08",
+  "split": "reserved",
+  "family": "experiment",
+  "language": "zh",
+  "sourceFamily": "platform-feed-hidden-algorithm-causality",
+  "scope": "out-of-scope",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "点击差60混合页面、时间、用户及未知曝光等因素，甚至没有确认算法发生变化，不能识别其独立因果贡献。精确排除其他因素超出当前资料与操作能力；可提出所需设计条件，但不能将其当作已有实验。",
+  "acceptableReasoning": [
+    "区分点击总数差和算法因果效应。",
+    "指出没有确认处理变化、分母和可比条件。",
+    "不虚构日志或已执行随机实验。"
+  ],
+  "reject": [
+    "算法独立增加60次点击",
+    "假定曝光和用户相同",
+    "虚构A/B实验结果",
+    "把未来设计建议写成已得因果结论"
+  ],
+  "requiredScoring": [
+    "Correct attribution and interpretation of the supplied evidence",
+    "Explicit reasoning or executable procedure answering the actual request",
+    "Clear limits, justified alternatives and no invented observations"
+  ],
+  "contrastResponses": [
+    {
+      "response": "120与180只给不同页面和日期的点击数，算法是否变化也未知，因此无法把60次差归因于算法并排除其他因素。需另有可识别设计和记录。",
+      "judgment": "正确范围边界。"
+    },
+    {
+      "response": "样本再大一些就行。",
+      "judgment": "部分且误导：规模不能替代处理变化和对照信息。"
+    },
+    {
+      "response": "推荐算法造成60次额外点击。",
+      "judgment": "严重错误：把未经对照的计数差当因果效应。"
+    },
+    {
+      "response": "相同摘要可由不同曝光、内容或用户变化产生，不能唯一推出算法贡献。",
+      "judgment": "合理替代的非识别论证。"
+    }
+  ],
+  "editCheck": "即使补充两天曝光均1000次，只能算12%和18%的描述性点击率，页面与用户等混杂仍在，不能宣布6个百分点由算法造成。",
+  "inputIsolation": "Product receives only request, objective and sources. Author-created reserved case, not author-unseen or external blind evidence. Reference audit is separate from product diagnosis; no product runs before freeze."
+}

@@ -1,0 +1,48 @@
+{
+  "id": "experiment-res-05",
+  "split": "reserved",
+  "family": "experiment",
+  "language": "en",
+  "sourceFamily": "ball-finish-ramp-start-position",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "Finish and start height are confounded. Randomly assign15/15 balls to finishes at one mark and randomize order. A blocked design can use7/7 atH and8/8 atL. One ball’s repeated rolls are not fresh units. The stopping rule and off-track events must be retained; old30cm difference is not a finish effect.",
+  "acceptableReasoning": [
+    "Identify both changed conditions and old missing replication.",
+    "Use independent balls with allocation within30 and controls for mass/diameter/track.",
+    "Specify the stated endpoint and abnormal-outcome handling.",
+    "Compare distributions, not selected best runs or an invented new effect."
+  ],
+  "reject": [
+    "Polish causes30cm extra travel",
+    "Use H only for polish andL only for rough again",
+    "Treat many rolls of one ball as many independent balls",
+    "Drop off-track results silently"
+  ],
+  "requiredScoring": [
+    "Correct attribution and interpretation of the supplied evidence",
+    "Explicit reasoning or executable procedure answering the actual request",
+    "Clear limits, justified alternatives and no invented observations"
+  ],
+  "contrastResponses": [
+    {
+      "response": "Randomly assign15 balls to each finish, use markH for both and randomize run order. Keep mass, diameter and track equal; measure the first stop by the two-second rule and log off-track events. The old summaries also differ in height.",
+      "judgment": "Complete feasible design and scope."
+    },
+    {
+      "response": "Use the same track.",
+      "judgment": "Partial control, no fix for starting height or allocation."
+    },
+    {
+      "response": "Keep rerolling each ball and record only its longest distance.",
+      "judgment": "Error: changes the predefined measurement and selectively replaces outcomes."
+    },
+    {
+      "response": "AtH use7 balls per finish and atL8 per finish, then compare finishes within each mark.",
+      "judgment": "Valid balanced-within-block alternative using all30 balls."
+    }
+  ],
+  "editCheck": "Change stock30 to24: fixed mark12/12 or two marks6 per finish each. Neither the old summaries nor the stop rule changes.",
+  "inputIsolation": "Product receives only request, objective and sources. Author-created reserved case, not author-unseen or external blind evidence. Reference audit is separate from product diagnosis; no product runs before freeze."
+}

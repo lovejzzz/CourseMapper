@@ -1,0 +1,14 @@
+{
+  "request": "Create a source lesson whose answer key quotes the chair’s exact explanation on page seven and compares its wording with page two. Preserve the exact page-seven quotation.",
+  "objective": "Compare the exact wording of two specified passages from the supplied meeting transcript.",
+  "sources": [
+    {
+      "id": "document-1",
+      "text": "Fictional festival committee transcript, page two: Chair: “We will review the route after the accessibility walk.”"
+    },
+    {
+      "id": "document-2",
+      "text": "The document index lists page seven as “Chair’s explanation of the final route decision.” Page seven itself is missing from this packet, and the index contains no quoted words from it."
+    }
+  ]
+}

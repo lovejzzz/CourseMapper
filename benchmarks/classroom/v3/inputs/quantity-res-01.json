@@ -1,0 +1,18 @@
+{
+  "request": "Prepare a45-minute lesson finding the possible number of cooperative members voting in either ballot and in both. Require feasible endpoint allocations and distinguish the ranges from an actual turnout count.",
+  "objective": "Derive joint participation bounds from two internally deduplicated lists within one unchanged member register.",
+  "sources": [
+    {
+      "id": "document-1",
+      "text": "Fictional cooperative register: fifty-seven members were eligible throughout the two ballots, with no membership changes. Both ballots were restricted to this register."
+    },
+    {
+      "id": "document-2",
+      "text": "The venue ballot lists thirty-one distinct voters. The timetable ballot lists thirty-four distinct voters. Each member appears at most once within each ballot list."
+    },
+    {
+      "id": "document-3",
+      "text": "The lists have not been matched across ballots. Ballot choices are secret and are not included; the records count voters, not preferences."
+    }
+  ]
+}

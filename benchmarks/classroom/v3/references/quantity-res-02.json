@@ -1,0 +1,47 @@
+{
+  "id": "quantity-res-02",
+  "split": "reserved",
+  "family": "quantity",
+  "language": "zh",
+  "sourceFamily": "nursery-tagged-seedling-batches",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "雾岭10/25=40%，晴溪45/75=60%；合并55/100=55%，等批平均50%。苗木权重1/4和3/4。互斥身份和共同定义允许相加，但不能说明批次差异的原因或其他温室表现。",
+  "acceptableReasoning": [
+    "识别对象、分子分母和共同截止/标准。",
+    "显示合并55/100与两组40%/60%，解释不同权重。",
+    "保留未知背景原因及未检查温室边界。"
+  ],
+  "reject": [
+    "50%作为合并率",
+    "55/75作为分母",
+    "推断晴溪栽培技术导致更好",
+    "将其他温室算未通过"
+  ],
+  "requiredScoring": [
+    "Correct attribution and interpretation of the supplied evidence",
+    "Explicit reasoning or executable procedure answering the actual request",
+    "Clear limits, justified alternatives and no invented observations"
+  ],
+  "contrastResponses": [
+    {
+      "response": "通过55株，共检查100株，所以55%。40%与60%的等批平均为50%，而苗木权重为1/4与3/4。记录不支持原因判断。",
+      "judgment": "完整：计数、权重和限制。"
+    },
+    {
+      "response": "55%。",
+      "judgment": "部分：没有推理与来源条件。"
+    },
+    {
+      "response": "两批平均50%，因此一半苗木通过。",
+      "judgment": "错误：把等批权重冒充苗木权重。"
+    },
+    {
+      "response": "40%乘1/4加60%乘3/4等于55%，和合并计数等价。",
+      "judgment": "有效替代计算，仍需引用互斥身份和解释范围。"
+    }
+  ],
+  "editCheck": "将雾岭通过数10改为20：合并65%，等批平均70%。晴溪记录和独立任务不能跟随无关修改。",
+  "inputIsolation": "Product receives only request, objective and sources. Author-created reserved case, not author-unseen or external blind evidence. Reference audit is separate from product diagnosis; no product runs before freeze."
+}

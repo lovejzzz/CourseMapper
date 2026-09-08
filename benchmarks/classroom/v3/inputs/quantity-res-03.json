@@ -1,0 +1,18 @@
+{
+  "request": "Create a lesson reporting the supported functioning-meter proportion, explaining the observed denominator and designing a specific follow-up before a full-building statement can be made.",
+  "objective": "Keep a convenience-tested subset distinct from the full installed population and preserve unknown outcomes.",
+  "sources": [
+    {
+      "id": "document-1",
+      "text": "Fictional building service report: two hundred ten meters are installed. Only the seventy meters in unlocked utility cupboards were tested; twenty-nine met the stated calibration tolerance."
+    },
+    {
+      "id": "document-2",
+      "text": "The remaining one hundred forty meters were behind locked access panels and have no calibration outcomes recorded. Cupboard accessibility determined selection; no random sampling procedure was used."
+    },
+    {
+      "id": "document-3",
+      "text": "Each installed meter has a unique ID. A complete report would use the same tolerance and inspection period across all210 meters. No additional tests are supplied."
+    }
+  ]
+}

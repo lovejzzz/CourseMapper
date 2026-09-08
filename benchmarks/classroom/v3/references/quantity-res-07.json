@@ -1,0 +1,47 @@
+{
+  "id": "quantity-res-07",
+  "split": "reserved",
+  "family": "quantity",
+  "language": "en",
+  "sourceFamily": "future-seed-packet-exact-count",
+  "scope": "out-of-scope",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "An exact guaranteed future count is unsupported and beyond this descriptive operation.18/30=60% describes packet R, not S. Even knowing S size would not turn an old rate into a guaranteed realized count. Preserve the old statistic without fabricating a future outcome.",
+  "acceptableReasoning": [
+    "Separate past packet and future packet identities.",
+    "State why outcome guarantee is not obtained from a past proportion.",
+    "Offer a distinct monitoring plan only as an alternative, not as completion of the exact request."
+  ],
+  "reject": [
+    "Guarantee18 seeds in S",
+    "Assign60% as certain future realized rate",
+    "Invent S size or outcomes",
+    "Call a monitoring plan the requested exact answer"
+  ],
+  "requiredScoring": [
+    "Correct attribution and interpretation of the supplied evidence",
+    "Explicit reasoning or executable procedure answering the actual request",
+    "Clear limits, justified alternatives and no invented observations"
+  ],
+  "contrastResponses": [
+    {
+      "response": "Packet R had60% germination. Packet S has no observed outcomes, so no exact future count can be guaranteed from this record.",
+      "judgment": "Correct limit and known calculation."
+    },
+    {
+      "response": "Need more information.",
+      "judgment": "Partial: does not distinguish an outcome guarantee from missing packet size."
+    },
+    {
+      "response": "Exactly18 seeds will germinate in S.",
+      "judgment": "Critical invented future count."
+    },
+    {
+      "response": "Many different future outcomes are compatible with R’s18/30 result; the old summary does not identify which will occur.",
+      "judgment": "Valid non-identification explanation."
+    }
+  ],
+  "editCheck": "Supplying that S contains50 seeds still does not guarantee30 germinations. If a later observed outcome is supplied, treat it as a new result with its own date and source.",
+  "inputIsolation": "Product receives only request, objective and sources. Author-created reserved case, not author-unseen or external blind evidence. Reference audit is separate from product diagnosis; no product runs before freeze."
+}

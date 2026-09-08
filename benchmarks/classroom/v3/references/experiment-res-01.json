@@ -1,0 +1,47 @@
+{
+  "id": "experiment-res-01",
+  "split": "reserved",
+  "family": "experiment",
+  "language": "en",
+  "sourceFamily": "straw-joint-glue-cure-time",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "Glue and cure time both change in the old medians. Randomly allocate13/13 joints at a common cure time and randomize order. A two-time blocked design can allocate6/6 at one time and7/7 at the other, with within-time comparisons. Washers within a test are not independent joints.",
+  "acceptableReasoning": [
+    "Diagnose glue/time confounding and absent individual results.",
+    "Use26 independent joints with explicit allocation and common controls.",
+    "Record consistent failure endpoints and zero; compare distributions without predicting the winner."
+  ],
+  "reject": [
+    "Q causes six extra washers",
+    "Reuse broken joints as new independent units",
+    "Keep P at2h andQ at6h in the repair",
+    "Allocate14/14 from26 kits"
+  ],
+  "requiredScoring": [
+    "Correct attribution and interpretation of the supplied evidence",
+    "Explicit reasoning or executable procedure answering the actual request",
+    "Clear limits, justified alternatives and no invented observations"
+  ],
+  "contrastResponses": [
+    {
+      "response": "Randomize13 kits to each glue, cure both for six hours, retain dimensions and glue volume, and randomize test order. Record each joint’s failure count using the ten-second washer rule. Old medians mix glue and curing; no new effect is known.",
+      "judgment": "Complete feasible controlled proposal."
+    },
+    {
+      "response": "Wait the same time.",
+      "judgment": "Partial control only, lacking allocation and measurement."
+    },
+    {
+      "response": "Test each broken joint repeatedly for more independent trials.",
+      "judgment": "Error: destructive tests do not create fresh joints."
+    },
+    {
+      "response": "Use6 joints per glue at two hours and7 per glue at six hours, randomizing within each curing block and comparing glues within time.",
+      "judgment": "Valid26-kit blocked alternative."
+    }
+  ],
+  "editCheck": "Reduce kits26 to22: fixed-time11/11 or blocks5/5 and6/6. Source medians and independent practice stay unchanged.",
+  "inputIsolation": "Product receives only request, objective and sources. Author-created reserved case, not author-unseen or external blind evidence. Reference audit is separate from product diagnosis; no product runs before freeze."
+}

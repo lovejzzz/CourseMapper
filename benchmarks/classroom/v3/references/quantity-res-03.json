@@ -1,0 +1,47 @@
+{
+  "id": "quantity-res-03",
+  "split": "reserved",
+  "family": "quantity",
+  "language": "en",
+  "sourceFamily": "water-meter-access-test",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "Observed29/70≈41.4286%. The full210-meter functioning proportion is unknown;29/210 is not its exact rate. A follow-up needs the140 locked-panel IDs tested with the same tolerance and period, retaining missing access outcomes. A convenience subset is not stated to support an unbiased building estimate.",
+  "acceptableReasoning": [
+    "Identify29 as passes and70 as tested units.",
+    "Do not convert140 untested to failures or extrapolate the observed fraction as measured population truth.",
+    "Specify access, identities, same tolerance and unresolved-status records."
+  ],
+  "reject": [
+    "Report29/210 as exact full rate",
+    "Call41.43% verified building rate",
+    "Assume random sample",
+    "Invent outcomes for locked meters"
+  ],
+  "requiredScoring": [
+    "Correct attribution and interpretation of the supplied evidence",
+    "Explicit reasoning or executable procedure answering the actual request",
+    "Clear limits, justified alternatives and no invented observations"
+  ],
+  "contrastResponses": [
+    {
+      "response": "29 of70 tested meters met tolerance, about41.43%. The other140 are unknown. Test those IDs under the same rule and retain any still-inaccessible statuses before a complete building report.",
+      "judgment": "Complete scope and executable follow-up."
+    },
+    {
+      "response": "41.43%; test more.",
+      "judgment": "Partial: missing explicit scope and follow-up population."
+    },
+    {
+      "response": "Only29 of210 work, so the building rate is13.81%.",
+      "judgment": "Error: turns untested meters into failures."
+    },
+    {
+      "response": "Separate a70-row tested ledger from140 pending IDs; calculate29/70 on the former and leave the building-result cell unknown.",
+      "judgment": "Valid ledger-based alternative; must retain the common test conditions."
+    }
+  ],
+  "editCheck": "Correct tested passes29 to35. Observed rate50%, full-building rate still unknown. This correction does not mean the locked panels were opened.",
+  "inputIsolation": "Product receives only request, objective and sources. Author-created reserved case, not author-unseen or external blind evidence. Reference audit is separate from product diagnosis; no product runs before freeze."
+}

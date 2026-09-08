@@ -1,0 +1,47 @@
+{
+  "id": "quantity-res-05",
+  "split": "reserved",
+  "family": "quantity",
+  "language": "en",
+  "sourceFamily": "recycling-bin-item-audit",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "Lobby4/16=25%; courtyard27/36=75%. Combined31/52≈59.6154%; equal-bin average50%. Item weights4/13 and9/13 differ from halves. The audit cannot identify user motives or causal bin effects, nor other days.",
+  "acceptableReasoning": [
+    "Attribute both count pairs and deduplication premise.",
+    "Show31/52 and distinguish it from equal-bin50%.",
+    "Retain collection-day and causal limits."
+  ],
+  "reject": [
+    "50% as all-item rate",
+    "31/36 denominator",
+    "Infer courtyard location causes accurate sorting",
+    "Extrapolate to all weeks"
+  ],
+  "requiredScoring": [
+    "Correct attribution and interpretation of the supplied evidence",
+    "Explicit reasoning or executable procedure answering the actual request",
+    "Clear limits, justified alternatives and no invented observations"
+  ],
+  "contrastResponses": [
+    {
+      "response": "31 of52 audited items meet the rule, about59.62%.25% and75% average to50% only under equal bin weights. Unique labels allow pooling; user behavior causes and other days are unrecorded.",
+      "judgment": "Complete count/weight/scope reasoning."
+    },
+    {
+      "response": "About59.62%.",
+      "judgment": "Partial final value without explanation."
+    },
+    {
+      "response": "Each bin gets one vote, so50% of items are sorted correctly.",
+      "judgment": "Error: changes the unit from items to bins."
+    },
+    {
+      "response": "Weight25% by16/52 and75% by36/52 to get31/52.",
+      "judgment": "Valid weighted-rate alternative; evidence and limits remain required."
+    }
+  ],
+  "editCheck": "Change courtyard passing items27 to18. Combined22/52=11/26≈42.3077%; equal-bin average37.5%. Do not change lobby or historical receipt values.",
+  "inputIsolation": "Product receives only request, objective and sources. Author-created reserved case, not author-unseen or external blind evidence. Reference audit is separate from product diagnosis; no product runs before freeze."
+}

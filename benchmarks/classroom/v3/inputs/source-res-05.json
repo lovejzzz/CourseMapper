@@ -1,0 +1,18 @@
+{
+  "request": "Create a lesson evaluating what changed after a notebook correction. Students must reconstruct the corrected feeding record and explain whether the water-temperature observation also changes.",
+  "objective": "Apply a correction only to the statement it explicitly identifies, preserving unaffected evidence and versions.",
+  "sources": [
+    {
+      "id": "document-1",
+      "text": "Fictional classroom aquarium notebook,3 March: “Tank K received six pellets at09:00. The water thermometer read21°C.”"
+    },
+    {
+      "id": "document-2",
+      "text": "Signed correction on4 March: “In the3 March Tank K entry, replace six pellets with four pellets; the number was copied incorrectly. All other details in that entry are unchanged.”"
+    },
+    {
+      "id": "document-3",
+      "text": "A separate4 March observation reads: “Tank K water22°C at09:00.” It does not correct the3 March temperature."
+    }
+  ]
+}

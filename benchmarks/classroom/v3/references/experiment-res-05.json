@@ -1,0 +1,48 @@
+{
+  "id": "experiment-res-05",
+  "split": "reserved",
+  "family": "experiment",
+  "language": "en",
+  "sourceFamily": "display-theme-brightness-runtime",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "Theme and brightness change jointly in the old record. Randomly allocate15/15 devices at a common brightness and randomize order with the same charging and workload rules. A brightness-block design can allocate7/7 at20% and8/8 at60%, comparing themes within brightness. Devices, not timestamps, are independent units; interrupted tests cannot become zero-hour outcomes.",
+  "acceptableReasoning": [
+    "Identify both changed factors and missing old device records.",
+    "Allocate within30 independent devices and keep charge, hardware and video workload common.",
+    "Use automatic shutdown as endpoint and retain interruptions separately.",
+    "Compare device-level runtime distributions; old four-hour difference does not isolate theme."
+  ],
+  "reject": [
+    "Dark theme causes four extra hours",
+    "Keep theme tied to brightness",
+    "Treat two timestamps as two independent devices",
+    "Record interruptions as zero to complete the table"
+  ],
+  "requiredScoring": [
+    "Correct attribution and interpretation of the supplied evidence",
+    "Explicit reasoning or executable procedure answering the actual request",
+    "Clear limits, justified alternatives and no invented observations"
+  ],
+  "contrastResponses": [
+    {
+      "response": "Randomize15 devices per theme at20% brightness, with identical charge, hardware and video loop. Randomize order, record start to automatic shutdown, and mark interruptions missing. Old runtimes also differ in brightness.",
+      "judgment": "Complete feasible design with source and endpoint limits."
+    },
+    {
+      "response": "Use the same video.",
+      "judgment": "Partial control; brightness and allocation remain unspecified."
+    },
+    {
+      "response": "Starting and ending timestamps make60 independent device observations.",
+      "judgment": "Error: paired timestamps describe one device trial each."
+    },
+    {
+      "response": "At20% brightness use7 devices per theme and at60% use8 per theme, comparing themes within brightness.",
+      "judgment": "Valid30-device blocked alternative with explicit common conditions."
+    }
+  ],
+  "editCheck": "Change stock30 to24: fixed brightness12/12 or two brightness blocks6 per theme each. Old runtime summaries and automatic-shutdown endpoint stay unchanged.",
+  "inputIsolation": "Product receives only request, objective and sources. Author-created reserved case, not author-unseen or external blind evidence. Reference audit is separate from product diagnosis; no product runs before freeze."
+}

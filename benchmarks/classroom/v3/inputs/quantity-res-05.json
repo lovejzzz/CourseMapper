@@ -1,0 +1,18 @@
+{
+  "request": "Create a lesson comparing combined item-level sorting accuracy with an equal-bin mean. Require evidence for adding counts and a limited interpretation.",
+  "objective": "Pool distinct audited items with unequal bin sizes and distinguish description from causes of sorting accuracy.",
+  "sources": [
+    {
+      "id": "document-1",
+      "text": "Fictional recycling audit: the lobby bin contained sixteen inspected items, of which four met the sorting rule. The courtyard bin contained thirty-six inspected items, of which twenty-seven met the same rule. Both audits used the same list of acceptable items at the same Friday collection."
+    },
+    {
+      "id": "document-2",
+      "text": "Items were individually labeled and belonged to one bin only; none were transferred or counted twice. The audit did not record who used each bin or why an item was placed there."
+    },
+    {
+      "id": "document-3",
+      "text": "The requested statistic concerns all52 inspected items. A note instead suggests averaging the two bin percentages with equal weight. No other collection days were inspected."
+    }
+  ]
+}

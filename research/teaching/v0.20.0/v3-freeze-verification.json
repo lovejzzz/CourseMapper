@@ -1,0 +1,9 @@
+{
+  "status": "verified-frozen-corpus",
+  "frozen": true,
+  "manifestSha256": "f84e51998f42ca29dd778e60d43bf48c74f0382038c99d368aa0a9b31f23335c",
+  "cases": 60,
+  "productRuns": 0,
+  "errors": [],
+  "limitation": "Verifies the corpus snapshot and author review evidence, not model quality or independent classroom acceptance."
+}

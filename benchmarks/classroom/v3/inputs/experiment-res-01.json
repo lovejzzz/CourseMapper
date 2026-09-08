@@ -1,0 +1,18 @@
+{
+  "request": "Create a design lesson comparing two glues. Students should critique the old evidence, allocate the available independent joints, specify testing and submit a blank record rather than invented results.",
+  "objective": "Separate adhesive and cure-time differences and design a controlled joint-strength comparison.",
+  "sources": [
+    {
+      "id": "document-1",
+      "text": "Fictional model-building log: glue P joints cured for two hours held a median of9 washers; glue Q joints cured for six hours held a median of15. Joint counts and individual failures were not retained."
+    },
+    {
+      "id": "document-2",
+      "text": "Twenty-six new identical straw-joint kits are available. Each kit receives one glue and is tested once. Both glues may use either cure time; keep straw dimensions, overlap length, glue volume and room conditions equal."
+    },
+    {
+      "id": "document-3",
+      "text": "Hang one identical washer every ten seconds until the joint separates; record the number held before separation, including zero, joint ID, glue, cure time and test order. Randomize order and do not reuse broken joints. No new tests exist."
+    }
+  ]
+}

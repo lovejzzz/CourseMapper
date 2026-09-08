@@ -1,0 +1,47 @@
+{
+  "id": "quantity-res-01",
+  "split": "reserved",
+  "family": "quantity",
+  "language": "en",
+  "sourceFamily": "cooperative-two-ballot-turnouts",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "Overlap x satisfies8≤x≤31; union65-x is34–57. At x=8, venue-only23, timetable-only26, both8, neither0. At x=31, venue-only0, timetable-only3, both31, neither23. Turnout bounds do not reveal ballot preferences.",
+  "acceptableReasoning": [
+    "Use the stable57-person register and separate31/34 counts.",
+    "Constrain nonnegative four-cell counts and show both endpoints.",
+    "Actual overlap needs identity matching; no preference claim follows."
+  ],
+  "reject": [
+    "65 unique voters",
+    "Zero overlap feasible",
+    "Assume everyone actually voted",
+    "Infer how voters voted"
+  ],
+  "requiredScoring": [
+    "Correct attribution and interpretation of the supplied evidence",
+    "Explicit reasoning or executable procedure answering the actual request",
+    "Clear limits, justified alternatives and no invented observations"
+  ],
+  "contrastResponses": [
+    {
+      "response": "Both8–31 and either34–57 are possible. The endpoint allocations are(23,26,8,0) and(0,3,31,23) in venue-only,timetable-only,both,neither order. Matching voter identities would choose an actual value; choices remain secret.",
+      "judgment": "Complete: correct ranges, allocations and scope."
+    },
+    {
+      "response": "At least34 voted.",
+      "judgment": "Partial: one valid bound without overlap or endpoints."
+    },
+    {
+      "response": "There were65 voters, since31+34=65.",
+      "judgment": "Error: double counts overlap and exceeds the register."
+    },
+    {
+      "response": "Start by nesting all31 venue voters inside34 timetable voters; then reduce overlap until the57-member register is full.",
+      "judgment": "Valid constructive alternative if it gives overlap8–31 and union34–57 explicitly."
+    }
+  ],
+  "editCheck": "Change venue turnout31 to25. Overlap2–25, union34–57. Even though the union range stays the same, allocations and overlap reasoning must change.",
+  "inputIsolation": "Product receives only request, objective and sources. Author-created reserved case, not author-unseen or external blind evidence. Reference audit is separate from product diagnosis; no product runs before freeze."
+}

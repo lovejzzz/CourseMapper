@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Freeze all 60 v3 benchmark cases (36 development, 24 reserved) with isolated references, source-family review and file digests. Add snapshot verification and tampering regression checks; preserve replaced prefreeze drafts. This establishes evaluation inputs, not a model or classroom pass.
+
 - Complete the 36-case v3 development corpus across quantity, source reasoning and experiment design, including bilingual boundary cases, concrete contrasting answers and edit expectations. Preserve prior references before adding missing contrasts; independently check arithmetic and resource allocations. The 24 reserved cases, corpus freeze and full product runs remain pending.
 
 - Preserve response-led feedback associations in the private local notebook across draft reloads. Match the exact restored draft before attaching the applied revision, retain the original motivating judgment and newer teacher judgments, and keep the selected criterion after saving. Verify an actual Chrome reload/apply/history flow without copying anonymous responses into the course file.

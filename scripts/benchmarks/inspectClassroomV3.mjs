@@ -156,18 +156,23 @@ export async function inspectCorpus(root) {
           missing.push(`${family}/${split}: need exactly one ${scope}`);
     }
   if (cases.length !== 60) missing.push(`Need 60 base cases; found ${cases.length}`);
+  const manifestPresent = await fs.access(path.join(root, 'manifest.json')).then(
+    () => true,
+    () => false,
+  );
   // No inspection result certifies pedagogical quality, semantic family
   // independence, model completion, or a frozen release manifest.
   return {
     status: errors.length ? 'invalid' : missing.length ? 'incomplete' : 'structurally-complete-unreviewed',
     productRuns: 0,
-    frozen: false,
+    frozen: manifestPresent ? null : false,
+    manifestPresent,
     errors,
     missing,
     distribution,
     cases,
     limitation:
-      'Human content/family review and an immutable manifest are still required. This is not a model or classroom pass.',
+      'Inventory does not verify a manifest or semantic review. Run benchmark:v3:verify for snapshot integrity; neither result is a model or classroom pass.',
   };
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

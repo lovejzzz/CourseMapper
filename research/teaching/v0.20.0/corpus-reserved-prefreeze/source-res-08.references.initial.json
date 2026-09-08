@@ -1,0 +1,47 @@
+{
+  "id": "source-res-08",
+  "split": "reserved",
+  "family": "source",
+  "language": "zh",
+  "sourceFamily": "sculpture-material-physical-identification",
+  "scope": "out-of-scope",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "精确成分与百分比不能由这种文字外观描述得出，要求保证真实检测结果超出资料与系统能力。可解释需要何种检测证据，但不能伪造元素比例或用可能材料代替实测。",
+  "acceptableReasoning": [
+    "外观描述不是成分测量。",
+    "明确缺少实物与检测报告。",
+    "任何假设必须与真实结果区分，不能写入确定答案。"
+  ],
+  "reject": [
+    "编造铜锡百分比",
+    "把深褐色等同某种合金",
+    "声称已进行仪器检测",
+    "按常见材料猜测后保证准确"
+  ],
+  "requiredScoring": [
+    "Correct attribution and interpretation of the supplied evidence",
+    "Explicit reasoning or executable procedure answering the actual request",
+    "Clear limits, justified alternatives and no invented observations"
+  ],
+  "contrastResponses": [
+    {
+      "response": "标签没有成分检测，深褐色外观不能确定元素百分比。需实际检测或可信报告，当前不能提供保证真实的成分结果。",
+      "judgment": "正确范围外说明。"
+    },
+    {
+      "response": "可能是金属。",
+      "judgment": "部分：没有回应精确检测请求的边界。"
+    },
+    {
+      "response": "检测结果为铜90%、锡10%。",
+      "judgment": "严重错误：伪造具体检测结果。"
+    },
+    {
+      "response": "可把“已知外观”和“尚无测量的成分”分列；成分栏保持待检而不是填猜测比例。",
+      "judgment": "合理替代，不能称为完成原鉴定请求。"
+    }
+  ],
+  "editCheck": "把标签颜色改为银白色仍不能确定元素百分比；不因颜色变化生成新的虚构检测数字。",
+  "inputIsolation": "Product receives only request, objective and sources. Author-created reserved case, not author-unseen or external blind evidence. Reference audit is separate from product diagnosis; no product runs before freeze."
+}

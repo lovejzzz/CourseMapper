@@ -1,0 +1,48 @@
+{
+  "id": "experiment-res-06",
+  "split": "reserved",
+  "family": "experiment",
+  "language": "zh",
+  "sourceFamily": "image-codec-resolution-comparison",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "程序与输入分辨率混杂，旧文件大小也没有误差对应，不能单独判断压缩优劣。可在16张图各运行两程序，随机顺序，得到16对/32次运行，按图比较大小与误差并分分辨率报告。也允许各分辨率内4/4随机分程序，明确不是同图配对。",
+  "acceptableReasoning": [
+    "指出程序/分辨率及缺少质量误差。",
+    "设计同图配对或按分辨率分层，固定参数和输入。",
+    "同时记录输出大小与规定误差，保留失败。",
+    "不把32次运行叫32张独立图片，不预测新优势。"
+  ],
+  "reject": [
+    "40KB证明甲更优",
+    "只比较大小而忽略误差要求",
+    "低分辨率只用甲高分辨率只用乙",
+    "失败输出记0字节并判最好"
+  ],
+  "requiredScoring": [
+    "Correct attribution and interpretation of the supplied evidence",
+    "Explicit reasoning or executable procedure answering the actual request",
+    "Clear limits, justified alternatives and no invented observations"
+  ],
+  "contrastResponses": [
+    {
+      "response": "每张原图分别运行两程序，固定参数并随机顺序，保留字节数和平均平方误差，按图比较且按分辨率报告。16张图是16对，不是32张独立图，原大小差还受分辨率影响。",
+      "judgment": "完整配对方案与双指标解释。"
+    },
+    {
+      "response": "在同一电脑跑。",
+      "judgment": "部分：设备一致不移除分辨率混杂。"
+    },
+    {
+      "response": "失败文件为0字节，说明压缩效果最好。",
+      "judgment": "错误：把运行失败当优异有效结果。"
+    },
+    {
+      "response": "每种分辨率随机4张用甲4张用乙，分层比较大小与误差，并承认不是同图配对。",
+      "judgment": "可行替代，不能要求所有合理方案都采用配对。"
+    }
+  ],
+  "editCheck": "改为每种分辨率6张，共12张：配对12对/24次，分层非配对各3/3。误差定义和失败记录继续保留。",
+  "inputIsolation": "Product receives only request, objective and sources. Author-created reserved case, not author-unseen or external blind evidence. Reference audit is separate from product diagnosis; no product runs before freeze."
+}

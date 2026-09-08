@@ -1,0 +1,47 @@
+{
+  "id": "experiment-res-04",
+  "split": "reserved",
+  "family": "experiment",
+  "language": "zh",
+  "sourceFamily": "sound-panel-microphone-distance",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "材料与麦克风距离混杂，且仪表数值不能擅自称为实际分贝。可随机12/12基板在共同距离测试，或两个距离每材料6块，距离内比较；多次读取同一录音不是新基板。",
+  "acceptableReasoning": [
+    "指出材料/距离变化及单位边界。",
+    "给出独立基板分配与一致声源条件。",
+    "使用固定读数窗口、保留异常和原录音，不预报新读数。"
+  ],
+  "reject": [
+    "B材料必降低4分贝",
+    "不同材料继续用不同距离",
+    "同录音多读几次当独立样板",
+    "超量程伪填某个数字"
+  ],
+  "requiredScoring": [
+    "Correct attribution and interpretation of the supplied evidence",
+    "Explicit reasoning or executable procedure answering the actual request",
+    "Clear limits, justified alternatives and no invented observations"
+  ],
+  "contrastResponses": [
+    {
+      "response": "随机两材料各12块，同用30厘米距离，统一声源设置并随机顺序。按规定五秒均值记录仪表单位，超量程单列。旧差异还含距离影响，不能换算为真实建筑分贝效果。",
+      "judgment": "完整：控制、单位和异常边界明确。"
+    },
+    {
+      "response": "房间保持安静。",
+      "judgment": "部分：未解决规定的距离差。"
+    },
+    {
+      "response": "把同一录音读十次就等于十块样板。",
+      "judgment": "错误：重复读数不新增独立材料单位。"
+    },
+    {
+      "response": "两个距离分别随机两材料各6块，按距离内比较仪表值。",
+      "judgment": "合理替代，总24块，仍不声称已校准分贝。"
+    }
+  ],
+  "editCheck": "若补充可用基板只有20块，固定距离10/10，或两距离每材料5块。单位缺少校准的限制仍保留。",
+  "inputIsolation": "Product receives only request, objective and sources. Author-created reserved case, not author-unseen or external blind evidence. Reference audit is separate from product diagnosis; no product runs before freeze."
+}

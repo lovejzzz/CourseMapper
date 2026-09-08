@@ -1,0 +1,18 @@
+{
+  "request": "Create a source-analysis lesson. Students should build the narrowest supported timeline for the rehearsal cue failure, distinguish event time from documentation time, and explain whether the two accounts conflict.",
+  "objective": "Resolve a dated relative-time statement and compare it with a later broad recollection without inventing time precision.",
+  "sources": [
+    {
+      "id": "document-1",
+      "text": "Fictional theatre notebook, entry dated14 May2025: “Yesterday, during the evening rehearsal, the balcony cue light failed.” The notebook identifies rehearsal B-17 and the balcony cue light."
+    },
+    {
+      "id": "document-2",
+      "text": "An interview recorded2 June2025 says: “I remember that balcony cue-light failure in rehearsal B-17 happening sometime in May.” The interviewer did not ask for a day."
+    },
+    {
+      "id": "document-3",
+      "text": "A repair invoice dated16 May2025 records replacement of the balcony cue-light connector; it does not state the failure date or exact rehearsal time."
+    }
+  ]
+}

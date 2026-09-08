@@ -1,0 +1,720 @@
+{
+  "status": "structurally-complete-unreviewed",
+  "productRuns": 0,
+  "frozen": false,
+  "errors": [],
+  "missing": [],
+  "distribution": [
+    {
+      "family": "quantity",
+      "split": "development",
+      "language": "en",
+      "supported": 5,
+      "limits": 1,
+      "expectedSupported": 5,
+      "expectedLimits": 1
+    },
+    {
+      "family": "quantity",
+      "split": "development",
+      "language": "zh",
+      "supported": 5,
+      "limits": 1,
+      "expectedSupported": 5,
+      "expectedLimits": 1
+    },
+    {
+      "family": "quantity",
+      "split": "reserved",
+      "language": "en",
+      "supported": 3,
+      "limits": 1,
+      "expectedSupported": 3,
+      "expectedLimits": 1
+    },
+    {
+      "family": "quantity",
+      "split": "reserved",
+      "language": "zh",
+      "supported": 3,
+      "limits": 1,
+      "expectedSupported": 3,
+      "expectedLimits": 1
+    },
+    {
+      "family": "source",
+      "split": "development",
+      "language": "en",
+      "supported": 5,
+      "limits": 1,
+      "expectedSupported": 5,
+      "expectedLimits": 1
+    },
+    {
+      "family": "source",
+      "split": "development",
+      "language": "zh",
+      "supported": 5,
+      "limits": 1,
+      "expectedSupported": 5,
+      "expectedLimits": 1
+    },
+    {
+      "family": "source",
+      "split": "reserved",
+      "language": "en",
+      "supported": 3,
+      "limits": 1,
+      "expectedSupported": 3,
+      "expectedLimits": 1
+    },
+    {
+      "family": "source",
+      "split": "reserved",
+      "language": "zh",
+      "supported": 3,
+      "limits": 1,
+      "expectedSupported": 3,
+      "expectedLimits": 1
+    },
+    {
+      "family": "experiment",
+      "split": "development",
+      "language": "en",
+      "supported": 5,
+      "limits": 1,
+      "expectedSupported": 5,
+      "expectedLimits": 1
+    },
+    {
+      "family": "experiment",
+      "split": "development",
+      "language": "zh",
+      "supported": 5,
+      "limits": 1,
+      "expectedSupported": 5,
+      "expectedLimits": 1
+    },
+    {
+      "family": "experiment",
+      "split": "reserved",
+      "language": "en",
+      "supported": 3,
+      "limits": 1,
+      "expectedSupported": 3,
+      "expectedLimits": 1
+    },
+    {
+      "family": "experiment",
+      "split": "reserved",
+      "language": "zh",
+      "supported": 3,
+      "limits": 1,
+      "expectedSupported": 3,
+      "expectedLimits": 1
+    }
+  ],
+  "cases": [
+    {
+      "id": "experiment-dev-01",
+      "family": "experiment",
+      "split": "development",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "workshop-stamp-drying",
+      "inputSha256": "35deac8ca16e52dd0d6b225b41bf274a1ee20334dbe063dec0c2c52c08b9e6db",
+      "referenceSha256": "43ae53e1f3a7fb9b5e7ae1f8b9e743236724fec9e9378ed2093b35b9f12f5b1d"
+    },
+    {
+      "id": "experiment-dev-02",
+      "family": "experiment",
+      "split": "development",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "cup-sleeve-temperature-loss",
+      "inputSha256": "7a1875a115f51ec800220be60933e4df5ef05696a090f5ed1e6d00639cf6b365",
+      "referenceSha256": "9751736558d818fe8cfe2ebb8df83f2e7ec1ea4454e34e4f3fd008083f2effb0"
+    },
+    {
+      "id": "experiment-dev-03",
+      "family": "experiment",
+      "split": "development",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "paper-bridge-fold-stock",
+      "inputSha256": "25af8c7a3c42d58361003f9a769b0faa71e63a601f3237570a9e92e9a84d8ca2",
+      "referenceSha256": "4d1b064b0dd9edbe2c9a58d43c44ac76986b224cea5a68316924567ca78a5997"
+    },
+    {
+      "id": "experiment-dev-04",
+      "family": "experiment",
+      "split": "development",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "parcel-padding-drop-height",
+      "inputSha256": "87e738a5de69665e0d206caafb3c98d39c0ae35b8c605cee615d29bbb44c1e7f",
+      "referenceSha256": "00d628571cdd2886491ada22cef217feaed0ecab98ed94cedd9b07bc9edc63ea"
+    },
+    {
+      "id": "experiment-dev-05",
+      "family": "experiment",
+      "split": "development",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "fabric-strip-wicking-start-depth",
+      "inputSha256": "1693f2235c7a1f02f2a75dc2cd9d2b303be6a6b43500ab524aa8b1f6cdc1493f",
+      "referenceSha256": "b16c99e6297ba848b37d2ab0df0d9a3644b40b4fbcb97a858651d242db0d07d5"
+    },
+    {
+      "id": "experiment-dev-06",
+      "family": "experiment",
+      "split": "development",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "paper-rotor-fin-release-height",
+      "inputSha256": "76f43f1f04bc24d346f85fb03483664b1d8f1ed5ab7ffee6ed7873a2da5531cf",
+      "referenceSha256": "9b890a59de9b9d611728aa10265a98b7b728733e2245fe068773b897ee2cc696"
+    },
+    {
+      "id": "experiment-dev-07",
+      "family": "experiment",
+      "split": "development",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "tile-coating-lamp-distance",
+      "inputSha256": "9ab9afde425990453c9c4dfe3eed92c73f6e8616bd431bc7adf8bd49d7d04d7d",
+      "referenceSha256": "ece6c68625dcfc47afa51a9d15d873b82e8ba07b39873154475bdd6eccfa80b0"
+    },
+    {
+      "id": "experiment-dev-08",
+      "family": "experiment",
+      "split": "development",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "model-wheel-surface-ramp-angle",
+      "inputSha256": "67716c4b46f1bf918af44c03a3560b463c4a1c31a91a4590115a3acc2559af7b",
+      "referenceSha256": "5f0440dd6f4569ba56c91f9abaade34ede20be3e88bf4aef81c9b3f41702f6dd"
+    },
+    {
+      "id": "experiment-dev-09",
+      "family": "experiment",
+      "split": "development",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "seed-tray-mulch-watering",
+      "inputSha256": "061d65de7d85e3668305ff00160da76a2fffaeae6b49711b548642cd973b80fb",
+      "referenceSha256": "298796ce4ae575c113f3919db83890848763649adea460980ae81614c8a116cf"
+    },
+    {
+      "id": "experiment-dev-10",
+      "family": "experiment",
+      "split": "development",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "display-font-viewing-distance",
+      "inputSha256": "13e0385eb5bdc0d0aa5da54bb681563219ab5c691fdbe601614f32d827fa3702",
+      "referenceSha256": "7a9362ca8747d5ddba1e968806ca83399aa38096a2b0c816e7c515e95240aa75"
+    },
+    {
+      "id": "experiment-dev-11",
+      "family": "experiment",
+      "split": "development",
+      "language": "en",
+      "scope": "needs-input",
+      "sourceFamily": "adhesive-sealed-fixture-resource-gap",
+      "inputSha256": "4c4934800eed872f872c85a0a926a019fa0e52840d1be2a20eef2226ad413b7c",
+      "referenceSha256": "e4af8c2490cdcde88b17fc68b3d7c1073e99018b145257366cc12f65ef0facbe"
+    },
+    {
+      "id": "experiment-dev-12",
+      "family": "experiment",
+      "split": "development",
+      "language": "zh",
+      "scope": "out-of-scope",
+      "sourceFamily": "historical-storm-causal-reconstruction",
+      "inputSha256": "20ffc1200f734429f7237e39f19c7e5a86ccf65114942dd85c2943554529100e",
+      "referenceSha256": "aac2ca41b6f1de4a7dc8d29c6ef0f51cfd06e152e1d811d6c08a3973c7adc498"
+    },
+    {
+      "id": "experiment-res-01",
+      "family": "experiment",
+      "split": "reserved",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "straw-joint-glue-cure-time",
+      "inputSha256": "0c0ca9b3e41b5f9b7d8cc97fa65b70aba740d013a2c72e3f219ddc1763449574",
+      "referenceSha256": "1d761c81cfc4a6aac0e368481be0b639f9fb0e7aff5bcea4f0468a750749a336"
+    },
+    {
+      "id": "experiment-res-02",
+      "family": "experiment",
+      "split": "reserved",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "ink-removal-wipe-pressure",
+      "inputSha256": "d936cdcc0a2d01b2ef617fa4c27b7fc7b269be5dd7110a969a8092353b2e572d",
+      "referenceSha256": "b8f42c66614deb9aa79f8147b1d170a29b21af354b0f429f595139fc69e404de"
+    },
+    {
+      "id": "experiment-res-03",
+      "family": "experiment",
+      "split": "reserved",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "maze-solver-map-difficulty",
+      "inputSha256": "adef361e95be308add8d48ac51f2de9661b3b7e638e511fd6bea9caac3f95a97",
+      "referenceSha256": "28a9390c97232b05c1265da012bbebecd274832983d6c0b5653feb7586881306"
+    },
+    {
+      "id": "experiment-res-04",
+      "family": "experiment",
+      "split": "reserved",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "sound-panel-microphone-distance",
+      "inputSha256": "efac959aeab6711c84c9e776156a3be107ac0bcebd75a0262ce1adc4203e27f0",
+      "referenceSha256": "a8b77a30d3e078853f978a4c07cfaf4f8ae9b5aedb356ac5d13e58fab0c0cbbd"
+    },
+    {
+      "id": "experiment-res-05",
+      "family": "experiment",
+      "split": "reserved",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "display-theme-brightness-runtime",
+      "inputSha256": "aface5f0e581f6e48fcd32a72fdd1f9f2f2887a037b1d706554e45248dbc3b8e",
+      "referenceSha256": "b8585312d77308740d8f9d136a62a6ff88765e90d3a6817c6eb8f6eeb549233d"
+    },
+    {
+      "id": "experiment-res-06",
+      "family": "experiment",
+      "split": "reserved",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "image-codec-resolution-comparison",
+      "inputSha256": "aad515f1f5c1e101dab859b9f9ef336fdf703d4119171962b0452f4f24017444",
+      "referenceSha256": "111e41e577c271f62eefcec38557a2d2022218fc770aa2917f0d209d63542be0"
+    },
+    {
+      "id": "experiment-res-07",
+      "family": "experiment",
+      "split": "reserved",
+      "language": "en",
+      "scope": "needs-input",
+      "sourceFamily": "grip-pad-undefined-outcome",
+      "inputSha256": "f38423aff41594bf7ff3bb3ddd7496b0a7b8f339d0c8fc58cd96a0a2c09443fd",
+      "referenceSha256": "88c02bf6e893e397be5839e6aaba0246c5e8903b787ea02b4da99657b0d0d327"
+    },
+    {
+      "id": "experiment-res-08",
+      "family": "experiment",
+      "split": "reserved",
+      "language": "zh",
+      "scope": "out-of-scope",
+      "sourceFamily": "platform-feed-hidden-algorithm-causality",
+      "inputSha256": "08822c251d3faad9beb5acd72b3414b03a40affbcfb0a27aff603aa61ba78426",
+      "referenceSha256": "725204b80892730861225aa5ab7c1e15bb35ce15a7b12a1e30bfd19fcee23287"
+    },
+    {
+      "id": "quantity-dev-01",
+      "family": "quantity",
+      "split": "development",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "library-tablet-return-pooling",
+      "inputSha256": "23ba60d71c51b0d80eb78a9360855c2166f77fa06dfa65dc9484e6e998793623",
+      "referenceSha256": "f008c2eac06d31c29ce8f681152248b60b8f14cef2a51650d79725fcc95f0136"
+    },
+    {
+      "id": "quantity-dev-02",
+      "family": "quantity",
+      "split": "development",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "campus-observation-club-overlap",
+      "inputSha256": "5849a32ad7a33836261cd995f9575da1fec13c45521977d94a7b113dc86e67ce",
+      "referenceSha256": "cfe912a56ddbeb51539013e518c421b7eaac7a1ea3b698ce2c51976aefc52bf4"
+    },
+    {
+      "id": "quantity-dev-03",
+      "family": "quantity",
+      "split": "development",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "seed-club-two-workshops",
+      "inputSha256": "571af31ca265df85abb78d47862f117b255684e85c0221df3f09d158d7722e1d",
+      "referenceSha256": "108135c2eec9d0ca65b5f4bb8280a2973250f1b5ecff330daf02bd10632e5cdd"
+    },
+    {
+      "id": "quantity-dev-04",
+      "family": "quantity",
+      "split": "development",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "pottery-kiln-inspection",
+      "inputSha256": "42be2417269acb8746bdc0ef499cb5e48308e1bf6a291568f76f124b0294976e",
+      "referenceSha256": "2ec676d1d46555106dc0847c8d283a1bdd7bb6ce9f9e054c7d23064eed61a6ac"
+    },
+    {
+      "id": "quantity-dev-05",
+      "family": "quantity",
+      "split": "development",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "solar-lamp-bench-sample",
+      "inputSha256": "66de858bd141276a7bdfee0449d9ba535962b5ffe7961f657c89ab2a1c7e0490",
+      "referenceSha256": "754d38b694185c632afa661e8e4400a8f182dc5d521a8dde59c93c9edfa50cba"
+    },
+    {
+      "id": "quantity-dev-06",
+      "family": "quantity",
+      "split": "development",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "community-museum-zero-attendance",
+      "inputSha256": "8fd766bec89be9cca50e2dd46db3e65fab839b34b60648b0a60a88d349998497",
+      "referenceSha256": "758e771a8970f4bf43c50041b924c095d2ac5ef54e8faeadf764a75bd8f0b92e"
+    },
+    {
+      "id": "quantity-dev-07",
+      "family": "quantity",
+      "split": "development",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "archive-box-condition-audit",
+      "inputSha256": "355062f0e1d23aaaef98b9f445680b6e3bfe8b9613265e85c46a80201804b84f",
+      "referenceSha256": "c5feddfe0f4458f822bdf89fe294f7e0f4ce1826fb900321b6350987dae09c12"
+    },
+    {
+      "id": "quantity-dev-08",
+      "family": "quantity",
+      "split": "development",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "commuter-response-coverage",
+      "inputSha256": "56fd23c9bf9ef14c65d93fb7d75c519e6a37fa9f4193c48e4b0faab6596c36c0",
+      "referenceSha256": "2aa0770f0f5060fd1b1a53586dfcd96a018705e7c36215c0567288301247e102"
+    },
+    {
+      "id": "quantity-dev-09",
+      "family": "quantity",
+      "split": "development",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "association-full-attendance",
+      "inputSha256": "5908ac596d41436e66ee63bb63400055e507a077b850065eaddc047529688502",
+      "referenceSha256": "5c9d5f172e367ef6ce67a33b95ce6bcdf8d37f759b953508733da526ee7e0c69"
+    },
+    {
+      "id": "quantity-dev-10",
+      "family": "quantity",
+      "split": "development",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "sports-equipment-zero-pass",
+      "inputSha256": "22b49a676293d6a340c5918b8cd9c66cafc15a9737838b9eed4c961311f8686a",
+      "referenceSha256": "69f997ac25c5c7ced5f94a4292fe79da0841fffe55d9d610ec21e7597f3a7969"
+    },
+    {
+      "id": "quantity-dev-11",
+      "family": "quantity",
+      "split": "development",
+      "language": "en",
+      "scope": "needs-input",
+      "sourceFamily": "orchard-unknown-crate-total",
+      "inputSha256": "6f3e3123f7641d55a583226be6bd3849d7ec7c2ed5e1ff31c8b53392f46d53f3",
+      "referenceSha256": "5f91ebfbc7071bf99f69dc3d5bfdfa37658c83a553bb0fec63882f31af9fad15"
+    },
+    {
+      "id": "quantity-dev-12",
+      "family": "quantity",
+      "split": "development",
+      "language": "zh",
+      "scope": "out-of-scope",
+      "sourceFamily": "future-exam-exact-prediction",
+      "inputSha256": "a93e1331d853e3042e0efc0363eafa0fa1838a38a1f4cbd7e36fc15032b044c3",
+      "referenceSha256": "4f335e1cd02291f129e214106b10abecff93da812026d2d64ad12f922bcf593d"
+    },
+    {
+      "id": "quantity-res-01",
+      "family": "quantity",
+      "split": "reserved",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "cooperative-two-ballot-turnouts",
+      "inputSha256": "0ee7cc75b0f8042121200e79b9d17c49ecb25a554d8867643344cdd250dd715d",
+      "referenceSha256": "8a8db5fa8492fa3e56158e8b6f23bfdeedf7e13534a2ceacb026e1c4bc83c99a"
+    },
+    {
+      "id": "quantity-res-02",
+      "family": "quantity",
+      "split": "reserved",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "nursery-tagged-seedling-batches",
+      "inputSha256": "187054814c00462c53b2ea79bb6874a359c121cf57c56737f3bf297e5b76ab19",
+      "referenceSha256": "c355b9ff36718843dc0aa7090b28a123f5bd9c21554b162c0e23f0cd6766df1e"
+    },
+    {
+      "id": "quantity-res-03",
+      "family": "quantity",
+      "split": "reserved",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "water-meter-access-test",
+      "inputSha256": "0965f4198facb26430ef0b57fcdcb49589a1b2b1205cf990c8e44cd21c481f7a",
+      "referenceSha256": "91db4e3d256418e284904763f8d28565ee45cb4c0183f50b744c59890832f536"
+    },
+    {
+      "id": "quantity-res-04",
+      "family": "quantity",
+      "split": "reserved",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "maker-members-two-open-sessions",
+      "inputSha256": "2f2c7789452d81507a6faed6dcc64f67cfb9069d9ee4afaa7035eb5dc247c309",
+      "referenceSha256": "f2209f702293e4920487c7473a2058169c3fa3df1d19058ecba6f087525505d1"
+    },
+    {
+      "id": "quantity-res-05",
+      "family": "quantity",
+      "split": "reserved",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "recycling-bin-item-audit",
+      "inputSha256": "4936d4a10996d23f6adb64ce0d427731683a04e00f7f4588b0848db0d48165de",
+      "referenceSha256": "fdb486b9391c18c58890e27b4bfffcf7a0e68b4f80d0eb989ed27719bf4e0c6d"
+    },
+    {
+      "id": "quantity-res-06",
+      "family": "quantity",
+      "split": "reserved",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "emergency-radio-zero-results",
+      "inputSha256": "944b05d1cd97ac144b73e68b5b18aa73bb97cf3b3d295b831f9ae9f631ba54b0",
+      "referenceSha256": "41b9c4edf9cbf26f444fcdf67109da1393bf964695d55aaa5e248fed9221cee5"
+    },
+    {
+      "id": "quantity-res-07",
+      "family": "quantity",
+      "split": "reserved",
+      "language": "en",
+      "scope": "out-of-scope",
+      "sourceFamily": "future-seed-packet-exact-count",
+      "inputSha256": "d7209b6b65f05ea5b4ce685247c12b32146699fe2a69b2842a0a8a24e2e4d3ab",
+      "referenceSha256": "553519dd475147a4cb127989248bfb69db48e73a3f09ad9e1957d7feae392e42"
+    },
+    {
+      "id": "quantity-res-08",
+      "family": "quantity",
+      "split": "reserved",
+      "language": "zh",
+      "scope": "needs-input",
+      "sourceFamily": "shared-volunteer-register-denominator",
+      "inputSha256": "2592964fa429e00c8a4fc2d67ccad1eb58f57564d6519ea386fcccbbe7b57053",
+      "referenceSha256": "04db54d13cf23246ffbedf5a16af411f3645cfbb2eb291adc2ece14c5a294bec"
+    },
+    {
+      "id": "source-dev-01",
+      "family": "source",
+      "split": "development",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "meeting-event-publication",
+      "inputSha256": "e942560aef394b7826ffe9f1b0ab460061a6e949d5606cc31e7a3a701e2ac352",
+      "referenceSha256": "2bdc9530d0a86fef2ab3269f0231776ffd62c2368911ae92baf158ef75230ebb"
+    },
+    {
+      "id": "source-dev-02",
+      "family": "source",
+      "split": "development",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "museum-holiday-exception",
+      "inputSha256": "ce99730e6155b7cd4e5694f0f911f666405be44e2da4e7372a31e8195429c25f",
+      "referenceSha256": "39dd04db12e6c741b18f7339104a5f9cc4359b9eacf698dc1a8d1fe75dc28ccc"
+    },
+    {
+      "id": "source-dev-03",
+      "family": "source",
+      "split": "development",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "river-observation-hearsay",
+      "inputSha256": "77f8751ecfe0c2550d8e1abee4f00cdf91f8c3959bca5f627adb5782ea465a60",
+      "referenceSha256": "057bb640751b32e5b31a906934388364b72b5611e29a0c77510757a11049864d"
+    },
+    {
+      "id": "source-dev-04",
+      "family": "source",
+      "split": "development",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "bus-count-conflicting-witnesses",
+      "inputSha256": "292792cab4927326ec8b3878c1269da1eef13cd8bac5eaf07c683929ad1fb364",
+      "referenceSha256": "f5e7f979ce3770d5a81189b2952371d232db2ff7cddd617cad139656a64c7bbb"
+    },
+    {
+      "id": "source-dev-05",
+      "family": "source",
+      "split": "development",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "library-retraction-scope",
+      "inputSha256": "f6fa092a96a57c77fc66401548621373d7d659ad035b00b38da58d76d1c7aba4",
+      "referenceSha256": "7443acc569e7d12db6867da9825482dd75d95ebf1870ba0dd29fe959bc5e0c45"
+    },
+    {
+      "id": "source-dev-06",
+      "family": "source",
+      "split": "development",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "diary-perspective-evaluation",
+      "inputSha256": "cb5e1877797a578076977c2983c5bfc1e3f11dd47b437a377123af8830783ad5",
+      "referenceSha256": "841babb881bcfe10e047848e8ac2d171fe8d0d57efa33cfe91a0eb6b85755056"
+    },
+    {
+      "id": "source-dev-07",
+      "family": "source",
+      "split": "development",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "oral-history-date-precision",
+      "inputSha256": "066e7c20cca987c75d81dca9addb726b4640ef9b722b7fbf5138d14852b9bdd9",
+      "referenceSha256": "65fbcbf707e122f5eaefe44a1c0e1092a91f67e34e2b48e80248c8fa8978b088"
+    },
+    {
+      "id": "source-dev-08",
+      "family": "source",
+      "split": "development",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "catalogue-object-identity",
+      "inputSha256": "68e794c2bfd00fbc913d1aed102dd0a5be2fa5bd1ac9078660d98a187cb6d229",
+      "referenceSha256": "7394d66cef15f8f9a3adf31093305b090c0f695044f34a9fbf816c01d69e808e"
+    },
+    {
+      "id": "source-dev-09",
+      "family": "source",
+      "split": "development",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "quotation-negation-context",
+      "inputSha256": "73660a1d4448a0396c73f11f75dac59d25460d9dcd5b09e49f1ba06ee171ecfa",
+      "referenceSha256": "b334855d758028439c1a4a6dbbe6997f9f10d5140282a0dd3647698182f8551f"
+    },
+    {
+      "id": "source-dev-10",
+      "family": "source",
+      "split": "development",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "map-plan-completion",
+      "inputSha256": "4cd8de15b45e7c5da0fe7d2e12f50509e5373c5915d6ea49cd25d6ca0abca608",
+      "referenceSha256": "55da6c9b556892210f1f1f96b2cd64f341b23d89e59d50ab9d975cc47dc516e5"
+    },
+    {
+      "id": "source-dev-11",
+      "family": "source",
+      "split": "development",
+      "language": "en",
+      "scope": "needs-input",
+      "sourceFamily": "missing-contract-addendum",
+      "inputSha256": "bc35e3e355378117cac1df9c79e6358eead486545ecdad776d3181a2fa234e1b",
+      "referenceSha256": "a06e2e769cd85f9175dfa587f39d7c7d59a58d722725dccaba3ea6c20063a389"
+    },
+    {
+      "id": "source-dev-12",
+      "family": "source",
+      "split": "development",
+      "language": "zh",
+      "scope": "out-of-scope",
+      "sourceFamily": "physical-ink-authentication",
+      "inputSha256": "3ce85d7c2e5baecface8a6f0d7496da43afbb2780efd978771ebf75ff9c03393",
+      "referenceSha256": "eeac8f955856384a20ddfe07adaff4d8a40e723d792de605c5891303978230aa"
+    },
+    {
+      "id": "source-res-01",
+      "family": "source",
+      "split": "reserved",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "theatre-cue-observation-dates",
+      "inputSha256": "0a352458a41a3fb8f99216252130fae57b1990b386c83047ab493b2cd9e1c0d1",
+      "referenceSha256": "26038f3a441314cba18b78cd1c41ac8e8b8ddc935fa36ff4e6890d20604672c3"
+    },
+    {
+      "id": "source-res-02",
+      "family": "source",
+      "split": "reserved",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "school-garden-plan-delivery",
+      "inputSha256": "230008c44e0296da855ee7bd0c7cddb853e53f6b2a35020d60e521ef341b0e28",
+      "referenceSha256": "b534d77cacf4d21941cb4c071a9ee494a70c26e3e84afcc750dfe7458766be4d"
+    },
+    {
+      "id": "source-res-03",
+      "family": "source",
+      "split": "reserved",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "radio-transcript-negation-attribution",
+      "inputSha256": "bccd0dbc31d0e6b46e67cbac84e2a422c7011bdb20776af392131aa0f2a20ecc",
+      "referenceSha256": "3e98f2fa37518925853b31aceddd786156ea092e9f44cc43118935c9d40a7d28"
+    },
+    {
+      "id": "source-res-04",
+      "family": "source",
+      "split": "reserved",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "exhibit-object-code-identity",
+      "inputSha256": "9357df5e591ee1519ee640c3034cd3c03231c2fea794f05fd31008428fb5b679",
+      "referenceSha256": "ac181d676a072d1be4586a9d45dd79ddcaaacf6f0ea09314defb2eada586c4ff"
+    },
+    {
+      "id": "source-res-05",
+      "family": "source",
+      "split": "reserved",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "aquarium-notebook-local-correction",
+      "inputSha256": "fc3f878df4c926167266faba682b74455bbd074a2d296dcc18e4aa1f9fdcd627",
+      "referenceSha256": "9a74c28eca919764037f488546adfc7129d52c862a0224078a53d9a590cbee81"
+    },
+    {
+      "id": "source-res-06",
+      "family": "source",
+      "split": "reserved",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "library-room-count-perception",
+      "inputSha256": "c4d62d0a44c43dd746a3ea02abe32ad8ed4416b9f5ae2107445a9deeb7a46313",
+      "referenceSha256": "829ff96ac696303d5789eda4fdc9af9df116a62bb30b5a9c75339df50d9fe388"
+    },
+    {
+      "id": "source-res-07",
+      "family": "source",
+      "split": "reserved",
+      "language": "en",
+      "scope": "needs-input",
+      "sourceFamily": "festival-missing-transcript-page",
+      "inputSha256": "fc59feadac3232fbd24e6ebefb668122377dd6af187d518220a2ba99c8d84725",
+      "referenceSha256": "a8521a3af9c9f6ba161fdd9bd8aba36dea8f5f45e5293af9d4e29c63cbe08d00"
+    },
+    {
+      "id": "source-res-08",
+      "family": "source",
+      "split": "reserved",
+      "language": "zh",
+      "scope": "out-of-scope",
+      "sourceFamily": "abandoned-station-firsthand-visit",
+      "inputSha256": "295ad4b289cb71ee782afcce981bf49b3fac9c9c9c297796bdd023a39f8ffcdf",
+      "referenceSha256": "ab7232918552cff9922b4e8d10c0245836f906e8953155bb4d5fbd379795cb90"
+    }
+  ],
+  "limitation": "Human content/family review and an immutable manifest are still required. This is not a model or classroom pass."
+}

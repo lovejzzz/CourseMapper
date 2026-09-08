@@ -1,0 +1,47 @@
+{
+  "id": "experiment-res-02",
+  "split": "reserved",
+  "family": "experiment",
+  "language": "zh",
+  "sourceFamily": "ink-removal-wipe-pressure",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "清洁液和压力同时改变，旧差异不能隔离清洁液作用。可随机16/16试片，两组同配重并随机顺序；或两个配重区组各8/8，在配重内比较。十次擦拭是单片测量程序，不是十个独立试片。",
+  "acceptableReasoning": [
+    "指出液体与配重的共同变化。",
+    "分配独立试片并统一体积、动作和照片条件。",
+    "区分0残留与照片缺失，保留实际观测而非新效果假值。"
+  ],
+  "reject": [
+    "乙液必减少3格残留",
+    "十次擦拭当十个独立样本",
+    "重复原来的配重绑定",
+    "没照片填0以改善平均值"
+  ],
+  "requiredScoring": [
+    "Correct attribution and interpretation of the supplied evidence",
+    "Explicit reasoning or executable procedure answering the actual request",
+    "Clear limits, justified alternatives and no invented observations"
+  ],
+  "contrastResponses": [
+    {
+      "response": "把32片随机分16和16，两液均用200克配重，统一其他擦拭条件并随机顺序。每片完成十次后按同一照片规则计残留，缺照片单列，比较片级分布。旧结果也改变了压力。",
+      "judgment": "完整：资源、控制和缺失处理。"
+    },
+    {
+      "response": "擦十次就公平。",
+      "judgment": "部分：相同次数未消除配重差。"
+    },
+    {
+      "response": "一片擦十次就是十个独立试片。",
+      "judgment": "错误：将程序内部动作冒充独立分配单位。"
+    },
+    {
+      "response": "200克区组两液各8片，400克区组也各8片，区组内比较。",
+      "judgment": "合理替代，合计32片且液体不再与压力绑定。"
+    }
+  ],
+  "editCheck": "将32片改为28：固定配重14/14，或两个配重各7/7；照片缺失规则不得因资源更改变成0。",
+  "inputIsolation": "Product receives only request, objective and sources. Author-created reserved case, not author-unseen or external blind evidence. Reference audit is separate from product diagnosis; no product runs before freeze."
+}

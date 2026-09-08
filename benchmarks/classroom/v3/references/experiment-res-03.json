@@ -1,0 +1,48 @@
+{
+  "id": "experiment-res-03",
+  "split": "reserved",
+  "family": "experiment",
+  "language": "en",
+  "sourceFamily": "maze-solver-map-difficulty",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "Solver and map difficulty differ in the old summaries. A strong feasible design runs both solvers on each of20 maps, randomizes order and compares paired counts within map, separated by difficulty;40 runs are20 map pairs, not40 independent maps. A stratified unpaired5/5 solver allocation within each difficulty is acceptable with its reduced comparison and no within-map claim. Censored failures require separate reporting.",
+  "acceptableReasoning": [
+    "Identify missing old maps and difficulty confounding.",
+    "Specify paired20-map or stratified unpaired20-map procedure with fixed settings.",
+    "Use the same operation definition and cap, preserving failures.",
+    "Compare like maps or difficulty strata; no winner follows from old medians."
+  ],
+  "reject": [
+    "B proven40 operations faster",
+    "Treat repeated deterministic runs as independent maps",
+    "Give only easy toA and medium toB again",
+    "Code unreached targets as zero-cost success"
+  ],
+  "requiredScoring": [
+    "Correct attribution and interpretation of the supplied evidence",
+    "Explicit reasoning or executable procedure answering the actual request",
+    "Clear limits, justified alternatives and no invented observations"
+  ],
+  "contrastResponses": [
+    {
+      "response": "Run A andB on all20 unchanged maps with fixed seeds and randomized order. Compare operation counts within each map and report easy/medium separately. Keep capped failures visible;40 runs form20 pairs, not40 independent maps.",
+      "judgment": "Complete paired alternative, respecting map identity and censoring."
+    },
+    {
+      "response": "Use the same machine.",
+      "judgment": "Partial: useful control but leaves map difficulty and allocation unresolved."
+    },
+    {
+      "response": "Run one easy map100 times forA and one medium map100 times forB to obtain200 independent maps.",
+      "judgment": "Error: repetition neither changes map identities nor removes the solver-difficulty confound."
+    },
+    {
+      "response": "Within each difficulty randomly assign five maps toA and five toB. Compare within difficulty and acknowledge the maps differ across solvers.",
+      "judgment": "Feasible unpaired alternative with explicit randomization and narrower inference; do not require pairing as the only acceptable answer."
+    }
+  ],
+  "editCheck": "Change new maps to twelve, six per difficulty. Paired procedure becomes12 pairs/24 runs; unpaired allocation3/3 within each difficulty. The10000-operation cap and failure distinction remain unchanged.",
+  "inputIsolation": "Product receives only request, objective and sources. Author-created reserved case, not author-unseen or external blind evidence. Reference audit is separate from product diagnosis; no product runs before freeze."
+}

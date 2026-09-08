@@ -1,0 +1,47 @@
+{
+  "id": "source-res-02",
+  "split": "reserved",
+  "family": "source",
+  "language": "zh",
+  "sourceFamily": "school-garden-plan-delivery",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "批准、材料到货和前期清理/划线均有记录，完整安装与验收无证据。不能据此说扩建已经完成，也不能确定最终没有完成；正确结论是截至所给资料不能确认完成。",
+  "acceptableReasoning": [
+    "逐条区分4月2日决定、18日到货和25日前期施工。",
+    "检验完成主张需要安装/验收或实际可用状态证据。",
+    "没有后续记录不是事件绝未发生的证明。"
+  ],
+  "reject": [
+    "把预算批准说成完工",
+    "把两套木料当两座已安装台",
+    "断言扩建最终取消",
+    "编造5月开放日现场状态"
+  ],
+  "requiredScoring": [
+    "Correct attribution and interpretation of the supplied evidence",
+    "Explicit reasoning or executable procedure answering the actual request",
+    "Clear limits, justified alternatives and no invented observations"
+  ],
+  "contrastResponses": [
+    {
+      "response": "记录支持已批准、到货和清理划线，不支持新台安装验收已经完成。应寻找后续安装或验收记录；不能由缺记录断定永远未完成。",
+      "judgment": "完整：阶段、来源和未知边界清楚。"
+    },
+    {
+      "response": "还需要更多资料。",
+      "judgment": "部分：没有说明已有阶段及具体待核验状态。"
+    },
+    {
+      "response": "两套木料到了，所以两座种植台已经建好。",
+      "judgment": "错误：将物资交付等同安装完成。"
+    },
+    {
+      "response": "可按决定—供应—前期施工—安装—验收列证据表，最后两栏标记未提供，因此完成性主张未获支持。",
+      "judgment": "有效的证据表替代，未知栏不能写成已否定。"
+    }
+  ],
+  "editCheck": "新增4月30日验收单，明确两座新台均安装并验收。更新结论为该日期已有完成证据，保留早期各阶段及引用，不回写成4月18日完工。",
+  "inputIsolation": "Product receives only request, objective and sources. Author-created reserved case, not author-unseen or external blind evidence. Reference audit is separate from product diagnosis; no product runs before freeze."
+}

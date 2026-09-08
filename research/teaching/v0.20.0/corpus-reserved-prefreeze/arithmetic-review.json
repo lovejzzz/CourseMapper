@@ -1,0 +1,231 @@
+{
+  "reviewer": "implementer",
+  "productRuns": 0,
+  "modelCalls": 0,
+  "quantity": [
+    {
+      "id": "quantity-res-02",
+      "before": [
+        "11/20",
+        "1/2"
+      ],
+      "edited": [
+        "13/20",
+        "7/10"
+      ]
+    },
+    {
+      "id": "quantity-res-05",
+      "before": [
+        "31/52",
+        "1/2"
+      ],
+      "edited": [
+        "11/26",
+        "3/8"
+      ]
+    },
+    {
+      "id": "quantity-res-01",
+      "before": {
+        "bounds": [
+          8,
+          31,
+          34,
+          57
+        ],
+        "witnesses": [
+          [
+            23,
+            26,
+            8,
+            0
+          ],
+          [
+            0,
+            3,
+            31,
+            23
+          ]
+        ],
+        "feasibleIntegers": 24
+      },
+      "edited": {
+        "bounds": [
+          2,
+          25,
+          34,
+          57
+        ],
+        "witnesses": [
+          [
+            23,
+            32,
+            2,
+            0
+          ],
+          [
+            0,
+            9,
+            25,
+            23
+          ]
+        ],
+        "feasibleIntegers": 24
+      }
+    },
+    {
+      "id": "quantity-res-04",
+      "before": {
+        "bounds": [
+          0,
+          16,
+          18,
+          34
+        ],
+        "witnesses": [
+          [
+            18,
+            16,
+            0,
+            11
+          ],
+          [
+            2,
+            0,
+            16,
+            27
+          ]
+        ],
+        "feasibleIntegers": 17
+      },
+      "edited": {
+        "bounds": [
+          3,
+          18,
+          30,
+          45
+        ],
+        "witnesses": [
+          [
+            15,
+            27,
+            3,
+            0
+          ],
+          [
+            0,
+            12,
+            18,
+            15
+          ]
+        ],
+        "feasibleIntegers": 16
+      }
+    },
+    {
+      "id": "quantity-res-03",
+      "observed": "29/70",
+      "percentage": 41.42857142857143,
+      "edited": "1/2",
+      "population": "unknown"
+    },
+    {
+      "id": "quantity-res-06",
+      "observed": "0",
+      "edited": "5/22",
+      "population": "unknown"
+    }
+  ],
+  "experimentalResources": [
+    [
+      "experiment-res-01",
+      26,
+      [
+        13,
+        13
+      ],
+      [
+        6,
+        6,
+        7,
+        7
+      ]
+    ],
+    [
+      "experiment-res-02",
+      32,
+      [
+        16,
+        16
+      ],
+      [
+        8,
+        8,
+        8,
+        8
+      ]
+    ],
+    [
+      "experiment-res-04",
+      24,
+      [
+        12,
+        12
+      ],
+      [
+        6,
+        6,
+        6,
+        6
+      ]
+    ],
+    [
+      "experiment-res-05",
+      30,
+      [
+        15,
+        15
+      ],
+      [
+        7,
+        7,
+        8,
+        8
+      ]
+    ]
+  ],
+  "pairedDesigns": [
+    {
+      "id": "experiment-res-03",
+      "units": 20,
+      "pairedRuns": 40,
+      "unpairedAllocation": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "editedUnits": 12,
+      "editedPairedRuns": 24
+    },
+    {
+      "id": "experiment-res-06",
+      "units": 16,
+      "pairedRuns": 32,
+      "unpairedAllocation": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "editedUnits": 12,
+      "editedPairedRuns": 24
+    }
+  ],
+  "dateCheck": {
+    "source-res-01": "2025-05-13",
+    "edited": "2025-05-31"
+  },
+  "limitation": "Counts transcribed by the author; rational arithmetic, exhaustive allocations and resource accounting are independent of the product compiler. Not source extraction, model performance or classroom evidence."
+}

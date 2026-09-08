@@ -1,0 +1,18 @@
+{
+  "request": "Build an editable source-argument lesson assessing whether the producer promised that every episode would be live. Require the exact relevant quote, attribution and a bounded conclusion.",
+  "objective": "Preserve negation scope and speaker attribution when testing a claim against a short transcript.",
+  "sources": [
+    {
+      "id": "document-1",
+      "text": "Fictional radio transcript: Host: “Will every episode be broadcast live?” Producer: “I did not promise that every episode would be live. Some interviews may be recorded earlier.”"
+    },
+    {
+      "id": "document-2",
+      "text": "A publicity draft written by an assistant says: “Every episode will be live, according to the producer.” The draft contains no additional interview or signed approval."
+    },
+    {
+      "id": "document-3",
+      "text": "The production sheet labels the first episode live. It gives no formats for the remaining episodes."
+    }
+  ]
+}
