@@ -1,0 +1,94 @@
+[
+  {
+    "id": "pair-en-complete",
+    "operation": "pooled-proportion",
+    "objective": "Compute the pooled survival proportion, compare it to the group mean, and describe what the counts cannot explain.",
+    "inputs": [
+      {
+        "id": "s1",
+        "text": "This fictional nursery report begins with Moss nursery. Moss nursery planted forty seedlings; eighteen seedlings survived the observation week."
+      },
+      {
+        "id": "s2",
+        "text": "The second group is Reed nursery. Reed nursery planted sixty seedlings; forty-two seedlings survived the observation week."
+      },
+      {
+        "id": "s3",
+        "text": "Both nurseries define survival by the same end-of-week inspection. Each seedling belongs to exactly one nursery; no seedling is included in both groups."
+      },
+      {
+        "id": "s4",
+        "text": "Soil conditions and watering amounts were not measured. These counts cannot establish why survival proportions differ."
+      }
+    ]
+  },
+  {
+    "id": "pair-zh-complete",
+    "operation": "pooled-proportion",
+    "objective": "计算合并获批率与两个组的等权平均，并说明两者的权重以及比较的限制。",
+    "inputs": [
+      {
+        "id": "s1",
+        "text": "虚构审核报告首先介绍晨光组。晨光组提交二十四张申请表，其中九张在周四前获批。"
+      },
+      {
+        "id": "s2",
+        "text": "另一个群体是清泉组。清泉组提交三十六张申请表，其中二十七张在周四前获批。"
+      },
+      {
+        "id": "s3",
+        "text": "两组均按同一审核规则，以本周周四为截止时间。每张申请表只属于一个组，两组不存在重复申请表。"
+      },
+      {
+        "id": "s4",
+        "text": "申请内容的难度和完整程度未记录，不能据此确定两组获批率不同的原因。"
+      }
+    ]
+  },
+  {
+    "id": "pair-en-missing-total",
+    "operation": "pooled-proportion",
+    "objective": "Calculate the combined completion proportion if both group totals are available.",
+    "inputs": [
+      {
+        "id": "s1",
+        "text": "The fictional report first lists Elm cohort. Elm cohort has thirty participants; twelve participants completed the module."
+      },
+      {
+        "id": "s2",
+        "text": "Pine cohort has twenty participants who completed the module. Its total number of participants was not recorded."
+      },
+      {
+        "id": "s3",
+        "text": "Both cohorts use the same module completion definition and Friday deadline. Each participant is assigned to exactly one cohort, with no participant shared."
+      },
+      {
+        "id": "s4",
+        "text": "Prior knowledge and study time are absent, so the counts cannot establish a cause for the difference in completion rates."
+      }
+    ]
+  },
+  {
+    "id": "pair-zh-missing-identity",
+    "operation": "pooled-proportion",
+    "objective": "判断能否求两组独立参与者的合并完成率，并说明缺失条件。",
+    "inputs": [
+      {
+        "id": "s1",
+        "text": "虚构记录先介绍朝阳组。朝阳组有三十名参与者，其中十二名完成任务。"
+      },
+      {
+        "id": "s2",
+        "text": "映雪组有四十名参与者，其中二十四名完成任务。"
+      },
+      {
+        "id": "s3",
+        "text": "两组都使用相同任务和同一周五截止时间。两组是否存在重复参与者尚未确定。"
+      },
+      {
+        "id": "s4",
+        "text": "起点能力与练习时长未记录，不能解释完成率差异的原因。"
+      }
+    ]
+  }
+]

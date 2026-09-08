@@ -1,3 +1,4 @@
+import { repairAtomicCountPair } from './scionAtomicCountPair.js';
 import { resolveAtomicSourceAnswer, atomicAnswerSentenceContext } from './scionAtomicSourceAnswer.js';
 import { TEACHING_OPERATION_SPECS } from './teachingOperationPlan.js';
 import {
@@ -205,6 +206,7 @@ export async function proposeAtomicSourceBindings(
   const bindings = {},
     issuesByRole = {},
     statusesByRole = {},
+    witnessesByRole = {},
     zh = /\p{Script=Han}/u.test(snapshot.objective);
   const abort = () => {
     if (signal?.aborted) throw new DOMException('Source proposal cancelled.', 'AbortError');
@@ -231,10 +233,7 @@ export async function proposeAtomicSourceBindings(
         snapshot.operation === 'pooled-proportion'
           ? { countingUnit: 'firstWhole', countedOutcome: 'firstPart' }[item.role]
           : undefined;
-      const countWitness = contextRole
-        ? receipt.attempts.findLast((a) => a.role === contextRole && a.resolution?.status === 'located')?.resolution
-            .witness
-        : null;
+      const countWitness = contextRole ? witnessesByRole[contextRole] : null;
       const questionContext = countWitness ? atomicAnswerSentenceContext(countWitness, snapshot.inputs) : null;
       if (contextRole && !questionContext)
         return { status: 'needs-review', reason: `Locate ${contextRole} before ${item.role}.` };
@@ -354,12 +353,61 @@ export async function proposeAtomicSourceBindings(
       statusesByRole[role] = resolved.status;
       if (resolved.status === 'located') {
         bindings[role] = resolved.binding;
+        witnessesByRole[role] = resolved.witness;
         delete issuesByRole[role];
       } else issuesByRole[role] = resolved.reason;
     };
     for (const step of profile) {
       const item = atomicSourceQuestions(snapshot.operation, bindings, zh).find((i) => i.role === step.role);
       accept(item.role, await ask(item));
+      // Reserve five remaining base questions. Dependent unit/outcome reading
+      // follows this one joint repair, using its updated source witnesses.
+      if (
+        snapshot.operation === 'pooled-proportion' &&
+        item.role === 'secondPart' &&
+        receipt.modelCalls + 6 <= SCION_ATOMIC_CALL_LIMIT
+      ) {
+        const side = ['first', 'second'].find((side) => {
+          const part = bindings[`${side}Part`],
+            whole = bindings[`${side}Whole`];
+          const unresolved = ['Part', 'Whole'].some(
+            (role) => !bindings[side + role] && statusesByRole[side + role] !== 'missing',
+          );
+          return (
+            Boolean(bindings[`${side}Group`]) &&
+            (unresolved ||
+              (part &&
+                whole &&
+                part.inputId === whole.inputId &&
+                part.quote === whole.quote &&
+                part.occurrence === whole.occurrence))
+          );
+        });
+        if (side) {
+          abort();
+          const repaired = await repairAtomicCountPair({
+            api,
+            inputs: snapshot.inputs,
+            group: bindings[`${side}Group`],
+            side,
+            signal,
+            protocol: SCION_ATOMIC_PROPOSAL_PROTOCOL,
+            onAttempt: (entry) => {
+              receipt.attempts.push(entry);
+              receipt.modelCalls++;
+              onProgress?.(zh ? '核对部分与整体…' : 'Checking part and whole…');
+            },
+          });
+          abort();
+          if (repaired)
+            for (const role of ['part', 'whole']) {
+              const field = side + (role === 'part' ? 'Part' : 'Whole');
+              delete bindings[field];
+              delete witnessesByRole[field];
+              accept(field, repaired[role]);
+            }
+        }
+      }
     }
     for (const step of profile) {
       if (

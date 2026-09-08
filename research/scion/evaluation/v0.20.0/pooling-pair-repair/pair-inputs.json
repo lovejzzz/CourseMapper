@@ -1,0 +1,32 @@
+[
+  {
+    "id": "pair-direct-en",
+    "side": "first",
+    "inputs": [
+      {
+        "id": "a",
+        "text": "Brook cohort enrolled thirty readers; eighteen readers completed the journal."
+      }
+    ],
+    "group": {
+      "inputId": "a",
+      "quote": "Brook cohort",
+      "occurrence": 0
+    }
+  },
+  {
+    "id": "pair-direct-zh-missing",
+    "side": "second",
+    "inputs": [
+      {
+        "id": "a",
+        "text": "银杏组有十七名学员达标，参加活动的学员总人数没有记录。"
+      }
+    ],
+    "group": {
+      "inputId": "a",
+      "quote": "银杏组",
+      "occurrence": 0
+    }
+  }
+]

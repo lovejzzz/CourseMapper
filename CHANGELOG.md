@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Connect reviewed pooling to bounded local source questions on the verified runtime. Repair unresolved part/whole pairs before dependent questions, preserve unknown totals, and recover only unique sentence-initial capitalization differences. Retain failed first trials, verify actual Chinese browser adoption, and audit twelve model-derived PDF pages. Full-course and release acceptance remain pending.
+
 - Reject explicit unresolved membership used to justify pooling, expose count reuse alongside missing fields, and preserve full repair diagnostics. Retain two new local model trials, including a false structural pass; audit one correct Scion-derived pooling task, fix its assignment feedback association, and verify linked source edits/reopen. The atomic pooling route remains experimental.
 
 - Use bounded local source questions for reviewed union bounds on the verified runtime. Preserve exact evidence, cancellation and existing teacher selections; retain failed pooling proposals as research. Audit two actual Scion-derived tasks and 24 PDF pages, verify linked count edits/reopen, and fix an assignment error explanation that referred to a different response.

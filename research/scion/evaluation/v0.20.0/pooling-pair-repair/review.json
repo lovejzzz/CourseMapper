@@ -1,0 +1,57 @@
+{
+  "reviewer": "implementer",
+  "independentTeacherReview": false,
+  "sourceReceiptSha256": "133da43c8d5a6dd683afb39e4a725826b93b6a399f1b703ae43c8634fdce52cd",
+  "cases": [
+    {
+      "id": "pair-en-complete",
+      "acceptedForImplementerOutputReview": true,
+      "semanticCorrections": 0,
+      "complete": true,
+      "modelCalls": 11,
+      "elapsedMs": 13031,
+      "firstRunMissing": [],
+      "firstRunIssues": [],
+      "review": "Required source roles correct."
+    },
+    {
+      "id": "pair-zh-complete",
+      "acceptedForImplementerOutputReview": false,
+      "semanticCorrections": 0,
+      "complete": false,
+      "modelCalls": 12,
+      "elapsedMs": 10667,
+      "firstRunMissing": [],
+      "firstRunIssues": [
+        "The firstPart and firstWhole bindings reuse the same source occurrence. Locate each role at its own count."
+      ],
+      "review": "Retain incomplete/contradictory result; no material capture from this first-run candidate."
+    },
+    {
+      "id": "pair-en-missing-total",
+      "acceptedForImplementerOutputReview": false,
+      "semanticCorrections": 0,
+      "complete": false,
+      "modelCalls": 12,
+      "elapsedMs": 9818,
+      "firstRunMissing": [
+        "secondWhole"
+      ],
+      "firstRunIssues": [],
+      "review": "Retain incomplete/contradictory result; no material capture from this first-run candidate."
+    },
+    {
+      "id": "pair-zh-missing-identity",
+      "acceptedForImplementerOutputReview": false,
+      "semanticCorrections": 0,
+      "complete": false,
+      "modelCalls": 11,
+      "elapsedMs": 8733,
+      "firstRunMissing": [],
+      "firstRunIssues": [
+        "The selected membership excerpt leaves overlap unresolved. Supply explicit disjointness evidence before pooling unique units."
+      ],
+      "review": "Retain incomplete/contradictory result; no material capture from this first-run candidate."
+    }
+  ]
+}

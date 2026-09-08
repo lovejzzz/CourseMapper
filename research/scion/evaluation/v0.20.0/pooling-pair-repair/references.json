@@ -1,0 +1,35 @@
+{
+  "notSentToModel": true,
+  "expected": {
+    "pair-en-complete": {
+      "counts": [
+        18,
+        40,
+        42,
+        60
+      ],
+      "pooled": "60%",
+      "mean": "57.5%"
+    },
+    "pair-zh-complete": {
+      "counts": [
+        9,
+        24,
+        27,
+        36
+      ],
+      "pooled": "60%",
+      "mean": "56.25%"
+    },
+    "pair-en-missing-total": "secondWhole must remain missing; never use twenty as total",
+    "pair-zh-missing-identity": "unresolved membership must prevent compilation",
+    "pair-direct-en": {
+      "part": "eighteen",
+      "whole": "thirty"
+    },
+    "pair-direct-zh-missing": {
+      "part": "十七",
+      "whole": "UNKNOWN"
+    }
+  }
+}

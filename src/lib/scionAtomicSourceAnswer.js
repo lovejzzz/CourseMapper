@@ -48,7 +48,23 @@ export function resolveAtomicSourceAnswer(answer, inputs, { type = 'text', input
         return reject('The answer occurs more than once; provide a unique source excerpt.');
     }
   }
-  if (!matches.length) return reject('The answer is not an exact source excerpt.');
+  if (!matches.length) {
+    // Models may capitalize the first word of a quoted sentence fragment.
+    // Match only this bounded editorial difference and retain original bytes.
+    if (
+      type === 'text' &&
+      /^(?:The|Both|Each|Every|This|These|Those|All|No|Neither|Within|Whether|It|There|A|An)\b/u.test(quote)
+    ) {
+      const originalCase = resolveAtomicSourceAnswer(quote[0].toLowerCase() + quote.slice(1), inputs, {
+        type,
+        inputId,
+        context,
+      });
+      if (originalCase.status === 'located')
+        return { ...originalCase, answerNormalization: 'sentence-initial-capital' };
+    }
+    return reject('The answer is not an exact source excerpt.');
+  }
   const witness = matches[0];
   let binding = { inputId: witness.inputId, quote: witness.quote, occurrence: witness.occurrence };
   if (type === 'record') {

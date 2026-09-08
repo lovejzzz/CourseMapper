@@ -95,3 +95,21 @@ it('narrows follow-up reading to the verified count sentence without changing so
   expect(unit.binding.occurrence).toBe(1);
   expect(atomicAnswerSentenceContext({ ...count.witness, quote: 'invented' }, inputs)).toBeNull();
 });
+
+it('retains exact original bytes for a unique sentence-initial capitalization difference', () => {
+  const input = [{ id: 'a', text: 'Every learner belongs to one class; the classes share no learners.' }];
+  const result = resolveAtomicSourceAnswer('The classes share no learners.', input);
+  expect(result.binding.quote).toBe('the classes share no learners.');
+  expect(result.answerNormalization).toBe('sentence-initial-capital');
+  expect(result.witness.start).toBe(input[0].text.indexOf('the classes'));
+  expect(resolveAtomicSourceAnswer('The classes SHARE no learners.', input).status).toBe('needs-review');
+  expect(
+    resolveAtomicSourceAnswer('The classes share no learners.', [
+      ...input,
+      { id: 'b', text: 'the classes share no learners.' },
+    ]).status,
+  ).toBe('needs-review');
+  expect(resolveAtomicSourceAnswer('Twenty', [{ id: 'a', text: 'twenty' }], { type: 'count' }).status).toBe(
+    'needs-review',
+  );
+});

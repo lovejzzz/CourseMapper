@@ -327,7 +327,10 @@ export async function proposeTeachingSourceBindings(
     await api.loadScionBrowserWllama({ signal });
     receipt.loadMs = Math.round(performance.now() - loadStarted);
     receipt.runtime = api.getScionBrowserWllamaStatus?.();
-    if (snapshot.operation === 'union-bounds' && receipt.runtime?.runtime?.grammar === 'gbnf-state-v1') {
+    if (
+      ['union-bounds', 'pooled-proportion'].includes(snapshot.operation) &&
+      receipt.runtime?.runtime?.grammar === 'gbnf-state-v1'
+    ) {
       const { proposeAtomicSourceBindings } = await import('./scionAtomicProposal.js');
       const result = await proposeAtomicSourceBindings(snapshot, {
         signal,

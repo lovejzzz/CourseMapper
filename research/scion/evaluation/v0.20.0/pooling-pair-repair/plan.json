@@ -1,0 +1,16 @@
+{
+  "createdAt": "2026-09-08T09:09:25.963648+00:00",
+  "maxCallsPerCase": 12,
+  "maxTotalCalls": 50,
+  "passes": 1,
+  "directChecks": 2,
+  "scope": "Four full-packet proposals plus two separately identified direct count-pair diagnostics. Direct checks are not full tasks or observed first-stage model mistakes.",
+  "hashes": {
+    "src/lib/scionAtomicCountPair.js": "51d88e24418dc571086ef1b06e670c77724f73058772a970e3b50523ce89c962",
+    "src/lib/scionAtomicProposal.js": "4fe952697f99d1355400ac65696eb4c72414e895db23369d4d2d2f1726264aa0",
+    "src/lib/scionAtomicSourceAnswer.js": "207b6cd67acd48dc6700fcb99008623264e35a8d7fcca70193490b1938ba5ece",
+    "src/lib/scionTeachingProposal.js": "987b1856286bc6a65b7119a4bd7add40fc502b67dde9bfe4c487a3749cca7a35",
+    "research/scion/evaluation/v0.20.0/pooling-pair-repair/inputs.json": "51e9a2baf9afdd29336e820f67b029ca9d0ebfe38a83d52a0cc5105b7338e87e",
+    "research/scion/evaluation/v0.20.0/pooling-pair-repair/pair-inputs.json": "7ca2744ab41e0ae25f8c92705f1079c8db6bb2ea02f53eeb9f85aaa840f2d533"
+  }
+}

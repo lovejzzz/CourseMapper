@@ -1,0 +1,36 @@
+{
+  "notSentToModel": true,
+  "expected": {
+    "early-pair-zh-complete-01": {
+      "counts": [
+        18,
+        32,
+        30,
+        48
+      ],
+      "pooled": "60%",
+      "mean": "59.375%"
+    },
+    "early-pair-zh-complete-02": {
+      "counts": [
+        9,
+        15,
+        14,
+        35
+      ],
+      "pooled": "46%",
+      "mean": "50%"
+    },
+    "early-pair-en-complete": {
+      "counts": [
+        16,
+        24,
+        20,
+        40
+      ],
+      "pooled": "56.25%",
+      "mean": "175/3%"
+    },
+    "early-pair-en-missing-total": "secondWhole must remain missing"
+  }
+}

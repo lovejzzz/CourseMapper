@@ -1,0 +1,56 @@
+{
+  "reviewer": "implementer",
+  "independentTeacherReview": false,
+  "sourceReceiptSha256": "fccde7eec329ac1d32263a8995061d19d39e02a9f7c451f10b6ec81178793b82",
+  "cases": [
+    {
+      "id": "early-pair-zh-complete-01",
+      "acceptedForImplementerOutputReview": true,
+      "semanticCorrections": 0,
+      "complete": true,
+      "modelCalls": 12,
+      "elapsedMs": 14006,
+      "firstRunMissing": [],
+      "firstRunIssues": [],
+      "review": "Required source roles correct."
+    },
+    {
+      "id": "early-pair-zh-complete-02",
+      "acceptedForImplementerOutputReview": true,
+      "semanticCorrections": 0,
+      "complete": true,
+      "modelCalls": 11,
+      "elapsedMs": 9731,
+      "firstRunMissing": [],
+      "firstRunIssues": [],
+      "review": "Required source roles correct."
+    },
+    {
+      "id": "early-pair-en-complete",
+      "acceptedForImplementerOutputReview": false,
+      "semanticCorrections": 0,
+      "complete": false,
+      "modelCalls": 12,
+      "elapsedMs": 10070,
+      "firstRunMissing": [
+        "identityRecord",
+        "distinctMembership"
+      ],
+      "firstRunIssues": [],
+      "review": "Retain incomplete/contradictory result; no material capture from this first-run candidate."
+    },
+    {
+      "id": "early-pair-en-missing-total",
+      "acceptedForImplementerOutputReview": false,
+      "semanticCorrections": 0,
+      "complete": false,
+      "modelCalls": 12,
+      "elapsedMs": 9982,
+      "firstRunMissing": [
+        "secondWhole"
+      ],
+      "firstRunIssues": [],
+      "review": "Retain incomplete/contradictory result; no material capture from this first-run candidate."
+    }
+  ]
+}

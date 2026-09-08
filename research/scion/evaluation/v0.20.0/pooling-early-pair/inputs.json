@@ -1,0 +1,94 @@
+[
+  {
+    "id": "early-pair-zh-complete-01",
+    "operation": "pooled-proportion",
+    "objective": "计算合并通过率与两组等权平均，并解释权重和推断限制。",
+    "inputs": [
+      {
+        "id": "s1",
+        "text": "虚构课程记录先介绍枫桥组。枫桥组共有三十二名学生，其中十八名通过周末测试。"
+      },
+      {
+        "id": "s2",
+        "text": "水杉组共有四十八名学生，其中三十名通过周末测试。"
+      },
+      {
+        "id": "s3",
+        "text": "两组使用完全相同的测试与评分标准，截止时间均为本周日。每名学生只登记在一个组，两组没有重复学生。"
+      },
+      {
+        "id": "s4",
+        "text": "记录不包括前测成绩或学习时长，因此不能解释两组通过率差异的原因。"
+      }
+    ]
+  },
+  {
+    "id": "early-pair-zh-complete-02",
+    "operation": "pooled-proportion",
+    "objective": "计算两批工件合并合格率和批次等权平均，解释比较能说明什么。",
+    "inputs": [
+      {
+        "id": "s1",
+        "text": "虚构检测记录首先介绍青禾批次。青禾批次包含十五件工件，其中九件达到检测标准。"
+      },
+      {
+        "id": "s2",
+        "text": "竹影批次包含三十五件工件，其中十四件达到检测标准。"
+      },
+      {
+        "id": "s3",
+        "text": "两批均使用同一检测标准，以本周三为检测截止日期。每件工件只属于一个批次，批次之间没有重复工件。"
+      },
+      {
+        "id": "s4",
+        "text": "工件材料与加工时长没有记录，这些计数无法解释两批合格率差异的原因。"
+      }
+    ]
+  },
+  {
+    "id": "early-pair-en-complete",
+    "operation": "pooled-proportion",
+    "objective": "Find the pooled attendance completion rate and compare denominator weighting with equal group weighting.",
+    "inputs": [
+      {
+        "id": "s1",
+        "text": "The fictional program first reports Aspen class. Aspen class enrolled twenty-four learners; sixteen learners completed the session."
+      },
+      {
+        "id": "s2",
+        "text": "Laurel class enrolled forty learners; twenty learners completed the session."
+      },
+      {
+        "id": "s3",
+        "text": "Both classes define completion as attending the full session by the same Friday deadline. Each learner belongs to exactly one class; the classes share no learners."
+      },
+      {
+        "id": "s4",
+        "text": "The records omit scheduling constraints and prior experience, so they cannot explain the difference in completion rates."
+      }
+    ]
+  },
+  {
+    "id": "early-pair-en-missing-total",
+    "operation": "pooled-proportion",
+    "objective": "Combine the unique participants only if the records provide the necessary group sizes.",
+    "inputs": [
+      {
+        "id": "s1",
+        "text": "The fictional report first describes Pebble team. Pebble team enrolled thirty participants; twelve participants finished the exercise."
+      },
+      {
+        "id": "s2",
+        "text": "Cloud team had seventeen participants finish the exercise; the total number enrolled is unknown."
+      },
+      {
+        "id": "s3",
+        "text": "Both teams use the same exercise and Sunday cutoff. Every participant belongs to exactly one team and none is counted in both."
+      },
+      {
+        "id": "s4",
+        "text": "Prior experience and available practice time were not collected, so this report cannot establish a cause for differing completion rates."
+      }
+    ]
+  }
+]

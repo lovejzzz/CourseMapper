@@ -1,0 +1,68 @@
+{
+  "sourceCase": "early-pair-zh-complete-01",
+  "scionCalls": 12,
+  "semanticCorrections": 0,
+  "reviewer": "implementer",
+  "independentClassroomAcceptance": false,
+  "pdfVisualReview": {
+    "pages": 12,
+    "allPagesViewed": true,
+    "findings": [
+      "18/32 = 56.25%, 30/48 = 62.5%, pooled 48/80 = 60%; equal-group mean exactly 59.375%.",
+      "Shared concrete task, worked answers, differentiated scoring and misconception feedback are consistent across four reviewed formats.",
+      "Independent practice has separate 16/20 and 24/60 evidence, pooled 50% versus equal mean 60%.",
+      "Student quiz and answer key are separated. No clipped text, missing glyphs or blank continuation pages observed. Teacher keys remain dense."
+    ],
+    "officeVisualReview": false
+  },
+  "browser": {
+    "entry": "existing reviewed source panel, actual Chrome, localhost:17148",
+    "invalidFieldObservedBeforeRun": "secondPart = 待定位",
+    "adoptedQuote": "三十",
+    "modelCalls": 12,
+    "elapsedMs": 14235,
+    "loadMs": 3506,
+    "fieldIssues": {},
+    "teacherReviewRequired": true,
+    "receipt": "research/scion/evaluation/v0.20.0/pooling-early-pair/browser-public-entry.json",
+    "scope": "Proposal adoption only in this run; source-edit/reopen coverage is recorded separately in atomic-pooling-review.json."
+  },
+  "outputs": [
+    {
+      "path": ".audit-work/v0200-teaching-system/atomic-pooling-zh-01/zh/assignments.docx",
+      "sha256": "4ee07d9553ef79ce88126cb1225065007da3c1af63ba501ddca6ffb8662ec62c"
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/atomic-pooling-zh-01/zh/assignments.pdf",
+      "sha256": "6eb0a2b62351ac3568daa44466f2fe77df37629fa84ac77ba39196c3c05ef474"
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/atomic-pooling-zh-01/zh/project.coursemapper",
+      "sha256": "d29f25af0924c0ef2286d100403ee28c49d55791944e7092dd6cb820b8ca2cce"
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/atomic-pooling-zh-01/zh/quizBank.docx",
+      "sha256": "63a21c390a5995efbf67cd1f5b2e2f40e75c5e740248ebd31b46272526c77be9"
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/atomic-pooling-zh-01/zh/quizBank.pdf",
+      "sha256": "2920226316f3e85b9fc0a3479143adbf79b880f6e9c0a85f99bde0b0ec1f3540"
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/atomic-pooling-zh-01/zh/rubrics.docx",
+      "sha256": "702c9aa57d13e7655640f9f10887ba7957af156f90a03a0fb3b7116008bbdafc"
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/atomic-pooling-zh-01/zh/rubrics.pdf",
+      "sha256": "0e591637adff74de6e6dca1a5a15ce0ca79dfedae8d5f43067642de42d2f2503"
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/atomic-pooling-zh-01/zh/studyGuides.docx",
+      "sha256": "bac2d09816dfbd0f338fb1f870a05774917e96ba37bac0dd1367fd6b95500c06"
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/atomic-pooling-zh-01/zh/studyGuides.pdf",
+      "sha256": "9d04cf031e5f24d36e7eac57e5db0087e4b5bc4edd8c1cd22e18f43b1f3d95e9"
+    }
+  ]
+}

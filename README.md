@@ -2,7 +2,7 @@
 
 [EduTool.dev](https://edutool.dev) is an editable course-material workspace for educators. The current release is **0.19.2**, preserving the **0.18.7 interface**, including the original homepage, material selection, course map, chat, editors, revision controls and export sidebar.
 
-**v0.20.0 is in development** on `codex/v0200-teaching-system`. It adds shared source-grounded tasks, linked scoring, persistent review drafts and synchronized material revisions. Verified-runtime union proposals now use bounded local source questions; broader Scion source-role reliability and complete-course acceptance remain unfinished; this branch is not a published v0.20.0 release. See the [roadmap](docs/v0.20.0-roadmap.zh-CN.md), [implementation evidence](docs/v0.20.0-implementation.zh-CN.md) and [current handoff](docs/v0.20.0-handoff.zh-CN.md).
+**v0.20.0 is in development** on `codex/v0200-teaching-system`. It adds shared source-grounded tasks, linked scoring, persistent review drafts and synchronized material revisions. Verified-runtime union and pooling proposals now use bounded local source questions with reviewed evidence and count-pair repair; broader Scion source-role reliability and complete-course acceptance remain unfinished; this branch is not a published v0.20.0 release. See the [roadmap](docs/v0.20.0-roadmap.zh-CN.md), [implementation evidence](docs/v0.20.0-implementation.zh-CN.md) and [current handoff](docs/v0.20.0-handoff.zh-CN.md).
 
 Quality improvements continue within this interface. The experimental Course Studio replacement is preserved for research; it is not the production application.
 

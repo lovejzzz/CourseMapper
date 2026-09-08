@@ -48,6 +48,13 @@ const proposalRuns = proposalDir
 const proposalReviews = proposalDir
   ? JSON.parse(await fs.readFile(path.join(proposalDir, 'review.json'), 'utf8')).cases
   : [];
+const selectedCaseIds = process.argv[6]?.split(',');
+if (selectedCaseIds)
+  assert(
+    selectedCaseIds.every((id) => proposalInputs.some((i) => i.id === id)),
+    'Unknown selected model case.',
+  );
+const selectedCase = (input) => !selectedCaseIds || selectedCaseIds.includes(input.id);
 await fs.mkdir(root, { recursive: false });
 const actualFetch = globalThis.fetch;
 // A CLI has no Vite asset server. Load only the same shipped font bytes that
@@ -74,6 +81,7 @@ try {
     ? [false, true].filter((zh) =>
         proposalInputs.some(
           (i) =>
+            selectedCase(i) &&
             i.operation === operation &&
             /\p{Script=Han}/u.test(i.objective) === zh &&
             proposalReviews.some((r) => r.id === i.id && r.acceptedForImplementerOutputReview),
@@ -95,6 +103,7 @@ try {
     if (proposalDir) {
       const candidates = proposalInputs.filter(
         (i) =>
+          selectedCase(i) &&
           i.operation === operation &&
           /\p{Script=Han}/u.test(i.objective) === zh &&
           proposalReviews.some((r) => r.id === i.id && r.acceptedForImplementerOutputReview),

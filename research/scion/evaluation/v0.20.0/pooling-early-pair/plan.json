@@ -1,0 +1,13 @@
+{
+  "createdAt": "2026-09-08T09:14:20.629532+00:00",
+  "maxCallsPerCase": 12,
+  "maxTotalCalls": 48,
+  "passes": 1,
+  "scope": "Joint repair handles unresolved multi-count answers before dependent reading, retaining a fixed twelve-call limit. Three complete packets and one missing-total case; no same-case prompt loops.",
+  "hashes": {
+    "src/lib/scionAtomicCountPair.js": "32c2b7650ebde77dd5b76fb014a9630c57cba9e60921abb0e5d2ef5c23aeec3e",
+    "src/lib/scionAtomicProposal.js": "2f0c072c9b42de42a3d366ed0b8a8747b89b2cd7122d3bc856dd43c7053251c8",
+    "src/lib/scionAtomicSourceAnswer.js": "207b6cd67acd48dc6700fcb99008623264e35a8d7fcca70193490b1938ba5ece",
+    "research/scion/evaluation/v0.20.0/pooling-early-pair/inputs.json": "00ff3b8adaad99117bf94fb6b07059fd2b7c8b2a58210d420406a6d2bf4d597a"
+  }
+}
