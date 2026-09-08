@@ -89,6 +89,34 @@ export function requiresInstructorSourcesOnly(sourceBrief = '') {
 const INSTRUCTION_SENTENCE_RE =
   /^(?:learners?|students?|instructors?)\s+(?:must|should|will|need)|^(?:build|create|design|include|produce|generate|write|make|keep|avoid|do not)\b/i;
 
+// A labeled source packet is data even when its quoted prose contains verbs
+// such as “ignore” or “write”. Only outer brief headings end this section.
+// Do not infer unlabeled prose, summaries or URL lists as supplied evidence.
+function labeledSourceRecords(text) {
+  const header = /^(?:#{1,6}\s*)?(?:sources|source records|来源|来源记录|资料来源)\s*[:：]\s*$/im.exec(text);
+  if (!header) return null;
+  const records = [];
+  const labels = new Set();
+  const lines = text.slice(header.index + header[0].length).split('\n');
+  for (const line of lines) {
+    if (!line.trim()) continue;
+    if (
+      /^\s*(?:#{1,6}\s*)?(?:task|instructions?|requests?|objectives?|learning objectives?|assessment|任务|要求|指令|学习目标|教学目标|评分)\s*[:：]/i.test(
+        line,
+      )
+    )
+      break;
+    const row = /^\s*(?:[-*•]\s+)?([\p{L}\p{N}][\p{L}\p{N} _-]{0,49})\s*[:：]\s*(\S.*)$/u.exec(line);
+    if (!row || /^(?:https?|ftp)$/i.test(row[1])) break;
+    const label = row[1].trim();
+    // Ambiguous repeated labels cannot silently overwrite an earlier record.
+    if (labels.has(label)) return [];
+    labels.add(label);
+    records.push(`${label}: ${row[2]}`);
+  }
+  return records;
+}
+
 /**
  * Recover only the facts the instructor explicitly labels as provided facts.
  * This is intentionally not a general summarizer: it preserves complete
@@ -100,6 +128,8 @@ export function extractInstructorProvidedFacts(sourceBrief = '') {
   const text = String(sourceBrief || '')
     .replace(/\r\n?/g, '\n')
     .trim();
+  const explicitRecords = labeledSourceRecords(text);
+  if (explicitRecords !== null) return explicitRecords;
   const marker =
     text.match(/\b(?:source|instructor[- ]provided|provided|following|these) facts?\s*:\s*/i) ||
     text.match(/\buse only (?:these |the )?(?:supplied|provided) facts?[.:]\s*/i);

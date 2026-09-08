@@ -137,3 +137,35 @@ it('keeps fabricated practice scaffolds under review when no specific answer was
   const printed = paper({ quizzes: [{ lessonTitle: 'Unsolved practice', questions: recovery }] }).join('\n');
   expect(printed).toContain('Teacher review required');
 });
+
+it('prints the actual source list for a source-ledger fallback and still requires a specific reviewed key', () => {
+  const facts = [
+    'Letter: Completed yesterday, written 18 August; no year is supplied.',
+    'Interview: Recorded 4 October, recalling installation in August.',
+    'Limit: The first successful operation date is unknown.',
+  ];
+  const blueprint = buildCourseBlueprint(
+    {
+      courseName: 'Source chronology',
+      lessons: [{ title: 'Dates', sections: [{ learningObjectives: 'Compare event and reporting dates.' }] }],
+    },
+    { instructorProvidedFacts: facts },
+  );
+  const lesson = blueprint.lessons[0];
+  lesson.enrichment = {};
+  blueprint.enrichment = { coverage: { missingLessons: [lesson.lessonNumber] } };
+  const items = buildQuizAtomsForLesson(lesson, blueprint, { assessment: {} });
+  expect(items.every((item) => item.enrichmentSource === 'compiler-exact-source-ledger')).toBe(true);
+  expect(items.every((item) => item.sourceReviewRequired)).toBe(true);
+  expect(items[0].practiceRecord.records).toEqual(facts);
+  const content = paper({
+    quizzes: [{ lessonTitle: 'Source chronology', practiceRecord: items[0].practiceRecord, questions: items }],
+  });
+  const student = content
+    .slice(
+      0,
+      content.findIndex((text) => text.includes('Answer Key')),
+    )
+    .join('\n');
+  for (const fact of facts) expect(student).toContain(fact);
+});

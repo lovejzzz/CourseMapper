@@ -1,0 +1,404 @@
+{
+  "status": "development rerun after source-block extraction repair; still fails classroom completion",
+  "caseId": "source-dev-07",
+  "samePromptAsFirst": true,
+  "projectPath": ".audit-work/v0200-teaching-system/v3-natural-source-dev-07-source-fix/project.coursemapper",
+  "projectSha256": "1c6a338e09e7d762583fd291840cb6eea4a6d40b9836fb8cb58ab5ae509af338",
+  "coreSourceCheck": {
+    "facts": [
+      "letter: Fictional letter dated 18 August: “We finished installing the pump yesterday.” The supplied packet gives no year.",
+      "interview: An interview recorded on 4 October recalls: “The pump was installed sometime in August.” The archive identifies the same installation, not a second pump.",
+      "note: No source says that the interview recording date was the installation date. There is no evidence about when the pump first operated successfully."
+    ],
+    "lesson": "lesson-1",
+    "modelCalls": 0,
+    "scope": "saved natural brief to actual compiler input; not complete regeneration"
+  },
+  "budgetReceipt": {
+    "schemaVersion": 1,
+    "runId": "run-1788841501402",
+    "startedAt": 1788841501402,
+    "updatedAt": 1788841524590,
+    "buildUpdatedAt": 1788841523012,
+    "buildElapsedMs": 21610,
+    "modelDiscoveryCalls": 0,
+    "creditCheckCalls": 0,
+    "capabilityProbeCalls": 0,
+    "courseMapCalls": 0,
+    "courseIRCalls": 0,
+    "nativeSkeletonCalls": 1,
+    "deliverableChunkCalls": 0,
+    "blueprintEnrichmentCalls": 1,
+    "voicePassCalls": 0,
+    "repairRetryCalls": 0,
+    "streamRetryCalls": 0,
+    "providerFallbackCalls": 0,
+    "agentLoopCalls": 0,
+    "imageGenerationCalls": 0,
+    "modelRequestStarts": 1,
+    "genomeLinkEvents": 1,
+    "failedCalls": 0,
+    "retriedCalls": 0,
+    "skippedExamineCalls": 1,
+    "failureClasses": {},
+    "costPlan": {
+      "source": "finalizer:generation",
+      "featureIds": [
+        "syllabus",
+        "lessonPlans",
+        "slideDecks",
+        "assignments",
+        "rubrics",
+        "discussions",
+        "quizBank",
+        "studyGuides",
+        "courseFaq"
+      ],
+      "lessonCount": 1,
+      "initialCourseMapCalls": 0,
+      "deliverableChunkCalls": 0,
+      "blueprintEnrichmentCalls": 0,
+      "blueprintEnrichmentRecoveryReserve": 0,
+      "repairRetryReserve": 0,
+      "finalizerRetryReserve": 8,
+      "reservedCalls": 8,
+      "includeDeliverableChunks": false,
+      "includeRepairRetryReserve": false,
+      "plannedCalls": 10,
+      "softCallLimit": 13,
+      "hardCallLimit": 16,
+      "baseProviderCalls": 2,
+      "plannedNewCalls": 8,
+      "softNewCallLimit": 11,
+      "hardNewCallLimit": 14,
+      "cumulative": true
+    },
+    "tokenUsage": {
+      "inputTokens": 1765,
+      "outputTokens": 319,
+      "totalTokens": 2084,
+      "cachedInputTokens": 0,
+      "cacheWriteInputTokens": 0,
+      "reasoningOutputTokens": 0,
+      "costUsd": 0,
+      "costKnownCallCount": 1,
+      "costUnknownCallCount": 0,
+      "costEstimatedCallCount": 1,
+      "estimatedCallCount": 0,
+      "reportedCallCount": 1,
+      "byModel": {
+        "public:scion-public": {
+          "provider": "public",
+          "modelId": "scion-public",
+          "inputTokens": 1765,
+          "outputTokens": 319,
+          "totalTokens": 2084,
+          "costUsd": 0,
+          "costKnownCallCount": 1,
+          "costUnknownCallCount": 0,
+          "costEstimatedCallCount": 1,
+          "estimated": false
+        }
+      }
+    },
+    "featureUsage": {
+      "nativeSkeleton": {
+        "inputTokens": 1765,
+        "outputTokens": 319,
+        "totalTokens": 2084,
+        "cachedInputTokens": 0,
+        "cacheWriteInputTokens": 0,
+        "reasoningOutputTokens": 0,
+        "costUsd": 0,
+        "costKnownCallCount": 1,
+        "costUnknownCallCount": 0,
+        "costEstimatedCallCount": 1,
+        "estimatedCallCount": 0,
+        "reportedCallCount": 1,
+        "byModel": {
+          "public:scion-public": {
+            "provider": "public",
+            "modelId": "scion-public",
+            "inputTokens": 1765,
+            "outputTokens": 319,
+            "totalTokens": 2084,
+            "costUsd": 0,
+            "costKnownCallCount": 1,
+            "costUnknownCallCount": 0,
+            "costEstimatedCallCount": 1,
+            "estimated": false
+          }
+        }
+      }
+    },
+    "compilerSavings": {
+      "featureIds": [
+        "syllabus",
+        "lessonPlans",
+        "slideDecks",
+        "assignments",
+        "rubrics",
+        "discussions",
+        "quizBank",
+        "studyGuides",
+        "courseFaq"
+      ],
+      "source": "enriched-blueprint",
+      "compiledFeatureCount": 9,
+      "savedProviderCalls": 9,
+      "lastAt": 1788841522978
+    },
+    "pipeline": {
+      "courseIRAuthoring": "public Scion · one typed skeleton call before lesson-kernel authoring",
+      "courseMap": "Scion V0.19.2 · typed skeleton (sessions, assessments, readings, resources)",
+      "scionExecution": "browser-local Gemma 4 · public weights · local inference",
+      "examine": "skipped: native authoring — Pass B authors lesson content next",
+      "genomeLinker": "0 genome + 0 cached (0 genome-backed) of 1 lessons (0 concepts, 0 citations, 0 bridges)",
+      "judgment": "not evaluated (0 genome-linked lessons)",
+      "local-compiler": "2 unresolved contract issues forwarded to per-atom admission",
+      "scionFactLedgerStage": "bound · model facts frozen before deterministic compiler projection",
+      "stage": "mcVerify:lesson-1 skipped [same-model-solver-is-not-an-independent-verifier] · passBudget:lesson-1 bounded [0/0-calls-used-before-admissionGate] · improvementPasses:lesson-1 skipped [grounded-adapter-bounded-repair-policy:0/0]",
+      "canonicalKernelAdmission": "all lesson ids present · lesson-1:lesson:source-ledger-facts-only · lesson-1:authoring:no-authoring-fields",
+      "enrichmentModelStage": "ran (0/1 — lesson 1 fell back to template) (linker: ran)",
+      "nativeAuthoring": "assembled 1 sessions onto Pass A entity ids · outcomes/activities 1/1 · knowledge kernels admitted 0/1 · 0 registry readings · CurriculumV1 source 1 lessons",
+      "knowledgeBackbone": "The approved or exact-source-only route uses supplied evidence; no duplicate reading search.",
+      "courseGraph": "1 sessions · 1 concepts · 1 outcomes · 1 assessments · 0 findings",
+      "groundingMetrics": "overall 41.3% · syllabus 3% · lessonPlans 7% · slideDecks 25% · assignments 99% · rubrics 22% · discussions 96% · quizBank 57% · studyGuides 4% · courseFaq 22%"
+    },
+    "enrichmentOutcome": {
+      "modelStage": "ran",
+      "required": false,
+      "route": "model-enrichment",
+      "enrichedLessons": 0,
+      "requestedLessons": 1,
+      "missingLessons": [1]
+    }
+  },
+  "lastRunDigest": {
+    "digestVersion": 1,
+    "appVersion": "0.19.2",
+    "runId": "run-1788841501402",
+    "finishRunId": "finish-mts6225n-oplsj",
+    "at": "2026-09-08T04:25:33.271Z",
+    "elapsedMs": 31869,
+    "run": {
+      "provider": "public",
+      "models": ["scion-public"],
+      "lessonCount": 1,
+      "features": [
+        "courseMap",
+        "syllabus",
+        "lessonPlans",
+        "slideDecks",
+        "assignments",
+        "rubrics",
+        "discussions",
+        "quizBank",
+        "studyGuides",
+        "courseFaq"
+      ],
+      "providerCalls": 1,
+      "pipelineCalls": 2
+    },
+    "pipeline": {
+      "courseIRAuthoring": "public Scion · one typed skeleton call before lesson-kernel authoring",
+      "courseMap": "Scion V0.19.2 · typed skeleton (sessions, assessments, readings, resources)",
+      "scionExecution": "browser-local Gemma 4 · public weights · local inference",
+      "examine": "skipped: native authoring — Pass B authors lesson content next",
+      "genomeLinker": "0 genome + 0 cached (0 genome-backed) of 1 lessons (0 concepts, 0 citations, 0 bridges)",
+      "judgment": "not evaluated (0 genome-linked lessons)",
+      "local-compiler": "2 unresolved contract issues forwarded to per-atom admission",
+      "scionFactLedgerStage": "bound · model facts frozen before deterministic compiler projection",
+      "stage": "mcVerify:lesson-1 skipped [same-model-solver-is-not-an-independent-verifier] · passBudget:lesson-1 bounded [0/0-calls-used-before-admissionGate] · improvementPasses:lesson-1 skipped [grounded-adapter-bounded-repair-policy:0/0]",
+      "canonicalKernelAdmission": "all lesson ids present · lesson-1:lesson:source-ledger-facts-only · lesson-1:authoring:no-authoring-fields",
+      "enrichmentModelStage": "ran (0/1 — lesson 1 fell back to template) (linker: ran)",
+      "nativeAuthoring": "assembled 1 sessions onto Pass A entity ids · outcomes/activities 1/1 · knowledge kernels admitted 0/1 · 0 registry readings · CurriculumV1 source 1 lessons",
+      "knowledgeBackbone": "The approved or exact-source-only route uses supplied evidence; no duplicate reading search.",
+      "courseGraph": "1/1/1 sessions/concepts/outcomes",
+      "groundingMetrics": "overall 41.3% · syllabus 3% · lessonPlans 7% · slideDecks 25% · assignments 99% · rubrics 22% · discussions 96% · quizBank 57% · studyGuides 4% · courseFaq 22%",
+      "enrichment": "ran (0/1 — lesson 1 fell back to template)"
+    },
+    "compilerSavings": {
+      "featureIds": [
+        "syllabus",
+        "lessonPlans",
+        "slideDecks",
+        "assignments",
+        "rubrics",
+        "discussions",
+        "quizBank",
+        "studyGuides",
+        "courseFaq"
+      ],
+      "source": "enriched-blueprint",
+      "compiledFeatureCount": 9,
+      "savedProviderCalls": 9,
+      "lastAt": 1788841522978
+    },
+    "cost": {
+      "totalUsd": 0,
+      "totalDisplay": "$0.00",
+      "inputTokens": 1765,
+      "outputTokens": 319,
+      "reasoningOutputTokens": 0,
+      "cachedInputTokens": 0,
+      "accuracy": "tokens provider-reported; cost from published per-token rates",
+      "byTask": [
+        {
+          "task": "nativeSkeleton",
+          "calls": 1,
+          "inputTokens": 1765,
+          "outputTokens": 319,
+          "reasoningOutputTokens": 0,
+          "cachedInputTokens": 0,
+          "costUsd": 0,
+          "costKnown": true
+        }
+      ]
+    },
+    "gates": {
+      "finalStatus": "blocked",
+      "trustState": "blocked",
+      "blockers": 2,
+      "warnings": 21,
+      "warningDomains": {
+        "schemaVersion": 1,
+        "readiness": 6,
+        "retry": 0,
+        "export": 1,
+        "quality": 3,
+        "source": 11,
+        "total": 21
+      },
+      "blockerDomains": {
+        "schemaVersion": 1,
+        "readiness": 1,
+        "quality": 1,
+        "export": 0,
+        "total": 2
+      },
+      "repairsApplied": 8,
+      "retryCallCount": 0,
+      "repairRetryCallCount": 0,
+      "finishRetryCallCount": 0,
+      "exportStatus": "passed",
+      "exportContentDisposition": "needs-review",
+      "exportChecked": 38,
+      "exportFailed": 0,
+      "exportWarnings": 1,
+      "qualityStatus": "graded",
+      "qualityScore": 74,
+      "qualityGrade": "C",
+      "automatedReadinessScore": 46,
+      "automatedReadinessMax": 100,
+      "automatedReadinessCeiling": 50,
+      "automatedReadinessBand": "limited-positive-deterministic-evidence",
+      "deterministicEvidenceProtocol": "coursemapper-deterministic-package-evidence-v2",
+      "deterministicEvidenceLost": 4,
+      "deterministicEvidenceUnobserved": 50,
+      "qualityP0": 1,
+      "qualityP1": 2,
+      "qualityP2": 2,
+      "compiledWithoutEnrichment": false,
+      "enrichmentCoverage": 0,
+      "flaggedChecks": [
+        {
+          "featureId": "quality",
+          "status": "failed",
+          "message": "package conformance 74/100 (C) — 1 P0, 2 P1, 2 P2; handout or packet is required by the lesson but is not resolved against a trusted source or packaged artifact"
+        },
+        {
+          "featureId": "content",
+          "status": "failed",
+          "message": "partial enrichment (0/1) — lesson 1 fell back to template"
+        },
+        {
+          "featureId": "courseMap",
+          "status": "failed",
+          "message": "Enrichment covered 0/1 lessons; lesson 1 fell back to template. Retry or repair enrichment before exporting a clean package."
+        },
+        {
+          "featureId": "courseMap",
+          "status": "failed",
+          "message": "Package quality grader found 1 blocking P0 finding (score 74/100, grade C) — review the quality report before downloading"
+        },
+        {
+          "featureId": "quizBank",
+          "status": "warning",
+          "message": "6 questions need a specific instructor-reviewed answer. Source statements and general scoring guidance do not establish a complete reference response."
+        },
+        {
+          "featureId": "quizBank",
+          "status": "warning",
+          "message": "Quiz & Exam Bank readability is grade level 16.4 — too complex"
+        },
+        {
+          "featureId": "rubrics",
+          "status": "warning",
+          "message": "Rubrics readability is grade level 16.3 — too complex"
+        },
+        {
+          "featureId": "assignments",
+          "status": "warning",
+          "message": "Assignments readability is grade level 16.6 — too complex"
+        },
+        {
+          "featureId": "courseFaq",
+          "status": "warning",
+          "message": "Course FAQ readability is grade level 16.7 — too complex"
+        },
+        {
+          "featureId": "studyGuides",
+          "status": "warning",
+          "message": "1 content quality finding(s): dangling-clause — e.g. \"Work directly with the supplied claim cards labeled Claim A and Claim B about Analyzing the Fictional Letter: Identifying the Broad Interval\""
+        },
+        {
+          "featureId": "studyGuides",
+          "status": "warning",
+          "message": "1 content quality finding(s): dangling-clause."
+        }
+      ]
+    }
+  },
+  "quality": {
+    "status": "blocked",
+    "handoffStatus": "blocked",
+    "uiScore": 46
+  },
+  "questions": [
+    {
+      "enrichmentSource": "compiler-exact-source-ledger",
+      "sourceReviewRequired": true
+    },
+    {
+      "enrichmentSource": "compiler-exact-source-ledger",
+      "sourceReviewRequired": true
+    },
+    {
+      "enrichmentSource": "compiler-exact-source-ledger",
+      "sourceReviewRequired": true
+    },
+    {
+      "enrichmentSource": "compiler-exact-source-ledger",
+      "sourceReviewRequired": true
+    },
+    {
+      "enrichmentSource": "compiler-exact-source-ledger",
+      "sourceReviewRequired": true
+    },
+    {
+      "enrichmentSource": "compiler-exact-source-ledger",
+      "sourceReviewRequired": true
+    }
+  ],
+  "findings": [
+    "Source blocks now reach the actual compiler as three full supplied records.",
+    "Rerun uses exact-source-ledger fallback instead of invented A–D practice framing and requires review, but references remain generic and shared task count is zero.",
+    "Saved rerun still omitted source text from the quiz. A subsequent compiler fix now attaches supplied facts as practiceRecord; covered by compiler-to-PDF-definition regression, not another model run."
+  ],
+  "limitations": [
+    "Exposed development input, not a fresh Scion acceptance case.",
+    "Raw model response strings and all intermediate states still missing from exported project.",
+    "The preserved rerun precedes the final source-list print fix; do not claim it contains that fix."
+  ]
+}

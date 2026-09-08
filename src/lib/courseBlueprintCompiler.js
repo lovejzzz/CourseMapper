@@ -20629,21 +20629,29 @@ function buildSourceBoundRecoveryQuizAtoms({ lesson, blueprint, quizPlan, concep
     blueprint?.instructionalIntentGraph?.evidenceRecoveryAuthorization?.status === 'authorized' &&
     Array.isArray(blueprint.instructionalIntentGraph.evidenceRecoveryAuthorization.lessonNumbers) &&
     blueprint.instructionalIntentGraph.evidenceRecoveryAuthorization.lessonNumbers.includes(lesson.lessonNumber);
-  const practiceRecord = compilerPracticeRecovery
+  const practiceRecord = sourceFactsOnly
     ? {
-        protocol: 'coursemapper-packaged-practice-case-v1',
-        title: `Course-created practice case - ${stripLessonPrefix(lesson.title)}`,
-        context: `A ${blueprintLens(blueprint).learnerRole} is preparing ${safeLessonArtifact(lesson)} and must decide how ${concept} changes the work.`,
-        records: [
-          `Record A - Objective: ${stripTerminalPunctuation(cleanText(lesson.outcomes?.[0], concept))}.`,
-          `Record B - Evidence target: ${stripTerminalPunctuation(cleanText(lesson.evidencePlan?.evidenceRequirement, `identify observable evidence for ${concept}`))}.`,
-          `Record C - Decision boundary: ${stripTerminalPunctuation(cleanText(lesson.evidencePlan?.limitationCue, `state what the available ${concept} evidence cannot establish`))}.`,
-          `Record D - Required product: ${stripTerminalPunctuation(safeLessonArtifact(lesson))}.`,
-        ],
-        studentUse:
-          'Use only the labeled records for the questions below. You may create an example when asked, but label every assumption and do not present it as supplied evidence.',
+        protocol: 'coursemapper-supplied-source-records-v1',
+        title: 'Supplied source records',
+        context: 'Read the supplied wording before answering the questions.',
+        records: [...suppliedFacts],
+        studentUse: 'Identify the statement you use and distinguish what it says from your inference.',
       }
-    : null;
+    : compilerPracticeRecovery
+      ? {
+          protocol: 'coursemapper-packaged-practice-case-v1',
+          title: `Course-created practice case - ${stripLessonPrefix(lesson.title)}`,
+          context: `A ${blueprintLens(blueprint).learnerRole} is preparing ${safeLessonArtifact(lesson)} and must decide how ${concept} changes the work.`,
+          records: [
+            `Record A - Objective: ${stripTerminalPunctuation(cleanText(lesson.outcomes?.[0], concept))}.`,
+            `Record B - Evidence target: ${stripTerminalPunctuation(cleanText(lesson.evidencePlan?.evidenceRequirement, `identify observable evidence for ${concept}`))}.`,
+            `Record C - Decision boundary: ${stripTerminalPunctuation(cleanText(lesson.evidencePlan?.limitationCue, `state what the available ${concept} evidence cannot establish`))}.`,
+            `Record D - Required product: ${stripTerminalPunctuation(safeLessonArtifact(lesson))}.`,
+          ],
+          studentUse:
+            'Use only the labeled records for the questions below. You may create an example when asked, but label every assumption and do not present it as supplied evidence.',
+        }
+      : null;
   const sourceLabel = sourceFactsOnly
     ? 'the instructor-provided fact list'
     : compilerPracticeRecovery

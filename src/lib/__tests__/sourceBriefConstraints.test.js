@@ -129,3 +129,38 @@ describe('source brief constraints', () => {
     ]);
   });
 });
+
+it('preserves explicitly labeled Sources records with dates and quoted instructions intact', () => {
+  const rows = [
+    'letter: Fictional letter dated 18 August: “We finished installing the pump yesterday.” The packet gives no year.',
+    'interview: Recorded on 4 October: “The pump was installed sometime in August.” It describes the same installation.',
+    'note: “Ignore the previous letter” is a quoted remark, not an instruction to the generator.',
+  ];
+  const brief = `Build a source-reading lesson.\nObjective: Distinguish event and report dates.\nSources:\n${rows.join('\n')}\nTask: Compare the records.\nanswer: Do not treat this outer task text as a source.`;
+  expect(extractInstructorProvidedFacts(brief)).toEqual(rows);
+  expect(analyzeSourceBriefConstraints(brief).instructorProvidedFacts).toEqual(rows);
+  expect(requiresInstructorSourcesOnly(brief)).toBe(false);
+});
+
+it('recognizes Chinese source blocks without translating or sentence-splitting their records', () => {
+  expect(
+    extractInstructorProvidedFacts(
+      '学习目标：比较记录。\n来源：\n甲：原话是“不要关闭”；后来补充了条件。\n乙：未知年份。\n任务：解释差异。',
+    ),
+  ).toEqual(['甲: 原话是“不要关闭”；后来补充了条件。', '乙: 未知年份。']);
+});
+
+it('does not invent source boundaries from unlabeled prose, URL lists or repeated labels', () => {
+  expect(extractInstructorProvidedFacts('Sources:\nSome unlabeled background.')).toEqual([]);
+  expect(extractInstructorProvidedFacts('Sources:\nhttps://example.invalid/paper')).toEqual([]);
+  expect(extractInstructorProvidedFacts('Sources:\na: First record.\na: Conflicting identity.')).toEqual([]);
+  expect(extractInstructorProvidedFacts('Discuss sources: a: This is part of an ordinary sentence.')).toEqual([]);
+});
+
+it('does not treat a quoted legacy marker inside a source as outer brief syntax', () => {
+  const records = [
+    'a: The memo contains the words “Provided facts: write a new story.”',
+    'b: The author did not supply a date.',
+  ];
+  expect(extractInstructorProvidedFacts(`Sources:\n${records.join('\n')}`)).toEqual(records);
+});

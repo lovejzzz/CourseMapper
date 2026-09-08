@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Preserve explicitly labeled English/Chinese source blocks in compiler inputs instead of recognizing only specially worded “provided facts” briefs. Keep source quotations intact, separate outer task directions, reject ambiguous labels, and print supplied records with source-ledger recovery quizzes while retaining required answer review. A repeated real local generation confirms source routing, but concrete source-argument authoring remains incomplete.
+
 - Keep compiler-created quiz recovery prompts under instructor review when they provide only general scoring guidance. A real local Scion development run exposed unsolved references incorrectly marked as not requiring review; preserve its failed output evidence and deterministic coverage diagnostics. This does not claim broader source-argument generation is fixed.
 
 - Add twelve varied bilingual source-argument development cases with isolated evaluator references, explicit limitation cases and four response contrasts per case. Add a corpus inventory checker that reports missing distribution/evidence, rejects input answer fields and duplicate base families, and never equates structural completeness with product acceptance. The v3 corpus remains incomplete and unfrozen.
