@@ -565,8 +565,13 @@ export default function useDeliverables({
 
   const generateAll = useCallback(
     async (courseMap, features, scopeIndices = null, syncGenOrOptions = null) => {
-      const generationOptions =
+      let generationOptions =
         syncGenOrOptions && typeof syncGenOrOptions === 'object' ? syncGenOrOptions : { syncGenId: syncGenOrOptions };
+      if (generationOptions.mode === 'retry') {
+        const { reviewedTaskRetryOptions } = await import('../lib/reviewedTaskRetry.js');
+        const reviewedRetry = reviewedTaskRetryOptions(courseMap, features, scopeIndices);
+        if (reviewedRetry) generationOptions = { ...generationOptions, ...reviewedRetry };
+      }
       const syncGenId = generationOptions.syncGenId ?? null;
       const costMode = generationOptions.mode || 'generation';
       const countInitialChunksAsRepair = costMode === 'finalizerRetry';
@@ -2600,7 +2605,7 @@ export default function useDeliverables({
         // assembled map through CurriculumV1, so this early map repair remains
         // prose-path-only.
         const courseMapRepair =
-          nativeSkeleton || directCourseIR
+          nativeSkeleton || directCourseIR || generationOptions.reviewedTaskRetry
             ? { courseMap, changed: false, repairedFields: [] }
             : repairCourseMapReadiness({
                 courseMap,
@@ -2682,6 +2687,7 @@ export default function useDeliverables({
         }
         if (
           !directCourseIRState &&
+          !generationOptions.reviewedTaskRetry &&
           !nativeSkeleton &&
           preDraftInstructionalPlan?.admission?.status === 'approved' &&
           generationOptions.refreshEnrichment !== true &&
@@ -5769,7 +5775,9 @@ export default function useDeliverables({
       // 17-entry quiz bank.
       const existingKey = getArrayKey(featureId, existingDataSnapshot);
       const existingArr = existingDataSnapshot?.[existingKey] || [];
+      let lessonMergeRejected = false;
       const onLessonMergeReject = (reason) => {
+        lessonMergeRejected = true;
         appendLog(`⚠ ${label}: Lesson ${lessonIndex + 1} regen result rejected — ${reason}`, 'warn');
         traceGeneration(
           regenerationRunId,
@@ -5820,7 +5828,8 @@ export default function useDeliverables({
 
         if (canCompileSyncLesson) {
           try {
-            const { compileBlueprintLessonPatch } = await import('../lib/compiledLessonSync');
+            const { compileBlueprintLessonPatch, mergeCompiledLessonTaskSources } =
+              await import('../lib/compiledLessonSync');
             if (isRegenerationCancelled()) return buildAbortedResult();
             const { createLessonKernelCache } = await import('../lib/genome/lessonKernelCache');
             if (isRegenerationCancelled()) return buildAbortedResult();
@@ -5979,6 +5988,10 @@ export default function useDeliverables({
                 nextData = { ...existingDataSnapshot, [existingKey]: merged };
               }
               nextData = preserveTeacherEdits(existingDataSnapshot, nextData);
+              if (compileResult.sourceTaskCompiled && !lessonMergeRejected) {
+                const [lessonNumber] = resolveExpectedDeliverableLessonNumbers(courseMap, [lessonIndex]);
+                nextData = mergeCompiledLessonTaskSources(nextData, finalParsed, courseMap, lessonNumber);
+              }
               dispatch(actions.setDeliverableDone(featureId, nextData));
               if (compileResult.enrichedLessonCount > 0) {
                 const requestedLessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons.length : 0;

@@ -1,0 +1,34 @@
+{
+  "baselineCommit": "76beb090",
+  "case": "source-dev03 reviewed attribution task, existing saved project",
+  "workflow": [
+    "Explicit Retry with reviewed task",
+    "Single-lesson Regen for quiz, lesson plans and discussions",
+    "Save actual project from Chrome"
+  ],
+  "artifacts": {
+    "after.coursemapper": {
+      "path": ".audit-work/v0200-teaching-system/reviewed-retry/after.coursemapper",
+      "sha256": "6681264d7d8522bda2268926c011c138d32fb260ed5d90728350c3625caa9c1e"
+    },
+    "after-source-sync.coursemapper": {
+      "path": ".audit-work/v0200-teaching-system/reviewed-retry/after-source-sync.coursemapper",
+      "sha256": "df3e7077301073e345c7c5754335b6f69bbbb12129b67b546d5c258ae13cdad6"
+    }
+  },
+  "observed": {
+    "teachingProgramUnchanged": true,
+    "allNineSourceLedgersEqual": true,
+    "deliverableCount": 9,
+    "staleFeatures": [],
+    "sourceReviewFeatures": [],
+    "modelRequestStartsBefore": 7,
+    "modelRequestStartsAfter": 7,
+    "packageQualityStatus": "blocked"
+  },
+  "limitations": [
+    "Unchanged counters plus zero-call routing support no new model calls; this is not a latency benchmark.",
+    "Package remains blocked; saved constraints still interpret three source records as ordered lessons. Investigate legacy constraint migration separately.",
+    "No new PDF/Office visual acceptance, fresh Scion unit, reserved benchmark or production deployment in this run."
+  ]
+}

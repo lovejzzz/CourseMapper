@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { checkReviewedPracticeCount } from '../reviewedPracticeCount.js';
+import { reviewedTaskRetryOptions } from '../reviewedTaskRetry.js';
+import { mergeCompiledLessonTaskSources } from '../compiledLessonSync.js';
 import { normalizeQuizBankQuestionCounts, validateDeliverableGeneration } from '../deliverablePostProcess.js';
 import { createTeachingOperationPlan, validateTeachingOperationPlan } from '../teachingOperationPlan.js';
 import { renderTeachingOperationTask } from '../teachingOperationTask.js';
@@ -173,6 +175,47 @@ describe('reviewed claim attribution contract', () => {
       return { courseMap: result.courseMap, deliverables: { ...state.deliverables, ...result.changed } };
     };
     const first = apply({ courseMap, deliverables, draft });
+    const canonicalSource = readTeachingTaskSources(first.courseMap)[0];
+    const recompiled = compileBlueprintDeliverables(buildCourseBlueprint(first.courseMap), features, {
+      configMap: { lessonPlans: { sessionLength: 75 } },
+    });
+    for (const feature of features) expect(recompiled[feature].teachingTaskSources[0]).toEqual(canonicalSource);
+    const staleMetadata = {
+      ...recompiled.quizBank,
+      teachingTaskSources: [{ ...canonicalSource, sessionMinutes: 75 }],
+      taskSourceReview: 'Different revision',
+    };
+    const refreshed = mergeCompiledLessonTaskSources(staleMetadata, recompiled.quizBank, first.courseMap, 1);
+    expect(refreshed.teachingTaskSources).toEqual([canonicalSource]);
+    expect(refreshed.taskSourceReview).toBeUndefined();
+    const other = { ...canonicalSource, id: 'unrelated-saved-source', lessonNumber: 2 };
+    const partial = mergeCompiledLessonTaskSources(
+      { ...staleMetadata, teachingTaskSources: [...staleMetadata.teachingTaskSources, other] },
+      recompiled.quizBank,
+      first.courseMap,
+      1,
+    );
+    expect(partial.teachingTaskSources[1]).toEqual(other);
+    expect(partial.taskSourceReview).toBe('Different revision');
+    const wrongPatch = {
+      ...recompiled.quizBank,
+      teachingTaskSources: [{ ...canonicalSource, objective: 'Unreviewed change' }],
+    };
+    expect(mergeCompiledLessonTaskSources(staleMetadata, wrongPatch, first.courseMap, 1)).toBe(staleMetadata);
+    expect(reviewedTaskRetryOptions(first.courseMap, ['quizBank'])).toMatchObject({
+      mode: 'finalizerRetry',
+      maxProviderCalls: 0,
+      reviewedTaskRetry: true,
+    });
+    expect(reviewedTaskRetryOptions(courseMap, ['quizBank'])).toBeNull();
+    expect(reviewedTaskRetryOptions(first.courseMap, ['custom'])).toBeNull();
+    expect(reviewedTaskRetryOptions(first.courseMap, ['quizBank'], [1])).toBeNull();
+    const partlyReviewed = {
+      ...first.courseMap,
+      lessons: [...first.courseMap.lessons, { title: 'Lesson 2: Unreviewed' }],
+    };
+    expect(reviewedTaskRetryOptions(partlyReviewed, ['quizBank'])).toBeNull();
+    expect(reviewedTaskRetryOptions(partlyReviewed, ['quizBank'], [0])?.maxProviderCalls).toBe(0);
     expect(JSON.stringify(first.deliverables.quizBank.data)).not.toContain('Unsupported invented knowledge source');
     expect(JSON.stringify(first.deliverables.quizBank.data)).toContain('Protected machine-scored question');
     const retry = first.deliverables.quizBank.data.quizzes[0].questions.find(

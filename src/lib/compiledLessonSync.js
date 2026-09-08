@@ -1,4 +1,7 @@
 import { getArrayKey } from './syncDependencies';
+import { readTeachingTaskSources } from './teachingProgram.js';
+import { sameJsonData } from './canonicalJson.js';
+
 import {
   buildCourseBlueprint,
   BLUEPRINT_COMPILE_CONTEXT,
@@ -12,6 +15,26 @@ import { applyLessonDepthToConfigMap } from './lessonDepth';
 import { sanitizeGenomeEnrichmentForLesson, sanitizeLessonTitleEchoEnrichment } from './lessonSemanticRelevance';
 import { assessScionKeyTermContract } from './scionKeyTermContract';
 import { extractInstructorProvidedFacts, resolveRequestedClassSessionMinutes } from './sourceBriefConstraints';
+
+export function mergeCompiledLessonTaskSources(data, patch, courseMap, lessonNumber) {
+  const canonical = readTeachingTaskSources(courseMap);
+  const replacements = (patch?.teachingTaskSources || []).filter(
+    (source) => source.lessonNumber === lessonNumber && canonical.some((current) => sameJsonData(current, source)),
+  );
+  if (!replacements.length) return data;
+  const next = {
+    ...data,
+    teachingTaskSources: [
+      ...(data.teachingTaskSources || []).filter((source) => source.lessonNumber !== lessonNumber),
+      ...structuredClone(replacements),
+    ].sort((a, b) => a.lessonNumber - b.lessonNumber),
+  };
+  if (next.teachingTaskSources.every((source) => canonical.some((current) => sameJsonData(current, source)))) {
+    delete next.taskSourceReview;
+    delete next.taskSourceReviewLesson;
+  }
+  return next;
+}
 
 function cleanText(value, fallback = '') {
   return String(value ?? fallback)

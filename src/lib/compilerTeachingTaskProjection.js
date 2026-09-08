@@ -16,6 +16,17 @@ import {
 } from './compilerTeachingTaskQuiz.js';
 
 const ref = (task) => ({ taskId: task.id, taskRevision: task.revision });
+function projectedTaskSources(blueprint) {
+  const canonical = new Map(readTeachingTaskSources(blueprint).map((source) => [source.id, source]));
+  return blueprint.lessons
+    .map((lesson) => {
+      const saved = canonical.get(lesson.teachingTask?.id);
+      return saved
+        ? { ...structuredClone(saved), lessonNumber: lesson.lessonNumber }
+        : teachingTaskSourceFromLesson(lesson);
+    })
+    .filter(Boolean);
+}
 const evidence = (task, prior) => ({ ...prior, claims: task.inputs.map((x) => x.text) });
 const sourcePacket = (task) => task.inputs.map((input, index) => `Source record ${index + 1}: ${input.text}`).join(' ');
 const isCompilerSourcePacket = (value) => typeof value === 'string' && /^Source record 1: /.test(value);
@@ -476,7 +487,7 @@ function projectPlan(row, task) {
 export function projectSharedTeachingTasks(feature, data, blueprint, options = {}) {
   if (!data) return data;
   const previousSources = data.teachingTaskSources || [];
-  data.teachingTaskSources = blueprint.lessons.map(teachingTaskSourceFromLesson).filter(Boolean);
+  data.teachingTaskSources = projectedTaskSources(blueprint);
   const keys = {
     lessonPlans: 'lessonPlans',
     slideDecks: 'decks',
@@ -760,10 +771,5 @@ export function projectTeachingTasksIntoCourseMap(courseMap, blueprint) {
     // present when an instructor supplies an alternative activity formulation.
     return { ...sourceLesson, sections, teachingTaskLink: { ...ref(task), question: task.question, generatedFields } };
   });
-  return changed
-    ? withTeachingTaskSources(
-        { ...courseMap, lessons },
-        blueprint.lessons.map(teachingTaskSourceFromLesson).filter(Boolean),
-      )
-    : courseMap;
+  return changed ? withTeachingTaskSources({ ...courseMap, lessons }, projectedTaskSources(blueprint)) : courseMap;
 }

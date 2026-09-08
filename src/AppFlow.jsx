@@ -4267,9 +4267,11 @@ export default function AppFlow({
                     lessonScope={lessonScope.type === 'specific' ? lessonScope.indices : null}
                     onRetry={() => {
                       const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
-                      deliv.generateAll(courseMap, [activeTab], scopeIndices);
+                      setPackageQualityPass({ status: 'idle', message: '' });
+                      deliv.generateAll(courseMap, [activeTab], scopeIndices, { mode: 'retry' });
                     }}
                     onRegenerateLesson={(lessonIndex, regenerationOptions) => {
+                      setPackageQualityPass({ status: 'idle', message: '' });
                       deliv.regenerateLesson(activeTab, courseMap, lessonIndex, regenerationOptions);
                     }}
                     onDataChange={(newData, editPath) => {
