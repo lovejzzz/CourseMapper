@@ -16,7 +16,7 @@ const replay = async (id, pair, { truncated = false, abort = false, ambiguous = 
       loadScionBrowserWllama: async () => {},
       getScionBrowserWllamaStatus: () => ({ runtime: { grammar: 'gbnf-state-v1' } }),
       completeScionBrowserWllama: async (messages, options) => {
-        if (options.grammar.includes('"\\\"part\\\""')) {
+        if (options.grammar?.includes('"\\\"part\\\""')) {
           if (truncated) options.onCompletion({ finishReason: 'length' });
           if (abort) controller.abort();
           return JSON.stringify(pair);
@@ -111,3 +111,53 @@ it('routes actual bilingual pooling replies through the public entry with bounde
     expect(result.admission).toBeUndefined();
   }
 });
+
+it('resolves a repeated count inside its located group clause rather than the first global occurrence', async () => {
+  const { repairAtomicCountPair } = await import('../scionAtomicCountPair.js');
+  const { resolveAtomicSourceAnswer } = await import('../scionAtomicSourceAnswer.js');
+  const inputs = [
+    { id: 'counts', text: 'North issued twelve tablets. At South, twelve of forty-eight tablets returned.' },
+  ];
+  const group = resolveAtomicSourceAnswer('South', inputs, { type: 'label' });
+  let entry;
+  const result = await repairAtomicCountPair({
+    api: { completeScionBrowserWllama: async () => JSON.stringify({ part: 'twelve', whole: 'forty-eight' }) },
+    inputs,
+    group: group.binding,
+    groupWitness: group.witness,
+    side: 'second',
+    protocol: 'test',
+    onAttempt: (e) => (entry = e),
+  });
+  expect(result.part.binding).toEqual({ inputId: 'counts', quote: 'twelve', occurrence: 1 });
+  expect(result.whole.binding.quote).toBe('forty-eight');
+  expect(entry.groupContext.quote).toContain('At South');
+  expect(entry.accepted).toBe(true);
+});
+
+it.each(['repeated-in-clause', 'stale-context'])(
+  'refuses group-context disambiguation for %s evidence',
+  async (failure) => {
+    const { repairAtomicCountPair } = await import('../scionAtomicCountPair.js');
+    const { resolveAtomicSourceAnswer } = await import('../scionAtomicSourceAnswer.js');
+    const text =
+      failure === 'repeated-in-clause'
+        ? 'North issued twelve tablets. At South, twelve tablets and twelve spares belonged to forty-eight items.'
+        : 'North issued twelve tablets. At South, twelve of forty-eight tablets returned.';
+    const inputs = [{ id: 'counts', text }];
+    const located = resolveAtomicSourceAnswer('South', inputs, { type: 'label' });
+    const witness = failure === 'stale-context' ? { ...located.witness, start: 0 } : located.witness;
+    let entry;
+    const result = await repairAtomicCountPair({
+      api: { completeScionBrowserWllama: async () => JSON.stringify({ part: 'twelve', whole: 'forty-eight' }) },
+      inputs,
+      group: located.binding,
+      groupWitness: witness,
+      side: 'second',
+      protocol: 'test',
+      onAttempt: (e) => (entry = e),
+    });
+    expect(result).toBeNull();
+    expect(entry.accepted).toBe(false);
+  },
+);

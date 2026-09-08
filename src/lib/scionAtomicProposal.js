@@ -9,6 +9,7 @@ import {
 
 export const SCION_ATOMIC_PROPOSAL_PROTOCOL = 'scion-atomic-source-questions-v1';
 export const SCION_ATOMIC_ATTRIBUTION_PROTOCOL = 'scion-attribution-atomic-questions-v2';
+export const SCION_POOLED_ATOMIC_PROTOCOL = 'scion-pooled-atomic-questions-v2';
 export const SCION_ATOMIC_CALL_LIMIT = 12;
 const grammar = String.raw`root ::= "{" ws "\"answer\"" ws ":" ws string ws "}"
 string ::= "\"" character{1,1000} "\""
@@ -270,11 +271,16 @@ export async function proposeAtomicSourceBindings(
   }
   const receipt = {
     protocol:
-      snapshot.operation === 'claim-attribution' ? SCION_ATOMIC_ATTRIBUTION_PROTOCOL : SCION_ATOMIC_PROPOSAL_PROTOCOL,
+      snapshot.operation === 'claim-attribution'
+        ? SCION_ATOMIC_ATTRIBUTION_PROTOCOL
+        : snapshot.operation === 'pooled-proportion'
+          ? SCION_POOLED_ATOMIC_PROTOCOL
+          : SCION_ATOMIC_PROPOSAL_PROTOCOL,
     inputRevision: teachingProposalInputRevision(snapshot),
     startedAt: new Date().toISOString(),
     callLimit: SCION_ATOMIC_CALL_LIMIT,
     maxNewTokens: 192,
+    ...(snapshot.operation === 'pooled-proportion' ? { groupReasoningMaxNewTokens: 1024 } : {}),
     modelCalls: 0,
     attempts: [],
   };
@@ -354,10 +360,16 @@ export async function proposeAtomicSourceBindings(
             (repair ? '\n' + (zh ? '上次问题：' : 'Previous problem: ') + repairInstruction : ''),
         },
       ];
+      // Group identity is a semantic decision: a record heading and an
+      // explicitly excluded service are not counted groups. Reason here;
+      // retain short constrained extraction for the dependent source spans.
+      const thinking = snapshot.operation === 'pooled-proportion' && ['firstGroup', 'secondGroup'].includes(item.role);
+      const settings = { maxNewTokens: thinking ? 1024 : 192, thinking };
       const entry = {
         role: item.role,
         messages,
-        grammar,
+        settings,
+        ...(!thinking ? { grammar } : {}),
         ...(owner ? { requiredInputId: owner } : {}),
         ...(questionContext ? { questionContext } : {}),
       };
@@ -370,13 +382,12 @@ export async function proposeAtomicSourceBindings(
       );
       const time = performance.now();
       entry.raw = await api.completeScionBrowserWllama(messages, {
-        maxNewTokens: 192,
+        ...settings,
         temperature: 0,
         topK: 1,
         topP: 1,
         seed: 7,
-        thinking: false,
-        grammar,
+        ...(!thinking ? { grammar } : {}),
         signal,
         taskFamily: 'unclassified',
         promptProtocol: receipt.protocol,
@@ -391,7 +402,11 @@ export async function proposeAtomicSourceBindings(
       abort();
       let resolved;
       try {
-        const value = JSON.parse(entry.raw);
+        // The reasoning runtime returns its final answer only. Accept one
+        // complete JSON fence, never extract JSON from arbitrary commentary.
+        const answerText = entry.raw.trim();
+        const fenced = thinking && /^```(?:json)?\s*\n([\s\S]*?)\n```$/i.exec(answerText);
+        const value = JSON.parse(fenced ? fenced[1] : answerText);
         if (!value || Array.isArray(value) || Object.keys(value).length !== 1 || typeof value.answer !== 'string')
           throw Error('Return exactly one answer string.');
         entry.answer = value.answer;
@@ -475,6 +490,7 @@ export async function proposeAtomicSourceBindings(
             api,
             inputs: snapshot.inputs,
             group: bindings[`${side}Group`],
+            groupWitness: witnessesByRole[`${side}Group`],
             side,
             signal,
             protocol: SCION_ATOMIC_PROPOSAL_PROTOCOL,

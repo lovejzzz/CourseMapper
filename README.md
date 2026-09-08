@@ -75,7 +75,7 @@ The compatibility suite exercises the restored material views, editing/sync cont
 
 **Scion currently runs locally. The shared free online API is temporarily paused because its allowance cannot reliably serve visitors.** The online option is removed, saved online selections migrate to local Scion, and the Cloudflare relay rejects new health/completion requests before touching quota storage or Google. No paid fallback is enabled.
 
-Local Scion uses pinned Gemma 4 E2B weights on compatible devices. First use downloads approximately 3.35 GB. Model downloads and optional source research still need a network connection. Some source-ledger operations use the deterministic evidence compiler with zero model calls; receipts distinguish those operations from inference. No new adapter has been trained or promoted.
+Local Scion uses pinned Gemma 4 E2B weights on compatible devices. First use downloads approximately 3.35 GB. Model downloads and optional source research still need a network connection. Some source-ledger operations use the deterministic evidence compiler with zero model calls; receipts distinguish those operations from inference. No new adapter has been trained or promoted. On the v0.20 development branch, pooled-proportion proposals use bounded reasoning for group identification and short constrained extraction for other fields. A recorded English development case improves, at increased latency; broader model acceptance remains pending.
 
 The ten materials, editors, sync and exports retain the 0.18.7 interface. An automatic review after a single material regeneration performs deterministic checks without starting unrelated model retries. Explicit generation and Finish package actions retain their bounded repair paths.
 

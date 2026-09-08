@@ -2,6 +2,9 @@
 
 ## Unreleased — v0.20.0 development
 
+- Enable bounded local reasoning for the two pooled-group identity questions while retaining short grammar-constrained extraction elsewhere and the 12-call cap. Reject truncated, extra-field or commentary-wrapped answers. A real exposed English control identifies both groups correctly with reasoning; this is not a general accuracy claim.
+- Disambiguate a repeated repaired count using the already located group clause, preserving the actual source occurrence; reject stale or still-ambiguous contexts. Browser review now produces the 35% pooled result, synchronizes nine materials and survives refresh/undo/redo. Thirteen PDF pages reviewed; generic leftover quiz questions and a task/rubric mismatch remain open.
+
 - Preserve explicitly labeled single-lesson teacher objectives independently of an English action-verb whitelist, including Chinese labels and complete same-line objectives. Keep source-record labels outside this authority boundary. A real local Scion rerun now retains the supplied weighting objective instead of generic outcomes; the unchanged input and both run receipts are recorded. Subsequent pooled-source proposals still fail group identification and remain unapplied.
 
 - Preserve drafting terminology, document states and student revision actions instead of globally rewriting them to make materials sound complete. A v3 development output exposed “drafting dates” being changed to “developing dates”; the language regression suite now runs in the standard Scion checks.

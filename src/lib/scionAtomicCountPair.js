@@ -1,4 +1,4 @@
-import { resolveAtomicSourceAnswer } from './scionAtomicSourceAnswer.js';
+import { resolveAtomicSourceAnswer, atomicAnswerSentenceContext } from './scionAtomicSourceAnswer.js';
 
 const grammar = String.raw`root ::= "{" ws "\"part\"" ws ":" ws string ws "," ws "\"whole\"" ws ":" ws string ws "}"
 string ::= "\"" character{1,1000} "\""
@@ -6,14 +6,19 @@ character ::= [^"\\\x00-\x1F] | "\\" (["\\/bfnrt] | "u" [0-9a-fA-F]{4})
 ws ::= [ \t\n\r]{0,4}`;
 
 /** One joint repair checks both sides; it never guesses which reused role was wrong. */
-export async function repairAtomicCountPair({ api, inputs, group, side, signal, protocol, onAttempt }) {
+export async function repairAtomicCountPair({ api, inputs, group, groupWitness, side, signal, protocol, onAttempt }) {
   const source = inputs.find((i) => i.id === group?.inputId);
   if (!source) return null;
+  const groupContext =
+    groupWitness?.inputId === source.id && groupWitness.quote === group.quote
+      ? atomicAnswerSentenceContext(groupWitness, inputs)
+      : null;
   const zh = /\p{Script=Han}/u.test(source.text);
   const entry = {
     role: `${side}Counts`,
     repairKind: 'unresolved-part-whole',
     requiredInputId: source.id,
+    ...(groupContext ? { groupContext } : {}),
     grammar,
     messages: [
       {
@@ -63,7 +68,7 @@ export async function repairAtomicCountPair({ api, inputs, group, side, signal, 
     )
       throw Error('Return exactly the part and whole count strings.');
     entry.resolutions = Object.fromEntries(
-      ['part', 'whole'].map((role) => [role, resolvePairCount(value[role], inputs, source.id)]),
+      ['part', 'whole'].map((role) => [role, resolvePairCount(value[role], inputs, source.id, groupContext)]),
     );
     const { part, whole } = entry.resolutions;
     if (![part, whole].every((r) => ['located', 'missing'].includes(r.status)))
@@ -84,8 +89,13 @@ export async function repairAtomicCountPair({ api, inputs, group, side, signal, 
   }
 }
 
-function resolvePairCount(answer, inputs, inputId) {
-  const result = resolveAtomicSourceAnswer(answer, inputs, { type: 'count', inputId });
+function resolvePairCount(answer, inputs, inputId, groupContext) {
+  let result = resolveAtomicSourceAnswer(answer, inputs, { type: 'count', inputId });
+  // A repeated number elsewhere in the record need not invalidate the
+  // uniquely located occurrence beside this group. Do not choose the first
+  // global occurrence, or guess when the group's own clause is ambiguous.
+  if (groupContext && result.status === 'needs-review' && result.reason.includes('occurs more than once'))
+    result = resolveAtomicSourceAnswer(answer, inputs, { type: 'count', inputId, context: groupContext });
   // A quoted absence statement is retained as evidence of missing information,
   // never converted to a numerical value. All other non-count text is rejected.
   if (

@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><title>Local group identification control</title>
+  <h1>Group identification: thinking control</h1>
+  <p>Four serial calls on an exposed development input. No product change or acceptance score.</p>
+  <button id="run">Run four calls</button
+  ><button id="cancel" disabled>Cancel</button
+  ><button id="save" disabled>Save receipt</button>
+  <pre id="result" role="status">Idle</pre>
+  <script type="module">
+    import {
+      loadScionBrowserWllama,
+      completeScionBrowserWllama,
+      getScionBrowserWllamaStatus,
+      unloadScionBrowserWllama,
+    } from '/src/lib/scionBrowserWllama.js';
+    if (!['localhost', '127.0.0.1'].includes(location.hostname)) throw Error('Local only');
+    const run = document.querySelector('#run'),
+      cancel = document.querySelector('#cancel'),
+      save = document.querySelector('#save'),
+      view = document.querySelector('#result');
+    let receipt, controller;
+    const render = () =>
+      (view.textContent = JSON.stringify(
+        {
+          status: receipt.status,
+          completed: receipt.calls.length,
+          total: 4,
+          current: receipt.current,
+          error: receipt.error,
+        },
+        null,
+        2,
+      ));
+    run.onclick = async () => {
+      run.disabled = true;
+      cancel.disabled = false;
+      controller = new AbortController();
+      receipt = {
+        protocol: 'pooled-group-thinking-control-v1',
+        startedAt: new Date().toISOString(),
+        status: 'loading',
+        calls: [],
+        limits:
+          'Exposed quantity-dev-01; exact original group questions, no grammar in either arm, equal output limit. No reference answers sent.',
+      };
+      render();
+      try {
+        const previous = await (
+          await fetch('/research/teaching/v0.20.0/quantity-dev-01-natural/source-proposal-receipt.json')
+        ).json();
+        const start = performance.now();
+        await loadScionBrowserWllama({ signal: controller.signal });
+        receipt.loadMs = performance.now() - start;
+        receipt.runtime = getScionBrowserWllamaStatus();
+        for (const thinking of [false, true])
+          for (const role of ['firstGroup', 'secondGroup']) {
+            if (controller.signal.aborted) break;
+            // Whitelist messages only: previous answers and evaluator judgments stay outside inference.
+            const original = previous.attempts.find((a) => a.role === role);
+            const messages = original.messages.map((m) => ({ role: m.role, content: m.content }));
+            const call = {
+              role,
+              thinking,
+              messages,
+              settings: { maxNewTokens: 1024, temperature: 0, topK: 1, topP: 1, seed: 7, thinking },
+            };
+            receipt.current = `${role}, thinking=${thinking}`;
+            receipt.status = 'running';
+            render();
+            const started = performance.now();
+            try {
+              call.raw = await completeScionBrowserWllama(messages, {
+                ...call.settings,
+                signal: controller.signal,
+                taskFamily: 'unclassified',
+                promptProtocol: 'pooled-group-thinking-control-v1',
+                onCompletion: (v) => (call.completion = structuredClone(v)),
+                onAdapterRoute: (v) => (call.route = structuredClone(v)),
+              });
+            } catch (e) {
+              call.error = e.message;
+            }
+            call.elapsedMs = performance.now() - started;
+            receipt.calls.push(call);
+            render();
+          }
+        receipt.status = controller.signal.aborted ? 'cancelled' : 'completed-for-review';
+      } catch (e) {
+        receipt.error = e.message;
+        receipt.status = 'failed';
+      } finally {
+        await unloadScionBrowserWllama();
+        receipt.finishedAt = new Date().toISOString();
+        cancel.disabled = true;
+        save.disabled = false;
+        render();
+      }
+    };
+    cancel.onclick = () => controller.abort();
+    save.onclick = () => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([JSON.stringify(receipt, null, 2)], { type: 'application/json' }));
+      a.download = 'scion-pooled-group-thinking-control.json';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    };
+  </script>
+</html>

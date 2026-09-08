@@ -1,0 +1,271 @@
+{
+  "date": "2026-09-08",
+  "baseline": "78ae029a",
+  "input": "quantity-dev-01 (exposed development)",
+  "control": [
+    {
+      "role": "firstGroup",
+      "thinking": false,
+      "answer": "```json\n{\n  \"answer\": \"tablet-desks\"\n}\n```",
+      "elapsedMs": 886,
+      "completion": {
+        "finishReason": "stop",
+        "inputTokens": 255,
+        "outputTokens": 19,
+        "contextTokens": 8192,
+        "thinkingEnabled": false,
+        "thinkingObserved": false
+      }
+    },
+    {
+      "role": "secondGroup",
+      "thinking": false,
+      "answer": "```json\n{\n  \"answer\": \"staff equipment service\"\n}\n```",
+      "elapsedMs": 841.3999999761581,
+      "completion": {
+        "finishReason": "stop",
+        "inputTokens": 255,
+        "outputTokens": 18,
+        "contextTokens": 8192,
+        "thinkingEnabled": false,
+        "thinkingObserved": false
+      }
+    },
+    {
+      "role": "firstGroup",
+      "thinking": true,
+      "answer": "```json\n{\n  \"answer\": \"small desk\"\n}\n```",
+      "elapsedMs": 10957.600000023842,
+      "completion": {
+        "finishReason": "stop",
+        "inputTokens": 256,
+        "outputTokens": 514,
+        "contextTokens": 8192,
+        "thinkingEnabled": true,
+        "thinkingObserved": true
+      }
+    },
+    {
+      "role": "secondGroup",
+      "thinking": true,
+      "answer": "```json\n{\n  \"answer\": \"large desk\"\n}\n```",
+      "elapsedMs": 17360.200000047684,
+      "completion": {
+        "finishReason": "stop",
+        "inputTokens": 256,
+        "outputTokens": 827,
+        "contextTokens": 8192,
+        "thinkingEnabled": true,
+        "thinkingObserved": true
+      }
+    }
+  ],
+  "controlFinding": "Both groups wrong without reasoning, both correct with reasoning. No grammar in either arm, same 1024-token ceiling. This is one exposed packet, not generalized accuracy.",
+  "fullProposal": {
+    "modelCalls": 12,
+    "elapsedMs": 36435,
+    "protocol": "scion-pooled-atomic-questions-v2",
+    "appliedAfterImplementerReview": true,
+    "manualSelections": "Choose pooled-proportion; no source or answer corrections. After first reasoning proposal, repeat locate with verified clause disambiguation; existing correct selections retained.",
+    "bindings": {
+      "firstCountRecord": {
+        "inputId": "input-1f55cbad-be8f-4a10-821a-c4e4f0e9c5b9",
+        "start": 0,
+        "end": 301
+      },
+      "secondCountRecord": {
+        "inputId": "input-1f55cbad-be8f-4a10-821a-c4e4f0e9c5b9",
+        "start": 0,
+        "end": 301
+      },
+      "firstPart": {
+        "inputId": "input-1f55cbad-be8f-4a10-821a-c4e4f0e9c5b9",
+        "start": 113,
+        "end": 117
+      },
+      "firstWhole": {
+        "inputId": "input-1f55cbad-be8f-4a10-821a-c4e4f0e9c5b9",
+        "start": 68,
+        "end": 74
+      },
+      "firstGroup": {
+        "inputId": "input-1f55cbad-be8f-4a10-821a-c4e4f0e9c5b9",
+        "start": 50,
+        "end": 60
+      },
+      "secondPart": {
+        "inputId": "input-1f55cbad-be8f-4a10-821a-c4e4f0e9c5b9",
+        "start": 163,
+        "end": 169
+      },
+      "secondWhole": {
+        "inputId": "input-1f55cbad-be8f-4a10-821a-c4e4f0e9c5b9",
+        "start": 177,
+        "end": 188
+      },
+      "secondGroup": {
+        "inputId": "input-1f55cbad-be8f-4a10-821a-c4e4f0e9c5b9",
+        "start": 151,
+        "end": 161
+      },
+      "countingUnit": {
+        "inputId": "input-1f55cbad-be8f-4a10-821a-c4e4f0e9c5b9",
+        "start": 82,
+        "end": 89
+      },
+      "countedOutcome": {
+        "inputId": "input-1f55cbad-be8f-4a10-821a-c4e4f0e9c5b9",
+        "start": 118,
+        "end": 142
+      },
+      "commonDefinition": {
+        "inputId": "input-1f55cbad-be8f-4a10-821a-c4e4f0e9c5b9",
+        "start": 230,
+        "end": 301
+      },
+      "identityRecord": {
+        "inputId": "input-7d66ea4e-006b-46b8-932c-11a47bd94caf",
+        "start": 0,
+        "end": 291
+      },
+      "distinctMembership": {
+        "inputId": "input-7d66ea4e-006b-46b8-932c-11a47bd94caf",
+        "start": 65,
+        "end": 169
+      },
+      "limitRecord": {
+        "inputId": "input-7d66ea4e-006b-46b8-932c-11a47bd94caf",
+        "start": 0,
+        "end": 291
+      }
+    }
+  },
+  "checkedCalculation": {
+    "groupRates": [
+      "9/12 = 75%",
+      "12/48 = 25%"
+    ],
+    "pooled": "21/60 = 35%",
+    "equalGroupMean": "50%",
+    "transfer": "(16+24)/(20+60) = 50%; equal-group mean 60%"
+  },
+  "historyVerification": {
+    "browser": "refresh, Resume, undo, redo, save",
+    "courseMapEqual": true,
+    "allNineMaterialDataEqual": true,
+    "allNineSourceLedgersEqual": true
+  },
+  "exports": {
+    "projectSha256": "d7044c3f5e10c4adf1d441d43d7513be39de5dbd72c354af26328521f1536082",
+    "createdAt": "2026-09-08T15:16:53.222Z",
+    "status": "exported; visual and educational review pending",
+    "modelCalls": 0,
+    "audience": "teacher",
+    "files": [
+      {
+        "name": "assignments.docx",
+        "bytes": 12165,
+        "sha256": "13c88a9366c81ea1698c937bb4c9696d52df2f52b721b82a3a2a69eac17c8873"
+      },
+      {
+        "name": "assignments.pdf",
+        "bytes": 38579,
+        "sha256": "587be470e9f70df93d2df8662f185f25961805cd3e60e27fbf210dde7fced02a"
+      },
+      {
+        "name": "quizBank.docx",
+        "bytes": 14429,
+        "sha256": "94c966bf2f68d3581ef4e6bf3ed99c01f5060c78c3c77defb447a43dd493217c"
+      },
+      {
+        "name": "quizBank.pdf",
+        "bytes": 86972,
+        "sha256": "0d073de61b38e3679755b7b3605c5ea8df391bb94dc3561dfdc0abd45425d814"
+      },
+      {
+        "name": "rubrics.docx",
+        "bytes": 12763,
+        "sha256": "82e7bf9237b1dd2f4ee973a4ccedcd17f77d01f2a49068018d58a6cad4f3abb6"
+      },
+      {
+        "name": "rubrics.pdf",
+        "bytes": 56026,
+        "sha256": "6a9688d315875703a8fe2b669edd8f42411aac8365e7a1d5d69de67fe9bd036c"
+      },
+      {
+        "name": "studyGuides.docx",
+        "bytes": 12064,
+        "sha256": "d36f0b9c411776bf48f033dc37b19b40cd97fbe39be357bfbb17a4ac27b57680"
+      },
+      {
+        "name": "studyGuides.pdf",
+        "bytes": 47481,
+        "sha256": "07067136f4a7f1a9da5e5f6ce6498e885092d1c3bfd7ca928eff6d9ca5fdf3b5"
+      }
+    ]
+  },
+  "visualReview": {
+    "assignments": [
+      1,
+      2
+    ],
+    "quizBank": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "rubrics": [
+      1,
+      2,
+      3
+    ],
+    "studyGuides": [
+      1,
+      2,
+      3
+    ]
+  },
+  "remainingOutputDefects": [
+    {
+      "severity": "major",
+      "feature": "quizBank",
+      "location": "Q1, Q4, Q6",
+      "finding": "Unbound lesson-content-enrichment placeholders survive new pooled-task projection. Q4 reference repeats prompt; Q6 remains a generic teaching essay."
+    },
+    {
+      "severity": "major",
+      "feature": "rubrics",
+      "location": "causal boundary criterion and anchor example",
+      "finding": "Scoring requires specific follow-up evidence but student task asks only for the comparison limits. Align the task and scoring before classroom acceptance."
+    },
+    {
+      "severity": "minor",
+      "feature": "courseMap",
+      "finding": "Course name remains English Teaching Materials Development rather than substantive topic."
+    },
+    {
+      "severity": "minor",
+      "feature": "assignments",
+      "finding": "Duplicated formative-weight metadata; teacher reference prose is dense."
+    }
+  ],
+  "validation": {
+    "fullCheckExit": 0,
+    "studio": 58,
+    "compatibility": 922,
+    "scion": 978
+  },
+  "acceptance": "not-classroom-ready",
+  "limits": [
+    "One exposed English packet; no new Chinese model validation or reserved-case acceptance.",
+    "Word files generated but not opened in Office; PDF all 13 pages visually reviewed.",
+    "No new production deployment, Google conversion, PPTX, or all-ten-material export acceptance."
+  ],
+  "projects": {
+    "project.coursemapper": "5d34d0e3d6a63c330bf782fe9ebaf711e58317b5a00c1fa6ad0ee978d2058acd",
+    "applied.coursemapper": "db92498d414ec7e69c2d5084c68f80bbcc0bac435ba058eda379b7f0d39d9647",
+    "restored-redone.coursemapper": "d7044c3f5e10c4adf1d441d43d7513be39de5dbd72c354af26328521f1536082"
+  }
+}

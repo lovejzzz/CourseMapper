@@ -171,3 +171,56 @@ it('routes verified union proposals through the public entry and retains actual 
     expect(result.admission).toBeUndefined();
   }
 });
+
+it('uses bounded reasoning only for pooled group identity and keeps dependent extraction constrained', async () => {
+  const { pooledCountsFixture } = await import('../../../tests/fixtures/teaching/pooledCounts.js');
+  const f = pooledCountsFixture();
+  const calls = [];
+  const result = await proposeAtomicSourceBindings(
+    { operation: 'pooled-proportion', objective: f.objective, inputs: f.inputs },
+    {
+      runtimeLoader: loader(async (messages, options) => {
+        calls.push(options);
+        if (calls.length <= 2) {
+          expect(options.thinking).toBe(true);
+          expect(options.maxNewTokens).toBe(1024);
+          expect(options.grammar).toBeUndefined();
+          return '```json\n' + JSON.stringify({ answer: calls.length === 1 ? 'small desk' : 'large desk' }) + '\n```';
+        }
+        expect(options.thinking).toBe(false);
+        expect(options.maxNewTokens).toBe(192);
+        expect(options.grammar).toContain('answer');
+        return JSON.stringify({ answer: 'UNKNOWN' });
+      }),
+    },
+  );
+  expect(result.receipt.protocol).toBe('scion-pooled-atomic-questions-v2');
+  expect(result.bindings.firstGroup.quote).toBe('small desk');
+  expect(result.bindings.secondGroup.quote).toBe('large desk');
+  expect(calls.length).toBeLessThanOrEqual(12);
+});
+
+it.each(['truncated', 'commentary', 'extra-field'])(
+  'does not admit a %s reasoning answer as a source binding',
+  async (failure) => {
+    const { pooledCountsFixture } = await import('../../../tests/fixtures/teaching/pooledCounts.js');
+    const f = pooledCountsFixture();
+    const result = await proposeAtomicSourceBindings(
+      { operation: 'pooled-proportion', objective: f.objective, inputs: f.inputs },
+      {
+        runtimeLoader: loader(async (_messages, options) => {
+          if (!options.thinking) return JSON.stringify({ answer: 'UNKNOWN' });
+          if (failure === 'truncated') options.onCompletion({ finishReason: 'length' });
+          const answer = JSON.stringify({
+            answer: 'small desk',
+            ...(failure === 'extra-field' ? { approved: true } : {}),
+          });
+          return failure === 'commentary' ? 'Here is my answer: ' + answer : answer;
+        }),
+      },
+    );
+    expect(result.bindings.firstGroup).toEqual({ inputId: '', quote: '', occurrence: null });
+    expect(result.bindings.secondGroup).toEqual({ inputId: '', quote: '', occurrence: null });
+    expect(result.modelCalls).toBeLessThanOrEqual(12);
+  },
+);
