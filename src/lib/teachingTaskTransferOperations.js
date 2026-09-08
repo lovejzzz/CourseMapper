@@ -5,6 +5,7 @@ import { sourceQuantityTask } from './teachingTaskQuantityOperations.js';
 import { explicitExperimentalDesignTask } from './teachingTaskEvidenceOperations.js';
 import { compareSourceProportions, inconsistentParticipantCountsTask } from './teachingTaskProportionOperations.js';
 import { evaluateChronology, renderChronologyTask } from './teachingOperationChronology.js';
+import { evaluatePooling, renderPoolingTask } from './teachingOperationPooling.js';
 
 // New fictional packets exercise the same operation in a different setting.
 // They contain no answer key in the student question. Existing operation
@@ -82,6 +83,65 @@ const quantityPackets = {
 };
 
 export function operationSpecificTransfer(task) {
+  if (task.operationPlan?.operation === 'pooled-proportion') {
+    const zh = task.language === 'zh';
+    const sources = zh
+      ? [
+          '虚构设备检查：东站检测20台设备，其中16台通过；西站检测60台，其中24台通过。两站采用同一检查流程，截止时间均为周五17时。',
+          '每台设备只在一个站点检测一次，两个名单没有重复设备。两站设备型号构成不同，记录没有解释通过率差异的原因。',
+        ]
+      : [
+          'Fictional equipment check: East checks 20 devices and 16 pass; West checks 60 devices and 24 pass. Both use the same procedure and a Friday 17:00 deadline.',
+          'Each device is checked once at exactly one station; the lists contain no duplicate devices. Device model mixes differ between stations; the records do not explain the difference in pass rates.',
+        ];
+    const values = {
+      firstPart: '16',
+      firstWhole: '20',
+      secondPart: '24',
+      secondWhole: '60',
+      firstGroup: zh ? '东站' : 'East',
+      secondGroup: zh ? '西站' : 'West',
+      countingUnit: zh ? '设备' : 'devices',
+      countedOutcome: zh ? '通过检查' : 'pass',
+      commonDefinition: zh
+        ? '两站采用同一检查流程，截止时间均为周五17时。'
+        : 'Both use the same procedure and a Friday 17:00 deadline.',
+      distinctMembership: zh
+        ? '每台设备只在一个站点检测一次，两个名单没有重复设备。'
+        : 'Each device is checked once at exactly one station; the lists contain no duplicate devices.',
+      limitRecord: sources[1],
+    };
+    const plan = {
+      bindings: {},
+      requirements: [
+        { id: 'quantities', weight: 30 },
+        { id: 'operation', weight: 40 },
+        { id: 'boundary', weight: 30 },
+      ],
+    };
+    const body = renderPoolingTask(
+      plan,
+      [],
+      zh ? '计算合并比例并比较权重。' : 'Calculate the pooled proportion and compare weights.',
+      { values, ...evaluatePooling(values) },
+    );
+    return {
+      operationKind: 'pooled-proportion',
+      sources,
+      directions: body.question,
+      question: `${sources.join(' ')} ${body.question}`,
+      answer: body.answer,
+      reasoning: body.reasoning,
+      rubric: body.criteria.map((c) => ({ label: c.label, ...c.levels, feedback: c.feedback })),
+      feedback: zh
+        ? '先合并通过数与检测总数，再比较按设备数加权与站点等权。不要从型号构成不同的记录推断站点造成差异。'
+        : 'Combine pass counts and checked totals, then compare device weights with equal station weights. Do not infer a station effect from records with different device mixes.',
+      verification: {
+        method: 'same-reviewed-pooling-operation',
+        scope: 'Fictional independent practice; deterministic arithmetic, not observed learning outcomes.',
+      },
+    };
+  }
   if (task.operationPlan?.operation === 'record-relative-day' && task.operationPlan.presentationVersion >= 4) {
     const zh = task.language === 'zh';
     const sources = zh

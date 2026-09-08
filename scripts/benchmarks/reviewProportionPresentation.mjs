@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import { proportionPresentationFixture } from '../../tests/fixtures/teaching/proportionPresentation.js';
+import { pooledCountsFixture } from '../../tests/fixtures/teaching/pooledCounts.js';
 import { comparisonDesignFixture } from '../../tests/fixtures/teaching/comparisonDesign.js';
 import {
   buildCourseBlueprint,
@@ -12,6 +13,7 @@ import {
   reconcileCourseMapWithBlueprintSemanticAdmission,
 } from '../../src/lib/courseBlueprintCompiler.js';
 import {
+  quoteOccurrences,
   createNewTeachingTaskReviewDraft,
   previewTeachingTaskReview,
   commitTeachingTaskReview,
@@ -27,9 +29,10 @@ const root = process.argv[2];
 if (!root) throw new Error('Provide a new output directory; existing captures are never overwritten.');
 // Keep the original default for reproducing prior proportion captures.
 const operation = process.argv[3] || 'observed-proportion';
-if (!['observed-proportion', 'paired-condition-confound'].includes(operation))
+if (!['observed-proportion', 'paired-condition-confound', 'pooled-proportion'].includes(operation))
   throw new Error('Unsupported capture operation.');
 const experiment = operation === 'paired-condition-confound';
+const pooling = operation === 'pooled-proportion';
 const outputFeatures =
   process.argv[4]?.split(',') || (experiment ? ['assignments', 'rubrics', 'studyGuides'] : ['rubrics', 'studyGuides']);
 if (outputFeatures.some((feature) => !['assignments', 'rubrics', 'studyGuides', 'quizBank'].includes(feature)))
@@ -57,14 +60,20 @@ const features = [
 const report = [];
 try {
   for (const zh of [false, true]) {
-    const f = (experiment ? comparisonDesignFixture : proportionPresentationFixture)(zh);
-    const name = experiment
+    const f = (pooling ? pooledCountsFixture : experiment ? comparisonDesignFixture : proportionPresentationFixture)(
+      zh,
+    );
+    const name = pooling
       ? zh
-        ? '保温套与温降的比较设计'
-        : 'Designing a comparison of ink drying'
-      : zh
-        ? '维修记录与观察范围'
-        : 'Repair records and observation limits';
+        ? '平板归还记录与群体权重'
+        : 'Tablet returns and group weights'
+      : experiment
+        ? zh
+          ? '保温套与温降的比较设计'
+          : 'Designing a comparison of ink drying'
+        : zh
+          ? '维修记录与观察范围'
+          : 'Repair records and observation limits';
     const map = {
       courseName: name,
       lessons: [
@@ -95,7 +104,10 @@ try {
         {
           inputId: span.inputId,
           quote: f.inputs.find((input) => input.id === span.inputId).text.slice(span.start, span.end),
-          occurrence: 0,
+          occurrence: quoteOccurrences(
+            f.inputs.find((input) => input.id === span.inputId).text,
+            f.inputs.find((input) => input.id === span.inputId).text.slice(span.start, span.end),
+          ).indexOf(span.start),
         },
       ]),
     );

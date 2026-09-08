@@ -33,6 +33,8 @@ export function teachingProposalInputRevision({ operation, objective, inputs }) 
 }
 
 const roles = {
+  'pooled-proportion':
+    'firstCountRecord and secondCountRecord contain the two groups; they may be the same source record if it reports both groups. firstPart/secondPart count the outcome; firstWhole/secondWhole count all units in their respective group; firstGroup/secondGroup name those groups. Quote each complete count at its own occurrence. countingUnit names the common counted object; countedOutcome names the shared outcome; commonDefinition quotes the explicit common deadline and outcome definition. identityRecord and distinctMembership must explicitly establish that these counted units are distinct across the groups. Different group labels alone do not prove disjoint membership. limitRecord states limits on explaining the difference. Never pool overlapping or unidentified members; leave unsupported roles null.',
   'record-relative-day':
     'datedRecord is the COMPLETE dated event record; supply only its source alias without a quotation. recordDate anchors relativeDay (yesterday, today, tomorrow or 昨天/当天/明天). eventClaim must quote the entire event statement, not just the relative word. recollectionRecord is the separate record about that same event, supplied by source alias only. recordingDate dates that recollection; broadMonth quotes its event month. sameEventEvidence quotes explicit shared-event identity; limitRecord selects the record of missing knowledge by source alias only. Leave unsupported roles null; do not infer a missing year, calendar or event identity.',
   'observed-proportion':

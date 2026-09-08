@@ -1377,7 +1377,9 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             // a saved point budget (which may intentionally be zero).
             const wholeTask = ['independent-transfer', 'task-rehearsal', 'feedback-retry'].includes(q.practiceKind);
             const parts =
-              wholeTask && questionSource?.operationPlan?.version === 2
+              wholeTask &&
+              (questionSource?.operationPlan?.version === 2 ||
+                questionSource?.operationPlan?.operation === 'pooled-proportion')
                 ? questionSource.operationPlan.requirements?.length || 1
                 : 1;
             const lines = Math.min(40, Math.max(q.type === 'essay' ? 10 : 4, parts * 4));

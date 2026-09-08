@@ -2,7 +2,18 @@
  * and never re-labeled as an exact reverse check. No floating-point tolerance
  * is used to accept a supplied equality. */
 export function solveTeachingProportion(numerator, denominator, percentPlaces = 2) {
-  if (!/^\d{1,9}$/.test(String(numerator)) || !/^\d{1,9}$/.test(String(denominator))) return null;
+  return solveBoundedProportion(numerator, denominator, percentPlaces, 9);
+}
+
+// Products of reviewed nine-digit counts can require nineteen digits. This
+// separate entry point does not widen the accepted source-count grammar.
+export function solveCompiledTeachingProportion(numerator, denominator, percentPlaces = 2) {
+  return solveBoundedProportion(numerator, denominator, percentPlaces, 19);
+}
+
+function solveBoundedProportion(numerator, denominator, percentPlaces, maxDigits) {
+  const digits = new RegExp(`^\\d{1,${maxDigits}}$`);
+  if (!digits.test(String(numerator)) || !digits.test(String(denominator))) return null;
   const n = BigInt(numerator),
     d = BigInt(denominator);
   if (d === 0n || n > d || !Number.isInteger(percentPlaces) || percentPlaces < 0 || percentPlaces > 6) return null;

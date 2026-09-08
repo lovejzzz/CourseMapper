@@ -5,6 +5,7 @@ import { validateComparisonBindings, evaluateComparison } from './teachingOperat
 import { validateTeachingGoalAlignment } from './teachingGoalAlignment.js';
 import { isExplicitCalendarDate, parseSourceCalendarDate } from './sourceCalendar.js';
 import { validateChronologyBindings, evaluateChronology } from './teachingOperationChronology.js';
+import { validatePoolingBindings, evaluatePooling } from './teachingOperationPooling.js';
 import {
   AUTHORED_REQUIREMENTS_PLAN_VERSION,
   performanceSourceRevision,
@@ -52,6 +53,29 @@ function sourceFractionIssue(text, numerator, denominator, values) {
 // These are executable input contracts, not topic names or free-form claims
 // of correctness. New operations must provide their own premise checks.
 export const TEACHING_OPERATION_SPECS = {
+  'pooled-proportion': {
+    family: 'quantity',
+    taskKind: 'source-pooled-proportion',
+    defaultPracticeMinutes: 20,
+    bindings: {
+      firstCountRecord: 'record',
+      secondCountRecord: 'record',
+      firstPart: 'ratio-count',
+      firstWhole: 'ratio-count',
+      firstGroup: 'text',
+      secondPart: 'ratio-count',
+      secondWhole: 'ratio-count',
+      secondGroup: 'text',
+      countingUnit: 'text',
+      countedOutcome: 'text',
+      commonDefinition: 'text',
+      identityRecord: 'record',
+      distinctMembership: 'text',
+      limitRecord: 'record',
+    },
+    requirements: ['quantities', 'operation', 'boundary'],
+    defaultWeights: [30, 40, 30],
+  },
   'record-relative-day': {
     family: 'source-analysis',
     taskKind: 'evidence-source-analysis',
@@ -247,6 +271,20 @@ export function validateTeachingOperationPlan(plan, inputs, objective) {
   // a person reviewed an imported project or that its facts are true.
   if (plan.operation === 'paired-condition-confound') issues.push(...validateComparisonBindings(plan, values));
   if (plan.operation === 'record-relative-day') issues.push(...validateChronologyBindings(plan, values));
+  if (plan.operation === 'pooled-proportion') {
+    issues.push(...validatePoolingBindings(plan, values));
+    for (const side of ['first', 'second']) {
+      const part = plan.bindings[`${side}Part`],
+        whole = plan.bindings[`${side}Whole`];
+      if (part && whole && part.inputId === whole.inputId && byId.has(part.inputId)) {
+        const problem = sourceFractionIssue(byId.get(part.inputId).text, part, whole, {
+          numerator: values[`${side}Part`],
+          denominator: values[`${side}Whole`],
+        });
+        if (problem) issues.push(issue('plan-source-fraction', problem));
+      }
+    }
+  }
   if (plan.operation === 'observed-proportion') {
     for (const [name, recordName] of [
       ['numerator', 'countRecord'],
@@ -325,7 +363,8 @@ export function createTeachingOperationPlan({
     presentationVersion:
       operation === 'paired-condition-confound'
         ? 5
-        : operation === 'record-relative-day' || version === AUTHORED_REQUIREMENTS_PLAN_VERSION
+        : ['record-relative-day', 'pooled-proportion'].includes(operation) ||
+            version === AUTHORED_REQUIREMENTS_PLAN_VERSION
           ? 4
           : 3,
     bindings: structuredClone(bindings),
@@ -357,6 +396,13 @@ export function evaluateTeachingOperationPlan(plan, inputs, objective) {
       issues: [
         issue('plan-unconfirmed', 'Review the proposed source roles and relationship before compiling answers.'),
       ],
+    };
+  if (plan.operation === 'pooled-proportion')
+    return {
+      status: 'ready',
+      operation: plan.operation,
+      values: validation.values,
+      ...evaluatePooling(validation.values),
     };
   if (plan.operation === 'paired-condition-confound') {
     return {

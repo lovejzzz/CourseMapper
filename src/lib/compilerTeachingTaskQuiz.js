@@ -1,7 +1,8 @@
 import { taskCopy, taskText } from './teachingTaskCopy.js';
 
 export const usesStructuredPracticeScoring = (task) =>
-  (task.operationPlan?.operation === 'paired-condition-confound' || task.operationPlan?.version === 2) &&
+  (['paired-condition-confound', 'pooled-proportion'].includes(task.operationPlan?.operation) ||
+    task.operationPlan?.version === 2) &&
   task.operationPlan.presentationVersion >= 4;
 
 // A complete task rehearsal uses the same criteria and bands as its rubric.

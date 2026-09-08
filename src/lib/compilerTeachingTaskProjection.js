@@ -147,6 +147,7 @@ function alignAssessmentCopies(row, task, criteria) {
 }
 
 function projectAssignment(row, task, blueprint) {
+  const pooling = task.operationPlan?.operation === 'pooled-proportion';
   row.language = task.language;
   if (comparisonTaskBloom(task)) row.bloomsLevel = comparisonTaskBloom(task);
   const rubric = teachingTaskRubric(task, row.totalPoints);
@@ -156,15 +157,22 @@ function projectAssignment(row, task, blueprint) {
     instructions: [
       ...(task.preparation ? [task.preparation.instruction] : []),
       ...(task.directions || [task.question]),
-      taskCopy(task, 'Use the source record supplied here; label source statements separately from your reasoning.'),
-      task.product,
+      ...(!pooling
+        ? [
+            taskCopy(
+              task,
+              'Use the source record supplied here; label source statements separately from your reasoning.',
+            ),
+            task.product,
+          ]
+        : []),
       taskCopy(task, 'Check each criterion, then correct one error before submitting.'),
     ],
     objectives: [task.objective],
     formatRequirements: {
       ...row.formatRequirements,
       length: task.product,
-      format: taskCopy(task, 'An annotated response in the configured submission format.'),
+      format: pooling ? '' : taskCopy(task, 'An annotated response in the configured submission format.'),
       citationStyle: taskCopy(
         task,
         'Identify the supplied source record and the statement used. Do not invent missing author, date or page information.',
@@ -176,7 +184,9 @@ function projectAssignment(row, task, blueprint) {
       latePolicy:
         blueprint.policies?.lateWork && !/^draft for local confirmation/i.test(blueprint.policies.lateWork)
           ? blueprint.policies.lateWork
-          : taskCopy(task, 'Follow the deadline agreed with your instructor.'),
+          : pooling
+            ? ''
+            : taskCopy(task, 'Follow the deadline agreed with your instructor.'),
       workloadFit: taskText(
         task,
         `${task.minutes} minutes for the classroom response, plus up to 5 minutes to revise after feedback.`,
@@ -561,7 +571,10 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
       // Authored questions and machine-scored specifications remain protected;
       // the surrounding three-way merge preserves teacher changes.
       const reviewedComparison = task.operationPlan?.operation === 'paired-condition-confound';
-      const reviewedBank = task.operationPlan?.version === 2 || reviewedComparison;
+      const reviewedBank =
+        task.operationPlan?.version === 2 ||
+        reviewedComparison ||
+        task.operationPlan?.operation === 'pooled-proportion';
       const seats =
         row.questions?.filter(
           (q) =>

@@ -1,0 +1,187 @@
+{
+  "date": "2026-09-08",
+  "baseCommit": "8558f705",
+  "operation": "pooled-proportion",
+  "modelCalls": 0,
+  "freshAcceptance": false,
+  "inputStatus": "Exposed quantity-dev-01 plus implementer-translated Chinese variant. Not independent source families.",
+  "files": [
+    {
+      "path": ".audit-work/v0200-teaching-system/pooled-proportion-05/en/assignments.pdf",
+      "sha256": "496d9d8047743a85a9dfd33bb208b6c0db26ced547339c73a995c3e839838342",
+      "format": "pdf",
+      "language": "en",
+      "feature": "assignments",
+      "pages": 2,
+      "visualReview": "all pages inspected"
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/pooled-proportion-05/en/assignments.docx",
+      "sha256": "1a409e74f6f5c5c59d8add2edaa5f6767a335f6f3efe69a4ac714c95576f9a2c",
+      "format": "docx",
+      "language": "en",
+      "feature": "assignments",
+      "visualReview": "not performed"
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/pooled-proportion-05/en/rubrics.pdf",
+      "sha256": "308154420be146948c39944aa0f8bde2a1ead06021050607acda2dff047d3711",
+      "format": "pdf",
+      "language": "en",
+      "feature": "rubrics",
+      "pages": 3,
+      "visualReview": "all pages inspected"
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/pooled-proportion-05/en/rubrics.docx",
+      "sha256": "9f796f4825feeecc1ba5c752dca05c889a25daf2efd0e0ebe69e902d1abe9a54",
+      "format": "docx",
+      "language": "en",
+      "feature": "rubrics",
+      "visualReview": "not performed"
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/pooled-proportion-06/en/quizBank.pdf",
+      "sha256": "7c0ca4d791a9a049dd5c000fd766b0af698a0e768836c74a7689b33808257ccc",
+      "format": "pdf",
+      "language": "en",
+      "feature": "quizBank",
+      "pages": 4,
+      "visualReview": "all pages inspected"
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/pooled-proportion-06/en/quizBank.docx",
+      "sha256": "794fd17953ee23ecd57a86b060d23d1c5782010ffd6c96679555c1c79b98381a",
+      "format": "docx",
+      "language": "en",
+      "feature": "quizBank",
+      "visualReview": "not performed"
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/pooled-proportion-06/en/studyGuides.pdf",
+      "sha256": "d8d7187821bba7766cc04b227cb273dd2c2783a31810d3d4b8d2e74ee83c5b31",
+      "format": "pdf",
+      "language": "en",
+      "feature": "studyGuides",
+      "pages": 3,
+      "visualReview": "all pages inspected"
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/pooled-proportion-06/en/studyGuides.docx",
+      "sha256": "03e881f55f79a6460472e3039d47892a0f9c2a620a2c74eb40a71d47f69d543b",
+      "format": "docx",
+      "language": "en",
+      "feature": "studyGuides",
+      "visualReview": "not performed"
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/pooled-proportion-05/zh/assignments.pdf",
+      "sha256": "79a01b228242356b1187e586e62e26c9eabd3f5bd811e1a24e3e9915727f1889",
+      "format": "pdf",
+      "language": "zh",
+      "feature": "assignments",
+      "pages": 2,
+      "visualReview": "all pages inspected"
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/pooled-proportion-05/zh/assignments.docx",
+      "sha256": "fce676a20e8e292a94fd85d88b964d368fe81618517372c4e527ff51bdc36d88",
+      "format": "docx",
+      "language": "zh",
+      "feature": "assignments",
+      "visualReview": "not performed"
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/pooled-proportion-05/zh/rubrics.pdf",
+      "sha256": "ca5cc43d10a8a2ba307a5321cc9efd03bbd0c4f8f2dfcbddb665009bfda6b624",
+      "format": "pdf",
+      "language": "zh",
+      "feature": "rubrics",
+      "pages": 3,
+      "visualReview": "all pages inspected"
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/pooled-proportion-05/zh/rubrics.docx",
+      "sha256": "5541ee56b7db1f6ae7b5c319fde78028afec636994c772fdea12be8496f1b936",
+      "format": "docx",
+      "language": "zh",
+      "feature": "rubrics",
+      "visualReview": "not performed"
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/pooled-proportion-06/zh/quizBank.pdf",
+      "sha256": "3da7a75fadccae63039e2deb1e832c423899c2f80ea06f9e37e00a9226bcb0cc",
+      "format": "pdf",
+      "language": "zh",
+      "feature": "quizBank",
+      "pages": 4,
+      "visualReview": "all pages inspected"
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/pooled-proportion-06/zh/quizBank.docx",
+      "sha256": "e3fdef7198892c088538d8a2cef85457851e1598713172b3dc8e7b35b3618739",
+      "format": "docx",
+      "language": "zh",
+      "feature": "quizBank",
+      "visualReview": "not performed"
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/pooled-proportion-06/zh/studyGuides.pdf",
+      "sha256": "cc273912bc8854fa987c0d484f5b85d5e8eba6c7755e138902c80e42dad9006a",
+      "format": "pdf",
+      "language": "zh",
+      "feature": "studyGuides",
+      "pages": 3,
+      "visualReview": "all pages inspected"
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/pooled-proportion-06/zh/studyGuides.docx",
+      "sha256": "51fe376253fc6546e9ea80b0df2c508a06b276b5afdd343416ea0b0d87c0a247",
+      "format": "docx",
+      "language": "zh",
+      "feature": "studyGuides",
+      "visualReview": "not performed"
+    }
+  ],
+  "arithmetic": {
+    "initialPooled": "21/60 = 35%",
+    "initialEqualGroup": "50%",
+    "editedPooled": "33/60 = 55%",
+    "editedEqualGroup": "62.5%",
+    "independentPractice": "40/80 = 50%; equal-group mean 60%"
+  },
+  "pdfReview": {
+    "pages": 24,
+    "findingsFixed": [
+      "Wrong amendment concept summary",
+      "Duplicate full answer in guide result",
+      "Sparse assignment continuation",
+      "Insufficient full-response space and sparse Chinese quiz continuation",
+      "Missing contrast example IDs"
+    ],
+    "remainingLimitations": [
+      "Teacher keys are detailed and still repeat some supporting source language.",
+      "Office files were generated but not visually reviewed.",
+      "No independent teacher or learning-outcome evidence.",
+      "Fresh Scion proposal for this operation remains untested."
+    ]
+  },
+  "browser": {
+    "origin": "http://127.0.0.1:17148",
+    "singleExistingTab": true,
+    "initialProject": ".audit-work/v0200-teaching-system/pooled-proportion-04/en/project.coursemapper",
+    "savedAfterApply": ".audit-work/v0200-teaching-system/pooled-proportion-04/browser-after-apply.coursemapper",
+    "actions": [
+      "Import project",
+      "Open source review",
+      "Change large-desk outcome twelve to twenty-four",
+      "Review 55% and 62.5% reference",
+      "Confirm and apply nine material updates",
+      "Save project",
+      "Reload and Resume",
+      "Verify restored rubric retains 55%"
+    ],
+    "note": "Browser transaction used capture 04 before final wording/layout refinement; final exporter pages use captures 05/06.",
+    "savedSha256": "d00be56aea58991eb528bbe90cb94daed4e84a921aa9165383e4fc0164df8a11"
+  }
+}

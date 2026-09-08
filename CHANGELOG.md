@@ -2,6 +2,9 @@
 
 ## Unreleased — v0.20.0 development
 
+- Add reviewed pooling of two distinct counted groups: exact combined proportions, denominator weights, equal-group comparisons, bilingual answers and four scoring examples. Keep independent practice on its own records; propagate reviewed source changes into nine materials.
+- Give pooling tasks specific guide concepts, shared question scoring and sufficient response space; remove duplicate guide answers and sparse assignment pages. Audit 24 PDF pages across eight English/Chinese outputs. Fresh automatic proposal and independent classroom acceptance remain pending.
+
 - Reject stale reviewed objective links consistently during operation creation, evaluation and material rendering. Changing a task objective now requires renewed review instead of silently reusing the old goal confirmation.
 
 - Keep the joint operation-and-binding proposal research-only after a fixed sixteen-case local run produced no usable candidates. Preserve all nineteen calls and false refusals; do not treat conservative rejection as educational success.
