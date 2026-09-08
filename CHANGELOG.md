@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Allow a changed workspace to request package preparation after an earlier terminal or export failure. The old receipt never authorizes downloading revised materials; a new failed result blocks again.
+
 - Recognize explicit singular lesson requests and preserve numbered, labeled source records from the homepage. Reject duplicate source IDs/slots and retain stronger multi-lesson counts. Record the failed first natural generation and unchanged-input parser replay; a single local model rerun confirms one lesson and the supplied ledger in 15.6 seconds, but still fails teaching-task quality and remains export-blocked. Full output acceptance remains pending.
 
 - Preserve the saved main-task or guided-practice role during full recompilation. Legacy assignment/activity enrichment can no longer demote an authoritative main task and leave the primary assignment on a competing content path. Verify both scope directions and nine outputs from a saved project.

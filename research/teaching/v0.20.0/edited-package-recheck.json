@@ -1,0 +1,27 @@
+{
+  "baselineCommit": "e04281d6",
+  "finding": "Terminal package failure disabled preparation even after content changed.",
+  "beforeTest": "1 failed, 58 passed: edited workspace still had disabled Prepare package",
+  "afterTest": "59 passed",
+  "fullCheck": {
+    "studio": 58,
+    "compatibility": 678,
+    "scion": 898,
+    "typecheck": "passed",
+    "lint": "passed",
+    "build": "passed",
+    "bundle": "passed"
+  },
+  "browser": {
+    "course": "Workshop Attendance Analysis",
+    "restoredProject": "natural-quantity-dev-03-repair/after.coursemapper",
+    "before": "Prepare package disabled",
+    "edit": "Assignment title changed to Workshop attendance: justify the bounds",
+    "after": "Prepare package enabled after blur",
+    "newModelCalls": 0,
+    "downloadAttempted": false,
+    "finalizerRerunAttempted": false
+  },
+  "scope": "Allows explicit rechecking after edits, not download or automatic approval. Underlying enrichment coverage remains unresolved; fresh failure blocks again.",
+  "formatCheck": "Touched component/test/changelog pass; repository-wide check still reports 43 historical documentation/research files, including byte-recorded raw evidence. No bulk rewrite performed."
+}

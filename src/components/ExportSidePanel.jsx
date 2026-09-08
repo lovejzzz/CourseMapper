@@ -1067,6 +1067,14 @@ export default function ExportSidePanel({
     pendingReadinessExport?.scope === scope ? pendingReadinessExport.readiness : getDownloadReadiness(activeReadiness);
   const verifiedPackageReceipt = scope === 'all' && hasDownloadableVerifiedPackage(packageQualityPass);
   const currentPackageReceiptKey = packageReceiptKey(packageQualityPass?.receipt);
+  // A terminal receipt describes the workspace that was checked. A later
+  // edit may request a new preparation, but can never authorize a download.
+  const checkedWorkspaceRef = useRef(null);
+  if (!checkedWorkspaceRef.current || checkedWorkspaceRef.current.pass !== packageQualityPass) {
+    checkedWorkspaceRef.current = { pass: packageQualityPass, courseMap, deliverables };
+  }
+  const checkedWorkspaceChanged =
+    checkedWorkspaceRef.current.courseMap !== courseMap || checkedWorkspaceRef.current.deliverables !== deliverables;
   if (currentPackageReceiptKey === null) {
     preparedPackageRef.current = null;
     preparedPackageHydrationBlockedRef.current = true;
@@ -1716,7 +1724,8 @@ export default function ExportSidePanel({
   const allSelected = selectedLessons === null;
   const selectedCount = selectedLessons === null ? allLessons.length : selectedLessons.length;
   const activeHasReadinessIssues = hasBlockingReadinessIssues(displayedReadiness);
-  const zipHasExportFailure = scope === 'all' && hasPackageExportFailure(packageQualityPass);
+  const zipHasExportFailure =
+    scope === 'all' && !checkedWorkspaceChanged && hasPackageExportFailure(packageQualityPass);
   const terminalPackageTrust = getPackageTrustStatus({
     packageQualityPass,
     quality: packageQualityPass?.quality || null,
@@ -1729,14 +1738,15 @@ export default function ExportSidePanel({
   const zipHasVerifiedReceipt = scope === 'all' && hasDownloadableVerifiedPackage(packageQualityPass);
   const zipHasPreparedSnapshot = scope === 'all' && preparedPackageRef.current?.receiptKey === currentPackageReceiptKey;
   const zipCanDownloadPackage = zipHasVerifiedReceipt && zipHasPreparedSnapshot;
-  const zipPendingNeedsAttention = zipPendingReadiness && pendingReadinessExport?.canFinishPackageAgain === false;
+  const zipPendingNeedsAttention =
+    zipPendingReadiness && !checkedWorkspaceChanged && pendingReadinessExport?.canFinishPackageAgain === false;
   const zipCanFinishPackage =
     scope === 'all' &&
     !zipHasPreparedSnapshot &&
     canFinishPackage &&
     !zipPendingNeedsAttention &&
     !zipHasExportFailure &&
-    (!zipHasTerminalTrustBlocker || zipNeedsFinalizerMigration || zipHasVerifiedReceipt);
+    (!zipHasTerminalTrustBlocker || checkedWorkspaceChanged || zipNeedsFinalizerMigration || zipHasVerifiedReceipt);
   const zipButtonLabel =
     busy === 'zip'
       ? 'Preparing ZIP…'

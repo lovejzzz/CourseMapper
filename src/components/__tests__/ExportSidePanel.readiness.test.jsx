@@ -1601,6 +1601,46 @@ describe('ExportSidePanel readiness repair timing', () => {
     expect(container.querySelector('[data-testid="export-notice"]')).toBeNull();
   });
 
+  it('rechecks edited material after a failed receipt without downloading unverified output', async () => {
+    const blockedPass = {
+      status: 'blocked',
+      blockers: 1,
+      receipt: {
+        finalizerRevision: CURRENT_FINALIZER_REVISION,
+        finalStatus: 'blocked',
+        exportStatus: 'failed',
+        exportChecked: 1,
+        exportFailed: 1,
+      },
+    };
+    const onFinishPackage = vi.fn(async () => false);
+    const props = {
+      courseMapInput: cleanCourseMap,
+      preferPackageScope: true,
+      canFinishPackage: true,
+      onFinishPackage,
+      packageQualityPass: blockedPass,
+    };
+    await renderPanel(props);
+    expect(container.querySelector('[data-testid="export-download-zip"]').disabled).toBe(true);
+    const correctedMap = structuredClone(cleanCourseMap);
+    correctedMap.lessons[0].sections[0].learningObjectives =
+      'Use the supplied attendance records to justify both bounds.';
+    await renderPanel({ ...props, courseMapInput: correctedMap });
+    const button = container.querySelector('[data-testid="export-download-zip"]');
+    expect(button.textContent).toContain('Prepare package');
+    expect(button.disabled).toBe(false);
+    await act(async () => {
+      button.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await vi.runAllTimersAsync();
+    });
+    expect(onFinishPackage).toHaveBeenCalledTimes(1);
+    expect(downloadCourseMaterialsZip).not.toHaveBeenCalled();
+    // A fresh failed assessment binds to the new material and blocks again.
+    await renderPanel({ ...props, courseMapInput: correctedMap, packageQualityPass: structuredClone(blockedPass) });
+    expect(container.querySelector('[data-testid="export-download-zip"]').disabled).toBe(true);
+  });
+
   it('does not race a verified reviewed package back into auto-repair before ZIP download', async () => {
     const onAutoRepairReadiness = vi.fn();
     await renderPanel({
