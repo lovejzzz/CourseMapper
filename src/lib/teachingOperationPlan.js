@@ -323,7 +323,11 @@ export function createTeachingOperationPlan({
     // reasoning; V3 also separates study-guide roles. A fresh review opts in,
     // while saved versions remain reproducible for three-way merges.
     presentationVersion:
-      operation === 'paired-condition-confound' ? 5 : version === AUTHORED_REQUIREMENTS_PLAN_VERSION ? 4 : 3,
+      operation === 'paired-condition-confound'
+        ? 5
+        : operation === 'record-relative-day' || version === AUTHORED_REQUIREMENTS_PLAN_VERSION
+          ? 4
+          : 3,
     bindings: structuredClone(bindings),
     inputRevisions: Object.fromEntries(inputs.map((input) => [input.id, operationInputRevision(input)])),
     admission: structuredClone(admission || { kind: 'model-proposal' }),

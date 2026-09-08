@@ -1,6 +1,26 @@
 import { expect, it } from 'vitest';
 import { buildCourseBlueprint, buildQuizAtomsForLesson } from '../courseBlueprintCompiler.js';
-import { deliverablePdfDefinition } from '../exporters/classroomPdf.js';
+import { deliverablePdfDefinition, classroomPdfDefinition } from '../exporters/classroomPdf.js';
+
+it('keeps a heading, misconception and its feedback together without swallowing a forced page break', () => {
+  const content = classroomPdfDefinition(
+    [
+      { text: 'Misconceptions', _keepNext: true },
+      { text: 'Wrong event date', _keepNext: true },
+      { text: 'Check the recording role' },
+      { text: 'Answer key', pageBreak: 'before' },
+    ],
+    'Course',
+    'Guide',
+  ).content;
+  expect(content[0].unbreakable).toBe(true);
+  expect(content[0].stack.map((node) => node.text)).toEqual([
+    'Misconceptions',
+    'Wrong event date',
+    'Check the recording role',
+  ]);
+  expect(content[1].pageBreak).toBe('before');
+});
 
 function textOf(node) {
   if (typeof node === 'string') return node;

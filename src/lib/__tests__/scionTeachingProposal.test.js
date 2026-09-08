@@ -217,3 +217,70 @@ describe('narrow Scion source proposals', () => {
     expect(JSON.parse(messages[1].content).sources[0].text).toBe(changed.inputs[0].text);
   });
 });
+
+describe('compact chronology source proposals', () => {
+  const chronology = {
+    operation: 'record-relative-day',
+    objective: 'Compare event time and recording time.',
+    inputs: [
+      { id: 'letter', text: 'Letter dated 18 August: We completed installation yesterday. No year is supplied.' },
+      {
+        id: 'interview',
+        text: 'Recorded on 4 October: installation was in August. Both records describe the same installation.',
+      },
+      { id: 'limit', text: 'The first successful operation date is unknown.' },
+    ],
+  };
+  const response = () => ({
+    bindings: {
+      recordDate: { source: 'r1', quote: '18 August' },
+      eventClaim: { source: 'r1', quote: 'We completed installation yesterday.' },
+      relativeDay: { source: 'r1', quote: 'yesterday' },
+      recordingDate: { source: 'r2', quote: '4 October' },
+      broadMonth: { source: 'r2', quote: 'August' },
+      sameEventEvidence: { source: 'r2', quote: 'Both records describe the same installation.' },
+      limitRecord: { source: 'r3' },
+    },
+    unknowns: [],
+  });
+  it('derives whole-record references from selected dates without generating redundant quotations', () => {
+    const result = assessTeachingProposal(JSON.stringify(response()), chronology);
+    expect(result.issues).toEqual([]);
+    expect(result.bindings.datedRecord.quote).toBe(chronology.inputs[0].text);
+    expect(result.bindings.recollectionRecord.quote).toBe(chronology.inputs[1].text);
+    expect(result.bindings.eventClaim.quote).toBe('We completed installation yesterday.');
+    expect(teachingProposalMessages(chronology)[0].content).toContain('COMPLETE EVENT SENTENCE');
+  });
+  it('does not silently discard model-supplied record fields or accept a bare relative word', () => {
+    const extra = response();
+    extra.bindings.datedRecord = { source: 'r2' };
+    expect(assessTeachingProposal(JSON.stringify(extra), chronology).issues.length).toBeGreaterThan(0);
+    const fragment = response();
+    fragment.bindings.eventClaim.quote = 'yesterday';
+    expect(assessTeachingProposal(JSON.stringify(fragment), chronology).issues.join(' ')).toContain('event statement');
+  });
+  it('keeps the legacy wire on ordinary runtimes and enables the compact wire only with verified grammar', async () => {
+    for (const constrained of [false, true]) {
+      const value = response();
+      if (!constrained)
+        Object.assign(value.bindings, { datedRecord: { source: 'r1' }, recollectionRecord: { source: 'r2' } });
+      const calls = [];
+      const result = await proposeTeachingSourceBindings(chronology, {
+        runtimeLoader: async () => ({
+          loadScionBrowserWllama: async () => {},
+          getScionBrowserWllamaStatus: () => ({ runtime: constrained ? { grammar: 'gbnf-state-v1' } : {} }),
+          completeScionBrowserWllama: async (messages, options) => {
+            calls.push({ messages, options });
+            return JSON.stringify(value);
+          },
+        }),
+      });
+      expect(result.issues).toEqual([]);
+      expect(result.modelCalls).toBe(1);
+      expect(Boolean(calls[0].options.grammar)).toBe(constrained);
+      expect(result.receipt.protocol).toBe(
+        constrained ? 'scion-chronology-source-bindings-v1' : 'scion-teaching-source-bindings-v2',
+      );
+    }
+  });
+});

@@ -93,16 +93,24 @@ function keepHeadingWithContent(content) {
   const result = [];
   for (let index = 0; index < content.length; index++) {
     const item = content[index];
-    const next = content[index + 1];
-    // Keep a heading with an ordinary paragraph or small criterion table.
-    // Oversized authored sections must retain normal page flow.
-    if (item._keepNext && next && !next.pageBreak && visibleTextLength(next) < 1500) {
+    const group = [item];
+    let length = visibleTextLength(item);
+    // Follow a short keep-next chain, so a heading cannot consume an error
+    // example's link to its feedback. Bound the group to retain page flow.
+    while (group.length < 6 && group.at(-1)._keepNext) {
+      const next = content[index + 1];
+      const nextLength = visibleTextLength(next);
+      if (!next || next.pageBreak || nextLength >= 1500 || length + nextLength > 2200) break;
+      group.push(next);
+      length += nextLength;
+      index++;
+    }
+    if (group.length > 1) {
       result.push({
-        stack: [{ ...item, pageBreak: undefined }, next],
+        stack: [{ ...item, pageBreak: undefined }, ...group.slice(1)],
         unbreakable: true,
         pageBreak: item.pageBreak,
       });
-      index++;
     } else result.push(item);
   }
   return result;

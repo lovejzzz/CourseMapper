@@ -1,0 +1,126 @@
+{
+  "protocol": "edutool-chronology-browser-lifecycle-v1",
+  "date": "2026-09-08",
+  "environment": "Chrome localhost:17148; real UI actions and downloads; no model inference in lifecycle test",
+  "review": "Developer manually confirmed source roles and scoring. Not independent teacher or student evidence.",
+  "actions": [
+    "Import saved presentation-3 project; preview and explicitly apply reviewed presentation-4 upgrade",
+    "Edit letter date from 18 August to 1 September in Study Guides Evidence Ledger",
+    "Save project and export Study Guides PDF/DOCX and Rubrics PDF through UI",
+    "Reload page, import saved project, download project again"
+  ],
+  "presentationVersion": 4,
+  "checks": {
+    "syllabus": {
+      "newSourcePresent": true,
+      "oldAnswerAbsent": true,
+      "stale": false,
+      "reopenDataIdentical": true
+    },
+    "lessonPlans": {
+      "newSourcePresent": true,
+      "oldAnswerAbsent": true,
+      "stale": false,
+      "reopenDataIdentical": true
+    },
+    "slideDecks": {
+      "newSourcePresent": true,
+      "oldAnswerAbsent": true,
+      "stale": false,
+      "reopenDataIdentical": true
+    },
+    "assignments": {
+      "newSourcePresent": true,
+      "oldAnswerAbsent": true,
+      "stale": false,
+      "reopenDataIdentical": true
+    },
+    "rubrics": {
+      "newSourcePresent": true,
+      "oldAnswerAbsent": true,
+      "stale": false,
+      "reopenDataIdentical": true
+    },
+    "discussions": {
+      "newSourcePresent": true,
+      "oldAnswerAbsent": true,
+      "stale": false,
+      "reopenDataIdentical": true
+    },
+    "quizBank": {
+      "newSourcePresent": true,
+      "oldAnswerAbsent": true,
+      "stale": false,
+      "reopenDataIdentical": true
+    },
+    "studyGuides": {
+      "newSourcePresent": true,
+      "oldAnswerAbsent": true,
+      "stale": false,
+      "reopenDataIdentical": true
+    },
+    "courseFaq": {
+      "newSourcePresent": true,
+      "oldAnswerAbsent": true,
+      "stale": false,
+      "reopenDataIdentical": true
+    }
+  },
+  "courseMapReopenIdentical": true,
+  "visualAudit": {
+    "pagesInspected": 6,
+    "files": {
+      "Study-Guides.pdf": 3,
+      "Rubrics.pdf": 3
+    },
+    "resolved": [
+      "Guide summary and learning objective now describe chronology rather than rule amendments",
+      "Misconception and feedback remain on the same page",
+      "Independent ferry case infers 31 May from 1 June with separate student paper and teacher answer",
+      "Partial and mistaken responses are distinct rubric examples"
+    ],
+    "limits": [
+      "Three-page development samples only; all other deliverables and three full courses still require remaining release checks",
+      "DOCX downloaded but not visually rendered in this pass",
+      "Broad review-required package state remains; not a release acceptance result"
+    ]
+  },
+  "artifacts": [
+    {
+      "path": ".audit-work/v0200-teaching-system/chronology-browser-final/Rubrics.pdf",
+      "sha256": "dc69dba934c510c8a0e8bba7187765b2fade086e2422bbcc04b20a3ee66cf5de",
+      "bytes": 47314
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/chronology-browser-final/Study-Guides.docx",
+      "sha256": "bdced0d5fed9e19099630f3642cfaf06c7e8227c831cd42ed1cb24fd1b3863f6",
+      "bytes": 11600
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/chronology-browser-final/Study-Guides.pdf",
+      "sha256": "73fdce327658ca23d1d2ac7fc51f3283a84fa1162692df173059b15d7b0a3b2d",
+      "bytes": 42760
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/chronology-browser-final/after-date-edit.coursemapper",
+      "sha256": "ccad0b8c5c14901c064c806ad959f450dcc5e30e3d9444c51c9a2e1d38d6ae1c",
+      "bytes": 2929167
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/chronology-browser-final/after-reopen.coursemapper",
+      "sha256": "3c91cf9cb69b73b5d57a7a34dd014b03ce9e0c0490d1c7b5c10b06fd8e6a3d45",
+      "bytes": 2929167
+    }
+  ],
+  "checksPassed": {
+    "compatibility": 627,
+    "scion": 861,
+    "studio": 58,
+    "outputBenchmarkTests": 8,
+    "acceptanceCheckerTests": 11,
+    "typecheck": true,
+    "lint": true,
+    "build": true,
+    "bundleCheck": true
+  }
+}

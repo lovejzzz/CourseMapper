@@ -4,6 +4,7 @@ import { explicitExperimentalExtensionTask } from './teachingTaskExperimentalExt
 import { sourceQuantityTask } from './teachingTaskQuantityOperations.js';
 import { explicitExperimentalDesignTask } from './teachingTaskEvidenceOperations.js';
 import { compareSourceProportions, inconsistentParticipantCountsTask } from './teachingTaskProportionOperations.js';
+import { evaluateChronology, renderChronologyTask } from './teachingOperationChronology.js';
 
 // New fictional packets exercise the same operation in a different setting.
 // They contain no answer key in the student question. Existing operation
@@ -81,6 +82,64 @@ const quantityPackets = {
 };
 
 export function operationSpecificTransfer(task) {
+  if (task.operationPlan?.operation === 'record-relative-day' && task.operationPlan.presentationVersion >= 4) {
+    const zh = task.language === 'zh';
+    const sources = zh
+      ? [
+          '虚构航行档案A记于6月1日：“渡轮昨天到达港口。”没有提供年份。',
+          '档案B在7月9日记录一段回忆：“渡轮在5月到港。”档案明确说明这是同一次航行。',
+          '资料未提供出发时间，也没有说明是否准点。',
+        ]
+      : [
+          'Fictional voyage archive A is dated 1 June: “The ferry reached the harbor yesterday.” No year is supplied.',
+          'Archive B records a recollection on 9 July: “The ferry arrived in May.” The archive explicitly identifies the same voyage.',
+          'No departure time or evidence of punctuality is supplied.',
+        ];
+    const values = {
+      recordDate: zh ? '6月1日' : '1 June',
+      relativeDay: zh ? '昨天' : 'yesterday',
+      eventClaim: zh ? '渡轮昨天到达港口。' : 'The ferry reached the harbor yesterday.',
+      recordingDate: zh ? '7月9日' : '9 July',
+      broadMonth: zh ? '5月' : 'May',
+      limitRecord: sources[2],
+    };
+    const plan = {
+      operation: 'record-relative-day',
+      presentationVersion: 4,
+      requirements: [
+        { id: 'evidence', weight: 30 },
+        { id: 'reasoning', weight: 35 },
+        { id: 'boundary', weight: 35 },
+      ],
+    };
+    const evaluated = { values, ...evaluateChronology(values) };
+    const body = renderChronologyTask(
+      plan,
+      sources.map((text, i) => ({ id: `practice-${i}`, text })),
+      zh ? '比较事件日期、月份和回忆记录日期。' : 'Compare event day, month and recollection recording date.',
+      evaluated,
+    );
+    return {
+      operationKind: 'record-relative-day',
+      sources,
+      directions: body.question,
+      question: `${sources.join(' ')} ${body.question}`,
+      answer: body.answer,
+      reasoning: body.reasoning,
+      rubric: body.criteria.map((criterion) => ({
+        label: criterion.label,
+        ...criterion.levels,
+        feedback: criterion.feedback,
+      })),
+      feedback: zh
+        ? '用6月1日作为“昨天”的依据，检查是否跨月；再单独标明7月9日的记录角色，不推断准点情况。'
+        : 'Anchor yesterday to 1 June and check the month boundary. Label 9 July as the recording date; do not infer punctuality.',
+      verification: {
+        method: 'same-calendar-operation',
+        scope: 'Calendar inference over explicitly fictional practice records; no claim of observed performance.',
+      },
+    };
+  }
   let packet = evidenceTransferPackets[task.operation?.kind];
   if (task.language === 'zh' && !packet) return null;
   let body =

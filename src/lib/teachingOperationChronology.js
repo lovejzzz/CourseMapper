@@ -157,6 +157,94 @@ export function renderChronologyTask(plan, inputs, objective, evaluated) {
     },
   });
   body.operationPlan = structuredClone(plan);
+  if (plan.presentationVersion >= 4) {
+    const attributed = zh
+      ? `这份记录日期为${v.recordDate}，“${v.relativeDay}”所指的事件日期是${dateText}。${relation}`
+      : `The record is dated ${v.recordDate}; its “${v.relativeDay}” places the reported event on ${dateText}. ${relation}`;
+    body.summary = attributed;
+    body.answer = `${attributed} ${limit}`;
+    body.checkpoint.answer = body.answer;
+    body.errors[0].correction = attributed;
+    body.errors[0].successCriterion = attributed;
+    body.reasoning = [
+      zh
+        ? `记录日期${v.recordDate}为相对词“${v.relativeDay}”提供日历依据，因此得到${dateText}。`
+        : `The record date ${v.recordDate} anchors “${v.relativeDay}”, giving ${dateText}.`,
+      relation,
+      limit,
+    ];
+    body.criteria[1].levels.exemplary = attributed;
+    const partial = zh
+      ? `回忆说事件发生在${v.broadMonth}，回忆记录于${v.recordingDate}。`
+      : `The recollection places the event in ${v.broadMonth}; it was recorded on ${v.recordingDate}.`;
+    const table = zh
+      ? `记录日期：${v.recordDate}；推导事件日期：${dateText}；回忆月份：${v.broadMonth}；回忆记录日期：${v.recordingDate}。`
+      : `Record date: ${v.recordDate}; inferred event day: ${dateText}; recalled month: ${v.broadMonth}; recollection recorded: ${v.recordingDate}.`;
+    const example = (id, response, judgments) => ({
+      id,
+      kind: 'synthetic-review-example',
+      response,
+      judgments: judgments.map(([criterionId, level, quote, rationale]) => {
+        const start = response.indexOf(quote);
+        return { criterionId, level, rationale, evidence: [{ start, end: start + quote.length, quote }] };
+      }),
+    });
+    body.contrastResponses = [
+      example('complete', body.answer, [
+        [
+          'evidence',
+          'exemplary',
+          attributed,
+          zh ? '标注记录与推导的时间角色。' : 'Labels the record and inferred temporal roles.',
+        ],
+        [
+          'reasoning',
+          'exemplary',
+          attributed,
+          zh ? '完成相对日期推导及月份比较。' : 'Completes the relative-day inference and month comparison.',
+        ],
+        [
+          'boundary',
+          'exemplary',
+          limit,
+          zh ? '保留未知年份和核实限制。' : 'Preserves missing calendar context and verification limits.',
+        ],
+      ]),
+      example('conclusion-without-reasoning', partial, [
+        [
+          'reasoning',
+          'developing',
+          partial,
+          zh
+            ? '只给出回忆信息，未推导事件日期或比较相容性。'
+            : 'Reports recollection metadata without inferring the event day or testing compatibility.',
+        ],
+      ]),
+      example('misconception', error, [
+        [
+          'reasoning',
+          'beginning',
+          error,
+          zh ? '把回忆记录时间错当事件发生时间。' : 'Mistakes the recording of a recollection for the event date.',
+        ],
+      ]),
+      example('alternative-representation', `${table} ${relation} ${limit}`, [
+        [
+          'evidence',
+          'exemplary',
+          table,
+          zh ? '表格等效标注四种时间角色。' : 'The equivalent table labels all four temporal roles.',
+        ],
+        ['reasoning', 'exemplary', relation, zh ? '正确说明月份相容关系。' : 'Explains month compatibility.'],
+        [
+          'boundary',
+          'exemplary',
+          limit,
+          zh ? '保留未知信息并提出核实方向。' : 'Preserves uncertainty and identifies verification needs.',
+        ],
+      ]),
+    ];
+  }
   body.derivation = structuredClone(evaluated.steps);
   body.criteria.forEach((criterion) => {
     criterion.weight = plan.requirements.find((item) => item.id === criterion.id).weight;

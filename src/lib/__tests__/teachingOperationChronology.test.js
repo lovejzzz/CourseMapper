@@ -72,6 +72,25 @@ it('computes the relative day and compatible month only after premise review', (
   expect(result.answer).toContain('first operated successfully');
   expect(result.criteria.map((c) => c.weight)).toEqual([30, 35, 35]);
   expect(result.criteria[1].levels.proficient).toContain('17 August');
+  expect(result.answer.match(/This date lies within August/g)).toHaveLength(1);
+  const transfer = result.sequence.find((unit) => unit.kind === 'independent-transfer');
+  expect(transfer.answer).toContain('31 May');
+  expect(transfer.answer).not.toContain('17 August');
+  expect(transfer.question).toContain('1 June');
+  expect(transfer.question).not.toContain('31 May');
+  expect(transfer.rubric[1].proficient).toContain('31 May');
+  expect(result.contrastResponses.map((entry) => entry.id)).toEqual([
+    'complete',
+    'conclusion-without-reasoning',
+    'misconception',
+    'alternative-representation',
+  ]);
+  for (const response of result.contrastResponses)
+    for (const judgment of response.judgments)
+      for (const evidence of judgment.evidence) {
+        expect(evidence.start).toBeGreaterThanOrEqual(0);
+        expect(response.response.slice(evidence.start, evidence.end)).toBe(evidence.quote);
+      }
 });
 
 it('rebuilds the same task identity after a date edit and updates its answer and rubric', () => {
@@ -160,6 +179,10 @@ it('projects the reviewed chronology into all nine materials and synchronizes a 
     'courseFaq',
   ];
   const compiled = compileBlueprintDeliverables(buildCourseBlueprint(map, { sessionMinutes: 50 }), features);
+  expect(JSON.stringify(compiled.studyGuides).includes('Amendment and error are different')).toBe(false);
+  expect(JSON.stringify(compiled.studyGuides).includes('A relative day needs an anchor')).toBe(true);
+  expect(compiled.studyGuides.studyGuides[0].summary).not.toContain('revised record');
+  expect(compiled.studyGuides.studyGuides[0].learningObjectives).toEqual([objective]);
   const entries = Object.fromEntries(features.map((id) => [id, { status: 'done', data: compiled[id], stale: false }]));
   for (const id of features)
     expect(compiled[id].teachingTaskSources[0].operationPlan.operation, id).toBe('record-relative-day');
