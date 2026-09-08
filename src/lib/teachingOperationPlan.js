@@ -1,5 +1,6 @@
 import { sha256HexSync } from './sha256Sync.js';
 import { solveTeachingProportion } from './teachingTaskArithmetic.js';
+import { parseSourceCount, countSpanCutsNumber } from './sourceCount.js';
 import { validateComparisonBindings, evaluateComparison } from './teachingOperationComparison.js';
 import { validateTeachingGoalAlignment } from './teachingGoalAlignment.js';
 import {
@@ -167,11 +168,14 @@ export function validateTeachingOperationPlan(plan, inputs, objective) {
     }
     const text = input.text.slice(span.start, span.end);
     values[name] = text;
+    const count = ['count', 'ratio-count'].includes(type) ? parseSourceCount(text) : null;
+    if (count !== null && !/^\d{1,9}$/.test(text)) values[name] = String(count);
     if (!text.trim() || (type === 'record' && (span.start !== 0 || span.end !== input.text.length)))
       issues.push(issue('plan-record', `The ${name} must retain its complete source record.`, name));
     if (
       ['count', 'ratio-count'].includes(type) &&
-      (!/^\d{1,9}$/.test(text) ||
+      (count === null ||
+        countSpanCutsNumber(input.text, span.start, span.end) ||
         (type === 'count' ? /[\da-z.,+\-−/]/i : /[\da-z.,+\-−]/i).test(input.text[span.start - 1] || '') ||
         (type === 'count' ? /[\da-z.,%+\-−/]/i : /[\da-z%+\-−]/i).test(input.text[span.end] || '') ||
         (type === 'ratio-count' && /^(?:[.,]\d|\s*%)/.test(input.text.slice(span.end))) ||

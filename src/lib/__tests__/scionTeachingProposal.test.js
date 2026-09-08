@@ -39,6 +39,18 @@ const runtime = (complete) => ({
 });
 
 describe('narrow Scion source proposals', () => {
+  it('keeps source number words in assessed proposals rather than fabricating digit quotations', () => {
+    const input = structuredClone(request);
+    input.inputs[0].text = input.inputs[0].text.replace('25', 'twenty-five').replace('7', 'seven');
+    const value = response();
+    value.bindings.numerator.quote = 'seven';
+    value.bindings.denominator.quote = 'twenty-five';
+    const checked = assess(value, input);
+    expect(checked.issues).toEqual([]);
+    expect(checked.bindings.denominator.quote).toBe('twenty-five');
+    value.bindings.denominator.quote = '25';
+    expect(assess(value, input).issues.length).toBeGreaterThan(0);
+  });
   it('accepts the exact redundant record quote in the real first reply without accepting a shortened or invented quote', () => {
     const real = JSON.parse(fs.readFileSync('research/scion/evaluation/v0.20.0/source-bindings-initial.json', 'utf8'));
     const supplied = JSON.parse(real.attempts[0].messages[1].content);

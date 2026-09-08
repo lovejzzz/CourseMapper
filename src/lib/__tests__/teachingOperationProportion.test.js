@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { observedProportionFixture } from '../../../tests/fixtures/teaching/observedProportion.js';
+import { parseSourceCount, countSpanCutsNumber } from '../sourceCount.js';
 import { buildSharedTeachingTask } from '../compilerTeachingTask.js';
 import {
   createTeachingOperationPlan,
@@ -290,4 +291,83 @@ describe('reviewed observed proportions', () => {
     state.deliverables.rubrics.data.rubrics[0].title = 'A newer teacher edit';
     expect(commitTeachingTaskReview({ ...state, preview, teacherConfirmed: true }).status).toBe('needs-review');
   });
+});
+
+it.each([
+  [false, 'seventeen', 'forty'],
+  [true, '十七', '四十'],
+])('compiles exact word-count bindings while preserving the quoted source: %s', (zh, n, d) => {
+  const f = observedProportionFixture({ zh, n, d, notation: false });
+  const plan = createTeachingOperationPlan({
+    ...f,
+    operation: 'observed-proportion',
+    admission: { kind: 'teacher-confirmed' },
+  });
+  const result = evaluateTeachingOperationPlan(plan, f.inputs);
+  expect(result.status).toBe('ready');
+  expect(result.calculation.percent).toBe('42.5');
+  const task = buildSharedTeachingTask({
+    lessonId: 'word-counts',
+    objective: f.objective,
+    sourceInputs: f.inputs,
+    operationPlan: plan,
+    admitted: true,
+  });
+  expect(task.answer).toContain('42.5%');
+  expect(task.inputs).toEqual(f.inputs);
+  const binding = task.operationPlan.bindings.numerator;
+  expect(task.inputs.find((entry) => entry.id === binding.inputId).text.slice(binding.start, binding.end)).toBe(n);
+});
+
+it('normalizes only exact supported count expressions', () => {
+  for (const [text, value] of [
+    ['zero', 0],
+    ['nineteen', 19],
+    ['twenty-one', 21],
+    ['Ninety nine', 99],
+    ['十', 10],
+    ['二十三', 23],
+    ['〇', 0],
+    ['两', 2],
+    ['00017', 17],
+  ])
+    expect(parseSourceCount(text)).toBe(value);
+  for (const text of [
+    'one hundred',
+    '一百二',
+    'twenty zero',
+    'a dozen',
+    '3.5',
+    '-2',
+    '17%',
+    'about seven',
+    'between three and five',
+    '第十七',
+    ' 17 ',
+    'thirty--one',
+  ])
+    expect(parseSourceCount(text)).toBeNull();
+});
+it.each([
+  ['twenty one participants', 'one'],
+  ['seventeen percent of volunteers', 'seventeen'],
+  ['百分之十七', '十七'],
+  ['not seventeen participants', 'seventeen'],
+  ['one hundred participants', 'one'],
+  ['一百五十名', '五十'],
+  ['第十七名', '十七'],
+  ['minus seven people', 'seven'],
+  ['负十七名', '十七'],
+  ['about seventeen', 'seventeen'],
+  ['17 to 40 people', '17'],
+  ['seventeen to forty people', 'forty'],
+  ['十七至四十名', '十七'],
+])('rejects an incomplete or qualified count span: %s', (text, quote) => {
+  const at = text.indexOf(quote);
+  expect(countSpanCutsNumber(text, at, at + quote.length)).toBe(true);
+});
+it('does not mistake ordinary source prose before a count for a number range', () => {
+  const text = 'One observer refers to seventeen volunteers.';
+  const at = text.indexOf('seventeen');
+  expect(countSpanCutsNumber(text, at, at + 'seventeen'.length)).toBe(false);
 });

@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Interpret exact English and Chinese count words from zero to ninety-nine in reviewed source bindings while preserving their original quotations and offsets. Reject partial compound numbers, ordinal/negative/approximate/range/percentage readings, and guide Scion proposals to quote written counts unchanged rather than invent digit quotations.
+
 - Require explicit distinct-group evidence before automatically pooling item counts. Decline ambiguous or repeated-member records instead of asserting an unsupported overall proportion, and retain the membership source in worked reasoning. Preserve frozen benchmark inputs; label membership-clarified regression variants separately.
 
 - Record applied response-led feedback revisions in the separate local notebook, preserving the judgment used, original feedback and resulting task/rubric snapshots. Retry failed receipt saves without reapplying the course change or overwriting newer judgments; display receipts as historical applications rather than current course state.
