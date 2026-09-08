@@ -1,0 +1,26 @@
+{
+  "protocol": "scion-joint-operation-bindings-research-v1",
+  "freshAcceptance": false,
+  "cases": [
+    "experiment-dev-01",
+    "experiment-dev-02",
+    "quantity-dev-01",
+    "quantity-dev-02",
+    "source-dev-01",
+    "source-dev-02",
+    "source-dev-03",
+    "source-dev-04",
+    "source-dev-05",
+    "source-dev-06",
+    "source-dev-07",
+    "source-dev-08",
+    "source-dev-09",
+    "source-dev-10",
+    "source-dev-11",
+    "source-dev-12"
+  ],
+  "maxCallsPerCase": 2,
+  "repairs": "One structural repair only; missing roles or null stop.",
+  "promotion": "None. Each candidate needs independent semantic and objective review. All 16 inputs previously exposed.",
+  "runtime": "Application selected v3; one browser, serial inference, unload finally."
+}

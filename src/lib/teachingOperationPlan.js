@@ -343,13 +343,13 @@ export function createTeachingOperationPlan({
         }
       : {}),
   };
-  const result = validateTeachingOperationPlan(plan, inputs);
+  const result = validateTeachingOperationPlan(plan, inputs, objective);
   if (!result.valid) throw new Error(result.issues.map((entry) => entry.message).join(' '));
   return plan;
 }
 
-export function evaluateTeachingOperationPlan(plan, inputs) {
-  const validation = validateTeachingOperationPlan(plan, inputs);
+export function evaluateTeachingOperationPlan(plan, inputs, objective) {
+  const validation = validateTeachingOperationPlan(plan, inputs, objective);
   if (!validation.valid) return { status: 'needs-review', issues: validation.issues };
   if (plan.admission.kind === 'model-proposal')
     return {

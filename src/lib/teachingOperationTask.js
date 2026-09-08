@@ -11,7 +11,7 @@ import { renderChronologyTask } from './teachingOperationChronology.js';
 /** Material language is a projection of the same checked operation. Neither
  * model prose nor a material's saved answer is a second answer authority. */
 export function renderTeachingOperationTask(plan, inputs, objective) {
-  const evaluated = evaluateTeachingOperationPlan(plan, inputs);
+  const evaluated = evaluateTeachingOperationPlan(plan, inputs, objective);
   if (evaluated.status !== 'ready') return null;
   const authoredPlan = plan;
   const project = (body) =>

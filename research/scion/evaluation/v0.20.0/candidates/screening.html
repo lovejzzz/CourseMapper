@@ -1,0 +1,12 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Joint proposal development screening</title><h1>Joint proposal development screening</h1><button id="run">Run sixteen development cases</button><button id="save" disabled>Save raw receipt</button><pre id="result">Idle</pre><script type="module">
+import {proposeJointTask} from './jointProposal.js';
+import {unloadScionBrowserWllama} from '/src/lib/scionBrowserWllama.js';
+if(!['localhost','127.0.0.1'].includes(location.hostname))throw Error('Local only');
+const ids=["experiment-dev-01", "experiment-dev-02", "quantity-dev-01", "quantity-dev-02", "source-dev-01", "source-dev-02", "source-dev-03", "source-dev-04", "source-dev-05", "source-dev-06", "source-dev-07", "source-dev-08", "source-dev-09", "source-dev-10", "source-dev-11", "source-dev-12"];
+const run=document.querySelector('#run'), save=document.querySelector('#save'), view=document.querySelector('#result');let receipt;
+const render=()=>view.textContent=JSON.stringify({status:receipt.status,completed:receipt.cases.length,total:ids.length,results:receipt.cases.map(c=>({id:c.id,status:c.result.status,operation:c.result.result?.operation??null,calls:c.result.modelCalls,issues:c.result.result?.issues,missing:c.result.result?.missing,error:c.result.error}))},null,2);
+run.onclick=async()=>{run.disabled=true;save.disabled=true;receipt={startedAt:new Date().toISOString(),status:'running',freshAcceptance:false,cases:[]};render();try{
+for(const id of ids){receipt.status=id;render();const input=await(await fetch('/benchmarks/classroom/v3/inputs/'+id+'.json')).json();const result=await proposeJointTask({objective:input.objective,inputs:input.sources});receipt.cases.push({id,result});render();if(result.status==='failed')throw Error(result.error)}receipt.status='completed-for-review';
+}catch(e){receipt.error=e.message;receipt.status='failed'}finally{await unloadScionBrowserWllama();receipt.finishedAt=new Date().toISOString();render();save.disabled=false}};
+save.onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(receipt,null,2)],{type:'application/json'}));a.download='scion-joint-development-screening.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
+</script></html>

@@ -27,6 +27,8 @@ import {
   reconcileCourseMapWithBlueprintSemanticAdmission,
 } from '../courseBlueprintCompiler.js';
 import { applyTeachingTaskSourceEdit } from '../teachingTaskContentSync.js';
+import { renderTeachingOperationTask } from '../teachingOperationTask.js';
+import { teachingRequirementRevision } from '../teachingGoalAlignment.js';
 
 const objective = 'Explain how an amended record changes the interpretation of an earlier entry.';
 const legacyClaims = [
@@ -69,6 +71,31 @@ function paraphrasedPlan(admission = { kind: 'teacher-confirmed' }) {
 }
 
 describe('executable teaching operations', () => {
+  it('does not reuse reviewed goal links when creating, evaluating or rendering a different objective', () => {
+    const { plan, inputs } = paraphrasedPlan();
+    plan.goalAlignment = {
+      version: 1,
+      objective,
+      requirementRevision: teachingRequirementRevision(plan.requirements),
+      targets: [{ outcomeRef: 'goal-1', revision: 'goal-revision' }],
+      requirementLinks: plan.requirements.map(({ id }) => ({ requirementId: id, outcomeRefs: ['goal-1'] })),
+    };
+    expect(validateTeachingOperationPlan(plan, inputs, objective).valid).toBe(true);
+    const changed = 'Prove that the hall complied with the rule on the observation date.';
+    expect(evaluateTeachingOperationPlan(plan, inputs, changed).status).toBe('needs-review');
+    expect(renderTeachingOperationTask(plan, inputs, changed)).toBeNull();
+    expect(() =>
+      createTeachingOperationPlan({
+        operation: plan.operation,
+        inputs,
+        bindings: plan.bindings,
+        admission: plan.admission,
+        goalAlignment: plan.goalAlignment,
+        objective: changed,
+      }),
+    ).toThrow(/target links/);
+    expect(renderTeachingOperationTask(plan, inputs, objective)).not.toBeNull();
+  });
   it('uses teacher-confirmed source roles to handle a paraphrase without the legacy sentence parser', () => {
     const { plan, inputs } = paraphrasedPlan();
     expect(

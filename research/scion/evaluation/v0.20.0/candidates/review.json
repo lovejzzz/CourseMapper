@@ -1,0 +1,161 @@
+{
+  "decision": "not-promoted",
+  "freshAcceptance": false,
+  "receiptSha256": "7c588cf615188de7f21b85aa3c60a4989427598cbb2804e62862d7cb73c33c39",
+  "cases": [
+    {
+      "id": "experiment-dev-01",
+      "withinCurrentRegistry": true,
+      "status": "incomplete",
+      "modelCalls": 2,
+      "elapsedMs": 51530,
+      "offeredCandidate": false,
+      "objectiveReview": "No candidate reached review. Current registry scope is not product scope."
+    },
+    {
+      "id": "experiment-dev-02",
+      "withinCurrentRegistry": true,
+      "status": "invalid",
+      "modelCalls": 2,
+      "elapsedMs": 68513,
+      "offeredCandidate": false,
+      "objectiveReview": "No candidate reached review. Current registry scope is not product scope."
+    },
+    {
+      "id": "quantity-dev-01",
+      "withinCurrentRegistry": false,
+      "status": "unsupported",
+      "modelCalls": 2,
+      "elapsedMs": 12554,
+      "offeredCandidate": false,
+      "objectiveReview": "No candidate reached review. Current registry scope is not product scope."
+    },
+    {
+      "id": "quantity-dev-02",
+      "withinCurrentRegistry": false,
+      "status": "unsupported",
+      "modelCalls": 1,
+      "elapsedMs": 3025,
+      "offeredCandidate": false,
+      "objectiveReview": "No candidate reached review. Current registry scope is not product scope."
+    },
+    {
+      "id": "source-dev-01",
+      "withinCurrentRegistry": false,
+      "status": "unsupported",
+      "modelCalls": 1,
+      "elapsedMs": 2939,
+      "offeredCandidate": false,
+      "objectiveReview": "No candidate reached review. Current registry scope is not product scope."
+    },
+    {
+      "id": "source-dev-02",
+      "withinCurrentRegistry": false,
+      "status": "unsupported",
+      "modelCalls": 1,
+      "elapsedMs": 2882,
+      "offeredCandidate": false,
+      "objectiveReview": "No candidate reached review. Current registry scope is not product scope."
+    },
+    {
+      "id": "source-dev-03",
+      "withinCurrentRegistry": false,
+      "status": "unsupported",
+      "modelCalls": 1,
+      "elapsedMs": 2906,
+      "offeredCandidate": false,
+      "objectiveReview": "No candidate reached review. Current registry scope is not product scope."
+    },
+    {
+      "id": "source-dev-04",
+      "withinCurrentRegistry": false,
+      "status": "unsupported",
+      "modelCalls": 1,
+      "elapsedMs": 3079,
+      "offeredCandidate": false,
+      "objectiveReview": "No candidate reached review. Current registry scope is not product scope."
+    },
+    {
+      "id": "source-dev-05",
+      "withinCurrentRegistry": false,
+      "status": "incomplete",
+      "modelCalls": 1,
+      "elapsedMs": 6734,
+      "offeredCandidate": false,
+      "objectiveReview": "No candidate reached review. Current registry scope is not product scope."
+    },
+    {
+      "id": "source-dev-06",
+      "withinCurrentRegistry": false,
+      "status": "unsupported",
+      "modelCalls": 1,
+      "elapsedMs": 3151,
+      "offeredCandidate": false,
+      "objectiveReview": "No candidate reached review. Current registry scope is not product scope."
+    },
+    {
+      "id": "source-dev-07",
+      "withinCurrentRegistry": true,
+      "status": "unsupported",
+      "modelCalls": 1,
+      "elapsedMs": 3156,
+      "offeredCandidate": false,
+      "objectiveReview": "No candidate reached review. Current registry scope is not product scope."
+    },
+    {
+      "id": "source-dev-08",
+      "withinCurrentRegistry": false,
+      "status": "unsupported",
+      "modelCalls": 1,
+      "elapsedMs": 3145,
+      "offeredCandidate": false,
+      "objectiveReview": "No candidate reached review. Current registry scope is not product scope."
+    },
+    {
+      "id": "source-dev-09",
+      "withinCurrentRegistry": false,
+      "status": "unsupported",
+      "modelCalls": 1,
+      "elapsedMs": 3170,
+      "offeredCandidate": false,
+      "objectiveReview": "No candidate reached review. Current registry scope is not product scope."
+    },
+    {
+      "id": "source-dev-10",
+      "withinCurrentRegistry": false,
+      "status": "unsupported",
+      "modelCalls": 1,
+      "elapsedMs": 3160,
+      "offeredCandidate": false,
+      "objectiveReview": "No candidate reached review. Current registry scope is not product scope."
+    },
+    {
+      "id": "source-dev-11",
+      "withinCurrentRegistry": false,
+      "status": "unsupported",
+      "modelCalls": 1,
+      "elapsedMs": 3108,
+      "offeredCandidate": false,
+      "objectiveReview": "No candidate reached review. Current registry scope is not product scope."
+    },
+    {
+      "id": "source-dev-12",
+      "withinCurrentRegistry": false,
+      "status": "unsupported",
+      "modelCalls": 1,
+      "elapsedMs": 3100,
+      "offeredCandidate": false,
+      "objectiveReview": "No candidate reached review. Current registry scope is not product scope."
+    }
+  ],
+  "totals": {
+    "cases": 16,
+    "modelCalls": 19,
+    "candidates": 0,
+    "incomplete": 2,
+    "invalid": 1,
+    "unsupported": 13,
+    "withinRegistry": 3,
+    "successfulWithinRegistry": 0
+  }
+}
