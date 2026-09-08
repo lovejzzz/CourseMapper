@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Group unchanged reviewed multi-part rubric examples and independent answer keys by their teaching requirements, preserving teacher-edited text without inferred labels. Add a paper-helicopter capstone case that is not practised in the first five lessons of the experiment-course development draft.
+
 - Add a reproducible six-session experiment-course development capture and real DOCX/PDF export inspection. Replace repeated reference anchors with distinct acceptable responses, make transfer rubric bands task-specific, and assess all five protocol components in the capstone. These authored drafts are not model or classroom acceptance results.
 - Generate comparison assignment response sections from reviewed requirements and give multi-part independent study-guide tasks more writing space. Version conditional design explanations separately so saved comparison presentations reconstruct unchanged for teacher-edit merges.
 

@@ -10,7 +10,7 @@ import { deriveCourseGraphFromCourseMap } from '../courseGraph/index.js';
 import { createEditTransaction, applyEditTransaction } from '../deliverableEditHistory.js';
 import { prepareProjectSnapshotForRestore } from '../projectSnapshotSanitizer.js';
 import { deliverablePdfDefinition } from '../exporters/classroomPdf.js';
-import { alternativeReferenceParagraphs } from '../teachingMaterialPresentation.js';
+import { alternativeReferenceParagraphs, reviewedRequirementSections } from '../teachingMaterialPresentation.js';
 import { describe, expect, it } from 'vitest';
 import { comparisonDesignFixture } from '../../../tests/fixtures/teaching/comparisonDesign.js';
 import { comparisonCourseDraft } from '../../../tests/fixtures/teaching/courses/comparisonCourse.js';
@@ -67,8 +67,12 @@ it('exports response space for the actual lesson requirements and the five-part 
       teachingTaskScope: 'primary-task',
       teachingTask: task,
     };
-    for (const feature of ['assignments', 'studyGuides']) {
-      const data = projectSharedTeachingTasks(feature, { [feature]: [{ lessonNumber: 1 }] }, { lessons: [lesson] });
+    for (const feature of ['assignments', 'studyGuides', 'rubrics']) {
+      const data = projectSharedTeachingTasks(
+        feature,
+        { [feature]: [{ lessonNumber: 1, ...(feature === 'rubrics' ? { criteria: [], totalPoints: 100 } : {}) }] },
+        { lessons: [lesson] },
+      );
       const saved = structuredClone(data);
       const definition = deliverablePdfDefinition(feature, data, course.title);
       const strings = [];
@@ -85,12 +89,34 @@ it('exports response space for the actual lesson requirements and the five-part 
         expect(lines).toBe(4 * f.requirements.length);
         expect(strings).not.toContain('Proposed allocation, conditions and measurement');
         for (const requirement of f.requirements) expect(strings).toContain(requirement.label);
-      } else {
+      } else if (feature === 'studyGuides') {
         expect(lines).toBe(index === 0 ? 11 : 35);
+      }
+      if (index === 5 && feature !== 'assignments') {
+        f.requirements.forEach((requirement, position) =>
+          expect(strings).toContain(
+            `${feature === 'studyGuides' ? `6.${position + 1}` : `${position + 1}.`} ${requirement.label}: `,
+          ),
+        );
       }
       expect(data).toEqual(saved);
     }
   }
+});
+
+it('labels only exact reviewed answers and leaves teacher wording and stale sources untouched', () => {
+  const requirements = comparisonCourseDraft().lessons[5].requirements;
+  const source = { operationPlan: { version: 2, requirements } };
+  const text = requirements.map((r) => r.transfer.answer).join('\n\n');
+  const sections = reviewedRequirementSections(text, source, 'transfer');
+  expect(sections).toHaveLength(5);
+  expect(sections.map((s) => s.text).join('\n\n')).toBe(text);
+  expect(reviewedRequirementSections(text + '\nTeacher qualification.', source, 'transfer')).toBeNull();
+  const changed = structuredClone(source);
+  changed.operationPlan.requirements[0].transfer.answer = 'A separately reviewed correction.';
+  expect(reviewedRequirementSections(text, changed, 'transfer')).toBeNull();
+  expect(reviewedRequirementSections(text, { operationPlan: { version: 1, requirements } }, 'transfer')).toBeNull();
+  expect(reviewedRequirementSections(text, source, 'toString')).toBeNull();
 });
 
 describe('reviewed paired-condition comparison design', () => {

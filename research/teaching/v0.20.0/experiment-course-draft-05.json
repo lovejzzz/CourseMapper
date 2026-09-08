@@ -1,0 +1,93 @@
+{
+  "status": "development course revision; not release acceptance",
+  "projectSha256": "a9178bc4c9ac1b2761e0b18f1d7bce459d1cf6c9319b0edd65e4f09b9afb8423",
+  "captureDirectory": ".audit-work/v0200-teaching-system/courses/experiment-en-draft-05",
+  "modelCalls": 0,
+  "lessons": 6,
+  "materials": 10,
+  "files": [
+    {
+      "name": "rubrics.docx",
+      "bytes": 21431,
+      "sha256": "ef2c0a1812b75a8cd3fa8b06f811dd79ec3c388bc8d80b79d02deb036fa08c99",
+      "directory": "exports"
+    },
+    {
+      "name": "rubrics.pdf",
+      "bytes": 133530,
+      "sha256": "18dab9442c738bda8b8849a66e3c3acd6ec99d4d296a61153691c848bf6db960",
+      "directory": "exports",
+      "pages": 15
+    },
+    {
+      "name": "studyGuides.docx",
+      "bytes": 22311,
+      "sha256": "ef21be911b8baa48381701a5af1e16f4cd49bdd98d7bb9e9102106ccc7fe994b",
+      "directory": "exports"
+    },
+    {
+      "name": "studyGuides.pdf",
+      "bytes": 146297,
+      "sha256": "e8caf563d0e84941ae0b21342e226cfe22df3a843bd67aa88226074bd49ada9f",
+      "directory": "exports",
+      "pages": 15
+    },
+    {
+      "name": "quizBank.docx",
+      "bytes": 20767,
+      "sha256": "a0606fb87db7c6fbf69eaf48046f396e1efdda04e1ee081caacc877e775c3954",
+      "directory": "exports"
+    },
+    {
+      "name": "quizBank.pdf",
+      "bytes": 163605,
+      "sha256": "f4d373ba613887fbe7df721070d62f81d7c918b9085a6ac6f37326abe4d0f5cb",
+      "directory": "exports",
+      "pages": 14
+    },
+    {
+      "name": "assignments.docx",
+      "bytes": 17233,
+      "sha256": "f2b46ed563e1e8b6e3fa75d4e59b4c76d4a7c6b86674f22369e8b7297ba9b4f0",
+      "directory": "exports"
+    },
+    {
+      "name": "assignments.pdf",
+      "bytes": 111183,
+      "sha256": "85d403a15a5ee464251373e29a82a0b43984fc75dbfe811df8dab86924937bc6",
+      "directory": "exports",
+      "pages": 14
+    },
+    {
+      "name": "studyGuides.docx",
+      "bytes": 22317,
+      "sha256": "2fcfa40c5c0880c819786af975ea34a9a27ef77c52ffef4d46e0b0f5b08e7ad4",
+      "directory": "exports-numbered"
+    },
+    {
+      "name": "studyGuides.pdf",
+      "bytes": 146304,
+      "sha256": "a67fd328eadf7b242f85c031172afe487880bbaaa2d3ce76d4be695f8ed2c5cc",
+      "directory": "exports-numbered",
+      "pages": 15
+    }
+  ],
+  "preferredStudyGuide": "exports-numbered/studyGuides.pdf",
+  "newCourseContext": "paper helicopters appear only in lesson 6; implementer-authored, not a hidden benchmark",
+  "arithmeticCheck": {
+    "method": "independent decimal subtraction",
+    "expression": "1.4 - 0.9",
+    "result": "0.5 s"
+  },
+  "visualReview": [
+    "exports/studyGuides.pdf page 15 before hierarchical numbering",
+    "exports/rubrics.pdf pages 13 and 15"
+  ],
+  "remaining": [
+    "Rubric final page remains sparse",
+    "Only selected pages visually inspected",
+    "DOCX not rendered in Word",
+    "Other five derived exports not regenerated for draft-05",
+    "Actual application and production acceptance outstanding"
+  ]
+}

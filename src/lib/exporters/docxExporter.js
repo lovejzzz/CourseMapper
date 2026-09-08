@@ -1,5 +1,6 @@
 import {
   alternativeReferenceParagraphs,
+  reviewedRequirementSections,
   teachingMaterialIsChinese,
   teachingMaterialLabel,
   teachingMaterialLessonLabel,
@@ -1236,6 +1237,27 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             );
           if (labeledAnchors.length)
             labeledAnchors.forEach(([label, text]) => {
+              const fields = {
+                'Strong response': 'answer',
+                'Partial response': 'partial',
+                'Typical misconception': 'misconception',
+                'Acceptable alternative': 'alternative',
+                'Why the score differs': 'rationale',
+                'Revision prompt': 'feedback',
+              };
+              const sections = reviewedRequirementSections(
+                text,
+                expanded.teachingTaskSources?.find((source) => source.id === r.taskId),
+                fields[label],
+              );
+              if (sections) {
+                children.push(makeBold(t(label), '', { keepNext: true }));
+                sections.forEach((section, index) => {
+                  children.push(makeBold(`${index + 1}. ${section.label}`, '', { keepNext: true }));
+                  section.text.split(/\r?\n\s*\r?\n/).forEach((paragraph) => children.push(makeText(paragraph)));
+                });
+                return;
+              }
               // Preserve the reference's authored reasoning paragraphs. A
               // single Word run flattens them into an unreadable text block.
               const paragraphs =
@@ -1988,7 +2010,21 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           g.reviewQuestions.forEach((q, j) => {
             if (!q?.answer) return;
             const checks = additionalAnswerChecks(q);
-            children.push(makeNumbered(j + 1, q.answer, { keepNext: Boolean(checks.length) }));
+            const sections =
+              q.practiceKind === 'independent-transfer'
+                ? reviewedRequirementSections(
+                    q.answer,
+                    expanded.teachingTaskSources?.find((source) => source.id === g.taskId),
+                    'transfer',
+                  )
+                : null;
+            if (sections) {
+              children.push(makeNumbered(j + 1, t('Independent practice'), { keepNext: true }));
+              sections.forEach((section, index) => {
+                children.push(makeBold(`${j + 1}.${index + 1} ${section.label}`, '', { keepNext: true }));
+                section.text.split(/\r?\n\s*\r?\n/).forEach((paragraph) => children.push(makeText(paragraph)));
+              });
+            } else children.push(makeNumbered(j + 1, q.answer, { keepNext: Boolean(checks.length) }));
             checks.forEach((criterion) => children.push(makeBullet(criterion)));
           });
         }

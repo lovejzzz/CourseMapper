@@ -1,4 +1,5 @@
 import { comparisonDesignFixture } from '../comparisonDesign.js';
+import { helicopterInputs, helicopterTransfers } from './helicopterTransfer.js';
 
 // Implementer-authored course draft, not independent teacher validation or
 // hidden benchmark data. One protocol develops across all six sessions.
@@ -268,15 +269,16 @@ export function comparisonCourseDraft() {
     practiceInputs,
     progression: `Protocol portfolio, stage ${index + 1}: ${stage.action}`,
   }));
+  const finalTransfer = helicopterTransfers();
   lessons.push({
     ...base,
     title: 'Revise and defend a complete protocol',
     objective:
-      'Combine and revise the protocol developed in lessons 1–5, defend its evidence limits, and consolidate the parallel tray protocol.',
-    requirements: stages.map((stage, index) => requirement(stage, index, 20)),
-    practiceInputs,
+      'Combine and revise the protocol developed in lessons 1–5, defend its evidence limits, then independently design a paper-helicopter comparison from a previously unpractised source packet.',
+    requirements: stages.map((stage, index) => ({ ...requirement(stage, index, 20), transfer: finalTransfer[index] })),
+    practiceInputs: structuredClone(helicopterInputs),
     progression:
-      'Submit the full protocol portfolio from lessons 1–5, keep a before/after revision note responding to peer feedback, and defend the final allocation, controls, measurement and analysis. The familiar tray case consolidates prior transfer practice; it is not an unseen assessment or observed new evidence.',
+      'Submit the full ink protocol portfolio from lessons 1–5 with a before/after revision note responding to peer feedback. Independently complete the paper-helicopter case before opening its reference. Defend allocation, controls, measurement and analysis using that new packet; it supplies no new-trial results.',
   });
   return {
     id: 'experiment-course-en-draft',

@@ -138,3 +138,25 @@ export function alternativeReferenceParagraphs(anchors, chinese) {
     ...alternative.slice(prefix, alternative.length - suffix),
   ];
 }
+
+// Attach labels only to an exact, still-current projection. Never split a
+// teacher's edited answer by guessing that its paragraphs match requirements.
+export function reviewedRequirementSections(text, source, field) {
+  const requirements = source?.operationPlan?.version === 2 ? source.operationPlan.requirements : null;
+  if (!Array.isArray(requirements) || requirements.length < 2) return null;
+  const projections = {
+    answer: [(r) => r.answer, '\n\n'],
+    transfer: [(r) => r.transfer?.answer, '\n\n'],
+    partial: [(r) => r.examples?.partial, '\n\n'],
+    misconception: [(r) => r.examples?.misconception, '\n\n'],
+    alternative: [(r) => r.examples?.alternative, '\n\n'],
+    rationale: [(r) => `${r.label}: ${r.levels?.developing}`, ' '],
+    feedback: [(r) => r.feedback, ' '],
+  };
+  if (!Object.hasOwn(projections, field)) return null;
+  const [read, separator] = projections[field];
+  const sections = requirements.map((r) => ({ label: r.label, text: read(r) }));
+  if (sections.some((s) => typeof s.label !== 'string' || typeof s.text !== 'string' || !s.text)) return null;
+  if (text !== sections.map((s) => s.text).join(separator)) return null;
+  return sections;
+}
