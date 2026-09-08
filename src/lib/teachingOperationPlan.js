@@ -3,6 +3,7 @@ import { solveTeachingProportion } from './teachingTaskArithmetic.js';
 import { parseSourceCount, countSpanCutsNumber } from './sourceCount.js';
 import { validateComparisonBindings, evaluateComparison } from './teachingOperationComparison.js';
 import { validateTeachingGoalAlignment } from './teachingGoalAlignment.js';
+import { isExplicitCalendarDate, parseSourceCalendarDate } from './sourceCalendar.js';
 import {
   AUTHORED_REQUIREMENTS_PLAN_VERSION,
   performanceSourceRevision,
@@ -110,10 +111,7 @@ const object = (value) => value && typeof value === 'object' && !Array.isArray(v
 const nonempty = (value) => typeof value === 'string' && Boolean(value.trim());
 const issue = (code, message, binding) => ({ code, message, ...(binding ? { binding } : {}) });
 export const operationInputRevision = (input) => sha256HexSync(input.text);
-const statedDate = (text) =>
-  /^(?:\d{4}-\d{2}-\d{2}|\d{1,2} (?:January|February|March|April|May|June|July|August|September|October|November|December)(?: \d{4})?|(?:\d{4}年)?\d{1,2}月\d{1,2}日)$/i.test(
-    text,
-  );
+const statedDate = (text) => parseSourceCalendarDate(text) !== null;
 
 /** Offsets are UTF-16 string positions, matching the browser editor. A span
  * resolves against one exact input revision; a quote alone is not identity. */
@@ -186,6 +184,14 @@ export function validateTeachingOperationPlan(plan, inputs, objective) {
       );
     if (type === 'date-text' && (!/\d/.test(text) || text.length > 120 || /[\n\r]/.test(text)))
       issues.push(issue('plan-date', 'Locate the stated effective date; do not infer missing calendar context.', name));
+    if (type === 'date-text' && isExplicitCalendarDate(text) && !parseSourceCalendarDate(text))
+      issues.push(
+        issue(
+          'plan-calendar-date',
+          'The stated Gregorian date is not possible. Review the source date or calendar before compiling it.',
+          name,
+        ),
+      );
   }
   if (Object.keys(plan.bindings).some((name) => !Object.hasOwn(spec.bindings, name)))
     issues.push(issue('plan-extra-binding', 'This operation contains a binding it does not understand.'));

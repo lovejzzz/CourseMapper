@@ -205,6 +205,23 @@ describe('executable teaching operations', () => {
     expect(rebuilt.revision).not.toBe(task.revision);
   });
 
+  it('does not silently compile impossible effective dates during source edits', () => {
+    const task = legacyTask();
+    for (const date of ['31 April', '2025-02-29', '1900-02-29']) {
+      const nextInputs = task.inputs.map((input) => ({ ...input, text: input.text.replace('1 July', date) }));
+      expect(rebindTeachingOperationEdit(task.operationPlan, task.inputs, nextInputs)).toBeNull();
+    }
+    const nextInputs = task.inputs.map((input) => ({ ...input, text: input.text.replace('1 July', '2000-02-29') }));
+    const nextPlan = rebindTeachingOperationEdit(task.operationPlan, task.inputs, nextInputs);
+    expect(evaluateTeachingOperationPlan(nextPlan, nextInputs).status).toBe('ready');
+    const initial = paraphrasedPlan();
+    initial.inputs[1].text = initial.inputs[1].text.replace('14 September', '31 September');
+    initial.plan.inputRevisions[initial.inputs[1].id] = operationInputRevision(initial.inputs[1]);
+    const checked = validateTeachingOperationPlan(initial.plan, initial.inputs);
+    expect(checked.issues.some((entry) => entry.code === 'plan-calendar-date')).toBe(true);
+    expect(evaluateTeachingOperationPlan(initial.plan, initial.inputs).status).toBe('needs-review');
+  });
+
   it.each([
     ['revocation', (s) => s.replace('amends', 'does not amend')],
     ['unit', (s) => s.replace('90 seats', '90 tables')],

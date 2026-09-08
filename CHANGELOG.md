@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Reject impossible explicit Gregorian effective dates when validating or rebinding teaching operations. Add bounded relative-day arithmetic that preserves missing years, leap-day ambiguity and source-attribution requirements; this calendar foundation does not yet implement a complete source-chronology teaching task.
+
 - Constrain argument proposal JSON and whole-record citations only on runtimes with verified grammar support; reject unchanged schema examples as well as duplicate performance bands. Preserve four real candidate-runtime trials, including opt-in staged/thinking comparisons: format improved, but objective coverage and teaching quality did not meet acceptance. Production runtime and homepage generation remain unchanged.
 
 - Add a single-call local teaching-argument proposal boundary with input snapshots, raw responses, runtime/adapter receipts, cancellation and strict rejection of incomplete output. Two real browser development trials still failed; preserve both outputs and revert the unsuccessful compact-prompt experiment. This is not yet connected to shared-task application or accepted as a quality improvement.
