@@ -915,6 +915,32 @@ describe('packageZipExporter', () => {
     expect(result.files.some((file) => /^Assignment Briefs\/.*\.docx$/.test(file.path))).toBe(true);
   });
 
+  it('requires a separate student document and keeps the full teacher document in the package', async () => {
+    const options = {
+      courseMap: makeCourseMap('Student package'),
+      deliverables: {
+        assignments: { status: 'done', data: { assignments: [{ title: 'Analyze evidence', lessonNumber: 1 }] } },
+      },
+      featureIds: ['assignments'],
+      quality: false,
+    };
+    const result = await buildCourseMaterialsZip(options);
+    expect(result.files.some((file) => file.path.startsWith('Student Copies/Assignment Briefs/'))).toBe(true);
+    expect(result.files.some((file) => file.path.startsWith('Assignment Briefs/'))).toBe(true);
+    expect(buildDeliverableDocxBlob.mock.calls.some((call) => call[3]?.audience === 'student')).toBe(true);
+    const defaultBlob = await makeOfficeXmlBlob(
+      'word/document.xml',
+      '<w:document><w:body><w:p><w:r><w:t>Teacher copy.</w:t></w:r></w:p></w:body></w:document>',
+    );
+    buildDeliverableDocxBlob.mockImplementation(async (_feature, _data, _title, audience) => {
+      if (audience?.audience === 'student') throw new Error('Student copy failed');
+      return defaultBlob;
+    });
+    await expect(buildCourseMaterialsZip(options)).rejects.toThrow(
+      /could not be completed|could not be generated|Student copy failed/i,
+    );
+  });
+
   it('exports one course-level handoff for a compiler-routed empty material', async () => {
     const courseMap = makeCourseMap('Exam Only Course');
     const data = {

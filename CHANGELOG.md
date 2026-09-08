@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Include required student assignment and quiz Word documents under `Student Copies/` in course ZIPs, preserving full teacher files in their original folders. Skip empty not-applicable handoffs. Real six-lesson archive inspection verifies 12 student documents without reference sections and 12 teacher documents retaining them; student build failures stop packaging.
+
 - Add Student copy Word/PDF exports for assignments and quiz banks. Omit teacher keys, scoring references, anchors and worked solutions without mutating saved material; preserve full teacher exports. Start each student assignment on a fresh page. Reject shared student exports containing private role cards. Actual Chrome PDF download verified; final seven-page Chinese assignment visually reviewed. ZIP/Google student variants remain pending.
 
 - Identify each assignment reference-answer page with its task and related lesson. Label shared-task objectives as related lesson goals in Word/PDF, preserving the original goal text while distinguishing it from the brief’s specific directions. Six Chinese reference pages verified; pagination remains 13 pages.

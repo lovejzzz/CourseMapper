@@ -2608,6 +2608,22 @@ export async function buildCourseMaterialsZip({
             zipLibrary: JSZip,
           },
         );
+        if (
+          ['assignments', 'quizBank'].includes(featureId) &&
+          renderedDeliverableCollection(featureId, exportSlice.data).length > 0
+        ) {
+          const studentBlob = await buildDeliverableDocxBlob(featureId, exportSlice.data, exportTitle, {
+            audience: 'student',
+          });
+          await addRequiredOfficeFile(
+            zip,
+            files,
+            failures,
+            `Student Copies/${safeLabel}/${exportSlice.fileStem} - ${safeLabel} - Student.docx`,
+            studentBlob,
+            { featureId, format: 'docx', fileContents, zipLibrary: JSZip },
+          );
+        }
       } catch (err) {
         failures.push(
           createFailure(
