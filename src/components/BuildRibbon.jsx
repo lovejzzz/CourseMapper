@@ -298,22 +298,24 @@ export default function BuildRibbon({ model, onStop = null }) {
           </button>
         )}
       </div>
-      <div
-        data-testid="build-progress-track"
-        role="progressbar"
-        aria-label={`Overall course build progress: ${visibleProgress}%`}
-        aria-valuetext={`${visibleProgress}% — ${model.stageLabel}`}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={visibleProgress}
-        className="h-1 bg-slate-100 dark:bg-slate-800"
-      >
+      {compilerState !== 'review' && (
         <div
-          data-testid="build-progress-fill"
-          className="h-full bg-gradient-to-r from-indigo-500 via-violet-500 to-sky-500 transition-[width] duration-500 ease-out motion-reduce:transition-none"
-          style={{ width: `${visibleProgress}%` }}
-        />
-      </div>
+          data-testid="build-progress-track"
+          role="progressbar"
+          aria-label={`Overall course build progress: ${visibleProgress}%`}
+          aria-valuetext={`${visibleProgress}% — ${model.stageLabel}`}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={visibleProgress}
+          className="h-1 bg-slate-100 dark:bg-slate-800"
+        >
+          <div
+            data-testid="build-progress-fill"
+            className="h-full bg-gradient-to-r from-indigo-500 via-violet-500 to-sky-500 transition-[width] duration-500 ease-out motion-reduce:transition-none"
+            style={{ width: `${visibleProgress}%` }}
+          />
+        </div>
+      )}
     </div>
   );
 }

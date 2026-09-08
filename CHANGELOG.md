@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Show settled package checks as awaiting review rather than still refining at 99%. Hide the review-state progress bar while preserving blockers and active-build progress.
+
 - Add capability-gated compact chronology proposals with strict source validation; preserve the failed unconstrained trial and one successful candidate-runtime extraction without promoting that runtime. Improve reviewed chronology answers, distinct scoring examples and calendar-based independent practice; correct guide summaries and PDF feedback grouping. Verify real nine-material date sync, exact project reopen, and all six pages of two development PDFs. Full release acceptance remains pending.
 
 - Add a reviewed chronology operation that distinguishes a relative event day, a recalled month and a recording date. Compute attributed dates and compatibility without inventing years, project specific answers/scoring into materials, and preserve task identity through source edits and reopen. Add the operation to the existing review panel and local source-role proposal contract. A real Scion trial still needs two role corrections; automatic end-to-end acceptance remains incomplete.

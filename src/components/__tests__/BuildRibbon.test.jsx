@@ -24,6 +24,14 @@ function makeModel(overrides = {}) {
 }
 
 describe('BuildRibbon', () => {
+  it('shows a settled review state without suggesting that a background build is still progressing', () => {
+    const html = renderToStaticMarkup(
+      <BuildRibbon model={makeModel({ compilerState: 'review', running: false, progressPct: 99 })} />,
+    );
+    expect(html).toContain('Review required');
+    expect(html).not.toContain('role="progressbar"');
+    expect(html).not.toContain('Build complete');
+  });
   it('does not label a running sync complete when it inherits 100 percent from the finished package', () => {
     const html = renderToStaticMarkup(
       <BuildRibbon model={makeModel({ running: true, progressPct: 100, activeStartedAt: 1000 })} />,

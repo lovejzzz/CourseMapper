@@ -676,7 +676,9 @@ export function buildBuildRibbonModel({
       stage = 'ready';
       const blockers = Number(packageQualityPass?.blockers) || 0;
       stageLabel =
-        blockers > 0 ? `Refining package — ${blockers} item${blockers === 1 ? '' : 's'}` : 'Refining package';
+        blockers > 0
+          ? `${blockers} item${blockers === 1 ? '' : 's'} need${blockers === 1 ? 's' : ''} review`
+          : 'Review the package';
       break;
     }
     case 'ready':
