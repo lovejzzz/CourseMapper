@@ -26,7 +26,7 @@ function judgmentFor(record, criterionId) {
 
 /** Only explicit reviewed exports contain responses. No props return notebook
  * data to the course/project state or to a model. */
-export default function TeachingResponseReview({ source, zh, disabled, store: suppliedStore }) {
+export default function TeachingResponseReview({ source, zh, disabled, store: suppliedStore, onPrepareFeedback }) {
   const store = useMemo(() => suppliedStore || createTeachingResponseStore(), [suppliedStore]);
   const [records, setRecords] = useState([]);
   const [open, setOpen] = useState(false);
@@ -37,6 +37,8 @@ export default function TeachingResponseReview({ source, zh, disabled, store: su
   const [busy, setBusy] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmExport, setConfirmExport] = useState(false);
+  const [feedbackDraft, setFeedbackDraft] = useState('');
+  const [feedbackPublic, setFeedbackPublic] = useState(false);
   const t = (en, cn) => (zh ? cn : en);
   const summary = useMemo(
     () => (active ? summarizeResponseReviews(records, active.sourceRevision, active.rubricRevision) : null),
@@ -63,6 +65,8 @@ export default function TeachingResponseReview({ source, zh, disabled, store: su
       );
   }
   function select(record) {
+    setFeedbackDraft('');
+    setFeedbackPublic(false);
     setActive(record);
     setConfirmExport(false);
     setConfirmDelete(false);
@@ -175,7 +179,11 @@ export default function TeachingResponseReview({ source, zh, disabled, store: su
                 <select
                   className={field}
                   value={judgment.criterionId}
-                  onChange={(e) => setJudgment(judgmentFor(active, e.target.value))}
+                  onChange={(e) => {
+                    setJudgment(judgmentFor(active, e.target.value));
+                    setFeedbackDraft('');
+                    setFeedbackPublic(false);
+                  }}
                 >
                   {active.snapshot.criteria.map((c) => (
                     <option key={c.id} value={c.id}>
@@ -270,6 +278,61 @@ export default function TeachingResponseReview({ source, zh, disabled, store: su
                   </p>
                 ))}
               </details>
+              {onPrepareFeedback && source?.operationPlan?.version === 2 && source.id === active.taskId && (
+                <details className="rounded border border-slate-200 p-2">
+                  <summary className="cursor-pointer">{t('Revise teaching feedback', '修订教学反馈')}</summary>
+                  <label className="block">
+                    {t('New feedback for the selected requirement', '所选要求的新教学反馈')}
+                    <textarea
+                      className={field}
+                      rows={3}
+                      maxLength={6000}
+                      value={feedbackDraft}
+                      onChange={(event) => {
+                        setFeedbackDraft(event.target.value);
+                        setFeedbackPublic(false);
+                      }}
+                    />
+                  </label>
+                  <label className="block">
+                    <input
+                      type="checkbox"
+                      checked={feedbackPublic}
+                      onChange={(event) => setFeedbackPublic(event.target.checked)}
+                    />{' '}
+                    {t(
+                      'This text is suitable for course materials and contains no student information',
+                      '此文本适合写入课程材料，且不含学生信息',
+                    )}
+                  </label>
+                  <button
+                    type="button"
+                    className="mt-2 rounded border border-slate-300 bg-white px-3 py-1.5 disabled:opacity-40"
+                    disabled={
+                      !feedbackPublic ||
+                      !feedbackDraft.trim() ||
+                      !active.judgments.some((j) => j.criterionId === judgment.criterionId)
+                    }
+                    onClick={() =>
+                      void run(async () => {
+                        await onPrepareFeedback({
+                          record: active,
+                          criterionId: judgment.criterionId,
+                          feedback: feedbackDraft,
+                        });
+                        setMessage(
+                          t(
+                            'Review the linked changes in the task editor before applying.',
+                            '请在任务编辑器中审阅联动变化后再应用。',
+                          ),
+                        );
+                      })
+                    }
+                  >
+                    {t('Preview linked changes', '预览联动变化')}
+                  </button>
+                </details>
+              )}
               <label className="block">
                 <input type="checkbox" checked={confirmExport} onChange={(e) => setConfirmExport(e.target.checked)} />{' '}
                 {t('I checked this review for identifying information', '我已检查此记录中的身份信息')}

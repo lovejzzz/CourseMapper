@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import TeachingPerformanceEditor from './TeachingPerformanceEditor.jsx';
 import TeachingGoalAlignmentEditor from './TeachingGoalAlignmentEditor.jsx';
 import TeachingResponseReview from './TeachingResponseReview.jsx';
+import { prepareResponseFeedbackRevision } from '../../../lib/teachingResponseRevision.js';
+import { sameJsonData } from '../../../lib/canonicalJson.js';
 import { reconcileTeachingGoalLinks } from '../../../lib/teachingGoalAlignment.js';
 import { FEATURES_BASE } from '../../../lib/featureCatalog.js';
 import { TEACHING_OPERATION_SPECS } from '../../../lib/teachingOperationPlan.js';
@@ -328,7 +330,36 @@ export default function TeachingTaskReview({
       }}
     >
       <summary className="cursor-pointer font-medium">{t('Review sources and scoring', '审阅来源与评分')}</summary>
-      <TeachingResponseReview source={options.sources.find((row) => row.id === selected?.id)} zh={zh} disabled={busy} />
+      <TeachingResponseReview
+        source={options.sources.find((row) => row.id === selected?.id)}
+        zh={zh}
+        disabled={busy}
+        onPrepareFeedback={async (request) => {
+          const source = options.sources.find((row) => row.id === request.record.taskId);
+          const base = source && createTeachingTaskReviewDraft(source, data, featureId);
+          if (draftRef.current && !sameJsonData(draftRef.current, base))
+            throw new Error(t('Finish or discard the current task draft first.', '请先完成或放弃当前任务草稿。'));
+          const next = prepareResponseFeedbackRevision({ ...request, source, materialData: data, featureId });
+          setBusy(true);
+          try {
+            const result = await onPreview(next);
+            if (result.status !== 'preview')
+              throw new Error(result.message || t('The change needs review.', '修改需要进一步审阅。'));
+            setDraft(next);
+            setSelectedId(next.taskId);
+            setPreview(result);
+            setConfirmed(false);
+            setMessage(
+              t(
+                'Feedback revision prepared. Review the linked changes below before applying.',
+                '反馈修订已准备，请审阅下方联动变化后再应用。',
+              ),
+            );
+          } finally {
+            setBusy(false);
+          }
+        }}
+      />
       {options.issue && (
         <p role="alert" className="mt-3 text-amber-800">
           {options.issue}

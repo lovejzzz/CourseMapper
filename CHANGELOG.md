@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Prepare response-led revisions to reviewed teaching-requirement feedback through the existing linked-material preview and confirmation transaction. Reject stale task/rubric versions, preserve unfinished task drafts, and transfer only explicitly approved public feedback into course materials.
+
 - Import small anonymous CSV response batches with a full preview and task confirmation. Preserve quoted text, reject extra identity columns and malformed rows, and save each batch atomically so failures cannot leave partial imports.
 
 - Add a collapsed, local student-response review notebook within the existing source/scoring review. Preserve the original task and rubric, require teacher-confirmed judgments with exact response evidence, distinguish insufficient evidence from low performance, support undo and explicit reviewed exports, and keep records outside course/cloud autosave. Reject stale concurrent saves. This is the review foundation; response-driven material revision and CSV intake remain in development.

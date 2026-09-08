@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { observedProportionFixture } from '../../../tests/fixtures/teaching/observedProportion.js';
+import { createResponseReview, confirmResponseJudgment } from '../teachingResponseReview.js';
+import { prepareResponseFeedbackRevision } from '../teachingResponseRevision.js';
 import { performanceRequirementsFixture } from '../../../tests/fixtures/teaching/performanceRequirements.js';
 import {
   createTeachingOperationPlan,
@@ -440,4 +442,34 @@ describe('reviewed performance requirements', () => {
     expect(JSON.stringify(applied.changed.rubrics.data)).toContain(draft.requirements[1].action);
     expect(applied.conflicts).toEqual([]);
   });
+});
+
+it('routes response-led feedback through the confirmed course transaction without copying private review data', () => {
+  const s = state();
+  const record = createResponseReview(s.source, 'PRIVATE RESPONSE: 42.5%.');
+  const criterionId = record.snapshot.criteria[0].id;
+  const feedback = 'Label the 17 choices and all 40 observed volunteers before converting 17/40 to percent.';
+  const request = { source: s.source, criterionId, feedback };
+  expect(() => prepareResponseFeedbackRevision({ ...request, record })).toThrow(/Confirm a judgment/);
+  const reviewed = confirmResponseJudgment(record, {
+    criterionId,
+    level: 'insufficient',
+    reason: 'PRIVATE REVIEW: no denominator explanation.',
+  });
+  const draft = prepareResponseFeedbackRevision({ ...request, record: reviewed });
+  expect(JSON.stringify(draft)).not.toContain('PRIVATE');
+  const preview = previewTeachingTaskReview({ ...s, draft });
+  expect(preview.status, preview.message).toBe('preview');
+  expect(commitTeachingTaskReview({ ...s, preview }).status).toBe('needs-review');
+  const applied = commitTeachingTaskReview({ ...s, preview, teacherConfirmed: true });
+  expect(applied.status, applied.message).toBe('applied');
+  const updatedSource = readTeachingTaskSources(applied.courseMap)[0];
+  expect(updatedSource.operationPlan.requirements.find((r) => r.id === criterionId).feedback).toBe(feedback);
+  expect(JSON.stringify(applied.changed)).toContain(feedback);
+  expect(JSON.stringify(applied)).not.toContain('PRIVATE');
+  expect(reviewed.snapshot.source).toEqual(s.source);
+  expect(reviewed.snapshot.criteria).toEqual(record.snapshot.criteria);
+  expect(() => prepareResponseFeedbackRevision({ ...request, record: reviewed, source: updatedSource })).toThrow(
+    /task changed/,
+  );
 });

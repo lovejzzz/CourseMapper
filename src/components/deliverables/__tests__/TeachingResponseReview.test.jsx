@@ -7,6 +7,10 @@ import TeachingResponseReview from '../shared/TeachingResponseReview.jsx';
 import TeachingResponseCsvImport from '../shared/TeachingResponseCsvImport.jsx';
 import { buildSharedTeachingTask } from '../../../lib/compilerTeachingTask.js';
 import { teachingTaskSourceFromLesson } from '../../../lib/teachingTaskSource.js';
+import { observedProportionFixture } from '../../../../tests/fixtures/teaching/observedProportion.js';
+import { performanceRequirementsFixture } from '../../../../tests/fixtures/teaching/performanceRequirements.js';
+import { createTeachingOperationPlan } from '../../../lib/teachingOperationPlan.js';
+import { createResponseReview, confirmResponseJudgment } from '../../../lib/teachingResponseReview.js';
 vi.mock('file-saver', () => ({ saveAs: vi.fn() }));
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 const task = buildSharedTeachingTask({
@@ -144,4 +148,61 @@ it('previews CSV before atomic import and keeps the preview available after a fa
   expect(onImported).toHaveBeenCalledOnce();
   expect(onImported.mock.calls[0][0].map((r) => r.response)).toEqual(['Anonymous answer one', 'Anonymous answer two']);
   expect(container.textContent).not.toContain('2 responses');
+});
+
+it('requires public feedback confirmation and clears it when switching requirements', async () => {
+  const f = observedProportionFixture();
+  const operationPlan = createTeachingOperationPlan({
+    ...f,
+    ...performanceRequirementsFixture(),
+    version: 2,
+    operation: 'observed-proportion',
+    admission: { kind: 'teacher-confirmed' },
+  });
+  const teachingTask = buildSharedTeachingTask({
+    lessonId: 'feedback-ui',
+    objective: f.objective,
+    sourceInputs: f.inputs,
+    operationPlan,
+    admitted: true,
+  });
+  const authored = teachingTaskSourceFromLesson({
+    id: 'feedback-ui',
+    lessonNumber: 1,
+    title: 'Observed scope',
+    teachingTask,
+    teachingTaskScope: 'primary-task',
+  });
+  const record = createResponseReview(authored, 'PRIVATE: 42.5%.');
+  const reviewed = confirmResponseJudgment(record, {
+    criterionId: record.snapshot.criteria[0].id,
+    level: 'insufficient',
+    reason: 'PRIVATE: no reasoning.',
+  });
+  saved.set(reviewed.id, reviewed);
+  const onPrepareFeedback = vi.fn();
+  await act(async () =>
+    root.render(
+      <TeachingResponseReview source={authored} zh={false} store={store} onPrepareFeedback={onPrepareFeedback} />,
+    ),
+  );
+  await act(async () => {
+    const details = container.querySelector('details');
+    details.open = true;
+    details.dispatchEvent(new Event('toggle'));
+  });
+  await setValue(input('Saved reviews'), reviewed.id);
+  await setValue(input('New feedback for'), 'Name the observed group and show 17/40 before converting to percent.');
+  expect(button('Preview linked changes').disabled).toBe(true);
+  await click(input('This text is suitable'));
+  await click(button('Preview linked changes'));
+  expect(onPrepareFeedback).toHaveBeenCalledWith({
+    record: reviewed,
+    criterionId: reviewed.snapshot.criteria[0].id,
+    feedback: 'Name the observed group and show 17/40 before converting to percent.',
+  });
+  await setValue(input('Criterion'), reviewed.snapshot.criteria[1].id);
+  expect(input('New feedback for').value).toBe('');
+  expect(input('This text is suitable').checked).toBe(false);
+  expect(button('Preview linked changes').disabled).toBe(true);
 });
