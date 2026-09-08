@@ -1,7 +1,24 @@
+import { parseSourceCount } from './sourceCount.js';
 import { solveTeachingUnionBounds } from './teachingSetArithmetic.js';
 
 export function validateUnionBindings(plan, values) {
   const issues = [];
+  for (const field of [
+    'populationName',
+    'stablePopulation',
+    'firstEvent',
+    'secondEvent',
+    'withinGroupDistinct',
+    'missingOverlap',
+  ]) {
+    if (parseSourceCount(values[field]) !== null)
+      issues.push({
+        code: 'plan-union',
+        binding: field,
+        message: `The ${field} must identify its named population/event or state the relevant source premise; a bare count cannot supply that role.`,
+      });
+  }
+
   const fail = (message, binding) => issues.push({ code: 'plan-union', message, binding });
   for (const [field, owner] of [
     ['populationCount', 'rosterRecord'],

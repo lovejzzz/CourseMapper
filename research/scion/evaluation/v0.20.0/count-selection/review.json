@@ -1,0 +1,96 @@
+{
+  "date": "2026-09-08",
+  "protocol": "scion-quantity-count-selection-v1",
+  "status": "research-only-not-promoted",
+  "rawReceipt": {
+    "path": "research/scion/evaluation/v0.20.0/count-selection/first-run-raw.json",
+    "sha256": "d76b51cf13eb3deef8b76197ac7f16a012332f8ea390b1b9cede787aff8977f9"
+  },
+  "modelCalls": 8,
+  "firstExposure": "Four new implementer-authored development inputs. Reference files were not sent to model. These are source proposals, not four complete teaching units or independent classroom acceptance.",
+  "results": [
+    {
+      "id": "pool-en-01",
+      "calls": 2,
+      "inferenceMs": 14842,
+      "selectedAttemptAtRun": 1,
+      "selectedCounts": {
+        "firstPart": "30",
+        "firstWhole": "30",
+        "secondPart": "18",
+        "secondWhole": "70"
+      },
+      "structuralPassAtRun": false,
+      "semanticPassAfterReview": false,
+      "issuesAtRun": [
+        "secondWhole must come from its count record. secondGroup must come from its count record. The firstPart and firstWhole bindings reuse the same source occurrence. Locate each role at its own count."
+      ]
+    },
+    {
+      "id": "pool-zh-01",
+      "calls": 2,
+      "inferenceMs": 20884,
+      "selectedAttemptAtRun": 1,
+      "selectedCounts": {
+        "firstPart": "二十四",
+        "firstWhole": "二十四",
+        "secondPart": "三十六",
+        "secondWhole": "三十六"
+      },
+      "structuralPassAtRun": false,
+      "semanticPassAfterReview": false,
+      "issuesAtRun": [
+        "Locate the exact phrase and its occurrence for commonDefinition. Found 0 matches; occurrence starts at 0.",
+        "Locate the exact phrase and its occurrence for distinctMembership. Found 1 matches; occurrence starts at 0."
+      ]
+    },
+    {
+      "id": "union-en-01",
+      "calls": 2,
+      "inferenceMs": 19064,
+      "selectedAttemptAtRun": 2,
+      "selectedCounts": {
+        "populationCount": "60",
+        "firstCount": "42",
+        "secondCount": "27"
+      },
+      "structuralPassAtRun": true,
+      "semanticPassAfterReview": false,
+      "issuesAtRun": []
+    },
+    {
+      "id": "union-zh-01",
+      "calls": 2,
+      "inferenceMs": 22330,
+      "selectedAttemptAtRun": 2,
+      "selectedCounts": {
+        "populationCount": "80",
+        "firstCount": "32",
+        "secondCount": "28"
+      },
+      "structuralPassAtRun": true,
+      "semanticPassAfterReview": false,
+      "issuesAtRun": []
+    }
+  ],
+  "reviewFindings": [
+    "Both union cases select correct count occurrences after two calls, but both populationName bindings quote only a number; Chinese stablePopulation also quotes only 80. Structural passes are not semantic passes.",
+    "English pooling selects wrong counts and reuses positions; its second call resolves some role errors, but the old joined-error ranking retains the worse first call.",
+    "Chinese pooling still reuses group sizes as outcomes and misquotes commonDefinition; zero-based repeated positions remain problematic.",
+    "No automatic complete candidate is accepted. No materials were produced from these unreviewed proposals."
+  ],
+  "productFixes": [
+    "Reject a bare count used as a union population name, event label or relational premise. This catches an obvious invalid witness, not all possible semantic errors.",
+    "Preserve individual operation diagnostics instead of collapsing them into one message; real-output replay verifies selection of the improved repair."
+  ],
+  "candidateScope": "Count catalog, messages, grammar and normalization have no production caller. A research harness invokes them serially through the selected local runtime, max two calls per case, then unloads the model.",
+  "nextAction": "Before another compound protocol, test small atomic source-reading questions on new inputs to distinguish basic model comprehension from multi-role prompt burden. Retain these failed inputs as exposed development evidence; do not tune and rerun this four-case set.",
+  "engineeringCheck": {
+    "command": "npm run check",
+    "exitCode": 0,
+    "studioTests": 58,
+    "compatibilityTests": 642,
+    "scionTests": 876,
+    "log": "/tmp/edutool-count-selection-check.log"
+  }
+}

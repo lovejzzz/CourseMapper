@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><title>Count selection proposal trial</title>
+  <h1>Count selection · four new development inputs</h1>
+  <button id="run">Run four proposals</button
+  ><button id="save" disabled>Save raw receipt</button>
+  <pre id="result">Idle</pre>
+  <script type="module">
+    import { proposeSelectedCounts } from './propose.js';
+    import { unloadScionBrowserWllama } from '/src/lib/scionBrowserWllama.js';
+    if (!['localhost', '127.0.0.1'].includes(location.hostname)) throw Error('Local only');
+    const ids = ['pool-en-01', 'pool-zh-01', 'union-en-01', 'union-zh-01'];
+    const run = document.querySelector('#run'),
+      save = document.querySelector('#save'),
+      view = document.querySelector('#result');
+    let receipt;
+    const render = () =>
+      (view.textContent = JSON.stringify(
+        {
+          status: receipt.status,
+          completed: receipt.cases.length,
+          results: receipt.cases.map((c) => ({
+            id: c.id,
+            status: c.result.status,
+            calls: c.result.receipt?.modelCalls,
+            issues: c.result.issues,
+            missing: c.result.missing,
+            error: c.result.receipt?.error,
+          })),
+        },
+        null,
+        2,
+      ));
+    run.onclick = async () => {
+      run.disabled = true;
+      receipt = { startedAt: new Date().toISOString(), status: 'starting', cases: [] };
+      render();
+      try {
+        for (const id of ids) {
+          const input = await (await fetch('./inputs/' + id + '.json')).json();
+          const request = { operation: input.operation, objective: input.objective, inputs: input.sources };
+          const result = await proposeSelectedCounts(request, (state) => {
+            receipt.status = id + ': ' + state;
+            render();
+          });
+          receipt.cases.push({ id, request, result });
+          render();
+          if (result.status === 'failed') throw Error(result.receipt.error);
+        }
+        receipt.status = 'completed-for-review';
+      } catch (e) {
+        receipt.status = 'failed';
+        receipt.error = e.message;
+      } finally {
+        await unloadScionBrowserWllama();
+        receipt.finishedAt = new Date().toISOString();
+        render();
+        save.disabled = false;
+      }
+    };
+    save.onclick = () => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([JSON.stringify(receipt, null, 2)], { type: 'application/json' }));
+      a.download = 'scion-count-selection-first-run.json';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    };
+  </script>
+</html>

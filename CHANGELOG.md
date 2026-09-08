@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Reject bare counts used as union population names or evidence premises; retain separate validation failures so repair selection favors actual improvements. Preserve the four-input count-selection experiment as research only after semantic review rejects its apparent structural passes.
+
 - Use full source-binding grammar on verified local runtimes, detect malformed count phrases even alongside missing roles, and identify conflicting count roles in repair feedback. Preserve eight actual quantity-proposal calls: output structure improves, but both exposed cases still fail complete source-role validation.
 
 - Add reviewed overlapping-membership bounds with exact endpoint allocations, shared bilingual scoring and independent practice. Keep intermediate reasoning synchronized even when the final range is unchanged; correct false uncertainty for empty/full events. Verify Chinese browser edit/reopen and 24 final PDF pages; keep short quiz response blocks together. Fresh Scion and classroom acceptance remain pending.

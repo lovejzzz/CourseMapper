@@ -1,0 +1,34 @@
+{
+  "date": "2026-09-08",
+  "baseCommit": "9ff5277f",
+  "protocol": "scion-quantity-count-selection-v1",
+  "cases": [
+    {
+      "id": "pool-en-01",
+      "inputSha256": "9e7f46caa246e0e9f6bf0416abe29d0261e9766a6a5253a22bdf741e44ca5496"
+    },
+    {
+      "id": "pool-zh-01",
+      "inputSha256": "5473390247a1bed0e244dbf2c3cd4f29afe384c1283ca3ba9fb6fe341cf04f07"
+    },
+    {
+      "id": "union-en-01",
+      "inputSha256": "b2cee867b5b4cef479a2a98c6deac8824508c4d50073ffce4c3f021055e3112c"
+    },
+    {
+      "id": "union-zh-01",
+      "inputSha256": "94cf9b4ede0e2b9c5588687f284bc5ca7433de2bec369ee793ce7812686527a5"
+    }
+  ],
+  "maxCallsPerCase": 2,
+  "runs": 1,
+  "sourceRolesSelectedByModel": true,
+  "operationSelectedByModel": false,
+  "referenceSentToModel": false,
+  "classification": "Four new development inputs, first local proposal exposure. Not held-out classroom validation or complete teaching-unit acceptance.",
+  "stopRule": "One fixed pass; preserve every failure and no same-input prompt iteration. Promote only after reviewing exact roles and semantics, not JSON shape alone.",
+  "candidateFiles": {
+    "src/lib/scionQuantitySelection.js": "824010b50d50cd63b5b786215a155d39bf0fb91c7e93a2d5f266fd7b6b88043e",
+    "research/scion/evaluation/v0.20.0/count-selection/propose.js": "fa678d30e64707cf2e4afd722fe92c46b3bf453c1c50ba757c0181506506619c"
+  }
+}

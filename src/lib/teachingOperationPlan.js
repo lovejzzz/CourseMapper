@@ -407,7 +407,13 @@ export function createTeachingOperationPlan({
       : {}),
   };
   const result = validateTeachingOperationPlan(plan, inputs, objective);
-  if (!result.valid) throw new Error(result.issues.map((entry) => entry.message).join(' '));
+  if (!result.valid) {
+    const error = new Error(result.issues.map((entry) => entry.message).join(' '));
+    // Preserve individual diagnostics for proposal repair and candidate ranking.
+    // A joined display message must not collapse several failed premises into one.
+    error.issues = result.issues;
+    throw error;
+  }
   return plan;
 }
 

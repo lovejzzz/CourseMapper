@@ -1,0 +1,19 @@
+{
+  "id": "union-en-01",
+  "operation": "union-bounds",
+  "objective": "Derive the tightest number and proportion bounds for members attending either workshop, construct feasible endpoint allocations and explain what membership evidence would establish an exact value.",
+  "sources": [
+    {
+      "id": "roster",
+      "text": "A fictional drawing society has 60 registered members. Its roster was unchanged during both workshops; both were open only to those registered members."
+    },
+    {
+      "id": "events",
+      "text": "The charcoal workshop recorded 42 distinct members and the ink workshop recorded 27 distinct members. Each attendance list counts each member once. Members were allowed to attend both workshops."
+    },
+    {
+      "id": "limit",
+      "text": "The two lists have not been matched and the number attending both workshops was not recorded. The requested proportion concerns registered members, excluding visitors viewing the public exhibition."
+    }
+  ]
+}

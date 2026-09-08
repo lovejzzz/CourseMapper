@@ -238,7 +238,7 @@ export function assessTeachingProposal(raw, request, protocol = teachingProposal
         admission: { kind: 'model-proposal', method: protocol },
       });
     } catch (error) {
-      issues.push(error.message);
+      issues.push(...(Array.isArray(error.issues) ? error.issues.map((entry) => entry.message) : [error.message]));
     }
   }
   const locatedIssues =

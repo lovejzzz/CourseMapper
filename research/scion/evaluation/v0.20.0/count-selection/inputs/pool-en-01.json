@@ -1,0 +1,19 @@
+{
+  "id": "pool-en-01",
+  "operation": "pooled-proportion",
+  "objective": "Combine the counts of completed tool inspections across unequal workshops, compare item weighting with an equal-workshop average, and explain why the recorded difference is not a causal workshop effect.",
+  "sources": [
+    {
+      "id": "north",
+      "text": "Fictional inspection log: North workshop inspected 30 tools, of which 18 passed the checklist. Both workshops used the same checklist and counted a pass only if every item was complete by Friday at 16:00."
+    },
+    {
+      "id": "south",
+      "text": "South workshop inspected 70 tools; 14 passed the checklist by the common deadline."
+    },
+    {
+      "id": "identity",
+      "text": "Each tool has a unique inventory identifier and was inspected once at exactly one workshop. No tool occurs in both workshop lists. North received newer tools and South received older tools; the logs do not establish why pass rates differed."
+    }
+  ]
+}

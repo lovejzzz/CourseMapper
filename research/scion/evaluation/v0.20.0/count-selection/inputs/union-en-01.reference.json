@@ -1,0 +1,17 @@
+{
+  "populationCount": "60",
+  "firstCount": "42",
+  "secondCount": "27",
+  "overlap": [
+    9,
+    27
+  ],
+  "union": [
+    42,
+    60
+  ],
+  "percent": [
+    70,
+    100
+  ]
+}
