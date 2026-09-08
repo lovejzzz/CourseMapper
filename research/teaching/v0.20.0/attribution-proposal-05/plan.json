@@ -1,0 +1,14 @@
+{
+  "baseline": "24c19873",
+  "createdAt": "2026-09-08T12:22:58.968Z",
+  "sourceCase": "source-dev-03",
+  "attemptLimit": 1,
+  "callLimit": 12,
+  "protocol": "scion-attribution-atomic-questions-v2",
+  "change": "Select explicit inference before the broader reported assertion; preserve UNKNOWN and distinct sources.",
+  "patchSha256": {
+    "src/lib/scionAtomicProposal.js": "f222ce99e8b6feef80c1c3a47c7808bac7d9cd086b64fe516cbcbbe8849d3655"
+  },
+  "manualRoleCorrectionBeforeCapture": false,
+  "limitation": "Exposed development input, not final acceptance."
+}

@@ -8,7 +8,7 @@ import {
 } from './scionTeachingProposal.js';
 
 export const SCION_ATOMIC_PROPOSAL_PROTOCOL = 'scion-atomic-source-questions-v1';
-export const SCION_ATOMIC_ATTRIBUTION_PROTOCOL = 'scion-attribution-atomic-questions-v1';
+export const SCION_ATOMIC_ATTRIBUTION_PROTOCOL = 'scion-attribution-atomic-questions-v2';
 export const SCION_ATOMIC_CALL_LIMIT = 12;
 const grammar = String.raw`root ::= "{" ws "\"answer\"" ws ":" ws string ws "}"
 string ::= "\"" character{1,1000} "\""
@@ -44,32 +44,11 @@ export function atomicSourceQuestions(operation, bindings = {}, zh = false) {
         '哪个独立分句说明观察如何取得，或没有做哪些检测？只复制该依据或限制，不要复制整份记录。',
       ),
       q(
-        'reportedClaim',
-        'text',
-        null,
-        'Which assertion is attributed to another person whose basis for knowing is qualified or unstated? Copy the assertion itself, without its speaker label.',
-        '哪项陈述归于另一个人，但其知情依据受到限定或尚未说明？只复制陈述本身，不要包含说话者标签。',
-      ),
-      q(
-        'reporter',
-        'label',
-        'reportedClaim',
-        'Who makes this assertion? Copy only the short speaker name or role before the quotation, without reporting verbs or the assertion.',
-        '谁提出这项陈述？只复制引文之前的简短姓名或身份，不要包含转述动词或陈述内容。',
-      ),
-      q(
-        'reportingBasis',
-        'text',
-        'reportedClaim',
-        'Which sentence states the speaker’s basis for knowing or explicitly states the missing basis or verification? Copy that sentence; do not invent how the speaker knew.',
-        '哪个句子说明说话者的知情依据，或明确说明缺失的知情依据或核实？复制该句，不要推测其如何得知。',
-      ),
-      q(
         'inferredClaim',
         'text',
         null,
-        'Which statement proposes an explanation or causal conclusion beyond the reported observation? Copy that proposed explanation, without its author label.',
-        '哪项陈述提出超出记述观察的解释或因果结论？复制该解释，不要包含作者标签。',
+        'Which statement explicitly argues that an observation establishes a cause, explanation or intent? Copy the argument itself, not a separate person’s report that an event happened. If none explicitly makes this inference, answer UNKNOWN.',
+        '哪项陈述明确论证某项观察足以确立原因、解释或意图？复制论断本身，不要选择另一个人关于事件发生的报告。若没有明确作出这种推断，回答 UNKNOWN。',
       ),
       q(
         'inferenceAuthor',
@@ -91,6 +70,27 @@ export function atomicSourceQuestions(operation, bindings = {}, zh = false) {
         'inferenceLimit',
         'Copy the name of ONE specific missing record or measurement listed in this evidence gap. Do not copy the entire list or the negation.',
         '复制该证据缺口中列出的一项具体记录或测量的名称。不要复制整份清单或否定词。',
+      ),
+      q(
+        'reportedClaim',
+        'text',
+        null,
+        'Which assertion is attributed to another person whose basis for knowing is qualified or unstated? Copy the assertion itself, without its speaker label.',
+        '哪项陈述归于另一个人，但其知情依据受到限定或尚未说明？只复制陈述本身，不要包含说话者标签。',
+      ),
+      q(
+        'reporter',
+        'label',
+        'reportedClaim',
+        'Who makes this assertion? Copy only the short speaker name or role before the quotation, without reporting verbs or the assertion.',
+        '谁提出这项陈述？只复制引文之前的简短姓名或身份，不要包含转述动词或陈述内容。',
+      ),
+      q(
+        'reportingBasis',
+        'text',
+        'reportedClaim',
+        'Which sentence states the speaker’s basis for knowing or explicitly states the missing basis or verification? Copy that sentence; do not invent how the speaker knew.',
+        '哪个句子说明说话者的知情依据，或明确说明缺失的知情依据或核实？复制该句，不要推测其如何得知。',
       ),
     ];
   if (operation === 'union-bounds')
@@ -319,7 +319,7 @@ export async function proposeAtomicSourceBindings(
           : snapshot.operation === 'claim-attribution'
             ? snapshot.inputs.filter(
                 (input) =>
-                  !['observedClaim', 'reportedClaim'].some(
+                  !['observedClaim', 'inferredClaim', 'reportedClaim'].some(
                     (role) => role !== item.role && bindings[role]?.inputId === input.id,
                   ),
               )

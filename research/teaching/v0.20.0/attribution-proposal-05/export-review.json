@@ -1,0 +1,103 @@
+{
+  "zip": "Separating Observation, Hearsay, and Causal Evaluation - Course Materials (1).zip",
+  "sha256": "9f8306b65b7ef9ba57be93e6eba78573e2fb17f19c703d924ba60a74617f680f",
+  "entries": [
+    {
+      "name": "Course Map/Separating Observation, Hearsay, and Causal Evaluation - Course Map.xlsx",
+      "bytes": 5673,
+      "hasTaskReference": false,
+      "oldInventedHearsay": false
+    },
+    {
+      "name": "Syllabus/Separating Observation, Hearsay, and Causal Evaluation - Syllabus.docx",
+      "bytes": 14855,
+      "hasTaskReference": false,
+      "oldInventedHearsay": false
+    },
+    {
+      "name": "Lesson Plans/Lesson 01 - Observation vs. Claim vs. Explanation - Lesson Plans.docx",
+      "bytes": 13961,
+      "hasTaskReference": true,
+      "oldInventedHearsay": false
+    },
+    {
+      "name": "Slide Decks/Lesson 01 - Observation vs. Claim vs. Explanation - Slide Decks.pptx",
+      "bytes": 65881,
+      "hasTaskReference": true,
+      "oldInventedHearsay": false
+    },
+    {
+      "name": "Assignment Briefs/Lesson 01 - Observation vs. Claim vs. Explanation - Assignment Briefs.docx",
+      "bytes": 12833,
+      "hasTaskReference": false,
+      "oldInventedHearsay": false
+    },
+    {
+      "name": "Rubrics/Lesson 01 - Observation vs. Claim vs. Explanation - Rubrics.docx",
+      "bytes": 12856,
+      "hasTaskReference": false,
+      "oldInventedHearsay": false
+    },
+    {
+      "name": "Discussion Prompts/Lesson 01 - Observation vs. Claim vs. Explanation - Discussion Prompts.docx",
+      "bytes": 11637,
+      "hasTaskReference": false,
+      "oldInventedHearsay": false
+    },
+    {
+      "name": "Quiz & Exam Bank/Lesson 01 - Observation vs. Claim vs. Explanation - Quiz & Exam Bank.docx",
+      "bytes": 13008,
+      "hasTaskReference": true,
+      "oldInventedHearsay": true
+    },
+    {
+      "name": "Study Guides/Lesson 01 - Observation vs. Claim vs. Explanation - Study Guides.docx",
+      "bytes": 13192,
+      "hasTaskReference": true,
+      "oldInventedHearsay": false
+    },
+    {
+      "name": "Course FAQ/Lesson 01 - Observation vs. Claim vs. Explanation - Course FAQ.docx",
+      "bytes": 10371,
+      "hasTaskReference": true,
+      "oldInventedHearsay": false
+    },
+    {
+      "name": "SOURCE_REPORT.md",
+      "bytes": 2095,
+      "hasTaskReference": false,
+      "oldInventedHearsay": false
+    },
+    {
+      "name": "PACKAGE_READINESS.json",
+      "bytes": 1802,
+      "hasTaskReference": false,
+      "oldInventedHearsay": false
+    },
+    {
+      "name": "QUALITY_FINDINGS.json",
+      "bytes": 5222,
+      "hasTaskReference": false,
+      "oldInventedHearsay": false
+    },
+    {
+      "name": "SCORE_LEDGER.json",
+      "bytes": 46233,
+      "hasTaskReference": false,
+      "oldInventedHearsay": false
+    },
+    {
+      "name": "PACKAGE_MANIFEST.json",
+      "bytes": 204034,
+      "hasTaskReference": false,
+      "oldInventedHearsay": false
+    },
+    {
+      "name": "QUALITY_REPORT.md",
+      "bytes": 7467,
+      "hasTaskReference": false,
+      "oldInventedHearsay": false
+    }
+  ],
+  "limitation": "ZIP and Office XML inspection only; no visual layout acceptance."
+}

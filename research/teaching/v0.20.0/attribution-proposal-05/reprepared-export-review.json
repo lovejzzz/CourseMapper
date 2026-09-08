@@ -1,0 +1,57 @@
+{
+  "file": "Separating Observation, Hearsay, and Causal Evaluation - Course Materials (2).zip",
+  "sha256": "fbebbdd70932515b7eaab1736cb8134ca785954716c26268b840b10b542debf3",
+  "files": 17,
+  "results": [
+    {
+      "name": "Syllabus/Separating Observation, Hearsay, and Causal Evaluation - Syllabus.docx",
+      "hasNewEvidence": false,
+      "hasOldFalseAnswer": false,
+      "hasOldCase": false
+    },
+    {
+      "name": "Lesson Plans/Lesson 01 - Observation vs. Claim vs. Explanation - Lesson Plans.docx",
+      "hasNewEvidence": true,
+      "hasOldFalseAnswer": false,
+      "hasOldCase": false
+    },
+    {
+      "name": "Assignment Briefs/Lesson 01 - Observation vs. Claim vs. Explanation - Assignment Briefs.docx",
+      "hasNewEvidence": true,
+      "hasOldFalseAnswer": false,
+      "hasOldCase": false
+    },
+    {
+      "name": "Rubrics/Lesson 01 - Observation vs. Claim vs. Explanation - Rubrics.docx",
+      "hasNewEvidence": true,
+      "hasOldFalseAnswer": false,
+      "hasOldCase": false
+    },
+    {
+      "name": "Discussion Prompts/Lesson 01 - Observation vs. Claim vs. Explanation - Discussion Prompts.docx",
+      "hasNewEvidence": true,
+      "hasOldFalseAnswer": false,
+      "hasOldCase": false
+    },
+    {
+      "name": "Quiz & Exam Bank/Lesson 01 - Observation vs. Claim vs. Explanation - Quiz & Exam Bank.docx",
+      "hasNewEvidence": true,
+      "hasOldFalseAnswer": false,
+      "hasOldCase": false,
+      "excerpt": "ANSWER            The three statements have different evidential roles. Keep the speaker, statement and stated basis together before evaluating the explanation.\n\nThe mail clerk records an observation: “The envelopes felt wet at 09:00”. Its stated basis or limit is “The clerk did not examine where the water came from”. This establishes what the record reports, not independent verification of the ev"
+    },
+    {
+      "name": "Study Guides/Lesson 01 - Observation vs. Claim vs. Explanation - Study Guides.docx",
+      "hasNewEvidence": true,
+      "hasOldFalseAnswer": false,
+      "hasOldCase": false
+    },
+    {
+      "name": "Course FAQ/Lesson 01 - Observation vs. Claim vs. Explanation - Course FAQ.docx",
+      "hasNewEvidence": false,
+      "hasOldFalseAnswer": false,
+      "hasOldCase": false
+    }
+  ],
+  "visualAudit": false
+}

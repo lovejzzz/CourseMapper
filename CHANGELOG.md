@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Invalidate prepared export receipts after shared-task changes, material edits and undo/redo. A real browser regression exposed an updated editor downloading obsolete quiz answers; re-preparation now exports the revised task and removes those old answers. Order attribution questions around the explicit inference before the broader assertion; the latest local proposal still required one manual quote-boundary correction.
+
 - Validate incorrect attribution fields even when other fields are missing; reject claim text reused as its author or whole records reused as evidence. Add bounded atomic attribution proposals and distinct-record context constraints. Retain four real development failures, including a semantic role swap that passed structural preview; teacher review remains required. Correct attribution-specific review instructions.
 
 - Add a reviewed claim-attribution operation with exact speaker/claim/basis bindings, bilingual references and differentiated scoring. Use a separate fictional attribution case for transfer; replace obsolete generated questions when this becomes the primary task, retaining protected questions and edit conflict handling. Local Scion proposal support is experimental and not yet validated for this operation.

@@ -38,24 +38,24 @@ it('routes attribution through ten bounded questions and retains each record own
     'The lamp flickered',
     'Sora',
     'She did not test the circuit.',
-    'The crew replaced the switch',
-    'The porter',
-    'The record does not state how the porter learned this.',
     'Replacing the switch caused the flicker',
     'The commentator',
     'There is no circuit inspection or maintenance record.',
     'circuit inspection',
+    'The crew replaced the switch',
+    'The porter',
+    'The record does not state how the porter learned this.',
   ];
   let n = 0;
   const result = await proposeTeachingSourceBindings(
     { operation: 'claim-attribution', inputs, objective: 'Distinguish observation, assertion and explanation.' },
     {
       runtimeLoader: loader(async (messages, options) => {
-        expect(options.promptProtocol).toBe('scion-attribution-atomic-questions-v1');
-        if (n === 6) {
-          expect(messages[1].content).toContain(inputs[2].text);
+        expect(options.promptProtocol).toBe('scion-attribution-atomic-questions-v2');
+        if (n === 7) {
+          expect(messages[1].content).toContain(inputs[1].text);
           expect(messages[1].content).not.toContain(inputs[0].text);
-          expect(messages[1].content).not.toContain(inputs[1].text);
+          expect(messages[1].content).not.toContain(inputs[2].text);
         }
         return JSON.stringify({ answer: answers[n++] });
       }),

@@ -1164,6 +1164,9 @@ export default function AppFlow({
       (previous) => new Set([...previous, ...Object.keys(transaction.changed).filter((id) => id !== activeTab)]),
     );
     setDownloadedFile('');
+    // A prepared ZIP certifies the previous task version, not this transaction.
+    // Persist invalidation with the project so reopening cannot revive its receipt.
+    setPackageQualityPass({ status: 'idle', message: '' });
   }
   useEffect(() => {
     if (!courseMap || !courseGraph) return;
@@ -3738,7 +3741,10 @@ export default function AppFlow({
                 {(delivUndo.canUndo || delivUndo.canRedo) && !gen.isStreaming && (
                   <div className="flex items-center gap-1 ml-2 flex-shrink-0">
                     <button
-                      onClick={() => delivUndo.undo(deliv.restoreDeliverableEdits, taskUndoContext)}
+                      onClick={() => {
+                        delivUndo.undo(deliv.restoreDeliverableEdits, taskUndoContext);
+                        setPackageQualityPass({ status: 'idle', message: '' });
+                      }}
                       disabled={!delivUndo.canUndo}
                       className={`tactile p-1.5 rounded-full transition-all duration-200 ${delivUndo.canUndo ? 'text-slate-500 hover:bg-white/60 hover:text-indigo-500' : 'text-slate-300 cursor-not-allowed'}`}
                       title="Undo deliverable edit"
@@ -3753,7 +3759,10 @@ export default function AppFlow({
                       </svg>
                     </button>
                     <button
-                      onClick={() => delivUndo.redo(deliv.restoreDeliverableEdits, taskUndoContext)}
+                      onClick={() => {
+                        delivUndo.redo(deliv.restoreDeliverableEdits, taskUndoContext);
+                        setPackageQualityPass({ status: 'idle', message: '' });
+                      }}
                       disabled={!delivUndo.canRedo}
                       className={`tactile p-1.5 rounded-full transition-all duration-200 ${delivUndo.canRedo ? 'text-slate-500 hover:bg-white/60 hover:text-indigo-500' : 'text-slate-300 cursor-not-allowed'}`}
                       title="Redo deliverable edit"
@@ -4140,7 +4149,10 @@ export default function AppFlow({
                   optimisticUpdate={deliv.optimisticUpdate}
                   regenerateLesson={deliv.regenerateLesson}
                   delivUndoSnapshot={delivUndo.snapshot}
-                  delivUndoFn={() => delivUndo.undo(deliv.restoreDeliverableEdits, taskUndoContext)}
+                  delivUndoFn={() => {
+                    delivUndo.undo(deliv.restoreDeliverableEdits, taskUndoContext);
+                    setPackageQualityPass({ status: 'idle', message: '' });
+                  }}
                   delivCanUndo={delivUndo.canUndo}
                   onAgentHighlight={triggerAgentHighlight}
                   notifyEdit={smartSync.notifyEdit}
@@ -4275,6 +4287,7 @@ export default function AppFlow({
                         return;
                       }
                       const editedData = rememberTeacherEdit(oldData, newData, editPath);
+                      setPackageQualityPass({ status: 'idle', message: '' });
                       if (taskEdit?.status === 'needs-review') {
                         editedData.taskSourceReview = taskEdit.message;
                         editedData.taskSourceReviewLesson = oldData?.[editPath[0]]?.[editPath[1]]?.lessonNumber;

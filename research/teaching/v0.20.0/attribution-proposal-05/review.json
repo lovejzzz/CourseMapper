@@ -1,0 +1,11 @@
+{
+  "outcome": "needs-manual-boundary-repair",
+  "modelCalls": 10,
+  "elapsedMs": 7563,
+  "rawSha256": "fe53531bd81853d44535dd23d6a61c6a3e66a096d97ece6c8227522641a107f6",
+  "roleSelection": "Observation, resident assertion and editorial inference now correctly assigned.",
+  "failure": "inferredClaim includes the author label, overlapping inferenceAuthor; rejected by validation.",
+  "manualRoleCorrectionBeforeCapture": false,
+  "applied": false,
+  "acceptanceCredit": false
+}
