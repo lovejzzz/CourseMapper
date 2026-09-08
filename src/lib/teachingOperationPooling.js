@@ -18,7 +18,10 @@ export function validatePoolingBindings(plan, values) {
       const a = plan.bindings[counts[i]],
         b = plan.bindings[counts[j]];
       if (a && b && a.inputId === b.inputId && a.start < b.end && b.start < a.end)
-        fail('Each count needs its own source occurrence; do not reuse one number for different roles.', counts[j]);
+        fail(
+          `The ${counts[i]} and ${counts[j]} bindings reuse the same source occurrence. Locate each role at its own count.`,
+          counts[j],
+        );
     }
   if (plan.bindings.distinctMembership?.inputId !== plan.bindings.identityRecord?.inputId)
     fail('Locate explicit distinct membership in the identity record.', 'distinctMembership');

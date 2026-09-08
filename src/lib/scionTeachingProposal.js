@@ -1,3 +1,5 @@
+import { sourceBindingsGrammar } from './scionSourceBindingsGrammar.js';
+import { parseSourceCount, countSpanCutsNumber } from './sourceCount.js';
 import { TEACHING_OPERATION_SPECS, createTeachingOperationPlan } from './teachingOperationPlan.js';
 import { quoteOccurrences } from './teachingTaskReview.js';
 import { canonicalJson } from './canonicalJson.js';
@@ -208,6 +210,16 @@ export function assessTeachingProposal(raw, request, protocol = teachingProposal
       );
       continue;
     }
+    if (
+      ['count', 'ratio-count'].includes(type) &&
+      (parseSourceCount(selection.quote) === null ||
+        countSpanCutsNumber(input.text, positions[occurrence], positions[occurrence] + selection.quote.length))
+    ) {
+      issues.push(
+        `The ${name} must quote one complete nonnegative whole count, not a sentence or count with units. Copy the original number expression, without converting it.`,
+      );
+      continue;
+    }
     bindings[name] = { inputId: input.id, quote: selection.quote, occurrence };
     spans[name] = {
       inputId: input.id,
@@ -363,7 +375,11 @@ export async function proposeTeachingSourceBindings(
       const entry = await invoke(
         teachingProposalMessages(snapshot, feedback, receipt.protocol),
         undefined,
-        constrainedChronology ? chronologyBindingsGrammar(snapshot.inputs) : undefined,
+        constrainedChronology
+          ? chronologyBindingsGrammar(snapshot.inputs)
+          : receipt.runtime?.runtime?.grammar === 'gbnf-state-v1'
+            ? sourceBindingsGrammar(snapshot.operation, snapshot.inputs)
+            : undefined,
       );
       if (entry.completion?.finishReason === 'length') {
         entry.issues = ['The proposal reached its output limit. Partial bindings were not applied.'];

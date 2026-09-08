@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><title>Reviewed quantity proposal development trial</title>
+  <h1>Two quantity source proposals · exposed development inputs</h1>
+  <button id="run">Run two proposals</button
+  ><button id="save" disabled>Save raw receipt</button>
+  <pre id="result">Idle</pre>
+  <script type="module">
+    import { proposeTeachingSourceBindings } from '/src/lib/scionTeachingProposal.js';
+    import { unloadScionBrowserWllama } from '/src/lib/scionBrowserWllama.js';
+    if (!['localhost', '127.0.0.1'].includes(location.hostname)) throw Error('Local only');
+    const cases = [
+      ['quantity-dev-01', 'pooled-proportion'],
+      ['quantity-dev-02', 'union-bounds'],
+    ];
+    const run = document.querySelector('#run'),
+      save = document.querySelector('#save'),
+      view = document.querySelector('#result');
+    let receipt;
+    const render = () =>
+      (view.textContent = JSON.stringify(
+        {
+          status: receipt.status,
+          completed: receipt.cases.length,
+          results: receipt.cases.map((c) => ({
+            id: c.id,
+            status: c.result.status,
+            calls: c.result.modelCalls,
+            message: c.result.message,
+            missing: c.result.missing,
+            issues: c.result.issues,
+          })),
+        },
+        null,
+        2,
+      ));
+    run.onclick = async () => {
+      run.disabled = true;
+      receipt = { startedAt: new Date().toISOString(), freshAcceptance: false, status: 'starting', cases: [] };
+      render();
+      try {
+        for (const [id, operation] of cases) {
+          const input = await (await fetch('/benchmarks/classroom/v3/inputs/' + id + '.json')).json();
+          const request = { operation, objective: input.objective, inputs: input.sources };
+          const result = await proposeTeachingSourceBindings(request, {
+            onProgress: (state) => {
+              receipt.status = id + ': ' + state;
+              render();
+            },
+          });
+          receipt.cases.push({ id, request, result });
+          render();
+        }
+        receipt.status = 'completed-for-review';
+      } catch (e) {
+        receipt.status = 'failed';
+        receipt.error = e.message;
+      } finally {
+        await unloadScionBrowserWllama();
+        receipt.finishedAt = new Date().toISOString();
+        render();
+        save.disabled = false;
+      }
+    };
+    save.onclick = () => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([JSON.stringify(receipt, null, 2)], { type: 'application/json' }));
+      a.download =
+        new URLSearchParams(location.search).get('run') === 'constrained'
+          ? 'scion-quantity-constrained-proposals.json'
+          : 'scion-quantity-source-proposals.json';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    };
+  </script>
+</html>

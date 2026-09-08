@@ -1,0 +1,17 @@
+{
+  "date": "2026-09-08",
+  "baseCommit": "84dbf32b",
+  "change": "Add verified-runtime full binding shape grammar; assess malformed count phrases independently of other missing roles. No source-specific prompt change.",
+  "cases": [
+    "quantity-dev-01",
+    "quantity-dev-02"
+  ],
+  "maxCallsPerCase": 2,
+  "runs": 1,
+  "freshAcceptance": false,
+  "stopRule": "One after-change comparison against preserved baseline. Preserve remaining semantic failures; no further prompting iterations on these cases.",
+  "files": {
+    "src/lib/scionSourceBindingsGrammar.js": "0a5df119655df86f663d5fefb4ea1edf1d826acdc350b3da27d24361ee906c8a",
+    "src/lib/scionTeachingProposal.js": "f9bfbb3abec995263ae0e45a36da2bf946b7d8fa2360f33c122060e695050c07"
+  }
+}

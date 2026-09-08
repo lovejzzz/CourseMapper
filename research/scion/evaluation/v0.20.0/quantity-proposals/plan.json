@@ -1,0 +1,11 @@
+{
+  "date": "2026-09-08",
+  "baseCommit": "84dbf32b",
+  "purpose": "Evaluate the newly supported pooling and union contracts through the actual local source-proposal path, before changing its protocol.",
+  "cases": ["quantity-dev-01", "quantity-dev-02"],
+  "maxCallsPerCase": 2,
+  "automaticOperationSelection": false,
+  "freshAcceptance": false,
+  "runtime": "Product-selected immutable v3 pair; base weights, one model, sequential proposals, unload on completion",
+  "stopRule": "One fixed run. Inspect complete raw outputs and exact roles. Do not count authored fixture success as a model result or repeatedly tune the same cases."
+}

@@ -294,3 +294,56 @@ describe('compact chronology source proposals', () => {
     }
   });
 });
+
+it('reports malformed count phrases even when another required source role is missing', () => {
+  const value = response();
+  value.bindings.numerator.quote = '7 contained an active nest';
+  value.bindings.targetGroup = null;
+  const result = assess(value);
+  expect(result.missing).toContain('targetGroup');
+  expect(result.issues.join(' ')).toContain('numerator must quote one complete nonnegative whole count');
+  expect(result.bindings.numerator.inputId).toBe('');
+});
+
+it('uses the full contract grammar only on a verified grammar-state runtime', async () => {
+  for (const constrained of [false, true]) {
+    const calls = [];
+    await proposeTeachingSourceBindings(request, {
+      runtimeLoader: async () => ({
+        loadScionBrowserWllama: async () => {},
+        getScionBrowserWllamaStatus: () => ({ runtime: constrained ? { grammar: 'gbnf-state-v1' } : {} }),
+        completeScionBrowserWllama: async (messages, options) => {
+          calls.push(options);
+          return JSON.stringify(response());
+        },
+      }),
+    });
+    expect(calls).toHaveLength(1);
+    expect(Boolean(calls[0].grammar)).toBe(constrained);
+    if (constrained) {
+      expect(calls[0].grammar).toContain('countRecord');
+      expect(calls[0].grammar).toContain('occurrence');
+    }
+  }
+});
+
+import { pooledCountsFixture } from '../../../tests/fixtures/teaching/pooledCounts.js';
+it('identifies both conflicting count roles in repair feedback', () => {
+  const f = pooledCountsFixture();
+  const bindings = Object.fromEntries(
+    Object.entries(f.selections).map(([key, s]) => [
+      key,
+      { source: 'r' + (f.inputs.findIndex((i) => i.id === s.inputId) + 1), quote: s.quote, occurrence: s.occurrence },
+    ]),
+  );
+  for (const key of ['firstCountRecord', 'secondCountRecord', 'identityRecord', 'limitRecord'])
+    delete bindings[key].occurrence;
+  bindings.firstWhole = { ...bindings.firstPart };
+  const result = assessTeachingProposal(JSON.stringify({ bindings, unknowns: [] }), {
+    operation: 'pooled-proportion',
+    inputs: f.inputs,
+    objective: f.objective,
+  });
+  expect(result.issues.join(' ')).toContain('firstPart and firstWhole');
+  expect(result.repairable).toBe(true);
+});

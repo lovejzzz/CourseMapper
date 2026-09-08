@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Use full source-binding grammar on verified local runtimes, detect malformed count phrases even alongside missing roles, and identify conflicting count roles in repair feedback. Preserve eight actual quantity-proposal calls: output structure improves, but both exposed cases still fail complete source-role validation.
+
 - Add reviewed overlapping-membership bounds with exact endpoint allocations, shared bilingual scoring and independent practice. Keep intermediate reasoning synchronized even when the final range is unchanged; correct false uncertainty for empty/full events. Verify Chinese browser edit/reopen and 24 final PDF pages; keep short quiz response blocks together. Fresh Scion and classroom acceptance remain pending.
 
 - Add reviewed pooling of two distinct counted groups: exact combined proportions, denominator weights, equal-group comparisons, bilingual answers and four scoring examples. Keep independent practice on its own records; propagate reviewed source changes into nine materials.

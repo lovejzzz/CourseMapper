@@ -1,0 +1,92 @@
+{
+  "date": "2026-09-08",
+  "freshAcceptance": false,
+  "totalModelCalls": 8,
+  "automaticOperationSelection": false,
+  "reviewedRuns": [
+    {
+      "run": "baseline",
+      "rawFile": "research/scion/evaluation/v0.20.0/quantity-proposals/baseline-raw.json",
+      "sha256": "ed63a6e49997a71026a6870436af49fad774034a008c7d0342ba961d5e45f2b2",
+      "cases": [
+        {
+          "id": "quantity-dev-01",
+          "calls": 2,
+          "inferenceMs": 23895,
+          "loadMs": 4042,
+          "parseableResponses": 2,
+          "completeValidSourceProposal": false,
+          "issues": [
+            "Locate the exact phrase and its occurrence for firstWhole. Found 2 matches; occurrence starts at 0.",
+            "Locate the exact phrase and its occurrence for countingUnit. Found 2 matches; occurrence starts at 0.",
+            "Locate the exact phrase and its occurrence for countedOutcome. Found 2 matches; occurrence starts at 0.",
+            "The limitRecord quotation must match its complete source record."
+          ],
+          "selectedAttempt": 1
+        },
+        {
+          "id": "quantity-dev-02",
+          "calls": 2,
+          "inferenceMs": 31246,
+          "loadMs": 0,
+          "parseableResponses": 0,
+          "completeValidSourceProposal": false,
+          "issues": [
+            "The response is not a complete JSON object."
+          ],
+          "selectedAttempt": 1
+        }
+      ]
+    },
+    {
+      "run": "constrained",
+      "rawFile": "research/scion/evaluation/v0.20.0/quantity-proposals/constrained-raw.json",
+      "sha256": "d014c6d56045481fa707f1f5699f4d657a18d2f501c2fccf524b13c31dee4643",
+      "cases": [
+        {
+          "id": "quantity-dev-01",
+          "calls": 2,
+          "inferenceMs": 30766,
+          "loadMs": 3586,
+          "parseableResponses": 2,
+          "completeValidSourceProposal": false,
+          "issues": [
+            "Each count needs its own source occurrence; do not reuse one number for different roles. Each count needs its own source occurrence; do not reuse one number for different roles. Each count needs its own source occurrence; do not reuse one number for different roles."
+          ],
+          "selectedAttempt": 2
+        },
+        {
+          "id": "quantity-dev-02",
+          "calls": 2,
+          "inferenceMs": 34233,
+          "loadMs": 0,
+          "parseableResponses": 2,
+          "completeValidSourceProposal": false,
+          "issues": [
+            "The populationCount must quote one complete nonnegative whole count, not a sentence or count with units. Copy the original number expression, without converting it.",
+            "The firstCount must quote one complete nonnegative whole count, not a sentence or count with units. Copy the original number expression, without converting it.",
+            "The secondCount must quote one complete nonnegative whole count, not a sentence or count with units. Copy the original number expression, without converting it."
+          ],
+          "selectedAttempt": 2
+        }
+      ]
+    }
+  ],
+  "conclusions": [
+    "Baseline: both pooling attempts parse, both union attempts are invalid JSON; neither case has a complete valid role proposal.",
+    "Constrained: all four attempts parse with grammar-state-v1, but neither case has a complete valid role proposal. No compiler answer was applied.",
+    "Pooling repair selects the first occurrence of twelve for firstPart, firstWhole and secondPart; correct firstPart is nine and secondPart is the second twelve. It also selects the request record as limitRecord rather than the record describing group differences. This semantic mismatch is not proved correct by shape validation.",
+    "Union repair retains units in all three count quotations; event names include counts rather than naming only the event. Stable-roster and deduplication phrases still need human review.",
+    "Added count-shape feedback even with other missing roles; grammar cannot establish roles or the educational meaning of sources.",
+    "After this trial, conflict feedback was changed to name both reused roles. Mechanical test covers it; no additional same-case inference rerun."
+  ],
+  "nextAction": "Replace redundant per-role metadata with a compact source-selection interface and verify on independently recorded new inputs; retain two-call limit, exact provenance, ambiguity refusal and teacher review. Do not keep tuning these two exposed cases.",
+  "engineeringCheck": {
+    "command": "npm run check",
+    "exitCode": 0,
+    "studioTests": 58,
+    "compatibilityTests": 642,
+    "scionTests": 872,
+    "log": "/tmp/edutool-quantity-proposal-check.log"
+  }
+}
