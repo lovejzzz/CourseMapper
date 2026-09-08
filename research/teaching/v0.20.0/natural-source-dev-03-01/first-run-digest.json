@@ -1,0 +1,171 @@
+{
+  "digestVersion": 1,
+  "appVersion": "0.19.2",
+  "runId": "run-1788867142486",
+  "finishRunId": "finish-mtsleaok-6srpc",
+  "at": "2026-09-08T11:34:50.883Z",
+  "elapsedMs": 148397,
+  "run": {
+    "provider": "public",
+    "models": ["scion-public"],
+    "lessonCount": 1,
+    "features": [
+      "courseMap",
+      "syllabus",
+      "lessonPlans",
+      "slideDecks",
+      "assignments",
+      "rubrics",
+      "discussions",
+      "quizBank",
+      "studyGuides",
+      "courseFaq"
+    ],
+    "providerCalls": 7,
+    "pipelineCalls": 5
+  },
+  "pipeline": {
+    "courseIRAuthoring": "public Scion · one typed skeleton call before lesson-kernel authoring",
+    "courseMap": "Scion V0.19.2 · typed skeleton (sessions, assessments, readings, resources)",
+    "scionExecution": "browser-local Gemma 4 · public weights · local inference",
+    "examine": "skipped: native authoring — Pass B authors lesson content next",
+    "genomeLinker": "0 genome + 0 cached (0 genome-backed) of 1 lessons (0 concepts, 0 citations, 0 bridges)",
+    "judgment": "not evaluated (0 genome-linked lessons)",
+    "local-compiler": "4 unresolved contract issues forwarded to per-atom admission",
+    "stage": "mcVerify:lesson-1 skipped [same-model-solver-is-not-an-independent-verifier] · admissionGate:lesson-1 rejected [process-leakage,meta-surface] · keyTermAdmission:lesson-1 rejected [term-not-source-anchored] · keyTermAdmission:lesson-1 rejected [term-not-source-anchored]",
+    "canonicalKernelAdmission": "all lesson ids present · lesson-1:experientialActivity:safety-boundary|meta-content|activity-type-mode-mismatch · lesson-1:authoring:no-authoring-fields",
+    "enrichmentModelStage": "ran (1 lesson enriched) (linker: ran)",
+    "nativeAuthoring": "assembled 1 sessions onto Pass A entity ids · outcomes/activities 0/1 · knowledge kernels admitted 1/1 · 0 registry readings · CurriculumV1 repaired 1 lessons / 1 assessments",
+    "knowledgeBackbone": "The approved or exact-source-only route uses supplied evidence; no duplicate reading search.",
+    "courseGraph": "1/1/1 sessions/concepts/outcomes",
+    "groundingMetrics": "overall 43.9% · syllabus 2% · lessonPlans 5% · slideDecks 41% · assignments 99% · rubrics 26% · discussions 95% · quizBank 61% · studyGuides 2% · courseFaq 36%",
+    "voicePass": "voiced 0 surface(s), 0 fallback(s) (rewrite cost $0.000) — voice-surface texture 100 already meets target; skipped 2 rewrite(s)",
+    "enrichment": "ran (1 lesson enriched)",
+    "nativeReconstruction": {
+      "status": "deterministic-reconstruction",
+      "readinessRepairedFieldCount": 25,
+      "claimBoundary": "Fallback; unverified."
+    }
+  },
+  "compilerSavings": {
+    "featureIds": [
+      "syllabus",
+      "lessonPlans",
+      "slideDecks",
+      "assignments",
+      "rubrics",
+      "discussions",
+      "quizBank",
+      "studyGuides",
+      "courseFaq"
+    ],
+    "source": "enriched-blueprint",
+    "compiledFeatureCount": 9,
+    "savedProviderCalls": 9,
+    "lastAt": 1788867289608
+  },
+  "cost": {
+    "totalUsd": 0,
+    "totalDisplay": "$0.00",
+    "inputTokens": 16040,
+    "outputTokens": 3744,
+    "reasoningOutputTokens": 0,
+    "cachedInputTokens": 0,
+    "accuracy": "tokens provider-reported; cost from published per-token rates",
+    "byTask": [
+      {
+        "task": "blueprintEnrichment",
+        "calls": 1,
+        "inputTokens": 9128,
+        "outputTokens": 2856,
+        "reasoningOutputTokens": 0,
+        "cachedInputTokens": 0,
+        "costUsd": 0,
+        "costKnown": true
+      },
+      {
+        "task": "nativeSkeleton",
+        "calls": 1,
+        "inputTokens": 5205,
+        "outputTokens": 588,
+        "reasoningOutputTokens": 0,
+        "cachedInputTokens": 0,
+        "costUsd": 0,
+        "costKnown": true
+      },
+      {
+        "task": "scionPass",
+        "calls": 2,
+        "inputTokens": 1707,
+        "outputTokens": 300,
+        "reasoningOutputTokens": 0,
+        "cachedInputTokens": 0,
+        "costUsd": 0,
+        "costKnown": true
+      }
+    ]
+  },
+  "gates": {
+    "finalStatus": "ready",
+    "trustState": "review",
+    "blockers": 0,
+    "warnings": 20,
+    "warningDomains": {
+      "schemaVersion": 1,
+      "readiness": 2,
+      "retry": 0,
+      "export": 0,
+      "quality": 1,
+      "source": 17,
+      "total": 20
+    },
+    "blockerDomains": {
+      "schemaVersion": 1,
+      "readiness": 0,
+      "quality": 0,
+      "export": 0,
+      "total": 0
+    },
+    "repairsApplied": 12,
+    "retryCallCount": 0,
+    "repairRetryCallCount": 0,
+    "finishRetryCallCount": 0,
+    "exportStatus": "passed",
+    "exportContentDisposition": "publishable",
+    "exportChecked": 38,
+    "exportFailed": 0,
+    "exportWarnings": 0,
+    "qualityStatus": "graded",
+    "qualityScore": 89,
+    "qualityGrade": "B",
+    "automatedReadinessScore": 49,
+    "automatedReadinessMax": 100,
+    "automatedReadinessCeiling": 75,
+    "automatedReadinessBand": "partial-positive-deterministic-evidence",
+    "deterministicEvidenceProtocol": "coursemapper-deterministic-package-evidence-v2",
+    "deterministicEvidenceLost": 26,
+    "deterministicEvidenceUnobserved": 25,
+    "qualityP0": 0,
+    "qualityP1": 3,
+    "qualityP2": 2,
+    "compiledWithoutEnrichment": false,
+    "enrichmentCoverage": 1,
+    "flaggedChecks": [
+      {
+        "featureId": "quality",
+        "status": "warning",
+        "message": "package conformance 89/100 (B) — 0 P0, 3 P1, 2 P2; source review row SL1 is not trusted bibliography proof"
+      },
+      {
+        "featureId": "quizBank",
+        "status": "warning",
+        "message": "3 questions need a specific instructor-reviewed answer. Source statements and general scoring guidance do not establish a complete reference response."
+      },
+      {
+        "featureId": "courseMap",
+        "status": "warning",
+        "message": "Package quality grader found 5 review findings (score 89/100, grade B) — resolve the quality report before classroom publication"
+      }
+    ]
+  }
+}

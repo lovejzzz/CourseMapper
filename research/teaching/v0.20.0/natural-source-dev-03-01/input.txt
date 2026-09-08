@@ -1,0 +1,8 @@
+Create an editable lesson on separating observation, hearsay and causal evaluation. Students must label claims in the supplied notebook and write a defensible account of what is and is not established.
+
+Learning objective: Distinguish an observation from a reported claim and an unsupported explanation.
+
+Sources:
+1. [notebook] Fictional field notebook: “At 08:00 I saw brown water below the footbridge. At 08:20 the water looked clearer to me. I did not collect samples.”
+2. [interview] A resident told the notebook writer, “The factory released dye overnight.” The supplied interview contains no description of what the resident directly saw and no independent test.
+3. [editorial] A later editorial says the brown colour proves deliberate pollution. There is no chemical analysis, discharge record or evidence of intent in the supplied packet.

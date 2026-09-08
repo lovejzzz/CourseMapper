@@ -1,0 +1,16 @@
+{
+  "case": "source-dev-03",
+  "split": "development",
+  "baselineCommit": "200407d5",
+  "attemptLimit": 1,
+  "wallLimitMinutes": 12,
+  "createdAt": "2026-09-08T11:30:33.420468+00:00",
+  "inputSha256": "77f8751ecfe0c2550d8e1abee4f00cdf91f8c3959bca5f627adb5782ea465a60",
+  "promptSha256": "48cadd7ff3fad96e22a87fa052efcb76cdcd859b2e217ce231cdf4ab41b75240",
+  "requestedMaterials": "all ten existing deliverables",
+  "requestedLessons": 1,
+  "manualSemanticEditsAllowed": false,
+  "model": "Existing local Scion; one reused browser tab; serial inference",
+  "capture": "first project and available export; no bypass of quality gate",
+  "limitation": "Exposed development case; not reserved or a fresh final acceptance unit"
+}

@@ -1,0 +1,133 @@
+{
+  "case": "source-dev-03",
+  "outcome": "failed educational task",
+  "attempts": 1,
+  "modelCalls": 7,
+  "pipelineCalls": 5,
+  "elapsedMs": 148397,
+  "lessonCount": 1,
+  "sharedTasks": 0,
+  "assets": {
+    "console.log": {
+      "bytes": 62101,
+      "sha256": "5d212ada51c6aff1ab0bba39c3bb22c903026e91262726073eca537577483e90"
+    },
+    "first-run.coursemapper": {
+      "bytes": 1519160,
+      "sha256": "8ea4b291a4131b1e8b2ed420933c02fc5b97d3c36f438270a0dea027510c21db"
+    },
+    "first-run.zip": {
+      "bytes": 440081,
+      "sha256": "25ea1ef709cbf8c83b5931ee735b845729464980c74ef4032f2f0887bb4ad17f"
+    }
+  },
+  "zipFileCount": 16,
+  "gates": {
+    "finalStatus": "ready",
+    "trustState": "review",
+    "blockers": 0,
+    "warnings": 20,
+    "warningDomains": {
+      "schemaVersion": 1,
+      "readiness": 2,
+      "retry": 0,
+      "export": 0,
+      "quality": 1,
+      "source": 17,
+      "total": 20
+    },
+    "blockerDomains": {
+      "schemaVersion": 1,
+      "readiness": 0,
+      "quality": 0,
+      "export": 0,
+      "total": 0
+    },
+    "repairsApplied": 12,
+    "retryCallCount": 0,
+    "repairRetryCallCount": 0,
+    "finishRetryCallCount": 0,
+    "exportStatus": "passed",
+    "exportContentDisposition": "publishable",
+    "exportChecked": 38,
+    "exportFailed": 0,
+    "exportWarnings": 0,
+    "qualityStatus": "graded",
+    "qualityScore": 89,
+    "qualityGrade": "B",
+    "automatedReadinessScore": 49,
+    "automatedReadinessMax": 100,
+    "automatedReadinessCeiling": 75,
+    "automatedReadinessBand": "partial-positive-deterministic-evidence",
+    "deterministicEvidenceProtocol": "coursemapper-deterministic-package-evidence-v2",
+    "deterministicEvidenceLost": 26,
+    "deterministicEvidenceUnobserved": 25,
+    "qualityP0": 0,
+    "qualityP1": 3,
+    "qualityP2": 2,
+    "compiledWithoutEnrichment": false,
+    "enrichmentCoverage": 1,
+    "flaggedChecks": [
+      {
+        "featureId": "quality",
+        "status": "warning",
+        "message": "package conformance 89/100 (B) — 0 P0, 3 P1, 2 P2; source review row SL1 is not trusted bibliography proof"
+      },
+      {
+        "featureId": "quizBank",
+        "status": "warning",
+        "message": "3 questions need a specific instructor-reviewed answer. Source statements and general scoring guidance do not establish a complete reference response."
+      },
+      {
+        "featureId": "courseMap",
+        "status": "warning",
+        "message": "Package quality grader found 5 review findings (score 89/100, grade B) — resolve the quality report before classroom publication"
+      }
+    ]
+  },
+  "findings": [
+    {
+      "severity": "major",
+      "surface": "quizBank MC explanation",
+      "observed": "B. The observation is a direct sensory input because the notebook states what the observer saw, whereas the claim is an external assertion because the resident reported what they heard.",
+      "problem": "The packet does not establish how the resident acquired the allegation. The explanation invents that the resident reported what they heard. Attribution is not evidence of the speaker’s knowledge source."
+    },
+    {
+      "severity": "major",
+      "surface": "quizBank case short answer",
+      "question": "Two parties dispute the cause of water discoloration while a factory operates nearby, creating a constraint on establishing intent. The problem is determining if the brown water is an observation or an unsupported explanation. Identify the course principle that should guide the decision. Cite at least two case details. Distinguish support from assumption. Request one next piece of evidence.",
+      "answer": "Unsupported Explanation best fits the decision in this case. A proposed cause or interpretation for an event that lacks direct supporting evidence. The decisive evidence comes from this case. Two parties dispute the cause of water discoloration while a factory operates nearby, creating a constraint on establishing intent. Course evidence adds that the field observation notes brown water at 08:00. Notebook: “At 08:00 I saw brown water below the footbridge. At 08:20 the water looked clearer to me. I did not collect samples.” interview: A resident told the notebook writer, “the factory released dye overnight.” can support this limited recommendation. Those materials do not prove that the same explanation applies beyond the case.",
+      "problem": "Treats brown water versus an unsupported explanation as the choice and asserts Unsupported Explanation best fits, instead of distinguishing the visual observation from substance, cause and intent. Adds nearby factory and two disputing parties not established by the supplied packet."
+    },
+    {
+      "severity": "major",
+      "surface": "shared task and rubric",
+      "problem": "Zero common tasks; generic evidence explanation and source traceability criteria do not require separate classification of all three source claims, limits on cause/intent, and a concrete additional-evidence request."
+    },
+    {
+      "severity": "major",
+      "surface": "quizBank short answers 3–5",
+      "problem": "Three generic reference responses state what a valid answer should do without providing an actual case-specific reference; readiness already flags these."
+    },
+    {
+      "severity": "moderate",
+      "surface": "assignment workload",
+      "problem": "A single source-classification lesson is expanded into a Week 1 artifact requiring 750–1,250 words, 6–10 slides or 5–8 minute recording without input support for that workload."
+    }
+  ],
+  "positiveEvidence": [
+    "Correctly recognized one lesson.",
+    "All three supplied source records present.",
+    "Generation ended on assignments with initial review controls expanded and no default operation.",
+    "Ten material categories represented by ten Office files; six report files also present.",
+    "Review ZIP available and labeled for review; not silently represented as independently validated teaching."
+  ],
+  "nextAction": "Replace topic-specific attribution templates with a reviewed claim-and-evidence contract covering speaker, exact claim, stated basis, supported conclusion and unresolved alternatives; project task, reference and rubric from that same contract.",
+  "limits": [
+    "Exposed development case only.",
+    "No manual semantic edits or second generation attempt.",
+    "This is content/structure review, not visual Office/PDF or independent teacher acceptance.",
+    "Provider label public/scion-public denotes browser-local public weights, not a hosted API.",
+    "No final v0.20.0 acceptance pass."
+  ]
+}
