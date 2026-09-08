@@ -1,0 +1,99 @@
+{
+  "case": "quantity-dev-03",
+  "path": "Natural generated course → implementer chooses union operation → Scion source proposal → reference preview → implementer confirmation → nine material sync → saved project",
+  "modelCalls": 9,
+  "proposalElapsedMs": 7821,
+  "modelLoadMs": 1291,
+  "fieldIssues": {},
+  "modelSourceQuotesManuallyChanged": false,
+  "operationChosenBy": "implementer",
+  "confirmedBy": "implementer, not independent teacher",
+  "sharedTasks": 1,
+  "materialSourceContracts": [
+    {
+      "feature": "syllabus",
+      "sources": 1,
+      "sameSourceContract": true
+    },
+    {
+      "feature": "lessonPlans",
+      "sources": 1,
+      "sameSourceContract": true
+    },
+    {
+      "feature": "slideDecks",
+      "sources": 1,
+      "sameSourceContract": true
+    },
+    {
+      "feature": "assignments",
+      "sources": 1,
+      "sameSourceContract": true
+    },
+    {
+      "feature": "rubrics",
+      "sources": 1,
+      "sameSourceContract": true
+    },
+    {
+      "feature": "discussions",
+      "sources": 1,
+      "sameSourceContract": true
+    },
+    {
+      "feature": "quizBank",
+      "sources": 1,
+      "sameSourceContract": true
+    },
+    {
+      "feature": "studyGuides",
+      "sources": 1,
+      "sameSourceContract": true
+    },
+    {
+      "feature": "courseFaq",
+      "sources": 1,
+      "sameSourceContract": true
+    }
+  ],
+  "assignmentQuestion": "For “Cedar Exchange”, determine how many members attended “sowing workshop” or “storage workshop” or both. Decide whether an exact proportion follows. Derive the tightest bounds, construct both endpoint allocations, and specify any further membership information needed.",
+  "referenceReviewed": {
+    "population": 28,
+    "firstEvent": 19,
+    "secondEvent": 17,
+    "intersectionBounds": [
+      8,
+      17
+    ],
+    "unionBounds": [
+      19,
+      28
+    ],
+    "minimumUnionAllocation": {
+      "firstOnly": 2,
+      "secondOnly": 0,
+      "both": 17,
+      "neither": 9
+    },
+    "maximumUnionAllocation": {
+      "firstOnly": 11,
+      "secondOnly": 9,
+      "both": 8,
+      "neither": 0
+    },
+    "exactOverlapKnown": false
+  },
+  "artifact": {
+    "path": ".audit-work/v0200-teaching-system/natural-quantity-dev-03-repair/after.coursemapper",
+    "sha256": "884c0f86670b4b10b780f581b3f26d5e82fcdf4f76304d76557e2b124c8c7440",
+    "bytes": 3693311
+  },
+  "rawProposalSha256": "a495d071023e7a44fe0b6e777a78aa00ced5f4bfd9e37dfd519c90ad7bc0315e",
+  "remaining": [
+    "Natural generation does not initiate this reviewed task path; operation was manually selected.",
+    "Export remains blocked by original package readiness; no ZIP or complete format audit claimed.",
+    "Student question asks union explicitly but intersection only through reasoning; evaluate task requirement coverage.",
+    "No independent classroom review; not a reserved or fresh acceptance unit."
+  ],
+  "nextAction": "Connect natural planning to a persistent unconfirmed task proposal in the existing review flow; do not silently classify and approve an operation."
+}

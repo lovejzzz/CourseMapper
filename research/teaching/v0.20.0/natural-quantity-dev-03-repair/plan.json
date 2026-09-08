@@ -1,0 +1,16 @@
+{
+  "createdAt": "2026-09-08T10:41:20.032199+00:00",
+  "baselineCommit": "7361a06f",
+  "inputProject": "../natural-quantity-dev-03-02/first-run-review.json",
+  "purpose": "Verify actual generated course can be repaired through existing reviewed task workflow",
+  "operation": "union-bounds",
+  "operationChosenBy": "implementer using explicit user task; not autonomous model classification",
+  "attemptLimit": 1,
+  "proposalBudget": "Existing bounded atomic proposal, one local browser",
+  "semanticEdits": "None to objective, source records or proposal quotes; record failure without manual correction",
+  "notAcceptance": [
+    "Not an autonomous natural generation success",
+    "Not a fresh or reserved unit",
+    "Not independent teacher review"
+  ]
+}
