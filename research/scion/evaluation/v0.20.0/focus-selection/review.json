@@ -1,0 +1,127 @@
+{
+  "decision": "Reject automatic focus selection as a product default; restore prior task-type selection.",
+  "scope": "Fit to the four currently implemented reviewed operation contracts, not complete classroom acceptance or the v3 corpus reference labels.",
+  "criteria": "Two experimental packets contain the resources for the implemented comparison operation; source-dev-07 contains the supported relative-day chronology. Pooled counts, overlap ranges, other source relationships and missing/physical-only evidence do not meet those four current contracts.",
+  "sourceReceipt": {
+    "path": ".audit-work/v0200-teaching-system/focus-selection-01/screening-receipt.json",
+    "sha256": "135815d84400cd086df2440097aff4b0c0f06e97a0cfc16293a91c5caa782ae0"
+  },
+  "cases": [
+    {
+      "id": "experiment-dev-01",
+      "expectedCurrentRegistryFit": "paired-condition-confound",
+      "proposed": "paired-condition-confound",
+      "matches": true,
+      "modelCalls": 1
+    },
+    {
+      "id": "experiment-dev-02",
+      "expectedCurrentRegistryFit": "paired-condition-confound",
+      "proposed": "paired-condition-confound",
+      "matches": true,
+      "modelCalls": 1
+    },
+    {
+      "id": "quantity-dev-01",
+      "expectedCurrentRegistryFit": null,
+      "proposed": "observed-proportion",
+      "matches": false,
+      "modelCalls": 1
+    },
+    {
+      "id": "quantity-dev-02",
+      "expectedCurrentRegistryFit": null,
+      "proposed": "observed-proportion",
+      "matches": false,
+      "modelCalls": 1
+    },
+    {
+      "id": "source-dev-01",
+      "expectedCurrentRegistryFit": null,
+      "proposed": "record-relative-day",
+      "matches": false,
+      "modelCalls": 1
+    },
+    {
+      "id": "source-dev-02",
+      "expectedCurrentRegistryFit": null,
+      "proposed": "record-amendment",
+      "matches": false,
+      "modelCalls": 1
+    },
+    {
+      "id": "source-dev-03",
+      "expectedCurrentRegistryFit": null,
+      "proposed": "paired-condition-confound",
+      "matches": false,
+      "modelCalls": 1
+    },
+    {
+      "id": "source-dev-04",
+      "expectedCurrentRegistryFit": null,
+      "proposed": "paired-condition-confound",
+      "matches": false,
+      "modelCalls": 1
+    },
+    {
+      "id": "source-dev-05",
+      "expectedCurrentRegistryFit": null,
+      "proposed": "record-amendment",
+      "matches": false,
+      "modelCalls": 1
+    },
+    {
+      "id": "source-dev-06",
+      "expectedCurrentRegistryFit": null,
+      "proposed": "paired-condition-confound",
+      "matches": false,
+      "modelCalls": 1
+    },
+    {
+      "id": "source-dev-07",
+      "expectedCurrentRegistryFit": "record-relative-day",
+      "proposed": "record-relative-day",
+      "matches": true,
+      "modelCalls": 1
+    },
+    {
+      "id": "source-dev-08",
+      "expectedCurrentRegistryFit": null,
+      "proposed": "paired-condition-confound",
+      "matches": false,
+      "modelCalls": 1
+    },
+    {
+      "id": "source-dev-09",
+      "expectedCurrentRegistryFit": null,
+      "proposed": "record-amendment",
+      "matches": false,
+      "modelCalls": 1
+    },
+    {
+      "id": "source-dev-10",
+      "expectedCurrentRegistryFit": null,
+      "proposed": "record-amendment",
+      "matches": false,
+      "modelCalls": 1
+    },
+    {
+      "id": "source-dev-11",
+      "expectedCurrentRegistryFit": null,
+      "proposed": "record-amendment",
+      "matches": false,
+      "modelCalls": 1
+    },
+    {
+      "id": "source-dev-12",
+      "expectedCurrentRegistryFit": null,
+      "proposed": "observed-proportion",
+      "matches": false,
+      "modelCalls": 1
+    }
+  ],
+  "freshAcceptance": false,
+  "repairs": 0,
+  "fitMatches": 3,
+  "falseSupported": 13
+}

@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Evaluate and reject an automatic task-type selector after it incorrectly assigns thirteen of sixteen exposed development inputs to unsupported operation contracts. Preserve the complete trial and candidate patch; keep the verified manual focus selection and source-seeding workflow.
+
 - Select the verified v3 local runtime pair with grammar-state support after real adapter apply/clear/recovery and protocol-mismatch checks. Verify both selected file hashes during builds. In one exposed application case, source roles now complete in one call without manual corrections; preserve the earlier failure and keep fresh educational acceptance pending. Model weights are unchanged and the untrained mechanical-test adapter is not shipped.
 
 - Seed new teaching-review drafts from explicitly labeled original source records and single-lesson objectives, retaining saved drafts and refusing silent packet truncation. Independently reject invalid chronology date roles even when another role is incomplete. A real local proposal still required two manual corrections before applying a concrete shared task; preserve that failure and reviewed outcome.

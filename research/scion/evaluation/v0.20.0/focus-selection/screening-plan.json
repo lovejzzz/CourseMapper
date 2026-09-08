@@ -1,0 +1,25 @@
+{
+  "kind": "exposed-development-focus-screening",
+  "caseIds": [
+    "experiment-dev-01",
+    "experiment-dev-02",
+    "quantity-dev-01",
+    "quantity-dev-02",
+    "source-dev-01",
+    "source-dev-02",
+    "source-dev-03",
+    "source-dev-04",
+    "source-dev-05",
+    "source-dev-06",
+    "source-dev-07",
+    "source-dev-08",
+    "source-dev-09",
+    "source-dev-10",
+    "source-dev-11",
+    "source-dev-12"
+  ],
+  "callsPerCase": 1,
+  "repairs": 0,
+  "inputOnly": true,
+  "freshAcceptance": false
+}
