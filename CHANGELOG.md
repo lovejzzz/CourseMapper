@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Preserve explicit single-lesson objectives in the prose fallback and continuation path, matching native authoring without applying a global goal to an incomplete multi-lesson response. A newly registered local unit exposed a native-contract failure, five requests and a shortened fallback objective; keep that first failure. Deterministic replay now retains the complete objective in nine materials. The unit’s source review and full output acceptance remain pending.
+
 - Keep oversized source packets available in task review instead of replacing them with a blank input. Teachers can choose any eight records; proposals receive only that selection. Preserve edited records for reselection, clear removed-source bindings, and restore the whole candidate pool with saved drafts. Actual Chrome save/reload/Resume retains a selection beyond the first eight records without changing material contents or invoking the model.
 
 - Make chronology v5 full-score responses identify all four temporal roles and their sources. Keep that complete evidence in study-guide reasoning and independent practice, and pair assignment error examples with their own scoring rationale. Preserve v4 replay. A prior reviewed-course replay and actual Word/PDF export expose remaining historical objective and pagination issues; no new model-course or production acceptance claimed.

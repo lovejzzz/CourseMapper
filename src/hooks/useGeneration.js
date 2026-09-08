@@ -10,6 +10,7 @@ import {
 import { readAuthoringMode } from '../lib/authoringMode';
 import { checkTokenLimit, truncateToFit } from '../lib/tokenEstimator';
 import { detectExpectedLessons } from '../lib/detectLessons';
+import { preserveSingleLessonObjective } from '../lib/sourceBriefConstraints';
 import useStreamReader from './useStreamReader';
 
 import applyPatches from '../lib/applyPatches';
@@ -1194,6 +1195,7 @@ export default function useGeneration({
           }
           finalResult = preserveMaterializedLessonNumbers(finalResult, scopeIndices);
           finalResult = repairCourseMapIdentityTypography(finalResult);
+          finalResult = preserveSingleLessonObjective(finalResult, combinedText, expectedLessonsRef.current?.expected);
 
           // Post-generation structural validation — auto-fix missing titles, sections, column keys
           let { warnings: validationWarnings } = validateCourseMap(finalResult, columns);
@@ -1255,6 +1257,11 @@ export default function useGeneration({
             if (leanCourseMap) finalResult = deriveCompilerOwnedColumns(finalResult);
             finalResult = preserveMaterializedLessonNumbers(finalResult, scopeIndices);
             finalResult = repairCourseMapIdentityTypography(finalResult);
+            finalResult = preserveSingleLessonObjective(
+              finalResult,
+              combinedText,
+              expectedLessonsRef.current?.expected,
+            );
             if (finalResult.lessons.length < expected) {
               setCompletenessInfo({
                 expected,

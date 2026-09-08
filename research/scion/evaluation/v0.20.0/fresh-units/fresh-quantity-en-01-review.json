@@ -1,0 +1,254 @@
+{
+  "id": "fresh-quantity-en-01",
+  "status": "first-generation-failed-native-contract; explicit review pending",
+  "firstGeneration": {
+    "inputSha256": "7b0be4fc211ee993357bb78d2876574488faaad90d9a9a1d8312e7018b35bb5e",
+    "projectSha256": "b72cae90fbf5f966f7255909c3de2252bc9ced864ba6f3230f87d5dfbaf9cd3a",
+    "courseTitle": "Proportion Calculation",
+    "lessonCount": 1,
+    "sharedTasks": 0,
+    "budget": {
+      "schemaVersion": 1,
+      "runId": "run-1788886855084",
+      "startedAt": 1788886855084,
+      "updatedAt": 1788886908103,
+      "buildUpdatedAt": 1788886908081,
+      "buildElapsedMs": 52997,
+      "modelDiscoveryCalls": 0,
+      "creditCheckCalls": 0,
+      "capabilityProbeCalls": 0,
+      "courseMapCalls": 1,
+      "courseIRCalls": 0,
+      "nativeSkeletonCalls": 1,
+      "deliverableChunkCalls": 0,
+      "blueprintEnrichmentCalls": 1,
+      "voicePassCalls": 0,
+      "repairRetryCalls": 0,
+      "streamRetryCalls": 2,
+      "providerFallbackCalls": 0,
+      "agentLoopCalls": 0,
+      "imageGenerationCalls": 0,
+      "modelRequestStarts": 5,
+      "genomeLinkEvents": 1,
+      "failedCalls": 1,
+      "retriedCalls": 2,
+      "skippedExamineCalls": 1,
+      "failureClasses": {
+        "unknown": 1
+      },
+      "costPlan": {
+        "source": "finalizer:generation",
+        "featureIds": [
+          "syllabus",
+          "lessonPlans",
+          "slideDecks",
+          "assignments",
+          "rubrics",
+          "discussions",
+          "quizBank",
+          "studyGuides",
+          "courseFaq"
+        ],
+        "lessonCount": 1,
+        "initialCourseMapCalls": 0,
+        "deliverableChunkCalls": 0,
+        "blueprintEnrichmentCalls": 0,
+        "blueprintEnrichmentRecoveryReserve": 0,
+        "repairRetryReserve": 0,
+        "finalizerRetryReserve": 8,
+        "reservedCalls": 8,
+        "includeDeliverableChunks": false,
+        "includeRepairRetryReserve": false,
+        "plannedCalls": 13,
+        "softCallLimit": 16,
+        "hardCallLimit": 19,
+        "baseProviderCalls": 5,
+        "plannedNewCalls": 8,
+        "softNewCallLimit": 11,
+        "hardNewCallLimit": 14,
+        "cumulative": true
+      },
+      "tokenUsage": {
+        "inputTokens": 1717,
+        "outputTokens": 214,
+        "totalTokens": 1931,
+        "cachedInputTokens": 0,
+        "cacheWriteInputTokens": 0,
+        "reasoningOutputTokens": 0,
+        "costUsd": 0,
+        "costKnownCallCount": 2,
+        "costUnknownCallCount": 0,
+        "costEstimatedCallCount": 2,
+        "estimatedCallCount": 0,
+        "reportedCallCount": 2,
+        "byModel": {
+          "public:scion-public": {
+            "provider": "public",
+            "modelId": "scion-public",
+            "inputTokens": 1717,
+            "outputTokens": 214,
+            "totalTokens": 1931,
+            "costUsd": 0,
+            "costKnownCallCount": 2,
+            "costUnknownCallCount": 0,
+            "costEstimatedCallCount": 2,
+            "estimated": false
+          }
+        }
+      },
+      "featureUsage": {
+        "course-map": {
+          "inputTokens": 878,
+          "outputTokens": 121,
+          "totalTokens": 999,
+          "cachedInputTokens": 0,
+          "cacheWriteInputTokens": 0,
+          "reasoningOutputTokens": 0,
+          "costUsd": 0,
+          "costKnownCallCount": 1,
+          "costUnknownCallCount": 0,
+          "costEstimatedCallCount": 1,
+          "estimatedCallCount": 0,
+          "reportedCallCount": 1,
+          "byModel": {
+            "public:scion-public": {
+              "provider": "public",
+              "modelId": "scion-public",
+              "inputTokens": 878,
+              "outputTokens": 121,
+              "totalTokens": 999,
+              "costUsd": 0,
+              "costKnownCallCount": 1,
+              "costUnknownCallCount": 0,
+              "costEstimatedCallCount": 1,
+              "estimated": false
+            }
+          }
+        },
+        "blueprintEnrichment": {
+          "inputTokens": 839,
+          "outputTokens": 93,
+          "totalTokens": 932,
+          "cachedInputTokens": 0,
+          "cacheWriteInputTokens": 0,
+          "reasoningOutputTokens": 0,
+          "costUsd": 0,
+          "costKnownCallCount": 1,
+          "costUnknownCallCount": 0,
+          "costEstimatedCallCount": 1,
+          "estimatedCallCount": 0,
+          "reportedCallCount": 1,
+          "byModel": {
+            "public:scion-public": {
+              "provider": "public",
+              "modelId": "scion-public",
+              "inputTokens": 839,
+              "outputTokens": 93,
+              "totalTokens": 932,
+              "costUsd": 0,
+              "costKnownCallCount": 1,
+              "costUnknownCallCount": 0,
+              "costEstimatedCallCount": 1,
+              "estimated": false
+            }
+          }
+        }
+      },
+      "compilerSavings": {
+        "featureIds": [
+          "syllabus",
+          "lessonPlans",
+          "slideDecks",
+          "assignments",
+          "rubrics",
+          "discussions",
+          "quizBank",
+          "studyGuides",
+          "courseFaq"
+        ],
+        "source": "enriched-blueprint",
+        "compiledFeatureCount": 9,
+        "savedProviderCalls": 9,
+        "lastAt": 1788886907942
+      },
+      "pipeline": {
+        "courseIRAuthoring": "public Scion · one typed skeleton call before lesson-kernel authoring",
+        "courseMap": "Scion V0.19.2 · lean atoms + compiler-derived columns",
+        "nativeAuthoring": "fell back to prose: Scion produced an incomplete response that did not meet the requested contract.",
+        "scionExecution": "browser-local Gemma 4 · public weights · local inference",
+        "examine": "skipped: Deterministic checks passed",
+        "genomeLinker": "0 genome + 0 cached (0 genome-backed) of 1 lessons (0 concepts, 0 citations, 0 bridges)",
+        "judgment": "not evaluated (0 genome-linked lessons)",
+        "scionEvidence": "0/1 unresolved lesson ledgers structurally complete before lesson-intent admission · 0 researched · 0 reused from local research memory",
+        "scionEvidenceRecovery": "1 lesson receiving one cache-bypassed recovery pass",
+        "scionEvidenceAdmission": "0/1 lessons authorized to draft · lesson-1 (fewer-than-three-valid-facts, missing-citations, missing-inspectable-source-identity, claims-not-fully-anchored, unrecognized-source-authority, lesson-intent-semantic-mismatch)",
+        "local-compiler": "7 unresolved contract issues forwarded to per-atom admission",
+        "enrichmentModelStage": "ran (1 lesson enriched) (linker: ran)",
+        "courseGraph": "1 sessions · 1 concepts · 2 outcomes · 2 assessments · 0 findings",
+        "groundingMetrics": "overall 7.1% · syllabus 0% · lessonPlans 0% · slideDecks 0% · assignments 0% · rubrics 0% · discussions 0% · quizBank 60% · studyGuides 0% · courseFaq 0%",
+        "voicePass": "voiced 0 surface(s), 0 fallback(s) (rewrite cost $0.000) — voice-surface texture 100 already meets target; skipped 2 rewrite(s)"
+      },
+      "enrichmentOutcome": {
+        "modelStage": "ran",
+        "required": false,
+        "route": "model-enrichment",
+        "enrichedLessons": 1,
+        "requestedLessons": 1,
+        "missingLessons": []
+      }
+    },
+    "pipeline": {
+      "courseIRAuthoring": "public Scion · one typed skeleton call before lesson-kernel authoring",
+      "courseMap": "Scion V0.19.2 · lean atoms + compiler-derived columns",
+      "nativeAuthoring": "fell back to prose: Scion produced an incomplete response that did not meet the requested contract.",
+      "scionExecution": "browser-local Gemma 4 · public weights · local inference",
+      "examine": "skipped: Deterministic checks passed",
+      "genomeLinker": "0 genome + 0 cached (0 genome-backed) of 1 lessons (0 concepts, 0 citations, 0 bridges)",
+      "judgment": "not evaluated (0 genome-linked lessons)",
+      "scionEvidence": "0/1 unresolved lesson ledgers structurally complete before lesson-intent admission · 0 researched · 0 reused from local research memory",
+      "scionEvidenceRecovery": "1 lesson receiving one cache-bypassed recovery pass",
+      "scionEvidenceAdmission": "0/1 lessons authorized to draft · lesson-1 (fewer-than-three-valid-facts, missing-citations, missing-inspectable-source-identity, claims-not-fully-anchored, unrecognized-source-authority, lesson-intent-semantic-mismatch)",
+      "local-compiler": "7 unresolved contract issues forwarded to per-atom admission",
+      "enrichmentModelStage": "ran (1 lesson enriched) (linker: ran)",
+      "courseGraph": "1/1/2 sessions/concepts/outcomes",
+      "groundingMetrics": "overall 7.1% · syllabus 0% · lessonPlans 0% · slideDecks 0% · assignments 0% · rubrics 0% · discussions 0% · quizBank 60% · studyGuides 0% · courseFaq 0%",
+      "voicePass": "voiced 0 surface(s), 0 fallback(s) (rewrite cost $0.000) — voice-surface texture 100 already meets target; skipped 2 rewrite(s)",
+      "enrichment": "ran (1 lesson enriched)"
+    },
+    "objectiveBefore": [
+      "Compute observed completion proportion.\nExplain programme limit constraints."
+    ]
+  },
+  "deterministicReplay": {
+    "modelCalls": 0,
+    "sourceUnchanged": true,
+    "objectiveAfter": "Compute the observed completion proportion for the South Room's accepted radios and explain why the city programme's completion proportion remains unknown.",
+    "materialObjectiveCoverage": {
+      "syllabus": true,
+      "lessonPlans": true,
+      "slideDecks": true,
+      "assignments": true,
+      "rubrics": true,
+      "discussions": true,
+      "quizBank": true,
+      "studyGuides": true,
+      "courseFaq": true
+    }
+  },
+  "checks": {
+    "studio": 58,
+    "compatibility": 941,
+    "scion": 980,
+    "typecheck": "passed",
+    "lint": "passed",
+    "build": "passed",
+    "bundle": "passed"
+  },
+  "pending": [
+    "Explicit local source proposal and at most one repair",
+    "Human source-role verification and actual teacher correction count",
+    "Actual shared-task application, source/requirement edit and export review",
+    "Original twelve-fresh-unit and complete release gates"
+  ],
+  "limits": "One UI generation attempt made five model requests after native contract failure and retries. It is not a one-model-call success. Replay is not a browser-applied correction or model rerun. Chrome interaction prevented continuing this session; all first failures remain saved."
+}

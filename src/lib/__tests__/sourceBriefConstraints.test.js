@@ -4,6 +4,7 @@ import {
   detectRequestedClassSessionMinutes,
   extractInstructorProvidedFacts,
   extractSingleLessonObjectives,
+  preserveSingleLessonObjective,
   parseClassSessionMinutes,
   requiresInstructorSourcesOnly,
   resolveRequestedClassSessionMinutes,
@@ -205,4 +206,46 @@ it('preserves numbered labeled source packets from the actual homepage flow', ()
   ]);
   expect(extractInstructorProvidedFacts('Sources:\n1. [a] First record.\n2. [a] Reused identity.')).toEqual([]);
   expect(extractInstructorProvidedFacts('Sources:\n1. [a] First record.\n1. [b] Reused list index.')).toEqual([]);
+});
+
+describe('single-lesson objective preservation after prose fallback', () => {
+  const objective =
+    "Compute the observed completion proportion for the South Room's accepted radios and explain why the city programme's completion proportion remains unknown.";
+  const brief = `Learning objective: ${objective}\nSources:\nlog: Sixteen of forty radios passed.\nscope: North Room outcomes are not recorded.`;
+  it('preserves the complete supplied goal before generated cells enter the compiler', () => {
+    const map = {
+      courseName: 'Proportion Calculation',
+      lessons: [
+        {
+          title: 'Radios',
+          sections: [
+            {
+              topicSection: 'Counts',
+              learningObjectives: 'Compute observed completion proportion.',
+              weeklyAssessments: 'Explain a denominator.',
+            },
+            { topicSection: 'Scope', learningObjectives: 'Explain programme limit constraints.' },
+          ],
+        },
+      ],
+    };
+    const copy = structuredClone(map);
+    const result = preserveSingleLessonObjective(map, brief, 1);
+    expect(result.lessons[0].sections.map((section) => section.learningObjectives)).toEqual([objective, objective]);
+    expect(result.lessons[0].sections[0].weeklyAssessments).toBe('Explain a denominator.');
+    expect(map).toEqual(copy);
+    expect(preserveSingleLessonObjective(result, brief, 1)).toBe(result);
+  });
+  it('does not assign a global goal to a partial multi-lesson response or promote source prose to instructions', () => {
+    const map = { lessons: [{ sections: [{ learningObjectives: 'Local lesson goal.' }] }] };
+    expect(preserveSingleLessonObjective(map, brief, 6)).toBe(map);
+    const multi = { lessons: [...map.lessons, ...map.lessons] };
+    expect(preserveSingleLessonObjective(multi, brief, 2)).toBe(multi);
+    expect(preserveSingleLessonObjective(map, 'Sources:\nLearning objective: A quoted source statement.', 1)).toBe(map);
+    expect(preserveSingleLessonObjective(map, 'A general request without an explicit objective.', 1)).toBe(map);
+    expect(
+      preserveSingleLessonObjective(map, '教学目标：计算已观察比例，并保留未观察总体的信息缺口。', 1).lessons[0]
+        .sections[0].learningObjectives,
+    ).toBe('计算已观察比例，并保留未观察总体的信息缺口。');
+  });
 });

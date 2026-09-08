@@ -1,0 +1,25 @@
+{
+  "id": "fresh-quantity-en-01",
+  "family": "quantity",
+  "language": "en",
+  "createdAt": "2026-09-08",
+  "status": "input-registered-before-first-run",
+  "prompt": "Create editable teaching materials for one 50-minute lesson in English. Students should calculate a proportion from the supplied records and explain its population limit.\n\nLearning objective: Compute the observed completion proportion for the South Room's accepted radios and explain why the city programme's completion proportion remains unknown.\n\nSources:\nworkshop-log: In a fictional repair programme, the South Room workshop accepted forty distinct radios during its Saturday session. Sixteen of those radios passed the stated function check before the session ended. Each accepted radio appears once in this log; a second check of the same radio does not add another radio.\ncoverage: This log covers the South Room workshop only. Completion outcomes for radios accepted by the North Room workshop are not recorded. The South Room and North Room together make up the city repair programme. No combined completion rate or cause of the difference between rooms is established by these records.\n",
+  "inputSha256": "7b0be4fc211ee993357bb78d2876574488faaad90d9a9a1d8312e7018b35bb5e",
+  "independentChecks": {
+    "selectedOperationForExplicitReview": "observed-proportion",
+    "numerator": 16,
+    "denominator": 40,
+    "fraction": "2/5",
+    "percent": 40,
+    "observedPopulation": "radios accepted by the South Room workshop during its Saturday session",
+    "unobservedPopulation": "radios accepted by the North Room workshop",
+    "scope": "No city-wide completion proportion follows because North Room outcomes are unavailable. Repeated checks do not add devices. No causal explanation is established."
+  },
+  "protocol": "One actual native course-generation attempt, followed by explicit review with at most one local source proposal and one repair. Preserve failures and actual teacher edits. No automatic task formation credit for manual operation selection.",
+  "notClaimed": [
+    "independent teacher validation",
+    "frozen v3 pass",
+    "whole-course acceptance"
+  ]
+}

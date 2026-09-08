@@ -214,3 +214,24 @@ export function analyzeSourceBriefConstraints(sourceBrief = '') {
     instructorProvidedFacts: extractInstructorProvidedFacts(sourceBrief),
   };
 }
+
+/** The prose fallback must honor the same single-session objective contract
+ * as native authoring. Do not distribute a course-level goal over a partial
+ * multi-lesson response. Only generated cells are passed through this helper. */
+export function preserveSingleLessonObjective(courseMap, sourceBrief, expectedLessons = null) {
+  if (courseMap?.lessons?.length !== 1 || (expectedLessons && expectedLessons !== 1)) return courseMap;
+  const objectives = extractSingleLessonObjectives(sourceBrief);
+  if (!objectives.length || !courseMap.lessons[0].sections?.length) return courseMap;
+  const learningObjectives = objectives.join('\n');
+  if (courseMap.lessons[0].sections.every((section) => section.learningObjectives === learningObjectives))
+    return courseMap;
+  return {
+    ...courseMap,
+    lessons: [
+      {
+        ...courseMap.lessons[0],
+        sections: courseMap.lessons[0].sections.map((section) => ({ ...section, learningObjectives })),
+      },
+    ],
+  };
+}
