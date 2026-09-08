@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import { comparisonCourseDraft } from '../../tests/fixtures/teaching/courses/comparisonCourse.js';
+import { recordCourseDraft } from '../../tests/fixtures/teaching/courses/recordCourse.js';
 import { proportionCourseDraft } from '../../tests/fixtures/teaching/courses/proportionCourse.js';
 import {
   buildCourseBlueprint,
@@ -23,9 +24,14 @@ import { deriveCourseGraphFromCourseMap } from '../../src/lib/courseGraph/index.
 const root = process.argv[2];
 assert(root, 'Provide a new output directory.');
 const courseSelector = process.argv[3] || 'experiment-en';
-assert(['experiment-en', 'quantity-zh'].includes(courseSelector), 'Choose experiment-en or quantity-zh.');
+const courses = {
+  'experiment-en': comparisonCourseDraft,
+  'quantity-zh': proportionCourseDraft,
+  'record-en': recordCourseDraft,
+};
+assert(Object.hasOwn(courses, courseSelector), 'Choose experiment-en, quantity-zh or record-en.');
 await fs.mkdir(root, { recursive: false });
-const course = courseSelector === 'quantity-zh' ? proportionCourseDraft() : comparisonCourseDraft();
+const course = courses[courseSelector]();
 const features = [
   'syllabus',
   'lessonPlans',

@@ -1,0 +1,513 @@
+{
+  "status": "third authored six-lesson development course; not release acceptance",
+  "course": "From conflicting-looking records to a defensible archive memo",
+  "lessons": 6,
+  "materials": 10,
+  "modelCalls": 0,
+  "sourceKind": "Explicit implementer-authored fictional records; not hidden assessment or independent teacher evidence",
+  "projectSha256": "b0cd388543d2438304375b9871a06274da6835f3d02d0e3c01fed4bcc8499a70",
+  "capture": {
+    "createdAt": "2026-09-08T03:56:15.702Z",
+    "courseId": "record-course-en-draft",
+    "courseName": "From conflicting-looking records to a defensible archive memo",
+    "sourceKind": "Implementer-authored explicit fictional development records; not model-generated or hidden assessment data.",
+    "modelCalls": 0,
+    "status": "generated draft; classroom and export review pending",
+    "receipts": [
+      {
+        "lesson": 1,
+        "taskId": "task-2d32865f1ebc21c3",
+        "changedMaterials": [
+          "syllabus",
+          "lessonPlans",
+          "slideDecks",
+          "assignments",
+          "rubrics",
+          "discussions",
+          "quizBank",
+          "studyGuides",
+          "courseFaq"
+        ],
+        "modelCalls": 0
+      },
+      {
+        "lesson": 2,
+        "taskId": "task-24282cdf290e19ba",
+        "changedMaterials": [
+          "syllabus",
+          "lessonPlans",
+          "slideDecks",
+          "assignments",
+          "rubrics",
+          "discussions",
+          "quizBank",
+          "studyGuides",
+          "courseFaq"
+        ],
+        "modelCalls": 0
+      },
+      {
+        "lesson": 3,
+        "taskId": "task-6cb889d939862876",
+        "changedMaterials": [
+          "syllabus",
+          "lessonPlans",
+          "slideDecks",
+          "assignments",
+          "rubrics",
+          "discussions",
+          "quizBank",
+          "studyGuides",
+          "courseFaq"
+        ],
+        "modelCalls": 0
+      },
+      {
+        "lesson": 4,
+        "taskId": "task-3845da4cb01b44f6",
+        "changedMaterials": [
+          "syllabus",
+          "lessonPlans",
+          "slideDecks",
+          "assignments",
+          "rubrics",
+          "discussions",
+          "quizBank",
+          "studyGuides",
+          "courseFaq"
+        ],
+        "modelCalls": 0
+      },
+      {
+        "lesson": 5,
+        "taskId": "task-87ed4c7ae85e8a85",
+        "changedMaterials": [
+          "syllabus",
+          "lessonPlans",
+          "slideDecks",
+          "assignments",
+          "rubrics",
+          "discussions",
+          "quizBank",
+          "studyGuides",
+          "courseFaq"
+        ],
+        "modelCalls": 0
+      },
+      {
+        "lesson": 6,
+        "taskId": "task-76431abd64c87602",
+        "changedMaterials": [
+          "syllabus",
+          "lessonPlans",
+          "slideDecks",
+          "assignments",
+          "rubrics",
+          "discussions",
+          "quizBank",
+          "studyGuides",
+          "courseFaq"
+        ],
+        "modelCalls": 0
+      }
+    ]
+  },
+  "exports": {
+    "projectSha256": "b0cd388543d2438304375b9871a06274da6835f3d02d0e3c01fed4bcc8499a70",
+    "createdAt": "2026-09-08T03:56:35.433Z",
+    "status": "exported; visual and educational review pending",
+    "modelCalls": 0,
+    "files": [
+      {
+        "name": "syllabus.docx",
+        "bytes": 16105,
+        "sha256": "23312e50687dfa07d4ec4c184a11538837a180562a3db0716950cfce0f016657"
+      },
+      {
+        "name": "syllabus.pdf",
+        "bytes": 70074,
+        "sha256": "d716b61b0cc37df87e1e2bc2450d08f5ae5a8c121ce9e322ac87de8418ec90ea"
+      },
+      {
+        "name": "lessonPlans.docx",
+        "bytes": 29085,
+        "sha256": "255f9023e22a567a3c8bbe2f90540e5f007c94053c61c21e093c82af10490cd8"
+      },
+      {
+        "name": "lessonPlans.pdf",
+        "bytes": 211426,
+        "sha256": "933adcca8532fab168ff6a62b4247c4b31d5f2abff3daa70536727c3838ac6bf"
+      },
+      {
+        "name": "slideDecks.docx",
+        "bytes": 21410,
+        "sha256": "ea062943626e1b20b8e2847fe7e36a2615da8dc435de7d9590dca7b1b6f60a31"
+      },
+      {
+        "name": "slideDecks.pdf",
+        "bytes": 188631,
+        "sha256": "bac4a8dc5dea9bb646df7c692bb1a7779072fcfaab935f949079360e6b793877"
+      },
+      {
+        "name": "assignments.docx",
+        "bytes": 16979,
+        "sha256": "4cbee3b1fd93662c28ea199e30496a6e0b71f7e11787b31f3e7075c91f6b9c28"
+      },
+      {
+        "name": "assignments.pdf",
+        "bytes": 105994,
+        "sha256": "2dba21b39693f7145c01371964427224e8977a2e2aae38ade92ace6b5e2088a6"
+      },
+      {
+        "name": "rubrics.docx",
+        "bytes": 20147,
+        "sha256": "f5b303153707c51eefd93cb226f6457670d9cfc916a93aa195adf5aa3312dbba"
+      },
+      {
+        "name": "rubrics.pdf",
+        "bytes": 121529,
+        "sha256": "b88fea9766b9311695d1f528019895eaefe7cb4a6469b1946b9328ac0639ca14"
+      },
+      {
+        "name": "discussions.docx",
+        "bytes": 14481,
+        "sha256": "386c17ddf3cf94623cb7dfd6ac29cd24514e1d60af67d832a512bf1197589795"
+      },
+      {
+        "name": "discussions.pdf",
+        "bytes": 92340,
+        "sha256": "184d14fff6ba804313fe6c9dec69f88b4a8e4adb8d288c037c8428b7395ee06e"
+      },
+      {
+        "name": "quizBank.docx",
+        "bytes": 18312,
+        "sha256": "6617ff35dc6bde97fe651ef9819b7596e525f2b5faefa263e4e87fcb1c470d2f"
+      },
+      {
+        "name": "quizBank.pdf",
+        "bytes": 140779,
+        "sha256": "dbc22f90e0c9e9272a384196e050096c18a1c5a58c4ab1361562bffcd20a6b3e"
+      },
+      {
+        "name": "studyGuides.docx",
+        "bytes": 20251,
+        "sha256": "833da9e8fce66efe736ca792bf19755d675da2469ad8867077513dd9bdf259fa"
+      },
+      {
+        "name": "studyGuides.pdf",
+        "bytes": 125685,
+        "sha256": "2979fbdaa815b27abb192c52b0eea0295da107566402a9c639c79c33d2c9c1c8"
+      },
+      {
+        "name": "courseFaq.docx",
+        "bytes": 10875,
+        "sha256": "8e907f2b07687a8902b9d2866434d71131061018999b39e0cd16354ce7c181eb"
+      },
+      {
+        "name": "courseFaq.pdf",
+        "bytes": 37544,
+        "sha256": "9a976a73e3bd98278481d935ddcfa7d13140021110920c2830c757d6cdb19846"
+      }
+    ]
+  },
+  "coreRestore": {
+    "checkedAt": "2026-09-08T03:56:35.732Z",
+    "projectSha256": "b0cd388543d2438304375b9871a06274da6835f3d02d0e3c01fed4bcc8499a70",
+    "scope": "core restore and confirmed feedback revision; no browser or model execution",
+    "lessons": 6,
+    "modelCalls": 0,
+    "unchangedOtherTasks": 5,
+    "checkedMaterialIds": [
+      "syllabus",
+      "lessonPlans",
+      "slideDecks",
+      "assignments",
+      "rubrics",
+      "discussions",
+      "quizBank",
+      "studyGuides",
+      "courseFaq"
+    ],
+    "changedMaterialIds": [
+      "syllabus",
+      "lessonPlans",
+      "slideDecks",
+      "assignments",
+      "rubrics",
+      "discussions",
+      "quizBank",
+      "studyGuides",
+      "courseFaq"
+    ],
+    "targetTaskId": "task-76431abd64c87602",
+    "unchangedLessonRows": {
+      "lessonPlans": 5,
+      "slideDecks": 5,
+      "rubrics": 5,
+      "quizBank": 5,
+      "studyGuides": 5
+    },
+    "previousFeedback": "Add seats and the source letter beside each number. Replace any attendance claim with a capacity statement and list C’s two missing attributes.",
+    "newFeedback": "Add seats and the source letter beside each number. Replace any attendance claim with a capacity statement and list C’s two missing attributes. Identify the specific source record beside each revised claim.",
+    "restoredOriginalMaterialsUnchanged": true,
+    "restoredRevisedMaterialsUnchanged": true
+  },
+  "timing": {
+    "recordedAt": "2026-09-08T03:57:19.721Z",
+    "projectSha256": "b0cd388543d2438304375b9871a06274da6835f3d02d0e3c01fed4bcc8499a70",
+    "scope": "one explicit six-lesson development course; compiler only, not browser, exports or Scion inference",
+    "environment": {
+      "platform": "darwin",
+      "architecture": "arm64",
+      "node": "v26.5.0",
+      "cpu": "Apple M4 Max",
+      "cpuCount": 16,
+      "totalMemoryBytes": 51539607552
+    },
+    "lessons": 6,
+    "features": [
+      "syllabus",
+      "lessonPlans",
+      "slideDecks",
+      "assignments",
+      "rubrics",
+      "discussions",
+      "quizBank",
+      "studyGuides",
+      "courseFaq"
+    ],
+    "modelCalls": 0,
+    "concurrency": 1,
+    "cold": {
+      "blueprintMs": 151.10616600000003,
+      "projectionMs": 1996.562167,
+      "totalMs": 2147.668333
+    },
+    "runs": [
+      {
+        "iteration": 1,
+        "blueprintMs": 78.27637500000037,
+        "projectionMs": 1247.530167,
+        "totalMs": 1325.8065420000003
+      },
+      {
+        "iteration": 2,
+        "blueprintMs": 77.27199999999993,
+        "projectionMs": 1245.8827919999994,
+        "totalMs": 1323.1547919999994
+      },
+      {
+        "iteration": 3,
+        "blueprintMs": 76.64799999999923,
+        "projectionMs": 1242.8350840000003,
+        "totalMs": 1319.4830839999995
+      },
+      {
+        "iteration": 4,
+        "blueprintMs": 76.42208299999947,
+        "projectionMs": 1247.099000000001,
+        "totalMs": 1323.5210830000005
+      },
+      {
+        "iteration": 5,
+        "blueprintMs": 75.56695799999943,
+        "projectionMs": 1245.783125,
+        "totalMs": 1321.3500829999994
+      },
+      {
+        "iteration": 6,
+        "blueprintMs": 76.11066699999901,
+        "projectionMs": 1244.7278330000008,
+        "totalMs": 1320.8384999999998
+      },
+      {
+        "iteration": 7,
+        "blueprintMs": 76.28129099999933,
+        "projectionMs": 1246.5195000000003,
+        "totalMs": 1322.8007909999997
+      },
+      {
+        "iteration": 8,
+        "blueprintMs": 76.14516600000024,
+        "projectionMs": 1257.139459,
+        "totalMs": 1333.2846250000002
+      },
+      {
+        "iteration": 9,
+        "blueprintMs": 76.32124999999905,
+        "projectionMs": 1249.356208000001,
+        "totalMs": 1325.6774580000001
+      },
+      {
+        "iteration": 10,
+        "blueprintMs": 75.9432080000006,
+        "projectionMs": 1248.7541249999995,
+        "totalMs": 1324.697333
+      },
+      {
+        "iteration": 11,
+        "blueprintMs": 76.80066700000134,
+        "projectionMs": 1247.708290999999,
+        "totalMs": 1324.5089580000003
+      },
+      {
+        "iteration": 12,
+        "blueprintMs": 76.0659169999999,
+        "projectionMs": 1248.872292,
+        "totalMs": 1324.938209
+      },
+      {
+        "iteration": 13,
+        "blueprintMs": 77.56324999999924,
+        "projectionMs": 1245.097041000001,
+        "totalMs": 1322.6602910000001
+      },
+      {
+        "iteration": 14,
+        "blueprintMs": 76.05370799999946,
+        "projectionMs": 1248.3927500000027,
+        "totalMs": 1324.4464580000022
+      },
+      {
+        "iteration": 15,
+        "blueprintMs": 80.77283299999908,
+        "projectionMs": 1260.8078750000022,
+        "totalMs": 1341.5807080000013
+      },
+      {
+        "iteration": 16,
+        "blueprintMs": 76.26729100000011,
+        "projectionMs": 1247.7891249999993,
+        "totalMs": 1324.0564159999994
+      },
+      {
+        "iteration": 17,
+        "blueprintMs": 82.1651669999992,
+        "projectionMs": 1260.5362080000014,
+        "totalMs": 1342.7013750000006
+      },
+      {
+        "iteration": 18,
+        "blueprintMs": 81.26312499999767,
+        "projectionMs": 1262.4982500000006,
+        "totalMs": 1343.7613749999982
+      },
+      {
+        "iteration": 19,
+        "blueprintMs": 77.86454199999935,
+        "projectionMs": 1253.1825000000026,
+        "totalMs": 1331.047042000002
+      },
+      {
+        "iteration": 20,
+        "blueprintMs": 80.05316699999821,
+        "projectionMs": 1256.0730000000003,
+        "totalMs": 1336.1261669999985
+      },
+      {
+        "iteration": 21,
+        "blueprintMs": 76.92337500000212,
+        "projectionMs": 1253.9118329999983,
+        "totalMs": 1330.8352080000004
+      },
+      {
+        "iteration": 22,
+        "blueprintMs": 80.53362500000003,
+        "projectionMs": 1264.377209000002,
+        "totalMs": 1344.910834000002
+      },
+      {
+        "iteration": 23,
+        "blueprintMs": 81.19499999999971,
+        "projectionMs": 1283.544667000002,
+        "totalMs": 1364.7396670000016
+      },
+      {
+        "iteration": 24,
+        "blueprintMs": 80.99879099999816,
+        "projectionMs": 1271.377333999997,
+        "totalMs": 1352.3761249999952
+      },
+      {
+        "iteration": 25,
+        "blueprintMs": 77.1866250000021,
+        "projectionMs": 1272.5885839999974,
+        "totalMs": 1349.7752089999994
+      },
+      {
+        "iteration": 26,
+        "blueprintMs": 80.49241600000096,
+        "projectionMs": 1413.2482920000039,
+        "totalMs": 1493.7407080000048
+      },
+      {
+        "iteration": 27,
+        "blueprintMs": 97.78112500000134,
+        "projectionMs": 1409.8059579999972,
+        "totalMs": 1507.5870829999985
+      },
+      {
+        "iteration": 28,
+        "blueprintMs": 93.43366699999751,
+        "projectionMs": 1371.388500000001,
+        "totalMs": 1464.8221669999984
+      },
+      {
+        "iteration": 29,
+        "blueprintMs": 96.58733300000313,
+        "projectionMs": 1392.0252089999994,
+        "totalMs": 1488.6125420000026
+      },
+      {
+        "iteration": 30,
+        "blueprintMs": 77.12924999999814,
+        "projectionMs": 1423.8199170000007,
+        "totalMs": 1500.9491669999989
+      }
+    ],
+    "warmP95Ms": 1500.9491669999989,
+    "warmMedianMs": 1330.9411250000012,
+    "underFiveSecondP95": true
+  },
+  "browser": {
+    "status": "actual local browser import, confirmed feedback sync, download, reopen and redownload passed",
+    "modelCalls": 0,
+    "lessons": 6,
+    "materialDataEqual": [
+      "syllabus",
+      "lessonPlans",
+      "slideDecks",
+      "assignments",
+      "rubrics",
+      "discussions",
+      "quizBank",
+      "studyGuides",
+      "courseFaq"
+    ],
+    "courseMapEqual": true,
+    "files": {
+      "after-ui-reopen.coursemapper": "0aaa96bef6a40387dc315eee24a6c07e02c108605add5d7b214196452df39cce",
+      "after-ui-feedback.coursemapper": "ac2c2f7be34501d6132d476a54b10dad3bbe694028c542f83c15e1ab712978cd"
+    },
+    "limitation": "Not source-fact/structural-requirement/conflict acceptance; click-controller timed out after apply, subsequent DOM confirmed success."
+  },
+  "review": {
+    "visuallyInspected": [
+      {
+        "file": "studyGuides.pdf",
+        "pages": [1, 2]
+      }
+    ],
+    "findings": [
+      "Study guide first page is text-dense; independent case on page two has substantial unused space.",
+      "Lesson-plan UI still repeats complete task/answer in multiple phases; assess scaffolding fade and pacing before classroom acceptance."
+    ],
+    "initialFailure": "First capture rejected practice sources missing explicit origin kind; added fictional kind and captured to new directory without weakening validation.",
+    "comparisonCaveat": "Browser and separate core confirmations have different reviewedAt and derived task revisions; initial strict cross-run comparison failed on those fields. Actual browser file reopen/redownload preserves the complete courseMap and all nine material data objects exactly."
+  },
+  "remaining": [
+    "All-page/all-format review including actual PPTX and course map.",
+    "Source-fact change, structural requirement change and teacher-edit conflict per course.",
+    "Fresh Scion, v3 corpus, production deployment and remaining roadmap release gates."
+  ]
+}

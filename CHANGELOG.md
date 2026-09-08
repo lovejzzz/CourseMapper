@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Add the third six-lesson development course: a traceable archive memo progressing from source attribution through effective dates, amendment scope, missing observation evidence and claim revision, with a new capstone archive. Capture all nine derived Word/PDF materials and verify actual browser feedback sync and file reopen; retain unresolved classroom/export gates explicitly.
+
 - Extend versioned structured practice scoring to newly reviewed authored quantity/record tasks, preserve saved budgets and legacy task reconstruction, and add a six-lesson Chinese quantity development course. Print Chinese quiz labels through linked task language, omit only exact answer repetitions, and start each subsequent student quiz paper on a separate page from preceding answer keys. Give authored assignment requirements response sections. Development exports still require complete classroom acceptance.
 
 - Reduce large-course undo capture work by comparing already-sanitized JSON trees directly instead of repeatedly encoding whole subtrees. Keep persisted history format, exact patches, array guards and replay validation unchanged; add a repeatable history profiler and six-lesson equivalence evidence.
