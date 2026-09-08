@@ -17250,6 +17250,7 @@ function compileSyllabus(blueprint) {
       // v0.14.1 (3.2f): registry rows render "A7.1 — <title>" so every
       // grading-table line is distinguishable and traceable to its map cell.
       name: assessment.registryId ? `${assessment.registryId} — ${assessment.title}` : assessment.title,
+      ...(assessment.registryId ? { assessmentId: assessment.registryId } : {}),
       lessonNumbers: assessment.lessonNumbers,
       weight: assessment.weight,
       description: `${assessment.artifact}. ${criteriaText}${feedbackText}`,

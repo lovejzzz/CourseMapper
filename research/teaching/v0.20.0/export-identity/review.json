@@ -1,0 +1,38 @@
+{
+  "kind": "Actual saved course recompiled through production compiler and Word exporter; saved graph assessment registry supplied; no model inference",
+  "artifacts": {
+    "syllabus": {
+      "path": ".audit-work/v0200-teaching-system/export-identity/syllabus.docx",
+      "sha256": "a150e924479d46a6bcdf53f883ed940ef787f99593b07f91e9cf5eb99c4076d0",
+      "rawQuestionTypePresent": false,
+      "assessmentIds": [
+        "A1.1"
+      ]
+    },
+    "quizBank": {
+      "path": ".audit-work/v0200-teaching-system/export-identity/quizBank.docx",
+      "sha256": "d178e82194285e51673c9618f636097b8cd7f8cddeb39128db06b9b266285385",
+      "rawQuestionTypePresent": false,
+      "assessmentIds": []
+    }
+  },
+  "requirements": [
+    {
+      "name": "A1.1 — Claims, attribution and evidence limits",
+      "assessmentId": "A1.1",
+      "lessonNumbers": [
+        1
+      ],
+      "weight": "Formative practice — no course-grade weight specified",
+      "description": "Make a three-row claim table (equivalent labeled prose is welcome). For each selected statement, identify its speaker or document, quote it, classify its role as a reported observation, attributed assertion or explanation, and quote the stated basis or limit. Explain what the explanation does and does not establish, including why missing evidence proves neither it nor its opposite. Propose one specific evidence check and explain what it could resolve and what would remain unknown. Submit: One three-row claim-and-basis table plus a bounded conclusion and one proposed evidence check; labeled prose is equally acceptable. Success criteria: Identify and attribute evidence; Explain the reasoning and complete the task; State what the evidence leaves unresolved.",
+      "taskId": "task-6ab937718544dc2e",
+      "taskRevision": "cd8eda08e4c1d9e3d926f49b547b83e18a23a8b6c4cf1a8bb933e5ad4676cde4"
+    }
+  ],
+  "baselineCommit": "dbc1ce65",
+  "limitations": [
+    "Word XML was inspected; layout and pagination were not visually validated in this run.",
+    "An initial map-only recompile still omitted assessment identities because no registry was passed. The final artifact uses the saved graph registry explicitly. Single-lesson and sync-blast-radius map-only paths remain to be unified.",
+    "No browser preparation or new Scion inference in this run; no classroom acceptance claim."
+  ]
+}

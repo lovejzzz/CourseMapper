@@ -34,8 +34,10 @@ export function projectTeachingTaskSyllabus(syllabus, blueprint) {
       });
     for (const row of syllabus.courseRequirements || []) {
       if (blueprint.courseGradingPolicy || !belongs(row, lesson)) continue;
+      const assessmentId = row.assessmentId || String(row.name || '').match(/^(A\d+\.\d+)\s*[—-]/)?.[1];
       Object.assign(row, reference, {
-        name: task.title,
+        ...(assessmentId ? { assessmentId } : {}),
+        name: assessmentId ? `${assessmentId} — ${task.title}` : task.title,
         description: taskText(
           task,
           `${task.question} Submit: ${task.product} Success criteria: ${task.criteria.map((c) => c.label).join('; ')}.`,

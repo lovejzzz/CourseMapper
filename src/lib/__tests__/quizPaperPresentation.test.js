@@ -189,3 +189,32 @@ it('prints the actual source list for a source-ledger fallback and still require
     .join('\n');
   for (const fact of facts) expect(student).toContain(fact);
 });
+
+it('renders readable question-type tags in the actual Word key without changing topic tags', async () => {
+  const { buildDeliverableDocxBlob } = await import('../exporters/bulkDocxExporter.js');
+  const { default: JSZip } = await import('jszip');
+  const blob = await buildDeliverableDocxBlob(
+    'quizBank',
+    {
+      quizzes: [
+        {
+          lessonTitle: 'Evidence',
+          questions: [
+            {
+              type: 'short_answer',
+              question: 'Name the observer.',
+              answer: 'Sora',
+              tags: ['short_answer', 'multiple_choice', 'Record provenance'],
+            },
+          ],
+        },
+      ],
+    },
+    'Evidence course',
+  );
+  const archive = await JSZip.loadAsync(await blob.arrayBuffer());
+  const xml = await archive.file('word/document.xml').async('string');
+  expect(xml).toContain('Short answer, Multiple choice, Record provenance');
+  expect(xml).not.toContain('short_answer');
+  expect(xml).not.toContain('multiple_choice');
+});

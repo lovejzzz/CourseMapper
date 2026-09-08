@@ -1,3 +1,4 @@
+import { projectTeachingTaskSyllabus } from '../compilerTeachingTaskSyllabus.js';
 import { describe, it, expect } from 'vitest';
 import { checkReviewedPracticeCount } from '../reviewedPracticeCount.js';
 import { reviewedTaskRetryOptions } from '../reviewedTaskRetry.js';
@@ -271,4 +272,47 @@ describe('reviewed claim attribution contract', () => {
     expect(task.answer).not.toContain('circuit inspection');
     for (const id of features) expect(second.deliverables[id].data.teachingTaskSources[0]).toEqual(restored);
   });
+});
+
+it('preserves a real assessment identity through repeated task-title projection', () => {
+  const f = fixture();
+  const plan = createTeachingOperationPlan({
+    ...f,
+    operation: 'claim-attribution',
+    admission: { kind: 'teacher-confirmed' },
+  });
+  const task = renderTeachingOperationTask(plan, f.inputs, f.objective);
+  const blueprint = {
+    lessons: [
+      {
+        id: 'lesson-1',
+        lessonNumber: 1,
+        classSessionPlan: { sessionMinutes: 50 },
+        teachingTaskScope: 'primary-task',
+        teachingTask: task,
+      },
+    ],
+  };
+  const syllabus = {
+    courseRequirements: [
+      { name: 'A1.1 — Prior title', lessonNumbers: [1], weight: 'Formative' },
+      { name: 'Cross-lesson portfolio', lessonNumbers: [1, 2], weight: '20%' },
+    ],
+  };
+  projectTeachingTaskSyllabus(syllabus, blueprint);
+  task.title = 'Revised evidence task';
+  projectTeachingTaskSyllabus(syllabus, blueprint);
+  expect(syllabus.courseRequirements[0]).toMatchObject({
+    assessmentId: 'A1.1',
+    name: 'A1.1 — Revised evidence task',
+    weight: 'Formative',
+  });
+  expect(syllabus.courseRequirements[1]).toEqual({
+    name: 'Cross-lesson portfolio',
+    lessonNumbers: [1, 2],
+    weight: '20%',
+  });
+  const official = { courseRequirements: [{ name: 'Official coursework', lessonNumbers: [1], weight: '50%' }] };
+  projectTeachingTaskSyllabus(official, { ...blueprint, courseGradingPolicy: { categories: [] } });
+  expect(official.courseRequirements[0]).toEqual({ name: 'Official coursework', lessonNumbers: [1], weight: '50%' });
 });

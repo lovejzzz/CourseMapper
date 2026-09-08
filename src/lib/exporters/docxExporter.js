@@ -1303,11 +1303,15 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
       // terminator retained from a target-language example creates the
       // learner-visible seam "我是学生。," in extracted DOCX text. Keep the
       // example intact everywhere it is taught; normalize only its tag label.
-      const normalizeTagLabel = (tag) =>
-        String(tag ?? '')
+      const normalizeTagLabel = (tag) => {
+        const label = String(tag ?? '')
           .trim()
           .replace(/[.!?。！？]+$/u, '')
           .trim();
+        return /^(?:multiple_choice|short_answer|true_false|fill_in_blank)$/.test(label)
+          ? humanizeQuestionType(label)
+          : label;
+      };
       const quizzes = renderedDeliverableCollection('quizBank', expanded);
       for (const [quizIndex, quiz] of quizzes.entries()) {
         const zh = teachingMaterialIsChinese(quiz, expanded);
