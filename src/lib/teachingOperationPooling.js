@@ -113,8 +113,8 @@ export function renderPoolingTask(plan, inputs, objective, result) {
     `两组百分比的等权平均 ${pct(mean)}，让每组各占一半权重。按对象计数应使用整体数量权重：${weights}。只有两组规模相等或比例相等时，两种结果才相同；一次巧合不能当作普遍规则。`,
   );
   const boundary = t(
-    `This describes these recorded units under the stated definition; it does not establish why the group rates differ. Retain the source limit: “${v.limitRecord}” To investigate a cause, first identify the specific difference between groups and obtain comparable observations or a justified controlled design.`,
-    `结果只描述采用所述定义的这些记录对象，不能证明两组比例差异的原因。保留来源限制：“${v.limitRecord}” 研究因果时，应先指出群体之间的具体差异，再取得可比观察或有依据的控制设计。`,
+    `This describes these recorded units under the stated definition; it does not establish why the group rates differ. Retain the source limit: “${v.limitRecord}”`,
+    `结果只描述采用所述定义的这些记录对象，不能证明两组比例差异的原因。保留来源限制：“${v.limitRecord}”`,
   );
   const reasoning = [evidence, membership, calculation, weighting, boundary];
   const criteria = [
@@ -168,14 +168,14 @@ export function renderPoolingTask(plan, inputs, objective, result) {
       id: 'boundary',
       label: t('Separate description from causal explanation', '区分描述与因果解释'),
       feedback: t(
-        'Name the supplied group difference and explain what additional comparison could address it.',
-        '指出材料所述群体差异，说明什么额外比较可以研究它。',
+        'Name the supplied group difference or missing evidence and connect it to why these records cannot establish a cause.',
+        '指出材料所述群体差异或缺失证据，解释为何这些记录不能确定原因。',
       ),
       levels: {
         exemplary: boundary,
         proficient: t(
-          'Restricts the rate to the recorded units and avoids causation, but gives no specific follow-up evidence.',
-          '限定于记录对象且不推断因果，但没有提出具体的后续证据。',
+          'Restricts the rate to the recorded units and avoids causation, but does not connect that limit to a stated group difference or missing evidence.',
+          '限定于记录对象且不推断因果，但没有联系材料中的群体差异或缺失证据。',
         ),
         developing: t(
           'Says more information is needed without distinguishing the known pooled rate from its unknown cause.',
@@ -249,7 +249,7 @@ export function renderPoolingTask(plan, inputs, objective, result) {
         'boundary',
         'proficient',
         partial.slice(partial.lastIndexOf(calculation) + calculation.length + 1),
-        t('Avoids causation without specifying follow-up evidence.', '避免因果推断，但没有具体后续证据。'),
+        t('Avoids causation without explaining the source-specific evidence limit.', '避免因果推断，但没有解释具体来源的证据限制。'),
       ],
     ]),
     example('misconception', error, [

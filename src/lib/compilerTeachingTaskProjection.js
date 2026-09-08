@@ -614,7 +614,7 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
             !q.machineScored &&
             (!reviewedBank || !q.taskId || q.taskId === task.id || q.sourceTaskId === task.id) &&
             ((reviewedComparison && q.enrichmentSource === 'compiler-verified-operation-assessment') ||
-              (reviewedAttribution && q.enrichmentSource === 'lesson-content-enrichment') ||
+              (reviewedBank && q.enrichmentSource === 'lesson-content-enrichment') ||
               (['short_answer', 'essay'].includes(q.type) &&
                 (!q.enrichmentSource ||
                   [

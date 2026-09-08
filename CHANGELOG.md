@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Replace generated generic quiz leftovers for reviewed pooled/union tasks while retaining authored, machine-scored and unrelated questions, with edited removed text recoverable as conflicts. Align pooled causal-limit scoring with the assigned task. Actual quiz/rubric browser regeneration adds no model requests; separate compiler exports reviewed across 12 PDF pages.
+
 - Enable bounded local reasoning for the two pooled-group identity questions while retaining short grammar-constrained extraction elsewhere and the 12-call cap. Reject truncated, extra-field or commentary-wrapped answers. A real exposed English control identifies both groups correctly with reasoning; this is not a general accuracy claim.
 - Disambiguate a repeated repaired count using the already located group clause, preserving the actual source occurrence; reject stale or still-ambiguous contexts. Browser review now produces the 35% pooled result, synchronizes nine materials and survives refresh/undo/redo. Thirteen PDF pages reviewed; generic leftover quiz questions and a task/rubric mismatch remain open.
 

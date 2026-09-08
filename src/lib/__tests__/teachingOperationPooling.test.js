@@ -15,6 +15,7 @@ import {
   commitTeachingTaskReview,
 } from '../teachingTaskReview.js';
 import { readTeachingTaskSources } from '../teachingProgram.js';
+import { rememberTeacherEdit } from '../teachingTaskContentSync.js';
 import { rebuildTeachingTaskSource } from '../teachingTaskSource.js';
 
 const planFor = (f, admission = { kind: 'teacher-confirmed' }) =>
@@ -163,3 +164,85 @@ it('does not mistake explicit membership uncertainty for evidence of disjoint gr
   ])
     expect(poolingMembershipEvidenceIssue(text)).toBeNull();
 });
+
+it.each([false, true])(
+  'scores the stated causal limitation rather than an unrequested investigation design (Chinese: %s)',
+  (zh) => {
+    const f = pooledCountsFixture(zh);
+    const task = renderTeachingOperationTask(planFor(f), f.inputs, f.objective);
+    const criterion = task.criteria.find((c) => c.id === 'boundary');
+    expect(criterion.levels.exemplary).toContain(f.selections.limitRecord.quote);
+    expect(criterion.levels.proficient).toContain(
+      zh ? '群体差异或缺失证据' : 'stated group difference or missing evidence',
+    );
+    expect(criterion.levels.exemplary).not.toMatch(/To investigate a cause|研究因果时/);
+    expect(JSON.stringify(task.criteria)).not.toMatch(/follow-up evidence|后续证据/);
+  },
+);
+
+it.each([false, true])(
+  'replaces model placeholders while retaining authored questions and edited-text recovery (edited: %s)',
+  (edited) => {
+    const f = pooledCountsFixture();
+    const courseMap = {
+      courseName: 'Tablet returns',
+      lessons: [
+        { title: 'Counts and weights', sections: [{ topicSection: 'Counts', learningObjectives: f.objective }] },
+      ],
+    };
+    const generated = {
+      id: 'generated-q',
+      type: 'essay',
+      points: 8,
+      question: 'Explain the key ideas.',
+      sampleAnswer: 'Explain the key ideas.',
+      enrichmentSource: 'lesson-content-enrichment',
+    };
+    const authored = {
+      id: 'teacher-q',
+      type: 'essay',
+      points: 3,
+      question: 'Use our class notebook convention.',
+      enrichmentSource: 'teacher-authored',
+    };
+    const machine = {
+      id: 'machine-q',
+      type: 'multiple_choice',
+      points: 2,
+      question: 'Preserve this machine-scored question.',
+      machineScored: true,
+      enrichmentSource: 'lesson-content-enrichment',
+    };
+    const separate = {
+      id: 'other-task-q',
+      type: 'short_answer',
+      points: 2,
+      question: 'Separate task.',
+      taskId: 'another-task',
+      enrichmentSource: 'lesson-content-enrichment',
+    };
+    let data = { quizzes: [{ lessonNumber: 1, questions: [generated, authored, machine, separate] }] };
+    if (edited) {
+      const changed = structuredClone(data);
+      changed.quizzes[0].questions[0].question = 'Teacher: use our recorded example and explain the denominator.';
+      data = rememberTeacherEdit(data, changed, ['quizzes', 0, 'questions', 0, 'question']);
+    }
+    const draft = createNewTeachingTaskReviewDraft(courseMap, { lessonNumber: 1, operation: 'pooled-proportion' });
+    Object.assign(draft, { inputs: f.inputs, bindings: f.selections, objective: f.objective });
+    const next = accept({ courseMap, deliverables: { quizBank: { data, status: 'done' } }, draft });
+    const result = next.deliverables.quizBank.data;
+    const questions = result.quizzes[0].questions;
+    expect(questions.find((q) => q.id === 'teacher-q')).toEqual(authored);
+    expect(questions.find((q) => q.id === 'machine-q')).toEqual(machine);
+    expect(questions.find((q) => q.id === 'other-task-q')).toEqual(separate);
+    expect(questions.some((q) => q.id === 'generated-q')).toBe(false);
+    expect(questions.filter((q) => q.practiceKind)).toHaveLength(5);
+    if (edited)
+      expect(
+        result.taskSyncConflicts.some(
+          (c) => c.missingTarget && c.current === 'Teacher: use our recorded example and explain the denominator.',
+        ),
+      ).toBe(true);
+    else expect(next.result.conflicts).toEqual([]);
+  },
+);

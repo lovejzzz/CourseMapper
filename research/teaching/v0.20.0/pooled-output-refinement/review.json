@@ -1,0 +1,104 @@
+{
+  "status": "development output refinement; not release acceptance",
+  "browser": {
+    "actions": [
+      "Resume",
+      "Quiz Bank Regen",
+      "Rubrics Regen",
+      "Save project"
+    ],
+    "projectSha256": "56095ca6bdf6afe718cc91563dfca9ed7e64e8c6f3911335c0de52d254cd30a9",
+    "modelRequestStarts": 1,
+    "additionalModelRequests": 0,
+    "scope": "Two material Regens only; not a complete workspace rebuild"
+  },
+  "compilerReplay": {
+    "input": ".audit-work/v0200-teaching-system/quantity-dev-01-pooled-thinking/applied.coursemapper",
+    "materials": 9,
+    "modelCalls": 0,
+    "quizQuestions": 5,
+    "quizPoints": [
+      12,
+      20,
+      2,
+      2,
+      0
+    ],
+    "scope": "Separate model-free replay, not browser persistence evidence"
+  },
+  "exports": {
+    "projectSha256": "a0bda758c24df211a4755da4fb783f81157d855018d24517a8c3ac3ee729652a",
+    "createdAt": "2026-09-08T15:30:15.075Z",
+    "status": "exported; visual and educational review pending",
+    "modelCalls": 0,
+    "audience": "teacher",
+    "files": [
+      {
+        "name": "assignments.docx",
+        "bytes": 12116,
+        "sha256": "d108bad3d0b0df647af9260d1c0ca4795a8d82e131b6c6005f8a5abd47e20135"
+      },
+      {
+        "name": "assignments.pdf",
+        "bytes": 38319,
+        "sha256": "f482eb49497035d5766942e62006cd4d769aae5987dd41e6c7bd6a99e07edd17"
+      },
+      {
+        "name": "quizBank.docx",
+        "bytes": 12578,
+        "sha256": "7df2ecc3c575a1c6a31e39eea1eaf81a6a16fa0b294117ecf059c321724ccfea"
+      },
+      {
+        "name": "quizBank.pdf",
+        "bytes": 70917,
+        "sha256": "6746fabf9e12c7538aa95036f80cdce5b022a3884a9db929dccf96634b4eb1f5"
+      },
+      {
+        "name": "rubrics.docx",
+        "bytes": 12708,
+        "sha256": "fdadb87cd664290a6d8883dcfeea1094992b7d0ab5c7a78456428905f1e8ffe3"
+      },
+      {
+        "name": "rubrics.pdf",
+        "bytes": 55336,
+        "sha256": "b8d3551b25f0013c5dae59ea0018a56522c655c65919014c9b6b4a8b1e5c2975"
+      },
+      {
+        "name": "studyGuides.docx",
+        "bytes": 12023,
+        "sha256": "cbb7b0eaf3c52567ff5640b5a49d453ed042201e571403673e7cf6b13ab33f27"
+      },
+      {
+        "name": "studyGuides.pdf",
+        "bytes": 46867,
+        "sha256": "6f79f96070ce044bba032e72888a263b1481eca8653d6a4a9e8703f8a13de9f5"
+      }
+    ]
+  },
+  "visualReview": {
+    "assignments": 2,
+    "quizBank": 4,
+    "rubrics": 3,
+    "studyGuides": 3,
+    "findings": [
+      "Generated generic quiz seats removed; concrete tasks and keys remain.",
+      "Rubric no longer requires unassigned follow-up investigation design.",
+      "35% pooled versus 50% equal-group mean, independent case 50% versus 60%, independently checked.",
+      "No clipped text observed; teacher reference prose remains dense.",
+      "Course name still describes materials production rather than subject; assignment metadata repeats formative grading status."
+    ],
+    "limits": [
+      "Implementer review of one exposed development case.",
+      "DOCX files produced but not opened in Office.",
+      "No new model units, reserved-set score, or deployment acceptance."
+    ]
+  },
+  "tests": {
+    "studio": 58,
+    "compatibility": 926,
+    "scion": 978,
+    "fullCheckLog": "/tmp/edutool-pooling-quality-check.log",
+    "frozenCorpus": "verified unchanged"
+  },
+  "teacherProtection": "Regression checks preserve custom, machine-scored and other-task questions; edited removed generated text remains recoverable through missing-target conflicts."
+}
