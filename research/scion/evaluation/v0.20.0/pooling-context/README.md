@@ -2,12 +2,12 @@
 
 Four new inputs, one fixed pass, 44 real local calls (11 each). Unit and outcome questions read a verified count's source sentence; exact global offsets are retained. References are never sent to Scion. The candidate and source hashes were frozen in plan.json before inference.
 
-| Case | Time | First-run result |
-|---|---:|---|
-| English complete | 13,514 ms | All source roles semantically correct, zero corrections |
-| Chinese complete | 9,308 ms | Reuses first whole as first part; explicit diagnostic rejects it |
-| English missing membership | 8,492 ms | False structural pass: quotes “Whether the groups share learners is unknown.” as disjointness evidence |
-| Chinese missing total | 8,944 ms | Uses the outcome count as both second part and total; rejected |
+| Case                       |      Time | First-run result                                                                                       |
+| -------------------------- | --------: | ------------------------------------------------------------------------------------------------------ |
+| English complete           | 13,514 ms | All source roles semantically correct, zero corrections                                                |
+| Chinese complete           |  9,308 ms | Reuses first whole as first part; explicit diagnostic rejects it                                       |
+| English missing membership |  8,492 ms | False structural pass: quotes “Whether the groups share learners is unknown.” as disjointness evidence |
+| Chinese missing total      |  8,944 ms | Uses the outcome count as both second part and total; rejected                                         |
 
 The false structural pass remains unchanged in first-run-raw.json. Subsequent product validation rejects explicit membership uncertainty supplied as disjointness evidence. This is a narrow contradiction detector, not proof that every other passage establishes disjoint membership. Teacher review remains necessary. Count reuse is now reported even when unrelated fields are missing; when all source fields are located, full ownership/arithmetic diagnostics still run, with duplicate messages removed. Existing actual repair-selection regressions caught and verified the ordering fix.
 

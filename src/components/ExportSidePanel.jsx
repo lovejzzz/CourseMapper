@@ -147,7 +147,7 @@ function Spin() {
 // ── Format button ─────────────────────────────────────────────────────────────
 // All download format buttons use the same neutral ghost style for consistency.
 // Cloud (Google) buttons retain their brand colors via GDriveBtn.
-function FmtBtn({ fmt, label, disabled, busy, onClick }) {
+function FmtBtn({ fmt, label, disabled, busy, onClick, audience }) {
   // Google brand combos come from the design-system gbrand palette
   // (tailwind.config.js) — the single source for every export surface.
   const colorMap = {
@@ -167,7 +167,8 @@ function FmtBtn({ fmt, label, disabled, busy, onClick }) {
   const displayLabel = label || fmt.label;
   return (
     <button
-      data-testid={`export-format-${fmt.id}`}
+      data-testid={`export-format-${audience === 'student' ? 'student-' : ''}${fmt.id}`}
+      aria-label={audience ? `${displayLabel} — ${audience === 'student' ? 'Student' : 'Teacher'} copy` : undefined}
       onClick={onClick}
       disabled={disabled || busy}
       className={`tactile flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 w-full
@@ -2100,6 +2101,7 @@ export default function ExportSidePanel({
                       key={fmt.id}
                       fmt={fmt}
                       disabled={isPackageQualityRunning || isDisabled(fmt.id)}
+                      audience="student"
                       busy={busy === `student-${fmt.id}`}
                       onClick={() => doExport(`student-${fmt.id}`)}
                     />

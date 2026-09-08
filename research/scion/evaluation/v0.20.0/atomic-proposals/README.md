@@ -2,12 +2,12 @@
 
 One fixed first pass through four new bilingual source packets, using the selected local v3 Scion runtime and unchanged base weights. `plan.json` freezes the runner, resolver and input hashes before inference. References are separate and never sent to Scion. All 32 initial calls, including failures, are in `first-run-raw.json`.
 
-| Case | Calls | Whole runner time | Semantic result |
-|---|---:|---:|---|
-| Pooling English | 7 | 11,362 ms | Incomplete; repeated group names remain ambiguous, dependent counts skipped |
-| Pooling Chinese | 7 | 7,958 ms | Incomplete; rewritten/general/repeated group names, dependent counts skipped |
-| Union English | 9 | 9,495 ms | All source roles correct; zero implementer corrections |
-| Union Chinese | 9 | 9,237 ms | All source roles correct; zero implementer corrections |
+| Case            | Calls | Whole runner time | Semantic result                                                              |
+| --------------- | ----: | ----------------: | ---------------------------------------------------------------------------- |
+| Pooling English |     7 |         11,362 ms | Incomplete; repeated group names remain ambiguous, dependent counts skipped  |
+| Pooling Chinese |     7 |          7,958 ms | Incomplete; rewritten/general/repeated group names, dependent counts skipped |
+| Union English   |     9 |          9,495 ms | All source roles correct; zero implementer corrections                       |
+| Union Chinese   |     9 |          9,237 ms | All source roles correct; zero implementer corrections                       |
 
 The runner asks bounded short questions, requires exact source evidence, preserves located fields and allows at most 12 serial calls. Dependent roles wait for their source owner. A unique longer quote can disambiguate an occurrence without changing its global index; multi-count excerpts require narrower evidence. Explicit UNKNOWN is not repeatedly retried. Parseable truncated output is not admitted. Cancellation returns no partial draft bindings.
 

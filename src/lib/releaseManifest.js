@@ -1475,6 +1475,35 @@ export const CURRENT_RELEASE_CHANGELOG = {
   highlights: CURRENT_RELEASE.highlights,
   sections: [
     {
+      label: 'Keep reviewed materials connected',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'Refresh related reviewed-task materials atomically after a direct regeneration. Preserve teacher edits and reject stale changes.',
+        'Recover source-review drafts and selected records, retain full lesson objectives, and improve worked answers, rubric evidence and diagnostic feedback.',
+        'Separate student-copy downloads from teacher reference exports, including distinct accessible names. Preserve the familiar material editors and export choices.',
+      ],
+    },
+    {
+      label: 'Stabilization scope and remaining limits',
+      icon: 'PROOF',
+      color: 'violet',
+      items: [
+        'Release the existing website as v0.19.99. The ground-up rebuild and unfinished v0.20.0 roadmap are separate work, not completed release claims.',
+        'Natural source understanding and answer quality still require teacher review. Fresh full-course acceptance and independent educational validation remain incomplete.',
+        'Local Scion and the 0.18.7 interface remain; the shared online API stays paused. No new adapter or model-weight improvement is claimed.',
+      ],
+    },
+  ],
+};
+
+const V0192_RELEASE_CHANGELOG = {
+  version: '0.19.2',
+  date: 'September 6, 2026',
+  title: 'Reason From Records, Design Better Comparisons',
+  highlights: ['Bounded evidence reasoning, concrete comparisons and Chinese output improvements.'],
+  sections: [
+    {
       label: 'Interpret evidence and design comparisons',
       icon: 'CHECK',
       color: 'emerald',
@@ -2838,6 +2867,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V0192_RELEASE_CHANGELOG,
   V0191_RELEASE_CHANGELOG,
   V0190_RELEASE_CHANGELOG,
   V0189_RELEASE_CHANGELOG,

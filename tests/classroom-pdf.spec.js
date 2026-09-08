@@ -1,6 +1,11 @@
 import { expect, test } from '@playwright/test';
 import fs from 'node:fs/promises';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
+import { buildSharedTeachingTask } from '../src/lib/compilerTeachingTask.js';
+
+const compactText = (text) => text.replace(/\s/g, '');
+const assignmentKeyHeading = /^(?:ANCHORSAMPLESANDREVISIONCHECK|作答样例与修改检查)/i;
+const quizKeyHeading = /^(?:ANSWERKEY|参考答案)/i;
 
 async function inspectPdf(bytes) {
   const pdf = await getDocument({ data: new Uint8Array(bytes), useSystemFonts: true, isEvalSupported: false }).promise;
@@ -61,9 +66,33 @@ for (const caseId of [
   'h-s04-interview-zh',
   'h-e04-filter-time-zh',
 ]) {
-  test(`all nine ${caseId} PDFs retain content inside printable pages`, async ({ page }, testInfo) => {
+  test(`all nine ${caseId}${caseId === 'h-c01-pooled-rates' ? ' (explicit distinct-batch variant)' : ''} PDFs retain content inside printable pages`, async ({
+    page,
+  }, testInfo) => {
     test.setTimeout(120000);
     const fixture = JSON.parse(await fs.readFile(`benchmarks/classroom/v2/cases/${caseId}.json`, 'utf8'));
+    // The immutable historical packet omits the now-required membership premise.
+    // Keep its refusal covered, then audit an explicitly adapted export fixture.
+    // This variant is an exposed regression test, not a fresh benchmark pass.
+    if (caseId === 'h-c01-pooled-rates') {
+      expect(
+        buildSharedTeachingTask({
+          lessonId: 'lesson-1',
+          objective: fixture.request,
+          claims: fixture.sources,
+          admitted: true,
+        }),
+      ).toBeNull();
+      fixture.sources = [...fixture.sources, 'The two batches are separate.'];
+      expect(
+        buildSharedTeachingTask({
+          lessonId: 'lesson-1',
+          objective: fixture.request,
+          claims: fixture.sources,
+          admitted: true,
+        })?.answer,
+      ).toContain('54%');
+    }
     await page.goto('/');
     const files = await page.evaluate(async (input) => {
       const { buildCourseBlueprint, compileBlueprintDeliverables } =
@@ -125,21 +154,21 @@ for (const caseId of [
       await fs.writeFile(testInfo.outputPath(`${file.feature}.txt`), pages.join('\n\f\n'));
       expect(pages.join(' ')).not.toContain('the cited evidence on strips');
       if (file.feature === 'assignments') {
-        const keyPage = pages.findIndex((text) => /ANCHOR SAMPLES AND REVISION CHECK/i.test(text));
+        const keyPage = pages.findIndex((text) => assignmentKeyHeading.test(compactText(text)));
         expect(keyPage).toBeGreaterThan(0);
-        expect(pages[keyPage]).toMatch(/^ANCHOR SAMPLES AND REVISION CHECK/i);
+        expect(compactText(pages[keyPage])).toMatch(assignmentKeyHeading);
       }
       if (file.feature === 'assignments' && caseId.startsWith('h-c')) {
-        const keyPage = pages.findIndex((text) => /ANCHOR SAMPLES AND REVISION CHECK/i.test(text));
+        const keyPage = pages.findIndex((text) => assignmentKeyHeading.test(compactText(text)));
         expect(keyPage).toBeGreaterThan(0);
         const studentPages = pages.slice(0, keyPage).join(' ');
         expect(studentPages).not.toMatch(/54%|37.5%|40%/);
         expect(pages.slice(keyPage).join(' ')).toMatch(/54%|37.5%|40%/);
       }
       if (file.feature === 'quizBank') {
-        const answerPage = pages.findIndex((text) => /ANSWER KEY/i.test(text));
+        const answerPage = pages.findIndex((text) => quizKeyHeading.test(compactText(text)));
         expect(answerPage).toBeGreaterThan(0);
-        expect(pages[answerPage]).toMatch(/^ANSWER KEY/i);
+        expect(compactText(pages[answerPage])).toMatch(quizKeyHeading);
       }
       if (file.feature === 'studyGuides') {
         const text = pages.join(' ');

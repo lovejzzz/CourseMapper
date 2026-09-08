@@ -124,11 +124,13 @@ test('the public changelog shows the actual current release and its quality limi
   await page.goto('/');
   await page.getByRole('link', { name: `v${APP_VERSION}`, exact: true }).click();
   await expect(page.getByRole('heading', { name: CURRENT_RELEASE.title, exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Keep reviewed materials connected', exact: true })).toBeVisible();
   await expect(
-    page.getByRole('heading', { name: 'Interpret evidence and design comparisons', exact: true }),
+    page.getByText('The ground-up rebuild and unfinished v0.20.0 roadmap are separate work', { exact: false }),
   ).toBeVisible();
   await expect(
-    page.getByText('broad source understanding and learning outcomes remain unverified', { exact: false }),
+    page.getByText('Local Scion and the 0.18.7 interface remain; the shared online API stays paused.', {
+      exact: false,
+    }),
   ).toBeVisible();
-  await expect(page.getByText('the shared online API stays paused', { exact: false })).toBeVisible();
 });

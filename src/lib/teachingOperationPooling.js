@@ -249,7 +249,10 @@ export function renderPoolingTask(plan, inputs, objective, result) {
         'boundary',
         'proficient',
         partial.slice(partial.lastIndexOf(calculation) + calculation.length + 1),
-        t('Avoids causation without explaining the source-specific evidence limit.', '避免因果推断，但没有解释具体来源的证据限制。'),
+        t(
+          'Avoids causation without explaining the source-specific evidence limit.',
+          '避免因果推断，但没有解释具体来源的证据限制。',
+        ),
       ],
     ]),
     example('misconception', error, [

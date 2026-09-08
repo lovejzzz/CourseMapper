@@ -38,3 +38,10 @@ package-lock.json
 /benchmarks/classroom/v3/manifest.json
 /research/teaching/v0.20.0/corpus-development-36/*.json
 /research/teaching/v0.20.0/corpus-reserved-prefreeze/*.json
+
+# Preserve byte-identical v0.20 development inputs, raw model receipts and audit evidence.
+/research/scion/evaluation/v0.20.0/**/*.json
+/research/teaching/v0.20.0/**/*.json
+/research/scion/evaluation/v0.20.0/candidates/screening.html
+/research/scion/evaluation/v0.20.0/focus-selection/screening.html
+/research/scion/evaluation/v0.20.0/pooling-pair-repair/screening.html

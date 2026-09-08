@@ -1,6 +1,18 @@
 # Changelog
 
-## Unreleased — v0.20.0 development
+## 0.19.99 — 2026-09-08
+
+Stabilization release of the existing website, by explicit user scope decision. Retains local Scion, the 0.18.7 interface, ten material categories, existing editors and applicable exports. The ground-up rebuild and unfinished v0.20.0 acceptance scope are deferred; this release does not claim that roadmap is complete.
+
+- Ship protected shared-task regeneration, saved review drafts, improved source selection, objective preservation, linked answers/scoring and student-copy export improvements developed since 0.19.2.
+- Give student Word/PDF download controls distinct identifiers and accessible audience labels; verify both student and teacher downloads.
+- Restore the release formatting gate while preserving byte-identical research inputs, raw model receipts and hash-bound evaluation evidence.
+- Publish the standalone ground-up design handoff and document the old site's remaining local-generation and educational-quality limits.
+- See [release verification](docs/v0.19.99-release.md) for the final software, browser and deployment checks. Experimental selectors rejected during development remain disabled; no new adapter or hosted inference is enabled.
+
+### Detailed implementation history
+
+The entries below preserve the original development observations, including failed experiments and checks that were pending at that time. They are not claims that those pending experiments became accepted at release.
 
 - Preserve explicit single-lesson objectives in the prose fallback and continuation path, matching native authoring without applying a global goal to an incomplete multi-lesson response. A newly registered local unit exposed a native-contract failure, five requests and a shortened fallback objective; keep that first failure. Deterministic replay now retains the complete objective in nine materials. The unit’s source review and full output acceptance remain pending.
 

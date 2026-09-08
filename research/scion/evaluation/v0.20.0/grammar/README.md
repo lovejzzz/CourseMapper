@@ -54,7 +54,6 @@ Remaining: dynamic object schemas and source-proposal integration; executable pr
 
 The subsequent constrained source-proposal trial is documented in `proposal-experiment.md` and `proposal-review.json`. It adds real variable JSON values (not prescribed literal answers): all four calls parse, but both proposals remain partial. The source-routing checker now also compiles the actual native glue header and verifies v3 flag roundtrips and v2 rejection, for eight source/protocol checks total. Adapter and held-out educational validation remain pending.
 
-
 ## Runtime selection after adapter and protocol checks (2026-09-08)
 
 The historical pending items above describe the state of those receipts. `adapter/browser-receipt.json` now records seven real native adapter checks; `adapter/mismatch-receipt.json` records rejection of a deliberately incompatible pair. The tiny adapter is untrained, reproducible via `adapter/create_smoke.py`, and not shipped. These are mechanical compatibility checks, not quality evidence.

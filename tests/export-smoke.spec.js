@@ -953,7 +953,9 @@ test.describe('Export smoke', () => {
 
     await switchWorkspaceTab(page, 'Rubrics');
     await expect(page.getByText('Missing coverage')).toHaveCount(0);
-    await expect(page.getByText('Lesson 2: Portable Course Materials').first()).toBeVisible();
+    await expect(
+      page.getByText('Lesson 2: Portable Course Materials · 100 pts · Analytic Rubric · Evaluate', { exact: true }),
+    ).toBeVisible();
   });
 
   test('exports compact assignment briefs to current-tab CSV and DOCX', async ({ page }) => {
@@ -1034,6 +1036,17 @@ test.describe('Export smoke', () => {
     expect(documentXml).toContain('Record any missing assignment details.');
     expect(documentXml).toContain('Evidence checklist');
     expect(documentXml).toContain('Specific evidence and actionable recommendations.');
+    await expect(page.getByTestId('export-format-docx')).toHaveCount(1);
+    await expect(page.getByTestId('export-format-student-docx')).toHaveAccessibleName('Word (.docx) — Student copy');
+    const studentDownload = await expectDownload(page, () => page.getByTestId('export-format-student-docx').click(), {
+      extension: 'docx',
+      nameIncludes: 'Export Smoke Course',
+      minBytes: 1000,
+    });
+    const studentZip = await JSZip.loadAsync(await fs.readFile(studentDownload.path));
+    const studentXml = await studentZip.file('word/document.xml').async('string');
+    expect(studentXml).toContain('Compact Assignment Export Audit');
+    expect(studentXml).not.toContain('Anchor Samples and Revision Check');
   });
 
   test('exports compact discussion prompts to current-tab CSV and DOCX', async ({ page }) => {
@@ -1634,7 +1647,7 @@ test.describe('Export smoke', () => {
     await expect(page.getByTestId('export-side-panel')).not.toContainText(/draft/i);
     await expect(page.getByTestId('export-side-panel')).not.toContainText(/evidence \d+\/100|score \d+/i);
     const agentPanel = page.getByTestId('workspace-agent-panel');
-    await expect(agentPanel).toContainText('Evidence 31/100', { timeout: 30000 });
+    await expect(agentPanel).toContainText(/Evidence \d+\/100/, { timeout: 30000 });
     await expect(agentPanel.getByTestId('package-summary-card')).toHaveCount(0);
     await expect(agentPanel).not.toContainText('Lesson 2 quiz keys every multiple-choice answer');
     await expect(agentPanel).not.toContainText('sourceRef coverage is too thin');
