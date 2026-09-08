@@ -5,6 +5,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { Storage } from 'happy-dom';
 import useProjectPersistence, { STORAGE_KEY } from '../useProjectPersistence.js';
 import { createNewTeachingTaskReviewDraft } from '../../lib/teachingTaskReview.js';
+import { loadProject, loadProjectDeliverables } from '../../lib/cloudStorage';
 import { emptyTeachingReviewDrafts } from '../../lib/teachingReviewDrafts.js';
 
 vi.mock('../../lib/cloudStorage', () => ({
@@ -153,3 +154,36 @@ it('restores drafts through file, local and developer project paths; old files a
   expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
   expect(context.gen.setError).not.toHaveBeenCalled();
 });
+
+for (const restorePath of ['file', 'local', 'cloud']) {
+  it(`clears the previous course's optional state when opening an older ${restorePath} snapshot`, async () => {
+    if (restorePath === 'cloud') context.user = { uid: 'teacher' };
+    await mount();
+    const saved = { courseMap: { courseName: 'Fresh course', lessons: [] } };
+    api.projectIdRef.current = 'previous-cloud-course';
+    await act(async () => {
+      if (restorePath === 'file') {
+        await api.handleOpenProject({ name: 'OLD.COURSEMAPPER', text: async () => JSON.stringify(saved) });
+      } else if (restorePath === 'local') {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+        await api.doRestoreSession();
+      } else {
+        vi.mocked(loadProject).mockResolvedValue(saved);
+        vi.mocked(loadProjectDeliverables).mockResolvedValue({});
+        await api.handleOpenCloudProject('new-cloud-course');
+      }
+    });
+    expect(context.gen.setError).not.toHaveBeenCalled();
+    expect(context.setFiles).toHaveBeenLastCalledWith([]);
+    expect(context.setChatHistory).toHaveBeenLastCalledWith([]);
+    expect(context.setSelectedFeatures).toHaveBeenLastCalledWith(['courseMap']);
+    expect(context.setLessonScope).toHaveBeenLastCalledWith({ type: 'all' });
+    expect(context.setPromptText).toHaveBeenLastCalledWith('');
+    expect(context.setActiveTab).toHaveBeenLastCalledWith('courseMap');
+    expect(context.setSlideTheme).toHaveBeenLastCalledWith(null);
+    expect(context.setDeliverableConfig).toHaveBeenLastCalledWith({});
+    expect(context.deliv.restoreDeliverables).toHaveBeenLastCalledWith({});
+    expect(context.version.resetHistory).toHaveBeenCalled();
+    expect(api.projectIdRef.current).toBe(restorePath === 'cloud' ? 'new-cloud-course' : null);
+  });
+}

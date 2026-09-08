@@ -731,6 +731,27 @@ export default function useProjectPersistence({
     // omitting them from deps is safe and avoids misleading the reader.
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Missing fields in an older project mean empty/default values, never the
+  // previous course's attachments, conversation or generation settings.
+  function restoreCourseOptions(saved) {
+    const features =
+      Array.isArray(saved.selectedFeatures) && saved.selectedFeatures.length ? saved.selectedFeatures : ['courseMap'];
+    setFiles(
+      (Array.isArray(saved.fileNames) ? saved.fileNames : [])
+        .filter((name) => typeof name === 'string')
+        .map((name) => ({ name, size: 0, _restored: true })),
+    );
+    setChatHistory(sanitizeMessagesForPersistence(saved.chatHistory));
+    setSelectedFeatures(features);
+    setLessonScope(saved.lessonScope && typeof saved.lessonScope === 'object' ? saved.lessonScope : { type: 'all' });
+    setPromptText(typeof saved.promptText === 'string' ? saved.promptText : '');
+    setActiveTab(features.includes(saved.activeTab) ? saved.activeTab : features[0]);
+    setSlideTheme(saved.slideTheme ?? null);
+    setDeliverableConfig(
+      saved.deliverableConfig && typeof saved.deliverableConfig === 'object' ? saved.deliverableConfig : {},
+    );
+  }
+
   // ── Restore saved session ──
   async function doRestoreSession() {
     try {
@@ -755,29 +776,19 @@ export default function useProjectPersistence({
       restorePackageEvidence(saved);
       restoreInstructionalBlueprintGovernance(saved);
       setUserEdits(saved.userEdits || []);
-      if (saved.fileNames?.length > 0) {
-        setFiles(saved.fileNames.map((name) => ({ name, size: 0, _restored: true })));
-      }
       if (saved.versionHistory?.length > 0) {
         version.initHistory(saved.versionHistory);
       } else {
+        version.resetHistory();
         version.pushVersion(saved.courseMap, 'Restored session');
       }
-      if (saved.chatHistory) setChatHistory(sanitizeMessagesForPersistence(saved.chatHistory));
-      if (saved.selectedFeatures) setSelectedFeatures(saved.selectedFeatures);
-      if (saved.lessonScope) setLessonScope(saved.lessonScope);
-      if (saved.promptText !== undefined) setPromptText(saved.promptText);
-      if (saved.activeTab) setActiveTab(saved.activeTab);
-      if (saved.slideTheme !== undefined) setSlideTheme(saved.slideTheme);
-      if (saved.deliverableConfig) setDeliverableConfig(saved.deliverableConfig);
-      if (saved.projectId) {
-        setProjectId(saved.projectId);
-        projectIdRef.current = saved.projectId;
-      }
+      restoreCourseOptions(saved);
+      setProjectId(saved.projectId || null);
+      projectIdRef.current = saved.projectId || null;
       if (restoredDeliverables && Object.keys(restoredDeliverables).length > 0) {
         deliv.restoreDeliverables(restoredDeliverables);
-      } else if (saved.deliverables) {
-        deliv.restoreDeliverables(saved.deliverables);
+      } else {
+        deliv.restoreDeliverables(saved.deliverables || {});
       }
       restoreProjectEdits(
         saved,
@@ -799,7 +810,7 @@ export default function useProjectPersistence({
   async function handleOpenProject(file) {
     try {
       // .coursemapper files are full JSON project snapshots — restore everything
-      if (file.name.endsWith('.coursemapper')) {
+      if (file.name.toLowerCase().endsWith('.coursemapper')) {
         const text = await file.text();
         const saved = prepareProjectSnapshotForRestore(JSON.parse(text));
         if (!saved.courseMap) throw new Error('Invalid .coursemapper file');
@@ -812,19 +823,14 @@ export default function useProjectPersistence({
         setOldCourseMap(null);
         setColumns(saved.columns || [...DEFAULT_COLUMNS]);
         setUserEdits(saved.userEdits || []);
-        if (saved.chatHistory) setChatHistory(sanitizeMessagesForPersistence(saved.chatHistory));
-        if (saved.selectedFeatures) setSelectedFeatures(saved.selectedFeatures);
-        if (saved.lessonScope) setLessonScope(saved.lessonScope);
-        if (saved.promptText !== undefined) setPromptText(saved.promptText);
-        if (saved.activeTab) setActiveTab(saved.activeTab);
-        if (saved.slideTheme !== undefined) setSlideTheme(saved.slideTheme);
-        if (saved.deliverableConfig) setDeliverableConfig(saved.deliverableConfig);
-        if (saved.fileNames?.length > 0) {
-          setFiles(saved.fileNames.map((n) => ({ name: n, size: 0, _restored: true })));
-        }
+        restoreCourseOptions(saved);
+        // Opening a file must not overwrite whichever cloud project was open.
+        setProjectId(null);
+        projectIdRef.current = null;
         if (saved.versionHistory?.length > 0) {
           version.initHistory(saved.versionHistory);
         } else {
+          version.resetHistory();
           version.pushVersion(saved.courseMap, `Opened ${file.name}`);
         }
         // Restore deliverables if present
@@ -901,25 +907,17 @@ export default function useProjectPersistence({
       restorePackageEvidence(saved);
       restoreInstructionalBlueprintGovernance(saved);
       setUserEdits(saved.userEdits || []);
-      if (saved.fileNames?.length > 0) {
-        setFiles(saved.fileNames.map((name) => ({ name, size: 0, _restored: true })));
-      }
       if (saved.versionHistory?.length > 0) {
         version.initHistory(saved.versionHistory);
       } else {
+        version.resetHistory();
         version.pushVersion(saved.courseMap, 'Restored from cloud');
       }
-      if (saved.chatHistory) setChatHistory(sanitizeMessagesForPersistence(saved.chatHistory));
-      if (saved.selectedFeatures) setSelectedFeatures(saved.selectedFeatures);
-      if (saved.lessonScope) setLessonScope(saved.lessonScope);
-      if (saved.promptText !== undefined) setPromptText(saved.promptText);
-      if (saved.activeTab) setActiveTab(saved.activeTab);
-      if (saved.slideTheme !== undefined) setSlideTheme(saved.slideTheme);
-      if (saved.deliverableConfig) setDeliverableConfig(saved.deliverableConfig);
+      restoreCourseOptions(saved);
       if (restoredDeliverables && Object.keys(restoredDeliverables).length > 0) {
         deliv.restoreDeliverables(restoredDeliverables);
-      } else if (saved.deliverables) {
-        deliv.restoreDeliverables(saved.deliverables);
+      } else {
+        deliv.restoreDeliverables(saved.deliverables || {});
       }
       restoreProjectEdits(
         saved,

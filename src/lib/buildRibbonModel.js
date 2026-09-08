@@ -619,6 +619,17 @@ export function buildBuildRibbonModel({
   const hasBudgetActivity = (budget.recentEvents?.length || 0) > 0 || getApiCallBudgetTotal(budget) > 0;
   const pipeline = derivePipelineState({ budget, generation, deliverables, packageQualityPass, sync });
 
+  // A saved model receipt is historical evidence, not a pending material job.
+  if (
+    !pipeline.running &&
+    finishStatus === 'idle' &&
+    generation.progressStep === 'done' &&
+    !generation.error &&
+    !generation.isStopped &&
+    !(Number(deliverables.totalCount) > 0)
+  )
+    return null;
+
   // Idle: a fresh or restored workspace with no run THIS SESSION — hidden.
   // A restored map (progressStep 'done' from a save) makes the machine read
   // 'lull', but without budget activity or a finish state there is nothing

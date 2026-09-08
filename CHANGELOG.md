@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Restore absent project options to defaults across file, local and cloud openings; clear prior attachments, conversation, materials and course history. Detach a file from the previous cloud save destination and accept uppercase project extensions. Hide historical build progress for a completed course map with no material job. Verified actual Chrome import, save, refresh and Resume.
+
 - Preserve earlier reviewed case context during scoped compilation. Rebuild earlier saved tasks only for exposure checks, without emitting unselected materials. Three six-lesson course replays now match full-course answers, case exposure and use labels for single-lesson and reordered selections.
 
 - Track exact case-record reuse across the compiled course, including a case already used in the taught material. Label returning cases as continued independent practice in quiz purposes, Word/PDF question labels, lesson phases, slides and study guides. Preserve records, answers and scoring. Three existing six-lesson courses correctly identify lessons 2–5 as reusing lesson 1’s case; the different final case remains separate.

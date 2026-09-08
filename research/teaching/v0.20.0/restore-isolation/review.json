@@ -1,0 +1,40 @@
+{
+  "date": "2026-09-08",
+  "kind": "actual-browser-file-restore-and-refresh",
+  "files": {
+    "after.coursemapper": "4ca939cfa8b2280450f58fa099d918fe938fb2ec25a3db0ea12a3a732a45cab0"
+  },
+  "inputUppercaseSha256": "fd7a5cc1e783b6d4400b0090500a8f8b2ac6909e4bed0e6133a2ad1e6b45b0b6",
+  "savedFields": {
+    "fileNames": [],
+    "chatHistory": [],
+    "selectedFeatures": [
+      "courseMap"
+    ],
+    "lessonScope": {
+      "type": "all"
+    },
+    "promptText": "",
+    "activeTab": "courseMap",
+    "slideTheme": null,
+    "deliverableConfig": {
+      "lessonPlans": {
+        "sessionLength": "75 min"
+      }
+    },
+    "projectId": null
+  },
+  "savedDeliverableIds": [],
+  "observations": [
+    "Same existing Chrome tab; no model generation.",
+    "Uppercase legacy file opened from homepage file picker.",
+    "Saved snapshot has empty prior files/chat/materials; one Course Map tab.",
+    "Browser applies its ordinary 75-minute lesson-plan setting after restore; this is not a claim that every saved configuration remains empty.",
+    "Historical API receipt incorrectly produced a Preparing teaching materials / Build 66% ribbon with zero selected materials.",
+    "After the ribbon fix, no build progress appeared, including after page refresh and Resume."
+  ],
+  "limitations": [
+    "Cloud restore and detaching prior cloud destination tested with mocked persistence, not a live cloud write.",
+    "This is restoration verification, not a new Scion unit or classroom acceptance."
+  ]
+}

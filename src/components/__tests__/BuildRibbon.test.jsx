@@ -1,3 +1,4 @@
+import { buildBuildRibbonModel } from '../../lib/buildRibbonModel';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import BuildRibbon from '../BuildRibbon';
@@ -65,4 +66,14 @@ describe('BuildRibbon', () => {
     expect(html).toContain('min-[360px]:hidden');
     expect(html).not.toContain('text-[11px]');
   });
+});
+
+it('hides historical build progress when the restored course has no material job', () => {
+  const input = {
+    budget: { recentEvents: [{ type: 'model-request-start', at: 1 }] },
+    generation: { progressStep: 'done', mappedLessonCount: 1, lessonCount: 1 },
+    deliverables: { isGenerating: false, doneCount: 0, totalCount: 0 },
+  };
+  expect(buildBuildRibbonModel(input)).toBeNull();
+  expect(buildBuildRibbonModel({ ...input, deliverables: { isGenerating: true, totalCount: 1 } })).not.toBeNull();
 });
