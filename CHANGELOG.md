@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Add a single-call local teaching-argument proposal boundary with input snapshots, raw responses, runtime/adapter receipts, cancellation and strict rejection of incomplete output. Two real browser development trials still failed; preserve both outputs and revert the unsuccessful compact-prompt experiment. This is not yet connected to shared-task application or accepted as a quality improvement.
+
 - Add an unapproved source-argument proposal contract: concrete tasks/answers, evidence-linked reasoning, four performance levels, feedback and explicit unknowns. Validate exact source spans and source-byte hashes while keeping semantic correctness and task/rubric alignment under review. This foundation is not yet connected to generation or shared-task application.
 
 - Preserve explicitly labeled English/Chinese source blocks in compiler inputs instead of recognizing only specially worded “provided facts” briefs. Keep source quotations intact, separate outer task directions, reject ambiguous labels, and print supplied records with source-ledger recovery quizzes while retaining required answer review. A repeated real local generation confirms source routing, but concrete source-argument authoring remains incomplete.
