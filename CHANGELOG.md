@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Give printed open-response quiz items writing space, including unscored retries; scale reviewed multi-part responses by task requirements rather than points. Identify independent, rehearsed, diagnostic and retry items, and scope teacher-purpose notes to their actual question numbers instead of applying the first item’s purpose to a mixed bank.
+
 - Add the third six-lesson development course: a traceable archive memo progressing from source attribution through effective dates, amendment scope, missing observation evidence and claim revision, with a new capstone archive. Capture all nine derived Word/PDF materials and verify actual browser feedback sync and file reopen; retain unresolved classroom/export gates explicitly.
 
 - Extend versioned structured practice scoring to newly reviewed authored quantity/record tasks, preserve saved budgets and legacy task reconstruction, and add a six-lesson Chinese quantity development course. Print Chinese quiz labels through linked task language, omit only exact answer repetitions, and start each subsequent student quiz paper on a separate page from preceding answer keys. Give authored assignment requirements response sections. Development exports still require complete classroom acceptance.

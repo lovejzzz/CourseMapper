@@ -1,0 +1,63 @@
+{
+  "status": "quiz paper presentation repair; incomplete classroom release review",
+  "modelCalls": 0,
+  "changes": [
+    "Open responses receive writing space based on reviewed requirement count, independent of saved points.",
+    "Independent/rehearsal/error/retry roles print beside student questions.",
+    "Teacher purposes explicitly list applicable question numbers; known compiler purpose text prints in plain language.",
+    "No source/task/schema/interface changes."
+  ],
+  "exports": {
+    "quantity": {
+      "projectSha256": "3151db8bb07d25c774e52fe4450d017a99de3db254bfeff6ae7d6b26219e1b7e",
+      "createdAt": "2026-09-08T04:05:17.549Z",
+      "status": "exported; visual and educational review pending",
+      "modelCalls": 0,
+      "files": [
+        {
+          "name": "quizBank.docx",
+          "bytes": 20319,
+          "sha256": "355a06b4ed6a9b5edfbd66940a7d502053933d288fd3de5b3df11909d831620f"
+        },
+        {
+          "name": "quizBank.pdf",
+          "bytes": 270361,
+          "sha256": "ea39d49eed4b6232e309a3d961d5585b354c7e3ba3e737228db673d7a2930d83"
+        }
+      ]
+    },
+    "record": {
+      "projectSha256": "b0cd388543d2438304375b9871a06274da6835f3d02d0e3c01fed4bcc8499a70",
+      "createdAt": "2026-09-08T04:03:57.466Z",
+      "status": "exported; visual and educational review pending",
+      "modelCalls": 0,
+      "files": [
+        {
+          "name": "quizBank.docx",
+          "bytes": 20908,
+          "sha256": "69b59f77bfffbbc6c784e6a315edac96b562bf97b31b85ff407217b12e0224c4"
+        },
+        {
+          "name": "quizBank.pdf",
+          "bytes": 148463,
+          "sha256": "0fe8da8fa2b354f01a08d8fbba0d8ccb41b2543701c1679711ff6b358f6433d5"
+        }
+      ]
+    }
+  },
+  "visualReview": {
+    "quantityPages": 15,
+    "quantityInspected": ["response-space pages 1–2", "final label page 2"],
+    "recordPages": 16,
+    "recordInspected": [11, 12]
+  },
+  "checks": [
+    "598 compatibility tests pass after including the new test file in the explicit test manifest.",
+    "Final label adjustment: both targeted files, 25 tests pass; targeted lint passes.",
+    "Full lint/build/bundle passed before last plain-language label-only adjustment."
+  ],
+  "remaining": [
+    "Long response space flows across pages without a continuation question label.",
+    "All-page, Office rendering, student/teacher edition separation and full course acceptance remain."
+  ]
+}

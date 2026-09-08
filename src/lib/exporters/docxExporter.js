@@ -1334,6 +1334,15 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         if (quiz.bloomsCoverage?.length)
           children.push(makeBold(t("Bloom's Coverage"), quiz.bloomsCoverage.map(t).join(', ')));
         const questions = quiz.questions || [];
+        const questionSource = expanded.teachingTaskSources?.find(
+          (source) => source.id === (quiz.taskId || quiz.practiceRecord?.taskId),
+        );
+        const practiceLabels = {
+          'independent-transfer': zh ? '独立作答：新案例' : 'Independent response: new case',
+          'task-rehearsal': zh ? '已教案例练习' : 'Rehearsal: taught case',
+          'error-analysis': zh ? '错误分析' : 'Error analysis',
+          'feedback-retry': zh ? '反馈后重试' : 'Retry after feedback',
+        };
 
         // Part 1 — the student-facing question paper.
         for (let j = 0; j < questions.length; j++) {
@@ -1344,9 +1353,12 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             q.estimatedMinutes && `~${q.estimatedMinutes} min`,
           ].filter(Boolean);
           const options = Array.isArray(q.options) ? q.options : [];
+          const openResponse = !options.length && ['short_answer', 'short-answer', 'essay'].includes(q.type);
+          const practiceLabel = practiceLabels[q.practiceKind];
+          if (practiceLabel) children.push(makeItalic(practiceLabel, { keepNext: true }));
           children.push(
             makeBold(`Q${j + 1}` + (qMeta.length ? ` (${qMeta.join(', ')})` : ''), q.question || '', {
-              keepNext: options.length > 0,
+              keepNext: options.length > 0 || openResponse,
             }),
           );
           // Lettered options read as an exam paper, not a bullet list. The
@@ -1360,6 +1372,20 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
                 }),
               ),
             );
+          if (openResponse) {
+            // Space reflects the reviewed task's parts, never answer length or
+            // a saved point budget (which may intentionally be zero).
+            const wholeTask = ['independent-transfer', 'task-rehearsal', 'feedback-retry'].includes(q.practiceKind);
+            const parts =
+              wholeTask && questionSource?.operationPlan?.version === 2
+                ? questionSource.operationPlan.requirements?.length || 1
+                : 1;
+            const lines = Math.min(40, Math.max(q.type === 'essay' ? 10 : 4, parts * 4));
+            children.push(makeItalic(`${zh ? '作答' : 'Response'}:`, { keepNext: true }));
+            for (let line = 0; line < lines; line++) {
+              children.push(makeText('________________________________________________________'));
+            }
+          }
         }
 
         // Teachers must be able to print the question paper without the key.
@@ -1380,8 +1406,22 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           const allTags = new Set(
             questions.flatMap((question) => (question?.tags || []).map(normalizeTagLabel).filter(Boolean)),
           );
-          const instructorUse = questions.map((question) => String(question?.intendedUse || '').trim()).find(Boolean);
-          if (instructorUse) children.push(makeItalic(`${t('Instructor use')}: ${instructorUse}`));
+          // A bank can mix independent, rehearsed and retry questions. Never
+          // promote the first question's purpose to a claim about the whole bank.
+          const instructorUses = new Map();
+          questions.forEach((question, index) => {
+            let purpose = String(question?.intendedUse || '').trim();
+            if (question.enrichmentSource === 'shared-teaching-task' && purpose === 'source-bound guided practice') {
+              purpose = zh ? '使用所给材料的指导练习。' : 'Guided practice with the supplied records.';
+            }
+            if (!purpose) return;
+            const numbers = instructorUses.get(purpose) || [];
+            numbers.push(`Q${index + 1}`);
+            instructorUses.set(purpose, numbers);
+          });
+          for (const [purpose, numbers] of instructorUses) {
+            children.push(makeItalic(`${t('Instructor use')} (${numbers.join(', ')}): ${purpose}`));
+          }
           if (allTags.size > 0)
             children.push(makeItalic(`${zh ? '标签' : 'Tags'}: ${[...allTags].slice(0, 8).join(', ')}`));
           const scoringGuidanceGroups = new Map();
