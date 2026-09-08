@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Record and reject a direct local operation-selector candidate after two fixed six-input development trials. Fixed labels improve parseability but still misroute a timeline task and exhaust the budget on a scoped-exception task. Preserve both raw runs; no automatic selector enabled and no unsupported-task completion claimed.
+
 - Distinguish the learner’s subject from material-production instructions in native course planning. Recognize singular requests phrased as “materials for a 50-minute lesson,” preserving stronger explicit course counts. Real local reruns retain the first three-lesson failure and the corrected one-lesson result with the exact teacher objective; automatic shared-task formation remains incomplete.
 
 - Replace generated generic quiz leftovers for reviewed pooled/union tasks while retaining authored, machine-scored and unrelated questions, with edited removed text recoverable as conflicts. Align pooled causal-limit scoring with the assigned task. Actual quiz/rubric browser regeneration adds no model requests; separate compiler exports reviewed across 12 PDF pages.

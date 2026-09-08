@@ -1,0 +1,31 @@
+{
+  "recordedAt": "2026-09-08T15:46:48.833111+00:00",
+  "status": "Implementer expectations recorded before reading model outputs; current narrow contracts only",
+  "cases": {
+    "quantity-dev-01": {
+      "operation": "pooled-proportion",
+      "reason": "Two distinct desk groups with common outcome/deadline and unequal denominators."
+    },
+    "quantity-dev-02": {
+      "operation": "union-bounds",
+      "reason": "Fixed roster; event-level unique counts; unknown between-event overlap."
+    },
+    "source-dev-01": {
+      "operation": null,
+      "reason": "Event/drafting/publication timeline; no yesterday/today/tomorrow and broad-month recollection contract. Current operations do not implement this task."
+    },
+    "source-dev-02": {
+      "operation": null,
+      "reason": "Date-specific exception to an opening rule, not amendment of a numeric value or a relative-day recollection."
+    },
+    "experiment-dev-01": {
+      "operation": "paired-condition-confound",
+      "reason": "Ink and temperature co-vary; new independent units and controlled measurement are explicitly supplied."
+    },
+    "experiment-dev-02": {
+      "operation": "paired-condition-confound",
+      "reason": "Sleeve and starting temperature co-vary; new cups and a common paired-time measurement are supplied."
+    }
+  },
+  "limitation": "Correct abstention on the two source cases is routing safety, not completion of their supported v3 product tasks. Does not change frozen scope labels."
+}

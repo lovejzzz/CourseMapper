@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><title>Local operation selection diagnostic</title>
+  <h1>Operation selection</h1>
+  <p>Six development inputs, one serial call each. No automatic approval or acceptance score.</p>
+  <button id="run">Run six calls</button
+  ><button id="cancel" disabled>Cancel</button
+  ><button id="save" disabled>Save receipt</button>
+  <pre id="result" role="status">Idle</pre>
+  <script type="module">
+    import * as api from '/src/lib/scionBrowserWllama.js';
+    import { protocol, messages, assess } from './candidate.mjs';
+    if (!['localhost', '127.0.0.1'].includes(location.hostname)) throw Error('Local only');
+    const ids = [
+      'quantity-dev-01',
+      'quantity-dev-02',
+      'source-dev-01',
+      'source-dev-02',
+      'experiment-dev-01',
+      'experiment-dev-02',
+    ];
+    const run = document.querySelector('#run'),
+      cancel = document.querySelector('#cancel'),
+      save = document.querySelector('#save'),
+      view = document.querySelector('#result');
+    let receipt, controller;
+    const render = () =>
+      (view.textContent = JSON.stringify(
+        {
+          status: receipt.status,
+          current: receipt.current,
+          completed: receipt.calls.length,
+          total: ids.length,
+          error: receipt.error,
+        },
+        null,
+        2,
+      ));
+    run.onclick = async () => {
+      run.disabled = true;
+      cancel.disabled = false;
+      controller = new AbortController();
+      receipt = {
+        protocol,
+        startedAt: new Date().toISOString(),
+        status: 'loading',
+        calls: [],
+        limits:
+          'Development screening; only frozen input fields enter model. Evaluator references are not fetched. No product approval.',
+      };
+      render();
+      try {
+        const start = performance.now();
+        await api.loadScionBrowserWllama({ signal: controller.signal });
+        receipt.loadMs = performance.now() - start;
+        receipt.runtime = api.getScionBrowserWllamaStatus();
+        for (const id of ids) {
+          if (controller.signal.aborted) break;
+          const input = await (await fetch(`/benchmarks/classroom/v3/inputs/${id}.json`)).json();
+          const call = {
+            id,
+            messages: messages(input),
+            settings: { maxNewTokens: 1024, temperature: 0, topK: 1, topP: 1, seed: 7, thinking: true },
+          };
+          receipt.current = id;
+          receipt.status = 'running';
+          render();
+          const started = performance.now();
+          try {
+            call.raw = await api.completeScionBrowserWllama(call.messages, {
+              ...call.settings,
+              signal: controller.signal,
+              taskFamily: 'unclassified',
+              promptProtocol: protocol,
+              onCompletion: (v) => (call.completion = structuredClone(v)),
+              onAdapterRoute: (v) => (call.route = structuredClone(v)),
+            });
+            call.assessment = assess(call.raw);
+          } catch (e) {
+            call.error = e.message;
+          }
+          call.elapsedMs = performance.now() - started;
+          receipt.calls.push(call);
+          render();
+        }
+        receipt.status = controller.signal.aborted ? 'cancelled' : 'completed-for-review';
+      } catch (e) {
+        receipt.status = 'failed';
+        receipt.error = e.message;
+      } finally {
+        await api.unloadScionBrowserWllama();
+        receipt.finishedAt = new Date().toISOString();
+        cancel.disabled = true;
+        save.disabled = false;
+        render();
+      }
+    };
+    cancel.onclick = () => controller.abort();
+    save.onclick = () => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([JSON.stringify(receipt, null, 2)], { type: 'application/json' }));
+      a.download = `${protocol}.json`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    };
+  </script>
+</html>

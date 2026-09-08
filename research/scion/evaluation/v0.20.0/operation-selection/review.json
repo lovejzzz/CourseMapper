@@ -1,0 +1,173 @@
+{
+  "status": "research candidate rejected for automatic production selection",
+  "baseCommit": "f6878f60",
+  "dirtyAtRun": "research candidate files only; runtime application unchanged",
+  "runs": [
+    {
+      "file": "first-run.json",
+      "sha256": "3b5e647acb1d82cc25ffe5945054fab3931a46cbc31180409b8cfec7c6b74dc3",
+      "protocol": "scion-operation-selection-screen-v1",
+      "loadMs": 1289.1000000238419,
+      "calls": [
+        {
+          "id": "quantity-dev-01",
+          "expectedForCurrentContracts": "pooled-proportion",
+          "selected": "pooled-proportion",
+          "contractValid": true,
+          "matchesExpected": true,
+          "elapsedMs": 18879,
+          "error": null,
+          "finishReason": "stop"
+        },
+        {
+          "id": "quantity-dev-02",
+          "expectedForCurrentContracts": "union-bounds",
+          "selected": "union-bounds",
+          "contractValid": true,
+          "matchesExpected": true,
+          "elapsedMs": 21582,
+          "error": null,
+          "finishReason": "stop"
+        },
+        {
+          "id": "source-dev-01",
+          "expectedForCurrentContracts": null,
+          "selected": "no-valid-output",
+          "contractValid": false,
+          "matchesExpected": false,
+          "elapsedMs": 15786,
+          "error": "Invalid selection contract",
+          "finishReason": "stop"
+        },
+        {
+          "id": "source-dev-02",
+          "expectedForCurrentContracts": null,
+          "selected": "no-valid-output",
+          "contractValid": false,
+          "matchesExpected": false,
+          "elapsedMs": 21796,
+          "error": "Scion ended before producing a final answer. Retry with a smaller source packet or more output room.",
+          "finishReason": "length"
+        },
+        {
+          "id": "experiment-dev-01",
+          "expectedForCurrentContracts": "paired-condition-confound",
+          "selected": "paired-condition-confound",
+          "contractValid": true,
+          "matchesExpected": true,
+          "elapsedMs": 19367,
+          "error": null,
+          "finishReason": "stop"
+        },
+        {
+          "id": "experiment-dev-02",
+          "expectedForCurrentContracts": "paired-condition-confound",
+          "selected": "no-valid-output",
+          "contractValid": false,
+          "matchesExpected": false,
+          "elapsedMs": 20166,
+          "error": "Bad escaped character in JSON at position 268 (line 3 column 225)",
+          "finishReason": "stop"
+        }
+      ],
+      "validSelections": 3,
+      "matchingSelections": 3,
+      "total": 6
+    },
+    {
+      "file": "second-run.json",
+      "sha256": "b31729a957f49f9c554272bcb131800c259232eb96ecbd68a57b99cf72265d7d",
+      "protocol": "scion-operation-selection-screen-v2",
+      "loadMs": 1150.5,
+      "calls": [
+        {
+          "id": "quantity-dev-01",
+          "expectedForCurrentContracts": "pooled-proportion",
+          "selected": "pooled-proportion",
+          "contractValid": true,
+          "matchesExpected": true,
+          "elapsedMs": 16033,
+          "error": null,
+          "finishReason": "stop"
+        },
+        {
+          "id": "quantity-dev-02",
+          "expectedForCurrentContracts": "union-bounds",
+          "selected": "union-bounds",
+          "contractValid": true,
+          "matchesExpected": true,
+          "elapsedMs": 16411,
+          "error": null,
+          "finishReason": "stop"
+        },
+        {
+          "id": "source-dev-01",
+          "expectedForCurrentContracts": null,
+          "selected": "claim-attribution",
+          "contractValid": true,
+          "matchesExpected": false,
+          "elapsedMs": 25412,
+          "error": null,
+          "finishReason": "stop"
+        },
+        {
+          "id": "source-dev-02",
+          "expectedForCurrentContracts": null,
+          "selected": "no-valid-output",
+          "contractValid": false,
+          "matchesExpected": false,
+          "elapsedMs": 36001,
+          "error": "Scion ended before producing a final answer. Retry with a smaller source packet or more output room.",
+          "finishReason": "length"
+        },
+        {
+          "id": "experiment-dev-01",
+          "expectedForCurrentContracts": "paired-condition-confound",
+          "selected": "paired-condition-confound",
+          "contractValid": true,
+          "matchesExpected": true,
+          "elapsedMs": 30320,
+          "error": null,
+          "finishReason": "stop"
+        },
+        {
+          "id": "experiment-dev-02",
+          "expectedForCurrentContracts": "paired-condition-confound",
+          "selected": "paired-condition-confound",
+          "contractValid": true,
+          "matchesExpected": true,
+          "elapsedMs": 28792,
+          "error": null,
+          "finishReason": "stop"
+        }
+      ],
+      "validSelections": 5,
+      "matchingSelections": 4,
+      "total": 6
+    }
+  ],
+  "controls": {
+    "sameInputMessages": true,
+    "sameTokenCap": 1024,
+    "thinking": true,
+    "grammar": false,
+    "callsPerInputPerArm": 1,
+    "serial": true,
+    "sample": "Six development inputs, EN/ZH across three families; no reserved product runs"
+  },
+  "decision": [
+    "Do not enable direct operation-label selection in production: the second arm is format-valid but semantically wrong for source-dev-01.",
+    "After two failed local approaches, stop prompt tweaking on these six inputs. Next design must expose exact task requirements and source prerequisites before operation eligibility; null/routing success never implies supported-task completion.",
+    "Current source operations cannot complete the two source tasks. Preserve the frozen supported labels and report this product gap rather than relabeling cases out of scope."
+  ],
+  "limits": [
+    "The second arm ran partly while the user viewed another Chrome tab; wall-clock times are observations, not a controlled speed comparison.",
+    "Four matched operation labels do not certify source binding, answers, rubric, exports or a complete unit.",
+    "No new runtime feature enabled, no adapter trained, no hosted inference, and no version release."
+  ],
+  "checks": {
+    "candidateTests": 4,
+    "frozenCorpus": "unchanged",
+    "runtimeCheck": "Previous f6878f60 full check remains applicable to unchanged runtime; not rerun for research-only files."
+  }
+}
