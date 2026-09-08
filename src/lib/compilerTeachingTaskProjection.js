@@ -584,9 +584,11 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
       // Authored questions and machine-scored specifications remain protected;
       // the surrounding three-way merge preserves teacher changes.
       const reviewedComparison = task.operationPlan?.operation === 'paired-condition-confound';
+      const reviewedAttribution = task.operationPlan?.operation === 'claim-attribution';
       const reviewedBank =
         task.operationPlan?.version === 2 ||
         reviewedComparison ||
+        reviewedAttribution ||
         ['pooled-proportion', 'union-bounds'].includes(task.operationPlan?.operation);
       const seats =
         row.questions?.filter(
@@ -594,6 +596,7 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
             !q.machineScored &&
             (!reviewedBank || !q.taskId || q.taskId === task.id || q.sourceTaskId === task.id) &&
             ((reviewedComparison && q.enrichmentSource === 'compiler-verified-operation-assessment') ||
+              (reviewedAttribution && q.enrichmentSource === 'lesson-content-enrichment') ||
               (['short_answer', 'essay'].includes(q.type) &&
                 (!q.enrichmentSource ||
                   [

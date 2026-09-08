@@ -1,4 +1,5 @@
 import { renderUnionTask } from './teachingOperationUnion.js';
+import { renderAttributionTask } from './teachingOperationAttribution.js';
 import { evaluateTeachingOperationPlan, TEACHING_OPERATION_SPECS } from './teachingOperationPlan.js';
 import {
   AUTHORED_REQUIREMENTS_PLAN_VERSION,
@@ -34,6 +35,7 @@ export function renderTeachingOperationTask(plan, inputs, objective) {
   }
   if (plan.operation === 'observed-proportion')
     return project(renderObservedProportion(plan, inputs, objective, evaluated));
+  if (plan.operation === 'claim-attribution') return project(renderAttributionTask(plan, inputs, objective, evaluated));
   if (plan.operation === 'union-bounds') return project(renderUnionTask(plan, inputs, objective, evaluated));
   if (plan.operation === 'pooled-proportion') return project(renderPoolingTask(plan, inputs, objective, evaluated));
   if (plan.operation === 'paired-condition-confound')

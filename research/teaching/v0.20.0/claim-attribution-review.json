@@ -1,0 +1,259 @@
+{
+  "baseline": "c90b14bf2be711ccce1e946a150f76d06ce182c0",
+  "kind": "reviewed-operation implementation and deterministic saved-project repair",
+  "sourceRun": "natural-source-dev-03-01",
+  "replaySha256": "346b12894b496c6152df11717541428110ee6b8da3cd870e024a31469ad898b7",
+  "changedFeatures": [
+    "syllabus",
+    "lessonPlans",
+    "slideDecks",
+    "assignments",
+    "rubrics",
+    "discussions",
+    "quizBank",
+    "studyGuides",
+    "courseFaq"
+  ],
+  "conflicts": [],
+  "task": {
+    "id": "task-cd238f71adbb39f6",
+    "objective": "Distinguish an observation from a reported claim and an unsupported explanation.",
+    "inputs": [
+      {
+        "id": "input-61b415f0-8d8e-47bd-bef6-398175a695e2",
+        "text": "notebook: Fictional field notebook: “At 08:00 I saw brown water below the footbridge. At 08:20 the water looked clearer to me. I did not collect samples.”"
+      },
+      {
+        "id": "input-2076bcdf-1f6e-48a9-83b6-496865b6020e",
+        "text": "interview: A resident told the notebook writer, “The factory released dye overnight.” The supplied interview contains no description of what the resident directly saw and no independent test."
+      },
+      {
+        "id": "input-406e6e20-0630-4367-bc5f-cf94a35f034b",
+        "text": "editorial: A later editorial says the brown colour proves deliberate pollution. There is no chemical analysis, discharge record or evidence of intent in the supplied packet."
+      }
+    ],
+    "question": "Make a three-row claim table (equivalent labeled prose is welcome). For each selected statement, identify its speaker or document, quote it, classify its role as a reported observation, attributed assertion or explanation, and quote the stated basis or limit. Explain what the explanation does and does not establish, including why missing evidence proves neither it nor its opposite. Propose one specific evidence check and explain what it could resolve and what would remain unknown.",
+    "answer": "The three statements have different evidential roles. Keep the speaker, statement and stated basis together before evaluating the explanation.\n\nFictional field notebook records an observation: “At 08:00 I saw brown water below the footbridge. At 08:20 the water looked clearer to me.” Its stated basis or limit is “I did not collect samples.” This establishes what the record reports, not independent verification of the event.\n\nA resident makes the attributed assertion “The factory released dye overnight.” The record says “The supplied interview contains no description of what the resident directly saw and no independent test.” Retain that qualification; do not invent whether the speaker saw, heard, measured or inferred the asserted event.\n\nA later editorial proposes “the brown colour proves deliberate pollution”. This is the explanation to evaluate against the records, rather than another observation established by repeating it.\n\nThe stated evidence limit is “There is no chemical analysis, discharge record or evidence of intent in the supplied packet.” Neither accepting “the brown colour proves deliberate pollution” nor declaring its opposite proved is justified merely by this gap.\n\nA concrete next check is to seek “chemical analysis” linked to the event in these records. Establish its time, location and method, then compare what it actually records with “the brown colour proves deliberate pollution”. Report which part it addresses and which parts remain unresolved; a matching result would not automatically prove every causal or intent claim. This is evidence to obtain, not a result already available.",
+    "criteria": [
+      {
+        "id": "evidence",
+        "label": "Identify and attribute evidence",
+        "weight": 35,
+        "feedback": "Label the source of each statement; distinguish observations, reported claims and your own inferences.",
+        "levels": {
+          "exemplary": "Attributes the observation to Fictional field notebook, the assertion to A resident and the explanation to A later editorial; quotes each claim and its stated basis or limit without swapping records.",
+          "proficient": "Correctly attributes and classifies all three claims but omits one exact basis or limit.",
+          "developing": "Correctly identifies some claims but conflates a reported assertion with an observation, or omits an entire record.",
+          "beginning": "Invents an observation or attributes a claim to the wrong source."
+        }
+      },
+      {
+        "id": "reasoning",
+        "label": "Explain the reasoning and complete the task",
+        "weight": 35,
+        "feedback": "Retain the actual qualification “The supplied interview contains no description of what the resident directly saw and no independent test.” Then test the explanation against “There is no chemical analysis, discharge record or evidence of intent in the supplied packet.”, rather than inventing a knowledge source or treating repetition as corroboration.",
+        "levels": {
+          "exemplary": "Uses “The supplied interview contains no description of what the resident directly saw and no independent test.” and “There is no chemical analysis, discharge record or evidence of intent in the supplied packet.” to distinguish a recorded assertion from independent verification; does not invent a knowledge source or treat repetition as proof.",
+          "proficient": "Keeps the explanation unverified but does not explain why the reported assertion cannot be assigned an unstated knowledge source.",
+          "developing": "Uses labels such as fact or opinion without comparing the statements with their stated bases.",
+          "beginning": "Recording A resident's assertion independently verifies “The factory released dye overnight.”, so “the brown colour proves deliberate pollution” is proved."
+        }
+      },
+      {
+        "id": "boundary",
+        "label": "State what the evidence leaves unresolved",
+        "weight": 30,
+        "feedback": "Name the specific unknown and the new evidence that could change the conclusion.",
+        "levels": {
+          "exemplary": "Proposes obtaining “chemical analysis”, checks its connection to this event and explains which part of the explanation it could test. Retains unresolved parts and does not turn missing evidence into proof of the opposite. Equivalent relevant evidence is acceptable.",
+          "proficient": "Preserves both uncertainties and proposes relevant evidence, but omits how to link that evidence to this event.",
+          "developing": "Asks for more information without naming an obtainable record or measurement and what it would test.",
+          "beginning": "Treats missing evidence or a proposed procedure as an established finding."
+        }
+      }
+    ],
+    "contrastResponses": [
+      {
+        "id": "complete",
+        "kind": "synthetic-review-example",
+        "response": "The three statements have different evidential roles. Keep the speaker, statement and stated basis together before evaluating the explanation.\n\nFictional field notebook records an observation: “At 08:00 I saw brown water below the footbridge. At 08:20 the water looked clearer to me.” Its stated basis or limit is “I did not collect samples.” This establishes what the record reports, not independent verification of the event.\n\nA resident makes the attributed assertion “The factory released dye overnight.” The record says “The supplied interview contains no description of what the resident directly saw and no independent test.” Retain that qualification; do not invent whether the speaker saw, heard, measured or inferred the asserted event.\n\nA later editorial proposes “the brown colour proves deliberate pollution”. This is the explanation to evaluate against the records, rather than another observation established by repeating it.\n\nThe stated evidence limit is “There is no chemical analysis, discharge record or evidence of intent in the supplied packet.” Neither accepting “the brown colour proves deliberate pollution” nor declaring its opposite proved is justified merely by this gap.\n\nA concrete next check is to seek “chemical analysis” linked to the event in these records. Establish its time, location and method, then compare what it actually records with “the brown colour proves deliberate pollution”. Report which part it addresses and which parts remain unresolved; a matching result would not automatically prove every causal or intent claim. This is evidence to obtain, not a result already available.",
+        "judgments": [
+          {
+            "criterionId": "reasoning",
+            "level": "exemplary",
+            "rationale": "Uses “The supplied interview contains no description of what the resident directly saw and no independent test.” and “There is no chemical analysis, discharge record or evidence of intent in the supplied packet.” to distinguish a recorded assertion from independent verification; does not invent a knowledge source or treat repetition as proof.",
+            "evidence": [
+              {
+                "start": 0,
+                "end": 1626,
+                "quote": "The three statements have different evidential roles. Keep the speaker, statement and stated basis together before evaluating the explanation.\n\nFictional field notebook records an observation: “At 08:00 I saw brown water below the footbridge. At 08:20 the water looked clearer to me.” Its stated basis or limit is “I did not collect samples.” This establishes what the record reports, not independent verification of the event.\n\nA resident makes the attributed assertion “The factory released dye overnight.” The record says “The supplied interview contains no description of what the resident directly saw and no independent test.” Retain that qualification; do not invent whether the speaker saw, heard, measured or inferred the asserted event.\n\nA later editorial proposes “the brown colour proves deliberate pollution”. This is the explanation to evaluate against the records, rather than another observation established by repeating it.\n\nThe stated evidence limit is “There is no chemical analysis, discharge record or evidence of intent in the supplied packet.” Neither accepting “the brown colour proves deliberate pollution” nor declaring its opposite proved is justified merely by this gap.\n\nA concrete next check is to seek “chemical analysis” linked to the event in these records. Establish its time, location and method, then compare what it actually records with “the brown colour proves deliberate pollution”. Report which part it addresses and which parts remain unresolved; a matching result would not automatically prove every causal or intent claim. This is evidence to obtain, not a result already available."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "conclusion-without-reasoning",
+        "kind": "synthetic-review-example",
+        "response": "Fictional field notebook: observation. A resident: assertion. A later editorial: explanation.",
+        "judgments": [
+          {
+            "criterionId": "reasoning",
+            "level": "developing",
+            "rationale": "Uses labels such as fact or opinion without comparing the statements with their stated bases.",
+            "evidence": [
+              {
+                "start": 0,
+                "end": 93,
+                "quote": "Fictional field notebook: observation. A resident: assertion. A later editorial: explanation."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "misconception",
+        "kind": "synthetic-review-example",
+        "response": "Recording A resident's assertion independently verifies “The factory released dye overnight.”, so “the brown colour proves deliberate pollution” is proved.",
+        "judgments": [
+          {
+            "criterionId": "reasoning",
+            "level": "beginning",
+            "rationale": "Retain the actual qualification “The supplied interview contains no description of what the resident directly saw and no independent test.” Then test the explanation against “There is no chemical analysis, discharge record or evidence of intent in the supplied packet.”, rather than inventing a knowledge source or treating repetition as corroboration.",
+            "evidence": [
+              {
+                "start": 0,
+                "end": 155,
+                "quote": "Recording A resident's assertion independently verifies “The factory released dye overnight.”, so “the brown colour proves deliberate pollution” is proved."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "alternative-representation",
+        "kind": "synthetic-review-example",
+        "response": "A concrete next check is to seek “chemical analysis” linked to the event in these records. Establish its time, location and method, then compare what it actually records with “the brown colour proves deliberate pollution”. Report which part it addresses and which parts remain unresolved; a matching result would not automatically prove every causal or intent claim. This is evidence to obtain, not a result already available.\n\nThe stated evidence limit is “There is no chemical analysis, discharge record or evidence of intent in the supplied packet.” Neither accepting “the brown colour proves deliberate pollution” nor declaring its opposite proved is justified merely by this gap.\n\nA later editorial proposes “the brown colour proves deliberate pollution”. This is the explanation to evaluate against the records, rather than another observation established by repeating it.\n\nA resident makes the attributed assertion “The factory released dye overnight.” The record says “The supplied interview contains no description of what the resident directly saw and no independent test.” Retain that qualification; do not invent whether the speaker saw, heard, measured or inferred the asserted event.\n\nFictional field notebook records an observation: “At 08:00 I saw brown water below the footbridge. At 08:20 the water looked clearer to me.” Its stated basis or limit is “I did not collect samples.” This establishes what the record reports, not independent verification of the event.",
+        "judgments": [
+          {
+            "criterionId": "boundary",
+            "level": "exemplary",
+            "rationale": "Proposes obtaining “chemical analysis”, checks its connection to this event and explains which part of the explanation it could test. Retains unresolved parts and does not turn missing evidence into proof of the opposite. Equivalent relevant evidence is acceptable.",
+            "evidence": [
+              {
+                "start": 0,
+                "end": 1482,
+                "quote": "A concrete next check is to seek “chemical analysis” linked to the event in these records. Establish its time, location and method, then compare what it actually records with “the brown colour proves deliberate pollution”. Report which part it addresses and which parts remain unresolved; a matching result would not automatically prove every causal or intent claim. This is evidence to obtain, not a result already available.\n\nThe stated evidence limit is “There is no chemical analysis, discharge record or evidence of intent in the supplied packet.” Neither accepting “the brown colour proves deliberate pollution” nor declaring its opposite proved is justified merely by this gap.\n\nA later editorial proposes “the brown colour proves deliberate pollution”. This is the explanation to evaluate against the records, rather than another observation established by repeating it.\n\nA resident makes the attributed assertion “The factory released dye overnight.” The record says “The supplied interview contains no description of what the resident directly saw and no independent test.” Retain that qualification; do not invent whether the speaker saw, heard, measured or inferred the asserted event.\n\nFictional field notebook records an observation: “At 08:00 I saw brown water below the footbridge. At 08:20 the water looked clearer to me.” Its stated basis or limit is “I did not collect samples.” This establishes what the record reports, not independent verification of the event."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "independentPractice": {
+    "id": "task-cd238f71adbb39f6:transfer",
+    "kind": "independent-transfer",
+    "operationKind": "claim-attribution",
+    "sources": [
+      "Fictional mail log: The mail clerk wrote “The envelopes felt wet at 09:00”. The clerk did not examine where the water came from.",
+      "A neighbor said “A pipe in the building burst last night”. The record does not state the neighbor’s basis for knowing this.",
+      "The bulletin writer proposes “The burst pipe wetted the envelopes”. There is no dated leak inspection or record of the water’s path."
+    ],
+    "directions": "Make a three-row claim table (equivalent labeled prose is welcome). For each selected statement, identify its speaker or document, quote it, classify its role as a reported observation, attributed assertion or explanation, and quote the stated basis or limit. Explain what the explanation does and does not establish, including why missing evidence proves neither it nor its opposite. Propose one specific evidence check and explain what it could resolve and what would remain unknown.",
+    "question": "Fictional mail log: The mail clerk wrote “The envelopes felt wet at 09:00”. The clerk did not examine where the water came from. A neighbor said “A pipe in the building burst last night”. The record does not state the neighbor’s basis for knowing this. The bulletin writer proposes “The burst pipe wetted the envelopes”. There is no dated leak inspection or record of the water’s path. Make a three-row claim table (equivalent labeled prose is welcome). For each selected statement, identify its speaker or document, quote it, classify its role as a reported observation, attributed assertion or explanation, and quote the stated basis or limit. Explain what the explanation does and does not establish, including why missing evidence proves neither it nor its opposite. Propose one specific evidence check and explain what it could resolve and what would remain unknown.",
+    "answer": "The three statements have different evidential roles. Keep the speaker, statement and stated basis together before evaluating the explanation.\n\nThe mail clerk records an observation: “The envelopes felt wet at 09:00”. Its stated basis or limit is “The clerk did not examine where the water came from”. This establishes what the record reports, not independent verification of the event.\n\nA neighbor makes the attributed assertion “A pipe in the building burst last night”. The record says “The record does not state the neighbor’s basis for knowing this”. Retain that qualification; do not invent whether the speaker saw, heard, measured or inferred the asserted event.\n\nThe bulletin writer proposes “The burst pipe wetted the envelopes”. This is the explanation to evaluate against the records, rather than another observation established by repeating it.\n\nThe stated evidence limit is “There is no dated leak inspection or record of the water’s path”. Neither accepting “The burst pipe wetted the envelopes” nor declaring its opposite proved is justified merely by this gap.\n\nA concrete next check is to seek “dated leak inspection” linked to the event in these records. Establish its time, location and method, then compare what it actually records with “The burst pipe wetted the envelopes”. Report which part it addresses and which parts remain unresolved; a matching result would not automatically prove every causal or intent claim. This is evidence to obtain, not a result already available.",
+    "reasoning": [
+      "The mail clerk records an observation: “The envelopes felt wet at 09:00”. Its stated basis or limit is “The clerk did not examine where the water came from”. This establishes what the record reports, not independent verification of the event.",
+      "A neighbor makes the attributed assertion “A pipe in the building burst last night”. The record says “The record does not state the neighbor’s basis for knowing this”. Retain that qualification; do not invent whether the speaker saw, heard, measured or inferred the asserted event.",
+      "The bulletin writer proposes “The burst pipe wetted the envelopes”. This is the explanation to evaluate against the records, rather than another observation established by repeating it.",
+      "The stated evidence limit is “There is no dated leak inspection or record of the water’s path”. Neither accepting “The burst pipe wetted the envelopes” nor declaring its opposite proved is justified merely by this gap. A concrete next check is to seek “dated leak inspection” linked to the event in these records. Establish its time, location and method, then compare what it actually records with “The burst pipe wetted the envelopes”. Report which part it addresses and which parts remain unresolved; a matching result would not automatically prove every causal or intent claim. This is evidence to obtain, not a result already available."
+    ],
+    "rubric": [
+      {
+        "label": "Identify and attribute evidence",
+        "exemplary": "Attributes the observation to The mail clerk, the assertion to A neighbor and the explanation to The bulletin writer; quotes each claim and its stated basis or limit without swapping records.",
+        "proficient": "Correctly attributes and classifies all three claims but omits one exact basis or limit.",
+        "developing": "Correctly identifies some claims but conflates a reported assertion with an observation, or omits an entire record.",
+        "beginning": "Invents an observation or attributes a claim to the wrong source.",
+        "feedback": "Label the source of each statement; distinguish observations, reported claims and your own inferences."
+      },
+      {
+        "label": "Explain the reasoning and complete the task",
+        "exemplary": "Uses “The record does not state the neighbor’s basis for knowing this” and “There is no dated leak inspection or record of the water’s path” to distinguish a recorded assertion from independent verification; does not invent a knowledge source or treat repetition as proof.",
+        "proficient": "Keeps the explanation unverified but does not explain why the reported assertion cannot be assigned an unstated knowledge source.",
+        "developing": "Uses labels such as fact or opinion without comparing the statements with their stated bases.",
+        "beginning": "Recording A neighbor's assertion independently verifies “A pipe in the building burst last night”, so “The burst pipe wetted the envelopes” is proved.",
+        "feedback": "Retain the actual qualification “The record does not state the neighbor’s basis for knowing this”. Then test the explanation against “There is no dated leak inspection or record of the water’s path”, rather than inventing a knowledge source or treating repetition as corroboration."
+      },
+      {
+        "label": "State what the evidence leaves unresolved",
+        "exemplary": "Proposes obtaining “dated leak inspection”, checks its connection to this event and explains which part of the explanation it could test. Retains unresolved parts and does not turn missing evidence into proof of the opposite. Equivalent relevant evidence is acceptable.",
+        "proficient": "Preserves both uncertainties and proposes relevant evidence, but omits how to link that evidence to this event.",
+        "developing": "Asks for more information without naming an obtainable record or measurement and what it would test.",
+        "beginning": "Treats missing evidence or a proposed procedure as an established finding.",
+        "feedback": "Name the specific unknown and the new evidence that could change the conclusion."
+      }
+    ],
+    "feedback": "Retain the actual qualification “The record does not state the neighbor’s basis for knowing this”. Then test the explanation against “There is no dated leak inspection or record of the water’s path”, rather than inventing a knowledge source or treating repetition as corroboration.",
+    "verification": {
+      "method": "authored-attribution-contrast",
+      "scope": "Explicitly fictional independent practice; no independent verification or observed learning claim."
+    },
+    "provenance": {
+      "kind": "explicitly-fictional-compiler-practice",
+      "externalFactualClaim": false
+    },
+    "criteria": [
+      "Attributes the observation to The mail clerk, the assertion to A neighbor and the explanation to The bulletin writer; quotes each claim and its stated basis or limit without swapping records.",
+      "Uses “The record does not state the neighbor’s basis for knowing this” and “There is no dated leak inspection or record of the water’s path” to distinguish a recorded assertion from independent verification; does not invent a knowledge source or treat repetition as proof.",
+      "Proposes obtaining “dated leak inspection”, checks its connection to this event and explains which part of the explanation it could test. Retains unresolved parts and does not turn missing evidence into proof of the opposite. Equivalent relevant evidence is acceptable."
+    ]
+  },
+  "quiz": {
+    "questions": 5,
+    "totalPoints": 36,
+    "practice": [
+      {
+        "kind": "independent-transfer",
+        "points": 12
+      },
+      {
+        "kind": "task-rehearsal",
+        "points": 20
+      },
+      {
+        "kind": "error-analysis",
+        "points": 2
+      },
+      {
+        "kind": "error-analysis",
+        "points": 2
+      },
+      {
+        "kind": "feedback-retry",
+        "points": 0
+      }
+    ],
+    "oldHearsayExplanationRemoved": true,
+    "oldInventedScenarioRemoved": true
+  },
+  "checks": {
+    "studio": 58,
+    "compatibility": 687,
+    "scion": 898,
+    "fullCheck": "passed",
+    "bilingualTransferAndTransaction": "passed",
+    "touchedFileFormat": "passed",
+    "wholeRepositoryFormat": "43 existing files reported",
+    "frozenCorpus": "unchanged"
+  },
+  "limits": [
+    "Implementer-selected source roles, not a fresh Scion proposal.",
+    "Semantic role interpretation still requires review; exact spans are not independent fact verification.",
+    "No full browser-input, PDF or Office visual acceptance for the new operation yet.",
+    "Specific evidence is named and linked to the event; discipline-specific measurement procedures still require review.",
+    "Legacy generated content remains in historical quality-receipt metadata, not current quiz answers.",
+    "Not a v0.20.0 release acceptance pass."
+  ]
+}

@@ -36,6 +36,8 @@ export function teachingProposalInputRevision({ operation, objective, inputs }) 
 }
 
 const roles = {
+  'claim-attribution':
+    'Compare three separately attributed records. observationRecord contains observer, observedClaim and observationBasis (a stated basis or limitation). reportRecord contains reporter, reportedClaim and reportingBasis (the stated knowledge basis or its explicit absence). inferenceRecord contains inferenceAuthor, inferredClaim, inferenceLimit and proposedEvidence (a specific named missing record or measurement). Copy complete meaningful phrases. Do not infer how a speaker learned something. A reported assertion is not automatically hearsay or independent evidence. Do not substitute claim text for a knowledge-basis qualification. These roles require teacher review; use null where the packet does not explicitly supply the required role.',
   'union-bounds':
     'rosterRecord gives populationCount, populationName and explicit stablePopulation evidence. attendanceRecord gives firstCount and secondCount, firstEvent and secondEvent, and explicit withinGroupDistinct deduplication. limitRecord contains missingOverlap evidence. Both event sets must be subsets of the same unchanged roster. Different event names do not establish these premises; leave unsupported roles null.',
   'pooled-proportion':

@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Add a reviewed claim-attribution operation with exact speaker/claim/basis bindings, bilingual references and differentiated scoring. Use a separate fictional attribution case for transfer; replace obsolete generated questions when this becomes the primary task, retaining protected questions and edit conflict handling. Local Scion proposal support is experimental and not yet validated for this operation.
+
 - Record the first source-classification natural generation with project, review ZIP and console evidence: seven local calls and working review entry, but attribution, reference-answer and task-specific scoring failures. Retain the failed result; no classroom-readiness claim.
 
 - Route generated courses with supplied records but no shared task to the existing assignment review editor. Open its task controls, require an explicit teaching focus, and retain the original sources in the draft. Cancelled workflows do not change the active material.

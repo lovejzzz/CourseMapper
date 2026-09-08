@@ -1,4 +1,5 @@
 import { renderUnionTask } from './teachingOperationUnion.js';
+import { renderAttributionTask } from './teachingOperationAttribution.js';
 import { solveTeachingUnionBounds } from './teachingSetArithmetic.js';
 import { evidenceTransferPackets } from './teachingTaskEvidenceTransferPackets.js';
 import { explicitSourceRelationTask } from './teachingTaskSourceRelations.js';
@@ -85,6 +86,77 @@ const quantityPackets = {
 };
 
 export function operationSpecificTransfer(task) {
+  if (task.operationPlan?.operation === 'claim-attribution') {
+    const zh = task.language === 'zh';
+    const values = zh
+      ? {
+          observer: '收件员',
+          observedClaim: '信封在09:00摸起来是湿的',
+          observationBasis: '没有检查水从哪里来',
+          reporter: '邻居',
+          reportedClaim: '楼内水管昨夜破裂',
+          reportingBasis: '记录没有说明邻居的知情依据',
+          inferenceAuthor: '简报撰写者',
+          inferredClaim: '水管破裂弄湿了信封',
+          inferenceLimit: '没有带日期的漏水检查或水流路径记录',
+          proposedEvidence: '带日期的漏水检查',
+        }
+      : {
+          observer: 'The mail clerk',
+          observedClaim: 'The envelopes felt wet at 09:00',
+          observationBasis: 'The clerk did not examine where the water came from',
+          reporter: 'A neighbor',
+          reportedClaim: 'A pipe in the building burst last night',
+          reportingBasis: 'The record does not state the neighbor’s basis for knowing this',
+          inferenceAuthor: 'The bulletin writer',
+          inferredClaim: 'The burst pipe wetted the envelopes',
+          inferenceLimit: 'There is no dated leak inspection or record of the water’s path',
+          proposedEvidence: 'dated leak inspection',
+        };
+    const sources = zh
+      ? [
+          `虚构收件记录：${values.observer}写道“${values.observedClaim}”，${values.observationBasis}。`,
+          `${values.reporter}说“${values.reportedClaim}”。${values.reportingBasis}。`,
+          `${values.inferenceAuthor}认为“${values.inferredClaim}”。${values.inferenceLimit}。`,
+        ]
+      : [
+          `Fictional mail log: ${values.observer} wrote “${values.observedClaim}”. ${values.observationBasis}.`,
+          `${values.reporter} said “${values.reportedClaim}”. ${values.reportingBasis}.`,
+          `${values.inferenceAuthor} proposes “${values.inferredClaim}”. ${values.inferenceLimit}.`,
+        ];
+    const plan = {
+      operation: 'claim-attribution',
+      requirements: [
+        { id: 'evidence', weight: 35 },
+        { id: 'reasoning', weight: 35 },
+        { id: 'boundary', weight: 30 },
+      ],
+    };
+    const body = renderAttributionTask(
+      plan,
+      sources.map((text, i) => ({ id: `practice-${i}`, text })),
+      zh ? '区分陈述与依据。' : 'Distinguish claims and their bases.',
+      { values },
+    );
+    return {
+      operationKind: 'claim-attribution',
+      sources,
+      directions: body.question,
+      question: `${sources.join(' ')} ${body.question}`,
+      answer: body.answer,
+      reasoning: body.reasoning,
+      rubric: body.criteria.map((criterion) => ({
+        label: criterion.label,
+        ...criterion.levels,
+        feedback: criterion.feedback,
+      })),
+      feedback: body.criteria[1].feedback,
+      verification: {
+        method: 'authored-attribution-contrast',
+        scope: 'Explicitly fictional independent practice; no independent verification or observed learning claim.',
+      },
+    };
+  }
   if (task.operationPlan?.operation === 'union-bounds') {
     const zh = task.language === 'zh';
     const values = {

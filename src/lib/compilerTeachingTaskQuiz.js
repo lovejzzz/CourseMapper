@@ -1,7 +1,9 @@
 import { taskCopy, taskText } from './teachingTaskCopy.js';
 
 export const usesStructuredPracticeScoring = (task) =>
-  (['paired-condition-confound', 'pooled-proportion', 'union-bounds'].includes(task.operationPlan?.operation) ||
+  (['paired-condition-confound', 'pooled-proportion', 'union-bounds', 'claim-attribution'].includes(
+    task.operationPlan?.operation,
+  ) ||
     task.operationPlan?.version === 2) &&
   task.operationPlan.presentationVersion >= 4;
 

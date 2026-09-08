@@ -25,6 +25,19 @@ import {
 } from '../../../lib/teachingTaskReview.js';
 
 const fieldLabels = {
+  observationRecord: ['Observation record', '观察记录'],
+  observer: ['Observer or document', '观察者或文献'],
+  observedClaim: ['Reported observation', '记述的观察'],
+  observationBasis: ['Stated observation basis or limit', '观察的明示依据或限制'],
+  reportRecord: ['Attributed assertion record', '有归属陈述的记录'],
+  reporter: ['Speaker of the assertion', '陈述者'],
+  reportedClaim: ['Attributed assertion', '有归属的陈述'],
+  reportingBasis: ['Stated knowledge basis or limit', '明示的知情依据或限制'],
+  inferenceRecord: ['Explanation record', '解释记录'],
+  inferenceAuthor: ['Author of the explanation', '解释提出者'],
+  inferredClaim: ['Explanation to evaluate', '待评估的解释'],
+  inferenceLimit: ['Stated evidence gap', '明示的证据缺口'],
+  proposedEvidence: ['Specific missing evidence to seek', '待查找的具体证据'],
   firstCountRecord: ['First group count record', '第一组计数记录'],
   secondCountRecord: ['Second group count record', '第二组计数记录'],
   rosterRecord: ['Common roster', '共同名册'],
@@ -546,6 +559,9 @@ export default function TeachingTaskReview({
                   {t('Observed proportion and population limits', '观察比例与总体限制')}
                 </option>
                 <option value="record-amendment">{t('Changed rule and evidence limits', '规则修订与证据限制')}</option>
+                <option value="claim-attribution">
+                  {t('Claims, attribution and evidence limits', '陈述归属与证据边界')}
+                </option>
                 <option value="union-bounds">{t('Overlapping membership and bounds', '重叠成员与范围')}</option>
                 <option value="pooled-proportion">
                   {t('Combined proportion and group weights', '合并比例与群体权重')}
