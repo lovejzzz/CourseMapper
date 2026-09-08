@@ -1,0 +1,226 @@
+{
+  "date": "2026-09-08",
+  "baseline": "95d5ea3f",
+  "input": "quantity-dev-01",
+  "inputMode": "request, objective and sources only via existing Chrome homepage; manual operation selection only after the second natural run",
+  "naturalRuns": [
+    {
+      "stage": "first",
+      "projectSha256": "6e7d5464f7c0e7096824c2f9883f86de363fac046ddc8b58e95c27142e495532",
+      "promptSha256": "137b734d3ef5ec0742db8c20fe074b780a8093365008ba53db73bbc9a5280588",
+      "courseName": "English Teaching Materials Development",
+      "objectives": [
+        "Explain the key ideas in Defining the required fraction of returned items and apply them in course activities."
+      ],
+      "run": {
+        "provider": "public",
+        "models": [
+          "scion-public"
+        ],
+        "lessonCount": 1,
+        "features": [
+          "courseMap",
+          "syllabus",
+          "lessonPlans",
+          "slideDecks",
+          "assignments",
+          "rubrics",
+          "discussions",
+          "quizBank",
+          "studyGuides",
+          "courseFaq"
+        ],
+        "providerCalls": 1,
+        "pipelineCalls": 2
+      },
+      "elapsedMs": 20932,
+      "pipeline": {
+        "courseIRAuthoring": "public Scion · one typed skeleton call before lesson-kernel authoring",
+        "courseMap": "Scion V0.19.2 · typed skeleton (sessions, assessments, readings, resources)",
+        "scionExecution": "browser-local Gemma 4 · public weights · local inference",
+        "examine": "skipped: native authoring — Pass B authors lesson content next",
+        "genomeLinker": "0 genome + 0 cached (0 genome-backed) of 1 lessons (0 concepts, 0 citations, 0 bridges)",
+        "judgment": "not evaluated (0 genome-linked lessons)",
+        "local-compiler": "3 unresolved contract issues forwarded to per-atom admission",
+        "scionFactLedgerStage": "rejected · fact-only response did not satisfy the immutable ledger contract · lesson-1:fact-0:fact-length · lesson-1:fact-1:fact-length · lesson-1:fact-2:fact-length",
+        "stage": "mcVerify:lesson-1 skipped [same-model-solver-is-not-an-independent-verifier] · passBudget:lesson-1 bounded [0/0-calls-used-before-admissionGate] · improvementPasses:lesson-1 skipped [grounded-adapter-bounded-repair-policy:0/0]",
+        "canonicalKernelAdmission": "missing lesson-1 · lesson-1:authoring:no-authoring-fields",
+        "enrichmentModelStage": "failed: no usable Pass B payloads (linker: ran)",
+        "nativeAuthoring": "assembled 1 sessions onto Pass A entity ids · outcomes/activities 0/1 · knowledge kernels admitted 0/1 · 0 registry readings · CurriculumV1 repaired 1 lessons / 1 assessments",
+        "knowledgeBackbone": "The approved or exact-source-only route uses supplied evidence; no duplicate reading search.",
+        "courseGraph": "1/1/1 sessions/concepts/outcomes",
+        "groundingMetrics": "overall 42.8% · syllabus 3% · lessonPlans 4% · slideDecks 33% · assignments 99% · rubrics 22% · discussions 96% · quizBank 61% · studyGuides 3% · courseFaq 38%",
+        "enrichment": "failed: no usable Pass B payloads",
+        "nativeReconstruction": {
+          "status": "deterministic-reconstruction",
+          "readinessRepairedFieldCount": 26,
+          "claimBoundary": "Fallback; unverified."
+        }
+      }
+    },
+    {
+      "stage": "objective-fix",
+      "projectSha256": "2ea36cb2ed7e24971b4becf31f98920113f42938658ba007afeceaf837ac8dcd",
+      "promptSha256": "137b734d3ef5ec0742db8c20fe074b780a8093365008ba53db73bbc9a5280588",
+      "courseName": "English Teaching Materials Development",
+      "objectives": [
+        "Combine unequal group counts to calculate a return proportion, distinguish tablet weighting from desk weighting, and separate a descriptive result from an explanation of desk performance."
+      ],
+      "run": {
+        "provider": "public",
+        "models": [
+          "scion-public"
+        ],
+        "lessonCount": 1,
+        "features": [
+          "courseMap",
+          "syllabus",
+          "lessonPlans",
+          "slideDecks",
+          "assignments",
+          "rubrics",
+          "discussions",
+          "quizBank",
+          "studyGuides",
+          "courseFaq"
+        ],
+        "providerCalls": 1,
+        "pipelineCalls": 2
+      },
+      "elapsedMs": 20730,
+      "pipeline": {
+        "courseIRAuthoring": "public Scion · one typed skeleton call before lesson-kernel authoring",
+        "courseMap": "Scion V0.19.2 · typed skeleton (sessions, assessments, readings, resources)",
+        "scionExecution": "browser-local Gemma 4 · public weights · local inference",
+        "examine": "skipped: native authoring — Pass B authors lesson content next",
+        "genomeLinker": "0 genome + 0 cached (0 genome-backed) of 1 lessons (0 concepts, 0 citations, 0 bridges)",
+        "judgment": "not evaluated (0 genome-linked lessons)",
+        "local-compiler": "3 unresolved contract issues forwarded to per-atom admission",
+        "scionFactLedgerStage": "rejected · fact-only response did not satisfy the immutable ledger contract · lesson-1:fact-0:fact-length · lesson-1:fact-1:fact-length · lesson-1:fact-2:fact-length",
+        "stage": "mcVerify:lesson-1 skipped [same-model-solver-is-not-an-independent-verifier] · passBudget:lesson-1 bounded [0/0-calls-used-before-admissionGate] · improvementPasses:lesson-1 skipped [grounded-adapter-bounded-repair-policy:0/0]",
+        "canonicalKernelAdmission": "missing lesson-1 · lesson-1:authoring:no-authoring-fields",
+        "enrichmentModelStage": "failed: no usable Pass B payloads (linker: ran)",
+        "nativeAuthoring": "assembled 1 sessions onto Pass A entity ids · outcomes/activities 0/1 · knowledge kernels admitted 0/1 · 0 registry readings · CurriculumV1 repaired 1 lessons / 1 assessments",
+        "knowledgeBackbone": "The approved or exact-source-only route uses supplied evidence; no duplicate reading search.",
+        "courseGraph": "1/1/1 sessions/concepts/outcomes",
+        "groundingMetrics": "overall 42.7% · syllabus 3% · lessonPlans 4% · slideDecks 32% · assignments 99% · rubrics 21% · discussions 96% · quizBank 59% · studyGuides 3% · courseFaq 39%",
+        "enrichment": "failed: no usable Pass B payloads",
+        "nativeReconstruction": {
+          "status": "deterministic-reconstruction",
+          "readinessRepairedFieldCount": 25,
+          "claimBoundary": "Fallback; unverified."
+        }
+      }
+    }
+  ],
+  "objectiveRetainedAfterFix": true,
+  "sourceProposal": {
+    "operation": "pooled-proportion",
+    "modelCalls": 12,
+    "elapsedMs": 10083,
+    "bindings": {
+      "firstCountRecord": {
+        "inputId": "",
+        "quote": "",
+        "occurrence": null
+      },
+      "secondCountRecord": {
+        "inputId": "",
+        "quote": "",
+        "occurrence": null
+      },
+      "firstPart": {
+        "inputId": "",
+        "quote": "",
+        "occurrence": null
+      },
+      "firstWhole": {
+        "inputId": "",
+        "quote": "",
+        "occurrence": null
+      },
+      "firstGroup": {
+        "inputId": "input-f8c34b4f-3af9-4474-b05a-4c9b4f220a89",
+        "quote": "Fictional library service note",
+        "occurrence": 0
+      },
+      "secondPart": {
+        "inputId": "",
+        "quote": "",
+        "occurrence": null
+      },
+      "secondWhole": {
+        "inputId": "",
+        "quote": "",
+        "occurrence": null
+      },
+      "secondGroup": {
+        "inputId": "input-16c74f69-4d82-4321-b1ea-2d56f7759522",
+        "quote": "staff equipment service",
+        "occurrence": 0
+      },
+      "countingUnit": {
+        "inputId": "",
+        "quote": "",
+        "occurrence": null
+      },
+      "countedOutcome": {
+        "inputId": "",
+        "quote": "",
+        "occurrence": null
+      },
+      "commonDefinition": {
+        "inputId": "input-f8c34b4f-3af9-4474-b05a-4c9b4f220a89",
+        "quote": "Both desks used closing time on the same Friday as the return deadline.",
+        "occurrence": 0
+      },
+      "identityRecord": {
+        "inputId": "input-886e7778-f2dc-479e-97bf-4f82169aeca9",
+        "quote": "tablet-identities: The loan records identify individual tablets. Each tablet was issued once at exactly one desk during this week; there were no transfers between desks. The two desks served different borrower groups, and the note gives no reason for the difference in their return patterns.",
+        "occurrence": 0
+      },
+      "distinctMembership": {
+        "inputId": "input-886e7778-f2dc-479e-97bf-4f82169aeca9",
+        "quote": "Each tablet was issued once at exactly one desk during this week; there were no transfers between desks.",
+        "occurrence": 0
+      },
+      "limitRecord": {
+        "inputId": "input-886e7778-f2dc-479e-97bf-4f82169aeca9",
+        "quote": "tablet-identities: The loan records identify individual tablets. Each tablet was issued once at exactly one desk during this week; there were no transfers between desks. The two desks served different borrower groups, and the note gives no reason for the difference in their return patterns.",
+        "occurrence": 0
+      }
+    },
+    "adoption": {
+      "filledRoles": [
+        "firstGroup",
+        "secondGroup",
+        "commonDefinition",
+        "identityRecord",
+        "distinctMembership",
+        "limitRecord"
+      ],
+      "preservedRoles": [],
+      "differingRoles": []
+    },
+    "remainingEmptyRoles": [
+      "firstCountRecord",
+      "secondCountRecord",
+      "firstPart",
+      "firstWhole",
+      "secondPart",
+      "secondWhole",
+      "countingUnit",
+      "countedOutcome"
+    ],
+    "applied": false,
+    "manualFinding": "firstGroup is a source header, not a counted group; secondGroup is the explicitly excluded staff equipment service. Exact source quotation does not establish correct role."
+  },
+  "acceptance": "not-passed",
+  "limits": [
+    "Development input already exposed; not one of twelve fresh acceptance units.",
+    "Two real homepage runs report one provider call and two pipeline calls each; do not call the latter two independent provider requests.",
+    "No actual Word/PDF/ZIP or independent teacher review for these outputs.",
+    "Course name remains meta-instructional and material tasks remain generic.",
+    "Raw .coursemapper files are retained locally; committed evidence includes project hashes, run receipts and actual source proposal."
+  ]
+}

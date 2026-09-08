@@ -3077,10 +3077,9 @@ export function backfillNativeAuthoringFromLessonContent({
     const third = labels[2] || second || first;
     const lessonTitle =
       cleanText(session?.title, 120).replace(/^lesson\s+\d+\s*[:.-]\s*/i, '') || first || 'the lesson focus';
-    const outcomes = cleanAtomList(session.sourceObjectives?.length ? session.sourceObjectives : existing.outcomes, {
-      maxItems: 8,
-      maxChars: 300,
-    });
+    const outcomes = session.sourceObjectives?.length
+      ? [...session.sourceObjectives]
+      : cleanAtomList(existing.outcomes, { maxItems: 8, maxChars: 300 });
     const asyncActivities = cleanAtomList(existing.asyncActivities, { maxItems: 4, maxChars: 160 });
     const syncActivities = cleanAtomList(existing.syncActivities, { maxItems: 4, maxChars: 160 });
     const lessonNumber = Number(session?.order || String(lessonId).match(/\d+/)?.[0] || 1);

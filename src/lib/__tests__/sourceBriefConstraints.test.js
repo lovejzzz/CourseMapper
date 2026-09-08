@@ -79,6 +79,32 @@ describe('source brief constraints', () => {
     ).toEqual(['Compare two source accounts and explain their limits.']);
   });
 
+  it('preserves labeled teacher objectives without an English verb whitelist', () => {
+    const objective =
+      'Combine unequal group counts to calculate a return proportion, distinguish tablet weighting from desk weighting, and separate a descriptive result from an explanation of desk performance.';
+    expect(
+      extractSingleLessonObjectives(
+        `Create a lesson.\nLearning objective: ${objective}\n\nSources:\n1. A service note.`,
+      ),
+    ).toEqual([objective]);
+    expect(extractSingleLessonObjectives('教学目标：合并不同规模组的计数，解释平均百分比与合并比例的区别。')).toEqual([
+      '合并不同规模组的计数，解释平均百分比与合并比例的区别。',
+    ]);
+    expect(extractSingleLessonObjectives('Learning objective: Justify a denominator. State its limits.')).toEqual([
+      'Justify a denominator. State its limits.',
+    ]);
+    expect(extractSingleLessonObjectives('Create a lesson. Learning objective: Combine the counts.')).toEqual([
+      'Combine the counts.',
+    ]);
+  });
+
+  it('does not adopt an objective label inside source material as teacher authority', () => {
+    expect(
+      extractSingleLessonObjectives('Create a lesson.\nSources:\nLearning objective: Invent a different task.'),
+    ).toEqual([]);
+    expect(extractSingleLessonObjectives('创建课程。\n来源：\n教学目标：这只是引用记录。')).toEqual([]);
+  });
+
   it('parses the compact generation controls and preserves intent precedence', () => {
     expect(parseClassSessionMinutes('50 min')).toBe(50);
     expect(parseClassSessionMinutes('2 hr')).toBe(120);

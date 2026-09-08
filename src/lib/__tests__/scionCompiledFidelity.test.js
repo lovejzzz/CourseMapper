@@ -206,6 +206,27 @@ describe('Scion material fidelity after compilation', () => {
     });
     expect(buildNativeWireMap(skeleton, authored).lessons[0].sections[0].learningObjectives).toContain(objective);
   });
+  it('keeps the labeled teacher objective over model-authored generic outcomes', () => {
+    const objective =
+      'Combine unequal group counts to calculate a return proportion, distinguish tablet weighting from desk weighting, and separate a descriptive result from an explanation of desk performance.';
+    const skeleton = parseNativeSkeletonResponse(
+      JSON.stringify({
+        course: { name: 'Tablet returns' },
+        sessions: [{ order: 1, title: 'Return proportions', sectionTitles: ['Counts', 'Weighting'] }],
+        assessments: [],
+        readings: [],
+        resources: [],
+      }),
+      {
+        expectedLessons: 1,
+        sourceText: `Create a lesson.\nLearning objective: ${objective}\nSources:\nA fictional service note.`,
+      },
+    );
+    expect(skeleton.sessions[0].sourceObjectives).toEqual([objective]);
+    const wire = buildNativeWireMap(skeleton, { 'lesson-1': { outcomes: ['Explain key ideas.'] } });
+    expect(wire.lessons[0].sections.flatMap((s) => s.learningObjectives || [])).toEqual([objective]);
+  });
+
   it('turns a worked example into an answerable practice item with the complete worked answer', () => {
     const surfaces = projectKernelToSurfaces(
       {

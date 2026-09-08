@@ -179,16 +179,25 @@ export function extractInstructorProvidedFacts(sourceBrief = '') {
  * or the introductory lesson colon. Never distribute that objective across
  * an inferred multi-session sequence. */
 export function extractSingleLessonObjectives(sourceBrief = '') {
-  const text = String(sourceBrief || '')
-    .replace(/\s+/g, ' ')
-    .trim();
-  const labeled = text.match(/\b(?:learning objectives?|learning outcomes?)\s*:\s*/i);
+  // A teacher's explicit label is authoritative; a verb vocabulary is only
+  // appropriate for guessing an objective from an unlabeled introduction.
+  // Keep source-record prose outside this authority boundary.
+  const brief = String(sourceBrief || '').replace(/\r\n?/g, '\n');
+  const sourceStart = brief.search(/^\s*(?:sources?|source facts?|来源|来源材料|资料)\s*[:：]/im);
+  const instructions = sourceStart < 0 ? brief : brief.slice(0, sourceStart);
+  const explicit = instructions.match(
+    /^\s*(?:learning objectives?|learning outcomes?|objectives?|学习目标|教学目标)\s*[:：][ \t]*([^\n]+)/im,
+  );
+  if (explicit?.[1]?.trim()) return [explicit[1].trim()];
+  const text = instructions.replace(/\s+/g, ' ').trim();
+  const inlineLabel = text.match(/\b(?:learning objectives?|learning outcomes?)\s*:\s*/i);
   const firstSentence = [...new Intl.Segmenter('en', { granularity: 'sentence' }).segment(text)][0]?.segment || '';
   const intro = firstSentence.match(/\b(?:lesson|class|session|workshop)\b[^:]*:\s*/i);
-  const marker = labeled || intro;
+  const marker = inlineLabel || intro;
   if (!marker) return [];
-  const tail = (labeled ? text : firstSentence).slice(marker.index + marker[0].length);
+  const tail = (inlineLabel ? text : firstSentence).slice(marker.index + marker[0].length);
   const objective = [...new Intl.Segmenter('en', { granularity: 'sentence' }).segment(tail)][0]?.segment.trim() || '';
+  if (inlineLabel) return objective ? [objective] : [];
   if (
     !/^(?:calculate|compute|compare|distinguish|explain|identify|analy[sz]e|evaluate|design|solve|interpret|demonstrate|apply|use|describe|write|create|measure|summarize)\b/i.test(
       objective,

@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Preserve explicitly labeled single-lesson teacher objectives independently of an English action-verb whitelist, including Chinese labels and complete same-line objectives. Keep source-record labels outside this authority boundary. A real local Scion rerun now retains the supplied weighting objective instead of generic outcomes; the unchanged input and both run receipts are recorded. Subsequent pooled-source proposals still fail group identification and remain unapplied.
+
 - Preserve drafting terminology, document states and student revision actions instead of globally rewriting them to make materials sound complete. A v3 development output exposed “drafting dates” being changed to “developing dates”; the language regression suite now runs in the standard Scion checks.
 - Add a serial v3 development compiler diagnostic with strict input/reference separation, immutable run directories, per-case captures, hashes and pending educational judgments. Preserve the first 36-case run; material presence does not certify a shared task or classroom readiness. No model calls or reserved-case product runs.
 
