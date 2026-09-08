@@ -4,6 +4,7 @@
 
 Stabilization release of the existing website, by explicit user scope decision. Retains local Scion, the 0.18.7 interface, ten material categories, existing editors and applicable exports. The ground-up rebuild and unfinished v0.20.0 acceptance scope are deferred; this release does not claim that roadmap is complete.
 
+- Preserve direct regeneration of older source-compiled projects without a canonical task ledger; keep strict atomic refresh for saved shared-task projects.
 - Ship protected shared-task regeneration, saved review drafts, improved source selection, objective preservation, linked answers/scoring and student-copy export improvements developed since 0.19.2.
 - Give student Word/PDF download controls distinct identifiers and accessible audience labels; verify both student and teacher downloads.
 - Restore the release formatting gate while preserving byte-identical research inputs, raw model receipts and hash-bound evaluation evidence.

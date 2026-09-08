@@ -4,6 +4,7 @@ import useStreamReader from './useStreamReader';
 import { getArrayKey } from '../lib/syncDependencies';
 import { preserveTeacherEdits, refreshTeachingTaskCompilation } from '../lib/teachingTaskContentSync.js';
 import { sameJsonData } from '../lib/canonicalJson.js';
+import { readTeachingTaskSources } from '../lib/teachingProgram.js';
 import { failedDeliverableState } from '../lib/failedDeliverableState.js';
 import { isRenderedDeliverableCollectionFeature } from '../lib/renderedDeliverableCollection.js';
 import {
@@ -5996,7 +5997,15 @@ export default function useDeliverables({
                 const [lessonNumber] = resolveExpectedDeliverableLessonNumbers(courseMap, [lessonIndex]);
                 nextData = mergeCompiledLessonTaskSources(nextData, finalParsed, courseMap, lessonNumber);
               }
-              if (compileResult.sourceTaskCompiled && syncGenId === null && !lessonMergeRejected) {
+              // Atomic group refresh requires the saved canonical task ledger. Older
+              // source-compiled projects only carry inferred task projections in
+              // materials; retain their existing per-lesson regeneration path.
+              if (
+                compileResult.sourceTaskCompiled &&
+                readTeachingTaskSources(courseMap).length > 0 &&
+                syncGenId === null &&
+                !lessonMergeRejected
+              ) {
                 const current = deliverablesRef.current;
                 const refresh =
                   sameJsonData(current[featureId]?.data, existingDataSnapshot) &&
@@ -6015,6 +6024,12 @@ export default function useDeliverables({
                         message: 'This material changed during regeneration. Retry using the current version.',
                       };
                 if (refresh.status !== 'ready') {
+                  traceGeneration(
+                    regenerationRunId,
+                    'lesson_regen_rejected',
+                    { featureId, lessonIndex, reason: refresh.message },
+                    'warn',
+                  );
                   dispatch(actions.setDeliverableError(featureId, refresh.message, current[featureId]));
                   return {
                     status: 'error',
