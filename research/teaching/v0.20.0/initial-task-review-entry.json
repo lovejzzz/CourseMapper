@@ -1,0 +1,29 @@
+{
+  "baseline": "7e313a48a9dafa34c857e738627f164dcd5fd2fa",
+  "change": "Connect completed sourced generation without a shared task to the existing assignment task review; require explicit operation selection.",
+  "checks": {
+    "studio": 58,
+    "compatibility": 684,
+    "scion": 898,
+    "fullCheck": "passed"
+  },
+  "browser": {
+    "surface": "existing native Chrome tab at localhost:17148",
+    "input": "saved natural-quantity-dev-03-02/first-run.coursemapper",
+    "observations": [
+      "Assignment task editor expanded on entry",
+      "No default teaching focus",
+      "Draft buttons disabled before focus selection",
+      "Union-bounds selection enabled drafting",
+      "Manual draft retained all three original records"
+    ],
+    "newModelCalls": 0,
+    "appliedTasks": 0
+  },
+  "limits": [
+    "No new homepage model generation in this revision.",
+    "End-of-generation routing inspected in code; browser evidence covers saved-project assignment entry.",
+    "No automatic operation classification or semantic approval.",
+    "Full v0.20.0 acceptance remains incomplete."
+  ]
+}

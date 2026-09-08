@@ -21,6 +21,7 @@ import {
   quoteOccurrences,
   mergeTeachingSourceSuggestions,
   reviewableTeachingTaskSources,
+  needsInitialTeachingTaskReview,
 } from '../../../lib/teachingTaskReview.js';
 
 const fieldLabels = {
@@ -133,7 +134,11 @@ export default function TeachingTaskReview({
   const [messageDetails, setMessageDetails] = useState([]);
   const [busy, setBusy] = useState(false);
   const [newLesson, setNewLesson] = useState('');
-  const [newOperation, setNewOperation] = useState('observed-proportion');
+  const [newOperation, setNewOperation] = useState('');
+  const [reviewOpen, setReviewOpen] = useState(
+    () => featureId === 'assignments' && needsInitialTeachingTaskReview(courseMap, sourceBrief),
+  );
+  const [creationOpen, setCreationOpen] = useState(() => !options.sources.length && !initialEntry);
   const [proposing, setProposing] = useState(false);
   const [lastProposalReceipt, setLastProposalReceipt] = useState(null);
   const proposalController = useRef(null);
@@ -157,7 +162,7 @@ export default function TeachingTaskReview({
             objective: '',
           }
         : options.sources[0]);
-  const zh = /\p{Script=Han}/u.test(selected?.objective || '');
+  const zh = /\p{Script=Han}/u.test(selected?.objective || sourceBrief || '');
   const t = (en, cn) => (zh ? cn : en);
   function setMessage(value, details = []) {
     setMessageState(value);
@@ -207,6 +212,7 @@ export default function TeachingTaskReview({
     setMessage(t('Draft discarded.', '草稿已放弃。'));
   }
   async function beginNew(withScion = false) {
+    if (!newOperation || busy) return;
     const next = createNewTeachingTaskReviewDraft(courseMap, {
       lessonNumber: Number(newLesson || options.lessons[0]?.lessonNumber),
       operation: newOperation,
@@ -429,8 +435,11 @@ export default function TeachingTaskReview({
   }
   return (
     <details
+      open={reviewOpen}
       className="mx-4 mt-2 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700"
       onToggle={(event) => {
+        if (event.target !== event.currentTarget) return;
+        setReviewOpen(event.currentTarget.open);
         if (event.target === event.currentTarget && event.currentTarget.open && !draft && selected) begin();
       }}
     >
@@ -501,7 +510,13 @@ export default function TeachingTaskReview({
         </label>
       )}
       {options.lessons.length > 0 && (
-        <details className="mt-3 rounded border border-slate-200 p-3">
+        <details
+          open={creationOpen}
+          onToggle={(event) => {
+            if (event.target === event.currentTarget) setCreationOpen(event.currentTarget.open);
+          }}
+          className="mt-3 rounded border border-slate-200 p-3"
+        >
           <summary className="cursor-pointer font-medium">{t('Create a teaching task', '创建教学任务')}</summary>
           <fieldset disabled={busy} className="mt-3 space-y-3">
             <label className="block">
@@ -523,8 +538,10 @@ export default function TeachingTaskReview({
               <select
                 className={fieldClass}
                 value={newOperation}
+                aria-label={t('Teaching focus', '教学重点')}
                 onChange={(event) => setNewOperation(event.target.value)}
               >
+                <option value="">{t('Choose the teaching focus', '选择教学重点')}</option>
                 <option value="observed-proportion">
                   {t('Observed proportion and population limits', '观察比例与总体限制')}
                 </option>
@@ -540,10 +557,20 @@ export default function TeachingTaskReview({
               </select>
             </label>
             <div className="flex flex-wrap gap-3">
-              <button type="button" className="font-medium underline" onClick={() => beginNew(true)}>
+              <button
+                type="button"
+                disabled={!newOperation}
+                className="font-medium underline disabled:opacity-50"
+                onClick={() => beginNew(true)}
+              >
                 {t('Draft with local Scion', '用本地 Scion 起草')}
               </button>
-              <button type="button" className="underline" onClick={() => beginNew()}>
+              <button
+                type="button"
+                disabled={!newOperation}
+                className="underline disabled:opacity-50"
+                onClick={() => beginNew()}
+              >
                 {t('Start task draft', '开始任务草稿')}
               </button>
             </div>

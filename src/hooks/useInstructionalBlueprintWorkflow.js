@@ -1,6 +1,7 @@
 import { useCallback, useEffect } from 'react';
 import { analyzeSourceBriefConstraints } from '../lib/sourceBriefConstraints.js';
 import { clearSetupRecovery } from '../lib/setupRecovery.js';
+import { needsInitialTeachingTaskReview } from '../lib/teachingTaskReview.js';
 
 /**
  * Keep the instructional blueprint as an internal quality contract.
@@ -25,6 +26,7 @@ export default function useInstructionalBlueprintWorkflow({
   getOrderedSelectedDeliverables,
   generateAll,
   finalizeGeneratedPackage,
+  onInitialTaskReview,
 }) {
   const prepareInternalPlan = useCallback(
     async (sourceCourseMap, { updatePackageStatus = true } = {}) => {
@@ -153,6 +155,12 @@ export default function useInstructionalBlueprintWorkflow({
         scopeIndices,
         workflowEpoch,
       );
+      if (stopped()) return { status: 'aborted' };
+      if (
+        orderedFeatures.includes('assignments') &&
+        needsInitialTeachingTaskReview(courseMapRef.current || currentCourseMap, sourceBrief)
+      )
+        onInitialTaskReview?.('assignments');
       setReview((current) =>
         markInstructionalBlueprintReviewExecuted(current || executionReview, courseMapRef.current || currentCourseMap),
       );
@@ -169,6 +177,8 @@ export default function useInstructionalBlueprintWorkflow({
       packageWorkflowEpochRef,
       prepareInternalPlan,
       setReview,
+      onInitialTaskReview,
+      sourceBrief,
     ],
   );
 

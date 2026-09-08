@@ -12,6 +12,20 @@ import { deriveCourseGraphFromCourseMap } from './courseGraph/deriveFromCourseMa
 const revision = (value) => sha256HexSync(canonicalJson(value));
 const reviewIssue = (message) => ({ status: 'needs-review', message });
 
+/** Route supplied records to the existing review editor when generation has
+ * not established any shared task. This is not an operation classifier. */
+export function needsInitialTeachingTaskReview(courseMap, sourceBrief) {
+  try {
+    return (
+      availableTeachingTaskLessons(courseMap).length > 0 &&
+      readTeachingTaskSources(courseMap).length === 0 &&
+      (labeledSourceRecords(String(sourceBrief || '').replace(/\r\n?/g, '\n')) || []).length > 0
+    );
+  } catch {
+    return false;
+  }
+}
+
 export function quoteOccurrences(text, quote) {
   if (typeof text !== 'string' || typeof quote !== 'string' || !quote.length) return [];
   const positions = [];

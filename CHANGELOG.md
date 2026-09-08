@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Route generated courses with supplied records but no shared task to the existing assignment review editor. Open its task controls, require an explicit teaching focus, and retain the original sources in the draft. Cancelled workflows do not change the active material.
+
 - Recover interrupted private feedback receipts when response review reopens against the exact committed task. Journal the confirmed revision before changing course materials; preserve newer judgments, respect deletion and leave unapplied or subsequently changed tasks pending.
 
 - Upgrade reviewed membership tasks to presentation v6: explicitly assess intersection and union ranges, paired counts and feasibility of every intermediate integer. Add concrete scoring distinctions, paragraph references and response paper; keep PDF table headers with their first body row. Preserve v3–v5 task renderings byte-for-byte in English/Chinese. Audit six English PDF pages from a saved real-model task.

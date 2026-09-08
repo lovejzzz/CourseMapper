@@ -7,6 +7,7 @@ import {
   commitTeachingTaskReview,
   resolveTeachingTaskReviewDraft,
   mergeTeachingSourceSuggestions,
+  needsInitialTeachingTaskReview,
 } from '../teachingTaskReview.js';
 import {
   readTeachingTaskSources,
@@ -454,4 +455,13 @@ describe('original brief to new teaching task draft', () => {
     );
     expect(map.lessons[0].sections[0].learningObjectives).toBe('Existing lesson objective');
   });
+});
+
+it('requests initial task review only for supplied records and a course without shared tasks', () => {
+  const map = { lessons: [{ title: 'Workshop counts' }] };
+  expect(needsInitialTeachingTaskReview(map, 'Sources:\n1. [roster] The club has 28 members.')).toBe(true);
+  expect(needsInitialTeachingTaskReview(map, 'Please teach workshop attendance.')).toBe(false);
+  expect(needsInitialTeachingTaskReview({ lessons: [] }, 'Sources:\n1. [roster] There are 28 members.')).toBe(false);
+  expect(needsInitialTeachingTaskReview(null, '')).toBe(false);
+  expect(needsInitialTeachingTaskReview(setup().courseMap, 'Sources:\n1. [roster] There are 28 members.')).toBe(false);
 });

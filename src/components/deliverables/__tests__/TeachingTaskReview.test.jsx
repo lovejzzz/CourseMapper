@@ -53,6 +53,13 @@ describe('teacher structure review interaction', () => {
     expect(element).toBeTruthy();
     await act(async () => element.click());
   };
+  async function chooseFocus(value = 'observed-proportion') {
+    await act(async () => {
+      const select = container.querySelector('[aria-label="Teaching focus"]');
+      select.value = value;
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+  }
   async function renderReview(props = {}) {
     const onPreview = vi.fn(() => ({ status: 'preview', task, impacts: [{ featureId: 'rubrics', conflicts: [] }] }));
     const onCommit = vi.fn(() => ({ status: 'applied' }));
@@ -126,6 +133,40 @@ describe('teacher structure review interaction', () => {
       input.dispatchEvent(new Event('input', { bubbles: true }));
     });
   }
+
+  it('opens the existing task editor for sourced assignments without guessing a teaching focus', async () => {
+    const onProposeSources = vi.fn();
+    const onSaveDraft = vi.fn();
+    await act(async () =>
+      root.render(
+        <TeachingTaskReview
+          featureId="assignments"
+          courseMap={{
+            lessons: [{ title: 'Attendance', sections: [{ learningObjectives: 'Explain feasible counts.' }] }],
+          }}
+          sourceBrief={'Sources:\n1. [roster] The club has 28 members.'}
+          onPreview={vi.fn()}
+          onCommit={vi.fn()}
+          onProposeSources={onProposeSources}
+          onSaveDraft={onSaveDraft}
+        />,
+      ),
+    );
+    expect(container.querySelector('details').open).toBe(true);
+    const creation = [...container.querySelectorAll('summary')].find(
+      (row) => row.textContent === 'Create a teaching task',
+    );
+    expect(creation.parentElement.open).toBe(true);
+    expect(container.querySelector('[aria-label="Teaching focus"]').value).toBe('');
+    await click(button('Draft with local Scion'));
+    expect(onProposeSources).not.toHaveBeenCalled();
+    expect(onSaveDraft).not.toHaveBeenCalled();
+    await chooseFocus('union-bounds');
+    await click(button('Start task draft'));
+    expect(onSaveDraft.mock.calls[0][0].operation).toBe('union-bounds');
+    expect(onSaveDraft.mock.calls[0][0].inputs[0].text).toContain('28 members');
+    expect(onProposeSources).not.toHaveBeenCalled();
+  });
 
   it('resumes project drafts after changing material tabs without restoring approval, and removes only an applied draft', async () => {
     let owner;
@@ -203,6 +244,7 @@ describe('teacher structure review interaction', () => {
       );
     }
     await act(async () => root.render(<Workspace featureId="rubrics" />));
+    await chooseFocus();
     await click(button('Start task draft'));
     await enter('Record 1', 'First lesson unfinished source');
     const firstId = owner.book.activeTaskId;
@@ -213,6 +255,7 @@ describe('teacher structure review interaction', () => {
       lessonSelector.value = '2';
       lessonSelector.dispatchEvent(new Event('change', { bubbles: true }));
     });
+    await chooseFocus();
     await click(button('Start task draft'));
     await enter('Record 1', 'Second lesson unfinished source');
     expect(owner.book.entries).toHaveLength(2);
@@ -270,6 +313,8 @@ describe('teacher structure review interaction', () => {
     const sourceBrief = `Objective: ${f.objective}\nSources:\n${f.inputs.map((input, i) => `Record ${i + 1}: ${input.text}`).join('\n')}`;
     await renderReview({ courseMap: emptyMap, data, onPreview, onCommit, onProposeSources, sourceBrief });
     expect(button('Draft with local Scion')).toBeTruthy();
+    expect(button('Draft with local Scion').disabled).toBe(true);
+    await chooseFocus();
     await click(button('Draft with local Scion'));
     for (const [index, input] of f.inputs.entries()) {
       expect(container.querySelector(`[aria-label="Record ${index + 1}"]`).value).toBe(
@@ -305,6 +350,8 @@ describe('teacher structure review interaction', () => {
       sourceBrief: `Sources:\nRecord 1: ${f.inputs[0].text}`,
       onProposeSources: async () => ({ status, bindings: {}, issues: [], unknowns: [] }),
     });
+    expect(button('Draft with local Scion').disabled).toBe(true);
+    await chooseFocus();
     await click(button('Draft with local Scion'));
     expect(onSaveDraft).toHaveBeenCalled();
     expect(container.querySelector('[aria-label="Record 1"]').value).toContain(f.inputs[0].text);

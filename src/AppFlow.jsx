@@ -2823,6 +2823,7 @@ export default function AppFlow({
     getOrderedSelectedDeliverables,
     generateAll: deliv.generateAll,
     finalizeGeneratedPackage,
+    onInitialTaskReview: setActiveTab,
   });
 
   // v0.18.2 projects may have been saved while waiting on the retired plan
