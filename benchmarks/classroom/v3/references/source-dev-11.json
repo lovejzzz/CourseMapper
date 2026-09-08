@@ -1,0 +1,44 @@
+{
+  "id": "source-dev-11",
+  "split": "development",
+  "family": "source",
+  "language": "en",
+  "sourceFamily": "missing-contract-addendum",
+  "scope": "needs-input",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "The exact deadline and verbatim clause cannot be supplied. The email identifies an absent signed addendum and clause 4 but does not state its content. Ask for that document; retain the known source pointer. Do not invent a date, quotation or claim about which legal rule governs.",
+  "acceptableReasoning": [
+    "Locate the source pointer without treating it as the missing text.",
+    "Request the attachment before producing the exact answer."
+  ],
+  "reject": [
+    "Invent any deadline date or clause quotation.",
+    "Treat clause 4 as the fourth day of a month."
+  ],
+  "requiredScoring": [
+    "Specific missing document identified",
+    "No invented answer",
+    "Useful retained pointer"
+  ],
+  "contrastResponses": [
+    {
+      "response": "The email points to clause 4 of the signed addendum, which is missing. Please supply that attachment to identify and quote the deadline.",
+      "judgment": "Correct limitation with useful next step."
+    },
+    {
+      "response": "I can record the clause pointer but cannot quote absent text or determine a date from it.",
+      "judgment": "Valid alternative limitation."
+    },
+    {
+      "response": "Need more information.",
+      "judgment": "Insufficiently specific; should name the absent addendum."
+    },
+    {
+      "response": "Delivery is due on 4 April under clause 4.",
+      "judgment": "Fabricates a date from a clause number."
+    }
+  ],
+  "editCheck": "Provide a fictional addendum explicitly stating delivery by 18 May in clause 4. The exact-text request becomes answerable from that supplied source; retain attribution.",
+  "inputIsolation": "Only request, objective and sources enter the product; this reference is evaluator-only. No model run or release pass is claimed."
+}

@@ -1,0 +1,46 @@
+{
+  "id": "source-dev-09",
+  "split": "development",
+  "family": "source",
+  "language": "en",
+  "sourceFamily": "quotation-negation-context",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "The summary omits “do not” and reverses the current recommendation. The memo does not recommend closure this month; it conditionally proposes considering temporary closure if a later inspection identifies unsafe beams. It neither orders closure now nor guarantees the workshop is safe or will never close. No inspection result is supplied.",
+  "acceptableReasoning": [
+    "Quote the current recommendation with its negation.",
+    "Preserve the inspection condition and “should be considered” rather than turning it into an order.",
+    "Separate absent inspection evidence from a finding of safety."
+  ],
+  "reject": [
+    "The memo orders immediate closure.",
+    "The workshop is proven safe.",
+    "The memo guarantees it will never close."
+  ],
+  "requiredScoring": [
+    "Faithful quotation",
+    "Conditional recommendation versus decision",
+    "Unknown inspection outcome"
+  ],
+  "contrastResponses": [
+    {
+      "response": "“We do not recommend closing” contradicts the summary. Later closure is only to be considered if unsafe beams are found, and no result is supplied.",
+      "judgment": "Faithful text and conditional scope."
+    },
+    {
+      "response": "Reject the current-closure claim, but keep future consideration open pending inspection; the memo is not a safety certificate.",
+      "judgment": "Valid paraphrase preserving the limits."
+    },
+    {
+      "response": "The summary is wrong.",
+      "judgment": "No quoted negation or explanation of the conditional recommendation."
+    },
+    {
+      "response": "Removing “do not” leaves the meaning unchanged.",
+      "judgment": "Reverses the source’s recommendation."
+    }
+  ],
+  "editCheck": "Change the memo’s first sentence to “We recommend closing the workshop this month.” The current recommendation changes, but it still is not an executed closure order or an inspection result.",
+  "inputIsolation": "Only request, objective and sources enter the product; this reference is evaluator-only. No model run or release pass is claimed."
+}

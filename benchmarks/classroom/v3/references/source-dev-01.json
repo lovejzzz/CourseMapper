@@ -1,0 +1,46 @@
+{
+  "id": "source-dev-01",
+  "split": "development",
+  "family": "source",
+  "language": "en",
+  "sourceFamily": "meeting-event-publication",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "The vote is recorded on 7 March; the draft was finished on 9 March and the account printed on 12 March. These are distinct stages, not contradictory dates. Neither the catalogue update nor “last Tuesday” establishes a year from the supplied extracts.",
+  "acceptableReasoning": [
+    "Attribute the vote to the minutes and publication to the gazette.",
+    "Explain why recording/reporting dates do not replace an explicitly stated event date.",
+    "Retain the missing year and do not use the unrelated catalogue date."
+  ],
+  "reject": [
+    "The vote took place on 12 March.",
+    "The vote occurred in 2021.",
+    "One source is forged because the dates differ."
+  ],
+  "requiredScoring": [
+    "Correct date-to-stage mapping with attribution",
+    "Explanation of apparent discrepancy",
+    "Explicit missing-year boundary"
+  ],
+  "contrastResponses": [
+    {
+      "response": "7 March vote, 9 March draft, 12 March publication, all according to the linked archive; the year is not supplied.",
+      "judgment": "Complete mapping and boundary; accept a timeline or prose."
+    },
+    {
+      "response": "The minutes place the vote before the draft and report: 7, 9 and 12 March respectively. An undated-year clipping cannot be assigned the catalogue year.",
+      "judgment": "A valid alternative with relative chronology and attribution."
+    },
+    {
+      "response": "7 March.",
+      "judgment": "Correct event date alone does not demonstrate the other date roles or missing-year reasoning."
+    },
+    {
+      "response": "The 12 March newspaper proves the vote happened in 2021.",
+      "judgment": "Conflates publication with event and imports an unrelated year."
+    }
+  ],
+  "editCheck": "Change only the gazette printing date to 15 March. Publication changes; the 7 March vote and unknown year must remain. Preserve teacher commentary.",
+  "inputIsolation": "Only request, objective and sources enter the product; this reference is evaluator-only. No model run or release pass is claimed."
+}

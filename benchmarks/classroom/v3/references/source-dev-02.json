@@ -1,0 +1,46 @@
+{
+  "id": "source-dev-02",
+  "split": "development",
+  "family": "source",
+  "language": "zh",
+  "sourceFamily": "museum-holiday-exception",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "6月10日按明确例外开放；6月17日没有被例外涵盖，依常规周一闭馆。转发把单日例外扩大为永久改变，不能据此推出所有周一开放。材料未给年份，不须补造真实日历。",
+  "acceptableReasoning": [
+    "分别引用常规周一闭馆与仅6月10日例外。",
+    "对两个给定周一逐一检查例外范围。",
+    "区分馆方通知与转发的扩大解释。"
+  ],
+  "reject": [
+    "6月17日也开放。",
+    "6月10日闭馆。",
+    "自行给通知添加年份。"
+  ],
+  "requiredScoring": [
+    "两日期安排正确",
+    "例外范围解释",
+    "对转发的证据判断"
+  ],
+  "contrastResponses": [
+    {
+      "response": "10日开放、17日闭馆；补充告示只排除了10日的常规规则，转发不能扩大到所有周一。",
+      "judgment": "结论与范围均充分。"
+    },
+    {
+      "response": "把常规规则记为周一闭馆，再只对10日打例外标记；17日仍适用原规则，不推断年份。",
+      "judgment": "等价的规则表述，应接受。"
+    },
+    {
+      "response": "10日开放。",
+      "judgment": "只答一日，未解释17日及转发问题。"
+    },
+    {
+      "response": "告示说周一开放，所以以后所有周一都开放。",
+      "judgment": "把单日例外扩大，不能得到范围解释分。"
+    }
+  ],
+  "editCheck": "将例外日期从6月10日改为6月17日，并同步将告示中的“仅适用”日期改成17日。两个日期结论反转；常规规则不变。",
+  "inputIsolation": "Only request, objective and sources enter the product; this reference is evaluator-only. No model run or release pass is claimed."
+}

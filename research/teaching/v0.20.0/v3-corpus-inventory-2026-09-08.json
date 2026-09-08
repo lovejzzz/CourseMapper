@@ -1,0 +1,306 @@
+{
+  "status": "incomplete",
+  "productRuns": 0,
+  "frozen": false,
+  "errors": [],
+  "missing": [
+    "experiment-dev-01: fewer than four contrast responses",
+    "experiment-dev-02: fewer than four contrast responses",
+    "quantity-dev-01: fewer than four contrast responses",
+    "quantity-dev-02: fewer than four contrast responses",
+    "quantity/development/en: need 5 supported + 1 limit, have 1 + 0",
+    "quantity/development/zh: need 5 supported + 1 limit, have 1 + 0",
+    "quantity/development: need exactly one needs-input",
+    "quantity/development: need exactly one out-of-scope",
+    "quantity/reserved/en: need 3 supported + 1 limit, have 0 + 0",
+    "quantity/reserved/zh: need 3 supported + 1 limit, have 0 + 0",
+    "quantity/reserved: need exactly one needs-input",
+    "quantity/reserved: need exactly one out-of-scope",
+    "source/reserved/en: need 3 supported + 1 limit, have 0 + 0",
+    "source/reserved/zh: need 3 supported + 1 limit, have 0 + 0",
+    "source/reserved: need exactly one needs-input",
+    "source/reserved: need exactly one out-of-scope",
+    "experiment/development/en: need 5 supported + 1 limit, have 1 + 0",
+    "experiment/development/zh: need 5 supported + 1 limit, have 1 + 0",
+    "experiment/development: need exactly one needs-input",
+    "experiment/development: need exactly one out-of-scope",
+    "experiment/reserved/en: need 3 supported + 1 limit, have 0 + 0",
+    "experiment/reserved/zh: need 3 supported + 1 limit, have 0 + 0",
+    "experiment/reserved: need exactly one needs-input",
+    "experiment/reserved: need exactly one out-of-scope",
+    "Need 60 base cases; found 16"
+  ],
+  "distribution": [
+    {
+      "family": "quantity",
+      "split": "development",
+      "language": "en",
+      "supported": 1,
+      "limits": 0,
+      "expectedSupported": 5,
+      "expectedLimits": 1
+    },
+    {
+      "family": "quantity",
+      "split": "development",
+      "language": "zh",
+      "supported": 1,
+      "limits": 0,
+      "expectedSupported": 5,
+      "expectedLimits": 1
+    },
+    {
+      "family": "quantity",
+      "split": "reserved",
+      "language": "en",
+      "supported": 0,
+      "limits": 0,
+      "expectedSupported": 3,
+      "expectedLimits": 1
+    },
+    {
+      "family": "quantity",
+      "split": "reserved",
+      "language": "zh",
+      "supported": 0,
+      "limits": 0,
+      "expectedSupported": 3,
+      "expectedLimits": 1
+    },
+    {
+      "family": "source",
+      "split": "development",
+      "language": "en",
+      "supported": 5,
+      "limits": 1,
+      "expectedSupported": 5,
+      "expectedLimits": 1
+    },
+    {
+      "family": "source",
+      "split": "development",
+      "language": "zh",
+      "supported": 5,
+      "limits": 1,
+      "expectedSupported": 5,
+      "expectedLimits": 1
+    },
+    {
+      "family": "source",
+      "split": "reserved",
+      "language": "en",
+      "supported": 0,
+      "limits": 0,
+      "expectedSupported": 3,
+      "expectedLimits": 1
+    },
+    {
+      "family": "source",
+      "split": "reserved",
+      "language": "zh",
+      "supported": 0,
+      "limits": 0,
+      "expectedSupported": 3,
+      "expectedLimits": 1
+    },
+    {
+      "family": "experiment",
+      "split": "development",
+      "language": "en",
+      "supported": 1,
+      "limits": 0,
+      "expectedSupported": 5,
+      "expectedLimits": 1
+    },
+    {
+      "family": "experiment",
+      "split": "development",
+      "language": "zh",
+      "supported": 1,
+      "limits": 0,
+      "expectedSupported": 5,
+      "expectedLimits": 1
+    },
+    {
+      "family": "experiment",
+      "split": "reserved",
+      "language": "en",
+      "supported": 0,
+      "limits": 0,
+      "expectedSupported": 3,
+      "expectedLimits": 1
+    },
+    {
+      "family": "experiment",
+      "split": "reserved",
+      "language": "zh",
+      "supported": 0,
+      "limits": 0,
+      "expectedSupported": 3,
+      "expectedLimits": 1
+    }
+  ],
+  "cases": [
+    {
+      "id": "experiment-dev-01",
+      "family": "experiment",
+      "split": "development",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "workshop-stamp-drying",
+      "inputSha256": "35deac8ca16e52dd0d6b225b41bf274a1ee20334dbe063dec0c2c52c08b9e6db",
+      "referenceSha256": "97459f3419bedeccdf36dfe8e73f0d77593019b802f64dc242bc35eb08886592"
+    },
+    {
+      "id": "experiment-dev-02",
+      "family": "experiment",
+      "split": "development",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "cup-sleeve-temperature-loss",
+      "inputSha256": "7a1875a115f51ec800220be60933e4df5ef05696a090f5ed1e6d00639cf6b365",
+      "referenceSha256": "029ac29659646139eb079f886ce446a84afb841bc357c2a754811281879a5348"
+    },
+    {
+      "id": "quantity-dev-01",
+      "family": "quantity",
+      "split": "development",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "library-tablet-return-pooling",
+      "inputSha256": "23ba60d71c51b0d80eb78a9360855c2166f77fa06dfa65dc9484e6e998793623",
+      "referenceSha256": "a2da180f8a53156a4bb60c8a25cad37635a3afa56356144fdb0349ab79dde796"
+    },
+    {
+      "id": "quantity-dev-02",
+      "family": "quantity",
+      "split": "development",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "campus-observation-club-overlap",
+      "inputSha256": "5849a32ad7a33836261cd995f9575da1fec13c45521977d94a7b113dc86e67ce",
+      "referenceSha256": "218fa4fc2aa26882964e0d315df868183e0135aeee850cb507c4d3424be135f1"
+    },
+    {
+      "id": "source-dev-01",
+      "family": "source",
+      "split": "development",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "meeting-event-publication",
+      "inputSha256": "e942560aef394b7826ffe9f1b0ab460061a6e949d5606cc31e7a3a701e2ac352",
+      "referenceSha256": "2bdc9530d0a86fef2ab3269f0231776ffd62c2368911ae92baf158ef75230ebb"
+    },
+    {
+      "id": "source-dev-02",
+      "family": "source",
+      "split": "development",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "museum-holiday-exception",
+      "inputSha256": "ce99730e6155b7cd4e5694f0f911f666405be44e2da4e7372a31e8195429c25f",
+      "referenceSha256": "39dd04db12e6c741b18f7339104a5f9cc4359b9eacf698dc1a8d1fe75dc28ccc"
+    },
+    {
+      "id": "source-dev-03",
+      "family": "source",
+      "split": "development",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "river-observation-hearsay",
+      "inputSha256": "77f8751ecfe0c2550d8e1abee4f00cdf91f8c3959bca5f627adb5782ea465a60",
+      "referenceSha256": "057bb640751b32e5b31a906934388364b72b5611e29a0c77510757a11049864d"
+    },
+    {
+      "id": "source-dev-04",
+      "family": "source",
+      "split": "development",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "bus-count-conflicting-witnesses",
+      "inputSha256": "292792cab4927326ec8b3878c1269da1eef13cd8bac5eaf07c683929ad1fb364",
+      "referenceSha256": "f5e7f979ce3770d5a81189b2952371d232db2ff7cddd617cad139656a64c7bbb"
+    },
+    {
+      "id": "source-dev-05",
+      "family": "source",
+      "split": "development",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "library-retraction-scope",
+      "inputSha256": "f6fa092a96a57c77fc66401548621373d7d659ad035b00b38da58d76d1c7aba4",
+      "referenceSha256": "7443acc569e7d12db6867da9825482dd75d95ebf1870ba0dd29fe959bc5e0c45"
+    },
+    {
+      "id": "source-dev-06",
+      "family": "source",
+      "split": "development",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "diary-perspective-evaluation",
+      "inputSha256": "cb5e1877797a578076977c2983c5bfc1e3f11dd47b437a377123af8830783ad5",
+      "referenceSha256": "841babb881bcfe10e047848e8ac2d171fe8d0d57efa33cfe91a0eb6b85755056"
+    },
+    {
+      "id": "source-dev-07",
+      "family": "source",
+      "split": "development",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "oral-history-date-precision",
+      "inputSha256": "066e7c20cca987c75d81dca9addb726b4640ef9b722b7fbf5138d14852b9bdd9",
+      "referenceSha256": "65fbcbf707e122f5eaefe44a1c0e1092a91f67e34e2b48e80248c8fa8978b088"
+    },
+    {
+      "id": "source-dev-08",
+      "family": "source",
+      "split": "development",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "catalogue-object-identity",
+      "inputSha256": "68e794c2bfd00fbc913d1aed102dd0a5be2fa5bd1ac9078660d98a187cb6d229",
+      "referenceSha256": "7394d66cef15f8f9a3adf31093305b090c0f695044f34a9fbf816c01d69e808e"
+    },
+    {
+      "id": "source-dev-09",
+      "family": "source",
+      "split": "development",
+      "language": "en",
+      "scope": "supported",
+      "sourceFamily": "quotation-negation-context",
+      "inputSha256": "73660a1d4448a0396c73f11f75dac59d25460d9dcd5b09e49f1ba06ee171ecfa",
+      "referenceSha256": "b334855d758028439c1a4a6dbbe6997f9f10d5140282a0dd3647698182f8551f"
+    },
+    {
+      "id": "source-dev-10",
+      "family": "source",
+      "split": "development",
+      "language": "zh",
+      "scope": "supported",
+      "sourceFamily": "map-plan-completion",
+      "inputSha256": "4cd8de15b45e7c5da0fe7d2e12f50509e5373c5915d6ea49cd25d6ca0abca608",
+      "referenceSha256": "55da6c9b556892210f1f1f96b2cd64f341b23d89e59d50ab9d975cc47dc516e5"
+    },
+    {
+      "id": "source-dev-11",
+      "family": "source",
+      "split": "development",
+      "language": "en",
+      "scope": "needs-input",
+      "sourceFamily": "missing-contract-addendum",
+      "inputSha256": "bc35e3e355378117cac1df9c79e6358eead486545ecdad776d3181a2fa234e1b",
+      "referenceSha256": "a06e2e769cd85f9175dfa587f39d7c7d59a58d722725dccaba3ea6c20063a389"
+    },
+    {
+      "id": "source-dev-12",
+      "family": "source",
+      "split": "development",
+      "language": "zh",
+      "scope": "out-of-scope",
+      "sourceFamily": "physical-ink-authentication",
+      "inputSha256": "3ce85d7c2e5baecface8a6f0d7496da43afbb2780efd978771ebf75ff9c03393",
+      "referenceSha256": "eeac8f955856384a20ddfe07adaff4d8a40e723d792de605c5891303978230aa"
+    }
+  ],
+  "limitation": "Human content/family review and an immutable manifest are still required. This is not a model or classroom pass."
+}

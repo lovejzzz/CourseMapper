@@ -1,0 +1,18 @@
+{
+  "request": "Build a 50-minute lesson in which students distinguish event, drafting and publication dates, cite the relevant records and correct a misleading timeline. Include editable tasks, answer references and scoring.",
+  "objective": "Distinguish dates that describe different stages of one event without inventing missing years.",
+  "sources": [
+    {
+      "id": "minutes",
+      "text": "Fictional committee archive: the minutes say the bridge proposal was voted on at the meeting of 7 March. The secretary finished the draft on 9 March. No year appears in this extract."
+    },
+    {
+      "id": "gazette",
+      "text": "The town gazette printed an account on 12 March saying “At last Tuesday’s meeting, the committee approved the proposal.” The supplied clipping has no year. The archive links this account to the meeting in the minutes."
+    },
+    {
+      "id": "timeline",
+      "text": "A student labels 12 March as the vote date because that is the printed date. An unrelated collection catalogue was updated in 2021."
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "id": "source-dev-10",
+  "split": "development",
+  "family": "source",
+  "language": "zh",
+  "sourceFamily": "map-plan-completion",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "1934规划图证明该桥被规划，1935记录证明预算获批，都不能确定开工或竣工。虚线图例尤其不能被当成当时实物存在。竣工年份未知；需对应同桥的施工日志、验收或可靠注明日期的实物证据。1936道路修缮不能填补桥梁缺口。",
+  "acceptableReasoning": [
+    "按图例解释拟建设施。",
+    "区分预算批准与实施完成。",
+    "提出同一桥梁的完成证据并排除无关道路记录。"
+  ],
+  "reject": [
+    "桥于1934年建成。",
+    "预算批准意味着1935已经竣工。",
+    "用1936道路修缮当桥梁验收。"
+  ],
+  "requiredScoring": [
+    "文书性质区分",
+    "结论边界",
+    "同对象证据需求"
+  ],
+  "contrastResponses": [
+    {
+      "response": "图与记录只给规划和批准，竣工时间未给；要查同桥验收或施工记录，不能用道路维修年份。",
+      "judgment": "充分区分过程与证据。"
+    },
+    {
+      "response": "可以列1934规划、1935批准，但把开工和竣工两栏留为未知，并说明需要什么文件。",
+      "judgment": "接受结构化时间线。"
+    },
+    {
+      "response": "应该查更多资料。",
+      "judgment": "没有指出哪一步缺证据或所需文件。"
+    },
+    {
+      "response": "图上画了桥，所以1934已经有桥。",
+      "judgment": "把规划符号当作已完成事实。"
+    }
+  ],
+  "editCheck": "补入1937年明确对应同桥的竣工验收单。可更新验收/竣工记录年份；不得由此自动推出开工年份。",
+  "inputIsolation": "Only request, objective and sources enter the product; this reference is evaluator-only. No model run or release pass is claimed."
+}

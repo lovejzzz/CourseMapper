@@ -1,0 +1,18 @@
+{
+  "request": "Build a lesson where students reconcile differing precision in dated sources and state the strongest shared chronology without inventing an exact day.",
+  "objective": "Distinguish a broad interval from a narrower event claim and from the date of recollection.",
+  "sources": [
+    {
+      "id": "letter",
+      "text": "Fictional letter dated 18 August: “We finished installing the pump yesterday.” The supplied packet gives no year."
+    },
+    {
+      "id": "interview",
+      "text": "An interview recorded on 4 October recalls: “The pump was installed sometime in August.” The archive identifies the same installation, not a second pump."
+    },
+    {
+      "id": "note",
+      "text": "No source says that the interview recording date was the installation date. There is no evidence about when the pump first operated successfully."
+    }
+  ]
+}

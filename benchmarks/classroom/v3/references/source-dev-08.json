@@ -1,0 +1,46 @@
+{
+  "id": "source-dev-08",
+  "split": "development",
+  "family": "source",
+  "language": "zh",
+  "sourceFamily": "catalogue-object-identity",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "名称相同不足以证明A17和B42是同一对象。现阶段不能据此断言同一瓶被记为两个年代，也不能认定两瓶必然不同或哪一年代为真。需要新旧编号对应、流转记录、尺寸照片等建立对象关系后再比较年代依据。甲的“约”还应保留。",
+  "acceptableReasoning": [
+    "保留两份目录的不同编号及年代精度。",
+    "把同一对象关系标为未建立，而不是默认相同。",
+    "提出能连接身份的记录后再讨论年代冲突。"
+  ],
+  "reject": [
+    "同名说明肯定同一瓶。",
+    "编号不同说明绝不可能同一瓶。",
+    "A17确实制造于十九世纪某一年。"
+  ],
+  "requiredScoring": [
+    "对象身份审查",
+    "双向不确定性",
+    "核查方案与约略精度"
+  ],
+  "contrastResponses": [
+    {
+      "response": "A17约十九世纪、B42二十世纪，但同名不等于同物。缺少编号对应，不能判年代冲突或真伪；先查流转与身份记录。",
+      "judgment": "身份与精度边界完整。"
+    },
+    {
+      "response": "建立两个暂未连接的条目；若以后有编号更换证明再比较年代，目前保留是否同物的问题。",
+      "judgment": "合理的条件性替代。"
+    },
+    {
+      "response": "它们的年代不一样。",
+      "judgment": "只比较属性，没有先核对对象。"
+    },
+    {
+      "response": "既然叫青花小瓶，一定同一件，所以甲是假的。",
+      "judgment": "从名称直接推身份和真伪，均无依据。"
+    }
+  ],
+  "editCheck": "补充经确认的编号变更表，明确A17后来改为B42。此时建立同物关系，两年代判断需进一步查证；仍不可直接裁定哪个正确。",
+  "inputIsolation": "Only request, objective and sources enter the product; this reference is evaluator-only. No model run or release pass is claimed."
+}

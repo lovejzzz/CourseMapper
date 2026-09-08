@@ -1,0 +1,46 @@
+{
+  "id": "source-dev-05",
+  "split": "development",
+  "family": "source",
+  "language": "en",
+  "sourceFamily": "library-retraction-scope",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "The corrected article should be cited as giving 1921 for the opening year, with the correction acknowledged. The notice withdraws 1912, not the oak-table claim. It neither verifies nor refutes the furniture statement. The packet does not independently authenticate the historical facts; report what the corrected source says rather than claiming external confirmation.",
+  "acceptableReasoning": [
+    "Locate the corrected paragraph and replacement text.",
+    "Bound the correction to the opening-year claim.",
+    "Separate corrected-source attribution from independent historical verification."
+  ],
+  "reject": [
+    "The correction establishes non-oak tables.",
+    "1912 remains the corrected opening year.",
+    "All article claims are independently verified."
+  ],
+  "requiredScoring": [
+    "Correct replacement and attribution",
+    "Correction scope",
+    "Verification boundary"
+  ],
+  "contrastResponses": [
+    {
+      "response": "The publisher corrects paragraph 2 to 1921. The oak claim is untouched and remains unverified in this packet; cite the article with its correction.",
+      "judgment": "Fully scoped use of the correction."
+    },
+    {
+      "response": "Withdraw 1912 from the citation, insert 1921 as the corrected source’s year, and leave a separate furniture question open.",
+      "judgment": "Valid claim-by-claim alternative."
+    },
+    {
+      "response": "It opened in 1921.",
+      "judgment": "Gives the replacement but overstates the packet if offered as independently proved and omits scope."
+    },
+    {
+      "response": "The tables cannot have been oak because a different paragraph was wrong.",
+      "judgment": "Unjustified transfer of a correction to another claim."
+    }
+  ],
+  "editCheck": "Change the correction to replace “oak” with “pine” in paragraph 5 only. Update the corrected furniture statement and stop treating the opening year as corrected.",
+  "inputIsolation": "Only request, objective and sources enter the product; this reference is evaluator-only. No model run or release pass is claimed."
+}

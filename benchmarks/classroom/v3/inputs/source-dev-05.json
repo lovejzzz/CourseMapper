@@ -1,0 +1,18 @@
+{
+  "request": "Create a source-argument lesson in which students trace a narrowly scoped correction and revise a citation without dismissing unrelated claims.",
+  "objective": "Apply a correction to its specified claim while retaining uncertainty about claims it does not address.",
+  "sources": [
+    {
+      "id": "article",
+      "text": "Fictional local-history article: paragraph 2 says the library opened in 1912; paragraph 5 says the reading room had oak tables. The packet includes no original documents for either statement."
+    },
+    {
+      "id": "correction",
+      "text": "The publisher’s correction explicitly replaces “1912” in paragraph 2 with “1921”. It says the notice addresses the opening year only and makes no finding about the furniture."
+    },
+    {
+      "id": "student",
+      "text": "A student writes: “Because the opening year was corrected, the article proves the tables were not oak.”"
+    }
+  ]
+}

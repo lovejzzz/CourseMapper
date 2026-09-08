@@ -1,0 +1,46 @@
+{
+  "id": "source-dev-04",
+  "split": "development",
+  "family": "source",
+  "language": "zh",
+  "sourceFamily": "bus-count-conflicting-witnesses",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "甲乙对同一时刻、同一车辆、同一包含司机口径给出18与21，构成人数冲突；不能靠平均19.5确定真实人数，也不能判某人说谎。另一辆车的21不解决B2。应索取同一事件的原始计数表、视频或独立核对，查明计数过程。",
+  "acceptableReasoning": [
+    "先核对对象、时刻、单位和是否包含司机。",
+    "在口径一致后指出18与21仍冲突。",
+    "保留实际人数判断，提出能对应同一事件的核查。"
+  ],
+  "reject": [
+    "实际人数就是19.5。",
+    "乙一定正确，因为另一车也有21人。",
+    "甲一定撒谎。"
+  ],
+  "requiredScoring": [
+    "冲突定位完整",
+    "不越界裁决真伪",
+    "核查材料对应同一事件"
+  ],
+  "contrastResponses": [
+    {
+      "response": "同一B2、同一14:05、同含司机，18与21相冲突。现有材料不能决定人数；查同事件原始计数或视频。",
+      "judgment": "充分识别与保留判断。"
+    },
+    {
+      "response": "两记录不能同时作为该时刻的精确总数使用；先追查计数过程，不把平均值或红车数据当裁决。",
+      "judgment": "可接受替代论证。"
+    },
+    {
+      "response": "两个人数不同。",
+      "judgment": "缺少对象和口径核对，未说明如何处理。"
+    },
+    {
+      "response": "取平均，真实有19.5人。",
+      "judgment": "平均不解决真实人数冲突。"
+    }
+  ],
+  "editCheck": "把乙的时间改为14:12，其余不变。不能继续声称同一时刻直接冲突；可以说不同时间人数不同，但不能补造上落客过程。",
+  "inputIsolation": "Only request, objective and sources enter the product; this reference is evaluator-only. No model run or release pass is claimed."
+}

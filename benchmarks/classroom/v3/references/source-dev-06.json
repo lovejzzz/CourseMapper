@@ -1,0 +1,46 @@
+{
+  "id": "source-dev-06",
+  "split": "development",
+  "family": "source",
+  "language": "zh",
+  "sourceFamily": "diary-perspective-evaluation",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "两则均描述钟响三下时队伍经过广场，核心事件陈述可以并存。振奋与不安是各自感受，不是对人数等同一事实给出互斥值。不能由感受推断作者党派、年龄或经历；也不能推出人数和年份。应明确归属“甲感到”“乙感到”。",
+  "acceptableReasoning": [
+    "引用共同事件陈述。",
+    "将主观感受分别归属作者而不抹去差异。",
+    "说明缺少身份和日期资料，拒绝补写背景。"
+  ],
+  "reject": [
+    "两人一定有一个撒谎。",
+    "乙一定属于反对党。",
+    "游行有三人或发生在三点整。"
+  ],
+  "requiredScoring": [
+    "事实与评价区分",
+    "引用及归属",
+    "身份人数日期边界"
+  ],
+  "contrastResponses": [
+    {
+      "response": "甲乙均说钟响三下时队伍经过；振奋与不安属于个人评价，可以并存。身份、人数与年份未知。",
+      "judgment": "充分区分并保留边界。"
+    },
+    {
+      "response": "可以写成同一场面引发不同感受，不能将其中一种感受定为假，也不能补造两人的政治身份。",
+      "judgment": "合理替代解释。"
+    },
+    {
+      "response": "两人的看法不同。",
+      "judgment": "只概括差异，未指出共同事实或推断边界。"
+    },
+    {
+      "response": "乙感到不安，因此肯定是反对党成员。",
+      "judgment": "从情绪推出未提供身份，不可得分。"
+    }
+  ],
+  "editCheck": "将乙改为“钟楼没有响，队伍没有经过广场”，仍明确同一事件时段。现在出现事件陈述冲突；仍不能据此裁定谁撒谎。",
+  "inputIsolation": "Only request, objective and sources enter the product; this reference is evaluator-only. No model run or release pass is claimed."
+}

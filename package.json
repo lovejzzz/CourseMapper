@@ -32,8 +32,9 @@
     "test:scion": "vitest run --config vitest.scion.config.js",
     "benchmark:outputs": "vite-node scripts/benchmarks/runClassroomBenchmark.ts",
     "benchmark:outputs:test": "node --test scripts/benchmarks/classroomBenchmark.test.mjs",
-    "benchmark:acceptance:test": "node --test scripts/benchmarks/classroomAcceptance.test.mjs",
-    "benchmark:acceptance": "vite-node scripts/benchmarks/runClassroomAcceptance.ts --split development --strict"
+    "benchmark:acceptance:test": "node --test scripts/benchmarks/classroomAcceptance.test.mjs scripts/benchmarks/inspectClassroomV3.test.mjs",
+    "benchmark:acceptance": "vite-node scripts/benchmarks/runClassroomAcceptance.ts --split development --strict",
+    "benchmark:v3:inventory": "node scripts/benchmarks/inspectClassroomV3.mjs"
   },
   "dependencies": {
     "@cfworker/json-schema": "4.1.1",

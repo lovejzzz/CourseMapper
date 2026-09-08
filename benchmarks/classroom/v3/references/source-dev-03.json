@@ -1,0 +1,46 @@
+{
+  "id": "source-dev-03",
+  "split": "development",
+  "family": "source",
+  "language": "en",
+  "sourceFamily": "river-observation-hearsay",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "The notebook records the writer’s visual descriptions at two times, not measured chemical composition. The resident’s statement is an attributed report, not independently established discharge evidence. The editorial adds a causal and intent claim unsupported by the packet. Brown water alone does not identify a substance, source or intent; this does not prove the factory innocent either.",
+  "acceptableReasoning": [
+    "Attribute each statement to its speaker and distinguish seeing, reporting and evaluating.",
+    "Retain the limits of visual evidence and lack of sampling.",
+    "Request tests or linked discharge records before resolving cause; do not reverse lack of evidence into innocence."
+  ],
+  "reject": [
+    "Dye release and deliberate intent are proven.",
+    "The factory is proven innocent.",
+    "The observer measured contamination levels."
+  ],
+  "requiredScoring": [
+    "Correct classification and attribution",
+    "Limits on causal and intent claims",
+    "Concrete additional evidence request"
+  ],
+  "contrastResponses": [
+    {
+      "response": "The writer saw brown water; the resident alleged a release, and the editorial inferred intent. None identifies a chemical or proves cause. Seek a sampled analysis and linked discharge record.",
+      "judgment": "Meets classification, boundary and next-evidence requirements."
+    },
+    {
+      "response": "Treat the notebook as a visual observation and quote the resident with attribution. Withhold judgment on both deliberate pollution and innocence until relevant tests and records are available.",
+      "judgment": "Accept a differently organized argument that preserves both uncertainties."
+    },
+    {
+      "response": "The notebook is reliable and the editorial is opinion.",
+      "judgment": "Labels alone do not separate the resident’s report or explain what the notebook can establish."
+    },
+    {
+      "response": "Brown water proves deliberate dye dumping.",
+      "judgment": "Unsupported substance, source and intent claims."
+    }
+  ],
+  "editCheck": "Add an authenticated sample identifying a brown mineral but no source attribution. Composition can be updated; factory cause and intent must still not be asserted.",
+  "inputIsolation": "Only request, objective and sources enter the product; this reference is evaluator-only. No model run or release pass is claimed."
+}

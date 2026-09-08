@@ -1,0 +1,46 @@
+{
+  "id": "source-dev-07",
+  "split": "development",
+  "family": "source",
+  "language": "en",
+  "sourceFamily": "oral-history-date-precision",
+  "scope": "supported",
+  "authorKind": "implementer-constructed",
+  "reviewerKind": "implementer",
+  "judgment": "The letter places completion on 17 August relative to its 18 August date; the interview’s broader August recollection is compatible. The interview was recorded 4 October, which is not the installation date. No year or first successful operation date is established. Attribute the exact day to the letter rather than pretending both sources independently state it.",
+  "acceptableReasoning": [
+    "Resolve yesterday against the explicit letter date.",
+    "Test the exact day against the broader month interval.",
+    "Keep installation completion, interview recording and successful operation distinct."
+  ],
+  "reject": [
+    "Installation was 4 October.",
+    "Both sources explicitly say 17 August.",
+    "The pump worked successfully on 17 August."
+  ],
+  "requiredScoring": [
+    "Anchored relative-date inference",
+    "Compatibility and source-specific precision",
+    "Unknown year/operation boundary"
+  ],
+  "contrastResponses": [
+    {
+      "response": "The letter implies completion on 17 August; the interview says only August, which is compatible. October 4 dates the interview, and operation/year remain unknown.",
+      "judgment": "Complete supported chronology."
+    },
+    {
+      "response": "Use an August interval for what both sources support, then annotate that only the letter narrows completion to the 17th. Do not infer first operation.",
+      "judgment": "Valid conservative alternative with precision attribution."
+    },
+    {
+      "response": "August.",
+      "judgment": "Shared month is correct but does not address the letter inference or recording-date distinction."
+    },
+    {
+      "response": "The October interview proves installation happened October 4.",
+      "judgment": "Confuses later recollection with the event."
+    }
+  ],
+  "editCheck": "Change the letter date to 1 September, keeping “yesterday.” The inferred completion becomes 31 August and remains compatible with the interview; retain the missing year.",
+  "inputIsolation": "Only request, objective and sources enter the product; this reference is evaluator-only. No model run or release pass is claimed."
+}

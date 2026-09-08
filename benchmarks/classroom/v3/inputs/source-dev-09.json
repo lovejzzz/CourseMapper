@@ -1,0 +1,18 @@
+{
+  "request": "Create a close-reading lesson on whether an extracted quotation supports a proposed policy claim. Students should quote enough context to preserve a negation and explain what recommendation remains open.",
+  "objective": "Preserve negation and conditional scope when using a source as evidence.",
+  "sources": [
+    {
+      "id": "memo",
+      "text": "Fictional planning memo: “We do not recommend closing the workshop this month. If the roof inspection later identifies unsafe beams, temporary closure should be considered. The inspection has not yet taken place.”"
+    },
+    {
+      "id": "summary",
+      "text": "A circulated summary quotes “recommend closing the workshop this month” and claims the memo ordered an immediate closure."
+    },
+    {
+      "id": "context",
+      "text": "The packet contains no inspection result and no later decision. A separate office repainting schedule is irrelevant to the workshop roof."
+    }
+  ]
+}
