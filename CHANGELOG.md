@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Constrain argument proposal JSON and whole-record citations only on runtimes with verified grammar support; reject unchanged schema examples as well as duplicate performance bands. Preserve four real candidate-runtime trials, including opt-in staged/thinking comparisons: format improved, but objective coverage and teaching quality did not meet acceptance. Production runtime and homepage generation remain unchanged.
+
 - Add a single-call local teaching-argument proposal boundary with input snapshots, raw responses, runtime/adapter receipts, cancellation and strict rejection of incomplete output. Two real browser development trials still failed; preserve both outputs and revert the unsuccessful compact-prompt experiment. This is not yet connected to shared-task application or accepted as a quality improvement.
 
 - Add an unapproved source-argument proposal contract: concrete tasks/answers, evidence-linked reasoning, four performance levels, feedback and explicit unknowns. Validate exact source spans and source-byte hashes while keeping semantic correctness and task/rubric alignment under review. This foundation is not yet connected to generation or shared-task application.

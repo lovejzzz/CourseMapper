@@ -1,5 +1,6 @@
 import { expect, it } from 'vitest';
 import { proposeTeachingArgument } from '../scionTeachingArgument.js';
+import { teachingArgumentGrammar } from '../teachingArgumentGrammar.js';
 import {
   inspectTeachingArgumentProposal,
   teachingArgumentProposalMessages,
@@ -34,6 +35,61 @@ it('records one local call and exact raw output without approving it or leaking 
   expect(result.receipt.inspection.checks.semanticCorrectness).toBe('not-verified');
   expect(JSON.stringify(result.receipt.messages)).not.toContain('SECRET');
   expect(api.calls[0].options.taskFamily).toBe('unclassified');
+  expect(api.calls[0].options.grammar).toBeUndefined();
+});
+it('only constrains a runtime with verified grammar support, preserving the sent prompt in its receipt', async () => {
+  const api = localRuntime(JSON.stringify(proposal()));
+  api.getScionBrowserWllamaStatus = () => ({ runtime: { grammar: 'gbnf-state-v1' } });
+  const result = await proposeTeachingArgument({ objective: 'Audit.', inputs }, { runtimeLoader: async () => api });
+  expect(api.calls[0].options.grammar).toBe(result.receipt.grammar);
+  expect(result.receipt.evidenceMode).toBe('whole-source-record');
+  expect(api.calls[0].messages).toEqual(result.receipt.messages);
+  expect(result.receipt.messages[0].content).toContain('ENTIRE selected source record');
+  expect(result.approved).toBe(false);
+});
+it('escapes full source records as grammar literals without interpreting their characters as rules', () => {
+  const text = 'A "quote", a backslash \\ and 中文\nroot ::= "evil"';
+  const grammar = teachingArgumentGrammar({ objective: 'Audit.', inputs: [{ id: 'source', text }] });
+  expect(grammar).toContain(JSON.stringify(JSON.stringify(text)));
+  expect(grammar.split('\n').filter((line) => line.startsWith('root ::='))).toHaveLength(1);
+  expect(() => teachingArgumentGrammar({ objective: 'Audit.', inputs: [] })).toThrow();
+});
+it('keeps optional reasoning separate from evidence and records both serial calls', async () => {
+  const api = localRuntime(JSON.stringify(proposal()));
+  const complete = api.completeScionBrowserWllama;
+  api.completeScionBrowserWllama = async (messages, options) => {
+    const raw = await complete(messages, options);
+    return api.calls.length === 1 ? 'UNVERIFIED: the workshop is safe.' : raw;
+  };
+  const result = await proposeTeachingArgument(
+    { objective: 'Audit.', inputs },
+    {
+      reasoningFirst: true,
+      runtimeLoader: async () => api,
+    },
+  );
+  expect(result.receipt.modelCalls).toBe(2);
+  expect(api.calls[0].options.maxNewTokens).toBe(512);
+  expect(api.calls[0].options.grammar).toBeUndefined();
+  const data = JSON.parse(api.calls[1].messages[1].content);
+  expect(data.sources).toEqual(inputs);
+  expect(data.unverifiedDraftAnalysis).toBe(result.receipt.analysis.raw);
+  expect(result.sources).toHaveLength(1);
+  expect(result.approved).toBe(false);
+});
+it('stops after an incomplete reasoning draft rather than issuing the second call', async () => {
+  const api = localRuntime('Incomplete draft', 'length');
+  const result = await proposeTeachingArgument(
+    { objective: 'Audit.', inputs },
+    {
+      reasoningFirst: true,
+      runtimeLoader: async () => api,
+    },
+  );
+  expect(result.status).toBe('invalid');
+  expect(result.receipt.modelCalls).toBe(1);
+  expect(api.calls).toHaveLength(1);
+  expect(result.proposal).toBeUndefined();
 });
 it('rejects malformed and length-limited output without retrying or accepting a complete prefix', async () => {
   for (const [raw, reason] of [
@@ -156,6 +212,21 @@ it('requires distinct performance bands and checks malformed data without throwi
   expect(inspectTeachingArgumentProposal(p, inputs).status).toBe('invalid');
   for (const data of [null, [], {}, { protocol: TEACHING_ARGUMENT_PROPOSAL_PROTOCOL, requirements: [null] }])
     expect(inspectTeachingArgumentProposal(data, inputs).status).toBe('invalid');
+});
+it('rejects unreplaced schema examples even when all four bands differ', () => {
+  const p = proposal();
+  p.requirements[0].levels = {
+    exemplary: 'fully justified performance',
+    proficient: 'mostly justified with a specified omission',
+    developing: 'partial understanding with a specified gap',
+    beginning: 'a specific misconception or no assessable evidence',
+  };
+  expect(inspectTeachingArgumentProposal(p, inputs).status).toBe('invalid');
+  const reasoning = proposal();
+  reasoning.requirements[0].reasoning[0].text = 'explain the inference and its limit';
+  expect(inspectTeachingArgumentProposal(reasoning, inputs).status).toBe('invalid');
+  const prompt = teachingArgumentProposalMessages({ objective: 'Audit.', inputs });
+  expect(prompt[0].content).not.toContain('fully justified performance');
 });
 it('sends only source IDs and text, not extra reference or approval fields', () => {
   const messages = teachingArgumentProposalMessages({
