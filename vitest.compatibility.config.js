@@ -7,6 +7,8 @@ export default defineConfig({
     maxWorkers: 2,
     testTimeout: 30000,
     include: [
+      'src/lib/__tests__/{deliverablePostProcess,packageZipExporter}.test.js',
+      'src/lib/quality/__tests__/deepQualityStructure.test.js',
       'src/components/deliverables/__tests__/*.{test,spec}.{js,jsx}',
       'src/components/chat/__tests__/AgentWorkingSetPanel.test.jsx',
       'src/components/__tests__/{GenericDeliverableView,ExportSidePanel.readiness,Header}.test.jsx',

@@ -1,0 +1,11 @@
+{
+  "baseline": "95b2af39",
+  "kind": "Real Chrome re-preparation after zero-score preservation",
+  "projectSha256": "a5ba7fbe3bf3feac1e166a09a3c0886b59bf4ba198a0a863ba531d610707c4e7",
+  "outcome": "failed",
+  "quizStatus": "error",
+  "quizError": "Quiz lesson 1 has 5/6 evidence-bound question(s); the count must be exact. Quiz lesson 1 has question(s) without valid point values.",
+  "retries": 3,
+  "followup": "Accept zero in generation validation as well as normalization. Exact generic count versus reviewed practice sequence conflict remains unresolved.",
+  "classroomAcceptance": false
+}

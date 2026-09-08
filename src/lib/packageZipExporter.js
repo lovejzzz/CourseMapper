@@ -1113,7 +1113,19 @@ function buildLessonEvidenceDependencies({
     }
 
     for (const requirement of EXTERNAL_EVIDENCE_REQUIREMENT_PATTERNS) {
-      const match = requirement.pattern.exec(scopedText);
+      const matches = [...scopedText.matchAll(new RegExp(requirement.pattern.source, 'gi'))];
+      const match = matches.find((candidate) => {
+        const sentence = compactDependencyEvidence(scopedText, candidate.index);
+        // A quoted statement about absent evidence is not an instruction to
+        // obtain another handout. Keep scanning so a later real requirement
+        // cannot be hidden by an earlier description of the packet's limits.
+        return !(
+          requirement.kind === 'handout-or-packet' &&
+          /\bthere (?:is|are) no\b[^.!?]*\bin the (?:supplied|provided|assigned|attached|official) (?:source )?packet\b/i.test(
+            sentence,
+          )
+        );
+      });
       if (!match) continue;
       const evidence = compactDependencyEvidence(scopedText, match.index);
       // Attribution scaffolds often list "packet item, assigned reading,

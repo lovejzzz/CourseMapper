@@ -74,7 +74,9 @@ function getQuestionKey(quiz) {
 
 function getNumericValue(value) {
   if (typeof value === 'number' && Number.isFinite(value)) return value;
-  const parsed = Number(String(value ?? '').replace(/[^0-9.-]/g, ''));
+  const numericText = String(value ?? '').replace(/[^0-9.-]/g, '');
+  if (!numericText.trim()) return null;
+  const parsed = Number(numericText);
   return Number.isFinite(parsed) ? parsed : null;
 }
 
@@ -1036,7 +1038,9 @@ export function normalizeQuizBankPointTotals(data) {
     const questions = quiz[questionKey].map((question) => {
       const pointKey = question.points !== undefined ? 'points' : question.pt !== undefined ? 'pt' : 'points';
       const currentPoints = getQuestionPoints(question);
-      if (currentPoints !== null && currentPoints > 0) return question;
+      // Zero is an explicit ungraded activity, not a missing score. In
+      // particular, feedback retries must not charge for the same work twice.
+      if (currentPoints !== null && currentPoints >= 0) return question;
 
       patchedQuestionPoints++;
       quizChanged = true;
@@ -1047,7 +1051,7 @@ export function normalizeQuizBankPointTotals(data) {
     const totalKey = quiz.totalPoints !== undefined ? 'totalPoints' : quiz.tp !== undefined ? 'tp' : 'totalPoints';
     const currentTotal = getQuizTotalPoints(quiz);
     const nextQuiz = quizChanged ? { ...quiz, [questionKey]: questions } : { ...quiz };
-    if (pointSum > 0 && currentTotal !== pointSum) {
+    if (currentTotal !== pointSum) {
       nextQuiz[totalKey] = pointSum;
       patchedQuizTotals++;
       quizChanged = true;
@@ -1057,7 +1061,7 @@ export function normalizeQuizBankPointTotals(data) {
       nextQuiz.pointPlan !== undefined ? 'pointPlan' : nextQuiz.pp !== undefined ? 'pp' : 'pointPlan';
     const pointPlan = String(nextQuiz[pointPlanKey] || '').trim();
     const expectedPlan = summarizeQuizPointPlan(questions, pointSum);
-    if (pointSum > 0 && (!pointPlan || !String(pointPlan).includes(String(pointSum)))) {
+    if (!pointPlan || !String(pointPlan).includes(String(pointSum))) {
       nextQuiz[pointPlanKey] = expectedPlan;
       patchedPointPlans++;
       quizChanged = true;
@@ -1253,13 +1257,13 @@ export function validateDeliverableGeneration(featureId, data, options = {}) {
         retryableLessonIndices.push(index);
       }
       const points = questions.map(getQuestionPoints);
-      const hasMissingPoints = points.some((point) => point === null || point <= 0);
+      const hasMissingPoints = points.some((point) => point === null || point < 0);
       const pointSum = points.reduce((sum, point) => sum + Number(point || 0), 0);
       const total = getQuizTotalPoints(quiz);
       if (hasMissingPoints) {
         blockers.push(`Quiz lesson ${lessonLabel} has question(s) without valid point values.`);
         retryableLessonIndices.push(index);
-      } else if (total !== null && pointSum > 0 && total !== pointSum) {
+      } else if (total !== null && total !== pointSum) {
         blockers.push(`Quiz lesson ${lessonLabel} point total is ${total}, but questions sum to ${pointSum}.`);
         retryableLessonIndices.push(index);
       }

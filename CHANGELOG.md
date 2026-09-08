@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Preserve explicit zero-point practice through point normalization and generation validation, including all-ungraded totals. Exclude answer-writing rules from repeated-prose findings and distinguish an evidence-gap description from a later required packet. Add the post-processing, ZIP and structure-grader suites to the default check. Real re-preparation still exposes a five-item reviewed sequence versus generic six-question target conflict; that acceptance remains open.
+
 - Invalidate prepared export receipts after shared-task changes, material edits and undo/redo. A real browser regression exposed an updated editor downloading obsolete quiz answers; re-preparation now exports the revised task and removes those old answers. Order attribution questions around the explicit inference before the broader assertion; the latest local proposal still required one manual quote-boundary correction.
 
 - Validate incorrect attribution fields even when other fields are missing; reject claim text reused as its author or whole records reused as evidence. Add bounded atomic attribution proposals and distinct-record context constraints. Retain four real development failures, including a semantic role swap that passed structural preview; teacher review remains required. Correct attribution-specific review instructions.

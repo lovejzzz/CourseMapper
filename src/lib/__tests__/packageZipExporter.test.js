@@ -1434,6 +1434,36 @@ describe('packageZipExporter', () => {
     );
   });
 
+  it.each([false, true])(
+    'distinguishes quoted packet limits from a later required handout (%s)',
+    async (requirePacket) => {
+      const result = await buildCourseMaterialsZip({
+        courseMap: { courseName: 'Evidence limits', lessons: [{ title: 'Lesson 1: Claims', sections: [] }] },
+        deliverables: {
+          assignments: {
+            status: 'done',
+            data: {
+              assignments: [
+                {
+                  lessonNumber: 1,
+                  title: 'Compare claims',
+                  instructions: [
+                    'There is no chemical analysis, discharge record or evidence of intent in the supplied packet.',
+                    ...(requirePacket ? ['Read the supplied packet before writing your response.'] : []),
+                  ],
+                },
+              ],
+            },
+          },
+        },
+        featureIds: ['courseMap', 'assignments'],
+        quality: false,
+      });
+      const requirements = result.manifest.evidenceDependencies.lessons[0].requirements;
+      expect(requirements.some((r) => r.kind === 'handout-or-packet')).toBe(requirePacket);
+    },
+  );
+
   it('falls back to final ZIP grading when precomputed findings reference repaired-away files', async () => {
     const result = await buildCourseMaterialsZip({
       courseMap: makeCourseMap('Browser Export Course'),

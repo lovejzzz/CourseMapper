@@ -31,7 +31,7 @@ function repeatedLongParagraphs(file, minimumCopies = 3) {
       .replace(/\s+/g, ' ')
       .trim()
       .toLowerCase();
-    if (normalized.length < 40) continue;
+    if (normalized.length < 40 || !/[\p{L}\p{N}]/u.test(normalized)) continue;
     counts.set(normalized, (counts.get(normalized) || 0) + 1);
   }
   return [...counts.entries()].filter(([, count]) => count >= minimumCopies).sort((left, right) => right[1] - left[1]);

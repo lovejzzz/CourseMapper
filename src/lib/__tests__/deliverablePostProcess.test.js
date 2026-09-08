@@ -1140,9 +1140,61 @@ describe('Quiz Bank post-processing', () => {
     expect(result.data.quizzes[0].totalPoints).toBe(7);
     expect(result.data.quizzes[0].pointPlan).toContain('total = 7');
   });
+
+  it('preserves explicit zero-point practice while repairing missing or negative scores', () => {
+    const result = normalizeQuizBankPointTotals({
+      quizzes: [
+        {
+          totalPoints: 99,
+          questions: [
+            { type: 'short_answer', practiceKind: 'feedback-retry', points: 0 },
+            { type: 'short_answer', points: 0 },
+            { type: 'short_answer', points: -1 },
+            { type: 'short_answer' },
+          ],
+        },
+      ],
+    });
+    expect(result.data.quizzes[0].questions.map((q) => q.points)).toEqual([0, 0, 4, 4]);
+    expect(result.data.quizzes[0].totalPoints).toBe(8);
+    const ungraded = normalizeQuizBankPointTotals({
+      quizzes: [{ totalPoints: 4, questions: [{ type: 'short_answer', points: 0 }] }],
+    });
+    expect(ungraded.data.quizzes[0].totalPoints).toBe(0);
+    expect(normalizeQuizBankPointTotals(ungraded.data).data).toBe(ungraded.data);
+    for (const points of [null, '', 'not graded yet']) {
+      const missing = normalizeQuizBankPointTotals({ quizzes: [{ questions: [{ type: 'short_answer', points }] }] });
+      expect(missing.data.quizzes[0].questions[0].points).toBe(4);
+    }
+  });
 });
 
 describe('Deliverable generation validation', () => {
+  it('accepts ungraded practice and still rejects negative scores or incorrect totals', () => {
+    const data = {
+      quizzes: [
+        {
+          lessonNumber: 1,
+          totalPoints: 4,
+          questions: [
+            { type: 'short_answer', question: 'Explain the evidence.', points: 4 },
+            { type: 'short_answer', question: 'Revise after feedback.', points: 0 },
+            { type: 'short_answer', question: 'Reflect on the remaining limit.', points: 0 },
+          ],
+        },
+      ],
+    };
+    const options = { expectedLessonCount: 1, config: { questionsPerLesson: 3 } };
+    expect(validateDeliverableGeneration('quizBank', data, options).valid).toBe(true);
+    const invalid = structuredClone(data);
+    invalid.quizzes[0].questions[1].points = -1;
+    expect(validateDeliverableGeneration('quizBank', invalid, options).valid).toBe(false);
+    const allZero = structuredClone(data);
+    allZero.quizzes[0].questions[0].points = 0;
+    expect(validateDeliverableGeneration('quizBank', allZero, options).valid).toBe(false);
+    allZero.quizzes[0].totalPoints = 0;
+    expect(validateDeliverableGeneration('quizBank', allZero, options).valid).toBe(true);
+  });
   it('blocks empty whole-course array deliverables before they are marked done', () => {
     const result = validateDeliverableGeneration('rubrics', {}, { expectedLessonCount: 12 });
 

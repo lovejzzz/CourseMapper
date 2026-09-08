@@ -651,6 +651,23 @@ describe('deep quality package structure', () => {
     );
   });
 
+  it('does not grade repeated answer-writing rules as duplicated substantive paragraphs', async () => {
+    const path = 'Study Guides/Lesson 1 - Response paper.txt';
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          lessonScope: [1],
+          readiness: { status: 'ready', blockers: 0 },
+          files: [{ path, featureId: 'studyGuides' }],
+        }),
+        [path]: ['Write your evidence-based response.', ...Array(18).fill('_'.repeat(56))].join('\n'),
+      }),
+      course: { title: 'Evidence', featureIds: ['studyGuides'] },
+      honesty: { pipeline: { judgment: 'compiler-verified fixture' } },
+    });
+    expect(result.findings.some((f) => f.detail.includes('same substantive paragraph'))).toBe(false);
+  });
+
   it('does not mistake a legitimate paired noun boundary for a mechanical word echo', async () => {
     const guidePath = 'Study Guides/Lesson 06 - Narrative Authority - Study Guide.txt';
     const result = await grade({
