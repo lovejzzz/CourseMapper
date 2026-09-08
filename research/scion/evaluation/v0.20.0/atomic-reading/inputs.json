@@ -1,0 +1,74 @@
+[
+  {
+    "id": "en-returned",
+    "language": "en",
+    "record": "Fictional tool loan log: Lakeside issued forty tools; eleven were returned by closing. Hilltop issued twenty-seven tools; eighteen were returned by closing.",
+    "question": "How many tools were returned at Lakeside?"
+  },
+  {
+    "id": "en-whole",
+    "language": "en",
+    "record": "Fictional tool loan log: Lakeside issued forty tools; eleven were returned by closing. Hilltop issued twenty-seven tools; eighteen were returned by closing.",
+    "question": "How many tools did Hilltop issue?"
+  },
+  {
+    "id": "en-name",
+    "language": "en",
+    "record": "The fictional River Astronomy Group has 64 registered members. The membership list stayed unchanged across both events, and both events admitted only registered members.",
+    "question": "What is the name of the group?"
+  },
+  {
+    "id": "en-premise",
+    "language": "en",
+    "record": "The fictional River Astronomy Group has 64 registered members. The membership list stayed unchanged across both events, and both events admitted only registered members.",
+    "question": "Which complete sentence establishes an unchanged common membership list?"
+  },
+  {
+    "id": "en-event",
+    "language": "en",
+    "record": "The sky watch recorded 41 distinct members. The drawing session recorded 29 distinct members. Each list counts each member once, and members could attend both.",
+    "question": "Which event recorded 41 members?"
+  },
+  {
+    "id": "en-missing",
+    "language": "en",
+    "record": "The sky watch recorded 41 distinct members and the drawing session recorded 29 distinct members. The number who attended both events was not retained.",
+    "question": "How many members attended both events?"
+  },
+  {
+    "id": "zh-returned",
+    "language": "zh",
+    "record": "虚构工具借用记录：湖畔站借出四十件工具，其中十一件在关门前归还；山顶站借出二十七件，其中十八件在关门前归还。",
+    "question": "湖畔站归还了多少件工具？"
+  },
+  {
+    "id": "zh-whole",
+    "language": "zh",
+    "record": "虚构工具借用记录：湖畔站借出四十件工具，其中十一件在关门前归还；山顶站借出二十七件，其中十八件在关门前归还。",
+    "question": "山顶站借出了多少件工具？"
+  },
+  {
+    "id": "zh-name",
+    "language": "zh",
+    "record": "虚构河畔天文社共有64名登记成员。两次活动期间成员名册没有变化，且两次活动都只允许登记成员参加。",
+    "question": "社团的名称是什么？"
+  },
+  {
+    "id": "zh-premise",
+    "language": "zh",
+    "record": "虚构河畔天文社共有64名登记成员。两次活动期间成员名册没有变化，且两次活动都只允许登记成员参加。",
+    "question": "哪一个完整句子说明两次活动使用不变的共同名册？"
+  },
+  {
+    "id": "zh-event",
+    "language": "zh",
+    "record": "观星活动记录了41名不同成员，绘画活动记录了29名不同成员。每份名单内部每人只计一次，成员可以两次都参加。",
+    "question": "哪次活动有41名成员参加？"
+  },
+  {
+    "id": "zh-missing",
+    "language": "zh",
+    "record": "观星活动记录了41名不同成员，绘画活动记录了29名不同成员。记录没有保留两次都参加的人数。",
+    "question": "有多少名成员参加了两次活动？"
+  }
+]

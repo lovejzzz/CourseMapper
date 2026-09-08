@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Record a fixed 24-call atomic source-reading diagnostic and add a source-answer resolver that retains exact provenance, extracts only a unique contained count, and refuses rewritten or ambiguous evidence. The resolver remains outside production proposal routing pending complete-task validation.
+
 - Reject bare counts used as union population names or evidence premises; retain separate validation failures so repair selection favors actual improvements. Preserve the four-input count-selection experiment as research only after semantic review rejects its apparent structural passes.
 
 - Use full source-binding grammar on verified local runtimes, detect malformed count phrases even alongside missing roles, and identify conflicting count roles in repair feedback. Preserve eight actual quantity-proposal calls: output structure improves, but both exposed cases still fail complete source-role validation.

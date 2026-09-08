@@ -1,0 +1,275 @@
+{
+  "date": "2026-09-08",
+  "classification": "New primitive source-reading diagnostic, implementer-reviewed. Not a complete lesson, blind classroom benchmark or overall model quality estimate.",
+  "calls": 24,
+  "repairs": 0,
+  "semanticMeaningCorrect": 24,
+  "exactMinimalReferences": 7,
+  "sourceExcerptOrUnknown": 24,
+  "allCompletionsStopped": true,
+  "observedInferenceMs": {
+    "minimum": 313,
+    "maximum": 1146,
+    "plainMedian": 576.5,
+    "jsonMedian": 754.0
+  },
+  "rawSha256": "89d8c51ca0b54d206f5b5c56d164fcfbd82c3a1b0f0b231cd70f05244632c54d",
+  "findings": [
+    "The model answers these single questions correctly in meaning in both modes; the earlier compound failures cannot be explained simply as inability to read these basic records. This is an inference limited to these diagnostic questions.",
+    "Most answers are longer than the requested minimal phrase. English missing-overlap answers quote the missing-evidence sentence instead of emitting UNKNOWN. Do not treat that as a supplied count.",
+    "A deterministic resolver locates the unique legal count within an exact returned source fragment. All eight actual returned/whole responses resolve to the original expected word-form count.",
+    "Rewritten values, repeated excerpts, multiple contained counts and unsupported numbers remain review cases. A located quote never establishes its semantic role or teacher approval."
+  ],
+  "nextAction": "Build a bounded sequential atomic-question proposal path, preserving original quotes, owner constraints, partial progress and cancellation. Measure whole-task time and substantive review corrections on new complete inputs before replacing the compound path.",
+  "productionStatus": "Diagnostic harness and answer resolver have no production caller yet; existing proposal routing unchanged.",
+  "results": [
+    {
+      "id": "en-returned",
+      "mode": "plain",
+      "answer": "eleven were returned by closing.",
+      "exactMinimalReference": false,
+      "sourceExcerptOrUnknown": true,
+      "semanticReview": "Correct stated fact or correctly reported missing information; extra units/context are retained where present.",
+      "inferenceMs": 579,
+      "finishReason": "stop"
+    },
+    {
+      "id": "en-returned",
+      "mode": "json",
+      "answer": "eleven were returned by closing",
+      "exactMinimalReference": false,
+      "sourceExcerptOrUnknown": true,
+      "semanticReview": "Correct stated fact or correctly reported missing information; extra units/context are retained where present.",
+      "inferenceMs": 749,
+      "finishReason": "stop"
+    },
+    {
+      "id": "en-whole",
+      "mode": "json",
+      "answer": "Hilltop issued twenty-seven tools",
+      "exactMinimalReference": false,
+      "sourceExcerptOrUnknown": true,
+      "semanticReview": "Correct stated fact or correctly reported missing information; extra units/context are retained where present.",
+      "inferenceMs": 781,
+      "finishReason": "stop"
+    },
+    {
+      "id": "en-whole",
+      "mode": "plain",
+      "answer": "Hilltop issued twenty-seven tools",
+      "exactMinimalReference": false,
+      "sourceExcerptOrUnknown": true,
+      "semanticReview": "Correct stated fact or correctly reported missing information; extra units/context are retained where present.",
+      "inferenceMs": 559,
+      "finishReason": "stop"
+    },
+    {
+      "id": "en-name",
+      "mode": "plain",
+      "answer": "The fictional River Astronomy Group",
+      "exactMinimalReference": false,
+      "sourceExcerptOrUnknown": true,
+      "semanticReview": "Correct stated fact or correctly reported missing information; extra units/context are retained where present.",
+      "inferenceMs": 454,
+      "finishReason": "stop"
+    },
+    {
+      "id": "en-name",
+      "mode": "json",
+      "answer": "The fictional River Astronomy Group",
+      "exactMinimalReference": false,
+      "sourceExcerptOrUnknown": true,
+      "semanticReview": "Correct stated fact or correctly reported missing information; extra units/context are retained where present.",
+      "inferenceMs": 703,
+      "finishReason": "stop"
+    },
+    {
+      "id": "en-premise",
+      "mode": "json",
+      "answer": "The membership list stayed unchanged across both events, and both events admitted only registered members.",
+      "exactMinimalReference": true,
+      "sourceExcerptOrUnknown": true,
+      "semanticReview": "Correct stated fact or correctly reported missing information; extra units/context are retained where present.",
+      "inferenceMs": 1064,
+      "finishReason": "stop"
+    },
+    {
+      "id": "en-premise",
+      "mode": "plain",
+      "answer": "The membership list stayed unchanged across both events, and both events admitted only registered members.",
+      "exactMinimalReference": true,
+      "sourceExcerptOrUnknown": true,
+      "semanticReview": "Correct stated fact or correctly reported missing information; extra units/context are retained where present.",
+      "inferenceMs": 826,
+      "finishReason": "stop"
+    },
+    {
+      "id": "en-event",
+      "mode": "plain",
+      "answer": "The sky watch recorded 41 distinct members.",
+      "exactMinimalReference": false,
+      "sourceExcerptOrUnknown": true,
+      "semanticReview": "Correct stated fact or correctly reported missing information; extra units/context are retained where present.",
+      "inferenceMs": 701,
+      "finishReason": "stop"
+    },
+    {
+      "id": "en-event",
+      "mode": "json",
+      "answer": "The sky watch recorded 41 distinct members.",
+      "exactMinimalReference": false,
+      "sourceExcerptOrUnknown": true,
+      "semanticReview": "Correct stated fact or correctly reported missing information; extra units/context are retained where present.",
+      "inferenceMs": 875,
+      "finishReason": "stop"
+    },
+    {
+      "id": "en-missing",
+      "mode": "json",
+      "answer": "The number who attended both events was not retained.",
+      "exactMinimalReference": false,
+      "sourceExcerptOrUnknown": true,
+      "semanticReview": "Correct stated fact or correctly reported missing information; extra units/context are retained where present.",
+      "inferenceMs": 897,
+      "finishReason": "stop"
+    },
+    {
+      "id": "en-missing",
+      "mode": "plain",
+      "answer": "The number who attended both events was not retained.",
+      "exactMinimalReference": false,
+      "sourceExcerptOrUnknown": true,
+      "semanticReview": "Correct stated fact or correctly reported missing information; extra units/context are retained where present.",
+      "inferenceMs": 621,
+      "finishReason": "stop"
+    },
+    {
+      "id": "zh-returned",
+      "mode": "plain",
+      "answer": "十一件",
+      "exactMinimalReference": false,
+      "sourceExcerptOrUnknown": true,
+      "semanticReview": "Correct stated fact or correctly reported missing information; extra units/context are retained where present.",
+      "inferenceMs": 385,
+      "finishReason": "stop"
+    },
+    {
+      "id": "zh-returned",
+      "mode": "json",
+      "answer": "十一件",
+      "exactMinimalReference": false,
+      "sourceExcerptOrUnknown": true,
+      "semanticReview": "Correct stated fact or correctly reported missing information; extra units/context are retained where present.",
+      "inferenceMs": 574,
+      "finishReason": "stop"
+    },
+    {
+      "id": "zh-whole",
+      "mode": "json",
+      "answer": "二十七件",
+      "exactMinimalReference": false,
+      "sourceExcerptOrUnknown": true,
+      "semanticReview": "Correct stated fact or correctly reported missing information; extra units/context are retained where present.",
+      "inferenceMs": 599,
+      "finishReason": "stop"
+    },
+    {
+      "id": "zh-whole",
+      "mode": "plain",
+      "answer": "山顶站借出二十七件",
+      "exactMinimalReference": false,
+      "sourceExcerptOrUnknown": true,
+      "semanticReview": "Correct stated fact or correctly reported missing information; extra units/context are retained where present.",
+      "inferenceMs": 574,
+      "finishReason": "stop"
+    },
+    {
+      "id": "zh-name",
+      "mode": "plain",
+      "answer": "虚构河畔天文社",
+      "exactMinimalReference": false,
+      "sourceExcerptOrUnknown": true,
+      "semanticReview": "Correct stated fact or correctly reported missing information; extra units/context are retained where present.",
+      "inferenceMs": 456,
+      "finishReason": "stop"
+    },
+    {
+      "id": "zh-name",
+      "mode": "json",
+      "answer": "虚构河畔天文社",
+      "exactMinimalReference": false,
+      "sourceExcerptOrUnknown": true,
+      "semanticReview": "Correct stated fact or correctly reported missing information; extra units/context are retained where present.",
+      "inferenceMs": 759,
+      "finishReason": "stop"
+    },
+    {
+      "id": "zh-premise",
+      "mode": "json",
+      "answer": "两次活动期间成员名册没有变化，且两次活动都只允许登记成员参加。",
+      "exactMinimalReference": true,
+      "sourceExcerptOrUnknown": true,
+      "semanticReview": "Correct stated fact or correctly reported missing information; extra units/context are retained where present.",
+      "inferenceMs": 1146,
+      "finishReason": "stop"
+    },
+    {
+      "id": "zh-premise",
+      "mode": "plain",
+      "answer": "两次活动期间成员名册没有变化，且两次活动都只允许登记成员参加。",
+      "exactMinimalReference": true,
+      "sourceExcerptOrUnknown": true,
+      "semanticReview": "Correct stated fact or correctly reported missing information; extra units/context are retained where present.",
+      "inferenceMs": 1035,
+      "finishReason": "stop"
+    },
+    {
+      "id": "zh-event",
+      "mode": "plain",
+      "answer": "观星活动记录了41名不同成员",
+      "exactMinimalReference": false,
+      "sourceExcerptOrUnknown": true,
+      "semanticReview": "Correct stated fact or correctly reported missing information; extra units/context are retained where present.",
+      "inferenceMs": 630,
+      "finishReason": "stop"
+    },
+    {
+      "id": "zh-event",
+      "mode": "json",
+      "answer": "观星活动",
+      "exactMinimalReference": true,
+      "sourceExcerptOrUnknown": true,
+      "semanticReview": "Correct stated fact or correctly reported missing information; extra units/context are retained where present.",
+      "inferenceMs": 616,
+      "finishReason": "stop"
+    },
+    {
+      "id": "zh-missing",
+      "mode": "json",
+      "answer": "UNKNOWN",
+      "exactMinimalReference": true,
+      "sourceExcerptOrUnknown": true,
+      "semanticReview": "Correct stated fact or correctly reported missing information; extra units/context are retained where present.",
+      "inferenceMs": 568,
+      "finishReason": "stop"
+    },
+    {
+      "id": "zh-missing",
+      "mode": "plain",
+      "answer": "UNKNOWN",
+      "exactMinimalReference": true,
+      "sourceExcerptOrUnknown": true,
+      "semanticReview": "Correct stated fact or correctly reported missing information; extra units/context are retained where present.",
+      "inferenceMs": 313,
+      "finishReason": "stop"
+    }
+  ],
+  "engineeringCheck": {
+    "command": "npm run check",
+    "exitCode": 0,
+    "studioTests": 58,
+    "compatibilityTests": 642,
+    "scionTests": 879,
+    "log": "/tmp/edutool-atomic-reading-check.log"
+  }
+}

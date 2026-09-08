@@ -1,0 +1,26 @@
+{
+  "date": "2026-09-08",
+  "baseCommit": "51c08825",
+  "purpose": "Diagnose atomic reading separately from multi-role metadata generation. Compare plain text and one-field JSON on the same fixed questions, alternating mode order.",
+  "questions": 12,
+  "languages": [
+    "en",
+    "zh"
+  ],
+  "modes": [
+    "plain",
+    "json"
+  ],
+  "maxCalls": 24,
+  "maxNewTokens": 128,
+  "repairs": 0,
+  "runs": 1,
+  "referenceSentToModel": false,
+  "freshClassroomAcceptance": false,
+  "stopRule": "One fixed pass, no prompt tuning or rerunning these questions. Preserve exact and semantic errors and final completion metadata.",
+  "hashes": {
+    "inputs.json": "cdd66c09691c49c58f48a0e94f800b30ef6c2674ffa77a0c8ba253a91d8ccdde",
+    "references.json": "9fad63a8fbbf82b2520b118fe0908fd5cf6928e08190e9b0b52731aaadfc988c",
+    "screening.html": "5dfc1fa55b50acbd78efd5c2baad568c1fe7f1169a77b989a1227dac28015975"
+  }
+}

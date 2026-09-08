@@ -1,0 +1,62 @@
+[
+  {
+    "id": "en-returned",
+    "expected": "eleven",
+    "criterion": "Exact minimal source answer; for premise retain the full relational sentence; unknown overlap must not be invented."
+  },
+  {
+    "id": "en-whole",
+    "expected": "twenty-seven",
+    "criterion": "Exact minimal source answer; for premise retain the full relational sentence; unknown overlap must not be invented."
+  },
+  {
+    "id": "en-name",
+    "expected": "River Astronomy Group",
+    "criterion": "Exact minimal source answer; for premise retain the full relational sentence; unknown overlap must not be invented."
+  },
+  {
+    "id": "en-premise",
+    "expected": "The membership list stayed unchanged across both events, and both events admitted only registered members.",
+    "criterion": "Exact minimal source answer; for premise retain the full relational sentence; unknown overlap must not be invented."
+  },
+  {
+    "id": "en-event",
+    "expected": "sky watch",
+    "criterion": "Exact minimal source answer; for premise retain the full relational sentence; unknown overlap must not be invented."
+  },
+  {
+    "id": "en-missing",
+    "expected": "UNKNOWN",
+    "criterion": "Exact minimal source answer; for premise retain the full relational sentence; unknown overlap must not be invented."
+  },
+  {
+    "id": "zh-returned",
+    "expected": "十一",
+    "criterion": "Exact minimal source answer; for premise retain the full relational sentence; unknown overlap must not be invented."
+  },
+  {
+    "id": "zh-whole",
+    "expected": "二十七",
+    "criterion": "Exact minimal source answer; for premise retain the full relational sentence; unknown overlap must not be invented."
+  },
+  {
+    "id": "zh-name",
+    "expected": "河畔天文社",
+    "criterion": "Exact minimal source answer; for premise retain the full relational sentence; unknown overlap must not be invented."
+  },
+  {
+    "id": "zh-premise",
+    "expected": "两次活动期间成员名册没有变化，且两次活动都只允许登记成员参加。",
+    "criterion": "Exact minimal source answer; for premise retain the full relational sentence; unknown overlap must not be invented."
+  },
+  {
+    "id": "zh-event",
+    "expected": "观星活动",
+    "criterion": "Exact minimal source answer; for premise retain the full relational sentence; unknown overlap must not be invented."
+  },
+  {
+    "id": "zh-missing",
+    "expected": "UNKNOWN",
+    "criterion": "Exact minimal source answer; for premise retain the full relational sentence; unknown overlap must not be invented."
+  }
+]

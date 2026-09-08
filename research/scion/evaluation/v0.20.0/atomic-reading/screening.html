@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><title>Atomic source reading diagnostic</title>
+  <h1>Atomic source reading · fixed plain/JSON comparison</h1>
+  <button id="run">Run diagnostic</button
+  ><button id="save" disabled>Save raw receipt</button>
+  <pre id="result">Idle</pre>
+  <script type="module">
+    import * as runtime from '/src/lib/scionBrowserWllama.js';
+    if (!['localhost', '127.0.0.1'].includes(location.hostname)) throw Error('Local only');
+    const grammar = String.raw`root ::= "{" ws "\"answer\"" ws ":" ws string ws "}"
+string ::= "\"" character{1,1000} "\""
+character ::= [^"\\\x00-\x1F] | "\\" (["\\/bfnrt] | "u" [0-9a-fA-F]{4})
+ws ::= [ \t\n\r]{0,4}`;
+    const run = document.querySelector('#run'),
+      save = document.querySelector('#save'),
+      view = document.querySelector('#result');
+    let receipt;
+    const render = () =>
+      (view.textContent = JSON.stringify(
+        { status: receipt.status, completed: receipt.calls.length, total: 24, error: receipt.error },
+        null,
+        2,
+      ));
+    run.onclick = async () => {
+      run.disabled = true;
+      receipt = { startedAt: new Date().toISOString(), status: 'loading', calls: [] };
+      render();
+      try {
+        const inputs = await (await fetch('./inputs.json')).json();
+        const loadStart = performance.now();
+        await runtime.loadScionBrowserWllama();
+        receipt.loadMs = Math.round(performance.now() - loadStart);
+        receipt.runtime = runtime.getScionBrowserWllamaStatus();
+        if (receipt.runtime?.runtime?.grammar !== 'gbnf-state-v1') throw Error('Verified grammar runtime required');
+        for (let i = 0; i < inputs.length; i++)
+          for (const mode of i % 2 ? ['json', 'plain'] : ['plain', 'json']) {
+            const input = inputs[i];
+            receipt.status = input.id + ' ' + mode;
+            render();
+            const instruction =
+              input.language === 'zh'
+                ? '只依据记录回答问题。复制最短的确切原文；问题要求完整句子时复制完整句子。若记录没有提供答案，回答 UNKNOWN。不解释。'
+                : 'Answer only from the record. Copy the shortest exact source phrase; copy a full sentence when the question requests it. If the answer is not stated, answer UNKNOWN. Do not explain.';
+            const messages = [
+              {
+                role: 'system',
+                content:
+                  instruction + (mode === 'json' ? ' Return only a JSON object with one string field: answer.' : ''),
+              },
+              {
+                role: 'user',
+                content:
+                  (input.language === 'zh' ? '记录：' : 'Record:') +
+                  '\n' +
+                  input.record +
+                  '\n' +
+                  (input.language === 'zh' ? '问题：' : 'Question:') +
+                  ' ' +
+                  input.question,
+              },
+            ];
+            const entry = { id: input.id, mode, messages, ...(mode === 'json' ? { grammar } : {}) };
+            receipt.calls.push(entry);
+            const start = performance.now();
+            entry.raw = await runtime.completeScionBrowserWllama(messages, {
+              maxNewTokens: 128,
+              temperature: 0,
+              topK: 1,
+              topP: 1,
+              seed: 7,
+              thinking: false,
+              ...(mode === 'json' ? { grammar } : {}),
+              taskFamily: 'unclassified',
+              promptProtocol: 'scion-atomic-source-reading-v1',
+              onCompletion: (c) => {
+                entry.completion = c;
+              },
+              onAdapterRoute: (r) => {
+                entry.route = r;
+              },
+            });
+            entry.inferenceMs = Math.round(performance.now() - start);
+            render();
+          }
+        receipt.status = 'completed-for-review';
+      } catch (e) {
+        receipt.error = e.message;
+        receipt.status = 'failed';
+      } finally {
+        await runtime.unloadScionBrowserWllama();
+        receipt.finishedAt = new Date().toISOString();
+        render();
+        save.disabled = false;
+      }
+    };
+    save.onclick = () => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([JSON.stringify(receipt, null, 2)], { type: 'application/json' }));
+      a.download = 'scion-atomic-source-reading.json';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    };
+  </script>
+</html>
