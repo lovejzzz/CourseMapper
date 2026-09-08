@@ -1,0 +1,27 @@
+{
+  "baselineCommit": "3fe1e93d",
+  "change": "Existing task review can create and persist a draft, run bounded local source binding, and prepare a validated preview in one explicit action.",
+  "authority": "Teaching focus remains chosen by user; no automatic operation classifier or teacher approval.",
+  "verification": {
+    "completeProposal": "Real preview/commit code in component test; preview auto opens, application disabled before confirmation",
+    "missingEvidence": "Draft and original records retained, no preview or commit",
+    "cancelled": "Draft retained, no preview or commit",
+    "fullCheck": {
+      "studio": 58,
+      "compatibility": 680,
+      "scion": 898,
+      "typecheck": "passed",
+      "lint": "passed",
+      "build": "passed",
+      "bundle": "passed"
+    },
+    "targetedFormatting": "passed",
+    "frozenCorpus": "verified unchanged"
+  },
+  "freshBrowserModelRun": false,
+  "limitations": [
+    "Not automatic homepage task planning",
+    "No additional model reliability or classroom acceptance claim",
+    "Existing full repository formatting debt remains outside this edit"
+  ]
+}

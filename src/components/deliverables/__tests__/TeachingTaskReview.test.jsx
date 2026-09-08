@@ -269,23 +269,49 @@ describe('teacher structure review interaction', () => {
     }));
     const sourceBrief = `Objective: ${f.objective}\nSources:\n${f.inputs.map((input, i) => `Record ${i + 1}: ${input.text}`).join('\n')}`;
     await renderReview({ courseMap: emptyMap, data, onPreview, onCommit, onProposeSources, sourceBrief });
-    expect(button('Start task draft')).toBeTruthy();
-    await click(button('Start task draft'));
+    expect(button('Draft with local Scion')).toBeTruthy();
+    await click(button('Draft with local Scion'));
     for (const [index, input] of f.inputs.entries()) {
       expect(container.querySelector(`[aria-label="Record ${index + 1}"]`).value).toBe(
         `Record ${index + 1}: ${input.text}`,
       );
     }
-    await click(button('Locate source phrases with local Scion'));
     expect(onProposeSources).toHaveBeenCalledOnce();
     expect(onCommit).not.toHaveBeenCalled();
-    await click(button('Preview linked changes'));
     expect(onPreview.mock.results[0].value.status).toBe('preview');
     expect(button('Apply reviewed changes').disabled).toBe(true);
     await click(container.querySelector('[data-testid="teaching-review-confirm"]'));
     await click(button('Apply reviewed changes'));
     expect(onCommit.mock.results[0].value.status).toBe('applied');
     expect(onCommit.mock.results[0].value.courseMap.teachingProgram.tasks).toHaveLength(1);
+    expect(emptyMap.teachingProgram).toBeUndefined();
+  });
+
+  it.each(['review', 'cancelled'])('keeps an incomplete %s proposal as an unapplied saved draft', async (status) => {
+    const f = observedProportionFixture();
+    const emptyMap = {
+      courseName: 'Incomplete',
+      lessons: [{ title: 'Scope', sections: [{ learningObjectives: f.objective }] }],
+    };
+    const onPreview = vi.fn();
+    const onCommit = vi.fn();
+    const onSaveDraft = vi.fn();
+    await renderReview({
+      courseMap: emptyMap,
+      data: {},
+      onPreview,
+      onCommit,
+      onSaveDraft,
+      sourceBrief: `Sources:\nRecord 1: ${f.inputs[0].text}`,
+      onProposeSources: async () => ({ status, bindings: {}, issues: [], unknowns: [] }),
+    });
+    await click(button('Draft with local Scion'));
+    expect(onSaveDraft).toHaveBeenCalled();
+    expect(container.querySelector('[aria-label="Record 1"]').value).toContain(f.inputs[0].text);
+    expect(onPreview).not.toHaveBeenCalled();
+    expect(onCommit).not.toHaveBeenCalled();
+    expect(button('Preview linked changes')).toBeTruthy();
+    expect(container.querySelector('[data-testid="teaching-review-confirm"]')).toBeNull();
     expect(emptyMap.teachingProgram).toBeUndefined();
   });
 

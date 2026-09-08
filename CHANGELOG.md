@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Add one-action local task drafting in the existing source review editor: preserve the chosen lesson/focus, copy supplied records, request source bindings and open a validated reference/scoring preview. Incomplete or cancelled proposals remain saved drafts; application still requires confirmation. Manual drafting remains available.
+
 - Allow a changed workspace to request package preparation after an earlier terminal or export failure. The old receipt never authorizes downloading revised materials; a new failed result blocks again.
 
 - Recognize explicit singular lesson requests and preserve numbered, labeled source records from the homepage. Reject duplicate source IDs/slots and retain stronger multi-lesson counts. Record the failed first natural generation and unchanged-input parser replay; a single local model rerun confirms one lesson and the supplied ledger in 15.6 seconds, but still fails teaching-task quality and remains export-blocked. Full output acceptance remains pending.

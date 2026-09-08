@@ -205,7 +205,7 @@ export default function TeachingTaskReview({
     setLastProposalReceipt(null);
     setMessage(t('Draft discarded.', '草稿已放弃。'));
   }
-  function beginNew() {
+  async function beginNew(withScion = false) {
     const next = createNewTeachingTaskReviewDraft(courseMap, {
       lessonNumber: Number(newLesson || options.lessons[0]?.lessonNumber),
       operation: newOperation,
@@ -216,6 +216,7 @@ export default function TeachingTaskReview({
     setPreview(null);
     setConfirmed(false);
     setLastProposalReceipt(null);
+    if (withScion && next.status !== 'needs-review') await proposeSources(next, { autoPreview: true });
   }
   function begin(source = selected, reload = false) {
     if (!source) return;
@@ -240,8 +241,8 @@ export default function TeachingTaskReview({
     setConfirmed(false);
     setMessage('');
   }
-  async function proposeSources() {
-    if (busy || !draft) return;
+  async function proposeSources(requestDraft = draft, { autoPreview = false } = {}) {
+    if (busy || !requestDraft) return;
     const controller = new AbortController();
     proposalController.current = controller;
     setBusy(true);
@@ -252,19 +253,25 @@ export default function TeachingTaskReview({
       const propose =
         onProposeSources || (await import('../../../lib/scionTeachingProposal.js')).proposeTeachingSourceBindings;
       const result = await propose(
-        { operation: draft.operation, objective: (draft.objective || selected.objective).trim(), inputs: draft.inputs },
+        {
+          operation: requestDraft.operation,
+          objective: (requestDraft.objective || selected?.objective || '').trim(),
+          inputs: requestDraft.inputs,
+        },
         { signal: controller.signal, onProgress: setMessage },
       );
+      if (draftRef.current !== requestDraft) return;
       if (result.receipt) setLastProposalReceipt(result.receipt);
       if (controller.signal.aborted || result.status === 'cancelled') {
         setMessage(t('Source proposal cancelled. Your draft is unchanged.', '已取消来源提案，草稿保持不变。'));
       } else if (result.status === 'review') {
-        const { bindings, ...adoption } = mergeTeachingSourceSuggestions(draft, result.bindings);
-        setDraft((current) => ({
-          ...current,
+        const { bindings, ...adoption } = mergeTeachingSourceSuggestions(requestDraft, result.bindings);
+        const proposedDraft = {
+          ...requestDraft,
           bindings,
           proposal: result.receipt ? { ...result.receipt, adoption } : undefined,
-        }));
+        };
+        setDraft(proposedDraft);
         const missingRoles = Object.keys(bindings).filter(
           (role) => !adoption.filledRoles.includes(role) && !adoption.preservedRoles.includes(role),
         );
@@ -311,6 +318,16 @@ export default function TeachingTaskReview({
               : []),
           ],
         );
+        // Preview is still unapproved and uses the same source/transaction
+        // validator as manual review. Missing or disputed evidence stays editable.
+        if (autoPreview && !missingRoles.length && !result.issues?.length && !result.unknowns?.length) {
+          const candidate = await onPreview(proposedDraft);
+          if (controller.signal.aborted || draftRef.current !== proposedDraft) return;
+          if (candidate.status === 'preview') {
+            setPreview(candidate);
+            setMessage(t('Review the task, reference and scoring below.', '请审阅下方任务、参考答案和评分。'));
+          } else setMessage(candidate.message || t('Complete the source review.', '请补全来源审阅。'));
+        }
       } else
         setMessage(
           result.message ||
@@ -520,9 +537,14 @@ export default function TeachingTaskReview({
                 </option>
               </select>
             </label>
-            <button type="button" className="font-medium underline" onClick={beginNew}>
-              {t('Start task draft', '开始任务草稿')}
-            </button>
+            <div className="flex flex-wrap gap-3">
+              <button type="button" className="font-medium underline" onClick={() => beginNew(true)}>
+                {t('Draft with local Scion', '用本地 Scion 起草')}
+              </button>
+              <button type="button" className="underline" onClick={() => beginNew()}>
+                {t('Start task draft', '开始任务草稿')}
+              </button>
+            </div>
           </fieldset>
         </details>
       )}
@@ -678,7 +700,12 @@ export default function TeachingTaskReview({
                 )}
               </fieldset>
               <div className="space-y-2">
-                <button type="button" disabled={busy} className="font-medium underline" onClick={proposeSources}>
+                <button
+                  type="button"
+                  disabled={busy}
+                  className="font-medium underline"
+                  onClick={() => proposeSources()}
+                >
                   {t('Locate source phrases with local Scion', '让本地 Scion 定位来源片段')}
                 </button>
                 {proposing && (
