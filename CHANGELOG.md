@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Add an unapproved source-argument proposal contract: concrete tasks/answers, evidence-linked reasoning, four performance levels, feedback and explicit unknowns. Validate exact source spans and source-byte hashes while keeping semantic correctness and task/rubric alignment under review. This foundation is not yet connected to generation or shared-task application.
+
 - Preserve explicitly labeled English/Chinese source blocks in compiler inputs instead of recognizing only specially worded “provided facts” briefs. Keep source quotations intact, separate outer task directions, reject ambiguous labels, and print supplied records with source-ledger recovery quizzes while retaining required answer review. A repeated real local generation confirms source routing, but concrete source-argument authoring remains incomplete.
 
 - Keep compiler-created quiz recovery prompts under instructor review when they provide only general scoring guidance. A real local Scion development run exposed unsolved references incorrectly marked as not requiring review; preserve its failed output evidence and deterministic coverage diagnostics. This does not claim broader source-argument generation is fixed.

@@ -21,6 +21,7 @@ export default defineConfig({
       'src/lib/__tests__/teachingProgram*.test.js',
       'src/lib/__tests__/teachingOperation*.test.js',
       'src/lib/__tests__/teachingPerformanceRequirements.test.js',
+      'src/lib/__tests__/teachingArgumentProposal.test.js',
       'src/lib/__tests__/quizPaperPresentation.test.js',
       'src/lib/__tests__/teachingTaskReview.test.js',
       'src/lib/__tests__/teachingResponseReview.test.js',
