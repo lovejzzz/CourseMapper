@@ -399,3 +399,36 @@ it('rejects the actual uncertainty excerpt that the local model proposed as dist
   const checked = assessTeachingProposal(JSON.stringify(wire), request);
   expect(checked.issues.join(' ')).toContain('leaves overlap unresolved');
 });
+
+it('rejects author and basis fields collapsed into the claim in the first real attribution proposal', () => {
+  const receipt = JSON.parse(
+    fs.readFileSync('research/teaching/v0.20.0/attribution-proposal-01/source-proposal.json', 'utf8'),
+  );
+  const attempt = receipt.attempts[0];
+  const payload = JSON.parse(attempt.messages.find((message) => message.role === 'user').content);
+  const request = { operation: 'claim-attribution', objective: payload.objective, inputs: payload.sources };
+  const result = assessTeachingProposal(attempt.raw, request, receipt.protocol);
+  expect(result.issues.some((text) => text.includes('observer'))).toBe(true);
+  expect(result.issues.some((text) => text.includes('reporter'))).toBe(true);
+  expect(result.issues.some((text) => text.includes('observationBasis'))).toBe(true);
+  expect(result.repairable).toBe(true);
+});
+
+it('reports invalid present attribution fields even when the actual repair omits evidence', () => {
+  const receipt = JSON.parse(
+    fs.readFileSync('research/teaching/v0.20.0/attribution-proposal-02/source-proposal.json', 'utf8'),
+  );
+  const payload = JSON.parse(receipt.attempts[0].messages.find((m) => m.role === 'user').content);
+  const result = assessTeachingProposal(
+    receipt.attempts[1].raw,
+    {
+      operation: 'claim-attribution',
+      objective: payload.objective,
+      inputs: payload.sources,
+    },
+    receipt.protocol,
+  );
+  expect(result.missing).toContain('proposedEvidence');
+  for (const field of ['observer', 'reporter', 'inferenceAuthor', 'observationBasis'])
+    expect(result.issues.some((message) => message.includes(field))).toBe(true);
+});

@@ -1,0 +1,15 @@
+{
+  "baseline": "a919ab10",
+  "purpose": "One development follow-up after observed author/basis collapse; first failure retained",
+  "sourceCase": "source-dev-03",
+  "attemptLimit": 1,
+  "protocol": "scion-attribution-source-bindings-v1",
+  "createdAt": "2026-09-08T12:04:44.671624+00:00",
+  "patchSha256": {
+    "src/lib/teachingOperationAttribution.js": "bad8cc9be7fef263a9b1ce3b14e1983a9f4cef5698d1d642c36c3d39ed62fa54",
+    "src/lib/scionTeachingProposal.js": "3e94a68652edcf0dac35e6e0971af241392b979c3f8212697be0ea5865047659"
+  },
+  "manualRoleCorrectionBeforeCapture": false,
+  "priorRun": "../attribution-proposal-01/source-proposal.json",
+  "limitation": "Same exposed development records, implementer-selected operation, not final acceptance."
+}

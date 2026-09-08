@@ -1,0 +1,21 @@
+{
+  "outcome": "Rejected by implementer before confirmation; initially admitted to preview by old structural checks",
+  "modelCalls": 1,
+  "inferenceElapsedMs": 10129,
+  "loadMs": 1050,
+  "rawSha256": "5b7085806d9f8144fdc60607302bf820e999781be3f88f72634e4402f1b2b763",
+  "projectSha256": "3b4cf1426d854b70928fc720ec7650ab629488e190ec8e36f9901f151a80d7d4",
+  "sharedTasks": 0,
+  "findings": [
+    "Observer field contains most of the observation statement, not an author/document label.",
+    "Reporter field includes the attributed claim itself.",
+    "Observation basis contains the entire record, including the claim.",
+    "Proposed evidence selects a list of alternatives rather than one focused check."
+  ],
+  "positive": [
+    "Reporting basis correctly preserves lack of information about how the resident knew.",
+    "Inference author and evidence gap correctly located."
+  ],
+  "action": "Tighten author/claim separation and prevent an entire claim-containing record from counting as knowledge basis; preserve raw first failure.",
+  "limitation": "One exposed development input; not broad proposal validation."
+}

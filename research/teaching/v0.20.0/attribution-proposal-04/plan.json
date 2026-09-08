@@ -1,0 +1,16 @@
+{
+  "baseline": "a919ab10",
+  "createdAt": "2026-09-08T12:18:13.976Z",
+  "sourceCase": "source-dev-03",
+  "attemptLimit": 1,
+  "callLimit": 12,
+  "protocol": "scion-attribution-atomic-questions-v1",
+  "change": "Enforce distinct record selection in both the question context and exact answer locator.",
+  "patchSha256": {
+    "src/lib/scionAtomicProposal.js": "8b0146123fea58a258b02b02565c66de5abc8fc007fd836f4b733f79f7fc393f",
+    "src/lib/scionTeachingProposal.js": "21b972e92ccc1c645e645ead040d7927a8d28625ef4102e0940e8b814f1fc0c1",
+    "src/lib/teachingOperationAttribution.js": "37e01a21637498669f6f6693a9d0d474b8a74e551ee3a03d261cb080013a001c"
+  },
+  "manualRoleCorrectionBeforeCapture": false,
+  "limitation": "Exposed development case; not independent or final acceptance."
+}

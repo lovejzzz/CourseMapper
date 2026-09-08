@@ -8,6 +8,7 @@ import {
 } from './scionTeachingProposal.js';
 
 export const SCION_ATOMIC_PROPOSAL_PROTOCOL = 'scion-atomic-source-questions-v1';
+export const SCION_ATOMIC_ATTRIBUTION_PROTOCOL = 'scion-attribution-atomic-questions-v1';
 export const SCION_ATOMIC_CALL_LIMIT = 12;
 const grammar = String.raw`root ::= "{" ws "\"answer\"" ws ":" ws string ws "}"
 string ::= "\"" character{1,1000} "\""
@@ -19,6 +20,79 @@ export function atomicSourceQuestions(operation, bindings = {}, zh = false) {
   const t = (en, cn) => (zh ? cn : en),
     label = (role) => bindings[role]?.quote || t('the selected group or event', '所选群体或活动');
   const q = (role, type, owner, en, cn) => ({ role, type, owner, question: t(en, cn) });
+  if (operation === 'claim-attribution')
+    return [
+      q(
+        'observedClaim',
+        'text',
+        null,
+        'Which statement describes what the writer directly saw or sensed? Copy that observation, not an explanation of its cause.',
+        '哪项陈述描述记录者直接看见或感受到的内容？复制该观察，不要复制原因解释。',
+      ),
+      q(
+        'observer',
+        'label',
+        'observedClaim',
+        'Who wrote this observation, or what document records it? Copy only the short name or document label outside the quotation.',
+        '这项观察由谁记下，或记在哪份文献中？只复制引文之外的简短姓名或文献标签。',
+      ),
+      q(
+        'observationBasis',
+        'text',
+        'observedClaim',
+        'Which separate clause states how the observation was obtained or what was not tested? Copy only that basis or limitation, not the whole record.',
+        '哪个独立分句说明观察如何取得，或没有做哪些检测？只复制该依据或限制，不要复制整份记录。',
+      ),
+      q(
+        'reportedClaim',
+        'text',
+        null,
+        'Which assertion is attributed to another person whose basis for knowing is qualified or unstated? Copy the assertion itself, without its speaker label.',
+        '哪项陈述归于另一个人，但其知情依据受到限定或尚未说明？只复制陈述本身，不要包含说话者标签。',
+      ),
+      q(
+        'reporter',
+        'label',
+        'reportedClaim',
+        'Who makes this assertion? Copy only the short speaker name or role before the quotation, without reporting verbs or the assertion.',
+        '谁提出这项陈述？只复制引文之前的简短姓名或身份，不要包含转述动词或陈述内容。',
+      ),
+      q(
+        'reportingBasis',
+        'text',
+        'reportedClaim',
+        'Which sentence states the speaker’s basis for knowing or explicitly states the missing basis or verification? Copy that sentence; do not invent how the speaker knew.',
+        '哪个句子说明说话者的知情依据，或明确说明缺失的知情依据或核实？复制该句，不要推测其如何得知。',
+      ),
+      q(
+        'inferredClaim',
+        'text',
+        null,
+        'Which statement proposes an explanation or causal conclusion beyond the reported observation? Copy that proposed explanation, without its author label.',
+        '哪项陈述提出超出记述观察的解释或因果结论？复制该解释，不要包含作者标签。',
+      ),
+      q(
+        'inferenceAuthor',
+        'label',
+        'inferredClaim',
+        'Who proposes this explanation, or which publication states it? Copy only the short name or document label outside the claim.',
+        '谁提出这个解释，或哪份刊物表达它？只复制陈述之外的简短姓名或文献标签。',
+      ),
+      q(
+        'inferenceLimit',
+        'text',
+        'inferredClaim',
+        'Which complete sentence states what evidence for this explanation is missing?',
+        '哪个完整句子说明该解释还缺少什么证据？',
+      ),
+      q(
+        'proposedEvidence',
+        'text',
+        'inferenceLimit',
+        'Copy the name of ONE specific missing record or measurement listed in this evidence gap. Do not copy the entire list or the negation.',
+        '复制该证据缺口中列出的一项具体记录或测量的名称。不要复制整份清单或否定词。',
+      ),
+    ];
   if (operation === 'union-bounds')
     return [
       q(
@@ -195,7 +269,8 @@ export async function proposeAtomicSourceBindings(
     return { status: 'unavailable', message: error.message, modelCalls: 0 };
   }
   const receipt = {
-    protocol: SCION_ATOMIC_PROPOSAL_PROTOCOL,
+    protocol:
+      snapshot.operation === 'claim-attribution' ? SCION_ATOMIC_ATTRIBUTION_PROTOCOL : SCION_ATOMIC_PROPOSAL_PROTOCOL,
     inputRevision: teachingProposalInputRevision(snapshot),
     startedAt: new Date().toISOString(),
     callLimit: SCION_ATOMIC_CALL_LIMIT,
@@ -241,7 +316,14 @@ export async function proposeAtomicSourceBindings(
         ? [{ id: questionContext.inputId, text: questionContext.quote }]
         : owner
           ? snapshot.inputs.filter((i) => i.id === owner)
-          : snapshot.inputs;
+          : snapshot.operation === 'claim-attribution'
+            ? snapshot.inputs.filter(
+                (input) =>
+                  !['observedClaim', 'reportedClaim'].some(
+                    (role) => role !== item.role && bindings[role]?.inputId === input.id,
+                  ),
+              )
+            : snapshot.inputs;
       const previous = repair ? receipt.attempts.findLast((a) => a.role === item.role && a.answer) : null;
       const clarifyContext = previous?.resolution?.reason?.includes('occurs more than once');
       const narrowCount = previous?.resolution?.reason?.includes('contains several counts');
@@ -297,7 +379,7 @@ export async function proposeAtomicSourceBindings(
         grammar,
         signal,
         taskFamily: 'unclassified',
-        promptProtocol: SCION_ATOMIC_PROPOSAL_PROTOCOL,
+        promptProtocol: receipt.protocol,
         onCompletion: (c) => {
           entry.completion = c;
         },
@@ -316,11 +398,15 @@ export async function proposeAtomicSourceBindings(
         resolved =
           entry.completion?.finishReason === 'length'
             ? { status: 'needs-review', reason: 'Truncated source answer; no partial result accepted.' }
-            : resolveAtomicSourceAnswer(value.answer, snapshot.inputs, {
-                type: item.type,
-                inputId: owner,
-                ...(questionContext ? { context: questionContext } : {}),
-              });
+            : resolveAtomicSourceAnswer(
+                value.answer,
+                snapshot.operation === 'claim-attribution' ? sources : snapshot.inputs,
+                {
+                  type: item.type,
+                  inputId: owner,
+                  ...(questionContext ? { context: questionContext } : {}),
+                },
+              );
         if (entry.completion?.finishReason !== 'length' && clarifyContext) {
           const locatedContext = resolveAtomicSourceAnswer(value.answer, snapshot.inputs, {
             type: 'text',
@@ -422,7 +508,9 @@ export async function proposeAtomicSourceBindings(
     const derived =
       snapshot.operation === 'union-bounds'
         ? { rosterRecord: 'populationCount', attendanceRecord: 'firstCount', limitRecord: 'missingOverlap' }
-        : { firstCountRecord: 'firstPart', secondCountRecord: 'secondPart', identityRecord: 'distinctMembership' };
+        : snapshot.operation === 'claim-attribution'
+          ? { observationRecord: 'observedClaim', reportRecord: 'reportedClaim', inferenceRecord: 'inferredClaim' }
+          : { firstCountRecord: 'firstPart', secondCountRecord: 'secondPart', identityRecord: 'distinctMembership' };
     for (const [role, child] of Object.entries(derived))
       if (bindings[child]) {
         const input = snapshot.inputs.find((i) => i.id === bindings[child].inputId);

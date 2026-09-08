@@ -1,0 +1,9 @@
+{
+  "outcome": "failed",
+  "modelCalls": 10,
+  "elapsedMs": 7652,
+  "rawSha256": "6c2cc5b6c8881e53a4e2dc20658eb0fd3be816e9ae88a41b1778bd52b32a8800",
+  "applied": false,
+  "reason": "Atomic questions improved speaker and basis extraction but reused the interview as the explanation record. Distinct-record validation rejected it.",
+  "acceptanceCredit": false
+}

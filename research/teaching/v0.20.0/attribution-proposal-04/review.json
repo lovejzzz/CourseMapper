@@ -1,0 +1,10 @@
+{
+  "outcome": "failed-semantic-review",
+  "modelCalls": 10,
+  "elapsedMs": 7564,
+  "rawSha256": "e2a293670797cd4f1ead99a990e6b01614f80f24ed40d3570e9ca4568fb8241a",
+  "applied": false,
+  "structuralPreviewShown": true,
+  "reason": "Distinct records were selected but the editorial causal inference and the resident assertion were exchanged. Exact-span checks do not establish semantic role correctness.",
+  "acceptanceCredit": false
+}

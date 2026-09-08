@@ -1,0 +1,9 @@
+{
+  "outcome": "failed",
+  "modelCalls": 2,
+  "elapsedMs": 18436,
+  "rawSha256": "d476e52d2ab0e0afbda48888c6f9590f5b82af05a6bcca9debf6652ffff0b01a",
+  "applied": false,
+  "reason": "Missing proposedEvidence concealed invalid present author and basis fields.",
+  "acceptanceCredit": false
+}

@@ -12,11 +12,15 @@ export function validateAttributionBindings(plan) {
     ['inferenceRecord', ['inferenceAuthor', 'inferredClaim', 'inferenceLimit', 'proposedEvidence']],
   ]) {
     for (const field of fields)
-      if (plan.bindings[field]?.inputId !== plan.bindings[record]?.inputId)
+      if (
+        plan.bindings[field] &&
+        plan.bindings[record] &&
+        plan.bindings[field].inputId !== plan.bindings[record].inputId
+      )
         fail(`${field} must retain its attribution in ${record}.`, field);
   }
   const records = ['observationRecord', 'reportRecord', 'inferenceRecord'].map((key) => plan.bindings[key]?.inputId);
-  if (new Set(records).size !== 3)
+  if (records.every(Boolean) && new Set(records).size !== 3)
     fail(
       'Compare three separately attributed records; do not reuse one record as all three positions.',
       'reportRecord',
@@ -28,8 +32,18 @@ export function validateAttributionBindings(plan) {
   ]) {
     const a = plan.bindings[basis],
       b = plan.bindings[claim];
-    if (a && b && a.inputId === b.inputId && a.start === b.start && a.end === b.end)
-      fail('Locate the stated basis or limitation separately; repeating the claim is not its evidence.', basis);
+    if (a && b && a.inputId === b.inputId && a.start <= b.start && a.end >= b.end)
+      fail(`Locate ${basis} separately; repeating ${claim} or its whole record is not a knowledge basis.`, basis);
+  }
+  for (const [author, claim] of [
+    ['observer', 'observedClaim'],
+    ['reporter', 'reportedClaim'],
+    ['inferenceAuthor', 'inferredClaim'],
+  ]) {
+    const a = plan.bindings[author],
+      b = plan.bindings[claim];
+    if (a && b && a.inputId === b.inputId && a.start < b.end && b.start < a.end)
+      fail(`Locate ${author} outside ${claim}; select the speaker or document label, not the statement.`, author);
   }
   const proposed = plan.bindings.proposedEvidence,
     limit = plan.bindings.inferenceLimit;

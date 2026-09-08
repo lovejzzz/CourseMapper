@@ -804,15 +804,20 @@ export default function TeachingTaskReview({
                               'Check that the relative day refers to the selected Gregorian record date and that both records concern the same event. Keep missing years and verification limits explicit.',
                               '核对相对时间指向所选公历记录日期，且两份记录涉及同一事件；保留未知年份及核实限制。',
                             )
-                          : draft.operation === 'paired-condition-confound'
+                          : draft.operation === 'claim-attribution'
                             ? t(
-                                'Check both condition combinations, independently assignable units, feasible controls and a shared measurement rule. Repeated readings belong to the same unit.',
-                                '核对两组条件、可独立分配的单位、可行的控制条件和一致测量规则；重复读数仍属于同一单位。',
+                                'Check each speaker, claim and stated basis. Keep missing evidence explicit.',
+                                '核对各陈述者、陈述与明示依据，保留证据缺口。',
                               )
-                            : t(
-                                'Locate exact text in the records. A repeated phrase needs its occurrence selected. Check that both rules concern the same setting and that the observation date is unknown.',
-                                '请选择记录中的原文；原文重复出现时请选择位置。请核对两版规则涉及同一情境，且观察日期确实未知。',
-                              )}
+                            : draft.operation === 'paired-condition-confound'
+                              ? t(
+                                  'Check both condition combinations, independently assignable units, feasible controls and a shared measurement rule. Repeated readings belong to the same unit.',
+                                  '核对两组条件、可独立分配的单位、可行的控制条件和一致测量规则；重复读数仍属于同一单位。',
+                                )
+                              : t(
+                                  'Locate exact text in the records. A repeated phrase needs its occurrence selected. Check that both rules concern the same setting and that the observation date is unknown.',
+                                  '请选择记录中的原文；原文重复出现时请选择位置。请核对两版规则涉及同一情境，且观察日期确实未知。',
+                                )}
                 </p>
                 {Object.entries(TEACHING_OPERATION_SPECS[draft.operation].bindings).map(([name, type]) => {
                   const binding = draft.bindings[name];
@@ -1044,15 +1049,20 @@ export default function TeachingTaskReview({
                               'I have checked the calendar, relative-date anchor and same-event evidence. Apply this task and scoring.',
                               '我已核对历法、相对日期依据和同一事件证据，同意应用此任务与评分。',
                             )
-                          : draft.operation === 'paired-condition-confound'
+                          : draft.operation === 'claim-attribution'
                             ? t(
-                                'I have reviewed the source conditions, proposed procedure, reference and scoring. Apply this task.',
-                                '我已核对来源条件、建议步骤、参考与评分，同意应用此任务。',
+                                'I have checked the attribution, evidence limits, reference and scoring. Apply this task.',
+                                '我已核对归属、证据限制、参考与评分，同意应用此任务。',
                               )
-                            : t(
-                                'I have checked the source roles, the effective change for the same setting, and the unknown observation date. Apply these sources and scoring weights.',
-                                '我已核对来源角色、同一情境下规则的生效变更，以及观察日期未知的条件；同意应用这些来源与评分权重。',
-                              )}
+                            : draft.operation === 'paired-condition-confound'
+                              ? t(
+                                  'I have reviewed the source conditions, proposed procedure, reference and scoring. Apply this task.',
+                                  '我已核对来源条件、建议步骤、参考与评分，同意应用此任务。',
+                                )
+                              : t(
+                                  'I have checked the source roles, the effective change for the same setting, and the unknown observation date. Apply these sources and scoring weights.',
+                                  '我已核对来源角色、同一情境下规则的生效变更，以及观察日期未知的条件；同意应用这些来源与评分权重。',
+                                )}
               </label>
               {draft.goalAlignment && (
                 <p>

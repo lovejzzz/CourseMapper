@@ -1,0 +1,11 @@
+{
+  "baseline": "a919ab10",
+  "sourceCase": "source-dev-03",
+  "input": "Restore the first natural generated project; select claim-attribution in the existing review editor; use unchanged objective and records.",
+  "attemptLimit": 1,
+  "internalBudget": "Existing proposal protocol: at most two serialized calls, 1024 output tokens each.",
+  "createdAt": "2026-09-08T11:59:10.777906+00:00",
+  "manualRoleCorrectionBeforeCapture": false,
+  "purpose": "First real local proposal for the new attribution contract",
+  "limitation": "Exposed development input and implementer-selected operation, not fresh final acceptance or autonomous operation selection."
+}

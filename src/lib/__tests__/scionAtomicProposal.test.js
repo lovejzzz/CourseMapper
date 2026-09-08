@@ -21,6 +21,56 @@ const loader = (complete) => async () => ({
   getScionBrowserWllamaStatus: () => ({ runtime: { grammar: 'gbnf-state-v1' } }),
   completeScionBrowserWllama: complete,
 });
+it('routes attribution through ten bounded questions and retains each record owner', async () => {
+  const { proposeTeachingSourceBindings } = await import('../scionTeachingProposal.js');
+  const inputs = [
+    { id: 'log', text: 'Sora wrote “The lamp flickered”. She did not test the circuit.' },
+    {
+      id: 'report',
+      text: 'The porter said “The crew replaced the switch”. The record does not state how the porter learned this.',
+    },
+    {
+      id: 'comment',
+      text: 'The commentator wrote “Replacing the switch caused the flicker”. There is no circuit inspection or maintenance record.',
+    },
+  ];
+  const answers = [
+    'The lamp flickered',
+    'Sora',
+    'She did not test the circuit.',
+    'The crew replaced the switch',
+    'The porter',
+    'The record does not state how the porter learned this.',
+    'Replacing the switch caused the flicker',
+    'The commentator',
+    'There is no circuit inspection or maintenance record.',
+    'circuit inspection',
+  ];
+  let n = 0;
+  const result = await proposeTeachingSourceBindings(
+    { operation: 'claim-attribution', inputs, objective: 'Distinguish observation, assertion and explanation.' },
+    {
+      runtimeLoader: loader(async (messages, options) => {
+        expect(options.promptProtocol).toBe('scion-attribution-atomic-questions-v1');
+        if (n === 6) {
+          expect(messages[1].content).toContain(inputs[2].text);
+          expect(messages[1].content).not.toContain(inputs[0].text);
+          expect(messages[1].content).not.toContain(inputs[1].text);
+        }
+        return JSON.stringify({ answer: answers[n++] });
+      }),
+    },
+  );
+  expect(result.status).toBe('review');
+  expect(result.modelCalls).toBe(10);
+  expect(result.issues).toEqual([]);
+  expect(result.missing).toEqual([]);
+  expect(result.bindings.observationRecord.quote).toBe(inputs[0].text);
+  expect(result.bindings.reportRecord.quote).toBe(inputs[1].text);
+  expect(result.bindings.inferenceRecord.quote).toBe(inputs[2].text);
+  expect(result.receipt.attempts.find((a) => a.role === 'reporter').requiredInputId).toBe('report');
+  expect(result.admission).toBeUndefined();
+});
 it('builds a complete reviewed source proposal from independently located short answers in both languages', async () => {
   for (const zh of [false, true]) {
     const { request, answers } = setup(zh);

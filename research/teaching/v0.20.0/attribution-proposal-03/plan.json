@@ -1,0 +1,15 @@
+{
+  "baseline": "a919ab10",
+  "createdAt": "2026-09-08T12:15:49.199Z",
+  "sourceCase": "source-dev-03",
+  "attemptLimit": 1,
+  "protocol": "scion-attribution-atomic-questions-v1",
+  "callLimit": 12,
+  "manualRoleCorrectionBeforeCapture": false,
+  "patchSha256": {
+    "src/lib/scionAtomicProposal.js": "456e27e72203cb6b7b731fac9a2942f092519ed54e6d192984ca19e00478abcf",
+    "src/lib/scionTeachingProposal.js": "21b972e92ccc1c645e645ead040d7927a8d28625ef4102e0940e8b814f1fc0c1",
+    "src/lib/teachingOperationAttribution.js": "37e01a21637498669f6f6693a9d0d474b8a74e551ee3a03d261cb080013a001c"
+  },
+  "limitation": "Exposed development input with implementer-selected operation; not final acceptance."
+}
