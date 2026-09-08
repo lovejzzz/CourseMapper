@@ -72,7 +72,7 @@ it('computes the relative day and compatible month only after premise review', (
   expect(result.answer).toContain('first operated successfully');
   expect(result.criteria.map((c) => c.weight)).toEqual([30, 35, 35]);
   expect(result.criteria[1].levels.proficient).toContain('17 August');
-  expect(result.answer.match(/This date lies within August/g)).toHaveLength(1);
+  expect(result.answer.match(/The inferred event date lies within August/g)).toHaveLength(1);
   const transfer = result.sequence.find((unit) => unit.kind === 'independent-transfer');
   expect(transfer.answer).toContain('31 May');
   expect(transfer.answer).not.toContain('17 August');
@@ -183,6 +183,11 @@ it('projects the reviewed chronology into all nine materials and synchronizes a 
   expect(JSON.stringify(compiled.studyGuides).includes('A relative day needs an anchor')).toBe(true);
   expect(compiled.studyGuides.studyGuides[0].summary).not.toContain('revised record');
   expect(compiled.studyGuides.studyGuides[0].learningObjectives).toEqual([objective]);
+  expect(compiled.assignments.assignments[0].anchorExampleGuidance[2]).toContain(
+    'Mistakes the recording of a recollection for the event date.',
+  );
+  expect(compiled.assignments.assignments[0].anchorExampleGuidance[2]).not.toContain('Reports recollection metadata');
+  expect(compiled.studyGuides.studyGuides[0].workedExample.steps).toContain(teachingTask.criteria[0].levels.exemplary);
   const entries = Object.fromEntries(features.map((id) => [id, { status: 'done', data: compiled[id], stale: false }]));
   for (const id of features)
     expect(compiled[id].teachingTaskSources[0].operationPlan.operation, id).toBe('record-relative-day');
@@ -208,4 +213,75 @@ it('projects the reviewed chronology into all nine materials and synchronizes a 
       expect(JSON.stringify(result.changed[id].data).includes('31 August'), id).toBe(true);
     expect(result.changed[id].data.teachingTaskSources[0].operationPlan.operation).toBe('record-relative-day');
   }
+});
+
+it('requires all four attributed time roles in the full-score answer and evidence anchor', () => {
+  const { inputs, plan } = fixture();
+  const result = task(plan, inputs);
+  expect(plan.presentationVersion).toBe(5);
+  const complete = result.contrastResponses.find((entry) => entry.id === 'complete');
+  const alternative = result.contrastResponses.find((entry) => entry.id === 'alternative-representation');
+  expect(alternative.response).not.toBe(complete.response);
+  expect(alternative.response).toContain('Record 1 | Record date: 18 August');
+  expect(alternative.response).toContain('Record 2 | Recalled month: August');
+  const evidence = complete.judgments.find((entry) => entry.criterionId === 'evidence');
+  expect(evidence.level).toBe('exemplary');
+  const quote = evidence.evidence[0].quote;
+  expect(quote).toContain('Record 1: record date 18 August');
+  expect(quote).toContain('We finished installing the pump yesterday.');
+  expect(quote).toContain('gives 17 August');
+  expect(quote).toContain('Record 2: the recollection places the event in August');
+  expect(quote).toContain('4 October dates the recording');
+  expect(result.criteria[0].levels.exemplary).toBe(quote);
+  expect(result.answer).toContain(quote);
+  const transfer = result.sequence.find((entry) => entry.kind === 'independent-transfer');
+  expect(transfer.answer).toContain('Record 1: record date 1 June');
+  expect(transfer.answer).toContain('Record 2: the recollection places the event in May');
+  expect(transfer.answer).toContain('9 July dates the recording');
+  expect(transfer.answer).not.toContain('pump');
+});
+
+it('attributes by bound source identity even when input records are reordered', () => {
+  const { inputs, plan } = fixture();
+  const result = task(plan, [inputs[1], inputs[2], inputs[0]]);
+  expect(result.answer).toContain('Record 3: record date 18 August');
+  expect(result.answer).toContain('Record 1: the recollection places the event in August');
+  expect(result.answer).not.toContain('Record 1: record date');
+});
+
+it('keeps the complete temporal evidence in Chinese and retains valid quote offsets', () => {
+  const { inputs, plan } = fixture();
+  const result = buildSharedTeachingTask({
+    lessonId: 'chronology-zh',
+    objective: '区分事件日期、回忆月份和回忆记录日期。',
+    operationPlan: plan,
+    sourceInputs: inputs,
+    admitted: true,
+  });
+  expect(result.answer).toContain('材料1：记录日期18 August');
+  expect(result.answer).toContain('据此推得8月17日');
+  expect(result.answer).toContain('材料2：回忆将事件置于August');
+  expect(result.answer).toContain('4 October是回忆被记录的日期');
+  for (const response of result.contrastResponses)
+    for (const judgment of response.judgments)
+      for (const evidence of judgment.evidence) {
+        expect(evidence.start).toBeGreaterThanOrEqual(0);
+        expect(response.response.slice(evidence.start, evidence.end)).toBe(evidence.quote);
+      }
+});
+
+it('replays saved v4 wording without silently upgrading its response evidence', () => {
+  const { inputs, plan } = fixture();
+  plan.presentationVersion = 4;
+  const legacy = task(plan, inputs);
+  expect(legacy.answer.startsWith('The record is dated 18 August;')).toBe(true);
+  expect(legacy.answer).not.toContain('Record 1:');
+  const saved = teachingTaskSourceFromLesson({
+    id: 'lesson-1',
+    lessonNumber: 1,
+    title: 'Dates',
+    teachingTask: legacy,
+    teachingTaskScope: 'primary-task',
+  });
+  expect(rebuildTeachingTaskSource(JSON.parse(JSON.stringify(saved))).answer).toBe(legacy.answer);
 });

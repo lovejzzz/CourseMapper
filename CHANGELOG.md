@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Make chronology v5 full-score responses identify all four temporal roles and their sources. Keep that complete evidence in study-guide reasoning and independent practice, and pair assignment error examples with their own scoring rationale. Preserve v4 replay. A prior reviewed-course replay and actual Word/PDF export expose remaining historical objective and pagination issues; no new model-course or production acceptance claimed.
+
 - Rebuild related reviewed-task materials together after a direct lesson Regen, preserving teacher overrides and blocking unreviewed source changes. Commit the staged group atomically against current entries. An actual single rubric Regen updates the eight older siblings, removes mixed primary/transfer revisions without more model requests, and survives refresh/Resume with all nine material data sets intact.
 
 - Add an independent saved-project evidence checker for original source/spans, reviewed attribution, scoring identities, answer equations and material revision consistency. Fault-injection tests cover corruption, stale edits and student-answer leakage; untested semantic/layout dimensions remain pending. A real partial-Regen project exposes mixed primary/transfer revisions, while the separate full compiler replay passes the annotated checks.

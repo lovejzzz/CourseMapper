@@ -90,7 +90,7 @@ export function renderChronologyTask(plan, inputs, objective, evaluated) {
         : `${date.day} ${months[date.month - 1]}${date.year === null ? '' : ` ${date.year}`}`,
     )
     .join(zh ? '或' : ' or ');
-  const relation =
+  const originalRelation =
     evaluated.compatibility === 'compatible'
       ? zh
         ? `该日期落在${v.broadMonth}内，因此两项陈述的精确程度不同，但并不因此冲突。`
@@ -102,6 +102,10 @@ export function renderChronologyTask(plan, inputs, objective, evaluated) {
         : zh
           ? '不同日历可能性与所述月份的关系不一致，暂不能确定是否相容。'
           : 'The calendar possibilities do not agree on month membership; compatibility is unresolved.';
+  const relation =
+    plan.presentationVersion >= 5
+      ? originalRelation.replace('This date', 'The inferred event date').replace('该日期', '推导的事件日期')
+      : originalRelation;
   const conclusion = zh
     ? `按${v.recordDate}这份记录中“${v.relativeDay}”的已审阅指向，事件被声称发生于${dateText}。${relation}`
     : `On the reviewed reading of “${v.relativeDay}” relative to the record dated ${v.recordDate}, that record places the event on ${dateText}. ${relation}`;
@@ -161,25 +165,51 @@ export function renderChronologyTask(plan, inputs, objective, evaluated) {
     const attributed = zh
       ? `这份记录日期为${v.recordDate}，“${v.relativeDay}”所指的事件日期是${dateText}。${relation}`
       : `The record is dated ${v.recordDate}; its “${v.relativeDay}” places the reported event on ${dateText}. ${relation}`;
+    // V4 remains reproducible for saved comparisons. V5 makes the full-score
+    // response actually satisfy the four-role, attributed-timeline requirement.
+    const sourceLabel = (binding) => {
+      const inputId = plan.bindings?.[binding]?.inputId;
+      const index = inputs.findIndex((input) => input.id === inputId);
+      return zh ? `材料${index + 1}` : `Record ${index + 1}`;
+    };
+    const timeline =
+      plan.presentationVersion >= 5
+        ? zh
+          ? `${sourceLabel('datedRecord')}：记录日期${v.recordDate}；记述的事件“${v.eventClaim}”中的“${v.relativeDay}”据此推得${dateText}。${sourceLabel('recollectionRecord')}：回忆将事件置于${v.broadMonth}，而${v.recordingDate}是回忆被记录的日期。`
+          : `${sourceLabel('datedRecord')}: record date ${v.recordDate}; in the reported event “${v.eventClaim}”, “${v.relativeDay}” therefore gives ${dateText}. ${sourceLabel('recollectionRecord')}: the recollection places the event in ${v.broadMonth}, while ${v.recordingDate} dates the recording of that recollection.`
+        : attributed;
     body.summary = attributed;
-    body.answer = `${attributed} ${limit}`;
+    body.answer = `${timeline}${plan.presentationVersion >= 5 ? ` ${relation}` : ''} ${limit}`;
     body.checkpoint.answer = body.answer;
     body.errors[0].correction = attributed;
     body.errors[0].successCriterion = attributed;
     body.reasoning = [
-      zh
-        ? `记录日期${v.recordDate}为相对词“${v.relativeDay}”提供日历依据，因此得到${dateText}。`
-        : `The record date ${v.recordDate} anchors “${v.relativeDay}”, giving ${dateText}.`,
+      plan.presentationVersion >= 5
+        ? timeline
+        : zh
+          ? `记录日期${v.recordDate}为相对词“${v.relativeDay}”提供日历依据，因此得到${dateText}。`
+          : `The record date ${v.recordDate} anchors “${v.relativeDay}”, giving ${dateText}.`,
       relation,
       limit,
     ];
     body.criteria[1].levels.exemplary = attributed;
+    if (plan.presentationVersion >= 5) {
+      body.criteria[0].levels.exemplary = timeline;
+      body.criteria[0].feedback = zh
+        ? '分别标出记录日期、推导的事件日期、回忆月份与回忆记录日期，并注明各自材料编号。'
+        : 'Label the record date, inferred event day, recalled month and recollection recording date, and attribute each to its source record.';
+    }
     const partial = zh
       ? `回忆说事件发生在${v.broadMonth}，回忆记录于${v.recordingDate}。`
       : `The recollection places the event in ${v.broadMonth}; it was recorded on ${v.recordingDate}.`;
-    const table = zh
-      ? `记录日期：${v.recordDate}；推导事件日期：${dateText}；回忆月份：${v.broadMonth}；回忆记录日期：${v.recordingDate}。`
-      : `Record date: ${v.recordDate}; inferred event day: ${dateText}; recalled month: ${v.broadMonth}; recollection recorded: ${v.recordingDate}.`;
+    const table =
+      plan.presentationVersion >= 5
+        ? zh
+          ? `${sourceLabel('datedRecord')}｜记录日期：${v.recordDate}；相对词：${v.relativeDay}；推导事件日期：${dateText}。\n${sourceLabel('recollectionRecord')}｜回忆月份：${v.broadMonth}；回忆记录日期：${v.recordingDate}。`
+          : `${sourceLabel('datedRecord')} | Record date: ${v.recordDate}; relative phrase: ${v.relativeDay}; inferred event day: ${dateText}.\n${sourceLabel('recollectionRecord')} | Recalled month: ${v.broadMonth}; recollection recorded: ${v.recordingDate}.`
+        : zh
+          ? `记录日期：${v.recordDate}；推导事件日期：${dateText}；回忆月份：${v.broadMonth}；回忆记录日期：${v.recordingDate}。`
+          : `Record date: ${v.recordDate}; inferred event day: ${dateText}; recalled month: ${v.broadMonth}; recollection recorded: ${v.recordingDate}.`;
     const example = (id, response, judgments) => ({
       id,
       kind: 'synthetic-review-example',
@@ -194,13 +224,19 @@ export function renderChronologyTask(plan, inputs, objective, evaluated) {
         [
           'evidence',
           'exemplary',
-          attributed,
-          zh ? '标注记录与推导的时间角色。' : 'Labels the record and inferred temporal roles.',
+          timeline,
+          plan.presentationVersion >= 5
+            ? zh
+              ? '标注四种时间角色及对应来源。'
+              : 'Labels all four temporal roles and their corresponding sources.'
+            : zh
+              ? '标注记录与推导的时间角色。'
+              : 'Labels the record and inferred temporal roles.',
         ],
         [
           'reasoning',
           'exemplary',
-          attributed,
+          plan.presentationVersion >= 5 ? `${timeline} ${relation}` : attributed,
           zh ? '完成相对日期推导及月份比较。' : 'Completes the relative-day inference and month comparison.',
         ],
         [

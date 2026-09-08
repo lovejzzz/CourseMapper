@@ -217,7 +217,9 @@ export function validateTeachingOperationPlan(plan, inputs, objective) {
         ? [1, 2, 3, 4]
         : plan.operation === 'union-bounds'
           ? [3, 4, 5, 6]
-          : ['paired-condition-confound', 'pooled-proportion', 'claim-attribution'].includes(plan.operation)
+          : ['paired-condition-confound', 'pooled-proportion', 'claim-attribution', 'record-relative-day'].includes(
+                plan.operation,
+              )
             ? [3, 4, 5]
             : [3, 4]
     ).includes(plan.presentationVersion)
@@ -413,7 +415,9 @@ export function createTeachingOperationPlan({
     presentationVersion:
       operation === 'union-bounds'
         ? 6
-        : ['paired-condition-confound', 'pooled-proportion', 'claim-attribution'].includes(operation)
+        : ['paired-condition-confound', 'pooled-proportion', 'claim-attribution', 'record-relative-day'].includes(
+              operation,
+            )
           ? 5
           : ['record-relative-day', 'pooled-proportion', 'union-bounds', 'claim-attribution'].includes(operation) ||
               version === AUTHORED_REQUIREMENTS_PLAN_VERSION

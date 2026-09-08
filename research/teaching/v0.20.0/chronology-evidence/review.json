@@ -1,0 +1,62 @@
+{
+  "mode": "Development replay of an earlier browser-reviewed chronology; presentation-only revision, no new model or browser run",
+  "modelCalls": 0,
+  "inputPath": ".audit-work/v0200-teaching-system/chronology-browser-01/after-refinement.coursemapper",
+  "inputSha256": "adc17ed1ae82ec553f1dade13195d982663931ce18dc56893651a41ea46e809d",
+  "legacyV4BodyMatchesPreviousCommit": true,
+  "sourceInputsUnchanged": true,
+  "taskIdStable": true,
+  "materialCount": 9,
+  "before": {
+    "answer": "The record is dated 18 August; its “yesterday” places the reported event on 17 August. This date lies within August; the claims differ in precision without thereby conflicting. 4 October dates the recording of the recollection, not automatically the event. The year remains unknown and must not be supplied. Preserve the packet's stated limits: No source says that the interview recording date was the installation date. There is no evidence about when the pump first operated successfully. Calendar arithmetic does not independently verify the event; seek an independent record linked to that same event.",
+    "evidenceCriterion": "Label the record date 18 August, its relative-day inference 17 August, and the recollection recording date 4 October separately, then compare August."
+  },
+  "after": {
+    "answer": "Record 1: record date 18 August; in the reported event “We finished installing the pump yesterday.”, “yesterday” therefore gives 17 August. Record 2: the recollection places the event in August, while 4 October dates the recording of that recollection. The inferred event date lies within August; the claims differ in precision without thereby conflicting. 4 October dates the recording of the recollection, not automatically the event. The year remains unknown and must not be supplied. Preserve the packet's stated limits: No source says that the interview recording date was the installation date. There is no evidence about when the pump first operated successfully. Calendar arithmetic does not independently verify the event; seek an independent record linked to that same event.",
+    "evidenceCriterion": "Record 1: record date 18 August; in the reported event “We finished installing the pump yesterday.”, “yesterday” therefore gives 17 August. Record 2: the recollection places the event in August, while 4 October dates the recording of that recollection."
+  },
+  "educationalAcceptance": "pending independent teacher review",
+  "checks": {
+    "fullCheck": {
+      "studio": 58,
+      "compatibility": 938,
+      "scion": 978,
+      "status": "passed before final wording, assignment rationale and distinct alternative-representation refinements; final targeted tests/lint cover those changes"
+    },
+    "finalTargetedTests": 29,
+    "lint": "passed",
+    "frozenCorpus": "unchanged",
+    "finalBuildAndBundle": "passed"
+  },
+  "exports": [
+    {
+      "file": ".audit-work/v0200-teaching-system/chronology-evidence/exports-verified/assignments.docx",
+      "sha256": "719ee427209275b47f1f2459d29ca657a8fd68a220bbf3bbe707c5a08585b091"
+    },
+    {
+      "file": ".audit-work/v0200-teaching-system/chronology-evidence/exports-verified/assignments.pdf",
+      "sha256": "e9ec6fcd0fa364688c55a21c3bd14282f9cd232a411fd16b8c37a988b618d3c8"
+    },
+    {
+      "file": ".audit-work/v0200-teaching-system/chronology-evidence/exports-verified/studyGuides.docx",
+      "sha256": "da56f9d8cfb448ec8e1ffcc6601cae6daa885c4a16ba66711debe98059822c42"
+    },
+    {
+      "file": ".audit-work/v0200-teaching-system/chronology-evidence/exports-verified/studyGuides.pdf",
+      "sha256": "3b6ab03e95f7eaa1b957216e5ce890b979d42438a507068449d3800c42142a6e"
+    }
+  ],
+  "visualReview": {
+    "pdfPages": 6,
+    "remainingIssues": [
+      "Assignment self-assessment occupies a mostly empty page before separate teacher reference.",
+      "Historical course objective is generic; kept unchanged.",
+      "Dense reference paragraph and repeated guide explanation remain."
+    ],
+    "officeApplicationReview": false,
+    "finalRenderMatchesReviewedPages": 6
+  },
+  "firstReplayFailure": "Study guide omitted the complete attributed temporal evidence; corrected by including it in shared reasoning.",
+  "exportReviewFix": "Assignment misconception now uses its own scoring rationale rather than the incomplete-response rationale.",
+  "alternativeRepresentation": "A distinct labeled row representation retains the four attributed roles; it is not a duplicate of the prose exemplar."
+}

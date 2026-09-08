@@ -288,7 +288,8 @@ export function operationSpecificTransfer(task) {
     };
     const plan = {
       operation: 'record-relative-day',
-      presentationVersion: 4,
+      presentationVersion: task.operationPlan.presentationVersion >= 5 ? 5 : 4,
+      bindings: { datedRecord: { inputId: 'practice-0' }, recollectionRecord: { inputId: 'practice-1' } },
       requirements: [
         { id: 'evidence', weight: 30 },
         { id: 'reasoning', weight: 35 },
