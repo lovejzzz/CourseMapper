@@ -1,0 +1,94 @@
+[
+  {
+    "id": "pool-context-en-01",
+    "operation": "pooled-proportion",
+    "objective": "Combine the observed completion counts, compare with the group mean, and explain the limits of this comparison.",
+    "inputs": [
+      {
+        "id": "s1",
+        "text": "In this fictional reading program, Juniper circle enrolled thirty-two readers; sixteen readers submitted a reading log by Sunday."
+      },
+      {
+        "id": "s2",
+        "text": "Hawthorn circle enrolled fifty readers; thirty readers submitted a reading log by Sunday."
+      },
+      {
+        "id": "s3",
+        "text": "Both circles count completion as submitting a reading log by Sunday of the reporting week. Each reader is enrolled in only one circle; the circles have no members in common."
+      },
+      {
+        "id": "s4",
+        "text": "Prior reading experience and time available were not measured, so the counts cannot identify the cause of the difference."
+      }
+    ]
+  },
+  {
+    "id": "pool-context-zh-01",
+    "operation": "pooled-proportion",
+    "objective": "计算合并检查通过率和组等权平均，并区分数量结论与因果解释。",
+    "inputs": [
+      {
+        "id": "s1",
+        "text": "虚构质检报告中，东堤批次共有十五件样品，其中九件通过周三检查。"
+      },
+      {
+        "id": "s2",
+        "text": "西岭批次共有四十件样品，其中二十件通过周三检查。"
+      },
+      {
+        "id": "s3",
+        "text": "两个批次均按相同标准在同一周三完成检查。每件样品只属于一个批次，两个批次没有重复样品。"
+      },
+      {
+        "id": "s4",
+        "text": "原料状况和存放时间没有记录，不能据此解释两个批次通过率差异的原因。"
+      }
+    ]
+  },
+  {
+    "id": "pool-context-en-missing-identity",
+    "operation": "pooled-proportion",
+    "objective": "Find the success rate for unique people from both groups if the supplied evidence permits pooling.",
+    "inputs": [
+      {
+        "id": "s1",
+        "text": "In a fictional skills report, Birch group contains twenty learners; eight learners passed the assessment."
+      },
+      {
+        "id": "s2",
+        "text": "Rowan group contains thirty learners; eighteen learners passed the assessment."
+      },
+      {
+        "id": "s3",
+        "text": "Both groups use the same assessment and Friday deadline. Whether the groups share learners is unknown."
+      },
+      {
+        "id": "s4",
+        "text": "Previous experience and practice time are absent, so the report does not establish a cause for differing pass rates."
+      }
+    ]
+  },
+  {
+    "id": "pool-context-zh-missing-total",
+    "operation": "pooled-proportion",
+    "objective": "求两组学员合并达标率和等权平均；缺少数据时说明无法完成的计算。",
+    "inputs": [
+      {
+        "id": "s1",
+        "text": "虚构记录中，晴川组共有二十四名学员，其中六名通过考核。"
+      },
+      {
+        "id": "s2",
+        "text": "明溪组有十六名学员通过考核，参加考核的学员总数未知。"
+      },
+      {
+        "id": "s3",
+        "text": "两组使用同一考核标准和同一周五截止时间。每名学员只属于一个组，两组没有重复学员。"
+      },
+      {
+        "id": "s4",
+        "text": "练习时长和入组前水平没有记录，所以无法从这些数量解释组间差异的原因。"
+      }
+    ]
+  }
+]

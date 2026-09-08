@@ -1,6 +1,6 @@
 import { it, expect } from 'vitest';
 import fs from 'node:fs';
-import { resolveAtomicSourceAnswer } from '../scionAtomicSourceAnswer.js';
+import { resolveAtomicSourceAnswer, atomicAnswerSentenceContext } from '../scionAtomicSourceAnswer.js';
 const read = (name) =>
   JSON.parse(
     fs.readFileSync(
@@ -65,4 +65,33 @@ it('uses verified clarification context without guessing among globally repeated
   const multi = resolveAtomicSourceAnswer(context.quote, inputs, { type: 'count' });
   expect(multi.status).toBe('needs-review');
   expect(multi.witness).toEqual(context);
+});
+
+it('canonicalizes identical labels within one record without relaxing count or cross-record ambiguity', () => {
+  const inputs = [{ id: 'a', text: 'Cedar depot reports sixteen returns. Cedar depot issued forty tools.' }];
+  const label = resolveAtomicSourceAnswer('Cedar depot', inputs, { type: 'label' });
+  expect(label.status).toBe('located');
+  expect(label.binding.occurrence).toBe(0);
+  expect(label.matchingOccurrences).toEqual([0, 1]);
+  expect(label.semanticReviewRequired).toBe(true);
+  expect(resolveAtomicSourceAnswer('Cedar depot', inputs).status).toBe('needs-review');
+  expect(
+    resolveAtomicSourceAnswer('Cedar depot', [...inputs, { id: 'b', text: 'Cedar depot has a conflicting report.' }], {
+      type: 'label',
+    }).status,
+  ).toBe('needs-review');
+  expect(
+    resolveAtomicSourceAnswer('sixteen', [{ id: 'a', text: 'sixteen returns of sixteen tools' }], { type: 'count' })
+      .status,
+  ).toBe('needs-review');
+});
+
+it('narrows follow-up reading to the verified count sentence without changing source positions', () => {
+  const inputs = [{ id: 'a', text: 'North has twenty devices. South has forty devices; ten passed.' }];
+  const count = resolveAtomicSourceAnswer('forty devices', inputs, { type: 'count' });
+  const context = atomicAnswerSentenceContext(count.witness, inputs);
+  expect(context.quote).toBe(' South has forty devices;');
+  const unit = resolveAtomicSourceAnswer('devices', inputs, { context });
+  expect(unit.binding.occurrence).toBe(1);
+  expect(atomicAnswerSentenceContext({ ...count.witness, quote: 'invented' }, inputs)).toBeNull();
 });

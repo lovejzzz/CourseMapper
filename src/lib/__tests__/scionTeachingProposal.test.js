@@ -347,3 +347,55 @@ it('identifies both conflicting count roles in repair feedback', () => {
   expect(result.issues.join(' ')).toContain('firstPart and firstWhole');
   expect(result.repairable).toBe(true);
 });
+
+it('reports reused pooled count evidence even when other model roles are missing', () => {
+  const root = 'research/scion/evaluation/v0.20.0/pooling-labels/';
+  const inputs = JSON.parse(fs.readFileSync(root + 'inputs.json', 'utf8'));
+  const raw = JSON.parse(fs.readFileSync(root + 'first-run-raw.json', 'utf8'));
+  for (const id of ['pool-label-en-missing-identity', 'pool-label-zh-missing-total']) {
+    const request = inputs.find((i) => i.id === id);
+    const original = raw.cases.find((c) => c.id === id).result;
+    const wire = {
+      bindings: Object.fromEntries(
+        Object.entries(original.bindings).map(([role, b]) => [
+          role,
+          b.inputId
+            ? {
+                source: 'r' + (request.inputs.findIndex((i) => i.id === b.inputId) + 1),
+                ...(/Record$/.test(role) ? {} : { quote: b.quote, occurrence: b.occurrence }),
+              }
+            : null,
+        ]),
+      ),
+      unknowns: [],
+    };
+    const checked = assessTeachingProposal(JSON.stringify(wire), request);
+    expect(checked.missing.length).toBeGreaterThan(0);
+    expect(checked.issues.join(' ')).toContain('reuse the same source occurrence');
+  }
+});
+
+it('rejects the actual uncertainty excerpt that the local model proposed as distinct membership', () => {
+  const root = 'research/scion/evaluation/v0.20.0/pooling-context/';
+  const request = JSON.parse(fs.readFileSync(root + 'inputs.json', 'utf8')).find(
+    (i) => i.id === 'pool-context-en-missing-identity',
+  );
+  const original = JSON.parse(fs.readFileSync(root + 'first-run-raw.json', 'utf8')).cases.find(
+    (c) => c.id === request.id,
+  ).result;
+  const wire = {
+    bindings: Object.fromEntries(
+      Object.entries(original.bindings).map(([role, b]) => [
+        role,
+        {
+          source: 'r' + (request.inputs.findIndex((i) => i.id === b.inputId) + 1),
+          ...(/Record$/.test(role) ? {} : { quote: b.quote, occurrence: b.occurrence }),
+        },
+      ]),
+    ),
+    unknowns: [],
+  };
+  expect(original.issues).toEqual([]); // Retain the false structural pass.
+  const checked = assessTeachingProposal(JSON.stringify(wire), request);
+  expect(checked.issues.join(' ')).toContain('leaves overlap unresolved');
+});

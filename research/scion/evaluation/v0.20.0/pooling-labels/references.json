@@ -1,0 +1,31 @@
+{
+  "notSentToModel": true,
+  "expected": {
+    "pool-label-en-01": {
+      "counts": [
+        14,
+        40,
+        42,
+        60
+      ],
+      "pooled": "56%",
+      "equal": "52.5%"
+    },
+    "pool-label-zh-01": {
+      "counts": [
+        12,
+        30,
+        35,
+        50
+      ],
+      "pooled": "58.75%",
+      "equal": "55%"
+    },
+    "pool-label-en-missing-identity": {
+      "mustNotCompile": "No evidence of distinct membership"
+    },
+    "pool-label-zh-missing-total": {
+      "mustNotCompile": "Second whole count unknown; fifteen is an outcome count"
+    }
+  }
+}

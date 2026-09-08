@@ -1,3 +1,4 @@
+import { poolingCountOccurrenceIssues, poolingMembershipEvidenceIssue } from './teachingOperationPooling.js';
 import { sourceBindingsGrammar } from './scionSourceBindingsGrammar.js';
 import { parseSourceCount, countSpanCutsNumber } from './sourceCount.js';
 import { TEACHING_OPERATION_SPECS, createTeachingOperationPlan } from './teachingOperationPlan.js';
@@ -227,9 +228,15 @@ export function assessTeachingProposal(raw, request, protocol = teachingProposal
       end: positions[occurrence] + selection.quote.length,
     };
   }
+  const sourceBindingsComplete = !issues.length && !missing.length;
+  if (request.operation === 'pooled-proportion') {
+    issues.push(...poolingCountOccurrenceIssues(spans).map((issue) => issue.message));
+    const membershipIssue = poolingMembershipEvidenceIssue(bindings.distinctMembership?.quote);
+    if (membershipIssue) issues.push(membershipIssue.message);
+  }
   if (request.operation === 'paired-condition-confound')
     issues.push(...comparisonConditionOverlapIssues(spans).map((issue) => issue.message));
-  if (!issues.length && !missing.length) {
+  if ((!issues.length || (sourceBindingsComplete && request.operation === 'pooled-proportion')) && !missing.length) {
     try {
       createTeachingOperationPlan({
         operation: request.operation,
@@ -238,7 +245,11 @@ export function assessTeachingProposal(raw, request, protocol = teachingProposal
         admission: { kind: 'model-proposal', method: protocol },
       });
     } catch (error) {
-      issues.push(...(Array.isArray(error.issues) ? error.issues.map((entry) => entry.message) : [error.message]));
+      issues.push(
+        ...(Array.isArray(error.issues) ? error.issues.map((entry) => entry.message) : [error.message]).filter(
+          (message) => !issues.includes(message),
+        ),
+      );
     }
   }
   const locatedIssues =

@@ -1,4 +1,4 @@
-import { resolveAtomicSourceAnswer } from './scionAtomicSourceAnswer.js';
+import { resolveAtomicSourceAnswer, atomicAnswerSentenceContext } from './scionAtomicSourceAnswer.js';
 import { TEACHING_OPERATION_SPECS } from './teachingOperationPlan.js';
 import {
   assessTeachingProposal,
@@ -88,17 +88,17 @@ export function atomicSourceQuestions(operation, bindings = {}, zh = false) {
     return [
       q(
         'firstGroup',
-        'text',
+        'label',
         null,
-        'What is the name of the first group whose results are compared? Copy its name only.',
-        '先描述的被比较群体叫什么？只复制群体名称。',
+        'What is the first named group with reported counts in these records? Copy its name only.',
+        '记录中最先报告数量的群体叫什么？只复制名称。',
       ),
       q(
         'secondGroup',
-        'text',
+        'label',
         null,
-        'What is the name of the second group whose results are compared? Copy its name only.',
-        '第二个被比较群体叫什么？只复制群体名称。',
+        'What is the second named group with reported counts in these records? Copy its name only.',
+        '记录中第二个报告数量的群体叫什么？只复制名称。',
       ),
       q(
         'firstWhole',
@@ -132,15 +132,15 @@ export function atomicSourceQuestions(operation, bindings = {}, zh = false) {
         'countingUnit',
         'text',
         'firstGroup',
-        'What kind of object or person is counted? Copy the noun phrase.',
-        '计数的对象或人是哪一类？复制名词短语。',
+        'What kind of object or person does the total count measure in this sentence? Copy the common noun only, not the group name.',
+        '这句话中的总人数或总数是在数什么人或物？只复制普通名词，不要复制组名。',
       ),
       q(
         'countedOutcome',
         'text',
         'firstGroup',
-        'What reported outcome is counted within the group? Copy the outcome phrase.',
-        '群体内部计数的是哪个结果？复制结果短语。',
+        'Which action or condition defines the counted outcome in this sentence? Copy the action or condition only, without its count or group name.',
+        '这句话用哪个动作或条件表示所计数的结果？只复制动作或条件，不要包含人数、数量或组名。',
       ),
       q(
         'commonDefinition',
@@ -153,8 +153,8 @@ export function atomicSourceQuestions(operation, bindings = {}, zh = false) {
         'distinctMembership',
         'text',
         null,
-        'Which complete sentence establishes that no counted unit belongs to both groups?',
-        '哪个完整句子说明没有计数对象同时属于两个群体？',
+        'Copy a complete sentence explicitly stating that the groups share no counted units. If the record leaves membership overlap unknown, answer UNKNOWN.',
+        '复制明确说明两组没有重复计数对象的完整句子。如果记录没有确定是否重复，回答 UNKNOWN。',
       ),
       q(
         'limitRecord',
@@ -227,7 +227,22 @@ export async function proposeAtomicSourceBindings(
         return { status: 'needs-review', reason: 'The fixed source-question budget is exhausted.' };
       const owner = item.owner ? bindings[item.owner]?.inputId : undefined;
       if (item.owner && !owner) return { status: 'needs-review', reason: `Locate ${item.owner} before ${item.role}.` };
-      const sources = owner ? snapshot.inputs.filter((i) => i.id === owner) : snapshot.inputs;
+      const contextRole =
+        snapshot.operation === 'pooled-proportion'
+          ? { countingUnit: 'firstWhole', countedOutcome: 'firstPart' }[item.role]
+          : undefined;
+      const countWitness = contextRole
+        ? receipt.attempts.findLast((a) => a.role === contextRole && a.resolution?.status === 'located')?.resolution
+            .witness
+        : null;
+      const questionContext = countWitness ? atomicAnswerSentenceContext(countWitness, snapshot.inputs) : null;
+      if (contextRole && !questionContext)
+        return { status: 'needs-review', reason: `Locate ${contextRole} before ${item.role}.` };
+      const sources = questionContext
+        ? [{ id: questionContext.inputId, text: questionContext.quote }]
+        : owner
+          ? snapshot.inputs.filter((i) => i.id === owner)
+          : snapshot.inputs;
       const previous = repair ? receipt.attempts.findLast((a) => a.role === item.role && a.answer) : null;
       const clarifyContext = previous?.resolution?.reason?.includes('occurs more than once');
       const narrowCount = previous?.resolution?.reason?.includes('contains several counts');
@@ -245,9 +260,9 @@ export async function proposeAtomicSourceBindings(
         {
           role: 'user',
           content:
-            (zh ? '教学目标：' : 'Teaching objective: ') +
-            snapshot.objective +
-            '\n' +
+            (snapshot.operation === 'pooled-proportion'
+              ? ''
+              : (zh ? '教学目标：' : 'Teaching objective: ') + snapshot.objective + '\n') +
             (zh ? '记录：' : 'Records:') +
             '\n' +
             sources.map((i) => i.text).join('\n\n') +
@@ -258,7 +273,13 @@ export async function proposeAtomicSourceBindings(
             (repair ? '\n' + (zh ? '上次问题：' : 'Previous problem: ') + repairInstruction : ''),
         },
       ];
-      const entry = { role: item.role, messages, grammar, ...(owner ? { requiredInputId: owner } : {}) };
+      const entry = {
+        role: item.role,
+        messages,
+        grammar,
+        ...(owner ? { requiredInputId: owner } : {}),
+        ...(questionContext ? { questionContext } : {}),
+      };
       receipt.attempts.push(entry);
       receipt.modelCalls++;
       onProgress?.(
@@ -296,7 +317,11 @@ export async function proposeAtomicSourceBindings(
         resolved =
           entry.completion?.finishReason === 'length'
             ? { status: 'needs-review', reason: 'Truncated source answer; no partial result accepted.' }
-            : resolveAtomicSourceAnswer(value.answer, snapshot.inputs, { type: item.type, inputId: owner });
+            : resolveAtomicSourceAnswer(value.answer, snapshot.inputs, {
+                type: item.type,
+                inputId: owner,
+                ...(questionContext ? { context: questionContext } : {}),
+              });
         if (entry.completion?.finishReason !== 'length' && clarifyContext) {
           const locatedContext = resolveAtomicSourceAnswer(value.answer, snapshot.inputs, {
             type: 'text',

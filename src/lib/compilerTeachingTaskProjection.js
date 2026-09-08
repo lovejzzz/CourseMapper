@@ -230,7 +230,8 @@ function projectAssignment(row, task, blueprint) {
         `首次作答后再比较示范答案：${task.answer}`,
       ),
       taskText(task, `Error example: ${task.errors[0].response}`, `错误示例：${task.errors[0].response}`),
-      task.operationPlan?.operation === 'union-bounds' && task.operationPlan.presentationVersion >= 5
+      ['union-bounds', 'pooled-proportion'].includes(task.operationPlan?.operation) &&
+      task.operationPlan.presentationVersion >= 5
         ? task.contrastResponses
             .find((example) => example.response === task.errors[0].response)
             ?.judgments.map(

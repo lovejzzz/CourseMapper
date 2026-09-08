@@ -1,0 +1,62 @@
+{
+  "reviewer": "implementer",
+  "independentTeacherReview": false,
+  "sourceReceiptSha256": "4786f3f0277f48126182c14b114a64feaa261cf041fb63563cc5a4a5a3d40074",
+  "cases": [
+    {
+      "id": "pool-label-en-01",
+      "acceptedForImplementerOutputReview": false,
+      "semanticCorrections": 0,
+      "complete": false,
+      "modelCalls": 12,
+      "elapsedMs": 14004,
+      "missing": [
+        "countingUnit",
+        "countedOutcome"
+      ],
+      "initialIssues": [],
+      "review": "Not a usable complete proposal; inspect raw role answers. Missing-premise cases are intentionally unsupported, and a structurally clear result is not semantic success."
+    },
+    {
+      "id": "pool-label-zh-01",
+      "acceptedForImplementerOutputReview": false,
+      "semanticCorrections": 0,
+      "complete": false,
+      "modelCalls": 12,
+      "elapsedMs": 12169,
+      "missing": [
+        "countingUnit"
+      ],
+      "initialIssues": [],
+      "review": "Not a usable complete proposal; inspect raw role answers. Missing-premise cases are intentionally unsupported, and a structurally clear result is not semantic success."
+    },
+    {
+      "id": "pool-label-en-missing-identity",
+      "acceptedForImplementerOutputReview": false,
+      "semanticCorrections": 0,
+      "complete": false,
+      "modelCalls": 12,
+      "elapsedMs": 9487,
+      "missing": [
+        "countingUnit",
+        "countedOutcome"
+      ],
+      "initialIssues": [],
+      "review": "Not a usable complete proposal; inspect raw role answers. Missing-premise cases are intentionally unsupported, and a structurally clear result is not semantic success."
+    },
+    {
+      "id": "pool-label-zh-missing-total",
+      "acceptedForImplementerOutputReview": false,
+      "semanticCorrections": 0,
+      "complete": false,
+      "modelCalls": 12,
+      "elapsedMs": 9940,
+      "missing": [
+        "countingUnit",
+        "commonDefinition"
+      ],
+      "initialIssues": [],
+      "review": "Not a usable complete proposal; inspect raw role answers. Missing-premise cases are intentionally unsupported, and a structurally clear result is not semantic success."
+    }
+  ]
+}

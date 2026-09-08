@@ -146,3 +146,20 @@ describe('reviewed pooling of distinct counted groups', () => {
     }
   });
 });
+
+it('does not mistake explicit membership uncertainty for evidence of disjoint groups', async () => {
+  const { poolingMembershipEvidenceIssue } = await import('../teachingOperationPooling.js');
+  for (const text of [
+    'Whether the groups share learners is unknown.',
+    'The report does not state whether any participants belong to both groups.',
+    '两组是否有重复学员尚未说明。',
+    '组间重叠人数未知。',
+  ])
+    expect(poolingMembershipEvidenceIssue(text)?.binding).toBe('distinctMembership');
+  for (const text of [
+    'Each reader is enrolled in only one circle; the circles have no members in common.',
+    '两组没有重复学员。',
+    'Prior experience is unknown. The groups share no learners.',
+  ])
+    expect(poolingMembershipEvidenceIssue(text)).toBeNull();
+});

@@ -1,0 +1,12 @@
+{
+  "createdAt": "2026-09-08T08:53:15.565857+00:00",
+  "maxCallsPerCase": 12,
+  "passes": 1,
+  "scope": "Follow-up unit/outcome reading is narrowed to the verified count sentence, not an inferred answer. Two positive and two missing-premise packets, one fixed pass.",
+  "hashes": {
+    "src/lib/scionAtomicProposal.js": "26e3d6574e5da431907b17bafd74df4980b903de14f74254b5c0bea9e5b486e9",
+    "src/lib/scionAtomicSourceAnswer.js": "207b6cd67acd48dc6700fcb99008623264e35a8d7fcca70193490b1938ba5ece",
+    "src/lib/scionTeachingProposal.js": "e09163f8adf1d3b4fb23cc653c21f96984de96b8d1abe9631d2837b96429efd7",
+    "research/scion/evaluation/v0.20.0/pooling-context/inputs.json": "31a27801ba4991f2de2ce2b1529600d0943348b93dd3e8c645cc324fa979d119"
+  }
+}

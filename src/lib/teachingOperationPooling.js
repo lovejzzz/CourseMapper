@@ -1,5 +1,46 @@
 import { solveTeachingProportion, solveCompiledTeachingProportion } from './teachingTaskArithmetic.js';
 
+export function poolingCountOccurrenceIssues(bindings) {
+  const issues = [];
+  const fail = (message, binding) => issues.push({ code: 'plan-pooling', message, binding });
+  const counts = ['firstPart', 'firstWhole', 'secondPart', 'secondWhole'];
+  for (let i = 0; i < counts.length; i++)
+    for (let j = i + 1; j < counts.length; j++) {
+      const a = bindings[counts[i]],
+        b = bindings[counts[j]];
+      if (a && b && a.inputId === b.inputId && a.start < b.end && b.start < a.end)
+        fail(
+          `The ${counts[i]} and ${counts[j]} bindings reuse the same source occurrence. Locate each role at its own count.`,
+          counts[j],
+        );
+    }
+  return issues;
+}
+
+/** Reject explicit uncertainty used as disjointness evidence. This narrow
+ * contradiction check is not a general semantic proof of disjoint membership. */
+export function poolingMembershipEvidenceIssue(quote) {
+  if (typeof quote !== 'string') return null;
+  const clauses = quote.split(/[.!?。！？\n]/u);
+  const unresolved = clauses.some(
+    (clause) =>
+      (/\b(?:overlap|share|common|membership)\b|belong.*both/i.test(clause) &&
+        /\b(?:unknown|unrecorded|uncertain|not (?:known|recorded|stated|determined|established|specified))\b|does not state whether/i.test(
+          clause,
+        )) ||
+      (/(?:重复|重叠|同时属于)/u.test(clause) &&
+        /(?:未知|不明|未确定|未记录|没有记录|尚未|未说明|不清楚|无法确定)/u.test(clause)),
+  );
+  return unresolved
+    ? {
+        code: 'plan-pooling',
+        binding: 'distinctMembership',
+        message:
+          'The selected membership excerpt leaves overlap unresolved. Supply explicit disjointness evidence before pooling unique units.',
+      }
+    : null;
+}
+
 export function validatePoolingBindings(plan, values) {
   const issues = [];
   const fail = (message, binding) => issues.push({ code: 'plan-pooling', message, binding });
@@ -12,17 +53,9 @@ export function validatePoolingBindings(plan, values) {
   }
   if (values.firstGroup?.trim().toLowerCase() === values.secondGroup?.trim().toLowerCase())
     fail('Identify two distinct groups before combining their counts.', 'secondGroup');
-  const counts = ['firstPart', 'firstWhole', 'secondPart', 'secondWhole'];
-  for (let i = 0; i < counts.length; i++)
-    for (let j = i + 1; j < counts.length; j++) {
-      const a = plan.bindings[counts[i]],
-        b = plan.bindings[counts[j]];
-      if (a && b && a.inputId === b.inputId && a.start < b.end && b.start < a.end)
-        fail(
-          `The ${counts[i]} and ${counts[j]} bindings reuse the same source occurrence. Locate each role at its own count.`,
-          counts[j],
-        );
-    }
+  issues.push(...poolingCountOccurrenceIssues(plan.bindings));
+  const membershipIssue = poolingMembershipEvidenceIssue(values.distinctMembership);
+  if (membershipIssue) issues.push(membershipIssue);
   if (plan.bindings.distinctMembership?.inputId !== plan.bindings.identityRecord?.inputId)
     fail('Locate explicit distinct membership in the identity record.', 'distinctMembership');
   if (plan.admission?.kind === 'legacy-explicit-rule')

@@ -1,0 +1,31 @@
+{
+  "notSentToModel": true,
+  "expected": {
+    "pool-context-en-01": {
+      "counts": [
+        16,
+        32,
+        30,
+        50
+      ],
+      "pooled": "2300/41%",
+      "equal": "55%"
+    },
+    "pool-context-zh-01": {
+      "counts": [
+        9,
+        15,
+        20,
+        40
+      ],
+      "pooled": "580/11%",
+      "equal": "55%"
+    },
+    "pool-context-en-missing-identity": {
+      "mustNotCompile": "Shared membership unknown"
+    },
+    "pool-context-zh-missing-total": {
+      "mustNotCompile": "Second group denominator unknown"
+    }
+  }
+}

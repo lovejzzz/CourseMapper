@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Reject explicit unresolved membership used to justify pooling, expose count reuse alongside missing fields, and preserve full repair diagnostics. Retain two new local model trials, including a false structural pass; audit one correct Scion-derived pooling task, fix its assignment feedback association, and verify linked source edits/reopen. The atomic pooling route remains experimental.
+
 - Use bounded local source questions for reviewed union bounds on the verified runtime. Preserve exact evidence, cancellation and existing teacher selections; retain failed pooling proposals as research. Audit two actual Scion-derived tasks and 24 PDF pages, verify linked count edits/reopen, and fix an assignment error explanation that referred to a different response.
 
 - Record a fixed 24-call atomic source-reading diagnostic and add a source-answer resolver that retains exact provenance, extracts only a unique contained count, and refuses rewritten or ambiguous evidence. The resolver remains outside production proposal routing pending complete-task validation.

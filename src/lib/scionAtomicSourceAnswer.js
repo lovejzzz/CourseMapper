@@ -6,7 +6,7 @@ import { quantityCountCatalog } from './scionQuantitySelection.js';
  * This establishes provenance and lexical type, never semantic-role truth. */
 export function resolveAtomicSourceAnswer(answer, inputs, { type = 'text', inputId, context } = {}) {
   const reject = (reason) => ({ status: 'needs-review', reason });
-  if (!['text', 'count', 'record'].includes(type)) return reject('Unsupported source answer type.');
+  if (!['text', 'label', 'count', 'record'].includes(type)) return reject('Unsupported source answer type.');
   if (typeof answer !== 'string' || !answer.trim()) return reject('No source answer.');
   if (answer.trim() === 'UNKNOWN') return { status: 'missing', reason: 'The model reports missing information.' };
   if (
@@ -44,10 +44,11 @@ export function resolveAtomicSourceAnswer(answer, inputs, { type = 'text', input
       occurrence++;
       if (context && (start < context.start || start + quote.length > context.end)) continue;
       matches.push({ inputId: input.id, quote, start, end: start + quote.length, occurrence });
-      if (matches.length > 1) return reject('The answer occurs more than once; provide a unique source excerpt.');
+      if (matches.length > 1 && (type !== 'label' || matches.some((match) => match.inputId !== input.id)))
+        return reject('The answer occurs more than once; provide a unique source excerpt.');
     }
   }
-  if (matches.length !== 1) return reject('The answer is not an exact source excerpt.');
+  if (!matches.length) return reject('The answer is not an exact source excerpt.');
   const witness = matches[0];
   let binding = { inputId: witness.inputId, quote: witness.quote, occurrence: witness.occurrence };
   if (type === 'record') {
@@ -78,5 +79,35 @@ export function resolveAtomicSourceAnswer(answer, inputs, { type = 'text', input
     const candidate = candidates[0];
     binding = { inputId: witness.inputId, quote: candidate.quote, occurrence: candidate.occurrence };
   }
-  return { status: 'located', binding, witness, semanticReviewRequired: true };
+  return {
+    status: 'located',
+    binding,
+    witness,
+    semanticReviewRequired: true,
+    ...(type === 'label'
+      ? { citationPolicy: 'first-identical-label-in-one-record', matchingOccurrences: matches.map((m) => m.occurrence) }
+      : {}),
+  };
+}
+
+/** Expand a verified count witness to its containing sentence, preserving offsets.
+ * This narrows the reading task; it does not infer an outcome or counting unit. */
+export function atomicAnswerSentenceContext(witness, inputs) {
+  const input = inputs.find((i) => i.id === witness?.inputId);
+  if (
+    !input ||
+    !Number.isInteger(witness.start) ||
+    !Number.isInteger(witness.end) ||
+    witness.start < 0 ||
+    witness.end <= witness.start ||
+    input.text.slice(witness.start, witness.end) !== witness.quote
+  )
+    return null;
+  const boundary = /[。！？!?;；\n]/u;
+  const stopAt = (i) => boundary.test(input.text[i]) || (input.text[i] === '.' && !/\d/.test(input.text[i + 1] || ''));
+  let start = witness.start,
+    end = witness.end;
+  while (start > 0 && !stopAt(start - 1)) start--;
+  while (end < input.text.length && !stopAt(end - 1)) end++;
+  return { inputId: input.id, start, end, quote: input.text.slice(start, end) };
 }

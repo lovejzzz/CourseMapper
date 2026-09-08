@@ -1,0 +1,78 @@
+[
+  {
+    "id": "pool-label-en-01",
+    "operation": "pooled-proportion",
+    "objective": "Calculate the pooled repair completion rate, compare it with an equal-group mean, and delimit what these counts show.",
+    "inputs": [
+      {
+        "id": "s1",
+        "text": "This fictional repair report begins with Fern workshop. Fern workshop received forty devices; fourteen devices passed the final inspection by Friday. The next group is Maple workshop. Maple workshop received sixty devices; forty-two devices passed the final inspection by Friday."
+      },
+      {
+        "id": "s2",
+        "text": "Both workshops define completion as passing the same final inspection by Friday of this reporting week. Every device is assigned to exactly one workshop, so the groups do not share devices."
+      },
+      {
+        "id": "s3",
+        "text": "The report gives counts only and omits defect severity and staff hours. It cannot establish why the completion rates differ."
+      }
+    ]
+  },
+  {
+    "id": "pool-label-zh-01",
+    "operation": "pooled-proportion",
+    "objective": "求合并完成率，比较群体等权平均，并说明为什么不能据此判断哪种安排造成差异。",
+    "inputs": [
+      {
+        "id": "s1",
+        "text": "虚构培训报告先介绍白鹭组。白鹭组有三十名学员，其中十二名在周五前完成练习。另一个群体是紫竹组。紫竹组有五十名学员，其中三十五名在周五前完成练习。"
+      },
+      {
+        "id": "s2",
+        "text": "两组均将完成定义为在本报告周周五前提交相同练习并通过核对。每名学员只登记在一个组，两组没有重复学员。"
+      },
+      {
+        "id": "s3",
+        "text": "报告没有记录起点能力或练习时长，所以这些数量不能解释两组完成率差异的原因。"
+      }
+    ]
+  },
+  {
+    "id": "pool-label-en-missing-identity",
+    "operation": "pooled-proportion",
+    "objective": "Calculate a combined success rate for unique people if the records support it.",
+    "inputs": [
+      {
+        "id": "s1",
+        "text": "The fictional report first lists Amber group. Amber group had twenty participants and eight completed the exercise. It then lists Indigo group. Indigo group had fifty participants and thirty completed the exercise."
+      },
+      {
+        "id": "s2",
+        "text": "Both groups use the same completion test and the same Friday deadline. The report does not state whether any participants belong to both groups."
+      },
+      {
+        "id": "s3",
+        "text": "Prior experience and time spent practicing were not recorded, so the counts cannot explain the cause of the group difference."
+      }
+    ]
+  },
+  {
+    "id": "pool-label-zh-missing-total",
+    "operation": "pooled-proportion",
+    "objective": "计算独立学员的合并达标率，并比较两组的等权平均。",
+    "inputs": [
+      {
+        "id": "s1",
+        "text": "虚构记录首先介绍榆树组。榆树组有二十名学员，其中八名达标。随后介绍枫树组。枫树组有十五名学员达标，但这一组的学员总数没有记录。"
+      },
+      {
+        "id": "s2",
+        "text": "两组都用同一测试、同一周五截止时间判断达标。每名学员只属于一个组，组间没有重复学员。"
+      },
+      {
+        "id": "s3",
+        "text": "起点水平与练习时长均未记录，不能从这些数量推断达标率差异的原因。"
+      }
+    ]
+  }
+]

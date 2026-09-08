@@ -1,0 +1,55 @@
+{
+  "reviewer": "implementer",
+  "independentTeacherReview": false,
+  "sourceReceiptSha256": "491607e5afde7272bbe4ad8532137099154b80d3097e3bc9fb120664f52922af",
+  "cases": [
+    {
+      "id": "pool-context-en-01",
+      "acceptedForImplementerOutputReview": true,
+      "semanticCorrections": 0,
+      "complete": true,
+      "modelCalls": 11,
+      "elapsedMs": 13514,
+      "missing": [],
+      "initialIssues": [],
+      "review": "All required source roles correct."
+    },
+    {
+      "id": "pool-context-zh-01",
+      "acceptedForImplementerOutputReview": false,
+      "semanticCorrections": 0,
+      "complete": false,
+      "modelCalls": 11,
+      "elapsedMs": 9308,
+      "missing": [],
+      "initialIssues": [
+        "The firstPart and firstWhole bindings reuse the same source occurrence. Locate each role at its own count."
+      ],
+      "review": "Not a usable complete proposal; inspect raw role answers. Missing-premise cases are intentionally unsupported, and a structurally clear result is not semantic success."
+    },
+    {
+      "id": "pool-context-en-missing-identity",
+      "acceptedForImplementerOutputReview": false,
+      "semanticCorrections": 0,
+      "complete": false,
+      "modelCalls": 11,
+      "elapsedMs": 8492,
+      "missing": [],
+      "initialIssues": [],
+      "review": "Not a usable complete proposal; inspect raw role answers. Missing-premise cases are intentionally unsupported, and a structurally clear result is not semantic success."
+    },
+    {
+      "id": "pool-context-zh-missing-total",
+      "acceptedForImplementerOutputReview": false,
+      "semanticCorrections": 0,
+      "complete": false,
+      "modelCalls": 11,
+      "elapsedMs": 8944,
+      "missing": [],
+      "initialIssues": [
+        "The secondPart and secondWhole bindings reuse the same source occurrence. Locate each role at its own count."
+      ],
+      "review": "Not a usable complete proposal; inspect raw role answers. Missing-premise cases are intentionally unsupported, and a structurally clear result is not semantic success."
+    }
+  ]
+}

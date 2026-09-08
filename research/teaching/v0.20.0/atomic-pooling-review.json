@@ -1,0 +1,84 @@
+{
+  "sourceCase": "pool-context-en-01",
+  "scionCalls": 11,
+  "semanticCorrections": 0,
+  "reviewer": "implementer",
+  "independentClassroomAcceptance": false,
+  "pdfVisualReview": {
+    "pages": 12,
+    "allPagesViewed": true,
+    "findings": [
+      "Exact fraction 46/82 and rounded percentage 56.1% agree with the 55% equal-group mean comparison.",
+      "New pooling presentation v5 aligns assignment misconception feedback with the response actually displayed.",
+      "Independent case has its own 50% pooled and 60% equal-group answers, scoring and response space.",
+      "No clipped or missing text observed; teacher keys remain dense; Office visual checks outstanding."
+    ]
+  },
+  "browser": {
+    "sourceChange": "first outcome sixteen to twenty, first whole32 and second30/50 retained",
+    "newPooled": "50/82 ≈ 60.98%",
+    "newEqualGroupMean": "61.25%",
+    "savedMaterials": {
+      "assignments": {
+        "newPooled": true,
+        "newMean": true,
+        "oldPooled": false
+      },
+      "rubrics": {
+        "newPooled": true,
+        "newMean": true,
+        "oldPooled": false
+      },
+      "quizBank": {
+        "newPooled": true,
+        "newMean": true,
+        "oldPooled": false
+      },
+      "studyGuides": {
+        "newPooled": true,
+        "newMean": true,
+        "oldPooled": false
+      }
+    },
+    "reopen": "Verified in actual Chrome after reload and Resume: 50/82, 60.98% and 61.25% retained.",
+    "applyObservation": "A browser click observation timed out; subsequent DOM and downloaded state confirmed success. No duplicate apply."
+  },
+  "outputs": [
+    {
+      "path": ".audit-work/v0200-teaching-system/atomic-pooling-02/browser-after-apply.coursemapper",
+      "sha256": "0405019520e3b34d4f882851e8021967c299dae020d7b8c1723780f754498459"
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/atomic-pooling-02/en/assignments.docx",
+      "sha256": "59682a43115910058ed33304b7d42860077678d753bef99ce4f8f14636a6bebe"
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/atomic-pooling-02/en/assignments.pdf",
+      "sha256": "aa5209f8e0656514ab4765be3be47cf9d31cbbd8245cbdde416e302c2c3add4b"
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/atomic-pooling-02/en/quizBank.docx",
+      "sha256": "893d20ab33e71485e7b7e1fb891a397eb1590ff6f89409cbad60916b47bed27c"
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/atomic-pooling-02/en/quizBank.pdf",
+      "sha256": "d696fad0b6b740ba9f1641222f9ff17a29e4ae93ef1660920c8c3bc67335e637"
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/atomic-pooling-02/en/rubrics.docx",
+      "sha256": "5c25f4a0c382b198fadfddc5d90b519bdf86884e50ba9bbdeec9b0c45a72577d"
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/atomic-pooling-02/en/rubrics.pdf",
+      "sha256": "8e4bab3ddfdf196470d1ac6528d5200fe5bcc985c62036b9ae3d7ba0937d68c0"
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/atomic-pooling-02/en/studyGuides.docx",
+      "sha256": "fc1e2ee20dda2b282e5ddf0665fc69cbe0bb431320bb5677e547f1002bcc7a48"
+    },
+    {
+      "path": ".audit-work/v0200-teaching-system/atomic-pooling-02/en/studyGuides.pdf",
+      "sha256": "1a3a8148a337d6f325f1d251a8de9bf43312062e14fcf731a6b42c13b400d5c7"
+    }
+  ]
+}

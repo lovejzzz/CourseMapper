@@ -192,7 +192,7 @@ export function validateTeachingOperationPlan(plan, inputs, objective) {
     !(
       plan.operation === 'observed-proportion'
         ? [1, 2, 3, 4]
-        : ['paired-condition-confound', 'union-bounds'].includes(plan.operation)
+        : ['paired-condition-confound', 'union-bounds', 'pooled-proportion'].includes(plan.operation)
           ? [3, 4, 5]
           : [3, 4]
     ).includes(plan.presentationVersion)
@@ -384,7 +384,7 @@ export function createTeachingOperationPlan({
     // Missing replays the original development wording. V2 improves proportion
     // reasoning; V3 also separates study-guide roles. A fresh review opts in,
     // while saved versions remain reproducible for three-way merges.
-    presentationVersion: ['paired-condition-confound', 'union-bounds'].includes(operation)
+    presentationVersion: ['paired-condition-confound', 'union-bounds', 'pooled-proportion'].includes(operation)
       ? 5
       : ['record-relative-day', 'pooled-proportion', 'union-bounds'].includes(operation) ||
           version === AUTHORED_REQUIREMENTS_PLAN_VERSION

@@ -70,7 +70,18 @@ const features = [
 ];
 const report = [];
 try {
-  for (const zh of [false, true]) {
+  const languages = proposalDir
+    ? [false, true].filter((zh) =>
+        proposalInputs.some(
+          (i) =>
+            i.operation === operation &&
+            /\p{Script=Han}/u.test(i.objective) === zh &&
+            proposalReviews.some((r) => r.id === i.id && r.acceptedForImplementerOutputReview),
+        ),
+      )
+    : [false, true];
+  assert(languages.length, 'No semantically reviewed model case was selected.');
+  for (const zh of languages) {
     let f = (
       union
         ? unionCountsFixture
@@ -83,7 +94,10 @@ try {
     let proposal;
     if (proposalDir) {
       const candidates = proposalInputs.filter(
-        (i) => i.operation === operation && /\p{Script=Han}/u.test(i.objective) === zh,
+        (i) =>
+          i.operation === operation &&
+          /\p{Script=Han}/u.test(i.objective) === zh &&
+          proposalReviews.some((r) => r.id === i.id && r.acceptedForImplementerOutputReview),
       );
       assert.equal(candidates.length, 1, 'Exactly one reviewed case per language is required.');
       const input = candidates[0];
@@ -98,21 +112,25 @@ try {
       assert.deepEqual(proposal.issues, []);
       f = input;
     }
-    const name = union
+    const name = proposalDir
       ? zh
-        ? '活动参与范围'
-        : 'Participation bounds'
-      : pooling
+        ? '来源计数与群体推理'
+        : 'Reasoning from group records'
+      : union
         ? zh
-          ? '平板归还记录与群体权重'
-          : 'Tablet returns and group weights'
-        : experiment
+          ? '活动参与范围'
+          : 'Participation bounds'
+        : pooling
           ? zh
-            ? '保温套与温降的比较设计'
-            : 'Designing a comparison of ink drying'
-          : zh
-            ? '维修记录与观察范围'
-            : 'Repair records and observation limits';
+            ? '平板归还记录与群体权重'
+            : 'Tablet returns and group weights'
+          : experiment
+            ? zh
+              ? '保温套与温降的比较设计'
+              : 'Designing a comparison of ink drying'
+            : zh
+              ? '维修记录与观察范围'
+              : 'Repair records and observation limits';
     const map = {
       courseName: name,
       lessons: [
@@ -216,7 +234,7 @@ try {
       {
         createdAt: new Date().toISOString(),
         operation,
-        scope: `Two ${proposalDir ? 'actual Scion-proposed, implementer-reviewed' : 'authored development'} tasks and ${2 * outputFeatures.length} actual DOCX/PDF export pairs. Not a full course or independent classroom evaluation.`,
+        scope: `${report.length} ${proposalDir ? 'actual Scion-proposed, implementer-reviewed' : 'authored development'} tasks and ${report.length * outputFeatures.length} actual DOCX/PDF export pairs. Not a full course or independent classroom evaluation.`,
         report,
       },
       null,

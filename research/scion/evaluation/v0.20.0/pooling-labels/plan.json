@@ -1,0 +1,11 @@
+{
+  "createdAt": "2026-09-08T08:48:47.622264+00:00",
+  "maxCallsPerCase": 12,
+  "passes": 1,
+  "scope": "Two positive and two missing-premise cases; exact original evidence, independent semantic review. Repeated identical labels within one record cite the first occurrence explicitly; counts remain strict.",
+  "hashes": {
+    "src/lib/scionAtomicProposal.js": "08fc11c3ca72ac066f61574773822a727f6426451fc0775904c3a7befc3b8704",
+    "src/lib/scionAtomicSourceAnswer.js": "79cd6e1f7ac747a23ae193188fd61d228915ff3208f3483d92756f480190ba53",
+    "research/scion/evaluation/v0.20.0/pooling-labels/inputs.json": "b4e090af417569a52e749d67a0eb7d610b3ae1c4290df7c201f273f011e3c42d"
+  }
+}
