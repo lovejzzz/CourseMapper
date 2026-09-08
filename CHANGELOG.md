@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Add Google Docs to student assignment/quiz exports, forwarding the student audience to the shared Word builder and naming the uploaded copy distinctly. Actual Office-byte tests verify student/teacher separation at a mocked upload boundary; live Google conversion remains unverified. Inspect all eight pages of the existing student quiz PDF and record its remaining stale case-use labels.
+
 - Include required student assignment and quiz Word documents under `Student Copies/` in course ZIPs, preserving full teacher files in their original folders. Skip empty not-applicable handoffs. Real six-lesson archive inspection verifies 12 student documents without reference sections and 12 teacher documents retaining them; student build failures stop packaging.
 
 - Add Student copy Word/PDF exports for assignments and quiz banks. Omit teacher keys, scoring references, anchors and worked solutions without mutating saved material; preserve full teacher exports. Start each student assignment on a fresh page. Reject shared student exports containing private role cards. Actual Chrome PDF download verified; final seven-page Chinese assignment visually reviewed. ZIP/Google student variants remain pending.

@@ -1,0 +1,30 @@
+{
+  "date": "2026-09-08",
+  "baseline": "599caa33",
+  "google": {
+    "implementation": "Student Google Docs action opens a target tab through the existing route and passes audience to the shared Word builder. Uploaded filename includes Student.",
+    "verification": "Two tests use actual Office bytes and mock only the Google upload boundary. Student XML omits teacher answer; teacher XML retains it. Original data unchanged; unsupported artifact does not upload.",
+    "liveUploadVerified": false
+  },
+  "studentQuiz": {
+    "path": ".audit-work/v0200-teaching-system/quantity-assessment-review/student/quizBank.pdf",
+    "sha256": "636ac272264c838fb0b96a344adefe1149906a19569000232fe5bb6287c4820c",
+    "visualPages": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "findings": [
+      "No teacher answer-key section in eight student pages.",
+      "Q2 and Q8 continuation response blocks retain question labels.",
+      "Source records and incorrect-response analysis prompts remain.",
+      "Saved old course still calls repeated lesson 2–5 seed cases new. Compiler exposure fix is not applied retroactively by exporter; needs reviewed regeneration/replay."
+    ],
+    "limits": "Visual/layout and teacher-section isolation review only, not complete classroom acceptance or fresh model performance."
+  }
+}

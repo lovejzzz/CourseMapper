@@ -7,17 +7,17 @@ import { assertCsvRowsHaveNoInternalExportLanguage } from '../exportTextInspecto
 // GOOGLE DOCS / SHEETS
 // ════════════════════════════════════════════════════════════════
 
-export async function exportDeliverableToGoogleDocs(featureId, data, courseName, preOpenedTab = null) {
+export async function exportDeliverableToGoogleDocs(featureId, data, courseName, preOpenedTab = null, options = {}) {
   // Build a rich DOCX blob (identical formatting to the local download) and upload to Google Drive.
   // Google Drive automatically converts the .docx to a Google Doc, preserving tables, headings,
   // bullets, and all rich formatting — as good as the local preview.
   //
   // preOpenedTab: caller should open a tab synchronously BEFORE any await, then pass it here
   // so the popup-blocker doesn't kill it.
-  const label = resolveFeatureLabel(featureId);
+  const label = resolveFeatureLabel(featureId) + (options.audience === 'student' ? ' - Student' : '');
   const { updateTabStatus } = await import('../googleDrive.js');
   updateTabStatus(preOpenedTab, 'build');
-  const blob = await buildDeliverableDocxBlob(featureId, data, courseName);
+  const blob = await buildDeliverableDocxBlob(featureId, data, courseName, options);
   const { saveToGoogleDocsBlob } = await import('../googleDrive.js');
   const stamp = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   const fileName = `${courseName || 'Course'} - ${label} (${stamp})`;

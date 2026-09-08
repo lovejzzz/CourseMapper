@@ -1447,7 +1447,9 @@ export default function ExportSidePanel({
     setLastNotice('');
     // For Google exports we must open a tab BEFORE any await (popup blocker)
     // Course map exports open their own tab internally via useExport → saveToGoogleDocs/Sheets
-    const needsTab = (format === 'gdocs' || format === 'gsheets' || format === 'gslides') && activeTab !== 'courseMap';
+    const needsTab =
+      (format === 'gdocs' || format === 'student-gdocs' || format === 'gsheets' || format === 'gslides') &&
+      activeTab !== 'courseMap';
     const preTab = needsTab ? openTabNow() : null;
 
     setBusy(format);
@@ -1650,6 +1652,14 @@ export default function ExportSidePanel({
             await exportDeliverablePdf(activeTab, exportDeliverable.data, exportCourseMap?.courseName || courseName);
           if (format === 'docx')
             await exportDeliverableDocx(activeTab, exportDeliverable.data, exportCourseMap?.courseName || courseName);
+          if (format === 'student-gdocs')
+            await exportDeliverableToGoogleDocs(
+              activeTab,
+              exportDeliverable.data,
+              exportCourseMap?.courseName || courseName,
+              preTab,
+              { audience: 'student' },
+            );
           if (format === 'gdocs')
             await exportDeliverableToGoogleDocs(
               activeTab,
@@ -2095,6 +2105,12 @@ export default function ExportSidePanel({
                     />
                   ))}
                 </div>
+                <GDriveBtn
+                  fmt={{ id: 'student-gdocs', label: 'Google Docs' }}
+                  disabled={isPackageQualityRunning || isDisabled('gdocs')}
+                  busy={busy === 'student-gdocs'}
+                  onClick={() => doExport('student-gdocs')}
+                />
               </div>
             )}
             <div className="space-y-2">
