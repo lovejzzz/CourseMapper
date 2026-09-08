@@ -17,6 +17,15 @@ import {
 } from '../../../lib/teachingTaskReview.js';
 
 const fieldLabels = {
+  datedRecord: ['Dated event record', '带日期的事件记录'],
+  recordDate: ['Date anchoring the relative day', '相对时间所依据的记录日期'],
+  eventClaim: ['Event claim including the relative day', '包含相对时间的事件陈述'],
+  relativeDay: ['Relative day', '相对时间词'],
+  recollectionRecord: ['Separate recollection record', '另一份回忆记录'],
+  recordingDate: ['Date the recollection was recorded', '回忆被记录的日期'],
+  broadMonth: ['Recalled event month', '回忆所述事件月份'],
+  sameEventEvidence: ['Evidence these concern the same event', '同一事件的归属证据'],
+  limitRecord: ['Record of missing information', '记载未知信息的来源'],
   firstRecord: ['First condition record', '第一组条件记录'],
   secondRecord: ['Second condition record', '第二组条件记录'],
   designRecord: ['New-test resources and measurement', '新试验资源与测量记录'],
@@ -445,6 +454,7 @@ export default function TeachingTaskReview({
                   {t('Observed proportion and population limits', '观察比例与总体限制')}
                 </option>
                 <option value="record-amendment">{t('Changed rule and evidence limits', '规则修订与证据限制')}</option>
+                <option value="record-relative-day">{t('Event dates and recollections', '事件日期与回忆记录')}</option>
                 <option value="paired-condition-confound">
                   {t('Confounded comparison and a testable design', '混杂比较与可检验设计')}
                 </option>
@@ -647,15 +657,20 @@ export default function TeachingTaskReview({
                         'Locate exact text in the records. Check that the numerator counts a subset of the observed group, using the same unit and observation period. Identify the unobserved group and the wider population; missing outcomes must actually be unknown. A repeated phrase needs its occurrence selected.',
                         '请选择记录中的原文。核对分子是已观察群体中的一部分，采用相同计数单位与观察时段；指出未观察群体和更大的目标群体，确认缺失结果确实未知。原文重复出现时请选择位置。',
                       )
-                    : draft.operation === 'paired-condition-confound'
+                    : draft.operation === 'record-relative-day'
                       ? t(
-                          'Check both condition combinations, independently assignable units, feasible controls and a shared measurement rule. Repeated readings belong to the same unit.',
-                          '核对两组条件、可独立分配的单位、可行的控制条件和一致测量规则；重复读数仍属于同一单位。',
+                          'Check that the relative day refers to the selected Gregorian record date and that both records concern the same event. Keep missing years and verification limits explicit.',
+                          '核对相对时间指向所选公历记录日期，且两份记录涉及同一事件；保留未知年份及核实限制。',
                         )
-                      : t(
-                          'Locate exact text in the records. A repeated phrase needs its occurrence selected. Check that both rules concern the same setting and that the observation date is unknown.',
-                          '请选择记录中的原文；原文重复出现时请选择位置。请核对两版规则涉及同一情境，且观察日期确实未知。',
-                        )}
+                      : draft.operation === 'paired-condition-confound'
+                        ? t(
+                            'Check both condition combinations, independently assignable units, feasible controls and a shared measurement rule. Repeated readings belong to the same unit.',
+                            '核对两组条件、可独立分配的单位、可行的控制条件和一致测量规则；重复读数仍属于同一单位。',
+                          )
+                        : t(
+                            'Locate exact text in the records. A repeated phrase needs its occurrence selected. Check that both rules concern the same setting and that the observation date is unknown.',
+                            '请选择记录中的原文；原文重复出现时请选择位置。请核对两版规则涉及同一情境，且观察日期确实未知。',
+                          )}
                 </p>
                 {Object.entries(TEACHING_OPERATION_SPECS[draft.operation].bindings).map(([name, type]) => {
                   const binding = draft.bindings[name];
@@ -872,15 +887,20 @@ export default function TeachingTaskReview({
                         'I have checked the part and whole refer to the same observed group, the unobserved outcomes are unknown, and the target population is wider. Apply these sources and scoring weights.',
                         '我已核对部分与整体属于同一已观察群体、未观察结果确实未知，且目标群体更广；同意应用这些来源与评分权重。',
                       )
-                    : draft.operation === 'paired-condition-confound'
+                    : draft.operation === 'record-relative-day'
                       ? t(
-                          'I have reviewed the source conditions, proposed procedure, reference and scoring. Apply this task.',
-                          '我已核对来源条件、建议步骤、参考与评分，同意应用此任务。',
+                          'I have checked the calendar, relative-date anchor and same-event evidence. Apply this task and scoring.',
+                          '我已核对历法、相对日期依据和同一事件证据，同意应用此任务与评分。',
                         )
-                      : t(
-                          'I have checked the source roles, the effective change for the same setting, and the unknown observation date. Apply these sources and scoring weights.',
-                          '我已核对来源角色、同一情境下规则的生效变更，以及观察日期未知的条件；同意应用这些来源与评分权重。',
-                        )}
+                      : draft.operation === 'paired-condition-confound'
+                        ? t(
+                            'I have reviewed the source conditions, proposed procedure, reference and scoring. Apply this task.',
+                            '我已核对来源条件、建议步骤、参考与评分，同意应用此任务。',
+                          )
+                        : t(
+                            'I have checked the source roles, the effective change for the same setting, and the unknown observation date. Apply these sources and scoring weights.',
+                            '我已核对来源角色、同一情境下规则的生效变更，以及观察日期未知的条件；同意应用这些来源与评分权重。',
+                          )}
               </label>
               {draft.goalAlignment && (
                 <p>

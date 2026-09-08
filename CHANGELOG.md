@@ -2,6 +2,8 @@
 
 ## Unreleased — v0.20.0 development
 
+- Add a reviewed chronology operation that distinguishes a relative event day, a recalled month and a recording date. Compute attributed dates and compatibility without inventing years, project specific answers/scoring into materials, and preserve task identity through source edits and reopen. Add the operation to the existing review panel and local source-role proposal contract. A real Scion trial still needs two role corrections; automatic end-to-end acceptance remains incomplete.
+
 - Reject impossible explicit Gregorian effective dates when validating or rebinding teaching operations. Add bounded relative-day arithmetic that preserves missing years, leap-day ambiguity and source-attribution requirements; this calendar foundation does not yet implement a complete source-chronology teaching task.
 
 - Constrain argument proposal JSON and whole-record citations only on runtimes with verified grammar support; reject unchanged schema examples as well as duplicate performance bands. Preserve four real candidate-runtime trials, including opt-in staged/thinking comparisons: format improved, but objective coverage and teaching quality did not meet acceptance. Production runtime and homepage generation remain unchanged.

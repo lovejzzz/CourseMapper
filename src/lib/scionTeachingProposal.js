@@ -26,6 +26,8 @@ export function teachingProposalInputRevision({ operation, objective, inputs }) 
 }
 
 const roles = {
+  'record-relative-day':
+    'datedRecord contains the recordDate and an eventClaim containing relativeDay (yesterday, today, tomorrow or 昨天/当天/明天). recordDate is the date anchoring that relative phrase, not an inferred date. recollectionRecord is a separate record recalling that same event; recordingDate is when the recollection was recorded, broadMonth quotes only the month name or Chinese numbered month of the recalled event. sameEventEvidence quotes explicit wording establishing the shared event identity. limitRecord contains the stated missing knowledge. Do not infer event identity, a missing year or the calendar; unsupported roles remain null for review.',
   'observed-proportion':
     'countRecord is the record containing both observed counts. numerator is only the integer count meeting the outcome; denominator is only the integer whole count from that same group. observedGroup is the name of that observed group, and countedOutcome is the outcome being counted, from countRecord. scopeRecord explicitly describes missing outcomes and the wider target population; missingGroup and targetGroup must be exact phrases from scopeRecord. If the wider population is not explicitly named there, leave targetGroup null. Never treat the missing group as the entire target population.',
   'record-amendment':

@@ -6,6 +6,7 @@ import {
 import { buildEvidenceTask } from './teachingTaskEvidenceBuilder.js';
 import { renderObservedProportion } from './teachingOperationProportion.js';
 import { renderComparisonTask } from './teachingOperationComparisonTask.js';
+import { renderChronologyTask } from './teachingOperationChronology.js';
 
 /** Material language is a projection of the same checked operation. Neither
  * model prose nor a material's saved answer is a second answer authority. */
@@ -33,6 +34,8 @@ export function renderTeachingOperationTask(plan, inputs, objective) {
     return project(renderObservedProportion(plan, inputs, objective, evaluated));
   if (plan.operation === 'paired-condition-confound')
     return project(renderComparisonTask(plan, inputs, objective, evaluated));
+  if (plan.operation === 'record-relative-day')
+    return project(renderChronologyTask(plan, inputs, objective, evaluated));
   const zh = /\p{Script=Han}/u.test(objective);
   const {
     priorValue: prior,

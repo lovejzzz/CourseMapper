@@ -4,6 +4,7 @@ import { parseSourceCount, countSpanCutsNumber } from './sourceCount.js';
 import { validateComparisonBindings, evaluateComparison } from './teachingOperationComparison.js';
 import { validateTeachingGoalAlignment } from './teachingGoalAlignment.js';
 import { isExplicitCalendarDate, parseSourceCalendarDate } from './sourceCalendar.js';
+import { validateChronologyBindings, evaluateChronology } from './teachingOperationChronology.js';
 import {
   AUTHORED_REQUIREMENTS_PLAN_VERSION,
   performanceSourceRevision,
@@ -51,6 +52,22 @@ function sourceFractionIssue(text, numerator, denominator, values) {
 // These are executable input contracts, not topic names or free-form claims
 // of correctness. New operations must provide their own premise checks.
 export const TEACHING_OPERATION_SPECS = {
+  'record-relative-day': {
+    family: 'source-analysis',
+    taskKind: 'evidence-source-analysis',
+    bindings: {
+      datedRecord: 'record',
+      recordDate: 'date-text',
+      eventClaim: 'text',
+      relativeDay: 'text',
+      recollectionRecord: 'record',
+      recordingDate: 'date-text',
+      broadMonth: 'text',
+      sameEventEvidence: 'text',
+      limitRecord: 'record',
+    },
+    requirements: ['evidence', 'reasoning', 'boundary'],
+  },
   'paired-condition-confound': {
     family: 'experiment',
     taskKind: 'evidence-experiment',
@@ -229,6 +246,7 @@ export function validateTeachingOperationPlan(plan, inputs, objective) {
   // The stored provenance is a workflow record, not authenticated proof that
   // a person reviewed an imported project or that its facts are true.
   if (plan.operation === 'paired-condition-confound') issues.push(...validateComparisonBindings(plan, values));
+  if (plan.operation === 'record-relative-day') issues.push(...validateChronologyBindings(plan, values));
   if (plan.operation === 'observed-proportion') {
     for (const [name, recordName] of [
       ['numerator', 'countRecord'],
@@ -346,6 +364,13 @@ export function evaluateTeachingOperationPlan(plan, inputs) {
         'Checks source-role structure and proposed group counts; comparability, manipulability and measurement validity require teaching review. A proposed experiment has no observed effect.',
     };
   }
+  if (plan.operation === 'record-relative-day')
+    return {
+      status: 'ready',
+      operation: plan.operation,
+      values: validation.values,
+      ...evaluateChronology(validation.values),
+    };
   if (plan.operation === 'observed-proportion') {
     const { numerator, denominator, observedGroup, countedOutcome, missingGroup, targetGroup } = validation.values;
     const calculation = solveTeachingProportion(numerator, denominator);
