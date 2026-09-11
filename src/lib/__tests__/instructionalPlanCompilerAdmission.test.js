@@ -113,6 +113,30 @@ describe('instructional-plan compiler admission', () => {
         ['syllabus', 'lessonPlans'],
       ),
     ).toThrow(/blocked/i);
+
+    // Continue the same production transaction through bounded source-gap
+    // recovery, then compile the two deliverables from the reported failure.
+    const governingSourceContract = createScionEvidenceAuthorityContract({
+      lessonIndices: topics.map((_, index) => index),
+      instructionalPlan: prepared.instructionalPlan,
+    });
+    const recovery = prepareInstructionalPlan({
+      courseMap: prepared.courseMap,
+      governingSourceContract,
+      allowEvidenceRecovery: true,
+    });
+    const blueprint = buildCourseBlueprint(recovery.courseMap, {
+      instructionalPlan: recovery.instructionalPlan,
+      allowEvidenceRecovery: true,
+      enrichment: {
+        coverage: { requestedLessons: 12, enrichedLessons: 0, missingLessons: topics.map((_, index) => index + 1) },
+      },
+    });
+    const compiled = compileBlueprintDeliverables(blueprint, ['syllabus', 'lessonPlans']);
+    expect(compiled.syllabus).toBeTruthy();
+    expect(compiled.lessonPlans.lessonPlans).toHaveLength(12);
+    expect(blueprint.instructionalIntentGraph.evidenceRecoveryAuthorization.status).toBe('authorized');
+    expect(instructionalIntentGraphReceiptMatches(blueprint.instructionalIntentGraph)).toBe(true);
   });
 
   it('plans once, binds every lesson, and admits all nine artifact families only after approval', () => {
