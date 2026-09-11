@@ -2908,6 +2908,8 @@ export default function AppFlow({
         return;
       }
 
+      // Once a map exists, reload must restore it rather than replay quick start.
+      clearSetupRecovery();
       const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
       const orderedFeatures = getOrderedSelectedDeliverables();
       if (orderedFeatures.length > 0) {
@@ -2924,7 +2926,6 @@ export default function AppFlow({
         scopeIndices,
         workflowEpoch,
       );
-      clearSetupRecovery();
     } catch (err) {
       if (err?.name === 'AbortError' || stopped()) return;
       setPackageQualityPass({
@@ -3306,6 +3307,7 @@ export default function AppFlow({
     deliverables: {
       isGenerating: deliv.isGenerating,
       doneCount: ribbonFeatureIds.filter((id) => deliv.deliverables?.[id]?.status === 'done').length,
+      failedCount: ribbonFeatureIds.filter((id) => deliv.deliverables?.[id]?.status === 'error').length,
       totalCount: ribbonFeatureIds.length,
     },
     packageQualityPass,

@@ -134,3 +134,43 @@ test('the public changelog shows the actual current release and its quality limi
     }),
   ).toBeVisible();
 });
+
+test('restored material failures show a stopped build and actionable retry', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => {
+    localStorage.setItem(
+      'coursemapper-project',
+      JSON.stringify({
+        formatVersion: 1,
+        hasGenerated: true,
+        provider: 'public',
+        modelId: 'scion-public',
+        courseMap: {
+          courseName: 'Interrupted package',
+          lessons: [{ title: 'Server-side basics', sections: [{ topicSection: 'HTTP request handlers' }] }],
+        },
+        selectedFeatures: ['courseMap', 'syllabus', 'lessonPlans'],
+        activeTab: 'syllabus',
+        promptText: 'A practical web development course',
+        deliverables: Object.fromEntries(
+          ['syllabus', 'lessonPlans'].map((id) => [
+            id,
+            {
+              status: 'error',
+              data: null,
+              error: 'Instructional plan blocked drafting: evidence acquisition required',
+            },
+          ]),
+        ),
+        savedAt: Date.now(),
+      }),
+    );
+  });
+  await page.reload();
+  await page.getByRole('button', { name: 'Resume', exact: true }).click();
+  await expect(page.getByText('2 materials failed. Retry from their tabs.', { exact: true })).toBeVisible();
+  await expect(page.getByText(/Stopped at 50%/)).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Retry generation', exact: true })).toBeVisible();
+  await expect(page.getByText('Preparing lesson knowledge', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('Build complete', { exact: true })).toHaveCount(0);
+});

@@ -77,3 +77,22 @@ it('hides historical build progress when the restored course has no material job
   expect(buildBuildRibbonModel(input)).toBeNull();
   expect(buildBuildRibbonModel({ ...input, deliverables: { isGenerating: true, totalCount: 1 } })).not.toBeNull();
 });
+
+it('shows stopped material failures instead of preparing knowledge, including after restore', () => {
+  const input = {
+    generation: { progressStep: 'done', mappedLessonCount: 12, lessonCount: 12 },
+    deliverables: { isGenerating: false, doneCount: 0, failedCount: 2, totalCount: 9 },
+  };
+  const model = buildBuildRibbonModel(input);
+  expect(model).toMatchObject({ running: false, compilerState: 'error', stage: 'compile' });
+  expect(model.steps.find((step) => step.id === 'compile').status).toBe('error');
+  const html = renderToStaticMarkup(<BuildRibbon model={model} />);
+  expect(html).toContain('2 materials failed. Retry from their tabs.');
+  expect(html).toContain('Stopped at');
+  expect(html).not.toContain('Preparing lesson knowledge');
+  expect(html).not.toContain('animate-pulse');
+  expect(html).not.toContain('Build complete');
+  const retry = buildBuildRibbonModel({ ...input, deliverables: { ...input.deliverables, isGenerating: true } });
+  expect(retry.running).toBe(true);
+  expect(retry.compilerState).toBe('live');
+});

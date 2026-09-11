@@ -78,3 +78,60 @@ test('built-site PDF reports a failed font fetch, then downloads complete symbol
   expect(text).toContain('✓');
   expect(modelRequests).toBe(0);
 });
+
+test('built-site policy permits configured public reference providers and blocks unknown origins', async ({ page }) => {
+  const providers = [
+    'https://api.openalex.org/works',
+    'https://api.ies.ed.gov/eric/',
+    'https://openlibrary.org/search.json',
+    'https://api.crossref.org/works',
+    'https://en.wikipedia.org/w/api.php',
+    'https://www.loc.gov/search/',
+    'https://archive.org/advancedsearch.php',
+    'https://doaj.org/api/search/articles',
+    'https://www.ebi.ac.uk/europepmc/webservices/rest/search',
+    'https://www.w3.org/WAI/tutorials/forms/',
+  ];
+  for (const url of providers) {
+    await page.route(url, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        headers: { 'access-control-allow-origin': '*' },
+        body: JSON.stringify({ provider: url }),
+      }),
+    );
+  }
+  await page.goto('/');
+  const results = await page.evaluate(
+    async (urls) =>
+      Promise.all(
+        urls.map(async (url) => {
+          try {
+            return await (await fetch(url, { credentials: 'omit' })).json();
+          } catch {
+            return { failed: url };
+          }
+        }),
+      ),
+    providers,
+  );
+  expect(results).toEqual(providers.map((provider) => ({ provider })));
+  await page.route('https://unconfigured-reference.invalid/**', (route) =>
+    route.fulfill({
+      status: 200,
+      headers: { 'access-control-allow-origin': '*' },
+      body: 'unexpected',
+    }),
+  );
+  expect(
+    await page.evaluate(async () => {
+      try {
+        await fetch('https://unconfigured-reference.invalid/');
+        return 'allowed';
+      } catch {
+        return 'blocked';
+      }
+    }),
+  ).toBe('blocked');
+});

@@ -814,13 +814,17 @@ function checkStructure(findings, { files, manifest }, course) {
           evidence: `${featureFiles.length} vs ${lessonCount}`,
         });
       }
-      if (declared.length > 0 && featureFiles.length > 0 && declared.length !== featureFiles.length) {
+      // Student copies live outside the primary feature folder. Match each
+      // declared path against all extracted files instead of only that folder.
+      const declaredPaths = new Set(declared.map((entry) => entry.path));
+      const presentDeclaredCount = files.filter((file) => declaredPaths.has(file.path)).length;
+      if (declared.length > 0 && declared.length !== presentDeclaredCount) {
         findings.add({
           severity: 'P2',
           dimension: 'structure',
           file: 'PACKAGE_MANIFEST.json',
-          detail: `${featureId}: manifest lists ${declared.length} files, ${featureFiles.length} present on disk`,
-          evidence: `${declared.length} vs ${featureFiles.length}`,
+          detail: `${featureId}: manifest lists ${declared.length} files, ${presentDeclaredCount} present on disk`,
+          evidence: `${declared.length} vs ${presentDeclaredCount}`,
         });
       }
     }

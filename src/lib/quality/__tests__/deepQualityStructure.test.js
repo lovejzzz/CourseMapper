@@ -364,6 +364,31 @@ describe('deep quality package structure', () => {
     expect(result.findings.some((finding) => /manifest lists .*present on disk/i.test(finding.detail))).toBe(false);
   });
 
+  it.each([true, false])(
+    'checks student-copy manifest paths against actual files (present: %s)',
+    async (includeStudent) => {
+      const teacher = 'Assignment Briefs/Lesson 01 - Practice.txt';
+      const student = 'Student Copies/Assignment Briefs/Lesson 01 - Practice - Student.txt';
+      const result = await grade({
+        fileProvider: createMemoryFileProvider({
+          'PACKAGE_MANIFEST.json': JSON.stringify({
+            lessonScope: [1],
+            readiness: { status: 'ready', blockers: 0 },
+            files: [teacher, student].map((path) => ({ path, featureId: 'assignments' })),
+          }),
+          [teacher]: 'Analyze the evidence, explain a decision, and revise using feedback.',
+          ...(includeStudent ? { [student]: 'Analyze the evidence and explain a decision.' } : {}),
+        }),
+        course: { courseName: 'Evidence Methods', featureIds: ['assignments'] },
+        honesty: { pipeline: { judgment: 'compiler-verified fixture' } },
+      });
+      expect(result.findings.some((finding) => /manifest lists .*present on disk/i.test(finding.detail))).toBe(
+        !includeStudent,
+      );
+      expect(result.findings.some((finding) => /lesson files but course scope/i.test(finding.detail))).toBe(false);
+    },
+  );
+
   it('blocks a lesson plan that violates the package classroom clock', async () => {
     const lessonPath = 'Lesson Plans/Lesson 01 - Evidence - Lesson Plans.txt';
     const result = await grade({
@@ -431,7 +456,7 @@ describe('deep quality package structure', () => {
     });
 
     expect(result.findings.some((finding) => /classroom clock/i.test(finding.detail))).toBe(false);
-    expect(GRADER_VERSION).toBe('1.16.4');
+    expect(GRADER_VERSION).toBe('1.16.5');
   });
 
   it('scores opaque source-claim placeholders and their sentence seams as major export defects', async () => {

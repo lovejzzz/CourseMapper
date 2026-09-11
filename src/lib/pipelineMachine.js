@@ -156,6 +156,15 @@ export function derivePipelineState({
   if (generationFailed) {
     return { ...base, state: 'error', running: false, blockedReason: 'course map incomplete' };
   }
+  if (Number(deliverables.failedCount) > 0) {
+    return {
+      ...base,
+      state: 'blocked',
+      running: false,
+      blockedReason: 'material-generation-failed',
+      done: { ...done, compile: false, verify: false, grade: false },
+    };
+  }
   if (awaitingPlanApproval) {
     return { ...base, state: 'planning', running: false, nextStep: 'plan' };
   }

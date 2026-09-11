@@ -502,7 +502,14 @@ export function deriveRibbonProgress({ pipeline, budget = {}, generation = {}, d
   // A blocked finish pass has completed its checks, but the course package
   // has not completed the user journey. Reserve 100% for a clean, exportable
   // result so the meter never visually contradicts "Review required".
-  if (state === 'blocked') return 99;
+  if (state === 'blocked') {
+    if (pipeline.blockedReason === 'material-generation-failed') {
+      const done = Math.max(0, Number(deliverables.doneCount) || 0);
+      const total = Math.max(1, Number(deliverables.totalCount) || 1);
+      return Math.round(50 + Math.min(1, done / total) * 25);
+    }
+    return 99;
+  }
   if (state === 'error')
     return buildRibbonFailureState({ generation, mappedLessonCount: generation.mappedLessonCount }).progressPct;
   if (state === 'mapping') {
@@ -634,7 +641,8 @@ export function buildBuildRibbonModel({
   // A restored map (progressStep 'done' from a save) makes the machine read
   // 'lull', but without budget activity or a finish state there is nothing
   // to narrate (the historical rule, pinned by the hidden-ribbon test).
-  if (!hasBudgetActivity && !pipeline.running && finishStatus === 'idle') return null;
+  if (!hasBudgetActivity && !pipeline.running && finishStatus === 'idle' && !(Number(deliverables.failedCount) > 0))
+    return null;
 
   const doneCount = Number(deliverables.doneCount) || 0;
   const totalCount = Number(deliverables.totalCount) || 0;
@@ -650,6 +658,7 @@ export function buildBuildRibbonModel({
     ['review', 'not-graded'].includes(packageQualityPass?.trustState) ||
     Math.max(0, Number(packageQualityPass?.warnings) || 0) > 0;
   const pipelineState = pipeline.state;
+  const materialFailure = pipeline.blockedReason === 'material-generation-failed';
   switch (pipelineState) {
     case 'mapping':
       stage = 'map';
@@ -684,6 +693,12 @@ export function buildBuildRibbonModel({
           : 'Syncing approved changes…';
       break;
     case 'blocked': {
+      if (materialFailure) {
+        stage = 'compile';
+        const failedCount = Number(deliverables.failedCount);
+        stageLabel = `${failedCount} material${failedCount === 1 ? '' : 's'} failed. Retry from ${failedCount === 1 ? 'its tab' : 'their tabs'}.`;
+        break;
+      }
       stage = 'ready';
       const blockers = Number(packageQualityPass?.blockers) || 0;
       stageLabel =
@@ -727,6 +742,9 @@ export function buildBuildRibbonModel({
   }
   if (pipelineState === 'error') {
     steps = buildRibbonFailureState({ steps }).steps;
+  }
+  if (materialFailure) {
+    steps = steps.map((step) => (step.id === 'compile' ? { ...step, status: 'error' } : step));
   }
   if (scionPreparing) {
     stage = 'model';
@@ -772,7 +790,9 @@ export function buildBuildRibbonModel({
     done,
     progressPct,
     compilerArtifacts,
-    compilerState: { error: 'error', blocked: 'review', ready: 'complete' }[pipelineState] || 'live',
+    compilerState: materialFailure
+      ? 'error'
+      : { error: 'error', blocked: 'review', ready: 'complete' }[pipelineState] || 'live',
     pipelineChips: stage === 'ready' ? allPipelineChips : allPipelineChips.filter((chip) => chip.warn),
   };
 }
