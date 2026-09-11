@@ -156,8 +156,12 @@ test.describe('Generated workspace mobile layout', () => {
       .poll(async () => {
         const stripBox = await tabStrip.boundingBox();
         const activeBox = await activeMaterial.boundingBox();
+        const previousBox = await page.getByTestId('workspace-materials-previous').boundingBox();
+        const nextBox = await page.getByTestId('workspace-materials-next').boundingBox();
         if (!stripBox || !activeBox) return false;
-        return activeBox.x >= stripBox.x && activeBox.x + activeBox.width <= stripBox.x + stripBox.width;
+        const left = previousBox ? previousBox.x + previousBox.width : stripBox.x;
+        const right = nextBox ? nextBox.x : stripBox.x + stripBox.width;
+        return activeBox.x >= left && activeBox.x + activeBox.width <= right;
       })
       .toBe(true);
 

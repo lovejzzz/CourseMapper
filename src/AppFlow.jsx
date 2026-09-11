@@ -3561,7 +3561,7 @@ export default function AppFlow({
                 ref={workspaceTabsContainerRef}
                 data-testid="workspace-deliverable-tabs"
                 onScroll={updateWorkspaceTabScrollCues}
-                className="scrollbar-none flex items-center gap-1 overflow-x-auto rounded-lg border border-slate-200/70 bg-white/76 p-1 shadow-sm"
+                className="scrollbar-none scroll-px-12 lg:scroll-px-0 flex items-center gap-1 overflow-x-auto rounded-lg border border-slate-200/70 bg-white/76 p-1 shadow-sm"
               >
                 {workspaceTabs.map((feature, tabIdx) => {
                   const isActive = activeTab === feature.id;
