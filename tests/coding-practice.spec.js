@@ -135,7 +135,9 @@ test('coding materials render, retain literal code and survive autosave with a f
       mimeType: 'application/json',
       buffer: Buffer.from(JSON.stringify(snapshot)),
     });
-  await expect(page.getByTestId('workspace-shell')).toBeVisible();
+  // Importing the full twelve-lesson archive includes decoding and graph migration.
+  // Wait for completion, as the existing large-project roundtrip audit does.
+  await expect(page.getByTestId('workspace-shell')).toBeVisible({ timeout: 30000 });
   for (const tab of [
     'Lesson Plans',
     'Assignment Briefs',
