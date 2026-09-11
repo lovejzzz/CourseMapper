@@ -99,7 +99,29 @@ const ZH = {
     '阅读第一课附带的原始材料。先尝试开场问题，首次作答后再与示范答案比较推理，保留修改稿供后续活动使用。',
   'Name one question you want to answer using the supplied record.': '提出一个希望通过所给材料回答的问题。',
 };
+const CODING = {
+  'Read the actual record': 'Inspect the starter code',
+  'Underline the given observations. Mark any missing information.':
+    'Locate the unfinished behavior and predict the supplied test results before editing.',
+  'Read and annotate the supplied record.': 'Read the starter code and acceptance checks.',
+  'Draft the response with your reasoning.': 'Implement the missing behavior and run the checks.',
+  'Write the task response': 'Implement and test',
+  'Check the conclusion': 'Check the observed output',
+  'Use the source record reproduced with the task.':
+    'Use the supplied starter code, runtime instructions and acceptance checks.',
+  'Supplied task record — guided practice': 'Coding exercise — starter and acceptance checks',
+  'The supplied source record, reproduced in the lesson materials.':
+    'The included starter code and its linked API reference; no unnamed reading packet is required.',
+  'Read the supplied source record before the task.': 'Inspect the starter code and predict each acceptance check.',
+  'Use the source record reproduced in the lesson plan and study guide. Label your reasoning separately from statements directly supplied by the record.':
+    'Use the included starter code and linked API documentation. Submit the implementation and observed test results.',
+  'Identify the source statement that supports your conclusion and explain how it supports or limits the claim.':
+    'Point to the code path and test result that demonstrate the behavior.',
+  'Draft an individual answer, compare it with a peer response, then revise one reasoning step using a specific source statement.':
+    'Run the implementation, compare the results with a peer, and correct one failing behavior.',
+};
 export function taskCopy(task, text) {
+  if (task?.codingPractice && task.language !== 'zh') return CODING[text] || text;
   return task?.language === 'zh' ? ZH[text] || text : text;
 }
 export function taskText(task, en, zh) {

@@ -18,7 +18,7 @@ export function projectTeachingStudyGuide(row, task) {
     teachingProgram: program,
     practiceActivities: [
       ...(task.preparation ? [task.preparation.instruction] : []),
-      task.question,
+      ...(task.codingPractice ? task.studentChecks : [task.question]),
       task.checkpoint.question,
     ],
     sourceEvidenceBrief: { ...row.sourceEvidenceBrief, claims: task.inputs.map((x) => x.text) },

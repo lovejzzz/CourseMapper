@@ -1,3 +1,4 @@
+import { explicitCodingPracticeTask } from './codingPractice.js';
 import { comparisonTaskBloom } from './teachingMaterialPresentation.js';
 import { explicitSourceRelationTask, sourceRelationIntent } from './teachingTaskSourceRelations.js';
 import {
@@ -441,7 +442,8 @@ export function buildSharedTeachingTask({
   )
     return null;
   let body =
-    operationPlan !== undefined
+    explicitCodingPracticeTask(inputs) ||
+    (operationPlan !== undefined
       ? renderTeachingOperationTask(operationPlan, sourceInputs || [], objective)
       : sourceRelationIntent(objective)
         ? explicitSourceRelationTask(inputs, objective)
@@ -455,7 +457,7 @@ export function buildSharedTeachingTask({
               controlledComparisonTask(inputs, objective) ||
               inconsistentParticipantCountsTask(inputs, objective) ||
               explicitExperimentalDesignTask(inputs, objective) ||
-              explicitEvidenceAnalysisTask(inputs, objective);
+              explicitEvidenceAnalysisTask(inputs, objective));
   if (!body) return null;
   if (legacyOperationPresentation) body = legacyAmendmentProjection(body);
   if (!body.operationPlan) body = localizeProportionTask(body, inputs, objective);
@@ -492,6 +494,10 @@ export function buildSharedTeachingTask({
       scope: 'The stated source operation; not independent factual verification or measured learning gain.',
     },
   };
+  if (body.codingPractice) {
+    task.validation = body.validation;
+    task.purpose = 'authored coding practice; course fit requires instructor review';
+  }
   if (body.operationInputIds) {
     task.operationPlan = remapTeachingOperationInputs(
       body.operationPlan,

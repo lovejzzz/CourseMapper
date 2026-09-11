@@ -42,7 +42,13 @@ export function projectTeachingTaskSlides(deck, task) {
     }
     return result;
   };
-  const records = chunks(task.inputs.map((input) => input.text));
+  // Long code listings belong in the handout and speaker notes, not in
+  // sentence-split slide bullets that can break syntax or become unreadable.
+  const records = chunks(
+    task.codingPractice
+      ? [task.question, ...task.criteria.map((criterion) => criterion.levels.exemplary)]
+      : task.inputs.map((input) => input.text),
+  );
   const authored = task.operationPlan?.version === 2;
   const reasoningSlides = authored
     ? task.operationPlan.requirements.flatMap((r) =>
@@ -92,14 +98,16 @@ export function projectTeachingTaskSlides(deck, task) {
         return {
           title: taskText(
             task,
-            `Read the source record${records.length > 1 ? ` (${index + 1}/${records.length})` : ''}`,
+            `${task.codingPractice ? 'Starter and test contract' : 'Read the source record'}${records.length > 1 ? ` (${index + 1}/${records.length})` : ''}`,
             `阅读原始材料${records.length > 1 ? `（${index + 1}/${records.length}）` : ''}`,
           ),
           bullets: [records[index] || records[0]],
-          notes: taskCopy(
-            task,
-            'Ask students to distinguish supplied observations from their own inferences. Do not add facts that are absent from this record.',
-          ),
+          notes: task.codingPractice
+            ? task.inputs.map((input) => input.text).join('\n\n')
+            : taskCopy(
+                task,
+                'Ask students to distinguish supplied observations from their own inferences. Do not add facts that are absent from this record.',
+              ),
         };
       case 'worked':
         return {
@@ -154,7 +162,7 @@ export function projectTeachingTaskSlides(deck, task) {
           : task.scaffoldQuestions?.[index % task.scaffoldQuestions.length] || task.checkpoint;
         if (!question) return {};
         return {
-          title: taskCopy(task, 'Explain one reasoning step'),
+          title: question.title || taskCopy(task, 'Explain one reasoning step'),
           bullets: [question.question],
           notes: taskText(task, `Expected response: ${question.answer}`, `参考回答：${question.answer}`),
         };

@@ -60,6 +60,14 @@ import { normalizeRestoredDeliverables } from '../model/courseStore.jsx';
 import { warn, error as logError } from '../lib/logger';
 
 export const STORAGE_KEY = 'coursemapper-project';
+
+function readLocalAutosaveMarker() {
+  try {
+    return localStorage.getItem(STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
 export const CLOUD_PROJECT_FORMAT = 'coursemapper-blueprint-v1';
 
 export default function useProjectPersistence({
@@ -577,14 +585,14 @@ export default function useProjectPersistence({
               // to be overwritten by the latest intent immediately after it.
               if (saveAttemptId !== localSaveAttemptIdRef.current) return;
               const { persistOversizedProjectSnapshot } = await import('../lib/projectExactAutosave');
-              await runAutosaveWithRetry(() =>
+              const savedMode = await runAutosaveWithRetry(() =>
                 persistOversizedProjectSnapshot({
                   fullSnapshot,
                   compactSnapshot,
                   compactPayload: payload,
                 }),
               );
-              settleLocalSaveAttempt('saved', 3000);
+              settleLocalSaveAttempt('saved', 3000, savedMode === 'indexeddb');
             })
             .catch((autosaveError) => {
               if (saveAttemptId !== localSaveAttemptIdRef.current) return;
@@ -723,7 +731,7 @@ export default function useProjectPersistence({
     let cancelled = false;
     async function detectSavedSession() {
       try {
-        const raw = localStorage.getItem(STORAGE_KEY);
+        const raw = readLocalAutosaveMarker();
         if (raw) {
           const saved = prepareProjectSnapshotForRestore(JSON.parse(raw));
           if (saved.courseMap) {
@@ -771,7 +779,7 @@ export default function useProjectPersistence({
   // ── Restore saved session ──
   async function doRestoreSession() {
     try {
-      let raw = localStorage.getItem(STORAGE_KEY);
+      let raw = readLocalAutosaveMarker();
       if (raw) {
         const marker = JSON.parse(raw);
         if (marker?.indexedDbAutosave) raw = await loadProjectIndexedDbAutosave();

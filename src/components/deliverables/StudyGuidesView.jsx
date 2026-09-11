@@ -85,7 +85,9 @@ export default function StudyGuidesView({
 
                 {g.sourceEvidenceBrief?.claims?.length > 0 && (
                   <div className="rounded-xl border border-teal-100 bg-teal-50/45 p-3">
-                    <SectionHeading>{t('Evidence Ledger')}</SectionHeading>
+                    <SectionHeading>
+                      {g.codingPractice ? 'Exercise fixture and API reference' : t('Evidence Ledger')}
+                    </SectionHeading>
                     <ul className="mt-1.5 space-y-1.5">
                       {g.sourceEvidenceBrief.claims.map((claim, j) => (
                         <li key={j} className="flex gap-2 text-xs leading-relaxed text-slate-700">

@@ -597,8 +597,9 @@ describe('ExportSidePanel readiness repair timing', () => {
     });
 
     const panel = container.querySelector('[data-testid="readiness-panel"]');
-    expect(panel?.textContent).toContain('Ready to download');
-    expect(panel?.className).toContain('emerald');
+    expect(panel?.textContent).toContain('ready to download');
+    expect(panel?.className).toContain('amber');
+    expect(panel?.textContent).toContain('Teaching readiness requires review');
     expect(panel?.textContent).not.toContain('Download available');
     expect(panel?.textContent).not.toContain('Download is ready. Review notes are saved');
     expect(panel?.textContent).not.toContain('Show notes');
@@ -1832,7 +1833,7 @@ describe('ExportSidePanel readiness repair timing', () => {
     });
 
     const panelText = container.querySelector('[data-testid="readiness-panel"]')?.textContent || '';
-    expect(panelText).toContain('Ready to download');
+    expect(panelText).toContain('ready to download');
     expect(panelText).not.toContain('affected items');
     expect(panelText).not.toContain('items to refine');
     expect(panelText).not.toContain('First blocker');
@@ -1879,7 +1880,7 @@ describe('ExportSidePanel readiness repair timing', () => {
     });
 
     const zipButton = container.querySelector('[data-testid="export-download-zip"]');
-    expect(container.querySelector('[data-testid="readiness-panel"]')?.textContent).toContain('Ready to download');
+    expect(container.querySelector('[data-testid="readiness-panel"]')?.textContent).toContain('ready to download');
     expect(zipButton?.textContent).toContain('Download review ZIP');
     expect(container.textContent).not.toMatch(/draft zip/i);
     expect(zipButton?.disabled).toBe(false);

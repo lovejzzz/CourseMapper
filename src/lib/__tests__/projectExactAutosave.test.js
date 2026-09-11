@@ -82,6 +82,22 @@ describe('persistOversizedProjectSnapshot', () => {
     expect(storage.getItem('coursemapper-project')).not.toContain('lessonPlans');
   });
 
+  it('keeps the exact committed package when the resume marker exceeds localStorage quota', async () => {
+    saveIndexedDb.mockResolvedValue();
+    const storage = {
+      removeItem: vi.fn(),
+      setItem: vi.fn(() => {
+        throw new Error('QuotaExceededError');
+      }),
+    };
+    expect(await persistOversizedProjectSnapshot({ fullSnapshot, compactSnapshot, compactPayload, storage })).toBe(
+      'indexeddb',
+    );
+    expect(saveIndexedDb).toHaveBeenCalledTimes(1);
+    expect(storage.setItem).toHaveBeenCalledTimes(1);
+    expect(JSON.parse(saveIndexedDb.mock.calls[0][0]).deliverables).toEqual(fullSnapshot.deliverables);
+  });
+
   it('uses the compact recompile payload only when IndexedDB is unavailable', async () => {
     const storage = storageStub();
     saveIndexedDb.mockRejectedValue(new Error('IndexedDB unavailable'));

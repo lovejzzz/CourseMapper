@@ -458,7 +458,7 @@ async function preparePackageForDownload(page) {
   await expect(status).toContainText('Prepare package');
   await expect(button).toBeEnabled();
   await button.click();
-  await expect(status).toContainText('Ready to download', { timeout: 30000 });
+  await expect(status).toContainText(/(?:Files|Review draft) ready to download/, { timeout: 30000 });
   await expect(button).toContainText('Download review ZIP');
 }
 
@@ -595,7 +595,7 @@ test.describe('Export smoke', () => {
       unexpectedDownload = true;
     });
     await button.click();
-    await expect(status).toContainText('Ready to download', { timeout: 30000 });
+    await expect(status).toContainText(/(?:Files|Review draft) ready to download/, { timeout: 30000 });
     expect(unexpectedDownload).toBe(false);
 
     const zipDownload = await expectDownload(page, () => button.click(), {
@@ -1581,7 +1581,7 @@ test.describe('Export smoke', () => {
     });
     expect(audit.issues).toEqual([]);
     await expect(page.getByTestId('readiness-confirm')).toBeHidden();
-    await expect(page.getByTestId('readiness-status')).toContainText('Ready to download');
+    await expect(page.getByTestId('readiness-status')).toContainText(/(?:Files|Review draft) ready to download/);
     await expect(page.getByTestId('readiness-panel')).not.toContainText('Course FAQ failed to generate');
   });
 

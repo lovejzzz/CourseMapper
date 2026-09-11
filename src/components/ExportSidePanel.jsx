@@ -436,11 +436,13 @@ function ReadinessPanel({
   if (!readiness || readiness.featureCount === 0) return null;
 
   const structuralReadinessBlockers = readiness.blockers.filter((issue) => issue?.source !== 'qualityGate');
-  const exportFailureIssue = getPackageTrustStatus({
+  const trustStatus = getPackageTrustStatus({
     receipt: packageReceipt,
     packageQualityPass,
     featureLabels: FEATURE_LABELS,
-  }).exportFailureIssue;
+  });
+  const exportFailureIssue = trustStatus.exportFailureIssue;
+  const needsTeachingReview = trustStatus.warningCount > 0 || trustStatus.blockerCount > 0;
   const operationalBlockers = [...structuralReadinessBlockers, exportFailureIssue].filter(Boolean);
   // Export answers one operational question: are verified bytes prepared for
   // download? Content quality is a separate, honest review surface in Agent.
@@ -455,9 +457,11 @@ function ReadinessPanel({
   const canNavigate = (issue) => typeof onIssueClick === 'function' && issue?.target;
   const tone = exportPrepared
     ? {
-        wrap: 'border-emerald-100 bg-emerald-50/70 text-emerald-700 dark:border-emerald-800/50 dark:bg-emerald-950/30 dark:text-emerald-200',
+        wrap: needsTeachingReview
+          ? 'border-amber-200 bg-amber-50/70 text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100'
+          : 'border-emerald-100 bg-emerald-50/70 text-emerald-700 dark:border-emerald-800/50 dark:bg-emerald-950/30 dark:text-emerald-200',
         icon: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/70 dark:text-emerald-200',
-        title: 'Ready to download',
+        title: needsTeachingReview ? 'Review draft ready to download' : 'Files ready to download',
         meta: `${readiness.doneFeatureCount}/${readiness.featureCount} materials checked`,
       }
     : packageScope || isBlocked
@@ -493,6 +497,13 @@ function ReadinessPanel({
           </div>
           {/* v0.14.6 calm pass: when everything is green the ✓ + meta already
               say it — restating "All selected materials passed…" was noise. */}
+          {(exportPrepared || (!packageScope && !isBlocked)) && (
+            <p className="mt-1 text-xs leading-snug" data-testid="teaching-readiness-caveat">
+              {exportPrepared ? 'Files passed export checks. ' : ''}Teaching readiness requires review of source
+              support, answer keys and lesson fit
+              {needsTeachingReview ? '; unresolved review notes remain in Agent.' : '.'}
+            </p>
+          )}
           {isBlocked && <p className="mt-0.5 text-xs leading-snug opacity-80">{helperText}</p>}
           {/* v0.14.4 WS-B3: the repairs/warnings receipt folded into the
               download card's detail line — the only place this info lives

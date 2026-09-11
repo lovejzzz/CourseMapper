@@ -113,6 +113,8 @@ describe('auditDeliverableContentQuality', () => {
   it('does not flag valid phrasal verbs that end in a preposition', () => {
     const { findings } = auditDeliverableContentQuality('slideDecks', {
       notes: [
+        'The user is signed in.',
+        'The session ends after logging in.',
         'Ask students which cue they should watch for.',
         'Name the source they will work with.',
         'The conclusion holds whatever foods the energy comes from.',

@@ -1,3 +1,4 @@
+import { selectCodingPracticeInputs } from './codingPractice.js';
 import { annotatePracticeCaseExposure } from './practiceCaseExposure.js';
 import { sourceCourseGradeWeight } from './courseGradeWeight.js';
 import {
@@ -12786,7 +12787,10 @@ function prepareBlueprintForCompilation(blueprint = {}, options = {}) {
       lesson.taskSourceId ? source.id === lesson.taskSourceId : source.lessonId === lesson.id,
     );
     const savedTask = savedTaskSource && rebuildTeachingTaskSource(savedTaskSource, asArray(lesson.outcomes).join(' '));
-    if (savedTaskSource?.operationPlan !== undefined && !savedTask) {
+    if (
+      (savedTaskSource?.operationPlan !== undefined || savedTaskSource?.kind?.startsWith('coding-practice:')) &&
+      !savedTask
+    ) {
       const error = new Error(
         'Review the saved teaching operation and its source bindings before generating new answers. The compiler has not replaced it with a different task.',
       );
@@ -12794,14 +12798,26 @@ function prepareBlueprintForCompilation(blueprint = {}, options = {}) {
       error.taskId = savedTaskSource.id;
       throw error;
     }
+    const codingInputs =
+      !savedTaskSource &&
+      !authoredAssignment &&
+      !instructorFacts.length &&
+      (!lesson.enrichment || !hasLearnerFacingSemanticAuthority(lesson.enrichment)) &&
+      !lesson.authenticDataTaskPlan &&
+      !lesson.enrichment?.activityBlueprint
+        ? selectCodingPracticeInputs(prepared, lesson)
+        : [];
     const teachingTask =
       savedTask ||
       buildSharedTeachingTask({
         lessonId: lesson.id,
         objective: asArray(lesson.outcomes).join(' '),
-        claims: instructorFacts.length ? instructorFacts : ownedFacts,
-        admitted: instructorFacts.length > 0 || hasLearnerFacingSemanticAuthority(lesson.enrichment),
-        workedExample: lesson.enrichment?.workedExample || lesson.enrichment?.kernel?.workedExample,
+        claims: codingInputs.length ? codingInputs : instructorFacts.length ? instructorFacts : ownedFacts,
+        admitted:
+          codingInputs.length > 0 || instructorFacts.length > 0 || hasLearnerFacingSemanticAuthority(lesson.enrichment),
+        workedExample: codingInputs.length
+          ? undefined
+          : lesson.enrichment?.workedExample || lesson.enrichment?.kernel?.workedExample,
         sessionMinutes: lesson.classSessionPlan?.sessionMinutes,
         practiceMinutes: lesson.classSessionPlan?.segments?.find((s) => s.phase === 'collaborative application')
           ?.minutes,
@@ -28790,7 +28806,15 @@ export function compileBlueprintDeliverable(featureId, blueprint, options = {}) 
   );
   if (!compiled || options.skipLanguageFinalizer) return compiled;
   const finalized = finalizeCompiledDeliverableLanguage(featureId, compiled, featureBlueprint);
-  return featureId === 'lessonPlans' ? sanitizeCompiledLessonPlans(finalized, featureBlueprint) : finalized;
+  const sanitized = featureId === 'lessonPlans' ? sanitizeCompiledLessonPlans(finalized, featureBlueprint) : finalized;
+  // Prose cleanup must never rewrite executable code, whitespace or fixture
+  // bindings. Restore the bounded coding projections after language cleanup.
+  const codingTaskIds = featureBlueprint.lessons
+    .filter((lesson) => lesson.teachingTask?.codingPractice)
+    .map((lesson) => lesson.teachingTask.id);
+  return codingTaskIds.length
+    ? projectSharedTeachingTasks(featureId, sanitized, featureBlueprint, { ...options, taskIds: codingTaskIds })
+    : sanitized;
 }
 
 function compileBlueprintDeliverableRaw(featureId, compilerBlueprint, options = {}) {

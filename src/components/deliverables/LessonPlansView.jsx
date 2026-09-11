@@ -100,7 +100,9 @@ export default function LessonPlansView({
 
                 {plan.sourceEvidenceBrief?.claims?.length > 0 && (
                   <div className="rounded-xl border border-violet-100 bg-violet-50/45 p-3">
-                    <SectionHeading>Source Evidence for This Lesson</SectionHeading>
+                    <SectionHeading>
+                      {plan.codingPractice ? 'Exercise fixture and API reference' : 'Source Evidence for This Lesson'}
+                    </SectionHeading>
                     <ul className="mt-1.5 space-y-1.5">
                       {plan.sourceEvidenceBrief.claims.map((claim, j) => (
                         <li key={j} className="flex gap-2 text-xs leading-relaxed text-slate-700">

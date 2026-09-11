@@ -526,12 +526,19 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
     const task = lesson?.teachingTask;
     if (!task || lesson.teachingTaskScope !== 'primary-task') return;
     if (options.taskIds && !options.taskIds.includes(task.id)) return;
+    if (task.codingPractice) {
+      row.codingPractice = { reference: task.codingReference, scope: task.validation.scope };
+      row.sourceEvidenceBrief = {
+        claims: task.inputs.map((input) => input.text),
+        sources: [{ title: 'API reference — ' + task.codingReference.supports, url: task.codingReference.url }],
+      };
+    }
     projectSourceCopies(
       row,
       task,
       previousSources.find((source) => source.id === task.id),
     );
-    if (task.operationPlan?.operation === 'paired-condition-confound') {
+    if (task.codingPractice || task.operationPlan?.operation === 'paired-condition-confound') {
       // The selected task owns the lesson's generated example. Keep the full
       // demonstration in teacher material, not on the student assignment.
       if (feature === 'lessonPlans') row.workedExample = teachingTaskWorkedExample(task);
@@ -684,6 +691,12 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
         quizQuestions.forEach((q, i) => {
           if (seats[i]) projectTeachingQuestion(seats[i], q, task);
         });
+      if (task.codingPractice && !reviewedBank && Array.isArray(row.questions)) {
+        const unused = new Set(seats.slice(quizQuestions.length));
+        row.questions = row.questions.filter((question) => !unused.has(question));
+        row.totalQuestions = row.questions.length;
+        row.totalPoints = row.questions.reduce((sum, question) => sum + (Number(question.points) || 0), 0);
+      }
     }
     if (feature === 'courseFaq') {
       const projected = {

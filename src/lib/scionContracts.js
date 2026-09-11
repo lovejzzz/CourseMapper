@@ -316,8 +316,9 @@ export function kernelBatchSchemaProfile({
 /**
  * The Pass A skeleton contract — sessions pinned to the requested count
  * (V2 measured a 25-session greedy hallucination on a 7-lesson course when
- * unpinned), assessments REQUIRED with at least one per session (their
- * titles fill compiled template slots course-wide), readings/resources
+ * unpinned), assessment registry REQUIRED but allowed to be incomplete at transport time.
+ * The source-aware parser restores explicit cadence before compilation. A course
+ * need not have one graded assessment per session. Readings/resources
  * optional per the prompt's own omission rules.
  */
 export function skeletonSchemaProfile({ sessionCount }) {
@@ -356,7 +357,7 @@ export function skeletonSchemaProfile({ sessionCount }) {
           },
           required: ['id', 'title', 'dueSession'],
         },
-        count,
+        0,
         count * 3,
       ),
       readings: arr(

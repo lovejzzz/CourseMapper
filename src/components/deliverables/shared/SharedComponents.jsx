@@ -119,6 +119,8 @@ export function E({ value, path, onEdit, className = '', multiline = false, onAI
   const [draft, setDraft] = useState('');
   const textareaRef = useRef(null);
   const textValue = editableTextValue(value);
+  const isCode = /^(?:Starter|Reference implementation) — [^\n]+:\n/.test(textValue);
+  const displayClassName = `${className} ${isCode ? 'min-w-0 max-w-full whitespace-pre-wrap break-words font-mono rounded bg-slate-50 p-2 dark:bg-slate-900' : ''}`;
 
   // Auto-size textarea on mount and on content change
   useEffect(() => {
@@ -129,7 +131,12 @@ export function E({ value, path, onEdit, className = '', multiline = false, onAI
     }
   }, [editing, draft]);
 
-  if (!onEdit) return <span className={className}>{textValue}</span>;
+  if (!onEdit)
+    return (
+      <span data-code-snippet={isCode || undefined} className={displayClassName}>
+        {textValue}
+      </span>
+    );
 
   if (editing) {
     // Determine a reasonable minimum height based on content length
@@ -191,7 +198,8 @@ export function E({ value, path, onEdit, className = '', multiline = false, onAI
         setEditing(true);
       }}
       onContextMenu={handleCtxMenu}
-      className={`${className} cursor-text hover:bg-white/20 rounded px-0.5 -mx-0.5 transition-colors inline-block min-w-[2em]`}
+      data-code-snippet={isCode || undefined}
+      className={`${displayClassName} cursor-text hover:bg-white/20 rounded px-0.5 -mx-0.5 transition-colors inline-block min-w-[2em]`}
       title="Click to edit · Right-click for AI"
     >
       {textValue}

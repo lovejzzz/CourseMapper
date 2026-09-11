@@ -22,8 +22,15 @@ export async function persistOversizedProjectSnapshot({
     // reconstructible histories before writing the oversized-project belt.
     const packageSnapshot = buildHistoryPrunedAutosaveSnapshot(fullSnapshot);
     await saveProjectIndexedDbAutosave(JSON.stringify(packageSnapshot));
-    storage.removeItem('coursemapper-project');
-    storage.setItem('coursemapper-project', buildIndexedDbAutosaveMarker(fullSnapshot));
+    // IndexedDB is the durable receipt. A full or disabled localStorage bucket
+    // must not downgrade a successfully saved package to a lossy recovery copy.
+    // Resume also probes IndexedDB when the marker is absent.
+    try {
+      storage.removeItem('coursemapper-project');
+      storage.setItem('coursemapper-project', buildIndexedDbAutosaveMarker(fullSnapshot));
+    } catch {
+      // The exact snapshot has already committed.
+    }
     return 'indexeddb';
   } catch (indexedDbError) {
     try {

@@ -3,6 +3,7 @@ export default defineConfig({
   testDir: './tests',
   testMatch: [
     'workspace-mobile.spec.js',
+    'coding-practice.spec.js',
     'export-smoke.spec.js',
     'classroom-pdf.spec.js',
     'restored-homepage.spec.ts',
