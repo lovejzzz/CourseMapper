@@ -2665,6 +2665,7 @@ export default function useDeliverables({
               label: 'Pre-draft instructional plan',
               status: 'blocked',
               detail: planError?.message || 'Instructional planning blocked semantic drafting.',
+              blockers: planError?.blockers || [],
               providerCallsPrevented: true,
             });
             appendLog(`Scion did not draft because the instructional plan is unresolved: ${planError.message}`, 'warn');

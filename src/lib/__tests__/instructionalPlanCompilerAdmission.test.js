@@ -57,6 +57,64 @@ function courseMap() {
 }
 
 describe('instructional-plan compiler admission', () => {
+  it('prepares a 12-lesson web course for evidence acquisition before drafting', () => {
+    const topics = [
+      'HTML and CSS',
+      'JavaScript',
+      'APIs',
+      'Responsive Design',
+      'Document Object Model',
+      'API Integration',
+      'Server-side Basics',
+      'Databases',
+      'Authentication',
+      'Front-end Framework',
+      'Deployment',
+      'Final Application',
+    ];
+    const map = {
+      courseName: 'Full-Stack Web Development',
+      lessons: topics.map((topic, index) => ({
+        title: `Lesson ${index + 1}: ${topic}`,
+        sections: [
+          {
+            topicSection: topic,
+            learningObjectives:
+              index === 10
+                ? 'Deploy application successfully. Manage deployment pipeline.'
+                : index === 11
+                  ? 'Implement full stack application. Deploy final application.'
+                  : `Construct a working ${topic} example.`,
+            weeklyAssessments: `${topic} build lab`,
+            syncActivities:
+              index === 10
+                ? 'Workshop: manage deployment pipeline'
+                : index === 11
+                  ? 'Workshop: full stack application'
+                  : `Workshop: ${topic}`,
+          },
+        ],
+      })),
+    };
+    const prepared = prepareInstructionalPlan({ courseMap: map });
+    expect(prepared.instructionalPlan.lessonIntents).toHaveLength(12);
+    expect(prepared.instructionalPlan.admission.status).toBe('needs-evidence');
+    expect(
+      prepared.instructionalPlan.admission.blockers.every((blocker) =>
+        blocker.endsWith(':evidence-acquisition-required'),
+      ),
+    ).toBe(true);
+    expect(instructionalIntentGraphReceiptMatches(prepared.instructionalPlan)).toBe(true);
+    expect(() =>
+      compileBlueprintDeliverables(
+        buildCourseBlueprint(prepared.courseMap, {
+          planningAuthority: prepared.instructionalPlan.planningAuthority,
+        }),
+        ['syllabus', 'lessonPlans'],
+      ),
+    ).toThrow(/blocked/i);
+  });
+
   it('plans once, binds every lesson, and admits all nine artifact families only after approval', () => {
     const blueprint = buildCourseBlueprint(courseMap());
 

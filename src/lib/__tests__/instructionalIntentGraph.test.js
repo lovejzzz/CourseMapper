@@ -39,6 +39,11 @@ function lesson(overrides = {}) {
 
 describe('plan-before-draft instructional intent graph', () => {
   it.each([
+    'Deploy application successfully.',
+    'Implement full stack application.',
+    'Manipulate the document object model.',
+    'Handle user interactions.',
+    'Manage deployment pipeline.',
     'Ask sequenced intake questions and confirm patient-history information.',
     'Prioritize patient cues and justify the safest initial response.',
     'Prepare a proof portfolio that explains strategy choices.',
@@ -56,6 +61,34 @@ describe('plan-before-draft instructional intent graph', () => {
     expect(graph.admission.status).toBe('approved');
     expect(graph.admission.blockers).not.toContain('lesson-1:unobservable-learner-action');
     expect(graph.lessonIntents[0].learnerAction).toBe(outcome);
+  });
+
+  it('reports the blocking action after early evidence gaps without admitting the plan', () => {
+    const graph = buildInstructionalIntentGraph({
+      courseName: 'Full-Stack Web Development',
+      requireClaimAuthority: true,
+      lessons: Array.from({ length: 12 }, (_, index) =>
+        lesson({
+          id: `lesson-${index + 1}`,
+          lessonNumber: index + 1,
+          title: `Lesson ${index + 1}: Web application`,
+          keyConcepts: ['web application'],
+          outcomes: [index === 11 ? 'Understand everything.' : 'Build a web application.'],
+          activityPattern: '',
+          enrichment: null,
+        }),
+      ),
+    });
+    expect(() => assertInstructionalIntentGraph(graph, { allowEvidenceNeeds: true })).toThrow(
+      /lesson-12:unobservable-learner-action/,
+    );
+    try {
+      assertInstructionalIntentGraph(graph, { allowEvidenceNeeds: true });
+    } catch (error) {
+      expect(error.code).toBe('INSTRUCTIONAL_PLAN_BLOCKED');
+      expect(error.blockers).toContain('lesson-1:evidence-acquisition-required');
+      expect(error.blockers).toContain('lesson-12:unobservable-learner-action');
+    }
   });
 
   it('does not mistake compiler connective tissue for an instructional plan', () => {
