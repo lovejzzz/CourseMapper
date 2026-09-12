@@ -84,7 +84,9 @@ test('coding materials render, retain literal code and survive autosave with a f
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
   const snapshot = await page.evaluate(async () => {
-    const { buildCourseBlueprint, compileBlueprintDeliverables } = await import('/src/lib/courseBlueprintCompiler.js');
+    const { buildCourseBlueprint, compileBlueprintDeliverables, BLUEPRINT_COMPILE_CONTEXT } =
+      await import('/src/lib/courseBlueprintCompiler.js');
+    const { projectTeachingTasksIntoCourseMap } = await import('/src/lib/compilerTeachingTaskProjection.js');
     const titles = [
       'HTML and CSS',
       'JavaScript and DOM',
@@ -143,7 +145,9 @@ test('coding materials render, retain literal code and survive autosave with a f
 
     return {
       formatVersion: 2,
-      courseMap,
+      courseMap: projectTeachingTasksIntoCourseMap(courseMap, compiled[BLUEPRINT_COMPILE_CONTEXT], {
+        generatedCodingMap: true,
+      }),
       hasGenerated: true,
       selectedFeatures: ['courseMap', ...features],
       activeTab: 'lessonPlans',
@@ -161,6 +165,14 @@ test('coding materials render, retain literal code and survive autosave with a f
   // Importing the full twelve-lesson archive includes decoding and graph migration.
   // Wait for completion, as the existing large-project roundtrip audit does.
   await expect(page.getByTestId('workspace-shell')).toBeVisible({ timeout: 30000 });
+  await page.getByRole('button', { name: 'Course Map', exact: true }).click();
+  await expect(
+    page.getByRole('button', { name: 'Open "Build an accessible project card" in Assignment Briefs', exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole('button', { name: 'Open "Build an accessible project card" in Assignment Briefs', exact: true })
+    .click();
+  await expect(page.getByTestId('workspace-content-panel')).toContainText('Build a semantic HTML page');
   for (const tab of [
     'Lesson Plans',
     'Assignment Briefs',

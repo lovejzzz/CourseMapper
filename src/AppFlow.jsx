@@ -910,17 +910,20 @@ export default function AppFlow({
   const handleGeneratedCourseMapRepair = useCallback(
     (repairedCourseMap, meta = {}) => {
       if (!repairedCourseMap?.lessons) return;
+      if (meta.mergeWithCurrent) repairedCourseMap = meta.mergeWithCurrent(courseMapRef.current);
       courseMapRef.current = repairedCourseMap;
       setCourseMap(repairedCourseMap);
       version.pushVersion(
         repairedCourseMap,
-        meta.source === 'blueprintCompiler'
-          ? 'Cleaned course map before compiling deliverables'
-          : meta.source === 'instructionalBlueprint'
-            ? 'Prepared the instructional blueprint for review'
-            : meta.source === 'knowledgeBackbone'
-              ? 'Attached cited readings and open resources'
-              : 'Cleaned course map readiness fields',
+        meta.source === 'teachingTask'
+          ? 'Aligned course activities with the generated tasks'
+          : meta.source === 'blueprintCompiler'
+            ? 'Cleaned course map before compiling deliverables'
+            : meta.source === 'instructionalBlueprint'
+              ? 'Prepared the instructional blueprint for review'
+              : meta.source === 'knowledgeBackbone'
+                ? 'Attached cited readings and open resources'
+                : 'Cleaned course map readiness fields',
       );
     },
     [setCourseMap, version.pushVersion],

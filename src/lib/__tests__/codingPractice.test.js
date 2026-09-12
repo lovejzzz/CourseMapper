@@ -393,3 +393,47 @@ it('preserves background facts with their citations through coding lesson and as
     expect(row.sourceEvidenceBrief.sources).toHaveLength(2);
   }
 });
+
+it('publishes concrete coding activities while preserving later teacher edits and other sections', async () => {
+  const { projectTeachingTasksIntoCourseMap, mergeGeneratedTaskMap } =
+    await import('../compilerTeachingTaskProjection.js');
+  const courseMap = {
+    ...map,
+    lessons: [
+      {
+        title: 'Responsive CSS Grid Layouts',
+        sections: [
+          {
+            topicSection: 'CSS grid',
+            learningObjectives: 'Analyze evidence.',
+            weeklyAssessments: 'Generic source review',
+            syncActivities: 'Compare evidence.',
+            asyncActivities: 'Read background.',
+          },
+          { topicSection: 'Instructor extension', syncActivities: 'Discuss our class project.' },
+        ],
+      },
+    ],
+  };
+  const blueprint = hydrateBlueprintForCompilation(buildCourseBlueprint(courseMap));
+  const generated = projectTeachingTasksIntoCourseMap(courseMap, blueprint, { generatedCodingMap: true });
+  expect(generated.lessons[0].sections[0].learningObjectives).toBe(blueprint.lessons[0].teachingTask.objective);
+  expect(generated.lessons[0].sections[0].weeklyAssessments).toContain(
+    'Repair a responsive card grid → Assignment Briefs / Lesson 01',
+  );
+  expect(generated.lessons[0].sections[0].syncActivities).toContain('699px');
+  expect(generated.lessons[0].sections[1]).toEqual(courseMap.lessons[0].sections[1]);
+  const edited = structuredClone(courseMap);
+  edited.lessons[0].sections[0].asyncActivities = 'Teacher plan: review the museum project.';
+  const merged = mergeGeneratedTaskMap(edited, courseMap, generated);
+  expect(merged.lessons[0].sections[0].asyncActivities).toBe('Teacher plan: review the museum project.');
+  expect(merged.lessons[0].sections[0].weeklyAssessments).toBe(generated.lessons[0].sections[0].weeklyAssessments);
+  const again = projectTeachingTasksIntoCourseMap(merged, blueprint);
+  expect(again.lessons[0].sections[0].asyncActivities).toBe('Teacher plan: review the museum project.');
+  expect(projectTeachingTasksIntoCourseMap(courseMap, blueprint).lessons[0].sections[0].learningObjectives).toBe(
+    'Analyze evidence.',
+  );
+  const renamed = structuredClone(edited);
+  renamed.lessons[0].title = 'Teacher replacement';
+  expect(mergeGeneratedTaskMap(renamed, courseMap, generated)).toBe(renamed);
+});

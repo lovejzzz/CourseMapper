@@ -809,7 +809,7 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
   return data;
 }
 
-export function projectTeachingTasksIntoCourseMap(courseMap, blueprint) {
+export function projectTeachingTasksIntoCourseMap(courseMap, blueprint, { generatedCodingMap = false } = {}) {
   if (!Array.isArray(courseMap?.lessons)) return courseMap;
   let changed = false;
   const lessons = courseMap.lessons.map((sourceLesson, index) => {
@@ -827,6 +827,13 @@ export function projectTeachingTasksIntoCourseMap(courseMap, blueprint) {
         task,
         'Revise the classroom response using the matching criterion feedback; identify the specific correction made.',
       ),
+      ...(task.codingPractice
+        ? {
+            learningObjectives: task.objective,
+            weeklyAssessments: `${task.title} → Assignment Briefs / Lesson ${String(lesson.lessonNumber).padStart(2, '0')}`,
+            syncActivities: (task.directions || [task.question]).join('\n'),
+          }
+        : {}),
     };
     const sections = (sourceLesson.sections || []).map((section, sectionIndex) => {
       if (sectionIndex !== 0) return section;
@@ -838,7 +845,8 @@ export function projectTeachingTasksIntoCourseMap(courseMap, blueprint) {
           /^(?:1\.\s*)?(?:Compare claims and justify|Annotate the available course evidence|Audit one practical example|Revisit the supplied facts)/i.test(
             current,
           );
-        if (!current || current === previous || compilerFallback) updated[field] = value;
+        if (!current || current === previous || compilerFallback || (generatedCodingMap && task.codingPractice))
+          updated[field] = value;
       }
       if (typeof section.supportingResources === 'string')
         updated.supportingResources = updateSourceCopy(section.supportingResources, sourcePacket(task), previousPacket);
@@ -849,4 +857,31 @@ export function projectTeachingTasksIntoCourseMap(courseMap, blueprint) {
     return { ...sourceLesson, sections, teachingTaskLink: { ...ref(task), question: task.question, generatedFields } };
   });
   return changed ? withTeachingTaskSources({ ...courseMap, lessons }, projectedTaskSources(blueprint)) : courseMap;
+}
+
+// Generation can finish after a teacher edits the visible map. Apply only
+// changes to the exact baseline still on screen; never replace those edits.
+export function mergeGeneratedTaskMap(current, baseline, projected) {
+  if (!current?.lessons || current.lessons.length !== baseline.lessons.length) return current;
+  if (current.lessons.some((lesson, index) => lesson.title !== baseline.lessons[index].title)) return current;
+  return {
+    ...current,
+    lessons: current.lessons.map((lesson, index) => {
+      const before = baseline.lessons[index];
+      const after = projected.lessons[index];
+      if (!after.teachingTaskLink || lesson.sections.length !== before.sections.length) return lesson;
+      return {
+        ...lesson,
+        teachingTaskLink: after.teachingTaskLink,
+        sections: lesson.sections.map((section, sectionIndex) => {
+          const next = { ...section };
+          for (const field of Object.keys(after.teachingTaskLink.generatedFields || {})) {
+            if (JSON.stringify(section[field]) === JSON.stringify(before.sections[sectionIndex][field]))
+              next[field] = after.sections[sectionIndex][field];
+          }
+          return next;
+        }),
+      };
+    }),
+  };
 }

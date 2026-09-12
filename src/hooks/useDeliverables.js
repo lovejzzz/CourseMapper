@@ -3221,6 +3221,20 @@ export default function useDeliverables({
         });
         if (shouldStopBlueprintCompiler()) return;
         const admittedCompilerBlueprint = compiled[Symbol.for('coursemapper.blueprintCompileContext')] || blueprint;
+        if (nativeSkeleton && typeof onCourseMapRepair === 'function') {
+          const { projectTeachingTasksIntoCourseMap, mergeGeneratedTaskMap } =
+            await import('../lib/compilerTeachingTaskProjection');
+          if (shouldStopBlueprintCompiler()) return;
+          const baseline = courseGraphLib.renderCourseMapFromGraph(courseGraph, { assessmentReferences: true });
+          const projected = projectTeachingTasksIntoCourseMap(baseline, admittedCompilerBlueprint, {
+            generatedCodingMap: true,
+          });
+          if (projected !== baseline)
+            onCourseMapRepair(projected, {
+              source: 'teachingTask',
+              mergeWithCurrent: (current) => mergeGeneratedTaskMap(current, baseline, projected),
+            });
+        }
         recordApiCallEvent({
           type: 'compiledDeliverable',
           label: blueprintEnrichment ? 'Enriched blueprint compiler' : 'Blueprint compiler',
