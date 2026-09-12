@@ -500,8 +500,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
     });
   const contentRuns = (value, style = {}) => {
     const text = String(value || '');
-    if (!/^(?:Starter|Reference implementation) — [^\n]+:\n/.test(text.trim()))
-      return [new TextRun({ text, ...style })];
+    if (!/(?:Starter|Reference implementation) — [^\n]+:\n/.test(text.trim())) return [new TextRun({ text, ...style })];
     return text
       .split(/\r?\n/)
       .map((line, index) => new TextRun({ ...style, text: line, font: 'Courier New', break: index ? 1 : style.break }));

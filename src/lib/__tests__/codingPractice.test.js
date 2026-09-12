@@ -215,6 +215,13 @@ describe('bounded programming practice', () => {
           .find((paragraph) => paragraph.includes('Starter — exercise.mjs:'));
         expect(starterParagraph).toBeTruthy();
         expect(starterParagraph).toContain('Courier New');
+        const answerParagraph = xml
+          .match(/<w:p(?:\s[^>]*)?>[\s\S]*?<\/w:p>/g)
+          .find((paragraph) => paragraph.includes('Reference implementation — exercise.mjs:'));
+        expect(answerParagraph).toContain('Courier New');
+        expect((answerParagraph.match(/<w:br\s*\/>/g) || []).length).toBeGreaterThanOrEqual(
+          example('http-router').solution.split('\n').length,
+        );
         expect((starterParagraph.match(/<w:br\s*\/>/g) || []).length).toBeGreaterThanOrEqual(
           example('http-router').starter.split('\n').length,
         );
