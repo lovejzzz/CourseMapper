@@ -498,11 +498,19 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         }),
       ],
     });
+  const contentRuns = (value, style = {}) => {
+    const text = String(value || '');
+    if (!/^(?:Starter|Reference implementation) — [^\n]+:\n/.test(text.trim()))
+      return [new TextRun({ text, ...style })];
+    return text
+      .split(/\r?\n/)
+      .map((line, index) => new TextRun({ ...style, text: line, font: 'Courier New', break: index ? 1 : style.break }));
+  };
   const makeText = (text, { keepLines = false } = {}) =>
     new Paragraph({
       keepLines,
       spacing: { line: bodyLine, before: denseArtifact ? 10 : 20, after: denseArtifact ? 30 : 50 },
-      children: [new TextRun({ text: text || '', size: bodySize, font: FONT, color: '333333' })],
+      children: contentRuns(text, { size: bodySize, font: FONT, color: '333333' }),
     });
   // Meta strip for the "90 min · Week 3"-style lines under a heading.
   const makeMeta = (text) =>
@@ -542,8 +550,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           font: FONT,
           color: theme.headingColor,
         }),
-        new TextRun({
-          text: text || '',
+        ...contentRuns(text, {
           size: compact ? (denseStudyGuide ? 19 : Math.min(bodySize, 20)) : bodySize,
           font: FONT,
           color: '404040',
@@ -719,8 +726,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
       indent: { left: 360, hanging: 180 },
       bullet: { level: 0 },
       children: [
-        new TextRun({
-          text: text || '',
+        ...contentRuns(text, {
           size: compact ? Math.min(bodySize, 18) : bodySize,
           font: FONT,
           color: '333333',
@@ -743,7 +749,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
       indent: { left: 360 },
       children: [
         new TextRun({ text: `${num}. `, bold: true, size: bodySize, font: FONT, color: theme.accent }),
-        new TextRun({ text: text || '', size: bodySize, font: FONT, color: '333333' }),
+        ...contentRuns(text, { size: bodySize, font: FONT, color: '333333' }),
       ],
     });
   // Tinted callout strip with a tracked-uppercase label — used for answer
@@ -764,8 +770,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           color: theme.accent,
           characterSpacing: LABEL_TRACKING,
         }),
-        new TextRun({
-          text: text ? `${inline ? ' —' : ''} ${text}` : '',
+        ...contentRuns(text ? `${inline ? ' —' : ''} ${text}` : '', {
           size: bodySize,
           font: FONT,
           color: '333333',

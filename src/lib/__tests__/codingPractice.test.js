@@ -209,6 +209,16 @@ describe('bounded programming practice', () => {
       expect(xml).toContain('http');
       if (['studyGuides', 'lessonPlans', 'quizBank'].includes(feature)) expect(xml).toContain('res.writeHead');
       expect(xml).not.toContain('Teacher review required: replace general guidance');
+      if (['studyGuides', 'lessonPlans', 'assignments'].includes(feature)) {
+        const starterParagraph = xml
+          .match(/<w:p(?:\s[^>]*)?>[\s\S]*?<\/w:p>/g)
+          .find((paragraph) => paragraph.includes('Starter — exercise.mjs:'));
+        expect(starterParagraph).toBeTruthy();
+        expect(starterParagraph).toContain('Courier New');
+        expect((starterParagraph.match(/<w:br\s*\/>/g) || []).length).toBeGreaterThanOrEqual(
+          example('http-router').starter.split('\n').length,
+        );
+      }
     }
     const blob = await buildSlideDeckPptxBlob(compiled.slideDecks, map.courseName, 0);
     const zip = await JSZip.loadAsync(await blob.arrayBuffer());
