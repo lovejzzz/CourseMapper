@@ -4211,6 +4211,7 @@ export default function AppFlow({
                           isStreaming={gen.isStreaming}
                           streamDetail={gen.streamDetail}
                           streamProgress={gen.streamProgress}
+                          streamActivity={gen.streamActivity}
                           onStop={gen.isStreaming ? onStop : null}
                           oldCourseMap={oldCourseMap}
                           onCellEdit={editor.handleCellEdit}

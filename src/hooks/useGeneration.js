@@ -1,3 +1,8 @@
+import {
+  startCourseMapActivity,
+  receiveCourseMapText,
+  receiveCourseMapActivityEvent,
+} from '../lib/courseMapActivity.js';
 import { useState, useRef, useCallback } from 'react';
 import { parseFiles } from '../lib/fileParser';
 import {
@@ -225,6 +230,7 @@ export default function useGeneration({
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamDetail, setStreamDetail] = useState('');
   const [streamProgress, setStreamProgress] = useState(0);
+  const [streamActivity, setStreamActivity] = useState({});
   const [isStopped, setIsStopped] = useState(false);
   const [examChanges, setExamChanges] = useState([]);
   const [pendingExamPatches, setPendingExamPatches] = useState(null); // { patches, baseMap } — waiting for instructor review
@@ -249,6 +255,7 @@ export default function useGeneration({
 
   const recordApiCallEvent = useCallback(
     (event) => {
+      setStreamActivity((previous) => receiveCourseMapActivityEvent(previous, event));
       if (typeof onApiCallEvent === 'function') onApiCallEvent(event);
     },
     [onApiCallEvent],
@@ -291,6 +298,7 @@ export default function useGeneration({
     }
 
     const partial = parsePartialJSON(fullText);
+    setStreamActivity((previous) => receiveCourseMapText(previous, fullText, partial));
     if (String(fullText || '').trim()) {
       const expected = Number(expectedLessonsRef.current?.expected);
       setStreamDetail(
@@ -1028,6 +1036,7 @@ export default function useGeneration({
         }
         if (parseWarning) setError(parseWarning);
 
+        setStreamActivity(startCourseMapActivity(detected?.expected || 0));
         setIsStreaming(true);
         setStreamDetail(
           detected?.expected
@@ -1452,6 +1461,7 @@ export default function useGeneration({
     setIsStopped(false);
     setStatus('generating');
     setProgressStep('generating');
+    setStreamActivity(startCourseMapActivity(expectedLessonsRef.current?.expected || 0));
     setIsStreaming(true);
     setStreamDetail('Resuming generation...');
     setError('');
@@ -1766,6 +1776,7 @@ export default function useGeneration({
     streamDetail,
     setStreamDetail,
     streamProgress,
+    streamActivity,
     setStreamProgress,
     isStopped,
     setIsStopped,

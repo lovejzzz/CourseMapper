@@ -1,3 +1,4 @@
+import CourseMapLiveProgress from './CourseMapLiveProgress.jsx';
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { buildLessonGroupMap, GROUP_COLORS } from '../lib/moduleGrouper';
 import { deriveCourseGraphFromCourseMap } from '../lib/courseGraph/deriveFromCourseMap.js';
@@ -45,47 +46,6 @@ const LIST_PREFIX = /^(?:[-•*]|\d+[a-z]?[.):])\s/;
 
 function courseMapCellKey({ lessonIndex, sectionIndex, field }) {
   return `${lessonIndex ?? ''}:${sectionIndex ?? 'lesson'}:${field || ''}`;
-}
-
-function CourseMapLiveProgress({ detail = '', progress = 0, lessonCount = 0, onStop = null, className = '' }) {
-  return (
-    <div
-      role="status"
-      aria-live="polite"
-      data-testid="course-map-live-progress"
-      className={`rounded-xl border border-indigo-100/80 bg-indigo-50/55 px-3 py-2.5 dark:border-indigo-900/70 dark:bg-indigo-950/35 ${className}`}
-    >
-      <div className="flex items-center gap-2 text-[12px]">
-        <span className="relative flex h-2.5 w-2.5 flex-shrink-0">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-indigo-400 opacity-45" />
-          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-indigo-500" />
-        </span>
-        <span className="min-w-0 flex-1 truncate font-medium text-indigo-700 dark:text-indigo-200">
-          {detail || (lessonCount > 0 ? `Writing Lesson ${lessonCount}…` : 'Reading your brief…')}
-        </span>
-        <span className="flex-shrink-0 tabular-nums text-indigo-500 dark:text-indigo-300">
-          {progress > 0 ? `${Math.min(99, Math.round(progress))}%` : 'Starting'}
-        </span>
-        {onStop && (
-          <button
-            type="button"
-            aria-label="Stop build"
-            onClick={onStop}
-            className="flex-shrink-0 rounded-md border border-indigo-200/80 bg-white/80 px-2 py-1 text-xs font-semibold text-indigo-700 transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 dark:border-indigo-800 dark:bg-indigo-950/70 dark:text-indigo-200"
-          >
-            Stop
-          </button>
-        )}
-      </div>
-      <div className="relative mt-2 h-1 overflow-hidden rounded-full bg-indigo-100 dark:bg-indigo-900/70">
-        <div
-          className="h-full rounded-full bg-indigo-500 transition-[width] duration-300 ease-out"
-          style={{ width: `${Math.max(2, Math.min(99, Number(progress) || 0))}%` }}
-        />
-        <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-transparent via-white/55 to-transparent motion-reduce:hidden" />
-      </div>
-    </div>
-  );
 }
 
 // ── v0.14.4 WS-A: presentation helpers ──────────────────────────────────────
@@ -375,6 +335,7 @@ export default function CourseMapPreview({
   isStreaming,
   streamDetail = '',
   streamProgress = 0,
+  streamActivity = {},
   onStop = null,
   oldCourseMap,
   onCellEdit,
@@ -649,10 +610,12 @@ export default function CourseMapPreview({
       return (
         <div className="glass rounded-squircle shadow-glass p-7">
           <h2 className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-200">Building your course map</h2>
-          <CourseMapLiveProgress detail={streamDetail} progress={streamProgress} onStop={onStop} />
-          <p className="mt-3 text-[12px] text-slate-500 dark:text-slate-400">
-            Lessons and fields will appear here as soon as each one is ready.
-          </p>
+          <CourseMapLiveProgress
+            detail={streamDetail}
+            progress={streamProgress}
+            activity={streamActivity}
+            onStop={onStop}
+          />
         </div>
       );
     }
@@ -762,6 +725,7 @@ export default function CourseMapPreview({
         <CourseMapLiveProgress
           detail={streamDetail}
           progress={streamProgress}
+          activity={streamActivity}
           lessonCount={courseMap.lessons.length}
           onStop={onStop}
           className="mb-3 sm:mb-5"
