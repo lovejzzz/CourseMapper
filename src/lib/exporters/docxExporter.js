@@ -577,7 +577,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           font: FONT,
           color: theme.headingColor,
         }),
-        new TextRun({ text: String(value), size, font: FONT, color: '404040' }),
+        ...contentRuns(value, { size, font: FONT, color: '404040' }),
       ]),
     });
   };
@@ -691,7 +691,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
                   new Paragraph({
                     keepNext: keepTogether && (index < visiblePairs.length - 1 || keepWithNext),
                     spacing: { line: compact ? Math.min(bodyLine, 228) : bodyLine, before: 0, after: 0 },
-                    children: [new TextRun({ text: String(v), size: bodySize, font: FONT, color: '333333' })],
+                    children: contentRuns(v, { size: bodySize, font: FONT, color: '333333' }),
                   }),
                 ],
               }),
@@ -835,7 +835,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
                   new Paragraph({
                     alignment: centeredColumnSet.has(idx) ? AlignmentType.CENTER : undefined,
                     spacing: { line: bodyLine },
-                    children: [new TextRun({ text: String(v || ''), size: bodySize, font: FONT, color: '333333' })],
+                    children: contentRuns(v, { size: bodySize, font: FONT, color: '333333' }),
                   }),
                 ],
               }),
