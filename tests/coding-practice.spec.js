@@ -117,7 +117,30 @@ test('coding materials render, retain literal code and survive autosave with a f
       'studyGuides',
       'courseFaq',
     ];
-    const compiled = compileBlueprintDeliverables(buildCourseBlueprint(courseMap), features);
+    const facts = [
+      'HTML elements are the building blocks of HTML pages.',
+      'HTML describes the structure of a web page semantically.',
+      'HTML elements are delineated by tags, written using angle brackets.',
+    ];
+    const enrichment = {
+      lessonContent: {
+        'lesson-1': {
+          enrichmentSource: 'evidence-authority-replay',
+          sourceFactAuthority: 'admitted-evidence-authority',
+          kernel: {
+            facts,
+            provenance: {
+              source: 'compiler-owned-exact-source-ledger',
+              authority: 'admitted-evidence-authority',
+              copiedFactsVerbatim: true,
+              factCount: 3,
+            },
+          },
+        },
+      },
+    };
+    const compiled = compileBlueprintDeliverables(buildCourseBlueprint(courseMap, { enrichment }), features);
+
     return {
       formatVersion: 2,
       courseMap,

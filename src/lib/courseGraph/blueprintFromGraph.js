@@ -1,3 +1,4 @@
+import { citationsForRetainedFacts } from '../sourceCitationSelection.js';
 /**
  * courseGraph/blueprintFromGraph.js — v0.13 P0: compile FROM the graph.
  *
@@ -1103,15 +1104,16 @@ function replayEvidencePlanInputs(graph = {}, options = {}) {
       conceptProvenance: {
         source: 'evidence-authority-replay',
         authority: SOURCE_LEDGER_AUTHORITIES.ADMITTED_EVIDENCE_AUTHORITY,
-        fullyAnchored: citations.length > 0,
+        fullyAnchored: citationsForRetainedFacts(citations, facts).length > 0,
         citations,
+        admittedCitations: citationsForRetainedFacts(citations, facts),
       },
       evidenceAuthorityReceipt: structuredClone(authority),
       replayRecoveryReceipt: {
         protocol: 'coursemapper-evidence-authority-replay-v1',
         status: 'exact-authority-ledger-restored',
         admittedFactCount: facts.length,
-        sourceCount: citations.length,
+        sourceCount: citationsForRetainedFacts(citations, facts).length,
       },
     };
   }

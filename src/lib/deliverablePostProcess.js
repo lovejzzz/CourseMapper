@@ -2593,7 +2593,7 @@ function patchAssignmentToAnchor(assignment, anchor) {
   }
 
   const overviewKey = fieldKey(next, 'overview', 'ov', 'overview');
-  if (valueIsMissingOrShort(next[overviewKey], 12)) {
+  if (valueIsMissingOrShort(next[overviewKey], 12) && !(next.taskId && next.codingPractice && next[overviewKey])) {
     const assessmentTitle = sentenceFragment(anchor.assessmentTitle);
     const primaryObjective = sentenceFragment(anchor.objectives[0]);
     next = {

@@ -12798,30 +12798,43 @@ function prepareBlueprintForCompilation(blueprint = {}, options = {}) {
       error.taskId = savedTaskSource.id;
       throw error;
     }
+    const sourceTask =
+      savedTask ||
+      buildSharedTeachingTask({
+        lessonId: lesson.id,
+        objective: asArray(lesson.outcomes).join(' '),
+        claims: instructorFacts.length ? instructorFacts : ownedFacts,
+        admitted: instructorFacts.length > 0 || hasLearnerFacingSemanticAuthority(lesson.enrichment),
+        workedExample: lesson.enrichment?.workedExample || lesson.enrichment?.kernel?.workedExample,
+        sessionMinutes: lesson.classSessionPlan?.sessionMinutes,
+        practiceMinutes: lesson.classSessionPlan?.segments?.find((s) => s.phase === 'collaborative application')
+          ?.minutes,
+      });
+    // Background facts establish what can be taught, not what students must
+    // build. Supply an independently authored coding exercise when those facts
+    // do not form a task; preserve saved, instructor-authored and source tasks.
     const codingInputs =
       !savedTaskSource &&
+      !sourceTask &&
       !authoredAssignment &&
       !instructorFacts.length &&
-      (!lesson.enrichment || !hasLearnerFacingSemanticAuthority(lesson.enrichment)) &&
       !lesson.authenticDataTaskPlan &&
       !lesson.enrichment?.activityBlueprint
         ? selectCodingPracticeInputs(prepared, lesson)
         : [];
     const teachingTask =
-      savedTask ||
-      buildSharedTeachingTask({
-        lessonId: lesson.id,
-        objective: asArray(lesson.outcomes).join(' '),
-        claims: codingInputs.length ? codingInputs : instructorFacts.length ? instructorFacts : ownedFacts,
-        admitted:
-          codingInputs.length > 0 || instructorFacts.length > 0 || hasLearnerFacingSemanticAuthority(lesson.enrichment),
-        workedExample: codingInputs.length
-          ? undefined
-          : lesson.enrichment?.workedExample || lesson.enrichment?.kernel?.workedExample,
-        sessionMinutes: lesson.classSessionPlan?.sessionMinutes,
-        practiceMinutes: lesson.classSessionPlan?.segments?.find((s) => s.phase === 'collaborative application')
-          ?.minutes,
-      });
+      sourceTask ||
+      (codingInputs.length
+        ? buildSharedTeachingTask({
+            lessonId: lesson.id,
+            objective: asArray(lesson.outcomes).join(' '),
+            claims: codingInputs,
+            admitted: true,
+            sessionMinutes: lesson.classSessionPlan?.sessionMinutes,
+            practiceMinutes: lesson.classSessionPlan?.segments?.find((s) => s.phase === 'collaborative application')
+              ?.minutes,
+          })
+        : null);
     return {
       ...lesson,
       teachingTask,

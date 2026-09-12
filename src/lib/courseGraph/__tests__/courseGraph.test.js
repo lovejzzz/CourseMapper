@@ -1,3 +1,4 @@
+import { citationsForRetainedFacts } from '../../sourceCitationSelection.js';
 import { describe, expect, it } from 'vitest';
 import { COURSE_GRAPH_VERSION, courseGraphStats, createEmptyCourseGraph, validateCourseGraph } from '../schema.js';
 import { deriveCourseGraphFromCourseMap } from '../deriveFromCourseMap.js';
@@ -406,7 +407,7 @@ describe('courseGraph (v0.13 P0)', () => {
       evidenceAuthorityReceipt: { receiptSha256: authority.receiptSha256 },
       replayRecoveryReceipt: { status: 'exact-authority-ledger-restored' },
       conceptProvenance: {
-        citations: [
+        admittedCitations: [
           expect.objectContaining({
             provider: 'openalex',
             license: 'CC BY 4.0',
@@ -823,4 +824,21 @@ describe('courseGraph (v0.13 P0)', () => {
     expect(replayed).not.toMatch(/TikTok|platform engagement/i);
     expect(replayed).toContain('Perspective and Framing');
   });
+});
+
+it('publishes only sources supporting retained facts while leaving the discovery ledger intact', () => {
+  const facts = Array.from({ length: 9 }, (_, i) => `Verified deployment observation ${i + 1}.`);
+  const citations = facts.map((claim, i) => ({
+    id: `source-${i + 1}`,
+    title: i === 8 ? 'Adjacent specialization' : `Deployment source ${i + 1}`,
+    supportReceipt: { checks: [{ claim, quoteInSnapshot: true, semanticSupport: true }] },
+  }));
+  const before = structuredClone(citations);
+  const published = citationsForRetainedFacts(citations, facts.slice(0, 8));
+  expect(published.map((c) => c.id)).toEqual(citations.slice(0, 8).map((c) => c.id));
+  expect(citations).toEqual(before);
+  // A broad title is still included when its exact fact is actually used.
+  expect(citationsForRetainedFacts(citations, [facts[8]]).map((c) => c.id)).toEqual(['source-9']);
+  const instructor = { id: 'instructor', title: 'Assigned reading without a machine receipt' };
+  expect(citationsForRetainedFacts([instructor], [])).toEqual([instructor]);
 });

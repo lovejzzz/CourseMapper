@@ -16,6 +16,11 @@ import {
 } from './compilerTeachingTaskQuiz.js';
 
 const ref = (task) => ({ taskId: task.id, taskRevision: task.revision });
+function codingClaims(task, prior = []) {
+  const inputs = task.inputs.map((input) => input.text);
+  const normalizedInputs = new Set(inputs.map((text) => text.replace(/\s+/g, ' ').trim()));
+  return [...prior.filter((text) => !normalizedInputs.has(text.replace(/\s+/g, ' ').trim())), ...inputs];
+}
 function projectedTaskSources(blueprint) {
   const canonical = new Map(readTeachingTaskSources(blueprint).map((source) => [source.id, source]));
   return blueprint.lessons
@@ -27,7 +32,10 @@ function projectedTaskSources(blueprint) {
     })
     .filter(Boolean);
 }
-const evidence = (task, prior) => ({ ...prior, claims: task.inputs.map((x) => x.text) });
+const evidence = (task, prior) => ({
+  ...prior,
+  claims: task.codingPractice ? codingClaims(task, prior?.claims || []) : task.inputs.map((x) => x.text),
+});
 const sourcePacket = (task) => task.inputs.map((input, index) => `Source record ${index + 1}: ${input.text}`).join(' ');
 const isCompilerSourcePacket = (value) => typeof value === 'string' && /^Source record 1: /.test(value);
 const copiesPacket = (value, packet) =>
@@ -546,9 +554,19 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
     if (options.taskIds && !options.taskIds.includes(task.id)) return;
     if (task.codingPractice) {
       row.codingPractice = { reference: task.codingReference, scope: task.validation.scope };
+      const background = row.sourceEvidenceBrief || {};
+      const sources = [
+        ...(background.sources || []),
+        { title: 'API reference — ' + task.codingReference.supports, url: task.codingReference.url },
+      ];
       row.sourceEvidenceBrief = {
-        claims: task.inputs.map((input) => input.text),
-        sources: [{ title: 'API reference — ' + task.codingReference.supports, url: task.codingReference.url }],
+        ...background,
+        claims: codingClaims(task, background.claims || []),
+        sources: sources.filter(
+          (source, index) =>
+            sources.findIndex((candidate) => (candidate.url || candidate.title) === (source.url || source.title)) ===
+            index,
+        ),
       };
     }
     projectSourceCopies(
@@ -562,7 +580,25 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
       if (feature === 'lessonPlans') row.workedExample = teachingTaskWorkedExample(task);
       if (feature === 'assignments') delete row.workedExample;
     }
-    if (feature === 'assignments') projectAssignment(row, task, blueprint);
+    if (feature === 'assignments') {
+      projectAssignment(row, task, blueprint);
+      // The overview row is another copy of this generated assignment, not a
+      // separate task. Match its stable assessment identity, never its position.
+      for (const summary of data.courseAssignmentMap || []) {
+        if (
+          (row.assessmentId && summary.assessmentId === row.assessmentId) ||
+          (!row.assessmentId &&
+            !summary.assessmentId &&
+            Number(summary.week) === lesson.lessonNumber &&
+            rows.filter(
+              (candidate) =>
+                Number(candidate.lessonNumber) === lesson.lessonNumber ||
+                candidate.relatedLessons?.includes(lesson.title),
+            ).length === 1)
+        )
+          Object.assign(summary, ref(task), { artifact: task.title, expectedFile: task.product });
+      }
+    }
     if (feature === 'rubrics' && Array.isArray(row.criteria)) projectRubric(row, task);
     if (feature === 'lessonPlans') projectPlan(row, task);
     if (feature === 'slideDecks') projectTeachingTaskSlides(row, task);
@@ -648,7 +684,9 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
                     'compiler-exact-source-ledger',
                     'source-bound-recovery',
                     'shared-teaching-task',
-                    ...(task.codingPractice ? ['compiler-created-practice-recovery'] : []),
+                    ...(task.codingPractice
+                      ? ['compiler-created-practice-recovery', 'admitted-kernel-assessment']
+                      : []),
                   ].includes(q.enrichmentSource)))),
         ) || [];
       if (seats.length || reviewedBank)

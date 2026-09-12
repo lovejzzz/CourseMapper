@@ -266,37 +266,40 @@ describe('bounded programming practice', () => {
   });
 });
 
-it('replaces generic compiler recovery questions with the selected coding task and preserves authored questions', () => {
-  const blueprint = hydrateBlueprintForCompilation(buildCourseBlueprint({ ...map, lessons: [map.lessons[0]] }));
-  const quiz = {
-    lessonNumber: 1,
-    questions: [
-      ...Array.from({ length: 6 }, (_, i) => ({
-        id: `q${i}`,
-        type: 'short_answer',
-        question: 'Use Records A-D to evaluate a claim.',
-        answer: 'General guidance',
-        enrichmentSource: 'compiler-created-practice-recovery',
-        points: 4,
-      })),
-      {
-        id: 'teacher',
-        type: 'short_answer',
-        question: 'Instructor authored question',
-        answer: 'Instructor authored key',
-        enrichmentSource: 'instructor-authored',
-        points: 2,
-      },
-    ],
-  };
-  const data = { quizzes: [quiz] };
-  projectSharedTeachingTasks('quizBank', data, blueprint);
-  expect(quiz.questions.filter((q) => q.taskId === blueprint.lessons[0].teachingTask.id)).toHaveLength(6);
-  expect(quiz.questions).toHaveLength(7);
-  expect(JSON.stringify(quiz.questions)).not.toContain('Use Records A-D');
-  expect(quiz.questions.find((q) => q.id === 'teacher').answer).toBe('Instructor authored key');
-  expect(quiz.totalPoints).toBe(quiz.questions.reduce((n, q) => n + q.points, 0));
-});
+it.each(['compiler-created-practice-recovery', 'admitted-kernel-assessment'])(
+  'replaces %s questions with coding work while preserving authored questions',
+  (origin) => {
+    const blueprint = hydrateBlueprintForCompilation(buildCourseBlueprint({ ...map, lessons: [map.lessons[0]] }));
+    const quiz = {
+      lessonNumber: 1,
+      questions: [
+        ...Array.from({ length: 6 }, (_, i) => ({
+          id: `q${i}`,
+          type: 'short_answer',
+          question: 'Use Records A-D to evaluate a claim.',
+          answer: 'General guidance',
+          enrichmentSource: origin,
+          points: 4,
+        })),
+        {
+          id: 'teacher',
+          type: 'short_answer',
+          question: 'Instructor authored question',
+          answer: 'Instructor authored key',
+          enrichmentSource: 'instructor-authored',
+          points: 2,
+        },
+      ],
+    };
+    const data = { quizzes: [quiz] };
+    projectSharedTeachingTasks('quizBank', data, blueprint);
+    expect(quiz.questions.filter((q) => q.taskId === blueprint.lessons[0].teachingTask.id)).toHaveLength(6);
+    expect(quiz.questions).toHaveLength(7);
+    expect(JSON.stringify(quiz.questions)).not.toContain('Use Records A-D');
+    expect(quiz.questions.find((q) => q.id === 'teacher').answer).toBe('Instructor authored key');
+    expect(quiz.totalPoints).toBe(quiz.questions.reduce((n, q) => n + q.points, 0));
+  },
+);
 
 it('preserves concise coding criteria and labels the actual failed behavior', () => {
   const data = compileBlueprintDeliverables(buildCourseBlueprint({ ...map, lessons: [map.lessons[0]] }), [
@@ -314,4 +317,79 @@ it('does not confuse the exact unfinished starter with missing teacher content',
   expect(findPublishabilityPlaceholders(starter.replace('two project articles', 'unknown replacement'))).toContain(
     'TODO',
   );
+});
+
+it('keeps research background while compiling a concrete coding task, answers and criteria', () => {
+  const facts = [
+    'HTML elements are the building blocks of HTML pages.',
+    'HTML describes the structure of a web page semantically.',
+    'HTML elements are delineated by tags, written using angle brackets.',
+  ];
+  const enrichment = {
+    lessonContent: {
+      'lesson-1': {
+        enrichmentSource: 'evidence-authority-replay',
+        sourceFactAuthority: 'admitted-evidence-authority',
+        kernel: {
+          facts,
+          provenance: {
+            source: 'compiler-owned-exact-source-ledger',
+            authority: 'admitted-evidence-authority',
+            copiedFactsVerbatim: true,
+            factCount: facts.length,
+          },
+        },
+      },
+    },
+  };
+  const blueprint = buildCourseBlueprint({ ...map, lessons: [map.lessons[0]] }, { enrichment });
+  const prepared = hydrateBlueprintForCompilation(blueprint);
+  const task = prepared.lessons[0].teachingTask;
+  expect(task?.kind).toBe('coding-practice:semantic-page');
+  expect(prepared.lessons[0].enrichment.kernel.facts).toEqual(facts);
+  const output = compileBlueprintDeliverables(blueprint, ['assignments', 'rubrics', 'quizBank', 'studyGuides']);
+  expect(output.assignments.assignments[0].taskId).toBe(task.id);
+  expect(output.studyGuides.studyGuides[0].workedExample.result).toContain('index.html');
+  expect(output.rubrics.rubrics[0].criteria.map((c) => c.exemplary).join(' ')).toContain(
+    task.criteria[0].levels.exemplary,
+  );
+  const questions = output.quizBank.quizzes[0].questions;
+  const codingQuestions = questions.filter((q) => q.taskId === task.id);
+  expect(codingQuestions).toHaveLength(questions.length);
+  expect(codingQuestions.every((q) => q.sampleAnswer || q.answer)).toBe(true);
+  expect(questions.filter((q) => !q.taskId).every((q) => q.type === 'multiple_choice' || q.machineScored)).toBe(true);
+  expect(JSON.stringify(questions)).not.toContain('Analyze this admitted statement');
+  expect(enrichment.lessonContent['lesson-1'].kernel.facts).toEqual(facts);
+});
+
+it('keeps concise CSS instructions and aligns its summary after assessment reconciliation', () => {
+  const courseMap = {
+    ...map,
+    lessons: [{ title: 'Responsive CSS Grid Layouts', sections: [{ topicSection: 'CSS grid' }] }],
+  };
+  const output = compileBlueprintDeliverables(buildCourseBlueprint(courseMap), ['assignments']).assignments;
+  const assignment = output.assignments[0];
+  expect(assignment.overview.split(/\s+/).length).toBeLessThan(12);
+  expect(normalizeAssignmentAssessmentAlignment(output, courseMap).data.assignments[0].overview).toBe(
+    assignment.overview,
+  );
+  const summary = output.courseAssignmentMap.find((row) => row.assessmentId === assignment.assessmentId);
+  expect(summary.artifact).toBe(assignment.title);
+  expect(summary.taskId).toBe(assignment.taskId);
+});
+
+it('preserves background facts with their citations through coding lesson and assignment projections', () => {
+  const blueprint = hydrateBlueprintForCompilation(buildCourseBlueprint({ ...map, lessons: [map.lessons[0]] }));
+  const fact = 'HTML describes the structure of a web page semantically.';
+  const citation = { title: 'HTML', url: 'https://en.wikipedia.org/wiki/HTML' };
+  for (const [feature, key] of [
+    ['lessonPlans', 'lessonPlans'],
+    ['assignments', 'assignments'],
+  ]) {
+    const row = { lessonNumber: 1, sourceEvidenceBrief: { claims: [fact], sources: [citation] } };
+    projectSharedTeachingTasks(feature, { [key]: [row] }, blueprint);
+    expect(row.sourceEvidenceBrief.claims).toContain(fact);
+    expect(row.sourceEvidenceBrief.sources).toContainEqual(citation);
+    expect(row.sourceEvidenceBrief.sources).toHaveLength(2);
+  }
 });
