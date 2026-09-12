@@ -1162,3 +1162,17 @@ describe('experiential activity admission and deterministic projection', () => {
     ]);
   });
 });
+
+it('keeps software labs out of the staged role-and-evidence contract', () => {
+  for (const title of ['API Integration Lab', 'JavaScript lab', 'Programming lab'])
+    expect(requestsExperientialActivity({ title })).toBe(false);
+  expect(
+    requestsExperientialActivity({ title: 'API Integration Lab', activityBrief: 'Role-play an incident response.' }),
+  ).toBe(true);
+  expect(
+    requestsExperientialActivity({
+      title: 'Biology lab',
+      activityBrief: 'Use a programming lab to analyze observations.',
+    }),
+  ).toBe(true);
+});

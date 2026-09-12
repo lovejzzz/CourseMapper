@@ -2710,7 +2710,12 @@ export function researchQuestionVariantsForLesson(topic = '', lesson = {}, { cou
         !/(?:examples?|records?|datasets?|corpora?)$/i.test(value),
     );
   const seen = new Set();
+  // Compiler workflow prose is not a disciplinary source question. It can
+  // crowd all five recovery seats ahead of the real topic and sections.
+  const workflowOnly =
+    /^(?:worked examples?\b|worked full[- ]stack$|lab explanation in\b|test the reasoning step\b|state what it warrants\b|revise any claim\b|weekly build labs?\b|use a guided case\b|check that the .+ resource\b)/i;
   return [...contextualEvidenceQuestions, ...evidenceLookupQuestions, ...conciseConceptQuestions, ...values]
+    .filter((value) => !workflowOnly.test(value))
     .filter((value) => {
       const key = value.toLowerCase();
       if (seen.has(key)) return false;

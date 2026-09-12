@@ -15,6 +15,48 @@ const CHECK_LABELS = {
   'release-check': ['Expected revision', 'Stale revision', 'Request failure'],
 };
 
+const ERROR_CRITERION = {
+  'dom-list': 3,
+  'validated-api': 2,
+  'full-stack-health': 3,
+  'semantic-page': 2,
+  'responsive-grid': 1,
+  'dom-counter': 2,
+  'fetch-status': 2,
+  'http-router': 2,
+  'sql-filter': 1,
+  'session-guard': 3,
+  'react-counter': 3,
+  'release-check': 2,
+};
+
+const SUBMISSIONS = {
+  'semantic-page':
+    'index.html with the two project articles, a keyboard-access check for the search field, and layout observations at 390px and 900px.',
+  'responsive-grid':
+    'index.html with the repaired grid and a width/column-count table for 390px, 699px, 700px and 900px; explain which media query changes the layout.',
+  'dom-counter':
+    'index.html and an event trace showing the initial value, three clicks and keyboard activation; identify where the displayed count changes.',
+  'dom-list':
+    'index.html and a form-input trace for blank text, surrounding whitespace and HTML-like text; record the resulting list items.',
+  'fetch-status':
+    'exercise.mjs plus test.mjs covering successful JSON, a non-success HTTP status, a rejected request and an empty array; include the returned values or errors.',
+  'validated-api':
+    'exercise.mjs plus payload tests for published and unpublished entries, malformed data and an empty response; record which titles reach the output.',
+  'http-router':
+    'exercise.mjs, a test harness for its handler, and a request/response table for GET /health, an unknown route and a non-GET request, including status codes and response bodies.',
+  'sql-filter':
+    'The SQL query and its result rows on the supplied task table, followed by an all-completed fixture result; explain filtering before ordering.',
+  'session-guard':
+    'exercise.mjs and session tests showing a valid token, the exact expiration boundary, an unknown token and logout; explain why the client cannot choose the user identity.',
+  'react-counter':
+    'Counter.jsx and a two-instance interaction trace; demonstrate that clicking one counter leaves the other unchanged.',
+  'release-check':
+    'exercise.mjs and smoke-test results for matching and stale revisions, an HTTP failure and an offline request; identify which result blocks the release.',
+  'full-stack-health':
+    'server.mjs with the browser page and API route, plus browser observations before and after stopping the server; record the unknown-route response separately.',
+};
+
 const marker = (example) =>
   `CourseMapper authored coding practice v1: ${example.id}. Bounded exercise; instructor review required for course fit.`;
 const runInstructions = (example) =>
@@ -76,13 +118,13 @@ export function explicitCodingPracticeTask(claims) {
     question: example.goal,
     directions: [example.goal, ...example.checks],
     studentChecks: example.checks,
-    product: `${example.file}, a test/observation record for the three checks, and an explanation of one corrected bug.`,
+    product: SUBMISSIONS[example.id],
     answer: `Reference implementation — ${example.file}:\n${example.solution}\nExpected checks:\n${example.checks.join('\n')}\n${example.reasoning.join('\n')}`,
     reasoning: example.reasoning,
     criteria,
     errors: [
       {
-        criterionId: 'behavior-1',
+        criterionId: `behavior-${ERROR_CRITERION[example.id]}`,
         response: example.error,
         correction: example.correction,
         feedback: example.correction,
@@ -103,6 +145,11 @@ export function explicitCodingPracticeTask(claims) {
     ],
     assessmentExtensions: [
       { question: example.transfer, answer: example.transferAnswer, criteria: [example.transferAnswer] },
+      ...example.checks.map((check, index) => ({
+        question: `Design a reproducible test for ${CHECK_LABELS[example.id][index].toLowerCase()} in ${example.title}. State the input or interaction, the expected result, and the observation that would reveal a defect.`,
+        answer: `Required behavior: ${check} The test must isolate this behavior and compare the observed result with the stated expectation.`,
+        criteria: [check, 'Supplies a reproducible input or interaction and an explicit pass/fail observation.'],
+      })),
     ],
     codingReference: {
       url: example.reference,

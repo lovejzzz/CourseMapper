@@ -1,3 +1,5 @@
+import { CODING_PRACTICE } from './codingPracticeCatalog.js';
+
 export const PUBLISHABILITY_PLACEHOLDER_PATTERNS = [
   /\bTODO\b/i,
   /\bTBD\b/i,
@@ -79,7 +81,16 @@ export function findPublishabilityPlaceholder(value) {
 }
 
 export function findPublishabilityPlaceholders(value, { limit = 3 } = {}) {
-  return findPatternMatches(value, PUBLISHABILITY_PLACEHOLDER_PATTERNS, { limit });
+  let text = stringifyForScan(value);
+  // A reviewed starter intentionally contains unfinished implementation work.
+  // Exempt only the exact complete catalog starter, never arbitrary TODO prose
+  // or an edited/malformed specimen carrying the same label.
+  for (const example of CODING_PRACTICE) {
+    const starter = `Starter — ${example.file}:\n${example.starter}`;
+    for (const literal of [starter, JSON.stringify(starter).slice(1, -1)])
+      text = text.split(literal).join('[Coding starter exercise]');
+  }
+  return findPatternMatches(text, PUBLISHABILITY_PLACEHOLDER_PATTERNS, { limit });
 }
 
 export function findInstructorConfigurationDeferrals(value, { limit = 3 } = {}) {

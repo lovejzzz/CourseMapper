@@ -194,7 +194,18 @@ function experientialRequestText(lesson = {}) {
 
 export function requestedExperientialActivityKinds(lesson = {}) {
   const text = experientialRequestText(lesson);
-  return EXPERIENTIAL_ACTIVITY_KINDS.filter(({ request }) => request.test(text)).map(({ id }) => id);
+  // A programming lab is implementation practice, not automatically a
+  // staged laboratory scenario with participant roles and evidence releases.
+  // Keep explicit simulations/debates and physical laboratory requests intact.
+  const codingLab =
+    /\b(?:coding|programming|software|web(?: development)?|api(?: integration)?|javascript|html(?: and css)?|sql|react)\s+labs?\b/i.test(
+      text,
+    );
+  const physicalLab =
+    /\b(?:wet|chemistry|biology|physics|clinical|laboratory)\s+(?:lab|investigation|practical)\b/i.test(text);
+  return EXPERIENTIAL_ACTIVITY_KINDS.filter(
+    ({ id, request }) => request.test(text) && !(id === 'laboratory' && codingLab && !physicalLab),
+  ).map(({ id }) => id);
 }
 
 const ACTIVITY_KIND_LABELS = {

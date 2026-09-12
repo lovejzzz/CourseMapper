@@ -206,8 +206,9 @@ function projectAssignment(row, task, blueprint) {
       ),
       reviewProtocol: task.criteria.map((c) => c.feedback).join(' '),
     },
-    accessibilityAndUDL:
-      task.language === 'zh'
+    accessibilityAndUDL: task.codingPractice
+      ? 'Submit executable code for the behavior checks. Explanations and test observations may be written or spoken; keyboard and assistive-tool use are welcome. Apply the same behavior criteria to every implementation.'
+      : task.language === 'zh'
         ? '可以使用带标签的文字、图表或口述表达；按相同的证据与推理标准评价。'
         : 'An equivalent labeled written, diagrammatic or spoken response is acceptable. The same evidence and reasoning criteria apply.',
     estimatedTime: taskText(
@@ -303,6 +304,22 @@ function projectAssignment(row, task, blueprint) {
       '根据评分标准的反馈修正回答，并保留修改稿。',
     ),
   });
+  if (task.codingPractice) {
+    row.instructions = [
+      'Implement the starter to meet its acceptance checks. Run each check before comparing your work with the reference implementation.',
+      ...task.errors.map((error) => `During review, test this claim: “${error.response}” Explain the observed result.`),
+    ];
+    row.formatRequirements = {
+      format: 'Source files plus reproducible test commands or browser observations.',
+      citationStyle:
+        'Identify any code adapted from the linked API reference; distinguish it from your implementation.',
+    };
+    row.anchorExampleGuidance = [
+      row.anchorExampleGuidance[0],
+      row.anchorExampleGuidance[1],
+      row.anchorExampleGuidance[2],
+    ];
+  }
   const errorRationale = row.anchorExampleGuidance[2];
   if (
     task.operationPlan?.operation === 'paired-condition-confound' ||
@@ -357,8 +374,9 @@ function projectRubric(row, task) {
       task,
       'For each criterion, select the descriptor best supported by the response: Excellent earns all criterion points; Proficient earns 75%; Developing earns 50%; Beginning or no assessable response earns 0. Sum criterion points without rounding intermediate scores. Cite the observed reasoning that determines each level; presentation quality cannot compensate for an incorrect conclusion.',
     ),
-    accessibilityAndUDL:
-      task.language === 'zh'
+    accessibilityAndUDL: task.codingPractice
+      ? 'Submit executable code for the behavior checks. Explanations and test observations may be written or spoken; keyboard and assistive-tool use are welcome. Apply the same behavior criteria to every implementation.'
+      : task.language === 'zh'
         ? '使用同一标准评价不同表达形式，区分内容理解与表达形式。'
         : 'Apply the same criteria across equivalent response formats; distinguish understanding from presentation format.',
     teacherNotes: task.criteria.map((c) => c.feedback).join(' '),
@@ -630,6 +648,7 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
                     'compiler-exact-source-ledger',
                     'source-bound-recovery',
                     'shared-teaching-task',
+                    ...(task.codingPractice ? ['compiler-created-practice-recovery'] : []),
                   ].includes(q.enrichmentSource)))),
         ) || [];
       if (seats.length || reviewedBank)

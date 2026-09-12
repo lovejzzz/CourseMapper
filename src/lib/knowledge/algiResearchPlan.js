@@ -50,7 +50,7 @@ const LINGUISTICS =
 const VISUAL_HUMANITIES =
   /\b(?:art history|composition|color theory|colour theory|graphic design|image analysis|photograph\w*|perspective and framing|visual analysis|visual arts?|visual communication|visual evidence|visual hierarchy)\b/i;
 const COMPUTING_CONTEXT =
-  /\b(?:coding|computer\s+science|programming|python|software\s+development|software\s+engineering)\b/i;
+  /\b(?:coding|computer\s+science|programming|python|javascript|full[- ]stack|web\s+(?:development|programming)|software\s+development|software\s+engineering)\b/i;
 const HUMANITIES =
   /\b(?:art history|ethics|history|humanities|language|literature|music|philosoph|religion|writing)\b/i;
 const SOCIAL_SCIENCE =
@@ -108,7 +108,7 @@ export function inferAlgiResearchDomain(courseName = '', lessons = []) {
   // quantitative disambiguator, which appends “data analysis” to searches
   // for phonemes, prosody, and head movement.
   if (LINGUISTICS.test(text)) return 'linguistics';
-  if (QUANTITATIVE.test(text)) return 'quantitative';
+  if (QUANTITATIVE.test(text) || COMPUTING_CONTEXT.test(text)) return 'quantitative';
   if (VISUAL_HUMANITIES.test(text)) return 'visual-humanities';
   if (HUMANITIES.test(text)) return 'humanities';
   if (SOCIAL_SCIENCE.test(text)) return 'social-science';
@@ -140,7 +140,7 @@ function coarseDisambiguatorForProvider({ providerId, title, domainTerms, domain
     return domainTerms.find((term) => !titleTerms.has(term)) || '';
   }
   const programmingTopic =
-    /\b(?:algorithm\w*|automated tests?|branch\w*|code|conditional\w*|data types?|debugg\w*|deploy\w*|exceptions?|expressions?|files?|functions?|inputs?|loops?|modules?|outputs?|program\w*|python|scope|software tests?|testing|unit tests?)\b/i.test(
+    /\b(?:html|css|dom|document object model|apis?|http|authentication|databases?|frameworks?|responsive|algorithm\w*|automated tests?|branch\w*|code|conditional\w*|data types?|debugg\w*|deploy\w*|exceptions?|expressions?|files?|functions?|inputs?|loops?|modules?|outputs?|program\w*|python|scope|software tests?|testing|unit tests?)\b/i.test(
       title,
     );
   if (domain === 'quantitative') {

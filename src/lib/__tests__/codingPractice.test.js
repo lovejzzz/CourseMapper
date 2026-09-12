@@ -1,3 +1,6 @@
+import { normalizeAssignmentAssessmentAlignment } from '../deliverablePostProcess.js';
+import { findPublishabilityPlaceholders } from '../publishabilityPlaceholders.js';
+import { projectSharedTeachingTasks } from '../compilerTeachingTaskProjection.js';
 import JSZip from 'jszip';
 import { buildDeliverableDocxBlob } from '../exporters/bulkDocxExporter.js';
 import { buildSlideDeckPptxBlob } from '../exporters/pptxExporter.js';
@@ -57,6 +60,16 @@ const features = [
 ];
 
 describe('bounded programming practice', () => {
+  it('covers fresh generated integration and project lesson titles without matching unrelated courses', () => {
+    for (const [title, id] of [
+      ['Asynchronous Data Flow Integration', 'fetch-status'],
+      ['Full-Stack Project Application', 'full-stack-health'],
+      ['Project Application', 'full-stack-health'],
+    ]) {
+      expect(selectCodingPracticeInputs(map, { title })[0]).toContain(id);
+      expect(selectCodingPracticeInputs({ courseName: 'Biology' }, { title })).toEqual([]);
+    }
+  });
   it('executes the API adapter on success, empty data, HTTP failure and network failure', () => {
     run(
       'fetch-status',
@@ -234,4 +247,54 @@ describe('bounded programming practice', () => {
     expect(parsed.sessions).toHaveLength(12);
     expect(new Set(parsed.assessments.map((a) => a.dueSession)).size).toBe(12);
   });
+});
+
+it('replaces generic compiler recovery questions with the selected coding task and preserves authored questions', () => {
+  const blueprint = hydrateBlueprintForCompilation(buildCourseBlueprint({ ...map, lessons: [map.lessons[0]] }));
+  const quiz = {
+    lessonNumber: 1,
+    questions: [
+      ...Array.from({ length: 6 }, (_, i) => ({
+        id: `q${i}`,
+        type: 'short_answer',
+        question: 'Use Records A-D to evaluate a claim.',
+        answer: 'General guidance',
+        enrichmentSource: 'compiler-created-practice-recovery',
+        points: 4,
+      })),
+      {
+        id: 'teacher',
+        type: 'short_answer',
+        question: 'Instructor authored question',
+        answer: 'Instructor authored key',
+        enrichmentSource: 'instructor-authored',
+        points: 2,
+      },
+    ],
+  };
+  const data = { quizzes: [quiz] };
+  projectSharedTeachingTasks('quizBank', data, blueprint);
+  expect(quiz.questions.filter((q) => q.taskId === blueprint.lessons[0].teachingTask.id)).toHaveLength(6);
+  expect(quiz.questions).toHaveLength(7);
+  expect(JSON.stringify(quiz.questions)).not.toContain('Use Records A-D');
+  expect(quiz.questions.find((q) => q.id === 'teacher').answer).toBe('Instructor authored key');
+  expect(quiz.totalPoints).toBe(quiz.questions.reduce((n, q) => n + q.points, 0));
+});
+
+it('preserves concise coding criteria and labels the actual failed behavior', () => {
+  const data = compileBlueprintDeliverables(buildCourseBlueprint({ ...map, lessons: [map.lessons[0]] }), [
+    'assignments',
+  ]).assignments;
+  const before = data.assignments[0].gradingCriteria;
+  expect(normalizeAssignmentAssessmentAlignment(data, map).data.assignments[0].gradingCriteria).toEqual(before);
+  expect(data.assignments[0].anchorExampleGuidance[2]).toContain('Accessible label');
+  expect(data.assignments[0].anchorExampleGuidance[2]).not.toContain('fails Document structure');
+});
+it('does not confuse the exact unfinished starter with missing teacher content', () => {
+  const starter = codingPracticeInputs(example('semantic-page'))[2];
+  expect(findPublishabilityPlaceholders({ source: starter })).toEqual([]);
+  expect(findPublishabilityPlaceholders({ source: starter, answer: 'TODO: write the answer' })).toContain('TODO');
+  expect(findPublishabilityPlaceholders(starter.replace('two project articles', 'unknown replacement'))).toContain(
+    'TODO',
+  );
 });

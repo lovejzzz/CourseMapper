@@ -307,3 +307,12 @@ describe('Algi course research planning', () => {
     );
   });
 });
+
+it('disambiguates web-development topics as programming, not data analysis', () => {
+  const plan = planAlgiCourseResearch({
+    courseName: 'Full-Stack Web Development',
+    lessons: [{ lessonId: 'lesson-1', title: 'Working with APIs' }],
+  });
+  expect(providerQueryForLesson(plan, 'Working with APIs', 'wikipedia')).not.toContain('data analysis');
+  expect(providerQueryForLesson(plan, 'Working with APIs', 'wikipedia')).toContain('computer programming');
+});

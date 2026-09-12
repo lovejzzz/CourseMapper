@@ -8,7 +8,7 @@ export default defineConfig({
     maxWorkers: 1,
     testTimeout: 10000,
     include: [
-      'src/lib/__tests__/{codingPractice,projectExactAutosave}.test.js',
+      'src/lib/__tests__/{codingPractice,projectExactAutosave,experientialActivityContract}.test.js',
       'src/lib/__tests__/scion*.test.js',
       'src/lib/__tests__/{contentQualityChecks,contentQualityRepair,scenarioContract,nativeGraphAuthoring}.test.js',
       'src/lib/__tests__/algiResearchProvider.test.js',

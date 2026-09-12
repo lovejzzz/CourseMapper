@@ -63,7 +63,7 @@ export const CODING_PRACTICE = [
   },
   {
     id: 'full-stack-health',
-    match: /\b(?:final application|capstone|final project)\b/i,
+    match: /\b(?:final application|capstone|final project|full[- ]stack project application|project application)\b/i,
     title: 'Connect a browser page to a Node API',
     runtime: 'node-server',
     file: 'server.mjs',
@@ -187,7 +187,7 @@ createServer(handler).listen(3000, "127.0.0.1");`,
   },
   {
     id: 'fetch-status',
-    match: /\b(?:apis?|fetch)\b/i,
+    match: /\b(?:apis?|fetch|asynchronous data flow)\b/i,
     title: 'Handle JSON success and HTTP failure',
     runtime: 'node',
     file: 'exercise.mjs',

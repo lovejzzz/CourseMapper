@@ -328,7 +328,53 @@ export function skeletonSchemaProfile({ sessionCount }) {
     properties: {
       course: {
         type: 'object',
-        properties: { name: str(3, 120), term: str(2, 24), goals: arr(str(8, 120), 3, 8) },
+        properties: {
+          name: str(3, 120),
+          term: str(2, 24),
+          goals: arr(str(8, 120), 3, 8),
+          // Pass A explicitly requests these optional source policy fields.
+          // The source-aware parser still rejects unsupported model policy.
+          prerequisites: arr(
+            {
+              type: 'object',
+              properties: { text: { type: 'string', minLength: 1 }, status: { enum: ['required', 'expected'] } },
+              required: ['text', 'status'],
+            },
+            0,
+            30,
+          ),
+          gradingPolicy: {
+            type: 'object',
+            properties: {
+              categories: arr(
+                {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'string', minLength: 1 },
+                    title: { type: 'string', minLength: 1 },
+                    weightPct: { type: 'number', minimum: 0 },
+                    extraCredit: { type: 'boolean' },
+                  },
+                  required: ['id', 'title', 'weightPct', 'extraCredit'],
+                },
+                0,
+                50,
+              ),
+              gradeBands: arr(
+                {
+                  type: 'object',
+                  properties: { label: { type: 'string', minLength: 1 }, range: { type: 'string', minLength: 1 } },
+                  required: ['label', 'range'],
+                },
+                0,
+                30,
+              ),
+              baseTotalPct: { type: 'number', minimum: 0 },
+              extraCreditTotalPct: { type: 'number', minimum: 0 },
+            },
+            required: ['categories', 'gradeBands', 'baseTotalPct', 'extraCreditTotalPct'],
+          },
+        },
         required: ['name', 'term', 'goals'],
       },
       sessions: arr(

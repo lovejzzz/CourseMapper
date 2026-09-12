@@ -1,3 +1,5 @@
+import { skeletonSchemaProfile } from '../scionContracts.js';
+import { parseNativeSkeletonResponse } from '../nativeGraphAuthoring.js';
 import { describe, expect, it } from 'vitest';
 import { assessScionStructuredResponse, assessScionClassroomResponse } from '../scionStructuredResponse';
 
@@ -67,5 +69,62 @@ describe('Scion structured response admission', () => {
     expect(assessScionStructuredResponse('{"lessons":[]}', nested).needsRetry).toBe(true);
     expect(assessScionStructuredResponse('{"lessons":[{"lessonId":"lesson-2"}]}', nested).needsRetry).toBe(true);
     expect(assessScionStructuredResponse('{"lessons":[{"lessonId":"lesson-1"}]}', nested).needsRetry).toBe(false);
+  });
+});
+
+describe('native skeleton optional source policy', () => {
+  const skeleton = () => ({
+    course: {
+      name: 'Web Development',
+      term: 'TBD',
+      goals: ['Build pages', 'Test behavior', 'Explain code'],
+      prerequisites: [{ text: 'Calculus is required.', status: 'required' }],
+      gradingPolicy: {
+        categories: [{ id: 'g1', title: 'Exams', weightPct: 100, extraCredit: false }],
+        gradeBands: [{ label: 'A', range: '93–100' }],
+        baseTotalPct: 100,
+        extraCreditTotalPct: 0,
+      },
+    },
+    sessions: [
+      { id: 's1', order: 1, title: 'HTML Structure', sectionTitles: ['Semantic Markup', 'Accessible Labels'] },
+    ],
+    assessments: [],
+    readings: [],
+    resources: [],
+  });
+  it('admits fields requested by the prompt but does not grant unsupported policy authority', () => {
+    const data = skeleton();
+    expect(
+      assessScionStructuredResponse(JSON.stringify(data), skeletonSchemaProfile({ sessionCount: 1 })).needsRetry,
+    ).toBe(false);
+    const parsed = parseNativeSkeletonResponse(JSON.stringify(data), {
+      expectedLessons: 1,
+      sourceText: 'Web Development, one lesson on HTML structure.',
+    });
+    expect(parsed.course.prerequisites || []).toEqual([]);
+    expect(parsed.course.gradingPolicy).toBeUndefined();
+  });
+  it('still rejects invalid field types, unknown fields and missing sessions', () => {
+    for (const change of [
+      (data) => {
+        data.course.gradingPolicy.categories[0].weightPct = '100';
+      },
+      (data) => {
+        data.course.prerequisites[0].status = 'invented';
+      },
+      (data) => {
+        data.course.unrequested = true;
+      },
+      (data) => {
+        data.sessions = [];
+      },
+    ]) {
+      const data = skeleton();
+      change(data);
+      expect(
+        assessScionStructuredResponse(JSON.stringify(data), skeletonSchemaProfile({ sessionCount: 1 })).needsRetry,
+      ).toBe(true);
+    }
   });
 });

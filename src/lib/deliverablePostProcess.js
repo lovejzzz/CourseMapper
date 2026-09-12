@@ -2618,6 +2618,14 @@ function patchAssignmentToAnchor(assignment, anchor) {
 }
 
 function gradingCriteriaNeedsSupport(value) {
+  // Short criterion labels are intentional when a rubric supplies the bands.
+  // Do not replace an explicit criterion list with generic evidence prose.
+  if (
+    Array.isArray(value) &&
+    value.length >= 3 &&
+    value.every((criterion) => typeof criterion === 'string' && criterion.trim())
+  )
+    return false;
   const text = String(value || '').trim();
   if (!text) return true;
   if (
