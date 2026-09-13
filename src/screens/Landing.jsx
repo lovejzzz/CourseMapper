@@ -555,7 +555,7 @@ export default function Landing({
   });
   const handleQuickStartClick = useCallback(() => {
     if (quickStartNeedsCurrentSources) {
-      // The visible source notice names this network boundary before the click.
+      // Keep source preparation automatic; diagnostics live in developer mode.
       // Persist the choice for later runs, and also hand it to this run explicitly. The
       // explicit handoff prevents a fresh-origin build from depending on a
       // storage read across the lazy Landing -> AppFlow transition.
@@ -903,7 +903,7 @@ export default function Landing({
                 )}
               </div>
 
-              {scionSelected && promptText.trim().length >= 3 && (
+              {developerMode && scionSelected && promptText.trim().length >= 3 && (
                 <details
                   data-testid="scion-evidence-forecast"
                   className="mt-4 rounded-xl border border-indigo-100 bg-indigo-50/55 px-4 py-3 text-left dark:border-indigo-400/20 dark:bg-indigo-400/10"
@@ -980,7 +980,7 @@ export default function Landing({
                 </details>
               )}
 
-              {scionSelected && scionResearchEnabled && (
+              {developerMode && scionSelected && scionResearchEnabled && (
                 <p
                   data-testid="scion-external-source-notice"
                   className="mt-2 text-center text-xs leading-relaxed text-slate-600 dark:text-slate-300"
@@ -1014,9 +1014,7 @@ export default function Landing({
                     className="tactile btn-glow mt-5 w-full rounded-lg bg-slate-950 px-8 py-4 text-sm font-semibold tracking-wide text-white shadow-lg shadow-slate-950/15 transition-all duration-300 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-slate-950 dark:shadow-white/10"
                   >
                     <span className="flex items-center justify-center gap-2.5">
-                      {quickStartNeedsCurrentSources
-                        ? 'Use sources & generate package'
-                        : 'Generate full course package'}
+                      Generate full course package
                       <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path
                           strokeLinecap="round"
