@@ -1,3 +1,4 @@
+import { normalizeSavedEditHistory } from '../lib/deliverableEditHistory.js';
 /**
  * useProjectPersistence — v0.15.3 C1: the save/restore/autosave owner,
  * extracted VERBATIM from AppFlow (diet phase 2; the v0.15.1 roadmap named
@@ -171,11 +172,13 @@ export default function useProjectPersistence({
   const restoreProjectEdits = useCallback(
     (saved, deliverables = saved.deliverables) => {
       teachingDrafts.restore(saved.teachingReviewDrafts);
-      delivUndo?.restore(saved.editHistory, {
+      const workspace = {
         courseMap: saved.courseMap,
         courseGraph: restoreCourseGraphForProject(saved),
-        deliverables: normalizeRestoredDeliverables(deliverables),
-      });
+        deliverables,
+      };
+      const normalize = (state) => ({ ...state, deliverables: normalizeRestoredDeliverables(state.deliverables) });
+      delivUndo?.restore(normalizeSavedEditHistory(saved.editHistory, workspace, normalize), normalize(workspace));
     },
     [delivUndo?.restore, teachingDrafts.restore],
   );

@@ -182,3 +182,10 @@ export function reviewedRequirementSections(text, source, field) {
   if (text !== sections.map((s) => s.text).join(separator)) return null;
   return sections;
 }
+
+/** Avoid echoing a heading that already begins its complete criterion text. */
+export function criterionSummary(criterion) {
+  const label = String(criterion?.label || '').trim();
+  const text = String(criterion?.levels?.exemplary || '').trim();
+  return text.toLowerCase().startsWith(label.toLowerCase()) ? text : `${label}: ${text}`;
+}

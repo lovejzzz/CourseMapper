@@ -649,6 +649,7 @@ export default function useSmartSync({
       );
       const radius = computeSyncBlastRadius({
         courseMap: currentCourseMap,
+        beforeCourseMap: courseMapEdits[0]?.beforeCourseMap || null,
         deliverables: currentDeliv.deliverables,
         selectedFeatures: currentFeatures,
         configMap,

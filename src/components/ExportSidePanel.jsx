@@ -1,3 +1,4 @@
+import LessonSourceReview from './LessonSourceReview.jsx';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import FocusTrap from 'focus-trap-react';
@@ -460,9 +461,11 @@ function ReadinessPanel({
         wrap: needsTeachingReview
           ? 'border-amber-200 bg-amber-50/70 text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100'
           : 'border-emerald-100 bg-emerald-50/70 text-emerald-700 dark:border-emerald-800/50 dark:bg-emerald-950/30 dark:text-emerald-200',
-        icon: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/70 dark:text-emerald-200',
+        icon: needsTeachingReview
+          ? 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-100'
+          : 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/70 dark:text-emerald-200',
         title: needsTeachingReview ? 'Review draft ready to download' : 'Files ready to download',
-        meta: `${readiness.doneFeatureCount}/${readiness.featureCount} materials checked`,
+        meta: `${readiness.doneFeatureCount}/${readiness.featureCount} files prepared`,
       }
     : packageScope || isBlocked
       ? {
@@ -475,7 +478,7 @@ function ReadinessPanel({
           wrap: 'border-emerald-100 bg-emerald-50/70 text-emerald-700 dark:border-emerald-800/50 dark:bg-emerald-950/30 dark:text-emerald-200',
           icon: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/70 dark:text-emerald-200',
           title: 'Ready to export',
-          meta: `${readiness.doneFeatureCount}/${readiness.featureCount} materials checked`,
+          meta: `${readiness.doneFeatureCount}/${readiness.featureCount} files prepared`,
         };
 
   return (
@@ -484,7 +487,7 @@ function ReadinessPanel({
         <span
           className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-xs ${tone.icon}`}
         >
-          {exportPrepared || (!packageScope && !isBlocked) ? '✓' : 'i'}
+          {needsTeachingReview ? '!' : exportPrepared || (!packageScope && !isBlocked) ? '✓' : 'i'}
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
@@ -1887,7 +1890,7 @@ export default function ExportSidePanel({
               <span className="font-semibold text-slate-600">
                 {allReadyCount}/{allPackagePartCount} package parts
               </span>{' '}
-              ready
+              generated
             </>
           )}
         </p>
@@ -1904,6 +1907,15 @@ export default function ExportSidePanel({
             packageQualityPass={packageQualityPass}
             exportPrepared={zipCanDownloadPackage}
             packageScope={scope === 'all'}
+          />
+        )}
+
+        {!showReadinessFinalizing && (
+          <LessonSourceReview
+            courseMap={courseMap}
+            courseGraph={courseGraph}
+            onIssueClick={onReadinessIssueClick}
+            onOpenReport={() => setQualityModalOpen(true)}
           />
         )}
 

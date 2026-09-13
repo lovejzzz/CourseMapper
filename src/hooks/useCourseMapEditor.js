@@ -127,7 +127,7 @@ export default function useCourseMapEditor({
         },
       ]);
       pushVersion(updated, `Edited ${key} in Lesson ${lessonIdx + 1}`);
-      if (!handled) onEdit?.(lessonIdx, key);
+      if (!handled) onEdit?.(lessonIdx, key, null, null, { beforeCourseMap: courseMap });
       // Track edit pattern for agent learning (fire-and-forget)
       recordEditPattern({ featureId: 'courseMap', field: key, action: 'edited' });
     },
@@ -166,7 +166,7 @@ export default function useCourseMapEditor({
         }
       }
 
-      onEdit?.(lessonIdx, 'title');
+      onEdit?.(lessonIdx, 'title', null, null, { beforeCourseMap: courseMap });
     },
     [courseMap, setCourseMap, setDownloadedFile, setUserEdits, pushVersion, onEdit, deliverables, optimisticUpdate],
   );
@@ -179,7 +179,7 @@ export default function useCourseMapEditor({
       const updated = setAtPath(courseMap, ['lessons', lessonIdx, 'sections', sectionIdx, 'evaluateDesign'], newValue);
       setCourseMap(updated);
       setDownloadedFile('');
-      onEdit?.(lessonIdx, 'evaluateDesign');
+      onEdit?.(lessonIdx, 'evaluateDesign', null, null, { beforeCourseMap: courseMap });
     },
     [courseMap, setCourseMap, setDownloadedFile, onEdit],
   );
@@ -195,7 +195,7 @@ export default function useCourseMapEditor({
       setCourseMap(updated);
       setDownloadedFile('');
       pushVersion(updated, `Added section in Lesson ${lessonIdx + 1}`);
-      onEdit?.(lessonIdx, 'sections');
+      onEdit?.(lessonIdx, 'sections', null, null, { beforeCourseMap: courseMap });
     },
     [courseMap, setCourseMap, columns, setDownloadedFile, pushVersion, onEdit],
   );
@@ -209,7 +209,7 @@ export default function useCourseMapEditor({
       setCourseMap(updated);
       setDownloadedFile('');
       pushVersion(updated, `Deleted section in Lesson ${lessonIdx + 1}`);
-      onEdit?.(lessonIdx, 'sections');
+      onEdit?.(lessonIdx, 'sections', null, null, { beforeCourseMap: courseMap });
     },
     [courseMap, setCourseMap, setDownloadedFile, pushVersion, onEdit],
   );
@@ -229,7 +229,7 @@ export default function useCourseMapEditor({
       const titles = inserted.map((entry) => entry.title).filter(Boolean);
       const summary = titles.length === 1 ? `Added ${titles[0]}` : `Added ${titles.length} lessons`;
       pushVersion(updated, summary);
-      onEdit?.(null, '_structural');
+      onEdit?.(null, '_structural', null, null, { beforeCourseMap: courseMap });
       return inserted.map((entry) => entry.insertIndex);
     },
     [courseMap, setCourseMap, columns, setDownloadedFile, pushVersion, onEdit],
@@ -246,7 +246,7 @@ export default function useCourseMapEditor({
       setCourseMap(updated);
       setDownloadedFile('');
       pushVersion(updated, `Deleted ${title}`);
-      onEdit?.(null, '_structural');
+      onEdit?.(null, '_structural', null, null, { beforeCourseMap: courseMap });
     },
     [courseMap, setCourseMap, setDownloadedFile, pushVersion, onEdit],
   );
@@ -262,7 +262,7 @@ export default function useCourseMapEditor({
       setCourseMap(updated);
       setDownloadedFile('');
       pushVersion(updated, `Moved ${moved.title} ${direction < 0 ? 'up' : 'down'}`);
-      onEdit?.(null, '_structural');
+      onEdit?.(null, '_structural', null, null, { beforeCourseMap: courseMap });
     },
     [courseMap, setCourseMap, setDownloadedFile, pushVersion, onEdit],
   );

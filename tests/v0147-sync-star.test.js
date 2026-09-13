@@ -548,6 +548,40 @@ describe('G2 — recompile-and-diff blast radius', () => {
     expect(markerBearingFeatures.length).toBeGreaterThanOrEqual(2);
   });
 
+  it('isolates the edit from old compiler drift and existing teacher prose', () => {
+    const before = geologyMap();
+    const deliverables = compiledStateFor(before);
+    deliverables.assignments.data.assignments[0].overview = 'Teacher-authored museum exercise';
+    const same = computeSyncBlastRadius({
+      courseMap: before,
+      beforeCourseMap: before,
+      deliverables,
+      selectedFeatures: FEATURES,
+    });
+    expect(same.plan).toEqual([]);
+    const edited = structuredClone(before);
+    edited.lessons[1].sections[0].asyncActivities = 'Teacher activity: compare the basalt specimens.';
+    const changed = computeSyncBlastRadius({
+      courseMap: edited,
+      beforeCourseMap: before,
+      deliverables,
+      selectedFeatures: FEATURES,
+    });
+    expect(changed.plan.map((x) => x.featureId)).toContain('syllabus');
+    expect(changed.plan.filter((x) => x.lessonIndices).every((x) => !x.lessonIndices.includes(0))).toBe(true);
+    expect(deliverables.assignments.data.assignments[0].overview).toBe('Teacher-authored museum exercise');
+  });
+
+  it('locates compact FAQ and discussion changes by the retained lesson title', () => {
+    const changes = diffCompiledFeature(
+      'courseFaq',
+      { faqs: [{ lt: 'Lesson 2: Rocks', qs: [{ q: 'Why?', an: 'Before' }] }] },
+      { faqs: [{ lt: 'Lesson 2: Rocks', qs: [{ q: 'Why?', an: 'After' }] }] },
+    );
+    expect(changes).toHaveLength(1);
+    expect(changes[0].lessonNumber).toBe(2);
+  });
+
   it('a no-op "edit" asks for NO approval (zero diffs, empty plan)', () => {
     const deliverables = compiledStateFor(geologyMap());
     const radius = computeSyncBlastRadius({

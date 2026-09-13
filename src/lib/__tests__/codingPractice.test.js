@@ -433,6 +433,15 @@ it('publishes concrete coding activities while preserving later teacher edits an
   expect(projectTeachingTasksIntoCourseMap(courseMap, blueprint).lessons[0].sections[0].learningObjectives).toBe(
     'Analyze evidence.',
   );
+  // Evidence admission can publish a new objective while the compiler yields.
+  // Its published map, rather than the older graph render, is the merge baseline.
+  const admittedMap = structuredClone(courseMap);
+  admittedMap.lessons[0].sections[0].learningObjectives = 'Distinguish admitted facts from inference.';
+  const teacherDuringCompile = structuredClone(admittedMap);
+  teacherDuringCompile.lessons[0].sections[0].asyncActivities = 'Keep the museum exercise.';
+  const finalMap = mergeGeneratedTaskMap(teacherDuringCompile, admittedMap, generated);
+  expect(finalMap.lessons[0].sections[0].learningObjectives).toBe(blueprint.lessons[0].teachingTask.objective);
+  expect(finalMap.lessons[0].sections[0].asyncActivities).toBe('Keep the museum exercise.');
   const renamed = structuredClone(edited);
   renamed.lessons[0].title = 'Teacher replacement';
   expect(mergeGeneratedTaskMap(renamed, courseMap, generated)).toBe(renamed);

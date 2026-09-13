@@ -1,5 +1,7 @@
+import { expandKeys } from '../keyMaps.js';
 import { describe, expect, it } from 'vitest';
 import {
+  normalizeSavedEditHistory,
   appendEditTransaction,
   applyEditTransaction,
   createEditTransaction,
@@ -187,4 +189,36 @@ describe('persisted reversible edit transactions', () => {
     expect(applied(before, entry, 'redo')).toEqual(after);
     expect(applied(after, entry, 'undo').deliverables.assignments.data).toEqual({ text: 'A' });
   });
+});
+
+it('migrates compact FAQ history, including redo, without waiving genuine conflicts', () => {
+  const before = {
+    courseMap: { lessons: [] },
+    deliverables: {
+      courseFaq: { status: 'done', data: { faqs: [{ lt: 'Lesson 1: HTML', qs: [{ q: 'Why?', an: 'Before' }] }] } },
+    },
+  };
+  const after = structuredClone(before);
+  after.deliverables.courseFaq.data.faqs[0].qs[0].an = 'Teacher revision';
+  const entry = createEditTransaction(before, after);
+  const normalize = (s) => ({
+    ...s,
+    deliverables: {
+      courseFaq: { ...s.deliverables.courseFaq, data: expandKeys('courseFaq', s.deliverables.courseFaq.data) },
+    },
+  });
+  for (const cursor of [0, 1]) {
+    const current = cursor ? after : before;
+    const saved = serializeEditHistory({ version: 1, entries: [entry], cursor });
+    const migrated = normalizeSavedEditHistory(saved, current, normalize);
+    const restored = restoreEditHistory(migrated, normalize(current));
+    expect(restored.status).toBe('ready');
+    expect(restored.history.cursor).toBe(cursor);
+    expect(applied(normalize(current), restored.history.entries[0], cursor ? 'undo' : 'redo')).toEqual(
+      normalize(cursor ? before : after),
+    );
+    const changed = structuredClone(current);
+    changed.deliverables.courseFaq.data.faqs[0].qs[0].an = 'Unrelated later edit';
+    expect(normalizeSavedEditHistory(saved, changed, normalize)).toEqual(saved);
+  }
 });

@@ -1,3 +1,4 @@
+import { criterionSummary } from './teachingMaterialPresentation.js';
 import { reusedPracticeCase } from './practiceCaseExposure.js';
 import { taskCopy, taskText } from './teachingTaskCopy.js';
 /** Stable slide roles make the same task projection replayable after edits.
@@ -103,7 +104,9 @@ export function projectTeachingTaskSlides(deck, task) {
           ),
           bullets: [records[index] || records[0]],
           notes: task.codingPractice
-            ? task.inputs.map((input) => input.text).join('\n\n')
+            ? index === 0
+              ? task.inputs.map((input) => input.text).join('\n\n')
+              : 'Continue checking the contract. The starter files and complete test contract are in the notes of the first Starter and test contract slide.'
             : taskCopy(
                 task,
                 'Ask students to distinguish supplied observations from their own inferences. Do not add facts that are absent from this record.',
@@ -118,7 +121,7 @@ export function projectTeachingTaskSlides(deck, task) {
           ),
           bullets: [steps[index] || steps[0]],
           notes: [
-            index === 0
+            index === 0 && !task.codingPractice
               ? taskText(
                   task,
                   `Source records: ${task.inputs.map((input) => input.text).join(' ')}`,
@@ -196,7 +199,7 @@ export function projectTeachingTaskSlides(deck, task) {
         return {
           title: taskCopy(task, 'Check your work'),
           bullets: task.criteria.map((criterion) => criterion.label),
-          notes: task.criteria.map((criterion) => `${criterion.label}: ${criterion.levels.exemplary}`).join('\n'),
+          notes: task.criteria.map(criterionSummary).join('\n'),
         };
       default:
         return {

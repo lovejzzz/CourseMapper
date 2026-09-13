@@ -28985,6 +28985,9 @@ export async function compileBlueprintDeliverablesYielding(blueprint, featureIds
   const compileErrors = [];
   for (const featureId of getBlueprintCompiledFeatures(featureIds, options)) {
     compileFeatureInto(result, compileErrors, featureId, compilerBlueprint, options);
+    if (result[featureId] && typeof options.onFeatureCompiled === 'function') {
+      await options.onFeatureCompiled(featureId, result[featureId]);
+    }
     await new Promise((resolve) => setTimeout(resolve, 0));
   }
   result[BLUEPRINT_COMPILE_CONTEXT] = compilerBlueprint;

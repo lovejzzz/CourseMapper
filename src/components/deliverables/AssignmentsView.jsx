@@ -100,12 +100,7 @@ export default function AssignmentsView({
       : a.gradingCriteria
         ? [a.gradingCriteria]
         : [];
-    const subtitle = [
-      a.dueWeek || a.dueDate,
-      a.estimatedTime,
-      a.totalPoints ? `${a.totalPoints} pts` : null,
-      a.percentOfGrade,
-    ]
+    const subtitle = [a.dueWeek || a.dueDate, a.estimatedTime, a.totalPoints ? `${a.totalPoints} pts` : null]
       .filter(Boolean)
       .join(' · ');
     return (

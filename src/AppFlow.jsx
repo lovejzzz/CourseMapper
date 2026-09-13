@@ -907,10 +907,13 @@ export default function AppFlow({
   // graph assembly. Update this ref in the emission callback so the finalizer
   // can synchronously consume the authoritative render.
   const courseMapRef = useRef(courseMap);
+  const lastGeneratedCourseMapRef = useRef(null);
   const handleGeneratedCourseMapRepair = useCallback(
     (repairedCourseMap, meta = {}) => {
       if (!repairedCourseMap?.lessons) return;
-      if (meta.mergeWithCurrent) repairedCourseMap = meta.mergeWithCurrent(courseMapRef.current);
+      if (meta.mergeWithCurrent)
+        repairedCourseMap = meta.mergeWithCurrent(courseMapRef.current, lastGeneratedCourseMapRef.current);
+      lastGeneratedCourseMapRef.current = repairedCourseMap;
       courseMapRef.current = repairedCourseMap;
       setCourseMap(repairedCourseMap);
       version.pushVersion(
@@ -3548,6 +3551,16 @@ export default function AppFlow({
           {!workspaceMappingInProgress && (
             <BuildRibbon
               model={buildRibbonModel}
+              availableMaterial={[
+                { id: 'lessonPlans', label: 'Lesson Plans' },
+                { id: 'assignments', label: 'Assignment Briefs' },
+              ].find(
+                ({ id }) =>
+                  deliv.deliverables[id]?.status === 'done' &&
+                  deliv.deliverables[id]?.data &&
+                  !deliv.deliverables[id]?.stale,
+              )}
+              onOpenMaterial={setActiveTab}
               onStop={isPackageGenerationRunning || isFinishPassRunning(packageQualityPass) ? onStop : null}
             />
           )}

@@ -150,7 +150,19 @@ export function reducer(state, action) {
             },
           },
         };
-      return { ...state, deliverables: { ...state.deliverables, ...action.changed } };
+      return {
+        ...state,
+        deliverables: {
+          ...state.deliverables,
+          ...action.changed,
+          [action.featureId]: {
+            ...action.changed[action.featureId],
+            status: 'done',
+            error: null,
+            regeneratingIndex: null,
+          },
+        },
+      };
     }
     case 'SET_DELIVERABLE_STREAMING':
       return {

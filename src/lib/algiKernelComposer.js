@@ -2597,7 +2597,15 @@ export function researchTopicForLesson(lesson = {}) {
   const seen = new Set();
   const specifics = candidates
     .map(({ text }) => text)
-    .filter((topic) => topic && !/^topic|focus|overview$/i.test(topic))
+    .filter((topic) => topic && !/^(?:topic|focus|overview)$/i.test(topic))
+    // Activity packaging is not subject matter. Keep the lesson title as the
+    // research target when generated sections only describe teaching tools.
+    .filter(
+      (topic) =>
+        !/^(?:(?:runnable|provided|sample)\s+)?starter\s+(?:files|code)|^reference\s+implementations?$|^(?:observable\s+)?acceptance\s+checks?$/i.test(
+          topic,
+        ),
+    )
     .filter((topic) => {
       const key = topic.toLowerCase();
       if (key === title.toLowerCase() || seen.has(key)) return false;
@@ -2714,7 +2722,21 @@ export function researchQuestionVariantsForLesson(topic = '', lesson = {}, { cou
   // crowd all five recovery seats ahead of the real topic and sections.
   const workflowOnly =
     /^(?:worked examples?\b|worked full[- ]stack$|lab explanation in\b|test the reasoning step\b|state what it warrants\b|revise any claim\b|weekly build labs?\b|use a guided case\b|check that the .+ resource\b)/i;
-  return [...contextualEvidenceQuestions, ...evidenceLookupQuestions, ...conciseConceptQuestions, ...values]
+  const conceptLookupQuestions = lessonTopicValues(lesson)
+    .map((value) => value.replace(/^\s*\d+(?:\.\d+)*\s*[:.–—-]\s*/i, '').trim())
+    .map((value) => ({
+      original: value,
+      concise: value.replace(/\s+(?:mechanisms?|techniques?|applications?|practices?)$/i, '').trim(),
+    }))
+    .filter(({ original, concise }) => original !== concise && concise.split(/\s+/).length >= 2)
+    .map(({ concise }) => concise);
+  return [
+    ...contextualEvidenceQuestions,
+    ...evidenceLookupQuestions,
+    ...conceptLookupQuestions,
+    ...conciseConceptQuestions,
+    ...values,
+  ]
     .filter((value) => !workflowOnly.test(value))
     .filter((value) => {
       const key = value.toLowerCase();

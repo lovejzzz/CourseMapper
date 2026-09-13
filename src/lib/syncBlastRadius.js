@@ -1,3 +1,4 @@
+import { expandKeys } from './keyMaps.js';
 /**
  * syncBlastRadius — v0.14.7 WS-G2: the TRUE blast radius of an edit.
  *
@@ -55,7 +56,16 @@ function hashString(text) {
   return (hash >>> 0).toString(36);
 }
 
-const fingerprint = (item) => hashString(stableStringify(item));
+function visibleContent(value) {
+  if (Array.isArray(value)) return value.map(visibleContent);
+  if (!value || typeof value !== 'object') return value;
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter(([key]) => !['sourceGrounding', 'blueprintGrounding', 'sourceEvidenceTrace'].includes(key))
+      .map(([key, child]) => [key, visibleContent(child)]),
+  );
+}
+const fingerprint = (item) => hashString(stableStringify(visibleContent(item)));
 
 function itemLessonNumber(item) {
   for (const value of [item?.lessonNumber, item?.week, item?.weekNumber]) {
@@ -64,7 +74,9 @@ function itemLessonNumber(item) {
   }
   const registry = String(item?.assessmentId || item?.registryId || '').match(/^[A-Z](\d{1,2})\./);
   if (registry) return Number(registry[1]);
-  return null;
+  const title = String(item?.lessonTitle || item?.lt || item?.title || '');
+  const numbered = title.match(/^Lesson\s+(\d+)\s*[:—-]/i);
+  return numbered ? Number(numbered[1]) : null;
 }
 
 /** Registry identity first (Law: identity before content), title second. */
@@ -153,8 +165,8 @@ function rootValueOf(featureId, data) {
 }
 
 export function diffCompiledFeature(featureId, prevData, nextData) {
-  const prevValue = rootValueOf(featureId, prevData);
-  const nextValue = rootValueOf(featureId, nextData);
+  const prevValue = rootValueOf(featureId, expandKeys(featureId, prevData));
+  const nextValue = rootValueOf(featureId, expandKeys(featureId, nextData));
   if (Array.isArray(prevValue) || Array.isArray(nextValue)) {
     return diffItemArray(
       featureId,
@@ -180,6 +192,7 @@ export function diffCompiledFeature(featureId, prevData, nextData) {
  */
 export function computeSyncBlastRadius({
   courseMap,
+  beforeCourseMap = null,
   deliverables,
   selectedFeatures,
   configMap = {},
@@ -216,20 +229,30 @@ export function computeSyncBlastRadius({
   }
   // Assessment and reading identity must not depend on whether a model
   // enrichment overlay happens to be present for this recompilation.
-  const graph = deriveCourseGraphFromCourseMap(courseMap);
-  if (Object.keys(lessonContent).length > 0) {
-    attachEnrichmentToGraph(graph, {
-      ...(enrichmentOverlay && typeof enrichmentOverlay === 'object' ? enrichmentOverlay : {}),
-      lessonContent,
-    });
-  }
-  const blueprint = compactBlueprintForStorage(buildBlueprintFromGraph(graph, { instructorPreferences }));
-  const compiled = compileBlueprintDeliverables(blueprint, features, { configMap });
+  const compileMap = (map) => {
+    const graph = deriveCourseGraphFromCourseMap(map);
+    if (Object.keys(lessonContent).length > 0) {
+      attachEnrichmentToGraph(graph, {
+        ...(enrichmentOverlay && typeof enrichmentOverlay === 'object' ? enrichmentOverlay : {}),
+        lessonContent,
+      });
+    }
+    const blueprint = compactBlueprintForStorage(buildBlueprintFromGraph(graph, { instructorPreferences }));
+    return compileBlueprintDeliverables(blueprint, features, { configMap });
+  };
+  const compiled = compileMap(courseMap);
+  // Compare the same compiler on each side of this edit. Saved teacher prose,
+  // older compiler output and export decoration are not changes caused by it.
+  const baseline = beforeCourseMap ? compileMap(beforeCourseMap) : null;
 
   const plan = [];
   let totalChanges = 0;
   for (const featureId of features) {
-    const changes = diffCompiledFeature(featureId, deliverables[featureId].data, compiled?.[featureId]);
+    const changes = diffCompiledFeature(
+      featureId,
+      baseline?.[featureId] ?? deliverables[featureId].data,
+      compiled?.[featureId],
+    );
     if (changes.length === 0) continue;
     totalChanges += changes.length;
     const lessonNumbers = [...new Set(changes.map((change) => change.lessonNumber).filter(Boolean))];

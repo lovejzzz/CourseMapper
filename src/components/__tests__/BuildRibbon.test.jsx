@@ -96,3 +96,13 @@ it('shows stopped material failures instead of preparing knowledge, including af
   expect(retry.running).toBe(true);
   expect(retry.compilerState).toBe('live');
 });
+
+it('offers generated material during a build without claiming checks are complete', () => {
+  const props = { availableMaterial: { id: 'lessonPlans', label: 'Lesson Plans' }, onOpenMaterial: () => {} };
+  const html = renderToStaticMarkup(<BuildRibbon model={makeModel({ running: true })} {...props} />);
+  expect(html).toContain('Open Lesson Plans');
+  expect(html).toContain('package checks are continuing');
+  expect(renderToStaticMarkup(<BuildRibbon model={makeModel({ running: false })} {...props} />)).not.toContain(
+    'Open Lesson Plans',
+  );
+});

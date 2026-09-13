@@ -1,3 +1,4 @@
+import { criterionSummary } from './teachingMaterialPresentation.js';
 import { reusedPracticeCase } from './practiceCaseExposure.js';
 import { compileTeachingProgram, teachingProgramReviewQuestions } from './compilerTeachingProgram.js';
 import { teachingTaskWorkedExample } from './compilerTeachingTask.js';
@@ -12,7 +13,7 @@ export function projectTeachingStudyGuide(row, task) {
     taskRevision: task.revision,
     summary: task.summary,
     objectivePractice: [task.question],
-    conceptConnections: task.criteria.map((c) => `${c.label}: ${c.levels.exemplary}`),
+    conceptConnections: task.criteria.map(criterionSummary),
     workedExample: teachingTaskWorkedExample(task),
     reviewQuestions: teachingProgramReviewQuestions(program),
     teachingProgram: program,

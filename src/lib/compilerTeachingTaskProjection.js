@@ -313,6 +313,8 @@ function projectAssignment(row, task, blueprint) {
     ),
   });
   if (task.codingPractice) {
+    row.assignmentType = 'Coding practice';
+    row.bloomsLevel = 'Apply';
     row.instructions = [
       'Implement the starter to meet its acceptance checks. Run each check before comparing your work with the reference implementation.',
       ...task.errors.map((error) => `During review, test this claim: “${error.response}” Explain the observed result.`),
@@ -405,9 +407,14 @@ function projectPlan(row, task) {
       submittedArtifact: task.product,
     },
     objectives: [task.objective],
-    materials: task.inputs.map((input, i) =>
-      taskText(task, `Source record ${i + 1}: ${input.text}`, `材料${i + 1}：${input.text}`),
-    ),
+    materials: task.codingPractice
+      ? [
+          'See the exercise fixture and API reference for starter files and the test contract.',
+          `API reference: ${task.codingReference.url}`,
+        ]
+      : task.inputs.map((input, i) =>
+          taskText(task, `Source record ${i + 1}: ${input.text}`, `材料${i + 1}：${input.text}`),
+        ),
     sourceEvidenceBrief: evidence(task, row.sourceEvidenceBrief),
     assessmentCriteria: task.criteria.map((c) => c.levels.exemplary),
     commonMisconceptions: task.errors.map((e) =>
@@ -464,6 +471,24 @@ function projectPlan(row, task) {
     [taskCopy(task, 'Write the task response'), task.question, task.answer],
     [taskCopy(task, 'Check the conclusion'), task.checkpoint.question, task.checkpoint.answer],
   ];
+  if (task.codingPractice) {
+    phases[0][2] =
+      'Predict the observable output of each acceptance check, then run the starter and record which checks fail.';
+    phases[2][2] =
+      task.errors[0].correction === task.errors[0].feedback
+        ? task.errors[0].correction
+        : `${task.errors[0].correction} Feedback: ${task.errors[0].feedback}`;
+    row.formativeCheck.objectiveAligned = task.objective;
+    row.formativeCheck.instructorAction = phases[2][2];
+    row.udlNotes = {
+      representation:
+        'Provide readable starter code and the written test contract. Demonstrate the browser checks with keyboard access and explain each observed result.',
+      engagement:
+        'Allow individual preparation or paired debugging before each learner demonstrates the required behavior.',
+      expression:
+        'Keep working source files and observable test results as the required evidence. Learners may explain their decisions in writing, speech, or a recording.',
+    };
+  }
   if (task.preparation)
     phases[0] = [
       taskCopy(task, 'Retrieve the earlier diagnosis'),
@@ -491,6 +516,9 @@ function projectPlan(row, task) {
         activity: phases[i][0],
         description: phases[i][1],
         instructorNotes: taskText(task, `Expected response: ${phases[i][2]}`, `参考回答：${phases[i][2]}`),
+        ...(task.codingPractice
+          ? { bloomsLevel: ['Apply', 'Understand', 'Analyze', 'Evaluate', 'Apply', 'Apply'][i] }
+          : {}),
         instructorRole: taskCopy(
           task,
           'Find the first incorrect or missing reasoning step, give the matching criterion feedback, then ask for a revision.',
@@ -506,6 +534,9 @@ function projectPlan(row, task) {
       prompt: phases[0][1],
       purpose: phases[0][2],
       facilitation:
+        (task.codingPractice
+          ? 'Have each learner predict one test result, run the starter, and explain the first failing check before editing.'
+          : null) ||
         task.preparation?.instruction ||
         taskCopy(
           task,

@@ -3060,13 +3060,18 @@ export default function useDeliverables({
         if (typeof onCourseGraph === 'function') {
           onCourseGraph(courseGraph, { source: 'generation' });
         }
+        // Keep the exact published map: blueprint admission can update graph
+        // objectives later, which must not be mistaken for teacher edits.
+        const compilerMapBaseline = courseGraphLib.renderCourseMapFromGraph(courseGraph, {
+          assessmentReferences: true,
+        });
         if (typeof onCourseMapRepair === 'function') {
           // Push the DISPLAY render: resource-bearing cells plus the
           // v0.14.1 (3.3a) assessment reference suffixes ("→ Assignment
           // Briefs / Lesson 08") so the visible map indexes the package.
           // Re-derivation strips the suffixes (deriveFromCourseMap), so the
           // graph never drifts.
-          onCourseMapRepair(courseGraphLib.renderCourseMapFromGraph(courseGraph, { assessmentReferences: true }), {
+          onCourseMapRepair(compilerMapBaseline, {
             source: 'knowledgeBackbone',
           });
         }
@@ -3216,8 +3221,29 @@ export default function useDeliverables({
           savedProviderCalls: compiledSavings,
           compilerSource,
         });
-        const compiled = await compileBlueprintDeliverables(blueprint, blueprintCompiledFeatureIds, {
+        const publishedFeatures = new Set();
+        const firstUsefulOrder = [...blueprintCompiledFeatureIds].sort(
+          (a, b) => Number(b === 'lessonPlans') - Number(a === 'lessonPlans'),
+        );
+        const compiled = await compileBlueprintDeliverables(blueprint, firstUsefulOrder, {
           configMap: compilerConfigMap,
+          onFeatureCompiled: (fid, data) => {
+            if (shouldStopBlueprintCompiler() || isGenerationCancelled(fid)) return;
+            const validation = validateDeliverableGeneration(fid, data, {
+              expectedLessonCount: lessonIndices.length,
+              expectedLessonNumbers,
+              config: getGenerationConfig(fid),
+            });
+            if (!validation.valid) return;
+            markFeatureDone(fid, data);
+            publishedFeatures.add(fid);
+            recordApiCallEvent({
+              type: 'materialAvailable',
+              label: getFeatureLabel(fid),
+              featureId: fid,
+              detail: `${getFeatureLabel(fid)} can be opened while the remaining materials are built and checked.`,
+            });
+          },
         });
         if (shouldStopBlueprintCompiler()) return;
         const admittedCompilerBlueprint = compiled[Symbol.for('coursemapper.blueprintCompileContext')] || blueprint;
@@ -3225,14 +3251,15 @@ export default function useDeliverables({
           const { projectTeachingTasksIntoCourseMap, mergeGeneratedTaskMap } =
             await import('../lib/compilerTeachingTaskProjection');
           if (shouldStopBlueprintCompiler()) return;
-          const baseline = courseGraphLib.renderCourseMapFromGraph(courseGraph, { assessmentReferences: true });
+          const baseline = compilerMapBaseline;
           const projected = projectTeachingTasksIntoCourseMap(baseline, admittedCompilerBlueprint, {
             generatedCodingMap: true,
           });
           if (projected !== baseline)
             onCourseMapRepair(projected, {
               source: 'teachingTask',
-              mergeWithCurrent: (current) => mergeGeneratedTaskMap(current, baseline, projected),
+              mergeWithCurrent: (current, latestGenerated) =>
+                mergeGeneratedTaskMap(current, latestGenerated || baseline, projected),
             });
         }
         recordApiCallEvent({
@@ -3280,6 +3307,9 @@ export default function useDeliverables({
           ]),
         );
         for (const fid of blueprintCompiledFeatureIds) {
+          // Let pending clicks and paints run between per-material checks.
+          await new Promise((resolve) => setTimeout(resolve, 0));
+          if (shouldStopBlueprintCompiler()) return;
           if (isGenerationCancelled(fid)) continue;
           const data = compiled[fid];
           if (!data && featureCompileErrors.has(fid)) {
@@ -3326,7 +3356,8 @@ export default function useDeliverables({
             continue;
           }
 
-          markFeatureDone(fid, data);
+          // Do not overwrite edits made to an already published material.
+          if (!publishedFeatures.has(fid)) markFeatureDone(fid, data);
           try {
             const quality = scoreHeuristic(fid, data);
             setQualityScores((prev) => ({ ...prev, [fid]: quality }));
@@ -5534,7 +5565,14 @@ export default function useDeliverables({
         status: failed.length > 0 ? 'partial' : 'generated',
         completedFeatureIds: completed,
         failedFeatureIds: failed,
-        deliverables: generatedDeliverables,
+        deliverables: Object.fromEntries(
+          Object.entries(generatedDeliverables).map(([featureId, entry]) => [
+            featureId,
+            entry.status === 'done'
+              ? { ...entry, data: preserveTeacherEdits(deliverablesRef.current[featureId]?.data, entry.data) }
+              : entry,
+          ]),
+        ),
         providerCallCount: providerCallsUsed,
       };
     },
@@ -6468,17 +6506,20 @@ export default function useDeliverables({
   const setDeliverables = useCallback(
     (updaterOrObj) => {
       const obj = typeof updaterOrObj === 'function' ? updaterOrObj(deliverablesRef.current) : updaterOrObj;
+      const previous = deliverablesRef.current;
       deliverablesRef.current = obj;
       for (const [featureId, entry] of Object.entries(obj)) {
-        if (entry) {
+        if (entry && entry !== previous[featureId]) {
+          // A text edit must retain the exact source-review and lesson-scope
+          // metadata. The old four-field action reset every material's scope.
           dispatch(
-            actions.setDeliverable(
-              featureId,
-              entry.status || 'done',
-              entry.data || null,
-              entry.error || null,
-              entry.stale || false,
-            ),
+            actions.restoreDeliverableSnapshot(featureId, {
+              status: 'done',
+              data: null,
+              error: null,
+              stale: false,
+              ...entry,
+            }),
           );
         }
       }

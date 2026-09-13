@@ -15,7 +15,7 @@ export default defineConfig({
       'src/lib/quality/__tests__/deepQualityStructure.test.js',
       'src/components/deliverables/__tests__/*.{test,spec}.{js,jsx}',
       'src/components/chat/__tests__/AgentWorkingSetPanel.test.jsx',
-      'src/components/__tests__/{GenericDeliverableView,ExportSidePanel.readiness,Header,CourseMapLiveProgress}.test.jsx',
+      'src/components/__tests__/{GenericDeliverableView,ExportSidePanel.readiness,Header,CourseMapLiveProgress,LessonSourceReview}.test.jsx',
       'src/lib/__tests__/{detectLessons,deliverableSchemas,exporterUtils,generationCancellation,scionCompilerRoute,keyMaps,directExportIntegrity}.test.js',
       'tests/v01654-editable-object-fields.test.jsx',
       'tests/v015-sync-durable.test.jsx',

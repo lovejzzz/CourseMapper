@@ -337,7 +337,12 @@ describe('atomic reviewed compiler updates', () => {
         changed,
       },
     );
-    expect(result.deliverables.assignments).toBe(changed.assignments);
+    expect(result.deliverables.assignments).toEqual({
+      ...changed.assignments,
+      status: 'done',
+      error: null,
+      regeneratingIndex: null,
+    });
     expect(result.deliverables.rubrics).toBe(changed.rubrics);
     expect(result.deliverables.custom).toBe(custom);
   });
@@ -362,4 +367,24 @@ describe('atomic reviewed compiler updates', () => {
       expect(result.deliverables.rubrics).toBe(current);
     }
   });
+});
+
+it('finishes a reviewed regeneration while retaining scoped stale evidence', () => {
+  const entry = {
+    status: 'done',
+    data: { studyGuides: [] },
+    regeneratingIndex: 0,
+    stale: true,
+    staleEdits: { lessonIndices: [0] },
+  };
+  const state = { deliverables: { studyGuides: entry } };
+  const updated = reducer(state, {
+    type: 'SET_REVIEWED_COMPILATION',
+    featureId: 'studyGuides',
+    expected: { studyGuides: entry },
+    changed: { studyGuides: { ...entry, data: { studyGuides: [{ title: 'Updated' }] } } },
+  });
+  expect(updated.deliverables.studyGuides.regeneratingIndex).toBeNull();
+  expect(updated.deliverables.studyGuides.staleEdits).toEqual({ lessonIndices: [0] });
+  expect(updated.deliverables.studyGuides.status).toBe('done');
 });

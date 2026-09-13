@@ -237,6 +237,33 @@ export function restoreEditHistory(saved, workspace, maxSize = 30) {
   }
 }
 
+/** Migrate verified history through the same format conversion as the current
+ * workspace. Replay both sides before rebuilding guards; never waive a guard
+ * on an unverified snapshot or discard a real conflict. */
+export function normalizeSavedEditHistory(saved, workspace, normalize) {
+  if (restoreEditHistory(saved, normalize(workspace)).status === 'ready') return saved;
+  const verified = restoreEditHistory(saved, workspace);
+  if (verified.status !== 'ready' || !saved) return saved;
+  const { entries, cursor } = verified.history;
+  let current = workspace;
+  for (const entry of entries.slice(0, cursor).reverse()) {
+    current = applyEditTransaction(current, entry, 'undo').workspace;
+  }
+  const migrated = [];
+  let nextCursor = 0;
+  for (const [index, entry] of entries.entries()) {
+    const next = applyEditTransaction(current, entry, 'redo');
+    if (next.status !== 'applied') return saved;
+    const transaction = createEditTransaction(normalize(current), normalize(next.workspace));
+    if (transaction) {
+      migrated.push({ ...transaction, id: entry.id, createdAt: entry.createdAt });
+      if (index < cursor) nextCursor += 1;
+    }
+    current = next.workspace;
+  }
+  return serializeEditHistory({ version: EDIT_HISTORY_VERSION, entries: migrated, cursor: nextCursor });
+}
+
 /** Capture only explicitly edited fields. Sanitization happens before diffing
  * so a secret field cannot survive disguised as a patch path/value pair. */
 export function editTransactionStates(features, context, workspace) {
