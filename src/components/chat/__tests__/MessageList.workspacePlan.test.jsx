@@ -414,7 +414,8 @@ describe('MessageList workspace plan actions', () => {
 
     const card = container.querySelector('[data-testid="landing-context-card"]');
     expect(card).not.toBeNull();
-    expect(card.textContent).toContain('Starting brief');
+    expect(card.textContent).toContain('Course brief');
+    expect(card.hasAttribute('open')).toBe(false);
     expect(card.textContent).toContain('Build a 2-week applied machine learning lab');
     expect(card.textContent).toContain('starter-notebook-outline.txt');
     expect(card.textContent).toContain('model-card-template.docx');

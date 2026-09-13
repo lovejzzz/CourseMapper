@@ -3512,7 +3512,7 @@ export default function AppFlow({
                           }}
                           className={WORKSPACE_MENU_ITEM_CLASS}
                         >
-                          Save .coursemapper
+                          Save project
                         </button>
                         {extractedKernelCount > 0 && (
                           <button

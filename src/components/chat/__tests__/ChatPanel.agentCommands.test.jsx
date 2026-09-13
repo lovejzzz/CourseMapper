@@ -420,9 +420,7 @@ describe('ChatPanel agent command strip', () => {
       },
     });
 
-    expect(container.querySelector('[data-testid="agent-context-strip"]')?.textContent).toContain(
-      'Starting request + discrete-outline.pdf',
-    );
+    expect(container.querySelector('[data-testid="agent-context-strip"]')).toBeNull();
     expect(messageListMock.props.quietReadyMode).toBe(false);
     expect(messageListMock.props.messages).toHaveLength(3);
     expect(messageListMock.props.messages[0]).toMatchObject({ role: 'user', source: 'landing-context' });
@@ -1354,9 +1352,10 @@ describe('ChatPanel agent command strip', () => {
     root = renderChatPanel(container);
 
     const contextStrip = container.querySelector('[data-testid="agent-context-strip"]');
-    expect(contextStrip).not.toBeNull();
-    expect(contextStrip.textContent).toContain('Project brief');
-    expect(contextStrip.textContent).toContain('Starting request + starter-notebook-outline.txt +1');
+    expect(contextStrip).toBeNull();
+    expect(
+      messageListMock.props.messages.some((message) => message.text?.includes('starter-notebook-outline.txt')),
+    ).toBe(true);
   });
 
   it('runs safe package-finish plan actions directly through the app callback', async () => {

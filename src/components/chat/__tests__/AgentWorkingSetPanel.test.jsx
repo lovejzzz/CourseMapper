@@ -190,7 +190,7 @@ describe('AgentWorkingSetPanel', () => {
     expect(html).toContain('data-testid="agent-working-set-panel"');
     expect(html).toContain('Finishing package');
     expect(html).toContain('3 lessons');
-    expect(html).toContain('1 ready, 1 running');
+    expect(html).toContain('1 material type generated, 1 running');
     expect(html).toContain('Finishing');
     expect(html).toContain('Details');
     expect(html).not.toContain('prompt + 2 materials + 2 source notes');
@@ -260,7 +260,7 @@ describe('AgentWorkingSetPanel', () => {
     expect(summary.toolStateLabel).toBe('Local checks available');
     expect(html).toContain('Workspace open');
     expect(html).toContain('3 lessons');
-    expect(html).toContain('1 ready');
+    expect(html).toContain('1 material type generated');
     expect(html).not.toContain('Needs your decision');
   });
 

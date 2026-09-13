@@ -147,7 +147,7 @@ export default function BuildRibbon({ model, onStop = null, availableMaterial = 
             <span
               data-testid="ribbon-stage-label"
               aria-live="polite"
-              className="order-3 w-full min-w-0 text-[13px] leading-4 text-slate-600 sm:order-none sm:w-auto sm:flex-1 sm:truncate dark:text-slate-300"
+              className={`${compilerState === 'complete' ? 'flex-1' : 'order-3 w-full'} min-w-0 text-[13px] leading-4 text-slate-600 sm:order-none sm:w-auto sm:flex-1 sm:truncate dark:text-slate-300`}
             >
               {stageNarrative}
             </span>
@@ -156,7 +156,7 @@ export default function BuildRibbon({ model, onStop = null, availableMaterial = 
               data-testid="ribbon-progress-label"
               className="ml-2 shrink-0 text-[12px] font-bold tabular-nums text-indigo-600 sm:ml-0 dark:text-indigo-300"
             >
-              {ribbonProgressLabel(compilerState, visibleProgress)}
+              {compilerState !== 'complete' ? ribbonProgressLabel(compilerState, visibleProgress) : null}
               {activeElapsed && (
                 <span data-testid="ribbon-active-elapsed" className="font-medium text-slate-400 dark:text-slate-500">
                   {' · '}

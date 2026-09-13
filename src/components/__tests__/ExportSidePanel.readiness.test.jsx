@@ -596,22 +596,10 @@ describe('ExportSidePanel readiness repair timing', () => {
       },
     });
 
-    const panel = container.querySelector('[data-testid="readiness-panel"]');
-    expect(panel?.textContent).toContain('ready to download');
-    expect(panel?.className).toContain('amber');
-    expect(panel?.textContent).toContain('Teaching readiness requires review');
-    expect(panel?.textContent).not.toContain('Download available');
-    expect(panel?.textContent).not.toContain('Download is ready. Review notes are saved');
-    expect(panel?.textContent).not.toContain('Show notes');
-    expect(panel?.textContent).not.toContain('4 quality issues');
-    expect(panel?.textContent).toContain('2 safe repairs applied');
-    expect(panel?.textContent).not.toContain('export warning');
-    expect(panel?.textContent).not.toContain('3 P1 · 1 P2');
-    expect(panel?.textContent).not.toContain('PPTX export generated');
-    expect(container.querySelector('[data-testid="export-panel-title"]')?.textContent).toBe('Export package');
-    expect(container.querySelector('[data-testid="quality-stamp"]')).toBeNull();
-    expect(panel?.textContent).not.toContain('61/100');
-    expect(panel?.textContent).not.toContain('96');
+    expect(container.querySelector('[data-testid="readiness-panel"]')).toBeNull();
+    expect(container.querySelector('[data-testid="export-panel-title"]')?.textContent).toBe('Download materials');
+    expect(container.textContent).not.toContain('safe repairs applied');
+    expect(container.textContent).not.toContain('61/100');
     expect(container.querySelector('[data-testid="export-download-zip"]')?.disabled).toBe(false);
   });
 
@@ -637,7 +625,16 @@ describe('ExportSidePanel readiness repair timing', () => {
           grade: 'A',
           graderVersion: '1.10.27',
           findingCounts: { p0: 0, p1: 1, p2: 0 },
-          findings: [{ id: 'one', severity: 'P1', dimension: 'citations', detail: 'Review one citation.' }],
+          findings: [
+            { id: 'one', severity: 'P1', dimension: 'citations', detail: 'Review one citation.' },
+            {
+              id: 'internal',
+              severity: 'P1',
+              dimension: 'citations',
+              code: 'post-draft-admission-invalid',
+              detail: 'Post-draft promotion authority is invalid',
+            },
+          ],
           dimensions: { citations: 90, structure: 100 },
           readiness: {
             score: 61,
@@ -659,9 +656,16 @@ describe('ExportSidePanel readiness repair timing', () => {
     expect(modal).not.toBeNull();
     expect(modal?.parentElement).toBe(document.body);
     expect(container.querySelector('[data-testid="quality-report-modal"]')).toBeNull();
-    expect(modal?.textContent).toContain('Deterministic package evidence — 61/100 earned');
-    expect(modal?.textContent).toContain('Automated conformance 96/100');
-    expect(modal?.textContent).toContain('not a teaching-quality grade');
+    expect(modal?.textContent).toContain('Review notes');
+    expect(modal.querySelector('details')?.hasAttribute('open')).toBe(false);
+    expect(modal?.textContent).toContain('Review one citation.');
+    expect(modal?.textContent).toContain('Some lesson content could not be verified against its sources.');
+    const rawDetail = [...modal.querySelectorAll('details')].find((item) =>
+      item.textContent.includes('Post-draft promotion authority'),
+    );
+    expect(rawDetail).toBeTruthy();
+    expect(rawDetail.hasAttribute('open')).toBe(false);
+    expect(modal?.textContent).toContain('do not assess teaching quality');
     expect(modal?.textContent).toContain('Missing evidence stays in the fixed 100-point potential');
   });
 
@@ -915,7 +919,7 @@ describe('ExportSidePanel readiness repair timing', () => {
       packageQualityPass: { status: 'ready', blockers: 0, warnings: 0, receipt: reorderedReceiptB, quality },
     });
     const downloadButton = container.querySelector('[data-testid="export-download-zip"]');
-    expect(downloadButton?.textContent).toContain('Download ZIP');
+    expect(downloadButton?.textContent).toContain('Download all materials');
     await act(async () => {
       downloadButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
       await vi.runAllTimersAsync();
@@ -963,7 +967,9 @@ describe('ExportSidePanel readiness repair timing', () => {
       packageQualityPass: parentState,
       onPackageQualityPassUpdate,
     });
-    expect(container.querySelector('[data-testid="export-download-zip"]')?.textContent).toContain('Download ZIP');
+    expect(container.querySelector('[data-testid="export-download-zip"]')?.textContent).toContain(
+      'Download all materials',
+    );
     await act(async () => {
       container
         .querySelector('[data-testid="export-download-zip"]')
@@ -1070,7 +1076,9 @@ describe('ExportSidePanel readiness repair timing', () => {
       await vi.runAllTimersAsync();
     });
     expect(onFinishPackage).toHaveBeenCalledTimes(2);
-    expect(container.querySelector('[data-testid="export-download-zip"]')?.textContent).toContain('Download ZIP');
+    expect(container.querySelector('[data-testid="export-download-zip"]')?.textContent).toContain(
+      'Download all materials',
+    );
     expect(downloadCourseMaterialsZip).not.toHaveBeenCalled();
   });
 
@@ -1168,7 +1176,9 @@ describe('ExportSidePanel readiness repair timing', () => {
       await vi.runAllTimersAsync();
     });
     expect(onFinishPackage).toHaveBeenCalledTimes(2);
-    expect(container.querySelector('[data-testid="export-download-zip"]')?.textContent).toContain('Download ZIP');
+    expect(container.querySelector('[data-testid="export-download-zip"]')?.textContent).toContain(
+      'Download all materials',
+    );
     expect(downloadCourseMaterialsZip).not.toHaveBeenCalled();
   });
 
@@ -1677,7 +1687,7 @@ describe('ExportSidePanel readiness repair timing', () => {
     expect(onAutoRepairReadiness).not.toHaveBeenCalled();
 
     const zipButton = container.querySelector('[data-testid="export-download-zip"]');
-    expect(zipButton?.textContent).toContain('Download review ZIP');
+    expect(zipButton?.textContent).toContain('Download all materials');
     expect(zipButton?.disabled).toBe(false);
 
     await act(async () => {
@@ -1728,7 +1738,7 @@ describe('ExportSidePanel readiness repair timing', () => {
     expect(onAutoRepairReadiness).not.toHaveBeenCalled();
 
     const zipButton = container.querySelector('[data-testid="export-download-zip"]');
-    expect(zipButton?.textContent).toContain('Download review ZIP');
+    expect(zipButton?.textContent).toContain('Download all materials');
     expect(zipButton?.disabled).toBe(false);
 
     await act(async () => {
@@ -1833,7 +1843,7 @@ describe('ExportSidePanel readiness repair timing', () => {
     });
 
     const panelText = container.querySelector('[data-testid="readiness-panel"]')?.textContent || '';
-    expect(panelText).toContain('ready to download');
+    expect(container.querySelector('[data-testid="readiness-panel"]')).toBeNull();
     expect(panelText).not.toContain('affected items');
     expect(panelText).not.toContain('items to refine');
     expect(panelText).not.toContain('First blocker');
@@ -1880,8 +1890,8 @@ describe('ExportSidePanel readiness repair timing', () => {
     });
 
     const zipButton = container.querySelector('[data-testid="export-download-zip"]');
-    expect(container.querySelector('[data-testid="readiness-panel"]')?.textContent).toContain('ready to download');
-    expect(zipButton?.textContent).toContain('Download review ZIP');
+    expect(container.querySelector('[data-testid="readiness-panel"]')).toBeNull();
+    expect(zipButton?.textContent).toContain('Download all materials');
     expect(container.textContent).not.toMatch(/draft zip/i);
     expect(zipButton?.disabled).toBe(false);
 
@@ -1963,7 +1973,7 @@ describe('ExportSidePanel readiness repair timing', () => {
     });
 
     const zipButton = container.querySelector('[data-testid="export-download-zip"]');
-    expect(zipButton?.textContent).toContain('Download review ZIP');
+    expect(zipButton?.textContent).toContain('Download all materials');
     expect(zipButton?.disabled).toBe(false);
 
     await act(async () => {

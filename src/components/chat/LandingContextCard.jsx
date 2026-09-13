@@ -28,7 +28,8 @@ export default function LandingContextCard({ message }) {
   const sourceCount = summary.materialNoteCount || summary.materialNotes.length;
 
   return (
-    <div data-testid="landing-context-card" className="flex justify-start animate-spring-in">
+    <details data-testid="landing-context-card" className="mx-2 rounded-lg border border-slate-200 p-2 text-xs">
+      <summary className="cursor-pointer font-semibold text-slate-600">Course brief</summary>
       <div className="ml-8 max-w-[92%] rounded-xl border border-indigo-100 bg-indigo-50/65 px-3 py-2.5 text-[12px] text-slate-600 shadow-sm">
         <div className="flex min-w-0 items-start gap-2">
           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/85 text-indigo-600 shadow-sm">
@@ -43,7 +44,7 @@ export default function LandingContextCard({ message }) {
           </span>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="font-bold text-indigo-800">Starting brief</span>
+              <span className="font-bold text-indigo-800">Original request</span>
               {summary.fileCount > 0 && (
                 <span className="rounded-full bg-white/75 px-1.5 py-0.5 text-[10px] font-bold text-slate-500">
                   {summary.fileCount} material{summary.fileCount === 1 ? '' : 's'}
@@ -88,6 +89,6 @@ export default function LandingContextCard({ message }) {
           </div>
         </div>
       </div>
-    </div>
+    </details>
   );
 }

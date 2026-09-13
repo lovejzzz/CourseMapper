@@ -12,7 +12,6 @@ import { evaluateWorkspaceReadiness } from '../../lib/deliverableReadiness';
 import { buildPostGenerationDigest } from '../../lib/agentDigest';
 import { classifyFinalizePackageStepStatus, normalizePackageSummary } from '../../lib/packageFinalizerSummary';
 import { finishStatusOf, isFinishPassActive, isPackageReady } from '../../lib/pipelineMachine';
-import { summarizeLandingAgentContext } from '../../lib/landingAgentContext';
 import { admitPackageReceipt, getPackageTrustStatus } from '../../lib/packageTrustStatus';
 import { useAIConfig } from '../../contexts/AIConfigContext';
 
@@ -1012,30 +1011,6 @@ function buildPackageFinishProgressSteps(result = {}) {
   ];
 }
 
-function formatLandingContextDetail(summary) {
-  if (!summary?.hasContext) return '';
-  const fileCount = Number(summary.fileCount || 0);
-  const firstFile = summary.fileNames?.[0];
-  const hiddenCount = Math.max(0, fileCount - (firstFile ? 1 : 0));
-  const fileText =
-    fileCount > 0
-      ? firstFile
-        ? `${firstFile}${hiddenCount > 0 ? ` +${hiddenCount}` : ''}`
-        : `${fileCount} uploaded material${fileCount === 1 ? '' : 's'}`
-      : '';
-  const sourceNoteText = summary.hasMaterialNotes
-    ? `${summary.materialNoteCount || 1} source note${summary.materialNoteCount === 1 ? '' : 's'}`
-    : '';
-
-  if (summary.hasPrompt && fileText && sourceNoteText) return `Starting request + ${fileText} + ${sourceNoteText}`;
-  if (summary.hasPrompt && sourceNoteText) return `Starting request + ${sourceNoteText}`;
-  if (fileText && sourceNoteText) return `Uploaded materials: ${fileText} + ${sourceNoteText}`;
-  if (sourceNoteText) return `Uploaded materials: ${sourceNoteText}`;
-  if (summary.hasPrompt && fileText) return `Starting request + ${fileText}`;
-  if (summary.hasPrompt) return 'Starting request';
-  return fileText ? `Uploaded materials: ${fileText}` : '';
-}
-
 const STATUS_TONES = {
   slate: 'bg-slate-100 text-slate-500 border-slate-200/70',
   emerald: 'bg-emerald-50 text-emerald-700 border-emerald-200/70',
@@ -1558,11 +1533,7 @@ export default function ChatPanel({
   const headerAgentStatus = compactReady
     ? { label: 'Available', tone: 'emerald', detail: compactReadyDetail }
     : agentStatus;
-  const landingContextSummary = useMemo(() => summarizeLandingAgentContext(chat.messages), [chat.messages]);
-  const landingContextDetail = useMemo(
-    () => formatLandingContextDetail(landingContextSummary),
-    [landingContextSummary],
-  );
+
   const packageReceiptSummary = useMemo(
     () => (error ? null : buildPackageReceiptSummary(packageQualityPass, courseMap, selectedFeatures, deliverables)),
     [courseMap, deliverables, error, packageQualityPass, selectedFeatures],
@@ -2867,33 +2838,24 @@ export default function ChatPanel({
         </div>
       )}
 
-      {showsAgentIdentity && landingContextDetail && (
-        <div
-          data-testid="agent-context-strip"
-          className="flex min-h-[34px] flex-shrink-0 items-center gap-2 border-b border-slate-200/40 bg-slate-50/55 px-3.5 py-1.5 text-[11px]"
-        >
-          <span className="shrink-0 rounded-full border border-indigo-100 bg-white/80 px-2 py-0.5 font-bold text-indigo-600">
-            Project brief
-          </span>
-          <span className="min-w-0 truncate font-medium text-slate-600">{landingContextDetail}</span>
-        </div>
-      )}
-
-      {showsAgentIdentity && !compactReady && !ribbonModel?.running && (
-        <AgentWorkingSetPanel
-          courseMap={courseMap}
-          activeTab={activeTab}
-          deliverables={deliverables}
-          selectedFeatures={selectedFeatures}
-          lessonScope={lessonScope}
-          pendingSyncFeatureIds={pendingSyncFeatureIds}
-          packageQualityPass={packageQualityPass}
-          messages={chat.messages}
-          agentDryRun={chat.agentDryRun}
-          isAgentProviderReady={chat.isAgentProviderReady}
-          generationError={error}
-        />
-      )}
+      {showsAgentIdentity &&
+        !compactReady &&
+        !getPackageTrustStatus({ packageQualityPass }).canDownload &&
+        !ribbonModel?.running && (
+          <AgentWorkingSetPanel
+            courseMap={courseMap}
+            activeTab={activeTab}
+            deliverables={deliverables}
+            selectedFeatures={selectedFeatures}
+            lessonScope={lessonScope}
+            pendingSyncFeatureIds={pendingSyncFeatureIds}
+            packageQualityPass={packageQualityPass}
+            messages={chat.messages}
+            agentDryRun={chat.agentDryRun}
+            isAgentProviderReady={chat.isAgentProviderReady}
+            generationError={error}
+          />
+        )}
 
       {/* ── Progress Header (collapsible) — generation + deliverable status ── */}
       {showProgressHeader && (

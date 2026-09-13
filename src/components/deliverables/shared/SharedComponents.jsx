@@ -689,7 +689,7 @@ export function CollapsibleCard({
                 />
               </svg>
             )}
-            {regenerating ? 'Regen…' : 'Regen'}
+            {regenerating ? 'Regenerating…' : 'Regenerate lesson'}
           </button>
         )}
       </div>

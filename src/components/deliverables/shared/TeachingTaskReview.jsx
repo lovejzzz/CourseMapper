@@ -458,7 +458,7 @@ export default function TeachingTaskReview({
         if (event.target === event.currentTarget && event.currentTarget.open && !draft && selected) begin();
       }}
     >
-      <summary className="cursor-pointer font-medium">{t('Review sources and scoring', '审阅来源与评分')}</summary>
+      <summary className="cursor-pointer font-medium">{t('Edit lesson requirements', '修改本课要求')}</summary>
       <TeachingResponseReview
         store={notebook}
         source={options.sources.find((row) => row.id === selected?.id)}

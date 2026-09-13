@@ -762,7 +762,7 @@ export default function FeatureSelect({
           <section className="rounded-2xl border border-slate-200/80 bg-white/86 p-4 shadow-sm dark:border-slate-700/80 dark:bg-slate-950/70 sm:p-5">
             <div className="mb-4 flex flex-col gap-3 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between dark:border-slate-800">
               <div>
-                <h2 className="text-base font-semibold text-slate-900 dark:text-white">Package contents</h2>
+                <h2 className="text-base font-semibold text-slate-900 dark:text-white">Selected materials</h2>
                 <p className="mt-0.5 text-xs font-medium text-slate-500 dark:text-slate-400">
                   Course Map + {selectedMaterialCount} material{selectedMaterialCount === 1 ? '' : 's'}.
                 </p>
@@ -806,7 +806,7 @@ export default function FeatureSelect({
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-sm font-semibold">Course structure</h3>
+                      <h3 className="text-sm font-semibold">Course Map</h3>
                       <span className="rounded bg-slate-200 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600 dark:bg-slate-700 dark:text-slate-200">
                         Always included
                       </span>

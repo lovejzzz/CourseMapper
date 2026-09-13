@@ -291,10 +291,10 @@ export function getChatOpener(
     return {
       greeting: packageReady
         ? landingContext?.hasContext
-          ? 'Your package is ready, and I am still using your starting brief. I can review, explain, and improve the course materials.'
-          : 'Your package is ready. I can review, explain, and improve the course materials.'
+          ? 'Tell me what you would like to change in these materials.'
+          : 'Tell me what you would like to change in these materials.'
         : landingContext?.hasContext
-          ? 'I am still using your starting brief. I can finish, fix, and verify your course materials.'
+          ? 'Tell me what you would like to add or change.'
           : 'I can finish, fix, and verify your course materials.',
       starters,
     };

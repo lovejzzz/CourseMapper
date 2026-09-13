@@ -14,8 +14,7 @@ export function lessonSourceReviewItems(courseMap, courseGraph) {
       {
         lessonIndex: index,
         title: lesson.title || `Lesson ${index + 1}`,
-        message:
-          'Background explanations still need verified sources. The practice task and its API links do not replace that check.',
+        message: 'Verify this lesson’s background explanation against a reliable source.',
         target: { type: 'courseMapCell', lessonIndex: index, sectionIndex: 0, field: 'supportingResources' },
       },
     ];

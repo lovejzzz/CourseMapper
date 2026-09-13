@@ -70,7 +70,7 @@ test('saved online Scion settings migrate to local without contacting the paused
   });
   await page.goto('/');
   await page.getByRole('textbox', { name: 'Describe your course' }).fill('A short course on evaluating evidence.');
-  await page.getByTestId('ai-config-summary').getByRole('button', { name: 'Edit', exact: true }).click();
+  await page.getByTestId('ai-config-summary').getByRole('button', { name: 'AI settings', exact: true }).click();
   const model = page.getByRole('combobox', { name: 'Model', exact: true });
   await expect(model).toHaveValue('scion-public');
   await expect(model.locator('option[value="scion-hosted"]')).toHaveCount(0);
@@ -91,7 +91,7 @@ test('the original homepage retains attachments, all original material choices a
       modelRequests.push(request.url());
   });
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'Turn a syllabus into a teachable course.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Create teaching materials for your course.' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Attach files', exact: true })).toBeVisible();
   await page.getByRole('textbox', { name: 'Describe your course' }).fill('A short course on evaluating evidence.');
   await page.getByTestId('landing-setup-button').click();

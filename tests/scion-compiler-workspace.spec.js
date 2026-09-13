@@ -108,9 +108,9 @@ test('source compiler keeps worked examples, shared answers, and the lesson cloc
       .filter({ visible: true })
       .first(),
   ).toBeVisible();
-  await page.getByRole('button', { name: 'Regen', exact: true }).click();
+  await page.getByRole('button', { name: 'Regenerate lesson', exact: true }).click();
   await expect.poll(() => logs.some((line) => line.includes('lesson_regen_compiled')), { timeout: 20000 }).toBe(true);
-  await expect(page.getByRole('button', { name: 'Regen', exact: true })).toBeEnabled({ timeout: 20000 });
+  await expect(page.getByRole('button', { name: 'Regenerate lesson', exact: true })).toBeEnabled({ timeout: 20000 });
   await expect(page.getByText(/^45 minutes · Week 1$/).first()).toBeVisible();
   await expect(page.getByText(/^0.80 × 20 = 16\./).first()).toBeVisible();
   expect(modelRequests).toEqual([]);
@@ -182,9 +182,11 @@ test('two-session source tasks restore with distinct answers and regenerate with
   await page.getByRole('button', { name: 'Study Guides', exact: true }).click();
   await expect(page.getByText('Check your answer', { exact: true })).toHaveCount(13);
   await expect(page.getByText(/Retrieve your comparison and confound diagnosis from Lesson 1/).first()).toBeVisible();
-  await page.getByRole('button', { name: 'Regen', exact: true }).nth(1).click();
+  await page.getByRole('button', { name: 'Regenerate lesson', exact: true }).nth(1).click();
   await expect.poll(() => logs.some((line) => line.includes('lesson_regen_compiled')), { timeout: 20000 }).toBe(true);
-  await expect(page.getByRole('button', { name: 'Regen', exact: true }).nth(1)).toBeEnabled({ timeout: 20000 });
+  await expect(page.getByRole('button', { name: 'Regenerate lesson', exact: true }).nth(1)).toBeEnabled({
+    timeout: 20000,
+  });
   await expect(page.getByText('Check your answer', { exact: true })).toHaveCount(13);
   await expect(page.getByText(/Retrieve your comparison and confound diagnosis from Lesson 1/).first()).toBeVisible();
   expect(requests).toEqual([]);
@@ -351,9 +353,9 @@ test('source edits update linked answers atomically, retain teacher edits and su
   await page.getByRole('button', { name: 'Resume', exact: true }).click();
   await page.getByRole('button', { name: 'Study Guides', exact: true }).click();
   await expect(page.getByText('10/20 = 0.5 = 50%.', { exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Regen', exact: true }).click();
+  await page.getByRole('button', { name: 'Regenerate lesson', exact: true }).click();
   await expect.poll(() => logs.some((line) => line.includes('lesson_regen_compiled')), { timeout: 20000 }).toBe(true);
-  await expect(page.getByRole('button', { name: 'Regen', exact: true })).toBeEnabled({ timeout: 20000 });
+  await expect(page.getByRole('button', { name: 'Regenerate lesson', exact: true })).toBeEnabled({ timeout: 20000 });
   await expect(page.getByText('10/20 = 0.5 = 50%.', { exact: true })).toBeVisible();
   expect(modelRequests).toEqual([]);
 });
@@ -426,7 +428,7 @@ test('a Chinese task without a cached model kernel regenerates directly from its
   await page.reload();
   await page.getByRole('button', { name: 'Resume', exact: true }).click();
   await page.getByRole('button', { name: 'Study Guides', exact: true }).click();
-  await page.getByRole('button', { name: 'Regen', exact: true }).click();
+  await page.getByRole('button', { name: 'Regenerate lesson', exact: true }).click();
   await expect.poll(() => logs.some((line) => line.includes('lesson_regen_compiled')), { timeout: 5000 }).toBe(true);
   expect(logs.some((line) => line.includes('lesson_regen_sync_unenriched'))).toBe(false);
   await expect(
@@ -442,7 +444,7 @@ test('a Chinese task without a cached model kernel regenerates directly from its
   await page.locator('textarea:focus').press('Enter');
   await page.getByTestId('workspace-more-menu-trigger').click();
   const saved = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'Save .coursemapper', exact: true }).click();
+  await page.getByRole('button', { name: 'Save project', exact: true }).click();
   const project = JSON.parse(await fs.readFile(await (await saved).path(), 'utf8'));
   expect(project.courseMap.lessons[0].sections[0].supportingResources).toContain('水16分钟');
   expect(project.deliverables.studyGuides.data.taskSyncConflicts).toEqual([]);

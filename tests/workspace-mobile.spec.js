@@ -178,13 +178,13 @@ test.describe('Generated workspace mobile layout', () => {
     await page.getByTestId('workspace-more-menu-trigger').click();
     const projectMenu = page.getByTestId('workspace-more-menu');
     await expect(projectMenu).toBeVisible();
-    await expect(projectMenu.getByRole('button', { name: 'Save .coursemapper' })).toBeVisible();
+    await expect(projectMenu.getByRole('button', { name: 'Save project' })).toBeVisible();
     const projectMenuBox = await projectMenu.boundingBox();
     expect(projectMenuBox).not.toBeNull();
     expect(projectMenuBox.x).toBeGreaterThanOrEqual(8);
     expect(projectMenuBox.x + projectMenuBox.width).toBeLessThanOrEqual(page.viewportSize().width - 8);
     await projectMenu.getByRole('button', { name: 'New Project' }).click();
-    await expect(page.getByRole('heading', { name: 'Turn a syllabus into a teachable course.' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Create teaching materials for your course.' })).toBeVisible();
     await expect(page.getByTestId('new-project-confirmation')).toHaveCount(0);
 
     await expectNoHorizontalOverflow(page);

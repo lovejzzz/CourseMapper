@@ -192,10 +192,13 @@ test('coding materials render, retain literal code and survive autosave with a f
   }
   await page.getByTestId('export-scope-all').click();
   await page.getByTestId('export-download-zip').click();
-  await expect(page.getByTestId('readiness-status')).toContainText(/(?:Files|Review draft) ready to download/, {
+  await expect(page.getByTestId('export-download-zip')).toHaveText('Download all materials', {
     timeout: 90000,
   });
-  await expect(page.getByTestId('teaching-readiness-caveat')).toContainText('Teaching readiness requires review');
+  await expect(page.getByTestId('readiness-panel')).toHaveCount(0);
+  await page.getByTestId('agent-quality-score').click();
+  await expect(page.getByRole('dialog')).toContainText('Review notes');
+  await page.getByRole('button', { name: 'Close review notes' }).click();
   const [download] = await Promise.all([
     page.waitForEvent('download'),
     page.getByTestId('export-download-zip').click(),

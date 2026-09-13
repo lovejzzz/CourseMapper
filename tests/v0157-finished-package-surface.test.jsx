@@ -70,7 +70,7 @@ describe('v0.15.7 finished package surface', () => {
     expect(html).toContain('2 safe repairs');
     expect(html).toContain('10 exports checked');
     expect(html).not.toContain('data-testid="finished-overview-download-zip"');
-    expect(html).not.toContain('Download ZIP');
+    expect(html).not.toContain('Download all materials');
     expect(html).toContain('data-testid="finished-overview-edit-map"');
     expect(html).toContain('data-testid="finished-overview-material"');
     expect(html).not.toContain('Course Map Preview');
@@ -173,7 +173,8 @@ describe('v0.15.7 finished package surface', () => {
     expect(chatPanel).toContain('compactReadyMode = false');
     expect(chatPanel).toContain('const compactReady = Boolean');
     expect(chatPanel).toContain('return packageReceiptMessage && !alreadyRendered');
-    expect(chatPanel).toContain('landingContextDetail && (');
+    expect(chatPanel).not.toContain('agent-context-strip');
+    expect(messageList).toContain('<LandingContextCard');
     expect(chatPanel).toContain('quietReadyMode={false}');
     expect(chatPanel).not.toContain('quietReadyMode={compactReady}');
     expect(chatPanel).not.toContain('return messagesWithReceipt.filter');

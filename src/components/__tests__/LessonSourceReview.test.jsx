@@ -30,9 +30,9 @@ it('names only explicit source gaps, keeps retained practice accessible, and lin
       onOpenReport={() => {}}
     />,
   );
-  expect(html).toContain('Before teaching: check 1 lesson');
+  expect(html).toContain('Lesson sources');
   expect(html).toContain('Check lesson 1 sources');
   expect(html).not.toContain('DOM events');
-  expect(html).toContain('Your existing materials remain available');
+  expect(html).toContain('Verify this lesson');
   expect(lessonSourceReviewItems(courseMap, null)).toEqual([]);
 });

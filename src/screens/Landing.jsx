@@ -569,7 +569,7 @@ export default function Landing({
     { openai: 'OpenAI', anthropic: 'Anthropic', google: 'Google', deepseek: 'DeepSeek' }[provider] ||
     'selected provider';
   const landingRequirement = !hasCourseInput
-    ? 'Describe a course or attach a syllabus to continue.'
+    ? ''
     : !scionPermissionReady
       ? 'Open AI settings and review the online Scion data notice, or choose local Scion.'
       : !providerIsKeyless && !apiKey?.trim()
@@ -618,11 +618,10 @@ export default function Landing({
         <div className="mx-auto flex w-full max-w-4xl flex-col">
           <section className="text-center animate-fade-up">
             <h1 className="text-3xl font-semibold leading-[1.08] text-slate-950 dark:text-white sm:text-4xl md:whitespace-nowrap">
-              Turn a syllabus into a teachable course.
+              Create teaching materials for your course.
             </h1>
             <p className="mx-auto mt-3 max-w-2xl text-body-lg text-ink-muted sm:text-sm">
-              Build the course map, instructor materials, and student resources in one free, local-first browser
-              workspace.
+              Plan lessons, prepare activities, and create student resources in one workspace.
             </p>
           </section>
 
@@ -630,7 +629,7 @@ export default function Landing({
             <section className="rounded-[28px] border border-slate-200/80 bg-white/80 p-4 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur-xl dark:border-slate-700/80 dark:bg-slate-950/70 dark:shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:p-5">
               <SetupProgress current="brief" />
               <p className="mt-5 text-center text-body text-ink-muted">
-                Describe the course or attach what you already have.
+                Describe your course or upload a syllabus to get started.
               </p>
 
               {missingRecoveryAttachments.length > 0 && (
@@ -877,7 +876,7 @@ export default function Landing({
                           d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
                         />
                       </svg>
-                      Edit
+                      AI settings
                     </button>
                   </div>
                 ) : (
@@ -1014,7 +1013,7 @@ export default function Landing({
                     className="tactile btn-glow mt-5 w-full rounded-lg bg-slate-950 px-8 py-4 text-sm font-semibold tracking-wide text-white shadow-lg shadow-slate-950/15 transition-all duration-300 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-slate-950 dark:shadow-white/10"
                   >
                     <span className="flex items-center justify-center gap-2.5">
-                      Generate full course package
+                      Generate all materials
                       <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path
                           strokeLinecap="round"
@@ -1045,7 +1044,7 @@ export default function Landing({
                 }`}
               >
                 <span className="flex items-center justify-center gap-2.5">
-                  {isGenerating ? 'Preparing…' : canQuickStart ? 'Customize package' : 'Continue to materials'}
+                  {isGenerating ? 'Preparing…' : canQuickStart ? 'Choose materials' : 'Continue to materials'}
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                   </svg>

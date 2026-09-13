@@ -5,7 +5,6 @@ import DiffReviewCard from './DiffReviewCard';
 import ResearchCard from './ResearchCard';
 import ValidationCard from './ValidationCard';
 import ChangeSummaryCard from './ChangeSummaryCard';
-import PackageSummaryCard from './PackageSummaryCard';
 import AgentProgressCard from './AgentProgressCard';
 import AgentHelpCard from './AgentHelpCard';
 import AgentReceiptCard from './AgentReceiptCard';
@@ -383,7 +382,7 @@ export default function MessageList({
             );
           }
           if (msg.role === 'packageSummary') {
-            return <PackageSummaryCard key={key} summary={msg.summary} />;
+            return null; // The current review report is the single receipt entry.
           }
           if (msg.role === 'workspacePlan') {
             return (
@@ -406,6 +405,11 @@ export default function MessageList({
               />
             );
           }
+          if (
+            msg.role === 'assistant' &&
+            (msg.source === LANDING_AGENT_CONTEXT_SOURCE || msg.meta?.source === LANDING_AGENT_CONTEXT_SOURCE)
+          )
+            return null;
           if (msg.role === 'sourceContext') {
             return <SourceContextCard key={key} message={msg} />;
           }

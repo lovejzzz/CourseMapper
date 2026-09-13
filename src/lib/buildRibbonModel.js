@@ -359,7 +359,7 @@ export function latestKnowledgeActivity(events = []) {
   if (['blueprintEnrichmentCall', 'repairRetryCall'].includes(activity?.type)) {
     return enrichmentLabelFromEvent(activity);
   }
-  return 'Building lesson knowledge';
+  return 'Preparing lesson content';
 }
 
 /**
@@ -612,7 +612,9 @@ function compilationActivityLabel(activity, doneCount, totalCount) {
     if (retry) return `Repairing ${retry[1]} · lessons ${retry[2]}–${retry[3]}`;
     return `Repairing ${label}`;
   }
-  return totalCount > 0 ? `Compiling deliverables · ${doneCount}/${totalCount} ready` : 'Compiling deliverables';
+  return totalCount > 0
+    ? `Creating teaching materials · ${doneCount}/${totalCount} ready`
+    : 'Creating teaching materials';
 }
 
 export function buildBuildRibbonModel({
@@ -654,9 +656,6 @@ export function buildBuildRibbonModel({
   const knowledgeRequested = Math.max(0, Number(enrichmentOutcome?.requestedLessons) || 0);
   const knowledgeEnriched = Math.max(0, Number(enrichmentOutcome?.enrichedLessons) || 0);
   const knowledgeReviewNeeded = knowledgeRequested > 0 && knowledgeEnriched < knowledgeRequested;
-  const packageReviewNeeded =
-    ['review', 'not-graded'].includes(packageQualityPass?.trustState) ||
-    Math.max(0, Number(packageQualityPass?.warnings) || 0) > 0;
   const pipelineState = pipeline.state;
   const materialFailure = pipeline.blockedReason === 'material-generation-failed';
   switch (pipelineState) {
@@ -678,7 +677,7 @@ export function buildBuildRibbonModel({
       break;
     case 'verifying':
       stage = 'verify';
-      stageLabel = String(packageQualityPass?.message || '').trim() || 'Verifying and grading the package';
+      stageLabel = String(packageQualityPass?.message || '').trim() || 'Checking materials';
       break;
     case 'grading':
       stage = 'grade';
@@ -709,7 +708,7 @@ export function buildBuildRibbonModel({
     }
     case 'ready':
       stage = 'ready';
-      stageLabel = knowledgeReviewNeeded || packageReviewNeeded ? 'Exportable with review notes' : 'Ready to export';
+      stageLabel = 'Materials generated';
       break;
     case 'error':
       stage = 'map';

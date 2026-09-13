@@ -465,7 +465,7 @@ function ReadinessPanel({
           ? 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-100'
           : 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/70 dark:text-emerald-200',
         title: needsTeachingReview ? 'Review draft ready to download' : 'Files ready to download',
-        meta: `${readiness.doneFeatureCount}/${readiness.featureCount} files prepared`,
+        meta: `${readiness.doneFeatureCount}/${readiness.featureCount} material types prepared`,
       }
     : packageScope || isBlocked
       ? {
@@ -478,7 +478,7 @@ function ReadinessPanel({
           wrap: 'border-emerald-100 bg-emerald-50/70 text-emerald-700 dark:border-emerald-800/50 dark:bg-emerald-950/30 dark:text-emerald-200',
           icon: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/70 dark:text-emerald-200',
           title: 'Ready to export',
-          meta: `${readiness.doneFeatureCount}/${readiness.featureCount} files prepared`,
+          meta: `${readiness.doneFeatureCount}/${readiness.featureCount} material types prepared`,
         };
 
   return (
@@ -703,7 +703,24 @@ function humanizeReadinessLabel(value) {
   return spaced ? spaced.charAt(0).toUpperCase() + spaced.slice(1) : '';
 }
 
-function QualityReportModal({ quality, onClose }) {
+function reviewFindingSummary(finding) {
+  const detail = String(finding.detail || '');
+  if (finding.code === 'post-draft-admission-invalid' || /post-draft promotion authority/i.test(detail)) {
+    return 'Some lesson content could not be verified against its sources. Check the affected lesson sources before teaching.';
+  }
+  if (/short-answer bank.*independent concept selection/i.test(detail)) {
+    return 'Strengthen short-answer questions: ask students to choose a concept, support their answer with evidence, and explain its limits.';
+  }
+  if (/enriched deck renders no native visual/i.test(detail)) {
+    return 'This slide deck needs a diagram, worked-example table, or chart to explain the content visually.';
+  }
+  if (finding.dimension === 'texture') {
+    return 'Some wording repeats across these materials. Review repeated passages and tailor them to each lesson.';
+  }
+  return detail;
+}
+
+function QualityReportModal({ quality, onClose, courseMap, courseGraph, onIssueClick }) {
   const hasLegacyReceiptGrade = typeof quality?.grade === 'string' && Boolean(quality.grade.trim());
   const hasReportableQuality = quality?.status === 'graded' && Number.isFinite(quality.score) && hasLegacyReceiptGrade;
   useEffect(() => {
@@ -720,7 +737,6 @@ function QualityReportModal({ quality, onClose }) {
   const readiness = quality.readiness || null;
   const readinessComponents = Object.entries(readiness?.components || {});
   const findings = Array.isArray(quality.findings) ? quality.findings : [];
-  const counts = quality.findingCounts || {};
   const modal = (
     <FocusTrap focusTrapOptions={{ clickOutsideDeactivates: true, escapeDeactivates: false }}>
       <div
@@ -739,20 +755,16 @@ function QualityReportModal({ quality, onClose }) {
           <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
             <div className="min-w-0">
               <p id="quality-report-title" className="text-sm font-bold text-slate-800">
-                {readiness
-                  ? `Deterministic package evidence — ${readiness.points?.earned ?? readiness.score}/100 earned`
-                  : `Automated conformance — ${quality.score}/100`}
+                Review notes
               </p>
               <p id="quality-report-summary" className="text-xs text-slate-400">
-                Automated conformance {quality.score}/100 · {counts.p0 || 0} P0 · {counts.p1 || 0} P1 · {counts.p2 || 0}{' '}
-                P2 · grader v{quality.graderVersion}
-                {quality.gradedAt ? ` · ${new Date(quality.gradedAt).toLocaleString()}` : ''}
+                Suggested checks for these materials. Downloads remain available unless a file cannot be prepared.
               </p>
             </div>
             <button
               type="button"
               onClick={onClose}
-              aria-label="Close quality report"
+              aria-label="Close review notes"
               autoFocus
               className="ml-3 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
             >
@@ -762,92 +774,101 @@ function QualityReportModal({ quality, onClose }) {
             </button>
           </div>
           <div className="overflow-y-auto px-5 py-4 space-y-4">
-            {readiness && (
-              <div data-testid="automated-readiness-summary" className="rounded-lg border border-sky-100 bg-sky-50 p-3">
-                <p className="text-xs font-semibold text-sky-800">
-                  {humanizeReadinessLabel(readiness.band)} · {readiness.points?.earned ?? readiness.score} earned ·{' '}
-                  {readiness.points?.lost ?? 'unknown'} lost · {readiness.points?.unobserved ?? 'unknown'} unobserved
-                </p>
-                {Number.isFinite(readiness.positiveValidationEarned) && (
-                  <p className="mt-1 text-xs leading-relaxed text-sky-800">
-                    {readiness.positiveValidationEarned}/{readiness.positiveValidationCoverage} from narrow positive
-                    metrics · {readiness.negativeEvidenceEarned}/{readiness.negativeEvidenceCoverage} from no encoded
-                    defect firing · {readiness.points?.unobserved ?? 'unknown'}/100 unobserved
+            <LessonSourceReview courseMap={courseMap} courseGraph={courseGraph} onIssueClick={onIssueClick} />
+            <details>
+              <summary className="cursor-pointer text-xs text-slate-500">Technical report</summary>
+              {readiness && (
+                <div
+                  data-testid="automated-readiness-summary"
+                  className="rounded-lg border border-sky-100 bg-sky-50 p-3"
+                >
+                  <p className="text-xs font-semibold text-sky-800">
+                    {humanizeReadinessLabel(readiness.band)} · {readiness.points?.earned ?? readiness.score} earned ·{' '}
+                    {readiness.points?.lost ?? 'unknown'} lost · {readiness.points?.unobserved ?? 'unknown'} unobserved
                   </p>
-                )}
-                <p className="mt-1 text-xs leading-relaxed text-sky-700">
-                  {readiness.claimBoundary} Missing evidence stays in the fixed 100-point potential and never improves
-                  the score.
-                </p>
-                {readinessComponents.length > 0 && (
-                  <div className="mt-2 space-y-1">
-                    {readinessComponents.map(([component, value]) => (
-                      <div key={component} className="rounded-md bg-white/70 px-2 py-1.5 text-xs">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="truncate text-sky-700">
-                            {value.label || humanizeReadinessLabel(component)}
-                          </span>
-                          <span className="font-bold text-sky-900">
-                            {value.points?.earned ?? '—'}/{value.points?.max ?? value.weight} earned
-                          </span>
+                  {Number.isFinite(readiness.positiveValidationEarned) && (
+                    <p className="mt-1 text-xs leading-relaxed text-sky-800">
+                      {readiness.positiveValidationEarned}/{readiness.positiveValidationCoverage} from narrow positive
+                      metrics · {readiness.negativeEvidenceEarned}/{readiness.negativeEvidenceCoverage} from no encoded
+                      defect firing · {readiness.points?.unobserved ?? 'unknown'}/100 unobserved
+                    </p>
+                  )}
+                  <p className="mt-1 text-xs leading-relaxed text-sky-700">
+                    {readiness.claimBoundary} Missing evidence stays in the fixed 100-point potential and never improves
+                    the score.
+                  </p>
+                  {readinessComponents.length > 0 && (
+                    <div className="mt-2 space-y-1">
+                      {readinessComponents.map(([component, value]) => (
+                        <div key={component} className="rounded-md bg-white/70 px-2 py-1.5 text-xs">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="truncate text-sky-700">
+                              {value.label || humanizeReadinessLabel(component)}
+                            </span>
+                            <span className="font-bold text-sky-900">
+                              {value.points?.earned ?? '—'}/{value.points?.max ?? value.weight} earned
+                            </span>
+                          </div>
+                          <p className="mt-0.5 leading-snug text-sky-700">{value.reason}</p>
+                          <p className="mt-0.5 leading-snug text-sky-900">Improve: {value.action}</p>
                         </div>
-                        <p className="mt-0.5 leading-snug text-sky-700">{value.reason}</p>
-                        <p className="mt-0.5 leading-snug text-sky-900">Improve: {value.action}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-            <div>
-              <p className="text-xs font-semibold text-slate-500 mb-1.5">Package conformance checks</p>
-              <div className="grid grid-cols-2 gap-1">
-                {dimensions.map(([dimension, score]) => (
-                  <div
-                    key={dimension}
-                    className="flex items-center justify-between rounded-lg bg-slate-50 px-2 py-1 text-xs"
-                  >
-                    <span className="text-slate-500 capitalize">{dimension}</span>
-                    <span className="font-bold text-slate-700">
-                      {score}
-                      {quality.grades?.[dimension] ? ` · ${quality.grades[dimension]}` : ''}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            {Number.isFinite(quality.texture?.score) && (
-              <div data-testid="quality-texture-row">
-                <p className="text-xs font-semibold text-slate-500 mb-1.5">
-                  Texture {quality.texture.score}/100
-                  <span className="ml-1.5 font-medium text-slate-400">style and repetition, counted lightly</span>
-                </p>
-                <div className="grid grid-cols-3 gap-1">
-                  {['sameness', 'openers', 'tails'].map((subKey) => (
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+              <div>
+                <p className="text-xs font-semibold text-slate-500 mb-1.5">Package conformance checks</p>
+                <div className="grid grid-cols-2 gap-1">
+                  {dimensions.map(([dimension, score]) => (
                     <div
-                      key={subKey}
+                      key={dimension}
                       className="flex items-center justify-between rounded-lg bg-slate-50 px-2 py-1 text-xs"
                     >
-                      <span className="text-slate-500 capitalize">{subKey}</span>
+                      <span className="text-slate-500 capitalize">{dimension}</span>
                       <span className="font-bold text-slate-700">
-                        {Number.isFinite(quality.texture.subScores?.[subKey]) ? quality.texture.subScores[subKey] : '—'}
+                        {score}
+                        {quality.grades?.[dimension] ? ` · ${quality.grades[dimension]}` : ''}
                       </span>
                     </div>
                   ))}
                 </div>
-                {Array.isArray(quality.texture.evidence) && quality.texture.evidence.length > 0 && (
-                  <p className="mt-1 rounded bg-slate-50 px-1.5 py-1 font-mono text-xs leading-snug text-slate-500 break-words">
-                    Most repeated: “{quality.texture.evidence[0].shingle}” — {quality.texture.evidence[0].docCount} of{' '}
-                    {quality.texture.evidence[0].docTotal} {quality.texture.evidence[0].feature} documents
-                  </p>
-                )}
               </div>
-            )}
+              {Number.isFinite(quality.texture?.score) && (
+                <div data-testid="quality-texture-row">
+                  <p className="text-xs font-semibold text-slate-500 mb-1.5">
+                    Texture {quality.texture.score}/100
+                    <span className="ml-1.5 font-medium text-slate-400">style and repetition, counted lightly</span>
+                  </p>
+                  <div className="grid grid-cols-3 gap-1">
+                    {['sameness', 'openers', 'tails'].map((subKey) => (
+                      <div
+                        key={subKey}
+                        className="flex items-center justify-between rounded-lg bg-slate-50 px-2 py-1 text-xs"
+                      >
+                        <span className="text-slate-500 capitalize">{subKey}</span>
+                        <span className="font-bold text-slate-700">
+                          {Number.isFinite(quality.texture.subScores?.[subKey])
+                            ? quality.texture.subScores[subKey]
+                            : '—'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  {Array.isArray(quality.texture.evidence) && quality.texture.evidence.length > 0 && (
+                    <p className="mt-1 rounded bg-slate-50 px-1.5 py-1 font-mono text-xs leading-snug text-slate-500 break-words">
+                      Most repeated: “{quality.texture.evidence[0].shingle}” — {quality.texture.evidence[0].docCount} of{' '}
+                      {quality.texture.evidence[0].docTotal} {quality.texture.evidence[0].feature} documents
+                    </p>
+                  )}
+                </div>
+              )}
+            </details>
             <div>
-              <p className="text-xs font-semibold text-slate-500 mb-1.5">Findings ({findings.length})</p>
+              <p className="text-xs font-semibold text-slate-500 mb-1.5">Other notes ({findings.length})</p>
               {findings.length === 0 ? (
                 <p className="rounded-lg bg-emerald-50 px-2 py-1.5 text-xs font-semibold text-emerald-700">
-                  No encoded defects detected. Teaching quality is reviewed separately.
+                  No additional issues were found by the automated checks.
                 </p>
               ) : (
                 <ul className="space-y-1.5">
@@ -859,29 +880,43 @@ function QualityReportModal({ quality, onClose }) {
                             QUALITY_SEVERITY_TONES[finding.severity] || QUALITY_SEVERITY_TONES.P2
                           }`}
                         >
-                          {finding.severity}
+                          {['P0', 'P1'].includes(finding.severity) ? 'Needs attention' : 'Suggestion'}
                         </span>
-                        <span className="text-xs font-semibold capitalize text-slate-400">{finding.dimension}</span>
+                        <span className="text-xs font-semibold capitalize text-slate-400">
+                          {{
+                            citations: 'Sources',
+                            substance: 'Content',
+                            format: 'Layout',
+                            texture: 'Repeated wording',
+                          }[finding.dimension] || finding.dimension}
+                        </span>
                       </div>
-                      <p className="mt-0.5 text-xs leading-snug text-slate-700">{finding.detail}</p>
-                      {finding.file ? <p className="text-xs text-slate-400 break-all">{finding.file}</p> : null}
-                      {finding.evidence ? (
-                        <p className="mt-0.5 rounded bg-slate-50 px-1.5 py-1 font-mono text-xs leading-snug text-slate-500 break-words">
-                          {finding.evidence}
+                      <p className="mt-0.5 text-xs leading-snug text-slate-700">{reviewFindingSummary(finding)}</p>
+                      {finding.file && finding.file !== 'PACKAGE_MANIFEST.json' ? (
+                        <p className="text-xs text-slate-400 break-all">
+                          {FEATURE_LABELS[finding.file.replace(/ artifacts$/, '')] || finding.file}
                         </p>
                       ) : null}
-                      {finding.reason ? <p className="mt-1 text-xs text-slate-600">Why: {finding.reason}</p> : null}
-                      {finding.action ? (
-                        <p className="mt-0.5 text-xs text-slate-700">Improve: {finding.action}</p>
-                      ) : null}
+                      <details className="mt-1 text-xs text-slate-500">
+                        <summary className="cursor-pointer">Check details</summary>
+                        <p className="mt-1 break-words">{finding.detail}</p>
+                        {finding.evidence ? (
+                          <p className="mt-0.5 rounded bg-slate-50 px-1.5 py-1 font-mono text-xs leading-snug text-slate-500 break-words">
+                            {finding.evidence}
+                          </p>
+                        ) : null}
+                        {finding.reason ? <p className="mt-1 text-xs text-slate-600">Why: {finding.reason}</p> : null}
+                        {finding.action ? (
+                          <p className="mt-0.5 text-xs text-slate-700">Improve: {finding.action}</p>
+                        ) : null}
+                      </details>
                     </li>
                   ))}
                 </ul>
               )}
             </div>
             <p className="text-xs text-slate-400 leading-snug">
-              The package includes QUALITY_REPORT.md. Automated conformance detects encoded defects; it is not a
-              teaching-quality grade.
+              These checks can help you review the materials; they do not assess teaching quality.
             </p>
           </div>
         </div>
@@ -1788,9 +1823,7 @@ export default function ExportSidePanel({
         : zipCanFinishPackage
           ? 'Prepare package'
           : zipCanDownloadPackage
-            ? terminalPackageTrust.clean
-              ? 'Download ZIP'
-              : 'Download review ZIP'
+            ? 'Download all materials'
             : 'Prepare package';
   // The export panel is the single ZIP owner.
   const zipDownloadDisabled =
@@ -1804,7 +1837,7 @@ export default function ExportSidePanel({
     allReadyCount === 0 ||
     !courseMap ||
     (selectedLessons !== null && selectedLessons.length === 0);
-  const panelTitle = isPackageGenerationRunning ? 'Building package' : 'Export package';
+  const panelTitle = 'Download materials';
   return (
     <div
       data-testid="export-side-panel"
@@ -1837,7 +1870,16 @@ export default function ExportSidePanel({
         </div>
 
         {qualityModalOpen && (
-          <QualityReportModal quality={packageQualityPass?.quality} onClose={() => setQualityModalOpen(false)} />
+          <QualityReportModal
+            quality={packageQualityPass?.quality}
+            courseMap={courseMap}
+            courseGraph={courseGraph}
+            onIssueClick={(item) => {
+              setQualityModalOpen(false);
+              onReadinessIssueClick?.(item);
+            }}
+            onClose={() => setQualityModalOpen(false)}
+          />
         )}
 
         <ReviewQueue
@@ -1859,8 +1901,8 @@ export default function ExportSidePanel({
         {/* ── Scope toggle ── */}
         <div className="flex items-center bg-slate-100/80 rounded-lg p-0.5 gap-0.5">
           {[
-            { id: 'current', label: 'This tab' },
-            { id: 'all', label: 'Package' },
+            { id: 'current', label: 'Current material' },
+            { id: 'all', label: 'All materials' },
           ].map((s) => (
             <button
               key={s.id}
@@ -1888,7 +1930,7 @@ export default function ExportSidePanel({
           ) : (
             <>
               <span className="font-semibold text-slate-600">
-                {allReadyCount}/{allPackagePartCount} package parts
+                {allReadyCount}/{allPackagePartCount} material types
               </span>{' '}
               generated
             </>
@@ -1898,7 +1940,7 @@ export default function ExportSidePanel({
         {/* v0.14.4 WS-B3: while a finish/generation pass runs, the build
             ribbon narrates — the panel shows nothing here instead of a
             duplicate "Finishing package…" card. */}
-        {!showReadinessFinalizing && (
+        {!showReadinessFinalizing && !zipCanDownloadPackage && (
           <ReadinessPanel
             readiness={displayedReadiness}
             onIssueClick={onReadinessIssueClick}
@@ -1907,15 +1949,6 @@ export default function ExportSidePanel({
             packageQualityPass={packageQualityPass}
             exportPrepared={zipCanDownloadPackage}
             packageScope={scope === 'all'}
-          />
-        )}
-
-        {!showReadinessFinalizing && (
-          <LessonSourceReview
-            courseMap={courseMap}
-            courseGraph={courseGraph}
-            onIssueClick={onReadinessIssueClick}
-            onOpenReport={() => setQualityModalOpen(true)}
           />
         )}
 
@@ -1939,13 +1972,15 @@ export default function ExportSidePanel({
                 while editing scope or while a partial scope is active. */}
             {allLessons.length > 0 && allSelected && !editingLessonScope && (
               <div className="flex items-center justify-between" data-testid="lesson-scope-collapsed">
-                <p className="text-xs font-semibold text-slate-500">Lesson scope</p>
+                <p className="text-xs font-semibold text-slate-500">
+                  {allLessons.length === 1 ? '1 lesson' : `All ${allLessons.length} lessons`}
+                </p>
                 <button
                   data-testid="lesson-scope-edit"
                   onClick={() => setEditingLessonScope(true)}
                   className="text-xs font-semibold text-indigo-500 hover:text-indigo-700 transition-colors"
                 >
-                  {allLessons.length === 1 ? '1 lesson' : `All ${allLessons.length} lessons`} · Edit
+                  Choose lessons
                 </button>
               </div>
             )}
@@ -2008,7 +2043,7 @@ export default function ExportSidePanel({
             )}
 
             <div>
-              <p className="text-xs font-semibold text-slate-500 mb-1.5">Package ZIP</p>
+              <p className="text-xs font-semibold text-slate-500 mb-1.5">ZIP download</p>
               <button
                 data-testid="export-download-zip"
                 onClick={() => doExport('zip')}

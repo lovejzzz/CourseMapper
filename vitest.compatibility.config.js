@@ -14,7 +14,7 @@ export default defineConfig({
       'src/lib/__tests__/practiceCaseExposure.test.js',
       'src/lib/quality/__tests__/deepQualityStructure.test.js',
       'src/components/deliverables/__tests__/*.{test,spec}.{js,jsx}',
-      'src/components/chat/__tests__/AgentWorkingSetPanel.test.jsx',
+      'src/components/chat/__tests__/{AgentWorkingSetPanel,AgentQualityControl,MessageList.workspacePlan,ChatPanel.agentCommands}.test.jsx',
       'src/components/__tests__/{GenericDeliverableView,ExportSidePanel.readiness,Header,CourseMapLiveProgress,LessonSourceReview}.test.jsx',
       'src/lib/__tests__/{detectLessons,deliverableSchemas,exporterUtils,generationCancellation,scionCompilerRoute,keyMaps,directExportIntegrity}.test.js',
       'tests/v01654-editable-object-fields.test.jsx',

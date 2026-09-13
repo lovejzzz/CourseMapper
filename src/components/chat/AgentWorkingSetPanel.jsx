@@ -306,7 +306,9 @@ export default function AgentWorkingSetPanel(props) {
   if (!summary.hasCourseMap && !summary.hasDeliverableContext) return null;
 
   const quietMaterialParts = [
-    summary.readyFeatureCount ? `${summary.readyFeatureCount} ready` : null,
+    summary.readyFeatureCount
+      ? `${summary.readyFeatureCount} material ${summary.readyFeatureCount === 1 ? 'type' : 'types'} generated`
+      : null,
     summary.goalReviewFeatureCount
       ? `${summary.goalReviewFeatureCount} ${summary.goalReviewFeatureCount === 1 ? 'needs' : 'need'} target review`
       : null,

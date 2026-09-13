@@ -787,7 +787,7 @@ describe('teacher structure review interaction', () => {
       );
       expect(container.textContent).toContain('In the assignment brief.');
       expect(container.textContent).not.toContain('Teacher-only');
-      expect(container.textContent).not.toContain('Review sources and scoring');
+      expect(container.textContent).not.toContain('Edit lesson requirements');
       expect(container.textContent).not.toContain('Your previous material is preserved.');
     },
   );

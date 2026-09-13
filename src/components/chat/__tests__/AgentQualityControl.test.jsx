@@ -24,7 +24,7 @@ describe('AgentQualityControl', () => {
     container.remove();
   });
 
-  it('keeps the honest evidence score and report action in Agent', () => {
+  it('keeps one review action without an unexplained numeric score', () => {
     const onOpen = vi.fn();
     act(() => {
       root.render(
@@ -42,9 +42,10 @@ describe('AgentQualityControl', () => {
     });
 
     const button = container.querySelector('[data-testid="agent-quality-score"]');
-    expect(container.textContent).toContain('Agent quality report');
-    expect(button?.textContent).toContain('Evidence 34/100');
-    expect(button?.getAttribute('aria-label')).toContain('reasons, and improvement actions');
+    expect(container.textContent).toContain('Review notes');
+    expect(button?.textContent).toBe('Review notes');
+    expect(container.textContent).not.toContain('34/100');
+    expect(button?.getAttribute('aria-label')).toBe('Open review notes');
     expect(button?.className).toContain('min-h-11');
     expect(button?.className).toContain('sm:min-h-8');
 
@@ -65,12 +66,12 @@ describe('AgentQualityControl', () => {
     });
 
     expect(container.querySelector('[data-testid="agent-quality-unavailable"]')?.textContent).toContain(
-      'Quality unavailable',
+      'Check incomplete',
     );
     expect(container.querySelector('[data-testid="agent-quality-reason"]')?.textContent).toContain(
       'quality check timed out',
     );
-    expect(container.textContent).toContain('Run Prepare package again.');
+    expect(container.textContent).toContain('Try preparing the materials again.');
     expect(container.textContent).not.toContain('undefined');
     expect(container.querySelector('button')).toBeNull();
     expect(onOpen).not.toHaveBeenCalled();
@@ -112,7 +113,7 @@ describe('AgentQualityControl', () => {
 
     expect(container.querySelector('[data-testid="agent-quality-unavailable"]')).not.toBeNull();
     expect(container.textContent).toContain('The quality grader did not return a complete result.');
-    expect(container.textContent).toContain('Run Prepare package again.');
+    expect(container.textContent).toContain('Try preparing the materials again.');
     expect(container.textContent).not.toContain('undefined');
     expect(container.querySelector('button')).toBeNull();
     expect(onOpen).not.toHaveBeenCalled();
