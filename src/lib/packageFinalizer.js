@@ -326,15 +326,50 @@ export function buildLessonIdentityIssues({ courseMap, deliverables } = {}) {
   for (const spec of LESSON_IDENTITY_COLLECTIONS) {
     const entry = deliverables?.[spec.featureId];
     if (entry?.status !== 'done') continue;
-    const collection = firstCollection(entry.data, spec.keys);
+    let collection = firstCollection(entry.data, spec.keys);
     if (!collection) continue;
-    if (collection.length !== lessons.length) {
+    let expectedLessons = lessons.map((lesson, index) => ({ lesson, index }));
+    if (spec.featureId === 'quizBank') {
+      // Registry exams are additional assessments, not extra course lessons.
+      const exams = collection.filter((item) => item.kind === 'exam');
+      const validExams = exams.filter(
+        (item) =>
+          Number.isInteger(item.lessonNumber) &&
+          item.lessonNumber >= 1 &&
+          item.lessonNumber <= lessons.length &&
+          item.assessmentId &&
+          item.examScope,
+      );
+      if (validExams.length !== exams.length) {
+        issues.push(
+          normalizeReadinessIssue({
+            severity: 'blocker',
+            featureId: spec.featureId,
+            source: 'lessonIdentity',
+            message: 'An exam is missing a valid course lesson or assessment reference; rebuild before export.',
+            retryable: false,
+            autoFixable: false,
+          }),
+        );
+      }
+      const examLessons = new Set(validExams.map((item) => item.lessonNumber));
+      expectedLessons = expectedLessons.filter(
+        ({ lesson, index }) =>
+          !(
+            examLessons.has(index + 1) &&
+            /\b(?:midterm|final|exam)\b/i.test(courseMapLessonTitle(lesson, index)) &&
+            !/\b(?:review|prep|preparation|practice|study|readiness)\b/i.test(courseMapLessonTitle(lesson, index))
+          ),
+      );
+      collection = collection.filter((item) => item.kind !== 'exam');
+    }
+    if (collection.length !== expectedLessons.length) {
       issues.push(
         normalizeReadinessIssue({
           severity: 'blocker',
           featureId: spec.featureId,
           label: `${featureLabel(spec.featureId)} lesson identity`,
-          message: `${featureLabel(spec.featureId)} contains ${collection.length} ordered lesson item(s), but the Course Map contains ${lessons.length}; rebuild before export.`,
+          message: `${featureLabel(spec.featureId)} contains ${collection.length} ordered lesson item(s), but the Course Map requires ${expectedLessons.length}; rebuild before export.`,
           source: 'lessonIdentity',
           retryable: false,
           autoFixable: false,
@@ -342,8 +377,9 @@ export function buildLessonIdentityIssues({ courseMap, deliverables } = {}) {
       );
       continue;
     }
-    collection.forEach((item, index) => {
-      const expectedTitle = courseMapLessonTitle(lessons[index], index);
+    collection.forEach((item, position) => {
+      const { lesson, index } = expectedLessons[position];
+      const expectedTitle = courseMapLessonTitle(lesson, index);
       const actualTitle = itemLessonTitle(item, spec.titleKeys);
       const explicitNumber = Number(item?.lessonNumber);
       const numberMismatch = Number.isFinite(explicitNumber) && explicitNumber !== index + 1;

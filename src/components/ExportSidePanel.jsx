@@ -1447,7 +1447,7 @@ export default function ExportSidePanel({
       if (finishOutcome) {
         setPendingReadinessExport(null);
         setLastError('');
-        setLastNotice('');
+        setLastNotice('Some materials still need changes. Open Review notes for details, or retry preparation.');
         return;
       }
       const canFinishPackageAgain =
@@ -1801,27 +1801,26 @@ export default function ExportSidePanel({
     featureLabels: FEATURE_LABELS,
   });
   const zipHasTerminalTrustBlocker = scope === 'all' && terminalPackageTrust.blocked;
-  const zipNeedsFinalizerMigration =
-    scope === 'all' && !!packageQualityPass?.receipt && !hasFinishedPackageReceipt(packageQualityPass);
   const zipHasVerifiedReceipt = scope === 'all' && hasDownloadableVerifiedPackage(packageQualityPass);
   const zipHasPreparedSnapshot = scope === 'all' && preparedPackageRef.current?.receiptKey === currentPackageReceiptKey;
   const zipCanDownloadPackage = zipHasVerifiedReceipt && zipHasPreparedSnapshot;
   const zipPendingNeedsAttention =
     zipPendingReadiness && !checkedWorkspaceChanged && pendingReadinessExport?.canFinishPackageAgain === false;
-  const zipCanFinishPackage =
+  const zipCanRetryPreparation =
     scope === 'all' &&
-    !zipHasPreparedSnapshot &&
-    canFinishPackage &&
-    !zipPendingNeedsAttention &&
-    !zipHasExportFailure &&
-    (!zipHasTerminalTrustBlocker || checkedWorkspaceChanged || zipNeedsFinalizerMigration || zipHasVerifiedReceipt);
+    !zipCanDownloadPackage &&
+    (zipHasTerminalTrustBlocker || zipHasExportFailure || zipPendingNeedsAttention);
+  const zipCanFinishPackage =
+    scope === 'all' && canFinishPackage && (!zipHasPreparedSnapshot || zipCanRetryPreparation);
   const zipButtonLabel =
     busy === 'zip'
       ? 'Preparing ZIP…'
       : finishPackageBusy
         ? 'Finishing package'
         : zipCanFinishPackage
-          ? 'Prepare package'
+          ? zipCanRetryPreparation
+            ? 'Retry preparation'
+            : 'Prepare package'
           : zipCanDownloadPackage
             ? 'Download all materials'
             : 'Prepare package';
@@ -1830,10 +1829,8 @@ export default function ExportSidePanel({
     !!busy ||
     isPackageQualityRunning ||
     finishPackageBusy ||
-    zipHasExportFailure ||
     (!zipCanDownloadPackage && !zipCanFinishPackage) ||
     (zipPendingReadiness && !canFinishPackage) ||
-    zipPendingNeedsAttention ||
     allReadyCount === 0 ||
     !courseMap ||
     (selectedLessons !== null && selectedLessons.length === 0);
@@ -2046,7 +2043,7 @@ export default function ExportSidePanel({
               <p className="text-xs font-semibold text-slate-500 mb-1.5">ZIP download</p>
               <button
                 data-testid="export-download-zip"
-                onClick={() => doExport('zip')}
+                onClick={() => (zipCanRetryPreparation ? finishPackageForExport() : doExport('zip'))}
                 disabled={zipDownloadDisabled}
                 aria-busy={busy === 'zip'}
                 className="tactile flex w-full items-center justify-center gap-2 rounded-lg bg-slate-950 py-2.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"

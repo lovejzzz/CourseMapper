@@ -123,6 +123,19 @@ describe('auditDeliverableContentQuality', () => {
     expect(findings.some((finding) => finding.code === 'dangling-clause')).toBe(false);
   });
 
+  it('preserves complete relative read/write clauses but flags missing objects', () => {
+    const { findings } = auditDeliverableContentQuality('syllabus', {
+      notes: [
+        'open() returns a file object that the program then reads from or writes to.',
+        'Choose the file which the program reads from.',
+        'The program writes to.',
+      ],
+    });
+    const dangling = findings.filter((finding) => finding.code === 'dangling-clause');
+    expect(dangling).toHaveLength(1);
+    expect(dangling[0].sample).toBe('The program writes to.');
+  });
+
   it('does not flag a complete temporal phrase ending in before', () => {
     const { findings } = auditDeliverableContentQuality('studyGuides', {
       lessons: [

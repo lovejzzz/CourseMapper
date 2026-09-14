@@ -1229,7 +1229,7 @@ describe('ExportSidePanel readiness repair timing', () => {
     });
 
     const zipButton = container.querySelector('[data-testid="export-download-zip"]');
-    expect(zipButton?.textContent).toContain('Prepare package');
+    expect(zipButton?.textContent).toContain('Retry preparation');
     expect(zipButton?.disabled).toBe(false);
 
     await act(async () => {
@@ -1475,7 +1475,7 @@ describe('ExportSidePanel readiness repair timing', () => {
     expect(container.querySelector('[data-testid="readiness-status"]')?.textContent).toContain('Prepare package');
     expect(container.querySelector('[data-testid="export-side-panel"]')?.textContent).not.toMatch(/score \d+/i);
     expect(container.querySelector('[data-testid="export-error"]')).toBeNull();
-    expect(container.querySelector('[data-testid="export-notice"]')).toBeNull();
+    expect(container.querySelector('[data-testid="export-notice"]')?.textContent).toContain('retry preparation');
   });
 
   it('routes a graded structural download block to readiness without a false quality warning', async () => {
@@ -1633,23 +1633,30 @@ describe('ExportSidePanel readiness repair timing', () => {
       packageQualityPass: blockedPass,
     };
     await renderPanel(props);
-    expect(container.querySelector('[data-testid="export-download-zip"]').disabled).toBe(true);
+    expect(container.querySelector('[data-testid="export-download-zip"]').disabled).toBe(false);
+    await act(async () => {
+      container.querySelector('[data-testid="export-download-zip"]').click();
+      await vi.runAllTimersAsync();
+    });
+    expect(onFinishPackage).toHaveBeenCalledTimes(1);
+    expect(downloadCourseMaterialsZip).not.toHaveBeenCalled();
     const correctedMap = structuredClone(cleanCourseMap);
     correctedMap.lessons[0].sections[0].learningObjectives =
       'Use the supplied attendance records to justify both bounds.';
     await renderPanel({ ...props, courseMapInput: correctedMap });
     const button = container.querySelector('[data-testid="export-download-zip"]');
-    expect(button.textContent).toContain('Prepare package');
+    expect(button.textContent).toContain('Retry preparation');
     expect(button.disabled).toBe(false);
     await act(async () => {
       button.dispatchEvent(new MouseEvent('click', { bubbles: true }));
       await vi.runAllTimersAsync();
     });
-    expect(onFinishPackage).toHaveBeenCalledTimes(1);
+    expect(onFinishPackage).toHaveBeenCalledTimes(2);
     expect(downloadCourseMaterialsZip).not.toHaveBeenCalled();
-    // A fresh failed assessment binds to the new material and blocks again.
+    // A fresh failed assessment still permits recovery, never an unchecked download.
     await renderPanel({ ...props, courseMapInput: correctedMap, packageQualityPass: structuredClone(blockedPass) });
-    expect(container.querySelector('[data-testid="export-download-zip"]').disabled).toBe(true);
+    expect(container.querySelector('[data-testid="export-download-zip"]').disabled).toBe(false);
+    expect(downloadCourseMaterialsZip).not.toHaveBeenCalled();
   });
 
   it('does not race a verified reviewed package back into auto-repair before ZIP download', async () => {
@@ -1785,8 +1792,8 @@ describe('ExportSidePanel readiness repair timing', () => {
     expect(panel?.textContent).toContain('Quiz & Exam Bank: 1 export issue must be fixed before the ZIP is available.');
 
     const zipButton = container.querySelector('[data-testid="export-download-zip"]');
-    expect(zipButton?.textContent).toContain('Prepare package');
-    expect(zipButton?.disabled).toBe(true);
+    expect(zipButton?.textContent).toContain('Retry preparation');
+    expect(zipButton?.disabled).toBe(false);
 
     await act(async () => {
       zipButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));

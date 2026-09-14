@@ -674,7 +674,12 @@ function checkReviewOnlySourceTeachingContent(findings, { files, manifest }, cou
   const semanticReviewOnlyRows = (manifest?.sourceReviewRows || []).filter(
     (row) =>
       row?.supportReceipt?.semanticSupport === false ||
-      row?.supportReceipt?.readinessEligible === false ||
+      (row?.supportReceipt?.readinessEligible === false &&
+        !(
+          row.supportReceipt.sourceIdentityVerified === true &&
+          row.supportReceipt.semanticAdmissionVerified === true &&
+          row.supportReceipt.semanticSupport === true
+        )) ||
       /not support for downstream teaching claims/i.test(row?.supportReceipt?.claimBoundary || ''),
   );
   const quarantine = buildReviewOnlySourceEvidenceQuarantine(semanticReviewOnlyRows, {

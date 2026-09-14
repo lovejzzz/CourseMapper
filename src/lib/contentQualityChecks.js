@@ -21,6 +21,8 @@ const DANGLING_EXEMPT_RE = /\b(?:etc|e\.g|i\.e)[.]\s*$/i;
 // in instructor prose and must not be diagnosed as missing-object seams.
 const VALID_TERMINAL_PARTICLE_RE =
   /\b(?:watch for|look for|listen for|account for|prepare for|plan for|wait for|care for|ask for|search for|pay for|hope for|wish for|settle for|stand for|call for|aim for|work with|start with|begin with|end with|follow with|connect with|engage with|align with|agree with|meet with|share with|(?:come|comes|came|coming) from|result from|learn from|benefit from|move into|fit into|enter into|look into|go into|(?:sign|signed|signing|log|logged|logging) in|check[-\s]?in|turn in|hand in|participate in|belong to|lead to|refer to|listen to|respond to|contribute to|talk to|look around|move around|(?:day|week|night|hour|minute|month|year|session|class) before)[.]\s*$/i;
+// Relative clauses supply the object of a terminal read/write preposition.
+const VALID_RELATIVE_IO_RE = /\b(?:that|which)\b[^.!?]{0,160}\b(?:reads? from|writes? to)[.]\s*$/i;
 const LEADING_COLON_RE = /^\s*:/;
 const ORPHAN_CLOSING_QUOTE_RE = /^\s*[”’]+\s*(?=[A-Z0-9])/;
 const ENCYCLOPEDIA_CROSS_REFERENCE_RE = /\(\s*See also [^)]+\)\s*/i;
@@ -61,7 +63,12 @@ function pushFinding(findings, code, path, sample) {
 
 export function hasDanglingClauseSeam(value) {
   const text = String(value || '').trim();
-  return DANGLING_CLAUSE_RE.test(text) && !DANGLING_EXEMPT_RE.test(text) && !VALID_TERMINAL_PARTICLE_RE.test(text);
+  return (
+    DANGLING_CLAUSE_RE.test(text) &&
+    !DANGLING_EXEMPT_RE.test(text) &&
+    !VALID_TERMINAL_PARTICLE_RE.test(text) &&
+    !VALID_RELATIVE_IO_RE.test(text)
+  );
 }
 
 function checkSentenceIntegrity(findings, featureId, data) {

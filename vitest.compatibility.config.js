@@ -12,6 +12,8 @@ export default defineConfig({
       'src/lib/__tests__/courseStore.test.js',
       'src/lib/__tests__/explicitLessonSequence.test.js',
       'src/lib/__tests__/practiceCaseExposure.test.js',
+      'src/lib/__tests__/packageLessonIdentity.test.js',
+      'src/lib/__tests__/requiredLabAssets.test.js',
       'src/lib/quality/__tests__/deepQualityStructure.test.js',
       'src/components/deliverables/__tests__/*.{test,spec}.{js,jsx}',
       'src/components/chat/__tests__/{AgentWorkingSetPanel,AgentQualityControl,MessageList.workspacePlan,ChatPanel.agentCommands}.test.jsx',

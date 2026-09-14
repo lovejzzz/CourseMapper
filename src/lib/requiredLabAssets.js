@@ -51,7 +51,7 @@ function courseIdentityText(courseMap) {
 const DATA_SCIENCE_IDENTITY =
   /\b(machine learning|data science|data analytics|data mining|predictive modeling|statistical learning|deep learning|business analytics)\b/;
 const PYTHON_DATA_IDENTITY =
-  /(?=.*\bpython\b)(?=.*\b(?:pandas|data(?:set|frame|\s+analysis|\s+cleaning|\s+visualization)|notebooks?|matplotlib|policy\s+analysis)\b)/;
+  /(?=.*\bpython\b)(?=.*\b(?:pandas|data(?:set|frame|\s+analysis|\s+cleaning|\s+visualization)|matplotlib|policy\s+analysis)\b)/;
 // Each token names a concrete data-science artifact or practice — never a
 // generic pedagogy word like "model" or "dataset" alone.
 const DATA_SCIENCE_HARD_TOKENS = [

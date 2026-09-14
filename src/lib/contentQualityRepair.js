@@ -215,6 +215,8 @@ function sourceFactPathKey(path = []) {
 }
 
 function normalizedOffsetMap(value) {
+  // Most prose is already normalized; avoid normalizing every prefix (quadratic work).
+  if (value.normalize('NFKC') === value) return { start: (offset) => offset, end: (offset) => offset };
   const boundaries = [0];
   for (let index = 0; index < value.length; ) {
     const point = value.codePointAt(index);
@@ -250,13 +252,14 @@ function sourceFactMatches(value, fact) {
     tokens.push({ token: match[0].toLowerCase(), start: match.index, end: match.index + match[0].length });
   }
   if (tokens.length < expected.length) return [];
-  const offsets = normalizedOffsetMap(String(value || ''));
+  let offsets;
   const factCore = sourceFactCore(fact);
   const factOpening = /^[\s('"“‘\[]*/.exec(factCore)?.[0] || '';
   const factClosing = /[\s)'"”’\],;:%‰°]*$/.exec(factCore)?.[0] || '';
   const matches = [];
   for (let index = 0; index + expected.length <= tokens.length; index += 1) {
     if (!expected.every((token, tokenIndex) => tokens[index + tokenIndex].token === token)) continue;
+    offsets ||= normalizedOffsetMap(String(value || ''));
     const last = tokens[index + expected.length - 1];
     let start = offsets.start(tokens[index].start);
     let end = offsets.end(last.end);

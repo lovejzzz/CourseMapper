@@ -2,6 +2,29 @@ import { describe, expect, it } from 'vitest';
 import { buildBundledRequiredLabAssets, collectRequiredLabAssets } from '../requiredLabAssets';
 
 describe('collectRequiredLabAssets', () => {
+  it('does not invent data-science assets for introductory Python using a notebook editor', () => {
+    expect(
+      collectRequiredLabAssets({
+        courseMap: {
+          courseName: 'Introduction to Computer Science with Python',
+          lessons: [
+            {
+              title: 'Variables and Data Types',
+              sections: [
+                {
+                  technologyNeeded:
+                    'Code editor, terminal or notebook, sample input file when needed, and test-output log.',
+                  weeklyAssessments: 'Weekly coding labs and autograded assignments',
+                  learningObjectives: 'Trace variables, implement functions, and debug Python programs.',
+                },
+              ],
+            },
+          ],
+        },
+      }),
+    ).toEqual([]);
+  });
+
   it('does not infer lab assets for non-data courses from generated deliverable wording', () => {
     const requirements = collectRequiredLabAssets({
       courseMap: {

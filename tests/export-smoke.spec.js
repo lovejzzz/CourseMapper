@@ -588,7 +588,7 @@ test.describe('Export smoke', () => {
     const status = page.getByTestId('readiness-status');
     const button = page.getByTestId('export-download-zip');
     await expect(status).toContainText('Prepare package');
-    await expect(button).toContainText('Prepare package');
+    await expect(button).toContainText('Retry preparation');
     await expect(button).toBeEnabled();
 
     let unexpectedDownload = false;
@@ -1644,8 +1644,16 @@ test.describe('Export smoke', () => {
     await expect(page.getByTestId('export-download-zip')).toContainText('Prepare package');
     await page.getByTestId('export-download-zip').click();
     await expect(page.getByTestId('readiness-status')).toContainText('Prepare package', { timeout: 30000 });
-    await expect(page.getByTestId('export-download-zip')).toContainText('Prepare package');
-    await expect(page.getByTestId('export-download-zip')).toBeDisabled();
+    await expect(page.getByTestId('export-download-zip')).toContainText('Retry preparation');
+    await expect(page.getByTestId('export-download-zip')).toBeEnabled();
+    let downloaded = false;
+    page.on('download', () => {
+      downloaded = true;
+    });
+    await page.getByTestId('export-download-zip').click();
+    await expect(page.getByTestId('export-download-zip')).toHaveText('Retry preparation');
+    await expect(page.getByTestId('export-download-zip')).toBeEnabled();
+    expect(downloaded).toBe(false);
     await expect(page.getByTestId('export-side-panel')).not.toContainText(/draft/i);
     await expect(page.getByTestId('export-side-panel')).not.toContainText(/evidence \d+\/100|score \d+/i);
     const agentPanel = page.getByTestId('workspace-agent-panel');

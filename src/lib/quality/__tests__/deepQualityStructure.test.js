@@ -6,6 +6,43 @@ import { normalizeLessonSpecificTokens } from '../semanticSkeletonMask.js';
 import { sha256HexSync } from '../../sha256Sync.js';
 
 describe('deep quality package structure', () => {
+  it.each([true, false])(
+    'distinguishes pending rendered proof from rejected source content (admitted: %s)',
+    async (admitted) => {
+      const path = 'Lesson Plans/Lesson 01 - Debugging.txt';
+      const result = await grade({
+        fileProvider: createMemoryFileProvider({
+          'PACKAGE_MANIFEST.json': JSON.stringify({
+            lessonScope: [1],
+            readiness: { status: 'ready', blockers: 0 },
+            files: [{ path, featureId: 'lessonPlans', lessonNumber: 1 }],
+            sourceReviewRows: [
+              {
+                title: 'Debugging',
+                url: 'https://en.wikipedia.org/wiki/Debugging',
+                supportReceipt: {
+                  readinessEligible: false,
+                  artifactVisibilityVerified: false,
+                  sourceIdentityVerified: true,
+                  semanticAdmissionVerified: admitted,
+                  semanticSupport: admitted,
+                },
+              },
+            ],
+          }),
+          [path]: 'Reference: Debugging — https://en.wikipedia.org/wiki/Debugging',
+        }),
+        course: { title: 'Python Programming', featureIds: ['lessonPlans'] },
+        honesty: { pipeline: { judgment: 'compiler-verified fixture' } },
+      });
+      expect(
+        result.findings.some(
+          (finding) => finding.detail === 'review-only source evidence leaked into learner-facing teaching content',
+        ),
+      ).toBe(!admitted);
+    },
+  );
+
   it('scores an exact compiler boundary directive used as a physical Course FAQ answer', async () => {
     const faqPath = 'Course FAQ/Lesson 01 - Python Data Types - Course FAQ.txt';
     const result = await grade({
