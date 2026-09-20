@@ -139,3 +139,35 @@ for (const [name, key, loader, merge, value] of [
     expect(localStorage.getItem(accountStorageKey(key, 'a'))).toContain('A remote');
     expect(JSON.stringify(cloud.saveProfile.mock.calls.filter((c) => c[0] === 'b'))).not.toContain('A remote');
   });
+
+it('rejects a definition update when storage is full without publishing a partial cloud change', () => {
+  const saved = saveCustomDeliverable({ name: 'Original' }, 'a');
+  cloud.saveCustomDeliverable.mockClear();
+  const originalSet = localStorage.setItem;
+  localStorage.setItem = () => {
+    throw new DOMException('Full', 'QuotaExceededError');
+  };
+  expect(() => saveCustomDeliverable({ ...saved, name: 'Unsaved edit' }, 'a')).toThrow('could not save');
+  expect(getCustomDeliverable(saved.id, 'a').name).toBe('Original');
+  expect(cloud.saveCustomDeliverable).not.toHaveBeenCalled();
+  localStorage.setItem = originalSet;
+  expect(saveCustomDeliverable({ ...saved, name: 'Retry' }, 'a').name).toBe('Retry');
+});
+
+it('does not allocate an empty custom-definition cache during sign-in', async () => {
+  const set = vi.spyOn(localStorage, 'setItem').mockImplementation(() => {
+    throw new DOMException('Full', 'QuotaExceededError');
+  });
+  expect(await mergeCloudDeliverables('empty-account')).toEqual({});
+  expect(set).not.toHaveBeenCalled();
+});
+
+it('can remove the last definition even when new storage writes are unavailable', () => {
+  const saved = saveCustomDeliverable({ name: 'Disposable definition' }, 'a');
+  localStorage.setItem = () => {
+    throw new DOMException('Full', 'QuotaExceededError');
+  };
+  expect(deleteCustomDeliverable(saved.id, 'a')).toBe(true);
+  expect(getCustomDeliverable(saved.id, 'a')).toBeNull();
+  expect(cloud.deleteCustomDeliverable).toHaveBeenCalledWith('a', saved.id);
+});

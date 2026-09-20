@@ -10,6 +10,7 @@ export default defineConfig({
       'src/contexts/__tests__/AuthContext.test.jsx',
       'src/components/__tests__/{UserMenu,EmailSignInButton}.test.jsx',
       'src/lib/__tests__/accountCacheIsolation.test.js',
+      'src/screens/__tests__/CustomDeliverableBuilder.test.jsx',
       'src/components/config/__tests__/InstitutionProfileCard.test.jsx',
       'src/lib/__tests__/codingPracticeReact.test.jsx',
       'src/lib/__tests__/{deliverablePostProcess,packageZipExporter}.test.js',
