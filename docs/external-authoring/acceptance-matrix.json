@@ -11,7 +11,7 @@
       "expected": "无需 Codex、终端、MCP 地址或 API key。",
       "evidence": "真实 ChatGPT",
       "status": "pending-live-platform",
-      "implementationEvidence": "No public/approved ChatGPT installation tested."
+      "implementationEvidence": "Private ChatGPT apps registered and OAuth provider login/code exchange succeeded. ChatGPT retains no account or actions, so actual teacher generation and review entry remain unverified."
     },
     {
       "id": "T02",
@@ -70,8 +70,8 @@
       "procedure": "测试 discovery、PKCE、redirect、授权码一次性、资源 audience。",
       "expected": "合法连接成功；错误资源和 redirect 拒绝。",
       "evidence": "服务端/真实宿主",
-      "status": "pending-infrastructure",
-      "implementationEvidence": "Cloud Run resource server and Auth0 issuer/API are deployed. HTTPS metadata, JWT issuer/audience rejection, website-only account-linking routes, S256/state/nonce/one-use callback logic and Firestore binding races are tested. The linking client still awaits action-time browser access approval. Provider PKCE/redirect/refresh and actual host authorization remain unverified."
+      "status": "partial",
+      "implementationEvidence": "Live HTTPS discovery and approved static public-client registration completed. Real Firebase Google login and Auth0 website identity binding succeeded. Actual ChatGPT authorization requests use S256 PKCE and the exact registered callback; Auth0 logs successful code exchange for the correct resource audience. ChatGPT still does not retain its account link or expose tools, and Cloud Run receives no authenticated MCP request afterward. Complete host authorization, provider negative redirect/code-reuse cases and refresh remain unverified. Local JWT issuer/audience rejection, state/nonce/one-use callback logic and Firestore binding races pass."
     },
     {
       "id": "T08",
