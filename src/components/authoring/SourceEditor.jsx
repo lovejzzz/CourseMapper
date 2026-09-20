@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import SourceFilePicker from './SourceFilePicker';
 import { id } from '../../lib/authoringCore/primitives.js';
 

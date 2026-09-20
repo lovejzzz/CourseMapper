@@ -1,4 +1,3 @@
-import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, it } from 'vitest';
 import SourceEditor from '../../src/components/authoring/SourceEditor.jsx';
