@@ -361,7 +361,7 @@
       "expected": "服务端应用保留/CAS 阻止重复正式写入。",
       "evidence": "服务端/浏览器",
       "status": "passed-local",
-      "implementationEvidence": "Real HTTP reservation test rejects second device."
+      "implementationEvidence": "Real HTTP reservation test rejects second device. Two isolated real Chrome profiles now pass lost HTTP reservation/receipt body recovery, reload, latest teacher edits, one-day second-profile exclusion, and idempotent receipt retry. Browser CI runs the six-case interruptedBrowserSmoke.mjs fixture. This uses synthetic identity and server storage, not live Google accounts or physical devices."
     },
     {
       "id": "T37",
@@ -371,7 +371,7 @@
       "expected": "进入待核对状态，不超时自动允许第二次应用。",
       "evidence": "故障注入",
       "status": "partial",
-      "implementationEvidence": "Durable intent precedes reservation; lost-response retries reuse the same ID. Prepared intents cannot apply prematurely; concurrent tabs are serialized. Server cancellation prevents delayed reservation revival and never unlocks an existing reservation. Late/idempotent receipt and account-safe recovery tested. Actual live multi-device/cloud-sync interruption acceptance remains pending. Added local integrated fault test with actual HTTP routes and client recovery functions, two independent IndexedDB stores, one-day undelivered receipt, lost response after receipt commit, store reopen and idempotent retry. Second device remains blocked before and after receipt commit; first snapshot is preserved. Affected suites: 12 passing tests. Rendered live-device acceptance remains pending."
+      "implementationEvidence": "Durable intent precedes reservation; lost-response retries reuse the same ID. Prepared intents cannot apply prematurely; concurrent tabs are serialized. Server cancellation prevents delayed reservation revival and never unlocks an existing reservation. Late/idempotent receipt and account-safe recovery tested. Actual live multi-device/cloud-sync interruption acceptance remains pending. Added local integrated fault test with actual HTTP routes and client recovery functions, two independent IndexedDB stores, one-day undelivered receipt, lost response after receipt commit, store reopen and idempotent retry. Second device remains blocked before and after receipt commit; first snapshot is preserved. Affected suites: 12 passing tests. Rendered live-device acceptance remains pending. Two isolated real Chrome profiles now pass lost HTTP reservation/receipt body recovery, reload, latest teacher edits, one-day second-profile exclusion, and idempotent receipt retry. Browser CI runs the six-case interruptedBrowserSmoke.mjs fixture. This uses synthetic identity and server storage, not live Google accounts or physical devices."
     },
     {
       "id": "T38",
