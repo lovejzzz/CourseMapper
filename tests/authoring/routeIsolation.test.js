@@ -35,12 +35,18 @@ async function harness(run) {
     const server = app.listen(0, '127.0.0.1', () => resolve(server));
   });
   const base = `http://127.0.0.1:${server.address().port}`;
-  const post = async (path, body, authorization = 'Bearer website-other', sourceOrigin = origin) => {
+  const post = async (
+    path,
+    body,
+    authorization = 'Bearer website-other',
+    sourceOrigin = origin,
+    accept = 'application/json, text/event-stream',
+  ) => {
     const response = await fetch(`${base}${path}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Accept: 'application/json, text/event-stream',
+        Accept: accept,
         ...(authorization ? { Authorization: authorization } : {}),
         ...(sourceOrigin ? { Origin: sourceOrigin } : {}),
       },
@@ -65,6 +71,49 @@ async function harness(run) {
 }
 
 describe('two-account HTTP route isolation', () => {
+  it('serves JSON discovery clients without SSE while preserving authentication and media-type rejection', async () =>
+    harness(async ({ post, record }) => {
+      const initialize = {
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'initialize',
+        params: {
+          protocolVersion: '2025-03-26',
+          capabilities: {},
+          clientInfo: { name: 'json-client', version: '1' },
+        },
+      };
+      for (const accept of ['application/json', '*/*', 'application/json, text/event-stream']) {
+        const result = await post('/mcp', initialize, null, null, accept);
+        expect(result.status).toBe(200);
+        expect(result.headers.get('content-type')).toContain('application/json');
+        expect(result.body.result.serverInfo.name).toBe('coursemapper-authoring');
+        const listed = await post('/mcp', { jsonrpc: '2.0', id: 2, method: 'tools/list' }, null, null, accept);
+        expect(listed.body.result.tools).toHaveLength(14);
+        const privateRead = {
+          jsonrpc: '2.0',
+          id: 3,
+          method: 'tools/call',
+          params: {
+            name: 'cm_v2_get_context',
+            arguments: { requestId: record.id },
+          },
+        };
+        const denied = await post('/mcp', privateRead, null, null, accept);
+        expect(denied.body.result.structuredContent.error.code).toBe('UNAUTHENTICATED');
+        expect(JSON.stringify(denied.body)).not.toContain('Private owner course sentinel');
+        expect((await post('/mcp', privateRead, 'Bearer invalid', null, accept)).status).toBe(401);
+      }
+      for (const accept of [
+        'text/html',
+        'text/event-stream',
+        'application/json;q=0, text/html',
+        'application/json;q=0, text/event-stream',
+      ]) {
+        expect((await post('/mcp', initialize, null, null, accept)).status).toBe(406);
+      }
+    }));
+
   it('denies cross-owner reads and every website mutation without changing the victim record', async () =>
     harness(async ({ ctx, record, post }) => {
       const body = {
