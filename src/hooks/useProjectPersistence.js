@@ -153,6 +153,7 @@ export default function useProjectPersistence({
   // A login change must not silently copy the open account's project to another account.
   // Explicit file import, opening that account's project, or Save as New can adopt it.
   const cloudOwnerUidRef = useRef(user?.uid || null);
+  const cloudOwnerUnverifiedRef = useRef(false);
   const [localSaveStatus, setLocalSaveStatus] = useState('idle'); // 'idle' | 'saving' | 'saved' | 'error'
   const [cloudSaveStatus, setCloudSaveStatus] = useState('idle'); // 'idle' | 'saving' | 'saved' | 'error'
   const cloudSaveTimerRef = useRef(null);
@@ -584,7 +585,11 @@ export default function useProjectPersistence({
           },
         });
       };
-      const localExtra = { ...extra, localCloudOwnerUid: cloudOwnerUidRef.current };
+      const localExtra = {
+        ...extra,
+        localCloudOwnerUid: cloudOwnerUidRef.current,
+        localCloudOwnerUnverified: cloudOwnerUnverifiedRef.current,
+      };
       const fullSnapshot = buildProjectSnapshot(localExtra);
       if (fullSnapshot.courseMap?.authoringV2) {
         try {
@@ -714,15 +719,20 @@ export default function useProjectPersistence({
   useEffect(() => {
     if (!user || !hasGenerated || !courseMap) return;
     clearTimeout(cloudSaveTimerRef.current);
-    if (cloudOwnerUidRef.current && cloudOwnerUidRef.current !== user.uid) {
+    if (cloudOwnerUnverifiedRef.current || (cloudOwnerUidRef.current && cloudOwnerUidRef.current !== user.uid)) {
       clearTimeout(cloudStatusTimerRef.current);
-      setCloudSaveStatus('account-paused');
+      setCloudSaveStatus(cloudOwnerUnverifiedRef.current ? 'owner-unverified' : 'account-paused');
       return;
     }
     setCloudSaveStatus('idle');
     cloudOwnerUidRef.current = user.uid;
     cloudSaveTimerRef.current = setTimeout(async () => {
-      if (currentUidRef.current !== user.uid || cloudOwnerUidRef.current !== user.uid) return;
+      if (
+        currentUidRef.current !== user.uid ||
+        cloudOwnerUidRef.current !== user.uid ||
+        cloudOwnerUnverifiedRef.current
+      )
+        return;
       try {
         setCloudSaveStatus('saving');
         // Use ref to avoid creating duplicate IDs when effect fires multiple times
@@ -739,7 +749,12 @@ export default function useProjectPersistence({
           version: '1.5',
         });
         await cloudSaveProject(user.uid, pid, state);
-        if (currentUidRef.current !== user.uid || cloudOwnerUidRef.current !== user.uid) return;
+        if (
+          currentUidRef.current !== user.uid ||
+          cloudOwnerUidRef.current !== user.uid ||
+          cloudOwnerUnverifiedRef.current
+        )
+          return;
         saveLocalProjectSnapshot({ projectId: pid });
         setCloudSaveStatus('saved');
         // Reset to idle after 3 seconds
@@ -839,7 +854,10 @@ export default function useProjectPersistence({
       if (!saved.courseMap) return;
       const restoredDeliverables = await compileCompactProjectDeliverables(saved);
       if (currentUidRef.current !== uid) return;
-      cloudOwnerUidRef.current = saved.localCloudOwnerUid || uid;
+      cloudOwnerUnverifiedRef.current = Boolean(
+        saved.localCloudOwnerUnverified || (saved.projectId && !saved.localCloudOwnerUid),
+      );
+      cloudOwnerUidRef.current = saved.localCloudOwnerUid || (cloudOwnerUnverifiedRef.current ? null : uid);
       setCourseMap(saved.courseMap);
       // v0.13: every restored project becomes graph-backed.
       adoptCourseGraph(saved);
@@ -891,6 +909,7 @@ export default function useProjectPersistence({
         if (!saved.courseMap) throw new Error('Invalid .coursemapper file');
         if (currentUidRef.current !== uid) return;
         cloudOwnerUidRef.current = uid;
+        cloudOwnerUnverifiedRef.current = false;
         restoreProjectAIConfig(saved);
         restoreApiCallBudgetReceipt?.(saved.apiCallBudgetReceipt);
         restorePackageEvidence(saved);
@@ -927,6 +946,7 @@ export default function useProjectPersistence({
       const imported = await importCourseMap(file);
       if (currentUidRef.current !== uid) return;
       cloudOwnerUidRef.current = uid;
+      cloudOwnerUnverifiedRef.current = false;
       setProjectId(null);
       projectIdRef.current = null;
       delivUndo?.reset();
@@ -982,6 +1002,7 @@ export default function useProjectPersistence({
           : await compileCompactProjectDeliverables(saved);
       if (currentUidRef.current !== uid) return;
       cloudOwnerUidRef.current = uid;
+      cloudOwnerUnverifiedRef.current = false;
       // Restore all state — same as doRestoreSession but from cloud
       setCourseMap(saved.courseMap);
       adoptCourseGraph(saved);
@@ -1039,6 +1060,7 @@ export default function useProjectPersistence({
       await cloudSaveProject(user.uid, pid, state);
       if (currentUidRef.current !== user.uid) return;
       cloudOwnerUidRef.current = user.uid;
+      cloudOwnerUnverifiedRef.current = false;
       setCloudSaveStatus('saved');
       setProjectId(pid);
       projectIdRef.current = pid;
@@ -1099,6 +1121,7 @@ export default function useProjectPersistence({
     setProjectId(null);
     projectIdRef.current = null;
     cloudOwnerUidRef.current = currentUidRef.current;
+    cloudOwnerUnverifiedRef.current = false;
     setLocalSaveStatus('idle');
     setCloudSaveStatus('idle');
     setNewProjectError('');
@@ -1120,7 +1143,13 @@ export default function useProjectPersistence({
         saveLocalProjectSnapshot({ projectId: projectIdRef.current });
       }
 
-      if (user && courseMap && hasGenerated && (!cloudOwnerUidRef.current || cloudOwnerUidRef.current === user.uid)) {
+      if (
+        user &&
+        courseMap &&
+        hasGenerated &&
+        !cloudOwnerUnverifiedRef.current &&
+        (!cloudOwnerUidRef.current || cloudOwnerUidRef.current === user.uid)
+      ) {
         clearTimeout(cloudSaveTimerRef.current);
         setCloudSaveStatus('saving');
         let pid = projectIdRef.current;

@@ -50,14 +50,17 @@ export function buildKnowledgeBackboneLabel(coverage, sourceLedgerSummary = null
 export function getWorkspaceSavePresentation({ cloudStatus, localStatus, user, workflowRunning } = {}) {
   const localDeferred = localStatus === 'error' && workflowRunning;
   const failed = cloudStatus === 'error' || (localStatus === 'error' && !localDeferred);
-  const paused = cloudStatus === 'account-paused' && Boolean(user);
+  const unverified = cloudStatus === 'owner-unverified' && Boolean(user);
+  const paused = (cloudStatus === 'account-paused' || unverified) && Boolean(user);
   const saving = cloudStatus === 'saving' || localStatus === 'saving';
   return {
     failed,
     quiet: !failed && !saving && !paused,
-    notice: paused
-      ? 'Cloud save is paused because this project belongs to another account. Sign back in, or open My Projects and choose Save Current as New Project to copy it to this account.'
-      : null,
+    notice: unverified
+      ? 'This older saved project has no verified cloud account. Open the original from My Projects, or choose Save Current as New Project to save an explicit copy.'
+      : paused
+        ? 'Cloud save is paused because this project belongs to another account. Sign back in, or open My Projects and choose Save Current as New Project to copy it to this account.'
+        : null,
     text:
       cloudStatus === 'saving'
         ? 'Saving'

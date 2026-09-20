@@ -124,6 +124,7 @@ describe('buildCourseMapRecoveryAutosavePayload', () => {
     const payload = buildCourseMapRecoveryAutosavePayload({
       projectId: 'geo-1',
       localCloudOwnerUid: 'owner-a',
+      localCloudOwnerUnverified: true,
       courseMap: {
         courseName: 'Physical Geology',
         lessons: [{ title: 'Lesson 1: Minerals' }],
@@ -142,6 +143,7 @@ describe('buildCourseMapRecoveryAutosavePayload', () => {
 
     expect(saved.courseMap.courseName).toBe('Physical Geology');
     expect(saved.localCloudOwnerUid).toBe('owner-a');
+    expect(saved.localCloudOwnerUnverified).toBe(true);
     expect(saved.selectedFeatures).toEqual(['courseMap', 'quizBank']);
     expect(saved.deliverableManifest.quizBank.status).toBe('done');
     expect(saved.generationConstraints).toEqual({

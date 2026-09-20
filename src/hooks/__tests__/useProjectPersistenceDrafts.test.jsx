@@ -28,6 +28,8 @@ const initialMap = {
 let api, root, context;
 beforeEach(() => {
   saveProject.mockReset();
+  loadProject.mockReset();
+  loadProjectDeliverables.mockReset();
   newProjectId.mockReset().mockReturnValue('cloud-project-test');
   vi.useFakeTimers();
   vi.stubGlobal('localStorage', new Storage());
@@ -170,6 +172,47 @@ it('preserves the account boundary across local recovery but permits an explicit
   await act(async () => vi.advanceTimersByTimeAsync(6000));
   expect(saveProject).toHaveBeenCalledWith('owner-b', 'cloud-project-test', expect.any(Object));
   expect(saveProject.mock.calls.every(([, pid]) => pid !== 'owner-a-project')).toBe(true);
+});
+
+it('keeps a legacy cloud snapshot local until the teacher explicitly saves a copy', async () => {
+  context.user = { uid: 'owner-b' };
+  await mount();
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ courseMap: initialMap, projectId: 'legacy-owner-unknown' }));
+  await act(async () => api.doRestoreSession());
+  await act(async () => vi.advanceTimersByTimeAsync(6000));
+  expect(saveProject).not.toHaveBeenCalled();
+  expect(api.cloudSaveStatus).toBe('owner-unverified');
+  await act(async () => api.saveLocalProjectSnapshot());
+  const local = JSON.parse(localStorage.getItem(STORAGE_KEY));
+  expect(local.localCloudOwnerUnverified).toBe(true);
+  expect(local.localCloudOwnerUid).toBeNull();
+  expect(api.buildProjectSnapshot()).not.toHaveProperty('localCloudOwnerUnverified');
+  await act(async () => api.doRestoreSession());
+  await act(async () => vi.advanceTimersByTimeAsync(6000));
+  expect(saveProject).not.toHaveBeenCalled();
+  newProjectId.mockReturnValueOnce('chosen-copy');
+  await act(async () => api.handleSaveCurrentAsNew());
+  expect(saveProject).toHaveBeenCalledWith('owner-b', 'chosen-copy', expect.any(Object));
+  await act(async () => api.saveLocalProjectSnapshot());
+  expect(JSON.parse(localStorage.getItem(STORAGE_KEY)).localCloudOwnerUnverified).toBe(false);
+});
+
+it('does not adopt a legacy cloud project on first sign-in, but opening the owned cloud copy unlocks saves', async () => {
+  await mount();
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ courseMap: initialMap, projectId: 'legacy-cloud' }));
+  await act(async () => api.doRestoreSession());
+  context.user = { uid: 'owner-b' };
+  await mount();
+  await act(async () => vi.advanceTimersByTimeAsync(6000));
+  expect(saveProject).not.toHaveBeenCalled();
+  expect(api.cloudSaveStatus).toBe('owner-unverified');
+  loadProject.mockResolvedValue({ courseMap: { ...initialMap, courseName: 'Verified cloud copy' } });
+  loadProjectDeliverables.mockResolvedValue({});
+  await act(async () => api.handleOpenCloudProject('owned-cloud'));
+  expect(loadProject).toHaveBeenCalledWith('owner-b', 'owned-cloud');
+  await act(async () => vi.advanceTimersByTimeAsync(6000));
+  expect(saveProject).toHaveBeenCalledWith('owner-b', 'owned-cloud', expect.any(Object));
+  expect(JSON.parse(localStorage.getItem(STORAGE_KEY)).localCloudOwnerUnverified).toBe(false);
 });
 
 it('ignores an old account cloud-load response after switching accounts', async () => {
