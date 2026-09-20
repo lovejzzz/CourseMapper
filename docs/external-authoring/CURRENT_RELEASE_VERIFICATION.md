@@ -74,3 +74,9 @@ Single-material application tests exposed a fixed lesson-plan active tab even fo
 PR #120 merged as `feefd1c413281e0629b7fc90bbb693c3c07dcf87`. All source/build, classroom browser, adapter and runtime checks passed; Pages run `35497740058` succeeded and the live release manifest matched. A synthetic local request on the deployed site retained an adult-beginner learner profile, Español and Assignment briefs only after reload. The copied AI task contained all three values. No source was shared and no new course was applied in this check; the previously reviewed ratios course resumed successfully. This verifies request preservation, not Spanish generated-content quality.
 
 The plugin metadata now includes creation, revision and interrupted-draft recovery starters. The package and its skill pass the plugin-creator and skill-creator validators. The [distribution review packet](DISTRIBUTION_READINESS.md) records actual permissions, verified private evidence and unfinished public/host/account acceptance; no installation or publication was performed.
+
+## Provider mode-transition regression — 2026-09-20
+
+Five new failing-before/fixed-after cases exercise a switch into external AI mode while image generation or local lesson-detection module loading is already in progress. GPT Image and DALL-E batches now check before every new request, including fallback models after network/provider errors. Local lesson detection rechecks after its dynamic import and propagates the policy error instead of swallowing it. The already-started image request is not retroactively cancelled; the tests prove no subsequent request starts. No real provider credentials or paid inference were used.
+
+All 185 authoring tests pass (six emulator cases require the runtime job), plus 42 existing image, lesson-detection, grammar and WebLLM cases. This closes these specific transition gaps; the broader large-course/provider acceptance matrix remains separate.
