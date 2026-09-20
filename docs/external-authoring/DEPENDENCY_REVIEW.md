@@ -13,7 +13,7 @@ Relevant advisories: [image-size ICNS loop](https://github.com/advisories/GHSA-w
 
 ## Validation
 
-The two existing real-PPTX export suites passed all 61 tests with the updated packages. An isolated Node child process rejected a malformed ICNS buffer with a zero-length entry within a three-second deadline. Wrangler completed a deploy dry run for `server/scion/wrangler.jsonc`; no worker deployment was performed. The full `npm run check` passed, including application tests, authoring tests, compatibility checks, benchmarks, production build and bundle checks. Six authoring Firestore cases remain emulator-only and are covered by the separate runtime workflow. The four production-browser tests also passed. Hosted release checks must pass before merging this dependency change.
+The two existing real-PPTX export suites passed all 61 tests with the updated packages. An isolated Node child process rejected a malformed ICNS buffer with a zero-length entry within a three-second deadline. Wrangler completed a deploy dry run for `server/scion/wrangler.jsonc`; no worker deployment was performed. The full `npm run check` passed, including application tests, authoring tests, compatibility checks, benchmarks, production build and bundle checks. Six authoring Firestore cases remain emulator-only and are covered by the separate runtime workflow. The three production-browser tests also passed. Hosted release checks must pass before merging this dependency change.
 
 ## Remaining findings
 
