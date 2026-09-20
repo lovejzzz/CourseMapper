@@ -7,6 +7,7 @@ export default defineConfig({
     maxWorkers: 2,
     testTimeout: 30000,
     include: [
+      'src/contexts/__tests__/AuthContext.test.jsx',
       'src/lib/__tests__/accountCacheIsolation.test.js',
       'src/components/config/__tests__/InstitutionProfileCard.test.jsx',
       'src/lib/__tests__/codingPracticeReact.test.jsx',
