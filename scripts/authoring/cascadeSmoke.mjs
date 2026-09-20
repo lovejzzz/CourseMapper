@@ -22,14 +22,14 @@ page.on('request', (r) => {
     modelRequests.push(r.url());
 });
 async function save(name) {
-  await page.getByText('Project', { exact: true }).click();
+  if (!(await page.getByTestId('workspace-menu-save-project').isVisible()))
+    await page.getByText('Project', { exact: true }).click();
   const [download] = await Promise.all([
     page.waitForEvent('download'),
     page.getByTestId('workspace-menu-save-project').click(),
   ]);
   const path = new URL(`${evidenceDir}/${name}.coursemapper`, output);
   await download.saveAs(fileURLToPath(path));
-  await page.getByText('Project', { exact: true }).click();
   return JSON.parse(await readFile(path, 'utf8'));
 }
 const content = (s) => ({
@@ -73,7 +73,8 @@ try {
   assert.deepEqual(content(after), content(edited), 'Cascade changed accepted content without preview');
   assert(after.deliverables.assignments.stale, 'Blocked sync must preserve stale warning');
   await page.getByText(/This deliverable .* out of sync/).waitFor();
-  await page.getByRole('button', { name: 'Sync All', exact: true }).click();
+  await page.getByRole('button', { name: 'Sync Partially Failed', exact: true }).waitFor();
+  await page.getByRole('button', { name: /^Retry Failed/ }).click();
   await page.getByRole('button', { name: 'Sync Partially Failed', exact: true }).waitFor();
   await page.getByText('Authoring review required', { exact: true }).waitFor();
   await page.getByText('Accepted materials kept unchanged', { exact: true }).waitFor();
