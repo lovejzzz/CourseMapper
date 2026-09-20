@@ -9,7 +9,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 
 import AssignmentsView from '../src/components/deliverables/AssignmentsView.jsx';
-import { editableTextValue } from '../src/components/deliverables/shared/SharedComponents.jsx';
+import { E, editableTextValue } from '../src/components/deliverables/shared/SharedComponents.jsx';
 
 describe('v0.16.54 resilient editable text', () => {
   it('extracts human text from legacy labeled objects', () => {
@@ -59,4 +59,13 @@ describe('v0.16.54 resilient editable text', () => {
     expect(html).not.toContain('[&quot;Measurement accuracy');
     expect(html).not.toContain('["Measurement accuracy');
   });
+});
+
+// A poem's layout is content, including when editing is unavailable.
+it.each([undefined, () => {}])('preserves authored line breaks in display mode', (onEdit) => {
+  const poem = 'You said wait.\nI held the gate\nopen for the wind.';
+  const html = renderToStaticMarkup(<E value={poem} path={['overview']} onEdit={onEdit} multiline />);
+  expect(html).toContain(poem);
+  expect(html).toContain('whitespace-pre-wrap');
+  expect(html).not.toContain('font-mono');
 });

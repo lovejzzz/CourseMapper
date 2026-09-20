@@ -120,7 +120,9 @@ export function E({ value, path, onEdit, className = '', multiline = false, onAI
   const textareaRef = useRef(null);
   const textValue = editableTextValue(value);
   const isCode = /^(?:Starter|Reference implementation) — [^\n]+:\n/.test(textValue);
-  const displayClassName = `${className} ${isCode ? 'min-w-0 max-w-full whitespace-pre-wrap break-words font-mono rounded bg-slate-50 p-2 dark:bg-slate-900' : ''}`;
+  // Authored line breaks carry meaning in poems, examples and instructions.
+  // Preserve them in both teacher-editable and read-only presentations.
+  const displayClassName = `${className} ${textValue.includes('\n') ? 'whitespace-pre-wrap break-words' : ''} ${isCode ? 'min-w-0 max-w-full whitespace-pre-wrap break-words font-mono rounded bg-slate-50 p-2 dark:bg-slate-900' : ''}`;
 
   // Auto-size textarea on mount and on content change
   useEffect(() => {
