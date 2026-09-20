@@ -2,6 +2,7 @@ import { normalizeSavedEditHistory } from '../lib/deliverableEditHistory.js';
 import {
   saveAuthorWorkspace,
   restoreAuthorWorkspace,
+  prepareAuthorWorkspaceRestore,
   publishAuthorWorkspacePointer,
 } from '../lib/authoring/localWorkspace';
 import { preserveAuthoredSnapshot } from '../lib/authoringCore/authorLayer';
@@ -914,6 +915,8 @@ export default function useProjectPersistence({
         const saved = prepareProjectSnapshotForRestore(JSON.parse(text));
         if (!saved.courseMap) throw new Error('Invalid .coursemapper file');
         if (currentUidRef.current !== uid) return;
+        await prepareAuthorWorkspaceRestore(saved);
+        if (currentUidRef.current !== uid) return;
         cloudOwnerUidRef.current = uid;
         cloudOwnerUnverifiedRef.current = false;
         restoreProjectAIConfig(saved);
@@ -1006,6 +1009,8 @@ export default function useProjectPersistence({
         deliverables && Object.keys(deliverables).length > 0
           ? deliverables
           : await compileCompactProjectDeliverables(saved);
+      if (currentUidRef.current !== uid) return;
+      await prepareAuthorWorkspaceRestore(saved);
       if (currentUidRef.current !== uid) return;
       cloudOwnerUidRef.current = uid;
       cloudOwnerUnverifiedRef.current = false;
