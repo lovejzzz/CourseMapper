@@ -58,6 +58,7 @@ export function buildCourseMapRecoveryAutosavePayload(snapshot = {}) {
   return JSON.stringify({
     projectId: snapshot.projectId,
     localCloudOwnerUid: snapshot.localCloudOwnerUid,
+    localCloudOwnerUnverified: snapshot.localCloudOwnerUnverified,
     courseMap: snapshot.courseMap,
     columns: snapshot.columns,
     hasGenerated: true,

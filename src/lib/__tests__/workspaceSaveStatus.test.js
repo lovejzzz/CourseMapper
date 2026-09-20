@@ -26,6 +26,16 @@ describe('buildKnowledgeBackboneLabel', () => {
 });
 
 describe('getWorkspaceSavePresentation', () => {
+  it('explains unverified legacy ownership without asserting another account owns it', () => {
+    const result = getWorkspaceSavePresentation({
+      cloudStatus: 'owner-unverified',
+      localStatus: 'saved',
+      user: { uid: 'b' },
+    });
+    expect(result.text).toBe('Cloud save paused');
+    expect(result.notice).toContain('no verified cloud account');
+    expect(result.notice).not.toContain('belongs to another account');
+  });
   it('explains an account pause without calling it a failed save', () => {
     const result = getWorkspaceSavePresentation({
       cloudStatus: 'account-paused',
