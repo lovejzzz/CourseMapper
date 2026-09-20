@@ -7,8 +7,18 @@ import { createExchangeApp } from './app.mjs';
 import { hash } from '../../src/lib/authoringCore/core.js';
 import { createIdentityLinkStore, createIdentityLinkService } from './identityLinks.mjs';
 import { readServerConfig } from './config.mjs';
-const { resource, issuer, jwksUrl, websiteOrigin, port, host, databaseId, remoteWritesEnabled, applyEnabled } =
-  readServerConfig(process.env);
+const {
+  resource,
+  issuer,
+  jwksUrl,
+  websiteOrigin,
+  port,
+  host,
+  databaseId,
+  remoteWritesEnabled,
+  applyEnabled,
+  domainVerificationToken,
+} = readServerConfig(process.env);
 initializeApp({ credential: applicationDefault() });
 const db = getFirestore(databaseId);
 const verifyToken = createTokenVerifier({
@@ -25,6 +35,7 @@ const app = createExchangeApp({
   store: createFirestoreStore(db),
   remoteWritesEnabled,
   applyEnabled,
+  domainVerificationToken,
   verifyToken,
   identityLinks: process.env.AUTHORING_LINK_CLIENT_ID
     ? createIdentityLinkService({

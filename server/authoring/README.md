@@ -88,3 +88,7 @@ Saved records remain readable. Matching existing reservations may be recovered a
 Start, finish and disconnect require a Firebase login within five minutes. The frontend offers a fresh Google sign-in before these controls. One pending state per Firebase UID is stored only on the server; state is consumed before token exchange. Transactional binding epochs prevent a callback from undoing disconnect. An external subject remains owned by its original UID even after disconnect, preventing identity reassignment. Connection changes remain available while remote authoring writes are disabled.
 
 The callback page uses no third-party resources and strips its code from browser history before returning it to the exact same-origin opener. The parent checks popup identity, origin and state. No callback code or ID token is written to browser storage. A missing client configuration returns 503.
+
+## Public plugin domain verification
+
+Set `AUTHORING_DOMAIN_VERIFICATION_TOKEN` to the exact URL-safe token issued by the OpenAI plugin submission portal. The exchange serves it as plain text at `/.well-known/openai-apps-challenge`, without authentication and with `Cache-Control: no-store`. This token is a public proof of domain control, not an OAuth credential. An unset/empty token returns 404; invalid characters or more than 256 characters fail startup. Configure the challenge origin to the actual MCP host in the portal and verify it after deploying. Removing the environment variable disables the route's response. Private API authentication is unchanged.

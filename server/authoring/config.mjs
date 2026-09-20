@@ -48,7 +48,11 @@ export function readServerConfig(env) {
     if (env[key] === 'false') return false;
     throw new Error(`${key} must be true or false.`);
   }
+  const domainVerificationToken = env.AUTHORING_DOMAIN_VERIFICATION_TOKEN || '';
+  if (domainVerificationToken && !/^[A-Za-z0-9_-]{1,256}$/.test(domainVerificationToken))
+    throw new Error('AUTHORING_DOMAIN_VERIFICATION_TOKEN must be a URL-safe verification token.');
   return {
+    domainVerificationToken,
     resource,
     issuer,
     jwksUrl,

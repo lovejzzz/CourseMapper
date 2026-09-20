@@ -34,6 +34,7 @@ export function createExchangeApp({
   now = () => Date.now(),
   remoteWritesEnabled = true,
   applyEnabled = true,
+  domainVerificationToken = '',
 }) {
   const app = express();
   app.disable('x-powered-by');
@@ -61,6 +62,11 @@ export function createExchangeApp({
     next();
   });
   app.use(express.json({ limit: '2mb' }));
+  // Public proof of domain control for the plugin review portal, not an auth credential.
+  app.get('/.well-known/openai-apps-challenge', (_req, res) => {
+    if (!domainVerificationToken) return res.sendStatus(404);
+    return res.type('text/plain').send(domainVerificationToken);
+  });
   app.get('/health', (_req, res) =>
     res.json({ ok: true, protocolVersion: 'coursemapper.authoring.v2', publicPluginStatus: 'not-published' }),
   );

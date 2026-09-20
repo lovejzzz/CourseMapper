@@ -1,6 +1,6 @@
 # Distribution review packet
 
-Reviewed 2026-09-20. Status: **private acceptance only; not submitted or approved for public distribution**. The repository's Codex plugin package and the private ChatGPT connection are separate installation formats. Validating one is not marketplace approval for the other.
+Reviewed 2026-09-20. Status: **public review authorized; submission draft created, not submitted or approved**. The repository's Codex plugin package and the private ChatGPT connection are separate installation formats. Validating one is not marketplace approval for the other.
 
 ## Verified service and permissions
 
@@ -34,6 +34,6 @@ The checked-in plugin includes all three starters. Recovery reads the existing d
 
 The private ChatGPT connection discovered all 14 tools and completed authentic ratios-course authoring, validation and preview. Website review/application, corrected student-facing content, Resume and exports passed. See [current verification](CURRENT_RELEASE_VERIFICATION.md) for exact versions and the distinction between authentic output and replay fixtures.
 
-Public submission still needs an ordinary-teacher entry that does not require developer mode, a target-platform review of its actual package/OAuth setup, representative test-account access, and explicit publication authorization. No credentials belong in this packet. A second real account, another actual Site-tools host, provider expiry/code-replay checks, physical-device cloud recovery and three authentic subject-quality cases remain unverified. The pending ChatGPT revocation check is stalled in the host page and has not been counted as a pass.
+Public submission still needs an ordinary-teacher entry that does not require developer mode, a target-platform review of its actual package/OAuth setup, representative test-account access, and completion of its submission prerequisites. The user has now authorized pursuing public review. No credentials belong in this packet. A second real account, another actual Site-tools host, provider expiry/code-replay checks, physical-device cloud recovery and three authentic subject-quality cases remain unverified. The ChatGPT revocation follow-up has now completed: its actual authenticated list response returned no requests, confirming both revoked synthetic requests are absent. This does not prove provider-token revocation.
 
-The package intentionally remains unconfigured for installation. Its configuration script accepts a verified HTTPS endpoint, but that does not establish host OAuth compatibility or public availability. No marketplace installation or public publication is performed by this documentation change.
+The package intentionally remains unconfigured for installation. Its configuration script accepts a verified HTTPS endpoint, but that does not establish host OAuth compatibility or public availability. See [review test cases](REVIEW_TEST_CASES.md) for five positive and three negative reviewer procedures. The portal draft is being prepared; no public approval or publication is claimed.
