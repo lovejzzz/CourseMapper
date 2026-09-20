@@ -21,6 +21,8 @@ export default function RemoteAuthoringSection({ store, workspace, workspaceFile
   const { user, signInWithGoogle } = useAuth();
   const account = useRef(user?.uid);
   account.current = user?.uid;
+  const authenticatedUser = useRef(user);
+  authenticatedUser.current = user;
   const [requests, setRequests] = useState([]);
   const [record, setRecord] = useState(null);
   const [draftId, setDraftId] = useState('');
@@ -33,6 +35,43 @@ export default function RemoteAuthoringSection({ store, workspace, workspaceFile
     setDraftId('');
     setPreview(null);
     setMessage('');
+    setBusy(false);
+  }, [user?.uid]);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const requestId = params.get('request');
+    const linkedDraftId = params.get('draft');
+    const signedIn = authenticatedUser.current;
+    if (!endpoint || !signedIn || params.get('remote') !== '1' || !requestId) return;
+    let cancelled = false;
+    setBusy(true);
+    callAccountApi({
+      endpoint,
+      user: signedIn,
+      getUid: () => account.current,
+      path: 'read',
+      body: { requestId },
+    })
+      .then((r) => {
+        if (cancelled || account.current !== signedIn.uid) return;
+        setRequests([{ requestId: r.id, title: r.request.title, revoked: r.revoked, expiresAt: r.expiresAt }]);
+        setRecord(r);
+        setDraftId(linkedDraftId && r.drafts[linkedDraftId] ? linkedDraftId : '');
+        setMessage(
+          linkedDraftId && !r.drafts[linkedDraftId]
+            ? 'This draft is unavailable. Select another received draft or ask your AI to check its saved status.'
+            : 'Linked draft loaded. Review it against your current course before applying.',
+        );
+      })
+      .catch((e) => {
+        if (!cancelled && account.current === signedIn.uid) setMessage(e.message);
+      })
+      .finally(() => {
+        if (!cancelled && account.current === signedIn.uid) setBusy(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [user?.uid]);
   async function api(path, body) {
     return callAccountApi({ endpoint, user, getUid: () => account.current, path, body });
@@ -197,7 +236,7 @@ export default function RemoteAuthoringSection({ store, workspace, workspaceFile
                 setPreview(null);
               })
             }
-            defaultValue=""
+            value={record?.id || ''}
           >
             <option value="" disabled>
               Select a shared request
