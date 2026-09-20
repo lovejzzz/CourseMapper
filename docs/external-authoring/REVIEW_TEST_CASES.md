@@ -2,7 +2,7 @@
 
 Prepared 2026-09-20 for the CourseMapper submission draft. These are reviewer procedures and expected outcomes, not claims that the reviewer ran them. Submit only after a dedicated demo identity can sign in without MFA, SMS, email confirmation or private-network access. Do not supply the publisher's personal credentials. The demo website identity must be linked through the normal authenticated linking flow; never fabricate a production identity binding.
 
-Use synthetic teaching content only. Begin with an empty demo account. A second independently linked demo identity is needed for the cross-account case. Returned tools use `coursemapper.authoring.v2`, `ok`, `data`, `warnings`, and `error` fields; generated IDs and content vary.
+Use synthetic teaching content only. The dedicated reviewer account contains synthetic fixtures and is separate from the primary account. A second independently linked identity is needed for the cross-account case. Returned tools use `coursemapper.authoring.v2`, `ok`, `data`, `warnings`, and `error` fields; generated IDs and content vary.
 
 ## Positive cases
 
@@ -28,8 +28,8 @@ The submission portal asks for prompts where CourseMapper should not be invoked.
 
 ## Review prerequisites still open
 
-- Reviewer-compatible demo sign-in and complete execution of the supplied procedures. A user-supplied second Google account has signed in, linked its own Auth0 identity, and shared/listed/read its own synthetic remote request. This does not yet prove cross-account denial or unattended reviewer access.
-- Authenticated tool scan. Public MCP domain verification passed in the submission portal after deployment of revision `coursemapper-authoring-00012-tez`; live checks verified the exact public challenge, no-store headers, health, capabilities and unauthenticated private-read rejection.
+- Complete execution of the supplied procedures. Dedicated Auth0 and Firebase reviewer password logins now work without MFA, SMS or an email challenge. Own-request access, bidirectional cross-account denial and read-only write rejection have passed. Credentials are stored outside the repository and in the private review form. The five complete reviewer procedures remain in progress.
+- Authenticated tool scan completed: 14 tools, 42 annotation explanations and no missing output-schema warnings on the deployed runtime. Public MCP domain verification and unauthenticated private-read rejection passed.
 - An authentic demo recording. Square directory/composer PNG assets have been uploaded; their source and generation prompt are in [assets](assets/README.md).
 - Availability regions, policy attestations and final review submission. The saved publisher selection is Individual — TIAN XING.
 
