@@ -24,7 +24,7 @@ export default defineConfig({
       'tests/v0147-sync-star.test.js',
       'tests/v0157-finished-package-surface.test.jsx',
       'src/hooks/__tests__/{useDeliverableUndo,useBoundedAutosave,useProjectPersistenceDrafts,useExport}.test.jsx',
-      'src/lib/__tests__/{teachingReviewDrafts,projectAutosave,projectSnapshotSanitizer}.test.js',
+      'src/lib/__tests__/{teachingReviewDrafts,projectAutosave,projectSnapshotSanitizer,workspaceSaveStatus}.test.js',
       'src/lib/__tests__/teachingTaskContent*.test.js',
       'src/lib/__tests__/teachingProgram*.test.js',
       'src/lib/__tests__/teachingOperation*.test.js',

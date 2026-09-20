@@ -119,8 +119,8 @@ it('keeps automatic cloud saves with the original account until an explicit Save
   await mount();
   await act(async () => vi.advanceTimersByTimeAsync(6000));
   expect(saveProject).not.toHaveBeenCalled();
-  expect(api.cloudSaveStatus).toBe('error');
-  expect(context.gen.setError).toHaveBeenCalledWith(expect.stringContaining('another account'));
+  expect(api.cloudSaveStatus).toBe('account-paused');
+  expect(context.gen.setError).not.toHaveBeenCalled();
   newProjectId.mockReturnValueOnce('explicit-copy');
   await act(async () => api.handleSaveCurrentAsNew());
   expect(saveProject).toHaveBeenCalledWith('owner-b', 'explicit-copy', expect.any(Object));
@@ -144,18 +144,13 @@ it('does not publish a late autosave result into the replacement account session
   await act(async () => {
     resolveSave();
   });
-  expect(api.cloudSaveStatus).toBe('error');
+  expect(api.cloudSaveStatus).toBe('account-paused');
   await act(async () => vi.advanceTimersByTimeAsync(6000));
   expect(saveProject.mock.calls.map(([uid]) => uid)).toEqual(['owner-a']);
-  // Returning to the original account resumes ordinary saves and clears only this warning.
-  const pauseWarning = context.gen.setError.mock.calls.find(
-    ([value]) => typeof value === 'string' && value.includes('another account'),
-  )[0];
+  // Returning to the original account resumes saves without touching generation errors.
   context.user = { uid: 'owner-a' };
   await mount();
-  const clearWarning = context.gen.setError.mock.calls.at(-1)[0];
-  expect(clearWarning(pauseWarning)).toBe('');
-  expect(clearWarning('An unrelated generation error')).toBe('An unrelated generation error');
+  expect(context.gen.setError).not.toHaveBeenCalled();
   await act(async () => vi.advanceTimersByTimeAsync(5000));
   expect(saveProject.mock.calls.map(([uid]) => uid)).toEqual(['owner-a', 'owner-a']);
 });
