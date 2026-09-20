@@ -45,6 +45,17 @@ async function save(snapshot) {
     savedAt: snapshot.savedAt,
   };
 }
+/** Explicit cloud/file opens establish a new local editing baseline. Autosave
+ * itself must never adopt a revision it has not read. */
+export async function prepareAuthorWorkspaceRestore(snapshot) {
+  const applicationId = snapshot?.courseMap?.authoringV2?.applicationId;
+  if (!applicationId) return;
+  await queue.catch(() => {});
+  const key = `workspace:${applicationId}`;
+  const current = await store.get(key);
+  versions.set(key, current?.storageVersion ?? null);
+}
+
 export async function restoreAuthorWorkspace(pointer) {
   if (!pointer?.authoringWorkspaceKey) return pointer;
   const record = await store.get(pointer.authoringWorkspaceKey);

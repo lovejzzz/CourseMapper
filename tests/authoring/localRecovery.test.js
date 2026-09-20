@@ -113,3 +113,49 @@ it('rejects a stale browser tab instead of overwriting a newer teacher edit', as
     vi.unstubAllGlobals();
   }
 });
+
+it('resumes a cloud/file snapshot opened after reload and rejects edits from the old tab', async () => {
+  vi.stubGlobal('indexedDB', indexedDB);
+  const values = new Map();
+  const storage = { getItem: (key) => values.get(key), setItem: (key, value) => values.set(key, value) };
+  try {
+    vi.resetModules();
+    const oldTab = await import('../../src/lib/authoring/localWorkspace.js');
+    const snapshot = {
+      courseMap: { courseName: 'Original local course', authoringV2: { applicationId: id() } },
+      text: 'original',
+    };
+    await oldTab.saveAuthorWorkspaceForResume(snapshot, storage);
+    vi.resetModules();
+    const cloudTab = await import('../../src/lib/authoring/localWorkspace.js');
+    const cloudSnapshot = { ...snapshot, text: 'Explicitly opened cloud content', localCloudOwnerUid: 'owner' };
+    await cloudTab.prepareAuthorWorkspaceRestore(cloudSnapshot);
+    await cloudTab.saveAuthorWorkspaceForResume(cloudSnapshot, storage);
+    await expect(oldTab.saveAuthorWorkspace({ ...snapshot, text: 'stale background edit' })).rejects.toThrow(
+      'Another tab',
+    );
+    vi.resetModules();
+    const resumed = await import('../../src/lib/authoring/localWorkspace.js');
+    expect(await resumed.restoreAuthorWorkspace(JSON.parse(values.get('coursemapper-project')))).toEqual(cloudSnapshot);
+    await resumed.saveAuthorWorkspace({ ...cloudSnapshot, text: 'Teacher edit after Resume' });
+  } finally {
+    vi.unstubAllGlobals();
+  }
+});
+
+it('still rejects an intervening edit after preparing an explicit restore', async () => {
+  vi.stubGlobal('indexedDB', indexedDB);
+  try {
+    vi.resetModules();
+    const first = await import('../../src/lib/authoring/localWorkspace.js');
+    const snapshot = { courseMap: { courseName: 'Shared', authoringV2: { applicationId: id() } }, text: 'original' };
+    await first.saveAuthorWorkspace(snapshot);
+    vi.resetModules();
+    const opener = await import('../../src/lib/authoring/localWorkspace.js');
+    await opener.prepareAuthorWorkspaceRestore(snapshot);
+    await first.saveAuthorWorkspace({ ...snapshot, text: 'Newer edit while cloud opens' });
+    await expect(opener.saveAuthorWorkspace(snapshot)).rejects.toThrow('Another tab');
+  } finally {
+    vi.unstubAllGlobals();
+  }
+});

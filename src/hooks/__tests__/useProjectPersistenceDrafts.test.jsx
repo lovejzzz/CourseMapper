@@ -8,6 +8,7 @@ import useProjectPersistence, { STORAGE_KEY } from '../useProjectPersistence.js'
 import { createNewTeachingTaskReviewDraft } from '../../lib/teachingTaskReview.js';
 import { loadProject, loadProjectDeliverables, saveProject, newProjectId } from '../../lib/cloudStorage';
 import { loadDeveloperTemplates } from '../../lib/cloudStorage';
+import * as authorWorkspace from '../../lib/authoring/localWorkspace.js';
 import { emptyTeachingReviewDrafts } from '../../lib/teachingReviewDrafts.js';
 
 vi.mock('../../lib/cloudStorage', () => ({
@@ -387,4 +388,49 @@ it('does not restore A templates into B when A cloud sync finishes late', async 
   context.user = { uid: 'a' };
   await mount();
   expect(api.developerTemplates.map((t) => t.name)).toContain('A private template');
+});
+
+it('prepares authored cloud and file restores before saving their local editing baseline', async () => {
+  const prepare = vi.spyOn(authorWorkspace, 'prepareAuthorWorkspaceRestore').mockResolvedValue();
+  context.user = { uid: 'owner' };
+  await mount();
+  const snapshot = {
+    courseMap: { ...initialMap, authoringV2: { applicationId: 'authored-app' } },
+    deliverables: { lessonPlans: { authoredContent: { text: 'Exact authored lesson' }, data: { lessons: [] } } },
+  };
+  loadProject.mockResolvedValue(snapshot);
+  loadProjectDeliverables.mockResolvedValue(snapshot.deliverables);
+  await act(async () => api.handleOpenCloudProject('cloud-authored'));
+  expect(prepare).toHaveBeenCalledWith(expect.objectContaining({ courseMap: snapshot.courseMap }));
+  prepare.mockClear();
+  await act(async () =>
+    api.handleOpenProject({ name: 'authored.coursemapper', text: async () => JSON.stringify(snapshot) }),
+  );
+  expect(prepare).toHaveBeenCalledWith(expect.objectContaining({ courseMap: snapshot.courseMap }));
+});
+
+it('ignores a cloud restore when accounts change while preparing local storage', async () => {
+  let finish;
+  vi.spyOn(authorWorkspace, 'prepareAuthorWorkspaceRestore').mockImplementation(
+    () =>
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+  );
+  context.user = { uid: 'owner-a' };
+  await mount();
+  loadProject.mockResolvedValue({ courseMap: { courseName: 'A private cloud', lessons: [] } });
+  loadProjectDeliverables.mockResolvedValue({});
+  let pending;
+  await act(async () => {
+    pending = api.handleOpenCloudProject('a-cloud');
+  });
+  expect(finish).toBeTypeOf('function');
+  context.user = { uid: 'owner-b' };
+  await mount();
+  await act(async () => {
+    finish();
+    await pending;
+  });
+  expect(api.buildProjectSnapshot().courseMap.courseName).toBe(initialMap.courseName);
 });
