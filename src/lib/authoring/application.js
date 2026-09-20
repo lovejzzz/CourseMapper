@@ -42,7 +42,7 @@ export async function previewApplication(record, draftId, current) {
         ...new Set(['courseMap', ...(current?.selectedFeatures || []), ...record.request.requestedFeatures]),
       ],
       hasGenerated: true,
-      activeTab: 'lessonPlans',
+      activeTab: record.request.requestedFeatures[0],
       executionMode: 'external-agent',
     }),
   };

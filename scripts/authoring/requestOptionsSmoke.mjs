@@ -1,6 +1,6 @@
 import { chromium } from '@playwright/test';
 import { createServer } from 'vite';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import assert from 'node:assert/strict';
 let vite;
 let origin = process.env.AUTHORING_TEST_URL;
@@ -23,6 +23,7 @@ try {
   await page.getByLabel('Teaching brief', { exact: true }).fill('Compare two explanations of a new idea.');
   await page.getByLabel('Learner profile', { exact: true }).fill('Adult beginners with no prior statistics experience');
   await page.getByLabel('Language', { exact: true }).fill('Español');
+  await page.getByLabel('Minutes per lesson', { exact: true }).fill('45');
   const choices = page.getByRole('group', { name: 'Materials to create', exact: true });
   for (const name of ['Lesson plans', 'Assignment briefs', 'Rubrics'])
     await choices.getByRole('checkbox', { name, exact: true }).uncheck();
@@ -86,6 +87,53 @@ try {
   assert(fallback.includes('Language: As requested in the brief'));
   assert(fallback.includes('Learner profile was not entered separately'));
   assert(fallback.includes('Language was not entered separately'));
+  await page
+    .getByRole('combobox', { name: 'Saved requests', exact: true })
+    .selectOption({ label: 'Explicit request options acceptance' });
+  const bundle = JSON.parse(
+    await readFile(new URL('../../tests/authoring/lesson-bundle.fixture.json', import.meta.url), 'utf8'),
+  );
+  bundle.lessonId = 'lesson1';
+  function clearEvidence(value) {
+    if (!value || typeof value !== 'object') return;
+    if (value.evidenceRefs) value.evidenceRefs = [];
+    Object.values(value).forEach(clearEvidence);
+  }
+  clearEvidence(bundle);
+  await page.getByText('Import AI response', { exact: true }).click();
+  await page.getByLabel('Draft JSON', { exact: true }).fill(
+    JSON.stringify({
+      plan: {
+        title: 'Single material application fixture',
+        description: 'Projection test; not a language-quality evaluation.',
+        lessons: [
+          {
+            clientId: 'lesson1',
+            title: 'Loop-card exercise',
+            objectives: bundle.objectiveIds.map((clientId, index) => ({
+              clientId,
+              text: index ? 'Apply the rule.' : 'Explain the rule.',
+            })),
+          },
+        ],
+      },
+      bundles: [bundle],
+    }),
+  );
+  await page.getByRole('button', { name: 'Save imported draft', exact: true }).click();
+  await page.getByRole('button', { name: 'Check and preview', exact: true }).click();
+  await page.getByRole('button', { name: 'Apply reviewed draft', exact: true }).click();
+  await page
+    .getByText('Applied and saved on this device. Cloud sync is reported separately in the workspace.', { exact: true })
+    .waitFor();
+  await page.getByRole('button', { name: 'Close', exact: true }).click();
+  await page.getByRole('heading', { name: 'Submission Checklist', exact: true }).waitFor();
+  assert.equal(await page.getByRole('button', { name: 'Lesson Plans', exact: true }).count(), 0);
+  assert.equal(await page.getByRole('button', { name: 'Rubrics', exact: true }).count(), 0);
+  await page.reload();
+  await page.getByRole('button', { name: 'Close', exact: true }).click();
+  await page.getByRole('button', { name: 'Resume', exact: true }).click();
+  await page.getByRole('heading', { name: 'Submission Checklist', exact: true }).waitFor();
   assert.deepEqual(errors, []);
   const result = {
     ok: true,
@@ -94,6 +142,7 @@ try {
     persistedAfterReload: true,
     copiedTaskExact: true,
     missingDetailsDisclosed: true,
+    singleMaterialApplyAndResume: true,
     browserErrors: errors,
   };
   const output = new URL('../../verification-output/external-authoring/request-options/', import.meta.url);

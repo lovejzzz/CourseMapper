@@ -36,7 +36,10 @@ export async function setup(indexedDB, options = {}) {
   const service = createAuthoringService({ store, ...options });
   const principal = LOCAL_PRINCIPAL;
   const call = async (op, args, p = principal) => service.execute(`cm_v2_${op}`, args, p);
-  const created = await service.createRequest(request, principal, { idempotencyKey: id(), base: options.base || null });
+  const created = await service.createRequest(options.request || request, principal, {
+    idempotencyKey: id(),
+    base: options.base || null,
+  });
   const requestId = created.data.requestId;
   const c = await call('get_generation_contract', { requestId, kind: 'course-plan' });
   const made = await call('create_draft', {
