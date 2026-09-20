@@ -1,6 +1,8 @@
 // src/contexts/AuthContext.jsx — Firebase Auth state + React context
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
+import { setAccountStorageUser } from '../lib/accountStorage';
+
 const AuthContext = createContext({
   user: null,
   loading: true,
@@ -48,6 +50,7 @@ export function AuthProvider({ children }) {
           auth,
           (firebaseUser) => {
             if (cancelled) return;
+            setAccountStorageUser(firebaseUser?.uid);
             setUser(firebaseUser);
             setLoading(false);
           },

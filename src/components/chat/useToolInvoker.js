@@ -1,3 +1,4 @@
+import { accountStorageKey } from '../../lib/accountStorage';
 /**
  * useToolInvoker.js — Agent tool execution: agentic loop, parallel tool calling,
  * retry logic, loop detection, and progress card management.
@@ -1965,7 +1966,7 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
     // Load user preferences
     let userPrefs = null;
     try {
-      userPrefs = JSON.parse(localStorage.getItem('coursemapper-agent-prefs') || 'null');
+      userPrefs = JSON.parse(localStorage.getItem(accountStorageKey('coursemapper-agent-prefs', uid)) || 'null');
     } catch {
       /* ignore */
     }
@@ -2057,7 +2058,7 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
     const isFirstTurn = chatHistory.filter((m) => m.role === 'user').length === 0;
     if (isFirstTurn) {
       try {
-        const memories = getMemories();
+        const memories = getMemories(uid);
         if (memories.length > 0) {
           const topMemories = memories
             .slice(0, 5)

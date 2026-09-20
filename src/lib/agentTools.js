@@ -1,3 +1,4 @@
+import { accountStorageKey } from './accountStorage';
 /**
  * agentTools.js — Tool registry for the multi-step agentic teaching assistant.
  *
@@ -2476,9 +2477,11 @@ export const AGENT_TOOLS = {
         return { error: 'Preference value is required.' };
       }
       try {
-        const stored = JSON.parse(localStorage.getItem('coursemapper-agent-prefs') || '{}');
+        const stored = JSON.parse(
+          localStorage.getItem(accountStorageKey('coursemapper-agent-prefs', ctx?.uid)) || '{}',
+        );
         stored[key] = args.value;
-        localStorage.setItem('coursemapper-agent-prefs', JSON.stringify(stored));
+        localStorage.setItem(accountStorageKey('coursemapper-agent-prefs', ctx?.uid), JSON.stringify(stored));
         // Fire-and-forget cloud sync
         if (ctx?.uid) saveAgentPrefs(ctx.uid, stored).catch(() => {});
         return { saved: true, key, value: args.value };
@@ -2496,7 +2499,7 @@ export const AGENT_TOOLS = {
         'object (optional) — any of: instructorName, instructorEmail, officeHours, officeLocation, meetingPattern, classLocation, termLabel, lmsName',
     },
     execute: (args, ctx) => {
-      const current = getProfile();
+      const current = getProfile(ctx?.uid);
       if (!args?.facts || typeof args.facts !== 'object' || Object.keys(args.facts).length === 0) {
         const missing = LOCALIZATION_FIELDS.filter((field) => !String(current?.[field] || '').trim());
         return {
@@ -2516,7 +2519,7 @@ export const AGENT_TOOLS = {
       }
       if (Object.keys(patch).length === 0) return { error: 'No recognized localization fields in facts.' };
       updateProfile(patch, ctx.uid);
-      const after = getProfile();
+      const after = getProfile(ctx?.uid);
       const stillMissing = LOCALIZATION_FIELDS.filter((field) => !String(after?.[field] || '').trim());
       return {
         saved: Object.keys(patch),
@@ -2617,15 +2620,15 @@ export const AGENT_TOOLS = {
         },
       },
     },
-    execute: (args) => {
+    execute: (args, ctx) => {
       try {
         let results;
         if (args.query) {
-          results = searchMemories(args.query);
+          results = searchMemories(args.query, ctx?.uid);
         } else if (args.category) {
-          results = getMemories().filter((m) => m.category === args.category);
+          results = getMemories(ctx?.uid).filter((m) => m.category === args.category);
         } else {
-          results = getMemories();
+          results = getMemories(ctx?.uid);
         }
         // Return top 10 most relevant
         const top = results.slice(0, 10).map((m) => ({

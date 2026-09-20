@@ -1,3 +1,4 @@
+import { subscribeAccountCache } from '../../lib/accountStorage';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { getInstitutionProfileCompleteness, getProfile, saveProfile } from '../../lib/professorProfile';
 
@@ -94,12 +95,29 @@ function Field({ field, value, onChange, multiline = false }) {
 }
 
 export default function InstitutionProfileCard({ uid = null }) {
+  return <AccountInstitutionProfileCard key={uid || 'anonymous'} uid={uid} />;
+}
+
+function AccountInstitutionProfileCard({ uid }) {
   const [open, setOpen] = useState(false);
-  const [profile, setProfile] = useState(() => getProfile());
+  const [profile, setProfile] = useState(() => getProfile(uid));
   const [saveState, setSaveState] = useState('saved');
   const saveTimer = useRef(null);
   const statusTimer = useRef(null);
   const didMount = useRef(false);
+  const edited = useRef(false);
+  const syncing = useRef(false);
+
+  useEffect(
+    () =>
+      subscribeAccountCache('coursemapper-professorProfile', uid, () => {
+        if (!edited.current) {
+          syncing.current = true;
+          setProfile(getProfile(uid));
+        }
+      }),
+    [uid],
+  );
 
   const completeness = useMemo(() => getInstitutionProfileCompleteness(profile), [profile]);
   const summary = useMemo(() => {
@@ -122,6 +140,10 @@ export default function InstitutionProfileCard({ uid = null }) {
       return undefined;
     }
 
+    if (syncing.current) {
+      syncing.current = false;
+      return undefined;
+    }
     setSaveState('saving');
     window.clearTimeout(saveTimer.current);
     saveTimer.current = window.setTimeout(() => {
@@ -135,6 +157,7 @@ export default function InstitutionProfileCard({ uid = null }) {
   }, [profile, uid]);
 
   function updateField(key, value) {
+    edited.current = true;
     setProfile((current) => ({ ...current, [key]: value }));
   }
 

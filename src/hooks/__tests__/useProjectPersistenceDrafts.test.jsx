@@ -7,6 +7,7 @@ import { saveProjectIndexedDbAutosave } from '../../lib/projectIndexedDbAutosave
 import useProjectPersistence, { STORAGE_KEY } from '../useProjectPersistence.js';
 import { createNewTeachingTaskReviewDraft } from '../../lib/teachingTaskReview.js';
 import { loadProject, loadProjectDeliverables, saveProject, newProjectId } from '../../lib/cloudStorage';
+import { loadDeveloperTemplates } from '../../lib/cloudStorage';
 import { emptyTeachingReviewDrafts } from '../../lib/teachingReviewDrafts.js';
 
 vi.mock('../../lib/cloudStorage', () => ({
@@ -14,6 +15,8 @@ vi.mock('../../lib/cloudStorage', () => ({
   loadProject: vi.fn(),
   loadProjectDeliverables: vi.fn(),
   newProjectId: vi.fn(),
+  loadDeveloperTemplates: vi.fn(async () => ({})),
+  saveDeveloperTemplate: vi.fn(async () => {}),
 }));
 vi.mock('../../lib/projectIndexedDbAutosave', () => ({
   loadProjectIndexedDbAutosave: vi.fn(async () => null),
@@ -28,6 +31,7 @@ const initialMap = {
 let api, root, context;
 beforeEach(() => {
   saveProject.mockReset();
+  loadDeveloperTemplates.mockReset().mockResolvedValue({});
   loadProject.mockReset();
   loadProjectDeliverables.mockReset();
   newProjectId.mockReset().mockReturnValue('cloud-project-test');
@@ -363,4 +367,24 @@ it('stays in the workspace when full local persistence and the recovery fallback
   expect(context.setScreen).not.toHaveBeenCalledWith('landing');
   expect(context.gen.setError).toHaveBeenCalledWith(expect.stringContaining('full project could not be saved'));
   vi.mocked(saveProjectIndexedDbAutosave).mockReset();
+});
+
+it('does not restore A templates into B when A cloud sync finishes late', async () => {
+  let resolveA;
+  loadDeveloperTemplates.mockImplementationOnce(
+    () =>
+      new Promise((resolve) => {
+        resolveA = resolve;
+      }),
+  );
+  context.user = { uid: 'a' };
+  await mount();
+  context.user = { uid: 'b' };
+  await mount();
+  expect(api.developerTemplates).toEqual([]);
+  await act(async () => resolveA({ a: { id: 'a', name: 'A private template' } }));
+  expect(api.developerTemplates).toEqual([]);
+  context.user = { uid: 'a' };
+  await mount();
+  expect(api.developerTemplates.map((t) => t.name)).toContain('A private template');
 });

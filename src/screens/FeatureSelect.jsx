@@ -1,3 +1,4 @@
+import { subscribeAccountCache } from '../lib/accountStorage';
 import React, { useEffect, useState, useRef } from 'react';
 import FocusTrap from 'focus-trap-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -550,7 +551,12 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
   );
 }
 
-export default function FeatureSelect({
+export default function FeatureSelect(props) {
+  const { user } = useAuth();
+  return <AccountFeatureSelect key={user?.uid || 'anonymous'} {...props} />;
+}
+
+function AccountFeatureSelect({
   onNext,
   onBack,
   hasSyllabusFile,
@@ -564,7 +570,15 @@ export default function FeatureSelect({
   const [hoveredId, setHoveredId] = useState(null);
   const [showBuilder, setShowBuilder] = useState(false);
   const [editingCustom, setEditingCustom] = useState(null); // custom def being edited
-  const [customDeliverables, setCustomDeliverables] = useState(() => listCustomDeliverables());
+  const [customDeliverables, setCustomDeliverables] = useState(() => listCustomDeliverables(user?.uid || null));
+
+  useEffect(
+    () =>
+      subscribeAccountCache('coursemapper-custom-deliverables', user?.uid || null, () => {
+        setCustomDeliverables(listCustomDeliverables(user?.uid || null));
+      }),
+    [user?.uid],
+  );
 
   // Merge built-in + custom features
   const customFeatures = customDeliverables.map(toFeatureEntry);
@@ -618,8 +632,8 @@ export default function FeatureSelect({
   }
 
   function handleSaveCustom(def) {
-    const saved = saveCustomDeliverable(def, user?.uid);
-    setCustomDeliverables(listCustomDeliverables());
+    const saved = saveCustomDeliverable(def, user?.uid || null);
+    setCustomDeliverables(listCustomDeliverables(user?.uid || null));
     // Auto-select the newly created deliverable
     if (!selected.includes(saved.id)) {
       setSelected((prev) => [...prev, saved.id]);
@@ -630,7 +644,7 @@ export default function FeatureSelect({
 
   function handleEditCustom(e, featureId) {
     e.stopPropagation();
-    const customs = listCustomDeliverables();
+    const customs = listCustomDeliverables(user?.uid || null);
     const def = customs.find((c) => c.id === featureId);
     if (def) {
       setEditingCustom(def);
@@ -640,8 +654,8 @@ export default function FeatureSelect({
 
   function handleDeleteCustom(e, featureId) {
     e.stopPropagation();
-    deleteCustomDeliverable(featureId, user?.uid);
-    setCustomDeliverables(listCustomDeliverables());
+    deleteCustomDeliverable(featureId, user?.uid || null);
+    setCustomDeliverables(listCustomDeliverables(user?.uid || null));
     setSelected((prev) => prev.filter((id) => id !== featureId));
   }
 

@@ -1,3 +1,4 @@
+import { accountStorageKey } from './accountStorage';
 /**
  * Developer Templates — reusable project setup defaults.
  *
@@ -31,17 +32,17 @@ function safeParse(raw, fallback) {
   }
 }
 
-function readMap() {
+function readMap(uid) {
   try {
-    return safeParse(localStorage.getItem(STORAGE_KEY), {});
+    return safeParse(localStorage.getItem(accountStorageKey(STORAGE_KEY, uid)), {});
   } catch {
     return {};
   }
 }
 
-function writeMap(map) {
+function writeMap(map, uid) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
+    localStorage.setItem(accountStorageKey(STORAGE_KEY, uid), JSON.stringify(map));
   } catch {
     // localStorage may be full or blocked; template save should fail softly.
   }
@@ -69,16 +70,16 @@ export function extractDeveloperTemplateData(snapshot = {}) {
   };
 }
 
-export function listDeveloperTemplates() {
-  return Object.values(readMap()).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+export function listDeveloperTemplates(uid) {
+  return Object.values(readMap(uid)).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
 }
 
-export function getDeveloperTemplate(id) {
-  return readMap()[id] || null;
+export function getDeveloperTemplate(id, uid) {
+  return readMap(uid)[id] || null;
 }
 
 export function saveDeveloperTemplate(template, uid) {
-  const map = readMap();
+  const map = readMap(uid);
   const id = template.id || makeId();
   const previous = map[id] || {};
   const data = extractDeveloperTemplateData(template.data || {});
@@ -93,7 +94,7 @@ export function saveDeveloperTemplate(template, uid) {
     updatedAt: now(),
   };
   map[id] = saved;
-  writeMap(map);
+  writeMap(map, uid);
   if (uid) cloudSaveDeveloperTemplate(uid, id, saved).catch(() => {});
   return saved;
 }
@@ -109,16 +110,16 @@ export function saveDeveloperTemplateFromSnapshot(snapshot, name, uid) {
 }
 
 export function deleteDeveloperTemplate(id, uid) {
-  const map = readMap();
+  const map = readMap(uid);
   delete map[id];
-  writeMap(map);
+  writeMap(map, uid);
   if (uid) cloudDeleteDeveloperTemplate(uid, id).catch(() => {});
 }
 
 export async function mergeCloudDeveloperTemplates(uid) {
-  if (!uid) return listDeveloperTemplates();
+  if (!uid) return listDeveloperTemplates(uid);
   try {
-    const localMap = readMap();
+    const localMap = readMap(uid);
     const cloudMap = await cloudLoadDeveloperTemplates(uid);
     const merged = { ...cloudMap };
     Object.entries(localMap).forEach(([id, localTemplate]) => {
@@ -127,12 +128,12 @@ export async function mergeCloudDeveloperTemplates(uid) {
         merged[id] = localTemplate;
       }
     });
-    writeMap(merged);
+    writeMap(merged, uid);
     Object.values(localMap).forEach((template) => {
       cloudSaveDeveloperTemplate(uid, template.id, template).catch(() => {});
     });
-    return listDeveloperTemplates();
+    return listDeveloperTemplates(uid);
   } catch {
-    return listDeveloperTemplates();
+    return listDeveloperTemplates(uid);
   }
 }
