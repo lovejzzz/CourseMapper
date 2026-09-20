@@ -2,7 +2,7 @@ import React, { useState, useEffect, Suspense, lazy } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 // FaqChatbot removed — merged into ChatPanel
-const Changelog = lazy(() => import('./pages/ChangelogSummary'));
+const Changelog = lazy(() => import('./pages/Changelog'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const TermsOfService = lazy(() => import('./pages/TermsOfService'));
 const Contact = lazy(() => import('./pages/Contact'));

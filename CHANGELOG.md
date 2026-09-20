@@ -1,5 +1,57 @@
 # Changelog
 
+## 0.20.00 — 2026-09-20
+
+External AI authoring, native WebMCP debugging, durable recovery and complete release history. Product interfaces display v0.20.00; package metadata uses the equivalent canonical SemVer 0.20.0.
+
+### External AI authoring
+
+- Create teaching requests with learner profile, language, lesson timing and selected lesson plans, assignments and rubrics.
+- Author through supported browser page tools or the configured private ChatGPT connection; copy/import remains available when page tools are unavailable.
+- Read source context, obtain versioned content contracts, submit isolated drafts, validate and preview before explicit website review and application. External authoring makes no website model calls.
+
+### WebMCP diagnostics and controlled repair
+
+- Expose 13 native page tools for authorized context, draft status, content contracts and diagnostics, with document-scoped access.
+- Return actionable field errors for invalid content, including rubric totals, missing lessons and broken references. Rejected submissions preserve the saved draft.
+- Reject stale revisions and expired page authorization. Retried requests with the same key return their original receipts without duplicating drafts.
+- Verify diagnostic repair through actual Codex browser tools. Browser console, network and layout debugging still use browser developer tools; the page diagnostic tool is not a general JavaScript debugger.
+
+### Review, teacher edits and linked materials
+
+- Retain the reviewed course baseline when revising a lesson; preserve unchanged lesson/objective identities, bundles and teacher edits.
+- Compare the draft against the current course before applying. Conflicting baselines stop application instead of replacing another course.
+- Keep lesson plans, assignments and rubric projections connected. Assessment answers belong in teacher-only fields; student-facing task requirements and scoring descriptors remain separate.
+- Preserve reviewed content through later generation and surface stale-material warnings for explicit review.
+
+### Reliable saving and recovery
+
+- Save the exact authored workspace and Resume pointer durably, including an IndexedDB fallback when browser localStorage is full.
+- Preserve the cloud compare-and-swap version through local Resume; display failed cloud saves until a later save succeeds.
+- Reserve remote applications before committing, block a competing device, and recover the original application and receipt after an interrupted response. Matching receipt retries are idempotent.
+- Allow signed-in custom definitions to save through confirmed cloud persistence when the local cache is full. Retain edits and show an error if both storage paths fail; do not report an unsaved definition as saved.
+
+### Accounts, permissions and source privacy
+
+- Partition profiles, custom definitions, developer templates, memories and preferences by account. Prevent a previous account’s local cache from merging into another account.
+- Pause cloud saving after an account change or when ownership of a legacy cloud-linked snapshot is unknown; require an explicit cloud open or copy.
+- Share only selected text snapshots after local review. Treat source text as untrusted reference material, redact recognized secrets and disclose unparsed scans or diagrams.
+- Support Google and email/password website sign-in, linked AI identity, scoped access and revocation. External AI tools cannot directly apply drafts to the formal course.
+
+### Exports, operations and release history
+
+- Preserve authored content and teacher edits across project-file/cloud reopen and supported exports. Student copies exclude teacher-only evaluation fields.
+- Keep saved drafts readable and existing application recovery available when new remote writes/applications are disabled.
+- Restore the complete changelog at the existing Changelog link. Preserve v0.19.99 and older entries instead of replacing them with the latest summary.
+- This release updates the existing website. Public ChatGPT marketplace publication, new model weights, a ground-up rebuild and universal educational-quality certification are not included.
+
+### Verification scope
+
+- Actual private ChatGPT author/review/apply/export and native Codex WebMCP diagnosis, repair, permission withdrawal and reload/retry workflows were exercised.
+- Invalid rubric totals and stale revisions were intentional fault inputs and correctly rejected; they were not newly discovered product defects.
+- Cross-account isolation, storage-full persistence, cloud Resume, interrupted cross-device application and disabled-runtime recovery were verified.
+- Release-history routing and this version bump receive separate release checks. Historical claims below retain their original dates and limitations.
+
 ## 0.19.99 — 2026-09-08
 
 Stabilization release of the existing website, by explicit user scope decision. Retains local Scion, the 0.18.7 interface, ten material categories, existing editors and applicable exports. The ground-up rebuild and unfinished v0.20.0 acceptance scope are deferred; this release does not claim that roadmap is complete.

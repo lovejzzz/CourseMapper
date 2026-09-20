@@ -161,3 +161,25 @@ test('built-site Firebase sign-in can load Google bootstrap while unknown script
   expect(result).toBe('blocked');
   expect(await page.evaluate(() => window.__unexpectedScriptLoaded)).toBeUndefined();
 });
+
+test('release page preserves latest details and the complete historical changelog', async ({ page }) => {
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto('/');
+  await expect(page.getByRole('link', { name: 'v0.20.00', exact: true })).toBeVisible();
+  await page.getByRole('link', { name: 'v0.20.00', exact: true }).click();
+  await expect(page).toHaveURL(/#\/changelog$/);
+  await expect(page.locator('[id="release-0.20.00"]')).toContainText('WebMCP diagnostics and controlled repair');
+  await expect(page.locator('[id="release-0.20.00"]')).toContainText('Reliable saving and recovery');
+  await page.getByRole('button', { name: 'Browse previous releases' }).click();
+  await expect(page.locator('[id="release-0.19.99"]')).toBeInViewport();
+  await expect(page.locator('[id="release-0.19.99"]')).toContainText('Linked Materials, Reliable Revisions');
+  await expect(page.locator('[id="release-0.19.2"]')).toHaveCount(1);
+  await expect(page.locator('[id="release-0.15.3"]')).toHaveCount(1);
+  await page.reload();
+  await expect(page.locator('[id="release-0.20.00"]')).toHaveCount(1);
+  await expect(page.locator('[id="release-0.19.99"]')).toHaveCount(1);
+  const response = await page.request.get('/release.json');
+  expect(await response.json()).toMatchObject({ version: '0.20.0', displayVersion: '0.20.00' });
+  expect(errors).toEqual([]);
+});

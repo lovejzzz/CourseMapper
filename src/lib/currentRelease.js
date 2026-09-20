@@ -3,17 +3,17 @@ import { APP_VERSION } from './appVersion.js';
 /** Current copy stays small; prior release details load with the changelog. */
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
-  date: 'September 8, 2026',
-  title: 'Linked Materials, Reliable Revisions',
-  landingTitle: 'EDUTOOL V0.19.99: Linked Materials, Reliable Revisions',
+  date: 'September 20, 2026',
+  title: 'External AI Authoring, WebMCP Debugging and Reliable Recovery',
+  landingTitle: `EDUTOOL V${APP_VERSION}: Create, Review and Recover`,
   highlights: [
-    'Keep reviewed tasks, answers and scoring aligned when regenerating related materials, with protected teacher edits and recoverable review drafts.',
-    'Preserve complete lesson objectives and original source records. Improve worked examples, feedback and student-copy exports.',
-    'Keep local Scion, the 0.18.7 interface and existing export choices. This stabilization release does not claim the unfinished v0.20 roadmap or general classroom readiness.',
+    'Create and revise linked lesson plans, assignments and rubrics with external AI; review drafts before applying them to your course.',
+    'Use native WebMCP tools to inspect requests, diagnose content errors and verify repairs, with scoped access and version protection.',
+    'Recover interrupted applications and full-cache saves, keep accounts isolated, and browse the complete release history.',
   ],
   landingHighlights: [
-    'Keep reviewed task materials in sync.',
-    'Preserve teacher edits and source-review drafts.',
-    'Use local Scion with the familiar workspace.',
+    'Author with external AI, then review and apply.',
+    'Diagnose drafts through native WebMCP tools.',
+    'Recover saved work and browse every release.',
   ],
 };

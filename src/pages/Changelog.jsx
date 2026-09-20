@@ -2058,6 +2058,16 @@ export default function Changelog() {
         <div className="mb-16">
           <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Changelog</h1>
           <p className="mt-2 text-slate-600 text-sm">New features, improvements, and fixes for Course Mapper.</p>
+          <button
+            type="button"
+            onClick={(event) => {
+              event.preventDefault();
+              document.getElementById('release-0.19.99')?.scrollIntoView({ behavior: 'smooth' });
+            }}
+            className="mt-4 inline-block text-sm font-semibold text-indigo-600"
+          >
+            Browse previous releases ↓
+          </button>
         </div>
 
         {/* Releases */}
@@ -2066,7 +2076,7 @@ export default function Changelog() {
             const sections = Array.isArray(release.sections) ? release.sections : [];
 
             return (
-              <article key={release.version} className="relative">
+              <article key={release.version} id={`release-${release.version}`} className="relative">
                 {/* Version header */}
                 <div className="flex items-baseline gap-4 mb-8">
                   <span className="text-2xl font-bold text-slate-900 tracking-tight">v{release.version}</span>
