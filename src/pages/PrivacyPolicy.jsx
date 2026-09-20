@@ -180,9 +180,10 @@ export default function PrivacyPolicy() {
             <p>
               Revoke remote access stops further AI access to the selected request. Disconnect AI identity stops remote
               access through that connection. These actions do not erase already applied courses or copies held by your
-              AI provider. Delete shared request and drafts removes the exchange request and draft content; unreferenced
-              stored content is removed by scheduled cleanup. Browser copies, project backups and cloud-saved courses
-              are separate and remain until removed through their respective controls.
+              AI provider. Delete shared request and drafts makes the exchange request and drafts unavailable
+              immediately; unreferenced stored content is physically removed by scheduled cleanup. Browser copies,
+              project backups and cloud-saved courses are separate and remain until removed through their respective
+              controls.
             </p>
             <p>
               Request access expires 30 days after creation. A daily cleanup job removes expired exchange content and
