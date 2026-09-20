@@ -57,6 +57,7 @@ export function buildCourseMapRecoveryAutosavePayload(snapshot = {}) {
   const promptText = typeof snapshot.promptText === 'string' ? snapshot.promptText.slice(0, 8_000) : '';
   return JSON.stringify({
     projectId: snapshot.projectId,
+    localCloudOwnerUid: snapshot.localCloudOwnerUid,
     courseMap: snapshot.courseMap,
     columns: snapshot.columns,
     hasGenerated: true,

@@ -6,7 +6,7 @@ import { Storage } from 'happy-dom';
 import { saveProjectIndexedDbAutosave } from '../../lib/projectIndexedDbAutosave';
 import useProjectPersistence, { STORAGE_KEY } from '../useProjectPersistence.js';
 import { createNewTeachingTaskReviewDraft } from '../../lib/teachingTaskReview.js';
-import { loadProject, loadProjectDeliverables } from '../../lib/cloudStorage';
+import { loadProject, loadProjectDeliverables, saveProject, newProjectId } from '../../lib/cloudStorage';
 import { emptyTeachingReviewDrafts } from '../../lib/teachingReviewDrafts.js';
 
 vi.mock('../../lib/cloudStorage', () => ({
@@ -27,6 +27,8 @@ const initialMap = {
 };
 let api, root, context;
 beforeEach(() => {
+  saveProject.mockReset();
+  newProjectId.mockReset().mockReturnValue('cloud-project-test');
   vi.useFakeTimers();
   vi.stubGlobal('localStorage', new Storage());
   localStorage.clear();
@@ -93,15 +95,114 @@ afterEach(async () => {
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
 });
+function Harness() {
+  const [courseMap, setCourseMap] = useState(initialMap);
+  const [hasGenerated, setHasGenerated] = useState(true);
+  api = useProjectPersistence({ ...context, courseMap, setCourseMap, hasGenerated, setHasGenerated });
+  return null;
+}
 async function mount() {
-  function Harness() {
-    const [courseMap, setCourseMap] = useState(initialMap);
-    const [hasGenerated, setHasGenerated] = useState(true);
-    api = useProjectPersistence({ ...context, courseMap, setCourseMap, hasGenerated, setHasGenerated });
-    return null;
-  }
   await act(async () => root.render(<Harness />));
 }
+
+it('keeps automatic cloud saves with the original account until an explicit Save as New', async () => {
+  context.user = { uid: 'owner-a' };
+  await mount();
+  await act(async () => vi.advanceTimersByTimeAsync(5000));
+  expect(saveProject).toHaveBeenCalledWith('owner-a', 'cloud-project-test', expect.any(Object));
+  expect(JSON.parse(localStorage.getItem(STORAGE_KEY)).localCloudOwnerUid).toBe('owner-a');
+  expect(api.buildProjectSnapshot()).not.toHaveProperty('localCloudOwnerUid');
+  saveProject.mockClear();
+  context.user = null;
+  await mount();
+  context.user = { uid: 'owner-b' };
+  await mount();
+  await act(async () => vi.advanceTimersByTimeAsync(6000));
+  expect(saveProject).not.toHaveBeenCalled();
+  expect(api.cloudSaveStatus).toBe('error');
+  expect(context.gen.setError).toHaveBeenCalledWith(expect.stringContaining('another account'));
+  newProjectId.mockReturnValueOnce('explicit-copy');
+  await act(async () => api.handleSaveCurrentAsNew());
+  expect(saveProject).toHaveBeenCalledWith('owner-b', 'explicit-copy', expect.any(Object));
+  await act(async () => api.saveLocalProjectSnapshot());
+  expect(JSON.parse(localStorage.getItem(STORAGE_KEY)).localCloudOwnerUid).toBe('owner-b');
+});
+
+it('does not publish a late autosave result into the replacement account session', async () => {
+  let resolveSave;
+  saveProject.mockImplementationOnce(
+    () =>
+      new Promise((resolve) => {
+        resolveSave = resolve;
+      }),
+  );
+  context.user = { uid: 'owner-a' };
+  await mount();
+  await act(async () => vi.advanceTimersByTimeAsync(5000));
+  context.user = { uid: 'owner-b' };
+  await mount();
+  await act(async () => {
+    resolveSave();
+  });
+  expect(api.cloudSaveStatus).toBe('error');
+  await act(async () => vi.advanceTimersByTimeAsync(6000));
+  expect(saveProject.mock.calls.map(([uid]) => uid)).toEqual(['owner-a']);
+  // Returning to the original account resumes ordinary saves and clears only this warning.
+  const pauseWarning = context.gen.setError.mock.calls.find(
+    ([value]) => typeof value === 'string' && value.includes('another account'),
+  )[0];
+  context.user = { uid: 'owner-a' };
+  await mount();
+  const clearWarning = context.gen.setError.mock.calls.at(-1)[0];
+  expect(clearWarning(pauseWarning)).toBe('');
+  expect(clearWarning('An unrelated generation error')).toBe('An unrelated generation error');
+  await act(async () => vi.advanceTimersByTimeAsync(5000));
+  expect(saveProject.mock.calls.map(([uid]) => uid)).toEqual(['owner-a', 'owner-a']);
+});
+
+it('preserves the account boundary across local recovery but permits an explicitly imported file', async () => {
+  context.user = { uid: 'owner-b' };
+  await mount();
+  const saved = { courseMap: initialMap, projectId: 'owner-a-project', localCloudOwnerUid: 'owner-a' };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+  await act(async () => api.doRestoreSession());
+  await act(async () => vi.advanceTimersByTimeAsync(6000));
+  expect(saveProject).not.toHaveBeenCalled();
+  expect(api.buildProjectSnapshot().courseMap).toEqual(initialMap);
+  await act(async () =>
+    api.handleOpenProject({ name: 'chosen.coursemapper', text: async () => JSON.stringify(saved) }),
+  );
+  await act(async () => vi.advanceTimersByTimeAsync(6000));
+  expect(saveProject).toHaveBeenCalledWith('owner-b', 'cloud-project-test', expect.any(Object));
+  expect(saveProject.mock.calls.every(([, pid]) => pid !== 'owner-a-project')).toBe(true);
+});
+
+it('ignores an old account cloud-load response after switching accounts', async () => {
+  let resolveLoad;
+  loadProject.mockImplementationOnce(
+    () =>
+      new Promise((resolve) => {
+        resolveLoad = resolve;
+      }),
+  );
+  loadProjectDeliverables.mockClear();
+  context.user = { uid: 'owner-a' };
+  await mount();
+  let opening;
+  await act(async () => {
+    opening = api.handleOpenCloudProject('owner-a-private');
+  });
+  context.user = { uid: 'owner-b' };
+  await mount();
+  await act(async () => {
+    resolveLoad({ courseMap: { ...initialMap, courseName: 'Old account late response' } });
+    await opening;
+  });
+  expect(loadProjectDeliverables).not.toHaveBeenCalled();
+  expect(api.buildProjectSnapshot().courseMap.courseName).toBe(initialMap.courseName);
+  await act(async () => vi.advanceTimersByTimeAsync(6000));
+  expect(saveProject).not.toHaveBeenCalled();
+});
 
 it('saves the latest draft immediately into the project file and at the pending autosave deadline', async () => {
   await mount();

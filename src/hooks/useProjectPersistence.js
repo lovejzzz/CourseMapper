@@ -68,6 +68,8 @@ import { normalizeRestoredDeliverables } from '../model/courseStore.jsx';
 import { warn, error as logError } from '../lib/logger';
 
 export const STORAGE_KEY = 'coursemapper-project';
+const ACCOUNT_SAVE_PAUSED =
+  'Cloud save is paused because this project belongs to another account. Sign back in, or use Save Current as New Project to copy it to this account.';
 
 function readLocalAutosaveMarker() {
   try {
@@ -148,6 +150,12 @@ export default function useProjectPersistence({
   const [, setRestoredSession] = useState(false);
   const [projectId, setProjectId] = useState(null); // Firestore project doc ID
   const projectIdRef = useRef(null); // Ref mirror to prevent race conditions in auto-save
+  const currentUidRef = useRef(user?.uid || null);
+  currentUidRef.current = user?.uid || null;
+  // A login change must not silently copy the open account's project to another account.
+  // Explicit file import, opening that account's project, or Save as New can adopt it.
+  const cloudOwnerUidRef = useRef(user?.uid || null);
+  const accountSavePausedRef = useRef(false);
   const [localSaveStatus, setLocalSaveStatus] = useState('idle'); // 'idle' | 'saving' | 'saved' | 'error'
   const [cloudSaveStatus, setCloudSaveStatus] = useState('idle'); // 'idle' | 'saving' | 'saved' | 'error'
   const cloudSaveTimerRef = useRef(null);
@@ -579,7 +587,8 @@ export default function useProjectPersistence({
           },
         });
       };
-      const fullSnapshot = buildProjectSnapshot(extra);
+      const localExtra = { ...extra, localCloudOwnerUid: cloudOwnerUidRef.current };
+      const fullSnapshot = buildProjectSnapshot(localExtra);
       if (fullSnapshot.courseMap?.authoringV2) {
         try {
           const pointer = await saveAuthorWorkspace(fullSnapshot);
@@ -593,7 +602,7 @@ export default function useProjectPersistence({
         }
       }
       const compactSnapshot = buildCloudProjectSnapshot({
-        ...extra,
+        ...localExtra,
         localSaveMode: 'compact-autosave',
       });
       try {
@@ -708,7 +717,20 @@ export default function useProjectPersistence({
   useEffect(() => {
     if (!user || !hasGenerated || !courseMap) return;
     clearTimeout(cloudSaveTimerRef.current);
+    if (cloudOwnerUidRef.current && cloudOwnerUidRef.current !== user.uid) {
+      clearTimeout(cloudStatusTimerRef.current);
+      setCloudSaveStatus('error');
+      accountSavePausedRef.current = true;
+      gen.setError(ACCOUNT_SAVE_PAUSED);
+      return;
+    }
+    if (accountSavePausedRef.current) {
+      accountSavePausedRef.current = false;
+      gen.setError((previous) => (previous === ACCOUNT_SAVE_PAUSED ? '' : previous));
+    }
+    cloudOwnerUidRef.current = user.uid;
     cloudSaveTimerRef.current = setTimeout(async () => {
+      if (currentUidRef.current !== user.uid || cloudOwnerUidRef.current !== user.uid) return;
       try {
         setCloudSaveStatus('saving');
         // Use ref to avoid creating duplicate IDs when effect fires multiple times
@@ -725,12 +747,14 @@ export default function useProjectPersistence({
           version: '1.5',
         });
         await cloudSaveProject(user.uid, pid, state);
+        if (currentUidRef.current !== user.uid || cloudOwnerUidRef.current !== user.uid) return;
         saveLocalProjectSnapshot({ projectId: pid });
         setCloudSaveStatus('saved');
         // Reset to idle after 3 seconds
         clearTimeout(cloudStatusTimerRef.current);
         cloudStatusTimerRef.current = setTimeout(() => setCloudSaveStatus('idle'), 3000);
       } catch (e) {
+        if (currentUidRef.current !== user.uid) return;
         warn('[Cloud] auto-save failed:', e);
         setCloudSaveStatus('error');
         clearTimeout(cloudStatusTimerRef.current);
@@ -738,7 +762,7 @@ export default function useProjectPersistence({
       }
     }, 5000);
     return () => clearTimeout(cloudSaveTimerRef.current);
-  }, [user, hasGenerated, courseMap, buildCloudProjectSnapshot, saveLocalProjectSnapshot]);
+  }, [user, hasGenerated, courseMap, buildCloudProjectSnapshot, saveLocalProjectSnapshot, gen.setError]);
 
   // ── On sign-in: merge cloud data (custom deliverables + profile) ──
   const prevUserRef = useRef(null);
@@ -809,6 +833,7 @@ export default function useProjectPersistence({
 
   // ── Restore saved session ──
   async function doRestoreSession() {
+    const uid = currentUidRef.current;
     try {
       let raw = readLocalAutosaveMarker();
       if (raw) {
@@ -821,6 +846,8 @@ export default function useProjectPersistence({
       const saved = prepareProjectSnapshotForRestore(await restoreAuthorWorkspace(JSON.parse(raw)));
       if (!saved.courseMap) return;
       const restoredDeliverables = await compileCompactProjectDeliverables(saved);
+      if (currentUidRef.current !== uid) return;
+      cloudOwnerUidRef.current = saved.localCloudOwnerUid || uid;
       setCourseMap(saved.courseMap);
       // v0.13: every restored project becomes graph-backed.
       adoptCourseGraph(saved);
@@ -863,12 +890,15 @@ export default function useProjectPersistence({
   }
 
   async function handleOpenProject(file) {
+    const uid = currentUidRef.current;
     try {
       // .coursemapper files are full JSON project snapshots — restore everything
       if (file.name.toLowerCase().endsWith('.coursemapper')) {
         const text = await file.text();
         const saved = prepareProjectSnapshotForRestore(JSON.parse(text));
         if (!saved.courseMap) throw new Error('Invalid .coursemapper file');
+        if (currentUidRef.current !== uid) return;
+        cloudOwnerUidRef.current = uid;
         restoreProjectAIConfig(saved);
         restoreApiCallBudgetReceipt?.(saved.apiCallBudgetReceipt);
         restorePackageEvidence(saved);
@@ -903,6 +933,10 @@ export default function useProjectPersistence({
       // Legacy: xlsx/csv course map import (lazy — rare path, v0.15.3 C1)
       const { importCourseMap } = await import('../lib/importCourseMap');
       const imported = await importCourseMap(file);
+      if (currentUidRef.current !== uid) return;
+      cloudOwnerUidRef.current = uid;
+      setProjectId(null);
+      projectIdRef.current = null;
       delivUndo?.reset();
       teachingDrafts.restore();
       setCourseMap(imported);
@@ -942,16 +976,20 @@ export default function useProjectPersistence({
   // ── Open a cloud project by ID ──
   async function handleOpenCloudProject(pid) {
     if (!user) return;
+    const uid = user.uid;
     try {
-      const saved = prepareProjectSnapshotForRestore(await cloudLoadProject(user.uid, pid));
+      const saved = prepareProjectSnapshotForRestore(await cloudLoadProject(uid, pid));
+      if (currentUidRef.current !== uid) return;
       if (!saved || !saved.courseMap) throw new Error('Project data not found');
       const deliverables = prepareProjectSnapshotForRestore({
-        deliverables: await loadProjectDeliverables(user.uid, pid),
+        deliverables: await loadProjectDeliverables(uid, pid),
       }).deliverables;
       const restoredDeliverables =
         deliverables && Object.keys(deliverables).length > 0
           ? deliverables
           : await compileCompactProjectDeliverables(saved);
+      if (currentUidRef.current !== uid) return;
+      cloudOwnerUidRef.current = uid;
       // Restore all state — same as doRestoreSession but from cloud
       setCourseMap(saved.courseMap);
       adoptCourseGraph(saved);
@@ -988,6 +1026,7 @@ export default function useProjectPersistence({
       }
       setScreen('workspace');
     } catch (e) {
+      if (currentUidRef.current !== uid) return;
       logError('[Cloud] open project failed:', e);
       gen.setError('Failed to open cloud project: ' + e.message);
       throw e; // Re-throw so ProjectPicker can catch and show error
@@ -1006,9 +1045,12 @@ export default function useProjectPersistence({
         version: '1.5',
       });
       await cloudSaveProject(user.uid, pid, state);
+      if (currentUidRef.current !== user.uid) return;
+      cloudOwnerUidRef.current = user.uid;
       setProjectId(pid);
       projectIdRef.current = pid;
     } catch (e) {
+      if (currentUidRef.current !== user.uid) return;
       logError('[Cloud] save-as-new failed:', e);
       gen.setError('Failed to save project to cloud: ' + e.message);
     }
@@ -1063,6 +1105,7 @@ export default function useProjectPersistence({
     setHasSavedSession(false);
     setProjectId(null);
     projectIdRef.current = null;
+    cloudOwnerUidRef.current = currentUidRef.current;
     setLocalSaveStatus('idle');
     setCloudSaveStatus('idle');
     setNewProjectError('');
@@ -1084,7 +1127,7 @@ export default function useProjectPersistence({
         saveLocalProjectSnapshot({ projectId: projectIdRef.current });
       }
 
-      if (user && courseMap && hasGenerated) {
+      if (user && courseMap && hasGenerated && (!cloudOwnerUidRef.current || cloudOwnerUidRef.current === user.uid)) {
         clearTimeout(cloudSaveTimerRef.current);
         setCloudSaveStatus('saving');
         let pid = projectIdRef.current;
@@ -1100,6 +1143,7 @@ export default function useProjectPersistence({
           version: '1.5',
         });
         await cloudSaveProject(user.uid, pid, state);
+        if (currentUidRef.current !== user.uid) return;
         setCloudSaveStatus('saved');
       }
 
