@@ -3600,6 +3600,9 @@ export default function AppFlow({
               className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
             >
               {workspaceSavePresentation.notice}
+              <button type="button" onClick={() => setShowProjectPicker(true)} className="ml-3 font-semibold underline">
+                My Projects
+              </button>
             </p>
           )}
 
