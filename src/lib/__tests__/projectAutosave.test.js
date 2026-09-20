@@ -123,6 +123,7 @@ describe('buildCourseMapRecoveryAutosavePayload', () => {
   it('preserves a re-compilable course while omitting quota-heavy graph and artifact data', () => {
     const payload = buildCourseMapRecoveryAutosavePayload({
       projectId: 'geo-1',
+      localCloudOwnerUid: 'owner-a',
       courseMap: {
         courseName: 'Physical Geology',
         lessons: [{ title: 'Lesson 1: Minerals' }],
@@ -140,6 +141,7 @@ describe('buildCourseMapRecoveryAutosavePayload', () => {
     const saved = JSON.parse(payload);
 
     expect(saved.courseMap.courseName).toBe('Physical Geology');
+    expect(saved.localCloudOwnerUid).toBe('owner-a');
     expect(saved.selectedFeatures).toEqual(['courseMap', 'quizBank']);
     expect(saved.deliverableManifest.quizBank.status).toBe('done');
     expect(saved.generationConstraints).toEqual({
