@@ -205,7 +205,7 @@
     },
     {
       "name": "cm_v2_get_context",
-      "description": "Read the authorized request snapshot and scope, not an assumed browser tab.",
+      "description": "Read the authorized request snapshot and scope, not an assumed browser tab. Source summaries contain sourceId, not readable contentId. Use cm_v2_search_content to discover contentId and contentRevision before reading source text.",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
@@ -246,7 +246,7 @@
     },
     {
       "name": "cm_v2_search_content",
-      "description": "Search only authorized source snapshots and materials.",
+      "description": "Search only authorized source snapshots and materials. Returns contentId and contentRevision for cm_v2_read_content; sourceId from request context is not a readable contentId.",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
@@ -297,7 +297,7 @@
     },
     {
       "name": "cm_v2_read_content",
-      "description": "Read a version-bound authorized content page. Never fetch arbitrary URLs.",
+      "description": "Read a version-bound authorized content page. Pass contentId and contentRevision from cm_v2_search_content as contentId and expectedRevision. Do not pass sourceId from request context. Never fetch arbitrary URLs.",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
