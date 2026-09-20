@@ -1,7 +1,7 @@
 import { redactSecretText } from './secretText.js';
 import { assert, bytes, hash } from './primitives.js';
 
-function redactSourceText(text) {
+export function redactSourceText(text) {
   return redactSecretText(text)
     .replace(
       /-----BEGIN ((?:RSA |EC |DSA |OPENSSH |ENCRYPTED )?PRIVATE KEY)-----[\s\S]*?-----END \1-----/g,

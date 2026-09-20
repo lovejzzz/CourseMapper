@@ -1,3 +1,5 @@
+import { baselineDraft } from '../authoringCore/reviewedBaseline.js';
+import { mergeReviewedLessons } from './reviewedMerge.js';
 import { authoringFlags } from './featureFlags.js';
 import { assert, clone, hash, id, mergeThreeWay } from '../authoringCore/core.js';
 import { contentBase } from '../authoringCore/service.js';
@@ -7,13 +9,20 @@ export async function previewApplication(record, draftId, current) {
   assert(draft?.preview?.revision === draft.revision, 'STALE_PREVIEW', 'Check and preview this draft again.');
   assert(!draft.application, 'ALREADY_APPLIED', 'This draft has already been applied.');
   const proposed = projectDraft(draft, record.request);
-  const base = contentBase(record.base);
+  const authoredBase = draft.fromReviewedBaseline ? baselineDraft(record) : null;
+  assert(
+    !draft.fromReviewedBaseline || authoredBase,
+    'BASELINE_UNAVAILABLE',
+    'The reviewed authoring baseline is unavailable.',
+  );
+  const base = contentBase(authoredBase ? projectDraft(authoredBase, record.request) : record.base);
+  const merge = authoredBase ? mergeReviewedLessons : mergeThreeWay;
   const live = contentBase(current);
-  const map = mergeThreeWay(base.courseMap, live.courseMap, proposed.courseMap, '/courseMap');
+  const map = merge(base.courseMap, live.courseMap, proposed.courseMap, '/courseMap');
   const deliverables = { ...clone(live.deliverables) };
   const conflicts = [...map.conflicts];
   for (const [feature, entry] of Object.entries(proposed.deliverables)) {
-    const merged = mergeThreeWay(
+    const merged = merge(
       base.deliverables[feature]?.data,
       live.deliverables[feature]?.data,
       entry.data,
