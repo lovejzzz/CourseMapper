@@ -167,13 +167,16 @@ export async function loadCustomDeliverables(uid) {
   const snap = await getDocs(customDelCol(uid));
   const map = {};
   snap.forEach((d) => {
-    setOwnEnumerableData(map, d.id, sanitizeCloudSnapshotData(d.data()));
+    const definition = sanitizeCloudSnapshotData(d.data());
+    const updatedAt = definition.updatedAt;
+    if (updatedAt instanceof Date) definition.updatedAt = readNormalizedCloudDate(updatedAt).getTime();
+    setOwnEnumerableData(map, d.id, definition);
   });
   return map;
 }
 
 export async function saveCustomDeliverable(uid, id, def) {
-  if (!db) return;
+  if (!db) throw new Error('Account storage is unavailable.');
   const safeDef = sanitizeCloudPayload(def);
   await setDoc(customDelDoc(uid, id), {
     ...safeDef,

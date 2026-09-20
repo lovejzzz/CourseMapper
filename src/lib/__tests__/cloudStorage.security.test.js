@@ -641,3 +641,16 @@ describe('cloudStorage secret sanitation', () => {
     ]);
   });
 });
+
+it('returns cloud definition timestamps as comparable milliseconds that survive the local JSON cache', async () => {
+  firestore.getDocs.mockResolvedValueOnce({
+    forEach: (callback) =>
+      callback({
+        id: 'custom_time',
+        data: () => ({ name: 'Timestamp test', updatedAt: new firestore.Timestamp(1789900000, 500000000) }),
+      }),
+  });
+  const loaded = await loadCustomDeliverables('user-1');
+  expect(loaded.custom_time.updatedAt).toBe(1789900000500);
+  expect(JSON.parse(JSON.stringify(loaded)).custom_time.updatedAt).toBeGreaterThan(1789900000000);
+});

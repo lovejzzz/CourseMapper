@@ -1,6 +1,12 @@
 import { accountStorageKey, setAccountStorageUser } from '../accountStorage.js';
 import { getProfile, saveProfile, updateProfile } from '../professorProfile.js';
-import { getCustomDeliverable, saveCustomDeliverable, deleteCustomDeliverable } from '../customDeliverableLibrary.js';
+import {
+  getCustomDeliverable,
+  saveCustomDeliverable,
+  saveCustomDeliverableWithCloudFallback,
+  deleteCustomDeliverable,
+  listCustomDeliverables,
+} from '../customDeliverableLibrary.js';
 import { listDeveloperTemplates, saveDeveloperTemplate, deleteDeveloperTemplate } from '../developerTemplates.js';
 import { getMemories, addMemory, updateMemory, deleteMemory } from '../agentMemory.js';
 import { it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -170,4 +176,68 @@ it('can remove the last definition even when new storage writes are unavailable'
   expect(deleteCustomDeliverable(saved.id, 'a')).toBe(true);
   expect(getCustomDeliverable(saved.id, 'a')).toBeNull();
   expect(cloud.deleteCustomDeliverable).toHaveBeenCalledWith('a', saved.id);
+});
+
+it('publishes a quota fallback only after cloud confirmation and keeps it in the originating account', async () => {
+  let finish;
+  cloud.saveCustomDeliverable.mockImplementationOnce(
+    () =>
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+  );
+  localStorage.setItem = () => {
+    throw new DOMException('Full', 'QuotaExceededError');
+  };
+  setAccountStorageUser('fallback-origin');
+  const pending = saveCustomDeliverableWithCloudFallback({ name: 'Cloud confirmed' }, 'fallback-origin');
+  expect(listCustomDeliverables()).toEqual([]);
+  setAccountStorageUser('fallback-other');
+  finish();
+  const saved = await pending;
+  expect(getCustomDeliverable(saved.id)).toBeNull();
+  setAccountStorageUser('fallback-origin');
+  expect(getCustomDeliverable(saved.id).name).toBe('Cloud confirmed');
+  expect(cloud.saveCustomDeliverable).toHaveBeenCalledWith('fallback-origin', saved.id, saved);
+  const updated = await saveCustomDeliverableWithCloudFallback(
+    { ...saved, name: 'Updated confirmed' },
+    'fallback-origin',
+  );
+  expect(updated.id).toBe(saved.id);
+  expect(getCustomDeliverable(saved.id).name).toBe('Updated confirmed');
+  expect(deleteCustomDeliverable(saved.id, 'fallback-origin')).toBe(true);
+  expect(getCustomDeliverable(saved.id)).toBeNull();
+});
+
+it('keeps the prior definition when both local storage and the cloud reject an edit', async () => {
+  const uid = 'fallback-failed';
+  const saved = saveCustomDeliverable({ name: 'Retained prior version' }, uid);
+  cloud.saveCustomDeliverable.mockRejectedValueOnce(new Error('Network unavailable'));
+  localStorage.setItem = () => {
+    throw new DOMException('Full', 'QuotaExceededError');
+  };
+  await expect(saveCustomDeliverableWithCloudFallback({ ...saved, name: 'Unsaved' }, uid)).rejects.toThrow(
+    'Neither this browser nor your account',
+  );
+  expect(getCustomDeliverable(saved.id, uid).name).toBe('Retained prior version');
+});
+
+it('does not pretend that an anonymous save has a cloud fallback', async () => {
+  localStorage.setItem = () => {
+    throw new DOMException('Full', 'QuotaExceededError');
+  };
+  await expect(saveCustomDeliverableWithCloudFallback({ name: 'Anonymous unsaved' })).rejects.toThrow('could not save');
+  expect(cloud.saveCustomDeliverable).not.toHaveBeenCalled();
+});
+
+it('can read definitions loaded from the cloud even when the local cache is full', async () => {
+  localStorage.setItem = () => {
+    throw new DOMException('Full', 'QuotaExceededError');
+  };
+  cloud.loadCustomDeliverables.mockResolvedValueOnce({
+    remote: { id: 'remote', name: 'Recovered from cloud', updatedAt: 50 },
+  });
+  await mergeCloudDeliverables('fallback-reloaded');
+  expect(getCustomDeliverable('remote', 'fallback-reloaded').name).toBe('Recovered from cloud');
+  expect(getCustomDeliverable('remote', 'fallback-other')).toBeNull();
 });

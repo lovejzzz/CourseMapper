@@ -13,9 +13,7 @@ it('keeps the edited definition open after a failed save and permits retry', asy
   document.body.appendChild(container);
   const root = createRoot(container);
   const onClose = vi.fn();
-  const onSave = vi.fn().mockImplementationOnce(() => {
-    throw new Error('Browser storage is full');
-  });
+  const onSave = vi.fn().mockRejectedValueOnce(new Error('Browser storage is full'));
   try {
     await act(async () =>
       root.render(
@@ -38,6 +36,82 @@ it('keeps the edited definition open after a failed save and permits retry', asy
     expect(onSave).toHaveBeenCalledTimes(2);
     expect(onSave.mock.calls[1][0]).toMatchObject({ name: 'Retain this edit', description: 'Retain description' });
     expect(container.querySelector('[role="alert"]')).toBeNull();
+  } finally {
+    await act(async () => root.unmount());
+    container.remove();
+  }
+});
+
+it('waits for cloud confirmation and disables duplicate submissions while saving', async () => {
+  const container = document.createElement('div');
+  document.body.appendChild(container);
+  const root = createRoot(container);
+  let rejectSave;
+  const onSave = vi.fn(
+    () =>
+      new Promise((_, reject) => {
+        rejectSave = reject;
+      }),
+  );
+  try {
+    await act(async () =>
+      root.render(
+        <CustomDeliverableBuilder
+          isOpen
+          onClose={() => {}}
+          onSave={onSave}
+          editDef={{ id: 'custom_pending', name: 'Pending definition' }}
+        />,
+      ),
+    );
+    const button = (label) => [...container.querySelectorAll('button')].find((b) => b.textContent.trim() === label);
+    await act(async () => button('Next').click());
+    await act(async () => button('Save Changes').click());
+    expect(button('Saving…').disabled).toBe(true);
+    await act(async () => button('Saving…').click());
+    expect(onSave).toHaveBeenCalledTimes(1);
+    await act(async () => rejectSave(new Error('Cloud unavailable')));
+    expect(container.querySelector('[role="alert"]').textContent).toBe('Cloud unavailable');
+    expect(button('Save Changes').disabled).toBe(false);
+  } finally {
+    await act(async () => root.unmount());
+    container.remove();
+  }
+});
+
+it('invalidates pending follow-up actions when a saving editor is closed', async () => {
+  const container = document.createElement('div');
+  document.body.appendChild(container);
+  const root = createRoot(container);
+  let finish;
+  const onClose = vi.fn();
+  const onSave = vi.fn(
+    () =>
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+  );
+  try {
+    await act(async () =>
+      root.render(
+        <CustomDeliverableBuilder
+          isOpen
+          onClose={onClose}
+          onSave={onSave}
+          editDef={{ id: 'custom_cancel', name: 'Save without generating' }}
+        />,
+      ),
+    );
+    const button = (label) => [...container.querySelectorAll('button')].find((b) => b.textContent.trim() === label);
+    await act(async () => button('Next').click());
+    await act(async () => button('Save Changes').click());
+    expect(container.querySelector('fieldset').disabled).toBe(true);
+    const { isCurrent } = onSave.mock.calls[0][1];
+    expect(isCurrent()).toBe(true);
+    await act(async () => button('Close (save continues)').click());
+    expect(onClose).toHaveBeenCalledOnce();
+    expect(isCurrent()).toBe(false);
+    await act(async () => finish());
   } finally {
     await act(async () => root.unmount());
     container.remove();

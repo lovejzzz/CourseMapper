@@ -32,8 +32,12 @@ import { getGoogleModelBaseUrl } from './googleProvider';
 import { buildOpenAIResponsesBody, extractOpenAIResponsesText, prefersOpenAIResponsesApi } from './openaiProvider';
 
 const STORAGE_KEY = 'coursemapper-custom-deliverables';
+// Only confirmed cloud data may outlive a failed local cache write in memory.
+const cloudBackedCache = new Map();
 
 function readAll(uid) {
+  const key = accountStorageKey(STORAGE_KEY, uid);
+  if (cloudBackedCache.has(key)) return structuredClone(cloudBackedCache.get(key));
   try {
     const raw = localStorage.getItem(accountStorageKey(STORAGE_KEY, uid));
     if (!raw) return {};
@@ -49,13 +53,19 @@ function writeAll(map, uid) {
     const serialized = JSON.stringify(map);
     const current = localStorage.getItem(key);
     // A sign-in with no definitions should not consume scarce browser storage.
-    if (current === serialized || (!current && !Object.keys(map).length)) return;
+    if (current === serialized || (!current && !Object.keys(map).length)) {
+      cloudBackedCache.delete(key);
+      return;
+    }
     if (!Object.keys(map).length) localStorage.removeItem(key);
     else localStorage.setItem(key, serialized);
+    cloudBackedCache.delete(key);
   } catch {
-    throw new Error(
+    const error = new Error(
       'This browser could not save the custom material definition. Keep this form open and copy your changes before freeing browser storage or trying another browser.',
     );
+    error.code = 'LOCAL_DEFINITION_STORAGE';
+    throw error;
   }
 }
 
@@ -80,7 +90,7 @@ export function listCustomDeliverables(uid) {
  * If def.id is provided and exists, it updates; otherwise creates a new one.
  * Returns the saved definition (with id populated).
  */
-export function saveCustomDeliverable(def, uid) {
+function prepareCustomDeliverable(def, uid) {
   const map = readAll(uid);
   const now = Date.now();
   const id = def.id && map[def.id] ? def.id : `custom_${now}`;
@@ -131,8 +141,36 @@ Return ONLY a valid JSON object with this structure:
   if (!saved.icon) saved.icon = 'M12 6v6m0 0v6m0-6h6m-6 0H6'; // plus icon as default
   if (!saved.color) saved.color = 'violet';
   map[id] = saved;
+  return { map, id, saved };
+}
+
+export function saveCustomDeliverable(def, uid) {
+  const { map, id, saved } = prepareCustomDeliverable(def, uid);
   writeAll(map, uid);
   // Fire-and-forget cloud sync if user is logged in
+  if (uid) cloudSave(uid, id, saved).catch((e) => console.warn('[Cloud] deliverable save failed:', e));
+  return saved;
+}
+
+/** Preserve local/offline saves, but use confirmed cloud persistence when the cache is full. */
+export async function saveCustomDeliverableWithCloudFallback(def, uid = null) {
+  const { map, id, saved } = prepareCustomDeliverable(def, uid);
+  try {
+    writeAll(map, uid);
+  } catch (error) {
+    if (!uid || error.code !== 'LOCAL_DEFINITION_STORAGE') throw error;
+    try {
+      await cloudSave(uid, id, saved);
+    } catch {
+      throw new Error(
+        'Neither this browser nor your account could save the definition. Your changes are still in this form. Check your connection and try again.',
+      );
+    }
+    // Re-read after awaiting so another completed save is not discarded.
+    cloudBackedCache.set(accountStorageKey(STORAGE_KEY, uid), { ...readAll(uid), [id]: saved });
+    notifyAccountCacheChanged(STORAGE_KEY, uid);
+    return saved;
+  }
   if (uid) cloudSave(uid, id, saved).catch((e) => console.warn('[Cloud] deliverable save failed:', e));
   return saved;
 }
@@ -376,7 +414,12 @@ export async function mergeCloudDeliverables(uid) {
         cloudSave(uid, id, localDef).catch(() => {});
       }
     }
-    writeAll(merged, uid);
+    try {
+      writeAll(merged, uid);
+    } catch {
+      // A full browser cache must not hide definitions successfully loaded from the account.
+      cloudBackedCache.set(accountStorageKey(STORAGE_KEY, uid), merged);
+    }
     notifyAccountCacheChanged(STORAGE_KEY, uid);
     return merged;
   } catch (e) {
