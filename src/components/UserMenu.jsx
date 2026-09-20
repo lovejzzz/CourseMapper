@@ -1,6 +1,7 @@
 // src/components/UserMenu.jsx — Sign-in button + avatar dropdown
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import EmailSignInButton from './EmailSignInButton';
 
 export default function UserMenu({
   onOpenProjects,
@@ -105,6 +106,7 @@ export default function UserMenu({
           )}
           {isLoading ? 'Signing in...' : 'Sign in'}
         </button>
+        <EmailSignInButton />
         {onDeveloperModeChange && (
           <>
             <button
