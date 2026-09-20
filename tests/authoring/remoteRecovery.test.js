@@ -92,3 +92,65 @@ it('discards a private response if the account changes while its body is arrivin
     callAccountApi({ endpoint: 'https://test.invalid', user, getUid: () => uid, path: 'read', body: {}, fetch }),
   ).rejects.toThrow('account changed');
 });
+
+it.each(['token', 'fetch', 'body'])('times out a stalled %s without sending a late write', async (stage) => {
+  vi.useFakeTimers();
+  let release;
+  const stalled = new Promise((resolve) => {
+    release = resolve;
+  });
+  const fetch = vi.fn(async () =>
+    stage === 'fetch'
+      ? stalled
+      : {
+          ok: true,
+          json: async () => (stage === 'body' ? stalled : { ok: true, data: {} }),
+        },
+  );
+  const user = { uid: 'teacher', getIdToken: async () => (stage === 'token' ? stalled : 'token') };
+  try {
+    const pending = callAccountApi({
+      endpoint: 'https://test.invalid',
+      user,
+      getUid: () => 'teacher',
+      path: 'reserve',
+      body: {},
+      fetch,
+      timeoutMs: 50,
+    });
+    const rejection = expect(pending).rejects.toMatchObject({ code: 'REMOTE_TIMEOUT' });
+    await vi.advanceTimersByTimeAsync(51);
+    await rejection;
+    if (stage === 'token') {
+      release('late token');
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(fetch).not.toHaveBeenCalled();
+    } else {
+      expect(fetch.mock.calls[0][1].signal.aborted).toBe(true);
+      release({ ok: true, data: {} });
+    }
+    expect(vi.getTimerCount()).toBe(0);
+  } finally {
+    vi.useRealTimers();
+  }
+});
+
+it('reports a malformed exchange response without leaving a timeout running', async () => {
+  vi.useFakeTimers();
+  try {
+    await expect(
+      callAccountApi({
+        endpoint: 'https://test.invalid',
+        user: { uid: 'teacher', getIdToken: async () => 'token' },
+        getUid: () => 'teacher',
+        path: 'read',
+        body: {},
+        fetch: async () => ({ ok: true, json: async () => null }),
+      }),
+    ).rejects.toMatchObject({ code: 'REMOTE_ERROR' });
+    expect(vi.getTimerCount()).toBe(0);
+  } finally {
+    vi.useRealTimers();
+  }
+});

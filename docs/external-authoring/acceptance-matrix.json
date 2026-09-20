@@ -11,7 +11,7 @@
       "expected": "无需 Codex、终端、MCP 地址或 API key。",
       "evidence": "真实 ChatGPT",
       "status": "pending-live-platform",
-      "implementationEvidence": "Real private ChatGPT connection retained its account and discovered 14 tools. Actual capabilities/list reads and isolated request → plan → lesson bundle → validation → preview succeeded. Website review/application/receipt passed, with exact exported content fingerprints and zero website model starts. Semantic review found answer leakage in generated studentEvidenceExpected/rubric descriptors; contract guidance was clarified and a corrected second draft passed website review/application. An immediate-resume pointer fix passed browser regression and awaits frontend publication. This is private acceptance, not public plugin publication."
+      "implementationEvidence": "Real private ChatGPT connection retained its account and discovered 14 tools. Actual capabilities/list reads and isolated request → plan → lesson bundle → validation → preview succeeded. Website review/application/receipt passed, with exact exported content fingerprints and zero website model starts. Semantic review found answer leakage in generated studentEvidenceExpected/rubric descriptors; contract guidance was clarified and a corrected second draft passed website review/application. The Resume/IndexedDB quota fix is deployed as 536b3060 and passed recovery, immediate reload and Resume in the actual storage-full Chrome profile. This is private acceptance, not public plugin publication."
     },
     {
       "id": "T02",
@@ -81,7 +81,7 @@
       "expected": "每次调用重新检查，立即拒绝。",
       "evidence": "服务端",
       "status": "partial",
-      "implementationEvidence": "Expired/revoked grant and JWT binding rejected; provider refresh-token revocation pending."
+      "implementationEvidence": "Expired/revoked grant and JWT binding rejected; provider refresh-token revocation pending. Signed JWTs now exercise actual HTTP authorization after binding revocation/relink cutoff, token expiry and per-request revocation. Revoked requests are excluded from listing. Real-provider acceptance remains separate."
     },
     {
       "id": "T09",
@@ -111,7 +111,7 @@
       "expected": "能创建新草稿，不能枚举或读取已有课程。",
       "evidence": "服务端/真实宿主",
       "status": "partial",
-      "implementationEvidence": "Real private ChatGPT connection retained its account and discovered 14 tools. Actual capabilities/list reads and isolated request → plan → lesson bundle → validation → preview succeeded. Website review/application/receipt passed, with exact exported content fingerprints and zero website model starts. Semantic review found answer leakage in generated studentEvidenceExpected/rubric descriptors; contract guidance was clarified and a corrected second draft passed website review/application. An immediate-resume pointer fix passed browser regression and awaits frontend publication. This is private acceptance, not public plugin publication."
+      "implementationEvidence": "Real private ChatGPT connection retained its account and discovered 14 tools. Actual capabilities/list reads and isolated request → plan → lesson bundle → validation → preview succeeded. Website review/application/receipt passed, with exact exported content fingerprints and zero website model starts. Semantic review found answer leakage in generated studentEvidenceExpected/rubric descriptors; contract guidance was clarified and a corrected second draft passed website review/application. The Resume/IndexedDB quota fix is deployed as 536b3060 and passed recovery, immediate reload and Resume in the actual storage-full Chrome profile. This is private acceptance, not public plugin publication."
     },
     {
       "id": "T12",
