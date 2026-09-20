@@ -56,7 +56,7 @@ export function getWorkspaceSavePresentation({ cloudStatus, localStatus, user, w
     failed,
     quiet: !failed && !saving && !paused,
     notice: paused
-      ? 'Cloud save is paused because this project belongs to another account. Sign back in, or use Project → Save Current as New Project to copy it to this account.'
+      ? 'Cloud save is paused because this project belongs to another account. Sign back in, or open My Projects and choose Save Current as New Project to copy it to this account.'
       : null,
     text:
       cloudStatus === 'saving'
