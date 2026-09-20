@@ -4,7 +4,7 @@ Checked 2026-09-20. The root lockfile audit initially reported 21 affected packa
 
 ## Targeted changes
 
-- Wrangler 4.129.0 → 4.135.0 updates its Miniflare/Sharp chain, including Sharp 0.35.4.
+- Wrangler 4.129.0 → 4.135.0 updates its Miniflare/Sharp chain, including Sharp 0.35.4. Cloudflare worker types are aligned to 5.20260918.1 to satisfy Wrangler's peer requirement.
 - Vitest 4.1.5 → 4.1.11 remains within the declared compatible range and updates the vulnerable mocker.
 - js-yaml 4.3.1 → 4.3.2 is a compatible transitive patch.
 - PptxGenJS remains at 4.0.1. A scoped override selects image-size 2.0.4 instead of 1.2.1. npm's suggested PptxGenJS downgrade to 2.2.0 was not used. The installed PptxGenJS distribution has no active image-size import, and its browser mapping explicitly disables that dependency. The override removes the vulnerable installed parser; it is not a claim that CourseMapper's browser export currently exposes that parser. Reassess this override when upgrading PptxGenJS.
