@@ -1,7 +1,7 @@
 import React from 'react';
 import Header from '../components/Header';
 
-const LAST_UPDATED = 'September 5, 2026';
+const LAST_UPDATED = 'September 20, 2026';
 
 export default function PrivacyPolicy() {
   return (
@@ -30,7 +30,8 @@ export default function PrivacyPolicy() {
               Course Mapper is a static browser app. The shared free online Scion relay is temporarily paused. Editing,
               exports, and local Scion inference run in your browser. Your work is saved in browser storage by default,
               and if you sign in, selected project and profile data can sync to Firebase services for your account.
-              Google Drive exports upload directly from your browser to your Google Drive.
+              Google Drive exports upload directly from your browser to your Google Drive. Optional external AI
+              authoring uses the separate server-side exchange described below.
             </p>
           </Section>
 
@@ -162,13 +163,45 @@ export default function PrivacyPolicy() {
             </ul>
           </Section>
 
+          <Section title="External AI Authoring and Shared Sources">
+            <p>
+              External AI authoring is optional. When you explicitly share a request, Course Mapper sends its teaching
+              requirements, selected source-text snapshots, and selected course baseline to an account-protected
+              exchange hosted on Google Cloud. File text is extracted in your browser; original file bytes are not
+              uploaded by this sharing flow. You can review stored source text and replace or remove it in AI authoring.
+            </p>
+            <p>
+              Firebase and Auth0 handle sign-in and link your website account to the identity used by your connected AI
+              app. The exchange stores that identity binding and checks it on remote calls. Your connected AI app can
+              read explicitly shared requests and sources and save drafts within their allowed scope. It cannot apply a
+              draft to your course; you review and apply it on the website. Course Mapper does not receive your ChatGPT
+              password or convert your ChatGPT subscription into website API access.
+            </p>
+            <p>
+              Revoke remote access stops further AI access to the selected request. Disconnect AI identity stops remote
+              access through that connection. These actions do not erase already applied courses or copies held by your
+              AI provider. Delete shared request and drafts removes the exchange request and draft content; unreferenced
+              stored content is removed by scheduled cleanup. Browser copies, project backups and cloud-saved courses
+              are separate and remain until removed through their respective controls.
+            </p>
+            <p>
+              Request access expires 30 days after creation. A daily cleanup job removes expired exchange content and
+              unreferenced content blocks. Minimal deletion markers and identity/revocation records are retained to
+              prevent deleted requests or revoked connections from being restored accidentally. Application logs are
+              retained for 30 days; required Google Cloud audit logs are retained for 400 days. Copies in AI
+              conversations follow that provider's retention and deletion controls, which Course Mapper cannot operate
+              for you.
+            </p>
+          </Section>
+
           <Section title="Local Storage">
             <p>
-              Course Mapper uses your browser's local storage to save your work automatically. This includes your course
-              workspace, generated materials, chat history, version history, configuration, institution profile
-              defaults, selected AI provider, and online Scion permission. Relevant data leaves your device when you use
-              an online AI provider, sign-in cloud sync, or an online export. You can clear local project data by
-              starting a new project, or remove all locally stored data through your browser settings.
+              Course Mapper uses your browser's local storage and IndexedDB to save your work automatically. This
+              includes your course workspace, generated materials, chat history, version history, configuration,
+              institution profile defaults, selected AI provider, and online Scion permission. Relevant data leaves your
+              device when you use an online AI provider, explicit external-authoring sharing, sign-in cloud sync, or an
+              online export. Starting a new project does not erase all saved drafts, backups or browser records. Remove
+              all locally stored data through your browser settings only when you intend to discard those local copies.
             </p>
           </Section>
 
@@ -192,8 +225,9 @@ export default function PrivacyPolicy() {
 
           <Section title="Data Security">
             <p>
-              Because Course Mapper is a static browser app, the primary security boundary is your browser and any
-              third-party services you choose to connect. We recommend:
+              Local work relies on your browser storage. Optional cloud sync and external authoring also rely on
+              authenticated server-side access controls and the third-party services you choose to connect. We
+              recommend:
             </p>
             <ul className="list-disc list-inside space-y-1.5 ml-1 mt-2">
               <li>Using a modern, up-to-date browser.</li>
