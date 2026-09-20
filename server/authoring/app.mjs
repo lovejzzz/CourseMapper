@@ -68,6 +68,22 @@ export function createExchangeApp({
     res.json({ resource, authorization_servers: [issuer], scopes_supported: scopes }),
   );
   app.post('/mcp', async (req, res) => {
+    // This stateless endpoint always returns JSON. The SDK still requires both
+    // media types, even with enableJsonResponse. Accept JSON-capable discovery
+    // clients without making them advertise an unused SSE response format.
+    if (!req.accepts('application/json'))
+      return res.status(406).json({
+        jsonrpc: '2.0',
+        error: { code: -32000, message: 'Not Acceptable: Client must accept application/json' },
+        id: null,
+      });
+    req.headers.accept = 'application/json, text/event-stream';
+    // The SDK's Node-to-Web adapter consumes rawHeaders rather than headers.
+    const rawHeaders = [];
+    for (let index = 0; index < req.rawHeaders.length; index += 2)
+      if (req.rawHeaders[index].toLowerCase() !== 'accept')
+        rawHeaders.push(req.rawHeaders[index], req.rawHeaders[index + 1]);
+    req.rawHeaders = [...rawHeaders, 'Accept', req.headers.accept];
     let principal = null;
     if (req.headers.authorization) {
       try {
