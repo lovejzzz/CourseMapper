@@ -1,5 +1,6 @@
 import { createIndexedDbStore } from './indexedDbStore.js';
 import { assert } from '../authoringCore/primitives.js';
+import { saveProjectIndexedDbAutosave } from '../projectIndexedDbAutosave.js';
 const store = createIndexedDbStore();
 const versions = new Map();
 let queue = Promise.resolve();
@@ -10,8 +11,19 @@ export function saveAuthorWorkspace(snapshot) {
 }
 export async function saveAuthorWorkspaceForResume(snapshot, storage = globalThis.localStorage) {
   const pointer = await saveAuthorWorkspace(snapshot);
-  storage.setItem('coursemapper-project', JSON.stringify(pointer));
+  await publishAuthorWorkspacePointer(pointer, storage);
   return pointer;
+}
+export async function publishAuthorWorkspacePointer(pointer, storage = globalThis.localStorage) {
+  const payload = JSON.stringify(pointer);
+  try {
+    storage.setItem('coursemapper-project', payload);
+  } catch {
+    // Reuse the normal Resume fallback when localStorage has no space even
+    // for a small marker. Commit the new pointer before removing the old one.
+    await saveProjectIndexedDbAutosave(payload);
+    storage.removeItem('coursemapper-project');
+  }
 }
 async function save(snapshot) {
   const key = `workspace:${snapshot.courseMap.authoringV2.applicationId}`;

@@ -37,9 +37,48 @@ it('does not report a resumable application when publishing its resume pointer f
           setItem: () => {
             throw new Error('Storage unavailable');
           },
+          removeItem: () => {
+            throw new Error('Storage unavailable');
+          },
         },
       ),
     ).rejects.toThrow('Storage unavailable');
+  } finally {
+    vi.unstubAllGlobals();
+  }
+});
+
+it('resumes exact author content through IndexedDB when localStorage is full, without clearing unrelated data', async () => {
+  vi.stubGlobal('indexedDB', indexedDB);
+  const values = new Map([
+    ['coursemapper-project', 'older resume marker'],
+    ['unrelated-user-data', 'preserve me'],
+  ]);
+  const storage = {
+    setItem: () => {
+      throw new DOMException('Full', 'QuotaExceededError');
+    },
+    removeItem: (key) => values.delete(key),
+  };
+  try {
+    vi.resetModules();
+    const writer = await import('../../src/lib/authoring/localWorkspace.js');
+    const snapshot = {
+      courseMap: { courseName: 'Quota recovery', authoringV2: { applicationId: id() } },
+      text: 'Reviewed author content',
+    };
+    await writer.saveAuthorWorkspaceForResume(snapshot, storage);
+    expect(values.has('coursemapper-project')).toBe(false);
+    expect(values.get('unrelated-user-data')).toBe('preserve me');
+    vi.resetModules();
+    const fallback = await import('../../src/lib/projectIndexedDbAutosave.js');
+    const reader = await import('../../src/lib/authoring/localWorkspace.js');
+    const pointer = JSON.parse(await fallback.loadProjectIndexedDbAutosave());
+    expect(await reader.restoreAuthorWorkspace(pointer)).toEqual(snapshot);
+    await reader.saveAuthorWorkspaceForResume({ ...snapshot, text: 'Teacher edit after reload' }, storage);
+    expect((await reader.restoreAuthorWorkspace(JSON.parse(await fallback.loadProjectIndexedDbAutosave()))).text).toBe(
+      'Teacher edit after reload',
+    );
   } finally {
     vi.unstubAllGlobals();
   }
