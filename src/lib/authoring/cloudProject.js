@@ -2,6 +2,24 @@ import { doc, getDoc, setDoc, runTransaction, serverTimestamp } from 'firebase/f
 import { hash, assert } from '../authoringCore/primitives.js';
 const versions = new Map();
 const tails = new Map();
+export function cloudVersionForResume(uid, pid) {
+  const version = uid && pid && versions.get(`${uid}/${pid}`);
+  return version ? { uid, projectId: pid, ...version } : null;
+}
+export function restoreCloudVersionForResume(uid, pid, saved) {
+  if (
+    !uid ||
+    !pid ||
+    saved?.uid !== uid ||
+    saved?.projectId !== pid ||
+    !Number.isSafeInteger(saved.revision) ||
+    saved.revision < 0 ||
+    !(saved.updatedAt === null || Number.isFinite(saved.updatedAt))
+  )
+    return false;
+  versions.set(`${uid}/${pid}`, { revision: saved.revision, updatedAt: saved.updatedAt });
+  return true;
+}
 export function rememberCloudVersion(uid, pid, data) {
   versions.set(`${uid}/${pid}`, {
     revision: data.authoringRevision || 0,

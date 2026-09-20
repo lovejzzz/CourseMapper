@@ -6,6 +6,7 @@ import {
   publishAuthorWorkspacePointer,
 } from '../lib/authoring/localWorkspace';
 import { preserveAuthoredSnapshot } from '../lib/authoringCore/authorLayer';
+import { cloudVersionForResume, restoreCloudVersionForResume } from '../lib/authoring/cloudProject';
 import { setAuthoringExecutionMode } from '../lib/authoring/inferencePolicy';
 /**
  * useProjectPersistence — v0.15.3 C1: the save/restore/autosave owner,
@@ -590,6 +591,7 @@ export default function useProjectPersistence({
         ...extra,
         localCloudOwnerUid: cloudOwnerUidRef.current,
         localCloudOwnerUnverified: cloudOwnerUnverifiedRef.current,
+        localCloudVersion: cloudVersionForResume(cloudOwnerUidRef.current, extra.projectId ?? projectIdRef.current),
       };
       const fullSnapshot = buildProjectSnapshot(localExtra);
       if (fullSnapshot.courseMap?.authoringV2) {
@@ -720,12 +722,13 @@ export default function useProjectPersistence({
   useEffect(() => {
     if (!user || !hasGenerated || !courseMap) return;
     clearTimeout(cloudSaveTimerRef.current);
+    clearTimeout(cloudStatusTimerRef.current);
     if (cloudOwnerUnverifiedRef.current || (cloudOwnerUidRef.current && cloudOwnerUidRef.current !== user.uid)) {
       clearTimeout(cloudStatusTimerRef.current);
       setCloudSaveStatus(cloudOwnerUnverifiedRef.current ? 'owner-unverified' : 'account-paused');
       return;
     }
-    setCloudSaveStatus('idle');
+    setCloudSaveStatus('saving');
     cloudOwnerUidRef.current = user.uid;
     cloudSaveTimerRef.current = setTimeout(async () => {
       if (
@@ -766,7 +769,6 @@ export default function useProjectPersistence({
         warn('[Cloud] auto-save failed:', e);
         setCloudSaveStatus('error');
         clearTimeout(cloudStatusTimerRef.current);
-        cloudStatusTimerRef.current = setTimeout(() => setCloudSaveStatus('idle'), 5000);
       }
     }, 5000);
     return () => clearTimeout(cloudSaveTimerRef.current);
@@ -865,6 +867,7 @@ export default function useProjectPersistence({
         saved.localCloudOwnerUnverified || (saved.projectId && !saved.localCloudOwnerUid),
       );
       cloudOwnerUidRef.current = saved.localCloudOwnerUid || (cloudOwnerUnverifiedRef.current ? null : uid);
+      if (saved.localCloudOwnerUid === uid) restoreCloudVersionForResume(uid, saved.projectId, saved.localCloudVersion);
       setCourseMap(saved.courseMap);
       // v0.13: every restored project becomes graph-backed.
       adoptCourseGraph(saved);
