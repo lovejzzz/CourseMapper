@@ -15,7 +15,8 @@
     "capabilities": [],
     "defaultPrompt": [
       "Create a 60-minute introductory lesson with practice and a rubric.",
-      "Revise the CourseMapper request I shared, preserving my teacher edits."
+      "Revise the CourseMapper request I shared, preserving my teacher edits.",
+      "Recover my interrupted CourseMapper draft: check what was saved and its application status before continuing."
     ]
   }
 }
