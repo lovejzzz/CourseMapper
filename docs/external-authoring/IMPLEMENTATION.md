@@ -1,5 +1,18 @@
 # External AI authoring: evaluation and implementation
 
+## Current status — 2026-09-20
+
+Use [Current release verification](CURRENT_RELEASE_VERIFICATION.md), [Deployment](DEPLOYMENT.md), and the [acceptance matrix](acceptance-matrix.json) for operational decisions. The sections below record the original evaluation and dated implementation milestones; their earlier pending/deployment statements are historical.
+
+- `edutool.dev` serves the merged release `0a1df4b398c42c7638e1ff70df8374f6b7f5be68` (PR #118, Pages run `35496097125`). Cloud Run revision `coursemapper-authoring-00008-jlk` has remote authoring and website application enabled.
+- Firebase Google sign-in, Auth0 identity linking and the OIDC-capable private ChatGPT connection work. A real ChatGPT request/draft/validate/preview and website review/apply/receipt/export passed. The strict Auth0 third-party client was replaced because it lacked the OIDC identity ChatGPT requires.
+- Student-facing answer leakage in one generated draft was corrected and contract guidance tightened. Resume after application, storage-full fallback, newer-marker preservation, and bounded remote requests are verified; a live stalled-read test recovered after its 30-second deadline.
+- Required CI passed, including 175 authoring tests, six emulator cases and two-profile interrupted Chromium recovery at that release. These counts describe that commit and overlap other historical counts below.
+- Live provider checks reject an unregistered callback and disallowed refresh-token use. Refresh is intentionally disabled; expired-session reauthorization is a separate unverified case.
+- This is private acceptance, not public plugin publication. Real second-account/provider edge cases, physical-device cloud-sync interruption, other AI hosts, and broader classroom quality remain incomplete. Local fixtures are not evidence of those outcomes.
+
+## Historical evaluation and implementation record
+
 Reviewed 2026-09-19 against `CourseMapper_External_AI_Design_v2.zip` and repository HEAD `6d4b3880eb01206354441bc94a00b3c2ddc22d5f`. The ZIP is a design proposal, not authority to publish, deploy, spend money, or accept its own claims of success. Its referenced baseline differs from the current repository.
 
 ## Evaluation and refinements
@@ -83,7 +96,7 @@ On 2026-09-19, `https://edutool.dev/.well-known/oauth-authorization-server`, `/.
 
 GitHub Pages cannot run the Express MCP service. Recommended deployment shape: retain the existing website; host the exchange on Cloud Run behind a verified API subdomain; use a maintained OAuth provider (for example Auth0) for authorization-code + PKCE and link its verified subject to an existing Firebase UID. Do not identify accounts merely by matching an unverified email. An alternate same-origin proxy requires deliberate hosting/routing changes. These are proposals, not resources already provisioned.
 
-## Remaining acceptance work — not release complete
+## Remaining acceptance work at the initial local milestone (historical)
 
 - Provision the OAuth issuer and backend host, implement the verified dual-login account-linking flow, configure exact callbacks/resource/audience, refresh and revocation, and test with actual accounts. The repository implements a resource server verifier, not an OAuth authorization server. Startup preserves exact issuer values (including trailing slashes), validates deployment URLs/ports and supports an explicitly configured container listener; signed-token tests verify exact issuer matching.
 - Deploy appropriate Firestore rules, service credentials, HTTPS routing, and allowed origin; configure the frontend exchange URL. Firebase CSP must allow the chosen API origin if it is cross-origin. The GitHub Pages workflow does not apply Firebase Hosting headers.
@@ -93,7 +106,7 @@ GitHub Pages cannot run the Express MCP service. Recommended deployment shape: r
 
 Requests expire after 30 days for access checking. Teacher deletion and a dry-run/apply retention command now remove request bodies and unreferenced blocks while preserving applied courses. Minimal tombstones prevent deleted-request resurrection. Physical deletion is **not automatic until the deployment schedules the cleanup command**. The emulator verifies expiry, deletion, ownership/CAS, and concurrent cleanup/write integrity. Request/search/read cursors bind to authorized snapshot revisions and query identity; stale views require a restart. Lists no longer silently stop at 200 records. The backing request-list query currently reads all summary records for that owner to fingerprint the view; its cost scales with account size. Source revisions are host-computed after recognized credential patterns are redacted. This is not a guarantee of detecting every possible secret. Local source sharing accepts pasted text or explicitly selected file text. Teacher source updates are local to the selected request; remote copies are updated through the remote request’s source editor. Copy-task source text is filtered by any active source grant. When revision permissions are active, copy/import uses the existing scoped draft; unrestricted new-course copy/import still creates a new draft. The picker supports the existing PDF/Word/slide/spreadsheet/document text parsers; the production browser verified TXT, DOCX, two-page PDF, two-slide PPTX and two-sheet XLSX, including Chinese Office text. PDF extraction uses a lazily loaded, self-hosted worker; the format browser test passes with the external CDN blocked. All non-plain-text formats retain an unreviewed-visual status, and failed extraction exposes no invented text. Limits are five files per selection, 5 MB per original file, 512 KB extracted text per file, and 1 MB total source snapshots. Existing workspace attachments are listed for explicit selection in request creation and local/remote source editors. Reviewing selected attachments extracts text locally and replaces the current file selection; each extracted source still requires a separate sharing checkbox. The production browser verifies a chosen workspace attachment is included and an unchosen attachment is excluded. Existing attachments are never automatically shared. Tests do not certify extraction fidelity for every supported format. Existing-project context is not a full arbitrary course-content search API.
 
-No deployment, public plugin publication, git commit, or push was performed.
+At that initial local-only milestone, no deployment, public plugin publication, git commit, or push had been performed. Later authorized deployment and release evidence supersedes this historical state.
 
 Course-map PDF now uses the same coverage-checked self-hosted font as authored lesson exports. Production PDF text extraction and visual rendering confirm Chinese course-map content is preserved. The existing A3 landscape grid remains; this single-lesson fixture does not establish long-course pagination quality. Four PDF export paths passed together, and 14 focused runtime/font/integrity tests passed.
 
