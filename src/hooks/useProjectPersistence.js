@@ -1,5 +1,9 @@
 import { normalizeSavedEditHistory } from '../lib/deliverableEditHistory.js';
-import { saveAuthorWorkspace, restoreAuthorWorkspace } from '../lib/authoring/localWorkspace';
+import {
+  saveAuthorWorkspace,
+  restoreAuthorWorkspace,
+  publishAuthorWorkspacePointer,
+} from '../lib/authoring/localWorkspace';
 import { preserveAuthoredSnapshot } from '../lib/authoringCore/authorLayer';
 import { setAuthoringExecutionMode } from '../lib/authoring/inferencePolicy';
 /**
@@ -580,7 +584,7 @@ export default function useProjectPersistence({
         try {
           const pointer = await saveAuthorWorkspace(fullSnapshot);
           if (saveAttemptId !== localSaveAttemptIdRef.current) return true;
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(pointer));
+          await publishAuthorWorkspacePointer(pointer);
           settleLocalSaveAttempt('saved', 3000);
           return true;
         } catch (error) {

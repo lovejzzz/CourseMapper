@@ -3,6 +3,7 @@ import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import JSZip from 'jszip';
 import assert from 'node:assert/strict';
 const baseURL = process.env.AUTHORING_TEST_URL || 'http://127.0.0.1:5188';
+const resumeQuota = process.env.AUTHORING_TEST_RESUME_QUOTA === '1';
 const output = new URL('../../verification-output/external-authoring/', import.meta.url);
 await mkdir(output, { recursive: true });
 const fixture = JSON.parse(
@@ -23,14 +24,22 @@ page.on('request', (r) => {
     modelRequests.push(r.url());
 });
 try {
-  await page.addInitScript(() => {
-    if (!localStorage.getItem('coursemapper-project')) {
+  await page.addInitScript((quota) => {
+    if (!sessionStorage.getItem('authoring-smoke-seeded') && !localStorage.getItem('coursemapper-project')) {
       localStorage.setItem(
         'coursemapper-project',
         JSON.stringify({ courseMap: { courseName: 'Older saved course', lessons: [] }, hasGenerated: true }),
       );
     }
-  });
+    sessionStorage.setItem('authoring-smoke-seeded', 'true');
+    if (quota) {
+      const original = Storage.prototype.setItem;
+      Storage.prototype.setItem = function (key, value) {
+        if (key === 'coursemapper-project') throw new DOMException('Full', 'QuotaExceededError');
+        return original.call(this, key, value);
+      };
+    }
+  }, resumeQuota);
   await page.goto(`${baseURL}/?authoring=1`);
   await page.getByLabel('Course title', { exact: true }).fill('Authoring browser acceptance');
   await page
@@ -137,7 +146,8 @@ try {
   await csv.saveAs(csvPath);
   const csvText = await readFile(csvPath, 'utf8');
   assert(!csvText.includes(bundle.assessments[0].evaluation.teacherText.text), 'Student assignment leaked answers');
-  await page.waitForFunction(() => Boolean(localStorage.getItem('coursemapper-project')), { timeout: 15000 });
+  if (resumeQuota) assert.equal(await page.evaluate(() => localStorage.getItem('coursemapper-project')), null);
+  else await page.waitForFunction(() => Boolean(localStorage.getItem('coursemapper-project')), { timeout: 15000 });
   await page.reload();
   const close = page.getByRole('button', { name: 'Close', exact: true });
   await close.waitFor();
