@@ -3,6 +3,7 @@ import { indexedDB } from 'fake-indexeddb';
 import { createExchangeApp } from '../../server/authoring/app.mjs';
 import { setup, completeDraft, LOCAL_PRINCIPAL, request } from './helpers.js';
 import { hash } from '../../src/lib/authoringCore/core.js';
+import Ajv2020 from 'ajv/dist/2020.js';
 
 const origin = 'https://website.test';
 async function harness(run) {
@@ -71,6 +72,36 @@ async function harness(run) {
 }
 
 describe('two-account HTTP route isolation', () => {
+  it('advertises a self-contained result schema that accepts live success and denial envelopes', async () =>
+    harness(async ({ post, mcp, record }) => {
+      const listed = await post('/mcp', { jsonrpc: '2.0', id: 2, method: 'tools/list' }, null, null);
+      const ajv = new Ajv2020({ strict: false });
+      const schemas = listed.body.result.tools.map((tool) => tool.outputSchema);
+      expect(schemas).toHaveLength(14);
+      for (const schema of schemas) {
+        expect(schema?.type).toBe('object');
+        expect(schema).toEqual(schemas[0]);
+      }
+      const validate = ajv.compile(schemas[0]);
+      for (const result of [
+        await mcp('get_capabilities', {}, 'remote-owner'),
+        await mcp('get_context', { requestId: record.id }, 'remote-owner'),
+        await mcp('get_context', { requestId: record.id }, 'remote-other'),
+      ]) {
+        expect(validate(result.structuredContent), JSON.stringify(validate.errors)).toBe(true);
+        expect(JSON.parse(result.content[0].text)).toEqual(result.structuredContent);
+      }
+      expect(
+        validate({
+          protocolVersion: 'coursemapper.authoring.v2',
+          ok: false,
+          operationId: 'x',
+          data: null,
+          warnings: [],
+        }),
+      ).toBe(false);
+    }));
+
   it('serves JSON discovery clients without SSE while preserving authentication and media-type rejection', async () =>
     harness(async ({ post, record }) => {
       const initialize = {

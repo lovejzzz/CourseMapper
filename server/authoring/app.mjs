@@ -10,6 +10,7 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprot
 import { tools, lessonSchema, clone, assert, AuthoringError } from '../../src/lib/authoringCore/core.js';
 import { createAuthoringService, failure, LOCAL_PRINCIPAL } from '../../src/lib/authoringCore/service.js';
 import { authenticationChallenge, bearerToken } from './auth.mjs';
+import resultSchema from '../../src/lib/authoringCore/contracts/core-result.schema.json' with { type: 'json' };
 export function resolvedToolSchema(tool) {
   const schema = clone(tool.inputSchema);
   if (schema.properties?.bundle) {
@@ -106,6 +107,7 @@ export function createExchangeApp({
         name: t.name,
         description: t.description,
         inputSchema: resolvedToolSchema(t),
+        outputSchema: clone(resultSchema),
         annotations: t.remote.annotations,
         securitySchemes: t.remote.securitySchemes,
         _meta: { securitySchemes: t.remote.securitySchemes },
