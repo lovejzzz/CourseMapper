@@ -1,3 +1,4 @@
+import { getAuthoringInferenceStatus } from './lib/authoring/inferencePolicy';
 import React, { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { applyTeachingTaskSourceEdit, rememberTeacherEdit } from './lib/teachingTaskContentSync.js';
@@ -392,6 +393,7 @@ function AddDeliverableButton({ unselected, showAddDeliverable, setShowAddDelive
 // Screens: 'landing' | 'features' | 'config' | 'workspace'
 
 export default function AppFlow({
+  authoringWorkspace = null,
   startupAction = null,
   onStartupHandled,
   onReturnToLanding,
@@ -1420,7 +1422,8 @@ export default function AppFlow({
         // model; it must not gate deterministic blueprint compilation.
         const retryHandlersAvailable =
           typeof regenerateLessonRef.current === 'function' || typeof regenerateFeatureRef.current === 'function';
-        const canRetryWeakSpots = retry && source !== 'auto' && retryHandlersAvailable;
+        const canRetryWeakSpots =
+          getAuthoringInferenceStatus().siteModelCallsAllowed && retry && source !== 'auto' && retryHandlersAvailable;
 
         const finalizerCostPlan = buildApiCostPlan({
           source: `finalizer:${source}`,
@@ -2598,6 +2601,25 @@ export default function AppFlow({
     resetExport,
   });
 
+  useEffect(() => {
+    if (!authoringWorkspace) return;
+    authoringWorkspace.current = {
+      getSnapshot: () => (hasGenerated ? buildProjectSnapshot() : null),
+      apply: applyDeveloperSnapshot,
+      isBusy: () => gen.isStreaming || packageGenerationBusy,
+    };
+    return () => {
+      authoringWorkspace.current = null;
+    };
+  }, [
+    authoringWorkspace,
+    hasGenerated,
+    buildProjectSnapshot,
+    applyDeveloperSnapshot,
+    gen.isStreaming,
+    packageGenerationBusy,
+  ]);
+
   // ── Derived ──
   const providerIsKeyless = provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID;
   const canGenerate =
@@ -3131,7 +3153,9 @@ export default function AppFlow({
 
     async function runStartupAction() {
       try {
-        if (startupAction.type === 'continue') {
+        if (startupAction.type === 'externalSnapshot') {
+          applyDeveloperSnapshot(startupAction.snapshot);
+        } else if (startupAction.type === 'continue') {
           await handleLandingContinue();
         } else if (startupAction.type === 'restore') {
           await doRestoreSession();
@@ -3361,6 +3385,9 @@ export default function AppFlow({
   const workspaceSaveTone = workspaceSavePresentation.tone;
   const workspaceSaveTextTone = workspaceSavePresentation.textTone;
   const workspaceModelName = gen.activeModelName || modelName;
+  const workspaceModelLabel = courseMap?.authoringV2
+    ? 'External AI · teacher reviewed'
+    : workspaceModelName || modelId || '';
   const workspaceSaveTitle = user
     ? 'Signed-in projects autosave locally and to My Projects.'
     : 'Anonymous projects save in this browser. Export .coursemapper for backup.';
@@ -4117,7 +4144,7 @@ export default function AppFlow({
                 <ChatPanel
                   viewportRef={viewportRef}
                   currentStep={gen.progressStep}
-                  modelName={workspaceModelName}
+                  modelName={workspaceModelLabel}
                   error={gen.error || null}
                   streamDetail={gen.streamDetail}
                   streamProgress={gen.streamProgress}

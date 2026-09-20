@@ -1,3 +1,4 @@
+import { rememberCloudVersion, loadAuthoredCloudProject, saveAuthoredCloudProject } from './authoring/cloudProject';
 /**
  * cloudStorage.js — Firestore CRUD helpers for user data.
  *
@@ -233,12 +234,21 @@ export async function loadProject(uid, projectId) {
   if (!db) return null;
   const snap = await getDoc(projectDoc(uid, projectId));
   if (!snap.exists()) return null;
-  return sanitizeCloudSnapshotData(snap.data());
+  const root = snap.data();
+  rememberCloudVersion(uid, projectId, root);
+  if (root.requiredCapabilities?.includes('authored-content-v2'))
+    return sanitizeCloudSnapshotData(await loadAuthoredCloudProject(db, uid, projectId, root));
+  return sanitizeCloudSnapshotData(root);
 }
 
 export async function saveProject(uid, projectId, projectData) {
   if (!db) return;
   const safeProjectData = sanitizeCloudPayload(projectData);
+  if (safeProjectData.requiredCapabilities?.includes('authored-content-v2'))
+    return saveAuthoredCloudProject(db, uid, projectId, safeProjectData);
+  const existing = await getDoc(projectDoc(uid, projectId));
+  if (existing.exists() && existing.data().requiredCapabilities?.includes('authored-content-v2'))
+    throw new Error('This project requires lossless author-content saving.');
   // Separate deliverables out — they go to a subcollection
   const { deliverables, ...meta } = safeProjectData;
   await setDoc(
@@ -323,6 +333,9 @@ export async function saveProjectDeliverables(uid, projectId, deliverables) {
 
 export async function loadProjectDeliverables(uid, projectId) {
   if (!db) return {};
+  const root = await getDoc(projectDoc(uid, projectId));
+  if (root.exists() && root.data().requiredCapabilities?.includes('authored-content-v2'))
+    return (await loadAuthoredCloudProject(db, uid, projectId, root.data())).deliverables;
   const snap = await getDocs(delivCol(uid, projectId));
   const map = {};
   const chunkedManifests = new Map();

@@ -1,3 +1,4 @@
+import { assertSiteInferenceAllowed } from '../../lib/authoring/inferencePolicy';
 /**
  * useStreamProcessor.js — Streaming response parsing & provider API calls.
  *
@@ -98,6 +99,7 @@ A free, browser-based tool that transforms syllabi into complete teaching materi
 
 // ── Streaming call to user's configured provider ────────────────────────────
 export async function streamChat(messages, systemPrompt, signal, apiKey, provider, modelId, maxTokens = 2048) {
+  assertSiteInferenceAllowed();
   if (provider !== 'webllm' && provider !== 'public' && provider !== 'local' && !apiKey) {
     throw new Error('NO_API_KEY');
   }

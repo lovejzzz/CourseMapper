@@ -1,3 +1,4 @@
+import { redactSecretText } from './authoringCore/secretText.js';
 import { detectRequestedClassSessionMinutes, parseClassSessionMinutes } from './sourceBriefConstraints';
 import { setOwnEnumerableData } from './ownEnumerableData.js';
 import { renderedDeliverableCollection } from './renderedDeliverableRoot.js';
@@ -22,15 +23,6 @@ const SECRET_FIELD_NAMES = new Set([
   'deepseekkey',
 ]);
 
-const SECRET_VALUE_PATTERNS = [
-  /\bsk-proj-[A-Za-z0-9_-]{20,}\b/g,
-  /\bsk-ant-[A-Za-z0-9_-]{20,}\b/g,
-  /\bsk-or-v1-[A-Za-z0-9_-]{20,}\b/g,
-  /\bsk-[A-Za-z0-9_-]{24,}\b/g,
-  /\bAIza[0-9A-Za-z_-]{20,}\b/g,
-  /\bBearer\s+[A-Za-z0-9._~+/=-]{20,}\b/gi,
-];
-
 function normalizeKey(key) {
   return String(key || '')
     .toLowerCase()
@@ -39,13 +31,6 @@ function normalizeKey(key) {
 
 function isSecretFieldName(key) {
   return SECRET_FIELD_NAMES.has(normalizeKey(key));
-}
-
-function redactSecretText(value) {
-  return SECRET_VALUE_PATTERNS.reduce(
-    (text, pattern) => text.replace(pattern, '[redacted secret]'),
-    String(value || ''),
-  );
 }
 
 const OMIT_SNAPSHOT_VALUE = Symbol('omit-snapshot-value');
@@ -289,6 +274,14 @@ export function prepareProjectSnapshotForRestore(snapshot) {
     }
     const restored = sanitizeProjectSnapshot(Object.create(Object.getPrototypeOf(sourceSnapshot), descriptors));
     if (!restored || typeof restored !== 'object' || Array.isArray(restored)) return { formatVersion: 1 };
+    if (
+      (restored.requiredCapabilities || []).some((c) => c !== 'authored-content-v2') ||
+      (restored.courseMap?.authoringV2 && !Object.values(restored.deliverables || {}).some((e) => e?.authoredContent))
+    ) {
+      const error = new Error('The project requires unsupported capabilities or is missing its author content.');
+      error.code = 'AUTHOR_CONTENT_INVALID';
+      throw error;
+    }
     if (!restored.formatVersion) restored.formatVersion = 1;
     // The map editor appends to this journal. Some old project files contain
     // an empty object; admitting it as live state crashes the first cell edit.
@@ -337,7 +330,8 @@ export function prepareProjectSnapshotForRestore(snapshot) {
     }
     return restoreSnapshotTeachingProgram(restoreProjectGenerationConstraints(migrateRestoredDeliverables(restored)));
   } catch (error) {
-    if (['TEACHING_PROGRAM_INVALID', 'PROJECT_EDIT_JOURNAL_INVALID'].includes(error?.code)) throw error;
+    if (['AUTHOR_CONTENT_INVALID', 'TEACHING_PROGRAM_INVALID', 'PROJECT_EDIT_JOURNAL_INVALID'].includes(error?.code))
+      throw error;
     return { formatVersion: 1 };
   }
 }

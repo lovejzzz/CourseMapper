@@ -9,6 +9,7 @@ export default [
     ignores: [
       'dist/**',
       'dist-legacy/**',
+      'src/lib/authoringCore/validators.generated.js',
       'node_modules/**',
       '**/.wrangler/**',
       '**/.audit-work/**',

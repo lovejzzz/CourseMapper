@@ -1838,6 +1838,7 @@ function courseMapCellIsCorrupted(value) {
 
 export function repairCourseMapReadiness({ courseMap, columns = [], lessonFilter = null } = {}) {
   const lessons = asArray(courseMap?.lessons);
+  if (courseMap?.authoringV2) return { changed: false, courseMap, repairedFields: [] };
   if (!courseMap || typeof courseMap !== 'object' || lessons.length === 0) {
     return { changed: false, courseMap, repairedFields: [] };
   }
@@ -2199,7 +2200,7 @@ export function repairWorkspaceReadiness({
 
   for (const featureId of featureIds) {
     const entry = deliverables?.[featureId];
-    if (entry?.status !== 'done' || !entry.data) continue;
+    if (entry?.authoredContent || entry?.status !== 'done' || !entry.data) continue;
     const config = deliverableConfig?.[featureId] || {};
 
     if (featureId === 'quizBank') {

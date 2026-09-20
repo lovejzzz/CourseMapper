@@ -1,3 +1,4 @@
+import { assertSiteInferenceAllowed } from './authoring/inferencePolicy';
 /**
  * webllm.js — Browser-local LLM inference via WebLLM (MLC AI).
  *
@@ -64,6 +65,7 @@ export function isEngineReady() {
  * @returns {Promise<MLCEngine>}
  */
 export async function getEngine(modelId, onProgress) {
+  assertSiteInferenceAllowed();
   const targetModel = modelId || WEBLLM_DEFAULT_MODEL.id;
 
   // If already loaded with same model, return immediately
@@ -79,6 +81,7 @@ export async function getEngine(modelId, onProgress) {
   _loadingPromise = (async () => {
     try {
       const webllm = await loadWebLLMRuntime();
+      assertSiteInferenceAllowed();
       _engine = await webllm.CreateMLCEngine(targetModel, {
         initProgressCallback: (report) => {
           if (onProgress) {
@@ -130,9 +133,11 @@ export async function resetEngine() {
  * @returns {{ fullText: string }}
  */
 export async function streamLocalChat(modelId, messages, opts = {}) {
+  assertSiteInferenceAllowed();
   const { temperature = 0.3, max_tokens = WEBLLM_MAX_TOKENS, onChunk, signal, onProgress } = opts;
 
   const engine = await getEngine(modelId, onProgress);
+  assertSiteInferenceAllowed();
 
   if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
 
@@ -169,9 +174,11 @@ export async function streamLocalChat(modelId, messages, opts = {}) {
  * @returns {object} - OpenAI-compatible response
  */
 export async function completeLocal(modelId, messages, opts = {}) {
+  assertSiteInferenceAllowed();
   const { temperature = 0.3, max_tokens = WEBLLM_MAX_TOKENS, onProgress } = opts;
 
   const engine = await getEngine(modelId, onProgress);
+  assertSiteInferenceAllowed();
 
   const response = await engine.chat.completions.create({
     messages,

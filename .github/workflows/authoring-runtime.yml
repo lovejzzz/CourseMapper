@@ -1,0 +1,80 @@
+name: Authoring runtime verification
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/authoring-runtime.yml'
+      - 'server/authoring/**'
+      - 'src/lib/authoringCore/**'
+      - 'src/lib/projectSnapshotSanitizer.js'
+      - 'scripts/authoring/runtime*Smoke.mjs'
+      - 'scripts/authoring/buildContext.mjs'
+      - 'tests/authoring/**'
+      - 'firestore.rules'
+      - 'firebase.json'
+      - 'package*.json'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/authoring-runtime.yml'
+      - 'server/authoring/**'
+      - 'src/lib/authoringCore/**'
+      - 'src/lib/projectSnapshotSanitizer.js'
+      - 'scripts/authoring/runtime*Smoke.mjs'
+      - 'scripts/authoring/buildContext.mjs'
+      - 'tests/authoring/**'
+      - 'firestore.rules'
+      - 'firebase.json'
+      - 'package*.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: authoring-runtime-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Install test and emulator dependencies
+        run: npm ci
+      - name: Build isolated backend image
+        run: |
+          context_dir="$(node scripts/authoring/buildContext.mjs)"
+          docker build -f "$context_dir/server/authoring/Dockerfile" -t coursemapper-authoring:ci "$context_dir"
+      - name: Verify container startup and authentication boundary
+        run: |
+          mkdir -p verification-output/authoring-runtime
+          docker run --rm \
+            -v "$PWD/scripts/authoring/runtimeSmoke.mjs:/checks/startup.mjs:ro" \
+            coursemapper-authoring:ci node /checks/startup.mjs \
+            | tee verification-output/authoring-runtime/startup.json
+      - name: Verify container Firestore transactions against emulator
+        run: |
+          npx firebase emulators:exec --project coursemapper-rules-test --only firestore \
+            'docker run --rm --network host -e FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 -v "$PWD/scripts/authoring/runtimeFirestoreSmoke.mjs:/checks/firestore.mjs:ro" coursemapper-authoring:ci node /checks/firestore.mjs' \
+            | tee verification-output/authoring-runtime/firestore.log
+      - name: Upload runtime evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: authoring-runtime-verification
+          path: verification-output/authoring-runtime/
+          if-no-files-found: ignore

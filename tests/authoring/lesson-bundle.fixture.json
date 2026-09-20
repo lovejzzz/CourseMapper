@@ -1,0 +1,299 @@
+{
+  "lessonId": "lesson-01",
+  "objectiveIds": ["objective-01", "objective-02"],
+  "concepts": [
+    {
+      "clientId": "concept-loop",
+      "name": "回环卡",
+      "explanation": {
+        "text": "在这个虚构系统中，第一和第三个字符相同的三字符卡片称为回环卡。",
+        "evidenceRefs": [
+          {
+            "sourceId": "source-fictional-01",
+            "sourceRevision": "e89119881271db83e57f91d6cff9ecf2a9867fa2265882c2c08d425f913a862b",
+            "excerptId": "excerpt-01"
+          }
+        ]
+      },
+      "prerequisiteConceptIds": []
+    },
+    {
+      "clientId": "concept-break",
+      "name": "断环卡",
+      "explanation": {
+        "text": "在这个虚构系统中，第一和第三个字符不同的三字符卡片称为断环卡。",
+        "evidenceRefs": [
+          {
+            "sourceId": "source-fictional-01",
+            "sourceRevision": "e89119881271db83e57f91d6cff9ecf2a9867fa2265882c2c08d425f913a862b",
+            "excerptId": "excerpt-01"
+          }
+        ]
+      },
+      "prerequisiteConceptIds": []
+    }
+  ],
+  "examples": [
+    {
+      "clientId": "example-01",
+      "objectiveIds": ["objective-01", "objective-02"],
+      "problem": {
+        "text": "判断 ABA 属于哪一类，并说明理由。",
+        "evidenceRefs": [
+          {
+            "sourceId": "source-fictional-01",
+            "sourceRevision": "e89119881271db83e57f91d6cff9ecf2a9867fa2265882c2c08d425f913a862b",
+            "excerptId": "excerpt-01"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "text": "指出第一和第三个字符，二者都是 A。",
+          "evidenceRefs": [
+            {
+              "sourceId": "source-fictional-01",
+              "sourceRevision": "e89119881271db83e57f91d6cff9ecf2a9867fa2265882c2c08d425f913a862b",
+              "excerptId": "excerpt-01"
+            }
+          ]
+        },
+        {
+          "text": "比较两个字符：它们相同，中间的 B 不参与分类。",
+          "evidenceRefs": [
+            {
+              "sourceId": "source-fictional-01",
+              "sourceRevision": "e89119881271db83e57f91d6cff9ecf2a9867fa2265882c2c08d425f913a862b",
+              "excerptId": "excerpt-01"
+            }
+          ]
+        }
+      ],
+      "result": {
+        "text": "ABA 是回环卡，因为第一和第三个字符相同。",
+        "evidenceRefs": [
+          {
+            "sourceId": "source-fictional-01",
+            "sourceRevision": "e89119881271db83e57f91d6cff9ecf2a9867fa2265882c2c08d425f913a862b",
+            "excerptId": "excerpt-01"
+          }
+        ]
+      }
+    }
+  ],
+  "assessments": [
+    {
+      "clientId": "assessment-01",
+      "objectiveIds": ["objective-01", "objective-02"],
+      "prompt": {
+        "text": "分别判断 BAB 和 ABB 的类别，并为每个判断写出比较的两个字符，再说明中间字符为什么不影响分类。",
+        "evidenceRefs": [
+          {
+            "sourceId": "source-fictional-01",
+            "sourceRevision": "e89119881271db83e57f91d6cff9ecf2a9867fa2265882c2c08d425f913a862b",
+            "excerptId": "excerpt-01"
+          }
+        ]
+      },
+      "evaluation": {
+        "kind": "reference-answer",
+        "teacherText": {
+          "text": "BAB 是回环卡，比较的是 B 与 B。ABB 是断环卡，比较的是 A 与 B。规则只比较第一和第三个字符，因此中间字符不影响分类。",
+          "evidenceRefs": [
+            {
+              "sourceId": "source-fictional-01",
+              "sourceRevision": "e89119881271db83e57f91d6cff9ecf2a9867fa2265882c2c08d425f913a862b",
+              "excerptId": "excerpt-01"
+            }
+          ]
+        },
+        "reasoningOrCriteria": [
+          {
+            "text": "两个类别都正确。",
+            "evidenceRefs": [
+              {
+                "sourceId": "source-fictional-01",
+                "sourceRevision": "e89119881271db83e57f91d6cff9ecf2a9867fa2265882c2c08d425f913a862b",
+                "excerptId": "excerpt-01"
+              }
+            ]
+          },
+          {
+            "text": "每个判断都明确比较第一和第三个字符，不以中间字符为依据。",
+            "evidenceRefs": [
+              {
+                "sourceId": "source-fictional-01",
+                "sourceRevision": "e89119881271db83e57f91d6cff9ecf2a9867fa2265882c2c08d425f913a862b",
+                "excerptId": "excerpt-01"
+              }
+            ]
+          }
+        ]
+      },
+      "studentEvidenceExpected": "提交两项分类、两项字符比较说明，以及中间字符不影响分类的规则依据。"
+    }
+  ],
+  "rubric": [
+    {
+      "clientId": "criterion-classify",
+      "name": "分类准确",
+      "objectiveIds": ["objective-01"],
+      "assessmentClientIds": ["assessment-01"],
+      "weightPercent": 40,
+      "bands": [
+        {
+          "level": 4,
+          "descriptor": "两张卡片均分类正确。"
+        },
+        {
+          "level": 3,
+          "descriptor": "一张正确，另一张有可识别的规则应用疏漏。"
+        },
+        {
+          "level": 2,
+          "descriptor": "仅能说明一个类别，但未正确应用到两张卡片。"
+        },
+        {
+          "level": 1,
+          "descriptor": "未形成符合规则的分类。"
+        }
+      ]
+    },
+    {
+      "clientId": "criterion-explain",
+      "name": "解释依据",
+      "objectiveIds": ["objective-02"],
+      "assessmentClientIds": ["assessment-01"],
+      "weightPercent": 60,
+      "bands": [
+        {
+          "level": 4,
+          "descriptor": "两项都准确比较第一和第三个字符，并明确中间字符无关。"
+        },
+        {
+          "level": 3,
+          "descriptor": "两项比较基本准确，但没有明确说明中间字符无关。"
+        },
+        {
+          "level": 2,
+          "descriptor": "有一项有效比较，另一项比较位置错误。"
+        },
+        {
+          "level": 1,
+          "descriptor": "没有提供有效的字符比较。"
+        }
+      ]
+    }
+  ],
+  "lessonPlan": {
+    "sessionMinutes": 45,
+    "blocks": [
+      {
+        "clientId": "block-1",
+        "durationMinutes": 5,
+        "title": "阅读规则",
+        "teacherInstructions": {
+          "text": "展示虚构系统的完整定义，不提前给出测验答案。",
+          "evidenceRefs": []
+        },
+        "learnerTask": {
+          "text": "圈出规则中要比较的两个位置。",
+          "evidenceRefs": []
+        },
+        "objectiveIds": ["objective-01", "objective-02"],
+        "assessmentClientIds": []
+      },
+      {
+        "clientId": "block-2",
+        "durationMinutes": 10,
+        "title": "解释术语",
+        "teacherInstructions": {
+          "text": "对照定义解释两种卡片，指出命名只是本课约定。",
+          "evidenceRefs": []
+        },
+        "learnerTask": {
+          "text": "用自己的话说明两个类别的区别。",
+          "evidenceRefs": []
+        },
+        "objectiveIds": ["objective-01", "objective-02"],
+        "assessmentClientIds": []
+      },
+      {
+        "clientId": "block-3",
+        "durationMinutes": 10,
+        "title": "共同分析例题",
+        "teacherInstructions": {
+          "text": "使用 ABA 的 worked example，逐步核对字符位置。",
+          "evidenceRefs": []
+        },
+        "learnerTask": {
+          "text": "先尝试，再与例题步骤比较。",
+          "evidenceRefs": []
+        },
+        "objectiveIds": ["objective-01", "objective-02"],
+        "assessmentClientIds": []
+      },
+      {
+        "clientId": "block-4",
+        "durationMinutes": 15,
+        "title": "独立任务",
+        "teacherInstructions": {
+          "text": "分发不含教师答案的任务版，观察是否比较正确位置。",
+          "evidenceRefs": []
+        },
+        "learnerTask": {
+          "text": "独立完成 assessment-01 的分类和说明。",
+          "evidenceRefs": []
+        },
+        "objectiveIds": ["objective-01", "objective-02"],
+        "assessmentClientIds": ["assessment-01"]
+      },
+      {
+        "clientId": "block-5",
+        "durationMinutes": 5,
+        "title": "回顾",
+        "teacherInstructions": {
+          "text": "根据学生说明检查规则使用，不以是否记住术语为唯一证据。",
+          "evidenceRefs": []
+        },
+        "learnerTask": {
+          "text": "用一句话总结分类时需要与不需要的信息。",
+          "evidenceRefs": []
+        },
+        "objectiveIds": ["objective-01", "objective-02"],
+        "assessmentClientIds": []
+      }
+    ]
+  },
+  "materials": {
+    "assignmentBrief": [
+      {
+        "text": "阅读给定的卡片分类规则，独立完成本课任务。为每张卡片写出类别，圈出用于判断的两个字符，并说明中间字符为什么不影响分类。",
+        "evidenceRefs": [
+          {
+            "sourceId": "source-fictional-01",
+            "sourceRevision": "e89119881271db83e57f91d6cff9ecf2a9867fa2265882c2c08d425f913a862b",
+            "excerptId": "excerpt-01"
+          }
+        ]
+      }
+    ],
+    "teacherNotes": [
+      {
+        "text": "本案例仅用于验证开放内容、共享评价实体和持久化。不要把虚构术语当成现实理论。",
+        "evidenceRefs": []
+      },
+      {
+        "text": "学生版仅呈现任务，不附带 evaluation 中的教师答案。",
+        "evidenceRefs": []
+      }
+    ]
+  },
+  "uncertainties": [
+    {
+      "clientId": "review-01",
+      "kind": "pedagogical-review",
+      "message": "该示例只验证数据合同，没有经过课堂效果研究。"
+    }
+  ]
+}

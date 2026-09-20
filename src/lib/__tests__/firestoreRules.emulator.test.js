@@ -15,7 +15,7 @@ describeWithEmulator('firestore.rules emulator', () => {
       firestore: {
         rules: readFileSync(resolve(process.cwd(), 'firestore.rules'), 'utf8'),
         host: '127.0.0.1',
-        port: 8080,
+        port: Number(process.env.FIRESTORE_EMULATOR_HOST?.split(':').at(-1) || 8080),
       },
     });
   });
@@ -66,6 +66,61 @@ describeWithEmulator('firestore.rules emulator', () => {
 
     await assertSucceeds(setDoc(ref, { courseName: 'Intro' }));
     await assertSucceeds(deleteDoc(ref));
+  });
+
+  it('keeps exchange records server-only even for their owner', async () => {
+    const db = testEnv.authenticatedContext('alice').firestore();
+    await assertFails(setDoc(doc(db, 'authoringExchangeV2/alice/requests/request1'), { owner: 'alice' }));
+    await assertFails(getDoc(doc(db, 'authoringExchangeV2/alice/requests/request1')));
+  });
+
+  it('rejects legacy overwrites and stale revisions on authored projects', async () => {
+    const db = testEnv.authenticatedContext('alice').firestore();
+    const ref = doc(db, 'users/alice/projects/authored');
+    const initial = { courseName: 'Authored', requiredCapabilities: ['authored-content-v2'], authoringRevision: 1 };
+    await assertSucceeds(setDoc(ref, initial));
+    await assertFails(setDoc(ref, { courseName: 'Old client' }, { merge: true }));
+    await assertFails(setDoc(ref, { courseName: 'Old replacement' }));
+    await assertSucceeds(setDoc(ref, { ...initial, authoringRevision: 2 }));
+    await assertFails(setDoc(ref, { ...initial, authoringRevision: 2 }));
+    await assertFails(setDoc(doc(db, 'users/alice/projects/authored/deliverables/lessonPlans'), { data: 'legacy' }));
+    const block = doc(db, 'users/alice/projects/authored/authoringBlocks/block1');
+    await assertSucceeds(setDoc(block, { text: 'immutable author content' }));
+    await assertFails(setDoc(block, { text: 'changed' }));
+  });
+
+  it.each([
+    'users/alice',
+    'users/alice/customDeliverables/custom',
+    'users/alice/agentData/preferences',
+    'users/alice/agentData/memory/entries/memory',
+    'users/alice/agentData/customTools/entries/tool',
+    'users/alice/projects/legacy/deliverables/lessonPlans',
+  ])('preserves owner access and isolation for legacy path %s', async (path) => {
+    const alice = testEnv.authenticatedContext('alice').firestore();
+    const bob = testEnv.authenticatedContext('bob').firestore();
+    const anon = testEnv.unauthenticatedContext().firestore();
+    await assertSucceeds(setDoc(doc(alice, 'users/alice/projects/legacy'), { courseName: 'Legacy' }));
+    await assertSucceeds(setDoc(doc(alice, path), { value: 'private' }));
+    await assertSucceeds(getDoc(doc(alice, path)));
+    await assertSucceeds(setDoc(doc(alice, path), { value: 'updated' }));
+    for (const db of [bob, anon]) {
+      await assertFails(getDoc(doc(db, path)));
+      await assertFails(setDoc(doc(db, path), { value: 'intruder' }));
+      await assertFails(deleteDoc(doc(db, path)));
+    }
+    await assertSucceeds(deleteDoc(doc(alice, path)));
+  });
+  it('denies unmatched collections and nested project paths', async () => {
+    const db = testEnv.authenticatedContext('alice').firestore();
+    for (const path of [
+      'public/private',
+      'users/alice/projects/project/unknown/document',
+      'authoringExchangeV2/_identities/bindings/identity',
+    ]) {
+      await assertFails(getDoc(doc(db, path)));
+      await assertFails(setDoc(doc(db, path), { value: 'unapproved' }));
+    }
   });
 
   it('keeps emulator tests skipped outside firebase emulators:exec', () => {

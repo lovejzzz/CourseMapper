@@ -1,0 +1,122 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "protocolVersion": {
+      "const": "coursemapper.authoring.v2"
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "operationId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "data": {
+      "type": ["object", "null"]
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 1600
+      },
+      "minItems": 0,
+      "maxItems": 40
+    },
+    "error": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "code": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120
+            },
+            "message": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2400
+            },
+            "retryable": {
+              "type": "boolean"
+            },
+            "issues": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 512
+                  },
+                  "code": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "message": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2400
+                  }
+                },
+                "required": ["path", "code", "message"]
+              },
+              "minItems": 0,
+              "maxItems": 100
+            }
+          },
+          "required": ["code", "message", "retryable", "issues"]
+        }
+      ]
+    }
+  },
+  "required": ["protocolVersion", "ok", "operationId", "data", "warnings"],
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:coursemapper:authoring:result:v2",
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "ok": {
+            "const": false
+          }
+        }
+      },
+      "then": {
+        "required": ["error"],
+        "properties": {
+          "error": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "ok": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "error": {
+            "type": "null"
+          }
+        }
+      }
+    }
+  ]
+}

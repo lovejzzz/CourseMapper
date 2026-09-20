@@ -45,3 +45,6 @@ package-lock.json
 /research/scion/evaluation/v0.20.0/candidates/screening.html
 /research/scion/evaluation/v0.20.0/focus-selection/screening.html
 /research/scion/evaluation/v0.20.0/pooling-pair-repair/screening.html
+
+# Standalone AJV output is generated, with no runtime eval.
+src/lib/authoringCore/validators.generated.js

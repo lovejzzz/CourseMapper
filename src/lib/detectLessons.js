@@ -1,3 +1,4 @@
+import { assertSiteInferenceAllowed } from './authoring/inferencePolicy';
 import { supportsCustomTemperature } from './agentProviders';
 import { getGoogleModelBaseUrl } from './googleProvider';
 import { buildOpenAIResponsesBody, extractOpenAIResponsesText, prefersOpenAIResponsesApi } from './openaiProvider';
@@ -234,6 +235,7 @@ export function detectExpectedLessons(text) {
  * @returns {Promise<number|null>}
  */
 export async function detectLessonsWithAI(text, { provider, apiKey, modelId }) {
+  assertSiteInferenceAllowed();
   if (!text?.trim() || !modelId) return null;
 
   const effectiveProvider = provider;

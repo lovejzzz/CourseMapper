@@ -777,7 +777,20 @@ function buildGenerationReceipt(result = {}, featureSummary, requestedFeatureIds
   });
 }
 
-function buildSyncReceipt(featureSummary, mode = 'Sync', syncResult = null) {
+export function buildSyncReceipt(featureSummary, mode = 'Sync', syncResult = null) {
+  if (syncResult?.syncSummary?.resultDetails?.some((result) => result.reason === 'authoring_preview_required')) {
+    return buildAgentReceiptMessage({
+      title: 'Authoring review required',
+      status: 'review',
+      badge: 'Review',
+      mode,
+      target: featureSummary,
+      changed: 'Accepted materials kept unchanged',
+      checked: 'Authoring replacement boundary',
+      issues: ['Sync was blocked because accepted author content requires a new draft and preview.'],
+      next: 'Open AI authoring to revise the draft, then review and apply it.',
+    });
+  }
   if (syncResult?.status === 'stopped') {
     const updatedCount = syncResult.completedFeatureIds?.length || 0;
     return buildAgentReceiptMessage({
@@ -790,12 +803,12 @@ function buildSyncReceipt(featureSummary, mode = 'Sync', syncResult = null) {
       next: 'Sync when ready.',
     });
   }
-  const needsReview = syncResult?.status === 'failed' || syncResult?.status === 'partialFail';
+  const needsReview = syncResult?.status !== 'done';
+  const status = needsReview ? 'review' : 'done';
   const canonicalPatches = collectSyncCanonicalPatches(syncResult);
   if (canonicalPatches.length > 0) {
     const providerCallText = getSyncReceiptProviderCallText(syncResult, true);
     const patchSummary = summarizeCanonicalPatchesForReceipt(canonicalPatches);
-    const status = syncResult?.status === 'failed' || syncResult?.status === 'partialFail' ? 'review' : 'done';
     const issues =
       status === 'review' && Array.isArray(syncResult?.failedItems) && syncResult.failedItems.length > 0
         ? [`${summarizeSyncPlanFeatures(syncResult.failedItems)} did not finish syncing.`]

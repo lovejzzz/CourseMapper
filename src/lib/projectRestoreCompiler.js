@@ -12,6 +12,13 @@
 import { warn } from './logger';
 
 export async function compileCompactProjectDeliverables(saved) {
+  if (saved?.requiredCapabilities?.includes('authored-content-v2') || saved?.courseMap?.authoringV2) {
+    if (!Object.values(saved.deliverables || {}).some((e) => e?.authoredContent))
+      throw new Error(
+        'Author content is missing. Restore the complete project; it cannot be regenerated from the course map.',
+      );
+    return saved.deliverables;
+  }
   if (saved?.deliverableSaveMode !== 'recompile-on-open') return {};
   if (!saved?.courseMap || !Array.isArray(saved.courseMap.lessons)) return {};
   const selectedFeatureIds = Array.isArray(saved.selectedFeatures)

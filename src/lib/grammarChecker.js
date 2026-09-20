@@ -1,3 +1,4 @@
+import { assertSiteInferenceAllowed } from './authoring/inferencePolicy';
 /**
  * grammarChecker.js — LanguageTool API wrapper for grammar/style checking.
  * Free: 20 req/min, 75K chars/min. No API key required for basic checks.
@@ -8,6 +9,7 @@ const LANGUAGETOOL_URL = 'https://api.languagetool.org/v2/check';
 const GRAMMAR_TIMEOUT_MS = 15000;
 
 export async function checkGrammar(text, language = 'en-US', signal) {
+  assertSiteInferenceAllowed();
   if (!text || text.length < 20) return { matches: [] };
 
   // Truncate to avoid rate limits (max 10K chars per request)

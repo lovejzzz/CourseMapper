@@ -1,3 +1,4 @@
+import { assertSiteInferenceAllowed } from './authoring/inferencePolicy';
 import {
   PUBLIC_SCION_MAX_COMPLETION_TOKENS,
   PUBLIC_SCION_MIN_RETRIES,
@@ -153,6 +154,7 @@ export async function runScionLocalCompletion({
   runtimeLoader = defaultRuntimeLoader,
   sleep = defaultSleep,
 } = {}) {
+  assertSiteInferenceAllowed();
   if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
   if (typeof systemPrompt !== 'string' || typeof userPrompt !== 'string') {
     throw localError('SCION_PROMPT_TYPE', 'Scion requires text prompts, not a prompt-builder object.');
@@ -221,6 +223,7 @@ export async function runScionLocalCompletion({
   }
 
   const runtimeApi = await runtimeLoader();
+  assertSiteInferenceAllowed();
   if (
     typeof runtimeApi?.loadScionBrowserWllama !== 'function' ||
     typeof runtimeApi?.completeScionBrowserWllama !== 'function'
@@ -251,6 +254,7 @@ export async function runScionLocalCompletion({
   let bestIncomplete = null;
   const usage = { inputTokens: 0, outputTokens: 0 };
   for (let attempt = 0; attempt <= retryLimit; attempt += 1) {
+    assertSiteInferenceAllowed();
     if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
     const attemptTemperature = completionTemperature(attempt, temperature);
     const attemptMessages = retryAssessment?.needsRetry
@@ -272,6 +276,7 @@ export async function runScionLocalCompletion({
       });
     }
     let tokenCount = 0;
+    assertSiteInferenceAllowed();
     let attemptRoute = null;
     let completion = { finishReason: 'unknown' };
     const rawText = await runtimeApi.completeScionBrowserWllama(attemptMessages, {

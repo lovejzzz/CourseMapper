@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { blockedAuthoringSync } from '../lib/authoring/inferencePolicy';
 
 // ── Change #1: Inline concurrency limiter (no npm dep) ──
 function pLimit(concurrency) {
@@ -169,6 +170,11 @@ export default function useSmartSync({
 
       if (currentGen?.isStreaming || currentDeliv?.isGenerating) return [];
       if (!currentCourseMap || !plan || plan.length === 0) return [];
+      const blocked = blockedAuthoringSync(currentDeliv.deliverables || {}, plan, changedFieldsSummary);
+      if (blocked) {
+        appendSyncLog('error', 'sync', blocked.syncSummary.resultDetails[0].message);
+        return blocked;
+      }
 
       syncGenIdRef.current += 1;
       const currentGenId = syncGenIdRef.current;
@@ -300,6 +306,7 @@ export default function useSmartSync({
               if (!featureCompleted) failureStatus = generationResult?.status || 'incomplete';
               resultDetails.push({
                 status: featureCompleted ? 'done' : failureStatus,
+                reason: generationResult?.reason,
                 featureId,
                 lessonIndices: null,
                 syncSource: 'feature-generation',
@@ -318,6 +325,7 @@ export default function useSmartSync({
                 const lessonStatus = lessonResult?.status || 'incomplete';
                 resultDetails.push({
                   status: lessonStatus,
+                  reason: lessonResult?.reason,
                   featureId,
                   lessonIndex: lessonIdx,
                   syncSource: lessonResult?.syncSource || 'unknown',

@@ -1,0 +1,438 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:coursemapper:authoring:lesson-bundle:v1",
+  "title": "CourseMapper Lesson Bundle v1 - proposed transport-independent content contract",
+  "description": "New proposed contract, not an existing CourseMapper API. Requires host-side reference, arithmetic, permission, merge, and persistence validation in addition to this schema.",
+  "type": "object",
+  "properties": {
+    "lessonId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "objectiveIds": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 128
+      },
+      "minItems": 1,
+      "maxItems": 100,
+      "uniqueItems": true
+    },
+    "concepts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/concept"
+      },
+      "minItems": 1,
+      "maxItems": 100
+    },
+    "examples": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/workedExample"
+      },
+      "minItems": 1,
+      "maxItems": 100
+    },
+    "assessments": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/assessment"
+      },
+      "minItems": 1,
+      "maxItems": 100
+    },
+    "rubric": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/criterion"
+      },
+      "minItems": 1,
+      "maxItems": 50
+    },
+    "lessonPlan": {
+      "$ref": "#/$defs/lessonPlan"
+    },
+    "materials": {
+      "type": "object",
+      "properties": {
+        "assignmentBrief": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/textBlock"
+          },
+          "minItems": 1,
+          "maxItems": 200
+        },
+        "teacherNotes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/textBlock"
+          },
+          "minItems": 1,
+          "maxItems": 200
+        }
+      },
+      "required": ["assignmentBrief", "teacherNotes"],
+      "additionalProperties": false
+    },
+    "uncertainties": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/uncertainty"
+      },
+      "minItems": 0,
+      "maxItems": 100
+    }
+  },
+  "required": [
+    "lessonId",
+    "objectiveIds",
+    "concepts",
+    "examples",
+    "assessments",
+    "rubric",
+    "lessonPlan",
+    "materials",
+    "uncertainties"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "evidenceRef": {
+      "type": "object",
+      "properties": {
+        "sourceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "sourceRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "excerptId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["sourceId", "sourceRevision", "excerptId"],
+      "additionalProperties": false
+    },
+    "textBlock": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 24000
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidenceRef"
+          },
+          "minItems": 0,
+          "maxItems": 50
+        }
+      },
+      "required": ["text", "evidenceRefs"],
+      "additionalProperties": false
+    },
+    "concept": {
+      "type": "object",
+      "properties": {
+        "clientId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "explanation": {
+          "$ref": "#/$defs/textBlock"
+        },
+        "prerequisiteConceptIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "minItems": 0,
+          "maxItems": 100,
+          "uniqueItems": true
+        }
+      },
+      "required": ["clientId", "name", "explanation", "prerequisiteConceptIds"],
+      "additionalProperties": false
+    },
+    "workedExample": {
+      "type": "object",
+      "properties": {
+        "clientId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "objectiveIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "minItems": 1,
+          "maxItems": 100,
+          "uniqueItems": true
+        },
+        "problem": {
+          "$ref": "#/$defs/textBlock"
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/textBlock"
+          },
+          "minItems": 1,
+          "maxItems": 200
+        },
+        "result": {
+          "$ref": "#/$defs/textBlock"
+        }
+      },
+      "required": ["clientId", "objectiveIds", "problem", "steps", "result"],
+      "additionalProperties": false
+    },
+    "evaluation": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "enum": ["reference-answer", "criteria-based"]
+        },
+        "teacherText": {
+          "$ref": "#/$defs/textBlock"
+        },
+        "reasoningOrCriteria": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/textBlock"
+          },
+          "minItems": 1,
+          "maxItems": 200
+        }
+      },
+      "required": ["kind", "teacherText", "reasoningOrCriteria"],
+      "additionalProperties": false
+    },
+    "assessment": {
+      "type": "object",
+      "properties": {
+        "clientId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "objectiveIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "minItems": 1,
+          "maxItems": 100,
+          "uniqueItems": true
+        },
+        "prompt": {
+          "$ref": "#/$defs/textBlock"
+        },
+        "evaluation": {
+          "$ref": "#/$defs/evaluation"
+        },
+        "studentEvidenceExpected": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        }
+      },
+      "required": ["clientId", "objectiveIds", "prompt", "evaluation", "studentEvidenceExpected"],
+      "additionalProperties": false
+    },
+    "band": {
+      "type": "object",
+      "properties": {
+        "level": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4
+        },
+        "descriptor": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        }
+      },
+      "required": ["level", "descriptor"],
+      "additionalProperties": false
+    },
+    "criterion": {
+      "type": "object",
+      "properties": {
+        "clientId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "objectiveIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "minItems": 1,
+          "maxItems": 100,
+          "uniqueItems": true
+        },
+        "assessmentClientIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "minItems": 1,
+          "maxItems": 100,
+          "uniqueItems": true
+        },
+        "weightPercent": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 100
+        },
+        "bands": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/band"
+          },
+          "minItems": 4,
+          "maxItems": 4
+        }
+      },
+      "required": ["clientId", "name", "objectiveIds", "assessmentClientIds", "weightPercent", "bands"],
+      "additionalProperties": false
+    },
+    "planBlock": {
+      "type": "object",
+      "properties": {
+        "clientId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "durationMinutes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 480
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "teacherInstructions": {
+          "$ref": "#/$defs/textBlock"
+        },
+        "learnerTask": {
+          "$ref": "#/$defs/textBlock"
+        },
+        "objectiveIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "minItems": 1,
+          "maxItems": 100,
+          "uniqueItems": true
+        },
+        "assessmentClientIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "minItems": 0,
+          "maxItems": 100,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "clientId",
+        "durationMinutes",
+        "title",
+        "teacherInstructions",
+        "learnerTask",
+        "objectiveIds",
+        "assessmentClientIds"
+      ],
+      "additionalProperties": false
+    },
+    "lessonPlan": {
+      "type": "object",
+      "properties": {
+        "sessionMinutes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 480
+        },
+        "blocks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/planBlock"
+          },
+          "minItems": 1,
+          "maxItems": 100
+        }
+      },
+      "required": ["sessionMinutes", "blocks"],
+      "additionalProperties": false
+    },
+    "uncertainty": {
+      "type": "object",
+      "properties": {
+        "clientId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "kind": {
+          "enum": ["missing-source", "subject-review", "pedagogical-review", "institutional-detail", "other"]
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        }
+      },
+      "required": ["clientId", "kind", "message"],
+      "additionalProperties": false
+    }
+  },
+  "$comment": "Content shape retained from the earlier design. This is a proposed MVP contract, not an implemented application endpoint."
+}
