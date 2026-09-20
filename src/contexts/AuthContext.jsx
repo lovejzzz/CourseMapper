@@ -84,8 +84,11 @@ export function AuthProvider({ children }) {
         setError(new Error('Firebase is not configured'));
         return;
       }
-      await signInWithPopup(auth, googleProvider);
-      // onAuthStateChanged fires automatically after successful sign-in
+      const result = await signInWithPopup(auth, googleProvider);
+      // Firebase does not emit an auth-state change when the UID is unchanged.
+      // Keep the fresh User/refresh token so connection management sees the new auth_time.
+      setAccountStorageUser(result.user?.uid);
+      setUser(result.user);
     } catch (err) {
       // Ignore if user closed the popup
       if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') return;
