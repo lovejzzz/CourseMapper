@@ -145,6 +145,8 @@ export function createAuthoringService({
         'Concept client IDs are unique across the course.',
         'Prerequisite links must form an acyclic graph.',
         'Every lesson objective must be assessed and linked to rubric criteria.',
+        'Assessment prompts, studentEvidenceExpected, materials.assignmentBrief and rubric band descriptors are student-facing. Describe the work to submit and observable quality without revealing assessment answers, solved numerical values or answer-key reasoning. studentEvidenceExpected becomes the student assignment deliverables; it is not a teacher answer field.',
+        'Put assessment answers and solution reasoning only in assessments[].evaluation and materials.teacherNotes. Worked examples may show solutions, but must use a different problem from the independent assessment. Review student-facing fields for answer leakage before submission; structural validation cannot establish this semantic property.',
       ],
     };
     return { ...data, contractHash: await hash(data) };

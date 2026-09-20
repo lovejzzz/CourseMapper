@@ -11,7 +11,7 @@
       "expected": "无需 Codex、终端、MCP 地址或 API key。",
       "evidence": "真实 ChatGPT",
       "status": "pending-live-platform",
-      "implementationEvidence": "No public/approved ChatGPT installation tested."
+      "implementationEvidence": "Real private ChatGPT connection retained its account and discovered 14 tools. Actual capabilities/list reads and isolated request → plan → lesson bundle → validation → preview succeeded. Website review/application/receipt passed, with exact exported content fingerprints and zero website model starts. Semantic review found answer leakage in generated studentEvidenceExpected/rubric descriptors; contract guidance was clarified and a corrected second draft passed website review/application. An immediate-resume pointer fix passed browser regression and awaits frontend publication. This is private acceptance, not public plugin publication."
     },
     {
       "id": "T02",
@@ -70,8 +70,8 @@
       "procedure": "测试 discovery、PKCE、redirect、授权码一次性、资源 audience。",
       "expected": "合法连接成功；错误资源和 redirect 拒绝。",
       "evidence": "服务端/真实宿主",
-      "status": "pending-infrastructure",
-      "implementationEvidence": "Cloud Run resource server and Auth0 issuer/API are deployed. HTTPS metadata, JWT issuer/audience rejection, website-only account-linking routes, S256/state/nonce/one-use callback logic and Firestore binding races are tested. The linking client still awaits action-time browser access approval. Provider PKCE/redirect/refresh and actual host authorization remain unverified."
+      "status": "partial",
+      "implementationEvidence": "Live Firebase Google login and Auth0 website binding passed. Diagnosed ChatGPT callback OAUTH_OWNER_PROFILE_ID_MISSING: strict Auth0 third-party clients lack OIDC identity support. A dedicated first-party native public client, limited to five CourseMapper permissions and zero Management API permissions, retained the account, discovered all 14 tools, and passed actual ChatGPT capabilities and authenticated list calls. Exact callback registered and S256 observed. Negative provider redirect/code-reuse, refresh/revocation and second-account acceptance remain unverified. Local JWT and state/nonce/one-use callback and Firestore binding-race tests pass."
     },
     {
       "id": "T08",
@@ -111,7 +111,7 @@
       "expected": "能创建新草稿，不能枚举或读取已有课程。",
       "evidence": "服务端/真实宿主",
       "status": "partial",
-      "implementationEvidence": "Remote new request forbids existing base and sources; actual ChatGPT generation pending."
+      "implementationEvidence": "Real private ChatGPT connection retained its account and discovered 14 tools. Actual capabilities/list reads and isolated request → plan → lesson bundle → validation → preview succeeded. Website review/application/receipt passed, with exact exported content fingerprints and zero website model starts. Semantic review found answer leakage in generated studentEvidenceExpected/rubric descriptors; contract guidance was clarified and a corrected second draft passed website review/application. An immediate-resume pointer fix passed browser regression and awaits frontend publication. This is private acceptance, not public plugin publication."
     },
     {
       "id": "T12",
