@@ -81,6 +81,7 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
   const [userPromptTemplate, setUserPromptTemplate] = useState(editDef?.userPromptTemplate || '');
   const [step, setStep] = useState(1); // 1: basics, 2: prompt & settings
   const [isAutoFilling, setIsAutoFilling] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   useEffect(() => {
     if (!isOpen) return;
@@ -99,6 +100,7 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
     setUserPromptTemplate(editDef?.userPromptTemplate || '');
     setStep(1);
     setIsAutoFilling(false);
+    setSaveError('');
   }, [editDef, isOpen]);
 
   if (!isOpen) return null;
@@ -123,7 +125,12 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
         length: length || null,
       },
     };
-    onSave(def);
+    try {
+      setSaveError('');
+      onSave(def);
+    } catch (error) {
+      setSaveError(error.message || 'The definition could not be saved. Your changes are still in this form.');
+    }
   }
 
   async function handleAutoFill() {
@@ -499,6 +506,11 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
             )}
           </div>
 
+          {saveError && (
+            <p role="alert" className="mx-6 my-2 text-sm text-red-700 dark:text-red-300">
+              {saveError}
+            </p>
+          )}
           {/* Footer */}
           <div className="flex shrink-0 items-center justify-between border-t border-slate-100/60 bg-white px-6 py-4 shadow-[0_-8px_18px_-16px_rgba(15,23,42,0.45)] dark:border-slate-800 dark:bg-slate-950">
             <div className="flex gap-2">
@@ -569,6 +581,7 @@ function AccountFeatureSelect({
   const { selectedFeatures: selected, setSelectedFeatures: setSelected } = useCourse();
   const [hoveredId, setHoveredId] = useState(null);
   const [showBuilder, setShowBuilder] = useState(false);
+  const [definitionError, setDefinitionError] = useState('');
   const [editingCustom, setEditingCustom] = useState(null); // custom def being edited
   const [customDeliverables, setCustomDeliverables] = useState(() => listCustomDeliverables(user?.uid || null));
 
@@ -654,7 +667,13 @@ function AccountFeatureSelect({
 
   function handleDeleteCustom(e, featureId) {
     e.stopPropagation();
-    deleteCustomDeliverable(featureId, user?.uid || null);
+    try {
+      setDefinitionError('');
+      deleteCustomDeliverable(featureId, user?.uid || null);
+    } catch {
+      setDefinitionError('This browser could not remove the custom material definition. It remains in your list.');
+      return;
+    }
     setCustomDeliverables(listCustomDeliverables(user?.uid || null));
     setSelected((prev) => prev.filter((id) => id !== featureId));
   }
@@ -692,6 +711,11 @@ function AccountFeatureSelect({
 
   return (
     <div className="landing-shell noise-overlay flex min-h-screen flex-col text-slate-900 dark:text-slate-100">
+      {definitionError && (
+        <p role="alert" className="mx-5 mt-4 text-sm text-red-700 dark:text-red-300">
+          {definitionError}
+        </p>
+      )}
       {/* Header */}
       <header className="px-5 py-4 sm:px-8">
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between">

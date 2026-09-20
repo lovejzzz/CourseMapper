@@ -44,10 +44,18 @@ function readAll(uid) {
 }
 
 function writeAll(map, uid) {
+  const key = accountStorageKey(STORAGE_KEY, uid);
   try {
-    localStorage.setItem(accountStorageKey(STORAGE_KEY, uid), JSON.stringify(map));
-  } catch (e) {
-    console.warn('Failed to save custom deliverables:', e);
+    const serialized = JSON.stringify(map);
+    const current = localStorage.getItem(key);
+    // A sign-in with no definitions should not consume scarce browser storage.
+    if (current === serialized || (!current && !Object.keys(map).length)) return;
+    if (!Object.keys(map).length) localStorage.removeItem(key);
+    else localStorage.setItem(key, serialized);
+  } catch {
+    throw new Error(
+      'This browser could not save the custom material definition. Keep this form open and copy your changes before freeing browser storage or trying another browser.',
+    );
   }
 }
 
