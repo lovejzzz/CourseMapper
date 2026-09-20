@@ -108,6 +108,7 @@ async function generateWithOpenAIImageModel(query, apiKey, count, model, size, q
   const requests = Math.min(count, 4);
 
   for (let i = 0; i < requests; i++) {
+    assertSiteInferenceAllowed();
     try {
       const res = await fetch('https://api.openai.com/v1/images/generations', {
         method: 'POST',
@@ -154,6 +155,7 @@ async function generateWithDallE(query, apiKey, count, signal) {
   const requests = Math.min(count, 2); // cap at 2 images
 
   for (let i = 0; i < requests; i++) {
+    assertSiteInferenceAllowed();
     try {
       const res = await fetch('https://api.openai.com/v1/images/generations', {
         method: 'POST',

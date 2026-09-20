@@ -346,6 +346,7 @@ ${text.slice(0, 8000)}`;
       responseText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
     } else if (effectiveProvider === 'local') {
       const { getLocalEndpoint } = await import('./localProvider');
+      assertSiteInferenceAllowed();
       const res = await fetch(`${getLocalEndpoint()}/v1/chat/completions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -425,7 +426,8 @@ ${text.slice(0, 8000)}`;
     if (!Number.isFinite(n) || n < 1) n = parseInt(parsed.lessonCount, 10);
     if (Number.isFinite(n) && n >= 1 && n <= 104) return n;
     return null;
-  } catch {
+  } catch (error) {
+    if (error?.code === 'EXTERNAL_MODE_MODEL_DISABLED') throw error;
     return null;
   }
 }
