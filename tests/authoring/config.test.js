@@ -21,6 +21,7 @@ describe('exchange deployment configuration', () => {
   it('preserves exact provider identifiers while normalizing application origins', async () => {
     const config = readServerConfig(env);
     expect(config).toEqual({
+      domainVerificationToken: '',
       resource: 'https://exchange.test',
       issuer: env.AUTHORING_OAUTH_ISSUER,
       jwksUrl: env.AUTHORING_OAUTH_JWKS,
@@ -63,6 +64,10 @@ describe('exchange deployment configuration', () => {
       ['AUTHORING_WEBSITE_ORIGIN', 'http://edutool.dev'],
       ['AUTHORING_OAUTH_JWKS', 'https://identity.test/keys#secret'],
       ['AUTHORING_REMOTE_WRITES_ENABLED', 'yes'],
+      ['AUTHORING_DOMAIN_VERIFICATION_TOKEN', 'bad token'],
+      ['AUTHORING_DOMAIN_VERIFICATION_TOKEN', 'token\n'],
+      ['AUTHORING_DOMAIN_VERIFICATION_TOKEN', '<script>'],
+      ['AUTHORING_DOMAIN_VERIFICATION_TOKEN', 'x'.repeat(257)],
       ['PORT', '8788.5'],
       ['PORT', '65536'],
       ['AUTHORING_LISTEN_HOST', 'some-host'],
@@ -74,6 +79,11 @@ describe('exchange deployment configuration', () => {
         expect(error.message).not.toContain(value);
       }
     }
+  });
+  it('accepts an optional public domain verification token', () => {
+    expect(
+      readServerConfig({ ...env, AUTHORING_DOMAIN_VERIFICATION_TOKEN: 'test_token-123' }).domainVerificationToken,
+    ).toBe('test_token-123');
   });
   it('allows an explicit container listener without changing the default', () => {
     expect(readServerConfig({ ...env, PORT: '8080', AUTHORING_LISTEN_HOST: '0.0.0.0' })).toMatchObject({
