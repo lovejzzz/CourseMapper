@@ -1,5 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
+import { APP_VERSION } from '../src/lib/appVersion.js';
 
 export function applicationRelease() {
   const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
@@ -17,6 +18,7 @@ export function applicationRelease() {
         fileName: 'release.json',
         source: JSON.stringify({
           version: pkg.version,
+          displayVersion: APP_VERSION,
           commit,
           interfaceBaseline: '0.18.7',
           builtAt: new Date().toISOString(),

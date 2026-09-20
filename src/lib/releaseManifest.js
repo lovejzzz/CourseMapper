@@ -1469,10 +1469,98 @@ const V01696_RELEASE_CHANGELOG = {
 };
 
 export const CURRENT_RELEASE_CHANGELOG = {
-  version: CURRENT_RELEASE.version,
-  date: CURRENT_RELEASE.date,
-  title: CURRENT_RELEASE.title,
-  highlights: CURRENT_RELEASE.highlights,
+  ...CURRENT_RELEASE,
+  sections: [
+    {
+      label: 'External AI authoring',
+      icon: 'CHECK',
+      color: 'indigo',
+      items: [
+        'Create teaching requests with learner profile, language, lesson timing and selected lesson plans, assignments and rubrics.',
+        'Author through supported browser page tools or the configured private ChatGPT connection; copy/import remains available when page tools are unavailable.',
+        'Read source context, obtain versioned content contracts, submit isolated drafts, validate and preview before explicit website review and application. External authoring makes no website model calls.',
+      ],
+    },
+    {
+      label: 'WebMCP diagnostics and controlled repair',
+      icon: 'CHECK',
+      color: 'indigo',
+      items: [
+        'Expose 13 native page tools for authorized context, draft status, content contracts and diagnostics, with document-scoped access.',
+        'Return actionable field errors for invalid content, including rubric totals, missing lessons and broken references. Rejected submissions preserve the saved draft.',
+        'Reject stale revisions and expired page authorization. Retried requests with the same key return their original receipts without duplicating drafts.',
+        'Verify diagnostic repair through actual Codex browser tools. Browser console, network and layout debugging still use browser developer tools; the page diagnostic tool is not a general JavaScript debugger.',
+      ],
+    },
+    {
+      label: 'Review, teacher edits and linked materials',
+      icon: 'CHECK',
+      color: 'indigo',
+      items: [
+        'Retain the reviewed course baseline when revising a lesson; preserve unchanged lesson/objective identities, bundles and teacher edits.',
+        'Compare the draft against the current course before applying. Conflicting baselines stop application instead of replacing another course.',
+        'Keep lesson plans, assignments and rubric projections connected. Assessment answers belong in teacher-only fields; student-facing task requirements and scoring descriptors remain separate.',
+        'Preserve reviewed content through later generation and surface stale-material warnings for explicit review.',
+      ],
+    },
+    {
+      label: 'Reliable saving and recovery',
+      icon: 'CHECK',
+      color: 'indigo',
+      items: [
+        'Save the exact authored workspace and Resume pointer durably, including an IndexedDB fallback when browser localStorage is full.',
+        'Preserve the cloud compare-and-swap version through local Resume; display failed cloud saves until a later save succeeds.',
+        'Reserve remote applications before committing, block a competing device, and recover the original application and receipt after an interrupted response. Matching receipt retries are idempotent.',
+        'Allow signed-in custom definitions to save through confirmed cloud persistence when the local cache is full. Retain edits and show an error if both storage paths fail; do not report an unsaved definition as saved.',
+      ],
+    },
+    {
+      label: 'Accounts, permissions and source privacy',
+      icon: 'CHECK',
+      color: 'indigo',
+      items: [
+        'Partition profiles, custom definitions, developer templates, memories and preferences by account. Prevent a previous account’s local cache from merging into another account.',
+        'Pause cloud saving after an account change or when ownership of a legacy cloud-linked snapshot is unknown; require an explicit cloud open or copy.',
+        'Share only selected text snapshots after local review. Treat source text as untrusted reference material, redact recognized secrets and disclose unparsed scans or diagrams.',
+        'Support Google and email/password website sign-in, linked AI identity, scoped access and revocation. External AI tools cannot directly apply drafts to the formal course.',
+      ],
+    },
+    {
+      label: 'Exports, operations and release history',
+      icon: 'CHECK',
+      color: 'indigo',
+      items: [
+        'Preserve authored content and teacher edits across project-file/cloud reopen and supported exports. Student copies exclude teacher-only evaluation fields.',
+        'Keep saved drafts readable and existing application recovery available when new remote writes/applications are disabled.',
+        'Restore the complete changelog at the existing Changelog link. Preserve v0.19.99 and older entries instead of replacing them with the latest summary.',
+        'This release updates the existing website. Public ChatGPT marketplace publication, new model weights, a ground-up rebuild and universal educational-quality certification are not included.',
+      ],
+    },
+  ],
+};
+
+const V01999_RELEASE = {
+  version: '0.19.99',
+  date: 'September 8, 2026',
+  title: 'Linked Materials, Reliable Revisions',
+  landingTitle: 'EDUTOOL V0.19.99: Linked Materials, Reliable Revisions',
+  highlights: [
+    'Keep reviewed tasks, answers and scoring aligned when regenerating related materials, with protected teacher edits and recoverable review drafts.',
+    'Preserve complete lesson objectives and original source records. Improve worked examples, feedback and student-copy exports.',
+    'Keep local Scion, the 0.18.7 interface and existing export choices. This stabilization release does not claim the unfinished v0.20 roadmap or general classroom readiness.',
+  ],
+  landingHighlights: [
+    'Keep reviewed task materials in sync.',
+    'Preserve teacher edits and source-review drafts.',
+    'Use local Scion with the familiar workspace.',
+  ],
+};
+
+const V01999_RELEASE_CHANGELOG = {
+  version: V01999_RELEASE.version,
+  date: V01999_RELEASE.date,
+  title: V01999_RELEASE.title,
+  highlights: V01999_RELEASE.highlights,
   sections: [
     {
       label: 'Keep reviewed materials connected',
@@ -2867,6 +2955,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V01999_RELEASE_CHANGELOG,
   V0192_RELEASE_CHANGELOG,
   V0191_RELEASE_CHANGELOG,
   V0190_RELEASE_CHANGELOG,
