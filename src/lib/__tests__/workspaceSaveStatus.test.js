@@ -95,6 +95,11 @@ describe('getWorkspaceSavePresentation', () => {
         localStatus: 'idle',
         workflowRunning: true,
       }),
-    ).toMatchObject({ failed: true, quiet: false, text: 'Cloud save failed' });
+    ).toMatchObject({
+      failed: true,
+      quiet: false,
+      text: 'Cloud save failed',
+      notice: expect.stringContaining('Save Current as New Project'),
+    });
   });
 });
