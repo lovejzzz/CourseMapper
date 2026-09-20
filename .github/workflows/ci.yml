@@ -48,6 +48,10 @@ jobs:
         run: node scripts/authoring/requestOptionsSmoke.mjs
         env:
           AUTHORING_TEST_BROWSER_CHANNEL: chromium
+      - name: Authoring workspace isolation through real Vite hot reload
+        run: node scripts/authoring/workspaceHmrSmoke.mjs
+        env:
+          AUTHORING_TEST_BROWSER_CHANNEL: chromium
       - name: Interrupted authoring recovery across browser profiles
         run: node scripts/authoring/interruptedBrowserSmoke.mjs
         env:
@@ -61,6 +65,7 @@ jobs:
             verification-output/compatibility-browser/**
             verification-output/external-authoring/interrupted-browser/**
             verification-output/external-authoring/request-options/**
+            verification-output/external-authoring/workspace-hmr/**
           if-no-files-found: ignore
   adapter-mask:
     name: Experimental adapter training regression
