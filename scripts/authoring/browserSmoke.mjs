@@ -23,6 +23,14 @@ page.on('request', (r) => {
     modelRequests.push(r.url());
 });
 try {
+  await page.addInitScript(() => {
+    if (!localStorage.getItem('coursemapper-project')) {
+      localStorage.setItem(
+        'coursemapper-project',
+        JSON.stringify({ courseMap: { courseName: 'Older saved course', lessons: [] }, hasGenerated: true }),
+      );
+    }
+  });
   await page.goto(`${baseURL}/?authoring=1`);
   await page.getByLabel('Course title', { exact: true }).fill('Authoring browser acceptance');
   await page
@@ -76,8 +84,15 @@ try {
     .waitFor();
   await page.getByRole('button', { name: 'Check and preview', exact: true }).click();
   await page.getByRole('button', { name: 'Apply reviewed draft', exact: true }).click();
-  await page.getByRole('heading', { name: 'Authoring browser acceptance', exact: true }).waitFor();
+  await page
+    .getByText('Applied and saved on this device. Cloud sync is reported separately in the workspace.', { exact: true })
+    .waitFor();
+  // Reload as soon as application reports success, before its autosave debounce.
+  // Resume must select this course, never the older saved project's marker.
+  await page.reload();
   await page.getByRole('button', { name: 'Close', exact: true }).click();
+  await page.getByRole('button', { name: 'Resume', exact: true }).click();
+  await page.getByRole('heading', { name: 'Authoring browser acceptance', exact: true }).waitFor();
   await page.getByText(bundle.examples[0].result.text, { exact: false }).first().waitFor();
   const original = `${bundle.concepts[0].name}\n${bundle.concepts[0].explanation.text}`;
   await page.getByText(original, { exact: true }).click();
@@ -131,6 +146,10 @@ try {
   await restore.click();
   await page.getByRole('heading', { name: 'Authoring browser acceptance', exact: true }).waitFor();
   await page.getByRole('button', { name: /^Lesson Plans/ }).click();
+  await page.getByText('Teacher edit: preserve this exact explanation.', { exact: false }).first().waitFor();
+  await page.getByRole('link', { name: 'EduTool.dev home', exact: true }).click();
+  await page.getByRole('button', { name: 'Resume', exact: true }).click();
+  await page.getByRole('heading', { name: 'Authoring browser acceptance', exact: true }).waitFor();
   await page.getByText('Teacher edit: preserve this exact explanation.', { exact: false }).first().waitFor();
   await page.goto(baseURL);
   await page.locator('#landing-file-input').setInputFiles(filePath);

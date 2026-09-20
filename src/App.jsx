@@ -8,6 +8,7 @@ import { useUI } from './contexts/UIContext';
 import { PUBLIC_SCION_PROVIDER_ID } from './lib/publicScionIdentity';
 import { loadProjectIndexedDbAutosave, removeProjectIndexedDbAutosave } from './lib/projectIndexedDbAutosave';
 import { clearSetupRecovery, readSetupRecovery, stageSetupRecovery } from './lib/setupRecovery';
+import { saveAuthorWorkspaceForResume } from './lib/authoring/localWorkspace';
 import useScionRuntimeStatus from './hooks/useScionRuntimeStatus';
 
 const Landing = lazy(() => import('./screens/Landing'));
@@ -183,8 +184,13 @@ export default function App() {
             handleReturnToLanding();
             return;
           }
-          if (authoringWorkspace.current?.apply) authoringWorkspace.current.apply(snapshot);
+          if (authoringWorkspace.current?.apply) await authoringWorkspace.current.apply(snapshot);
           else startFlow({ type: 'externalSnapshot', snapshot });
+          if (snapshot.courseMap?.authoringV2) {
+            // A successful application must be resumable before the later
+            // workspace autosave runs, including an immediate page reload.
+            await saveAuthorWorkspaceForResume(snapshot);
+          }
         }}
       />
     </Suspense>

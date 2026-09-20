@@ -8,6 +8,11 @@ export function saveAuthorWorkspace(snapshot) {
   queue = next;
   return next;
 }
+export async function saveAuthorWorkspaceForResume(snapshot, storage = globalThis.localStorage) {
+  const pointer = await saveAuthorWorkspace(snapshot);
+  storage.setItem('coursemapper-project', JSON.stringify(pointer));
+  return pointer;
+}
 async function save(snapshot) {
   const key = `workspace:${snapshot.courseMap.authoringV2.applicationId}`;
   const current = await store.get(key);

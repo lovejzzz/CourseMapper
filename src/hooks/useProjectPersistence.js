@@ -668,7 +668,7 @@ export default function useProjectPersistence({
   );
 
   async function handleReturnHome() {
-    if (!saveLocalProjectSnapshot({ projectId: projectIdRef.current })) return false;
+    if (!(await saveLocalProjectSnapshot({ projectId: projectIdRef.current }))) return false;
     await indexedDbSaveQueueRef.current;
     const receipt = localSaveReceiptRef.current;
     if (!receipt?.exact || receipt.attemptId !== localSaveAttemptIdRef.current) {
