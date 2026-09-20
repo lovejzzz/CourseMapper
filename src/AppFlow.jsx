@@ -3388,9 +3388,11 @@ export default function AppFlow({
   const workspaceModelLabel = courseMap?.authoringV2
     ? 'External AI · teacher reviewed'
     : workspaceModelName || modelId || '';
-  const workspaceSaveTitle = user
-    ? 'Signed-in projects autosave locally and to My Projects.'
-    : 'Anonymous projects save in this browser. Export .coursemapper for backup.';
+  const workspaceSaveTitle =
+    workspaceSavePresentation.notice ||
+    (user
+      ? 'Signed-in projects autosave locally and to My Projects.'
+      : 'Anonymous projects save in this browser. Export .coursemapper for backup.');
   const canRunPackageFinalizer =
     Boolean(courseMap) && gen.progressStep === 'done' && typeof handleFinishPackageFromExport === 'function';
   const confirmDeleteDeliverable = () => {
@@ -3590,6 +3592,15 @@ export default function AppFlow({
               onOpenMaterial={setActiveTab}
               onStop={isPackageGenerationRunning || isFinishPassRunning(packageQualityPass) ? onStop : null}
             />
+          )}
+
+          {workspaceSavePresentation.notice && (
+            <p
+              role="status"
+              className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+            >
+              {workspaceSavePresentation.notice}
+            </p>
           )}
 
           {/* ── Deliverable tabs ──

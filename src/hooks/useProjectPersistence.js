@@ -68,8 +68,6 @@ import { normalizeRestoredDeliverables } from '../model/courseStore.jsx';
 import { warn, error as logError } from '../lib/logger';
 
 export const STORAGE_KEY = 'coursemapper-project';
-const ACCOUNT_SAVE_PAUSED =
-  'Cloud save is paused because this project belongs to another account. Sign back in, or use Save Current as New Project to copy it to this account.';
 
 function readLocalAutosaveMarker() {
   try {
@@ -155,7 +153,6 @@ export default function useProjectPersistence({
   // A login change must not silently copy the open account's project to another account.
   // Explicit file import, opening that account's project, or Save as New can adopt it.
   const cloudOwnerUidRef = useRef(user?.uid || null);
-  const accountSavePausedRef = useRef(false);
   const [localSaveStatus, setLocalSaveStatus] = useState('idle'); // 'idle' | 'saving' | 'saved' | 'error'
   const [cloudSaveStatus, setCloudSaveStatus] = useState('idle'); // 'idle' | 'saving' | 'saved' | 'error'
   const cloudSaveTimerRef = useRef(null);
@@ -719,15 +716,10 @@ export default function useProjectPersistence({
     clearTimeout(cloudSaveTimerRef.current);
     if (cloudOwnerUidRef.current && cloudOwnerUidRef.current !== user.uid) {
       clearTimeout(cloudStatusTimerRef.current);
-      setCloudSaveStatus('error');
-      accountSavePausedRef.current = true;
-      gen.setError(ACCOUNT_SAVE_PAUSED);
+      setCloudSaveStatus('account-paused');
       return;
     }
-    if (accountSavePausedRef.current) {
-      accountSavePausedRef.current = false;
-      gen.setError((previous) => (previous === ACCOUNT_SAVE_PAUSED ? '' : previous));
-    }
+    setCloudSaveStatus('idle');
     cloudOwnerUidRef.current = user.uid;
     cloudSaveTimerRef.current = setTimeout(async () => {
       if (currentUidRef.current !== user.uid || cloudOwnerUidRef.current !== user.uid) return;
@@ -762,7 +754,7 @@ export default function useProjectPersistence({
       }
     }, 5000);
     return () => clearTimeout(cloudSaveTimerRef.current);
-  }, [user, hasGenerated, courseMap, buildCloudProjectSnapshot, saveLocalProjectSnapshot, gen.setError]);
+  }, [user, hasGenerated, courseMap, buildCloudProjectSnapshot, saveLocalProjectSnapshot]);
 
   // ── On sign-in: merge cloud data (custom deliverables + profile) ──
   const prevUserRef = useRef(null);
@@ -1047,6 +1039,7 @@ export default function useProjectPersistence({
       await cloudSaveProject(user.uid, pid, state);
       if (currentUidRef.current !== user.uid) return;
       cloudOwnerUidRef.current = user.uid;
+      setCloudSaveStatus('saved');
       setProjectId(pid);
       projectIdRef.current = pid;
     } catch (e) {

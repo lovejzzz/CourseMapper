@@ -26,6 +26,23 @@ describe('buildKnowledgeBackboneLabel', () => {
 });
 
 describe('getWorkspaceSavePresentation', () => {
+  it('explains an account pause without calling it a failed save', () => {
+    const result = getWorkspaceSavePresentation({
+      cloudStatus: 'account-paused',
+      localStatus: 'saved',
+      user: { uid: 'other' },
+    });
+    expect(result).toMatchObject({ failed: false, quiet: false, text: 'Cloud save paused' });
+    expect(result.notice).toContain('another account');
+    expect(result.notice).toContain('Save Current as New Project');
+    expect(getWorkspaceSavePresentation({ cloudStatus: 'account-paused', localStatus: 'saved' })).toMatchObject({
+      notice: null,
+      text: 'Autosaved locally',
+    });
+    expect(
+      getWorkspaceSavePresentation({ cloudStatus: 'account-paused', localStatus: 'error', user: { uid: 'other' } }),
+    ).toMatchObject({ failed: true, text: 'Local save failed' });
+  });
   it('keeps an in-flight quota fallback calm while generation continues', () => {
     expect(
       getWorkspaceSavePresentation({
