@@ -434,3 +434,39 @@ it('ignores a cloud restore when accounts change while preparing local storage',
   });
   expect(api.buildProjectSnapshot().courseMap.courseName).toBe(initialMap.courseName);
 });
+
+it('keeps a failed cloud save visible until a later save succeeds', async () => {
+  context.user = { uid: 'cloud-status-owner' };
+  saveProject.mockRejectedValue(new Error('The cloud project changed on another device.'));
+  await mount();
+  expect(api.cloudSaveStatus).toBe('saving');
+  await act(async () => vi.advanceTimersByTimeAsync(5000));
+  expect(api.cloudSaveStatus).toBe('error');
+  await act(async () => vi.advanceTimersByTimeAsync(15000));
+  expect(api.cloudSaveStatus).toBe('error');
+  saveProject.mockResolvedValue(undefined);
+  await act(async () => api.handleSaveCurrentAsNew());
+  expect(api.cloudSaveStatus).toBe('saved');
+});
+
+it('carries the owned cloud version through a local Resume snapshot', async () => {
+  const cloud = await import('../../lib/authoring/cloudProject.js');
+  context.user = { uid: 'resume-version-owner' };
+  loadProject.mockResolvedValue({ courseMap: initialMap });
+  loadProjectDeliverables.mockResolvedValue({});
+  cloud.rememberCloudVersion(context.user.uid, 'resume-course', { authoringRevision: 7 });
+  await mount();
+  await act(async () => api.handleOpenCloudProject('resume-course'));
+  await act(async () => api.saveLocalProjectSnapshot({ projectId: 'resume-course' }));
+  const stored = JSON.parse(localStorage.getItem(STORAGE_KEY));
+  expect(stored.localCloudVersion).toEqual({
+    uid: context.user.uid,
+    projectId: 'resume-course',
+    revision: 7,
+    updatedAt: null,
+  });
+  expect(api.buildProjectSnapshot()).not.toHaveProperty('localCloudVersion');
+  cloud.rememberCloudVersion(context.user.uid, 'resume-course', { authoringRevision: 999 });
+  await act(async () => api.doRestoreSession());
+  expect(cloud.cloudVersionForResume(context.user.uid, 'resume-course').revision).toBe(7);
+});

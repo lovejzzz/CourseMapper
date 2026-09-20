@@ -60,7 +60,9 @@ export function getWorkspaceSavePresentation({ cloudStatus, localStatus, user, w
       ? 'This older saved project has no verified cloud account. Open the original from My Projects, or choose Save Current as New Project to save an explicit copy.'
       : paused
         ? 'Cloud save is paused because this project belongs to another account. Sign back in, or open My Projects and choose Save Current as New Project to copy it to this account.'
-        : null,
+        : cloudStatus === 'error'
+          ? 'Cloud saving did not finish. Your current course is still open. Save a project file before reopening the cloud copy, or choose My Projects → Save Current as New Project.'
+          : null,
     text:
       cloudStatus === 'saving'
         ? 'Saving'
