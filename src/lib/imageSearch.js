@@ -1,3 +1,4 @@
+import { assertSiteInferenceAllowed } from './authoring/inferencePolicy';
 /**
  * imageSearch.js - AI image generation for slide illustration.
  * Uses the user's existing API key: OpenAI (GPT Image / DALL-E 3) or Google (Imagen 3).
@@ -56,6 +57,7 @@ export async function generateImages(
   { provider, apiKey, count = 2, model, size = '1024x1024', quality } = {},
   signal,
 ) {
+  assertSiteInferenceAllowed();
   if (!apiKey) {
     return { images: [], error: 'No API key configured.' };
   }

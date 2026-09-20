@@ -1,0 +1,859 @@
+{
+  "catalogVersion": 2,
+  "protocolVersion": "coursemapper.authoring.v2",
+  "kind": "design-catalog-not-deployable-plugin-manifest",
+  "instructions": [
+    "Resolve/in-line schema references before host registration.",
+    "For webmcp, require documentEpoch in the input schema when flagged.",
+    "For remote-mcp, inject verified OAuth identity and grant; do not require documentEpoch.",
+    "For an existing request, verify bindingId/context resolved by server against subject and grant.",
+    "Validation and preview persist reports: they are not marked read-only.",
+    "Do not register unsupported material tools or any commit/approve/publish/delete tool."
+  ],
+  "tools": [
+    {
+      "name": "cm_v2_get_capabilities",
+      "description": "Read public protocol capabilities; no private course data.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {},
+        "required": []
+      },
+      "outputSchemaRef": "urn:coursemapper:authoring:result:v2",
+      "channels": ["remote-mcp", "webmcp"],
+      "coreReadOnly": true,
+      "remote": {
+        "annotations": {
+          "readOnlyHint": true,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "securitySchemes": [
+          {
+            "type": "noauth"
+          }
+        ]
+      },
+      "webmcp": {
+        "annotations": {
+          "readOnlyHint": true,
+          "untrustedContentHint": false,
+          "consequentialHint": false
+        },
+        "requireDocumentEpoch": false
+      },
+      "status": "proposed-not-implemented"
+    },
+    {
+      "name": "cm_v2_list_requests",
+      "description": "List only requests already authorized for this account or page.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "cursor": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 400
+          }
+        },
+        "required": []
+      },
+      "outputSchemaRef": "urn:coursemapper:authoring:result:v2",
+      "channels": ["remote-mcp", "webmcp"],
+      "coreReadOnly": true,
+      "remote": {
+        "annotations": {
+          "readOnlyHint": true,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "securitySchemes": [
+          {
+            "type": "oauth2",
+            "scopes": ["authoring.requests.read"]
+          }
+        ]
+      },
+      "webmcp": {
+        "annotations": {
+          "readOnlyHint": true,
+          "untrustedContentHint": true,
+          "consequentialHint": false
+        },
+        "requireDocumentEpoch": true
+      },
+      "status": "proposed-not-implemented"
+    },
+    {
+      "name": "cm_v2_create_request",
+      "description": "Create a new private draft request only. Does not read or modify any existing project.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "idempotencyKey": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "request": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 240
+              },
+              "brief": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 6000
+              },
+              "learnerProfile": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2400
+              },
+              "language": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64
+              },
+              "lessonCount": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 52
+              },
+              "sessionMinutes": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 480
+              },
+              "requestedFeatures": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 3,
+                "uniqueItems": true,
+                "items": {
+                  "enum": ["lessonPlans", "assignments", "rubrics"]
+                }
+              },
+              "mode": {
+                "const": "new-course"
+              },
+              "sourcePolicy": {
+                "enum": ["no-uploaded-sources", "explicit-shared-snapshots"]
+              },
+              "uncertainties": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 1600
+                },
+                "minItems": 0,
+                "maxItems": 20
+              }
+            },
+            "required": [
+              "title",
+              "brief",
+              "learnerProfile",
+              "language",
+              "lessonCount",
+              "sessionMinutes",
+              "requestedFeatures",
+              "mode",
+              "sourcePolicy",
+              "uncertainties"
+            ],
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "$id": "urn:coursemapper:authoring:new-request:v2",
+            "title": "Proposed new private course request - does not authorize existing project access"
+          }
+        },
+        "required": ["idempotencyKey", "request"]
+      },
+      "outputSchemaRef": "urn:coursemapper:authoring:result:v2",
+      "channels": ["remote-mcp"],
+      "coreReadOnly": false,
+      "remote": {
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "securitySchemes": [
+          {
+            "type": "oauth2",
+            "scopes": ["authoring.requests.create"]
+          }
+        ]
+      },
+      "webmcp": {
+        "annotations": {
+          "readOnlyHint": false,
+          "untrustedContentHint": true,
+          "consequentialHint": false
+        },
+        "requireDocumentEpoch": true
+      },
+      "status": "proposed-not-implemented"
+    },
+    {
+      "name": "cm_v2_get_context",
+      "description": "Read the authorized request snapshot and scope, not an assumed browser tab.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          }
+        },
+        "required": ["requestId"]
+      },
+      "outputSchemaRef": "urn:coursemapper:authoring:result:v2",
+      "channels": ["remote-mcp", "webmcp"],
+      "coreReadOnly": true,
+      "remote": {
+        "annotations": {
+          "readOnlyHint": true,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "securitySchemes": [
+          {
+            "type": "oauth2",
+            "scopes": ["authoring.requests.read"]
+          }
+        ]
+      },
+      "webmcp": {
+        "annotations": {
+          "readOnlyHint": true,
+          "untrustedContentHint": true,
+          "consequentialHint": false
+        },
+        "requireDocumentEpoch": true
+      },
+      "status": "proposed-not-implemented"
+    },
+    {
+      "name": "cm_v2_search_content",
+      "description": "Search only authorized source snapshots and materials.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "query": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "cursor": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 400
+          }
+        },
+        "required": ["requestId", "query"]
+      },
+      "outputSchemaRef": "urn:coursemapper:authoring:result:v2",
+      "channels": ["remote-mcp", "webmcp"],
+      "coreReadOnly": true,
+      "remote": {
+        "annotations": {
+          "readOnlyHint": true,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "securitySchemes": [
+          {
+            "type": "oauth2",
+            "scopes": ["authoring.sources.read"]
+          }
+        ]
+      },
+      "webmcp": {
+        "annotations": {
+          "readOnlyHint": true,
+          "untrustedContentHint": true,
+          "consequentialHint": false
+        },
+        "requireDocumentEpoch": true
+      },
+      "status": "proposed-not-implemented"
+    },
+    {
+      "name": "cm_v2_read_content",
+      "description": "Read a version-bound authorized content page. Never fetch arbitrary URLs.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "contentId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "expectedRevision": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "cursor": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 400
+          }
+        },
+        "required": ["requestId", "contentId", "expectedRevision"]
+      },
+      "outputSchemaRef": "urn:coursemapper:authoring:result:v2",
+      "channels": ["remote-mcp", "webmcp"],
+      "coreReadOnly": true,
+      "remote": {
+        "annotations": {
+          "readOnlyHint": true,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "securitySchemes": [
+          {
+            "type": "oauth2",
+            "scopes": ["authoring.sources.read"]
+          }
+        ]
+      },
+      "webmcp": {
+        "annotations": {
+          "readOnlyHint": true,
+          "untrustedContentHint": true,
+          "consequentialHint": false
+        },
+        "requireDocumentEpoch": true
+      },
+      "status": "proposed-not-implemented"
+    },
+    {
+      "name": "cm_v2_get_generation_contract",
+      "description": "Get supported authoring content schema and constraints without model inference.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "kind": {
+            "enum": ["course-plan", "lesson-bundle"]
+          },
+          "draftId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "lessonId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          }
+        },
+        "required": ["requestId", "kind"]
+      },
+      "outputSchemaRef": "urn:coursemapper:authoring:result:v2",
+      "channels": ["remote-mcp", "webmcp"],
+      "coreReadOnly": true,
+      "remote": {
+        "annotations": {
+          "readOnlyHint": true,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "securitySchemes": [
+          {
+            "type": "oauth2",
+            "scopes": ["authoring.requests.read"]
+          }
+        ]
+      },
+      "webmcp": {
+        "annotations": {
+          "readOnlyHint": true,
+          "untrustedContentHint": true,
+          "consequentialHint": false
+        },
+        "requireDocumentEpoch": true
+      },
+      "status": "proposed-not-implemented"
+    },
+    {
+      "name": "cm_v2_create_draft",
+      "description": "Create an isolated draft from the current authorized request; no formal project change.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "expectedRequestRevision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "baseContentRevision": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": ["requestId", "expectedRequestRevision", "baseContentRevision", "idempotencyKey"]
+      },
+      "outputSchemaRef": "urn:coursemapper:authoring:result:v2",
+      "channels": ["remote-mcp", "webmcp"],
+      "coreReadOnly": false,
+      "remote": {
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "securitySchemes": [
+          {
+            "type": "oauth2",
+            "scopes": ["authoring.drafts.write"]
+          }
+        ]
+      },
+      "webmcp": {
+        "annotations": {
+          "readOnlyHint": false,
+          "untrustedContentHint": true,
+          "consequentialHint": false
+        },
+        "requireDocumentEpoch": true
+      },
+      "status": "proposed-not-implemented"
+    },
+    {
+      "name": "cm_v2_submit_course_plan",
+      "description": "Save a draft course plan and return host-owned lesson/objective IDs.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "draftId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "expectedDraftRevision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "contractHash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "plan": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 240
+              },
+              "description": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 6000
+              },
+              "lessons": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "clientId": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 120
+                    },
+                    "title": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 240
+                    },
+                    "objectives": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "clientId": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 120
+                          },
+                          "text": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 2000
+                          }
+                        },
+                        "required": ["clientId", "text"]
+                      },
+                      "minItems": 1,
+                      "maxItems": 12
+                    }
+                  },
+                  "required": ["clientId", "title", "objectives"]
+                },
+                "minItems": 1,
+                "maxItems": 52
+              }
+            },
+            "required": ["title", "description", "lessons"]
+          }
+        },
+        "required": ["requestId", "draftId", "expectedDraftRevision", "idempotencyKey", "contractHash", "plan"]
+      },
+      "outputSchemaRef": "urn:coursemapper:authoring:result:v2",
+      "channels": ["remote-mcp", "webmcp"],
+      "coreReadOnly": false,
+      "remote": {
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "securitySchemes": [
+          {
+            "type": "oauth2",
+            "scopes": ["authoring.drafts.write"]
+          }
+        ]
+      },
+      "webmcp": {
+        "annotations": {
+          "readOnlyHint": false,
+          "untrustedContentHint": true,
+          "consequentialHint": false
+        },
+        "requireDocumentEpoch": true
+      },
+      "status": "proposed-not-implemented"
+    },
+    {
+      "name": "cm_v2_submit_lesson_bundle",
+      "description": "Save one complete lesson draft with actual authored content; never call the website generation model.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "draftId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "expectedDraftRevision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "lessonId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "contractHash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "bundle": {
+            "$ref": "urn:coursemapper:authoring:lesson-bundle:v1"
+          }
+        },
+        "required": [
+          "requestId",
+          "draftId",
+          "expectedDraftRevision",
+          "idempotencyKey",
+          "lessonId",
+          "contractHash",
+          "bundle"
+        ]
+      },
+      "outputSchemaRef": "urn:coursemapper:authoring:result:v2",
+      "channels": ["remote-mcp", "webmcp"],
+      "coreReadOnly": false,
+      "remote": {
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "securitySchemes": [
+          {
+            "type": "oauth2",
+            "scopes": ["authoring.drafts.write"]
+          }
+        ]
+      },
+      "webmcp": {
+        "annotations": {
+          "readOnlyHint": false,
+          "untrustedContentHint": true,
+          "consequentialHint": false
+        },
+        "requireDocumentEpoch": true
+      },
+      "status": "proposed-not-implemented"
+    },
+    {
+      "name": "cm_v2_validate_draft",
+      "description": "Persist a read-only-content validation report; do not repair text or run a model.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "draftId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "expectedDraftRevision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": ["requestId", "draftId", "expectedDraftRevision", "idempotencyKey"]
+      },
+      "outputSchemaRef": "urn:coursemapper:authoring:result:v2",
+      "channels": ["remote-mcp", "webmcp"],
+      "coreReadOnly": false,
+      "remote": {
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "securitySchemes": [
+          {
+            "type": "oauth2",
+            "scopes": ["authoring.drafts.write"]
+          }
+        ]
+      },
+      "webmcp": {
+        "annotations": {
+          "readOnlyHint": false,
+          "untrustedContentHint": true,
+          "consequentialHint": false
+        },
+        "requireDocumentEpoch": true
+      },
+      "status": "proposed-not-implemented"
+    },
+    {
+      "name": "cm_v2_preview_draft",
+      "description": "Persist a snapshot-based preview and return a website review link; does not apply to the formal course.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "draftId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "expectedDraftRevision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "validationId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          }
+        },
+        "required": ["requestId", "draftId", "expectedDraftRevision", "idempotencyKey", "validationId"]
+      },
+      "outputSchemaRef": "urn:coursemapper:authoring:result:v2",
+      "channels": ["remote-mcp", "webmcp"],
+      "coreReadOnly": false,
+      "remote": {
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "securitySchemes": [
+          {
+            "type": "oauth2",
+            "scopes": ["authoring.drafts.write"]
+          }
+        ]
+      },
+      "webmcp": {
+        "annotations": {
+          "readOnlyHint": false,
+          "untrustedContentHint": true,
+          "consequentialHint": false
+        },
+        "requireDocumentEpoch": true
+      },
+      "status": "proposed-not-implemented"
+    },
+    {
+      "name": "cm_v2_get_draft_status",
+      "description": "Read saved draft and application receipts. Saved draft does not mean applied course.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "draftId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          }
+        },
+        "required": ["requestId", "draftId"]
+      },
+      "outputSchemaRef": "urn:coursemapper:authoring:result:v2",
+      "channels": ["remote-mcp", "webmcp"],
+      "coreReadOnly": true,
+      "remote": {
+        "annotations": {
+          "readOnlyHint": true,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "securitySchemes": [
+          {
+            "type": "oauth2",
+            "scopes": ["authoring.reviews.read"]
+          }
+        ]
+      },
+      "webmcp": {
+        "annotations": {
+          "readOnlyHint": true,
+          "untrustedContentHint": true,
+          "consequentialHint": false
+        },
+        "requireDocumentEpoch": true
+      },
+      "status": "proposed-not-implemented"
+    },
+    {
+      "name": "cm_v2_get_diagnostics",
+      "description": "Read redacted diagnostics only for this authorized request. No raw snapshot, credentials, shell or admin access.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          }
+        },
+        "required": ["requestId"]
+      },
+      "outputSchemaRef": "urn:coursemapper:authoring:result:v2",
+      "channels": ["remote-mcp", "webmcp"],
+      "coreReadOnly": true,
+      "remote": {
+        "annotations": {
+          "readOnlyHint": true,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "securitySchemes": [
+          {
+            "type": "oauth2",
+            "scopes": ["authoring.requests.read"]
+          }
+        ]
+      },
+      "webmcp": {
+        "annotations": {
+          "readOnlyHint": true,
+          "untrustedContentHint": true,
+          "consequentialHint": false
+        },
+        "requireDocumentEpoch": true
+      },
+      "status": "proposed-not-implemented"
+    }
+  ]
+}

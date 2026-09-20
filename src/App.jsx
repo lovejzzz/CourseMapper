@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useCallback, useEffect, useState } from 'react';
+import React, { lazy, Suspense, useCallback, useEffect, useState, useRef } from 'react';
 import LoadingScreen from './components/LoadingScreen';
 import ScionRuntimeStatusBanner from './components/ScionRuntimeStatusBanner';
 import { useAuth } from './contexts/AuthContext';
@@ -11,7 +11,11 @@ import { clearSetupRecovery, readSetupRecovery, stageSetupRecovery } from './lib
 import useScionRuntimeStatus from './hooks/useScionRuntimeStatus';
 
 const Landing = lazy(() => import('./screens/Landing'));
-const AppFlow = lazy(() => import('./AppFlow'));
+const loadAppFlow = () => import('./AppFlow');
+const AppFlow = lazy(loadAppFlow);
+const AuthoringPanel = lazy(() => import('./components/authoring/AuthoringPanel'));
+
+import { setAuthoringExecutionMode } from './lib/authoring/inferencePolicy';
 const ProjectPicker = lazy(() => import('./components/ProjectPicker'));
 
 const STORAGE_KEY = 'coursemapper-project';
@@ -43,9 +47,14 @@ async function hasResumableLocalProject() {
 
 export default function App() {
   const { user } = useAuth();
+  const authoringWorkspace = useRef(null);
+  const setExecutionMode = useCallback((mode) => setAuthoringExecutionMode(mode), []);
   const { screen, setScreen, showProjectPicker, setShowProjectPicker } = useUI();
-  const { files, promptText, setPromptText, resetGeneratedProjectState } = useCourse();
+  const { files, promptText, setPromptText, resetGeneratedProjectState, courseMap } = useCourse();
   const { provider, apiKey, apiStatus, modelId } = useAIConfig();
+  useEffect(() => {
+    if (courseMap?.authoringV2) setAuthoringExecutionMode('external-agent');
+  }, [courseMap?.authoringV2]);
   const scionEnabled = provider === PUBLIC_SCION_PROVIDER_ID;
   const scionRuntimeStatus = useScionRuntimeStatus(scionEnabled);
   const providerIsKeyless = provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID;
@@ -160,17 +169,40 @@ export default function App() {
     setHasSavedSession(false);
   }, [resetGeneratedProjectState]);
 
+  const authoringPanel = (
+    <Suspense key="authoring-panel" fallback={null}>
+      <AuthoringPanel
+        workspace={authoringWorkspace}
+        workspaceFiles={files}
+        onModeChange={setExecutionMode}
+        onApply={async (snapshot) => {
+          setAuthoringExecutionMode('external-agent');
+          if (!snapshot) {
+            resetGeneratedProjectState();
+            localStorage.removeItem(STORAGE_KEY);
+            handleReturnToLanding();
+            return;
+          }
+          if (authoringWorkspace.current?.apply) authoringWorkspace.current.apply(snapshot);
+          else startFlow({ type: 'externalSnapshot', snapshot });
+        }}
+      />
+    </Suspense>
+  );
+
   if (flowActive) {
     return (
       <>
         <Suspense fallback={<LoadingScreen />}>
           <AppFlow
+            authoringWorkspace={authoringWorkspace}
             startupAction={startupAction}
             onStartupHandled={() => setStartupAction(null)}
             onReturnToLanding={handleReturnToLanding}
             scionRuntimeStatus={scionRuntimeStatus}
           />
         </Suspense>
+        {authoringPanel}
         <ScionRuntimeStatusBanner enabled={showScionRuntimeBanner} status={scionRuntimeStatus} />
       </>
     );
@@ -217,6 +249,7 @@ export default function App() {
           />
         </Suspense>
       )}
+      {authoringPanel}
       <ScionRuntimeStatusBanner enabled={showScionRuntimeBanner} status={scionRuntimeStatus} />
     </>
   );

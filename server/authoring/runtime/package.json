@@ -1,0 +1,19 @@
+{
+  "name": "coursemapper-authoring-runtime",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node server/authoring/start.mjs",
+    "cleanup": "node server/authoring/cleanup.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "express": "5.2.1",
+    "firebase-admin": "14.4.0",
+    "jose": "6.2.3"
+  }
+}

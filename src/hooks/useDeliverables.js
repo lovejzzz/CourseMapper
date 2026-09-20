@@ -1,4 +1,6 @@
+import { synchronizeAuthorLayer } from '../lib/authoringCore/authorLayer';
 import { requiresCurrentResearch, shouldSkipCoveredScionResearch } from '../lib/knowledge/researchFreshness.js';
+import { getAuthoringGenerationBlock } from '../lib/authoring/inferencePolicy';
 import { useState, useCallback, useMemo, useRef, useContext, useEffect } from 'react';
 import useStreamReader from './useStreamReader';
 import { getArrayKey } from '../lib/syncDependencies';
@@ -435,7 +437,8 @@ export default function useDeliverables({
 }) {
   // ── Read deliverables from the store ──
   const storeState = useContext(CourseStateContext);
-  const dispatch = useContext(CourseDispatchContext);
+  const teacherDispatch = useContext(CourseDispatchContext);
+  const dispatch = useCallback((action) => teacherDispatch({ ...action, generated: true }), [teacherDispatch]);
   const deliverables = storeState?.deliverables || {};
   const deliverablesRef = useRef(deliverables);
   deliverablesRef.current = deliverables;
@@ -445,7 +448,11 @@ export default function useDeliverables({
   // ── Transient / streaming-only state (not persisted) ──
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentFeatures, setCurrentFeatures] = useState(new Set()); // tracks ALL active features (parallel)
-  const [progress, setProgress] = useState({ done: 0, total: 0, perFeature: {} });
+  const [progress, setProgress] = useState({
+    done: 0,
+    total: 0,
+    perFeature: {},
+  });
   const [generationLog, setGenerationLog] = useState([]);
   const [qualityScores, setQualityScores] = useState({});
   const [delivTimings, setDelivTimings] = useState({}); // { featureId: { startedAt, endedAt, durationMs } }
@@ -569,6 +576,11 @@ export default function useDeliverables({
 
   const generateAll = useCallback(
     async (courseMap, features, scopeIndices = null, syncGenOrOptions = null) => {
+      const blocked = getAuthoringGenerationBlock(deliverables, features);
+      if (blocked) {
+        appendLog(blocked.message, 'warn');
+        return blocked;
+      }
       let generationOptions =
         syncGenOrOptions && typeof syncGenOrOptions === 'object' ? syncGenOrOptions : { syncGenId: syncGenOrOptions };
       if (generationOptions.mode === 'retry') {
@@ -5716,7 +5728,7 @@ export default function useDeliverables({
     (featureId, patchedData) => {
       const existing = deliverables[featureId];
       if (!existing) return;
-      dispatch({
+      teacherDispatch({
         type: 'SET_DELIVERABLE',
         featureId,
         status: existing.status,
@@ -5727,7 +5739,7 @@ export default function useDeliverables({
         regeneratingIndex: existing.regeneratingIndex ?? null,
       });
     },
-    [deliverables, dispatch],
+    [deliverables, teacherDispatch],
   );
 
   const resyncAll = useCallback(
@@ -5745,6 +5757,11 @@ export default function useDeliverables({
   const regenerateLesson = useCallback(
     async (featureId, courseMap, lessonIndex, syncGenOrOptions = null) => {
       const regenerationGraphSnapshot = currentCourseGraphRef.current;
+      const blocked = getAuthoringGenerationBlock(deliverables, [featureId]);
+      if (blocked) {
+        appendLog(blocked.message, 'warn');
+        return { ...blocked, featureId, lessonIndex };
+      }
       const regenerationOptions =
         syncGenOrOptions && typeof syncGenOrOptions === 'object' ? syncGenOrOptions : { syncGenId: syncGenOrOptions };
       const sourceBriefConstraints = analyzeSourceBriefConstraints(sourceBrief);
@@ -6512,19 +6529,20 @@ export default function useDeliverables({
         if (entry && entry !== previous[featureId]) {
           // A text edit must retain the exact source-review and lesson-scope
           // metadata. The old four-field action reset every material's scope.
-          dispatch(
+          teacherDispatch(
             actions.restoreDeliverableSnapshot(featureId, {
               status: 'done',
               data: null,
               error: null,
               stale: false,
               ...entry,
+              ...synchronizeAuthorLayer(previous[featureId], entry.data),
             }),
           );
         }
       }
     },
-    [dispatch],
+    [dispatch, teacherDispatch],
   );
 
   // History restores exact entries, including stale evidence and teacher
@@ -6534,10 +6552,10 @@ export default function useDeliverables({
       const previous = deliverablesRef.current;
       deliverablesRef.current = next;
       for (const id of new Set([...Object.keys(previous), ...Object.keys(next)])) {
-        if (previous[id] !== next[id]) dispatch(actions.restoreDeliverableSnapshot(id, next[id]));
+        if (previous[id] !== next[id]) teacherDispatch(actions.restoreDeliverableSnapshot(id, next[id]));
       }
     },
-    [dispatch],
+    [dispatch, teacherDispatch],
   );
 
   // Backward compat: expose currentFeature as first active feature (for consumers that need a single string)
@@ -6552,6 +6570,8 @@ export default function useDeliverables({
   // on); driver/dev surface only — no normal UI flow calls this.
   const runVoicePassPostHoc = useCallback(
     async (courseMap) => {
+      const blocked = getAuthoringGenerationBlock(deliverables);
+      if (blocked) return { ...blocked, ran: false };
       const voicePassLib = await import('../lib/voicePass');
       if (voicePassLib.readVoicePassMode() !== 'on') return { ran: false, reason: 'voice flag off' };
       if (

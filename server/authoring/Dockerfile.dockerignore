@@ -1,0 +1,11 @@
+**
+!server/
+!server/authoring/
+!server/authoring/*.mjs
+!server/authoring/runtime/
+!server/authoring/runtime/package.json
+!server/authoring/runtime/package-lock.json
+!src/
+!src/lib/
+!src/lib/authoringCore/
+!src/lib/authoringCore/**

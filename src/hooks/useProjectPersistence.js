@@ -1,4 +1,7 @@
 import { normalizeSavedEditHistory } from '../lib/deliverableEditHistory.js';
+import { saveAuthorWorkspace, restoreAuthorWorkspace } from '../lib/authoring/localWorkspace';
+import { preserveAuthoredSnapshot } from '../lib/authoringCore/authorLayer';
+import { setAuthoringExecutionMode } from '../lib/authoring/inferencePolicy';
 /**
  * useProjectPersistence — v0.15.3 C1: the save/restore/autosave owner,
  * extracted VERBATIM from AppFlow (diet phase 2; the v0.15.1 roadmap named
@@ -219,51 +222,54 @@ export default function useProjectPersistence({
         packageQualityPass,
         lastRunDigest,
       });
-      return sanitizeProjectSnapshot({
-        // v0.13 formatVersion 2: the CourseGraph rides along as the source
-        // of truth; v1 projects (no graph) derive one on restore.
-        formatVersion: 2,
-        courseMap: safeCourseMap,
-        ...(courseGraph
-          ? {
-              courseGraph: {
-                ...courseGraph,
-                enrichmentOverlay: courseGraph.enrichmentOverlay || deliv.enrichmentOverlay,
-              },
-            }
-          : {}),
-        ...(instructionalBlueprintReview
-          ? { instructionalBlueprintReview, instructionalBlueprintApproval: instructionalBlueprintApproval || null }
-          : {}),
-        columns,
-        hasGenerated: true,
-        provider,
-        modelId,
-        modelName,
-        userEdits,
-        chatHistory: sanitizeMessagesForPersistence(chatHistory.slice(-50)),
-        fileNames: files.map((f) => f.name),
-        versionHistory: version.versionHistory.slice(-30),
-        selectedFeatures,
-        deliverableConfig,
-        lessonScope,
-        promptText,
-        generationConstraints: {
-          sessionMinutes: expectedSessionMinutes,
-          sessionMinutesSource: deliverableConfig?.lessonPlans?.sessionLength
-            ? 'deliverable-config'
-            : 'resolved-generation-default',
-        },
-        activeTab,
-        deliverables: deliv.deliverables,
-        editHistory: delivUndo?.history,
-        teachingReviewDrafts: teachingDrafts.snapshot(),
-        slideTheme,
-        apiCallBudgetReceipt: getApiCallBudgetReceipt?.(),
-        ...packageEvidence,
-        savedAt: Date.now(),
-        ...extra,
-      });
+      return preserveAuthoredSnapshot(
+        sanitizeProjectSnapshot({
+          // v0.13 formatVersion 2: the CourseGraph rides along as the source
+          // of truth; v1 projects (no graph) derive one on restore.
+          formatVersion: 2,
+          projectId: projectIdRef.current || null,
+          courseMap: safeCourseMap,
+          ...(courseGraph
+            ? {
+                courseGraph: {
+                  ...courseGraph,
+                  enrichmentOverlay: courseGraph.enrichmentOverlay || deliv.enrichmentOverlay,
+                },
+              }
+            : {}),
+          ...(instructionalBlueprintReview
+            ? { instructionalBlueprintReview, instructionalBlueprintApproval: instructionalBlueprintApproval || null }
+            : {}),
+          columns,
+          hasGenerated: true,
+          provider,
+          modelId,
+          modelName,
+          userEdits,
+          chatHistory: sanitizeMessagesForPersistence(chatHistory.slice(-50)),
+          fileNames: files.map((f) => f.name),
+          versionHistory: version.versionHistory.slice(-30),
+          selectedFeatures,
+          deliverableConfig,
+          lessonScope,
+          promptText,
+          generationConstraints: {
+            sessionMinutes: expectedSessionMinutes,
+            sessionMinutesSource: deliverableConfig?.lessonPlans?.sessionLength
+              ? 'deliverable-config'
+              : 'resolved-generation-default',
+          },
+          activeTab,
+          deliverables: deliv.deliverables,
+          editHistory: delivUndo?.history,
+          teachingReviewDrafts: teachingDrafts.snapshot(),
+          slideTheme,
+          apiCallBudgetReceipt: getApiCallBudgetReceipt?.(),
+          ...packageEvidence,
+          savedAt: Date.now(),
+          ...extra,
+        }),
+      );
     },
     [
       courseMap,
@@ -298,6 +304,7 @@ export default function useProjectPersistence({
   const buildCloudProjectSnapshot = useCallback(
     (extra = {}) => {
       const snapshot = buildProjectSnapshot(extra);
+      if (snapshot.requiredCapabilities?.includes('authored-content-v2')) return snapshot;
       const selectedDeliverables = (Array.isArray(snapshot.selectedFeatures) ? snapshot.selectedFeatures : []).filter(
         (featureId) => featureId && featureId !== 'courseMap',
       );
@@ -361,6 +368,9 @@ export default function useProjectPersistence({
         throw new Error('Developer code must be a project JSON object.');
       }
       const restored = prepareProjectSnapshotForRestore(snapshot);
+      setAuthoringExecutionMode(
+        restored.executionMode || (restored.courseMap?.authoringV2 ? 'external-agent' : 'site-model'),
+      );
       if (!restored.courseMap || !Array.isArray(restored.courseMap.lessons)) {
         throw new Error('Cannot apply: courseMap.lessons must exist and be an array.');
       }
@@ -377,6 +387,8 @@ export default function useProjectPersistence({
           ? restored.activeTab
           : nextSelected[0] || 'courseMap';
 
+      setProjectId(restored.projectId || null);
+      projectIdRef.current = restored.projectId || null;
       setCourseMap(restored.courseMap);
       adoptCourseGraph(restored);
       setOldCourseMap(restored.oldCourseMap || null);
@@ -525,7 +537,7 @@ export default function useProjectPersistence({
   }, [screen, activeDeveloperTemplateId, developerTemplates, applyDeveloperTemplate]);
 
   const saveLocalProjectSnapshot = useCallback(
-    (extra = {}) => {
+    async (extra = {}) => {
       if (!hasGenerated || !courseMap) return false;
       const saveAttemptId = ++localSaveAttemptIdRef.current;
       localSaveReceiptRef.current = { attemptId: saveAttemptId, exact: false };
@@ -564,6 +576,18 @@ export default function useProjectPersistence({
         });
       };
       const fullSnapshot = buildProjectSnapshot(extra);
+      if (fullSnapshot.courseMap?.authoringV2) {
+        try {
+          const pointer = await saveAuthorWorkspace(fullSnapshot);
+          if (saveAttemptId !== localSaveAttemptIdRef.current) return true;
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(pointer));
+          settleLocalSaveAttempt('saved', 3000);
+          return true;
+        } catch (error) {
+          deferLocalSaveFailure(error);
+          return false;
+        }
+      }
       const compactSnapshot = buildCloudProjectSnapshot({
         ...extra,
         localSaveMode: 'compact-autosave',
@@ -790,7 +814,7 @@ export default function useProjectPersistence({
         raw = await loadProjectIndexedDbAutosave();
       }
       if (!raw) return;
-      const saved = prepareProjectSnapshotForRestore(JSON.parse(raw));
+      const saved = prepareProjectSnapshotForRestore(await restoreAuthorWorkspace(JSON.parse(raw)));
       if (!saved.courseMap) return;
       const restoredDeliverables = await compileCompactProjectDeliverables(saved);
       setCourseMap(saved.courseMap);

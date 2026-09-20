@@ -4,18 +4,36 @@ service cloud.firestore {
     function isOwner(userId) {
       return request.auth != null && request.auth.uid == userId;
     }
-
-    function hasReasonableFieldCount() {
-      return request.resource.data.keys().size() <= 80;
-    }
-
-    // Each user can only read/write their own data.
-    // Firestore enforces the 1 MiB document limit; this project-level guard
-    // keeps accidental wide documents out of user-owned subtrees.
-    match /users/{userId}/{document=**} {
-      allow read: if isOwner(userId);
+    function hasReasonableFieldCount() { return request.resource.data.keys().size() <= 80; }
+    function isAuthored(data) { return data.get('requiredCapabilities', []).hasAny(['authored-content-v2']); }
+    // No recursive allow may overlap projects or the server-only exchange.
+    match /users/{userId} {
+      allow read, delete: if isOwner(userId);
       allow create, update: if isOwner(userId) && hasReasonableFieldCount();
-      allow delete: if isOwner(userId);
+      match /{collectionId}/{documentId}/{nested=**} {
+        allow read, delete: if isOwner(userId) && collectionId != 'projects';
+        allow create, update: if isOwner(userId) && collectionId != 'projects' && hasReasonableFieldCount();
+      }
+      match /projects/{projectId} {
+        allow read, delete: if isOwner(userId);
+        allow create: if isOwner(userId) && hasReasonableFieldCount() &&
+          (!isAuthored(request.resource.data) || request.resource.data.authoringRevision == 1);
+        allow update: if isOwner(userId) && hasReasonableFieldCount() &&
+          ((!isAuthored(resource.data) && !isAuthored(request.resource.data)) ||
+           (isAuthored(request.resource.data) && request.resource.data.authoringRevision == resource.data.get('authoringRevision', 0) + 1));
+        match /deliverables/{documentId} {
+          allow read, delete: if isOwner(userId);
+          allow create, update: if isOwner(userId) && hasReasonableFieldCount() &&
+            !isAuthored(get(/databases/$(database)/documents/users/$(userId)/projects/$(projectId)).data);
+        }
+        match /authoringBlocks/{blockId} {
+          allow read, delete: if isOwner(userId);
+          allow create: if isOwner(userId) && request.resource.data.keys().hasOnly(['text']) && request.resource.data.text is string;
+          // Content-addressed blocks are immutable, including for old clients.
+          allow update: if false;
+        }
+      }
     }
+    match /authoringExchangeV2/{document=**} { allow read, write: if false; }
   }
 }

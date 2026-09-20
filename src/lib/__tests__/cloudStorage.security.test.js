@@ -120,6 +120,9 @@ function makeTimestamp(iso) {
 }
 
 beforeEach(() => {
+  firestoreMocks.getDoc.mockReset();
+  firestoreMocks.getDoc.mockResolvedValue({ exists: () => false });
+  firestoreMocks.getDocs.mockReset();
   for (const fn of Object.values(firestore)) {
     if (typeof fn === 'function' && fn.mockClear) fn.mockClear();
   }

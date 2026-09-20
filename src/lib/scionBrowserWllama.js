@@ -1,3 +1,4 @@
+import { assertSiteInferenceAllowed } from './authoring/inferencePolicy';
 import {
   SCION_BROWSER_GEMMA4_GGUF,
   SCION_BROWSER_GEMMA4_DOWNLOAD_LABEL,
@@ -324,6 +325,7 @@ export async function loadScionBrowserWllama({
   modelUrl = SCION_BROWSER_GEMMA4_GGUF_URL,
   contextSize = 8192,
 } = {}) {
+  assertSiteInferenceAllowed();
   if (signal?.aborted) throw abortError();
   runtimeLoadOptions = { runtimeLoader, navigatorLike, globalLike, locationLike, modelUrl, contextSize };
   if (status.phase === 'recovery-required') {
@@ -353,6 +355,7 @@ export async function loadScionBrowserWllama({
     );
     const moduleUrl = absoluteAsset(SCION_BROWSER_WLLAMA_MODULE_PATH, locationLike);
     runtimeModule ||= validateRuntimeModule(await runtimeLoader(moduleUrl));
+    assertSiteInferenceAllowed();
     const wasmUrl = absoluteAsset(SCION_BROWSER_WLLAMA_WASM_PATH, locationLike);
     let candidate = createRuntimeCandidate(runtimeModule.Wllama, wasmUrl);
     loadingRuntime = candidate;
@@ -561,6 +564,7 @@ export async function completeScionBrowserWllama(
     onCompletion,
   } = {},
 ) {
+  assertSiteInferenceAllowed();
   if (grammar !== undefined && status.runtime?.grammar !== 'gbnf-state-v1') {
     throw runtimeError(
       'SCION_WLLAMA_GRAMMAR_UNAVAILABLE',
@@ -645,6 +649,7 @@ export async function completeScionBrowserWllama(
 }
 
 async function completeRaw(messages, options = {}) {
+  assertSiteInferenceAllowed();
   return runScionBrowserCompletion(requireReady(), messages, options);
 }
 

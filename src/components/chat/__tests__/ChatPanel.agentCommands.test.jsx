@@ -1427,7 +1427,7 @@ describe('ChatPanel agent command strip', () => {
         changedFieldsSummary: 'lesson title',
       },
     ];
-    chatRouterMock.handleApproveSyncSuggestion.mockResolvedValue(undefined);
+    chatRouterMock.handleApproveSyncSuggestion.mockResolvedValue({ status: 'done' });
     root = renderChatPanel(container);
 
     expect(messageListMock.props.workspacePlanActionCapabilities).toMatchObject({
@@ -1627,7 +1627,7 @@ describe('ChatPanel agent command strip', () => {
         changedFieldsSummary: 'lesson title',
       },
     ];
-    chatRouterMock.handleApproveSyncSuggestion.mockResolvedValue(undefined);
+    chatRouterMock.handleApproveSyncSuggestion.mockResolvedValue({ status: 'done' });
     root = renderChatPanel(container);
 
     const syncCommand = buildAgentCommandItems({ activeTab: 'lessonPlans', syncFeatureCount: 2 }).find(

@@ -1274,18 +1274,23 @@ export function runDeterministicPackageFinalizer({
   blueprint = null,
   expectedSessionMinutes = null,
 } = {}) {
-  const admittedCourseMap = reconcileCourseMapWithBlueprintSemanticAdmission(courseMap, blueprint);
-  const repairResult = applyDeterministicRepairs({
-    courseMap: admittedCourseMap,
-    courseGraph,
-    sourceBrief,
-    deliverables,
-    selectedFeatures,
-    columns,
-    lessonFilter,
-    deliverableConfig,
-    includeClassroomReadiness,
-  });
+  const externalAuthored = !!courseMap?.authoringV2 || Object.values(deliverables).some((e) => e?.authoredContent);
+  const admittedCourseMap = externalAuthored
+    ? courseMap
+    : reconcileCourseMapWithBlueprintSemanticAdmission(courseMap, blueprint);
+  const repairResult = externalAuthored
+    ? { courseMap, deliverables, changed: false, applied: 0, repairs: [] }
+    : applyDeterministicRepairs({
+        courseMap: admittedCourseMap,
+        courseGraph,
+        sourceBrief,
+        deliverables,
+        selectedFeatures,
+        columns,
+        lessonFilter,
+        deliverableConfig,
+        includeClassroomReadiness,
+      });
   const finalCourseMap = repairResult.courseMap || admittedCourseMap;
   const finalDeliverables = repairResult.deliverables || deliverables;
   // v0.12.1 P2: findings that survive the deterministic content repair need
@@ -1417,7 +1422,10 @@ export function runDeterministicPackageFinalizer({
     healthReport,
     maxActions: maxRetryActions,
   });
-  const retryActions = (repairQueue.retryActions || []).slice(0, Math.max(0, Number(maxRetryActions) || 0));
+  const retryActions = (externalAuthored ? [] : repairQueue.retryActions || []).slice(
+    0,
+    Math.max(0, Number(maxRetryActions) || 0),
+  );
   const status = getFinalizerStatus(readiness, { ...repairQueue, retryActions });
 
   return {

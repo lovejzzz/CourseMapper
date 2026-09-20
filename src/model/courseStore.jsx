@@ -1,3 +1,4 @@
+import { synchronizeAuthorLayer } from '../lib/authoringCore/authorLayer';
 /**
  * courseStore.jsx — Minimal React context for deliverables state.
  * Keeps transient deliverable generation results so useDeliverables can
@@ -135,8 +136,17 @@ export function normalizeRestoredDeliverables(deliverables) {
 }
 
 export function reducer(state, action) {
+  // An accepted author layer can only be replaced by the reviewed application
+  // transaction. Late generation responses must not become teacher overrides.
+  if (
+    state.deliverables[action.featureId]?.authoredContent &&
+    (['SET_DELIVERABLE_STREAMING', 'SET_DELIVERABLE_DONE', 'SET_DELIVERABLE_ERROR'].includes(action.type) ||
+      (action.generated && ['SET_DELIVERABLE', 'RESTORE_DELIVERABLE_SNAPSHOT'].includes(action.type)))
+  )
+    return state;
   switch (action.type) {
     case 'SET_REVIEWED_COMPILATION': {
+      if (Object.keys(action.changed || {}).some((id) => state.deliverables[id]?.authoredContent)) return state;
       const stale = Object.entries(action.expected).some(([id, entry]) => state.deliverables[id] !== entry);
       if (stale)
         return {
@@ -184,7 +194,13 @@ export function reducer(state, action) {
         ...state,
         deliverables: {
           ...state.deliverables,
-          [action.featureId]: { status: 'done', data: action.data, error: null, stale: false, staleConfidence: null },
+          [action.featureId]: synchronizeAuthorLayer(state.deliverables[action.featureId], action.data) || {
+            status: 'done',
+            data: action.data,
+            error: null,
+            stale: false,
+            staleConfidence: null,
+          },
         },
       };
     case 'SET_DELIVERABLE_ERROR':
@@ -269,6 +285,7 @@ export function reducer(state, action) {
         deliverables: {
           ...state.deliverables,
           [action.featureId]: {
+            ...synchronizeAuthorLayer(state.deliverables[action.featureId], action.data),
             status: action.status,
             data: action.data,
             error: action.error,

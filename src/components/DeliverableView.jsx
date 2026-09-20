@@ -64,7 +64,7 @@ function courseMapAssessmentAtoms(courseMap) {
 }
 
 export function getCoverageGap(featureId, data, courseMap) {
-  if (!data || !courseMap) return null;
+  if (!data || !courseMap || courseMap.authoringV2) return null;
 
   if (featureId === 'rubrics') {
     const coverage = normalizeRubricCoverage(data, courseMap);

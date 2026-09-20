@@ -32,6 +32,8 @@ jobs:
 
       - run: npm ci
       - run: npm run build
+        env:
+          VITE_AUTHORING_EXCHANGE_URL: https://coursemapper-authoring-70767622598.us-east1.run.app
 
       - uses: actions/upload-pages-artifact@v5
         with:

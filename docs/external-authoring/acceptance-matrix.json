@@ -1,0 +1,508 @@
+{
+  "version": 2,
+  "count": 50,
+  "scope": "Original v2 acceptance cases with implementation evidence; local tests do not substitute for real platform acceptance.",
+  "cases": [
+    {
+      "id": "T01",
+      "category": "平台与入口",
+      "title": "普通教师主路径",
+      "procedure": "使用实际目标账号从公开/获批测试入口添加插件、授权、生成并进入审阅。",
+      "expected": "无需 Codex、终端、MCP 地址或 API key。",
+      "evidence": "真实 ChatGPT",
+      "status": "pending-live-platform",
+      "implementationEvidence": "No public/approved ChatGPT installation tested."
+    },
+    {
+      "id": "T02",
+      "category": "平台与入口",
+      "title": "开发连接不冒充公众发布",
+      "procedure": "分别记录开发模式、私有测试与公众插件状态。",
+      "expected": "未完成审核不显示已发布；套餐差异留在兼容性台账。",
+      "evidence": "发布审查",
+      "status": "passed-local",
+      "implementationEvidence": "UI and capabilities explicitly report not-published; package has no invented endpoint."
+    },
+    {
+      "id": "T03",
+      "category": "平台与入口",
+      "title": "WebMCP 不支持",
+      "procedure": "在无 document.modelContext 环境打开网站。",
+      "expected": "原流程正常，诚实显示不支持。",
+      "evidence": "浏览器",
+      "status": "passed-local",
+      "implementationEvidence": "Production Chrome UI import path completes without page tool support."
+    },
+    {
+      "id": "T04",
+      "category": "平台与入口",
+      "title": "原生工具发现",
+      "procedure": "真实宿主发现顶层注册的工具并完成一次调用。",
+      "expected": "mock 不能替代该证据。",
+      "evidence": "真实 Site tools",
+      "status": "partial",
+      "implementationEvidence": "Real Chrome WebMCP discovers 13 tools and completes 10 calls. Actual ChatGPT/Codex Site tools host pending."
+    },
+    {
+      "id": "T05",
+      "category": "平台与入口",
+      "title": "StrictMode 与 HMR",
+      "procedure": "反复挂载、热更新和切换项目。",
+      "expected": "无重复工具、无旧 closure 改新项目。",
+      "evidence": "浏览器",
+      "status": "partial",
+      "implementationEvidence": "StrictMode owner cleanup and stale epoch tested. Remote responses after identity change and recovery after workspace changes are rejected. Actual HMR target switching remains to be covered independently. Native Chrome HMR probe confirms 13 unique tools after a real Vite AuthoringPanel update, access checkbox resets and the previous epoch is rejected. Registration release also rejects retained callbacks and aborts a real IndexedDB mutation immediately before commit without changing the record. Full multi-project HMR switching remains unverified. Native Chrome additionally verifies request A on the landing page, loading an existing course, selecting request B and hot updating the panel. Old-epoch mutations reject; the B grant cannot mutate A; current B reads succeed. Both request records retain revision 0 and zero drafts, and 13 unique tools remain. Evidence: project-switch/. This does not yet cover replacing two independent project workspaces."
+    },
+    {
+      "id": "T06",
+      "category": "身份与授权",
+      "title": "匿名能力接口",
+      "procedure": "未登录调用 capabilities 与受保护接口。",
+      "expected": "能力元数据可读，私有信息不可读。",
+      "evidence": "服务端",
+      "status": "passed-local",
+      "implementationEvidence": "Real MCP SDK client discovers public capabilities and receives private-call auth challenge."
+    },
+    {
+      "id": "T07",
+      "category": "身份与授权",
+      "title": "OAuth 完整流程",
+      "procedure": "测试 discovery、PKCE、redirect、授权码一次性、资源 audience。",
+      "expected": "合法连接成功；错误资源和 redirect 拒绝。",
+      "evidence": "服务端/真实宿主",
+      "status": "pending-infrastructure",
+      "implementationEvidence": "Cloud Run resource server and Auth0 issuer/API are deployed. HTTPS metadata, JWT issuer/audience rejection, website-only account-linking routes, S256/state/nonce/one-use callback logic and Firestore binding races are tested. The linking client still awaits action-time browser access approval. Provider PKCE/redirect/refresh and actual host authorization remain unverified."
+    },
+    {
+      "id": "T08",
+      "category": "身份与授权",
+      "title": "过期与撤销",
+      "procedure": "撤销授权或到期后继续读取和写入。",
+      "expected": "每次调用重新检查，立即拒绝。",
+      "evidence": "服务端",
+      "status": "partial",
+      "implementationEvidence": "Expired/revoked grant and JWT binding rejected; provider refresh-token revocation pending."
+    },
+    {
+      "id": "T09",
+      "category": "身份与授权",
+      "title": "租户隔离",
+      "procedure": "A 用户请求 B 的 request/draft/content ID。",
+      "expected": "所有路径拒绝，不泄露存在性或正文。",
+      "evidence": "服务端",
+      "status": "passed-local",
+      "implementationEvidence": "Two-account real HTTP tests cover all 11 website routes and all 14 MCP tools: cross-owner identifiers deny access without content disclosure or mutation; list/manage stay owner-scoped; creation ignores claimed owner fields. Missing/wrong-channel credentials, denied origins, and missing scopes are rejected. Admin Firestore isolation remains covered by emulator tests."
+    },
+    {
+      "id": "T10",
+      "category": "身份与授权",
+      "title": "grant 限定课时",
+      "procedure": "已有 request 只授予第三课，尝试读取第二课及扩大写入。",
+      "expected": "不因 token 粗范围足够就允许越权。",
+      "evidence": "服务端",
+      "status": "passed-local",
+      "implementationEvidence": "Remote service test limits a draft to one lesson and rubrics, hides other lesson/source data, rejects course structure and ungranted field changes, and prevents hidden source citation. Website HTTP grant route enforces ownership/version; production UI sets revision scope before review/apply. Live OAuth-account acceptance remains separate."
+    },
+    {
+      "id": "T11",
+      "category": "身份与授权",
+      "title": "ChatGPT 新建课程",
+      "procedure": "仅授予创建新私有请求权限。",
+      "expected": "能创建新草稿，不能枚举或读取已有课程。",
+      "evidence": "服务端/真实宿主",
+      "status": "partial",
+      "implementationEvidence": "Remote new request forbids existing base and sources; actual ChatGPT generation pending."
+    },
+    {
+      "id": "T12",
+      "category": "身份与授权",
+      "title": "本地来源共享",
+      "procedure": "本地课程有附件，用户未确认上传。",
+      "expected": "远程无法读附件；同步列表和取消均有效。",
+      "evidence": "浏览器/服务端",
+      "status": "partial",
+      "implementationEvidence": "Existing workspace attachments and newly chosen files require explicit local review and opt-in sharing, with redacted text preview and clear-selection cancellation. Production browser verifies selected workspace text enters the saved request/copied task and unselected workspace and new-file text is excluded; no source uploads occur. Local and remote source editors expose the same picker. Remote requests share only saved snapshots; actual deployed account/remote-sharing flow remains pending."
+    },
+    {
+      "id": "T13",
+      "category": "身份与授权",
+      "title": "秘密拒绝与脱敏",
+      "procedure": "在参数、日志和诊断中加入令牌/权限字段。",
+      "expected": "额外权限字段拒绝，敏感日志脱敏，模型不能自报 owner。",
+      "evidence": "服务端/单元",
+      "status": "partial",
+      "implementationEvidence": "Reserved authority fields rejected; recognized credential patterns are redacted before source storage. Full secret-pattern/logging audit remains pending. Error-boundary tests verify coded dependency errors and malformed thrown values cannot expose private messages/details through tools or authenticated website routes. Deliberate domain errors retain actionable codes; repository server logging emits startup status and cleanup counts only. External infrastructure logging remains unverified. Source snapshots also redact standalone JWT-shaped credentials and six PEM private-key formats in titles and excerpts before storage. Eight additional cases verify authorized reads, stable redacted revisions, unchanged input and preservation of ordinary dotted text/public certificates. This is bounded pattern recognition, not comprehensive secret detection."
+    },
+    {
+      "id": "T14",
+      "category": "身份与授权",
+      "title": "Firestore 权限隔离",
+      "procedure": "用浏览器 SDK 直接写新服务端 authoring 集合。",
+      "expected": "不能利用旧递归 owner allow 修改授权或伪造应用回执。",
+      "evidence": "Firestore emulator",
+      "status": "passed-local",
+      "implementationEvidence": "Real Firestore rules deny exchange client access and legacy overwrites of authored projects."
+    },
+    {
+      "id": "T15",
+      "category": "身份与授权",
+      "title": "Admin SDK 鉴权",
+      "procedure": "绕开客户端规则通过服务端请求错租户实体。",
+      "expected": "服务层仍检查身份/grant/版本，不依赖 Rules 替它授权。",
+      "evidence": "服务端",
+      "status": "passed-local",
+      "implementationEvidence": "Remote service enforces identity, scopes, request grant and CAS above Admin SDK."
+    },
+    {
+      "id": "T16",
+      "category": "草稿与合同",
+      "title": "无站内模型前提",
+      "procedure": "空白课程 external 模式不配置 modelId/API key。",
+      "expected": "能开始请求和草稿，不等待 Scion ready。",
+      "evidence": "浏览器",
+      "status": "passed-local",
+      "implementationEvidence": "Browser request/import/apply path requires no model readiness; zero model calls observed."
+    },
+    {
+      "id": "T17",
+      "category": "草稿与合同",
+      "title": "动态学科名词",
+      "procedure": "提交仓库未预存的概念与完整解释。",
+      "expected": "不因缺词库/专题模板而拒绝。",
+      "evidence": "单元/浏览器",
+      "status": "passed-local",
+      "implementationEvidence": "Fictional subject fixture is accepted without a topic dictionary."
+    },
+    {
+      "id": "T18",
+      "category": "草稿与合同",
+      "title": "单课完整关联",
+      "procedure": "教案、作业和 rubric 引用相同 assessment 和目标。",
+      "expected": "题目、答案、标准一致，无重复独立版本。",
+      "evidence": "单元/浏览器",
+      "status": "partial",
+      "implementationEvidence": "Reference/timing/rubric integrity, complete objective coverage, and linked assessment/rubric objective alignment tested. Multi-lesson duplicate definitions, missing prerequisites, and cycles rejected at course validation. Semantic subject-matter quality still needs teacher/independent review. Assistant content review of the fictional card fixture corrected an implicit grading demand: prompt, assignment brief, expected evidence and reference answer now explicitly include middle-character irrelevance required by the top rubric band. Two affected suites pass 14 tests. Review is recorded in content-review/fixture-review.md; it is not authentic generated-course or classroom-quality evidence."
+    },
+    {
+      "id": "T19",
+      "category": "草稿与合同",
+      "title": "开放任务",
+      "procedure": "提交 criteria-based 的创作或讨论任务。",
+      "expected": "不强迫唯一答案，评价依据保留。",
+      "evidence": "单元/浏览器",
+      "status": "passed-local",
+      "implementationEvidence": "Production browser imports, validates, previews, applies and saves a criteria-based contrasting-example design task with multiple valid outcomes. Persisted author data keeps criteria-based kind and teacher guidance, original rubric descriptors remain unchanged, teacher DOCX contains guidance and student CSV excludes it. Rendered assignment inspected. This fixture verifies preservation behavior, not broad independent pedagogical quality."
+    },
+    {
+      "id": "T20",
+      "category": "草稿与合同",
+      "title": "缺少内容",
+      "procedure": "删除解释、例题步骤或评价依据。",
+      "expected": "具体字段报错，不用模板填空后假装完成。",
+      "evidence": "单元",
+      "status": "passed-local",
+      "implementationEvidence": "Compiled schema and semantic validation reject missing required content; no generation fallback."
+    },
+    {
+      "id": "T21",
+      "category": "草稿与合同",
+      "title": "权威字段伪造",
+      "procedure": "模型提交 teacherConfirmed、admitted、verified。",
+      "expected": "拒绝或不接受这些字段作为权限，证据状态由主机决定。",
+      "evidence": "单元/服务端",
+      "status": "passed-local",
+      "implementationEvidence": "Authority-field injection rejected by safeInput."
+    },
+    {
+      "id": "T22",
+      "category": "草稿与合同",
+      "title": "来源完整性",
+      "procedure": "使用未知来源、旧 revision、缺失片段与错误引文。",
+      "expected": "明确报错；可定位不自动等于语义已验证。",
+      "evidence": "单元",
+      "status": "passed-local",
+      "implementationEvidence": "Unknown source/revision/excerpt references rejected; no semantic verification claimed."
+    },
+    {
+      "id": "T23",
+      "category": "草稿与合同",
+      "title": "分页与脱敏快照",
+      "procedure": "读取多页脱敏文本后更改原文。",
+      "expected": "cursor 绑定版本；位置对应暴露快照；不拼接不同版。",
+      "evidence": "单元/服务端",
+      "status": "passed-local",
+      "implementationEvidence": "Request/search/read cursors bind to authorized snapshots and queries. Unicode/control-text pages obey serialized byte limits. Host revisions use redacted source text. Real Firestore account with 205 summaries fully enumerated."
+    },
+    {
+      "id": "T24",
+      "category": "草稿与合同",
+      "title": "未解析视觉",
+      "procedure": "附件是扫描页或未解析图表。",
+      "expected": "返回缺口，不声称已经完整读取。",
+      "evidence": "浏览器/服务端",
+      "status": "passed-local",
+      "implementationEvidence": "Unread images and failed/empty text extraction expose unavailable text and unreviewed visuals in saved snapshots, tool context and contracts; no invented excerpts. DOCX extraction explicitly leaves visual content unreviewed. Production browser and service tests verify this disclosure; OCR/visual interpretation is intentionally not claimed."
+    },
+    {
+      "id": "T25",
+      "category": "草稿与合同",
+      "title": "文本注入与危险格式",
+      "procedure": "来源含指令、脚本、原型污染和追踪图片。",
+      "expected": "不执行、不扩权、不隐形加载；危险输入受控拒绝。",
+      "evidence": "单元/浏览器",
+      "status": "passed-local",
+      "implementationEvidence": "Production browser imports and previews hostile TXT/HTML sources containing script/event handlers, HTML tracking images, an iframe, and a Markdown tracking image. Explicit preview, saving and task copying execute no source scripts and produce zero tracking requests, tracking-related CSP violations or source uploads. Six parsed-JSON reserved/prototype-key submissions are rejected without storage mutation or prototype pollution. Existing scoped source-injection test denies unshared reads, owner injection, out-of-scope creation and nonexistent apply operations. These cover the specified local boundary cases; they do not certify arbitrary unseen attacks or external-model reasoning."
+    },
+    {
+      "id": "T26",
+      "category": "草稿与合同",
+      "title": "payload 超限",
+      "procedure": "提交超限 JSON/深层结构/超长文本。",
+      "expected": "有明确限额和合法分割提示，不截断后成功。",
+      "evidence": "服务端/单元",
+      "status": "passed-local",
+      "implementationEvidence": "Byte limits reject oversized submissions with split guidance."
+    },
+    {
+      "id": "T27",
+      "category": "草稿与合同",
+      "title": "两种传输适配",
+      "procedure": "同一业务提交分别走远程与网页。",
+      "expected": "内容合同相同；远程不用 documentEpoch，网页必须检查。",
+      "evidence": "单元",
+      "status": "passed-local",
+      "implementationEvidence": "Shared service exercised through page adapter and real MCP SDK HTTP transport."
+    },
+    {
+      "id": "T28",
+      "category": "版本与幂等",
+      "title": "同键同内容重试",
+      "procedure": "接收响应丢失后重复提交相同键与内容。",
+      "expected": "仅一次草稿写入，返回原回执。",
+      "evidence": "服务端/IndexedDB",
+      "status": "passed-local",
+      "implementationEvidence": "Same-key retry returns durable original receipt."
+    },
+    {
+      "id": "T29",
+      "category": "版本与幂等",
+      "title": "同键不同内容",
+      "procedure": "相同幂等键提交不同内容。",
+      "expected": "返回 IDEMPOTENCY_CONFLICT，不改旧草稿。",
+      "evidence": "服务端/IndexedDB",
+      "status": "passed-local",
+      "implementationEvidence": "Same key with changed payload rejects without mutation."
+    },
+    {
+      "id": "T30",
+      "category": "版本与幂等",
+      "title": "刷新后的幂等",
+      "procedure": "页面刷新/进程重启后重复相同操作。",
+      "expected": "持久化记录有效，重新授权不能重复生成实体。",
+      "evidence": "服务端/浏览器",
+      "status": "partial",
+      "implementationEvidence": "Durability checked through independent Firestore service instances. Scoped clipboard revisions retry the same envelope without duplicate writes, including recovery after one of two lessons was saved and a later lesson failed. Browser reauthorization retry on the live OAuth provider remains pending."
+    },
+    {
+      "id": "T31",
+      "category": "版本与幂等",
+      "title": "串行草稿版本",
+      "procedure": "两个客户端以同 expectedDraftRevision 写入。",
+      "expected": "最多一个成功，另一个收到版本冲突。",
+      "evidence": "服务端",
+      "status": "passed-local",
+      "implementationEvidence": "Concurrent same-revision mutations allow at most one commit."
+    },
+    {
+      "id": "T32",
+      "category": "版本与幂等",
+      "title": "源材料/目标更改",
+      "procedure": "合同发出后来源或教学目标变化。",
+      "expected": "旧合同/检查/预览失效，重新取上下文。",
+      "evidence": "单元/浏览器",
+      "status": "passed-local",
+      "implementationEvidence": "Teacher source and teaching-requirement updates increment request/grant revisions and invalidate previous work. Production browser verifies source replacement, changed learning-objective brief/count/duration, superseded draft rejection and updated copied task. Unit/HTTP tests cover stale contracts/receipts/application, ownership, scoped-grant boundaries, unresolved application locks and preservation of completed applications. Actual remote platform flow pending."
+    },
+    {
+      "id": "T33",
+      "category": "版本与幂等",
+      "title": "教师并发编辑",
+      "procedure": "Codex 生成期间教师改同字段。",
+      "expected": "三方差异可见，默认保留教师当前版本。",
+      "evidence": "浏览器",
+      "status": "passed-local",
+      "implementationEvidence": "Three-way conflicts stop apply and preserve teacher version."
+    },
+    {
+      "id": "T34",
+      "category": "版本与幂等",
+      "title": "无关界面变动",
+      "procedure": "仅改变 tab、savedAt 或日志。",
+      "expected": "不误判为课程内容冲突。",
+      "evidence": "单元",
+      "status": "passed-local",
+      "implementationEvidence": "Content hashes exclude non-content UI snapshot fields."
+    },
+    {
+      "id": "T35",
+      "category": "应用与恢复",
+      "title": "正式应用只能 UI",
+      "procedure": "模型请求 commit 或伪造确认参数。",
+      "expected": "工具目录没有 commit；私有 UI 命令重新鉴权检查。",
+      "evidence": "服务端/浏览器",
+      "status": "passed-local",
+      "implementationEvidence": "Both catalogs have no apply/approve/commit; website apply checks preview and current content."
+    },
+    {
+      "id": "T36",
+      "category": "应用与恢复",
+      "title": "两设备重复应用",
+      "procedure": "两个设备同时申请同一远程 draft 应用。",
+      "expected": "服务端应用保留/CAS 阻止重复正式写入。",
+      "evidence": "服务端/浏览器",
+      "status": "passed-local",
+      "implementationEvidence": "Real HTTP reservation test rejects second device."
+    },
+    {
+      "id": "T37",
+      "category": "应用与恢复",
+      "title": "回执丢失与不确定状态",
+      "procedure": "本地 durable commit 后、远程回执前断网。",
+      "expected": "进入待核对状态，不超时自动允许第二次应用。",
+      "evidence": "故障注入",
+      "status": "partial",
+      "implementationEvidence": "Durable intent precedes reservation; lost-response retries reuse the same ID. Prepared intents cannot apply prematurely; concurrent tabs are serialized. Server cancellation prevents delayed reservation revival and never unlocks an existing reservation. Late/idempotent receipt and account-safe recovery tested. Actual live multi-device/cloud-sync interruption acceptance remains pending. Added local integrated fault test with actual HTTP routes and client recovery functions, two independent IndexedDB stores, one-day undelivered receipt, lost response after receipt commit, store reopen and idempotent retry. Second device remains blocked before and after receipt commit; first snapshot is preserved. Affected suites: 12 passing tests. Rendered live-device acceptance remains pending."
+    },
+    {
+      "id": "T38",
+      "category": "应用与恢复",
+      "title": "正式事务与 undo",
+      "procedure": "一次应用同时改图、教材、作者层和 stale。",
+      "expected": "完整保存一个版本；安全撤销不覆盖后续编辑。",
+      "evidence": "浏览器/IndexedDB",
+      "status": "passed-local",
+      "implementationEvidence": "Production browser suppresses UI completion after a real IndexedDB application commit, reloads, recovers the durable course, and successfully undoes it. Recovery now restores the Undo action. Existing unit tests reject undo after subsequent teacher edits. This is browser fault injection, not a live multi-device/cloud test."
+    },
+    {
+      "id": "T39",
+      "category": "应用与恢复",
+      "title": "本地存储失败",
+      "procedure": "故障注入配额满或事务中断。",
+      "expected": "不报告已应用/保存，不留半套课程。",
+      "evidence": "故障注入",
+      "status": "passed-local",
+      "implementationEvidence": "Production Chrome injection tests a quota exception after the request write, an actual transaction abort before commit, and IndexedDB access denial. Failed application leaves all durable records byte-for-byte equivalent to the pre-apply snapshot and does not display an applied/saved course. Retry, post-commit reload recovery and undo pass. No physical disk-fill/private-browser certification is claimed."
+    },
+    {
+      "id": "T40",
+      "category": "应用与恢复",
+      "title": "远程草稿与正式项目",
+      "procedure": "保存远程草稿但尚未网页应用。",
+      "expected": "状态明确分开，正式课程完全不变。",
+      "evidence": "服务端/浏览器",
+      "status": "passed-local",
+      "implementationEvidence": "Remote drafts do not write formal projects; local apply and remote receipt are separate."
+    },
+    {
+      "id": "T41",
+      "category": "应用与恢复",
+      "title": "文件往返",
+      "procedure": "导出 .coursemapper 后重新导入。",
+      "expected": "作者正文、教师覆盖、身份和引用完整。",
+      "evidence": "浏览器",
+      "status": "passed-local",
+      "implementationEvidence": "Real production browser saves and reopens .coursemapper with author bundles and teacher edits."
+    },
+    {
+      "id": "T42",
+      "category": "应用与恢复",
+      "title": "云端无损往返",
+      "procedure": "应用后云保存、关闭、重开、继续编辑。",
+      "expected": "作者内容不被 recompile-on-open 模板替代。",
+      "evidence": "真实存储/浏览器",
+      "status": "passed-local",
+      "implementationEvidence": "Real Firestore emulator Unicode content roundtrip; no recompilation on authored restore."
+    },
+    {
+      "id": "T43",
+      "category": "应用与恢复",
+      "title": "缺块与旧客户端",
+      "procedure": "删除一个内容块或用旧版客户端尝试保存。",
+      "expected": "明确缺失/只读；旧客户端不能覆盖新作者格式。",
+      "evidence": "服务端/浏览器",
+      "status": "passed-local",
+      "implementationEvidence": "Missing blocks and hashes fail; rules reject old-format overwrite."
+    },
+    {
+      "id": "T44",
+      "category": "应用与恢复",
+      "title": "finalizer 与后续生成",
+      "procedure": "运行检查、联动和一次明确再生成。",
+      "expected": "只读检查不改正文；重生成遵守作者/教师保护策略。",
+      "evidence": "浏览器",
+      "status": "passed-local",
+      "implementationEvidence": "Production browser preserves accepted assignment content and teacher overrides after regeneration attempts and completed package finalizer review in external-agent and explicitly selected site-model modes. A course-map topic edit followed by both toolbar Sync all stale and Agent Sync All leaves accepted materials unchanged and retains stale warnings. The card reports failure and the receipt explains the required new authoring draft/preview. Zero monitored model requests and browser errors. Actual hook/reducer tests reject late generation writes, block canonical cascade patch resolution, preserve direct teacher edits, and avoid successful sync status for incomplete results. Receipt and command regression tests pass (47 focused cases). This is a local one-course acceptance fixture, not a claim of independent pedagogical quality or live platform completion."
+    },
+    {
+      "id": "T45",
+      "category": "应用与恢复",
+      "title": "导出与多语言",
+      "procedure": "中文、数学符号和 teacher-only 答案跨三类导出。",
+      "expected": "字符完整、学生版不泄露答案，关联不丢失。",
+      "evidence": "浏览器/导出审阅",
+      "status": "passed-local",
+      "implementationEvidence": "Production browser exports the same authored fixture to PDF, DOCX and CSV. All three preserve Chinese assignment instructions and x² + y² = z²; α ≤ β; ∑ x. Student assignment PDF/DOCX/CSV exclude the teacher-only answer; teacher lesson PDF/DOCX retain the Chinese worked answer and teacher edit. Course-map/lesson/assignment/rubric PDFs preserve original prose and 40/60 rubric weights. Rendered assignment PDF inspected without clipping/missing glyphs. Evidence: verification-output/external-authoring/pdf/; script: scripts/authoring/pdfSmoke.mjs. This is the specified local three-format case, not universal script/math/font or long-course pagination certification."
+    },
+    {
+      "id": "T46",
+      "category": "运行与隐私",
+      "title": "零隐形推理",
+      "procedure": "监测浏览器/服务端请求及本地 load/complete。",
+      "expected": "外部路径模型调用实际为零，存储网络单独记录。",
+      "evidence": "集成",
+      "status": "partial",
+      "implementationEvidence": "Actual production browser sequence has zero model requests; full provider/large-course matrix pending. 21 direct provider entry-point tests verify six provider request/lesson-detection paths and WebLLM/Scion load/complete/stream, grammar and images reject before fetch/runtime/callback side effects. Explicit mode switching restores request construction. In-flight mode transitions and broad large-course browser matrix remain unverified. Rechecks added after runtime loading and before retry/fallback calls. Three Scion transition cases prove a switch during import/load/callback prevents the next completion. Already-issued work is not cancelled; the broader transition/browser matrix remains pending."
+    },
+    {
+      "id": "T47",
+      "category": "运行与隐私",
+      "title": "断开与页面关闭",
+      "procedure": "停止授权/关闭页面/停止 ChatGPT 对话。",
+      "expected": "草稿保留；本地网页工具停止；服务器不自发调用模型。",
+      "evidence": "真实宿主/浏览器",
+      "status": "partial",
+      "implementationEvidence": "Page epoch unregister and durable draft persistence tested; actual target disconnect workflow pending. Native Chrome navigation to about:blank removes all page tools; reopening preserves the saved request and requires explicit reauthorization. Old document epoch remains rejected after new authorization. Test-owned browser and dev server were closed after evidence capture. Actual ChatGPT conversation-stop behavior remains pending."
+    },
+    {
+      "id": "T48",
+      "category": "运行与隐私",
+      "title": "保留与删除",
+      "procedure": "按发布前确认的期限清理来源快照、草稿和日志。",
+      "expected": "用户可查看/撤销/删除；不承诺删除 ChatGPT 服务内副本。",
+      "evidence": "服务端",
+      "status": "partial",
+      "implementationEvidence": "Local and remote owner/CAS deletion, content-free tombstones and cleanup/write races passed local/emulator tests. Production browser deletion preserves an applied course. Deployed daily 03:00 UTC scheduler executed retention against a disposable expired request: one request body and two blocks removed; independent runtime verification confirmed live request preservation and minimal tombstone retention, then removed the fixture. Default application logs retain 30 days; locked required audit logs retain 400 days. Copies held by AI providers are explicitly outside this deletion promise. Actual signed-in public website management remains pending the OAuth/frontend connection."
+    },
+    {
+      "id": "T49",
+      "category": "运行与隐私",
+      "title": "旧功能与回滚",
+      "procedure": "回归 Scion、旧项目、编辑和保存，关闭新开关。",
+      "expected": "旧功能不退化，新作者内容仍能读取、编辑和导出。",
+      "evidence": "CI/浏览器",
+      "status": "partial",
+      "implementationEvidence": "79 affected existing regression tests pass; full release/rollback exercise pending. Broad offline regression plus affected-suite corrections establishes 2,512 current passing cases across 194 suites. Expanded real emulator tests preserve legacy profile/custom-deliverable/preferences/memory/custom-tool/deliverable access and deny other accounts, anonymous access and unmatched paths; 20 emulator cases passed. Deployment rollback and complete release/platform acceptance remain pending. Backend startup flags independently disable new remote writes and new application reservations; HTTP/service tests preserve reads and existing reservation/receipt recovery. Local-page/UI controls and deployed rollback remain pending. Independent browser flags now disable page-tool registration, local writes and fresh application. Disabled production-build browser test confirms existing authored course reading and DOCX export preserve teacher edits and Chinese; normal build restored. Full deployed rollback remains pending. Latest Node 22 full unit run plus unchanged reruns after restoring missing temporary-checkout inputs establishes 4,466 passing tests across 351 suites (176 skipped); a single clean full run and deployed rollback remain unverified. A later single clean Node 22 offline run after account-linking and fixture corrections passed 4,634 tests across 372 suites, with 177 tests/18 suites skipped. This supersedes the earlier combined-run limitation. Actual deployed frontend rollback and live platform acceptance remain incomplete."
+    },
+    {
+      "id": "T50",
+      "category": "真实交付",
+      "title": "两条端到端验收",
+      "procedure": "真实 ChatGPT 插件创作；真实 Codex 网页诊断并验证修复。",
+      "expected": "分别记录版本/客户端/账号/结果，未做标 pending，不混淆静态测试。",
+      "evidence": "真实宿主/人工",
+      "status": "pending-live-platform",
+      "implementationEvidence": "Native Chrome probe and fixture UI smoke are not two actual AI-platform account runs."
+    }
+  ],
+  "evidenceBaseline": "Most per-case evidence below was collected on v0.16.39 before integration. Current v0.19.99 verification is recorded in CURRENT_RELEASE_VERIFICATION.md; do not treat old passes as new live-platform acceptance."
+}

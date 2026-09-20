@@ -1,3 +1,4 @@
+import { assertSiteInferenceAllowed } from './authoring/inferencePolicy';
 /**
  * agentProviders.js — Provider abstraction for native function-calling APIs.
  *
@@ -213,6 +214,7 @@ export function buildAgentRequest(
     task = 'agent',
   },
 ) {
+  assertSiteInferenceAllowed();
   const controls = createRequestControls({
     provider,
     modelId: model,

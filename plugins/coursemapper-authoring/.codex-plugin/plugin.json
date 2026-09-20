@@ -1,0 +1,21 @@
+{
+  "name": "coursemapper-authoring",
+  "version": "2.0.0",
+  "description": "Create teaching content in isolated CourseMapper drafts for teacher review.",
+  "author": {
+    "name": "CourseMapper"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "CourseMapper Authoring",
+    "shortDescription": "Create course drafts for teacher review.",
+    "longDescription": "Author lesson plans, assignments and rubrics in your AI conversation, then review and apply in CourseMapper. Remote connection requires a configured, authenticated service.",
+    "developerName": "CourseMapper",
+    "category": "Productivity",
+    "capabilities": [],
+    "defaultPrompt": [
+      "Create a 60-minute introductory lesson with practice and a rubric.",
+      "Revise the CourseMapper request I shared, preserving my teacher edits."
+    ]
+  }
+}

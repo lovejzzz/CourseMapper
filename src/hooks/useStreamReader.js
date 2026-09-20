@@ -1,3 +1,4 @@
+import { assertSiteInferenceAllowed } from '../lib/authoring/inferencePolicy';
 import { useRef, useCallback } from 'react';
 import { supportsCustomTemperature } from '../lib/agentProviders';
 import { DEFAULT_PROVIDER_TIMEOUT_MS, fetchWithTimeout } from '../lib/fetchWithTimeout';
@@ -196,6 +197,7 @@ export default function useStreamReader({ scionResearchEnabledOverride = null } 
    * @returns {{ fullText: string }}
    */
   const streamProvider = useCallback(async (provider, apiKey, modelId, systemPrompt, userPrompt, opts = {}) => {
+    assertSiteInferenceAllowed();
     const {
       onChunk,
       onRetry,
@@ -812,6 +814,7 @@ export default function useStreamReader({ scionResearchEnabledOverride = null } 
     let attempt = 0;
 
     const runGoogleNonStreamingFallback = async () => {
+      assertSiteInferenceAllowed();
       const fallbackController = new AbortController();
       abortControllerRef.current = fallbackController;
       if (externalSignal) {
@@ -872,6 +875,7 @@ export default function useStreamReader({ scionResearchEnabledOverride = null } 
     };
 
     while (attempt <= retryLimit) {
+      assertSiteInferenceAllowed();
       const controller = new AbortController();
       abortControllerRef.current = controller;
 
