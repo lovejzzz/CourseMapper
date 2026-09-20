@@ -1,6 +1,7 @@
 import { connectIdentity } from '../../lib/authoring/identityLink.js';
 import { authoringFlags } from '../../lib/authoring/featureFlags.js';
 import RequirementsEditor from './RequirementsEditor';
+import EmailSignInButton from '../EmailSignInButton';
 import SourceEditor from './SourceEditor';
 import {
   prepareRemoteApplication,
@@ -127,6 +128,7 @@ export default function RemoteAuthoringSection({ store, workspace, workspaceFile
             <button className={button} onClick={signInWithGoogle}>
               Sign in again to manage AI connections
             </button>
+            <EmailSignInButton reauthenticate key={user.uid} />
             <button
               className={button}
               onClick={() => {

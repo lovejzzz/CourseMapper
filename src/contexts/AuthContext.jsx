@@ -9,6 +9,8 @@ const AuthContext = createContext({
   error: null,
   signInWithGoogle: () => {},
   signOut: () => {},
+  signInWithEmail: async () => false,
+  reauthenticateWithEmail: async () => false,
 });
 
 let firebaseAuthPromise = null;
@@ -22,6 +24,9 @@ function loadFirebaseAuth() {
         hasConfig: firebaseModule.hasConfig,
         onAuthStateChanged: authModule.onAuthStateChanged,
         signInWithPopup: authModule.signInWithPopup,
+        signInWithEmailAndPassword: authModule.signInWithEmailAndPassword,
+        reauthenticateWithCredential: authModule.reauthenticateWithCredential,
+        EmailAuthProvider: authModule.EmailAuthProvider,
         firebaseSignOut: authModule.signOut,
       }),
     );
@@ -97,6 +102,33 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // Keep passwords inside the Firebase call; never log or persist credential objects.
+  const handleEmailSignIn = async (email, password, reauthenticate = false) => {
+    setError(null);
+    try {
+      const api = await loadFirebaseAuth();
+      if (!api.hasConfig || !api.auth) throw new Error('Unavailable');
+      let result;
+      if (reauthenticate) {
+        const current = api.auth.currentUser;
+        if (!current?.email || current.uid !== user?.uid) throw new Error('Account changed');
+        result = await api.reauthenticateWithCredential(
+          current,
+          api.EmailAuthProvider.credential(current.email, password),
+        );
+        if (api.auth.currentUser?.uid !== current.uid) throw new Error('Account changed');
+      } else {
+        result = await api.signInWithEmailAndPassword(api.auth, email.trim(), password);
+      }
+      setAccountStorageUser(result.user?.uid);
+      setUser(result.user);
+      return true;
+    } catch {
+      setError(new Error('Email sign-in failed. Check your credentials and try again.'));
+      return false;
+    }
+  };
+
   /* ---- Sign out ---- */
   const handleSignOut = async () => {
     try {
@@ -121,6 +153,8 @@ export function AuthProvider({ children }) {
         loading,
         error,
         signInWithGoogle: handleSignIn,
+        signInWithEmail: (email, password) => handleEmailSignIn(email, password),
+        reauthenticateWithEmail: (password) => handleEmailSignIn(null, password, true),
         signOut: handleSignOut,
       }}
     >
