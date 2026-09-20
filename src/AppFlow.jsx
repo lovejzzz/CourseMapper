@@ -1,3 +1,4 @@
+import { accountStorageKey } from './lib/accountStorage';
 import { getAuthoringInferenceStatus } from './lib/authoring/inferencePolicy';
 import React, { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
@@ -64,7 +65,7 @@ import {
   listCustomDeliverables,
   getCustomDeliverable,
   toFeatureEntry,
-  saveCustomDeliverable,
+  saveCustomDeliverableWithCloudFallback,
 } from './lib/customDeliverableLibrary';
 import { useAuth } from './contexts/AuthContext';
 import {
@@ -4100,10 +4101,14 @@ export default function AppFlow({
           {showCustomBuilder && (
             <Suspense fallback={null}>
               <CustomDeliverableBuilder
+                key={user?.uid || 'anonymous'}
                 isOpen={showCustomBuilder}
                 onClose={() => setShowCustomBuilder(false)}
-                onSave={(def) => {
-                  const saved = saveCustomDeliverable(def, user?.uid);
+                onSave={async (def, { isCurrent }) => {
+                  const uid = user?.uid || null;
+                  const saved = await saveCustomDeliverableWithCloudFallback(def, uid);
+                  if (!isCurrent() || accountStorageKey('custom-save', uid) !== accountStorageKey('custom-save'))
+                    return;
                   setSelectedFeatures((prev) => [...prev, saved.id]);
                   setActiveTab(saved.id);
                   setShowCustomBuilder(false);

@@ -1,4 +1,4 @@
-import { subscribeAccountCache } from '../lib/accountStorage';
+import { accountStorageKey, subscribeAccountCache } from '../lib/accountStorage';
 import React, { useEffect, useState, useRef } from 'react';
 import FocusTrap from 'focus-trap-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -6,7 +6,7 @@ import { useAIConfig } from '../contexts/AIConfigContext';
 import { useCourse } from '../contexts/CourseContext';
 import {
   listCustomDeliverables,
-  saveCustomDeliverable,
+  saveCustomDeliverableWithCloudFallback,
   deleteCustomDeliverable,
   toFeatureEntry,
   autoFillCustomDeliverable,
@@ -82,6 +82,18 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
   const [step, setStep] = useState(1); // 1: basics, 2: prompt & settings
   const [isAutoFilling, setIsAutoFilling] = useState(false);
   const [saveError, setSaveError] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const saveGeneration = useRef(0);
+  useEffect(
+    () => () => {
+      saveGeneration.current += 1;
+    },
+    [],
+  );
+  const closeBuilder = () => {
+    saveGeneration.current += 1;
+    onClose();
+  };
 
   useEffect(() => {
     if (!isOpen) return;
@@ -109,8 +121,10 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
 
   const canSave = name.trim().length > 0;
 
-  function handleSave() {
-    if (!canSave) return;
+  async function handleSave() {
+    if (!canSave || isSaving) return;
+    const generation = ++saveGeneration.current;
+    const isCurrent = () => generation === saveGeneration.current;
     const def = {
       ...(editDef?.id ? { id: editDef.id } : {}),
       name: name.trim(),
@@ -127,9 +141,13 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
     };
     try {
       setSaveError('');
-      onSave(def);
+      setIsSaving(true);
+      await onSave(def, { isCurrent });
     } catch (error) {
-      setSaveError(error.message || 'The definition could not be saved. Your changes are still in this form.');
+      if (isCurrent())
+        setSaveError(error.message || 'The definition could not be saved. Your changes are still in this form.');
+    } finally {
+      if (isCurrent()) setIsSaving(false);
     }
   }
 
@@ -166,10 +184,10 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
       <div
         className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md"
         onMouseDown={(event) => {
-          if (event.target === event.currentTarget) onClose();
+          if (event.target === event.currentTarget) closeBuilder();
         }}
         onKeyDown={(event) => {
-          if (event.key === 'Escape') onClose();
+          if (event.key === 'Escape') closeBuilder();
         }}
       >
         <div
@@ -185,7 +203,7 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
                 {editDef?.id ? 'Edit Custom Deliverable' : 'Create Custom Deliverable'}
               </h2>
               <button
-                onClick={onClose}
+                onClick={closeBuilder}
                 className="-mr-2 rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200"
                 aria-label="Close dialog"
               >
@@ -231,7 +249,7 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
           </div>
 
           {/* Body */}
-          <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 space-y-5">
+          <fieldset disabled={isSaving} className="min-h-0 min-w-0 flex-1 overflow-y-auto border-0 px-6 py-5 space-y-5">
             {step === 1 && (
               <div id="custom-deliverable-basics-panel" role="tabpanel" className="space-y-5">
                 {/* Name */}
@@ -504,7 +522,7 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
                 </div>
               </div>
             )}
-          </div>
+          </fieldset>
 
           {saveError && (
             <p role="alert" className="mx-6 my-2 text-sm text-red-700 dark:text-red-300">
@@ -525,10 +543,10 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
             </div>
             <div className="flex gap-2">
               <button
-                onClick={onClose}
+                onClick={closeBuilder}
                 className="rounded-lg px-4 py-2 text-xs font-semibold text-slate-500 transition-all hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
               >
-                Cancel
+                {isSaving ? 'Close (save continues)' : 'Cancel'}
               </button>
               {step < 2 ? (
                 <button
@@ -545,14 +563,14 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
               ) : (
                 <button
                   onClick={handleSave}
-                  disabled={!canSave}
+                  disabled={!canSave || isSaving}
                   className={`px-5 py-2 rounded-lg text-xs font-semibold transition-all ${
                     canSave
                       ? 'text-white bg-indigo-500 hover:bg-indigo-600 shadow-sm'
                       : 'bg-slate-200 text-slate-400 cursor-not-allowed dark:bg-slate-800 dark:text-slate-600'
                   }`}
                 >
-                  {editDef?.id ? 'Save Changes' : 'Create Deliverable'}
+                  {isSaving ? 'Saving…' : editDef?.id ? 'Save Changes' : 'Create Deliverable'}
                 </button>
               )}
             </div>
@@ -644,8 +662,10 @@ function AccountFeatureSelect({
     setSelected(RECOMMENDED_FEATURE_IDS.filter((id) => visibleIds.has(id)));
   }
 
-  function handleSaveCustom(def) {
-    const saved = saveCustomDeliverable(def, user?.uid || null);
+  async function handleSaveCustom(def, { isCurrent }) {
+    const uid = user?.uid || null;
+    const saved = await saveCustomDeliverableWithCloudFallback(def, uid);
+    if (!isCurrent() || accountStorageKey('custom-save', uid) !== accountStorageKey('custom-save')) return;
     setCustomDeliverables(listCustomDeliverables(user?.uid || null));
     // Auto-select the newly created deliverable
     if (!selected.includes(saved.id)) {
