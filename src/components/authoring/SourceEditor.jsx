@@ -23,20 +23,37 @@ export default function SourceEditor({ record, workspaceFiles, onSave }) {
         must be revised. Applied courses and copies already held by your AI conversation remain.
       </p>
       {record.sources.map((source) => (
-        <label className="block" key={source.sourceId}>
-          <input
-            type="checkbox"
-            checked={keep.includes(source.sourceId)}
-            onChange={(event) =>
-              setKeep((current) =>
-                event.target.checked
-                  ? [...current, source.sourceId]
-                  : current.filter((value) => value !== source.sourceId),
-              )
-            }
-          />{' '}
-          Keep sharing {source.title}
-        </label>
+        <div className="my-2" key={source.sourceId}>
+          <label className="block">
+            <input
+              type="checkbox"
+              checked={keep.includes(source.sourceId)}
+              onChange={(event) =>
+                setKeep((current) =>
+                  event.target.checked
+                    ? [...current, source.sourceId]
+                    : current.filter((value) => value !== source.sourceId),
+                )
+              }
+            />{' '}
+            Keep sharing {source.title}
+          </label>
+          <details className="mt-1 rounded border p-2">
+            <summary className="cursor-pointer">Review stored source: {source.title}</summary>
+            <p className="my-1 text-xs text-slate-600">
+              {source.extraction?.status === 'unavailable' || !source.excerpts.length
+                ? 'No readable text available.'
+                : 'Stored text snapshot.'}{' '}
+              {source.extraction?.visualStatus === 'unreviewed' && 'Visual content remains unreviewed. '}
+              {source.redacted && 'Recognized credentials were redacted.'}
+            </p>
+            {source.excerpts.length > 0 && (
+              <pre className="max-h-48 overflow-auto whitespace-pre-wrap break-words text-xs">
+                {source.excerpts.map((excerpt) => excerpt.text).join('\n\n')}
+              </pre>
+            )}
+          </details>
+        </div>
       ))}
       <label className="my-2 block">
         New shared source text

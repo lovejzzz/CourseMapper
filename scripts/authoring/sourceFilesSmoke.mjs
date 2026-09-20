@@ -114,6 +114,11 @@ try {
   await page.screenshot({ path: fileURLToPath(new URL('review.png', output)), fullPage: true });
   await page.getByRole('checkbox', { name: 'Allow page tools to access this request', exact: true }).check();
   await page.getByText('Update shared sources', { exact: true }).click();
+  await page.getByText('Review stored source: notes.txt', { exact: true }).click();
+  const storedPreview = page.getByText('Review stored source: notes.txt', { exact: true }).locator('..').locator('pre');
+  assert(await storedPreview.isVisible());
+  assert((await storedPreview.innerText()).includes('SOURCE-FILE-SENTINEL'));
+  assert(!(await storedPreview.innerText()).includes('sk-proj-1234567890123456789012345'));
   await page.getByRole('checkbox', { name: 'Keep sharing notes.txt', exact: true }).uncheck();
   await page.getByLabel('New shared source text', { exact: true }).fill('REPLACEMENT-SOURCE: revised definitions');
   await page.getByRole('button', { name: 'Save shared sources', exact: true }).click();
@@ -132,6 +137,17 @@ try {
   assert(!revised.includes('SOURCE-FILE-SENTINEL'));
   assert(revised.includes('REPLACEMENT-SOURCE: revised definitions'));
   assert.equal(await page.getByText('Shared source: notes.txt', { exact: true }).count(), 0);
+  assert.equal(await page.getByText('Review stored source: notes.txt', { exact: true }).count(), 0);
+  await page.getByText('Update shared sources', { exact: true }).click();
+  await page.getByText('Review stored source: Added shared text', { exact: true }).click();
+  assert.equal(
+    await page
+      .getByText('Review stored source: Added shared text', { exact: true })
+      .locator('..')
+      .locator('pre')
+      .innerText(),
+    'REPLACEMENT-SOURCE: revised definitions',
+  );
   await page.screenshot({ path: fileURLToPath(new URL('updated-sources.png', output)), fullPage: true });
   const lesson = JSON.parse(
     await readFile(new URL('../../tests/authoring/lesson-bundle.fixture.json', import.meta.url), 'utf8'),
