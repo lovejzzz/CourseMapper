@@ -34,6 +34,7 @@ it('does not report a resumable application when publishing its resume pointer f
       writer.saveAuthorWorkspaceForResume(
         { courseMap: { courseName: 'Applied course', authoringV2: { applicationId: id() } } },
         {
+          getItem: () => 'older marker',
           setItem: () => {
             throw new Error('Storage unavailable');
           },
@@ -55,6 +56,7 @@ it('resumes exact author content through IndexedDB when localStorage is full, wi
     ['unrelated-user-data', 'preserve me'],
   ]);
   const storage = {
+    getItem: (key) => values.get(key) ?? null,
     setItem: () => {
       throw new DOMException('Full', 'QuotaExceededError');
     },

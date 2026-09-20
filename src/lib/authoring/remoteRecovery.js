@@ -1,4 +1,4 @@
-import { assert, hash } from '../authoringCore/primitives.js';
+import { assert, hash, AuthoringError } from '../authoringCore/primitives.js';
 import { contentBase } from '../authoringCore/service.js';
 import { restoreAuthorWorkspace } from './localWorkspace.js';
 
@@ -69,23 +69,54 @@ export async function recoverRemoteApplication({
 
 // An API result is usable only by the account that initiated it. The guard is
 // checked after token refresh and after body parsing, not just before fetch.
-export async function callAccountApi({ endpoint, user, getUid, path, body, fetch: fetchImpl = globalThis.fetch }) {
+export async function callAccountApi({
+  endpoint,
+  user,
+  getUid,
+  path,
+  body,
+  fetch: fetchImpl = globalThis.fetch,
+  timeoutMs = 30_000,
+}) {
   const uid = user?.uid;
   assert(uid, 'UNAUTHENTICATED', 'Sign in to CourseMapper first.');
   const current = () => assert(getUid() === uid, 'ACCOUNT_CHANGED', 'The signed-in account changed. Try again.');
-  const token = await user.getIdToken(path.startsWith('connection/'));
-  current();
-  const response = await fetchImpl(`${endpoint}/api/authoring/${path}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-    body: JSON.stringify(body),
+  const controller = new AbortController();
+  let timer;
+  const deadline = new Promise((_, reject) => {
+    timer = setTimeout(() => {
+      const error = new AuthoringError(
+        'REMOTE_TIMEOUT',
+        'The connection timed out. A change may already have been saved. Refresh or recover the saved application before trying again.',
+      );
+      reject(error);
+      controller.abort(error);
+    }, timeoutMs);
   });
-  const result = await response.json();
-  current();
-  assert(
-    response.ok && result.ok,
-    result.error?.code || 'REMOTE_ERROR',
-    result.error?.message || 'The exchange request failed.',
-  );
-  return result.data;
+  const request = async () => {
+    const token = await user.getIdToken(path.startsWith('connection/'));
+    current();
+    // A timed-out token refresh must never send a delayed mutation.
+    controller.signal.throwIfAborted();
+    const response = await fetchImpl(`${endpoint}/api/authoring/${path}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+    const result = await response.json();
+    current();
+    controller.signal.throwIfAborted();
+    assert(
+      response.ok && result?.ok,
+      result?.error?.code || 'REMOTE_ERROR',
+      result?.error?.message || 'The exchange request failed. Refresh and try again.',
+    );
+    return result.data;
+  };
+  try {
+    return await Promise.race([request(), deadline]);
+  } finally {
+    clearTimeout(timer);
+  }
 }

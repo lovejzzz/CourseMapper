@@ -21,8 +21,11 @@ export async function publishAuthorWorkspacePointer(pointer, storage = globalThi
   } catch {
     // Reuse the normal Resume fallback when localStorage has no space even
     // for a small marker. Commit the new pointer before removing the old one.
+    const previousMarker = storage.getItem('coursemapper-project');
     await saveProjectIndexedDbAutosave(payload);
-    storage.removeItem('coursemapper-project');
+    // Another project may have saved while the fallback transaction awaited.
+    // Only retire the marker this attempt actually replaced.
+    if (storage.getItem('coursemapper-project') === previousMarker) storage.removeItem('coursemapper-project');
   }
 }
 async function save(snapshot) {

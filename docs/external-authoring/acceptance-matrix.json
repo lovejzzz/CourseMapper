@@ -11,7 +11,7 @@
       "expected": "无需 Codex、终端、MCP 地址或 API key。",
       "evidence": "真实 ChatGPT",
       "status": "pending-live-platform",
-      "implementationEvidence": "Real private ChatGPT connection retained its account and discovered 14 tools. Actual capabilities/list reads and isolated request → plan → lesson bundle → validation → preview succeeded. Website review/application/receipt passed, with exact exported content fingerprints and zero website model starts. Semantic review found answer leakage in generated studentEvidenceExpected/rubric descriptors; contract guidance was clarified and a corrected second draft passed website review/application. An immediate-resume pointer fix passed browser regression and awaits frontend publication. This is private acceptance, not public plugin publication."
+      "implementationEvidence": "Real private ChatGPT connection retained its account and discovered 14 tools. Actual capabilities/list reads and isolated request → plan → lesson bundle → validation → preview succeeded. Website review/application/receipt passed, with exact exported content fingerprints and zero website model starts. Semantic review found answer leakage in generated studentEvidenceExpected/rubric descriptors; contract guidance was clarified and a corrected second draft passed website review/application. The Resume/IndexedDB quota fix is deployed as 536b3060 and passed recovery, immediate reload and Resume in the actual storage-full Chrome profile. This is private acceptance, not public plugin publication."
     },
     {
       "id": "T02",
@@ -81,7 +81,7 @@
       "expected": "每次调用重新检查，立即拒绝。",
       "evidence": "服务端",
       "status": "partial",
-      "implementationEvidence": "Expired/revoked grant and JWT binding rejected; provider refresh-token revocation pending."
+      "implementationEvidence": "Expired/revoked grant and JWT binding rejected; provider refresh-token revocation pending. Signed JWTs now exercise actual HTTP authorization after binding revocation/relink cutoff, token expiry and per-request revocation. Revoked requests are excluded from listing. Real-provider acceptance remains separate."
     },
     {
       "id": "T09",
@@ -111,7 +111,7 @@
       "expected": "能创建新草稿，不能枚举或读取已有课程。",
       "evidence": "服务端/真实宿主",
       "status": "partial",
-      "implementationEvidence": "Real private ChatGPT connection retained its account and discovered 14 tools. Actual capabilities/list reads and isolated request → plan → lesson bundle → validation → preview succeeded. Website review/application/receipt passed, with exact exported content fingerprints and zero website model starts. Semantic review found answer leakage in generated studentEvidenceExpected/rubric descriptors; contract guidance was clarified and a corrected second draft passed website review/application. An immediate-resume pointer fix passed browser regression and awaits frontend publication. This is private acceptance, not public plugin publication."
+      "implementationEvidence": "Real private ChatGPT connection retained its account and discovered 14 tools. Actual capabilities/list reads and isolated request → plan → lesson bundle → validation → preview succeeded. Website review/application/receipt passed, with exact exported content fingerprints and zero website model starts. Semantic review found answer leakage in generated studentEvidenceExpected/rubric descriptors; contract guidance was clarified and a corrected second draft passed website review/application. The Resume/IndexedDB quota fix is deployed as 536b3060 and passed recovery, immediate reload and Resume in the actual storage-full Chrome profile. This is private acceptance, not public plugin publication."
     },
     {
       "id": "T12",
@@ -361,7 +361,7 @@
       "expected": "服务端应用保留/CAS 阻止重复正式写入。",
       "evidence": "服务端/浏览器",
       "status": "passed-local",
-      "implementationEvidence": "Real HTTP reservation test rejects second device."
+      "implementationEvidence": "Real HTTP reservation test rejects second device. Two isolated real Chrome profiles now pass lost HTTP reservation/receipt body recovery, reload, latest teacher edits, one-day second-profile exclusion, and idempotent receipt retry. Browser CI runs the six-case interruptedBrowserSmoke.mjs fixture. This uses synthetic identity and server storage, not live Google accounts or physical devices."
     },
     {
       "id": "T37",
@@ -371,7 +371,7 @@
       "expected": "进入待核对状态，不超时自动允许第二次应用。",
       "evidence": "故障注入",
       "status": "partial",
-      "implementationEvidence": "Durable intent precedes reservation; lost-response retries reuse the same ID. Prepared intents cannot apply prematurely; concurrent tabs are serialized. Server cancellation prevents delayed reservation revival and never unlocks an existing reservation. Late/idempotent receipt and account-safe recovery tested. Actual live multi-device/cloud-sync interruption acceptance remains pending. Added local integrated fault test with actual HTTP routes and client recovery functions, two independent IndexedDB stores, one-day undelivered receipt, lost response after receipt commit, store reopen and idempotent retry. Second device remains blocked before and after receipt commit; first snapshot is preserved. Affected suites: 12 passing tests. Rendered live-device acceptance remains pending."
+      "implementationEvidence": "Durable intent precedes reservation; lost-response retries reuse the same ID. Prepared intents cannot apply prematurely; concurrent tabs are serialized. Server cancellation prevents delayed reservation revival and never unlocks an existing reservation. Late/idempotent receipt and account-safe recovery tested. Actual live multi-device/cloud-sync interruption acceptance remains pending. Added local integrated fault test with actual HTTP routes and client recovery functions, two independent IndexedDB stores, one-day undelivered receipt, lost response after receipt commit, store reopen and idempotent retry. Second device remains blocked before and after receipt commit; first snapshot is preserved. Affected suites: 12 passing tests. Rendered live-device acceptance remains pending. Two isolated real Chrome profiles now pass lost HTTP reservation/receipt body recovery, reload, latest teacher edits, one-day second-profile exclusion, and idempotent receipt retry. Browser CI runs the six-case interruptedBrowserSmoke.mjs fixture. This uses synthetic identity and server storage, not live Google accounts or physical devices."
     },
     {
       "id": "T38",
