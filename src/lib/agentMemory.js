@@ -1,3 +1,4 @@
+import { accountStorageKey } from './accountStorage';
 /**
  * agentMemory.js — Persistent agent learning system.
  *
@@ -34,15 +35,15 @@ export const MEMORY_CATEGORIES = {
 
 // ── Local storage helpers ─────────────────────────────────────────────────────
 
-function loadLocal() {
+function loadLocal(uid) {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    return JSON.parse(localStorage.getItem(accountStorageKey(STORAGE_KEY, uid)) || '[]');
   } catch {
     return [];
   }
 }
 
-function saveLocal(memories) {
+function saveLocal(memories, uid) {
   try {
     // Keep most important + most recent, capped
     const sorted = [...memories].sort((a, b) => {
@@ -50,7 +51,7 @@ function saveLocal(memories) {
       const scoreB = (b.importance || 3) * 2 + (b.accessCount || 0);
       return scoreB - scoreA;
     });
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(sorted.slice(0, MAX_LOCAL_MEMORIES)));
+    localStorage.setItem(accountStorageKey(STORAGE_KEY, uid), JSON.stringify(sorted.slice(0, MAX_LOCAL_MEMORIES)));
   } catch {
     // localStorage full — silently ignore
   }
@@ -59,8 +60,8 @@ function saveLocal(memories) {
 // ── Public API ────────────────────────────────────────────────────────────────
 
 /** Get all memories, sorted by importance then recency. */
-export function getMemories() {
-  return loadLocal().sort((a, b) => {
+export function getMemories(uid) {
+  return loadLocal(uid).sort((a, b) => {
     const imp = (b.importance || 3) - (a.importance || 3);
     if (imp !== 0) return imp;
     return (b.createdAt || 0) - (a.createdAt || 0);
@@ -68,19 +69,19 @@ export function getMemories() {
 }
 
 /** Get memories by category. */
-export function getMemoriesByCategory(category) {
-  return getMemories().filter((m) => m.category === category);
+export function getMemoriesByCategory(category, uid) {
+  return getMemories(uid).filter((m) => m.category === category);
 }
 
 /** Search memories by keyword (fuzzy multi-token match with relevance scoring). */
-export function searchMemories(query) {
+export function searchMemories(query, uid) {
   const tokens = query
     .toLowerCase()
     .split(/\s+/)
     .filter((t) => t.length > 1);
-  if (tokens.length === 0) return getMemories();
+  if (tokens.length === 0) return getMemories(uid);
 
-  return getMemories()
+  return getMemories(uid)
     .map((m) => {
       const text = `${m.content || ''} ${m.category || ''}`.toLowerCase();
       // Score: count matching tokens + bonus for exact substring match
@@ -96,8 +97,8 @@ export function searchMemories(query) {
  * Add a new memory. Returns the memory object with generated id.
  * @param {object} opts — { category, content, importance?, uid? }
  */
-export function addMemory({ category, content, importance = 3, uid = null }) {
-  const memories = loadLocal();
+export function addMemory({ category, content, importance = 3, uid }) {
+  const memories = loadLocal(uid);
 
   // Deduplicate: if a very similar memory exists, update it instead
   const existing = memories.find((m) => m.category === category && m.content === content);
@@ -105,7 +106,7 @@ export function addMemory({ category, content, importance = 3, uid = null }) {
     existing.accessCount = (existing.accessCount || 0) + 1;
     existing.importance = Math.max(existing.importance || 3, importance);
     existing.updatedAt = Date.now();
-    saveLocal(memories);
+    saveLocal(memories, uid);
     // Fire-and-forget cloud sync
     if (uid) cloudSave(uid, existing).catch(() => {});
     return existing;
@@ -122,7 +123,7 @@ export function addMemory({ category, content, importance = 3, uid = null }) {
   };
 
   memories.push(memory);
-  saveLocal(memories);
+  saveLocal(memories, uid);
 
   // Fire-and-forget cloud sync
   if (uid) cloudSave(uid, memory).catch(() => {});
@@ -131,8 +132,8 @@ export function addMemory({ category, content, importance = 3, uid = null }) {
 }
 
 /** Update an existing memory's content or importance. */
-export function updateMemory(id, updates, uid = null) {
-  const memories = loadLocal();
+export function updateMemory(id, updates, uid) {
+  const memories = loadLocal(uid);
   const mem = memories.find((m) => m.id === id);
   if (!mem) return null;
 
@@ -141,27 +142,27 @@ export function updateMemory(id, updates, uid = null) {
   if (updates.category !== undefined) mem.category = updates.category;
   mem.updatedAt = Date.now();
 
-  saveLocal(memories);
+  saveLocal(memories, uid);
   if (uid) cloudSave(uid, mem).catch(() => {});
   return mem;
 }
 
 /** Delete a memory. */
-export function deleteMemory(id, uid = null) {
-  const memories = loadLocal();
+export function deleteMemory(id, uid) {
+  const memories = loadLocal(uid);
   const filtered = memories.filter((m) => m.id !== id);
-  saveLocal(filtered);
+  saveLocal(filtered, uid);
   if (uid) cloudDelete(uid, id).catch(() => {});
   return true;
 }
 
 /** Mark a memory as accessed (bumps accessCount for relevance scoring). */
-export function touchMemory(id) {
-  const memories = loadLocal();
+export function touchMemory(id, uid) {
+  const memories = loadLocal(uid);
   const mem = memories.find((m) => m.id === id);
   if (mem) {
     mem.accessCount = (mem.accessCount || 0) + 1;
-    saveLocal(memories);
+    saveLocal(memories, uid);
   }
 }
 
@@ -169,13 +170,13 @@ export function touchMemory(id) {
  * Record a user edit pattern — called when user edits AI-generated content.
  * Automatically aggregates into a feedback memory.
  */
-export function recordEditPattern({ featureId, field, action, uid = null, path = null, lessonIndex = null }) {
+export function recordEditPattern({ featureId, field, action, uid, path = null, lessonIndex = null }) {
   const category = 'feedback';
   const fieldLabel = field || (Array.isArray(path) ? path.join('.') : path);
   const content = `User frequently ${action} ${fieldLabel ? `the "${fieldLabel}" field` : 'content'} in ${featureId}.`;
 
   // Check for existing pattern memory
-  const memories = loadLocal();
+  const memories = loadLocal(uid);
   const existing = memories.find(
     (m) =>
       m.category === category &&
@@ -190,7 +191,7 @@ export function recordEditPattern({ featureId, field, action, uid = null, path =
     if (existing.accessCount >= 5) existing.importance = 4;
     if (existing.accessCount >= 10) existing.importance = 5;
     existing.updatedAt = Date.now();
-    saveLocal(memories);
+    saveLocal(memories, uid);
     if (uid) cloudSave(uid, existing).catch(() => {});
     return existing;
   }
@@ -206,7 +207,7 @@ export function recordEditPattern({ featureId, field, action, uid = null, path =
     meta: { featureId, field: fieldLabel, action, path, lessonIndex },
   };
   memories.push(memory);
-  saveLocal(memories);
+  saveLocal(memories, uid);
   if (uid) cloudSave(uid, memory).catch(() => {});
   return memory;
 }
@@ -215,8 +216,8 @@ export function recordEditPattern({ featureId, field, action, uid = null, path =
  * Build a concise memory summary for injection into the agent system prompt.
  * Returns a string with the most important memories, capped at ~1500 chars.
  */
-export function buildMemoryContext() {
-  const memories = getMemories();
+export function buildMemoryContext(uid) {
+  const memories = getMemories(uid);
   if (memories.length === 0) return '';
 
   const lines = [];
@@ -243,7 +244,7 @@ export async function mergeCloudMemories(uid) {
     const cloudMemories = await cloudLoad(uid);
     if (!cloudMemories || cloudMemories.length === 0) return;
 
-    const local = loadLocal();
+    const local = loadLocal(uid);
     const localMap = new Map(local.map((m) => [m.id, m]));
 
     // Merge: cloud wins on same id (by updatedAt), add new cloud entries
@@ -261,7 +262,7 @@ export async function mergeCloudMemories(uid) {
       }
     }
 
-    saveLocal(Array.from(localMap.values()));
+    saveLocal(Array.from(localMap.values()), uid);
 
     // Push any local-only memories to cloud
     for (const [id, mem] of localMap) {
@@ -284,11 +285,11 @@ export async function mergeCloudAgentPrefs(uid) {
     const cloudPrefs = await loadAgentPrefs(uid);
     if (!cloudPrefs) return;
 
-    const local = JSON.parse(localStorage.getItem('coursemapper-agent-prefs') || '{}');
+    const local = JSON.parse(localStorage.getItem(accountStorageKey('coursemapper-agent-prefs', uid)) || '{}');
     // Cloud wins, then local fills gaps
     const merged = { ...local, ...cloudPrefs };
     delete merged.updatedAt; // remove Firestore metadata
-    localStorage.setItem('coursemapper-agent-prefs', JSON.stringify(merged));
+    localStorage.setItem(accountStorageKey('coursemapper-agent-prefs', uid), JSON.stringify(merged));
 
     // Push merged back to cloud
     saveAgentPrefs(uid, merged).catch(() => {});

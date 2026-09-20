@@ -6,6 +6,7 @@ import { act } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Simulate } from 'react-dom/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { notifyAccountCacheChanged, accountStorageKey } from '../../../lib/accountStorage';
 import InstitutionProfileCard from '../InstitutionProfileCard.jsx';
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -74,5 +75,35 @@ describe('InstitutionProfileCard', () => {
     expect(stored.institution).toBe('NYU Silver');
     expect(stored.aiPolicy).toContain('cite substantial assistance');
     expect(container.textContent).toContain('Saved');
+  });
+  it('cancels pending profile edits when the account changes', () => {
+    act(() => root.render(<InstitutionProfileCard uid="a" />));
+    act(() => container.querySelector('button[aria-controls="institution-profile-settings"]').click());
+    act(() =>
+      Simulate.change(container.querySelector('input[placeholder="NYU Silver School of Social Work"]'), {
+        target: { value: 'A private' },
+      }),
+    );
+    act(() => root.render(<InstitutionProfileCard uid="b" />));
+    act(() => vi.advanceTimersByTime(400));
+    expect([...storage.values()].join(' ')).not.toContain('A private');
+    act(() => container.querySelector('button[aria-controls="institution-profile-settings"]').click());
+    expect(container.querySelector('input[placeholder="NYU Silver School of Social Work"]').value).toBe('');
+  });
+  it('refreshes only its own pristine profile after cloud sync', () => {
+    act(() => root.render(<InstitutionProfileCard uid="b" />));
+    act(() => container.querySelector('button[aria-controls="institution-profile-settings"]').click());
+    storage.set(accountStorageKey('coursemapper-professorProfile', 'b'), JSON.stringify({ institution: 'B cloud' }));
+    act(() => notifyAccountCacheChanged('coursemapper-professorProfile', 'a'));
+    expect(container.querySelector('input[placeholder="NYU Silver School of Social Work"]').value).toBe('');
+    act(() => notifyAccountCacheChanged('coursemapper-professorProfile', 'b'));
+    expect(container.querySelector('input[placeholder="NYU Silver School of Social Work"]').value).toBe('B cloud');
+    act(() =>
+      Simulate.change(container.querySelector('input[placeholder="NYU Silver School of Social Work"]'), {
+        target: { value: 'B edit' },
+      }),
+    );
+    act(() => notifyAccountCacheChanged('coursemapper-professorProfile', 'b'));
+    expect(container.querySelector('input[placeholder="NYU Silver School of Social Work"]').value).toBe('B edit');
   });
 });

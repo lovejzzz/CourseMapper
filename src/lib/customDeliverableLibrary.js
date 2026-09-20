@@ -1,3 +1,4 @@
+import { accountStorageKey, notifyAccountCacheChanged } from './accountStorage';
 /**
  * Custom Deliverable Library — localStorage-backed CRUD.
  *
@@ -32,9 +33,9 @@ import { buildOpenAIResponsesBody, extractOpenAIResponsesText, prefersOpenAIResp
 
 const STORAGE_KEY = 'coursemapper-custom-deliverables';
 
-function readAll() {
+function readAll(uid) {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(accountStorageKey(STORAGE_KEY, uid));
     if (!raw) return {};
     return JSON.parse(raw);
   } catch {
@@ -42,9 +43,9 @@ function readAll() {
   }
 }
 
-function writeAll(map) {
+function writeAll(map, uid) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
+    localStorage.setItem(accountStorageKey(STORAGE_KEY, uid), JSON.stringify(map));
   } catch (e) {
     console.warn('Failed to save custom deliverables:', e);
   }
@@ -55,14 +56,14 @@ function writeAll(map) {
  * Custom deliverable IDs are prefixed with "custom_".
  * Returns null if not found.
  */
-export function getCustomDeliverable(id) {
-  const map = readAll();
+export function getCustomDeliverable(id, uid) {
+  const map = readAll(uid);
   return map[id] || null;
 }
 
 /** List all saved custom deliverables, sorted by creation time (newest first). */
-export function listCustomDeliverables() {
-  const map = readAll();
+export function listCustomDeliverables(uid) {
+  const map = readAll(uid);
   return Object.values(map).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 }
 
@@ -72,7 +73,7 @@ export function listCustomDeliverables() {
  * Returns the saved definition (with id populated).
  */
 export function saveCustomDeliverable(def, uid) {
-  const map = readAll();
+  const map = readAll(uid);
   const now = Date.now();
   const id = def.id && map[def.id] ? def.id : `custom_${now}`;
   const existing = map[id] || {};
@@ -122,7 +123,7 @@ Return ONLY a valid JSON object with this structure:
   if (!saved.icon) saved.icon = 'M12 6v6m0 0v6m0-6h6m-6 0H6'; // plus icon as default
   if (!saved.color) saved.color = 'violet';
   map[id] = saved;
-  writeAll(map);
+  writeAll(map, uid);
   // Fire-and-forget cloud sync if user is logged in
   if (uid) cloudSave(uid, id, saved).catch((e) => console.warn('[Cloud] deliverable save failed:', e));
   return saved;
@@ -130,10 +131,10 @@ Return ONLY a valid JSON object with this structure:
 
 /** Delete a custom deliverable by ID. Returns true if deleted, false if not found. */
 export function deleteCustomDeliverable(id, uid) {
-  const map = readAll();
+  const map = readAll(uid);
   if (!map[id]) return false;
   delete map[id];
-  writeAll(map);
+  writeAll(map, uid);
   // Fire-and-forget cloud sync if user is logged in
   if (uid) cloudDelete(uid, id).catch((e) => console.warn('[Cloud] deliverable delete failed:', e));
   return true;
@@ -350,9 +351,10 @@ export function toFeatureEntry(def) {
  * Returns the merged map.
  */
 export async function mergeCloudDeliverables(uid) {
+  if (!uid) return readAll(uid);
   try {
     const cloudMap = await cloudLoadAll(uid);
-    const localMap = readAll();
+    const localMap = readAll(uid);
     const merged = { ...localMap };
     for (const [id, cloudDef] of Object.entries(cloudMap)) {
       const local = merged[id];
@@ -366,10 +368,11 @@ export async function mergeCloudDeliverables(uid) {
         cloudSave(uid, id, localDef).catch(() => {});
       }
     }
-    writeAll(merged);
+    writeAll(merged, uid);
+    notifyAccountCacheChanged(STORAGE_KEY, uid);
     return merged;
   } catch (e) {
     console.warn('[Cloud] merge custom deliverables failed:', e);
-    return readAll();
+    return readAll(uid);
   }
 }

@@ -1,3 +1,4 @@
+import { accountStorageKey, notifyAccountCacheChanged } from './accountStorage';
 /**
  * professorProfile.js
  *
@@ -80,9 +81,9 @@ function clean(value) {
  * Load the professor's profile from localStorage.
  * Returns a merged object with DEFAULTS filled in for missing fields.
  */
-export function getProfile() {
+export function getProfile(uid) {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(accountStorageKey(STORAGE_KEY, uid));
     const stored = raw ? JSON.parse(raw) : {};
     return { ...DEFAULTS, ...stored };
   } catch {
@@ -147,7 +148,7 @@ export function buildInstitutionProfileSummary(profile = getProfile()) {
  */
 export function saveProfile(profile, uid) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...DEFAULTS, ...profile }));
+    localStorage.setItem(accountStorageKey(STORAGE_KEY, uid), JSON.stringify({ ...DEFAULTS, ...profile }));
   } catch (e) {
     console.warn('Professor profile save failed:', e);
   }
@@ -162,7 +163,7 @@ export function saveProfile(profile, uid) {
  * Apply a partial update (patch) to the stored profile.
  */
 export function updateProfile(patch, uid) {
-  const current = getProfile();
+  const current = getProfile(uid);
   saveProfile({ ...current, ...patch }, uid);
   return { ...current, ...patch };
 }
@@ -170,9 +171,9 @@ export function updateProfile(patch, uid) {
 /**
  * Reset profile to empty defaults.
  */
-export function resetProfile() {
+export function resetProfile(uid) {
   try {
-    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(accountStorageKey(STORAGE_KEY, uid));
   } catch {}
 }
 
@@ -184,22 +185,24 @@ export const clearProfile = resetProfile;
  * Cloud wins on conflict.
  */
 export async function mergeCloudProfile(uid) {
+  if (!uid) return getProfile(uid);
   try {
     const cloudData = await cloudLoadProfile(uid);
     if (cloudData?.profile) {
-      const local = getProfile();
+      const local = getProfile(uid);
       const merged = { ...DEFAULTS, ...local, ...cloudData.profile };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+      localStorage.setItem(accountStorageKey(STORAGE_KEY, uid), JSON.stringify(merged));
+      notifyAccountCacheChanged(STORAGE_KEY, uid);
       return merged;
     }
     // No cloud profile yet — push local to cloud
-    const local = getProfile();
+    const local = getProfile(uid);
     if (local.name || local.institution) {
       cloudSaveProfile(uid, { profile: local }).catch(() => {});
     }
     return local;
   } catch (e) {
     console.warn('[Cloud] merge profile failed:', e);
-    return getProfile();
+    return getProfile(uid);
   }
 }

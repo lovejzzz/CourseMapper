@@ -165,7 +165,7 @@ export default function useProjectPersistence({
   const [isStartingNewProject, setIsStartingNewProject] = useState(false);
   const [newProjectError, setNewProjectError] = useState('');
   const [newProjectCloudSaveFailed, setNewProjectCloudSaveFailed] = useState(false);
-  const [developerTemplates, setDeveloperTemplates] = useState(() => listDeveloperTemplates());
+  const [developerTemplates, setDeveloperTemplates] = useState(() => listDeveloperTemplates(user?.uid || null));
   const [activeDeveloperTemplateId, setActiveDeveloperTemplateId] = useState(() => {
     try {
       return localStorage.getItem('coursemapper-active-developer-template') || '';
@@ -458,8 +458,8 @@ export default function useProjectPersistence({
 
   const saveDeveloperTemplateFromPanel = useCallback(
     (snapshot, name) => {
-      const saved = saveDeveloperTemplateFromSnapshot(snapshot, name, user?.uid);
-      setDeveloperTemplates(listDeveloperTemplates());
+      const saved = saveDeveloperTemplateFromSnapshot(snapshot, name, user?.uid || null);
+      setDeveloperTemplates(listDeveloperTemplates(user?.uid || null));
       setActiveDeveloperTemplateId(saved.id);
       return saved;
     },
@@ -470,8 +470,8 @@ export default function useProjectPersistence({
     (templateId, name) => {
       const template = developerTemplates.find((t) => t.id === templateId);
       if (!template) return null;
-      const saved = saveDeveloperTemplate({ ...template, name }, user?.uid);
-      setDeveloperTemplates(listDeveloperTemplates());
+      const saved = saveDeveloperTemplate({ ...template, name }, user?.uid || null);
+      setDeveloperTemplates(listDeveloperTemplates(user?.uid || null));
       return saved;
     },
     [developerTemplates, user],
@@ -486,9 +486,9 @@ export default function useProjectPersistence({
           name: `${template.name || 'Developer Template'} Copy`,
           data: template.data,
         },
-        user?.uid,
+        user?.uid || null,
       );
-      setDeveloperTemplates(listDeveloperTemplates());
+      setDeveloperTemplates(listDeveloperTemplates(user?.uid || null));
       setActiveDeveloperTemplateId(saved.id);
       return saved;
     },
@@ -497,8 +497,8 @@ export default function useProjectPersistence({
 
   const removeDeveloperTemplate = useCallback(
     (templateId) => {
-      deleteDeveloperTemplate(templateId, user?.uid);
-      setDeveloperTemplates(listDeveloperTemplates());
+      deleteDeveloperTemplate(templateId, user?.uid || null);
+      setDeveloperTemplates(listDeveloperTemplates(user?.uid || null));
       setActiveDeveloperTemplateId((prev) => (prev === templateId ? '' : prev));
     },
     [user],
@@ -774,12 +774,18 @@ export default function useProjectPersistence({
   // ── On sign-in: merge cloud data (custom deliverables + profile) ──
   const prevUserRef = useRef(null);
   useEffect(() => {
+    if ((user?.uid || null) !== prevUserRef.current) {
+      setDeveloperTemplates(listDeveloperTemplates(user?.uid || null));
+      setActiveDeveloperTemplateId('');
+    }
     if (user && user.uid !== prevUserRef.current) {
       prevUserRef.current = user.uid;
       // Fire-and-forget cloud merge
       mergeCloudDeliverables(user.uid).catch(() => {});
       mergeCloudDeveloperTemplates(user.uid)
-        .then(setDeveloperTemplates)
+        .then((templates) => {
+          if (currentUidRef.current === user.uid) setDeveloperTemplates(templates);
+        })
         .catch(() => {});
       mergeCloudProfile(user.uid).catch(() => {});
       mergeCloudMemories(user.uid).catch(() => {});
