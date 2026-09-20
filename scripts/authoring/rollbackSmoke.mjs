@@ -6,7 +6,10 @@ import assert from 'node:assert/strict';
 import JSZip from 'jszip';
 const output = new URL('../../verification-output/external-authoring/', import.meta.url);
 await mkdir(new URL('rollback/', output), { recursive: true });
-const browser = await chromium.launch({ channel: 'chrome', headless: true });
+const browser = await chromium.launch({
+  channel: process.env.AUTHORING_TEST_BROWSER_CHANNEL || 'chrome',
+  headless: true,
+});
 const page = await browser.newPage();
 page.setDefaultTimeout(20000);
 await page.addInitScript(() => {
@@ -26,8 +29,8 @@ page.on('pageerror', (e) => errors.push(e.message));
 try {
   await page.goto(`${process.env.AUTHORING_TEST_URL || 'http://127.0.0.1:5189'}/?authoring=1`);
   await page.getByText('Some authoring functions are temporarily disabled.', { exact: false }).waitFor();
-  await page.getByLabel('Course title', { exact: true }).fill('Disabled request');
-  await page.getByLabel('Teaching brief', { exact: true }).fill('Must not create a request');
+  await page.getByRole('textbox', { name: 'Course title', exact: true }).fill('Disabled request');
+  await page.getByRole('textbox', { name: 'Teaching brief', exact: true }).fill('Must not create a request');
   assert.equal(await page.getByRole('button', { name: 'Save request', exact: true }).isDisabled(), true);
   await page.getByRole('button', { name: 'Close', exact: true }).click();
   await page.locator('#landing-file-input').setInputFiles({
@@ -38,9 +41,8 @@ try {
   await page.getByRole('heading', { name: 'Authoring browser acceptance', exact: true }).waitFor();
   await page.getByRole('button', { name: /^Lesson Plans/ }).click();
   await page.getByText('Teacher edit: preserve this exact explanation.', { exact: false }).first().waitFor();
-  const waiting = page.waitForEvent('download');
-  await page.getByRole('button', { name: '.docx', exact: true }).click();
-  const download = await waiting;
+  await page.getByTestId('export-scope-current').click();
+  const [download] = await Promise.all([page.waitForEvent('download'), page.getByTestId('export-format-docx').click()]);
   await download.saveAs(fileURLToPath(new URL('rollback/preserved-lesson.docx', output)));
   assert.deepEqual(await page.evaluate(() => window.__registeredPageTools), []);
   const zip = await JSZip.loadAsync(await readFile(new URL('rollback/preserved-lesson.docx', output)));
