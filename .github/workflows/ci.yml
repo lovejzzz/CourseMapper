@@ -44,6 +44,10 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
+      - name: Authoring request choices and copied task persistence
+        run: node scripts/authoring/requestOptionsSmoke.mjs
+        env:
+          AUTHORING_TEST_BROWSER_CHANNEL: chromium
       - name: Interrupted authoring recovery across browser profiles
         run: node scripts/authoring/interruptedBrowserSmoke.mjs
         env:
@@ -56,6 +60,7 @@ jobs:
             test-results/**
             verification-output/compatibility-browser/**
             verification-output/external-authoring/interrupted-browser/**
+            verification-output/external-authoring/request-options/**
           if-no-files-found: ignore
   adapter-mask:
     name: Experimental adapter training regression
