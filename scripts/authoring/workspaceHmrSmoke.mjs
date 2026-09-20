@@ -64,13 +64,11 @@ try {
       activeTab: 'courseMap',
       deliverables: {},
     };
-    await page
-      .locator('#landing-file-input')
-      .setInputFiles({
-        name: `${name}.coursemapper`,
-        mimeType: 'application/json',
-        buffer: Buffer.from(JSON.stringify(project)),
-      });
+    await page.locator('#landing-file-input').setInputFiles({
+      name: `${name}.coursemapper`,
+      mimeType: 'application/json',
+      buffer: Buffer.from(JSON.stringify(project)),
+    });
     await page.getByRole('heading', { name: `Workspace ${name}`, exact: true }).waitFor();
     await page.getByText('Autosaved locally', { exact: true }).filter({ visible: true }).waitFor();
     await page.getByRole('button', { name: 'AI authoring', exact: true }).click();
@@ -146,15 +144,13 @@ try {
   assert(current.context.ok);
   const crossRequest = await page.evaluate(
     async ({ request, epoch }) =>
-      window.testTools
-        .get('cm_v2_create_draft')
-        .execute({
-          requestId: request.requestId,
-          documentEpoch: epoch,
-          expectedRequestRevision: 0,
-          baseContentRevision: request.context.data.baseContentRevision,
-          idempotencyKey: 'cross-workspace-current-tool',
-        }),
+      window.testTools.get('cm_v2_create_draft').execute({
+        requestId: request.requestId,
+        documentEpoch: epoch,
+        expectedRequestRevision: 0,
+        baseContentRevision: request.context.data.baseContentRevision,
+        idempotencyKey: 'cross-workspace-current-tool',
+      }),
     { request: a, epoch: current.epoch },
   );
   assert.equal(crossRequest.error.code, 'NOT_FOUND');
