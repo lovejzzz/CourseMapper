@@ -40,8 +40,8 @@
       "procedure": "真实宿主发现顶层注册的工具并完成一次调用。",
       "expected": "mock 不能替代该证据。",
       "evidence": "真实 Site tools",
-      "status": "partial",
-      "implementationEvidence": "Real Chrome WebMCP discovers 13 tools and completes 10 calls. Actual ChatGPT/Codex Site tools host pending."
+      "status": "passed-live",
+      "implementationEvidence": "Actual Codex desktop in-app browser discovered 13 production WebMCP tools and called capabilities, authorized list and exact context through its native tool capability. A synthetic local request was explicitly allowed in the UI; withdrawing access immediately rejected the next read with PAGE_ACCESS_REQUIRED. No injected registry or test adapter. Evidence: live-oauth/native-iab-host.json (2026-09-20, website5edbee7e)."
     },
     {
       "id": "T05",
@@ -80,8 +80,8 @@
       "procedure": "撤销授权或到期后继续读取和写入。",
       "expected": "每次调用重新检查，立即拒绝。",
       "evidence": "服务端",
-      "status": "partial",
-      "implementationEvidence": "Expired/revoked grant and JWT binding rejected; provider refresh-token revocation pending. Signed JWTs now exercise actual HTTP authorization after binding revocation/relink cutoff, token expiry and per-request revocation. Revoked requests are excluded from listing. Real-provider acceptance remains separate."
+      "status": "passed-server",
+      "implementationEvidence": "Production-verifier HTTP tests cover binding revocation/relink cutoff, per-request revocation and actual wall-clock JWT expiry: read succeeds before expiry, read and schema-valid draft write fail401 after expiry without record changes. A locally signed RS256 token supplies the expiry case. Live Auth0-issued tokens passed before unlink, failed after unlink and relink, and a fresh authorization succeeded. Actual provider-issued-token expiry against production is not claimed. Refresh grants are disabled. Evidence: live-oauth/expiry-http-boundary.log, provider-token-expiry-assessment.json and live-binding-revocation.json."
     },
     {
       "id": "T09",
@@ -360,8 +360,8 @@
       "procedure": "两个设备同时申请同一远程 draft 应用。",
       "expected": "服务端应用保留/CAS 阻止重复正式写入。",
       "evidence": "服务端/浏览器",
-      "status": "passed-local",
-      "implementationEvidence": "Real HTTP reservation test rejects second device. Two isolated real Chrome profiles now pass lost HTTP reservation/receipt body recovery, reload, latest teacher edits, one-day second-profile exclusion, and idempotent receipt retry. Browser CI runs the six-case interruptedBrowserSmoke.mjs fixture. This uses synthetic identity and server storage, not live Google accounts or physical devices."
+      "status": "passed-live",
+      "implementationEvidence": "Real HTTP reservation test rejects second device. Two isolated real Chrome profiles now pass lost HTTP reservation/receipt body recovery, reload, latest teacher edits, one-day second-profile exclusion, and idempotent receipt retry. Browser CI runs the six-case interruptedBrowserSmoke.mjs fixture. This uses synthetic identity and server storage, not live Google accounts or physical devices. Subsequently, an actual successful reservation response was dropped in signed-in Chrome; an independent iPhone17 simulator using the same real reviewer account could not apply the same draft. Original browser recovery completed the same application/project and matching late receipt. Evidence: reviewer-demo/reservation-response-lost.json. Simulator, not physical hardware."
     },
     {
       "id": "T37",
@@ -370,8 +370,8 @@
       "procedure": "本地 durable commit 后、远程回执前断网。",
       "expected": "进入待核对状态，不超时自动允许第二次应用。",
       "evidence": "故障注入",
-      "status": "partial",
-      "implementationEvidence": "Durable intent precedes reservation; lost-response retries reuse the same ID. Prepared intents cannot apply prematurely; concurrent tabs are serialized. Server cancellation prevents delayed reservation revival and never unlocks an existing reservation. Late/idempotent receipt and account-safe recovery tested. Actual live multi-device/cloud-sync interruption acceptance remains pending. Added local integrated fault test with actual HTTP routes and client recovery functions, two independent IndexedDB stores, one-day undelivered receipt, lost response after receipt commit, store reopen and idempotent retry. Second device remains blocked before and after receipt commit; first snapshot is preserved. Affected suites: 12 passing tests. Rendered live-device acceptance remains pending. Two isolated real Chrome profiles now pass lost HTTP reservation/receipt body recovery, reload, latest teacher edits, one-day second-profile exclusion, and idempotent receipt retry. Browser CI runs the six-case interruptedBrowserSmoke.mjs fixture. This uses synthetic identity and server storage, not live Google accounts or physical devices."
+      "status": "passed-live",
+      "implementationEvidence": "Local integration/browser fault cases cover undelivered and lost-after-commit receipts, independent stores, reload and idempotent retry. Actual deployed signed-in Chrome then lost a successful reservation response; the independent iPhone simulator was refused, and the original browser recovered the same saved application/project and confirmed a matching late receipt after reservation expiry. The unsuccessful mobile intent was discarded without a second application. Separately, authenticated disabled-runtime recovery/receipt/retry passed on a tagged deployment with unchanged production traffic. Evidence: reviewer-demo/reservation-response-lost.json and rollback/authenticated-rehearsal.json. No physical hardware or full production traffic cutover claimed."
     },
     {
       "id": "T38",
@@ -420,8 +420,8 @@
       "procedure": "应用后云保存、关闭、重开、继续编辑。",
       "expected": "作者内容不被 recompile-on-open 模板替代。",
       "evidence": "真实存储/浏览器",
-      "status": "passed-local",
-      "implementationEvidence": "Real Firestore emulator Unicode content roundtrip; no recompilation on authored restore."
+      "status": "passed-live",
+      "implementationEvidence": "Firestore emulator Unicode roundtrip and authored-restore checks pass. Live desktop/iPhone-simulator cloud roundtrip passed. Following PR140, the reviewed poetry cloud copy was opened, reloaded, resumed, autosaved and reopened with the exact teacher note and revised assessment prompt preserved; its cloud timestamp advanced. Account/project-bound cloud CAS version persistence prevents false autosaved status and preserves concurrent-edit conflicts. Evidence: live-oauth/mobile-cloud-roundtrip.json and cloud-author-resume-live.json; website2cf547c2."
     },
     {
       "id": "T43",
@@ -491,7 +491,7 @@
       "expected": "旧功能不退化，新作者内容仍能读取、编辑和导出。",
       "evidence": "CI/浏览器",
       "status": "partial",
-      "implementationEvidence": "79 affected existing regression tests pass; full release/rollback exercise pending. Broad offline regression plus affected-suite corrections establishes 2,512 current passing cases across 194 suites. Expanded real emulator tests preserve legacy profile/custom-deliverable/preferences/memory/custom-tool/deliverable access and deny other accounts, anonymous access and unmatched paths; 20 emulator cases passed. Deployment rollback and complete release/platform acceptance remain pending. Backend startup flags independently disable new remote writes and new application reservations; HTTP/service tests preserve reads and existing reservation/receipt recovery. Local-page/UI controls and deployed rollback remain pending. Independent browser flags now disable page-tool registration, local writes and fresh application. Disabled production-build browser test confirms existing authored course reading and DOCX export preserve teacher edits and Chinese; normal build restored. Full deployed rollback remains pending. Latest Node 22 full unit run plus unchanged reruns after restoring missing temporary-checkout inputs establishes 4,466 passing tests across 351 suites (176 skipped); a single clean full run and deployed rollback remain unverified. A later single clean Node 22 offline run after account-linking and fixture corrections passed 4,634 tests across 372 suites, with 177 tests/18 suites skipped. This supersedes the earlier combined-run limitation. Actual deployed frontend rollback and live platform acceptance remain incomplete."
+      "implementationEvidence": "79 affected existing regression tests pass; full release/rollback exercise pending. Broad offline regression plus affected-suite corrections establishes 2,512 current passing cases across 194 suites. Expanded real emulator tests preserve legacy profile/custom-deliverable/preferences/memory/custom-tool/deliverable access and deny other accounts, anonymous access and unmatched paths; 20 emulator cases passed. Deployment rollback and complete release/platform acceptance remain pending. Backend startup flags independently disable new remote writes and new application reservations; HTTP/service tests preserve reads and existing reservation/receipt recovery. Local-page/UI controls and deployed rollback remain pending. Independent browser flags now disable page-tool registration, local writes and fresh application. Disabled production-build browser test confirms existing authored course reading and DOCX export preserve teacher edits and Chinese; normal build restored. Full deployed rollback remains pending. Latest Node 22 full unit run plus unchanged reruns after restoring missing temporary-checkout inputs establishes 4,466 passing tests across 351 suites (176 skipped); a single clean full run and deployed rollback remain unverified. A later single clean Node 22 offline run after account-linking and fixture corrections passed 4,634 tests across 372 suites, with 177 tests/18 suites skipped. This supersedes the earlier combined-run limitation. Actual deployed frontend rollback and live platform acceptance remain incomplete. Latest deployed rehearsal (2026-09-20) passed seven authenticated disabled-runtime checks on zero-normal-traffic00018-loh: reads, rejection of new shares/applications, existing reservation recovery, durable receipt, idempotent retry and unchanged fresh draft. Both template flags restored true and temporary route removed; production remained100%00016-pow. This augments disabled local production-build read/export and passing PR142/main full CI; no frontend Pages cutover or production traffic shift is claimed. Evidence: rollback/authenticated-rehearsal.json."
     },
     {
       "id": "T50",
@@ -500,8 +500,8 @@
       "procedure": "真实 ChatGPT 插件创作；真实 Codex 网页诊断并验证修复。",
       "expected": "分别记录版本/客户端/账号/结果，未做标 pending，不混淆静态测试。",
       "evidence": "真实宿主/人工",
-      "status": "pending-live-platform",
-      "implementationEvidence": "Native Chrome probe and fixture UI smoke are not two actual AI-platform account runs."
+      "status": "passed-live-private",
+      "implementationEvidence": "Real private ChatGPT authoring/revision, website review/apply/receipt/export are documented in reviewer-demo/recorded-demo-acceptance.json (dedicated reviewer account). Actual Codex native in-app browser then diagnosed a deliberately incomplete local synthetic draft via INCOMPLETE_DRAFT, authored and submitted its missing complete lesson bundle, revalidated, previewed and inspected the student assignment projection. Status reported no missing lessons and awaiting_review; reload retained the repaired draft and reset page authorization. Codex identity is the signed-out local page principal, not an OAuth account; no formal application was performed in this diagnostic case. Client/version/operation evidence: live-oauth/native-iab-diagnostic-repair.json on website5edbee7e. This verifies the two specified private host workflows, not public distribution (T01)."
     }
   ],
   "evidenceBaseline": "Most per-case evidence below was collected on v0.16.39 before integration. Current v0.19.99 verification is recorded in CURRENT_RELEASE_VERIFICATION.md; do not treat old passes as new live-platform acceptance."
