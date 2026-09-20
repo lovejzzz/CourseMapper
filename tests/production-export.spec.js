@@ -135,3 +135,29 @@ test('built-site policy permits configured public reference providers and blocks
     }),
   ).toBe('blocked');
 });
+
+test('built-site Firebase sign-in can load Google bootstrap while unknown scripts remain blocked', async ({ page }) => {
+  // Exercise Firebase's real sign-in entry point under the built HTML's CSP.
+  // Only the network response is stubbed; this does not claim OAuth succeeds.
+  await page.route('https://apis.google.com/js/api.js?*', (route) =>
+    route.fulfill({ contentType: 'application/javascript', body: 'window.__googleAuthBootstrapLoaded = true;' }),
+  );
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await expect.poll(() => page.evaluate(() => window.__googleAuthBootstrapLoaded === true)).toBe(true);
+  await page.route('https://unconfigured-script.invalid/**', (route) =>
+    route.fulfill({ contentType: 'application/javascript', body: 'window.__unexpectedScriptLoaded = true;' }),
+  );
+  const result = await page.evaluate(
+    () =>
+      new Promise((resolve) => {
+        const script = document.createElement('script');
+        script.src = 'https://unconfigured-script.invalid/test.js';
+        script.onload = () => resolve('allowed');
+        script.onerror = () => resolve('blocked');
+        document.head.append(script);
+      }),
+  );
+  expect(result).toBe('blocked');
+  expect(await page.evaluate(() => window.__unexpectedScriptLoaded)).toBeUndefined();
+});
