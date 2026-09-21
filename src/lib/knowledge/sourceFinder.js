@@ -1,3 +1,4 @@
+import { sourceMatchesCourseScope } from '../courseSourceScope.js';
 /**
  * knowledge/sourceFinder.js — low-cost, real-knowledge retrieval.
  *
@@ -54,7 +55,7 @@ export const SOURCE_FINDER_ORIGIN = 'source-finder';
 // v13 adds a public-health program-evaluation boundary after a live six-week
 // run admitted the generic Wikipedia page "Question" for evaluation
 // questions. Cached v12 shards have already passed the weaker homonym gate.
-const SOURCE_FINDER_VERSION = 'source-finder-v13';
+const SOURCE_FINDER_VERSION = 'source-finder-v13-course-scope-1';
 const CACHE_PREFIX = 'cm-source-finder:';
 const SNIPPET_LIMIT = 320;
 const DEFAULT_MAX_TOPICS = 8;
@@ -510,6 +511,7 @@ function sourcePassesDisciplineAnchor(source, topic) {
   const topicText = topicContext(topic);
   const sourceText = sourceContext(source);
   const sourceIdentityText = sourceIdentityContext(source);
+  if (!sourceMatchesCourseScope(topic?.courseName, sourceText)) return false;
   if (isMusicIntervalWeakSource(sourceText, topicText, topic?.query || topic?.topic || '')) return false;
   if (sourceIdentityScopeMismatch({ lessonIdentity: topicText, sourceIdentity: sourceIdentityText }).mismatch) {
     return false;

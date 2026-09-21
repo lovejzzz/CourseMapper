@@ -313,6 +313,18 @@ export function patchScionRuntime(source) {
   return patchScionRuntimeCandidate(source, expectedSourceSha256);
 }
 
+// Model files are immutable while mapped. Exclusive read/write handles made
+// a second tab fail even though neither inference worker writes to the model.
+export function patchScionSharedModelReads(source) {
+  const expected = '92afaea4ca9feefece8790fa32f3b96775d430f7341a8d89e550de368af40bdb';
+  if (sha256(source) !== expected) throw new Error('Pinned v3 runtime changed; review before patching model reads.');
+  return replaceExactlyOnce(source, {
+    name: 'share immutable OPFS model reads across tabs',
+    before: 'const syncHandle = await fileHandle.createSyncAccessHandle();',
+    after: 'const syncHandle = await fileHandle.createSyncAccessHandle({ mode: \\"read-only\\" });',
+  });
+}
+
 export async function buildScionRuntime({ checkOnly = false } = {}) {
   const source = await fs.readFile(sourcePath, 'utf8');
   const patched = patchScionRuntime(source);
@@ -326,6 +338,18 @@ export async function buildScionRuntime({ checkOnly = false } = {}) {
   } else {
     await fs.mkdir(path.dirname(outputPath), { recursive: true });
     await fs.writeFile(outputPath, patched);
+  }
+
+  const sharedReadsPath = path.join(repoRoot, 'public/scion/runtime/v4/wllama.js');
+  const sharedReads = patchScionSharedModelReads(
+    await fs.readFile(path.join(repoRoot, 'public/scion/runtime/v3/wllama.js'), 'utf8'),
+  );
+  if (checkOnly) {
+    if ((await fs.readFile(sharedReadsPath, 'utf8').catch(() => '')) !== sharedReads)
+      throw new Error('Generated Scion v4 shared-read runtime is missing or stale.');
+  } else {
+    await fs.mkdir(path.dirname(sharedReadsPath), { recursive: true });
+    await fs.writeFile(sharedReadsPath, sharedReads);
   }
 
   // The public JS and WASM form one versioned protocol. Fail the build rather

@@ -1472,6 +1472,54 @@ export const CURRENT_RELEASE_CHANGELOG = {
   ...CURRENT_RELEASE,
   sections: [
     {
+      label: 'Checked calculations from explicit inputs',
+      items: [
+        'Use one explicitly supplied numeric dataset to calculate mean, median, range, squared deviations, population variance and sample variance. Preserve repeated observations and calculate the effect of an explicitly supplied outlier.',
+        'Solve explicitly supplied linear demand and supply equations; calculate equilibrium, quantities at a ceiling, shortage and available trades. Distinguish binding and nonbinding ceilings instead of inventing fixed answers.',
+        'Share the checked calculation and practice across quiz keys, lesson plans, guides, assignments, rubrics and native slide tables. Preserve instructor-owned tasks, complete worked examples and source-only constraints. Ambiguous inputs receive no computed fallback.',
+      ],
+    },
+    {
+      label: 'Course-specific source scope',
+      items: [
+        'Carry a named close-reading work and beginner target language into evidence retrieval. Reject a generic names page for Spanish introductions and unrelated translation material for a named poem before composing source claims, including cached candidates.',
+        'Keep Industrial Revolution source candidates tied to industrialization, factory work and related historical subjects rather than accepting unrelated religious history through the word historical.',
+        'Missing relevant evidence remains a visible review requirement. Source rejection does not manufacture quotations, repair all reference answers or certify classroom readiness.',
+      ],
+    },
+    {
+      label: 'Shared model reads and field verification',
+      items: [
+        'Open immutable OPFS model files with shared read-only handles so separate tabs can activate Scion without competing for an exclusive writer lock. Downloads and cache writes remain exclusive; the pinned WASM and model weights are unchanged.',
+        'Preserve the model cache when an older tab or a download still holds a lock, and explain how to release it rather than classifying it as corrupt data.',
+        'Audit ten different real courses covering programming, statistics, physics, chemistry, biology, economics, history, literature, Spanish and ecology. Keep generation evidence distinct from deterministic tests; report unresolved content and source gaps.',
+        'Retain v0.20.03 and all older changelog entries. Ordinary course pages continue to hide MCP; inspection remains a developer-only workflow.',
+      ],
+    },
+  ],
+};
+
+const V02003_RELEASE_METADATA = {
+  version: '0.20.03',
+  date: 'September 20, 2026',
+  title: 'Concrete Mathematics and Preserved Requirements',
+  landingTitle: 'EDUTOOL V0.20.03: Clearer Mathematical Practice',
+  highlights: [
+    'Keep requested quiz counts and stated prerequisites.',
+    'Teach with explicit examples, calculated function answers and complete induction steps.',
+    'Preserve course requirements and release history.',
+  ],
+  landingHighlights: [
+    'Practice with concrete mathematical inputs.',
+    'See worked reasoning and specific answers.',
+    'Review and export your course materials.',
+  ],
+};
+
+const V02003_RELEASE_CHANGELOG = {
+  ...V02003_RELEASE_METADATA,
+  sections: [
+    {
       label: 'Explicit course requirements',
       icon: 'CHECK',
       color: 'indigo',
@@ -3102,6 +3150,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V02003_RELEASE_CHANGELOG,
   V02002_RELEASE_CHANGELOG,
   V02001_RELEASE_CHANGELOG,
   V02000_RELEASE_CHANGELOG,

@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.20.04 — Ten-Course Audit and Checked Calculations (2026-09-21)
+
+- Audit ten freshly generated two-lesson courses across programming, statistics, physics, chemistry, biology, economics, history, literature, Spanish and ecology. Record actual model/cache execution, output defects and exported Office contents separately from automated conformance scores.
+- Calculate statistics from one explicitly supplied numeric dataset, including both variance conventions and an explicitly requested outlier. Solve supplied linear demand/supply equations, equilibrium and binding/nonbinding ceilings. Ambiguous or unsupported inputs do not receive invented answers.
+- Project checked examples and practice across plans, guides, quizzes, assignments, rubrics and native slide tables; protect source-only briefs and instructor-owned content.
+- Preserve named-work, target-language and industrial-history scope in source selection, including cached kernel composition. Reject the observed unrelated-source matches instead of treating shared generic words as relevant evidence.
+- Use shared read-only handles for immutable local-model files; leave writes exclusive. Fix the observed multi-tab activation conflict without changing model weights or WASM. Keep older-tab lock failures actionable and preserve downloaded models.
+- Preserve v0.20.03 and all older release notes. Ordinary pages continue to hide MCP.
+- Limits: no Scion retraining or ten-course quality certification. Several disciplines still lack concrete tasks, source-bound reference answers or primary-source excerpts. Rejecting unrelated sources can increase visible review findings; these warnings remain intact.
+
 ## v0.20.03 — Concrete Mathematics and Preserved Requirements (2026-09-20)
 
 - Preserve explicit quiz counts (3–8), prior knowledge, per-session duration and numbered “Exact sequence” requirements across compilation, restored blueprints and exported manifests.
