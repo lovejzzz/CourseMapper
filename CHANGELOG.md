@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.20.01 — 2026-09-20
+
+Simplify external AI access to direct browser MCP editing. Remove the separate AI authoring workflow from the production interface.
+
+### Direct course MCP
+
+- Replace the separate AI authoring panel with one MCP access switch for the open browser tab. No teaching request, draft, import or AI identity link is required.
+- Expose four browser WebMCP tools: connection status, current course and materials, direct text edits, and undo of the latest MCP edit.
+- Show editable field paths to the AI. Validate every change before applying the batch; preserve structural identifiers and reject edits based on an older course revision.
+
+### Saving, privacy and recovery
+
+- Apply changes directly in the existing editor and report the result of exact local persistence. Cloud saving continues through the website’s normal account and ownership checks.
+- Keep identical operation retries idempotent. Undo is available while the course still matches the last MCP edit; manual changes prevent an unsafe rollback.
+- MCP access starts disabled and ends on disconnect, reload or account change. Tools expose current course content and materials, not uploaded files, credentials or conversation history.
+- Retain existing authored courses and saved draft data. Preserve authored material overrides across reload/export and mark linked materials stale after course-map edits.
+
+### Connection support and verification
+
+- This is browser WebMCP for AI hosts that expose page tools. It is not a remote MCP server URL for ordinary ChatGPT connectors; unsupported browsers display an explicit status.
+- Direct tools edit existing text fields. Course creation, lesson insertion/removal and structural edits remain in the website editor.
+- Verify read/edit/save/undo/reload/disconnect through the production browser test, with separate service tests for stale revisions, invalid batches, account changes and registration lifecycle.
+- Keep the complete changelog, including the original v0.20.00 release details. The old authoring UI is retained only in development compatibility fixtures and is absent from the production bundle.
+
 ## 0.20.00 — 2026-09-20
 
 External AI authoring, native WebMCP debugging, durable recovery and complete release history. Product interfaces display v0.20.00; package metadata uses the equivalent canonical SemVer 0.20.0.

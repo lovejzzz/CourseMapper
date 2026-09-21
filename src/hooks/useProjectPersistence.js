@@ -685,6 +685,13 @@ export default function useProjectPersistence({
     [buildCloudProjectSnapshot, buildProjectSnapshot, courseMap, hasGenerated],
   );
 
+  async function saveCurrentProjectNow() {
+    if (!(await saveLocalProjectSnapshot({ projectId: projectIdRef.current }))) return false;
+    await indexedDbSaveQueueRef.current;
+    const receipt = localSaveReceiptRef.current;
+    return !!receipt?.exact && receipt.attemptId === localSaveAttemptIdRef.current;
+  }
+
   async function handleReturnHome() {
     if (!(await saveLocalProjectSnapshot({ projectId: projectIdRef.current }))) return false;
     await indexedDbSaveQueueRef.current;
@@ -1238,6 +1245,7 @@ export default function useProjectPersistence({
     buildProjectSnapshot,
     buildCloudProjectSnapshot,
     saveLocalProjectSnapshot,
+    saveCurrentProjectNow,
     handleReturnHome,
     handleSaveProject,
     handleSaveCurrentAsNew,

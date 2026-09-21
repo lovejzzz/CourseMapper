@@ -2062,7 +2062,7 @@ export default function Changelog() {
             type="button"
             onClick={(event) => {
               event.preventDefault();
-              document.getElementById('release-0.19.99')?.scrollIntoView({ behavior: 'smooth' });
+              document.getElementById(`release-${releases[1]?.version}`)?.scrollIntoView({ behavior: 'smooth' });
             }}
             className="mt-4 inline-block text-sm font-semibold text-indigo-600"
           >

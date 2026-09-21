@@ -1472,6 +1472,61 @@ export const CURRENT_RELEASE_CHANGELOG = {
   ...CURRENT_RELEASE,
   sections: [
     {
+      label: 'Direct course MCP',
+      icon: 'CHECK',
+      color: 'indigo',
+      items: [
+        'Replace the separate AI authoring panel with one MCP access switch for the open browser tab. No teaching request, draft, import or AI identity link is required.',
+        'Expose four browser WebMCP tools: connection status, current course and materials, direct text edits, and undo of the latest MCP edit.',
+        'Show editable field paths to the AI. Validate every change before applying the batch; preserve structural identifiers and reject edits based on an older course revision.',
+      ],
+    },
+    {
+      label: 'Saving, privacy and recovery',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'Apply changes directly in the existing editor and report the result of exact local persistence. Cloud saving continues through the website’s normal account and ownership checks.',
+        'Keep identical operation retries idempotent. Undo is available while the course still matches the last MCP edit; manual changes prevent an unsafe rollback.',
+        'MCP access starts disabled and ends on disconnect, reload or account change. Tools expose current course content and materials, not uploaded files, credentials or conversation history.',
+        'Retain existing authored courses and saved draft data. Preserve authored material overrides across reload/export and mark linked materials stale after course-map edits.',
+      ],
+    },
+    {
+      label: 'Connection support and verification',
+      icon: 'PROOF',
+      color: 'purple',
+      items: [
+        'This is browser WebMCP for AI hosts that expose page tools. It is not a remote MCP server URL for ordinary ChatGPT connectors; unsupported browsers display an explicit status.',
+        'Direct tools edit existing text fields. Course creation, lesson insertion/removal and structural edits remain in the website editor.',
+        'Verify read/edit/save/undo/reload/disconnect through the production browser test, with separate service tests for stale revisions, invalid batches, account changes and registration lifecycle.',
+        'Keep the complete changelog, including the original v0.20.00 release details. The old authoring UI is retained only in development compatibility fixtures and is absent from the production bundle.',
+      ],
+    },
+  ],
+};
+
+const V02000_RELEASE_METADATA = {
+  version: '0.20.00',
+  date: 'September 20, 2026',
+  title: 'External AI Authoring, WebMCP Debugging and Reliable Recovery',
+  landingTitle: `EDUTOOL V0.20.00: Create, Review and Recover`,
+  highlights: [
+    'Create and revise linked lesson plans, assignments and rubrics with external AI; review drafts before applying them to your course.',
+    'Use native WebMCP tools to inspect requests, diagnose content errors and verify repairs, with scoped access and version protection.',
+    'Recover interrupted applications and full-cache saves, keep accounts isolated, and browse the complete release history.',
+  ],
+  landingHighlights: [
+    'Author with external AI, then review and apply.',
+    'Diagnose drafts through native WebMCP tools.',
+    'Recover saved work and browse every release.',
+  ],
+};
+
+const V02000_RELEASE_CHANGELOG = {
+  ...V02000_RELEASE_METADATA,
+  sections: [
+    {
       label: 'External AI authoring',
       icon: 'CHECK',
       color: 'indigo',
@@ -2955,6 +3010,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V02000_RELEASE_CHANGELOG,
   V01999_RELEASE_CHANGELOG,
   V0192_RELEASE_CHANGELOG,
   V0191_RELEASE_CHANGELOG,
