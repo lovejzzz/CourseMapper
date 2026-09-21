@@ -2,9 +2,16 @@
 // Narrow extraction: no inferred prerequisites or question counts from lesson counts.
 export function extractExplicitTeachingRequirements(brief = '') {
   const text = String(brief).replace(/[\u2010-\u2015]/g, '-');
-  const counts = [
-    ...text.matchAll(/\b(\d+)\s*-?\s*question\s+quiz\b|\bquiz(?:zes)?\s+(?:with|of)\s+(\d+)\s+questions\b/gi),
-  ].map((m) => Number(m[1] || m[2]));
+  const numberWords = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10 };
+  const countToken = '(\\d+|one|two|three|four|five|six|seven|eight|nine|ten)';
+  const countPattern = new RegExp(
+    `\\b${countToken}\\s*-?\\s*question\\s+quiz\\b|\\bquiz(?:zes)?\\s+(?:with|of)\\s+${countToken}\\s+questions\\b`,
+    'gi',
+  );
+  const counts = [...text.matchAll(countPattern)].map((match) => {
+    const value = (match[1] || match[2]).toLowerCase();
+    return numberWords[value] ?? Number(value);
+  });
   const uniqueCounts = [...new Set(counts)];
   const questionsPerLesson =
     uniqueCounts.length === 1 && uniqueCounts[0] >= 3 && uniqueCounts[0] <= 8 ? uniqueCounts[0] : null;

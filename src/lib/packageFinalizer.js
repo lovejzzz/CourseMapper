@@ -1,3 +1,4 @@
+import { preserveCheckedCalculationExamples } from './checkedCalculationReview.js';
 import {
   READINESS_FEATURE_LABELS,
   evaluateWorkspaceReadiness,
@@ -891,6 +892,21 @@ function applyDeterministicRepairs({
         label: featureLabel(featureId),
         changes: ['final reader texture normalized'],
         message: `${featureLabel(featureId)} repaired at the final reader-visible boundary`,
+      });
+    }
+  }
+
+  for (const featureId of ['lessonPlans', 'studyGuides']) {
+    const entry = nextDeliverables[featureId];
+    if (!entry?.data) continue;
+    const protectedData = preserveCheckedCalculationExamples(featureId, deliverables[featureId]?.data, entry.data);
+    if (protectedData !== entry.data) {
+      nextDeliverables = { ...nextDeliverables, [featureId]: { ...entry, data: protectedData } };
+      repairs.push({
+        featureId,
+        label: featureLabel(featureId),
+        changes: ['checked example preserved'],
+        message: 'Preserved the checked calculation through cosmetic cleanup.',
       });
     }
   }

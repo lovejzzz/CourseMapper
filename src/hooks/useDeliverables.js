@@ -3264,7 +3264,11 @@ export default function useDeliverables({
         });
         if (shouldStopBlueprintCompiler()) return;
         const admittedCompilerBlueprint = compiled[Symbol.for('coursemapper.blueprintCompileContext')] || blueprint;
-        if (nativeSkeleton && typeof onCourseMapRepair === 'function') {
+        if (
+          (nativeSkeleton ||
+            admittedCompilerBlueprint.lessons?.some((lesson) => lesson.teachingTask?.checkedPractice)) &&
+          typeof onCourseMapRepair === 'function'
+        ) {
           const { projectTeachingTasksIntoCourseMap, mergeGeneratedTaskMap } =
             await import('../lib/compilerTeachingTaskProjection');
           if (shouldStopBlueprintCompiler()) return;

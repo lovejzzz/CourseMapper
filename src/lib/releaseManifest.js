@@ -1472,6 +1472,54 @@ export const CURRENT_RELEASE_CHANGELOG = {
   ...CURRENT_RELEASE,
   sections: [
     {
+      label: 'One rebuildable task',
+      items: [
+        'Bind supported calculation exercises to one shared task identity and input-derived revision. Course maps, syllabus schedules, lesson plans, slides, assignments, rubrics, discussions, quizzes, study guides and FAQs now use that same task.',
+        'Persist the actual exercise inputs and rebuild the calculation after restoring or editing its task record. Reject malformed or unsupported saved inputs instead of silently replacing the task or retaining an old answer.',
+        'Reuse the existing task projection and edit-preservation mechanisms. Keep the worked solution in teacher materials and keep the assignment tied to the matching rubric. Same-case rehearsal is not labeled as independent transfer.',
+      ],
+    },
+    {
+      label: 'Check results, not success flags',
+      items: [
+        'Compare current quiz keys, worked examples, assignment problems and schedule tasks against the rebuilt input record. Surface discrepancies for review while preserving the teacher edit; a task ID or old successful run is not sufficient proof.',
+        'Validate arithmetic with held-out inputs, pairwise variance identities, equation substitution and mechanics identities. Test changed-input propagation across material families and deliberately corrupted answers.',
+        'Keep this boundary explicit: computed consistency does not certify source truth, classroom readiness or learning outcomes. Other subjects still require validated task operations and usable source passages.',
+      ],
+    },
+    {
+      label: 'Bounded mechanics and release history',
+      items: [
+        'Calculate speed, distance and average speed for motion explicitly starting at rest under nonnegative constant acceleration in SI units. Calculate acceleration from explicit mass and net force, with units and assumptions.',
+        'Do not infer missing units, initial conditions or multiple ambiguous numeric inputs. Preserve instructor-owned tasks and source-only constraints.',
+        'Preserve checked examples through language cleanup and synchronize the generated course map without overwriting teacher edits. Honor spelled-out quiz counts such as four-question, while rejecting conflicting counts.',
+        'Retain v0.20.04 and all older release notes. Ordinary course pages continue to hide MCP; developer inspection remains optional.',
+      ],
+    },
+  ],
+};
+
+const V02004_RELEASE_METADATA = {
+  version: '0.20.04',
+  date: 'September 21, 2026',
+  title: 'Ten-Course Audit and Checked Calculations',
+  landingTitle: 'EDUTOOL V0.20.04: Better Inputs, Clearer Answers',
+  highlights: [
+    'Calculate statistics and market exercises from your supplied values.',
+    'Keep named works and language context in source selection.',
+    'Load the local model in multiple tabs without exclusive reader conflicts.',
+  ],
+  landingHighlights: [
+    'Use your actual datasets and equations.',
+    'See worked steps and specific answers.',
+    'Keep source gaps visible for review.',
+  ],
+};
+
+const V02004_RELEASE_CHANGELOG = {
+  ...V02004_RELEASE_METADATA,
+  sections: [
+    {
       label: 'Checked calculations from explicit inputs',
       items: [
         'Use one explicitly supplied numeric dataset to calculate mean, median, range, squared deviations, population variance and sample variance. Preserve repeated observations and calculate the effect of an explicitly supplied outlier.',
@@ -3150,6 +3198,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V02004_RELEASE_CHANGELOG,
   V02003_RELEASE_CHANGELOG,
   V02002_RELEASE_CHANGELOG,
   V02001_RELEASE_CHANGELOG,

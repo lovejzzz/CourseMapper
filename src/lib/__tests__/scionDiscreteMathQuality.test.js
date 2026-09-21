@@ -32,6 +32,14 @@ const make = () =>
 describe('Scion discrete mathematics output regression', () => {
   it('preserves explicit count, prerequisites and minutes without reading course counts as quiz counts', () => {
     expect(extractExplicitTeachingRequirements(brief).questionsPerLesson).toBe(4);
+    expect(extractExplicitTeachingRequirements('Each lesson needs a four-question quiz.').questionsPerLesson).toBe(4);
+    expect(extractExplicitTeachingRequirements('Quizzes with EIGHT questions.').questionsPerLesson).toBe(8);
+    expect(extractExplicitTeachingRequirements('A four-session course and a quiz.').questionsPerLesson).toBeNull();
+    expect(
+      extractExplicitTeachingRequirements('A four-question quiz and a six-question quiz.').questionsPerLesson,
+    ).toBeNull();
+    expect(extractExplicitTeachingRequirements('A ten-question quiz.').questionsPerLesson).toBeNull();
+
     expect(extractExplicitTeachingRequirements('A 4-session course and a quiz.').questionsPerLesson).toBeNull();
     expect(
       extractExplicitTeachingRequirements('A 4-question quiz and a 6-question quiz.').questionsPerLesson,

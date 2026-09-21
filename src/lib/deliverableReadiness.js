@@ -1,3 +1,4 @@
+import { reviewCheckedCalculations } from './checkedCalculationReview.js';
 import { checkReviewedPracticeCount } from './reviewedPracticeCount.js';
 import { classifyAssessmentKind } from './courseGraph/deriveFromCourseMap.js';
 import { readTeachingGoalReviews } from './teachingGoalReview.js';
@@ -2860,6 +2861,10 @@ export function evaluateWorkspaceReadiness({
             `${unresolved.length} question${unresolved.length === 1 ? ' needs' : 's need'} a specific instructor-reviewed answer. Source statements and general scoring guidance do not establish a complete reference response.`,
           ),
         );
+    }
+
+    for (const message of reviewCheckedCalculations(featureId, scopedData)) {
+      issues.push(makeIssue(READINESS_WARNING, featureId, message));
     }
 
     checkPublishabilityPlaceholders(featureId, scopedData, issues);

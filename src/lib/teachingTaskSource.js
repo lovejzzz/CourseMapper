@@ -1,3 +1,4 @@
+import { buildCheckedCalculationTask } from './checkedCalculationTask.js';
 import { buildSharedTeachingTask } from './compilerTeachingTask.js';
 import { TEACHING_TASK_SOURCE_VERSION, validTeachingTaskSource } from './teachingTaskSourceSchema.js';
 export { TEACHING_TASK_SOURCE_VERSION, validTeachingTaskSource } from './teachingTaskSourceSchema.js';
@@ -36,17 +37,27 @@ export function rebuildTeachingTaskSource(
   { legacyOperationPresentation = false } = {},
 ) {
   if (!validTeachingTaskSource(source)) return null;
-  const task = buildSharedTeachingTask({
-    lessonId: source.identityKey || source.lessonId,
-    objective,
-    claims: source.inputs.map((input) => input.text),
-    admitted: true,
-    sessionMinutes: source.sessionMinutes,
-    practiceMinutes: source.practiceMinutes,
-    sourceInputs: source.inputs,
-    ...(source.operationPlan !== undefined ? { operationPlan: source.operationPlan } : {}),
-    legacyOperationPresentation,
-  });
+  const task = source.kind?.startsWith('checked-calculation:')
+    ? source.inputs.length === 1
+      ? buildCheckedCalculationTask({
+          lessonId: source.identityKey || source.lessonId,
+          title: source.title,
+          brief: source.inputs[0].text,
+          sessionMinutes: source.sessionMinutes,
+          practiceMinutes: source.practiceMinutes,
+        })
+      : null
+    : buildSharedTeachingTask({
+        lessonId: source.identityKey || source.lessonId,
+        objective,
+        claims: source.inputs.map((input) => input.text),
+        admitted: true,
+        sessionMinutes: source.sessionMinutes,
+        practiceMinutes: source.practiceMinutes,
+        sourceInputs: source.inputs,
+        ...(source.operationPlan !== undefined ? { operationPlan: source.operationPlan } : {}),
+        legacyOperationPresentation,
+      });
   // An edit cannot silently turn a calculation into a different assessment.
   if (!task || task.kind !== source.kind || task.id !== source.id) return null;
   return task;
