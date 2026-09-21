@@ -1472,6 +1472,61 @@ export const CURRENT_RELEASE_CHANGELOG = {
   ...CURRENT_RELEASE,
   sections: [
     {
+      label: 'MCP output diagnostics',
+      icon: 'CHECK',
+      color: 'indigo',
+      items: [
+        'Replace the separate AI authoring panel with a single opt-in connection for inspecting generated course output.',
+        'Expose three read-only browser WebMCP tools: connection status, output diagnostics and paginated course/material reads. No course-edit tool is exposed.',
+        'Diagnostics identify instruction-only practice cases and questions awaiting specific reference answers, with paths back to the actual quiz and recorded generation signals.',
+      ],
+    },
+    {
+      label: 'Quiz substance and answer quality',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'For source-recovery lessons explicitly covering two-valued propositional logic, generate concrete truth-table exercises with exhaustive answer checks, unique options and row-by-row explanations.',
+        'Keep this fallback narrowly scoped: it assesses connective calculations, not complete mastery of proofs, circuits or other mathematics topics. Existing complete authored question sets remain preferred.',
+        'Mark constructed-response fallbacks and generic kernel-evidence responses as requiring reference-answer review instead of presenting scoring instructions as solved answers.',
+        'Deep grader 1.16.6 flags quiz cases consisting only of objectives, evidence requirements, decision boundaries and required products as P1 substance findings; curriculum-design tasks are exempt.',
+      ],
+    },
+    {
+      label: 'Access, history and verification boundaries',
+      icon: 'PROOF',
+      color: 'purple',
+      items: [
+        'Access starts disabled and ends on disconnect, reload or account change. Reads exclude raw attachments, credentials and conversation history; continued pages can require an unchanged revision.',
+        'This is browser WebMCP for supported AI browser hosts, not a remote MCP server URL for ordinary ChatGPT connectors.',
+        'Preserve saved courses, stored drafts and the complete changelog, including v0.20.00. The old authoring panel is absent from production and retained only for development compatibility.',
+        'Validate against saved real Discrete Mathematics generation inputs and automated regression tests. Compiler replay is not fresh model inference; remaining source and answer gaps are still reported, and an empty diagnostic result is not a teaching-quality certificate.',
+      ],
+    },
+  ],
+};
+
+const V02000_RELEASE_METADATA = {
+  version: '0.20.00',
+  date: 'September 20, 2026',
+  title: 'External AI Authoring, WebMCP Debugging and Reliable Recovery',
+  landingTitle: `EDUTOOL V0.20.00: Create, Review and Recover`,
+  highlights: [
+    'Create and revise linked lesson plans, assignments and rubrics with external AI; review drafts before applying them to your course.',
+    'Use native WebMCP tools to inspect requests, diagnose content errors and verify repairs, with scoped access and version protection.',
+    'Recover interrupted applications and full-cache saves, keep accounts isolated, and browse the complete release history.',
+  ],
+  landingHighlights: [
+    'Author with external AI, then review and apply.',
+    'Diagnose drafts through native WebMCP tools.',
+    'Recover saved work and browse every release.',
+  ],
+};
+
+const V02000_RELEASE_CHANGELOG = {
+  ...V02000_RELEASE_METADATA,
+  sections: [
+    {
       label: 'External AI authoring',
       icon: 'CHECK',
       color: 'indigo',
@@ -2955,6 +3010,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V02000_RELEASE_CHANGELOG,
   V01999_RELEASE_CHANGELOG,
   V0192_RELEASE_CHANGELOG,
   V0191_RELEASE_CHANGELOG,

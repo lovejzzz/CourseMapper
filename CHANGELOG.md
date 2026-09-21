@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.20.01 — 2026-09-20
+
+Use MCP to diagnose actual output and improve website generation, with no separate AI authoring workflow.
+
+### MCP output diagnostics
+
+- Replace the separate AI authoring panel with a single opt-in connection for inspecting generated course output.
+- Expose three read-only browser WebMCP tools: connection status, output diagnostics and paginated course/material reads. No course-edit tool is exposed.
+- Diagnostics identify instruction-only practice cases and questions awaiting specific reference answers, with paths back to the actual quiz and recorded generation signals.
+
+### Quiz substance and answer quality
+
+- For source-recovery lessons explicitly covering two-valued propositional logic, generate concrete truth-table exercises with exhaustive answer checks, unique options and row-by-row explanations.
+- Keep this fallback narrowly scoped: it assesses connective calculations, not complete mastery of proofs, circuits or other mathematics topics. Existing complete authored question sets remain preferred.
+- Mark constructed-response fallbacks and generic kernel-evidence responses as requiring reference-answer review instead of presenting scoring instructions as solved answers.
+- Deep grader 1.16.6 flags quiz cases consisting only of objectives, evidence requirements, decision boundaries and required products as P1 substance findings; curriculum-design tasks are exempt.
+
+### Access, history and verification boundaries
+
+- Access starts disabled and ends on disconnect, reload or account change. Reads exclude raw attachments, credentials and conversation history; continued pages can require an unchanged revision.
+- This is browser WebMCP for supported AI browser hosts, not a remote MCP server URL for ordinary ChatGPT connectors.
+- Preserve saved courses, stored drafts and the complete changelog, including v0.20.00. The old authoring panel is absent from production and retained only for development compatibility.
+- Validate against saved real Discrete Mathematics generation inputs and automated regression tests. Compiler replay is not fresh model inference; remaining source and answer gaps are still reported, and an empty diagnostic result is not a teaching-quality certificate.
+
 ## 0.20.00 — 2026-09-20
 
 External AI authoring, native WebMCP debugging, durable recovery and complete release history. Product interfaces display v0.20.00; package metadata uses the equivalent canonical SemVer 0.20.0.

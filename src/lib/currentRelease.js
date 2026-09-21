@@ -1,19 +1,17 @@
 import { APP_VERSION } from './appVersion.js';
-
-/** Current copy stays small; prior release details load with the changelog. */
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'September 20, 2026',
-  title: 'External AI Authoring, WebMCP Debugging and Reliable Recovery',
-  landingTitle: `EDUTOOL V${APP_VERSION}: Create, Review and Recover`,
+  title: 'Output Diagnostics and Verified Logic Practice',
+  landingTitle: 'EDUTOOL V0.20.01: Inspect and Improve Output',
   highlights: [
-    'Create and revise linked lesson plans, assignments and rubrics with external AI; review drafts before applying them to your course.',
-    'Use native WebMCP tools to inspect requests, diagnose content errors and verify repairs, with scoped access and version protection.',
-    'Recover interrupted applications and full-cache saves, keep accounts isolated, and browse the complete release history.',
+    'Inspect generated course materials through read-only browser MCP.',
+    'Generate concrete, answer-checked propositional logic practice when source recovery is needed.',
+    'Expose incomplete reference answers and instruction-only quiz cases while preserving release history.',
   ],
   landingHighlights: [
-    'Author with external AI, then review and apply.',
-    'Diagnose drafts through native WebMCP tools.',
-    'Recover saved work and browse every release.',
+    'Inspect actual AI output with MCP.',
+    'Practice logic with computed answer keys.',
+    'See output gaps before classroom use.',
   ],
 };

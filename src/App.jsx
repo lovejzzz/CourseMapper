@@ -14,7 +14,10 @@ import useScionRuntimeStatus from './hooks/useScionRuntimeStatus';
 const Landing = lazy(() => import('./screens/Landing'));
 const loadAppFlow = () => import('./AppFlow');
 const AppFlow = lazy(loadAppFlow);
-const AuthoringPanel = lazy(() => import('./components/authoring/AuthoringPanel'));
+const AuthoringPanel = import.meta.env.DEV ? lazy(() => import('./components/authoring/AuthoringPanel')) : null;
+const CourseMcpPanel = lazy(() => import('./components/CourseMcpPanel'));
+// Archived UI exists only in development compatibility tests, never in the production bundle.
+const legacyAuthoring = import.meta.env.DEV && new URLSearchParams(location.search).has('authoring');
 
 import { setAuthoringExecutionMode } from './lib/authoring/inferencePolicy';
 const ProjectPicker = lazy(() => import('./components/ProjectPicker'));
@@ -54,7 +57,7 @@ export default function App() {
   const { files, promptText, setPromptText, resetGeneratedProjectState, courseMap } = useCourse();
   const { provider, apiKey, apiStatus, modelId } = useAIConfig();
   useEffect(() => {
-    if (courseMap?.authoringV2) setAuthoringExecutionMode('external-agent');
+    setAuthoringExecutionMode(legacyAuthoring && courseMap?.authoringV2 ? 'external-agent' : 'site-model');
   }, [courseMap?.authoringV2]);
   const scionEnabled = provider === PUBLIC_SCION_PROVIDER_ID;
   const scionRuntimeStatus = useScionRuntimeStatus(scionEnabled);
@@ -170,7 +173,7 @@ export default function App() {
     setHasSavedSession(false);
   }, [resetGeneratedProjectState]);
 
-  const authoringPanel = (
+  const authoringPanel = legacyAuthoring ? (
     <Suspense key="authoring-panel" fallback={null}>
       <AuthoringPanel
         workspace={authoringWorkspace}
@@ -193,6 +196,10 @@ export default function App() {
           }
         }}
       />
+    </Suspense>
+  ) : (
+    <Suspense key="course-mcp" fallback={null}>
+      <CourseMcpPanel workspace={authoringWorkspace} />
     </Suspense>
   );
 

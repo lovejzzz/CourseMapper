@@ -1,3 +1,4 @@
+import { buildVerifiedLogicQuizAtoms } from './propositionalLogicQuiz.js';
 import { selectCodingPracticeInputs } from './codingPractice.js';
 import { annotatePracticeCaseExposure } from './practiceCaseExposure.js';
 import { sourceCourseGradeWeight } from './courseGradeWeight.js';
@@ -20486,6 +20487,8 @@ function buildMultipleChoiceQuestion({
           authoredDistractorCount,
           fallback: 'constructed-response',
         },
+        // Converting a keyed choice into an analysis prompt does not solve that prompt.
+        sourceReviewRequired: true,
       },
       plan,
     );
@@ -20974,7 +20977,11 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
   const hasCompleteAuthoredMc = (lesson?.enrichment?.quizItems || []).some(
     (item) => item?.extension !== true && enrichedItemIsCompleteMC(item),
   );
-  const atoms = useVerifiedMusicIntervalFrame
+  const verifiedLogicAtoms =
+    !hasCompleteAuthoredMc && lessonNeedsSourceBoundRecovery(lesson, blueprint)
+      ? buildVerifiedLogicQuizAtoms(lesson, quizPlan, targetCount)
+      : null;
+  let atoms = useVerifiedMusicIntervalFrame
     ? buildMusicTheoryFallbackQuizAtoms(lesson, quizPlan, quizTags)
     : lessonNeedsSourceBoundRecovery(lesson, blueprint) && !hasCompleteAuthoredMc
       ? buildSourceBoundRecoveryQuizAtoms({
@@ -21162,6 +21169,7 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
               includeMisconception: false,
             }),
           ];
+  if (verifiedLogicAtoms) atoms = verifiedLogicAtoms;
   const framed = atoms.slice(0, targetCount).map((atom, index) => ({ ...atom, id: quizQuestionId(lesson, index) }));
   // v0.14.1 (5.4) Bloom honesty: the tag follows the stem verb of the FINAL
   // question text (after any enrichment overlay), not the frame's planned
@@ -22193,6 +22201,8 @@ function buildExamDefinitionItem({
           authoredDistractorCount: Math.max(0, distractors.length),
           fallback: 'constructed-response',
         },
+        // Converting a keyed choice into an analysis prompt does not solve that prompt.
+        sourceReviewRequired: true,
         tags: unique(['exam', 'definition', concept, lessonFocus, 'short answer'], 7),
       },
       plan,
@@ -22305,6 +22315,8 @@ function buildExamFactItem({
           authoredDistractorCount: Math.max(0, unique([...ownClaims, ...otherClaims], 6).length),
           fallback: 'constructed-response',
         },
+        // Converting a keyed choice into an analysis prompt does not solve that prompt.
+        sourceReviewRequired: true,
         tags: unique(['exam', 'fact check', concept, lessonFocus, 'short answer'], 7),
       },
       plan,
@@ -22493,6 +22505,7 @@ function buildAdmittedKernelEvidenceItem({ lesson, blueprint, quizPlan, index, o
       scoringGuidance,
       tags: unique(['quiz', 'short answer', concept, 'source evidence', 'claim boundary'], 8),
       enrichmentSource: 'admitted-kernel-assessment',
+      sourceReviewRequired: true,
     },
     {
       ...plan,
@@ -22826,6 +22839,8 @@ function buildExamMisconceptionItem({ lesson, covered, coveredIndex, index, obje
           authoredDistractorCount: Math.max(0, unique([endorsement, ...otherClaims], 6).length),
           fallback: 'constructed-response',
         },
+        // Converting a keyed choice into an analysis prompt does not solve that prompt.
+        sourceReviewRequired: true,
         tags: unique(['exam', 'misconception', concept, lessonFocus, 'short answer'], 7),
       },
       plan,

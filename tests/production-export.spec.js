@@ -166,20 +166,93 @@ test('release page preserves latest details and the complete historical changelo
   const errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
-  await expect(page.getByRole('link', { name: 'v0.20.00', exact: true })).toBeVisible();
-  await page.getByRole('link', { name: 'v0.20.00', exact: true }).click();
+  await expect(page.getByRole('link', { name: 'v0.20.01', exact: true })).toBeVisible();
+  await page.getByRole('link', { name: 'v0.20.01', exact: true }).click();
   await expect(page).toHaveURL(/#\/changelog$/);
-  await expect(page.locator('[id="release-0.20.00"]')).toContainText('WebMCP diagnostics and controlled repair');
-  await expect(page.locator('[id="release-0.20.00"]')).toContainText('Reliable saving and recovery');
+  await expect(page.locator('[id="release-0.20.01"]')).toContainText('MCP output diagnostics');
+  await expect(page.locator('[id="release-0.20.01"]')).toContainText('Quiz substance and answer quality');
   await page.getByRole('button', { name: 'Browse previous releases' }).click();
-  await expect(page.locator('[id="release-0.19.99"]')).toBeInViewport();
+  await expect(page.locator('[id="release-0.20.00"]')).toBeInViewport();
   await expect(page.locator('[id="release-0.19.99"]')).toContainText('Linked Materials, Reliable Revisions');
   await expect(page.locator('[id="release-0.19.2"]')).toHaveCount(1);
   await expect(page.locator('[id="release-0.15.3"]')).toHaveCount(1);
   await page.reload();
-  await expect(page.locator('[id="release-0.20.00"]')).toHaveCount(1);
+  await expect(page.locator('[id="release-0.20.01"]')).toHaveCount(1);
   await expect(page.locator('[id="release-0.19.99"]')).toHaveCount(1);
   const response = await page.request.get('/release.json');
-  expect(await response.json()).toMatchObject({ version: '0.20.0', displayVersion: '0.20.00' });
+  expect(await response.json()).toMatchObject({ version: '0.20.1', displayVersion: '0.20.01' });
+  expect(errors).toEqual([]);
+});
+
+test('read-only MCP inspects output without authoring requests or course mutation and revokes on reload', async ({
+  page,
+}) => {
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.addInitScript(() => {
+    const tools = new Map();
+    window.courseMcpTestTools = tools;
+    Object.defineProperty(document, 'modelContext', {
+      configurable: true,
+      value: {
+        registerTool: (tool) => tools.set(tool.name, tool),
+        unregisterTool: (name) => tools.delete(name),
+      },
+    });
+    if (!localStorage.getItem('coursemapper-project'))
+      localStorage.setItem(
+        'coursemapper-project',
+        JSON.stringify({
+          formatVersion: 1,
+          hasGenerated: true,
+          provider: 'public',
+          modelId: 'scion-public',
+          courseMap: {
+            courseName: 'Direct MCP test',
+            lessons: [
+              {
+                id: 'mcp-lesson',
+                title: 'Original lesson',
+                sections: [
+                  { topicSection: 'Topic', learningGoals: 'Original goal', learningObjectives: 'Original goal' },
+                ],
+              },
+            ],
+          },
+          selectedFeatures: ['courseMap'],
+          deliverables: {},
+          activeTab: 'courseMap',
+          userEdits: [],
+          chatHistory: [],
+          fileNames: [],
+          versionHistory: [],
+        }),
+      );
+  });
+  await page.goto('/');
+  await expect(page.getByRole('button', { name: 'AI authoring', exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Resume', exact: true }).click();
+  await page.getByRole('button', { name: 'MCP', exact: true }).click();
+  const access = page.getByLabel('Allow MCP to inspect generated output in this tab');
+  await access.check();
+  const call = (name, args = {}) =>
+    page.evaluate(({ name, args }) => window.courseMcpTestTools.get(name).execute(args), { name, args });
+  const read = await call('cm_course_read');
+  expect(read.ok).toBe(true);
+  expect(JSON.parse(read.data.text).courseName).toBe('Direct MCP test');
+  const diagnostics = await call('cm_course_diagnostics');
+  expect(diagnostics.data.paths).toContain('/courseMap');
+  expect(diagnostics.data.lessonCount).toBe(1);
+  expect(await page.evaluate(() => [...window.courseMcpTestTools.keys()].sort())).toEqual([
+    'cm_course_diagnostics',
+    'cm_course_read',
+    'cm_course_status',
+  ]);
+  await access.uncheck();
+  expect((await call('cm_course_read')).error.code).toBe('ACCESS_REQUIRED');
+  await page.reload();
+  await page.getByRole('button', { name: 'Resume', exact: true }).click();
+  await expect(page.getByText('Original lesson', { exact: true }).first()).toBeVisible();
+  expect((await call('cm_course_read')).error.code).toBe('ACCESS_REQUIRED');
   expect(errors).toEqual([]);
 });

@@ -55,6 +55,7 @@
  */
 
 import JSZip from 'jszip';
+import { checkMetadataOnlyQuizPractice } from './practiceRecordSubstance.js';
 
 import {
   ARTIFACT_PATTERNS,
@@ -4063,6 +4064,7 @@ export async function grade({
   checkCitations(findings, pkg, course);
   checkPromptArtifactContamination(findings, pkg, course);
   checkKnownOffenderTeachingContent(findings, pkg, course);
+  checkMetadataOnlyQuizPractice(findings, pkg, course);
   checkReviewOnlySourceTeachingContent(findings, pkg, course);
   checkCourseFaqAnswerResidue(findings, pkg);
   checkSubstance(findings, pkg, course);
