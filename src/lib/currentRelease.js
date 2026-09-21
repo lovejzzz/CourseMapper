@@ -1,17 +1,17 @@
 import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
-  date: 'September 20, 2026',
-  title: 'Concrete Mathematics and Preserved Requirements',
-  landingTitle: 'EDUTOOL V0.20.03: Clearer Mathematical Practice',
+  date: 'September 21, 2026',
+  title: 'Ten-Course Audit and Checked Calculations',
+  landingTitle: 'EDUTOOL V0.20.04: Better Inputs, Clearer Answers',
   highlights: [
-    'Keep requested quiz counts and stated prerequisites.',
-    'Teach with explicit examples, calculated function answers and complete induction steps.',
-    'Preserve course requirements and release history.',
+    'Calculate statistics and market exercises from your supplied values.',
+    'Keep named works and language context in source selection.',
+    'Load the local model in multiple tabs without exclusive reader conflicts.',
   ],
   landingHighlights: [
-    'Practice with concrete mathematical inputs.',
-    'See worked reasoning and specific answers.',
-    'Review and export your course materials.',
+    'Use your actual datasets and equations.',
+    'See worked steps and specific answers.',
+    'Keep source gaps visible for review.',
   ],
 };

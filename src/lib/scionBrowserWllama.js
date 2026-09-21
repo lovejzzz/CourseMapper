@@ -140,6 +140,15 @@ function forwardAbort(sourceSignal, targetController) {
 
 export function classifyScionBrowserModelLoadError(error) {
   const detail = diagnosticMessage(error);
+  if (/createSyncAccessHandle|another open Access Handle|NoModificationAllowedError/i.test(detail)) {
+    return {
+      code: 'SCION_WLLAMA_CACHE_BUSY',
+      kind: 'cache-busy',
+      clearCache: false,
+      message:
+        'Another tab is using an older Scion model reader or updating the local model. Finish that build, reload that tab, then retry here. Your course and model download are preserved.',
+    };
+  }
   if (SCION_MODEL_STORAGE_ERROR_RE.test(detail)) {
     return {
       code: 'SCION_WLLAMA_STORAGE_FULL',

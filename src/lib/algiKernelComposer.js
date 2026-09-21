@@ -1,3 +1,4 @@
+import { sourceMatchesCourseScope } from './courseSourceScope.js';
 // Algi V0 lesson-kernel composition — retrieval where Scion uses recall.
 //
 // The compact kernel contract asks for facts, three key terms with
@@ -1686,6 +1687,7 @@ export function composeResearchLedgerOnlyPayload(
   const topic = lessonTopic(lesson);
   const evidenceKernels = (Array.isArray(kernels) ? kernels : []).filter(Boolean).filter((kernel) => {
     if (kernel?.provenance?.origin !== 'algi-research') return false;
+    if (!kernelMatchesCourseScope(kernel, lesson)) return false;
     const sourceTopic = String(kernel?.provenance?.topic || '').trim();
     const boundedLessonScope = String(kernel?.provenance?.research?.lessonScopeTopic || '').trim();
     const boundedQuestion =
@@ -1778,6 +1780,15 @@ export function composeResearchLedgerOnlyPayload(
   };
 }
 
+function kernelMatchesCourseScope(kernel, lesson) {
+  return sourceMatchesCourseScope(
+    lesson?.requiredCourseName,
+    [kernel?.provenance?.title, kernel?.provenance?.sourceUrl, kernel?.term, sentenceOf(kernel?.definition)]
+      .filter(Boolean)
+      .join(' '),
+  );
+}
+
 /** Compose one lesson payload from an explicit kernel set. */
 export function composeLessonFromKernels(
   lesson,
@@ -1789,6 +1800,8 @@ export function composeLessonFromKernels(
     return null;
   };
   if (!Array.isArray(kernels) || kernels.length === 0) return decline('no-kernels');
+  kernels = kernels.filter((kernel) => kernelMatchesCourseScope(kernel, lesson));
+  if (!kernels.length) return decline('course-source-scope');
   const keyTerms = [];
   const selectedKernels = [];
   const integrativeLesson = isIntegrativeLesson(lesson);
@@ -2830,7 +2843,12 @@ export async function composeAlgiLessonKernels({
   now = Date.now(),
   signal,
 } = {}) {
-  const lessons = Array.isArray(structuredPrompt?.lessons) ? structuredPrompt.lessons : [];
+  const requiredCourseName = String(
+    structuredPrompt?.courseTitle || structuredPrompt?.courseName || courseContextInput || '',
+  );
+  const lessons = Array.isArray(structuredPrompt?.lessons)
+    ? structuredPrompt.lessons.map((lesson) => ({ ...lesson, requiredCourseName }))
+    : [];
   if (lessons.length === 0) return { text: '', covered: 0, requested: 0, uncovered: [] };
   // Source-authority admission is stricter than structural completeness. A
   // lesson that failed that contract must be allowed to ask fresh questions

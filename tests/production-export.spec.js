@@ -166,21 +166,21 @@ test('release page preserves latest details and the complete historical changelo
   const errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
-  await expect(page.getByRole('link', { name: 'v0.20.03', exact: true })).toBeVisible();
-  await page.getByRole('link', { name: 'v0.20.03', exact: true }).click();
+  await expect(page.getByRole('link', { name: 'v0.20.04', exact: true })).toBeVisible();
+  await page.getByRole('link', { name: 'v0.20.04', exact: true }).click();
   await expect(page).toHaveURL(/#\/changelog$/);
-  await expect(page.locator('[id="release-0.20.03"]')).toContainText('Explicit course requirements');
-  await expect(page.locator('[id="release-0.20.03"]')).toContainText('Ordinary course pages continue to hide MCP');
+  await expect(page.locator('[id="release-0.20.04"]')).toContainText('Checked calculations from explicit inputs');
+  await expect(page.locator('[id="release-0.20.04"]')).toContainText('Ordinary course pages continue to hide MCP');
   await page.getByRole('button', { name: 'Browse previous releases' }).click();
-  await expect(page.locator('[id="release-0.20.02"]')).toBeInViewport();
+  await expect(page.locator('[id="release-0.20.03"]')).toBeInViewport();
   await expect(page.locator('[id="release-0.19.99"]')).toContainText('Linked Materials, Reliable Revisions');
   await expect(page.locator('[id="release-0.19.2"]')).toHaveCount(1);
   await expect(page.locator('[id="release-0.15.3"]')).toHaveCount(1);
   await page.reload();
-  await expect(page.locator('[id="release-0.20.03"]')).toHaveCount(1);
+  await expect(page.locator('[id="release-0.20.04"]')).toHaveCount(1);
   await expect(page.locator('[id="release-0.19.99"]')).toHaveCount(1);
   const response = await page.request.get('/release.json');
-  expect(await response.json()).toMatchObject({ version: '0.20.3', displayVersion: '0.20.03' });
+  expect(await response.json()).toMatchObject({ version: '0.20.4', displayVersion: '0.20.04' });
   expect(errors).toEqual([]);
 });
 

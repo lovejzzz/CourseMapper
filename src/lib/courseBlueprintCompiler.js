@@ -1,3 +1,8 @@
+import {
+  buildVerifiedQuantitativePractice,
+  buildVerifiedQuantitativeQuiz,
+  projectVerifiedQuantitativePractice,
+} from './verifiedQuantitativePractice.js';
 import { requiresInstructorSourcesOnly } from './sourceBriefConstraints.js';
 import {
   buildVerifiedDiscreteMathPractice,
@@ -12868,6 +12873,14 @@ function prepareBlueprintForCompilation(blueprint = {}, options = {}) {
     return {
       ...lesson,
       verifiedMathPractice,
+      verifiedQuantitativePractice:
+        !requiresInstructorSourcesOnly(prepared.explicitTeachingRequirements?.sourceBrief) &&
+        !teachingTask &&
+        !instructorFacts.length &&
+        !completeExample &&
+        !authoredAssignment
+          ? buildVerifiedQuantitativePractice(lesson, prepared.explicitTeachingRequirements?.sourceBrief || '')
+          : null,
       teachingTask,
       // The saved program owns whether this is the main task or practice.
       // Enrichment can supply other content, but cannot silently change that role.
@@ -20971,6 +20984,8 @@ function buildSourceBoundRecoveryQuizAtoms({ lesson, blueprint, quizPlan, concep
 // calculable, and can be assessed without inventing a source or citation.
 // Authored kernel items still overlay these frames later in the normal path.
 export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
+  const quantitativeQuiz = buildVerifiedQuantitativeQuiz(lesson, resolveQuizQuestionTarget(options.questionsPerLesson));
+  if (quantitativeQuiz) return quantitativeQuiz;
   const verifiedMathQuiz = buildVerifiedDiscreteMathQuiz(lesson, resolveQuizQuestionTarget(options.questionsPerLesson));
   if (verifiedMathQuiz) return verifiedMathQuiz;
   const lens = blueprintLens(blueprint);
@@ -28870,13 +28885,20 @@ export function compileBlueprintDeliverable(featureId, blueprint, options = {}) 
     options,
   );
   if (!compiled) return compiled;
-  if (options.skipLanguageFinalizer) return projectVerifiedMathPractice(featureId, compiled, featureBlueprint);
+  if (options.skipLanguageFinalizer)
+    return projectVerifiedQuantitativePractice(
+      featureId,
+      projectVerifiedMathPractice(featureId, compiled, featureBlueprint),
+      featureBlueprint,
+    );
   const finalized = projectVerifiedMathPractice(
     featureId,
     finalizeCompiledDeliverableLanguage(featureId, compiled, featureBlueprint),
     featureBlueprint,
   );
-  const sanitized = featureId === 'lessonPlans' ? sanitizeCompiledLessonPlans(finalized, featureBlueprint) : finalized;
+  const quantitative = projectVerifiedQuantitativePractice(featureId, finalized, featureBlueprint);
+  const sanitized =
+    featureId === 'lessonPlans' ? sanitizeCompiledLessonPlans(quantitative, featureBlueprint) : quantitative;
   // Prose cleanup must never rewrite executable code, whitespace or fixture
   // bindings. Restore the bounded coding projections after language cleanup.
   const codingTaskIds = featureBlueprint.lessons

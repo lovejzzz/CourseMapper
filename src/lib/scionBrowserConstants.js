@@ -1,7 +1,7 @@
 export const SCION_BROWSER_MAX_NEW_TOKENS = 4096;
 
 export const SCION_BROWSER_WLLAMA_RUNTIME_ID = 'scion-wllama-webgpu-jspi-v1';
-export const SCION_BROWSER_WLLAMA_MODULE_PATH = '/scion/runtime/v3/wllama.js';
+export const SCION_BROWSER_WLLAMA_MODULE_PATH = '/scion/runtime/v4/wllama.js';
 export const SCION_BROWSER_WLLAMA_WASM_PATH = '/scion/runtime/v3/jspi-single-thread/wllama.wasm';
 
 export const SCION_BROWSER_GEMMA4_GGUF = Object.freeze({
@@ -56,7 +56,7 @@ export const SCION_BROWSER_GEMMA4_GGUF = Object.freeze({
   runtime: Object.freeze({
     id: SCION_BROWSER_WLLAMA_RUNTIME_ID,
     modulePath: SCION_BROWSER_WLLAMA_MODULE_PATH,
-    moduleSha256: '92afaea4ca9feefece8790fa32f3b96775d430f7341a8d89e550de368af40bdb',
+    moduleSha256: 'df73574273c575707b9efec49d7b1057757c0b989db7f0dc76aa35f74758bca1',
     wasmPath: SCION_BROWSER_WLLAMA_WASM_PATH,
     wasmSha256: 'ccb4ffaada3561b60275f652f5067946ed019728d589eaa24604a67d7c207848',
     grammar: 'gbnf-state-v1',

@@ -1,3 +1,4 @@
+import { requiredCourseSourceScope } from './courseSourceScope.js';
 // Scion's private evidence prepass.
 //
 // This reuses the strongest source-consolidation machinery developed behind
@@ -1579,7 +1580,13 @@ export function buildScionEvidenceLessonPrompt(courseMap = {}, lessonIndex = 0, 
   const plannedObjectives = Array.isArray(instructionalIntent?.targetObjectives)
     ? instructionalIntent.targetObjectives.map(clean).filter(Boolean)
     : [];
+  const courseScope = requiredCourseSourceScope(courseMap.courseName);
   const evidenceIntent = [
+    ...(courseScope
+      ? [
+          `Required ${courseScope.kind}: ${courseScope.label}. A generic source about the lesson title does not satisfy this scope.`,
+        ]
+      : []),
     clean(instructionalIntent?.expectedEvidence?.evidenceRequirement),
     clean(instructionalIntent?.learnerAction),
     ...(Array.isArray(instructionalIntent?.expectedEvidence?.successCriteria)
@@ -1598,6 +1605,7 @@ export function buildScionEvidenceLessonPrompt(courseMap = {}, lessonIndex = 0, 
     title: clean(lesson.title) || `Lesson ${lessonIndex + 1}`,
     topics: [
       ...new Set([
+        ...(courseScope ? [courseScope.label] : []),
         ...plannedFocusConcepts,
         ...columnValues('topicSection'),
         ...(instructionalIntent ? [] : columnValues('learningGoals')),
