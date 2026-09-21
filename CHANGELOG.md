@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.20.02 — 2026-09-20
+
+### Course quality without setup
+
+- Remove the MCP button and permission panel from normal landing and course pages. Generating and editing courses requires no MCP setup.
+- Retain read-only output inspection at the explicit developer entry ?debug=output, with per-tab opt-in and disconnect, reload and account-change revocation. Normal pages register no MCP tools.
+- Keep verified logic practice, incomplete-answer warnings and export substance checks active in normal generation. These improvements do not depend on enabling diagnostics.
+- Retain v0.20.01 and all earlier changelog entries. This interface change makes no additional claim of model or course-quality improvement.
+
 ## 0.20.01 — 2026-09-20
 
 Use MCP to diagnose actual output and improve website generation, with no separate AI authoring workflow.
