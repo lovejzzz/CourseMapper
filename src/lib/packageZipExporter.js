@@ -1,3 +1,4 @@
+import { extractExplicitTeachingRequirements } from './explicitTeachingRequirements.js';
 import { sourceCourseGradeWeight } from './courseGradeWeight.js';
 import { buildReadinessReport, scopeCourseMapToLessons, scopeDeliverableDataToLessons } from './deliverableReadiness';
 import { assertOfficeExportHasNoInternalText, sanitizeInternalExportLanguage } from './exportTextInspector';
@@ -2988,7 +2989,9 @@ export async function buildCourseMaterialsZip({
             }
           : {}),
         ...(briefQualityContract ? { briefQualityContract } : {}),
-        ...(sourceBriefBinding ? { sourceBriefBinding } : {}),
+        ...(sourceBriefBinding
+          ? { sourceBriefBinding, explicitTeachingRequirements: extractExplicitTeachingRequirements(sourceBriefText) }
+          : {}),
       };
       return Object.keys(constraints).length > 0 ? constraints : null;
     })(),

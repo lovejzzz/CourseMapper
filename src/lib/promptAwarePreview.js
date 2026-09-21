@@ -57,6 +57,11 @@ export function derivePromptPreviewTitle(promptText) {
   );
   if (leadingTitleSentence?.[1]) return removeBriefQualifiers(leadingTitleSentence[1]);
 
+  const titleBeforeCountedBrief = text.match(
+    /^(.{4,90}?)\s+[—–-]\s+(?:an?\s+)?(?:one|two|three|four|five|six|seven|eight|nine|ten|\d+)[-\s]+(?:sessions?|lessons?|weeks?|modules?)\b/i,
+  );
+  if (titleBeforeCountedBrief?.[1]) return titleBeforeCountedBrief[1].trim();
+
   // Straight apostrophes are word punctuation, not a safe title delimiter:
   // “Faraday's law … Maxwell's equations” otherwise looks like one quoted
   // course title while a streaming workspace is still mapping.

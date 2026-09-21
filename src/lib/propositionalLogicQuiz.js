@@ -73,7 +73,10 @@ export function buildVerifiedLogicQuizAtoms(lesson, quizPlan, targetCount) {
       'Compute each output row before selecting a column. These are synthetic practice inputs, not externally sourced observations.',
   };
   return Array.from({ length: count }, (_, index) => {
-    const expression = expressions[index];
+    const selected = lesson.includeConverse
+      ? [expressions[3], expressions[9], expressions[8], ...expressions.filter((_, i) => ![3, 9, 8].includes(i))]
+      : expressions;
+    const expression = selected[index];
     const values = rows.map(([p, q]) => evaluateLogicExpression(expression, p, q));
     const mask = values.reduce((sum, value, i) => sum + (value ? 1 << (3 - i) : 0), 0);
     const vector = (bits) => [3, 2, 1, 0].map((bit) => show(Boolean(bits & (1 << bit)))).join(', ');

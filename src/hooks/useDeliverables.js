@@ -1,3 +1,4 @@
+import { extractExplicitTeachingRequirements } from '../lib/explicitTeachingRequirements.js';
 import { synchronizeAuthorLayer } from '../lib/authoringCore/authorLayer';
 import { requiresCurrentResearch, shouldSkipCoveredScionResearch } from '../lib/knowledge/researchFreshness.js';
 import { getAuthoringGenerationBlock } from '../lib/authoring/inferencePolicy';
@@ -522,8 +523,12 @@ export default function useDeliverables({
     [modelCapabilities, provider, modelId, generationPlan],
   );
   const getGenerationConfig = useCallback(
-    (featureId) => getEffectiveDeliverableConfig(featureId, deliverableConfigRef.current, modelConfigPlan),
-    [modelConfigPlan],
+    (featureId) => {
+      const config = getEffectiveDeliverableConfig(featureId, deliverableConfigRef.current, modelConfigPlan);
+      const requested = extractExplicitTeachingRequirements(sourceBrief).questionsPerLesson;
+      return featureId === 'quizBank' && requested ? { ...config, questionsPerLesson: requested } : config;
+    },
+    [modelConfigPlan, sourceBrief],
   );
   const pedagogicalModeRef = useRef(pedagogicalMode || 'lecture');
   pedagogicalModeRef.current = pedagogicalMode || 'lecture';

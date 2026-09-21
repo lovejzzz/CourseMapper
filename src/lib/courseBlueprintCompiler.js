@@ -1,3 +1,10 @@
+import { requiresInstructorSourcesOnly } from './sourceBriefConstraints.js';
+import {
+  buildVerifiedDiscreteMathPractice,
+  buildVerifiedDiscreteMathQuiz,
+  projectVerifiedMathPractice,
+} from './verifiedDiscreteMathPractice.js';
+import { extractExplicitTeachingRequirements } from './explicitTeachingRequirements.js';
 import { buildVerifiedLogicQuizAtoms } from './propositionalLogicQuiz.js';
 import { selectCodingPracticeInputs } from './codingPractice.js';
 import { annotatePracticeCaseExposure } from './practiceCaseExposure.js';
@@ -1570,7 +1577,7 @@ function hasProofSeminarEvidence(text = '') {
       text,
     );
   const hasProofPractice =
-    /\b(theorem|lemma|definition|hypothesis|axiom|conjecture|counterexample|proof strategy|direct proof|proof by contradiction|induction proof|epsilon[-\s]?delta|quantifier|logical implication|formal proof|proof critique|proof revision|proof portfolio)\b/.test(
+    /\b(theorem|lemma|definition|hypothesis|axiom|conjecture|counterexample|proof strategy|direct proof|proof by contradiction|mathematical induction|induction proof|epsilon[-\s]?delta|quantifier|logical implication|formal proof|proof critique|proof revision|proof portfolio)\b/.test(
       text,
     );
   return hasProofDomain && hasProofPractice;
@@ -7056,7 +7063,7 @@ function buildCourseModalityProfile({ courseName, lessons }) {
   const proofPracticeScore =
     proofCoreScore > 0
       ? countPattern(
-          /\b(theorem|lemma|definition|hypothesis|axiom|conjecture|counterexample|proof strategy|direct proof|proof by contradiction|induction proof|epsilon[-\s]?delta|quantifier|logical implication|formal proof|proof critique|proof revision|proof portfolio)\b/g,
+          /\b(theorem|lemma|definition|hypothesis|axiom|conjecture|counterexample|proof strategy|direct proof|proof by contradiction|mathematical induction|induction proof|epsilon[-\s]?delta|quantifier|logical implication|formal proof|proof critique|proof revision|proof portfolio)\b/g,
         )
       : 0;
   const proofScore = proofCoreScore + proofPracticeScore;
@@ -12836,8 +12843,31 @@ function prepareBlueprintForCompilation(blueprint = {}, options = {}) {
               ?.minutes,
           })
         : null);
+    const mathCandidate = buildVerifiedDiscreteMathPractice(
+      lesson,
+      prepared.explicitTeachingRequirements?.sourceBrief || '',
+    );
+    const explicitMathRequest =
+      mathCandidate &&
+      /finite function|injectivity|surjectivity|converse|1\s*\+\s*2\s*\+/i.test(
+        prepared.explicitTeachingRequirements?.sourceBrief || '',
+      );
+    const authoredExample = lesson.enrichment?.workedExample;
+    const completeExample = authoredExample?.problem && authoredExample?.steps?.length >= 2 && authoredExample?.result;
+    const verifiedMathPractice =
+      !requiresInstructorSourcesOnly(prepared.explicitTeachingRequirements?.sourceBrief) &&
+      !teachingTask &&
+      !instructorFacts.length &&
+      !completeExample &&
+      (explicitMathRequest ||
+        (!authoredAssignment &&
+          (!lesson.enrichment || !hasLearnerFacingSemanticAuthority(lesson.enrichment)) &&
+          lessonNeedsSourceBoundRecovery(lesson, prepared)))
+        ? mathCandidate
+        : null;
     return {
       ...lesson,
+      verifiedMathPractice,
       teachingTask,
       // The saved program owns whether this is the main task or practice.
       // Enrichment can supply other content, but cannot silently change that role.
@@ -13125,6 +13155,7 @@ export function compactBlueprintForStorage(blueprint = {}) {
     designRules: clonePlain(blueprint.designRules || null),
     coursePromises: clonePlain(blueprint.coursePromises || null),
     coursePrerequisites: clonePlain(blueprint.coursePrerequisites || null),
+    explicitTeachingRequirements: clonePlain(blueprint.explicitTeachingRequirements || null),
     courseGradingPolicy: clonePlain(blueprint.courseGradingPolicy || null),
     courseRequiredMaterials: clonePlain(blueprint.courseRequiredMaterials || null),
     courseSourcePolicies: clonePlain(blueprint.courseSourcePolicies || null),
@@ -16085,7 +16116,10 @@ export function buildCourseBlueprint(courseMap, options = {}) {
     16,
   );
   const courseName = cleanText(courseMap?.courseName, 'Untitled Course');
-  const coursePrerequisites = normalizeCoursePrerequisites(courseMap?.prerequisites);
+  const explicitTeachingRequirements = extractExplicitTeachingRequirements(options.sourceBrief);
+  const coursePrerequisites =
+    normalizeCoursePrerequisites(courseMap?.prerequisites) ||
+    normalizeCoursePrerequisites(explicitTeachingRequirements.prerequisites);
   const courseGradingPolicy = normalizeCourseGradingPolicy(courseMap?.gradingPolicy);
   const courseRequiredMaterials = normalizeRequiredCourseMaterials(courseMap?.requiredMaterials);
   const coursePolicies = normalizeCoursePolicies(courseMap?.policies);
@@ -16375,6 +16409,7 @@ export function buildCourseBlueprint(courseMap, options = {}) {
     version: 1,
     source: authoritativeInstructionalPlan ? 'authority-bound-course-map' : 'deterministic-course-map',
     courseName,
+    explicitTeachingRequirements,
     teachingTaskSources: readTeachingTaskSources(courseMap),
     coursePromises,
     ...(coursePrerequisites ? { coursePrerequisites } : {}),
@@ -20936,6 +20971,8 @@ function buildSourceBoundRecoveryQuizAtoms({ lesson, blueprint, quizPlan, concep
 // calculable, and can be assessed without inventing a source or citation.
 // Authored kernel items still overlay these frames later in the normal path.
 export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
+  const verifiedMathQuiz = buildVerifiedDiscreteMathQuiz(lesson, resolveQuizQuestionTarget(options.questionsPerLesson));
+  if (verifiedMathQuiz) return verifiedMathQuiz;
   const lens = blueprintLens(blueprint);
   const sparseReasoningFrame = lessonNeedsSparseReasoningFrame(lesson);
   const useVerifiedMusicIntervalFrame = isMusicIntervalLesson(lesson);
@@ -28832,8 +28869,13 @@ export function compileBlueprintDeliverable(featureId, blueprint, options = {}) 
     featureBlueprint,
     options,
   );
-  if (!compiled || options.skipLanguageFinalizer) return compiled;
-  const finalized = finalizeCompiledDeliverableLanguage(featureId, compiled, featureBlueprint);
+  if (!compiled) return compiled;
+  if (options.skipLanguageFinalizer) return projectVerifiedMathPractice(featureId, compiled, featureBlueprint);
+  const finalized = projectVerifiedMathPractice(
+    featureId,
+    finalizeCompiledDeliverableLanguage(featureId, compiled, featureBlueprint),
+    featureBlueprint,
+  );
   const sanitized = featureId === 'lessonPlans' ? sanitizeCompiledLessonPlans(finalized, featureBlueprint) : finalized;
   // Prose cleanup must never rewrite executable code, whitespace or fixture
   // bindings. Restore the bounded coding projections after language cleanup.
@@ -28872,7 +28914,12 @@ function compileBlueprintDeliverableRaw(featureId, compilerBlueprint, options = 
     case 'discussions':
       return compileDiscussions(compilerBlueprint, options);
     case 'quizBank':
-      return compileQuizBank(compilerBlueprint, options.configMap?.quizBank || {});
+      return compileQuizBank(compilerBlueprint, {
+        ...options.configMap?.quizBank,
+        ...(compilerBlueprint.explicitTeachingRequirements?.questionsPerLesson
+          ? { questionsPerLesson: compilerBlueprint.explicitTeachingRequirements.questionsPerLesson }
+          : {}),
+      });
     case 'studyGuides':
       return compileStudyGuides(compilerBlueprint, options);
     case 'courseFaq':

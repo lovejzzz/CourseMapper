@@ -122,6 +122,17 @@ export function isAppliedQuizStem(stem) {
   const wordCount = text.match(/[A-Za-z0-9]+(?:['’-][A-Za-z0-9]+)*/g)?.length || 0;
   const completePrompt = /[.?!:]['’”")\]]?\s*$/.test(text) || CLASSIFICATION_COMPLETION_RE.test(text);
   if (wordCount < 12 || !completePrompt) return false;
+  // A supplied truth expression or explicit finite mapping is a concrete
+  // mathematical case, even without a human actor or narrative scenario.
+  const truthCalculation =
+    /compute (?:the )?truth table/i.test(text) &&
+    /\b[QP]\s+(?:IMPLIES|AND|OR|IFF)\s+[QP]\b/i.test(text) &&
+    /row order/i.test(text);
+  const finiteMapping =
+    /\{[^}]+\}\s*(?:→|->)\s*\{[^}]+\}/.test(text) &&
+    /\b[a-z]\([a-z0-9]+\)\s*=\s*[^,.; ]+/i.test(text) &&
+    /determine whether.*(?:injective|surjective)/i.test(text);
+  if (truthCalculation || finiteMapping) return true;
   if (MUSICAL_INTERVAL_CASE_RE.test(text) && MUSICAL_INTERVAL_REASONING_RE.test(text)) return true;
   if (!REASONING_RE.test(text)) return false;
   // “In the study of world literature” names an academic field; it does not

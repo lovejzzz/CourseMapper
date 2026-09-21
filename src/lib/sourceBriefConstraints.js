@@ -36,13 +36,14 @@ export function detectRequestedClassSessionMinutes(sourceBrief = '') {
     .trim();
   if (!text) return null;
   const patterns = [
+    /\b(\d+(?:\.\d+)?)\s*(minutes?|mins?|hours?|hrs?)\s+per\s+(?:class|session|lesson)\b/i,
     /\b(\d{2,3})\s*[-–—]?\s*minute\s+(?:(?!minutes?\b)[\p{L}-]+\s+){0,4}(?:lesson|class|session|workshop)\b/iu,
     /\b(?:lesson|class|session|workshop)\s+(?:lasting|runs?\s+for|of)\s+(\d{2,3})\s+minutes?\b/i,
     /\b(?:lesson|class|session|workshop)\s+(?:is|should be|must be)\s+(\d{2,3})\s+minutes?\b/i,
   ];
   for (const pattern of patterns) {
     const match = text.match(pattern);
-    const minutes = normalizeMinutes(match?.[1]);
+    const minutes = normalizeMinutes(Number(match?.[1]) * (/^(?:hour|hr)/i.test(match?.[2] || '') ? 60 : 1));
     if (minutes) return minutes;
   }
   return null;
@@ -77,7 +78,7 @@ export function requiresInstructorSourcesOnly(sourceBrief = '') {
     .trim();
   if (!text) return false;
   return (
-    /\buse only (?:these|the following|the) instructor[- ]provided facts?\b/i.test(text) ||
+    /\buse only (?:(?:these|the following|the) )?instructor[- ]provided (?:facts?|sources?|materials?)\b/i.test(text) ||
     /\buse only (?:these|the following) (?:facts?|sources?|materials?|details?)\b/i.test(text) ||
     /\bdo not (?:add|introduce|use|consult) (?:any )?(?:outside|external|additional) (?:facts?|sources?|materials?|information)\b/i.test(
       text,
