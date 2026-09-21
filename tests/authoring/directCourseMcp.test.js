@@ -1,147 +1,108 @@
 import { describe, it, expect, vi } from 'vitest';
-import { createCourseMcpService, editableFields } from '../../src/lib/courseMcp/service.js';
+import { createCourseMcpService } from '../../src/lib/courseMcp/service.js';
 import { registerCourseTools } from '../../src/lib/courseMcp/webmcp.js';
-
+import { diagnoseCourseOutput } from '../../src/lib/courseMcp/diagnostics.js';
 function fixture() {
-  let snapshot = {
-    courseMap: {
-      courseName: 'Original',
-      lessons: [{ id: 'lesson-1', title: 'Lesson', sections: [{ learningGoals: 'Understand' }] }],
-    },
+  const snapshot = {
+    courseMap: { courseName: 'Output audit', lessons: [{ title: 'Logic' }] },
     deliverables: {
-      assignments: { data: [{ title: 'Task' }], authoredContent: { teacherOverride: [{ title: 'Task' }] } },
+      quizBank: {
+        data: {
+          quizzes: [
+            {
+              lessonNumber: 1,
+              lessonTitle: 'Logic',
+              practiceRecord: {
+                records: [
+                  'Record A - Objective: Explain logic.',
+                  'Record B - Evidence target: cite evidence.',
+                  'Record C - Decision boundary: limit claims.',
+                  'Record D - Required product: quiz.',
+                ],
+              },
+              questions: [
+                { id: 'q1', question: 'Use Record A', answer: 'General guidance', sourceReviewRequired: true },
+              ],
+            },
+          ],
+        },
+      },
     },
-    courseGraph: { enrichmentOverlay: { retained: 'source evidence' } },
-    packageQualityPass: { status: 'passed' },
-    chatHistory: [{ content: 'private chat' }],
-    promptText: 'private prompt',
+    chatHistory: [{ text: 'private conversation' }],
+    apiKey: 'secret',
   };
-  const workspace = {
-    getSnapshot: () => snapshot,
-    apply: vi.fn((next) => {
-      snapshot = next;
-    }),
-    save: vi.fn(async () => true),
-    isBusy: () => false,
-  };
-  const ctx = { allowed: true, accessKey: 'a', workspace, onChange: vi.fn() };
-  return { ctx, workspace, service: createCourseMcpService(() => ctx) };
+  const ctx = { allowed: true, accessKey: 'a', workspace: { getSnapshot: () => snapshot } };
+  return { snapshot, ctx, service: createCourseMcpService(() => ctx) };
 }
-async function edit(f, changes = [{ path: '/courseMap/courseName', value: 'Updated' }], operationId = 'edit-1') {
-  const read = await f.service.execute('cm_course_read');
-  const args = { expectedRevision: read.data.revision, operationId, changes };
-  return { args, result: await f.service.execute('cm_course_edit', args) };
-}
-describe('direct course WebMCP', () => {
-  it('does not expose content before access, and never returns credentials, source files or conversations', async () => {
+describe('read-only course output MCP', () => {
+  it('finds actual output gaps without modifying the course', async () => {
+    const f = fixture();
+    const before = JSON.stringify(f.snapshot);
+    const result = await f.service.execute('cm_course_diagnostics');
+    expect(result.data.findings.map((x) => x.code)).toEqual(['METADATA_ONLY_PRACTICE', 'REFERENCE_ANSWERS_UNREVIEWED']);
+    expect(result.data.paths).toContain('/materials/quizBank');
+    expect(JSON.stringify(result)).not.toMatch(/private conversation|secret/);
+    expect(JSON.stringify(f.snapshot)).toBe(before);
+  });
+  it('does not expose output without page permission or provide editing tools', async () => {
     const f = fixture();
     f.ctx.allowed = false;
     expect((await f.service.execute('cm_course_read')).error.code).toBe('ACCESS_REQUIRED');
-    expect((await f.service.execute('cm_course_status')).data.connected).toBe(false);
     f.ctx.allowed = true;
-    const read = await f.service.execute('cm_course_read');
-    expect(read.data.courseMap.courseName).toBe('Original');
-    expect(JSON.stringify(read)).not.toContain('private');
-    expect(read.data.editableFields).not.toContain('/courseMap/lessons/0/id');
+    expect((await f.service.execute('cm_course_edit')).error.code).toBe('UNKNOWN_TOOL');
   });
-  it('applies and durably saves edits with one-call retry receipts and a guarded undo', async () => {
+  it('reads selected material paths and rejects private or inherited paths', async () => {
     const f = fixture();
-    const { args, result } = await edit(f);
-    expect(result.data.localSave).toBe('saved');
-    expect(f.workspace.getSnapshot().courseMap.courseName).toBe('Updated');
-    expect(f.workspace.getSnapshot().deliverables.assignments.stale).toBe(true);
-    expect(f.workspace.getSnapshot().courseGraph.enrichmentOverlay.retained).toBe('source evidence');
-    expect(f.workspace.getSnapshot().packageQualityPass).toBeNull();
-    expect(await f.service.execute('cm_course_edit', args)).toEqual(result);
-    expect(f.workspace.apply).toHaveBeenCalledTimes(1);
-    const undo = await f.service.execute('cm_course_undo', {
-      expectedRevision: result.data.revision,
-      operationId: 'undo-1',
-    });
-    expect(undo.ok).toBe(true);
-    expect(f.workspace.getSnapshot().courseMap.courseName).toBe('Original');
+    const result = await f.service.execute('cm_course_read', { path: '/materials/quizBank/quizzes/0/questions/0' });
+    expect(JSON.parse(result.data.text).id).toBe('q1');
+    for (const path of ['/apiKey', '/chatHistory', '/courseMap/__proto__'])
+      expect((await f.service.execute('cm_course_read', { path })).error.code).toBe('INVALID_PATH');
   });
-  it('rejects stale reads and refuses to undo over a manual edit', async () => {
+  it('bounds large output and protects continued reads against changed content', async () => {
     const f = fixture();
-    const { args, result } = await edit(f);
-    expect((await f.service.execute('cm_course_edit', { ...args, operationId: 'different' })).error.code).toBe(
-      'REVISION_CONFLICT',
-    );
-    f.workspace.getSnapshot().courseMap.courseName = 'Human edit';
-    const read = await f.service.execute('cm_course_read');
-    expect(read.data.revision).not.toBe(result.data.revision);
+    f.snapshot.courseMap.description = 'x'.repeat(25000);
+    const first = await f.service.execute('cm_course_read');
+    expect(first.data.text.length).toBe(12000);
+    expect(first.data.nextOffset).toBe(12000);
+    const next = await f.service.execute('cm_course_read', { offset: 12000, expectedRevision: first.data.revision });
+    expect(next.ok).toBe(true);
+    f.snapshot.courseMap.courseName = 'Changed';
     expect(
-      (await f.service.execute('cm_course_undo', { expectedRevision: read.data.revision, operationId: 'undo' })).error
-        .code,
-    ).toBe('UNDO_UNAVAILABLE');
+      (await f.service.execute('cm_course_read', { offset: 12000, expectedRevision: first.data.revision })).error.code,
+    ).toBe('REVISION_CONFLICT');
   });
-  it('validates the whole batch before changing anything, including protected identifiers', async () => {
+  it('checks revocation after asynchronous hashing', async () => {
     const f = fixture();
-    const { result } = await edit(f, [
-      { path: '/courseMap/courseName', value: 'New' },
-      { path: '/courseMap/lessons/0/id', value: 'other' },
-    ]);
-    expect(result.error.code).toBe('INVALID_INPUT');
-    expect(f.workspace.apply).not.toHaveBeenCalled();
-    expect(editableFields(JSON.parse('{"__proto__":{"attack":"x"},"name":"safe"}'))).toEqual({ '/name': 'safe' });
-  });
-  it('preserves authored material edits in the export/reload layer', async () => {
-    const f = fixture();
-    await edit(f, [{ path: '/materials/assignments/0/title', value: 'Edited task' }]);
-    const entry = f.workspace.getSnapshot().deliverables.assignments;
-    expect(entry.authoredContent.teacherOverride).toEqual(entry.data);
-    expect(entry.data[0].title).toBe('Edited task');
-  });
-  it('reports applied-but-unsaved edits honestly and retains undo', async () => {
-    const f = fixture();
-    f.workspace.save.mockResolvedValue(false);
-    const { result } = await edit(f);
-    expect(result.data).toMatchObject({ applied: true, localSave: 'failed', canUndo: true });
-  });
-  it('rejects writes during generation and idempotency-key reuse with different content', async () => {
-    const f = fixture();
-    const { args } = await edit(f);
-    expect((await f.service.execute('cm_course_edit', { ...args, changes: [] })).error.code).toBe(
-      'IDEMPOTENCY_CONFLICT',
-    );
-    f.workspace.isBusy = () => true;
-    expect((await f.service.execute('cm_course_edit', { ...args, operationId: 'other' })).error.code).toBe('BUSY');
-  });
-  it('revokes access immediately and clears old undo when another account connects', async () => {
-    const f = fixture();
-    await edit(f);
+    const pending = f.service.execute('cm_course_read');
     f.ctx.allowed = false;
-    expect((await f.service.execute('cm_course_read')).error.code).toBe('ACCESS_REQUIRED');
-    f.ctx.allowed = true;
-    f.ctx.accessKey = 'another-account';
-    const read = await f.service.execute('cm_course_read');
-    expect(
-      (await f.service.execute('cm_course_undo', { expectedRevision: read.data.revision, operationId: 'undo' })).error
-        .code,
-    ).toBe('UNDO_UNAVAILABLE');
+    expect((await pending).error.code).toBe('ACCESS_REQUIRED');
   });
-  it('registers only once through remounts and invalidates retained callbacks on disposal', async () => {
+  it('does not treat concrete practice inputs as lesson-metadata cases', () => {
+    const f = fixture();
+    f.snapshot.deliverables.quizBank.data.quizzes[0].practiceRecord.records = ['P=T, Q=F', 'P=F, Q=T'];
+    expect(diagnoseCourseOutput(f.snapshot).findings.some((x) => x.code === 'METADATA_ONLY_PRACTICE')).toBe(false);
+  });
+  it('registers exactly three read-only tools through remount and invalidates disposed handles', async () => {
     const registered = new Map();
     const view = {};
     view.top = view;
-    const document = {
+    const doc = {
       defaultView: view,
       modelContext: {
-        registerTool: vi.fn((tool) => registered.set(tool.name, tool)),
-        unregisterTool: vi.fn((name) => registered.delete(name)),
+        registerTool: vi.fn((t) => registered.set(t.name, t)),
+        unregisterTool: vi.fn((n) => registered.delete(n)),
       },
     };
     const f = fixture();
-    const release = registerCourseTools(document, f.service);
+    const release = registerCourseTools(doc, f.service);
     release();
-    const releaseAgain = registerCourseTools(document, f.service);
+    const again = registerCourseTools(doc, f.service);
     await new Promise((r) => setTimeout(r, 0));
-    expect(registered.size).toBe(4);
-    expect(document.modelContext.registerTool).toHaveBeenCalledTimes(4);
+    expect(registered.size).toBe(3);
+    expect([...registered.values()].every((t) => t.annotations.readOnlyHint)).toBe(true);
     const retained = registered.get('cm_course_read');
-    releaseAgain();
+    again();
     await new Promise((r) => setTimeout(r, 0));
-    expect(registered.size).toBe(0);
     expect((await retained.execute({})).error.code).toBe('ACCESS_REQUIRED');
   });
 });

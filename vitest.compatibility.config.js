@@ -17,6 +17,8 @@ export default defineConfig({
       'src/lib/__tests__/courseStore.test.js',
       'src/lib/__tests__/explicitLessonSequence.test.js',
       'src/lib/__tests__/practiceCaseExposure.test.js',
+      'src/lib/__tests__/propositionalLogicQuiz.test.js',
+      'src/lib/quality/__tests__/practiceRecordSubstance.test.js',
       'src/lib/__tests__/packageLessonIdentity.test.js',
       'src/lib/__tests__/requiredLabAssets.test.js',
       'src/lib/quality/__tests__/deepQualityStructure.test.js',

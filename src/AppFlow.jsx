@@ -1,7 +1,7 @@
 import { accountStorageKey } from './lib/accountStorage';
 import { getAuthoringInferenceStatus } from './lib/authoring/inferencePolicy';
 import React, { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } from 'react';
-import { createPortal, flushSync } from 'react-dom';
+import { createPortal } from 'react-dom';
 import { applyTeachingTaskSourceEdit, rememberTeacherEdit } from './lib/teachingTaskContentSync.js';
 import { isStudyGuideExplanationEdit } from './lib/studyGuidePresentation.js';
 import { previewTeachingTaskReview, commitTeachingTaskReview } from './lib/teachingTaskReview.js';
@@ -2524,7 +2524,6 @@ export default function AppFlow({
     developerTemplates,
     activeDeveloperTemplateId,
     buildProjectSnapshot,
-    saveCurrentProjectNow,
     handleReturnHome,
     handleSaveProject,
     handleSaveCurrentAsNew,
@@ -2607,8 +2606,7 @@ export default function AppFlow({
     if (!authoringWorkspace) return;
     authoringWorkspace.current = {
       getSnapshot: () => (hasGenerated ? buildProjectSnapshot() : null),
-      apply: (snapshot) => flushSync(() => applyDeveloperSnapshot(snapshot)),
-      save: saveCurrentProjectNow,
+      apply: applyDeveloperSnapshot,
       isBusy: () => gen.isStreaming || packageGenerationBusy,
     };
     return () => {
@@ -2618,7 +2616,6 @@ export default function AppFlow({
     authoringWorkspace,
     hasGenerated,
     buildProjectSnapshot,
-    saveCurrentProjectNow,
     applyDeveloperSnapshot,
     gen.isStreaming,
     packageGenerationBusy,

@@ -2,27 +2,27 @@
 
 ## 0.20.01 — 2026-09-20
 
-Simplify external AI access to direct browser MCP editing. Remove the separate AI authoring workflow from the production interface.
+Use MCP to diagnose actual output and improve website generation, with no separate AI authoring workflow.
 
-### Direct course MCP
+### MCP output diagnostics
 
-- Replace the separate AI authoring panel with one MCP access switch for the open browser tab. No teaching request, draft, import or AI identity link is required.
-- Expose four browser WebMCP tools: connection status, current course and materials, direct text edits, and undo of the latest MCP edit.
-- Show editable field paths to the AI. Validate every change before applying the batch; preserve structural identifiers and reject edits based on an older course revision.
+- Replace the separate AI authoring panel with a single opt-in connection for inspecting generated course output.
+- Expose three read-only browser WebMCP tools: connection status, output diagnostics and paginated course/material reads. No course-edit tool is exposed.
+- Diagnostics identify instruction-only practice cases and questions awaiting specific reference answers, with paths back to the actual quiz and recorded generation signals.
 
-### Saving, privacy and recovery
+### Quiz substance and answer quality
 
-- Apply changes directly in the existing editor and report the result of exact local persistence. Cloud saving continues through the website’s normal account and ownership checks.
-- Keep identical operation retries idempotent. Undo is available while the course still matches the last MCP edit; manual changes prevent an unsafe rollback.
-- MCP access starts disabled and ends on disconnect, reload or account change. Tools expose current course content and materials, not uploaded files, credentials or conversation history.
-- Retain existing authored courses and saved draft data. Preserve authored material overrides across reload/export and mark linked materials stale after course-map edits.
+- For source-recovery lessons explicitly covering two-valued propositional logic, generate concrete truth-table exercises with exhaustive answer checks, unique options and row-by-row explanations.
+- Keep this fallback narrowly scoped: it assesses connective calculations, not complete mastery of proofs, circuits or other mathematics topics. Existing complete authored question sets remain preferred.
+- Mark constructed-response fallbacks and generic kernel-evidence responses as requiring reference-answer review instead of presenting scoring instructions as solved answers.
+- Deep grader 1.16.6 flags quiz cases consisting only of objectives, evidence requirements, decision boundaries and required products as P1 substance findings; curriculum-design tasks are exempt.
 
-### Connection support and verification
+### Access, history and verification boundaries
 
-- This is browser WebMCP for AI hosts that expose page tools. It is not a remote MCP server URL for ordinary ChatGPT connectors; unsupported browsers display an explicit status.
-- Direct tools edit existing text fields. Course creation, lesson insertion/removal and structural edits remain in the website editor.
-- Verify read/edit/save/undo/reload/disconnect through the production browser test, with separate service tests for stale revisions, invalid batches, account changes and registration lifecycle.
-- Keep the complete changelog, including the original v0.20.00 release details. The old authoring UI is retained only in development compatibility fixtures and is absent from the production bundle.
+- Access starts disabled and ends on disconnect, reload or account change. Reads exclude raw attachments, credentials and conversation history; continued pages can require an unchanged revision.
+- This is browser WebMCP for supported AI browser hosts, not a remote MCP server URL for ordinary ChatGPT connectors.
+- Preserve saved courses, stored drafts and the complete changelog, including v0.20.00. The old authoring panel is absent from production and retained only for development compatibility.
+- Validate against saved real Discrete Mathematics generation inputs and automated regression tests. Compiler replay is not fresh model inference; remaining source and answer gaps are still reported, and an empty diagnostic result is not a teaching-quality certificate.
 
 ## 0.20.00 — 2026-09-20
 

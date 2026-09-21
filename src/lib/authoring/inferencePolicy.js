@@ -11,7 +11,7 @@ export function getAuthoringGenerationBlock(deliverables, features = Object.keys
   return {
     status: 'skipped',
     reason: 'authoring_preview_required',
-    message: 'Use MCP or the content editor to revise accepted content.',
+    message: 'Use the content editor to revise accepted content.',
   };
 }
 export function blockedAuthoringSync(deliverables, plan, changedFieldsSummary) {

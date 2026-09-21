@@ -493,7 +493,7 @@ describe('deep quality package structure', () => {
     });
 
     expect(result.findings.some((finding) => /classroom clock/i.test(finding.detail))).toBe(false);
-    expect(GRADER_VERSION).toBe('1.16.5');
+    expect(GRADER_VERSION).toBe('1.16.6');
   });
 
   it('scores opaque source-claim placeholders and their sentence seams as major export defects', async () => {

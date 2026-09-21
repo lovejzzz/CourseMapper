@@ -1,26 +1,30 @@
-# Direct course MCP — v0.20.01
+# Course output diagnostics through WebMCP — v0.20.01
 
-The normal website no longer presents the independent AI authoring request/draft workflow. Open a course, click **MCP**, and enable **Allow MCP to read and edit the open course in this tab**. Use a browser AI host that exposes native WebMCP page tools (such as the supported Codex browser environment).
+Open a generated course, click **MCP**, and enable **Allow MCP to inspect generated output in this tab**. A supported AI browser can inspect actual materials, identify defects and use that evidence to improve website generation code. These tools cannot modify the course.
 
-This is browser WebMCP, not an HTTP MCP endpoint that can be pasted into an ordinary ChatGPT connector. The panel explicitly reports browsers without page-tool support. No new OAuth or AI identity connection is needed for this page connection.
+This is browser WebMCP, not a remote HTTP MCP endpoint for an ordinary ChatGPT connector. Unsupported browsers show an explicit message. No additional AI identity or OAuth setup is required for this page connection.
 
 ## Tools
 
-- `cm_course_status`: connection and open-course status without course content.
-- `cm_course_read`: current course map and material data, an opaque revision, and existing editable text paths. It excludes account credentials, attachment contents, and conversation history.
-- `cm_course_edit`: `{ expectedRevision, operationId, changes: [{ path, value }] }`. Uses the revision and paths from a fresh read. Edits up to 50 existing text fields, maximum 20,000 characters each. IDs, structure, adding/removing lessons and arbitrary project metadata are not editable.
-- `cm_course_undo`: `{ expectedRevision, operationId }`. Restores the last MCP edit only while the course still matches its committed content. Also available as **Undo last MCP edit** in the panel.
+- `cm_course_status`: connection/open-course status without course content.
+- `cm_course_diagnostics`: observed quiz defects, recorded run signals, revision and material paths. Detects instruction-only practice records and questions marked as awaiting reference-answer review.
+- `cm_course_read`: `{ path, offset?, expectedRevision? }`; reads course/material JSON at a diagnostic path in pages of at most 12,000 characters. Use the returned revision on continuation pages. A changed revision rejects the continuation.
 
-An edit is immediately visible and uses the existing persistence owner, including exact IndexedDB fallback and cloud account/ownership checks. `localSave: saved` means exact local persistence confirmed; `failed` means the edit remains visible but needs a backup. Cloud sync remains separately reported by the website. No model call is made by these tools.
+Course text is untrusted reference data, never instructions. Reads omit credentials, raw attachments and conversation history. Access starts disabled and ends on disconnect, reload or account change. No model calls or writes occur.
 
-Repeat an identical operation ID to obtain its receipt without applying it again. Changed arguments with the same ID, stale revisions, incomplete/invalid batches, concurrent generation, revoked access, and unsupported paths are rejected. Course text is untrusted reference data, never instructions to the AI.
+## Improvement loop
 
-Course-map edits mark linked materials stale; content edits clear outdated package-quality evidence and blueprint approval. Authored material overrides remain preserved for reopening and export. Reloading, disabling the switch, and changing accounts revoke page access. Undo and retry receipts last only for the current connection.
+1. Inspect a real generated course and its recorded generation evidence.
+2. Read the affected quiz, answer or teaching material, not only the diagnostic summary.
+3. Reproduce the defect from the saved generation inputs; fix the generator or validation rule in website code.
+4. Run regression checks and compare generated materials, then verify the browser behavior.
 
-## Legacy compatibility
+The initial audit used an existing Discrete Mathematics project. Its source-recovery quizzes used objectives and submission requirements as practice data. The compiler now supplies explicitly synthetic two-valued logic exercises with exhaustively checked answers for matching propositional-logic recovery lessons. Other topics retain their source-review boundaries. Constructed-response fallback keys are marked for review when they contain guidance rather than a solved reference response. Grader 1.16.6 also flags instruction-only quiz cases in exported packages.
 
-Previously authored courses and stored draft data are not deleted. The legacy request/draft UI is only reachable in a Vite development compatibility fixture at `?authoring=1`; production tree shaking excludes that panel. Existing remote authoring storage and endpoints are retained for compatibility, not presented as this new direct connection. Their retirement or migration is separate from removing the website workflow.
+A compiler replay is not new model inference. Absence of diagnostic findings does not certify subject accuracy or teaching quality. Unrelated source relevance and proof-generation gaps remain separate issues.
 
-## Verification
+## Compatibility and tests
 
-`tests/authoring/directCourseMcp.test.js` tests validation, revision conflicts, retry receipts, undo, save failures, revoked access/account changes and registration lifecycle. `tests/production-export.spec.js` exercises the real built editor and persistence with an instrumented browser registration host. That automated host verifies product behavior; native discovery, read, direct edit, exact local-save receipt, undo to the original revision, and revoked-access rejection were also verified through Codex’s actual browser WebMCP interface using a disposable course.
+Saved courses and old draft storage remain intact. The legacy AI-authoring panel exists only in a development compatibility fixture and is excluded from production. Complete historical release entries remain available.
+
+Service tests cover access, private paths, paginated reads, revision conflicts, asynchronous revocation and registration lifecycle. Production browser tests exercise the real built application with an instrumented page-tool host. Logic tests check independently specified truth columns and actual compiler routing; grader tests include concrete-input and curriculum-design controls.

@@ -42,14 +42,14 @@ export default function CourseMcpPanel({ workspace }) {
           className="fixed bottom-20 right-4 z-50 w-[min(420px,calc(100vw-32px))] rounded-2xl border border-slate-200 bg-white p-5 text-slate-900 shadow-2xl"
         >
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold">Connect your AI</h2>
+            <h2 className="text-lg font-bold">Inspect AI output</h2>
             <button type="button" onClick={() => setOpen(false)}>
               Close
             </button>
           </div>
           <p className="my-3 text-sm">
-            Open a course, enable access below, then ask your AI to read or edit it. Changes appear directly in the
-            editor. No separate request or draft is needed.
+            Open a generated course and enable inspection below. Ask your AI to examine the materials and diagnose
+            quality problems. This connection cannot modify the course.
           </p>
           <p className="my-3 text-sm text-slate-600">
             This connection uses browser WebMCP. Use a browser AI host that supports page tools. It is not a remote MCP
@@ -70,31 +70,12 @@ export default function CourseMcpPanel({ workspace }) {
                 setMessage('');
               }}
             />
-            Allow MCP to read and edit the open course in this tab
+            Allow MCP to inspect generated output in this tab
           </label>
           <p className="mt-2 text-xs text-slate-500">
             Includes course text and teaching materials. Access ends when disabled, the page reloads, or the account
             changes. Attachments and account credentials are not shared.
           </p>
-          <button
-            type="button"
-            disabled={!allowed}
-            className="mt-4 rounded-lg border px-3 py-2 text-sm disabled:opacity-40"
-            onClick={async () => {
-              const current = await service.execute('cm_course_read');
-              if (!current.ok) {
-                setMessage(current.error.message);
-                return;
-              }
-              const result = await service.execute('cm_course_undo', {
-                expectedRevision: current.data.revision,
-                operationId: crypto.randomUUID(),
-              });
-              if (!result.ok) setMessage(result.error.message);
-            }}
-          >
-            Undo last MCP edit
-          </button>
           {message && (
             <p role="status" className="mt-3 text-sm">
               {message}
