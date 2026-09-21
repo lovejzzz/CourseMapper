@@ -2652,6 +2652,7 @@ export function createVerifiedDraftCompilerContracts(dependencies) {
   }
 
   function operationQualifiedWorkedExampleForLesson(lesson = {}) {
+    if (lesson.verifiedMathPractice) return lesson.verifiedMathPractice.workedExample;
     // A concrete source task owns its operation. Topic-word fallbacks must not
     // silently replace a tank replication lesson with an unrelated seedling trial.
     if (lesson.teachingTask && lesson.teachingTaskScope === 'primary-task')

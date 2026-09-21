@@ -158,11 +158,11 @@ export function extractCourseName(source) {
         line,
       );
     const timedBriefSuffix =
-      /\s*,?\s+(?=(?:an?\s+)?(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|\d{1,2})[- ]week\b[^,.;]{0,32}\b(?:course|class|seminar|studio|workshop)\b)/i.exec(
+      /\s*,?\s+(?=(?:an?\s+)?(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|\d{1,2})[- ](?:week|session|lesson|module)\b[^,.;]{0,32}\b(?:course|class|seminar|studio|workshop)\b)/i.exec(
         line,
       );
     const timedBriefDivider =
-      /\s+[—–-]\s+(?=(?:an?\s+)?(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|\d{1,2})[- ]week\b[^,.;]{0,48}\b(?:course|class|seminar|studio|workshop)\b)/i.exec(
+      /\s+[—–-]\s+(?=(?:an?\s+)?(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|\d{1,2})[- ](?:week|session|lesson|module)\b[^,.;]{0,48}\b(?:course|class|seminar|studio|workshop)\b)/i.exec(
         line,
       );
     const commandDivider = /\s+[—–-]\s+(?=(?:build|compose|create|design|generate|make|produce)\b)/i.exec(line);

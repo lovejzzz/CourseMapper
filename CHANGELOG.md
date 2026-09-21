@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.20.03 — Concrete Mathematics and Preserved Requirements (2026-09-20)
+
+- Preserve explicit quiz counts (3–8), prior knowledge, per-session duration and numbered “Exact sequence” requirements across compilation, restored blueprints and exported manifests.
+- Replace instruction-only recovery with bounded synthetic mathematics for propositional logic and finite functions. Short logic quizzes include implication and converse; finite-function keys are computed from domain, codomain and mappings.
+- Supply the requested triangular-number induction proof with base case, hypothesis, substitution, factorization and conclusion. Share checked examples and independent practice through plans, guides, slides and assignments.
+- Respect source-only briefs, admitted teaching content and instructor-owned tasks. Recognize mathematical induction as proof practice. Keep external-source admission warnings: synthetic correctness does not imply trusted external grounding.
+- Correct the quoted-instruction title collision, reject unrelated statistical-learning sources for finite-function lessons, reduce duplicated study text, and recognize concrete mathematical cases in quiz-depth checks. Add native mathematical tables and relevant textbook links.
+- Add output regression tests and preserve v0.20.02 and all historical changelog entries. MCP remains hidden on ordinary pages.
+
 ## 0.20.02 — 2026-09-20
 
 ### Course quality without setup

@@ -121,6 +121,16 @@ export function sourceIdentityScopeMismatch({ lessonIdentity, sourceIdentity, so
   const source = cleanText(sourceIdentity).toLowerCase();
   const content = cleanText(sourceContent).toLowerCase();
   const sourceSemanticSurface = `${source} ${content}`.trim();
+  // “Set” and “function” are shared vocabulary, not sufficient evidence that
+  // a paper about fitting an ML estimator teaches finite mathematical maps.
+  const finiteMappingLesson = /\b(?:sets and functions|finite functions?|injectiv(?:e|ity)|surjectiv(?:e|ity))\b/.test(
+    lesson,
+  );
+  const statisticalLearning =
+    /\b(?:machine learning|semi[- ]supervised|supervised learning|graph[- ]based estimation|statistical learning|estimator fitting)\b/;
+  if (finiteMappingLesson && statisticalLearning.test(source) && !statisticalLearning.test(lesson)) {
+    return { mismatch: true, reason: 'finite-function-statistical-learning-source-identity' };
+  }
   const computingSource =
     /\b(?:computer science|computer programming|imperative programming|procedural programming|programming languages?|software programming|software development|source code|coding)\b/i.test(
       source,

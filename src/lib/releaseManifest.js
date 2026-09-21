@@ -1472,6 +1472,64 @@ export const CURRENT_RELEASE_CHANGELOG = {
   ...CURRENT_RELEASE,
   sections: [
     {
+      label: 'Explicit course requirements',
+      icon: 'CHECK',
+      color: 'indigo',
+      items: [
+        'Preserve an unambiguous 3–8 question quiz request from the brief through generation configuration, deterministic compilation and saved blueprint restoration instead of replacing it with the model default.',
+        'Preserve explicitly stated prior knowledge when the model omits prerequisites. Recognize minutes or hours per session and numbered Exact sequence lists in the existing timing and curriculum checks.',
+        'Include the explicit teaching requirements in the exported package manifest for independent inspection.',
+      ],
+    },
+    {
+      label: 'Concrete mathematics practice',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'When a lesson lacks admitted teaching content, supply bounded synthetic practice for two-valued propositional logic and finite functions; use the triangular-number induction proof only when that identity is explicitly requested.',
+        'Include implication and converse in short logic quizzes. Calculate finite-function image, injectivity and surjectivity from listed domain, codomain and mappings; include specific answers and reasoning.',
+        'Share actual worked examples and short practice tasks across lesson plans, study guides, slide decks and assignment briefs. Retain the full base case, induction hypothesis, algebraic step and conclusion of the requested sum proof.',
+        'Protect instructor-supplied tasks, complete authored worked examples and source-only constraints from synthetic recovery. Admitted background facts without a worked example do not satisfy an explicit mathematical task. Keep external-source review separate from the correctness of internally computed exercises.',
+        'Recognize mathematical induction as proof practice instead of classifying the course as a generic applied lab.',
+        'Reject the observed finite-function/statistical-learning source collision and link bounded examples to relevant MIT textbook sections without labeling synthetic inputs as sourced facts.',
+        'Keep a leading title before a counted course brief ahead of quoted instructions such as cite evidence.',
+        'Remove repeated study-guide task paragraphs, retain mathematical symbol case in quiz stems, add native mathematical tables, and recognize concrete truth-table and finite-mapping tasks in quiz-depth checks.',
+      ],
+    },
+    {
+      label: 'Verification and release history',
+      icon: 'CHECK',
+      color: 'slate',
+      items: [
+        'Add regression coverage for saved-project compilation, exact quiz counts, finite-function answers, implication versus converse, explicit prerequisites, sequence extraction and complete induction content.',
+        'Retain v0.20.02 and every earlier changelog entry. Ordinary course pages continue to hide MCP; read-only developer diagnostics remain available at ?debug=output.',
+        'This patch improves specific compiler recovery paths. It does not retrain Scion, certify arbitrary generated mathematics or claim that unresolved external-source admission is fixed.',
+      ],
+    },
+  ],
+};
+
+const V02002_RELEASE_METADATA = {
+  version: '0.20.02',
+  date: 'September 20, 2026',
+  title: 'Course Quality Without Debug Setup',
+  landingTitle: 'EDUTOOL V0.20.02: Focus on Your Course',
+  highlights: [
+    'Generate and edit courses without an MCP setup panel.',
+    'Keep verified logic exercises and reference-answer warnings in the normal workflow.',
+    'Retain output inspection in a dedicated developer mode.',
+  ],
+  landingHighlights: [
+    'Create teaching materials without extra setup.',
+    'Keep checked logic practice and answer-review warnings.',
+    'Review and export your course materials.',
+  ],
+};
+
+const V02002_RELEASE_CHANGELOG = {
+  ...V02002_RELEASE_METADATA,
+  sections: [
+    {
       label: 'Course quality without setup',
       icon: 'CHECK',
       color: 'indigo',
@@ -3044,6 +3102,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V02002_RELEASE_CHANGELOG,
   V02001_RELEASE_CHANGELOG,
   V02000_RELEASE_CHANGELOG,
   V01999_RELEASE_CHANGELOG,
