@@ -1472,6 +1472,40 @@ export const CURRENT_RELEASE_CHANGELOG = {
   ...CURRENT_RELEASE,
   sections: [
     {
+      label: 'Course quality without setup',
+      icon: 'CHECK',
+      color: 'indigo',
+      items: [
+        'Remove the MCP button and permission panel from normal landing and course pages. Generating and editing courses requires no MCP setup.',
+        'Retain read-only output inspection at the explicit developer entry ?debug=output, with per-tab opt-in and disconnect, reload and account-change revocation. Normal pages register no MCP tools.',
+        'Keep verified logic practice, incomplete-answer warnings and export substance checks active in normal generation. These improvements do not depend on enabling diagnostics.',
+        'Retain v0.20.01 and all earlier changelog entries. This interface change makes no additional claim of model or course-quality improvement.',
+      ],
+    },
+  ],
+};
+
+const V02001_RELEASE_METADATA = {
+  version: '0.20.01',
+  date: 'September 20, 2026',
+  title: 'Output Diagnostics and Verified Logic Practice',
+  landingTitle: 'EDUTOOL V0.20.01: Inspect and Improve Output',
+  highlights: [
+    'Inspect generated course materials through read-only browser MCP.',
+    'Generate concrete, answer-checked propositional logic practice when source recovery is needed.',
+    'Expose incomplete reference answers and instruction-only quiz cases while preserving release history.',
+  ],
+  landingHighlights: [
+    'Inspect actual AI output with MCP.',
+    'Practice logic with computed answer keys.',
+    'See output gaps before classroom use.',
+  ],
+};
+
+const V02001_RELEASE_CHANGELOG = {
+  ...V02001_RELEASE_METADATA,
+  sections: [
+    {
       label: 'MCP output diagnostics',
       icon: 'CHECK',
       color: 'indigo',
@@ -3010,6 +3044,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V02001_RELEASE_CHANGELOG,
   V02000_RELEASE_CHANGELOG,
   V01999_RELEASE_CHANGELOG,
   V0192_RELEASE_CHANGELOG,

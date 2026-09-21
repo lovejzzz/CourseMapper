@@ -16,6 +16,8 @@ const loadAppFlow = () => import('./AppFlow');
 const AppFlow = lazy(loadAppFlow);
 const AuthoringPanel = import.meta.env.DEV ? lazy(() => import('./components/authoring/AuthoringPanel')) : null;
 const CourseMcpPanel = lazy(() => import('./components/CourseMcpPanel'));
+// Explicit diagnostic entry; ordinary pages do not mount or register MCP tools.
+const outputDebug = new URLSearchParams(location.search).get('debug') === 'output';
 // Archived UI exists only in development compatibility tests, never in the production bundle.
 const legacyAuthoring = import.meta.env.DEV && new URLSearchParams(location.search).has('authoring');
 
@@ -197,11 +199,11 @@ export default function App() {
         }}
       />
     </Suspense>
-  ) : (
+  ) : outputDebug ? (
     <Suspense key="course-mcp" fallback={null}>
       <CourseMcpPanel workspace={authoringWorkspace} />
     </Suspense>
-  );
+  ) : null;
 
   if (flowActive) {
     return (

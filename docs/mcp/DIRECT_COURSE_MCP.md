@@ -1,4 +1,6 @@
-# Course output diagnostics through WebMCP — v0.20.01
+# Course output diagnostics through WebMCP — developer entry, v0.20.02
+
+Open `https://edutool.dev/?debug=output` (or the same query on localhost). Ordinary pages show no MCP panel and register no tools. This URL selects a diagnostic interface, not an authorization boundary; reading still requires explicit per-tab access.
 
 Open a generated course, click **MCP**, and enable **Allow MCP to inspect generated output in this tab**. A supported AI browser can inspect actual materials, identify defects and use that evidence to improve website generation code. These tools cannot modify the course.
 
