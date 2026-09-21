@@ -605,7 +605,7 @@ export function projectSharedTeachingTasks(feature, data, blueprint, options = {
       task,
       previousSources.find((source) => source.id === task.id),
     );
-    if (task.codingPractice || task.operationPlan?.operation === 'paired-condition-confound') {
+    if (task.checkedPractice || task.codingPractice || task.operationPlan?.operation === 'paired-condition-confound') {
       // The selected task owns the lesson's generated example. Keep the full
       // demonstration in teacher material, not on the student assignment.
       if (feature === 'lessonPlans') row.workedExample = teachingTaskWorkedExample(task);
@@ -858,7 +858,7 @@ export function projectTeachingTasksIntoCourseMap(courseMap, blueprint, { genera
         task,
         'Revise the classroom response using the matching criterion feedback; identify the specific correction made.',
       ),
-      ...(task.codingPractice
+      ...(task.codingPractice || task.checkedPractice
         ? {
             learningObjectives: task.objective,
             weeklyAssessments: `${task.title} → Assignment Briefs / Lesson ${String(lesson.lessonNumber).padStart(2, '0')}`,
@@ -876,7 +876,12 @@ export function projectTeachingTasksIntoCourseMap(courseMap, blueprint, { genera
           /^(?:1\.\s*)?(?:Compare claims and justify|Annotate the available course evidence|Audit one practical example|Revisit the supplied facts)/i.test(
             current,
           );
-        if (!current || current === previous || compilerFallback || (generatedCodingMap && task.codingPractice))
+        if (
+          !current ||
+          current === previous ||
+          compilerFallback ||
+          (generatedCodingMap && (task.codingPractice || task.checkedPractice))
+        )
           updated[field] = value;
       }
       if (typeof section.supportingResources === 'string')

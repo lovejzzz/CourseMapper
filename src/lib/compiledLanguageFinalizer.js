@@ -599,6 +599,18 @@ function protectedAuthenticEvidenceSpans(blueprint = {}) {
     if (!task) continue;
     task.inputs.forEach((input) => add(input.text));
     [task.question, task.answer, ...(task.reasoning || [])].forEach(add);
+    if (task.checkedPractice) {
+      // Do not mask bare numbers: they can occur inside ids and mask tokens.
+      const protectCalculationProse = (value) => {
+        if (typeof value === 'string' && value.length >= 20) add(value);
+      };
+      Object.values(task.workedExample || {})
+        .flat()
+        .forEach(protectCalculationProse);
+      for (const question of task.checkedPractice.questions || []) {
+        [question.question, question.answer, question.explanation].forEach(protectCalculationProse);
+      }
+    }
     // Reviewed presentation v2 owns its sample responses and scoring wording.
     // Generic seam cleanup must not change their quotations or the text to
     // which the review evidence offsets refer. Preserve v1 replay for merges.

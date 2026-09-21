@@ -1,8 +1,5 @@
-import {
-  buildVerifiedQuantitativePractice,
-  buildVerifiedQuantitativeQuiz,
-  projectVerifiedQuantitativePractice,
-} from './verifiedQuantitativePractice.js';
+import { buildCheckedCalculationTask } from './checkedCalculationTask.js';
+import { buildVerifiedQuantitativeQuiz, projectVerifiedQuantitativePractice } from './verifiedQuantitativePractice.js';
 import { requiresInstructorSourcesOnly } from './sourceBriefConstraints.js';
 import {
   buildVerifiedDiscreteMathPractice,
@@ -12801,7 +12798,9 @@ function prepareBlueprintForCompilation(blueprint = {}, options = {}) {
     );
     const savedTask = savedTaskSource && rebuildTeachingTaskSource(savedTaskSource, asArray(lesson.outcomes).join(' '));
     if (
-      (savedTaskSource?.operationPlan !== undefined || savedTaskSource?.kind?.startsWith('coding-practice:')) &&
+      (savedTaskSource?.operationPlan !== undefined ||
+        savedTaskSource?.kind?.startsWith('coding-practice:') ||
+        savedTaskSource?.kind?.startsWith('checked-calculation:')) &&
       !savedTask
     ) {
       const error = new Error(
@@ -12835,7 +12834,7 @@ function prepareBlueprintForCompilation(blueprint = {}, options = {}) {
       !lesson.enrichment?.activityBlueprint
         ? selectCodingPracticeInputs(prepared, lesson)
         : [];
-    const teachingTask =
+    let teachingTask =
       sourceTask ||
       (codingInputs.length
         ? buildSharedTeachingTask({
@@ -12870,17 +12869,28 @@ function prepareBlueprintForCompilation(blueprint = {}, options = {}) {
           lessonNeedsSourceBoundRecovery(lesson, prepared)))
         ? mathCandidate
         : null;
+    const checkedTask =
+      !requiresInstructorSourcesOnly(prepared.explicitTeachingRequirements?.sourceBrief) &&
+      !teachingTask &&
+      !instructorFacts.length &&
+      !completeExample &&
+      !authoredAssignment &&
+      !lesson.authenticDataTaskPlan &&
+      !lesson.enrichment?.activityBlueprint
+        ? buildCheckedCalculationTask({
+            lessonId: lesson.id,
+            title: lesson.title,
+            brief: prepared.explicitTeachingRequirements?.sourceBrief || '',
+            sessionMinutes: lesson.classSessionPlan?.sessionMinutes,
+            practiceMinutes: lesson.classSessionPlan?.segments?.find((s) => s.phase === 'collaborative application')
+              ?.minutes,
+          })
+        : null;
+    teachingTask ||= checkedTask;
     return {
       ...lesson,
       verifiedMathPractice,
-      verifiedQuantitativePractice:
-        !requiresInstructorSourcesOnly(prepared.explicitTeachingRequirements?.sourceBrief) &&
-        !teachingTask &&
-        !instructorFacts.length &&
-        !completeExample &&
-        !authoredAssignment
-          ? buildVerifiedQuantitativePractice(lesson, prepared.explicitTeachingRequirements?.sourceBrief || '')
-          : null,
+      verifiedQuantitativePractice: teachingTask?.checkedPractice || null,
       teachingTask,
       // The saved program owns whether this is the main task or practice.
       // Enrichment can supply other content, but cannot silently change that role.

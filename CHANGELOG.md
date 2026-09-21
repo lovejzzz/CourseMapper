@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.20.05 — September 21, 2026
+
+- Route supported calculation exercises through one rebuildable teaching task instead of separate per-document patches. Share identity, revision, inputs, worked reasoning and scoring across all teaching materials and the course map.
+- Persist and recompute saved inputs; surface changed or inconsistent reference answers, examples and assignments without overwriting teacher edits.
+- Extend checked operations to explicit SI constant-acceleration and net-force problems. Reject missing/ambiguous inputs and preserve source-only or instructor-authored tasks.
+- Validate with changed-input propagation, independently derived arithmetic identities, mutation checks and actual browser exports. These checks do not certify every subject, source or learning outcome.
+- Preserve checked worked-example text through language cleanup; update the generated course map through the edit-preserving merge. Honor spelled-out quiz counts such as “four-question” and reject conflicting counts.
+- Preserve v0.20.04 and all earlier changelog entries; ordinary pages continue to hide developer MCP.
+
 ## v0.20.04 — Ten-Course Audit and Checked Calculations (2026-09-21)
 
 - Audit ten freshly generated two-lesson courses across programming, statistics, physics, chemistry, biology, economics, history, literature, Spanish and ecology. Record actual model/cache execution, output defects and exported Office contents separately from automated conformance scores.

@@ -1,3 +1,4 @@
+import { checkedMechanicsPractice } from './checkedMechanicsPractice.js';
 // Bounded arithmetic on explicitly supplied inputs. No eval, inferred data,
 // source admission, or general scientific/financial advice.
 const numberPattern = '-?(?:\\d+(?:\\.\\d+)?|\\.\\d+)';
@@ -52,6 +53,9 @@ function packet(kind, problem, questions, terms, table) {
 export function buildVerifiedQuantitativePractice(lesson, brief = '') {
   const context = String(lesson.title || '').toLowerCase();
   const text = String(brief);
+  const mechanics = checkedMechanicsPractice(context, text);
+  if (mechanics)
+    return packet(mechanics.kind, mechanics.problem, mechanics.questions, mechanics.terms, mechanics.table);
   if (/\b(?:mean|median|variance|outliers|descriptive statistics)\b/.test(context)) {
     const lists = [...text.matchAll(/\b(?:data|dataset|observations)\s*[:=]?\s*\[([^\]]+)\]/gi)];
     if (lists.length !== 1) return null;
@@ -120,7 +124,7 @@ export function buildVerifiedQuantitativePractice(lesson, brief = '') {
     }
     return packet(
       'numeric-sample',
-      `Calculate ${spread ? 'spread with explicit population/sample conventions' : 'center and range'} for data ${label}.`,
+      `Calculate ${spread ? 'spread with explicit population/sample conventions' : 'center and range'} for data ${label}.${outliers.length === 1 ? ` Also discuss adding an outlier ${outliers[0][1]}.` : ''}`,
       spread ? [...variance, ...center] : [...center, ...variance],
       [
         term('Mean', 'Sum divided by the number of observations.'),
@@ -238,6 +242,9 @@ export function buildVerifiedQuantitativeQuiz(lesson, count) {
   if (!p) return null;
   return p.questions.slice(0, count).map((q, i) => ({
     id: `L${lesson.lessonNumber}-Q${i + 1}`,
+    ...(lesson.teachingTask?.checkedPractice
+      ? { taskId: lesson.teachingTask.id, taskRevision: lesson.teachingTask.revision }
+      : {}),
     type: 'short_answer',
     ...q,
     sampleAnswer: q.answer,
@@ -280,6 +287,7 @@ export function projectVerifiedQuantitativePractice(feature, data, blueprint) {
       );
       const p = lesson?.verifiedQuantitativePractice;
       if (!p) return row;
+      if (lesson.teachingTask?.checkedPractice && feature !== 'slideDecks') return row;
       const ex = p.workedExample,
         practice = p.practice;
       if (feature === 'studyGuides')
