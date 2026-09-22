@@ -61,6 +61,7 @@ export function buildApiCostPlan({
   blueprintEnrichmentCalls = 0,
   blueprintEnrichmentRecoveryReserve = 0,
   finalizerRetryCallBudget = 0,
+  materialItemCalls = 0,
 } = {}) {
   const selectedFeatures = [
     ...new Set((featureIds || []).filter((featureId) => featureId && featureId !== 'courseMap')),
@@ -84,14 +85,18 @@ export function buildApiCostPlan({
   const enrichmentCalls = Math.max(0, Number(blueprintEnrichmentCalls) || 0);
   const enrichmentRecoveryReserve = Math.max(0, Number(blueprintEnrichmentRecoveryReserve) || 0);
   const finalizerRetryReserve = Math.max(0, Number(finalizerRetryCallBudget) || 0);
+  // v0.20.08: one Scion call per quiz question written from the teacher's
+  // material, plus one retry each (planned by the caller).
+  const materialQuestionCalls = Math.max(0, Number(materialItemCalls) || 0);
   const plannedCalls =
     initialCourseMapCalls +
     deliverableChunkCalls +
     enrichmentCalls +
+    materialQuestionCalls +
     enrichmentRecoveryReserve +
     repairRetryReserve +
     finalizerRetryReserve;
-  const normalCalls = initialCourseMapCalls + deliverableChunkCalls + enrichmentCalls;
+  const normalCalls = initialCourseMapCalls + deliverableChunkCalls + enrichmentCalls + materialQuestionCalls;
   const softCallLimit = plannedCalls + Math.max(3, Math.ceil(normalCalls * 0.25));
   const hardCallLimit = plannedCalls + Math.max(6, Math.ceil(normalCalls * 0.75));
 
@@ -103,6 +108,7 @@ export function buildApiCostPlan({
     deliverableChunkCalls,
     blueprintEnrichmentCalls: enrichmentCalls,
     blueprintEnrichmentRecoveryReserve: enrichmentRecoveryReserve,
+    materialItemCalls: materialQuestionCalls,
     repairRetryReserve,
     finalizerRetryReserve,
     reservedCalls: plannedCalls,

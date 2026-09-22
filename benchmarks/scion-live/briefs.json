@@ -1,0 +1,117 @@
+{
+  "protocol": "edutool-scion-fresh-eval-2026-09-22",
+  "site": "https://edutool.dev (v0.20.07, commit 6b055b51)",
+  "rule": "Inputs and expected answers were written before any generation. They are not changed after results are seen.",
+  "families": {
+    "Q": "Quantitative: correct givens, units, computed answer",
+    "T": "Chronology / attribution: event time vs record time vs accession, who reports what",
+    "A": "Explanation / argument / text: supported interpretation grounded in the supplied text"
+  },
+  "inputs": [
+    {
+      "id": "Q1-en-chem",
+      "lang": "en",
+      "brief": "Introductory chemistry for 10th graders: 1 lesson of 45 minutes on limiting reagents. Use the reaction 2H2 + O2 -> 2H2O with 4 mol H2 and 3 mol O2. Include a quiz with 4 questions per lesson, an assignment and a study guide.",
+      "expected": [
+        "O2 needed for 4 mol H2 is 2 mol",
+        "H2 is the limiting reagent",
+        "4 mol H2O forms",
+        "1 mol O2 remains"
+      ]
+    },
+    {
+      "id": "Q2-zh-stats",
+      "lang": "zh",
+      "brief": "初中数学：1节课，45分钟，主题是平均数、中位数和方差。使用数据 3, 5, 5, 7, 10。请包含每节4道题的测验、一份作业和一份学习指南。",
+      "expected": ["平均数 6", "中位数 5", "离差平方和 28", "总体方差 5.6", "样本方差 7"]
+    },
+    {
+      "id": "Q3-en-physics",
+      "lang": "en",
+      "brief": "Physics for 11th graders: 1 lesson of 45 minutes on constant acceleration. A cart starts from rest and accelerates at 3 m/s^2 for 4 s. Include a quiz with 4 questions per lesson, an assignment and a study guide.",
+      "expected": ["final speed 12 m/s", "distance 24 m", "units stated", "starts from rest assumption"]
+    },
+    {
+      "id": "Q4-zh-genetics",
+      "lang": "zh",
+      "brief": "高中生物：1节课，45分钟，主题是孟德尔遗传。用 Aa × Aa 杂交，A 为显性。请包含每节4道题的测验、一份作业和一份学习指南。",
+      "expected": ["基因型比 AA:Aa:aa = 1:2:1", "aa 概率 1/4", "显性表型概率 3/4", "使用棋盘法"]
+    },
+    {
+      "id": "T1-en-letter",
+      "lang": "en",
+      "brief": "History source analysis for 9th graders: 1 lesson of 45 minutes. Source facts: A letter dated 12 March 1850 describes a mill fire that happened in 1848. The writer says he heard about the fire from his brother. The county archive received the letter in 1902. Include a quiz with 4 questions per lesson, an assignment and a study guide.",
+      "expected": [
+        "event 1848",
+        "record written 1850",
+        "archive accession 1902",
+        "secondhand report (brother)",
+        "dates do not conflict"
+      ]
+    },
+    {
+      "id": "T2-zh-bridge",
+      "lang": "zh",
+      "brief": "高一历史史料分析：1节课，45分钟。史料事实：县志记载某石桥建于1623年；桥头碑文记载1631年重修；1980年的旅游手册称该桥建于1631年。请包含每节4道题的测验、一份作业和一份学习指南。",
+      "expected": ["建成 1623", "重修 1631", "旅游手册把重修当成建成", "县志与碑文不冲突", "1980年手册是晚出的二手材料"]
+    },
+    {
+      "id": "T3-en-strike",
+      "lang": "en",
+      "brief": "History for 11th graders: 1 lesson of 45 minutes on reading conflicting sources. Source facts: The mill owners' newspaper reported that 300 workers joined the 1912 strike. The union bulletin reported 1,200 strikers. No third count survives. Include a quiz with 4 questions per lesson, an assignment and a study guide.",
+      "expected": [
+        "300 from owners' paper",
+        "1,200 from union bulletin",
+        "each source has a motive",
+        "the true number cannot be settled from these sources",
+        "attribute each number to its source"
+      ]
+    },
+    {
+      "id": "T4-zh-diary",
+      "lang": "zh",
+      "brief": "高中历史：1节课，45分钟，比较史料。史料事实：一位教师在1937年的日记中写道当天学校停课；同一位教师在1985年出版的回忆录中写道学校照常上课。请包含每节4道题的测验、一份作业和一份学习指南。",
+      "expected": [
+        "日记写于1937年，接近事件",
+        "回忆录写于1985年，时间距离远",
+        "两者矛盾",
+        "日记更接近事件但仍需佐证",
+        "不能仅凭一份断定"
+      ]
+    },
+    {
+      "id": "A1-en-poem",
+      "lang": "en",
+      "brief": "English literature for 10th graders: 1 lesson of 45 minutes, close reading of Shelley's Ozymandias. Use these lines: \"And on the pedestal, these words appear: My name is Ozymandias, King of Kings; Look on my Works, ye Mighty, and despair! Nothing beside remains. Round the decay Of that colossal Wreck, boundless and bare The lone and level sands stretch far away.\" Include a quiz with 4 questions per lesson, an assignment and a study guide.",
+      "expected": [
+        "quotes the inscription",
+        "contrast between boast and ruin (irony)",
+        "cites 'Nothing beside remains'",
+        "answers grounded in the supplied lines"
+      ]
+    },
+    {
+      "id": "A2-zh-poem",
+      "lang": "zh",
+      "brief": "小学语文：1节课，40分钟，学习李白《静夜思》：床前明月光，疑是地上霜。举头望明月，低头思故乡。请包含每节4道题的测验、一份作业和一份学习指南。",
+      "expected": ["引用原诗句", "明月与霜的比喻/联想", "举头与低头的动作", "思乡之情", "答案依据原文"]
+    },
+    {
+      "id": "A3-zh-tablet",
+      "lang": "zh",
+      "brief": "初中科学探究：1节课，45分钟，主题是因果推断。材料事实：某校引入平板电脑后一年，平均成绩提高了8分；同一年学校也更换了数学老师。请包含每节4道题的测验、一份作业和一份学习指南。",
+      "expected": ["成绩提高 8 分", "同时更换老师是混杂因素", "不能断定平板导致提高", "提出对照或改进设计"]
+    },
+    {
+      "id": "A4-en-spanish",
+      "lang": "en",
+      "brief": "Spanish for beginners: 1 lesson of 45 minutes on introductions with the verb ser. Use this dialogue: \"Hola, soy Ana. ¿Cómo te llamas?\" \"Me llamo Luis. Soy de México. ¿Y tú?\" \"Soy de España.\" Include a quiz with 4 questions per lesson, an assignment and a study guide.",
+      "expected": [
+        "soy / eres / es forms correct",
+        "uses the supplied dialogue",
+        "accents correct (¿Cómo?, México, España)",
+        "Spanish examples with English glosses"
+      ]
+    }
+  ]
+}

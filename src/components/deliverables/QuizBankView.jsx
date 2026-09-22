@@ -1,3 +1,4 @@
+import SuppliedMaterialCard from './shared/SuppliedMaterialCard';
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { isSameViewText, sharedViewValue } from '../../lib/materialViewDedupe.js';
 import EditProposalPanel from '../EditProposalPanel';
@@ -123,6 +124,23 @@ export default function QuizBankView({
                 <p data-testid="quiz-shared-objective" className="text-xs text-slate-500">
                   <span className="font-semibold text-slate-600">Objective:</span> {sharedObjective}
                 </p>
+              )}
+              <SuppliedMaterialCard material={quiz.suppliedMaterial} />
+              {/* v0.20.08: questions that cite "Record A-D" now show those
+                  records; they used to be referenced but never displayed. */}
+              {!quiz.suppliedMaterial && Array.isArray(quiz.practiceRecord?.records) && (
+                <section
+                  data-testid="quiz-practice-case"
+                  className="rounded-lg border border-slate-200 bg-slate-50/70 p-3 text-xs leading-relaxed text-slate-700"
+                >
+                  <h4 className="font-semibold text-slate-600">{quiz.practiceRecord.title || 'Practice case'}</h4>
+                  {quiz.practiceRecord.context && <p className="mt-1">{quiz.practiceRecord.context}</p>}
+                  <ul className="mt-1.5 space-y-1">
+                    {quiz.practiceRecord.records.map((record, k) => (
+                      <li key={k}>{record}</li>
+                    ))}
+                  </ul>
+                </section>
               )}
               {questions.map((q, j) => (
                 <QuestionCard

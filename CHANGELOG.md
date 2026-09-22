@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.20.08 — September 22, 2026
+
+- Keep the material in a course description verbatim and use it: quoted lines and poems, titled Chinese texts (《静夜思》：…), dialogues, labeled facts in English or Chinese (Source facts:, 史料事实：, 材料事实：) and data or formulas. It is shown in the lesson plan, quiz, study guide and assignment. Previously only an English "Source facts:" label was read.
+- Write quiz questions from that material with Scion, one checked question per call (language, grounding, pipeline words, repeats, single-letter keys, ambiguous options). Failed drafts fall back to questions built directly from the material, never to the "Records A–D" template.
+- Compute calculation answers in code (data-set statistics, limiting reagent and yield, uniform acceleration, single-gene crosses) and reject model-keyed numbers that the app did not compute.
+- Read Chinese course shape ("1节课，45分钟，每节4道题", Chinese numerals) and instruct the model to write Chinese courses in Chinese.
+- Replace template objectives that said "admitted evidence" with plain wording and add a runtime guard that rewrites pipeline terms in every compiled material.
+- Add a live Scion quality test (`benchmarks/scion-live`, `scripts/benchmarks/scionLiveScore.mjs`). Retain v0.20.07 and all earlier release notes.
+
 ## v0.20.07 — September 22, 2026
 
 - Simplify the homepage to one question and one description box; attachments, AI settings and Continue sit inside it and example courses stay below. AI settings show only the provider, one line about local use and the public-source switch; sign-in is one button with Google and email options.

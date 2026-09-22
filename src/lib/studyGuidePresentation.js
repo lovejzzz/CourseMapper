@@ -51,14 +51,17 @@ const chinese = {
   'Time Management': '时间安排',
   'Exam Tips': '复习建议',
   'Connection to Next Lesson': '与下一课的联系',
+  Answer: '答案',
   Understand: '理解',
   Apply: '应用',
   Analyze: '分析',
 };
 
 export const isReviewedStudyGuide = (guide) => guide?.teachingGuideVersion === 1;
-export const studyGuideText = (guide, label) =>
-  isReviewedStudyGuide(guide) && guide.language === 'zh' ? chinese[label] || label : label;
+// v0.20.08: a guide built on Chinese material uses Chinese headings too.
+const guideIsChinese = (guide) =>
+  (isReviewedStudyGuide(guide) && guide.language === 'zh') || guide?.suppliedMaterial?.language === 'zh';
+export const studyGuideText = (guide, label) => (guideIsChinese(guide) ? chinese[label] || label : label);
 
 // A guide explanation is a material-specific projection of the reviewed task.
 // Editing its wording must not replace the course topic or ask a model to do so.

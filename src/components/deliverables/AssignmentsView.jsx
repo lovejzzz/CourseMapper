@@ -1,3 +1,4 @@
+import SuppliedMaterialCard from './shared/SuppliedMaterialCard';
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import EditProposalPanel from '../EditProposalPanel';
 import TeachingTaskReference from './shared/TeachingTaskReference';
@@ -166,6 +167,7 @@ export default function AssignmentsView({
               </div>
 
               {/* Overview */}
+              <SuppliedMaterialCard material={a.suppliedMaterial} />
               {a.overview && (
                 <div>
                   <SectionHeading>Overview &amp; Purpose</SectionHeading>

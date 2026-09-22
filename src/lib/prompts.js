@@ -1,5 +1,6 @@
 import { COMPILER_OWNED_LEAN_KEYS, LEAN_COLUMN_DEFS, LEAN_READINGS_DEF, LEAN_SPECIAL_TOOLS_DEF } from './leanCourseMap';
 import { segmentSyllabus } from './syllabusSegmentation.js';
+import { briefLanguageInstruction } from './briefLanguage.js';
 
 // Feature 2.3 — BYOM: Reconstruct course structure from uploaded materials
 export const RECONSTRUCT_SYSTEM_PROMPT = `You are an expert instructional designer. Your course maps align with Quality Matters (QM) Higher Education Rubric standards for learning objectives, instructional alignment, and course technology. The instructor has uploaded their existing course materials (slides, notes, lecture outlines, prior syllabi, or other teaching artifacts). Your task is to REVERSE-ENGINEER the course structure from these materials and produce a structured Course Map.
@@ -347,7 +348,7 @@ ${sampleSection}        }
   ]
 }
 
-${isReconstruct ? 'UPLOADED MATERIALS:' : 'SYLLABUS CONTENT:'}
+${briefLanguageInstruction(syllabusText) ? `${briefLanguageInstruction(syllabusText)}\n\n` : ''}${isReconstruct ? 'UPLOADED MATERIALS:' : 'SYLLABUS CONTENT:'}
 ${segmentSyllabus(syllabusText)}
 
 Generate the complete Course Map JSON now:`;

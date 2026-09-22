@@ -1,3 +1,4 @@
+import SuppliedMaterialCard from './shared/SuppliedMaterialCard';
 import { isReviewedStudyGuide, studyGuideText } from '../../lib/studyGuidePresentation.js';
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import EditProposalPanel from '../EditProposalPanel';
@@ -84,6 +85,8 @@ export default function StudyGuidesView({
                   </div>
                 )}
 
+                <SuppliedMaterialCard material={g.suppliedMaterial} />
+
                 {g.sourceEvidenceBrief?.claims?.length > 0 && (
                   <div className="rounded-xl border border-teal-100 bg-teal-50/45 p-3">
                     <SectionHeading>
@@ -126,9 +129,15 @@ export default function StudyGuidesView({
                   <div>
                     <SectionHeading>{t('Practice')}</SectionHeading>
                     {g.objectivePractice.map((practice, j) => (
-                      <p key={j} className="text-xs text-slate-700 leading-relaxed">
+                      <div key={j} className="text-xs text-slate-700 leading-relaxed">
                         <E value={practice} path={[key, i, 'objectivePractice', j]} onEdit={onEdit} />
-                      </p>
+                        {g.practiceAnswers?.[j] && (
+                          <details className="mt-0.5 ml-3 text-slate-500" data-testid="study-practice-answer">
+                            <summary className="cursor-pointer select-none">{t('Answer')}</summary>
+                            <E value={g.practiceAnswers[j]} path={[key, i, 'practiceAnswers', j]} onEdit={onEdit} />
+                          </details>
+                        )}
+                      </div>
                     ))}
                     {/* v0.20.07: one practice section instead of two. */}
                     {g.practiceActivities?.length > 0 && (

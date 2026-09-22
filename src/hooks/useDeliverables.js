@@ -115,6 +115,8 @@ import {
 } from '../lib/generationCancellation';
 import { admitInstructionalPlanForGeneration } from '../lib/instructionalPlanGenerationAdmission';
 
+// v0.20.08: ceiling on per-question Scion calls in one generation run.
+const MATERIAL_ITEM_CALL_BUDGET = 24;
 const PROVIDER_CALL_EVENT_TYPES = new Set([
   'deliverableChunkCall',
   'blueprintEnrichmentCall',
@@ -790,7 +792,30 @@ export default function useDeliverables({
         blueprintEnrichmentRequested && generationOptions.lessonContentEnrichment !== false
           ? enrichmentRecoveryCallLimit
           : 0;
+      // v0.20.08: reserve the per-question Scion calls for the teacher's
+      // material, so the run's hard call limit does not cut them short.
+      let plannedMaterialItemCalls = 0;
+      if (costMode !== 'finalizerRetry' && blueprintCompiledFeatureIds.includes('quizBank') && sourceBrief) {
+        try {
+          const { extractSuppliedMaterial } = await import('../lib/suppliedMaterial');
+          const material = extractSuppliedMaterial(sourceBrief);
+          if (material.blocks.length) {
+            const perLesson = Math.max(
+              1,
+              Math.min(10, Number(getGenerationConfig('quizBank')?.questionsPerLesson) || 4),
+            );
+            const lessons = Math.max(
+              1,
+              Math.min(material.blocks.length, Array.isArray(scopeIndices) ? scopeIndices.length : lessonCount || 1),
+            );
+            plannedMaterialItemCalls = Math.min(MATERIAL_ITEM_CALL_BUDGET, perLesson * 2 * lessons);
+          }
+        } catch {
+          plannedMaterialItemCalls = 0;
+        }
+      }
       const costPlan = buildApiCostPlan({
+        materialItemCalls: plannedMaterialItemCalls,
         source: costMode,
         featureIds: toGenerate,
         lessonCount,
@@ -3208,6 +3233,111 @@ export default function useDeliverables({
             blueprintCompiledFeatureIds.map((featureId) => [featureId, getGenerationConfig(featureId)]),
           ),
         );
+        // v0.20.08: Scion writes the quiz questions from the teacher's own
+        // material (poem, dialogue, data, dated facts), one checked question
+        // per call. Accepted questions are cached; the compiler overlay uses
+        // them and fills any gap with questions built directly from the
+        // material, so a failed call never brings back template items.
+        if (blueprintCompiledFeatureIds.includes('quizBank') && costMode !== 'finalizerRetry') {
+          try {
+            const [materialLib, itemsLib] = await Promise.all([
+              import('../lib/materialOverlay'),
+              import('../lib/materialQuizItems'),
+            ]);
+            const taskLessons = new Set(
+              blueprintCompiler?.lessonNumbersWithTeachingTask?.(blueprint, { configMap: compilerConfigMap }) || [],
+            );
+            const targets = materialLib.materialAuthoringTargets(
+              sourceBrief,
+              (blueprint?.lessons || [])
+                .filter((lesson) => !taskLessons.has(lesson.lessonNumber))
+                .map((lesson) => ({ lessonNumber: lesson.lessonNumber, title: lesson.title })),
+            );
+            const questionCount = Math.max(
+              1,
+              Math.min(10, Number(compilerConfigMap.quizBank?.questionsPerLesson) || 4),
+            );
+            let callBudget = MATERIAL_ITEM_CALL_BUDGET;
+            for (const target of targets) {
+              if (shouldStopBlueprintCompiler()) return;
+              if ((materialLib.readCachedMaterialItems(target.cacheKey)?.length || 0) >= questionCount) continue;
+              if (!enrichmentModelAvailable || callBudget <= 0 || !hasProviderCallBudget(1)) break;
+              const itemAbortKey = `shared:${generationRunId}:materialQuizItems:${target.lesson.lessonNumber}`;
+              const itemController = createGenerationAbortController(generationEpochRef, generationEpoch);
+              if (!itemController) return;
+              abortMapRef.current.set(itemAbortKey, itemController);
+              appendLog(`Writing quiz questions for ${target.lesson.title} from your material`, 'progress');
+              try {
+                const result = await itemsLib.authorMaterialItems({
+                  material: target.material,
+                  lessonTitle: target.lesson.title,
+                  courseTitle: blueprint?.courseName || '',
+                  count: questionCount,
+                  topicText: sourceBrief,
+                  maxCalls: Math.min(callBudget, questionCount * 2),
+                  isAborted: () => shouldStopBlueprintCompiler() || itemController.signal.aborted,
+                  callModel: async (systemPrompt, userPrompt) => {
+                    const result = await streamProvider(provider, apiKey, modelId, systemPrompt, userPrompt, {
+                      modelCapabilities,
+                      generationPlan,
+                      featureId: 'quizBank',
+                      task: 'materialQuizItem',
+                      maxOutputTokens: 700,
+                      allowProviderFallback: maxProviderCalls === null || getRemainingProviderCalls() > 0,
+                      onApiCallEvent: recordGenerationApiCallEvent,
+                      signal: itemController.signal,
+                    });
+                    return result?.fullText || '';
+                  },
+                });
+                callBudget -= result.calls;
+                // Inspectable in the browser console during development.
+                if (import.meta.env.DEV) {
+                  try {
+                    sessionStorage.setItem('edutool-dev-material-rejections', JSON.stringify(result.rejections));
+                  } catch {
+                    /* development diagnostics only */
+                  }
+                }
+                const scionItems = result.items.filter((item) => item.source === 'scion-material-item');
+                if (scionItems.length) materialLib.writeCachedMaterialItems(target.cacheKey, scionItems);
+                recordGenerationApiCallEvent({
+                  type: 'pipelineDecision',
+                  stage: 'materialQuizItems',
+                  label: 'Questions from your material',
+                  detail: `${target.lesson.title}: ${scionItems.length}/${questionCount} written by Scion and checked; ${
+                    questionCount - scionItems.length
+                  } built directly from the material; ${result.rejections.length} draft${
+                    result.rejections.length === 1 ? '' : 's'
+                  } rejected${result.rejections.length ? ` (${[...new Set(result.rejections.map((entry) => entry.reason))].slice(0, 3).join('; ')})` : ''}`,
+                  featureId: 'quizBank',
+                });
+                appendLog(
+                  `✓ ${scionItems.length} of ${questionCount} questions for ${target.lesson.title} written by Scion from your material`,
+                  scionItems.length ? 'done' : 'warn',
+                );
+              } finally {
+                abortMapRef.current.delete(itemAbortKey);
+              }
+            }
+          } catch (error) {
+            if (import.meta.env.DEV) {
+              try {
+                sessionStorage.setItem(
+                  'edutool-dev-material-error',
+                  `${error?.name}: ${error?.message}\n${String(error?.stack || '').slice(0, 800)}`,
+                );
+              } catch {
+                /* development diagnostics only */
+              }
+            }
+            if (error?.name === 'AbortError') throw error;
+            appendLog(
+              'Scion could not write questions from your material; they were built directly from it instead',
+              'warn',
+            );
+          }
+        }
         const compiledSavings = estimateBlueprintCompilerSavings(
           blueprintCompiledFeatureIds,
           lessonCount,
