@@ -57,6 +57,21 @@ export function derivePromptPreviewTitle(promptText) {
   );
   if (leadingTitleSentence?.[1]) return removeBriefQualifiers(leadingTitleSentence[1]);
 
+  // "Introductory chemistry for 10th graders: 2 lessons of 50 minutes …" —
+  // the colon separates the course identity from the requested shape.
+  const titleBeforeColonShape = text.match(
+    /^([^:.!?]{4,90}):\s*(?:an?\s+)?(?:exactly\s+)?(?:one|two|three|four|five|six|seven|eight|nine|ten|\d{1,2})[-\s]+(?:\w+[-\s]+){0,2}?(?:sessions?|lessons?|weeks?|modules?|classes)\b/i,
+  );
+  if (titleBeforeColonShape?.[1]) {
+    const identity = titleBeforeColonShape[1]
+      .replace(
+        /\s+for\s+(?:(?:\d{1,2}(?:st|nd|rd|th)|first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|eleventh|twelfth)[-\s]grad(?:e|ers?)|grade\s+\d{1,2}|year\s+\d{1,2}|beginners|adults?|(?:high|middle|primary)\s+school(?:\s+students)?|undergraduates?|students)\b.*$/i,
+        '',
+      )
+      .trim();
+    if (identity.length >= 4) return capitalizeCourseTypeSuffix(removeBriefQualifiers(identity));
+  }
+
   const titleBeforeCountedBrief = text.match(
     /^(.{4,90}?)\s+[—–-]\s+(?:an?\s+)?(?:one|two|three|four|five|six|seven|eight|nine|ten|\d+)[-\s]+(?:sessions?|lessons?|weeks?|modules?)\b/i,
   );

@@ -396,6 +396,45 @@ function projectRubric(row, task) {
   alignAssessmentCopies(row, task, criteria);
 }
 
+// v0.20.06: without an authored revision activity this step used to repeat the
+// checkpoint question, so "Compare and revise", "Check the conclusion" and the
+// exit ticket all asked the same thing. Build a distinct peer-comparison step
+// from the task's own second error or scoring criteria instead.
+function compareAndReviseStep(task) {
+  if (task.revisionActivity?.question) return [task.revisionActivity.question, task.revisionActivity.answer || ''];
+  const second = Array.isArray(task.errors) ? task.errors[1] : null;
+  if (second?.response && second?.correction) {
+    return [
+      taskText(
+        task,
+        `Swap responses with a partner. Check whether either response makes this error: “${second.response}” Revise the step that does.`,
+        `与同伴交换回答。检查是否出现这个错误：“${second.response}” 修改出错的步骤。`,
+      ),
+      taskText(
+        task,
+        `${second.correction}${second.feedback ? ` Feedback: ${second.feedback}` : ''}`,
+        `${second.correction}${second.feedback ? ` 反馈：${second.feedback}` : ''}`,
+      ),
+    ];
+  }
+  const criteria = (Array.isArray(task.criteria) ? task.criteria : []).map((c) => c?.label).filter(Boolean);
+  if (criteria.length > 0) {
+    return [
+      taskText(
+        task,
+        `Swap responses with a partner and check each one against: ${criteria.join('; ')}. Revise one step that does not yet meet a criterion.`,
+        `与同伴交换回答，逐项对照：${criteria.join('；')}。修改一处尚未达到标准的步骤。`,
+      ),
+      taskText(
+        task,
+        `A revised response meets every criterion: ${criteria.join('; ')}.`,
+        `修改后的回答应满足每项标准：${criteria.join('；')}。`,
+      ),
+    ];
+  }
+  return [task.checkpoint.question, task.checkpoint.answer];
+}
+
 function projectPlan(row, task) {
   const transfer = task.sequence?.find((unit) => unit.kind === 'independent-transfer');
   Object.assign(row, ref(task), {
@@ -463,11 +502,7 @@ function projectPlan(row, task) {
         `${task.errors[0].correction} 反馈：${task.errors[0].feedback}`,
       ),
     ],
-    [
-      taskCopy(task, 'Compare and revise responses'),
-      task.revisionActivity?.question || task.checkpoint.question,
-      task.revisionActivity?.answer || task.checkpoint.answer,
-    ],
+    [taskCopy(task, 'Compare and revise responses'), ...compareAndReviseStep(task)],
     [taskCopy(task, 'Write the task response'), task.question, task.answer],
     [taskCopy(task, 'Check the conclusion'), task.checkpoint.question, task.checkpoint.answer],
   ];

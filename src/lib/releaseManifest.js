@@ -1472,6 +1472,57 @@ export const CURRENT_RELEASE_CHANGELOG = {
   ...CURRENT_RELEASE,
   sections: [
     {
+      label: 'Briefs read as written',
+      items: [
+        'Stop reading “4 questions per lesson” as four lessons and accept digit counts such as “2 lessons of 50 minutes”. Schedule phrases such as “2 sessions per week” no longer set the course size.',
+        'Show the quiz count from your description on the settings screen instead of the model default, and read forms such as “5 quiz questions per lesson”.',
+        'Pre-select materials your description names (quiz, rubric, slides, study guide, and their Chinese equivalents) when nothing is selected yet.',
+        'Use the course identity before a colon (“Introductory chemistry: 2 lessons…”) as the preview title instead of the whole description.',
+      ],
+    },
+    {
+      label: 'Fewer repeats and template seams',
+      items: [
+        'Label a question repeated from an earlier lesson as “Retrieval from Lesson N” instead of presenting it as new, and correct difficulty labels that contradict the work an item asks for.',
+        'Give “Compare and revise responses” its own peer-comparison step built from the task’s criteria or second error, so it no longer repeats the closing check.',
+        'Name artifacts by their noun phrase (“An individual written explanation”) instead of a cut-off fragment (“…explanation supported”), and fix mid-sentence capitalization in access and rationale notes and sentence starts after joined fragments. Verbatim source quotations are unchanged.',
+        'Show only the Bloom levels a lesson’s activities use, and remove the mislabeled “Course:” prefix from title slides.',
+      ],
+    },
+    {
+      label: 'Research, setup and workspace',
+      items: [
+        'Search Wikisource first for close reading and primary-source lessons, and use zh.wikipedia.org for Chinese courses. Chinese relevance scoring no longer discards Han text. Research remains optional and bounded.',
+        'State the one-time 3.35 GB model download next to Generate and warn when browser storage looks too small.',
+        'Fix the material checkbox that appeared empty in dark mode, expose material cards as labeled checkboxes, and label the quiz-count steppers.',
+        'Hide or show the assistant column on desktop, and keep workspace controls on one scrollable row on phones.',
+        'Run the classroom output benchmark in strict mode as part of every check, with new checks for unlabeled cross-lesson repeats and repeated activity prompts. These are structural checks, not a classroom-readiness certificate; retain v0.20.05 and all earlier release notes.',
+      ],
+    },
+  ],
+};
+
+const V02005_RELEASE_METADATA = {
+  version: '0.20.05',
+  date: 'September 21, 2026',
+  title: 'One Checked Task Across Course Materials',
+  landingTitle: 'EDUTOOL V0.20.05: Consistent Tasks and Answers',
+  highlights: [
+    'Keep calculation tasks aligned across the course map and teaching materials.',
+    'Rebuild answers from saved inputs and flag inconsistent edits.',
+    'Use explicit SI inputs for bounded mechanics exercises.',
+  ],
+  landingHighlights: [
+    'Keep the task and its answer together.',
+    'Check changes against the original inputs.',
+    'Practice with worked calculations and clear assumptions.',
+  ],
+};
+
+const V02005_RELEASE_CHANGELOG = {
+  ...V02005_RELEASE_METADATA,
+  sections: [
+    {
       label: 'One rebuildable task',
       items: [
         'Bind supported calculation exercises to one shared task identity and input-derived revision. Course maps, syllabus schedules, lesson plans, slides, assignments, rubrics, discussions, quizzes, study guides and FAQs now use that same task.',
@@ -3198,6 +3249,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V02005_RELEASE_CHANGELOG,
   V02004_RELEASE_CHANGELOG,
   V02003_RELEASE_CHANGELOG,
   V02002_RELEASE_CHANGELOG,

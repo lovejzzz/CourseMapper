@@ -10,6 +10,7 @@ function inferredProvider(source = {}, authorityKind = '') {
   const url = clean(source.url).toLowerCase();
   if (url.includes('wals.info/')) return 'wals';
   if (url.includes('wikipedia.org/')) return 'wikipedia';
+  if (url.includes('wikisource.org/')) return 'wikisource';
   if (url.includes('openstax.org/')) return 'openstax';
   if (url.includes('doaj.org/')) return 'doaj';
   if (url.includes('openalex.org/')) return 'openalex';

@@ -86,6 +86,9 @@ test('built-site policy permits configured public reference providers and blocks
     'https://openlibrary.org/search.json',
     'https://api.crossref.org/works',
     'https://en.wikipedia.org/w/api.php',
+    'https://zh.wikipedia.org/w/api.php',
+    'https://en.wikisource.org/w/api.php',
+    'https://zh.wikisource.org/w/api.php',
     'https://www.loc.gov/search/',
     'https://archive.org/advancedsearch.php',
     'https://doaj.org/api/search/articles',
@@ -166,21 +169,22 @@ test('release page preserves latest details and the complete historical changelo
   const errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
-  await expect(page.getByRole('link', { name: 'v0.20.05', exact: true })).toBeVisible();
-  await page.getByRole('link', { name: 'v0.20.05', exact: true }).click();
+  await expect(page.getByRole('link', { name: 'v0.20.06', exact: true })).toBeVisible();
+  await page.getByRole('link', { name: 'v0.20.06', exact: true }).click();
   await expect(page).toHaveURL(/#\/changelog$/);
-  await expect(page.locator('[id="release-0.20.05"]')).toContainText('One rebuildable task');
-  await expect(page.locator('[id="release-0.20.05"]')).toContainText('Ordinary course pages continue to hide MCP');
+  await expect(page.locator('[id="release-0.20.06"]')).toContainText('Briefs read as written');
+  await expect(page.locator('[id="release-0.20.06"]')).toContainText('retain v0.20.05 and all earlier release notes');
   await page.getByRole('button', { name: 'Browse previous releases' }).click();
-  await expect(page.locator('[id="release-0.20.04"]')).toBeInViewport();
+  await expect(page.locator('[id="release-0.20.05"]')).toBeInViewport();
   await expect(page.locator('[id="release-0.19.99"]')).toContainText('Linked Materials, Reliable Revisions');
   await expect(page.locator('[id="release-0.19.2"]')).toHaveCount(1);
   await expect(page.locator('[id="release-0.15.3"]')).toHaveCount(1);
   await page.reload();
+  await expect(page.locator('[id="release-0.20.06"]')).toHaveCount(1);
   await expect(page.locator('[id="release-0.20.05"]')).toHaveCount(1);
   await expect(page.locator('[id="release-0.19.99"]')).toHaveCount(1);
   const response = await page.request.get('/release.json');
-  expect(await response.json()).toMatchObject({ version: '0.20.5', displayVersion: '0.20.05' });
+  expect(await response.json()).toMatchObject({ version: '0.20.6', displayVersion: '0.20.06' });
   expect(errors).toEqual([]);
 });
 

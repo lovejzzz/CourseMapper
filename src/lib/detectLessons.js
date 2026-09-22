@@ -29,6 +29,20 @@ const SMALL_COUNT_WORDS = Object.freeze({
 
 const SMALL_COUNT_TOKEN = `(?:\\d{1,2}|${Object.keys(SMALL_COUNT_WORDS).join('|')})`;
 
+// Words that turn "<n> … lesson" into a per-lesson quantity rather than a
+// course-size count, e.g. "4 questions per lesson", "3 slides for each session".
+const PER_UNIT_QUANTITY_RE =
+  /\b(?:per|each|every|a|an|in|within|for|of|during|across|by|questions?|items?|problems?|slides?|activities|pages?|exercises?)\s+(?:(?:each|every|a|an|the)\s+)?(?:lesson|module|session)s?\b/i;
+
+function isScheduleQuantity(text, match) {
+  const before = text.slice(Math.max(0, match.index - 24), match.index).toLowerCase();
+  const after = text.slice(match.index + match[0].length, match.index + match[0].length + 24).toLowerCase();
+  if (/\b(?:per|each|every|a)\s+(?:week|day|unit|module|month|term)\b/.test(after)) return true;
+  if (/\b(?:has|have|with|includes?|contains?|of|in|over|across|after|within)\s*$/.test(before)) return true;
+  if (/\b(?:week|unit|module|lesson|session)\s*\d{1,2}\s*[:,-]?\s*$/.test(before)) return true;
+  return false;
+}
+
 function parseSmallCount(value) {
   const normalized = String(value || '').toLowerCase();
   return SMALL_COUNT_WORDS[normalized] || Number.parseInt(normalized, 10) || 0;
@@ -98,9 +112,13 @@ export function detectExpectedLessons(text) {
       return { expected: n, confidence: 'high', source: `"${exactCompactUnitCount[0]}"` };
     }
   }
-  const compactUnitCountPat = new RegExp(`\\b(${SMALL_COUNT_TOKEN})\\s+(lesson|module|session)s?\\b`, 'i');
-  const compactUnitCount = text.match(compactUnitCountPat);
-  if (compactUnitCount && SMALL_COUNT_WORDS[String(compactUnitCount[1]).toLowerCase()]) {
+  const compactUnitCountPat = new RegExp(`\\b(${SMALL_COUNT_TOKEN})\\s+(lesson|module|session)s?\\b`, 'gi');
+  for (const compactUnitCount of text.matchAll(compactUnitCountPat)) {
+    // A digit count ("2 lessons of 50 minutes") is as explicit as a number
+    // word, but a syllabus line such as "Week 3 has 2 sessions" or
+    // "2 sessions per week" describes a schedule rather than the course size.
+    const isWord = Boolean(SMALL_COUNT_WORDS[String(compactUnitCount[1]).toLowerCase()]);
+    if (!isWord && isScheduleQuantity(text, compactUnitCount)) continue;
     const n = parseSmallCount(compactUnitCount[1]);
     if (n >= 1 && n <= 52) {
       return { expected: n, confidence: 'high', source: `"${compactUnitCount[0]}"` };
@@ -118,6 +136,13 @@ export function detectExpectedLessons(text) {
     'gi',
   );
   for (const match of text.matchAll(describedUnitCountPat)) {
+    // "4 questions per lesson" or "3 activities in each session" counts
+    // items inside a lesson, not lessons.
+    if (PER_UNIT_QUANTITY_RE.test(match[0])) continue;
+    // "Week 3 has 2 sessions": a second count or a possession verb between
+    // the number and the unit means the first number is not the scope.
+    const between = match[0].slice(match[1].length);
+    if (/\b(?:has|have|had|with|includes?|contains?)\b|\b\d{1,2}\s/i.test(between)) continue;
     const n = parseSmallCount(match[1]);
     if (n >= 1 && n <= 52) return { expected: n, confidence: 'high', source: `"${match[0]}"` };
   }

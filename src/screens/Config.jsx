@@ -18,6 +18,8 @@ import { useCourse } from '../contexts/CourseContext';
 import { useAIConfig } from '../contexts/AIConfigContext';
 import { fetchOpenAIImageModels, OPENAI_IMAGE_MODEL_FALLBACKS, OPENAI_SLIDE_IMAGE_MODEL } from '../lib/imageSearch';
 import { APP_VERSION } from '../lib/appVersion';
+import { SCION_BROWSER_GEMMA4_DOWNLOAD_LABEL, SCION_BROWSER_GEMMA4_GGUF } from '../lib/scionBrowserConstants';
+import { extractExplicitTeachingRequirements } from '../lib/explicitTeachingRequirements';
 import { PUBLIC_SCION_PROVIDER_ID } from '../lib/publicScionIdentity';
 import { renderedDeliverableCollection } from '../lib/renderedDeliverableRoot.js';
 import {
@@ -356,7 +358,8 @@ function DropdownSelect({ label, value, onChange, options, description, disabled
   );
 }
 
-function NumberInput({ label, value, onChange, min, max, description }) {
+function NumberInput({ label, value, onChange, min, max, description, disabled = false }) {
+  const shown = value || min;
   return (
     <div className="flex items-center justify-between gap-4">
       <div className="min-w-0">
@@ -365,20 +368,71 @@ function NumberInput({ label, value, onChange, min, max, description }) {
       </div>
       <div className="flex items-center gap-1.5 flex-shrink-0">
         <button
-          onClick={() => onChange(Math.max(min, (value || min) - 1))}
-          className="tactile w-6 h-6 rounded-md bg-white/60 border border-slate-200/60 text-slate-500 hover:bg-white flex items-center justify-center text-sm font-bold transition-all"
+          type="button"
+          aria-label={`Decrease ${label.toLowerCase()}`}
+          disabled={disabled || shown <= min}
+          onClick={() => onChange(Math.max(min, shown - 1))}
+          className="tactile w-6 h-6 rounded-md bg-white/60 border border-slate-200/60 text-slate-500 hover:bg-white flex items-center justify-center text-sm font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
         >
           −
         </button>
-        <span className="w-8 text-center text-xs font-semibold text-slate-700">{value || min}</span>
+        <span
+          className="w-8 text-center text-xs font-semibold text-slate-700"
+          aria-live="polite"
+          aria-label={`${label}: ${shown}`}
+        >
+          {shown}
+        </span>
         <button
-          onClick={() => onChange(Math.min(max, (value || min) + 1))}
-          className="tactile w-6 h-6 rounded-md bg-white/60 border border-slate-200/60 text-slate-500 hover:bg-white flex items-center justify-center text-sm font-bold transition-all"
+          type="button"
+          aria-label={`Increase ${label.toLowerCase()}`}
+          disabled={disabled || shown >= max}
+          onClick={() => onChange(Math.min(max, shown + 1))}
+          className="tactile w-6 h-6 rounded-md bg-white/60 border border-slate-200/60 text-slate-500 hover:bg-white flex items-center justify-center text-sm font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
         >
           +
         </button>
       </div>
     </div>
+  );
+}
+
+// The local model is a one-time multi-gigabyte download. Say so where the
+// teacher commits to generation, not only inside the collapsed AI settings.
+function ScionDownloadNotice() {
+  const [storage, setStorage] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    Promise.resolve(globalThis.navigator?.storage?.estimate?.())
+      .then((estimate) => {
+        if (cancelled || !estimate) return;
+        const quota = Number(estimate.quota);
+        const usage = Number(estimate.usage);
+        if (Number.isFinite(quota) && Number.isFinite(usage)) setStorage({ quota, usage });
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  const modelBytes = SCION_BROWSER_GEMMA4_GGUF.browserDelivery.bytes;
+  const likelyCached = storage && storage.usage >= modelBytes * 0.95;
+  const tooSmall = storage && !likelyCached && storage.quota - storage.usage < modelBytes + 512 * 1024 * 1024;
+  if (likelyCached) return null;
+  return (
+    <p
+      data-testid="scion-download-notice"
+      className={`mb-3 rounded-xl border px-3 py-2 text-left text-xs leading-relaxed ${
+        tooSmall
+          ? 'border-amber-300/70 bg-amber-50 text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200'
+          : 'border-slate-200/80 bg-slate-50/75 text-slate-600 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-300'
+      }`}
+    >
+      <span className="font-semibold">One-time download: {SCION_BROWSER_GEMMA4_DOWNLOAD_LABEL}.</span>{' '}
+      {tooSmall
+        ? 'This browser reports less free storage than Scion needs. Free up space before generating, or choose another provider in AI settings.'
+        : 'Scion keeps the model in this browser, so later courses start without downloading it again.'}
+    </p>
   );
 }
 
@@ -1446,6 +1500,10 @@ function DeliverableConfigContent({
 }) {
   const set = (key, val) => onChange({ ...config, [key]: val });
   const effectiveConfig = applyModelAwareDeliverableDefaults(featureId, config, modelConfigPlan);
+  // Generation honours an explicit count in the brief (useDeliverables), so
+  // the settings must show that same number instead of the model default.
+  const briefQuizCount =
+    featureId === 'quizBank' ? extractExplicitTeachingRequirements(promptText || '').questionsPerLesson : null;
   const ranges = modelConfigPlan?.ranges?.[featureId] || {};
   const modelDefaultNote = (key, fallbackDescription = '') => {
     const value = effectiveConfig?.[key];
@@ -1667,14 +1725,19 @@ function DeliverableConfigContent({
           {/* Basic */}
           <NumberInput
             label="Questions per lesson"
-            value={effectiveConfig.questionsPerLesson || 8}
+            value={briefQuizCount || effectiveConfig.questionsPerLesson || 8}
             onChange={(v) => set('questionsPerLesson', v)}
             min={ranges.questionsPerLesson?.min || 3}
             max={ranges.questionsPerLesson?.max || 8}
-            description={modelDefaultNote(
-              'questionsPerLesson',
-              'Supports up to 8 evidence-bound questions per lesson. Saved targets above 8 are normalized to 8.',
-            )}
+            disabled={Boolean(briefQuizCount)}
+            description={
+              briefQuizCount
+                ? `Set by your course description (${briefQuizCount} per lesson). Edit the description to change it.`
+                : modelDefaultNote(
+                    'questionsPerLesson',
+                    'Supports up to 8 evidence-bound questions per lesson. Saved targets above 8 are normalized to 8.',
+                  )
+            }
           />
           <MultiToggle
             label="Question types"
@@ -2015,6 +2078,7 @@ export default function Config({
       data-testid="config-sticky-action"
       className="rounded-2xl border border-slate-200/80 bg-white/95 p-3 shadow-lg backdrop-blur-xl dark:border-slate-700 dark:bg-slate-950/95 sm:sticky sm:top-3 sm:z-20"
     >
+      {provider === PUBLIC_SCION_PROVIDER_ID && <ScionDownloadNotice />}
       {provider === PUBLIC_SCION_PROVIDER_ID && (
         <details
           data-testid="scion-generation-boundary"

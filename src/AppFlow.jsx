@@ -403,6 +403,26 @@ export default function AppFlow({
   useEffect(() => {
     requestNotificationPermission();
   }, []);
+  // v0.20.06: on desktop the assistant column can be hidden so the material
+  // gets the full width. A per-browser preference, not project state.
+  const [assistantHidden, setAssistantHidden] = useState(() => {
+    try {
+      return globalThis.localStorage?.getItem('coursemapper-assistant-hidden') === '1';
+    } catch {
+      return false;
+    }
+  });
+  const toggleAssistantHidden = useCallback(() => {
+    setAssistantHidden((hidden) => {
+      const next = !hidden;
+      try {
+        globalThis.localStorage?.setItem('coursemapper-assistant-hidden', next ? '1' : '0');
+      } catch {
+        /* preference only */
+      }
+      return next;
+    });
+  }, []);
   const [isHandlingStartupAction, setIsHandlingStartupAction] = useState(() =>
     Boolean(startupAction && startupAction.type !== 'continue'),
   );
@@ -3449,7 +3469,7 @@ export default function AppFlow({
                   <AppLogo className="h-9 w-auto object-contain" />
                 </a>
                 <div className="min-w-0">
-                  <p className="text-xs font-semibold text-slate-400">Workspace</p>
+                  <p className="hidden text-xs font-semibold text-slate-400 sm:block">Workspace</p>
                   <h1
                     data-testid="workspace-course-title"
                     className="line-clamp-2 text-lg font-bold text-slate-950 dark:text-slate-100 sm:max-w-2xl sm:line-clamp-1"
@@ -3478,7 +3498,9 @@ export default function AppFlow({
                 </div>
               </div>
 
-              <div className="flex min-w-0 flex-wrap items-center gap-2">
+              {/* v0.20.06: one scrollable row on phones instead of three
+                  wrapped rows that pushed the material below the fold. */}
+              <div className="-mx-1 flex min-w-0 flex-nowrap items-center gap-2 overflow-x-auto px-1 pb-0.5 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
                 {courseMap && (
                   <span
                     className={
@@ -4151,9 +4173,21 @@ export default function AppFlow({
             {/* ── Left: Resizable Chat Panel ── */}
             <div
               data-testid="workspace-agent-panel"
-              className={`workspace-chat-panel min-w-0 ${mobileWorkspaceView === 'agent' ? 'block' : 'hidden'} xl:block xl:flex-shrink-0 xl:sticky xl:top-4`}
+              className={`workspace-chat-panel min-w-0 ${mobileWorkspaceView === 'agent' ? 'block' : 'hidden'} ${
+                assistantHidden ? 'xl:hidden' : 'xl:block'
+              } xl:flex-shrink-0 xl:sticky xl:top-4`}
               style={{ '--workspace-chat-width': `${chatWidth}px` }}
             >
+              <div className="mb-2 hidden justify-end xl:flex">
+                <button
+                  type="button"
+                  data-testid="workspace-hide-assistant"
+                  onClick={toggleAssistantHidden}
+                  className="rounded-lg px-2 py-1 text-xs font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+                >
+                  Hide assistant
+                </button>
+              </div>
               <AgentQualityControl
                 quality={packageQualityPass?.quality}
                 trustStatus={packageTrustStatus}
@@ -4241,7 +4275,7 @@ export default function AppFlow({
             </div>
 
             {/* ── Resize Handle ── */}
-            <div className="hidden self-stretch xl:block">
+            <div className={`hidden self-stretch ${assistantHidden ? '' : 'xl:block'}`}>
               <ResizeHandle width={chatWidth} onWidthChange={setChatWidth} />
             </div>
 
@@ -4252,6 +4286,18 @@ export default function AppFlow({
                 mobileWorkspaceView === 'content' ? 'block' : 'hidden'
               } xl:block xl:px-4`}
             >
+              {assistantHidden && (
+                <div className="hidden xl:flex">
+                  <button
+                    type="button"
+                    data-testid="workspace-show-assistant"
+                    onClick={toggleAssistantHidden}
+                    className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                  >
+                    Show assistant
+                  </button>
+                </div>
+              )}
               {/* Course Map tab */}
               {activeTab === 'courseMap' && (
                 <>

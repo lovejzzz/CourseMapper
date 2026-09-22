@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import EditProposalPanel from '../EditProposalPanel';
+import { lessonBloomsTags } from '../../lib/lessonBloomsTags.js';
 import { renderedDeliverableCollectionKey } from '../../lib/renderedDeliverableCollection.js';
 import {
   QualityBadge,
@@ -47,7 +48,7 @@ export default function LessonPlansView({
           currentTier !== 'standard' && basePlan.tiers?.[currentTier]
             ? { ...basePlan, ...basePlan.tiers[currentTier] }
             : basePlan;
-        const bloomsTags = plan.bloomsLevels || [];
+        const bloomsTags = lessonBloomsTags(plan);
         const outlineHasType = plan.outline?.some((row) => row.type || row.bloomsLevel);
         const subtitle = [plan.duration, plan.weekNumber].filter(Boolean).join(' · ');
         return (

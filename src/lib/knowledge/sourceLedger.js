@@ -27,6 +27,7 @@ const OER_PROVIDERS = new Set([
   'openstax',
   'open-music-theory',
   'gutenberg',
+  'wikisource',
   'genome',
   'genome-prerequisite',
   'w3c',
@@ -509,6 +510,7 @@ function inferProviderFromText(value) {
   if (text.includes('eric.ed.gov') || /\beric\b/.test(text)) return 'eric';
   if (text.includes('doaj.org') || /\bdoaj\b/.test(text)) return 'doaj';
   if (text.includes('europepmc.org') || /\beurope\s+pmc\b/.test(text)) return 'europe-pmc';
+  if (text.includes('wikisource.org') || /\bwikisource\b/.test(text)) return 'wikisource';
   if (text.includes('wikipedia.org') || /\bwikipedia\b/.test(text)) return 'wikipedia';
   if (text.includes('crossref.org') || /\bcrossref\b/.test(text)) return 'crossref';
   if (text.includes('dl.acm.org/doi') || extractDoi(text)) return 'crossref';
@@ -516,7 +518,7 @@ function inferProviderFromText(value) {
 }
 
 function sourcePublisherMismatch(entry, sourceUrl) {
-  const identityProviders = new Set(['gutenberg', 'openstax', 'wikipedia']);
+  const identityProviders = new Set(['gutenberg', 'openstax', 'wikipedia', 'wikisource']);
   const directProvider = cleanText(entry?.provider, 80).toLowerCase();
   const declaredProvider = inferProviderFromText(
     [entry?.attribution, entry?.credit, entry?.title, entry?.displayTitle, entry?.citation].filter(Boolean).join(' '),

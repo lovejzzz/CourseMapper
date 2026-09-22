@@ -1,4 +1,5 @@
 import { buildCheckedCalculationTask } from './checkedCalculationTask.js';
+import { applyQuizBankCoherence } from './quizBankCoherence.js';
 import { buildVerifiedQuantitativeQuiz, projectVerifiedQuantitativePractice } from './verifiedQuantitativePractice.js';
 import { requiresInstructorSourcesOnly } from './sourceBriefConstraints.js';
 import {
@@ -5193,8 +5194,20 @@ function buildSourceUsePlan({ title, concepts, resources, evidencePlan, artifact
   };
 }
 
+// v0.20.06: "An individual written explanation supported by the supplied
+// facts" was cut at 54 characters into "An individual written explanation
+// supported", and that fragment then filled dozens of plan fields. Name the
+// artifact by its noun phrase; the modifier belongs in the task description.
+const ARTIFACT_MODIFIER_TAIL_RE =
+  /\s+(?:(?:supported|informed|guided|backed|grounded|drawn|based)\s+(?:by|on|in|from|upon)|(?:using|that|which|citing|drawing\s+on|with\s+reference\s+to)\b)\b.*$/i;
+
+function artifactNounPhrase(text) {
+  const head = cleanText(String(text || '').replace(ARTIFACT_MODIFIER_TAIL_RE, ''));
+  return wordCount(head) >= 2 && head.length < String(text || '').length ? head : text;
+}
+
 function assessmentTaskLabel(value, fallback = 'Weekly artifact') {
-  const text = stripTerminalPunctuation(value || fallback);
+  const text = artifactNounPhrase(stripTerminalPunctuation(value || fallback));
   if (!text) return fallback;
   const objectiveLabel = compactObjectiveLikeAssessmentLabel(text);
   if (objectiveLabel) return objectiveLabel;
@@ -5688,8 +5701,17 @@ function buildReadinessSupportPlan({ title, concepts, artifact, evidencePlan, le
   };
 }
 
+// A concept label is title-cased in lists ("Confounding variable") but reads
+// as a common term inside a sentence. Lowercase only an ordinary leading word;
+// acronyms, proper names and multi-capital labels stay as written.
+function inlineConceptTerm(value) {
+  const text = cleanText(value);
+  if (!/^[A-Z][a-z]+(?:[\s-][a-z][a-z-]*)*$/.test(text)) return text;
+  return text.charAt(0).toLowerCase() + text.slice(1);
+}
+
 function buildInstructionalRationale({ title, concepts, artifact, evidencePlan, readinessSupport, difficultyProfile }) {
-  const concept = concepts[0] || stripLessonPrefix(title) || 'the lesson focus';
+  const concept = concepts[0] ? inlineConceptTerm(concepts[0]) : stripLessonPrefix(title) || 'the lesson focus';
   const artifactName = stripTerminalPunctuation(artifact);
   const sourceCue = humanSourceCueLabel(evidencePlan?.sourceCue, `${stripLessonPrefix(title)} course materials`);
   const cognitiveDemand = difficultyProfile?.cognitiveDemand || 'applied reasoning';
@@ -5705,7 +5727,7 @@ function buildInstructionalRationale({ title, concepts, artifact, evidencePlan, 
 }
 
 function buildAccessibilityPlan({ title, concepts, artifact, evidencePlan, readinessSupport }) {
-  const concept = concepts[0] || stripLessonPrefix(title) || 'the lesson focus';
+  const concept = concepts[0] ? inlineConceptTerm(concepts[0]) : stripLessonPrefix(title) || 'the lesson focus';
   const artifactName = stripTerminalPunctuation(artifact);
   const sourceCue = humanSourceCueLabel(evidencePlan?.sourceCue, `${stripLessonPrefix(title)} course materials`);
   const lessonStub = lessonStubFromTitle(title, artifactName);
@@ -29030,7 +29052,8 @@ function compileFeatureInto(result, compileErrors, featureId, compilerBlueprint,
       skipPrepareBlueprint: true,
     });
     if (data) {
-      const displaySafeData = compactLongArtifactTeachingProse(data, compilerBlueprint);
+      const compacted = compactLongArtifactTeachingProse(data, compilerBlueprint);
+      const displaySafeData = featureId === 'quizBank' ? applyQuizBankCoherence(compacted) : compacted;
       result[featureId] = displaySafeData;
       recordCompiledFeatureRealizationTrace(featureId, displaySafeData, compilerBlueprint);
     }

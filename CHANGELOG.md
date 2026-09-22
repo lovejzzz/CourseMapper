@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.20.06 — September 22, 2026
+
+- Read lesson counts from course descriptions correctly: “4 questions per lesson” no longer becomes four lessons, digit counts such as “2 lessons” are accepted, and schedule phrases such as “2 sessions per week” are ignored as course size.
+- Show the description’s quiz count on the settings screen, pre-select materials the description names, and derive the preview title from the course identity before a colon.
+- Label questions repeated from an earlier lesson as retrieval practice, correct contradictory difficulty labels, and give the lesson plan’s compare-and-revise step its own peer-comparison prompt.
+- Keep artifact names whole instead of truncating them mid-phrase, and fix mid-sentence capitalization and sentence starts in compiled prose without changing verbatim source quotations.
+- Show only the Bloom levels a lesson uses; remove the mislabeled “Course:” title-slide prefix.
+- Research: search Wikisource first for primary-text lessons, use zh.wikipedia.org for Chinese courses, and score Chinese relevance with Han bigrams.
+- Disclose the one-time 3.35 GB model download at Generate, fix the dark-mode material checkbox and its accessibility semantics, add a desktop assistant hide/show control and a single-row mobile workspace header.
+- Run the classroom output benchmark in strict mode during `npm run check`; accept explicitly unweighted syllabi and add checks for unlabeled cross-lesson repeats and repeated activity prompts. These checks do not certify classroom readiness.
+
 ## v0.20.05 — September 21, 2026
 
 - Route supported calculation exercises through one rebuildable teaching task instead of separate per-document patches. Share identity, revision, inputs, worked reasoning and scoring across all teaching materials and the course map.

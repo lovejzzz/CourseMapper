@@ -35,6 +35,7 @@ const TRUST_ELIGIBLE_PROVIDERS = new Set([
   'doaj',
   'europe-pmc',
   'wikipedia',
+  'wikisource',
   'w3c-wai',
   'wals',
 ]);
