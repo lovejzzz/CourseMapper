@@ -1472,6 +1472,52 @@ export const CURRENT_RELEASE_CHANGELOG = {
   ...CURRENT_RELEASE,
   sections: [
     {
+      label: 'Your material reaches the quiz',
+      items: [
+        'Material in the description is kept verbatim and shown where it is used — lesson plan, quiz, study guide and assignment: quoted lines and poems (including 《静夜思》：…), dialogues, labeled facts in English or Chinese (Source facts:, 史料事实：, 材料事实：), and data or formulas to work with. Before this release only an English “Source facts:” label was read; a live test found 10 of 12 descriptions lost their material.',
+        'Scion writes each quiz question in its own call from that material and every draft is checked: it must be valid, in the course language, free of pipeline words, drawn from the material, not a repeat, not keyed as a single letter, and without two defensible options. A draft that fails twice is replaced by a question built directly from the material.',
+        'Calculation answers are computed by the app, not the model: mean, median, variance and range of a data set, limiting reagent and yield, uniform acceleration, and single-gene crosses. Scion then writes only conceptual questions, and any new number it keys is rejected — the live test caught it keying 2 mol H₂O for a reaction that yields 4 mol.',
+        'The “Records A–D” template quiz no longer replaces lessons that come with material, and quizzes that still use a course-created practice case now show that case. Lessons with a reviewed teaching task keep their checked questions.',
+      ],
+    },
+    {
+      label: 'Chinese descriptions read as written',
+      items: [
+        'Read “1节课，45分钟，每节4道题” and Chinese numerals (一节课，四十五分钟) as lessons, minutes and quiz size; before this the setup page showed Auto/Auto/6 and lessons ran 75 minutes.',
+        'Tell the model to write Chinese titles, objectives and questions when the description is in Chinese; study guides built on Chinese material use Chinese headings.',
+      ],
+    },
+    {
+      label: 'Plainer wording, measured quality',
+      items: [
+        'Objectives no longer read “Distinguish admitted evidence … and bound the … conclusion”; every compiled material passes a runtime guard that rewrites pipeline terms before it is shown or exported.',
+        'Add a live Scion quality test: twelve pre-registered descriptions in three families (calculation, chronology, text and argument), in English and Chinese, scored on what students actually answer. Quality depends on the model and the material; review answer keys before teaching. Retain v0.20.07 and all earlier release notes.',
+      ],
+    },
+  ],
+};
+
+const V02007_RELEASE_METADATA = {
+  version: '0.20.07',
+  date: 'September 22, 2026',
+  title: 'A Simpler, Clearer Workspace',
+  landingTitle: 'EDUTOOL V0.20.07: Less Clutter, Same Materials',
+  highlights: [
+    'Start from one question and one box; set lessons, minutes and quiz size on one setup page.',
+    'Keep the material full width; open the assistant or export only when you need them.',
+    'Show each objective, source and note once instead of repeating it in every section.',
+  ],
+  landingHighlights: [
+    'Describe the course in one box.',
+    'Adjust lessons, minutes and quiz size in one place.',
+    'Read materials without repeated text.',
+  ],
+};
+
+const V02007_RELEASE_CHANGELOG = {
+  ...V02007_RELEASE_METADATA,
+  sections: [
+    {
       label: 'One question, one setup page',
       items: [
         'The homepage asks “What do you want to teach?” with one description box. Attachments, AI settings and Continue sit inside the box; example courses stay below it. The stepper, subtitle, repeated prompt and file-type list were removed.',
@@ -3297,6 +3343,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V02007_RELEASE_CHANGELOG,
   V02006_RELEASE_CHANGELOG,
   V02005_RELEASE_CHANGELOG,
   V02004_RELEASE_CHANGELOG,

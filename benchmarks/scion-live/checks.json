@@ -1,0 +1,74 @@
+{
+  "Q1-en-chem": {
+    "O2 needed 2 mol": "2 mol(?:es)? (?:of )?O2|2 mol O₂|O2[^.]{0,40}2 mol",
+    "H2 limiting": "H2 is (?:the )?limiting|hydrogen is (?:the )?limiting",
+    "4 mol H2O": "4 mol(?:es)? (?:of )?(?:H2O|water)",
+    "1 mol O2 left": "1 mol(?:e)? (?:of )?O2[^.]{0,30}(?:left|remain|excess)|(?:left|remain|excess)[^.]{0,30}1 mol"
+  },
+  "Q2-zh-stats": {
+    "均值6": "平均数[^。]{0,12}(?:为|是|=|＝)\\s*6(?![0-9.])",
+    "中位数5": "中位数[^。]{0,12}(?:为|是|=|＝)\\s*5(?![0-9.])",
+    "平方和28": "28",
+    "总体方差5.6": "5\\.6",
+    "样本方差7": "样本方差[^。]{0,12}(?:为|是|=|＝)\\s*7(?![0-9.])"
+  },
+  "Q3-en-physics": { "12 m/s": "12 m/s", "24 m": "24 m(?!/)", "units": "m/s\\^?2|m/s²", "from rest": "from rest" },
+  "Q4-zh-genetics": {
+    "1:2:1": "1\\s*[:：]\\s*2\\s*[:：]\\s*1",
+    "aa 1/4": "1/4|四分之一|25%",
+    "显性3/4": "3/4|四分之三|75%",
+    "棋盘": "棋盘|庞纳特|Punnett"
+  },
+  "T1-en-letter": {
+    "1848 event": "1848",
+    "1850 record": "1850",
+    "1902 accession": "1902",
+    "secondhand": "brother|secondhand|second-hand",
+    "no conflict": "(?:not|no) (?:a )?contradict|do(?:es)? not conflict|different events"
+  },
+  "T2-zh-bridge": {
+    "1623建成": "1623",
+    "1631重修": "1631",
+    "手册误把重修当建成": "手册|旅游手册",
+    "不冲突": "不冲突|并不矛盾|不矛盾",
+    "晚出二手": "1980"
+  },
+  "T3-en-strike": {
+    "300 owners": "300",
+    "1,200 union": "1,?200",
+    "motive": "motive|bias|interest|perspective",
+    "cannot settle": "cannot (?:be )?(?:settle|determine|know|resolve)|no third",
+    "attribution": "owners'?|union bulletin"
+  },
+  "T4-zh-diary": {
+    "日记1937": "1937",
+    "回忆录1985": "1985",
+    "矛盾": "矛盾|冲突|不一致",
+    "日记接近事件": "更接近|当时|即时",
+    "需佐证": "佐证|其他史料|第三|互证"
+  },
+  "A1-en-poem": {
+    "inscription quoted": "My name is Ozymandias",
+    "irony": "iron|contrast|boast",
+    "nothing beside remains": "Nothing beside remains",
+    "lone and level sands": "lone and level sands|boundless and bare"
+  },
+  "A2-zh-poem": {
+    "原诗句": "床前明月光|举头望明月|低头思故乡",
+    "霜": "疑是地上霜|霜",
+    "动作": "举头|低头",
+    "思乡": "思乡|思念家乡|故乡"
+  },
+  "A3-zh-tablet": {
+    "8分": "8\\s*分",
+    "换老师混杂": "老师|教师",
+    "不能断定因果": "不能(?:断定|确定|说明|证明)|无法(?:断定|确定|证明)",
+    "对照设计": "对照|控制|比较组"
+  },
+  "A4-en-spanish": {
+    "soy/eres/es": "\\beres\\b",
+    "dialogue used": "Me llamo Luis|Soy de España|¿Cómo te llamas",
+    "accents": "México|España|¿Cómo",
+    "glosses": "I am|my name is|where are you from"
+  }
+}

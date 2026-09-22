@@ -1,5 +1,7 @@
 import { buildCheckedCalculationTask } from './checkedCalculationTask.js';
 import { applyQuizBankCoherence } from './quizBankCoherence.js';
+import { applyMaterialOverlay, resolveMaterialOverlay } from './materialOverlay.js';
+import { sanitizeLearnerFacingData } from './learnerFacingText.js';
 import { buildVerifiedQuantitativeQuiz, projectVerifiedQuantitativePractice } from './verifiedQuantitativePractice.js';
 import { requiresInstructorSourcesOnly } from './sourceBriefConstraints.js';
 import {
@@ -29027,6 +29029,18 @@ function rotateFactsForDeliverableFamily(blueprint, featureId) {
   return changed ? { ...blueprint, lessons } : blueprint;
 }
 
+// v0.20.08: lessons whose prepared blueprint carries a reviewed teaching task.
+// The material question writer skips them; their checked task owns the quiz.
+export function lessonNumbersWithTeachingTask(blueprint, options = {}) {
+  try {
+    return prepareBlueprintForCompilation(blueprint, options)
+      .lessons.filter((lesson) => lesson.teachingTask)
+      .map((lesson) => lesson.lessonNumber);
+  } catch {
+    return [];
+  }
+}
+
 // Per-feature compile failures ride under a registry symbol so the error
 // channel can never collide with a feature id and never appears in
 // Object.entries/keys iteration of the compiled result.
@@ -29053,7 +29067,14 @@ function compileFeatureInto(result, compileErrors, featureId, compilerBlueprint,
     });
     if (data) {
       const compacted = compactLongArtifactTeachingProse(data, compilerBlueprint);
-      const displaySafeData = featureId === 'quizBank' ? applyQuizBankCoherence(compacted) : compacted;
+      const coherent = featureId === 'quizBank' ? applyQuizBankCoherence(compacted) : compacted;
+      // v0.20.08: the teacher's material and the questions written from it,
+      // then the runtime guard against pipeline vocabulary.
+      const materialOverlay =
+        options.materialOverlay === undefined
+          ? resolveMaterialOverlay(compilerBlueprint, options)
+          : options.materialOverlay;
+      const displaySafeData = sanitizeLearnerFacingData(applyMaterialOverlay(featureId, coherent, materialOverlay));
       result[featureId] = displaySafeData;
       recordCompiledFeatureRealizationTrace(featureId, displaySafeData, compilerBlueprint);
     }
@@ -29072,6 +29093,8 @@ export function compileBlueprintDeliverables(blueprint, featureIds = [], options
   try {
     const compilerBlueprint = prepareBlueprintForCompilation(blueprint, options);
     assertBlueprintCompilerContract(compilerBlueprint, options);
+    if (options.materialOverlay === undefined)
+      options = { ...options, materialOverlay: resolveMaterialOverlay(compilerBlueprint, options) };
     const result = {};
     const compileErrors = [];
     for (const featureId of getBlueprintCompiledFeatures(featureIds, options)) {
@@ -29098,6 +29121,8 @@ export function compileBlueprintDeliverables(blueprint, featureIds = [], options
 export async function compileBlueprintDeliverablesYielding(blueprint, featureIds = [], options = {}) {
   const compilerBlueprint = prepareBlueprintForCompilation(blueprint, options);
   assertBlueprintCompilerContract(compilerBlueprint, options);
+  if (options.materialOverlay === undefined)
+    options = { ...options, materialOverlay: resolveMaterialOverlay(compilerBlueprint, options) };
   const result = {};
   const compileErrors = [];
   for (const featureId of getBlueprintCompiledFeatures(featureIds, options)) {

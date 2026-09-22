@@ -1,6 +1,6 @@
 {
   "name": "course-mapper",
-  "version": "0.20.7",
+  "version": "0.20.8",
   "type": "module",
   "description": "Editable, linked educational materials with source-grounded generation and classroom exports",
   "scripts": {
@@ -31,7 +31,7 @@
     "test:compatibility": "vitest run --config vitest.compatibility.config.js",
     "test:scion": "vitest run --config vitest.scion.config.js",
     "benchmark:outputs": "vite-node scripts/benchmarks/runClassroomBenchmark.ts",
-    "benchmark:outputs:test": "node --test scripts/benchmarks/classroomBenchmark.test.mjs",
+    "benchmark:outputs:test": "node --test scripts/benchmarks/classroomBenchmark.test.mjs scripts/benchmarks/scionLiveScore.test.mjs",
     "benchmark:outputs:strict": "vite-node scripts/benchmarks/runClassroomBenchmark.ts --strict --out .audit-work/classroom-benchmark/check",
     "benchmark:acceptance:test": "node --test scripts/benchmarks/classroomAcceptance.test.mjs scripts/benchmarks/inspectClassroomV3.test.mjs scripts/benchmarks/verifyClassroomV3Freeze.test.mjs scripts/benchmarks/classroomV3Probe.test.mjs scripts/benchmarks/classroomV3Checks.test.mjs",
     "benchmark:acceptance": "vite-node scripts/benchmarks/runClassroomAcceptance.ts --split development --strict",

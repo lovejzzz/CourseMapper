@@ -2482,6 +2482,24 @@ export function buildPublicScionMessages(
       { role: 'user', content: clip(userPrompt, 4200) },
     ];
   }
+  // v0.20.08: one quiz question written from the teacher's material. The
+  // prompt is already compact and complete; do not rewrite it into a
+  // course-map contract (the generic branch below would).
+  if (task === 'materialQuizItem') {
+    return [
+      {
+        role: 'system',
+        content: [
+          'Reasoning: low.',
+          clip(systemPrompt, 1200),
+          'Return only one valid JSON object with no Markdown, preamble, or trailing commentary.',
+        ]
+          .filter(Boolean)
+          .join('\n'),
+      },
+      { role: 'user', content: clip(userPrompt, 5200) },
+    ];
+  }
   if (compilerRepairTask) {
     return [
       {

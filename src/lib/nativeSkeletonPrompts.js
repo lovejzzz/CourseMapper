@@ -1,5 +1,6 @@
 import { segmentSyllabus } from './syllabusSegmentation.js';
 import { extractExplicitCoverageTopics } from './explicitLessonSequence.js';
+import { briefLanguageInstruction } from './briefLanguage.js';
 
 // One LOW-reasoning call: syllabus -> typed skeleton emitted as entity JSON
 // with ids, not spreadsheet prose. The skeleton carries structure only.
@@ -73,6 +74,7 @@ export function buildNativeSkeletonUserPrompt(syllabusText, { expectedLessons = 
     'Treat assessment names as assessment-registry entries, not automatic session titles. A final assessment belongs at the end of the plan; do not duplicate it as both a lesson and an assessment.',
     ...coveragePlan,
     'If the text contains "--- SEGMENT N ---" markers, each segment corresponds to one session.',
+    ...(briefLanguageInstruction(syllabusText) ? [briefLanguageInstruction(syllabusText)] : []),
     '',
     'SOURCE MATERIALS:',
     segmentSyllabus(syllabusText),

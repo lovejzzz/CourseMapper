@@ -1,0 +1,108 @@
+{
+  "protocol": "edutool-scion-live-eval-v1",
+  "build": "v0.20.08 release candidate, local Vite build, browser-local Scion (Gemma 4 E2B QAT q4_0, WebGPU)",
+  "date": "2026-09-22",
+  "materials": ["lessonPlans", "assignments", "rubrics", "quizBank", "studyGuides"],
+  "scoring": "scripts/benchmarks/scionLiveScore.mjs: checks counted on quiz questions, options, answers and study-guide practice only (not the quoted material card). Usable = >=75% of checks, quiz in the brief's language, no pipeline words, no 'Records A-D' items, no letter-only short answers. Manual verdict = every answer key read by hand.",
+  "baseline_v0.20.07": { "usable": 0, "total": 12 },
+  "gate": { "usable": 10, "total": 12, "families": { "Q": "4/4", "T": "3/4", "A": "3/4" }, "passed": true },
+  "manual": { "clean": 7, "usableAfterOneFix": 2, "notUsable": 3 },
+  "runs": [
+    {
+      "id": "Q1-en-chem",
+      "score": "4/4",
+      "usable": true,
+      "scionItems": 1,
+      "seconds": 58,
+      "manual": "clean: limiting reagent, 4 mol H2O and 1 mol O2 left computed exactly; Scion adds one conceptual question"
+    },
+    {
+      "id": "Q2-zh-stats",
+      "score": "5/5",
+      "usable": true,
+      "scionItems": 0,
+      "seconds": 44,
+      "manual": "clean: mean 6, median 5, population variance 5.6, sample variance 7 computed exactly"
+    },
+    {
+      "id": "Q3-en-physics",
+      "score": "4/4",
+      "usable": true,
+      "scionItems": 1,
+      "seconds": 44,
+      "manual": "clean: 12 m/s and 24 m computed; one Scion conceptual question"
+    },
+    {
+      "id": "Q4-zh-genetics",
+      "score": "4/4",
+      "usable": true,
+      "scionItems": 0,
+      "seconds": 45,
+      "manual": "clean: 1:2:1, 3:1 (3/4), 1/4 computed; explanation of recessive trait"
+    },
+    {
+      "id": "T1-en-letter",
+      "score": "4/5",
+      "usable": true,
+      "scionItems": 3,
+      "seconds": 62,
+      "manual": "clean: event vs letter date question; one weak but not wrong reliability answer"
+    },
+    {
+      "id": "T2-zh-bridge",
+      "score": "4/5",
+      "usable": true,
+      "scionItems": 3,
+      "seconds": 85,
+      "manual": "not usable: two Scion items restate the 1631 rebuilding as construction; one item is a statement"
+    },
+    {
+      "id": "T3-en-strike",
+      "score": "4/5",
+      "usable": true,
+      "scionItems": 4,
+      "seconds": 49,
+      "manual": "usable after one fix: a key says the larger count is more reliable"
+    },
+    {
+      "id": "T4-zh-diary",
+      "score": "2/5",
+      "usable": false,
+      "scionItems": 3,
+      "seconds": 58,
+      "manual": "not usable: reads one teacher as two; no reliability or corroboration question"
+    },
+    {
+      "id": "A1-en-poem",
+      "score": "4/4",
+      "usable": true,
+      "scionItems": 4,
+      "seconds": 53,
+      "manual": "clean: 'Nothing beside remains', the command to the Mighty, irony, boast vs desert contrast"
+    },
+    {
+      "id": "A2-zh-poem",
+      "score": "4/4",
+      "usable": true,
+      "scionItems": 4,
+      "seconds": 62,
+      "manual": "clean: 霜 imagery, 举头/低头, contrast of the two halves"
+    },
+    {
+      "id": "A3-zh-tablet",
+      "score": "3/4",
+      "usable": true,
+      "scionItems": 3,
+      "seconds": 62,
+      "manual": "usable after one fix: confound (teacher change) and control-group items are good; one key says the 8-point rise proves causation"
+    },
+    {
+      "id": "A4-en-spanish",
+      "score": "2/4",
+      "usable": false,
+      "scionItems": 4,
+      "seconds": 49,
+      "manual": "not usable: one key confuses who is from where; no eres or English-gloss question"
+    }
+  ]
+}

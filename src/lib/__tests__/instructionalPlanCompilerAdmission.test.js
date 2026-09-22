@@ -361,10 +361,10 @@ describe('instructional-plan compiler admission', () => {
     expect(prepared.instructionalPlan.admission.blockers).not.toContain('lesson-1:generic-objective');
     expect(prepared.instructionalPlan.lessonIntents[0]).toMatchObject({
       targetObjectives: [
-        'Evaluate one Feedback Loops claim in Causal reasoning memo. Distinguish admitted evidence for Feedback Loops from its inference and bound the Causal reasoning memo conclusion.',
+        'Explain one idea about Feedback Loops in Causal reasoning memo, using specific details from the lesson material, and say what those details do not show.',
       ],
       learnerAction:
-        'Evaluate one Feedback Loops claim in Causal reasoning memo. Distinguish admitted evidence for Feedback Loops from its inference and bound the Causal reasoning memo conclusion.',
+        'Explain one idea about Feedback Loops in Causal reasoning memo, using specific details from the lesson material, and say what those details do not show.',
     });
   });
 

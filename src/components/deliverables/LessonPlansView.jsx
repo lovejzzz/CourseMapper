@@ -1,3 +1,4 @@
+import SuppliedMaterialCard from './shared/SuppliedMaterialCard';
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import EditProposalPanel from '../EditProposalPanel';
 import { isSameViewText, materialsBeyondSources } from '../../lib/materialViewDedupe.js';
@@ -89,6 +90,8 @@ export default function LessonPlansView({
                     </ul>
                   </div>
                 )}
+
+                <SuppliedMaterialCard material={plan.suppliedMaterial} />
 
                 {plan.sourceEvidenceBrief?.claims?.length > 0 && (
                   <div className="rounded-xl border border-violet-100 bg-violet-50/45 p-3">

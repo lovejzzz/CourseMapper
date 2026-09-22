@@ -740,6 +740,19 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
       indent: { left: 360 },
       children: [new TextRun({ text: text || '', italics: true, size: bodySize, font: FONT, color: theme.metaColor })],
     });
+  // v0.20.08: the teacher's own material, verbatim, before the work that uses it.
+  const pushSuppliedMaterial = (material) => {
+    const blocks = (material?.blocks || []).filter((block) => block?.lines?.length);
+    if (!blocks.length) return;
+    const zhMaterial = material.language === 'zh';
+    children.push(makeSubHeading(zhMaterial ? '教学材料' : 'Your material'));
+    for (const block of blocks) {
+      if (block.title) children.push(makeBold(zhMaterial ? '标题' : 'Title', block.title));
+      block.lines.forEach((line) =>
+        children.push(block.kind === 'passage' || block.kind === 'dialogue' ? makeItalic(line) : makeBullet(line)),
+      );
+    }
+  };
   const makeNumbered = (num, text, { keepNext = false } = {}) =>
     new Paragraph({
       keepNext,
@@ -880,6 +893,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           children.push(makeSubHeading('Learning Objectives'));
           p.objectives.forEach((o) => children.push(makeBullet(o)));
         }
+        pushSuppliedMaterial(p.suppliedMaterial);
         if (p.sourceEvidenceBrief?.claims?.length) {
           children.push(makeSubHeading('Source Evidence for This Lesson'));
           p.sourceEvidenceBrief.claims.forEach((claim) => children.push(makeBullet(claim)));
@@ -1336,6 +1350,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         // v0.16 A2: the machine-scoring statement, printed where a reviewer
         // decides whether "autograded" is honest.
         if (quiz.gradingSpec) children.push(makeBold(t('Grading'), quiz.gradingSpec));
+        pushSuppliedMaterial(quiz.suppliedMaterial);
         if (quiz.practiceRecord) {
           children.push(
             makeBold(quiz.practiceRecord.title || 'Course-created practice case', quiz.practiceRecord.context || ''),
@@ -1732,6 +1747,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
               a.relatedLessons.map((lesson) => teachingMaterialLessonLabel(lesson, zh)).join(zh ? '，' : ', '),
             ),
           );
+        pushSuppliedMaterial(a.suppliedMaterial);
         if (a.overview) children.push(makeBold(t('Overview'), a.overview));
         if (a.description) children.push(makeBold(t('Description'), a.description));
         if (a.activityPacket) {
@@ -1976,9 +1992,14 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           children.push(makeSubHeading(t('Learning Objectives')));
           g.learningObjectives.forEach((objective) => children.push(makeBullet(objective)));
         }
+        pushSuppliedMaterial(g.suppliedMaterial);
         if (g.objectivePractice?.length) {
           children.push(makeSubHeading(t('Practice the Objectives')));
           g.objectivePractice.forEach((move) => children.push(makeBullet(move)));
+          if (g.practiceAnswers?.length) {
+            children.push(makeSubHeading(t('Practice Answer Key')));
+            g.practiceAnswers.forEach((answer, index) => children.push(makeBullet(`${index + 1}. ${answer}`)));
+          }
         }
         if (g.assignedReadings?.length) {
           children.push(makeSubHeading(t('Assigned Readings')));
