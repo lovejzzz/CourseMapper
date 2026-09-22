@@ -25,12 +25,10 @@ import {
 
 // Lazy-load screens/components not needed on initial landing page
 const Config = lazy(() => import('./screens/Config'));
-const FeatureSelect = lazy(() => import('./screens/FeatureSelect'));
 const CourseMapPreview = lazy(() => import('./components/CourseMapPreview'));
 const CourseMapGenerationStatus = lazy(() => import('./components/CourseMapGenerationStatus'));
 const ChatPanel = lazy(() => import('./components/chat/ChatPanel'));
 const AgentQualityControl = lazy(() => import('./components/chat/AgentQualityControl'));
-const ResizeHandle = lazy(() => import('./components/chat/ResizeHandle'));
 const DeliverableView = lazy(() => import('./components/DeliverableView'));
 const DependencyMap = lazy(() => import('./components/DependencyMap'));
 const CascadePreview = lazy(() => import('./components/CascadePreview'));
@@ -403,25 +401,14 @@ export default function AppFlow({
   useEffect(() => {
     requestNotificationPermission();
   }, []);
-  // v0.20.06: on desktop the assistant column can be hidden so the material
-  // gets the full width. A per-browser preference, not project state.
-  const [assistantHidden, setAssistantHidden] = useState(() => {
-    try {
-      return globalThis.localStorage?.getItem('coursemapper-assistant-hidden') === '1';
-    } catch {
-      return false;
-    }
-  });
-  const toggleAssistantHidden = useCallback(() => {
-    setAssistantHidden((hidden) => {
-      const next = !hidden;
-      try {
-        globalThis.localStorage?.setItem('coursemapper-assistant-hidden', next ? '1' : '0');
-      } catch {
-        /* preference only */
-      }
-      return next;
-    });
+  // v0.20.07: the material owns the workspace. The assistant and export
+  // panels open as one right-hand drawer at a time. The assistant opens
+  // itself while generation runs and closes again when that run finishes.
+  const [workspaceDrawer, setWorkspaceDrawer] = useState(null);
+  const autoOpenedAssistantRef = useRef(false);
+  const toggleWorkspaceDrawer = useCallback((drawer) => {
+    autoOpenedAssistantRef.current = false;
+    setWorkspaceDrawer((current) => (current === drawer ? null : drawer));
   }, []);
   const [isHandlingStartupAction, setIsHandlingStartupAction] = useState(() =>
     Boolean(startupAction && startupAction.type !== 'continue'),
@@ -3093,7 +3080,7 @@ export default function AppFlow({
   // ── Detect lesson count using AI when user proceeds from landing ──
   async function handleLandingContinue() {
     setChatHistory((prev) => upsertLandingAgentContextMessages(prev, { promptText, files }));
-    setScreen('features');
+    setScreen('config');
 
     const parseLandingFilesForContext = async () => {
       if (files.length === 0) return { combinedText: promptText, parsed: [] };
@@ -3214,6 +3201,43 @@ export default function AppFlow({
     // Startup actions intentionally run once when the lazy app flow mounts.
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Content generation opens the assistant to show progress. Package checks
+  // started from Export stay in Export, and an open Export drawer is never
+  // replaced by the automatic assistant.
+  const drawerRunSignal = Boolean(packageGenerationBusy || gen.isStreaming || deliv.isGenerating);
+  useEffect(() => {
+    if (drawerRunSignal) {
+      // Instant rebuilds finish before the drawer would be read; open only
+      // when the run lasts long enough for progress to matter.
+      const timer = setTimeout(() => {
+        setWorkspaceDrawer((current) => {
+          if (current) return current;
+          autoOpenedAssistantRef.current = true;
+          return 'assistant';
+        });
+      }, 1200);
+      return () => clearTimeout(timer);
+    }
+    if (autoOpenedAssistantRef.current) {
+      autoOpenedAssistantRef.current = false;
+      setWorkspaceDrawer((current) => (current === 'assistant' ? null : current));
+    }
+    return undefined;
+  }, [drawerRunSignal]);
+
+  // Escape closes the open drawer unless a dialog or menu owns the key.
+  useEffect(() => {
+    if (!workspaceDrawer) return undefined;
+    const onKeyDown = (event) => {
+      if (event.key !== 'Escape' || event.defaultPrevented) return;
+      if (document.querySelector('dialog[open], [role="dialog"], [role="menu"], details[open]')) return;
+      autoOpenedAssistantRef.current = false;
+      setWorkspaceDrawer(null);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [workspaceDrawer]);
+
   if (isHandlingStartupAction) {
     return <LoadingScreen />;
   }
@@ -3275,24 +3299,8 @@ export default function AppFlow({
     );
   }
 
-  // ── Screen: Feature Select ──
-  if (screen === 'features') {
-    return (
-      <Suspense fallback={<WorkspaceSkeleton />}>
-        <FeatureSelect
-          hasSyllabusFile={hasSyllabusFile}
-          onBack={() => setScreen('landing')}
-          onNext={() => setScreen('config')}
-          developerTemplates={developerTemplates}
-          activeDeveloperTemplateId={activeDeveloperTemplateId}
-          onApplyDeveloperTemplate={applyDeveloperTemplate}
-        />
-      </Suspense>
-    );
-  }
-
-  // ── Screen: Config ──
-  if (screen === 'config') {
+  // ── Screen: Setup (v0.20.07: materials and settings on one page) ──
+  if (screen === 'features' || screen === 'config') {
     return (
       <Suspense fallback={<ConfigSkeleton />}>
         <Config
@@ -3300,7 +3308,7 @@ export default function AppFlow({
           promptText={promptText}
           isDetectingLessons={isDetectingLessons}
           deliverables={deliv.deliverables}
-          onBack={() => setScreen('features')}
+          onBack={() => setScreen('landing')}
           onGenerate={onGenerate}
           canGenerate={canGenerate}
           provider={provider}
@@ -3319,7 +3327,7 @@ export default function AppFlow({
     // Always "Content": with the Course Map chip selected above, a view tab
     // ALSO labeled "Course Map" stacked two identical labels on screen.
     { id: 'content', label: 'Content' },
-    { id: 'agent', label: 'Agent' },
+    { id: 'agent', label: 'Assistant' },
     ...(courseMap && gen.progressStep === 'done' ? [{ id: 'export', label: 'Export' }] : []),
   ];
 
@@ -3469,7 +3477,6 @@ export default function AppFlow({
                   <AppLogo className="h-9 w-auto object-contain" />
                 </a>
                 <div className="min-w-0">
-                  <p className="hidden text-xs font-semibold text-slate-400 sm:block">Workspace</p>
                   <h1
                     data-testid="workspace-course-title"
                     className="line-clamp-2 text-lg font-bold text-slate-950 dark:text-slate-100 sm:max-w-2xl sm:line-clamp-1"
@@ -3521,7 +3528,26 @@ export default function AppFlow({
                   canDownload={packageTrustStatus.canDownload}
                   onReview={() => handleReviewQueueOpenChange(true)}
                 />
-                <DarkModeToggle />
+                {[
+                  { id: 'assistant', label: 'Assistant', enabled: true },
+                  { id: 'export', label: 'Export', enabled: Boolean(courseMap && gen.progressStep === 'done') },
+                ].map(({ id, label, enabled }) => (
+                  <button
+                    key={id}
+                    type="button"
+                    data-testid={`workspace-drawer-${id}`}
+                    disabled={!enabled || (id === 'export' && isPackageGenerationRunning)}
+                    aria-pressed={workspaceDrawer === id}
+                    onClick={() => toggleWorkspaceDrawer(id)}
+                    className={`tactile hidden min-h-9 items-center rounded-md px-3 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40 xl:inline-flex ${
+                      workspaceDrawer === id
+                        ? 'bg-slate-950 text-white dark:bg-white dark:text-slate-950'
+                        : 'border border-slate-200 text-slate-600 hover:bg-black/[0.03] dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
                 <UserMenu
                   onOpenProjects={() => setShowProjectPicker(true)}
                   developerMode={developerMode}
@@ -3590,6 +3616,10 @@ export default function AppFlow({
                     >
                       {isStartingNewProject ? 'Starting…' : 'New Project'}
                     </button>
+                    <div className="mt-1 flex items-center justify-between border-t border-slate-100 px-3 pt-2 text-xs font-semibold text-slate-600 dark:border-slate-800 dark:text-slate-300">
+                      Theme
+                      <DarkModeToggle />
+                    </div>
                   </div>
                 </details>
               </div>
@@ -3717,6 +3747,15 @@ export default function AppFlow({
                           }
                         }}
                         aria-pressed={isActive}
+                        title={
+                          needsGoalReview
+                            ? `${feature.label}: needs review`
+                            : isStaleTab && !isSyncingThis
+                              ? `${feature.label}: out of date after a change elsewhere`
+                              : hasUnseen
+                                ? `${feature.label}: updated since you last opened it`
+                                : undefined
+                        }
                         className={`tactile flex min-h-11 flex-shrink-0 cursor-grab touch-none select-none items-center gap-2 whitespace-nowrap rounded-md px-3 text-xs font-semibold transition-all duration-200 active:cursor-grabbing lg:min-h-0 lg:py-1.5 ${
                           isDraggingThis
                             ? 'opacity-20 scale-95'
@@ -3745,15 +3784,25 @@ export default function AppFlow({
                           }
                         />
                         {feature.label}
-                        {needsGoalReview
-                          ? ' ⚠'
-                          : isStaleTab && !isSyncingThis
-                            ? staleConf?.level === 'high'
-                              ? ' ⚠'
-                              : ' ~'
-                            : hasUnseen
-                              ? ' *'
-                              : ''}
+                        {(needsGoalReview || (isStaleTab && !isSyncingThis) || hasUnseen) && (
+                          <span
+                            aria-hidden="true"
+                            title={
+                              needsGoalReview
+                                ? 'Needs review'
+                                : isStaleTab
+                                  ? 'Out of date after a change elsewhere'
+                                  : 'Updated since you last opened it'
+                            }
+                            className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${
+                              needsGoalReview || (isStaleTab && staleConf?.level === 'high')
+                                ? 'bg-amber-500'
+                                : isStaleTab
+                                  ? 'bg-amber-300'
+                                  : 'bg-blue-500'
+                            }`}
+                          />
+                        )}
                       </button>
                       {isDropTarget && markerAfter && insertionMarker}
                     </React.Fragment>
@@ -4174,25 +4223,10 @@ export default function AppFlow({
             <div
               data-testid="workspace-agent-panel"
               className={`workspace-chat-panel min-w-0 ${mobileWorkspaceView === 'agent' ? 'block' : 'hidden'} ${
-                assistantHidden ? 'xl:hidden' : 'xl:block'
-              } xl:flex-shrink-0 xl:sticky xl:top-4`}
+                workspaceDrawer === 'assistant' ? 'xl:block' : 'xl:hidden'
+              } xl:order-2 xl:ml-4 xl:flex-shrink-0 xl:sticky xl:top-4`}
               style={{ '--workspace-chat-width': `${chatWidth}px` }}
             >
-              <div className="mb-2 hidden justify-end xl:flex">
-                <button
-                  type="button"
-                  data-testid="workspace-hide-assistant"
-                  onClick={toggleAssistantHidden}
-                  className="rounded-lg px-2 py-1 text-xs font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:hover:bg-slate-800 dark:hover:text-slate-100"
-                >
-                  Hide assistant
-                </button>
-              </div>
-              <AgentQualityControl
-                quality={packageQualityPass?.quality}
-                trustStatus={packageTrustStatus}
-                onOpen={setQualityReportOpen}
-              />
               <ErrorBoundary>
                 <ChatPanel
                   viewportRef={viewportRef}
@@ -4275,29 +4309,14 @@ export default function AppFlow({
             </div>
 
             {/* ── Resize Handle ── */}
-            <div className={`hidden self-stretch ${assistantHidden ? '' : 'xl:block'}`}>
-              <ResizeHandle width={chatWidth} onWidthChange={setChatWidth} />
-            </div>
 
             {/* ── Main content area ── */}
             <div
               data-testid="workspace-content-panel"
               className={`min-w-0 flex-1 space-y-4 px-0 ${
                 mobileWorkspaceView === 'content' ? 'block' : 'hidden'
-              } xl:block xl:px-4`}
+              } xl:order-1 xl:mx-auto xl:block ${activeTab === 'courseMap' ? 'xl:max-w-none' : 'xl:max-w-[1040px]'} xl:px-0`}
             >
-              {assistantHidden && (
-                <div className="hidden xl:flex">
-                  <button
-                    type="button"
-                    data-testid="workspace-show-assistant"
-                    onClick={toggleAssistantHidden}
-                    className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
-                  >
-                    Show assistant
-                  </button>
-                </div>
-              )}
               {/* Course Map tab */}
               {activeTab === 'courseMap' && (
                 <>
@@ -4543,9 +4562,16 @@ export default function AppFlow({
               <div
                 data-testid="workspace-export-panel"
                 className={`${mobileWorkspaceView === 'export' ? 'block' : 'hidden'} ${
-                  isPackageGenerationRunning ? 'xl:hidden' : 'xl:block xl:flex-shrink-0'
+                  workspaceDrawer === 'export' && !isPackageGenerationRunning
+                    ? 'xl:order-3 xl:ml-4 xl:block xl:w-[320px] xl:flex-shrink-0 xl:self-start xl:sticky xl:top-4'
+                    : 'xl:hidden'
                 } min-w-0`}
               >
+                <AgentQualityControl
+                  quality={packageQualityPass?.quality}
+                  trustStatus={packageTrustStatus}
+                  onOpen={setQualityReportOpen}
+                />
                 <ExportSidePanel
                   activeTab={activeTab}
                   activeTabLabel={workspaceTabs.find((f) => f.id === activeTab)?.label || activeTab}

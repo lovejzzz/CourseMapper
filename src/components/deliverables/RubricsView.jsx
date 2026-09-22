@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import { sharedViewValue } from '../../lib/materialViewDedupe.js';
 import EditProposalPanel from '../EditProposalPanel';
 import TeachingTaskReference from './shared/TeachingTaskReference';
 import { exportRubricGradebook } from '../../lib/deliverableExporters';
@@ -102,6 +103,8 @@ export default function RubricsView({
   };
 
   const renderRubric = (rubric, i) => {
+    // v0.20.07: an objective shared by every criterion is shown once.
+    const sharedCriterionObjective = sharedViewValue(rubric.criteria, (c) => c?.objectiveAligned);
     const answerKeyScored = isAnswerKeyScoredRubric(rubric);
     const gradedWork = rubric.gradedWork || rubric.gw || rubric.assignmentTitle || rubric.title || '';
     const subtitle = [
@@ -211,8 +214,13 @@ export default function RubricsView({
                 </div>
               )}
               {rubric.sourceEvidenceBrief?.claims?.length > 0 && !answerKeyScored && (
-                <div className="rounded-xl border border-emerald-100 bg-emerald-50/45 p-3">
-                  <h4 className="text-xs font-bold text-emerald-800">Content evidence used for scoring</h4>
+                <details className="group rounded-xl border border-emerald-100 bg-emerald-50/45 p-3">
+                  <summary className="flex cursor-pointer list-none items-center gap-2 text-xs font-bold text-emerald-800 [&::-webkit-details-marker]:hidden">
+                    <span aria-hidden="true" className="transition-transform group-open:rotate-90">
+                      ›
+                    </span>
+                    Sources behind the criteria
+                  </summary>
                   <ul className="mt-1.5 space-y-1">
                     {rubric.sourceEvidenceBrief.claims.map((claim, j) => (
                       <li key={j} className="flex gap-2 text-xs leading-relaxed text-slate-700">
@@ -243,7 +251,12 @@ export default function RubricsView({
                       ))}
                     </p>
                   )}
-                </div>
+                </details>
+              )}
+              {sharedCriterionObjective && (
+                <p data-testid="rubric-shared-objective" className="text-xs text-slate-500">
+                  <span className="font-semibold text-slate-600">Objective:</span> {sharedCriterionObjective}
+                </p>
               )}
               {/* Save rubric to bank */}
               {onSaveToBank && rubric.criteria?.length > 0 && (
@@ -335,7 +348,7 @@ export default function RubricsView({
                                 onEdit={onEdit}
                               />
                             </span>
-                            {c.objectiveAligned && (
+                            {c.objectiveAligned && !sharedCriterionObjective && (
                               <span className="text-xs text-indigo-400 block mt-0.5 leading-tight">
                                 ↳{' '}
                                 <E
@@ -407,12 +420,17 @@ export default function RubricsView({
 
               {/* Teacher notes */}
               {rubric.teacherNotes && !isStudentView && (
-                <div className="bg-amber-50/40 rounded-lg p-3 border border-amber-100/50">
-                  <h4 className="text-xs font-semibold text-amber-700 mb-1">📋 Calibration &amp; Grader Notes</h4>
-                  <p className="text-xs text-slate-600 leading-relaxed">
+                <details className="group rounded-lg border border-slate-200/70 bg-white/60 p-3">
+                  <summary className="flex cursor-pointer list-none items-center gap-2 text-xs font-semibold text-slate-600 [&::-webkit-details-marker]:hidden">
+                    <span aria-hidden="true" className="transition-transform group-open:rotate-90">
+                      ›
+                    </span>
+                    Grader notes
+                  </summary>
+                  <p className="mt-2 text-xs text-slate-600 leading-relaxed">
                     <E value={rubric.teacherNotes} path={['rubrics', i, 'teacherNotes']} onEdit={onEdit} multiline />
                   </p>
-                </div>
+                </details>
               )}
             </div>
           </CollapsibleCard>
@@ -433,7 +451,6 @@ export default function RubricsView({
             onClick={() => exportRubricGradebook(data)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-all"
           >
-            <span>📊</span>
             <span>Export Gradebook CSV</span>
           </button>
         </div>

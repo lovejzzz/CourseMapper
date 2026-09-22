@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import { isSameViewText, sharedViewValue } from '../../lib/materialViewDedupe.js';
 import EditProposalPanel from '../EditProposalPanel';
 import { renderedDeliverableCollectionKey } from '../../lib/renderedDeliverableCollection.js';
 import {
@@ -82,6 +83,8 @@ export default function QuizBankView({
         const questionKey = Array.isArray(quiz.questions) ? 'questions' : Array.isArray(quiz.qs) ? 'qs' : 'questions';
         const questions = quiz[questionKey] || [];
         const bloomsCoverage = quiz.bloomsCoverage || quiz.bc || [];
+        // v0.20.07: an objective shared by every question is shown once.
+        const sharedObjective = sharedViewValue(questions, (q) => fieldValue(q, 'objectiveAligned', 'oa'));
         const subtitle = [
           questions.length ? `${questions.length} question${questions.length === 1 ? '' : 's'}` : null,
           bloomsCoverage.length ? bloomsCoverage.join(', ') : null,
@@ -116,12 +119,10 @@ export default function QuizBankView({
             }
           >
             <div className="pt-3 space-y-3">
-              {bloomsCoverage.length > 0 && (
-                <div className="flex flex-wrap gap-1">
-                  {bloomsCoverage.map((b, k) => (
-                    <BloomsTag key={k} level={b} />
-                  ))}
-                </div>
+              {sharedObjective && (
+                <p data-testid="quiz-shared-objective" className="text-xs text-slate-500">
+                  <span className="font-semibold text-slate-600">Objective:</span> {sharedObjective}
+                </p>
               )}
               {questions.map((q, j) => (
                 <QuestionCard
@@ -132,6 +133,7 @@ export default function QuizBankView({
                   onEdit={onEdit}
                   onSaveToBank={onSaveToBank}
                   isStudentView={isStudentView}
+                  hideObjective={Boolean(sharedObjective)}
                 />
               ))}
               {/* v0.14.4 (D2): the exam's answer key, visually separated from
@@ -253,7 +255,7 @@ export default function QuizBankView({
   );
 }
 
-function QuestionCard({ question, number, qPath, onEdit, onSaveToBank, isStudentView }) {
+function QuestionCard({ question, number, qPath, onEdit, onSaveToBank, isStudentView, hideObjective = false }) {
   const [showAnswer, setShowAnswer] = useState(false);
   const [saved, setSaved] = useState(false);
   const q = question;
@@ -293,16 +295,7 @@ function QuestionCard({ question, number, qPath, onEdit, onSaveToBank, isStudent
         <div className="flex-1">
           <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
             <Badge color={color}>{type.replace('_', ' ')}</Badge>
-            {bloomsLevel && <BloomsTag level={bloomsLevel} />}
-            {difficulty && (
-              <span
-                className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${diffColors[difficulty] || 'text-slate-500 bg-slate-50'}`}
-              >
-                {difficulty}
-              </span>
-            )}
             {points && <span className="text-xs text-slate-400 ml-auto">{points} pts</span>}
-            {estimatedMinutes && <span className="text-xs text-slate-400">~{estimatedMinutes} min</span>}
             {onSaveToBank && (
               <button
                 onClick={handleSave}
@@ -310,11 +303,11 @@ function QuestionCard({ question, number, qPath, onEdit, onSaveToBank, isStudent
                 title="Save to Assessment Bank"
                 aria-label={saved ? 'Saved to Assessment Bank' : 'Save to Assessment Bank'}
               >
-                {saved ? '✓ Saved' : '💾'}
+                {saved ? '✓ Saved' : 'Save'}
               </button>
             )}
           </div>
-          {objectiveAligned && (
+          {objectiveAligned && !hideObjective && (
             <p className="text-xs text-indigo-400 mb-1.5">
               ↳{' '}
               <E
@@ -369,6 +362,19 @@ function QuestionCard({ question, number, qPath, onEdit, onSaveToBank, isStudent
       )}
       {!isStudentView && showAnswer && (
         <div className="ml-8 text-xs bg-emerald-50/60 rounded-lg p-3 border border-emerald-100/50 space-y-2">
+          {(bloomsLevel || difficulty || estimatedMinutes) && (
+            <p data-testid="quiz-item-meta" className="flex flex-wrap items-center gap-1.5 text-slate-500">
+              {bloomsLevel && <BloomsTag level={bloomsLevel} />}
+              {difficulty && (
+                <span
+                  className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${diffColors[difficulty] || 'text-slate-500 bg-slate-50'}`}
+                >
+                  {difficulty}
+                </span>
+              )}
+              {estimatedMinutes && <span>~{estimatedMinutes} min</span>}
+            </p>
+          )}
           {answer && (
             <p>
               <span className="font-semibold text-emerald-700">Answer:</span>{' '}
@@ -380,7 +386,7 @@ function QuestionCard({ question, number, qPath, onEdit, onSaveToBank, isStudent
               />
             </p>
           )}
-          {explanation && (
+          {explanation && !isSameViewText(explanation, answer) && (
             <div>
               <span className="font-semibold text-emerald-700 block mb-0.5">Explanation:</span>
               <E

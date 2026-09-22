@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import fs from 'node:fs/promises';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
+import { openWorkspaceDrawer } from './lib/workspaceDrawers.js';
 
 test('built-site PDF reports a failed font fetch, then downloads complete symbols on retry under the real CSP', async ({
   page,
@@ -56,6 +57,7 @@ test('built-site PDF reports a failed font fetch, then downloads complete symbol
   await page.route(symbolAsset, (route) => route.fulfill({ status: 503, body: 'Temporary font outage' }));
   await page.goto('/');
   await page.getByRole('button', { name: 'Resume', exact: true }).click();
+  await openWorkspaceDrawer(page, 'export');
   const panel = page.getByTestId('export-side-panel');
   await expect(panel).toBeVisible();
   await page.getByTestId('export-format-pdf').click();
@@ -147,6 +149,7 @@ test('built-site Firebase sign-in can load Google bootstrap while unknown script
   );
   await page.goto('/');
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Continue with Google' }).click();
   await expect.poll(() => page.evaluate(() => window.__googleAuthBootstrapLoaded === true)).toBe(true);
   await page.route('https://unconfigured-script.invalid/**', (route) =>
     route.fulfill({ contentType: 'application/javascript', body: 'window.__unexpectedScriptLoaded = true;' }),
@@ -169,22 +172,22 @@ test('release page preserves latest details and the complete historical changelo
   const errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
-  await expect(page.getByRole('link', { name: 'v0.20.06', exact: true })).toBeVisible();
-  await page.getByRole('link', { name: 'v0.20.06', exact: true }).click();
+  await expect(page.getByRole('link', { name: 'v0.20.07', exact: true })).toBeVisible();
+  await page.getByRole('link', { name: 'v0.20.07', exact: true }).click();
   await expect(page).toHaveURL(/#\/changelog$/);
-  await expect(page.locator('[id="release-0.20.06"]')).toContainText('Briefs read as written');
-  await expect(page.locator('[id="release-0.20.06"]')).toContainText('retain v0.20.05 and all earlier release notes');
+  await expect(page.locator('[id="release-0.20.07"]')).toContainText('One question, one setup page');
+  await expect(page.locator('[id="release-0.20.07"]')).toContainText('Retain v0.20.06 and all earlier release notes');
   await page.getByRole('button', { name: 'Browse previous releases' }).click();
-  await expect(page.locator('[id="release-0.20.05"]')).toBeInViewport();
+  await expect(page.locator('[id="release-0.20.06"]')).toBeInViewport();
   await expect(page.locator('[id="release-0.19.99"]')).toContainText('Linked Materials, Reliable Revisions');
   await expect(page.locator('[id="release-0.19.2"]')).toHaveCount(1);
   await expect(page.locator('[id="release-0.15.3"]')).toHaveCount(1);
   await page.reload();
+  await expect(page.locator('[id="release-0.20.07"]')).toHaveCount(1);
   await expect(page.locator('[id="release-0.20.06"]')).toHaveCount(1);
-  await expect(page.locator('[id="release-0.20.05"]')).toHaveCount(1);
   await expect(page.locator('[id="release-0.19.99"]')).toHaveCount(1);
   const response = await page.request.get('/release.json');
-  expect(await response.json()).toMatchObject({ version: '0.20.6', displayVersion: '0.20.06' });
+  expect(await response.json()).toMatchObject({ version: '0.20.7', displayVersion: '0.20.07' });
   expect(errors).toEqual([]);
 });
 

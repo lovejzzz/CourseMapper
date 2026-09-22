@@ -5,7 +5,6 @@ import { useCourse } from '../contexts/CourseContext';
 import UserMenu from '../components/UserMenu';
 import DarkModeToggle from '../components/DarkModeToggle';
 import AppLogo from '../components/AppLogo';
-import SetupProgress from '../components/SetupProgress';
 import { LATEST_RELEASE } from '../lib/latestRelease';
 import { shouldOfferCurrentSourceResearch } from '../lib/scionEvidenceForecastAction';
 import { PUBLIC_SCION_PROVIDER_ID } from '../lib/publicScionIdentity';
@@ -615,448 +614,387 @@ export default function Landing({
       </header>
 
       <main className="flex flex-1 items-center justify-center px-5 py-10 sm:px-8">
-        <div className="mx-auto flex w-full max-w-4xl flex-col">
-          <section className="text-center animate-fade-up">
-            <h1 className="text-3xl font-semibold leading-[1.08] text-slate-950 dark:text-white sm:text-4xl md:whitespace-nowrap">
-              Create teaching materials for your course.
-            </h1>
-            <p className="mx-auto mt-3 max-w-2xl text-body-lg text-ink-muted sm:text-sm">
-              Plan lessons, prepare activities, and create student resources in one workspace.
-            </p>
-          </section>
+        <div className="mx-auto flex w-full max-w-3xl flex-col">
+          {/* v0.20.07: one question, one composer. The stepper, subtitle and
+              helper sentence repeated the same instruction and were removed. */}
+          <h1 className="text-center text-3xl font-semibold leading-tight text-slate-950 animate-fade-up dark:text-white sm:text-4xl">
+            What do you want to teach?
+          </h1>
 
-          <div className="mt-7">
-            <section className="rounded-[28px] border border-slate-200/80 bg-white/80 p-4 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur-xl dark:border-slate-700/80 dark:bg-slate-950/70 dark:shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:p-5">
-              <SetupProgress current="brief" />
-              <p className="mt-5 text-center text-body text-ink-muted">
-                Describe your course or upload a syllabus to get started.
-              </p>
-
-              {missingRecoveryAttachments.length > 0 && (
-                <div
-                  data-testid="setup-recovery-notice"
-                  role="status"
-                  className="mt-5 flex items-start gap-3 rounded-xl border border-blue-200/80 bg-blue-50/75 px-4 py-3 text-left dark:border-blue-400/25 dark:bg-blue-400/10"
-                >
-                  <span className="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-white text-xs font-bold text-blue-600 dark:bg-slate-950 dark:text-blue-200">
-                    i
-                  </span>
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold text-blue-900 dark:text-blue-100">
-                      App updated — your course brief is restored
-                    </p>
-                    <p className="mt-1 text-xs leading-relaxed text-blue-700 dark:text-blue-200">
-                      Reattach {missingRecoveryAttachments.join(', ')} to continue with the same source material.
-                    </p>
-                  </div>
+          <div className="mt-8">
+            {missingRecoveryAttachments.length > 0 && (
+              <div
+                data-testid="setup-recovery-notice"
+                role="status"
+                className="mt-5 flex items-start gap-3 rounded-xl border border-blue-200/80 bg-blue-50/75 px-4 py-3 text-left dark:border-blue-400/25 dark:bg-blue-400/10"
+              >
+                <span className="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-white text-xs font-bold text-blue-600 dark:bg-slate-950 dark:text-blue-200">
+                  i
+                </span>
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-blue-900 dark:text-blue-100">
+                    App updated — your course brief is restored
+                  </p>
+                  <p className="mt-1 text-xs leading-relaxed text-blue-700 dark:text-blue-200">
+                    Reattach {missingRecoveryAttachments.join(', ')} to continue with the same source material.
+                  </p>
                 </div>
-              )}
+              </div>
+            )}
 
-              {!promptText && files.length === 0 && (
-                <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
-                  <button
-                    type="button"
-                    data-testid="sample-courses-shuffle"
-                    onClick={shuffleCourseExamples}
-                    title="Shuffle sample courses"
-                    className="tactile min-h-11 min-w-11 rounded-full px-2 text-xs font-semibold text-slate-500 transition-colors hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:text-slate-400 dark:hover:text-blue-200 dark:focus:ring-blue-500/50"
-                  >
-                    Try
-                  </button>
-                  {visibleCourseExamples.map(({ label, text }) => (
-                    <button
-                      key={label}
-                      data-testid="course-example-chip"
-                      data-example-text={text}
-                      onClick={() => (onExampleSelect ? onExampleSelect(text) : setPromptText(text))}
-                      className="tactile flex min-h-11 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 text-xs font-medium text-slate-600 transition-all duration-200 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-blue-400/40 dark:hover:bg-blue-400/10 dark:hover:text-blue-200"
+            {hasSavedSession && (
+              <div
+                data-testid="saved-session-banner"
+                className="mb-3 flex items-center gap-2 rounded-xl border border-slate-200/80 bg-white/70 py-1 pl-4 pr-1 animate-spring-in dark:border-slate-700 dark:bg-slate-900/70"
+              >
+                <p
+                  data-testid="saved-session-copy"
+                  className="min-w-[35%] flex-1 text-sm text-slate-600 dark:text-slate-300"
+                >
+                  Continue your last course
+                </p>
+                <button
+                  onClick={onRestoreSession}
+                  className="tactile min-h-11 rounded-lg bg-slate-950 px-4 text-xs font-semibold text-white transition-all hover:brightness-110 dark:bg-white dark:text-slate-950"
+                >
+                  Resume
+                </button>
+                <button
+                  onClick={onDismissSavedSession}
+                  className="flex min-h-11 min-w-11 flex-shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-black/5 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                  title="Start fresh"
+                  aria-label="Dismiss saved session"
+                >
+                  <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            )}
+
+            <div
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              data-testid="landing-course-composer"
+              className={`relative rounded-2xl border bg-white transition-[border-color,box-shadow] duration-200 dark:bg-slate-900 ${
+                isDragging
+                  ? 'border-blue-400 ring-4 ring-blue-400/15'
+                  : 'border-slate-300/80 focus-within:border-slate-400 dark:border-slate-700 dark:focus-within:border-slate-500'
+              }`}
+            >
+              <textarea
+                aria-label="Describe your course"
+                value={promptText}
+                onChange={(e) => setPromptText(e.target.value)}
+                placeholder={
+                  files.length > 0
+                    ? 'What should the attached files become? For example: two lessons and a quiz for first-year students.'
+                    : 'Introductory chemistry for 10th graders, 2 lessons of 50 minutes on balancing equations, with a short quiz.'
+                }
+                rows={files.length > 0 ? 2 : 3}
+                className="w-full resize-none bg-transparent px-4 pb-1 pt-4 text-[15px] leading-relaxed text-slate-800 placeholder:text-slate-400 focus:outline-none dark:text-slate-100 dark:placeholder:text-slate-500"
+              />
+
+              {files.length > 0 && (
+                <div className="space-y-1 px-3 pb-2">
+                  {files.map((file, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center justify-between rounded-md bg-slate-50 px-3 py-1.5 animate-spring-in dark:bg-slate-800"
                     >
-                      {label}
-                    </button>
+                      <div className="flex min-w-0 items-center gap-2">
+                        <FileIcon ext={file.name.split('.').pop()} />
+                        <span className="truncate text-xs font-medium text-slate-700 dark:text-slate-200">
+                          {file.name}
+                        </span>
+                        {file.size > 0 && (
+                          <span className="flex-shrink-0 text-xs text-slate-400">{formatSize(file.size)}</span>
+                        )}
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeFile(i);
+                        }}
+                        className="ml-2 flex-shrink-0 text-slate-300 transition-colors hover:text-red-400"
+                        aria-label={`Remove ${file.name}`}
+                      >
+                        <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
                   ))}
                 </div>
               )}
 
-              {hasSavedSession && (
-                <div
-                  data-testid="saved-session-banner"
-                  className="mt-5 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 rounded-lg border border-blue-200/70 bg-blue-50/70 px-4 py-3 animate-spring-in sm:flex sm:gap-3 dark:border-blue-400/20 dark:bg-blue-400/10"
+              <div className="flex items-center gap-2 px-2.5 pb-2.5">
+                <button
+                  type="button"
+                  aria-label="Attach files"
+                  title="Attach files or open a .coursemapper project"
+                  onClick={() => document.getElementById('landing-file-input').click()}
+                  className="tactile flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-black/5 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
                 >
-                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-white text-blue-600 dark:bg-slate-950 dark:text-blue-200">
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                  </div>
-                  <div data-testid="saved-session-copy" className="min-w-0 flex-1">
-                    <p className="text-xs font-semibold text-slate-800 dark:text-slate-100">Previous session found</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Resume it or start fresh.</p>
-                  </div>
-                  <button
-                    onClick={onRestoreSession}
-                    className="tactile col-start-2 col-end-4 row-start-2 flex w-full items-center justify-center gap-1.5 rounded-lg bg-slate-950 px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:brightness-110 sm:w-auto dark:bg-white dark:text-slate-950"
-                  >
-                    <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                      />
-                    </svg>
-                    Resume
-                  </button>
-                  <button
-                    onClick={onDismissSavedSession}
-                    className="flex min-h-11 min-w-11 flex-shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-white/70 hover:text-red-500 dark:hover:bg-slate-950/60"
-                    title="Dismiss and start fresh"
-                    aria-label="Dismiss saved session"
-                  >
-                    <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              )}
-
-              <div
-                onDrop={handleDrop}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                data-testid="landing-course-composer"
-                className={`relative mt-5 rounded-[22px] transition-[border-color,box-shadow,transform] duration-300 ${
-                  isDragging
-                    ? 'scale-[1.01] border-2 border-blue-400 bg-blue-50/60 shadow-glow-indigo dark:bg-blue-400/10'
-                    : 'border-2 border-slate-200 bg-white/80 focus-within:border-blue-400/70 dark:border-slate-700 dark:bg-slate-900/80 dark:focus-within:border-blue-400/70'
-                }`}
-              >
-                <textarea
-                  aria-label="Describe your course"
-                  value={promptText}
-                  onChange={(e) => setPromptText(e.target.value)}
-                  placeholder={
-                    files.length > 0
-                      ? 'Describe what you want to build from the attached syllabus or source files...'
-                      : 'Describe your course, or drop a syllabus here...'
-                  }
-                  rows={files.length > 0 ? 2 : 4}
-                  className="w-full resize-none bg-transparent px-4 pb-2 pt-4 text-sm text-slate-800 placeholder:text-slate-500/80 focus:outline-none dark:text-slate-100 dark:placeholder:text-slate-500"
-                />
-
-                {files.length > 0 && (
-                  <div className="space-y-1 px-3 pb-2">
-                    {files.map((file, i) => (
-                      <div
-                        key={i}
-                        className="flex items-center justify-between rounded-md bg-slate-50 px-3 py-1.5 animate-spring-in dark:bg-slate-800"
-                      >
-                        <div className="flex min-w-0 items-center gap-2">
-                          <FileIcon ext={file.name.split('.').pop()} />
-                          <span className="truncate text-xs font-medium text-slate-700 dark:text-slate-200">
-                            {file.name}
-                          </span>
-                          {file.size > 0 && (
-                            <span className="flex-shrink-0 text-xs text-slate-400">{formatSize(file.size)}</span>
-                          )}
-                        </div>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            removeFile(i);
-                          }}
-                          className="ml-2 flex-shrink-0 text-slate-300 transition-colors hover:text-red-400"
-                          aria-label={`Remove ${file.name}`}
-                        >
-                          <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M6 18L18 6M6 6l12 12"
-                            />
-                          </svg>
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <div className="flex flex-col items-stretch gap-1.5 px-3 pb-3 pt-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+                    />
+                  </svg>
+                </button>
+                <div
+                  data-testid="ai-config-summary"
+                  className="flex min-w-0 items-center gap-1 rounded-full border border-slate-200 py-0.5 pl-2.5 pr-0.5 text-xs text-slate-600 dark:border-slate-700 dark:text-slate-300"
+                >
+                  <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" aria-hidden="true" />
+                  <span className="truncate">{configSummaryLabel}</span>
                   <button
                     type="button"
-                    onClick={() => document.getElementById('landing-file-input').click()}
-                    className="tactile flex w-fit items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-slate-500 transition-all duration-200 hover:bg-blue-50 hover:text-blue-600 dark:text-slate-400 dark:hover:bg-blue-400/10 dark:hover:text-blue-200"
+                    aria-label="AI settings"
+                    aria-expanded={!configCollapsed}
+                    title="AI settings"
+                    onClick={configCollapsed ? expandConfigForEditing : collapseConfig}
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-black/5 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-100"
                   >
-                    <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
-                      />
+                    <svg
+                      className="h-3.5 w-3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
-                    {files.length > 0 ? 'Add files' : 'Attach files'}
                   </button>
-                  <span className="px-3 text-left text-xs leading-4 text-slate-500 dark:text-slate-400 sm:px-0 sm:text-right">
-                    {isDragging ? (
-                      'Drop to attach'
-                    ) : (
-                      <>
-                        .pdf .docx .xlsx .pptx .txt and more
-                        <br />
-                        <span className="text-slate-400 dark:text-slate-500">
-                          drop a{' '}
-                          <span className="font-medium text-emerald-600 dark:text-emerald-300">.coursemapper</span> file
-                          to resume
-                        </span>
-                      </>
-                    )}
-                  </span>
                 </div>
-
-                <input
-                  id="landing-file-input"
-                  type="file"
-                  multiple
-                  accept={[...ACCEPTED_EXTENSIONS, ...PROJECT_EXTENSIONS].join(',')}
-                  onChange={handleFileInput}
-                  aria-label="Attach course files or open a Course Mapper project"
-                  className="hidden"
-                />
-
-                {isDragging && (
-                  <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-[22px] bg-blue-500/5">
-                    <div className="flex items-center gap-2 text-sm font-medium text-blue-600 dark:text-blue-200">
-                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={1.5}
-                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                        />
-                      </svg>
-                      Drop course files or .coursemapper project
-                    </div>
-                  </div>
-                )}
-
-                {projectDragging && (
-                  <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-[22px] border-2 border-dashed border-emerald-400/50 bg-emerald-500/5">
-                    <div className="flex items-center gap-2 text-sm font-semibold text-emerald-600 dark:text-emerald-300">
-                      <span>📂</span>
-                      Open project
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-5">
-                {configCollapsed ? (
-                  <div
-                    data-testid="ai-config-summary"
-                    className="flex items-center justify-between gap-3 rounded-xl border border-line-strong bg-surface-alt/80 px-3 py-2 text-sm text-ink-muted"
-                  >
-                    <span className="flex min-w-0 items-center gap-1.5 font-medium text-ink-secondary">
-                      <span className="inline-block h-2 w-2 shrink-0 rounded-full bg-emerald-400" />
-                      <span className="truncate">{configSummaryLabel}</span>
-                    </span>
-                    <button
-                      onClick={expandConfigForEditing}
-                      className="tactile flex min-h-11 shrink-0 items-center gap-1 rounded-lg px-2 text-blue-600 transition-colors duration-150 hover:bg-blue-50 hover:text-blue-800 dark:text-blue-300 dark:hover:bg-blue-400/10 dark:hover:text-blue-100"
-                    >
-                      <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                        />
-                      </svg>
-                      AI settings
-                    </button>
-                  </div>
-                ) : (
-                  <div className="relative">
-                    {isReady && (
-                      <button
-                        onClick={collapseConfig}
-                        className="tactile absolute right-2 top-2 z-10 flex h-11 w-11 items-center justify-center rounded-lg text-slate-400 transition-all duration-200 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-                        title="Collapse AI config"
-                        aria-label="Collapse AI configuration"
-                      >
-                        <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                        </svg>
-                      </button>
-                    )}
-                    <Suspense
-                      fallback={<div className="h-28 animate-pulse rounded-xl bg-slate-100/70 dark:bg-slate-800/70" />}
-                    >
-                      <ModelConfig reserveTrailingActionSpace />
-                    </Suspense>
-                  </div>
-                )}
-              </div>
-
-              {developerMode && scionSelected && promptText.trim().length >= 3 && (
-                <details
-                  data-testid="scion-evidence-forecast"
-                  className="mt-4 rounded-xl border border-indigo-100 bg-indigo-50/55 px-4 py-3 text-left dark:border-indigo-400/20 dark:bg-indigo-400/10"
-                >
-                  {scionForecastStatus === 'checking' ? (
-                    <summary className="flex cursor-pointer list-none items-center gap-2 text-xs font-semibold text-indigo-700 [&::-webkit-details-marker]:hidden dark:text-indigo-200">
-                      <span className="h-2 w-2 animate-pulse rounded-full bg-indigo-500" />
-                      Checking private source coverage…
-                    </summary>
-                  ) : scionCoverageForecast?.status === 'ready' ? (
-                    <>
-                      <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
-                        <span className="text-xs font-semibold text-slate-800 dark:text-slate-100">
-                          {scionCoverageForecast.externalNeeded === 0
-                            ? `Private evidence ready for all ${scionCoverageForecast.requested} lessons`
-                            : `${scionCoverageForecast.privateCovered}/${scionCoverageForecast.requested} lessons ready on this device`}
-                        </span>
-                        <span
-                          className={`rounded-full px-2 py-1 text-xs font-semibold ${
-                            scionCoverageForecast.externalNeeded === 0
-                              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-400/15 dark:text-emerald-200'
-                              : scionResearchEnabled
-                                ? 'bg-blue-100 text-blue-700 dark:bg-blue-400/15 dark:text-blue-200'
-                                : 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200'
-                          }`}
-                        >
-                          {scionCoverageForecast.externalNeeded === 0
-                            ? 'No research needed'
-                            : scionResearchEnabled
-                              ? `${scionCoverageForecast.externalNeeded} source check${scionCoverageForecast.externalNeeded === 1 ? '' : 's'} planned`
-                              : `${scionCoverageForecast.externalNeeded} source gap${scionCoverageForecast.externalNeeded === 1 ? '' : 's'}`}
-                        </span>
-                      </summary>
-                      <p className="mt-1 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
-                        {scionCoverageForecast.externalNeeded === 0
-                          ? 'Scion can ground these lesson knowledge kernels in EduTool’s source-anchored teaching library without an external request.'
-                          : scionResearchEnabled
-                            ? `Scion will check ${formatResearchProviderOrder(
-                                scionCoverageForecast.researchPlan?.providerOrder,
-                              )}, verify admitted claims against source passages, cache compact evidence on this device, and keep course authoring local.`
-                            : `Choose “Use current sources & generate” to send only the course title and ${scionCoverageForecast.externalNeeded} uncovered lesson topic${scionCoverageForecast.externalNeeded === 1 ? '' : 's'} to ${formatResearchProviderOrder(
-                                scionCoverageForecast.researchPlan?.providerOrder,
-                              )}. Scion verifies source passages, saves compact evidence on this device, and gives that evidence to the local course writer.`}
-                        {files.length > 0
-                          ? ' Attached files are evaluated during the build and may close additional gaps.'
-                          : ''}
-                      </p>
-                      {scionCoverageForecast.externalNeeded > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-1.5">
-                          {scionCoverageForecast.lessons
-                            .filter((lesson) => lesson.status !== 'private-ready')
-                            .slice(0, 4)
-                            .map((lesson) => (
-                              <span
-                                key={lesson.lessonId}
-                                className="max-w-full truncate rounded-full border border-indigo-200/80 bg-white/70 px-2 py-1 text-xs font-medium text-indigo-800 dark:border-indigo-300/20 dark:bg-slate-950/25 dark:text-indigo-100"
-                              >
-                                {formatCoverageTopicLabel(lesson.title)}
-                              </span>
-                            ))}
-                          {scionCoverageForecast.externalNeeded > 4 && (
-                            <span className="rounded-full px-2 py-1 text-xs font-medium text-slate-500 dark:text-slate-400">
-                              +{scionCoverageForecast.externalNeeded - 4} more
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <summary className="cursor-pointer list-none text-xs text-slate-600 [&::-webkit-details-marker]:hidden dark:text-slate-300">
-                      Coverage will be checked again when the build starts.
-                    </summary>
-                  )}
-                </details>
-              )}
-
-              {developerMode && scionSelected && scionResearchEnabled && (
-                <p
-                  data-testid="scion-external-source-notice"
-                  className="mt-2 text-center text-xs leading-relaxed text-slate-600 dark:text-slate-300"
-                >
-                  {scionCoverageForecast?.status === 'ready' && scionCoverageForecast.externalNeeded > 0 ? (
-                    <>
-                      Source lookup sends the course title and {scionCoverageForecast.externalNeeded} uncovered lesson
-                      topic{scionCoverageForecast.externalNeeded === 1 ? '' : 's'} to{' '}
-                      {formatResearchProviderOrder(scionCoverageForecast.researchPlan?.providerOrder)}.
-                    </>
-                  ) : (
-                    <>Scion web research may send course and lesson topic queries to public source catalogs.</>
-                  )}
-                </p>
-              )}
-
-              {hostedScion && hostedAvailability?.ready === false && (
-                <p role="status" className="mt-2 text-center text-xs text-amber-700 dark:text-amber-300">
-                  {hostedAvailability.message}
-                  {hostedAvailability.retryAt &&
-                    ` Retry after ${new Date(hostedAvailability.retryAt).toLocaleString()}.`}
-                </p>
-              )}
-              {canQuickStart && (
-                <>
+                <span className="flex-1" />
+                {canQuickStart && (
                   <button
                     type="button"
                     data-testid="landing-quick-start"
                     onClick={handleQuickStartClick}
                     disabled={isGenerating || (hostedScion && hostedAvailability?.ready !== true)}
-                    className="tactile btn-glow mt-5 w-full rounded-lg bg-slate-950 px-8 py-4 text-sm font-semibold tracking-wide text-white shadow-lg shadow-slate-950/15 transition-all duration-300 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-slate-950 dark:shadow-white/10"
+                    title="Generate every material without choosing"
+                    className="tactile hidden h-9 rounded-lg px-3 text-xs font-semibold text-slate-600 transition-colors hover:bg-black/5 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white sm:inline-flex sm:items-center"
                   >
-                    <span className="flex items-center justify-center gap-2.5">
-                      Generate all materials
-                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M13 10V3L4 14h7v7l9-11h-7z"
-                        />
-                      </svg>
-                    </span>
+                    Generate all materials
                   </button>
-                </>
-              )}
-
-              <button
-                data-testid="landing-setup-button"
-                onClick={onGenerate}
-                disabled={!canGenerate || !scionPermissionReady || isGenerating}
-                className={`tactile w-full rounded-lg px-8 py-3 text-sm font-semibold transition-all duration-200 ${
-                  canQuickStart
-                    ? 'mt-3 border border-line-strong bg-surface text-ink-tertiary hover:bg-surface-alt'
-                    : 'mt-5'
-                } ${
-                  canGenerate && scionPermissionReady && !isGenerating
-                    ? canQuickStart
-                      ? ''
-                      : 'bg-slate-950 text-white shadow-lg shadow-slate-950/15 hover:brightness-110 dark:bg-white dark:text-slate-950'
-                    : 'cursor-not-allowed bg-slate-200/90 text-slate-500 shadow-none dark:bg-slate-800 dark:text-slate-500'
-                }`}
-              >
-                <span className="flex items-center justify-center gap-2.5">
-                  {isGenerating ? 'Preparing…' : canQuickStart ? 'Choose materials' : 'Continue to materials'}
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                )}
+                <button
+                  data-testid="landing-setup-button"
+                  onClick={onGenerate}
+                  disabled={!canGenerate || !scionPermissionReady || isGenerating}
+                  aria-label={isGenerating ? 'Preparing' : 'Continue to materials'}
+                  title="Continue to materials"
+                  className="tactile flex h-9 w-9 items-center justify-center rounded-lg bg-slate-950 text-white transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 dark:bg-white dark:text-slate-950 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14m-6-6 6 6-6 6" />
                   </svg>
-                </span>
-              </button>
+                </button>
+              </div>
 
-              {(!canGenerate || !scionPermissionReady) && !isGenerating && (
-                <p data-testid="landing-requirement" className="mt-2 text-center text-body text-ink-muted">
-                  {landingRequirement}
-                </p>
+              <input
+                id="landing-file-input"
+                type="file"
+                multiple
+                accept={[...ACCEPTED_EXTENSIONS, ...PROJECT_EXTENSIONS].join(',')}
+                onChange={handleFileInput}
+                aria-label="Attach course files or open a Course Mapper project"
+                className="hidden"
+              />
+
+              {isDragging && (
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-[22px] bg-blue-500/5">
+                  <div className="flex items-center gap-2 text-sm font-medium text-blue-600 dark:text-blue-200">
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                      />
+                    </svg>
+                    Drop course files or .coursemapper project
+                  </div>
+                </div>
               )}
-            </section>
+
+              {projectDragging && (
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-[22px] border-2 border-dashed border-emerald-400/50 bg-emerald-500/5">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-emerald-600 dark:text-emerald-300">
+                    <span>📂</span>
+                    Open project
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {!configCollapsed && (
+              <div className="mt-3">
+                <div className="relative">
+                  <Suspense
+                    fallback={<div className="h-28 animate-pulse rounded-xl bg-slate-100/70 dark:bg-slate-800/70" />}
+                  >
+                    <ModelConfig reserveTrailingActionSpace />
+                  </Suspense>
+                </div>
+              </div>
+            )}
+
+            {landingRequirement && (!canGenerate || !scionPermissionReady) && !isGenerating && (
+              <p
+                data-testid="landing-requirement"
+                className="mt-2 text-center text-sm text-slate-500 dark:text-slate-400"
+              >
+                {landingRequirement}
+              </p>
+            )}
+
+            {hostedScion && hostedAvailability?.ready === false && (
+              <p role="status" className="mt-2 text-center text-xs text-amber-700 dark:text-amber-300">
+                {hostedAvailability.message}
+                {hostedAvailability.retryAt && ` Retry after ${new Date(hostedAvailability.retryAt).toLocaleString()}.`}
+              </p>
+            )}
+
+            {!promptText && files.length === 0 && (
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                {visibleCourseExamples.map(({ label, text }) => (
+                  <button
+                    key={label}
+                    data-testid="course-example-chip"
+                    data-example-text={text}
+                    onClick={() => (onExampleSelect ? onExampleSelect(text) : setPromptText(text))}
+                    className="tactile min-h-9 rounded-full border border-slate-200 bg-white/70 px-3 text-xs text-slate-600 transition-colors hover:border-slate-300 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:text-white"
+                  >
+                    {label}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  data-testid="sample-courses-shuffle"
+                  onClick={shuffleCourseExamples}
+                  aria-label="Show other examples"
+                  title="Show other examples"
+                  className="tactile flex h-9 w-9 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-black/5 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                >
+                  <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
+                  </svg>
+                </button>
+              </div>
+            )}
+
+            {developerMode && scionSelected && promptText.trim().length >= 3 && (
+              <details
+                data-testid="scion-evidence-forecast"
+                className="mt-4 rounded-xl border border-indigo-100 bg-indigo-50/55 px-4 py-3 text-left dark:border-indigo-400/20 dark:bg-indigo-400/10"
+              >
+                {scionForecastStatus === 'checking' ? (
+                  <summary className="flex cursor-pointer list-none items-center gap-2 text-xs font-semibold text-indigo-700 [&::-webkit-details-marker]:hidden dark:text-indigo-200">
+                    <span className="h-2 w-2 animate-pulse rounded-full bg-indigo-500" />
+                    Checking private source coverage…
+                  </summary>
+                ) : scionCoverageForecast?.status === 'ready' ? (
+                  <>
+                    <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
+                      <span className="text-xs font-semibold text-slate-800 dark:text-slate-100">
+                        {scionCoverageForecast.externalNeeded === 0
+                          ? `Private evidence ready for all ${scionCoverageForecast.requested} lessons`
+                          : `${scionCoverageForecast.privateCovered}/${scionCoverageForecast.requested} lessons ready on this device`}
+                      </span>
+                      <span
+                        className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                          scionCoverageForecast.externalNeeded === 0
+                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-400/15 dark:text-emerald-200'
+                            : scionResearchEnabled
+                              ? 'bg-blue-100 text-blue-700 dark:bg-blue-400/15 dark:text-blue-200'
+                              : 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200'
+                        }`}
+                      >
+                        {scionCoverageForecast.externalNeeded === 0
+                          ? 'No research needed'
+                          : scionResearchEnabled
+                            ? `${scionCoverageForecast.externalNeeded} source check${scionCoverageForecast.externalNeeded === 1 ? '' : 's'} planned`
+                            : `${scionCoverageForecast.externalNeeded} source gap${scionCoverageForecast.externalNeeded === 1 ? '' : 's'}`}
+                      </span>
+                    </summary>
+                    <p className="mt-1 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
+                      {scionCoverageForecast.externalNeeded === 0
+                        ? 'Scion can ground these lesson knowledge kernels in EduTool’s source-anchored teaching library without an external request.'
+                        : scionResearchEnabled
+                          ? `Scion will check ${formatResearchProviderOrder(
+                              scionCoverageForecast.researchPlan?.providerOrder,
+                            )}, verify admitted claims against source passages, cache compact evidence on this device, and keep course authoring local.`
+                          : `Choose “Use current sources & generate” to send only the course title and ${scionCoverageForecast.externalNeeded} uncovered lesson topic${scionCoverageForecast.externalNeeded === 1 ? '' : 's'} to ${formatResearchProviderOrder(
+                              scionCoverageForecast.researchPlan?.providerOrder,
+                            )}. Scion verifies source passages, saves compact evidence on this device, and gives that evidence to the local course writer.`}
+                      {files.length > 0
+                        ? ' Attached files are evaluated during the build and may close additional gaps.'
+                        : ''}
+                    </p>
+                    {scionCoverageForecast.externalNeeded > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {scionCoverageForecast.lessons
+                          .filter((lesson) => lesson.status !== 'private-ready')
+                          .slice(0, 4)
+                          .map((lesson) => (
+                            <span
+                              key={lesson.lessonId}
+                              className="max-w-full truncate rounded-full border border-indigo-200/80 bg-white/70 px-2 py-1 text-xs font-medium text-indigo-800 dark:border-indigo-300/20 dark:bg-slate-950/25 dark:text-indigo-100"
+                            >
+                              {formatCoverageTopicLabel(lesson.title)}
+                            </span>
+                          ))}
+                        {scionCoverageForecast.externalNeeded > 4 && (
+                          <span className="rounded-full px-2 py-1 text-xs font-medium text-slate-500 dark:text-slate-400">
+                            +{scionCoverageForecast.externalNeeded - 4} more
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <summary className="cursor-pointer list-none text-xs text-slate-600 [&::-webkit-details-marker]:hidden dark:text-slate-300">
+                    Coverage will be checked again when the build starts.
+                  </summary>
+                )}
+              </details>
+            )}
+
+            {developerMode && scionSelected && scionResearchEnabled && (
+              <p
+                data-testid="scion-external-source-notice"
+                className="mt-2 text-center text-xs leading-relaxed text-slate-600 dark:text-slate-300"
+              >
+                {scionCoverageForecast?.status === 'ready' && scionCoverageForecast.externalNeeded > 0 ? (
+                  <>
+                    Source lookup sends the course title and {scionCoverageForecast.externalNeeded} uncovered lesson
+                    topic{scionCoverageForecast.externalNeeded === 1 ? '' : 's'} to{' '}
+                    {formatResearchProviderOrder(scionCoverageForecast.researchPlan?.providerOrder)}.
+                  </>
+                ) : (
+                  <>Scion web research may send course and lesson topic queries to public source catalogs.</>
+                )}
+              </p>
+            )}
+
+            {hostedScion && hostedAvailability?.ready === false && (
+              <p role="status" className="mt-2 text-center text-xs text-amber-700 dark:text-amber-300">
+                {hostedAvailability.message}
+                {hostedAvailability.retryAt && ` Retry after ${new Date(hostedAvailability.retryAt).toLocaleString()}.`}
+              </p>
+            )}
           </div>
         </div>
       </main>

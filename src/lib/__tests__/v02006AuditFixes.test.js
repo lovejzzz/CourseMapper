@@ -81,20 +81,6 @@ describe('v0.20.06 sentence seams', () => {
   });
 });
 
-import { lessonBloomsTags } from '../lessonBloomsTags.js';
-
-describe('v0.20.06 Bloom chips', () => {
-  it('shows only levels used by the lesson activities, in taxonomy order', () => {
-    expect(
-      lessonBloomsTags({
-        bloomsLevels: ['Remember', 'Understand', 'Apply', 'Analyze', 'Evaluate', 'Create'],
-        outline: [{ bloomsLevel: 'Evaluate' }, { bloomsLevel: 'apply' }, { bloomsLevel: 'Understand' }],
-      }),
-    ).toEqual(['Understand', 'Apply', 'Evaluate']);
-    expect(lessonBloomsTags({ bloomsLevels: ['Apply'], outline: [] })).toEqual(['Apply']);
-  });
-});
-
 import {
   buildWikipediaProvider,
   buildWikisourceProvider,

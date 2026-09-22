@@ -1472,6 +1472,54 @@ export const CURRENT_RELEASE_CHANGELOG = {
   ...CURRENT_RELEASE,
   sections: [
     {
+      label: 'One question, one setup page',
+      items: [
+        'The homepage asks “What do you want to teach?” with one description box. Attachments, AI settings and Continue sit inside the box; example courses stay below it. The stepper, subtitle, repeated prompt and file-type list were removed.',
+        'Choosing materials and configuring them now happen on one page. Set lessons, minutes per lesson and quiz questions directly; the choice is written into the description as one “Course shape” line that generation follows.',
+        'Read durations such as “2 lessons of 50 minutes”. Sample previews filled with generic template text were removed; detailed per-material settings sit under Advanced settings.',
+        'AI settings show the provider, one line about local use and the public-source switch. Sign-in is one button with Google and email options.',
+      ],
+    },
+    {
+      label: 'A workspace for the material',
+      items: [
+        'The material uses the full width. Assistant and Export open as a drawer from the header, one at a time. The assistant opens while generation runs and closes when it finishes.',
+        'Tabs no longer show a tick on every finished material; a dot marks only materials that need review or are out of date. Theme moved into the Project menu.',
+        'The assistant drawer shows the conversation and suggested actions; readiness and review notes appear once, in Export.',
+      ],
+    },
+    {
+      label: 'Each thing said once',
+      items: [
+        'Lesson plans list sources once, point the exit ticket to the formative check when they are the same question, and fold access notes. Quizzes and rubrics show a shared objective once; question difficulty, Bloom level and timing move into the answer panel.',
+        'Discussions show one usage note for all sources. Study guides combine practice into one section and fold exam preparation. Syllabus policies that the institution must supply become one list to add. The course map hides empty columns.',
+        'Pipeline terms such as “evidence ledger” and “admitted evidence” were replaced in generated text, and the classroom benchmark now fails if they return. Emoji section markers were replaced by plain headings. Retain v0.20.06 and all earlier release notes.',
+      ],
+    },
+  ],
+};
+
+const V02006_RELEASE_METADATA = {
+  version: '0.20.06',
+  date: 'September 22, 2026',
+  title: 'Audit Fixes for Briefs, Materials and Research',
+  landingTitle: 'EDUTOOL V0.20.06: Clearer Briefs, Fewer Repeats',
+  highlights: [
+    'Read lesson and quiz counts from your description correctly.',
+    'Remove repeated prompts and unlabeled repeat questions across lessons.',
+    'Find primary texts on Wikisource and Chinese sources on zh.wikipedia.',
+  ],
+  landingHighlights: [
+    'Your stated lesson and quiz counts carry through.',
+    'Each activity asks something different.',
+    'See the one-time model download before you start.',
+  ],
+};
+
+const V02006_RELEASE_CHANGELOG = {
+  ...V02006_RELEASE_METADATA,
+  sections: [
+    {
       label: 'Briefs read as written',
       items: [
         'Stop reading “4 questions per lesson” as four lessons and accept digit counts such as “2 lessons of 50 minutes”. Schedule phrases such as “2 sessions per week” no longer set the course size.',
@@ -3249,6 +3297,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V02006_RELEASE_CHANGELOG,
   V02005_RELEASE_CHANGELOG,
   V02004_RELEASE_CHANGELOG,
   V02003_RELEASE_CHANGELOG,

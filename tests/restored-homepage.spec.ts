@@ -39,7 +39,7 @@ for (const storageMode of ['local', 'indexed-db', 'indexed-db-pointer']) {
     await expect(page.getByTestId('saved-session-banner')).toBeVisible();
     await page.getByRole('textbox', { name: 'Describe your course' }).fill('A single 45-minute statistics lesson.');
     await page.getByTestId('landing-setup-button').click();
-    await expect(page.getByRole('heading', { name: 'Choose materials', exact: true })).toBeVisible();
+    await expect(page.getByTestId('material-checklist')).toBeVisible();
     await page.getByRole('button', { name: 'Select all', exact: true }).click();
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await expect(page.getByTestId('saved-session-banner')).toBeVisible();
@@ -71,9 +71,9 @@ test('saved online Scion settings migrate to local without contacting the paused
   await page.goto('/');
   await page.getByRole('textbox', { name: 'Describe your course' }).fill('A short course on evaluating evidence.');
   await page.getByTestId('ai-config-summary').getByRole('button', { name: 'AI settings', exact: true }).click();
-  const model = page.getByRole('combobox', { name: 'Model', exact: true });
-  await expect(model).toHaveValue('scion-public');
-  await expect(model.locator('option[value="scion-hosted"]')).toHaveCount(0);
+  await expect(page.getByTestId('scion-model-boundary')).toContainText('Runs privately in this browser');
+  await expect(page.locator('option[value="scion-hosted"]')).toHaveCount(0);
+  expect(await page.evaluate(() => localStorage.getItem('coursemapper-modelid'))).toBe('scion-public');
   await expect(page.getByTestId('scion-online-availability')).toHaveCount(0);
   await expect(page.getByTestId('landing-setup-button')).toBeEnabled();
   await page.reload();
@@ -91,11 +91,12 @@ test('the original homepage retains attachments, all original material choices a
       modelRequests.push(request.url());
   });
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'Create teaching materials for your course.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'What do you want to teach?' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Attach files', exact: true })).toBeVisible();
   await page.getByRole('textbox', { name: 'Describe your course' }).fill('A short course on evaluating evidence.');
   await page.getByTestId('landing-setup-button').click();
-  await expect(page.getByRole('heading', { name: 'Choose materials', exact: true })).toBeVisible();
+  await expect(page.getByTestId('setup-course-title')).toBeVisible();
+  await expect(page.getByTestId('course-shape')).toBeVisible();
   for (const name of [
     'Syllabus',
     'Lesson Plans',
@@ -107,9 +108,9 @@ test('the original homepage retains attachments, all original material choices a
     'Study Guides',
     'Course FAQ',
   ])
-    await expect(page.getByRole('heading', { name, exact: true })).toBeVisible();
+    await expect(page.getByRole('checkbox', { name, exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Select all', exact: true }).click();
-  await expect(page.getByRole('button', { name: /Configure materials/ })).toContainText('9');
+  await expect(page.getByTestId('config-generate-button')).toHaveText('Generate 10 materials');
   await page.getByRole('button', { name: /Create custom/ }).click();
   await expect(page.getByRole('dialog', { name: 'Create Custom Deliverable' })).toBeVisible();
   await page.getByRole('button', { name: 'Close dialog' }).click();

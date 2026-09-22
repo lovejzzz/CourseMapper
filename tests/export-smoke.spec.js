@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import fs from 'node:fs/promises';
 import JSZip from 'jszip';
 import { auditCourseMaterialsZip } from './lib/exportQualityAudit.js';
+import { openWorkspaceDrawer } from './lib/workspaceDrawers.js';
 
 function exportFixture() {
   return {
@@ -436,6 +437,7 @@ async function restoreExportWorkspace(page, mutateSnapshot = null) {
   await expect(page.getByRole('button', { name: 'Resume' })).toBeVisible({ timeout: 10000 });
   await page.getByRole('button', { name: 'Resume' }).click();
   await expect(page.getByTestId('workspace-shell')).toBeVisible({ timeout: 10000 });
+  await openWorkspaceDrawer(page, 'export');
   await expect(page.getByTestId('export-side-panel')).toBeVisible({ timeout: 10000 });
 }
 
@@ -465,7 +467,7 @@ async function preparePackageForDownload(page) {
 
 async function switchWorkspaceTab(page, label) {
   await page.getByRole('button', { name: new RegExp(`^${label}$`) }).click();
-  await expect(page.getByTestId('export-side-panel')).toContainText(`${label} only`);
+  await expect(page.getByTestId('export-scope-current')).toHaveText(label);
 }
 
 async function uncheckAllExportLessons(page) {
@@ -526,7 +528,7 @@ test.describe('Export smoke', () => {
     });
 
     await page.getByTestId('export-scope-all').click();
-    await expect(page.getByTestId('export-side-panel')).toContainText('4/4 material types generated');
+    await expect(page.getByTestId('export-side-panel')).not.toContainText('material types generated');
     await preparePackageForDownload(page);
     const zipDownload = await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
       extension: 'zip',
@@ -561,7 +563,7 @@ test.describe('Export smoke', () => {
     });
 
     await page.getByTestId('export-scope-all').click();
-    await expect(page.getByTestId('export-side-panel')).toContainText('2/2 material types generated');
+    await expect(page.getByTestId('export-side-panel')).not.toContainText('material types generated');
     await preparePackageForDownload(page);
 
     const zipDownload = await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
@@ -1656,8 +1658,11 @@ test.describe('Export smoke', () => {
     expect(downloaded).toBe(false);
     await expect(page.getByTestId('export-side-panel')).not.toContainText(/draft/i);
     await expect(page.getByTestId('export-side-panel')).not.toContainText(/evidence \d+\/100|score \d+/i);
+    await expect(page.getByTestId('workspace-export-panel').getByTestId('agent-quality-score')).toHaveText(
+      'Review notes',
+      { timeout: 30000 },
+    );
     const agentPanel = page.getByTestId('workspace-agent-panel');
-    await expect(agentPanel.getByTestId('agent-quality-score')).toHaveText('Review notes', { timeout: 30000 });
     await expect(agentPanel).not.toContainText(/Evidence \d+\/100/);
     await expect(agentPanel.getByTestId('package-summary-card')).toHaveCount(0);
     await expect(agentPanel).not.toContainText('Lesson 2 quiz keys every multiple-choice answer');

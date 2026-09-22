@@ -612,21 +612,24 @@ export default function ModelConfig({ reserveTrailingActionSpace = false }) {
     slate: 'bg-slate-50/70 text-slate-600 border-slate-200/60',
   };
 
+  // A single local Scion model needs no key and no model choice; hide both.
+  const simpleScion = provider === PUBLIC_SCION_PROVIDER_ID && !hostedScion && availableModels.length <= 1;
+
   return (
-    <div className="glass panel-glow rounded-squircle shadow-glass p-7 animate-stagger-1">
+    <div className="rounded-2xl border border-slate-200/80 bg-white/80 p-5 dark:border-slate-700 dark:bg-slate-900/70">
       <h2
-        className={`text-[15px] font-bold text-slate-800 mb-5 flex items-center gap-3 ${
+        className={`text-sm font-semibold text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-3 ${
           reserveTrailingActionSpace ? 'pr-12' : ''
         }`}
       >
-        AI Configuration
-        {apiStatus === 'connected' && (
+        AI settings
+        {apiStatus === 'connected' && provider !== PUBLIC_SCION_PROVIDER_ID && (
           <span className="ml-auto flex items-center gap-1.5 text-[10px] font-semibold text-emerald-600 bg-emerald-50/60 px-2.5 py-1 rounded-pill border border-emerald-100/50">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
-            {provider === PUBLIC_SCION_PROVIDER_ID ? 'Configured' : 'Connected'}
+            Connected
           </span>
         )}
         {apiStatus === 'validating' && (
@@ -678,7 +681,7 @@ export default function ModelConfig({ reserveTrailingActionSpace = false }) {
         )}
       </h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className={`grid grid-cols-1 gap-4 ${simpleScion ? '' : 'md:grid-cols-3'}`}>
         {/* Provider */}
         <div>
           <label
@@ -763,22 +766,24 @@ export default function ModelConfig({ reserveTrailingActionSpace = false }) {
               )}
             </>
           ) : provider === PUBLIC_SCION_PROVIDER_ID ? (
-            <>
-              <label
-                htmlFor={apiKeyId}
-                className="block text-xs font-medium text-slate-500 mb-1.5 tracking-wide uppercase"
-              >
-                API
-              </label>
-              <input
-                id={apiKeyId}
-                type="text"
-                disabled
-                value="No API key required"
-                aria-label="API"
-                className="w-full cursor-not-allowed rounded-squircle-xs border border-slate-200/70 bg-slate-100/80 px-3.5 py-2.5 text-sm text-slate-400 opacity-90 dark:border-slate-700/70 dark:bg-slate-800/70 dark:text-slate-500"
-              />
-            </>
+            simpleScion ? null : (
+              <>
+                <label
+                  htmlFor={apiKeyId}
+                  className="block text-xs font-medium text-slate-500 mb-1.5 tracking-wide uppercase"
+                >
+                  API
+                </label>
+                <input
+                  id={apiKeyId}
+                  type="text"
+                  disabled
+                  value="No API key required"
+                  aria-label="API"
+                  className="w-full cursor-not-allowed rounded-squircle-xs border border-slate-200/70 bg-slate-100/80 px-3.5 py-2.5 text-sm text-slate-400 opacity-90 dark:border-slate-700/70 dark:bg-slate-800/70 dark:text-slate-500"
+                />
+              </>
+            )
           ) : provider === 'webllm' ? (
             <>
               <div className="block text-xs font-medium text-slate-500 mb-1.5 tracking-wide uppercase">
@@ -925,51 +930,53 @@ export default function ModelConfig({ reserveTrailingActionSpace = false }) {
           )}
         </div>
 
-        {/* Model dropdown */}
-        <div>
-          <label
-            {...(hasSelectableModels ? { htmlFor: modelIdSelectId } : {})}
-            className="block text-xs font-medium text-slate-500 mb-1.5 tracking-wide uppercase"
-          >
-            Model
-          </label>
-          {hasSelectableModels ? (
-            <select
-              id={modelIdSelectId}
-              value={modelId}
-              onChange={handleModelChange}
-              className={`input-glass w-full rounded-squircle-xs px-3.5 py-2.5 text-sm text-slate-700 focus:outline-none ${
-                apiStatus === 'connected'
-                  ? '!border-emerald-300/60 !bg-emerald-50/30'
-                  : '!border-amber-300/60 !bg-amber-50/30'
-              }`}
+        {/* Model dropdown — hidden when Scion offers a single model */}
+        {!simpleScion && (
+          <div>
+            <label
+              {...(hasSelectableModels ? { htmlFor: modelIdSelectId } : {})}
+              className="block text-xs font-medium text-slate-500 mb-1.5 tracking-wide uppercase"
             >
-              {availableModels.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {provider === PUBLIC_SCION_PROVIDER_ID ? m.name || PUBLIC_SCION_MODEL_NAME : describeModelOption(m)}
-                </option>
-              ))}
-            </select>
-          ) : (
-            <div className="w-full rounded-squircle-xs bg-white/70 border border-slate-200/70 px-3.5 py-2.5 text-sm font-medium text-slate-600">
-              {provider === 'local'
-                ? apiStatus === 'validating'
-                  ? 'Checking local server...'
-                  : apiStatus === 'error'
-                    ? validationErrorLabel
-                    : 'Check local server first'
-                : apiStatus === 'validating'
-                  ? 'Loading models...'
-                  : apiStatus === 'error'
-                    ? validationErrorLabel
-                    : provider === PUBLIC_SCION_PROVIDER_ID
-                      ? selectedScionModelName
-                      : 'Enter API key first'}
-            </div>
-          )}
-        </div>
+              Model
+            </label>
+            {hasSelectableModels ? (
+              <select
+                id={modelIdSelectId}
+                value={modelId}
+                onChange={handleModelChange}
+                className={`input-glass w-full rounded-squircle-xs px-3.5 py-2.5 text-sm text-slate-700 focus:outline-none ${
+                  apiStatus === 'connected'
+                    ? '!border-emerald-300/60 !bg-emerald-50/30'
+                    : '!border-amber-300/60 !bg-amber-50/30'
+                }`}
+              >
+                {availableModels.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {provider === PUBLIC_SCION_PROVIDER_ID ? m.name || PUBLIC_SCION_MODEL_NAME : describeModelOption(m)}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <div className="w-full rounded-squircle-xs bg-white/70 border border-slate-200/70 px-3.5 py-2.5 text-sm font-medium text-slate-600">
+                {provider === 'local'
+                  ? apiStatus === 'validating'
+                    ? 'Checking local server...'
+                    : apiStatus === 'error'
+                      ? validationErrorLabel
+                      : 'Check local server first'
+                  : apiStatus === 'validating'
+                    ? 'Loading models...'
+                    : apiStatus === 'error'
+                      ? validationErrorLabel
+                      : provider === PUBLIC_SCION_PROVIDER_ID
+                        ? selectedScionModelName
+                        : 'Enter API key first'}
+              </div>
+            )}
+          </div>
+        )}
       </div>
-      {hasSelectableModels && (
+      {hasSelectableModels && provider !== PUBLIC_SCION_PROVIDER_ID && (
         <div className="mt-4 flex flex-wrap items-center gap-2">
           {capabilityStatus === 'detecting' && (
             <span className="inline-flex items-center gap-1.5 rounded-pill border border-amber-200/60 bg-amber-50/70 px-2.5 py-1 text-[10px] font-semibold text-amber-700">
@@ -997,20 +1004,19 @@ export default function ModelConfig({ reserveTrailingActionSpace = false }) {
       )}
       {hasSelectableModels && provider === PUBLIC_SCION_PROVIDER_ID && (
         <div
-          className="mt-4 rounded-squircle-xs border border-indigo-100/80 bg-indigo-50/50 px-3.5 py-3 text-xs leading-relaxed text-slate-700 dark:border-indigo-400/20 dark:bg-indigo-400/10 dark:text-slate-200"
+          className="mt-3 text-xs leading-relaxed text-slate-600 dark:text-slate-300"
           data-testid="scion-model-boundary"
         >
-          <p>Scion combines Gemma 4 with EduTool&apos;s course compiler to build editable teaching materials.</p>
-          <p className="mt-1.5 text-slate-600 dark:text-slate-300">
+          <p>
             {hostedScion
               ? 'Online Scion uses the free Gemma 4 31B service. No model download or personal API key is needed. Availability depends on region and the shared daily allowance; there is no paid fallback.'
               : scionRuntimeStatus.phase === 'ready'
-                ? 'Scion is ready on this device. Prompts and generated text stay in this browser.'
+                ? 'Ready. Runs privately in this browser.'
                 : scionDeviceCapability.phase === 'checking'
-                  ? 'Checking this device before choosing the safest Scion path…'
+                  ? 'Checking this device…'
                   : scionDeviceCapability.evidenceCompiler
-                    ? 'This browser will use Scion’s zero-download evidence compiler. No model weights are downloaded, and private course work stays in this browser.'
-                    : `This browser can run Scion’s local model. First use downloads ${SCION_BROWSER_GEMMA4_DOWNLOAD_LABEL} of public weights and keeps them in browser storage.`}
+                    ? 'Runs privately in this browser without a model download.'
+                    : `Runs privately in this browser. First use downloads ${SCION_BROWSER_GEMMA4_DOWNLOAD_LABEL}.`}
           </p>
           {hostedScion && (
             <p className="mt-2" role="status" data-testid="scion-online-availability">
@@ -1044,24 +1050,16 @@ export default function ModelConfig({ reserveTrailingActionSpace = false }) {
             </div>
           )}
           <div
-            className="mt-3 flex flex-col gap-2 rounded-squircle-xs border border-indigo-200/70 bg-white/65 p-2.5 dark:border-indigo-300/20 dark:bg-slate-950/30"
+            className="mt-3 flex flex-col gap-2 border-t border-slate-200/80 pt-3 dark:border-slate-700"
             data-testid="scion-research-mode"
           >
             <div className="flex items-start justify-between gap-3 sm:items-center">
               <div>
-                <p className="font-semibold text-slate-800 dark:text-slate-100">
-                  {scionResearchEnabled
-                    ? 'Scion web research on'
-                    : hostedScion
-                      ? 'Source research off'
-                      : 'Private evidence mode'}
-                </p>
+                <p className="font-semibold text-slate-800 dark:text-slate-100">Look up public sources</p>
                 <p className="mt-0.5 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
                   {scionResearchEnabled
-                    ? 'Searches public source catalogs for lesson evidence gaps, checks original passages and source dates, and reuses verified evidence saved on this device. Topic and concept queries leave your device; model inference stays local.'
-                    : hostedScion
-                      ? 'No course-topic research requests are sent to source catalogs. Online generation still sends relevant content to Google as described above.'
-                      : 'No course-topic research requests are sent. Scion uses your materials and EduTool’s source-anchored teaching library on this device.'}
+                    ? 'On. Lesson topics are sent to Wikipedia, Wikisource, DOAJ and Europe PMC; passages are checked before use.'
+                    : 'Off. Nothing about your course leaves this browser.'}
                 </p>
               </div>
               <button

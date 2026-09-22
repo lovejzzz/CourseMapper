@@ -1418,10 +1418,10 @@ export function createVerifiedDraftCompilerContracts(dependencies) {
             `${admittedLesson.studentArtifact || `${focus} evidence artifact`} → Assignment Briefs / Lesson ${index + 1}`,
           asyncActivities:
             asyncActivities ||
-            `Annotate one admitted source detail about ${primaryConcept}, state the conclusion it supports, and name one limitation.`,
+            `Annotate one source detail about ${primaryConcept}, state the conclusion it supports, and name one limitation.`,
           syncActivities:
             syncActivities ||
-            `Work through one bounded ${focus} case, compare two interpretations against the admitted evidence, and document one justified revision.`,
+            `Work through one bounded ${focus} case, compare two interpretations against the source records, and document one justified revision.`,
           supportingResources: semanticAdmissionFilteredLines(
             section?.supportingResources,
             rejectedTerms,
@@ -1429,7 +1429,7 @@ export function createVerifiedDraftCompilerContracts(dependencies) {
           ),
           evaluateDesign:
             evaluateDesign ||
-            `Confirm ${/^(?:the|a|an)\b/i.test(focus) ? '' : 'the '}${focus} activity and assessment use the same admitted evidence, operation, boundary, and revision trail.`,
+            'Check that this lesson’s activity and assessment use the same sources and ask for the same reasoning.',
         };
       });
       repairs.push({

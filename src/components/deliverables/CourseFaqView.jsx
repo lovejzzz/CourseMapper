@@ -204,23 +204,7 @@ export default function CourseFaqView({
             onTitleEdit={onEdit ? (nextTitle) => onEdit(lesson.titlePath, nextTitle) : undefined}
           >
             <div className="space-y-4 pt-3">
-              {lesson.tags.length > 0 && (
-                <div>
-                  <SectionHeading>LMS Keywords</SectionHeading>
-                  <div className="flex flex-wrap gap-1.5">
-                    {lesson.tags.map((tag, tagIndex) => (
-                      <button
-                        key={`${tag}-${tagIndex}`}
-                        type="button"
-                        onClick={() => setQuery(String(tag))}
-                        className="rounded-full border border-cyan-100 bg-cyan-50/70 px-2 py-0.5 text-xs font-semibold text-cyan-700 hover:border-cyan-200 hover:bg-cyan-100"
-                      >
-                        {tag}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+              {/* v0.20.07: LMS keyword tags are export metadata, not reading content. */}
 
               <div className="grid gap-3">
                 {lesson.questions.map((question) => (

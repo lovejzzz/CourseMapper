@@ -10,6 +10,8 @@ const chinese = {
   'Assigned Readings': '指定阅读',
   'Concept Summary': '概念概要',
   'Evidence Ledger': '来源记录',
+  Sources: '资料来源',
+  Practice: '练习',
   'Study from': '参考来源',
   'Key Terms': '关键概念',
   'Key Terms & Definitions': '关键概念与定义',

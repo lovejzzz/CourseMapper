@@ -266,7 +266,7 @@ export function SaveToBankButton({ onClick }) {
       className={`flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded transition-all ${saved ? 'text-emerald-600 bg-emerald-50 border border-emerald-200' : 'text-slate-400 bg-slate-50 border border-slate-200 hover:text-amber-600 hover:bg-amber-50 hover:border-amber-200'}`}
       title="Save to Assessment Bank"
     >
-      {saved ? '✓ Saved to Bank' : '💾 Save to Bank'}
+      {saved ? '✓ Saved to bank' : 'Save to bank'}
     </button>
   );
 }
@@ -474,7 +474,6 @@ export function EmptyState({ featureId, onGenerate }) {
   return (
     <div className="flex items-center justify-center py-16 px-6">
       <div className="text-center max-w-xs space-y-4 animate-spring-up">
-        <div className="text-5xl">{meta.emoji}</div>
         <div>
           <p className="text-base font-semibold text-slate-700 dark:text-slate-200 mb-1">{meta.label}</p>
           <p className="text-sm text-slate-400 dark:text-slate-500 leading-relaxed">{meta.desc}</p>
@@ -674,6 +673,7 @@ export function CollapsibleCard({
             }}
             disabled={regenerating}
             title="Regenerate this lesson"
+            aria-label={regenerating ? 'Regenerating' : 'Regenerate lesson'}
             className="flex-shrink-0 flex items-center gap-1 px-3 py-3.5 text-xs font-semibold text-slate-400 hover:text-indigo-600 hover:bg-indigo-50/40 transition-all disabled:opacity-40 border-l border-slate-100/60"
           >
             {regenerating ? (
@@ -691,7 +691,7 @@ export function CollapsibleCard({
                 />
               </svg>
             )}
-            {regenerating ? 'Regenerating…' : 'Regenerate lesson'}
+            <span className="hidden sm:inline">{regenerating ? 'Regenerating…' : 'Regenerate lesson'}</span>
           </button>
         )}
       </div>
@@ -703,7 +703,7 @@ export function CollapsibleCard({
 export function Badge({ children, color = 'indigo' }) {
   return (
     <span
-      className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full bg-${color}-100/80 text-${color}-700`}
+      className={`deliverable-badge inline-block text-xs font-semibold px-2 py-0.5 rounded-full bg-${color}-100/80 text-${color}-700`}
     >
       {children}
     </span>
@@ -730,6 +730,26 @@ export function BloomsTag({ level }) {
 }
 
 // ─── Section heading ───
+// v0.20.07: one outline mark for teacher notes, replacing mixed emoji.
+export function NoteMark() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="mr-1 inline h-3 w-3 -translate-y-px text-slate-400"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"
+      />
+    </svg>
+  );
+}
+
 export function SectionHeading({ children }) {
   return <h4 className="text-xs font-semibold text-slate-500 mb-1.5">{children}</h4>;
 }
@@ -791,9 +811,9 @@ export function LessonGroupHeader({ groupKey, lessonNumber, lessonTitle, count, 
 // ── Feature 4.1: Tiered Differentiation Inline Toggle ──
 export function TierToggle({ activeTier, onChange }) {
   const tiers = [
-    { id: 'scaffolded', label: '🧩 Scaffolded', color: 'text-blue-600 bg-blue-50 border-blue-200' },
-    { id: 'standard', label: '📋 Standard', color: 'text-slate-600 bg-slate-100 border-slate-200' },
-    { id: 'extension', label: '🚀 Extension', color: 'text-rose-600 bg-rose-50 border-rose-200' },
+    { id: 'scaffolded', label: 'Scaffolded', color: 'text-blue-600 bg-blue-50 border-blue-200' },
+    { id: 'standard', label: 'Standard', color: 'text-slate-600 bg-slate-100 border-slate-200' },
+    { id: 'extension', label: 'Extension', color: 'text-rose-600 bg-rose-50 border-rose-200' },
   ];
 
   return (

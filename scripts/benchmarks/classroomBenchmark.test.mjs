@@ -173,3 +173,10 @@ test('detects unlabelled cross-lesson quiz repeats and repeated activity prompts
   o.lessonPlans.lessonPlans[0].outline[1].description = 'Propose a repaired comparison.';
   assert.equal(probe(o, 'lessonPlans', 'distinct-activity-prompts'), 'pass');
 });
+
+test('flags pipeline vocabulary in visible material text', () => {
+  const o = sample();
+  assert.equal(probe(o, 'studyGuides', 'no-internal-labels'), 'pass');
+  o.studyGuides.studyGuides[0].summary = 'Use the evidence ledger to explain the result.';
+  assert.equal(probe(o, 'studyGuides', 'no-internal-labels'), 'fail');
+});

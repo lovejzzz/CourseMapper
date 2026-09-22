@@ -1,3 +1,4 @@
+import { readCourseShapeLine } from './courseShape.js';
 // Explicit instructor requirements survive model compression and project restore.
 // Narrow extraction: no inferred prerequisites or question counts from lesson counts.
 export function extractExplicitTeachingRequirements(brief = '') {
@@ -13,8 +14,13 @@ export function extractExplicitTeachingRequirements(brief = '') {
     return numberWords[value] ?? Number(value);
   });
   const uniqueCounts = [...new Set(counts)];
+  const shapeCount = readCourseShapeLine(text)?.quizPerLesson;
   const questionsPerLesson =
-    uniqueCounts.length === 1 && uniqueCounts[0] >= 3 && uniqueCounts[0] <= 8 ? uniqueCounts[0] : null;
+    shapeCount >= 3 && shapeCount <= 8
+      ? shapeCount
+      : uniqueCounts.length === 1 && uniqueCounts[0] >= 3 && uniqueCounts[0] <= 8
+        ? uniqueCounts[0]
+        : null;
   const prior = text.match(/\b(?:students|learners)\s+(?:already\s+)?know\s+([^.!?\n]+)/i);
   return {
     protocol: 'coursemapper-explicit-teaching-requirements-v1',

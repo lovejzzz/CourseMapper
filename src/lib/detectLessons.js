@@ -1,4 +1,5 @@
 import { assertSiteInferenceAllowed } from './authoring/inferencePolicy';
+import { readCourseShapeLine } from './courseShape.js';
 import { supportsCustomTemperature } from './agentProviders';
 import { getGoogleModelBaseUrl } from './googleProvider';
 import { buildOpenAIResponsesBody, extractOpenAIResponsesText, prefersOpenAIResponsesApi } from './openaiProvider';
@@ -55,6 +56,9 @@ function parseSmallCount(value) {
  */
 export function detectExpectedLessons(text) {
   if (!text) return { expected: null, confidence: 'low', source: '' };
+  // A count set on the setup page is authoritative (v0.20.07).
+  const shape = readCourseShapeLine(text);
+  if (shape?.lessons) return { expected: shape.lessons, confidence: 'high', source: 'set in setup' };
 
   const t = text.toLowerCase();
   let maxWeek = 0;

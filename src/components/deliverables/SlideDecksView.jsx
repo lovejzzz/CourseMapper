@@ -17,6 +17,7 @@ import {
   BloomsTag,
   SectionHeading,
   FEATURE_META,
+  NoteMark,
 } from './shared/SharedComponents';
 
 export function compactSlideThumbnailText(value, maxLength = 44) {
@@ -835,7 +836,7 @@ function SlideCanvas({
                     style={{ background: theme.light, borderColor: theme.accent + '40' }}
                   >
                     <p className="text-[11px] font-semibold" style={{ color: theme.primary }}>
-                      💡{' '}
+                      <NoteMark />
                       <E
                         value={bullets[bullets.length - 1]}
                         path={[dataKey, deckIndex, 'slides', slideIndex, bulletsKey, bullets.length - 1]}
@@ -1519,9 +1520,9 @@ export default function SlideDecksView({ data, isStreaming, onEdit, slideTheme, 
             const generatedImage = vis.generatedImage || vis.image || vis.img;
             const kindIcon =
               {
-                diagram: '📐',
-                chart: '📊',
-                image: '🖼️',
+                diagram: '◇',
+                chart: '▤',
+                image: '▣',
                 table: '▦',
                 code: '⌨',
                 equation: '∑',

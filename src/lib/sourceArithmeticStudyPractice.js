@@ -39,7 +39,7 @@ export function sourceArithmeticWorkedExample(sourceEvidenceBrief) {
       return {
         protocol: SOURCE_ARITHMETIC_PROTOCOL,
         studentTask: `Calculate ${numerator}/${denominator} as a decimal and a percentage, then state the limits of the source evidence.`,
-        problem: `The source gives a proportion with numerator ${numerator} and denominator ${denominator}. Show the division and conversion to a percentage. Use the evidence ledger to explain what this number describes.`,
+        problem: `The source gives a proportion with numerator ${numerator} and denominator ${denominator}. Show the division and conversion to a percentage. Use the source record to explain what this number describes.`,
         inputs: [...claims],
         steps: [
           `Set up the fraction: ${numerator}/${denominator}. The denominator is the whole specified in this source fraction.`,
@@ -50,7 +50,7 @@ export function sourceArithmeticWorkedExample(sourceEvidenceBrief) {
         result: `${numerator}/${denominator} = ${decimal} = ${percent}%. This matches the supplied statement: “${claim}”`,
         interpretation: `The decimal ${decimal} and the percentage ${percent}% express the same proportion. The conversion changes how the value is written, not which observations the source describes.`,
         boundary:
-          'Correct arithmetic does not establish that the observations represent a wider population. Preserve the inclusion, exclusion, and uncertainty statements in the evidence ledger.',
+          'Correct arithmetic does not establish that the observations represent a wider population. Keep the statements in the source record about who was included, who was excluded, and what is uncertain.',
         transferTask: `Cover the worked steps and recover the numerator from ${percent}% of ${denominator}. Check your answer against the source fraction. This rehearses the same example; it is not a test of transfer to new data.`,
         verification: {
           checked: true,
@@ -125,7 +125,7 @@ export function sourceArithmeticGuidePractice(example) {
         question:
           'Which observations does the supplied fraction describe? Quote the source wording and identify any excluded group.',
         bloomsLevel: 'Analyze',
-        hint: 'Use the evidence ledger. If it does not identify the observations or exclusions, say that this information is missing.',
+        hint: 'Use the source record. If it does not identify the observations or exclusions, say that this information is missing.',
       },
     ],
     practiceActivities: [

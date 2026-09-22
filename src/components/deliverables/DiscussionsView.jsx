@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import { sharedViewValue } from '../../lib/materialViewDedupe.js';
 import EditProposalPanel from '../EditProposalPanel';
 import {
   QualityBadge,
@@ -48,6 +49,10 @@ export default function DiscussionsView({
         const subtitle = [d.bloomsLevel, d.format, d.estimatedDuration].filter(Boolean).join(' · ');
         const sourceArtifacts = d.sourceArtifacts || d.af || d.artifacts || [];
         const sourceArtifactKey = d.sourceArtifacts ? 'sourceArtifacts' : d.af ? 'af' : 'artifacts';
+        // v0.20.07: one usage note for all sources instead of the same line under each.
+        const sharedArtifactUse = sharedViewValue(sourceArtifacts, (artifact) =>
+          typeof artifact === 'string' ? '' : artifact?.use || artifact?.ut || artifact?.purpose,
+        );
         return (
           <React.Fragment key={i}>
             {proposals?.[i] && (
@@ -108,7 +113,6 @@ export default function DiscussionsView({
                   </p>
                   {d.evidenceRequirement && (
                     <p className="text-xs text-rose-600 mt-2 italic">
-                      📚{' '}
                       <E
                         value={d.evidenceRequirement}
                         path={['discussions', i, 'evidenceRequirement']}
@@ -120,7 +124,8 @@ export default function DiscussionsView({
 
                 {sourceArtifacts.length > 0 && (
                   <div>
-                    <SectionHeading>Source Artifacts</SectionHeading>
+                    <SectionHeading>Sources</SectionHeading>
+                    {sharedArtifactUse && <p className="mb-1.5 text-xs text-slate-500">{sharedArtifactUse}</p>}
                     <div className="space-y-1.5">
                       {sourceArtifacts.map((artifact, j) => {
                         const isText = typeof artifact === 'string';
@@ -148,8 +153,7 @@ export default function DiscussionsView({
                               />
                             </p>
                             {locator && (
-                              <p className="mt-1 text-xs text-slate-500">
-                                <span className="font-semibold text-slate-600">Locator: </span>
+                              <p className="mt-1 text-xs text-slate-600 leading-relaxed">
                                 <E
                                   value={locator}
                                   path={['discussions', i, sourceArtifactKey, j, locatorKey]}
@@ -157,7 +161,7 @@ export default function DiscussionsView({
                                 />
                               </p>
                             )}
-                            {artifactUse && (
+                            {artifactUse && !sharedArtifactUse && (
                               <p className="mt-1 text-xs text-slate-600 leading-relaxed">
                                 <E
                                   value={artifactUse}
@@ -287,7 +291,7 @@ export default function DiscussionsView({
                 {/* Equity considerations */}
                 {d.equityConsiderations && (
                   <div className="bg-teal-50/40 rounded-lg p-3 border border-teal-100/50">
-                    <h4 className="text-xs font-semibold text-slate-500 mb-1">♿ Equity &amp; Inclusion</h4>
+                    <h4 className="text-xs font-semibold text-slate-500 mb-1">Equity and inclusion</h4>
                     <p className="text-xs text-slate-600 leading-relaxed">
                       <E
                         value={d.equityConsiderations}

@@ -18,6 +18,7 @@ import {
   SectionHeading,
   FEATURE_META,
   TierToggle,
+  NoteMark,
 } from './shared/SharedComponents';
 
 // ─── Study Guides ───
@@ -86,7 +87,7 @@ export default function StudyGuidesView({
                 {g.sourceEvidenceBrief?.claims?.length > 0 && (
                   <div className="rounded-xl border border-teal-100 bg-teal-50/45 p-3">
                     <SectionHeading>
-                      {g.codingPractice ? 'Exercise fixture and API reference' : t('Evidence Ledger')}
+                      {g.codingPractice ? 'Exercise fixture and API reference' : t('Sources')}
                     </SectionHeading>
                     <ul className="mt-1.5 space-y-1.5">
                       {g.sourceEvidenceBrief.claims.map((claim, j) => (
@@ -123,12 +124,23 @@ export default function StudyGuidesView({
 
                 {g.objectivePractice?.length > 0 && (
                   <div>
-                    <SectionHeading>{t('Learning Practice')}</SectionHeading>
+                    <SectionHeading>{t('Practice')}</SectionHeading>
                     {g.objectivePractice.map((practice, j) => (
                       <p key={j} className="text-xs text-slate-700 leading-relaxed">
                         <E value={practice} path={[key, i, 'objectivePractice', j]} onEdit={onEdit} />
                       </p>
                     ))}
+                    {/* v0.20.07: one practice section instead of two. */}
+                    {g.practiceActivities?.length > 0 && (
+                      <ul className="mt-1.5 space-y-1.5">
+                        {g.practiceActivities.map((a, j) => (
+                          <li key={j} className="text-xs text-slate-700 flex gap-2 leading-relaxed">
+                            <span className="text-teal-400 flex-shrink-0 mt-0.5">▸</span>
+                            <E value={a} path={[key, i, 'practiceActivities', j]} onEdit={onEdit} />
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                 )}
                 {g.workedExample?.problem && (
@@ -188,7 +200,6 @@ export default function StudyGuidesView({
                     <ul className="space-y-1.5">
                       {g.conceptConnections.map((c, j) => (
                         <li key={j} className="text-xs text-slate-700 flex gap-2 leading-relaxed">
-                          <span className="text-teal-400 flex-shrink-0">🔗</span>
                           <E value={c} path={[key, i, 'conceptConnections', j]} onEdit={onEdit} />
                         </li>
                       ))}
@@ -264,7 +275,7 @@ export default function StudyGuidesView({
                                 />
                                 {hint && (
                                   <p className="text-xs text-slate-400 mt-0.5 italic">
-                                    💡{' '}
+                                    <NoteMark />
                                     <E
                                       value={hint}
                                       path={[key, i, 'reviewQuestions', j, 'hint']}
@@ -310,9 +321,9 @@ export default function StudyGuidesView({
                 )}
 
                 {/* Practice Activities */}
-                {g.practiceActivities?.length > 0 && (
+                {g.practiceActivities?.length > 0 && !(g.objectivePractice?.length > 0) && (
                   <div>
-                    <SectionHeading>{t('Practice Activities')}</SectionHeading>
+                    <SectionHeading>{t('Practice')}</SectionHeading>
                     <ul className="space-y-1.5">
                       {g.practiceActivities.map((a, j) => (
                         <li key={j} className="text-xs text-slate-700 flex gap-2 leading-relaxed">
@@ -326,8 +337,13 @@ export default function StudyGuidesView({
 
                 {/* Exam Prep */}
                 {g.examPrep && (
-                  <div className="bg-amber-50/40 rounded-lg p-3 border border-amber-100/50 space-y-2">
-                    <h4 className="text-xs font-bold text-amber-700">📝 {t('Exam Prep')}</h4>
+                  <details className="group bg-amber-50/40 rounded-lg p-3 border border-amber-100/50 space-y-2">
+                    <summary className="flex cursor-pointer list-none items-center gap-2 text-xs font-bold text-amber-700 [&::-webkit-details-marker]:hidden">
+                      <span aria-hidden="true" className="transition-transform group-open:rotate-90">
+                        ›
+                      </span>
+                      {t('Exam Prep')}
+                    </summary>
                     {g.examPrep.keyTopicsToKnow?.length > 0 && (
                       <div>
                         <span className="text-xs font-semibold text-amber-700">{t('High-Probability Topics')}</span>
@@ -379,13 +395,13 @@ export default function StudyGuidesView({
                         </p>
                       </div>
                     )}
-                  </div>
+                  </details>
                 )}
 
                 {/* Legacy examTips field */}
                 {!g.examPrep && g.examTips && (
                   <div className="bg-amber-50/40 rounded-lg p-3 border border-amber-100/50">
-                    <h4 className="text-xs font-bold text-amber-700 mb-1">💡 Exam Tips</h4>
+                    <h4 className="text-xs font-bold text-amber-700 mb-1">Exam tips</h4>
                     <p className="text-xs text-slate-700">
                       <E value={g.examTips} path={[key, i, 'examTips']} onEdit={onEdit} multiline />
                     </p>
