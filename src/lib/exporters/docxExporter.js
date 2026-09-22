@@ -1989,7 +1989,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           children.push(makeText(g.summary));
         }
         if (g.sourceEvidenceBrief?.claims?.length) {
-          children.push(makeSubHeading(t('Evidence Ledger')));
+          children.push(makeSubHeading(t('Sources')));
           g.sourceEvidenceBrief.claims.forEach((claim, index) =>
             children.push(reviewed ? makeNumbered(index + 1, claim) : makeBullet(claim)),
           );
@@ -2137,7 +2137,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         }
         // Practice activities
         if (g.practiceActivities?.length) {
-          children.push(makeSubHeading(t('Practice Activities')));
+          children.push(makeSubHeading(t('Practice')));
           g.practiceActivities.forEach((a) => children.push(makeBullet(typeof a === 'string' ? a : a.activity || '')));
         }
         // Exam prep

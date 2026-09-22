@@ -473,39 +473,52 @@ export default function SyllabusView({ data, isStreaming, onEdit }) {
       </div>
 
       {/* ── University Policies & Resources ────────────────────── */}
-      <div className="space-y-4">
-        <h3 className="text-sm font-bold text-slate-700">University Policies & Resources</h3>
-        <SylPolicyBlock
-          label="Academic Integrity"
-          value={syl.academicIntegrity}
-          path={['syllabus', 'academicIntegrity']}
-          onEdit={onEdit}
-        />
-        <SylPolicyBlock
-          label="Disability & Accessibility"
-          value={syl.accommodations}
-          path={['syllabus', 'accommodations']}
-          onEdit={onEdit}
-        />
-        <SylPolicyBlock
-          label="Mental Health & Wellness"
-          value={syl.mentalHealth}
-          path={['syllabus', 'mentalHealth']}
-          onEdit={onEdit}
-        />
-        <SylPolicyBlock
-          label="Title IX / Non-Discrimination"
-          value={syl.titleIX}
-          path={['syllabus', 'titleIX']}
-          onEdit={onEdit}
-        />
-        <SylPolicyBlock
-          label="Student Support Services"
-          value={syl.supportServices}
-          path={['syllabus', 'supportServices']}
-          onEdit={onEdit}
-        />
-      </div>
+      {/* v0.20.07: statements the institution must supply are grouped as one
+          to-do list instead of five sections of "Before publishing, add…". */}
+      {(() => {
+        const policies = [
+          { label: 'Academic Integrity', field: 'academicIntegrity' },
+          { label: 'Disability & Accessibility', field: 'accommodations' },
+          { label: 'Mental Health & Wellness', field: 'mentalHealth' },
+          { label: 'Title IX / Non-Discrimination', field: 'titleIX' },
+          { label: 'Student Support Services', field: 'supportServices' },
+        ];
+        const isPlaceholder = (value) => /^\s*before publishing, add\b/i.test(String(value || ''));
+        const written = policies.filter(({ field }) => syl[field] && !isPlaceholder(syl[field]));
+        const toAdd = policies.filter(({ field }) => isPlaceholder(syl[field]));
+        return (
+          <div className="space-y-4">
+            <h3 className="text-sm font-bold text-slate-700">University Policies & Resources</h3>
+            {written.map(({ label, field }) => (
+              <SylPolicyBlock key={field} label={label} value={syl[field]} path={['syllabus', field]} onEdit={onEdit} />
+            ))}
+            {toAdd.length > 0 && (
+              <details
+                data-testid="syllabus-policies-to-add"
+                className="group rounded-lg border border-amber-200/70 bg-amber-50/50 p-3"
+              >
+                <summary className="flex cursor-pointer list-none items-center gap-2 text-xs font-semibold text-amber-800 [&::-webkit-details-marker]:hidden">
+                  <span aria-hidden="true" className="transition-transform group-open:rotate-90">
+                    ›
+                  </span>
+                  Add your institution&apos;s statements ({toAdd.map(({ label }) => label).join(', ')})
+                </summary>
+                <div className="mt-3 space-y-3">
+                  {toAdd.map(({ label, field }) => (
+                    <SylPolicyBlock
+                      key={field}
+                      label={label}
+                      value={syl[field]}
+                      path={['syllabus', field]}
+                      onEdit={onEdit}
+                    />
+                  ))}
+                </div>
+              </details>
+            )}
+          </div>
+        );
+      })()}
 
       {/* ── Important Dates ────────────────────────────────────── */}
       {syl.importantDates?.length > 0 && (

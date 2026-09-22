@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import EditProposalPanel from '../EditProposalPanel';
-import { lessonBloomsTags } from '../../lib/lessonBloomsTags.js';
+import { isSameViewText, materialsBeyondSources } from '../../lib/materialViewDedupe.js';
 import { renderedDeliverableCollectionKey } from '../../lib/renderedDeliverableCollection.js';
 import {
   QualityBadge,
@@ -18,6 +18,7 @@ import {
   SectionHeading,
   FEATURE_META,
   TierToggle,
+  NoteMark,
 } from './shared/SharedComponents';
 
 // ─── Lesson Plans ───
@@ -48,7 +49,6 @@ export default function LessonPlansView({
           currentTier !== 'standard' && basePlan.tiers?.[currentTier]
             ? { ...basePlan, ...basePlan.tiers[currentTier] }
             : basePlan;
-        const bloomsTags = lessonBloomsTags(plan);
         const outlineHasType = plan.outline?.some((row) => row.type || row.bloomsLevel);
         const subtitle = [plan.duration, plan.weekNumber].filter(Boolean).join(' · ');
         return (
@@ -75,15 +75,6 @@ export default function LessonPlansView({
               onTitleEdit={onEdit ? (newTitle) => onEdit([key, i, 'lessonTitle'], newTitle) : undefined}
             >
               <div className="space-y-4 pt-3">
-                {/* Bloom's levels row */}
-                {bloomsTags.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {bloomsTags.map((b, k) => (
-                      <BloomsTag key={k} level={b} />
-                    ))}
-                  </div>
-                )}
-
                 {/* Learning Objectives */}
                 {plan.objectives?.length > 0 && (
                   <div>
@@ -141,7 +132,6 @@ export default function LessonPlansView({
                 {plan.warmUp && (
                   <div className="bg-amber-50/50 rounded-lg p-3 border border-amber-100/60">
                     <div className="flex items-center gap-2 mb-1.5">
-                      <span className="text-xs">🔥</span>
                       <SectionHeading>Warm-Up</SectionHeading>
                       {plan.warmUp.duration && (
                         <span className="text-xs text-amber-600 font-semibold ml-auto">{plan.warmUp.duration}</span>
@@ -161,7 +151,7 @@ export default function LessonPlansView({
                     )}
                     {plan.warmUp.facilitation && (
                       <p className="text-xs text-slate-400 mt-1 leading-relaxed italic">
-                        💡{' '}
+                        <NoteMark />
                         <E value={plan.warmUp.facilitation} path={[key, i, 'warmUp', 'facilitation']} onEdit={onEdit} />
                       </p>
                     )}
@@ -169,16 +159,18 @@ export default function LessonPlansView({
                 )}
 
                 {/* Materials */}
-                {plan.materials?.length > 0 && (
+                {materialsBeyondSources(plan.materials, plan.sourceEvidenceBrief?.claims).length > 0 && (
                   <div>
                     <SectionHeading>Materials &amp; Resources</SectionHeading>
                     <ul className="space-y-1">
-                      {plan.materials.map((m, j) => (
-                        <li key={j} className="text-xs text-slate-600 flex gap-2">
-                          <span className="text-violet-300 flex-shrink-0">▸</span>
-                          <E value={m} path={[key, i, 'materials', j]} onEdit={onEdit} />
-                        </li>
-                      ))}
+                      {materialsBeyondSources(plan.materials, plan.sourceEvidenceBrief?.claims).map(
+                        ({ value: m, index: j }) => (
+                          <li key={j} className="text-xs text-slate-600 flex gap-2">
+                            <span className="text-violet-300 flex-shrink-0">▸</span>
+                            <E value={m} path={[key, i, 'materials', j]} onEdit={onEdit} />
+                          </li>
+                        ),
+                      )}
                     </ul>
                   </div>
                 )}
@@ -221,7 +213,7 @@ export default function LessonPlansView({
                           </div>
                           {(row.instructorNotes || row.notes) && (
                             <span className="mt-1.5 block text-xs italic text-slate-400">
-                              💡{' '}
+                              <NoteMark />
                               <E
                                 value={row.instructorNotes || row.notes}
                                 path={[key, i, 'outline', j, row.instructorNotes ? 'instructorNotes' : 'notes']}
@@ -283,7 +275,7 @@ export default function LessonPlansView({
                                 />
                                 {(row.instructorNotes || row.notes) && (
                                   <span className="block mt-1 text-xs text-slate-400 italic">
-                                    💡{' '}
+                                    <NoteMark />
                                     <E
                                       value={row.instructorNotes || row.notes}
                                       path={[key, i, 'outline', j, row.instructorNotes ? 'instructorNotes' : 'notes']}
@@ -383,7 +375,6 @@ export default function LessonPlansView({
                 {plan.formativeCheck && (
                   <div className="bg-sky-50/50 rounded-lg p-3 border border-sky-100/60">
                     <div className="flex items-center gap-2 mb-1.5">
-                      <span className="text-xs">📋</span>
                       <SectionHeading>Formative Assessment</SectionHeading>
                     </div>
                     {plan.formativeCheck.type && <Badge color="sky">{plan.formativeCheck.type}</Badge>}
@@ -420,7 +411,7 @@ export default function LessonPlansView({
                     )}
                     {plan.formativeCheck.instructorAction && (
                       <p className="text-xs text-slate-400 mt-1 italic">
-                        💡{' '}
+                        <NoteMark />
                         <E
                           value={plan.formativeCheck.instructorAction}
                           path={[key, i, 'formativeCheck', 'instructorAction']}
@@ -434,48 +425,52 @@ export default function LessonPlansView({
                 {/* UDL Notes */}
                 {plan.udlNotes &&
                   (plan.udlNotes.representation || plan.udlNotes.engagement || plan.udlNotes.expression) && (
-                    <div className="bg-teal-50/40 rounded-lg p-3 border border-teal-100/50">
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <span className="text-xs">♿</span>
-                        <SectionHeading>UDL Notes</SectionHeading>
+                    <details className="group rounded-lg border border-slate-200/70 bg-white/60 p-3">
+                      <summary className="flex cursor-pointer list-none items-center gap-2 text-xs font-semibold text-slate-600 [&::-webkit-details-marker]:hidden">
+                        <span aria-hidden="true" className="transition-transform group-open:rotate-90">
+                          ›
+                        </span>
+                        Access notes (UDL)
+                      </summary>
+                      <div className="mt-2">
+                        {plan.udlNotes.representation && (
+                          <div className="mb-1.5">
+                            <span className="text-xs font-semibold text-slate-500">Representation</span>
+                            <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
+                              <E
+                                value={plan.udlNotes.representation}
+                                path={[key, i, 'udlNotes', 'representation']}
+                                onEdit={onEdit}
+                              />
+                            </p>
+                          </div>
+                        )}
+                        {plan.udlNotes.engagement && (
+                          <div className="mb-1.5">
+                            <span className="text-xs font-semibold text-slate-500">Engagement</span>
+                            <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
+                              <E
+                                value={plan.udlNotes.engagement}
+                                path={[key, i, 'udlNotes', 'engagement']}
+                                onEdit={onEdit}
+                              />
+                            </p>
+                          </div>
+                        )}
+                        {plan.udlNotes.expression && (
+                          <div>
+                            <span className="text-xs font-semibold text-slate-500">Expression</span>
+                            <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
+                              <E
+                                value={plan.udlNotes.expression}
+                                path={[key, i, 'udlNotes', 'expression']}
+                                onEdit={onEdit}
+                              />
+                            </p>
+                          </div>
+                        )}
                       </div>
-                      {plan.udlNotes.representation && (
-                        <div className="mb-1.5">
-                          <span className="text-xs font-semibold text-slate-500">Representation</span>
-                          <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
-                            <E
-                              value={plan.udlNotes.representation}
-                              path={[key, i, 'udlNotes', 'representation']}
-                              onEdit={onEdit}
-                            />
-                          </p>
-                        </div>
-                      )}
-                      {plan.udlNotes.engagement && (
-                        <div className="mb-1.5">
-                          <span className="text-xs font-semibold text-slate-500">Engagement</span>
-                          <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
-                            <E
-                              value={plan.udlNotes.engagement}
-                              path={[key, i, 'udlNotes', 'engagement']}
-                              onEdit={onEdit}
-                            />
-                          </p>
-                        </div>
-                      )}
-                      {plan.udlNotes.expression && (
-                        <div>
-                          <span className="text-xs font-semibold text-slate-500">Expression</span>
-                          <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
-                            <E
-                              value={plan.udlNotes.expression}
-                              path={[key, i, 'udlNotes', 'expression']}
-                              onEdit={onEdit}
-                            />
-                          </p>
-                        </div>
-                      )}
-                    </div>
+                    </details>
                   )}
 
                 {/* Homework */}
@@ -521,7 +516,11 @@ export default function LessonPlansView({
                   <div>
                     <SectionHeading>Closing &amp; Wrap-Up</SectionHeading>
                     <p className="text-xs text-slate-700 leading-relaxed">
-                      <E value={plan.closingActivity} path={[key, i, 'closingActivity']} onEdit={onEdit} multiline />
+                      {isSameViewText(plan.closingActivity, plan.formativeCheck?.prompt) ? (
+                        'Exit ticket: the formative check above.'
+                      ) : (
+                        <E value={plan.closingActivity} path={[key, i, 'closingActivity']} onEdit={onEdit} multiline />
+                      )}
                     </p>
                   </div>
                 )}

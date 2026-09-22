@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
-export default function EmailSignInButton({ reauthenticate = false }) {
+export default function EmailSignInButton({ reauthenticate = false, className = '', labelOverride = '' }) {
   const { user, loading, signInWithEmail, reauthenticateWithEmail } = useAuth();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -9,7 +9,7 @@ export default function EmailSignInButton({ reauthenticate = false }) {
   const dialog = useRef(null);
   const form = useRef(null);
   const trigger = useRef(null);
-  const label = reauthenticate ? 'Sign in again with email' : 'Email sign-in';
+  const label = labelOverride || (reauthenticate ? 'Sign in again with email' : 'Email sign-in');
   useEffect(() => {
     if (!open) return;
     const current = dialog.current;
@@ -50,7 +50,9 @@ export default function EmailSignInButton({ reauthenticate = false }) {
         type="button"
         disabled={loading}
         onClick={() => setOpen(true)}
-        className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold disabled:opacity-40"
+        className={
+          className || 'rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold disabled:opacity-40'
+        }
       >
         {label}
       </button>

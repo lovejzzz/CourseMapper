@@ -1,3 +1,4 @@
+import { readCourseShapeLine } from './courseShape.js';
 const MIN_SESSION_MINUTES = 20;
 const MAX_SESSION_MINUTES = 240;
 
@@ -35,10 +36,12 @@ export function detectRequestedClassSessionMinutes(sourceBrief = '') {
     .replace(/\s+/g, ' ')
     .trim();
   if (!text) return null;
+  const shapeMinutes = normalizeMinutes(readCourseShapeLine(sourceBrief)?.minutes);
+  if (shapeMinutes) return shapeMinutes;
   const patterns = [
     /\b(\d+(?:\.\d+)?)\s*(minutes?|mins?|hours?|hrs?)\s+per\s+(?:class|session|lesson)\b/i,
     /\b(\d{2,3})\s*[-–—]?\s*minute\s+(?:(?!minutes?\b)[\p{L}-]+\s+){0,4}(?:lesson|class|session|workshop)\b/iu,
-    /\b(?:lesson|class|session|workshop)\s+(?:lasting|runs?\s+for|of)\s+(\d{2,3})\s+minutes?\b/i,
+    /\b(?:lessons?|class(?:es)?|sessions?|workshops?)\s+(?:lasting|runs?\s+for|of)\s+(\d{2,3})\s+minutes?\b/i,
     /\b(?:lesson|class|session|workshop)\s+(?:is|should be|must be)\s+(\d{2,3})\s+minutes?\b/i,
   ];
   for (const pattern of patterns) {

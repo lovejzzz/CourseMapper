@@ -3,6 +3,7 @@ import fs from 'node:fs/promises';
 import { test, expect } from '@playwright/test';
 import { createServer } from 'node:http';
 import { CODING_PRACTICE } from '../src/lib/codingPracticeCatalog.js';
+import { openWorkspaceDrawer } from './lib/workspaceDrawers.js';
 const example = (id) => CODING_PRACTICE.find((row) => row.id === id);
 
 test('coding reference pages meet keyboard and responsive acceptance checks', async ({ page }) => {
@@ -190,6 +191,7 @@ test('coding materials render, retain literal code and survive autosave with a f
     await expect(content).not.toContainText('Teacher review required: replace general guidance');
     await page.screenshot({ path: info.outputPath(`${tab.replaceAll(' ', '-')}.png`) });
   }
+  await openWorkspaceDrawer(page, 'export');
   await page.getByTestId('export-scope-all').click();
   await page.getByTestId('export-download-zip').click();
   await expect(page.getByTestId('export-download-zip')).toHaveText('Download all materials', {

@@ -1310,16 +1310,15 @@ describe('ChatPanel agent command strip', () => {
     expect(container.querySelector('[data-testid="agent-command-strip"]')).toBeNull();
   });
 
-  it('keeps the workspace identity as Agent during generation without enabling command buttons', () => {
+  it('keeps one assistant title during generation without enabling command buttons', () => {
     root = renderChatPanel(container, {
       currentStep: 'generating',
       isDelivGenerating: true,
       deliverables: { lessonPlans: { status: 'loading', data: null } },
     });
 
-    expect(container.querySelector('h2')?.textContent).toBe('Agent');
+    expect(container.querySelector('h2')?.textContent).toBe('Assistant');
     expect(container.textContent).toContain('Building');
-    expect(container.textContent).toContain('Lesson Plans');
     expect(container.textContent).not.toContain('Using your starting request');
     expect(container.querySelector('[data-testid="agent-command-strip"]')).toBeNull();
   });

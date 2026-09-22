@@ -1078,3 +1078,188 @@ function AccountFeatureSelect({
     </div>
   );
 }
+
+// v0.20.07: the material list embedded in the single setup page. One row per
+// material; the description is a tooltip, not a second line on every card.
+export function MaterialChecklist({ promptText = '' }) {
+  const { user } = useAuth();
+  const { selectedFeatures: selected, setSelectedFeatures: setSelected } = useCourse();
+  const [showBuilder, setShowBuilder] = useState(false);
+  const [editingCustom, setEditingCustom] = useState(null);
+  const [definitionError, setDefinitionError] = useState('');
+  const [customDeliverables, setCustomDeliverables] = useState(() => listCustomDeliverables(user?.uid || null));
+  const [briefSelectionApplied, setBriefSelectionApplied] = useState(false);
+  const briefRequested = useMemo(() => materialsRequestedInBrief(promptText), [promptText]);
+
+  useEffect(
+    () =>
+      subscribeAccountCache('coursemapper-custom-deliverables', user?.uid || null, () => {
+        setCustomDeliverables(listCustomDeliverables(user?.uid || null));
+      }),
+    [user?.uid],
+  );
+
+  // Pre-select what the description asks for, once, when nothing is chosen;
+  // otherwise start from the recommended set.
+  useEffect(() => {
+    if (briefSelectionApplied) return;
+    setBriefSelectionApplied(true);
+    const onlyMap = selected.length === 0 || (selected.length === 1 && selected[0] === 'courseMap');
+    if (!onlyMap) return;
+    setSelected(briefRequested.length > 0 ? ['courseMap', ...briefRequested] : RECOMMENDED_FEATURE_IDS);
+  }, [briefSelectionApplied, briefRequested, selected, setSelected]);
+
+  const features = [...FEATURES, ...customDeliverables.map(toFeatureEntry)];
+  const optional = features.filter((feature) => feature.id !== 'courseMap');
+  const selectedCount = selected.filter((id) => id !== 'courseMap').length;
+
+  const toggle = (id) =>
+    setSelected((prev) => {
+      const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
+      return next.includes('courseMap') ? next : ['courseMap', ...next];
+    });
+  const choose = (ids) => setSelected(['courseMap', ...ids.filter((id) => id !== 'courseMap')]);
+
+  async function handleSaveCustom(def, { isCurrent }) {
+    const uid = user?.uid || null;
+    const saved = await saveCustomDeliverableWithCloudFallback(def, uid);
+    if (!isCurrent() || accountStorageKey('custom-save', uid) !== accountStorageKey('custom-save')) return;
+    setCustomDeliverables(listCustomDeliverables(uid));
+    setSelected((prev) => (prev.includes(saved.id) ? prev : [...prev, saved.id]));
+    setShowBuilder(false);
+    setEditingCustom(null);
+  }
+
+  function handleDeleteCustom(featureId) {
+    try {
+      setDefinitionError('');
+      deleteCustomDeliverable(featureId, user?.uid || null);
+    } catch {
+      setDefinitionError('This browser could not remove the custom material. It remains in your list.');
+      return;
+    }
+    setCustomDeliverables(listCustomDeliverables(user?.uid || null));
+    setSelected((prev) => prev.filter((id) => id !== featureId));
+  }
+
+  const linkClass =
+    'rounded px-1.5 py-0.5 text-xs text-slate-500 hover:bg-black/5 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white';
+
+  return (
+    <section aria-labelledby="materials-heading" data-testid="material-checklist">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-1">
+        <h2
+          id="materials-heading"
+          className="whitespace-nowrap text-sm font-semibold text-slate-800 dark:text-slate-100"
+        >
+          Materials <span className="font-normal text-slate-400">· {selectedCount} selected</span>
+        </h2>
+        <div className="flex items-center gap-1 whitespace-nowrap">
+          <button type="button" className={linkClass} onClick={() => choose(RECOMMENDED_FEATURE_IDS)}>
+            Recommended
+          </button>
+          <button type="button" className={linkClass} onClick={() => choose(features.map((f) => f.id))}>
+            Select all
+          </button>
+          <button type="button" className={linkClass} onClick={() => choose([])}>
+            Clear
+          </button>
+        </div>
+      </div>
+      {definitionError && (
+        <p role="alert" className="mb-2 text-xs text-red-700 dark:text-red-300">
+          {definitionError}
+        </p>
+      )}
+      <ul className="grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-slate-200 bg-slate-200 dark:border-slate-800 dark:bg-slate-800 sm:grid-cols-2">
+        <li className="flex min-h-11 items-center gap-3 bg-white px-4 text-sm text-slate-500 dark:bg-slate-900 dark:text-slate-400 sm:col-span-2">
+          <span
+            className="feature-check feature-check--on flex h-4 w-4 items-center justify-center rounded border opacity-60"
+            aria-hidden="true"
+          >
+            <svg className="h-2.5 w-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+            </svg>
+          </span>
+          Course Map <span className="text-xs text-slate-400">always included</span>
+        </li>
+        {optional.map((feature) => {
+          const isSelected = selected.includes(feature.id);
+          return (
+            <li key={feature.id} className="flex items-center bg-white dark:bg-slate-900">
+              <button
+                type="button"
+                role="checkbox"
+                aria-checked={isSelected}
+                aria-label={feature.label}
+                title={feature.description}
+                onClick={() => toggle(feature.id)}
+                className="flex min-h-11 flex-1 items-center gap-3 px-4 text-left text-sm text-slate-800 transition-colors hover:bg-black/[0.03] dark:text-slate-100 dark:hover:bg-slate-800/60"
+              >
+                <span
+                  aria-hidden="true"
+                  className={`feature-check flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
+                    isSelected ? 'feature-check--on' : 'feature-check--off'
+                  }`}
+                >
+                  {isSelected && (
+                    <svg className="h-2.5 w-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </span>
+                <span className="truncate">{feature.label}</span>
+              </button>
+              {feature.isCustom && (
+                <span className="flex shrink-0 items-center pr-2">
+                  <button
+                    type="button"
+                    className={linkClass}
+                    onClick={() => {
+                      const def = listCustomDeliverables(user?.uid || null).find((c) => c.id === feature.id);
+                      if (def) {
+                        setEditingCustom(def);
+                        setShowBuilder(true);
+                      }
+                    }}
+                  >
+                    Edit
+                  </button>
+                  <button type="button" className={linkClass} onClick={() => handleDeleteCustom(feature.id)}>
+                    Remove
+                  </button>
+                </span>
+              )}
+            </li>
+          );
+        })}
+        <li className={`bg-white dark:bg-slate-900 ${optional.length % 2 === 0 ? 'sm:col-span-2' : ''}`}>
+          <button
+            type="button"
+            onClick={() => {
+              setEditingCustom(null);
+              setShowBuilder(true);
+            }}
+            className="flex min-h-11 w-full items-center gap-3 px-4 text-left text-sm text-slate-500 transition-colors hover:bg-black/[0.03] hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-white"
+          >
+            <span aria-hidden="true" className="flex h-4 w-4 items-center justify-center text-base leading-none">
+              +
+            </span>
+            Create custom
+          </button>
+        </li>
+      </ul>
+      {showBuilder && (
+        <CustomDeliverableBuilder
+          isOpen
+          onClose={() => {
+            setShowBuilder(false);
+            setEditingCustom(null);
+          }}
+          onSave={handleSaveCustom}
+          editDef={editingCustom}
+        />
+      )}
+    </section>
+  );
+}

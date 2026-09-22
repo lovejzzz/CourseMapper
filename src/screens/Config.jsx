@@ -5,14 +5,17 @@ import { FEATURES, COLOR_MAP } from '../lib/featureCatalog';
 import ColumnEditor from '../components/ColumnEditor';
 import InstitutionProfileCard from '../components/config/InstitutionProfileCard';
 import LessonScopeSelector from '../components/config/LessonScopeSelector';
-import SetupProgress from '../components/SetupProgress';
+import { MaterialChecklist } from './FeatureSelect';
 import SetupHelpDialog from '../components/SetupHelpDialog';
 import { getCustomDeliverable, listCustomDeliverables, toFeatureEntry } from '../lib/customDeliverableLibrary';
 import {
   buildPromptAwarePreview,
+  derivePromptPreviewTitle,
   resolvePreviewLessonCount,
   scopePromptAwarePreviewItems,
 } from '../lib/promptAwarePreview';
+import { readCourseShapeLine, writeCourseShapeLine } from '../lib/courseShape';
+import { detectRequestedClassSessionMinutes } from '../lib/sourceBriefConstraints';
 import { useAuth } from '../contexts/AuthContext';
 import { useCourse } from '../contexts/CourseContext';
 import { useAIConfig } from '../contexts/AIConfigContext';
@@ -422,17 +425,56 @@ function ScionDownloadNotice() {
   return (
     <p
       data-testid="scion-download-notice"
-      className={`mb-3 rounded-xl border px-3 py-2 text-left text-xs leading-relaxed ${
-        tooSmall
-          ? 'border-amber-300/70 bg-amber-50 text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200'
-          : 'border-slate-200/80 bg-slate-50/75 text-slate-600 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-300'
+      className={`mb-2.5 text-center text-xs leading-relaxed ${
+        tooSmall ? 'text-amber-700 dark:text-amber-300' : 'text-slate-500 dark:text-slate-400'
       }`}
     >
-      <span className="font-semibold">One-time download: {SCION_BROWSER_GEMMA4_DOWNLOAD_LABEL}.</span>{' '}
       {tooSmall
-        ? 'This browser reports less free storage than Scion needs. Free up space before generating, or choose another provider in AI settings.'
-        : 'Scion keeps the model in this browser, so later courses start without downloading it again.'}
+        ? `Scion needs a one-time ${SCION_BROWSER_GEMMA4_DOWNLOAD_LABEL} download, but this browser reports too little free storage.`
+        : `First run downloads Scion once (${SCION_BROWSER_GEMMA4_DOWNLOAD_LABEL}). It stays in this browser.`}
     </p>
+  );
+}
+
+// v0.20.07: one editable value in the course-shape row. "Auto" means the
+// description and the model decide; the first + or − press sets a value.
+function ShapeStepper({ label, unit, value, min, max, step = 1, start, pending = false, onChange }) {
+  const current = Number.isInteger(value) ? value : null;
+  const change = (direction) => {
+    const base = current ?? start;
+    const next = current == null ? base : Math.min(max, Math.max(min, base + direction * step));
+    onChange(next);
+  };
+  const buttonClass =
+    'flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-black/5 hover:text-slate-900 disabled:opacity-30 dark:hover:bg-slate-800 dark:hover:text-white';
+  return (
+    <div
+      role="group"
+      aria-label={label}
+      className="flex items-center gap-1 rounded-full border border-slate-200 bg-white/80 py-0.5 pl-1 pr-1 text-sm dark:border-slate-700 dark:bg-slate-900/80"
+    >
+      <button
+        type="button"
+        className={buttonClass}
+        aria-label={`Fewer ${label.toLowerCase()}`}
+        disabled={current != null && current <= min}
+        onClick={() => change(-1)}
+      >
+        −
+      </button>
+      <span className="min-w-[6.5rem] text-center tabular-nums text-slate-800 dark:text-slate-100" aria-live="polite">
+        {pending ? '…' : current == null ? <span className="text-slate-400">Auto {unit}</span> : `${current} ${unit}`}
+      </span>
+      <button
+        type="button"
+        className={buttonClass}
+        aria-label={`More ${label.toLowerCase()}`}
+        disabled={current != null && current >= max}
+        onClick={() => change(1)}
+      >
+        +
+      </button>
+    </div>
   );
 }
 
@@ -590,7 +632,13 @@ const FEATURE_LABELS = {
   syllabus: 'Syllabus',
 };
 
-export function DeliverablePreview({
+// v0.20.07: sample previews filled with generic template text were removed;
+// a preview appears only when real generated content exists.
+export function DeliverablePreview(props) {
+  return props.delivData ? <DeliverablePreviewBody {...props} /> : null;
+}
+
+function DeliverablePreviewBody({
   featureId,
   delivData,
   courseMap,
@@ -2042,6 +2090,7 @@ export default function Config({
   const { apiKey, modelName, modelId, modelCapabilities, generationPlan } = useAIConfig();
   const {
     selectedFeatures: selected,
+    setPromptText,
     deliverableConfig,
     setDeliverableConfig,
     lessonScope,
@@ -2073,45 +2122,42 @@ export default function Config({
       ? (lessonScope.indices || []).map((index) => courseMap?.lessons?.[index]?.title || `Lesson ${Number(index) + 1}`)
       : [];
 
+  const briefTitle = derivePromptPreviewTitle(promptText);
+  const briefShape = readCourseShapeLine(promptText) || {};
+  const lessonsValue = briefShape.lessons ?? (lessonCount > 0 ? lessonCount : null);
+  const minutesValue = briefShape.minutes ?? detectRequestedClassSessionMinutes(promptText) ?? null;
+  const quizSelected = selected.includes('quizBank');
+  const quizValue =
+    extractExplicitTeachingRequirements(promptText || '').questionsPerLesson ??
+    applyModelAwareDeliverableDefaults('quizBank', deliverableConfig.quizBank || {}, modelConfigPlan)
+      .questionsPerLesson ??
+    null;
+  const setShape = (key, value) => {
+    const next = { ...briefShape, [key]: value };
+    if (key === 'lessons' && next.lessons == null) delete next.lessons;
+    setPromptText(writeCourseShapeLine(promptText, next));
+    if (key === 'lessons' && lessonScope.type !== 'all') setLessonScope({ type: 'all' });
+  };
+
   const generationAction = (
     <div
       data-testid="config-sticky-action"
-      className="rounded-2xl border border-slate-200/80 bg-white/95 p-3 shadow-lg backdrop-blur-xl dark:border-slate-700 dark:bg-slate-950/95 sm:sticky sm:top-3 sm:z-20"
+      className="sticky bottom-3 z-20 rounded-2xl border border-slate-200/80 bg-white/95 p-3 shadow-lg backdrop-blur-xl dark:border-slate-700 dark:bg-slate-950/95"
     >
       {provider === PUBLIC_SCION_PROVIDER_ID && <ScionDownloadNotice />}
-      {provider === PUBLIC_SCION_PROVIDER_ID && (
-        <details
-          data-testid="scion-generation-boundary"
-          className="mb-3 rounded-xl border border-slate-200/80 bg-slate-50/75 px-3 py-2 text-left text-body text-slate-600 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-300"
-        >
-          <summary className="cursor-pointer list-none font-semibold text-slate-700 [&::-webkit-details-marker]:hidden dark:text-slate-200">
-            Private local generation · Details
-          </summary>
-          <p className="mt-2 leading-relaxed">
-            Scion runs locally in this browser and needs no API key. The first generation may download the model. Like
-            all AI-generated materials, review the course before publishing.
-          </p>
-        </details>
-      )}
       {lessonScope.type === 'specific' && !scopeValid && (
-        <p className="text-center text-xs text-amber-500 mb-2">Select at least one lesson to continue.</p>
+        <p className="mb-2 text-center text-xs text-amber-600 dark:text-amber-300">
+          Select at least one lesson to continue.
+        </p>
       )}
       <button
         data-testid="config-generate-button"
+        type="button"
         onClick={onGenerate}
-        disabled={!canGenerate || !scopeValid}
-        className={`tactile btn-glow w-full py-4 rounded-squircle-xs font-semibold text-sm tracking-wide transition-all duration-300 ${
-          canGenerate && scopeValid
-            ? 'text-white bg-slate-950 shadow-lg shadow-slate-950/12 hover:bg-slate-800'
-            : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
-        }`}
+        disabled={!canGenerate || !scopeValid || selected.length === 0}
+        className="tactile w-full rounded-xl bg-slate-950 py-3.5 text-sm font-semibold text-white transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 dark:bg-white dark:text-slate-950 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
       >
-        <span className="flex items-center justify-center gap-2.5">
-          Generate materials
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
-        </span>
+        Generate {selectedMaterialCount === 0 ? 'course map' : `${selectedMaterialCount + 1} materials`}
       </button>
     </div>
   );
@@ -2119,23 +2165,26 @@ export default function Config({
   return (
     <>
       <div className="landing-shell noise-overlay flex min-h-screen flex-col text-slate-900 dark:text-slate-100">
-        {/* Header */}
         <header className="px-5 py-4 sm:px-8">
           <div className="mx-auto flex w-full max-w-7xl items-center justify-between">
             <button
+              type="button"
               onClick={onBack}
               className="tactile flex min-h-11 items-center gap-1.5 rounded-lg px-3 text-xs font-medium text-slate-500 transition-all duration-200 hover:bg-white/70 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-slate-100"
             >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
               Back
             </button>
             <button
+              type="button"
               onClick={() => setSetupHelpOpen(true)}
-              className="tactile flex min-h-11 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold text-slate-500 transition-colors hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-200"
+              aria-label="Help"
+              title="Help"
+              className="tactile flex h-11 w-11 items-center justify-center rounded-lg text-slate-400 transition-colors hover:text-slate-700 dark:hover:text-slate-200"
             >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -2143,166 +2192,130 @@ export default function Config({
                   d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              Help
             </button>
           </div>
         </header>
 
-        {/* Main */}
-        <main className="flex flex-1 flex-col items-center px-5 py-6 pb-0 sm:px-8">
-          <div className="w-full max-w-3xl animate-fade-up space-y-5">
-            <SetupProgress current="materials" />
+        {/* v0.20.07: material choice and settings on one page. */}
+        <main className="flex flex-1 flex-col items-center px-5 pb-6 sm:px-8">
+          <div className="w-full max-w-2xl animate-fade-up space-y-6">
+            <h1
+              data-testid="setup-course-title"
+              className="text-center text-2xl font-semibold tracking-tight text-slate-950 dark:text-white sm:text-3xl"
+            >
+              {briefTitle}
+            </h1>
 
-            {/* Step badge + title */}
-            <div className="mb-2 text-center">
-              <h1 className="mt-5 text-2xl font-semibold tracking-tight text-slate-950 dark:text-white sm:text-3xl">
-                Configure materials
-              </h1>
-              <p className="mx-auto mt-2 max-w-xl text-sm text-slate-500 dark:text-slate-400">
-                Choose lessons and adjust optional settings.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-slate-200/80 bg-white/86 p-4 shadow-sm dark:border-slate-700/80 dark:bg-slate-950/70 sm:p-5">
-              <div className="mb-4 border-b border-slate-100 pb-4 dark:border-slate-800">
-                <div>
-                  <p className="text-base font-semibold text-slate-900 dark:text-white">Generation settings</p>
-                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                    Course Map + {selectedMaterialCount} material{selectedMaterialCount === 1 ? '' : 's'} selected.
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-5">
-                {/* ── Lesson Scope ── */}
-                <LessonScopeSelector
-                  lessonCount={lessonCount}
-                  isDetectingLessons={isDetectingLessons}
-                  courseMap={courseMap}
-                  lessonScope={lessonScope}
-                  setLessonScope={setLessonScope}
+            <div data-testid="course-shape" className="flex flex-wrap items-center justify-center gap-2">
+              <ShapeStepper
+                label="Lessons"
+                unit={lessonsValue === 1 ? 'lesson' : 'lessons'}
+                value={lessonsValue}
+                min={1}
+                max={30}
+                start={4}
+                pending={isDetectingLessons && !briefShape.lessons}
+                onChange={(value) => setShape('lessons', value)}
+              />
+              <ShapeStepper
+                label="Minutes per lesson"
+                unit="min each"
+                value={minutesValue}
+                min={20}
+                max={240}
+                step={5}
+                start={50}
+                onChange={(value) => setShape('minutes', value)}
+              />
+              {quizSelected && (
+                <ShapeStepper
+                  label="Quiz questions per lesson"
+                  unit="quiz questions"
+                  value={quizValue}
+                  min={3}
+                  max={8}
+                  start={6}
+                  onChange={(value) => setShape('quizPerLesson', value)}
                 />
-
-                {generationAction}
-
-                <AdvancedSection label="Course defaults" testId="config-top-advanced">
-                  <ModelTuningSummary modelLabel={modelLabel} plan={modelConfigPlan} />
-                  <InstitutionProfileCard uid={user?.uid || null} />
-                </AdvancedSection>
-
-                {/* ── Deliverable configs ── */}
-                {configurableFeatures.length > 0 && (
-                  <div className="space-y-2">
-                    <div className="flex items-end justify-between gap-3 px-1">
-                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Materials</p>
-                      <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Optional tuning</p>
-                    </div>
-                    {configurableFeatures.map((feature) => {
-                      const config = deliverableConfig[feature.id] || {};
-                      const c = COLOR_MAP[feature.color] || COLOR_MAP.indigo;
-                      const isExpanded = expandedId === feature.id;
-
-                      const delivData = deliverables?.[feature.id]?.data;
-                      const panel = (
-                        <DeliverableConfigContent
-                          featureId={feature.id}
-                          config={config}
-                          onChange={(next) =>
-                            setDeliverableConfig((prev) => ({
-                              ...prev,
-                              [feature.id]: typeof next === 'function' ? next(prev[feature.id] || {}) : next,
-                            }))
-                          }
-                          columns={columns}
-                          setColumns={setColumns}
-                          delivData={delivData}
-                          courseMap={courseMap}
-                          promptText={promptText}
-                          lessonCount={previewLessonCount}
-                          lessonTitles={previewLessonTitles}
-                          provider={provider}
-                          apiKey={apiKey}
-                          modelConfigPlan={modelConfigPlan}
-                        />
-                      );
-
-                      return (
-                        <div
-                          key={feature.id}
-                          className={`overflow-hidden rounded-2xl border transition-all duration-200 ${
-                            isExpanded
-                              ? 'border-slate-950 bg-white dark:border-slate-200 dark:bg-slate-900'
-                              : 'border-slate-200 bg-white/65 dark:border-slate-800 dark:bg-slate-900/65'
-                          }`}
-                        >
-                          {/* Accordion header */}
-                          <button
-                            onClick={() => setExpandedId(isExpanded ? null : feature.id)}
-                            className="flex min-h-12 w-full items-center gap-3 px-4 py-3 text-left"
-                            aria-expanded={isExpanded}
-                            aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${feature.label} settings`}
-                          >
-                            <div
-                              className={`w-7 h-7 rounded-lg ${c.iconBg} flex items-center justify-center flex-shrink-0`}
-                            >
-                              <svg
-                                className={`w-3.5 h-3.5 ${c.iconText}`}
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={feature.icon} />
-                              </svg>
-                            </div>
-                            <span className="flex-1 text-xs font-semibold text-slate-900 dark:text-slate-100">
-                              {feature.label}
-                            </span>
-                            <svg
-                              className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                            </svg>
-                          </button>
-
-                          {/* Config panel */}
-                          {isExpanded && (
-                            <div className="border-t border-slate-100/80 px-4 pb-4 pt-1 animate-spring-in dark:border-slate-800">
-                              {panel}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
+              )}
             </div>
+
+            <MaterialChecklist promptText={promptText} />
+
+            <AdvancedSection label="Advanced settings" testId="config-top-advanced">
+              <LessonScopeSelector
+                lessonCount={lessonsValue || lessonCount}
+                isDetectingLessons={isDetectingLessons}
+                courseMap={courseMap}
+                lessonScope={lessonScope}
+                setLessonScope={setLessonScope}
+              />
+              <ModelTuningSummary modelLabel={modelLabel} plan={modelConfigPlan} />
+              <InstitutionProfileCard uid={user?.uid || null} />
+              {configurableFeatures.length > 0 && (
+                <div className="space-y-2">
+                  <p className="px-1 text-xs font-semibold text-slate-500 dark:text-slate-400">Material details</p>
+                  {configurableFeatures.map((feature) => {
+                    const config = deliverableConfig[feature.id] || {};
+                    const isExpanded = expandedId === feature.id;
+                    const delivData = deliverables?.[feature.id]?.data;
+                    return (
+                      <div
+                        key={feature.id}
+                        className="overflow-hidden rounded-xl border border-slate-200 bg-white/70 dark:border-slate-800 dark:bg-slate-900/70"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => setExpandedId(isExpanded ? null : feature.id)}
+                          className="flex min-h-11 w-full items-center gap-3 px-4 py-2.5 text-left"
+                          aria-expanded={isExpanded}
+                          aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${feature.label} settings`}
+                        >
+                          <span className="flex-1 text-sm text-slate-800 dark:text-slate-100">{feature.label}</span>
+                          <svg
+                            className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                        {isExpanded && (
+                          <div className="border-t border-slate-100/80 px-4 pb-4 pt-1 dark:border-slate-800">
+                            <DeliverableConfigContent
+                              featureId={feature.id}
+                              config={config}
+                              onChange={(next) =>
+                                setDeliverableConfig((prev) => ({
+                                  ...prev,
+                                  [feature.id]: typeof next === 'function' ? next(prev[feature.id] || {}) : next,
+                                }))
+                              }
+                              columns={columns}
+                              setColumns={setColumns}
+                              delivData={delivData}
+                              courseMap={courseMap}
+                              promptText={promptText}
+                              lessonCount={previewLessonCount}
+                              lessonTitles={previewLessonTitles}
+                              provider={provider}
+                              apiKey={apiKey}
+                              modelConfigPlan={modelConfigPlan}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </AdvancedSection>
+
+            {generationAction}
           </div>
         </main>
-
-        {/* Footer */}
-        <footer className="py-4 text-center">
-          <div className="flex items-center justify-center gap-3 text-xs text-ink-muted">
-            <a href="#/changelog" className="font-medium hover:text-indigo-500 transition-colors duration-200">
-              v{APP_VERSION}
-            </a>
-            <span>·</span>
-            <a href="#/privacy" className="hover:text-indigo-500 transition-colors duration-200">
-              Privacy
-            </a>
-            <span>·</span>
-            <a href="#/terms" className="hover:text-indigo-500 transition-colors duration-200">
-              Terms
-            </a>
-            <span>·</span>
-            <a href="#/contact" className="hover:text-indigo-500 transition-colors duration-200">
-              Contact
-            </a>
-          </div>
-        </footer>
       </div>
       {setupHelpOpen && <SetupHelpDialog onClose={() => setSetupHelpOpen(false)} />}
     </>

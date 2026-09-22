@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.20.07 — September 22, 2026
+
+- Simplify the homepage to one question and one description box; attachments, AI settings and Continue sit inside it and example courses stay below. AI settings show only the provider, one line about local use and the public-source switch; sign-in is one button with Google and email options.
+- Merge material choice and configuration into one setup page with editable lessons, minutes per lesson and quiz questions. The choice is written into the description as one "Course shape (set in setup)" line that lesson detection, the session clock and quiz count all read first. Read durations such as "2 lessons of 50 minutes".
+- Give the material the full workspace width. Assistant and Export open as one header drawer at a time; the assistant opens during generation and closes afterward. Remove per-tab ticks, move the theme switch into the Project menu, and show readiness and review notes once, in Export.
+- Remove repeated content in material views: sources, shared objectives, exit tickets that repeat the formative check, per-source usage notes, split practice sections, institution-policy placeholders and empty course-map columns. Replace emoji section markers with plain headings.
+- Replace pipeline terms in generated text and fail the strict classroom benchmark if they appear. These changes affect presentation and wording, not model weights or claims of classroom readiness.
+
 ## v0.20.06 — September 22, 2026
 
 - Read lesson counts from course descriptions correctly: “4 questions per lesson” no longer becomes four lessons, digit counts such as “2 lessons” are accepted, and schedule phrases such as “2 sessions per week” are ignored as course size.

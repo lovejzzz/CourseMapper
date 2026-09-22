@@ -465,7 +465,7 @@ function ReadinessPanel({
           ? 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-100'
           : 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/70 dark:text-emerald-200',
         title: needsTeachingReview ? 'Review draft ready to download' : 'Files ready to download',
-        meta: `${readiness.doneFeatureCount}/${readiness.featureCount} material types prepared`,
+        meta: packageScope ? `${readiness.doneFeatureCount}/${readiness.featureCount} material types prepared` : '',
       }
     : packageScope || isBlocked
       ? {
@@ -478,7 +478,7 @@ function ReadinessPanel({
           wrap: 'border-emerald-100 bg-emerald-50/70 text-emerald-700 dark:border-emerald-800/50 dark:bg-emerald-950/30 dark:text-emerald-200',
           icon: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/70 dark:text-emerald-200',
           title: 'Ready to export',
-          meta: `${readiness.doneFeatureCount}/${readiness.featureCount} material types prepared`,
+          meta: '',
         };
 
   return (
@@ -494,7 +494,7 @@ function ReadinessPanel({
             <p data-testid="readiness-status" className="text-xs font-bold">
               {tone.title}
             </p>
-            <span className="text-xs font-semibold opacity-70">{tone.meta}</span>
+            {tone.meta && <span className="text-xs font-semibold opacity-70">{tone.meta}</span>}
             {/* Quality scores and reasons live in Agent/Quality. Export stays
                 action-only and reports only preparation/download state. */}
           </div>
@@ -502,9 +502,7 @@ function ReadinessPanel({
               say it — restating "All selected materials passed…" was noise. */}
           {(exportPrepared || (!packageScope && !isBlocked)) && (
             <p className="mt-1 text-xs leading-snug" data-testid="teaching-readiness-caveat">
-              {exportPrepared ? 'Files passed export checks. ' : ''}Teaching readiness requires review of source
-              support, answer keys and lesson fit
-              {needsTeachingReview ? '; unresolved review notes remain in Agent.' : '.'}
+              Check answers and sources before teaching{needsTeachingReview ? '; review notes are open above.' : '.'}
             </p>
           )}
           {isBlocked && <p className="mt-0.5 text-xs leading-snug opacity-80">{helperText}</p>}
@@ -1836,29 +1834,11 @@ export default function ExportSidePanel({
     (selectedLessons !== null && selectedLessons.length === 0);
   const panelTitle = 'Download materials';
   return (
-    <div
-      data-testid="export-side-panel"
-      className="export-side-panel flex flex-col gap-4 w-full lg:w-64 lg:flex-shrink-0"
-    >
+    <div data-testid="export-side-panel" className="export-side-panel flex w-full flex-col gap-4">
       {/* ── Panel card ── */}
       <div className="rounded-lg border border-slate-200/70 bg-white p-4 shadow-sm space-y-4">
         {/* Header */}
         <div className="flex items-start gap-2">
-          <div className="w-7 h-7 rounded-lg bg-slate-950 dark:bg-white flex items-center justify-center flex-shrink-0 shadow-sm">
-            <svg
-              className="w-3.5 h-3.5 text-white dark:text-slate-950"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-          </div>
           <div className="min-w-0">
             <p data-testid="export-panel-title" className="text-xs font-bold text-slate-800">
               {panelTitle}
@@ -1898,18 +1878,20 @@ export default function ExportSidePanel({
         {/* ── Scope toggle ── */}
         <div className="flex items-center bg-slate-100/80 rounded-lg p-0.5 gap-0.5">
           {[
-            { id: 'current', label: 'Current material' },
+            { id: 'current', label: tabLabel },
             { id: 'all', label: 'All materials' },
           ].map((s) => (
             <button
               key={s.id}
               data-testid={`export-scope-${s.id}`}
+              aria-label={s.id === 'current' ? `Export only ${tabLabel}` : 'Export all materials'}
+              aria-pressed={scope === s.id}
               onClick={() => {
                 setScopeWasChosen(true);
                 setScope(s.id);
                 clearPendingReadinessExport();
               }}
-              className={`flex-1 py-1.5 rounded-md text-xs font-semibold transition-all duration-200 ${
+              className={`min-w-0 flex-1 truncate px-2 py-1.5 rounded-md text-xs font-semibold transition-all duration-200 ${
                 scope === s.id ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400 hover:text-slate-600'
               }`}
             >
@@ -1918,21 +1900,16 @@ export default function ExportSidePanel({
           ))}
         </div>
 
-        {/* Scope description */}
-        <p className="text-xs text-slate-400 leading-snug -mt-1">
-          {scope === 'current' ? (
-            <>
-              <span className="font-semibold text-slate-600">{tabLabel}</span> only
-            </>
-          ) : (
-            <>
-              <span className="font-semibold text-slate-600">
-                {allReadyCount}/{allPackagePartCount} material types
-              </span>{' '}
-              generated
-            </>
-          )}
-        </p>
+        {/* v0.20.07: the scope toggle names the material; progress is shown
+            only while some materials are still missing. */}
+        {scope === 'all' && allReadyCount < allPackagePartCount && (
+          <p className="text-xs text-slate-400 leading-snug -mt-1">
+            <span className="font-semibold text-slate-600">
+              {allReadyCount}/{allPackagePartCount} material types
+            </span>{' '}
+            generated
+          </p>
+        )}
 
         {/* v0.14.4 WS-B3: while a finish/generation pass runs, the build
             ribbon narrates — the panel shows nothing here instead of a

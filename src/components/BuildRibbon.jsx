@@ -81,20 +81,9 @@ function useVisibleProgress(model) {
 }
 
 export function TabReadyTick({ status }) {
-  if (status === 'done') {
-    return (
-      <svg
-        data-testid="tab-ready-tick"
-        className="h-3 w-3 flex-shrink-0 text-emerald-400"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-        aria-hidden="true"
-      >
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-      </svg>
-    );
-  }
+  // v0.20.07: a finished tab carries no mark. When every tab showed a tick the
+  // tick carried no information; only states that need attention are marked.
+  if (status === 'done') return null;
   if (status === 'error') {
     return (
       <svg

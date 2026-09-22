@@ -333,7 +333,8 @@ describe('checkCredits', () => {
 
     expect(latestApiStatus).toBe('connected');
     expect(latestModelId).toBe('scion-public');
-    expect(container.textContent).toContain('Configured');
+    expect(container.textContent).toContain('AI settings');
+    expect(container.textContent).not.toContain('No API key required');
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(900);
@@ -383,8 +384,8 @@ describe('checkCredits', () => {
     expect(latestModelId).toBe('scion-public');
     expect(latestModelName).toMatch(/^Scion V/);
     expect(latestModelIds).toEqual(['scion-public']);
-    expect(container.textContent).toContain('Private evidence mode');
-    expect(container.textContent).toContain('No course-topic research requests are sent');
+    expect(container.textContent).toContain('Look up public sources');
+    expect(container.textContent).toContain('Nothing about your course leaves this browser');
     expect(container.textContent).not.toContain('Algi V0');
 
     const researchSwitch = container.querySelector('[aria-label="Allow Scion current-source research"]');
@@ -407,8 +408,8 @@ describe('checkCredits', () => {
       'translate-x-5',
     );
     expect(localStorage.getItem('coursemapper-scion-research')).toBe('on');
-    expect(container.textContent).toContain('Topic and concept queries leave your device');
-    expect(container.textContent).toContain('checks original passages and source dates');
+    expect(container.textContent).toContain('Lesson topics are sent to');
+    expect(container.textContent).toContain('passages are checked before use');
 
     act(() => {
       root.unmount();

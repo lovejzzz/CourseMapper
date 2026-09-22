@@ -143,6 +143,17 @@ async function expectNoHorizontalOverflow(page) {
   expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.clientWidth + 2);
 }
 
+async function clickThemeToggle(page, name) {
+  // v0.20.07: the theme switch lives in the workspace Project menu.
+  const direct = page.getByRole('button', { name });
+  if (!(await direct.isVisible().catch(() => false))) {
+    await page.getByTestId('workspace-more-menu-trigger').click();
+  }
+  await page.getByRole('button', { name }).click();
+  await page.keyboard.press('Escape');
+  await page.evaluate(() => document.querySelector('details[open]')?.removeAttribute('open'));
+}
+
 test.describe('Generated workspace mobile layout', () => {
   test('reveals the restored active material at the 320px minimum width', async ({ page }) => {
     await page.setViewportSize({ width: 320, height: 700 });
@@ -184,7 +195,7 @@ test.describe('Generated workspace mobile layout', () => {
     expect(projectMenuBox.x).toBeGreaterThanOrEqual(8);
     expect(projectMenuBox.x + projectMenuBox.width).toBeLessThanOrEqual(page.viewportSize().width - 8);
     await projectMenu.getByRole('button', { name: 'New Project' }).click();
-    await expect(page.getByRole('heading', { name: 'Create teaching materials for your course.' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'What do you want to teach?' })).toBeVisible();
     await expect(page.getByTestId('new-project-confirmation')).toHaveCount(0);
 
     await expectNoHorizontalOverflow(page);
@@ -208,7 +219,7 @@ test.describe('Generated workspace mobile layout', () => {
 
       if (viewport.label === 'phone') {
         const editableTitle = page.getByTitle('Click to edit title').first();
-        await page.getByRole('button', { name: 'Switch to dark mode' }).click();
+        await clickThemeToggle(page, 'Switch to dark mode');
         await expect(editableTitle).toBeVisible();
         const idleTitleStyle = await editableTitle.evaluate((title) => {
           const style = getComputedStyle(title);
@@ -222,7 +233,7 @@ test.describe('Generated workspace mobile layout', () => {
         await expect
           .poll(() => editableTitle.evaluate((title) => getComputedStyle(title).backgroundColor))
           .not.toBe('rgba(0, 0, 0, 0)');
-        await page.getByRole('button', { name: 'Switch to light mode' }).click();
+        await clickThemeToggle(page, 'Switch to light mode');
       }
 
       const switcherTransitionProperties = await page
@@ -350,9 +361,9 @@ test.describe('Generated workspace mobile layout', () => {
       expect(collapseLessonTarget.width).toBeGreaterThanOrEqual(minimumCollapseTarget);
       expect(collapseLessonTarget.height).toBeGreaterThanOrEqual(minimumCollapseTarget);
 
-      await page.getByTestId('mobile-workspace-switcher').getByRole('button', { name: 'Agent' }).click();
+      await page.getByTestId('mobile-workspace-switcher').getByRole('button', { name: 'Assistant' }).click();
       await expect(
-        page.getByTestId('mobile-workspace-switcher').getByRole('button', { name: 'Agent' }),
+        page.getByTestId('mobile-workspace-switcher').getByRole('button', { name: 'Assistant' }),
       ).toHaveAttribute('aria-pressed', 'true');
       await expect(page.getByTestId('workspace-agent-panel')).toBeVisible();
       await expect(page.getByTestId('workspace-content-panel')).toBeHidden();
@@ -367,7 +378,7 @@ test.describe('Generated workspace mobile layout', () => {
       await expectNoHorizontalOverflow(page);
 
       if (viewport.label === 'phone') {
-        await page.getByRole('button', { name: 'Switch to dark mode' }).click();
+        await clickThemeToggle(page, 'Switch to dark mode');
         const cloudButtonStyle = await page.getByTestId('export-format-gdocs').evaluate((button) => {
           const style = getComputedStyle(button);
           const channels = (style.backgroundColor.match(/[\d.]+/g) || []).slice(0, 3).map(Number);
@@ -380,7 +391,7 @@ test.describe('Generated workspace mobile layout', () => {
         });
         expect(cloudButtonStyle.backgroundColor).not.toBe('rgba(0, 0, 0, 0)');
         expect(cloudButtonStyle.luminance).toBeLessThan(0.2);
-        await page.getByRole('button', { name: 'Switch to light mode' }).click();
+        await clickThemeToggle(page, 'Switch to light mode');
       }
     });
   }

@@ -384,8 +384,13 @@ export default function AssignmentsView({
 
               {/* Grading criteria — internal, hidden in student view */}
               {gradingCriteriaEntries.length > 0 && !isStudentView && (
-                <div>
-                  <SectionHeading>Grading Criteria Summary</SectionHeading>
+                <details className="group">
+                  <summary className="flex cursor-pointer list-none items-center gap-2 text-xs font-semibold text-slate-600 [&::-webkit-details-marker]:hidden">
+                    <span aria-hidden="true" className="transition-transform group-open:rotate-90">
+                      ›
+                    </span>
+                    Grading summary (full criteria in Rubrics)
+                  </summary>
                   {Array.isArray(a.gradingCriteria) ? (
                     <ul className="space-y-1 text-xs text-slate-600">
                       {gradingCriteriaEntries.map((criterion, criterionIndex) => (
@@ -409,7 +414,7 @@ export default function AssignmentsView({
                       />
                     </p>
                   )}
-                </div>
+                </details>
               )}
 
               {!isStudentView && (
@@ -438,7 +443,7 @@ export default function AssignmentsView({
               {/* Academic integrity */}
               {a.academicIntegrityStatement && (
                 <div className="bg-slate-50/80 rounded-lg p-3 border border-slate-200/60">
-                  <h4 className="text-xs font-semibold text-slate-600 mb-1">⚖️ Academic Integrity</h4>
+                  <h4 className="text-xs font-semibold text-slate-600 mb-1">Academic integrity</h4>
                   <p className="text-xs text-slate-600 leading-relaxed">
                     <E
                       value={a.academicIntegrityStatement}

@@ -1366,3 +1366,10 @@ textarea.developer-code-editor {
   background-color: #6366f1;
   color: #fff;
 }
+
+/* v0.20.07: material badges use dynamic light tints that the dark-mode
+   surface overrides do not cover; keep their text readable in dark mode. */
+.dark .deliverable-badge {
+  background-color: rgba(148, 163, 184, 0.16) !important;
+  color: #e2e8f0 !important;
+}

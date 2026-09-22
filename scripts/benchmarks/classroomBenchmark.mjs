@@ -161,7 +161,11 @@ export function evaluateClassroomOutputs(fixture, outputs) {
       phantom.length ? phantom : ['No targeted phantom-material reference found.'],
       'critical',
     );
-    const internal = text.match(/fact-(?:subject|ledger)-projection|model-provisional|source-ledger-facts-only/g) || [];
+    // v0.20.07: pipeline vocabulary must not reach teachers or students.
+    const internal =
+      text.match(
+        /fact-(?:subject|ledger)-projection|model-provisional|source-ledger-facts-only|\b(?:evidence ledger|admitted evidence|revision trail|source ledger)\b/gi,
+      ) || [];
     check(
       feature,
       'no-internal-labels',

@@ -627,7 +627,7 @@ export default function CourseMapPreview({
 
   // A2: lesson identity moved into the band rows, so the first column is now
   // the slim "N.M" section address column.
-  const colHeaders = enabledColumns
+  const allColHeaders = enabledColumns
     ? ['Section', ...enabledColumns.map((c) => c.label || c.title || c.key)]
     : [
         'Section',
@@ -643,7 +643,21 @@ export default function CourseMapPreview({
         'Evaluate',
       ];
 
-  const colKeys = enabledColumns ? enabledColumns.map((c) => c.key) : SECTION_KEYS;
+  const allColKeys = enabledColumns ? enabledColumns.map((c) => c.key) : SECTION_KEYS;
+  // v0.20.07: a column with nothing in any section is hidden, so the default
+  // map fits without sideways scrolling. Columns return as soon as a value exists.
+  const columnHasContent = (key) =>
+    (courseMap?.lessons || []).some((lesson) =>
+      (lesson?.sections || []).some((section) => {
+        const value = section?.[key];
+        return Array.isArray(value) ? value.some((item) => String(item ?? '').trim()) : String(value ?? '').trim();
+      }),
+    );
+  const visibleColumnIndexes = allColKeys
+    .map((key, index) => (isStreaming || columnHasContent(key) ? index : -1))
+    .filter((index) => index >= 0);
+  const colKeys = visibleColumnIndexes.map((index) => allColKeys[index]);
+  const colHeaders = ['Section', ...visibleColumnIndexes.map((index) => allColHeaders[index + 1])];
   const totalColumnWeight = colKeys.reduce((total, key) => total + (COLUMN_WEIGHTS[key] || 1), 0);
 
   return (
@@ -652,13 +666,8 @@ export default function CourseMapPreview({
           on one line while the ml-auto controls group drops below it on narrow
           viewports (mobile) instead of squeezing the title to three lines. */}
       <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100 mb-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-2">
-        <div className="w-8 h-8 rounded-squircle-xs bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center flex-shrink-0">
-          <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none">
-            <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth={1.6} />
-            <path d="M3 9h18M3 15h18M9 3v18" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" />
-          </svg>
-        </div>
-        <span className="whitespace-nowrap">Course Map Preview</span>
+        {/* v0.20.07: the tab already names this view; no second title. */}
+        <span className="sr-only">Course map</span>
         {isStreaming && (
           <span className="ml-2 flex items-center gap-1.5 text-xs font-bold text-red-500 bg-red-50/80 px-2.5 py-1 rounded-full">
             <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
