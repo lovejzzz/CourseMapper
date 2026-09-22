@@ -100,6 +100,18 @@ function catalogMorphologyTerms(value = '') {
   });
 }
 
+const PRIMARY_TEXT_LESSON =
+  /\b(?:poem|poetry|poets?|sonnet|ode|elegy|novel|short story|play|drama|speech|address|primary sources?|source analysis|testimony|letters?|diary|memoir|close reading|manifesto|constitution|declaration|treaty|charter)\b|古诗|诗歌|原文|史料|演讲/i;
+
+// Course language for MediaWiki hosts. Han characters route to zh.wikipedia;
+// otherwise English. Other languages stay English until their catalogs are
+// evaluated, rather than guessing from a few words.
+export function researchLanguageForText(text = '') {
+  const value = String(text || '');
+  const han = (value.match(/[\u3400-\u9fff]/g) || []).length;
+  return han >= 2 ? 'zh' : 'en';
+}
+
 export function inferAlgiResearchDomain(courseName = '', lessons = []) {
   const text = [courseName, ...lessons.map((lesson) => clean(lesson?.title || lesson?.topic))].join(' ');
   if (BIOMEDICAL.test(text)) return 'biomedical';
@@ -378,9 +390,14 @@ export function planAlgiCourseResearch({ courseName = '', lessons = [], now = Da
   // the cascade before WCAG/HTML sources were checked.
   const canonicalAccessibilityFirst =
     /\b(?:accessib(?:le|ility)|wcag|semantic html|web standards?|screen readers?)\b/i.test(researchContext);
-  const providerOrder = canonicalAccessibilityFirst
+  const baseProviderOrder = canonicalAccessibilityFirst
     ? ['w3c-wai', 'wikipedia', 'doaj']
     : providerOrderForAlgiDomain(domain);
+  // v0.20.06: close reading and source analysis need the text itself, not an
+  // encyclopedia summary of it. Try Wikisource first for those lessons.
+  const primaryTextFirst = PRIMARY_TEXT_LESSON.test(researchContext);
+  const providerOrder = primaryTextFirst ? ['wikisource', ...baseProviderOrder] : baseProviderOrder;
+  const language = researchLanguageForText(researchContext);
   const courseTerms = tokens(courseName);
   const fallbackDomainTerms = tokens(normalizedLessons.map((lesson) => lesson.title).join(' '));
   const domainTerms = unique([...courseTerms, ...fallbackDomainTerms]).slice(0, 5);
@@ -480,6 +497,7 @@ export function planAlgiCourseResearch({ courseName = '', lessons = [], now = Da
     createdAt: new Date(now).toISOString(),
     courseName: clean(courseName),
     domain,
+    language,
     providerOrder,
     privacy: 'course title and uncovered lesson topics only',
     maximumProviderPasses: providerOrder.length,

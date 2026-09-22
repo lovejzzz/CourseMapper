@@ -1,5 +1,5 @@
 import { accountStorageKey, subscribeAccountCache } from '../lib/accountStorage';
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import FocusTrap from 'focus-trap-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useAIConfig } from '../contexts/AIConfigContext';
@@ -13,6 +13,7 @@ import {
 } from '../lib/customDeliverableLibrary';
 import { FEATURES, COLOR_MAP } from '../lib/featureCatalog';
 import { APP_VERSION } from '../lib/appVersion';
+import { materialsRequestedInBrief } from '../lib/briefRequestedMaterials';
 import SetupProgress from '../components/SetupProgress';
 import SetupHelpDialog from '../components/SetupHelpDialog';
 
@@ -596,7 +597,17 @@ function AccountFeatureSelect({
 }) {
   const { user } = useAuth();
   const [setupHelpOpen, setSetupHelpOpen] = useState(false);
-  const { selectedFeatures: selected, setSelectedFeatures: setSelected } = useCourse();
+  const { selectedFeatures: selected, setSelectedFeatures: setSelected, promptText } = useCourse();
+  const [briefSelectionApplied, setBriefSelectionApplied] = useState(false);
+  const briefRequested = useMemo(() => materialsRequestedInBrief(promptText), [promptText]);
+  // Pre-select materials the course description asks for ("include a quiz"),
+  // once, and only when the teacher has not picked anything yet.
+  useEffect(() => {
+    if (briefSelectionApplied) return;
+    setBriefSelectionApplied(true);
+    const onlyMap = selected.length === 0 || (selected.length === 1 && selected[0] === 'courseMap');
+    if (onlyMap && briefRequested.length > 0) setSelected(['courseMap', ...briefRequested]);
+  }, [briefSelectionApplied, briefRequested, selected, setSelected]);
   const [hoveredId, setHoveredId] = useState(null);
   const [showBuilder, setShowBuilder] = useState(false);
   const [definitionError, setDefinitionError] = useState('');
@@ -705,6 +716,8 @@ function AccountFeatureSelect({
     >
       <button
         data-testid="feature-select-continue"
+        type="button"
+        aria-label={`Configure materials, ${selectedMaterialCount === 0 ? 'Course Map only' : `${selectedMaterialCount} materials selected`}`}
         onClick={onNext}
         disabled={selectedCount === 0}
         className={`tactile btn-glow w-full rounded-squircle-xs px-4 py-4 text-sm font-semibold tracking-wide transition-all duration-300 sm:px-10 ${
@@ -898,24 +911,20 @@ function AccountFeatureSelect({
                     <button
                       type="button"
                       onClick={() => toggle(feature.id)}
-                      aria-pressed={isSelected}
+                      role="checkbox"
+                      aria-checked={isSelected}
+                      aria-label={`${feature.label}: ${feature.description}`}
                       className="tactile flex min-h-24 w-full items-start gap-3 rounded-xl p-3 text-left"
                     >
                       {/* Checkbox / Lock */}
                       <div
-                        className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md border transition-all duration-200 ${
-                          isSelected
-                            ? 'border-slate-900 bg-slate-900 dark:border-slate-100 dark:bg-slate-100'
-                            : 'border-slate-200 bg-white/70 dark:border-slate-700 dark:bg-slate-950'
+                        aria-hidden="true"
+                        className={`feature-check mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md border transition-all duration-200 ${
+                          isSelected ? 'feature-check--on' : 'feature-check--off'
                         }`}
                       >
                         {isSelected ? (
-                          <svg
-                            className="h-3 w-3 text-white dark:text-slate-950"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
+                          <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                           </svg>
                         ) : null}

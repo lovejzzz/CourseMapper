@@ -305,12 +305,13 @@ function providerForResolvedCitation(citation = {}) {
   if (/\beurope\s*pmc\b|europepmc\.org/i.test(text)) return 'europe-pmc';
   if (/\bw3c(?:\s+web\s+accessibility\s+initiative)?\b|w3\.org\/(?:TR|WAI)\//i.test(text)) return 'w3c-wai';
   if (/\bwikipedia(?:\.org)?\b/i.test(text)) return 'wikipedia';
+  if (/\bwikisource(?:\.org)?\b/i.test(text)) return 'wikisource';
   if (/\bgutenberg(?:\.org)?\b/i.test(text)) return 'gutenberg';
   return '';
 }
 
 function originForResolvedCitation(citation = {}) {
-  return ['doaj', 'europe-pmc', 'w3c-wai', 'wikipedia'].includes(providerForResolvedCitation(citation))
+  return ['doaj', 'europe-pmc', 'w3c-wai', 'wikipedia', 'wikisource'].includes(providerForResolvedCitation(citation))
     ? 'algi-research'
     : 'genome';
 }

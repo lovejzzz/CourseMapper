@@ -42,7 +42,7 @@ export function createResearchTransport({
     const providerGap =
       parsed.hostname === 'doaj.org'
         ? Math.max(600, gapMs)
-        : parsed.hostname.endsWith('.wikipedia.org')
+        : /\.(?:wikipedia|wikisource)\.org$/.test(parsed.hostname)
           ? Math.max(800, gapMs)
           : gapMs;
     const wait = Math.max(0, (lastByOrigin.get(origin) || 0) + providerGap - Date.now());
@@ -82,7 +82,7 @@ export function createResearchTransport({
       receipt = { origin, kind, startedAt: new Date().toISOString(), status: 'pending' };
       attempts.push(receipt);
       const headers = { Accept: kind === 'json' ? 'application/json' : 'text/html, text/plain;q=0.9' };
-      if (parsed.hostname.endsWith('.wikipedia.org'))
+      if (/\.(?:wikipedia|wikisource)\.org$/.test(parsed.hostname))
         headers['Api-User-Agent'] = 'EduTool.dev/0.18.7 (+https://edutool.dev/#/contact)';
       const response = await Promise.race([
         fetchImpl(url, { headers, signal: controller.signal, credentials: 'omit', referrerPolicy: 'no-referrer' }),

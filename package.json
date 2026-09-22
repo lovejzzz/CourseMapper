@@ -1,6 +1,6 @@
 {
   "name": "course-mapper",
-  "version": "0.20.5",
+  "version": "0.20.6",
   "type": "module",
   "description": "Editable, linked educational materials with source-grounded generation and classroom exports",
   "scripts": {
@@ -9,7 +9,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "start": "npm run preview",
-    "check": "npm run typecheck && npm run lint && npm test && npm run test:authoring && npm run test:compatibility && npm run test:scion && npm run benchmark:outputs:test && npm run benchmark:acceptance:test && npm run build && npm run bundle:check",
+    "check": "npm run typecheck && npm run lint && npm test && npm run test:authoring && npm run test:compatibility && npm run test:scion && npm run benchmark:outputs:test && npm run benchmark:outputs:strict && npm run benchmark:acceptance:test && npm run build && npm run bundle:check",
     "typecheck": "npm run studio:typecheck && npm run scion:typecheck",
     "studio:typecheck": "tsc -p tsconfig.studio.json",
     "scion:typecheck": "tsc -p tsconfig.scion.json",
@@ -32,6 +32,7 @@
     "test:scion": "vitest run --config vitest.scion.config.js",
     "benchmark:outputs": "vite-node scripts/benchmarks/runClassroomBenchmark.ts",
     "benchmark:outputs:test": "node --test scripts/benchmarks/classroomBenchmark.test.mjs",
+    "benchmark:outputs:strict": "vite-node scripts/benchmarks/runClassroomBenchmark.ts --strict --out .audit-work/classroom-benchmark/check",
     "benchmark:acceptance:test": "node --test scripts/benchmarks/classroomAcceptance.test.mjs scripts/benchmarks/inspectClassroomV3.test.mjs scripts/benchmarks/verifyClassroomV3Freeze.test.mjs scripts/benchmarks/classroomV3Probe.test.mjs scripts/benchmarks/classroomV3Checks.test.mjs",
     "benchmark:acceptance": "vite-node scripts/benchmarks/runClassroomAcceptance.ts --split development --strict",
     "benchmark:v3:probe": "vite-node scripts/benchmarks/probeClassroomV3Compiler.mjs",

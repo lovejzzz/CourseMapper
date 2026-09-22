@@ -3787,6 +3787,7 @@ const SOURCE_BACKED_RESOURCE_ORIGINS = new Set([
   'openstax',
   'source-finder',
   'wikipedia',
+  'wikisource',
 ]);
 
 function isSourceBackedResource(resource = {}) {

@@ -1345,3 +1345,24 @@ textarea.developer-code-editor {
   border-color: transparent !important;
   caret-color: #a5b4fc;
 }
+
+/* v0.20.06: material selection checkbox. A dedicated class avoids the global
+   dark-mode surface overrides that match any class containing bg-slate-100. */
+.feature-check--off {
+  border-color: #cbd5e1;
+  background-color: rgba(255, 255, 255, 0.7);
+}
+.feature-check--on {
+  border-color: #4f46e5;
+  background-color: #4f46e5;
+  color: #fff;
+}
+.dark .feature-check--off {
+  border-color: #475569;
+  background-color: transparent;
+}
+.dark .feature-check--on {
+  border-color: #818cf8;
+  background-color: #6366f1;
+  color: #fff;
+}

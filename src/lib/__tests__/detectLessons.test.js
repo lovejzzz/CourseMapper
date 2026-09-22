@@ -216,3 +216,28 @@ describe('explicit singular lesson requests', () => {
     expect(detectExpectedLessons('Create a lesson as an example in a six-lesson course.').expected).toBe(6);
   });
 });
+
+describe('v0.20.06 per-lesson quantities and digit counts', () => {
+  it('does not read "4 questions per lesson" as four lessons', () => {
+    expect(
+      detectExpectedLessons(
+        'Introductory chemistry for 10th graders: 2 lessons of 50 minutes on balancing equations and limiting reagents. Use 2H2 + O2 -> 2H2O with 4 mol H2 and 3 mol O2. Include a quiz with 4 questions per lesson.',
+      ),
+    ).toMatchObject({ expected: 2, confidence: 'high' });
+    expect(detectExpectedLessons('Chemistry basics. Include a quiz with 4 questions per lesson.').expected).toBeNull();
+    expect(detectExpectedLessons('Use 5 slides for each session in the workshop.').expected).toBeNull();
+  });
+
+  it('accepts explicit digit counts', () => {
+    expect(detectExpectedLessons('Descriptive statistics: 2 lessons, 60 minutes each.')).toMatchObject({
+      expected: 2,
+      confidence: 'high',
+    });
+    expect(detectExpectedLessons('Plan 3 sessions on fractions.').expected).toBe(3);
+  });
+
+  it('ignores schedule quantities inside a syllabus', () => {
+    expect(detectExpectedLessons('Meets for 2 sessions per week.').expected).toBeNull();
+    expect(detectExpectedLessons('Week 3 has 2 sessions on graphing.').expected).toBeNull();
+  });
+});

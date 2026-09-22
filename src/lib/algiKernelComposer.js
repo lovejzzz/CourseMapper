@@ -3001,6 +3001,7 @@ export async function composeAlgiLessonKernels({
         buildEuropePmcProvider,
         buildWaiProvider,
         buildWikipediaProvider,
+        buildWikisourceProvider,
       } = await import('./knowledge/algiResearch.js');
       const {
         buildAlgiEvidenceGraph,
@@ -3081,11 +3082,24 @@ export async function composeAlgiLessonKernels({
             maxTargetedFallbacks: 3,
           },
         },
+        wikisource: {
+          id: 'wikisource',
+          provider:
+            !directProvider && typeof researchProvider.httpJson === 'function'
+              ? buildWikisourceProvider(researchProvider.httpJson, { language: researchPlan.language })
+              : null,
+          options: {
+            groupSize: 2,
+            candidatesPerGroup: 12,
+            maxTargetedFallbacks: Math.max(2, Math.min(8, researchQueue.length)),
+            maxTargetedSearchRequests: Math.max(4, Math.min(16, researchQueue.length * 2)),
+          },
+        },
         wikipedia: {
           id: 'wikipedia',
           provider:
             !directProvider && typeof researchProvider.httpJson === 'function'
-              ? buildWikipediaProvider(researchProvider.httpJson)
+              ? buildWikipediaProvider(researchProvider.httpJson, { language: researchPlan.language })
               : null,
           options: {
             groupSize: 3,

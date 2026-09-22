@@ -5,11 +5,11 @@ export function extractExplicitTeachingRequirements(brief = '') {
   const numberWords = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10 };
   const countToken = '(\\d+|one|two|three|four|five|six|seven|eight|nine|ten)';
   const countPattern = new RegExp(
-    `\\b${countToken}\\s*-?\\s*question\\s+quiz\\b|\\bquiz(?:zes)?\\s+(?:with|of)\\s+${countToken}\\s+questions\\b`,
+    `\\b${countToken}\\s*-?\\s*question\\s+quiz\\b|\\bquiz(?:zes)?\\s+(?:with|of)\\s+${countToken}\\s+questions\\b|\\b${countToken}\\s+quiz\\s+questions\\s+(?:per|in each|for each|each)\\s+(?:lesson|session)\\b`,
     'gi',
   );
   const counts = [...text.matchAll(countPattern)].map((match) => {
-    const value = (match[1] || match[2]).toLowerCase();
+    const value = (match[1] || match[2] || match[3]).toLowerCase();
     return numberWords[value] ?? Number(value);
   });
   const uniqueCounts = [...new Set(counts)];

@@ -51,7 +51,6 @@ import {
 export const RESEARCH_ORIGIN = 'algi-research';
 
 /** Browser-safe source APIs, ordered from scholarly evidence to background. */
-const WIKI_API = 'https://en.wikipedia.org/w/api.php';
 const DOAJ_API = 'https://doaj.org/api/search/articles';
 const EUROPE_PMC_API = 'https://www.ebi.ac.uk/europepmc/webservices/rest/search';
 const SOURCE_SNAPSHOT_PROTOCOL = 'retrieved-source-snapshot-sha256-v2';
@@ -221,7 +220,22 @@ function stem(token) {
     .replace(/(?:e)$/, '');
 }
 
+// v0.20.06: Chinese text has no spaces and was stripped entirely by the
+// ASCII tokenizer, so every zh source scored zero relevance. Overlapping Han
+// bigrams give a word-segmentation-free signal; English is unaffected.
+function hanBigrams(text = '') {
+  const grams = [];
+  for (const run of String(text).match(/[\u3400-\u9fff]+/g) || []) {
+    for (let index = 0; index + 1 < run.length; index += 1) grams.push(run.slice(index, index + 2));
+  }
+  return grams;
+}
+
 export function contentTokens(text = '') {
+  return [...asciiContentTokens(text), ...hanBigrams(text)];
+}
+
+function asciiContentTokens(text = '') {
   return (
     String(text)
       .toLowerCase()
@@ -1007,7 +1021,17 @@ export function distractorsFromContrast(sentences, term) {
  * Providers (injected)
  * ------------------------------------------------------------------ */
 
-export function buildWikipediaProvider(httpJson) {
+// v0.20.06: MediaWiki providers are language- and project-aware. A Chinese
+// course reads zh.wikipedia.org; public-domain primary texts (poems, speeches,
+// testimony) come from Wikisource instead of encyclopedia summaries. Every
+// host here must also be listed in the index.html connect-src policy.
+export const MEDIAWIKI_RESEARCH_LANGUAGES = Object.freeze(['en', 'zh']);
+
+export function buildWikipediaProvider(httpJson, { language = 'en', project = 'wikipedia', id = '' } = {}) {
+  const lang = MEDIAWIKI_RESEARCH_LANGUAGES.includes(language) ? language : 'en';
+  const host = `https://${lang}.${project === 'wikisource' ? 'wikisource' : 'wikipedia'}.org`;
+  const WIKI_API = `${host}/w/api.php`;
+  const isSource = project === 'wikisource';
   const recordsFromQuery = (data) => {
     const records = {};
     for (const page of Object.values(data?.query?.pages || {})) {
@@ -1016,7 +1040,7 @@ export function buildWikipediaProvider(httpJson) {
       records[title] = {
         title,
         extract: page.extract,
-        sourceUrl: page.fullurl || `https://en.wikipedia.org/wiki/${encodeURIComponent(title.replace(/\s+/g, '_'))}`,
+        sourceUrl: page.fullurl || `${host}/wiki/${encodeURIComponent(title.replace(/\s+/g, '_'))}`,
         revisionId: page.revisions?.[0]?.revid || null,
         revisionTimestamp: page.revisions?.[0]?.timestamp || '',
       };
@@ -1082,8 +1106,10 @@ export function buildWikipediaProvider(httpJson) {
     return records[requested] || Object.values(records)[0] || null;
   };
   return {
-    id: 'wikipedia',
-    sourceKind: 'open encyclopedia',
+    id: id || (isSource ? 'wikisource' : 'wikipedia'),
+    language: lang,
+    host,
+    sourceKind: isSource ? 'public-domain primary text' : 'open encyclopedia',
     supportsDirectTitles: true,
     async search(topic, limit = 3) {
       const url = `${WIKI_API}?action=query&list=search&srsearch=${encodeURIComponent(topic)}&srlimit=${limit}&format=json&origin=*`;
@@ -1123,10 +1149,14 @@ export function buildWikipediaProvider(httpJson) {
     },
     fullArticle: loadFullArticle,
     articles: loadArticles,
-    license: 'CC BY-SA 4.0',
-    attributionFor: (title) => `Wikipedia contributors, “${title}”`,
-    sourceIdFor: (title) => `wikipedia:${title}`,
+    license: isSource ? 'Public domain text (Wikisource; check the page for edition notes)' : 'CC BY-SA 4.0',
+    attributionFor: (title) => (isSource ? `Wikisource, “${title}”` : `Wikipedia contributors, “${title}”`),
+    sourceIdFor: (title) => `${isSource ? 'wikisource' : 'wikipedia'}${lang === 'en' ? '' : `-${lang}`}:${title}`,
   };
+}
+
+export function buildWikisourceProvider(httpJson, { language = 'en' } = {}) {
+  return buildWikipediaProvider(httpJson, { language, project: 'wikisource', id: 'wikisource' });
 }
 
 const WAI_SOURCE_CATALOG = Object.freeze([
@@ -1942,8 +1972,8 @@ export function buildKernelFromArticle({ topic, title, extract, provider, factCo
         title,
         sourceUrl:
           sourceMeta.sourceUrl ||
-          (provider.id === 'wikipedia'
-            ? `https://en.wikipedia.org/wiki/${encodeURIComponent(String(title || '').replace(/\s+/g, '_'))}`
+          (['wikipedia', 'wikisource'].includes(provider.id)
+            ? `${provider.host || 'https://en.wikipedia.org'}/wiki/${encodeURIComponent(String(title || '').replace(/\s+/g, '_'))}`
             : ''),
         ...(sourceMeta.revisionId ? { revisionId: sourceMeta.revisionId } : {}),
         ...(sourceMeta.revisionTimestamp ? { revisionTimestamp: sourceMeta.revisionTimestamp } : {}),

@@ -140,3 +140,36 @@ test('flags slide crowding from visible text, not verbose hidden receipts', () =
   o.slideDecks.decks[0].slides[0].bullets = ['crowded '.repeat(100)];
   assert.equal(probe(o, 'slideDecks', 'slide-density'), 'fail');
 });
+
+test('accepts an explicitly unweighted syllabus but rejects partial or wrong weights', () => {
+  const o = sample();
+  o.syllabus = {
+    syllabus: { courseRequirements: [{ weight: 'Formative practice — no course-grade weight specified' }] },
+  };
+  const statusOf = () =>
+    evaluateClassroomOutputs(fixture, o).checks.find((c) => c.feature === 'syllabus' && c.id === 'grade-weight-total')
+      ?.status;
+  assert.equal(statusOf(), 'pass');
+  o.syllabus.syllabus.courseRequirements.push({ weight: '40%' });
+  assert.equal(statusOf(), 'fail');
+  o.syllabus.syllabus.courseRequirements = [{ weight: '60%' }, { weight: '40%' }];
+  assert.equal(statusOf(), 'pass');
+  o.syllabus.syllabus.courseRequirements = [{ weight: '60%' }, { weight: '30%' }];
+  assert.equal(statusOf(), 'fail');
+});
+test('detects unlabelled cross-lesson quiz repeats and repeated activity prompts', () => {
+  const o = sample();
+  o.quizBank.quizzes.push({
+    questions: [{ type: 'short_answer', question: 'Write the percentage.', answer: '37.5%' }],
+  });
+  assert.equal(probe(o, 'quizBank', 'no-unlabelled-cross-lesson-repeats'), 'fail');
+  o.quizBank.quizzes[1].questions[0].question = 'Retrieval from Lesson 1: Write the percentage.';
+  assert.equal(probe(o, 'quizBank', 'no-unlabelled-cross-lesson-repeats'), 'pass');
+  o.lessonPlans.lessonPlans[0].outline = [
+    { time: '10 minutes', description: 'Explain the confound.' },
+    { time: '20 minutes', description: 'Explain the confound.' },
+  ];
+  assert.equal(probe(o, 'lessonPlans', 'distinct-activity-prompts'), 'fail');
+  o.lessonPlans.lessonPlans[0].outline[1].description = 'Propose a repaired comparison.';
+  assert.equal(probe(o, 'lessonPlans', 'distinct-activity-prompts'), 'pass');
+});

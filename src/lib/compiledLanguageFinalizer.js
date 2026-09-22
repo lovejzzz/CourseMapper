@@ -289,6 +289,27 @@ function fixMechanicalSeams(value) {
     if (/^[aeiouh]/i.test(word)) return match;
     return `${article === 'An' ? 'A' : 'a'}${gap}${word}`;
   });
+  // v0.20.06: an artifact label such as "An individual written explanation"
+  // is interpolated into many templates. Mid-sentence, its article is an
+  // ordinary word ("revise an individual…"); after a quality adjective the
+  // article is dropped ("Strong individual written explanation anchor").
+  text = text.replace(
+    /\b(Strong|Weak|Developing|Complete|Partial|Proficient|Exemplary)\s+(?:An?|The)\s+(?=[a-z])/g,
+    '$1 ',
+  );
+  text = text.replace(/([a-z,;]) (An|The) (?=[a-z])/g, (match, prev, article) => `${prev} ${article.toLowerCase()} `);
+  // v0.20.06: joined fragments left a lowercase sentence start after a full
+  // stop ("…effect of fertilizer. the stated confound…"). Capitalize it unless
+  // the full stop ends a common abbreviation.
+  // Only a real lowercase word (2+ letters, then a space) is capitalized, so
+  // option labels and math ("B. k(k+1)/2", "x. y") stay untouched.
+  text = text.replace(/(\S+)\.( +)([a-z])(?=[a-z]+[ ,;:])/g, (match, word, gap, letter) => {
+    if (/^(?:e\.g|i\.e|etc|vs|cf|al|approx|no|fig|eq|p|pp|ch|sec|min|max)$/i.test(word) || /\.[a-z]$/i.test(word))
+      return match;
+    if (/^[A-Za-z]$|^\(?[A-Za-z0-9]\)?$/.test(word)) return match;
+    if (!/[a-z0-9%)\]"”’]$/i.test(word)) return match;
+    return `${word}.${gap}${letter.toUpperCase()}`;
+  });
   // Collapse runs of spaces introduced by the fixes above.
   text = text.replace(/ {2,}/g, ' ');
   return text;
@@ -706,7 +727,17 @@ function restoreAuthenticEvidenceSpans(content, bindings = []) {
   walkAndRewrite(content, (value) => {
     let text = value;
     for (const { span, token } of bindings) {
-      if (text.includes(token)) text = text.split(token).join(span);
+      if (!text.includes(token)) continue;
+      // v0.20.06: a quoted source sentence ends with its own full stop, so
+      // the sentence after it starts a new sentence ("…of fertilizer. The
+      // stated confound…"). Capitalize that following word, never the quote.
+      if (/[.!?]$/.test(span)) {
+        text = text.replace(
+          new RegExp(`${escapeRegExp(token)}( +)([a-z])(?=[a-z]+[ ,;:])`, 'g'),
+          (match, gap, letter) => `${token}${gap}${letter.toUpperCase()}`,
+        );
+      }
+      text = text.split(token).join(span);
     }
     return text;
   });

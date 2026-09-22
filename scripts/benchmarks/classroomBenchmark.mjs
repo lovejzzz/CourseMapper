@@ -204,12 +204,57 @@ export function evaluateClassroomOutputs(fixture, outputs) {
     (r) => array(r.weeklySchedule).length === fixture.map.lessons.length,
     (r) => `${array(r.weeklySchedule).length} scheduled rows.`,
   );
+  // Weights either total 100 or are explicitly left unweighted: the compiler
+  // must not invent a grading policy the instructor never supplied (v0.20.06).
+  // A partially weighted syllabus, or a total other than 100, still fails.
   each(
     'syllabus',
     'grade-weight-total',
-    (r) => Math.abs(array(r.courseRequirements).reduce((n, x) => n + number(x.weight), 0) - 100) < 0.01,
+    (r) => {
+      const requirements = array(r.courseRequirements);
+      const numeric = requirements.filter((x) => Number.isFinite(Number.parseFloat(x.weight)));
+      if (numeric.length === requirements.length)
+        return Math.abs(numeric.reduce((n, x) => n + number(x.weight), 0) - 100) < 0.01;
+      return (
+        numeric.length === 0 &&
+        requirements.every((x) =>
+          /no (?:course[- ]grade )?weight (?:is )?specified|unweighted|not graded/i.test(String(x.weight)),
+        )
+      );
+    },
     (r) => array(r.courseRequirements).map((x) => x.weight),
     'critical',
+  );
+  // v0.20.06: the same stem must not reappear unlabelled in another lesson.
+  const quizStems = new Map();
+  const repeatedStems = [];
+  array(outputs.quizBank?.quizzes).forEach((quiz, lessonIndex) => {
+    for (const q of array(quiz?.questions)) {
+      const stem = compact(q?.question).toLowerCase();
+      if (!stem || /^retrieval from lesson \d+:/.test(stem)) continue;
+      if (quizStems.has(stem) && quizStems.get(stem) !== lessonIndex)
+        repeatedStems.push(compact(q.question).slice(0, 90));
+      else quizStems.set(stem, lessonIndex);
+    }
+  });
+  if (array(outputs.quizBank?.quizzes).length > 0)
+    check(
+      'quizBank',
+      'no-unlabelled-cross-lesson-repeats',
+      repeatedStems.length === 0,
+      repeatedStems.length ? repeatedStems : ['No question stem repeats across lessons without a retrieval label.'],
+      'critical',
+    );
+  each(
+    'lessonPlans',
+    'distinct-activity-prompts',
+    (r) => {
+      const prompts = array(r.outline)
+        .map((x) => compact(x?.description).toLowerCase())
+        .filter(Boolean);
+      return new Set(prompts).size === prompts.length;
+    },
+    (r) => array(r.outline).map((x) => compact(x?.description).slice(0, 60)),
   );
   each(
     'lessonPlans',

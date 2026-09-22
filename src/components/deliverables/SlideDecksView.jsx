@@ -486,7 +486,6 @@ function SlideCanvas({
               className="mt-auto text-2xs tracking-widest uppercase font-medium"
               style={{ color: 'rgba(255,255,255,0.35)', fontFamily: bodyFont }}
             >
-              Course:{' '}
               <E
                 value={deckTitle}
                 path={[dataKey, deckIndex, 'lessonTitle']}
