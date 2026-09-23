@@ -13,6 +13,7 @@
 
 import { extractSuppliedMaterial, hasSuppliedMaterial, normalizeMaterialText } from './suppliedMaterial.js';
 import { buildMaterialFallbackItems } from './materialQuizItems.js';
+import { selectionProblem, testsSamePoint } from './materialQuestionChecks.js';
 
 const CACHE_KEY = 'coursemapper-material-items-v1';
 const CACHE_LIMIT = 40;
@@ -179,10 +180,21 @@ export function lessonMaterialQuestions(entry, count) {
   const chosen = [];
   const computed = entry.pool.filter((item) => item.computed);
   const built = entry.pool.filter((item) => !item.computed);
-  for (const item of [...computed, ...entry.authored, ...built]) {
-    if (chosen.length >= count) break;
-    if (chosen.some((prior) => similarQuestion(prior.question, item.question))) continue;
-    chosen.push(item);
+  const candidates = [...computed, ...entry.authored, ...built];
+  const english = entry.material?.language !== 'zh';
+  const maxLookups = count <= 4 ? 1 : 2;
+  // First pass keeps only questions that test a new point (and at most one
+  // look-up); a second pass fills any remaining slots.
+  // Pass 1: new points only, at most one look-up. Pass 2: new points. Pass 3:
+  // anything not already asked, so the quiz always has the requested count.
+  for (const pass of [1, 2, 3]) {
+    for (const item of candidates) {
+      if (chosen.length >= count) break;
+      if (chosen.includes(item) || chosen.some((prior) => similarQuestion(prior.question, item.question))) continue;
+      if (pass === 1 && english && selectionProblem(item, chosen, entry.material, { maxLookups })) continue;
+      if (pass === 2 && english && chosen.some((prior) => testsSamePoint(prior, item))) continue;
+      chosen.push(item);
+    }
   }
   return chosen;
 }
@@ -259,7 +271,8 @@ function overlayQuizEntry(entry, overlayEntry) {
     return { ...entry, suppliedMaterial: materialCard(overlayEntry.material), materialQuestionSource: 'compiler' };
   const count = Math.max(1, Array.isArray(entry.questions) ? entry.questions.length : 4);
   const items = lessonMaterialQuestions(overlayEntry, count);
-  if (items.length === 0) return entry;
+  // Never ship a shorter quiz than the compiler's: keep its questions instead.
+  if (items.length < count) return entry;
   const questions = items.map((item, index) => toQuizQuestion(item, entry.lessonNumber, index));
   const totalPoints = questions.reduce((sum, question) => sum + question.points, 0);
   const totalMinutes = questions.reduce((sum, question) => sum + question.estimatedMinutes, 0);

@@ -1,0 +1,49 @@
+{
+  "E1-en-crowd": {
+    "three counts": "3,?000",
+    "memoir count": "10,?000",
+    "police count": "2,?500",
+    "who reported what": "newspaper|memoir|police log",
+    "reliability reasoning": "closer|at the time|same day|decades later|later|purpose|bias|interest|exaggerat"
+  },
+  "E2-en-fluoride": {
+    "20% fewer": "20 ?%|20 percent",
+    "clinics confound": "clinic",
+    "cannot conclude cause": "cannot (?:be )?(?:sure|conclude|prove|tell|say)|does not prove|doesn't prove|not enough|correlation",
+    "fair test": "control|compar|same (?:towns?|conditions)|without (?:fluoride|clinics)"
+  },
+  "E3-en-frost": {
+    "quoted line": "Nothing gold can stay|first green is gold",
+    "gold image": "gold",
+    "change / loss": "fade|chang|loss|lost|brief|short|temporar|impermanen|doesn't last|does not last",
+    "Eden or dawn": "Eden|dawn"
+  },
+  "E4-en-scores": {
+    "mean 80": "mean[^.]{0,20}(?:=|is|of)\\s*80(?![0-9.])|= 80(?![0-9.])",
+    "median 85": "median[^.]{0,20}(?:=|is|of)\\s*85(?![0-9.])",
+    "range 22": "range[^.]{0,20}(?:=|is|of)\\s*22(?![0-9.])"
+  },
+  "E5-en-freefall": {
+    "29.4 m/s": "29\\.4 ?m/s",
+    "44.1 m": "44\\.1 ?m(?!/)",
+    "from rest": "from rest|initial (?:speed|velocity)[^.]{0,20}(?:zero|0)"
+  },
+  "E6-en-french": {
+    "dialogue used": "Je m'appelle Paul|J'habite à Paris|Comment tu t'appelles",
+    "where each lives": "Lyon|Paris",
+    "English meaning": "my name is|I live|what is your name|what's your name",
+    "verb form": "t'appelles|habites|habite|m'appelle"
+  },
+  "E7-en-gettysburg": {
+    "four score = 87": "87|eighty-seven|eighty seven",
+    "proposition": "created equal|proposition",
+    "civil war test": "civil war|endure|testing",
+    "quoted line": "Four score|conceived in Liberty|long endure"
+  },
+  "E8-en-price": {
+    "price up 25%": "25 ?%|25 percent",
+    "sales down 25%": "fell by 25|decrease of 25|25 ?% (?:fewer|drop|decrease|fall)|50 (?:fewer|sandwiches)",
+    "revenue": "\\$?800|\\$?750|revenue",
+    "law of demand": "demand|inverse|higher price"
+  }
+}

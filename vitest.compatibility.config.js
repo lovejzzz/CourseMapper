@@ -28,6 +28,7 @@ export default defineConfig({
       'src/lib/__tests__/v02006AuditFixes.test.{js,jsx}',
       'src/lib/__tests__/v02007*.test.{js,jsx}',
       'src/lib/__tests__/v02008*.test.{js,jsx}',
+      'src/lib/__tests__/v02009*.test.{js,jsx}',
       'src/lib/__tests__/{detectLessons,deliverableSchemas,exporterUtils,generationCancellation,scionCompilerRoute,keyMaps,directExportIntegrity}.test.js',
       'tests/v01654-editable-object-fields.test.jsx',
       'tests/v015-sync-durable.test.jsx',
