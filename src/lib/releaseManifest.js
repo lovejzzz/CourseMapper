@@ -1472,6 +1472,51 @@ export const CURRENT_RELEASE_CHANGELOG = {
   ...CURRENT_RELEASE,
   sections: [
     {
+      label: 'Who said what',
+      items: [
+        'Questions written from a dialogue keep each line with its speaker, read from their own introduction (“Je m’appelle Marie”). A draft that gave Paul’s “J’habite à Lyon” to Marie is now rejected.',
+        'Questions written from sourced facts keep each figure with its source. A draft that gave the union’s 1,200 to the owners’ newspaper is now rejected, and a question pairs every account with its figure.',
+        'Drafts that call a larger number more reliable, treat a correlation as proof in a cause-and-effect lesson, or give away their own answer are rejected. Scion also receives the material restated as “who says what”.',
+      ],
+    },
+    {
+      label: 'Reasoning over look-up',
+      items: [
+        'Each short quiz has at most one question answered by finding a phrase or number; the others ask why, how or what it shows. Questions that test the same point as an earlier one are dropped, and the quiz is always filled to the number you set.',
+        'New built-in questions with model answers: why two sources give different figures, and whether one change can be said to cause a result when another change happened at the same time.',
+      ],
+    },
+    {
+      label: 'More exact calculations',
+      items: [
+        'Percentage change and revenue are computed for “from A to B” data; motion, reaction and data-set lessons now get four exact questions (average speed, distance in the first half, reactant needed, mode), so they need no model call.',
+        'Measured on fourteen English courses, eight of them written before the change: 12 clean (was 6), no wrong answer keys (was 4). Review answer keys before teaching. Retain v0.20.08 and all earlier release notes.',
+      ],
+    },
+  ],
+};
+
+const V02008_RELEASE_METADATA = {
+  version: '0.20.08',
+  date: 'September 22, 2026',
+  title: 'Questions From Your Own Material',
+  landingTitle: 'EDUTOOL V0.20.08: Quizzes Built From What You Give',
+  highlights: [
+    'Poems, dialogues, data and dated facts in your description now appear in the lesson and drive the quiz.',
+    'Scion writes one checked question at a time; calculations get exact, computed answers.',
+    'Chinese descriptions set lessons, minutes and quiz size correctly and get Chinese questions.',
+  ],
+  landingHighlights: [
+    'Paste a poem, a dialogue or your data; the quiz uses it.',
+    'Calculation answers are computed, not guessed.',
+    '中文课程描述：课时、时长和题数都会被正确读取。',
+  ],
+};
+
+const V02008_RELEASE_CHANGELOG = {
+  ...V02008_RELEASE_METADATA,
+  sections: [
+    {
       label: 'Your material reaches the quiz',
       items: [
         'Material in the description is kept verbatim and shown where it is used — lesson plan, quiz, study guide and assignment: quoted lines and poems (including 《静夜思》：…), dialogues, labeled facts in English or Chinese (Source facts:, 史料事实：, 材料事实：), and data or formulas to work with. Before this release only an English “Source facts:” label was read; a live test found 10 of 12 descriptions lost their material.',
@@ -3343,6 +3388,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V02008_RELEASE_CHANGELOG,
   V02007_RELEASE_CHANGELOG,
   V02006_RELEASE_CHANGELOG,
   V02005_RELEASE_CHANGELOG,
