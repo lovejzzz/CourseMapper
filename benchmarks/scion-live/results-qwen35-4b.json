@@ -1,0 +1,63 @@
+{
+  "protocol": "edutool-scion-live-eval-v1",
+  "model": "Qwen3.5-4B Q4_K_M (unsloth/Qwen3.5-4B-GGUF, 2.74 GB, split into 7 shards), ChatML with an empty <think></think> block, greedy decoding",
+  "build": "v0.20.08 + development-only model switch (src/lib/scionExperimentalModel.js), local Vite build, same WebGPU runtime",
+  "date": "2026-09-22",
+  "compareWith": "results-v0.20.08.json (Gemma 4 E2B)",
+  "gate": { "usable": 11, "total": 12, "families": { "Q": "4/4", "T": "4/4", "A": "3/4" }, "passed": true },
+  "manual": { "clean": 6, "usableAfterOneFix": 3, "notUsable": 3 },
+  "runs": [
+    {
+      "id": "Q1-en-chem",
+      "score": "4/4",
+      "seconds": 86,
+      "manual": "one fix: the conceptual item asks why a student would 'wrongly' think H2 is limiting (H2 is limiting)"
+    },
+    { "id": "Q2-zh-stats", "score": "5/5", "seconds": 77, "manual": "clean (computed items)" },
+    { "id": "Q3-en-physics", "score": "4/4", "seconds": 76, "manual": "clean" },
+    { "id": "Q4-zh-genetics", "score": "4/4", "seconds": 72, "manual": "clean (computed items)" },
+    {
+      "id": "T1-en-letter",
+      "score": "4/5",
+      "seconds": 54,
+      "manual": "clean: good 1848-1850 gap item; one muddled but not wrong answer"
+    },
+    {
+      "id": "T2-zh-bridge",
+      "score": "4/5",
+      "seconds": 104,
+      "manual": "not usable: treats the 1631 rebuilding as construction and calls the gazetteer wrong"
+    },
+    {
+      "id": "T3-en-strike",
+      "score": "4/5",
+      "seconds": 65,
+      "manual": "not usable: keys the owners' count as 1,200, the difference as 300, and the larger count as more reliable"
+    },
+    {
+      "id": "T4-zh-diary",
+      "score": "4/5",
+      "seconds": 107,
+      "manual": "one fix: first item keys 'school ran normally' for the diary; reliability (矛盾, closer in time) and 'cannot be sure' items are good"
+    },
+    {
+      "id": "A1-en-poem",
+      "score": "4/4",
+      "seconds": 75,
+      "manual": "one fix: reads 'Look on my Works … and despair!' as the speaker's own despair"
+    },
+    { "id": "A2-zh-poem", "score": "4/4", "seconds": 100, "manual": "clean" },
+    {
+      "id": "A3-zh-tablet",
+      "score": "4/4",
+      "seconds": 87,
+      "manual": "clean: confound, cannot conclude causation, control group — the intended lesson"
+    },
+    {
+      "id": "A4-en-spanish",
+      "score": "2/4",
+      "seconds": 76,
+      "manual": "not usable for the brief: answers correct but no eres or English-meaning question"
+    }
+  ]
+}

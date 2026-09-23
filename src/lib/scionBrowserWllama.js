@@ -1,4 +1,5 @@
 import { assertSiteInferenceAllowed } from './authoring/inferencePolicy';
+import { scionExperimentModel, scionExperimentModelUrl } from './scionExperimentalModel';
 import {
   SCION_BROWSER_GEMMA4_GGUF,
   SCION_BROWSER_GEMMA4_DOWNLOAD_LABEL,
@@ -303,7 +304,8 @@ function validateLoadedBase(candidate) {
   const metadata = candidate.getModelMetadata?.();
   const architecture = metadata?.meta?.['general.architecture'];
   const type = metadata?.meta?.['general.type'];
-  if (architecture !== 'gemma4' || type !== 'model') {
+  const expectedArchitecture = scionExperimentModel()?.architecture || 'gemma4';
+  if (architecture !== expectedArchitecture || type !== 'model') {
     throw runtimeError('SCION_WLLAMA_IDENTITY', 'Downloaded GGUF metadata does not identify the pinned Gemma 4 base.');
   }
   return metadata;
@@ -331,7 +333,7 @@ export async function loadScionBrowserWllama({
   navigatorLike = globalThis.navigator,
   globalLike = globalThis,
   locationLike = globalThis.location,
-  modelUrl = SCION_BROWSER_GEMMA4_GGUF_URL,
+  modelUrl = scionExperimentModelUrl() || SCION_BROWSER_GEMMA4_GGUF_URL,
   contextSize = 8192,
 } = {}) {
   assertSiteInferenceAllowed();

@@ -1,5 +1,6 @@
 import { SCION_BROWSER_MAX_NEW_TOKENS } from './scionBrowserConstants';
-import { formatScionGemma4Messages, scionVisibleCompletion } from './scionGemma4Prompt';
+import { formatScionGemma4Messages, normalizeScionGemma4Messages, scionVisibleCompletion } from './scionGemma4Prompt';
+import { formatScionChatMlNoThink, scionExperimentModel, stripThinkBlock } from './scionExperimentalModel';
 
 function aborted() {
   return new DOMException('Scion generation was cancelled.', 'AbortError');
@@ -43,7 +44,12 @@ export async function runScionBrowserCompletion(
     throw new Error('Scion grammar must be a nonempty bounded application grammar with thinking disabled.');
   }
   const nPredict = Math.min(SCION_BROWSER_MAX_NEW_TOKENS, Math.max(1, Math.floor(Number(maxNewTokens) || 1024)));
-  const prompt = formatScionGemma4Messages(messages, { thinking });
+  // Development-only candidate comparison (see scionExperimentalModel.js).
+  const experiment = scionExperimentModel();
+  const prompt =
+    experiment?.promptFormat === 'chatml-no-think'
+      ? formatScionChatMlNoThink(normalizeScionGemma4Messages(messages))
+      : formatScionGemma4Messages(messages, { thinking });
   const tokens = await candidate.tokenize(prompt, true);
   if (signal?.aborted) throw aborted();
   const inputTokens = tokens.length + (candidate.addBosToken && tokens[0] !== candidate.bosToken ? 1 : 0);
@@ -74,7 +80,7 @@ export async function runScionBrowserCompletion(
   // Wllama resolves with the partial text on abort; it does not reject. Do
   // not let that text enter JSON repair, material admission or the cache.
   if (signal?.aborted) throw aborted();
-  const visible = scionVisibleCompletion(output);
+  const visible = scionVisibleCompletion(experiment ? stripThinkBlock(output) : output);
   onCompletion?.({
     finishReason: outputTokens >= nPredict ? 'length' : 'stop',
     inputTokens,
