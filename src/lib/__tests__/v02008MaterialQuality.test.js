@@ -287,17 +287,24 @@ describe('v0.20.08 calculated answers', () => {
 
   it('keeps computed questions and asks Scion only for the remaining slots', async () => {
     let calls = 0;
-    const result = await authorMaterialItems({
-      material: chem,
-      lessonTitle: 'Limiting reagents',
+    const callModel = async () => {
+      calls += 1;
+      return '{"question":"Why does one unusually high value pull the mean up more than the median?","answer":"The mean uses every value, so one large value raises it, while the median only depends on the middle value.","quote":"3, 7, 7, 30"}';
+    };
+    // A full set of exact questions needs no model call (v0.20.09).
+    const full = await authorMaterialItems({ material: chem, lessonTitle: 'Limiting reagents', count: 4, callModel });
+    expect(full.items.every((item) => item.computed)).toBe(true);
+    expect(calls).toBe(0);
+    const data = extractSuppliedMaterial('Math: 1 lesson of 45 minutes on the mean. Use the data 3, 7, 7, 30.');
+    const partial = await authorMaterialItems({
+      material: data,
+      lessonTitle: 'The mean',
       count: 4,
-      callModel: async () => {
-        calls += 1;
-        return '{"question":"Why is the reactant with more moles not always the one in excess, given 4 mol H2 and 3 mol O2?","answer":"The ratio in the equation decides it: H2 is used twice as fast as O2.","quote":"4 mol H2 and 3 mol O2"}';
-      },
+      topicText: 'mean',
+      callModel,
     });
-    expect(result.items.slice(0, 3).every((item) => item.computed)).toBe(true);
-    expect(result.items[3].source).toBe('scion-material-item');
+    expect(partial.items.slice(0, 3).every((item) => item.computed)).toBe(true);
+    expect(partial.items[3].source).toBe('scion-material-item');
     expect(calls).toBe(1);
   });
 });

@@ -1,0 +1,35 @@
+{
+  "protocol": "edutool-scion-live-eval-en-heldout-2026-09-22",
+  "build": "v0.20.08 (main 56d95d58), browser-local Scion Gemma 4 E2B",
+  "manual": { "clean": 2, "correctButShallowOrRepetitive": 3, "oneFix": 2, "notUsable": 1, "wrongKeys": 1 },
+  "runs": [
+    {
+      "id": "E1-en-crowd",
+      "score": "4/5",
+      "manual": "correct but all four are look-up questions; no reliability reasoning"
+    },
+    {
+      "id": "E2-en-fluoride",
+      "score": "4/4",
+      "manual": "correct but three of four questions test the same 20% figure"
+    },
+    {
+      "id": "E3-en-frost",
+      "score": "4/4",
+      "manual": "one fix: MC with two defensible answers (precious vs temporary)"
+    },
+    { "id": "E4-en-scores", "score": "3/3", "manual": "clean (computed mean, median, range)" },
+    { "id": "E5-en-freefall", "score": "3/3", "manual": "clean (computed 29.4 m/s, 44.1 m); conceptual items weak" },
+    { "id": "E6-en-french", "score": "4/4", "manual": "one fix: wrong key — gives Paul's 'J'habite à Lyon' to Marie" },
+    {
+      "id": "E7-en-gettysburg",
+      "score": "3/4",
+      "manual": "correct; two questions test the same point (created equal)"
+    },
+    {
+      "id": "E8-en-price",
+      "score": "2/4",
+      "manual": "not usable: two trivial blanks and a vague 'work out the quantity'; no percent change"
+    }
+  ]
+}

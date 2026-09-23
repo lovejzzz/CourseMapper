@@ -13,6 +13,19 @@
 
 import { hasLearnerFacingJargon } from './learnerFacingText.js';
 import { normalizeMaterialText, materialNumbers } from './suppliedMaterial.js';
+import {
+  CAUSAL_TOPIC_RE,
+  attributionProblem,
+  dialogueSpeakers,
+  sourceRecords,
+  changeItems,
+  conflictingFigureItems,
+  confoundItems,
+  keyedText,
+  reasoningProblem,
+  selectionProblem,
+  sourceFigureItems,
+} from './materialQuestionChecks.js';
 
 const LETTERS = ['A', 'B', 'C', 'D'];
 const CJK_RE = /[㐀-鿿]/g;
@@ -52,7 +65,9 @@ const COPY = {
     range: (values) => `Find the range of ${values}.`,
     variance: (values) => `Find the (population) variance of ${values}.`,
     sampleVariance: (values) => `Find the sample variance of ${values} (divide by n − 1).`,
+    mode: (values) => `Find the mode of ${values}.`,
     statLabel: {
+      mode: 'mode',
       mean: 'mean',
       median: 'median',
       range: 'range',
@@ -86,7 +101,15 @@ const COPY = {
     range: (values) => `求数据 ${values} 的极差。`,
     variance: (values) => `求数据 ${values} 的方差（总体方差）。`,
     sampleVariance: (values) => `求数据 ${values} 的样本方差（除以 n − 1）。`,
-    statLabel: { mean: '平均数', median: '中位数', range: '极差', variance: '总体方差', sampleVariance: '样本方差' },
+    mode: (values) => `求数据 ${values} 的众数。`,
+    statLabel: {
+      mean: '平均数',
+      median: '中位数',
+      range: '极差',
+      variance: '总体方差',
+      sampleVariance: '样本方差',
+      mode: '众数',
+    },
     squares: '离差平方和',
     blankAnswer: (answer, line) => `${answer}（原文：“${line}”）`,
     reviewNote: '课前请写好参考答案；材料本身不能确定唯一的标准表述。',
@@ -353,6 +376,28 @@ function kinematicsItems(line, language) {
       explanation: `d = ½at² = 0.5 × ${a} × ${t}² = ${formatNumber(d)} m`,
       materialQuote: line,
     },
+    {
+      type: 'short_answer',
+      bloomsLevel: 'Apply',
+      question: zh ? `这 ${t} s 内的平均速度是多少？` : `What is its average speed over those ${t} s?`,
+      answer: `${formatNumber(d / t)} m/s`,
+      explanation: zh
+        ? `平均速度 = 位移 ÷ 时间 = ${formatNumber(d)} ÷ ${t} = ${formatNumber(d / t)} m/s（由静止匀加速时等于末速度的一半）`
+        : `average speed = distance ÷ time = ${formatNumber(d)} ÷ ${t} = ${formatNumber(d / t)} m/s (half the final speed, because it starts from rest)`,
+      materialQuote: line,
+    },
+    {
+      type: 'short_answer',
+      bloomsLevel: 'Analyze',
+      question: zh
+        ? `前一半时间（${formatNumber(t / 2)} s）内它通过多少位移？为什么不是总位移的一半？`
+        : `How far does it travel in the first half of the time (${formatNumber(t / 2)} s), and why is that not half of the total distance?`,
+      answer: zh
+        ? `${formatNumber(d / 4)} m，只有总位移的四分之一，因为速度一直在增大。`
+        : `${formatNumber(d / 4)} m — only a quarter of the total, because the object keeps speeding up.`,
+      explanation: `d = ½ × ${a} × ${formatNumber(t / 2)}² = ${formatNumber(d / 4)} m`,
+      materialQuote: line,
+    },
   ];
 }
 
@@ -429,6 +474,16 @@ function stoichiometryItems(line, language) {
       explanation: `${amounts[1 - limitingIndex]} − ${formatNumber(extent)} × ${excess.coefficient} = ${formatNumber(leftover)} mol`,
       materialQuote: line,
     },
+    {
+      type: 'short_answer',
+      bloomsLevel: 'Apply',
+      question: zh
+        ? `要让 ${amounts[limitingIndex]} mol ${limiting.formula} 完全反应，需要多少 mol ${excess.formula}？`
+        : `How many mol of ${excess.formula} are needed to react with all ${amounts[limitingIndex]} mol of ${limiting.formula}?`,
+      answer: `${formatNumber(extent * excess.coefficient)} mol ${excess.formula}`,
+      explanation: `${amounts[limitingIndex]} mol ${limiting.formula} × ${excess.coefficient}/${limiting.coefficient} = ${formatNumber(extent * excess.coefficient)} mol ${excess.formula}`,
+      materialQuote: line,
+    },
   ];
 }
 
@@ -471,6 +526,7 @@ function statisticsItems(line, language, topicText) {
       `${sorted.at(-1)} − ${sorted[0]} = ${formatNumber(sorted.at(-1) - sorted[0])}`,
       copy.statLabel.range,
     );
+    modeItem();
     return items;
   }
   if (wants('mean|average', '平均'))
@@ -492,6 +548,15 @@ function statisticsItems(line, language, topicText) {
       copy.statLabel.sampleVariance,
     );
   }
+  // The mode, when exactly one value repeats most often.
+  const modeItem = () => {
+    const counts = new Map();
+    for (const value of values) counts.set(value, (counts.get(value) || 0) + 1);
+    const top = Math.max(...counts.values());
+    const modes = [...counts].filter(([, n]) => n === top).map(([value]) => value);
+    if (top < 2 || modes.length !== 1) return;
+    add(copy.mode(list), modes[0], `${modes[0]} appears ${top} times`, copy.statLabel.mode);
+  };
   const rangeItem = () =>
     add(
       copy.range(list),
@@ -502,6 +567,7 @@ function statisticsItems(line, language, topicText) {
   if (wants('range|spread', '极差')) rangeItem();
   // The range is always a fair extra question on a data set.
   if (items.length && !wants('range|spread', '极差')) rangeItem();
+  modeItem();
   return items;
 }
 
@@ -586,7 +652,14 @@ function openItems(material, block, language) {
 export function buildMaterialFallbackItems(material, { count = 4, topicText = '' } = {}) {
   if (!material?.blocks?.length) return [];
   const language = material.language === 'zh' ? 'zh' : 'en';
-  const computed = [];
+  // Exact questions built from the whole material (who gave which figure,
+  // percentage change and revenue) come before per-line calculations.
+  const computed = [
+    ...sourceFigureItems(material),
+    ...conflictingFigureItems(material),
+    ...confoundItems(material, topicText),
+    ...changeItems(material),
+  ];
   const closed = [];
   const open = [];
   let index = 0;
@@ -648,11 +721,11 @@ export function buildMaterialFallbackItems(material, { count = 4, topicText = ''
 const FOCUS = {
   passage: {
     en: [
-      'what one specific line says (recall of the exact words)',
       'the meaning of one image or word choice in a quoted line',
       'the feeling or tone of the speaker, supported by a quoted line',
-      'a contrast or change between two lines',
+      'a contrast or change between two lines, and what it shows',
       'what the whole passage suggests, supported by two quoted lines',
+      'what one specific line says (recall of the exact words)',
     ],
     zh: [
       '某一句的原文（记忆）',
@@ -664,10 +737,10 @@ const FOCUS = {
   },
   dialogue: {
     en: [
-      'the meaning of one line of the dialogue',
-      'a grammar form used in the dialogue (name the form and the line)',
+      'the English meaning of one line of the dialogue (the answer is the translation)',
+      'how a verb in the dialogue changes for a different person (for example "I" versus "you")',
       'choosing the correct reply to a line',
-      'what one speaker says about themselves',
+      'what one named speaker says about themselves (check which speaker said it)',
       'completing a line with the correct word',
     ],
     zh: [
@@ -680,11 +753,11 @@ const FOCUS = {
   },
   facts: {
     en: [
-      'a specific date, number or name stated in the material',
+      'why two of the accounts might disagree (who made each one, when, and for what purpose)',
+      'which account was made closest to the event, and why that matters',
+      'what the material cannot prove on its own, and what further evidence would help',
       'the order of events or the time between them',
-      'which statement is more reliable and why',
-      'what the material cannot prove on its own',
-      'why two statements might disagree',
+      'a specific date, number or name stated in the material',
     ],
     zh: [
       '材料中的具体日期、数字或名称',
@@ -698,8 +771,8 @@ const FOCUS = {
   // raise scores?") need causal reasoning, not source reliability.
   causal: {
     en: [
-      'what changed, and by how much, according to the material',
       'another event in the material that could explain the change',
+      'what changed, and by how much, according to the material',
       'whether the material proves the cause (and why not)',
       'how to design a fair test or comparison group to check the cause',
       'what extra data would separate the two explanations',
@@ -736,8 +809,17 @@ function materialForPrompt(material) {
     .join('\n\n');
 }
 
-const CAUSAL_TOPIC_RE =
-  /\b(?:caus(?:e|al|ation)|confound\w*|experiment\w*|control group|correlat\w*|fair test)\b|因果|混杂|对照|实验|相关/i;
+// The same material restated as "who said what", so a small model keeps each
+// statement with its own speaker or source.
+function whoSaidWhat(material) {
+  const speakers = dialogueSpeakers(material);
+  if (speakers)
+    return `Who says what:\n${speakers.map((speaker) => speaker.lines.map((line) => `- ${speaker.name}: ${line}`).join('\n')).join('\n')}`;
+  const records = sourceRecords(material);
+  if (records.length >= 2)
+    return `Who says what:\n${records.map((record) => `- ${record.source} ${record.verb}: ${record.claim}`).join('\n')}`;
+  return '';
+}
 
 export function buildMaterialItemPrompt({
   material,
@@ -750,6 +832,7 @@ export function buildMaterialItemPrompt({
   retryReason = '',
   avoidCalculations = false,
   topicText = '',
+  requireReasoning = false,
 }) {
   const language = material?.language === 'zh' ? 'zh' : 'en';
   const kind = material?.blocks?.[0]?.kind || 'facts';
@@ -764,6 +847,7 @@ export function buildMaterialItemPrompt({
     `Write question ${index + 1} of ${total} for the lesson "${lessonTitle}"${courseTitle ? ` in the course "${courseTitle}"` : ''}.`,
     hasMaterial ? 'Use ONLY this material from the teacher:' : '',
     hasMaterial ? `<<<\n${materialForPrompt(material)}\n>>>` : '',
+    language === 'en' && hasMaterial ? whoSaidWhat(material) : '',
     `Question type: ${type === 'multiple_choice' ? 'multiple choice with 4 options and one correct answer' : 'short answer (no options; students write a sentence)'}.`,
     `Focus: ${focus[index % focus.length]}.`,
     'Ask about the content itself (words, facts, numbers, meaning). Never ask about "evidence", "records", "sources" or "claims" in general.',
@@ -773,6 +857,12 @@ export function buildMaterialItemPrompt({
       : 'Write in English. Keep quoted material exactly as written (including any other language).',
     avoidCalculations
       ? 'The calculations are already covered. Ask a conceptual question (meaning, reasoning, a common mistake) whose answer needs no new number.'
+      : '',
+    language === 'en' && requireReasoning
+      ? 'This question must need reasoning (why, how, what it shows, what would change). A student must not be able to answer by copying one phrase or number from the material.'
+      : '',
+    language === 'en'
+      ? 'Keep every statement with the person or source who made it. Judge reliability by who made an account, when and why, never by how large its number is.'
       : '',
     previous.length ? `Do not repeat these questions:\n${previous.map((q) => `- ${q}`).join('\n')}` : '',
     retryReason ? `Your last answer was rejected: ${retryReason}. Fix that.` : '',
@@ -822,7 +912,8 @@ function groundedIn(material, item) {
   const quote = normalizeMaterialText(item.quote);
   if (quote && quote.length >= 2 && body.includes(quote)) return true;
   const numbers = materialNumbers(material);
-  const said = `${item.question} ${item.answer} ${optionList(item.options).join(' ')}`;
+  // The explanation often carries the quoted line ("Marie says 'Je m'appelle Marie'").
+  const said = `${item.question} ${item.answer} ${item.explanation || ''} ${optionList(item.options).join(' ')}`;
   if (numbers.some((number) => said.includes(number))) return true;
   // A question that reproduces a stretch of the material is grounded too.
   const saidNormal = normalizeMaterialText(said);
@@ -856,7 +947,21 @@ function unverifiedNumbers(text, verified) {
     .filter((n) => !verified.has(n));
 }
 
-export function validateMaterialItem(
+export function validateMaterialItem(raw, options) {
+  const result = validateMaterialItemShape(raw, options);
+  if (!result.item || options.language === 'zh') return result;
+  // v0.20.09: who-said-what and reasoning checks (English material).
+  const wrongSource = attributionProblem(result.item, options.material);
+  if (wrongSource) return { reason: wrongSource };
+  const reasoning = reasoningProblem(result.item, {
+    material: options.material,
+    causalTopic: Boolean(options.causalTopic),
+  });
+  if (reasoning) return { reason: reasoning };
+  return result;
+}
+
+function validateMaterialItemShape(
   raw,
   { material, type, previous = [], previousAnswers = [], language, verifiedNumbers = null, hasComputed = false },
 ) {
@@ -947,11 +1052,7 @@ function checkKeyedNumbers(keyed, { verifiedNumbers, hasComputed }) {
   return { reviewNote: 'Check this answer: Scion calculated it and the app could not verify the number.' };
 }
 
-function keyedAnswerText(item) {
-  if (item?.type !== 'multiple_choice') return String(item?.answer || '');
-  const option = (item.options || []).find((entry) => entry.startsWith(`${item.answer}.`));
-  return option ? option.slice(3) : '';
-}
+const keyedAnswerText = keyedText;
 
 /** Planned type for each slot: mostly multiple choice, ending with a short answer. */
 export function plannedItemTypes(count) {
@@ -985,6 +1086,9 @@ export async function authorMaterialItems({
     : [];
   const computedItems = fallback.filter((item) => item.computed);
   const verifiedNumbers = material?.blocks?.length ? verifiedAnswerNumbers(material) : null;
+  const causalTopic = CAUSAL_TOPIC_RE.test(`${topicText} ${lessonTitle} ${courseTitle}`);
+  // One look-up question per short quiz; the rest must need reasoning.
+  const maxLookups = count <= 4 ? 1 : 2;
   // Exactly computed questions are never re-asked of the model.
   const items = computedItems.slice(0, count);
   items.forEach((item, index) => onItem?.(item, index));
@@ -1013,6 +1117,7 @@ export async function authorMaterialItems({
             retryReason,
             avoidCalculations: computedItems.length > 0,
             topicText,
+            requireReasoning: index > 0,
           }),
         );
       } catch (error) {
@@ -1030,7 +1135,11 @@ export async function authorMaterialItems({
           language,
           verifiedNumbers,
           hasComputed: computedItems.length > 0,
+          causalTopic,
         });
+        const choice =
+          result.item && language === 'en' ? selectionProblem(result.item, items, material, { maxLookups }) : '';
+        if (choice) result = { reason: choice };
       } catch (error) {
         // One malformed draft must never stop the rest of the quiz.
         result = { reason: `the reply could not be read (${error?.message || error})` };
@@ -1044,13 +1153,14 @@ export async function authorMaterialItems({
     }
     if (!accepted) {
       const keyedSoFar = items.map(keyedAnswerText).join(' ');
-      accepted = fallback.find(
-        (item) =>
-          !items.includes(item) &&
-          !items.some((prior) => similarity(prior.question, item.question) > 0.6) &&
-          // Do not ask again for an answer an earlier question already keys.
-          !(item.type === 'multiple_choice' && keyedSoFar.includes(keyedAnswerText(item))),
-      );
+      const fresh = (item) =>
+        !items.includes(item) &&
+        !items.some((prior) => similarity(prior.question, item.question) > 0.6) &&
+        // Do not ask again for an answer an earlier question already keys.
+        !(item.type === 'multiple_choice' && keyedSoFar.includes(keyedAnswerText(item)));
+      accepted =
+        fallback.find((item) => fresh(item) && !selectionProblem(item, items, material, { maxLookups })) ||
+        fallback.find(fresh);
       if (accepted) fallback.splice(fallback.indexOf(accepted), 1);
     }
     if (accepted) {

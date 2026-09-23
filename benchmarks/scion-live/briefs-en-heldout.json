@@ -1,0 +1,46 @@
+{
+  "protocol": "edutool-scion-live-eval-en-heldout-2026-09-22",
+  "rule": "Written before any v0.20.09 change was made or run. Not edited after results are seen. Used to check that improvements generalize beyond the original twelve.",
+  "inputs": [
+    {
+      "id": "E1-en-crowd",
+      "lang": "en",
+      "brief": "History for 10th graders: 1 lesson of 45 minutes on comparing accounts. Source facts: A city newspaper reported the next morning that about 3,000 people joined the 1919 march. A participant's memoir published in 1959 says more than 10,000 people marched. The police log for that day lists 2,500 marchers. Include a quiz with 4 questions per lesson, an assignment and a study guide."
+    },
+    {
+      "id": "E2-en-fluoride",
+      "lang": "en",
+      "brief": "Science for 9th graders: 1 lesson of 45 minutes on cause and correlation. Source facts: Towns that added fluoride to their water had 20% fewer cavities after ten years. During the same ten years those towns also opened new free dental clinics. Include a quiz with 4 questions per lesson, an assignment and a study guide."
+    },
+    {
+      "id": "E3-en-frost",
+      "lang": "en",
+      "brief": "English for 8th graders: 1 lesson of 40 minutes, close reading of Robert Frost's Nothing Gold Can Stay. Use these lines: \"Nature's first green is gold, Her hardest hue to hold. Her early leaf's a flower; But only so an hour. Then leaf subsides to leaf. So Eden sank to grief, So dawn goes down to day. Nothing gold can stay.\" Include a quiz with 4 questions per lesson, an assignment and a study guide."
+    },
+    {
+      "id": "E4-en-scores",
+      "lang": "en",
+      "brief": "Math for 7th graders: 1 lesson of 45 minutes on mean, median and range. Use the data 72, 85, 90, 85, 68. Include a quiz with 4 questions per lesson, an assignment and a study guide."
+    },
+    {
+      "id": "E5-en-freefall",
+      "lang": "en",
+      "brief": "Physics for 11th graders: 1 lesson of 50 minutes on free fall. A ball is dropped from rest and accelerates at 9.8 m/s^2 for 3 s. Include a quiz with 4 questions per lesson, an assignment and a study guide."
+    },
+    {
+      "id": "E6-en-french",
+      "lang": "en",
+      "brief": "French for beginners: 1 lesson of 45 minutes on introductions with s'appeler and habiter. Use this dialogue: \"Bonjour, je m'appelle Marie. Comment tu t'appelles ?\" \"Je m'appelle Paul. J'habite à Lyon. Et toi ?\" \"J'habite à Paris.\" Include a quiz with 4 questions per lesson, an assignment and a study guide."
+    },
+    {
+      "id": "E7-en-gettysburg",
+      "lang": "en",
+      "brief": "US history for 11th graders: 1 lesson of 50 minutes, close reading of the Gettysburg Address. Use these lines: \"Four score and seven years ago our fathers brought forth on this continent, a new nation, conceived in Liberty, and dedicated to the proposition that all men are created equal. Now we are engaged in a great civil war, testing whether that nation, or any nation so conceived and so dedicated, can long endure.\" Include a quiz with 4 questions per lesson, an assignment and a study guide."
+    },
+    {
+      "id": "E8-en-price",
+      "lang": "en",
+      "brief": "Economics for 12th graders: 1 lesson of 45 minutes on price and demand. Use this data: a store raised the price of a sandwich from $4 to $5, and weekly sales fell from 200 to 150 sandwiches. Include a quiz with 4 questions per lesson, an assignment and a study guide."
+    }
+  ]
+}

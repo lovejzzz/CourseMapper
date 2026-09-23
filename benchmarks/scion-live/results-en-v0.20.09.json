@@ -1,0 +1,74 @@
+{
+  "protocol": "edutool-scion-live-eval-en-2026-09-22",
+  "build": "v0.20.09 candidate, local Vite build, browser-local Scion Gemma 4 E2B",
+  "scope": "English only: the six English briefs of briefs.json and the eight of briefs-en-heldout.json (written before any v0.20.09 change).",
+  "compareWith": ["results-v0.20.08.json", "results-en-heldout-baseline-v0.20.08.json"],
+  "summary": {
+    "v0.20.08": { "clean": 6, "correctButShallowOrRepetitive": 3, "oneFix": 3, "notUsable": 2, "wrongKeys": 4 },
+    "v0.20.09": { "clean": 12, "oneFix": 2, "notUsable": 0, "wrongKeys": 0 }
+  },
+  "runs": [
+    {
+      "id": "Q1-en-chem",
+      "before": "clean",
+      "after": "clean: four exact questions (limiting reagent, 4 mol H2O, 1 mol O2 left, 2 mol O2 needed); no model call"
+    },
+    { "id": "Q3-en-physics", "before": "clean", "after": "clean: exact final speed, distance, average speed" },
+    {
+      "id": "T1-en-letter",
+      "before": "clean",
+      "after": "clean: adds a secondhand-knowledge question (heard from his brother)"
+    },
+    {
+      "id": "T3-en-strike",
+      "before": "one fix: 'the larger count is more reliable'",
+      "after": "clean: exact source–figure pairing, why the sources disagree, 'no third count survives'"
+    },
+    {
+      "id": "A1-en-poem",
+      "before": "clean",
+      "after": "one fix: one item attributes the desert description to Ozymandias; the other three are strong"
+    },
+    {
+      "id": "A4-en-spanish",
+      "before": "not usable: who-is-from-where key wrong",
+      "after": "one fix: every key correct; one question has a wrong premise (who asked '¿Y tú?')"
+    },
+    {
+      "id": "E1-en-crowd",
+      "before": "correct but four look-ups",
+      "after": "clean: exact pairing, reliability question, comparison of two counts"
+    },
+    {
+      "id": "E2-en-fluoride",
+      "before": "correct but three questions on the same 20%",
+      "after": "clean: 'can we conclude cause?' with fair-test answer, correlation vs causation"
+    },
+    {
+      "id": "E3-en-frost",
+      "before": "one fix: two defensible options",
+      "after": "clean; two questions on the same lines"
+    },
+    { "id": "E4-en-scores", "before": "clean", "after": "clean: mean 80, median 85, range 22, mode 85" },
+    {
+      "id": "E5-en-freefall",
+      "before": "clean (weak conceptual items)",
+      "after": "clean: 29.4 m/s, 44.1 m, 14.7 m/s, first half 11.03 m"
+    },
+    {
+      "id": "E6-en-french",
+      "before": "wrong key: Paul's 'J'habite à Lyon' given to Marie",
+      "after": "clean: correct who-lives-where pairing"
+    },
+    {
+      "id": "E7-en-gettysburg",
+      "before": "correct; two questions on 'created equal'",
+      "after": "clean; two general 'explain the line' questions"
+    },
+    {
+      "id": "E8-en-price",
+      "before": "not usable: trivial blanks, no calculation",
+      "after": "clean: +25% price, −25% sales, revenue $800 → $750, why revenue fell"
+    }
+  ]
+}

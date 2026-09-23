@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.20.09 — September 22, 2026
+
+- Keep each line and figure with the speaker or source who said it: speakers are read from their own introductions, sourced facts are split into source and claim, and Scion drafts that attribute them wrongly are rejected. Scion also receives the material restated as "who says what".
+- Reject drafts that judge reliability by the size of a number, treat a correlation as proof in a cause-and-effect lesson, or give away their own answer.
+- Allow one look-up question per short quiz, drop questions that test the same point, and always fill the quiz to the requested count (a short quiz previously failed validation).
+- Add built-in questions: source–figure pairing, why sources give different figures, the confounding question, percentage change and revenue; motion, reaction and data-set lessons get four exact questions and no model call.
+- English live test: 12 of 14 courses clean (was 6), no wrong answer keys (was 4); eight of the fourteen briefs were written before the change. Retain v0.20.08 and all earlier release notes.
+
 ## v0.20.08 — September 22, 2026
 
 - Keep the material in a course description verbatim and use it: quoted lines and poems, titled Chinese texts (《静夜思》：…), dialogues, labeled facts in English or Chinese (Source facts:, 史料事实：, 材料事实：) and data or formulas. It is shown in the lesson plan, quiz, study guide and assignment. Previously only an English "Source facts:" label was read.
