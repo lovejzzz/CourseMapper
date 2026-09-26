@@ -1,10 +1,10 @@
-# CourseMapper Redesign — Design Doc
+# Folio — Design Doc
 
 Sep 26, 2026 · Living version with diagrams and comments: https://claude.ai/code/artifact/ffbdc1c9-66b8-4a27-ba8d-14b56ffc9ed4
 
 ## TL;DR
 
-Rebuild EduTool as a small, typed, lesson-first "course binder": one course document is the only source of truth, and each of the ten materials is a view of it. Today's product has good instincts, but they are buried under about 292k lines of mostly untyped JavaScript. There are at least eight overlapping course formats, a 29,138-line regex compiler, and roughly 10.5k lines that repair model output after it arrives.
+Rebuild EduTool as Folio, a small, typed, lesson-first "course binder": one course document is the only source of truth, and each of the ten materials is a view of it. Today's product has good instincts, but they are buried under about 292k lines of mostly untyped JavaScript. There are at least eight overlapping course formats, a 29,138-line regex compiler, and roughly 10.5k lines that repair model output after it arrives.
 
 The new version rests on four decisions:
 
@@ -14,6 +14,36 @@ The new version rests on four decisions:
 4. **Model-agnostic, schema-first AI.** Generation is small and structured (one lesson, one task, one question at a time) through a single `Inference` port. Behind it sit bring-your-own-key cloud models and optional local Scion. Output is validated against schemas before it is committed, never regex-patched afterwards.
 
 The target is about 25–35k lines of TypeScript, an initial download under 150 KB gzip, and WCAG 2.2 AA. It ships in five gated phases, the first being a single lesson with three materials, before replacing the current app.
+
+## The name: Folio · 墨页
+
+The new product is called **Folio**, and **墨页** in Chinese. A folio is a single sheet folded into pages, and also a portfolio that holds work together. That is what this design is: sheets of teaching material, bound into one course.
+
+### Why it fits the design
+
+- **Paper and ink.** The visual language is sheets on a desk (section 4). A folio _is_ the sheet.
+- **One truth, many pages.** A folio is one sheet folded into several pages. In the same way, one course document becomes ten materials (section 6.2).
+- **The binder.** Teachers keep lessons in folios, so the binder-tab system becomes the brand mark.
+- **Plain and bilingual.** It is short and easy to say in English and Chinese. It avoids the "Edu-", "AI" and "GPT" clichés and sounds like a notebook, not a platform.
+- **墨页 (ink + page).** The name uses the two materials of the design. It reads calm and literary rather than technical.
+
+### Brand system
+
+| Element          | Decision                                                                                             |
+| ---------------- | ---------------------------------------------------------------------------------------------------- |
+| Wordmark         | `folio` in lowercase Instrument Serif; the dot of the _i_ is a small ink drop in `accent` blue       |
+| Mark             | A sheet with a folded corner and one binder tab on its right edge; legible as a 16 px favicon        |
+| Tagline          | "Your course, bound together." / 中文：“一门课，装订成册。”                                          |
+| In-product names | File type `.folio`, evaluation repo `folio-evals`, hosted service "Folio relay"                      |
+| Transition       | Launch as "Folio, from EduTool" on the current domain, then move to Folio's own domain after cutover |
+
+Three other names were considered and set aside:
+
+- **Quire** (a gathering of sheets): lovely, but hard to pronounce.
+- **Margin**: says nothing about building a course.
+- **Lectern**: loses the paper idea.
+
+"Folio" is a common word, so a trademark and domain check is required before the public beta (see 8.4).
 
 ## 1. Audit of the current project
 
@@ -118,7 +148,7 @@ The homepage has the right idea: one question and one box. Its execution is gene
 
 ## 2. Product vision and principles
 
-EduTool is the teacher's binder, made intelligent: describe what you want to teach, get a coherent set of materials, and fix one thing without re-fixing ten documents.
+Folio is the teacher's binder, made intelligent: describe what you want to teach, get a coherent set of materials, and fix one thing without re-fixing ten documents.
 
 **Promise:** from a paragraph to a classroom-ready, editable course in under five minutes, where every material agrees with every other.
 
@@ -431,13 +461,13 @@ Jobs run in a worker, stream partial results into map cells, and can be cancelle
 | Adapter                                        | Status at launch          | Notes                                                                             |
 | ---------------------------------------------- | ------------------------- | --------------------------------------------------------------------------------- |
 | Bring your own key (Anthropic, OpenAI, Google) | Default                   | Keys stay in this browser's storage; the request goes straight to the provider    |
-| EduTool relay                                  | Decision needed (see 8.4) | Reuses the `server/scion` quota design; gives key-less users a free tier          |
+| Folio relay                                    | Decision needed (see 8.4) | Reuses the `server/scion` quota design; gives key-less users a free tier          |
 | On this device (Scion)                         | Experimental              | Behind a clear "3 GB download, slower, private" choice; same schemas, same checks |
 
 ### 6.5 Persistence, files and sync
 
 - **Autosave** writes each command to IndexedDB within 300 ms. There are no fallback tiers and nothing is ever dropped. If storage is full, the app says so and offers export or sync.
-- **Files:** an `.edutool` file is a zip holding `course.json`, `sources/` and `manifest.json`. Legacy `.coursemapper` files import one way, through a tested migrator.
+- **Files:** an `.folio` file is a zip holding `course.json`, `sources/` and `manifest.json`. Legacy `.coursemapper` files import one way, through a tested migrator.
 - **Sync (optional):** Firebase Auth plus one Firestore document per course, using compare-and-swap on `revision` (the current rules' idea). App Check is on and the rules validate the schema version and size.
 
 ### 6.6 Export
@@ -461,7 +491,7 @@ packages/ui/       tokens, primitives, domain components, Ladle stories
 services/relay/    optional hosted inference, auth and quotas (Worker)
 ```
 
-Research, adapter training, benchmark datasets and dated review logs move to a separate `edutool-evals` repository. It imports `core` and `ai` as packages. Release notes move to a Markdown changelog rendered at build time, not 6,657 lines of source.
+Research, adapter training, benchmark datasets and dated review logs move to a separate `folio-evals` repository. It imports `core` and `ai` as packages. Release notes move to a Markdown changelog rendered at build time, not 6,657 lines of source.
 
 ## 7. Quality budgets
 
@@ -508,7 +538,7 @@ Every budget below is a failing CI check, not an aspiration. Today's bundle budg
 
 ### 7.4 Output quality
 
-Output quality is measured outside the app, in `edutool-evals`, so the product never tunes itself to its own tests.
+Output quality is measured outside the app, in `folio-evals`, so the product never tunes itself to its own tests.
 
 - **Frozen sets:** a development set and a held-out set of briefs in English and Chinese, across at least 12 subjects and 3 levels.
 - **Automatic checks:** schema validity, answer correctness where it can be computed, and absence of duplicate questions, run on every model or prompt change.
@@ -556,7 +586,7 @@ Phase 1 is the one that matters: if five teachers cannot finish a lesson unaided
 ### 8.4 Open questions for the owner
 
 - [ ] **Hosted inference.** Earlier plans ruled out any rented inference server. The evidence in section 1.3 suggests that rule drove most of the complexity. Can a small relay with per-user quotas be allowed, or is bring-your-own-key plus on-device the permanent answer?
-- [ ] **Name.** Keep "EduTool", or rename the repo and product together (the repo is still `CourseMapper`)?
+- [x] **Name.** Proposed: **Folio** (墨页); see "The name". Before the beta, run a trademark and domain check, then rename the repository (still `CourseMapper`) when the rebuild starts.
 - [ ] **Interface baseline.** Earlier releases were required to preserve the 0.18.7 interface. Does this redesign replace that requirement?
 - [ ] **Accounts.** Keep Firebase for sign-in and sync, or defer accounts entirely until after cutover?
 - [ ] **Chinese generation.** Is zh-CN required at Phase 1, or at cutover?
