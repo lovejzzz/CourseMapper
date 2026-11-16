@@ -613,6 +613,22 @@ export default function Landing({
         </div>
       </header>
 
+      <aside aria-label="EduTool service announcement" className="border-y border-blue-200 bg-blue-50 px-5 py-4 text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="font-semibold">EduTool has moved to Folio.</p>
+            <p className="mt-1 text-sm">
+              This site will close on <time dateTime="2027-02-13">February 13, 2027</time>.
+              Continue building your courses at{' '}
+              <a className="font-semibold underline underline-offset-2" href="https://folio.university/">folio.university</a>.
+            </p>
+          </div>
+          <a className="text-sm font-semibold underline underline-offset-2" href="https://www.youtube.com/watch?v=nvdMP4tHG0I">
+            Watch the Folio introduction on YouTube
+          </a>
+        </div>
+      </aside>
+
       <main className="flex flex-1 items-center justify-center px-5 py-10 sm:px-8">
         <div className="mx-auto flex w-full max-w-3xl flex-col">
           {/* v0.20.07: one question, one composer. The stepper, subtitle and
